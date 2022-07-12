@@ -1,6 +1,5 @@
 import { isChecksumValidIsbn10, isChecksumValidIsbn13 } from '../../../openlibrary/plugins/openlibrary/js/edit.js';
-import { identifierValidationFunc } from '../../../openlibrary/plugins/openlibrary/js/edit.js';
-// import isbnConfirmAdd from '../../../openlibrary/plugins/openlibrary/js/edit.js';
+import { validateIdentifiers } from '../../../openlibrary/plugins/openlibrary/js/edit.js';
 import jquery from 'jquery';
 import sinon from 'sinon';
 import * as testData from './html-test-data';
@@ -8,7 +7,6 @@ import { htmlquote } from '../../../openlibrary/plugins/openlibrary/js/jsdef';
 import jQueryRepeat from '../../../openlibrary/plugins/openlibrary/js/jquery.repeat';
 
 let sandbox;
-let mockSessionStorage = {}
 
 describe('isChecksumValidIsbn10', () => {
     it('returns true with valid ISBN 10 (X check character)', () => {
@@ -42,7 +40,7 @@ describe('isChecksumValidIsbn13', () => {
 
 /**
  * Test various patterns with the editions identifier parsing function,
- * identifierValidationFunc(), that initIdentifierValidation() calls when
+ * validateIdentifiers(), that initIdentifierValidation() calls when
  * attempting to add and validate a new ISBN to an edition.
  * These tests are meant to make sure that when adding ISBN 10 and ISBN 13:
  * - valid numbers are accepted;
@@ -55,16 +53,9 @@ describe('isChecksumValidIsbn13', () => {
  */
 
 // Adapted from jquery.repeat.test.js
-beforeAll(() => {
-    global.Storage.prototype.setItem = jest.fn((key, value) => {
-        mockSessionStorage[key] = value
-    })
-    global.Storage.prototype.getItem = jest.fn((key) => mockSessionStorage[key])
-})
 
 beforeEach(() => {
     // Clear session storage
-    mockSessionStorage = {};
     sandbox = sinon.createSandbox();
     global.$ = jquery;
     global.htmlquote = htmlquote;
@@ -77,14 +68,9 @@ beforeEach(() => {
     $(document.body).html(testData.editionIdentifiersSample);
     $('#identifiers').repeat({
         vars: {prefix: 'edition--'},
-        validate: function(data) {return identifierValidationFunc(data)},
+        validate: function(data) {return validateIdentifiers(data)},
     });
 });
-
-afterAll(() => {
-    global.Storage.prototype.setItem.mockReset()
-    global.Storage.prototype.getItem.mockReset()
-})
 
 // Per the test data used, and beforeEach(), the length always starts out at 5.
 describe('initIdentifierValidation', () => {
@@ -119,25 +105,6 @@ describe('initIdentifierValidation', () => {
         const errorDivText = $('#id-errors').text();
         const expected = 'Add it anyway?';
         expect(errorDivText).toEqual(expect.not.stringContaining(expected));
-    });
-
-    it('it allows a user to add a formally valid ISBN 10 with a failed check digit', () => {
-        $('#select-id').val('isbn_10');
-        $('#id-value').val('1212121212');
-        $('.repeat-add').trigger('click');
-        expect($('.repeat-item').length).toBe(5);
-        expect($('.repeat-add').length).toBe(2);
-        // Verify prompt text
-        const errorDivText = $('#id-errors').text();
-        const expected = 'Add it anyway?';
-        expect(errorDivText).toEqual(expect.stringContaining(expected));
-        expect($('#yes-add-isbn').length).toBe(1);
-        // The 'yes' and 'add' button both match $('.repeat-add')
-        $('.repeat-add')[0].click();
-        // Verify The ISBN is added and the error is gone
-        expect($('.repeat-item').length).toBe(6);
-        const cssDisplay = $('#id-errors').css('display');
-        expect(cssDisplay).toEqual('none')
     });
 
     it('clears the invalid ISBN 10 error prompt and does not add an ISBN if a user clicks no', () => {
@@ -203,25 +170,6 @@ describe('initIdentifierValidation', () => {
         const errorDivText = $('#id-errors').text();
         const expected = 'Add it anyway?';
         expect(errorDivText).toEqual(expect.not.stringContaining(expected));
-    });
-
-    it('it allows a user to add a formally valid ISBN 13 with a failed check digit', () => {
-        $('#select-id').val('isbn_13');
-        $('#id-value').val('1234567890123');
-        $('.repeat-add').trigger('click');
-        expect($('.repeat-item').length).toBe(5);
-        expect($('.repeat-add').length).toBe(2);
-        // Verify prompt text
-        const errorDivText = $('#id-errors').text();
-        const expected = 'Add it anyway?';
-        expect(errorDivText).toEqual(expect.stringContaining(expected));
-        expect($('#yes-add-isbn').length).toBe(1);
-        // The 'yes' and 'add' button both match $('.repeat-add')
-        $('.repeat-add')[0].click();
-        // Verify The ISBN is added and the error is gone
-        expect($('.repeat-item').length).toBe(6);
-        const cssDisplay = $('#id-errors').css('display');
-        expect(cssDisplay).toEqual('none')
     });
 
     it('clears the invalid ISBN 13 error prompt and does not add an ISBN if a user clicks no', () => {

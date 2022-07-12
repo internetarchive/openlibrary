@@ -1,4 +1,5 @@
 import Template from './template'
+import { isbnOverride } from '../../openlibrary/js/edit'
 
 /**
  * jquery repeat: jquery plugin to handle repetitive inputs in a form.
@@ -64,7 +65,7 @@ export default function($){
          */
         function onAdd(event) {
             var data, newid;
-            const sessionStorageData = sessionStorage.getItem('data');
+            const isbnOverrideData = isbnOverride.get();
             event.preventDefault();
 
             // if no index, set it to the number of children
@@ -73,11 +74,11 @@ export default function($){
             }
 
             // If a user confirms adding an ISBN with a failed checksum in
-            // js/edit.js, the {data} object is filled from sessionStorage rather
-            // than the input form.
-            if (sessionStorageData) {
-                data = JSON.parse(sessionStorageData);
-                sessionStorage.removeItem('data');
+            // js/edit.js, the {data} object is filled from the
+            // isbnOverrideData object rather than the input form.
+            if (isbnOverrideData) {
+                data = isbnOverrideData;
+                isbnOverride.clear();
             } else {
                 data = formdata();
                 data.index = nextRowId;

@@ -71,10 +71,10 @@ export function initRoleValidation() {
 }
 
 /**
- * isIsbnDedupe takes an isbn string and returns true if the given ISBN
- * is already added to this edition.
- * @param isbn - ISBN string duplication checking
- * @returns true if the given ISBN is already added to the edition
+ * Takes an isbn string and returns true if the given ISBN is already added
+ * to this edition.
+ * @param {String} isbn  ISBN string duplication checking
+ * @return {boolean}  true if the given ISBN is already added to the edition
  */
 function isIsbnDupe(isbn) {
     const isbnEntries = document.querySelectorAll('.isbn_10, .isbn_13');
@@ -82,26 +82,21 @@ function isIsbnDupe(isbn) {
 }
 
 /**
- * isFormatValidIsbn10 takes an isbn string and verifies that is the
- * correct length and has the correct characters for an ISBN. It does
- * not verify the checksum.
- * @param isbn - string
- * returns - true if the isbn has a valid format, and false otherwise.
+ * Takes an ISBN 10 string and verifies that is the correct length and has the
+ * correct characters for an ISBN. It does not verify the checksum.
+ * @param {String} isbn  ISBN string to check
+ * returns {boolean}  true if the isbn has a valid format
  */
 function isFormatValidIsbn10(isbn) {
     const regex = /^[0-9]{9}[0-9X]$/;
-    // Check ISBN format
-    if (regex.test(isbn) === true) {
-        return true;
-    }
-    return false
+    return regex.test(isbn);
 }
 
 /**
- * isChecksumValidIsbn10 checks the format and validation for ISBN 10.
+ * Verify the checksum for ISBN 10.
  * Adapted from https://www.oreilly.com/library/view/regular-expressions-cookbook/9781449327453/ch04s13.html
- * @param isbn - ISBN string for validating
- * @returns true if ISBN string is a valid ISBN 10
+ * @param {String} isbn  ISBN string for validating
+ * @returns {boolean}  true if ISBN string is a valid ISBN 10
  */
 export function isChecksumValidIsbn10(isbn) {
     const chars = isbn.split('');
@@ -126,34 +121,26 @@ export function isChecksumValidIsbn10(isbn) {
         check = 0;
     }
 
-    if (check === last) {
-        // Valid
-        return true
-    }
-
-    return false
+    // The ISBN 10 is valid if the check digit and last digit match.
+    return check === last;
 }
 
 /**
- * isFormatValidIsbn13 takes an isbn string and verifies that is the
- * correct length and has the correct characters for an ISBN. It does
- * not verify the checksum.
- * @param isbn - string
- * returns - true if the isbn has a valid format, and false otherwise.
+ * Takes an isbn string and verifies that is the correct length and has the
+ * correct characters for an ISBN. It does not verify the checksum.
+ * @param {String} isbn  ISBN string to check
+ * returns {boolean}  true if the isbn has a valid format
  */
 function isFormatValidIsbn13(isbn) {
     const regex = /^[0-9]{13}$/
-    if (regex.test(isbn) === true) {
-        return true;
-    }
-    return false
+    return regex.test(isbn)
 }
 
 /**
- * isChecksumValidIsbn13 checks the format and validation for ISBN 13.
+ * Verify the checksum for ISBN 13.
  * Adapted from https://www.oreilly.com/library/view/regular-expressions-cookbook/9781449327453/ch04s13.html
- * @param isbn - ISBN string for validating
- * @returns true if ISBN string is a valid ISBN 13
+ * @param {String} isbn  ISBN string for validating
+ * @returns {Boolean}  true if ISBN string is a valid ISBN 13
  */
 export function isChecksumValidIsbn13(isbn) {
     const chars = isbn.split('');
@@ -170,75 +157,71 @@ export function isChecksumValidIsbn13(isbn) {
         check = 0;
     }
 
-    if (check === last) {
-        // Valid
-        return true
-    }
-
-    return false
+    // The ISBN 13 is valid if the check digit and last digit match.
+    return check === last;
 }
 
 /**
- * parseIsbn removes spaces and hyphens from an ISBN string and returns it.
- * @param isbn - ISBN string for parsing
- * @returns string - parsed isbn string
+ * Removes spaces and hyphens from an ISBN string and returns it.
+ * @param {String} isbn  ISBN string for parsing
+ * @returns {String}  parsed isbn string
  */
 function parseIsbn(isbn) {
     return isbn.replace(/[ -]/g, '');
 }
 
 /**
- * isbnConfirmAdd displays a confirmation box in the error div to confirm the
- * addition of an ISBN with a valid form but which fails the checksum.
- * The sessionStorage is read by js/jquery.repeat.js when a user confirms they
- * wish to add the ISBN.
- * @param data - data from the input form, gathered via js/jquery.repeat.js
- * @param isbnConfirmString - a const with the HTML to create the confirmation message/buttons
+ * Exports an object to track the state of an ISBN that is formally valid, but
+ * has an invalid checksum and can only be added by a user specifically
+ * clicking "yes" to add the invalid ISBN.
+ * @property {Object} data - The default data
+ * @property {Function(object)} set - Sets the ISBN object
+ * @property {Function} get - returns the ISBN object
+ * @property {Function} clear - clears the ISBN object
+ */
+export const isbnOverride = {
+    data: null,
+    set(isbnData) { this.data = isbnData },
+    get() { return this.data },
+    clear() { this.data = null },
+}
+
+/**
+ * Displays a confirmation box in the error div to confirm the addition of an
+ * ISBN with a valid form but which fails the checksum.
+ * @param {Object} data  data from the input form, gathered via js/jquery.repeat.js
+ * @param {String} isbnConfirmString  a const with the HTML to create the confirmation message/buttons
  */
 export function isbnConfirmAdd(data, isbnConfirmString) {
     // Display the error and option to add the ISBN anyway.
     $('#id-errors').show().html(isbnConfirmString);
-    // $('id-value').trigger('focus');
-    // Handle clearing the error and removing sessionStorage as needed. Added ISBNs will have
-    // the sessionStorage cleared in js/jquery.repeat.js once its read there.
 
     const yesButtonSelector = '#yes-add-isbn'
     const noButtonSelector = '#do-not-add-isbn'
     const onYes = () => {$('#id-errors').hide()};
     const onNo = () => {
         $('#id-errors').hide();
-        sessionStorage.removeItem('data');
+        isbnOverride.clear();
     }
     $(document).on('click', yesButtonSelector, onYes);
     $(document).on('click', noButtonSelector, onNo);
 
-    // const yesButton = document.getElementById('yes-add-isbn')
-    // const noButton = document.getElementById('do-not-add-isbn')
-    // if (yesButton) {yesButton.addEventListener('click', () => {$('#id-errors').hide()})}
-    // if (noButton) {noButton.addEventListener('click', () => {
-    //     $('#id-errors').hide();
-    //     sessionStorage.removeItem('data');
-    // })}
-
-    // Save the data to sessionStorage so it can be picked up via onAdd in js/jquery.repeat.js when
-    // the user confirms adding the invalid ISBN.
-    sessionStorage.setItem('data', JSON.stringify(data));
+    // Save the data to isbnOverride so it can be picked up via onAdd in
+    // js/jquery.repeat.js when the user confirms adding the invalid ISBN.
+    isbnOverride.set(data)
     return false;
 }
 
 /**
- * identifierValidationFunc is called by initIdentifierValidation(), along with
- * tests in tests/unit/js/editEditionsPage.test.js, to validate the addition
- * of new ISBNs to an edition.
- * @params data - data from the input form
- * @returns true/false - true if ISBN passes validation, and false otherwise.
+ * Called by initIdentifierValidation(), along with tests in
+ * tests/unit/js/editEditionsPage.test.js, to validate the addition of new
+ * ISBNs to an edition.
+ * @params {Object} data  data from the input form
+ * @returns {boolean}  true if ISBN passes validation
  */
-export function identifierValidationFunc(data) {
+export function validateIdentifiers(data) {
     const dataConfig = JSON.parse(document.querySelector('#identifiers').dataset.config);
     const isbnConfirmString = `ISBN ${data.value} may be invalid. Add it anyway? <button class="repeat-add" id="yes-add-isbn" type="button">Yes</button>&nbsp;<button id="do-not-add-isbn" type="button">No</button>`;
-
-    // Ensure there is no stale session data.
-    if (sessionStorage.getItem('data')) {sessionStorage.removeItem('data')}
 
     if (data.name === '' || data.name === '---') {
         return error('#id-errors', 'select-id', dataConfig['Please select an identifier.'])
@@ -290,7 +273,7 @@ export function identifierValidationFunc(data) {
 export function initIdentifierValidation() {
     $('#identifiers').repeat({
         vars: {prefix: 'edition--'},
-        validate: function(data) {return identifierValidationFunc(data)},
+        validate: function(data) {return validateIdentifiers(data)},
     });
 }
 
