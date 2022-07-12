@@ -8,6 +8,7 @@ from openlibrary.i18n import gettext as _
 
 from . import db
 
+
 @public
 def get_status_for_view(status_code: int) -> str:
     """Returns localized status string that corresponds with the given status code."""
@@ -17,8 +18,6 @@ def get_status_for_view(status_code: int) -> str:
         return _('Pending')
     if status_code == CommunityEditsQueue.STATUS['MERGED']:
         return _('Merged')
-    if status_code == CommunityEditsQueue.STATUS['CLAIMED']:
-        return _('Claimed')
     return _('Unknown')
 
 class CommunityEditsQueue:
@@ -38,14 +37,12 @@ class CommunityEditsQueue:
         'DECLINED': 0,
         'PENDING': 1,
         'MERGED': 2,
-        'CLAIMED': 4,
     }
 
     MODES = {
-        'all': [STATUS['DECLINED'], STATUS['PENDING'], STATUS['MERGED'], STATUS['CLAIMED']],
+        'all': [STATUS['DECLINED'], STATUS['PENDING'], STATUS['MERGED']],
         'open': [STATUS['PENDING']],
         'closed': [STATUS['DECLINED'], STATUS['MERGED']],
-        'claimed': [STATUS['CLAIMED']],
     }
 
     @classmethod
@@ -54,13 +51,16 @@ class CommunityEditsQueue:
         wheres = []
         if kwargs.get("status"):
             wheres.append("status=$status")
-        if "reviewer" in kwargs:
-            wheres.append("reviewer='$reviewer'")
+        if kwargs.get('reviewer') is not None:
+            wheres.append(
+                "reviewer IS NULL" if not kwargs.get('reviewer')
+                else "reviewer=$reviewer"
+            )
         if "submitter" in kwargs:
-            if kwargs.get("submitter") is None:
-                wheres.append("submitter IS NOT NULL")
-            else:
-                wheres.append("submitter=$submitter")
+            wheres.append(
+                "submitter IS NOT NULL" if kwargs.get("submitter") is None
+                else "submitter=$submitter"
+            )
         if "url" in kwargs:
             wheres.append("url=$url")
         if "id" in kwargs:
@@ -163,13 +163,13 @@ class CommunityEditsQueue:
                 "community_edits_queue",
                 where="id=$rid",
                 reviewer=reviewer,
-                status = cls.STATUS['CLAIMED'],
+                status=cls.STATUS['PENDING'],
                 updated=datetime.datetime.utcnow(),
                 vars={"rid": rid}
             )
             return {
                 'reviewer': reviewer,
-                'newStatus': get_status_for_view(cls.STATUS['CLAIMED']),
+                'newStatus': get_status_for_view(cls.STATUS['PENDING']),
             }
         return {
             'status': 'error',

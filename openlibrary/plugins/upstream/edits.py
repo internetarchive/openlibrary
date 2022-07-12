@@ -64,21 +64,15 @@ class community_edits_queue(delegate.page):
                 return delegate.RawText(json.dumps(resp), content_type="application/json")
 
     def GET(self):
-        i = web.input(page=1, open='true', closed='false', claimed='false', submitter=None)
-
-        show_opened = i.open == 'true'
-        show_closed = i.closed == 'true'
-        show_claimed = i.claimed == 'true'
-
-        mode = 'all' if show_opened and show_closed and show_claimed else (
-            'claimed' if show_claimed else
-            'open' if show_opened and not show_closed else 'closed'
-        )
-
-        merge_requests = CommunityEditsQueue.get_requests(page=i.page, mode=mode, submitter=i.submitter, order='created').list()
+        i = web.input(page=1, mode="open", submitter=None, reviewer=None)
+        merge_requests = CommunityEditsQueue.get_requests(
+            page=i.page,
+            mode=i.mode,
+            submitter=i.submitter,
+            reviewer=i.reviewer,
+            order='created').list()
         enriched_requests = self.enrich(merge_requests)
-
-        return render_template('merge_queue/merge_queue', merge_requests=enriched_requests, submitter=i.submitter)
+        return render_template('merge_queue/merge_queue', merge_requests=enriched_requests)
 
     def enrich(self, merge_requests):
         results = []

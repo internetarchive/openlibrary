@@ -10,27 +10,38 @@
   table-layout: fixed;
   border-collapse: collapse;
   width: 100%;
-  box-shadow: 0 0 20px @boxshadow-black;
+
+  thead {
+    tr {
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
+      background: @lightest-grey;
+      border: 1px solid @lighter-grey;
+      font-size: .9em;
+    }
+  }
+
+  tbody {
+    tr {
+      background-color: @white;
+      border: 1px solid @lighter-grey;
+    }
+
+    tr:hover {
+      background: @off-white;
+    }
+  }
 
   td {
-    padding: 5px;
-    vertical-align: top;
+    padding: 0 15px;
   }
 
   th {
-    position: sticky;
-    top: 0;
-    vertical-align: top;
+    vertical-align: middle;
     text-align: left;
     padding: 5px;
     word-wrap: break-word;
     overflow-wrap: break-word;
-    background-color: @link-blue;
-    color: @white;
-
-    &.comments-header {
-      width: 50%;
-    }
 
     &.resolve-header {
       width: max-content;
@@ -43,7 +54,6 @@
 }
 
 .comment {
-  border: 1px solid @lightest-grey;
   background-color: @white;
   margin: 5px 0;
   padding: 5px;
@@ -58,27 +68,24 @@
   }
 
   &__username.owner {
-    color: @dark-red;
+    color: @red;
   }
 }
 
 .comment-cell {
+  border-radius: 5px;
+  padding: 5px;
+  margin: 5px;
+  background: @white;
+  border: @lighter-grey;
+  overflow-y: auto;
+  
   &__summary,
   &__description {
     display: flex;
     justify-content: space-between;
     padding: 2px 5px;
     margin-bottom: 5px;
-  }
-
-  &__summary {
-    background-color: @link-blue;
-    color: @white;
-    border-radius: 5px;
-
-    .book-title {
-      font-weight: bold;
-    }
   }
 
   &__input {
@@ -91,7 +98,7 @@
     }
 
     textarea {
-      border: 1px solid @lightest-grey;
+      border: 1px solid @lighter-grey;
       width: 100%;
     }
 
@@ -102,7 +109,63 @@
   }
 }
 
+.comment-cell__old-comments {
+  max-height: 100px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
 .mr-unassign {
   color: @red;
   cursor: pointer;
+}
+
+.mr-status {
+  &__0 {
+    box-shadow: 5px 0px 0px @red inset;
+  }
+  &__1 {
+    box-shadow: 5px 0px 0px @green inset;
+  }
+  &__2 {
+    box-shadow: 5px 0px 0px @light-grey inset;
+  }
+}
+
+.review-cell {
+  text-align: center;
+}
+
+.reviewer-filter {
+  position: absolute;
+  background: @white;
+  border-radius: 5px;
+  border: 1px solid @lighter-grey;
+  margin-top: 5px;
+  h4 {
+    padding: 0px 10px;
+    color: @grey;
+  }
+}
+
+ul.reviewer-filter-names {
+  max-height: 200px;
+  overflow-y: auto;
+
+  li {
+    padding: 5px 30px;
+    border-top: 1px solid @lighter-grey;
+    line-height: 2rem;
+    font-weight: bold;
+    a {
+        text-decoration: none;
+        font-size: .8125em;
+        color: @black;
+    }
+  }
+}
+
+.book-title {
+  font-size: 1.1em;
 }
