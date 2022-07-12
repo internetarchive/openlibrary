@@ -405,7 +405,9 @@ def clean_amazon_metadata_for_load(metadata: dict) -> dict:
     return conforming_metadata
 
 
-def create_edition_from_amazon_metadata(id_: str, id_type: str = 'isbn') -> Optional[str]:
+def create_edition_from_amazon_metadata(
+    id_: str, id_type: str = 'isbn'
+) -> Optional[str]:
     """Fetches Amazon metadata by id from Amazon Product Advertising API, attempts to
     create OL edition from metadata, and returns the resulting edition key `/key/OL..M`
     if successful or None otherwise.
