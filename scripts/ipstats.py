@@ -97,7 +97,7 @@ def main(config, start, end):
             count = count_unique_ips_for_day(current)
             store_data(dict(visitors=count), current)
         except IndexError as e:
-            print(e.message)
+            print(repr(e))
         current += timedelta(days=1)
 
 
