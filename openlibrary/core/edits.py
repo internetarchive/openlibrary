@@ -57,8 +57,6 @@ class CommunityEditsQueue:
     ):
         oldb = db.get_db()
         wheres = []
-        if kwargs.get("status"):
-            wheres.append("status=$status")
         if kwargs.get('reviewer') is not None:
             wheres.append(
                 # if reviewer="" then get all unassigned MRs
@@ -77,8 +75,6 @@ class CommunityEditsQueue:
             wheres.append("url=$url")
         if "id" in kwargs:
             wheres.append("id=$id")
-        if "status" in kwargs:
-            wheres.append("status=$status")
 
         statuses = cls.MODES[mode]
 
@@ -97,10 +93,10 @@ class CommunityEditsQueue:
             query_kwargs['where'] = f'{" AND ".join(wheres)}'
         if status_wheres:
             status_query = f'({" OR ".join(status_wheres)})'
-            if wheres:
-                query_kwargs['where'] = status_query
-            else:
+            if query_kwargs.get('where', ''):
                 query_kwargs['where'] = f'{query_kwargs["where"]} AND {status_query}'
+            else:
+                query_kwargs['where'] = status_query
         if order:
             query_kwargs['order'] = order
         return oldb.select("community_edits_queue", **query_kwargs)
