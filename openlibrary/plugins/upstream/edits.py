@@ -86,26 +86,17 @@ class community_edits_queue(delegate.page):
                 )
 
     def GET(self):
-        i = web.input(page=1, open='true', closed='false', submitter=None)
-
-        show_opened = i.open == 'true'
-        show_closed = i.closed == 'true'
-
-        mode = (
-            'open'
-            if show_opened and not show_closed
-            else ('closed' if not show_opened and show_closed else 'all')
-        )
-
+        i = web.input(page=1, mode="open", submitter=None, reviewer=None)
         merge_requests = CommunityEditsQueue.get_requests(
-            page=i.page, mode=mode, submitter=i.submitter, order='created'
+            page=i.page,
+            mode=i.mode,
+            submitter=i.submitter,
+            reviewer=i.reviewer,
+            order='created',
         ).list()
         enriched_requests = self.enrich(merge_requests)
-
         return render_template(
-            'merge_queue/merge_queue',
-            merge_requests=enriched_requests,
-            submitter=i.submitter,
+            'merge_queue/merge_queue', merge_requests=enriched_requests
         )
 
     def enrich(self, merge_requests):
