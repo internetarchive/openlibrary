@@ -92,9 +92,12 @@ class community_edits_queue(delegate.page):
             mode=i.mode,
             submitter=i.submitter,
             reviewer=i.reviewer,
-            order='created').list()
+            order='created',
+        ).list()
         enriched_requests = self.enrich(merge_requests)
-        return render_template('merge_queue/merge_queue', merge_requests=enriched_requests)
+        return render_template(
+            'merge_queue/merge_queue', merge_requests=enriched_requests
+        )
 
     def enrich(self, merge_requests):
         results = []

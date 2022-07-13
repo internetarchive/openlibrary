@@ -62,13 +62,15 @@ class CommunityEditsQueue:
         if kwargs.get('reviewer') is not None:
             wheres.append(
                 # if reviewer="" then get all unassigned MRs
-                "reviewer IS NULL" if not kwargs.get('reviewer')
+                "reviewer IS NULL"
+                if not kwargs.get('reviewer')
                 else "reviewer=$reviewer"
             )
         if "submitter" in kwargs:
             wheres.append(
                 # If submitter not specified, default to any
-                "submitter IS NOT NULL" if kwargs.get("submitter") is None
+                "submitter IS NOT NULL"
+                if kwargs.get("submitter") is None
                 else "submitter=$submitter"
             )
         if "url" in kwargs:
