@@ -1,10 +1,11 @@
-$def with(merge_requests=None, submitter=None)
+$def with(merge_requests=None)
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ can_merge = ctx.user and (ctx.user.is_usergroup_member('/usergroup/librarian-work-merge'))
 
-$ show_open = query_param('open', True) in [True, 'true']
-$ show_closed = query_param('closed', False) in [True, 'true']
+$ reviewer = query_param('reviewer', None)
+$ submitter = query_param('submitter', None)
+$ mode = query_param('mode', 'open')
 
 $if submitter:
   $ desc = _("Showing %(username)s's requests only.", username=submitter)
@@ -23,13 +24,18 @@ $else:
   </div>
 
   <ul class="nav-bar">
-    <li class="$('selected' if show_open and not show_closed else '')"><a href="/merges$('?submitter=%s' % submitter if submitter else '')">$_('Open')</a></li>
-    <li class="$('selected' if show_closed and not show_open else '')"><a href="/merges?closed=true&open=false$('&submitter=%s' % submitter if submitter else '')">$_('Closed')</a></li>
-    <li class="$('selected' if show_open and show_closed else '')"><a href="/merges?closed=true$('&submitter=%s' % submitter if submitter else '')">$_('All')</a></li>
+    <li class="$(mode=='open' and 'selected' or '')">
+      <a href="$changequery(mode='open')">$_('Open')</a>
+    </li>
+    <li class="$(mode=='closed' and 'selected' or '')">
+      <a href="$changequery(mode='closed')">$_('Closed')</a>
+    </li>
+    <li class="$(mode=='all' and 'selected' or '')">
+      <a href="$changequery(mode='all')">$_('All')</a>
+    </li>
   </ul>
 
   <div class="table-wrapper">
-    $if merge_requests:
       <table class="mr-table">
         <thead>
           <tr>
@@ -43,8 +49,9 @@ $else:
         <tbody>
         $for r in merge_requests:
           $ work_title = r.get('title', 'an untitled work')
-          $ comments = r['comments']
+          $ comments = r.get('comments', [])
           $ status = get_status_for_view(r['status'])
+          $ is_open = r['status'] == 1
           $ url = "%s&mrid=%s" % (r['url'], r['id'])
           $ is_submitter = username == r['submitter']
           <tr id="mrid-$(r['id'])">
@@ -80,24 +87,22 @@ $else:
                 </div>
             </td>
             <td id="reviewer-cell-$(r['id'])">
-              $# Allow unassigning self if status is "Pending" or "Claimed" (status codes 1 and 4, respectively)
-              $if r['reviewer'] and r['reviewer'] == username and (r['status'] in [1, 4]):
+              $if can_merge and is_open and r.get('reviewer') == username:
                 $r['reviewer'] <span class="mr-unassign" data-mrid="$r['id']">&times;</span>
-              $else:
+              $elif r.get('reviewer'):
                 $r['reviewer']
             </td>
             <td>
-              $# Status code 1 is "Pending"; 4 is "Claimed"
-              $if r['status'] in [1, 4]:
-                $if can_merge and (r['reviewer'] == None or r['reviewer'] == username):
+              $if can_merge and is_open:
+                $if (not r.get('reviewer') or r.get('reviewer') == username):
                   <a class="mr-resolve-link" data-mrid="$r['id']" href="$url" target="_blank">$_('Merge')</a>
                 $elif is_submitter:
                   <a class="mr-close-link" data-mrid="$r['id']" href="javascript:;">$_('Close')</a>
             </td>
           </tr>
+          $if not merge_requests:
+            <p>$_('No entries here!')</p>
         </tbody>
       </table>
-    $else:
-      <p>$_('No entries here!')</p>
   </div>
 </div>
