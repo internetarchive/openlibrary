@@ -282,3 +282,16 @@ class CommunityEditsQueue:
             "message": message,
             # XXX It may be easier to update these comments if they had IDs
         }
+
+    @classmethod
+    def get_counts_by_mode(cls, mode):
+        oldb = db.get_db()
+
+        where_clause = ''
+
+        if mode != 'all':
+            status_list = [f'status={status}' for status in cls.MODES[mode]]
+            where_clause = f'WHERE {" OR ".join(status_list)}'
+
+        query = f"SELECT count(*) from community_edits_queue {where_clause}"
+        return oldb.query(query)[0]['count']

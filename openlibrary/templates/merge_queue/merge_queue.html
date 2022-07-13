@@ -1,4 +1,7 @@
-$def with(merge_requests=None)
+$def with(total, merge_requests=None)
+
+$# total : int : The total number of merge requests found for the current mode
+$# merge_requests : list : Merge requests to be displayed in the table
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ can_merge = ctx.user and (ctx.user.is_usergroup_member('/usergroup/librarian-work-merge'))
@@ -104,5 +107,9 @@ $else:
             <p>$_('No entries here!')</p>
         </tbody>
       </table>
+  </div>
+  $ page = int(input(page=1).page)
+  <div class="pager">
+    $:macros.Pager(page, total, results_per_page=25)
   </div>
 </div>
