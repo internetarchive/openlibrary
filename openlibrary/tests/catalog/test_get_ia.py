@@ -67,7 +67,6 @@ class TestGetIA:
         'abhandlungender01ggoog',
         'bijouorannualofl1828cole',
         'dasrmischepriv00rein',
-        'diebrokeradical400poll',
         'engineercorpsofh00sher',
         'flatlandromanceo00abbouoft',
         'lesabndioeinas00sche',
