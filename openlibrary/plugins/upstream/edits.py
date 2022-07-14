@@ -96,7 +96,9 @@ class community_edits_queue(delegate.page):
             order='created',
         ).list()
         enriched_requests = self.enrich(merge_requests)
-        total_found = CommunityEditsQueue.get_counts_by_mode(mode=i.mode)
+        total_found = CommunityEditsQueue.get_counts_by_mode(
+            mode=i.mode, submitter=i.submitter, reviewer=i.reviewer
+        )
         return render_template(
             'merge_queue/merge_queue',
             total_found,
