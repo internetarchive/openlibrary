@@ -20,7 +20,6 @@ from openlibrary.plugins.worksearch import subjects
 from openlibrary.coverstore.code import render_list_preview_image
 
 
-
 class lists_home(delegate.page):
     path = "/lists"
 
@@ -175,7 +174,7 @@ class lists_json(delegate.page):
             )
         except client.ClientException as e:
             headers = {"Content-Type": self.get_content_type()}
-            data = {"message": e.message}
+            data = {"message": str(e)}
             raise web.HTTPError(e.status, data=self.dumps(data), headers=headers)
 
         web.header("Content-Type", self.get_content_type())
@@ -427,7 +426,7 @@ class list_subjects_json(delegate.page):
 
 
 # This class is defined twice in this file. Should this be list_subjects_yaml() ?
-class list_editions_yaml(list_subjects_json):    # type: ignore[no-redef]
+class list_editions_yaml(list_subjects_json):  # type: ignore[no-redef]
     encoding = "yml"
     content_type = 'text/yaml; charset="utf-8"'
 
@@ -454,12 +453,22 @@ class export(delegate.page):
 
         if format == "html":
             data = self.get_exports(lst)
-            html = render_template("lists/export_as_html", lst, data["editions"], data["works"], data["authors"])
+            html = render_template(
+                "lists/export_as_html",
+                lst,
+                data["editions"],
+                data["works"],
+                data["authors"],
+            )
             return delegate.RawText(html)
         elif format == "bibtex":
             data = self.get_exports(lst)
             html = render_template(
-                "lists/export_as_bibtex", lst, data["editions"], data["works"], data["authors"]
+                "lists/export_as_bibtex",
+                lst,
+                data["editions"],
+                data["works"],
+                data["authors"],
             )
             return delegate.RawText(html)
         elif format == "json":
@@ -496,7 +505,9 @@ class export(delegate.page):
 
         if not raw:
             if "editions" in export_data:
-                export_data["editions"] = [self.make_doc(e) for e in export_data["editions"]]
+                export_data["editions"] = [
+                    self.make_doc(e) for e in export_data["editions"]
+                ]
                 lst.preload_authors(export_data["editions"])
             else:
                 export_data["editions"] = []
@@ -506,7 +517,9 @@ class export(delegate.page):
             else:
                 export_data["works"] = []
             if "authors" in export_data:
-                export_data["authors"] = [self.make_doc(e) for e in export_data["authors"]]
+                export_data["authors"] = [
+                    self.make_doc(e) for e in export_data["authors"]
+                ]
                 lst.preload_authors(export_data["authors"])
             else:
                 export_data["authors"] = []

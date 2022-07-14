@@ -332,17 +332,29 @@ class Account(web.storage):
     def anonymize(self, test=False):
         # Generate new unique username for patron:
         # Note: Cannot test get_activation_link() locally
-        uuid = self.get_activation_link()['code'] if self.get_activation_link() else generate_uuid()
+        uuid = (
+            self.get_activation_link()['code']
+            if self.get_activation_link()
+            else generate_uuid()
+        )
         new_username = f'anonymous-{uuid}'
         results = {'new_username': new_username}
 
         # Delete all of the patron's book notes:
-        results['booknotes_count'] = Booknotes.delete_all_by_username(self.username, _test=test)
+        results['booknotes_count'] = Booknotes.delete_all_by_username(
+            self.username, _test=test
+        )
 
         # Anonymize patron's username in OL DB tables:
-        results['ratings_count'] = Ratings.update_username(self.username, new_username, _test=test)
-        results['observations_count'] = Observations.update_username(self.username, new_username, _test=test)
-        results['bookshelves_count'] = Bookshelves.update_username(self.username, new_username, _test=test)
+        results['ratings_count'] = Ratings.update_username(
+            self.username, new_username, _test=test
+        )
+        results['observations_count'] = Observations.update_username(
+            self.username, new_username, _test=test
+        )
+        results['bookshelves_count'] = Bookshelves.update_username(
+            self.username, new_username, _test=test
+        )
 
         if not test:
             patron = self.get_user()
@@ -354,10 +366,7 @@ class Account(web.storage):
                 grp.remove_user(patron.key)
 
             # Set preferences to default:
-            patron.save_preferences({
-                'updates': 'no',
-                'public_readlog': 'no'
-            })
+            patron.save_preferences({'updates': 'no', 'public_readlog': 'no'})
 
             # Clear patron's profile page:
             data = {'key': patron.key, 'type': '/type/delete'}
@@ -718,7 +727,7 @@ class InternetArchiveAccount(web.storage):
         except requests.HTTPError as e:
             return {'error': e.response.text, 'code': e.response.status_code}
         except JSONDecodeError as e:
-            return {'error': e.message, 'code': response.status_code}
+            return {'error': str(e), 'code': response.status_code}
 
     @classmethod
     def get(
