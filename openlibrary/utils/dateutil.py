@@ -1,8 +1,11 @@
 """Generic date utilities.
 """
 
-import datetime
 import calendar
+import datetime
+from contextlib import contextmanager
+from sys import stderr
+from time import perf_counter
 
 
 MINUTE_SECS = 60
@@ -95,3 +98,20 @@ def _resize_list(x, size):
     """Increase the size of the list x to the specified size it is smaller."""
     if len(x) < size:
         x += [None] * (size - len(x))
+
+
+@contextmanager
+def elapsed_time(name="elapsed_time"):
+    """
+    Two ways to use elapsed_time():
+    1. As a decorator to time the execution of an entire function:
+        @elapsed_time("my_slow_function")
+        def my_slow_function(n=10_000_000):
+            pass
+    2. As a context manager to time the execution of a block of code inside a function:
+        with elapsed_time("my_slow_block_of_code"):
+            pass
+    """
+    start = perf_counter()
+    yield
+    print(f"Elapsed time ({name}): {perf_counter() - start:0.8} seconds", file=stderr)
