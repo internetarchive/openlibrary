@@ -367,8 +367,7 @@ class account_login(delegate.page):
     def GET(self):
         referer = web.ctx.env.get('HTTP_REFERER', '')
         # Don't set referer if request is from offsite
-        if ('openlibrary.org' not in referer
-            or referer.endswith('openlibrary.org/')):
+        if 'openlibrary.org' not in referer or referer.endswith('openlibrary.org/'):
             referer = None
         i = web.input(redirect=referer)
         f = forms.Login()
@@ -906,7 +905,7 @@ class export_books(delegate.page):
             return {
                 "work_id": f"OL{booknote['work_id']}W",
                 "edition_id": f"OL{booknote['edition_id']}M",
-                "note":  f'"{escaped_note}"',
+                "note": f'"{escaped_note}"',
                 "created_on": booknote['created'].strftime(self.date_format),
             }
 
@@ -931,20 +930,26 @@ class export_books(delegate.page):
         for list in lists:
             list_id = list.key.split('/')[-1]
             created_on = list.created.strftime(self.date_format)
-            last_updated = list.last_modified.strftime(self.date_format) if list.last_modified else ''
+            last_updated = (
+                list.last_modified.strftime(self.date_format)
+                if list.last_modified
+                else ''
+            )
             for seed in list.seeds:
                 entry = seed
                 if not isinstance(seed, str):
                     entry = seed.key
                 list_name = list.name.replace('"', '""') if list.name else ''
-                list_desc = list.description.replace('"', '""') if list.description else ''
+                list_desc = (
+                    list.description.replace('"', '""') if list.description else ''
+                )
                 row = [
                     list_id,
                     f'"{list_name}"',
                     f'"{list_desc}"',
                     entry,
                     created_on,
-                    last_updated
+                    last_updated,
                 ]
                 csv.append(','.join(row))
 
@@ -995,6 +1000,7 @@ class account_waitlist(delegate.page):
 
     def GET(self):
         raise web.seeother("/account/loans")
+
 
 # Disabling be cause it prevents account_my_books_redirect from working
 # for some reason. The purpose of this class is to not show the "Create" link for
