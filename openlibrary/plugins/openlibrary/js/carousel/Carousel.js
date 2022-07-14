@@ -109,8 +109,8 @@ const Carousel = {
             }
 
 
-            const default_cover_url = `https://openlibrary.org/images/icons/avatar_book-lg.png`;
-            var cover_url = cover.id ? `//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg?default=${default_cover_url}` : default_cover_url
+            const default_cover_url = 'https://openlibrary.org/images/icons/avatar_book-lg.png';
+            const cover_url = cover.id ? `//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg?default=${default_cover_url}` : default_cover_url
 
             const $el = $(`
                 <div class="book carousel__item">
