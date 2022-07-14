@@ -1,9 +1,10 @@
-from typing import Any
-from collections.abc import Callable, Iterable, Mapping
-import web
 import logging
 import json
 import re
+from typing import Any, Callable
+from collections.abc import Iterable, Mapping
+
+import web
 
 from infogami.utils import delegate
 from infogami import config
@@ -13,9 +14,7 @@ from infogami.utils.view import (
     render_template,
     add_flash_message,
 )
-
 from infogami.infobase.client import ClientException
-from infogami.utils.context import context
 import infogami.core.code as core
 
 from openlibrary import accounts
@@ -36,8 +35,6 @@ from openlibrary.accounts import (
     valid_email,
 )
 from openlibrary.plugins.upstream import borrow, forms, utils
-
-import urllib
 
 
 logger = logging.getLogger("openlibrary.account")
@@ -758,7 +755,7 @@ class account_my_books(delegate.page):
     def GET(self):
         user = accounts.get_current_user()
         username = user.key.split('/')[-1]
-        raise web.seeother('/people/%s/books' % (username))
+        raise web.seeother(f'/people/{username}/books')
 
 
 # This would be by the civi backend which would require the api keys
@@ -885,19 +882,49 @@ class export_books(delegate.page):
         web.header('Content-disposition', f'attachment; filename={filename}')
         return delegate.RawText('' or data, content_type="text/csv")
 
-    def generate_reading_log(self, username):
-        books = Bookshelves.get_users_logged_books(username, limit=10000)
-        csv = []
-        csv.append('Work Id,Edition Id,Bookshelf\n')
-        mapping = {1: 'Want to Read', 2: 'Currently Reading', 3: 'Already Read'}
-        for book in books:
-            row = [
-                'OL{}W'.format(book['work_id']),
-                'OL{}M'.format(book['edition_id']) if book['edition_id'] else '',
-                '{}\n'.format(mapping[book['bookshelf_id']]),
-            ]
-            csv.append(','.join(row))
-        return ''.join(csv)
+    def generate_reading_log(self, username: str) -> str:
+        from openlibrary.plugins.upstream.models import Work  # Avoid a circular import
+
+        bookshelf_map = {1: 'Want to Read', 2: 'Currently Reading', 3: 'Already Read'}
+
+        def get_subjects(work: Work, subject_type: str) -> str:
+            return " | ".join(
+                s.title.replace(",", ";") for s in work.get_subject_links(subject_type)
+            )
+
+        def format_reading_log(book: dict) -> dict:
+            """
+            Adding, deleting, renaming, or reordering the fields of the dict returned
+            below will automatically be reflected in the CSV that is generated.
+            """
+            work_key = f"/works/OL{book['work_id']}W"
+            work: Work = web.ctx.site.get(work_key)
+            if not work:
+                raise ValueError(f"No Work found for {work_key}.")
+            if edition_id := book.get("edition_id") or "":
+                edition_id = f"OL{edition_id}M"
+            ratings = work.get_rating_stats() or {"average": "", "count": ""}
+            ratings_average, ratings_count = ratings.values()
+            return {
+                "work_id": work_key.split("/")[-1],
+                "title": work.title,
+                "authors": " | ".join(work.get_author_names()),
+                "first_publish_year": work.first_publish_year,
+                "edition_id": edition_id,
+                "edition_count": work.edition_count,
+                "bookshelf": bookshelf_map[work.get_users_read_status(username)],
+                "my_ratings": work.get_users_rating(username) or "",
+                "ratings_average": ratings_average,
+                "ratings_count": ratings_count,
+                "has_ebook": work.has_ebook(),
+                "subjects": get_subjects(work=work, subject_type="subject"),
+                "subject_people": get_subjects(work=work, subject_type="person"),
+                "subject_places": get_subjects(work=work, subject_type="place"),
+                "subject_times": get_subjects(work=work, subject_type="time"),
+            }
+
+        books = Bookshelves.iterate_users_logged_books(username)
+        return csv_string(books, format_reading_log)
 
     def generate_book_notes(self, username: str) -> str:
         def format_booknote(booknote: Mapping) -> dict:
@@ -930,19 +957,14 @@ class export_books(delegate.page):
         for list in lists:
             list_id = list.key.split('/')[-1]
             created_on = list.created.strftime(self.date_format)
-            last_updated = (
-                list.last_modified.strftime(self.date_format)
-                if list.last_modified
-                else ''
-            )
+            if last_updated := list.last_modified or "":
+                last_updated = last_updated.strftime(self.date_format)
             for seed in list.seeds:
                 entry = seed
                 if not isinstance(seed, str):
                     entry = seed.key
-                list_name = list.name.replace('"', '""') if list.name else ''
-                list_desc = (
-                    list.description.replace('"', '""') if list.description else ''
-                )
+                list_name = (list.name or '').replace('"', '""')
+                list_desc = (list.description or '').replace('"', '""')
                 row = [
                     list_id,
                     f'"{list_name}"',
@@ -1013,7 +1035,7 @@ class account_waitlist(delegate.page):
 
 
 def send_forgot_password_email(username, email):
-    key = "account/%s/password" % username
+    key = f"account/{username}/password"
 
     doc = create_link_doc(key, username, email)
     web.ctx.site.store[key] = doc
