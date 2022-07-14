@@ -99,7 +99,9 @@ $elif availability.get('is_lendable'):
       $ wlsize = availability.get('users_on_waitlist') or availability.get('num_waitlist')
       <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
         <input type="hidden" name="action" value="join-waitinglist"/>
-        <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="$_('Join Waitlist')"/>
+        <div class="cta-button-group">
+          <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="$_('Join Waitlist')"/>
+        </div>
       </form>
       $if secondary_action:
         <p class="waitinglist-message">
