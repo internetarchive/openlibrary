@@ -56,9 +56,34 @@ class CommunityEditsQueue:
         **kwargs,
     ):
         oldb = db.get_db()
+
+        query_kwargs = {
+            "limit": limit,
+            "offset": limit * (page - 1),
+            "vars": {**kwargs},
+        }
+
+        query_kwargs['where'] = cls.where_clause(mode, **kwargs)
+
+        if order:
+            query_kwargs['order'] = order
+        return oldb.select("community_edits_queue", **query_kwargs)
+
+    @classmethod
+    def get_counts_by_mode(cls, mode='all', **kwargs):
+        oldb = db.get_db()
+
+        query = 'SELECT count(*) from community_edits_queue'
+
+        where_clause = cls.where_clause(mode, **kwargs)
+        if where_clause:
+            query = f'{query} WHERE {where_clause}'
+        return oldb.query(query, vars=kwargs)[0]['count']
+
+    @classmethod
+    def where_clause(cls, mode, **kwargs):
         wheres = []
-        if kwargs.get("status"):
-            wheres.append("status=$status")
+
         if kwargs.get('reviewer') is not None:
             wheres.append(
                 # if reviewer="" then get all unassigned MRs
@@ -77,33 +102,23 @@ class CommunityEditsQueue:
             wheres.append("url=$url")
         if "id" in kwargs:
             wheres.append("id=$id")
-        if "status" in kwargs:
-            wheres.append("status=$status")
 
-        statuses = cls.MODES[mode]
+        status_list = (
+            [f'status={status}' for status in cls.MODES[mode]] if mode != 'all' else []
+        )
 
-        data = {}
-        if mode != 'all':  # No need to add every status to the WHERE clause
-            data = {f'status_{i}': status for i, status in enumerate(statuses)}
-
-        status_wheres = [f'status=${status}' for status in data]
-        query_kwargs = {
-            "limit": limit,
-            "offset": limit * (page - 1),
-            "vars": {**kwargs, **data},
-        }
+        where_clause = ''
 
         if wheres:
-            query_kwargs['where'] = f'{" AND ".join(wheres)}'
-        if status_wheres:
-            status_query = f'({" OR ".join(status_wheres)})'
-            if wheres:
-                query_kwargs['where'] = status_query
+            where_clause = f'{" AND ".join(wheres)}'
+        if status_list:
+            status_query = f'({" OR ".join(status_list)})'
+            if where_clause:
+                where_clause = f'{where_clause} AND {status_query}'
             else:
-                query_kwargs['where'] = f'{query_kwargs["where"]} AND {status_query}'
-        if order:
-            query_kwargs['order'] = order
-        return oldb.select("community_edits_queue", **query_kwargs)
+                where_clause = status_query
+
+        return where_clause
 
     @classmethod
     def submit_work_merge_request(
