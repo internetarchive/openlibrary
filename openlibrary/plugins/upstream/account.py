@@ -1,7 +1,8 @@
 import logging
 import json
 import re
-from typing import Any, Callable, Iterable, Mapping
+from typing import Any, Callable
+from collections.abc import Iterable, Mapping
 
 import web
 
@@ -988,6 +989,7 @@ class export_books(delegate.page):
             }
 
         return csv_string(Ratings.select_all_by_username(username), format_rating)
+
 
 class account_loans(delegate.page):
     path = "/account/loans"

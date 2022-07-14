@@ -1,6 +1,7 @@
 import logging
 from datetime import date
-from typing import Iterable, Literal, Optional, cast
+from typing import Literal, Optional, cast
+from collections.abc import Iterable
 
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
@@ -227,11 +228,7 @@ class Bookshelves(db.CommonExtras):
         LIMIT = 100  # Is there an ideal block size?!?
 
         def get_a_block_of_books() -> list:
-            data = {
-                "username": username,
-                "limit": LIMIT,
-                "offset": LIMIT * block
-            }
+            data = {"username": username, "limit": LIMIT, "offset": LIMIT * block}
             query = (
                 "SELECT * from bookshelves_books WHERE username=$username "
                 "ORDER BY created DESC LIMIT $limit OFFSET $offset"
