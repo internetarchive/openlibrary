@@ -4,25 +4,25 @@ $ total_reviews = reader_observations.get('total_respondents', '')
 
 <ul class="work-menu sticky">
   <li class="selected">
-    <a href="#edition-overview">$_("Overview")</a>
+    <a href="#edition-overview" data-ol-link-track="BookPageNav|Overview">$_("Overview")</a>
   </li>
   <li>
-    <a href="#editions-list">
+    <a href="#editions-list" data-ol-link-track="BookPageNav|EditionTable">
       $ungettext('View %(count)s Edition', 'View %(count)s Editions', edition_count, count=edition_count)
     </a>
   </li>
   <li>
-    <a href="#details">$_("Details")</a>
+    <a href="#details" data-ol-link-track="BookPageNav|Details">$_("Details")</a>
   </li>
   <li>
-    <a href="#reader-observations">
+    <a href="#reader-observations" data-ol-link-track="BookPageNav|Reviews">
       $ungettext('%(reviews)s Review', '%(reviews)s Reviews', total_reviews, reviews=total_reviews)
     </a>
   </li>
   <li>
-    <a href="#lists-section">$_("Lists")</a>
+    <a href="#lists-section" data-ol-link-track="BookPageNav|Lists">$_("Lists")</a>
   </li>
   <li>
-    <a href="#related-work-carousel">$_("Related Books")</a>
+    <a href="#related-work-carousel" data-ol-link-track="BookPageNav|RelatedBooks">$_("Related Books")</a>
   </li>
 </ul>
