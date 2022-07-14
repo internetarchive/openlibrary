@@ -3,6 +3,7 @@ $# @typedef {Object} DropdownLink
 $# @property {string} text of link
 $# @property {string|null} href of link for HTTP get request
 $# @property {string|null} post when set will be used instead of href and should use HTTP POST request.
+$# @property {string|null} `track` for google analytics
 $#
 $# @param {Object} props template properties
 $# @param {string} props.name unique identifying name for dropdown and distinguishing it from other dropdowns
@@ -33,6 +34,7 @@ $# @param {DropdownLink[]} props.links
       >
         <ul class="dropdown-menu $(props['name'])-dropdown-menu">
           $for link in props['links']:
+            $ tracker = link.get('track') and 'data-ol-link-track="%s"' % link.get('track') or ''
             $if 'subsection' in link:
               <li class="subsection">
                 $(link['subsection'])
@@ -46,10 +48,10 @@ $# @param {DropdownLink[]} props.links
               <li>
               $if 'post' in link:
                 <form action="$(link['post'])" method="post">
-                  <button>$(link["text"])</button>
+                  <button $(tracker)>$(link["text"])</button>
                 </form>
               $else:
-                <a href="$(link['href'])">
+                <a href="$(link['href'])" $(tracker)>
                   $if 'new' in link and props['name'] == 'hamburger':
                     <span>$(link['text'])</span><span class="app-drawer__badge">$_('New!')</span>
                   $else:
