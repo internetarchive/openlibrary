@@ -108,11 +108,15 @@ const Carousel = {
                 cover.id = ocaid;
             }
 
+
+            const default_cover_url = `https://openlibrary.org/images/icons/avatar_book-lg.png`;
+            var cover_url = cover.id ? `//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg?default=${default_cover_url}` : default_cover_url
+
             const $el = $(`
                 <div class="book carousel__item">
                     <div class="book-cover">
                         <a href="${work.key}">
-                            <img class="bookcover" src="//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg">
+                            <img class="bookcover" src=${cover_url}>
                         </a>
                     </div>
                     <div class="book-cta">
