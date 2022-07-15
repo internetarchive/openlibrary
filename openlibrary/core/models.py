@@ -35,6 +35,7 @@ from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_u
 
 logger = logging.getLogger("openlibrary.core")
 
+
 def _get_ol_base_url():
     # Anand Oct 2013
     # Looks like the default value when called from script
@@ -598,19 +599,18 @@ class Work(Thing):
         return redirect_chain
 
     @classmethod
-    def resolve_redirect_chain(cls, work_key: str, test: bool = False) -> dict[str, Any]:
+    def resolve_redirect_chain(
+        cls, work_key: str, test: bool = False
+    ) -> dict[str, Any]:
         summary: dict[str, Any] = {
             'key': work_key,
             'redirect_chain': [],
-            'resolved_key': None
+            'resolved_key': None,
         }
         redirect_chain = cls.get_redirect_chain(work_key)
         summary['redirect_chain'] = [
-            {
-                "key": thing.key,
-                "occurrences": {},
-                "updates": {}
-            } for thing in redirect_chain
+            {"key": thing.key, "occurrences": {}, "updates": {}}
+            for thing in redirect_chain
         ]
         summary['resolved_key'] = redirect_chain[-1].key
 
@@ -619,22 +619,18 @@ class Work(Thing):
             new_olid = summary['resolved_key'].split('/')[-1][2:-1]
 
             # count reading log entries
-            r['occurrences']['readinglog'] = len(
-                Bookshelves.get_works_shelves(olid))
-            r['occurrences']['ratings'] = len(
-                Ratings.get_all_works_ratings(olid))
-            r['occurrences']['booknotes'] = len(
-                Booknotes.get_booknotes_for_work(olid))
+            r['occurrences']['readinglog'] = len(Bookshelves.get_works_shelves(olid))
+            r['occurrences']['ratings'] = len(Ratings.get_all_works_ratings(olid))
+            r['occurrences']['booknotes'] = len(Booknotes.get_booknotes_for_work(olid))
             r['occurrences']['observations'] = len(
-                Observations.get_observations_for_work(olid))
+                Observations.get_observations_for_work(olid)
+            )
 
             # track updates
             r['updates']['readinglog'] = Bookshelves.update_work_id(
                 olid, new_olid, _test=test
             )
-            r['updates']['ratings'] = Ratings.update_work_id(
-                olid, new_olid, _test=test
-            )
+            r['updates']['ratings'] = Ratings.update_work_id(olid, new_olid, _test=test)
             r['updates']['booknotes'] = Booknotes.update_work_id(
                 olid, new_olid, _test=test
             )
@@ -645,13 +641,13 @@ class Work(Thing):
 
     @classmethod
     def resolve_redirects_bulk(
-            cls,
-            batch_size=1000,
-            start_offset=0,
-            max_limit=1000,
-            grace_period_days=7,
-            cutoff_date=datetime.datetime(year=2017, month=1, day=1),
-            test=True
+        cls,
+        batch_size=1000,
+        start_offset=0,
+        max_limit=1000,
+        grace_period_days=7,
+        cutoff_date=datetime.datetime(year=2017, month=1, day=1),
+        test=True,
     ):
         """
         batch_size - how many records to fetch per batch
@@ -662,22 +658,23 @@ class Work(Thing):
         test - don't resolve stale redirects, just identify them
         """
         pos = 0
-        grace_date = (
-            datetime.datetime.today() -
-            datetime.timedelta(days=grace_period_days)
+        grace_date = datetime.datetime.today() - datetime.timedelta(
+            days=grace_period_days
         )
         batch_offsets = enumerate(range(start_offset, max_limit, batch_size))
         for batch, offset in batch_offsets:
             logger.info(
                 f"[update-redirects] Batch {batch+1}: #{pos} of {max_limit}",
             )
-            work_redirect_ids = web.ctx.site.things({
-                "type": "/type/redirect",
-                "key~": "/works/*",
-                "limit": batch_size,
-                "offset": offset,
-                "sort": "-last_modified"
-            })
+            work_redirect_ids = web.ctx.site.things(
+                {
+                    "type": "/type/redirect",
+                    "key~": "/works/*",
+                    "limit": batch_size,
+                    "offset": offset,
+                    "sort": "-last_modified",
+                }
+            )
             work_redirect_batch = web.ctx.site.get_many(work_redirect_ids)
             for work in work_redirect_batch:
                 pos += 1
@@ -693,9 +690,7 @@ class Work(Thing):
                         "[update-redirects] Update: #%pos <%s> %s",
                         pos,
                         work.key,
-                        Work.resolve_redirect_chain(
-                            work.key, test=test
-                        )
+                        Work.resolve_redirect_chain(work.key, test=test),
                     )
         logger.info(f"[update-redirects] Done: #{pos} of {max_limit}")
 
