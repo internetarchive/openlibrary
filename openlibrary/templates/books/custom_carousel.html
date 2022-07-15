@@ -7,7 +7,7 @@ $if slick_font not in ctx.links:
   $ ctx.links.append(slick_font)
 
 $def render_carousel_cover(book, lazy):
-  $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
+  $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book-lg.png'
   $ cover_host = '//covers.openlibrary.org'
   $ url = book.get('key') or book.url
   $ title = book.title
