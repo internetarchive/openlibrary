@@ -13,8 +13,7 @@ skip-string-normalization = true
 target-version = ['py39', 'py310']
 force-exclude = '''
 (
-    ^/openlibrary/book_providers.py
-    | ^/openlibrary/core/db.py
+    ^/openlibrary/core/db.py
     | ^/openlibrary/core/lists/model.py
     | ^/openlibrary/core/observations.py
     | ^/openlibrary/coverstore/code.py
