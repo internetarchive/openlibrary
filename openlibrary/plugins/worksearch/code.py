@@ -50,6 +50,7 @@ ALL_FIELDS = [
     "subtitle",
     "alternative_title",
     "alternative_subtitle",
+    "ebook_access",
     "edition_count",
     "edition_key",
     "by_statement",
