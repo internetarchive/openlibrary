@@ -110,15 +110,27 @@ const Carousel = {
 
 
             const default_cover_url = 'https://openlibrary.org/images/icons/avatar_book-lg.png';
-            const cover_url = cover.id ? `//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg?default=${default_cover_url}` : default_cover_url
+
+            if (!cover.id) {
+                var book_cover = `
+                    <div class="book-cover">
+                        <a href="${work.key}">
+                            <img class="bookcover" src="//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg?default=${default_cover_url}">
+                        </a>
+                    </div>`
+            } else {
+                var book_cover = `
+                    <a href="${work.key}">
+                        <div class="carousel__item__blankcover bookcover">
+                            <div class="carousel__item__blankcover--title">${work.title}</div>
+                            ${work.author_name ? `<div class="carousel__item__blankcover--authors">${work.author_name}</div>` : ''}
+                        </div>
+                    <a/>`
+            }
 
             const $el = $(`
                 <div class="book carousel__item">
-                    <div class="book-cover">
-                        <a href="${work.key}">
-                            <img class="bookcover" src=${cover_url}>
-                        </a>
-                    </div>
+                    ${book_cover}
                     <div class="book-cta">
                         <a class="btn cta-btn ${cls}"
                            data-ol-link-track="subjects"
