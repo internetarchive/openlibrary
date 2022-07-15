@@ -652,7 +652,7 @@ class Work(Thing):
         """
         batch_size - how many records to fetch per batch
         start_offset - what offset to start from
-        pages - how many pages of batch_size to process
+        max_limit - total number of records to process
         grace_period_days - ignore redirects created within period of days
         cutoff_date - ignore redirects created before this date
         test - don't resolve stale redirects, just identify them
