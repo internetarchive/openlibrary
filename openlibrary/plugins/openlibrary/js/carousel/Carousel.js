@@ -111,15 +111,16 @@ const Carousel = {
 
             const default_cover_url = 'https://openlibrary.org/images/icons/avatar_book-lg.png';
 
-            if (!cover.id) {
-                var book_cover = `
+            let book_cover = undefined
+            if (cover.id) {
+                book_cover = `
                     <div class="book-cover">
                         <a href="${work.key}">
                             <img class="bookcover" src="//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg?default=${default_cover_url}">
                         </a>
                     </div>`
             } else {
-                var book_cover = `
+                book_cover = `
                     <a href="${work.key}">
                         <div class="carousel__item__blankcover bookcover">
                             <div class="carousel__item__blankcover--title">${work.title}</div>
