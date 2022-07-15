@@ -17,7 +17,6 @@ force-exclude = '''
     | ^/openlibrary/core/lists/model.py
     | ^/openlibrary/core/observations.py
     | ^/openlibrary/coverstore/code.py
-    | ^/openlibrary/plugins/admin/code.py
     | ^/openlibrary/plugins/openlibrary/api.py
     | ^/openlibrary/plugins/upstream/covers.py
     | ^/openlibrary/plugins/upstream/models.py
