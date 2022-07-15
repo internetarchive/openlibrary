@@ -41,10 +41,9 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
     identifier_key: str
 
     def get_olids(self, identifier):
-        return web.ctx.site.things({
-            "type": "/type/edition",
-            self.db_selector: identifier
-        })
+        return web.ctx.site.things(
+            {"type": "/type/edition", self.db_selector: identifier}
+        )
 
     @property
     def editions_query(self):
@@ -333,35 +332,34 @@ def get_book_providers(
 
 
 def get_book_provider(
-        ed_or_solr: Union[Edition, dict]
+    ed_or_solr: Union[Edition, dict]
 ) -> Optional[AbstractBookProvider]:
     return next(get_book_providers(ed_or_solr), None)
 
 
 def get_best_edition(
-        editions: list[Edition]
+    editions: list[Edition],
 ) -> tuple[Optional[Edition], Optional[AbstractBookProvider]]:
     provider_order = get_provider_order(True)
 
     # Map provider name to position/ranking
     provider_rank_lookup: dict[Optional[AbstractBookProvider], int] = {
-        provider: i
-        for i, provider in enumerate(provider_order)
+        provider: i for i, provider in enumerate(provider_order)
     }
 
     # Here, we prefer the ia editions
-    augmented_editions = [
-        (edition, get_book_provider(edition))
-        for edition in editions
-    ]
+    augmented_editions = [(edition, get_book_provider(edition)) for edition in editions]
 
-    best = multisort_best(augmented_editions, [
-        # Prefer the providers closest to the top of the list
-        ('min', lambda rec: provider_rank_lookup.get(rec[1], float('inf'))),
-        # Prefer the editions with the most fields
-        ('max', lambda rec: len(dict(rec[0]))),
-        # TODO: Language would go in this queue somewhere
-    ])
+    best = multisort_best(
+        augmented_editions,
+        [
+            # Prefer the providers closest to the top of the list
+            ('min', lambda rec: provider_rank_lookup.get(rec[1], float('inf'))),
+            # Prefer the editions with the most fields
+            ('max', lambda rec: len(dict(rec[0]))),
+            # TODO: Language would go in this queue somewhere
+        ],
+    )
 
     return best if best else (None, None)
 
