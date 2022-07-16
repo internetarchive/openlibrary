@@ -220,44 +220,7 @@ class resolve_redirects:
         if test is False and params.test:
             test = True
 
-        summary = {'key': params.key, 'redirect_chain': [], 'resolved_key': None}
-        if params.key:
-            redirect_chain = Work.get_redirect_chain(params.key)
-            summary['redirect_chain'] = [
-                {"key": thing.key, "occurrences": {}, "updates": {}}
-                for thing in redirect_chain
-            ]
-            summary['resolved_key'] = redirect_chain[-1].key
-
-            for r in summary['redirect_chain']:
-                olid = r['key'].split('/')[-1][2:-1]
-                new_olid = summary['resolved_key'].split('/')[-1][2:-1]
-
-                # count reading log entries
-                r['occurrences']['readinglog'] = len(
-                    Bookshelves.get_works_shelves(olid)
-                )
-                r['occurrences']['ratings'] = len(Ratings.get_all_works_ratings(olid))
-                r['occurrences']['booknotes'] = len(
-                    Booknotes.get_booknotes_for_work(olid)
-                )
-                r['occurrences']['observations'] = len(
-                    Observations.get_observations_for_work(olid)
-                )
-
-                # track updates
-                r['updates']['readinglog'] = Bookshelves.update_work_id(
-                    olid, new_olid, _test=test
-                )
-                r['updates']['ratings'] = Ratings.update_work_id(
-                    olid, new_olid, _test=test
-                )
-                r['updates']['booknotes'] = Booknotes.update_work_id(
-                    olid, new_olid, _test=test
-                )
-                r['updates']['observations'] = Observations.update_work_id(
-                    olid, new_olid, _test=test
-                )
+        summary = Work.get_redirect_chain(params.key, test=test)
 
         return delegate.RawText(json.dumps(summary), content_type="application/json")
 

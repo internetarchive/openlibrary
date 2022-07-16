@@ -1,7 +1,10 @@
 """Models of various OL objects.
 """
+import datetime
+import logging
 import web
 import requests
+from typing import Any
 from collections import defaultdict
 
 from infogami.infobase import client
@@ -29,6 +32,8 @@ from .ia import get_metadata_direct
 from .waitinglist import WaitingLoan
 from ..accounts import OpenLibraryAccount
 from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_url
+
+logger = logging.getLogger("openlibrary.core")
 
 
 def _get_ol_base_url():
@@ -592,6 +597,108 @@ class Work(Thing):
             else:
                 resolved_key = thing.key
         return redirect_chain
+
+    @classmethod
+    def resolve_redirect_chain(
+        cls, work_key: str, test: bool = False
+    ) -> dict[str, Any]:
+        summary: dict[str, Any] = {
+            'key': work_key,
+            'redirect_chain': [],
+            'resolved_key': None,
+        }
+        redirect_chain = cls.get_redirect_chain(work_key)
+        summary['redirect_chain'] = [
+            {"key": thing.key, "occurrences": {}, "updates": {}}
+            for thing in redirect_chain
+        ]
+        summary['resolved_key'] = redirect_chain[-1].key
+
+        for r in summary['redirect_chain']:
+            olid = r['key'].split('/')[-1][2:-1]  # 'OL1234x' --> '1234'
+            new_olid = summary['resolved_key'].split('/')[-1][2:-1]
+
+            # count reading log entries
+            r['occurrences']['readinglog'] = len(Bookshelves.get_works_shelves(olid))
+            r['occurrences']['ratings'] = len(Ratings.get_all_works_ratings(olid))
+            r['occurrences']['booknotes'] = len(Booknotes.get_booknotes_for_work(olid))
+            r['occurrences']['observations'] = len(
+                Observations.get_observations_for_work(olid)
+            )
+
+            # track updates
+            r['updates']['readinglog'] = Bookshelves.update_work_id(
+                olid, new_olid, _test=test
+            )
+            r['updates']['ratings'] = Ratings.update_work_id(olid, new_olid, _test=test)
+            r['updates']['booknotes'] = Booknotes.update_work_id(
+                olid, new_olid, _test=test
+            )
+            r['updates']['observations'] = Observations.update_work_id(
+                olid, new_olid, _test=test
+            )
+        return summary
+
+    @classmethod
+    def resolve_redirects_bulk(
+        cls,
+        batch_size=1000,
+        start_offset=0,
+        limit=1000,
+        grace_period_days=7,
+        cutoff_date=datetime.datetime(year=2017, month=1, day=1),
+        test=True,
+    ):
+        """
+        batch_size - how many records to fetch per batch
+        start_offset - what offset to start from
+        limit - total number of records to process from start_offset
+        grace_period_days - ignore redirects created within period of days
+        cutoff_date - ignore redirects created before this date
+        test - don't resolve stale redirects, just identify them
+        """
+        pos = start_offset
+        max_limit = start_offset + limit
+        grace_date = datetime.datetime.today() - datetime.timedelta(
+            days=grace_period_days
+        )
+        batch_offsets = enumerate(range(start_offset, max_limit, batch_size))
+        for batch, offset in batch_offsets:
+            logger.info(
+                f"[update-redirects] Batch {batch+1}: #{pos} of {max_limit}",
+            )
+            work_redirect_ids = web.ctx.site.things(
+                {
+                    "type": "/type/redirect",
+                    "key~": "/works/*",
+                    "limit": batch_size,
+                    "offset": offset,
+                    "sort": "-last_modified",
+                }
+            )
+            work_redirect_batch = web.ctx.site.get_many(work_redirect_ids)
+            for work in work_redirect_batch:
+                if pos >= max_limit:
+                    break
+                pos += 1
+                if work.last_modified < cutoff_date:
+                    logger.info(f"[update-redirects] Stop: {cutoff_date}")
+                    break
+                if work.last_modified > grace_date:
+                    logger.info(f"[update-redirects] Skip: #{pos} <{work.key}> grace")
+                else:
+                    chain = Work.resolve_redirect_chain(work.key, test=test)
+                    if len(chain.get('redirect_chain')) > 1:
+                        logger.info(
+                            "[update-redirects] Update: " f"#{pos} <{work.key}> {chain}"
+                        )
+                    else:
+                        logger.info(
+                            "[update-redirects] No Update Required: "
+                            f"#{pos} <{work.key}> {chain}"
+                        )
+
+        logger.info(f"[update-redirects] Done: #{pos} of {max_limit}")
 
 
 class Author(Thing):
