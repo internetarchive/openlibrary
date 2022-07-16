@@ -1,4 +1,4 @@
-$def with (page, include_rating=True, include_header=True, include_widget=True, include_showcase=True, user_lists_only=False, read_status=None, _user_lists=None, exclude_own_lists=False)
+$def with (page, include_rating=True, include_header=True, include_widget=True, include_showcase=True, read_status=None, _user_lists=None, exclude_own_lists=False)
 
 $ edition = page if page.key.startswith("/books/") else None
 $ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
@@ -58,15 +58,11 @@ $code:
         return [get_list_data(list, seed_info['seed'], include_cover_url=True) for list in _user_lists]
 
     def get_page_lists(page, seed_info):
-        user_key = ctx.user and ctx.user.key
         return [get_list_data(list, seed_info['seed']) for list in page.get_lists(sort=False)]
 
 $ seed_info = get_seed_info(page)
 $ user_lists = get_user_lists(seed_info)
-$if user_lists_only:
-    $ page_lists = [list for list in user_lists if list.active]
-$else:
-    $ page_lists = get_page_lists(page, seed_info)
+$ page_lists = get_page_lists(page, seed_info)
 $ user_key = ctx.user and ctx.user.key
 $ page_url = page.url()
 
