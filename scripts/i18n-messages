@@ -7,6 +7,7 @@ import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONP
 import sys
 from openlibrary import i18n
 
+
 def help():
     print("utility to manage i18n messages")
     print()
@@ -15,17 +16,19 @@ def help():
     print("Available Commands:")
     print("  compile  - compile the message files (.po) to .mo")
     print("  extract  - extract i18n messages from templates and macros")
-    print("  update   - update the existing translations by adding newly added string to it.")
+    print(
+        "  update   - update the existing translations by adding newly added string to it."
+    )
     print("  status   - check completeness and warnings/error summary of translations")
     print("  validate - check message file for errors")
     print("  help     - display this help message")
+
 
 def main(cmd, args):
     if cmd == 'extract':
         message_sources = [
             'openlibrary/templates/',
             'openlibrary/macros/',
-
             # TODO: We should check all python files somehow, but too slow
             'openlibrary/plugins/upstream',
         ]
@@ -57,6 +60,7 @@ def main(cmd, args):
     else:
         print("unknown command: %s" % repr(cmd), file=sys.stderr)
         sys.exit(2)
+
 
 if __name__ == "__main__":
     if len(sys.argv) >= 2:
