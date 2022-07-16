@@ -23,14 +23,7 @@ force-exclude = '''
     | ^/openlibrary/plugins/upstream/mybooks.py
     | ^/openlibrary/plugins/worksearch/code.py
     | ^/openlibrary/views/loanstats.py
-    | ^/scripts/coverstore-server
-    | ^/scripts/i18n-messages
-    | ^/scripts/import_standard_ebooks.py
-    | ^/scripts/infobase-server
-    | ^/scripts/openlibrary-server
-    | ^/scripts/solr_builder/solr_builder/fn_to_cli.py
     | ^/scripts/sync
-    | ^/scripts/tests/test_copydocs.py
     | ^/vendor/js/wmd/jsmin.py
 )
 '''

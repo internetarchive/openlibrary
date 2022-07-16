@@ -1,7 +1,10 @@
 import asyncio
 import typing
 from argparse import (
-    ArgumentParser, ArgumentDefaultsHelpFormatter, BooleanOptionalAction, Namespace
+    ArgumentParser,
+    ArgumentDefaultsHelpFormatter,
+    BooleanOptionalAction,
+    Namespace,
 )
 
 
@@ -36,8 +39,7 @@ class FnToCLI:
         num_required = len(arg_names) - len(defaults)
         default_args = arg_names[num_required:]
         defaults: dict = {  # type: ignore[no-redef]
-            arg: default
-            for [arg, default] in zip(default_args, defaults)
+            arg: default for [arg, default] in zip(default_args, defaults)
         }
 
         docs = fn.__doc__ or ''
