@@ -222,8 +222,7 @@ class resolve_redirects:
 
         summary = Work.get_redirect_chain(params.key, test=test)
 
-        return delegate.RawText(
-            json.dumps(summary), content_type="application/json")
+        return delegate.RawText(json.dumps(summary), content_type="application/json")
 
 
 class sync_ol_ia:

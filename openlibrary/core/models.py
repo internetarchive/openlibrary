@@ -644,7 +644,7 @@ class Work(Thing):
         cls,
         batch_size=1000,
         start_offset=0,
-        max_limit=1000,
+        limit=1000,
         grace_period_days=7,
         cutoff_date=datetime.datetime(year=2017, month=1, day=1),
         test=True,
@@ -652,12 +652,13 @@ class Work(Thing):
         """
         batch_size - how many records to fetch per batch
         start_offset - what offset to start from
-        max_limit - total number of records to process
+        limit - total number of records to process from start_offset
         grace_period_days - ignore redirects created within period of days
         cutoff_date - ignore redirects created before this date
         test - don't resolve stale redirects, just identify them
         """
-        pos = 0
+        pos = start_offset
+        max_limit = start_offset + limit
         grace_date = datetime.datetime.today() - datetime.timedelta(
             days=grace_period_days
         )
@@ -677,21 +678,29 @@ class Work(Thing):
             )
             work_redirect_batch = web.ctx.site.get_many(work_redirect_ids)
             for work in work_redirect_batch:
+                if pos >= max_limit:
+                    break
                 pos += 1
                 if work.last_modified < cutoff_date:
                     logger.info(f"[update-redirects] Stop: {cutoff_date}")
                     break
                 if work.last_modified > grace_date:
                     logger.info(
-                        f"[update-redirects] Skip: #{pos} <{work.key}> grace",
+                        f"[update-redirects] Skip: #{pos} <{work.key}> grace"
                     )
                 else:
-                    logger.info(
-                        "[update-redirects] Update: #%pos <%s> %s",
-                        pos,
-                        work.key,
-                        Work.resolve_redirect_chain(work.key, test=test),
-                    )
+                    chain = Work.resolve_redirect_chain(work.key, test=test)
+                    if len(chain.get('redirect_chain')) > 1:
+                        logger.info(
+                            "[update-redirects] Update: "
+                            f"#{pos} <{work.key}> {chain}"
+                        )
+                    else:
+                        logger.info(
+                            "[update-redirects] No Update Required: "
+                            f"#{pos} <{work.key}> {chain}"
+                        )
+
         logger.info(f"[update-redirects] Done: #{pos} of {max_limit}")
 
 
