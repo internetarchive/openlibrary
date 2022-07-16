@@ -685,15 +685,12 @@ class Work(Thing):
                     logger.info(f"[update-redirects] Stop: {cutoff_date}")
                     break
                 if work.last_modified > grace_date:
-                    logger.info(
-                        f"[update-redirects] Skip: #{pos} <{work.key}> grace"
-                    )
+                    logger.info(f"[update-redirects] Skip: #{pos} <{work.key}> grace")
                 else:
                     chain = Work.resolve_redirect_chain(work.key, test=test)
                     if len(chain.get('redirect_chain')) > 1:
                         logger.info(
-                            "[update-redirects] Update: "
-                            f"#{pos} <{work.key}> {chain}"
+                            "[update-redirects] Update: " f"#{pos} <{work.key}> {chain}"
                         )
                     else:
                         logger.info(
