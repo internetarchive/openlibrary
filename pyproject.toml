@@ -17,11 +17,6 @@ force-exclude = '''
     | ^/openlibrary/core/lists/model.py
     | ^/openlibrary/core/observations.py
     | ^/openlibrary/coverstore/code.py
-    | ^/openlibrary/plugins/openlibrary/api.py
-    | ^/openlibrary/plugins/upstream/covers.py
-    | ^/openlibrary/plugins/upstream/models.py
-    | ^/openlibrary/plugins/upstream/mybooks.py
-    | ^/openlibrary/plugins/worksearch/code.py
     | ^/openlibrary/views/loanstats.py
     | ^/scripts/sync
     | ^/vendor/js/wmd/jsmin.py
