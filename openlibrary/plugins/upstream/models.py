@@ -472,16 +472,20 @@ class Edition(models.Edition):
                 citation['author%s' % (i + 1)] = a.name
 
         isbns = self.get('isbn_13', []) + self.get('isbn_10', [None])
-        citation.update({
-            'date': self.get('publish_date'),
-            'orig-date': self.works[0].get('first_publish_date'),
-            'title': self.title.replace("[", "&#91").replace("]", "&#93"),
-            'url': f'https://archive.org/details/{self.ocaid}' if self.ocaid else None,
-            'publication-place': self.get('publish_places', [None])[0],
-            'publisher': self.get('publishers', [None])[0],
-            'isbn': isbns[0],
-            'issn': self.get('identifiers', {}).get('issn', [None])[0],
-        })
+        citation.update(
+            {
+                'date': self.get('publish_date'),
+                'orig-date': self.works[0].get('first_publish_date'),
+                'title': self.title.replace("[", "&#91").replace("]", "&#93"),
+                'url': f'https://archive.org/details/{self.ocaid}'
+                if self.ocaid
+                else None,
+                'publication-place': self.get('publish_places', [None])[0],
+                'publisher': self.get('publishers', [None])[0],
+                'isbn': isbns[0],
+                'issn': self.get('identifiers', {}).get('issn', [None])[0],
+            }
+        )
 
         if self.lccn:
             citation['lccn'] = self.lccn[0].replace(' ', '')
@@ -591,6 +595,7 @@ class Work(models.Work):
     @cached_property
     def _solr_data(self):
         from openlibrary.book_providers import get_solr_keys
+
         fields = [
             "cover_edition_key",
             "cover_id",
@@ -722,6 +727,7 @@ class Work(models.Work):
         if ebooks_only:
             if self._solr_data:
                 from openlibrary.book_providers import get_book_providers
+
                 # Always use solr data whether it's up to date or not
                 # to determine which providers this book has
                 # We only make additional queries when a
