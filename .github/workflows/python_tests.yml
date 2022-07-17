@@ -12,6 +12,9 @@ on:
       - '**.vue'
       - '**.less'
       - '**.css'
+permissions:
+  contents: read
+
 jobs:
   python_tests:
     runs-on: ubuntu-18.04  # Should match Dockerfile.olbase, but had to be bumped as older version no longer supported

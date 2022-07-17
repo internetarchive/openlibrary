@@ -9,6 +9,9 @@ on:
   schedule:  # At 3:45am on the 2nd, 4th, 18th, and 20th day of the month.
     - cron: '45 3 2,4,18,20 * *'  # https://cron.help
   workflow_dispatch:  # This job can also be run on-demand.
+permissions:
+  contents: read
+
 jobs:
   cron_watcher:
     runs-on: ubuntu-latest
