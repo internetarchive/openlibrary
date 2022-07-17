@@ -525,7 +525,9 @@ def render_list_preview_image(lst_key):
     locations to create a new image for social-card"""
     lst = web.ctx.site.get(lst_key)
     five_seeds = lst.seeds[0:5]
-    background = Image.open("/openlibrary/static/images/Twitter_Social_Card_Background.png")
+    background = Image.open(
+        "/openlibrary/static/images/Twitter_Social_Card_Background.png"
+    )
 
     logo = Image.open("/openlibrary/static/images/Open_Library_logo.png")
 
@@ -534,20 +536,22 @@ def render_list_preview_image(lst_key):
     for seed in five_seeds:
         cover = seed.get_cover()
 
-        if  cover:
-            response = requests.get(f"https://covers.openlibrary.org/b/id/{cover.id}-M.jpg")
+        if cover:
+            response = requests.get(
+                f"https://covers.openlibrary.org/b/id/{cover.id}-M.jpg"
+            )
             image_bytes = io.BytesIO(response.content)
 
             img = Image.open(image_bytes)
 
             basewidth = 162
-            wpercent = (basewidth / float(img.size[0]))
+            wpercent = basewidth / float(img.size[0])
             hsize = int(float(img.size[1]) * float(wpercent))
             img = img.resize((basewidth, hsize), Image.ANTIALIAS)
             image.append(img)
-    max_height=0
+    max_height = 0
     for img in image:
-        if (img.size[1] > max_height):
+        if img.size[1] > max_height:
             max_height = img.size[1]
     if len(image) == 5:
         background.paste(image[0], (63, 174 + max_height - image[0].size[1]))
@@ -574,24 +578,27 @@ def render_list_preview_image(lst_key):
     else:
         background.paste(image[0], (431, 174 + max_height - image[0].size[1]))
 
-
-    logo = logo.resize((120,74), Image.ANTIALIAS)
+    logo = logo.resize((120, 74), Image.ANTIALIAS)
     background.paste(logo, (880, 14), logo)
 
     draw = ImageDraw.Draw(background)
-    font_author = ImageFont.truetype("/openlibrary/static/fonts/NotoSans-LightItalic.ttf", 22)
-    font_title = ImageFont.truetype("/openlibrary/static/fonts/NotoSans-SemiBold.ttf", 28)
+    font_author = ImageFont.truetype(
+        "/openlibrary/static/fonts/NotoSans-LightItalic.ttf", 22
+    )
+    font_title = ImageFont.truetype(
+        "/openlibrary/static/fonts/NotoSans-SemiBold.ttf", 28
+    )
 
     para = textwrap.wrap(lst.name, width=45)
     current_h = 42
     author_text = f"A list by {lst.get_owner().displayname}"
     w, h = draw.textsize(author_text, font=font_author)
-    draw.text(((W - w) / 2, current_h), author_text, font=font_author, fill=(0,0,0))
+    draw.text(((W - w) / 2, current_h), author_text, font=font_author, fill=(0, 0, 0))
     current_h += h + 5
 
     for line in para:
         w, h = draw.textsize(line, font=font_title)
-        draw.text(((W - w) / 2, current_h), line, font=font_title, fill=(0,0,0))
+        draw.text(((W - w) / 2, current_h), line, font=font_title, fill=(0, 0, 0))
         current_h += h
 
     with io.BytesIO() as buf:
