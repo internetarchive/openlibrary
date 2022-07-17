@@ -11,7 +11,10 @@ from infogami.utils.view import safeint
 from openlibrary import accounts
 from openlibrary.plugins.upstream.models import Image
 from openlibrary.plugins.upstream.utils import (
-    get_coverstore_url, get_coverstore_public_url, render_template)
+    get_coverstore_url,
+    get_coverstore_public_url,
+    render_template,
+)
 
 logger = getLogger("openlibrary.plugins.upstream.covers")
 
@@ -83,9 +86,11 @@ class add_cover(delegate.page):
 
     def save(self, book, coverid, url=None):
         book.covers = [coverid] + [cover.id for cover in book.get_covers()]
-        book._save('{}/b/id/{}-S.jpg'.format(
-            get_coverstore_public_url(), coverid),
-            action="add-cover", data={"url": url})
+        book._save(
+            f'{get_coverstore_public_url()}/b/id/{coverid}-S.jpg',
+            action="add-cover",
+            data={"url": url},
+        )
 
 
 class add_work_cover(add_cover):

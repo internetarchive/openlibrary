@@ -63,7 +63,8 @@ class public_my_books_json(delegate.page):
                         'key': w.key,
                         'author_keys': [
                             a.author.get("key")
-                            for a in w.get('authors', []) if a.author
+                            for a in w.get('authors', [])
+                            if a.author
                         ],
                         'author_names': [
                             str(a.author.name)
@@ -155,10 +156,12 @@ class readinglog_stats(delegate.page):
             lang=web.ctx.lang,
         )
 
+
 @public
 def get_public_patron_account(username):
     user = web.ctx.site.get('/people/%s' % username)
     return ReadingLog(user=user)
+
 
 class MyBooksTemplate:
     # Reading log shelves
@@ -203,12 +206,18 @@ class MyBooksTemplate:
             self.counts['sponsorships'] = len(sponsorships)
 
             if self.key == 'sponsorships':
-                data = add_availability(
-                    web.ctx.site.get_many([
-                        '/books/%s' % doc['openlibrary_edition']
-                        for doc in sponsorships
-                    ])
-                ) if sponsorships else None
+                data = (
+                    add_availability(
+                        web.ctx.site.get_many(
+                            [
+                                '/books/%s' % doc['openlibrary_edition']
+                                for doc in sponsorships
+                            ]
+                        )
+                    )
+                    if sponsorships
+                    else None
+                )
             elif self.key in self.READING_LOG_KEYS:
                 data = add_availability(
                     self.readlog.get_works(
@@ -293,9 +302,7 @@ class ReadingLog:
 
     @property
     def sponsorship_counts(self):
-        return {
-            'sponsorships': len(get_sponsored_editions(self.user))
-        }
+        return {'sponsorships': len(get_sponsored_editions(self.user))}
 
     @property
     def booknotes_counts(self):
@@ -310,9 +317,13 @@ class ReadingLog:
 
     @property
     def reading_log_counts(self):
-        counts = Bookshelves.count_total_books_logged_by_user_per_shelf(
-            self.user.get_username()
-        ) if self.user.get_username() else {}
+        counts = (
+            Bookshelves.count_total_books_logged_by_user_per_shelf(
+                self.user.get_username()
+            )
+            if self.user.get_username()
+            else {}
+        )
         return {
             'want-to-read': counts.get(
                 Bookshelves.PRESET_BOOKSHELVES['Want to Read'], 0

@@ -18,7 +18,5 @@ force-exclude = '''
     | ^/openlibrary/core/observations.py
     | ^/openlibrary/coverstore/code.py
     | ^/openlibrary/views/loanstats.py
-    | ^/scripts/sync
-    | ^/vendor/js/wmd/jsmin.py
 )
 '''
