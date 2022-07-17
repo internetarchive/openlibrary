@@ -11,12 +11,3 @@
 [tool.black]
 skip-string-normalization = true
 target-version = ['py39', 'py310']
-force-exclude = '''
-(
-    ^/openlibrary/core/db.py
-    | ^/openlibrary/core/lists/model.py
-    | ^/openlibrary/core/observations.py
-    | ^/openlibrary/coverstore/code.py
-    | ^/openlibrary/views/loanstats.py
-)
-'''
