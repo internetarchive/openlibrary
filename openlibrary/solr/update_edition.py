@@ -47,12 +47,7 @@ class EditionSolrBuilder:
     @property
     def cover_i(self) -> Optional[int]:
         return next(
-            (
-                cover_id
-                for cover_id in self.get('covers', [])
-                if cover_id != -1
-            ),
-            None
+            (cover_id for cover_id in self.get('covers', []) if cover_id != -1), None
         )
 
     @property
@@ -174,37 +169,39 @@ def build_edition_data(
     document
     """
     ed = EditionSolrBuilder(edition, ia_metadata)
-    solr_doc: SolrDocument = cast(SolrDocument, {
-        'key': ed.key,
-        'type': 'edition',
+    solr_doc: SolrDocument = cast(
+        SolrDocument,
+        {
+            'key': ed.key,
+            'type': 'edition',
+            # Display data
+            'title': ed.title,
+            'subtitle': ed.subtitle,
+            'cover_i': ed.cover_i,
+            'language': ed.languages,
+            # Misc useful data
+            'publisher': ed.publisher,
+            'publish_date': [ed.publish_date] if ed.publish_date else None,
+            'publish_year': [ed.publish_year] if ed.publish_year else None,
+            # Identifiers
+            'isbn': ed.isbn,
+            **ed.identifiers,
+            # IA
+            'ia': [ed.ia] if ed.ia else None,
+            'ia_collection': ed.ia_collection,
+            'ia_box_id': ed.ia_box_id,
+            # Ebook access
+            'ebook_access': ed.ebook_access.to_solr_str(),
+            'has_fulltext': ed.has_fulltext,
+            'public_scan_b': ed.public_scan_b,
+        },
+    )
 
-        # Display data
-        'title': ed.title,
-        'subtitle': ed.subtitle,
-        'cover_i': ed.cover_i,
-        'language': ed.languages,
-
-        # Misc useful data
-        'publisher': ed.publisher,
-        'publish_date': [ed.publish_date] if ed.publish_date else None,
-        'publish_year': [ed.publish_year] if ed.publish_year else None,
-
-        # Identifiers
-        'isbn': ed.isbn,
-        **ed.identifiers,
-
-        # IA
-        'ia': [ed.ia] if ed.ia else None,
-        'ia_collection': ed.ia_collection,
-        'ia_box_id': ed.ia_box_id,
-        # Ebook access
-        'ebook_access': ed.ebook_access.to_solr_str(),
-        'has_fulltext': ed.has_fulltext,
-        'public_scan_b': ed.public_scan_b,
-    })
-
-    return cast(SolrDocument, {
-        key: solr_doc[key]  # type: ignore
-        for key in solr_doc
-        if solr_doc[key] not in (None, [], '')  # type: ignore
-    })
+    return cast(
+        SolrDocument,
+        {
+            key: solr_doc[key]  # type: ignore
+            for key in solr_doc
+            if solr_doc[key] not in (None, [], '')  # type: ignore
+        },
+    )
