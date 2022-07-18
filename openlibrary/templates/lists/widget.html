@@ -112,8 +112,6 @@ $def render_widget_display(lists, limit, user_key, exclude_own_lists):
             $else:
                 $:show_list(list, user_key)
                 $ count = count + 1
-        $else:
-            break
 
 $def render_head(seed_type, page_lists, page_url):
     $if seed_type == "subject":
