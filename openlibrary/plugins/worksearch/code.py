@@ -1263,7 +1263,6 @@ class search_json(delegate.page):
             page = safeint(query.pop("page", "1"), default=1)
 
         fields = query.pop('fields', '*').split(',')
-        facet = query.pop('_facet', 'true').lower() in ['true']
         spellcheck_count = safeint(
             query.pop("_spellcheck_count", default_spellcheck_count),
             default=default_spellcheck_count,
@@ -1279,7 +1278,9 @@ class search_json(delegate.page):
             offset=offset,
             limit=limit,
             fields=fields,
-            facet=facet,
+            # We do not support returning facets from /search.json,
+            # so disable it. This makes it much faster.
+            facet=False,
             spellcheck_count=spellcheck_count,
         )
         response['q'] = q
