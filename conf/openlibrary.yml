@@ -65,7 +65,7 @@ features:
     lists: enabled
     merge-authors:
         filter: usergroup
-        usergroup: /usergroup/librarians
+        usergroup: /usergroup/librarian-work-merge
     merge-editions: admin
     publishers: enabled
     recentchanges_v2: enabled
