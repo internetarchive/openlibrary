@@ -142,6 +142,7 @@ def sortable_lcc_to_short_lcc(lcc):
     :rtype: basestring
     """
     m = LCC_PARTS_RE.match(lcc)
+    assert m, f'Unable to parse LCC "{lcc}"'
     parts = m.groupdict()
     parts['letters'] = parts['letters'].strip('-')
     parts['number'] = parts['number'].strip('0').strip('.')  # Need to do in order!
