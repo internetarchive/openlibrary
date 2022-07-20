@@ -1,5 +1,5 @@
 import Template from './template'
-import { isbnOverride } from '../../openlibrary/js/edit'
+import { isbnOverride } from '../../openlibrary/js/isbnOverride'
 
 /**
  * jquery repeat: jquery plugin to handle repetitive inputs in a form.

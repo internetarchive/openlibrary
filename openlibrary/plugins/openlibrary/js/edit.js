@@ -1,3 +1,4 @@
+import { isbnOverride } from './isbnOverride';
 /* global render_language_field, render_work_autocomplete_item, render_language_autocomplete_item, render_work_field */
 /* Globals are provided by the edit edition template */
 
@@ -171,22 +172,6 @@ function parseIsbn(isbn) {
 }
 
 /**
- * Exports an object to track the state of an ISBN that is formally valid, but
- * has an invalid checksum and can only be added by a user specifically
- * clicking "yes" to add the invalid ISBN.
- * @property {Object} data - The default data
- * @property {Function(object)} set - Sets the ISBN object
- * @property {Function} get - returns the ISBN object
- * @property {Function} clear - clears the ISBN object
- */
-export const isbnOverride = {
-    data: null,
-    set(isbnData) { this.data = isbnData },
-    get() { return this.data },
-    clear() { this.data = null },
-}
-
-/**
  * Displays a confirmation box in the error div to confirm the addition of an
  * ISBN with a valid form but which fails the checksum.
  * @param {Object} data  data from the input form, gathered via js/jquery.repeat.js
@@ -257,12 +242,10 @@ export function validateIdentifiers(data) {
     // the ISBN, as books sometimes issue with invalid ISBNs and we want to be able to add them.
     // See https://en-academic.com/dic.nsf/enwiki/8948#cite_ref-18 for more.
     if (data.name === 'isbn_10' && isFormatValidIsbn10(data.value) === true && isChecksumValidIsbn10(data.value) === false) {
-
         isbnConfirmAdd(data, isbnConfirmString)
         return false
     }
     if (data.name === 'isbn_13' && isFormatValidIsbn13(data.value) === true && isChecksumValidIsbn13(data.value) === false) {
-
         isbnConfirmAdd(data, isbnConfirmString)
         return false
     }
