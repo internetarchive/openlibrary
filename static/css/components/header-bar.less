@@ -25,46 +25,6 @@
   z-index: @z-index-level-2;
   position: relative;
 
-  .account-component {
-    display: none;
-    -webkit-box-flex: 0;
-    -ms-flex: none;
-    flex: none;
-    padding-left: 5px;
-    padding-right: 5px;
-    font-size: 1em;
-    -webkit-box-ordinal-group: 4;
-    -ms-flex-order: 3;
-    order: 3;
-
-    .down-arrow {
-      margin-top: 1px;
-    }
-
-    // stylelint-disable-next-line selector-max-specificity
-    .dropdown-menu li {
-      padding: 10px 20px 10px 10px;
-    }
-
-    .account-dropdown-component {
-      position: absolute;
-      z-index: @z-index-level-2;  // #6705
-      text-align: right;
-      // Note, it must be padding so that the gap between the icon and
-      // the dropdown menu is included in the hover-trigger area (#1575)
-      padding-top: 5px;
-      right: 11px;
-
-      // stylelint-disable-next-line max-nesting-depth, selector-max-specificity
-      ul a li {
-        width: 150px;
-        text-decoration: none;
-        text-align: left;
-        padding: 5px;
-      }
-    }
-  }
-
   .auth-component {
     display: none;
     padding: 5px;
@@ -137,7 +97,7 @@
     max-width: 100vw;
     right: 0;
     top: @topHeight;
-    height: calc(100% - @topHeight);
+    height: calc(100% - @topHeight - 25px);
     z-index: @z-index-level-2;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -608,23 +568,7 @@ div.search-facet:focus-within {
   outline: 2px solid;
 }
 
-.account-component {
-  -webkit-box-flex: 1;
-  -ms-flex: 1;
-  flex: 1;
-  position: relative;
-
-  summary::marker {
-    content: "";
-  }
-
-  summary::-webkit-details-marker {
-    display: none;
-  }
-}
-
-.hamburger-component,
-.account-component {
+.hamburger-component {
   summary {
     .display-flex();
     -webkit-box-align: center;
@@ -762,12 +706,6 @@ div.search-facet:focus-within {
   .header-bar {
     margin: 0 auto;
 
-    .account-component {
-      -webkit-box-flex: 0;
-      -ms-flex: none;
-      flex: none;
-    }
-
     .auth-component {
       margin-right: 5px;
       display: block;
@@ -815,15 +753,6 @@ div.search-facet:focus-within {
 // We should review this media query to determine if it is in fact needed.
 @media only screen and (min-width: 35.5em) {
   .header-bar {
-    .account-component {
-      -webkit-box-flex: 0;
-      -ms-flex: none;
-      flex: none;
-      -webkit-box-ordinal-group: 5;
-      -ms-flex-order: 4;
-      order: 4;
-    }
-
     .logo-component {
       -webkit-box-flex: 0;
       -ms-flex: none;
