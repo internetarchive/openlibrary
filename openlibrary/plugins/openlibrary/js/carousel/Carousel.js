@@ -117,7 +117,7 @@ const Carousel = {
                         </a>
                     </div>`
             } else {
-                book_cover = `
+                bookCover = `
                     <a href="${work.key}">
                         <div class="carousel__item__blankcover bookcover">
                             <div class="carousel__item__blankcover--title">${work.title}</div>
@@ -128,7 +128,7 @@ const Carousel = {
 
             const $el = $(`
                 <div class="book carousel__item">
-                    ${book_cover}
+                    ${bookCover}
                     <div class="book-cta">
                         <a class="btn cta-btn ${cls}"
                            data-ol-link-track="subjects"
