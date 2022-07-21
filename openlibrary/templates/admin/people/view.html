@@ -106,7 +106,7 @@ $ has_profile = person.get_user() is not None
 <div id="contentBody">
 
     <div class="status status-$person.status">
-        <form method="POST">
+        <form method="POST" action="?debug=true">
             Status: <span class="status">$person.status</span>
 
         $if person.status in ['active', 'verified']:
