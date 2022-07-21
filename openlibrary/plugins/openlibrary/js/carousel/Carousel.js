@@ -110,25 +110,22 @@ const Carousel = {
 
             let bookCover;
             if (cover.id) {
-                bookCover = `
-                    <div class="book-cover">
-                        <a href="${work.key}">
-                            <img class="bookcover" src="//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg?default='https://openlibrary.org/images/icons/avatar_book.png'">
-                        </a>
-                    </div>`
+                bookCover = `<img class="bookcover" src="//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg?default='https://openlibrary.org/images/icons/avatar_book.png'">`
             } else {
                 bookCover = `
-                    <a href="${work.key}">
-                        <div class="carousel__item__blankcover bookcover">
-                            <div class="carousel__item__blankcover--title">${work.title}</div>
-                            ${work.author_name ? `<div class="carousel__item__blankcover--authors">${work.author_name}</div>` : ''}
-                        </div>
-                    <a/>`
+                    <div class="carousel__item__blankcover bookcover">
+                        <div class="carousel__item__blankcover--title">${work.title}</div>
+                        ${work.author_name ? `<div class="carousel__item__blankcover--authors">${work.author_name}</div>` : ''}
+                    </div>`
             }
 
             const $el = $(`
                 <div class="book carousel__item">
-                    ${bookCover}
+                    <div class="book-cover">
+                        <a href="${work.key}">
+                            ${bookCover}
+                        </a>
+                    </div>
                     <div class="book-cta">
                         <a class="btn cta-btn ${cls}"
                            data-ol-link-track="subjects"
