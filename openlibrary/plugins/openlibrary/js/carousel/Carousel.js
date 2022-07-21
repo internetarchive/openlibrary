@@ -113,7 +113,7 @@ const Carousel = {
                 bookCover = `
                     <div class="book-cover">
                         <a href="${work.key}">
-                            <img class="bookcover" src="//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg?default=${default_cover_url}">
+                            <img class="bookcover" src="//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg?default='https://openlibrary.org/images/icons/avatar_book.png'">
                         </a>
                     </div>`
             } else {
