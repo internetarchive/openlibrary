@@ -6,6 +6,7 @@ import io
 import json
 import os.path
 import random
+from typing import Union
 
 import web
 
@@ -279,15 +280,41 @@ def get_document(key, limit_redirs=5):
 
 
 class revert(delegate.mode):
-    def GET(self, key):
-        raise web.seeother(web.changequery(m=None))
+    revert_form = web.form.Form(
+        web.form.Radio(
+            'redirects',
+            [
+                ('error', 'Error'),
+                ('follow', 'Follow'),
+            ],
+            description='How to handle redirects?',
+            value='error',
+            required='required',
+        ),
+        web.form.Button("submit", html="Save"),
+        web.form.Button("preview", html="Preview"),
+    )
+
+    def GET(self, key, form=None):
+        i = web.input("v", _comment=None)
+        v = i.v and safeint(i.v, None)
+        f = form or self.revert_form()
+
+        cur = web.ctx.site.get(key)
+        desired, errors = self.prepare_new_thing(web.ctx.site.get(key, v), f)
+        return render.revert(f, cur, desired, errors)
 
     def POST(self, key):
+        f = self.revert_form()
         i = web.input("v", _comment=None)
         v = i.v and safeint(i.v, None)
 
         if v is None:
             raise web.seeother(web.changequery({}))
+
+        if not f.validates():
+            return self.GET(key, form=f)
+        f.redirects.value = f.redirects.value or 'error'
 
         if not web.ctx.site.can_write(key) or not user_is_admin_or_librarian():
             return render.permission_denied(
@@ -298,7 +325,16 @@ class revert(delegate.mode):
 
         if not thing:
             raise web.notfound()
+        new_thing, errors = self.prepare_new_thing(thing, f)
 
+        if f.preview.value is not None or errors:
+            return self.GET(key, form=f)
+
+        comment = i._comment or "reverted to revision %d" % v
+        new_thing._save(comment)
+        raise web.seeother(key)
+
+    def prepare_new_thing(self, thing, f):
         def revert(thing):
             if thing.type.key == "/type/delete" and thing.revision > 1:
                 prev = web.ctx.site.get(thing.key, thing.revision - 1)
@@ -337,12 +373,51 @@ class revert(delegate.mode):
             else:
                 return value
 
+        def find_redirects(value, path: list[Union[str, int]]):
+            if isinstance(value, list):
+                for i, v in enumerate(value):
+                    yield from find_redirects(v, path + [i])
+            elif isinstance(value, client.Thing):
+                if value.key and path:
+                    if value.type.key == '/type/redirect':
+                        yield value.key, path + ['key']
+                else:
+                    for k in value:
+                        yield from find_redirects(value[k], path + [k])
+
+        def set_thing_path(thing, path, value):
+            cur = thing
+            for k in path[:-1]:
+                cur = cur[k]
+            cur[path[-1]] = value
+
+        redirects = list(find_redirects(thing, []))
+        errors = []
+        if redirects:
+            if f.redirects.value == 'error':
+                errors += [
+                    {
+                        'type': 'RedirectError',
+                        'at': path,
+                        'value': value,
+                    }
+                    for value, path in redirects
+                ]
+            elif f.redirects.value == 'follow':
+                for k, path in redirects:
+                    set_thing_path(thing, path[:-1], get_document(k))
+            else:
+                errors += [
+                    {
+                        'type': 'InvalidOption',
+                        'value': f'Unknown value {f.redirects.value} for redirects',
+                    }
+                ]
+
         for k in thing:
             thing[k] = process(thing[k])
 
-        comment = i._comment or "reverted to revision %d" % v
-        thing._save(comment)
-        raise web.seeother(key)
+        return thing, errors
 
 
 def setup():

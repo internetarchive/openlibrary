@@ -96,8 +96,8 @@ $def diff_display(name, value):
                 elif p == "authors":
                     label = "authors"
                     t = "/type/author"
-                    ap = a.get_authors()
-                    bp = b.get_authors()
+                    ap = a.get_authors(follow_redirects=False)
+                    bp = b.get_authors(follow_redirects=False)
                 else:
                     ap = a[p]
                     bp = b[p]
