@@ -301,14 +301,16 @@ class people_view:
         edits = 0
         stop = False
         while not stop:
-            changes = account.get_recentchanges(limit=100, offset=100*i)
+            changes = account.get_recentchanges(limit=100, offset=100 * i)
             changeset_ids = [c.id for c in changes]
             _, len_docs = ipaddress_view().revert(changeset_ids, "Reverted Spam")
             edits += len_docs
             i += 1
             if len(changes) < 100:
                 stop = True
-        add_flash_message("info", f"Blocked the account and reverted all {edits} edits.")
+        add_flash_message(
+            "info", f"Blocked the account and reverted all {edits} edits."
+        )
         raise web.seeother(web.ctx.path)
 
     def POST_unblock_account(self, account):
@@ -439,10 +441,14 @@ class ipaddress_view:
             for cid in changeset_ids
             for c in site.get_change(cid).changes
         ]
-        docs = [doc for doc in docs if doc.get('type', {}).get('key') is not '/type/delete']
+        docs = [
+            doc for doc in docs if doc.get('type', {}).get('key') != '/type/delete'
+        ]
         logger.debug("Reverting %d docs", len(docs))
         data = {"reverted_changesets": [str(cid) for cid in changeset_ids]}
-        manifest = web.ctx.site.save_many(docs, action="revert", data=data, comment=comment)
+        manifest = web.ctx.site.save_many(
+            docs, action="revert", data=data, comment=comment
+        )
         return manifest, len(docs)
 
 
