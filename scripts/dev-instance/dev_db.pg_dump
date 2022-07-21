@@ -2085,7 +2085,7 @@ COPY public.data (thing_id, revision, data) FROM stdin;
 666	1	{"description": {"type": "/type/text", "value": "User Group for beta-testers.\\r\\n\\r\\nPeople in the group will get to see the beta features of Open Library."}, "created": {"type": "/type/datetime", "value": "2020-11-19T03:45:35.476156"}, "m": "edit", "last_modified": {"type": "/type/datetime", "value": "2020-11-19T03:45:35.476156"}, "latest_revision": 1, "key": "/usergroup/beta-testers", "type": {"key": "/type/usergroup"}, "revision": 1}
 667	1	{"identifiers": [{"label": "ISNI", "name": "isni", "notes": "", "url": "http://www.isni.org/@@@", "website": "http://www.isni.org/"}, {"label": "LibriVox", "name": "librivox", "notes": "Should be a number", "url": "https://librivox.org/author/@@@", "website": "https://librivox.org"}, {"label": "Project Gutenberg", "name": "project_gutenberg", "notes": "Should be a number", "url": "https://www.gutenberg.org/ebooks/author/@@@", "website": "https://www.gutenberg.org"}, {"label": "VIAF", "name": "viaf", "notes": "", "url": "https://viaf.org/viaf/@@@", "website": "https://viaf.org"}, {"label": "Wikidata", "name": "wikidata", "notes": "", "url": "https://www.wikidata.org/wiki/@@@", "website": "https://wikidata.org"}], "key": "/config/author", "type": {"key": "/type/object"}, "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2021-10-07T20:31:34.001079"}, "last_modified": {"type": "/type/datetime", "value": "2021-10-07T20:31:34.001079"}}
 668	1	{"body": {"type": "/type/text", "value": "{{PageList(\\"/usergroup\\")}}"}, "type": {"key": "/type/page"}, "title": "User Groups", "m": "edit", "key": "/usergroup", "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2022-05-13T00:32:11.984130"}, "last_modified": {"type": "/type/datetime", "value": "2022-05-13T00:32:11.984130"}}
-669	1	{"description": {"type": "/type/text", "value": "Librarians who are permitted to use work merge UI."}, "key": "/usergroup/librarian-work-merge", "members": [{"key": "/people/openlibrary"}], "type": {"key": "/type/usergroup"}, "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2022-05-13T00:32:45.651043"}, "last_modified": {"type": "/type/datetime", "value": "2022-05-13T00:32:45.651043"}}
+669	1	{"description": {"type": "/type/text", "value": "Librarians who are permitted to use work merge UI."}, "key": "/usergroup/super-librarians", "members": [{"key": "/people/openlibrary"}], "type": {"key": "/type/usergroup"}, "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2022-05-13T00:32:45.651043"}, "last_modified": {"type": "/type/datetime", "value": "2022-05-13T00:32:45.651043"}}
 670	1	{"description": {"type": "/type/text", "value": "Patrons who are not permitted to edit records that are spam-checked."}, "type": {"key": "/type/usergroup"}, "m": "edit", "key": "/usergroup/read-only", "latest_revision": 1, "revision": 1, "created": {"type": "/type/datetime", "value": "2022-05-25T21:42:26.830114"}, "last_modified": {"type": "/type/datetime", "value": "2022-05-25T21:42:26.830114"}}
 \.
 
@@ -5881,7 +5881,7 @@ COPY public.thing (id, key, type, latest_revision, created, last_modified) FROM 
 666	/usergroup/beta-testers	12	1	2020-11-19 03:45:35.476156	2020-11-19 03:45:35.476156
 667	/config/author	14	1	2021-10-07 20:31:34.001079	2021-10-07 20:31:34.001079
 668	/usergroup	50	1	2022-05-13 00:32:11.98413	2022-05-13 00:32:11.98413
-669	/usergroup/librarian-work-merge	12	1	2022-05-13 00:32:45.651043	2022-05-13 00:32:45.651043
+669	/usergroup/super-librarians	12	1	2022-05-13 00:32:45.651043	2022-05-13 00:32:45.651043
 670	/usergroup/read-only	12	1	2022-05-25 21:42:26.830114	2022-05-25 21:42:26.830114
 \.
 
@@ -5945,7 +5945,7 @@ COPY public.transaction (id, action, author_id, ip, comment, bot, created, chang
 45	update	524	172.21.0.1		f	2020-11-19 03:45:35.476156	[{"key": "/usergroup/beta-testers", "revision": 1}]	{}
 46	update	524	172.18.0.1		f	2021-10-07 20:31:34.001079	[{"key": "/config/author", "revision": 1}]	{}
 47	update	524	192.168.16.1		f	2022-05-13 00:32:11.98413	[{"key": "/usergroup", "revision": 1}]	{}
-48	update	524	192.168.16.1		f	2022-05-13 00:32:45.651043	[{"key": "/usergroup/librarian-work-merge", "revision": 1}]	{}
+48	update	524	192.168.16.1		f	2022-05-13 00:32:45.651043	[{"key": "/usergroup/super-librarians", "revision": 1}]	{}
 49	update	524	172.22.0.1	Create read-only usergroup	f	2022-05-25 21:42:26.830114	[{"key": "/usergroup/read-only", "revision": 1}]	{}
 \.
 
