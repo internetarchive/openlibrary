@@ -441,9 +441,7 @@ class ipaddress_view:
             for cid in changeset_ids
             for c in site.get_change(cid).changes
         ]
-        docs = [
-            doc for doc in docs if doc.get('type', {}).get('key') != '/type/delete'
-        ]
+        docs = [doc for doc in docs if doc.get('type', {}).get('key') != '/type/delete']
         logger.debug("Reverting %d docs", len(docs))
         data = {"reverted_changesets": [str(cid) for cid in changeset_ids]}
         manifest = web.ctx.site.save_many(
