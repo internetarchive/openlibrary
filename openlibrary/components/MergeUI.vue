@@ -59,7 +59,6 @@ export default {
                     const workIds = [master.key].concat(Array.from(dupes, item => item.key))
                     await createMergeRequest(workIds)
                 }
-                this.mergeStatus = `${this.mergeStatus} Merge request closed`
             } catch (e) {
                 this.mergeStatus = e.message;
                 throw e;
@@ -92,10 +91,12 @@ export default {
 
     .merge-btn {
         background-color: green;
+        color: white;
     }
 
     .reject-btn {
         background-color: red;
+        color: white;
     }
 }
 
