@@ -1,6 +1,8 @@
 /* eslint no-console: 0 */
 import _ from 'lodash';
 
+const collator = new Intl.Collator('en-US', {numeric: true})
+
 /**
  *
  * @param {string} field field from a work object
@@ -149,6 +151,39 @@ export function update_merge_request(mrid, action, comment) {
         method: 'POST',
         body: formData
     })
+}
+
+/**
+ * Composes and POSTs a merge request with status "Merged"
+ *
+ * @param {Array<string>} workIds Un-normalized work OLIDs
+ *
+ * @returns {Promise<Response>}
+ */
+export function createMergeRequest(workIds) {
+    const formData = new FormData()
+    const normalizedIds = prepareIds(workIds)
+    formData.set('action', 'create-merged')
+    formData.set('work_ids', normalizedIds.join(','))
+    return fetch('/merges', {
+        method: 'POST',
+        body: formData
+    })
+}
+
+/**
+ * Normalizes and sorts an array of OLIDs.
+ *
+ * OLIDs will be naturally ordered in the returned array.
+ *
+ * @param {Array<string>} workIds Un-normalized work OLIDs
+ * @returns {Array<string>} Noralized and sorted array of OLIDs
+ */
+function prepareIds(workIds) {
+    return Array.from(workIds, id => {
+        const splitArr = id.split('/')
+        return splitArr[splitArr.length - 1]
+    }).sort(collator.compare)
 }
 
 /**

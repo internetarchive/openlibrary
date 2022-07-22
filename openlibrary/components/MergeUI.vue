@@ -17,7 +17,7 @@
 
 <script>
 import MergeTable from './MergeUI/MergeTable.vue'
-import { do_merge, update_merge_request } from './MergeUI/utils.js';
+import { do_merge, update_merge_request, createMergeRequest } from './MergeUI/utils.js';
 
 export default {
     name: 'app',
@@ -52,7 +52,13 @@ export default {
             try {
                 const r = await do_merge(master, dupes, editions_to_move, this.mrid);
                 this.mergeStatus = await r.json();
-                await update_merge_request(this.mrid, 'approve', this.comment)
+
+                if (this.mrid) {
+                    await update_merge_request(this.mrid, 'approve', this.comment)
+                } else {
+                    const workIds = [master.key].concat(Array.from(dupes, item => item.key))
+                    await createMergeRequest(workIds)
+                }
                 this.mergeStatus = `${this.mergeStatus} Merge request closed`
             } catch (e) {
                 this.mergeStatus = e.message;
