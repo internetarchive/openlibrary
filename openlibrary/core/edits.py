@@ -122,7 +122,12 @@ class CommunityEditsQueue:
 
     @classmethod
     def submit_work_merge_request(
-        cls, work_ids: list[str], submitter: str, comment: str = None
+        cls,
+        work_ids: list[str],
+        submitter: str,
+        comment: str = None,
+        reviewer: str = None,
+        status: int = STATUS['PENDING'],
     ):
         """
         Creates new work merge requests with the given work olids.
@@ -132,19 +137,12 @@ class CommunityEditsQueue:
 
         url = f"/works/merge?records={','.join(work_ids)}"
         if not cls.exists(url):
-            return cls.submit_request(url, submitter=submitter, comment=comment)
-
-    @classmethod
-    def submit_completed_merge_request(cls, work_ids: list[str], username: str):
-        """
-        Creates a new work merge request with "Merged" status.
-
-        Precondition: OLIDs in work_ids list expected to be normalized and sorted.
-        """
-        url = f"/works/merge?records={','.join(work_ids)}"
-        if not cls.exists(url):
             return cls.submit_request(
-                url, submitter=username, reviewer=username, status=cls.STATUS['MERGED']
+                url,
+                submitter=submitter,
+                comment=comment,
+                reviewer=reviewer,
+                status=status,
             )
 
     @classmethod

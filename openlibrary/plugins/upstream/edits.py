@@ -85,8 +85,11 @@ class community_edits_queue(delegate.page):
                     json.dumps(resp), content_type="application/json"
                 )
             elif i.action == 'create-merged':
-                result = CommunityEditsQueue.submit_completed_merge_request(
-                    i.work_ids.split(','), username
+                result = CommunityEditsQueue.submit_work_merge_request(
+                    i.work_ids.split(','),
+                    submitter=username,
+                    reviewer=username,
+                    status=CommunityEditsQueue.STATUS['MERGED'],
                 )
                 return delegate.RawText(
                     json.dumps(response(id=result)), content_type='application/json'
