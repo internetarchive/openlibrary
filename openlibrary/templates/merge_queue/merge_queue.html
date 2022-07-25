@@ -4,7 +4,7 @@ $# total : int : The total number of merge requests found for the current mode
 $# merge_requests : list : Merge requests to be displayed in the table
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
-$ can_merge = ctx.user and (ctx.user.is_usergroup_member('/usergroup/librarian-work-merge'))
+$ can_merge = ctx.user and (ctx.user.is_usergroup_member('/usergroup/super-librarians'))
 
 $ reviewer = query_param('reviewer', None)
 $ submitter = query_param('submitter', None)

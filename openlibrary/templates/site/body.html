@@ -9,7 +9,7 @@ $if ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ct
   $if ctx.user and ((ctx.user.is_librarian() or ctx.user.is_admin())):
     $bodyclass.append('show-librarian-tools')
     $bodyattrs.append('data-username="%s"' % ctx.user.key.split('/')[-1])
-    $if ctx.user.is_usergroup_member('/usergroup/librarian-work-merge'):
+    $if ctx.user.is_usergroup_member('/usergroup/super-librarians'):
       $bodyattrs.append('data-can-merge="%s"' % 'true')
 
 <body class="$(' '.join(bodyclass))" $:(' '.join(bodyattrs))>
