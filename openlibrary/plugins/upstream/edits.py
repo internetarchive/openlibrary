@@ -93,7 +93,7 @@ class community_edits_queue(delegate.page):
             mode=i.mode,
             submitter=i.submitter,
             reviewer=i.reviewer,
-            order='created',
+            order='created desc',
         ).list()
         enriched_requests = self.enrich(merge_requests)
         total_found = CommunityEditsQueue.get_counts_by_mode(
