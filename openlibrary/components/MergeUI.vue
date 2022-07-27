@@ -68,7 +68,7 @@ export default {
                 const r = await do_merge(master, dupes, editions_to_move, this.mrid);
                 this.mergeOutput = await r.json();
                 await update_merge_request(this.mrid, 'approve', this.comment)
-                this.mergeOutput = `${this.mergeOutput} Merge request closed`
+                this.mergeOutput = `${JSON.stringify(this.mergeOutput, null, 5)} Merge request closed`
             } catch (e) {
                 this.mergeOutput = e.message;
                 throw e;
