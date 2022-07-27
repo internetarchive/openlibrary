@@ -258,7 +258,7 @@ jQuery(function () {
     const $notesModalLinks = $('.notes-modal-link');
     const $notesPageButtons = $('.note-page-buttons');
     const $shareModalLinks = $('.share-modal-link');
-    if ($observationModalLinks.length || $notesModalLinks.length || $notesPageButtons.length || $shareModalLinks) {
+    if ($observationModalLinks.length || $notesModalLinks.length || $notesPageButtons.length || $shareModalLinks.length) {
         import(/* webpackChunkName: "modal-links" */ './modals')
             .then(module => {
                 if ($observationModalLinks.length) {
@@ -381,7 +381,7 @@ jQuery(function () {
 
     // Prevent default star rating behavior:
     const ratingForms = document.querySelectorAll('.star-rating-form')
-    if (ratingForms) {
+    if (ratingForms.length) {
         import(/* webpackChunkName: "star-ratings" */'./handlers')
             .then((module) => module.initRatingHandlers(ratingForms));
     }
@@ -404,22 +404,22 @@ jQuery(function () {
     const showCommentsLinks = document.querySelectorAll('.comment-expand')
     const unassignElements = document.querySelectorAll('.mr-unassign')
 
-    if (mergeRequestCloseLinks || mergeRequestCommentButtons || showCommentsLinks || mergeRequestResolveLinks || unassignElements) {
+    if (mergeRequestCloseLinks.length || mergeRequestCommentButtons.length || showCommentsLinks.length || mergeRequestResolveLinks.length || unassignElements.length) {
         import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
             .then(module => {
-                if (mergeRequestCloseLinks) {
+                if (mergeRequestCloseLinks.length) {
                     module.initCloseLinks(mergeRequestCloseLinks)
                 }
-                if (mergeRequestCommentButtons) {
+                if (mergeRequestCommentButtons.length) {
                     module.initCommenting(mergeRequestCommentButtons)
                 }
-                if (showCommentsLinks) {
+                if (showCommentsLinks.length) {
                     module.initShowAllCommentsLinks(showCommentsLinks)
                 }
-                if (mergeRequestResolveLinks) {
+                if (mergeRequestResolveLinks.length) {
                     module.initRequestClaiming(mergeRequestResolveLinks)
                 }
-                if (unassignElements) {
+                if (unassignElements.length) {
                     module.initUnassignment(unassignElements)
                 }
             })
