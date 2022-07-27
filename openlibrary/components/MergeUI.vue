@@ -99,12 +99,6 @@ export default {
 #app {
     font-size: 0.9em;
 
-    & > button {
-        font-size: 1.3em;
-        padding: 5px;
-        margin: 5px;
-    }
-
     div#diffs-toggle {
         float: right;
         padding: 4px 8px 0 0;
@@ -117,21 +111,33 @@ export default {
     margin-bottom: 5px;
     padding: 5px;
 
+    & > button {
+        font-size: 1.3em;
+        padding: 10px;
+        margin: 5px;
+        border: none;
+        border-radius: 5px;
+    }
+
     .merge-btn {
-        background-color: green;
-        color: white;
+        background-color: rgb(158, 206, 158);
+    }
+    .merge-btn:hover {
+        background-color: rgb(127, 167, 127);
     }
 
     .reject-btn {
-        background-color: red;
-        color: white;
+        background-color: rgb(223, 142, 142);
+    }
+    .reject-btn:hover {
+        background-color: rgb(186, 118, 118);
     }
 }
 
 .comment-input {
     display: flex;
     flex-direction: column;
-    padding: 0 5px 5px;
+    padding: 0 5px 5px 10px;
 
     input {
         width: 90%;
