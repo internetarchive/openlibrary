@@ -22,7 +22,7 @@
 
 <script>
 import MergeTable from './MergeUI/MergeTable.vue'
-import { do_merge, update_merge_request } from './MergeUI/utils.js';
+import { do_merge, update_merge_request, createMergeRequest } from './MergeUI/utils.js';
 
 export default {
     name: 'app',
@@ -67,8 +67,12 @@ export default {
             try {
                 const r = await do_merge(master, dupes, editions_to_move, this.mrid);
                 this.mergeOutput = await r.json();
-                await update_merge_request(this.mrid, 'approve', this.comment)
-                this.mergeOutput = `${JSON.stringify(this.mergeOutput, null, 5)} Merge request closed`
+                if (this.mrid) {
+                    await update_merge_request(this.mrid, 'approve', this.comment)
+                } else {
+                    const workIds = [master.key].concat(Array.from(dupes, item => item.key))
+                    await createMergeRequest(workIds)
+                }
             } catch (e) {
                 this.mergeOutput = e.message;
                 throw e;
@@ -112,6 +116,7 @@ export default {
         margin: 5px;
         border: none;
         border-radius: 5px;
+        color: white;
     }
 
     .merge-btn {
