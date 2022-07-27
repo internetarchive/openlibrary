@@ -26,6 +26,11 @@ $else:
     $desc <a href="$href">$link_text</a>
   </div>
 
+$ page = int(input(page=1).page)
+<div class="pager">
+  $:macros.Pager(page, total, results_per_page=25)
+</div>
+
   <ul class="nav-bar">
     <li class="$(mode=='open' and 'selected' or '')">
       <a href="$changequery(mode='open')">$_('Open')</a>
@@ -108,8 +113,7 @@ $else:
         </tbody>
       </table>
   </div>
-  $ page = int(input(page=1).page)
-  <div class="pager">
+   <div class="pager">
     $:macros.Pager(page, total, results_per_page=25)
   </div>
 </div>
