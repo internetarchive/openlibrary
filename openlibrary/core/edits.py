@@ -146,8 +146,8 @@ class CommunityEditsQueue:
                 title=cls.get_work_merge_title(work_ids),
             )
 
-    @classmethod
-    def get_work_merge_title(cls, olids):
+    @staticmethod
+    def get_work_merge_title(olids):
         title = None
         for olid in olids:
             book = web.ctx.site.get(f'/works/{olid}')
