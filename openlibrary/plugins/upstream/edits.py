@@ -30,7 +30,7 @@ class community_edits_queue(delegate.page):
             work_ids="",  # Comma-separated OLIDs (OL1W,OL2W,OL3W,...,OL111W)
             rtype="merge-works",
             mrid=None,
-            action=None,  # create, approve, decline, comment, unassign
+            action=None,  # create, approve, decline, comment, unassign, create-merged
             comment=None,
         )
         user = accounts.get_current_user()
@@ -83,6 +83,16 @@ class community_edits_queue(delegate.page):
                 )
                 return delegate.RawText(
                     json.dumps(resp), content_type="application/json"
+                )
+            elif i.action == 'create-merged':
+                result = CommunityEditsQueue.submit_work_merge_request(
+                    i.work_ids.split(','),
+                    submitter=username,
+                    reviewer=username,
+                    status=CommunityEditsQueue.STATUS['MERGED'],
+                )
+                return delegate.RawText(
+                    json.dumps(response(id=result)), content_type='application/json'
                 )
 
     def GET(self):
