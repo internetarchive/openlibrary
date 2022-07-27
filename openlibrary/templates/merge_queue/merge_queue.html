@@ -63,7 +63,7 @@ $ page = int(input(page=1).page)
           $ url = "%s&mrid=%s" % (r['url'], r['id'])
           $ is_submitter = username == r['submitter']
           <tr id="mrid-$(r['id'])">
-            <td>$r['submitter']</td>
+            <td>$r['submitter']<br>$datestr(r['created'])</td>
             <td id="status-cell-$(r['id'])">$status</td>
 
             <td id="comment-cell-$(r['id'])" class="comment-cell">
