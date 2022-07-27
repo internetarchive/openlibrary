@@ -57,7 +57,7 @@ $ page = int(input(page=1).page)
         <tbody>
         $for r in merge_requests:
           $ work_title = r.get('title', 'an untitled work')
-          $ comments = r.get('comments', [])
+          $ comments = r.get('comments', {}).get('comments', [])
           $ status = get_status_for_view(r['status'])
           $ is_open = r['status'] == 1
           $ url = "%s&mrid=%s" % (r['url'], r['id'])
