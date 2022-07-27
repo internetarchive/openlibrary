@@ -135,17 +135,6 @@ class CommunityEditsQueue:
 
         Precondition: OLIDs in work_ids list must be sanitized and normalized.
         """
-
-        def get_title(olids):
-            title = None
-            for olid in olids:
-                book = web.ctx.site.get(f'/works/{olid}')
-                if book:
-                    if not title and book.title:
-                        title = book.title
-                        break
-            return title
-
         url = f"/works/merge?records={','.join(work_ids)}"
         if not cls.exists(url):
             return cls.submit_request(
@@ -154,8 +143,18 @@ class CommunityEditsQueue:
                 comment=comment,
                 reviewer=reviewer,
                 status=status,
-                title=get_title(work_ids),
+                title=cls.get_work_merge_title(work_ids),
             )
+
+    @classmethod
+    def get_work_merge_title(cls, olids):
+        title = None
+        for olid in olids:
+            book = web.ctx.site.get(f'/works/{olid}')
+            if book and book.title:
+                title = book.title
+                break
+        return title
 
     @classmethod
     def submit_author_merge_request(cls, author_ids, submitter, comment=None):
