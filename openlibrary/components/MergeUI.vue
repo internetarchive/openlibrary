@@ -67,7 +67,6 @@ export default {
             try {
                 const r = await do_merge(master, dupes, editions_to_move, this.mrid);
                 this.mergeOutput = await r.json();
-
                 if (this.mrid) {
                     await update_merge_request(this.mrid, 'approve', this.comment)
                 } else {
@@ -117,6 +116,7 @@ export default {
         margin: 5px;
         border: none;
         border-radius: 5px;
+        color: white;
     }
 
     .merge-btn {
