@@ -65,6 +65,7 @@ CREATE TABLE observations (
 
 CREATE TABLE community_edits_queue (
     id serial not null primary key,
+    title text,
     submitter text not null,
     reviewer text default null,
     url text not null,

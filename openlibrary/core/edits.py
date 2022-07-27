@@ -1,6 +1,7 @@
 import datetime
 import json
 from typing import Optional
+import web
 
 from infogami.utils.view import public
 
@@ -135,6 +136,16 @@ class CommunityEditsQueue:
         Precondition: OLIDs in work_ids list must be sanitized and normalized.
         """
 
+        def get_title(olids):
+            title = None
+            for olid in olids:
+                book = web.ctx.site.get(f'/works/{olid}')
+                if book:
+                    if not title and book.title:
+                        title = book.title
+                        break
+            return title
+
         url = f"/works/merge?records={','.join(work_ids)}"
         if not cls.exists(url):
             return cls.submit_request(
@@ -143,6 +154,7 @@ class CommunityEditsQueue:
                 comment=comment,
                 reviewer=reviewer,
                 status=status,
+                title=get_title(work_ids),
             )
 
     @classmethod
@@ -170,6 +182,7 @@ class CommunityEditsQueue:
         reviewer: str = None,
         status: int = STATUS['PENDING'],
         comment: str = None,
+        title: str = None,
     ):
         """
         Inserts a new record into the table.
@@ -188,6 +201,7 @@ class CommunityEditsQueue:
             url=url,
             status=status,
             comments=json_comment,
+            title=title,
         )
 
     @classmethod
