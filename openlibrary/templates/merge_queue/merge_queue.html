@@ -26,6 +26,11 @@ $else:
     $desc <a href="$href">$link_text</a>
   </div>
 
+$ page = int(input(page=1).page)
+<div class="pager">
+  $:macros.Pager(page, total, results_per_page=25)
+</div>
+
   <ul class="nav-bar">
     <li class="$(mode=='open' and 'selected' or '')">
       <a href="$changequery(mode='open')">$_('Open')</a>
@@ -52,13 +57,13 @@ $else:
         <tbody>
         $for r in merge_requests:
           $ work_title = r.get('title', 'an untitled work')
-          $ comments = r.get('comments', [])
+          $ comments = r.get('comments', {}).get('comments', [])
           $ status = get_status_for_view(r['status'])
           $ is_open = r['status'] == 1
           $ url = "%s&mrid=%s" % (r['url'], r['id'])
           $ is_submitter = username == r['submitter']
           <tr id="mrid-$(r['id'])">
-            <td>$r['submitter']</td>
+            <td>$r['submitter']<br>$datestr(r['created'])</td>
             <td id="status-cell-$(r['id'])">$status</td>
 
             <td id="comment-cell-$(r['id'])" class="comment-cell">
@@ -108,8 +113,7 @@ $else:
         </tbody>
       </table>
   </div>
-  $ page = int(input(page=1).page)
-  <div class="pager">
+   <div class="pager">
     $:macros.Pager(page, total, results_per_page=25)
   </div>
 </div>

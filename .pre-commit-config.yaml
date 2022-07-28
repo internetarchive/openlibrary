@@ -40,14 +40,14 @@ repos:
       - id: codespell  # See setup.cfg for args
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v0.961'
+    rev: 'v0.971'
     hooks:
       - id: mypy  # See setup.cfg for args
         additional_dependencies:
           - types-all
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.37.1
+    rev: v2.37.2
     hooks:
       - id: pyupgrade
         args:

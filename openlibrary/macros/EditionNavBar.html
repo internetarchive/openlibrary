@@ -1,6 +1,6 @@
 $def with (reader_observations, edition_count=1, show_observations=False)
 
-$ total_reviews = reader_observations.get('total_respondents', '')
+$ total_reviews = reader_observations.get('total_respondents', 0) or ''
 
 <ul class="work-menu sticky">
   <li class="selected">

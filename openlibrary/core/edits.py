@@ -1,6 +1,7 @@
 import datetime
 import json
 from typing import Optional
+import web
 
 from infogami.utils.view import public
 
@@ -122,17 +123,38 @@ class CommunityEditsQueue:
 
     @classmethod
     def submit_work_merge_request(
-        cls, work_ids: list[str], submitter: str, comment: str = None
+        cls,
+        work_ids: list[str],
+        submitter: str,
+        comment: str = None,
+        reviewer: str = None,
+        status: int = STATUS['PENDING'],
     ):
         """
         Creates new work merge requests with the given work olids.
 
         Precondition: OLIDs in work_ids list must be sanitized and normalized.
         """
-
         url = f"/works/merge?records={','.join(work_ids)}"
         if not cls.exists(url):
-            return cls.submit_request(url, submitter=submitter, comment=comment)
+            return cls.submit_request(
+                url,
+                submitter=submitter,
+                comment=comment,
+                reviewer=reviewer,
+                status=status,
+                title=cls.get_work_merge_title(work_ids),
+            )
+
+    @staticmethod
+    def get_work_merge_title(olids):
+        title = None
+        for olid in olids:
+            book = web.ctx.site.get(f'/works/{olid}')
+            if book and book.title:
+                title = book.title
+                break
+        return title
 
     @classmethod
     def submit_author_merge_request(cls, author_ids, submitter, comment=None):
@@ -159,6 +181,7 @@ class CommunityEditsQueue:
         reviewer: str = None,
         status: int = STATUS['PENDING'],
         comment: str = None,
+        title: str = None,
     ):
         """
         Inserts a new record into the table.
@@ -177,6 +200,7 @@ class CommunityEditsQueue:
             url=url,
             status=status,
             comments=json_comment,
+            title=title,
         )
 
     @classmethod
