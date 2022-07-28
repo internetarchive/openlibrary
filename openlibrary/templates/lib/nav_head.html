@@ -15,11 +15,8 @@ $def with (page)
     $ loginLinks = [
     $     { "loginClass": "login-links" }
     $ ]
-  $ moreLinks = [
-  $     { "href": "/books/add", "text": _("Add a Book"), "track": "MainNav|AddBook" },
-  $     { "href": "/recentchanges", "text": _("Recent Community Edits"), "track": "MainNav|RecentEdits" },
-  $     { "href": "/developers", "text": _("Developer Center"), "track": "MainNav|Developers" },
-  $     { "href": "/help", "text": _("Help & Support"), "track": "MainNav|Help" }
+  $ myBooksLinks = [
+  $     { "href": homepath() + "/account/loans", "text": _("My Books"), "track": "MainNav|MyBooks" },
   $ ]
   $ browseLinks = [
   $     { "href": "/subjects", "text": _("Subjects"), "track": "MainNav|Subjects" },
@@ -30,6 +27,12 @@ $def with (page)
   $     { "href": "/k-12", "text": _("K-12 Student Library"), "track": "MainNav|K12Library" },
   $     { "href": "/random", "text": _("Random Book"), "track": "MainNav|RandomBook" },
   $     { "href": "/advancedsearch", "text": _("Advanced Search"), "track": "MainNav|AdvancedSearch" }
+  $ ]
+  $ moreLinks = [
+  $     { "href": "/books/add", "text": _("Add a Book"), "track": "MainNav|AddBook" },
+  $     { "href": "/recentchanges", "text": _("Recent Community Edits"), "track": "MainNav|RecentEdits" },
+  $     { "href": "/developers", "text": _("Developer Center"), "track": "MainNav|Developers" },
+  $     { "href": "/help", "text": _("Help & Support"), "track": "MainNav|Help" }
   $ ]
   $ hamburgerProps = {
   $  'name': 'hamburger',
@@ -62,9 +65,15 @@ $def with (page)
   $   'label': _('More'),
   $   'links': moreLinks
   $ }
+
+  $ myBooksProps = {
+  $   'name': 'mybooks',
+  $   'label': _('My Books'),
+  $   'links': myBooksLinks
+  $ }
   <ul class="navigation-component">
+    <li>$:render_template("lib/header_dropdown", myBooksProps )</li>
     <li>$:render_template("lib/header_dropdown", browseProps )</li>
-    <li>$:render_template("lib/header_dropdown", moreProps )</li>
   </ul>
 
   <div class="search-component">
@@ -105,28 +114,12 @@ $def with (page)
       <li><a class="btn primary" href="/account/create">$_("Sign Up")</a></li>
     </ul>
 
-  $if ctx.user:
-    $code:
-      accountProps = {
-        'name': 'account',
-        'label': 'My account',
-        # It seems like in the local dev environment (and presumably _only_ in the local
-        # dev environment), this get_internet_archive_id returns None. Setting it to an
-        # empty string returns a valid image ¯\_(ツ)_/¯
-        'image': 'https://archive.org/services/img/' + (get_internet_archive_id(ctx.user.key) or ''),
-        'image-class': 'header-dropdown__icon',
-        'links': loginLinks
-      }
-
-    $accountProps['links'].insert(5, { "href": "/account/books/notes", "text": _("My Book Notes"), "track": "MainNav|MyBookNotes" })
-    $:render_template("lib/header_dropdown", accountProps )
-
   $:render_template("lib/header_dropdown", hamburgerProps )
 
 </header>
 <header class="header-bar mobile">
   <ul class="navigation-component mobile">
+    <li>$:render_template("lib/header_dropdown", myBooksProps )</li>
     <li>$:render_template("lib/header_dropdown", browseProps )</li>
-    <li>$:render_template("lib/header_dropdown", moreProps )</li>
   </ul>
 </header>
