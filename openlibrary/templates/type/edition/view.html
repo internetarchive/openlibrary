@@ -166,7 +166,7 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
   <div class="workDetails">
-    $if work:
+    $if work and work.key:
         <link itemprop="exampleOfWork" href="$work.key">
 
     <div class="editionCover">
