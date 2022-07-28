@@ -3,7 +3,7 @@
  * @module lists/index
  */
 
-import { createList, addToList, removeFromList, updateReadingLog } from './ListService'
+import { createList, addToList, removeFromList, updateReadingLog, fetchPartials } from './ListService'
 import { websafe } from '../jsdef'
 
 /**
@@ -437,4 +437,45 @@ function updateAlreadyList(listKey, listTitle, coverUrl, seedKey) {
     addRemoveClickListener(li)
 
     return li;
+}
+
+export function initListLoading(dropperLists, activeLists) {
+    let key
+    if (dropperLists.dataset.editionKey) {
+        key = dropperLists.dataset.editionKey
+    } else if (dropperLists.dataset.workKey) {
+        key = dropperLists.dataset.workKey
+    }
+
+    if (key) {
+        fetchPartials(key, function(data) {
+            replaceLoadingIndicators(dropperLists, activeLists, data)
+        })
+    }
+}
+
+function replaceLoadingIndicators(dropperLists, activeLists, partials) {
+    partials = JSON.parse(partials)
+
+    const dropperParent = dropperLists.parentElement
+    const activeListsParent = activeLists ? activeLists.parentElement : null
+
+    removeChildren(dropperParent)
+    dropperParent.insertAdjacentHTML('afterbegin', partials['dropper'])
+
+    const dropper = dropperParent.closest('.widget-add')
+    initDroppers([dropper])
+
+    if (activeListsParent) {
+        removeChildren(activeListsParent)
+        activeListsParent.insertAdjacentHTML('afterbegin', partials['active'])
+        const actionableListItems = activeListsParent.querySelectorAll('.actionable-item')
+        registerListItems(actionableListItems)
+    }
+}
+
+function removeChildren(elem) {
+    while (elem.firstChild) {
+        elem.removeChild(elem.firstChild)
+    }
 }

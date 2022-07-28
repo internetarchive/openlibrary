@@ -92,3 +92,11 @@ export function updateReadingLog(formElem, success) {
         success: success
     })
 }
+
+export function fetchPartials(key, success) {
+    $.ajax({
+        type: 'GET',
+        url: `/lists/partials?key=${key}`,
+        success: success
+    })
+}

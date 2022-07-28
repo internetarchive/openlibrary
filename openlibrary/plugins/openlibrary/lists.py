@@ -3,6 +3,7 @@
 import json
 import random
 import tempfile
+from xml.etree.ElementInclude import include
 import web
 
 from infogami.utils import delegate
@@ -13,6 +14,7 @@ from openlibrary.accounts import get_current_user
 from openlibrary.core import formats, cache
 from openlibrary.core.lists.model import ListMixin
 import openlibrary.core.helpers as h
+from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream.account import MyBooksTemplate
@@ -26,6 +28,84 @@ class lists_home(delegate.page):
     def GET(self):
         delegate.context.setdefault('cssfile', 'lists')
         return render_template("lists/home")
+
+
+class lists_partials(delegate.page):
+    path = "/lists/partials"
+
+    def GET(self):
+        i = web.input(key=None)
+
+        user = get_current_user()
+        doc = self.get_doc(i.key)
+        seed_info = self.get_seed_info(doc)
+        user_lists = self.get_user_lists(user.get_lists(sort=True), seed_info)
+
+        dropper = render_template('lists/dropper_lists', user_lists)
+        active = render_template(
+            'lists/active_lists', user_lists, user['key'], seed_info
+        )
+
+        partials = {
+            'dropper': str(dropper),
+            'active': str(active),
+        }
+
+        web.header("Content-Type", "application/json")
+        return delegate.RawText(formats.dump(partials, 'json'))
+
+    def get_doc(self, key):
+        if key.startswith("/subjects/"):
+            return subjects.get_subject(key)
+        return web.ctx.site.get(key)
+
+    def get_seed_info(self, doc):
+        """Takes a thiing, determines what type it is, and returns a seed summary"""
+        if doc.key.startswith("/subjects/"):
+            seed = doc.key.split("/")[-1]
+            if seed.split(":")[0] not in ["place", "person", "time"]:
+                seed = "subject:" + seed
+            seed = seed.replace(",", "_").replace("__", "_")
+            seed_type = "subject"
+            title = doc.name
+        else:
+            seed = {"key": doc.key}
+            if doc.key.startswith("/authors/"):
+                seed_type = "author"
+                title = doc.get('name', 'name missing')
+            elif doc.key.startswith("/works"):
+                seed_type = "work"
+                title = doc.get("title", "untitled")
+            else:
+                seed_type = "edition"
+                title = doc.get("title", "untitled")
+        return {
+            "seed": seed,
+            "type": seed_type,
+            "title": web.websafe(title),
+            "remove_dialog_html": _(
+                'Are you sure you want to remove <strong>%(title)s</strong> from your list?',
+                title=web.websafe(title),
+            ),
+        }
+
+    def get_list_data(self, list, seed, include_cover_url=True):
+        d = web.storage(
+            {"name": list.name or "", "key": list.key, "active": list.has_seed(seed)}
+        )
+        if include_cover_url:
+            cover = list.get_cover() or list.get_default_cover()
+            d['cover_url'] = (
+                cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
+            )
+            if 'None' in d['cover_url']:
+                d['cover_url'] = "/images/icons/avatar_book-sm.png"
+        owner = list.get_owner()
+        d['owner'] = web.storage(displayname=owner.displayname or "", key=owner.key)
+        return d
+
+    def get_user_lists(self, user_lists, seed_info):
+        return [self.get_list_data(list, seed_info['seed']) for list in user_lists]
 
 
 class lists(delegate.page):
