@@ -213,13 +213,9 @@
 
     .hamburger__icon {
       width: 22px;
-      padding: 10px 12px;
+      padding: 0 10px;
       border-radius: 3px;
       box-sizing: content-box;
-    }
-
-    .hamburger__icon.logged {
-      padding-left: 45px;
     }
 
     @keyframes sweep {
@@ -263,12 +259,12 @@
 
   .mask-menu {
     position: fixed;
-    top: 50px;
+    top: 75px;
     left: 0;
     right: 0;
     opacity: 0;
     bottom: 0;
-    background: linear-gradient(to right, transparent -30px, @black);
+    background: linear-gradient(to bottom, transparent 0, @black);
     z-index: @z-index-level-1;
     visibility: hidden;
   }
@@ -289,8 +285,6 @@
       border-radius: 4px;
       width: 30px;
       height: 30px;
-      position: absolute;
-      right: 28px;
     }
 
     button,
@@ -317,7 +311,7 @@
       top: -1px;
       height: 32px;
       width: auto;
-      margin-right: 5px;
+      margin-left: 5px;
       -ms-flex-item-align: center;
       align-self: center;
     }
@@ -393,7 +387,7 @@
       -webkit-box-flex: 1;
       -ms-flex: 1;
       flex: 1;
-      margin-right: 15px;
+      margin-left: 5px;
       -ms-flex-item-align: center;
       align-self: center;
 
@@ -812,7 +806,7 @@ div.search-facet:focus-within {
   }
 }
 
-@media only screen and (max-width: @width-breakpoint-tablet) {
+@media only screen and (max-width: @width-breakpoint-desktop) {
   // stylelint-disable-next-line selector-max-specificity
   #header-bar {
     position: sticky;
@@ -836,9 +830,6 @@ div.search-facet:focus-within {
       .search-facet-selector {
         margin-top: 1px;
       }
-    }
-    .account__icon{
-      margin-right: 20px;
     }
     &.mobile {
       padding: 10px 0;

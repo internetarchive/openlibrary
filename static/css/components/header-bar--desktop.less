@@ -18,6 +18,7 @@
   }
 
   .navigation-component {
+    .display-flex();
     -webkit-box-ordinal-group: 3;
     -ms-flex-order: 2;
     order: 2;
@@ -46,6 +47,12 @@
     }
   }
 
+  .hamburger-component {
+    -webkit-box-ordinal-group: 5;
+    -ms-flex-order: 6;
+    order: 6;
+  }
+
   .app-drawer {
     top: 0;
     height: 100%;
@@ -53,5 +60,16 @@
 
   .mask-menu {
     top: 0;
+  }
+
+  .header-dropdown {
+    .account__icon {
+      width: 45px;
+      height: 45px;
+    }
+  }
+
+  &.mobile {
+    display: none;
   }
 }
