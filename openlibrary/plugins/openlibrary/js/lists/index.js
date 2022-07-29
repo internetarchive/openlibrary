@@ -439,7 +439,10 @@ function updateAlreadyList(listKey, listTitle, coverUrl, seedKey) {
     return li;
 }
 
-export function initListLoading(dropperLists, activeLists) {
+export function initListLoading(dropperLists, activeLists) {  // TODO: make these singular
+    const loadingIndicators = [dropperLists.querySelector('.loading-ellipsis'), activeLists.querySelector('.loading-ellipsis')]
+    const intervalId = initLoadingAnimation(loadingIndicators)
+
     let key
     if (dropperLists.dataset.editionKey) {
         key = dropperLists.dataset.editionKey
@@ -449,9 +452,26 @@ export function initListLoading(dropperLists, activeLists) {
 
     if (key) {
         fetchPartials(key, function(data) {
+            clearInterval(intervalId)
             replaceLoadingIndicators(dropperLists, activeLists, data)
         })
     }
+}
+
+function initLoadingAnimation(loadingIndicators) {
+    let count = 0;
+    const intervalId = setInterval(function() {
+        let ellipsis = ''
+        for (let i = 0; i < count % 4; ++i) {
+            ellipsis += '.'
+        }
+        for (const elem of loadingIndicators) {
+            elem.innerText = ellipsis
+        }
+        ++count;
+    }, 1500)
+
+    return intervalId
 }
 
 function replaceLoadingIndicators(dropperLists, activeLists, partials) {

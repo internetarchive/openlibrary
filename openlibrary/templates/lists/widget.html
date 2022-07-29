@@ -125,7 +125,7 @@ $if include_widget:
   $:macros.ReadingLogDropper(user_lists, work=work, edition=edition, key=default_seed_key, users_work_read_status=users_work_read_status, page_url=page_url, async_load=async_load)
   <ul id="already-lists" class="listLists already-lists">
     $if async_load:
-        <div class="list-overview-loading-indicator">Loading...</div>
+        <div class="list-overview-loading-indicator">Loading<span class="loading-ellipsis">...</span></div>
     $else:
         $:render_already_lists(user_lists, user_key)
   </ul>
