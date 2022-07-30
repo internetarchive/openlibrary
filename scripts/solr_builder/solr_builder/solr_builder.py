@@ -1,6 +1,6 @@
 import json
-from typing import Literal
-from collections.abc import Awaitable
+from typing import Literal, Optional
+from collections.abc import Awaitable, Iterator
 
 
 from configparser import ConfigParser
@@ -19,14 +19,13 @@ from openlibrary.solr.update_work import load_configs, update_keys
 logger = logging.getLogger("openlibrary.solr-builder")
 
 
-def config_section_to_dict(config_file, section):
+def config_section_to_dict(config_file: str, section: str) -> dict:
     """
     Read a config file's section as a dict
 
     :param str config_file: filename of config file
     :param str section: section to pull data from
-    :return: dict of key value pairs
-    :rtype: dict
+    :rtype: dict of key value pairs
     """
     config = ConfigParser()
     config.read(config_file)
@@ -55,17 +54,17 @@ class LocalPostgresDataProvider(DataProvider):
     This class uses a local postgres dump of the database.
     """
 
-    def __init__(self, db_conf_file):
+    def __init__(self, db_conf_file: str):
         """
         :param str db_conf_file: file to DB config with [postgres] section
         """
         super().__init__()
         self._db_conf = config_section_to_dict(db_conf_file, "postgres")
         self._conn: psycopg2._psycopg.connection = None
-        self.cache = {}
-        self.cached_work_editions_ranges = []
+        self.cache: dict = {}
+        self.cached_work_editions_ranges: list = []
 
-    def __enter__(self):
+    def __enter__(self) -> LocalPostgresDataProvider:
         """
         :rtype: LocalPostgresDataProvider
         """
@@ -76,9 +75,8 @@ class LocalPostgresDataProvider(DataProvider):
         self.clear_cache()
         self._conn.close()
 
-    def query_all(self, query, cache_json=False):
+    def query_all(self, query: str, cache_json: bool = False) -> list:
         """
-
         :param str query:
         :param bool cache_json:
         :rtype: list
@@ -107,7 +105,8 @@ class LocalPostgresDataProvider(DataProvider):
 
         cur.close()
 
-    def query_batched(self, query, size, cursor_name=None, cache_json=False):
+    def query_batched(self, query: str, size: int, cursor_name: Optional[str] =
+                      None, cache_json: bool = False) -> Iterator:
         """
         :param str query:
         :param int size:
@@ -278,10 +277,10 @@ async def simple_timeit_async(awaitable: Awaitable):
 
 def build_job_query(
     job: Literal['works', 'orphans', 'authors'],
-    start_at: str = None,
+    start_at: Optional[str] = None,
     offset: int = 0,
-    last_modified: str = None,
-    limit: int = None,
+    last_modified: Optional[str] = None,
+    limit: Optional[int] = None,
 ) -> str:
     """
     :param job: job to complete
