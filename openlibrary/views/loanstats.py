@@ -158,19 +158,20 @@ def get_cached_activity_stream(limit):
 class activity_stream(app.view):
     path = "/trending(/?.*)"
 
-    def GET(self, page=''):
-        if not page:
+    def GET(self, mode=''):
+        page = int(web.input(page=1))
+        if not mode:
             raise web.seeother("/trending/now")
-        page = page[1:]  # remove slash
+        mode = mode[1:]  # remove slash
         limit = 20
-        if page == "now":
-            logged_books = Bookshelves.fetch(get_activity_stream(limit=limit))
+        if mode == "now":
+            logged_books = Bookshelves.fetch(get_activity_stream(limit=limit, page=page))
         else:
             shelf_id = None  # optional; get from web.input()?
             logged_books = Bookshelves.fetch(
-                cached_get_most_logged_books(since_days=SINCE_DAYS[page], limit=limit)
+                cached_get_most_logged_books(since_days=SINCE_DAYS[mode], limit=limit, page=page)
             )
-        return app.render_template("trending", logged_books=logged_books, mode=page)
+        return app.render_template("trending", logged_books=logged_books, mode=mode)
 
 
 class readinglog_stats(app.view):
