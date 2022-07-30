@@ -680,7 +680,6 @@ class Work(Thing):
                 break
             work_redirect_batch = web.ctx.site.get_many(work_redirect_ids)
             for work in work_redirect_batch:
-                logger.info(f"Modified: {work.last_modified}")
                 pos += 1
                 if work.last_modified < cutoff_date:
                     logger.info(
