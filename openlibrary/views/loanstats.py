@@ -165,11 +165,15 @@ class activity_stream(app.view):
         mode = mode[1:]  # remove slash
         limit = 20
         if mode == "now":
-            logged_books = Bookshelves.fetch(get_activity_stream(limit=limit, page=page))
+            logged_books = Bookshelves.fetch(
+                get_activity_stream(limit=limit, page=page)
+            )
         else:
             shelf_id = None  # optional; get from web.input()?
             logged_books = Bookshelves.fetch(
-                cached_get_most_logged_books(since_days=SINCE_DAYS[mode], limit=limit, page=page)
+                cached_get_most_logged_books(
+                    since_days=SINCE_DAYS[mode], limit=limit, page=page
+                )
             )
         return app.render_template("trending", logged_books=logged_books, mode=mode)
 
