@@ -683,7 +683,9 @@ class Work(Thing):
                 logger.info(f"Modified: {work.last_modified}")
                 pos += 1
                 if work.last_modified < cutoff_date:
-                    logger.info(f"[update-redirects] Stop: #{pos} <{work.key}> {work.last_modified} < {cutoff_date}")
+                    logger.info(
+                        f"[update-redirects] Stop: #{pos} <{work.key}> {work.last_modified} < {cutoff_date}"
+                    )
                     go = False
                     break
                 if work.last_modified > grace_date:
