@@ -8,10 +8,6 @@ from time import sleep
 
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
-from openlibrary.catalog.marc.parse import read_edition
-from openlibrary.catalog.marc.fast_parse import (
-    read_file as fast_read_file,
-)  # Deprecated import
 from openlibrary.core import ia
 
 
@@ -151,22 +147,6 @@ def get_from_archive_bulk(locator):
             else:
                 next_offset = next_length = None
     return data, next_offset, next_length
-
-
-def read_marc_file(part, f, pos=0):
-    """
-    Generator to step through bulk MARC data f.
-
-    :param str part:
-    :param str f: Full binary MARC data containing many records
-    :param int pos: Start position within the data
-    :rtype: (int, str, str)
-    :return: (Next position, Current source_record name, Current single MARC record)
-    """
-    for data, int_length in fast_read_file(f):
-        loc = "marc:%s:%d:%d" % (part, pos, int_length)
-        pos += int_length
-        yield (pos, loc, data)
 
 
 def item_file_url(identifier, ending, host=None, path=None):
