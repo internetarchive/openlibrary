@@ -1,7 +1,6 @@
 import traceback
 import xml.parsers.expat
 
-from deprecated import deprecated
 from infogami import config
 from lxml import etree
 import requests
