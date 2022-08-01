@@ -11,7 +11,7 @@ from lxml import etree
 import re
 
 
-from openlibrary.catalog.importer.db_read import get_mc
+from openlibrary.catalog.utils.query import get_mc
 from openlibrary.catalog.get_ia import (
     get_from_archive,
     marc_formats,

@@ -76,10 +76,11 @@ def get_things(q):
     return read_from_url(url)
 
 
+@deprecated("use catalog.query.get_mc() instead")
 def get_mc(key):
     """
     Get Machine Comment.
-    Used by:
+    Was used by:
       openlibrary/catalog/utils/edit.py
       openlibrary/catalog/marc/marc_subject.py
     """
