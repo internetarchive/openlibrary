@@ -68,16 +68,6 @@ def get_marc_record_from_ia(identifier):
         return MarcBinary(data)
 
 
-@deprecated('Use get_marc_record_from_ia() above + parse.read_edition()')
-def get_ia(identifier):
-    """
-    :param str identifier: ocaid
-    :rtype: dict
-    """
-    marc = get_marc_record_from_ia(identifier)
-    return read_edition(marc)
-
-
 def files(identifier):
     url = item_file_url(identifier, 'files.xml')
     for i in range(5):
