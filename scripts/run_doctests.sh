@@ -14,14 +14,6 @@ set -e
 
 pytest --doctest-modules \
         --ignore=infogami \
-        --ignore=openlibrary/catalog/amazon/add_covers.py \
-        --ignore=openlibrary/catalog/amazon/amazon_to_arc.py \
-        --ignore=openlibrary/catalog/amazon/arc_index.py \
-        --ignore=openlibrary/catalog/amazon/crawl_top_books.py \
-        --ignore=openlibrary/catalog/amazon/extract_amazon_fields.py \
-        --ignore=openlibrary/catalog/amazon/import.py \
-        --ignore=openlibrary/catalog/amazon/list_done.py \
-        --ignore=openlibrary/catalog/amazon/load_merge.py \
         --ignore=openlibrary/catalog/marc/lang.py \
         --ignore=openlibrary/catalog/marc/read_toc.py \
         --ignore=openlibrary/catalog/marc/show_records.py \
