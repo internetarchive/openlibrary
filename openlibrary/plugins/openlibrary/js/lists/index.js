@@ -440,14 +440,19 @@ function updateAlreadyList(listKey, listTitle, coverUrl, seedKey) {
 }
 
 export function initListLoading(dropperLists, activeLists) {  // TODO: make these singular
-    const loadingIndicators = [dropperLists.querySelector('.loading-ellipsis'), activeLists.querySelector('.loading-ellipsis')]
+    const loadingIndicators = dropperLists ? [dropperLists.querySelector('.loading-ellipsis')] : []
+    if (activeLists) {
+        loadingIndicators.push(activeLists.querySelector('.loading-ellipsis'))
+    }
     const intervalId = initLoadingAnimation(loadingIndicators)
 
     let key
-    if (dropperLists.dataset.editionKey) {
-        key = dropperLists.dataset.editionKey
-    } else if (dropperLists.dataset.workKey) {
-        key = dropperLists.dataset.workKey
+    if (dropperLists) {  // Not defined for logged out patrons
+        if (dropperLists.dataset.editionKey) {
+            key = dropperLists.dataset.editionKey
+        } else if (dropperLists.dataset.workKey) {
+            key = dropperLists.dataset.workKey
+        }
     }
 
     if (key) {
@@ -455,6 +460,8 @@ export function initListLoading(dropperLists, activeLists) {  // TODO: make thes
             clearInterval(intervalId)
             replaceLoadingIndicators(dropperLists, activeLists, data)
         })
+    } else {
+        removeLoadingIndicators(dropperLists, activeLists)
     }
 }
 
@@ -475,16 +482,16 @@ function initLoadingAnimation(loadingIndicators) {
 }
 
 function replaceLoadingIndicators(dropperLists, activeLists, partials) {
-    partials = JSON.parse(partials)
-
-    const dropperParent = dropperLists.parentElement
+    const dropperParent = dropperLists ? dropperLists.parentElement : null
     const activeListsParent = activeLists ? activeLists.parentElement : null
 
-    removeChildren(dropperParent)
-    dropperParent.insertAdjacentHTML('afterbegin', partials['dropper'])
+    if (dropperParent) {
+        removeChildren(dropperParent)
+        dropperParent.insertAdjacentHTML('afterbegin', partials['dropper'])
 
-    const dropper = dropperParent.closest('.widget-add')
-    initDroppers([dropper])
+        const dropper = dropperParent.closest('.widget-add')
+        initDroppers([dropper])
+    }
 
     if (activeListsParent) {
         removeChildren(activeListsParent)
@@ -495,7 +502,18 @@ function replaceLoadingIndicators(dropperLists, activeLists, partials) {
 }
 
 function removeChildren(elem) {
-    while (elem.firstChild) {
-        elem.removeChild(elem.firstChild)
+    if (elem) {
+        while (elem.firstChild) {
+            elem.removeChild(elem.firstChild)
+        }
+    }
+}
+
+function removeLoadingIndicators(dropperList, activeList) {
+    if (dropperList) {
+        removeChildren(dropperList.parentElement)
+    }
+    if (activeList) {
+        removeChildren(activeList.parentElement)
     }
 }

@@ -3,7 +3,6 @@
 import json
 import random
 import tempfile
-from xml.etree.ElementInclude import include
 import web
 
 from infogami.utils import delegate
@@ -51,8 +50,7 @@ class lists_partials(delegate.page):
             'active': str(active),
         }
 
-        web.header("Content-Type", "application/json")
-        return delegate.RawText(formats.dump(partials, 'json'))
+        return delegate.RawText(json.dumps(partials), content_type="application/json")
 
     def get_doc(self, key):
         if key.startswith("/subjects/"):
