@@ -82,7 +82,6 @@ def get_mc(key):
     Used by:
       openlibrary/catalog/utils/edit.py
       openlibrary/catalog/marc/marc_subject.py
-      openlibrary/solr/work_subject.py
     """
     found = list(db.query('select v from machine_comment where k=$key', {'key': key}))
     return found[0].v if found else None
