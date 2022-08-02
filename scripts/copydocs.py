@@ -8,9 +8,9 @@ from typing import Union
 
 import web
 
-from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
-
 sys.path.insert(0, ".")  # Enable scripts/copydocs.py to be run.
+
+from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 import scripts._init_path  # noqa: E402,F401
 from openlibrary.api import OpenLibrary, marshal  # noqa: E402
 
