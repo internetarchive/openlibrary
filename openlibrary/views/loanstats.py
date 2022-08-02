@@ -159,7 +159,8 @@ class activity_stream(app.view):
     path = "/trending(/?.*)"
 
     def GET(self, mode=''):
-        page = int(web.input(page=1))
+        i = web.input(page=1)
+        page = i.page
         if not mode:
             raise web.seeother("/trending/now")
         mode = mode[1:]  # remove slash
