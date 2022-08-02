@@ -10,52 +10,6 @@ $if "lists" not in ctx.features:
     $return
 
 $code:
-    def get_seed_info(page):
-        """Takes a thing, determines what type it is, and returns a seed summary"""
-        if page.key.startswith("/subjects/"):
-            seed = page.key.split("/")[-1]
-            if seed.split(":")[0] not in ["place", "person", "time"]:
-                seed = "subject:" + seed
-            seed = seed.replace(",", "_").replace("__", "_")
-            seed_type = "subject"
-            title = page.name
-        else:
-            seed = {"key": page.key}
-            if page.key.startswith("/authors/"):
-                seed_type = "author"
-                title = page.get('name', 'name missing')
-            elif page.key.startswith("/works"):
-                seed_type = "work"
-                title = page.get("title", "untitled")
-            else:
-                seed_type = "edition"
-                title = page.get("title", "untitled")
-        return {
-            "seed": seed,
-            "type": seed_type,
-            "title": websafe(title),
-            "remove_dialog_html": _('Are you sure you want to remove <strong>%(title)s</strong> from your list?', title=websafe(title))
-        }
-
-    def get_list_data(list, seed, include_cover_url=True):
-        d = storage({
-            "name": list.name or "",
-            "key": list.key,
-            "active": list.has_seed(seed),
-        })
-        if include_cover_url:
-            cover = list.get_cover() or list.get_default_cover()
-            d['cover_url'] = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
-            if 'None' in d['cover_url']:
-                d['cover_url'] = "/images/icons/avatar_book-sm.png"
-        owner = list.get_owner()
-        d['owner'] = storage(displayname=owner.displayname or "", key=owner.key)
-        return d
-
-    def get_user_lists(seed_info):
-        _user_lists = (ctx.user and ctx.user.get_lists(sort=True) or [])
-        return [get_list_data(list, seed_info['seed'], include_cover_url=True) for list in _user_lists]
-
     def get_page_lists(page, seed_info):
         return [get_list_data(list, seed_info['seed']) for list in page.get_lists(sort=False)]
 

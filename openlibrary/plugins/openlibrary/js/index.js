@@ -349,6 +349,7 @@ jQuery(function () {
     // "Want to Read" buttons:
     const droppers = document.getElementsByClassName('widget-add');
 
+    // Async lists components:
     const wtrLoadingIndicator = document.querySelector('.list-loading-indicator')
     const overviewLoadingIndicator = document.querySelector('.list-overview-loading-indicator')
 

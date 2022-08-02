@@ -439,32 +439,55 @@ function updateAlreadyList(listKey, listTitle, coverUrl, seedKey) {
     return li;
 }
 
-export function initListLoading(dropperLists, activeLists) {  // TODO: make these singular
-    const loadingIndicators = dropperLists ? [dropperLists.querySelector('.loading-ellipsis')] : []
-    if (activeLists) {
-        loadingIndicators.push(activeLists.querySelector('.loading-ellipsis'))
+/**
+ * Initializes asynchronous list widget loading.
+ *
+ * Get references to all loading indicators and begins their animations.
+ * Gets the edition or work key for the book referenced by the dropper, and
+ * fetches HTML partials for the key.
+ *
+ * Once the partials are received, the loading indicators are replaced with the
+ * partials, and click listeners are added to the new elements
+ * @param {HTMLElement} dropperList Container for dropper list items
+ * @param {HTMLElement} activeList Container for active lists list items
+ */
+export function initListLoading(dropperList, activeList) {
+    const loadingIndicators = dropperList ? [dropperList.querySelector('.loading-ellipsis')] : []
+    if (activeList) {
+        loadingIndicators.push(activeList.querySelector('.loading-ellipsis'))
     }
     const intervalId = initLoadingAnimation(loadingIndicators)
 
     let key
-    if (dropperLists) {  // Not defined for logged out patrons
-        if (dropperLists.dataset.editionKey) {
-            key = dropperLists.dataset.editionKey
-        } else if (dropperLists.dataset.workKey) {
-            key = dropperLists.dataset.workKey
+    if (dropperList) {  // Not defined for logged out patrons
+        if (dropperList.dataset.editionKey) {
+            key = dropperList.dataset.editionKey
+        } else if (dropperList.dataset.workKey) {
+            key = dropperList.dataset.workKey
         }
     }
 
     if (key) {
         fetchPartials(key, function(data) {
             clearInterval(intervalId)
-            replaceLoadingIndicators(dropperLists, activeLists, data)
+            replaceLoadingIndicators(dropperList, activeList, data)
         })
     } else {
-        removeLoadingIndicators(dropperLists, activeLists)
+        removeChildren(dropperList, activeList)
     }
 }
 
+/**
+ * Animates ellipsis that follows the word "Loading"
+ *
+ * A new dot is appended every 1.5 seconds, until there
+ * is a full ellipsis.  This cycle repeats indefinately.
+ *
+ * Returns an interval ID, which should be used to terminate
+ * the `setInterval` call.
+ * @param {HTMLElement[]} loadingIndicators References to the loading indicators
+ * @returns {number} Interval ID returned by the internal `setInterval` call
+ */
 function initLoadingAnimation(loadingIndicators) {
     let count = 0;
     const intervalId = setInterval(function() {
@@ -481,6 +504,15 @@ function initLoadingAnimation(loadingIndicators) {
     return intervalId
 }
 
+/**
+ * Replaces loading indicators with partials fetched from server.
+ *
+ * Adds click listeners to the newly added elements.
+ *
+ * @param {HTMLElement} dropperLists Dropper component that displays patron's lists
+ * @param {HTMLElement} activeLists Component from which patron can remove an item from a list
+ * @param {{dropper: string, active: string}} partials HTML for the active and dropper lists
+ */
 function replaceLoadingIndicators(dropperLists, activeLists, partials) {
     const dropperParent = dropperLists ? dropperLists.parentElement : null
     const activeListsParent = activeLists ? activeLists.parentElement : null
@@ -501,19 +533,17 @@ function replaceLoadingIndicators(dropperLists, activeLists, partials) {
     }
 }
 
-function removeChildren(elem) {
-    if (elem) {
-        while (elem.firstChild) {
-            elem.removeChild(elem.firstChild)
+/**
+ * Removes all child elements from each given element
+ *
+ * @param {HTMLElement} elem The element that we are removing children from
+ */
+function removeChildren(...elements) {
+    for (const elem of elements) {
+        if (elem) {
+            while (elem.firstChild) {
+                elem.removeChild(elem.firstChild)
+            }
         }
-    }
-}
-
-function removeLoadingIndicators(dropperList, activeList) {
-    if (dropperList) {
-        removeChildren(dropperList.parentElement)
-    }
-    if (activeList) {
-        removeChildren(activeList.parentElement)
     }
 }

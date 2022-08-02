@@ -29,6 +29,61 @@ class lists_home(delegate.page):
         return render_template("lists/home")
 
 
+@public
+def get_seed_info(doc):
+    """Takes a thiing, determines what type it is, and returns a seed summary"""
+    if doc.key.startswith("/subjects/"):
+        seed = doc.key.split("/")[-1]
+        if seed.split(":")[0] not in ("place", "person", "time"):
+            seed = f"subject:{seed}"
+        seed = seed.replace(",", "_").replace("__", "_")
+        seed_type = "subject"
+        title = doc.name
+    else:
+        seed = {"key": doc.key}
+        if doc.key.startswith("/authors/"):
+            seed_type = "author"
+            title = doc.get('name', 'name missing')
+        elif doc.key.startswith("/works"):
+            seed_type = "work"
+            title = doc.get("title", "untitled")
+        else:
+            seed_type = "edition"
+            title = doc.get("title", "untitled")
+    return {
+        "seed": seed,
+        "type": seed_type,
+        "title": web.websafe(title),
+        "remove_dialog_html": _(
+            'Are you sure you want to remove <strong>%(title)s</strong> from your list?',
+            title=web.websafe(title),
+        ),
+    }
+
+
+@public
+def get_list_data(list, seed, include_cover_url=True):
+    d = web.storage(
+        {"name": list.name or "", "key": list.key, "active": list.has_seed(seed)}
+    )
+    if include_cover_url:
+        cover = list.get_cover() or list.get_default_cover()
+        d['cover_url'] = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
+        if 'None' in d['cover_url']:
+            d['cover_url'] = "/images/icons/avatar_book-sm.png"
+    owner = list.get_owner()
+    d['owner'] = web.storage(displayname=owner.displayname or "", key=owner.key)
+    return d
+
+
+@public
+def get_user_lists(seed_info):
+    user = get_current_user()
+    user_lists = user.get_lists(sort=True)
+    seed = seed_info['seed']
+    return [get_list_data(list, seed) for list in user_lists]
+
+
 class lists_partials(delegate.page):
     path = "/lists/partials"
 
@@ -37,8 +92,8 @@ class lists_partials(delegate.page):
 
         user = get_current_user()
         doc = self.get_doc(i.key)
-        seed_info = self.get_seed_info(doc)
-        user_lists = self.get_user_lists(user.get_lists(sort=True), seed_info)
+        seed_info = get_seed_info(doc)
+        user_lists = get_user_lists(seed_info)
 
         dropper = render_template('lists/dropper_lists', user_lists)
         active = render_template(
@@ -56,54 +111,6 @@ class lists_partials(delegate.page):
         if key.startswith("/subjects/"):
             return subjects.get_subject(key)
         return web.ctx.site.get(key)
-
-    def get_seed_info(self, doc):
-        """Takes a thiing, determines what type it is, and returns a seed summary"""
-        if doc.key.startswith("/subjects/"):
-            seed = doc.key.split("/")[-1]
-            if seed.split(":")[0] not in ["place", "person", "time"]:
-                seed = "subject:" + seed
-            seed = seed.replace(",", "_").replace("__", "_")
-            seed_type = "subject"
-            title = doc.name
-        else:
-            seed = {"key": doc.key}
-            if doc.key.startswith("/authors/"):
-                seed_type = "author"
-                title = doc.get('name', 'name missing')
-            elif doc.key.startswith("/works"):
-                seed_type = "work"
-                title = doc.get("title", "untitled")
-            else:
-                seed_type = "edition"
-                title = doc.get("title", "untitled")
-        return {
-            "seed": seed,
-            "type": seed_type,
-            "title": web.websafe(title),
-            "remove_dialog_html": _(
-                'Are you sure you want to remove <strong>%(title)s</strong> from your list?',
-                title=web.websafe(title),
-            ),
-        }
-
-    def get_list_data(self, list, seed, include_cover_url=True):
-        d = web.storage(
-            {"name": list.name or "", "key": list.key, "active": list.has_seed(seed)}
-        )
-        if include_cover_url:
-            cover = list.get_cover() or list.get_default_cover()
-            d['cover_url'] = (
-                cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
-            )
-            if 'None' in d['cover_url']:
-                d['cover_url'] = "/images/icons/avatar_book-sm.png"
-        owner = list.get_owner()
-        d['owner'] = web.storage(displayname=owner.displayname or "", key=owner.key)
-        return d
-
-    def get_user_lists(self, user_lists, seed_info):
-        return [self.get_list_data(list, seed_info['seed']) for list in user_lists]
 
 
 class lists(delegate.page):

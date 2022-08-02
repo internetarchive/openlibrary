@@ -93,6 +93,12 @@ export function updateReadingLog(formElem, success) {
     })
 }
 
+/**
+ * Fetches HTML for list components
+ *
+ * @param {string} key Dey of record that can be added/removed to the list
+ * @param {function} success Callback to be executed on fetch success
+ */
 export function fetchPartials(key, success) {
     $.ajax({
         type: 'GET',
