@@ -105,8 +105,13 @@ class LocalPostgresDataProvider(DataProvider):
 
         cur.close()
 
-    def query_batched(self, query: str, size: int, cursor_name: Optional[str] =
-                      None, cache_json: bool = False) -> Iterator:
+    def query_batched(
+        self,
+        query: str,
+        size: int,
+        cursor_name: Optional[str] = None,
+        cache_json: bool = False,
+    ) -> Iterator:
         """
         :param str query:
         :param int size:
