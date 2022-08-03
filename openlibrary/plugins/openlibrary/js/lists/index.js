@@ -34,15 +34,7 @@ const dropperLists = {}
 export function initDroppers(droppers) {
     for (const dropper of droppers) {
         const anchors = dropper.querySelectorAll('.add-to-list');
-
-        for (const anchor of anchors) {
-            // Store reference to anchor and list title:
-            dropperLists[anchor.dataset.listKey] = {
-                title: anchor.innerText,
-                element: anchor
-            }
-            addListClickListener(anchor, dropper);
-        }
+        initAddToListAnchors(anchors, dropper)
 
         const openModalButton = dropper.querySelector('.create-new-list')
         if (openModalButton) {
@@ -59,6 +51,23 @@ export function initDroppers(droppers) {
         for (const button of submitButtons) {
             addReadingLogButtonClickListener(button)
         }
+    }
+}
+
+/**
+ * Adds click listeners to the given "add-to-list" anchors in dropper
+ *
+ * @param {NodeListOf<Element>} anchors The "add-to-list" links
+ * @param {HTMLElement} dropper The reading log dropper
+ */
+function initAddToListAnchors(anchors, dropper) {
+    for (const anchor of anchors) {
+        // Store reference to anchor and list title:
+        dropperLists[anchor.dataset.listKey] = {
+            title: anchor.innerText,
+            element: anchor
+        }
+        addListClickListener(anchor, dropper);
     }
 }
 
@@ -522,7 +531,8 @@ function replaceLoadingIndicators(dropperLists, activeLists, partials) {
         dropperParent.insertAdjacentHTML('afterbegin', partials['dropper'])
 
         const dropper = dropperParent.closest('.widget-add')
-        initDroppers([dropper])
+        const anchors = dropper.querySelectorAll('.add-to-list');
+        initAddToListAnchors(anchors, dropper)
     }
 
     if (activeListsParent) {
