@@ -85,9 +85,9 @@ $if ctx.user or not work_key:
               <p class="reading-list-title">$_('My Reading Lists:')</p>
               <div class="my-lists">
                 $if async_load:
-                  $ attrs = 'data-edition-key=%s' % edition_key if edition_key else ''
-                  $ attrs = '%s data-work-key=%s' % (attrs, work_key) if work_key else attrs
-                  <div class="list-loading-indicator" $attrs>Loading<span class="loading-ellipsis">...</span></div>
+                  $ ed_attr = 'data-edition-key=%s' % edition_key if edition_key else ''
+                  $ work_attr = 'data-work-key=%s' % work_key if work_key else ''
+                  <div class="list-loading-indicator" $ed_attr $work_attr>Loading<span class="loading-ellipsis">...</span></div>
                 $else:
                   $:render_template('lists/dropper_lists', lists)
               </div>
