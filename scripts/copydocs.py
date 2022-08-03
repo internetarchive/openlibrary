@@ -8,10 +8,9 @@ from typing import Union
 
 import web
 
-sys.path.insert(0, ".")  # Enable scripts/copydocs.py to be run.
+import _init_path
 
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
-import scripts._init_path  # noqa: E402,F401
 from openlibrary.api import OpenLibrary, marshal  # noqa: E402
 
 __version__ = "0.2"
