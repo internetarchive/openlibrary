@@ -1,5 +1,5 @@
 import json
-from typing import Literal, Optional
+from typing import Any, Literal, Optional, Union
 from collections.abc import Awaitable, Iterator
 
 
@@ -323,16 +323,16 @@ async def main(
     postgres="postgres.ini",
     ol="http://ol/",
     ol_config="../../conf/openlibrary.yml",
-    solr: str = None,
-    skip_solr_id_check=True,
-    start_at: str = None,
+    solr: Optional[str] = None,
+    skip_solr_id_check: bool = True,
+    start_at: Optional[str] = None,
     offset=0,
     limit=1,
-    last_modified: str = None,
-    progress: str = None,
-    log_file: str = None,
+    last_modified: Optional[str] = None,
+    progress: Optional[str] = None,
+    log_file: Optional[str] = None,
     log_level=logging.INFO,
-    dry_run=False,
+    dry_run: bool = False,
 ) -> None:
     """
     :param cmd: Whether to do the index or just fetch end of the chunk
@@ -398,17 +398,17 @@ async def main(
 
         def update(
             self,
-            seen=None,
-            total=None,
-            percent=None,
-            elapsed=None,
-            q_1=None,
-            q_auth=None,
-            cached=None,
-            q_ia=None,
-            ia_cache=None,
-            next=None,
-        ):
+            seen: Optional[Union[str, int]] = None,
+            total: Optional[Union[str, int]] = None,
+            percent: Optional[Union[str, float]] = None,
+            elapsed: Optional[Union[str, float]] = None,
+            q_1: Optional[Union[str, float]] = None,
+            q_auth: Optional[Union[str, float]] = None,
+            cached: Optional[Union[str, int]] = None,
+            q_ia: Optional[Union[str, float]] = None,
+            ia_cache: Optional[Union[str, int]] = None,
+            next: Optional[str] = None,
+        ) -> None:
             """
             :param str or int or None seen:
             :param str or int or None total:
@@ -428,7 +428,7 @@ async def main(
             )
             self.log(entry)
 
-        def fmt(self, k, val):
+        def fmt(self, k: str, val: Any) -> str:
             """
             :param str k:
             :param Any val:
