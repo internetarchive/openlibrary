@@ -1,7 +1,4 @@
-$def with (user, key=None, owners_page=False, public=False, counts=None, lists=None)
-
-$ component_times = {}
-$ component_times['TotalTime'] = time()
+$def with (user, key=None, owners_page=False, public=False, counts=None, lists=None, component_times={})
 
 $ username = user.key.split('/')[-1]
 
