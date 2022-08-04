@@ -4,7 +4,7 @@
 
 -r requirements.txt
 debugpy>=1.6.0
-flake8==5.0.2
+flake8==5.0.4
 mypy==0.971
 pymemcache==3.5.2
 pytest==7.1.2
