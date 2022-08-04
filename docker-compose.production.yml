@@ -232,6 +232,7 @@ services:
     ports:
       - 31337:31337
     volumes:
+      - ../olsystem:/olsystem
       - /opt/olsystem/etc/openlibrary.yml:/openlibrary.yml
     networks:
       - webnet
