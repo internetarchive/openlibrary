@@ -14,7 +14,7 @@ $ singleton = len(props.get('links', [])) == 1
 <div class="$(props['name'])-component header-dropdown">
   $if singleton:
     $ link = props['links'][0]
-    $ tracker = link.get('track') and 'data-ol-link-track="%s"' % link.get('track') or ''
+    $ tracker = link.get('track') and 'data-ol-link-track=%s' % link.get('track') or ''
     <a href="$link['href']" $tracker>$(props['label'])</a>
   $else:
     <details>
@@ -40,7 +40,7 @@ $ singleton = len(props.get('links', [])) == 1
       >
         <ul class="dropdown-menu $(props['name'])-dropdown-menu">
           $for link in props['links']:
-            $ tracker = link.get('track') and 'data-ol-link-track="%s"' % link.get('track') or ''
+            $ tracker = link.get('track') and 'data-ol-link-track=%s' % link.get('track') or ''
             $if 'subsection' in link:
               <li class="subsection">
                 $(link['subsection'])
