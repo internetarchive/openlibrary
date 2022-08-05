@@ -1,5 +1,7 @@
 from . import db
 
+from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+
 
 class Booknotes(db.CommonExtras):
 
@@ -9,10 +11,28 @@ class Booknotes(db.CommonExtras):
     ALLOW_DELETE_ON_CONFLICT = False
 
     @classmethod
-    def total_booknotes(cls):
+    def summary(cls) -> dict:
+        return {
+            'total_notes_created': {
+                'total': cls.total_booknotes(),
+                'month': cls.total_booknotes(since=DATE_ONE_MONTH_AGO),
+                'week': cls.total_booknotes(since=DATE_ONE_WEEK_AGO),
+            },
+            'total_note_takers': {
+                'total': cls.total_unique_users(),
+                'month': cls.total_unique_users(since=DATE_ONE_MONTH_AGO),
+                'week': cls.total_unique_users(since=DATE_ONE_WEEK_AGO),
+            },
+        }
+
+    @classmethod
+    def total_booknotes(cls, since=None):
         oldb = db.get_db()
         query = f"SELECT count(*) from {cls.TABLENAME}"
-        return oldb.query(query)['count']
+        if since:
+            query += " WHERE created >= $since"
+        results = oldb.query(query, vars={'since': since})
+        return results[0]['count'] if results else 0
 
     @classmethod
     def total_unique_users(cls, since=None):
@@ -30,7 +50,7 @@ class Booknotes(db.CommonExtras):
         if since:
             query += " WHERE created >= $since"
         results = oldb.query(query, vars={'since': since})
-        return results[0] if results else None
+        return results[0]['count'] if results else 0
 
     @classmethod
     def most_notable_books(cls, limit=10, since=False):

@@ -29,8 +29,12 @@ class Ratings(db.CommonExtras):
                 'total': Ratings.total_num_books_rated(),
                 'month': Ratings.total_num_books_rated(since=DATE_ONE_MONTH_AGO),
                 'week': Ratings.total_num_books_rated(since=DATE_ONE_WEEK_AGO),
-                'unique': Ratings.total_num_unique_raters(),
-            }
+            },
+            'total_star_raters': {
+                'total': Ratings.total_num_unique_raters(),
+                'month': Ratings.total_num_unique_raters(since=DATE_ONE_MONTH_AGO),
+                'week': Ratings.total_num_unique_raters(since=DATE_ONE_WEEK_AGO),
+            },
         }
 
     @classmethod
@@ -42,7 +46,7 @@ class Ratings(db.CommonExtras):
         if since:
             query += " WHERE created >= $since"
         results = oldb.query(query, vars={'since': since})
-        return results[0] if results else None
+        return results[0]['count'] if results else 0
 
     @classmethod
     def total_num_unique_raters(cls, since=None) -> Optional[int]:
@@ -51,7 +55,7 @@ class Ratings(db.CommonExtras):
         if since:
             query += " WHERE created >= $since"
         results = oldb.query(query, vars={'since': since})
-        return results[0] if results else None
+        return results[0]['count'] if results else 0
 
     @classmethod
     def most_rated_books(cls, limit=10, since=False) -> list:
