@@ -96,50 +96,31 @@ class community_edits_queue(delegate.page):
                 )
 
     def GET(self):
-        i = web.input(page=1, limit=25, mode="open", submitter=None, reviewer=None)
+        i = web.input(
+            page=1, limit=25, mode="open", submitter=None, reviewer=None, order='desc'
+        )
         merge_requests = CommunityEditsQueue.get_requests(
             page=int(i.page),
             limit=int(i.limit),
             mode=i.mode,
             submitter=i.submitter,
             reviewer=i.reviewer,
-            order='created desc',
+            order=f'created {i.order}',
         ).list()
-        enriched_requests = self.enrich(merge_requests)
-        total_found = CommunityEditsQueue.get_counts_by_mode(
-            mode=i.mode, submitter=i.submitter, reviewer=i.reviewer
-        )
+
+        total_found = {
+            "open": CommunityEditsQueue.get_counts_by_mode(
+                mode='open', submitter=i.submitter, reviewer=i.reviewer
+            ),
+            "closed": CommunityEditsQueue.get_counts_by_mode(
+                mode='closed', submitter=i.submitter, reviewer=i.reviewer
+            ),
+        }
         return render_template(
             'merge_queue/merge_queue',
             total_found,
-            merge_requests=enriched_requests,
+            merge_requests=merge_requests,
         )
-
-    def enrich(self, merge_requests):
-        results = []
-        for r in merge_requests:
-            comments = r['comments']
-            obj = {
-                'id': r['id'],
-                'submitter': r['submitter'],
-                'reviewer': r['reviewer'],
-                'url': r['url'],
-                'status': r['status'],
-                'comments': (comments and comments.get('comments')) or [],
-                'created': r['created'],
-                'updated': r['updated'],
-            }
-            olids = self.extract_olids(r['url'])
-            obj['title'] = ''
-            for olid in olids:
-                book = web.ctx.site.get(f'/works/{olid}')
-                if book:
-                    if not obj['title']:
-                        obj['title'] = book.title
-                        break
-
-            results.append(obj)
-        return results
 
     def extract_olids(self, url):
         query_string = url.split('?')[1]

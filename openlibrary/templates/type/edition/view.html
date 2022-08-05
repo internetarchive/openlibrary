@@ -1,6 +1,6 @@
 $def with (page, edition=None)
 
-$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
+$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
 $ is_librarian = ctx.user and ctx.user.is_librarian()
 
 $ component_times = {}
@@ -166,7 +166,7 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
   <div class="workDetails">
-    $if work:
+    $if work and work.key:
         <link itemprop="exampleOfWork" href="$work.key">
 
     <div class="editionCover">
