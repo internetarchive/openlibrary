@@ -35,7 +35,7 @@ class Booknotes(db.CommonExtras):
         return results[0]['count'] if results else 0
 
     @classmethod
-    def total_unique_users(cls, since=None):
+    def total_unique_users(cls, since=None) -> int:
         """Returns the total number of unique patrons who have made
         booknotes. `since` may be provided to only return the number of users after
         a certain datetime.date.
