@@ -49,7 +49,7 @@ class Ratings(db.CommonExtras):
         return results[0]['count'] if results else 0
 
     @classmethod
-    def total_num_unique_raters(cls, since=None) -> Optional[int]:
+    def total_num_unique_raters(cls, since=None) -> int:
         oldb = db.get_db()
         query = "select count(DISTINCT username) from ratings"
         if since:
