@@ -26,7 +26,7 @@ class Booknotes(db.CommonExtras):
         }
 
     @classmethod
-    def total_booknotes(cls, since=None):
+    def total_booknotes(cls, since=None) -> int:
         oldb = db.get_db()
         query = f"SELECT count(*) from {cls.TABLENAME}"
         if since:
