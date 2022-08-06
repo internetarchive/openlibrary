@@ -21,6 +21,7 @@ $ singleton = len(props.get('links', [])) == 1
       <summary $:cond(props['name'] == 'hamburger', 'data-ol-link-track="HeaderBar|Hamburger"')>
         $if props['name'] == 'hamburger' and ctx.user:
             <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="$('My account')">
+            <div class="mr-notifications">17</div>
             <img class="$(props['image-class']) logged" src="$(props['image'])" alt="$(props['label'])"/>
         $elif 'image' in props:
             <img class="$(props['image-class'])" src="$(props['image'])" alt="$(props['label'])"/>
@@ -57,6 +58,8 @@ $ singleton = len(props.get('links', [])) == 1
                   <button $(tracker)>$(link["text"])</button>
                 </form>
               $else:
+                $if (link['text'] == 'Pending Requests'): 
+                  <div class="mr-notifications">17</div>
                 <a href="$(link['href'])" $(tracker)>
                   $if 'new' in link and props['name'] == 'hamburger':
                     <span>$(link['text'])</span><span class="app-drawer__badge">$_('New!')</span>
