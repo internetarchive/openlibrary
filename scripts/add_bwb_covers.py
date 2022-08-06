@@ -29,22 +29,23 @@ Issues:
 """
 from __future__ import annotations
 
+import os
 import sys
 from contextlib import contextmanager
+from os import environ
 from pathlib import Path
 from time import perf_counter
-from typing import Iterator
+from collections.abc import Iterator
 from zipfile import ZipFile
 
-"""
-from olclient import OpenLibrary  # , config
+from olclient import OpenLibrary, config
 
 ol = OpenLibrary(
-    # credentials=config.Credentials(
-    #     access=os.environ["OL_ACCESS_KEY"], secret=os.environ["OL_SECRET_KEY"]
-    # )
+    credentials=config.Credentials(
+        access=os.environ["OL_ACCESS_KEY"], secret=os.environ["OL_SECRET_KEY"]
+    )
 )
-"""
+
 COVERS_DIR = Path("/1/var/tmp/imports/2022/covers")
 
 

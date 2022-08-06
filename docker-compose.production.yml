@@ -234,6 +234,7 @@ services:
     volumes:
       - ../olsystem:/olsystem
       - /opt/olsystem/etc/openlibrary.yml:/openlibrary.yml
+      - /1/var/tmp/imports:/imports:ro
     networks:
       - webnet
     logging:
