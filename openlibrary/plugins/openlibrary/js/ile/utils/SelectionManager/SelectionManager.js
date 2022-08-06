@@ -280,15 +280,17 @@ SelectionManager.ACTIONS = [
                 const url = new URL(href)
                 const params = new URLSearchParams(url.search)
                 const records = params.get('records')
+                const data = {
+                    olids: records,
+                    comment: comment,
+                    rtype: 'merge-works',
+                    action: 'create'
+                }
                 $.ajax({
                     url: '/merges',
                     method: 'POST',
-                    data: {
-                        work_ids: records,
-                        comment: comment,
-                        rtype: 'merge-works',
-                        action: 'create'
-                    }
+                    dataType: 'json',
+                    data: JSON.stringify(data)
                 })
                     .done(function(resp) {
                         let message = resp.error ? resp.error : 'Merge request submitted!'

@@ -19,81 +19,28 @@ def create_request(olids: str, username: str, comment: str = None):
     )
 
 
+def response(status='ok', **kwargs):
+    return {'status': status, **kwargs}
+
+
 class community_edits_queue(delegate.page):
     path = '/merges'
 
     def POST(self):
-        def response(status='ok', **kwargs):
-            return {'status': status, **kwargs}
+        data = json.loads(web.data())
+        type = data.get('rtype', '')
+        if type:
+            del data['rtype']
 
-        i = web.input(
-            work_ids="",  # Comma-separated OLIDs (OL1W,OL2W,OL3W,...,OL111W)
-            rtype="merge-works",
-            mrid=None,
-            action=None,  # create, approve, decline, comment, unassign, create-merged
-            comment=None,
-        )
         user = accounts.get_current_user()
         username = user['key'].split('/')[-1]
-        if i.mrid:  # We are updating an existing merge request
-            if i.action == 'comment':
-                if i.comment:
-                    CommunityEditsQueue.comment_request(i.mrid, username, i.comment)
-                    return delegate.RawText(
-                        json.dumps(response()), content_type="application/json"
-                    )
-                else:
-                    return delegate.RawText(
-                        json.dumps(
-                            response(
-                                status='error', error='No comment sent in request.'
-                            )
-                        )
-                    )
-            elif i.action == 'claim':
-                result = CommunityEditsQueue.assign_request(i.mrid, username)
-                return delegate.RawText(
-                    json.dumps(response(**result)), content_type="application/json"
-                )
-            elif i.action == 'unassign':
-                CommunityEditsQueue.unassign_request(i.mrid)
-                status = get_status_for_view(CommunityEditsQueue.STATUS['PENDING'])
-                return delegate.RawText(json.dumps(response(newStatus=status)))
-            else:
-                if i.action == "decline":
-                    status = CommunityEditsQueue.STATUS['DECLINED']
-                elif i.action == 'approve':
-                    status = CommunityEditsQueue.STATUS['MERGED']
-                CommunityEditsQueue.update_request_status(
-                    i.mrid, status, username, comment=i.comment
-                )
-                return delegate.RawText(
-                    json.dumps(response()), content_type="application/json"
-                )
-        elif i.rtype == "merge-works":
-            if i.action == 'create':
-                result = create_request(i.work_ids, username, i.comment)
-                resp = (
-                    response(id=result)
-                    if result
-                    else response(
-                        status='error',
-                        error='A request to merge these works has already been submitted.',
-                    )
-                )
-                return delegate.RawText(
-                    json.dumps(resp), content_type="application/json"
-                )
-            elif i.action == 'create-merged':
-                result = CommunityEditsQueue.submit_work_merge_request(
-                    i.work_ids.split(','),
-                    submitter=username,
-                    reviewer=username,
-                    status=CommunityEditsQueue.STATUS['MERGED'],
-                )
-                return delegate.RawText(
-                    json.dumps(response(id=result)), content_type='application/json'
-                )
+
+        if type == 'merge-works':
+            resp = self.work_merge_request(username, **data)
+        else:
+            resp = response(status='error', error='Unknown request type')
+
+        return delegate.RawText(json.dumps(resp), content_type='application/json')
 
     def GET(self):
         i = web.input(
@@ -121,6 +68,64 @@ class community_edits_queue(delegate.page):
             total_found,
             merge_requests=merge_requests,
         )
+
+    def work_merge_request(
+        self, username, olids='', mrid=None, action=None, comment=None
+    ):
+        # Create a new, open work MR
+        if action == 'create':
+            result = create_request(olids, username, comment)
+            if result:
+                resp = response(id=result)
+            else:
+                resp = response(
+                    status='error',
+                    error='A request to merge these works has already been submitted.',
+                )
+        # Create a "merged" MR with the same submitter and reviewer (for super-librarian merges)
+        elif action == 'create-merged':
+            result = CommunityEditsQueue.submit_work_merge_request(
+                olids.split(','),
+                submitter=username,
+                reviewer=username,
+                status=CommunityEditsQueue.STATUS['MERGED'],
+            )
+            resp = response(id=result)
+        # Add a comment to an existing MR
+        elif action == 'comment':
+            if comment:
+                CommunityEditsQueue.comment_request(mrid, username, comment)
+                resp = response()
+            else:
+                resp = response(status='error', error='No comment sent in request')
+        # Assign an existing MR to a patron
+        elif action == 'claim':
+            result = CommunityEditsQueue.assign_request(mrid, username)
+            resp = response(**result)
+        # Unassign an existing MR
+        elif action == 'unassign':
+            CommunityEditsQueue.unassign_request(mrid)
+            status = get_status_for_view(CommunityEditsQueue.STATUS['PENDING'])
+            resp = response(newStatus=status)
+        # Close a MR by declining the merge
+        elif action == "decline":
+            status = CommunityEditsQueue.STATUS['DECLINED']
+            CommunityEditsQueue.update_request_status(
+                mrid, status, username, comment=comment
+            )
+            resp = response()
+        # Close a MR by merging the items
+        elif action == 'approve':
+            status = CommunityEditsQueue.STATUS['MERGED']
+            CommunityEditsQueue.update_request_status(
+                mrid, status, username, comment=comment
+            )
+            resp = response()
+        # Idle conversation with the server
+        else:
+            resp = response(status='error', error='Unknown action')
+
+        return resp
 
     def extract_olids(self, url):
         query_string = url.split('?')[1]

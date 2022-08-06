@@ -153,15 +153,21 @@ export function get_ratings(key) {
  * @returns {Promise<Response>} A response to the request
  */
 export function update_merge_request(mrid, action, comment) {
-    const formData = new FormData();
-    formData.set('mrid', mrid)
-    formData.set('action', action)
+    const data = {
+        rtype: 'merge-works',
+        action: action,
+        mrid: mrid
+    }
     if (comment) {
-        formData.set('comment', comment)
+        data['comment'] = comment
     }
     return fetch('/merges', {
         method: 'POST',
-        body: formData
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
     })
 }
 
@@ -173,13 +179,19 @@ export function update_merge_request(mrid, action, comment) {
  * @returns {Promise<Response>}
  */
 export function createMergeRequest(workIds) {
-    const formData = new FormData()
     const normalizedIds = prepareIds(workIds)
-    formData.set('action', 'create-merged')
-    formData.set('work_ids', normalizedIds.join(','))
+    const data = {
+        rtype: 'merge-works',
+        action: 'create-merged',
+        olids: normalizedIds.join(',')
+    }
     return fetch('/merges', {
         method: 'POST',
-        body: formData
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
     })
 }
 

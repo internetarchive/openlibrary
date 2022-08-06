@@ -150,16 +150,22 @@ async function updateCommentsView(mrid, comment) {
  * @returns
  */
 async function updateRequest(action, mrid, comment = null) {
-    const formData = new FormData();
-    formData.set('mrid', mrid)
-    formData.set('action', action)
-    if (comment) {
-        formData.set('comment', comment)
+    const data = {
+        rtype: 'merge-works',
+        action: action,
+        mrid: mrid
     }
+    if (comment) [
+        data['comment'] = comment
+    ]
 
     return fetch('/merges', {
         method: 'POST',
-        body: formData
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
     })
 }
 
