@@ -2054,7 +2054,7 @@ msgstr "Дата публікації невідома, %(publisher)s"
 #: books/edition-sort.html:66
 #, python-format
 msgid "in %(languagelist)s"
-msgstr "такими мовами: %(languagelist)s"
+msgstr "мова: %(languagelist)s"
 
 #: books/edition-sort.html:94
 msgid "Libraries near you:"
@@ -2243,7 +2243,7 @@ msgstr "Мови"
 
 #: books/edit/edition.html:279
 msgid "What language is this edition written in?"
-msgstr "На якій мові написане це видання?"
+msgstr "Якою мовою написане це видання?"
 
 #: books/edit/edition.html:291
 msgid "Is it a translation of another book?"
@@ -4074,15 +4074,15 @@ msgstr ""
 
 #: type/edition/admin_bar.html:22
 msgid "Sync Archive.org ID"
-msgstr ""
+msgstr "Синхронізувати Archive.org ID"
 
 #: type/edition/admin_bar.html:25
 msgid "View Book on Archive.org"
-msgstr ""
+msgstr "Переглянути книгу на Archive.org"
 
 #: type/edition/admin_bar.html:28
 msgid "Orphaned Edition"
-msgstr ""
+msgstr "Видання-сирота"
 
 #: type/edition/publisher_line.html:11
 msgid "This edition was published"
@@ -4175,7 +4175,7 @@ msgstr "Бібліотека Конгресу"
 
 #: type/edition/view.html:340 type/work/view.html:340
 msgid "Dewey"
-msgstr ""
+msgstr "Дьюї"
 
 #: databarHistory.html:26 databarView.html:33 type/edition/view.html:358 type/work/view.html:358
 msgid "Edit this template"
@@ -4279,7 +4279,7 @@ msgstr ""
 
 #: type/list/embed.html:77
 msgid "Borrow book"
-msgstr ""
+msgstr "Позичити книгу"
 
 #: type/list/embed.html:82
 msgid "Protected DAISY"
@@ -4301,7 +4301,7 @@ msgstr ""
 
 #: type/list/exports.html:35 type/list/exports.html:55
 msgid "Subscribe"
-msgstr ""
+msgstr "Підписатися"
 
 #: type/list/exports.html:36 type/list/exports.html:56
 #, python-format
@@ -4330,7 +4330,7 @@ msgstr ""
 #: type/list/view_body.html:18
 #, python-format
 msgid "%(title)s: %(description)s"
-msgstr ""
+msgstr "%(title)s: %(description)s"
 
 #: type/list/view_body.html:27
 msgid "View the list on Open Library."
@@ -4420,7 +4420,7 @@ msgstr ""
 #: type/user/view.html:24
 #, python-format
 msgid "Joined %(date)s"
-msgstr ""
+msgstr "Приєднався (-лася) %(date)s"
 
 #: type/user/view.html:32
 msgid "admin page"
@@ -4549,21 +4549,21 @@ msgstr "Видалити цей запис"
 #, python-format
 msgid "View %(count)s Edition"
 msgid_plural "View %(count)s Editions"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Переглянути %(count)s видання"
+msgstr[1] "Переглянути %(count)s видання"
+msgstr[2] "Переглянути %(count)s видань"
 
 #: EditionNavBar.html:14
 msgid "Overview"
-msgstr ""
+msgstr "Огляд"
 
 #: LoanStatus.html:44
 msgid "Return eBook"
-msgstr ""
+msgstr "Повернути електронну книгу"
 
 #: LoanStatus.html:51
 msgid "Really return this book?"
-msgstr ""
+msgstr "Справді повернути цю книгу?"
 
 #: LoanStatus.html:79
 msgid "You are <strong>next</strong> on the waiting list"
@@ -4605,7 +4605,7 @@ msgstr ""
 
 #: LoanStatus.html:120 LoanStatus.html:125
 msgid "Not in Library"
-msgstr ""
+msgstr "Немає у бібліотеці"
 
 #: NotesModal.html:33
 msgid "My private notes about this edition:"
@@ -4797,7 +4797,7 @@ msgstr ""
 
 #: WorldcatLink.html:9
 msgid "Check nearby libraries"
-msgstr ""
+msgstr "Перевірити бібліотеки поблизу"
 
 #: WorldcatLink.html:13
 msgid "Check WorldCat for an edition near you"
