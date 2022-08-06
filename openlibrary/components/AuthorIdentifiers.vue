@@ -77,7 +77,7 @@ export default {
             if (!this.setButtonEnabled) return
 
             if (this.selectedIdentifier === 'isni') {
-                this.inputValue = this.inputValue.replaceAll(' ', '')
+                this.inputValue = this.inputValue.replace(/\s/g, '')
             }
 
             // We use $set otherwise we wouldn't get the reactivity desired
