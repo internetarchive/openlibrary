@@ -1,7 +1,19 @@
 $def with (page)
+$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
 
 <header id="header-bar" class="header-bar">
-  $if ctx.user:
+  $if is_privileged_user:
+    $ loginLinks = [
+    $     { "href": ctx.user.key, "text": _("My Profile"), "track": "MainNav|MyProfile" },
+    $     { "href": homepath() + "/merges", "text": _("Pending Requests"), "class": "mr-notifications" ,"track": "MainNav|MyRequests" },
+    $     { "href": homepath() + "/account/loans", "text": _("My Loans"), "track": "MainNav|MyLoans" },
+    $     { "href": "/account/books", "text": _("My Reading Log"), "track": "MainNav|MyReadingLog" },
+    $     { "href": "/account/lists", "text": _("My Lists"), "track": "MainNav|MyLists" },
+    $     { "href": "/account/books/already-read/stats", "text": _("My Reading Stats"), "track": "MainNav|MyReadingStats" },
+    $     { "href": homepath() + "/account", "text": _("Settings"), "track": "MainNav|MySettings" },
+    $     { "post": "/account/logout", "text": _("Log out"), "track": "MainNav|Logout" },
+    $ ]
+  $elif ctx.user:
     $ loginLinks = [
     $     { "href": ctx.user.key, "text": _("My Profile"), "track": "MainNav|MyProfile" },
     $     { "href": homepath() + "/account/loans", "text": _("My Loans"), "track": "MainNav|MyLoans" },
