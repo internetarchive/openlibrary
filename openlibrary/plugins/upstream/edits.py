@@ -37,6 +37,8 @@ class community_edits_queue(delegate.page):
 
         if type == 'merge-works':
             resp = self.work_merge_request(username, **data)
+        elif type == 'comment':
+            resp = self.comment_on_request(username, data['mrid'], data['comment'])
         else:
             resp = response(status='error', error='Unknown request type')
 
@@ -91,13 +93,6 @@ class community_edits_queue(delegate.page):
                 status=CommunityEditsQueue.STATUS['MERGED'],
             )
             resp = response(id=result)
-        # Add a comment to an existing MR
-        elif action == 'comment':
-            if comment:
-                CommunityEditsQueue.comment_request(mrid, username, comment)
-                resp = response()
-            else:
-                resp = response(status='error', error='No comment sent in request')
         # Assign an existing MR to a patron
         elif action == 'claim':
             result = CommunityEditsQueue.assign_request(mrid, username)
@@ -127,14 +122,17 @@ class community_edits_queue(delegate.page):
 
         return resp
 
-    def extract_olids(self, url):
-        query_string = url.split('?')[1]
-        split_params = query_string.split('&')
-        params = {}
-        for p in split_params:
-            kv = p.split('=')
-            params[kv[0]] = kv[1]
-        return params['records'].split(',')
+    def comment_on_request(self, username, mrid, comment):
+        if comment:
+            CommunityEditsQueue.comment_request(mrid, username, comment)
+            resp = response()
+        else:
+            resp = response(status='error', error='No comment sent in request')
+
+        return resp
+
+    def author_merge_request(self, username, olids='', mrid=None, action=None):
+        pass
 
 
 class ui_partials(delegate.page):

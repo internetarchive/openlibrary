@@ -99,7 +99,7 @@ async function onCommentClick(textarea, mrid) {
  * @returns {Promise<Response>} The results of the update POST request
  */
 async function commentOnRequest(mrid, comment) {
-    return updateRequest('comment', mrid, comment)
+    return updateRequest('comment', mrid, comment, 'comment')
 }
 
 /**
@@ -149,9 +149,9 @@ async function updateCommentsView(mrid, comment) {
  * @param {string} comment Optional comment about the update
  * @returns
  */
-async function updateRequest(action, mrid, comment = null) {
+async function updateRequest(action, mrid, comment = null, rtype = 'merge-works') {
     const data = {
-        rtype: 'merge-works',
+        rtype: rtype,
         action: action,
         mrid: mrid
     }
