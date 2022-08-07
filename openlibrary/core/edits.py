@@ -326,6 +326,7 @@ class CommunityEditsQueue:
             # XXX It may be easier to update these comments if they had IDs
         }
 
+
 @public
 def get_counts_mode(mode='all', **kwargs):
     return CommunityEditsQueue.get_counts_by_mode(mode)

@@ -59,7 +59,7 @@ $ singleton = len(props.get('links', [])) == 1
                   <button $(tracker)>$(link["text"])</button>
                 </form>
               $else:
-                $if (link['text'] == 'Pending Requests') and get_counts_mode(mode='open') > 0: 
+                $if (link['text'] == 'Pending Requests') and get_counts_mode(mode='open') > 0:
                   <div class="mr-notifications">$(get_counts_mode(mode='open'))</div>
                 <a href="$(link['href'])" $(tracker)>
                   $if 'new' in link and props['name'] == 'hamburger':
