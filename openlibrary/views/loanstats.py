@@ -10,6 +10,7 @@ from ..utils import dateutil
 from .. import app
 from ..core import cache
 from ..core.observations import Observations
+from ..core.booknotes import Booknotes
 from ..core.bookshelves import Bookshelves
 from ..core.ratings import Ratings
 from ..plugins.admin.code import get_counts
@@ -36,6 +37,7 @@ def reading_log_summary():
     stats = Bookshelves.summary()
     stats.update(Ratings.summary())
     stats.update(Observations.summary())
+    stats.update(Booknotes.summary())
     return stats
 
 
