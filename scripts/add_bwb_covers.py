@@ -38,34 +38,22 @@ from time import perf_counter
 from collections.abc import Iterator
 from zipfile import ZipFile
 
-from olclient import OpenLibrary, config
+import web
 
-ol = OpenLibrary(
-    credentials=config.Credentials(
-        access=os.environ["OL_ACCESS_KEY"], secret=os.environ["OL_SECRET_KEY"]
-    )
-)
+import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
+import infogami
+from infogami import config
 
-COVERS_DIR = Path("/1/var/tmp/imports/2022/covers")
+import openlibrary
+from openlibrary.config import load_config
+from openlibrary.utils.dateutil import elapsed_time
 
+load_config('/olsystem/etc/openlibrary.yml')
+infogami._setup()
 
-@contextmanager
-def elapsed_time(name="elapsed_time"):
-    """
-    Two ways to use elapsed_time():
-    1. As a decorator to time the execution of an entire function:
-        @elapsed_time("my_slow_function")
-        def my_slow_function(n=10_000_000):
-            pass
-    2. As a context manager to time the execution of a block of code inside a function:
-        with elapsed_time("my_slow_block_of_code"):
-            pass
-    """
-    start = perf_counter()
-    yield
-    print(
-        f"Elapsed time ({name}): {perf_counter() - start:0.8} seconds", file=sys.stderr
-    )
+# NOTE: The current year is currently hard coded.
+# COVERS_DIR = Path("/1/var/tmp/imports/2022/covers")  # on ol:home0
+COVERS_DIR = Path("/imports/2022/covers")  # As mapped by docker-compose.production.yml
 
 
 @elapsed_time("generate_covers_dict()")
@@ -90,18 +78,20 @@ def generate_covers_dict(covers_dir: Path = COVERS_DIR) -> dict:
 
     return {
         zipfile_path.name: list(get_isbn_13s_from_zipfile(zipfile_path))
-        for zipfile_path in covers_dir.glob("*.zip")
+        for zipfile_path in sorted(covers_dir.glob("*.zip"))
     }
 
 
+'''
 def slow_edition_needs_a_cover(isbn_13: str) -> str:
     """
     If the Open Library Edition with this ISBN-13 has no cover then return its olid.
     """
-    if ol_edition := ol.Edition.get(isbn=isbn_13):
+    if ol_edition := openlibrary.Edition.get(isbn=isbn_13):
         if not getattr(ol_edition, "covers", None):
             return ol_edition.olid
     return ""
+'''
 
 
 def fast_edition_needs_a_cover(isbn_13: str) -> str:
@@ -118,6 +108,7 @@ def fast_edition_needs_a_cover(isbn_13: str) -> str:
     return ""
 
 
+'''
 def update_cover_for_edition(
     edition_olid: str, file_name: str, cover_data: bytes, mime_type: str = "image/jpeg"
 ) -> bool:
@@ -127,13 +118,14 @@ def update_cover_for_edition(
         "url": (None, "https://"),
         "upload": (None, "Submit"),
     }
-    resp = ol.session.post(url, files=form_data_body)
+    resp = openlibrary.session.post(url, files=form_data_body)
     return resp.ok and "Saved!" in resp.text
+'''
 
 
 @elapsed_time("main()")
 def main(covers_dir: Path = COVERS_DIR):
-    edition_needs_a_cover = slow_edition_needs_a_cover
+    edition_needs_a_cover = fast_edition_needs_a_cover
     covers_dict = generate_covers_dict(covers_dir)
     # from pprint import pprint
     # pprint(covers_dict)
@@ -142,15 +134,18 @@ def main(covers_dir: Path = COVERS_DIR):
         with ZipFile(covers_dir / zipfile_name) as in_file:
             covers_updated = 0
             for i, isbn_13 in enumerate(isbn_13s):
-                """
                 if ol_edition := edition_needs_a_cover(isbn_13):
                     cover_file_name = f"{isbn_13}.jpg"
+                    print(f">> {i} {zipfile_name}: {cover_file_name}")
                     if cover_data := in_file.read(cover_file_name):
+                        """
                         if update_cover_for_edition(
                             ol_edition.olid, cover_file_name, cover_data
                         ):
-                """
-                covers_updated += 1
+                        """
+                    covers_updated += 1
+                    if covers_updated > 5:
+                        break
             print(f"{zipfile_name}: {covers_updated} of {i+1} covers updated.")
 
 
