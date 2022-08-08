@@ -4369,7 +4369,7 @@ msgid ""
 "href='%(url)s'>add one</a></b>?"
 msgstr ""
 "Esta edição ainda não tem uma descrição. Você poderia <b><a "
-"href='%(url)s'adicionar uma</a></b>?"
+"href='%(url)s'>adicionar uma</a></b>?"
 
 #: type/edition/view.html:268 type/work/view.html:268
 #, python-format
