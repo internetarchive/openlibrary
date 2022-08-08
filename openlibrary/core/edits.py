@@ -6,6 +6,8 @@ import web
 from infogami.utils.view import public
 
 from openlibrary.i18n import gettext as _
+from openlibrary.core import cache
+from openlibrary.utils import dateutil
 
 from . import db
 
@@ -329,4 +331,7 @@ class CommunityEditsQueue:
 
 @public
 def get_counts_mode(mode='all', **kwargs):
-    return CommunityEditsQueue.get_counts_by_mode(mode)
+    return cache.memcache_memoize(
+        CommunityEditsQueue.get_counts_by_mode,
+        "librarian_queue_counts",
+        timeout=dateutil.MINUTE_SECS)(mode, **kwargs)
