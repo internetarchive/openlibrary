@@ -111,7 +111,7 @@ class LocalPostgresDataProvider(DataProvider):
         self,
         query: str,
         size: int,
-        cursor_name: Optional[str] = None,
+        cursor_name: str = None,
         cache_json: bool = False,
     ) -> Iterator:
         """
