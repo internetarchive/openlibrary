@@ -27,7 +27,7 @@ def config_section_to_dict(config_file: str, section: str) -> dict:
 
     :param str config_file: filename of config file
     :param str section: section to pull data from
-    :rtype: dict of key value pairs
+    :return: dict of key value pairs
     """
     config = ConfigParser()
     config.read(config_file)
