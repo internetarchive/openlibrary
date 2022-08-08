@@ -5,7 +5,9 @@ REV_RE = re.compile(r'rev.*')
 REMOVESUFFIX_RE = re.compile(r'[^\/]+')
 HYPHEN_RE = re.compile(r'(.+)-+([0-9]+)')
 # Validates the syntax described at https://www.loc.gov/marc/lccn-namespace.html
-LCCN_NORM_RE = re.compile(r'([a-z]|[a-z]?([a-z]{2}|[0-9]{2})|[a-z]{2}[0-9]{2})?[0-9]{8}$')
+LCCN_NORM_RE = re.compile(
+    r'([a-z]|[a-z]?([a-z]{2}|[0-9]{2})|[a-z]{2}[0-9]{2})?[0-9]{8}$'
+)
 
 
 def normalize_lccn(lccn):
