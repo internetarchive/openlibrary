@@ -30,7 +30,7 @@ class community_edits_queue(delegate.page):
             work_ids="",  # Comma-separated OLIDs (OL1W,OL2W,OL3W,...,OL111W)
             rtype="merge-works",
             mrid=None,
-            action=None,  # create, approve, decline, comment, unassign
+            action=None,  # create, approve, decline, comment, unassign, create-merged
             comment=None,
         )
         user = accounts.get_current_user()
@@ -84,52 +84,43 @@ class community_edits_queue(delegate.page):
                 return delegate.RawText(
                     json.dumps(resp), content_type="application/json"
                 )
+            elif i.action == 'create-merged':
+                result = CommunityEditsQueue.submit_work_merge_request(
+                    i.work_ids.split(','),
+                    submitter=username,
+                    reviewer=username,
+                    status=CommunityEditsQueue.STATUS['MERGED'],
+                )
+                return delegate.RawText(
+                    json.dumps(response(id=result)), content_type='application/json'
+                )
 
     def GET(self):
-        i = web.input(page=1, limit=25, mode="open", submitter=None, reviewer=None)
+        i = web.input(
+            page=1, limit=25, mode="open", submitter=None, reviewer=None, order='desc'
+        )
         merge_requests = CommunityEditsQueue.get_requests(
             page=int(i.page),
             limit=int(i.limit),
             mode=i.mode,
             submitter=i.submitter,
             reviewer=i.reviewer,
-            order='created',
+            order=f'created {i.order}',
         ).list()
-        enriched_requests = self.enrich(merge_requests)
-        total_found = CommunityEditsQueue.get_counts_by_mode(
-            mode=i.mode, submitter=i.submitter, reviewer=i.reviewer
-        )
+
+        total_found = {
+            "open": CommunityEditsQueue.get_counts_by_mode(
+                mode='open', submitter=i.submitter, reviewer=i.reviewer
+            ),
+            "closed": CommunityEditsQueue.get_counts_by_mode(
+                mode='closed', submitter=i.submitter, reviewer=i.reviewer
+            ),
+        }
         return render_template(
             'merge_queue/merge_queue',
             total_found,
-            merge_requests=enriched_requests,
+            merge_requests=merge_requests,
         )
-
-    def enrich(self, merge_requests):
-        results = []
-        for r in merge_requests:
-            comments = r['comments']
-            obj = {
-                'id': r['id'],
-                'submitter': r['submitter'],
-                'reviewer': r['reviewer'],
-                'url': r['url'],
-                'status': r['status'],
-                'comments': (comments and comments.get('comments')) or [],
-                'created': r['created'],
-                'updated': r['updated'],
-            }
-            olids = self.extract_olids(r['url'])
-            obj['title'] = ''
-            for olid in olids:
-                book = web.ctx.site.get(f'/works/{olid}')
-                if book:
-                    if not obj['title']:
-                        obj['title'] = book.title
-                        break
-
-            results.append(obj)
-        return results
 
     def extract_olids(self, url):
         query_string = url.split('?')[1]

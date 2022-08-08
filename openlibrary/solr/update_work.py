@@ -612,6 +612,11 @@ class SolrProcessor:
 
         d |= self.get_ebook_info(editions, ia_metadata)
 
+        # See https://github.com/internetarchive/openlibrary/issues/6836
+        # This was half-implemented
+        if 'ia_collection' in d and not get_solr_next():
+            del d['ia_collection']
+
         return d
 
     @staticmethod

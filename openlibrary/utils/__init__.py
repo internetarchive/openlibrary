@@ -2,14 +2,22 @@
 
 from enum import Enum
 import re
-from subprocess import PIPE, Popen, STDOUT
+from subprocess import run
 from typing import TypeVar, Literal, Optional
 from collections.abc import Iterable, Callable
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
 
 
-def str_to_key(s):
+def str_to_key(s: str) -> str:
+    """
+    >>> str_to_key("?H$e##l{o}[0] -world!")
+    'helo0_-world!'
+    >>> str_to_key("".join(to_drop))
+    ''
+    >>> str_to_key("")
+    ''
+    """
     return ''.join(c if c != ' ' else '_' for c in s.lower() if c not in to_drop)
 
 
@@ -44,6 +52,11 @@ def uniq(values: Iterable[T], key=None) -> list[T]:
     The value of the optional `key` parameter should be a function that takes
     a single argument and returns a key to test the uniqueness.
     TODO: Moved this to core/utils.py
+
+    >>> uniq("abcbcddefefg")
+    ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+    >>> uniq("011223344556677889")
+    ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
     """
     key = key or (lambda x: x)
     s = set()
@@ -176,6 +189,12 @@ def extract_numeric_id_from_olid(olid):
 
 
 def is_number(s):
+    """
+    >>> all(is_number(n) for n in (1234, "1234", -1234, "-1234", 123.4, -123.4))
+    True
+    >>> not any(is_number(n) for n in ("123.4", "-123.4", "123a", "--1234"))
+    True
+    """
     try:
         int(s)
         return True
@@ -183,9 +202,9 @@ def is_number(s):
         return False
 
 
-def get_software_version():  # -> str:
+def get_software_version() -> str:
     cmd = "git rev-parse --short HEAD --".split()
-    return str(Popen(cmd, stdout=PIPE, stderr=STDOUT).stdout.read().decode().strip())
+    return run(cmd, text=True).stdout
 
 
 # See https://docs.python.org/3/library/enum.html#orderedenum

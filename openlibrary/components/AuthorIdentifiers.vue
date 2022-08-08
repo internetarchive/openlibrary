@@ -76,6 +76,10 @@ export default {
             // if no identifier selected don't execute
             if (!this.setButtonEnabled) return
 
+            if (this.selectedIdentifier === 'isni') {
+                this.inputValue = this.inputValue.replace(/\s/g, '')
+            }
+
             // We use $set otherwise we wouldn't get the reactivity desired
             // See https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
             this.$set(this.assignedIdentifiers, this.selectedIdentifier, this.inputValue);

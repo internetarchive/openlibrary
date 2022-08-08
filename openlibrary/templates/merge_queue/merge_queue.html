@@ -1,10 +1,10 @@
 $def with(total, merge_requests=None)
 
-$# total : int : The total number of merge requests found for the current mode
+$# total : dict : {"open": int, "closed": int}; The total number of merge requests found for the current mode
 $# merge_requests : list : Merge requests to be displayed in the table
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
-$ can_merge = ctx.user and (ctx.user.is_usergroup_member('/usergroup/librarian-work-merge'))
+$ can_merge = ctx.user and (ctx.user.is_usergroup_member('/usergroup/super-librarians'))
 
 $ reviewer = query_param('reviewer', None)
 $ submitter = query_param('submitter', None)
@@ -17,7 +17,7 @@ $if submitter:
 $else:
   $ desc = _('Showing all requests.')
   $ link_text = _('Show my requests') if username else ''
-  $ href = changequery(submitter=username) if username else changequery(submitter=None)
+  $ href = changequery(submitter=username, page=None) if username else changequery(submitter=None, page=None)
 
 <div class="librarian-queue-page">
   <h1>$_('Community Edit Requests')</h1>
@@ -26,15 +26,17 @@ $else:
     $desc <a href="$href">$link_text</a>
   </div>
 
+$ page = int(input(page=1).page)
+<div class="pager">
+  $:macros.Pager(page, total[mode], results_per_page=25)
+</div>
+
   <ul class="nav-bar">
     <li class="$(mode=='open' and 'selected' or '')">
-      <a href="$changequery(mode='open')">$_('Open')</a>
+      <a href="$changequery(mode='open', page=None)">$_('Open') ($total['open'])</a>
     </li>
     <li class="$(mode=='closed' and 'selected' or '')">
-      <a href="$changequery(mode='closed')">$_('Closed')</a>
-    </li>
-    <li class="$(mode=='all' and 'selected' or '')">
-      <a href="$changequery(mode='all')">$_('All')</a>
+      <a href="$changequery(mode='closed', page=None)">$_('Closed') ($total['closed'])</a>
     </li>
   </ul>
 
@@ -52,13 +54,13 @@ $else:
         <tbody>
         $for r in merge_requests:
           $ work_title = r.get('title', 'an untitled work')
-          $ comments = r.get('comments', [])
+          $ comments = r.get('comments', {}).get('comments', [])
           $ status = get_status_for_view(r['status'])
           $ is_open = r['status'] == 1
           $ url = "%s&mrid=%s" % (r['url'], r['id'])
           $ is_submitter = username == r['submitter']
           <tr id="mrid-$(r['id'])">
-            <td>$r['submitter']</td>
+            <td>$r['submitter']<br>$datestr(r['created'])</td>
             <td id="status-cell-$(r['id'])">$status</td>
 
             <td id="comment-cell-$(r['id'])" class="comment-cell">
@@ -108,8 +110,7 @@ $else:
         </tbody>
       </table>
   </div>
-  $ page = int(input(page=1).page)
-  <div class="pager">
-    $:macros.Pager(page, total, results_per_page=25)
+   <div class="pager">
+    $:macros.Pager(page, total[mode], results_per_page=25)
   </div>
 </div>
