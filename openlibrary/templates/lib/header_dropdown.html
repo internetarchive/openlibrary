@@ -11,6 +11,8 @@ $# @param {string} props.label for menu, also used as alt text for dropdown icon
 $# @param {string|null} props.image URL for image (optional)
 $# @param {DropdownLink[]} props.links
 $ singleton = len(props.get('links', [])) == 1
+$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
+
 <div class="$(props['name'])-component header-dropdown">
   $if singleton:
     $ link = props['links'][0]
@@ -21,7 +23,7 @@ $ singleton = len(props.get('links', [])) == 1
       <summary $:cond(props['name'] == 'hamburger', 'data-ol-link-track="HeaderBar|Hamburger"')>
         $if props['name'] == 'hamburger' and ctx.user:
             <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="$('My account')">
-            $if get_counts_mode(mode='open') > 0:
+            $if get_counts_mode(mode='open') > 0 and is_privileged_user:
               <div class="mr-notifications">$(get_counts_mode(mode='open'))</div>
             <img class="$(props['image-class']) logged" src="$(props['image'])" alt="$(props['label'])"/>
         $elif 'image' in props:
@@ -59,8 +61,9 @@ $ singleton = len(props.get('links', [])) == 1
                   <button $(tracker)>$(link["text"])</button>
                 </form>
               $else:
-                $if (link['text'] == 'Pending Requests') and get_counts_mode(mode='open') > 0:
-                  <div class="mr-notifications">$(get_counts_mode(mode='open'))</div>
+                $if is_privileged_user:
+                  $if (link['text'] == 'Pending Requests') and get_counts_mode(mode='open') > 0:
+                    <div class="mr-notifications">$(get_counts_mode(mode='open'))</div>
                 <a href="$(link['href'])" $(tracker)>
                   $if 'new' in link and props['name'] == 'hamburger':
                     <span>$(link['text'])</span><span class="app-drawer__badge">$_('New!')</span>
