@@ -405,16 +405,16 @@ async def main(
 
         def update(
             self,
-            seen: Optional[Union[str, int]] = None,
-            total: Optional[Union[str, int]] = None,
-            percent: Optional[Union[str, float]] = None,
-            elapsed: Optional[Union[str, float]] = None,
-            q_1: Optional[Union[str, float]] = None,
-            q_auth: Optional[Union[str, float]] = None,
-            cached: Optional[Union[str, int]] = None,
-            q_ia: Optional[Union[str, float]] = None,
-            ia_cache: Optional[Union[str, int]] = None,
-            next: Optional[str] = None,
+            seen: str | int = None,
+            total: str | int = None,
+            percent: str | float = None,
+            elapsed: str | float = None,
+            q_1: str | float = None,
+            q_auth: str | float = None,
+            cached: str | int = None,
+            q_ia: str | float = None,
+            ia_cache: str | int = None,
+            next: str = None,
         ) -> None:
             """
             :param str or int or None seen:
