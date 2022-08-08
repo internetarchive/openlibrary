@@ -334,4 +334,5 @@ def get_counts_mode(mode='all', **kwargs):
     return cache.memcache_memoize(
         CommunityEditsQueue.get_counts_by_mode,
         "librarian_queue_counts",
-        timeout=dateutil.MINUTE_SECS)(mode, **kwargs)
+        timeout=dateutil.MINUTE_SECS,
+    )(mode, **kwargs)
