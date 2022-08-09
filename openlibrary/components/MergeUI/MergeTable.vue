@@ -89,8 +89,10 @@ export default {
             const olids_sorted = _.sortBy(this.olids, olid =>
                 parseFloat(olid.match(/\d+/)[0])
             );
-            const records_unsorted = await Promise.all(olids_sorted.map(fetchRecord));
-            const records = _.orderBy(records_unsorted, record => record.type.key, 'desc');
+            // Ensure orphaned editions are at the bottom of the list
+            const records = _.orderBy(
+                await Promise.all(olids_sorted.map(fetchRecord)),
+                record => record.type.key, 'desc');
             this.master_key = records[0].key
             this.selected = _.fromPairs(records.map(record => [record.key, record.type.key.includes('work')]));
             return records;
