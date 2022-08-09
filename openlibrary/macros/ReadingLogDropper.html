@@ -1,4 +1,4 @@
-$def with (lists, work=None, edition=None, key=None, users_work_read_status=None, reading_log_only=False, use_work=False, page_url=None)
+$def with (lists, work=None, edition=None, key=None, users_work_read_status=None, reading_log_only=False, use_work=False, page_url=None, async_load=False)
 
 $ user_key = ctx.user and ctx.user.key
 $ username = ctx.user and ctx.user.key.split('/')[-1]
@@ -84,11 +84,12 @@ $if ctx.user or not work_key:
             <div class="reading-lists">
               <p class="reading-list-title">$_('My Reading Lists:')</p>
               <div class="my-lists">
-                $for list in lists:
-                    $if not list['active']:
-                      <p class="list">
-                          <a href="$list.key" class="add-to-list" data-list-cover-url="$list.cover_url" data-list-key="$list.key">$list.name</a>
-                      </p>
+                $if async_load:
+                  $ ed_attr = 'data-edition-key=%s' % edition_key if edition_key else ''
+                  $ work_attr = 'data-work-key=%s' % work_key if work_key else ''
+                  <div class="list-loading-indicator" $ed_attr $work_attr>Loading<span class="loading-ellipsis">...</span></div>
+                $else:
+                  $:render_template('lists/dropper_lists', lists)
               </div>
               $if edition_key:
                   <p class="create checkboxes">
@@ -115,11 +116,10 @@ $if ctx.user or not work_key:
               </a>
               <div class="dropdown">
                 <div class="my-lists">
-                  $for list in lists:
-                    $if not list['active']:
-                      <p class="list">
-                          <a href="$list.key" class="add-to-list" data-list-key="$list.key">$list.name</a>
-                      </p>
+                  $if async_load:
+                    <div class="list-loading-indicator">Loading<span class="loading-ellipsis">...</span></div>
+                  $else:
+                    $:render_template('lists/dropper_lists', lists)
                 </div>
                 <p class="create"><a href="javascript:;" class="create-new-list">$_('Create a new list')</a>
                 </p>

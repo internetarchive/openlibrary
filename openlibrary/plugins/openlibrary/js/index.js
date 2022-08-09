@@ -349,13 +349,23 @@ jQuery(function () {
     // "Want to Read" buttons:
     const droppers = document.getElementsByClassName('widget-add');
 
-    if (droppers.length) {
+    // Async lists components:
+    const wtrLoadingIndicator = document.querySelector('.list-loading-indicator')
+    const overviewLoadingIndicator = document.querySelector('.list-overview-loading-indicator')
+
+    if (droppers.length || wtrLoadingIndicator || overviewLoadingIndicator) {
         import(/* webpackChunkName: "lists" */ './lists')
             .then((module) => {
-                module.initDroppers(droppers);
-                // Removable list items:
-                const actionableListItems = document.querySelectorAll('.actionable-item')
-                module.registerListItems(actionableListItems);
+                if (droppers.length) {
+                    module.initDroppers(droppers);
+                    // Removable list items:
+                    // TODO: Is this the correct place to initalize these?
+                    const actionableListItems = document.querySelectorAll('.actionable-item')
+                    module.registerListItems(actionableListItems);
+                }
+                if (wtrLoadingIndicator || overviewLoadingIndicator) {
+                    module.initListLoading(wtrLoadingIndicator, overviewLoadingIndicator)
+                }
             }
             );
     }
