@@ -1,7 +1,6 @@
 import pytest
 
 from openlibrary.catalog.add_book.match import editions_match
-
 from openlibrary.catalog.add_book import add_db_name, load
 from openlibrary.catalog.merge.merge_marc import build_marc
 
@@ -9,7 +8,7 @@ from openlibrary.catalog.merge.merge_marc import build_marc
 def test_editions_match_identical_record(mock_site):
     rec = {
         'title': 'Test item',
-        'lccn': ['123'],
+        'lccn': ['12345678'],
         'authors': [{'name': 'Smith, John', 'birth_date': '1980'}],
         'source_records': ['ia:test_item'],
     }
