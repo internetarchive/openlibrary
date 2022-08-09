@@ -77,7 +77,7 @@ export default {
                 this.mergeOutput = e.message;
                 throw e;
             }
-            this.mergeStatus = 'Do Merge';
+            this.mergeStatus = 'Done';
         },
 
         async rejectMerge() {
