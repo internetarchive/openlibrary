@@ -26,6 +26,7 @@ from openlibrary.plugins.worksearch.search import get_solr
 
 from openlibrary.utils import dateutil
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
+from openlibrary.utils.lccn import normalize_lccn
 
 
 def follow_redirect(doc):
@@ -488,7 +489,7 @@ class Edition(models.Edition):
         )
 
         if self.lccn:
-            citation['lccn'] = self.lccn[0].replace(' ', '')
+            citation['lccn'] = normalize_lccn(self.lccn[0])
         if self.get('oclc_numbers'):
             citation['oclc'] = self.oclc_numbers[0]
         citation['ol'] = str(self.get_olid())[2:]
