@@ -158,7 +158,7 @@ export default {
                 return undefined;
             const filtered_works = this.records
                 .filter(work => work.type.key === '/type/work' &&
-                work.key !== this.master_key && 
+                work.key !== this.master_key &&
                 this.editions[work.key].entries.length < this.editions[work.key].size);
             return filtered_works.map(r => r.key);
         },
