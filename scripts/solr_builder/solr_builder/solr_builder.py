@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal
 from collections.abc import Awaitable, Iterator
 
 
@@ -81,7 +81,7 @@ class LocalPostgresDataProvider(DataProvider):
         """
         :param str query:
         :param bool cache_json:
-        :rtype: list
+        :return: a list
         """
         cur = self._conn.cursor()
         cur.execute(query)
@@ -119,7 +119,7 @@ class LocalPostgresDataProvider(DataProvider):
         :param int size:
         :param str or None cursor_name: if wanting to use a specific cursor
         :param bool cache_json: Requires the select statement to be "Key", "JSON"
-        :return:
+        :return: None
         """
         # Not sure if this name needs to be unique
         cursor_name = (
@@ -284,10 +284,10 @@ async def simple_timeit_async(awaitable: Awaitable):
 
 def build_job_query(
     job: Literal['works', 'orphans', 'authors'],
-    start_at: Optional[str] = None,
+    start_at: str = None,
     offset: int = 0,
-    last_modified: Optional[str] = None,
-    limit: Optional[int] = None,
+    last_modified: str = None,
+    limit: int = None,
 ) -> str:
     """
     :param job: job to complete
@@ -330,14 +330,14 @@ async def main(
     postgres="postgres.ini",
     ol="http://ol/",
     ol_config="../../conf/openlibrary.yml",
-    solr: Optional[str] = None,
+    solr: str = None,
     skip_solr_id_check: bool = True,
-    start_at: Optional[str] = None,
+    start_at: str = None,
     offset=0,
     limit=1,
-    last_modified: Optional[str] = None,
-    progress: Optional[str] = None,
-    log_file: Optional[str] = None,
+    last_modified: str = None,
+    progress: str = None,
+    log_file: str = None,
     log_level=logging.INFO,
     dry_run: bool = False,
 ) -> None:
@@ -405,15 +405,15 @@ async def main(
 
         def update(
             self,
-            seen: str | int = None,
-            total: str | int = None,
-            percent: str | float = None,
-            elapsed: str | float = None,
-            q_1: str | float = None,
-            q_auth: str | float = None,
-            cached: str | int = None,
-            q_ia: str | float = None,
-            ia_cache: str | int = None,
+            seen: str | int | None = None,
+            total: str | int | None = None,
+            percent: str | float | None = None,
+            elapsed: str | float | None = None,
+            q_1: str | float | None = None,
+            q_auth: str | float | None = None,
+            cached: str | int | None = None,
+            q_ia: str | float | None = None,
+            ia_cache: str | int | None = None,
             next: str = None,
         ) -> None:
             """
@@ -439,7 +439,7 @@ async def main(
             """
             :param str k:
             :param Any val:
-            :rtype: str
+            :return: str
             """
             if val is None:
                 return '?'

@@ -6,7 +6,7 @@ Changes:
 2013-02-25: First version
 2018-02-11: Use newer config method
 """
-from typing import Optional, Union
+from typing import Union
 from collections.abc import Iterator
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 
@@ -30,7 +30,7 @@ logger = logging.getLogger("openlibrary.solr-updater")
 args: dict = {}
 
 
-def read_state_file(path, initial_state: Optional[str] = None):
+def read_state_file(path, initial_state: str = None):
     try:
         return open(path).read()
     except OSError:
@@ -45,7 +45,7 @@ def get_default_offset():
 
 
 class InfobaseLog:
-    def __init__(self, hostname: str, exclude: Optional[str] = None):
+    def __init__(self, hostname: str, exclude: str = None):
         """
         :param str hostname:
         :param str|None exclude: if specified, excludes records that include the string
@@ -286,14 +286,14 @@ async def main(
     ol_config: str,
     debugger: bool = False,
     state_file: str = 'solr-update.state',
-    exclude_edits_containing: Optional[str] = None,
+    exclude_edits_containing: str = None,
     ol_url='http://openlibrary.org/',
-    solr_url: Optional[str] = None,
+    solr_url: str = None,
     solr_next: bool = False,
     socket_timeout: int = 10,
     load_ia_scans: bool = False,
     commit: bool = True,
-    initial_state: Optional[str] = None,
+    initial_state: str = None,
 ):
     """
     :param debugger: Wait for a debugger to attach before beginning

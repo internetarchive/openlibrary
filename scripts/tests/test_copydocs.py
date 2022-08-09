@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from ..copydocs import copy, KeyVersionPair
-from typing import Optional
 
 
 class TestKeyVersionPair:
@@ -28,11 +29,11 @@ class FakeServer:
         self.db: dict = {}  # Mapping of key to (Mp of revision to doc)
         self.save_many(docs)
 
-    def get(self, key: str, revision: Optional[int] = None) -> Optional[dict]:
+    def get(self, key: str, revision: int = None) -> dict | None:
         """
         :param str key:
         :param int or None revision:
-        :rtype: dict or None
+        :return: dict or None
         """
         revisions = self.db.get(key, {})
         if revision is None and len(revisions) > 0:
@@ -43,7 +44,6 @@ class FakeServer:
     def get_many(self, keys: list[str], max_length: int = 500) -> dict:
         """
         :param list of str keys:
-        :rtype: dict
         :return: Map of key to document
         """
         result = {}
@@ -52,7 +52,7 @@ class FakeServer:
                 result[k] = self.get(k)
         return result
 
-    def save_many(self, docs: list[dict], comment: Optional[str] = None) -> None:
+    def save_many(self, docs: list[dict], comment: str = None) -> None:
         """
         :param list[dict] docs:
         :param str or None comment:
