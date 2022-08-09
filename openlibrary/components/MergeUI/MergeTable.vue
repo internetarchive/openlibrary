@@ -102,7 +102,7 @@ export default {
             if (!this.records) return null;
 
             const editionPromises = await Promise.all(
-                this.records.map(r => get_editions(r.key))
+                this.records.map(r => r.type.key.includes('work') ? get_editions(r.key) : {size: 0})
             );
             const editions = editionPromises.map(p => p.value || p);
             const editionsMap = _.fromPairs(
