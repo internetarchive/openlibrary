@@ -154,7 +154,7 @@ export default {
         },
 
         async find_unretrieved_editions() {
-            if (!this.master_key || !this.records || !this.editions )
+            if (!this.master_key || !this.records || !this.editions)
                 return undefined;
             const filtered_works = this.records
                 .filter(work => work.type.key === '/type/work' &&
