@@ -31,7 +31,7 @@ class lists_home(delegate.page):
 
 @public
 def get_seed_info(doc):
-    """Takes a thiing, determines what type it is, and returns a seed summary"""
+    """Takes a thing, determines what type it is, and returns a seed summary"""
     if doc.key.startswith("/subjects/"):
         seed = doc.key.split("/")[-1]
         if seed.split(":")[0] not in ("place", "person", "time"):

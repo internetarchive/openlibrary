@@ -490,7 +490,7 @@ export function initListLoading(dropperList, activeList) {
  * Animates ellipsis that follows the word "Loading"
  *
  * A new dot is appended every 1.5 seconds, until there
- * is a full ellipsis.  This cycle repeats indefinately.
+ * is a full ellipsis.  This cycle repeats indefinitely.
  *
  * Returns an interval ID, which should be used to terminate
  * the `setInterval` call.
