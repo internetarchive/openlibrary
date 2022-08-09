@@ -126,6 +126,12 @@ export default {
         background-color: rgb(100, 156, 100);
     }
 
+    .merge-btn[disabled] {
+        background-color: rgb(117, 117, 117);
+    }
+    .merge-btn[disabled]:hover {
+        background-color: rgb(117, 117, 117);
+    }
     .reject-btn {
         background-color: rgb(125, 43, 43);
     }
