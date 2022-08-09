@@ -153,6 +153,16 @@ export default {
             );
         },
 
+        async find_unretrieved_editions() {
+            if (!this.master_key || !this.records || !this.editions )
+                return undefined;
+            const filtered_works = this.records
+                .filter(work => work.type.key === '/type/work' &&
+                work.key !== this.master_key && 
+                this.editions[work.key].entries.length < this.editions[work.key].size);
+            return filtered_works.map(r => r.key);
+        },
+
         async merge() {
             if (!this.master_key || !this.records || !this.editions || !this.lists || !this.bookshelves)
                 return undefined;

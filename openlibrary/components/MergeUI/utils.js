@@ -2,6 +2,7 @@
 import _ from 'lodash';
 
 const collator = new Intl.Collator('en-US', {numeric: true})
+export const default_edition_limit = 200
 
 /**
  *
@@ -112,11 +113,11 @@ export function make_redirect(master_key, dupe) {
     };
 }
 
-export function get_editions(work_key, limit=50) {
+export function get_editions(work_key) {
     const endpoint = `${work_key}/editions.json`;
     // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
     const url = location.host.endsWith('.openlibrary.org') ? `https://openlibrary.org${endpoint}` : endpoint;
-    return fetch(url).then(r => {
+    return fetch(`${url}?${new URLSearchParams({limit: default_edition_limit})}`).then(r => {
         if (r.ok) return r.json();
         if (confirm(`Network error; failed to load editions for ${work_key}. Click OK to reload.`)) location.reload();
     });
