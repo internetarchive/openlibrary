@@ -2,14 +2,14 @@
     <table>
         <thead>
             <tr>
-                <th></th>
+                <th class="author-index"></th>
                 <th v-for="field in fields" :key="field">{{field}}</th>
             </tr>
         </thead>
         <tbody>
             <tr v-for="(role, index) in roles" :key="index">
-                <td>{{index}}</td>
-                <td v-for="field in fields" :key="field">
+                <td class="author-index">{{index}}</td>
+                <td v-for="field in fields" :key="field" :class="`author-${field}`">
                     <div :title="JSON.stringify(role[field])">
                         <div v-if="field == 'type'">
                             {{(role[field].key || role[field]).slice("/type/".length)}}
@@ -36,7 +36,7 @@ export default {
     },
     computed: {
         fields() {
-            return _.uniq(_.flatMap(this.roles, Object.keys));
+            return _.uniq(_.flatMap(this.roles, Object.keys)).sort();
         }
     }
 }
