@@ -1,4 +1,4 @@
-$def with (page, include_rating=True, include_header=True, include_widget=True, include_showcase=True, read_status=None, _user_lists=None, exclude_own_lists=False)
+$def with (page, include_rating=True, include_header=True, include_widget=True, include_showcase=True, read_status=None, exclude_own_lists=False, async_load=False)
 
 $ edition = page if page.key.startswith("/books/") else None
 $ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
@@ -10,96 +10,21 @@ $if "lists" not in ctx.features:
     $return
 
 $code:
-    _user_lists = _user_lists or (ctx.user and ctx.user.get_lists(sort=True) or [])
-
-    def get_seed_info(page):
-        """Takes a thing, determines what type it is, and returns a seed summary"""
-        if page.key.startswith("/subjects/"):
-            seed = page.key.split("/")[-1]
-            if seed.split(":")[0] not in ["place", "person", "time"]:
-                seed = "subject:" + seed
-            seed = seed.replace(",", "_").replace("__", "_")
-            seed_type = "subject"
-            title = page.name
-        else:
-            seed = {"key": page.key}
-            if page.key.startswith("/authors/"):
-                seed_type = "author"
-                title = page.get('name', 'name missing')
-            elif page.key.startswith("/works"):
-                seed_type = "work"
-                title = page.get("title", "untitled")
-            else:
-                seed_type = "edition"
-                title = page.get("title", "untitled")
-        return {
-            "seed": seed,
-            "type": seed_type,
-            "title": websafe(title),
-            "remove_dialog_html": _('Are you sure you want to remove <strong>%(title)s</strong> from your list?', title=websafe(title))
-        }
-
-    def get_list_data(list, seed, include_cover_url=True):
-        d = storage({
-            "name": list.name or "",
-            "key": list.key,
-            "active": list.has_seed(seed),
-        })
-        if include_cover_url:
-            cover = list.get_cover() or list.get_default_cover()
-            d['cover_url'] = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
-            if 'None' in d['cover_url']:
-                d['cover_url'] = "/images/icons/avatar_book-sm.png"
-        owner = list.get_owner()
-        d['owner'] = storage(displayname=owner.displayname or "", key=owner.key)
-        return d
-
-    def get_user_lists(seed_info):
-        return [get_list_data(list, seed_info['seed'], include_cover_url=True) for list in _user_lists]
-
     def get_page_lists(page, seed_info):
         return [get_list_data(list, seed_info['seed']) for list in page.get_lists(sort=False)]
 
 $ seed_info = get_seed_info(page)
-$ user_lists = get_user_lists(seed_info)
+$ user_lists = [] if async_load else get_user_lists(seed_info)
 $ page_lists = get_page_lists(page, seed_info)
 $ user_key = ctx.user and ctx.user.key
 $ page_url = page.url()
 
 $var page_lists = page_lists
 
-$def show_list(list, user_key):
-    $ remove = (list.owner.key == user_key)
-    $ actionable = 'class=actionable-item' if remove else ''
-    <li $actionable>
-        <span class="image">
-          <a href="$list.key"><img src="$list.cover_url" alt="$_('Cover of: %(title)s', title=list.name)" title="$_('Cover of: %(title)s', title=list.name)"/></a>
-        </span>
-        <span class="data">
-            <span class="label">
-                <a href="$list.key" data-list-title="$(list.name)" title="$_('See this list')">$list.name</a>
-                $if remove:
-                    $if seed_info['type'] == 'subject':
-                        $ seed_key = seed_info['seed']
-                    $else:
-                        $ seed_key = seed_info['seed']['key']
-                    <input type="hidden" name="seed-title" value="$(seed_info['title'])"/>
-                    <input type="hidden" name="seed-key" value="$seed_key"/>
-                    <input type="hidden" name="seed-type" value="$(seed_info['type'])"/>
-
-                    <a href="$list.key" class="remove-from-list red smaller arial plain" data-list-key="$list.key" title="$_('Remove from your list?')">[X]</a>
-            </span>
-            $if remove:
-                <span class="owner">from <a href="$list.owner.key">$_('You')</a></span>
-            $else:
-                <span class="owner">from <a href="$list.owner.key">$list.owner.displayname</a></span>
-        </span>
-    </li>
-
 $def render_already_lists(lists, user_key):
     $for list in lists:
         $if list['active']:
-            $:show_list(list, user_key)
+            $:render_template('lists/list_overview', list, user_key, seed_info)
 
 $def render_widget_display(lists, limit, user_key, exclude_own_lists):
     $ count = 0
@@ -107,10 +32,10 @@ $def render_widget_display(lists, limit, user_key, exclude_own_lists):
         $if count < limit:
             $if exclude_own_lists:
                 $if user_key != list.owner.key:
-                    $:show_list(list, user_key)
+                    $:render_template('lists/list_overview', list, user_key, seed_info)
                     $ count = count + 1
             $else:
-                $:show_list(list, user_key)
+                $:render_template('lists/list_overview', list, user_key, seed_info)
                 $ count = count + 1
 
 $def render_head(seed_type, page_lists, page_url):
@@ -151,13 +76,15 @@ $def i18n_input():
 $if include_widget:
   $if render_once('lists/widget.i18n-strings'):
     $:i18n_input()
-  $:macros.ReadingLogDropper(user_lists, work=work, edition=edition, key=default_seed_key, users_work_read_status=users_work_read_status, page_url=page_url)
+  $:macros.ReadingLogDropper(user_lists, work=work, edition=edition, key=default_seed_key, users_work_read_status=users_work_read_status, page_url=page_url, async_load=async_load)
   <ul id="already-lists" class="listLists already-lists">
-    $:render_already_lists(user_lists, user_key)
+    $if async_load:
+        <div class="list-overview-loading-indicator">Loading<span class="loading-ellipsis">...</span></div>
+    $else:
+        $:render_already_lists(user_lists, user_key)
   </ul>
-  $if work:
-    $if include_rating:
-      $:macros.StarRatings(work, edition)
+  $if work and include_rating:
+    $:macros.StarRatings(work, edition)
 
 $if include_showcase:
   $if render_once('lists/widget.i18n-strings'):

@@ -3,7 +3,7 @@
  * @module lists/index
  */
 
-import { createList, addToList, removeFromList, updateReadingLog } from './ListService'
+import { createList, addToList, removeFromList, updateReadingLog, fetchPartials } from './ListService'
 import { websafe } from '../jsdef'
 
 /**
@@ -34,15 +34,7 @@ const dropperLists = {}
 export function initDroppers(droppers) {
     for (const dropper of droppers) {
         const anchors = dropper.querySelectorAll('.add-to-list');
-
-        for (const anchor of anchors) {
-            // Store reference to anchor and list title:
-            dropperLists[anchor.dataset.listKey] = {
-                title: anchor.innerText,
-                element: anchor
-            }
-            addListClickListener(anchor, dropper);
-        }
+        initAddToListAnchors(anchors, dropper)
 
         const openModalButton = dropper.querySelector('.create-new-list')
         if (openModalButton) {
@@ -59,6 +51,23 @@ export function initDroppers(droppers) {
         for (const button of submitButtons) {
             addReadingLogButtonClickListener(button)
         }
+    }
+}
+
+/**
+ * Adds click listeners to the given "add-to-list" anchors in dropper
+ *
+ * @param {NodeListOf<Element>} anchors The "add-to-list" links
+ * @param {HTMLElement} dropper The reading log dropper
+ */
+function initAddToListAnchors(anchors, dropper) {
+    for (const anchor of anchors) {
+        // Store reference to anchor and list title:
+        dropperLists[anchor.dataset.listKey] = {
+            title: anchor.innerText,
+            element: anchor
+        }
+        addListClickListener(anchor, dropper);
     }
 }
 
@@ -437,4 +446,114 @@ function updateAlreadyList(listKey, listTitle, coverUrl, seedKey) {
     addRemoveClickListener(li)
 
     return li;
+}
+
+/**
+ * Initializes asynchronous list widget loading.
+ *
+ * Get references to all loading indicators and begins their animations.
+ * Gets the edition or work key for the book referenced by the dropper, and
+ * fetches HTML partials for the key.
+ *
+ * Once the partials are received, the loading indicators are replaced with the
+ * partials, and click listeners are added to the new elements
+ * @param {HTMLElement} dropperList Container for dropper list items
+ * @param {HTMLElement} activeList Container for active lists list items
+ */
+export function initListLoading(dropperList, activeList) {
+    const loadingIndicators = dropperList ? [dropperList.querySelector('.loading-ellipsis')] : []
+    if (activeList) {
+        loadingIndicators.push(activeList.querySelector('.loading-ellipsis'))
+    }
+    const intervalId = initLoadingAnimation(loadingIndicators)
+
+    let key
+    if (dropperList) {  // Not defined for logged out patrons
+        if (dropperList.dataset.editionKey) {
+            key = dropperList.dataset.editionKey
+        } else if (dropperList.dataset.workKey) {
+            key = dropperList.dataset.workKey
+        }
+    }
+
+    if (key) {
+        fetchPartials(key, function(data) {
+            clearInterval(intervalId)
+            replaceLoadingIndicators(dropperList, activeList, data)
+        })
+    } else {
+        removeChildren(dropperList, activeList)
+    }
+}
+
+/**
+ * Animates ellipsis that follows the word "Loading"
+ *
+ * A new dot is appended every 1.5 seconds, until there
+ * is a full ellipsis.  This cycle repeats indefinitely.
+ *
+ * Returns an interval ID, which should be used to terminate
+ * the `setInterval` call.
+ * @param {HTMLElement[]} loadingIndicators References to the loading indicators
+ * @returns {number} Interval ID returned by the internal `setInterval` call
+ */
+function initLoadingAnimation(loadingIndicators) {
+    let count = 0;
+    const intervalId = setInterval(function() {
+        let ellipsis = ''
+        for (let i = 0; i < count % 4; ++i) {
+            ellipsis += '.'
+        }
+        for (const elem of loadingIndicators) {
+            elem.innerText = ellipsis
+        }
+        ++count;
+    }, 1500)
+
+    return intervalId
+}
+
+/**
+ * Replaces loading indicators with partials fetched from server.
+ *
+ * Adds click listeners to the newly added elements.
+ *
+ * @param {HTMLElement} dropperLists Dropper component that displays patron's lists
+ * @param {HTMLElement} activeLists Component from which patron can remove an item from a list
+ * @param {{dropper: string, active: string}} partials HTML for the active and dropper lists
+ */
+function replaceLoadingIndicators(dropperLists, activeLists, partials) {
+    const dropperParent = dropperLists ? dropperLists.parentElement : null
+    const activeListsParent = activeLists ? activeLists.parentElement : null
+
+    if (dropperParent) {
+        removeChildren(dropperParent)
+        dropperParent.insertAdjacentHTML('afterbegin', partials['dropper'])
+
+        const dropper = dropperParent.closest('.widget-add')
+        const anchors = dropper.querySelectorAll('.add-to-list');
+        initAddToListAnchors(anchors, dropper)
+    }
+
+    if (activeListsParent) {
+        removeChildren(activeListsParent)
+        activeListsParent.insertAdjacentHTML('afterbegin', partials['active'])
+        const actionableListItems = activeListsParent.querySelectorAll('.actionable-item')
+        registerListItems(actionableListItems)
+    }
+}
+
+/**
+ * Removes all child elements from each given element
+ *
+ * @param {HTMLElement} elem The element that we are removing children from
+ */
+function removeChildren(...elements) {
+    for (const elem of elements) {
+        if (elem) {
+            while (elem.firstChild) {
+                elem.removeChild(elem.firstChild)
+            }
+        }
+    }
 }
