@@ -355,6 +355,8 @@ class Edition(models.Edition):
             if 'name' not in id or 'value' not in id:
                 continue
             name, value = id['name'], id['value']
+            if name == 'lccn':
+                value = normalize_lccn(value)
             d.setdefault(name, []).append(value)
 
         # clear existing value first
