@@ -116,27 +116,31 @@ export function get_editions(work_key, limit=50) {
     const endpoint = `${work_key}/editions.json`;
     // FIXME Fetch from prod openlibrary.org, otherwise it's outdated
     const url = location.host.endsWith('.openlibrary.org') ? `https://openlibrary.org${endpoint}` : endpoint;
-    return fetch(`${url}?${new URLSearchParams({ limit })}`).then(r => {
-        const response = r.json();
-        return response.then(data => {
-            if (data && data.size && data.size > 50 && limit === 50)
-                return get_editions(work_key, data.size);
-            else
-                return response;
-        });
-    })
+    return fetch(url).then(r => {
+        if (r.ok) return r.json();
+        if (confirm(`Network error; failed to load editions for ${work_key}. Click OK to reload.`)) location.reload();
+    });
 }
 
 export function get_lists(key, limit=10) {
-    return fetch(`${key}/lists.json?${new URLSearchParams({ limit })}`).then(r => r.json());
+    return fetch(`${key}/lists.json?${new URLSearchParams({ limit })}`).then(r => {
+        if (r.ok) return r.json();
+        if (confirm(`Network error; failed to load list data for ${key}. Click OK to reload.`)) location.reload();
+    });
 }
 
 export function get_bookshelves(key) {
-    return fetch(`${key}/bookshelves.json`).then(r => r.json());
+    return fetch(`${key}/bookshelves.json`).then(r => {
+        if (r.ok) return r.json();
+        if (confirm(`Network error; failed to load reading log data for ${key}. Click OK to reload.`)) location.reload();
+    });
 }
 
 export function get_ratings(key) {
-    return fetch(`${key}/ratings.json`).then(r => r.json());
+    return fetch(`${key}/ratings.json`).then(r => {
+        if (r.ok) return r.json();
+        if (confirm(`Network error; failed to load ratings for ${key}. Click OK to reload.`)) location.reload();
+    });
 }
 
 /**

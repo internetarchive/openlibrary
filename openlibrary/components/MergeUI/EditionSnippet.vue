@@ -82,25 +82,20 @@ export default {
 
 <style lang="less">
 .edition-snippet {
-  border: 1px solid;
   border-radius: 4px;
-  height: 60px;
+  height: 64px;
   overflow: hidden;
-  width: calc(100% - 20px);
-
-  .info {
-    font-weight: bold;
-  }
+  background: #fff;
+  margin-bottom: 4px;
 
   img {
     height: 60px;
     width: 60px;
-    background: #ddd;
-    border-right: 2px solid #ddd;
+    background: #eee;
     object-fit: cover;
     object-position: top center;
     float: left;
-    margin-right: 5px;
+    margin-right: 7px;
     &:hover {
       object-fit: contain;
     }
@@ -109,9 +104,19 @@ export default {
   .links {
     float: right;
     padding-right: 2px;
+    padding-top: 4px;
     a {
       padding: 2px;
     }
+  }
+
+  .info {
+    font-weight: bold;
+    padding-top: 4px;
+  }
+
+  .title {
+    font-size: 0.95em;
   }
 }
 </style>

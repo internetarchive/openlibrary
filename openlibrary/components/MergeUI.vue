@@ -1,17 +1,22 @@
 <template>
   <div id="app">
-    <MergeTable :olids="olids" ref="mergeTable"/>
+    <MergeTable :olids="olids" :show_diffs="show_diffs" ref="mergeTable"/>
     <div class="action-bar">
         <div class="comment-input" v-if="mrid">
             <label for="comment">Comment: </label>
             <input name="comment" v-model="comment" type="text">
         </div>
         <div class="btn-group">
-            <button class="merge-btn" @click="doMerge" :disabled="mergeStatus == 'Saving...'">Do Merge</button>
+            <button class="merge-btn" @click="doMerge" :disabled="mergeStatus != 'Do Merge'">{{mergeStatus}}</button>
             <button class="reject-btn" v-if="mrid" @click="rejectMerge">Reject Merge</button>
         </div>
+        <div id="diffs-toggle">
+        <label>
+            <input type="checkbox" title="Show textual differences" v-model="show_diffs" />
+            Show text diffs
+        </label>
     </div>
-    <pre v-if="mergeStatus">{{mergeStatus}}</pre>
+    <pre v-if="mergeOutput">{{mergeOutput}}</pre>
   </div>
 </template>
 
@@ -34,7 +39,9 @@ export default {
     data() {
         return {
             url: new URL(location.toString()),
-            mergeStatus: null,
+            mergeStatus: 'Loading...',
+            mergeOutput: null,
+            show_diffs: false,
             comment: ''
         }
     },
@@ -42,6 +49,14 @@ export default {
         olids() {
             return this.url.searchParams.get('records', '').split(',')
         }
+    },
+    mounted() {
+        this.$watch(
+            '$refs.mergeTable.merge',
+            (new_value, old_value) => {
+                if (new_value && new_value !== old_value) this.mergeStatus = 'Do Merge';
+            }
+        );
     },
     methods: {
         async doMerge() {
@@ -51,8 +66,7 @@ export default {
             this.mergeStatus = 'Saving...';
             try {
                 const r = await do_merge(master, dupes, editions_to_move, this.mrid);
-                this.mergeStatus = await r.json();
-
+                this.mergeOutput = await r.json();
                 if (this.mrid) {
                     await update_merge_request(this.mrid, 'approve', this.comment)
                 } else {
@@ -60,19 +74,21 @@ export default {
                     await createMergeRequest(workIds)
                 }
             } catch (e) {
-                this.mergeStatus = e.message;
+                this.mergeOutput = e.message;
                 throw e;
             }
+            this.mergeStatus = 'Done';
         },
 
         async rejectMerge() {
             try {
                 await update_merge_request(this.mrid, 'decline', this.comment)
-                this.mergeStatus = 'Merge request closed'
+                this.mergeOutput = 'Merge request closed'
             } catch (e) {
-                this.mergeStatus = e.message;
+                this.mergeOutput = e.message;
                 throw e;
             }
+            this.mergeStatus = 'Reject Merge';
         }
     }
 }
@@ -80,7 +96,12 @@ export default {
 
 <style lang="less">
 #app {
-  font-family: Roboto;
+    font-size: 0.9em;
+
+    div#diffs-toggle {
+        float: right;
+        padding: 4px 8px 0 0;
+    }
 }
 
 .btn-group {
@@ -89,21 +110,40 @@ export default {
     margin-bottom: 5px;
     padding: 5px;
 
-    .merge-btn {
-        background-color: green;
+    & > button {
+        font-size: 1.3em;
+        padding: 10px;
+        margin: 5px;
+        border: none;
+        border-radius: 5px;
         color: white;
     }
 
+    .merge-btn {
+        background-color: rgb(76, 118, 76);
+    }
+    .merge-btn:hover {
+        background-color: rgb(100, 156, 100);
+    }
+
+    .merge-btn[disabled] {
+        background-color: rgb(117, 117, 117);
+    }
+    .merge-btn[disabled]:hover {
+        background-color: rgb(117, 117, 117);
+    }
     .reject-btn {
-        background-color: red;
-        color: white;
+        background-color: rgb(125, 43, 43);
+    }
+    .reject-btn:hover {
+        background-color: rgb(161, 56, 56);
     }
 }
 
 .comment-input {
     display: flex;
     flex-direction: column;
-    padding: 0 5px 5px;
+    padding: 0 5px 5px 10px;
 
     input {
         width: 90%;
