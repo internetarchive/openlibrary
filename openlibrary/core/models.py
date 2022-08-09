@@ -1,7 +1,10 @@
 """Models of various OL objects.
 """
+import datetime
+import logging
 import web
 import requests
+from typing import Any
 from collections import defaultdict
 
 from infogami.infobase import client
@@ -20,7 +23,7 @@ from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 
 # Seed might look unused, but removing it causes an error :/
-from openlibrary.core.lists.model import ListMixin, Seed
+from openlibrary.core.lists.model import ListMixin, Seed  # noqa: F401
 from . import cache, waitinglist
 
 import urllib
@@ -29,6 +32,8 @@ from .ia import get_metadata_direct
 from .waitinglist import WaitingLoan
 from ..accounts import OpenLibraryAccount
 from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_url
+
+logger = logging.getLogger("openlibrary.core")
 
 
 def _get_ol_base_url():
@@ -299,13 +304,13 @@ class Edition(Thing):
         """Returns list of records for all users currently waiting for this book."""
         return waitinglist.get_waitinglist_for_book(self.key)
 
-    @property  # type: ignore
+    @property  # type: ignore[misc]
     @cache.method_memoize
     def ia_metadata(self):
         ocaid = self.get('ocaid')
         return get_metadata_direct(ocaid, cache=False) if ocaid else {}
 
-    @property  # type: ignore
+    @property  # type: ignore[misc]
     @cache.method_memoize
     def sponsorship_data(self):
         was_sponsored = 'openlibraryscanningteam' in self.ia_metadata.get(
@@ -335,43 +340,6 @@ class Edition(Thing):
 
         return borrow.get_edition_loans(self)
 
-    def get_ebook_status(self):
-        """
-        None
-        "read-online"
-        "borrow-available"
-        "borrow-checkedout"
-        "borrow-user-checkedout"
-        "borrow-user-waiting"
-        "protected"
-        """
-        if self.get("ocaid"):
-            if not self.is_access_restricted():
-                return "read-online"
-            if not self.is_lendable_book():
-                return "protected"
-
-            if self.get_available_loans():
-                return "borrow-available"
-
-            user = web.ctx.site.get_user()
-            if not user:
-                return "borrow-checkedout"
-
-            checkedout_by_user = any(
-                loan.get('user') == user.key for loan in self.get_current_loans()
-            )
-            if checkedout_by_user:
-                return "borrow-user-checkedout"
-            if user.is_waiting_for(self):
-                return "borrow-user-waiting"
-            else:
-                return "borrow-checkedout"
-
-    def is_lendable_book(self):
-        """Returns True if the book is lendable."""
-        return self.in_borrowable_collection()
-
     def get_ia_download_link(self, suffix):
         """Returns IA download link for given suffix.
         The suffix is usually one of '.pdf', '.epub', '.mobi', '_djvu.txt'
@@ -381,7 +349,7 @@ class Edition(Thing):
             # The _filenames field is set by ia.get_metadata function
             filenames = metadata.get("_filenames")
             if filenames:
-                filename = some(f for f in filenames if f.endswith(suffix))
+                filename = next((f for f in filenames if f.endswith(suffix)), None)
             else:
                 # filenames is not in cache.
                 # This is required only until all the memcache entries expire
@@ -454,16 +422,6 @@ class Edition(Thing):
         )
 
 
-def some(values):
-    """Returns the first value that is True from the values iterator.
-    Works like any, but returns the value instead of bool(value).
-    Returns None if none of the values is True.
-    """
-    for v in values:
-        if v:
-            return v
-
-
 class Work(Thing):
     """Class to represent /type/work objects in OL."""
 
@@ -478,21 +436,11 @@ class Work(Thing):
 
     __str__ = __repr__
 
-    @property  # type: ignore
+    @property  # type: ignore[misc]
     @cache.method_memoize
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "e"))
     def edition_count(self):
         return self._site._request("/count_editions_by_work", data={"key": self.key})
-
-    def get_one_edition(self):
-        """Returns any one of the editions.
-
-        Used to get the only edition when edition_count==1.
-        """
-        # If editions from solr are available, use that.
-        # Otherwise query infobase to get the editions (self.editions makes infobase query).
-        editions = self.get_sorted_editions() or self.editions
-        return editions and editions[0] or None
 
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
@@ -649,6 +597,108 @@ class Work(Thing):
             else:
                 resolved_key = thing.key
         return redirect_chain
+
+    @classmethod
+    def resolve_redirect_chain(
+        cls, work_key: str, test: bool = False
+    ) -> dict[str, Any]:
+        summary: dict[str, Any] = {
+            'key': work_key,
+            'redirect_chain': [],
+            'resolved_key': None,
+        }
+        redirect_chain = cls.get_redirect_chain(work_key)
+        summary['redirect_chain'] = [
+            {"key": thing.key, "occurrences": {}, "updates": {}}
+            for thing in redirect_chain
+        ]
+        summary['resolved_key'] = redirect_chain[-1].key
+
+        for r in summary['redirect_chain']:
+            olid = r['key'].split('/')[-1][2:-1]  # 'OL1234x' --> '1234'
+            new_olid = summary['resolved_key'].split('/')[-1][2:-1]
+
+            # count reading log entries
+            r['occurrences']['readinglog'] = len(Bookshelves.get_works_shelves(olid))
+            r['occurrences']['ratings'] = len(Ratings.get_all_works_ratings(olid))
+            r['occurrences']['booknotes'] = len(Booknotes.get_booknotes_for_work(olid))
+            r['occurrences']['observations'] = len(
+                Observations.get_observations_for_work(olid)
+            )
+
+            # track updates
+            r['updates']['readinglog'] = Bookshelves.update_work_id(
+                olid, new_olid, _test=test
+            )
+            r['updates']['ratings'] = Ratings.update_work_id(olid, new_olid, _test=test)
+            r['updates']['booknotes'] = Booknotes.update_work_id(
+                olid, new_olid, _test=test
+            )
+            r['updates']['observations'] = Observations.update_work_id(
+                olid, new_olid, _test=test
+            )
+        return summary
+
+    @classmethod
+    def resolve_redirects_bulk(
+        cls,
+        batch_size=1000,
+        start_offset=0,
+        limit=1000,
+        grace_period_days=7,
+        cutoff_date=datetime.datetime(year=2017, month=1, day=1),
+        test=True,
+    ):
+        """
+        batch_size - how many records to fetch per batch
+        start_offset - what offset to start from
+        limit - total number of records to process from start_offset
+        grace_period_days - ignore redirects created within period of days
+        cutoff_date - ignore redirects created before this date
+        test - don't resolve stale redirects, just identify them
+        """
+        pos = start_offset
+        max_limit = start_offset + limit
+        grace_date = datetime.datetime.today() - datetime.timedelta(
+            days=grace_period_days
+        )
+        batch_offsets = enumerate(range(start_offset, max_limit, batch_size))
+        for batch, offset in batch_offsets:
+            logger.info(
+                f"[update-redirects] Batch {batch+1}: #{pos} of {max_limit}",
+            )
+            work_redirect_ids = web.ctx.site.things(
+                {
+                    "type": "/type/redirect",
+                    "key~": "/works/*",
+                    "limit": batch_size,
+                    "offset": offset,
+                    "sort": "-last_modified",
+                }
+            )
+            work_redirect_batch = web.ctx.site.get_many(work_redirect_ids)
+            for work in work_redirect_batch:
+                if pos >= max_limit:
+                    break
+                pos += 1
+                if work.last_modified < cutoff_date:
+                    logger.info(f"[update-redirects] Stop: {cutoff_date}")
+                    break
+                if work.last_modified > grace_date:
+                    logger.info(f"[update-redirects] Skip: #{pos} <{work.key}> grace")
+                else:
+                    chain = Work.resolve_redirect_chain(work.key, test=test)
+                    if len(chain.get('redirect_chain')) > 1:
+                        logger.info(
+                            "[update-redirects] Update: " f"#{pos} <{work.key}> {chain}"
+                        )
+                    else:
+                        logger.info(
+                            "[update-redirects] No Update Required: "
+                            f"#{pos} <{work.key}> {chain}"
+                        )
+
+        logger.info(f"[update-redirects] Done: #{pos} of {max_limit}")
 
 
 class Author(Thing):
@@ -880,6 +930,10 @@ class User(Thing):
         # Why nofollow?
         return f'<a rel="nofollow" href="{self.key}" {extra_attrs}>{web.net.htmlquote(self.displayname)}</a>'
 
+    def set_data(self, data):
+        self._data = data
+        self._save()
+
 
 class List(Thing, ListMixin):
     """Class to represent /type/list objects in OL.
@@ -995,6 +1049,21 @@ class UserGroup(Thing):
             members.append({'key': userkey})
             self.members = members
             web.ctx.site.save(self.dict(), f"Adding {userkey} to {self.key}")
+
+    def remove_user(self, userkey):
+        if not web.ctx.site.get(userkey):
+            raise KeyError("Invalid userkey")
+
+        members = self.get('members', [])
+
+        # find index of userkey and remove user
+        for i, m in enumerate(members):
+            if m.get('key', None) == userkey:
+                members.pop(i)
+                break
+
+        self.members = members
+        web.ctx.site.save(self.dict(), f"Removing {userkey} from {self.key}")
 
 
 class Subject(web.storage):

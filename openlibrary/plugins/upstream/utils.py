@@ -1,5 +1,6 @@
 import functools
-from typing import Iterable, List, Union, Tuple, Any
+from typing import List, Union, Tuple, Any
+from collections.abc import Iterable
 import unicodedata
 
 import web
@@ -534,7 +535,7 @@ def urlencode(dict_or_list_of_tuples: Union[dict, list[tuple[str, Any]]]) -> str
 
     tuples = dict_or_list_of_tuples
     if isinstance(dict_or_list_of_tuples, dict):
-        tuples = dict_or_list_of_tuples.items()
+        tuples = list(dict_or_list_of_tuples.items())
     params = [(k, v.encode('utf-8') if isinstance(v, str) else v) for (k, v) in tuples]
     return og_urlencode(params)
 
@@ -829,17 +830,17 @@ class UpstreamMemcacheClient:
 
 
 if config.get('upstream_memcache_servers'):
-    olmemcache.Client = UpstreamMemcacheClient
+    olmemcache.Client = UpstreamMemcacheClient  # type: ignore[assignment, misc]
     # set config.memcache_servers only after olmemcache.Client is updated
-    config.memcache_servers = config.upstream_memcache_servers
+    config.memcache_servers = config.upstream_memcache_servers  # type: ignore[attr-defined]
 
 
 def _get_recent_changes():
     site = web.ctx.get('site') or delegate.create_site()
     web.ctx.setdefault("ip", "127.0.0.1")
 
-    # The recentchanges can have multiple revisions for a document if it has been modified more than once.
-    # Take only the most recent revision in that case.
+    # The recentchanges can have multiple revisions for a document if it has been
+    # modified more than once.  Take only the most recent revision in that case.
     visited = set()
 
     def is_visited(key):
@@ -1055,6 +1056,11 @@ def render_once(key):
 @public
 def today():
     return datetime.datetime.today()
+
+
+@public
+def to_datetime(time: str):
+    return datetime.datetime.fromisoformat(time)
 
 
 class HTMLTagRemover(HTMLParser):

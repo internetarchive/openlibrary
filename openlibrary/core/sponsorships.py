@@ -66,14 +66,17 @@ def get_sponsored_editions(user, page=1):
     archive_id = get_internet_archive_id(user.key if 'key' in user else user._key)
     if archive_id:
         url = 'https://archive.org/advancedsearch.php'
-        params = urlencode({
-            'fl[]': ['identifier', 'openlibrary_edition'],
-            'sort[]': 'date',
-            'output': 'json',
-            'page': page,
-            'rows': 50,
-            'q': f'donor:{archive_id}'
-        }, doseq=True)
+        params = urlencode(
+            {
+                'fl[]': ['identifier', 'openlibrary_edition'],
+                'sort[]': 'date',
+                'output': 'json',
+                'page': page,
+                'rows': 50,
+                'q': f'donor:{archive_id}',
+            },
+            doseq=True,
+        )
         r = requests.get(f'{url}?{params}')
         # e.g. [{'openlibrary_edition': 'OL24896084M', 'identifier': 'isbn_9780691160191'}]
         return r.json()['response'].get('docs')

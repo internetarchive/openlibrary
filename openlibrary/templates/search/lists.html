@@ -3,11 +3,11 @@ $def with (q, lists)
 $var title: $_('Search results for Lists')
 
 <div id="contentHead">
-  <h1>$_("Lists")</h1>
+  <h1>$_("Search Lists")</h1>
 </div>
 
 <div id="contentBody">
-
+  $:macros.SearchNavigation()
   <form class="siteSearch searchInsideForm" action="/search/lists">
     <input type="text" class="larger" name="q" value="$q"/>
     <input type="submit" class="generic-button" value="$_('Search')">

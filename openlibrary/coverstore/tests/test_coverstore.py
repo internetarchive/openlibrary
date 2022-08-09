@@ -2,7 +2,7 @@ import pytest
 import web
 from os.path import abspath, exists, join, dirname, pardir
 
-from openlibrary.coverstore import config, coverlib
+from openlibrary.coverstore import config, coverlib, utils
 
 static_dir = abspath(join(dirname(__file__), pardir, pardir, pardir, 'static'))
 
@@ -135,3 +135,21 @@ def test_image_path(image_dir):
         coverlib.find_image_path('covers_0000_00.tar:1234:10')
         == config.data_root + '/items/covers_0000/covers_0000_00.tar:1234:10'
     )
+
+
+def test_urldecode():
+    assert utils.urldecode('http://google.com/search?q=bar&x=y') == (
+        'http://google.com/search',
+        {'q': 'bar', 'x': 'y'},
+    )
+    assert utils.urldecode('google.com/search?q=bar&x=y') == (
+        'google.com/search',
+        {'q': 'bar', 'x': 'y'},
+    )
+    assert utils.urldecode('http://google.com/search') == (
+        'http://google.com/search',
+        {},
+    )
+    assert utils.urldecode('http://google.com/') == ('http://google.com/', {})
+    assert utils.urldecode('http://google.com/?') == ('http://google.com/', {})
+    assert utils.urldecode('?q=bar') == ('', {'q': 'bar'})

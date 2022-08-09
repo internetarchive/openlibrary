@@ -63,11 +63,11 @@ READER_AUTH_SECONDS = dateutil.MINUTE_SECS * 2
 
 # Base URL for BookReader
 try:
-    bookreader_host = config.bookreader_host
+    bookreader_host = config.bookreader_host  # type: ignore[attr-defined]
 except AttributeError:
     bookreader_host = 'archive.org'
 
-bookreader_stream_base = 'https://' + bookreader_host + '/stream'
+bookreader_stream_base = f'https://{bookreader_host}/stream'
 
 ########## Page Handlers
 

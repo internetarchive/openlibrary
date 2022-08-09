@@ -9,7 +9,7 @@ def cmp(x, y):
 
 
 re_date = map(
-    re.compile,
+    re.compile,  # type: ignore[arg-type]
     [
         r'(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
         r'(?P<birth_date>\d+\??)-',
@@ -285,16 +285,3 @@ def mk_norm(s):
     elif norm.startswith('a '):
         norm = norm[2:]
     return norm.replace(' ', '')
-
-
-def error_mail(msg_from, msg_to, subject, body):
-    assert isinstance(msg_to, list)
-    msg = 'From: {}\nTo: {}\nSubject: {}\n\n{}'.format(
-        msg_from, ', '.join(msg_to), subject, body
-    )
-
-    import smtplib
-
-    server = smtplib.SMTP('mail.archive.org')
-    server.sendmail(msg_from, msg_to, msg)
-    server.quit()

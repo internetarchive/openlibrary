@@ -1,4 +1,4 @@
-from py.test import config
+# from py.test import config
 import web
 import json
 

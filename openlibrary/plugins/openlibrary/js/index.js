@@ -258,7 +258,7 @@ jQuery(function () {
     const $notesModalLinks = $('.notes-modal-link');
     const $notesPageButtons = $('.note-page-buttons');
     const $shareModalLinks = $('.share-modal-link');
-    if ($observationModalLinks.length || $notesModalLinks.length || $notesPageButtons.length || $shareModalLinks) {
+    if ($observationModalLinks.length || $notesModalLinks.length || $notesPageButtons.length || $shareModalLinks.length) {
         import(/* webpackChunkName: "modal-links" */ './modals')
             .then(module => {
                 if ($observationModalLinks.length) {
@@ -306,9 +306,18 @@ jQuery(function () {
         document.getElementById('password').value = 'admin123'
         document.getElementById('remember').checked = true
     }
-    if (document.getElementById('adminLinks')) {
+    const anonymizationButton = document.querySelector('.account-anonymization-button')
+    const adminLinks = document.getElementById('adminLinks')
+    if (adminLinks || anonymizationButton) {
         import(/* webpackChunkName: "admin" */ './admin')
-            .then((module) => module.initAdmin());
+            .then(module => {
+                if (adminLinks) {
+                    module.initAdmin();
+                }
+                if (anonymizationButton) {
+                    module.initAnonymizationButton(anonymizationButton);
+                }
+            });
     }
 
     if (window.matchMedia('(display-mode: standalone)').matches) {
@@ -340,13 +349,23 @@ jQuery(function () {
     // "Want to Read" buttons:
     const droppers = document.getElementsByClassName('widget-add');
 
-    if (droppers.length) {
+    // Async lists components:
+    const wtrLoadingIndicator = document.querySelector('.list-loading-indicator')
+    const overviewLoadingIndicator = document.querySelector('.list-overview-loading-indicator')
+
+    if (droppers.length || wtrLoadingIndicator || overviewLoadingIndicator) {
         import(/* webpackChunkName: "lists" */ './lists')
             .then((module) => {
-                module.initDroppers(droppers);
-                // Removable list items:
-                const actionableListItems = document.querySelectorAll('.actionable-item')
-                module.registerListItems(actionableListItems);
+                if (droppers.length) {
+                    module.initDroppers(droppers);
+                    // Removable list items:
+                    // TODO: Is this the correct place to initalize these?
+                    const actionableListItems = document.querySelectorAll('.actionable-item')
+                    module.registerListItems(actionableListItems);
+                }
+                if (wtrLoadingIndicator || overviewLoadingIndicator) {
+                    module.initListLoading(wtrLoadingIndicator, overviewLoadingIndicator)
+                }
             }
             );
     }
@@ -372,7 +391,7 @@ jQuery(function () {
 
     // Prevent default star rating behavior:
     const ratingForms = document.querySelectorAll('.star-rating-form')
-    if (ratingForms) {
+    if (ratingForms.length) {
         import(/* webpackChunkName: "star-ratings" */'./handlers')
             .then((module) => module.initRatingHandlers(ratingForms));
     }
@@ -386,5 +405,33 @@ jQuery(function () {
         // Add sticky title component animations:
         import(/* webpackChunkName: "compact-title" */ './compact-title')
             .then((module) => module.initCompactTitle(navbar, compactTitle))
+    }
+
+    // Add functionality for librarian merge request table:
+    const mergeRequestCloseLinks = document.querySelectorAll('.mr-close-link')
+    const mergeRequestResolveLinks = document.querySelectorAll('.mr-resolve-link')
+    const mergeRequestCommentButtons = document.querySelectorAll('.mr-comment-btn')
+    const showCommentsLinks = document.querySelectorAll('.comment-expand')
+    const unassignElements = document.querySelectorAll('.mr-unassign')
+
+    if (mergeRequestCloseLinks.length || mergeRequestCommentButtons.length || showCommentsLinks.length || mergeRequestResolveLinks.length || unassignElements.length) {
+        import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
+            .then(module => {
+                if (mergeRequestCloseLinks.length) {
+                    module.initCloseLinks(mergeRequestCloseLinks)
+                }
+                if (mergeRequestCommentButtons.length) {
+                    module.initCommenting(mergeRequestCommentButtons)
+                }
+                if (showCommentsLinks.length) {
+                    module.initShowAllCommentsLinks(showCommentsLinks)
+                }
+                if (mergeRequestResolveLinks.length) {
+                    module.initRequestClaiming(mergeRequestResolveLinks)
+                }
+                if (unassignElements.length) {
+                    module.initUnassignment(unassignElements)
+                }
+            })
     }
 });

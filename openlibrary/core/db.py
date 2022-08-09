@@ -5,6 +5,7 @@ from sqlite3 import IntegrityError
 from psycopg2.errors import UniqueViolation
 from infogami.utils import stats
 
+
 @web.memoize
 def _get_db():
     return web.database(**web.config.db_parameters)
@@ -39,7 +40,8 @@ class CommonExtras:
                 cls.TABLENAME,
                 where="work_id=$work_id",
                 work_id=new_work_id,
-                vars={"work_id": current_work_id})
+                vars={"work_id": current_work_id},
+            )
         except (UniqueViolation, IntegrityError):
             (
                 rows_changed,
@@ -64,20 +66,23 @@ class CommonExtras:
 
         # get records with old work_id
         # `list` used to solve sqlite cursor test
-        rows = list(oldb.select(
-            cls.TABLENAME,
-            where="work_id=$work_id",
-            vars={"work_id": current_work_id}))
+        rows = list(
+            oldb.select(
+                cls.TABLENAME,
+                where="work_id=$work_id",
+                vars={"work_id": current_work_id},
+            )
+        )
         for row in rows:
-            where = " AND ".join([
-                f"{k}='{v}'"
-                for k, v in row.items()
-                if k in cls.PRIMARY_KEY
-            ])
+            where = " AND ".join(
+                [f"{k}='{v}'" for k, v in row.items() if k in cls.PRIMARY_KEY]
+            )
             try:
                 # try to update the row to new_work_id
                 t_update = oldb.transaction()
-                oldb.query(f"UPDATE {cls.TABLENAME} set work_id={new_work_id} where {where}")
+                oldb.query(
+                    f"UPDATE {cls.TABLENAME} set work_id={new_work_id} where {where}"
+                )
                 rows_changed += 1
                 t_update.rollback() if _test else t_update.commit()
             except (UniqueViolation, IntegrityError):
@@ -98,11 +103,46 @@ class CommonExtras:
     @classmethod
     def select_all_by_username(cls, username, _test=False):
         oldb = get_db()
-        return list(oldb.select(
-            cls.TABLENAME,
-            where="username=$username",
-            vars={"username": username}
-        ))
+        return list(
+            oldb.select(
+                cls.TABLENAME, where="username=$username", vars={"username": username}
+            )
+        )
+
+    @classmethod
+    def update_username(cls, username, new_username, _test=False):
+        oldb = get_db()
+        t = oldb.transaction()
+
+        try:
+            rows_changed = oldb.update(
+                cls.TABLENAME,
+                where="username=$username",
+                username=new_username,
+                vars={"username": username},
+            )
+        except (UniqueViolation, IntegrityError):
+            # if any of the records would conflict with an exiting
+            # record associated with new_username
+            pass  # assuming impossible for now, not a great assumption
+
+        t.rollback() if _test else t.commit()
+        return rows_changed
+
+    @classmethod
+    def delete_all_by_username(cls, username, _test=False):
+        oldb = get_db()
+        t = oldb.transaction()
+
+        try:
+            rows_deleted = oldb.delete(
+                cls.TABLENAME, where="username=$username", vars={"username": username}
+            )
+        except (UniqueViolation, IntegrityError):
+            pass
+
+        t.rollback() if _test else t.commit()
+        return rows_deleted
 
 
 def _proxy(method_name):

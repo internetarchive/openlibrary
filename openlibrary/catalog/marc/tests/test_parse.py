@@ -30,7 +30,6 @@ xml_samples = [
     '13dipolarcycload00burk',
     'bijouorannualofl1828cole',
     'soilsurveyrepor00statgoog',
-    'diebrokeradical400poll',
     'cu31924091184469',  # MARC XML collection record
     'engineercorpsofh00sher',
 ]

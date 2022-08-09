@@ -1,7 +1,11 @@
-import web
-import logging
+from datetime import datetime
 import json
+import logging
 import re
+from typing import Any, Callable
+from collections.abc import Iterable, Mapping
+
+import web
 
 from infogami.utils import delegate
 from infogami import config
@@ -11,9 +15,7 @@ from infogami.utils.view import (
     render_template,
     add_flash_message,
 )
-
 from infogami.infobase.client import ClientException
-from infogami.utils.context import context
 import infogami.core.code as core
 
 from openlibrary import accounts
@@ -34,9 +36,7 @@ from openlibrary.accounts import (
     valid_email,
 )
 from openlibrary.plugins.upstream import borrow, forms, utils
-
-import urllib
-
+from openlibrary.utils.dateutil import elapsed_time
 
 logger = logging.getLogger("openlibrary.account")
 
@@ -365,8 +365,7 @@ class account_login(delegate.page):
     def GET(self):
         referer = web.ctx.env.get('HTTP_REFERER', '')
         # Don't set referer if request is from offsite
-        if ('openlibrary.org' not in referer
-            or referer.endswith('openlibrary.org/')):
+        if 'openlibrary.org' not in referer or referer.endswith('openlibrary.org/'):
             referer = None
         i = web.input(redirect=referer)
         f = forms.Login()
@@ -389,8 +388,8 @@ class account_login(delegate.page):
             email,
             i.password,
             require_link=True,
-            s3_access_key=i.access,
-            s3_secret_key=i.secret,
+            s3_access_key=i.access or web.ctx.env.get('HTTP_X_S3_ACCESS'),
+            s3_secret_key=i.secret or web.ctx.env.get('HTTP_X_S3_SECRET'),
             test=i.test,
         )
         error = audit.get('error')
@@ -757,7 +756,7 @@ class account_my_books(delegate.page):
     def GET(self):
         user = accounts.get_current_user()
         username = user.key.split('/')[-1]
-        raise web.seeother('/people/%s/books' % (username))
+        raise web.seeother(f'/people/{username}/books')
 
 
 # This would be by the civi backend which would require the api keys
@@ -806,6 +805,52 @@ class fetch_goodreads(delegate.page):
         return render['account/import'](books, books_wo_isbns)
 
 
+def csv_header_and_format(row: Mapping[str, Any]) -> tuple[str, str]:
+    """
+    Convert the keys of a dict into csv header and format strings for generating a
+    comma separated values string.  This will only be run on the first row of data.
+    >>> csv_header_and_format({"item_zero": 0, "one_id_id": 1, "t_w_o": 2, "THREE": 3})
+    ('Item Zero,One Id ID,T W O,Three', '{item_zero},{one_id_id},{t_w_o},{THREE}')
+    """
+    return (  # The .replace("_Id,", "_ID,") converts "Edition Id" --> "Edition ID"
+        ",".join(fld.replace("_", " ").title() for fld in row).replace(" Id,", " ID,"),
+        ",".join("{%s}" % field for field in row),
+    )
+
+
+@elapsed_time("csv_string")
+def csv_string(source: Iterable[Mapping], row_formatter: Callable = None) -> str:
+    """
+    Given an list of dicts, generate comma separated values where each dict is a row.
+    An optional reformatter function can be provided to transform or enrich each dict.
+    The order and names of the formatter's the output dict keys will determine the
+    order and header column titles of the resulting csv string.
+    :param source: An iterable of all the rows that should appear in the csv string.
+    :param formatter: A Callable that accepts a Mapping and returns a dict.
+    >>> csv = csv_string([{"row_id": x, "t w o": 2, "upper": x.upper()} for x in "ab"])
+    >>> csv.splitlines()
+    ['Row ID,T W O,Upper', 'a,2,A', 'b,2,B']
+    """
+    if not row_formatter:  # The default formatter reuses the inbound dict unmodified
+
+        def row_formatter(row: dict) -> dict:
+            return row
+
+    def csv_body() -> Iterable[str]:
+        """
+        On the first row, use csv_header_and_format() to get and yield the csv_header.
+        Then use csv_format to yield each row as a string of comma separated values.
+        """
+        assert row_formatter, "Placate mypy."
+        for i, row in enumerate(source):
+            if i == 0:  # Only on first row, make header and format from the dict keys
+                csv_header, csv_format = csv_header_and_format(row_formatter(row))
+                yield csv_header
+            yield csv_format.format(**row_formatter(row))
+
+    return '\n'.join(csv_body())
+
+
 class export_books(delegate.page):
     path = "/account/export"
 
@@ -829,107 +874,128 @@ class export_books(delegate.page):
             data = self.generate_reviews(username)
             filename = 'OpenLibrary_Reviews.csv'
         elif i.type == 'lists':
-            data = self.generate_list_overview(user.get_lists(limit=1000))
+            with elapsed_time("user.get_lists()"):
+                lists = user.get_lists(limit=1000)
+            with elapsed_time("generate_list_overview()"):
+                data = self.generate_list_overview(lists)
             filename = 'Openlibrary_ListOverview.csv'
         elif i.type == 'ratings':
             data = self.generate_star_ratings(username)
             filename = 'OpenLibrary_Ratings.csv'
 
         web.header('Content-Type', 'text/csv')
-        web.header(
-            'Content-disposition', f'attachment; filename={filename}'
-        )
+        web.header('Content-disposition', f'attachment; filename={filename}')
         return delegate.RawText('' or data, content_type="text/csv")
 
-    def generate_reading_log(self, username):
-        books = Bookshelves.get_users_logged_books(username, limit=10000)
-        csv = []
-        csv.append('Work Id,Edition Id,Bookshelf\n')
-        mapping = {1: 'Want to Read', 2: 'Currently Reading', 3: 'Already Read'}
-        for book in books:
-            row = [
-                'OL{}W'.format(book['work_id']),
-                'OL{}M'.format(book['edition_id']) if book['edition_id'] else '',
-                '{}\n'.format(mapping[book['bookshelf_id']]),
-            ]
-            csv.append(','.join(row))
-        return ''.join(csv)
+    def generate_reading_log(self, username: str) -> str:
+        from openlibrary.plugins.upstream.models import Work  # Avoid a circular import
 
-    def generate_book_notes(self, username):
-        csv = []
-        csv.append('Work ID,Edition ID,Note,Created On')
-        notes = Booknotes.select_all_by_username(username)
+        bookshelf_map = {1: 'Want to Read', 2: 'Currently Reading', 3: 'Already Read'}
 
-        for note in notes:
-            escaped_note = note['notes'].replace('"', '""')
-            row = [
-                f"OL{note['work_id']}W",
-                f"OL{note['edition_id']}M",
-                f'"{escaped_note}"',
-                note['created'].strftime(self.date_format)
-            ]
-            csv.append(','.join(row))
+        def get_subjects(work: Work, subject_type: str) -> str:
+            return " | ".join(
+                s.title.replace(",", ";") for s in work.get_subject_links(subject_type)
+            )
 
-        return '\n'.join(csv)
+        def format_reading_log(book: dict) -> dict:
+            """
+            Adding, deleting, renaming, or reordering the fields of the dict returned
+            below will automatically be reflected in the CSV that is generated.
+            """
+            work_key = f"/works/OL{book['work_id']}W"
+            work: Work = web.ctx.site.get(work_key)
+            if not work:
+                raise ValueError(f"No Work found for {work_key}.")
+            if edition_id := book.get("edition_id") or "":
+                edition_id = f"OL{edition_id}M"
+            ratings = work.get_rating_stats() or {"average": "", "count": ""}
+            ratings_average, ratings_count = ratings.values()
+            return {
+                "work_id": work_key.split("/")[-1],
+                "title": work.title,
+                "authors": " | ".join(work.get_author_names()),
+                "first_publish_year": work.first_publish_year,
+                "edition_id": edition_id,
+                "edition_count": work.edition_count,
+                "bookshelf": bookshelf_map[work.get_users_read_status(username)],
+                "my_ratings": work.get_users_rating(username) or "",
+                "ratings_average": ratings_average,
+                "ratings_count": ratings_count,
+                "has_ebook": work.has_ebook(),
+                "subjects": get_subjects(work=work, subject_type="subject"),
+                "subject_people": get_subjects(work=work, subject_type="person"),
+                "subject_places": get_subjects(work=work, subject_type="place"),
+                "subject_times": get_subjects(work=work, subject_type="time"),
+            }
 
-    def generate_reviews(self, username):
-        csv = []
-        csv.append('Work ID,Review Category,Review Value,Created On')
+        books = Bookshelves.iterate_users_logged_books(username)
+        return csv_string(books, format_reading_log)
+
+    def generate_book_notes(self, username: str) -> str:
+        def format_booknote(booknote: Mapping) -> dict:
+            escaped_note = booknote['notes'].replace('"', '""')
+            return {
+                "work_id": f"OL{booknote['work_id']}W",
+                "edition_id": f"OL{booknote['edition_id']}M",
+                "note": f'"{escaped_note}"',
+                "created_on": booknote['created'].strftime(self.date_format),
+            }
+
+        return csv_string(Booknotes.select_all_by_username(username), format_booknote)
+
+    def generate_reviews(self, username: str) -> str:
+        def format_observation(observation: Mapping) -> dict:
+            return {
+                "work_id": f"OL{observation['work_id']}W",
+                "review_category": f'"{observation["observation_type"]}"',
+                "review_value": f'"{observation["observation_value"]}"',
+                "created_on": observation['created'].strftime(self.date_format),
+            }
+
         observations = Observations.select_all_by_username(username)
-
-        for o in observations:
-            row = [
-                f"OL{o['work_id']}W",
-                f'"{o["observation_type"]}"',
-                f'"{o["observation_value"]}"',
-                o['created'].strftime(self.date_format)
-            ]
-            csv.append(','.join(row))
-
-        return '\n'.join(csv)
+        return csv_string(observations, format_observation)
 
     def generate_list_overview(self, lists):
-        csv = []
-        csv.append('List ID,List Name,List Description,Entry,Created On,Last Updated')
+        row = {
+            "list_id": "",
+            "list_name": "",
+            "list_description": "",
+            "entry": "",
+            "created_on": "",
+            "last_updated": "",
+        }
 
-        for list in lists:
-            list_id = list.key.split('/')[-1]
-            created_on = list.created.strftime(self.date_format)
-            last_updated = list.last_modified.strftime(self.date_format) if list.last_modified else ''
-            for seed in list.seeds:
-                entry = seed
-                if not isinstance(seed, str):
-                    entry = seed.key
-                list_name = list.name.replace('"', '""') if list.name else ''
-                list_desc = list.description.replace('"', '""') if list.description else ''
-                row = [
-                    list_id,
-                    f'"{list_name}"',
-                    f'"{list_desc}"',
-                    entry,
-                    created_on,
-                    last_updated
-                ]
-                csv.append(','.join(row))
+        def lists_as_csv(lists) -> Iterable[str]:
+            for i, list in enumerate(lists):
+                if i == 0:  # Only on first row, make header and format from dict keys
+                    csv_header, csv_format = csv_header_and_format(row)
+                    yield csv_header
+                row["list_id"] = list.key.split('/')[-1]
+                row["list_name"] = (list.name or '').replace('"', '""')
+                row["list_description"] = (list.description or '').replace('"', '""')
+                row["created_on"] = list.created.strftime(self.date_format)
+                if last_updated := list.last_modified or "":
+                    if isinstance(last_updated, datetime):  # placate mypy
+                        last_updated = last_updated.strftime(self.date_format)
+                row["last_updated"] = last_updated
+                for seed in list.seeds:
+                    row["entry"] = seed if isinstance(seed, str) else seed.key
+                    yield csv_format.format(**row)
 
-        return '\n'.join(csv)
+        return "\n".join(lists_as_csv(lists))
 
+    def generate_star_ratings(self, username: str) -> str:
+        def format_rating(rating: Mapping) -> dict:
+            if edition_id := rating.get("edition_id") or "":
+                edition_id = f"OL{edition_id}M"
+            return {
+                "Work ID": f"OL{rating['work_id']}W",
+                "Edition ID": edition_id,
+                "Rating": f"{rating['rating']}",
+                "Created On": rating['created'].strftime(self.date_format),
+            }
 
-    def generate_star_ratings(self, username):
-        csv = []
-        csv.append('Work ID,Edition ID,Rating,Created On')
-        ratings = Ratings.select_all_by_username(username)
-
-        for rating in ratings:
-            row = [
-                f"OL{rating['work_id']}W",
-                f"OL{rating['edition_id']}M" if rating['edition_id'] else '',
-                f"{rating['rating']}",
-                rating['created'].strftime(self.date_format)
-            ]
-            csv.append(','.join(row))
-
-        return '\n'.join(csv)
+        return csv_string(Ratings.select_all_by_username(username), format_rating)
 
 
 class account_loans(delegate.page):
@@ -964,9 +1030,10 @@ class account_waitlist(delegate.page):
     def GET(self):
         raise web.seeother("/account/loans")
 
-# Disabling be cause it prevents account_my_books_redirect from working
-# for some reason. The purpose of this class is to not show the "Create" link for
-# /account pages since that doesn't make any sense.
+
+# Disabling because it prevents account_my_books_redirect from working for some reason.
+# The purpose of this class is to not show the "Create" link for /account pages since
+# that doesn't make any sense.
 # class account_others(delegate.page):
 #     path = "(/account/.*)"
 #
@@ -975,7 +1042,7 @@ class account_waitlist(delegate.page):
 
 
 def send_forgot_password_email(username, email):
-    key = "account/%s/password" % username
+    key = f"account/{username}/password"
 
     doc = create_link_doc(key, username, email)
     web.ctx.site.store[key] = doc

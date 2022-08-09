@@ -27,7 +27,7 @@ Are you looking to get started? [This is the guide](https://github.com/interneta
 
 Open Library is an effort started in 2006 to create "one web page for every book ever published". It provides access to many public domain and out-of-print books, which can be read online.
 
-Here's a quick public tour of Open Library to get your familiar with the service and its offerings (10min)
+Here's a quick public tour of Open Library to get you familiar with the service and its offerings (10min).
 
 [![archive org_embed_openlibrary-tour-2020 (1)](https://user-images.githubusercontent.com/978325/91348906-55940d00-e799-11ea-83b9-17cd4d99642b.png)](https://archive.org/embed/openlibrary-tour-2020/openlibrary.ogv)
 
@@ -51,7 +51,7 @@ Warning: This integration is still experimental.
 
 For instructions on administrating your Open Library instance, refer to the Developer's [Quickstart](https://github.com/internetarchive/openlibrary/wiki/Getting-Started) Guide.
 
-You can also find more information regarding Developer Documentation for Open Library in the Open Library [Wiki](https://github.com/internetarchive/openlibrary/wiki/)
+You can also find more information regarding Developer Documentation for Open Library in the Open Library [Wiki](https://github.com/internetarchive/openlibrary/wiki/).
 
 ## Code Organization
 
@@ -69,7 +69,7 @@ OpenLibrary is developed on top of the Infogami wiki system, which is itself bui
 
 - [Overview of Backend Web Technologies](https://openlibrary.org/about/tech)
 
-Once you've read the overview of OpenLibrary Backend technologies, it's highly encouraged you read the developer primer which explains how to use Infogami (and its database, Infobase)
+Once you've read the overview of OpenLibrary Backend technologies, it's highly encouraged you read the developer primer which explains how to use Infogami (and its database, Infobase).
 
 - [Infogami Developer Tutorial](https://openlibrary.org/dev/docs/infogami)
 
@@ -77,9 +77,9 @@ If you want to dive into the source code for Infogami, see the [Infogami repo](h
 
 ## Running tests
 
-Open Library tests can be run using pytest. Kindly look up on our [Testing Document](https://github.com/internetarchive/openlibrary/wiki/Testing) for more details
+Open Library tests can be run using pytest. Kindly look up on our [Testing Document](https://github.com/internetarchive/openlibrary/wiki/Testing) for more details.
 
-Run tests while the docker container is running
+Run tests while the docker container is running.
 
 ```
 cd docker/
@@ -88,7 +88,7 @@ docker-compose exec web make test
 
 ### Integration Tests
 
-Integration tests use the Splinter webdriver with Google Chrome. For instructions on installation requirements and running integration tests, [see Integration Tests README](tests/integration/README.md)
+Integration tests use the Splinter webdriver with Google Chrome. For instructions on installation requirements and running integration tests, [see Integration Tests README](tests/integration/README.md).
 
 ## License
 

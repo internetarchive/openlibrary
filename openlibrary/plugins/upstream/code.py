@@ -3,6 +3,7 @@
 import datetime
 import hashlib
 import io
+import json
 import os.path
 import random
 
@@ -18,13 +19,16 @@ from infogami.utils.context import context
 
 from openlibrary import accounts
 
-from openlibrary.plugins.upstream import addbook, covers, merge_authors, models, utils
+from openlibrary.plugins.upstream import addbook, covers, models, utils
 from openlibrary.plugins.upstream import spamcheck
+from openlibrary.plugins.upstream import merge_authors
+from openlibrary.plugins.upstream import edits
 from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused imports?
+from openlibrary.plugins.upstream.edits import create_request
 from openlibrary.plugins.upstream.utils import render_component
 
 if not config.get('coverstore_url'):
-    config.coverstore_url = "https://covers.openlibrary.org"
+    config.coverstore_url = "https://covers.openlibrary.org"  # type: ignore[attr-defined]
 
 
 class static(delegate.page):
@@ -97,14 +101,16 @@ class merge_work(delegate.page):
     path = "/works/merge"
 
     def GET(self):
+        i = web.input(records='', mrid=None)
         user = web.ctx.site.get_user()
         has_access = user and (
             (user.is_admin() or user.is_librarian())
-            and user.is_usergroup_member('/usergroup/librarian-work-merge')
+            and user.is_usergroup_member('/usergroup/super-librarians')
         )
         if not has_access:
             raise web.HTTPError('403 Forbidden')
-        return render_template('merge/works')
+
+        return render_template('merge/works', mrid=i.mrid)
 
 
 @web.memoize
@@ -344,6 +350,8 @@ def setup():
     addbook.setup()
     covers.setup()
     merge_authors.setup()
+    # merge_works.setup() # ILE code
+    edits.setup()
 
     from openlibrary.plugins.upstream import data, jsdef
 

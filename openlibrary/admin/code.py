@@ -11,7 +11,7 @@ app.add_processor(utils.admin_processor)
 app.notfound = utils.notfound
 
 
-class home(app.page):
+class home(app.page):  # type: ignore[name-defined]
     path = "/admin/?"
 
     def GET(self):
@@ -19,7 +19,7 @@ class home(app.page):
         return render_template("admin/index", stats)
 
 
-class static(app.page):
+class static(app.page):  # type: ignore[name-defined]
     path = "(/(?:images|js|css)/.*)"
 
     def GET(self, path):

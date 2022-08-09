@@ -220,48 +220,10 @@ class resolve_redirects:
         if test is False and params.test:
             test = True
 
-        summary = {'key': params.key, 'redirect_chain': [], 'resolved_key': None}
-        if params.key:
-            redirect_chain = Work.get_redirect_chain(params.key)
-            summary['redirect_chain'] = [
-                {
-                    "key": thing.key,
-                    "occurrences": {},
-                    "updates": {}
-                } for thing in redirect_chain
-            ]
-            summary['resolved_key'] = redirect_chain[-1].key
+        summary = Work.get_redirect_chain(params.key, test=test)
 
-            for r in summary['redirect_chain']:
-                olid = r['key'].split('/')[-1][2:-1]
-                new_olid = summary['resolved_key'].split('/')[-1][2:-1]
+        return delegate.RawText(json.dumps(summary), content_type="application/json")
 
-                # count reading log entries
-                r['occurrences']['readinglog'] = len(
-                    Bookshelves.get_works_shelves(olid))
-                r['occurrences']['ratings'] = len(
-                    Ratings.get_all_works_ratings(olid))
-                r['occurrences']['booknotes'] = len(
-                    Booknotes.get_booknotes_for_work(olid))
-                r['occurrences']['observations'] = len(
-                    Observations.get_observations_for_work(olid))
-
-                # track updates
-                r['updates']['readinglog'] = Bookshelves.update_work_id(
-                    olid, new_olid, _test=test
-                )
-                r['updates']['ratings'] = Ratings.update_work_id(
-                    olid, new_olid, _test=test
-                )
-                r['updates']['booknotes'] = Booknotes.update_work_id(
-                    olid, new_olid, _test=test
-                )
-                r['updates']['observations'] = Observations.update_work_id(
-                    olid, new_olid, _test=test
-                )
-
-        return delegate.RawText(
-            json.dumps(summary), content_type="application/json")
 
 class sync_ol_ia:
     def GET(self):
@@ -290,7 +252,7 @@ class people_view:
         if not user:
             raise web.notfound()
 
-        i = web.input(action=None, tag=None, bot=None)
+        i = web.input(action=None, tag=None, bot=None, dry_run=None)
         if i.action == "update_email":
             return self.POST_update_email(user, i)
         elif i.action == "update_password":
@@ -315,6 +277,9 @@ class people_view:
             return self.POST_set_bot_flag(user, i.bot)
         elif i.action == "su":
             return self.POST_su(user)
+        elif i.action == "anonymize_account":
+            test = True if i.dry_run else False
+            return self.POST_anonymize_account(user, test)
         else:
             raise web.seeother(web.ctx.path)
 
@@ -332,10 +297,20 @@ class people_view:
 
     def POST_block_account_and_revert(self, account):
         account.block()
-        changes = account.get_recentchanges(limit=1000)
-        changeset_ids = [c.id for c in changes]
-        ipaddress_view().revert(changeset_ids, "Reverted Spam")
-        add_flash_message("info", "Blocked the account and reverted all edits.")
+        i = 0
+        edits = 0
+        stop = False
+        while not stop:
+            changes = account.get_recentchanges(limit=100, offset=100 * i)
+            changeset_ids = [c.id for c in changes]
+            _, len_docs = ipaddress_view().revert(changeset_ids, "Reverted Spam")
+            edits += len_docs
+            i += 1
+            if len(changes) < 100:
+                stop = True
+        add_flash_message(
+            "info", f"Blocked the account and reverted all {edits} edits."
+        )
         raise web.seeother(web.ctx.path)
 
     def POST_unblock_account(self, account):
@@ -401,6 +376,19 @@ class people_view:
         web.setcookie(config.login_cookie_name, code, expires="")
         return web.seeother("/")
 
+    def POST_anonymize_account(self, account, test):
+        results = account.anonymize(test=test)
+        msg = (
+            f"Account anonymized. New username: {results['new_username']}. "
+            f"Notes deleted: {results['booknotes_count']}. "
+            f"Ratings updated: {results['ratings_count']}. "
+            f"Observations updated: {results['observations_count']}. "
+            f"Bookshelves updated: {results['bookshelves_count']}."
+            f"Merge requests updated: {results['merge_request_count']}"
+        )
+        add_flash_message("info", msg)
+        raise web.seeother(web.ctx.path)
+
 
 class people_edits:
     def GET(self, username):
@@ -454,10 +442,13 @@ class ipaddress_view:
             for cid in changeset_ids
             for c in site.get_change(cid).changes
         ]
-
+        docs = [doc for doc in docs if doc.get('type', {}).get('key') != '/type/delete']
         logger.debug("Reverting %d docs", len(docs))
         data = {"reverted_changesets": [str(cid) for cid in changeset_ids]}
-        return web.ctx.site.save_many(docs, action="revert", data=data, comment=comment)
+        manifest = web.ctx.site.save_many(
+            docs, action="revert", data=data, comment=comment
+        )
+        return manifest, len(docs)
 
 
 class stats:
@@ -891,7 +882,9 @@ def setup():
     register_admin_page('/admin/permissions', permissions, label="")
     register_admin_page('/admin/solr', solr, label="", librarians=True)
     register_admin_page('/admin/sync', sync_ol_ia, label="", librarians=True)
-    register_admin_page('/admin/resolve_redirects', resolve_redirects, label="Resolve Redirects")
+    register_admin_page(
+        '/admin/resolve_redirects', resolve_redirects, label="Resolve Redirects"
+    )
 
     register_admin_page(
         '/admin/staffpicks', add_work_to_staff_picks, label="", librarians=True

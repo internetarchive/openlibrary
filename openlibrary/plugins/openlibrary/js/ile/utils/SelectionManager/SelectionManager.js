@@ -1,6 +1,7 @@
 // @ts-check
 import $ from 'jquery';
 import { move_to_work, move_to_author } from '../ol.js';
+import { PersistentToast } from '../../../Toast.js';
 import './SelectionManager.less';
 
 /**
@@ -21,6 +22,10 @@ export default class SelectionManager {
         this.dragStart = this.dragStart.bind(this);
         this.onDrop = this.onDrop.bind(this);
         this.allowDrop = this.allowDrop.bind(this);
+
+        // Collator used to naturally order OLIDs before constructing URL
+        this.collator = new Intl.Collator('en-US', {numeric: true});
+        this.canMerge = document.querySelector('body').dataset.canMerge ? true : false
     }
 
     init() {
@@ -66,11 +71,18 @@ export default class SelectionManager {
 
         const actions = SelectionManager.ACTIONS.filter(a => (
             a.applies_to_type === provider.singular &&
-            (a.multiple_only ? count > 1 : count > 0)
+            (a.multiple_only ? count > 1 : count > 0) &&
+            a.elevated_permissions === this.canMerge
         ));
-        const items = this.getSelectedItems();
+        const items = this.getSelectedItems().sort(this.collator.compare);
+        const target = this.canMerge ? 'target="_blank"' : ''
+
         for (const action of actions) {
-            $('#ile-drag-actions').append($(`<a target="_blank" href="${action.href(items)}">${action.name}</a>`));
+            const link = $(`<a ${target} href="${action.href(items)}">${action.name}</a>`)
+            $('#ile-drag-actions').append(link);
+            if (action.click_listener) {
+                link.on('click', action.click_listener)
+            }
         }
 
         if (selected) {
@@ -252,6 +264,48 @@ SelectionManager.ACTIONS = [
         multiple_only: true,
         name: 'Merge Works...',
         href: olids => `/works/merge?records=${olids.join(',')}`,
+        elevated_permissions: true,
+    },
+    {
+        applies_to_type: 'work',
+        multiple_only: true,
+        name: 'Request Merge...',
+        href: olids => `/works/merge?records=${olids.join(',')}`,
+        elevated_permissions: false,
+        click_listener: evt => {
+            evt.preventDefault()
+            const comment = prompt('(Optional) Are there specific details our librarians should note about this Merge Request?')
+            if (comment !== null) {
+                const href = document.querySelector('#ile-drag-actions').children[0].href
+                const url = new URL(href)
+                const params = new URLSearchParams(url.search)
+                const records = params.get('records')
+                $.ajax({
+                    url: '/merges',
+                    method: 'POST',
+                    data: {
+                        work_ids: records,
+                        comment: comment,
+                        rtype: 'merge-works',
+                        action: 'create'
+                    }
+                })
+                    .done(function(resp) {
+                        let message = resp.error ? resp.error : 'Merge request submitted!'
+                        if (resp.error) {
+                            message = resp.error
+                        } else {
+                            const username = document.querySelector('body').dataset.username
+                            window.ILE.reset()
+                            message = `Merge request submitted! View request <a href="/merges?submitter=${username}#mrid-${resp.id}" target="_blank">here</a>.`
+                        }
+                        new PersistentToast(message, 'light-yellow').show()
+                    })
+                    .fail(function() {
+                        new PersistentToast('Merge request failed. Please try again in a few moments.', 'light-yellow').show()
+                    })
+            }
+        }
     },
     {
         // Someday, anyways!
@@ -259,12 +313,14 @@ SelectionManager.ACTIONS = [
         multiple_only: true,
         name: 'Merge Editions...',
         href: olids => `/works/merge?records=${olids.join(',')}`,
+        elevated_permissions: true,
     },
     {
         applies_to_type: 'author',
         multiple_only: true,
         name: 'Merge Authors...',
         href: olids => `https://openlibrary.org/authors/merge?${olids.map(olid => `key=${olid}`).join('&')}`,
+        elevated_permissions: true,
     },
 ];
 

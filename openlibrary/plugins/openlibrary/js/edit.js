@@ -1,3 +1,4 @@
+import { isbnOverride } from './isbnOverride';
 /* global render_language_field, render_work_autocomplete_item, render_language_autocomplete_item, render_work_field */
 /* Globals are provided by the edit edition template */
 
@@ -70,30 +71,192 @@ export function initRoleValidation() {
     });
 }
 
-export function initIdentifierValidation() {
+/**
+ * Takes an isbn string and returns true if the given ISBN is already added
+ * to this edition.
+ * @param {String} isbn  ISBN string duplication checking
+ * @return {boolean}  true if the given ISBN is already added to the edition
+ */
+function isIsbnDupe(isbn) {
+    const isbnEntries = document.querySelectorAll('.isbn_10, .isbn_13');
+    return Array.from(isbnEntries).some(entry => entry['value'] === isbn);
+}
+
+/**
+ * Takes an ISBN 10 string and verifies that is the correct length and has the
+ * correct characters for an ISBN. It does not verify the checksum.
+ * @param {String} isbn  ISBN string to check
+ * returns {boolean}  true if the isbn has a valid format
+ */
+function isFormatValidIsbn10(isbn) {
+    const regex = /^[0-9]{9}[0-9X]$/;
+    return regex.test(isbn);
+}
+
+/**
+ * Verify the checksum for ISBN 10.
+ * Adapted from https://www.oreilly.com/library/view/regular-expressions-cookbook/9781449327453/ch04s13.html
+ * @param {String} isbn  ISBN string for validating
+ * @returns {boolean}  true if ISBN string is a valid ISBN 10
+ */
+export function isChecksumValidIsbn10(isbn) {
+    const chars = isbn.split('');
+    let last = chars.pop();
+    let check;
+
+    // With ISBN 10, the last character can be [0-9] or string 'X'.
+    if (last !== 'X') {
+        last = parseInt(last);
+    }
+
+    // Compute the ISBN-10 check digit
+    chars.reverse();
+    const sum = chars
+        .map((char, idx) => ((idx + 2) * parseInt(char, 10)))
+        .reduce((acc, sum) => acc + sum, 0)
+
+    check = 11 - (sum % 11);
+    if (check === 10) {
+        check = 'X';
+    } else if (check === 11) {
+        check = 0;
+    }
+
+    // The ISBN 10 is valid if the check digit and last digit match.
+    return check === last;
+}
+
+/**
+ * Takes an isbn string and verifies that is the correct length and has the
+ * correct characters for an ISBN. It does not verify the checksum.
+ * @param {String} isbn  ISBN string to check
+ * returns {boolean}  true if the isbn has a valid format
+ */
+function isFormatValidIsbn13(isbn) {
+    const regex = /^[0-9]{13}$/
+    return regex.test(isbn)
+}
+
+/**
+ * Verify the checksum for ISBN 13.
+ * Adapted from https://www.oreilly.com/library/view/regular-expressions-cookbook/9781449327453/ch04s13.html
+ * @param {String} isbn  ISBN string for validating
+ * @returns {Boolean}  true if ISBN string is a valid ISBN 13
+ */
+export function isChecksumValidIsbn13(isbn) {
+    const chars = isbn.split('');
+    // Remove the final ISBN digit from `chars`, and assign it to `last` for comparison.
+    const last = parseInt(chars.pop());
+    let check;
+
+    const sum = chars
+        .map((char, idx) => ((idx % 2 * 2 + 1) * parseInt(char, 10)))
+        .reduce((sum, num) => sum + num, 0);
+
+    check = 10 - (sum % 10);
+    if (check === 10) {
+        check = 0;
+    }
+
+    // The ISBN 13 is valid if the check digit and last digit match.
+    return check === last;
+}
+
+/**
+ * Removes spaces and hyphens from an ISBN string and returns it.
+ * @param {String} isbn  ISBN string for parsing
+ * @returns {String}  parsed isbn string
+ */
+function parseIsbn(isbn) {
+    return isbn.replace(/[ -]/g, '');
+}
+
+/**
+ * Displays a confirmation box in the error div to confirm the addition of an
+ * ISBN with a valid form but which fails the checksum.
+ * @param {Object} data  data from the input form, gathered via js/jquery.repeat.js
+ * @param {String} isbnConfirmString  a const with the HTML to create the confirmation message/buttons
+ */
+export function isbnConfirmAdd(data, isbnConfirmString) {
+    // Display the error and option to add the ISBN anyway.
+    $('#id-errors').show().html(isbnConfirmString);
+
+    const yesButtonSelector = '#yes-add-isbn'
+    const noButtonSelector = '#do-not-add-isbn'
+    const onYes = () => {$('#id-errors').hide()};
+    const onNo = () => {
+        $('#id-errors').hide();
+        isbnOverride.clear();
+    }
+    $(document).on('click', yesButtonSelector, onYes);
+    $(document).on('click', noButtonSelector, onNo);
+
+    // Save the data to isbnOverride so it can be picked up via onAdd in
+    // js/jquery.repeat.js when the user confirms adding the invalid ISBN.
+    isbnOverride.set(data)
+    return false;
+}
+
+/**
+ * Called by initIdentifierValidation(), along with tests in
+ * tests/unit/js/editEditionsPage.test.js, to validate the addition of new
+ * ISBNs to an edition.
+ * @params {Object} data  data from the input form
+ * @returns {boolean}  true if ISBN passes validation
+ */
+export function validateIdentifiers(data) {
     const dataConfig = JSON.parse(document.querySelector('#identifiers').dataset.config);
+    const isbnConfirmString = `ISBN ${data.value} may be invalid. Add it anyway? <button class="repeat-add" id="yes-add-isbn" type="button">Yes</button>&nbsp;<button id="do-not-add-isbn" type="button">No</button>`;
+
+    if (data.name === '' || data.name === '---') {
+        return error('#id-errors', 'select-id', dataConfig['Please select an identifier.'])
+    }
+    const label = $('#select-id').find(`option[value='${data.name}']`).html();
+    if (data.value === '') {
+        return error('#id-errors', 'id-value', dataConfig['You need to give a value to ID.'].replace(/ID/, label));
+    }
+    if (['ocaid'].includes(data.name) && /\s/g.test(data.value)) {
+        return error('#id-errors', 'id-value', dataConfig['ID ids cannot contain whitespace.'].replace(/ID/, label));
+    }
+    // Remove spaces and hyphens before checking ISBN 10.
+    if (data.name === 'isbn_10') {
+        data.value = parseIsbn(data.value);
+    }
+    if (data.name === 'isbn_10' && isFormatValidIsbn10(data.value) === false) {
+        return error('#id-errors', 'id-value', dataConfig['ID must be exactly 10 characters [0-9] or X.'].replace(/ID/, label));
+    }
+    if (data.name === 'isbn_10' && isIsbnDupe(data.value) === true) {
+        return error('#id-errors', 'id-value', dataConfig['That ISBN already exists for this edition.'].replace(/ISBN/, label));
+    }
+    // Remove spaces and hyphens before checking ISBN 13.
+    if (data. name === 'isbn_13') {
+        data.value = parseIsbn(data.value);
+    }
+    if (data.name === 'isbn_13' && isFormatValidIsbn13(data.value) === false) {
+        return error('#id-errors', 'id-value', dataConfig['ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4'].replace(/ID/, label));
+    }
+    if (data.name === 'isbn_13' && isIsbnDupe(data.value) === true) {
+        return error('#id-errors', 'id-value', dataConfig['That ISBN already exists for this edition.'].replace(/ISBN/, label));
+    }
+    // Here the ISBN has a valid format, but also has an invalid checksum. Give the user a chance to verify
+    // the ISBN, as books sometimes issue with invalid ISBNs and we want to be able to add them.
+    // See https://en-academic.com/dic.nsf/enwiki/8948#cite_ref-18 for more.
+    if (data.name === 'isbn_10' && isFormatValidIsbn10(data.value) === true && isChecksumValidIsbn10(data.value) === false) {
+        isbnConfirmAdd(data, isbnConfirmString)
+        return false
+    }
+    if (data.name === 'isbn_13' && isFormatValidIsbn13(data.value) === true && isChecksumValidIsbn13(data.value) === false) {
+        isbnConfirmAdd(data, isbnConfirmString)
+        return false
+    }
+    $('#id-errors').hide();
+    return true;
+}
+
+export function initIdentifierValidation() {
     $('#identifiers').repeat({
         vars: {prefix: 'edition--'},
-        validate: function (data) {
-            if (data.name === '' || data.name === '---') {
-                return error('#id-errors', 'select-id', dataConfig['Please select an identifier.'])
-            }
-            const label = $('#select-id').find(`option[value='${data.name}']`).html();
-            if (data.value === '') {
-                return error('#id-errors', 'id-value', dataConfig['You need to give a value to ID.'].replace(/ID/, label));
-            }
-            if (['ocaid'].includes(data.name) && /\s/g.test(data.value)) {
-                return error('#id-errors', 'id-value', dataConfig['ID ids cannot contain whitespace.'].replace(/ID/, label));
-            }
-            if (data.name === 'isbn_10' && data.value.length !== 10) {
-                return error('#id-errors', 'id-value', dataConfig['ID must be exactly 10 characters [0-9] or X.'].replace(/ID/, label));
-            }
-            if (data.name === 'isbn_13' && data.value.replace(/-/g, '').length !== 13) {
-                return error('#id-errors', 'id-value', dataConfig['ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4'].replace(/ID/, label));
-            }
-            $('id-errors').hide();
-            return true;
-        }
+        validate: function(data) {return validateIdentifiers(data)},
     });
 }
 
@@ -184,7 +347,7 @@ export function initEditRow(){
 /**
  * Adds another input box below the last when adding multiple websites to user profile.
  * @param string name - when prefixed with clone_ should match an element identifier in the page. e.g. if name would refer to clone_website
-**/
+ **/
 function add_row(name) {
     const inputBoxes = document.querySelectorAll(`#clone_${name} input`);
     const inputBox = document.createElement('input');
@@ -288,7 +451,7 @@ export function initEdit() {
     // wait for 1 sec after clicking the link and focus the input field
     if ($(fieldname).length !== 0) {
         setTimeout(function() {
-        // scroll such that top of the content is visible
+            // scroll such that top of the content is visible
             $(fieldname).trigger('focus');
             $(window).scrollTop($('#contentHead').offset().top);
         }, 1000);

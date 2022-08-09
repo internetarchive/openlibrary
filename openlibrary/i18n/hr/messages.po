@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2021-11-23 08:44+0000\n"
-"PO-Revision-Date: 2022-05-13 18:55+0200\n"
+"PO-Revision-Date: 2022-08-06 12:53+0200\n"
 "Last-Translator: Milo Ivir <mail@milotype.de>\n"
 "Language-Team: \n"
 "Language: hr\n"
@@ -1019,7 +1019,8 @@ msgstr "Uvezi iz Goodreads"
 
 #: account/import.html:18
 msgid "File size limit 10MB and .csv file type only"
-msgstr "Ograničenje veličine datoteke na 10 MB i samo „.csv” vrsta datoteke"
+msgstr ""
+"Ograničenje veličine datoteke je 10 MB i samo datoteke u „.csv” formatu"
 
 #: account/import.html:22
 msgid "Load Books"
@@ -1085,7 +1086,7 @@ msgstr "Naslov nedostaje"
 
 #: account/notes.html:46 type/work/editions.html:36
 msgid "Publish date unknown"
-msgstr "Datum izdanja nepoznat"
+msgstr "Datum izdavanja nepoznat"
 
 #: account/notes.html:48 books/edition-sort.html:58 books/works-show.html:30
 #: type/work/editions.html:38
@@ -4686,7 +4687,7 @@ msgid ""
 "to-read\">want to read</a>."
 msgstr ""
 "Javno dijeliš knjige koje <a href=\"%(username)s/books/currently-reading"
-"\">trenutačno čitaš</a>, koje si <a href=\"%(username)s/books/already-read"
+"\">trenutačno čitaš</a>, koje si<a href=\"%(username)s/books/already-read"
 "\">već pročitao/la</a> i koje <a href=\"%(username)s/books/want-to-read"
 "\">želiš čitati</a>."
 
@@ -4888,8 +4889,8 @@ msgid ""
 "Special ebook access from the Internet Archive for patrons with qualifying "
 "print disabilities"
 msgstr ""
-"Poseban pristup e-knjigama od Internet Archive stranica za slijepe/"
-"slabovidne pokrovitelje"
+"Poseban pristup e-knjigama s Internet Archive stranica za slijepe/slabovidne "
+"pokrovitelje"
 
 #: ReadButton.html:16
 msgid "Borrow ebook from Internet Archive"

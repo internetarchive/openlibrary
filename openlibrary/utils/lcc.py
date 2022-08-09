@@ -85,7 +85,7 @@ But it works for subject-related range queries, so we consider it sufficient.
 [2]: https://ejournals.bc.edu/index.php/ital/article/download/11585/9839/
 """
 import re
-from typing import Iterable
+from collections.abc import Iterable
 
 from openlibrary.utils.ddc import collapse_multiple_space
 
@@ -142,6 +142,7 @@ def sortable_lcc_to_short_lcc(lcc):
     :rtype: basestring
     """
     m = LCC_PARTS_RE.match(lcc)
+    assert m, f'Unable to parse LCC "{lcc}"'
     parts = m.groupdict()
     parts['letters'] = parts['letters'].strip('-')
     parts['number'] = parts['number'].strip('0').strip('.')  # Need to do in order!

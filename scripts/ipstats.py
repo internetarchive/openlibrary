@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 CAUTION: This file should continue to support both Python 2 and Python 3 until
     issues internetarchive/openlibrary#4060 and internetarchive/openlibrary#4252
@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import os
 import subprocess
 import web
-import _init_path
+import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 import infogami  # must be after _init_path
 from openlibrary.config import load_config
 
@@ -97,7 +97,7 @@ def main(config, start, end):
             count = count_unique_ips_for_day(current)
             store_data(dict(visitors=count), current)
         except IndexError as e:
-            print(e.message)
+            print(repr(e))
         current += timedelta(days=1)
 
 

@@ -37,6 +37,9 @@ Before creating the new directory, you will need to know your language's two-let
 
 2. **Make a copy of the latest messages to translate.** The messages template file, `/openlibrary/i18n/messages.pot` should be copied as `messages.po` (note the difference in extension, the `t` for template is dropped for the copy) to your newly created folder.
 
+### Updating UI to include new language
+In order for a new language option to be available in our language drop-down and footer, the [language_list.html](https://github.com/internetarchive/openlibrary/blob/master/openlibrary/templates/languages/language_list.html) template must be updated to include the new language.  An Open Library staff member can do this if you are unfamiliar with HTML.
+
 ## Submitting translations
 You can edit the `message.po` file using your favourite editor, or a .po specific tool such as [poedit](https://poedit.net/), and send in a Pull Request. Pull Request Guidelines can be found on our [CONTRIBUTING](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md) guide and our [Git Cheat Sheet](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet).
 

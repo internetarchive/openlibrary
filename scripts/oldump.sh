@@ -14,6 +14,9 @@
 #             --> scripts/oldump.py
 #                 --> openlibrary/data/dump.py
 #
+# To watch the logs on ol-home0, use:
+# ol-home0% docker logs -f openlibrary_cron-jobs_1 2>&1 | grep openlibrary.dump
+#
 # Testing (stats as of November 2021):
 # The cron job takes 18+ hours to process 192,000,000+ records in 29GB of data!!
 #
@@ -36,30 +39,29 @@ set -e
 
 SCRIPTS=/openlibrary/scripts
 PSQL_PARAMS=${PSQL_PARAMS:-"-h db openlibrary"}
-TMPDIR=${TMPDIR:-/openlibrary/dumps}
+TMPDIR=${TMPDIR:-/openlibrary}
 OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
 
-yymm=`date +\%Y-\%m`
-yymmdd=$1
-archive=$2
-overwrite=$3
+yyyymmdd=$1  # 2022-05-31
+yyyymm=${yyyymmdd:0:7}  # 2022-05-31 --> 2022-05
 
-cdump=ol_cdump_$yymmdd
-dump=ol_dump_$yymmdd
+cdump=ol_cdump_$yyyymmdd
+dump=ol_dump_$yyyymmdd
 
-if [ $# -lt 1 ]; then
+if [[ $# -lt 1 ]]
+then
     echo "USAGE: $0 yyyy-mm-dd [--archive] [--overwrite]" 1>&2
     exit 1
 fi
 
 function cleanup() {
-    rm -f $TMPDIR/data.txt.gz
+    rm -f $TMPDIR/dumps/data.txt.gz
     rm -rf $TMPDIR/dumps/ol_*
-
+    rm -rf $TMPDIR/sitemaps
 }
 
 function log() {
-    echo "* $@" 1>&2
+    echo "$(date +'%Y-%m-%d %H:%M:%S') [openlibrary.dump] * $@" 1>&2
 }
 
 function archive_dumps() {
@@ -71,20 +73,24 @@ function archive_dumps() {
     is_uploaded=$(ia list ${dump} | wc -l)
     if [[ $is_uploaded == 0 ]]
     then
-	ia --config-file=/olsystem/etc/ia.ini upload $dump  $dump/  --metadata "collection:ol_exports" --metadata "year:${yymm:0:4}" --metadata "format:Data" --retries 300
-	ia --config-file=/olsystem/etc/ia.ini upload $cdump $cdump/ --metadata "collection:ol_exports" --metadata "year:${yymm:0:4}" --metadata "format:Data" --retries 300
+        log "archive_dumps(): $dump"
+	ia --config-file=/olsystem/etc/ia.ini upload $dump  $dump/  --metadata "collection:ol_exports" --metadata "year:${yyyymm:0:4}" --metadata "format:Data" --retries 300
+        log "archive_dumps(): $cdump"
+	ia --config-file=/olsystem/etc/ia.ini upload $cdump $cdump/ --metadata "collection:ol_exports" --metadata "year:${yyyymm:0:4}" --metadata "format:Data" --retries 300
+        log "archive_dumps(): $dump and $cdump have been archived to https://archive.org/details/ol_exports?sort=-publicdate"
     else
 	log "Skipping: Archival Zip already exists"
     fi
 }
 
 # script <date> --archive --overwrite
-log "[$(date)] $0 $1 $2 $3"
+log "$@"
 log "<host:${HOSTNAME:-$HOST}> <user:$USER> <dir:$TMPDIR>"
+log "<cdump:$cdump> <dump:$dump>"
 
 if [[ $@ == *'--overwrite'* ]]
 then
-   log "Cleaning Up: Found --cleanup, removing old files"
+   log "Cleaning Up: Found --overwrite, removing old files"
    cleanup
 fi
 
@@ -92,29 +98,32 @@ fi
 mkdir -p $TMPDIR/dumps
 cd $TMPDIR/dumps
 
-# If there's not already a completed dump for this YY-MM
-if [[ ! -d $(compgen -G "ol_cdump_$yymm*") ]]
+# If there's not already a completed dump for this YYYY-MM
+if [[ ! -d $(compgen -G "ol_cdump_$yyyymm*") ]]
 then
 
+  log "=== Step 1 ==="
   # Generate Reading Log/Ratings dumps
-  if [[ ! -f $(compgen -G "ol_dump_reading-log_$yymm*.txt.gz") ]]
+  if [[ ! -f $(compgen -G "ol_dump_reading-log_$yyyymm*.txt.gz") ]]
   then
-      log "generating reading log table: ol_dump_reading-log_$yymmdd.txt.gz"
-      time psql $PSQL_PARAMS --set=upto="$yymmdd" -f $SCRIPTS/dump-reading-log.sql | gzip -c > ol_dump_reading-log_$yymmdd.txt.gz
+      log "generating reading log table: ol_dump_reading-log_$yyyymmdd.txt.gz"
+      time psql $PSQL_PARAMS --set=upto="$yyyymmdd" -f $SCRIPTS/dump-reading-log.sql | gzip -c > ol_dump_reading-log_$yyyymmdd.txt.gz
   else
-      log "Skipping: $(compgen -G "ol_dump_reading-log_$yymm*.txt.gz")"
+      log "Skipping: $(compgen -G "ol_dump_reading-log_$yyyymm*.txt.gz")"
   fi
 
 
-  if [[ ! -f $(compgen -G "ol_dump_ratings_$yymm*.txt.gz") ]]
+  log "=== Step 2 ==="
+  if [[ ! -f $(compgen -G "ol_dump_ratings_$yyyymm*.txt.gz") ]]
   then
-      log "generating ratings table: ol_dump_ratings_$yymmdd.txt.gz"
-      time psql $PSQL_PARAMS --set=upto="$yymmdd" -f $SCRIPTS/dump-ratings.sql | gzip -c > ol_dump_ratings_$yymmdd.txt.gz
+      log "generating ratings table: ol_dump_ratings_$yyyymmdd.txt.gz"
+      time psql $PSQL_PARAMS --set=upto="$yyyymmdd" -f $SCRIPTS/dump-ratings.sql | gzip -c > ol_dump_ratings_$yyyymmdd.txt.gz
   else
-      log "Skipping: $(compgen -G "ol_dump_ratings_$yymm*.txt.gz")"
+      log "Skipping: $(compgen -G "ol_dump_ratings_$yyyymm*.txt.gz")"
   fi
 
 
+  log "=== Step 3 ==="
   if [[ ! -f "data.txt.gz" ]]
   then
       log "generating the data table: data.txt.gz -- takes approx. 110 minutes..."
@@ -128,36 +137,39 @@ then
   fi
 
 
-  if [[ ! -f $(compgen -G "ol_cdump_$yymm*.txt.gz") ]]
+  log "=== Step 4 ==="
+  if [[ ! -f $(compgen -G "ol_cdump_$yyyymm*.txt.gz") ]]
   then
       # generate cdump, sort and generate dump
       log "generating $cdump.txt.gz -- takes approx. 500 minutes for 192,000,000+ records..."
       # if $OLDUMP_TESTING has been exported then `oldump.py cdump` will only process a subset.
-      time python $SCRIPTS/oldump.py cdump data.txt.gz $yymmdd | gzip -c > $cdump.txt.gz
-      log "generated $(compgen -G "ol_cdump_$yymm*.txt.gz")"
+      time python $SCRIPTS/oldump.py cdump data.txt.gz $yyyymmdd | gzip -c > $cdump.txt.gz
+      log "generated $cdump.txt.gz"
   else
-      log "Skipping: $(compgen -G "ol_cdump_$yymm*.txt.gz")"
+      log "Skipping: $(compgen -G "ol_cdump_$yyyymm*.txt.gz")"
   fi
 
 
+  log "=== Step 5 ==="
   if [[ ! -f $(compgen -G "ol_dump_*.txt.gz") ]]
   then
       echo "generating the dump -- takes approx. 485 minutes for 173,000,000+ records..."
-      time gzip -cd $(compgen -G "ol_cdump_$yymm*.txt.gz") | python $SCRIPTS/oldump.py sort --tmpdir $TMPDIR | python $SCRIPTS/oldump.py dump | gzip -c > $dump.txt.gz
-      echo "generating $(compgen -G "ol_dump_$yymm*.txt.gz")"
+      time gzip -cd $(compgen -G "ol_cdump_$yyyymm*.txt.gz") | python $SCRIPTS/oldump.py sort --tmpdir $TMPDIR | python $SCRIPTS/oldump.py dump | gzip -c > $dump.txt.gz
+      echo "generated $dump.txt.gz"
   else
-      echo "Skipping: $(compgen -G "ol_dump_$yymm*.txt.gz")"
+      echo "Skipping: $(compgen -G "ol_dump_$yyyymm*.txt.gz")"
   fi
 
 
-  if [[ ! -f $(compgen -G "ol_dump_*_$yymm*.txt.gz") ]]
+  log "=== Step 6 ==="
+  if [[ ! -f $(compgen -G "ol_dump_*_$yyyymm*.txt.gz") ]]
   then
       mkdir -p $TMPDIR/oldumpsort
-      echo "splitting the dump: ol_dump_%s_$yymmdd.txt.gz -- takes approx. 85 minutes for 68,000,000+ records..."
-      time gzip -cd $dump.txt.gz | python $SCRIPTS/oldump.py split --format ol_dump_%s_$yymmdd.txt.gz
+      echo "splitting the dump: ol_dump_%s_$yyyymmdd.txt.gz -- takes approx. 85 minutes for 68,000,000+ records..."
+      time gzip -cd $dump.txt.gz | python $SCRIPTS/oldump.py split --format ol_dump_%s_$yyyymmdd.txt.gz
       rm -rf $TMPDIR/oldumpsort
   else
-      echo "Skipping $(compgen -G "ol_dump_*_$yymm*.txt.gz")"
+      echo "Skipping $(compgen -G "ol_dump_*_$yyyymm*.txt.gz")"
   fi
 
   mkdir -p $dump $cdump
@@ -174,10 +186,14 @@ ls -lhR
 # Archival
 # ========
 # Only archive if that caller has requested it and we are not testing.
-if [ "$archive" == "--archive" ]; then
-    if [[ -z $OLDUMP_TESTING ]]; then
-	archive_dumps
-    fi
+if [[ $@ == *'--archive'* ]]; then
+  if [[ -z $OLDUMP_TESTING ]]; then
+    archive_dumps
+  else
+    log "Skipping archival: Test mode"
+  fi
+else
+  log "Skipping archival: Option omitted"
 fi
 
 # =================
@@ -192,19 +208,19 @@ then
     rm -fr $TMPDIR/sitemaps
     ls -lh
 else
-    log "Skipping sitemap"
+    log "Skipping sitemaps"
 fi
 
-MSG="$(date): $USER has completed $0 $1 $2 $3 in $TMPDIR on ${HOSTNAME:-$HOST}"
-echo $MSG
+log "$USER has completed $@ in $TMPDIR on ${HOSTNAME:-$HOST}"
 
 # remove the dump of data table
 # In production, we remove the raw database dump to save disk space.
 # else if we are testing, we keep the raw database dump for subsequent test runs.
 if [[ -z $OLDUMP_TESTING ]]
 then
-    echo "deleting the data table dump"
+    log "deleting the data table dump"
     # After successful run (didn't terminate w/ error)
     # Remove any leftover ol_cdump* and ol_dump* files or directories.
     # Remove the tmp sort dir after dump generation
 fi
+log "Done."

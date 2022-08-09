@@ -8,7 +8,7 @@ import web
 import re
 import json
 from collections import defaultdict
-
+from openlibrary.views.loanstats import get_trending_books
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render_template  # noqa: F401 used for its side effects
@@ -61,6 +61,29 @@ class book_availability(delegate.page):
         )
 
 
+class trending_books_api(delegate.page):
+    path = "/trending(/?.*)"
+    # path = "/trending/(now|daily|weekly|monthly|yearly|forever)"
+    encoding = "json"
+
+    def GET(self, period="/daily"):
+        from openlibrary.views.loanstats import SINCE_DAYS
+
+        period = period[1:]  # remove slash
+        i = web.input(page=1, limit=100)
+        works = get_trending_books(
+            since_days=SINCE_DAYS[period],
+            limit=int(i.limit),
+            page=int(i.page),
+            books_only=True,
+        )
+        result = {
+            'query': f"/trending/{period}",
+            'works': [dict(work) for work in works],
+        }
+        return delegate.RawText(json.dumps(result), content_type="application/json")
+
+
 class browse(delegate.page):
     path = "/browse"
     encoding = "json"
@@ -96,45 +119,60 @@ class ratings(delegate.page):
     @jsonapi
     def GET(self, work_id):
         from openlibrary.core.ratings import Ratings
+
         stats = Ratings.get_work_ratings_summary(work_id)
 
         if stats:
-            return json.dumps({
-                'summary': {
-                    'average': stats['ratings_average'],
-                    'count': stats['ratings_count'],
-                },
-                'counts': {
-                    '1': stats['ratings_count_1'],
-                    '2': stats['ratings_count_2'],
-                    '3': stats['ratings_count_3'],
-                    '4': stats['ratings_count_4'],
-                    '5': stats['ratings_count_5'],
-                },
-            })
+            return json.dumps(
+                {
+                    'summary': {
+                        'average': stats['ratings_average'],
+                        'count': stats['ratings_count'],
+                    },
+                    'counts': {
+                        '1': stats['ratings_count_1'],
+                        '2': stats['ratings_count_2'],
+                        '3': stats['ratings_count_3'],
+                        '4': stats['ratings_count_4'],
+                        '5': stats['ratings_count_5'],
+                    },
+                }
+            )
         else:
-            return json.dumps({
-                'summary': {
-                    'average': None,
-                    'count': 0,
-                },
-                'counts': {
-                    '1': 0,
-                    '2': 0,
-                    '3': 0,
-                    '4': 0,
-                    '5': 0,
-                },
-            })
-
+            return json.dumps(
+                {
+                    'summary': {
+                        'average': None,
+                        'count': 0,
+                    },
+                    'counts': {
+                        '1': 0,
+                        '2': 0,
+                        '3': 0,
+                        '4': 0,
+                        '5': 0,
+                    },
+                }
+            )
 
     def POST(self, work_id):
         """Registers new ratings for this work"""
         user = accounts.get_current_user()
-        i = web.input(edition_id=None, rating=None, redir=False, redir_url=None, page=None, ajax=False)
-        key = (i.redir_url if i.redir_url else
-            i.edition_id if i.edition_id else
-            ('/works/OL%sW' % work_id))
+        i = web.input(
+            edition_id=None,
+            rating=None,
+            redir=False,
+            redir_url=None,
+            page=None,
+            ajax=False,
+        )
+        key = (
+            i.redir_url
+            if i.redir_url
+            else i.edition_id
+            if i.edition_id
+            else ('/works/OL%sW' % work_id)
+        )
         edition_id = (
             int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
         )
@@ -471,6 +509,7 @@ class patrons_observations(delegate.page):
     Fetches a patron's observations for a work, requires auth, intended
     to be used internally to power the My Books Page & books pages modal
     """
+
     path = r"/works/OL(\d+)W/observations"
     encoding = "json"
 
@@ -534,6 +573,7 @@ class public_observations(delegate.page):
     Public observations fetches anonymized community reviews
     for a list of works. Useful for decorating search results.
     """
+
     path = '/observations'
     encoding = 'json'
 
@@ -543,8 +583,7 @@ class public_observations(delegate.page):
         metrics = {w: get_observation_metrics(w) for w in works}
 
         return delegate.RawText(
-            json.dumps({'observations': metrics}),
-            content_type='application/json'
+            json.dumps({'observations': metrics}), content_type='application/json'
         )
 
 

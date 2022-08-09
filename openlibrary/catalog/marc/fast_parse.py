@@ -33,11 +33,10 @@ def translate(bytes_in, leader_says_marc8=False):
 
 
 re_question = re.compile(r'^\?+$')
-re_lccn = re.compile(r'(...\d+).*')
 re_letters_and_bad = re.compile('[A-Za-z\x80-\xff]')
 re_int = re.compile(r'\d{2,}')
 re_isbn = re.compile(r'([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
-re_oclc = re.compile(r'^\(OCoLC\).*?0*(\d+)')
+
 
 re_normalize = re.compile(r'[^\w ]')
 re_whitespace = re.compile(r'\s+')
@@ -284,23 +283,6 @@ def read_control_number(line, is_marc8=False):
     return [line[:-1]]
 
 
-@deprecated('Use catalog.marc.parse.read_lccn() instead.')
-def read_lccn(line, is_marc8=False):
-    found = []
-    for k, v in get_raw_subfields(line, ['a']):
-        lccn = v.strip()
-        if re_question.match(lccn):
-            continue
-        m = re_lccn.search(lccn)
-        if not m:
-            continue
-        # remove letters and bad chars
-        lccn = re_letters_and_bad.sub('', m.group(1)).strip()
-        if lccn:
-            found.append(lccn)
-    return found
-
-
 @deprecated('Use catalog.marc.parse.read_isbn() instead.')
 def read_isbn(line, is_marc8=False):
     found = []
@@ -314,16 +296,6 @@ def read_isbn(line, is_marc8=False):
         if m:
             found = [m.group(1)]
     return map(str, tidy_isbn(found))
-
-
-@deprecated('Use catalog.marc.parse.read_oclc() instead.')
-def read_oclc(line, is_marc8=False):
-    found = []
-    for k, v in get_raw_subfields(line, ['a']):
-        m = re_oclc.match(v)
-        if m:
-            found.append(m.group(1))
-    return found
 
 
 @deprecated
@@ -359,194 +331,6 @@ def read_author_event(line, is_marc8=False):
             'db_name': name,
         }
     ]
-
-
-@deprecated
-def add_oclc(edition):
-    if 'control_numer' not in edition:
-        return
-    oclc = edition['control_number'][0]
-    assert oclc.isdigit()
-    edition.setdefault('oclc', []).append(oclc)
-
-
-@deprecated
-def index_fields(data, want, check_author=True):
-    if str(data)[6:8] != 'am':  # only want books
-        return None
-    is_marc8 = data[9] != 'a'
-    edition = {}
-    author = {
-        '100': 'person',
-        '110': 'org',
-        '111': 'even',
-    }
-
-    if check_author:
-        want += list(author)
-    fields = get_tag_lines(data, ['006', '008', '260'] + want)
-    read_tag = {
-        '001': (read_control_number, 'control_number'),
-        '010': (read_lccn, 'lccn'),
-        '020': (read_isbn, 'isbn'),
-        '035': (read_oclc, 'oclc'),
-        # '245': (read_short_title, 'title'), broken method has been removed
-    }
-
-    seen_008 = False
-    oclc_001 = False
-    is_real_book = False
-
-    tag_006_says_electric = False
-    for tag, line in fields:
-        if tag == '003':  # control number identifier
-            if line.lower().startswith('ocolc'):
-                oclc_001 = True
-            continue
-        if tag == '006':
-            if line[0] == 'm':  # don't want electronic resources
-                tag_006_says_electric = True
-            continue
-        if tag == '008':
-            if seen_008:  # dup
-                return None
-            seen_008 = True
-            continue
-        if tag == '020' and re_real_book.search(line):
-            is_real_book = True
-        if tag == '260':
-            if line.find('\x1fh[sound') != -1:  # sound recording
-                return None
-            continue
-
-        if tag in author:
-            if 'author' in edition:
-                return None
-            else:
-                edition['author'] = author[tag]
-            continue
-        assert tag in read_tag
-        proc, key = read_tag[tag]
-        try:
-            found = proc(line, is_marc8)
-        except SoundRecording:
-            return None
-        if found:
-            edition.setdefault(key, []).extend(found)
-    if oclc_001:
-        add_oclc(edition)
-    if 'control_number' in edition:
-        del edition['control_number']
-    if not seen_008:
-        return None
-    #    if 'title' not in edition:
-    #        return None
-    if tag_006_says_electric and not is_real_book:
-        return None
-    return edition
-
-
-@deprecated(
-    'Please use openlibrary.catalog.marc.parse.read_edition(MarcBinary|MarcXml).'
-)
-def read_edition(data, accept_electronic=False):
-    """
-    DEPRECATED: Please use openlibrary.catalog.marc.parse.read_edition(MarcBinary|MarcXml)
-      Will error if data contains a 245 field.
-    Converts MARC Binary into a dict representation of an edition
-    suitable for importing into Open Library.
-
-    :param str data: Raw MARC Binary
-    :param bool accept_electronic: Accept ebooks. If False, this returns None when ebooks are encountered
-    :return: Edition representation
-    :rtype: dict|None
-    """
-    is_marc8 = data[9] != 'a'
-    edition = {}
-    want = [
-        '001',
-        '003',
-        '006',
-        '008',
-        '010',
-        '020',
-        '035',
-        '100',
-        '110',
-        '111',
-        '700',
-        '710',
-        '711',
-        '245',
-        '260',
-        '300',
-    ]
-    fields = get_tag_lines(data, want)
-    read_tag = [
-        ('001', read_control_number, 'control_number'),
-        ('010', read_lccn, 'lccn'),
-        ('020', read_isbn, 'isbn'),
-        ('035', read_oclc, 'oclc'),
-        ('100', read_author_person, 'authors'),
-        ('110', read_author_org, 'authors'),
-        ('111', read_author_event, 'authors'),
-        ('700', read_author_person, 'contribs'),
-        ('710', read_author_org, 'contribs'),
-        ('711', read_author_event, 'contribs'),
-        ('260', read_publisher, 'publishers'),
-    ]
-
-    oclc_001 = False
-    tag_006_says_electric = False
-    is_real_book = False
-    for tag, line in fields:
-        if tag == '003':  # control number identifier
-            if line.lower().startswith('ocolc'):
-                oclc_001 = True
-            continue
-        if tag == '006':
-            if line[0] == 'm':
-                tag_006_says_electric = True
-            continue
-        if tag == '008':  # not interested in '19uu' for merge
-            # assert len(line) == 41 usually
-            if line[7:11].isdigit():
-                edition['publish_date'] = line[7:11]
-            edition['publish_country'] = line[15:18]
-            continue
-        if tag == '020' and re_real_book.search(line):
-            is_real_book = True
-        for t, proc, key in read_tag:
-            if t != tag:
-                continue
-            found = proc(line, is_marc8=is_marc8)
-            if found:
-                edition.setdefault(key, []).extend(found)
-            break
-        if tag == '245':
-            # title extraction is broken here and has not worked
-            # edition['full_title'] = read_full_title(line, is_marc8=is_marc8)
-            continue
-        if tag == '300':
-            for k, v in get_subfields(line, ['a'], is_marc8):
-                num = [int(i) for i in re_int.findall(v)]
-                num = [i for i in num if i < max_number_of_pages]
-                if not num:
-                    continue
-                max_page_num = max(num)
-                if (
-                    'number_of_pages' not in edition
-                    or max_page_num > edition['number_of_pages']
-                ):
-                    edition['number_of_pages'] = max_page_num
-    if oclc_001:
-        add_oclc(edition)
-    if 'control_number' in edition:
-        del edition['control_number']
-    if not accept_electronic and tag_006_says_electric and not is_real_book:
-        return None
-
-    return edition
 
 
 @deprecated('Use catalog.marc.marc_binary.handle_wrapped_lines() instead.')

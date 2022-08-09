@@ -108,11 +108,22 @@ const Carousel = {
                 cover.id = ocaid;
             }
 
+            let bookCover;
+            if (cover.id) {
+                bookCover = `<img class="bookcover" src="//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg?default='https://openlibrary.org/images/icons/avatar_book.png'">`
+            } else {
+                bookCover = `
+                    <div class="carousel__item__blankcover bookcover">
+                        <div class="carousel__item__blankcover--title">${work.title}</div>
+                        ${work.author_name ? `<div class="carousel__item__blankcover--authors">${work.author_name}</div>` : ''}
+                    </div>`
+            }
+
             const $el = $(`
                 <div class="book carousel__item">
                     <div class="book-cover">
                         <a href="${work.key}">
-                            <img class="bookcover" src="//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg">
+                            ${bookCover}
                         </a>
                     </div>
                     <div class="book-cta">

@@ -1,6 +1,6 @@
 import json
 
-from openlibrary.data.dump import print_dump,pgdecode
+from openlibrary.data.dump import print_dump, pgdecode
 
 
 class TestPrintDump:
@@ -15,18 +15,22 @@ class TestPrintDump:
         ]
 
         print_dump(map(json.dumps, records))
-        assert capsys.readouterr().out.strip() == "\t".join([
-            "/type/edition",
-            "/books/OL1M",
-            "1",
-            "2019-01-01T00:00:00.000",
-            json.dumps({
-                "key": "/books/OL1M",
-                "type": {"key": "/type/edition"},
-                "revision": 1,
-                "last_modified": {"value": "2019-01-01T00:00:00.000"},
-            }),
-        ])
+        assert capsys.readouterr().out.strip() == "\t".join(
+            [
+                "/type/edition",
+                "/books/OL1M",
+                "1",
+                "2019-01-01T00:00:00.000",
+                json.dumps(
+                    {
+                        "key": "/books/OL1M",
+                        "type": {"key": "/type/edition"},
+                        "revision": 1,
+                        "last_modified": {"value": "2019-01-01T00:00:00.000"},
+                    }
+                ),
+            ]
+        )
 
     def test_excludes_sensitive_pages(self, capsys):
         records = [
@@ -45,6 +49,7 @@ class TestPrintDump:
 
         print_dump(map(json.dumps, records))
         assert capsys.readouterr().out == ""
+
 
 class TestPgDecode:
     def test_pgdecode_substitute(self):

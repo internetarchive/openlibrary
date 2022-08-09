@@ -36,4 +36,15 @@ export class IntegratedLibrarianEnvironment {
     setStatusText(text) {
         this.$statusText.text(text);
     }
+
+    /**
+     * Unselects selected search result items adn resets status bar.
+     */
+    reset() {
+        for (const elem of $('.ile-selected')) {
+            elem.classList.remove('ile-selected')
+        }
+        this.setStatusText('')
+        $('#ile-drag-actions').empty();
+    }
 }

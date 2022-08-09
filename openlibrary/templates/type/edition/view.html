@@ -1,6 +1,6 @@
 $def with (page, edition=None)
 
-$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
+$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
 $ is_librarian = ctx.user and ctx.user.is_librarian()
 
 $ component_times = {}
@@ -166,7 +166,7 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
   <div class="workDetails">
-    $if work:
+    $if work and work.key:
         <link itemprop="exampleOfWork" href="$work.key">
 
     <div class="editionCover">
@@ -198,7 +198,10 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
         $ edit_url = page.key + "?m=edit"
     </div>
       $:render_template("type/edition/compact_title", book_title, edit_url)
-      $:macros.EditionNavBar(work.edition_count, show_observations)
+      $ component_times['get_observation_metrics'] = time()
+      $ reader_observations = get_observation_metrics(work['key']) if show_observations else {}
+      $ component_times['get_observation_metrics'] = time() - component_times['get_observation_metrics']
+      $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations)
       <a id="edition-overview" name="edition-overview"></a>
       <div>
         $if edition:
@@ -312,10 +315,7 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
               <h3 class="edition-header">$_('Published in')</h3>
               <p>
               $for p in edition.publish_places:
-                <a href="/search/subjects?q=$p.replace('&','%26').replace(' ','%20')"
-                  title="$_('Search for subjects about %(place)s', place=p)">
-                    $p
-                </a>$cond(loop.last, "", ", ")
+                $(p)$cond(loop.last, "", ", ")
               </p>
             </div>
           $if edition.first_sentence:
@@ -463,10 +463,6 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
       </div>
 
       $if show_observations:
-        $ component_times['get_observation_metrics'] = time()
-        $ reader_observations = get_observation_metrics(work['key'])
-        $ component_times['get_observation_metrics'] = time() - component_times['get_observation_metrics']
-
         $ component_times['Review component'] = time()
         $:render_template("observations/review_component", work, reader_observations, page.key)
         $ component_times['Review component'] = time() - component_times['Review component']

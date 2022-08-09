@@ -468,7 +468,7 @@ delegate.pages.pop('/addbook', None)
 delegate.pages.pop('/addauthor', None)
 
 
-class addbook(delegate.page):
+class addbook(delegate.page):  # type: ignore[no-redef]
     def GET(self):
         raise web.redirect("/books/add")
 
@@ -725,7 +725,7 @@ class SaveBookHelper:
             """
             if not subjects:
                 return
-            f = io.StringIO(subjects.replace('\r\n',''))
+            f = io.StringIO(subjects.replace('\r\n', ''))
             dedup = set()
             for s in next(csv.reader(f, dialect='excel', skipinitialspace=True)):
                 if s.lower() not in dedup:
@@ -1114,8 +1114,9 @@ class authors_autocomplete(delegate.page):
 
 
 class work_identifiers(delegate.view):
-    suffix = "identifiers"
-    types = ["/type/edition"]
+    # TODO: (cclauss) Fix typing in infogami.utils.delegate and remove type: ignore
+    suffix = "identifiers"  # type: ignore[assignment]
+    types = ["/type/edition"]  # type: ignore[assignment]
 
     def POST(self, edition):
         saveutil = DocSaveHelper()

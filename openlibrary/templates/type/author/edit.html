@@ -106,7 +106,7 @@ $putctx("robots", "noindex,nofollow")
                                 <textarea name="author--alternate_names" id="alternate_names" rows="6">$"; ".join(page.alternate_names)</textarea>
                             </div>
                         </div>
-                        <div class="label">Identifiers</div>
+                        <div class="label">Identifiers <a href="/help/faq/editing.en#author-identifiers-purpose"><img src="/images/icons/icon_help.png" alt="$_('Author Identifiers Purpose')"/></a> </div>
                         <div id="hiddenIdentifierInputs"></div>
                         <div id="identifiers-display">
                             $:render_component('AuthorIdentifiers', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenIdentifierInputs',author_config_string=dict(get_author_config())))

@@ -4,6 +4,9 @@ on:
     branches: [ master ]
     paths: [ 'stories/**' ]
   workflow_dispatch:
+permissions:
+  contents: read
+
 jobs:
   deploy_storybook:
     runs-on: ubuntu-latest

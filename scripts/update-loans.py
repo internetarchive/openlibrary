@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 """Script to update loans and waiting loans on regular intervals.
 
 Tasks done:

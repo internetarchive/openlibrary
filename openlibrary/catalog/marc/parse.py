@@ -39,6 +39,7 @@ want = (
         '010',  # lccn
         '016',  # National Bibliographic Agency Control Number (for DNB)
         '020',  # isbn
+        '022',  # issn
         '035',  # oclc
         '050',  # lc classification
         '082',  # dewey
@@ -79,6 +80,19 @@ def read_dnb(rec):
         (control_number,) = f.get_subfield_values('a') or [None]
         if source == DNB_AGENCY_CODE and control_number:
             return {'dnb': [control_number]}
+
+
+def read_issn(rec):
+    fields = rec.get_fields('022')
+    if not fields:
+        return
+    found = []
+    for f in fields:
+        for k, v in f.get_subfields(['a']):
+            issn = v.strip()
+            if issn:
+                found.append(issn)
+    return {'issn': found}
 
 
 def read_lccn(rec):
@@ -473,7 +487,12 @@ def read_url(rec):
         contents = f.get_contents(['u', 'y', '3', 'z', 'x'])
         if not contents.get('u'):
             continue
-        title = (contents.get('y') or contents.get('3') or contents.get('z') or contents.get('x', ['External source']))[0].strip()
+        title = (
+            contents.get('y')
+            or contents.get('3')
+            or contents.get('z')
+            or contents.get('x', ['External source'])
+        )[0].strip()
         found += [{'url': u.strip(), 'title': title} for u in contents['u']]
     return found
 
@@ -644,13 +663,8 @@ def read_edition(rec):
         publish_country = f[15:18]
         if publish_country not in ('|||', '   ', '\x01\x01\x01', '???'):
             edition["publish_country"] = publish_country.strip()
-        lang = f[35:38]
-        if lang not in ('   ', '|||', '', '???', 'zxx'):
-            # diebrokeradical400poll
-            if f[34:37].lower() == 'eng':
-                lang = 'eng'
-            else:
-                lang = lang.lower()
+        lang = f[35:38].lower()
+        if lang not in ('   ', '|||', '', '???', 'zxx', 'n/a'):
             edition['languages'] = [lang_map.get(lang, lang)]
     else:
         assert handle_missing_008
@@ -659,6 +673,7 @@ def read_edition(rec):
 
     update_edition(rec, edition, read_lccn, 'lccn')
     update_edition(rec, edition, read_dnb, 'identifiers')
+    update_edition(rec, edition, read_issn, 'identifiers')
     update_edition(rec, edition, read_authors, 'authors')
     update_edition(rec, edition, read_oclc, 'oclc_numbers')
     update_edition(rec, edition, read_lc_classification, 'lc_classifications')

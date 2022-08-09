@@ -5,7 +5,8 @@ import logging
 import random
 import re
 import string
-from typing import List, Tuple, Any, Union, Optional, Iterable, Dict
+from typing import List, Tuple, Any, Union, Optional, Dict
+from collections.abc import Iterable
 from unicodedata import normalize
 from json import JSONDecodeError
 import requests
@@ -22,7 +23,6 @@ from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.plugins.inside.code import fulltext_search
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import get_language_name, urlencode
-from openlibrary.solr.update_work import get_solr_next
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.utils import escape_bracket
 from openlibrary.utils.ddc import (
@@ -105,7 +105,7 @@ FIELD_NAME_MAP = {
     'by': 'author_name',
     'publishers': 'publisher',
     'subtitle': 'alternative_subtitle',
-    #**({'title': 'alternative_title'} if get_solr_next() else {}),
+    # **({'title': 'alternative_title'} if get_solr_next() else {}),
     'work_subtitle': 'subtitle',
     'work_title': 'title',
     # "Private" fields
@@ -117,6 +117,7 @@ SORTS = {
     'editions': 'edition_count desc',
     'old': 'def(first_publish_year, 9999) asc',
     'new': 'first_publish_year desc',
+    'title': 'title_sort asc',
     'scans': 'ia_count desc',
     # Classifications
     'lcc_sort': 'lcc_sort asc',
@@ -831,7 +832,7 @@ def works_by_author(
     elif sort.startswith('new'):
         params.append(('sort', 'first_publish_year desc'))
     elif sort.startswith('title'):
-        params.append(('sort', 'title asc'))
+        params.append(('sort', 'title_sort asc'))
 
     facet_fields = [
         "author_facet",
@@ -1158,6 +1159,7 @@ def rewrite_list_query(q, page, offset, limit):
     can use the solr API to fetch list works and render them in
     carousels in the right format.
     """
+
     def cached_get_list_book_keys(key, offset, limit):
         # make cacheable
         if 'env' not in web.ctx:
@@ -1168,9 +1170,8 @@ def rewrite_list_query(q, page, offset, limit):
     if '/lists/' in q:
         # we're making an assumption that q is just a list key
         book_keys = cache.memcache_memoize(
-            cached_get_list_book_keys,
-            "search.list_books_query",
-            timeout=5*60)(q, offset, limit)
+            cached_get_list_book_keys, "search.list_books_query", timeout=5 * 60
+        )(q, offset, limit)
 
         q = f"key:({' OR '.join(book_keys)})"
 
@@ -1184,19 +1185,17 @@ def rewrite_list_query(q, page, offset, limit):
 
 @public
 def work_search(
-    query,
-    sort=None,
-    page=1,
-    offset=0,
-    limit=100,
-    fields='*',
-    facet=True,
-    spellcheck_count=None,
-):
+    query: dict,
+    sort: str = None,
+    page: int = 1,
+    offset: int = 0,
+    limit: int = 100,
+    fields: str = '*',
+    facet: bool = True,
+    spellcheck_count: int = None,
+) -> dict:
     """
-    params:
-    query: dict
-    sort: str editions|old|new|scans
+    :param sort: key of SORTS dict at the top of this file
     """
     # Ensure we don't mutate the `query` passed in by reference
     query = copy.deepcopy(query)
@@ -1219,8 +1218,9 @@ def work_search(
             facet=facet,
             spellcheck_count=spellcheck_count,
         )
-        response = reply['response'] or ''
-    except (ValueError, OSError) as e:
+        assert reply, "Received None response from run_solr_query"
+        response = reply['response']
+    except (ValueError, OSError, AssertionError) as e:
         logger.error("Error in processing search API.")
         response = dict(start=0, numFound=0, docs=[], error=str(e))
 
@@ -1263,7 +1263,6 @@ class search_json(delegate.page):
             page = safeint(query.pop("page", "1"), default=1)
 
         fields = query.pop('fields', '*').split(',')
-        facet = query.pop('_facet', 'true').lower() in ['true']
         spellcheck_count = safeint(
             query.pop("_spellcheck_count", default_spellcheck_count),
             default=default_spellcheck_count,
@@ -1271,9 +1270,7 @@ class search_json(delegate.page):
 
         # If the query is a /list/ key, create custom list_editions_query
         q = query.get('q', '')
-        query['q'], page, offset, limit = rewrite_list_query(
-            q, page, offset, limit
-        )
+        query['q'], page, offset, limit = rewrite_list_query(q, page, offset, limit)
         response = work_search(
             query,
             sort=sort,
@@ -1281,7 +1278,9 @@ class search_json(delegate.page):
             offset=offset,
             limit=limit,
             fields=fields,
-            facet=facet,
+            # We do not support returning facets from /search.json,
+            # so disable it. This makes it much faster.
+            facet=False,
             spellcheck_count=spellcheck_count,
         )
         response['q'] = q

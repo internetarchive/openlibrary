@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+#!/usr/bin/env python
 """Script to generate XML sitemap of openlibrary.org website.
 
 USAGE:
@@ -6,13 +6,13 @@ USAGE:
     python sitemaps.py suffix dump.txt.gz
 """
 
-import datetime
 import gzip
 import itertools
 import json
+import logging
 import os
 import re
-import time
+from datetime import datetime
 
 import web
 
@@ -38,8 +38,18 @@ t_siteindex = """$def with (names, timestamp)
 </sitemapindex>
 """
 
+logger = logging.getLogger(__file__)
+logger.setLevel(logging.DEBUG)
+
 sitemap = web.template.Template(t_sitemap)
 siteindex = web.template.Template(t_siteindex)
+
+
+def log(*args) -> None:
+    args_str = " ".join(str(a) for a in args)
+    msg = f"{datetime.now():%Y-%m-%d %H:%M:%S} [openlibrary.dump] {args_str}"
+    logger.info(msg)
+    print(msg, file=sys.stderr)
 
 
 def xopen(filename):
@@ -60,7 +70,7 @@ def urlsafe(name):
     space = ' \n\r'
 
     unsafe = reserved + delims + unwise + space
-    pattern = '[%s]+' % "".join(re.escape(c) for c in unsafe)
+    pattern = f"[{''.join(re.escape(c) for c in unsafe)}]+"
     safepath_re = re.compile(pattern)
     return safepath_re.sub('_', name).replace(' ', '-').strip('_')[:100]
 
@@ -116,14 +126,14 @@ def generate_sitemaps(filename):
             things.append(web.storage(path=path, last_modified=last_modified))
 
         if things:
-            write("sitemaps/sitemap_%s.xml.gz" % sortkey, sitemap(things))
+            write(f"sitemaps/sitemap_{sortkey}.xml.gz", sitemap(things))
 
 
 def generate_siteindex():
     filenames = sorted(os.listdir("sitemaps"))
     if "siteindex.xml.gz" in filenames:
         filenames.remove("siteindex.xml.gz")
-    timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S') + 'Z'
+    timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S') + 'Z'
     index = siteindex(filenames, timestamp)
     write("sitemaps/siteindex.xml.gz", index)
 
@@ -135,7 +145,7 @@ def write(path, text):
         with gzip.open(path, 'w') as f:
             f.write(text.encode())
     except Exception as e:
-        print(f'write fail {e}')
+        log(f'write fail {e}')
     # os.system("gzip " + path)
 
 
@@ -161,11 +171,6 @@ def system(cmd):
     status = os.system(cmd)
     if status != 0:
         raise Exception("%r failed with exit status: %d" % (cmd, status))
-
-
-def log(*args):
-    msg = " ".join(map(str, args))
-    print(f"{time.asctime()} {msg}")
 
 
 def main(dumpfile):

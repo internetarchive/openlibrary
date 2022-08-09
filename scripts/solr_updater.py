@@ -6,8 +6,9 @@ Changes:
 2013-02-25: First version
 2018-02-11: Use newer config method
 """
-from typing import Iterator, Union
-import _init_path
+from typing import Union
+from collections.abc import Iterator
+import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 
 import logging
 import json
@@ -26,7 +27,7 @@ from openlibrary.solr.update_work import CommitRequest
 
 logger = logging.getLogger("openlibrary.solr-updater")
 # FIXME: Some kind of hack introduced to work around DB connectivity issue
-args = {}  # type: ignore
+args: dict = {}
 
 
 def read_state_file(path, initial_state: str = None):

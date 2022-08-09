@@ -2,6 +2,7 @@
 """
 import json
 import random
+import tempfile
 import web
 
 from infogami.utils import delegate
@@ -10,11 +11,14 @@ from infogami.infobase import client, common
 
 from openlibrary.accounts import get_current_user
 from openlibrary.core import formats, cache
+from openlibrary.core.lists.model import ListMixin
 import openlibrary.core.helpers as h
+from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.worksearch import subjects
+from openlibrary.coverstore.code import render_list_preview_image
 
 
 class lists_home(delegate.page):
@@ -23,6 +27,90 @@ class lists_home(delegate.page):
     def GET(self):
         delegate.context.setdefault('cssfile', 'lists')
         return render_template("lists/home")
+
+
+@public
+def get_seed_info(doc):
+    """Takes a thing, determines what type it is, and returns a seed summary"""
+    if doc.key.startswith("/subjects/"):
+        seed = doc.key.split("/")[-1]
+        if seed.split(":")[0] not in ("place", "person", "time"):
+            seed = f"subject:{seed}"
+        seed = seed.replace(",", "_").replace("__", "_")
+        seed_type = "subject"
+        title = doc.name
+    else:
+        seed = {"key": doc.key}
+        if doc.key.startswith("/authors/"):
+            seed_type = "author"
+            title = doc.get('name', 'name missing')
+        elif doc.key.startswith("/works"):
+            seed_type = "work"
+            title = doc.get("title", "untitled")
+        else:
+            seed_type = "edition"
+            title = doc.get("title", "untitled")
+    return {
+        "seed": seed,
+        "type": seed_type,
+        "title": web.websafe(title),
+        "remove_dialog_html": _(
+            'Are you sure you want to remove <strong>%(title)s</strong> from your list?',
+            title=web.websafe(title),
+        ),
+    }
+
+
+@public
+def get_list_data(list, seed, include_cover_url=True):
+    d = web.storage(
+        {"name": list.name or "", "key": list.key, "active": list.has_seed(seed)}
+    )
+    if include_cover_url:
+        cover = list.get_cover() or list.get_default_cover()
+        d['cover_url'] = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
+        if 'None' in d['cover_url']:
+            d['cover_url'] = "/images/icons/avatar_book-sm.png"
+    owner = list.get_owner()
+    d['owner'] = web.storage(displayname=owner.displayname or "", key=owner.key)
+    return d
+
+
+@public
+def get_user_lists(seed_info):
+    user = get_current_user()
+    user_lists = user.get_lists(sort=True)
+    seed = seed_info['seed']
+    return [get_list_data(list, seed) for list in user_lists]
+
+
+class lists_partials(delegate.page):
+    path = "/lists/partials"
+
+    def GET(self):
+        i = web.input(key=None)
+
+        user = get_current_user()
+        doc = self.get_doc(i.key)
+        seed_info = get_seed_info(doc)
+        user_lists = get_user_lists(seed_info)
+
+        dropper = render_template('lists/dropper_lists', user_lists)
+        active = render_template(
+            'lists/active_lists', user_lists, user['key'], seed_info
+        )
+
+        partials = {
+            'dropper': str(dropper),
+            'active': str(active),
+        }
+
+        return delegate.RawText(json.dumps(partials), content_type="application/json")
+
+    def get_doc(self, key):
+        if key.startswith("/subjects/"):
+            return subjects.get_subject(key)
+        return web.ctx.site.get(key)
 
 
 class lists(delegate.page):
@@ -171,7 +259,7 @@ class lists_json(delegate.page):
             )
         except client.ClientException as e:
             headers = {"Content-Type": self.get_content_type()}
-            data = {"message": e.message}
+            data = {"message": str(e)}
             raise web.HTTPError(e.status, data=self.dumps(data), headers=headers)
 
         web.header("Content-Type", self.get_content_type())
@@ -422,7 +510,8 @@ class list_subjects_json(delegate.page):
         return {"name": s['name'], "count": s['count'], "url": key}
 
 
-class list_editions_yaml(list_subjects_json):
+# This class is defined twice in this file. Should this be list_subjects_yaml() ?
+class list_editions_yaml(list_subjects_json):  # type: ignore[no-redef]
     encoding = "yml"
     content_type = 'text/yaml; charset="utf-8"'
 
@@ -449,12 +538,22 @@ class export(delegate.page):
 
         if format == "html":
             data = self.get_exports(lst)
-            html = render_template("lists/export_as_html", lst, data["editions"], data["works"], data["authors"])
+            html = render_template(
+                "lists/export_as_html",
+                lst,
+                data["editions"],
+                data["works"],
+                data["authors"],
+            )
             return delegate.RawText(html)
         elif format == "bibtex":
             data = self.get_exports(lst)
             html = render_template(
-                "lists/export_as_bibtex", lst, data["editions"], data["works"], data["authors"]
+                "lists/export_as_bibtex",
+                lst,
+                data["editions"],
+                data["works"],
+                data["authors"],
             )
             return delegate.RawText(html)
         elif format == "json":
@@ -468,7 +567,7 @@ class export(delegate.page):
         else:
             raise web.notfound()
 
-    def get_exports(self, lst: list, raw: bool = False) -> dict[str, list]:
+    def get_exports(self, lst: ListMixin, raw: bool = False) -> dict[str, list]:
         export_data = lst.get_export_list()
         if "editions" in export_data:
             export_data["editions"] = sorted(
@@ -491,7 +590,9 @@ class export(delegate.page):
 
         if not raw:
             if "editions" in export_data:
-                export_data["editions"] = [self.make_doc(e) for e in export_data["editions"]]
+                export_data["editions"] = [
+                    self.make_doc(e) for e in export_data["editions"]
+                ]
                 lst.preload_authors(export_data["editions"])
             else:
                 export_data["editions"] = []
@@ -501,7 +602,9 @@ class export(delegate.page):
             else:
                 export_data["works"] = []
             if "authors" in export_data:
-                export_data["authors"] = [self.make_doc(e) for e in export_data["authors"]]
+                export_data["authors"] = [
+                    self.make_doc(e) for e in export_data["authors"]
+                ]
                 lst.preload_authors(export_data["authors"])
             else:
                 export_data["authors"] = []
@@ -639,3 +742,12 @@ def get_active_lists_in_random(limit=20, preload=True):
     lists = f(limit=limit, preload=preload)
     # convert rawdata into models.
     return [web.ctx.site.new(xlist['key'], xlist) for xlist in lists]
+
+
+class lists_preview(delegate.page):
+    path = r"(/people/[^/]+/lists/OL\d+L)/preview.png"
+
+    def GET(self, lst_key):
+        image_bytes = render_list_preview_image(lst_key)
+        web.header("Content-Type", "image/png")
+        return delegate.RawText(image_bytes)

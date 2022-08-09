@@ -34,11 +34,11 @@
     },
     {
       "path": "static/build/modal-links.*.js",
-      "maxSize": "5.5KB"
+      "maxSize": "5.6KB"
     },
     {
       "path": "static/build/user-website.*.js",
-      "maxSize": "3KB"
+      "maxSize": "3.2KB"
     },
     {
       "path": "static/build/page-barcodescanner.*.js",
@@ -74,7 +74,7 @@
     },
     {
       "path": "static/build/all.js",
-      "maxSize": "120KB"
+      "maxSize": "120.1KB"
     },
     {
       "path": "static/build/page-admin.css",
