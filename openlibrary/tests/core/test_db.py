@@ -2,6 +2,7 @@ import web
 from openlibrary.core.db import get_db
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.booknotes import Booknotes
+from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 
@@ -43,6 +44,16 @@ CREATE TABLE observations (
     observation_type INTEGER not null,
     observation_value INTEGER not null,
     primary key (work_id, edition_id, username, observation_value, observation_type)
+);
+"""
+
+COMMUNITY_EDITS_QUEUE_DDL = """
+CREATE TABLE community_edits_queue (
+    title text,
+    submitter text not null,
+    reviewer text default null,
+    url text not null,
+    status int not null default 1
 );
 """
 
@@ -166,12 +177,37 @@ class TestUsernameUpdate:
         },
     ]
 
+    EDITS_QUEUE_SETUP_ROWS = [
+        {
+            "title": "One Fish, Two Fish, Red Fish, Blue Fish",
+            "submitter": "@kilgore_trout",
+            "reviewer": None,
+            "url": "/works/merge?records=OL1W,OL2W,OL3W",
+            "status": 1,
+        },
+        {
+            "title": "The Lorax",
+            "submitter": "@kilgore_trout",
+            "reviewer": "@billy_pilgrim",
+            "url": "/works/merge?records=OL4W,OL5W,OL6W",
+            "status": 2,
+        },
+        {
+            "title": "Green Eggs and Ham",
+            "submitter": "@eliot_rosewater",
+            "reviewer": None,
+            "url": "/works/merge?records=OL10W,OL11W,OL12W,OL13W",
+            "status": 1,
+        },
+    ]
+
     @classmethod
     def setup_class(cls):
         web.config.db_parameters = dict(dbn="sqlite", db=":memory:")
         db = get_db()
         db.query(RATINGS_DDL)
         db.query(OBSERVATIONS_DDL)
+        db.query(COMMUNITY_EDITS_QUEUE_DDL)
 
     def setup_method(self):
         self.db = get_db()
@@ -179,7 +215,6 @@ class TestUsernameUpdate:
         self.db.multiple_insert("booknotes", self.BOOKNOTES_SETUP_ROWS)
         self.db.multiple_insert("ratings", self.RATINGS_SETUP_ROWS)
         self.db.multiple_insert("observations", self.OBSERVATIONS_SETUP_ROWS)
-        # self.db.multiple_insert("observations", self.OBSERVATIONS_SETUP_ROWS)
 
     def teardown_method(self):
         self.db.query("delete from bookshelves_books;")
@@ -205,6 +240,7 @@ class TestUsernameUpdate:
         assert len(list(self.db.select("observations"))) == 1
 
     def test_update_username(self):
+        self.db.multiple_insert("community_edits_queue", self.EDITS_QUEUE_SETUP_ROWS)
         before_where = {"username": "@kilgore_trout"}
         after_where = {"username": "@anonymous"}
 
@@ -227,3 +263,37 @@ class TestUsernameUpdate:
         Observations.update_username("@kilgore_trout", "@anonymous")
         assert len(list(self.db.select("observations", where=before_where))) == 0
         assert len(list(self.db.select("observations", where=after_where))) == 1
+
+        assert (
+            len(
+                list(
+                    self.db.select(
+                        "community_edits_queue", where={"submitter": "@kilgore_trout"}
+                    )
+                )
+            )
+            == 2
+        )
+        CommunityEditsQueue.update_submitter_name('@kilgore_trout', '@anonymous')
+        assert (
+            len(
+                list(
+                    self.db.select(
+                        "community_edits_queue", where={"submitter": "@kilgore_trout"}
+                    )
+                )
+            )
+            == 0
+        )
+        assert (
+            len(
+                list(
+                    self.db.select(
+                        "community_edits_queue", where={"submitter": "@anonymous"}
+                    )
+                )
+            )
+            == 2
+        )
+
+        self.db.query('delete from community_edits_queue;')

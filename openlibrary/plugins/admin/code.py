@@ -384,6 +384,7 @@ class people_view:
             f"Ratings updated: {results['ratings_count']}. "
             f"Observations updated: {results['observations_count']}. "
             f"Bookshelves updated: {results['bookshelves_count']}."
+            f"Merge requests updated: {results['merge_request_count']}"
         )
         add_flash_message("info", msg)
         raise web.seeother(web.ctx.path)
