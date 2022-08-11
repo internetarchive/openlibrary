@@ -308,17 +308,6 @@ def radio_input(checked=False, **params):
     )
 
 
-@public
-def radio_list(name, args, value):
-    html = []
-    for arg in args:
-        if isinstance(arg, tuple):
-            arg, label = arg
-        else:
-            label = arg
-        html.append(radio_input())
-
-
 def get_coverstore_url() -> str:
     return config.get('coverstore_url', 'https://covers.openlibrary.org').rstrip('/')
 
