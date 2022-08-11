@@ -2,6 +2,8 @@
   <div class="field-container" :class="`field-${field}`" :title="title">
     <!-- Type -->
     <div v-if="field == 'type'" :title="JSON.stringify(value)">{{value.key}}</div>
+    <!-- Location -->
+    <div v-else-if="field == 'location'" :title="JSON.stringify(value)">{{value}}</div>
     <!-- Authors Array -->
     <AuthorRoleTable v-else-if="field == 'authors'" :roles="value" />
     <!-- Excerpts Array -->
@@ -40,6 +42,21 @@
       <li class="pill" v-for="string in value" :key="string">{{string}}</li>
     </ul>
 
+    <!-- Links -->
+    <ul
+      v-else-if="['links'].includes(field)"
+      class="reset links"
+    >
+      <li class="link" v-for="link in value" :key="link"><a :href="`${link.url}`" target="_blank">{{link.title}}</a></li>
+    </ul>
+
+    <!-- Other Array fields -->
+      <ul
+      v-else-if="['dewey_number','lc_classifications'].includes(field)"
+      class="reset list"
+    >
+      <li v-for="string in value" :key="string">{{string}}</li>
+    </ul>
     <!-- Description/First Sentence -->
     <TextDiff
       v-else-if="['description','first_sentence'].includes(field)"
@@ -47,6 +64,7 @@
       :title="JSON.stringify(value)"
       :left="value.value || value"
       :right="merged ? ((field in merged && merged[field].value) || merged[field] || '') : (value.value || value)"
+      :show_diffs="show_diffs"
     />
 
     <!-- Defaults -->
@@ -54,6 +72,7 @@
       v-else-if="typeof(value) == 'string'"
       :left="value"
       :right="merged ? (merged[field] || '') : value"
+      :show_diffs="show_diffs"
     />
     <div v-else-if="typeof(value) == 'number'">{{value}}</div>
     <div v-else>
@@ -84,6 +103,9 @@ export default {
         merged: {
             type: Object,
             required: false
+        },
+        show_diffs: {
+            type: Boolean
         }
     },
     computed: {

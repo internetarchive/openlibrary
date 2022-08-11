@@ -2,6 +2,8 @@ import datetime
 import json
 from typing import Optional
 import web
+from sqlite3 import IntegrityError
+from psycopg2.errors import UniqueViolation
 
 from infogami.utils.view import public
 
@@ -34,6 +36,8 @@ class CommunityEditsQueue:
     created: created timestamp
     updated: update timestamp
     """
+
+    TABLENAME = 'community_edits_queue'
 
     STATUS = {
         'DECLINED': 0,
@@ -68,13 +72,13 @@ class CommunityEditsQueue:
 
         if order:
             query_kwargs['order'] = order
-        return oldb.select("community_edits_queue", **query_kwargs)
+        return oldb.select(cls.TABLENAME, **query_kwargs)
 
     @classmethod
     def get_counts_by_mode(cls, mode='all', **kwargs):
         oldb = db.get_db()
 
-        query = 'SELECT count(*) from community_edits_queue'
+        query = f'SELECT count(*) from {cls.TABLENAME}'
 
         where_clause = cls.where_clause(mode, **kwargs)
         if where_clause:
@@ -120,6 +124,24 @@ class CommunityEditsQueue:
                 where_clause = status_query
 
         return where_clause
+
+    @classmethod
+    def update_submitter_name(cls, submitter: str, new_username: str, _test=False):
+        oldb = db.get_db()
+        t = oldb.transaction()
+
+        try:
+            rows_changed = oldb.update(
+                cls.TABLENAME,
+                where="submitter=$submitter",
+                submitter=new_username,
+                vars={"submitter": submitter},
+            )
+        except (UniqueViolation, IntegrityError):
+            rows_changed = 0
+
+        t.rollback() if _test else t.commit()
+        return rows_changed
 
     @classmethod
     def submit_work_merge_request(
@@ -194,7 +216,7 @@ class CommunityEditsQueue:
         json_comment = json.dumps({"comments": comments})
 
         return oldb.insert(
-            "community_edits_queue",
+            cls.TABLENAME,
             submitter=submitter,
             reviewer=reviewer,
             url=url,
@@ -225,7 +247,7 @@ class CommunityEditsQueue:
             oldb = db.get_db()
 
             oldb.update(
-                "community_edits_queue",
+                cls.TABLENAME,
                 where="id=$rid",
                 reviewer=reviewer,
                 status=cls.STATUS['PENDING'],
@@ -245,7 +267,7 @@ class CommunityEditsQueue:
         """
         oldb = db.get_db()
         oldb.update(
-            "community_edits_queue",
+            cls.TABLENAME,
             where="id=$rid",
             status=cls.STATUS['PENDING'],
             reviewer=None,
@@ -274,7 +296,7 @@ class CommunityEditsQueue:
             update_kwargs['comments'] = json.dumps(comments)
 
         return oldb.update(
-            "community_edits_queue",
+            cls.TABLENAME,
             where="id=$rid",
             status=status,
             reviewer=reviewer,
@@ -291,7 +313,7 @@ class CommunityEditsQueue:
         comments['comments'].append(cls.create_comment(username, comment))
 
         return oldb.update(
-            "community_edits_queue",
+            cls.TABLENAME,
             where="id=$rid",
             comments=json.dumps(comments),
             updated=datetime.datetime.utcnow(),

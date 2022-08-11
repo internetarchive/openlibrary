@@ -74,7 +74,7 @@
     },
     {
       "path": "static/build/all.js",
-      "maxSize": "120KB"
+      "maxSize": "120.1KB"
     },
     {
       "path": "static/build/page-admin.css",

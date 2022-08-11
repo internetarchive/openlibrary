@@ -644,7 +644,6 @@ class Work(Thing):
         cls,
         batch_size=1000,
         start_offset=0,
-        limit=1000,
         grace_period_days=7,
         cutoff_date=datetime.datetime(year=2017, month=1, day=1),
         test=True,
@@ -652,37 +651,41 @@ class Work(Thing):
         """
         batch_size - how many records to fetch per batch
         start_offset - what offset to start from
-        limit - total number of records to process from start_offset
         grace_period_days - ignore redirects created within period of days
         cutoff_date - ignore redirects created before this date
         test - don't resolve stale redirects, just identify them
         """
+        batch = 0
         pos = start_offset
-        max_limit = start_offset + limit
         grace_date = datetime.datetime.today() - datetime.timedelta(
             days=grace_period_days
         )
-        batch_offsets = enumerate(range(start_offset, max_limit, batch_size))
-        for batch, offset in batch_offsets:
+
+        go = True
+        while go:
             logger.info(
-                f"[update-redirects] Batch {batch+1}: #{pos} of {max_limit}",
+                f"[update-redirects] Batch {batch+1}: #{pos}",
             )
             work_redirect_ids = web.ctx.site.things(
                 {
                     "type": "/type/redirect",
                     "key~": "/works/*",
                     "limit": batch_size,
-                    "offset": offset,
+                    "offset": start_offset + (batch * batch_size),
                     "sort": "-last_modified",
                 }
             )
+            if not work_redirect_ids:
+                logger.info(f"[update-redirects] Stop: #{pos} No more records.")
+                break
             work_redirect_batch = web.ctx.site.get_many(work_redirect_ids)
             for work in work_redirect_batch:
-                if pos >= max_limit:
-                    break
                 pos += 1
                 if work.last_modified < cutoff_date:
-                    logger.info(f"[update-redirects] Stop: {cutoff_date}")
+                    logger.info(
+                        f"[update-redirects] Stop: #{pos} <{work.key}> {work.last_modified} < {cutoff_date}"
+                    )
+                    go = False
                     break
                 if work.last_modified > grace_date:
                     logger.info(f"[update-redirects] Skip: #{pos} <{work.key}> grace")
@@ -697,8 +700,9 @@ class Work(Thing):
                             "[update-redirects] No Update Required: "
                             f"#{pos} <{work.key}> {chain}"
                         )
+            batch += 1
 
-        logger.info(f"[update-redirects] Done: #{pos} of {max_limit}")
+        logger.info(f"[update-redirects] Done")
 
 
 class Author(Thing):

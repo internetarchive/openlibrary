@@ -23,6 +23,7 @@ from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
+from openlibrary.core.edits import CommunityEditsQueue
 
 try:
     from simplejson.errors import JSONDecodeError
@@ -353,6 +354,9 @@ class Account(web.storage):
             self.username, new_username, _test=test
         )
         results['bookshelves_count'] = Bookshelves.update_username(
+            self.username, new_username, _test=test
+        )
+        results['merge_request_count'] = CommunityEditsQueue.update_submitter_name(
             self.username, new_username, _test=test
         )
 
