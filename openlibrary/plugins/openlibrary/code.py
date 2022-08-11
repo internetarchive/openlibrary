@@ -1094,6 +1094,7 @@ def setup_template_globals():
             'isbn_10_to_isbn_13': isbn_10_to_isbn_13,
             'NEWLINE': '\n',
             'random': random.Random(),
+            'choose_random_from': random.choice,
             'get_lang': lambda: web.ctx.lang,
             'ceil': math.ceil,
             'get_best_edition': get_best_edition,
