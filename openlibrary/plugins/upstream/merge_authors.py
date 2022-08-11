@@ -8,6 +8,7 @@ import web
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
+from openlibrary.plugins.upstream.edits import process_merge_request
 from openlibrary.plugins.worksearch.code import top_books_from_author
 from openlibrary.utils import uniq, dicthash
 
@@ -271,17 +272,20 @@ class merge_authors(delegate.page):
         return [k for k in keys if d.get("/authors/" + k) == '/type/author']
 
     def GET(self):
-        i = web.input(key=[])
+        i = web.input(key=[], mrid=None)
         keys = uniq(i.key)
 
         # filter bad keys
         keys = self.filter_authors(keys)
         return render_template(
-            'merge/authors', keys, top_books_from_author=top_books_from_author
+            'merge/authors',
+            keys,
+            top_books_from_author=top_books_from_author,
+            mrid=i.mrid,
         )
 
     def POST(self):
-        i = web.input(key=[], master=None, merge_key=[])
+        i = web.input(key=[], master=None, merge_key=[], mrid=None, comment=None)
         keys = uniq(i.key)
         selected = uniq(i.merge_key)
 
@@ -300,16 +304,18 @@ class merge_authors(delegate.page):
                 keys,
                 top_books_from_author=top_books_from_author,
                 formdata=formdata,
+                mrid=i.mrid,
             )
         else:
             # redirect to the master. The master will display a progressbar and call the merge_authors_json to trigger the merge.
-            raise web.seeother(
-                "/authors/"
-                + i.master
-                + "/-/"
-                + "?merge=true&duplicates="
-                + ",".join(selected)
+            redir_url = (
+                f'/authors/{i.master}/-/?merge=true&duplicates={",".join(selected)}'
             )
+            if i.mrid:
+                redir_url = f'{redir_url}&mrid={i.mrid}'
+            if i.comment:
+                redir_url = f'{redir_url}&comment={i.comment}'
+            raise web.seeother(redir_url)
 
 
 class merge_authors_json(delegate.page):
@@ -329,10 +335,24 @@ class merge_authors_json(delegate.page):
         data = json.loads(web.data())
         master = data['master']
         duplicates = data['duplicates']
+        mrid = data.get('mrid', None)
+        comment = data.get('comment', None)
+        olids = data.get('olids', '')
 
         engine = AuthorMergeEngine(AuthorRedirectEngine())
         try:
             result = engine.merge(master, duplicates)
+            if mrid:
+                # Update the request
+                rtype = 'update-request'
+                data = {'action': 'approve', 'mrid': mrid}
+            else:
+                # Create new request
+                rtype = 'create-request'
+                data = {'type': 2, 'olids': olids, 'action': 'create-merged'}
+            if comment:
+                data['comment'] = comment
+            process_merge_request(rtype, data)
         except ClientException as e:
             raise web.badrequest(json.loads(e.json))
         return delegate.RawText(json.dumps(result), content_type="application/json")

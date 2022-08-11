@@ -1,4 +1,4 @@
-$def with (keys, top_books_from_author, formdata=None)
+$def with (keys, top_books_from_author, formdata=None, mrid=None)
 
 $var title: $_("Merge Authors")
 
@@ -41,6 +41,9 @@ $if formdata:
 
 <form method="POST" id="mergeForm" name="mergeForm">
     <input type="hidden" name="merge" value="true"/>
+    $if mrid:
+        <input type="hidden" id="mrid-input" name="mrid" value="$mrid"/>
+        <input type="hidden" id="hidden-comment-input" name="comment" value=""/>
     <div class="merge" id="include">
 
         <div class="entry header">
@@ -87,11 +90,16 @@ $if formdata:
             </div>
     </div>
 
-<p>
-<button id="save" class="larger" value="Merge Authors">$_('Merge Authors')</button>
-&nbsp;&nbsp;
-<a href="javascript:history.go(-1);" class="small red sansserif">$_('Cancel')</a>
-</p>
+    <div class="merge-feedback">
+        <label for="merge-comment">$_('Comment:') <input type="text" id="author-merge-comment" name="merge-comment" placeholder="$_('Comment...')"></label>
+        <div class="merge-feedback__buttons">
+            <button id="save" class="larger merge-feedback__submit" value="Merge Authors">$_('Merge Authors')</button>
+            $if mrid:
+                <button id="reject-author-merge-btn" type="button" class="larger merge-feedback__reject">$_('Reject Merge')</button>
+            $else:
+                <a href="javascript:history.go(-1);" class="small red sansserif">$_('Cancel')</a>
+    </div>
+</div>
 
 </form>
 

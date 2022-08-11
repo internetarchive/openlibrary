@@ -39,6 +39,11 @@ class CommunityEditsQueue:
 
     TABLENAME = 'community_edits_queue'
 
+    TYPE = {
+        'WORK_MERGE': 1,
+        'AUTHOR_MERGE': 2,
+    }
+
     STATUS = {
         'DECLINED': 0,
         'PENDING': 1,
@@ -144,50 +149,6 @@ class CommunityEditsQueue:
         return rows_changed
 
     @classmethod
-    def submit_work_merge_request(
-        cls,
-        work_ids: list[str],
-        submitter: str,
-        comment: str = None,
-        reviewer: str = None,
-        status: int = STATUS['PENDING'],
-    ):
-        """
-        Creates new work merge requests with the given work olids.
-
-        Precondition: OLIDs in work_ids list must be sanitized and normalized.
-        """
-        url = f"/works/merge?records={','.join(work_ids)}"
-        if not cls.exists(url):
-            return cls.submit_request(
-                url,
-                submitter=submitter,
-                comment=comment,
-                reviewer=reviewer,
-                status=status,
-                title=cls.get_work_merge_title(work_ids),
-            )
-
-    @staticmethod
-    def get_work_merge_title(olids):
-        title = None
-        for olid in olids:
-            book = web.ctx.site.get(f'/works/{olid}')
-            if book and book.title:
-                title = book.title
-                break
-        return title
-
-    @classmethod
-    def submit_author_merge_request(cls, author_ids, submitter, comment=None):
-        if not comment:
-            # some default note from submitter
-            pass
-        # XXX IDs should be santiized & normalized
-        url = f"/authors/merge?key={'&key='.join(author_ids)}"
-        cls.submit_request(url, submitter=submitter, comment=comment)
-
-    @classmethod
     def submit_delete_request(cls, olid, submitter, comment=None):
         if not comment:
             # some default note from submitter
@@ -204,6 +165,7 @@ class CommunityEditsQueue:
         status: int = STATUS['PENDING'],
         comment: str = None,
         title: str = None,
+        type: int = None,
     ):
         """
         Inserts a new record into the table.
@@ -223,6 +185,7 @@ class CommunityEditsQueue:
             status=status,
             comments=json_comment,
             title=title,
+            type=type,
         )
 
     @classmethod

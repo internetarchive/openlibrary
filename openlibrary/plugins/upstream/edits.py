@@ -10,39 +10,26 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template
 
 
-def create_request(olids: str, username: str, comment: str = None):
-    work_ids = olids.split(',')
-    return CommunityEditsQueue.submit_work_merge_request(
-        work_ids,
-        submitter=username,
-        comment=comment,
-    )
-
-
 def response(status='ok', **kwargs):
     return {'status': status, **kwargs}
 
 
+def process_merge_request(rtype, data):
+
+    user = accounts.get_current_user()
+    username = user['key'].split('/')[-1]
+    # types can be: create-request, update-request
+    if rtype == 'create-request':
+        resp = community_edits_queue.create_request(username, **data)
+    elif rtype == 'update-request':
+        resp = community_edits_queue.update_request(username, **data)
+    else:
+        resp = response(status='error', error='Unknown request type')
+    return resp
+
+
 class community_edits_queue(delegate.page):
     path = '/merges'
-
-    def POST(self):
-        data = json.loads(web.data())
-        type = data.get('rtype', '')
-        if type:
-            del data['rtype']
-
-        user = accounts.get_current_user()
-        username = user['key'].split('/')[-1]
-
-        if type == 'merge-works':
-            resp = self.work_merge_request(username, **data)
-        elif type == 'comment':
-            resp = self.comment_on_request(username, data['mrid'], data['comment'])
-        else:
-            resp = response(status='error', error='Unknown request type')
-
-        return delegate.RawText(json.dumps(resp), content_type='application/json')
 
     def GET(self):
         i = web.input(
@@ -71,68 +58,131 @@ class community_edits_queue(delegate.page):
             merge_requests=merge_requests,
         )
 
-    def work_merge_request(
-        self, username, olids='', mrid=None, action=None, comment=None
-    ):
-        # Create a new, open work MR
-        if action == 'create':
-            result = create_request(olids, username, comment)
-            if result:
-                resp = response(id=result)
+    def POST(self):
+        data = json.loads(web.data())
+        rtype = data.get('rtype', '')
+        if rtype:
+            del data['rtype']
+
+        resp = process_merge_request(rtype, data)
+
+        return delegate.RawText(json.dumps(resp), content_type='application/json')
+
+    @staticmethod
+    def create_request(username, action='', type=None, olids='', comment: str = None):
+        def is_valid_action(action):
+            return action in ('create-pending', 'create-merged')
+
+        def needs_unique_url(type):
+            return type in (
+                CommunityEditsQueue.TYPE['WORK_MERGE'],
+                CommunityEditsQueue.TYPE['AUTHOR_MERGE'],
+            )
+
+        if is_valid_action(action):
+            olid_list = olids.split(',')
+
+            title = community_edits_queue.create_title(type, olid_list)
+            url = community_edits_queue.create_url(type, olid_list)
+
+            # Validate URL
+            is_valid_url = True
+            if needs_unique_url(type) and CommunityEditsQueue.exists(url):
+                is_valid_url = False
+
+            if is_valid_url:
+                if action == 'create-pending':
+                    result = CommunityEditsQueue.submit_request(
+                        url, username, title=title, comment=comment, type=type
+                    )
+                elif action == 'create-merged':
+                    result = CommunityEditsQueue.submit_request(
+                        url,
+                        username,
+                        title=title,
+                        comment=comment,
+                        reviewer=username,
+                        status=CommunityEditsQueue.STATUS['MERGED'],
+                        type=type,
+                    )
+                resp = (
+                    response(id=result)
+                    if result
+                    else response(status='error', error='Request creation failed.')
+                )
             else:
                 resp = response(
                     status='error',
-                    error='A request to merge these works has already been submitted.',
+                    error='A merge request for these items already exists.',
                 )
-        # Create a "merged" MR with the same submitter and reviewer (for super-librarian merges)
-        elif action == 'create-merged':
-            result = CommunityEditsQueue.submit_work_merge_request(
-                olids.split(','),
-                submitter=username,
-                reviewer=username,
-                status=CommunityEditsQueue.STATUS['MERGED'],
+        else:
+            resp = response(
+                status='error',
+                error=f'Action "{action}" is invalid for this request type.',
             )
-            resp = response(id=result)
-        # Assign an existing MR to a patron
+
+        return resp
+
+    @staticmethod
+    def update_request(username, action='', mrid=None, comment=None):
+        # Comment on existing request:
+        if action == 'comment':
+            if comment:
+                CommunityEditsQueue.comment_request(mrid, username, comment)
+                resp = response()
+            else:
+                resp = response(status='error', error='No comment sent in request.')
+        # Assign to existing request:
         elif action == 'claim':
             result = CommunityEditsQueue.assign_request(mrid, username)
             resp = response(**result)
-        # Unassign an existing MR
+        # Unassign from existing request:
         elif action == 'unassign':
             CommunityEditsQueue.unassign_request(mrid)
             status = get_status_for_view(CommunityEditsQueue.STATUS['PENDING'])
             resp = response(newStatus=status)
-        # Close a MR by declining the merge
-        elif action == "decline":
-            status = CommunityEditsQueue.STATUS['DECLINED']
-            CommunityEditsQueue.update_request_status(
-                mrid, status, username, comment=comment
-            )
-            resp = response()
-        # Close a MR by merging the items
+        # Close request by approving:
         elif action == 'approve':
-            status = CommunityEditsQueue.STATUS['MERGED']
             CommunityEditsQueue.update_request_status(
-                mrid, status, username, comment=comment
+                mrid, CommunityEditsQueue.STATUS['MERGED'], username, comment=comment
             )
             resp = response()
-        # Idle conversation with the server
-        else:
-            resp = response(status='error', error='Unknown action')
-
-        return resp
-
-    def comment_on_request(self, username, mrid, comment):
-        if comment:
-            CommunityEditsQueue.comment_request(mrid, username, comment)
+        # Close request by declining:
+        elif action == 'decline':
+            CommunityEditsQueue.update_request_status(
+                mrid, CommunityEditsQueue.STATUS['DECLINED'], username, comment=comment
+            )
             resp = response()
+        # Unknown request:
         else:
-            resp = response(status='error', error='No comment sent in request')
+            resp = response(
+                status='error',
+                error=f'Action "{action}" is invalid for this request type.',
+            )
 
         return resp
 
-    def author_merge_request(self, username, olids='', mrid=None, action=None):
-        pass
+    @staticmethod
+    def create_url(type: int, olids: list[str]) -> str:
+        if type == CommunityEditsQueue.TYPE['WORK_MERGE']:
+            return f'/works/merge?records={",".join(olids)}'
+        elif type == CommunityEditsQueue.TYPE['AUTHOR_MERGE']:
+            return f'/authors/merge?key={"&key=".join(olids)}'
+        return ''
+
+    @staticmethod
+    def create_title(type: int, olids: list[str]) -> str:
+        if type == CommunityEditsQueue.TYPE['WORK_MERGE']:
+            for olid in olids:
+                book = web.ctx.site.get(f'/works/{olid}')
+                if book and book.title:
+                    return book.title
+        elif type == CommunityEditsQueue.TYPE['AUTHOR_MERGE']:
+            for olid in olids:
+                author = web.ctx.site.get(f'/authors/{olid}')
+                if author and author.name:
+                    return author.name
+        return 'Unknown record'
 
 
 class ui_partials(delegate.page):

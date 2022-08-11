@@ -38,6 +38,10 @@ function initConfirmationDialogs() {
         $.extend({}, CONFIRMATION_PROMPT_DEFAULTS, {
             buttons: {
                 'Yes, Merge': function() {
+                    const commentInput = document.querySelector('#author-merge-comment')
+                    if (commentInput.value) {
+                        document.querySelector('#hidden-comment-input').value = commentInput.value
+                    }
                     $('#mergeForm').trigger('submit');
                     $(this).parents().find('button').attr('disabled','disabled');
                 },

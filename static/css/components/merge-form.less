@@ -89,6 +89,24 @@ div.merge {
   }
 }
 
+.merge-feedback {
+  input {
+    width: 100%;
+    margin-top: 5px;
+  }
+
+  &__buttons {
+    margin-top: 5px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  &__reject {
+    color: @white;
+    background-color: @red-two;
+  }
+}
+
 @media all and ( min-width: @width-breakpoint-desktop ) {
   div.merge {
     .record {

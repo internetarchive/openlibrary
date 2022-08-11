@@ -1,5 +1,6 @@
 /* eslint no-console: 0 */
 import _ from 'lodash';
+import { approveRequest, declineRequest, createRequest, REQUEST_TYPES } from '../../plugins/openlibrary/js/merge-request-table/MergeRequestService'
 
 const collator = new Intl.Collator('en-US', {numeric: true})
 
@@ -153,22 +154,12 @@ export function get_ratings(key) {
  * @returns {Promise<Response>} A response to the request
  */
 export function update_merge_request(mrid, action, comment) {
-    const data = {
-        rtype: 'merge-works',
-        action: action,
-        mrid: mrid
+    if (action === 'approve') {
+        return approveRequest(mrid, comment)
     }
-    if (comment) {
-        data['comment'] = comment
+    else if (action === 'decline') {
+        return declineRequest(mrid, comment)
     }
-    return fetch('/merges', {
-        method: 'POST',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
 }
 
 /**
@@ -179,20 +170,8 @@ export function update_merge_request(mrid, action, comment) {
  * @returns {Promise<Response>}
  */
 export function createMergeRequest(workIds) {
-    const normalizedIds = prepareIds(workIds)
-    const data = {
-        rtype: 'merge-works',
-        action: 'create-merged',
-        olids: normalizedIds.join(',')
-    }
-    return fetch('/merges', {
-        method: 'POST',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
+    const normalizedIds = prepareIds(workIds).join(',')
+    return createRequest(normalizedIds, 'create-merged', REQUEST_TYPES['WORK_MERGE'])
 }
 
 /**
