@@ -63,7 +63,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
               $else:
                 $if is_privileged_user:
                   $if (link['text'] == 'Pending Requests') and get_counts_mode(mode='open') > 0:
-                    <div class="mr-notifications">$(get_counts_mode(mode='open'))</div>
+                    <div class="mr-notifications-list">$(get_counts_mode(mode='open'))</div>
                 <a href="$(link['href'])" $(tracker)>
                   $if 'new' in link and props['name'] == 'hamburger':
                     <span>$(link['text'])</span><span class="app-drawer__badge">$_('New!')</span>
