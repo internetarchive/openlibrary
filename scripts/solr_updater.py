@@ -45,7 +45,7 @@ def get_default_offset():
 
 
 class InfobaseLog:
-    def __init__(self, hostname, exclude=None):
+    def __init__(self, hostname: str, exclude: str = None):
         """
         :param str hostname:
         :param str|None exclude: if specified, excludes records that include the string
@@ -284,15 +284,15 @@ class Solr:
 
 async def main(
     ol_config: str,
-    debugger=False,
-    state_file='solr-update.state',
+    debugger: bool = False,
+    state_file: str = 'solr-update.state',
     exclude_edits_containing: str = None,
     ol_url='http://openlibrary.org/',
     solr_url: str = None,
-    solr_next=False,
-    socket_timeout=10,
-    load_ia_scans=False,
-    commit=True,
+    solr_next: bool = False,
+    socket_timeout: int = 10,
+    load_ia_scans: bool = False,
+    commit: bool = True,
     initial_state: str = None,
 ):
     """

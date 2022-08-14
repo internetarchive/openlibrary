@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
-from typing import Literal
-from collections.abc import Awaitable
+from typing import Any, Literal
+from collections.abc import Awaitable, Iterator
 
 
 from configparser import ConfigParser
@@ -19,14 +21,13 @@ from openlibrary.solr.update_work import load_configs, update_keys
 logger = logging.getLogger("openlibrary.solr-builder")
 
 
-def config_section_to_dict(config_file, section):
+def config_section_to_dict(config_file: str, section: str) -> dict:
     """
     Read a config file's section as a dict
 
     :param str config_file: filename of config file
     :param str section: section to pull data from
     :return: dict of key value pairs
-    :rtype: dict
     """
     config = ConfigParser()
     config.read(config_file)
@@ -55,17 +56,17 @@ class LocalPostgresDataProvider(DataProvider):
     This class uses a local postgres dump of the database.
     """
 
-    def __init__(self, db_conf_file):
+    def __init__(self, db_conf_file: str):
         """
         :param str db_conf_file: file to DB config with [postgres] section
         """
         super().__init__()
         self._db_conf = config_section_to_dict(db_conf_file, "postgres")
         self._conn: psycopg2._psycopg.connection = None
-        self.cache = {}
-        self.cached_work_editions_ranges = []
+        self.cache: dict = {}
+        self.cached_work_editions_ranges: list = []
 
-    def __enter__(self):
+    def __enter__(self) -> LocalPostgresDataProvider:
         """
         :rtype: LocalPostgresDataProvider
         """
@@ -76,12 +77,11 @@ class LocalPostgresDataProvider(DataProvider):
         self.clear_cache()
         self._conn.close()
 
-    def query_all(self, query, cache_json=False):
+    def query_all(self, query: str, cache_json: bool = False) -> list:
         """
-
         :param str query:
         :param bool cache_json:
-        :rtype: list
+        :return: a list
         """
         cur = self._conn.cursor()
         cur.execute(query)
@@ -107,13 +107,19 @@ class LocalPostgresDataProvider(DataProvider):
 
         cur.close()
 
-    def query_batched(self, query, size, cursor_name=None, cache_json=False):
+    def query_batched(
+        self,
+        query: str,
+        size: int,
+        cursor_name: str = None,
+        cache_json: bool = False,
+    ) -> Iterator:
         """
         :param str query:
         :param int size:
         :param str or None cursor_name: if wanting to use a specific cursor
         :param bool cache_json: Requires the select statement to be "Key", "JSON"
-        :return:
+        :return: None
         """
         # Not sure if this name needs to be unique
         cursor_name = (
@@ -325,7 +331,7 @@ async def main(
     ol="http://ol/",
     ol_config="../../conf/openlibrary.yml",
     solr: str = None,
-    skip_solr_id_check=True,
+    skip_solr_id_check: bool = True,
     start_at: str = None,
     offset=0,
     limit=1,
@@ -333,7 +339,7 @@ async def main(
     progress: str = None,
     log_file: str = None,
     log_level=logging.INFO,
-    dry_run=False,
+    dry_run: bool = False,
 ) -> None:
     """
     :param cmd: Whether to do the index or just fetch end of the chunk
@@ -399,17 +405,17 @@ async def main(
 
         def update(
             self,
-            seen=None,
-            total=None,
-            percent=None,
-            elapsed=None,
-            q_1=None,
-            q_auth=None,
-            cached=None,
-            q_ia=None,
-            ia_cache=None,
-            next=None,
-        ):
+            seen: str | int | None = None,
+            total: str | int | None = None,
+            percent: str | float | None = None,
+            elapsed: str | float | None = None,
+            q_1: str | float | None = None,
+            q_auth: str | float | None = None,
+            cached: str | int | None = None,
+            q_ia: str | float | None = None,
+            ia_cache: str | int | None = None,
+            next: str = None,
+        ) -> None:
             """
             :param str or int or None seen:
             :param str or int or None total:
@@ -429,11 +435,11 @@ async def main(
             )
             self.log(entry)
 
-        def fmt(self, k, val):
+        def fmt(self, k: str, val: Any) -> str:
             """
             :param str k:
             :param Any val:
-            :rtype: str
+            :return: str
             """
             if val is None:
                 return '?'
