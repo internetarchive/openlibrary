@@ -62,7 +62,7 @@ class OPDS:
     # ___________________________________________________________________________
     def add_list(self, name, values, prefix='', attrs=None):
         attrs = attrs or {}
-        if isinstance(values, list) or isinstance(values, tuple):
+        if isinstance(values, (list, tuple)):
             for v in values:
                 self.add(name, prefix + str(v), attrs)
         elif values:
@@ -82,7 +82,7 @@ class OPDS:
     def create_rel_link(
         self, parent, rel, absurl, type='application/atom+xml', title=None
     ):
-        if None == parent:
+        if parent is None:
             parent = self.root
 
         element = ET.SubElement(parent, 'link')
