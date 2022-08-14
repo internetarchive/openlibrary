@@ -551,7 +551,7 @@ class OpenLibraryAccount(Account):
 
     @property
     def verified(self):
-        return not (getattr(self, 'status', '') == 'pending')
+        return getattr(self, 'status', '') != 'pending'
 
     @property
     def blocked(self):

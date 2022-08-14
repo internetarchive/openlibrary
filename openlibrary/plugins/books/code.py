@@ -66,7 +66,7 @@ class read_multiget(delegate.page):
             decoded_path = urllib.parse.unquote(raw_path)
 
             m = self.path_re.match(decoded_path)
-            if not len(m.groups()) == 2:
+            if len(m.groups()) != 2:
                 return json.dumps({})
             (brief_or_full, req) = m.groups()
 
