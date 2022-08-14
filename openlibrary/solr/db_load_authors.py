@@ -11,9 +11,7 @@ total = 6540759
 
 sizes = dict(name=512, birth_date=256, death_date=256, date=256)
 
-num = 0
-for line in open('author_file'):
-    num += 1
+for num, line in enumerate(open('author_file')):
     if num % 10000 == 0:
         print("%d %d %.2f%%" % (num, total, (float(num) * 100.0) / total))
     src_a = json.loads(line[:-1])

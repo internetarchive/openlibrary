@@ -8,9 +8,8 @@ db.printing = False
 re_work_key = re.compile(r'^/works/OL(\d+)W$')
 
 total = 13941626
-num = 0
-for line in open('work_file'):
-    num += 1
+
+for num, line in enumerate(open('work_file')):
     if num % 10000 == 0:
         print("%d %d %.2f%%" % (num, total, (float(num) * 100.0) / total))
     # src_w = json.loads(line[:-1])

@@ -239,7 +239,7 @@ class ia_importapi(importapi):
 
         i = web.input()
 
-        require_marc = not (i.get('require_marc') == 'false')
+        require_marc = i.get('require_marc') != 'false'
         force_import = i.get('force_import') == 'true'
         bulk_marc = i.get('bulk_marc') == 'true'
 
