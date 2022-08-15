@@ -260,7 +260,9 @@ def s3_loan_api(ocaid, s3_keys, action='browse'):
     """
     params = f'?action={action}&identifier={ocaid}'
     url = S3_LOAN_URL % config_bookreader_host
-    return requests.post(url + params, data=s3_keys)
+    response = requests.post(url + params, data=s3_keys)
+    response.raise_for_status()
+    return response
 
 
 def get_available(
