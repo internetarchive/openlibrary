@@ -57,6 +57,7 @@ fi
 function cleanup() {
     rm -f $TMPDIR/dumps/data.txt.gz
     rm -rf $TMPDIR/dumps/ol_*
+    rm -rf $TMPDIR/oldumpsort
     rm -rf $TMPDIR/sitemaps
 }
 
