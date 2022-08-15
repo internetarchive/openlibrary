@@ -1,6 +1,9 @@
 $def with (page)
+$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
 
 <header id="header-bar" class="header-bar">
+
+
   $if ctx.user:
     $ loginLinks = [
     $     { "href": ctx.user.key, "text": _("My Profile"), "track": "MainNav|MyProfile" },
@@ -11,6 +14,8 @@ $def with (page)
     $     { "href": homepath() + "/account", "text": _("Settings"), "track": "MainNav|MySettings" },
     $     { "post": "/account/logout", "text": _("Log out"), "track": "MainNav|Logout" },
     $ ]
+      $if is_privileged_user:
+        $ loginLinks.insert(1,{ "href": homepath() + "/merges", "text": _("Pending Requests"),"track": "MainNav|MyRequests" })
   $else:
     $ loginLinks = [
     $     { "loginClass": "login-links" }

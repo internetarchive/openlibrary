@@ -8,6 +8,8 @@ from psycopg2.errors import UniqueViolation
 from infogami.utils.view import public
 
 from openlibrary.i18n import gettext as _
+from openlibrary.core import cache
+from openlibrary.utils import dateutil
 
 from . import db
 
@@ -347,3 +349,12 @@ class CommunityEditsQueue:
             "message": message,
             # XXX It may be easier to update these comments if they had IDs
         }
+
+
+@public
+def cached_get_counts_by_mode(mode='all', **kwargs):
+    return cache.memcache_memoize(
+        CommunityEditsQueue.get_counts_by_mode,
+        f"librarian_queue_counts_{mode}",
+        timeout=dateutil.MINUTE_SECS,
+    )(mode, **kwargs)
