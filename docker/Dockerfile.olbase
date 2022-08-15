@@ -36,8 +36,7 @@ RUN apt-get -qq update && apt-get install -y \
 
 # Install LTS version of node.js
 RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - \
-    && apt-get install -y nodejs \
-    && npm install --location=global npm@latest
+    && apt-get install -y nodejs
 
 # Install Archive.org nginx w/ IP anonymization
 USER root
