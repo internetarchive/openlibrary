@@ -330,9 +330,9 @@ class CommunityEditsQueue:
 
 
 @public
-def get_counts_mode(mode='all', **kwargs):
+def cached_get_counts_by_mode(mode='all', **kwargs):
     return cache.memcache_memoize(
         CommunityEditsQueue.get_counts_by_mode,
-        "librarian_queue_counts",
+        f"librarian_queue_counts_{mode}",
         timeout=dateutil.MINUTE_SECS,
     )(mode, **kwargs)
