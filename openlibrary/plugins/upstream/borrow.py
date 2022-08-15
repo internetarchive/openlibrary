@@ -792,15 +792,17 @@ def user_can_borrow_edition(user, edition):
     book_is_waitlistable = lending_st.get('available_to_waitlist', False)
     user_is_below_loan_limit = user.get_loan_count() < user_max_loans
 
-    if book_is_lendable and user_is_below_loan_limit:
+    if book_is_lendable:
         if web.cookies().get('pd', False):
             return 'borrow'
-        elif lending_st.get('available_to_browse'):
-            return 'browse'
-        elif lending_st.get('available_to_borrow') or (
-            book_is_waitlistable and is_users_turn_to_borrow(user, edition)
-        ):
-            return 'borrow'
+        elif user_is_below_loan_limit:
+            if lending_st.get('available_to_browse'):
+                return 'browse'
+            elif lending_st.get('available_to_borrow') or (
+                book_is_waitlistable and
+                is_users_turn_to_borrow(user, edition)
+            ):
+                return 'borrow'
     return False
 
 
