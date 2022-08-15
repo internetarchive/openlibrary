@@ -799,8 +799,7 @@ def user_can_borrow_edition(user, edition):
             if lending_st.get('available_to_browse'):
                 return 'browse'
             elif lending_st.get('available_to_borrow') or (
-                book_is_waitlistable and
-                is_users_turn_to_borrow(user, edition)
+                book_is_waitlistable and is_users_turn_to_borrow(user, edition)
             ):
                 return 'borrow'
     return False
