@@ -1112,6 +1112,36 @@ class authors_autocomplete(delegate.page):
 
         return to_json(docs)
 
+class subjects_autocomplete(delegate.page):
+    path = "/subjects_autocomplete/(.*)"
+
+    def GET(self, key):
+        i = web.input(q="", limit=5)
+        i.limit = safeint(i.limit, 5)
+
+        solr = get_solr()
+        prefix_q = solr.escape(i.q).strip()
+        solr_q = f'subject\:({prefix_q}*)'
+
+        params = {
+            'fl': 'key,name,subject_type,work_count',
+            'q_op': 'AND',
+            'fq': 'type:subject',
+            'sort': 'work_count desc',
+            'rows': i.limit,
+        }
+
+        data = solr.select(solr_q, **params)
+        docs = []
+        for d in data['docs']:
+            if ((key == "" and d['subject_type'] == 'subject') or
+                d['subject_type'] == key):
+                    docs.append({
+                        'name': '"' + d['name'] + '"' if ',' in d['name'] else d['name'],
+                        'key': d['name']} )
+
+        return to_json(docs)
+
 
 class work_identifiers(delegate.view):
     # TODO: (cclauss) Fix typing in infogami.utils.delegate and remove type: ignore

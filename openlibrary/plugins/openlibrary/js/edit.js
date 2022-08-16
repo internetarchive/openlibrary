@@ -311,7 +311,7 @@ export function initWorksMultiInputAutocomplete() {
                     minChars: 2,
                     max: 11,
                     matchSubset: false,
-                    autoFill: false,
+                    autoFill: true,
                     formatItem: render_work_autocomplete_item
                 });
         });
@@ -334,9 +334,64 @@ export function initAuthorMultiInputAutocomplete() {
                 minChars: 2,
                 max: 11,
                 matchSubset: false,
-                autoFill: false,
+                autoFill: true,
                 formatItem: render_author_autocomplete_item
             });
+    });
+}
+
+export function initSubjectsAutocomplete() {
+    function splitField(val) {
+        const re = /([^",]+|"[^"]+")[, ]*/g;
+        return Array.from(val.matchAll(re), (m) => m[1]);
+    }
+
+    getJqueryElements('.multi-input-autocomplete--subjects').forEach(jqueryElement => {
+        /* Values in the html passed from Python code */
+        const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
+        jqueryElement.setup_multi_input_autocomplete(
+            'textarea',
+            render_subject_field.bind(dataConfig.name, dataConfig.facet, dataConfig.data),
+            {
+                endpoint: `/subjects_autocomplete/${dataConfig.facet}`,
+                addnew: false,
+            },
+            {
+                minChars: 2,
+                max: 25,
+                matchSubset: false,
+                autoFill: false,
+                position: { my: 'right top', at: 'right bottom' },
+                formatItem: render_subject_autocomplete_item,
+                termPreprocessor: function(subject_string, ui) {
+                    const terms = splitField(subject_string);
+                    if (![' ',',','"'].includes(subject_string.slice(-1)))
+                        return terms.pop();
+                    else {
+                        $("ul.ui-autocomplete").hide();
+                        return '';
+                    }
+                },
+                select: function(event, ui) {
+                    const terms = splitField(this.value);
+                    terms.splice(terms.length - 1, 1, ui.item.value, '');
+                    this.value = terms.join(', ');
+                    $(this).trigger('input');
+                    return false;
+                },
+                response: function(event, ui) {
+                    /* Remove any entries already on the list */
+                    const terms = splitField(this.value);
+                    ui.content.splice(0, ui.content.length, 
+                        ...ui.content.filter(record => !terms.includes(record.value)));
+                },
+            });
+    });
+
+    /* Resize textarea to fit on input */
+    $('.multi-input-autocomplete--subjects textarea').on('input', function () {
+        this.style.height = 'auto';
+        this.style.height = `${this.scrollHeight + 5}px`;
     });
 }
 
@@ -347,7 +402,7 @@ export function initEditRow(){
 /**
  * Adds another input box below the last when adding multiple websites to user profile.
  * @param string name - when prefixed with clone_ should match an element identifier in the page. e.g. if name would refer to clone_website
- **/
+**/
 function add_row(name) {
     const inputBoxes = document.querySelectorAll(`#clone_${name} input`);
     const inputBox = document.createElement('input');
@@ -451,7 +506,7 @@ export function initEdit() {
     // wait for 1 sec after clicking the link and focus the input field
     if ($(fieldname).length !== 0) {
         setTimeout(function() {
-            // scroll such that top of the content is visible
+        // scroll such that top of the content is visible
             $(fieldname).trigger('focus');
             $(window).scrollTop($('#contentHead').offset().top);
         }, 1000);

@@ -1,4 +1,4 @@
-// jquery plugins to provide author and language autocompletes.
+// jquery plugins to provide author, language, and subject autocompletes.
 /**
  * Port of code in vendor/js/jquery-autocomplete removed in e91119b
  * @param {string} value
@@ -58,9 +58,11 @@ export default function($) {
      * @param{OpenLibraryAutocompleteOptions} ol_ac_opts
      * @param{Object} ac_opts - options passed to $.autocomplete; see that.
      * @param {Function} ac_opts.formatItem - optional item formatter. Returns a string of HTML for rendering as an item.
+     * @param {Function} ac_opts.termPreprocessor - optional hook for processing the search term before doing the search
      */
     function setup_autocomplete(_this, ol_ac_opts, ac_opts) {
         var default_ac_opts = {
+            minChars: 2,
             autoFill: true,
             formatItem: item => item.name,
             /**
@@ -77,6 +79,7 @@ export default function($) {
                         .filter((_, el) => $(el).data('ui-autocomplete-item').key === ui.item.key)
                         .addClass('ac_over');
                 }
+                return ac_opts.autoFill;
             },
             select: function (_event, ui) {
                 var item = ui.item;
@@ -87,7 +90,8 @@ export default function($) {
                 }, 0);
             },
             mustMatch: true,
-            formatMatch: function(item) { return item.name; }
+            formatMatch: function(item) { return item.name; },
+            termPreprocessor: function(term) { return term; }
         };
 
         $.widget('custom.autocompleteHTML', $.ui.autocomplete, {
@@ -104,33 +108,32 @@ export default function($) {
                 $(_this).data('list', $ul);
             }
         });
-
-        const options = $.extend(default_ac_opts, ac_opts, {
-            source: function (q, response) {
-                const term = q.term;
-                const params = {
-                    q: term,
-                    limit: options.max,
-                    timestamp: new Date()
-                };
-                if (location.search.indexOf('lang=') !== -1) {
-                    params.lang = new URLSearchParams(location.search).get('lang');
-                }
-                return $.ajax({
-                    url: ol_ac_opts.endpoint,
-                    data: params
-                }).then((results) => {
-                    response(
-                        mapApiResultsToAutocompleteSuggestions(
-                            results,
-                            (r) => highlight(options.formatItem(r), term),
-                            ol_ac_opts.addnew === true ||
-                                (ol_ac_opts.addnew && ol_ac_opts.addnew(term)) ? (ol_ac_opts.new_name || term) : null
-                        )
-                    );
-                });
+        const options = $.extend(default_ac_opts, ac_opts);
+        options.source = function (q, response) {
+            const term = options.termPreprocessor(q.term);
+            const params = {
+                q: term,
+                limit: options.max,
+                timestamp: new Date()
+            };
+            if (location.search.indexOf('lang=') !== -1) {
+                params.lang = new URLSearchParams(location.search).get('lang');
             }
-        });
+            if (params.q.length < options.minChars) return;
+            return $.ajax({
+                url: ol_ac_opts.endpoint,
+                data: params
+            }).then((results) => {
+                response(
+                    mapApiResultsToAutocompleteSuggestions(
+                        results,
+                        (r) => highlight(options.formatItem(r), term),
+                        ol_ac_opts.addnew === true ||
+                            (ol_ac_opts.addnew && ol_ac_opts.addnew(term)) ? (ol_ac_opts.new_name || term) : null
+                    )
+                );
+            });
+        };
         $(_this)
             .autocompleteHTML(options)
             .on('keypress', function() {
