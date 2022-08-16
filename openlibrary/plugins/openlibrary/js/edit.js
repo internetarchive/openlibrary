@@ -365,7 +365,7 @@ export function initSubjectsAutocomplete() {
                 formatItem: render_subject_autocomplete_item,
                 termPreprocessor: function(subject_string, ui) {
                     const terms = splitField(subject_string);
-                    if (![' ',',','"'].includes(subject_string.slice(-1)))
+                    if (terms.length > dataConfig.data.length)
                         return terms.pop();
                     else {
                         $("ul.ui-autocomplete").hide();
@@ -374,8 +374,10 @@ export function initSubjectsAutocomplete() {
                 },
                 select: function(event, ui) {
                     const terms = splitField(this.value);
-                    terms.splice(terms.length - 1, 1, ui.item.value, '');
-                    this.value = terms.join(', ');
+                    terms.splice(terms.length - 1, 1, ui.item.value);
+                    this.value = terms.join(', ') + ', ';
+                    dataConfig.data = terms;
+                    jqueryElement[0].dataset.config = JSON.stringify(dataConfig);
                     $(this).trigger('input');
                     return false;
                 },
