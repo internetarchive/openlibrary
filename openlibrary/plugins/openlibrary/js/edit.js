@@ -363,19 +363,19 @@ export function initSubjectsAutocomplete() {
                 autoFill: false,
                 position: { my: 'right top', at: 'right bottom' },
                 formatItem: render_subject_autocomplete_item,
-                termPreprocessor: function(subject_string, ui) {
+                termPreprocessor: function(subject_string) {
                     const terms = splitField(subject_string);
                     if (terms.length > dataConfig.data.length)
                         return terms.pop();
                     else {
-                        $("ul.ui-autocomplete").hide();
+                        $('ul.ui-autocomplete').hide();
                         return '';
                     }
                 },
                 select: function(event, ui) {
                     const terms = splitField(this.value);
                     terms.splice(terms.length - 1, 1, ui.item.value);
-                    this.value = terms.join(', ') + ', ';
+                    this.value = `${terms.join(', ')}, `;
                     dataConfig.data = terms;
                     jqueryElement[0].dataset.config = JSON.stringify(dataConfig);
                     $(this).trigger('input');
@@ -384,7 +384,7 @@ export function initSubjectsAutocomplete() {
                 response: function(event, ui) {
                     /* Remove any entries already on the list */
                     const terms = splitField(this.value);
-                    ui.content.splice(0, ui.content.length, 
+                    ui.content.splice(0, ui.content.length,
                         ...ui.content.filter(record => !terms.includes(record.value)));
                 },
             });
