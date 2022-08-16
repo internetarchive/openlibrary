@@ -63,7 +63,7 @@ $ page = int(input(page=1).page)
           $ is_open = r['status'] == 1
           $ url = "%s&mrid=%s" % (r['url'], r['id'])
           $ is_submitter = username == r['submitter']
-          $ type_str = _('Work') if r['type'] == 1 else _('Author')
+          $ type_str = _('Author') if r['mr_type'] == 2 else _('Work')
           <tr id="mrid-$(r['id'])">
             <td>$r['submitter']<br>$datestr(r['created'])</td>
             <td id="status-cell-$(r['id'])">$status</td>
@@ -93,21 +93,21 @@ $ page = int(input(page=1).page)
                 <hr>
                 <div class="comment-cell__input">
                   <textarea rows="1" placeholder="$_('Add a comment...')"></textarea>
-                  <input class="mr-comment-btn" type="button" value="Reply" data-mrid="$r['id']" data-merge-type="$r['type']">
+                  <input class="mr-comment-btn" type="button" value="Reply" data-mrid="$r['id']" data-merge-type="$r['mr_type']">
                 </div>
             </td>
             <td id="reviewer-cell-$(r['id'])">
               $if can_merge and is_open and r.get('reviewer') == username:
-                $r['reviewer'] <span class="mr-unassign" data-mrid="$r['id']" data-merge-type="$r['type']">&times;</span>
+                $r['reviewer'] <span class="mr-unassign" data-mrid="$r['id']" data-merge-type="$r['mr_type']">&times;</span>
               $elif r.get('reviewer'):
                 $r['reviewer']
             </td>
             <td>
               $if is_open:
                 $if is_submitter:
-                  <a class="mr-close-link" data-mrid="$r['id']" data-merge-type="$r['type']" href="javascript:;">$_('Close')</a>
+                  <a class="mr-close-link" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">$_('Close')</a>
                 $elif can_merge and (not r.get('reviewer') or r.get('reviewer') == username):
-                  <a class="mr-resolve-link" data-mrid="$r['id']" data-merge-type="$r['type']" href="$url" target="_blank">$_('Merge')</a>
+                  <a class="mr-resolve-link" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="$url" target="_blank">$_('Merge')</a>
             </td>
           </tr>
         </tbody>

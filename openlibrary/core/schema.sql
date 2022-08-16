@@ -69,7 +69,7 @@ CREATE TABLE community_edits_queue (
     submitter text not null,
     reviewer text default null,
     url text not null,
-    type int not null,
+    mr_type int not null default 1,
     status int not null default 1,
     comments json,
     created timestamp without time zone default (current_timestamp at time zone 'utc'),

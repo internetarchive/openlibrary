@@ -349,7 +349,7 @@ class merge_authors_json(delegate.page):
             else:
                 # Create new request
                 rtype = 'create-request'
-                data = {'type': 2, 'olids': olids, 'action': 'create-merged'}
+                data = {'mr_type': 2, 'olids': olids, 'action': 'create-merged'}
             if comment:
                 data['comment'] = comment
             process_merge_request(rtype, data)

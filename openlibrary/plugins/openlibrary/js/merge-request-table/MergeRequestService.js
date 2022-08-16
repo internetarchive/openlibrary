@@ -8,7 +8,7 @@ export async function createRequest(olids, action, type, comment = null) {
     const data = {
         rtype: 'create-request',
         action: action,
-        type: type,
+        mr_type: type,
         olids: olids
     }
     if (comment) {

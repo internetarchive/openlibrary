@@ -18,7 +18,7 @@ def process_merge_request(rtype, data):
 
     user = accounts.get_current_user()
     username = user['key'].split('/')[-1]
-    # types can be: create-request, update-request
+    # Request types can be: create-request, update-request
     if rtype == 'create-request':
         resp = community_edits_queue.create_request(username, **data)
     elif rtype == 'update-request':
@@ -60,21 +60,19 @@ class community_edits_queue(delegate.page):
 
     def POST(self):
         data = json.loads(web.data())
-        rtype = data.get('rtype', '')
-        if rtype:
-            del data['rtype']
-
-        resp = process_merge_request(rtype, data)
+        resp = process_merge_request(data.pop('rtype', ''), data)
 
         return delegate.RawText(json.dumps(resp), content_type='application/json')
 
     @staticmethod
-    def create_request(username, action='', type=None, olids='', comment: str = None):
+    def create_request(
+        username, action='', mr_type=None, olids='', comment: str = None
+    ):
         def is_valid_action(action):
             return action in ('create-pending', 'create-merged')
 
-        def needs_unique_url(type):
-            return type in (
+        def needs_unique_url(mr_type):
+            return mr_type in (
                 CommunityEditsQueue.TYPE['WORK_MERGE'],
                 CommunityEditsQueue.TYPE['AUTHOR_MERGE'],
             )
@@ -82,18 +80,18 @@ class community_edits_queue(delegate.page):
         if is_valid_action(action):
             olid_list = olids.split(',')
 
-            title = community_edits_queue.create_title(type, olid_list)
-            url = community_edits_queue.create_url(type, olid_list)
+            title = community_edits_queue.create_title(mr_type, olid_list)
+            url = community_edits_queue.create_url(mr_type, olid_list)
 
             # Validate URL
             is_valid_url = True
-            if needs_unique_url(type) and CommunityEditsQueue.exists(url):
+            if needs_unique_url(mr_type) and CommunityEditsQueue.exists(url):
                 is_valid_url = False
 
             if is_valid_url:
                 if action == 'create-pending':
                     result = CommunityEditsQueue.submit_request(
-                        url, username, title=title, comment=comment, type=type
+                        url, username, title=title, comment=comment, mr_type=mr_type
                     )
                 elif action == 'create-merged':
                     result = CommunityEditsQueue.submit_request(
@@ -103,7 +101,7 @@ class community_edits_queue(delegate.page):
                         comment=comment,
                         reviewer=username,
                         status=CommunityEditsQueue.STATUS['MERGED'],
-                        type=type,
+                        mr_type=mr_type,
                     )
                 resp = (
                     response(id=result)
@@ -163,21 +161,21 @@ class community_edits_queue(delegate.page):
         return resp
 
     @staticmethod
-    def create_url(type: int, olids: list[str]) -> str:
-        if type == CommunityEditsQueue.TYPE['WORK_MERGE']:
+    def create_url(mr_type: int, olids: list[str]) -> str:
+        if mr_type == CommunityEditsQueue.TYPE['WORK_MERGE']:
             return f'/works/merge?records={",".join(olids)}'
-        elif type == CommunityEditsQueue.TYPE['AUTHOR_MERGE']:
+        elif mr_type == CommunityEditsQueue.TYPE['AUTHOR_MERGE']:
             return f'/authors/merge?key={"&key=".join(olids)}'
         return ''
 
     @staticmethod
-    def create_title(type: int, olids: list[str]) -> str:
-        if type == CommunityEditsQueue.TYPE['WORK_MERGE']:
+    def create_title(mr_type: int, olids: list[str]) -> str:
+        if mr_type == CommunityEditsQueue.TYPE['WORK_MERGE']:
             for olid in olids:
                 book = web.ctx.site.get(f'/works/{olid}')
                 if book and book.title:
                     return book.title
-        elif type == CommunityEditsQueue.TYPE['AUTHOR_MERGE']:
+        elif mr_type == CommunityEditsQueue.TYPE['AUTHOR_MERGE']:
             for olid in olids:
                 author = web.ctx.site.get(f'/authors/{olid}')
                 if author and author.name:

@@ -165,7 +165,7 @@ class CommunityEditsQueue:
         status: int = STATUS['PENDING'],
         comment: str = None,
         title: str = None,
-        type: int = None,
+        mr_type: int = None,
     ):
         """
         Inserts a new record into the table.
@@ -185,7 +185,7 @@ class CommunityEditsQueue:
             status=status,
             comments=json_comment,
             title=title,
-            type=type,
+            mr_type=mr_type,
         )
 
     @classmethod
