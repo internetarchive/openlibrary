@@ -105,7 +105,7 @@ FIELD_NAME_MAP = {
     'by': 'author_name',
     'publishers': 'publisher',
     'subtitle': 'alternative_subtitle',
-    # **({'title': 'alternative_title'} if get_solr_next() else {}),
+    'title': 'alternative_title',
     'work_subtitle': 'subtitle',
     'work_title': 'title',
     # "Private" fields
@@ -495,10 +495,7 @@ def run_solr_query(
         if use_dismax:
             params.append(('q', ' '.join(q_list)))
             params.append(('defType', 'dismax'))
-            if False:  # get_solr_next():
-                params.append(('qf', 'text alternative_title^20 author_name^20'))
-            else:
-                params.append(('qf', 'text title^20 author_name^20'))
+            params.append(('qf', 'text alternative_title^20 author_name^20'))
             params.append(('bf', 'min(100,edition_count)'))
         else:
             params.append(('q', ' '.join(q_list + ['_val_:"sqrt(edition_count)"^10'])))
