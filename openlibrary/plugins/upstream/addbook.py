@@ -1135,9 +1135,7 @@ class subjects_autocomplete(delegate.page):
         data = solr.select(solr_q, **params)
         docs = []
         for d in data['docs']:
-            if (key == "" and d['subject_type'] == 'subject') or d[
-                'subject_type'
-            ] == key:
+            if d['subject_type'] == key or 'subject':
                 docs.append(
                     {
                         'name': '"' + d['name'] + '"'
