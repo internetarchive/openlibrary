@@ -98,9 +98,8 @@
       "<rootDir>/openlibrary/plugins/openlibrary/js/",
       "<rootDir>/tests/unit/js/"
     ],
-    "transform": {
-      "^.+\\.js$": "babel-jest",
-      "^.+\\.(css|less)$": "./tests/unit/js/styleMock.js"
+    "moduleNameMapper": {
+      "\\.(css|less)$": "<rootDir>/tests/unit/js/styleMock.js"
     },
     "testEnvironment": "jsdom",
     "collectCoverageFrom": [
