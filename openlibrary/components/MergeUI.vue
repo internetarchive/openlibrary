@@ -22,7 +22,7 @@
 
 <script>
 import MergeTable from './MergeUI/MergeTable.vue'
-import { do_merge, update_merge_request, createMergeRequest } from './MergeUI/utils.js';
+import { do_merge, update_merge_request, createMergeRequest, DEFAULT_EDITION_LIMIT } from './MergeUI/utils.js';
 
 export default {
     name: 'app',
@@ -61,10 +61,14 @@ export default {
     methods: {
         async doMerge() {
             if (!this.$refs.mergeTable.merge) return;
-            const { record: master, dupes, editions_to_move } = this.$refs.mergeTable.merge;
+            const { record: master, dupes, editions_to_move, unmergeable_works } = this.$refs.mergeTable.merge;
 
             this.mergeStatus = 'Saving...';
             try {
+                if (unmergeable_works.length)
+                {
+                    throw new Error(`Could not merge: ${unmergeable_works.join(', ')} has more than ${DEFAULT_EDITION_LIMIT} editions.`);
+                }
                 const r = await do_merge(master, dupes, editions_to_move, this.mrid);
                 this.mergeOutput = await r.json();
                 if (this.mrid) {
@@ -75,6 +79,7 @@ export default {
                 }
             } catch (e) {
                 this.mergeOutput = e.message;
+                this.mergeStatus = 'Do Merge';
                 throw e;
             }
             this.mergeStatus = 'Done';
