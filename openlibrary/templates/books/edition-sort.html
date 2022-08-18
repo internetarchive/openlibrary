@@ -21,7 +21,7 @@ $ seeall = "//archive.org/download/XXX"
 
 $ oclc_numbers = (book.oclc_numbers and book.oclc_numbers[0]) or ""
 $ isbn_13 = book.get_isbn13()
-$ isbn_10 = isbn_13 and isbn_13_to_isbn_10(isbn_13)
+$ isbn_10 = (isbn_13 and isbn_13_to_isbn_10(isbn_13)) or book.get_isbn10()
 $ isbn = isbn_10 or isbn_13
 $ asin = isbn_10 or None
 
