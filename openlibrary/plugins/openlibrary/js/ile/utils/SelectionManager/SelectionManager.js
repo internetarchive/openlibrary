@@ -3,6 +3,7 @@ import $ from 'jquery';
 import { move_to_work, move_to_author } from '../ol.js';
 import { PersistentToast } from '../../../Toast.js';
 import './SelectionManager.less';
+import { createRequest, REQUEST_TYPES } from '../../../merge-request-table/MergeRequestService'
 
 /**
  * The SelectionManager is responsible for making things (e.g. books in search results,
@@ -211,7 +212,7 @@ SelectionManager.SELECTION_PROVIDERS = [
      * This selection provider makes books in search results selectable.
      */
     {
-        path: /(\/authors\/OL\d+A.*|\/search)/,
+        path: /^(\/search)$/,
         selector: '.searchResultItem',
         image: el => $(el).find('.bookcover img')[0].src,
         singular: 'work',
@@ -253,6 +254,17 @@ SelectionManager.SELECTION_PROVIDERS = [
          **/
         data: el => el.href.match(/OL\d+A/)[0],
     },
+    /**
+     * This selection provider makes authors selectable on search result pages
+     */
+    {
+        path: /^(\/search\/authors)$/,
+        selector: '.searchResultItem',
+        image: el => $(el).find('img.cover')[0].src,
+        singular: 'author',
+        plural: 'authors',
+        data: el => $(el).find('a')[0].href.match(/OL\d+A/)[0],
+    },
 ];
 
 /**
@@ -280,30 +292,7 @@ SelectionManager.ACTIONS = [
                 const url = new URL(href)
                 const params = new URLSearchParams(url.search)
                 const records = params.get('records')
-                $.ajax({
-                    url: '/merges',
-                    method: 'POST',
-                    data: {
-                        work_ids: records,
-                        comment: comment,
-                        rtype: 'merge-works',
-                        action: 'create'
-                    }
-                })
-                    .done(function(resp) {
-                        let message = resp.error ? resp.error : 'Merge request submitted!'
-                        if (resp.error) {
-                            message = resp.error
-                        } else {
-                            const username = document.querySelector('body').dataset.username
-                            window.ILE.reset()
-                            message = `Merge request submitted! View request <a href="/merges?submitter=${username}#mrid-${resp.id}" target="_blank">here</a>.`
-                        }
-                        new PersistentToast(message, 'light-yellow').show()
-                    })
-                    .fail(function() {
-                        new PersistentToast('Merge request failed. Please try again in a few moments.', 'light-yellow').show()
-                    })
+                createMergeRequest(records, REQUEST_TYPES['WORK_MERGE'], comment)
             }
         }
     },
@@ -319,10 +308,45 @@ SelectionManager.ACTIONS = [
         applies_to_type: 'author',
         multiple_only: true,
         name: 'Merge Authors...',
-        href: olids => `https://openlibrary.org/authors/merge?${olids.map(olid => `key=${olid}`).join('&')}`,
+        href: olids => `/authors/merge?${olids.map(olid => `key=${olid}`).join('&')}`,
         elevated_permissions: true,
     },
+    {
+        applies_to_type: 'author',
+        multiple_only: true,
+        name: 'Merge Authors...',
+        href: olids => `/authors/merge?${olids.map(olid => `key=${olid}`).join('&')}`,
+        elevated_permissions: false,
+        click_listener: evt => {
+            evt.preventDefault()
+            const comment = prompt('(Optional) Are there specific details our librarians should note about this merge request?')
+            if (comment !== null) {
+                const href = document.querySelector('#ile-drag-actions').children[0].href
+                const olids = href.match(/OL(\d)+A/g)
+                createMergeRequest(olids.join(','), REQUEST_TYPES['AUTHOR_MERGE'], comment)
+            }
+        }
+    },
 ];
+
+async function createMergeRequest(olids, type, comment) {
+    return createRequest(olids, 'create-pending', type, comment)
+        .then(result => result.json())
+        .then(data => {
+            let message;
+            if (data.status === 'ok') {
+                const username = document.querySelector('body').dataset.username
+                window.ILE.reset()
+                message = `Merge request submitted! View request <a href="/merges?submitter=${username}#mrid-${data.id}" target="_blank">here</a>.`
+            } else {
+                message = data.error
+            }
+            new PersistentToast(message, 'light-yellow').show()
+        })
+        .catch(function() {
+            new PersistentToast('Merge request failed. Please try again in a few moments.', 'light-yellow').show()
+        })
+}
 
 function sigmoid(x) {
     return Math.exp(x) / (Math.exp(x) + 1);

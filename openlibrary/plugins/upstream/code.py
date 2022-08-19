@@ -24,7 +24,6 @@ from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream import merge_authors
 from openlibrary.plugins.upstream import edits
 from openlibrary.plugins.upstream import borrow, recentchanges  # TODO: unused imports?
-from openlibrary.plugins.upstream.edits import create_request
 from openlibrary.plugins.upstream.utils import render_component
 
 if not config.get('coverstore_url'):

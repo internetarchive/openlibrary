@@ -52,6 +52,10 @@ $ page = int(input(page=1).page)
           </tr>
         </thead>
         <tbody>
+        $if not merge_requests:
+          <tr>
+            <td colspan="5">$_('No entries here!')</td>
+          </tr>
         $for r in merge_requests:
           $ work_title = r.get('title', 'an untitled work')
           $ comments = r.get('comments', {}).get('comments', [])
@@ -59,13 +63,14 @@ $ page = int(input(page=1).page)
           $ is_open = r['status'] == 1
           $ url = "%s&mrid=%s" % (r['url'], r['id'])
           $ is_submitter = username == r['submitter']
+          $ type_str = _('Author') if r['mr_type'] == 2 else _('Work')
           <tr id="mrid-$(r['id'])">
             <td>$r['submitter']<br>$datestr(r['created'])</td>
             <td id="status-cell-$(r['id'])">$status</td>
 
             <td id="comment-cell-$(r['id'])" class="comment-cell">
               <div class="comment-cell__summary">
-                <span>$:_('Merge request for <span class="book-title">%(title)s</span>', title=work_title)</span>
+                <span>$:_('<strong>%(type)s</strong> merge request for <span class="book-title">%(title)s</span>', title=work_title, type=type_str)</span>
                 <span>$_('Comments'): $len(comments)</span>
               </div>
 
@@ -88,25 +93,23 @@ $ page = int(input(page=1).page)
                 <hr>
                 <div class="comment-cell__input">
                   <textarea rows="1" placeholder="$_('Add a comment...')"></textarea>
-                  <input class="mr-comment-btn" type="button" value="Reply" data-mrid="$r['id']">
+                  <input class="mr-comment-btn" type="button" value="Reply" data-mrid="$r['id']" data-merge-type="$r['mr_type']">
                 </div>
             </td>
             <td id="reviewer-cell-$(r['id'])">
               $if can_merge and is_open and r.get('reviewer') == username:
-                $r['reviewer'] <span class="mr-unassign" data-mrid="$r['id']">&times;</span>
+                $r['reviewer'] <span class="mr-unassign" data-mrid="$r['id']" data-merge-type="$r['mr_type']">&times;</span>
               $elif r.get('reviewer'):
                 $r['reviewer']
             </td>
             <td>
-              $if can_merge and is_open:
-                $if (not r.get('reviewer') or r.get('reviewer') == username):
-                  <a class="mr-resolve-link" data-mrid="$r['id']" href="$url" target="_blank">$_('Merge')</a>
-                $elif is_submitter:
-                  <a class="mr-close-link" data-mrid="$r['id']" href="javascript:;">$_('Close')</a>
+              $if is_open:
+                $if is_submitter:
+                  <a class="mr-close-link" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">$_('Close')</a>
+                $elif can_merge and (not r.get('reviewer') or r.get('reviewer') == username):
+                  <a class="mr-resolve-link" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="$url" target="_blank">$_('Merge')</a>
             </td>
           </tr>
-          $if not merge_requests:
-            <p>$_('No entries here!')</p>
         </tbody>
       </table>
   </div>

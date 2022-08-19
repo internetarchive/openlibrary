@@ -1,5 +1,6 @@
 /* eslint no-console: 0 */
 import _ from 'lodash';
+import { approveRequest, declineRequest, createRequest, REQUEST_TYPES } from '../../plugins/openlibrary/js/merge-request-table/MergeRequestService'
 
 const collator = new Intl.Collator('en-US', {numeric: true})
 export const DEFAULT_EDITION_LIMIT = 200
@@ -154,16 +155,12 @@ export function get_ratings(key) {
  * @returns {Promise<Response>} A response to the request
  */
 export function update_merge_request(mrid, action, comment) {
-    const formData = new FormData();
-    formData.set('mrid', mrid)
-    formData.set('action', action)
-    if (comment) {
-        formData.set('comment', comment)
+    if (action === 'approve') {
+        return approveRequest(mrid, comment)
     }
-    return fetch('/merges', {
-        method: 'POST',
-        body: formData
-    })
+    else if (action === 'decline') {
+        return declineRequest(mrid, comment)
+    }
 }
 
 /**
@@ -174,14 +171,8 @@ export function update_merge_request(mrid, action, comment) {
  * @returns {Promise<Response>}
  */
 export function createMergeRequest(workIds) {
-    const formData = new FormData()
-    const normalizedIds = prepareIds(workIds)
-    formData.set('action', 'create-merged')
-    formData.set('work_ids', normalizedIds.join(','))
-    return fetch('/merges', {
-        method: 'POST',
-        body: formData
-    })
+    const normalizedIds = prepareIds(workIds).join(',')
+    return createRequest(normalizedIds, 'create-merged', REQUEST_TYPES['WORK_MERGE'])
 }
 
 /**

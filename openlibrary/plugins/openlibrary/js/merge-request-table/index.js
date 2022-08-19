@@ -1,4 +1,5 @@
 import { FadingToast } from '../Toast';
+import { commentOnRequest, declineRequest, claimRequest, unassignRequest } from './MergeRequestService';
 
 /**
  * Adds functionality for closing librarian requests.
@@ -26,7 +27,7 @@ export function initCloseLinks(elems) {
 async function onCloseClick(mrid, parentRow) {
     const comment = prompt('(Optional) Why are you closing this request?')
     if (comment !== null) {
-        await closeRequest(mrid, comment)
+        await close(mrid, comment)
             .then(result => result.json())
             .then(data => {
                 if (data.status === 'ok') {
@@ -46,8 +47,8 @@ async function onCloseClick(mrid, parentRow) {
  * @param {string} comment Message stating why the request was closed
  * @returns {Promise<Response>} The results of the update POST
  */
-async function closeRequest(mrid, comment) {
-    return updateRequest('decline', mrid, comment)
+async function close(mrid, comment) {
+    return declineRequest(mrid, comment)
 }
 
 /**
@@ -71,15 +72,15 @@ export function initCommenting(elems) {
  * @param {Number} mrid Unique identifier for the request that is being commented on
  */
 async function onCommentClick(textarea, mrid) {
-    const comment = textarea.value;
+    const c = textarea.value;
 
-    if (comment) {
-        await commentOnRequest(mrid, comment)
+    if (c) {
+        await comment(mrid, c)
             .then(result => result.json())
             .then(data => {
                 if (data.status === 'ok') {
                     new FadingToast('Comment updated!').show()
-                    updateCommentsView(mrid, comment)
+                    updateCommentsView(mrid, c)
                     textarea.value = ''
                 } else {
                     new FadingToast('Failed to submit comment. Please try again in a few moments.').show()
@@ -98,8 +99,8 @@ async function onCommentClick(textarea, mrid) {
  * @param {string} comment The new comment
  * @returns {Promise<Response>} The results of the update POST request
  */
-async function commentOnRequest(mrid, comment) {
-    return updateRequest('comment', mrid, comment)
+async function comment(mrid, comment) {
+    return commentOnRequest(mrid, comment)
 }
 
 /**
@@ -139,28 +140,6 @@ async function updateCommentsView(mrid, comment) {
             // Display new
             newCommentDiv.appendChild(template.content.firstChild)
         })
-}
-
-/**
- * Updates an existing librarian request.
- *
- * @param {'comment'|'claim'|'approve'|'decline'} action Denotes the type of update being sent
- * @param {Number} mrid Unique ID of the request that's being updated
- * @param {string} comment Optional comment about the update
- * @returns
- */
-async function updateRequest(action, mrid, comment = null) {
-    const formData = new FormData();
-    formData.set('mrid', mrid)
-    formData.set('action', action)
-    if (comment) {
-        formData.set('comment', comment)
-    }
-
-    return fetch('/merges', {
-        method: 'POST',
-        body: formData
-    })
 }
 
 /**
@@ -215,7 +194,7 @@ export function initRequestClaiming(elems) {
     for (const elem of elems) {
         elem.addEventListener('click', function() {
             const mrid = elem.dataset.mrid
-            claimRequest(mrid, elem)
+            claim(mrid, elem)
         })
     }
 }
@@ -225,8 +204,8 @@ export function initRequestClaiming(elems) {
  *
  * @param {Number} mrid Unique identifier for the request being claimed
  */
-async function claimRequest(mrid) {
-    await updateRequest('claim', mrid)
+async function claim(mrid) {
+    await claimRequest(mrid)
         .then(result => result.json())
         .then(data => {
             if (data.status === 'ok') {
@@ -267,7 +246,7 @@ export function initUnassignment(elems) {
 }
 
 async function unassign(mrid) {
-    updateRequest('unassign', mrid)
+    await unassignRequest(mrid)
         .then(result => result.json())
         .then(data => {
             if (data.status === 'ok') {
