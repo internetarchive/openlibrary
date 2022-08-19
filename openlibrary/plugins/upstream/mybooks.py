@@ -248,7 +248,7 @@ class MyBooksTemplate:
                 lists=self.lists,
                 public=is_public,
                 owners_page=is_logged_in_user,
-                sort_order=sort
+                sort_order=sort,
             )
 
         raise web.seeother(self.user.key)
