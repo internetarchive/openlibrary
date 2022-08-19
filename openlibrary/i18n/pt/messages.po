@@ -274,7 +274,7 @@ msgstr "Email"
 
 #: login.html:41
 msgid "Forgot your Internet Archive email?"
-msgstr "Esqueceu seu email do Arquiivo da Internet?"
+msgstr "Esqueceu seu email do Arquivo da Internet?"
 
 #: account/email/forgot-ia.html:33 forms.py:31 login.html:51
 msgid "Password"
@@ -1915,7 +1915,7 @@ msgstr "Kindle (azw3)"
 
 #: book_providers/standard_ebooks_download_options.html:16
 msgid "Download a Kobo file from Standard Ebooks"
-msgstr "Baixar um arquiivo Kobo do Standard Ebooks"
+msgstr "Baixar um arquivo Kobo do Standard Ebooks"
 
 #: book_providers/standard_ebooks_download_options.html:16
 msgid "Kobo (kepub)"
