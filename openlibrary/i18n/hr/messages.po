@@ -4912,7 +4912,7 @@ msgid ""
 "read</a>!"
 msgstr ""
 "Ovdje su knjige koje %(user)s <a href=\"%(username)s/books/currently-reading"
-"\">trenutačno čita</a>, koje je<a href=\"%(username)s/books/already-read"
+"\">trenutačno čita</a>, koje je <a href=\"%(username)s/books/already-read"
 "\">već pročitao/la</a> i koje <a href=\"%(username)s/books/want-to-read"
 "\">želi čitati</a>!"
 
