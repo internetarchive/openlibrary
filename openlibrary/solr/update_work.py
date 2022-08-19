@@ -559,14 +559,13 @@ class SolrProcessor:
         if number_of_pages_median:
             add('number_of_pages_median', number_of_pages_median)
 
-        if get_solr_next():
-            add_list(
-                "editions",
-                [
-                    build_edition_data(ed, ia_metadata.get(ed.get('ocaid', '').strip()))
-                    for ed in editions
-                ],
-            )
+        add_list(
+            "editions",
+            [
+                build_edition_data(ed, ia_metadata.get(ed.get('ocaid', '').strip()))
+                for ed in editions
+            ],
+        )
 
         field_map = [
             ('lccn', 'lccn'),
@@ -611,11 +610,6 @@ class SolrProcessor:
         add("last_modified_i", self.get_last_modified(w, editions))
 
         d |= self.get_ebook_info(editions, ia_metadata)
-
-        # See https://github.com/internetarchive/openlibrary/issues/6836
-        # This was half-implemented
-        if 'ia_collection' in d and not get_solr_next():
-            del d['ia_collection']
 
         return d
 
@@ -684,11 +678,10 @@ class SolrProcessor:
         ebook_info["ebook_count_i"] = sum(
             1 for e in solr_editions if e.ebook_access > bp.EbookAccess.UNCLASSIFIED
         )
-        if get_solr_next():
-            ebook_info["ebook_access"] = max(
-                (e.ebook_access for e in solr_editions),
-                default=bp.EbookAccess.NO_EBOOK,
-            ).to_solr_str()
+        ebook_info["ebook_access"] = max(
+            (e.ebook_access for e in solr_editions),
+            default=bp.EbookAccess.NO_EBOOK,
+        ).to_solr_str()
         ebook_info["has_fulltext"] = any(e.has_fulltext for e in solr_editions)
         ebook_info["public_scan_b"] = any(e.public_scan_b for e in solr_editions)
 

@@ -250,7 +250,7 @@ services:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
       - EXTRA_OPTS=--solr-url http://ol-solr0:8984/solr/openlibrary
-        --solr-next
+        --no-solr-next
     volumes:
       - ../olsystem:/olsystem
     logging:
