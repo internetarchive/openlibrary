@@ -1,5 +1,5 @@
 <template>
-    <div v-if="record.key.includes('works') && (!merged || (merged && record != merged.record))">
+    <div v-if="record.type.key === '/type/work' && (!merged || (merged && record != merged.record))">
         <div class="list-counts" v-if="lists">
         <a :href="`${record.key}/-/lists`">{{lists[record.key].size}} list{{lists[record.key].size == 1 ? '' : 's'}}</a>
         </div>
