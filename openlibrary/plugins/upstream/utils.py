@@ -39,7 +39,7 @@ from infogami.infobase.client import Thing, Changeset, storify
 
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
-from openlibrary.core import cache, ab
+from openlibrary.core import cache
 
 
 class MultiDict(MutableMapping):
