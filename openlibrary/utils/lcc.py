@@ -114,7 +114,6 @@ def short_lcc_to_sortable_lcc(lcc: str) -> str | None:
     """
     See Sorting section of doc above
     :param str lcc: unformatted lcc
-    :return: basestring|None
     """
     m = LCC_PARTS_RE.match(clean_raw_lcc(lcc))
     if not m:
