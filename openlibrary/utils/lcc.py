@@ -139,8 +139,6 @@ def short_lcc_to_sortable_lcc(lcc: str) -> str | None:
 def sortable_lcc_to_short_lcc(lcc: str) -> str:
     """
     As close to the inverse of make_sortable_lcc as possible
-    :param basestring lcc:
-    :return: basestring
     """
     m = LCC_PARTS_RE.match(lcc)
     assert m, f'Unable to parse LCC "{lcc}"'
@@ -156,8 +154,6 @@ def sortable_lcc_to_short_lcc(lcc: str) -> str:
 def clean_raw_lcc(raw_lcc: str) -> str:
     """
     Remove noise in lcc before matching to LCC_PARTS_RE
-    :param basestring raw_lcc:
-    :return: basestring
     """
     lcc = collapse_multiple_space(raw_lcc.replace('\\', ' ').strip(' '))
     if (lcc.startswith('[') and lcc.endswith(']')) or (
@@ -171,7 +167,6 @@ def normalize_lcc_prefix(prefix: str) -> str | None:
     """
     :param str prefix: An LCC prefix
     :return: Prefix transformed to be a prefix for sortable LCC
-    :return: str|None
 
     >>> normalize_lcc_prefix('A123')
     'A--0123'

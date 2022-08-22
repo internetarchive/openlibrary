@@ -39,8 +39,6 @@ class Disk:
     def get_many(self, keys: list[str]) -> dict:
         """
         Only gets templates
-        :param typing.List[str] keys:
-        :return: dict
         """
 
         def f(k):
@@ -60,7 +58,6 @@ class Disk:
 
         :param typing.List[dict or web.storage] docs:
         :param str or None comment: only here to match the signature of OpenLibrary api
-        :return None:
         """
 
         def write(path, text):
@@ -140,7 +137,6 @@ class KeyVersionPair(namedtuple('KeyVersionPair', 'key version')):
     def from_uri(uri: str) -> KeyVersionPair:
         """
         :param str uri: either something like /works/OL1W, /books/OL1M?v=3, etc.
-        :return: KeyVersionPair
         """
 
         if '?v=' in uri:
@@ -151,7 +147,6 @@ class KeyVersionPair(namedtuple('KeyVersionPair', 'key version')):
 
     def to_uri(self) -> str:
         """
-        :return: str
         """
         uri = self.key
         if self.version:
@@ -179,7 +174,6 @@ def copy(
     :param recursive: Whether to recursively fetch an referenced docs
     :param editions: Whether to fetch editions of works as well
     :param saved: keys saved so far
-    :return None:
     """
     if saved is None:
         saved = set()
@@ -200,10 +194,6 @@ def copy(
         return docs
 
     def fetch(uris: list[str]) -> list[dict | web.storage]:
-        """
-        :param typing.List[str] uris:
-        :return: typing.List[dict or web.storage]
-        """
         docs: list = []
 
         # The remaining code relies on cache being a dict.
@@ -369,7 +359,6 @@ def main(
     :param editions: Also fetch all the editions of works
     :param lists: Copy docs from list(s)
     :param search: Run a search on open library and copy docs from the results
-    :return None:
     """
 
     # Mypy doesn't handle union-ing types across if statements -_-

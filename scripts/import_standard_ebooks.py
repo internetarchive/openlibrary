@@ -136,7 +136,6 @@ def import_job(
     """
     :param str ol_config: Path to openlibrary.yml file
     :param bool dry_run: If true, only print out records to import
-    :return: None
     """
     load_config(ol_config)
 
