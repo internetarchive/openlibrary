@@ -9,7 +9,9 @@ __all__ = ["RateLimitProcessor"]
 class RateLimitProcessor:
     """Application processor to ratelimit the access per ip."""
 
-    def __init__(self, limit: int, window_size: int = 600, path_regex: str = "/.*") -> None:
+    def __init__(
+        self, limit: int, window_size: int = 600, path_regex: str = "/.*"
+    ) -> None:
         """Creates a rate-limit processor to limit the number of
         requests/ip in the time frame.
 

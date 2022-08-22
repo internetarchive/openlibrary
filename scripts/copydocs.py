@@ -146,8 +146,7 @@ class KeyVersionPair(namedtuple('KeyVersionPair', 'key version')):
         return KeyVersionPair._make([key, version])
 
     def to_uri(self) -> str:
-        """
-        """
+        """ """
         uri = self.key
         if self.version:
             uri += '?v=' + self.version
