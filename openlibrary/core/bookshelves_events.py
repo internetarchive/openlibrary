@@ -38,6 +38,7 @@ class BookshelvesEvents:
         return list(oldb.select(cls.TABLENAME, where=where_clause, vars=where_vars))
 
     # Update methods:
+    @classmethod
     def update_event_date(cls, pid, event_date):
         oldb = db.get_db()
 

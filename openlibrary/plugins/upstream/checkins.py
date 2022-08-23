@@ -66,17 +66,6 @@ class check_ins(delegate.page):
 
         Month and day can be None.  If the month is None, only the year is returned.
         If there is a month but day is None, the year and month are returned.
-
-        >>> check_ins.make_date_string(1999, 12, 22)
-        '1999-12-22'
-        >>> check_ins.make_date_string(1999, 2, 2)
-        '1999-02-02'
-        >>> check_ins.make_date_string(1999, 2, None)
-        '1999-02'
-        >>> check_ins.make_date_string(1999, None, None)
-        '1999'
-        >>> check_ins.make_date_string(1999, None, 2)
-        '1999'
         """
         result = f'{year}'
         if month:

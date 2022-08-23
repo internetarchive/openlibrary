@@ -1,6 +1,7 @@
 import web
 from openlibrary.core.db import get_db
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
@@ -54,6 +55,18 @@ CREATE TABLE community_edits_queue (
     reviewer text default null,
     url text not null,
     status int not null default 1
+);
+"""
+
+BOOKSHELVES_EVENTS_DDL = """
+CREATE TABLE bookshelves_events (
+    id serial primary key,
+    username text not null,
+    work_id integer not null,
+    edition_id integer not null,
+    event_type integer not null,
+    event_date text not null,
+    updated timestamp
 );
 """
 
@@ -297,3 +310,148 @@ class TestUsernameUpdate:
         )
 
         self.db.query('delete from community_edits_queue;')
+
+
+class TestCheckIns:
+    BOOKSHELVES_EVENTS_SETUP_ROWS = [
+        {
+            "id": 1,
+            "username": "@kilgore_trout",
+            "work_id": 1,
+            "edition_id": 2,
+            "event_type": 1,
+            "event_date": "2022-04-17",
+        },
+        {
+            "id": 2,
+            "username": "@kilgore_trout",
+            "work_id": 1,
+            "edition_id": 2,
+            "event_type": 2,
+            "event_date": "2022-05-10",
+        },
+        {
+            "id": 3,
+            "username": "@kilgore_trout",
+            "work_id": 1,
+            "edition_id": 2,
+            "event_type": 3,
+            "event_date": "2022-06-20",
+        },
+        {
+            "id": 4,
+            "username": "@billy_pilgrim",
+            "work_id": 3,
+            "edition_id": 4,
+            "event_type": 1,
+            "event_date": "2020",
+        },
+    ]
+
+    @classmethod
+    def setup_class(cls):
+        web.config.db_parameters = dict(dbn="sqlite", db=":memory:")
+        db = get_db()
+        db.query(BOOKSHELVES_EVENTS_DDL)
+
+    def setup_method(self):
+        self.db = get_db()
+        self.db.multiple_insert(
+            'bookshelves_events', self.BOOKSHELVES_EVENTS_SETUP_ROWS
+        )
+
+    def teardown_method(self):
+        self.db.query("delete from bookshelves_events;")
+
+    def test_create_event(self):
+        assert len(list(self.db.select('bookshelves_events'))) == 4
+        assert (
+            len(
+                list(
+                    self.db.select(
+                        'bookshelves_events', where={"username": "@billy_pilgrim"}
+                    )
+                )
+            )
+            == 1
+        )
+        BookshelvesEvents.create_event('@billy_pilgrim', 5, 6, '2022-01', event_type=1)
+        assert len(list(self.db.select('bookshelves_events'))) == 5
+        assert (
+            len(
+                list(
+                    self.db.select(
+                        'bookshelves_events', where={"username": "@billy_pilgrim"}
+                    )
+                )
+            )
+            == 2
+        )
+
+    def test_select_all_by_username(self):
+        assert len(list(self.db.select('bookshelves_events'))) == 4
+        assert (
+            len(
+                list(
+                    self.db.select(
+                        'bookshelves_events', where={"username": "@kilgore_trout"}
+                    )
+                )
+            )
+            == 3
+        )
+        BookshelvesEvents.create_event(
+            '@kilgore_trout', 7, 8, '2011-01-09', event_type=1
+        )
+        assert len(list(self.db.select('bookshelves_events'))) == 5
+        assert (
+            len(
+                list(
+                    self.db.select(
+                        'bookshelves_events', where={"username": "@kilgore_trout"}
+                    )
+                )
+            )
+            == 4
+        )
+
+    def test_update_event_date(self):
+        assert len(list(self.db.select('bookshelves_events', where={"id": 1}))) == 1
+        row = self.db.select('bookshelves_events', where={"id": 1})[0]
+        assert row['event_date'] == "2022-04-17"
+        new_date = "1999-01-01"
+        BookshelvesEvents.update_event_date(1, new_date)
+        row = self.db.select('bookshelves_events', where={"id": 1})[0]
+        assert row['event_date'] == new_date
+
+    def test_delete_by_id(self):
+        assert len(list(self.db.select('bookshelves_events'))) == 4
+        assert len(list(self.db.select('bookshelves_events', where={"id": 1}))) == 1
+        BookshelvesEvents.delete_by_id(1)
+        assert len(list(self.db.select('bookshelves_events'))) == 3
+        assert len(list(self.db.select('bookshelves_events', where={"id": 1}))) == 0
+
+    def test_delete_by_username(self):
+        assert len(list(self.db.select('bookshelves_events'))) == 4
+        assert (
+            len(
+                list(
+                    self.db.select(
+                        'bookshelves_events', where={"username": "@kilgore_trout"}
+                    )
+                )
+            )
+            == 3
+        )
+        BookshelvesEvents.delete_by_username('@kilgore_trout')
+        assert len(list(self.db.select('bookshelves_events'))) == 1
+        assert (
+            len(
+                list(
+                    self.db.select(
+                        'bookshelves_events', where={"username": "@kilgore_trout"}
+                    )
+                )
+            )
+            == 0
+        )
