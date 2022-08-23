@@ -78,6 +78,7 @@ class patron_check_ins(delegate.page):
     path = r'/check-ins/people/([^/]+)'
     encoding = 'json'
 
+    @authorized_for('/usergroup/admin')
     def POST(self, username):
         data = json.loads(web.data())
 
