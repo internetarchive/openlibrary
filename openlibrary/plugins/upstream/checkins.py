@@ -17,10 +17,11 @@ from openlibrary.utils.decorators import authorized_for
 class check_ins(delegate.page):
     path = r'/check-ins/OL(\d+)W'
 
+    @authorized_for('/usergroup/admin')
     def GET(self, work_id):
-        pass
+        return render_template('check_ins/test_form')
 
-    @authorized_for('/usergroup/beta-testers', '/usergroup/admin')
+    @authorized_for('/usergroup/admin')
     def POST(self, work_id):
         """Creates a check-in for the given work.
 
