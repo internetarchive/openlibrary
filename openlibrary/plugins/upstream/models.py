@@ -30,7 +30,7 @@ from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
 def follow_redirect(doc):
     if isinstance(doc, str) and doc.startswith("/a/"):
-        # Some edition records have authors as ["/a/OL1A""] insead of [{"key": "/a/OL1A"}].
+        # Some edition records have authors as ["/a/OL1A""] instead of [{"key": "/a/OL1A"}].
         # Hack to fix it temporarily.
         doc = web.ctx.site.get(doc.replace("/a/", "/authors/"))
 
