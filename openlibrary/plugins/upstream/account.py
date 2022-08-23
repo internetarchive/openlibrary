@@ -351,7 +351,7 @@ class account_login(delegate.page):
 
     * account_not_found: Error message is displayed.
     * account_bad_password: Error message is displayed with a link to reset password.
-    * account_not_verified: Error page is dispalyed with button to "resend verification email".
+    * account_not_verified: Error page is displayed with button to "resend verification email".
     """
 
     path = "/account/login"
