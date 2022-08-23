@@ -99,7 +99,7 @@ class show_marc(app.view):
         if m:
             raise web.seeother('/show-records/ia:' + m.group(1))
         m = re_lc_sanfranpl.match(filename)
-        if m:  # archive.org is case-sensative
+        if m:  # archive.org is case-sensitive
             mixed_case = (
                 f'SanFranPL{m.group(1)}/SanFranPL{m.group(2)}.out:{offset}:{length}'
             )

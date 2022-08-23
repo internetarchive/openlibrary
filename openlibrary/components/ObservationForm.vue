@@ -84,7 +84,7 @@ export default {
     data: function() {
         return {
             /**
-             * An object respresenting the currently selected tag type.
+             * An object representing the currently selected tag type.
              *
              * @example
              * {
