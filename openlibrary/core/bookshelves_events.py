@@ -37,7 +37,31 @@ class BookshelvesEvents:
         where_vars = {'username': username}
         return list(oldb.select(cls.TABLENAME, where=where_clause, vars=where_vars))
 
+    @classmethod
+    def select_by_id(cls, pid):
+        oldb = db.get_db()
+
+        return list(oldb.select(cls.TABLENAME, where='id=$id', vars={'id': pid}))
+
     # Update methods:
+    @classmethod
+    def update_event(cls, pid, event_date=None, data=None):
+        oldb = db.get_db()
+        updates = {}
+        if event_date:
+            updates['event_date'] = event_date
+        if data:
+            updates['data'] = data
+        if updates:
+            return oldb.update(
+                cls.TABLENAME,
+                where='id=$id',
+                vars={'id': pid},
+                updated=datetime.utcnow(),
+                **updates,
+            )
+        return 0
+
     @classmethod
     def update_event_date(cls, pid, event_date):
         oldb = db.get_db()
