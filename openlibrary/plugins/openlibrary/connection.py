@@ -112,7 +112,7 @@ class IAMiddleware(ConnectionMiddleware):
     def _get_itemid(self, key):
         """Returns internet archive item id from the key.
 
-        If the key is of the form "/books/ia:.*", the part ofter "/books/ia:"
+        If the key is of the form "/books/ia:.*", the part after "/books/ia:"
         is returned, otherwise None is returned.
         """
         if key and key.startswith("/books/ia:") and key.count("/") == 2:
@@ -516,7 +516,7 @@ class MigrationMiddleware(ConnectionMiddleware):
         """Some work/edition records references to redirected author records
         and that is making save fail.
 
-        This is a hack to work-around that isse.
+        This is a hack to work-around that issue.
         """
         json_data = self.get("openlibrary.org", {"key": key})
         if json:
