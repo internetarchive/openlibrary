@@ -52,6 +52,17 @@ INSERT INTO bookshelves (name, description) VALUES ('Want to Read', 'A list of b
 INSERT INTO bookshelves (name, description) VALUES ('Currently Reading', 'A list of books I am currently reading');
 INSERT INTO bookshelves (name, description) VALUES ('Already Read', 'A list of books I have finished reading');
 
+CREATE TABLE bookshelves_events (
+    id serial primary key,
+    username text not null,
+    work_id integer not null,
+    edition_id integer not null,
+    event_type integer not null,
+    event_date text not null,
+    data json,
+    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
+    created timestamp without time zone default (current_timestamp at time zone 'utc')
+);
 
 CREATE TABLE observations (
     work_id INTEGER not null,
