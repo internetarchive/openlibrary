@@ -9,4 +9,4 @@ mypy==0.971
 pymemcache==3.5.2
 pytest==7.1.2
 pytest-asyncio==0.18.3
-safety==1.10.3
+safety==2.1.1
