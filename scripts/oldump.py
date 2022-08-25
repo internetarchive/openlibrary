@@ -19,17 +19,22 @@ def log(*args) -> None:
 
 
 if __name__ == "__main__":
+    from contextlib import redirect_stdout
     from infogami import config
     from openlibrary.config import load_config
     from openlibrary.data import dump
     from openlibrary.utils.sentry import Sentry
 
-    log("{} on Python {}.{}.{}".format(sys.argv, *sys.version_info))  # Python 3.10.4
+    log("{} on Python {}.{}.{}".format(sys.argv, *sys.version_info))  # Python 3.10.4                                                                          
 
     ol_config = os.getenv("OL_CONFIG")
     if ol_config:
         logger.info(f"loading config from {ol_config}")
-        load_config(ol_config)
+        # Squelch output from infobase (needed for sentry setup)                                                                                               
+        # So it doesn't end up in our data dumps body                                                                                                          
+        with open(os.devnull, 'w') as devnull:
+            with redirect_stdout(devnull):
+                load_config(ol_config)
         sentry = Sentry(getattr(config, "sentry_cron_jobs", {}))
         if sentry.enabled:
             sentry.init()
