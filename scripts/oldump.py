@@ -25,13 +25,13 @@ if __name__ == "__main__":
     from openlibrary.data import dump
     from openlibrary.utils.sentry import Sentry
 
-    log("{} on Python {}.{}.{}".format(sys.argv, *sys.version_info))  # Python 3.10.4                                                                          
+    log("{} on Python {}.{}.{}".format(sys.argv, *sys.version_info))  # Python 3.10.4
 
     ol_config = os.getenv("OL_CONFIG")
     if ol_config:
         logger.info(f"loading config from {ol_config}")
-        # Squelch output from infobase (needed for sentry setup)                                                                                               
-        # So it doesn't end up in our data dumps body                                                                                                          
+        # Squelch output from infobase (needed for sentry setup)
+        # So it doesn't end up in our data dumps body
         with open(os.devnull, 'w') as devnull:
             with redirect_stdout(devnull):
                 load_config(ol_config)
