@@ -230,7 +230,8 @@ def make_index(dump_file):
     """Make index with "path", "title", "created" and "last_modified" columns."""
     log(f"make_index({dump_file})")
     start_time = datetime.now()
-    for i, type, key, revision, timestamp, json_data in enumerate(read_tsv(dump_file)):
+    for i, line in enumerate(read_tsv(dump_file)):
+        type, key, revision, timestamp, json_data = line
         data = json.loads(json_data)
         if type in ("/type/edition", "/type/work"):
             title = data.get("title", "untitled")
