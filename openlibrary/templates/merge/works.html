@@ -1,9 +1,13 @@
-$def with (mrid=None)
+$def with (mrid=None, can_merge='true')
+$# mrid : int : Reference to entry in merge requests table
+
 $var title: $_('Merge Works')
 
 $ bodyclass = ctx.setdefault('bodyclass', [])
 $ bodyclass.append('full-width')
 
-$ attrs = dict(mrid=mrid) if mrid else {}
+$ attrs = dict(canmerge=can_merge)
+$if mrid:
+  $ attrs['mrid'] = mrid
 
 $:render_component('MergeUI', attrs=attrs)

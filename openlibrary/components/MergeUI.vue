@@ -2,13 +2,13 @@
   <div id="app">
     <MergeTable :olids="olids" :show_diffs="show_diffs" ref="mergeTable"/>
     <div class="action-bar">
-        <div class="comment-input" v-if="mrid">
+        <div class="comment-input">
             <label for="comment">Comment: </label>
             <input name="comment" v-model="comment" type="text">
         </div>
         <div class="btn-group">
-            <button class="merge-btn" @click="doMerge" :disabled="mergeStatus != 'Do Merge'">{{mergeStatus}}</button>
-            <button class="reject-btn" v-if="mrid" @click="rejectMerge">Reject Merge</button>
+            <button class="merge-btn" @click="doMerge" :disabled="isDisabled">{{mergeStatus}}</button>
+            <button class="reject-btn" v-if="showRejectButton" @click="rejectMerge">Reject Merge</button>
         </div>
         <div id="diffs-toggle">
         <label>
@@ -24,6 +24,9 @@
 import MergeTable from './MergeUI/MergeTable.vue'
 import { do_merge, update_merge_request, createMergeRequest, DEFAULT_EDITION_LIMIT } from './MergeUI/utils.js';
 
+const DO_MERGE = 'Do Merge'
+const REQUEST_MERGE = 'Request Merge'
+
 export default {
     name: 'app',
     components: {
@@ -34,6 +37,14 @@ export default {
             type: [Number, String],
             required: false,
             default: ''
+        },
+        primary: {
+            type: String,
+            required: false
+        },
+        canmerge: {
+            type: String,
+            required: true
         }
     },
     data() {
@@ -48,13 +59,26 @@ export default {
     computed: {
         olids() {
             return this.url.searchParams.get('records', '').split(',')
+        },
+
+        isSuperLibrarian() {
+            return this.canmerge === 'true'
+        },
+
+        isDisabled() {
+            return this.mergeStatus !== DO_MERGE && this.mergeStatus !== REQUEST_MERGE
+        },
+
+        showRejectButton() {
+            return this.mrid && this.isSuperLibrarian
         }
     },
     mounted() {
+        const readyCta = this.isSuperLibrarian ? DO_MERGE : REQUEST_MERGE
         this.$watch(
             '$refs.mergeTable.merge',
             (new_value, old_value) => {
-                if (new_value && new_value !== old_value) this.mergeStatus = 'Do Merge';
+                if (new_value && new_value !== old_value) this.mergeStatus = readyCta;
             }
         );
     },
@@ -64,23 +88,30 @@ export default {
             const { record: master, dupes, editions_to_move, unmergeable_works } = this.$refs.mergeTable.merge;
 
             this.mergeStatus = 'Saving...';
-            try {
-                if (unmergeable_works.length)
-                {
-                    throw new Error(`Could not merge: ${unmergeable_works.join(', ')} has more than ${DEFAULT_EDITION_LIMIT} editions.`);
+            if (this.isSuperLibrarian) {
+                // Perform the merge and create new/update existing merge request
+                try {
+                    if (unmergeable_works.length)
+                    {
+                        throw new Error(`Could not merge: ${unmergeable_works.join(', ')} has more than ${DEFAULT_EDITION_LIMIT} editions.`);
+                    }
+                    const r = await do_merge(master, dupes, editions_to_move, this.mrid);
+                    this.mergeOutput = await r.json();
+                    if (this.mrid) {
+                        await update_merge_request(this.mrid, 'approve', this.comment)
+                    } else {
+                        const workIds = [master.key].concat(Array.from(dupes, item => item.key))
+                        await createMergeRequest(workIds)
+                    }
+                } catch (e) {
+                    this.mergeOutput = e.message;
+                    this.mergeStatus = this.isSuperLibrarian() ? DO_MERGE : REQUEST_MERGE;
+                    throw e;
                 }
-                const r = await do_merge(master, dupes, editions_to_move, this.mrid);
-                this.mergeOutput = await r.json();
-                if (this.mrid) {
-                    await update_merge_request(this.mrid, 'approve', this.comment)
-                } else {
-                    const workIds = [master.key].concat(Array.from(dupes, item => item.key))
-                    await createMergeRequest(workIds)
-                }
-            } catch (e) {
-                this.mergeOutput = e.message;
-                this.mergeStatus = 'Do Merge';
-                throw e;
+            } else {
+                // Create a new merge request with "pending" status
+                const workIds = [master.key].concat(Array.from(dupes, item => item.key))
+                await createMergeRequest(workIds, 'create-pending', this.comment)
             }
             this.mergeStatus = 'Done';
         },

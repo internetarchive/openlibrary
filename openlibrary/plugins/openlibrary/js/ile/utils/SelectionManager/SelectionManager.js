@@ -1,9 +1,7 @@
 // @ts-check
 import $ from 'jquery';
 import { move_to_work, move_to_author } from '../ol.js';
-import { PersistentToast } from '../../../Toast.js';
 import './SelectionManager.less';
-import { createRequest, REQUEST_TYPES } from '../../../merge-request-table/MergeRequestService'
 
 /**
  * The SelectionManager is responsible for making things (e.g. books in search results,
@@ -72,18 +70,12 @@ export default class SelectionManager {
 
         const actions = SelectionManager.ACTIONS.filter(a => (
             a.applies_to_type === provider.singular &&
-            (a.multiple_only ? count > 1 : count > 0) &&
-            a.elevated_permissions === this.canMerge
+            (a.multiple_only ? count > 1 : count > 0)
         ));
         const items = this.getSelectedItems().sort(this.collator.compare);
-        const target = this.canMerge ? 'target="_blank"' : ''
 
         for (const action of actions) {
-            const link = $(`<a ${target} href="${action.href(items)}">${action.name}</a>`)
-            $('#ile-drag-actions').append(link);
-            if (action.click_listener) {
-                link.on('click', action.click_listener)
-            }
+            $('#ile-drag-actions').append($(`<a target="_blank" href="${action.href(items)}">${action.name}</a>`));
         }
 
         if (selected) {
@@ -276,25 +268,6 @@ SelectionManager.ACTIONS = [
         multiple_only: true,
         name: 'Merge Works...',
         href: olids => `/works/merge?records=${olids.join(',')}`,
-        elevated_permissions: true,
-    },
-    {
-        applies_to_type: 'work',
-        multiple_only: true,
-        name: 'Request Merge...',
-        href: olids => `/works/merge?records=${olids.join(',')}`,
-        elevated_permissions: false,
-        click_listener: evt => {
-            evt.preventDefault()
-            const comment = prompt('(Optional) Are there specific details our librarians should note about this Merge Request?')
-            if (comment !== null) {
-                const href = document.querySelector('#ile-drag-actions').children[0].href
-                const url = new URL(href)
-                const params = new URLSearchParams(url.search)
-                const records = params.get('records')
-                createMergeRequest(records, REQUEST_TYPES['WORK_MERGE'], comment)
-            }
-        }
     },
     {
         // Someday, anyways!
@@ -302,51 +275,15 @@ SelectionManager.ACTIONS = [
         multiple_only: true,
         name: 'Merge Editions...',
         href: olids => `/works/merge?records=${olids.join(',')}`,
-        elevated_permissions: true,
     },
     {
         applies_to_type: 'author',
         multiple_only: true,
         name: 'Merge Authors...',
         href: olids => `/authors/merge?${olids.map(olid => `key=${olid}`).join('&')}`,
-        elevated_permissions: true,
-    },
-    {
-        applies_to_type: 'author',
-        multiple_only: true,
-        name: 'Merge Authors...',
-        href: olids => `/authors/merge?${olids.map(olid => `key=${olid}`).join('&')}`,
-        elevated_permissions: false,
-        click_listener: evt => {
-            evt.preventDefault()
-            const comment = prompt('(Optional) Are there specific details our librarians should note about this merge request?')
-            if (comment !== null) {
-                const href = document.querySelector('#ile-drag-actions').children[0].href
-                const olids = href.match(/OL(\d)+A/g)
-                createMergeRequest(olids.join(','), REQUEST_TYPES['AUTHOR_MERGE'], comment)
-            }
-        }
     },
 ];
 
-async function createMergeRequest(olids, type, comment) {
-    return createRequest(olids, 'create-pending', type, comment)
-        .then(result => result.json())
-        .then(data => {
-            let message;
-            if (data.status === 'ok') {
-                const username = document.querySelector('body').dataset.username
-                window.ILE.reset()
-                message = `Merge request submitted! View request <a href="/merges?submitter=${username}#mrid-${data.id}" target="_blank">here</a>.`
-            } else {
-                message = data.error
-            }
-            new PersistentToast(message, 'light-yellow').show()
-        })
-        .catch(function() {
-            new PersistentToast('Merge request failed. Please try again in a few moments.', 'light-yellow').show()
-        })
-}
 
 function sigmoid(x) {
     return Math.exp(x) / (Math.exp(x) + 1);

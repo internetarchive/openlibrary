@@ -164,15 +164,16 @@ export function update_merge_request(mrid, action, comment) {
 }
 
 /**
- * Composes and POSTs a merge request with status "Merged"
+ * Composes and POSTs a new merge request.
  *
  * @param {Array<string>} workIds Un-normalized work OLIDs
+ * @param {'create-merged'|'create-pending'} action Determines the status code of the new request
  *
  * @returns {Promise<Response>}
  */
-export function createMergeRequest(workIds) {
+export function createMergeRequest(workIds, action = 'create-merged', comment = null) {
     const normalizedIds = prepareIds(workIds).join(',')
-    return createRequest(normalizedIds, 'create-merged', REQUEST_TYPES['WORK_MERGE'])
+    return createRequest(normalizedIds, action, REQUEST_TYPES['WORK_MERGE'], comment)
 }
 
 /**
