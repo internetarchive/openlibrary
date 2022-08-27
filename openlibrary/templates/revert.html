@@ -1,0 +1,42 @@
+$def with (form, a, b, errors=None)
+
+$ errors = errors or []
+
+$var title: $_("Revert %s", a.key)
+
+$putctx("robots", "noindex,nofollow")
+
+<div id="contentHead">
+
+    $:macros.databarDiff()
+
+    $if a.type.key in ["/type/edition", "/type/work", "/type/page"]:
+        $ title = a.title or a.key
+    $elif a.type.key in ["/type/author"]:
+        $ title = a.name or a.key
+    $else:
+        $ title = a.key
+
+    <h2 class="collapse"><a href="$a.key">$title</a> &rarr; $_('Revert')</h2>
+
+</div>
+
+
+<div id="contentBody">
+    <pre>$form.preview.value</pre>
+    $if errors:
+        $_('Unable to revert due to errors:')
+        <ul>
+            $for error in errors:
+                <li><pre>$error</pre></li>
+        </ul>
+
+    <form name="revert" method="POST">
+        $:form.render()
+    </form>
+
+    <hr/>
+
+    $:render_template('thing_diff', a, b)
+    <div class="clearfix"></div>
+</div>

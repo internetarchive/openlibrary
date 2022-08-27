@@ -55,10 +55,12 @@ class Edition(models.Edition):
     title = property(get_title)
     title_prefix = property(get_title_prefix)
 
-    def get_authors(self):
+    def get_authors(self, follow_redirects=True):
         """Added to provide same interface for work and edition"""
-        authors = [follow_redirect(a) for a in self.authors]
-        authors = [a for a in authors if a and a.type.key == "/type/author"]
+        authors = [a for a in self.authors]
+        if follow_redirects:
+            authors = [follow_redirect(a) for a in self.authors]
+            authors = [a for a in authors if a and a.type.key == "/type/author"]
         return authors
 
     def get_next(self):
@@ -631,10 +633,11 @@ class Work(models.Work):
                 author_names.append(author_name)
         return author_names
 
-    def get_authors(self):
+    def get_authors(self, follow_redirects=True):
         authors = [a.author for a in self.authors]
-        authors = [follow_redirect(a) for a in authors]
-        authors = [a for a in authors if a and a.type.key == "/type/author"]
+        if follow_redirects:
+            authors = [follow_redirect(a) for a in authors]
+            authors = [a for a in authors if a and a.type.key == "/type/author"]
         return authors
 
     def get_subjects(self):
