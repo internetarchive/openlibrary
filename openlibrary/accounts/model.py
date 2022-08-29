@@ -273,13 +273,13 @@ class Account(web.storage):
         an option.
         """
         filters = {
-            'filter': '', # self.get("")
-            'has_ebook': '', # self.get("")
-            'languages': [], # self.get("")
-            'age': '', # self.get("")
-            'year': '' # self.get("")
+            'filter': '',  # self.get("")
+            'has_ebook': '',  # self.get("")
+            'languages': [],  # self.get("")
+            'age': '',  # self.get("")
+            'year': '',  # self.get("")
         }
-        
+
         return filters
 
     def get_user(self):
