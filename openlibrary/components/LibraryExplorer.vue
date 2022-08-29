@@ -116,11 +116,7 @@ export default {
             jumpTo = selectedClassification.toQueryFormat(classificationString);
         }
         return {
-            if : { //a user is not connected
-                filterState: new FilterState()},
-            else : {
-                //filterState: new FilterState(filters['filter'], filters['has_ebook'], filters['languages'], filters['age'], filters['year'])
-                },
+            filterState: new FilterState(),
 
             sortState: {
                 order: jumpTo ? `${selectedClassification.field}_sort asc` : `random_${new Date().toISOString().split(':')[0]}`,
