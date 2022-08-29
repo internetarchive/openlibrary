@@ -266,6 +266,22 @@ class Account(web.storage):
         t = self.get("last_login")
         return t and helpers.parse_datetime(t)
 
+    def last_filters(self):
+        """Returns the last saved options of filters of the user, if available.
+
+        The `last_filters` will not be available for accounts, who have never choose
+        an option.
+        """
+        filters = {
+            'filter': '', # self.get("")
+            'has_ebook': '', # self.get("")
+            'languages': [], # self.get("")
+            'age': '', # self.get("")
+            'year': '' # self.get("")
+        }
+        
+        return filters
+
     def get_user(self):
         """A user is where preferences are attached to an account. An
         "Account" is outside of infogami in a separate table and is
