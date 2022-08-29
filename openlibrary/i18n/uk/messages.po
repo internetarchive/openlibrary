@@ -2388,11 +2388,11 @@ msgstr "Фізичний об'єкт"
 
 #: books/edit/edition.html:558
 msgid "What sort of book is it?"
-msgstr "Що це книга?"
+msgstr "Що це за книга?"
 
 #: books/edit/edition.html:559
 msgid "Paperback; Hardcover, etc."
-msgstr "Тверда; М'яка; Аудіокнига тощо."
+msgstr "Тверда обкладинка; М'яка обкладинка; Аудіокнига тощо."
 
 #: books/edit/edition.html:567
 msgid "How many pages?"
