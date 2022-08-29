@@ -1,7 +1,8 @@
+from __future__ import annotations
 import logging
 import re
 import time
-from typing import Optional, Union
+from typing import Any, Literal
 
 import requests
 from dateutil import parser as isoparser
@@ -44,7 +45,10 @@ def setup(config):
 
 
 class AmazonAPI:
-    """Amazon Product Advertising API 5.0 wrapper for Python"""
+    """
+    Amazon Product Advertising API 5.0 wrapper for Python
+    See https://webservices.amazon.com/paapi5/documentation/
+    """
 
     RESOURCES = {
         'all': [  # Hack: pulls all resource consts from GetItemsResource
@@ -71,17 +75,16 @@ class AmazonAPI:
         host: str = 'webservices.amazon.com',
         region: str = 'us-east-1',
         throttling: float = 0.9,
-    ):
+    ) -> None:
         """
         Creates an instance containing your API credentials.
 
-        :param key (string): affiliate key
-        :param secret (string): affiliate secret
-        :param tag (string): affiliate string
-        :param host (string): which server to query
-        :param region (string): which regional host to query
-        :param throttling (float): Reduce this value to wait longer
-          between API calls.
+        :param str key: affiliate key
+        :param str secret: affiliate secret
+        :param str tag: affiliate string
+        :param str host: which server to query
+        :param str region: which regional host to query
+        :param float throttling: Reduce this value to wait longer between API calls.
         """
         self.tag = tag
         self.throttling = throttling
@@ -108,16 +111,15 @@ class AmazonAPI:
 
     def get_products(
         self,
-        asins: Union[list, str],
+        asins: list | str,
         serialize: bool = False,
         marketplace: str = 'www.amazon.com',
-        resources=None,
+        resources: Any = None,
         **kwargs,
-    ):
+    ) -> list | None:
         """
-        :param asins (string): One or more ItemIds like ASIN that
-        uniquely identify an item or product URL. (Max 10) Separated
-        by comma or as a list.
+        :param str asins: One or more ItemIds like ASIN that uniquely identify an item
+        or product URL. (Max 10) Separated by comma or as a list.
         """
         # Wait before doing the request
         wait_time = 1 / self.throttling - (time.time() - self.last_query_time)
@@ -150,14 +152,13 @@ class AmazonAPI:
         return products if not serialize else [self.serialize(p) for p in products]
 
     @staticmethod
-    def serialize(product) -> dict:
+    def serialize(product: Any) -> dict:
         """Takes a full Amazon product Advertising API returned AmazonProduct
         with multiple ResponseGroups, and extracts the data we are
         interested in.
 
         :param AmazonAPI product:
         :return: Amazon metadata for one product
-        :rtype: dict
 
         {
           'price': '$54.06',
@@ -272,58 +273,60 @@ class AmazonAPI:
 
 
 @public
-def get_amazon_metadata(id_: str, id_type: str = 'isbn', resources=None):
+def get_amazon_metadata(
+    id_: str, id_type: Literal['asin', 'isbn'] = 'isbn', resources: Any = None
+) -> dict | None:
     """Main interface to Amazon LookupItem API. Will cache results.
 
     :param str id_: The item id: isbn (10/13), or Amazon ASIN.
     :param str id_type: 'isbn' or 'asin'.
     :return: A single book item's metadata, or None.
-    :rtype: dict or None
     """
     return cached_get_amazon_metadata(id_, id_type=id_type, resources=resources)
 
 
-def search_amazon(title='', author=''):
+def search_amazon(title: str = '', author: str = '') -> dict:
     """Uses the Amazon Product Advertising API ItemSearch operation to search for
     books by author and/or title.
     https://docs.aws.amazon.com/AWSECommerceService/latest/DG/ItemSearch.html
-
     XXX! Broken while migrating from paapi 4.0 to 5.0
-
-    :param str title: title of book to search for.
-    :param str author: author name of book to search for.
     :return: dict of "results", a list of one or more found books, with metadata.
-    :rtype: dict
     """
     pass
 
 
 def _get_amazon_metadata(
     id_: str,
-    id_type: str = 'isbn',
-    resources=None,
+    id_type: Literal['asin', 'isbn'] = 'isbn',
+    resources: Any = None,
     retries: int = 3,
     sleep_sec: float = 0.1,
-) -> Optional[dict]:
-    """Uses the Amazon Product Advertising API ItemLookup operation to locatate a
+) -> dict | None:
+    """Uses the Amazon Product Advertising API ItemLookup operation to locate a
     specific book by identifier; either 'isbn' or 'asin'.
-    https://docs.aws.amazon.com/AWSECommerceService/latest/DG/ItemLookup.html
+    https://webservices.amazon.com/paapi5/documentation/get-items.html
 
     :param str id_: The item id: isbn (10/13), or Amazon ASIN.
     :param str id_type: 'isbn' or 'asin'.
-    :param resources: Used for AWSE Commerce Service lookup -- See Amazon docs
+    :param Any resources: Used for AWSE Commerce Service lookup
+           See https://webservices.amazon.com/paapi5/documentation/get-items.html
     :param int retries: Number of times to query affiliate server before returning None
     :param float sleep_sec: Delay time.sleep(sleep_sec) seconds before each retry
     :return: A single book item's metadata, or None.
-    :rtype: dict or None
     """
     if not affiliate_server_url:
         return None
 
     if id_type == 'isbn':
-        id_ = normalize_isbn(id_)
+        isbn = normalize_isbn(id_)
+        if isbn is None:
+            return None
+        id_ = isbn
         if len(id_) == 13 and id_.startswith('978'):
-            id_ = isbn_13_to_isbn_10(id_)
+            isbn = isbn_13_to_isbn_10(id_)
+            if isbn is None:
+                return None
+            id_ = isbn
 
     try:
         r = requests.get(f'http://{affiliate_server_url}/isbn/{id_}')
@@ -341,12 +344,10 @@ def _get_amazon_metadata(
     return None
 
 
-def split_amazon_title(full_title: str) -> tuple[str, Optional[str]]:
-    """Splits an Amazon title into (title, subtitle),
-    strips parenthetical tags.
-    :param str full_title:
-    :rtype: (str, str | None)
-    :return: (title, subtitle | None)
+def split_amazon_title(full_title: str) -> tuple[str, str | None]:
+    """
+    Splits an Amazon title into (title, subtitle | None) and strips parenthetical
+    tags.
     """
 
     # strip parenthetical blocks wherever they occur
@@ -362,12 +363,10 @@ def split_amazon_title(full_title: str) -> tuple[str, Optional[str]]:
 
 def clean_amazon_metadata_for_load(metadata: dict) -> dict:
     """This is a bootstrapping helper method which enables us to take the
-    results of get_amazon_metadata() and create an
-    OL book catalog record.
+    results of get_amazon_metadata() and create an OL book catalog record.
 
     :param dict metadata: Metadata representing an Amazon product.
     :return: A dict representing a book suitable for importing into OL.
-    :rtype: dict
     """
 
     # TODO: convert languages into /type/language list
@@ -406,8 +405,8 @@ def clean_amazon_metadata_for_load(metadata: dict) -> dict:
 
 
 def create_edition_from_amazon_metadata(
-    id_: str, id_type: str = 'isbn'
-) -> Optional[str]:
+    id_: str, id_type: Literal['asin', 'isbn'] = 'isbn'
+) -> str | None:
     """Fetches Amazon metadata by id from Amazon Product Advertising API, attempts to
     create OL edition from metadata, and returns the resulting edition key `/key/OL..M`
     if successful or None otherwise.
@@ -415,7 +414,6 @@ def create_edition_from_amazon_metadata(
     :param str id_: The item id: isbn (10/13), or Amazon ASIN.
     :param str id_type: 'isbn' or 'asin'.
     :return: Edition key '/key/OL..M' or None
-    :rtype: str or None
     """
 
     md = get_amazon_metadata(id_, id_type=id_type)
@@ -431,10 +429,10 @@ def create_edition_from_amazon_metadata(
 
 
 def cached_get_amazon_metadata(*args, **kwargs):
-    """If the cached data is `None`, likely a 503 throttling occurred on
+    """If the cached data is `None`, it's likely a 503 throttling occurred on
     Amazon's side. Try again to fetch the value instead of using the
     cached value. It may 503 again, in which case the next access of
-    this page will trigger another re-cache. If the amazon API call
+    this page will trigger another re-cache. If the Amazon API call
     succeeds but the book has no price data, then {"price": None} will
     be cached as to not trigger a re-cache (only the value `None`
     will cause re-cache)
@@ -454,15 +452,17 @@ def cached_get_amazon_metadata(*args, **kwargs):
 
 
 @public
-def get_betterworldbooks_metadata(isbn: str) -> Optional[dict]:
+def get_betterworldbooks_metadata(isbn: str) -> dict | None:
     """
     :param str isbn: Unnormalisied ISBN10 or ISBN13
-    :return: Metadata for a single BWB book, currently listed on their catalog, or
+    :return: Metadata for a single BWB book, currently lited on their catalog, or
              an error dict.
-    :rtype: dict or None
     """
 
-    isbn = normalize_isbn(isbn)
+    isbn = normalize_isbn(isbn) or isbn
+    if isbn is None:
+        return None
+
     try:
         return _get_betterworldbooks_metadata(isbn)
     except Exception:
@@ -470,14 +470,13 @@ def get_betterworldbooks_metadata(isbn: str) -> Optional[dict]:
         return betterworldbooks_fmt(isbn)
 
 
-def _get_betterworldbooks_metadata(isbn: str) -> Optional[dict]:
+def _get_betterworldbooks_metadata(isbn: str) -> dict | None:
     """Returns price and other metadata (currently minimal)
     for a book currently available on betterworldbooks.com
 
     :param str isbn: Normalised ISBN10 or ISBN13
     :return: Metadata for a single BWB book currently listed on their catalog,
             or an error dict.
-    :rtype: dict or None
     """
 
     url = BETTERWORLDBOOKS_API_URL + isbn
@@ -510,16 +509,14 @@ def _get_betterworldbooks_metadata(isbn: str) -> Optional[dict]:
 
 def betterworldbooks_fmt(
     isbn: str,
-    qlt: Optional[str] = None,
-    price: Optional[str] = None,
-    market_price: Optional[list[str]] = None,
-) -> Optional[dict]:
+    qlt: str = None,
+    price: str = None,
+    market_price: list[str] = None,
+) -> dict | None:
     """Defines a standard interface for returning bwb price info
 
-    :param str isbn:
     :param str qlt: Quality of the book, e.g. "new", "used"
     :param str price: Price of the book as a decimal str, e.g. "4.28"
-    :rtype: dict or None
     """
     price_fmt = f"${price} ({qlt})" if price and qlt else None
     return {
