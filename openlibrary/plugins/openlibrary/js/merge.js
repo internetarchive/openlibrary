@@ -43,8 +43,7 @@ export function initAuthorMergePage() {
 
 function initRejectButton() {
     const rejectButton = document.querySelector('#reject-author-merge-btn')
-    console.log(rejectButton)
-    if(rejectButton) {
+    if (rejectButton) {
         rejectButton.addEventListener('click', function() {
             rejectMerge()
             rejectButton.disabled = true
