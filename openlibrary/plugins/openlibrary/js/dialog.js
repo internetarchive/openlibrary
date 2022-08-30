@@ -34,23 +34,27 @@ export function confirmDialog(callback, options) {
 function initConfirmationDialogs() {
     const CONFIRMATION_PROMPT_DEFAULTS = { autoOpen: false, modal: true };
     $('#noMaster').dialog(CONFIRMATION_PROMPT_DEFAULTS);
-    $('#confirmMerge').dialog(
-        $.extend({}, CONFIRMATION_PROMPT_DEFAULTS, {
-            buttons: {
-                'Yes, Merge': function() {
-                    const commentInput = document.querySelector('#author-merge-comment')
-                    if (commentInput.value) {
-                        document.querySelector('#hidden-comment-input').value = commentInput.value
+
+    const $confirmMerge = $('#confirmMerge')
+    if ($confirmMerge.length) {
+        $confirmMerge.dialog(
+            $.extend({}, CONFIRMATION_PROMPT_DEFAULTS, {
+                buttons: {
+                    'Yes, Merge': function() {
+                        const commentInput = document.querySelector('#author-merge-comment')
+                        if (commentInput.value) {
+                            document.querySelector('#hidden-comment-input').value = commentInput.value
+                        }
+                        $('#mergeForm').trigger('submit');
+                        $(this).parents().find('button').attr('disabled','disabled');
+                    },
+                    'No, Cancel': function() {
+                        $(this).dialog('close');
                     }
-                    $('#mergeForm').trigger('submit');
-                    $(this).parents().find('button').attr('disabled','disabled');
-                },
-                'No, Cancel': function() {
-                    $(this).dialog('close');
                 }
-            }
-        })
-    );
+            })
+        );
+    }
     $('#leave-waitinglist-dialog').dialog(
         $.extend({}, CONFIRMATION_PROMPT_DEFAULTS, {
             width: 450,
