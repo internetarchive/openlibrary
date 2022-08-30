@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <MergeTable :olids="olids" :show_diffs="show_diffs" ref="mergeTable"/>
+    <MergeTable :olids="olids" :show_diffs="show_diffs" :primary="primary" ref="mergeTable"/>
     <div class="action-bar">
         <div class="comment-input">
             <label for="comment">Comment: </label>
@@ -111,7 +111,9 @@ export default {
             } else {
                 // Create a new merge request with "pending" status
                 const workIds = [master.key].concat(Array.from(dupes, item => item.key))
-                await createMergeRequest(workIds, 'create-pending', this.comment)
+                const splitKey = master.key.split('/')
+                const primaryRecord = splitKey[splitKey.length - 1]
+                await createMergeRequest(workIds, primaryRecord, 'create-pending', this.comment)
             }
             this.mergeStatus = 'Done';
         },

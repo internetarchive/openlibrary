@@ -15,7 +15,6 @@ def response(status='ok', **kwargs):
 
 
 def process_merge_request(rtype, data):
-
     user = accounts.get_current_user()
     username = user['key'].split('/')[-1]
     # Request types can be: create-request, update-request
@@ -66,7 +65,12 @@ class community_edits_queue(delegate.page):
 
     @staticmethod
     def create_request(
-        username, action='', mr_type=None, olids='', comment: str = None
+        username,
+        action='',
+        mr_type=None,
+        olids='',
+        comment: str = None,
+        primary: str = None,
     ):
         def is_valid_action(action):
             return action in ('create-pending', 'create-merged')
@@ -81,7 +85,7 @@ class community_edits_queue(delegate.page):
             olid_list = olids.split(',')
 
             title = community_edits_queue.create_title(mr_type, olid_list)
-            url = community_edits_queue.create_url(mr_type, olid_list)
+            url = community_edits_queue.create_url(mr_type, olid_list, primary=primary)
 
             # Validate URL
             is_valid_url = True
@@ -161,9 +165,10 @@ class community_edits_queue(delegate.page):
         return resp
 
     @staticmethod
-    def create_url(mr_type: int, olids: list[str]) -> str:
+    def create_url(mr_type: int, olids: list[str], primary: str = None) -> str:
         if mr_type == CommunityEditsQueue.TYPE['WORK_MERGE']:
-            return f'/works/merge?records={",".join(olids)}'
+            primary_param = f'&primary={primary}' if primary else ''
+            return f'/works/merge?records={",".join(olids)}{primary_param}'
         elif mr_type == CommunityEditsQueue.TYPE['AUTHOR_MERGE']:
             return f'/authors/merge?key={"&key=".join(olids)}'
         return ''

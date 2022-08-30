@@ -104,7 +104,7 @@ class merge_work(delegate.page):
     path = "/works/merge"
 
     def GET(self):
-        i = web.input(records='', mrid=None)
+        i = web.input(records='', mrid=None, primary=None)
         user = web.ctx.site.get_user()
         has_access = user and (
             (user.is_admin() or user.is_librarian())
@@ -119,7 +119,9 @@ class merge_work(delegate.page):
         ):
             optional_kwargs['can_merge'] = 'false'
 
-        return render_template('merge/works', mrid=i.mrid, **optional_kwargs)
+        return render_template(
+            'merge/works', mrid=i.mrid, primary=i.primary, **optional_kwargs
+        )
 
 
 @web.memoize
