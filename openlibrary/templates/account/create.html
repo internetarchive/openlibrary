@@ -6,12 +6,16 @@ $var title: $_("Sign Up to Open Library")
 
 <div id="contentHead">
     <h1>$_("Sign Up")</h1>
-    $if not ctx.user:
-        <p class="instruct">$_("Complete the form below to create a new Internet Archive account.")
-        <span class="attn remind">$_("Each field is required")</span></p>
 </div>
 
 <div id="contentBody">
+
+$if not ctx.user:
+    $:render_template("account/ia_thirdparty_logins")
+    <div class="login-big-or">$_('OR')</div>
+
+    <p class="instruct">$_("Complete the form below to create a new Internet Archive account.")
+    <span class="attn remind">$_("Each field is required")</span></p>
 
 $def field(input, suffix=''):
     $# :param openlibrary.utils.form.Input input:

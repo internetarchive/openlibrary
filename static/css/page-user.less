@@ -211,6 +211,21 @@ tr.table-row.selected{
   border-radius: 5px;
 }
 
+.login-big-or {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  max-width: 600px;
+}
+
+.login-big-or::before, .login-big-or::after {
+  content: "";
+  display: block;
+  flex: 1;
+  border-bottom: 1px solid currentColor;
+  transform: translateY(-50%);
+}
+
 // Import all common components
 @import (less) "legacy.less";
 // Import styles specific to the BorrowTable for user pages
