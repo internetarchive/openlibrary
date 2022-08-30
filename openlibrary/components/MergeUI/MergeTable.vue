@@ -122,7 +122,7 @@ export default {
 
             // We only need the count, so set limit=0 (waaaay faster!)
             const promises = await Promise.all(
-                this.records.map(r => get_lists(r.key, 0))
+                this.records.map(r => (r.type.key === '/type/work') ? get_lists(r.key, 0) : {})
             );
             const responses = promises.map(p => p.value || p);
             return _.fromPairs(
@@ -133,7 +133,7 @@ export default {
             if (!this.records) return null;
 
             const promises = await Promise.all(
-                this.records.map(r => get_bookshelves(r.key))
+                this.records.map(r => (r.type.key === '/type/work') ? get_bookshelves(r.key) : {})
             );
             const responses = promises.map(p => p.value || p);
             return _.fromPairs(
@@ -145,7 +145,7 @@ export default {
             if (!this.records) return null;
 
             const promises = await Promise.all(
-                this.records.map(r => get_ratings(r.key))
+                this.records.map(r => (r.type.key === '/type/work') ? get_ratings(r.key) : {})
             );
             const responses = promises.map(p => p.value || p);
             return _.fromPairs(
@@ -158,17 +158,17 @@ export default {
                 return undefined;
 
             const master = this.records.find(r => r.key === this.master_key);
-            const dupes = this.records
+            const all_dupes = this.records
                 .filter(r => this.selected[r.key])
                 .filter(r => r.key !== this.master_key);
-            const work_dupes = dupes.filter(r => r.type.key === '/type/work');
-            const records = [master, ...dupes];
+            const dupes = all_dupes.filter(r => r.type.key === '/type/work');
+            const records = [master, ...all_dupes];
             const editions_to_move = _.flatMap(
-                dupes,
+                all_dupes,
                 work => this.editions[work.key].entries
             );
 
-            const [record, sources] = merge(master, work_dupes);
+            const [record, sources] = merge(master, dupes);
 
             const extras = {
                 edition_count: _.sum(records.map(r => this.editions[r.key].size)),
