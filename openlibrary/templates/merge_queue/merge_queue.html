@@ -97,8 +97,10 @@ $ page = int(input(page=1).page)
                 </div>
             </td>
             <td id="reviewer-cell-$(r['id'])">
-              $if can_merge and is_open and r.get('reviewer') == username:
+              $if can_merge and is_open and r.get('reviewer'):
                 $r['reviewer'] <span class="mr-unassign" data-mrid="$r['id']" data-merge-type="$r['mr_type']">&times;</span>
+                <br>
+                $datestr(r['updated'])
               $elif r.get('reviewer'):
                 $r['reviewer']
             </td>
@@ -106,8 +108,10 @@ $ page = int(input(page=1).page)
               $if is_open:
                 $if is_submitter:
                   <a class="mr-close-link" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">$_('Close')</a>
-                $elif can_merge and (not r.get('reviewer') or r.get('reviewer') == username):
-                  <a class="mr-resolve-link" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="$url" target="_blank">$_('Merge')</a>
+                $elif can_merge:
+                  $ show_link = not r.get('reviewer') or r.get('reviewer') == username
+                  $ extra_classes = '' if show_link else ' hidden'
+                  <a class="mr-resolve-link$extra_classes" id="mr-resolve-link-$r['id']" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="$url" target="_blank">$_('Merge')</a>
             </td>
           </tr>
         </tbody>
