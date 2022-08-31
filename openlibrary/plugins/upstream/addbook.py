@@ -1133,17 +1133,14 @@ class subjects_autocomplete(delegate.page):
         }
 
         data = solr.select(solr_q, **params)
-        docs = []
-        for d in data['docs']:
-            if d['subject_type'] == key or 'subject':
-                docs.append(
-                    {
-                        'name': '"' + d['name'] + '"'
-                        if ',' in d['name']
-                        else d['name'],
-                        'key': d['name'],
-                    }
-                )
+        docs = [
+            {
+                'key': d['name'],
+                'name': f'"{d['name']}"' if ',' in d['name'] else d['name'],
+            }
+            for d in data['docs']
+            if d['subject_type'] == key or 'subject'
+        ]
 
         return to_json(docs)
 
