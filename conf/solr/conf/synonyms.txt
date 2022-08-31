@@ -21,6 +21,115 @@ fooaaa,baraaa,bazaaa
 GB,gib,gigabyte,gigabytes
 MB,mib,megabyte,megabytes
 Television, Televisions, TV, TVs
+Volume, Vol., Vol
+&, and
+1, One, I
+2, Two, II
+3, Three, III
+4, Four, IV
+5, Five, V
+6, Six, VI
+7, Seven, VII
+8, Eight,VIII
+9, Nine, IX
+10, Ten, X
+11, Eleven, XI
+12, Twelve, XII
+13, Thirteen, XIII
+14, Fourteen, XIV
+15, Fifteen, XV
+16, Sixteen, XVI
+17, Seventeen, XVII
+18, Eigthteen, XVIII
+19, Nineteen, XIX
+20, Twenty, XX
+21, Twenty One, XXI
+22, Twenty Two, XXII
+23, Twenty Three, XXIII
+24, Twenty Four, XXIV
+25, Twenty Five, XXV
+26, Twenty Six, XXVI
+27, Twenty Seven, XXVII
+28, Twenty Eight, XXVIII
+29, Twenty Nine, XXIX
+30, Thirty, XXX
+31, Thirty One, XXXI
+32, Thirty Two, XXXII
+33, Thirty Three, XXXIII
+34, Thirty Four, XXXIV
+35, Thirty Five, XXXV
+36, Thirty Six, XXXVI
+37, Thirty Seven, XXXVII
+38, Thirty Eight, XXXVIII
+39, Thirty Nine, XXXIX
+40, Fourty, XXXX
+41, Fourty One, XXXXI
+42, Fourty Two, XXXXII
+43, Fourty Three, XXXXIII
+44, Fourty Four, XXXXIV
+45, Fourty Five, XXXXV
+46, Fourty Six, XXXXVI
+47, Fourty Seven, XXXXVII
+48, Fourty Eight, XXXXVIII
+49, Fourty Nine, XXXXIX
+50, Fifty, XXXXX
+51, Fifty One, XXXXXI
+52, Fifty Two, XXXXXII
+53, Fifty Three, XXXXXIII
+54, Fifty Four, XXXXXIV
+55, Fifty Five, XXXXXV
+56, Fifty Six, XXXXXVI
+57, Fifty Seven, XXXXXVII
+58, Fifty Eight, XXXXXVIII
+59, Fifty Nine, XXXXXIX
+60, Sixty, XXXXXX
+61, Sixty One, XXXXXXI
+62, Sixty Two, XXXXXXII
+63, Sixty Three, XXXXXXIII
+64, Sixty Four, XXXXXXIV
+65, Sixty Five, XXXXXXV
+66, Sixty Six, XXXXXXVI
+67, Sixty Seven, XXXXXXVII
+68, Sixty Eight, XXXXXXVIII
+69, Sixty Nine, XXXXXXIX
+70, Seventy, XXXXXXX
+71, Seventy One, XXXXXXXI
+72, Seventy Two, XXXXXXXII
+73, Seventy Three, XXXXXXXIII
+74, Seventy Four, XXXXXXXIV
+75, Seventy Five, XXXXXXXV
+76, Seventy Six, XXXXXXXVI
+77, Seventy Seven, XXXXXXXVII
+78, Seventy Eight, XXXXXXXVIII
+79, Seventy Nine, XXXXXXXIX
+80, Eighthy, XXXXXXXX
+81, Eighthy One, XXXXXXXXI
+82, Eighthy Two, XXXXXXXXII
+83, Eighthy Three, XXXXXXXXIII
+84, Eighthy Four, XXXXXXXXIV
+85, Eighthy Five, XXXXXXXXV
+86, Eighthy Six, XXXXXXXXVI
+87, Eighthy Seven, XXXXXXXXVII
+88, Eighthy Eight, XXXXXXXXVIII
+89, Eighthy Nine, XXXXXXXXIX
+90, Ninety, XXXXXXXXX
+91, Ninety One, XXXXXXXXXI
+92, Ninety Two, XXXXXXXXXII
+93, Ninety Three, XXXXXXXXXIII
+94, Ninety Four, XXXXXXXXXIV
+95, Ninety Five, XXXXXXXXXV
+96, Ninety Six, XXXXXXXXXVI
+97, Ninety Seven, XXXXXXXXXVII
+98, Ninety Eight, XXXXXXXXXVIII
+99, Ninety Nine, XXXXXXXXXIX
+100, One Hundred, C
+#Ukrainian synonyms
+навч., навчальний
+ТБ, телебачення
+ГБ, гігабайт, гіб
+#general punctuation mark (probably won't work correctly because " is in both lines)
+«,„, "
+», “, "
 #notice we use "gib" instead of "GiB" so any WordDelimiterGraphFilter coming
 #after us won't split it into two words.
 
