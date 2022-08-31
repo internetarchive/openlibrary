@@ -32,7 +32,7 @@ $jsdef render_subject_autocomplete_item(item):
     <div class="formElement">
         <div class="label">
             <label for="about-subjects">$_("Subject keywords?")</label>
-            <span class="tip"><noscript><span class="highlight">$_("Please separate with commas.")</span></noscript> $_("For example:") <i><a href="/subjects/cheese">cheese</a>, <a href="/subjects/roman_empire">Roman Empire</a>, <a href="/subjects/psychology">psychology</a></i></span>
+            <span class="tip"><span class="highlight">$_("Please separate with commas.")</span> $_("For example:") <i><a href="/subjects/cheese">cheese</a>, <a href="/subjects/roman_empire">Roman Empire</a>, <a href="/subjects/psychology">psychology</a></i></span>
         </div>
         $ config = {'name': 'subjects', 'facet': 'subject', 'data': work.get_subjects() if len(work.get_subjects()) else ''}
         <div class="multi-input-autocomplete--subjects" data-config="$dumps(config)">
