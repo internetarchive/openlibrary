@@ -25,8 +25,8 @@ tasks:
 
 github:
   prebuilds:
-    # Disable master prebuilds ; it's not faster and often errors
+    # Disable all prebuilds ; it's not faster and often errors
     master: false
-    # Don't prebuild for PRs coming from this repo
-    # Don't need this running on all renovatebot's PRs; it's slow
     pullRequests: false
+    branches: false
+    pullRequestsFromForks: false
