@@ -407,7 +407,7 @@ export function initEditRow(){
 /**
  * Adds another input box below the last when adding multiple websites to user profile.
  * @param string name - when prefixed with clone_ should match an element identifier in the page. e.g. if name would refer to clone_website
-**/
+ */
 function add_row(name) {
     const inputBoxes = document.querySelectorAll(`#clone_${name} input`);
     const inputBox = document.createElement('input');
