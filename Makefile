@@ -61,6 +61,10 @@ load_sample_data:
 reindex-solr:
 	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py --ol-url http://web:8080/ --ol-config conf/openlibrary.yml --data-provider=legacy --solr-next
 	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py --ol-url http://web:8080/ --ol-config conf/openlibrary.yml --data-provider=legacy --solr-next
+	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py subject
+	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py person
+	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py place
+	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py time
 
 lint-diff:
 	git diff "$${BASE_BRANCH:-master}" -U0 | ./scripts/flake8-diff.sh
