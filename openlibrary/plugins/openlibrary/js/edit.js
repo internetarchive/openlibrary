@@ -345,8 +345,13 @@ export function initAuthorMultiInputAutocomplete() {
 
 export function initSubjectsAutocomplete() {
     function splitField(val) {
-        const re = /([^",]+|"[^"]+")[, ]*/g;
+        const re = /"?((?<=")[^"]+|(?<!")[^,]+)"?[, "]*/g;
         return Array.from(val.matchAll(re), (m) => m[1]);
+    }
+
+    function joinField(vals) {
+        const escaped = vals.map(val => (val.includes(',')) ? `"${val}"` : val);
+        return escaped.join(', ');
     }
 
     getJqueryElements('.multi-input-autocomplete--subjects').forEach(jqueryElement => {
@@ -356,7 +361,7 @@ export function initSubjectsAutocomplete() {
             'textarea',
             render_subject_field.bind(dataConfig.name, dataConfig.facet, dataConfig.data),
             {
-                endpoint: `/subjects_autocomplete/${dataConfig.facet}`,
+                endpoint: `/subjects_autocomplete?type=${dataConfig.facet}`,
                 addnew: false,
             },
             {
@@ -368,9 +373,9 @@ export function initSubjectsAutocomplete() {
                 formatItem: render_subject_autocomplete_item,
                 termPreprocessor: function(subject_string) {
                     const terms = splitField(subject_string);
-                    if (terms.length > dataConfig.data.length)
+                    if (terms.length !== dataConfig.data.length) {
                         return terms.pop();
-                    else {
+                    } else {
                         $('ul.ui-autocomplete').hide();
                         return '';
                     }
@@ -378,8 +383,8 @@ export function initSubjectsAutocomplete() {
                 select: function(event, ui) {
                     const terms = splitField(this.value);
                     terms.splice(terms.length - 1, 1, ui.item.value);
-                    this.value = `${terms.join(', ')}, `;
-                    dataConfig.data = terms;
+                    this.value = `${joinField(terms)}, `;
+                    dataConfig.data.push(ui.item.value);
                     jqueryElement[0].dataset.config = JSON.stringify(dataConfig);
                     $(this).trigger('input');
                     return false;

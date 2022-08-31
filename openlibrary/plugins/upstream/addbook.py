@@ -1114,32 +1114,34 @@ class authors_autocomplete(delegate.page):
 
 
 class subjects_autocomplete(delegate.page):
-    path = "/subjects_autocomplete/(.*)"
+    path = "/subjects_autocomplete"
+    # can't use /subjects/_autocomplete because the subjects endpoint = /subjects/[^/]+
 
-    def GET(self, key):
-        i = web.input(q="", limit=5)
+    def GET(self):
+        i = web.input(q="", type="", limit=5)
         i.limit = safeint(i.limit, 5)
 
         solr = get_solr()
         prefix_q = solr.escape(i.q).strip()
-        solr_q = fr'subject\:({prefix_q}*)'
+        solr_q = f'name:({prefix_q}*)'
+        fq = f'type:subject AND subject_type:{i.type}' if i.type else 'type:subject'
 
         params = {
             'fl': 'key,name,subject_type,work_count',
             'q_op': 'AND',
-            'fq': 'type:subject',
+            'fq': fq,
             'sort': 'work_count desc',
             'rows': i.limit,
         }
 
         data = solr.select(solr_q, **params)
         docs = [
-            {
-                'key': d['name'],
-                'name': f'"{d['name']}"' if ',' in d['name'] else d['name'],
+            { 
+                'key': d['key'],
+                'name': d['name']
             }
             for d in data['docs']
-            if d['subject_type'] == key or 'subject'
+            if d['subject_type'] == i.type or 'subject'
         ]
 
         return to_json(docs)
