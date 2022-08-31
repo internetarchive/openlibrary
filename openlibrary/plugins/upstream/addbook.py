@@ -1122,7 +1122,7 @@ class subjects_autocomplete(delegate.page):
 
         solr = get_solr()
         prefix_q = solr.escape(i.q).strip()
-        solr_q = fr'subject\:({prefix_q}*)'
+        solr_q = f'name:({prefix_q}*)'
 
         params = {
             'fl': 'key,name,subject_type,work_count',
