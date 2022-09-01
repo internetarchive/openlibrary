@@ -359,7 +359,7 @@ export function initSubjectsAutocomplete() {
         const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
         jqueryElement.setup_multi_input_autocomplete(
             'textarea',
-            render_subject_field.bind(dataConfig.name, dataConfig.facet, dataConfig.data),
+            render_subject_field.bind(dataConfig.name, dataConfig.data),
             {
                 endpoint: `/subjects_autocomplete?type=${dataConfig.facet}`,
                 addnew: false,

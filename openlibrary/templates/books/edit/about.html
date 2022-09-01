@@ -1,7 +1,7 @@
 $def with (work)
 
 $# Render the subject input field
-$jsdef render_subject_field(name, facet, data):
+$jsdef render_subject_field(name, data):
     <div class="input">
         $code:
             subjects = []
@@ -10,7 +10,7 @@ $jsdef render_subject_field(name, facet, data):
                 subjects.append('"' + s + '"' if ',' in s else s)
             subject_str = ', '.join(subjects)
             rows = len(subject_str) // 95 + 1
-        <textarea name="work--$name" id="about-subjects-$facet" rows="$rows" wrap="soft" tabindex="0">$subject_str</textarea>
+        <textarea name="work--$name" rows="$rows" wrap="soft" tabindex="0">$subject_str</textarea>
     </div>
 
 $jsdef render_subject_autocomplete_item(item):
@@ -36,7 +36,7 @@ $jsdef render_subject_autocomplete_item(item):
         </div>
         $ config = {'name': 'subjects', 'facet': 'subject', 'data': work.get_subjects() if len(work.get_subjects()) else ''}
         <div class="multi-input-autocomplete--subjects" data-config="$dumps(config)">
-            $:render_subject_field(config['name'], config['facet'], config['data'])
+            $:render_subject_field(config['name'], config['data'])
         </div>
     </div>
 
@@ -47,7 +47,7 @@ $jsdef render_subject_autocomplete_item(item):
         </div>
         $ config = {'name': 'subject_people', 'facet': 'person', 'data': work.subject_people if len(work.subject_people) else ''}
         <div class="multi-input-autocomplete--subjects" data-config="$dumps(config)">
-            $:render_subject_field(config['name'], config['facet'], config['data'])
+            $:render_subject_field(config['name'], config['data'])
         </div>
     </div>
 
@@ -58,7 +58,7 @@ $jsdef render_subject_autocomplete_item(item):
         </div>
         $ config = {'name': 'subject_places', 'facet': 'place', 'data': work.subject_places if len(work.subject_places) else ''}
         <div class="multi-input-autocomplete--subjects" data-config="$dumps(config)">
-            $:render_subject_field(config['name'], config['facet'], config['data'])
+            $:render_subject_field(config['name'], config['data'])
         </div>
     </div>
 
@@ -69,7 +69,7 @@ $jsdef render_subject_autocomplete_item(item):
         </div>
         $ config = {'name': 'subject_times', 'facet': 'time', 'data': work.subject_times if len(work.subject_times) else ''}
         <div class="multi-input-autocomplete--subjects" data-config="$dumps(config)">
-            $:render_subject_field(config['name'], config['facet'], config['data'])
+            $:render_subject_field(config['name'], config['data'])
         </div>
     </div>
 
