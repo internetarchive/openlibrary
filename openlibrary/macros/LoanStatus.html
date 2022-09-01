@@ -131,6 +131,8 @@ $elif ('eligibility' in doc) or (check_sponsorship and not ocaid and not availab
         $_("We don't have this book yet. Can you donate it to the Lending Library?")
         <a href="https://openlibrary.org/bookdrive" target="_blank">$_('Learn More')</a>
       </p>
+  $else:
+    $:macros.NotInLibrary(work_key)
 
 $elif ocaid and availability.get('is_previewable') and book_provider.short_name == 'ia':
   $:macros.BookPreview(ocaid, linkback=not no_index)
@@ -138,10 +140,7 @@ $elif ocaid and availability.get('is_previewable') and book_provider.short_name 
       $:macros.BookSearchInside(ocaid)
 
 $else:
-  <div class="cta-button-group">
-    <a href="$work_key" class="cta-btn cta-btn--missing"
-       data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
-  </div>
+  $:macros.NotInLibrary(work_key)
 
 $:post
 
