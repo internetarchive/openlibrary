@@ -131,9 +131,9 @@ jQuery(function () {
     const classifications = document.querySelector('#classifications');
     const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
     const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
+    const autocompleteSubjects = document.querySelector('.multi-input-autocomplete--subjects');
     const excerpts = document.getElementById('excerpts');
     const links = document.getElementById('links');
-    const subjects = document.querySelector('.multi-input-autocomplete--subjects');
 
     // conditionally load for user edit page
     if (
@@ -173,7 +173,7 @@ jQuery(function () {
                 if (autocompleteWorks) {
                     module.initWorksMultiInputAutocomplete();
                 }
-                if (subjects) {
+                if (autocompleteSubjects) {
                     module.initSubjectsAutocomplete();
                 }
             });
