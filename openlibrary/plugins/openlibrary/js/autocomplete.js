@@ -206,7 +206,7 @@ export default function($) {
             const re = /"?((?<=")[^"]+|(?<!")[^,]+)"?[, "]*/g;
             return Array.from(val.matchAll(re), (m) => m[1]);
         }
-    
+
         function joinField(vals) {
             const escaped = vals.map(val => (val.includes(',')) ? `"${val}"` : val);
             return escaped.join(', ');
