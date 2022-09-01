@@ -1138,7 +1138,6 @@ class subjects_autocomplete(delegate.page):
         docs = [
             {'key': d['key'], 'name': d['name']}
             for d in data['docs']
-            if d['subject_type'] == i.type or 'subject'
         ]
 
         return to_json(docs)
