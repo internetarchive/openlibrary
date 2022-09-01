@@ -191,4 +191,62 @@ export default function($) {
             update_visible();
         });
     };
+
+    /**
+     * @this HTMLElement - the element that contains the input.
+     * @param {string} autocomplete_selector - selector to find the input element use for autocomplete.
+     * @param {OpenLibraryAutocompleteOptions} ol_ac_opts
+     * @param {Object} ac_opts - options given to override defaults of $.autocomplete; see that.
+     */
+     $.fn.setup_csv_autocomplete = function(autocomplete_selector, ol_ac_opts, ac_opts) {
+        const container = $(this);
+        const dataConfig = JSON.parse(container[0].dataset.config);
+
+        function splitField(val) {
+            const re = /"?((?<=")[^"]+|(?<!")[^,]+)"?[, "]*/g;
+            return Array.from(val.matchAll(re), (m) => m[1]);
+        }
+    
+        function joinField(vals) {
+            const escaped = vals.map(val => (val.includes(',')) ? `"${val}"` : val);
+            return escaped.join(', ');
+        }
+
+        const default_ac_opts = {
+            minChars: 2,
+            max: 25,
+            matchSubset: false,
+            autoFill: false,
+            position: { my: 'right top', at: 'right bottom' },
+            termPreprocessor: function(subject_string) {
+                const terms = splitField(subject_string);
+                if (terms.length !== dataConfig.data.length) {
+                    return terms.pop();
+                } else {
+                    $('ul.ui-autocomplete').hide();
+                    return '';
+                }
+            },
+            select: function(event, ui) {
+                const terms = splitField(this.value);
+                terms.splice(terms.length - 1, 1, ui.item.value);
+                this.value = `${joinField(terms)}, `;
+                dataConfig.data.push(ui.item.value);
+                container[0].dataset.config = JSON.stringify(dataConfig);
+                $(this).trigger('input');
+                return false;
+            },
+            response: function(event, ui) {
+                /* Remove any entries already on the list */
+                const terms = splitField(this.value);
+                ui.content.splice(0, ui.content.length,
+                    ...ui.content.filter(record => !terms.includes(record.value)));
+            },
+        }
+
+        container.find(autocomplete_selector).each(function() {
+            const options = $.extend(default_ac_opts, ac_opts);
+            setup_autocomplete(this, ol_ac_opts, options);
+        });
+    };
 }

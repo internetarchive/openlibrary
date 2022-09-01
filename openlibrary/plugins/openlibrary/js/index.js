@@ -131,7 +131,7 @@ jQuery(function () {
     const classifications = document.querySelector('#classifications');
     const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
     const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
-    const autocompleteSubjects = document.querySelector('.multi-input-autocomplete--subjects');
+    const autocompleteSubjects = document.querySelector('.csv-autocomplete--subjects');
     const excerpts = document.getElementById('excerpts');
     const links = document.getElementById('links');
 

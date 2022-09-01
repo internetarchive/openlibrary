@@ -344,62 +344,22 @@ export function initAuthorMultiInputAutocomplete() {
 }
 
 export function initSubjectsAutocomplete() {
-    function splitField(val) {
-        const re = /"?((?<=")[^"]+|(?<!")[^,]+)"?[, "]*/g;
-        return Array.from(val.matchAll(re), (m) => m[1]);
-    }
-
-    function joinField(vals) {
-        const escaped = vals.map(val => (val.includes(',')) ? `"${val}"` : val);
-        return escaped.join(', ');
-    }
-
-    getJqueryElements('.multi-input-autocomplete--subjects').forEach(jqueryElement => {
-        /* Values in the html passed from Python code */
+    getJqueryElements('.csv-autocomplete--subjects').forEach(jqueryElement => {
         const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
-        jqueryElement.setup_multi_input_autocomplete(
+        jqueryElement.setup_csv_autocomplete(
             'textarea',
-            render_subject_field.bind(dataConfig.name, dataConfig.data),
             {
                 endpoint: `/subjects_autocomplete?type=${dataConfig.facet}`,
                 addnew: false,
             },
             {
-                minChars: 2,
-                max: 25,
-                matchSubset: false,
-                autoFill: false,
-                position: { my: 'right top', at: 'right bottom' },
                 formatItem: render_subject_autocomplete_item,
-                termPreprocessor: function(subject_string) {
-                    const terms = splitField(subject_string);
-                    if (terms.length !== dataConfig.data.length) {
-                        return terms.pop();
-                    } else {
-                        $('ul.ui-autocomplete').hide();
-                        return '';
-                    }
-                },
-                select: function(event, ui) {
-                    const terms = splitField(this.value);
-                    terms.splice(terms.length - 1, 1, ui.item.value);
-                    this.value = `${joinField(terms)}, `;
-                    dataConfig.data.push(ui.item.value);
-                    jqueryElement[0].dataset.config = JSON.stringify(dataConfig);
-                    $(this).trigger('input');
-                    return false;
-                },
-                response: function(event, ui) {
-                    /* Remove any entries already on the list */
-                    const terms = splitField(this.value);
-                    ui.content.splice(0, ui.content.length,
-                        ...ui.content.filter(record => !terms.includes(record.value)));
-                },
-            });
+            }
+        );
     });
 
     /* Resize textarea to fit on input */
-    $('.multi-input-autocomplete--subjects textarea').on('input', function () {
+    $('.csv-autocomplete--subjects textarea').on('input', function () {
         this.style.height = 'auto';
         this.style.height = `${this.scrollHeight + 5}px`;
     });
