@@ -198,7 +198,7 @@ export default function($) {
      * @param {OpenLibraryAutocompleteOptions} ol_ac_opts
      * @param {Object} ac_opts - options given to override defaults of $.autocomplete; see that.
      */
-     $.fn.setup_csv_autocomplete = function(autocomplete_selector, ol_ac_opts, ac_opts) {
+    $.fn.setup_csv_autocomplete = function(autocomplete_selector, ol_ac_opts, ac_opts) {
         const container = $(this);
         const dataConfig = JSON.parse(container[0].dataset.config);
 

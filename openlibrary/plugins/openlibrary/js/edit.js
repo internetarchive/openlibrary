@@ -5,7 +5,7 @@ import { isbnOverride } from './isbnOverride';
 /* global render_author, render_author_autocomplete_item */
 /* Globals are provided by the author-autocomplete template */
 
-/* global render_subject_field, render_subject_autocomplete_item */
+/* global render_subject_autocomplete_item */
 /* Globals are provided by the edit about template */
 
 function error(errordiv, input, message) {
