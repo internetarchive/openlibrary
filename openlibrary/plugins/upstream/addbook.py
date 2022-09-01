@@ -1135,10 +1135,7 @@ class subjects_autocomplete(delegate.page):
         }
 
         data = solr.select(solr_q, **params)
-        docs = [
-            {'key': d['key'], 'name': d['name']}
-            for d in data['docs']
-        ]
+        docs = [{'key': d['key'], 'name': d['name']} for d in data['docs']]
 
         return to_json(docs)
 
