@@ -62,7 +62,7 @@ Volume, Vol., Vol
 37, Thirty Seven, XXXVII
 38, Thirty Eight, XXXVIII
 39, Thirty Nine, XXXIX
-40, Fourty, XXXX
+40, Forty, XL
 41, Fourty One, XXXXI
 42, Fourty Two, XXXXII
 43, Fourty Three, XXXXIII
@@ -72,7 +72,7 @@ Volume, Vol., Vol
 47, Fourty Seven, XXXXVII
 48, Fourty Eight, XXXXVIII
 49, Fourty Nine, XXXXIX
-50, Fifty, XXXXX
+50, Fifty, L
 51, Fifty One, XXXXXI
 52, Fifty Two, XXXXXII
 53, Fifty Three, XXXXXIII
@@ -102,7 +102,7 @@ Volume, Vol., Vol
 77, Seventy Seven, XXXXXXXVII
 78, Seventy Eight, XXXXXXXVIII
 79, Seventy Nine, XXXXXXXIX
-80, Eighthy, XXXXXXXX
+80, Eighty, LXXX
 81, Eighthy One, XXXXXXXXI
 82, Eighthy Two, XXXXXXXXII
 83, Eighthy Three, XXXXXXXXIII
@@ -112,7 +112,7 @@ Volume, Vol., Vol
 87, Eighthy Seven, XXXXXXXXVII
 88, Eighthy Eight, XXXXXXXXVIII
 89, Eighthy Nine, XXXXXXXXIX
-90, Ninety, XXXXXXXXX
+90, Ninety, XC
 91, Ninety One, XXXXXXXXXI
 92, Ninety Two, XXXXXXXXXII
 93, Ninety Three, XXXXXXXXXIII
