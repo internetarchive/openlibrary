@@ -41,7 +41,7 @@ class community_edits_queue(delegate.page):
             mode=i.mode,
             submitter=i.submitter,
             reviewer=i.reviewer,
-            order=f'created {i.order}',
+            order=f'updated {i.order}',
         ).list()
 
         total_found = {
