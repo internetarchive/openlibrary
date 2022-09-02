@@ -50,10 +50,6 @@ $if isbn_10 and not asin:
              $:summary
           </div>
 
-        $ render_times['databarWork: DonateModal'] = time()
-        $:macros.DonateModal(page, ids={'isbn': isbn_13, 'asin': asin, 'prices': True})
-        $ render_times['databarWork: DonateModal'] = time() - render_times['databarWork: DonateModal']
-
         $ work = (page.works and page.works[0]) or page
         $ edition = page.works and page
 
