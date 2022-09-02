@@ -123,9 +123,10 @@ $elif ('eligibility' in doc) or (check_sponsorship and not ocaid and not availab
   $ sponsorship = doc.get('eligibility') if 'eligibility' in doc else qualifies_for_sponsorship(doc, donate_only=True)
   $if sponsorship.get('is_eligible'):
     $ btn_count = ctx.get('donate_count', 1)
+    $ modal_id = "donate-modal-%d" % btn_count
     <a href="$(sponsorship['sponsor_url'])"
        class="cta-btn cta-btn--sponsor dialog--open"
-       aria-controls="seeDonate"
+       aria-controls="$modal_id"
        data-id-num="$btn_count"
        data-ol-link-track="CTAClick|Sponsor">$_('Donate Book')</a>
     $ isbn_13 = doc.get_isbn13()
@@ -136,8 +137,6 @@ $elif ('eligibility' in doc) or (check_sponsorship and not ocaid and not availab
 
     $if not asin:
       $ asin = doc.get_isbn10()
-
-    $ modal_id = "donate-modal-%d" % btn_count
 
     $:macros.DonateModal(doc, modal_id, ids={'isbn': isbn_13, 'asin': asin, 'prices': True})
     $putctx('donate_count', btn_count + 1)
