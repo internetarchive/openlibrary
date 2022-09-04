@@ -6,9 +6,9 @@ Known issues
 ## Further Reading
 https://www.oclc.org/bibformats/en/0xx/082.html
 """
+from __future__ import annotations
 import re
 from string import printable
-from typing import List
 from collections.abc import Iterable
 
 MULTIPLE_SPACES_RE = re.compile(r'\s+')
@@ -123,18 +123,16 @@ def normalize_ddc(ddc: str) -> list[str]:
     return results
 
 
-def normalize_ddc_range(start, end):
+def normalize_ddc_range(start: str, end: str) -> list[str | None]:
     """
     Normalizes the pieces of a lucene (i.e. solr)-style range.
     E.g. ('23.23', '*')
-    :param str start:
-    :param str end:
 
     >>> normalize_ddc_range('23.23', '*')
     ['023.23', '*']
     """
 
-    ddc_range_norm = []
+    ddc_range_norm: list[str | None] = []
     for ddc in start, end:
         if ddc == '*':
             ddc_range_norm.append('*')

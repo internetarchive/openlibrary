@@ -1,3 +1,4 @@
+from __future__ import annotations
 from isbnlib import canonical
 
 
@@ -60,13 +61,11 @@ def isbn_10_to_isbn_13(isbn_10):
     return isbn_13 + check_digit_13(isbn_13)
 
 
-def to_isbn_13(isbn):
+def to_isbn_13(isbn: str) -> str | None:
     """
     Tries to make an isbn into an isbn13; regardless of input isbn type
-    :param str isbn:
-    :rtype: str|None
     """
-    isbn = normalize_isbn(isbn)
+    isbn = normalize_isbn(isbn) or isbn
     return isbn and (isbn if len(isbn) == 13 else isbn_10_to_isbn_13(isbn))
 
 
@@ -77,13 +76,10 @@ def opposite_isbn(isbn):  # ISBN10 -> ISBN13 and ISBN13 -> ISBN10
             return alt
 
 
-def normalize_isbn(isbn):
+def normalize_isbn(isbn: str) -> str | None:
     """
-    Keep only numbers and X/x to return an ISBN-like string.
+    Takes an isbn-like string, keeps only numbers and X/x, and returns an ISBN-like
+    string or None.
     Does NOT validate length or checkdigits.
-
-    :param: str isbn: An isbnlike string to normalize
-    :rtype: str|None
-    :return: isbnlike string containing only valid ISBN characters, or None
     """
     return isbn and canonical(isbn) or None
