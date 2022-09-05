@@ -132,9 +132,7 @@ Volume, Vol., Vol
 Міф, Міт
 Міфологічний, Мітологічний
 Міфологія, Мітологія
-#general punctuation mark (probably won't work correctly because " is in both lines)
-«,„, "
-», “, "
+Кафедра, Катедра
 
 # Synonym mappings can be used for spelling correction too
 pixima => pixma
