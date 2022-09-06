@@ -147,14 +147,14 @@ $ )
         $# results because of performance issues due to increased load. See
         $# this commit to revert.
         <center>
-          <div class="red">No results found.</div>
+          <div class="red">$_("No results found.")</div>
           <hr>
           <div>
             <a href="/search/inside?$urlencode(dict(q=query))">$_('Search for books containing the phrase "%s"?' % query)</a>
           </div>
           <hr>
           <div>
-                <a href="/books/add">Add a new book to Open Library?</a>
+                <a href="/books/add">$_("Add a new book to Open Library?")</a>
           </div>
         </center>
 
@@ -163,8 +163,7 @@ $ )
           $ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))
 
           $if num_found > 1:
-            $:render_template("search/sort_options.html", sort)<hr>
-            Can't find what you look for? You can <a href="/books/add">add book to Open Library</href>.
+            $:render_template("search/sort_options.html", sort)
         </div>
         <div class="resultsContainer search-results-container">
         <div id="searchResults">
