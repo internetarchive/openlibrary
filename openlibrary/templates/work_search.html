@@ -147,8 +147,15 @@ $ )
         $# results because of performance issues due to increased load. See
         $# this commit to revert.
         <center>
-            <span class="red">$_("No results found.")</span>
+          <div class="red">$_("No results found.")</div>
+          <hr>
+          <div>
             <a href="/search/inside?$urlencode(dict(q=query))">$_('Search for books containing the phrase "%s"?' % query)</a>
+          </div>
+          <hr>
+          <div>
+                <a href="/books/add">$_("Add a new book to Open Library?")</a>
+          </div>
         </center>
 
     $elif param and not error and len(docs):
