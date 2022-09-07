@@ -212,7 +212,7 @@ SelectionManager.SELECTION_PROVIDERS = [
      * This selection provider makes books in search results selectable.
      */
     {
-        path: /^(\/search)$/,
+        path: /(\/authors\/OL\d+A.*|\/search)$/,
         selector: '.searchResultItem',
         image: el => $(el).find('.bookcover img')[0].src,
         singular: 'work',
