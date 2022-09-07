@@ -256,9 +256,11 @@ def setup_jquery_urls():
     web.template.Template.globals['use_google_cdn'] = config.get('use_google_cdn', True)
 
 
-def user_is_admin_or_librarian():
+def user_can_revert_records():
     user = web.ctx.site.get_user()
-    return user and (user.is_admin() or user.is_librarian())
+    return user and (
+        user.is_admin() or user.is_usergroup_member('/usergroup/super-librarians')
+    )
 
 
 @public
@@ -286,7 +288,7 @@ class revert(delegate.mode):
         if v is None:
             raise web.seeother(web.changequery({}))
 
-        if not web.ctx.site.can_write(key) or not user_is_admin_or_librarian():
+        if not web.ctx.site.can_write(key) or not user_can_revert_records():
             return render.permission_denied(
                 web.ctx.fullpath, "Permission denied to edit " + key + "."
             )

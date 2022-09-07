@@ -1,7 +1,7 @@
 $def with (work, book)
 
 $ edition_config = get_edition_config()
-$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
+$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
 
 $def radiobuttons(name, options, value):
     $for v in options:
@@ -404,7 +404,6 @@ $jsdef render_work_autocomplete_item(item):
     </div>
 
 </fieldset>
-$ admin_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
 $ config = ({'Please select an identifier.': _('Please select an identifier.'), 'You need to give a value to ID.': _('You need to give a value to ID.'), 'ID ids cannot contain whitespace.': _('ID ids cannot contain whitespace.'), 'ID must be exactly 10 characters [0-9] or X.': _('ID must be exactly 10 characters [0-9] or X.'), 'That ISBN already exists for this edition.': _('That ISBN already exists for this edition.'), 'ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4': _('ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4')})
 <fieldset class="major" id="identifiers" data-config="$dumps(config)">
     <legend>$_("ID Numbers")</legend>
@@ -424,7 +423,7 @@ $ config = ({'Please select an identifier.': _('Please select an identifier.'), 
                             $ id_labels = dict((d.name, d.label) for d in edition_config.identifiers)
                             $ id_dict = dict((id.name, id) for id in edition_config.identifiers)
                             $ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "oclc_numbers", "goodreads", "librarything"]
-                            $if admin_user:
+                            $if is_privileged_user:
                                 $ exclude = []
                             $else:
                                 $ exclude = ["ocaid"]
@@ -472,7 +471,7 @@ $ config = ({'Please select an identifier.': _('Please select an identifier.'), 
                                 <input type="hidden" name="edition--identifiers--${i}--value" value="$id.value" class="$id.name"/>
                             </td>
                             $# Disable removing ocaid for regular users.
-                            $if id.name == "ocaid" and not admin_user:
+                            $if id.name == "ocaid" and not is_privileged_user:
                                 <td></td>
                             $else:
                                 <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
