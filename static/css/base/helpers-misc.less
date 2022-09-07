@@ -128,7 +128,7 @@ button {
 .neg,
 .red {
   color: @red !important;
-  &:empty {
+  &:not(input):empty {
     display: none;
   }
 }
