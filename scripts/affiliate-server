@@ -170,7 +170,8 @@ class Submit:
         if isbn10 not in web.amazon_queue.queue:
             web.amazon_queue.put_nowait(isbn10)
         qsize = web.amazon_queue.qsize()
-        stats.put("Amazon queue qsize", qsize, 0.05)  # send one sample in 20 to statsd
+        # send one sample in 20 to statsd
+        stats.put("ol.affiliate.amazon.queue_size", qsize, 0.05)
         return json.dumps({"status": "submitted", "queue": qsize})
 
 
