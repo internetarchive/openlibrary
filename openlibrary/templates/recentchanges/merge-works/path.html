@@ -1,0 +1,11 @@
+$def with (change)
+
+$ master = change.get_master()
+
+$if master:
+    <div class="truncatepath">
+        <a class="datalink" href="$master.url()">$master.name</a>
+        <span class="smallest sansserif"> - <a href="$change.url()" style="text-decoration: none;">expand</a></span>
+    </div>
+$else:
+    <div class="truncatepath">--</div>
