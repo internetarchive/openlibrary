@@ -5,6 +5,9 @@ import { isbnOverride } from './isbnOverride';
 /* global render_author, render_author_autocomplete_item */
 /* Globals are provided by the author-autocomplete template */
 
+/* global render_subject_autocomplete_item */
+/* Globals are provided by the edit about template */
+
 function error(errordiv, input, message) {
     $(errordiv).show().html(message);
     $(input).trigger('focus');
@@ -311,7 +314,7 @@ export function initWorksMultiInputAutocomplete() {
                     minChars: 2,
                     max: 11,
                     matchSubset: false,
-                    autoFill: false,
+                    autoFill: true,
                     formatItem: render_work_autocomplete_item
                 });
         });
@@ -334,9 +337,31 @@ export function initAuthorMultiInputAutocomplete() {
                 minChars: 2,
                 max: 11,
                 matchSubset: false,
-                autoFill: false,
+                autoFill: true,
                 formatItem: render_author_autocomplete_item
             });
+    });
+}
+
+export function initSubjectsAutocomplete() {
+    getJqueryElements('.csv-autocomplete--subjects').forEach(jqueryElement => {
+        const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
+        jqueryElement.setup_csv_autocomplete(
+            'textarea',
+            {
+                endpoint: `/subjects_autocomplete?type=${dataConfig.facet}`,
+                addnew: false,
+            },
+            {
+                formatItem: render_subject_autocomplete_item,
+            }
+        );
+    });
+
+    /* Resize textarea to fit on input */
+    $('.csv-autocomplete--subjects textarea').on('input', function () {
+        this.style.height = 'auto';
+        this.style.height = `${this.scrollHeight + 5}px`;
     });
 }
 
@@ -347,7 +372,7 @@ export function initEditRow(){
 /**
  * Adds another input box below the last when adding multiple websites to user profile.
  * @param string name - when prefixed with clone_ should match an element identifier in the page. e.g. if name would refer to clone_website
- **/
+ */
 function add_row(name) {
     const inputBoxes = document.querySelectorAll(`#clone_${name} input`);
     const inputBox = document.createElement('input');
@@ -451,7 +476,7 @@ export function initEdit() {
     // wait for 1 sec after clicking the link and focus the input field
     if ($(fieldname).length !== 0) {
         setTimeout(function() {
-            // scroll such that top of the content is visible
+        // scroll such that top of the content is visible
             $(fieldname).trigger('focus');
             $(window).scrollTop($('#contentHead').offset().top);
         }, 1000);
