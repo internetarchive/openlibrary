@@ -935,6 +935,7 @@ class MergeAuthors(Changeset):
             if key in changes
         ]
 
+
 class MergeWorks(Changeset):
     def can_undo(self):
         return self.get_undo_changeset() is None
@@ -952,7 +953,7 @@ class MergeWorks(Changeset):
             for key in duplicates
             if key in changes
         ]
-    
+
     def get_editions(self):
         editions = self.data.get("editions")
         changes = {c['key']: c['revision'] for c in self.changes}
@@ -962,6 +963,7 @@ class MergeWorks(Changeset):
             for key in editions
             if key in changes
         ]
+
 
 class Undo(Changeset):
     def can_undo(self):
