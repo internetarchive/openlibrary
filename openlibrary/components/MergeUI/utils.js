@@ -211,14 +211,12 @@ function prepareIds(workIds) {
  * @param {Object} data
  */
 function save_many(items, comment, action, data) {
-    console.log(`Saving ${items.length} items`);
     const headers = {
         Opt: '"http://openlibrary.org/dev/docs/api"; ns=42',
         '42-comment': comment,
         '42-action': action,
         '42-data': JSON.stringify(data),
     };
-    console.log(headers);
     return fetch('/api/save_many', {
         method: 'POST',
         headers,
