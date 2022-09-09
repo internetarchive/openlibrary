@@ -1,7 +1,7 @@
 $def with (change)
 
 <div id="contentHead">
-    $:render_template("recentchanges/header", change, label=_("Author Merge"))
+    $:render_template("recentchanges/header", change, label=_("Work Merge"))
 </div>
 
 $ master = change.get_master()
@@ -19,16 +19,10 @@ $ master = change.get_master()
         <div id="recordMaster">
             <span id="recordMasterTitle" class="larger">
                 $if master.key:
-                    <strong><a href="$master.key">$master.name</a></strong>
+                    <strong><a href="$master.key">$master.title</a></strong>
                 $else:
-                    <strong>$master.name</strong>
+                    <strong>$master.title</strong>
 
-            </span>
-            <span id="recordMasterDate" class="smaller">
-                $if master.birth_date or master.death_date:
-                    $ birth = master.birth_date or ''
-                    $ death = master.death_date or ''
-                    ($(' - '.join([birth, death])))
             </span>
 
         </div>
@@ -37,7 +31,15 @@ $ master = change.get_master()
         <div id="recordDuplicates">
             <p class="small collapse">
                 $for dup in change.get_duplicates():
-                    $dup.name;
+                    $dup.title;
+            </p>
+        </div>
+
+        <div class="smallest lightgreen">$_('Editions Moved')</div>
+        <div id="recordEditions">
+            <p class="small collapse">
+                $for edition in change.get_editions():
+                    $dup.title;
             </p>
         </div>
 

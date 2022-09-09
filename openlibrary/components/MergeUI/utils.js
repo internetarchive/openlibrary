@@ -103,7 +103,17 @@ export async function do_merge(merged_record, dupes, editions, mrid) {
         comment += ` (MRID: ${mrid})`
     }
 
-    return await save_many(edits, comment);
+    return await save_many(
+        edits,
+        comment,
+        'merge-works',
+        {
+            master: merged_record.key,
+            duplicates: dupes.map(dupe => dupe.key),
+            editions: editions.map(edition => edition.key),
+            mrid: mrid,
+        },
+    );
 }
 
 export function make_redirect(master_key, dupe) {
@@ -197,14 +207,18 @@ function prepareIds(workIds) {
  *
  * @param {Array<Object>} items
  * @param {String} comment
+ * @param {String} action
+ * @param {Object} data
  */
-function save_many(items, comment) {
+function save_many(items, comment, action, data) {
     console.log(`Saving ${items.length} items`);
     const headers = {
         Opt: '"http://openlibrary.org/dev/docs/api"; ns=42',
-        '42-comment': comment
+        '42-comment': comment,
+        '42-action': action,
+        '42-data': JSON.stringify(data),
     };
-
+    console.log(headers);
     return fetch('/api/save_many', {
         method: 'POST',
         headers,
