@@ -37,7 +37,10 @@ from openlibrary.core.imports import Batch
 from openlibrary.core.vendors import AmazonAPI, clean_amazon_metadata_for_load
 from openlibrary.utils.dateutil import WEEK_SECS
 from openlibrary.utils.isbn import (
-    normalize_isbn, isbn_13_to_isbn_10, isbn_10_to_isbn_13)
+    normalize_isbn,
+    isbn_13_to_isbn_10,
+    isbn_10_to_isbn_13,
+)
 
 logger = logging.getLogger("affiliate-server")
 
@@ -55,6 +58,8 @@ batch_name = ""
 batch: Batch = None
 
 web.amazon_queue = queue.Queue()  # a thread-safe multi-producer, multi-consumer queue
+web.amazon_queue.max_qsize = 0  # add a couple of variables for statsd reporting
+web.amazon_queue.dump_count = 0
 
 
 def get_current_amazon_batch() -> Batch:
@@ -83,8 +88,9 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
 
     for product in products:
         cache_key = (  # Make sure we have an isbn_13 for cache key
-            product.get('isbn_13') and product.get('isbn_13')[0] or
-            isbn_10_to_isbn_13(product.get('isbn_10')[0])
+            product.get('isbn_13')
+            and product.get('isbn_13')[0]
+            or isbn_10_to_isbn_13(product.get('isbn_10')[0])
         )
         cache.memcache_cache.set(  # Add each product to memcache
             'amazon_product_%s' % cache_key, product, expires=WEEK_SECS
@@ -95,10 +101,9 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
         return
 
     if books := [clean_amazon_metadata_for_load(product) for product in products]:
-        get_current_amazon_batch().add_items([{
-            'ia_id': b['source_records'][0],
-            'data': b
-        } for b in books])
+        get_current_amazon_batch().add_items(
+            [{'ia_id': b['source_records'][0], 'data': b} for b in books]
+        )
 
 
 def seconds_remaining(start_time: int) -> int:
@@ -131,17 +136,34 @@ threading.Thread(target=amazon_lookup).start()
 
 class Status:
     def GET(self) -> str:
-        return json.dumps({
-            "queue_size": web.amazon_queue.qsize(),
-            "queue": list(web.amazon_queue.queue),
-        })
+        return json.dumps(
+            {
+                "queue_size": web.amazon_queue.qsize(),
+                "queue": list(web.amazon_queue.queue),
+                "max_qsize": web.amazon_queue.max_qsize,
+                "dump_count": web.amazon_queue.dump_count,
+            }
+        )
+
+
+class Clear:
+    """Clear web.amazon_queue and return the queue size before it was cleared."""
+    def GET(self) -> str:
+        qsize = web.amazon_queue.qsize()
+        max_qsize = web.amazon_queue.max_qsize
+        web.amazon_queue.queue.clear()
+        return json.dumps({"Cleared": "True", "qsize": qsize, "max_qsize": max_qsize})
 
 
 class Submit:
     @classmethod
     def unpack_isbn(cls, isbn) -> tuple[str, str]:
         isbn = normalize_isbn(isbn.replace('-', ''))
-        isbn10 = isbn if len(isbn) == 10 else isbn.startswith('978') and isbn_13_to_isbn_10(isbn)
+        isbn10 = (
+            isbn
+            if len(isbn) == 10
+            else isbn.startswith('978') and isbn_13_to_isbn_10(isbn)
+        )
         isbn13 = isbn if len(isbn) == 13 else isbn_10_to_isbn_13(isbn)
         return isbn10, isbn13
 
@@ -155,11 +177,9 @@ class Submit:
 
         isbn10, isbn13 = self.unpack_isbn(isbn)
         if not isbn10:
-            return json.dumps({
-                "error": "rejected_isbn",
-                "isbn10": isbn10,
-                "isbn13": isbn13
-            })
+            return json.dumps(
+                {"error": "rejected_isbn", "isbn10": isbn10, "isbn13": isbn13}
+            )
 
         # Cache lookup by isbn13. If there's a hit return the product to the caller
         product = cache.memcache_cache.get('amazon_product_%s' % isbn13)
@@ -170,8 +190,11 @@ class Submit:
         if isbn10 not in web.amazon_queue.queue:
             web.amazon_queue.put_nowait(isbn10)
         qsize = web.amazon_queue.qsize()
-        # send one sample in 20 to statsd
-        stats.put("ol.affiliate.amazon.queue_size", qsize, 0.05)
+        web.amazon_queue.max_qsize = max(web.amazon_queue.max_qsize, qsize)
+        web.amazon_queue.dump_count += 1
+        if web.amazon_queue.dump_count % 20 == 0:  # send one sample in 20 to statsd
+            stats.put("ol.affiliate.amazon.max_qsize", web.amazon_queue.max_qsize)
+            web.amazon_queue.max_qsize = 0
         return json.dumps({"status": "submitted", "queue": qsize})
 
 
@@ -185,7 +208,7 @@ def load_config(configfile):
     args = [
         config.amazon_api.get('key'),
         config.amazon_api.get('secret'),
-        config.amazon_api.get('id')
+        config.amazon_api.get('id'),
     ]
     if all(args):
         web.amazon_api = AmazonAPI(*args, throttling=0.9)
@@ -196,10 +219,12 @@ def load_config(configfile):
 
 def init_sentry(app):
     from openlibrary.utils.sentry import Sentry
+
     sentry = Sentry(getattr(config, 'sentry', {}))
     if sentry.enabled:
         sentry.init()
         sentry.bind_to_webpy_app(app)
+
 
 def setup_env():
     # make sure PYTHON_EGG_CACHE is writable
@@ -208,25 +233,28 @@ def setup_env():
     # required when run as fastcgi
     os.environ['REAL_SCRIPT_NAME'] = ""
 
+
 cache = None
+
 
 def start_server():
     sysargs = sys.argv[1:]
     configfile, args = sysargs[0], sysargs[1:]
 
-    # type: (str) -> None
+    # # type: (str) -> None
     load_config(configfile)
     global cache
     from openlibrary.core import cache
+
     # sentry could be loaded here
     # init_sentry(app)
 
     sys.argv = [sys.argv[0]] + list(args)
     app.run()
 
+
 def start_gunicorn_server():
-    """Starts the affiliate server using gunicorn server.
-    """
+    """Starts the affiliate server using gunicorn server."""
     from gunicorn.app.base import Application
 
     configfile = sys.argv.pop(1)
@@ -253,10 +281,12 @@ def https_middleware(app):
     Using that value to overwrite wsgi.url_scheme in the WSGI environ,
     which is used by all redirects and other utilities.
     """
+
     def wrapper(environ, start_response):
         if environ.get('HTTP_X_SCHEME') == 'https':
             environ['wsgi.url_scheme'] = 'https'
         return app(environ, start_response)
+
     return wrapper
 
 
