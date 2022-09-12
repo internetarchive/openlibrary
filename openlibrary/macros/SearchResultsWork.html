@@ -27,6 +27,10 @@ $code:
     edition_work = doc['works'][0]
 
   full_title = selected_ed.title + (': ' + selected_ed.subtitle if selected_ed.get('subtitle') else '')
+  if doc_type == 'infogami_edition' and edition_work:
+    full_work_title = edition_work.title + (': ' + edition_work.subtitle if edition_work.get('subtitle') else '')
+  else:
+    full_work_title = doc.title + (': ' + doc.subtitle if doc.get('subtitle') else '')
 
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book" $:attrs>
   <span class="bookcover">
@@ -90,6 +94,15 @@ $code:
                   </a>
               </span>
       </span>
+      $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
+      $if is_privileged_user:
+        <div class="searchResultItem__librarian-extras" title="$_('This is only visible to librarians.')">
+          $if doc_type == 'solr_edition' or (doc_type == 'infogami_edition' and edition_work):
+            <div>$_('Work Title'): <i>$full_work_title</i></div>
+          $ is_orphan = doc_type.startswith('solr_') and doc['key'].endswith('M') or doc_type == 'infogami_edition' and not edition_work
+          $if is_orphan:
+            <div>$_('Orphaned Edition')</div>
+        </div>
       $if extra:
         $:extra
       </div>
