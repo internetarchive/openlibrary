@@ -524,23 +524,26 @@ def run_solr_query(
 
     if 'public_scan' in param:
         v = param.pop('public_scan').lower()
-        if v in ('true', 'false'):
-            if v == 'false':
-                # also constrain on print disabled since the index may not be in sync
-                param.setdefault('print_disabled', 'false')
-            params.append(('fq', 'public_scan_b:%s' % v))
+        if v == 'true':
+            params.append(('fq', 'ebook_access:public'))
+        elif v == 'false':
+            params.append(('fq', '-ebook_access:public'))
 
     if 'print_disabled' in param:
         v = param.pop('print_disabled').lower()
-        if v in ('true', 'false'):
-            minus = '-' if v == 'false' else ''
-            params.append(('fq', '%ssubject_key:protected_daisy' % minus))
+        if v == 'true':
+            params.append(('fq', 'ebook_access:printdisabled'))
+        elif v == 'false':
+            params.append(('fq', '-ebook_access:printdisabled'))
 
     if 'has_fulltext' in param:
         v = param['has_fulltext'].lower()
-        if v not in ('true', 'false'):
+        if v == 'true':
+            params.append(('fq', 'ebook_access:[printdisabled TO *]'))
+        elif v == 'false':
+            params.append(('fq', 'ebook_access:[* TO printdisabled}'))
+        else:
             del param['has_fulltext']
-        params.append(('fq', 'has_fulltext:%s' % v))
 
     for field in FACET_FIELDS:
         if field == 'has_fulltext':
