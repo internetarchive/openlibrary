@@ -39,7 +39,7 @@ $# the default "enter" action.
             title = _("Editing...")
             note = ""
     <h2 class="editFormTitle">$:title</h2>
-    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
+    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians')):
         <span class="adminOnly right">
             <form method="post" id="delete-record" name="delete">
                 <button type="submit" name="_delete" value="true" id="delete-btn">$_("Delete Record")</button>

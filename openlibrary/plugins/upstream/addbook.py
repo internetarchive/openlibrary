@@ -536,7 +536,10 @@ class SaveBookHelper:
         user = accounts.get_current_user()
         delete = (
             user
-            and (user.is_admin() or user.is_librarian())
+            and (
+                user.is_admin()
+                or user.is_usergroup_member('/usergroup/super-librarians')
+            )
             and formdata.pop('_delete', '')
         )
 
@@ -756,7 +759,9 @@ class SaveBookHelper:
     def _prevent_ocaid_deletion(self, edition):
         # Allow admins to modify ocaid
         user = accounts.get_current_user()
-        if user and (user.is_admin() or user.is_librarian()):
+        if user and (
+            user.is_admin() or user.is_usergroup_member('/usergroup/super-librarians')
+        ):
             return
 
         # read ocaid from form data
