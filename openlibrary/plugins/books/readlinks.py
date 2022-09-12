@@ -54,19 +54,15 @@ def get_work_iaids(wkey):
     return reply["response"]['docs'][0].get(filter, [])
 
 
-# multi-get version (not yet used)
-def get_works_iaids(wkeys):
-    solr_select_url = get_solr_select_url()
-    filter = 'ia'
-    q = '+OR+'.join(['key:' + wkey for wkey in wkeys])
-    solr_select = (
-        solr_select_url
-        + f"?version=2.2&q.op=AND&q={q}&rows=10&fl={filter}&qt=standard&wt=json&fq=type:work"
-    )
-    reply = requests.get(solr_select).json()
-    if reply['response']['numFound'] == 0:
-        return []
-    return reply
+def get_solr_fields_for_works(
+    field: str,
+    wkeys: list[str],
+    clip_limit: int = None,
+) -> dict[str, list[str]]:
+    from openlibrary.plugins.worksearch.search import get_solr
+
+    docs = get_solr().get_many(wkeys, fields=['key', field])
+    return {doc['key']: doc.get(field, [])[:clip_limit] for doc in docs}
 
 
 def get_eids_for_wids(wids):
@@ -330,13 +326,10 @@ class ReadProcessor:
         self.datas = dp.process(self.docs)
         self.works = dp.works
 
-        # XXX control costs below with [:iaid_limit] - note that this may result
+        # XXX control costs below with iaid_limit - note that this may result
         # in no 'exact' item match, even if one exists
         # Note that it's available thru above works/docs
-        iaid_limit = 500
-        self.wkey_to_iaids = {
-            wkey: get_work_iaids(wkey)[:iaid_limit] for wkey in self.works
-        }
+        self.wkey_to_iaids = get_solr_fields_for_works('ia', self.works, 500)
         iaids = sum(self.wkey_to_iaids.values(), [])
         self.iaid_to_meta = {iaid: ia.get_metadata(iaid) for iaid in iaids}
 
@@ -409,7 +402,7 @@ def readlinks(req, options):
         if options.get('listofworks'):
             """For load-testing, handle a special syntax"""
             wids = req.split('|')
-            mapping = get_eids_for_wids(wids[:5])
+            mapping = get_solr_fields_for_works('edition_key', wids[:5])
             req = '|'.join(('olid:' + k) for k in mapping.values())
 
         result = rp.process(req)
