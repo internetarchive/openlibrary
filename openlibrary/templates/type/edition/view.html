@@ -143,7 +143,7 @@ $def display_identifiers(label, ids, itemprop=None):
                 $if id.url:
                     <a href="$id.url$('?tag=' + affiliate_id('amazon') if 'amazon.' in id.url else '')">$id.value</a>$sep
                 $elif 'ISBN' in label:
-                    $(hyphenate_isbn(id.value)}$sep
+                    ${hyphenate_isbn(id.value)}$sep
                 $else:
                     ${id.value}$sep
         </dd>
