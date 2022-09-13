@@ -4,6 +4,7 @@ from openlibrary.utils.isbn import (
     isbn_13_to_isbn_10,
     normalize_isbn,
     opposite_isbn,
+    hyphenate_isbn,
 )
 
 
@@ -47,3 +48,26 @@ isbn_cases = [
 @pytest.mark.parametrize('isbnlike,expected', isbn_cases)
 def test_normalize_isbn(isbnlike, expected):
     assert normalize_isbn(isbnlike) == expected
+
+
+hyphenation_cases = [
+    ('344203275X', '3-442-03275-X'),  # ISBN10 with X
+    ('344203275x', '3-442-03275-X'),  # ISBN10 with lowercase x, X is capitalised
+    ('3442-0327-5X', '3-442-03275-X'),  # re-hyphenate bad
+    ('9780108646980', '978-0-10-864698-0'),  # good ISBN13
+    ('multi046', 'multi046'),  # Invalid unchanged
+    ('915502175', '915502175'),  # Invalid unchanged
+    ('0860941569', '0860941569'),  # Invalid unchanged
+    ('', ''),
+]
+
+
+@pytest.mark.parametrize('isbn,expected', hyphenation_cases)
+def test_hyphenate_isbn(isbn, expected):
+    assert hyphenate_isbn(isbn) == expected
+
+
+@pytest.mark.xfail(reason="isbnlib will not hyphenate invalid checkdigit ISBNs, even when hyphenation rules exist.")
+def test_hyphenate_invalid_checkdigit():
+    assert hyphenate_isbn('1841151866') == '1-84115-186-6'
+    assert hyphenate_isbn('184115186X') == '1-84115-186-X'

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from isbnlib import canonical
+from isbnlib import canonical, mask, ISBNLibException
 
 
 def check_digit_10(isbn):
@@ -83,3 +83,12 @@ def normalize_isbn(isbn: str) -> str | None:
     Does NOT validate length or checkdigits.
     """
     return isbn and canonical(isbn) or None
+
+
+def hyphenate_isbn(isbn: str) -> str:
+    """Return a hyphenated ISBN, or the input ISBN if it cannot be hyphenated."""
+    try:
+        hyphenated = mask(isbn)
+    except ISBNLibException:
+        return isbn
+    return hyphenated or isbn
