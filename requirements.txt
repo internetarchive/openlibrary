@@ -11,6 +11,7 @@ gunicorn==20.1.0
 httpx==0.23.0
 internetarchive==3.0.2
 isbnlib==3.10.10
+luqum==0.11.0
 lxml==4.9.1
 Pillow==9.2.0
 psycopg2==2.9.3

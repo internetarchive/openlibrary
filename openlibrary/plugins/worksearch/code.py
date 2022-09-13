@@ -13,6 +13,8 @@ import requests
 import web
 from requests import Response
 import urllib
+import luqum
+from luqum.exceptions import ParseSyntaxError
 
 from infogami import config
 from infogami.utils import delegate, stats
@@ -28,6 +30,14 @@ from openlibrary.plugins.upstream.utils import (
     urlencode,
 )
 from openlibrary.solr.solr_types import SolrDocument
+from openlibrary.solr.query_utils import (
+    EmptyTreeError,
+    escape_unknown_fields,
+    fully_escape_query,
+    luqum_parser,
+    luqum_remove_child,
+    luqum_traverse,
+)
 from openlibrary.utils import escape_bracket
 from openlibrary.utils.ddc import (
     normalize_ddc,
@@ -260,170 +270,150 @@ def process_facet_counts(
         yield field, list(process_facet(field, web.group(facets, 2)))
 
 
-def lcc_transform(raw):
-    """
-    Transform the lcc search field value
-    :param str raw:
-    :rtype: str
-    """
+def lcc_transform(sf: luqum.tree.SearchField):
     # e.g. lcc:[NC1 TO NC1000] to lcc:[NC-0001.00000000 TO NC-1000.00000000]
     # for proper range search
-    m = re_range.match(raw)
-    if m:
-        lcc_range = [m.group('start').strip(), m.group('end').strip()]
-        normed = normalize_lcc_range(*lcc_range)
-        return f'[{normed[0] or lcc_range[0]} TO {normed[1] or lcc_range[1]}]'
-    elif '*' in raw and not raw.startswith('*'):
-        # Marshals human repr into solr repr
-        # lcc:A720* should become A--0720*
-        parts = raw.split('*', 1)
-        lcc_prefix = normalize_lcc_prefix(parts[0])
-        return (lcc_prefix or parts[0]) + '*' + parts[1]
-    else:
-        normed = short_lcc_to_sortable_lcc(raw.strip('"'))
+    val = sf.children[0]
+    if isinstance(val, luqum.tree.Range):
+        normed = normalize_lcc_range(val.low, val.high)
         if normed:
-            use_quotes = ' ' in normed or raw.startswith('"')
-            return ('"%s"' if use_quotes else '%s*') % normed
+            val.low, val.high = normed
+    elif isinstance(val, luqum.tree.Word):
+        if '*' in val.value and not val.value.startswith('*'):
+            # Marshals human repr into solr repr
+            # lcc:A720* should become A--0720*
+            parts = val.value.split('*', 1)
+            lcc_prefix = normalize_lcc_prefix(parts[0])
+            val.value = (lcc_prefix or parts[0]) + '*' + parts[1]
+        else:
+            normed = short_lcc_to_sortable_lcc(val.value.strip('"'))
+            if normed:
+                val.value = normed
+    elif isinstance(val, luqum.tree.Phrase):
+        normed = short_lcc_to_sortable_lcc(val.value.strip('"'))
+        if normed:
+            val.value = f'"{normed}"'
+    else:
+        logger.warning(f"Unexpected lcc SearchField value type: {type(val)}")
 
-    # If none of the transforms took
-    return raw
 
-
-def ddc_transform(raw):
-    """
-    Transform the ddc search field value
-    :param str raw:
-    :rtype: str
-    """
-    m = re_range.match(raw)
-    if m:
-        raw = [m.group('start').strip(), m.group('end').strip()]
+def ddc_transform(sf: luqum.tree.SearchField):
+    val = sf.children[0]
+    if isinstance(val, luqum.tree.Range):
         normed = normalize_ddc_range(*raw)
-        return f'[{normed[0] or raw[0]} TO {normed[1] or raw[1]}]'
-    elif raw.endswith('*'):
-        return normalize_ddc_prefix(raw[:-1]) + '*'
-    else:
-        normed = normalize_ddc(raw.strip('"'))
+        val.low, val.high = normed[0] or val.low, normed[1] or val.high
+    elif isinstance(val, luqum.tree.Word) and val.value.endswith('*'):
+        return normalize_ddc_prefix(val.value[:-1]) + '*'
+    elif isinstance(val, luqum.tree.Word) or isinstance(val, luqum.tree.Phrase):
+        normed = normalize_ddc(val.value.strip('"'))
         if normed:
-            return normed[0]
+            val.value = normed
+    else:
+        logger.warning(f"Unexpected ddc SearchField value type: {type(val)}")
 
-    # if none of the transforms took
-    return raw
+
+def isbn_transform(sf: luqum.tree.SearchField):
+    field_val = sf.children[0]
+    if isinstance(field_val, luqum.tree.Word) and '*' not in field_val.value:
+        isbn = normalize_isbn(field_val.value)
+        if isbn:
+            field_val.value = isbn
+    else:
+        logger.warning(f"Unexpected isbn SearchField value type: {type(field_val)}")
 
 
-def ia_collection_s_transform(raw):
+def ia_collection_s_transform(sf: luqum.tree.SearchField):
     """
     Because this field is not a multi-valued field in solr, but a simple ;-separate
     string, we have to do searches like this for now.
     """
-    result = raw
-    if not result.startswith('*'):
-        result = '*' + result
-    if not result.endswith('*'):
-        result += '*'
-    return result
+    val = sf.children[0]
+    if isinstance(val, luqum.tree.Word):
+        if val.value.startswith('*'):
+            val.value = '*' + val.value
+        if val.value.endswith('*'):
+            val.value += '*'
+    else:
+        logger.warning(
+            f"Unexpected ia_collection_s SearchField value type: {type(val)}"
+        )
 
 
-def parse_query_fields(q):
-    found = [(m.start(), m.end()) for m in re_fields.finditer(q)]
-    first = q[: found[0][0]].strip() if found else q.strip()
-    if first:
-        yield {'field': 'text', 'value': first.replace(':', r'\:')}
-    for field_num in range(len(found)):
-        op_found = None
-        f = found[field_num]
-        field_name = q[f[0] : f[1] - 1].lower()
-        if field_name in FIELD_NAME_MAP:
-            field_name = FIELD_NAME_MAP[field_name]
-        if field_num == len(found) - 1:
-            v = q[f[1] :].strip()
-        else:
-            v = q[f[1] : found[field_num + 1][0]].strip()
-            m = re_op.search(v)
-            if m:
-                v = v[: -len(m.group(0))]
-                op_found = m.group(1)
-        if field_name == 'isbn':
-            isbn = normalize_isbn(v)
-            if isbn:
-                v = isbn
-        if field_name in ('lcc', 'lcc_sort'):
-            v = lcc_transform(v)
-        if field_name == ('ddc', 'ddc_sort'):
-            v = ddc_transform(v)
-        if field_name == 'ia_collection_s':
-            v = ia_collection_s_transform(v)
+def process_user_query(q_param: str) -> str:
+    # Solr 4+ has support for regexes (eg `key:/foo.*/`)! But for now, let's not
+    # expose that and escape all '/'. Otherwise `key:/works/OL1W` is interpreted as
+    # a regex.
+    q_param = q_param.strip().replace('/', '\\/')
+    try:
+        q_param = escape_unknown_fields(
+            q_param,
+            lambda f: f in ALL_FIELDS or f in FIELD_NAME_MAP or f.startswith('id_'),
+        )
+        q_tree = luqum_parser(q_param)
+    except ParseSyntaxError:
+        # This isn't a syntactically valid lucene query
+        logger.warning("Invalid lucene query", exc_info=True)
+        # Escape everything we can
+        q_tree = luqum_parser(fully_escape_query(q_param))
+    has_search_fields = False
+    for node, parents in luqum_traverse(q_tree):
+        if isinstance(node, luqum.tree.SearchField):
+            has_search_fields = True
+            if node.name.lower() in FIELD_NAME_MAP:
+                node.name = FIELD_NAME_MAP[node.name]
+            if node.name == 'isbn':
+                isbn_transform(node)
+            if node.name in ('lcc', 'lcc_sort'):
+                lcc_transform(node)
+            if node.name in ('dcc', 'dcc_sort'):
+                ddc_transform(node)
+            if node.name == 'ia_collection_s':
+                ia_collection_s_transform(node)
 
-        yield {'field': field_name, 'value': v.replace(':', r'\:')}
-        if op_found:
-            yield {'op': op_found}
+    if not has_search_fields:
+        # If there are no search fields, maybe we want just an isbn?
+        isbn = normalize_isbn(q_param)
+        if isbn and len(isbn) in (10, 13):
+            q_tree = luqum_parser(f'isbn:({isbn})')
+
+    return str(q_tree)
 
 
-def build_q_list(param):
+def build_q_from_params(param: dict[str, str]) -> str:
     q_list = []
-    if 'q' in param:
-        # Solr 4+ has support for regexes (eg `key:/foo.*/`)! But for now, let's not
-        # expose that and escape all '/'. Otherwise `key:/works/OL1W` is interpreted as
-        # a regex.
-        q_param = param['q'].strip().replace('/', '\\/')
-    else:
-        q_param = None
-    use_dismax = False
-    if q_param:
-        if q_param == '*:*':
-            q_list.append(q_param)
-        elif 'NOT ' in q_param:  # this is a hack
-            q_list.append(q_param.strip())
-        elif re_fields.search(q_param):
-            q_list.extend(
-                i['op'] if 'op' in i else '{}:({})'.format(i['field'], i['value'])
-                for i in parse_query_fields(q_param)
-            )
+    if 'author' in param:
+        v = param['author'].strip()
+        m = re_author_key.search(v)
+        if m:
+            q_list.append(f"author_key:({m.group(1)})")
         else:
-            isbn = normalize_isbn(q_param)
-            if isbn and len(isbn) in (10, 13):
-                q_list.append('isbn:(%s)' % isbn)
-            else:
-                q_list.append(q_param.strip().replace(':', r'\:'))
-                use_dismax = True
-    else:
-        if 'author' in param:
-            v = param['author'].strip()
-            m = re_author_key.search(v)
-            if m:
-                q_list.append("author_key:(%s)" % m.group(1))
-            else:
-                v = re_to_esc.sub(r'\\\g<0>', v)
-                # Somehow v can be empty at this point,
-                #   passing the following with empty strings causes a severe error in SOLR
-                if v:
-                    q_list.append(
-                        "(author_name:({name}) OR author_alternative_name:({name}))".format(
-                            name=v
-                        )
-                    )
+            v = re_to_esc.sub(r'\\\g<0>', v)
+            # Somehow v can be empty at this point,
+            #   passing the following with empty strings causes a severe error in SOLR
+            if v:
+                q_list.append(f"(author_name:({v}) OR author_alternative_name:({v}))")
 
-        check_params = [
-            'title',
-            'publisher',
-            'oclc',
-            'lccn',
-            'contributor',
-            'subject',
-            'place',
-            'person',
-            'time',
-        ]
-        q_list += [
-            '{}:({})'.format(k, re_to_esc.sub(r'\\\g<0>', param[k]))
-            for k in check_params
-            if k in param
-        ]
-        if param.get('isbn'):
-            q_list.append(
-                'isbn:(%s)' % (normalize_isbn(param['isbn']) or param['isbn'])
-            )
-    return (q_list, use_dismax)
+    check_params = [
+        'title',
+        'publisher',
+        'oclc',
+        'lccn',
+        'contributor',
+        'subject',
+        'place',
+        'person',
+        'time',
+    ]
+    q_list += [
+        '{}:({})'.format(k, re_to_esc.sub(r'\\\g<0>', param[k]))
+        for k in check_params
+        if k in param
+    ]
+
+    if param.get('isbn'):
+        q_list.append('isbn:(%s)' % (normalize_isbn(param['isbn']) or param['isbn']))
+
+    return ' AND '.join(q_list)
 
 
 def execute_solr_query(
@@ -482,15 +472,18 @@ def has_solr_editions_enabled():
 
 
 def run_solr_query(
-    param=None,
+    param: Optional[dict] = None,
     rows=100,
     page=1,
-    sort=None,
+    sort: str = None,
     spellcheck_count=None,
     offset=None,
     fields: Union[str, list[str]] = None,
     facet=True,
 ):
+    """
+    :param param: dict of query parameters
+    """
     param = param or {}
 
     if not fields:
@@ -502,7 +495,6 @@ def run_solr_query(
     if offset is None:
         offset = rows * (page - 1)
 
-    (q_list, use_dismax) = build_q_list(param)
     params = [
         ('fq', 'type:work'),
         ('start', offset),
@@ -555,7 +547,12 @@ def run_solr_query(
         values = param[field]
         params += [('fq', f'{field}:"{val}"') for val in values if val]
 
-    if q_list:
+    if param.get('q'):
+        q = process_user_query(param['q'])
+    else:
+        q = build_q_from_params(param)
+
+    if q:
         if has_solr_editions_enabled():
             EDITION_FIELDS = {
                 # Internals
@@ -585,126 +582,109 @@ def run_solr_query(
                 'public_scan_b': 'public_scan_b',
             }
 
-            def convert_work_field_to_edition_field(
-                work_field_val: str,
-            ) -> Optional[str]:
-                field, val = work_field_val.split(':', 1)
+            def convert_work_field_to_edition_field(field: str) -> Optional[str]:
                 if field in EDITION_FIELDS:
-                    return f'{EDITION_FIELDS[field]}:{val}'
+                    return EDITION_FIELDS[field]
+                elif field.startswith('id_'):
+                    return field
                 elif field in ALL_FIELDS:
                     return None
                 else:
-                    # handle invalid fields; eg a search for "flatland: a romance"
-                    return work_field_val
+                    raise ValueError(f'Unknown field: {field}')
 
-            if True or use_dismax:
-                work_q_list = q_list
-                if work_q_list[0].startswith('text:'):
-                    work_q_list[0] = work_q_list[0][len('text:') :]
-                work_query = (
-                    '''({{!edismax q.op="AND" qf="{qf}" bf="{bf}" v="{v}"}})'''.format(
-                        qf='text alternative_title^20 author_name^20',
-                        bf='min(100,edition_count)',
-                        v=' '.join(work_q_list).replace('"', '\\"'),
-                    )
+            work_q_tree = luqum_parser(q)
+            work_query = (
+                '''({{!edismax q.op="AND" qf="{qf}" bf="{bf}" v="{v}"}})'''.format(
+                    qf='text alternative_title^20 author_name^20',
+                    bf='min(100,edition_count)',
+                    v=str(work_q_tree).replace('"', '\\"'),
                 )
+            )
 
-                ed_q_list = []
-                for q in q_list:
-                    if ':' not in q:
-                        ed_q_list.append(q)
-                        continue
+            def convert_work_query_to_edition_query(work_query: str) -> str:
+                q_tree = luqum_parser(work_query)
 
-                    ed_field_val = convert_work_field_to_edition_field(q)
-                    if ed_field_val:
-                        ed_q_list.append(ed_field_val)
+                for node, parents in luqum_traverse(q_tree):
+                    if isinstance(node, luqum.tree.SearchField):
+                        new_name = convert_work_field_to_edition_field(node.name)
+                        if new_name:
+                            node.name = new_name
+                        else:
+                            try:
+                                luqum_remove_child(node, parents)
+                            except EmptyTreeError:
+                                # Deleted the whole tree! Nothing left
+                                return ''
 
-                if ed_q_list and ed_q_list[0].startswith('text:'):
-                    ed_q_list[0] = ed_q_list[0][len('text:') :]
-                ed_q_list = [f'+{term}' if ':' in term else term for term in ed_q_list]
+                return str(q_tree)
 
-                # params.append(('edQuery', ed_query))
-                # params.append(
-                #     (
-                #         'fl',
-                #         ','.join(
-                #             (fields or list(DEFAULT_SEARCH_FIELDS))
-                #             + [
-                #                 'editions',
-                #                 '[child limit=1 childFilter=$edQuery]',
-                #             ]
-                #         ),
-                #     )
-                # )
+            ed_q = convert_work_query_to_edition_query(str(work_q_tree))
+            params.append(('editions.fq', 'type:edition'))
+            for param_name, param_value in params:
+                if param_name != 'fq' or param_value.startswith('type:'):
+                    continue
+                field_name, field_val = param_value.split(':', 1)
+                ed_field = convert_work_field_to_edition_field(field_name)
+                if ed_field:
+                    params.append(('editions.fq', f'{ed_field}:{field_val}'))
 
-                params.append(('editions.fq', 'type:edition'))
-                for param_name, param_value in params:
-                    if param_name != 'fq' or param_value.startswith('type:'):
-                        continue
-                    ed_q = convert_work_field_to_edition_field(param_value)
-                    if ed_q:
-                        params.append(('editions.fq', ed_q))
+            user_lang = convert_iso_to_marc(web.ctx.lang or 'en') or 'eng'
 
-                user_lang = convert_iso_to_marc(web.ctx.lang or 'en') or 'eng'
-
-                editions_query = '({!edismax bq="%(bq)s" v="%(v)s" qf="%(qf)s"})' % {
-                    'qf': 'text title^4',
-                    'v': ' '.join(ed_q_list).replace('"', '\\"') or '*:*',
-                    'bq': ' '.join(
-                        (
-                            f'language:{user_lang}^40',
-                            'ebook_access:public^10',
-                            'ebook_access:borrowable^8',
-                            'ebook_access:printdisabled^2',
-                            'cover_i:*^2',
-                        )
-                    ),
-                }
-
-                if ed_q_list:
-                    params.append(('edQuery', editions_query))
-                    q = ' '.join(
-                        (
-                            f'+{work_query}',
-                            '+_query_:"{!parent which=type:work v=$edQuery filters=$editions.fq}"',
-                        )
-                    )
-                    params.append(('q', q))
-                else:
-                    params.append(('q', work_query))
-
-                params.append(
+            editions_query = '({!edismax bq="%(bq)s" v="%(v)s" qf="%(qf)s"})' % {
+                'qf': 'text title^4',
+                'v': ed_q.replace('"', '\\"') or '*:*',
+                'bq': ' '.join(
                     (
-                        'editions.q',
-                        f'({{!terms f=_root_ v=$row.key}}) AND {editions_query}',
+                        f'language:{user_lang}^40',
+                        'ebook_access:public^10',
+                        'ebook_access:borrowable^8',
+                        'ebook_access:printdisabled^2',
+                        'cover_i:*^2',
                     )
-                )
-                params.append(('editions.rows', 1))
-                params.append(
+                ),
+            }
+
+            if ed_q:
+                # The elements in _this_ edition query should cause works not to
+                # match _at all_ if matching editions are not found
+                params.append(('edQuery', editions_query))
+                q = ' '.join(
                     (
-                        'fl',
-                        ','.join(
-                            (fields or list(DEFAULT_SEARCH_FIELDS))
-                            + [
-                                'editions:[subquery]',
-                            ]
-                        ),
+                        f'+{work_query}',
+                        '+_query_:"{!parent which=type:work v=$edQuery filters=$editions.fq}"',
                     )
                 )
+                params.append(('q', q))
             else:
-                raise NotImplementedError()
+                params.append(('q', work_query))
+
+            # The elements in _this_ edition query will match but not affect
+            # whether the work appears in search results
+            params.append(
+                (
+                    'editions.q',
+                    f'({{!terms f=_root_ v=$row.key}}) AND {editions_query}',
+                )
+            )
+            params.append(('editions.rows', 1))
+            params.append(
+                (
+                    'fl',
+                    ','.join(
+                        (fields or list(DEFAULT_SEARCH_FIELDS))
+                        + [
+                            'editions:[subquery]',
+                        ]
+                    ),
+                )
+            )
         else:
             params.append(('fl', ','.join(fields or DEFAULT_SEARCH_FIELDS)))
             params.append(('q.op', 'AND'))
-            if use_dismax:
-                params.append(('q', ' '.join(q_list)))
-                params.append(('defType', 'dismax'))
-                params.append(('qf', 'text alternative_title^20 author_name^20'))
-                params.append(('bf', 'min(100,edition_count)'))
-            else:
-                params.append(
-                    ('q', ' '.join(q_list + ['_val_:"sqrt(edition_count)"^10']))
-                )
+            params.append(('q', q))
+            params.append(('defType', 'dismax'))
+            params.append(('qf', 'text alternative_title^20 author_name^20'))
+            params.append(('bf', 'min(100,edition_count)'))
 
     if sort:
         params.append(('sort', sort))
@@ -713,10 +693,21 @@ def run_solr_query(
 
     response = execute_solr_query(solr_select_url, params)
     solr_result = response.json() if response else None
-    return (solr_result, url, q_list)
+    return (solr_result, url, [])
 
 
-def do_search(param, sort, page=1, rows=100, spellcheck_count=None):
+def do_search(
+    param: dict,
+    sort: Optional[str],
+    page=1,
+    rows=100,
+    spellcheck_count=None,
+):
+    """
+    :param param: dict of search url parameters
+    :param sort: csv sort ordering
+    :param spellcheck_count: Not really used; should probably drop
+    """
     if sort:
         sort = process_sort(sort)
     (solr_result, solr_select, q_list) = run_solr_query(
