@@ -67,7 +67,9 @@ def test_hyphenate_isbn(isbn, expected):
     assert hyphenate_isbn(isbn) == expected
 
 
-@pytest.mark.xfail(reason="isbnlib will not hyphenate invalid checkdigit ISBNs, even when hyphenation rules exist.")
+@pytest.mark.xfail(
+    reason="isbnlib will not hyphenate invalid checkdigit ISBNs, even when hyphenation rules exist."
+)
 def test_hyphenate_invalid_checkdigit():
     assert hyphenate_isbn('1841151866') == '1-84115-186-6'
     assert hyphenate_isbn('184115186X') == '1-84115-186-X'

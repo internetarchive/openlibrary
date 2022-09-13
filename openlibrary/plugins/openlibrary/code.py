@@ -34,7 +34,7 @@ from infogami.core.db import ValidationException
 
 from openlibrary.core import cache
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
-from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
+from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13, hyphenate_isbn
 from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.core.lending import get_work_availability, get_edition_availability
 import openlibrary.core.stats
@@ -1092,6 +1092,7 @@ def setup_template_globals():
             'urlquote': web.urlquote,
             'isbn_13_to_isbn_10': isbn_13_to_isbn_10,
             'isbn_10_to_isbn_13': isbn_10_to_isbn_13,
+            'hyphenate_isbn': hyphenate_isbn,
             'NEWLINE': '\n',
             'random': random.Random(),
             'choose_random_from': random.choice,
