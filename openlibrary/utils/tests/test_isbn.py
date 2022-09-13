@@ -58,7 +58,10 @@ hyphenation_cases = [
     ('multi046', 'multi046'),  # Invalid unchanged
     ('915502175', '915502175'),  # Invalid unchanged
     ('0860941569', '0860941569'),  # Invalid unchanged
-    ('', ''),
+    ('', ''),  # Empty
+    # Valid checkdigits but unhyphenatable @ isbnlib==3.10.10:
+    ('9786400042628', '9786400042628'),
+    ('9789999334525', '9789999334525'),
 ]
 
 
