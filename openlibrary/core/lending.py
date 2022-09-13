@@ -118,7 +118,7 @@ def compose_ia_url(
     sorts=None,
     advanced=True,
     rate_limit_exempt=True,
-) -> Optional[str]:
+) -> str | None:
     """This needs to be exposed by a generalized API endpoint within
     plugins/api/browse which lets lazy-load more items for
     the homepage carousel and support the upcoming /browse view

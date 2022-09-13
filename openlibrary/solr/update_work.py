@@ -52,7 +52,7 @@ re_year = re.compile(r'\b(\d{4})\b')
 data_provider = cast(DataProvider, None)
 
 solr_base_url = None
-solr_next: Optional[bool] = None
+solr_next: bool | None = None
 
 
 def get_solr_base_url():
@@ -191,7 +191,7 @@ def pick_cover_edition(editions, work_cover_id):
     )
 
 
-def pick_number_of_pages_median(editions: list[dict]) -> Optional[int]:
+def pick_number_of_pages_median(editions: list[dict]) -> int | None:
     number_of_pages = [
         cast(int, e.get('number_of_pages'))
         for e in editions
@@ -1262,7 +1262,7 @@ async def update_work(work: dict) -> list[SolrUpdateRequest]:
 
 async def update_author(
     akey, a=None, handle_redirects=True
-) -> Optional[list[SolrUpdateRequest]]:
+) -> list[SolrUpdateRequest] | None:
     """
     Get the Solr requests necessary to insert/update/delete an Author in Solr.
     :param akey: The author key, e.g. /authors/OL23A
@@ -1577,7 +1577,7 @@ def load_configs(
     c_host: str,
     c_config: str,
     c_data_provider: (
-        Union[DataProvider, Literal['default', 'legacy', 'external']]
+        DataProvider | Literal['default', 'legacy', 'external']
     ) = 'default',
 ) -> DataProvider:
     host = web.lstrips(c_host, "http://").strip("/")

@@ -178,8 +178,8 @@ def _get_top_level_path_for_metric(full_path):
 
 class GraphiteRequestStats:
     def __init__(self):
-        self.start: Optional[float] = None
-        self.end: Optional[float] = None
+        self.start: float | None = None
+        self.end: float | None = None
         self.state = None  # oneof 'started', 'completed'
         self.method = 'unknown'
         self.path_page_name = 'unknown'

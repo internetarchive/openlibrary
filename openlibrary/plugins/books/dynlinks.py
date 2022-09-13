@@ -12,7 +12,7 @@ from openlibrary.core import ia
 from infogami.utils.delegate import register_exception
 
 
-def split_key(bib_key: str) -> tuple[Optional[str], Optional[str]]:
+def split_key(bib_key: str) -> tuple[str | None, str | None]:
     """
     >>> split_key('1234567890')
     ('isbn_', '1234567890')

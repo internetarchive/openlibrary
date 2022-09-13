@@ -264,9 +264,7 @@ class Bookshelves(db.CommonExtras):
         return cls.fetch(logged_books) if fetch else logged_books
 
     @classmethod
-    def get_users_read_status_of_work(
-        cls, username: str, work_id: str
-    ) -> Optional[str]:
+    def get_users_read_status_of_work(cls, username: str, work_id: str) -> str | None:
         """A user can mark a book as (1) want to read, (2) currently reading,
         or (3) already read. Each of these states is mutually
         exclusive. Returns the user's read state of this work, if one
