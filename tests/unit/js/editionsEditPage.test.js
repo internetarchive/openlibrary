@@ -75,14 +75,14 @@ beforeEach(() => {
 // Per the test data used, and beforeEach(), the length always starts out at 5.
 describe('initIdentifierValidation', () => {
     // ISBN 10
-    it('it does add a valid ISBN 10 ending in X', () => {
+    it('does add a valid ISBN 10 ending in X', () => {
         $('#select-id').val('isbn_10');
         $('#id-value').val('0-8044-2957-X');
         $('.repeat-add').trigger('click');
         expect($('.repeat-item').length).toBe(6);
     });
 
-    it('it does add a valid ISBN 10 NOT ending in X', () => {
+    it('does add a valid ISBN 10 NOT ending in X', () => {
         $('#select-id').val('isbn_10');
         $('#id-value').val('0596520689');
         $('.repeat-add').trigger('click');
@@ -96,7 +96,7 @@ describe('initIdentifierValidation', () => {
         expect($('.repeat-item').length).toBe(5);
     });
 
-    it('it does NOT prompt to add a formally invalid ISBN 10', () => {
+    it('does NOT prompt to add a formally invalid ISBN 10', () => {
         $('#select-id').val('isbn_10');
         $('#id-value').val('12345');
         $('.repeat-add').trigger('click');
@@ -136,7 +136,7 @@ describe('initIdentifierValidation', () => {
         expect($('.repeat-item').length).toBe(6);
     })
 
-    it('it does count identical stripped and unstripped ISBN 10s as the same ISBN', () => {
+    it('does count identical stripped and unstripped ISBN 10s as the same ISBN', () => {
         $('#select-id').val('isbn_10');
         $('#id-value').val(' 144--93-55730 ');
         $('.repeat-add').trigger('click');
@@ -147,7 +147,7 @@ describe('initIdentifierValidation', () => {
     });
 
     // ISBN 13
-    it('it does add a valid ISBN 13', () => {
+    it('does add a valid ISBN 13', () => {
         $('#select-id').val('isbn_13');
         $('#id-value').val('9781789801217');
         $('.repeat-add').trigger('click');
@@ -161,7 +161,7 @@ describe('initIdentifierValidation', () => {
         expect($('.repeat-item').length).toBe(5);
     });
 
-    it('it does NOT prompt to add a formally invalid ISBN 13', () => {
+    it('does NOT prompt to add a formally invalid ISBN 13', () => {
         $('#select-id').val('isbn_13');
         $('#id-value').val('12345');
         $('.repeat-add').trigger('click');
@@ -201,7 +201,7 @@ describe('initIdentifierValidation', () => {
         expect($('.repeat-item').length).toBe(6);
     })
 
-    it('it does count identical stripped and unstripped ISBN 13s as the same ISBN', () => {
+    it('does count identical stripped and unstripped ISBN 13s as the same ISBN', () => {
         $('#select-id').val('isbn_13');
         $('#id-value').val('-979-86 -64653403   ');
         $('.repeat-add').trigger('click');
