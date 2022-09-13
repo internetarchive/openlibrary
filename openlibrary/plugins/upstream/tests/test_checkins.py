@@ -34,7 +34,7 @@ class TestIsValid:
         self.checkins = check_ins()
         self.valid_data = {
             'edition_olid': 'OL1234M',
-            'event_type': 'start',
+            'event_type': 'START',
             'year': 2000,
             'month': 3,
             'day': 7,
@@ -44,7 +44,7 @@ class TestIsValid:
         assert self.checkins.is_valid(self.valid_data) == True
 
         missing_edition = {
-            'event_type': 'start',
+            'event_type': 'START',
             'year': 2000,
             'month': 3,
             'day': 7,
@@ -57,7 +57,7 @@ class TestIsValid:
         }
         missing_year = {
             'edition_olid': 'OL1234M',
-            'event_type': 'start',
+            'event_type': 'START',
             'month': 3,
             'day': 7,
         }

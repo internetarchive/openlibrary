@@ -1,20 +1,31 @@
 from datetime import date, datetime
+from enum import IntEnum
 from . import db
+
+
+class BookshelfEvent(IntEnum):
+    START = 1
+    UPDATE = 2
+    FINISH = 3
+
+    @classmethod
+    def has_key(cls, key: str) -> bool:
+        return key in cls.__members__
 
 
 class BookshelvesEvents:
 
     TABLENAME = 'bookshelves_events'
-    EVENT_TYPES = {
-        'start': 1,
-        'update': 2,
-        'finish': 3,
-    }
 
     # Create methods:
     @classmethod
     def create_event(
-        cls, username, work_id, edition_id, event_date, event_type=EVENT_TYPES['start']
+        cls,
+        username,
+        work_id,
+        edition_id,
+        event_date,
+        event_type=BookshelfEvent.START.value,
     ):
         oldb = db.get_db()
 
