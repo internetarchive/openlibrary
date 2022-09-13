@@ -75,7 +75,7 @@ class check_ins(delegate.page):
 
 
 class patron_check_ins(delegate.page):
-    path = r'/check-ins/people/([^/]+)'
+    path = r'/people/([^/]+)/checkins'
     encoding = 'json'
 
     @authorized_for('/usergroup/admin')
@@ -116,11 +116,7 @@ class patron_check_ins(delegate.page):
         a. Missing an 'id'
         b. Does not have either 'year' or 'data'
         """
-        if not 'id' in data:
-            return False
-        if not any(key in data for key in ('data', 'year')):
-            return False
-        return True
+        return 'id' in data and 'data' in data and 'year' in data
 
 
 def setup():

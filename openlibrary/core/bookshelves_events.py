@@ -13,7 +13,7 @@ class BookshelfEvent(IntEnum):
         return key in cls.__members__
 
 
-class BookshelvesEvents:
+class BookshelvesEvents(db.CommonExtras):
 
     TABLENAME = 'bookshelves_events'
 
@@ -39,15 +39,6 @@ class BookshelvesEvents:
         )
 
     # Read methods:
-    @classmethod
-    def select_all_by_username(cls, username):
-        # TODO: how should these be ordered?  edition_id and event_date?
-        oldb = db.get_db()
-
-        where_clause = 'username=$username'
-        where_vars = {'username': username}
-        return list(oldb.select(cls.TABLENAME, where=where_clause, vars=where_vars))
-
     @classmethod
     def select_by_id(cls, pid):
         oldb = db.get_db()
