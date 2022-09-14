@@ -8,6 +8,7 @@ import web
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
+from openlibrary.accounts import get_current_user
 from openlibrary.plugins.upstream.edits import process_merge_request
 from openlibrary.plugins.worksearch.code import top_books_from_author
 from openlibrary.utils import uniq, dicthash
@@ -277,17 +278,31 @@ class merge_authors(delegate.page):
 
         # filter bad keys
         keys = self.filter_authors(keys)
+
+        user = get_current_user()
+        can_merge = user and (
+            user.is_admin() or user.is_usergroup_member('/usergroup/super-librarians')
+        )
         return render_template(
             'merge/authors',
             keys,
             top_books_from_author=top_books_from_author,
             mrid=i.mrid,
+            can_merge=can_merge,
         )
 
     def POST(self):
         i = web.input(key=[], master=None, merge_key=[], mrid=None, comment=None)
         keys = uniq(i.key)
         selected = uniq(i.merge_key)
+
+        user = get_current_user()
+        can_merge = user and (
+            user.is_admin() or user.is_usergroup_member('/usergroup/super-librarians')
+        )
+        can_request_merge = not can_merge and (
+            user and user.is_usergroup_member('/usergroup/librarians')
+        )
 
         # filter bad keys
         keys = self.filter_authors(keys)
@@ -306,6 +321,21 @@ class merge_authors(delegate.page):
                 formdata=formdata,
                 mrid=i.mrid,
             )
+        elif can_request_merge:
+            # Create merge author request:
+            selected.insert(0, i.master)
+            data = {
+                'mr_type': 2,
+                'action': 'create-pending',
+                'olids': ','.join(selected),
+            }
+
+            if i.comment:
+                data['comment'] = i.comment
+
+            process_merge_request('create-request', data)
+
+            raise web.seeother('/search/authors')
         else:
             # redirect to the master. The master will display a progressbar and call the merge_authors_json to trigger the merge.
             redir_url = (

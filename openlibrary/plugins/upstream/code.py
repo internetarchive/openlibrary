@@ -29,6 +29,10 @@ from openlibrary.plugins.upstream.utils import render_component
 if not config.get('coverstore_url'):
     config.coverstore_url = "https://covers.openlibrary.org"  # type: ignore[attr-defined]
 
+import logging
+
+logger = logging.getLogger('openlibrary.plugins.upstream.code')
+
 
 class static(delegate.page):
     path = "/images/.*"
@@ -100,16 +104,24 @@ class merge_work(delegate.page):
     path = "/works/merge"
 
     def GET(self):
-        i = web.input(records='', mrid=None)
+        i = web.input(records='', mrid=None, primary=None)
         user = web.ctx.site.get_user()
         has_access = user and (
             (user.is_admin() or user.is_librarian())
-            and user.is_usergroup_member('/usergroup/super-librarians')
+            or user.is_usergroup_member('/usergroup/super-librarians')
         )
         if not has_access:
             raise web.HTTPError('403 Forbidden')
 
-        return render_template('merge/works', mrid=i.mrid)
+        optional_kwargs = {}
+        if not (
+            user.is_usergroup_member('/usergroup/super-librarians') or user.is_admin()
+        ):
+            optional_kwargs['can_merge'] = 'false'
+
+        return render_template(
+            'merge/works', mrid=i.mrid, primary=i.primary, **optional_kwargs
+        )
 
 
 @web.memoize

@@ -3,10 +3,13 @@ import { declineRequest } from './merge-request-table/MergeRequestService';
 export function initAuthorMergePage() {
     $('#save').on('click', function () {
         const n = $('#mergeForm input[type=radio]:checked').length;
+        const confirmMergeButton = document.querySelector('#confirmMerge')
         if (n === 0) {
             $('#noMaster').dialog('open');
-        } else {
+        } else if (confirmMergeButton) {
             $('#confirmMerge').dialog('open');
+        } else {
+            $('#mergeForm').trigger('submit')
         }
         return false;
     });
@@ -40,12 +43,14 @@ export function initAuthorMergePage() {
 
 function initRejectButton() {
     const rejectButton = document.querySelector('#reject-author-merge-btn')
-    rejectButton.addEventListener('click', function() {
-        rejectMerge()
-        rejectButton.disabled = true
-        const approveButton = document.querySelector('#save')
-        approveButton.disabled = true
-    })
+    if (rejectButton) {
+        rejectButton.addEventListener('click', function() {
+            rejectMerge()
+            rejectButton.disabled = true
+            const approveButton = document.querySelector('#save')
+            approveButton.disabled = true
+        })
+    }
 }
 
 function rejectMerge() {

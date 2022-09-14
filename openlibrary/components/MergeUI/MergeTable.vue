@@ -82,7 +82,8 @@ export default {
     },
     props: {
         olids: Array,
-        show_diffs: Boolean
+        show_diffs: Boolean,
+        primary: String
     },
     asyncComputed: {
         async records() {
@@ -93,8 +94,21 @@ export default {
             const records = _.orderBy(
                 await Promise.all(olids_sorted.map(fetchRecord)),
                 record => record.type.key, 'desc');
+
+            // Ensure that primary record is the first record
+            if (this.primary) {
+                const primaryKey = `/works/${this.primary}`
+                const primaryIndex = records.findIndex(elem => elem.key === primaryKey)
+                if (primaryIndex > 0) {
+                    const primaryRecord = records[primaryIndex]
+                    records.splice(primaryIndex, 1)
+                    records.unshift(primaryRecord)
+                }
+            }
+
             this.master_key = records[0].key
             this.selected = _.fromPairs(records.map(record => [record.key, record.type.key.includes('work')]));
+
             return records;
         },
 
