@@ -76,15 +76,16 @@ $ )
         <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">
         <label for="mode-search-printdisabled">$_('Print Disabled')</label>
       </span>
-      <div style="display: flex; justify-content: flex-end">
-        <label
-          style="padding: 4px; display: inline-block;"
-          onchange="document.cookie = `SOLR_EDITIONS=\${this.firstElementChild.checked ? 'true' : 'false'}`; location.reload()"
-        >
-            <input type="checkbox" $:cond(has_solr_editions_enabled(), 'checked="checked"')/>
-            $:_('Solr Editions <i>Beta</i>')
-        </label>
-      </div>
+      $if ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians')):
+        <div style="display: flex; justify-content: flex-end"  title="$_('This is only visible to librarians.')">
+            <label
+            style="padding: 4px; display: inline-block;"
+            onchange="document.cookie = `SOLR_EDITIONS=\${this.firstElementChild.checked ? 'true' : 'false'}`; location.reload()"
+            >
+                <input type="checkbox" $:cond(has_solr_editions_enabled(), 'checked="checked"')/>
+                $:_('Solr Editions <i>Beta</i>')
+            </label>
+        </div>
       $ sticky = set(['sort', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b'])
 
       $for k, values in param.items():
