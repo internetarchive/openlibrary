@@ -601,7 +601,7 @@ def run_solr_query(
                     return EDITION_FIELDS[field]
                 elif field.startswith('id_'):
                     return field
-                elif field in ALL_FIELDS:
+                elif field in ALL_FIELDS or field in FACET_FIELDS:
                     return None
                 else:
                     raise ValueError(f'Unknown field: {field}')
@@ -640,14 +640,16 @@ def run_solr_query(
                 return str(q_tree)
 
             ed_q = convert_work_query_to_edition_query(str(work_q_tree))
-            params.append(('editions.fq', 'type:edition'))
+            editions_fq = ['type:edition']
             for param_name, param_value in params:
                 if param_name != 'fq' or param_value.startswith('type:'):
                     continue
                 field_name, field_val = param_value.split(':', 1)
                 ed_field = convert_work_field_to_edition_field(field_name)
                 if ed_field:
-                    params.append(('editions.fq', f'{ed_field}:{field_val}'))
+                    editions_fq.append(f'{ed_field}:{field_val}')
+            for fq in editions_fq:
+                params.append(('editions.fq', fq))
 
             user_lang = convert_iso_to_marc(web.ctx.lang or 'en') or 'eng'
 
@@ -665,10 +667,13 @@ def run_solr_query(
                 ),
             }
 
-            if ed_q:
+            if ed_q or len(editions_fq) > 1:
                 # The elements in _this_ edition query should cause works not to
                 # match _at all_ if matching editions are not found
-                params.append(('edQuery', editions_query))
+                if ed_q:
+                    params.append(('edQuery', editions_query))
+                else:
+                    params.append(('edQuery', '*:*'))
                 q = ' '.join(
                     (
                         f'+{work_query}',
