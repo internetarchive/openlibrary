@@ -61,6 +61,7 @@ ALL_FIELDS = [
     "subtitle",
     "alternative_title",
     "alternative_subtitle",
+    "cover_i",
     "ebook_access",
     "edition_count",
     "edition_key",
@@ -86,7 +87,7 @@ ALL_FIELDS = [
     "edition_count",
     "publish_year",
     "language",
-    "number_of_pages",
+    "number_of_pages_median",
     "ia_count",
     "publisher_facet",
     "author_facet",
@@ -119,6 +120,7 @@ FIELD_NAME_MAP = {
     'authors': 'author_name',
     'editions': 'edition_count',
     'by': 'author_name',
+    'number_of_pages': 'number_of_pages_median',
     'publishers': 'publisher',
     'subtitle': 'alternative_subtitle',
     'title': 'alternative_title',
@@ -353,10 +355,16 @@ def ia_collection_s_transform(sf: luqum.tree.SearchField):
 
 
 def process_user_query(q_param: str) -> str:
-    # Solr 4+ has support for regexes (eg `key:/foo.*/`)! But for now, let's not
-    # expose that and escape all '/'. Otherwise `key:/works/OL1W` is interpreted as
-    # a regex.
-    q_param = q_param.strip().replace('/', '\\/')
+    q_param = (
+        # Solr 4+ has support for regexes (eg `key:/foo.*/`)! But for now, let's
+        # not expose that and escape all '/'. Otherwise `key:/works/OL1W` is
+        # interpreted as a regex.
+        q_param.strip()
+        .replace('/', '\\/')
+        # Also escape question marks/tildes, which have special meaning in lucene
+        .replace('?', '\\?')
+        .replace('~', '\\~')
+    )
     try:
         q_param = escape_unknown_fields(
             q_param,
