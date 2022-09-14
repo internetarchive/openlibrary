@@ -14,6 +14,7 @@ import web
 from requests import Response
 import urllib
 import luqum
+import luqum.tree
 from luqum.exceptions import ParseSyntaxError
 
 from infogami import config
@@ -621,7 +622,14 @@ def run_solr_query(
                     if isinstance(node, luqum.tree.SearchField):
                         new_name = convert_work_field_to_edition_field(node.name)
                         if new_name:
-                            node.name = new_name
+                            parent = parents[-1] if parents else None
+                            # Prefixing with + makes the field mandatory
+                            if isinstance(
+                                parent, (luqum.tree.Not, luqum.tree.Prohibit)
+                            ):
+                                node.name = new_name
+                            else:
+                                node.name = f'+{new_name}'
                         else:
                             try:
                                 luqum_remove_child(node, parents)
