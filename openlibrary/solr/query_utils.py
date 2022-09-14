@@ -34,31 +34,6 @@ def luqum_traverse(item: Item, parents: list[Item] = None):
         yield from luqum_traverse(child, new_parents)
 
 
-def luqum_find_and_replace(query: str, field_pattern: str, replacement: str) -> str:
-    """
-    >>> luqum_find_and_replace('hello AND has_fulltext:true', 'has_fulltext:true', 'ebook_access:[borrowable TO *]')
-    'hello AND ebook_access:[borrowable TO *]'
-    >>> luqum_find_and_replace('hello AND has_fulltext: true', 'has_fulltext:true', 'ebook_access:[borrowable TO *]')
-    'hello AND ebook_access:[borrowable TO *]'
-    >>> luqum_find_and_replace('hello AND (has_fulltext:true)', 'has_fulltext:true', 'ebook_access:[borrowable TO *]')
-    'hello AND (ebook_access:[borrowable TO *])'
-    """
-    tree = parser.parse(query)
-    field_tree = parser.parse(field_pattern)
-    assert isinstance(field_tree, SearchField)
-    for item, parents in luqum_traverse(tree):
-        if item == field_tree:
-            replacement_tree = parser.parse(replacement)
-            replacement_tree.head = item.head
-            replacement_tree.tail = item.tail
-            print(item, parents)
-            parents[-1].children = tuple(
-                child if child is item else replacement_tree
-                for child in parents[-1].children
-            )
-    return str(tree)
-
-
 def escape_unknown_fields(
     query: str,
     is_valid_field: Callable[[str], bool],
@@ -66,15 +41,15 @@ def escape_unknown_fields(
 ) -> str:
     """
     >>> escape_unknown_fields('title:foo', lambda field: False)
-    'title\\:foo'
+    'title\\\\:foo'
     >>> escape_unknown_fields('title:foo bar   blah:bar baz:boo', lambda field: False)
-    'title\\:foo bar   blah\\:bar baz\\:boo'
+    'title\\\\:foo bar   blah\\\\:bar baz\\\\:boo'
     >>> escape_unknown_fields('title:foo bar', {'title'}.__contains__)
     'title:foo bar'
     >>> escape_unknown_fields('title:foo bar baz:boo', {'title'}.__contains__)
-    'title:foo bar baz\\:boo'
+    'title:foo bar baz\\\\:boo'
     >>> escape_unknown_fields('title:foo bar baz:boo', {'TITLE'}.__contains__, lower=False)
-    'title\\:foo bar baz\\:boo'
+    'title\\\\:foo bar baz\\\\:boo'
     >>> escape_unknown_fields('hi', {'title'}.__contains__)
     'hi'
     """
@@ -101,13 +76,13 @@ def escape_unknown_fields(
 def fully_escape_query(query: str) -> str:
     """
     >>> fully_escape_query('title:foo')
-    'title\\:foo'
+    'title\\\\:foo'
     >>> fully_escape_query('title:foo bar')
-    'title\\:foo bar'
+    'title\\\\:foo bar'
     >>> fully_escape_query('title:foo (bar baz:boo)')
-    'title\\:foo \\(bar baz\\:boo\\)'
+    'title\\\\:foo \\\\(bar baz\\\\:boo\\\\)'
     >>> fully_escape_query('x:[A TO Z}')
-    'x\\:\\[A TO Z\\}'
+    'x\\\\:\\\\[A TO Z\\\\}'
     """
     escaped = query
     # Escape special characters
