@@ -607,11 +607,12 @@ def run_solr_query(
                     raise ValueError(f'Unknown field: {field}')
 
             work_q_tree = luqum_parser(q)
+            params.append(('workQuery', str(work_q_tree)))
             work_query = (
-                '''({{!edismax q.op="AND" qf="{qf}" bf="{bf}" v="{v}"}})'''.format(
+                '''({{!edismax q.op="AND" qf="{qf}" bf="{bf}" v={v}}})'''.format(
                     qf='text alternative_title^20 author_name^20',
                     bf='min(100,edition_count)',
-                    v=str(work_q_tree).replace('"', '\\"'),
+                    v='$workQuery',
                 )
             )
 
