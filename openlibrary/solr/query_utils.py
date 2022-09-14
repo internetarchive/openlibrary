@@ -115,15 +115,13 @@ def luqum_parser(query: str) -> Item:
     """
     tree = parser.parse(query)
 
-    def find_next_word(item: Item) -> tuple[Optional[Word], Optional[BaseOperation]]:
+    def find_next_word(item: Item) -> Optional[tuple[Word, Optional[BaseOperation]]]:
         if isinstance(item, Word):
             return item, None
-        elif isinstance(item, BaseOperation):
-            op = item
-            if isinstance(op.children[0], Word):
-                return op.children[0], op
+        elif isinstance(item, BaseOperation) and isinstance(item.children[0], Word):
+            return item.children[0], item
         else:
-            return None, None
+            return None
 
     for node, parents in luqum_traverse(tree):
         if isinstance(node, BaseOperation):
@@ -134,7 +132,7 @@ def luqum_parser(query: str) -> Item:
             for child in node.children:
                 if isinstance(child, SearchField) and isinstance(child.expr, Word):
                     last_sf = child
-                elif last_sf and (next_word := find_next_word(child)) and next_word[0]:
+                elif last_sf and (next_word := find_next_word(child)):
                     word, parent_op = next_word
                     # Add it over
                     if not isinstance(last_sf.expr, Group):
