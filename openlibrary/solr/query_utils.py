@@ -1,6 +1,6 @@
 from typing import Callable, Optional
 from luqum.parser import parser
-from luqum.tree import Item, SearchField, BaseOperation, Group, Word
+from luqum.tree import Item, SearchField, BaseOperation, Group, Word, Unary
 import re
 
 
@@ -16,7 +16,7 @@ def luqum_remove_child(child: Item, parents: list[Item]):
     parent = parents[-1] if parents else None
     if parent is None:
         raise EmptyTreeError()
-    elif isinstance(parent, BaseOperation) or isinstance(parent, Group):
+    elif isinstance(parent, (BaseOperation, Group, Unary)):
         new_children = tuple(c for c in parent.children if c != child)
         if not new_children:
             luqum_remove_child(parent, parents[:-1])
