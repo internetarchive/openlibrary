@@ -275,9 +275,9 @@ def lcc_transform(sf: luqum.tree.SearchField):
     # for proper range search
     val = sf.children[0]
     if isinstance(val, luqum.tree.Range):
-        normed = normalize_lcc_range(val.low, val.high)
+        normed = normalize_lcc_range(val.low.value, val.high.value)
         if normed:
-            val.low, val.high = normed
+            val.low.value, val.high.value = normed
     elif isinstance(val, luqum.tree.Word):
         if '*' in val.value and not val.value.startswith('*'):
             # Marshals human repr into solr repr
@@ -293,6 +293,18 @@ def lcc_transform(sf: luqum.tree.SearchField):
         normed = short_lcc_to_sortable_lcc(val.value.strip('"'))
         if normed:
             val.value = f'"{normed}"'
+    elif (
+        isinstance(val, luqum.tree.Group)
+        and isinstance(val.expr, luqum.tree.UnknownOperation)
+        and all(isinstance(c, luqum.tree.Word) for c in val.expr.children)
+    ):
+        # treat it as a string
+        normed = short_lcc_to_sortable_lcc(str(val.expr))
+        if normed:
+            if ' ' in normed:
+                sf.expr = luqum.tree.Phrase(f'"{normed}"')
+            else:
+                sf.expr = luqum.tree.Word(f'{normed}*')
     else:
         logger.warning(f"Unexpected lcc SearchField value type: {type(val)}")
 
@@ -300,8 +312,8 @@ def lcc_transform(sf: luqum.tree.SearchField):
 def ddc_transform(sf: luqum.tree.SearchField):
     val = sf.children[0]
     if isinstance(val, luqum.tree.Range):
-        normed = normalize_ddc_range(*raw)
-        val.low, val.high = normed[0] or val.low, normed[1] or val.high
+        normed = normalize_ddc_range(val.low.value, val.high.value)
+        val.low.value, val.high.value = normed[0] or val.low, normed[1] or val.high
     elif isinstance(val, luqum.tree.Word) and val.value.endswith('*'):
         return normalize_ddc_prefix(val.value[:-1]) + '*'
     elif isinstance(val, luqum.tree.Word) or isinstance(val, luqum.tree.Phrase):
@@ -348,6 +360,7 @@ def process_user_query(q_param: str) -> str:
         q_param = escape_unknown_fields(
             q_param,
             lambda f: f in ALL_FIELDS or f in FIELD_NAME_MAP or f.startswith('id_'),
+            lower=True,
         )
         q_tree = luqum_parser(q_param)
     except ParseSyntaxError:
@@ -360,7 +373,7 @@ def process_user_query(q_param: str) -> str:
         if isinstance(node, luqum.tree.SearchField):
             has_search_fields = True
             if node.name.lower() in FIELD_NAME_MAP:
-                node.name = FIELD_NAME_MAP[node.name]
+                node.name = FIELD_NAME_MAP[node.name.lower()]
             if node.name == 'isbn':
                 isbn_transform(node)
             if node.name in ('lcc', 'lcc_sort'):
