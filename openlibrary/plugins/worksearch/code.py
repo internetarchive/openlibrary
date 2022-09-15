@@ -769,7 +769,7 @@ def run_solr_query(
 
     response = execute_solr_query(solr_select_url, params)
     solr_result = response.json() if response else None
-    return (solr_result, url, [])
+    return (solr_result, url)
 
 
 def do_search(
@@ -786,7 +786,7 @@ def do_search(
     """
     if sort:
         sort = process_sort(sort)
-    (solr_result, solr_select, q_list) = run_solr_query(
+    (solr_result, solr_select) = run_solr_query(
         param, rows, page, sort, spellcheck_count
     )
 
@@ -797,7 +797,6 @@ def do_search(
             is_advanced=bool(param.get('q')),
             num_found=None,
             solr_select=solr_select,
-            q_list=q_list,
             error=(solr_result.get('error') if solr_result else None),
         )
 
@@ -821,7 +820,6 @@ def do_search(
         is_advanced=bool(param.get('q')),
         num_found=solr_result['response']['numFound'],
         solr_select=solr_select,
-        q_list=q_list,
         error=None,
         # spellcheck=spell_map,
     )
@@ -865,7 +863,6 @@ def get_doc(doc: SolrDocument):
         id_librivox=doc.get('id_librivox', []),
         id_standard_ebooks=doc.get('id_standard_ebooks', []),
         id_openstax=doc.get('id_openstax', []),
-        # matching_editions=doc.get('editions', {}).get('numFound'),
         editions=[
             web.storage(
                 {
@@ -876,10 +873,6 @@ def get_doc(doc: SolrDocument):
             )
             for ed in doc.get('editions', {}).get('docs', [])
         ],
-        # editions=[
-        #     web.storage({**ed, 'url': f"{ed['key']}/{urlsafe(ed['title'])}"})
-        #     for ed in doc.get('editions', [])
-        # ],
     )
 
 
@@ -1463,7 +1456,7 @@ def work_search(
         query['q'], page, offset, limit
     )
     try:
-        (reply, solr_select, q_list) = run_solr_query(
+        (reply, solr_select) = run_solr_query(
             query,
             rows=limit,
             page=page,
