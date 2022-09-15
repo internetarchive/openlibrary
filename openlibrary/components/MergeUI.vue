@@ -114,6 +114,13 @@ export default {
                 const splitKey = master.key.split('/')
                 const primaryRecord = splitKey[splitKey.length - 1]
                 await createMergeRequest(workIds, primaryRecord, 'create-pending', this.comment)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'ok') {
+                            // Redirect to merge table on success:
+                            window.location.replace(`/merges#mrid-${data.id}`)
+                        }
+                    })
             }
             this.mergeStatus = 'Done';
         },
