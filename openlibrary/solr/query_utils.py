@@ -12,13 +12,19 @@ def luqum_remove_child(child: Item, parents: list[Item]):
     """
     Removes a child from a luqum parse tree. If the tree
     ends up being empty, errors.
+
+    :param child: Node to remove
+    :param parents: Path of parent nodes leading from the root of the tree
     """
     parent = parents[-1] if parents else None
     if parent is None:
+        # We cannot remove the element if it is the root of the tree
         raise EmptyTreeError()
     elif isinstance(parent, (BaseOperation, Group, Unary)):
         new_children = tuple(c for c in parent.children if c != child)
         if not new_children:
+            # If we have deleted all the children, we need to delete the parent
+            # as well. And potentially recurse up the tree.
             luqum_remove_child(parent, parents[:-1])
         else:
             parent.children = new_children
@@ -26,8 +32,17 @@ def luqum_remove_child(child: Item, parents: list[Item]):
         raise ValueError("Not supported for generic class Item")
 
 
-def luqum_traverse(item: Item, parents: list[Item] = None):
-    parents = parents or []
+def luqum_traverse(item: Item, _parents: list[Item] = None):
+    """
+    Traverses every node in the parse tree in depth-first order.
+
+    Does not make any guarantees about what will happen if you
+    modify the tree while traversing it 😅 But we do it anyways.
+
+    :param item: Node to traverse
+    :param _parents: Internal parameter for tracking parents
+    """
+    parents = _parents or []
     yield item, parents
     new_parents = [*parents, item]
     for child in item.children:
@@ -40,6 +55,13 @@ def escape_unknown_fields(
     lower=True,
 ) -> str:
     """
+    Escapes the colon of any search field that is not deemed valid by the
+    predicate function `is_valid_field`.
+
+    :param query: Query to escape
+    :param is_valid_field: Predicate function that determines if a field is valid
+    :param lower: If true, the field will be lowercased before being checked
+
     >>> escape_unknown_fields('title:foo', lambda field: False)
     'title\\\\:foo'
     >>> escape_unknown_fields('title:foo bar   blah:bar baz:boo', lambda field: False)
@@ -52,8 +74,9 @@ def escape_unknown_fields(
     'title\\\\:foo bar baz\\\\:boo'
     >>> escape_unknown_fields('hi', {'title'}.__contains__)
     'hi'
+    >>> escape_unknown_fields('(title:foo) OR (blah:bah)', {'title'}.__contains__)
+    '(title:foo) OR (blah\\\\:bah)'
     """
-    # Treat as just normal text with the colon escaped
     tree = parser.parse(query)
     escaped_query = query
     offset = 0
@@ -63,7 +86,13 @@ def escape_unknown_fields(
         ):
             field = sf.name + r'\:'
             if hasattr(sf, 'head'):
+                # head and tail are used for whitespace between fields;
+                # copy it along to the write space to avoid things smashing
+                # together
                 field = sf.head + field
+
+            # We will be moving left to right, so we need to adjust the offset
+            # to account for the characters we have already replaced
             escaped_query = (
                 escaped_query[: sf.pos + offset]
                 + field
@@ -75,6 +104,8 @@ def escape_unknown_fields(
 
 def fully_escape_query(query: str) -> str:
     """
+    Try to convert a query to basically a plain lucene string.
+
     >>> fully_escape_query('title:foo')
     'title\\\\:foo'
     >>> fully_escape_query('title:foo bar')
@@ -83,10 +114,12 @@ def fully_escape_query(query: str) -> str:
     'title\\\\:foo \\\\(bar baz\\\\:boo\\\\)'
     >>> fully_escape_query('x:[A TO Z}')
     'x\\\\:\\\\[A TO Z\\\\}'
+    >>> fully_escape_query('foo AND bar')
+    'foo and bar'
     """
     escaped = query
     # Escape special characters
-    escaped = re.sub(r'[\[\]\(\)\{\}:"]', r'\\\g<0>', escaped)
+    escaped = re.sub(r'[\[\]\(\)\{\}:"-+?~]', r'\\\g<0>', escaped)
     # Remove boolean operators by making them lowercase
     escaped = re.sub(r'AND|OR|NOT', lambda _1: _1.group(0).lower(), escaped)
     return escaped
@@ -96,7 +129,7 @@ def luqum_parser(query: str) -> Item:
     """
     Parses a lucene-like query, with the special binding rules of Open Library.
 
-    In our queries, unlike native solr/lucene, field names are greedy
+    In our queries, unlike native solr/lucene, field names are greedy, and
     affect the rest of the query until another field is hit.
 
     Here are some examples. The first query is the native solr/lucene
@@ -104,7 +137,7 @@ def luqum_parser(query: str) -> Item:
 
     Query : title:foo bar
     Lucene: (title:foo) bar
-    OL    : (title: foo bar)
+    OL    : (title:foo bar)
 
     Query : title:foo OR bar AND author:blah
     Lucene: (title:foo) OR (bar) AND (author:blah)

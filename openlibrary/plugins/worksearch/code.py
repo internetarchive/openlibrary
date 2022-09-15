@@ -576,7 +576,7 @@ def run_solr_query(
 
     if q:
         if has_solr_editions_enabled():
-            EDITION_FIELDS = {
+            WORK_FIELD_TO_ED_FIELD = {
                 # Internals
                 'edition_key': 'key',
                 'text': 'text',
@@ -594,7 +594,7 @@ def run_solr_query(
                 'publish_year': 'publish_year',
                 # Identifiers
                 'isbn': 'isbn',
-                'id_*': 'id_*',
+                # 'id_*': 'id_*', # Handled manually for now to match any id field
                 'ebook_access': 'ebook_access',
                 # IA
                 'has_fulltext': 'has_fulltext',
@@ -605,8 +605,14 @@ def run_solr_query(
             }
 
             def convert_work_field_to_edition_field(field: str) -> Optional[str]:
-                if field in EDITION_FIELDS:
-                    return EDITION_FIELDS[field]
+                """
+                Convert a SearchField name (eg 'title') to the correct fieldname
+                for use in an edition query.
+
+                If no conversion is possible, return None.
+                """
+                if field in WORK_FIELD_TO_ED_FIELD:
+                    return WORK_FIELD_TO_ED_FIELD[field]
                 elif field.startswith('id_'):
                     return field
                 elif field in ALL_FIELDS or field in FACET_FIELDS:
@@ -614,17 +620,38 @@ def run_solr_query(
                 else:
                     raise ValueError(f'Unknown field: {field}')
 
+            # We need to parse the tree so that it gets transformed using the
+            # special OL query parsing rules (different from default solr!)
+            # See luqum_parser for details.
             work_q_tree = luqum_parser(q)
             params.append(('workQuery', str(work_q_tree)))
-            work_query = (
-                '''({{!edismax q.op="AND" qf="{qf}" bf="{bf}" v={v}}})'''.format(
-                    qf='text alternative_title^20 author_name^20',
-                    bf='min(100,edition_count)',
-                    v='$workQuery',
-                )
+            # This full work query uses solr-specific syntax to add extra parameters
+            # to the way the search is processed. We are using the edismax parser.
+            # See https://solr.apache.org/guide/8_11/the-extended-dismax-query-parser.html
+            # This is somewhat synonymous to setting defType=edismax in the
+            # query, but much more flexible. We wouldn't be able to do our
+            # complicated parent/child queries with defType!
+            full_work_query = '''({{!edismax q.op="AND" qf="{qf}" bf="{bf}" v={v}}})'''.format(
+                # qf: the fields to query un-prefixed parts of the query.
+                # e.g. 'harry potter' becomes
+                # 'text:(harry potter) OR alternative_title:(harry potter)^20 OR ...'
+                qf='text alternative_title^20 author_name^20',
+                # bf (boost factor): boost results based on the value of this
+                # field. I.e. results with more editions get boosted, upto a
+                # max of 100, after which we don't see it as good signal of
+                # quality.
+                bf='min(100,edition_count)',
+                # v: the query to process with the edismax query parser. Note
+                # we are using a solr variable here; this reads the url parameter
+                # arbitrarily called workQuery.
+                v='$workQuery',
             )
 
             def convert_work_query_to_edition_query(work_query: str) -> str:
+                """
+                Convert a work query to an edition query. Mainly involves removing
+                invalid fields, or renaming fields as necessary.
+                """
                 q_tree = luqum_parser(work_query)
 
                 for node, parents in luqum_traverse(q_tree):
@@ -648,7 +675,8 @@ def run_solr_query(
 
                 return str(q_tree)
 
-            ed_q = convert_work_query_to_edition_query(str(work_q_tree))
+            # Move over all fq parameters that can be applied to editions.
+            # These are generally used to handle facets.
             editions_fq = ['type:edition']
             for param_name, param_value in params:
                 if param_name != 'fq' or param_value.startswith('type:'):
@@ -662,9 +690,17 @@ def run_solr_query(
 
             user_lang = convert_iso_to_marc(web.ctx.lang or 'en') or 'eng'
 
-            editions_query = '({!edismax bq="%(bq)s" v="%(v)s" qf="%(qf)s"})' % {
+            ed_q = convert_work_query_to_edition_query(str(work_q_tree))
+            full_ed_query = '({!edismax bq="%(bq)s" v="%(v)s" qf="%(qf)s"})' % {
+                # See qf in work_query
                 'qf': 'text title^4',
+                # Because we include the edition query inside the v="..." part,
+                # we need to escape quotes. Also note that if there is no
+                # edition query (because no fields in the user's work query apply),
+                # we use the special value *:* to match everything, but still get
+                # boosting.
                 'v': ed_q.replace('"', '\\"') or '*:*',
+                # bq (boost query): Boost which edition is promoted to the top
                 'bq': ' '.join(
                     (
                         f'language:{user_lang}^40',
@@ -680,25 +716,30 @@ def run_solr_query(
                 # The elements in _this_ edition query should cause works not to
                 # match _at all_ if matching editions are not found
                 if ed_q:
-                    params.append(('edQuery', editions_query))
+                    params.append(('edQuery', full_ed_query))
                 else:
                     params.append(('edQuery', '*:*'))
                 q = ' '.join(
                     (
-                        f'+{work_query}',
+                        f'+{full_work_query}',
+                        # This is using the special parent query syntax to, on top of
+                        # the user's `full_work_query`, also only find works which have
+                        # editions matching the edition query.
                         '+_query_:"{!parent which=type:work v=$edQuery filters=$editions.fq}"',
                     )
                 )
                 params.append(('q', q))
             else:
-                params.append(('q', work_query))
+                params.append(('q', full_work_query))
 
             # The elements in _this_ edition query will match but not affect
             # whether the work appears in search results
             params.append(
                 (
                     'editions.q',
-                    f'({{!terms f=_root_ v=$row.key}}) AND {editions_query}',
+                    # Here we use the special terms parser to only filter the editions
+                    # for a given, already matching work '_root_' node.
+                    f'({{!terms f=_root_ v=$row.key}}) AND {full_ed_query}',
                 )
             )
             params.append(('editions.rows', 1))
