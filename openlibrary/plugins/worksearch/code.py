@@ -15,7 +15,7 @@ from requests import Response
 import urllib
 import luqum
 import luqum.tree
-from luqum.exceptions import ParseSyntaxError
+from luqum.exceptions import ParseError
 
 from infogami import config
 from infogami.utils import delegate, stats
@@ -372,7 +372,7 @@ def process_user_query(q_param: str) -> str:
             lower=True,
         )
         q_tree = luqum_parser(q_param)
-    except ParseSyntaxError:
+    except ParseError:
         # This isn't a syntactically valid lucene query
         logger.warning("Invalid lucene query", exc_info=True)
         # Escape everything we can
