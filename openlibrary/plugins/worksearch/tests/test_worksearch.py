@@ -65,6 +65,10 @@ QUERY_PARSER_TESTS = {
         'food rules By:pollan',
         'food rules author_name:pollan',
     ),
+    'Spaces after fields': (
+        'title: "Harry Potter"',
+        'alternative_title:"Harry Potter"',
+    ),
     'Quotes': (
         'title:"food rules" author:pollan',
         'alternative_title:"food rules" author_name:pollan',

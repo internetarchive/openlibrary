@@ -145,6 +145,8 @@ def luqum_parser(query: str) -> Item:
 
     This requires an annoying amount of manipulation of the default
     Luqum parser, unfortunately.
+
+    Also, OL queries allow spaces after fields.
     """
     tree = parser.parse(query)
 
@@ -202,5 +204,10 @@ def luqum_parser(query: str) -> Item:
                 node.children = tuple(
                     child for child in node.children if child not in to_rem
                 )
+
+    # Remove spaces before field names
+    for node, parents in luqum_traverse(tree):
+        if isinstance(node, SearchField):
+            node.expr.head = ''
 
     return tree
