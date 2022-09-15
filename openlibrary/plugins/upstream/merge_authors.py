@@ -333,9 +333,16 @@ class merge_authors(delegate.page):
             if i.comment:
                 data['comment'] = i.comment
 
-            process_merge_request('create-request', data)
+            result = process_merge_request('create-request', data)
+            mrid = result.get('id', None)
 
-            raise web.seeother('/search/authors')
+            username = user.get('key').split('/')[-1]
+
+            redir_url = f'/merges?submitter={username}'
+            if mrid:
+                redir_url = f'{redir_url}#mrid-{mrid}'
+
+            raise web.seeother(redir_url)
         else:
             # redirect to the master. The master will display a progressbar and call the merge_authors_json to trigger the merge.
             redir_url = (
