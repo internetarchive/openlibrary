@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, reading_log=None)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, reading_log=None, show_librarian_extras=False)
 
 $code:
   max_rendered_authors = 9
@@ -94,8 +94,7 @@ $code:
                   </a>
               </span>
       </span>
-      $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
-      $if is_privileged_user:
+      $if show_librarian_extras:
         <div class="searchResultItem__librarian-extras" title="$_('This is only visible to librarians.')">
           $if doc_type == 'solr_edition' or (doc_type == 'infogami_edition' and edition_work):
             <div>$_('Work Title'): <i>$full_work_title</i></div>

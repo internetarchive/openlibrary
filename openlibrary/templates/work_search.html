@@ -77,7 +77,7 @@ $ )
         <label for="mode-search-printdisabled">$_('Print Disabled')</label>
       </span>
       $if ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians')):
-        <div style="display: flex; justify-content: flex-end"  title="$_('This is only visible to librarians.')">
+        <div style="display: flex; justify-content: flex-end"  title="$_('This is only visible to super librarians.')">
             <label
             style="padding: 4px; display: inline-block;"
             onchange="document.cookie = `SOLR_EDITIONS=\${this.firstElementChild.checked ? 'true' : 'false'}`; location.reload()"
@@ -183,11 +183,12 @@ $ )
             $ username = ctx.user and ctx.user.key.split('/')[-1]
             $if username:
                 $ works = add_read_statuses(username, works)
+            $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians'))
 
             $for work in works:
                 $ read_status = work.get('readinglog', None)
                 $ dropper = macros.ReadingLogDropper([], work=work, reading_log_only=True, page_url="/search", users_work_read_status=read_status)
-                $:macros.SearchResultsWork(work, reading_log=dropper)
+                $:macros.SearchResultsWork(work, reading_log=dropper, show_librarian_extras=show_librarian_extras)
           </ul>
           $:macros.Pager(page, num_found, rows)
         </div>
