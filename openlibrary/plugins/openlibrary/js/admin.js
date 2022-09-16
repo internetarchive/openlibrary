@@ -25,7 +25,7 @@ export function initAdmin() {
 
 export function initAnonymizationButton(button) {
     const displayName = button.dataset.displayName;
-    const confirmMessage = `Really anonymize ${displayName}'s account? This will delete ${displayName}'s profile page and booknotes, and anonymize ${displayName}'s reading log, reviews, and star ratings.`;
+    const confirmMessage = `Really anonymize ${displayName}'s account? This will delete ${displayName}'s profile page and booknotes, and anonymize ${displayName}'s reading log, reviews, star ratings, and merge request submissions.`;
     button.addEventListener('click', function(event) {
         if (!confirm(confirmMessage)) {
             event.preventDefault();
