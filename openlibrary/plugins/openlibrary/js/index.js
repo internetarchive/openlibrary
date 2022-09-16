@@ -312,7 +312,8 @@ jQuery(function () {
     }
     const anonymizationButton = document.querySelector('.account-anonymization-button')
     const adminLinks = document.getElementById('adminLinks')
-    if (adminLinks || anonymizationButton) {
+    const confirmButtons = document.querySelectorAll('.do-confirm')
+    if (adminLinks || anonymizationButton || confirmButtons.length) {
         import(/* webpackChunkName: "admin" */ './admin')
             .then(module => {
                 if (adminLinks) {
@@ -320,6 +321,9 @@ jQuery(function () {
                 }
                 if (anonymizationButton) {
                     module.initAnonymizationButton(anonymizationButton);
+                }
+                if (confirmButtons.length) {
+                    module.initConfirmationButtons(confirmButtons);
                 }
             });
     }

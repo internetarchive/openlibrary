@@ -32,3 +32,20 @@ export function initAnonymizationButton(button) {
         }
     })
 }
+
+/**
+ * Adds click listener to each given button.  When the button is clicked,
+ * the patron is prompted to confirm the action via a dialog.
+ *
+ * @param {NodeList<HTMLButtonElement>} buttons
+ */
+export function initConfirmationButtons(buttons) {
+    const confirmMessage = 'Are you sure?'
+    for (const button of buttons) {
+        button.addEventListener('click', function(event) {
+            if (!confirm(confirmMessage)) {
+                event.preventDefault();
+            }
+        })
+    }
+}
