@@ -58,7 +58,7 @@
     },
     {
       "path": "static/build/admin.*.js",
-      "maxSize": "1KB"
+      "maxSize": "1.3KB"
     },
     {
       "path": "static/build/search.*.js",
