@@ -646,7 +646,7 @@ class Work(Thing):
         start_offset=0,
         grace_period_days=7,
         cutoff_date=datetime.datetime(year=2017, month=1, day=1),
-        test=True,
+        test=False,
     ):
         """
         batch_size - how many records to fetch per batch
