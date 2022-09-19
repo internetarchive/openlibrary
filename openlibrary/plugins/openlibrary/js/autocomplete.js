@@ -204,11 +204,11 @@ export default function($) {
 
         /**
          * Converts a csv string to an array of strings
-         * 
+         *
          * Eg
          * - "a, b, c" -> ["a", "b", "c"]
          * - 'a, "b, b", c' -> ["a", "b, b", "c"]
-         * @param {string} val 
+         * @param {string} val
          * @returns {string[]}
          */
         function splitField(val) {
