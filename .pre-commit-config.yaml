@@ -47,9 +47,14 @@ repos:
           - types-all
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.37.3
+    rev: v2.38.0
     hooks:
       - id: pyupgrade
         args:  # Solr on Cython is not yet ready for 3.10 type hints
           - --py39-plus
           - --keep-runtime-typing
+
+  - repo: https://github.com/abravalheri/validate-pyproject
+    rev: v0.10.1
+    hooks:
+      - id: validate-pyproject
