@@ -264,36 +264,20 @@ class TestUsernameUpdate:
         assert len(list(self.db.select("observations", where=before_where))) == 0
         assert len(list(self.db.select("observations", where=after_where))) == 1
 
-        assert (
-            len(
-                list(
-                    self.db.select(
-                        "community_edits_queue", where={"submitter": "@kilgore_trout"}
-                    )
-                )
-            )
-            == 2
+        results = self.db.select(
+            "community_edits_queue", where={"submitter": "@kilgore_trout"}
         )
+        assert len(list(results)) == 2
+
         CommunityEditsQueue.update_submitter_name('@kilgore_trout', '@anonymous')
-        assert (
-            len(
-                list(
-                    self.db.select(
-                        "community_edits_queue", where={"submitter": "@kilgore_trout"}
-                    )
-                )
-            )
-            == 0
+        results = self.db.select(
+            "community_edits_queue", where={"submitter": "@kilgore_trout"}
         )
-        assert (
-            len(
-                list(
-                    self.db.select(
-                        "community_edits_queue", where={"submitter": "@anonymous"}
-                    )
-                )
-            )
-            == 2
+        assert len(list(results)) == 0
+
+        results = self.db.select(
+            "community_edits_queue", where={"submitter": "@anonymous"}
         )
+        assert len(list(results)) == 2
 
         self.db.query('delete from community_edits_queue;')
