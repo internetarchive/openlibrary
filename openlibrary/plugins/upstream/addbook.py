@@ -68,7 +68,6 @@ def get_recaptcha():
 
 def make_work(doc):
     w = web.storage(doc)
-    w.key = "/works/" + w.key
 
     def make_author(key, name):
         key = "/authors/" + key
