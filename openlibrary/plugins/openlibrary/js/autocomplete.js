@@ -202,9 +202,24 @@ export default function($) {
         const container = $(this);
         const dataConfig = JSON.parse(container[0].dataset.config);
 
+        /**
+         * Converts a csv string to an array of strings
+         *
+         * Eg
+         * - "a, b, c" -> ["a", "b", "c"]
+         * - 'a, "b, b", c' -> ["a", "b, b", "c"]
+         * @param {string} val
+         * @returns {string[]}
+         */
         function splitField(val) {
-            const re = /"?((?<=")[^"]+|(?<!")[^,]+)"?[, "]*/g;
-            return Array.from(val.matchAll(re), (m) => m[1]);
+            const m = val.match(/("[^"]+"|[^,"]+)/g);
+            if (!m) {
+                throw new Error('Invalid CSV');
+            }
+
+            return m
+                .map(s => s.trim().replace(/^"(.*)"$/, '$1'))
+                .filter(s => s);
         }
 
         function joinField(vals) {
