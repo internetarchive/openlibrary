@@ -118,7 +118,6 @@ FACET_FIELDS = [
 FIELD_NAME_MAP = {
     'author': 'author_name',
     'authors': 'author_name',
-    'editions': 'edition_count',
     'by': 'author_name',
     'number_of_pages': 'number_of_pages_median',
     'publishers': 'publisher',
@@ -722,28 +721,30 @@ def run_solr_query(
             else:
                 params.append(('q', full_work_query))
 
-            # The elements in _this_ edition query will match but not affect
-            # whether the work appears in search results
-            params.append(
-                (
-                    'editions.q',
-                    # Here we use the special terms parser to only filter the editions
-                    # for a given, already matching work '_root_' node.
-                    f'({{!terms f=_root_ v=$row.key}}) AND {full_ed_query}',
+            solr_fields = set(fields or DEFAULT_SEARCH_FIELDS)
+            if 'editions' in solr_fields:
+                solr_fields.remove('editions')
+                solr_fields.add('editions:[subquery]')
+            params.append(('fl', ','.join(solr_fields)))
+
+            if 'editions:[subquery]' in solr_fields:
+                edition_fields = set(
+                    f.split('.', 1)[1] for f in solr_fields if f.startswith('editions.')
                 )
-            )
-            params.append(('editions.rows', 1))
-            params.append(
-                (
-                    'fl',
-                    ','.join(
-                        (fields or list(DEFAULT_SEARCH_FIELDS))
-                        + [
-                            'editions:[subquery]',
-                        ]
-                    ),
+                if not edition_fields:
+                    edition_fields = solr_fields - {'editions:[subquery]'}
+                # The elements in _this_ edition query will match but not affect
+                # whether the work appears in search results
+                params.append(
+                    (
+                        'editions.q',
+                        # Here we use the special terms parser to only filter the
+                        # editions for a given, already matching work '_root_' node.
+                        f'({{!terms f=_root_ v=$row.key}}) AND {full_ed_query}',
+                    )
                 )
-            )
+                params.append(('editions.rows', 1))
+                params.append(('editions.fl', ','.join(edition_fields)))
         else:
             params.append(('fl', ','.join(fields or DEFAULT_SEARCH_FIELDS)))
             params.append(('q.op', 'AND'))
@@ -777,7 +778,12 @@ def do_search(
     if sort:
         sort = process_sort(sort)
     (solr_result, solr_select) = run_solr_query(
-        param, rows, page, sort, spellcheck_count
+        param,
+        rows,
+        page,
+        sort,
+        spellcheck_count,
+        fields=list(DEFAULT_SEARCH_FIELDS | {'editions'}),
     )
 
     if not solr_result or 'error' in solr_result:
