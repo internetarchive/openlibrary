@@ -119,7 +119,7 @@ def fully_escape_query(query: str) -> str:
     """
     escaped = query
     # Escape special characters
-    escaped = re.sub(r'[\[\]\(\)\{\}:"-+?~]', r'\\\g<0>', escaped)
+    escaped = re.sub(r'[\[\]\(\)\{\}:"-+?~^]', r'\\\g<0>', escaped)
     # Remove boolean operators by making them lowercase
     escaped = re.sub(r'AND|OR|NOT', lambda _1: _1.group(0).lower(), escaped)
     return escaped

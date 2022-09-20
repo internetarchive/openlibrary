@@ -176,7 +176,6 @@ DEFAULT_SEARCH_FIELDS = {
 }
 OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
-re_to_esc = re.compile(r'[\[\]:/]')
 re_isbn_field = re.compile(r'^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
 re_author_key = re.compile(r'(OL\d+A)')
 re_fields = re.compile(r'(-?%s):' % '|'.join(ALL_FIELDS + list(FIELD_NAME_MAP)), re.I)
@@ -409,11 +408,8 @@ def build_q_from_params(param: dict[str, str]) -> str:
         if m:
             q_list.append(f"author_key:({m.group(1)})")
         else:
-            v = re_to_esc.sub(r'\\\g<0>', v)
-            # Somehow v can be empty at this point,
-            #   passing the following with empty strings causes a severe error in SOLR
-            if v:
-                q_list.append(f"(author_name:({v}) OR author_alternative_name:({v}))")
+            v = fully_escape_query(v)
+            q_list.append(f"(author_name:({v}) OR author_alternative_name:({v}))")
 
     check_params = [
         'title',
@@ -427,9 +423,7 @@ def build_q_from_params(param: dict[str, str]) -> str:
         'time',
     ]
     q_list += [
-        '{}:({})'.format(k, re_to_esc.sub(r'\\\g<0>', param[k]))
-        for k in check_params
-        if k in param
+        f'{k}:({fully_escape_query(param[k])})' for k in check_params if k in param
     ]
 
     if param.get('isbn'):
@@ -1006,8 +1000,7 @@ class search(delegate.page):
             q_list.append(q)
         for k in ('title', 'author', 'isbn', 'subject', 'place', 'person', 'publisher'):
             if k in i:
-                v = re_to_esc.sub(r'\\\g<0>', i[k].strip())
-                q_list.append(k + ':' + v)
+                q_list.append(f'{k}:{fully_escape_query(i[k].strip())}')
         return render.work_search(
             i,
             ' '.join(q_list),
