@@ -721,7 +721,8 @@ def run_solr_query(
                     # This is using the special parent query syntax to, on top of
                     # the user's `full_work_query`, also only find works which have
                     # editions matching the edition query.
-                    '+_query_:"{!parent which=type:work v=$edQuery filters=$editions.fq}"',
+                    # Also include edition-less works (i.e. edition_count:0)
+                    '+(_query_:"{!parent which=type:work v=$edQuery filters=$editions.fq}" OR edition_count:0)',
                 )
             )
             params.append(('q', q))
