@@ -13,7 +13,7 @@ $ mode = query_param('mode', 'open')
 $if submitter:
   $ desc = _("Showing %(username)s's requests only.", username=submitter)
   $ link_text = _('Show all requests')
-  $ href = changequery(submitter=None)
+  $ href = changequery(submitter=None, page=None)
 $else:
   $ desc = _('Showing all requests.')
   $ link_text = _('Show my requests') if username else ''
