@@ -81,6 +81,10 @@ QUERY_PARSER_TESTS = {
         'flatland:a romance of many dimensions',
         'flatland\\:a romance of many dimensions',
     ),
+    'Spaced colons in query': (
+        'flatland : a romance of many dimensions',
+        'flatland\\: a romance of many dimensions',
+    ),
     'Colons in field': (
         'title:flatland:a romance of many dimensions',
         'alternative_title:(flatland\\:a romance of many dimensions)',

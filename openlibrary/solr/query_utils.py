@@ -78,7 +78,9 @@ def escape_unknown_fields(
     '(title:foo) OR (blah\\\\:bah)'
     """
     tree = parser.parse(query)
-    escaped_query = query
+    # Note we use the string of the tree, because it strips spaces
+    # like: "title : foo" -> "title:foo"
+    escaped_query = str(tree)
     offset = 0
     for sf, _ in luqum_traverse(tree):
         if isinstance(sf, SearchField) and not is_valid_field(
