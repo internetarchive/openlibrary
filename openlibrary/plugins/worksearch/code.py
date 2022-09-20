@@ -349,19 +349,18 @@ def ia_collection_s_transform(sf: luqum.tree.SearchField):
 
 
 def process_user_query(q_param: str) -> str:
-    q_param = (
-        # Solr 4+ has support for regexes (eg `key:/foo.*/`)! But for now, let's
-        # not expose that and escape all '/'. Otherwise `key:/works/OL1W` is
-        # interpreted as a regex.
-        q_param.strip()
-        .replace('/', '\\/')
-        # Also escape question marks/tildes, which have special meaning in lucene
-        .replace('?', '\\?')
-        .replace('~', '\\~')
-    )
     try:
         q_param = escape_unknown_fields(
-            q_param,
+            (
+                # Solr 4+ has support for regexes (eg `key:/foo.*/`)! But for now, let's
+                # not expose that and escape all '/'. Otherwise `key:/works/OL1W` is
+                # interpreted as a regex.
+                q_param.strip()
+                .replace('/', '\\/')
+                # Also escape unexposed lucene features
+                .replace('?', '\\?')
+                .replace('~', '\\~')
+            ),
             lambda f: f in ALL_FIELDS or f in FIELD_NAME_MAP or f.startswith('id_'),
             lower=True,
         )
