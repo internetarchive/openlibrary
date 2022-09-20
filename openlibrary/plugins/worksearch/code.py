@@ -21,7 +21,7 @@ from infogami import config
 from infogami.utils import delegate, stats
 from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
-from openlibrary.core.lending import add_availability, get_availability_of_ocaids
+from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Edition  # noqa: E402
 from openlibrary.plugins.inside.code import fulltext_search
 from openlibrary.plugins.openlibrary.processors import urlsafe
@@ -178,11 +178,7 @@ OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
 re_isbn_field = re.compile(r'^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
 re_author_key = re.compile(r'(OL\d+A)')
-re_fields = re.compile(r'(-?%s):' % '|'.join(ALL_FIELDS + list(FIELD_NAME_MAP)), re.I)
-re_op = re.compile(' +(OR|AND)$')
-re_range = re.compile(r'\[(?P<start>.*) TO (?P<end>.*)\]')
 re_pre = re.compile(r'<pre>(.*)</pre>', re.S)
-re_subject_types = re.compile('^(places|times|people)/(.*)')
 re_olid = re.compile(r'^OL\d+([AMW])$')
 
 plurals = {f + 's': f for f in ('publisher', 'author')}
@@ -1006,7 +1002,6 @@ class search(delegate.page):
             ' '.join(q_list),
             do_search,
             get_doc,
-            get_availability_of_ocaids,
             fulltext_search,
             FACET_FIELDS,
         )
