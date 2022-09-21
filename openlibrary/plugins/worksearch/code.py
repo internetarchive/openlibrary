@@ -447,23 +447,6 @@ def execute_solr_query(
     return response
 
 
-def parse_json_from_solr_query(
-    solr_path: str, params: Union[dict, list[tuple[str, Any]]]
-) -> Optional[dict]:
-    """
-    Returns a json.loaded Python object or None
-    """
-    response = execute_solr_query(solr_path, params)
-    if not response:
-        logger.error("Error parsing empty search engine response")
-        return None
-    try:
-        return response.json()
-    except JSONDecodeError:
-        logger.exception("Error parsing search engine response")
-        return None
-
-
 @public
 def has_solr_editions_enabled():
     if 'pytest' in sys.modules:
@@ -1035,27 +1018,14 @@ def works_by_author(
     return result
 
 
-def top_books_from_author(akey, rows=5, offset=0):
-    q = 'author_key:(' + akey + ')'
-    json_result = parse_json_from_solr_query(
-        solr_select_url,
-        {
-            'q': q,
-            'start': offset,
-            'rows': rows,
-            'fl': 'key,title,edition_count,first_publish_year',
-            'sort': 'edition_count desc',
-            'wt': 'json',
-        },
+def top_books_from_author(akey: str, rows=5) -> SearchResponse:
+    return run_solr_query(
+        {'q': f'author_key:{akey}'},
+        fields=['key', 'title', 'edition_count', 'first_publish_year'],
+        sort='editions',
+        rows=rows,
+        facet=False,
     )
-    if json_result is None:
-        return {'books': [], 'total': 0}
-    # TODO: Deep JSON structure defense - for now, let it blow up so easier to detect
-    response = json_result['response']
-    return {
-        'books': [web.storage(doc) for doc in response['docs']],
-        'total': response['numFound'],
-    }
 
 
 class advancedsearch(delegate.page):
