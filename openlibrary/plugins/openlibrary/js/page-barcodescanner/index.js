@@ -5,22 +5,31 @@ const BOX_STYLE = {color: 'green', lineWidth: 2};
 const RESULT_BOX_STYLE = {color: 'blue', lineWidth: 2};
 const RESULT_LINE_STYLE = {color: 'red', lineWidth: 15};
 
-export function init() {
-    Quagga.init({
-        inputStream: {
-            name: 'Live',
-            type: 'LiveStream',
-            target: $('#interactive')[0],
-        },
-        decoder: {
-            readers: ['ean_reader']
-        },
-    }, function(err) {
-        if (err) throw err;
-        Quagga.start();
-    });
+class OLBarcodeScanner {
+    constructor() {
+        this.lastResult = null;
+    }
 
-    Quagga.onProcessed(result => {
+    start() {
+        Quagga.init({
+            inputStream: {
+                name: 'Live',
+                type: 'LiveStream',
+                target: $('#interactive')[0],
+            },
+            decoder: {
+                readers: ['ean_reader']
+            },
+        }, function(err) {
+            if (err) throw err;
+            Quagga.start();
+        });
+
+        Quagga.onProcessed(this.handleQuaggaProcessed.bind(this));
+        Quagga.onDetected(this.handleQuaggaDetected.bind(this));
+    }
+
+    handleQuaggaProcessed(result) {
         if (!result) return;
 
         const drawingCtx = Quagga.canvas.ctx.overlay;
@@ -45,20 +54,23 @@ export function init() {
         if (result.codeResult && result.codeResult.code && isBarcodeISBN(result.codeResult.code)) {
             Quagga.ImageDebug.drawPath(result.line, {x: 'x', y: 'y'}, drawingCtx, RESULT_LINE_STYLE);
         }
-    });
+    }
 
-    let lastResult = null;
-    Quagga.onDetected(result => {
+    handleQuaggaDetected(result) {
         const code = result.codeResult.code;
-        if (!isBarcodeISBN(code) || code === lastResult) return;
-        lastResult = code;
+        if (!isBarcodeISBN(code) || code === this.lastResult) return;
+        this.lastResult = code;
 
         const isbn = code;
         const canvas = Quagga.canvas.dom.image;
         const card = LazyBookCard.fromISBN(isbn);
         card.updateState({coverSrc: canvas.toDataURL()});
         $('#result-strip').prepend(card.render());
-    });
+    }
+}
+
+export function init() {
+    new OLBarcodeScanner().start();
 }
 
 /**
