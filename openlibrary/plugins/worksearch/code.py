@@ -1003,6 +1003,7 @@ def works_by_author(
     sort='editions',
     page=1,
     rows=100,
+    facet=False,
     has_fulltext=False,
     query: str = None,
 ):
@@ -1015,12 +1016,15 @@ def works_by_author(
         page=page,
         rows=rows,
         sort=sort,
-        facet=[
-            "subject_facet",
-            "person_facet",
-            "place_facet",
-            "time_facet",
-        ],
+        facet=(
+            facet
+            and [
+                "subject_facet",
+                "person_facet",
+                "place_facet",
+                "time_facet",
+            ]
+        ),
         extra_params=[
             ('fq', f'author_key:{akey}'),
             ('facet.limit', 25),
