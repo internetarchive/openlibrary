@@ -7,6 +7,8 @@ import json
 import csv
 import datetime
 
+from typing import Literal, overload, NoReturn
+
 from infogami import config
 from infogami.core import code as core
 from infogami.core.db import ValidationException
@@ -22,6 +24,7 @@ from openlibrary import accounts
 import logging
 
 from openlibrary.plugins.upstream import spamcheck, utils
+from openlibrary.plugins.upstream.models import Author, Edition, Work
 from openlibrary.plugins.upstream.utils import render_template, fuzzy_find
 
 from openlibrary.plugins.upstream.account import as_admin
@@ -84,11 +87,25 @@ def make_work(doc):
     return w
 
 
-def new_doc(type_, **data):
+@overload
+def new_doc(type_: Literal["/type/author"], **data) -> Author:
+    ...
+
+
+@overload
+def new_doc(type_: Literal["/type/edition"], **data) -> Edition:
+    ...
+
+
+@overload
+def new_doc(type_: Literal["/type/work"], **data) -> Work:
+    ...
+
+
+def new_doc(type_: str, **data) -> Author | Edition | Work:
     """
     Create an new OL doc item.
     :param str type_: object type e.g. /type/edition
-    :rtype: doc
     :return: the newly created document
     """
     key = web.ctx.site.new_key(type_)
@@ -114,13 +131,13 @@ class DocSaveHelper:
         if self.docs:
             web.ctx.site.save_many(self.docs, **kw)
 
-    def create_authors_from_form_data(self, authors, author_names, _test=False):
+    def create_authors_from_form_data(
+        self, authors: list[dict], author_names: list[str], _test: bool = False
+    ) -> bool:
         """
-        Create any __new__ authors in the provided array. Updates the authors dicts _in place_ with the new key
+        Create any __new__ authors in the provided array. Updates the authors
+        dicts _in place_ with the new key.
         :param list[dict] authors: e.g. [{author: {key: '__new__'}}]
-        :param list[str] author_names:
-        :param bool _test:
-        :rtype: bool
         :return: Whether new author(s) were created
         """
         created = False
@@ -176,10 +193,9 @@ class addbook(delegate.page):
             'books/add', work=work, author=author, recaptcha=get_recaptcha()
         )
 
-    def has_permission(self):
+    def has_permission(self) -> bool:
         """
         Can a book be added?
-        :rtype: bool
         """
         return web.ctx.site.can_write("/books/add")
 
@@ -236,9 +252,12 @@ class addbook(delegate.page):
             # no match
             return self.no_match(saveutil, i)
 
-    def find_matches(self, i):
+    def find_matches(
+        self, i: web.utils.Storage
+    ) -> None | Work | Edition | list[web.utils.Storage]:
         """
-        Tries to find an edition, or work, or multiple work candidates that match the given input data.
+        Tries to find an edition, or work, or multiple work candidates that match the
+        given input data.
 
         Case#1: No match. None is returned.
         Case#2: Work match but not edition. Work is returned.
@@ -246,8 +265,8 @@ class addbook(delegate.page):
         Case#4: Multiple work match. List of works is returned.
 
         :param web.utils.Storage i: addbook user supplied formdata
-        :rtype: None or list or Work or Edition
-        :return: None or Work or Edition or list of Works that are likely matches.
+        :return: None or Work or Edition or list of Works (as Storage objects) that are
+                 likely matches.
         """
 
         i.publish_year = i.publish_date and self.extract_year(i.publish_date)
@@ -298,12 +317,11 @@ class addbook(delegate.page):
         else:
             return result.docs  # Case 4
 
-    def extract_year(self, value):
+    def extract_year(self, value: str) -> str:
         """
         Extract just the 4 digit year from a date string.
 
         :param str value: A freeform string representing a publication date.
-        :rtype: str
         :return: a four digit year
         """
         m = web.re_compile(r"(\d\d\d\d)").search(value)
@@ -311,32 +329,27 @@ class addbook(delegate.page):
 
     def try_edition_match(
         self,
-        work=None,
-        title=None,
-        author_key=None,
-        publisher=None,
-        publish_year=None,
-        id_name=None,
-        id_value=None,
-    ):
+        work: web.Storage = None,
+        title: str = None,
+        author_key: str = None,
+        publisher: str = None,
+        publish_year: str = None,
+        id_name: str = None,
+        id_value: str = None,
+    ) -> None | Edition | list[web.Storage]:
         """
         Searches solr for potential edition matches.
 
-        :param web.Storage work:
-        :param str title:
         :param str author_key: e.g. /author/OL1234A
-        :param str publisher:
         :param str publish_year: yyyy
         :param str id_name: from list of values in mapping below
-        :param str id_value:
-        :rtype: None or Edition or list
-        :return: None, an Edition, or a list of Works
+        :return: None, an Edition, or a list of Works (as web.Storage objects)
         """
         # insufficient data
         if not publisher and not publish_year and not id_value:
-            return
+            return None
 
-        q = {}
+        q: dict = {}
         work and q.setdefault('key', work.key.split("/")[-1])
         title and q.setdefault('title', title)
         author_key and q.setdefault('author_key', author_key.split('/')[-1])
@@ -373,7 +386,7 @@ class addbook(delegate.page):
                 ["/books/" + key for key in work.edition_key]
             )
             for e in editions:
-                d = {}
+                d: dict = {}
                 if publisher:
                     if not e.publishers or e.publishers[0] != publisher:
                         continue
@@ -383,22 +396,24 @@ class addbook(delegate.page):
                     ):
                         continue
                 if id_value and id_name in mapping:
-                    if not id_name in e or id_value not in e[id_name]:
+                    if id_name not in e or id_value not in e[id_name]:
                         continue
                 # return the first good likely matching Edition
                 return e
 
-    def work_match(self, saveutil, work, i):
+        return None
+
+    def work_match(
+        self, saveutil: DocSaveHelper, work: Work, i: web.utils.Storage
+    ) -> NoReturn:
         """
         Action for when a work, but not edition, is matched.
         Saves a new edition of work, created form the formdata i.
         Redirects the user to the newly created edition page in edit
         mode to add more details.
 
-        :param DocSaveHelper saveutil:
         :param Work work: the matched work for this book
         :param web.utils.Storage i: user supplied book formdata
-        :rtype: None
         """
         edition = self._make_edition(work, i)
 
@@ -408,24 +423,19 @@ class addbook(delegate.page):
 
         raise safe_seeother(edition.url("/edit?mode=add-book"))
 
-    def work_edition_match(self, edition):
+    def work_edition_match(self, edition: Edition) -> NoReturn:
         """
         Action for when an exact work and edition match have been found.
         Redirect user to the found item's edit page to add any missing details.
-        :param Edition edition:
         """
         raise safe_seeother(edition.url("/edit?mode=found"))
 
-    def no_match(self, saveutil, i):
+    def no_match(self, saveutil: DocSaveHelper, i: web.utils.Storage) -> NoReturn:
         """
         Action to take when no matches are found.
         Creates and saves both a Work and Edition.
         Redirects the user to the work/edition edit page
         in `add-work` mode.
-
-        :param DocSaveHelper saveutil:
-        :param web.utils.Storage i:
-        :rtype: None
         """
         # Any new author has been created and added to
         # saveutil, and author_key added to i
@@ -441,15 +451,9 @@ class addbook(delegate.page):
 
         raise safe_seeother(edition.url("/edit?mode=add-work"))
 
-    def _make_edition(self, work, i):
+    def _make_edition(self, work: Work, i: web.utils.Storage) -> Edition:
         """
-        Uses formdata 'i' to create (but not save) an edition
-        of 'work'.
-
-        :param Work work:
-        :param web.utils.Storage i:
-        :rtype: Edition
-        :return:
+        Uses formdata 'i' to create (but not save) an edition of 'work'.
         """
         edition = new_doc(
             "/type/edition",
@@ -517,19 +521,17 @@ class SaveBookHelper:
     This does the required trimming and processing of input data before saving.
     """
 
-    def __init__(self, work, edition):
+    def __init__(self, work: Work | None, edition: Edition | None):
         """
-        :param openlibrary.plugins.upstream.models.Work|None work: None if editing an orphan edition
-        :param openlibrary.plugins.upstream.models.Edition|None edition: None if just editing work
+        :param Work|None work: None if editing an orphan edition
+        :param Edition|None edition: None if just editing work
         """
         self.work = work
         self.edition = edition
 
-    def save(self, formdata):
+    def save(self, formdata: web.Storage) -> None:
         """
         Update work and edition documents according to the specified formdata.
-        :param web.storage formdata:
-        :rtype: None
         """
         comment = formdata.pop('_comment', '')
 
@@ -567,6 +569,8 @@ class SaveBookHelper:
             )
 
             if not just_editing_work:
+                # Mypy misses that "not just_editing_work" means there is edition data.
+                assert self.edition
                 # Handle orphaned editions
                 new_work_key = (edition_data.get('works') or [{'key': None}])[0]['key']
                 if self.work is None and (
@@ -617,11 +621,7 @@ class SaveBookHelper:
         saveutil.commit(comment=comment, action="edit-book")
 
     @staticmethod
-    def new_work(edition):
-        """
-        :param openlibrary.plugins.upstream.models.Edition edition:
-        :rtype: openlibrary.plugins.upstream.models.Work
-        """
+    def new_work(edition: Edition) -> Work:
         return new_doc(
             '/type/work',
             title=edition.get('title'),
@@ -708,11 +708,10 @@ class SaveBookHelper:
         self._prevent_ocaid_deletion(edition)
         return edition
 
-    def process_work(self, work):
+    def process_work(self, work: web.Storage) -> web.Storage:
         """
         Process input data for work.
         :param web.storage work: form data work info
-        :rtype: web.storage
         """
 
         def read_subject(subjects):
@@ -789,12 +788,11 @@ class SaveBookHelper:
             raise ValidationException("Changing Internet Archive ID is not allowed.")
 
     @staticmethod
-    def use_work_edits(formdata):
+    def use_work_edits(formdata: web.Storage) -> bool:
         """
         Check if the form data's work OLID matches the form data's edition's work OLID.
         If they don't, then we ignore the work edits.
         :param web.storage formdata: form data (parsed into a nested dict)
-        :rtype: bool
         """
         if 'edition' not in formdata:
             # No edition data -> just editing work, so work data matters

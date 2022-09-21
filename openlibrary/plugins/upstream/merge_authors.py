@@ -1,9 +1,10 @@
 """Merge authors.
 """
 import re
-
 import json
 import web
+
+from typing import Any
 
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
@@ -20,12 +21,7 @@ class BasicRedirectEngine:
     to the newly identified canonical record.
     """
 
-    def make_redirects(self, master, duplicates):
-        """
-        :param str master:
-        :param list of str duplicates:
-        :rtype: list of dict
-        """
+    def make_redirects(self, master: str, duplicates: list[str]) -> list[dict]:
         # Create the actual redirect objects
         docs_to_save = [make_redirect_doc(key, master) for key in duplicates]
 
@@ -50,14 +46,9 @@ class BasicRedirectEngine:
         refs = {ref for key in keys for ref in self.find_references(key)}
         return list(refs)
 
-    def update_references(self, doc, master, duplicates):
+    def update_references(self, doc: Any, master: str, duplicates: list[str]) -> Any:
         """
         Converts references to any of the duplicates in the given doc to the master.
-
-        :param doc:
-        :param str master:
-        :param list of str duplicates:
-        :rtype: Any
         """
         if isinstance(doc, dict):
             if list(doc) == ['key']:
@@ -89,12 +80,11 @@ class BasicMergeEngine:
         docs = self.do_merge(master, duplicates)
         return self.save(docs, master, duplicates)
 
-    def do_merge(self, master, duplicates):
+    def do_merge(self, master: str, duplicates: list[str]) -> list:
         """
         Performs the merge and returns the list of docs to save.
         :param str master: key of master doc
         :param list of str duplicates: keys of duplicates
-        :rtype: dict
         :return: Document to save
         """
         docs_to_save = []
@@ -212,10 +202,9 @@ def name_eq(n1, n2):
     return space_squash_and_strip(n1) == space_squash_and_strip(n2)
 
 
-def fix_table_of_contents(table_of_contents):
+def fix_table_of_contents(table_of_contents: list[str | dict]) -> list:
     """
     Some books have bad table_of_contents--convert them in to correct format.
-    :param typing.List[typing.Union[str, dict]] table_of_contents:
     """
 
     def row(r):
@@ -241,12 +230,7 @@ def fix_table_of_contents(table_of_contents):
     return [row for row in map(row, table_of_contents) if any(row.values())]
 
 
-def get_many(keys):
-    """
-    :param list of str keys:
-    :rtype: list of dict
-    """
-
+def get_many(keys: list[str]) -> list[dict]:
     def process(doc):
         # some books have bad table_of_contents. Fix them to avoid failure on save.
         if doc['type']['key'] == "/type/edition" and 'table_of_contents' in doc:
