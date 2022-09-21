@@ -8,6 +8,9 @@ const RESULT_LINE_STYLE = {color: 'red', lineWidth: 15};
 class OLBarcodeScanner {
     constructor() {
         this.lastResult = null;
+
+        const urlParams = new URLSearchParams(location.search)
+        this.returnTo = urlParams.get('returnTo');
     }
 
     start() {
@@ -66,6 +69,10 @@ class OLBarcodeScanner {
         const card = LazyBookCard.fromISBN(isbn);
         card.updateState({coverSrc: canvas.toDataURL()});
         $('#result-strip').prepend(card.render());
+
+        if (this.returnTo) {
+            location = this.returnTo.replace('$$$', isbn);
+        }
     }
 }
 
