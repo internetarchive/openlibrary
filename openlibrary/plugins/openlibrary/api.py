@@ -8,6 +8,7 @@ import web
 import re
 import json
 from collections import defaultdict
+from datetime import date
 from openlibrary.views.loanstats import get_trending_books
 from infogami import config
 from infogami.utils import delegate
@@ -21,6 +22,7 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import ia, db, models, lending, helpers as h
+from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.core.observations import Observations, get_observation_metrics
 from openlibrary.core.models import Booknotes, Work
 from openlibrary.core.sponsorships import qualifies_for_sponsorship
@@ -329,6 +331,23 @@ class work_bookshelves(delegate.page):
 
         else:
             edition_id = int(i.edition_id.split('/')[2][2:-1]) if i.edition_id else None
+
+            # Create check-in if "Currently Reading" or "Already Read" is clicked
+            if edition_id and bookshelf_id in (2, 3):
+                today = date.today()
+                date_str = f'{today.year}-{today.month:02}-{today.day:02}'
+                if bookshelf_id == 2:  # Currently Reading
+                    BookshelvesEvents.create_event(
+                        username, work_id, edition_id, date_str
+                    )
+                else:  # Already Read
+                    BookshelvesEvents.create_event(
+                        username,
+                        work_id,
+                        edition_id,
+                        date_str,
+                        event_type=BookshelfEvent.FINISH.value,
+                    )
             work_bookshelf = Bookshelves.add(
                 username=username,
                 bookshelf_id=bookshelf_id,
