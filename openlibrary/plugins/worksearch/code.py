@@ -1035,29 +1035,6 @@ def works_by_author(
     return result
 
 
-def sorted_work_editions(wkey, json_data=None):
-    """Setting json_data to a real value simulates getting SOLR data back, i.e. for testing (but ick!)"""
-    q = 'key:' + wkey
-    if json_data:
-        reply = json.loads(json_data)
-    else:
-        reply = parse_json_from_solr_query(
-            solr_select_url,
-            {
-                'q.op': 'AND',
-                'q': q,
-                'rows': 10,
-                'fl': 'edition_key',
-                'qt': 'standard',
-                'wt': 'json',
-            },
-        )
-    if reply is None or reply.get('response', {}).get('numFound', 0) == 0:
-        return []
-    # TODO: Deep JSON structure defense - for now, let it blow up so easier to detect
-    return reply["response"]['docs'][0].get('edition_key', [])
-
-
 def top_books_from_author(akey, rows=5, offset=0):
     q = 'author_key:(' + akey + ')'
     json_result = parse_json_from_solr_query(

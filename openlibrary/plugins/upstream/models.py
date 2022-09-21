@@ -21,7 +21,7 @@ from openlibrary.core import lending
 from openlibrary.plugins.upstream.utils import MultiDict, parse_toc, get_edition_config
 from openlibrary.plugins.upstream import account
 from openlibrary.plugins.upstream import borrow
-from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
+from openlibrary.plugins.worksearch.code import works_by_author
 from openlibrary.plugins.worksearch.search import get_solr
 
 from openlibrary.utils import dateutil
@@ -61,38 +61,6 @@ class Edition(models.Edition):
         authors = [follow_redirect(a) for a in self.authors]
         authors = [a for a in authors if a and a.type.key == "/type/author"]
         return authors
-
-    def get_next(self):
-        """Next edition of work"""
-        if len(self.get('works', [])) != 1:
-            return
-        wkey = self.works[0].get_olid()
-        if not wkey:
-            return
-        editions = sorted_work_editions(wkey)
-        try:
-            i = editions.index(self.get_olid())
-        except ValueError:
-            return
-        if i + 1 == len(editions):
-            return
-        return editions[i + 1]
-
-    def get_prev(self):
-        """Previous edition of work"""
-        if len(self.get('works', [])) != 1:
-            return
-        wkey = self.works[0].get_olid()
-        if not wkey:
-            return
-        editions = sorted_work_editions(wkey)
-        try:
-            i = editions.index(self.get_olid())
-        except ValueError:
-            return
-        if i == 0:
-            return
-        return editions[i - 1]
 
     def get_covers(self):
         """
