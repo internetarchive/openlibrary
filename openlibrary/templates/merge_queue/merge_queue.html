@@ -23,7 +23,14 @@ $else:
   <h1>$_('Community Edit Requests')</h1>
 
   <div class="description">
-    $desc <a href="$href">$link_text</a>
+    $if can_merge:
+      <span class="reviewer-filter">
+        $if reviewer:
+          $_("Showing requests reviewed by %(reviewer)s only.", reviewer=reviewer) <a href="$changequery(reviewer=None, page=None)">$_("Remove reviewer filter")</a>
+        $else:
+          <a href="$changequery(reviewer=username, page=None)">$_("Show requests that I've reviewed")</a>
+      </span>
+    <span>$desc <a href="$href">$link_text</a></span>
   </div>
 
 $ page = int(input(page=1).page)
