@@ -755,7 +755,7 @@ def run_solr_query(
             params.append(('q', full_work_query))
 
     if sort:
-        params.append(('sort', sort))
+        params.append(('sort', process_sort(sort)))
 
     url = f'{solr_select_url}?{urlencode(params)}'
 
@@ -820,8 +820,6 @@ def do_search(
     :param sort: csv sort ordering
     :param spellcheck_count: Not really used; should probably drop
     """
-    if sort:
-        sort = process_sort(sort)
     return run_solr_query(
         param,
         rows,
@@ -1008,7 +1006,6 @@ def works_by_author(
     has_fulltext=False,
     query: str = None,
 ):
-    sort = process_sort(sort)
     param = {'q': query or '*:*'}
     if has_fulltext:
         param['has_fulltext'] = 'true'
@@ -1362,8 +1359,6 @@ def work_search(
     # Ensure we don't mutate the `query` passed in by reference
     query = copy.deepcopy(query)
     query['wt'] = 'json'
-    if sort:
-        sort = process_sort(sort)
 
     # deal with special /lists/ key queries
     query['q'], page, offset, limit = rewrite_list_query(
