@@ -82,6 +82,12 @@ class admin(delegate.page):
         if not m:
             raise web.nomethod(cls=cls)
         else:
+            if (
+                context.user
+                and context.user.is_usergroup_member('/usergroup/librarians')
+                and web.ctx.path == '/admin/solr'
+            ):
+                return m(*args)
             if self.is_admin() or (
                 librarians
                 and context.user
