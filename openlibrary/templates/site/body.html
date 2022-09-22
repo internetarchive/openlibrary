@@ -1,8 +1,7 @@
 $def with (page)
 
-$ cssfile = ctx.get('cssfile', 'user')
 $ bodyclass = ctx.get('bodyclass', [])
-$ show_banners = cssfile != 'form'
+$ show_ol_shell = ctx.get('show_ol_shell', True)
 $ bodyattrs = ctx.get('bodyattrs', [])
 
 $if ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ctx.path.startswith('/books/OL') or ctx.path.startswith('/search'):
@@ -21,12 +20,12 @@ $if ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ct
   <div id="offline-info">$_("It looks like you're offline.")</div>
   $# on form pages e.g. manage-covers, add-cover we do not display the header
   $# this is consistent with version 1.
-  $if show_banners:
+  $if show_ol_shell:
     $:render_template("site/alert")
     $:render_template("lib/nav_head", None)
   $# don't render test-body-mobile for iframes
-  <div $:('id="test-body-mobile"' if cssfile != 'form' else '')>
-    $if show_banners:
+  <div $:('id="test-body-mobile"' if show_ol_shell else '')>
+    $if show_ol_shell:
       $#print errors (hidden by default as styles are loaded via JS)
       <div class="flash-messages">
       $for flash in get_flash_messages():
