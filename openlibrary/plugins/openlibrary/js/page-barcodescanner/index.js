@@ -1,3 +1,6 @@
+// @ts-check
+import countBy from 'lodash/countBy';
+import maxBy from 'lodash/maxBy';
 import Quagga from 'quagga';  // barcode scanning library
 import LazyBookCard from './LazyBookCard';
 
@@ -7,10 +10,28 @@ const RESULT_LINE_STYLE = {color: 'red', lineWidth: 15};
 
 class OLBarcodeScanner {
     constructor() {
-        this.lastResult = null;
+        this.lastISBN = null;
 
         const urlParams = new URLSearchParams(location.search)
         this.returnTo = urlParams.get('returnTo');
+
+        // If we get noise, group and choose latest
+        this.submitISBNThrottled = new ThrottleGrouping({
+            func: this.submitISBN.bind(this),
+            // Use the most frequent
+            reducer: (groupOfAargs) => {
+                const isbnCounts = Array.from(
+                    Object.entries(
+                        countBy(groupOfAargs, (arg) => arg[0])
+                    )
+                );
+
+                /* eslint-disable no-unused-vars */
+                const mostFrequentISBN = maxBy(isbnCounts, ([isbn, count]) => count)[0];
+                return groupOfAargs.reverse().find((args) => args[0] === mostFrequentISBN);
+            },
+            wait: 300,
+        }).asFunction();
     }
 
     start() {
@@ -61,13 +82,21 @@ class OLBarcodeScanner {
 
     handleQuaggaDetected(result) {
         const code = result.codeResult.code;
-        if (!isBarcodeISBN(code) || code === this.lastResult) return;
-        this.lastResult = code;
+        if (!isBarcodeISBN(code)) return;
 
-        const isbn = code;
-        const canvas = Quagga.canvas.dom.image;
+        this.submitISBNThrottled(code, Quagga.canvas.dom.image.toDataURL());
+    }
+
+    /**
+     * @param {string} isbn
+     * @param {string} tentativeCoverUrl
+     */
+    submitISBN(isbn, tentativeCoverUrl) {
+        if (isbn === this.lastISBN) return;
+
+        this.lastISBN = isbn;
         const card = LazyBookCard.fromISBN(isbn);
-        card.updateState({coverSrc: canvas.toDataURL()});
+        card.updateState({coverSrc: tentativeCoverUrl});
         $('#result-strip').prepend(card.render());
 
         if (this.returnTo) {
@@ -87,4 +116,45 @@ export function init() {
  */
 function isBarcodeISBN(code) {
     return code.startsWith('97');
+}
+
+
+/**
+ * @template {(...args: any) => void} TFunc
+ */
+class ThrottleGrouping {
+    /**
+     * @param {object} param0
+     * @param {TFunc} param0.func
+     * @param {function(Parameters<TFunc>[]): Parameters<TFunc>} param0.reducer
+     * @param {number} param0.wait
+     */
+    constructor({func, reducer, wait=100}) {
+        this.func = func;
+        this.reducer = reducer;
+        this.wait = wait;
+        /** @type {Parameters<TFunc>[]} */
+        this.curGroup = [];
+        this.timeout = null;
+    }
+
+    submitGroup() {
+        this.timeout = null;
+        this.func(...this.reducer(this.curGroup));
+        this.curGroup = [];
+    }
+
+    /**
+     * @param  {Parameters<TFunc>} args
+     */
+    takeNext(...args) {
+        this.curGroup.push(args);
+        if (!this.timeout) {
+            this.timeout = setTimeout(this.submitGroup.bind(this), this.wait);
+        }
+    }
+
+    asFunction() {
+        return this.takeNext.bind(this);
+    }
 }
