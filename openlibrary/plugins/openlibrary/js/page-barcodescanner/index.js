@@ -47,6 +47,12 @@ class OLBarcodeScanner {
         }, function(err) {
             if (err) throw err;
             Quagga.start();
+
+            const quaggaVideo = /** @type {HTMLVideoElement} */($('#interactive video')[0]);
+            if (quaggaVideo.paused) {
+                quaggaVideo.setAttribute('controls', 'true');
+                quaggaVideo.addEventListener('play', () => quaggaVideo.removeAttribute('controls'));
+            }
         });
 
         Quagga.onProcessed(this.handleQuaggaProcessed.bind(this));
