@@ -34,7 +34,7 @@ class FnToCLI:
     def __init__(self, fn: typing.Callable):
         self.fn = fn
         arg_names = fn.__code__.co_varnames[: fn.__code__.co_argcount]
-        annotations = fn.__annotations__
+        annotations = typing.get_type_hints(fn)
         defaults: list = fn.__defaults__ or []  # type: ignore[assignment]
         num_required = len(arg_names) - len(defaults)
         default_args = arg_names[num_required:]
@@ -94,15 +94,25 @@ class FnToCLI:
         return {name: docs.strip() for [name, docs] in params}
 
     @staticmethod
-    def type_to_argparse(typ):
+    def type_to_argparse(typ: type) -> dict:
+        if FnToCLI.is_optional(typ):
+            return FnToCLI.type_to_argparse(
+                next(t for t in typing.get_args(typ) if not isinstance(t, type(None)))
+            )
         if typ == bool:
             return {'type': typ, 'action': BooleanOptionalAction}
         if typ in (int, str, float):
             return {'type': typ}
         if typ == list[str]:
             return {'nargs': '*'}
-        if not hasattr(typ, '__origin__'):
-            raise ValueError(f'Cannot determine type of {typ}')
-        if typ.__origin__ == typing.Literal:
-            return {'choices': typ.__args__}
+        if typing.get_origin(typ) == typing.Literal:
+            return {'choices': typing.get_args(typ)}
         raise ValueError(f'Unsupported type: {typ}')
+
+    @staticmethod
+    def is_optional(typ: type) -> bool:
+        return (
+            typing.get_origin(typ) is typing.Union
+            and type(None) in typing.get_args(typ)
+            and len(typing.get_args(typ)) == 2
+        )

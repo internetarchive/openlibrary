@@ -154,11 +154,11 @@ then
   log "=== Step 5 ==="
   if [[ ! -f $(compgen -G "ol_dump_*.txt.gz") ]]
   then
-      echo "generating the dump -- takes approx. 485 minutes for 173,000,000+ records..."
+      log "generating the dump -- takes approx. 485 minutes for 173,000,000+ records..."
       time gzip -cd $(compgen -G "ol_cdump_$yyyymm*.txt.gz") | python $SCRIPTS/oldump.py sort --tmpdir $TMPDIR | python $SCRIPTS/oldump.py dump | gzip -c > $dump.txt.gz
-      echo "generated $dump.txt.gz"
+      log "generated $dump.txt.gz"
   else
-      echo "Skipping: $(compgen -G "ol_dump_$yyyymm*.txt.gz")"
+      log "Skipping: $(compgen -G "ol_dump_$yyyymm*.txt.gz")"
   fi
 
 
@@ -166,11 +166,11 @@ then
   if [[ ! -f $(compgen -G "ol_dump_*_$yyyymm*.txt.gz") ]]
   then
       mkdir -p $TMPDIR/oldumpsort
-      echo "splitting the dump: ol_dump_%s_$yyyymmdd.txt.gz -- takes approx. 85 minutes for 68,000,000+ records..."
+      log "splitting the dump: ol_dump_%s_$yyyymmdd.txt.gz -- takes approx. 85 minutes for 68,000,000+ records..."
       time gzip -cd $dump.txt.gz | python $SCRIPTS/oldump.py split --format ol_dump_%s_$yyyymmdd.txt.gz
       rm -rf $TMPDIR/oldumpsort
   else
-      echo "Skipping $(compgen -G "ol_dump_*_$yyyymm*.txt.gz")"
+      log "Skipping $(compgen -G "ol_dump_*_$yyyymm*.txt.gz")"
   fi
 
   mkdir -p $dump $cdump

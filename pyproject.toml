@@ -12,5 +12,20 @@
 skip-string-normalization = true
 target-version = ["py39", "py310"]
 
+[tool.mypy]
+ignore_missing_imports = true
+pretty = true
+scripts_are_modules = true
+show_error_codes = true
+show_error_context = true
+exclude = "(vendor*|venv*)/$"
+
+[[tool.mypy.overrides]]
+module = [
+  "infogami.*",
+  "openlibrary.plugins.worksearch.code"
+]
+ignore_errors = true
+
 [tool.pytest.ini_options]
 asyncio_mode = "strict"

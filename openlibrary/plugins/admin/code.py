@@ -83,7 +83,9 @@ class admin(delegate.page):
             raise web.nomethod(cls=cls)
         else:
             if self.is_admin() or (
-                librarians and context.user and context.user.is_librarian()
+                librarians
+                and context.user
+                and context.user.is_usergroup_member('/usergroup/super-librarians')
             ):
                 return m(*args)
             else:

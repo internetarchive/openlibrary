@@ -131,11 +131,11 @@ def filter_modified_since(
 
 def import_job(
     ol_config: str,
-    dry_run=False,
+    dry_run: bool = False,
 ) -> None:
     """
-    :param ol_config: Path to openlibrary.yml file
-    :param dry_run: If true, only print out records to import
+    :param str ol_config: Path to openlibrary.yml file
+    :param bool dry_run: If true, only print out records to import
     """
     load_config(ol_config)
 

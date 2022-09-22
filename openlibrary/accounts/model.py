@@ -1,6 +1,7 @@
 """
 
 """
+import secrets
 import time
 import datetime
 import hashlib
@@ -793,7 +794,10 @@ def audit_accounts(
         r = InternetArchiveAccount.s3auth(s3_access_key, s3_secret_key)
         if not r.get('authorized', False):
             return {'error': 'invalid_s3keys'}
-        ia_login = {'success': True}
+        ia_login = {
+            'success': True,
+            'values': {'access': s3_access_key, 'secret': s3_secret_key},
+        }
         email = r['username']
     else:
         if not valid_email(email):
@@ -848,13 +852,13 @@ def audit_accounts(
         # lending.config_ia_auth_only is enabled, we need to create
         # and link it.
         if not ol_account:
-            if not password:
-                raise {'error': 'link_attempt_requires_password'}
             try:
                 ol_account = OpenLibraryAccount.create(
                     ia_account.itemname,
                     email,
-                    password,
+                    # since switching to IA creds, OL password
+                    # not used; make challenging random
+                    secrets.token_urlsafe(32),
                     displayname=ia_account.screenname,
                     verified=True,
                     retries=5,

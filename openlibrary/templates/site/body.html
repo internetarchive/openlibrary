@@ -34,9 +34,7 @@ $if ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ct
       </div>
       $# Paste next line into announcement variable to show the blue banner
       $# <strong>Title:</strong> Description &nbsp; <a href="#" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>
-      $ maze_urls = ["https://t.maze.co/107767467", "https://t.maze.co/107767827", "https://t.maze.co/107767954", "https://t.maze.co/107769065", "https://t.maze.co/107769576", "https://t.maze.co/107769995"]
-      $ random_maze_url = choose_random_from(maze_urls)
-      $ announcement = 'Please help us improve the design of Open Library by taking this short <a href="%s" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary" target="_blank">Survey</a>' % random_maze_url
+      $ announcement = None
       $if announcement:
         <div class="page-banner page-banner-body">
          $:announcement

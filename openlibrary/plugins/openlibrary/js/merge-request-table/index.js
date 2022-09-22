@@ -212,6 +212,12 @@ async function claim(mrid) {
                 const reviewerHtml = `${data.reviewer}
                     <span class="mr-unassign" data-mrid="${mrid}">&times;</span>`
                 updateRow(mrid, data.newStatus, reviewerHtml)
+
+                // Hide the row's merge link:
+                const mergeLink = document.querySelector(`#mr-resolve-link-${mrid}`)
+                if (!mergeLink.classList.contains('hidden')) {
+                    toggleMergeLink(mergeLink)
+                }
             }
         })
 }
@@ -251,6 +257,23 @@ async function unassign(mrid) {
         .then(data => {
             if (data.status === 'ok') {
                 updateRow(mrid, data.newStatus, ' ')
+
+                // Display the row's merge link:
+                const mergeLink = document.querySelector(`#mr-resolve-link-${mrid}`)
+                if (mergeLink.classList.contains('hidden')) {
+                    toggleMergeLink(mergeLink)
+                }
             }
         })
+}
+
+/**
+ * Toggles 'hidden' class for element with given ID.
+ *
+ * @param {HTMLElement} mergeLink Reference to a merge link element
+ */
+function toggleMergeLink(mergeLink) {
+    if (mergeLink) {
+        mergeLink.classList.toggle('hidden')
+    }
 }

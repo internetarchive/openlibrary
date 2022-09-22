@@ -15,15 +15,15 @@ import web
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 import infogami  # must be after _init_path
 from openlibrary.config import load_config
+from typing import Dict, IO, List
 
 
-def run_piped(cmds, stdin=None):
+def run_piped(cmds: list[list[str]], stdin: IO = None):
     """
     Run the commands piping one's output to the next's input.
     :param list[list[str]] cmds:
     :param file stdin: The stdin to supply the first command of the pipe
     :return: the stdout of the last command
-    :rtype: file
     """
     prev_stdout = stdin
     for cmd in cmds:
@@ -32,12 +32,9 @@ def run_piped(cmds, stdin=None):
     return prev_stdout
 
 
-def store_data(data, day):
+def store_data(data: dict, day: datetime) -> None:
     """
     Store stats data about the provided date.
-    :param dict data:
-    :param datetime day:
-    :return:
     """
     uid = day.strftime("counts-%Y-%m-%d")
     doc = web.ctx.site.store.get(uid) or {}
@@ -46,13 +43,10 @@ def store_data(data, day):
     web.ctx.site.store[uid] = doc
 
 
-def count_unique_ips_for_day(day):
+def count_unique_ips_for_day(day: datetime) -> int:
     """
     Get the number of unique visitors for the given day.
     Throws an IndexError if missing log for the given day.
-    :param datetime day:
-    :return: A dict of the form `{visitors: int}`
-    :rtype: int
     """
     basedir = "/var/log/nginx/"
 
@@ -80,13 +74,10 @@ def count_unique_ips_for_day(day):
     return int(out.read())
 
 
-def main(config, start, end):
+def main(config: str, start: datetime, end: datetime):
     """
     Get the unique visitors per day between the 2 dates (inclusive) and store them
     in the infogami database. Ignores errors
-    :param datetime start:
-    :param datetime end:
-    :return:
     """
     load_config(config)  # loads config for psql db under the hood
     infogami._setup()

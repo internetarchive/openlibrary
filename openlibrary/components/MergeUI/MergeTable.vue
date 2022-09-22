@@ -82,7 +82,8 @@ export default {
     },
     props: {
         olids: Array,
-        show_diffs: Boolean
+        show_diffs: Boolean,
+        primary: String
     },
     asyncComputed: {
         async records() {
@@ -93,8 +94,21 @@ export default {
             const records = _.orderBy(
                 await Promise.all(olids_sorted.map(fetchRecord)),
                 record => record.type.key, 'desc');
+
+            // Ensure that primary record is the first record
+            if (this.primary) {
+                const primaryKey = `/works/${this.primary}`
+                const primaryIndex = records.findIndex(elem => elem.key === primaryKey)
+                if (primaryIndex > 0) {
+                    const primaryRecord = records[primaryIndex]
+                    records.splice(primaryIndex, 1)
+                    records.unshift(primaryRecord)
+                }
+            }
+
             this.master_key = records[0].key
             this.selected = _.fromPairs(records.map(record => [record.key, record.type.key.includes('work')]));
+
             return records;
         },
 
@@ -122,7 +136,7 @@ export default {
 
             // We only need the count, so set limit=0 (waaaay faster!)
             const promises = await Promise.all(
-                this.records.map(r => get_lists(r.key, 0))
+                this.records.map(r => (r.type.key === '/type/work') ? get_lists(r.key, 0) : {})
             );
             const responses = promises.map(p => p.value || p);
             return _.fromPairs(
@@ -133,7 +147,7 @@ export default {
             if (!this.records) return null;
 
             const promises = await Promise.all(
-                this.records.map(r => get_bookshelves(r.key))
+                this.records.map(r => (r.type.key === '/type/work') ? get_bookshelves(r.key) : {})
             );
             const responses = promises.map(p => p.value || p);
             return _.fromPairs(
@@ -145,7 +159,7 @@ export default {
             if (!this.records) return null;
 
             const promises = await Promise.all(
-                this.records.map(r => get_ratings(r.key))
+                this.records.map(r => (r.type.key === '/type/work') ? get_ratings(r.key) : {})
             );
             const responses = promises.map(p => p.value || p);
             return _.fromPairs(
@@ -158,17 +172,17 @@ export default {
                 return undefined;
 
             const master = this.records.find(r => r.key === this.master_key);
-            const dupes = this.records
+            const all_dupes = this.records
                 .filter(r => this.selected[r.key])
                 .filter(r => r.key !== this.master_key);
-            const work_dupes = dupes.filter(r => r.type.key === '/type/work');
-            const records = [master, ...dupes];
+            const dupes = all_dupes.filter(r => r.type.key === '/type/work');
+            const records = [master, ...all_dupes];
             const editions_to_move = _.flatMap(
-                dupes,
+                all_dupes,
                 work => this.editions[work.key].entries
             );
 
-            const [record, sources] = merge(master, work_dupes);
+            const [record, sources] = merge(master, dupes);
 
             const extras = {
                 edition_count: _.sum(records.map(r => this.editions[r.key].size)),

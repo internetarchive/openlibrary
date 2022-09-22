@@ -1,10 +1,12 @@
 #!/usr/bin/env python
+from __future__ import annotations
 from collections import namedtuple
 
 import json
 import os
 import sys
 from typing import Union
+from collections.abc import Iterator
 
 import web
 
@@ -12,6 +14,7 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 sys.path.insert(0, ".")  # Enable scripts/copydocs.py to be run.
 import scripts._init_path  # noqa: E402,F401
+import scripts.tests.test_copydocs
 from openlibrary.api import OpenLibrary, marshal  # noqa: E402
 
 __version__ = "0.2"
@@ -27,35 +30,15 @@ def find(server, prefix):
     return [str(x) for x in server.query(q)]
 
 
-def expand(server, keys):
-    """
-    Expands keys like "/templates/*" to be all template keys.
-
-    :param Disk or OpenLibrary server:
-    :param typing.Iterable[str] keys:
-    :rtype: typing.Iterator[str]
-    """
-    if isinstance(server, Disk):
-        yield from keys
-    else:
-        for key in keys:
-            if key.endswith('*'):
-                yield from find(server, key)
-            else:
-                yield key
-
-
 class Disk:
     """Lets us copy templates from and records to the disk as files"""
 
     def __init__(self, root):
         self.root = root
 
-    def get_many(self, keys):
+    def get_many(self, keys: list[str]) -> dict:
         """
         Only gets templates
-        :param typing.List[str] keys:
-        :rtype: dict
         """
 
         def f(k):
@@ -70,7 +53,7 @@ class Disk:
 
         return {k: f(k) for k in keys}
 
-    def save_many(self, docs, comment=None):
+    def save_many(self, docs: list[dict | web.storage], comment: str = None) -> None:
         """
 
         :param typing.List[dict or web.storage] docs:
@@ -106,6 +89,24 @@ class Disk:
                 write(path, json.dumps(doc, indent=2))
 
 
+def expand(server: Disk | OpenLibrary, keys: Iterator):
+    """
+    Expands keys like "/templates/*" to be all template keys.
+
+    :param Disk or OpenLibrary server:
+    :param typing.Iterable[str] keys:
+    :return: typing.Iterator[str]
+    """
+    if isinstance(server, Disk):
+        yield from keys
+    else:
+        for key in keys:
+            if key.endswith('*'):
+                yield from find(server, key)
+            else:
+                yield key
+
+
 def read_lines(filename):
     try:
         return [line.strip() for line in open(filename)]
@@ -133,10 +134,9 @@ class KeyVersionPair(namedtuple('KeyVersionPair', 'key version')):
     """Helper class to store uri's like /works/OL1W?v=2"""
 
     @staticmethod
-    def from_uri(uri):
+    def from_uri(uri: str) -> KeyVersionPair:
         """
         :param str uri: either something like /works/OL1W, /books/OL1M?v=3, etc.
-        :rtype: KeyVersionPair
         """
 
         if '?v=' in uri:
@@ -145,10 +145,8 @@ class KeyVersionPair(namedtuple('KeyVersionPair', 'key version')):
             key, version = uri, None
         return KeyVersionPair._make([key, version])
 
-    def to_uri(self):
-        """
-        :rtype: str
-        """
+    def to_uri(self) -> str:
+        """ """
         uri = self.key
         if self.version:
             uri += '?v=' + self.version
@@ -159,15 +157,15 @@ class KeyVersionPair(namedtuple('KeyVersionPair', 'key version')):
 
 
 def copy(
-    src: Union[Disk, OpenLibrary],
-    dest: Union[Disk, OpenLibrary],
+    src: Disk | OpenLibrary,
+    dest: Disk | OpenLibrary,
     keys: list[str],
     comment: str,
-    recursive=False,
-    editions=False,
+    recursive: bool = False,
+    editions: bool = False,
     saved: set[str] = None,
     cache: dict = None,
-):
+) -> None:
     """
     :param src: where we'll be copying form
     :param dest: where we'll be saving to
@@ -194,12 +192,12 @@ def copy(
 
         return docs
 
-    def fetch(uris):
-        """
-        :param typing.List[str] uris:
-        :rtype: typing.List[dict or web.storage]
-        """
-        docs = []
+    def fetch(uris: list[str]) -> list[dict | web.storage]:
+        docs: list = []
+
+        # The remaining code relies on cache being a dict.
+        if not isinstance(cache, dict):
+            return docs
 
         key_pairs = list(map(KeyVersionPair.from_uri, uris))
 
@@ -219,6 +217,12 @@ def copy(
         # Do versioned second so they can overwrite if necessary
         if versioned_to_get:
             print("fetching versioned", versioned_to_get)
+            # src is type Disk | OpenLibrary, and here must be OpenLibrary for the get()
+            # method, But using isinstance(src, OpenLibrary) causes pytest to fail
+            # because TestServer is type scripts.tests.test_copydocs.FakeServer.
+            assert isinstance(
+                src, (OpenLibrary, scripts.tests.test_copydocs.FakeServer)
+            ), "fetching editions only works with OL src"
             docs2 = [src.get(pair.key, int(pair.version)) for pair in versioned_to_get]
             cache.update((doc['key'], doc) for doc in docs2)
             docs.extend(docs2)
@@ -325,15 +329,15 @@ def copy_list(src, dest, list_key, comment):
 
 def main(
     keys: list[str],
-    src="http://openlibrary.org/",
-    dest="http://localhost:8080",
-    comment="",
-    recursive=True,
-    editions=True,
+    src: str = "http://openlibrary.org/",
+    dest: str = "http://localhost:8080",
+    comment: str = "",
+    recursive: bool = True,
+    editions: bool = True,
     lists: list[str] = None,
     search: str = None,
     search_limit: int = 10,
-):
+) -> None:
     """
     Script to copy docs from one OL instance to another.
     Typically used to copy templates, macros, css and js from

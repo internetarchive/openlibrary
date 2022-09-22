@@ -26,11 +26,12 @@ from openlibrary.plugins.worksearch.search import get_solr
 
 from openlibrary.utils import dateutil
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
+from openlibrary.utils.lccn import normalize_lccn
 
 
 def follow_redirect(doc):
     if isinstance(doc, str) and doc.startswith("/a/"):
-        # Some edition records have authors as ["/a/OL1A""] insead of [{"key": "/a/OL1A"}].
+        # Some edition records have authors as ["/a/OL1A""] instead of [{"key": "/a/OL1A"}].
         # Hack to fix it temporarily.
         doc = web.ctx.site.get(doc.replace("/a/", "/authors/"))
 
@@ -354,6 +355,8 @@ class Edition(models.Edition):
             if 'name' not in id or 'value' not in id:
                 continue
             name, value = id['name'], id['value']
+            if name == 'lccn':
+                value = normalize_lccn(value)
             d.setdefault(name, []).append(value)
 
         # clear existing value first
@@ -488,7 +491,7 @@ class Edition(models.Edition):
         )
 
         if self.lccn:
-            citation['lccn'] = self.lccn[0].replace(' ', '')
+            citation['lccn'] = normalize_lccn(self.lccn[0])
         if self.get('oclc_numbers'):
             citation['oclc'] = self.oclc_numbers[0]
         citation['ol'] = str(self.get_olid())[2:]

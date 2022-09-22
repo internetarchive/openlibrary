@@ -4,7 +4,7 @@ export const REQUEST_TYPES = {
     AUTHOR_MERGE: 2
 }
 
-export async function createRequest(olids, action, type, comment = null) {
+export async function createRequest(olids, action, type, comment = null, primary = null) {
     const data = {
         rtype: 'create-request',
         action: action,
@@ -13,6 +13,9 @@ export async function createRequest(olids, action, type, comment = null) {
     }
     if (comment) {
         data['comment'] = comment
+    }
+    if (primary) {
+        data['primary'] = primary
     }
 
     return fetch('/merges', {

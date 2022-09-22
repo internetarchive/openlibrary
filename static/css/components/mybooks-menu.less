@@ -84,6 +84,14 @@
     margin-bottom: 5px;
   }
 
+  /* stylelint-disable selector-max-specificity */
+  .section-header.section-header-split::after {
+    clear: both;
+    display: block;
+    content: "";
+  }
+  /* stylelint-enable selector-max-specificity */
+
   .section-header.section-header-split {
     padding: 0;
 
@@ -94,7 +102,7 @@
     }
 
     > a {
-      padding: 4px 15px;
+      padding: 4px 15px 4px 1px;
     }
     /* stylelint-enable selector-max-specificity */
   }
@@ -118,6 +126,11 @@
   .mybooks-menu {
     width: 100%;
     position: relative;
-    max-height: 42vh;
+    height: 21vh;
+    background: @grey-e7e7e7;
+    border-radius: 0;
+    resize: vertical;
+    overflow: auto;
+    border-bottom: 3px solid @lighter-grey;
   }
 }
