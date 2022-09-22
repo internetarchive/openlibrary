@@ -38,7 +38,11 @@
   width: 100%;
   video, canvas {
     width: 100%;
-    height: 100vh;
+    // stylelint-disable declaration-block-no-duplicate-properties
+    // Fallback browsers that don't support dvh
+    height: calc(100vh - 60px);
+    height: 100dvh; // stylelint-disable-line unit-no-unknown
+    // stylelint-enable declaration-block-no-duplicate-properties
     object-fit: cover;
   }
   canvas {
