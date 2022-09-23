@@ -1,17 +1,12 @@
 """Subject pages.
 """
 import web
-import re
-import requests
 import json
-import logging
-from collections import defaultdict
 import datetime
 
-from infogami import config
 from infogami.plugins.api.code import jsonapi
-from infogami.utils import delegate, stats
-from infogami.utils.view import render, render_template, safeint
+from infogami.utils import delegate
+from infogami.utils.view import render_template, safeint
 
 from openlibrary.core.models import Subject
 from openlibrary.core.lending import add_availability
@@ -19,17 +14,6 @@ from openlibrary.utils import str_to_key, finddict
 
 
 __all__ = ["SubjectEngine", "get_subject"]
-
-# These two are available in .code module. Importing it here will result in a
-# circular import. To avoid that, these values are set by the code.setup
-# function.
-read_author_facet = None
-solr_select_url = None
-
-logger = logging.getLogger("openlibrary.worksearch")
-
-re_chars = re.compile("([%s])" % re.escape(r'+-!(){}[]^"~*?:\\'))
-re_year = re.compile(r'\b(\d+)$')
 
 SUBJECTS = [
     web.storage(

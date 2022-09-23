@@ -1408,19 +1408,9 @@ class search_json(delegate.page):
 
 
 def setup():
-    from openlibrary.plugins.worksearch import subjects
-
-    # subjects module needs read_author_facet and solr_select_url.
-    # Importing this module to access them will result in circular import.
-    # Setting them like this to avoid circular-import.
-    subjects.read_author_facet = read_author_facet
-    if hasattr(config, 'plugin_worksearch'):
-        subjects.solr_select_url = solr_select_url
+    from openlibrary.plugins.worksearch import subjects, languages, publishers
 
     subjects.setup()
-
-    from openlibrary.plugins.worksearch import languages, publishers
-
     publishers.setup()
     languages.setup()
 
