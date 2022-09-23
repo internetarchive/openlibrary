@@ -1,7 +1,7 @@
 // @ts-check
 import countBy from 'lodash/countBy';
 import maxBy from 'lodash/maxBy';
-import Quagga from 'quagga';  // barcode scanning library
+import Quagga from '@ericblade/quagga2';  // barcode scanning library
 import LazyBookCard from './LazyBookCard';
 
 const BOX_STYLE = {color: 'green', lineWidth: 2};
@@ -36,16 +36,33 @@ class OLBarcodeScanner {
 
     start() {
         Quagga.init({
+            locator: {
+                halfSample: true,
+            },
             inputStream: {
                 name: 'Live',
                 type: 'LiveStream',
                 target: $('#interactive')[0],
+                constraints: {
+                    // Vertical - This is *essential* for iPhone/iPad
+                    aspectRatio: {ideal: 720/1280},
+                },
             },
             decoder: {
                 readers: ['ean_reader']
             },
-        }, function(err) {
+        }, async function(err) {
             if (err) throw err;
+
+            const track = Quagga.CameraAccess.getActiveTrack();
+            if (track && typeof track.getCapabilities === 'function') {
+                const capabilities = track.getCapabilities();
+                // Use a higher resolution
+                if (capabilities.width.max >= 1280 && capabilities.height.max >= 720) {
+                    await track.applyConstraints({advanced: [{width: 1280, height: 720}]});
+                }
+            }
+
             Quagga.start();
 
             const quaggaVideo = /** @type {HTMLVideoElement} */($('#interactive video')[0]);
