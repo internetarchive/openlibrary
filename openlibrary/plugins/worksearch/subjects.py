@@ -270,6 +270,8 @@ class SubjectEngine:
                 "title",
                 "edition_count",
                 "ia",
+                "cover_i",
+                "first_publish_year",
                 "cover_edition_key",
                 "has_fulltext",
                 "subject",
@@ -302,17 +304,12 @@ class SubjectEngine:
             ],
         )
 
-        result.docs = [work_wrapper(d) for d in result.docs]
-        for w in result.docs:
-            # :/ But why
-            w.ia = w.ia and w.ia[0] or None
-
         subject = Subject(
             key=key,
             name=name,
             subject_type=subject_type,
             work_count=result.num_found,
-            works=add_availability(result.docs),
+            works=add_availability([work_wrapper(d) for d in result.docs]),
         )
 
         if details:

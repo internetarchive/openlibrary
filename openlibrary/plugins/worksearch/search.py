@@ -11,42 +11,25 @@ def get_solr():
 
 
 def work_wrapper(w: dict) -> web.storage:
-    key = w['key']
-    if not key.startswith("/works/"):
-        key += "/works/"
-
-    d = web.storage(key=key, title=w["title"], edition_count=w["edition_count"])
-
-    if "cover_id" in w:
-        d.cover_id = w["cover_id"]
-    elif "cover_edition_key" in w:
-        book = web.ctx.site.get("/books/" + w["cover_edition_key"])
-        cover = book and book.get_cover()
-        d.cover_id = cover and cover.id or None
-        d.cover_edition_key = w['cover_edition_key']
-    else:
-        d.cover_id = None
-    d.subject = w.get('subject', [])
-    ia_collection = w['ia_collection_s'].split(';') if 'ia_collection_s' in w else []
-    d.ia_collection = ia_collection
-    d.lendinglibrary = 'lendinglibrary' in ia_collection
-    d.printdisabled = 'printdisabled' in ia_collection
-    d.lending_edition = w.get('lending_edition_s', '')
-    d.lending_identifier = w.get('lending_identifier_s', '')
-
-    # special care to handle missing author_key/author_name in the solr record
-    w.setdefault('author_key', [])
-    w.setdefault('author_name', [])
-
-    d.authors = [
-        web.storage(key='/authors/' + k, name=n)
-        for k, n in zip(w['author_key'], w['author_name'])
-    ]
-
-    d.first_publish_year = (
-        w['first_publish_year'][0] if 'first_publish_year' in w else None
+    ia_collection = w.get('ia_collection_s', '').split(';')
+    return web.storage(
+        key=w['key'],
+        title=w["title"],
+        edition_count=w["edition_count"],
+        cover_id=w.get('cover_i'),
+        cover_edition_key=w.get('cover_edition_key'),
+        subject=w.get('subject', []),
+        ia_collection=ia_collection,
+        lendinglibrary='lendinglibrary' in ia_collection,
+        printdisabled='printdisabled' in ia_collection,
+        lending_edition=w.get('lending_edition_s', ''),
+        lending_identifier=w.get('lending_identifier_s', ''),
+        authors=[
+            web.storage(key=f'/authors/{olid}', name=name)
+            for olid, name in zip(w.get('author_key', []), w.get('author_name', []))
+        ],
+        first_publish_year=w.get('first_publish_year'),
+        ia=w.get('ia', [None])[0],
+        public_scan=w.get('public_scan_b', bool(w.get('ia'))),
+        has_fulltext=w.get('has_fulltext', False),
     )
-    d.ia = w.get('ia', [])
-    d.public_scan = w.get('public_scan_b', bool(d.ia))
-    d.has_fulltext = w.get('has_fulltext', "false")
-    return d
