@@ -1,6 +1,5 @@
 """Subject pages.
 """
-
 import web
 import re
 import requests
@@ -16,7 +15,6 @@ from infogami.utils.view import render, render_template, safeint
 
 from openlibrary.core.models import Subject
 from openlibrary.core.lending import add_availability
-from openlibrary.plugins.worksearch.search import work_search
 from openlibrary.utils import str_to_key, finddict
 
 
@@ -144,7 +142,7 @@ class subjects_json(delegate.page):
                 begin, end = i.published_in.split('-', 1)
 
                 if safeint(begin, None) is not None and safeint(end, None) is not None:
-                    filters['publish_year'] = (begin, end)  # range
+                    filters['publish_year'] = f'[{begin} TO {end}]'
             else:
                 y = safeint(i.published_in, None)
                 if y is not None:
@@ -158,7 +156,7 @@ class subjects_json(delegate.page):
             details=i.details.lower() == 'true',
             **filters,
         )
-        if i.has_fulltext:
+        if i.has_fulltext == 'true':
             subject_results['ebook_count'] = subject_results['work_count']
         return json.dumps(subject_results)
 
@@ -170,7 +168,12 @@ class subjects_json(delegate.page):
 
 
 def get_subject(
-    key, details=False, offset=0, sort='editions', limit=DEFAULT_RESULTS, **filters
+    key: str,
+    details=False,
+    offset=0,
+    sort='editions',
+    limit=DEFAULT_RESULTS,
+    **filters,
 ):
     """Returns data related to a subject.
 
@@ -235,15 +238,9 @@ def get_subject(
                 return Engine()
         return SubjectEngine()
 
-    sort_options = {
-        'editions': 'edition_count desc',
-        'new': 'first_publish_year desc',
-    }
-    sort_order = sort_options.get(sort) or sort_options['editions']
-
     engine = create_engine()
     subject_results = engine.get_subject(
-        key, details=details, offset=offset, sort=sort_order, limit=limit, **filters
+        key, details=details, offset=offset, sort=sort, limit=limit, **filters
     )
     return subject_results
 
@@ -255,59 +252,118 @@ class SubjectEngine:
         details=False,
         offset=0,
         limit=DEFAULT_RESULTS,
-        sort='first_publish_year desc',
+        sort='new',
         **filters,
     ):
-        meta = self.get_meta(key)
+        # Circular imports are everywhere -_-
+        from openlibrary.plugins.worksearch.code import run_solr_query
+        from openlibrary.plugins.worksearch.search import work_wrapper
+        from openlibrary.solr.query_utils import query_dict_to_str
 
-        q = self.make_query(key, filters)
+        meta = self.get_meta(key)
         subject_type = meta.name
         name = meta.path.replace("_", " ")
 
-        if details:
-            kw = self.query_optons_for_details()
-        else:
-            kw = {}
+        unescaped_filters = {}
+        if 'publish_year' in filters:
+            # Don't want this escaped or used in fq for perf reasons
+            unescaped_filters['publish_year'] = filters.pop('publish_year')
+        result = run_solr_query(
+            {
+                'q': query_dict_to_str(
+                    {meta.facet_key: self.normalize_key(meta.path)},
+                    unescaped=unescaped_filters,
+                ),
+                **filters,
+            },
+            offset=offset,
+            rows=limit,
+            sort=sort,
+            fields=[
+                "key",
+                "author_name",
+                "author_key",
+                "title",
+                "edition_count",
+                "ia",
+                "cover_edition_key",
+                "has_fulltext",
+                "subject",
+                "ia_collection_s",
+                "public_scan_b",
+                "lending_edition_s",
+                "lending_identifier_s",
+            ],
+            facet=(
+                details
+                and [
+                    {"name": "author_facet", "sort": "count"},
+                    "language",
+                    "publisher_facet",
+                    {"name": "publish_year", "limit": -1},
+                    "subject_facet",
+                    "person_facet",
+                    "place_facet",
+                    "time_facet",
+                    "has_fulltext",
+                ]
+            ),
+            extra_params=[
+                ('facet.mincount', 1),
+                ('facet.limit', 25),
+            ],
+            allowed_filter_params=[
+                'has_fulltext',
+                'publish_year',
+            ],
+        )
 
-        result = work_search(q, offset=offset, limit=limit, sort=sort, **kw)
-        if not result:
-            return None
-
+        result.docs = [work_wrapper(d) for d in result.docs]
         for w in result.docs:
+            # :/ But why
             w.ia = w.ia and w.ia[0] or None
-
-            # XXX-Anand: Oct 2013
-            # Somewhere something is broken, work keys are coming as OL1234W/works/
-            # Quick fix it solve that issue.
-            if w.key.endswith("/works/"):
-                w.key = "/works/" + w.key.replace("/works/", "")
 
         subject = Subject(
             key=key,
             name=name,
             subject_type=subject_type,
-            work_count=result['num_found'],
-            works=add_availability(result['docs']),
+            work_count=result.num_found,
+            works=add_availability(result.docs),
         )
 
         if details:
-            subject.ebook_count = dict(result.facets["has_fulltext"]).get("true", 0)
+            result.facet_counts = {
+                facet_field: [
+                    self.facet_wrapper(facet_field, key, label, count)
+                    for key, label, count in facet_counts
+                ]
+                for facet_field, facet_counts in result.facet_counts.items()
+            }
 
-            subject.subjects = result.facets["subject_facet"]
-            subject.places = result.facets["place_facet"]
-            subject.people = result.facets["person_facet"]
-            subject.times = result.facets["time_facet"]
+            subject.ebook_count = next(
+                (
+                    count
+                    for key, count in result.facet_counts["has_fulltext"]
+                    if key == "true"
+                ),
+                0,
+            )
 
-            subject.authors = result.facets["author_facet"]
-            subject.publishers = result.facets["publisher_facet"]
-            subject.languages = result.facets['language']
+            subject.subjects = result.facet_counts["subject_facet"]
+            subject.places = result.facet_counts["place_facet"]
+            subject.people = result.facet_counts["person_facet"]
+            subject.times = result.facet_counts["time_facet"]
+
+            subject.authors = result.facet_counts["author_key"]
+            subject.publishers = result.facet_counts["publisher_facet"]
+            subject.languages = result.facet_counts['language']
 
             # Ignore bad dates when computing publishing_history
             # year < 1000 or year > current_year+1 are considered bad dates
             current_year = datetime.datetime.utcnow().year
             subject.publishing_history = [
                 [year, count]
-                for year, count in result.facets["publish_year"]
+                for year, count in result.facet_counts["publish_year"]
                 if 1000 < year <= current_year + 1
             ]
 
@@ -335,31 +391,18 @@ class SubjectEngine:
                 return d.prefix, key[len(d.prefix) :]
         return None, None
 
-    def make_query(self, key, filters):
-        meta = self.get_meta(key)
-
-        q = {meta.facet_key: self.normalize_key(meta.path)}
-
-        if filters:
-            if filters.get("has_fulltext") == "true":
-                q['has_fulltext'] = "true"
-            if filters.get("publish_year"):
-                q['publish_year'] = filters['publish_year']
-        return q
-
     def normalize_key(self, key):
         return str_to_key(key).lower()
 
-    def facet_wrapper(self, facet, value, count):
+    def facet_wrapper(self, facet: str, value: str, label: str, count: int):
         if facet == "publish_year":
             return [int(value), count]
         elif facet == "publisher_facet":
             return web.storage(
                 name=value, count=count, key="/publishers/" + value.replace(" ", "_")
             )
-        elif facet == "author_facet":
-            author = read_author_facet(value)
-            return web.storage(name=author[1], key="/authors/" + author[0], count=count)
+        elif facet == "author_key":
+            return web.storage(name=label, key=f"/authors/{value}", count=count)
         elif facet in ["subject_facet", "person_facet", "place_facet", "time_facet"]:
             return web.storage(
                 key=finddict(SUBJECTS, facet=facet).prefix
@@ -371,26 +414,6 @@ class SubjectEngine:
             return [value, count]
         else:
             return web.storage(name=value, count=count)
-
-    def query_optons_for_details(self):
-        """Additional query options to be added when details=True."""
-        kw = {}
-        kw['facets'] = [
-            {"name": "author_facet", "sort": "count"},
-            "language",
-            "publisher_facet",
-            {"name": "publish_year", "limit": -1},
-            "subject_facet",
-            "person_facet",
-            "place_facet",
-            "time_facet",
-            "has_fulltext",
-            "language",
-        ]
-        kw['facet.mincount'] = 1
-        kw['facet.limit'] = 25
-        kw['facet_wrapper'] = self.facet_wrapper
-        return kw
 
 
 def setup():

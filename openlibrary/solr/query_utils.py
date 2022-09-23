@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Literal, Optional
 from luqum.parser import parser
 from luqum.tree import Item, SearchField, BaseOperation, Group, Word, Unary
 import re
@@ -213,3 +213,34 @@ def luqum_parser(query: str) -> Item:
             node.expr.head = ''
 
     return tree
+
+
+def query_dict_to_str(
+    escaped: dict = None,
+    unescaped: dict = None,
+    op: Literal['AND', 'OR', ''] = '',
+) -> str:
+    """
+    Converts a query dict to a search query.
+
+    >>> query_dict_to_str({'title': 'foo'})
+    'title:(foo)'
+    >>> query_dict_to_str({'title': 'foo bar', 'author': 'bar'})
+    'title:(foo bar)  author:(bar)'
+    >>> query_dict_to_str({'title': 'foo bar', 'author': 'bar'}, op='OR')
+    'title:(foo bar) OR author:(bar)'
+    >>> query_dict_to_str({'title': 'foo ? to escape'})
+    'title:(foo \\\\? to escape)'
+    >>> query_dict_to_str({'title': 'YES AND'})
+    'title:(YES and)'
+    """
+    result = ''
+    if escaped:
+        result += f' {op} '.join(
+            f'{k}:({fully_escape_query(v)})' for k, v in escaped.items()
+        )
+    if unescaped:
+        if result:
+            result += f' {op} '
+        result += f' {op} '.join(f'{k}:{v}' for k, v in unescaped.items())
+    return result

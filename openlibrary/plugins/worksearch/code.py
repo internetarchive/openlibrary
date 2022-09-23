@@ -479,6 +479,7 @@ def run_solr_query(
     offset=None,
     fields: Union[str, list[str]] = None,
     facet: Union[bool, Iterable[str]] = True,
+    allowed_filter_params=FACET_FIELDS,
     extra_params: Optional[list[tuple[str, Any]]] = None,
 ):
     """
@@ -513,7 +514,17 @@ def run_solr_query(
         params.append(('facet', 'true'))
         facet_fields = FACET_FIELDS if isinstance(facet, bool) else facet
         for facet in facet_fields:
-            params.append(('facet.field', facet))
+            if isinstance(facet, str):
+                params.append(('facet.field', facet))
+            elif isinstance(facet, dict):
+                params.append(('facet.field', facet['name']))
+                if 'sort' in facet:
+                    params.append((f'f.{facet["name"]}.facet.sort', facet['sort']))
+                if 'limit' in facet:
+                    params.append((f'f.{facet["name"]}.facet.limit', facet['limit']))
+            else:
+                # Should never get here
+                raise ValueError(f'Invalid facet type: {facet}')
 
     if 'public_scan' in param:
         v = param.pop('public_scan').lower()
@@ -538,7 +549,7 @@ def run_solr_query(
         else:
             del param['has_fulltext']
 
-    for field in FACET_FIELDS:
+    for field in allowed_filter_params:
         if field == 'has_fulltext':
             continue
         if field == 'author_facet':
