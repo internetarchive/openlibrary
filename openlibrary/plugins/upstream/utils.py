@@ -1,5 +1,5 @@
 import functools
-from typing import List, Union, Tuple, Any
+from typing import Any
 from collections.abc import Iterable
 import unicodedata
 
@@ -16,7 +16,6 @@ import xml.etree.ElementTree as etree
 import datetime
 import logging
 from html.parser import HTMLParser
-from typing import Optional
 
 import requests
 
@@ -124,7 +123,7 @@ def render_template(name, *a, **kw):
     return render[name](*a, **kw)
 
 
-def kebab_case(upper_camel_case):
+def kebab_case(upper_camel_case: str) -> str:
     """
     :param str upper_camel_case: Text in upper camel case (e.g. "HelloWorld")
     :return: text in kebab case (e.g. 'hello-world')
@@ -139,7 +138,7 @@ def kebab_case(upper_camel_case):
 
 
 @public
-def render_component(name, attrs=None, json_encode=True):
+def render_component(name: str, attrs: dict = None, json_encode: bool = True):
     """
     :param str name: Name of the component (excluding extension)
     :param dict attrs: attributes to add to the component element
@@ -515,7 +514,7 @@ def url_quote(text):
 
 
 @public
-def urlencode(dict_or_list_of_tuples: Union[dict, list[tuple[str, Any]]]) -> str:
+def urlencode(dict_or_list_of_tuples: dict | list[tuple[str, Any]]) -> str:
     """
     You probably want to use this, if you're looking to urlencode parameters. This will
     encode things to utf8 that would otherwise cause urlencode to error.
@@ -684,7 +683,7 @@ def autocomplete_languages(prefix: str):
             continue
 
 
-def get_language(lang_or_key: Union[Thing, str]) -> Optional[Thing]:
+def get_language(lang_or_key: Thing | str) -> Thing | None:
     if isinstance(lang_or_key, str):
         return get_languages().get(lang_or_key)
     else:
@@ -692,7 +691,7 @@ def get_language(lang_or_key: Union[Thing, str]) -> Optional[Thing]:
 
 
 @public
-def get_language_name(lang_or_key: Union[Thing, str]):
+def get_language_name(lang_or_key: Thing | str):
     if isinstance(lang_or_key, str):
         lang = get_language(lang_or_key)
         if not lang:
@@ -705,7 +704,7 @@ def get_language_name(lang_or_key: Union[Thing, str]):
 
 
 @functools.cache
-def convert_iso_to_marc(iso_639_1: str) -> Optional[str]:
+def convert_iso_to_marc(iso_639_1: str) -> str | None:
     """
     e.g. 'en' -> 'eng'
     """
@@ -1083,7 +1082,7 @@ class HTMLTagRemover(HTMLParser):
 
 
 @public
-def reformat_html(html_str: str, max_length: Optional[int] = None) -> str:
+def reformat_html(html_str: str, max_length: int = None) -> str:
     """
     Reformats an HTML string, removing all opening and closing tags.
     Adds a line break element between each set of text content.
