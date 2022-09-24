@@ -6,7 +6,8 @@ import random
 import re
 import string
 import sys
-from typing import List, Tuple, Any, Union, Optional, Iterable, Dict
+from typing import List, Tuple, Any, Union, Optional, Dict
+from collections.abc import Iterable
 from unicodedata import normalize
 from json import JSONDecodeError
 import requests
@@ -687,17 +688,17 @@ def run_solr_query(
             user_lang = convert_iso_to_marc(web.ctx.lang or 'en') or 'eng'
 
             ed_q = convert_work_query_to_edition_query(str(work_q_tree))
-            full_ed_query = '({!edismax bq="%(bq)s" v="%(v)s" qf="%(qf)s"})' % {
+            full_ed_query = '({{!edismax bq="{bq}" v="{v}" qf="{qf}"}})'.format(
                 # See qf in work_query
-                'qf': 'text title^4',
+                qf='text title^4',
                 # Because we include the edition query inside the v="..." part,
                 # we need to escape quotes. Also note that if there is no
                 # edition query (because no fields in the user's work query apply),
                 # we use the special value *:* to match everything, but still get
                 # boosting.
-                'v': ed_q.replace('"', '\\"') or '*:*',
+                v=ed_q.replace('"', '\\"') or '*:*',
                 # bq (boost query): Boost which edition is promoted to the top
-                'bq': ' '.join(
+                bq=' '.join(
                     (
                         f'language:{user_lang}^40',
                         'ebook_access:public^10',
@@ -706,7 +707,7 @@ def run_solr_query(
                         'cover_i:*^2',
                     )
                 ),
-            }
+            )
 
         if ed_q or len(editions_fq) > 1:
             # The elements in _this_ edition query should cause works not to
@@ -726,9 +727,9 @@ def run_solr_query(
                 )
             )
             params.append(('q', q))
-            edition_fields = set(
+            edition_fields = {
                 f.split('.', 1)[1] for f in solr_fields if f.startswith('editions.')
-            )
+            }
             if not edition_fields:
                 edition_fields = solr_fields - {'editions:[subquery]'}
             # The elements in _this_ edition query will match but not affect
