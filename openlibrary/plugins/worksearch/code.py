@@ -478,7 +478,7 @@ def has_solr_editions_enabled():
     if cookie_value is not None:
         return cookie_value == 'true'
 
-    return True
+    return False
 
 
 def run_solr_query(
