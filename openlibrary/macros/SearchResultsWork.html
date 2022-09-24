@@ -1,16 +1,23 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, reading_log=None)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, reading_log=None, show_librarian_extras=False)
 
 $code:
   max_rendered_authors = 9
   doc_type = (
     'infogami_work' if doc.get('type', {}).get('key') == '/type/work' else
     'infogami_edition' if doc.get('type', {}).get('key') == '/type/edition' else
-    'solr_work'
+    'solr_work' if not doc.get('editions') else
+    'solr_edition'
   )
+
+  selected_ed = doc
+  if doc_type == 'solr_edition':
+    selected_ed = doc.get('editions')[0]
 
   book_url = doc.url() if doc_type.startswith('infogami_') else doc.key
   book_provider = get_book_provider(doc)
-  if book_provider and doc_type.endswith('_work'):
+  if doc_type == 'solr_edition':
+    work_edition_url = book_url + '?edition=' + urlquote('key:' + selected_ed.key)
+  elif book_provider and doc_type.endswith('_work'):
     work_edition_url = book_url + '?edition=' + urlquote(book_provider.get_best_identifier_slug(doc))
   else:
     work_edition_url = book_url
@@ -19,11 +26,15 @@ $code:
   if doc_type == 'infogami_edition' and 'works' in doc:
     edition_work = doc['works'][0]
 
-  full_title = doc.title + (': ' + doc.subtitle if doc.get('subtitle') else '')
+  full_title = selected_ed.title + (': ' + selected_ed.subtitle if selected_ed.get('subtitle') else '')
+  if doc_type == 'infogami_edition' and edition_work:
+    full_work_title = edition_work.title + (': ' + edition_work.subtitle if edition_work.get('subtitle') else '')
+  else:
+    full_work_title = doc.title + (': ' + doc.subtitle if doc.get('subtitle') else '')
 
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book" $:attrs>
   <span class="bookcover">
-    $ cover = get_cover_url(doc) or "/images/icons/avatar_book-sm.png"
+    $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
     <a href="$work_edition_url"><img
             itemprop="image"
             src="$cover"
@@ -36,8 +47,6 @@ $code:
       <div class="resultTitle">
          <h3 itemprop="name" class="booktitle">
            <a itemprop="url" href="$work_edition_url" class="results">$full_title</a>
-           $if doc.get('publish_date'):
-             ($(doc['publish_date']))
          </h3>
         </div>
       <span itemprop="author" itemscope itemtype="https://schema.org/Organization" class="bookauthor">
@@ -46,7 +55,7 @@ $code:
           $ authors = doc.get_authors()
         $elif doc_type == 'infogami_edition':
           $ authors = edition_work.get_authors() if edition_work else doc.get_authors()
-        $elif doc_type == 'solr_work':
+        $elif doc_type.startswith('solr_'):
           $if 'authors' in doc:
             $ authors = doc['authors']
           $elif 'author_key' in doc:
@@ -85,6 +94,14 @@ $code:
                   </a>
               </span>
       </span>
+      $if show_librarian_extras:
+        <div class="searchResultItem__librarian-extras" title="$_('This is only visible to librarians.')">
+          $if doc_type == 'solr_edition' or (doc_type == 'infogami_edition' and edition_work):
+            <div>$_('Work Title'): <i>$full_work_title</i></div>
+          $ is_orphan = doc_type.startswith('solr_') and doc['key'].endswith('M') or doc_type == 'infogami_edition' and not edition_work
+          $if is_orphan:
+            <div>$_('Orphaned Edition')</div>
+        </div>
       $if extra:
         $:extra
       </div>
@@ -98,8 +115,8 @@ $code:
 
       <div class="searchResultItemCTA-lending">
         $if cta:
-          $ doc['availability'] = doc.get('availability', {}) or availability or {}
-          $:macros.LoanStatus(doc, work_key=doc.key)
+          $ selected_ed['availability'] = selected_ed.get('availability', {}) or doc.get('availability', {}) or availability or {}
+          $:macros.LoanStatus(selected_ed, work_key=doc.key)
       </div>
 
       $if reading_log:

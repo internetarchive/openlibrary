@@ -684,18 +684,36 @@ def autocomplete_languages(prefix: str):
             continue
 
 
-def get_language(lang_or_key: Union[Thing, str]) -> Thing:
+def get_language(lang_or_key: Union[Thing, str]) -> Optional[Thing]:
     if isinstance(lang_or_key, str):
-        return get_languages()[lang_or_key]
+        return get_languages().get(lang_or_key)
     else:
         return lang_or_key
 
 
 @public
 def get_language_name(lang_or_key: Union[Thing, str]):
+    if isinstance(lang_or_key, str):
+        lang = get_language(lang_or_key)
+        if not lang:
+            return lang_or_key
+    else:
+        lang = lang_or_key
+
     user_lang = web.ctx.lang or 'en'
-    lang = get_language(lang_or_key)
     return safeget(lambda: lang['name_translated'][user_lang][0]) or lang.name
+
+
+@functools.cache
+def convert_iso_to_marc(iso_639_1: str) -> Optional[str]:
+    """
+    e.g. 'en' -> 'eng'
+    """
+    for lang in get_languages().values():
+        code = safeget(lambda: lang['identifiers']['iso_639_1'][0])
+        if code == iso_639_1:
+            return lang.code
+    return None
 
 
 @public

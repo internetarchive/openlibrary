@@ -1,4 +1,4 @@
-$def with (input, q_param, do_search, get_doc, get_availability_of_ocaids, fulltext_search, facet_fields)
+$def with (input, q_param, do_search, get_doc, fulltext_search, facet_fields)
 
 $ fulltext_names = {'true': 'Ebooks', 'false': 'Exclude ebooks'}
 
@@ -76,6 +76,16 @@ $ )
         <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">
         <label for="mode-search-printdisabled">$_('Print Disabled')</label>
       </span>
+      $if ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians')):
+        <div style="display: flex; justify-content: flex-end"  title="$_('This is only visible to super librarians.')">
+            <label
+            style="padding: 4px; display: inline-block;"
+            onchange="document.cookie = `SOLR_EDITIONS=\${this.firstElementChild.checked ? 'true' : 'false'}`; location.reload()"
+            >
+                <input type="checkbox" $:cond(has_solr_editions_enabled(), 'checked="checked"')/>
+                $:_('Solr Editions <i>Beta</i>')
+            </label>
+        </div>
       $ sticky = set(['sort', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b'])
 
       $for k, values in param.items():
@@ -168,20 +178,17 @@ $ )
         <div class="resultsContainer search-results-container">
         <div id="searchResults">
           <ul class="list-books">
-            $ works = add_availability([get_doc(d) for d in docs])
+            $ works = [get_doc(d) for d in docs]
+            $ add_availability([(w.get('editions') or [None])[0] or w for w in works])
             $ username = ctx.user and ctx.user.key.split('/')[-1]
             $if username:
                 $ works = add_read_statuses(username, works)
+            $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians'))
 
             $for work in works:
-                $ ocaid = work.ia[0] if work.ia else None
-                $ availability = (work.get('availability') or {}).get('status')
-                $# if we're explicitly showing *everything*...
-                $# or if we're showing only things with ocaids which are available...
-                $if 'has_fulltext' not in param or (ocaid and availability and availability not in ['error', 'private']):
-                    $ read_status = work.get('readinglog', None)
-                    $ dropper = macros.ReadingLogDropper([], work=work, reading_log_only=True, page_url="/search", users_work_read_status=read_status)
-                    $:macros.SearchResultsWork(work, reading_log=dropper)
+                $ read_status = work.get('readinglog', None)
+                $ dropper = macros.ReadingLogDropper([], work=work, reading_log_only=True, page_url="/search", users_work_read_status=read_status)
+                $:macros.SearchResultsWork(work, reading_log=dropper, show_librarian_extras=show_librarian_extras)
           </ul>
           $:macros.Pager(page, num_found, rows)
         </div>

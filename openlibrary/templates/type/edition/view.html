@@ -20,14 +20,16 @@ $else:
   $ show_observations = False
 
 $ edition = storage({})
-$if page.key.startswith('/books'):
+$if query_param('edition', '').startswith('key:'):
+  $ edition = get_type(query_param('edition', '').split(':')[1])
+$elif page.key.startswith('/books'):
   $# We are on an editions page: an edition has been explicitly selected
   $ edition = page
 
 $ selected_provider = None
 $ selected_id = None
 $ provider = None
-$if query_param('edition'):
+$if query_param('edition') and not edition:
   $if ':' in query_param('edition'):
     $ [selected_provider, selected_id] = query_param('edition').split(':')
   $else:
