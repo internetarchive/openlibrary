@@ -94,7 +94,11 @@ $if can_merge:
     <div class="merge-feedback">
         <label for="merge-comment">$_('Comment:') <input type="text" id="author-merge-comment" name="comment" placeholder="$_('Comment...')"></label>
         <div class="merge-feedback__buttons">
-            <button id="save" class="larger merge-feedback__submit" value="Merge Authors" type="submit">$_('Merge Authors')</button>
+            $if can_merge:
+                $ cta = _('Merge Authors')
+            $else:
+                $ cta = _('Request Merge')
+            <button id="save" class="larger merge-feedback__submit" value="Merge Authors" type="submit">$cta</button>
             $if mrid:
                 <button id="reject-author-merge-btn" type="button" class="larger merge-feedback__reject">$_('Reject Merge')</button>
             $else:
