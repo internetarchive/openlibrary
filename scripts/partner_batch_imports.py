@@ -56,13 +56,17 @@ EXCLUDED_INDEPENDENTLY_PUBLISHED_TITLES = {
         'annoté',
         'classic',
         'classics',
+        'illustrated',  # Some books have typos in their titles!
         'illustrated',
         'Illustrée',
+        'original',
         'summary',
+        'version',
         # Not a book
         'calendar',
         'diary',
         'journal',
+        'logbook',
         'notebook',
         'notizbuch',
         'planner',
