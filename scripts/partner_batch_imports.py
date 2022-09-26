@@ -51,11 +51,26 @@ EXCLUDED_AUTHORS = {
 EXCLUDED_INDEPENDENTLY_PUBLISHED_TITLES = {
     x.casefold()
     for x in (
+        # Noisy classic re-prints
         'annotated',
         'annoté',
+        'classic',
+        'classics',
+        'illustarted',  # Some books have typos in their titles!
         'illustrated',
         'Illustrée',
+        'original',
+        'summary',
+        'version',
+        # Not a book
+        'calendar',
+        'diary',
+        'journal',
+        'logbook',
         'notebook',
+        'notizbuch',
+        'planner',
+        'sketchbook',
     )
 }
 
