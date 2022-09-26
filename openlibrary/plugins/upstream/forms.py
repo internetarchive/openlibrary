@@ -87,7 +87,9 @@ class RegisterForm(Form):
         ),
         Textbox(
             'username',
-            description=_('Choose a screen name'),
+            description=_(
+                "Choose a screen name. Screen names are public and cannot be changed later."
+            ),
             klass='required',
             help=_("Letters and numbers only please, and at least 3 characters."),
             autocapitalize="off",
