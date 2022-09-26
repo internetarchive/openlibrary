@@ -54,6 +54,7 @@ EXCLUDED_INDEPENDENTLY_PUBLISHED_TITLES = {
         # Noisy classic re-prints
         'annotated',
         'annoté',
+        'classic',
         'classics',
         'illustrated',
         'Illustrée',
@@ -61,6 +62,7 @@ EXCLUDED_INDEPENDENTLY_PUBLISHED_TITLES = {
 
         # Not a book
         'calendar',
+        'diary',
         'journal',
         'notebook',
         'notizbuch',
