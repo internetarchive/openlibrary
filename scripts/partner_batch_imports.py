@@ -59,7 +59,6 @@ EXCLUDED_INDEPENDENTLY_PUBLISHED_TITLES = {
         'illustrated',
         'Illustrée',
         'summary',
-
         # Not a book
         'calendar',
         'diary',
