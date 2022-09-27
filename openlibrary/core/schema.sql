@@ -8,8 +8,7 @@ CREATE TABLE ratings (
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
     primary key (username, work_id)
 );
-CREATE INDEX ratings_username_idx ON bookshelves_books (username);
-CREATE INDEX ratings_work_id_idx ON bookshelves_books (work_id);
+CREATE INDEX ratings_work_id_idx ON ratings (work_id);
 
 CREATE TABLE booknotes (
     username text NOT NULL,
@@ -20,8 +19,7 @@ CREATE TABLE booknotes (
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
     primary key (username, work_id, edition_id)
 );
-CREATE INDEX booknotes_username_idx ON bookshelves_books (username);
-CREATE INDEX booknotes_work_id_idx ON bookshelves_books (work_id);
+CREATE INDEX booknotes_work_id_idx ON booknotes (work_id);
 
 CREATE TABLE bookshelves (
     id serial not null primary key,
@@ -66,8 +64,7 @@ CREATE TABLE observations (
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
     primary key (work_id, edition_id, username, observation_value, observation_type)
 );
-CREATE INDEX observations_work_id_idx ON bookshelves_books (work_id);
-CREATE INDEX observations_username_idx ON bookshelves_books (username);
+CREATE INDEX observations_username_idx ON observations (username);
 
 CREATE TABLE community_edits_queue (
     id serial not null primary key,
