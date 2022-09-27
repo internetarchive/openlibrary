@@ -103,30 +103,15 @@ function isFormatValidIsbn10(isbn) {
  * @returns {boolean}  true if ISBN string is a valid ISBN 10
  */
 export function isChecksumValidIsbn10(isbn) {
-    const chars = isbn.split('');
-    let last = chars.pop();
-    let check;
+    const chars = isbn.replace('X', 'A').split('');
 
-    // With ISBN 10, the last character can be [0-9] or string 'X'.
-    if (last !== 'X') {
-        last = parseInt(last);
-    }
-
-    // Compute the ISBN-10 check digit
     chars.reverse();
     const sum = chars
-        .map((char, idx) => ((idx + 2) * parseInt(char, 10)))
-        .reduce((acc, sum) => acc + sum, 0)
+        .map((char, idx) => ((idx + 1) * parseInt(char, 16)))
+        .reduce((acc, sum) => acc + sum, 0);
 
-    check = 11 - (sum % 11);
-    if (check === 10) {
-        check = 'X';
-    } else if (check === 11) {
-        check = 0;
-    }
-
-    // The ISBN 10 is valid if the check digit and last digit match.
-    return check === last;
+    // The ISBN 10 is valid if the checksum mod 11 is 0.
+    return sum % 11 === 0;
 }
 
 /**
@@ -148,21 +133,12 @@ function isFormatValidIsbn13(isbn) {
  */
 export function isChecksumValidIsbn13(isbn) {
     const chars = isbn.split('');
-    // Remove the final ISBN digit from `chars`, and assign it to `last` for comparison.
-    const last = parseInt(chars.pop());
-    let check;
-
     const sum = chars
         .map((char, idx) => ((idx % 2 * 2 + 1) * parseInt(char, 10)))
         .reduce((sum, num) => sum + num, 0);
 
-    check = 10 - (sum % 10);
-    if (check === 10) {
-        check = 0;
-    }
-
-    // The ISBN 13 is valid if the check digit and last digit match.
-    return check === last;
+    // The ISBN 13 is valid if the checksum mod 10 is 0.
+    return sum % 10 === 0;
 }
 
 /**
