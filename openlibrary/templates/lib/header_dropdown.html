@@ -16,7 +16,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
 <div class="$(props['name'])-component header-dropdown">
   $if singleton:
     $ link = props['links'][0]
-    $ tracker = (track_prefix and link.get('track')) and 'data-ol-link-track=%s|%s' % (track_prefix, link.get('track')) or ''
+    $ tracker = 'data-ol-link-track=%s|%s' % (track_prefix, link['track']) if (track_prefix and link.get('track')) else ''
     <a href="$link['href']" $tracker>$(props['label'])</a>
   $else:
     <details>
@@ -44,7 +44,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
       >
         <ul class="dropdown-menu $(props['name'])-dropdown-menu">
           $for link in props['links']:
-            $ tracker = (track_prefix and link.get('track')) and 'data-ol-link-track=%s|%s' % (track_prefix, link.get('track')) or ''
+            $ tracker = 'data-ol-link-track=%s|%s' % (track_prefix, link['track']) if (track_prefix and link.get('track')) else ''
             $if 'subsection' in link:
               <li class="subsection">
                 $(link['subsection'])
