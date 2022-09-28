@@ -107,7 +107,7 @@ def do_we_want_it(isbn):
         dwwi = data.get('response', 0)
         return dwwi == 1, data.get('books', [])
     except requests.exceptions.Timeout:
-        logger.error('DWWI Timeout')
+        logger.exception('DWWI Timeout')
         return False, []
     except:
         logger.error("DWWI Failed for isbn %s" % isbn, exc_info=True)
