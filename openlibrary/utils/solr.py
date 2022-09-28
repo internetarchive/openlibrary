@@ -21,6 +21,7 @@ class Solr:
     def __init__(self, base_url):
         self.base_url = base_url
         self.host = urlsplit(self.base_url)[1]
+        self.session = requests.Session()
 
     def escape(self, query):
         r"""Escape special characters in the query string
@@ -41,7 +42,7 @@ class Solr:
     ) -> Optional[T]:
         """Get a specific item from solr"""
         logger.info(f"solr /get: {key}, {fields}")
-        resp = requests.get(
+        resp = self.session.get(
             f"{self.base_url}/get",
             params={'id': key, **({'fl': ','.join(fields)} if fields else {})},
         ).json()
@@ -58,7 +59,7 @@ class Solr:
         if not keys:
             return []
         logger.info(f"solr /get: {keys}, {fields}")
-        resp = requests.get(
+        resp = self.session.get(
             f"{self.base_url}/get",
             params={
                 'ids': ','.join(keys),
@@ -118,13 +119,13 @@ class Solr:
         if len(payload) < 500:
             url = url + "?" + payload
             logger.info("solr request: %s", url)
-            json_data = requests.get(url, timeout=10).json()
+            json_data = self.session.get(url, timeout=10).json()
         else:
             logger.info("solr request: %s ...", url)
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
             }
-            json_data = requests.post(
+            json_data = self.session.post(
                 url, data=payload, headers=headers, timeout=10
             ).json()
         return self._parse_solr_result(
