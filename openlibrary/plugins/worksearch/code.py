@@ -1326,19 +1326,16 @@ def work_search(
     query['q'], page, offset, limit = rewrite_list_query(
         query['q'], page, offset, limit
     )
-    try:
-        resp = run_solr_query(
-            query,
-            rows=limit,
-            page=page,
-            sort=sort,
-            offset=offset,
-            fields=fields,
-            facet=facet,
-            spellcheck_count=spellcheck_count,
-        )
-    except (ValueError, OSError):
-        logger.exception("Error in processing search API.")
+    resp = run_solr_query(
+        query,
+        rows=limit,
+        page=page,
+        sort=sort,
+        offset=offset,
+        fields=fields,
+        facet=facet,
+        spellcheck_count=spellcheck_count,
+    )
     response = resp.raw_resp['response']
 
     # backward compatibility
