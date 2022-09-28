@@ -8,33 +8,10 @@ from collections.abc import Callable, Iterable
 import requests
 import web
 
-import urllib
+from urllib.parse import urlencode, urlsplit
 
 
 logger = logging.getLogger("openlibrary.logger")
-
-
-def urlencode(d, doseq=False):
-    """There is a bug in urllib when used with unicode data.
-
-        >>> d = {"q": u"\u0C05"}
-        >>> urllib.parse.urlencode(d)
-        'q=%E0%B0%85'
-        >>> urllib.parse.urlencode(d, doseq=True)
-        'q=%3F'
-
-    This function encodes all the unicode strings in utf-8 before passing them to urllib.
-    """
-
-    def utf8(d):
-        if isinstance(d, dict):
-            return {utf8(k): utf8(v) for k, v in d.items()}
-        elif isinstance(d, list):
-            return [utf8(v) for v in d]
-        else:
-            return web.safestr(d)
-
-    return urllib.parse.urlencode(utf8(d), doseq=doseq)
 
 
 T = TypeVar('T')
@@ -43,7 +20,7 @@ T = TypeVar('T')
 class Solr:
     def __init__(self, base_url):
         self.base_url = base_url
-        self.host = urllib.parse.urlsplit(self.base_url)[1]
+        self.host = urlsplit(self.base_url)[1]
 
     def escape(self, query):
         r"""Escape special characters in the query string
@@ -144,8 +121,6 @@ class Solr:
             json_data = requests.get(url, timeout=10).json()
         else:
             logger.info("solr request: %s ...", url)
-            if not isinstance(payload, bytes):
-                payload = payload.encode("utf-8")
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
             }
