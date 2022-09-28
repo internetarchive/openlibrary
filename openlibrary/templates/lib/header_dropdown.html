@@ -1,9 +1,9 @@
-$def with (props)
+$def with (props, track_prefix=None)
 $# @typedef {Object} DropdownLink
 $# @property {string} text of link
 $# @property {string|null} href of link for HTTP get request
 $# @property {string|null} post when set will be used instead of href and should use HTTP POST request.
-$# @property {string|null} `track` for google analytics
+$# @property {string|null} `track` event label for google analytics
 $#
 $# @param {Object} props template properties
 $# @param {string} props.name unique identifying name for dropdown and distinguishing it from other dropdowns
@@ -16,7 +16,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
 <div class="$(props['name'])-component header-dropdown">
   $if singleton:
     $ link = props['links'][0]
-    $ tracker = link.get('track') and 'data-ol-link-track=%s' % link.get('track') or ''
+    $ tracker = 'data-ol-link-track=%s|%s' % (track_prefix, link['track']) if (track_prefix and link.get('track')) else ''
     <a href="$link['href']" $tracker>$(props['label'])</a>
   $else:
     <details>
@@ -44,7 +44,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
       >
         <ul class="dropdown-menu $(props['name'])-dropdown-menu">
           $for link in props['links']:
-            $ tracker = link.get('track') and 'data-ol-link-track=%s' % link.get('track') or ''
+            $ tracker = 'data-ol-link-track=%s|%s' % (track_prefix, link['track']) if (track_prefix and link.get('track')) else ''
             $if 'subsection' in link:
               <li class="subsection">
                 $(link['subsection'])
