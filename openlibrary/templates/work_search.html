@@ -16,7 +16,26 @@ $code:
             return changequery(page=None,**{k:None})
 
     def add_track(k):
-        return "SearchFacet|" + k
+        match k:
+            case "has_fulltext":
+                facet = "Ebook"
+            case "author_key":
+                facet = "Author"
+            case "subject_facet":
+                facet = "Subjects"
+            case "person_facet":
+                facet = "People"
+            case "place_facet":
+                facet = "Places"
+            case "time_facet":
+                facet = "Times"
+            case "first_publisher_year":
+                facet = "FirstPublished"
+            case "publisher_facet":
+                facet = "Publisher"
+            case "language_facet":
+                facet = "Language"
+        return "SearchFacet|" + facet
 
 $ param = {}
 $for p in ['q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor', 'publish_place', 'lccn', 'ia', 'first_sentence', 'publisher', 'author_key', 'debug', 'subject', 'place', 'person', 'time'] + facet_fields:
