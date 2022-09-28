@@ -103,9 +103,12 @@ def do_we_want_it(isbn):
     }
     url = '%s/book/marc/ol_dedupe.php' % lending.config_ia_domain
     try:
-        data = requests.get(url, params=params).json()
+        data = requests.get(url, params=params, timeout=2).json()
         dwwi = data.get('response', 0)
         return dwwi == 1, data.get('books', [])
+    except requests.exceptions.Timeout:
+        logger.exception('DWWI Timeout')
+        return False, []
     except:
         logger.error("DWWI Failed for isbn %s" % isbn, exc_info=True)
     # err on the side of false negative
