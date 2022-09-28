@@ -88,7 +88,7 @@ $if include_widget:
 
 $if include_showcase:
   $if render_once('lists/widget.i18n-strings'):
-    $i18n_input()
+    $:i18n_input()
   <ul id="list-lists" class="listLists">
     $:render_widget_display(page_lists, 3, user_key, exclude_own_lists)
   </ul>
