@@ -57,6 +57,9 @@ export default class SelectionManager {
      * @param {MouseEvent & { currentTarget: HTMLElement }} clickEvent
      */
     toggleSelected(clickEvent) {
+        // If there is text selection, dont do anything
+        if (window.getSelection()?.toString() !== '') return;
+
         const el = clickEvent.currentTarget;
         el.classList.toggle('ile-selected');
         const selected = el.classList.contains('ile-selected');
