@@ -46,42 +46,24 @@ $if q and not response.error:
 
         <li>
             <a href="$key">$n</a>
-            $code:
-                def find_type():
-                    if doc['subject_type'] == 'time':
-                        return "type_time"
-                    elif doc['subject_type'] == 'subject':
-                        return "type_subject"
-                    elif doc['subject_type'] == 'place':
-                        return "type_place"
-                    elif doc['subject_type'] == 'org':
-                        return "type_org"
-                    elif doc['subject_type'] == 'event':
-                        return "type_event"
-                    elif doc['subject_type'] == 'person':
-                        return "type_person"
-                    elif doc['subject_type'] == 'work':
-                        return "type_work"
-                    else:
-                        return "other"
-                type = find_type()
-                if type == "type_time":
-                    note = '<span class="teal">' + _("time") + '</span>'
-                elif type == "type_subject":
-                    note = '<span class="darkgreen">' + _("subject") + '</span>'
-                elif type == "type_place":
-                    note = '<span class="orange">' + _("place") + '</span>'
-                elif type == "type_org":
-                    note = '<span class="blue">' + _("org") + '</span>'
-                elif type == "type_event":
-                    note = '<span class="grey">' + _("event") + '</span>'
-                elif type == "type_person":
-                    note = '<span class="red">' + _("person") + '</span>'
-                elif type == "type_work":
-                    note = '<span class="black">' + _("work") + '</span>'
-                else:
-                    note = doc['subject_type']
-            <span class="count">&nbsp;&nbsp;<b>$ungettext('1 book', '%(count)d books', doc['work_count'], count=doc['work_count'])</b>, $:note</span>
+            $def render_type(subject_type):
+                $if subject_type == "time":
+                    <span class="teal">$_("time")</span>
+                $elif subject_type == "subject":
+                    <span class="darkgreen">$_("subject")</span>
+                $elif subject_type == "place":
+                    <span class="orange">$_("place")</span>
+                $elif subject_type == "org":
+                    <span class="blue">$_("org")</span>
+                $elif subject_type == "event":
+                    <span class="grey">$_("event")</span>
+                $elif subject_type == "person":
+                    <span class="red">$_("person")</span>
+                $elif subject_type == "work":
+                    <span class="black">$_("work")</span>
+                $else:
+                    $doc['subject_type']
+            <span class="count">&nbsp;&nbsp;<b>$ungettext('1 book', '%(count)d books', doc['work_count'], count=doc['work_count'])</b>, $:render_type(doc['subject_type'])</span>
         </li>
     </ul>
     $:macros.Pager(page, response.num_found, results_per_page)
