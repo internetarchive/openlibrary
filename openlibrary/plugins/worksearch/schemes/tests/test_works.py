@@ -20,6 +20,10 @@ QUERY_PARSER_TESTS = {
         'food rules author:pollan',
         'food rules author_name:pollan',
     ),
+    'Invalid dashes': (
+        'foo foo bar -',
+        'foo foo bar \\-',
+    ),
     'Field aliases': (
         'title:food rules by:pollan',
         'alternative_title:(food rules) author_name:pollan',
