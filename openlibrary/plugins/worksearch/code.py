@@ -432,12 +432,20 @@ def build_q_from_params(param: dict[str, str]) -> str:
     return ' AND '.join(q_list)
 
 
+solr_session = requests.Session()
+
+
 def execute_solr_query(
     solr_path: str, params: Union[dict, list[tuple[str, Any]]]
 ) -> Optional[Response]:
-    stats.begin("solr", url=f'{solr_path}?{urlencode(params)}')
+    url = solr_path
+    if params:
+        url += '&' if '?' in url else '?'
+        url += urlencode(params)
+
+    stats.begin("solr", url=url)
     try:
-        response = requests.get(solr_path, params=params, timeout=10)
+        response = solr_session.get(url, timeout=10)
         response.raise_for_status()
     except requests.HTTPError:
         logger.exception("Failed solr query")
