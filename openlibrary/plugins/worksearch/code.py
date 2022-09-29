@@ -2,9 +2,7 @@ from dataclasses import dataclass
 import copy
 import json
 import logging
-import random
 import re
-import string
 from typing import Any, Union, Optional, Iterable
 from unicodedata import normalize
 import requests
@@ -26,6 +24,7 @@ from openlibrary.plugins.upstream.utils import (
 )
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.plugins.worksearch.schemes import SearchScheme
+from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import (
     WorkSearchScheme,
     has_solr_editions_enabled,
@@ -171,9 +170,9 @@ def run_solr_query(
         params.append(('spellcheck', 'true'))
         params.append(('spellcheck.count', spellcheck_count))
 
-    if facet:
+    facet_fields = scheme.facet_fields if isinstance(facet, bool) else facet
+    if facet and facet_fields:
         params.append(('facet', 'true'))
-        facet_fields = scheme.facet_fields if isinstance(facet, bool) else facet
         for facet in facet_fields:
             if isinstance(facet, str):
                 params.append(('facet.field', facet))
@@ -635,47 +634,19 @@ class author_search(delegate.page):
     path = '/search/authors'
 
     def GET(self):
-        return render_template('search/authors.tmpl', self.get_results)
+        return render_template('search/authors', self.get_results)
 
-    def get_results(self, q, offset=0, limit=100):
-        valid_fields = [
-            'key',
-            'name',
-            'alternate_names',
-            'birth_date',
-            'death_date',
-            'date',
-            'work_count',
-        ]
-        q = escape_colon(escape_bracket(q), valid_fields)
-        q_has_fields = ':' in q.replace(r'\:', '') or '*' in q
-
-        d = run_solr_search(
-            solr_select_url,
-            {
-                'fq': 'type:author',
-                'q.op': 'AND',
-                'q': q,
-                'start': offset,
-                'rows': limit,
-                'fl': '*',
-                'qt': 'standard',
-                'sort': 'work_count desc',
-                'wt': 'json',
-                **(
-                    {}
-                    if q_has_fields
-                    else {'defType': 'dismax', 'qf': 'name alternate_names'}
-                ),
-            },
+    def get_results(self, q, offset=0, limit=100, fields='*'):
+        resp = run_solr_query(
+            AuthorSearchScheme(),
+            {'q': q},
+            offset=offset,
+            rows=limit,
+            fields=fields,
+            sort='work_count desc',
         )
 
-        docs = d.get('response', {}).get('docs', [])
-        for doc in docs:
-            # replace /authors/OL1A with OL1A
-            # The template still expects the key to be in the old format
-            doc['key'] = doc['key'].split("/")[-1]
-        return d
+        return resp
 
 
 class author_search_json(author_search):
@@ -683,48 +654,28 @@ class author_search_json(author_search):
     encoding = 'json'
 
     def GET(self):
-        i = web.input(q='', offset=0, limit=100)
+        i = web.input(q='', offset=0, limit=100, fields='*')
         offset = safeint(i.offset, 0)
         limit = safeint(i.limit, 100)
         limit = min(1000, limit)  # limit limit to 1000.
 
-        response = self.get_results(i.q, offset=offset, limit=limit)['response']
+        response = self.get_results(i.q, offset=offset, limit=limit, fields=i.fields)
+        raw_resp = response.raw_resp['response']
+        for doc in raw_resp['docs']:
+            # SIGH the public API exposes the key like this :(
+            doc['key'] = doc['key'].split('/')[-1]
         web.header('Content-Type', 'application/json')
-        return delegate.RawText(json.dumps(response))
+        return delegate.RawText(json.dumps(raw_resp))
 
 
 @public
-def random_author_search(limit=10):
-    """
-    Returns a dict that contains a random list of authors.  Amount of authors
-    returned is set be the given limit.
-    """
-    letters_and_digits = string.ascii_letters + string.digits
-    seed = ''.join(random.choice(letters_and_digits) for _ in range(10))
-
-    search_results = run_solr_search(
-        solr_select_url,
-        {
-            'q': 'type:author',
-            'rows': limit,
-            'sort': f'random_{seed} desc',
-            'wt': 'json',
-        },
+def random_author_search(limit=10) -> SearchResponse:
+    return run_solr_query(
+        AuthorSearchScheme(),
+        {'q': '*:*'},
+        rows=limit,
+        sort='random.hourly',
     )
-
-    docs = search_results.get('response', {}).get('docs', [])
-
-    assert docs, f"random_author_search({limit}) returned no docs"
-    assert (
-        len(docs) == limit
-    ), f"random_author_search({limit}) returned {len(docs)} docs"
-
-    for doc in docs:
-        # replace /authors/OL1A with OL1A
-        # The template still expects the key to be in the old format
-        doc['key'] = doc['key'].split("/")[-1]
-
-    return search_results['response']
 
 
 def rewrite_list_query(q, page, offset, limit):

@@ -27,29 +27,27 @@ $var title: Search Open Library for "$q"
 <div id="contentMeta">
     $ results = get_results(q, offset=offset, limit=results_per_page)
 
-    $if q and 'error' in results:
+    $if q and results.error:
         <strong>
-            $for line in results['error'].splitlines():
+            $for line in results.error.splitlines():
                 $line
                 $if not loop.last:
                     <br>
         </strong>
 
-    $if q and 'error' not in results:
-	$ response = results['response']
-        $ num_found = int(response['numFound'])
-
-        $if num_found:
-            <div class="search-results-stats">$ungettext('1 hit', '%(count)s hits', response['numFound'], count=commify(response['numFound']))
-              $if num_found >= 2 and ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()):
-                $ keys = '&'.join('key=%s' % doc['key'] for doc in response['docs'])
+    $if q and not results.error:
+        $if results.num_found:
+            <div class="search-results-stats">$ungettext('1 hit', '%(count)s hits', results.num_found, count=commify(results.num_found))
+              $ user_can_merge = ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin())
+              $if results.num_found >= 2 and user_can_merge:
+                $ keys = '&'.join('key=%s' % doc['key'].split("/")[-1] for doc in results.docs)
                 <div class="mergeThis">$_('Is the same author listed twice?') <a class="large sansserif" href="/authors/merge?$keys">$_('Merge authors')</a></div>
             </div>
         $else:
             <p class="sansserif red collapse">$_('No hits')</p>
 
         <ul class="authorList list-books">
-        $for doc in response['docs']:
+        $for doc in results.docs:
             $ n = doc['name']
             $ num = doc['work_count']
             $ wc = ungettext("1 book", "%(count)d books", num, count=num)
@@ -59,9 +57,9 @@ $var title: Search Open Library for "$q"
             $elif 'date' in doc:
                 $ date = doc['date']
             <li class="searchResultItem">
-	      <img src="$get_coverstore_public_url()/a/olid/$(doc['key'])-M.jpg" itemprop="image" class="cover author" alt="Photo of $n">
+	      <img src="$get_coverstore_public_url()/a/olid/$(doc['key'].split('/')[-1])-M.jpg" itemprop="image" class="cover author" alt="Photo of $n">
 	      <div>
-		<a href="/authors/$doc['key']" class="larger">$n</a>&nbsp;<span class="brown small">$date</span><br />
+		<a href="$doc['key']" class="larger">$n</a>&nbsp;<span class="brown small">$date</span><br />
 		<span class="small grey"><b>$wc</b>
                 $if 'top_subjects' in doc:
                   $_('about %(subjects)s', subjects=', '.join(doc['top_subjects'])),
@@ -70,7 +68,7 @@ $var title: Search Open Library for "$q"
             </li>
         </ul>
 
-        $:macros.Pager(page, num_found, results_per_page)
+        $:macros.Pager(page, results.num_found, results_per_page)
   </div>
   <div class="clearfix"></div>
 </div>
