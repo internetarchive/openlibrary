@@ -1,10 +1,21 @@
-# {'Test name': ('query', fields[])}
 import pytest
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 
+# {'Test name': ('query', fields[])}
 QUERY_PARSER_TESTS = {
     'No fields': ('query here', 'query here'),
+    'Misc': (
+        'title:(Holidays are Hell) authors:(Kim Harrison) OR authors:(Lynsay Sands)',
+        ' '.join(
+            [
+                'alternative_title:(Holidays are Hell)',
+                'author_name:(Kim Harrison)',
+                'OR',
+                'author_name:(Lynsay Sands)',
+            ]
+        ),
+    ),
     'Author field': (
         'food rules author:pollan',
         'food rules author_name:pollan',
@@ -44,6 +55,18 @@ QUERY_PARSER_TESTS = {
     'Operators': (
         'authors:Kim Harrison OR authors:Lynsay Sands',
         'author_name:(Kim Harrison) OR author_name:(Lynsay Sands)',
+    ),
+    'ISBN-like': (
+        '978-0-06-093546-7',
+        'isbn:(9780060935467)',
+    ),
+    'Normalizes ISBN': (
+        'isbn:978-0-06-093546-7',
+        'isbn:9780060935467',
+    ),
+    'Does not normalize ISBN stars': (
+        'isbn:979*',
+        'isbn:979*',
     ),
     # LCCs
     'LCC: quotes added if space present': (
@@ -89,22 +112,6 @@ QUERY_PARSER_TESTS = {
 @pytest.mark.parametrize(
     "query,parsed_query", QUERY_PARSER_TESTS.values(), ids=QUERY_PARSER_TESTS.keys()
 )
-def test_query_parser_fields(query, parsed_query):
+def test_process_user_query(query, parsed_query):
     s = WorkSearchScheme()
     assert s.process_user_query(query) == parsed_query
-
-
-def test_process_user_query():
-    s = WorkSearchScheme()
-    assert s.process_user_query('test') == 'test'
-
-    q = 'title:(Holidays are Hell) authors:(Kim Harrison) OR authors:(Lynsay Sands)'
-    expect = ' '.join(
-        [
-            'alternative_title:(Holidays are Hell)',
-            'author_name:(Kim Harrison)',
-            'OR',
-            'author_name:(Lynsay Sands)',
-        ]
-    )
-    assert s.process_user_query(q) == expect
