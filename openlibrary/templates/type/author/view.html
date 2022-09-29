@@ -22,8 +22,8 @@ $ olid = page.key.split('/')[-1]
 
 $ books = page.get_books(q=query_param('q'))
 $ book_list_excerpt = ''
-$if books and books.works:
-    $ book_titles_excerpt = [work.title for work in books.works[:8]]
+$if books and books.docs:
+    $ book_titles_excerpt = [work.title for work in books.docs[:8]]
     $ book_list_excerpt = ', '.join(book_titles_excerpt)
 $ description = _("Author of %(book_titles)s", book_titles=book_list_excerpt)
 $putctx("description", description)
@@ -142,7 +142,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
                 <div id="searchResults">
                     <ul class="list-books">
-                      $for doc in books.works:
+                      $for doc in books.docs:
                          $:macros.SearchResultsWork(doc)
                     </ul>
                 </div>
@@ -160,16 +160,16 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             $if subjects:
                 <div class="section">
                     <h6 class="collapse black uppercase">$label</h6>
-                    $for subject, count in subjects:
+                    $for _, subject, count in subjects:
                         <a itemprop="knowsAbout" href="/subjects/$prefix$subject.lower().replace(' ', '_')">$subject</a>$cond(not loop.last, ",", "")
                 </div>
 
         <!-- SUBJECTS DISPLAY -->
         $if books.num_found > 0:
-            $:render_subjects(_("Subjects"), books.get_facet('subject_facet'), '')
-            $:render_subjects(_("Places"), books.get_facet('place_facet'), 'place:')
-            $:render_subjects(_("People"), books.get_facet('person_facet'), 'person:')
-            $:render_subjects(_("Time"), books.get_facet('time_facet'), 'time:')
+            $:render_subjects(_("Subjects"), books.facet_counts.get('subject_facet'), '')
+            $:render_subjects(_("Places"), books.facet_counts.get('place_facet'), 'place:')
+            $:render_subjects(_("People"), books.facet_counts.get('person_facet'), 'person:')
+            $:render_subjects(_("Time"), books.facet_counts.get('time_facet'), 'time:')
         <!-- /SUBJECTS -->
 
         $if "lists" in ctx.features:

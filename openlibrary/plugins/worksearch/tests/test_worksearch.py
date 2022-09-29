@@ -3,7 +3,6 @@ import web
 from openlibrary.plugins.worksearch.code import (
     process_facet,
     process_user_query,
-    sorted_work_editions,
     escape_bracket,
     get_doc,
     escape_colon,
@@ -30,24 +29,6 @@ def test_process_facet():
         ('true', 'yes', 2),
         ('false', 'no', 46),
     ]
-
-
-def test_sorted_work_editions():
-    json_data = '''{
-"responseHeader":{
-"status":0,
-"QTime":1,
-"params":{
-"fl":"edition_key",
-"indent":"on",
-"wt":"json",
-"q":"key:OL100000W"}},
-"response":{"numFound":1,"start":0,"docs":[
-{
- "edition_key":["OL7536692M","OL7825368M","OL3026366M"]}]
-}}'''
-    expect = ["OL7536692M", "OL7825368M", "OL3026366M"]
-    assert sorted_work_editions('OL100000W', json_data=json_data) == expect
 
 
 # {'Test name': ('query', fields[])}
