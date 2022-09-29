@@ -15,6 +15,7 @@ class AuthorSearchScheme(SearchScheme):
         'birth_date',
         'death_date',
         'date',
+        'top_subjects',
         'work_count',
     }
     facet_fields: set[str] = set()
