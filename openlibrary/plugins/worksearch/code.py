@@ -32,8 +32,6 @@ from openlibrary.plugins.worksearch.schemes.works import (
 )
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.query_utils import fully_escape_query
-
-from openlibrary.utils import escape_bracket
 from openlibrary.utils.isbn import normalize_isbn
 
 
@@ -501,42 +499,6 @@ class advancedsearch(delegate.page):
 
     def GET(self):
         return render_template("search/advancedsearch.html")
-
-
-def escape_colon(q, vf):
-    if ':' not in q:
-        return q
-    parts = q.split(':')
-    result = parts.pop(0)
-    while parts:
-        if not any(result.endswith(f) for f in vf):
-            result += '\\'
-        result += ':' + parts.pop(0)
-    return result
-
-
-def run_solr_search(solr_select: str, params: dict):
-    response = execute_solr_query(solr_select, params)
-    json_data = response.content if response else None  # bytes or None
-    return parse_search_response(json_data)
-
-
-def parse_search_response(json_data):
-    """Construct response for any input"""
-    if json_data is None:
-        return {'error': 'Error parsing empty search engine response'}
-    try:
-        return json.loads(json_data)
-    except json.JSONDecodeError:
-        logger.exception("Error parsing search engine response")
-        m = re_pre.search(json_data)
-        if m is None:
-            return {'error': 'Error parsing search engine response'}
-        error = web.htmlunquote(m.group(1))
-        solr_error = 'org.apache.lucene.queryParser.ParseException: '
-        if error.startswith(solr_error):
-            error = error[len(solr_error) :]
-        return {'error': error}
 
 
 class list_search(delegate.page):
