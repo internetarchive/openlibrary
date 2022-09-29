@@ -41,7 +41,6 @@ logger = logging.getLogger("openlibrary.worksearch")
 OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
 re_isbn_field = re.compile(r'^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
-re_pre = re.compile(r'<pre>(.*)</pre>', re.S)
 re_olid = re.compile(r'^OL\d+([AMW])$')
 
 plurals = {f + 's': f for f in ('publisher', 'author')}
