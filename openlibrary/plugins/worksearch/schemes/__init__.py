@@ -35,17 +35,19 @@ class SearchScheme:
         """
         Convert a user-provided sort to a solr sort
 
-        >>> WorkSearchScheme.process_sort('editions')
+        >>> from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+        >>> scheme = WorkSearchScheme()
+        >>> scheme.process_user_sort('editions')
         'edition_count desc'
-        >>> WorkSearchScheme.process_sort('editions, new')
+        >>> scheme.process_user_sort('editions, new')
         'edition_count desc,first_publish_year desc'
-        >>> WorkSearchScheme.process_sort('random')
+        >>> scheme.process_user_sort('random')
         'random_1 asc'
-        >>> WorkSearchScheme.process_sort('random_custom_seed')
+        >>> scheme.process_user_sort('random_custom_seed')
         'random_custom_seed asc'
-        >>> WorkSearchScheme.process_sort('random_custom_seed desc')
+        >>> scheme.process_user_sort('random_custom_seed desc')
         'random_custom_seed desc'
-        >>> WorkSearchScheme.process_sort('random_custom_seed asc')
+        >>> scheme.process_user_sort('random_custom_seed asc')
         'random_custom_seed asc'
         """
 
