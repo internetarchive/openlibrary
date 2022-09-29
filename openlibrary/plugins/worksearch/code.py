@@ -25,6 +25,7 @@ from openlibrary.plugins.upstream.utils import (
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
+from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import (
     WorkSearchScheme,
     has_solr_editions_enabled,
@@ -586,33 +587,18 @@ class subject_search(delegate.page):
     path = '/search/subjects'
 
     def GET(self):
-        return render_template('search/subjects.tmpl', self.get_results)
+        return render_template('search/subjects', self.get_results)
 
     def get_results(self, q, offset=0, limit=100):
-        valid_fields = ['key', 'name', 'subject_type', 'work_count']
-        q = escape_colon(escape_bracket(q), valid_fields)
-
-        results = run_solr_search(
-            solr_select_url,
-            {
-                "fq": "type:subject",
-                "q.op": "AND",
-                "q": q,
-                "start": offset,
-                "rows": limit,
-                "fl": ",".join(valid_fields),
-                "qt": "standard",
-                "wt": "json",
-                "sort": "work_count desc",
-            },
+        response = run_solr_query(
+            SubjectSearchScheme(),
+            {'q': q},
+            offset=offset,
+            rows=limit,
+            sort='work_count desc',
         )
-        response = results['response']
 
-        for doc in response['docs']:
-            doc['type'] = doc.get('subject_type', 'subject')
-            doc['count'] = doc.get('work_count', 0)
-
-        return results
+        return response
 
 
 class subject_search_json(subject_search):
@@ -625,9 +611,16 @@ class subject_search_json(subject_search):
         limit = safeint(i.limit, 100)
         limit = min(1000, limit)  # limit limit to 1000.
 
-        response = self.get_results(i.q, offset=offset, limit=limit)['response']
+        response = self.get_results(i.q, offset=offset, limit=limit)
+
+        # Backward compatibility :/
+        raw_resp = response.raw_resp['response']
+        for doc in raw_resp['docs']:
+            doc['type'] = doc.get('subject_type', 'subject')
+            doc['count'] = doc.get('work_count', 0)
+
         web.header('Content-Type', 'application/json')
-        return delegate.RawText(json.dumps(response))
+        return delegate.RawText(json.dumps(raw_resp))
 
 
 class author_search(delegate.page):

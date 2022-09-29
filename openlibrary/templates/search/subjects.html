@@ -26,43 +26,41 @@ $ url_map = { 'person': 'person:', 'place': 'place:', 'time': 'time:' }
     </div>
 
 $if q:
-    $ results = get_results(q, offset=offset, limit=results_per_page)
-    $if 'error' not in results:
-        $ response = results['response']
-        $ num_found = int(response['numFound'])
-        <p class="search-results-stats">$ungettext('1 hit', '%(count)s hits', response['numFound'], count=commify(response['numFound']))</p>
+    $ response = get_results(q, offset=offset, limit=results_per_page)
+    $if not response.error:
+        <p class="search-results-stats">$ungettext('1 hit', '%(count)s hits', response.num_found, count=commify(response.num_found))</p>
 
-$if q and 'error' in results:
+$if q and response.error:
     <strong>
-        $for line in results['error'].splitlines():
+        $for line in response.error.splitlines():
             $line
             $if not loop.last:
                 <br>
     </strong>
 
-$if q and 'error' not in results:
+$if q and not response.error:
     <ul class="subjectList">
-    $for doc in response['docs']:
+    $for doc in response.docs:
         $ n = doc['name']
-        $ key = '/subjects/' + url_map.get(doc['type'], '') + n.lower().replace(' ', '_').replace('?', '').replace(',', '').replace('/', '')
+        $ key = '/subjects/' + url_map.get(doc['subject_type'], '') + n.lower().replace(' ', '_').replace('?', '').replace(',', '').replace('/', '')
 
         <li>
             <a href="$key">$n</a>
             $code:
                 def find_type():
-                    if doc['type'] == 'time':
+                    if doc['subject_type'] == 'time':
                         return "type_time"
-                    elif doc['type'] == 'subject':
+                    elif doc['subject_type'] == 'subject':
                         return "type_subject"
-                    elif doc['type'] == 'place':
+                    elif doc['subject_type'] == 'place':
                         return "type_place"
-                    elif doc['type'] == 'org':
+                    elif doc['subject_type'] == 'org':
                         return "type_org"
-                    elif doc['type'] == 'event':
+                    elif doc['subject_type'] == 'event':
                         return "type_event"
-                    elif doc['type'] == 'person':
+                    elif doc['subject_type'] == 'person':
                         return "type_person"
-                    elif doc['type'] == 'work':
+                    elif doc['subject_type'] == 'work':
                         return "type_work"
                     else:
                         return "other"
@@ -82,10 +80,10 @@ $if q and 'error' not in results:
                 elif type == "type_work":
                     note = '<span class="black">' + _("work") + '</span>'
                 else:
-                    note = doc['type']
-            <span class="count">&nbsp;&nbsp;<b>$ungettext('1 book', '%(count)d books', doc['count'], count=doc['count'])</b>, $:note</span>
+                    note = doc['subject_type']
+            <span class="count">&nbsp;&nbsp;<b>$ungettext('1 book', '%(count)d books', doc['work_count'], count=doc['work_count'])</b>, $:note</span>
         </li>
     </ul>
-    $:macros.Pager(page, num_found, results_per_page)
+    $:macros.Pager(page, response.num_found, results_per_page)
 
 </div>
