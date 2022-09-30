@@ -205,17 +205,17 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
       $ component_times['get_observation_metrics'] = time() - component_times['get_observation_metrics']
       $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations)
       <a id="edition-overview" name="edition-overview"></a>
-      <div>
+      <div class="horizontal-scroll-wrapper squares">
         $if edition:
-          <div class="edition-omniline">
+          <div class="edition-omniline" style="@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300&display=swap');">
             $if edition.publish_date:
               <div class="edition-omniline-item">
-                <div>$_("Publish Date")</div>
+                <div id="title_item">$_("Publish Date")</div>
                 <span itemprop="datePublished">$edition.publish_date</span>
               </div>
             $if edition.publishers:
               <div class="edition-omniline-item">
-                <div>$_("Publisher")</div>
+                <div id="title_item">$_("Publisher")</div>
                 <span>
                 $for p in edition.publishers:
                   $if "publishers" in ctx.features:
@@ -230,12 +230,12 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
               </div>
             $if edition.languages:
               <div class="edition-omniline-item">
-                <div class="language">$_("Language")</div>
+                <div class="language" id="title_item">$_("Language")</div>
                 <span itemprop="inLanguage">$:thingrepr(edition.languages)</span>
               </div>
             $if edition.number_of_pages:
               <div class="edition-omniline-item">
-                <div class="pages">$_("Pages")</div>
+                <div class="pages" id="title_item">$_("Pages")</div>
                 <span class="edition-pages"
                       itemprop="numberOfPages"
                       >$edition.number_of_pages</span>
@@ -243,7 +243,7 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
             $if is_librarian:
               $if ocaid:
                 <div class="edition-omniline-item">
-                 <div>Internet Archive</div>
+                 <div id="title_item">Internet Archive</div>
                   <span><a href="https://archive.org/details/$ocaid">$ocaid</a></span>
                 </div>
 
@@ -255,7 +255,7 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
                     $isbns.append(value['value'])
               $if isbns:
                 <div class="edition-omniline-item">
-                  <div>ISBNs</div>
+                  <div id="title_item">ISBNs</div>
                   $for isbn in isbns:
                     <span>$isbn</span>
                 </div>
