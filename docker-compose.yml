@@ -20,6 +20,12 @@ services:
     image: solr:8.10.1
     expose:
       - 8983
+    environment:
+      # Soft commit frequently to make sure changes are visible in search
+      # Hard commit less frequently to avoid performance impact, but avoid
+      # having very large transaction log
+      # https://solr.apache.org/guide/solr/latest/configuration-guide/commits-transaction-logs.html
+      - SOLR_OPTS=-Dsolr.autoSoftCommit.maxTime=60000 -Dsolr.autoCommit.maxTime=120000
     volumes:
       - solr-data:/var/solr/data
       - ./conf/solr:/opt/solr/server/solr/configsets/olconfig:ro
@@ -40,6 +46,7 @@ services:
       - OL_CONFIG=conf/openlibrary.yml
       - OL_URL=http://web:8080/
       - STATE_FILE=solr-update.offset
+      - EXTRA_OPTS=--no-commit
     volumes:
       - solr-updater-data:/solr-updater-data
     networks:
