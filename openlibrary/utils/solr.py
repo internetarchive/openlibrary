@@ -112,25 +112,35 @@ class Solr:
                     name = f
                 params['facet.field'].append(name)
 
+        json_data = self.raw_request(
+            'select',
+            urlencode(params, doSeq=True),
+        ).json()
+        return self._parse_solr_result(
+            json_data, doc_wrapper=doc_wrapper, facet_wrapper=facet_wrapper
+        )
+
+    def raw_request(self, path_or_url: str, payload: str) -> requests.Response:
+        if path_or_url.startswith("http"):
+            # TODO: Should this only take a path, not a full url? Would need to
+            # update worksearch.code.execute_solr_query accordingly.
+            url = path_or_url
+        else:
+            url = f'{self.base_url}/{path_or_url.lstrip("/")}'
+
         # switch to POST request when the payload is too big.
         # XXX: would it be a good idea to switch to POST always?
-        payload = urlencode(params, doseq=True)
-        url = self.base_url + "/select"
         if len(payload) < 500:
-            url = url + "?" + payload
+            sep = '&' if '?' in url else '?'
+            url = url + sep + payload
             logger.info("solr request: %s", url)
-            json_data = self.session.get(url, timeout=10).json()
+            return self.session.get(url, timeout=10)
         else:
             logger.info("solr request: %s ...", url)
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
             }
-            json_data = self.session.post(
-                url, data=payload, headers=headers, timeout=10
-            ).json()
-        return self._parse_solr_result(
-            json_data, doc_wrapper=doc_wrapper, facet_wrapper=facet_wrapper
-        )
+            return self.session.post(url, data=payload, headers=headers, timeout=10)
 
     def _parse_solr_result(self, result, doc_wrapper, facet_wrapper):
         response = result['response']

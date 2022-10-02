@@ -1,12 +1,13 @@
-$def with (items, key, counts, lists=None, user=None, logged_in_user=None, public=False, sort_order='desc', owners_page=False)
+$def with (docs, key, shelf_counts, doc_count, lists=None, user=None, logged_in_user=None, public=False, sort_order='desc', owners_page=False, q="", results_per_page=25, ratings=[])
 
 $# Displays a user's reading log
-$# :param list items:
+$# :param list docs:
 $# :param Literal['currently-reading', 'want-to-read', 'already-read', 'sponsorships', 'loans', 'notes', 'observations'] key:
-$# :param Dict[str: int] counts:
+$# :param Dict[str: int] shelf_counts:
 $# :param list? lists:
 $# :param user:
 $# :param bool public:
+$# :param str q: search term.
 
 $ component_times = {}
 $ component_times['TotalTime'] = time()
@@ -14,7 +15,7 @@ $ component_times['TotalTime'] = time()
 $ username = user.key.split('/')[-1]
 
 $ current_page = int(input(page=1).page)
-$ total_items = counts.get(key, None)
+$ total_docs = shelf_counts.get(key, None)
 
 $ userDisplayName = user.displayname or ctx.user.displayname
 $ userKey = user.key or ctx.user.key
@@ -42,7 +43,7 @@ $if not header_title:
   $elif key == 'lists':
     $ header_title = _('My Lists')
   $elif key == 'list':
-    $ header_title = items.get('name', 'List')
+    $ header_title = docs.get('name', 'List')
   $else:
     $ header_title = key
   $ breadcrumb = header_title
@@ -50,7 +51,7 @@ $var title: $header_title
 
 <div class="mybooks">
 
-  $:render_template("account/sidebar", user, key=key, public=public, owners_page=owners_page, counts=counts, lists=lists, component_times=component_times)
+  $:render_template("account/sidebar", user, key=key, public=public, owners_page=owners_page, counts=shelf_counts, lists=lists, component_times=component_times)
 
   <div class="mybooks-details">
     $ component_times['Details header'] = time()
@@ -89,28 +90,28 @@ $var title: $header_title
       </div>
       $if key == 'list':
         <div>
-          $:macros.databarView(items)
+          $:macros.databarView(docs)
         </div>
     </header>
     $ component_times['Details header'] = time() - component_times['Details header']
     $ component_times['Details content'] = time()
     <div class="details-content">
     $if key == 'loans':
-      $:render_template('account/loans', logged_in_user, items)
+      $:render_template('account/loans', logged_in_user, docs)
     $elif key == 'notes':
-      $:render_template('account/notes', items, user, counts['notes'], page=current_page)
+      $:render_template('account/notes', docs, user, shelf_counts['notes'], page=current_page)
     $elif key == 'observations':
-      $:render_template('account/observations', items, user, counts['observations'], page=current_page)
+      $:render_template('account/observations', docs, user, shelf_counts['observations'], page=current_page)
     $elif key == 'imports':
       $:render_template('account/import')
     $elif key == 'lists':
-      $:render_template('lists/lists', items, lists, show_header=False)
+      $:render_template('lists/lists', docs, lists, show_header=False)
     $elif key == 'already-read':
-      $:render_template('account/reading_log', items, key, counts[key], owners_page, current_page, sort_order=sort_order, user=user, include_ratings=owners_page)
+      $:render_template('account/reading_log', docs, key, shelf_counts[key], doc_count, owners_page, current_page, sort_order=sort_order, user=user, include_ratings=owners_page, q=q, results_per_page=results_per_page, ratings=ratings)
     $elif key in {'currently-reading', 'want-to-read', 'sponsorships'}:
-      $:render_template('account/reading_log', items, key, counts[key], owners_page, current_page, sort_order=sort_order, user=user)
+      $:render_template('account/reading_log', docs, key, shelf_counts[key], doc_count, owners_page, current_page, sort_order=sort_order, user=user, q=q, results_per_page=results_per_page)
     $else:
-      $:render_template('type/list/view', items, check_owner=False, owns_page=True)
+      $:render_template('type/list/view', docs, check_owner=False, owns_page=True)
     </div>
     $ component_times['Details content'] = time() - component_times['Details content']
   </div>

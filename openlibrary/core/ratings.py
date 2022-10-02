@@ -111,12 +111,13 @@ class Ratings(db.CommonExtras):
         return list(oldb.query(query, vars={'work_id': int(work_id)}))
 
     @classmethod
-    def get_users_rating_for_work(cls, username, work_id):
+    def get_users_rating_for_work(cls, username: str, work_id: str | int) -> int | None:
+        """work_id must be convertible to int."""
         oldb = db.get_db()
         data = {'username': username, 'work_id': int(work_id)}
         query = 'SELECT * from ratings where username=$username AND work_id=$work_id'
         results = list(oldb.query(query, vars=data))
-        rating = results[0].rating if results else None
+        rating: int | None = results[0].rating if results else None
         return rating
 
     @classmethod

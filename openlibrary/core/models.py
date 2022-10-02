@@ -6,6 +6,7 @@ import web
 import requests
 from typing import Any
 from collections import defaultdict
+from dataclasses import dataclass, field
 
 from infogami.infobase import client
 
@@ -445,7 +446,7 @@ class Work(Thing):
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
 
-    def get_users_rating(self, username):
+    def get_users_rating(self, username: str) -> int | None:
         if not username:
             return None
         work_id = extract_numeric_id_from_olid(self.key)
@@ -1118,6 +1119,46 @@ class Subject(web.storage):
             cover_id = w.get("cover_id")
             if cover_id:
                 return Image(web.ctx.site, "b", cover_id)
+
+
+@dataclass
+class LoggedBooksData:
+    """
+    LoggedBooksData contains data used for displaying a page of the reading log, such
+    as the page size for pagination, the docs returned from the reading log DB for
+    a particular shelf, query, sorting, etc.
+
+    param page_size specifies how many results per page should display in the
+        reading log.
+    param shelf_totals holds the counts for books on the three default shelves.
+    param docs holds the documents returned from Solr.
+    param q holds an optional query string (len >= 3, per my_books_view in mybooks.py)
+        for filtering the reading log.
+    param ratings holds a list of ratings such that the index of each rating corresponds
+        to the index of each doc/work in self.docs.
+    """
+
+    username: str
+    page_size: int
+    total_results: int
+    shelf_totals: dict[int, int]
+    docs: list[web.storage]
+    q: str = ""
+    ratings: list[int] = field(default_factory=list)
+
+    def load_ratings(self) -> None:
+        """
+        Load the ratings into self.ratings from the storage docs, such that the index
+        of each returned rating corresponds to the index of each web storage doc. This
+        allows them to be zipped together if needed. E.g. in a template.
+
+        The intent of this is so that there is no need to query ratings from the
+        template, as the docs and ratings are together when needed.
+        """
+        for doc in self.docs:
+            work_id = extract_numeric_id_from_olid(doc.key)
+            rating = Ratings.get_users_rating_for_work(self.username, work_id)
+            self.ratings.append(rating or 0)
 
 
 def register_models():
