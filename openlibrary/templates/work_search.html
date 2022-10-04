@@ -15,6 +15,23 @@ $code:
         else:
             return changequery(page=None,**{k:None})
 
+    def add_track(key: str) -> str:
+        """
+        KeyError will be raised if key is not in the following dict.
+        """
+        facets = {
+            "has_fulltext": "Ebook",
+            "author_key": "Author",
+            "subject_facet": "Subjects",
+            "person_facet": "People",
+            "place_facet": "Places",
+            "time_facet": "Times",
+            "first_publish_year": "FirstPublished",
+            "publisher_facet": "Publisher",
+            "language": "Language",
+        }
+        return "SearchFacet|" + facets[key]
+
 $ param = {}
 $for p in ['q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor', 'publish_place', 'lccn', 'ia', 'first_sentence', 'publisher', 'author_key', 'debug', 'subject', 'place', 'person', 'time'] + facet_fields:
     $if p in input and input[p]:
@@ -229,9 +246,9 @@ $elif param and len(docs):
                        $ display = _('yes')
                     $else:
                        $ display = _('no')
-                    <span class="small"><a href="$add_facet_url(header, k)" title="$_('Filter results for ebook availability')">$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
+                    <span class="small"><a href="$add_facet_url(header, k)" title="$_('Filter results for ebook availability')" data-ol-link-track="$add_track(header)" >$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
                 $else:
-                    <span class="small"><a href="$add_facet_url(header, k)" title="$_('Filter results for %(facet)s', facet=display)">$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
+                    <span class="small"><a href="$add_facet_url(header, k)" title="$_('Filter results for %(facet)s', facet=display)" data-ol-link-track="$add_track(header)">$display </a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
                 </div>
             $if len(counts) > start_facet_count:
                 <div class="facetMoreLess">
