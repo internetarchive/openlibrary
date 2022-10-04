@@ -13,9 +13,9 @@ $code:
         if k != 'has_fulltext':
             return changequery(page=None,**{k:[i for i in param.get(k, []) if i != v]})
         else:
-            return changequery(page=None,**{k:None}
-)
-    def add_track(key):
+            return changequery(page=None,**{k:None})
+
+    def add_track(key: str) -> str:
         """
         KeyError will be raised if key is not in the following dict.
         """
@@ -28,9 +28,9 @@ $code:
             "time_facet": "Times",
             "first_publish_year": "FirstPublished",
             "publisher_facet": "Publisher",
-            "language_facet": "Language",
+            "language": "Language",
         }
-        return f"SearchFacet|{facets[key]}"
+        return "SearchFacet|" + facets[key]
 
 $ param = {}
 $for p in ['q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor', 'publish_place', 'lccn', 'ia', 'first_sentence', 'publisher', 'author_key', 'debug', 'subject', 'place', 'person', 'time'] + facet_fields:
