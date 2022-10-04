@@ -13,29 +13,24 @@ $code:
         if k != 'has_fulltext':
             return changequery(page=None,**{k:[i for i in param.get(k, []) if i != v]})
         else:
-            return changequery(page=None,**{k:None})
-
-    def add_track(k):
-        match k:
-            case "has_fulltext":
-                facet = "Ebook"
-            case "author_key":
-                facet = "Author"
-            case "subject_facet":
-                facet = "Subjects"
-            case "person_facet":
-                facet = "People"
-            case "place_facet":
-                facet = "Places"
-            case "time_facet":
-                facet = "Times"
-            case "first_publish_year":
-                facet = "FirstPublished"
-            case "publisher_facet":
-                facet = "Publisher"
-            case "language_facet":
-                facet = "Language"
-        return "SearchFacet|" + facet
+            return changequery(page=None,**{k:None}
+)
+    def add_track(key: str) -> str:
+        """
+        KeyError will be raised if key is not in the following dict.
+        """
+        facets = {
+            "has_fulltext": "Ebook",
+            "author_key": "Author",
+            "subject_facet": "Subjects",
+            "person_facet": "People",
+            "place_facet": "Places",
+            "time_facet": "Times",
+            "first_publish_year": "FirstPublished",
+            "publisher_facet": "Publisher",
+            "language_facet": "Language",
+        }
+        return f"SearchFacet|{facets[key]}"
 
 $ param = {}
 $for p in ['q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor', 'publish_place', 'lccn', 'ia', 'first_sentence', 'publisher', 'author_key', 'debug', 'subject', 'place', 'person', 'time'] + facet_fields:
