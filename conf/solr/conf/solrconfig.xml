@@ -552,10 +552,55 @@
       -->
     <listener event="newSearcher" class="solr.QuerySenderListener">
       <arr name="queries">
-        <!--
-           <lst><str name="q">solr</str><str name="sort">price asc</str></lst>
-           <lst><str name="q">rocks</str><str name="sort">weight asc</str></lst>
-          -->
+        <!-- Work search -->
+        <lst>
+          <str name="workQuery">harry potter</str>
+          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$workQuery})</str>
+          <str name="fq">type:work</str>
+          <str name="rows">20</str>
+          <str name="facet">true</str>
+          <str name="facet.field">author_facet</str>
+          <str name="facet.field">first_publish_year</str>
+          <str name="facet.field">has_fulltext</str>
+          <str name="facet.field">language</str>
+          <str name="facet.field">person_facet</str>
+          <str name="facet.field">place_facet</str>
+          <str name="facet.field">publisher_facet</str>
+          <str name="facet.field">subject_facet</str>
+          <str name="facet.field">time_facet</str>
+        </lst>
+        <!-- Author works search -->
+        <lst>
+          <str name="workQuery">*:*</str>
+          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$workQuery})</str>
+          <str name="fq">type:work</str>
+          <str name="fq">author_key:OL2162284A</str>
+          <str name="sort">edition_count desc</str>
+          <str name="rows">20</str>
+          <str name="facet">true</str>
+          <str name="facet.limit">25</str>
+          <str name="facet.field">person_facet</str>
+          <str name="facet.field">place_facet</str>
+          <str name="facet.field">subject_facet</str>
+          <str name="facet.field">time_facet</str>
+        </lst>
+        <!-- Ebook only search for carousel -->
+        <lst>
+          <str name="workQuery">subject:"Reading Level-Grade 6"</str>
+          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$workQuery})</str>
+          <str name="fq">type:work</str>
+          <str name="fq">ebook_access:[printdisabled TO *]</str>
+          <str name="rows">20</str>
+          <str name="facet">true</str>
+          <str name="facet.field">author_facet</str>
+          <str name="facet.field">first_publish_year</str>
+          <str name="facet.field">language</str>
+          <str name="facet.field">person_facet</str>
+          <str name="facet.field">place_facet</str>
+          <str name="facet.field">publisher_facet</str>
+          <str name="facet.field">subject_facet</str>
+          <str name="facet.field">time_facet</str>
+        </lst>
       </arr>
     </listener>
     <listener event="firstSearcher" class="solr.QuerySenderListener">
