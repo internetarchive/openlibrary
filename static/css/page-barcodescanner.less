@@ -100,7 +100,7 @@
     border-radius: 4px;
   }
 }
-.lazy-book-card {
+a.lazy-book-card {
   background: @white;
   flex-shrink: 0;
   margin-right: 6px;
@@ -116,11 +116,13 @@
   position: relative;
   transition-property: background-color border-color;
   transition-duration: .2s;
+
   &:first-child { animation: slideUp .8s; }
   &:nth-child(2) { animation: shiftRight .8s; }
   &:hover {
     background: lighten(@blue, 45%);
     border-color: lighten(@blue, 15%);
+    color: lighten(@blue, 10%);
   }
   &::before {
     display: none;
@@ -145,7 +147,8 @@
     display: block;
     background: @red;
   }
-  .title { font-weight: bold; font-size: 1.2em; }
+  .title { font-weight: bold; line-height: 1.1em; }
+  .byline { font-size: 0.9em; margin-top: 0.1em; }
   .cover {
     width: 25%;
     img { width: 100%; height: 100%; object-fit: cover; }
@@ -155,6 +158,8 @@
     padding-top: 4px;
     color: @grey-555;
     border-top: 1px dotted;
+    font-family: monospace;
+    font-size: 1.2em;
   }
   .info {
     flex: 1;
