@@ -55,15 +55,37 @@
     pointer-events: none;
   }
 }
-#result-strip {
+
+.barcodescanner__toolbar {
   font-family: @lucida_sans_serif-1;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
+
+.barcodescanner__controls {
+  display: flex;
+  pointer-events: none;
+}
+
+.barcodescanner__spacer {
+  flex: 1;
+}
+
+.barcodescanner__controls > :not(.barcodescanner__spacer) {
+  pointer-events: auto;
+}
+
+.barcodescanner__controls > button {
+  padding: 8px;
+}
+
+.barcodescanner__result-strip {
   display: flex;
   overflow-x: auto;
   overflow-y: hidden;
-  position: absolute;
-  bottom: 0;
   background: fade(@white, 90%);
-  width: 100%;
+  backdrop-filter: blur(4px);
   padding: 10px;
   .empty {
     display: none;

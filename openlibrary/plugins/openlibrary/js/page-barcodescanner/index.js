@@ -3,6 +3,7 @@ import countBy from 'lodash/countBy';
 import maxBy from 'lodash/maxBy';
 import Quagga from '@ericblade/quagga2';  // barcode scanning library
 import LazyBookCard from './LazyBookCard';
+import OCRScanner from './OCRScanner';
 
 const BOX_STYLE = {color: 'green', lineWidth: 2};
 const RESULT_BOX_STYLE = {color: 'blue', lineWidth: 2};
@@ -14,6 +15,8 @@ class OLBarcodeScanner {
 
         const urlParams = new URLSearchParams(location.search)
         this.returnTo = urlParams.get('returnTo');
+
+        this.clearOverlays = this.clearOverlays.bind(this);
 
         // If we get noise, group and choose latest
         this.submitISBNThrottled = new ThrottleGrouping({
@@ -51,7 +54,7 @@ class OLBarcodeScanner {
             decoder: {
                 readers: ['ean_reader']
             },
-        }, async function(err) {
+        }, async (err) => {
             if (err) throw err;
 
             const track = Quagga.CameraAccess.getActiveTrack();
@@ -63,9 +66,25 @@ class OLBarcodeScanner {
                 }
             }
 
+            const quaggaVideo = /** @type {HTMLVideoElement} */($('#interactive video')[0]);
+            const readISBNButton = /** @type {HTMLButtonElement} */(document.querySelector('.barcodescanner__read-isbn'));
+
+            const ocrScanner = new OCRScanner(quaggaVideo);
+            // document.body.append(s.userCanvas);
+            ocrScanner.onISBNDetected((isbn) => {
+                this.submitISBNThrottled(isbn, '/static/images/openlibrary-logo-tighter.svg');
+            });
+            ocrScanner.init();
+
+            readISBNButton.addEventListener('click', async () => {
+                // Ensure init-ing done
+                readISBNButton.disabled = true;
+                await ocrScanner.init();
+                await ocrScanner.doOCR();
+                readISBNButton.disabled = false;
+            });
             Quagga.start();
 
-            const quaggaVideo = /** @type {HTMLVideoElement} */($('#interactive video')[0]);
             if (quaggaVideo.paused) {
                 quaggaVideo.setAttribute('controls', 'true');
                 quaggaVideo.addEventListener('play', () => quaggaVideo.removeAttribute('controls'));
@@ -80,12 +99,9 @@ class OLBarcodeScanner {
         if (!result) return;
 
         const drawingCtx = Quagga.canvas.ctx.overlay;
-        const drawingCanvas = Quagga.canvas.dom.overlay;
 
         if (result.boxes) {
-            const canvasWidth = parseFloat(drawingCanvas.getAttribute('width'));
-            const canvasHeight = parseFloat(drawingCanvas.getAttribute('height'));
-            drawingCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+            this.clearOverlays();
 
             result.boxes.forEach(box => {
                 if (box !== result.box) {
@@ -96,11 +112,27 @@ class OLBarcodeScanner {
 
         if (result.box) {
             Quagga.ImageDebug.drawPath(result.box, {x: 0, y: 1}, drawingCtx, RESULT_BOX_STYLE);
+            this.clearLater();
         }
 
         if (result.codeResult && result.codeResult.code && isBarcodeISBN(result.codeResult.code)) {
             Quagga.ImageDebug.drawPath(result.line, {x: 'x', y: 'y'}, drawingCtx, RESULT_LINE_STYLE);
+            this.clearLater();
         }
+    }
+
+    clearLater() {
+        if (this.clearTimeout) clearTimeout(this.clearTimeout);
+        this.clearTimeout = setTimeout(this.clearOverlays, 500);
+    }
+
+    clearOverlays() {
+        if (this.clearTimeout) clearTimeout(this.clearTimeout);
+        const drawingCtx = Quagga.canvas.ctx.overlay;
+        const drawingCanvas = Quagga.canvas.dom.overlay;
+        const canvasWidth = parseFloat(drawingCanvas.getAttribute('width'));
+        const canvasHeight = parseFloat(drawingCanvas.getAttribute('height'));
+        drawingCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     }
 
     handleQuaggaDetected(result) {
@@ -120,7 +152,7 @@ class OLBarcodeScanner {
         this.lastISBN = isbn;
         const card = LazyBookCard.fromISBN(isbn);
         card.updateState({coverSrc: tentativeCoverUrl});
-        $('#result-strip').prepend(card.render());
+        $('.barcodescanner__result-strip').prepend(card.render());
 
         if (this.returnTo) {
             location = this.returnTo.replace('$$$', isbn);

@@ -7,7 +7,13 @@ $ ctx.setdefault("show_ol_shell", query_param('returnTo') is None)
 
 <div id="page-barcodescanner">
     <div id="interactive" class="viewport"></div>
-    <div id="result-strip">
-        <div class="empty">$_('Point your camera at a barcode! 📷')</div>
+    <div class="barcodescanner__toolbar">
+        <div class="barcodescanner__controls">
+            <div class="barcodescanner__spacer"></div>
+            <button class="barcodescanner__read-isbn">$_('Read Text ISBN')</button>
+        </div>
+        <div class="barcodescanner__result-strip">
+            <div class="empty">$_('Point your camera at a barcode! 📷')</div>
+        </div>
     </div>
 </div>
