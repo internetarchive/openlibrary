@@ -21,11 +21,26 @@ from openlibrary.core.models import LoggedBooksData
 RESULTS_PER_PAGE: Final = 25
 
 
-class my_books_redirect(delegate.page):
+class my_books_home(delegate.page):
     path = "/people/([^/]+)/books"
 
     def GET(self, username):
-        raise web.seeother('/people/%s/books/want-to-read' % username)
+        """
+        The other way to get to this page is /account/books which is defined
+        in /plugins/account.py account_my_books. But we don't need to update that redirect
+        because it already just redirects here.
+        """
+        user = web.ctx.site.get('/people/%s' % username)
+        is_public = user.preferences().get('public_readlog', 'no') == 'yes'
+        if is_public: # or current_user == user:
+            #user.update_loan_status()
+            mybooks = ReadingLog(user=user)
+            mybooks.loans = borrow.get_loans(user)
+
+            # TODO:
+            # Render a "account/books.html" view which uses the account/mybooks as its template
+            #return MyBooksTemplate(username, key).render(page="books")
+            return render['account/mybooks'](user, mybooks)
 
 
 class my_books_view(delegate.page):
