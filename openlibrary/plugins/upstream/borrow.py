@@ -151,7 +151,7 @@ class borrow(delegate.page):
         if action == "request":
             try:
                 return requests.post(
-                    "REDACTED",
+                    config.get('pd_slack'),
                     headers={"Content-type": "application/json"},
                     json={
                         "text": f"{user.email} requested https://archive.org/details/{edition.ocaid} in {i.format}"
