@@ -921,7 +921,6 @@ def build_data2(
 
 async def solr_insert_documents(
     documents: list[dict],
-    commit_within=60_000,
     solr_base_url: str = None,
     skip_id_check=False,
 ):
@@ -930,8 +929,6 @@ async def solr_insert_documents(
     """
     solr_base_url = solr_base_url or get_solr_base_url()
     params = {}
-    if commit_within is not None:
-        params['commitWithin'] = commit_within
     if skip_id_check:
         params['overwrite'] = 'false'
     logger.debug(f"POSTing update to {solr_base_url}/update {params}")
@@ -1058,13 +1055,9 @@ class CommitRequest(SolrUpdateRequest):
 
 def solr_update(
     reqs: list[SolrUpdateRequest],
-    commit_within=60_000,
     skip_id_check=False,
     solr_base_url: str = None,
 ) -> None:
-    """
-    :param commit_within: milliseconds
-    """
     content = '{' + ','.join(r.to_json_command() for r in reqs) + '}'
 
     solr_base_url = solr_base_url or get_solr_base_url()
@@ -1072,8 +1065,6 @@ def solr_update(
         # Don't fail the whole batch if one bad apple
         'update.chain': 'tolerant-chain'
     }
-    if commit_within is not None:
-        params['commitWithin'] = commit_within
     if skip_id_check:
         params['overwrite'] = 'false'
 
@@ -1399,7 +1390,6 @@ async def update_keys(
     keys,
     commit=True,
     output_file=None,
-    commit_way_later=False,
     skip_id_check=False,
     update: Literal['update', 'print', 'pprint', 'quiet'] = 'update',
 ):
@@ -1411,17 +1401,12 @@ async def update_keys(
     :param str output_file: If specified, will save all update actions to output_file **instead** of sending to Solr.
         Each line will be JSON object.
         FIXME Updates to editions/subjects ignore output_file and will be sent (only) to Solr regardless.
-    :param bool commit_way_later: set to true if you want to add things quickly and add
-        them much later
     """
     logger.debug("BEGIN update_keys")
-    commit_way_later_dur = 1000 * 60 * 60 * 24 * 5  # 5 days?
 
-    def _solr_update(requests: list[SolrUpdateRequest], commitWithin=60000):
+    def _solr_update(requests: list[SolrUpdateRequest]):
         if update == 'update':
-            commitWithin = commit_way_later_dur if commit_way_later else commitWithin
-
-            return solr_update(requests, commitWithin, skip_id_check)
+            return solr_update(requests, skip_id_check)
         elif update == 'pprint':
             for req in requests:
                 print(f'"{req.type}": {json.dumps(req.doc, indent=4)}')
@@ -1545,7 +1530,7 @@ async def update_keys(
         else:
             if commit:
                 requests += [CommitRequest()]
-            _solr_update(requests, commitWithin=1000)
+            _solr_update(requests)
 
     logger.debug("END update_keys")
 
