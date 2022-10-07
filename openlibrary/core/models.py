@@ -606,6 +606,7 @@ class Work(Thing):
             'key': work_key,
             'redirect_chain': [],
             'resolved_key': None,
+            'modified': False,
         }
         redirect_chain = cls.get_redirect_chain(work_key)
         summary['redirect_chain'] = [
@@ -626,17 +627,24 @@ class Work(Thing):
                 Observations.get_observations_for_work(olid)
             )
 
-            # track updates
-            r['updates']['readinglog'] = Bookshelves.update_work_id(
-                olid, new_olid, _test=test
-            )
-            r['updates']['ratings'] = Ratings.update_work_id(olid, new_olid, _test=test)
-            r['updates']['booknotes'] = Booknotes.update_work_id(
-                olid, new_olid, _test=test
-            )
-            r['updates']['observations'] = Observations.update_work_id(
-                olid, new_olid, _test=test
-            )
+            if new_olid != olid:
+                # track updates
+                r['updates']['readinglog'] = Bookshelves.update_work_id(
+                    olid, new_olid, _test=test
+                )
+                r['updates']['ratings'] = Ratings.update_work_id(olid, new_olid, _test=test)
+                r['updates']['booknotes'] = Booknotes.update_work_id(
+                    olid, new_olid, _test=test
+                )
+                r['updates']['observations'] = Observations.update_work_id(
+                    olid, new_olid, _test=test
+                )
+                summary['modified'] = summary['modified'] or any(
+                    any(r['updates'][group].values()) for group in [
+                        'readinglog', 'ratings', 'booknotes', 'observations'
+                    ]
+                )
+
         return summary
 
     @classmethod
@@ -655,6 +663,7 @@ class Work(Thing):
         cutoff_date - ignore redirects created before this date
         test - don't resolve stale redirects, just identify them
         """
+        fixed = 0
         batch = 0
         pos = start_offset
         grace_date = datetime.datetime.today() - datetime.timedelta(
@@ -691,18 +700,18 @@ class Work(Thing):
                     logger.info(f"[update-redirects] Skip: #{pos} <{work.key}> grace")
                 else:
                     chain = Work.resolve_redirect_chain(work.key, test=test)
-                    if len(chain.get('redirect_chain')) > 1:
+                    if chain['modified']:
+                        fixed +=1
                         logger.info(
-                            "[update-redirects] Update: " f"#{pos} <{work.key}> {chain}"
+                            f"[update-redirects] Update: #{pos} fix#{fixed} <{work.key}> {chain}"
                         )
                     else:
                         logger.info(
-                            "[update-redirects] No Update Required: "
-                            f"#{pos} <{work.key}> {chain}"
+                            f"[update-redirects] No Update Required: #{pos} <{work.key}>"
                         )
             batch += 1
 
-        logger.info(f"[update-redirects] Done")
+        logger.info(f"[update-redirects] Done, processed {pos}, fixed {fixed}")
 
 
 class Author(Thing):
