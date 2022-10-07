@@ -153,7 +153,9 @@ class borrow(delegate.page):
                 return requests.post(
                     "https://hooks.slack.com/services/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",
                     headers={"Content-type": "application/json"},
-                    json={"text": f"{user.email} requested https://archive.org/details/{edition.ocaid} in {i.format}"}
+                    json={
+                        "text": f"{user.email} requested https://archive.org/details/{edition.ocaid} in {i.format}"
+                    },
                 )
             except Exception as e:
                 return e

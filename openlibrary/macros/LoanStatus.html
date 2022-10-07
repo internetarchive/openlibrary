@@ -79,7 +79,7 @@ $elif availability.get('is_readable') or availability.get('status') == 'open':
   $:macros.ReadButton(ocaid, listen=listen)
   $if secondary_action:
     $:macros.BookSearchInside(ocaid)
-	
+
 $elif ocaid and ctx.user and ctx.user.is_printdisabled():
   $# Exemptions for patrons with Print Disabilities
   $ pd_eligible = availability and availability.get('is_printdisabled')
