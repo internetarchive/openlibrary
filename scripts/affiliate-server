@@ -48,6 +48,7 @@ logger = logging.getLogger("affiliate-server")
 urls = (
     '/isbn/([0-9X-]+)', 'Submit',
     '/status', 'Status',
+    '/clear', 'Clear',
 )
 # fmt: on
 
