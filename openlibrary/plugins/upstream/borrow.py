@@ -148,7 +148,16 @@ class borrow(delegate.page):
                 redirect_url += '&_autoReadAloud=' + i._autoReadAloud
             raise web.seeother(redirect_url)
 
-        if action == 'return':
+        if action == "request":
+            try:
+                return requests.post(
+                    "https://hooks.slack.com/services/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",
+                    headers={"Content-type": "application/json"},
+                    json={"text": f"{user.email} requested https://archive.org/details/{edition.ocaid} in {i.format}"}
+                )
+            except Exception as e:
+                return e
+        elif action == 'return':
             lending.s3_loan_api(edition.ocaid, s3_keys, action='return_loan')
             stats.increment('ol.loans.return')
             edition.update_loan_status()
