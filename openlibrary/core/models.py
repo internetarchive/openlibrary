@@ -632,7 +632,9 @@ class Work(Thing):
                 r['updates']['readinglog'] = Bookshelves.update_work_id(
                     olid, new_olid, _test=test
                 )
-                r['updates']['ratings'] = Ratings.update_work_id(olid, new_olid, _test=test)
+                r['updates']['ratings'] = Ratings.update_work_id(
+                    olid, new_olid, _test=test
+                )
                 r['updates']['booknotes'] = Booknotes.update_work_id(
                     olid, new_olid, _test=test
                 )
@@ -640,9 +642,8 @@ class Work(Thing):
                     olid, new_olid, _test=test
                 )
                 summary['modified'] = summary['modified'] or any(
-                    any(r['updates'][group].values()) for group in [
-                        'readinglog', 'ratings', 'booknotes', 'observations'
-                    ]
+                    any(r['updates'][group].values())
+                    for group in ['readinglog', 'ratings', 'booknotes', 'observations']
                 )
 
         return summary
@@ -701,7 +702,7 @@ class Work(Thing):
                 else:
                     chain = Work.resolve_redirect_chain(work.key, test=test)
                     if chain['modified']:
-                        fixed +=1
+                        fixed += 1
                         logger.info(
                             f"[update-redirects] Update: #{pos} fix#{fixed} <{work.key}> {chain}"
                         )
