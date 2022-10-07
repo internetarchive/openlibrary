@@ -11,6 +11,9 @@ import web
 
 from infogami import config
 from infogami.core import code as core
+from infogami.plugins.api.code import jsonapi, make_query
+from infogami.plugins.api.code import request as infogami_request
+
 from infogami.infobase import client
 from infogami.utils import delegate, app, types
 from infogami.utils.view import public, safeint, render
@@ -40,6 +43,25 @@ class static(delegate.page):
     def GET(self):
         host = 'https://%s' % web.ctx.host if 'openlibrary.org' in web.ctx.host else ''
         raise web.seeother(host + '/static' + web.ctx.path)
+
+
+class history(delegate.mode):
+    """Overwrite ?m=history to remove IP"""
+
+    encoding = "json"
+
+    @jsonapi
+    def GET(self, path):
+        query = make_query(web.input(), required_keys=['author', 'offset', 'limit'])
+        query['key'] = path
+        query['sort'] = '-created'
+        # Possibly use infogami.plugins.upstream.utils get_changes to avoid json load/dump?
+        history = json.loads(
+            infogami_request('/versions', data=dict(query=json.dumps(query)))
+        )
+        for i, row in enumerate(history):
+            history[i].pop("ip")
+        return json.dumps(history)
 
 
 class edit(core.edit):
