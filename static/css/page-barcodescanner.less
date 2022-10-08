@@ -31,18 +31,22 @@
 }
 
 #page-barcodescanner {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  // stylelint-disable declaration-block-no-duplicate-properties
+  // Fallback browsers that don't support dvh
+  height: calc(100vh - 60px);
+  height: 100dvh; // stylelint-disable-line unit-no-unknown
+  // stylelint-enable declaration-block-no-duplicate-properties
 }
+
 #interactive.viewport {
   position: relative;
-  width: 100%;
+  flex: 1;
+  min-height: 0;
   video, canvas {
     width: 100%;
-    // stylelint-disable declaration-block-no-duplicate-properties
-    // Fallback browsers that don't support dvh
-    height: calc(100vh - 60px);
-    height: 100dvh; // stylelint-disable-line unit-no-unknown
-    // stylelint-enable declaration-block-no-duplicate-properties
+    height: 100%;
     object-fit: cover;
   }
   canvas {
@@ -58,34 +62,86 @@
 
 .barcodescanner__toolbar {
   font-family: @lucida_sans_serif-1;
+  position: relative;
+  background: white;
+}
+
+.glass-button {
+  cursor: pointer;
+  
+  border-radius: 10px;
+  color: rgba(255,255,255, 0.8);
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255, 0.45);
+  font-size: 0.8em;
+  backdrop-filter: blur(8px);
+  
+  box-shadow: 0 0 3px 0px rgba(0,0,0,0.4);
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+.icon-button {
+  display: flex;
+  align-items: center;
+  padding-right: 10px;
+}
+
+details.barcodescanner__advanced {
   position: absolute;
-  bottom: 0;
-  width: 100%;
+  bottom: 100%;
+  right: 0;
+  
+  & > summary {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    margin: 5px;
+
+    &::marker {
+      content: none;
+    }
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    svg {
+      width: 32px;
+      height: 32px;
+      padding: 6px;
+      
+      transition: transform 0.2s;
+    }
+  }
+
+  &:not([open]) > summary:hover svg,
+  &[open] > summary svg {
+    transform: rotate(20deg);
+  }
+
+  &[open] > summary:hover svg {
+    transform: rotate(-20deg);
+  }
 }
 
 .barcodescanner__controls {
   display: flex;
-  pointer-events: none;
-}
-
-.barcodescanner__spacer {
-  flex: 1;
-}
-
-.barcodescanner__controls > :not(.barcodescanner__spacer) {
-  pointer-events: auto;
-}
-
-.barcodescanner__controls > button {
-  padding: 8px;
+  padding: 4px;
+  padding-top: 0;
+  overflow-x: auto;
+  
+  & > button {
+    padding: 8px;
+    text-align: left;
+  }
 }
 
 .barcodescanner__result-strip {
   display: flex;
   overflow-x: auto;
   overflow-y: hidden;
-  background: fade(@white, 90%);
-  backdrop-filter: blur(4px);
   padding: 10px;
   .empty {
     display: none;
