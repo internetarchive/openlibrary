@@ -69,7 +69,7 @@ class OLBarcodeScanner {
             const quaggaVideo = /** @type {HTMLVideoElement} */($('#interactive video')[0]);
             const readISBNButton = /** @type {HTMLButtonElement} */(document.querySelector('.barcodescanner__read-isbn'));
 
-            const ocrScanner = new OCRScanner(quaggaVideo);
+            const ocrScanner = new OCRScanner();
             // document.body.append(s.userCanvas);
             ocrScanner.onISBNDetected((isbn) => {
                 this.submitISBNThrottled(isbn, '/static/images/openlibrary-logo-tighter.svg');
@@ -77,10 +77,18 @@ class OLBarcodeScanner {
             ocrScanner.init();
 
             readISBNButton.addEventListener('click', async () => {
+                // Capture image
+                const canvas = document.createElement('canvas');
+                canvas.width = quaggaVideo.videoWidth;
+                canvas.height = quaggaVideo.videoHeight;
+                canvas.getContext('2d').drawImage(quaggaVideo, 0, 0, canvas.width, canvas.height);
+
+                this.cameraFlash(quaggaVideo);
+
                 // Ensure init-ing done
                 readISBNButton.disabled = true;
                 await ocrScanner.init();
-                await ocrScanner.doOCR();
+                await ocrScanner.doOCR(canvas);
                 readISBNButton.disabled = false;
             });
             Quagga.start();
@@ -93,6 +101,18 @@ class OLBarcodeScanner {
 
         Quagga.onProcessed(this.handleQuaggaProcessed.bind(this));
         Quagga.onDetected(this.handleQuaggaDetected.bind(this));
+    }
+
+    /**
+     * @param {HTMLElement} el
+     */
+    async cameraFlash(el) {
+        el.style.animation = 'camera-flash 0.2s';
+        await Promise.race([
+            new Promise((res) => setTimeout(res, 2000)),
+            new Promise((res) => el.addEventListener('animationend', res, {once: true})),
+        ]);
+        el.style.animation = '';
     }
 
     handleQuaggaProcessed(result) {
