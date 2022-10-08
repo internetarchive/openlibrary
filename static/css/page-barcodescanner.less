@@ -97,6 +97,20 @@ details.barcodescanner__advanced {
   position: absolute;
   bottom: 100%;
   right: 0;
+
+  // For slide up effect
+  transform: translateY(100%);
+  transition: transform 0.2s;
+  > :not(summary) {
+    transition: opacity 0.2s;
+    opacity: 0;
+  }
+  &[open] {
+    transform: translateY(0);
+  }
+  &[open] > :not(summary) {
+    opacity: 1;
+  }
   
   & > summary {
     position: absolute;
