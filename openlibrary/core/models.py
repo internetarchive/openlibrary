@@ -702,7 +702,7 @@ class Work(Thing):
                         )
             batch += 1
 
-        logger.info(f"[update-redirects] Done")
+        logger.info("[update-redirects] Done")
 
 
 class Author(Thing):

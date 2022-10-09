@@ -100,7 +100,7 @@ def remove_trailing_dot(s):
 
 
 def fix_l_in_date(date):
-    if not 'l' in date:
+    if 'l' not in date:
         return date
     return re_l_in_date.sub(lambda m: m.group(1).replace('l', '1'), date)
 

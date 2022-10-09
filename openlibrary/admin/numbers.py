@@ -39,6 +39,7 @@ class NoStats(TypeError):
 
 sqlitefile = None
 
+
 # Utility functions
 def query_single_thing(db, typ, start, end):
     "Query the counts a single type from the things table"

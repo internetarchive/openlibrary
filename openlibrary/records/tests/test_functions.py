@@ -27,7 +27,7 @@ def same_dict(a, b):
 
 def populate_infobase(site):
     "Dumps some documents into infobase"
-    ## Create two authors
+    # Create two authors
     atype = '/type/author'
     akey0 = site.new_key(atype)
     a0 = {'name': 'Test author 1', 'type': {'key': atype}, 'key': akey0}
@@ -35,7 +35,7 @@ def populate_infobase(site):
     akey1 = site.new_key(atype)
     a1 = {'name': 'Test author 1', 'type': {'key': atype}, 'key': akey1}
 
-    ## Create a work
+    # Create a work
     wtype = '/type/work'
     wkey = site.new_key(wtype)
     w = {
@@ -46,7 +46,7 @@ def populate_infobase(site):
     }
     site.save(w)
 
-    ## Create two editions for this work
+    # Create two editions for this work
     editions = []
     etype = '/type/edition'
     for i in range(2):
@@ -64,7 +64,7 @@ def populate_infobase(site):
         site.save(e)
         editions.append(ekey)
 
-    ## Now create a work without any edition
+    # Now create a work without any edition
     wkey = site.new_key(wtype)
     w = {
         'title': 'editionless',

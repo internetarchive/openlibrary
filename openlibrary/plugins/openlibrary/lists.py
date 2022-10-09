@@ -497,8 +497,8 @@ class list_subjects_json(delegate.page):
 
     def get_subjects(self, lst, limit):
         data = lst.get_subjects(limit=limit)
-        for key, subjects in data.items():
-            data[key] = [self._process_subject(s) for s in subjects]
+        for key, subjects_ in data.items():
+            data[key] = [self._process_subject(s) for s in subjects_]
         return dict(data)
 
     def _process_subject(self, s):

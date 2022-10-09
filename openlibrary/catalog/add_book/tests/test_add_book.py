@@ -141,8 +141,8 @@ def test_load_test_item(mock_site, add_languages, ia_writeback):
     assert e.title == 'Test item'
     assert e.ocaid == 'test_item'
     assert e.source_records == ['ia:test_item']
-    l = e.languages
-    assert len(l) == 1 and l[0].key == '/languages/eng'
+    languages = e.languages
+    assert len(languages) == 1 and languages[0].key == '/languages/eng'
 
     assert reply['work']['status'] == 'created'
     w = mock_site.get(reply['work']['key'])
