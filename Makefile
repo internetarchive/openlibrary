@@ -5,7 +5,6 @@
 
 BUILD=static/build
 ACCESS_LOG_FORMAT='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"'
-GITHUB_EDITOR_WIDTH=127
 FLAKE_EXCLUDE=./.*,vendor/*,node_modules/*
 COMPONENTS_DIR=openlibrary/components
 
@@ -72,7 +71,7 @@ lint-diff:
 lint:
 	# stop the build if there are Python syntax errors or undefined names
 	$(PYTHON) -m flake8 . --count --exclude=$(FLAKE_EXCLUDE) --extend-ignore=E203,E402,E722,F401,F811,F841,W504 \
-	    --max-complexity=48 --max-line-length=$(GITHUB_EDITOR_WIDTH) --show-source --statistics
+	    --max-complexity=48 --max-line-length=1195 --show-source --statistics
 
 test-py:
 	pytest . --ignore=tests/integration --ignore=infogami --ignore=vendor --ignore=node_modules
