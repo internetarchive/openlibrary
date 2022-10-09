@@ -71,7 +71,8 @@ lint-diff:
 
 lint:
 	# stop the build if there are Python syntax errors or undefined names
-	$(PYTHON) -m flake8 . --count --exclude=$(FLAKE_EXCLUDE) --extend-ignore=E203,E402,E722,F811,F841,W504 --max-complexity=48 --max-line-length=88 --show-source --statistics
+	$(PYTHON) -m flake8 . --count --exclude=$(FLAKE_EXCLUDE) --extend-ignore=E203,E402,E722,F401,F811,F841,W504 \
+	    --max-complexity=48 --max-line-length=$(GITHUB_EDITOR_WIDTH) --show-source --statistics
 
 test-py:
 	pytest . --ignore=tests/integration --ignore=infogami --ignore=vendor --ignore=node_modules
