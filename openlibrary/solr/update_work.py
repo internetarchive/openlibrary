@@ -445,7 +445,7 @@ class SolrProcessor:
                 # raise AuthorRedirect
                 logger.warning('author redirect error: %s', w['key'])
 
-        ## Consider only the valid authors instead of raising an error.
+        # ## Consider only the valid authors instead of raising an error.
         # assert all(a['type']['key'] == '/type/author' for a in authors)
         authors = [a for a in authors if a['type']['key'] == '/type/author']
 

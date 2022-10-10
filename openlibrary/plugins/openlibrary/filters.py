@@ -4,7 +4,7 @@ Filters used to check if a certain statistic should be recorded
 import re
 import logging
 
-l = logging.getLogger("openlibrary.stats_filters")
+logger = logging.getLogger("openlibrary.stats_filters")
 
 import web
 from infogami import config
@@ -16,7 +16,7 @@ def all(**params):
 
 
 def url(**params):
-    l.debug("Evaluate url '%s'" % web.ctx.path)
+    logger.debug("Evaluate url '%s'" % web.ctx.path)
     if re.search(params['pattern'], web.ctx.path):
         return True
     else:

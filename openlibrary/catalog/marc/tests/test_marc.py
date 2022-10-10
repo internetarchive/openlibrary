@@ -144,7 +144,7 @@ class TestMarcParse(unittest.TestCase):
                     'subjects': ['Great Britain', 'Relations'],
                 },
             ),
-            #'Great Britain -- Relations -- West Indies, British.'),
+            # 'Great Britain -- Relations -- West Indies, British.'),
             (
                 [
                     ('a', 'West Indies, British'),
@@ -156,7 +156,7 @@ class TestMarcParse(unittest.TestCase):
                     'subjects': ['British West Indies', 'Relations'],
                 },
             )
-            #'West Indies, British -- Relations -- Great Britain.')
+            # 'West Indies, British -- Relations -- Great Britain.')
         ]
         for value, expect in data:
             output = subjects_for_work(MockRecord('650', value))

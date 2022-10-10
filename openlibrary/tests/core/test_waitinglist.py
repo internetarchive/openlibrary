@@ -41,4 +41,4 @@ class TestWaitingLoan:
 
     def test_prune_expired(self):
         # prune_expired does nothing now but 'return'
-        assert WaitingLoan.prune_expired() == None
+        assert WaitingLoan.prune_expired() is None
