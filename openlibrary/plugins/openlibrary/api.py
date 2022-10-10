@@ -35,16 +35,19 @@ class json_api_listing(delegate.page):
     encoding = "json"
 
     def GET(self):
-        return delegate.RawText(json.dumps({
-            "search": {
-                "url": "/search.json",
-                "docs": "/dev/docs/api/search"
-            },
-            "isbn": {
-                "url": "/isbn/{isbn}.json",
-                "docs": "https://openlibrary.org/dev/docs/api/books#isbn_api"
-            }
-        }), content_type="application/json")
+        return delegate.RawText(
+            json.dumps(
+                {
+                    "search": {"url": "/search.json", "docs": "/dev/docs/api/search"},
+                    "isbn": {
+                        "url": "/isbn/{isbn}.json",
+                        "docs": "https://openlibrary.org/dev/docs/api/books#isbn_api",
+                    },
+                }
+            ),
+            content_type="application/json",
+        )
+
 
 class book_availability(delegate.page):
     path = "/availability/v2"
