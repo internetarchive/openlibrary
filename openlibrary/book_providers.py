@@ -119,7 +119,7 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
 
     @property
     def solr_key(self):
-        return f"ia"
+        return "ia"
 
     def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> list[str]:
         # Solr work record augmented with availability

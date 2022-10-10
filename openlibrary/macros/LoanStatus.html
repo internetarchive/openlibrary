@@ -122,35 +122,6 @@ $elif availability.get('is_lendable'):
   $if secondary_action:
     $:macros.BookPreview(ocaid, linkback=not no_index)
 
-$elif is_edition and (('eligibility' in doc) or (check_sponsorship and not ocaid and not availability.get('is_lendable'))):
-  $ sponsorship = doc.get('eligibility') if 'eligibility' in doc else qualifies_for_sponsorship(doc, donate_only=True)
-  $if sponsorship.get('is_eligible'):
-    $ btn_count = ctx.get('donate_count', 1)
-    $ modal_id = "donate-modal-%d" % btn_count
-    <a href="$(sponsorship['sponsor_url'])"
-       class="cta-btn cta-btn--sponsor dialog--open"
-       aria-controls="$modal_id"
-       data-id-num="$btn_count"
-       data-ol-link-track="CTAClick|Sponsor">$_('Donate Book')</a>
-    $ isbn_13 = doc.get_isbn13()
-    $ asin = None
-    $if doc.get('identifiers'):
-      $if doc.identifiers.get('amazon'):
-        $ asin = doc.identifiers.amazon[0]
-
-    $if not asin:
-      $ asin = doc.get_isbn10()
-
-    $:macros.DonateModal(doc, modal_id, ids={'isbn': isbn_13, 'asin': asin, 'prices': True})
-    $putctx('donate_count', btn_count + 1)
-    $if sponsorship_help:
-      <p>
-        $_("We don't have this book yet. Can you donate it to the Lending Library?")
-        <a href="https://openlibrary.org/bookdrive" target="_blank">$_('Learn More')</a>
-      </p>
-  $else:
-    $:macros.NotInLibrary(work_key)
-
 $elif ocaid and availability.get('is_previewable') and book_provider.short_name == 'ia':
   $:macros.BookPreview(ocaid, linkback=not no_index)
   $if secondary_action:

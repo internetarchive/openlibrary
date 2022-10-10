@@ -54,7 +54,7 @@ class Test_cover:
         monkeypatch.setattr(code, "get_tar_index", _get_tar_index)
         f = code.cover().get_tar_filename
 
-        assert f(42, "s") == None
+        assert f(42, "s") is None
 
         offsets[42] = 1234
         sizes[42] = 567

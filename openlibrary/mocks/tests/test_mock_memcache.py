@@ -18,10 +18,10 @@ class Test_mock_memcache:
     def test_add(self):
         m = mock_memcache.Client([])
 
-        assert m.add("a", 1) == True
+        assert m.add("a", 1) is True
         assert m.get("a") == 1
 
-        assert m.add("a", 2) == False
+        assert m.add("a", 2) is False
 
 
 mc = memcache.Client(servers=[])

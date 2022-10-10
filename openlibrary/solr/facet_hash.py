@@ -16,6 +16,7 @@ from hashlib import sha1 as mkhash
 
 facet_token_length = 12
 
+
 # turn v into a str object, by encoding from unicode or numeric
 # if necessary.
 def coerce_str(v):

@@ -157,8 +157,8 @@ def test_match_with_bad_chars():
         ],
         ['Andrzej Weronski', 'Andrzej Wero\u0144ski', 'Andrzej Weron\u0301ski'],
     ]
-    for l in samples:
-        for a, b in combinations(l, 2):
+    for sample in samples:
+        for a, b in combinations(sample, 2):
             assert match_with_bad_chars(a, b)
 
 

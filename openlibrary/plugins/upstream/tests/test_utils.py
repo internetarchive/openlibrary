@@ -25,8 +25,6 @@ def test_urlencode():
     assert f({'q': 1}) == 'q=1', 'numbers'
     assert f({'q': ['test']}) == 'q=%5B%27test%27%5D', 'list'
     assert f({'q': 'αβγ'}) == 'q=%CE%B1%CE%B2%CE%B3', 'unicode without the u'
-    # Can't run this since it's a SyntaxError in python3... But it passes in Python 2
-    # assert f({'q': b'αβγ'}) == 'q=%CE%B1%CE%B2%CE%B3', 'byte-string unicode?'
     assert f({'q': 'αβγ'.encode()}) == 'q=%CE%B1%CE%B2%CE%B3', 'uf8 encoded unicode'
     assert f({'q': 'αβγ'}) == 'q=%CE%B1%CE%B2%CE%B3', 'unicode'
 
@@ -88,7 +86,7 @@ def test_set_share_links_unicode():
 def test_item_image():
     assert utils.item_image('//foo') == 'https://foo'
     assert utils.item_image(None, 'bar') == 'bar'
-    assert utils.item_image(None) == None
+    assert utils.item_image(None) is None
 
 
 def test_canonical_url():

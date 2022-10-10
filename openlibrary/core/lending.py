@@ -721,11 +721,11 @@ class Loan(dict):
                 'ocaid': identifier,
                 'expiry': expiry,
                 'uuid': _uuid,
-                'resource_type': 'bookreader',
-                'resource_id': 'bookreader:%s' % identifier,
+                'resource_type': 'bookreader',  # noqa: F601
+                'resource_id': 'bookreader:%s' % identifier,  # noqa: F601
                 'loaned_at': loaned_at,
-                'resource_type': resource_type,
-                'resource_id': resource_id,
+                'resource_type': resource_type,  # noqa: F601
+                'resource_id': resource_id,  # noqa: F601
                 'loan_link': loan_link,
             }
         )

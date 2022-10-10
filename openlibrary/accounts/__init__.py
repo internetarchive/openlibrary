@@ -2,10 +2,11 @@ import web
 
 # FIXME: several modules import things from accounts.model
 # directly through openlibrary.accounts
-from .model import *
+from .model import *  # noqa: F403
+from .model import Account, Link
 
 
-## Unconfirmed functions (I'm not sure that these should be here)
+# Unconfirmed functions (I'm not sure that these should be here)
 def get_group(name):
     """
     Returns the group named 'name'.
@@ -43,7 +44,7 @@ class RunAs:
         web.ctx.conn.set_auth_token(self.calling_user_auth_token)
 
 
-## Confirmed functions (these have to be here)
+# Confirmed functions (these have to be here)
 def get_current_user():
     """
     Returns the currently logged in user. None if not logged in.
