@@ -216,9 +216,13 @@ class AmazonAPI:
             and item_info.classifications.product_group.display_value
         )
         try:
-            publish_date = edition_info and isoparser.parse(
-                edition_info.publication_date.display_value
-            ).strftime('%b %d, %Y')
+            publish_date = (
+                edition_info
+                and edition_info.publication_date
+                and isoparser.parse(
+                    edition_info.publication_date.display_value
+                ).strftime('%b %d, %Y')
+            )
         except Exception:
             logger.exception(f"serialize({product})")
             publish_date = None
@@ -247,7 +251,7 @@ class AmazonAPI:
                 else None
             ),
             'authors': attribution
-            and [{'name': contrib.name} for contrib in attribution.contributors],
+            and [{'name': contrib.name} for contrib in attribution.contributors or []],
             'publishers': list({p for p in (brand, manufacturer) if p}),
             'number_of_pages': (
                 edition_info
