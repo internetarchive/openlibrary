@@ -41,7 +41,7 @@ class TestIsValid:
         }
 
     def test_required_fields(self):
-        assert self.checkins.is_valid(self.valid_data) == True
+        assert self.checkins.is_valid(self.valid_data) is True
 
         missing_edition = {
             'event_type': 'START',
@@ -65,13 +65,13 @@ class TestIsValid:
             'month': 3,
             'day': 7,
         }
-        assert self.checkins.is_valid(missing_edition) == False
-        assert self.checkins.is_valid(missing_event_type) == False
-        assert self.checkins.is_valid(missing_year) == False
-        assert self.checkins.is_valid(missing_all) == False
+        assert self.checkins.is_valid(missing_edition) is False
+        assert self.checkins.is_valid(missing_event_type) is False
+        assert self.checkins.is_valid(missing_year) is False
+        assert self.checkins.is_valid(missing_all) is False
 
     def test_event_type_values(self):
-        assert self.checkins.is_valid(self.valid_data) == True
+        assert self.checkins.is_valid(self.valid_data) is True
         unknown_event_type = {
             'edition_olid': 'OL1234M',
             'event_type': 'sail-the-seven-seas',
@@ -79,4 +79,4 @@ class TestIsValid:
             'month': 3,
             'day': 7,
         }
-        assert self.checkins.is_valid(unknown_event_type) == False
+        assert self.checkins.is_valid(unknown_event_type) is False
