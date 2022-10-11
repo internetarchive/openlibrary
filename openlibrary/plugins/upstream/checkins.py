@@ -69,7 +69,7 @@ class check_ins(delegate.page):
         """Validates POSTed check-in data."""
         if not all(key in data for key in ('edition_olid', 'year', 'event_type')):
             return False
-        if not BookshelfEvent.has_key(data['event_type']):
+        if not BookshelfEvent.has_key(data['event_type']):  # noqa: W601
             return False
         return True
 
