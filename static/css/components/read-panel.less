@@ -13,6 +13,10 @@
   font-size: 12px;
 }
 
+.mobile-vendor {
+  display: none;
+}
+
 .read-options,
 .Tools .btn-notice {
   line-height: 1.5em;
@@ -121,6 +125,13 @@
 @media only screen and (max-width: @width-breakpoint-desktop){
   .mobile-book-header{
     display: inline;
+  }
+
+  .mobile-vendor {
+    display: inline;
+  }
+  .desktop-vendor {
+    display: none;
   }
 }
 // For the button at the top
