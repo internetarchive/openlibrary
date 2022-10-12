@@ -477,6 +477,11 @@ class Edition(models.Edition):
         """
         return "/ia:" in self.key
 
+    def set_provider_data(self, data):
+        if not self.provider:
+            self.provider = []
+        self.provider.append(data)
+
 
 class Author(models.Author):
     def get_photos(self):

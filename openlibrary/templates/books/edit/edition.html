@@ -628,12 +628,60 @@ $ config = ({'Please select an identifier.': _('Please select an identifier.'), 
 
 </fieldset>
 
+$if is_privileged_user:
+    <fieldset class="major">
+        <legend>$_("Web Book Provider")</legend>
+        <div class="formBack">
+            <div class="formElement">
+                <div class="label">
+                    <label for="edition--provider--url">$_("Book URL")</label>
+                </div>
+                <div class="input">
+                    <input name="edition--provider--url" id="edition--provider--url" type="url" value="$book.provider[0].url">
+                </div>
+            </div>
+            <div class="formElement">
+                <div class="label">
+                    <label for="edition--provider--access">$_("Access Type")</label>
+                </div>
+                <div class="input">
+                    <input name="edition--provider--access" id="edition--provider--access" value="$book.provider[0].access">
+                </div>
+            </div>
+            <div class="formElement">
+                <div class="label">
+                    <label for="edition--provider--format">$_("File Format")</label>
+                </div>
+                <div class="input">
+                    <input name="edition--provider--format" id="edition--provider--format" value="$book.provider[0].format">
+                </div>
+            </div>
+
+            <div class="formElement">
+                <div class="label">
+                    <label for="edition--provider--provider_name">$_("Provider Name")</label>
+                </div>
+                <div class="input">
+                    <input name="edition--provider--provider_name" id="edition--provider--provider_name" value="$book.provider[0].provider_name">
+                </div>
+            </div>
+            <!-- <div class="formElement">
+                <div class="label">
+                    <label for="edition--provider--price">$_("Price")</label>
+                </div>
+                <div class="input">
+                    <input name="edition--provider--price" id="edition--provider--price">
+                </div>
+            </div> -->
+        </div>
+    </fieldset>
+
 $if ctx.user and ctx.user.is_admin():
     <fieldset class="major adminOnly">
         <legend>$_("Admin Only")</legend>
         <div class="formElement">
             <div class="label">
-                <label for="edition-first_sentence">$_("Additional Metadata")</label>
+                <label for="additional_metadata">$_("Additional Metadata")</label>
                 <span class="tip">$_('This field can accept arbitrary key:value pairs')</span>
             </div>
             <div class="input">
