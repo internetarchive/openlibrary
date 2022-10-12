@@ -69,6 +69,16 @@ $var title: $_("Add a book")
             </div>
         </div>
 
+        $if admin_user:
+            <div class="formElement">
+                <div class="label">
+                    <label for="webbook_url">$_("Book URL")</label> <span class="tip">$_("Only fill this out if this is a web book")</span></span>
+                </div>
+                <div class="input">
+                    <input type="text" name="webbook_url" class="" id="webbook_url"/>
+                </div>
+            </div>
+
         $if recaptcha and not ctx.user:
             <div class="formElement">
                 <div class="label">$_("Since you are not logged in, please satisfy the reCAPTCHA below.")</div>

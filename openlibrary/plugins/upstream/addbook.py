@@ -219,6 +219,7 @@ class addbook(delegate.page):
             publish_date="",
             id_name="",
             id_value="",
+            webbook_url="",
             _test="false",
         )
 
@@ -255,6 +256,8 @@ class addbook(delegate.page):
 
         elif match and match.key.startswith('/books'):
             # work match and edition match, match is an Edition
+            if i.webbook_url:
+                match.provider = [dict(url=i.webbook_url)]
             return self.work_edition_match(match)
 
         elif match and match.key.startswith('/works'):
@@ -475,6 +478,8 @@ class addbook(delegate.page):
             publishers=[i.publisher],
             publish_date=i.publish_date,
         )
+        if i.get('webbook_url'):
+            edition.set_provider_data(dict(url=i.webbook_url))
         if i.get("id_name") and i.get("id_value"):
             edition.set_identifiers([dict(name=i.id_name, value=i.id_value)])
         return edition
@@ -628,6 +633,8 @@ class SaveBookHelper:
             if 'contributors' not in edition_data:
                 self.edition.contributors = []
 
+            if 'provider' in edition_data:
+                self.edition.set_provider_data(edition_data.pop('provider'))
             self.edition.update(edition_data)
             saveutil.save(self.edition)
 
