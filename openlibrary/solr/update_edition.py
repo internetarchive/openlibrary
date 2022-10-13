@@ -90,6 +90,10 @@ class EditionSolrBuilder:
             return None
 
     @property
+    def format(self) -> str | None:
+        return self.get('physical_format')
+
+    @property
     def isbn(self) -> list[str]:
         """
         Get all ISBNs of the given edition. Calculates complementary ISBN13 for each
@@ -201,6 +205,7 @@ def build_edition_data(
             'language': ed.languages,
             # Misc useful data
             'publisher': ed.publisher,
+            'format': [ed.format] if ed.format else None,
             'publish_date': [ed.publish_date] if ed.publish_date else None,
             'publish_year': [ed.publish_year] if ed.publish_year else None,
             # Identifiers

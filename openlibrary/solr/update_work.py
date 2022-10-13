@@ -832,6 +832,12 @@ def build_data2(
         },
     )
 
+    add_field_list(
+        doc,
+        'format',
+        {format for ed in editions if (format := EditionSolrBuilder(ed).format)},
+    )
+
     languages: list[str] = []
     ia_loaded_id = set()
     ia_box_id = set()
