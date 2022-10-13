@@ -670,41 +670,7 @@ $if is_privileged_user:
                     </div>
                 </fieldset>
                 $ provider_index = provider_index + 1
-            <fieldset class="minor">
-                <legend>$ungettext('Provider %(count)s', 'Provider %(count)s', provider_index, count=provider_index + 1)</legend>
-                <div class="formElement">
-                    <div class="label">
-                        <label for="edition--providers--${provider_index}--url">$_("Book URL")</label>
-                    </div>
-                    <div class="input">
-                        <input name="edition--providers--${provider_index}--url" id="edition--providers--${provider_index}--url" type="url" value="">
-                    </div>
-                </div>
-                <div class="formElement">
-                    <div class="label">
-                        <label for="edition--providers--${provider_index}--access">$_("Access Type")</label>
-                    </div>
-                    <div class="input">
-                        <input name="edition--providers--${provider_index}--access" id="edition--providers--${provider_index}--access" value="">
-                    </div>
-                </div>
-                <div class="formElement">
-                    <div class="label">
-                        <label for="edition--providers--${provider_index}--format">$_("File Format")</label>
-                    </div>
-                    <div class="input">
-                        <input name="edition--providers--${provider_index}--format" id="edition--providers--${provider_index}--format" value="">
-                    </div>
-                </div>
-                <div class="formElement">
-                    <div class="label">
-                        <label for="edition--providers--${provider_index}--provider_name">$_("Provider Name")</label>
-                    </div>
-                    <div class="input">
-                        <input name="edition--providers--${provider_index}--provider_name" id="edition--providers--${provider_index}--provider_name" value="">
-                    </div>
-                </div>
-            </fieldset>
+            <a href="javascript:;" id="add-new-provider" data-index="$provider_index">Add another provider?</a>
         </div>
     </fieldset>
 

@@ -442,4 +442,11 @@ jQuery(function () {
                 }
             })
     }
+
+    // Add new providers in edit edition view:
+    const addProviderLink = document.querySelector('#add-new-provider')
+    if (addProviderLink) {
+        import(/* webpackChunkName "add-provider-link" */ './add_provider')
+            .then(module => module.initAddProviderLink(addProviderLink))
+    }
 });
