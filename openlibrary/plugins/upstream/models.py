@@ -478,9 +478,9 @@ class Edition(models.Edition):
         return "/ia:" in self.key
 
     def set_provider_data(self, data):
-        if not self.provider:
-            self.provider = []
-        self.provider.append(data)
+        if not self.providers:
+            self.providers = []
+        self.providers.append(data)
 
 
 class Author(models.Author):
