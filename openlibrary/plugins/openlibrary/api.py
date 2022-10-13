@@ -643,7 +643,9 @@ class search_opds(delegate.page):
 
     def GET(self):
         i = web.input(q="")
-        data = requests.get(f"{config.get('opds_url')}catalog?query={i.q}&src=ol").json()
+        data = requests.get(
+            f"{config.get('opds_url')}catalog?query={i.q}&src=ol"
+        ).json()
         return delegate.RawText(
             json.dumps(data), content_type='application/json;profile=opds'
         )
