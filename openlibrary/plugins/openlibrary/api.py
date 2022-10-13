@@ -7,6 +7,7 @@ its experience. This does not include public facing APIs with LTS
 import web
 import re
 import json
+import requests
 from collections import defaultdict
 from openlibrary.views.loanstats import get_trending_books
 from infogami import config
@@ -633,4 +634,16 @@ class work_delete(delegate.page):
                 }
             ),
             content_type="application/json",
+        )
+
+
+class search_opds(delegate.page):
+    path = "/search"
+    encode = 'opds'
+
+    def GET(self):
+        i = web.input(q="")
+        data = requests.get(f"{config.get('opds_url')}catalog?query={i.q}&src=ol").json()
+        return delegate.RawText(
+            json.dumps(data), content_type='application/json;profile=opds'
         )
