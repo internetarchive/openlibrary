@@ -639,7 +639,7 @@ class work_delete(delegate.page):
 
 class search_opds(delegate.page):
     path = "/search"
-    encode = 'opds'
+    encoding = 'opds'
 
     def GET(self):
         i = web.input(q="")
