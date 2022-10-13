@@ -444,9 +444,9 @@ jQuery(function () {
     }
 
     // Add new providers in edit edition view:
-    const addProviderLink = document.querySelector('#add-new-provider')
-    if (addProviderLink) {
+    const addProviderRowLink = document.querySelector('#add-new-provider-row')
+    if (addProviderRowLink) {
         import(/* webpackChunkName "add-provider-link" */ './add_provider')
-            .then(module => module.initAddProviderLink(addProviderLink))
+            .then(module => module.initAddProviderRowLink(addProviderRowLink))
     }
 });

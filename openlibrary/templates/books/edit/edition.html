@@ -628,51 +628,55 @@ $ config = ({'Please select an identifier.': _('Please select an identifier.'), 
 
 </fieldset>
 
+$code:
+    def is_selected(actual, selected):
+        if actual == selected:
+            return True
+        return False
+
 $if is_privileged_user:
-    <fieldset class="major">
-        <legend>$_("Web Book Providers")</legend>
-        <div class="formBack">
-            $ provider_index = 0
-            $for i, d in enumerate(book.providers):
-                <fieldset class="minor">
-                    <legend>$ungettext('Provider %(count)s', 'Provider %(count)s', loop.index, count=loop.index)</legend>
-                    <div class="formElement">
-                        <div class="label">
-                            <label for="edition--providers--${i}--url">$_("Book URL")</label>
-                        </div>
-                        <div class="input">
-                            <input name="edition--providers--${i}--url" id="edition--providers--${i}--url" type="url" value="$d.url">
-                        </div>
-                    </div>
-                    <div class="formElement">
-                        <div class="label">
-                            <label for="edition--providers--${i}--access">$_("Access Type")</label>
-                        </div>
-                        <div class="input">
-                            <input name="edition--providers--${i}--access" id="edition--providers--${i}--access" value="$d.access">
-                        </div>
-                    </div>
-                    <div class="formElement">
-                        <div class="label">
-                            <label for="edition--providers--${i}--format">$_("File Format")</label>
-                        </div>
-                        <div class="input">
-                            <input name="edition--providers--${i}--format" id="edition--providers--${i}--format" value="$d.format">
-                        </div>
-                    </div>
-                    <div class="formElement">
-                        <div class="label">
-                            <label for="edition--providers--${i}--provider_name">$_("Provider Name")</label>
-                        </div>
-                        <div class="input">
-                            <input name="edition--providers--${i}--provider_name" id="edition--providers--${i}--provider_name" value="$d.provider_name">
-                        </div>
-                    </div>
-                </fieldset>
-                $ provider_index = provider_index + 1
-            <a href="javascript:;" id="add-new-provider" data-index="$provider_index">Add another provider?</a>
-        </div>
+    $ extra_class = ' hidden' if len(book.providers) == 0 else ''
+    $ provider_index = 0
+    <fieldset class="major $extra_class" id="book-provider-fieldset">
+        <legend>$_('Web Book Providers')</legend>
+        <table class="provider-table">
+            <thead>
+                <tr>
+                    <th>$_("Book URL")</th>
+                    <th>$_("Access Type")</th>
+                    <th>$_("File Format")</th>
+                    <th>$_("Provider Name")</th>
+                </tr>
+            </thead>
+            <tbody id="provider-table-body">
+                $for i, d in enumerate(book.providers):
+                    <tr>
+                        <td><input name="edition--providers--${i}--url" id="edition--providers--${i}--url" type="url" value="$d.url"></td>
+                        <td>
+                            <select name="edition--providers--${i}--access" id="edition--providers--${i}--access" autocomplete="off">
+                                <option value=""></option>
+                                <option value="read" $cond(is_selected(d.access, 'read'), 'selected')>$_("Read")</option>
+                                <option value="listen" $cond(is_selected(d.access, 'listen'), 'selected')>$_("Listen")</option>
+                                <option value="buy" $cond(is_selected(d.access, 'buy'), 'selected')>$_("Buy")</option>
+                                <option value="borrow" $cond(is_selected(d.access, 'borrow'), 'selected')>$_("Borrow")</option>
+                                <option value="preview" $cond(is_selected(d.access, 'preview'), 'selected')>$_("Preview")</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select name="edition--providers--${i}--format" id="edition--providers--${i}--format" autocomplete="off">
+                                <option value=""></option>
+                                <option value="web" $cond(is_selected(d.format, 'web'), 'selected')>$_("Web")</option>
+                                <option value="epub" $cond(is_selected(d.format, 'epub'), 'selected')>$_("ePub")</option>
+                                <option value="pdf" $cond(is_selected(d.format, 'pdf'), 'selected')>$_("PDF")</option>
+                            </select>
+                        </td>
+                        <td><input name="edition--providers--${i}--provider_name" id="edition--providers--${i}--provider_name" value="$d.provider_name"></td>
+                    </tr>
+                    $ provider_index = provider_index + 1
+            </tbody>
+        </table>
     </fieldset>
+    <a href="javascript:;" id="add-new-provider-row" data-index="$provider_index">$_("Add a provider")</a>
 
 $if ctx.user and ctx.user.is_admin():
     <fieldset class="major adminOnly">
