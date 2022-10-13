@@ -257,7 +257,7 @@ class addbook(delegate.page):
         elif match and match.key.startswith('/books'):
             # work match and edition match, match is an Edition
             if i.web_book_url:
-                match.provider = [dict(url=i.web_book_url)]
+                match.provider = [dict(url=i.web_book_url, format="web")]
             return self.work_edition_match(match)
 
         elif match and match.key.startswith('/works'):
@@ -479,7 +479,7 @@ class addbook(delegate.page):
             publish_date=i.publish_date,
         )
         if i.get('web_book_url'):
-            edition.set_provider_data(dict(url=i.web_book_url))
+            edition.set_provider_data(dict(url=i.web_book_url, format="web"))
         if i.get("id_name") and i.get("id_value"):
             edition.set_identifiers([dict(name=i.id_name, value=i.id_value)])
         return edition
