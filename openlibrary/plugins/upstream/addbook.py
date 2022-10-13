@@ -633,8 +633,9 @@ class SaveBookHelper:
             if 'contributors' not in edition_data:
                 self.edition.contributors = []
 
-            if 'provider' in edition_data:
-                self.edition.set_provider_data(edition_data.pop('provider'))
+            providers = edition_data.pop('providers', [])
+            self.edition.set_providers(providers)
+
             self.edition.update(edition_data)
             saveutil.save(self.edition)
 

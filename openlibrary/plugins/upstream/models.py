@@ -482,6 +482,9 @@ class Edition(models.Edition):
             self.providers = []
         self.providers.append(data)
 
+    def set_providers(self, providers):
+        self.providers = providers
+
 
 class Author(models.Author):
     def get_photos(self):

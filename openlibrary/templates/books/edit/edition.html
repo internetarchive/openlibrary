@@ -632,39 +632,79 @@ $if is_privileged_user:
     <fieldset class="major">
         <legend>$_("Web Book Providers")</legend>
         <div class="formBack">
-            <div class="formElement">
-                <div class="label">
-                    <label for="edition--providers--url">$_("Book URL")</label>
+            $ provider_index = 0
+            $for i, d in enumerate(book.providers):
+                <fieldset class="minor">
+                    <legend>$ungettext('Provider %(count)s', 'Provider %(count)s', loop.index, count=loop.index)</legend>
+                    <div class="formElement">
+                        <div class="label">
+                            <label for="edition--providers--${i}--url">$_("Book URL")</label>
+                        </div>
+                        <div class="input">
+                            <input name="edition--providers--${i}--url" id="edition--providers--${i}--url" type="url" value="$d.url">
+                        </div>
+                    </div>
+                    <div class="formElement">
+                        <div class="label">
+                            <label for="edition--providers--${i}--access">$_("Access Type")</label>
+                        </div>
+                        <div class="input">
+                            <input name="edition--providers--${i}--access" id="edition--providers--${i}--access" value="$d.access">
+                        </div>
+                    </div>
+                    <div class="formElement">
+                        <div class="label">
+                            <label for="edition--providers--${i}--format">$_("File Format")</label>
+                        </div>
+                        <div class="input">
+                            <input name="edition--providers--${i}--format" id="edition--providers--${i}--format" value="$d.format">
+                        </div>
+                    </div>
+                    <div class="formElement">
+                        <div class="label">
+                            <label for="edition--providers--${i}--provider_name">$_("Provider Name")</label>
+                        </div>
+                        <div class="input">
+                            <input name="edition--providers--${i}--provider_name" id="edition--providers--${i}--provider_name" value="$d.provider_name">
+                        </div>
+                    </div>
+                </fieldset>
+                $ provider_index = provider_index + 1
+            <fieldset class="minor">
+                <legend>$ungettext('Provider %(count)s', 'Provider %(count)s', provider_index, count=provider_index + 1)</legend>
+                <div class="formElement">
+                    <div class="label">
+                        <label for="edition--providers--${provider_index}--url">$_("Book URL")</label>
+                    </div>
+                    <div class="input">
+                        <input name="edition--providers--${provider_index}--url" id="edition--providers--${provider_index}--url" type="url" value="">
+                    </div>
                 </div>
-                <div class="input">
-                    <input name="edition--providers--url" id="edition--providers--url" type="url" value="$book.providers[0].url">
+                <div class="formElement">
+                    <div class="label">
+                        <label for="edition--providers--${provider_index}--access">$_("Access Type")</label>
+                    </div>
+                    <div class="input">
+                        <input name="edition--providers--${provider_index}--access" id="edition--providers--${provider_index}--access" value="">
+                    </div>
                 </div>
-            </div>
-            <div class="formElement">
-                <div class="label">
-                    <label for="edition--providers--access">$_("Access Type")</label>
+                <div class="formElement">
+                    <div class="label">
+                        <label for="edition--providers--${provider_index}--format">$_("File Format")</label>
+                    </div>
+                    <div class="input">
+                        <input name="edition--providers--${provider_index}--format" id="edition--providers--${provider_index}--format" value="">
+                    </div>
                 </div>
-                <div class="input">
-                    <input name="edition--providers--access" id="edition--providers--access" value="$book.providers[0].access">
+                <div class="formElement">
+                    <div class="label">
+                        <label for="edition--providers--${provider_index}--provider_name">$_("Provider Name")</label>
+                    </div>
+                    <div class="input">
+                        <input name="edition--providers--${provider_index}--provider_name" id="edition--providers--${provider_index}--provider_name" value="">
+                    </div>
                 </div>
-            </div>
-            <div class="formElement">
-                <div class="label">
-                    <label for="edition--providers--format">$_("File Format")</label>
-                </div>
-                <div class="input">
-                    <input name="edition--providers--format" id="edition--providers--format" value="$book.providers[0].format">
-                </div>
-            </div>
-
-            <div class="formElement">
-                <div class="label">
-                    <label for="edition--providers--provider_name">$_("Provider Name")</label>
-                </div>
-                <div class="input">
-                    <input name="edition--providers--provider_name" id="edition--providers--provider_name" value="$book.providers[0].provider_name">
-                </div>
-            </div>
+            </fieldset>
         </div>
     </fieldset>
 
