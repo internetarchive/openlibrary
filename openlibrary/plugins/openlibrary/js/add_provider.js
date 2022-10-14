@@ -3,6 +3,9 @@ export function initAddProviderRowLink(elem) {
         let index = Number(elem.dataset.index)
         const tbody = document.querySelector('#provider-table-body')
         tbody.appendChild(createProviderRow(index))
+        if (index === 0) {
+            document.querySelector('#provider-table').classList.remove('hidden')
+        }
         this.dataset.index = ++index
     })
 }

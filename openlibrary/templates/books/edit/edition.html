@@ -637,9 +637,9 @@ $code:
 $if is_privileged_user:
     $ extra_class = ' hidden' if len(book.providers) == 0 else ''
     $ provider_index = 0
-    <fieldset class="major $extra_class" id="book-provider-fieldset">
+    <fieldset class="major">
         <legend>$_('Web Book Providers')</legend>
-        <table class="provider-table">
+        <table class="provider-table $extra_class" id="provider-table">
             <thead>
                 <tr>
                     <th>$_("Book URL")</th>
