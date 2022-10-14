@@ -401,7 +401,6 @@ class Bookshelves(db.CommonExtras):
             return get_filtered_reading_log_books(
                 q=q, query_params=query_params, filter_book_limit=FILTER_BOOK_LIMIT
             )
-
         else:
             return get_sorted_reading_log_books(query_params=query_params, sort=sort)
 

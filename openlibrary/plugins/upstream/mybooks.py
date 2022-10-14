@@ -1,7 +1,7 @@
 import json
 import web
 
-from typing import Final
+from typing import Final, Literal
 
 from infogami.utils import delegate
 from infogami.utils.view import public, safeint, render
@@ -65,7 +65,7 @@ class public_my_books_json(delegate.page):
             and logged_in_user.key.split('/')[-1] == username
         ):
             readlog = ReadingLog(user=user)
-            books = readlog.get_works(key, page, limit, q=i.q).docs
+            books = readlog.get_works(key.lower(), page, limit, q=i.q).docs
             records_json = [
                 {
                     'work': {
@@ -104,7 +104,7 @@ class public_my_books_json(delegate.page):
 class readinglog_stats(delegate.page):
     path = "/people/([^/]+)/books/([a-zA-Z_-]+)/stats"
 
-    def GET(self, username, key='loans'):
+    def GET(self, username, key='want-to-read'):
         user = web.ctx.site.get('/people/%s' % username)
         if not user:
             return render.notfound("User %s" % username, create=False)
@@ -156,6 +156,7 @@ def get_public_patron_account(username):
 
 
 class MyBooksTemplate:
+
     # Reading log shelves
     READING_LOG_KEYS = {"currently-reading", "want-to-read", "already-read"}
 
@@ -176,7 +177,7 @@ class MyBooksTemplate:
     def __init__(self, username, key):
         self.username = username
         self.user = web.ctx.site.get('/people/%s' % self.username)
-        self.key = key
+        self.key = key.lower()
         self.readlog = ReadingLog(user=self.user)
         self.lists = self.readlog.lists
         self.counts = self.readlog.reading_log_counts
@@ -184,6 +185,10 @@ class MyBooksTemplate:
     def render(
         self, page=1, sort='desc', list=None, q="", doc_count: int = 0, ratings=None
     ):
+        """
+        Gather the data necessary to render the My Books template, and then
+        render the template.
+        """
         if not self.user:
             return render.notfound("User %s" % self.username, create=False)
         logged_in_user = accounts.get_current_user()
@@ -213,9 +218,10 @@ class MyBooksTemplate:
                     else None
                 )
 
+            # Reading log for logged in users.
             elif self.key in self.READING_LOG_KEYS:
-                logged_book_data = self.readlog.get_works(
-                    self.key, page=page, sort='created', sort_order=sort, q=q
+                logged_book_data: LoggedBooksData = self.readlog.get_works(
+                    key=self.key, page=page, sort='created', sort_order=sort, q=q
                 )
                 docs = add_availability(logged_book_data.docs, mode="openlibrary_work")
                 doc_count = logged_book_data.total_results
@@ -232,9 +238,10 @@ class MyBooksTemplate:
             else:
                 docs = self._prepare_data(logged_in_user)
 
+        # Reading log for non-logged in users.
         elif self.key in self.READING_LOG_KEYS and is_public:
-            logged_book_data = self.readlog.get_works(
-                self.key, page=page, sort='created', sort_order=sort, q=q
+            logged_book_data: LoggedBooksData = self.readlog.get_works(  # type: ignore[no-redef]
+                key=self.key, page=page, sort='created', sort_order=sort, q=q
             )
             docs = add_availability(logged_book_data.docs, mode="openlibrary_work")
             doc_count = logged_book_data.total_results
@@ -294,15 +301,12 @@ class ReadingLog:
 
     """Manages the user's account page books (reading log, waitlists, loans)"""
 
+    # Constants
+    PRESET_SHELVES = Literal["Want to Read", "Already Read", "Currently Reading"]
+    READING_LOG_KEYS = Literal["want-to-read", "already-read", "currently-reading"]
+
     def __init__(self, user=None):
         self.user = user or accounts.get_current_user()
-        self.KEYS = {
-            'waitlists': self.get_waitlisted_editions,
-            'loans': self.get_loans,
-            'want-to-read': self.get_want_to_read,
-            'currently-reading': self.get_currently_reading,
-            'already-read': self.get_already_read,
-        }
 
     @property
     def lists(self):
@@ -344,91 +348,9 @@ class ReadingLog:
             ),
         }
 
-    def get_loans(self):
-        return borrow.get_loans(self.user)
-
-    def get_waitlist_summary(self):
-        return self.user.get_waitinglist()
-
-    def get_waitlisted_editions(self):
-        """Gets a list of records corresponding to a user's waitlisted
-        editions, fetches all the editions, and then inserts the data
-        from each waitlist record (e.g. position in line) into the
-        corresponding edition
-        """
-        waitlists = self.user.get_waitinglist()
-        keyed_waitlists = {w['identifier']: w for w in waitlists}
-        ocaids = [i['identifier'] for i in waitlists]
-        edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": ocaids})
-        editions = web.ctx.site.get_many(edition_keys)
-        for i in range(len(editions)):
-            # insert the waitlist_entry corresponding to this edition
-            editions[i].waitlist_record = keyed_waitlists[editions[i].ocaid]
-        return editions
-
-    def get_want_to_read(
-        self,
-        page=1,
-        limit=RESULTS_PER_PAGE,
-        sort='created',
-        sort_order='desc',
-        q="",
-    ) -> LoggedBooksData:
-        """Get want-to-read items from the reading log."""
-        logged_books: LoggedBooksData = Bookshelves.get_users_logged_books(
-            self.user.get_username(),
-            bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Want to Read'],
-            page=page,
-            limit=limit,
-            sort=sort + ' ' + sort_order,
-            q=q,
-        )
-
-        return logged_books
-
-    def get_currently_reading(
-        self,
-        page=1,
-        limit=RESULTS_PER_PAGE,
-        sort='created',
-        sort_order='desc',
-        q="",
-    ) -> LoggedBooksData:
-        """Get currently-reading items from the reading log."""
-        logged_books: LoggedBooksData = Bookshelves.get_users_logged_books(
-            self.user.get_username(),
-            bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Currently Reading'],
-            page=page,
-            limit=limit,
-            sort=sort + ' ' + sort_order,
-            q=q,
-        )
-
-        return logged_books
-
-    def get_already_read(
-        self,
-        page=1,
-        limit=RESULTS_PER_PAGE,
-        sort='created',
-        sort_order='desc',
-        q="",
-    ) -> LoggedBooksData:
-        """Get already-read items from the reading log."""
-        logged_books: LoggedBooksData = Bookshelves.get_users_logged_books(
-            self.user.get_username(),
-            bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Already Read'],
-            page=page,
-            limit=limit,
-            sort=sort + ' ' + sort_order,
-            q=q,
-        )
-
-        return logged_books
-
     def get_works(
         self,
-        key: str,
+        key: READING_LOG_KEYS,
         page: int = 1,
         limit: int = RESULTS_PER_PAGE,
         sort: str = 'created',
@@ -436,24 +358,39 @@ class ReadingLog:
         q: str = "",
     ) -> LoggedBooksData:
         """
-        Get works for waitlists, loans, want-to-read, currently-reading, and
-        already-read by invoking the value-function corresponding to the
-        dictionary key in self.KEYS.
+        Get works for want-to-read, currently-reading, and already-read as
+        determined by {key}.
 
         See LoggedBooksData for specifics on what's returned.
         """
-        key = key.lower()
-        if key in self.KEYS:
-            return self.KEYS[key](
-                page=page,
-                limit=limit,
-                sort=sort,
-                sort_order=sort_order,
-                q=q,
+        if key == "want-to-read":
+            shelf = "Want to Read"
+        elif key == "already-read":
+            shelf = "Already Read"
+        elif key == "currently-reading":
+            shelf = "Currently Reading"
+        else:
+            raise ValueError(
+                "key must be want-to-read, already-read, or currently-reading"
             )
-        else:  # must be a list or invalid page!
-            # works = web.ctx.site.get_many([ ... ])
-            raise
+        # Mypy is unhappy about the sort argument not being a literal string.
+        # Although this doesn't satisfy Mypy, at least make sure sort is either
+        # "created asc" or "created desc"
+        if sort + " " + sort_order == "created asc":
+            sort_literal = "created_asc"
+        else:
+            sort_literal = "created desc"
+
+        logged_books: LoggedBooksData = Bookshelves.get_users_logged_books(
+            self.user.get_username(),
+            bookshelf_id=Bookshelves.PRESET_BOOKSHELVES[shelf],
+            page=page,
+            limit=limit,
+            sort=sort_literal,  # type: ignore[arg-type]
+            q=q,
+        )
+
+        return logged_books
 
 
 @public
