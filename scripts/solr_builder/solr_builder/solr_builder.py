@@ -568,7 +568,6 @@ async def main(
             await update_keys(
                 keys,
                 commit=False,
-                commit_way_later=True,
                 skip_id_check=skip_solr_id_check,
                 update='quiet' if dry_run else 'update',
             )

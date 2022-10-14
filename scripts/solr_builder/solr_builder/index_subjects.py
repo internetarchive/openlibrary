@@ -46,11 +46,8 @@ async def index_subjects(
         for [subject_name, work_count] in facets
     ]
 
-    # TODO: Move commit_way_later into solr_update
-    commit_way_later_ms = 1000 * 60 * 60 * 24 * 5  # 5 days?
     await solr_insert_documents(
         docs,
-        commit_within=commit_way_later_ms,
         solr_base_url=solr_base_url,
         skip_id_check=skip_id_check,
     )

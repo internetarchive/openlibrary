@@ -242,46 +242,6 @@ async def update_keys(keys):
     return count
 
 
-class Solr:
-    def __init__(self):
-        self.reset()
-
-    def reset(self):
-        self.total_docs = 0
-        self.t_start = time.time()
-
-    def commit(self, ndocs):
-        """Performs solr commit only if there are sufficient number
-        of documents or enough time has been passed since last commit.
-        """
-        self.total_docs += ndocs
-
-        # no documents to commit
-        if not self.total_docs:
-            return
-
-        dt = time.time() - self.t_start
-        if self.total_docs > 100 or dt > 60:
-            logger.info(
-                "doing solr commit (%d docs updated, last commit was %0.1f seconds ago)",
-                self.total_docs,
-                dt,
-            )
-            self._solr_commit()
-            self.reset()
-        else:
-            logger.debug(
-                "skipping solr commit (%d docs updated, last commit was %0.1f seconds ago)",
-                self.total_docs,
-                dt,
-            )
-
-    def _solr_commit(self):
-        logger.info("BEGIN commit")
-        update_work.solr_update([CommitRequest()])
-        logger.info("END commit")
-
-
 async def main(
     ol_config: str,
     debugger: bool = False,
@@ -292,7 +252,6 @@ async def main(
     solr_next: bool = False,
     socket_timeout: int = 10,
     load_ia_scans: bool = False,
-    commit: bool = True,
     initial_state: str = None,
 ):
     """
@@ -339,8 +298,6 @@ async def main(
     )
     logfile.seek(offset)
 
-    solr = Solr()
-
     while True:
         records = logfile.read_records()
         keys = parse_log(records, load_ia_scans)
@@ -351,11 +308,6 @@ async def main(
             logger.info("saving offset %s", offset)
             with open(state_file, "w") as f:
                 f.write(offset)
-
-        if commit:
-            solr.commit(ndocs=count)
-        else:
-            logger.info("not doing solr commit as commit is off")
 
         # don't sleep after committing some records.
         # While the commit was on, some more edits might have happened.
