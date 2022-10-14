@@ -675,8 +675,8 @@ $if is_privileged_user:
                     $ provider_index = provider_index + 1
             </tbody>
         </table>
+        <a href="javascript:;" id="add-new-provider-row" data-index="$provider_index">$_("Add a provider")</a>
     </fieldset>
-    <a href="javascript:;" id="add-new-provider-row" data-index="$provider_index">$_("Add a provider")</a>
 
 $if ctx.user and ctx.user.is_admin():
     <fieldset class="major adminOnly">
