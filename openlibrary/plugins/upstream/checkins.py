@@ -14,7 +14,7 @@ from openlibrary.core.bookshelves_events import BookshelvesEvents, BookshelfEven
 from openlibrary.utils.decorators import authorized_for
 
 
-def make_date_string(year: int, month: Optional[int], day: Optional[int]) -> str:
+def make_date_string(year: int, month: int | None, day: int | None) -> str:
     """Creates a date string in 'YYYY-MM-DD' format, given the year, month, and day.
 
     Month and day can be None.  If the month is None, only the year is returned.
