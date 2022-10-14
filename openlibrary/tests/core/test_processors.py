@@ -34,7 +34,7 @@ class MockSite:
 
 def test_MockSite():
     site = MockSite()
-    assert site.get("/books/OL1M") == None
+    assert site.get("/books/OL1M") is None
 
     book = {"key": "/books/OL1M", "type": {"key": "/type/edition"}, "title": "foo"}
     site.add(book)
@@ -72,7 +72,7 @@ def test_get_object():
     assert f("/books/OL1M") == "/books/OL1M"
     assert f("/b/OL1M") == "/books/OL1M"
     assert f("/whatever/OL1M") == "/books/OL1M"
-    assert f("/not-there") == None
+    assert f("/not-there") is None
 
 
 _mock_site = _get_mock_site()

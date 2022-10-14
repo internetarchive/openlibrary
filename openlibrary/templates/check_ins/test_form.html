@@ -1,0 +1,63 @@
+$def with()
+
+<div style="padding: 10px;">
+  <h2>Submit a new check-in</h2>
+  <form name="check-in">
+    <label>
+      Year:
+      <input type="number" name="ci-year">
+    </label>
+    <label>
+      Month:
+      <input type="number" name="ci-month">
+    </label>
+    <label>
+      Day:
+      <input type="number" name="ci-day">
+    </label>
+    <br>
+    <label>
+      Edition OLID:
+      <input type="text" name="ci-edition-olid">
+    </label>
+    <br>
+    <label>
+      Event Type:
+      <input type="text" name="ci-event-type">
+    </label>
+    <button type="button" onclick="submitCheckIn()">Submit</button>
+  </form>
+  <hr>
+  <div id="ci-results">
+
+  </div>
+  <script>
+    const resultsDiv = document.querySelector('#ci-results')
+
+    function submitCheckIn() {
+      const form = document.forms['check-in']
+      data = {
+        event_type: form['ci-event-type'].value,
+        edition_olid: form['ci-edition-olid'].value,
+        year: Number(form['ci-year'].value),
+        month: Number(form['ci-month'].value),
+        day: Number(form['ci-day'].value)
+      }
+      console.log(data)
+      \$.ajax({
+        method: 'POST',
+        dataType: 'json',
+        data: JSON.stringify(data)
+      })
+        .done(function(data){
+          resultsDiv.innerHTML = 'Success!'
+        })
+        .fail(function(data) {
+          resultsDiv.innerHTML = '<span style="color:red;">Something went wrong...</span>'
+        })
+        .always(function(data) {
+          console.log(data)
+        })
+    }
+  </script>
+</div>

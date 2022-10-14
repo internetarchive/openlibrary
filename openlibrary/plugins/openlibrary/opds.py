@@ -102,7 +102,7 @@ class OPDS:
     # create_root()
     # ___________________________________________________________________________
     def create_root(self, root_name):
-        ### TODO: add updated element and uuid element
+        # ## TODO: add updated element and uuid element
         opds = ET.Element(OPDS.atom + root_name, nsmap=OPDS.nsmap)
 
         return opds

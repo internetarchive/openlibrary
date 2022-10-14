@@ -73,7 +73,7 @@ class import_edition_builder:
         return self.edition_dict
 
     def add(self, key, val, restrict_keys=True):
-        if restrict_keys and not key in self.type_dict:
+        if restrict_keys and key not in self.type_dict:
             print('import_edition_builder invalid key: ' + key)
             return
 

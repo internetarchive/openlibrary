@@ -224,11 +224,15 @@ class resolve_redirects:
     def main(self, test=False):
         params = web.input(key='', test='')
 
+        # Provide an escape hatch to let GET requests resolve
+        if test is True and params.test == 'false':
+            test = False
+
         # Provide an escape hatch to let POST requests preview
-        if test is False and params.test:
+        elif test is False and params.test:
             test = True
 
-        summary = Work.get_redirect_chain(params.key, test=test)
+        summary = Work.resolve_redirect_chain(params.key, test=test)
 
         return delegate.RawText(json.dumps(summary), content_type="application/json")
 

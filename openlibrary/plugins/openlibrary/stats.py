@@ -13,14 +13,11 @@ from infogami.utils.app import find_page, find_view, find_mode
 from openlibrary.core import stats as graphite_stats
 import web
 from infogami import config
-from infogami.utils import (
-    delegate,
-    stats,
-)
+from infogami.utils import delegate, stats
 
 import openlibrary.plugins.openlibrary.filters as stats_filters
 
-l = logging.getLogger("openlibrary.stats")
+logger = logging.getLogger("openlibrary.stats")
 TIME_BUCKETS = [10, 100, 1000, 5000, 10000, 20000]  # in ms
 
 filters: dict[str, Any] = {}
@@ -35,7 +32,7 @@ def evaluate_and_store_stat(name, stat, summary):
     try:
         f = filters[stat.filter]
     except KeyError:
-        l.warning("Filter %s not registered", stat.filter)
+        logger.warning("Filter %s not registered", stat.filter)
         return
     try:
         if f(**stat):
@@ -46,10 +43,10 @@ def evaluate_and_store_stat(name, stat, summary):
                 # XXX-Anand: where is the code to update counts?
                 pass
             else:
-                l.warning("No storage item specified for stat %s", name)
+                logger.warning("No storage item specified for stat %s", name)
     except Exception as k:
-        l.warning("Error while storing stats (%s). Complete traceback follows" % k)
-        l.warning(traceback.format_exc())
+        logger.warning("Error while storing stats (%s). Complete traceback follows" % k)
+        logger.warning(traceback.format_exc())
 
 
 def update_all_stats(stats_summary):

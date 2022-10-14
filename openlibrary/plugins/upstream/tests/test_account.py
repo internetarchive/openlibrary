@@ -297,7 +297,7 @@ class TestAccount:
         assert b.path == "/account"
 
         b.reset()
-        assert self.login(b, "foo", "more_secret") == True
+        assert self.login(b, "foo", "more_secret") is True
 
     def test_change_email(self, ol):
         b = ol.browser()

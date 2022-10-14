@@ -13,7 +13,7 @@ class GZipMiddleware:
 
     def __call__(self, environ, start_response):
         accept_encoding = environ.get("HTTP_ACCEPT_ENCODING", "")
-        if not 'gzip' in accept_encoding:
+        if 'gzip' not in accept_encoding:
             return self.app(environ, start_response)
 
         response = web.storage(compress=False)

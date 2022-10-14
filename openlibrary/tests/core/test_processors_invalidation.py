@@ -114,7 +114,7 @@ class TestInvalidationProcessor:
         p.reload()
 
         # until next 60 seconds, is_timeout must be false.
-        assert p.is_timeout() == False
+        assert p.is_timeout() is False
 
     def test_reload_on_cookie(self, monkeypatch):
         self._monkeypatch_web(monkeypatch)

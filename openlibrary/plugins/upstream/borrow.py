@@ -32,7 +32,7 @@ import urllib
 
 logger = logging.getLogger("openlibrary.borrow")
 
-########## Constants
+# ######### Constants
 
 lending_library_subject = 'Lending library'
 in_library_subject = 'In library'
@@ -69,7 +69,8 @@ except AttributeError:
 
 bookreader_stream_base = f'https://{bookreader_host}/stream'
 
-########## Page Handlers
+
+# ######### Page Handlers
 
 # Handler for /books/{bookid}/{title}/borrow
 class checkout_with_ocaid(delegate.page):
@@ -470,7 +471,7 @@ class ia_borrow_notify(delegate.page):
             waitinglist.on_waitinglist_update(identifier)
 
 
-########## Public Functions
+# ######### Public Functions
 
 
 @public
@@ -522,7 +523,7 @@ def get_bookreader_host():
     return bookreader_host
 
 
-########## Helper Functions
+# ######### Helper Functions
 
 
 def get_all_store_values(**query):
