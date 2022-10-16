@@ -43,7 +43,7 @@
     "@storybook/addon-actions": "6.3.8",
     "@storybook/addon-essentials": "6.3.8",
     "@storybook/addon-links": "6.3.8",
-    "@storybook/storybook-deployer": "2.8.10",
+    "@storybook/storybook-deployer": "2.8.12",
     "@storybook/vue": "6.3.8",
     "@vue/cli": "4.5.13",
     "@vue/cli-plugin-babel": "4.5.13",
