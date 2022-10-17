@@ -1,4 +1,6 @@
-from typing import TypedDict, Literal, cast, TypeVar, Generic
+from dataclasses import dataclass
+import logging
+from typing import Optional, TypedDict, Union, Literal, cast, TypeVar, Generic
 from collections.abc import Callable, Iterator
 
 import web
@@ -8,6 +10,11 @@ from openlibrary.app import render_template
 from openlibrary.plugins.upstream.models import Edition
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 from openlibrary.utils import OrderedEnum, multisort_best
+
+
+logger = logging.getLogger("openlibrary.book_providers")
+
+ProviderAccessLiteral = Literal['sample', 'buy', 'open-access', 'borrow', 'subscribe']
 
 
 class EbookAccess(OrderedEnum):
@@ -20,6 +27,85 @@ class EbookAccess(OrderedEnum):
 
     def to_solr_str(self):
         return self.name.lower()
+
+    @staticmethod
+    def from_provider_literal(literal: ProviderAccessLiteral) -> 'EbookAccess':
+        if literal == 'sample':
+            # We need to update solr to handle these! Requires full reindex
+            return EbookAccess.PRINTDISABLED
+        elif literal == 'buy':
+            return EbookAccess.NO_EBOOK
+        elif literal == 'open-access':
+            return EbookAccess.PUBLIC
+        elif literal == 'borrow':
+            return EbookAccess.BORROWABLE
+        elif literal == 'subscribe':
+            return EbookAccess.NO_EBOOK
+        else:
+            raise ValueError(f'Unknown access literal: {literal}')
+
+
+@dataclass
+class EbookProvider:
+    access: ProviderAccessLiteral
+    format: Literal['web', 'pdf', 'epub', 'audio']
+    price: str | None
+    url: str
+    provider_name: str | None = None
+
+    @property
+    def ebook_access(self) -> EbookAccess:
+        return EbookAccess.from_provider_literal(self.access)
+
+    @staticmethod
+    def from_json(json: dict) -> 'EbookProvider':
+        if 'href' in json:
+            # OPDS-style provider
+            return EbookProvider.from_opds_json(json)
+        elif 'url' in json:
+            # Pressbooks/OL-style
+            return EbookProvider(
+                access=json.get('access', 'open-access'),
+                format=json.get('format', 'web'),
+                price=json.get('price', None),
+                url=json['url'],
+                provider_name=json.get('provider_name', None),
+            )
+        else:
+            raise ValueError(f'Unknown ebook provider format: {json}')
+
+    @staticmethod
+    def from_opds_json(json: dict) -> 'EbookProvider':
+        if json.get('properties', {}).get('indirectAcquisition', None):
+            mimetype = json['properties']['indirectAcquisition'][0]['type']
+        else:
+            mimetype = json['type']
+
+        fmt: Literal['web', 'pdf', 'epub', 'audio'] = 'web'
+        if mimetype.startswith('audio/'):
+            fmt = 'audio'
+        elif mimetype == 'application/pdf':
+            fmt = 'pdf'
+        elif mimetype == 'application/epub+zip':
+            fmt = 'epub'
+        elif mimetype == 'text/html':
+            fmt = 'web'
+        else:
+            logger.warn(f'Unknown mimetype: {mimetype}')
+            fmt = 'web'
+
+        if json.get('properties', {}).get('price', None):
+            price = f"{json['properties']['price']['value']} {json['properties']['price']['currency']}"
+        else:
+            price = None
+
+        return EbookProvider(
+            access=json['rel'].split('/')[-1],
+            format=fmt,
+            price=price,
+            url=json['href'],
+            provider_name=json.get('name'),
+        )
 
 
 class IALiteMetadata(TypedDict):
@@ -243,43 +329,43 @@ class DirectProvider(AbstractBookProvider):
         return None
 
     def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> list[str]:
-        NS = 'http://opds-spec.org'
         # It's an edition
         if ed_or_solr.get('providers'):
             return [
-                b.get('url') or b.get('href')
-                for b in ed_or_solr['providers']
-                if b.get('url')
-                or (
-                    b.get('rel')
-                    in (
-                        f"{NS}/acquisition/open-access",
-                        f"{NS}/acquisition/sample",
-                    )
-                )
+                provider.url
+                for provider in map(EbookProvider.from_json, ed_or_solr['providers'])
+                if provider.ebook_access >= EbookAccess.PRINTDISABLED
             ]
         else:
             # TODO: Not implemented for search/solr yet
             return []
 
     def render_read_button(self, ed_or_solr: Union[Edition, dict]):
-        NS = 'http://opds-spec.org'
-
-        def acq_sort(b):
-            if b.get('url') or b.get('rel') == f'{NS}/acquisition/open-access':
-                return 0
-            elif b.get('rel') == f'{NS}/acquisition/sample':
-                return 1
-            else:
-                return 2
-
         acq_sorted = sorted(
-            (p for p in ed_or_solr.get('providers', []) if acq_sort(p) < 2),
-            key=acq_sort,
+            (
+                p
+                for p in map(EbookProvider.from_json, ed_or_solr.get('providers', []))
+                if p.ebook_access >= EbookAccess.PRINTDISABLED
+            ),
+            key=lambda p: p.ebook_access,
+            reverse=True,
         )
         if not acq_sorted:
             return ''
         return render_template(self.get_template_path('read_button'), acq_sorted[0])
+
+    def get_access(
+        self,
+        edition: dict,
+        metadata: TProviderMetadata | None = None,
+    ) -> EbookAccess:
+        """
+        Return the access level of the edition.
+        """
+        # For now assume 0 is best
+        return EbookAccess.from_provider_literal(
+            EbookProvider.from_json(edition['providers'][0]).access
+        )
 
 
 PROVIDER_ORDER: list[AbstractBookProvider] = [
