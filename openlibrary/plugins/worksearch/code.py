@@ -301,7 +301,9 @@ def do_search(
         page,
         sort,
         spellcheck_count,
-        fields=list(WorkSearchScheme.default_fetched_fields | {'editions'}),
+        fields=list(
+            WorkSearchScheme.default_fetched_fields | {'editions', 'providers'}
+        ),
     )
 
 
