@@ -114,7 +114,7 @@ class Solr:
 
         json_data = self.raw_request(
             'select',
-            urlencode(params, doSeq=True),
+            urlencode(params, doseq=True),
         ).json()
         return self._parse_solr_result(
             json_data, doc_wrapper=doc_wrapper, facet_wrapper=facet_wrapper
