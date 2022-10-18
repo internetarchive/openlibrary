@@ -309,14 +309,18 @@ def do_search(
     :param spellcheck_count: Not really used; should probably drop
     """
 
+    fields = WorkSearchScheme.default_fetched_fields | {'editions', 'providers'}
     if web.cookies(sfw="").sfw == 'yes':
-        fields = list(
-            WorkSearchScheme.default_fetched_fields | {'editions'} | {'subject'}
-        )
-    else:
-        fields = list(WorkSearchScheme.default_fetched_fields | {'editions'})
+        fields |= {'subject'}
+
     return run_solr_query(
-        WorkSearchScheme(), param, rows, page, sort, spellcheck_count, fields=fields
+        WorkSearchScheme(),
+        param,
+        rows,
+        page,
+        sort,
+        spellcheck_count,
+        fields=list(fields),
     )
 
 
