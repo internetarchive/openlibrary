@@ -257,14 +257,14 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
         )
 
     @staticmethod
-    def _make_lcp_url(format: Literal['lcp_pdf', 'lcp_epub'], ocaid: str) -> str:
+    def _make_lcp_url(format: Literal['.lcpdf', 'lcp_epub'], ocaid: str) -> str:
         endpoint = 'https://books-yaz.archive.org/services/loans/loan/'
         params = {
             'action': 'borrow_book',
             'opds': '1',
             'redirect': '1',
             'identifier': ocaid,
-            'format': format,
+            'format': 'lcp_pdf' if format == '.lcpdf' else format,
         }
         return f'{endpoint}?{urllib.parse.urlencode(params)}'
 
@@ -274,8 +274,8 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
 
         formats = {}
         if edition.is_access_restricted():
-            if self._has_file_suffix(edition.ia_metadata, '_lcp.pdf'):
-                formats['lcp_pdf'] = self._make_lcp_url('lcp_pdf', edition.ocaid)
+            if self._has_file_suffix(edition.ia_metadata, '.lcpdf'):
+                formats['lcp_pdf'] = self._make_lcp_url('.lcpdf', edition.ocaid)
             if self._has_file_suffix(edition.ia_metadata, '_lcp.epub'):
                 formats['lcp_epub'] = self._make_lcp_url('lcp_epub', edition.ocaid)
         else:
