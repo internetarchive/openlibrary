@@ -209,6 +209,18 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
         # Most providers are for public-only ebooks right now
         return EbookAccess.PUBLIC
 
+    def get_ebook_providers(
+        self,
+        edition: Edition,
+    ) -> list[EbookProvider]:
+        """
+        Return a list of EbookProvider objects for the edition.
+        """
+        if edition.providers:
+            return [EbookProvider.from_json(dict(p)) for p in edition.providers]
+        else:
+            return []
+
 
 class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
     short_name = 'ia'
@@ -292,6 +304,23 @@ class LibriVoxProvider(AbstractBookProvider):
     def is_own_ocaid(self, ocaid: str) -> bool:
         return 'librivox' in ocaid
 
+    def get_ebook_providers(
+        self,
+        edition: Edition,
+    ) -> list[EbookProvider]:
+        """
+        Return a list of EbookProvider objects for the edition.
+        """
+        return [
+            EbookProvider(
+                access='open-access',
+                format='audio',
+                price=None,
+                url=f'https://librivox.org/{self.get_best_identifier(edition)}',
+                provider_name=self.short_name,
+            )
+        ]
+
 
 class ProjectGutenbergProvider(AbstractBookProvider):
     short_name = 'gutenberg'
@@ -299,6 +328,23 @@ class ProjectGutenbergProvider(AbstractBookProvider):
 
     def is_own_ocaid(self, ocaid: str) -> bool:
         return ocaid.endswith('gut')
+
+    def get_ebook_providers(
+        self,
+        edition: Edition,
+    ) -> list[EbookProvider]:
+        """
+        Return a list of EbookProvider objects for the edition.
+        """
+        return [
+            EbookProvider(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'https://www.gutenberg.org/ebooks/{self.get_best_identifier(edition)}',
+                provider_name=self.short_name,
+            )
+        ]
 
 
 class StandardEbooksProvider(AbstractBookProvider):
@@ -309,6 +355,33 @@ class StandardEbooksProvider(AbstractBookProvider):
         # Standard ebooks isn't archived on IA
         return False
 
+    def get_ebook_providers(
+        self,
+        edition: Edition,
+    ) -> list[EbookProvider]:
+        """
+        Return a list of EbookProvider objects for the edition.
+        """
+        standard_ebooks_id = self.get_best_identifier(edition)
+        base_url = 'https://standardebooks.org/ebooks/' + standard_ebooks_id
+        flat_id = standard_ebooks_id.replace('/', '_')
+        return [
+            EbookProvider(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'{base_url}/text/single-page',
+                provider_name=self.short_name,
+            ),
+            EbookProvider(
+                access='open-access',
+                format='epub',
+                price=None,
+                url=f'{base_url}/downloads/{flat_id}.epub',
+                provider_name=self.short_name,
+            ),
+        ]
+
 
 class OpenStaxProvider(AbstractBookProvider):
     short_name = 'openstax'
@@ -316,6 +389,23 @@ class OpenStaxProvider(AbstractBookProvider):
 
     def is_own_ocaid(self, ocaid: str) -> bool:
         return False
+
+    def get_ebook_providers(
+        self,
+        edition: Edition,
+    ) -> list[EbookProvider]:
+        """
+        Return a list of EbookProvider objects for the edition.
+        """
+        return [
+            EbookProvider(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'https://openstax.org/details/books/{self.get_best_identifier(edition)}',
+                provider_name=self.short_name,
+            )
+        ]
 
 
 class CitaPressProvider(AbstractBookProvider):
