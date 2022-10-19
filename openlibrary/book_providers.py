@@ -63,9 +63,20 @@ class EbookProvider:
             # OPDS-style provider
             return EbookProvider.from_opds_json(json)
         elif 'url' in json:
+            # We have an inconsistency in our API
+            html_access: dict[str, ProviderAccessLiteral] = {
+                'read': 'open-access',
+                'listen': 'open-access',
+                'buy': 'buy',
+                'borrow': 'borrow',
+                'preview': 'sample',
+            }
+            access = json.get('access', 'open-access')
+            if access in html_access:
+                access = html_access[access]
             # Pressbooks/OL-style
             return EbookProvider(
-                access=json.get('access', 'open-access'),
+                access=access,
                 format=json.get('format', 'web'),
                 price=json.get('price', None),
                 url=json['url'],
