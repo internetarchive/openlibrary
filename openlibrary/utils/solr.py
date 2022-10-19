@@ -81,7 +81,7 @@ class Solr:
     ):
         """Execute a solr query.
 
-        query can be a string or a dicitonary. If query is a dictionary, query
+        query can be a string or a dictionary. If query is a dictionary, query
         is constructed by concatinating all the key-value pairs with AND condition.
         """
         params = {'wt': 'json'}
