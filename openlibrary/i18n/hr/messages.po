@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2022-08-18 19:58+0000\n"
-"PO-Revision-Date: 2022-08-19 14:38+0200\n"
+"PO-Revision-Date: 2022-10-21 14:06+0200\n"
 "Last-Translator: Milo Ivir <mail@milotype.de>\n"
 "Language-Team: \n"
 "Language: hr\n"
@@ -459,11 +459,11 @@ msgstr "Obnovi dijagram"
 
 #: publishers/view.html:34 subjects.html:40
 msgid "or continue zooming in."
-msgstr "ili uvećaj prikaz."
+msgstr "ili nastavi uvećavati prikaz."
 
 #: subjects.html:41
 msgid "This graph charts editions published on this subject."
-msgstr "Dijagram prikazuje objavljivanja izdanja u ovom području."
+msgstr "Dijagram prikazuje objavljena izdanja u ovom području."
 
 #: publishers/view.html:42 subjects.html:47
 msgid "Editions Published"
@@ -681,7 +681,7 @@ msgstr "Dodaj se u popis čekanja za „%(title)s”;"
 
 #: LoanStatus.html:107 widget.html:45
 msgid "Join Waitlist"
-msgstr "Dodaj se u popis čekanja"
+msgstr "Rezerviraj"
 
 #: widget.html:49
 #, python-format
@@ -982,7 +982,7 @@ msgstr "Uvezi iz Goodreads"
 #: account/import.html:18
 msgid "File size limit 10MB and .csv file type only"
 msgstr ""
-"Ograničenje veličine datoteke je 10 MB i samo datoteke u „.csv” formatu"
+"Ograničenje veličine datoteke je 10 MB i samo datoteke u „.csv” formatu"
 
 #: account/import.html:22
 msgid "Load Books"
@@ -1098,7 +1098,7 @@ msgid ""
 "Are you sure you want to leave the waiting list of<br/><strong>TITLE</"
 "strong>?"
 msgstr ""
-"Stvarno se želiš izbrisati iz popisa čekanja za<br/><strong>NASLOV</strong>?"
+"Stvarno se želiš izbrisati iz popisa čekanja za<br/><strong>TITLE</strong>?"
 
 #: account/loans.html:161 admin/loans_table.html:43 admin/menu.html:33
 #: merge_queue/merge_queue.html:52
@@ -1498,7 +1498,7 @@ msgstr "Ne sjećaš se lozinke za Archive.org?"
 
 #: account/email/forgot.html:15
 msgid "Forgot Your Open Library Email?"
-msgstr "Ne sjećaš se Open Library e-mail adrese?"
+msgstr "Ne sjećaš se svoje Open Library e-mail adrese?"
 
 #: account/password/forgot.html:7 account/password/sent.html:7
 msgid "Username/Password Reminder"
@@ -1845,7 +1845,7 @@ msgstr "Opcije preuzimanja"
 
 #: book_providers/gutenberg_download_options.html:15
 msgid "Download an HTML from Project Gutenberg"
-msgstr "Preuzmi HTML od Project Gutenberg"
+msgstr "Preuzmi HTML verziju od Project Gutenberg"
 
 #: book_providers/gutenberg_download_options.html:15
 #: book_providers/standard_ebooks_download_options.html:14
@@ -1863,7 +1863,7 @@ msgstr "Neformatirani tekst"
 
 #: book_providers/gutenberg_download_options.html:17
 msgid "Download an ePub from Project Gutenberg"
-msgstr "Preuzmi ePub od Project Gutenberg"
+msgstr "Preuzmi ePub verziju od Project Gutenberg"
 
 #: book_providers/gutenberg_download_options.html:18
 msgid "Download a Kindle file from Project Gutenberg"
@@ -1919,11 +1919,11 @@ msgstr "Preuzmi PDF datoteku od Internet Archive"
 
 #: book_providers/ia_download_options.html:14
 msgid "Download a text version from Internet Archive"
-msgstr "Preuzmi neformatirani tekst od Internet Archive"
+msgstr "Preuzmi tekstualnu verziju od Internet Archive"
 
 #: book_providers/ia_download_options.html:16
 msgid "Download an ePub from Internet Archive"
-msgstr "Preuzmi ePub datoteku od Internet Archive"
+msgstr "Preuzmi ePub verziju od Internet Archive"
 
 #: book_providers/ia_download_options.html:18
 msgid "Download a MOBI file from Internet Archive"
@@ -1952,7 +1952,7 @@ msgstr "Cijela knjiga MP3"
 
 #: book_providers/librivox_download_options.html:13
 msgid "Get the RSS Feed from LibriVox"
-msgstr "Nabavi RSS novosti od LibriVoxa"
+msgstr "Nabavi RSS novosti od LibriVox"
 
 #: book_providers/librivox_download_options.html:13
 msgid "RSS Feed"
@@ -1960,11 +1960,11 @@ msgstr "RSS novosti"
 
 #: book_providers/librivox_download_options.html:14
 msgid "More at LibriVox"
-msgstr "Više na LibriVoxu"
+msgstr "Više na LibriVox"
 
 #: book_providers/librivox_read_button.html:9
 msgid "Listen to a reading from LibriVox"
-msgstr "Slušaj čitanje od LibriVoxa"
+msgstr "Slušaj čitanje od LibriVox"
 
 #: book_providers/librivox_read_button.html:17
 msgid "Audiobook"
@@ -1977,7 +1977,7 @@ msgid ""
 "volunteers, distributed for free on the internet."
 msgstr ""
 "Ova je knjiga dostupna na <a href=\"https://librivox.org/\">LibriVoxu</a>. "
-"LibriVox je pouzdan pružatelj audio-knjiga u javnoj domeni, koje čitaju "
+"LibriVox je pouzdan pružatelj audio-knjiga u javnom vlasništvu, koje čitaju "
 "volonteri i distribuiraju se besplatno na internetu."
 
 #: book_providers/openstax_download_options.html:13
@@ -1986,11 +1986,11 @@ msgstr "Preuzmi PDF datoteku od OpenStax"
 
 #: book_providers/openstax_download_options.html:14
 msgid "More at OpenStax"
-msgstr "Više na OpenStaxu"
+msgstr "Više na OpenStax"
 
 #: book_providers/openstax_read_button.html:10
 msgid "Read eBook from OpenStax"
-msgstr "Čitaj e-knjigu od OpenStaxa"
+msgstr "Čitaj e-knjigu od OpenStax"
 
 #: book_providers/openstax_read_button.html:21
 msgid ""
@@ -2006,11 +2006,11 @@ msgstr ""
 
 #: book_providers/standard_ebooks_download_options.html:14
 msgid "Download an HTML from Standard Ebooks"
-msgstr "Preuzmi HTML od Standard Ebooks"
+msgstr "Preuzmi HTML verziju od Standard Ebooks"
 
 #: book_providers/standard_ebooks_download_options.html:15
 msgid "Download an ePub from Standard Ebook."
-msgstr "Preuzmi ePub datoteku od Standard Ebooks."
+msgstr "Preuzmi ePub verziju od Standard Ebooks"
 
 #: book_providers/standard_ebooks_download_options.html:16
 msgid "Download a Kindle file from Standard Ebooks"
@@ -2030,7 +2030,7 @@ msgstr "Kobo (kepub)"
 
 #: book_providers/standard_ebooks_download_options.html:18
 msgid "View the source code for this Standard Ebook at GitHub"
-msgstr "Pogledaj izvorni kod za ovu standardnu e-knjigu na GitHubu"
+msgstr "Pogledaj izvorni kod za ovu Standard Ebook e-knjigu na GitHubu"
 
 #: Subnavigation.html:13
 #: book_providers/standard_ebooks_download_options.html:18
@@ -2055,7 +2055,7 @@ msgid ""
 msgstr ""
 "Ova je knjiga dostupna na <a href=\"https://standardebooks.org/\">Standard "
 "Ebooks</a>. Standard Ebooks je pouzdan pružatelj knjiga i volonterski vođen "
-"projekt koji proizvodi nova izdanja e-knjiga u javnoj domeni, lijepo "
+"projekt koji proizvodi nova izdanja e-knjiga u javnom vlasništvu, lijepo "
 "formatirana, otvorenog koda, bez ograničenja autorskih prava i besplatna."
 
 #: books/add.html:7 books/check.html:10
@@ -2475,7 +2475,7 @@ msgstr "Ukloni ovog doprinositelja"
 
 #: books/edit/edition.html:265
 msgid "By Statement:"
-msgstr "Iskaz za autora:"
+msgstr "Iskaz:"
 
 #: books/edit/edition.html:276
 msgid "Languages"
@@ -2602,7 +2602,7 @@ msgstr "Poznaš li bilo koji identifikator za ovo izdanje?"
 
 #: books/edit/edition.html:424
 msgid "Like, ISBN?"
-msgstr "Na primjer, ISBN?"
+msgstr "Na primjer ISBN?"
 
 #: books/edit/edition.html:442 books/edit/edition.html:510
 msgid "Select one of many..."
@@ -2627,7 +2627,7 @@ msgstr "Poznaš li bilo koju klasifikaciju za ovo izdanje?"
 
 #: books/edit/edition.html:502
 msgid "Like, Dewey Decimal?"
-msgstr "Na primjer, kao Dewey decimalni?"
+msgstr "Na primjer Deweyevu decimalnu klasifikaciju?"
 
 #: books/edit/edition.html:515
 msgid "Add a new classification type"
@@ -3256,7 +3256,7 @@ msgstr "Vizija"
 
 #: lib/nav_foot.html:14
 msgid "Volunteer"
-msgstr "Volontiranje"
+msgstr "Volontiraj"
 
 #: lib/nav_foot.html:15
 msgid "Partner With Us"
@@ -3338,7 +3338,7 @@ msgstr "Razvij"
 
 #: lib/nav_foot.html:37
 msgid "Explore Open Library Developer Center"
-msgstr "Istraži centar Open Library programera"
+msgstr "Istraži Open Library centar programera"
 
 #: lib/nav_foot.html:37 lib/nav_head.html:43
 msgid "Developer Center"
@@ -4932,7 +4932,7 @@ msgstr "Prvi put izdano %(year)s."
 #: type/work/editions.html:14 type/work/editions_datatable.html:47
 #, python-format
 msgid "Add another edition of %(work)s"
-msgstr "Dodaj jedno drugo izdanje od %(work)s"
+msgstr "Dodaj jedno drugo izdanje za %(work)s"
 
 #: UserEditRow.html:25 type/work/editions.html:14
 msgid "Add another"
@@ -4946,14 +4946,14 @@ msgstr "Naslov nedostaje"
 #, python-format
 msgid "Showing one featured edition."
 msgid_plural "Showing %(count)d featured editions."
-msgstr[0] "Prikazuju se jedno preporučeno izdanje."
-msgstr[1] "Prikazuju se %(count)d preporučena izdanje."
-msgstr[2] "Prikazuju se %(count)d preporučenih izdanja."
+msgstr[0] "Prikazuje se jedno preporučeno izdanje."
+msgstr[1] "Prikazuju se %(count)d preporučena izdanja."
+msgstr[2] "Prikazuje se %(count)d preporučenih izdanja."
 
 #: type/work/editions_datatable.html:14
 #, python-format
 msgid "View all %(count)d editions?"
-msgstr "Pogledati sva %(count)s izdanja?"
+msgstr "Želiš li pogledati sva izdanja (%(count)d)?"
 
 #: type/work/editions_datatable.html:20
 msgid "Edition"
@@ -5063,8 +5063,7 @@ msgstr "Ti si <strong>sljedeći/a</strong> na popisu čekanja"
 #: LoanStatus.html:94
 #, python-format
 msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
-msgstr ""
-"Ti si <strong>%(spot)d.</strong> na redu od %(wlsize)d na popisu čekanja."
+msgstr "Ti si <strong>%(spot)d.</strong> od %(wlsize)d na popisu čekanja."
 
 #: LoanStatus.html:99
 msgid "Leave waiting list"
