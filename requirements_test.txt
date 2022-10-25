@@ -3,7 +3,7 @@
 # see .github/workflows/python_tests.yml for more details.
 
 -r requirements.txt
-debugpy>=1.6.0
+debugpy==1.6.3
 flake8==5.0.4
 mypy==0.982
 pymemcache==3.5.2
