@@ -91,12 +91,6 @@
     "key": "/languages/amh"
   },
   {
-    "code": "ang",
-    "type": "/type/language",
-    "name": "English, Old (ca. 450-1100)",
-    "key": "/languages/ang"
-  },
-  {
     "code": "apa",
     "type": "/type/language",
     "name": "Apache languages",
@@ -675,6 +669,12 @@
     "type": "/type/language",
     "name": "English, Middle (1100-1500)",
     "key": "/languages/enm"
+  },
+  {
+    "code": "ang",
+    "type": "/type/language",
+    "name": "English, Old (ca. 450-1100)",
+    "key": "/languages/ang"
   },
   {
     "code": "epo",
