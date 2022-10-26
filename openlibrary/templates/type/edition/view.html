@@ -312,7 +312,18 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
         $if edition:
           <h2 class="details-title" itemprop="name">$_("Book Details")</h2>
           <hr>
-          $if edition.publish_places:
+          $if is_privileged_user:
+            <h3 class="work-title" itemprop="name">$book_title</h3>
+            $if edition.subtitle:
+              <h3>
+                $edition.subtitle
+              </h3>
+            $if edition.edition_name:
+              <div class="work-line">
+                $edition.edition_name
+              </div>
+            $:render_template("type/edition/publisher_line", edition)
+          $if edition.publish_places and not is_privileged_user:
             <div class="section">
               <h3 class="edition-header">$_('Published in')</h3>
               <p>
