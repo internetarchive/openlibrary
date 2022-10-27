@@ -250,12 +250,15 @@ class Bookshelves(db.CommonExtras):
             date and edition ID.
             """
             # Create a mapping of work keys to ReadingLogItem from the reading log DB.
-            reading_log_store: dict[str, ReadingLogItem] = {}
-            for book in reading_log_books:
-                reading_log_store[f"/works/OL{book.work_id}W"] = ReadingLogItem(
+            reading_log_store: dict[str, ReadingLogItem] = {
+                f"/works/OL{book.work_id}W": ReadingLogItem(
                     logged_date=book.created,
-                    edition_id=f"/books/OL{book.edition_id}M",
+                    edition_id=f"/books/OL{book.edition_id}M"
+                    if book.edition_id is not None
+                    else "",
                 )
+                for book in reading_log_books
+            }
 
             # Insert {logged_edition} if present and {logged_date} into the Solr work.
             # These dates are not used for sort-by-added-date. The DB handles that.
@@ -263,7 +266,7 @@ class Bookshelves(db.CommonExtras):
             for doc in solr_docs:
                 if reading_log_record := reading_log_store.get(doc.key):
                     doc.logged_date = reading_log_record.logged_date
-                    doc.edition_id = reading_log_record.edition_id or ''
+                    doc.logged_edition = reading_log_record.edition_id
 
             return solr_docs
 
@@ -359,12 +362,14 @@ class Bookshelves(db.CommonExtras):
             reading_log_books: list[web.storage] = list(
                 oldb.query(query, vars=query_params)
             )
+
             reading_log_work_keys = [
                 '/works/OL%sW' % i['work_id'] for i in reading_log_books
             ]
             solr_docs = get_solr().get_many(
                 reading_log_work_keys,
-                fields=DEFAULT_SEARCH_FIELDS | {'subject', 'person', 'place', 'time'},
+                fields=DEFAULT_SEARCH_FIELDS
+                | {'subject', 'person', 'place', 'time', 'edition_key'},
             )
             solr_docs = add_storage_items_for_redirects(
                 reading_log_work_keys, solr_docs
