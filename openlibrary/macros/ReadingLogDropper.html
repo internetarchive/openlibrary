@@ -168,6 +168,8 @@ $if ctx.user or not work_key:
             </form>
         </div>
     </div>
+    $ id = 'dialog-%s' % work_key.split('/')[-1]
+    $:render_template('check_ins/dialog', id, work_key, edition_key=edition_key)
 $else:
   <div class="dropit">
       <div class="dropper on">

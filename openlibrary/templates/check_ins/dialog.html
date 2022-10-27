@@ -1,0 +1,51 @@
+$def with(id, work_key, edition_key=None)
+
+$# id : str : Unique identifier for the dialog element
+
+
+
+
+<style>
+  dialog {
+    border: none;
+  }
+  dialog::backdrop {
+    opacity: .5;
+    background-color: hsl(0, 0%, 0%);
+  }
+  .check-in-form {
+    display: flex;
+    flex-direction: column;
+  }
+  .check-in-form > span {
+    margin-bottom: 10px
+  }
+  .actions {
+    display: flex;
+    justify-content: space-between;
+  }
+
+</style>
+
+<dialog id="$(id)" class="native-dialog">
+  <form method="dialog" class="olform check-in-form" action="$(work_key)/check-ins" method="post">
+    $if edition_key:
+      <input type="hidden" id="edition-key" name="edition_key" value="$(edition_key)">
+    <span class="start-date hidden">
+      <label class="label">Start Date:</label>
+      <input type="number" name="start_year" placeholder="YYYY" min="1800" max="9999">
+      <input type="number" name="start_month" placeholder="MM" min="1" max="12">
+      <input type="number" name="start_day" placeholder="DD" min="1" max="31">
+    </span>
+    <span class="end-date hidden">
+      <label class="label">End Date:</label>
+      <input type="number" name="end_year" placeholder="YYYY" min="1800" max="9999">
+      <input type="number" name="end_month" placeholder="MM" min="1" max="12">
+      <input type="number" name="end_day" placeholder="DD" min="1" max="31">
+    </span>
+    <span class="actions">
+      <button class="close-dialog-btn">$_('Cancel')</button>
+      <button type="submit" class="submit-dialog-btn">$_('Submit')</button>
+    </span>
+  </form>
+</dialog>

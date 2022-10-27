@@ -36,9 +36,9 @@ export function initDroppers(droppers) {
         const anchors = dropper.querySelectorAll('.add-to-list');
         initAddToListAnchors(anchors, dropper)
 
-        const openModalButton = dropper.querySelector('.create-new-list')
-        if (openModalButton) {
-            addOpenModalClickListener(openModalButton)
+        const openListModalButton = dropper.querySelector('.create-new-list')
+        if (openListModalButton) {
+            addOpenListModalClickListener(openListModalButton)
 
             const createListButton = document.querySelector('#create-list-button')
             if (createListButton) {
@@ -147,7 +147,7 @@ function toggleDropper(dropper) {
  *
  * @param {HTMLButtonElement} submitButton Dropper's create list button.
  */
-function addOpenModalClickListener(submitButton) {
+function addOpenListModalClickListener(submitButton) {
     submitButton.addEventListener('click', function(event) {
         event.preventDefault()
 
@@ -245,6 +245,27 @@ function addReadingLogButtonClickListener(button) {
         primaryButton.children[1].innerText = 'saving...'
 
         const success = function() {
+            const actionInput = form.querySelector('input[name=action]')
+            if (actionInput.value === 'add') {
+                const bookshelfValue = form.querySelector('input[name=bookshelf_id]').value
+                const workKey = document.querySelector('input[name=work_id').value
+                const workOlid = workKey.split('/').slice(-1).pop()
+                const modal = document.querySelector(`#dialog-${workOlid}`)
+
+                if (bookshelfValue === '2') {  // Currently Reading
+                    const startDateElem = modal.querySelector('.start-date')
+                    startDateElem.classList.remove('hidden')
+                    modal.dataset.eventType = '1'
+                    modal.showModal()
+                }
+                else if (bookshelfValue === '3') {  // Already Read
+                    // Show end date
+                    const endDateElem = modal.querySelector('.end-date')
+                    endDateElem.classList.remove('hidden')
+                    modal.dataset.eventType = '3'
+                    modal.showModal()
+                }
+            }
             if (button.classList.contains('want-to-read')) {
                 // Primary button pressed
                 // Toggle checkmark
@@ -262,7 +283,6 @@ function addReadingLogButtonClickListener(button) {
                 dropClick.children[0].classList.toggle('arrow-unactivated')
 
                 //Toggle action value 'add' <-> 'remove'
-                const actionInput = form.querySelector('input[name=action]')
                 if (actionInput.value === 'add') {
                     actionInput.value = 'remove'
                 } else {

@@ -378,6 +378,12 @@ jQuery(function () {
             );
     }
 
+    const nativeDialogs = document.querySelectorAll('.native-dialog')
+    if (nativeDialogs.length) {
+        import(/* webpackChunkName: "dialog" */  './native-dialog')
+            .then(module => module.initDialogs(nativeDialogs))
+    }
+
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });
