@@ -100,7 +100,7 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
 
     # Only proceed if config finds infobase db creds
     if not config.infobase.get('db_parameters'):
-        logger.debug("DB Paremters missing from affiliate-server infobase")
+        logger.debug("DB parameters missing from affiliate-server infobase")
         return
 
     if books := [clean_amazon_metadata_for_load(product) for product in products]:
