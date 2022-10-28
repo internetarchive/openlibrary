@@ -32,6 +32,7 @@ import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONP
 
 import infogami
 from infogami import config
+from openlibrary.config import load_config as openlibrary_load_config
 from openlibrary.core import stats
 from openlibrary.core.imports import Batch
 from openlibrary.core.vendors import AmazonAPI, clean_amazon_metadata_for_load
@@ -98,7 +99,8 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
         )
 
     # Only proceed if config finds infobase db creds
-    if not config.get('db_parameters'):
+    if not config.infobase.get('db_parameters'):
+        logger.debug("DB parameters missing from affiliate-server infobase")
         return
 
     if books := [clean_amazon_metadata_for_load(product) for product in products]:
@@ -200,10 +202,7 @@ class Submit:
 
 
 def load_config(configfile):
-    infogami.load_config(configfile)
-
-    # if 'fastcgi' in d:
-    #    web.config.fastcgi = d['fastcgi']
+    openlibrary_load_config(configfile)
 
     web.amazon_api = None
     args = [
