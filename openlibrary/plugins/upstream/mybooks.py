@@ -74,7 +74,7 @@ class public_my_books_json(delegate.page):
                         'author_keys': [
                             '/authors/' + key for key in w.get('author_key', [])
                         ],
-                        'author_names': w.get('author_name'),
+                        'author_names': w.get('author_name', []),
                         'first_publish_year': w.get('first_publish_year') or None,
                         'lending_edition_s': (w.get('lending_edition_s') or None),
                         'edition_key': (w.get('edition_key') or None),

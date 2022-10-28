@@ -234,8 +234,6 @@ class Bookshelves(db.CommonExtras):
                         web.storage(
                             {
                                 "key": work_key,
-                                "author_name": ["Unknown author"],
-                                "title": "",
                             }
                         ),
                     )
