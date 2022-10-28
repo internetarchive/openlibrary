@@ -32,6 +32,7 @@ from openlibrary.plugins.upstream.utils import (
     get_language_name,
     urlencode,
 )
+from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.query_utils import (
     EmptyTreeError,
@@ -432,9 +433,6 @@ def build_q_from_params(param: dict[str, str]) -> str:
     return ' AND '.join(q_list)
 
 
-solr_session = requests.Session()
-
-
 def execute_solr_query(
     solr_path: str, params: Union[dict, list[tuple[str, Any]]]
 ) -> Optional[Response]:
@@ -445,7 +443,7 @@ def execute_solr_query(
 
     stats.begin("solr", url=url)
     try:
-        response = solr_session.get(url, timeout=10)
+        response = get_solr().raw_request(solr_path, urlencode(params))
         response.raise_for_status()
     except requests.HTTPError:
         logger.exception("Failed solr query")

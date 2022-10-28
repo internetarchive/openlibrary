@@ -26,11 +26,11 @@ $code:
   if doc_type == 'infogami_edition' and 'works' in doc:
     edition_work = doc['works'][0]
 
-  full_title = selected_ed.title + (': ' + selected_ed.subtitle if selected_ed.get('subtitle') else '')
+  full_title = selected_ed.get('title', '') + (': ' + selected_ed.subtitle if selected_ed.get('subtitle') else '')
   if doc_type == 'infogami_edition' and edition_work:
-    full_work_title = edition_work.title + (': ' + edition_work.subtitle if edition_work.get('subtitle') else '')
+    full_work_title = edition_work.get('title', '') + (': ' + edition_work.subtitle if edition_work.get('subtitle') else '')
   else:
-    full_work_title = doc.title + (': ' + doc.subtitle if doc.get('subtitle') else '')
+    full_work_title = doc.get('title', '') + (': ' + doc.subtitle if doc.get('subtitle') else '')
 
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book" $:attrs>
   <span class="bookcover">

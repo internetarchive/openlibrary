@@ -1,13 +1,18 @@
 import logging
-from datetime import date
-from typing import Literal, Optional, cast
+import web
+from dataclasses import dataclass
+from datetime import date, datetime
+from typing import Literal, Optional, cast, Any, Final
 from collections.abc import Iterable
+from openlibrary.plugins.worksearch.search import get_solr
 
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import db
 
 logger = logging.getLogger(__name__)
+
+FILTER_BOOK_LIMIT: Final = 30_000
 
 
 class Bookshelves(db.CommonExtras):
@@ -146,7 +151,7 @@ class Bookshelves(db.CommonExtras):
     @classmethod
     def count_total_books_logged_by_user_per_shelf(
         cls, username: str, bookshelf_ids: list[str] = None
-    ) -> dict[str, int]:
+    ) -> dict[int, int]:
         """Returns a dict mapping the specified user's bookshelves_ids to the
         number of number of books logged per each shelf, i.e. {bookshelf_id:
         count}. By default, we limit bookshelf_ids to those in PRESET_BOOKSHELVES
@@ -173,47 +178,234 @@ class Bookshelves(db.CommonExtras):
     def get_users_logged_books(
         cls,
         username: str,
-        bookshelf_id: str = None,
+        bookshelf_id: int = 0,
         limit: int = 100,
         page: int = 1,  # Not zero-based counting!
         sort: Literal['created asc', 'created desc'] = 'created desc',
-    ) -> list[dict]:
-        """Returns a list of Reading Log database records for books which
-        the user has logged. Records are described in core/schema.py
-        and include:
+        q: str = "",
+    ) -> Any:  # Circular imports prevent type hinting LoggedBooksData
+        """
+        Returns LoggedBooksData containing Reading Log database records for books that
+        the user has logged. Also allows filtering/searching the reading log shelves,
+        and sorting reading log shelves (when not filtering).
+
+        The returned records ultimately come from Solr so that, as much as possible,
+        these query results may be used by anything relying on logged book data.
 
         :param username: who logged this book
         :param bookshelf_id: the ID of the bookshelf, see: PRESET_BOOKSHELVES.
             If bookshelf_id is None, return books from all bookshelves.
+        :param q: an optional query string to filter the results.
         """
+        from openlibrary.core.models import LoggedBooksData
+        from openlibrary.plugins.worksearch.code import (
+            run_solr_query,
+            DEFAULT_SEARCH_FIELDS,
+        )
+
+        @dataclass
+        class ReadingLogItem:
+            """Holds the datetime a book was logged and the edition ID."""
+
+            logged_date: datetime
+            edition_id: str
+
+        def add_storage_items_for_redirects(
+            reading_log_work_keys: list[str], solr_docs: list[web.Storage]
+        ) -> list[web.storage]:
+            """
+            Use reading_log_work_keys to fill in missing redirected items in the
+            the solr_docs query results.
+
+            Solr won't return matches for work keys that have been redirected. Because
+            we use Solr to build the lists of storage items that ultimately gets passed
+            to the templates, redirected items returned from the reading log DB will
+            'disappear' when not returned by Solr. This remedies that by filling in
+            dummy works, albeit with the correct work_id.
+            """
+            for idx, work_key in enumerate(reading_log_work_keys):
+                corresponding_solr_doc = next(
+                    (doc for doc in solr_docs if doc.key == work_key), None
+                )
+
+                if not corresponding_solr_doc:
+                    solr_docs.insert(
+                        idx,
+                        web.storage(
+                            {
+                                "key": work_key,
+                            }
+                        ),
+                    )
+
+            return solr_docs
+
+        def add_reading_log_data(
+            reading_log_books: list[web.storage], solr_docs: list[web.storage]
+        ):
+            """
+            Adds data from ReadingLogItem to the Solr responses so they have the logged
+            date and edition ID.
+            """
+            # Create a mapping of work keys to ReadingLogItem from the reading log DB.
+            reading_log_store: dict[str, ReadingLogItem] = {
+                f"/works/OL{book.work_id}W": ReadingLogItem(
+                    logged_date=book.created,
+                    edition_id=f"/books/OL{book.edition_id}M"
+                    if book.edition_id is not None
+                    else "",
+                )
+                for book in reading_log_books
+            }
+
+            # Insert {logged_edition} if present and {logged_date} into the Solr work.
+            # These dates are not used for sort-by-added-date. The DB handles that.
+            # Currently only used in JSON requests.
+            for doc in solr_docs:
+                if reading_log_record := reading_log_store.get(doc.key):
+                    doc.logged_date = reading_log_record.logged_date
+                    doc.logged_edition = reading_log_record.edition_id
+
+            return solr_docs
+
+        def get_filtered_reading_log_books(
+            q: str, query_params: dict[str, str | int], filter_book_limit: int
+        ) -> LoggedBooksData:
+            """
+            Filter reading log books based an a query and return LoggedBooksData.
+            This does not work with sorting.
+
+            The reading log DB alone has access to who logged which book to their
+            reading log, so we need to get work IDs and logged info from there, query
+            Solr for more complete book information, and then put the logged info into
+            the Solr response.
+            """
+            # Filtering by query needs a larger limit as we need (ideally) all of a
+            # user's added works from the reading log DB. The logged work IDs are used
+            # to query Solr, which searches for matches related to those work IDs.
+            query_params["limit"] = filter_book_limit
+
+            query = (
+                "SELECT work_id, created, edition_id from bookshelves_books WHERE "
+                "bookshelf_id=$bookshelf_id AND username=$username "
+                "LIMIT $limit"
+            )
+
+            reading_log_books: list[web.storage] = list(
+                oldb.query(query, vars=query_params)
+            )
+            assert len(reading_log_books) <= filter_book_limit
+
+            # Wrap in quotes to avoid treating as regex. Only need this for fq
+            reading_log_work_keys = (
+                '"/works/OL%sW"' % i['work_id'] for i in reading_log_books
+            )
+            solr_resp = run_solr_query(
+                param={'q': q},
+                offset=query_params["offset"],
+                rows=limit,
+                facet=False,
+                # Putting these in fq allows them to avoid user-query processing, which
+                # can be (surprisingly) slow if we have ~20k OR clauses.
+                extra_params=[('fq', f'key:({" OR ".join(reading_log_work_keys)})')],
+            )
+            total_results = solr_resp.num_found
+
+            # Downstream many things expect a list of web.storage docs.
+            solr_docs = [web.storage(doc) for doc in solr_resp.docs]
+            solr_docs = add_reading_log_data(reading_log_books, solr_docs)
+
+            return LoggedBooksData(
+                username=username,
+                q=q,
+                page_size=limit,
+                total_results=total_results,
+                shelf_totals=shelf_totals,
+                docs=solr_docs,
+            )
+
+        def get_sorted_reading_log_books(
+            query_params: dict[str, str | int],
+            sort: Literal['created asc', 'created desc'],
+        ):
+            """
+            Get a page of sorted books from the reading log. This does not work with
+            filtering/searching the reading log.
+
+            The reading log DB alone has access to who logged which book to their
+            reading log, so we need to get work IDs and logged info from there, query
+            Solr for more complete book information, and then put the logged info into
+            the Solr response.
+            """
+            if sort == 'created desc':
+                query = (
+                    "SELECT work_id, created, edition_id from bookshelves_books WHERE "
+                    "bookshelf_id=$bookshelf_id AND username=$username "
+                    "ORDER BY created DESC "
+                    "LIMIT $limit OFFSET $offset"
+                )
+            else:
+                query = (
+                    "SELECT work_id, created, edition_id from bookshelves_books WHERE "
+                    "bookshelf_id=$bookshelf_id AND username=$username "
+                    "ORDER BY created ASC "
+                    "LIMIT $limit OFFSET $offset"
+                )
+            if not bookshelf_id:
+                query = "SELECT * from bookshelves_books WHERE username=$username"
+                # XXX Removing limit, offset, etc from data looks like a bug
+                # unrelated / not fixing in this PR.
+                query_params = {'username': username}
+
+            reading_log_books: list[web.storage] = list(
+                oldb.query(query, vars=query_params)
+            )
+
+            reading_log_work_keys = [
+                '/works/OL%sW' % i['work_id'] for i in reading_log_books
+            ]
+            solr_docs = get_solr().get_many(
+                reading_log_work_keys,
+                fields=DEFAULT_SEARCH_FIELDS
+                | {'subject', 'person', 'place', 'time', 'edition_key'},
+            )
+            solr_docs = add_storage_items_for_redirects(
+                reading_log_work_keys, solr_docs
+            )
+            assert len(solr_docs) == len(
+                reading_log_work_keys
+            ), "solr_docs is missing an item/items from reading_log_work_keys; see add_storage_items_for_redirects()"  # noqa E501
+
+            total_results = shelf_totals.get(bookshelf_id, 0)
+            solr_docs = add_reading_log_data(reading_log_books, solr_docs)
+
+            return LoggedBooksData(
+                username=username,
+                q=q,
+                page_size=limit,
+                total_results=total_results,
+                shelf_totals=shelf_totals,
+                docs=solr_docs,
+            )
+
+        shelf_totals = cls.count_total_books_logged_by_user_per_shelf(username)
         oldb = db.get_db()
         page = int(page or 1)
-        data = {
+        query_params: dict[str, str | int] = {
             'username': username,
             'limit': limit,
             'offset': limit * (page - 1),
             'bookshelf_id': bookshelf_id,
         }
-        if sort == 'created desc':
-            query = (
-                "SELECT * from bookshelves_books WHERE "
-                "bookshelf_id=$bookshelf_id AND username=$username "
-                "ORDER BY created DESC "
-                "LIMIT $limit OFFSET $offset"
+
+        # q won't have a value, and therefore filtering won't occur, unless len(q) >= 3,
+        # as limited in mybooks.my_books_view().
+        if q:
+            return get_filtered_reading_log_books(
+                q=q, query_params=query_params, filter_book_limit=FILTER_BOOK_LIMIT
             )
         else:
-            query = (
-                "SELECT * from bookshelves_books WHERE "
-                "bookshelf_id=$bookshelf_id AND username=$username "
-                "ORDER BY created ASC "
-                "LIMIT $limit OFFSET $offset"
-            )
-        if not bookshelf_id:
-            query = "SELECT * from bookshelves_books WHERE username=$username"
-            # XXX Removing limit, offset, etc from data looks like a bug
-            # unrelated / not fixing in this PR.
-            data = {'username': username}
-        return list(oldb.query(query, vars=data))
+            return get_sorted_reading_log_books(query_params=query_params, sort=sort)
 
     @classmethod
     def iterate_users_logged_books(cls, username: str) -> Iterable[dict]:

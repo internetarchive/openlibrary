@@ -1,6 +1,8 @@
-$def with (work, edition=None, redir_url=None, id='')
+$def with (work, edition=None, redir_url=None, id='', rating=None)
+
 $ username = ctx.user and ctx.user.key.split('/')[-1]
-$ rating = work and username and work.get_users_rating(username)
+$if rating is None and work and username:
+  $ rating = work.get_users_rating(username)
 $ edition_key = edition.key if edition else ""
 $ form_id = "ratingsForm%s" % id
 
