@@ -4,11 +4,6 @@ export function initDialogs(elems) {
         closeButton.addEventListener('click', function() {
             closeDialog(elem)
         })
-        const submitButton = elem.querySelector('.submit-dialog-btn')
-        submitButton.addEventListener('click', function(event) {
-            event.preventDefault()
-            submitEvent(elem)
-        })
         elem.addEventListener('click', function(event) {
 
             // Event target exclusions needed for FireFox, which sets mouse positions to zero on
@@ -17,7 +12,83 @@ export function initDialogs(elems) {
                 closeDialog(elem)
             }
         })
+        const submitButton = elem.querySelector('.submit-dialog-btn')
+        submitButton.addEventListener('click', function(event) {
+            event.preventDefault()
+            submitEvent(elem)
+        })
+
+        const yearSelect = elem.querySelector('select[name=year]')
+        yearSelect.addEventListener('change', function(event) {
+            onYearChange(elem, event.target.value)
+        })
+        const monthSelect = elem.querySelector('select[name=month]')
+        monthSelect.addEventListener('change', function(event) {
+            onMonthChange(elem, event.target.value)
+        })
     }
+}
+
+function onYearChange(parentElement, value) {
+    const monthSelect = parentElement.querySelector('select[name=month]')
+    const daySelect = parentElement.querySelector('select[name=day]')
+    const submitButton = parentElement.querySelector('.submit-dialog-btn')
+
+    if (value) {
+        monthSelect.disabled = false
+        submitButton.disabled = false
+
+        // Adjust for leap years:
+        if (monthSelect.value === '2') {
+            if (isLeapYear(Number(value))) {
+                daySelect.options[29].classList.remove('hidden')
+            } else {
+                daySelect.options[29].classList.add('hidden')
+                if (daySelect.value === '29') {
+                    daySelect.value = '28'
+                }
+            }
+        }
+    } else {
+        daySelect.value = ''
+        daySelect.disabled = true
+        monthSelect.value = ''
+        monthSelect.disabled = true
+        submitButton.disabled = true
+    }
+}
+
+function onMonthChange(parentElement, value) {
+    const daySelect = parentElement.querySelector('select[name=day]')
+
+    if (value) {
+        const yearSelect = parentElement.querySelector('select[name=year]')
+        const year = Number(yearSelect.value)
+        const month = Number(value)
+        let days = DAYS_IN_MONTH[month - 1]
+        if (month === 2 && isLeapYear(year)) {
+            ++days
+        }
+
+        for (let i = 0; i < daySelect.options.length; ++i) {
+            if (i <= days) {
+                daySelect.options[i].classList.remove('hidden')
+            } else {
+                daySelect.options[i].classList.add('hidden')
+            }
+        }
+
+        daySelect.disabled = false
+    } else {
+        daySelect.value = ''
+        daySelect.disabled = true
+    }
+}
+
+const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+function isLeapYear(year) {
+    return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)
 }
 
 function submitEvent(elem) {
@@ -67,6 +138,9 @@ function submitEvent(elem) {
 function resetSelects(selects) {
     for (const select of selects) {
         select.value = ''
+        if (select.name !== 'year') {
+            select.disabled = true
+        }
     }
 }
 

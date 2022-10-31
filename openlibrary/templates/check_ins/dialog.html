@@ -52,12 +52,12 @@ $code:
         $for i in range(120):
           <option value="$(year - i)">$(year - i)</option>
       </select>
-      <select name="month">
+      <select name="month" disabled>
         <option value="">$_('Month')</option>
         $for idx, month in enumerate(months):
           <option value="$(idx + 1)">$month</option>
       </select>
-      <select name="day">
+      <select name="day" disabled>
         <option value="">$_('Day')</option>
         $for i in range(31):
           <option value="$(i + 1)">$(i + 1)</option>
@@ -65,7 +65,7 @@ $code:
     </div>
     <span class="actions">
       <button class="close-dialog-btn">$_('Cancel')</button>
-      <button type="submit" class="submit-dialog-btn">$_('Submit')</button>
+      <button type="submit" class="submit-dialog-btn" disabled>$_('Submit')</button>
     </span>
   </form>
 </dialog>
