@@ -2,8 +2,22 @@ $def with(id, work_key, edition_key=None)
 
 $# id : str : Unique identifier for the dialog element
 
-
-
+$code:
+  year = current_year()
+  months = [
+    _('January'),
+    _('February'),
+    _('March'),
+    _('April'),
+    _('May'),
+    _('June'),
+    _('July'),
+    _('August'),
+    _('September'),
+    _('October'),
+    _('November'),
+    _('December'),
+  ]
 
 <style>
   dialog {
@@ -33,15 +47,39 @@ $# id : str : Unique identifier for the dialog element
       <input type="hidden" id="edition-key" name="edition_key" value="$(edition_key)">
     <span class="start-date hidden">
       <label class="label">Start Date:</label>
-      <input type="number" name="start_year" placeholder="YYYY" min="1800" max="9999">
-      <input type="number" name="start_month" placeholder="MM" min="1" max="12">
-      <input type="number" name="start_day" placeholder="DD" min="1" max="31">
+      <select name="start_year">
+        <option value="">$_('Year')</option>
+        $for i in range(120):
+          <option value="$(year - i)">$(year - i)</option>
+      </select>
+      <select name="start_month">
+        <option value="">$_('Month')</option>
+        $for idx, month in enumerate(months):
+          <option value="$(idx + 1)">$month</option>
+      </select>
+      <select name="start_day">
+        <option value="">$_('Day')</option>
+        $for i in range(31):
+          <option value="$(i + 1)">$(i + 1)</option>
+      </select>
     </span>
     <span class="end-date hidden">
       <label class="label">End Date:</label>
-      <input type="number" name="end_year" placeholder="YYYY" min="1800" max="9999">
-      <input type="number" name="end_month" placeholder="MM" min="1" max="12">
-      <input type="number" name="end_day" placeholder="DD" min="1" max="31">
+      <select name="end_year">
+        <option value="">$_('Year')</option>
+        $for i in range(120):
+          <option value="$(year - i)">$(year - i)</option>
+      </select>
+      <select name="end_month">
+        <option value="">$_('Month')</option>
+        $for idx, month in enumerate(months):
+          <option value="$(idx + 1)">$month</option>
+      </select>
+      <select name="end_day">
+        <option value="">$_('Day')</option>
+        $for i in range(31):
+          <option value="$(i + 1)">$(i + 1)</option>
+      </select>
     </span>
     <span class="actions">
       <button class="close-dialog-btn">$_('Cancel')</button>

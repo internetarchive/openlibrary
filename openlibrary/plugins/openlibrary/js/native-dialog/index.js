@@ -10,7 +10,10 @@ export function initDialogs(elems) {
             submitEvent(elem)
         })
         elem.addEventListener('click', function(event) {
-            if (isOutOfBounds(event, elem)) {
+
+            // Event target exclusions needed for FireFox, which sets mouse positions to zero on
+            // <select> and <option> clicks
+            if (isOutOfBounds(event, elem) && event.target.nodeName !== 'SELECT' && event.target.nodeName !== 'OPTION') {
                 closeDialog(elem)
             }
         })
@@ -24,18 +27,18 @@ function submitEvent(elem) {
     const editionField = elem.querySelector('#edition-key')
     const editionKey = editionField ? editionField.value : null
 
-    const startDayField = elem.querySelector('input[name=start_day]')
+    const startDayField = elem.querySelector('select[name=start_day]')
     const startDay = startDayField.value
-    const startMonthField = elem.querySelector('input[name=start_month]')
+    const startMonthField = elem.querySelector('select[name=start_month]')
     const startMonth = startMonthField.value
-    const startYearField = elem.querySelector('input[name=start_year]')
+    const startYearField = elem.querySelector('select[name=start_year]')
     const startYear = startYearField.value
 
-    const endDayField = elem.querySelector('input[name=end_day]')
+    const endDayField = elem.querySelector('select[name=end_day]')
     const endDay = endDayField.value
-    const endMonthField = elem.querySelector('input[name=end_month]')
+    const endMonthField = elem.querySelector('select[name=end_month]')
     const endMonth = endMonthField.value
-    const endYearField = elem.querySelector('input[name=end_year]')
+    const endYearField = elem.querySelector('select[name=end_year]')
     const endYear = endYearField.value
 
     const data = {event_type: Number(eventType)}
@@ -65,15 +68,15 @@ function submitEvent(elem) {
             xhr.setRequestHeader('Accept', 'application/json');
         },
         success: function() {
-            clearInputs(elem.querySelectorAll('input[type=number]'))
+            resetSelects(elem.querySelectorAll('select'))
             closeDialog(elem)
         }
     });
 }
 
-function clearInputs(inputs) {
-    for (const input of inputs) {
-        input.value = ''
+function resetSelects(selects) {
+    for (const select of selects) {
+        select.value = ''
     }
 }
 
