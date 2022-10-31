@@ -29,6 +29,23 @@ export function initDialogs(elems) {
     }
 }
 
+export function setDate(parentElement, year, month, day) {
+    const yearSelect = parentElement.querySelector('select[name=year]')
+    const monthSelect = parentElement.querySelector('select[name=month]')
+    const daySelect = parentElement.querySelector('select[name=day]')
+    const submitButton = parentElement.querySelector('.submit-dialog-btn')
+
+    yearSelect.value = year
+    monthSelect.value = month
+    daySelect.value = day
+
+    toggleDayVisibility(daySelect, DAYS_IN_MONTH[month - 1])
+
+    monthSelect.disabled = false
+    daySelect.disabled = false
+    submitButton.disabled = false
+}
+
 function onYearChange(parentElement, value) {
     const monthSelect = parentElement.querySelector('select[name=month]')
     const daySelect = parentElement.querySelector('select[name=day]')
@@ -70,18 +87,22 @@ function onMonthChange(parentElement, value) {
             ++days
         }
 
-        for (let i = 0; i < daySelect.options.length; ++i) {
-            if (i <= days) {
-                daySelect.options[i].classList.remove('hidden')
-            } else {
-                daySelect.options[i].classList.add('hidden')
-            }
-        }
+        toggleDayVisibility(daySelect, days)
 
         daySelect.disabled = false
     } else {
         daySelect.value = ''
         daySelect.disabled = true
+    }
+}
+
+function toggleDayVisibility(daySelect, daysInMonth) {
+    for (let i = 0; i < daySelect.options.length; ++i) {
+        if (i <= daysInMonth) {
+            daySelect.options[i].classList.remove('hidden')
+        } else {
+            daySelect.options[i].classList.add('hidden')
+        }
     }
 }
 

@@ -5,6 +5,7 @@
 
 import { createList, addToList, removeFromList, updateReadingLog, fetchPartials } from './ListService'
 import { websafe } from '../jsdef'
+import { setDate } from '../native-dialog'
 
 /**
  * Maps a list key to an array of references to removeable list items.
@@ -250,17 +251,24 @@ function addReadingLogButtonClickListener(button) {
                 const bookshelfValue = form.querySelector('input[name=bookshelf_id]').value
                 const workKey = document.querySelector('input[name=work_id').value
                 const workOlid = workKey.split('/').slice(-1).pop()
-                const modal = document.querySelector(`#dialog-${workOlid}`)
-                const label = modal.querySelector('.label')
 
-                if (bookshelfValue === '2') {  // Currently Reading
-                    label.textContent = 'Start Date:'
-                    modal.dataset.eventType = '1'
-                    modal.showModal()
-                }
-                else if (bookshelfValue === '3') {  // Already Read
-                    label.textContent = 'End Date:'
-                    modal.dataset.eventType = '3'
+                if (bookshelfValue === '2' || bookshelfValue === '3') {
+                    const modal = document.querySelector(`#dialog-${workOlid}`)
+                    const label = modal.querySelector('.label')
+                    const now = new Date()
+                    const year = now.getFullYear()
+                    const month = now.getMonth() + 1
+                    const day = now.getDay()
+
+                    if (bookshelfValue === '2') {  // Currently Reading
+                        label.textContent = 'Start Date:'
+                        modal.dataset.eventType = '1'
+                    }
+                    else if (bookshelfValue === '3') {  // Already Read
+                        label.textContent = 'End Date:'
+                        modal.dataset.eventType = '3'
+                    }
+                    setDate(modal, year, month, day)
                     modal.showModal()
                 }
             }
