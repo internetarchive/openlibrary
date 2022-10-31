@@ -31,7 +31,7 @@ $code:
     display: flex;
     flex-direction: column;
   }
-  .check-in-form > span {
+  .check-in-form > div {
     margin-bottom: 10px
   }
   .actions {
@@ -45,42 +45,24 @@ $code:
   <form method="dialog" class="olform check-in-form" action="$(work_key)/check-ins" method="post">
     $if edition_key:
       <input type="hidden" id="edition-key" name="edition_key" value="$(edition_key)">
-    <span class="start-date hidden">
-      <label class="label">Start Date:</label>
-      <select name="start_year">
+    <div>
+      <label class="label">$_('Start Date:')</label>
+      <select name="year">
         <option value="">$_('Year')</option>
         $for i in range(120):
           <option value="$(year - i)">$(year - i)</option>
       </select>
-      <select name="start_month">
+      <select name="month">
         <option value="">$_('Month')</option>
         $for idx, month in enumerate(months):
           <option value="$(idx + 1)">$month</option>
       </select>
-      <select name="start_day">
+      <select name="day">
         <option value="">$_('Day')</option>
         $for i in range(31):
           <option value="$(i + 1)">$(i + 1)</option>
       </select>
-    </span>
-    <span class="end-date hidden">
-      <label class="label">End Date:</label>
-      <select name="end_year">
-        <option value="">$_('Year')</option>
-        $for i in range(120):
-          <option value="$(year - i)">$(year - i)</option>
-      </select>
-      <select name="end_month">
-        <option value="">$_('Month')</option>
-        $for idx, month in enumerate(months):
-          <option value="$(idx + 1)">$month</option>
-      </select>
-      <select name="end_day">
-        <option value="">$_('Day')</option>
-        $for i in range(31):
-          <option value="$(i + 1)">$(i + 1)</option>
-      </select>
-    </span>
+    </div>
     <span class="actions">
       <button class="close-dialog-btn">$_('Cancel')</button>
       <button type="submit" class="submit-dialog-btn">$_('Submit')</button>

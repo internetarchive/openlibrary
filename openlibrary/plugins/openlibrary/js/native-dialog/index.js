@@ -27,30 +27,20 @@ function submitEvent(elem) {
     const editionField = elem.querySelector('#edition-key')
     const editionKey = editionField ? editionField.value : null
 
-    const startDayField = elem.querySelector('select[name=start_day]')
-    const startDay = startDayField.value
-    const startMonthField = elem.querySelector('select[name=start_month]')
-    const startMonth = startMonthField.value
-    const startYearField = elem.querySelector('select[name=start_year]')
-    const startYear = startYearField.value
+    const dayField = elem.querySelector('select[name=day]')
+    const day = dayField.value
+    const monthField = elem.querySelector('select[name=month]')
+    const month = monthField.value
+    const yearField = elem.querySelector('select[name=year]')
+    const year = yearField.value
 
-    const endDayField = elem.querySelector('select[name=end_day]')
-    const endDay = endDayField.value
-    const endMonthField = elem.querySelector('select[name=end_month]')
-    const endMonth = endMonthField.value
-    const endYearField = elem.querySelector('select[name=end_year]')
-    const endYear = endYearField.value
-
-    const data = {event_type: Number(eventType)}
-    if (eventType !== 1) {
-        data.end_day = endDay ? Number(endDay) : null
-        data.end_month = endMonth ? Number(endMonth) : null
-        data.end_year = endYear ? Number(endYear) : null
-    } else {
-        data.start_day = startDay ? Number(startDay) : null,
-        data.start_month = startMonth ? Number(startMonth) : null,
-        data.start_year = startYear ? Number(startYear) : null
+    const data = {
+        event_type: Number(eventType),
+        year: year ? Number(year) : null,
+        month: month ? Number(month) : null,
+        day: day ? Number(day) : null
     }
+
     if (editionKey) {
         data.edition_key = editionKey
     }
@@ -82,10 +72,6 @@ function resetSelects(selects) {
 
 function closeDialog(dialog) {
     dialog.close()
-    const endDateElem = dialog.querySelector('.end-date')
-    const startDateElem = dialog.querySelector('.start-date')
-    endDateElem.classList.add('hidden')
-    startDateElem.classList.add('hidden')
 }
 
 function isOutOfBounds(event, dialog) {

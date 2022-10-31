@@ -251,17 +251,15 @@ function addReadingLogButtonClickListener(button) {
                 const workKey = document.querySelector('input[name=work_id').value
                 const workOlid = workKey.split('/').slice(-1).pop()
                 const modal = document.querySelector(`#dialog-${workOlid}`)
+                const label = modal.querySelector('.label')
 
                 if (bookshelfValue === '2') {  // Currently Reading
-                    const startDateElem = modal.querySelector('.start-date')
-                    startDateElem.classList.remove('hidden')
+                    label.textContent = 'Start Date:'
                     modal.dataset.eventType = '1'
                     modal.showModal()
                 }
                 else if (bookshelfValue === '3') {  // Already Read
-                    // Show end date
-                    const endDateElem = modal.querySelector('.end-date')
-                    endDateElem.classList.remove('hidden')
+                    label.textContent = 'End Date:'
                     modal.dataset.eventType = '3'
                     modal.showModal()
                 }

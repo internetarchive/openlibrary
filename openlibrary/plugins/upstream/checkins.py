@@ -95,18 +95,11 @@ class patron_check_ins(delegate.page):
 
         event_type = data.get('event_type')
 
-        if event_type == BookshelfEvent.START:
-            date_str = make_date_string(
-                data.get('start_year', None),
-                data.get('start_month', None),
-                data.get('start_day', None),
-            )
-        elif event_type == BookshelfEvent.FINISH:
-            date_str = make_date_string(
-                data.get('end_year', None),
-                data.get('end_month', None),
-                data.get('end_day', None),
-            )
+        date_str = make_date_string(
+            data.get('year', None),
+            data.get('month', None),
+            data.get('day', None),
+        )
 
         BookshelvesEvents.create_event(
             username, work_id, edition_id, date_str, event_type=event_type
@@ -118,33 +111,18 @@ class patron_check_ins(delegate.page):
         """Validates data submitted from check-in dialog."""
 
         # There must be a year:
-        if 'start_year' not in data and 'end_year' not in data:
+        if 'year' not in data:
             return False
 
         # Event type must exist:
         if 'event_type' not in data:
             return False
 
-        event_type = data.get('event_type')
-
-        # Start events must have a start year:
-        if event_type == BookshelfEvent.START and 'start_year' not in data:
-            return False
-        # End events must have an end year:
-        if event_type == BookshelfEvent.FINISH and 'end_year' not in data:
-            return False
-
         # Validate start and end dates
         if not self.is_valid_date(
-            data.get('start_day', None),
-            data.get('start_month', None),
-            data.get('start_year', None),
-        ):
-            return False
-        if not self.is_valid_date(
-            data.get('end_day', None),
-            data.get('end_month', None),
-            data.get('end_year', None),
+            data.get('day', None),
+            data.get('month', None),
+            data.get('year', None),
         ):
             return False
 
