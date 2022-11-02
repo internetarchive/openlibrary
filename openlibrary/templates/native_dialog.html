@@ -1,0 +1,8 @@
+$def with (id, content)
+
+$# id : str : Unique identifier for the dialog element
+$# content : str : Rendered content to be displayed within the modal
+
+<dialog id="$(id)" class="native-dialog">
+  $:content
+</dialog>

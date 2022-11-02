@@ -5,7 +5,7 @@
 
 import { createList, addToList, removeFromList, updateReadingLog, fetchPartials } from './ListService'
 import { websafe } from '../jsdef'
-import { setDate } from '../native-dialog'
+import { setDate } from '../check-ins'
 
 /**
  * Maps a list key to an array of references to removeable list items.

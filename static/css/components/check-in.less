@@ -1,0 +1,89 @@
+.check-in {
+  padding: 10px;
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+
+    > div {
+      margin-bottom: 10px;
+    }
+  }
+
+  &__label,
+  &__select {
+    font-size: 16px;
+  }
+
+  &__label {
+    font-weight: 700;
+  }
+
+  &__select {
+    padding: 5px;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: space-between;
+
+    button {
+      width: 45%;
+    }
+  }
+}
+
+.check-in__inputs {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 150px;
+
+  > span {
+    display: flex;
+    justify-content: space-between;
+
+    > select {
+      width: 75%;
+    }
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .check-in {
+    &__form {
+      flex-direction: column;
+
+      > div {
+        margin-bottom: 20px;
+      }
+    }
+
+    &__label {
+      flex-grow: 2;
+    }
+
+    &__actions button {
+      width: 25%;
+    }
+  }
+
+  .check-in__inputs {
+    flex-direction: row;
+    height: unset;
+    gap: 10px;
+
+    > span {
+      display: unset;
+      flex-grow: 1;
+
+      > label {
+        display: none;
+      }
+
+      > select {
+        width: 100%;
+      }
+    }
+  }
+}

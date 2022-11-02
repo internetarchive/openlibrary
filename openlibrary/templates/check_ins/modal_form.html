@@ -1,0 +1,59 @@
+$def with(modal_id, work_key, edition_key=None)
+
+$code:
+  year = current_year()
+  months = [
+    _('January'),
+    _('February'),
+    _('March'),
+    _('April'),
+    _('May'),
+    _('June'),
+    _('July'),
+    _('August'),
+    _('September'),
+    _('October'),
+    _('November'),
+    _('December'),
+  ]
+
+<div class="check-in" data-modal-ref="$(modal_id)">
+  <form method="dialog" class="check-in__form" action="$(work_key)/check-ins" method="post">
+    $if edition_key:
+      <input type="hidden" id="edition-key" name="edition_key" value="$(edition_key)">
+    <div>
+      $_('Add an optional check-in date.  Check-in dates are used to track yearly reading goals.')
+    </div>
+    <div class="check-in__inputs">
+      <label class="check-in__label">$_('Start Date:')</label>
+      <span>
+        <label>$_('Year:')</label>
+        <select class="check-in__select" name="year">
+          <option value="">$_('Year')</option>
+          $for i in range(120):
+            <option value="$(year - i)">$(year - i)</option>
+        </select>
+      </span>
+      <span>
+        <label>$_('Month:')</label>
+        <select class="check-in__select" name="month" disabled>
+          <option value="">$_('Month')</option>
+          $for idx, month in enumerate(months):
+            <option value="$(idx + 1)">$month</option>
+        </select>
+      </span>
+      <span>
+        <label>$_('Day:')</label>
+        <select class="check-in__select" name="day" disabled>
+          <option value="">$_('Day')</option>
+          $for i in range(31):
+            <option value="$(i + 1)">$(i + 1)</option>
+        </select>
+      </span>
+    </div>
+    <span class="check-in__actions">
+      <button class="check-in__cancel-btn cta-btn cta-btn--cancel">$_('Cancel')</button>
+      <button type="submit" class="check-in__submit-btn cta-btn cta-btn--shell" disabled>$_('Submit')</button>
+    </span>
+  </form>
+</div>

@@ -380,8 +380,13 @@ jQuery(function () {
 
     const nativeDialogs = document.querySelectorAll('.native-dialog')
     if (nativeDialogs.length) {
-        import(/* webpackChunkName: "dialog" */  './native-dialog')
+        import(/* webpackChunkName: "dialog" */ './native-dialog')
             .then(module => module.initDialogs(nativeDialogs))
+    }
+    const checkInForms = document.querySelectorAll('.check-in')
+    if (checkInForms.length) {
+        import(/* webpackChunkName: "check-ins" */ './check-ins')
+            .then(module => module.initCheckInForms(checkInForms))
     }
 
     $(document).on('click', '.slide-toggle', function () {
