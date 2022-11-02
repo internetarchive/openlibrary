@@ -254,22 +254,25 @@ function addReadingLogButtonClickListener(button) {
 
                 if (bookshelfValue === '2' || bookshelfValue === '3') {
                     const modal = document.querySelector(`#dialog-${workOlid}`)
-                    const label = modal.querySelector('.label')
-                    const now = new Date()
-                    const year = now.getFullYear()
-                    const month = now.getMonth() + 1
-                    const day = now.getDay()
+                    if (modal) {
+                        const checkInForm = modal.querySelector('.check-in')
+                        const label = modal.querySelector('.check-in__label')
+                        const now = new Date()
+                        const year = now.getFullYear()
+                        const month = now.getMonth() + 1
+                        const day = now.getDay()
 
-                    if (bookshelfValue === '2') {  // Currently Reading
-                        label.textContent = 'Start Date:'
-                        modal.dataset.eventType = '1'
+                        if (bookshelfValue === '2') {  // Currently Reading
+                            label.textContent = 'Start Date:'
+                            checkInForm.dataset.eventType = '1'
+                        }
+                        else if (bookshelfValue === '3') {  // Already Read
+                            label.textContent = 'End Date:'
+                            checkInForm.dataset.eventType = '3'
+                        }
+                        setDate(modal, year, month, day)
+                        modal.showModal()
                     }
-                    else if (bookshelfValue === '3') {  // Already Read
-                        label.textContent = 'End Date:'
-                        modal.dataset.eventType = '3'
-                    }
-                    setDate(modal, year, month, day)
-                    modal.showModal()
                 }
             }
             if (button.classList.contains('want-to-read')) {
