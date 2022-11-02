@@ -29,7 +29,7 @@ def make_date_string(year: int, month: Optional[int], day: Optional[int]) -> str
     return result
 
 
-def is_valid_date(day, month, year):
+def is_valid_date(year: int, month: Optional[int], day: Optional[int]) -> bool:
     """Validates dates.
 
     Dates are considered valid if there is:
@@ -50,6 +50,15 @@ class patron_check_ins(delegate.page):
 
     @authorized_for('/usergroup/beta-testers')
     def POST(self, work_id):
+        """Validates data, constructs date string, and persists check-in event.
+
+        Data object should have the following:
+        event_type : number
+        year : number
+        month : number : optional
+        day : number : optional
+        edition_key : string : optional
+        """
         data = json.loads(web.data())
 
         if not self.validate_data(data):
@@ -84,9 +93,9 @@ class patron_check_ins(delegate.page):
 
         # Date must be valid:
         if not is_valid_date(
-            data.get('day', None),
-            data.get('month', None),
             data.get('year', None),
+            data.get('month', None),
+            data.get('day', None),
         ):
             return False
 

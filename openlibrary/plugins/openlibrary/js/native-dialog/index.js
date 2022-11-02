@@ -1,3 +1,11 @@
+/**
+ * Adds close functionality to each given dialog element.
+ *
+ * Dialog will be closed if:
+ * 1. The patron clicks outside of the dialog.
+ * 2. The dialog receives a `close-dialog` event.
+ * @param {HTMLCollection<HTMLDialogElement>} elems
+ */
 export function initDialogs(elems) {
     for (const elem of elems) {
         elem.addEventListener('click', function(event) {
@@ -14,6 +22,13 @@ export function initDialogs(elems) {
     }
 }
 
+/**
+ * Determines if a click event is outside of the given dialog's bounds
+ *
+ * @param {MouseEvent} event A `click` event
+ * @param {HTMLDialogElement} dialog
+ * @returns `true` if the click was out of bounds.
+ */
 function isOutOfBounds(event, dialog) {
     const rect = dialog.getBoundingClientRect()
     return (
