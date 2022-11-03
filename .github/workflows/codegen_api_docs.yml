@@ -34,29 +34,13 @@ jobs:
           sys.path.insert(0, ".")  # Enable: from main import app
           from main import app
           app.title = "FastAPI shims for Open Library"
-          try:
-              app.version
-          except AttributeError:
-              app.version = "0.0.2"
-          try:
-              app.openapi_version
-          except AttributeError:
-              app.openapi_version = "0.0.2"
-          try:
-              app.description
-          except AttributeError:
-              app.description = "description"
-          try:
-              app.routes
-          except AttributeError:
-              app.routes = "routes"
           with open("openapi.json", "w") as out_file:
-              json.dump(get_openapi(
+              json.dump(app.get_openapi(
                   title=app.title,
-                  version=app.version,
-                  openapi_version=app.openapi_version,
-                  description=app.description,
-                  routes=app.routes,
-                  # openapi_prefix=app.openapi_prefix,
+                  version=getattr(app, "version", "0.0.2"),
+                  openapi_version=getattr(app, "openapi_version", "0.0.2"),
+                  description=getattr(app, "description", "description"),
+                  routes=getattr(app, "routes", "routes"),
+                  openapi_prefix=getattr(app, "openapi_prefix", "openapi_prefix")
               ), out_file)
       - run: cat openapi.json
