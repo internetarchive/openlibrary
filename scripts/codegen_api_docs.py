@@ -3,7 +3,7 @@
 import inspect
 import sys
 from types import CodeType, ModuleType
-from typing import Iterator
+from collections.abc import Iterator
 
 
 def enhance_query_arg(arg: str, default_type: str = "Optional[str]") -> str:
@@ -86,7 +86,9 @@ def insert_args_into_url_path(
     return url_path, regexes
 
 
-def get_url_path(url_path: str, path_args: tuple[str, ...]) -> tuple[str, dict[str, str]]:
+def get_url_path(
+    url_path: str, path_args: tuple[str, ...]
+) -> tuple[str, dict[str, str]]:
     """
     >>> get_url_path("(/authors/OL\\d+A)/edit", path_args = ("key", ))
     ('/authors/{key}/edit', {'key': 'OL\\\\d+A'})
@@ -257,4 +259,6 @@ if __name__ == "__main__":
     functions = sorted(func_iter, key=itemgetter("url_path"))
     elapsed_time = perf_counter() - start
     print("\n\n".join(webpy_to_fastapi(function) for function in functions))
-    print(f"# Finished generating {len(functions)} functions in {elapsed_time:0.6} seconds.")
+    print(
+        f"# Finished generating {len(functions)} functions in {elapsed_time:0.6} seconds."
+    )
