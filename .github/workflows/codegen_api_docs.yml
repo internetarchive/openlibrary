@@ -24,7 +24,7 @@ jobs:
       - run: make git
       - run: mkdir main
       - run: touch main/__init__.py
-      - run: python3 scripts/codegen_api_docs.py | grep -v 8668db2 | tee main/app.py
+      - run: python3 scripts/codegen_api_docs.py | tail -n +2 | tee main/app.py
       - name: generate openapi.json
         shell: python
         run: |
