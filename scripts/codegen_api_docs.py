@@ -187,6 +187,7 @@ import requests
 from fastapi import FastAPI
 
 DEFAULT_RESULTS = "DEFAULT_RESULTS"
+RESULTS_PER_PAGE = 20
 
 app = FastAPI()
 url_base = "https://openlibrary.org"
