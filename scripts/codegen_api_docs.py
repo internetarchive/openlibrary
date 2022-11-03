@@ -186,6 +186,8 @@ from typing import Any, Optional
 import requests
 from fastapi import FastAPI
 
+DEFAULT_RESULTS = "DEFAULT_RESULTS"
+
 app = FastAPI()
 url_base = "https://openlibrary.org"
 """
