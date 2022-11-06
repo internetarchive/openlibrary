@@ -46,6 +46,5 @@ jobs:
                       # openapi_version=getattr(app, "openapi_version", "0.0.2"),
                       description=getattr(app, "description", "description"),
                       routes=getattr(app, "routes", "routes"),
-                      openapi_prefix=getattr(app, "openapi_prefix", "openapi_prefix")
                   ), out_file)
       - run: cat openapi.json
