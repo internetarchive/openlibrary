@@ -33,16 +33,17 @@ jobs:
           from fastapi.openapi.utils import get_openapi
           sys.path.insert(0, ".")  # Enable: from main import app
           from main import app
+          print(f"{type(app)}: {app}")
           app.title = "FastAPI shims for Open Library"
           with open("openapi.json", "w") as out_file:
               try:
                   json.dump(app.openapi(), out_file)
               except Exception as e:
                   print(e)
-                  json.dump(app.get_openapi(
+                  json.dump(get_openapi(
                       title=app.title,
                       version=getattr(app, "version", "0.0.2"),
-                      openapi_version=getattr(app, "openapi_version", "0.0.2"),
+                      # openapi_version=getattr(app, "openapi_version", "0.0.2"),
                       description=getattr(app, "description", "description"),
                       routes=getattr(app, "routes", "routes"),
                       openapi_prefix=getattr(app, "openapi_prefix", "openapi_prefix")
