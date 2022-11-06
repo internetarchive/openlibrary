@@ -201,6 +201,22 @@ if __name__ == "__main__":
     from time import perf_counter
 
     import _init_path  # noqa: F401
+    from openlibrary.plugins.openlibrary import api
+
+    """
+    import (
+        author_works,
+        public_observations,
+        ratings,
+        trending_books_api,
+        work_bookshelves,
+        work_editions,
+    )
+    """
+    from openlibrary.plugins.openlibrary import lists  # lists_json
+    from openlibrary.plugins.worksearch import code as worksearch  # search_json
+
+    """
     from openlibrary.plugins.admin import code as admin
     from openlibrary.plugins.books import code as books
     from openlibrary.plugins.inside import code as search_inside
@@ -257,6 +273,11 @@ if __name__ == "__main__":
         upstream,
         worksearch,
     )
+    """
+    testmod()  # Run our doctests before running codegen.
+
+    start = perf_counter()
+    modules = api, lists, worksearch
     print(IMPORTS)
     func_iter = chain.from_iterable(get_api_details(module) for module in modules)
     functions = sorted(func_iter, key=itemgetter("url_path"))
