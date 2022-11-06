@@ -277,7 +277,7 @@ if __name__ == "__main__":
     testmod()  # Run our doctests before running codegen.
 
     start = perf_counter()
-    modules = api, lists, worksearch
+    modules = api, worksearch  # , lists
     print(IMPORTS)
     func_iter = chain.from_iterable(get_api_details(module) for module in modules)
     functions = sorted(func_iter, key=itemgetter("url_path"))
