@@ -89,3 +89,13 @@ CREATE TABLE community_edits_queue (
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
     updated timestamp without time zone default (current_timestamp at time zone 'utc')
 );
+
+CREATE TABLE yearly_reading_goals (
+    username text not null,
+    year integer not null,
+    target integer not null,
+    current integer default 0,
+    created timestamp without time zone default (current_timestamp at time zone 'utc'),
+    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
+    primary key (username, year)
+);
