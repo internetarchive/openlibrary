@@ -89,7 +89,7 @@ $if isbn_10 and not asin:
 
     $if isbn_10 and not asin:
         $ asin = isbn_10
-    <div class="panel">
+    <div class="panel desktop-vendor">
       <div class="btn-notice">
         $:macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
 
