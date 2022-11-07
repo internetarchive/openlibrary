@@ -554,9 +554,9 @@ class TestYearlyReadingGoals:
         )
 
     def test_has_reached_goal(self):
-        assert YearlyReadingGoals.has_reached_goal('@billy_pilgrim', 2022) == True
-        assert YearlyReadingGoals.has_reached_goal('@billy_pilgrim', 2023) == False
-        assert YearlyReadingGoals.has_reached_goal('@kilgore_trout', 2022) == True
+        assert YearlyReadingGoals.has_reached_goal('@billy_pilgrim', 2022)
+        assert not YearlyReadingGoals.has_reached_goal('@billy_pilgrim', 2023)
+        assert YearlyReadingGoals.has_reached_goal('@kilgore_trout', 2022)
 
     def test_update_current_count(self):
         assert (
