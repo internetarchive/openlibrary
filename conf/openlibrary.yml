@@ -180,6 +180,7 @@ sentry:
     enabled: false
     # Dummy endpoint; where sentry logs are sent to
     dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
+    traces_sample_rate: 1.0
     environment: 'local'
 
 sentry_cron_jobs:

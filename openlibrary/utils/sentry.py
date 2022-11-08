@@ -1,8 +1,13 @@
+from dataclasses import dataclass
 import logging
+import re
 
 import sentry_sdk
 import web
 from sentry_sdk.utils import capture_internal_exceptions
+from sentry_sdk.tracing import Transaction, TRANSACTION_SOURCE_ROUTE
+from infogami.utils.app import find_page, find_view, modes
+from infogami.utils.types import type_patterns
 
 from openlibrary.utils import get_software_version
 
@@ -56,6 +61,7 @@ class Sentry:
         sentry_sdk.init(
             dsn=self.config['dsn'],
             environment=self.config['environment'],
+            traces_sample_rate=self.config.get('traces_sample_rate', 0.0),
             release=get_software_version(),
         )
 
@@ -72,3 +78,75 @@ class Sentry:
         with sentry_sdk.push_scope() as scope:
             scope.add_event_processor(add_web_ctx_to_event)
             sentry_sdk.capture_exception()
+
+
+@dataclass
+class InfogamiRoute:
+    route: str
+    mode: str = 'view'
+    encoding: str | None = None
+
+    def to_sentry_name(self) -> str:
+        return (
+            self.route
+            + (f'.{self.encoding}' if self.encoding else '')
+            + (f'?m={self.mode}' if self.mode != 'view' else '')
+        )
+
+
+class SentryProcessor:
+    """
+    Processor to profile the webpage and send a transaction to Sentry.
+    """
+
+    def __call__(self, handler):
+        def find_type() -> tuple[str, str] | None:
+            return next(
+                (
+                    (pattern, typename)
+                    for pattern, typename in type_patterns.items()
+                    if re.search(pattern, web.ctx.path)
+                ),
+                None,
+            )
+
+        def find_route() -> InfogamiRoute:
+            result = InfogamiRoute('<other>')
+
+            cls, args = find_page()
+            if cls:
+                if hasattr(cls, 'path'):
+                    result.route = cls.path
+                else:
+                    result.route = web.ctx.path
+            elif type_page := find_type():
+                result.route = type_page[0]
+
+            if web.ctx.get('encoding'):
+                result.encoding = web.ctx.encoding
+
+            requested_mode = web.input(_method='GET').get('m', 'view')
+            if requested_mode in modes:
+                result.mode = requested_mode
+
+            return result
+
+        route = find_route()
+        hub = sentry_sdk.Hub.current
+        with sentry_sdk.Hub(hub) as hub:
+            with hub.configure_scope() as scope:
+                scope.clear_breadcrumbs()
+                scope.add_event_processor(add_web_ctx_to_event)
+
+            transaction = Transaction.continue_from_environ(
+                web.ctx.env,
+                op="http.server",
+                name=route.to_sentry_name(),
+                source=TRANSACTION_SOURCE_ROUTE,
+            )
+
+            with hub.start_transaction(transaction):
+                try:
+                    return handler()
+                finally:
+                    transaction.set_http_status(int(web.ctx.status.split()[0]))
