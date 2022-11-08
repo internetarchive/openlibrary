@@ -22,7 +22,7 @@ def days_in_current_month():
 
 
 def todays_date_minus(**kwargs):
-    return (datetime.date.today() - datetime.timedelta(**kwargs))
+    return datetime.date.today() - datetime.timedelta(**kwargs)
 
 
 def date_n_days_ago(n=None, start=None):
