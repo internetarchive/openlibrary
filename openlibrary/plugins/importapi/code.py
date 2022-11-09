@@ -134,7 +134,7 @@ class importapi:
             # We use ["????"] as an override pattern
             if data.get('publishers') == ["????"]:
                 data.pop('publishers')
-            if data.get('authors') == ["????"]:
+            if data.get('authors') == [{"name": "????"}]:
                 data.pop('authors')
         except DataError as e:
             return self.error(str(e), 'Failed to parse import data')
