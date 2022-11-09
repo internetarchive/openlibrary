@@ -208,24 +208,6 @@ def compose_ia_url(
     return base_url + '?' + urlencode(params)
 
 
-def get_random_available_ia_edition() -> str:
-    """uses archive advancedsearch to raise a random book"""
-    try:
-        url = (
-            "http://%s/advancedsearch.php?q=_exists_:openlibrary_work"
-            "+AND+(lending___available_to_borrow:true"
-            " OR lending___available_to_browse:true)"
-            "&fl=identifier,openlibrary_edition"
-            "&output=json&rows=25&sort[]=random" % (config_bookreader_host)
-        )  # internetarchive/openlibrary#6592: Request 25 editions and randomly choose
-        response = requests.get(url, timeout=config_http_request_timeout)
-        items = response.json().get('response', {}).get('docs', [])
-        return random.choice(items)["openlibrary_edition"]
-    except Exception:  # TODO: Narrow exception scope
-        logger.exception(f"get_random_available_ia_edition({url})")
-        return ''
-
-
 @public
 @cache.memoize(
     engine="memcache", key="gt-availability", expires=5 * dateutil.MINUTE_SECS
