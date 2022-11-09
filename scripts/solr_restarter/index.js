@@ -23,7 +23,7 @@ class SolrRestarter {
     /** Don't restart twice in 10 minutes */
     MAX_RESTART_WIN = 10*60*1000;
     /** Must be unhealthy for this many minutes to trigger a refresh */
-    UNHEALTHY_DURATION = 4*60*1000;
+    UNHEALTHY_DURATION = 2*60*1000;
     /** Check every minute */
     CHECK_FREQ = 60*1000;
     /** How many times we're aloud to try restarting without going healthy before giving up */
