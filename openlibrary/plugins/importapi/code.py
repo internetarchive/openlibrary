@@ -129,6 +129,13 @@ class importapi:
 
         try:
             edition, format = parse_data(data)
+            # Validation requires valid publishers and authors.
+            # If data unavailable, provide throw-away data which validates
+            # We use ["????"] as an override pattern  
+            if data.get('publishers') == ["????"]:
+                data.pop('publishers')
+            if data.get('authors') == ["????"]:
+                data.pop('authors')
         except DataError as e:
             return self.error(str(e), 'Failed to parse import data')
         except ValidationError as e:
