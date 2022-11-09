@@ -9,36 +9,45 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.promises")
 
+
 def format_date(date: str) -> str:
     y = date[0:4]
     m = date[4:6]
     d = date[6:8]
     return f"{y}-{m}-{d}"
 
+
 def map_book_to_olbook(book):
     asin_is_isbn_10 = book.get('ASIN')[0].isdigit()
     publish_date = book['ProductJSON'].get('PublicationDate')
     title = book['ProductJSON'].get('Title')
     olbook = {
-        'local_id': [
-            f"urn:bwbsku:{book['BookSKUB']}"
-        ],
+        'local_id': [f"urn:bwbsku:{book['BookSKUB']}"],
         'identifiers': {
             **({'amazon': [book.get('ASIN')]} if not asin_is_isbn_10 else {}),
-            **({'better_world_books': [book.get('ISBN')]} if not book.get('ISBN', ' ')[0].isdigit() else {}),
+            **(
+                {'better_world_books': [book.get('ISBN')]}
+                if not book.get('ISBN', ' ')[0].isdigit()
+                else {}
+            ),
         },
-        **({'isbn_13': [book.get('ISBN')]} if book.get('ISBN', ' ')[0].isdigit() else {}),
+        **(
+            {'isbn_13': [book.get('ISBN')]}
+            if book.get('ISBN', ' ')[0].isdigit()
+            else {}
+        ),
         **({'isbn_10': [book.get('ASIN')]} if asin_is_isbn_10 else {}),
         **({'title': title} if title else {}),
         'author': [{"name": book['ProductJSON'].get('Author') or '????'}],
         'publishers': [book['ProductJSON'].get('Publisher') or '????'],
         'source_records': ["promise:bwb_daily_pallets_2022-10-20"],
         # format_date adds hyphens between YYYY-MM-DD
-        'publish_date': publish_date and format_date(publish_date) or '????'
+        'publish_date': publish_date and format_date(publish_date) or '????',
     }
     if not olbook['identifiers']:
         del olbook['identifiers']
     return olbook
+
 
 def batch_import(promise_id):
     url = "https://archive.org/download/"
@@ -47,12 +56,10 @@ def batch_import(promise_id):
     batch = Batch.find(promise_id) or Batch.new(promise_id)
     if batch.count_items != len(books):
         olbooks = [map_book_to_olbook(book) for book in books]
-        batch_items = [{
-            'ia_id': b['local_id'][0],
-            'data': b
-        } for b in olbooks]
+        batch_items = [{'ia_id': b['local_id'][0], 'data': b} for b in olbooks]
         print(batch_items)  # XXX
-        #batch.add_items(batch_items)
+        # batch.add_items(batch_items)
+
 
 def get_promise_items():
     url = "https://archive.org/advancedsearch.php"
@@ -63,12 +70,14 @@ def get_promise_items():
     r = requests.get(f"{url}?q={q}&{fields}&{sorts}&rows={rows}&page=1&output=json")
     return [d['identifier'] for d in r.json()['response']['docs']]
 
+
 def main(ol_config: str):
     load_config(ol_config)
     promise_ids = get_promise_items()
     for promise_id in promise_ids:
         batch_import(promise_id)
-        return # XXX try 1 and quit
+        return  # XXX try 1 and quit
+
 
 if __name__ == '__main__':
     FnToCLI(main).run()
