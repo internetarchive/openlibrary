@@ -17,8 +17,8 @@ def format_date(date: str) -> str:
     return f"{y}-{m}-{d}"
 
 
-def map_book_to_olbook(book):
-    asin_is_isbn_10 = book.get('ASIN')[0].isdigit()
+def map_book_to_olbook(book, promise_id):
+    asin_is_isbn_10 = book.get('ASIN') and book.get('ASIN')[0].isdigit()
     publish_date = book['ProductJSON'].get('PublicationDate')
     title = book['ProductJSON'].get('Title')
     olbook = {
@@ -40,7 +40,7 @@ def map_book_to_olbook(book):
         **({'title': title} if title else {}),
         'author': [{"name": book['ProductJSON'].get('Author') or '????'}],
         'publishers': [book['ProductJSON'].get('Publisher') or '????'],
-        'source_records': ["promise:bwb_daily_pallets_2022-10-20"],
+        'source_records': [promise_id],
         # format_date adds hyphens between YYYY-MM-DD
         'publish_date': publish_date and format_date(publish_date) or '????',
     }
@@ -54,11 +54,9 @@ def batch_import(promise_id):
     date = promise_id.split("_")[-1]
     books = requests.get(f"{url}{promise_id}/DailyPallets__{date}.json").json()
     batch = Batch.find(promise_id) or Batch.new(promise_id)
-    if batch.count_items != len(books):
-        olbooks = [map_book_to_olbook(book) for book in books]
-        batch_items = [{'ia_id': b['local_id'][0], 'data': b} for b in olbooks]
-        print(batch_items)  # XXX
-        # batch.add_items(batch_items)
+    olbooks = [map_book_to_olbook(book, promise_id) for book in books]
+    batch_items = [{'ia_id': b['local_id'][0], 'data': b} for b in olbooks]
+    batch.add_items(batch_items)
 
 
 def get_promise_items():
@@ -74,9 +72,10 @@ def get_promise_items():
 def main(ol_config: str):
     load_config(ol_config)
     promise_ids = get_promise_items()
-    for promise_id in promise_ids:
+    for i, promise_id in enumerate(promise_ids):
         batch_import(promise_id)
-        return  # XXX try 1 and quit
+        if i > 25:
+            return  # XXX stop after last 25
 
 
 if __name__ == '__main__':
