@@ -40,7 +40,7 @@ def map_book_to_olbook(book, promise_id):
         **({'title': title} if title else {}),
         'author': [{"name": book['ProductJSON'].get('Author') or '????'}],
         'publishers': [book['ProductJSON'].get('Publisher') or '????'],
-        'source_records': [promise_id],
+        'source_records': [f"promise:{promise_id}"],
         # format_date adds hyphens between YYYY-MM-DD
         'publish_date': publish_date and format_date(publish_date) or '????',
     }
