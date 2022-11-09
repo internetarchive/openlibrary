@@ -31,7 +31,7 @@ def map_book_to_olbook(book):
         **({'isbn_10': [book.get('ASIN')]} if asin_is_isbn_10 else {}),
         **({'title': title} if title else {}),
         'author': [{"name": book['ProductJSON'].get('Author') or '????'}],
-        'publishers': [book['ProductJSON'].get('Publisher') or '????';],
+        'publishers': [book['ProductJSON'].get('Publisher') or '????'],
         'source_records': ["promise:bwb_daily_pallets_2022-10-20"],
         # format_date adds hyphens between YYYY-MM-DD
         'publish_date': publish_date and format_date(publish_date) or '????'
