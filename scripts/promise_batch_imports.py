@@ -2,7 +2,7 @@ from __future__ import annotations
 import requests
 import logging
 
-from infogami import config  # noqa: F401                                                                                                                                                                                                                                                                                      
+from infogami import config  # noqa: F401
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
@@ -33,7 +33,7 @@ def map_book_to_olbook(book):
         'author': [{"name": book['ProductJSON'].get('Author') or '????'}],
         'publishers': [book['ProductJSON'].get('Publisher') or '????';],
         'source_records': ["promise:bwb_daily_pallets_2022-10-20"],
-        # format_date adds hyphens between YYYY-MM-DD                                                                                                                                                                                                                                                                          
+        # format_date adds hyphens between YYYY-MM-DD
         'publish_date': publish_date and format_date(publish_date) or '????'
     }
     if not olbook['identifiers']:
@@ -52,7 +52,7 @@ def batch_import(promise_id):
             'data': b
         } for b in olbooks]
         print(batch_items)  # XXX
-        #batch.add_items(batch_items)                                                                                                                                                                                                                                                                                          
+        #batch.add_items(batch_items)
 
 def get_promise_items():
     url = "https://archive.org/advancedsearch.php"
@@ -68,7 +68,7 @@ def main(ol_config: str):
     promise_ids = get_promise_items()
     for promise_id in promise_ids:
         batch_import(promise_id)
-        return # XXX try 1 and quit                                                                                                                                                                                                                                                                                            
+        return # XXX try 1 and quit
 
 if __name__ == '__main__':
     FnToCLI(main).run()
