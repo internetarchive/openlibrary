@@ -22,12 +22,19 @@ $def render_carousel_cover(book, lazy):
     $ cover_url = '%s/b/olid/%s-M.jpg'%(cover_host, book.get('cover_edition_key'))
   $else:
     $ cover_url = False
+
   $if book.get('authors'):
     $ author_names = [author.name for author in book.authors]
+  $elif book.get('author_name'):
+    $ author_names = book.get('author_name', [])
+  $else:
+    $ author_names = []
+
+  $if author_names:
     $ byline = _(' by %(name)s', name=', '.join(author_names))
   $else:
     $ byline = ''
-    $ author_names = ''
+
   $ modifier = ''
   $ work_key = book.key if book.key.startswith('/work') else book.get('work_key')
 
