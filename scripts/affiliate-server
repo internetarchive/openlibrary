@@ -134,7 +134,8 @@ def amazon_lookup() -> None:
             process_amazon_batch(list(isbn_10s))
 
 
-threading.Thread(target=amazon_lookup).start()
+# Temporarily disable the thread which processes Amazon batches.
+# threading.Thread(target=amazon_lookup).start()
 
 
 class Status:
