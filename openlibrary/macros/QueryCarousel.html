@@ -29,7 +29,7 @@ $code:
   if has_fulltext_only:
     params['has_fulltext'] = 'true'
 
-  results = work_search(params, sort=sort, limit=limit)
+  results = work_search(params, sort=sort, limit=limit, facet=False)
   books = [storage(b) for b in (results.get('docs', []))]
   load_more = {"url": "/search.json?" + urlencode(params), "limit": limit }
 
