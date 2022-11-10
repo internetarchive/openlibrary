@@ -38,6 +38,9 @@ def add_web_ctx_to_event(event: dict, hint: dict) -> dict:
         headers = {}
         env = {}
         for k, v in web.ctx.env.items():
+            # Don't forward cookies to Sentry
+            if k == 'HTTP_COOKIE':
+                continue
             if k.startswith('HTTP_') or k in ('CONTENT_LENGTH', 'CONTENT_TYPE'):
                 headers[header_name_from_env(k)] = v
             else:
@@ -138,8 +141,13 @@ class SentryProcessor:
                 scope.clear_breadcrumbs()
                 scope.add_event_processor(add_web_ctx_to_event)
 
+            environ = dict(web.ctx.env)
+            # Don't forward cookies to Sentry
+            if 'HTTP_COOKIE' in environ:
+                del environ['HTTP_COOKIE']
+
             transaction = Transaction.continue_from_environ(
-                web.ctx.env,
+                environ,
                 op="http.server",
                 name=route.to_sentry_name(),
                 source=TRANSACTION_SOURCE_ROUTE,
