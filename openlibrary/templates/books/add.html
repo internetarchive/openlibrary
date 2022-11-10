@@ -55,6 +55,8 @@ $var title: $_("Add a book")
         <div class="formElement">
             <div class="label"><label for="id_value">$:_("And optionally, an ID number &#151; like an ISBN &#151; would be helpful...")</label></div>
                 <label for="id_name" class="hidden">$_("ID Type")</label>
+                <div id="id-errors" class="note" style="display: none"></div>
+                <div id="confirm-add" class="note" style="display: none"></div>
             <div class="input">
                 <select name="id_name" id="id_name">
                 <option value="">$_("Select")</option>
