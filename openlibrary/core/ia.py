@@ -52,7 +52,7 @@ def get_metadata_direct(itemid, only_metadata=True, cache=True):
     """
     url = f'{IA_BASE_URL}/metadata/{web.safestr(itemid.strip())}'
     params = {}
-    if cache:
+    if cache is False:
         params['dontcache'] = 1
     full_json = get_api_response(url, params)
     return extract_item_metadata(full_json) if only_metadata else full_json
