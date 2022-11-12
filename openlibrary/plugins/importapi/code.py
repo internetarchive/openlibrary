@@ -150,6 +150,7 @@ class importapi:
         except Exception as e:
             return self.error('unhandled-exception', repr(e))
 
+
 def raise_non_book_marc(marc_record, **kwargs):
     details = 'Item rejected'
     # Is the item a serial instead of a monograph?
