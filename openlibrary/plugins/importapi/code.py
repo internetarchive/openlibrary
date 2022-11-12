@@ -145,7 +145,10 @@ class importapi:
             return self.error('missing-required-field', str(e))
         except ClientException as e:
             return self.error('bad-request', **json.loads(e.json))
-
+        except NetworkError as e:
+            return self.error('network-error', repr(e))
+        except Exception as e:
+            return self.error('unhandled-exception', repr(e))
 
 def raise_non_book_marc(marc_record, **kwargs):
     details = 'Item rejected'
