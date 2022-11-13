@@ -55,6 +55,7 @@ from openlibrary.utils.lcc import (
     short_lcc_to_sortable_lcc,
 )
 
+
 logger = logging.getLogger("openlibrary.worksearch")
 
 ALL_FIELDS = [
@@ -996,6 +997,8 @@ class search(delegate.page):
             fulltext_search,
             FACET_FIELDS,
         )
+    # def did_you_mean(self, query):
+    #     return 1
 
 
 def works_by_author(

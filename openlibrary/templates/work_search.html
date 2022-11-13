@@ -2,6 +2,7 @@ $def with (input, q_param, do_search, get_doc, fulltext_search, facet_fields)
 
 $ fulltext_names = {'true': 'Ebooks', 'false': 'Exclude ebooks'}
 
+
 $code:
     def add_facet_url(k, v):
         if k != 'has_fulltext':
@@ -31,7 +32,6 @@ $code:
             "language": "Language",
         }
         return "SearchFacet|" + facets[key]
-
 $ param = {}
 $for p in ['q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor', 'publish_place', 'lccn', 'ia', 'first_sentence', 'publisher', 'author_key', 'debug', 'subject', 'place', 'person', 'time'] + facet_fields:
     $if p in input and input[p]:
@@ -170,13 +170,13 @@ $ )
     $if param and not docs:
         $ query = query_param('q')
         $ page = int(query_param('page') or 1)
-        $# Temporarily (2020-03-26) disable automatically showing full-text
-        $# results because of performance issues due to increased load. See
-        $# this commit to revert.
+        $ spellchecked = did_you_mean(query)
         <center>
           <div class="red">$_("No results found.")</div>
-          <div>$_("Did you mean X ?")</div> <!-- where X is add spellchecked answer and link to search for that-->
-          <hr>
+          <div>$did_you_mean(query)</div>
+          <div>
+            <a href="/search/inside?$urlencode(dict(q=spellchecked))">$_('Did you mean "%s"?' % spellchecked)</a>
+          </div>
           <div>
             <a href="/search/inside?$urlencode(dict(q=query))">$_('Search for books containing the phrase "%s"?' % query)</a>
           </div>
