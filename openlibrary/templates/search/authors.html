@@ -36,6 +36,8 @@ $var title: Search Open Library for "$q"
         </strong>
 
     $if q and 'error' not in results:
+    $ query = query_param('q')
+    $ spellchecked = did_you_mean(query,False)
 	$ response = results['response']
         $ num_found = int(response['numFound'])
 
@@ -47,6 +49,10 @@ $var title: Search Open Library for "$q"
             </div>
         $else:
             <p class="sansserif red collapse">$_('No hits')</p>
+            $if spellchecked != None:
+                <div>
+                    <a href="/search?$urlencode(dict(q=spellchecked))">$_('Did you mean "%s"?' % spellchecked)</a>
+                </div>
 
         <ul class="authorList list-books">
         $for doc in response['docs']:
