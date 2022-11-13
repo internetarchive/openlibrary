@@ -839,30 +839,47 @@ api and api.add_hook('new', new)
 # runs through dataset of books and creates a list of authors and titles
 def get_check_authors():
     import pandas as pd
-    df = pd.read_csv('openlibrary/plugins/openlibrary/allbooks.csv', delimiter=';',encoding='latin-1', on_bad_lines='skip')
-    authors= df['Book-Author'][:187000]
+
+    df = pd.read_csv(
+        'openlibrary/plugins/openlibrary/allbooks.csv',
+        delimiter=';',
+        encoding='latin-1',
+        on_bad_lines='skip',
+    )
+    authors = df['Book-Author'][:187000]
     return authors
+
+
 def get_check_books():
     import pandas as pd
-    df = pd.read_csv('openlibrary/plugins/openlibrary/allbooks.csv', delimiter=';',encoding='latin-1', on_bad_lines='skip')
-    books = df['Book-Title'] 
+
+    df = pd.read_csv(
+        'openlibrary/plugins/openlibrary/allbooks.csv',
+        delimiter=';',
+        encoding='latin-1',
+        on_bad_lines='skip',
+    )
+    books = df['Book-Title']
     return books
+
 
 @public
 
-#checks dataset for the closest spelling alternative for users' search query
-def did_you_mean(query,book=True):
+# checks dataset for the closest spelling alternative for users' search query
+def did_you_mean(query, book=True):
     import difflib
+
     if book:
         checks = get_check_books()
     else:
         checks = get_check_authors()
 
-    response = difflib.get_close_matches(query,checks)
+    response = difflib.get_close_matches(query, checks)
     if response != []:
         return response[0]
     else:
-        return None 
+        return None
+
 
 def changequery(query=None, **kw):
     if query is None:
