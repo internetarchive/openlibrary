@@ -841,8 +841,9 @@ api and api.add_hook('new', new)
 def did_you_mean(query):
     import difflib
     tests = set(['car', 'animal', 'house', 'animation', 'Mark Twain', 'Alice In Wonderland'])
-    response = difflib.get_closest_matches(query,tests)
+    response = difflib.get_close_matches(query,tests)
     return response
+
 def changequery(query=None, **kw):
     if query is None:
         query = web.input(_method='get', _unicode=False)
