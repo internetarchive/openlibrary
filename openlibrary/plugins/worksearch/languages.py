@@ -44,7 +44,7 @@ def get_top_languages(limit):
     from . import search
 
     result = search.get_solr().select(
-        '*:*', rows=0, facets=['language'], facet_limit=limit
+        'type:work', rows=0, facets=['language'], facet_limit=limit
     )
     return [
         web.storage(
