@@ -13,6 +13,9 @@ describe('SearchBar', () => {
         </div>`;
 
     describe('initFromUrlParams', () => {
+        delete window.location
+        window.location = new URL('https://openlibrary.org/search')
+
         let sb;
         beforeEach(() => {
             sb = new SearchBar($(DUMMY_COMPONENT_HTML));
