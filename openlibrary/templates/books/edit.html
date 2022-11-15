@@ -5,7 +5,7 @@ $ this_title = work.title + ': ' + work.subtitle if work.get('subtitle', None) e
 $var title: $this_title
 $putctx("robots", "noindex,nofollow")
 
-$:macros.HiddenSaveButton()
+$:macros.HiddenSaveButton("addWork")
 
 <div id="contentHead" class="editFormHead">
     $code:
