@@ -59,17 +59,13 @@ def parse_meta_headers(edition_builder):
             edition_builder.add(meta_key, v, restrict_keys=False)
 
 
-def parse_data(data):
+def parse_data(data: bytes) -> tuple[dict | None, str | None]:
     """
     Takes POSTed data and determines the format, and returns an Edition record
     suitable for adding to OL.
 
     :param bytes data: Raw data
-    :rtype: (dict|None, str|None)
     :return: (Edition record, format (rdf|opds|marcxml|json|marc)) or (None, None)
-
-    from typing import Dict, Optional, Tuple
-    def parse_data(data: bytes) -> Tuple[Optional[Dict], Optional[str]]:
     """
     data = data.strip()
     if b'<?xml' in data[:10]:
@@ -99,8 +95,8 @@ def parse_data(data):
         # Marc Binary
         if len(data) < MARC_LENGTH_POS or len(data) != int(data[:MARC_LENGTH_POS]):
             raise DataError('no-marc-record')
-        rec = MarcBinary(data)
-        edition = read_edition(rec)
+        record = MarcBinary(data)
+        edition = read_edition(record)
         edition_builder = import_edition_builder.import_edition_builder(
             init_dict=edition
         )
@@ -187,7 +183,9 @@ class ia_importapi(importapi):
     """
 
     @classmethod
-    def ia_import(cls, identifier, require_marc=True, force_import=False):
+    def ia_import(
+        cls, identifier: str, require_marc: bool = True, force_import: bool = False
+    ) -> str:
         """
         Performs logic to fetch archive.org item + metadata,
         produces a data dict, then loads into Open Library
@@ -195,7 +193,6 @@ class ia_importapi(importapi):
         :param str identifier: archive.org ocaid
         :param bool require_marc: require archive.org item have MARC record?
         :param bool force_import: force import of this record
-        :rtype: dict
         :returns: the data of the imported book or raises  BookImportError
         """
         # Case 1 - Is this a valid Archive.org item?
@@ -327,12 +324,11 @@ class ia_importapi(importapi):
             return self.error(e.error_code, e.error, **e.kwargs)
 
     @staticmethod
-    def get_ia_record(metadata):
+    def get_ia_record(metadata: dict) -> dict:
         """
         Generate Edition record from Archive.org metadata, in lieu of a MARC record
 
         :param dict metadata: metadata retrieved from metadata API
-        :rtype: dict
         :return: Edition record
         """
         authors = [{'name': name} for name in metadata.get('creator', '').split(';')]
@@ -363,26 +359,24 @@ class ia_importapi(importapi):
         return d
 
     @staticmethod
-    def load_book(edition_data):
+    def load_book(edition_data: dict) -> str:
         """
         Takes a well constructed full Edition record and sends it to add_book
         to check whether it is already in the system, and to add it, and a Work
         if they do not already exist.
 
         :param dict edition_data: Edition record
-        :rtype: dict
         """
         result = add_book.load(edition_data)
         return json.dumps(result)
 
     @staticmethod
-    def populate_edition_data(edition, identifier):
+    def populate_edition_data(edition: dict, identifier: str) -> dict:
         """
         Adds archive.org specific fields to a generic Edition record, based on identifier.
 
         :param dict edition: Edition record
         :param str identifier: ocaid
-        :rtype: dict
         :return: Edition record
         """
         edition['ocaid'] = identifier
@@ -391,13 +385,12 @@ class ia_importapi(importapi):
         return edition
 
     @staticmethod
-    def find_edition(identifier):
+    def find_edition(identifier: str) -> str | None:
         """
         Checks if the given identifier has already been imported into OL.
 
         :param str identifier: ocaid
-        :rtype: str
-        :return: OL item key of matching item: '/books/OL..M'
+        :return: OL item key of matching item: '/books/OL..M' or None if no item matches
         """
         # match ocaid
         q = {"type": "/type/edition", "ocaid": identifier}
@@ -411,6 +404,8 @@ class ia_importapi(importapi):
         keys = web.ctx.site.things(q)
         if keys:
             return keys[0]
+
+        return None
 
     @staticmethod
     def status_matched(key):

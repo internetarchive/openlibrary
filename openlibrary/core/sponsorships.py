@@ -33,7 +33,7 @@ SETUP_COST_CENTS = 300
 PAGE_COST_CENTS = 12
 
 
-def get_sponsored_editions_civi(user):
+def get_sponsored_editions_civi(user) -> list:
     """
     Deprecated by get_sponsored_editions but worth maintaining as we
     may periodically have to programmatically access data from civi
@@ -43,7 +43,6 @@ def get_sponsored_editions_civi(user):
     @archive_username has sponsored
 
     :param user user: infogami user
-    :rtype: list
     :return: list of archive.org items sponsored by user
     """
     archive_id = get_internet_archive_id(user.key if 'key' in user else user._key)
@@ -54,13 +53,12 @@ def get_sponsored_editions_civi(user):
     return []
 
 
-def get_sponsored_editions(user, page=1):
+def get_sponsored_editions(user, page: int = 1) -> list:
     """
     Gets a list of books from archive.org elasticsearch
     @archive_username has sponsored
 
     :param user user: infogami user
-    :rtype: list
     :return: list of archive.org editions sponsored by user
     """
     archive_id = get_internet_archive_id(user.key if 'key' in user else user._key)
@@ -83,7 +81,7 @@ def get_sponsored_editions(user, page=1):
     return []
 
 
-def do_we_want_it(isbn):
+def do_we_want_it(isbn: str) -> tuple[bool, list]:
     """
     Returns True if we don't have this edition (or other editions of
     the same work), if the isbn has not been promised to us, has not
@@ -91,7 +89,6 @@ def do_we_want_it(isbn):
 
     :param str isbn: isbn10 or isbn13
     :param str work_id: e.g. OL123W
-    :rtype: (bool, list)
     :return: bool answer to do-we-want-it, list of matching books
     """
     # We don't have any of these work's editions available to borrow
@@ -116,7 +113,9 @@ def do_we_want_it(isbn):
 
 
 @public
-def qualifies_for_sponsorship(edition, scan_only=False, donate_only=False, patron=None):
+def qualifies_for_sponsorship(
+    edition, scan_only: bool = False, donate_only: bool = False, patron=None
+) -> dict:
     """
     :param edition edition: An infogami book edition
     :rtype: dict
@@ -142,7 +141,7 @@ def qualifies_for_sponsorship(edition, scan_only=False, donate_only=False, patro
        "sponsor_url": "https://archive.org/donate?isbn=9780299204204&type=sponsorship&context=ol&campaign=pilot"
     }
     """
-    resp = {'is_eligible': False, 'price': None}
+    resp: dict = {'is_eligible': False, 'price': None}
 
     edition.isbn = edition.get_isbn13()
     edition.cover = edition.get('covers') and (
@@ -163,7 +162,8 @@ def qualifies_for_sponsorship(edition, scan_only=False, donate_only=False, patro
     work = edition.works and edition.works[0]
 
     if not (work and all(edition_data.values())):
-        resp['error'] = {
+        # Suppressing mypy's complaint about resp being reassigned. This applies to each suppression in this function.
+        resp['error'] = {  # type: ignore[assignment]
             'reason': 'Open Library is missing book metadata necessary for sponsorship',
             'values': edition_data,
         }
@@ -174,7 +174,6 @@ def qualifies_for_sponsorship(edition, scan_only=False, donate_only=False, patro
     dwwi, matches = do_we_want_it(edition.isbn)
     if dwwi:
         num_pages = int(edition_data['number_of_pages'])
-        bwb_price = None
         if not donate_only:
             if not scan_only:
                 bwb_price = get_betterworldbooks_metadata(edition.isbn).get('price_amt')
@@ -182,7 +181,7 @@ def qualifies_for_sponsorship(edition, scan_only=False, donate_only=False, patro
                 scan_price_cents = SETUP_COST_CENTS + (PAGE_COST_CENTS * num_pages)
                 book_cost_cents = int(float(bwb_price) * 100) if not scan_only else 0
                 total_price_cents = scan_price_cents + book_cost_cents
-                resp['price'] = {
+                resp['price'] = {  # type: ignore[assignment]
                     'book_cost_cents': book_cost_cents,
                     'scan_price_cents': scan_price_cents,
                     'total_price_cents': total_price_cents,
@@ -191,7 +190,7 @@ def qualifies_for_sponsorship(edition, scan_only=False, donate_only=False, patro
         if donate_only or scan_only or bwb_price:
             resp['is_eligible'] = eligibility_check(edition, patron=patron)
     else:
-        resp['error'] = {'reason': 'matches', 'values': matches}
+        resp['error'] = {'reason': 'matches', 'values': matches}  # type: ignore[assignment]
     edition_data.update(
         {'openlibrary_edition': edition_id, 'openlibrary_work': work_id}
     )
@@ -204,7 +203,7 @@ def qualifies_for_sponsorship(edition, scan_only=False, donate_only=False, patro
     return resp
 
 
-def sync_completed_sponsored_books(dryrun=False):
+def sync_completed_sponsored_books(dryrun: bool = False):
     """Retrieves a list of all completed sponsored books from Archive.org
     so they can be synced with Open Library, which entails:
 

@@ -7,6 +7,7 @@ import re
 import sys
 import time
 import traceback
+from types import TracebackType
 from typing import Any, Optional
 
 from infogami.utils.app import find_page, find_view, find_mode
@@ -136,19 +137,11 @@ def register_filter(name, function):
     filters[name] = function
 
 
-def _encode_key_part(key_part):
-    """
-    :param basestring key_part:
-    """
+def _encode_key_part(key_part: str) -> str:
     return key_part.replace('.', '_')
 
 
-def _get_path_page_name(path):
-    """
-    :param str path: url path from e.g. web.ctx.path
-    :rtype: str
-    """
-
+def _get_path_page_name() -> str:
     pageClass, _ = find_page()
     if pageClass is None:  # Check for view handlers
         pageClass, _ = find_view()
@@ -162,11 +155,10 @@ def _get_path_page_name(path):
     return result
 
 
-def _get_top_level_path_for_metric(full_path):
+def _get_top_level_path_for_metric(full_path: str) -> str:
     """
     Normalize + shorten the string since it could be user-entered
-    :param basestring full_path:
-    :rtype: str
+    :param str full_path:
     """
     path_parts = full_path.strip('/').split('/')
     path = path_parts[0] or 'home'
@@ -201,7 +193,7 @@ class GraphiteRequestStats:
             self.method = web.ctx.method
 
         if hasattr(web.ctx, 'path') and web.ctx.path:
-            self.path_page_name = _get_path_page_name(web.ctx.path)
+            self.path_page_name = _get_path_page_name()
             # This can be entered by a user to be anything! We record 404s.
             self.path_level_one = _get_top_level_path_for_metric(web.ctx.path)
 
@@ -247,7 +239,7 @@ def page_unload_hook():
     graphite_stats.increment(web.ctx.graphiteRequestStats.to_metric())
 
 
-def increment_error_count(key):
+def increment_error_count(key: str) -> None:
     """
     :param str key: e.g. ol.exceptions or el.internal-errors-segmented
     """
@@ -255,13 +247,17 @@ def increment_error_count(key):
     page_class = 'none'
     if web.ctx and hasattr(web.ctx, 'path') and web.ctx.path:
         top_url_path = _get_top_level_path_for_metric(web.ctx.path)
-        page_class = _get_path_page_name(web.ctx.path)
+        page_class = _get_path_page_name()
 
+    # Code that follows relies on these not being falsey, so alert ASAP if they are.
     exception_type, exception_value, tback = sys.exc_info()
+    assert exception_type
+    assert exception_value
+
     exception_type_name = exception_type.__name__
     # Log exception file
-    path = find_topmost_useful_file(exception_value, tback)
-    path = os.path.split(path)
+    top_path_in_tback = find_topmost_useful_file(exception_value, tback)
+    path = os.path.split(top_path_in_tback)
 
     # log just filename, unless it's code.py (cause that's useless!)
     ol_file = path[1]
@@ -282,24 +278,26 @@ def increment_error_count(key):
 TEMPLATE_SYNTAX_ERROR_RE = re.compile(r"File '([^']+?)'")
 
 
-def find_topmost_useful_file(exception, tback):
+def find_topmost_useful_file(
+    exception: BaseException, tback: TracebackType | None
+) -> str:
     """
     Find the topmost path in the traceback stack that's useful to report.
 
     :param BaseException exception: error from e.g. sys.exc_inf()
     :param TracebackType tback: traceback from e.g. sys.exc_inf()
-    :rtype: basestring
     :return: full path
     """
     file_path = 'none'
+
     while tback is not None:
         cur_file = tback.tb_frame.f_code.co_filename
         if '/openlibrary' in cur_file:
             file_path = cur_file
         tback = tback.tb_next
 
-    if file_path.endswith('template.py') and hasattr(exception, 'msg'):
-        m = TEMPLATE_SYNTAX_ERROR_RE.search(exception.msg)
+    if file_path.endswith('template.py') and hasattr(exception, 'args'):
+        m = TEMPLATE_SYNTAX_ERROR_RE.search(exception.args[1])
         if m:
             file_path = m.group(1)
 

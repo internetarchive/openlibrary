@@ -244,10 +244,7 @@ class account_create(delegate.page):
         f = self.get_form()
         return render['account/create'](f)
 
-    def get_form(self):
-        """
-        :rtype: forms.RegisterForm
-        """
+    def get_form(self) -> forms.RegisterForm:
         f = forms.Register()
         recap = self.get_recap()
         f.has_recaptcha = recap is not None

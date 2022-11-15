@@ -696,7 +696,10 @@ class Work(models.Work):
         return None
 
     def get_sorted_editions(
-        self, ebooks_only: bool = False, limit: int = None, keys: list[str] = None
+        self,
+        ebooks_only: bool = False,
+        limit: int | None = None,
+        keys: list[str] | None = None,
     ) -> list[Edition]:
         """
         Get this work's editions sorted by publication year
