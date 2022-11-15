@@ -1,6 +1,6 @@
 """Models of various OL objects.
 """
-import datetime
+from datetime import datetime, timedelta
 import logging
 import web
 import requests
@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 
 from infogami.infobase import client
 
-from openlibrary.core import helpers as h
+from openlibrary.core.helpers import parse_datetime, safesort, urlsafe
 
 # TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
@@ -58,7 +58,7 @@ class Image:
             url = "http:" + url
         try:
             d = requests.get(url).json()
-            d['created'] = h.parse_datetime(d['created'])
+            d['created'] = parse_datetime(d['created'])
             if d['author'] == 'None':
                 d['author'] = None
             d['author'] = d['author'] and self._site.get(d['author'])
@@ -93,7 +93,7 @@ class Thing(client.Thing):
         def process(v):
             """Converts entries in version dict into objects."""
             v = web.storage(v)
-            v.created = h.parse_datetime(v.created)
+            v.created = parse_datetime(v.created)
             v.author = v.author and self._site.get(v.author, lazy=True)
             return v
 
@@ -144,7 +144,7 @@ class Thing(client.Thing):
     def _make_url(self, label, suffix, relative=True, **params):
         """Make url of the form $key/$label$suffix?$params."""
         if label is not None:
-            u = self.key + "/" + h.urlsafe(label) + suffix
+            u = self.key + "/" + urlsafe(label) + suffix
         else:
             u = self.key + suffix
         if params:
@@ -181,7 +181,7 @@ class Thing(client.Thing):
 
         lists = self._site.get_many(keys)
         if sort:
-            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_modified)
+            lists = safesort(lists, reverse=True, key=lambda list: list.last_modified)
         return lists
 
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
@@ -365,10 +365,9 @@ class Edition(Thing):
                 return f"https://archive.org/download/{self.ocaid}/{filename}"
 
     @classmethod
-    def from_isbn(cls, isbn):
+    def from_isbn(cls, isbn: str):
         """Attempts to fetch an edition by isbn, or if no edition is found,
         attempts to import from amazon
-        :param str isbn:
         :rtype: edition|None
         :return: an open library work for this isbn
         """
@@ -652,11 +651,11 @@ class Work(Thing):
     @classmethod
     def resolve_redirects_bulk(
         cls,
-        batch_size=1000,
-        start_offset=0,
-        grace_period_days=7,
-        cutoff_date=datetime.datetime(year=2017, month=1, day=1),
-        test=False,
+        batch_size: int = 1000,
+        start_offset: int = 0,
+        grace_period_days: int = 7,
+        cutoff_date: datetime = datetime(year=2017, month=1, day=1),
+        test: bool = False,
     ):
         """
         batch_size - how many records to fetch per batch
@@ -668,9 +667,7 @@ class Work(Thing):
         fixed = 0
         batch = 0
         pos = start_offset
-        grace_date = datetime.datetime.today() - datetime.timedelta(
-            days=grace_period_days
-        )
+        grace_date = datetime.today() - timedelta(days=grace_period_days)
 
         go = True
         while go:
@@ -842,7 +839,7 @@ class User(Thing):
 
         lists = self._site.get_many(keys)
         if sort:
-            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_modified)
+            lists = safesort(lists, reverse=True, key=lambda list: list.last_modified)
         return lists
 
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
@@ -1040,7 +1037,7 @@ class List(Thing, ListMixin):
 
 class UserGroup(Thing):
     @classmethod
-    def from_key(cls, key):
+    def from_key(cls, key: str):
         """
         :param str key: e.g. /usergroup/sponsor-waitlist
         :rtype: UserGroup | None
@@ -1049,7 +1046,7 @@ class UserGroup(Thing):
             key = "/usergroup/%s" % key
         return web.ctx.site.get(key)
 
-    def add_user(self, userkey):
+    def add_user(self, userkey: str) -> None:
         """Administrative utility (designed to be used in conjunction with
         accounts.RunAs) to add a patron to a usergroup
 
@@ -1092,7 +1089,7 @@ class Subject(web.storage):
         keys = web.ctx.site.things(q)
         lists = web.ctx.site.get_many(keys)
         if sort:
-            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_modified)
+            lists = safesort(lists, reverse=True, key=lambda list: list.last_modified)
         return lists
 
     def get_seed(self):
