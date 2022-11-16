@@ -1,4 +1,4 @@
-$def with (user, mybooks)
+$def with (user, mybooks, public=False, owners_page=False, counts=None, lists=None)
 
 $ component_times = {}
 $ component_times['TotalTime'] = time()
@@ -14,27 +14,4 @@ $ username = user.key.split('/')[-1]
   }
 </style>
 
-<h1>My Books</h1>
-
-<div class="item">
-  <a href="/account/loans">My Loans &amp; Holds ($len(mybooks.loans))</a>
-</div>
-
-<div class="item">
-  <a href="/account/books/want-to-read">Want to Read ($mybooks.reading_log_counts['want-to-read'])</a>
-
-</div>
-<div class="item">
-  <a href="/account/books/currently-reading">Currently Reading ($mybooks.reading_log_counts['currently-reading'])</a>
-</div>
-<div class="item">
-  <a href="/account/books/already-read">Already Read ($mybooks.reading_log_counts['already-read'])</a>
-</div>
-
-<div class="item">
-  <a href="/account/lists">My Lists ($(len(mybooks.lists)))</a>
-</div>
-
-<div class="item">
-  <a href="/account/books/already-read/stats">My Reading Stats</a>
-</div>
+$mybooks
