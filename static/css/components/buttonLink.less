@@ -4,17 +4,21 @@
  */
 .linkButton {
   border-radius: 5px;
-  background: @white;
+  background-color: @white;
   padding: 10px;
-  color: @dark-grey;
   display: inline-block;
-}
-a {
-
-  &.linkButton {
-    font-family: @lucida_sans_serif-1;
-    text-decoration: none;
-    color: @grey;
-    border: 1px solid @mid-grey;
+  font-family: @lucida_sans_serif-1;
+  color: @grey;
+  border: 1px solid @mid-grey;
+  cursor: pointer;
+  transition: background-color .2s;
+  &:hover {
+    background-color: @grey-e7e7e7;
   }
+}
+
+a.linkButton {
+  text-decoration: none;
+  // Need to duplicate to override base style specificity
+  color: @grey;
 }
