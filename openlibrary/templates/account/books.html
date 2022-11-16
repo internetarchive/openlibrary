@@ -23,7 +23,9 @@ $ userKey = user.key or ctx.user.key
 $ breadcrumb = _("Reading Log")
 $ header_title = ""
 
-$if key == 'currently-reading':
+$if key == 'mybooks':
+  $ header_title = _("My Books")
+$elif key == 'currently-reading':
   $ header_title = _("Currently Reading")
 $elif key == 'want-to-read':
   $ header_title = _("Want To Read")
@@ -46,7 +48,8 @@ $if not header_title:
     $ header_title = docs.get('name', 'List')
   $else:
     $ header_title = key
-  $ breadcrumb = header_title
+
+$ breadcrumb = header_title
 $var title: $header_title
 
 <div class="mybooks">
@@ -96,7 +99,9 @@ $var title: $header_title
     $ component_times['Details header'] = time() - component_times['Details header']
     $ component_times['Details content'] = time()
     <div class="details-content">
-    $if key == 'loans':
+    $if key == 'mybooks':
+      $:render_template('account/mybooks', logged_in_user, docs, public=public, owners_page=owners_page, counts=shelf_counts, lists=lists,)
+    $elif key == 'loans':
       $:render_template('account/loans', logged_in_user, docs)
     $elif key == 'notes':
       $:render_template('account/notes', docs, user, shelf_counts['notes'], page=current_page)

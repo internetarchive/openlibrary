@@ -30,17 +30,7 @@ class my_books_home(delegate.page):
         in /plugins/account.py account_my_books. But we don't need to update that redirect
         because it already just redirects here.
         """
-        user = web.ctx.site.get('/people/%s' % username)
-        is_public = user.preferences().get('public_readlog', 'no') == 'yes'
-        if is_public: # or current_user == user:
-            #user.update_loan_status()
-            mybooks = ReadingLog(user=user)
-            mybooks.loans = borrow.get_loans(user)
-
-            # TODO:
-            # Render a "account/books.html" view which uses the account/mybooks as its template
-            #return MyBooksTemplate(username, key).render(page="books")
-            return render['account/mybooks'](user, mybooks)
+        return MyBooksTemplate(username, key='mybooks').render()
 
 
 class my_books_view(delegate.page):
@@ -176,7 +166,7 @@ class MyBooksTemplate:
     READING_LOG_KEYS = {"currently-reading", "want-to-read", "already-read"}
 
     # Keys that can be accessed when not logged in
-    PUBLIC_KEYS = READING_LOG_KEYS | {"lists", "list"}
+    PUBLIC_KEYS = READING_LOG_KEYS | {"lists", "list"} | {"mybooks"}
 
     # Keys that are only accessible when logged in
     # unioned with the public keys
@@ -288,8 +278,21 @@ class MyBooksTemplate:
         page=1,
         username=None,
     ):
-        if self.key == 'loans':
-            logged_in_user.update_loan_status()
+        if self.key == 'mybooks':
+            return {
+                'loans': borrow.get_loans(logged_in_user),
+                'want-to-read': self.readlog.get_works(
+                    key='want-to-read', page=page, limit=5, sort='created', sort_order='asc'
+                ),
+                'currently-reading': self.readlog.get_works(
+                    key='currently-reading', page=page, limit=5, sort='created', sort_order='asc'
+                ),
+                'already-read': self.readlog.get_works(
+                    key='already-read', page=page, limit=5, sort='created', sort_order='asc'
+                ),
+            }
+        elif self.key == 'loans':
+            #logged_in_user.update_loan_status()
             return borrow.get_loans(logged_in_user)
         elif self.key == 'waitlist':
             return {}
