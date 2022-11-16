@@ -282,17 +282,29 @@ class MyBooksTemplate:
             return {
                 'loans': borrow.get_loans(logged_in_user),
                 'want-to-read': self.readlog.get_works(
-                    key='want-to-read', page=page, limit=5, sort='created', sort_order='asc'
+                    key='want-to-read',
+                    page=page,
+                    limit=5,
+                    sort='created',
+                    sort_order='asc',
                 ),
                 'currently-reading': self.readlog.get_works(
-                    key='currently-reading', page=page, limit=5, sort='created', sort_order='asc'
+                    key='currently-reading',
+                    page=page,
+                    limit=5,
+                    sort='created',
+                    sort_order='asc',
                 ),
                 'already-read': self.readlog.get_works(
-                    key='already-read', page=page, limit=5, sort='created', sort_order='asc'
+                    key='already-read',
+                    page=page,
+                    limit=5,
+                    sort='created',
+                    sort_order='asc',
                 ),
             }
         elif self.key == 'loans':
-            #logged_in_user.update_loan_status()
+            # logged_in_user.update_loan_status()
             return borrow.get_loans(logged_in_user)
         elif self.key == 'waitlist':
             return {}
