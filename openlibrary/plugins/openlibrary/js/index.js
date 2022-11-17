@@ -384,9 +384,17 @@ jQuery(function () {
             .then(module => module.initDialogs(nativeDialogs))
     }
     const checkInForms = document.querySelectorAll('.check-in')
-    if (checkInForms.length) {
+    const checkInPrompts = document.querySelectorAll('.check-in-prompt')
+    if (checkInForms.length || checkInPrompts.length) {
         import(/* webpackChunkName: "check-ins" */ './check-ins')
-            .then(module => module.initCheckInForms(checkInForms))
+            .then((module) => {
+                if (checkInForms.length) {
+                    module.initCheckInForms(checkInForms)
+                }
+                if (checkInPrompts.length) {
+                    module.initCheckInPrompts(checkInPrompts)
+                }
+            })
     }
 
     $(document).on('click', '.slide-toggle', function () {

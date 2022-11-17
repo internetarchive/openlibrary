@@ -1,4 +1,30 @@
 /**
+ * Defines code needed for reading log check-in UI components.
+ * @module check-ins/index
+ */
+import { PersistentToast } from '../Toast'
+
+/**
+ * Enum for check-in event types.
+ * @readonly
+ * @enum {string}
+ */
+export const CheckInEvent = {
+    /** Started reading */
+    START: '1',
+    /** Update to an existing check-in event */
+    UPDATE: '2',
+    /** Completed reading */
+    FINISH: '3'
+}
+
+/**
+ * Array of days for each month, listed in order starting with January.
+ * Assumes that it is not a leap year.
+ */
+const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+/**
  * Adds listeners to each given check-in component.
  *
  * @param {HTMLCollection<HTMLElement>} elems
@@ -7,7 +33,7 @@ export function initCheckInForms(elems) {
     for (const elem of elems) {
         const closeButton = elem.querySelector('.check-in__cancel-btn')
         closeButton.addEventListener('click', function() {
-            closeDialog(elem.dataset.modalRef)
+            closeDialog(elem.dataset.workOlid)
         })
 
         const submitButton = elem.querySelector('.check-in__submit-btn')
@@ -29,6 +55,43 @@ export function initCheckInForms(elems) {
 }
 
 /**
+ * Adds listeners to check-in date prompts.
+ *
+ * @param {HTMLCollection<HTMLElement>} elems Components that prompt for check-in dates
+ */
+export function initCheckInPrompts(elems) {
+    for (const elem of elems) {
+        const workOlid = elem.dataset.workOlid
+        const modal = document.querySelector(`#check-in-dialog-${workOlid}`)
+
+        const todayLink = elem.querySelector('.prompt-today')
+        todayLink.addEventListener('click', function() {
+            onTodayClick(modal)
+        })
+
+        const customDateLink = elem.querySelector('.prompt-custom')
+        customDateLink.addEventListener('click', function() {
+            modal.showModal()
+        })
+    }
+}
+
+/**
+ * Sets check-in form inputs to today's date, and submits the form.
+ *
+ * @param {HTMLElement} modal Element containing the check-in form
+ */
+function onTodayClick(modal) {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = now.getMonth() + 1
+    const day = now.getDate()
+
+    setDate(modal, year, month, day)
+    submitEvent(modal.querySelector('.check-in'))
+}
+
+/**
  * Sets the date selectors of the given form to the given year, month, and day.
  *
  * @param {HTMLElement} parentElement The root element of the check-in component
@@ -36,7 +99,7 @@ export function initCheckInForms(elems) {
  * @param {Number} month One-indexed month
  * @param {Number} day The day
  */
-export function setDate(parentElement, year, month, day) {
+function setDate(parentElement, year, month, day) {
     const yearSelect = parentElement.querySelector('select[name=year]')
     const monthSelect = parentElement.querySelector('select[name=month]')
     const daySelect = parentElement.querySelector('select[name=day]')
@@ -151,8 +214,6 @@ function toggleDayVisibility(daySelect, daysInMonth) {
     }
 }
 
-const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-
 /**
  * Determines if the given year is a leap year.
  *
@@ -193,8 +254,6 @@ function submitEvent(elem) {
         data.edition_key = editionKey
     }
 
-    // TODO: Validate data
-
     $.ajax({
         type: 'POST',
         url: url,
@@ -206,19 +265,29 @@ function submitEvent(elem) {
             xhr.setRequestHeader('Accept', 'application/json');
         },
         success: function() {
-            resetSelects(elem.querySelectorAll('select'))
-            closeDialog(elem.dataset.modalRef)
+            resetForm(elem)
+            updateView(elem.dataset.workOlid, year, month, day)
+        },
+        error: function() {
+            new PersistentToast('Failed to submit check-in.  Please try again in a few moments.').show()
+        },
+        complete: function() {
+            closeDialog(elem.dataset.workOlid)
         }
     });
 }
 
 /**
- * Sets all given `select` elements to the default value.
+ * Resets given check-in form.
  *
- * @param {HTMLCollection<HTMLSelectElement>} selects
+ * Sets all form `select` elements to their default values.
+ * Disables submit button, month select, and day select.
+ *
+ * @param {HTMLElement} elem Root element of the check-in component
  */
-function resetSelects(selects) {
-    for (const select of selects) {
+function resetForm(elem) {
+    elem.querySelector('.check-in__submit-btn').disabled = true
+    for (const select of elem.querySelectorAll('select')) {
         select.value = ''
         if (select.name !== 'year') {
             select.disabled = true
@@ -229,9 +298,39 @@ function resetSelects(selects) {
 /**
  * Dispatches close dialog event to the parent dialog element.
  *
- * @param {string} id Unique identifier for the parent dialog element
+ * @param {string} workOlid Uniquely identifies a check-in dialog element.
  */
-function closeDialog(id) {
-    const dialog = document.querySelector(`#${id}`)
+function closeDialog(workOlid) {
+    const dialog = document.querySelector(`#check-in-dialog-${workOlid}`)
     dialog.dispatchEvent(new Event('close-dialog'))
+}
+
+/**
+ * Updates and displays check-in date.
+ *
+ * Removes check-in prompt component if it exists.
+ *
+ * @param {string} workOlid ID used to identify related components
+ * @param {str} year Check-in event year
+ * @param {str|null} month Check-in event month
+ * @param {str|null} day Check-in event day
+ */
+function updateView(workOlid, year, month, day) {
+    let date = year
+    if (month) {
+        date += `-${month}`
+        if (day) {
+            date += `-${day}`
+        }
+    }
+    const displayElement = document.querySelector(`#check-in-display-${workOlid}`)
+    const dateField = displayElement.querySelector('.check-in-date')
+    dateField.textContent = date
+
+    const promptElem = document.querySelector(`#prompt-${workOlid}`)
+    if (promptElem) {
+        promptElem.remove()
+    }
+
+    displayElement.classList.remove('hidden')
 }

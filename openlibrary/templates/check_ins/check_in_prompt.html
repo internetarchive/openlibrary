@@ -1,0 +1,35 @@
+$def with (work_key, read_status, edition_key=None, last_read_date=None)
+
+$# work_key : str : The work key
+$# read_status : int | None : Number representing which shelf this work is on.
+$#    Possible Values:
+$#    1 : Want to Read
+$#    2 : Currently Reading
+$#    3 : Already Read
+$#    None : Work is not on the patron's shelf
+$# edition_key : str | None : The edition key
+$# last_read_date : str | None : Date that the patron last read the book
+
+$ work_olid = work_key.split('/')[-1]
+$ modal_id = 'check-in-dialog-%s' % work_olid
+$ prompt_id = 'prompt-%s' % work_olid
+
+<div id="check-in-display-$(work_olid)" class="last-read-date $cond(last_read_date, '', 'hidden')">
+  <span>Read: <span class="check-in-date">$last_read_date</span></span>
+  <span class="hidden">
+    <a class="prompt-edit-date" href="javascript:;">$_("Edit")</a>
+  </span>
+</div>
+
+$if not last_read_date:
+  $ display_prompt = read_status == 3
+  <div id="$(prompt_id)" class="check-in-prompt $cond(display_prompt, '', 'hidden')" data-work-olid="$(work_olid)">
+    <span>$_("When did you finish this book?")</span>
+    <span>
+      <a class="prompt-today" href="javascript:;">$_("Today")</a>
+      <a class="prompt-custom" href="javascript:;">$_("Custom Date")</a>
+    </span>
+  </div>
+
+$ check_in_form = render_template('check_ins/modal_form', work_olid, work_key, edition_key=edition_key)
+$:render_template('native_dialog', modal_id, check_in_form)

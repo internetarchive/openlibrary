@@ -1,4 +1,4 @@
-$def with(modal_id, work_key, edition_key=None)
+$def with(work_olid, work_key, edition_key=None)
 
 $code:
   year = current_year()
@@ -17,7 +17,7 @@ $code:
     _('December'),
   ]
 
-<div class="check-in" data-modal-ref="$(modal_id)">
+<div class="check-in" data-work-olid="$(work_olid)" data-event-type="3">
   <form method="dialog" class="check-in__form" action="$(work_key)/check-ins" method="post">
     $if edition_key:
       <input type="hidden" id="edition-key" name="edition_key" value="$(edition_key)">
@@ -25,7 +25,7 @@ $code:
       $_('Add an optional check-in date.  Check-in dates are used to track yearly reading goals.')
     </div>
     <div class="check-in__inputs">
-      <label class="check-in__label">$_('Start Date:')</label>
+      <label class="check-in__label">$_('End Date:')</label>
       <span>
         <label>$_('Year:')</label>
         <select class="check-in__select" name="year">

@@ -5,7 +5,7 @@
 
 import { createList, addToList, removeFromList, updateReadingLog, fetchPartials } from './ListService'
 import { websafe } from '../jsdef'
-import { setDate } from '../check-ins'
+import { CheckInEvent } from '../check-ins'
 
 /**
  * Maps a list key to an array of references to removeable list items.
@@ -25,6 +25,12 @@ const actionableItems = {}
  * @type {Record<string, ListData>}
  */
 const dropperLists = {}
+
+const ReadingLog = {
+    WANT_TO_READ: '1',
+    CURRENTLY_READING: '2',
+    ALREADY_READ: '3'
+}
 
 /**
  * Add all necessary event listeners to the given collection of reading
@@ -247,32 +253,27 @@ function addReadingLogButtonClickListener(button) {
 
         const success = function() {
             const actionInput = form.querySelector('input[name=action]')
-            if (actionInput.value === 'add') {
-                const bookshelfValue = form.querySelector('input[name=bookshelf_id]').value
-                const workKey = document.querySelector('input[name=work_id').value
-                const workOlid = workKey.split('/').slice(-1).pop()
+            const workKey = document.querySelector('input[name=work_id').value
+            const workOlid = workKey.split('/').slice(-1).pop()
+            const modal = document.querySelector(`#check-in-dialog-${workOlid}`)
+            // If there is a check-in modal, then a `.check-in-prompt` component may exist:
+            const datePrompt = modal ? document.querySelector(`#prompt-${workOlid}`) : null
 
-                if (bookshelfValue === '2' || bookshelfValue === '3') {
-                    const modal = document.querySelector(`#dialog-${workOlid}`)
-                    if (modal) {
+            if (datePrompt) {
+                if (actionInput.value === 'add') {
+                    const bookshelfValue = form.querySelector('input[name=bookshelf_id]').value
+
+                    if (bookshelfValue === ReadingLog.ALREADY_READ) {
                         const checkInForm = modal.querySelector('.check-in')
-                        const label = modal.querySelector('.check-in__label')
-                        const now = new Date()
-                        const year = now.getFullYear()
-                        const month = now.getMonth() + 1
-                        const day = now.getDay()
+                        checkInForm.dataset.eventType = CheckInEvent.FINISH
 
-                        if (bookshelfValue === '2') {  // Currently Reading
-                            label.textContent = 'Start Date:'
-                            checkInForm.dataset.eventType = '1'
-                        }
-                        else if (bookshelfValue === '3') {  // Already Read
-                            label.textContent = 'End Date:'
-                            checkInForm.dataset.eventType = '3'
-                        }
-                        setDate(modal, year, month, day)
-                        modal.showModal()
+                        datePrompt.classList.remove('hidden')
                     }
+                    else {
+                        datePrompt.classList.add('hidden')
+                    }
+                } else {
+                    datePrompt.classList.add('hidden')
                 }
             }
             if (button.classList.contains('want-to-read')) {

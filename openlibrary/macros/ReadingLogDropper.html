@@ -169,9 +169,8 @@ $if ctx.user or not work_key:
         </div>
     </div>
   $if work_key and edition_key:
-    $ id = 'dialog-%s' % work_key.split('/')[-1]
-    $ check_in_form = render_template('check_ins/modal_form', id, work_key, edition_key=edition_key)
-    $:render_template('native_dialog', id, check_in_form)
+    $ last_read_date = get_latest_read_date(work_key, edition_key)
+    $:render_template('check_ins/check_in_prompt', work_key, users_work_read_status, edition_key=edition_key, last_read_date=last_read_date)
 $else:
   <div class="dropit">
       <div class="dropper on">

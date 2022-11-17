@@ -330,6 +330,22 @@ class TestCheckIns:
             "event_type": 1,
             "event_date": "2020",
         },
+        {
+            "id": 5,
+            "username": "@eliot_rosewater",
+            "work_id": 3,
+            "edition_id": 4,
+            "event_type": 3,
+            "event_date": "2019-08-20",
+        },
+        {
+            "id": 6,
+            "username": "@eliot_rosewater",
+            "work_id": 3,
+            "edition_id": 4,
+            "event_type": 3,
+            "event_date": "2019-10",
+        },
     ]
 
     @classmethod
@@ -348,7 +364,7 @@ class TestCheckIns:
         self.db.query("delete from bookshelves_events;")
 
     def test_create_event(self):
-        assert len(list(self.db.select('bookshelves_events'))) == 4
+        assert len(list(self.db.select('bookshelves_events'))) == 6
         assert (
             len(
                 list(
@@ -360,7 +376,7 @@ class TestCheckIns:
             == 1
         )
         BookshelvesEvents.create_event('@billy_pilgrim', 5, 6, '2022-01', event_type=1)
-        assert len(list(self.db.select('bookshelves_events'))) == 5
+        assert len(list(self.db.select('bookshelves_events'))) == 7
         assert (
             len(
                 list(
@@ -373,7 +389,7 @@ class TestCheckIns:
         )
 
     def test_select_all_by_username(self):
-        assert len(list(self.db.select('bookshelves_events'))) == 4
+        assert len(list(self.db.select('bookshelves_events'))) == 6
         assert (
             len(
                 list(
@@ -387,7 +403,7 @@ class TestCheckIns:
         BookshelvesEvents.create_event(
             '@kilgore_trout', 7, 8, '2011-01-09', event_type=1
         )
-        assert len(list(self.db.select('bookshelves_events'))) == 5
+        assert len(list(self.db.select('bookshelves_events'))) == 7
         assert (
             len(
                 list(
@@ -409,14 +425,14 @@ class TestCheckIns:
         assert row['event_date'] == new_date
 
     def test_delete_by_id(self):
-        assert len(list(self.db.select('bookshelves_events'))) == 4
+        assert len(list(self.db.select('bookshelves_events'))) == 6
         assert len(list(self.db.select('bookshelves_events', where={"id": 1}))) == 1
         BookshelvesEvents.delete_by_id(1)
-        assert len(list(self.db.select('bookshelves_events'))) == 3
+        assert len(list(self.db.select('bookshelves_events'))) == 5
         assert len(list(self.db.select('bookshelves_events', where={"id": 1}))) == 0
 
     def test_delete_by_username(self):
-        assert len(list(self.db.select('bookshelves_events'))) == 4
+        assert len(list(self.db.select('bookshelves_events'))) == 6
         assert (
             len(
                 list(
@@ -428,7 +444,7 @@ class TestCheckIns:
             == 3
         )
         BookshelvesEvents.delete_by_username('@kilgore_trout')
-        assert len(list(self.db.select('bookshelves_events'))) == 1
+        assert len(list(self.db.select('bookshelves_events'))) == 3
         assert (
             len(
                 list(
@@ -438,4 +454,13 @@ class TestCheckIns:
                 )
             )
             == 0
+        )
+
+    def test_get_latest_event_date(self):
+        assert (
+            BookshelvesEvents.get_latest_event_date('@eliot_rosewater', 3, 4, 3)
+            == "2019-10"
+        )
+        assert (
+            BookshelvesEvents.get_latest_event_date('@eliot_rosewater', 3, 4, 1) is None
         )

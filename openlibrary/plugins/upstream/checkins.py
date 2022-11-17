@@ -6,10 +6,11 @@ import web
 from typing import Optional
 
 from infogami.utils import delegate
+from infogami.utils.view import public
 
 from openlibrary.accounts import get_current_user
 from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.core.bookshelves_events import BookshelvesEvents
+from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.utils.decorators import authorized_for
 
 
@@ -42,6 +43,20 @@ def is_valid_date(year: int, month: Optional[int], day: Optional[int]) -> bool:
     if day and not month:
         return False
     return True
+
+
+@public
+def get_latest_read_date(work_olid: str, edition_olid: str | None) -> str | None:
+    user = get_current_user()
+    username = user['key'].split('/')[-1]
+
+    work_id = extract_numeric_id_from_olid(work_olid)
+    edition_id = extract_numeric_id_from_olid(edition_olid) if edition_olid else None
+
+    result = BookshelvesEvents.get_latest_event_date(
+        username, work_id, edition_id, BookshelfEvent.FINISH
+    )
+    return result
 
 
 class patron_check_ins(delegate.page):
