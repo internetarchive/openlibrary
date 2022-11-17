@@ -51,6 +51,11 @@ export function initCheckInForms(elems) {
         monthSelect.addEventListener('change', function(event) {
             onMonthChange(elem, event.target.value)
         })
+
+        const todayLink = elem.querySelector('.check-in__today')
+        todayLink.addEventListener('click', function() {
+            onTodayClick(elem)
+        })
     }
 }
 
@@ -66,7 +71,7 @@ export function initCheckInPrompts(elems) {
 
         const todayLink = elem.querySelector('.prompt-today')
         todayLink.addEventListener('click', function() {
-            onTodayClick(modal)
+            onTodayClick(modal, true)
         })
 
         const customDateLink = elem.querySelector('.prompt-custom')
@@ -77,18 +82,23 @@ export function initCheckInPrompts(elems) {
 }
 
 /**
- * Sets check-in form inputs to today's date, and submits the form.
+ * Sets check-in form inputs to today's date.
+ *
+ * Optionally submits form upon setting date.
  *
  * @param {HTMLElement} modal Element containing the check-in form
+ * @param {boolean} doSubmit Submits form if true
  */
-function onTodayClick(modal) {
+function onTodayClick(modal, doSubmit=false) {
     const now = new Date()
     const year = now.getFullYear()
     const month = now.getMonth() + 1
     const day = now.getDate()
 
     setDate(modal, year, month, day)
-    submitEvent(modal.querySelector('.check-in'))
+    if (doSubmit) {
+        submitEvent(modal.querySelector('.check-in'))
+    }
 }
 
 /**
@@ -99,7 +109,7 @@ function onTodayClick(modal) {
  * @param {Number} month One-indexed month
  * @param {Number} day The day
  */
-function setDate(parentElement, year, month, day) {
+export function setDate(parentElement, year, month, day) {
     const yearSelect = parentElement.querySelector('select[name=year]')
     const monthSelect = parentElement.querySelector('select[name=month]')
     const daySelect = parentElement.querySelector('select[name=day]')

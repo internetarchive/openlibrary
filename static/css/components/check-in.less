@@ -49,6 +49,31 @@
   }
 }
 
+.last-read-date {
+  margin-bottom: 5px;
+
+  .date-display {
+    display: flex;
+    justify-content: space-between;
+
+    .read-label {
+      font-weight: 700;
+    }
+  }
+}
+
+.check-in-prompt {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 5px;
+
+  .prompt-options {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+  }
+}
+
 @media only screen and (min-width: @width-breakpoint-tablet) {
   .check-in {
     &__form {

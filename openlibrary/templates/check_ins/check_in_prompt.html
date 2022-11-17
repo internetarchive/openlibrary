@@ -15,7 +15,11 @@ $ modal_id = 'check-in-dialog-%s' % work_olid
 $ prompt_id = 'prompt-%s' % work_olid
 
 <div id="check-in-display-$(work_olid)" class="last-read-date $cond(last_read_date, '', 'hidden')">
-  <span>Read: <span class="check-in-date">$last_read_date</span></span>
+  <span class="date-display">
+    <span class="read-label">Read: </span>
+    <span class="check-in-date">$last_read_date</span>
+  </span>
+
   <span class="hidden">
     <a class="prompt-edit-date" href="javascript:;">$_("Edit")</a>
   </span>
@@ -24,8 +28,8 @@ $ prompt_id = 'prompt-%s' % work_olid
 $if not last_read_date:
   $ display_prompt = read_status == 3
   <div id="$(prompt_id)" class="check-in-prompt $cond(display_prompt, '', 'hidden')" data-work-olid="$(work_olid)">
-    <span>$_("When did you finish this book?")</span>
-    <span>
+    <span class="prompt-copy">$_("When did you finish this book?")</span>
+    <span class="prompt-options">
       <a class="prompt-today" href="javascript:;">$_("Today")</a>
       <a class="prompt-custom" href="javascript:;">$_("Custom Date")</a>
     </span>
