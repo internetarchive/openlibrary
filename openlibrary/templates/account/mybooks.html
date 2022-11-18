@@ -12,10 +12,10 @@ $if len(mybooks['loans']) == 0:
   <div><em>$_("You've not checked out any books at this moment.")</em></div>
   <br>
 $else:
-  $:render_template("books/custom_carousel", books=mybooks['loans'], title=_('Loans')+" ("+str(len(mybooks['loans']))+")", url="/account/loans", key="loans")
+  $:render_template("books/custom_carousel", books=mybooks['loans'], title=_('Loans')+" ("+str(len(mybooks['loans']))+")", url="/account/loans", key="loans", min_books=1, load_more=None, test=False, compact_mode=True)
 
 $if mybooks['currently-reading'].docs:
-  $:render_template("books/custom_carousel", books=mybooks['currently-reading'].docs, title=_('Currently Reading')+" ("+str(mybooks['currently-reading'].total_results)+")", url="/account/books/currently-reading", key="currently-reading")
+  $:render_template("books/custom_carousel", books=mybooks['currently-reading'].docs, title=_('Currently Reading')+" ("+str(mybooks['currently-reading'].total_results)+")", url="/account/books/currently-reading", key="currently-reading", min_books=1, load_more=None, test=False, compact_mode=True)
 $else:
   <div class="carousel-section-header">
     <h2 class="home-h2"><a name="currently-reading" href="/account/books/currently-reading">$_('Currently Reading (0)')</a></h2>
@@ -23,7 +23,7 @@ $else:
   <li>$_('No books are on this shelf')</li>
 
 $if mybooks['want-to-read'].docs:
-  $:render_template("books/custom_carousel", books=mybooks['want-to-read'].docs, title=_('Want to Read')+" ("+str(mybooks['want-to-read'].total_results)+")", url="/account/books/want-to-read", key="want-to-read")
+  $:render_template("books/custom_carousel", books=mybooks['want-to-read'].docs, title=_('Want to Read')+" ("+str(mybooks['want-to-read'].total_results)+")", url="/account/books/want-to-read", key="want-to-read", min_books=1, load_more=None, test=False, compact_mode=True)
 $else:
   <div class="carousel-section-header">
     <h2 class="home-h2"><a name="want-to-read" href="/account/books/want-to-read">$_('Want to Read (0)')</a></h2>
@@ -31,7 +31,7 @@ $else:
   <li>$_('No books are on this shelf')</li>
 
 $if mybooks['already-read'].docs:
-  $:render_template("books/custom_carousel", books=mybooks['already-read'].docs, title=_('Already Read')+" ("+str(mybooks['already-read'].total_results)+")", url="/account/books/already-read", key="already-read")
+  $:render_template("books/custom_carousel", books=mybooks['already-read'].docs, title=_('Already Read')+" ("+str(mybooks['already-read'].total_results)+")", url="/account/books/already-read", key="already-read", min_books=1, load_more=None, test=False, compact_mode=True)
 $else:
   <div class="carousel-section-header">
     <h2 class="home-h2"><a name="already-read" href="/account/books/already-read">$_('Already Read (0)')</a></h2>
