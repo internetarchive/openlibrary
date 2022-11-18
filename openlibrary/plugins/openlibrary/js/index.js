@@ -385,7 +385,8 @@ jQuery(function () {
     }
     const checkInForms = document.querySelectorAll('.check-in')
     const checkInPrompts = document.querySelectorAll('.check-in-prompt')
-    if (checkInForms.length || checkInPrompts.length) {
+    const checkInEditLinks = document.querySelectorAll('.prompt-edit-date')
+    if (checkInForms.length || checkInPrompts.length || checkInEditLinks.length) {
         import(/* webpackChunkName: "check-ins" */ './check-ins')
             .then((module) => {
                 if (checkInForms.length) {
@@ -393,6 +394,9 @@ jQuery(function () {
                 }
                 if (checkInPrompts.length) {
                     module.initCheckInPrompts(checkInPrompts)
+                }
+                if (checkInEditLinks.length) {
+                    module.initCheckInEdits(checkInEditLinks)
                 }
             })
     }

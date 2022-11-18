@@ -82,6 +82,21 @@ export function initCheckInPrompts(elems) {
 }
 
 /**
+ * Enables edit date functionality.
+ *
+ * @param {HTMLElement} elems Edit date buttons
+ */
+export function initCheckInEdits(elems) {
+    for (const elem of elems) {
+        elem.addEventListener('click', function() {
+            const workOlid = elem.dataset.workOlid
+            const modal = document.querySelector(`#check-in-dialog-${workOlid}`)
+            modal.showModal()
+        })
+    }
+}
+
+/**
  * Sets check-in form inputs to today's date.
  *
  * Optionally submits form upon setting date.
@@ -243,7 +258,10 @@ function submitEvent(elem) {
     const eventType = Number(elem.dataset.eventType)
     const url = elem.querySelector('form').action
 
-    const editionField = elem.querySelector('#edition-key')
+    const editField = elem.querySelector('input[name=is_edit]')
+    const isEdit = editField.value === 'true'
+
+    const editionField = elem.querySelector('input[name=edition_key]')
     const editionKey = editionField ? editionField.value : null
 
     const dayField = elem.querySelector('select[name=day]')
@@ -257,7 +275,8 @@ function submitEvent(elem) {
         event_type: Number(eventType),
         year: year ? Number(year) : null,
         month: month ? Number(month) : null,
-        day: day ? Number(day) : null
+        day: day ? Number(day) : null,
+        is_edit: isEdit
     }
 
     if (editionKey) {
@@ -275,7 +294,8 @@ function submitEvent(elem) {
             xhr.setRequestHeader('Accept', 'application/json');
         },
         success: function() {
-            resetForm(elem)
+            const editField = elem.querySelector('input[name=is_edit]')
+            editField.value = true
             updateView(elem.dataset.workOlid, year, month, day)
         },
         error: function() {
@@ -285,24 +305,6 @@ function submitEvent(elem) {
             closeDialog(elem.dataset.workOlid)
         }
     });
-}
-
-/**
- * Resets given check-in form.
- *
- * Sets all form `select` elements to their default values.
- * Disables submit button, month select, and day select.
- *
- * @param {HTMLElement} elem Root element of the check-in component
- */
-function resetForm(elem) {
-    elem.querySelector('.check-in__submit-btn').disabled = true
-    for (const select of elem.querySelectorAll('select')) {
-        select.value = ''
-        if (select.name !== 'year') {
-            select.disabled = true
-        }
-    }
 }
 
 /**

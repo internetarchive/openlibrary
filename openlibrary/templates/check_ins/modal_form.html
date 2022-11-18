@@ -1,4 +1,4 @@
-$def with(work_olid, work_key, edition_key=None)
+$def with(work_olid, work_key, edition_key=None, last_read_date=None)
 
 $code:
   year = current_year()
@@ -17,10 +17,19 @@ $code:
     _('December'),
   ]
 
+$ year_read = month_read = day_read = ''
+
+$if last_read_date:
+  $ split_date = last_read_date.split('-')
+  $ year_read = int(split_date[0])
+  $ month_read = int(split_date[1]) if len(split_date) > 1 else ''
+  $ day_read = int(split_date[2]) if len(split_date) > 2 else ''
+
 <div class="check-in" data-work-olid="$(work_olid)" data-event-type="3">
   <form method="dialog" class="check-in__form" action="$(work_key)/check-ins" method="post">
+    <input type="hidden" name="is_edit" value="$cond(last_read_date, 'true', 'false')">
     $if edition_key:
-      <input type="hidden" id="edition-key" name="edition_key" value="$(edition_key)">
+      <input type="hidden" name="edition_key" value="$(edition_key)">
     <div>
       $_('Add an optional check-in date.  Check-in dates are used to track yearly reading goals.')
     </div>
@@ -31,23 +40,26 @@ $code:
         <select class="check-in__select" name="year">
           <option value="">$_('Year')</option>
           $for i in range(120):
-            <option value="$(year - i)">$(year - i)</option>
+            $ is_selected = i == year_read
+            <option value="$(year - i)" $cond(is_selected, 'selected', '')>$(year - i)</option>
         </select>
       </span>
       <span>
         <label>$_('Month:')</label>
-        <select class="check-in__select" name="month" disabled>
+        <select class="check-in__select" name="month" $cond(month_read, '', 'disabled')>
           <option value="">$_('Month')</option>
           $for idx, month in enumerate(months):
-            <option value="$(idx + 1)">$month</option>
+            $ is_selected = idx + 1 == month_read
+            <option value="$(idx + 1)" $cond(is_selected, 'selected', '')>$month</option>
         </select>
       </span>
       <span>
         <label>$_('Day:')</label>
-        <select class="check-in__select" name="day" disabled>
-          <option value="">$_('Day')</option>
+        <select class="check-in__select" name="day" $cond(day_read, '', 'disabled')>
+          <option value="$(day_read)">$_('Day')</option>
           $for i in range(31):
-            <option value="$(i + 1)">$(i + 1)</option>
+            $ is_selected = i == day_read
+            <option value="$(i + 1)" $cond(is_selected, 'selected', '')>$(i + 1)</option>
         </select>
       </span>
       <span>
@@ -56,7 +68,7 @@ $code:
     </div>
     <span class="check-in__actions">
       <button class="check-in__cancel-btn cta-btn cta-btn--cancel">$_('No Thanks')</button>
-      <button type="submit" class="check-in__submit-btn cta-btn cta-btn--shell" disabled>$_('Submit')</button>
+      <button type="submit" class="check-in__submit-btn cta-btn cta-btn--shell" $cond(year_read, '', 'disabled')>$_('Submit')</button>
     </span>
   </form>
 </div>

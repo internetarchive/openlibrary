@@ -73,6 +73,7 @@ class patron_check_ins(delegate.page):
         month : number : optional
         day : number : optional
         edition_key : string : optional
+        is_edit : boolean
         """
         data = json.loads(web.data())
 
@@ -93,9 +94,18 @@ class patron_check_ins(delegate.page):
             data.get('day', None),
         )
 
-        BookshelvesEvents.create_event(
-            username, work_id, edition_id, date_str, event_type=event_type
-        )
+        is_edit = data.get('is_edit')
+        if is_edit:
+            events = BookshelvesEvents.select_by_book_user_and_type(
+                username, work_id, edition_id, event_type
+            )
+            if not events:
+                raise web.notfound('Check-in event unavailable for edit')
+            BookshelvesEvents.update_event_date(events[0]['id'], date_str)
+        else:
+            BookshelvesEvents.create_event(
+                username, work_id, edition_id, date_str, event_type=event_type
+            )
 
         return delegate.RawText(json.dumps({'status': 'ok'}))
 

@@ -20,8 +20,8 @@ $ prompt_id = 'prompt-%s' % work_olid
     <span class="check-in-date">$last_read_date</span>
   </span>
 
-  <span class="hidden">
-    <a class="prompt-edit-date" href="javascript:;">$_("Edit")</a>
+  <span class="prompt-options">
+    <a class="prompt-edit-date" href="javascript:;" data-work-olid="$(work_olid)">$_("Edit Date")</a>
   </span>
 </div>
 
@@ -35,5 +35,5 @@ $if not last_read_date:
     </span>
   </div>
 
-$ check_in_form = render_template('check_ins/modal_form', work_olid, work_key, edition_key=edition_key)
+$ check_in_form = render_template('check_ins/modal_form', work_olid, work_key, edition_key=edition_key, last_read_date=last_read_date)
 $:render_template('native_dialog', modal_id, check_in_form)
