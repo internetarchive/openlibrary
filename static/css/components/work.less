@@ -41,7 +41,7 @@ div.editionAbout {
   }
   p.book-description {
     margin: 0;
-    text-align: center;
+    text-align: left;
   }
 
   p:first-child {
@@ -382,6 +382,11 @@ div.editionTools {
 @media only screen and (max-width: @width-breakpoint-desktop){
   .desktop-book-header{
     display: none;
+  }
+  div.editionAbout {
+    p.book-description {
+      text-align: center;
+    }
   }
 }
 
