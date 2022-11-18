@@ -4,6 +4,7 @@ $# @property {string} text of link
 $# @property {string|null} href of link for HTTP get request
 $# @property {string|null} post when set will be used instead of href and should use HTTP POST request.
 $# @property {string|null} `track` event label for google analytics
+$# @property {string|null} subheading that will appear below the link text
 $#
 $# @param {Object} props template properties
 $# @param {string} props.name unique identifying name for dropdown and distinguishing it from other dropdowns
@@ -69,6 +70,9 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
                     <span>$(link['text'])</span><span class="app-drawer__badge">$_('New!')</span>
                   $else:
                     $(link['text'])
+                    $if 'subheading' in link:
+                      <br>
+                      <i class="subheading">$(link['subheading'])</i>
                 </a>
               </li>
         </ul>

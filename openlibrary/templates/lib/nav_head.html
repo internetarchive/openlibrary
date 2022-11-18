@@ -6,16 +6,13 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
 
   $if ctx.user:
     $ loginLinks = [
+    $     { "href": "/account/loans", "text": _("My Books"), "track": "MyBooks", "subheading": _("Loans, Reading Log, Lists, Stats") },
     $     { "href": ctx.user.key, "text": _("My Profile"), "track": "MyProfile" },
-    $     { "href": homepath() + "/account/loans", "text": _("My Loans"), "track": "MyLoans" },
-    $     { "href": "/account/books", "text": _("My Reading Log"), "track": "MyReadingLog" },
-    $     { "href": "/account/lists", "text": _("My Lists"), "track": "MyLists" },
-    $     { "href": "/account/books/already-read/stats", "text": _("My Reading Stats"), "track": "MyReadingStats" },
     $     { "href": homepath() + "/account", "text": _("Settings"), "track": "MySettings" },
     $     { "post": "/account/logout", "text": _("Log out"), "track": "Logout" },
     $ ]
       $if is_privileged_user:
-        $ loginLinks.insert(1,{ "href": homepath() + "/merges", "text": _("Pending Requests"),"track": "MyRequests" })
+        $ loginLinks.insert(2, { "href": homepath() + "/merges", "text": _("Pending Merge Requests"),"track": "MyRequests" })
   $else:
     $ loginLinks = [
     $     { "loginClass": "login-links" }
@@ -33,16 +30,21 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
   $     { "href": "/random", "text": _("Random Book"), "track": "RandomBook" },
   $     { "href": "/advancedsearch", "text": _("Advanced Search"), "track": "AdvancedSearch" }
   $ ]
-  $ moreLinks = [
+  $ contributeLinks = [
   $     { "href": "/books/add", "text": _("Add a Book"), "track": "AddBook" },
-  $     { "href": "/recentchanges", "text": _("Recent Community Edits"), "track": "RecentEdits" },
-  $     { "href": "/developers", "text": _("Developer Center"), "track": "Developers" },
-  $     { "href": "/help", "text": _("Help & Support"), "track": "Help" }
+  $     { "href": "/recentchanges", "text": _("Recent Community Edits"), "track": "RecentEdits" }
+  $ ]
+  $ resourceLinks = [
+  $     { "href": "/help", "text": _("Help & Support"), "track": "Help" },
+  $     { "href": "/developers", "text": _("Developer Center"), "track": "DevelopersHelp" },
+  $     { "href": "/librarians", "text": _("Librarians Portal"), "track": "LibrariansHelp" }
   $ ]
   $ hamburgerProps = {
   $  'name': 'hamburger',
   $  'links': [ { "subsection": _("My Open Library") } ] + loginLinks +
-  $     [ { "subsection": _("Browse") } ] + browseLinks + [ { "subsection": _("More") } ] + moreLinks,
+  $     [ { "subsection": _("Browse") } ] + browseLinks +
+  $     [ { "subsection": _("Contribute") } ] + contributeLinks +
+  $     [ { "subsection": _("Resources") } ] + resourceLinks,
   $  'image': '/static/images/hamburger-icon.svg',
   $  'image-class': 'hamburger__icon',
   $  'label': 'additional options menu',
@@ -63,12 +65,6 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
   $   'name': 'browse',
   $   'label': _('Browse'),
   $   'links': browseLinks
-  $ }
-
-  $ moreProps = {
-  $   'name': 'more',
-  $   'label': _('More'),
-  $   'links': moreLinks
   $ }
 
   $ myBooksProps = {
