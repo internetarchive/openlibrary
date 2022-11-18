@@ -16,6 +16,7 @@ $else:
 
 $if mybooks['currently-reading'].docs:
   $:render_template("books/custom_carousel", books=mybooks['currently-reading'].docs, title=_('Currently Reading')+" ("+str(mybooks['currently-reading'].total_results)+")", url="/account/books/currently-reading", key="currently-reading", min_books=1, load_more=None, test=False, compact_mode=True)
+
 $else:
   <div class="carousel-section-header">
     <h2 class="home-h2"><a name="currently-reading" href="/account/books/currently-reading">$_('Currently Reading (0)')</a></h2>
