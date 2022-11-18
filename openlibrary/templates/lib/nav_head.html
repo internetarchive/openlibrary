@@ -12,7 +12,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
     $     { "post": "/account/logout", "text": _("Log out"), "track": "Logout" },
     $ ]
       $if is_privileged_user:
-        $ loginLinks.insert(2, { "href": homepath() + "/merges", "text": _("Pending Requests"),"track": "MyRequests" })
+        $ loginLinks.insert(2, { "href": homepath() + "/merges", "text": _("Pending Merge Requests"),"track": "MyRequests" })
   $else:
     $ loginLinks = [
     $     { "loginClass": "login-links" }
@@ -32,11 +32,12 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
   $ ]
   $ contributeLinks = [
   $     { "href": "/books/add", "text": _("Add a Book"), "track": "AddBook" },
-  $     { "href": "/recentchanges", "text": _("Recent Community Edits"), "track": "RecentEdits" },
-  $     { "href": "/developers", "text": _("Developer Center"), "track": "Developers" }
+  $     { "href": "/recentchanges", "text": _("Recent Community Edits"), "track": "RecentEdits" }
   $ ]
   $ resourceLinks = [
-  $     { "href": "/help", "text": _("Help & Support"), "track": "Help" }
+  $     { "href": "/help", "text": _("Help & Support"), "track": "Help" },
+  $     { "href": "/developers", "text": _("Developer Center"), "track": "DevelopersHelp" },
+  $     { "href": "/librarians", "text": _("Librarians Portal"), "track": "LibrariansHelp" }
   $ ]
   $ hamburgerProps = {
   $  'name': 'hamburger',
