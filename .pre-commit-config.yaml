@@ -40,7 +40,7 @@ repos:
       - id: codespell  # See setup.cfg for args
 
   - repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.7.2
+    rev: v0.8.1
     hooks:
     - id: cython-lint
 
