@@ -515,13 +515,15 @@ class WorkSearchScheme(SearchScheme):
         return new_params
 
     def add_non_solr_fields(self, non_solr_fields: set[str], solr_result: dict) -> None:
+        from openlibrary.plugins.upstream.models import Edition
+
         # Augment with data from db
         edition_keys = [
             ed_doc['key']
             for doc in solr_result['response']['docs']
             for ed_doc in doc.get('editions', {}).get('docs', [])
         ]
-        editions = web.ctx.site.get_many(edition_keys)
+        editions = cast(list[Edition], web.ctx.site.get_many(edition_keys))
         ed_key_to_record = {ed.key: ed for ed in editions if ed.key in edition_keys}
 
         from openlibrary.book_providers import get_book_provider
@@ -529,6 +531,7 @@ class WorkSearchScheme(SearchScheme):
         for doc in solr_result['response']['docs']:
             for ed_doc in doc.get('editions', {}).get('docs', []):
                 ed = ed_key_to_record.get(ed_doc['key'])
+                assert ed
                 for field in non_solr_fields:
                     val = getattr(ed, field)
                     if field == 'providers':
