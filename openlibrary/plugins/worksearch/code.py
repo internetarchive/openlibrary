@@ -3,7 +3,8 @@ import copy
 import json
 import logging
 import re
-from typing import Any, Union, Optional, Iterable
+from typing import Any, Union, Optional
+from collections.abc import Iterable
 from unicodedata import normalize
 import requests
 import web
