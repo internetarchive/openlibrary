@@ -197,10 +197,12 @@ def run_solr_query(
         values = param[field]
         params += [('fq', f'{field}:"{val}"') for val in values if val]
 
+    q = None
     if param.get('q'):
         q = scheme.process_user_query(param['q'])
-    else:
-        q = scheme.build_q_from_params(param)
+
+    if params_q := scheme.build_q_from_params(param):
+        q = f'{q} {params_q}' if q else params_q
 
     if q:
         solr_fields = set(fields or scheme.default_fetched_fields)

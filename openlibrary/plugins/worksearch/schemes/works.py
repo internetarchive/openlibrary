@@ -212,10 +212,12 @@ class WorkSearchScheme(SearchScheme):
             'place',
             'person',
             'time',
+            'author_key',
         }
         q_list += [
-            f'{k}:({fully_escape_query(params[k])})'
+            f'{k}:({fully_escape_query(val)})'
             for k in (check_params & set(params))
+            for val in (params[k] if isinstance(params[k], list) else [params[k]])
         ]
 
         if params.get('isbn'):
