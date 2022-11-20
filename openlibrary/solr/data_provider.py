@@ -330,8 +330,8 @@ class ExternalDataProvider(DataProvider):
 class BetterDataProvider(LegacyDataProvider):
     def __init__(
         self,
-        site: Site = None,
-        db: DB = None,
+        site: Site | None = None,
+        db: DB | None = None,
     ):
         """Test with
         import web; import infogami

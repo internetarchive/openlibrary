@@ -53,7 +53,9 @@ class Disk:
 
         return {k: f(k) for k in keys}
 
-    def save_many(self, docs: list[dict | web.storage], comment: str = None) -> None:
+    def save_many(
+        self, docs: list[dict | web.storage], comment: str | None = None
+    ) -> None:
         """
 
         :param typing.List[dict or web.storage] docs:
@@ -163,8 +165,8 @@ def copy(
     comment: str,
     recursive: bool = False,
     editions: bool = False,
-    saved: set[str] = None,
-    cache: dict = None,
+    saved: set[str] | None = None,
+    cache: dict | None = None,
 ) -> None:
     """
     :param src: where we'll be copying form
@@ -334,8 +336,8 @@ def main(
     comment: str = "",
     recursive: bool = True,
     editions: bool = True,
-    lists: list[str] = None,
-    search: str = None,
+    lists: list[str] | None = None,
+    search: str | None = None,
     search_limit: int = 10,
 ) -> None:
     """

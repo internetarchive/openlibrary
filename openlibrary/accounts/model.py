@@ -29,7 +29,7 @@ from openlibrary.core.edits import CommunityEditsQueue
 try:
     from simplejson.errors import JSONDecodeError
 except ImportError:
-    from json.decoder import JSONDecodeError  # type: ignore[misc]
+    from json.decoder import JSONDecodeError  # type: ignore[misc, assignment]
 
 logger = logging.getLogger("openlibrary.account.model")
 

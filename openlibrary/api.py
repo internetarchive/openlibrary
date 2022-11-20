@@ -199,7 +199,7 @@ class OpenLibrary:
             response = self._request("/query.json", params=dict(query=json.dumps(q)))
             return unmarshal(response.json())
 
-    def search(self, query, limit=10, offset=0, fields: list[str] = None):
+    def search(self, query, limit=10, offset=0, fields: list[str] | None = None):
         return self._request(
             '/search.json',
             params={

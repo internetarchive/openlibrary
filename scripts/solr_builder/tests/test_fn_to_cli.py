@@ -5,7 +5,7 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 class TestFnToCLI:
     def test_full_flow(self):
-        def fn(works: list[str], solr_url: str = None):
+        def fn(works: list[str], solr_url: str | None = None):
             """
             Do some magic!
             :param works: These are works

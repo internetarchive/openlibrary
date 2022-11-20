@@ -816,7 +816,7 @@ def csv_header_and_format(row: Mapping[str, Any]) -> tuple[str, str]:
 
 
 @elapsed_time("csv_string")
-def csv_string(source: Iterable[Mapping], row_formatter: Callable = None) -> str:
+def csv_string(source: Iterable[Mapping], row_formatter: Callable | None = None) -> str:
     """
     Given an list of dicts, generate comma separated values where each dict is a row.
     An optional reformatter function can be provided to transform or enrich each dict.

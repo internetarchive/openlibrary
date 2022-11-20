@@ -480,10 +480,10 @@ def run_solr_query(
     param: Optional[dict] = None,
     rows=100,
     page=1,
-    sort: str = None,
+    sort: str | None = None,
     spellcheck_count=None,
     offset=None,
-    fields: Union[str, list[str]] = None,
+    fields: Union[str, list[str]] | None = None,
     facet: Union[bool, Iterable[str]] = True,
     allowed_filter_params=FACET_FIELDS,
     extra_params: Optional[list[tuple[str, Any]]] = None,
@@ -1005,7 +1005,7 @@ def works_by_author(
     rows=100,
     facet=False,
     has_fulltext=False,
-    query: str = None,
+    query: str | None = None,
 ):
     param = {'q': query or '*:*'}
     if has_fulltext:
@@ -1313,13 +1313,13 @@ def rewrite_list_query(q, page, offset, limit):
 @public
 def work_search(
     query: dict,
-    sort: str = None,
+    sort: str | None = None,
     page: int = 1,
     offset: int = 0,
     limit: int = 100,
     fields: str = '*',
     facet: bool = True,
-    spellcheck_count: int = None,
+    spellcheck_count: int | None = None,
 ) -> dict:
     """
     :param sort: key of SORTS dict at the top of this file

@@ -32,7 +32,7 @@ def luqum_remove_child(child: Item, parents: list[Item]):
         raise ValueError("Not supported for generic class Item")
 
 
-def luqum_traverse(item: Item, _parents: list[Item] = None):
+def luqum_traverse(item: Item, _parents: list[Item] | None = None):
     """
     Traverses every node in the parse tree in depth-first order.
 
@@ -216,8 +216,8 @@ def luqum_parser(query: str) -> Item:
 
 
 def query_dict_to_str(
-    escaped: dict = None,
-    unescaped: dict = None,
+    escaped: dict | None = None,
+    unescaped: dict | None = None,
     op: Literal['AND', 'OR', ''] = '',
 ) -> str:
     """
