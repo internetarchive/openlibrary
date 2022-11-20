@@ -5,7 +5,7 @@
 
 [tool.black]
 skip-string-normalization = true
-target-version = ["py39", "py310"]
+target-version = ["py310"]
 
 [tool.codespell]
 ignore-words-list = "beng,curren,datas,furst,nd,nin,ot,ser,spects,te,tha,ue,upto"
@@ -17,7 +17,7 @@ pretty = true
 scripts_are_modules = true
 show_error_codes = true
 show_error_context = true
-exclude = "(vendor*|venv*)/$"
+exclude = "(code/infogami*|vendor*|venv*)/$"
 
 [[tool.mypy.overrides]]
 module = [
