@@ -17,7 +17,7 @@ pretty = true
 scripts_are_modules = true
 show_error_codes = true
 show_error_context = true
-exclude = "(code*|vendor*|venv*)/$"
+exclude = "(/code/infogami|vendor*|venv*)/$"
 
 [[tool.mypy.overrides]]
 module = [
