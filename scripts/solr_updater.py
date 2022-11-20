@@ -30,7 +30,7 @@ logger = logging.getLogger("openlibrary.solr-updater")
 args: dict = {}
 
 
-def read_state_file(path, initial_state: str = None):
+def read_state_file(path, initial_state: str | None = None):
     try:
         return open(path).read()
     except OSError:
@@ -45,7 +45,7 @@ def get_default_offset():
 
 
 class InfobaseLog:
-    def __init__(self, hostname: str, exclude: str = None):
+    def __init__(self, hostname: str, exclude: str | None = None):
         """
         :param str hostname:
         :param str|None exclude: if specified, excludes records that include the string
@@ -246,13 +246,13 @@ async def main(
     ol_config: str,
     debugger: bool = False,
     state_file: str = 'solr-update.state',
-    exclude_edits_containing: str = None,
+    exclude_edits_containing: str | None = None,
     ol_url='http://openlibrary.org/',
-    solr_url: str = None,
+    solr_url: str | None = None,
     solr_next: bool = False,
     socket_timeout: int = 10,
     load_ia_scans: bool = False,
-    initial_state: str = None,
+    initial_state: str | None = None,
 ):
     """
     :param debugger: Wait for a debugger to attach before beginning

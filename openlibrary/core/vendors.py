@@ -114,7 +114,7 @@ class AmazonAPI:
         asins: list | str,
         serialize: bool = False,
         marketplace: str = 'www.amazon.com',
-        resources: Any = None,
+        resources: Any | None = None,
         **kwargs,
     ) -> list | None:
         """
@@ -289,7 +289,7 @@ def get_amazon_metadata(
     return cached_get_amazon_metadata(id_, id_type=id_type, resources=resources)
 
 
-def search_amazon(title: str = '', author: str = '') -> dict:
+def search_amazon(title: str = '', author: str = '') -> dict:  # type: ignore[empty-body]
     """Uses the Amazon Product Advertising API ItemSearch operation to search for
     books by author and/or title.
     https://docs.aws.amazon.com/AWSECommerceService/latest/DG/ItemSearch.html
@@ -513,9 +513,9 @@ def _get_betterworldbooks_metadata(isbn: str) -> dict | None:
 
 def betterworldbooks_fmt(
     isbn: str,
-    qlt: str = None,
-    price: str = None,
-    market_price: list[str] = None,
+    qlt: str | None = None,
+    price: str | None = None,
+    market_price: list[str] | None = None,
 ) -> dict | None:
     """Defines a standard interface for returning bwb price info
 

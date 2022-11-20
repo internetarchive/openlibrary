@@ -18,7 +18,7 @@ from openlibrary.config import load_config
 from typing import Dict, IO, List
 
 
-def run_piped(cmds: list[list[str]], stdin: IO = None):
+def run_piped(cmds: list[list[str]], stdin: IO | None = None):
     """
     Run the commands piping one's output to the next's input.
     :param list[list[str]] cmds:

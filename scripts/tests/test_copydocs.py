@@ -29,7 +29,7 @@ class FakeServer:
         self.db: dict = {}  # Mapping of key to (Mp of revision to doc)
         self.save_many(docs)
 
-    def get(self, key: str, revision: int = None) -> dict | None:
+    def get(self, key: str, revision: int | None = None) -> dict | None:
         """
         :param str key:
         :param int or None revision:
@@ -52,7 +52,7 @@ class FakeServer:
                 result[k] = self.get(k)
         return result
 
-    def save_many(self, docs: list[dict], comment: str = None) -> None:
+    def save_many(self, docs: list[dict], comment: str | None = None) -> None:
         """
         :param list[dict] docs:
         :param str or None comment:

@@ -86,7 +86,7 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
             self.get_template_path('read_button'), self.get_best_identifier(ed_or_solr)
         )
 
-    def render_download_options(self, edition: Edition, extra_args: list = None):
+    def render_download_options(self, edition: Edition, extra_args: list | None = None):
         return render_template(
             self.get_template_path('download_options'),
             self.get_best_identifier(edition),
@@ -100,7 +100,7 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
     def get_access(
         self,
         edition: dict,
-        metadata: TProviderMetadata = None,
+        metadata: TProviderMetadata | None = None,
     ) -> EbookAccess:
         """
         Return the access level of the edition.
@@ -138,7 +138,7 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
     def is_own_ocaid(self, ocaid: str) -> bool:
         return True
 
-    def render_download_options(self, edition: Edition, extra_args: list = None):
+    def render_download_options(self, edition: Edition, extra_args: list | None = None):
         if edition.is_access_restricted() or not edition.ia_metadata:
             return ''
 
@@ -158,7 +158,9 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
         else:
             return ''
 
-    def get_access(self, edition: dict, metadata: IALiteMetadata = None) -> EbookAccess:
+    def get_access(
+        self, edition: dict, metadata: IALiteMetadata | None = None
+    ) -> EbookAccess:
         if not metadata:
             if edition.get('ocaid'):
                 return EbookAccess.UNCLASSIFIED
@@ -182,7 +184,7 @@ class LibriVoxProvider(AbstractBookProvider):
     short_name = 'librivox'
     identifier_key = 'librivox'
 
-    def render_download_options(self, edition: Edition, extra_args: list = None):
+    def render_download_options(self, edition: Edition, extra_args: list | None = None):
         # The template also needs the ocaid, since some of the files are hosted on IA
         return super().render_download_options(edition, [edition.get('ocaid')])
 

@@ -57,7 +57,7 @@ def get_work_iaids(wkey):
 def get_solr_fields_for_works(
     field: str,
     wkeys: list[str],
-    clip_limit: int = None,
+    clip_limit: int | None = None,
 ) -> dict[str, list[str]]:
     from openlibrary.plugins.worksearch.search import get_solr
 

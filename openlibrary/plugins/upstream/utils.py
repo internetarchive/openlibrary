@@ -138,7 +138,7 @@ def kebab_case(upper_camel_case: str) -> str:
 
 
 @public
-def render_component(name: str, attrs: dict = None, json_encode: bool = True):
+def render_component(name: str, attrs: dict | None = None, json_encode: bool = True):
     """
     :param str name: Name of the component (excluding extension)
     :param dict attrs: attributes to add to the component element
@@ -1082,7 +1082,7 @@ class HTMLTagRemover(HTMLParser):
 
 
 @public
-def reformat_html(html_str: str, max_length: int = None) -> str:
+def reformat_html(html_str: str, max_length: int | None = None) -> str:
     """
     Reformats an HTML string, removing all opening and closing tags.
     Adds a line break element between each set of text content.

@@ -345,13 +345,13 @@ class addbook(delegate.page):
 
     def try_edition_match(
         self,
-        work: web.Storage = None,
-        title: str = None,
-        author_key: str = None,
-        publisher: str = None,
-        publish_year: str = None,
-        id_name: str = None,
-        id_value: str = None,
+        work: web.Storage | None = None,
+        title: str | None = None,
+        author_key: str | None = None,
+        publisher: str | None = None,
+        publish_year: str | None = None,
+        id_name: str | None = None,
+        id_value: str | None = None,
     ) -> None | Edition | list[web.Storage]:
         """
         Searches solr for potential edition matches.

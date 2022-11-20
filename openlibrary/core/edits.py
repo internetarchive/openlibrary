@@ -64,7 +64,7 @@ class CommunityEditsQueue:
         limit: int = 50,
         page: int = 1,
         mode: str = 'all',
-        order: str = None,
+        order: str | None = None,
         **kwargs,
     ):
         oldb = db.get_db()
@@ -163,11 +163,11 @@ class CommunityEditsQueue:
         cls,
         url: str,
         submitter: str,
-        reviewer: str = None,
+        reviewer: str | None = None,
         status: int = STATUS['PENDING'],
-        comment: str = None,
-        title: str = None,
-        mr_type: int = None,
+        comment: str | None = None,
+        title: str | None = None,
+        mr_type: int | None = None,
     ):
         """
         Inserts a new record into the table.
@@ -242,7 +242,7 @@ class CommunityEditsQueue:
 
     @classmethod
     def update_request_status(
-        cls, rid: int, status: int, reviewer: str, comment: str = None
+        cls, rid: int, status: int, reviewer: str, comment: str | None = None
     ) -> int:
         """
         Changes the status of the request with the given rid.

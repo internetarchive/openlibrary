@@ -109,12 +109,12 @@ def cached_work_authors_and_subjects(work_id):
 
 @public
 def compose_ia_url(
-    limit: int = None,
+    limit: int | None = None,
     page: int = 1,
     subject=None,
     query=None,
     work_id=None,
-    _type: Literal['authors', 'subjects'] = None,
+    _type: Literal['authors', 'subjects'] | None = None,
     sorts=None,
     advanced=True,
     rate_limit_exempt=True,
