@@ -1,0 +1,7 @@
+$def with (form_ref)
+
+$# Forms will bind the "enter" key to the first submit button ; in the case
+$# we show the delete button for librarians, that becomes the first submit
+$# button! So we duplicate the save button here to make sure that it's always
+$# the default "enter" action.
+<button type="submit" class="hidden" name="_save" form="$form_ref" tabindex="-1"></button>

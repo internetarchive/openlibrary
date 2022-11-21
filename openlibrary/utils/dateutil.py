@@ -21,6 +21,10 @@ def days_in_current_month():
     return calendar.monthrange(now.year, now.month)[1]
 
 
+def todays_date_minus(**kwargs):
+    return datetime.date.today() - datetime.timedelta(**kwargs)
+
+
 def date_n_days_ago(n=None, start=None):
     """
     Args:

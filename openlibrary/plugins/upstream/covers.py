@@ -45,6 +45,8 @@ class add_cover(delegate.page):
         coverid = data.get('id')
 
         if coverid:
+            if isinstance(i.url, bytes):
+                i.url = i.url.decode("utf-8")
             self.save(book, coverid, url=i.url)
             cover = Image(web.ctx.site, "b", coverid)
             return render_template("covers/saved", cover)

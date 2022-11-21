@@ -69,8 +69,8 @@ class community_edits_queue(delegate.page):
         action='',
         mr_type=None,
         olids='',
-        comment: str = None,
-        primary: str = None,
+        comment: str | None = None,
+        primary: str | None = None,
     ):
         def is_valid_action(action):
             return action in ('create-pending', 'create-merged')
@@ -165,7 +165,7 @@ class community_edits_queue(delegate.page):
         return resp
 
     @staticmethod
-    def create_url(mr_type: int, olids: list[str], primary: str = None) -> str:
+    def create_url(mr_type: int, olids: list[str], primary: str | None = None) -> str:
         if mr_type == CommunityEditsQueue.TYPE['WORK_MERGE']:
             primary_param = f'&primary={primary}' if primary else ''
             return f'/works/merge?records={",".join(olids)}{primary_param}'

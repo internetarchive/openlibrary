@@ -731,7 +731,7 @@ class SolrProcessor:
 
 async def build_data(
     w: dict,
-    ia_metadata: dict[str, Optional['bp.IALiteMetadata']] = None,
+    ia_metadata: dict[str, Optional['bp.IALiteMetadata']] | None = None,
 ) -> SolrDocument:
     """
     Construct the Solr document to insert into Solr for the given work
@@ -921,7 +921,7 @@ def build_data2(
 
 async def solr_insert_documents(
     documents: list[dict],
-    solr_base_url: str = None,
+    solr_base_url: str | None = None,
     skip_id_check=False,
 ):
     """
@@ -1056,7 +1056,7 @@ class CommitRequest(SolrUpdateRequest):
 def solr_update(
     reqs: list[SolrUpdateRequest],
     skip_id_check=False,
-    solr_base_url: str = None,
+    solr_base_url: str | None = None,
 ) -> None:
     content = '{' + ','.join(r.to_json_command() for r in reqs) + '}'
 
@@ -1585,10 +1585,10 @@ async def main(
     keys: list[str],
     ol_url="http://openlibrary.org",
     ol_config="openlibrary.yml",
-    output_file: str = None,
+    output_file: str | None = None,
     commit=True,
     data_provider: Literal['default', 'legacy', 'external'] = "default",
-    solr_base: str = None,
+    solr_base: str | None = None,
     solr_next=False,
     update: Literal['update', 'print'] = 'update',
 ):

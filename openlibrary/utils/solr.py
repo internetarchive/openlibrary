@@ -37,7 +37,7 @@ class Solr:
     def get(
         self,
         key: str,
-        fields: list[str] = None,
+        fields: list[str] | None = None,
         doc_wrapper: Callable[[dict], T] = web.storage,
     ) -> Optional[T]:
         """Get a specific item from solr"""
@@ -53,7 +53,7 @@ class Solr:
     def get_many(
         self,
         keys: Iterable[str],
-        fields: Iterable[str] = None,
+        fields: Iterable[str] | None = None,
         doc_wrapper: Callable[[dict], T] = web.storage,
     ) -> list[T]:
         if not keys:

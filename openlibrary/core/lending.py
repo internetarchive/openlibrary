@@ -86,7 +86,7 @@ def setup(config):
 
 @public
 def compose_ia_url(
-    limit: int = None,
+    limit: int | None = None,
     page: int = 1,
     subject=None,
     query=None,
@@ -160,24 +160,6 @@ def compose_ia_url(
         params.append(('sort[]', sort))
     base_url = "http://%s/advancedsearch.php" % config_bookreader_host
     return base_url + '?' + urlencode(params)
-
-
-def get_random_available_ia_edition() -> str:
-    """uses archive advancedsearch to raise a random book"""
-    try:
-        url = (
-            "http://%s/advancedsearch.php?q=_exists_:openlibrary_work"
-            "+AND+(lending___available_to_borrow:true"
-            " OR lending___available_to_browse:true)"
-            "&fl=identifier,openlibrary_edition"
-            "&output=json&rows=25&sort[]=random" % (config_bookreader_host)
-        )  # internetarchive/openlibrary#6592: Request 25 editions and randomly choose
-        response = requests.get(url, timeout=config_http_request_timeout)
-        items = response.json().get('response', {}).get('docs', [])
-        return random.choice(items)["openlibrary_edition"]
-    except Exception:  # TODO: Narrow exception scope
-        logger.exception(f"get_random_available_ia_edition({url})")
-        return ''
 
 
 @public
@@ -669,11 +651,9 @@ class Loan(dict):
                 'ocaid': identifier,
                 'expiry': expiry,
                 'uuid': _uuid,
-                'resource_type': 'bookreader',  # noqa: F601
-                'resource_id': 'bookreader:%s' % identifier,  # noqa: F601
                 'loaned_at': loaned_at,
-                'resource_type': resource_type,  # noqa: F601
-                'resource_id': resource_id,  # noqa: F601
+                'resource_type': resource_type,
+                'resource_id': resource_id,
                 'loan_link': loan_link,
             }
         )

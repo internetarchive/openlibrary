@@ -24,7 +24,7 @@ def is_sine_nomine(pub: str) -> bool:
 
 
 class EditionSolrBuilder:
-    def __init__(self, edition: dict, ia_metadata: bp.IALiteMetadata = None):
+    def __init__(self, edition: dict, ia_metadata: bp.IALiteMetadata | None = None):
         self.edition = edition
         self.ia_metadata = ia_metadata
         self.provider = bp.get_book_provider(edition)
@@ -162,7 +162,7 @@ class EditionSolrBuilder:
 
 def build_edition_data(
     edition: dict,
-    ia_metadata: bp.IALiteMetadata = None,
+    ia_metadata: bp.IALiteMetadata | None = None,
 ) -> SolrDocument:
     """
     Build the solr document for the given edition to store as a nested

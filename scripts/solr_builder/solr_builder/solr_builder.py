@@ -111,7 +111,7 @@ class LocalPostgresDataProvider(DataProvider):
         self,
         query: str,
         size: int,
-        cursor_name: str = None,
+        cursor_name: str | None = None,
         cache_json: bool = False,
     ) -> Iterator:
         """
@@ -284,10 +284,10 @@ async def simple_timeit_async(awaitable: Awaitable):
 
 def build_job_query(
     job: Literal['works', 'orphans', 'authors'],
-    start_at: str = None,
+    start_at: str | None = None,
     offset: int = 0,
-    last_modified: str = None,
-    limit: int = None,
+    last_modified: str | None = None,
+    limit: int | None = None,
 ) -> str:
     """
     :param job: job to complete
@@ -330,14 +330,14 @@ async def main(
     postgres="postgres.ini",
     ol="http://ol/",
     ol_config="../../conf/openlibrary.yml",
-    solr: str = None,
+    solr: str | None = None,
     skip_solr_id_check: bool = True,
-    start_at: str = None,
+    start_at: str | None = None,
     offset=0,
     limit=1,
-    last_modified: str = None,
-    progress: str = None,
-    log_file: str = None,
+    last_modified: str | None = None,
+    progress: str | None = None,
+    log_file: str | None = None,
     log_level=logging.INFO,
     dry_run: bool = False,
 ) -> None:
@@ -414,7 +414,7 @@ async def main(
             cached: str | int | None = None,
             q_ia: str | float | None = None,
             ia_cache: str | int | None = None,
-            next: str = None,
+            next: str | None = None,
         ) -> None:
             """
             :param str or int or None seen:
