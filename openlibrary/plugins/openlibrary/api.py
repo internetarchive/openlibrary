@@ -93,9 +93,7 @@ class browse(delegate.page):
     encoding = "json"
 
     def GET(self):
-        i = web.input(
-            q='', page=1, limit=100, subject='', work_id='', _type='', sorts=''
-        )
+        i = web.input(q='', page=1, limit=100, subject='', sorts='')
         sorts = i.sorts.split(',')
         page = int(i.page)
         limit = int(i.limit)
@@ -104,8 +102,6 @@ class browse(delegate.page):
             limit=limit,
             page=page,
             subject=i.subject,
-            work_id=i.work_id,
-            _type=i._type,
             sorts=sorts,
         )
         works = lending.get_available(url=url) if url else []

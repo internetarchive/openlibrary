@@ -667,9 +667,7 @@ class random_book(delegate.page):
         raise web.seeother(key)
 
 
-def get_ia_carousel_books(
-    query=None, subject=None, work_id=None, sorts=None, _type=None, limit=None
-):
+def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None):
     if 'env' not in web.ctx:
         delegate.fakeload()
 
@@ -680,8 +678,6 @@ def get_ia_carousel_books(
     books = lending.get_available(
         limit=limit,
         subject=subject,
-        work_id=work_id,
-        _type=_type,
         sorts=sorts,
         query=query,
     )
@@ -734,8 +730,6 @@ def get_cached_featured_subjects():
 def generic_carousel(
     query=None,
     subject=None,
-    work_id=None,
-    _type=None,
     sorts=None,
     limit=None,
     timeout=None,
@@ -749,8 +743,6 @@ def generic_carousel(
     books = cached_ia_carousel_books(
         query=query,
         subject=subject,
-        work_id=work_id,
-        _type=_type,
         sorts=sorts,
         limit=limit,
     )
@@ -758,8 +750,6 @@ def generic_carousel(
         books = cached_ia_carousel_books.update(
             query=query,
             subject=subject,
-            work_id=work_id,
-            _type=_type,
             sorts=sorts,
             limit=limit,
         )[0]
