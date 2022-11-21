@@ -379,6 +379,15 @@ div.editionTools {
   font-weight: normal;
   color: @link-blue;
 }
+
+@media only screen and (min-width: @width-breakpoint-tablet) and (max-width: @width-breakpoint-desktop){
+  div.editionAbout {
+    div.book-description {
+      padding-top: 1em;
+    }
+  }
+}
+
 @media only screen and (max-width: @width-breakpoint-desktop){
   .desktop-book-header{
     display: none;
