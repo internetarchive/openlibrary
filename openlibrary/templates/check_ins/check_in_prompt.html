@@ -36,4 +36,4 @@ $if not last_read_date:
   </div>
 
 $ check_in_form = render_template('check_ins/modal_form', work_olid, work_key, edition_key=edition_key, last_read_date=last_read_date)
-$:render_template('native_dialog', modal_id, check_in_form)
+$:render_template('native_dialog', modal_id, check_in_form, title=_("Check-In"))

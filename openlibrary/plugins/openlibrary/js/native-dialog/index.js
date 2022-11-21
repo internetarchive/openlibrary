@@ -19,6 +19,10 @@ export function initDialogs(elems) {
         elem.addEventListener('close-dialog', function() {
             elem.close()
         })
+        const closeIcon = elem.querySelector('.native-dialog--close')
+        closeIcon.addEventListener('click', function() {
+            elem.close()
+        })
     }
 }
 
