@@ -117,6 +117,7 @@ services:
 
   memcached:
     profiles: ["ol-covers0"]
+    restart: unless-stopped
 
   cron-jobs:
     profiles: ["ol-home0"]
