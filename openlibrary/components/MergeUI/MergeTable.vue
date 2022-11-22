@@ -95,18 +95,13 @@ export default {
                 await Promise.all(olids_sorted.map(fetchRecord)),
                 record => record.type.key, 'desc');
 
-            // Ensure that primary record is the first record
+            let masterIndex = 0
             if (this.primary) {
                 const primaryKey = `/works/${this.primary}`
-                const primaryIndex = records.findIndex(elem => elem.key === primaryKey)
-                if (primaryIndex > 0) {
-                    const primaryRecord = records[primaryIndex]
-                    records.splice(primaryIndex, 1)
-                    records.unshift(primaryRecord)
-                }
+                masterIndex = records.findIndex(elem => elem.key === primaryKey)
             }
 
-            this.master_key = records[0].key
+            this.master_key = records[masterIndex].key
             this.selected = _.fromPairs(records.map(record => [record.key, record.type.key.includes('work')]));
 
             return records;
