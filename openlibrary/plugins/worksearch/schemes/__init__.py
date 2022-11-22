@@ -54,7 +54,7 @@ class SearchScheme:
         def process_individual_sort(sort: str):
             if sort.startswith('random_'):
                 # Allow custom randoms; so anything random_* is allowed
-                return sort if ' ' in sort else sort + ' asc'
+                return sort if ' ' in sort else f'{sort} asc'
             else:
                 solr_sort = self.sorts[sort]
                 return solr_sort() if callable(solr_sort) else solr_sort

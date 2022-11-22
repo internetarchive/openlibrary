@@ -198,6 +198,14 @@ def run_solr_query(
         values = param[field]
         params += [('fq', f'{field}:"{val}"') for val in values if val]
 
+    # Many fields in solr use the convention of `*_facet` both
+    # as a facet key and as the explicit search query key.
+    # Examples being publisher_facet, subject_facet?
+    # `author_key` & `author_facet` is an example of a mismatch that
+    # breaks this rule. This code makes it so, if e.g. `author_facet` is used where
+    # `author_key` is intended, both will be supported (and vis versa)
+    # This "doubling up" has no real performance implication
+    # but does fix cases where the search query is different than the facet names
     q = None
     if param.get('q'):
         q = scheme.process_user_query(param['q'])

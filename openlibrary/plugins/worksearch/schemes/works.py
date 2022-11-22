@@ -214,6 +214,8 @@ class WorkSearchScheme(SearchScheme):
             'time',
             'author_key',
         }
+        # support web.input fields being either a list or string
+        # when default values used
         q_list += [
             f'{k}:({fully_escape_query(val)})'
             for k in (check_params & set(params))
