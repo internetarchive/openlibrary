@@ -5,7 +5,6 @@ import json
 import logging
 import os
 
-import memcache
 import requests
 
 import web
@@ -14,7 +13,7 @@ from PIL import Image, ImageDraw, ImageFont
 import textwrap
 
 
-from openlibrary.coverstore import config, db, ratelimit
+from openlibrary.coverstore import config, db
 from openlibrary.coverstore.coverlib import read_file, read_image, save_image
 from openlibrary.coverstore.utils import (
     changequery,
@@ -259,8 +258,6 @@ class cover:
 
         if key == 'isbn':
             value = value.replace("-", "").strip()  # strip hyphens from ISBN
-            # Disabling ratelimit as iptables is taking care of botnets.
-            # value = self.ratelimit_query(category, key, value)
             value = self.query(category, key, value)
 
             # Redirect isbn requests to archive.org.
@@ -385,8 +382,6 @@ class cover:
 
     def query(self, category, key, value):
         return _query(category, key, value)
-
-    ratelimit_query = ratelimit.ratelimit()(query)
 
 
 @web.memoize
