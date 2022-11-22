@@ -39,6 +39,10 @@ div.editionAbout {
     margin: 1em 0;
     font-size: 13px;
   }
+  p.book-description {
+    margin: 0;
+    text-align: left;
+  }
 
   p:first-child {
     margin: 0;
@@ -379,6 +383,15 @@ div.editionTools {
 @media only screen and (max-width: @width-breakpoint-desktop){
   .desktop-book-header{
     display: none;
+  }
+  div.editionAbout {
+    .book-description.read-more,
+    .book-description.read-less {
+      text-align: center;
+    }
+    .book-description {
+      padding-top: 1em;
+    }
   }
 }
 
