@@ -84,6 +84,8 @@ class checkout_with_ocaid(delegate.page):
         i = web.input()
         params = urllib.parse.urlencode(i)
         ia_edition = web.ctx.site.get('/books/ia:%s' % ocaid)
+        if not ia_edition:
+            raise web.notfound()
         edition = web.ctx.site.get(ia_edition.location)
         url = '%s/x/borrow' % edition.key
         raise web.seeother(url + '?' + params)
@@ -94,6 +96,8 @@ class checkout_with_ocaid(delegate.page):
         endpoint with this OL identifier.
         """
         ia_edition = web.ctx.site.get('/books/ia:%s' % ocaid)
+        if not ia_edition:
+            raise web.notfound()
         borrow().POST(ia_edition.location)
 
 
