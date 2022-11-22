@@ -116,8 +116,8 @@ services:
       - ssl_certificate_key
 
   memcached:
-    profiles: ["ol-covers0"]
-    restart: unless-stopped
+    # The memcached cluster is currently managed manually on production
+    profiles: ["ol-never"]
 
   cron-jobs:
     profiles: ["ol-home0"]
