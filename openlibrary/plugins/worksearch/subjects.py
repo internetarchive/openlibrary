@@ -241,7 +241,7 @@ class SubjectEngine:
         **filters,
     ):
         # Circular imports are everywhere -_-
-        from openlibrary.plugins.worksearch.code import run_solr_query
+        from openlibrary.plugins.worksearch.code import run_solr_query, WorkSearchScheme
 
         meta = self.get_meta(key)
         subject_type = meta.name
@@ -252,6 +252,7 @@ class SubjectEngine:
             # Don't want this escaped or used in fq for perf reasons
             unescaped_filters['publish_year'] = filters.pop('publish_year')
         result = run_solr_query(
+            WorkSearchScheme(),
             {
                 'q': query_dict_to_str(
                     {meta.facet_key: self.normalize_key(meta.path)},
@@ -297,10 +298,10 @@ class SubjectEngine:
                 ('facet.mincount', 1),
                 ('facet.limit', 25),
             ],
-            allowed_filter_params=[
+            allowed_filter_params={
                 'has_fulltext',
                 'publish_year',
-            ],
+            },
         )
 
         subject = Subject(

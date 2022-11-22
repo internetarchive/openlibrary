@@ -205,10 +205,8 @@ class Bookshelves(db.CommonExtras):
         :param q: an optional query string to filter the results.
         """
         from openlibrary.core.models import LoggedBooksData
-        from openlibrary.plugins.worksearch.code import (
-            run_solr_query,
-            DEFAULT_SEARCH_FIELDS,
-        )
+        from openlibrary.plugins.worksearch.code import run_solr_query
+        from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
         @dataclass
         class ReadingLogItem:
@@ -308,6 +306,7 @@ class Bookshelves(db.CommonExtras):
                 '"/works/OL%sW"' % i['work_id'] for i in reading_log_books
             )
             solr_resp = run_solr_query(
+                scheme=WorkSearchScheme(),
                 param={'q': q},
                 offset=query_params["offset"],
                 rows=limit,
@@ -373,7 +372,7 @@ class Bookshelves(db.CommonExtras):
             ]
             solr_docs = get_solr().get_many(
                 reading_log_work_keys,
-                fields=DEFAULT_SEARCH_FIELDS
+                fields=WorkSearchScheme.default_fetched_fields
                 | {'subject', 'person', 'place', 'time', 'edition_key'},
             )
             solr_docs = add_storage_items_for_redirects(
