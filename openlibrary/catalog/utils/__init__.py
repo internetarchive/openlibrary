@@ -1,4 +1,5 @@
 import re
+from re import Match
 import web
 from unicodedata import normalize
 import openlibrary.catalog.merge.normalize as merge
@@ -36,7 +37,7 @@ def key_int(rec):
     return int(web.numify(rec['key']))
 
 
-def author_dates_match(a, b):
+def author_dates_match(a: dict, b: dict) -> bool:
     """
     Checks if the years of two authors match. Only compares years,
     not names or keys. Works by returning False if any year specified in one record
@@ -45,7 +46,6 @@ def author_dates_match(a, b):
 
     :param dict a: Author import dict {"name": "Some One", "birth_date": "1960"}
     :param dict b: Author import dict {"name": "Some One"}
-    :rtype: bool
     """
     for k in ['birth_date', 'death_date', 'date']:
         if k not in a or a[k] is None or k not in b or b[k] is None:
@@ -62,14 +62,13 @@ def author_dates_match(a, b):
     return True
 
 
-def flip_name(name):
+def flip_name(name: str) -> str:
     """
     Flip author name about the comma, stripping the comma, and removing non
     abbreviated end dots. Returns name with end dot stripped if no comma+space found.
     The intent is to convert a Library indexed name to natural name order.
 
     :param str name: e.g. "Smith, John." or "Smith, J."
-    :rtype: str
     :return: e.g. "John Smith" or "J. Smith"
     """
 
@@ -79,7 +78,10 @@ def flip_name(name):
     if name.find(', ') == -1:
         return name
     m = re_marc_name.match(name)
-    return m.group(2) + ' ' + m.group(1)
+    if isinstance(m, Match):
+        return m.group(2) + ' ' + m.group(1)
+
+    return ""
 
 
 def remove_trailing_number_dot(date):
@@ -265,13 +267,12 @@ def get_title(e):
     return title
 
 
-def mk_norm(s):
+def mk_norm(s: str) -> str:
     """
     Normalizes titles and strips ALL spaces and small words
     to aid with string comparisons of two titles.
 
     :param str s: A book title to normalize and strip.
-    :rtype: str
     :return: a lowercase string with no spaces, containing the main words of the title.
     """
 

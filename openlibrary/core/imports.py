@@ -66,7 +66,7 @@ class Batch(web.storage):
             for item in items
         ]
 
-    def add_items(self, items):
+    def add_items(self, items: list[str] | list[dict]) -> None:
         """
         :param items: either a list of `ia_id`  (legacy) or a list of dicts
             containing keys `ia_id` and book `data`. In the case of
@@ -74,7 +74,7 @@ class Batch(web.storage):
             i.e. of a format id_type:value which cannot be a valid IA id.
         """
         if not items:
-            return
+            return None
 
         logger.info("batch %s: adding %d items", self.name, len(items))
 
@@ -92,6 +92,8 @@ class Batch(web.storage):
                     except UniqueViolation:
                         pass
             logger.info("batch %s: added %d items", self.name, len(items))
+
+        return None
 
     def get_items(self, status="pending"):
         result = db.where("import_item", batch_id=self.id, status=status)

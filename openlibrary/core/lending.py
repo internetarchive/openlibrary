@@ -1,6 +1,6 @@
 """Module for providing core functionality of lending on Open Library.
 """
-from typing import Literal, Optional
+from typing import Literal
 
 import web
 import datetime
@@ -91,9 +91,9 @@ def compose_ia_url(
     subject=None,
     query=None,
     sorts=None,
-    advanced=True,
-    rate_limit_exempt=True,
-) -> Optional[str]:
+    advanced: bool = True,
+    rate_limit_exempt: bool = True,
+) -> str | None:
     """This needs to be exposed by a generalized API endpoint within
     plugins/api/browse which lets lazy-load more items for
     the homepage carousel and support the upcoming /browse view
@@ -263,11 +263,10 @@ def get_available(
         return {'error': 'request_timeout'}
 
 
-def get_availability(key, ids):
+def get_availability(key: str, ids: list[str]) -> dict:
     """
     :param str key: the type of identifier
     :param list of str ids:
-    :rtype: dict
     """
     ids = [id_ for id_ in ids if id_]  # remove infogami.infobase.client.Nothing
     if not ids:
@@ -394,11 +393,9 @@ def get_availability_of_ocaid(ocaid):
     return get_availability('identifier', [ocaid])
 
 
-def get_availability_of_ocaids(ocaids):
+def get_availability_of_ocaids(ocaids: list[str]) -> dict:
     """
     Retrieves availability based on ocaids/archive.org identifiers
-    :param list[str] ocaids:
-    :rtype: dict
     """
     return get_availability('identifier', ocaids)
 
