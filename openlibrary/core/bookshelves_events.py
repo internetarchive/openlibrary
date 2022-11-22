@@ -57,14 +57,14 @@ class BookshelvesEvents(db.CommonExtras):
         }
 
         query = (
-            f'SELECT event_date FROM {cls.TABLENAME}'
+            f'SELECT id, event_date FROM {cls.TABLENAME}'
             ' WHERE username=$username AND work_id=$work_id'
             ' AND edition_id=$edition_id AND event_type=$event_type'
             ' ORDER BY event_date DESC LIMIT 1'
         )
 
         results = list(oldb.query(query, vars=data))
-        return results[0]['event_date'] if results else None
+        return results[0] if results else None
 
     @classmethod
     def select_by_book_user_and_type(cls, username, work_id, edition_id, event_type):
@@ -85,6 +85,10 @@ class BookshelvesEvents(db.CommonExtras):
         """
 
         return list(db.select(cls.TABLENAME, where=where, vars=data))
+
+    @classmethod
+    def exists(cls, pid) -> bool:
+        return len(cls.select_by_id(pid)) > 0
 
     # Update methods:
     @classmethod

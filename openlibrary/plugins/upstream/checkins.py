@@ -73,7 +73,7 @@ class patron_check_ins(delegate.page):
         month : number : optional
         day : number : optional
         edition_key : string : optional
-        is_edit : boolean
+        event_id : int : optional
         """
         data = json.loads(web.data())
 
@@ -94,20 +94,22 @@ class patron_check_ins(delegate.page):
             data.get('day', None),
         )
 
-        is_edit = data.get('is_edit')
-        if is_edit:
-            events = BookshelvesEvents.select_by_book_user_and_type(
-                username, work_id, edition_id, event_type
-            )
-            if not events:
+        event_id = data.get('event_id', None)
+
+        if event_id:
+            # update existing event
+            if not BookshelvesEvents.exists(event_id):
                 raise web.notfound('Check-in event unavailable for edit')
-            BookshelvesEvents.update_event_date(events[0]['id'], date_str)
+            BookshelvesEvents.update_event_date(event_id, date_str)
         else:
-            BookshelvesEvents.create_event(
+            # create new event
+            result = BookshelvesEvents.create_event(
                 username, work_id, edition_id, date_str, event_type=event_type
             )
 
-        return delegate.RawText(json.dumps({'status': 'ok'}))
+            event_id = result
+
+        return delegate.RawText(json.dumps({'status': 'ok', 'id': event_id}))
 
     def validate_data(self, data):
         """Validates data submitted from check-in dialog."""
@@ -125,6 +127,18 @@ class patron_check_ins(delegate.page):
             return False
 
         return True
+
+
+class patron_check_in(delegate.page):
+    path = r'/check-ins/(\d+)'
+
+    @authorized_for('/usergroup/beta-testers')
+    def DELETE(self, check_in_id):
+        # TODO: Check for authorization after removing authorized_for decorator
+        if not BookshelvesEvents.exists(check_in_id):
+            raise web.notfound('Event does not exist')
+        BookshelvesEvents.delete_by_id(check_in_id)
+        return web.ok()
 
 
 def setup():

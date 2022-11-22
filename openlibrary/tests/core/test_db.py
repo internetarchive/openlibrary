@@ -458,8 +458,14 @@ class TestCheckIns:
 
     def test_get_latest_event_date(self):
         assert (
-            BookshelvesEvents.get_latest_event_date('@eliot_rosewater', 3, 4, 3)
+            BookshelvesEvents.get_latest_event_date('@eliot_rosewater', 3, 4, 3)[
+                'event_date'
+            ]
             == "2019-10"
+        )
+        assert (
+            BookshelvesEvents.get_latest_event_date('@eliot_rosewater', 3, 4, 3)['id']
+            == 6
         )
         assert (
             BookshelvesEvents.get_latest_event_date('@eliot_rosewater', 3, 4, 1) is None

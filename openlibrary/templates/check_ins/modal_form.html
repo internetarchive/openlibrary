@@ -1,4 +1,4 @@
-$def with(work_olid, work_key, edition_key=None, last_read_date=None)
+$def with(work_olid, work_key, edition_key=None, last_read_date=None, event_id=None)
 
 $code:
   year = current_year()
@@ -27,7 +27,7 @@ $if last_read_date:
 
 <div class="check-in" data-work-olid="$(work_olid)" data-event-type="3">
   <form method="dialog" class="check-in__form" action="$(work_key)/check-ins" method="post">
-    <input type="hidden" name="is_edit" value="$cond(last_read_date, 'true', 'false')">
+    <input type="hidden" name="event_id" value="$(event_id)">
     $if edition_key:
       <input type="hidden" name="edition_key" value="$(edition_key)">
     <div>
@@ -67,7 +67,8 @@ $if last_read_date:
       </span>
     </div>
     <span class="check-in__actions">
-      <button class="check-in__cancel-btn cta-btn cta-btn--cancel">$_('No Thanks')</button>
+      $ visible = '' if event_id else 'invisible'
+      <button class="check-in__delete-btn cta-btn cta-btn--delete $(visible)">$_('Delete Event')</button>
       <button type="submit" class="check-in__submit-btn cta-btn cta-btn--shell" $cond(year_read, '', 'disabled')>$_('Submit')</button>
     </span>
   </form>

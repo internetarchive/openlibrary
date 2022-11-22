@@ -31,9 +31,12 @@ const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
  */
 export function initCheckInForms(elems) {
     for (const elem of elems) {
-        const closeButton = elem.querySelector('.check-in__cancel-btn')
-        closeButton.addEventListener('click', function() {
-            closeDialog(elem.dataset.workOlid)
+        const idField = elem.querySelector('input[name=event_id]')
+
+        const deleteButton = elem.querySelector('.check-in__delete-btn')
+        deleteButton.addEventListener('click', function(event) {
+            event.preventDefault()
+            deleteEvent(elem, elem.dataset.workOlid, idField.value)
         })
 
         const submitButton = elem.querySelector('.check-in__submit-btn')
@@ -258,8 +261,8 @@ function submitEvent(elem) {
     const eventType = Number(elem.dataset.eventType)
     const url = elem.querySelector('form').action
 
-    const editField = elem.querySelector('input[name=is_edit]')
-    const isEdit = editField.value === 'true'
+    const idField = elem.querySelector('input[name=event_id]')
+    const id = idField.value
 
     const editionField = elem.querySelector('input[name=edition_key]')
     const editionKey = editionField ? editionField.value : null
@@ -276,7 +279,7 @@ function submitEvent(elem) {
         year: year ? Number(year) : null,
         month: month ? Number(month) : null,
         day: day ? Number(day) : null,
-        is_edit: isEdit
+        event_id: id ? Number(id) : null
     }
 
     if (editionKey) {
@@ -293,10 +296,11 @@ function submitEvent(elem) {
             xhr.setRequestHeader('Content-Type', 'application/json');
             xhr.setRequestHeader('Accept', 'application/json');
         },
-        success: function() {
-            const editField = elem.querySelector('input[name=is_edit]')
-            editField.value = true
-            updateView(elem.dataset.workOlid, year, month, day)
+        success: function(data) {
+            idField.value = data.id
+            showDateView(elem.dataset.workOlid, year, month, day)
+            const deleteButton = elem.querySelector('.check-in__delete-btn')
+            deleteButton.classList.remove('invisible')
         },
         error: function() {
             new PersistentToast('Failed to submit check-in.  Please try again in a few moments.').show()
@@ -318,16 +322,16 @@ function closeDialog(workOlid) {
 }
 
 /**
- * Updates and displays check-in date.
+ * Updates and displays check-in date view.
  *
- * Removes check-in prompt component if it exists.
+ * Hides check-in prompt component.
  *
  * @param {string} workOlid ID used to identify related components
  * @param {str} year Check-in event year
  * @param {str|null} month Check-in event month
  * @param {str|null} day Check-in event day
  */
-function updateView(workOlid, year, month, day) {
+function showDateView(workOlid, year, month, day) {
     let date = year
     if (month) {
         date += `-${month}`
@@ -340,9 +344,46 @@ function updateView(workOlid, year, month, day) {
     dateField.textContent = date
 
     const promptElem = document.querySelector(`#prompt-${workOlid}`)
-    if (promptElem) {
-        promptElem.remove()
-    }
+    promptElem.classList.add('hidden')
 
     displayElement.classList.remove('hidden')
+}
+
+/**
+ * Hides date display element and shows date prompt element.
+ *
+ * @param {string} workOlid Part of unique identifier for check-in UI components
+ */
+function showDatePromptView(workOlid) {
+    const promptElem = document.querySelector(`#prompt-${workOlid}`)
+    const displayElement = document.querySelector(`#check-in-display-${workOlid}`)
+    displayElement.classList.add('hidden')
+    promptElem.classList.remove('hidden')
+}
+
+/**
+ * Deletes record with given event ID, and updates view.
+ *
+ * @param {HTMLElement} rootElem Root element of check-in form.
+ * @param {string} workOlid Uniquely identifies check-in components
+ * @param {string} eventId ID of event that is being deleted
+ */
+function deleteEvent(rootElem, workOlid, eventId) {
+    $.ajax({
+        type: 'DELETE',
+        url: `/check-ins/${eventId}`,
+        success: function() {
+            const idField = rootElem.querySelector('input[name=event_id]')
+            idField.value = ''
+            showDatePromptView(workOlid)
+            const deleteButton = rootElem.querySelector('.check-in__delete-btn')
+            deleteButton.classList.add('invisible')
+        },
+        error: function() {
+            new PersistentToast('Failed to delete check-in.  Please try again in a few moments.').show()
+        },
+        complete: function() {
+            closeDialog(workOlid)
+        }
+    });
 }
