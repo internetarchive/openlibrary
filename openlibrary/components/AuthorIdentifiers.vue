@@ -103,10 +103,11 @@ export default {
         selectIdentifierByInputValue: function() {
             // Selects the dropdown identifier based on the input value
             // Only supports wikidata and isni because the other identifiers are just numbers
-            const wikiDatas = this.inputValue.match(/Q\d+/i);
+            const wikiDatas = this.inputValue.match(/^Q[1-9]\d*$/i);
+            const isnis = this.inputValue.match(/^\d{15}[\dX]$/i);
             if (wikiDatas?.length > 0){
                 this.selectedIdentifier = 'wikidata';
-            } else if (this.inputValue.length === 16){
+            } else if (isnis?.length > 0){
                 this.selectedIdentifier = 'isni';
             }
         }
