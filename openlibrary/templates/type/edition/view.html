@@ -203,6 +203,27 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
       $ component_times['get_observation_metrics'] = time()
       $ reader_observations = get_observation_metrics(work['key']) if show_observations else {}
       $ component_times['get_observation_metrics'] = time() - component_times['get_observation_metrics']
+
+      $if work and work.description or edition and edition.description:
+        $if edition and edition.description:
+          $ overview_desc = edition.description
+        $else:
+          $ overview_desc = work.description
+        <div class="book-description">
+            <div class="book-description-content restricted-view">
+                $:sanitize(format(overview_desc))
+            </div>
+            $:macros.ReadMore("book-description")
+        </div>
+      $elif edition:
+        <div class="book-description">
+            <div class="book-description-content">
+                <p class="workHelp">
+                    $:_("This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=edition.url('/edit')+"#about/about")
+                </p>
+            </div>
+        </div>
+
       $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations)
       <a id="edition-overview" name="edition-overview"></a>
       <div>
@@ -297,26 +318,6 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
               $ seen.add(e.languages[0].name)
               <a href="$work.key?edition=$(e.ocaid)">$get_language_name(e.languages[0].key)</a>
         </p>
-
-      $if work and work.description or edition and edition.description:
-        $if edition and edition.description:
-          $ overview_desc = edition.description
-        $else:
-          $ overview_desc = work.description
-        <div class="book-description">
-            <div class="book-description-content restricted-view">
-                $:sanitize(format(overview_desc))
-            </div>
-            $:macros.ReadMore("book-description")
-        </div>
-      $elif edition:
-        <div class="book-description">
-            <div class="book-description-content">
-                <p class="workHelp">
-                    $:_("This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=edition.url('/edit')+"#about/about")
-                </p>
-            </div>
-        </div>
 
     <div class="subjects">
       <div class="subjects-content">
