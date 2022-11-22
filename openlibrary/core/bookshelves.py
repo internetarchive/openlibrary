@@ -2,7 +2,7 @@ import logging
 import web
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Literal, Optional, cast, Any, Final
+from typing import Literal, cast, Any, Final
 from collections.abc import Iterable
 from openlibrary.plugins.worksearch.search import get_solr
 
@@ -88,7 +88,12 @@ class Bookshelves(db.CommonExtras):
 
     @classmethod
     def most_logged_books(
-        cls, shelf_id='', limit=10, since: date | None = None, page=1, fetch=False
+        cls,
+        shelf_id: str = '',
+        limit: int = 10,
+        since: date | None = None,
+        page: int = 1,
+        fetch: bool = False,
     ) -> list:
         """Returns a ranked list of work OLIDs (in the form of an integer --
         i.e. OL123W would be 123) which have been most logged by
@@ -437,10 +442,10 @@ class Bookshelves(db.CommonExtras):
     @classmethod
     def get_recently_logged_books(
         cls,
-        bookshelf_id=None,
-        limit=50,
-        page=1,
-        fetch=False,
+        bookshelf_id: str | None = None,
+        limit: int = 50,
+        page: int = 1,
+        fetch: bool = False,
     ) -> list:
         oldb = db.get_db()
         page = int(page or 1)
@@ -458,9 +463,7 @@ class Bookshelves(db.CommonExtras):
         return cls.fetch(logged_books) if fetch else logged_books
 
     @classmethod
-    def get_users_read_status_of_work(
-        cls, username: str, work_id: str
-    ) -> Optional[str]:
+    def get_users_read_status_of_work(cls, username: str, work_id: str) -> str | None:
         """A user can mark a book as (1) want to read, (2) currently reading,
         or (3) already read. Each of these states is mutually
         exclusive. Returns the user's read state of this work, if one
