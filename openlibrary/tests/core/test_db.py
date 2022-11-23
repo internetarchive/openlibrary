@@ -483,6 +483,7 @@ class TestCheckIns:
             BookshelvesEvents.get_latest_event_date('@eliot_rosewater', 3, 4, 1) is None
         )
 
+
 class TestYearlyReadingGoals:
     SETUP_ROWS = [
         {
