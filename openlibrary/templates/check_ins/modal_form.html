@@ -40,7 +40,7 @@ $if last_read_date:
         <select class="check-in__select" name="year">
           <option value="">$_('Year')</option>
           $for i in range(120):
-            $ is_selected = i == year_read
+            $ is_selected = year - i == year_read
             <option value="$(year - i)" $cond(is_selected, 'selected', '')>$(year - i)</option>
         </select>
       </span>
