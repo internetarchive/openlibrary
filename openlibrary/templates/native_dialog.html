@@ -1,0 +1,14 @@
+$def with (id, content, title=None)
+
+$# id : str : Unique identifier for the dialog element
+$# content : str : Rendered content to be displayed within the modal
+$# title : str|None : Title of modal
+
+<dialog id="$(id)" class="native-dialog">
+  <div class="floaterHead">
+    $if title:
+      <h2>$title</h2>
+    <a class="native-dialog--close" href="javascript:;">×<span class="shift">Close</span></a>
+  </div>
+  $:content
+</dialog>

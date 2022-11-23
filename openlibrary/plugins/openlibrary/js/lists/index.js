@@ -5,6 +5,7 @@
 
 import { createList, addToList, removeFromList, updateReadingLog, fetchPartials } from './ListService'
 import { websafe } from '../jsdef'
+import { CheckInEvent } from '../check-ins'
 
 /**
  * Maps a list key to an array of references to removeable list items.
@@ -25,6 +26,12 @@ const actionableItems = {}
  */
 const dropperLists = {}
 
+const ReadingLog = {
+    WANT_TO_READ: '1',
+    CURRENTLY_READING: '2',
+    ALREADY_READ: '3'
+}
+
 /**
  * Add all necessary event listeners to the given collection of reading
  * log droppers.
@@ -36,9 +43,9 @@ export function initDroppers(droppers) {
         const anchors = dropper.querySelectorAll('.add-to-list');
         initAddToListAnchors(anchors, dropper)
 
-        const openModalButton = dropper.querySelector('.create-new-list')
-        if (openModalButton) {
-            addOpenModalClickListener(openModalButton)
+        const openListModalButton = dropper.querySelector('.create-new-list')
+        if (openListModalButton) {
+            addOpenListModalClickListener(openListModalButton)
 
             const createListButton = document.querySelector('#create-list-button')
             if (createListButton) {
@@ -147,7 +154,7 @@ function toggleDropper(dropper) {
  *
  * @param {HTMLButtonElement} submitButton Dropper's create list button.
  */
-function addOpenModalClickListener(submitButton) {
+function addOpenListModalClickListener(submitButton) {
     submitButton.addEventListener('click', function(event) {
         event.preventDefault()
 
@@ -245,6 +252,30 @@ function addReadingLogButtonClickListener(button) {
         primaryButton.children[1].innerText = 'saving...'
 
         const success = function() {
+            const actionInput = form.querySelector('input[name=action]')
+            const workKey = document.querySelector('input[name=work_id').value
+            const workOlid = workKey.split('/').slice(-1).pop()
+            const modal = document.querySelector(`#check-in-dialog-${workOlid}`)
+            // If there is a check-in modal, then a `.check-in-prompt` component may exist:
+            const datePrompt = modal ? document.querySelector(`#prompt-${workOlid}`) : null
+
+            if (datePrompt) {
+                if (actionInput.value === 'add') {
+                    const bookshelfValue = form.querySelector('input[name=bookshelf_id]').value
+
+                    if (bookshelfValue === ReadingLog.ALREADY_READ) {
+                        const checkInForm = modal.querySelector('.check-in')
+                        checkInForm.dataset.eventType = CheckInEvent.FINISH
+
+                        datePrompt.classList.remove('hidden')
+                    }
+                    else {
+                        datePrompt.classList.add('hidden')
+                    }
+                } else {
+                    datePrompt.classList.add('hidden')
+                }
+            }
             if (button.classList.contains('want-to-read')) {
                 // Primary button pressed
                 // Toggle checkmark
@@ -262,7 +293,6 @@ function addReadingLogButtonClickListener(button) {
                 dropClick.children[0].classList.toggle('arrow-unactivated')
 
                 //Toggle action value 'add' <-> 'remove'
-                const actionInput = form.querySelector('input[name=action]')
                 if (actionInput.value === 'add') {
                     actionInput.value = 'remove'
                 } else {

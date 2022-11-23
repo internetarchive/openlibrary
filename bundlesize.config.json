@@ -70,11 +70,11 @@
     },
     {
       "path": "static/build/lists.*.js",
-      "maxSize": "4KB"
+      "maxSize": "5KB"
     },
     {
       "path": "static/build/all.js",
-      "maxSize": "121KB"
+      "maxSize": "122KB"
     },
     {
       "path": "static/build/page-admin.css",

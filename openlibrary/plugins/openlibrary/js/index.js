@@ -378,6 +378,29 @@ jQuery(function () {
             );
     }
 
+    const nativeDialogs = document.querySelectorAll('.native-dialog')
+    if (nativeDialogs.length) {
+        import(/* webpackChunkName: "dialog" */ './native-dialog')
+            .then(module => module.initDialogs(nativeDialogs))
+    }
+    const checkInForms = document.querySelectorAll('.check-in')
+    const checkInPrompts = document.querySelectorAll('.check-in-prompt')
+    const checkInEditLinks = document.querySelectorAll('.prompt-edit-date')
+    if (checkInForms.length || checkInPrompts.length || checkInEditLinks.length) {
+        import(/* webpackChunkName: "check-ins" */ './check-ins')
+            .then((module) => {
+                if (checkInForms.length) {
+                    module.initCheckInForms(checkInForms)
+                }
+                if (checkInPrompts.length) {
+                    module.initCheckInPrompts(checkInPrompts)
+                }
+                if (checkInEditLinks.length) {
+                    module.initCheckInEdits(checkInEditLinks)
+                }
+            })
+    }
+
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });

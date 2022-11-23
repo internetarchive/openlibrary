@@ -7,6 +7,8 @@ from contextlib import contextmanager
 from sys import stderr
 from time import perf_counter
 
+from infogami.utils.view import public
+
 
 MINUTE_SECS = 60
 HALF_HOUR_SECS = MINUTE_SECS * 30
@@ -102,6 +104,11 @@ def _resize_list(x, size):
     """Increase the size of the list x to the specified size it is smaller."""
     if len(x) < size:
         x += [None] * (size - len(x))
+
+
+@public
+def current_year():
+    return datetime.datetime.now().year
 
 
 @contextmanager

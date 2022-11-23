@@ -1,10 +1,11 @@
-from openlibrary.plugins.upstream.checkins import check_ins, make_date_string
+from openlibrary.plugins.upstream.checkins import (
+    is_valid_date,
+    make_date_string,
+    patron_check_ins,
+)
 
 
 class TestMakeDateString:
-    def setup_method(self):
-        self.checkins = check_ins()
-
     def test_formatting(self):
         date_str = make_date_string(2000, 12, 22)
         assert date_str == "2000-12-22"
@@ -29,54 +30,43 @@ class TestMakeDateString:
         assert missing_month == "1998"
 
 
-class TestIsValid:
+class TestIsValidDate:
+    def test_date_validation(self):
+
+        assert is_valid_date(1999, None, None) is True
+        assert is_valid_date(1999, 2, None) is True
+        assert is_valid_date(1999, 2, 30) is True
+
+        # Must have a year:
+        assert is_valid_date(None, 1, 21) is False
+        # Must have a month if there is a day:
+        assert is_valid_date(1999, None, 22) is False
+
+
+class TestValidateData:
     def setup_method(self):
-        self.checkins = check_ins()
+        self.checkins = patron_check_ins()
         self.valid_data = {
-            'edition_olid': 'OL1234M',
-            'event_type': 'START',
+            'edition_key': '/books/OL1234M',
+            'event_type': 3,
             'year': 2000,
+            'month': 3,
+            'day': 7,
+        }
+        self.missing_event = {
+            'edition_key': '/books/OL1234M',
+            'year': 2000,
+            'month': 3,
+            'day': 7,
+        }
+        self.invalid_date = {
+            'edition_key': '/books/OL1234M',
+            'event_type': 3,
             'month': 3,
             'day': 7,
         }
 
-    def test_required_fields(self):
-        assert self.checkins.is_valid(self.valid_data) is True
-
-        missing_edition = {
-            'event_type': 'START',
-            'year': 2000,
-            'month': 3,
-            'day': 7,
-        }
-        missing_event_type = {
-            'edition_olid': 'OL1234M',
-            'year': 2000,
-            'month': 3,
-            'day': 7,
-        }
-        missing_year = {
-            'edition_olid': 'OL1234M',
-            'event_type': 'START',
-            'month': 3,
-            'day': 7,
-        }
-        missing_all = {
-            'month': 3,
-            'day': 7,
-        }
-        assert self.checkins.is_valid(missing_edition) is False
-        assert self.checkins.is_valid(missing_event_type) is False
-        assert self.checkins.is_valid(missing_year) is False
-        assert self.checkins.is_valid(missing_all) is False
-
-    def test_event_type_values(self):
-        assert self.checkins.is_valid(self.valid_data) is True
-        unknown_event_type = {
-            'edition_olid': 'OL1234M',
-            'event_type': 'sail-the-seven-seas',
-            'year': 2000,
-            'month': 3,
-            'day': 7,
-        }
-        assert self.checkins.is_valid(unknown_event_type) is False
+    def test_validate_data(self):
+        assert self.checkins.validate_data(self.valid_data) is True
+        assert self.checkins.validate_data(self.missing_event) is False
+        assert self.checkins.validate_data(self.invalid_date) is False
