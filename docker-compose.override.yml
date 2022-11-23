@@ -24,6 +24,8 @@ services:
     depends_on:
       - db
       - infobase
+    environment:
+      - PYTHONUNBUFFERED=1
 
   solr:
     ports:
