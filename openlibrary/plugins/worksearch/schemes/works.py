@@ -340,7 +340,12 @@ class WorkSearchScheme(SearchScheme):
                             parent = parents[-1] if parents else None
                             # Prefixing with + makes the field mandatory
                             if isinstance(
-                                parent, (luqum.tree.Not, luqum.tree.Prohibit)
+                                parent,
+                                (
+                                    luqum.tree.Not,
+                                    luqum.tree.Prohibit,
+                                    luqum.tree.OrOperation,
+                                ),
                             ):
                                 node.name = new_name
                             else:
