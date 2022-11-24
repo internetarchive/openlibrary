@@ -32,6 +32,19 @@ def luqum_remove_child(child: Item, parents: list[Item]):
         raise ValueError("Not supported for generic class Item")
 
 
+def luqum_replace_child(parent: Item, old_child: Item, new_child: Item):
+    """
+    Replaces a child in a luqum parse tree.
+    """
+    if isinstance(parent, (BaseOperation, Group, Unary)):
+        new_children = tuple(
+            new_child if c == old_child else c for c in parent.children
+        )
+        parent.children = new_children
+    else:
+        raise ValueError("Not supported for generic class Item")
+
+
 def luqum_traverse(item: Item, _parents: list[Item] | None = None):
     """
     Traverses every node in the parse tree in depth-first order.
