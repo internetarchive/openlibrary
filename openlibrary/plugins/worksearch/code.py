@@ -219,7 +219,7 @@ def run_solr_query(
             solr_fields.remove('editions')
             solr_fields.add('editions:[subquery]')
         params.append(('fl', ','.join(solr_fields)))
-        params += scheme.q_to_solr_params(q, solr_fields)
+        params += scheme.q_to_solr_params(q, solr_fields, params)
 
     if sort:
         params.append(('sort', scheme.process_user_sort(sort)))

@@ -33,7 +33,12 @@ class SubjectSearchScheme(SearchScheme):
     }
     facet_rewrites: dict[tuple[str, str], str] = {}
 
-    def q_to_solr_params(self, q: str, solr_fields: set[str]) -> list[tuple[str, str]]:
+    def q_to_solr_params(
+        self,
+        q: str,
+        solr_fields: set[str],
+        cur_solr_params: list[tuple[str, str]],
+    ) -> list[tuple[str, str]]:
         return [
             ('q', q),
             ('q.op', 'AND'),

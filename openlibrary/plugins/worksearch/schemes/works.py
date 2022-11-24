@@ -230,14 +230,19 @@ class WorkSearchScheme(SearchScheme):
 
         return ' AND '.join(q_list)
 
-    def q_to_solr_params(self, q: str, solr_fields: set[str]) -> list[tuple[str, str]]:
-        params: list[tuple[str, str]] = []
+    def q_to_solr_params(
+        self,
+        q: str,
+        solr_fields: set[str],
+        cur_solr_params: list[tuple[str, str]],
+    ) -> list[tuple[str, str]]:
+        new_params: list[tuple[str, str]] = []
 
         # We need to parse the tree so that it gets transformed using the
         # special OL query parsing rules (different from default solr!)
         # See luqum_parser for details.
         work_q_tree = luqum_parser(q)
-        params.append(('workQuery', str(work_q_tree)))
+        new_params.append(('workQuery', str(work_q_tree)))
 
         # This full work query uses solr-specific syntax to add extra parameters
         # to the way the search is processed. We are using the edismax parser.
@@ -364,7 +369,7 @@ class WorkSearchScheme(SearchScheme):
             # Move over all fq parameters that can be applied to editions.
             # These are generally used to handle facets.
             editions_fq = ['type:edition']
-            for param_name, param_value in params:
+            for param_name, param_value in cur_solr_params:
                 if param_name != 'fq' or param_value.startswith('type:'):
                     continue
                 field_name, field_val = param_value.split(':', 1)
@@ -372,7 +377,7 @@ class WorkSearchScheme(SearchScheme):
                 if ed_field:
                     editions_fq.append(f'{ed_field}:{field_val}')
             for fq in editions_fq:
-                params.append(('editions.fq', fq))
+                new_params.append(('editions.fq', fq))
 
             user_lang = convert_iso_to_marc(web.ctx.lang or 'en') or 'eng'
 
@@ -402,9 +407,9 @@ class WorkSearchScheme(SearchScheme):
             # The elements in _this_ edition query should cause works not to
             # match _at all_ if matching editions are not found
             if ed_q:
-                params.append(('edQuery', full_ed_query))
+                new_params.append(('edQuery', full_ed_query))
             else:
-                params.append(('edQuery', '*:*'))
+                new_params.append(('edQuery', '*:*'))
             q = (
                 f'+{full_work_query} '
                 # This is using the special parent query syntax to, on top of
@@ -416,7 +421,7 @@ class WorkSearchScheme(SearchScheme):
                 'OR edition_count:0'
                 ')'
             )
-            params.append(('q', q))
+            new_params.append(('q', q))
             edition_fields = {
                 f.split('.', 1)[1] for f in solr_fields if f.startswith('editions.')
             }
@@ -424,7 +429,7 @@ class WorkSearchScheme(SearchScheme):
                 edition_fields = solr_fields - {'editions:[subquery]'}
             # The elements in _this_ edition query will match but not affect
             # whether the work appears in search results
-            params.append(
+            new_params.append(
                 (
                     'editions.q',
                     # Here we use the special terms parser to only filter the
@@ -432,12 +437,12 @@ class WorkSearchScheme(SearchScheme):
                     f'({{!terms f=_root_ v=$row.key}}) AND {full_ed_query}',
                 )
             )
-            params.append(('editions.rows', '1'))
-            params.append(('editions.fl', ','.join(edition_fields)))
+            new_params.append(('editions.rows', '1'))
+            new_params.append(('editions.fl', ','.join(edition_fields)))
         else:
-            params.append(('q', full_work_query))
+            new_params.append(('q', full_work_query))
 
-        return params
+        return new_params
 
 
 def lcc_transform(sf: luqum.tree.SearchField):
