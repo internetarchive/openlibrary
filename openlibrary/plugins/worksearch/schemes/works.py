@@ -272,6 +272,7 @@ class WorkSearchScheme(SearchScheme):
                 'title': 'title',
                 'title_suggest': 'title_suggest',
                 'subtitle': 'subtitle',
+                # TODO: Change to alternative_title after full reindex
                 'alternative_title': 'title',
                 'alternative_subtitle': 'subtitle',
                 'cover_i': 'cover_i',
