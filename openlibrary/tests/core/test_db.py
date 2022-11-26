@@ -1,4 +1,5 @@
 import web
+from openlibrary.core import yearly_reading_goals
 from openlibrary.core.db import get_db
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.bookshelves_events import BookshelvesEvents
@@ -6,6 +7,7 @@ from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
+from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 
 READING_LOG_DDL = """
 CREATE TABLE bookshelves_books (
@@ -66,6 +68,16 @@ CREATE TABLE bookshelves_events (
     edition_id integer not null,
     event_type integer not null,
     event_date text not null,
+    updated timestamp
+);
+"""
+
+YEARLY_READING_GOALS_DDL = """
+CREATE TABLE yearly_reading_goals (
+    username text not null,
+    year integer not null,
+    target integer not null,
+    current integer default 0,
     updated timestamp
 );
 """
@@ -469,4 +481,137 @@ class TestCheckIns:
         )
         assert (
             BookshelvesEvents.get_latest_event_date('@eliot_rosewater', 3, 4, 1) is None
+        )
+
+
+class TestYearlyReadingGoals:
+    SETUP_ROWS = [
+        {
+            'username': '@billy_pilgrim',
+            'year': 2022,
+            'target': 5,
+            'current': 6,
+        },
+        {
+            'username': '@billy_pilgrim',
+            'year': 2023,
+            'target': 7,
+            'current': 0,
+        },
+        {
+            'username': '@kilgore_trout',
+            'year': 2022,
+            'target': 4,
+            'current': 4,
+        },
+    ]
+
+    TABLENAME = YearlyReadingGoals.TABLENAME
+
+    @classmethod
+    def setup_class(cls):
+        web.config.db_parameters = dict(dbn='sqlite', db=':memory:')
+        db = get_db()
+        db.query(YEARLY_READING_GOALS_DDL)
+
+    def setup_method(self):
+        self.db = get_db()
+        self.db.multiple_insert(self.TABLENAME, self.SETUP_ROWS)
+
+    def teardown_method(self):
+        self.db.query('delete from yearly_reading_goals')
+
+    def test_create(self):
+        assert len(list(self.db.select(self.TABLENAME))) == 3
+        assert (
+            len(
+                list(
+                    self.db.select(self.TABLENAME, where={'username': '@kilgore_trout'})
+                )
+            )
+            == 1
+        )
+        YearlyReadingGoals.create('@kilgore_trout', 2023, 5)
+        assert (
+            len(
+                list(
+                    self.db.select(self.TABLENAME, where={'username': '@kilgore_trout'})
+                )
+            )
+            == 2
+        )
+        new_row = list(
+            self.db.select(
+                self.TABLENAME, where={'username': '@kilgore_trout', 'year': 2023}
+            )
+        )
+        assert len(new_row) == 1
+        assert new_row[0]['current'] == 0
+
+    def test_select_by_username_and_year(self):
+        assert (
+            len(YearlyReadingGoals.select_by_username_and_year('@billy_pilgrim', 2022))
+            == 1
+        )
+
+    def test_has_reached_goal(self):
+        assert YearlyReadingGoals.has_reached_goal('@billy_pilgrim', 2022)
+        assert not YearlyReadingGoals.has_reached_goal('@billy_pilgrim', 2023)
+        assert YearlyReadingGoals.has_reached_goal('@kilgore_trout', 2022)
+
+    def test_update_current_count(self):
+        assert (
+            list(
+                self.db.select(
+                    self.TABLENAME, where={'username': '@billy_pilgrim', 'year': 2023}
+                )
+            )[0]['current']
+            == 0
+        )
+        YearlyReadingGoals.update_current_count('@billy_pilgrim', 2023, 10)
+        assert (
+            list(
+                self.db.select(
+                    self.TABLENAME, where={'username': '@billy_pilgrim', 'year': 2023}
+                )
+            )[0]['current']
+            == 10
+        )
+
+    def test_update_target(self):
+        assert (
+            list(
+                self.db.select(
+                    self.TABLENAME, where={'username': '@billy_pilgrim', 'year': 2023}
+                )
+            )[0]['target']
+            == 7
+        )
+        YearlyReadingGoals.update_target('@billy_pilgrim', 2023, 14)
+        assert (
+            list(
+                self.db.select(
+                    self.TABLENAME, where={'username': '@billy_pilgrim', 'year': 2023}
+                )
+            )[0]['target']
+            == 14
+        )
+
+    def test_delete_by_username(self):
+        assert (
+            len(
+                list(
+                    self.db.select(self.TABLENAME, where={'username': '@billy_pilgrim'})
+                )
+            )
+            == 2
+        )
+        YearlyReadingGoals.delete_by_username('@billy_pilgrim')
+        assert (
+            len(
+                list(
+                    self.db.select(self.TABLENAME, where={'username': '@billy_pilgrim'})
+                )
+            )
+            == 0
         )
