@@ -508,19 +508,22 @@ $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
           <div class="user-book-options">
             <div class="Tools tools-override">
               $if work or edition:
-                $ num_work_lists = len(work.get_lists(sort=False))
-                $ num_edition_lists = len(edition.get_lists(sort=False))
-                $if work and num_work_lists > 0:
-                  $ component_times['lists widget: WorkListTime'] = time()
-                  $:render_template("lists/widget", work, include_header=False, include_widget=False)
-                  $ component_times['lists widget: WorkListTime'] = time() - component_times['lists widget: WorkListTime']
-                $if edition and is_editionless_work and num_edition_lists > 0:
-                  $ component_times['lists widget: EditionListTime'] = time()
-                  $:render_template("lists/widget", edition, include_header=False, include_widget=False)
-                  $ component_times['lists widget: EditionListTime'] = time() - component_times['lists widget: EditionListTime']
+                $ has_lists = False
+                $if work:
+                  $if len(work.get_lists(sort=False)) > 0:
+                    $ has_lists = True
+                    $ component_times['lists widget: WorkListTime'] = time()
+                    $:render_template("lists/widget", work, include_header=False, include_widget=False)
+                    $ component_times['lists widget: WorkListTime'] = time() - component_times['lists widget: WorkListTime']
+                $if edition and is_editionless_work:
+                  $if len(edition.get_lists(sort=False)) > 0:
+                    $ has_lists = True
+                    $ component_times['lists widget: EditionListTime'] = time()
+                    $:render_template("lists/widget", edition, include_header=False, include_widget=False)
+                    $ component_times['lists widget: EditionListTime'] = time() - component_times['lists widget: EditionListTime']
                 
-              $if num_work_lists + num_edition_lists == 0:
-                $_('This work does not appear on any lists.')
+                $if not has_lists:
+                  $_('This work does not appear on any lists.')
             </div>
           </div>
       </div>
