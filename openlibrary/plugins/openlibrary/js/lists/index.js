@@ -258,6 +258,7 @@ function addReadingLogButtonClickListener(button) {
             const modal = document.querySelector(`#check-in-dialog-${workOlid}`)
             // If there is a check-in modal, then a `.check-in-prompt` component may exist:
             const datePrompt = modal ? document.querySelector(`#prompt-${workOlid}`) : null
+            const dateDisplay = document.querySelector(`#check-in-display-${workOlid}`)
 
             if (datePrompt) {
                 if (actionInput.value === 'add') {
@@ -267,7 +268,10 @@ function addReadingLogButtonClickListener(button) {
                         const checkInForm = modal.querySelector('.check-in')
                         checkInForm.dataset.eventType = CheckInEvent.FINISH
 
-                        datePrompt.classList.remove('hidden')
+                        // Show date prompt only if no date has been submitted already:
+                        if (dateDisplay.classList.contains('hidden')) {
+                            datePrompt.classList.remove('hidden')
+                        }
                     }
                     else {
                         datePrompt.classList.add('hidden')
