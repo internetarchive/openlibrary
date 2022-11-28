@@ -1,16 +1,17 @@
-from datetime import date, datetime
-from enum import IntEnum
+from datetime import datetime
+from enum import IntEnum, EnumMeta
 from . import db
 
 
-class BookshelfEvent(IntEnum):
+class BookshelfEventMeta(EnumMeta):
+    def __contains__(cls, item):
+        return item in cls.__members__.values()
+
+
+class BookshelfEvent(IntEnum, metaclass=BookshelfEventMeta):
     START = 1
     UPDATE = 2
     FINISH = 3
-
-    @classmethod
-    def has_key(cls, key: str) -> bool:
-        return key in cls.__members__
 
 
 class BookshelvesEvents(db.CommonExtras):

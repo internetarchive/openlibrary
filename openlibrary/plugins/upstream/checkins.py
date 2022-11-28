@@ -118,6 +118,9 @@ class patron_check_ins(delegate.page):
         if 'event_type' not in data:
             return False
 
+        if not data.get('event_type') in BookshelfEvent:
+            return False
+
         # Date must be valid:
         if not is_valid_date(
             data.get('year', None),

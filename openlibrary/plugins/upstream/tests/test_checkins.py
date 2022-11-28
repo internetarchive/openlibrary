@@ -65,8 +65,16 @@ class TestValidateData:
             'month': 3,
             'day': 7,
         }
+        self.unknown_event = {
+            'edition_key': '/books/OL1234M',
+            'event_type': 54321,
+            'year': 2000,
+            'month': 3,
+            'day': 7,
+        }
 
     def test_validate_data(self):
         assert self.checkins.validate_data(self.valid_data) is True
         assert self.checkins.validate_data(self.missing_event) is False
         assert self.checkins.validate_data(self.invalid_date) is False
+        assert self.checkins.validate_data(self.unknown_event) is False
