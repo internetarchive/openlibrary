@@ -128,8 +128,10 @@ function addListClickListener(elem, parentDropper) {
                 }
             }
 
-            // close dropper
-            toggleDropper(parentDropper)
+            // Close dropper if expanded:
+            if ($(parentDropper).find('.arrow').first().hasClass('up')) {
+                toggleDropper(parentDropper)
+            }
         }
 
         addToList(listKey, seed, successCallback)
