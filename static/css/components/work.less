@@ -65,12 +65,33 @@ div.editionAbout {
 }
 
 .workFooter {
+  .lists-heading {
+    display: flex;
+
+    h2.lists-title {
+      flex: 1;
+      margin-top: 5px;
+      margin-bottom: 14px;
+      font-size: 1.375em;
+    }
+    a {
+      color: @link-blue;
+      font-size: 16px;
+    }
+  }
   ul.listLists {
     display: flex;
   }
   ul.listLists li {
     width: 33%;
     border: 0;
+  }
+  .lists-add-to-link {
+    text-decoration: none;
+    margin: 14px 10px 0;
+  }
+  .lists-login-link {
+    margin: 14px 10px 0;
   }
 }
 
