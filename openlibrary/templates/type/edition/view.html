@@ -498,18 +498,29 @@ $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
         $# pages like /books/ia:foo00bar are fake records created from metadata API.
         $# Adding them to lists doesn't work. Disabling it to avoid any issues.
         $if "lists" in ctx.features and not page.is_fake_record():
-          <h2 class="list-heading"><a href="$page.url()/lists">$_('Lists containing this Book')</a></h2>
+          <div class="lists-heading">
+            <h2 class="lists-title">$_('Lists')</h2>
+            $if ctx.user:
+              <a href="$page.url()/lists">$_('See All')</a>
+            $else:
+              <a href="$homepath()/lists">$_('Learn More')</a>
+          </div>
           <div class="user-book-options">
             <div class="Tools tools-override">
-              $if work:
-                $ component_times['lists widget: WorkListTime'] = time()
-                $:render_template("lists/widget", work, include_header=False, include_widget=False)
-                $ component_times['lists widget: WorkListTime'] = time() - component_times['lists widget: WorkListTime']
-
-              $if edition and is_editionless_work:
-                $ component_times['lists widget: EditionListTime'] = time()
-                $:render_template("lists/widget", edition, include_header=False, include_widget=False)
-                $ component_times['lists widget: EditionListTime'] = time() - component_times['lists widget: EditionListTime']
+              $if work or edition:
+                $ num_work_lists = len(work.get_lists(sort=False))
+                $ num_edition_lists = len(edition.get_lists(sort=False))
+                $if work and num_work_lists > 0:
+                  $ component_times['lists widget: WorkListTime'] = time()
+                  $:render_template("lists/widget", work, include_header=False, include_widget=False)
+                  $ component_times['lists widget: WorkListTime'] = time() - component_times['lists widget: WorkListTime']
+                $if edition and is_editionless_work and num_edition_lists > 0:
+                  $ component_times['lists widget: EditionListTime'] = time()
+                  $:render_template("lists/widget", edition, include_header=False, include_widget=False)
+                  $ component_times['lists widget: EditionListTime'] = time() - component_times['lists widget: EditionListTime']
+                
+              $if num_work_lists + num_edition_lists == 0:
+                $_('This work does not appear on any lists.')
             </div>
           </div>
       </div>
