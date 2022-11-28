@@ -520,7 +520,7 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
                   $ component_times['lists widget: EditionListTime'] = time()
                   $:render_template("lists/widget", edition, include_header=False, include_widget=False)
                   $ component_times['lists widget: EditionListTime'] = time() - component_times['lists widget: EditionListTime']
-                
+
               $if num_work_lists + num_edition_lists == 0:
                 $_('This work does not appear on any lists.')
             </div>
