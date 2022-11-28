@@ -259,6 +259,7 @@ function addReadingLogButtonClickListener(button) {
             // If there is a check-in modal, then a `.check-in-prompt` component may exist:
             const datePrompt = modal ? document.querySelector(`#prompt-${workOlid}`) : null
 
+            // Prompt for check-in date:
             if (datePrompt) {
                 if (actionInput.value === 'add') {
                     const bookshelfValue = form.querySelector('input[name=bookshelf_id]').value
@@ -276,6 +277,7 @@ function addReadingLogButtonClickListener(button) {
                     datePrompt.classList.add('hidden')
                 }
             }
+            // Update list widget on reading log shelf change:
             if (button.classList.contains('want-to-read')) {
                 // Primary button pressed
                 // Toggle checkmark
@@ -301,12 +303,8 @@ function addReadingLogButtonClickListener(button) {
 
                 button.children[1].innerText = initialText
 
-                // Close dropper if expanded:
-                if ($(dropper).find('.arrow').first().hasClass('up')) {
-                    toggleDropper(dropper)
-                }
+
             } else {
-                toggleDropper(dropper)
                 // Secondary button pressed
 
                 // Change primary button's text to new value:
@@ -334,6 +332,10 @@ function addReadingLogButtonClickListener(button) {
                     btn.classList.remove('hidden')
                 }
                 button.classList.add('hidden')
+            }
+            // Close dropper if expanded:
+            if ($(dropper).find('.arrow').first().hasClass('up')) {
+                toggleDropper(dropper)
             }
         }
 
