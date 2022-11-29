@@ -10,10 +10,12 @@ To Run:
 PYTHONPATH=. python ./scripts/partner_batch_imports.py /olsystem/etc/openlibrary.yml
 """
 
+from collections.abc import Mapping
 import datetime
 import logging
 import os
 import re
+from typing import TypedDict, cast
 
 import requests
 
@@ -244,6 +246,18 @@ def is_low_quality_book(book_item) -> bool:
     )
 
 
+def is_published_in_future_year(book_item: Mapping[str, str | list]) -> bool:
+    """
+    Prevent import of books with a publication after the current year.
+
+    Some import sources have publication dates in a future year, and the likelihood
+    is high that this is bad data. So we don't want to import these.
+    """
+    publish_year = int(cast(str, book_item.get("publish_date", "0")[:4]))  # YYYY
+    this_year = datetime.datetime.now().year
+    return publish_year > this_year
+
+
 def batch_import(path, batch, batch_size=5000):
     logfile = os.path.join(path, 'import.log')
     filenames, offset = load_state(path, logfile)
@@ -262,7 +276,12 @@ def batch_import(path, batch, batch_size=5000):
 
                 try:
                     book_item = csv_to_ol_json_item(line)
-                    if not is_low_quality_book(book_item["data"]):
+                    if not any(
+                        [
+                            is_low_quality_book(book_item["data"]),
+                            is_published_in_future_year(book_item["data"]),
+                        ]
+                    ):
                         book_items.append(book_item)
                 except (AssertionError, IndexError) as e:
                     logger.info(f"Error: {e} from {line}")
