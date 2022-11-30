@@ -47,7 +47,7 @@ def map_book_to_olbook(book, promise_id):
         'identifiers': {
             **({'amazon': [book.get('ASIN')]} if not asin_is_isbn_10 else {}),
             **(
-                {'better_world_books': [book.get('ISBN')]}
+                {'better_world_books': [isbn]}
                 if not (isbn and isbn[0].isdigit())
                 else {}
             ),
