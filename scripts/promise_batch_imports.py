@@ -41,7 +41,7 @@ def map_book_to_olbook(book, promise_id):
     asin_is_isbn_10 = book.get('ASIN') and book.get('ASIN')[0].isdigit()
     publish_date = book['ProductJSON'].get('PublicationDate')
     title = book['ProductJSON'].get('Title')
-    isbn = book.get('ISBN', ' ')
+    isbn = book.get('ISBN') or ' '
     olbook = {
         'local_id': [f"urn:bwbsku:{book['BookSKUB']}"],
         'identifiers': {
