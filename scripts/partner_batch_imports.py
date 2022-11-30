@@ -28,6 +28,7 @@ EXCLUDED_AUTHORS = {
     x.casefold()
     for x in (
         "1570 publishing",
+        "bad bad girl",
         "bahija",
         "bruna murino",
         "creative elegant edition",
