@@ -52,11 +52,7 @@ def map_book_to_olbook(book, promise_id):
                 else {}
             ),
         },
-        **(
-            {'isbn_13': [isbn]}
-            if (isbn and isbn[0].isdigit())
-            else {}
-        ),
+        **({'isbn_13': [isbn]} if (isbn and isbn[0].isdigit()) else {}),
         **({'isbn_10': [book.get('ASIN')]} if asin_is_isbn_10 else {}),
         **({'title': title} if title else {}),
         'authors': [{"name": book['ProductJSON'].get('Author') or '????'}],
