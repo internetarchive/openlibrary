@@ -1,5 +1,12 @@
+from datetime import datetime
+
 import pytest
-from ..partner_batch_imports import Biblio, is_low_quality_book
+
+from ..partner_batch_imports import (
+    Biblio,
+    is_low_quality_book,
+    is_published_in_future_year,
+)
 
 csv_row = "USA01961304|0962561851||9780962561856|AC|I|TC||B||Sutra on Upasaka Precepts|The||||||||2006|20060531|Heng-ching, Shih|TR||||||||||||||226|ENG||0.545|22.860|15.240|||||||P|||||||74474||||||27181|USD|30.00||||||||||||||||||||||||||||SUTRAS|BUDDHISM_SACRED BOOKS|||||||||REL007030|REL032000|||||||||HRES|HRG|||||||||RB,BIP,MIR,SYN|1961304|00|9780962561856|67499962||PRN|75422798|||||||BDK America||1||||||||10.1604/9780962561856|91-060120||20060531|||||REL007030||||||"  # noqa: E501
 
@@ -87,3 +94,21 @@ def test_is_low_quality_book():
             'publishers': ['Independently Published'],
         }
     )
+
+
+def test_is_published_in_future_year() -> None:
+    last_year = str(datetime.now().year - 1)
+    last_year_book = {'publish_date': last_year}
+    assert is_published_in_future_year(last_year_book) is False
+
+    this_year = str(datetime.now().year)
+    this_year_book = {'publish_date': this_year}
+    assert is_published_in_future_year(this_year_book) is False
+
+    next_year = str(datetime.now().year + 1)
+    next_year_book = {'publish_date': next_year}
+    assert is_published_in_future_year(next_year_book) is True
+
+    # No publication year
+    no_year_book = {'publish_date': '0'}
+    assert is_published_in_future_year(no_year_book) is False
