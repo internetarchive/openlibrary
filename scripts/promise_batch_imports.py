@@ -1,3 +1,19 @@
+"""
+As of 2022-12: Run on `ol-home0 cron container as
+
+```
+$ ssh -A ol-home0
+$ docker exec -it -uopenlibrary openlibrary_cron-jobs_1 bash
+$ 'PYTHONPATH="/openlibrary" python3 /openlibrary/scripts/promise_batch_imports.py /olsystem/etc/openlibrary.yml'
+```
+
+The imports can be monitored for their statuses and rolled up / counted using this query on `ol-db1`:
+
+```
+=# select count(*) from import_item where batch_id in (select id from import_batch where name like 'bwb_daily_pallets_%');
+```
+"""
+
 from __future__ import annotations
 import requests
 import logging
@@ -8,6 +24,10 @@ from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.promises")
+
+
+class MissingDailyPalletsJSON(Exception):
+    pass
 
 
 def format_date(date: str) -> str:
@@ -52,7 +72,11 @@ def map_book_to_olbook(book, promise_id):
 def batch_import(promise_id):
     url = "https://archive.org/download/"
     date = promise_id.split("_")[-1]
-    books = requests.get(f"{url}{promise_id}/DailyPallets__{date}.json").json()
+    try:
+        books = requests.get(f"{url}{promise_id}/DailyPallets__{date}.json").json()
+    except MissingDailyPalletsJSON as e:
+        logger.info(f"No DailyPallets JSON Error: {e}")
+        return
     batch = Batch.find(promise_id) or Batch.new(promise_id)
     olbooks = [map_book_to_olbook(book, promise_id) for book in books]
     batch_items = [{'ia_id': b['local_id'][0], 'data': b} for b in olbooks]
@@ -74,8 +98,6 @@ def main(ol_config: str):
     promise_ids = get_promise_items()
     for i, promise_id in enumerate(promise_ids):
         batch_import(promise_id)
-        if i > 25:
-            return  # XXX stop after last 25
 
 
 if __name__ == '__main__':
