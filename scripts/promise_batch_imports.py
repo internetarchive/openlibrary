@@ -41,19 +41,20 @@ def map_book_to_olbook(book, promise_id):
     asin_is_isbn_10 = book.get('ASIN') and book.get('ASIN')[0].isdigit()
     publish_date = book['ProductJSON'].get('PublicationDate')
     title = book['ProductJSON'].get('Title')
+    isbn = book.get('ISBN', ' ')
     olbook = {
         'local_id': [f"urn:bwbsku:{book['BookSKUB']}"],
         'identifiers': {
             **({'amazon': [book.get('ASIN')]} if not asin_is_isbn_10 else {}),
             **(
                 {'better_world_books': [book.get('ISBN')]}
-                if not book.get('ISBN', ' ')[0].isdigit()
+                if not (isbn and isbn[0].isdigit())
                 else {}
             ),
         },
         **(
-            {'isbn_13': [book.get('ISBN')]}
-            if book.get('ISBN', ' ')[0].isdigit()
+            {'isbn_13': [isbn]}
+            if (isbn and isbn[0].isdigit())
             else {}
         ),
         **({'isbn_10': [book.get('ASIN')]} if asin_is_isbn_10 else {}),
