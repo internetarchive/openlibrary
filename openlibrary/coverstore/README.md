@@ -23,7 +23,7 @@ As of 2022-11 there are 5,692,598 unarchived covers on `ol-covers0` and we're st
 ```
 coverstore=# select id, olid, filename, last_modified from cover where archived=true order by id desc limit 1;
 
-   id    |    olid     |               filename               |       last_modified        
+   id    |    olid     |               filename               |       last_modified  
 ---------+-------------+--------------------------------------+----------------------------
  7315539 | OL25645665M | covers_0007_31.tar:1849729536:247493 | 2014-11-29 22:34:37.329315
 ```
