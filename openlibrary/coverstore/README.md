@@ -6,22 +6,34 @@ from openlibrary.coverstore.server import load_config
 from openlibrary.coverstore import archive
 load_config("/olsystem/etc/coverstore.yml")
 archive.archive()
+
+# How it works
+
+As of 2022-11, the way coverstore works is that wew covers that are uploaded to Open Library go into `/1/var/lib/openlibrary/coverstore/localdisk/` within a directory named `/YYYY/MM/DD/`. A record for each cover (and its size variants) is recorded within the `cover` table of the `coverstore` psql db located on `ol-db1`.
+
+At some (presumably advantageous if) regular interval, as the `localdisk` fills, the files can undergo archival, a process whereby covers are compressed and bundled into tar archives which are moved into the `/1/var/lib/openlibrary/coverstore/items/` directory within folders called "staging items" (e.g. `covers_0007`). The database reference to these covers' filename paths are updated accordingly by the `archive.py` script.
+
+Mek speculates that when coverstore attempts to look up a cover, its entry is looked up in the DB and if the filename is a tar, coverstore first looks on disk for a "staging item" folder within the staging directory `/1/var/lib/openlibrary/coverstore/items/` and if no such "staging item" exists, the staging item is assumed to have been uploaded as an archive.org item having the same name (and thus redirects/resolves its request via archive.org).  
+
+# State of Cover Archival
+
+As of 2022-11 there are 5,692,598 unarchived covers on `ol-covers0` and we're starting to run short on space. Specifically, cover archives haven't been happening since ~2014-11-29, as we can see from the following brutally slow query:
+
 ```
+coverstore=# select id, olid, filename, last_modified from cover where archived=true order by id desc limit 1;
+
+   id    |    olid     |               filename               |       last_modified        
+---------+-------------+--------------------------------------+----------------------------
+ 7315539 | OL25645665M | covers_0007_31.tar:1849729536:247493 | 2014-11-29 22:34:37.329315
+```
+
+In the previous query, we see that the last cover (id #7,315,539) was archived on `2014-11-29` and resides within a tar `covers_0007_31.tar`. Coverstore assumes this tar resolves to an `item` folder called `covers_0007`, either staged on disk within `/1/var/lib/openlibrary/coverstore/items/` or on archive.org/details/covers_0007. In this case, at the time of writing, this item was still staged on disk. As far as Mek can tell, staged items presumably get manually uploaded to archive.org under an item having the same name.
+
+The item name itself (e.g. `coverd_0007`) is a combination of the prefix `covers` and the code `web.numify("%010d.jpg" % cover.id)[:4]` where, in this case, `cover.id` is `7315539`. The `"%010d"` format parameter pads the `cover.id` with leading 0's until it is 10 digits long and then the [:4] takes the first 4 digits of this padded number. Anything lower than `cover.id` 1,000,000 will thus be in `covers_0000` and from there the next 1M will be in `covers_0002` and so on. In total, this scheme allows for just under 10B covers before it breaks, which is a sufficiently unlikely number to hit!
+
+**NB**: We identified **unarchived** covers (denoted with `archived=false` within the `covers` table) prior to `2014-11-29` but early tests suggest the archive process may not have been ironed out and standardized before this date, and so we decided to use the latest successful archival date to resume our archival efforts.  
 
 ## Warnings
 
-As of 2022-11 there were 5,692,598 unarchived covers on ol-covers0 -- a sufficiently large amount that `/openlibrary/openlibrary/coverstore/archive.py` `archive()` was hanging after 5 minutes.
+As of 2022-11 there were 5,692,598 unarchived covers on ol-covers0 -- a sufficiently large amount that `/openlibrary/openlibrary/coverstore/archive.py` `archive()` was hanging after 5 minutes when trying to query for all unarchived covers.
 
-# System & Code Architecture
-
-Looks like current cover archival items on archive.org stop at https://archive.org/details/covers_0006
-
-Interim archived covers presumably live at /1/var/lib/openlibrary/coverstore/items/covers_0007
-
-The files in this directory presumably get manually uploaded to an item called covers_0007 (following naming convention) on Archive.org.
-
-I think the 0007 comes from ???
-
-Current id of latest cover uploaded is 13011172
-
-/1/var/lib/openlibrary/coverstore/localdisk/ is where files are uploaded before archival.
