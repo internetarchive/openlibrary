@@ -2,7 +2,7 @@
 
 As of 2022-11 there are 5,692,598 unarchived covers on ol-covers0 and archival hasn't occurred since 2014-11-29`. This 5.7M number is sufficiently large that running `/openlibrary/openlibrary/coverstore/archive.py` `archive()` is still hanging after 5 minutes when trying to query for all unarchived covers.
 
-As a result, it is recommended to adjust the cover query for unarchived items within archive.py to batch using some limit e.g. 1000. Also note that an initial `id` is specified (which is the last known successfuly archived ID in `2014-11-29`):
+As a result, it is recommended to adjust the cover query for unarchived items within archive.py to batch using some limit e.g. 1000. Also note that an initial `id` is specified (which is the last known successfully archived ID in `2014-11-29`):
 
 ```
 covers = _db.select('cover', where='archived=$f and id>6708293', order='id', vars={'f': False}, limit=1000)
@@ -20,7 +20,7 @@ archive.archive()
 
 # How it works
 
-As of 2022-11, the way coverstore works is that wew covers that are uploaded to Open Library go into `/1/var/lib/openlibrary/coverstore/localdisk/` within a directory named `/YYYY/MM/DD/`. A record for each cover (and its size variants) is recorded within the `cover` table of the `coverstore` psql db located on `ol-db1`.
+As of 2022-11, the way coverstore works is that new covers that are uploaded to Open Library go into `/1/var/lib/openlibrary/coverstore/localdisk/` within a directory named `/YYYY/MM/DD/`. A record for each cover (and its size variants) is recorded within the `cover` table of the `coverstore` psql db located on `ol-db1`.
 
 At some (presumably advantageous if) regular interval, as the `localdisk` fills, the files can undergo archival, a process whereby covers are compressed and bundled into tar archives which are moved into the `/1/var/lib/openlibrary/coverstore/items/` directory within folders called "staging items" (e.g. `covers_0007`). The database reference to these covers' filename paths are updated accordingly by the `archive.py` script.
 
