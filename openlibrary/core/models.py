@@ -365,7 +365,7 @@ class Edition(Thing):
                 return f"https://archive.org/download/{self.ocaid}/{filename}"
 
     @classmethod
-    def from_isbn(cls, isbn: str, retries: bool = False):
+    def from_isbn(cls, isbn: str, retry: bool = False):
         """Attempts to fetch an edition by isbn, or if no edition is found,
         attempts to import from amazon
         :rtype: edition|None
@@ -391,7 +391,7 @@ class Edition(Thing):
                     return web.ctx.site.get(matches[0])
 
         # Attempt to create from amazon, then fetch from OL
-        retries = 5 if retries else 0
+        retries = 5 if retry else 0
         key = (isbn10 or isbn13) and create_edition_from_amazon_metadata(
             isbn10 or isbn13, retries=retries
         )
