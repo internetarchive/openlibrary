@@ -1,3 +1,13 @@
+## Warnings
+
+As of 2022-11 there are 5,692,598 unarchived covers on ol-covers0 and archival hasn't occurred since 2014-11-29`. This 5.7M number is sufficiently large that running `/openlibrary/openlibrary/coverstore/archive.py` `archive()` is still hanging after 5 minutes when trying to query for all unarchived covers.
+
+As a result, it is recommended to adjust the cover query for unarchived items within archive.py to batch using some limit e.g. 1000. Also note that an initial `id` is specified (which is the last known successfuly archived ID in `2014-11-29`):
+
+```
+covers = _db.select('cover', where='archived=$f and id>6708293', order='id', vars={'f': False}, limit=1000)
+```
+
 # How to run Covers Archival
 
 ```
@@ -33,8 +43,3 @@ In the previous query, we see that the last cover (id #7,315,539) was archived o
 The item name itself (e.g. `coverd_0007`) is a combination of the prefix `covers` and the code `web.numify("%010d.jpg" % cover.id)[:4]` where, in this case, `cover.id` is `7315539`. The `"%010d"` format parameter pads the `cover.id` with leading 0's until it is 10 digits long and then the [:4] takes the first 4 digits of this padded number. Anything lower than `cover.id` 1,000,000 will thus be in `covers_0000` and from there the next 1M will be in `covers_0002` and so on. In total, this scheme allows for just under 10B covers before it breaks, which is a sufficiently unlikely number to hit!
 
 **NB**: We identified **unarchived** covers (denoted with `archived=false` within the `covers` table) prior to `2014-11-29` but early tests suggest the archive process may not have been ironed out and standardized before this date, and so we decided to use the latest successful archival date to resume our archival efforts.  
-
-## Warnings
-
-As of 2022-11 there were 5,692,598 unarchived covers on ol-covers0 -- a sufficiently large amount that `/openlibrary/openlibrary/coverstore/archive.py` `archive()` was hanging after 5 minutes when trying to query for all unarchived covers.
-
