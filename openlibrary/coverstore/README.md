@@ -6,6 +6,7 @@ from openlibrary.coverstore.server import load_config
 from openlibrary.coverstore import archive
 load_config("/olsystem/etc/coverstore.yml")
 archive.archive()
+```
 
 # How it works
 
