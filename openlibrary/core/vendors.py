@@ -303,8 +303,8 @@ def _get_amazon_metadata(
     id_: str,
     id_type: Literal['asin', 'isbn'] = 'isbn',
     resources: Any = None,
-    retries: int = 3,
-    sleep_sec: float = 0.1,
+    retries: int = 0,
+    sleep_sec: float = 1,
 ) -> dict | None:
     """Uses the Amazon Product Advertising API ItemLookup operation to locate a
     specific book by identifier; either 'isbn' or 'asin'.
