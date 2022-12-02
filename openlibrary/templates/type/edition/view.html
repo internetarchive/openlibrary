@@ -500,30 +500,24 @@ $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
         $if "lists" in ctx.features and not page.is_fake_record():
           <div class="lists-heading">
             <h2 class="lists-title">$_('Lists')</h2>
-            $if ctx.user:
+            $ has_lists = False
+            $if (work and work.get_lists()) or (edition and edition.get_lists()):
+              $ has_lists = True
+            $if has_lists:
               <a href="$page.url()/lists">$_('See All')</a>
-            $else:
-              <a href="$homepath()/lists">$_('Learn More')</a>
           </div>
           <div class="user-book-options">
             <div class="Tools tools-override">
-              $if work or edition:
-                $ has_lists = False
-                $if work:
-                  $if len(work.get_lists(sort=False)) > 0:
-                    $ has_lists = True
-                    $ component_times['lists widget: WorkListTime'] = time()
-                    $:render_template("lists/widget", work, include_header=False, include_widget=False)
-                    $ component_times['lists widget: WorkListTime'] = time() - component_times['lists widget: WorkListTime']
-                $if edition and is_editionless_work:
-                  $if len(edition.get_lists(sort=False)) > 0:
-                    $ has_lists = True
-                    $ component_times['lists widget: EditionListTime'] = time()
-                    $:render_template("lists/widget", edition, include_header=False, include_widget=False)
-                    $ component_times['lists widget: EditionListTime'] = time() - component_times['lists widget: EditionListTime']
-                
-                $if not has_lists:
-                  $_('This work does not appear on any lists.')
+              $if work:
+                $ component_times['lists widget: WorkListTime'] = time()
+                $:render_template("lists/widget", work, include_header=False, include_widget=False)
+                $ component_times['lists widget: WorkListTime'] = time() - component_times['lists widget: WorkListTime']
+              $if edition and is_editionless_work:
+                $ component_times['lists widget: EditionListTime'] = time()
+                $:render_template("lists/widget", edition, include_header=False, include_widget=False)
+                $ component_times['lists widget: EditionListTime'] = time() - component_times['lists widget: EditionListTime']
+              $if not has_lists:
+                $_('This work does not appear on any lists.')
             </div>
           </div>
       </div>
