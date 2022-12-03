@@ -46,4 +46,4 @@ The item name itself (e.g. `coverd_0007`) is a combination of the prefix `covers
 
 **NB**: We identified **unarchived** covers (denoted with `archived=false` within the `covers` table) prior to `2014-11-29` but early tests suggest the archive process may not have been ironed out and standardized before this date, and so we decided to use the latest successful archival date to resume our archival efforts.  
 
-## 
+##
