@@ -156,8 +156,7 @@ def import_author(author, eastern=False):
     :return: Open Library style Author representation, either existing with "key",
              or new candidate without "key".
     """
-    existing = find_entity(author)
-    if existing:
+    if existing := find_entity(author):
         assert existing.type.key == '/type/author'
         for k in 'last_modified', 'id', 'revision', 'created':
             if existing.k:

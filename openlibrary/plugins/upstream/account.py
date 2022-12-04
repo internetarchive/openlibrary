@@ -389,8 +389,7 @@ class account_login(delegate.page):
             s3_secret_key=i.secret or web.ctx.env.get('HTTP_X_S3_SECRET'),
             test=i.test,
         )
-        error = audit.get('error')
-        if error:
+        if error := audit.get('error'):
             return self.render_error(error, i)
 
         expires = 3600 * 24 * 365 if i.remember else ""
@@ -514,8 +513,7 @@ class account_email_verify(delegate.page):
     path = "/account/email/verify/([0-9a-f]*)"
 
     def GET(self, code):
-        link = accounts.get_link(code)
-        if link:
+        if link := accounts.get_link(code):
             username = link['username']
             email = link['email']
             link.delete()

@@ -118,8 +118,7 @@ class JSNode:
         'var x = 1;\n'
         """
         name = "jsemit_" + node.__class__.__name__
-        f = getattr(self, name, None)
-        if f:
+        if f := getattr(self, name, None):
             return f(node, indent)
         else:
             return ""

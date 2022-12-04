@@ -41,8 +41,7 @@ class WaitingLoan(dict):
         return _get_book(self['identifier'])
 
     def get_user_key(self):
-        user_key = self.get("user_key")
-        if user_key:
+        if user_key := self.get("user_key"):
             return user_key
 
         userid = self.get("userid")

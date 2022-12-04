@@ -251,8 +251,7 @@ class cover:
             size_part = size and ("-" + size) or ""
             url = f"/{category}/id/{id}{size_part}.jpg"
 
-            query = web.ctx.env.get('QUERY_STRING')
-            if query:
+            if query := web.ctx.env.get('QUERY_STRING'):
                 url += '?' + query
             raise web.found(url)
 

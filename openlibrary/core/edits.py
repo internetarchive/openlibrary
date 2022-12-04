@@ -87,8 +87,7 @@ class CommunityEditsQueue:
 
         query = f'SELECT count(*) from {cls.TABLENAME}'
 
-        where_clause = cls.where_clause(mode, **kwargs)
-        if where_clause:
+        if where_clause := cls.where_clause(mode, **kwargs):
             query = f'{query} WHERE {where_clause}'
         return oldb.query(query, vars=kwargs)[0]['count']
 

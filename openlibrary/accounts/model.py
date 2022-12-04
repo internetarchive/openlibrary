@@ -171,8 +171,7 @@ class Account(web.storage):
 
     @property
     def displayname(self):
-        doc = self.get_user()
-        if doc:
+        if doc := self.get_user():
             return doc.displayname or self.username
         elif "data" in self:
             return self.data.get("displayname") or self.username
@@ -285,16 +284,14 @@ class Account(web.storage):
 
     def get_activation_link(self):
         key = "account/%s/verify" % self.username
-        doc = web.ctx.site.store.get(key)
-        if doc:
+        if doc := web.ctx.site.store.get(key):
             return Link(doc)
         else:
             return False
 
     def get_password_reset_link(self):
         key = "account/%s/password" % self.username
-        doc = web.ctx.site.store.get(key)
-        if doc:
+        if doc := web.ctx.site.store.get(key):
             return Link(doc)
         else:
             return False

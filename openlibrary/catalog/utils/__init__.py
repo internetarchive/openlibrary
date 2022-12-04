@@ -85,8 +85,7 @@ def flip_name(name: str) -> str:
 
 
 def remove_trailing_number_dot(date):
-    m = re_number_dot.search(date)
-    if m:
+    if m := re_number_dot.search(date):
         return date[: -len(m.group(1))]
     else:
         return date
@@ -276,8 +275,7 @@ def mk_norm(s: str) -> str:
     :return: a lowercase string with no spaces, containing the main words of the title.
     """
 
-    m = re_brackets.match(s)
-    if m:
+    if m := re_brackets.match(s):
         s = m.group(1)
     norm = merge.normalize(s).strip(' ')
     norm = norm.replace(' and ', ' ')

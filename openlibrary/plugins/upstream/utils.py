@@ -72,8 +72,7 @@ class MultiDict(MutableMapping):
         self.update(kw)
 
     def __getitem__(self, key):
-        values = self.getall(key)
-        if values:
+        if values := self.getall(key):
             return values[-1]
         else:
             raise KeyError(key)
@@ -1029,8 +1028,7 @@ class Request:
         readable_path = web.ctx.get('readable_path', web.ctx.path) or ''
         query = web.ctx.query or ''
         host = web.ctx.host or ''
-        url = host + readable_path + query
-        if url:
+        if url := host + readable_path + query:
             url = "https://" + url
             parsed_url = urlparse(url)
 

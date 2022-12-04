@@ -105,8 +105,7 @@ class AmazonAPI:
         )
 
     def get_product(self, asin: str, serialize: bool = False, **kwargs):
-        products = self.get_products([asin], **kwargs)
-        if products:
+        if products := self.get_products([asin], **kwargs):
             return next(self.serialize(p) if serialize else p for p in products)
 
     def get_products(

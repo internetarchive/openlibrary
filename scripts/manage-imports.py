@@ -136,8 +136,7 @@ def import_item(args, **kwargs):
     servername = kwargs.get('servername', None)
     require_marc = not kwargs.get('no_marc', False)
     ia_id = args[0]
-    item = ImportItem.find_by_identifier(ia_id)
-    if item:
+    if item := ImportItem.find_by_identifier(ia_id):
         do_import(item, servername=servername, require_marc=require_marc)
     else:
         logger.error(f"{ia_id} is not found in the import queue")

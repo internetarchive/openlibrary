@@ -509,12 +509,10 @@ def has_solr_editions_enabled():
         if "SOLR_EDITIONS" in web.ctx.env.get("HTTP_COOKIE", ""):
             return web.cookies().get('SOLR_EDITIONS')
 
-    qs_value = read_query_string()
-    if qs_value is not None:
+    if (qs_value := read_query_string()) is not None:
         return qs_value == 'true'
 
-    cookie_value = read_cookie()
-    if cookie_value is not None:
+    if (cookie_value := read_cookie()) is not None:
         return cookie_value == 'true'
 
     return False

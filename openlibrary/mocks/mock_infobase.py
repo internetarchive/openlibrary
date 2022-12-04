@@ -193,9 +193,8 @@ class MockSite:
         }
         pattern = ".*([%s])$" % "".join(operations)
         rx = web.re_compile(pattern)
-        m = rx.match(name)
 
-        if m:
+        if m := rx.match(name):
             op = m.group(1)
             name = name[:-1]
         else:
@@ -310,9 +309,8 @@ class MockSite:
                 return None
 
     def get_user(self):
-        auth_token = web.ctx.get("infobase_auth_token", "")
 
-        if auth_token:
+        if auth_token := web.ctx.get("infobase_auth_token", ""):
             try:
                 user_key, login_time, digest = auth_token.split(',')
             except ValueError:
