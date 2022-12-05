@@ -330,6 +330,40 @@ div.editionTools {
     }
   }
 
+  ::-webkit-scrollbar {
+    width: 1px;
+    height: 1px;
+  }
+  
+  ::-webkit-scrollbar-button {
+    width: 90px;
+    height: 90px;
+  }
+  
+    .horizontal-scroll-wrapper {
+      font-weight:light;
+      position: absolute;
+      margin: 0;
+      padding-top: 1px;
+      display: block;
+      transform: rotate(-90deg) translateY(-90px);
+      transform-origin: right top;
+      overflow-y: auto;
+      overflow-x: hidden;
+      top: 0;
+      left: 0;
+      width: 90px;
+      max-height: 360px;
+      
+  
+      div {
+        display: block;
+        padding: 5px;
+        border-radius:15%;
+        transform: rotate(90deg);
+        transform-origin: right top;
+    }
+  }
   
   .squares {
     padding: 90px 0 0 0;
