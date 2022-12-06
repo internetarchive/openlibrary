@@ -449,6 +449,8 @@ def early_exit(rec):
     # only searches for the first value from these lists
     for f in 'source_records', 'oclc_numbers', 'lccn':
         if rec.get(f):
+            if f == 'source_records' and not rec[f][0].startswith('ia:'):
+                continue
             ekeys = editions_matched(rec, f, rec[f][0])
             if ekeys:
                 return ekeys[0]

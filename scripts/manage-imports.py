@@ -47,6 +47,9 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
 
 
 def do_import(item, servername=None, require_marc=True):
+    import os
+
+    logger.info(f"do_import START (pid:{os.getpid()})")
     response = ol_import_request(item, servername=servername, require_marc=require_marc)
     if response and response.startswith('{'):
         d = json.loads(response)
@@ -61,6 +64,7 @@ def do_import(item, servername=None, require_marc=True):
     else:
         logger.error(f"failed with internal error: {response}")
         item.set_status("failed", error='internal-error')
+    logger.info(f"do_import END (pid:{os.getpid()})")
 
 
 def add_items(batch_name, filename):
@@ -144,16 +148,27 @@ def import_item(args, **kwargs):
 
 
 def import_all(args, **kwargs):
+    import multiprocessing
+
     servername = kwargs.get('servername', None)
     require_marc = not kwargs.get('no_marc', False)
-    while True:
-        items = ImportItem.find_pending()
-        if not items:
-            logger.info("No pending items found. sleeping for a minute.")
-            time.sleep(60)
 
-        for item in items:
-            do_import(item, servername=servername, require_marc=require_marc)
+    # Use multiprocessing to call do_import on each item
+    with multiprocessing.Pool(processes=10) as pool:
+        while True:
+            logger.info("find_pending START")
+            items = ImportItem.find_pending()
+            logger.info("find_pending END")
+
+            if not items:
+                logger.info("No pending items found. sleeping for a minute.")
+                time.sleep(60)
+
+            logger.info("starmap START")
+            pool.starmap(
+                do_import, ((item, servername, require_marc) for item in items)
+            )
+            logger.info("starmap END")
 
 
 def retroactive_import(start=None, stop=None, servername=None):

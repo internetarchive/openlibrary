@@ -104,7 +104,7 @@ class ImportItem(web.storage):
     @staticmethod
     def find_pending(limit=1000):
         result = db.where("import_item", status="pending", order="id", limit=limit)
-        return [ImportItem(row) for row in result]
+        return map(ImportItem, result)
 
     @staticmethod
     def find_by_identifier(identifier):
