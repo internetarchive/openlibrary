@@ -1,5 +1,5 @@
 from datetime import datetime
-from enum import IntEnum, EnumMeta
+from enum import IntEnum
 from . import db
 
 
