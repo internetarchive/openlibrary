@@ -17,7 +17,7 @@ repos:
         entry: bash -c 'git diff master -U0 | ./scripts/flake8-diff.sh'
         language: python
         additional_dependencies:
-          - flake8
+          - flake8==5.0.4
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
