@@ -3,15 +3,14 @@ from enum import IntEnum, EnumMeta
 from . import db
 
 
-class BookshelfEventMeta(EnumMeta):
-    def __contains__(cls, item):
-        return item in cls.__members__.values()
-
-
-class BookshelfEvent(IntEnum, metaclass=BookshelfEventMeta):
+class BookshelfEvent(IntEnum):
     START = 1
     UPDATE = 2
     FINISH = 3
+
+    @classmethod
+    def has_value(cls, value: int) -> bool:
+        return value in (item.value for item in BookshelfEvent.__members__.values())
 
 
 class BookshelvesEvents(db.CommonExtras):
