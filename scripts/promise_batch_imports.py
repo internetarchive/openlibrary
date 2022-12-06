@@ -27,13 +27,13 @@ def map_book_to_olbook(book, promise_id):
             **({'amazon': [book.get('ASIN')]} if not asin_is_isbn_10 else {}),
             **(
                 {'better_world_books': [book.get('ISBN')]}
-                if not book.get('ISBN', ' ')[0].isdigit()
+                if book.get('ISBN') and not book.get('ISBN')[0].isdigit()
                 else {}
             ),
         },
         **(
             {'isbn_13': [book.get('ISBN')]}
-            if book.get('ISBN', ' ')[0].isdigit()
+            if book.get('ISBN') and book.get('ISBN')[0].isdigit()
             else {}
         ),
         **({'isbn_10': [book.get('ASIN')]} if asin_is_isbn_10 else {}),
