@@ -1,10 +1,12 @@
 $def with (change)
 
-$ master = change.get_master()
+$ primary = change.get_master()
+$ type = primary.type.key.replace("/type/","")
+$ label = primary.name if type == "author" else primary.title
 
-$if master:
+$if primary:
     <div class="truncatepath">
-        <a class="datalink" href="$master.url()">$master.name</a>
+        <a class="datalink" href="$primary.url()">$label</a>
         <span class="smallest sansserif"> - <a href="$change.url()" style="text-decoration: none;">expand</a></span>
     </div>
 $else:

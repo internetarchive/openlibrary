@@ -110,7 +110,6 @@ export async function do_merge(merged_record, dupes, editions, mrid) {
         {
             master: merged_record.key,
             duplicates: dupes.map(dupe => dupe.key),
-            editions: editions.map(edition => edition.key),
             mrid: mrid,
         },
     );

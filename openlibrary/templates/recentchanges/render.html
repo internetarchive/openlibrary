@@ -6,7 +6,8 @@ $else:
     $ page = 1
 
 $def call_template(name, change):
-    $ t = get_template("recentchanges/" + change.kind + "/" + name) or get_template("recentchanges/default/" + name)
+    $ kind = "merge" if change.kind.startswith('merge-') else change.kind
+    $ t = get_template("recentchanges/" + kind + "/" + name) or get_template("recentchanges/default/" + name)
     $:t(change)
 
 $ changes = recentchanges(dict(query, limit=limit, offset=(page-1) * limit))
