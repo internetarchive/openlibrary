@@ -6,7 +6,30 @@ an IA meta.xml into a json object that the Import API can consume.
 
 usage:
 > python metaxml_to_json.py romanceonthreele00hafnrich_meta.xml
-{"publishers": ["New York : Bloomsbury"], "description": "Includes bibliographical references (p. [243]-247) and index", "title": "A romance on three legs : Glenn Gould's obsessive quest for the perfect piano", "isbn_10": ["1596915250"], "isbn_13": ["9781596915251"], "languages": ["eng"], "subjects": ["Lending library", "protected DAISY", "Accessible book", "Gould, Glenn, 1932-1982", "Steinway piano"], "publish_date": "2009", "authors": [{"entity_type": "person", "name": "Hafner, Katie", "personal_name": "Hafner, Katie"}], "ocaid": "romanceonthreele00hafnrich"}
+{
+    "publishers": ["New York : Bloomsbury"],
+    "description": "Includes bibliographical references (p. [243]-247) and index",
+    "title": "A romance on three legs : Glenn Gould's obsessive quest for the perfect piano",
+    "isbn_10": ["1596915250"],
+    "isbn_13": ["9781596915251"],
+    "languages": ["eng"],
+    "subjects": [
+        "Lending library",
+        "protected DAISY",
+        "Accessible book",
+        "Gould, Glenn, 1932-1982",
+        "Steinway piano",
+    ],
+    "publish_date": "2009",
+    "authors": [
+        {
+            "entity_type": "person",
+            "name": "Hafner, Katie",
+            "personal_name": "Hafner, Katie",
+        }
+    ],
+    "ocaid": "romanceonthreele00hafnrich",
+}
 """
 
 from openlibrary.plugins.importapi.import_edition_builder import import_edition_builder

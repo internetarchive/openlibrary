@@ -555,7 +555,12 @@ def test_extra_author(mock_site, add_languages):
             "covers": [6060295, 5551343],
             "first_sentence": {
                 "type": "/type/text",
-                "value": "When it first became known to Europe that a new continent had been discovered, the wise men, philosophers, and especially the learned ecclesiastics, were sorely perplexed to account for such a discovery.",
+                "value": (
+                    "When it first became known to Europe that a new continent had "
+                    "been discovered, the wise men, philosophers, and especially the "
+                    "learned ecclesiastics, were sorely perplexed to account for such "
+                    "a discovery.",
+                ),
             },
             "subject_places": [
                 "Alaska",
@@ -584,7 +589,12 @@ def test_extra_author(mock_site, add_languages):
             ],
             "excerpts": [
                 {
-                    "excerpt": "When it first became known to Europe that a new continent had been discovered, the wise men, philosophers, and especially the learned ecclesiastics, were sorely perplexed to account for such a discovery."
+                    "excerpt": (
+                        "When it first became known to Europe that a new continent "
+                        "had been discovered, the wise men, philosophers, and "
+                        "especially the learned ecclesiastics, were sorely perplexed "
+                        "to account for such a discovery."
+                    )
                 }
             ],
             "first_publish_date": "1882",
@@ -835,7 +845,11 @@ def test_same_twice(mock_site, add_languages):
         'source_records': ['ia:test_item'],
         "publishers": ["Ten Speed Press"],
         "pagination": "20 p.",
-        "description": "A macabre mash-up of the children's classic Pat the Bunny and the present-day zombie phenomenon, with the tactile features of the original book revoltingly re-imagined for an adult audience.",
+        "description": (
+            "A macabre mash-up of the children's classic Pat the Bunny and the "
+            "present-day zombie phenomenon, with the tactile features of the original "
+            "book revoltingly re-imagined for an adult audience.",
+        ),
         "title": "Pat The Zombie",
         "isbn_13": ["9781607740360"],
         "languages": ["eng"],
