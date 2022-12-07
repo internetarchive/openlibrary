@@ -425,7 +425,7 @@ def create_edition_from_amazon_metadata(
     :return: Edition key '/key/OL..M' or None
     """
 
-    md = get_amazon_metadata(id_, id_type=id_type)
+    md = get_amazon_metadata(id_, id_type=id_type, retries=retries)
 
     if md and md.get('product_group') == 'Book':
         with accounts.RunAs('ImportBot'):
