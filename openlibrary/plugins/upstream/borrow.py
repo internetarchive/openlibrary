@@ -879,7 +879,9 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
         # Book is not checked out as a BookReader loan - may still be checked out in ACS4
         error_message = 'Lending Library Book'
         resolution_message = (
-            'This book is part of the <a href="%(base_url)s/subjects/Lending_library">lending library</a>. Please <a href="%(base_url)s/ia/%(item_id)s/borrow">visit this book\'s page on Open Library</a> to access the book.'
+            'This book is part of the <a href="%(base_url)s/subjects/Lending_library">'
+            'lending library</a>. Please <a href="%(base_url)s/ia/%(item_id)s/borrow">'
+            'visit this book\'s page on Open Library</a> to access the book.'
             % resolution_dict
         )
 
@@ -891,8 +893,11 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
                 # Borrowed by someone else - OR possibly came in through ezproxy and there's a stale login in on openlibrary.org
                 error_message = 'This book is checked out'
                 resolution_message = (
-                    'This book is currently checked out.  You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on Open Library</a> or <a href="%(base_url)s/subjects/Lending_library">look at other books available to borrow</a>.'
-                    % resolution_dict
+                    'This book is currently checked out.  You can '
+                    '<a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on '
+                    'Open Library</a> or '
+                    '<a href="%(base_url)s/subjects/Lending_library">look at other '
+                    'books available to borrow</a>.' % resolution_dict
                 )
 
             elif loan['expiry'] < datetime.datetime.utcnow().isoformat():
@@ -922,7 +927,12 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
                 # Couldn't validate using token - they need to go to Open Library
                 error_message = "Lending Library Book"
                 resolution_message = (
-                    'This book is part of the <a href="%(base_url)s/subjects/Lending_library" title="Open Library Lending Library">lending library</a>. Please <a href="%(base_url)s/ia/%(item_id)s/borrow" title="Borrow book page on Open Library">visit this book\'s page on Open Library</a> to access the book.  You must have cookies enabled for archive.org and openlibrary.org to access borrowed books.'
+                    'This book is part of the <a href="%(base_url)s/subjects/Lending_'
+                    'library" title="Open Library Lending Library">lending library</a>. '
+                    'Please <a href="%(base_url)s/ia/%(item_id)s/borrow" title="Borrow '
+                    'book page on Open Library">visit this book\'s page on Open Library'
+                    '</a> to access the book.  You must have cookies enabled for '
+                    'archive.org and openlibrary.org to access borrowed books.'
                     % resolution_dict
                 )
 
