@@ -1,6 +1,6 @@
 ## Warnings
 
-As of 2022-11 there are 5,692,598 unarchived covers on ol-covers0 and archival hasn't occurred since 2014-11-29`. This 5.7M number is sufficiently large that running `/openlibrary/openlibrary/coverstore/archive.py` `archive()` is still hanging after 5 minutes when trying to query for all unarchived covers.
+As of 2022-11 there are 5,692,598 unarchived covers on ol-covers0 and archival hasn't occurred since 2014-11-29. This 5.7M number is sufficiently large that running `/openlibrary/openlibrary/coverstore/archive.py` `archive()` is still hanging after 5 minutes when trying to query for all unarchived covers.
 
 As a result, it is recommended to adjust the cover query for unarchived items within archive.py to batch using some limit e.g. 1000. Also note that an initial `id` is specified (which is the last known successfully archived ID in `2014-11-29`):
 
@@ -10,12 +10,14 @@ covers = _db.select('cover', where='archived=$f and id>6708293', order='id', var
 
 # How to run Covers Archival
 
+First, `ssh -A ol-covers0` and run `docker exec -it openlibrary_covers_1 bash`. Next, launch a python terminal and run:
+
 ```
 from openlibrary.coverstore import config
 from openlibrary.coverstore.server import load_config
 from openlibrary.coverstore import archive
 load_config("/olsystem/etc/coverstore.yml")
-archive.archive()
+archive.archive(test=False)
 ```
 
 # How it works
@@ -46,4 +48,28 @@ The item name itself (e.g. `coverd_0007`) is a combination of the prefix `covers
 
 **NB**: We identified **unarchived** covers (denoted with `archived=false` within the `covers` table) prior to `2014-11-29` but early tests suggest the archive process may not have been ironed out and standardized before this date, and so we decided to use the latest successful archival date to resume our archival efforts.  
 
-##
+## Archival Process
+
+**Recipe for moving one batch of 10k covers at a time into tars on archive.org.**
+
+1. On ol-covers0 docker container, run archive.py on ~10k items to create a new partial of unarchived covers, starting at stable ID 8M (e.g. `covers_0008_01`)
+    ```
+    from openlibrary.coverstore import config
+    from openlibrary.coverstore.server import load_config
+    from openlibrary.coverstore import archive
+    load_config("/olsystem/etc/coverstore.yml")
+    archive.archive(test=False)
+    ```
+2. `ia upload` each partial to the 4 respective items:
+    * `covers_0008` -> `covers_0008_01.index` and `covers_0008_01.tar`
+    * `s_covers_0008` -> `s_covers_0008_01.index` and `s_covers_0008_01.tar`
+    * `m_covers_0008` -> `m_covers_0008_01.index` and `m_covers_0008_01.tar`
+    * `l_covers_0008` -> `l_covers_0008_01.index` and `l_covers_0008_01.tar`
+3. Update the upper bound value in code.py ~L290 by +10k (on `ol-covers0` container 1 & 2 + restart)
+  * `if (8020000 > int(value) >= 8000000):`  ...
+4. Restart the containers + test to make sure the service is resolving to archive.org for all sizes
+5. Remove only the completed partial (e.g. 01 from each folder on /1/var/lib/openlibrary/coverstore/items/
+  * `rm /1/var/lib/openlibrary/coverstore/items/cover_0008/covers_0008_01.*`
+  * `rm /1/var/lib/openlibrary/coverstore/items/s_cover_0008/s_covers_0008_01.*`
+  * `rm /1/var/lib/openlibrary/coverstore/items/m_cover_0008/m_covers_0008_01.*`
+  * `rm /1/var/lib/openlibrary/coverstore/items/l_cover_0008/l_covers_0008_01.*`
