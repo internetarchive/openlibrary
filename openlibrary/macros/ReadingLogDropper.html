@@ -1,9 +1,8 @@
-$def with (lists, work=None, edition=None, key=None, users_work_read_status=None, reading_log_only=False, use_work=False, page_url=None, async_load=False)
+$def with (lists, work=None, edition_key=None, key=None, users_work_read_status=None, reading_log_only=False, use_work=False, page_url=None, async_load=False)
 
 $ user_key = ctx.user and ctx.user.key
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ work_key = work and work.key
-$ edition_key = edition and edition.key
 
 $if ctx.user or not work_key:
   <div class="widget-add $:(not work_key and 'old-style-lists')">
