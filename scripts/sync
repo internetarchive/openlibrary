@@ -38,7 +38,8 @@ import sys
 import os
 import glob
 import shutil
-import urllib, urllib2
+import urllib
+import urllib2
 import simplejson
 from optparse import OptionParser
 from ConfigParser import ConfigParser

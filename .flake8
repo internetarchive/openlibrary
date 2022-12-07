@@ -1,0 +1,8 @@
+[flake8]
+count = true
+exclude = ./.*,vendor/*,node_modules/*
+extend-ignore = E203,E402,E722,F401,F811,F841,I
+max-complexity = 41
+max-line-length = 1195
+show-source = true
+statistics = true
