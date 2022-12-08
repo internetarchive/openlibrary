@@ -103,5 +103,10 @@ class SearchScheme:
     def build_q_from_params(self, params: dict) -> Optional[str]:
         return None
 
-    def q_to_solr_params(self, q: str, solr_fields: set[str]) -> list[tuple[str, str]]:
+    def q_to_solr_params(
+        self,
+        q: str,
+        solr_fields: set[str],
+        cur_solr_params: list[tuple[str, str]],
+    ) -> list[tuple[str, str]]:
         return [('q', q)]

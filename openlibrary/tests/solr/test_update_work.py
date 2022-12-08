@@ -329,9 +329,10 @@ class Test_build_data:
     def test_get_alternate_titles(self):
         f = SolrProcessor.get_alternate_titles
 
-        no_title = {}
-        only_title = {'title': 'foo'}
-        with_subtitle = {'title': 'foo 2', 'subtitle': 'bar'}
+        no_title = make_work()
+        del no_title['title']
+        only_title = make_work(title='foo')
+        with_subtitle = make_work(title='foo 2', subtitle='bar')
 
         assert f([]) == set()
         assert f([no_title]) == set()

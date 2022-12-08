@@ -2,7 +2,7 @@ from datetime import datetime
 import logging
 import re
 import sys
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 import luqum.tree
 import web
@@ -13,6 +13,7 @@ from openlibrary.solr.query_utils import (
     fully_escape_query,
     luqum_parser,
     luqum_remove_child,
+    luqum_replace_child,
     luqum_traverse,
 )
 from openlibrary.utils.ddc import (
@@ -229,14 +230,19 @@ class WorkSearchScheme(SearchScheme):
 
         return ' AND '.join(q_list)
 
-    def q_to_solr_params(self, q: str, solr_fields: set[str]) -> list[tuple[str, str]]:
-        params: list[tuple[str, str]] = []
+    def q_to_solr_params(
+        self,
+        q: str,
+        solr_fields: set[str],
+        cur_solr_params: list[tuple[str, str]],
+    ) -> list[tuple[str, str]]:
+        new_params: list[tuple[str, str]] = []
 
         # We need to parse the tree so that it gets transformed using the
         # special OL query parsing rules (different from default solr!)
         # See luqum_parser for details.
         work_q_tree = luqum_parser(q)
-        params.append(('workQuery', str(work_q_tree)))
+        new_params.append(('workQuery', str(work_q_tree)))
 
         # This full work query uses solr-specific syntax to add extra parameters
         # to the way the search is processed. We are using the edismax parser.
@@ -264,7 +270,7 @@ class WorkSearchScheme(SearchScheme):
         ed_q = None
         editions_fq = []
         if has_solr_editions_enabled() and 'editions:[subquery]' in solr_fields:
-            WORK_FIELD_TO_ED_FIELD = {
+            WORK_FIELD_TO_ED_FIELD: dict[str, str | Callable[[str], str]] = {
                 # Internals
                 'edition_key': 'key',
                 'text': 'text',
@@ -272,7 +278,10 @@ class WorkSearchScheme(SearchScheme):
                 'title': 'title',
                 'title_suggest': 'title_suggest',
                 'subtitle': 'subtitle',
-                'alternative_title': 'title',
+                # TODO: Change to alternative_title after full reindex
+                # Use an OR until that happens, but this will still miss the
+                # "other_titles" field
+                'alternative_title': lambda expr: f'title:({expr}) OR subtitle:({expr})',
                 'alternative_subtitle': 'subtitle',
                 'cover_i': 'cover_i',
                 # Misc useful data
@@ -293,7 +302,9 @@ class WorkSearchScheme(SearchScheme):
                 'public_scan_b': 'public_scan_b',
             }
 
-            def convert_work_field_to_edition_field(field: str) -> Optional[str]:
+            def convert_work_field_to_edition_field(
+                field: str,
+            ) -> Optional[str | Callable[[str], str]]:
                 """
                 Convert a SearchField name (eg 'title') to the correct fieldname
                 for use in an edition query.
@@ -319,28 +330,51 @@ class WorkSearchScheme(SearchScheme):
                 for node, parents in luqum_traverse(q_tree):
                     if isinstance(node, luqum.tree.SearchField) and node.name != '*':
                         new_name = convert_work_field_to_edition_field(node.name)
-                        if new_name:
-                            parent = parents[-1] if parents else None
-                            # Prefixing with + makes the field mandatory
-                            if isinstance(
-                                parent, (luqum.tree.Not, luqum.tree.Prohibit)
-                            ):
-                                node.name = new_name
-                            else:
-                                node.name = f'+{new_name}'
-                        else:
+                        if new_name is None:
                             try:
                                 luqum_remove_child(node, parents)
                             except EmptyTreeError:
                                 # Deleted the whole tree! Nothing left
                                 return ''
+                        elif isinstance(new_name, str):
+                            parent = parents[-1] if parents else None
+                            # Prefixing with + makes the field mandatory
+                            if isinstance(
+                                parent,
+                                (
+                                    luqum.tree.Not,
+                                    luqum.tree.Prohibit,
+                                    luqum.tree.OrOperation,
+                                ),
+                            ):
+                                node.name = new_name
+                            else:
+                                node.name = f'+{new_name}'
+                        elif callable(new_name):
+                            # Replace this node with a new one
+                            # First process the expr
+                            new_expr = convert_work_query_to_edition_query(
+                                str(node.expr)
+                            )
+                            new_node = luqum.tree.Group(
+                                luqum_parser(new_name(new_expr))
+                            )
+                            if parents:
+                                luqum_replace_child(parents[-1], node, new_node)
+                            else:
+                                return convert_work_query_to_edition_query(
+                                    str(new_node)
+                                )
+                        else:
+                            # Shouldn't happen
+                            raise ValueError(f'Invalid new_name: {new_name}')
 
                 return str(q_tree)
 
             # Move over all fq parameters that can be applied to editions.
             # These are generally used to handle facets.
             editions_fq = ['type:edition']
-            for param_name, param_value in params:
+            for param_name, param_value in cur_solr_params:
                 if param_name != 'fq' or param_value.startswith('type:'):
                     continue
                 field_name, field_val = param_value.split(':', 1)
@@ -348,7 +382,7 @@ class WorkSearchScheme(SearchScheme):
                 if ed_field:
                     editions_fq.append(f'{ed_field}:{field_val}')
             for fq in editions_fq:
-                params.append(('editions.fq', fq))
+                new_params.append(('editions.fq', fq))
 
             user_lang = convert_iso_to_marc(web.ctx.lang or 'en') or 'eng'
 
@@ -378,9 +412,9 @@ class WorkSearchScheme(SearchScheme):
             # The elements in _this_ edition query should cause works not to
             # match _at all_ if matching editions are not found
             if ed_q:
-                params.append(('edQuery', full_ed_query))
+                new_params.append(('edQuery', full_ed_query))
             else:
-                params.append(('edQuery', '*:*'))
+                new_params.append(('edQuery', '*:*'))
             q = (
                 f'+{full_work_query} '
                 # This is using the special parent query syntax to, on top of
@@ -392,7 +426,7 @@ class WorkSearchScheme(SearchScheme):
                 'OR edition_count:0'
                 ')'
             )
-            params.append(('q', q))
+            new_params.append(('q', q))
             edition_fields = {
                 f.split('.', 1)[1] for f in solr_fields if f.startswith('editions.')
             }
@@ -400,7 +434,7 @@ class WorkSearchScheme(SearchScheme):
                 edition_fields = solr_fields - {'editions:[subquery]'}
             # The elements in _this_ edition query will match but not affect
             # whether the work appears in search results
-            params.append(
+            new_params.append(
                 (
                     'editions.q',
                     # Here we use the special terms parser to only filter the
@@ -408,12 +442,12 @@ class WorkSearchScheme(SearchScheme):
                     f'({{!terms f=_root_ v=$row.key}}) AND {full_ed_query}',
                 )
             )
-            params.append(('editions.rows', '1'))
-            params.append(('editions.fl', ','.join(edition_fields)))
+            new_params.append(('editions.rows', '1'))
+            new_params.append(('editions.fl', ','.join(edition_fields)))
         else:
-            params.append(('q', full_work_query))
+            new_params.append(('q', full_work_query))
 
-        return params
+        return new_params
 
 
 def lcc_transform(sf: luqum.tree.SearchField):
@@ -517,4 +551,4 @@ def has_solr_editions_enabled():
     if cookie_value is not None:
         return cookie_value == 'true'
 
-    return False
+    return True
