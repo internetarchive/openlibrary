@@ -1,4 +1,5 @@
 import asyncio
+import types
 import typing
 from argparse import (
     ArgumentParser,
@@ -111,8 +112,9 @@ class FnToCLI:
 
     @staticmethod
     def is_optional(typ: type) -> bool:
+        origin = typing.get_origin(typ)
         return (
-            typing.get_origin(typ) is typing.Union
+            (origin is typing.Union or origin is types.UnionType)
             and type(None) in typing.get_args(typ)
             and len(typing.get_args(typ)) == 2
         )
