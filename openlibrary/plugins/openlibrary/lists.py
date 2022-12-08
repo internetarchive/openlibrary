@@ -510,8 +510,7 @@ class list_subjects_json(delegate.page):
         return {"name": s['name'], "count": s['count'], "url": key}
 
 
-# This class is defined twice in this file. Should this be list_subjects_yaml() ?
-class list_editions_yaml(list_subjects_json):  # type: ignore[no-redef]
+class list_subjects_yaml(list_subjects_json):
     encoding = "yml"
     content_type = 'text/yaml; charset="utf-8"'
 
