@@ -56,6 +56,7 @@ class TarManager:
         indexpath = path.replace('.tar', '.index')
         print(indexpath, os.path.exists(path))
         mode = 'a' if os.path.exists(path) else 'w'
+        # Need USTAR since that used to be the default in Py2
         return tarfile.TarFile(path, mode, format=tarfile.USTAR_FORMAT), open(
             indexpath, mode
         )
@@ -97,10 +98,12 @@ def archive(test=True):
     try:
         covers = _db.select(
             'cover',
+            # IDs before this are legacy and not in the right format this script
+            # expects. Cannot archive those.
             where='archived=$f and id>7999999',
             order='id',
             vars={'f': False},
-            limit=8000,
+            limit=10_000,
         )
 
         for cover in covers:
@@ -129,8 +132,7 @@ def archive(test=True):
             print(files.values())
 
             if any(
-                d.get('path') is None or not os.path.exists(d.get('path'))
-                for d in files.values()
+                d.path is None or not os.path.exists(d.path) for d in files.values()
             ):
                 print("Missing image file for %010d" % cover.id, file=web.debug)
                 continue

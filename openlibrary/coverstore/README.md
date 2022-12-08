@@ -52,7 +52,7 @@ The item name itself (e.g. `coverd_0007`) is a combination of the prefix `covers
 
 **Recipe for moving one batch of 10k covers at a time into tars on archive.org.**
 
-1. On ol-covers0 docker container, run archive.py on ~10k items to create a new partial of unarchived covers, starting at stable ID 8M (e.g. `covers_0008_01`)
+1. On ol-covers0 docker container, run archive.py on ~10k items to create a new partial of unarchived covers, starting at stable ID 8M (e.g. `covers_0008_00`)
     ```
     from openlibrary.coverstore import config
     from openlibrary.coverstore.server import load_config
@@ -61,15 +61,15 @@ The item name itself (e.g. `coverd_0007`) is a combination of the prefix `covers
     archive.archive(test=False)
     ```
 2. `ia upload` each partial to the 4 respective items:
-    * `covers_0008` -> `covers_0008_01.index` and `covers_0008_01.tar`
-    * `s_covers_0008` -> `s_covers_0008_01.index` and `s_covers_0008_01.tar`
-    * `m_covers_0008` -> `m_covers_0008_01.index` and `m_covers_0008_01.tar`
-    * `l_covers_0008` -> `l_covers_0008_01.index` and `l_covers_0008_01.tar`
+    * `covers_0008` -> `covers_0008_00.index` and `covers_0008_00.tar`
+    * `s_covers_0008` -> `s_covers_0008_00.index` and `s_covers_0008_00.tar`
+    * `m_covers_0008` -> `m_covers_0008_00.index` and `m_covers_0008_00.tar`
+    * `l_covers_0008` -> `l_covers_0008_00.index` and `l_covers_0008_00.tar`
 3. Update the upper bound value in code.py ~L290 by +10k (on `ol-covers0` container 1 & 2 + restart)
-  * `if (8020000 > int(value) >= 8000000):`  ...
+  * `if (8100000 > int(value) >= 8000000):` (or whatever is the upper bound)  ...
 4. Restart the containers + test to make sure the service is resolving to archive.org for all sizes
-5. Remove only the completed partial (e.g. 01 from each folder on /1/var/lib/openlibrary/coverstore/items/
-  * `rm /1/var/lib/openlibrary/coverstore/items/cover_0008/covers_0008_01.*`
-  * `rm /1/var/lib/openlibrary/coverstore/items/s_cover_0008/s_covers_0008_01.*`
-  * `rm /1/var/lib/openlibrary/coverstore/items/m_cover_0008/m_covers_0008_01.*`
-  * `rm /1/var/lib/openlibrary/coverstore/items/l_cover_0008/l_covers_0008_01.*`
+5. Remove only the completed partial (e.g. 00 from each folder on /1/var/lib/openlibrary/coverstore/items/
+  * `rm /1/var/lib/openlibrary/coverstore/items/cover_0008/covers_0008_00.*`
+  * `rm /1/var/lib/openlibrary/coverstore/items/s_cover_0008/s_covers_0008_00.*`
+  * `rm /1/var/lib/openlibrary/coverstore/items/m_cover_0008/m_covers_0008_00.*`
+  * `rm /1/var/lib/openlibrary/coverstore/items/l_cover_0008/l_covers_0008_00.*`

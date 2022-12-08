@@ -259,16 +259,6 @@ class cover:
         if key == 'isbn':
             value = value.replace("-", "").strip()  # strip hyphens from ISBN
             value = self.query(category, key, value)
-
-            # Redirect isbn requests to archive.org.
-            # This will heavily reduce the load on coverstore server.
-            # The max_coveritem_index config parameter specifies the latest
-            # olcovers items uploaded to archive.org.
-            if value and self.is_cover_in_cluster(value):
-                url = zipview_url_from_id(int(value), size)
-                raise web.found(url)
-        elif key == 'test':
-            cover_id = 8000001
         elif key == 'ia':
             url = self.get_ia_cover_url(value, size)
             if url:
