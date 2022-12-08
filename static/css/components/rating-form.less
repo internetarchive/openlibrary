@@ -20,6 +20,7 @@ html {
 }
 .review {
   display: flex;
+  scroll-margin-top: 100px;
   .review-btn {
     border-left: 1px solid @lighter-grey;
     width: 35px;
@@ -36,21 +37,20 @@ html {
 @keyframes highlight {
   0% {
     border: 1px solid transparent;
-    box-shadow: 0px 0px 10px transparent;
+    box-shadow: 0 0 10px transparent;
   }
   50% {
-    border: 1px solid #02598b;
-    box-shadow: 0px 0px 10px #02598b;
+    border: 1px solid @link-blue;
+    box-shadow: 0 0 10px @link-blue;
   }
   100% {
     border: 1px solid transparent;
-    box-shadow: 0px 0px 10px transparent;
+    box-shadow: 0 0 10px transparent;
   }
 }
 // smooth scrolling and highlighting area after clicking on anchor link
 .review:target {
   animation: highlight 3s;
-  scroll-margin-top: 10rem;
 }
 //changes mouse cursor to 'pointer'
 .avg-ratings{
