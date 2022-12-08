@@ -63,7 +63,13 @@ config_internal_tests_api_key = None
 
 def setup(config):
     """Initializes this module from openlibrary config."""
-    global config_loanstatus_url, config_ia_access_secret, config_bookreader_host, config_ia_ol_shared_key, config_ia_ol_xauth_s3, config_internal_tests_api_key, config_ia_loan_api_url, config_http_request_timeout, config_ia_availability_api_v2_url, config_ia_ol_metadata_write_s3, config_ia_xauth_api_url, config_http_request_timeout, config_ia_s3_auth_url, config_ia_users_loan_history, config_ia_loan_api_developer_key, config_ia_civicrm_api, config_ia_domain
+    global config_loanstatus_url, config_ia_access_secret, config_bookreader_host
+    global config_ia_ol_shared_key, config_ia_ol_xauth_s3, config_internal_tests_api_key
+    global config_ia_loan_api_url, config_http_request_timeout
+    global config_ia_availability_api_v2_url, config_ia_ol_metadata_write_s3
+    global config_ia_xauth_api_url, config_http_request_timeout, config_ia_s3_auth_url
+    global config_ia_users_loan_history, config_ia_loan_api_developer_key
+    global config_ia_civicrm_api, config_ia_domain
 
     config_loanstatus_url = config.get('loanstatus_url')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')

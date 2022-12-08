@@ -92,8 +92,9 @@ def admin_range__human_edits(**kargs):
     result = db.query(q1)
     total_edits = result[0].count
     q1 = (
-        "SELECT count(DISTINCT t.id) AS count FROM transaction t, version v WHERE v.transaction_id=t.id AND t.created >= '%s' and t.created < '%s' AND t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"
-        % (start, end)
+        "SELECT count(DISTINCT t.id) AS count FROM transaction t, version v WHERE "
+        "v.transaction_id=t.id AND t.created >= '%s' and t.created < '%s' AND "
+        "t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')" % (start, end)
     )
     result = db.query(q1)
     bot_edits = result[0].count
@@ -111,8 +112,9 @@ def admin_range__bot_edits(**kargs):
     except KeyError as k:
         raise TypeError("%s is a required argument for admin_range__bot_edits" % k)
     q1 = (
-        "SELECT count(*) AS count FROM transaction t, version v WHERE v.transaction_id=t.id AND t.created >= '%s' and t.created < '%s' AND t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"
-        % (start, end)
+        "SELECT count(*) AS count FROM transaction t, version v WHERE "
+        "v.transaction_id=t.id AND t.created >= '%s' and t.created < '%s' AND "
+        "t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')" % (start, end)
     )
     result = db.query(q1)
     count = result[0].count

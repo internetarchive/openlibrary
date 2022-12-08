@@ -4,21 +4,12 @@
 
 # Learn more about this config here: https://pre-commit.com/
 default_language_version:
-  python: python3.10
+  python: python3.11
 
 ci:
   submodules: true
 
 repos:
-  - repo: local
-    hooks:
-      - id: make-lint-diff
-        name: make lint-diff
-        entry: bash -c 'git diff master -U0 | ./scripts/flake8-diff.sh'
-        language: python
-        additional_dependencies:
-          - flake8
-
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
@@ -57,7 +48,7 @@ repos:
           - types-all
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.3.0
+    rev: v3.3.1
     hooks:
       - id: pyupgrade
         args:  # Solr on Cython is not yet ready for 3.10 type hints
@@ -68,3 +59,8 @@ repos:
     rev: v0.10.1
     hooks:
       - id: validate-pyproject
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8  # See the file .flake8 for args

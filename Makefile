@@ -5,7 +5,6 @@
 
 BUILD=static/build
 ACCESS_LOG_FORMAT='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"'
-FLAKE_EXCLUDE=./.*,vendor/*,node_modules/*
 COMPONENTS_DIR=openlibrary/components
 
 # Use python from local env if it exists or else default to python in the path.
@@ -65,19 +64,15 @@ reindex-solr:
 	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py place
 	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py time
 
-lint-diff:
-	git diff "$${BASE_BRANCH:-master}" -U0 | ./scripts/flake8-diff.sh
-
 lint:
-	# stop the build if there are Python syntax errors or undefined names
-	$(PYTHON) -m flake8 . --count --exclude=$(FLAKE_EXCLUDE) --extend-ignore=E203,E402,E722,F401,F811,F841,W504 \
-	    --max-complexity=48 --max-line-length=1195 --show-source --statistics
+	# See the file .flake8 for flake8's settings
+	$(PYTHON) -m flake8 .
 
 test-py:
 	pytest . --ignore=tests/integration --ignore=infogami --ignore=vendor --ignore=node_modules
 
 test-i18n:
-  # Valid locale codes should be added as arguments to validate
+	# Valid locale codes should be added as arguments to validate
 	$(PYTHON) ./scripts/i18n-messages validate de es fr hr ja zh
 
 test:
