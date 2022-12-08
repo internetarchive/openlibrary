@@ -5,7 +5,7 @@ $ stats_by_bookshelf = work and work.get_num_users_by_bookshelf() or {}
 $ avg = rating_stats.get('avg_rating')
 
 <ul class="readers-stats" itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
-  <li class="avg-ratings">
+  <li class="avg-ratings" onclick="location.href='#starRatingSection';">
     $if avg:
       $ stats_decimal = (float(avg))-(int(avg))
       $:('<span class="readers-stats__star">★</span>' * int(avg))
