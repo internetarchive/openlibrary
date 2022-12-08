@@ -1,13 +1,13 @@
 $def with (list)
 
 $def json_link():
-    <a rel="nofollow" href="$list.url('/export?format=json')">JSON</a>
+    <a rel="nofollow" href="$list.url('/export?format=json')" data-ol-link-track="PatronExports|ListJSON">JSON</a>
 
 $def html_link():
-    <a rel="nofollow" href="$list.url('/export?format=html')">HTML</a>
+    <a rel="nofollow" href="$list.url('/export?format=html')" data-ol-link-track="PatronExports|ListHTML">HTML</a>
 
 $def bibtex_link():
-    <a rel="nofollow" href="$list.url('/export?format=bibtex')">BibTex</a>
+    <a rel="nofollow" href="$list.url('/export?format=bibtex')" data-ol-link-track="PatronExports|BibTex">BibTex</a>
 
 <div id="listTools">
     $if list.seed_count <= 10000:
