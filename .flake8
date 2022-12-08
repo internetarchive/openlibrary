@@ -1,0 +1,14 @@
+[flake8]
+count = true
+exclude = ./.*,vendor/*,node_modules/*
+# 55    E203 whitespace before ':' -- Do not fix, black will remove it
+# 18    E402 module level import not at top of file
+# 47    E722 do not use bare 'except'
+# 120   F401 '.model.*' imported but unused
+# 10    F811 redefinition of unused '_' from line 34
+# 60    F841 local variable 'account' is assigned to but never used
+extend-ignore = E203,E402,E722,F401,F811,F841,I
+max-complexity = 41
+max-line-length = 200
+show-source = true
+statistics = true
