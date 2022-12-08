@@ -112,9 +112,8 @@ class FnToCLI:
 
     @staticmethod
     def is_optional(typ: type) -> bool:
-        origin = typing.get_origin(typ)
         return (
-            (origin is typing.Union or origin is types.UnionType)
+            (typing.get_origin(typ) is typing.Union or isinstance(typ, types.UnionType))
             and type(None) in typing.get_args(typ)
             and len(typing.get_args(typ)) == 2
         )
