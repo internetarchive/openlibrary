@@ -121,8 +121,7 @@ def archive(test=True):
                 ),
             }
 
-            for file_type in files:
-                f = files[file_type]
+            for file_type, f in files.items():
                 files[file_type].path = f.filename and os.path.join(
                     config.data_root, "localdisk", f.filename
                 )
