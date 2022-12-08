@@ -269,8 +269,6 @@ class cover:
                 raise web.found(url)
         elif key == 'test':
             cover_id = 8000001
-
-            pass
         elif key == 'ia':
             url = self.get_ia_cover_url(value, size)
             if url:
@@ -284,19 +282,21 @@ class cover:
             raise web.notfound()
 
         # redirect to archive.org cluster for large size and original images whenever possible
-        if (size == "L" or size == "") and self.is_cover_in_cluster(value):
+        if size in ("L", "") and self.is_cover_in_cluster(value):
             url = zipview_url_from_id(int(value), size)
             raise web.found(url)
-        # These items have been tar archived in items, starting with covers_0008
-        if 8010000 > int(value) >= 8000000:
-            prefix = f"{size.lower()}_" if size else ""
-            pid = "%010d" % int(value)
-            item_id = f"{prefix}covers_{pid[:4]}"
-            item_tar = f"{prefix}covers_{pid[:4]}_{pid[4:6]}.tar"
-            item_file = f"{pid}{'-' + size.upper() if size else ''}"
-            path = f"{item_id}/{item_tar}/{item_file}.jpg"
-            protocol = web.ctx.protocol
-            raise web.found(f"{protocol}://archive.org/download/{path}")
+
+        # These 100k covers are tar'd in archive.org item covers_0008
+        if isinstance(value, int) or value.isnumeric():
+            if 8100000 >= int(value) >= 8000000:
+                prefix = f"{size.lower()}_" if size else ""
+                pid = "%010d" % int(value)
+                item_id = f"{prefix}covers_{pid[:4]}"
+                item_tar = f"{prefix}covers_{pid[:4]}_{pid[4:6]}.tar"
+                item_file = f"{pid}{'-' + size.upper() if size else ''}"
+                path = f"{item_id}/{item_tar}/{item_file}.jpg"
+                protocol = web.ctx.protocol
+                raise web.found(f"{protocol}://archive.org/download/{path}")
 
         d = self.get_details(value, size.lower())
         if not d:
