@@ -53,7 +53,6 @@ def start_server():
 
 
 def load_infogami(config_file):
-    import web
     import infogami
     from infogami import config
     from infogami.utils import delegate
@@ -92,7 +91,6 @@ class BaseWSGIServer(Application):
         load_infogami(self.config_file)
 
         import infogami
-        import web
 
         infogami._setup()
         wsgi_app = self.get_wsgi_app()

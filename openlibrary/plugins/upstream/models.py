@@ -272,9 +272,9 @@ class Edition(models.Edition):
         if self.ocaid:
             lending.sync_loan(self.ocaid)
 
-    def _process_identifiers(self, config, names, values):
+    def _process_identifiers(self, config_, names, values):
         id_map = {}
-        for id in config:
+        for id in config_:
             id_map[id.name] = id
             id.setdefault("label", id.name)
             id.setdefault("url_format", None)

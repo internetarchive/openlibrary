@@ -2,7 +2,6 @@ import datetime
 import pytest
 import web
 
-from infogami.utils.view import render_template
 from infogami.utils import template, context
 from openlibrary.i18n import gettext
 from openlibrary.core.admin import Stats
