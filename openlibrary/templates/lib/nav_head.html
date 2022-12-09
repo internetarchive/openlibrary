@@ -12,7 +12,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
     $     { "post": "/account/logout", "text": _("Log out"), "track": "Logout" },
     $ ]
       $if is_privileged_user:
-        $ loginLinks.insert(2, { "href": homepath() + "/merges", "text": _("Pending Merge Requests"),"track": "MyRequests" })
+        $ loginLinks.insert(2, { "href": homepath() + "/merges", "text": _("Pending Merge Requests"),"track": "MyRequests", "badge": True })
   $else:
     $ loginLinks = [
     $     { "loginClass": "login-links" }

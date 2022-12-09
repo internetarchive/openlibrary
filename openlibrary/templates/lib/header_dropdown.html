@@ -63,7 +63,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
                 </form>
               $else:
                 $if is_privileged_user:
-                  $if (link['text'] == 'Pending Requests') and cached_get_counts_by_mode(mode='open') > 0:
+                  $if 'badge' in link and cached_get_counts_by_mode(mode='open') > 0:
                     <div class="app-drawer__badge">$(cached_get_counts_by_mode(mode='open'))</div>
                 <a href="$(link['href'])" $(tracker)>
                   $if 'new' in link and props['name'] == 'hamburger':
