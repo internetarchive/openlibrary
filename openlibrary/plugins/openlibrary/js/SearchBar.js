@@ -100,7 +100,7 @@ export class SearchBar {
             this.facet.write(urlParams.facet);
         }
 
-        if (urlParams.q) {
+        if (urlParams.q && window.location.pathname.match(/^\/search/)) {
             let q = urlParams.q.replace(/\+/g, ' ');
             if (this.facet.read() === 'title' && q.indexOf('title:') !== -1) {
                 const parts = q.split('"');
@@ -127,19 +127,25 @@ export class SearchBar {
         $(window).on('resize', debounce(() => {
             this.toggleCollapsibleModeForSmallScreens($(window).width());
         }, 50));
-        $(document).on('submit','.in-collapsible-mode', event => {
-            if (this.collapsed) {
+
+        const expandAndFocusSearch = (event) => {
+            if (this.inCollapsibleMode && this.collapsed) {
                 event.preventDefault();
                 this.toggleCollapse();
                 this.$input.trigger('focus');
             }
-        });
-        // Collapse search bar when clicking outside of search bar
+        }
+        const expandSelectors = ['.search-component', 'a[href="/search"]'];
+
+        // When clicking on the search bar or a link to /search, expand search if it isn't already.
+        // If clicking elsewhere, collapse search.
+        $(document).on('submit', '.in-collapsible-mode', event => expandAndFocusSearch(event));
         $(document).on('click', event => {
-            if ($(event.target).closest('.search-component').length === 0) {
-                if (!this.collapsed) {
-                    this.toggleCollapse();
-                }
+            const shouldExpand = (item) => $(event.target).closest(item).length === 1;
+            if (expandSelectors.some(shouldExpand)) {
+                expandAndFocusSearch(event);
+            } else {
+                if (!this.collapsed) this.toggleCollapse();
             }
         });
     }
