@@ -8,14 +8,26 @@ class YearlyReadingGoals:
 
     # Create methods:
     @classmethod
-    def create(cls, username: str, year: int, target: int):
+    def create(cls, username: str, year: int, target: int, current: int = 0):
         oldb = db.get_db()
 
         # TODO: Fetch number of books already read this year
 
-        return oldb.insert(cls.TABLENAME, username=username, year=year, target=target)
+        return oldb.insert(cls.TABLENAME, username=username, year=year, target=target, current=current)
 
     # Read methods:
+    @classmethod
+    def select_by_username(cls, username: str):
+        oldb = db.get_db()
+
+        where = 'username=$username'
+        order = 'year ASC'
+        data = {
+            'username': username,
+        }
+
+        return list(oldb.select(cls.TABLENAME, where=where, order=order, vars=data))
+
     @classmethod
     def select_by_username_and_year(cls, username: str, year: int):
         oldb = db.get_db()

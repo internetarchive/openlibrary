@@ -3,12 +3,14 @@
 import json
 import web
 
+from datetime import datetime
 from typing import Optional
 
 from infogami.utils import delegate
 from infogami.utils.view import public
 
 from openlibrary.accounts import get_current_user
+from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.utils.decorators import authorized_for
@@ -142,6 +144,50 @@ class patron_check_in(delegate.page):
             raise web.notfound('Event does not exist')
         BookshelvesEvents.delete_by_id(check_in_id)
         return web.ok()
+
+
+class yearly_reading_goal_json(delegate.page):
+    path = '/reading-goal'
+    encoding = 'json'
+
+    EARLIEST_YEAR = 2023
+
+    @authorized_for('/usergroup/beta-testers')
+    def GET(self):
+        i = web.input(year=None)
+
+        user = get_current_user()
+        username = user['key'].split('/')[-1]
+
+        if i.year:
+            results = [{'year': i.year, 'goal': record.target, 'progress': record.current} for record in YearlyReadingGoals.select_by_username_and_year(username, i.year)]
+        else:
+            results = [{'year': record.year, 'goal': record.target, 'progress': record.current} for record in YearlyReadingGoals.select_by_username(username)]
+
+        return delegate.RawText(json.dumps({'status': 'ok', 'goal': results}))
+
+    @authorized_for('/usergroup/beta-testers')
+    def POST(self):
+        i = web.input(goal=0)
+
+        goal = int(i.goal)
+
+        if not goal or goal < 0:
+            raise web.badrequest('Reading goal must be a positive integer')
+
+        user = get_current_user()
+        username = user['key'].split('/')[-1]
+
+        if (current_year := datetime.now().year) < self.EARLIEST_YEAR:
+            current_year = self.EARLIEST_YEAR
+
+        finished = BookshelvesEvents.select_by_user_type_and_year(username, BookshelfEvent.FINISH, current_year)
+        # TODO: Prevent the same edition from being counted multiple times for a single year
+        current_count = len(finished)
+
+        YearlyReadingGoals.create(username, current_year, goal, current_count)
+
+        return delegate.RawText(json.dumps({'status': 'ok'}))
 
 
 def setup():

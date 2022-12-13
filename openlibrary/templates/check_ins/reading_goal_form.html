@@ -1,0 +1,7 @@
+$def with ()
+
+<form class="goal-form" action="/reading-goal.json" method="POST">
+  <span>$_("How many books would you like to read this year?")</span>
+  <input type="number" name="goal" min="1" step="1" required>
+  <button class="cta-btn cta-btn--shell" type="submit">$_("Submit")</button>
+</form>
