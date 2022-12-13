@@ -248,7 +248,7 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
                 </div>
 
               $ edition_identifiers = edition.get_identifiers()
-              $ isbns = []
+              $ isbns = ['g']
               $for name, values in edition_identifiers.multi_items():
                 $if name in ["isbn_10", "isbn_13"]:
                   $for value in values:

@@ -318,24 +318,28 @@ div.editionTools {
     justify-content: center;
     align-items: center;
     flex: 1;
-    padding: 2% 0;
+    padding: 1% 1%;
     margin: 0 0.5%;
     border: 1px solid @lighter-grey;
     border-radius: 5px;
-    font-size: .8em;
-    min-width: 150px;
+    font-size: .7em;
+    word-break: break-word;
+    text-align:center;
+    min-width: 70px;
+    overflow-x: auto;
 
     div {
       //font-weight: bold;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       font-weight: lighter;
       color: @grey;
+      word-wrap: break-word;
     }
     span {
       a {
         text-decoration: none;
+        
       }
-      
     }
 
   }
@@ -353,12 +357,13 @@ div.editionTools {
   .edition-omniline {
     flex-direction: row;
     justify-content: space-between;
-    overflow-x: auto;
+    //overflow-x: auto;
 
     &-item {
       flex-direction: column;
       justify-content: flex-start;
       align-items: center;
+
     }
   }
 }
