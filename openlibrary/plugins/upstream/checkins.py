@@ -10,6 +10,7 @@ from infogami.utils import delegate
 from infogami.utils.view import public
 
 from openlibrary.accounts import get_current_user
+from openlibrary.app import render_template
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
@@ -198,6 +199,14 @@ class yearly_reading_goal_json(delegate.page):
         YearlyReadingGoals.create(username, current_year, goal, current_count)
 
         return delegate.RawText(json.dumps({'status': 'ok'}))
+
+
+class yearly_goal_test_harness(delegate.page):
+    path = "/_test/yearly-goals"
+
+    @authorized_for('/usergroup/beta-testers')
+    def GET(self):
+        return render_template('check_ins/reading_goal_form')
 
 
 def setup():
