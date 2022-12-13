@@ -13,7 +13,9 @@ class YearlyReadingGoals:
 
         # TODO: Fetch number of books already read this year
 
-        return oldb.insert(cls.TABLENAME, username=username, year=year, target=target, current=current)
+        return oldb.insert(
+            cls.TABLENAME, username=username, year=year, target=target, current=current
+        )
 
     # Read methods:
     @classmethod

@@ -93,7 +93,7 @@ class BookshelvesEvents(db.CommonExtras):
         data = {
             'username': username,
             'event_type': event_type,
-            'event_date': f'{year}%'
+            'event_date': f'{year}%',
         }
 
         where = """

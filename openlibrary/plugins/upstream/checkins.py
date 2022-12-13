@@ -160,9 +160,17 @@ class yearly_reading_goal_json(delegate.page):
         username = user['key'].split('/')[-1]
 
         if i.year:
-            results = [{'year': i.year, 'goal': record.target, 'progress': record.current} for record in YearlyReadingGoals.select_by_username_and_year(username, i.year)]
+            results = [
+                {'year': i.year, 'goal': record.target, 'progress': record.current}
+                for record in YearlyReadingGoals.select_by_username_and_year(
+                    username, i.year
+                )
+            ]
         else:
-            results = [{'year': record.year, 'goal': record.target, 'progress': record.current} for record in YearlyReadingGoals.select_by_username(username)]
+            results = [
+                {'year': record.year, 'goal': record.target, 'progress': record.current}
+                for record in YearlyReadingGoals.select_by_username(username)
+            ]
 
         return delegate.RawText(json.dumps({'status': 'ok', 'goal': results}))
 
@@ -181,7 +189,9 @@ class yearly_reading_goal_json(delegate.page):
         if (current_year := datetime.now().year) < self.EARLIEST_YEAR:
             current_year = self.EARLIEST_YEAR
 
-        finished = BookshelvesEvents.select_by_user_type_and_year(username, BookshelfEvent.FINISH, current_year)
+        finished = BookshelvesEvents.select_by_user_type_and_year(
+            username, BookshelfEvent.FINISH, current_year
+        )
         # TODO: Prevent the same edition from being counted multiple times for a single year
         current_count = len(finished)
 
