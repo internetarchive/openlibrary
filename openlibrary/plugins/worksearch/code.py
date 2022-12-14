@@ -190,7 +190,7 @@ def run_solr_query(
         if param.get(field) == value:
             if field in facet_params:
                 facet_params.remove(field)
-            params.append(('fq', rewrite))
+            params.append(('fq', rewrite() if callable(rewrite) else rewrite))
 
     for field in facet_params:
         if field == 'author_facet':
