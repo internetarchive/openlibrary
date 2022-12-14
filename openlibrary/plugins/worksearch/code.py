@@ -483,13 +483,17 @@ def works_by_author(
                 "time_facet",
             ]
         ),
+        fields=WorkSearchScheme.default_fetched_fields | {'editions'},
         extra_params=[
             ('fq', f'author_key:{akey}'),
             ('facet.limit', 25),
         ],
     )
 
-    result.docs = add_availability([get_doc(doc) for doc in result.docs])
+    result.docs = [get_doc(doc) for doc in result.docs]
+    add_availability(
+        [(work.get('editions') or [None])[0] or work for work in result.docs]
+    )
     return result
 
 
