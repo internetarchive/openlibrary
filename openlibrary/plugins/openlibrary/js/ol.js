@@ -4,18 +4,6 @@ import { SearchBar } from './SearchBar';
 import { SearchPage } from './SearchPage';
 import { SearchModeSelector, mode as searchMode } from './SearchUtils';
 
-function isScrolledIntoView(elem) {
-    var docViewTop = $(window).scrollTop();
-    var docViewBottom = docViewTop + $(window).height();
-    var elemTop, elemBottom;
-    if ($(elem).offset()) {
-        elemTop = $(elem).offset().top;
-        elemBottom = elemTop + $(elem).height();
-        return ((docViewTop < elemTop) && (docViewBottom > elemBottom));
-    }
-    return false;
-}
-
 /*
 Sets the key in the website cookie to the specified value
 */
@@ -34,15 +22,6 @@ export default function init() {
         // Only applies to search results page (as of writing)
         new SearchPage($('.siteSearch.olform'), new SearchModeSelector($('.search-mode')));
     }
-
-    $(window).on('scroll', function(){
-        var scroller = $('#formScroll');
-        if (isScrolledIntoView(scroller)) {
-            $('#scrollBtm').show();
-        } else {
-            $('#scrollBtm').hide();
-        }
-    });
 
     initReadingListFeature();
     initBorrowAndReadLinks();
