@@ -278,7 +278,10 @@ class AmazonAPI:
 
 @public
 def get_amazon_metadata(
-    id_: str, id_type: Literal['asin', 'isbn'] = 'isbn', resources: Any = None
+    id_: str,
+    id_type: Literal['asin', 'isbn'] = 'isbn',
+    resources: Any = None,
+    retries: int = 0,
 ) -> dict | None:
     """Main interface to Amazon LookupItem API. Will cache results.
 
@@ -286,7 +289,9 @@ def get_amazon_metadata(
     :param str id_type: 'isbn' or 'asin'.
     :return: A single book item's metadata, or None.
     """
-    return cached_get_amazon_metadata(id_, id_type=id_type, resources=resources)
+    return cached_get_amazon_metadata(
+        id_, id_type=id_type, resources=resources, retries=retries
+    )
 
 
 def search_amazon(title: str = '', author: str = '') -> dict:  # type: ignore[empty-body]
@@ -303,8 +308,8 @@ def _get_amazon_metadata(
     id_: str,
     id_type: Literal['asin', 'isbn'] = 'isbn',
     resources: Any = None,
-    retries: int = 3,
-    sleep_sec: float = 0.1,
+    retries: int = 0,
+    sleep_sec: float = 1,
 ) -> dict | None:
     """Uses the Amazon Product Advertising API ItemLookup operation to locate a
     specific book by identifier; either 'isbn' or 'asin'.
@@ -409,7 +414,7 @@ def clean_amazon_metadata_for_load(metadata: dict) -> dict:
 
 
 def create_edition_from_amazon_metadata(
-    id_: str, id_type: Literal['asin', 'isbn'] = 'isbn'
+    id_: str, id_type: Literal['asin', 'isbn'] = 'isbn', retries: int = 0
 ) -> str | None:
     """Fetches Amazon metadata by id from Amazon Product Advertising API, attempts to
     create OL edition from metadata, and returns the resulting edition key `/key/OL..M`
@@ -420,7 +425,7 @@ def create_edition_from_amazon_metadata(
     :return: Edition key '/key/OL..M' or None
     """
 
-    md = get_amazon_metadata(id_, id_type=id_type)
+    md = get_amazon_metadata(id_, id_type=id_type, retries=retries)
 
     if md and md.get('product_group') == 'Book':
         with accounts.RunAs('ImportBot'):
