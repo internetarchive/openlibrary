@@ -1,0 +1,21 @@
+$def with (goals)
+
+$# Renders a collection of reading goals progress components.
+$#
+$# goals : list[YearlyGoal] : Chronological list of yearly goal dictionaries
+$# YearlyGoal.year : int : The year this goal was set
+$# YearlyGoal.goal : int : The amount of books desired to be read
+$# YearlyGoal.books_read : int : The amount of books finished this year
+$# YearlyGoal.progress : int : Percent of goal achieved
+
+<div class="reading-goal-progress-container">
+  $for goal in goals:
+    <div class="reading-goal-progress">
+      <div class="reading-goal-progress__heading">$_("%(year)d Reading Goal:", year=goal.year)</div>
+      <div class="reading-goal-progress__details">$_("%(books_read)d/%(goal)d books", books_read=goal.books_read, goal=goal.goal) ($goal.progress%)</div>
+      <div class="reading-goal-progress__progress-bar">
+        $ completed = 100 if goal.progress > 100 else goal.progress
+        <span class="reading-goal-progress__completed" style="width: $(completed)%;"></span>
+      </div>
+    </div>
+</div>

@@ -4,6 +4,7 @@ import json
 import web
 
 from datetime import datetime
+from math import floor
 from typing import Optional
 
 from infogami.utils import delegate
@@ -201,12 +202,34 @@ class yearly_reading_goal_json(delegate.page):
         return delegate.RawText(json.dumps({'status': 'ok'}))
 
 
-class yearly_goal_test_harness(delegate.page):
+class YearlyGoal:
+
+    def __init__(self, year, goal, books_read):
+        self.year = year
+        self.goal = goal
+        self.books_read = books_read
+        self.progress = floor((books_read / goal) * 100) 
+
+
+class yearly_goal_test_page(delegate.page):
     path = "/_test/yearly-goals"
 
     @authorized_for('/usergroup/beta-testers')
     def GET(self):
         return render_template('check_ins/reading_goal_form')
+
+
+class yearly_goal_progress_test_page(delegate.page):
+    path = "/_test/yearly-goals-progress"
+
+    @authorized_for('/usergroup/beta-testers')
+    def GET(self):
+        user = get_current_user()
+        username = user['key'].split('/')[-1]
+
+        goals = [YearlyGoal(record.year, record.target, record.current) for record in YearlyReadingGoals.select_by_username(username)]
+
+        return render_template('check_ins/reading_goal_progress', goals)
 
 
 def setup():
