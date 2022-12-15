@@ -203,12 +203,11 @@ class yearly_reading_goal_json(delegate.page):
 
 
 class YearlyGoal:
-
     def __init__(self, year, goal, books_read):
         self.year = year
         self.goal = goal
         self.books_read = books_read
-        self.progress = floor((books_read / goal) * 100) 
+        self.progress = floor((books_read / goal) * 100)
 
 
 class yearly_goal_test_page(delegate.page):
@@ -227,7 +226,10 @@ class yearly_goal_progress_test_page(delegate.page):
         user = get_current_user()
         username = user['key'].split('/')[-1]
 
-        goals = [YearlyGoal(record.year, record.target, record.current) for record in YearlyReadingGoals.select_by_username(username)]
+        goals = [
+            YearlyGoal(record.year, record.target, record.current)
+            for record in YearlyReadingGoals.select_by_username(username)
+        ]
 
         return render_template('check_ins/reading_goal_progress', goals)
 
