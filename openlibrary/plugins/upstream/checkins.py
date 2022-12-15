@@ -152,8 +152,6 @@ class yearly_reading_goal_json(delegate.page):
     path = '/reading-goal'
     encoding = 'json'
 
-    EARLIEST_YEAR = 2023
-
     @authorized_for('/usergroup/beta-testers')
     def GET(self):
         i = web.input(year=None)
@@ -188,8 +186,7 @@ class yearly_reading_goal_json(delegate.page):
         user = get_current_user()
         username = user['key'].split('/')[-1]
 
-        if (current_year := datetime.now().year) < self.EARLIEST_YEAR:
-            current_year = self.EARLIEST_YEAR
+        current_year = datetime.now().year
 
         finished = BookshelvesEvents.select_by_user_type_and_year(
             username, BookshelfEvent.FINISH, current_year
