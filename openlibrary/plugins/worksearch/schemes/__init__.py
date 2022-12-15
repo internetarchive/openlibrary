@@ -26,7 +26,7 @@ class SearchScheme:
     # Default
     default_fetched_fields: set[str]
     # Fields that should be rewritten
-    facet_rewrites: dict[tuple[str, str], str]
+    facet_rewrites: dict[tuple[str, str], Union[str, Callable[[], str]]]
 
     def is_search_field(self, field: str):
         return field in self.all_fields or field in self.field_name_map

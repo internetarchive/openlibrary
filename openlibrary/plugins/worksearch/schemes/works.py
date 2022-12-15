@@ -159,8 +159,14 @@ class WorkSearchScheme(SearchScheme):
         ('public_scan', 'false'): '-ebook_access:public',
         ('print_disabled', 'true'): 'ebook_access:printdisabled',
         ('print_disabled', 'false'): '-ebook_access:printdisabled',
-        ('has_fulltext', 'true'): 'ebook_access:[printdisabled TO *]',
-        ('has_fulltext', 'false'): 'ebook_access:[* TO printdisabled}',
+        (
+            'has_fulltext',
+            'true',
+        ): lambda: f'ebook_access:[{get_fulltext_min()} TO *]',
+        (
+            'has_fulltext',
+            'false',
+        ): lambda: f'ebook_access:[* TO {get_fulltext_min()}}}',
     }
 
     def is_search_field(self, field: str):
@@ -552,3 +558,8 @@ def has_solr_editions_enabled():
         return cookie_value == 'true'
 
     return True
+
+
+def get_fulltext_min():
+    is_printdisabled = web.cookies().get('pd', False)
+    return 'printdisabled' if is_printdisabled else 'borrowable'
