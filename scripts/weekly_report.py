@@ -15,7 +15,7 @@ if exceptions are raised.
 import os
 import pickle
 from collections.abc import Iterator
-from datetime import date
+from datetime import datetime as dt
 from logging import getLogger
 
 import github  # pip install PyGithub
@@ -31,10 +31,13 @@ team: dict[str, str] = {
 
 
 def get_open_issues(
-    filename: str = f"open_issues_{date.today().isoformat()}.pickle",
+    filename: str = f"open_issues_{dt.now():%Y_%m_%d_%H}.pickle",
 ) -> list[github.Issue]:
     """
     Get open issues from GitHub repository internetarchive/openlibrary.
+
+    `filename` is set to today's date plus hour to reduce the chances of rate limiting
+    when running the script multiple times in one hour.
 
     Gathering data from GitHub requires a GitHub token which should be passed in via
     the GITHUB_TOKEN environment variable.  The data is rate limited so please see
