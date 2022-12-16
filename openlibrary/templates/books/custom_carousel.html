@@ -10,7 +10,7 @@ $def render_carousel_cover(book, lazy):
   $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
   $ cover_host = '//covers.openlibrary.org'
   $ url = book.get('key') or book.url
-  $ title = book.title
+  $ title = book['title']
 
   $if book.get('cover_url'):
     $ cover_url = book.get('cover_url')
@@ -35,8 +35,7 @@ $def render_carousel_cover(book, lazy):
   $else:
     $ byline = ''
 
-  $ modifier = ''
-  $ work_key = book.key if book.key.startswith('/work') else book.get('work_key')
+  $ work_key = book['key'] if book['key'].startswith('/work') else book.get('work_key')
 
   <div class="book carousel__item">
     <div class="book-cover">
@@ -86,7 +85,9 @@ $if test or (books and len(books) >= min_books):
         <div class="carousel carousel-$key carousel--progressively-enhanced"
           data-config="$json_encode(config)">
           $for index, book in enumerate(books or []):
-              $:render_carousel_cover(book, index > 5)
+              $ book2 = book.get('editions', {}).get('docs', [None])[0] or book
+              $ book2['authors'] = book['authors'] if 'authors' in book else []
+              $:render_carousel_cover(book2, index > 5)
         </div>
       </div>
     </div>

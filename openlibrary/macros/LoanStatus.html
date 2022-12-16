@@ -12,9 +12,9 @@ $# * check_loan_status - whether to check the user's loan status to determine re
 
 $ loanstatus_start_time = time()
 
-$ availability = (doc.availability or {}) if hasattr(doc, 'availability') else {}
+$ availability = (doc.availability or {}) if hasattr(doc, 'availability') else doc.get('availability', {})
 $ ocaid = doc.get('ocaid') or availability.get('identifier')
-$ work_key = work_key or (doc.get('works') and doc.works[0].key)
+$ work_key = work_key or (doc.get('works') and doc.works[0]['key'])
 $ no_index = hasattr(doc, 'get_ia_meta_fields') and doc.get_ia_meta_fields().get('noindex', False)
 
 $ waiting_loan_start_time = time()
@@ -39,7 +39,7 @@ $ get_loan_for_start_time = time()
 $ user_loan = check_loan_status and ocaid and ctx.user and ctx.user.get_loan_for(ocaid)
 $ get_loan_for_total_time = time() - get_loan_for_start_time
 
-$ is_edition = doc.key.split('/')[1] == 'books'
+$ is_edition = doc['key'].split('/')[1] == 'books'
 
 $if user_loan:
   $:macros.ReadButton(ocaid, loan=user_loan, listen=listen)

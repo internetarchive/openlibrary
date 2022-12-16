@@ -713,7 +713,12 @@ def work_search(
     # backward compatibility
     response['num_found'] = response['numFound']
     if fields == '*' or 'availability' in fields:
-        response['docs'] = add_availability(response['docs'])
+        add_availability(
+            [
+                work.get('editions', {}).get('docs', [None])[0] or work
+                for work in response['docs']
+            ]
+        )
     return response
 
 
