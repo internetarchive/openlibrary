@@ -51,7 +51,9 @@ $if test or (books and len(books) >= min_books):
           data-config="$json_encode(config)">
           $for index, book in enumerate(books or []):
               $ lazy_load = index > 5
-              $:render_template("books/custom_carousel_card", book, lazy_load, layout, key=key, secondary_action=secondary_action)
+              $ book2 = book.get('editions', {}).get('docs', [None])[0] or book
+              $ book2['authors'] = book['authors'] if 'authors' in book else []
+              $:render_template("books/custom_carousel_card", book2, lazy_load, layout, key=key, secondary_action=secondary_action)
         </div>
       </div>
     </div>
