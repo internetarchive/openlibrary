@@ -282,15 +282,22 @@ class MyBooksTemplate:
             return self.readlog.get_works(
                 key=name, page=page, limit=6, sort='created', sort_order='asc'
             )
+
         if self.key == 'mybooks':
             want_to_read = get_shelf('want-to-read', page=page)
             currently_reading = get_shelf('currently-reading', page=page)
             already_read = get_shelf('already-read', page=page)
 
             # Ideally, do all 3 lookups in one add_availability call
-            want_to_read.docs = add_availability([d for d in want_to_read.docs if d.get('title')])[:4]
-            currently_reading.docs = add_availability([d for d in currently_reading.docs if d.get('title')])[:4]
-            already_read.docs = add_availability([d for d in already_read.docs if d.get('title')])[:4]
+            want_to_read.docs = add_availability(
+                [d for d in want_to_read.docs if d.get('title')]
+            )[:4]
+            currently_reading.docs = add_availability(
+                [d for d in currently_reading.docs if d.get('title')]
+            )[:4]
+            already_read.docs = add_availability(
+                [d for d in already_read.docs if d.get('title')]
+            )[:4]
 
             return {
                 'loans': borrow.get_loans(logged_in_user),
