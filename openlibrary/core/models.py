@@ -967,8 +967,7 @@ class List(Thing, ListMixin):
         return self.name or "unnamed"
 
     def get_owner(self):
-        match = web.re_compile(r"(/people/[^/]+)/lists/OL\d+L").match(self.key)
-        if match:
+        if match := web.re_compile(r"(/people/[^/]+)/lists/OL\d+L").match(self.key):
             key = match.group(1)
             return self._site.get(key)
 
@@ -1017,8 +1016,7 @@ class List(Thing, ListMixin):
         if isinstance(seed, Thing):
             seed = {"key": seed.key}
 
-        index = self._index_of_seed(seed)
-        if index >= 0:
+        if (index := self._index_of_seed(seed)) >= 0:
             self.seeds.pop(index)
             return True
         else:

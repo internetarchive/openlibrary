@@ -74,8 +74,7 @@ class Edition(models.Edition):
         return covers and covers[0] or None
 
     def get_cover_url(self, size):
-        cover = self.get_cover()
-        if cover:
+        if cover := self.get_cover():
             return cover.url(size)
         elif self.ocaid:
             return self.get_ia_cover(self.ocaid, size)

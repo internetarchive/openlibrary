@@ -55,8 +55,7 @@ class subjects(delegate.page):
     path = '(/subjects/[^/]+)'
 
     def GET(self, key):
-        nkey = self.normalize_key(key)
-        if nkey != key:
+        if (nkey := self.normalize_key(key)) != key:
             raise web.redirect(nkey)
 
         # this needs to be updated to include:
@@ -95,8 +94,7 @@ class subjects_json(delegate.page):
     def GET(self, key):
         web.header('Content-Type', 'application/json')
         # If the key is not in the normalized form, redirect to the normalized form.
-        nkey = self.normalize_key(key)
-        if nkey != key:
+        if (nkey := self.normalize_key(key)) != key:
             raise web.redirect(nkey)
 
         # Does the key requires any processing before passing using it to query solr?

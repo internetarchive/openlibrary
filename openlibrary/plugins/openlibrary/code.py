@@ -339,7 +339,6 @@ class blurb(delegate.page):
 
     def GET(self, path):
         i = web.input()
-        callback = i.pop('callback', None)
         author = web.ctx.site.get('/' + path)
         body = ''
         if author.birth_date or author.death_date:
@@ -353,7 +352,7 @@ class blurb(delegate.page):
 
         result = dict(body=body, media_type='text/html', text_encoding='utf-8')
         d = dict(status='200 OK', code='/api/status/ok', result=result)
-        if callback:
+        if callback := i.pop('callback', None):
             data = f'{callback}({json.dumps(d)})'
         else:
             data = json.dumps(d)

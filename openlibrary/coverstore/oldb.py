@@ -65,8 +65,7 @@ def query(key, value):
 
 def get(key):
     # try memcache
-    memcache = get_memcache()
-    if memcache:
+    if memcache := get_memcache():
         json_data = memcache.get(key)
         if json_data:
             return json.loads(json_data)

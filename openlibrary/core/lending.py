@@ -868,8 +868,7 @@ class IA_Lending_API:
         params = dict(method="loan.query", identifier=identifier)
         if userid:
             params['userid'] = userid
-        loans = self._post(**params).get('result', [])
-        if loans:
+        if loans := self._post(**params).get('result', []):
             return loans[0]
 
     def find_loans(self, **kw):

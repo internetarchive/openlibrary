@@ -203,13 +203,11 @@ def read_dewey(rec):
 
 def read_work_titles(rec):
     found = []
-    tag_240 = rec.get_fields('240')
-    if tag_240:
+    if tag_240 := rec.get_fields('240'):
         for f in tag_240:
             title = f.get_subfield_values(['a', 'm', 'n', 'p', 'r'])
             found.append(remove_trailing_dot(' '.join(title).strip(',')))
-    tag_130 = rec.get_fields('130')
-    if tag_130:
+    if tag_130 := rec.get_fields('130'):
         for f in tag_130:
             title = ' '.join(
                 v for k, v in f.get_all_subfields() if k.islower() and k != 'n'
@@ -623,8 +621,7 @@ def read_toc(rec):
 
 
 def update_edition(rec, edition, func, field):
-    v = func(rec)
-    if v:
+    if v := func(rec):
         edition[field] = v
 
 

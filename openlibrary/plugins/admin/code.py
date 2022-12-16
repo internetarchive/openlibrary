@@ -129,8 +129,7 @@ class gitpull:
 
 class reload:
     def GET(self):
-        servers = config.get("plugin_admin", {}).get("webservers", [])
-        if servers:
+        if servers := config.get("plugin_admin", {}).get("webservers", []):
             body = "".join(self.reload(servers))
         else:
             body = "No webservers specified in the configuration file."
@@ -522,8 +521,7 @@ class block:
 
 
 def get_blocked_ips():
-    doc = web.ctx.site.get("/admin/block")
-    if doc:
+    if doc := web.ctx.site.get("/admin/block"):
         return [d.ip for d in doc.ips]
     else:
         return []

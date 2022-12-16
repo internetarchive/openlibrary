@@ -280,8 +280,7 @@ class borrow_admin(delegate.page):
         edition_loans = get_edition_loans(edition)
 
         user_loans = []
-        user = accounts.get_current_user()
-        if user:
+        if user := accounts.get_current_user():
             user_loans = get_loans(user)
 
         return render_template(
@@ -327,8 +326,7 @@ class borrow_admin_no_update(delegate.page):
         edition_loans = get_edition_loans(edition)
 
         user_loans = []
-        user = accounts.get_current_user()
-        if user:
+        if user := accounts.get_current_user():
             user_loans = get_loans(user)
 
         return render_template(
@@ -669,8 +667,7 @@ def is_loaned_out(resource_id):
         return lending.is_loaned_out_on_ia(identifier)
 
     # Find the loan and check if it has expired
-    loan = web.ctx.site.store.get(loan_key)
-    if loan:
+    if loan := web.ctx.site.store.get(loan_key):
         if datetime_from_isoformat(loan['expiry']) < datetime.datetime.utcnow():
             return True
 

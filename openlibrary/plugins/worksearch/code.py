@@ -393,8 +393,7 @@ class search(delegate.page):
         if not isbn:
             return
 
-        ed = Edition.from_isbn(isbn)
-        if ed:
+        if ed := Edition.from_isbn(isbn):
             web.seeother(ed.key)
 
     def GET(self):
@@ -433,8 +432,7 @@ class search(delegate.page):
             self.isbn_redirect(i.isbn)
 
         q_list = []
-        q = i.get('q', '').strip()
-        if q:
+        if q := i.get('q', '').strip():
             m = re_olid.match(q)
             if m:
                 raise web.seeother(f'/{OLID_URLS[m.group(1)]}/{q}')

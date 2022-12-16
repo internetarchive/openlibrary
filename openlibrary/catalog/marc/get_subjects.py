@@ -25,8 +25,7 @@ def flip_place(s):
 
 
 def flip_subject(s):
-    m = re_comma.match(s)
-    if m:
+    if m := re_comma.match(s):
         return m.group(3) + ' ' + m.group(1).lower() + m.group(2)
     else:
         return s

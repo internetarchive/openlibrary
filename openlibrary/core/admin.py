@@ -94,8 +94,7 @@ class LoanStats(Stats):
         if 'dev' in config.features:
             return Stats.get_counts(self, ndays, times)
 
-        graphite_data = self._get_graphite_data(ndays)
-        if graphite_data:
+        if graphite_data := self._get_graphite_data(ndays):
             # convert timestamp seconds to ms (as required by API)
             return [[timestamp * 1000, count] for [count, timestamp] in graphite_data]
         else:

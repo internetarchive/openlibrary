@@ -172,8 +172,7 @@ def unconvert_dict(d):
 
 class get(proxy):
     def before_request(self):
-        i = self.input
-        if 'key' in i:
+        if 'key' in (i := self.input):
             i.key = convert_key(i.key)
 
 

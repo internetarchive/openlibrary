@@ -163,8 +163,7 @@ def admin_range__visitors(**kargs):
     d = date.replace(hour=0, minute=0, second=0, microsecond=0)
     key = calendar.timegm(d.timetuple())
     q = "SELECT value AS count FROM data WHERE timestamp = %d" % key
-    result = list(db.query(q))
-    if result:
+    if result := list(db.query(q)):
         return result[0].count
     else:
         logging.debug("  No statistics obtained for %s (%d)", date, key)

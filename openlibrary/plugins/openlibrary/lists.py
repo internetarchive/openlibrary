@@ -296,8 +296,7 @@ class lists_yaml(lists_json):
 
 
 def get_list(key, raw=False):
-    lst = web.ctx.site.get(key)
-    if lst:
+    if lst := web.ctx.site.get(key):
         if raw:
             return lst.dict()
         return {
@@ -341,8 +340,7 @@ class list_view_yaml(list_view_json):
 
 @public
 def get_list_seeds(key):
-    lst = web.ctx.site.get(key)
-    if lst:
+    if lst := web.ctx.site.get(key):
         seeds = [seed.dict() for seed in lst.get_seeds()]
         return {
             "links": {"self": key + "/seeds", "list": key},
@@ -413,8 +411,7 @@ class list_seed_yaml(list_seeds):
 
 @public
 def get_list_editions(key, offset=0, limit=50, api=False):
-    lst = web.ctx.site.get(key)
-    if lst:
+    if lst := web.ctx.site.get(key):
         offset = offset or 0  # enforce sane int defaults
         all_editions = lst.get_editions(limit=limit, offset=offset, _raw=True)
         editions = all_editions['editions'][offset : offset + limit]
