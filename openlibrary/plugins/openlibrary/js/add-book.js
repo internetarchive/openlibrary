@@ -28,7 +28,7 @@ export function initAddBookImport () {
 // a flag to make raiseIsbnError perform differently upon subsequent calls
 let addBookWithIsbnErrors = false;
 
-function raiseIsbnError(event, errorMessage) {
+function displayIsbnError(event, errorMessage) {
     if (!addBookWithIsbnErrors) {
         addBookWithIsbnErrors = true;
         const errorDiv = document.getElementById('id-errors');
@@ -58,18 +58,18 @@ function parseAndValidateIsbn(event) {
     const isbn = parseIsbn(document.getElementById('id_value').value);
     if (fieldName === 'isbn_10') {
         if (!isFormatValidIsbn10(isbn)) {
-            return raiseIsbnError(event, invalidIsbn10);
+            return displayIsbnError(event, invalidIsbn10);
         }
         if (!isChecksumValidIsbn10(isbn)) {
-            return raiseIsbnError(event, invalidChecksum);
+            return displayIsbnError(event, invalidChecksum);
         }
     }
     else if (fieldName === 'isbn_13') {
         if (!isFormatValidIsbn13(isbn)) {
-            return raiseIsbnError(event, invalidIsbn13);
+            return displayIsbnError(event, invalidIsbn13);
         }
         if (!isChecksumValidIsbn13(isbn)) {
-            return raiseIsbnError(event, invalidChecksum);
+            return displayIsbnError(event, invalidChecksum);
         }
     }
     // parsing valid ISBN that passes checks
