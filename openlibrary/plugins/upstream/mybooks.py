@@ -278,30 +278,25 @@ class MyBooksTemplate:
         page=1,
         username=None,
     ):
+        def get_shelf(name, page=1):
+            return self.readlog.get_works(
+                key=name, page=page, limit=6, sort='created', sort_order='asc'
+            )
         if self.key == 'mybooks':
+            want_to_read = get_shelf('want-to-read', page=page)
+            currently_reading = get_shelf('currently-reading', page=page)
+            already_read = get_shelf('already-read', page=page)
+
+            # Ideally, do all 3 lookups in one add_availability call
+            want_to_read.docs = add_availability([d for d in want_to_read.docs if d.get('title')])[:4]
+            currently_reading.docs = add_availability([d for d in currently_reading.docs if d.get('title')])[:4]
+            already_read.docs = add_availability([d for d in already_read.docs if d.get('title')])[:4]
+
             return {
                 'loans': borrow.get_loans(logged_in_user),
-                'want-to-read': self.readlog.get_works(
-                    key='want-to-read',
-                    page=page,
-                    limit=5,
-                    sort='created',
-                    sort_order='asc',
-                ),
-                'currently-reading': self.readlog.get_works(
-                    key='currently-reading',
-                    page=page,
-                    limit=5,
-                    sort='created',
-                    sort_order='asc',
-                ),
-                'already-read': self.readlog.get_works(
-                    key='already-read',
-                    page=page,
-                    limit=5,
-                    sort='created',
-                    sort_order='asc',
-                ),
+                'want-to-read': want_to_read,
+                'currently-reading': currently_reading,
+                'already-read': already_read,
             }
         elif self.key == 'loans':
             # logged_in_user.update_loan_status()
