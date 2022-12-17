@@ -312,7 +312,6 @@ class MyBooksTemplate:
                 'already-read': already_read,
             }
         elif self.key == 'loans':
-            # logged_in_user.update_loan_status()
             return get_loans_of_user(logged_in_user.key)
         elif self.key == 'waitlist':
             return {}
