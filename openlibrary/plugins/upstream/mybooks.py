@@ -297,7 +297,7 @@ class MyBooksTemplate:
                 [d for d in already_read.docs if d.get('title')]
             )[:4]
 
-            # Marshal loans into homogenous data that carousel can render
+            # Marshal loans into homogeneous data that carousel can render
             loans = get_loans_of_user(logged_in_user.key)
             myloans = web.Storage({"docs": [], "total_results": len(loans)})
             for loan in loans:
