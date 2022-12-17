@@ -299,10 +299,7 @@ class MyBooksTemplate:
 
             # Marshal loans into homogenous data that carousel can render
             loans = get_loans_of_user(logged_in_user.key)
-            myloans = web.Storage({
-                "docs": [],
-                "total_results": len(loans)
-            })
+            myloans = web.Storage({"docs": [], "total_results": len(loans)})
             for loan in loans:
                 book = web.ctx.site.get(loan['book'])
                 book.loan = loan

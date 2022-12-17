@@ -41,7 +41,7 @@ $ get_loan_for_total_time = time() - get_loan_for_start_time
 
 $ is_edition = doc.key.split('/')[1] == 'books'
 
-$if user_loan:  
+$if user_loan:
   $:macros.ReadButton(ocaid, loan=user_loan, listen=listen)
   $:macros.FormatExpiry(user_loan['expiry'])
   $if secondary_action:

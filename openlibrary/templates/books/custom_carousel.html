@@ -84,7 +84,7 @@ $if test or (books and len(books) >= min_books):
           $ config = ['.carousel-' + key, 4, 4, 4, 3, 2, 1, load_more_config ]
         $else:
           $ config = ['.carousel-' + key, 6, 5, 4, 3, 2, 1, load_more_config ]
-        $ compact = "carousel--compact" if compact_mode else ""  
+        $ compact = "carousel--compact" if compact_mode else ""
         <div class="carousel $compact carousel-$key carousel--progressively-enhanced"
           data-config="$json_encode(config)">
           $for index, book in enumerate(books or []):
