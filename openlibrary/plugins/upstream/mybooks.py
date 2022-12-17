@@ -10,11 +10,9 @@ from openlibrary import accounts
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.core.lending import add_availability
+from openlibrary.core.lending import add_availability, get_loans_of_user
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.core.sponsorships import get_sponsored_editions
-from openlibrary.plugins.upstream import borrow
-
 from openlibrary.core.models import LoggedBooksData
 
 
@@ -299,15 +297,26 @@ class MyBooksTemplate:
                 [d for d in already_read.docs if d.get('title')]
             )[:4]
 
+            # Marshal loans into homogenous data that carousel can render
+            loans = get_loans_of_user(logged_in_user.key)
+            myloans = web.Storage({
+                "docs": [],
+                "total_results": len(loans)
+            })
+            for loan in loans:
+                book = web.ctx.site.get(loan['book'])
+                book.loan = loan
+                myloans.docs.append(book)
+
             return {
-                'loans': borrow.get_loans(logged_in_user),
+                'loans': myloans,
                 'want-to-read': want_to_read,
                 'currently-reading': currently_reading,
                 'already-read': already_read,
             }
         elif self.key == 'loans':
             # logged_in_user.update_loan_status()
-            return borrow.get_loans(logged_in_user)
+            return get_loans_of_user(logged_in_user.key)
         elif self.key == 'waitlist':
             return {}
         elif self.key == 'lists':

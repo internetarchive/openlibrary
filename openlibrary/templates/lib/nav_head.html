@@ -6,7 +6,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
 
   $if ctx.user:
     $ loginLinks = [
-    $     { "href": "/account/loans", "text": _("My Books"), "track": "MyBooks", "subheading": _("Loans, Reading Log, Lists, Stats") },
+    $     { "href": "/account/books", "text": _("My Books"), "track": "MyBooks", "subheading": _("Loans, Reading Log, Lists, Stats") },
     $     { "href": ctx.user.key, "text": _("My Profile"), "track": "MyProfile" },
     $     { "href": homepath() + "/account", "text": _("Settings"), "track": "MySettings" },
     $     { "post": "/account/logout", "text": _("Log out"), "track": "Logout" },
@@ -18,7 +18,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
     $     { "loginClass": "login-links" }
     $ ]
   $ myBooksLinks = [
-  $     { "href": homepath() + "/account/loans", "text": _("My Books"), "track": "MyBooks" },
+  $     { "href": homepath() + "/account/books", "text": _("My Books"), "track": "MyBooks" },
   $ ]
   $ browseLinks = [
   $     { "href": "/subjects", "text": _("Subjects"), "track": "Subjects" },
