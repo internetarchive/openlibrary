@@ -3,20 +3,37 @@
 ## Welcome!
 This welcome section is intended for new contributors.
 
-### Quick Tour
+1. **Quick Tour:** [Quick Public Tour of Open Library (10min)](https://archive.org/embed/openlibrary-tour-2020)
+2. **Orientation:** [Volunteer Orientation Video (1.5h)](https://archive.org/details/openlibrary-orientation-2020?start=80)
+    * [Code of conduct](https://github.com/internetarchive/openlibrary/blob/master/CODE_OF_CONDUCT.md)
+3. **Getting Started:**
+    * [Installation README](https://github.com/internetarchive/openlibrary/tree/master/docker) + [Docker Setup Walk-through (video)](https://archive.org/embed/openlibrary-developer-docs/zoom_0.mp4?autoplay=1&start=2)
+4. **Contributing:**
+    * [How we use git](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet)
+    * [Finding good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Needs%3A+Help%22+label%3A%22Good+First+Issue%22)
+5. **Learning the Code:**
+    * [Technical Tour & System Overview (1h)](https://archive.org/details/openlibrary-tour-2020/technical_overview.mp4)
+    * [Walkthrough videos](https://archive.org/details/openlibrary-tour-2020)
+    * [Code Architecture](https://github.com/internetarchive/openlibrary#architecture)
+6. **Questions?**
+    * [Wiki](https://github.com/internetarchive/openlibrary/wiki)
+    * [Request a slack invite](https://openlibrary.org/volunteer)
+    * [Weekly Community calls](https://docs.google.com/document/d/1LEbzsLZ1F9_YIQOoZzO7GoZnG1z-rudhZ9HNtsameTc/edit) 
+
+## Quick Tour
 
 A quick public tour of Open Library to get you familiar with the service and its offerings (10min)
 
 [![archive org_embed_openlibrary-tour-2020_openlibrary ogv (1)](https://user-images.githubusercontent.com/978325/91348906-55940d00-e799-11ea-83b9-17cd4d99642b.png)](https://archive.org/embed/openlibrary-tour-2020/openlibrary.ogv)
 
-### Onboarding
+## Onboarding
 
 A comprehensive volunteer orientation video to learn what it means to work on Open Library (1.5h). This video is a companion to our [Orientation Guide](https://docs.google.com/document/d/1fkTDqYFx2asuMWwSIDQRHJlnu-AGWpMrDDd9o5z8Cik/edit#).
 If you're looking for a good first issue, check out [Good First Issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Good+First+Issue%22+label%3A%22Needs%3A+Help%22+-label%3A%22Needs%3A+Triage%22+-label%3A%22Needs%3A+Lead%22).
 
 [![archive org_details_openlibrary-orientation-2020_start=80](https://user-images.githubusercontent.com/978325/91350387-78272580-e79b-11ea-9e26-85cfd1d38fe1.png)](https://archive.org/details/openlibrary-orientation-2020?start=80)
 
-### Technical Walkthrough
+## Technical Walkthrough
 
 A deep dive into the technical details, architecture, and code structure behind OpenLibrary.org
 
