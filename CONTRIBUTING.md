@@ -55,7 +55,10 @@ We are a non-profit, open-source, inclusive project, and we believe everyone des
 
 * The core Open Library team communicates over an invite-only Slack channel. You may request an invitation on our [volunteers](https://openlibrary.org/volunteer) page.
 * If you have a quick question about getting started, anyone can ask on our [gitter chat](https://gitter.im/theopenlibrary/Lobby).
-* The Open Library hosts a video Community Call every Tuesday @ 10:00am PT, [request an invite](https://openlibrary.org/volunteer) to join us!
+* The Open Library hosts two weekly video calls:
+    * The Open Library general Community Call every Tuesday @ 9:00am PT
+    * The Open Library Design call on Friday @ 9:00am PT
+    * [Request an invite](https://openlibrary.org/volunteer) to join us!
 
 ## Installing Open Library
 For instructions on setting up a local developer's instance of Open Library, please refer to the [Installation Guide](https://github.com/internetarchive/openlibrary#installation).
