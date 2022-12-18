@@ -37,7 +37,7 @@ def get_open_issues(
     Get open issues from GitHub repository internetarchive/openlibrary.
 
     `filename` is set to today's date plus hour to reduce the chances of rate limiting
-    when running the script multiple times in one hour.
+    when running this script multiple times within one hour.
 
     Gathering data from GitHub requires a GitHub token which should be passed in via
     the GITHUB_TOKEN environment variable.  The data is rate limited so please see
