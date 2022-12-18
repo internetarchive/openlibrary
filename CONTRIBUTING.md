@@ -11,15 +11,22 @@ This welcome section is intended for new contributors.
 4. **Contributing:**
     * [How we use git](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet)
     * [Finding good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Needs%3A+Help%22+label%3A%22Good+First+Issue%22)
+    * [Testing your code](https://github.com/internetarchive/openlibrary/wiki/Testing)
+    * [Enabling debugging](https://github.com/internetarchive/openlibrary/wiki/Debugging)
 5. **Learning the Code:**
     * [Technical Tour & System Overview (1h)](https://archive.org/details/openlibrary-tour-2020/technical_overview.mp4)
     * [Walkthrough videos](https://archive.org/details/openlibrary-tour-2020)
     * [Code Architecture](https://github.com/internetarchive/openlibrary#architecture)
-6. **Questions?**
+    * [Front-end Guide](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide)
+    * [Open Library Public APIs](https://openlibrary.org/developers/api)
+6. **Common Tasks**
+    * [Logging in locally](https://github.com/internetarchive/openlibrary/wiki/Getting-Started#logging-in)
+    * [Importing Production Book Data Locally](https://github.com/internetarchive/openlibrary/wiki/Loading-Production-Book-Data)    
+7. **Questions?**
     * [Wiki](https://github.com/internetarchive/openlibrary/wiki)
     * [Request a slack invite](https://openlibrary.org/volunteer)
     * [Weekly Community calls](https://docs.google.com/document/d/1LEbzsLZ1F9_YIQOoZzO7GoZnG1z-rudhZ9HNtsameTc/edit)
-
+    * [Open Library FAQs](https://openlibrary.org/help/faq)
 ## Quick Tour
 
 A quick public tour of Open Library to get you familiar with the service and its offerings (10min)
@@ -148,4 +155,4 @@ The assignee of a PR is responsible for:
 - **testing the PR** before merging. Comment about how you tested in the PR. If _any_ changes are made to the PR code, you will have to test it again before merging.
 - **merging (or closing)** the PR.
 
-We strive for every PR to have an assignee so that nothing gets stuck.
+Each Monday (as of 2022) we triage PRs (excluding drafts) and make sure they have leads assigneed so that nothing gets stuck.
