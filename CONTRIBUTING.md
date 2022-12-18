@@ -18,7 +18,7 @@ This welcome section is intended for new contributors.
 6. **Questions?**
     * [Wiki](https://github.com/internetarchive/openlibrary/wiki)
     * [Request a slack invite](https://openlibrary.org/volunteer)
-    * [Weekly Community calls](https://docs.google.com/document/d/1LEbzsLZ1F9_YIQOoZzO7GoZnG1z-rudhZ9HNtsameTc/edit) 
+    * [Weekly Community calls](https://docs.google.com/document/d/1LEbzsLZ1F9_YIQOoZzO7GoZnG1z-rudhZ9HNtsameTc/edit)
 
 ## Quick Tour
 
