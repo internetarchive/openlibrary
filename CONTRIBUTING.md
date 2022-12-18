@@ -21,7 +21,7 @@ This welcome section is intended for new contributors.
     * [Open Library Public APIs](https://openlibrary.org/developers/api)
 6. **Common Tasks**
     * [Logging in locally](https://github.com/internetarchive/openlibrary/wiki/Getting-Started#logging-in)
-    * [Importing Production Book Data Locally](https://github.com/internetarchive/openlibrary/wiki/Loading-Production-Book-Data)    
+    * [Importing Production Book Data Locally](https://github.com/internetarchive/openlibrary/wiki/Loading-Production-Book-Data)  
 7. **Questions?**
     * [Wiki](https://github.com/internetarchive/openlibrary/wiki)
     * [Request a slack invite](https://openlibrary.org/volunteer)
