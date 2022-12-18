@@ -5,7 +5,8 @@ import string
 import time
 import threading
 import functools
-from typing import Callable, Literal
+from typing import Literal
+from collections.abc import Callable
 
 import memcache
 import json

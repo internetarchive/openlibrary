@@ -52,7 +52,7 @@ re_year = re.compile(r'\b(\d{4})\b')
 data_provider = cast(DataProvider, None)
 
 solr_base_url = None
-solr_next: Optional[bool] = None
+solr_next: bool | None = None
 
 
 def get_solr_base_url():
@@ -191,7 +191,7 @@ def pick_cover_edition(editions, work_cover_id):
     )
 
 
-def pick_number_of_pages_median(editions: list[dict]) -> Optional[int]:
+def pick_number_of_pages_median(editions: list[dict]) -> int | None:
     number_of_pages = [
         cast(int, e.get('number_of_pages'))
         for e in editions
@@ -459,8 +459,7 @@ class SolrProcessor:
         :return: Year edition was published
         :rtype: str or None
         """
-        pub_date = e.get('publish_date', None)
-        if pub_date:
+        if pub_date := e.get('publish_date', None):
             m = re_year.search(pub_date)
             if m:
                 return m.group(1)
@@ -555,8 +554,7 @@ class SolrProcessor:
             add_list('publish_year', pub_years)
             add('first_publish_year', min(int(y) for y in pub_years))
 
-        number_of_pages_median = pick_number_of_pages_median(editions)
-        if number_of_pages_median:
+        if number_of_pages_median := pick_number_of_pages_median(editions):
             add('number_of_pages_median', number_of_pages_median)
 
         add_list(
@@ -1244,7 +1242,7 @@ async def update_work(work: dict) -> list[SolrUpdateRequest]:
 
 async def update_author(
     akey, a=None, handle_redirects=True
-) -> Optional[list[SolrUpdateRequest]]:
+) -> list[SolrUpdateRequest] | None:
     """
     Get the Solr requests necessary to insert/update/delete an Author in Solr.
     :param akey: The author key, e.g. /authors/OL23A
@@ -1372,8 +1370,7 @@ def solr_select_work(edition_key):
             'fl': 'key',
         },
     ).json()
-    docs = reply['response'].get('docs', [])
-    if docs:
+    if docs := reply['response'].get('docs', []):
         return docs[0]['key']  # /works/ prefix is in solr
 
 
@@ -1553,7 +1550,7 @@ def load_configs(
     c_host: str,
     c_config: str,
     c_data_provider: (
-        Union[DataProvider, Literal['default', 'legacy', 'external']]
+        DataProvider | Literal['default', 'legacy', 'external']
     ) = 'default',
 ) -> DataProvider:
     host = web.lstrips(c_host, "http://").strip("/")

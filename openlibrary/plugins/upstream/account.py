@@ -2,7 +2,8 @@ from datetime import datetime
 import json
 import logging
 import re
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 from collections.abc import Iterable, Mapping
 
 import web

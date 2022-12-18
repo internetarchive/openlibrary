@@ -38,7 +38,7 @@ class Ratings(db.CommonExtras):
         }
 
     @classmethod
-    def total_num_books_rated(cls, since=None, distinct=False) -> Optional[int]:
+    def total_num_books_rated(cls, since=None, distinct=False) -> int | None:
         oldb = db.get_db()
         query = "SELECT count(%s work_id) from ratings" % (
             'DISTINCT' if distinct else ''
@@ -84,7 +84,7 @@ class Ratings(db.CommonExtras):
         return result[0] if result else {}
 
     @classmethod
-    def get_work_ratings_summary(cls, work_id: int) -> Optional[WorkRatingsSummary]:
+    def get_work_ratings_summary(cls, work_id: int) -> WorkRatingsSummary | None:
         oldb = db.get_db()
         # NOTE: Using some old postgres syntax here :/ for modern postgres syntax,
         # see the query in solr_builder.py
