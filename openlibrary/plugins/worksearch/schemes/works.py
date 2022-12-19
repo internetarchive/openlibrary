@@ -8,8 +8,6 @@ from typing import Any, cast
 
 import luqum.tree
 import web
-
-import infogami
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.solr.query_utils import (
@@ -470,7 +468,7 @@ class WorkSearchScheme(SearchScheme):
             for fq in editions_fq:
                 new_params.append(('editions.fq', fq))
 
-            user_lang = convert_iso_to_marc(web.ctx.lang or 'en') or 'eng'
+            user_lang = get_user_lang_marc()
 
             ed_q = convert_work_query_to_edition_query(str(work_q_tree))
             full_ed_query = '({{!edismax bq="{bq}" v="{v}" qf="{qf}"}})'.format(
