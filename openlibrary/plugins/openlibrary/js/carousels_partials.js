@@ -10,7 +10,8 @@ export function initCarouselsPartials() {
             type: 'GET',
             data: {
                 workid: $('.RelatedWorksCarousel').data('workid'),
-                _component: 'RelatedWorkCarousel'
+                _component: 'RelatedWorkCarousel',
+                lang: new URLSearchParams(window.location.search).get('lang'),
             },
             datatype: 'json',
             success: function (response) {
