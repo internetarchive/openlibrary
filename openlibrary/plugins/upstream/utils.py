@@ -715,6 +715,11 @@ def convert_iso_to_marc(iso_639_1: str) -> str | None:
 
 
 @public
+def get_user_lang_marc() -> str:
+    return convert_iso_to_marc(web.ctx.lang or 'en') or 'eng'
+
+
+@public
 def get_author_config():
     return _get_author_config()
 

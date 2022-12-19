@@ -1,4 +1,4 @@
-$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None)
+$def with(query, title=None, sort='new', key='', limit=20, search=False, has_fulltext_only=True, url=None, require_user_lang=False)
 
 $# Takes following parameters
 $# * query (str) -- Any arbitrary Open Library search query, e.g. subject:"Textbooks"
@@ -7,6 +7,7 @@ $# * sort (str) -- optional sort param defined within work_search.py `work_searc
 $# * key (str) -- unique name of the carousel in analytics
 $# * limit (int) -- initial number of books to pull
 $# * search (bool) -- whether to include search within collection
+$# * require_user_lang (bool) -- whether to only show books that match the user's language
 
 $# Set default for key
 $ key = key or str(abs(hash(query)))
@@ -25,6 +26,8 @@ $code:
   # Limit to just fields needed to render carousels
   fields = ['key', 'title', 'subtitle', 'editions', 'author_name', 'availability', 'cover_i', 'ia', 'id_project_gutenberg', 'id_librivox', 'id_standard_ebooks', 'id_openstax']
   params = { 'q': query, 'fields': ','.join(fields) }
+  if require_user_lang:
+    params['language'] = get_user_lang_marc()
   # Don't need fields in the search UI url, since they don't do anything there
   url = url or "/search?" + urlencode({'q': query})
   if has_fulltext_only:
