@@ -7,6 +7,7 @@ from infogami.utils.view import render_template, safeint
 import web
 import json
 import logging
+from openlibrary.core import cache
 
 from openlibrary.plugins.upstream.utils import get_language_name
 
@@ -40,7 +41,8 @@ class languages_json(subjects.subjects_json):
         return key.replace("_", " ")
 
 
-def get_top_languages(limit):
+@cache.memoize(engine="memcache", expires=5 * 60)
+def get_top_languages(limit: int):
     from . import search
 
     result = search.get_solr().select(
