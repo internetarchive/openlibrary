@@ -47,8 +47,7 @@ def get_metadata(ia_id):
 def _get_metadata(ia_id):
     if not ia_id:
         return {}
-    db = get_ia_db()
-    if db:
+    if db := get_ia_db():
         result = db.query(
             "SELECT collection, sponsor, contributor FROM metadata WHERE identifier=$ia_id",
             vars=locals(),
