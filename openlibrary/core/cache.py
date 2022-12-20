@@ -464,7 +464,7 @@ class memoize:
     def __init__(
         self,
         engine: Literal["memory", "memcache", "request"] = "memory",
-        key=None,
+        key: Callable | str | None = None,
         expires: int = 0,
         background: bool = False,
         cacheable: Callable | None = None,
@@ -490,6 +490,9 @@ class memoize:
             If this is the first call with these arguments, function :attr:`f` is called and the return value is cached.
             Otherwise, value from the cache is returned.
             """
+            if self.keyfunc is None:
+                # Create a prefix using the function's module + name
+                self.keyfunc = PrefixKeyFunc(f"{f.__module__}.{f.__name__}")
             key = self.keyfunc(*args, **kwargs)
             value = self.cache_get(key)
             if value is None:
