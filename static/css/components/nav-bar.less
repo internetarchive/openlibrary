@@ -1,0 +1,72 @@
+@compact-title-height: 35px;
+
+.nav-bar {
+  border-bottom: 1px solid @lighter-grey;
+  font-weight: bold;
+
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+  scroll-behavior: smooth;
+
+  &.sticky {
+    position: sticky;
+    top: 50px;
+    background: @white;
+    z-index: @z-index-level-3;
+    // Make tab bar full width on mobile
+    margin-left: -@contentBody-padding;
+    margin-right: -@contentBody-padding;
+
+    // indent it a bit to make it look more scrollable
+    &:before,
+    &:after {
+      display: inline-block;
+      content: "";
+      width: 10%;
+    }
+  }
+}
+
+@media (min-width: @width-breakpoint-mobile) {
+  .nav-bar.sticky {
+    &:before,
+    &:after {
+      display: none;
+    }
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .nav-bar.sticky {
+    top: @compact-title-height;
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
+  }
+}
+
+.nav-bar li {
+  display: inline;
+  font-size: 13px;
+}
+
+.nav-bar li a {
+  text-decoration: none;
+  color: @grey;
+  padding: 12px 15px 8px;
+  display: inline-block;
+
+  @media only screen and (min-width: @width-breakpoint-tablet) {
+    padding-top: 4px;
+  }
+}
+
+.nav-bar li.selected a {
+  color: @link-blue;
+  border-bottom: 2px solid @link-blue;
+}
+
+.nav-bar li:hover a {
+  border-bottom: 2px solid @link-blue;
+}
