@@ -36,7 +36,7 @@ repos:
           - tomli
 
   - repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.9.1
+    rev: v0.10.0
     hooks:
     - id: cython-lint
 
