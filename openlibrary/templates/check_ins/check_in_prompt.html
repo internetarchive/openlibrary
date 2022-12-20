@@ -22,7 +22,7 @@ $ prompt_id = 'prompt-%s' % work_olid
   </span>
 
   <span class="prompt-options">
-    <a class="prompt-edit-date" href="javascript:;" data-work-olid="$(work_olid)">$_("Edit Date")</a>
+    <a class="prompt-edit-date" href="javascript:;" data-work-olid="$(work_olid)" data-ol-link-track="CheckInPrompt|EditDate">$_("Edit Date")</a>
   </span>
 </div>
 
@@ -30,8 +30,8 @@ $ display_prompt = read_status == 3
 <div id="$(prompt_id)" class="check-in-prompt $cond((display_prompt and not last_read_date), '', 'hidden')" data-work-olid="$(work_olid)">
   <span class="prompt-copy">$_("When did you finish this book?")</span>
   <span class="prompt-options">
-    <a class="prompt-today" href="javascript:;">$_("Today")</a>
-    <a class="prompt-custom" href="javascript:;">$_("Custom Date")</a>
+    <a class="prompt-today" href="javascript:;" data-ol-link-track="CheckInPrompt|SetDateToday">$_("Today")</a>
+    <a class="prompt-custom" href="javascript:;" data-ol-link-track="CheckInPrompt|SetDateCustom">$_("Custom Date")</a>
   </span>
 </div>
 

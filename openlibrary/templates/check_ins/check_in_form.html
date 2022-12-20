@@ -63,13 +63,13 @@ $if last_read_date:
         </select>
       </span>
       <span>
-        <a class="check-in__today" href="javascript:;">$_("Today")</a>
+        <a class="check-in__today" href="javascript:;" data-ol-link-track="CheckInForm|SetDateToday">$_("Today")</a>
       </span>
     </div>
     <span class="check-in__actions">
       $ visible = '' if event_id else 'invisible'
-      <button class="check-in__delete-btn cta-btn cta-btn--delete $(visible)">$_('Delete Event')</button>
-      <button type="submit" class="check-in__submit-btn cta-btn cta-btn--shell" $cond(year_read, '', 'disabled')>$_('Submit')</button>
+      <button class="check-in__delete-btn cta-btn cta-btn--delete $(visible)" data-ol-link-track="CheckInForm|DeleteCheckIn">$_('Delete Event')</button>
+      <button type="submit" class="check-in__submit-btn cta-btn cta-btn--shell" data-ol-link-track="CheckInForm|SubmitCheckIn" $cond(year_read, '', 'disabled')>$_('Submit')</button>
     </span>
   </form>
 </div>
