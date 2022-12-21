@@ -402,7 +402,7 @@ class account_login(delegate.page):
             "/account/create",
         ]
         if i.redirect == "" or any([path in i.redirect for path in blacklist]):
-            i.redirect = "/account/loans"
+            i.redirect = "/account/books"
         raise web.seeother(i.redirect)
 
     def POST_resend_verification_email(self, i):

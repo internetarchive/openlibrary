@@ -26,7 +26,7 @@ $ counts = counts or pa.get_sidebar_counts
         <li><a data-ol-link-track="MyBooksSidebar|MyNotes" $('class=selected' if key=='notes' else '') href="/people/$username/books/notes"><span class="li-count">$counts['notes']</span>$_('My Notes')</a></li>
         <li><a data-ol-link-track="MyBooksSidebar|MyReviews" $('class=selected' if key=='observations' else '') href="/people/$username/books/observations"><span class="li-count">$counts['observations']</span>$_('My Reviews')</a></li>
         <hr>
-        <li><a data-ol-link-track="MyBooksSidebar|ReadingStats" href="/account/books/already-read/stats">$_('Reading Stats')</a></li>
+        <li><a data-ol-link-track="MyBooksSidebar|ReadingStats" href="/account/books/already-read/stats">$_('My Reading Stats')</a></li>
         <li><a data-ol-link-track="MyBooksSidebar|ImportExport" href="/account/import" $('class=selected' if key=='imports' else '')>$_("Import & Export Options")</a></li>
       </ul>
     $if owners_page and ctx.user and ctx.user.in_sponsorship_beta():

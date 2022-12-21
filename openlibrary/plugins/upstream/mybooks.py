@@ -10,22 +10,25 @@ from openlibrary import accounts
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.core.lending import add_availability
+from openlibrary.core.lending import add_availability, get_loans_of_user
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.core.sponsorships import get_sponsored_editions
-from openlibrary.plugins.upstream import borrow
-
 from openlibrary.core.models import LoggedBooksData
 
 
 RESULTS_PER_PAGE: Final = 25
 
 
-class my_books_redirect(delegate.page):
+class my_books_home(delegate.page):
     path = "/people/([^/]+)/books"
 
     def GET(self, username):
-        raise web.seeother('/people/%s/books/want-to-read' % username)
+        """
+        The other way to get to this page is /account/books which is defined
+        in /plugins/account.py account_my_books. But we don't need to update that redirect
+        because it already just redirects here.
+        """
+        return MyBooksTemplate(username, key='mybooks').render()
 
 
 class my_books_view(delegate.page):
@@ -161,7 +164,7 @@ class MyBooksTemplate:
     READING_LOG_KEYS = {"currently-reading", "want-to-read", "already-read"}
 
     # Keys that can be accessed when not logged in
-    PUBLIC_KEYS = READING_LOG_KEYS | {"lists", "list"}
+    PUBLIC_KEYS = READING_LOG_KEYS | {"lists", "list"} | {"mybooks"}
 
     # Keys that are only accessible when logged in
     # unioned with the public keys
@@ -273,9 +276,43 @@ class MyBooksTemplate:
         page=1,
         username=None,
     ):
-        if self.key == 'loans':
-            logged_in_user.update_loan_status()
-            return borrow.get_loans(logged_in_user)
+        def get_shelf(name, page=1):
+            return self.readlog.get_works(
+                key=name, page=page, limit=6, sort='created', sort_order='asc'
+            )
+
+        if self.key == 'mybooks':
+            want_to_read = get_shelf('want-to-read', page=page)
+            currently_reading = get_shelf('currently-reading', page=page)
+            already_read = get_shelf('already-read', page=page)
+
+            # Ideally, do all 3 lookups in one add_availability call
+            want_to_read.docs = add_availability(
+                [d for d in want_to_read.docs if d.get('title')]
+            )[:4]
+            currently_reading.docs = add_availability(
+                [d for d in currently_reading.docs if d.get('title')]
+            )[:4]
+            already_read.docs = add_availability(
+                [d for d in already_read.docs if d.get('title')]
+            )[:4]
+
+            # Marshal loans into homogeneous data that carousel can render
+            loans = get_loans_of_user(logged_in_user.key)
+            myloans = web.Storage({"docs": [], "total_results": len(loans)})
+            for loan in loans:
+                book = web.ctx.site.get(loan['book'])
+                book.loan = loan
+                myloans.docs.append(book)
+
+            return {
+                'loans': myloans,
+                'want-to-read': want_to_read,
+                'currently-reading': currently_reading,
+                'already-read': already_read,
+            }
+        elif self.key == 'loans':
+            return get_loans_of_user(logged_in_user.key)
         elif self.key == 'waitlist':
             return {}
         elif self.key == 'lists':
