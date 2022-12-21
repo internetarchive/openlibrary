@@ -188,10 +188,9 @@ class yearly_reading_goal_json(delegate.page):
 
         current_year = datetime.now().year
 
-        finished = BookshelvesEvents.select_by_user_type_and_year(
+        finished = BookshelvesEvents.select_distinct_by_user_type_and_year(
             username, BookshelfEvent.FINISH, current_year
         )
-        # TODO: Prevent the same edition from being counted multiple times for a single year
         current_count = len(finished)
 
         YearlyReadingGoals.create(username, current_year, goal, current_count)
