@@ -53,9 +53,16 @@ a {
 .chip-group {
   display: flex;
   flex-wrap: wrap;
+  flex-direction: column;
 }
 
 .category-chip {
   margin-right: 1em;
   margin-bottom: .5em;
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .chip-group {
+    flex-direction: row;
+  }
 }

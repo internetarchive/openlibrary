@@ -176,7 +176,7 @@ class yearly_reading_goal_json(delegate.page):
 
     @authorized_for('/usergroup/beta-testers')
     def POST(self):
-        i = web.input(goal=0)
+        i = web.input(goal=0, year=None)
 
         goal = int(i.goal)
 
@@ -186,7 +186,7 @@ class yearly_reading_goal_json(delegate.page):
         user = get_current_user()
         username = user['key'].split('/')[-1]
 
-        current_year = datetime.now().year
+        current_year = i.year or datetime.now().year
 
         finished = BookshelvesEvents.select_distinct_by_user_type_and_year(
             username, BookshelfEvent.FINISH, current_year
@@ -197,6 +197,24 @@ class yearly_reading_goal_json(delegate.page):
 
         return delegate.RawText(json.dumps({'status': 'ok'}))
 
+@public
+def get_reading_goals(year=None):
+    user = get_current_user()
+    username = user['key'].split('/')[-1]
+
+    if not year:
+        year = datetime.now().year
+
+    if not (data := YearlyReadingGoals.select_by_username_and_year(username, year)):
+        return None
+
+    books_read = BookshelvesEvents.select_distinct_by_user_type_and_year(
+            username, BookshelfEvent.FINISH, year
+        )
+    read_count = len(books_read)
+    result = YearlyGoal(data[0].year, data[0].target, read_count)
+
+    return result
 
 class YearlyGoal:
     def __init__(self, year, goal, books_read):
@@ -205,6 +223,16 @@ class YearlyGoal:
         self.books_read = books_read
         self.progress = floor((books_read / goal) * 100)
 
+
+class ui_partials(delegate.page):
+    path = '/reading-goal/partials'
+
+    def GET(self):
+        i = web.input(year=None)
+        year = i.year or datetime.now().year
+        goal = get_reading_goals(year=year)
+        component =  render_template('check_ins/reading_goal_progress', [goal])
+        return delegate.RawText(component)
 
 class yearly_goal_test_page(delegate.page):
     path = "/_test/yearly-goals"

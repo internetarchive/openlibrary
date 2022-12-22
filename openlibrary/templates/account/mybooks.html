@@ -1,8 +1,20 @@
 $def with (user, mybooks, public=False, owners_page=False, counts=None, lists=None)
 
 $ username = user.key.split('/')[-1]
+$ current_goal = get_reading_goals()
 
 <div class="chip-group">
+  $if not current_goal:
+    <span class="chip value-chip category-chip chip--selectable">
+      <a id="current-year-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"
+        href="javascript:;">$:_('Set <span id="reading-goal-current-year">2023</span> reading goal')</a>
+    </span>
+
+    $ reading_goal_form = render_template('check_ins/reading_goal_form')
+    $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title="Yearly Reading Goal")
+  $else:
+    $:render_template('check_ins/reading_goal_progress', [current_goal])
+
   <span class="chip value-chip category-chip chip--selectable">
     <a data-ol-link-track="MyBooksSidebar|ReadingStats"
        href="/account/books/already-read/stats">$_('My Reading Stats')</a>
@@ -12,6 +24,66 @@ $ username = user.key.split('/')[-1]
        href="/account/import">$_('Import & Export Options')</a>
   </span>
 </div>
+
+<script>
+  const currentYearLink = document.querySelector('#current-year-link')
+  if (currentYearLink) {
+    const currentYearSpan = document.querySelector('#reading-goal-current-year')
+    const currentYear = new Date().getFullYear();
+    currentYearSpan.textContent = currentYear
+    currentYearSpan.parentElement.dataset.currentYear = currentYear
+    const yearlyGoalModal = document.querySelector('#yearly-goal-modal')
+    yearlyGoalModal.querySelector('input[name=year]').value = currentYear
+    currentYearLink.addEventListener('click', function() {
+      yearlyGoalModal.showModal()
+    })
+    const submitButton = yearlyGoalModal.querySelector('form button')
+    submitButton.addEventListener('click', function(event) {
+      event.preventDefault()
+      const form = yearlyGoalModal.querySelector('form')
+      const formData = new FormData(yearlyGoalModal.querySelector('form'))
+      fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams(formData)
+        })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Ratings update failed')
+          }
+          yearlyGoalModal.close()
+          // Fetch progress component HTML
+          fetch(`/reading-goal/partials?year=\${currentYear}`)
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error('Failed to fetch progress element')
+              }
+              return response.text()
+            })
+            .then(function(html) {
+              // Refresh view
+              const chipGroup = document.querySelector('.chip-group')
+              const progress = document.createElement("SPAN")
+              progress.innerHTML = html
+              chipGroup.insertBefore(progress, currentYearLink.parentElement)
+              currentYearLink.parentElement.remove()
+            })
+        })
+    })
+  }
+  
+</script>
+
+<style>
+  .chip {
+    align-self: center;
+  }
+  .chip-group {
+    justify-content: space-between;
+  }
+</style>
 
 $code:
     def compact_carousel(data):
