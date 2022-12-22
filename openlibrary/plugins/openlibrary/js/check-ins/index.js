@@ -455,7 +455,7 @@ function addGoalSubmissionListener(submitButton) {
                     updateProgressComponent(progressComponent, Number(formData.get('goal')))
                 } else {
                     const chipGroup = modal.closest('.chip-group')
-                    updateChipGroup(chipGroup, modal)
+                    updateChipGroup(chipGroup)
                 }
             })
     })
@@ -476,7 +476,7 @@ function updateProgressComponent(elem, goal) {
     completedBar.style.width = `${Math.min(100, percentComplete)}%`
 }
 
-function updateChipGroup(chipGroup, goalModal) {
+function updateChipGroup(chipGroup) {
     fetch('/reading-goal/partials')
         .then((response) => {
             if (!response.ok) {
