@@ -383,12 +383,16 @@ jQuery(function () {
         import(/* webpackChunkName: "dialog" */ './native-dialog')
             .then(module => module.initDialogs(nativeDialogs))
     }
+    const setGoalLink = document.querySelector('#set-reading-goal-link')
     const checkInForms = document.querySelectorAll('.check-in')
     const checkInPrompts = document.querySelectorAll('.check-in-prompt')
     const checkInEditLinks = document.querySelectorAll('.prompt-edit-date')
-    if (checkInForms.length || checkInPrompts.length || checkInEditLinks.length) {
+    if (setGoalLink || checkInForms.length || checkInPrompts.length || checkInEditLinks.length) {
         import(/* webpackChunkName: "check-ins" */ './check-ins')
             .then((module) => {
+                if (setGoalLink) {
+                    module.initSettingYearlyGoals(setGoalLink)
+                }
                 if (checkInForms.length) {
                     module.initCheckInForms(checkInForms)
                 }

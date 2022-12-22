@@ -387,3 +387,59 @@ function deleteEvent(rootElem, workOlid, eventId) {
         }
     });
 }
+
+export function initSettingYearlyGoals(link) {
+    const yearlyGoalModal = document.querySelector('#yearly-goal-modal')
+
+    const currentYear = setLocalYear(yearlyGoalModal.querySelector('form'))
+
+    link.addEventListener('click', function() {
+        yearlyGoalModal.showModal()
+    })
+    const submitButton = yearlyGoalModal.querySelector('form button')
+    submitButton.addEventListener('click', function(event) {
+        event.preventDefault()
+        const form = yearlyGoalModal.querySelector('form')
+        const formData = new FormData(yearlyGoalModal.querySelector('form'))
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams(formData)
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Ratings update failed')
+                }
+                yearlyGoalModal.close()
+
+                // Fetch progress component HTML
+                fetch(`/reading-goal/partials?year=${currentYear}`)
+                    .then((response) => {
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch progress element')
+                        }
+                        return response.text()
+                    })
+                    .then(function(html) {
+                        // Refresh view
+                        const chipGroup = document.querySelector('.chip-group')
+                        const progress = document.createElement('SPAN')
+                        progress.innerHTML = html
+                        chipGroup.insertBefore(progress, link.parentElement)
+                        link.parentElement.remove()
+                    })
+            })
+    })
+}
+
+function setLocalYear(form) {
+    const currentYearSpan = document.querySelector('#reading-goal-current-year')
+    const currentYear = new Date().getFullYear();
+    currentYearSpan.textContent = currentYear
+
+    form.querySelector('input[name=year]').value = currentYear
+
+    return currentYear
+}
