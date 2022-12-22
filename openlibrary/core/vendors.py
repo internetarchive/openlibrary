@@ -240,7 +240,7 @@ class AmazonAPI:
                 and item_info.title
                 and getattr(item_info.title, 'display_value')
             ),
-            'covers': (
+            'cover': (
                 images.primary.large.url
                 if images
                 and images.primary
