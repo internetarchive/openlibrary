@@ -446,8 +446,7 @@ class Seed:
             "title": self.title,
             "last_update": self.last_update and self.last_update.isoformat() or None,
         }
-        cover = self.get_cover()
-        if cover:
+        if cover := self.get_cover():
             d['picture'] = {"url": cover.url("S")}
         return d
 

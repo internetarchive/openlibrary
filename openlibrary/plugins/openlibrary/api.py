@@ -120,9 +120,7 @@ class ratings(delegate.page):
     def GET(self, work_id):
         from openlibrary.core.ratings import Ratings
 
-        stats = Ratings.get_work_ratings_summary(work_id)
-
-        if stats:
+        if stats := Ratings.get_work_ratings_summary(work_id):
             return json.dumps(
                 {
                     'summary': {

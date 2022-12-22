@@ -251,22 +251,13 @@ class cover:
             size_part = size and ("-" + size) or ""
             url = f"/{category}/id/{id}{size_part}.jpg"
 
-            query = web.ctx.env.get('QUERY_STRING')
-            if query:
+            if query := web.ctx.env.get('QUERY_STRING'):
                 url += '?' + query
             raise web.found(url)
 
         if key == 'isbn':
             value = value.replace("-", "").strip()  # strip hyphens from ISBN
             value = self.query(category, key, value)
-
-            # Redirect isbn requests to archive.org.
-            # This will heavily reduce the load on coverstore server.
-            # The max_coveritem_index config parameter specifies the latest
-            # olcovers items uploaded to archive.org.
-            if value and self.is_cover_in_cluster(value):
-                url = zipview_url_from_id(int(value), size)
-                raise web.found(url)
         elif key == 'ia':
             url = self.get_ia_cover_url(value, size)
             if url:
@@ -276,15 +267,27 @@ class cover:
         elif key != 'id':
             value = self.query(category, key, value)
 
-        if value and safeint(value) in config.blocked_covers:
+        if not value or (value and safeint(value) in config.blocked_covers):
             raise web.notfound()
 
         # redirect to archive.org cluster for large size and original images whenever possible
-        if value and (size == "L" or size == "") and self.is_cover_in_cluster(value):
+        if size in ("L", "") and self.is_cover_in_cluster(value):
             url = zipview_url_from_id(int(value), size)
             raise web.found(url)
 
-        d = value and self.get_details(value, size.lower())
+        # covers_0008 partials [_00, _23] are tar'd in archive.org items
+        if isinstance(value, int) or value.isnumeric():
+            if 8240000 > int(value) >= 8000000:
+                prefix = f"{size.lower()}_" if size else ""
+                pid = "%010d" % int(value)
+                item_id = f"{prefix}covers_{pid[:4]}"
+                item_tar = f"{prefix}covers_{pid[:4]}_{pid[4:6]}.tar"
+                item_file = f"{pid}{'-' + size.upper() if size else ''}"
+                path = f"{item_id}/{item_tar}/{item_file}.jpg"
+                protocol = web.ctx.protocol
+                raise web.found(f"{protocol}://archive.org/download/{path}")
+
+        d = self.get_details(value, size.lower())
         if not d:
             return notfound()
 

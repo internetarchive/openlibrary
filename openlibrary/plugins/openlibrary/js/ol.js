@@ -4,18 +4,6 @@ import { SearchBar } from './SearchBar';
 import { SearchPage } from './SearchPage';
 import { SearchModeSelector, mode as searchMode } from './SearchUtils';
 
-function isScrolledIntoView(elem) {
-    var docViewTop = $(window).scrollTop();
-    var docViewBottom = docViewTop + $(window).height();
-    var elemTop, elemBottom;
-    if ($(elem).offset()) {
-        elemTop = $(elem).offset().top;
-        elemBottom = elemTop + $(elem).height();
-        return ((docViewTop < elemTop) && (docViewBottom > elemBottom));
-    }
-    return false;
-}
-
 /*
 Sets the key in the website cookie to the specified value
 */
@@ -34,15 +22,6 @@ export default function init() {
         // Only applies to search results page (as of writing)
         new SearchPage($('.siteSearch.olform'), new SearchModeSelector($('.search-mode')));
     }
-
-    $(window).on('scroll', function(){
-        var scroller = $('#formScroll');
-        if (isScrolledIntoView(scroller)) {
-            $('#scrollBtm').show();
-        } else {
-            $('#scrollBtm').hide();
-        }
-    });
 
     initReadingListFeature();
     initBorrowAndReadLinks();
@@ -80,29 +59,6 @@ export function initReadingListFeature() {
     // ... but don't let that happen if user is clicking inside dropdown
     $(document).on('click', '.widget-add', function(e) {
         e.stopPropagation();
-    });
-
-    /* eslint-disable no-unused-vars */
-    // success function receives data on successful request
-    $(document).on('change', '.reading-log-lite select', function(e) {
-        const $self = $(this);
-
-        // On /account/books/want-to-read avoid a page reload by sending the
-        // new shelf to the server and removing the associated item.
-        // Note that any change to this select will result in the book changing
-        // shelf.
-        $.ajax({
-            url: $self.closest('form').attr('action'),
-            type: 'POST',
-            data: {
-                bookshelf_id: $self.val()
-            },
-            datatype: 'json',
-            success: function() {
-                $self.closest('.searchResultItem').remove();
-            }
-        });
-        e.preventDefault();
     });
 }
 

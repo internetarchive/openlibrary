@@ -318,8 +318,7 @@ class MemcacheCache(Cache):
 
     @cached_property
     def memcache(self):
-        servers = config.get("memcache_servers", None)
-        if servers:
+        if servers := config.get("memcache_servers", None):
             return olmemcache.Client(servers)
         else:
             web.debug(

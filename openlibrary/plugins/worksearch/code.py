@@ -190,7 +190,7 @@ def run_solr_query(
         if param.get(field) == value:
             if field in facet_params:
                 facet_params.remove(field)
-            params.append(('fq', rewrite))
+            params.append(('fq', rewrite() if callable(rewrite) else rewrite))
 
     for field in facet_params:
         if field == 'author_facet':
@@ -219,7 +219,7 @@ def run_solr_query(
             solr_fields.remove('editions')
             solr_fields.add('editions:[subquery]')
         params.append(('fl', ','.join(solr_fields)))
-        params += scheme.q_to_solr_params(q, solr_fields)
+        params += scheme.q_to_solr_params(q, solr_fields, params)
 
     if sort:
         params.append(('sort', scheme.process_user_sort(sort)))
@@ -393,8 +393,7 @@ class search(delegate.page):
         if not isbn:
             return
 
-        ed = Edition.from_isbn(isbn)
-        if ed:
+        if ed := Edition.from_isbn(isbn):
             web.seeother(ed.key)
 
     def GET(self):
@@ -433,8 +432,7 @@ class search(delegate.page):
             self.isbn_redirect(i.isbn)
 
         q_list = []
-        q = i.get('q', '').strip()
-        if q:
+        if q := i.get('q', '').strip():
             m = re_olid.match(q)
             if m:
                 raise web.seeother(f'/{OLID_URLS[m.group(1)]}/{q}')
@@ -483,13 +481,17 @@ def works_by_author(
                 "time_facet",
             ]
         ),
+        fields=WorkSearchScheme.default_fetched_fields | {'editions'},
         extra_params=[
             ('fq', f'author_key:{akey}'),
             ('facet.limit', 25),
         ],
     )
 
-    result.docs = add_availability([get_doc(doc) for doc in result.docs])
+    result.docs = [get_doc(doc) for doc in result.docs]
+    add_availability(
+        [(work.get('editions') or [None])[0] or work for work in result.docs]
+    )
     return result
 
 

@@ -49,8 +49,7 @@ def trigger_subevents(event):
 @eventer.bind("infobase.edit")
 def invalidate_memcache(changeset):
     """Invalidate memcache entries effected by this change."""
-    memcache_client = get_memcache()
-    if memcache_client:
+    if memcache_client := get_memcache():
         keys = MemcacheInvalidater().find_keys(changeset)
         if keys:
             logger.info("invalidating %s", keys)

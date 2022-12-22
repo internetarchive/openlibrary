@@ -168,8 +168,7 @@ def system_memory():
 
 def system(cmd):
     log("executing:", cmd)
-    status = os.system(cmd)
-    if status != 0:
+    if (status := os.system(cmd)) != 0:
         raise Exception("%r failed with exit status: %d" % (cmd, status))
 
 

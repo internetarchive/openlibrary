@@ -100,8 +100,7 @@ def find_matches_by_isbn(isbns):
     "Find matches using isbns."
     q = {'type': '/type/edition', 'isbn_': str(isbns[0])}
     print("ISBN query : ", q)
-    ekeys = list(web.ctx.site.things(q))
-    if ekeys:
+    if ekeys := list(web.ctx.site.things(q)):
         return ekeys[:1]  # TODO: We artificially match only one item here
     else:
         return []
@@ -287,8 +286,7 @@ def create(records):
     Creates one or more new records in the system.
     TODO: Describe Input/output
     """
-    doc = records["doc"]
-    if doc:
+    if doc := records["doc"]:
         things = doc_to_things(copy.deepcopy(doc))
         web.ctx.site.save_many(things, 'Import new records.')
         return [thing['key'] for thing in things]

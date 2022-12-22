@@ -121,8 +121,7 @@ class IAMiddleware(ConnectionMiddleware):
     def get(self, sitename, data):
         key = data.get('key')
 
-        itemid = self._get_itemid(key)
-        if itemid:
+        if itemid := self._get_itemid(key):
             edition_key = self._find_edition(sitename, itemid)
             if edition_key:
                 # Delete the store entry, indicating that this is no more is an item to be imported.

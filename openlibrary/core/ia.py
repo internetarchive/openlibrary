@@ -263,10 +263,9 @@ class ItemEdition(dict):
             self[key2] = value
 
     def add_isbns(self):
-        isbns = self.metadata.get('isbn')
         isbn_10 = []
         isbn_13 = []
-        if isbns:
+        if isbns := self.metadata.get('isbn'):
             for isbn in isbns:
                 isbn = isbn.replace("-", "").strip()
                 if len(isbn) == 13:

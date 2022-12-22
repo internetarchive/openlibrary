@@ -74,8 +74,7 @@ class Edition(models.Edition):
         return covers and covers[0] or None
 
     def get_cover_url(self, size):
-        cover = self.get_cover()
-        if cover:
+        if cover := self.get_cover():
             return cover.url(size)
         elif self.ocaid:
             return self.get_ia_cover(self.ocaid, size)
@@ -272,9 +271,9 @@ class Edition(models.Edition):
         if self.ocaid:
             lending.sync_loan(self.ocaid)
 
-    def _process_identifiers(self, config, names, values):
+    def _process_identifiers(self, config_, names, values):
         id_map = {}
-        for id in config:
+        for id in config_:
             id_map[id.name] = id
             id.setdefault("label", id.name)
             id.setdefault("url_format", None)

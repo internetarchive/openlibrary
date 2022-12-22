@@ -136,8 +136,7 @@ def level2_merge(e1, e2):
     score.append(compare_isbn10(e1, e2))
     score.append(compare_title(e1, e2))
     score.append(compare_lccn(e1, e2))
-    page_score = compare_number_of_pages(e1, e2)
-    if page_score:
+    if page_score := compare_number_of_pages(e1, e2):
         score.append(page_score)
     score.append(compare_publisher(e1, e2))
     score.append(compare_authors(e1, e2))

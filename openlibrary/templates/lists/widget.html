@@ -76,7 +76,7 @@ $def i18n_input():
 $if include_widget:
   $if render_once('lists/widget.i18n-strings'):
     $:i18n_input()
-  $:macros.ReadingLogDropper(user_lists, work=work, edition=edition, key=default_seed_key, users_work_read_status=users_work_read_status, page_url=page_url, async_load=async_load)
+  $:macros.ReadingLogDropper(user_lists, work=work, edition_key=(edition and edition.key), key=default_seed_key, users_work_read_status=users_work_read_status, page_url=page_url, async_load=async_load)
   <ul id="already-lists" class="listLists already-lists">
     $if async_load:
         <div class="list-overview-loading-indicator">Loading<span class="loading-ellipsis">...</span></div>

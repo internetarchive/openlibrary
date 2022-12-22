@@ -26,7 +26,7 @@
     },
     {
       "path": "static/build/add-book.*.js",
-      "maxSize": "1KB"
+      "maxSize": "4KB"
     },
     {
       "path": "static/build/readmore.*.js",

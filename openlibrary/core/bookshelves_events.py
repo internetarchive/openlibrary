@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime
 from enum import IntEnum
 from . import db
 
@@ -9,8 +9,8 @@ class BookshelfEvent(IntEnum):
     FINISH = 3
 
     @classmethod
-    def has_key(cls, key: str) -> bool:
-        return key in cls.__members__
+    def has_value(cls, value: int) -> bool:
+        return value in (item.value for item in BookshelfEvent.__members__.values())
 
 
 class BookshelvesEvents(db.CommonExtras):

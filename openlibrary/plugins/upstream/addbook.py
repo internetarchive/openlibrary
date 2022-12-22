@@ -16,7 +16,6 @@ from infogami.utils import delegate
 from infogami.utils.view import safeint, add_flash_message
 from infogami.infobase.client import ClientException
 
-from openlibrary.plugins.upstream.models import Author
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils import find_author_olid_in_string, find_work_olid_in_string
@@ -490,7 +489,7 @@ delegate.pages.pop('/addbook', None)
 delegate.pages.pop('/addauthor', None)
 
 
-class addbook(delegate.page):  # type: ignore[no-redef]
+class addbook(delegate.page):  # type: ignore[no-redef] # noqa: F811
     def GET(self):
         raise web.redirect("/books/add")
 

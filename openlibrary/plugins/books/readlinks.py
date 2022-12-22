@@ -25,8 +25,7 @@ def ol_query(name, value):
         'type': '/type/edition',
         name: value,
     }
-    keys = web.ctx.site.things(query)
-    if keys:
+    if keys := web.ctx.site.things(query):
         return keys[0]
 
 
@@ -242,8 +241,7 @@ class ReadProcessor:
             return status
 
         def getdate(self, iaid):
-            edition = self.iaid_to_ed.get(iaid)
-            if edition:
+            if edition := self.iaid_to_ed.get(iaid):
                 m = self.date_re.match(edition.get('publish_date', ''))
                 if m:
                     return m.group(1)

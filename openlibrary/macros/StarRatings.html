@@ -17,8 +17,8 @@ $ form_id = "ratingsForm%s" % id
     $if safeint(page) > 1:
       <input type="hidden" value="$page" name="page"/>
     <input type="hidden" value="$redir_url" name="redir_url"/>
-  <div class="review">
-    <div class="stars">
+  <div class="review" id="starRatingSection">
+    <div class="stars" data-ol-link-track="StarRating|BookRated">
       $ NUM_STARS = 5
       $for star in range(1, NUM_STARS + 1)
         <input type="submit" value="$star" name="rating"

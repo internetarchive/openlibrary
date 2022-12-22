@@ -54,8 +54,7 @@ class contact(delegate.page):
                 )
 
         default_assignees = config.get("support_default_assignees", {})
-        topic_key = str(topic.replace(" ", "_").lower())
-        if topic_key in default_assignees:
+        if (topic_key := str(topic.replace(" ", "_").lower())) in default_assignees:
             assignee = default_assignees.get(topic_key)
         else:
             assignee = default_assignees.get("default", "openlibrary@archive.org")

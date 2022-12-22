@@ -42,9 +42,8 @@ class add_cover(delegate.page):
         web.ctx.pop("_fieldstorage", None)
 
         data = self.upload(key, i)
-        coverid = data.get('id')
 
-        if coverid:
+        if coverid := data.get('id'):
             if isinstance(i.url, bytes):
                 i.url = i.url.decode("utf-8")
             self.save(book, coverid, url=i.url)

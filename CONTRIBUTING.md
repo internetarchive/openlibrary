@@ -3,20 +3,44 @@
 ## Welcome!
 This welcome section is intended for new contributors.
 
-### Quick Tour
+1. **Quick Tour:** [Quick Public Tour of Open Library (10min)](https://archive.org/embed/openlibrary-tour-2020)
+2. **Orientation:** [Volunteer Orientation Video (1.5h)](https://archive.org/details/openlibrary-orientation-2020?start=80)
+    * [Code of conduct](https://github.com/internetarchive/openlibrary/blob/master/CODE_OF_CONDUCT.md)
+3. **Getting Started:**
+    * [Installation README](https://github.com/internetarchive/openlibrary/tree/master/docker) + [Docker Setup Walk-through (video)](https://archive.org/embed/openlibrary-developer-docs/zoom_0.mp4?autoplay=1&start=2)
+4. **Contributing:**
+    * [How we use git](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet)
+    * [Finding good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Needs%3A+Help%22+label%3A%22Good+First+Issue%22)
+    * [Testing your code](https://github.com/internetarchive/openlibrary/wiki/Testing)
+    * [Enabling debugging](https://github.com/internetarchive/openlibrary/wiki/Debugging)
+5. **Learning the Code:**
+    * [Technical Tour & System Overview (1h)](https://archive.org/details/openlibrary-tour-2020/technical_overview.mp4)
+    * [Walkthrough videos](https://archive.org/details/openlibrary-tour-2020)
+    * [Code Architecture](https://github.com/internetarchive/openlibrary#architecture)
+    * [Front-end Guide](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide)
+    * [Open Library Public APIs](https://openlibrary.org/developers/api)
+6. **Common Tasks**
+    * [Logging in locally](https://github.com/internetarchive/openlibrary/wiki/Getting-Started#logging-in)
+    * [Importing Production Book Data Locally](https://github.com/internetarchive/openlibrary/wiki/Loading-Production-Book-Data)  
+7. **Questions?**
+    * [Wiki](https://github.com/internetarchive/openlibrary/wiki)
+    * [Request a slack invite](https://openlibrary.org/volunteer)
+    * [Weekly Community calls](https://docs.google.com/document/d/1LEbzsLZ1F9_YIQOoZzO7GoZnG1z-rudhZ9HNtsameTc/edit)
+    * [Open Library FAQs](https://openlibrary.org/help/faq)
+## Quick Tour
 
 A quick public tour of Open Library to get you familiar with the service and its offerings (10min)
 
 [![archive org_embed_openlibrary-tour-2020_openlibrary ogv (1)](https://user-images.githubusercontent.com/978325/91348906-55940d00-e799-11ea-83b9-17cd4d99642b.png)](https://archive.org/embed/openlibrary-tour-2020/openlibrary.ogv)
 
-### Onboarding
+## Onboarding
 
 A comprehensive volunteer orientation video to learn what it means to work on Open Library (1.5h). This video is a companion to our [Orientation Guide](https://docs.google.com/document/d/1fkTDqYFx2asuMWwSIDQRHJlnu-AGWpMrDDd9o5z8Cik/edit#).
 If you're looking for a good first issue, check out [Good First Issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Good+First+Issue%22+label%3A%22Needs%3A+Help%22+-label%3A%22Needs%3A+Triage%22+-label%3A%22Needs%3A+Lead%22).
 
 [![archive org_details_openlibrary-orientation-2020_start=80](https://user-images.githubusercontent.com/978325/91350387-78272580-e79b-11ea-9e26-85cfd1d38fe1.png)](https://archive.org/details/openlibrary-orientation-2020?start=80)
 
-### Technical Walkthrough
+## Technical Walkthrough
 
 A deep dive into the technical details, architecture, and code structure behind OpenLibrary.org
 
@@ -31,7 +55,10 @@ We are a non-profit, open-source, inclusive project, and we believe everyone des
 
 * The core Open Library team communicates over an invite-only Slack channel. You may request an invitation on our [volunteers](https://openlibrary.org/volunteer) page.
 * If you have a quick question about getting started, anyone can ask on our [gitter chat](https://gitter.im/theopenlibrary/Lobby).
-* The Open Library hosts a video Community Call every Tuesday @ 10:00am PT, [request an invite](https://openlibrary.org/volunteer) to join us!
+* The Open Library hosts two weekly video calls:
+    * The Open Library general Community Call every Tuesday @ 9:00am PT
+    * The Open Library Design call on Friday @ 9:00am PT
+    * [Request an invite](https://openlibrary.org/volunteer) to join us!
 
 ## Installing Open Library
 For instructions on setting up a local developer's instance of Open Library, please refer to the [Installation Guide](https://github.com/internetarchive/openlibrary#installation).
@@ -131,4 +158,4 @@ The assignee of a PR is responsible for:
 - **testing the PR** before merging. Comment about how you tested in the PR. If _any_ changes are made to the PR code, you will have to test it again before merging.
 - **merging (or closing)** the PR.
 
-We strive for every PR to have an assignee so that nothing gets stuck.
+Each Monday (as of 2022) we triage PRs (excluding drafts) and make sure they have leads assigneed so that nothing gets stuck.

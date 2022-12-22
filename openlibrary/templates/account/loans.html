@@ -45,18 +45,6 @@ th.status {
 
 </style>
 
-<script type="text/javascript">
-<!--
-window.q.push(function(){
-    \$(".local-date-time").each(function() {
-        var expiry_utc = \$(this).attr("data-expiry-utc");
-        var options = {hour: '2-digit', minute:'2-digit', month:'2-digit', day:'2-digit', year:'numeric'};
-        \$(this).html((new Date(expiry_utc)).toLocaleString([], options));
-    });
-});
-//-->
-</script>
-
 <div>
   $if len(loans) == 0:
     <div><em>$_("You've not checked out any books at this moment.")</em></div>

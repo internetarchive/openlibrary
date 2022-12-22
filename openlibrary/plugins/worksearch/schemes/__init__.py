@@ -26,7 +26,7 @@ class SearchScheme:
     # Default
     default_fetched_fields: set[str]
     # Fields that should be rewritten
-    facet_rewrites: dict[tuple[str, str], str]
+    facet_rewrites: dict[tuple[str, str], Union[str, Callable[[], str]]]
 
     def is_search_field(self, field: str):
         return field in self.all_fields or field in self.field_name_map
@@ -103,5 +103,10 @@ class SearchScheme:
     def build_q_from_params(self, params: dict) -> Optional[str]:
         return None
 
-    def q_to_solr_params(self, q: str, solr_fields: set[str]) -> list[tuple[str, str]]:
+    def q_to_solr_params(
+        self,
+        q: str,
+        solr_fields: set[str],
+        cur_solr_params: list[tuple[str, str]],
+    ) -> list[tuple[str, str]]:
         return [('q', q)]

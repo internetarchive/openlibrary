@@ -417,8 +417,7 @@ def build_pool(rec):
     )
 
     # Find records with matching ISBNs
-    isbns = isbns_from_record(rec)
-    if isbns:
+    if isbns := isbns_from_record(rec):
         pool['isbn'] = set(editions_matched(rec, 'isbn_', isbns))
 
     return {k: list(v) for k, v in pool.items() if v}
@@ -440,8 +439,7 @@ def early_exit(rec):
     if ekeys:
         return ekeys[0]
 
-    isbns = isbns_from_record(rec)
-    if isbns:
+    if isbns := isbns_from_record(rec):
         ekeys = editions_matched(rec, 'isbn_', isbns)
         if ekeys:
             return ekeys[0]
@@ -449,6 +447,8 @@ def early_exit(rec):
     # only searches for the first value from these lists
     for f in 'source_records', 'oclc_numbers', 'lccn':
         if rec.get(f):
+            if f == 'source_records' and not rec[f][0].startswith('ia:'):
+                continue
             ekeys = editions_matched(rec, f, rec[f][0])
             if ekeys:
                 return ekeys[0]

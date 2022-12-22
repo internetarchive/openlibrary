@@ -1,5 +1,6 @@
 from datetime import datetime
 import logging
+from typing import Callable, Union
 
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 
@@ -38,9 +39,14 @@ class AuthorSearchScheme(SearchScheme):
         'top_subjects',
         'work_count',
     }
-    facet_rewrites: dict[tuple[str, str], str] = {}
+    facet_rewrites: dict[tuple[str, str], Union[str, Callable[[], str]]] = {}
 
-    def q_to_solr_params(self, q: str, solr_fields: set[str]) -> list[tuple[str, str]]:
+    def q_to_solr_params(
+        self,
+        q: str,
+        solr_fields: set[str],
+        cur_solr_params: list[tuple[str, str]],
+    ) -> list[tuple[str, str]]:
         return [
             ('q', q),
             ('q.op', 'AND'),
