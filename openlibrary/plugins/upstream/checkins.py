@@ -237,29 +237,5 @@ class ui_partials(delegate.page):
         return delegate.RawText(component)
 
 
-class yearly_goal_test_page(delegate.page):
-    path = "/_test/yearly-goals"
-
-    @authorized_for('/usergroup/beta-testers')
-    def GET(self):
-        return render_template('check_ins/reading_goal_form')
-
-
-class yearly_goal_progress_test_page(delegate.page):
-    path = "/_test/yearly-goals-progress"
-
-    @authorized_for('/usergroup/beta-testers')
-    def GET(self):
-        user = get_current_user()
-        username = user['key'].split('/')[-1]
-
-        goals = [
-            YearlyGoal(record.year, record.target, record.current)
-            for record in YearlyReadingGoals.select_by_username(username)
-        ]
-
-        return render_template('check_ins/reading_goal_progress', goals)
-
-
 def setup():
     pass
