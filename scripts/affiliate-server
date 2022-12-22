@@ -55,6 +55,14 @@ urls = (
 
 API_MAX_ITEMS_PER_CALL = 10
 API_MAX_WAIT_SECONDS = 0.9
+AZ_OL_MAP = {
+    'cover': 'covers',
+    'title': 'title',
+    'authors': 'authors',
+    'publishers': 'publishers',
+    'publish_date': 'publish_date',
+    'number_of_pages': 'pagination',
+}
 
 batch_name = ""
 batch: Batch = None
@@ -103,12 +111,38 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
         logger.debug("DB parameters missing from affiliate-server infobase")
         return
 
-    # XXX temporarily disable until covers + substantive changes added
-    #if books := [clean_amazon_metadata_for_load(product) for product in products]:
-    #    get_current_amazon_batch().add_items(
-    #        [{'ia_id': b['source_records'][0], 'data': b} for b in books]
-    #    )
-
+    if books := [clean_amazon_metadata_for_load(product) for product in products]:
+        pending_books = []
+            isbns = [isbn for isbns in [ 
+                b.get('isbn_10', []) + b.get('isbn_13', [])
+                for b in books
+            ] for isbn in isbns]
+        unique_edition_ids = set(web.ctx.site.things({
+            'type': '/type/edition',
+            'isbn_': [str(x) for x in isbns]
+        }))
+        editions = web.ctx.site.get_many(list(unique_edition_ids))
+        # For each amz book, check that we need its data 
+        for book in books:
+            if ed := next(
+                ed for ed in editions if
+                set(book.get('isbn_13')).intersection(set(ed.isbn_13)) or
+                set(book.get('isbn_10')).intersection(set(ed.isbn_10))
+            ):
+                book_needed = False
+                # if ed missing important book data, queue it
+                for (k, v) in AZ_OL_MAP.items():
+                    if book.get(k) and not ed.get(v):
+                        print(f"{ed} needs {k}: {book.get(k)}")
+                        book_needed = True
+                if book_needed:
+                    pending_books.append(book)
+            else: # if no such edition in OL, queue it for import
+                pending_books.append(book)
+        if pending_books:
+            get_current_amazon_batch().add_items(
+                [{'ia_id': b['source_records'][0], 'data': b} for b in pending_books]
+            )
 
 def seconds_remaining(start_time: int) -> int:
     return max(API_MAX_WAIT_SECONDS - (time.time() - start_time), 0)
