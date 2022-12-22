@@ -3,6 +3,7 @@
  * @module check-ins/index
  */
 import { PersistentToast } from '../Toast'
+import { initDialogs } from '../native-dialog'
 
 /**
  * Enum for check-in event types.
@@ -491,6 +492,7 @@ function updateChipGroup(chipGroup, goalModal) {
 
             const progressEditLink = progress.querySelector('.edit-reading-goal-link')
             const updateModal = progress.querySelector('dialog')
+            initDialogs([updateModal])
             addGoalEditClickListener(progressEditLink, updateModal)
             const submitButton = updateModal.querySelector('.reading-goal-submit-button')
             addGoalSubmissionListener(submitButton)
