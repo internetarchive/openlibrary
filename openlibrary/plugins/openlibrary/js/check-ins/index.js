@@ -388,49 +388,13 @@ function deleteEvent(rootElem, workOlid, eventId) {
     });
 }
 
-export function initSettingYearlyGoals(link) {
+export function initYearlyGoalPrompt(link) {
     const yearlyGoalModal = document.querySelector('#yearly-goal-modal')
 
-    const currentYear = setLocalYear(yearlyGoalModal.querySelector('form'))
+    setLocalYear(yearlyGoalModal.querySelector('form'))
 
     link.addEventListener('click', function() {
         yearlyGoalModal.showModal()
-    })
-    const submitButton = yearlyGoalModal.querySelector('form button')
-    submitButton.addEventListener('click', function(event) {
-        event.preventDefault()
-        const form = yearlyGoalModal.querySelector('form')
-        const formData = new FormData(yearlyGoalModal.querySelector('form'))
-        fetch(form.action, {
-            method: 'POST',
-            headers: {
-                'content-type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams(formData)
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error('Ratings update failed')
-                }
-                yearlyGoalModal.close()
-
-                // Fetch progress component HTML
-                fetch(`/reading-goal/partials?year=${currentYear}`)
-                    .then((response) => {
-                        if (!response.ok) {
-                            throw new Error('Failed to fetch progress element')
-                        }
-                        return response.text()
-                    })
-                    .then(function(html) {
-                        // Refresh view
-                        const chipGroup = document.querySelector('.chip-group')
-                        const progress = document.createElement('SPAN')
-                        progress.innerHTML = html
-                        chipGroup.insertBefore(progress, link.parentElement)
-                        link.parentElement.remove()
-                    })
-            })
     })
 }
 
@@ -440,6 +404,97 @@ function setLocalYear(form) {
     currentYearSpan.textContent = currentYear
 
     form.querySelector('input[name=year]').value = currentYear
+}
 
-    return currentYear
+export function initGoalEditLinks(editLinks) {
+    for (const link of editLinks) {
+        const parent = link.closest('.reading-goal-progress')
+        const modal = parent.querySelector('dialog')
+        addGoalEditClickListener(link, modal)
+    }
+}
+
+function addGoalEditClickListener(editLink, modal) {
+    editLink.addEventListener('click', function() {
+        modal.showModal()
+    })
+}
+
+export function initGoalSubmitButtons(submitButtons) {
+    for (const button of submitButtons) {
+        addGoalSubmissionListener(button)
+    }
+}
+
+function addGoalSubmissionListener(submitButton) {
+    submitButton.addEventListener('click', function(event) {
+        event.preventDefault()
+
+        const form = submitButton.closest('form')
+        const formData = new FormData(form)
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams(formData)
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Failed to set reading goal')
+                }
+                const modal = form.closest('dialog')
+                if (modal) {
+                    modal.close()
+                }
+
+                if (formData.get('is_update')) {
+                    const progressComponent = modal.closest('.reading-goal-progress')
+                    updateProgressComponent(progressComponent, Number(formData.get('goal')))
+                } else {
+                    const chipGroup = modal.closest('.chip-group')
+                    updateChipGroup(chipGroup, modal)
+                }
+            })
+    })
+}
+
+function updateProgressComponent(elem, goal) {
+    // Calculate new percentage:
+    const booksReadSpan = elem.querySelector('.reading-goal-progress__books-read')
+    const booksRead = Number(booksReadSpan.textContent)
+    const percentComplete = Math.floor((booksRead / goal) * 100)
+
+    // Update view:
+    const goalSpan = elem.querySelector('.reading-goal-progress__goal')
+    const percentageSpan = elem.querySelector('.reading-goal-progress__percentage')
+    const completedBar = elem.querySelector('.reading-goal-progress__completed')
+    goalSpan.textContent = goal
+    percentageSpan.textContent = `(${percentComplete}%)`
+    completedBar.style.width = `${Math.min(100, percentComplete)}%`
+}
+
+function updateChipGroup(chipGroup, goalModal) {
+    fetch('/reading-goal/partials')
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch progress element')
+            }
+            return response.text()
+        })
+        .then(function(html) {
+            const progress = document.createElement('SPAN')
+            progress.innerHTML = html
+            const goalChip = chipGroup.querySelector('.goal-chip')
+            chipGroup.insertBefore(progress, goalChip)
+            goalChip.remove()
+            goalModal.remove()
+
+            const progressEditLink = progress.querySelector('.edit-reading-goal-link')
+            const updateModal = progress.querySelector('dialog')
+            addGoalEditClickListener(progressEditLink, updateModal)
+            const submitButton = updateModal.querySelector('.reading-goal-submit-button')
+            addGoalSubmissionListener(submitButton)
+        })
 }

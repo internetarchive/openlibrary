@@ -176,24 +176,31 @@ class yearly_reading_goal_json(delegate.page):
 
     @authorized_for('/usergroup/beta-testers')
     def POST(self):
-        i = web.input(goal=0, year=None)
+        i = web.input(goal=0, year=None, is_update=None)
 
         goal = int(i.goal)
 
         if not goal or goal < 0:
             raise web.badrequest('Reading goal must be a positive integer')
 
+        if i.is_update and not i.year:
+            raise web.badrequest('Year required to update reading goals')
+
         user = get_current_user()
         username = user['key'].split('/')[-1]
 
         current_year = i.year or datetime.now().year
 
+        # TODO: Remove "current" from reading goals table and remove this
         finished = BookshelvesEvents.select_distinct_by_user_type_and_year(
             username, BookshelfEvent.FINISH, current_year
         )
         current_count = len(finished)
 
-        YearlyReadingGoals.create(username, current_year, goal, current_count)
+        if i.is_update:
+            YearlyReadingGoals.update_target(username, i.year, goal)
+        else:
+            YearlyReadingGoals.create(username, current_year, goal, current_count)
 
         return delegate.RawText(json.dumps({'status': 'ok'}))
 
@@ -224,6 +231,10 @@ class YearlyGoal:
         self.goal = goal
         self.books_read = books_read
         self.progress = floor((books_read / goal) * 100)
+
+    @classmethod
+    def calc_progress(cls, books_read, goal):
+        return floor((books_read / goal) * 100)
 
 
 class ui_partials(delegate.page):
