@@ -13,18 +13,19 @@ $ username = user.key.split('/')[-1]
   </span>
 </div>
 
-$ current_goal = get_reading_goals()
-$if not current_goal:
-  <div class="chip-group">
-    <span class="chip value-chip category-chip chip--selectable goal-chip">
-      <a id="set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"
-        href="javascript:;">$:_('Set <span id="reading-goal-current-year">2023</span> reading goal')</a>
-    </span>
-    $ reading_goal_form = render_template('check_ins/reading_goal_form')
-    $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title="Yearly Reading Goal")
-  </div>
-$else:
-  $:render_template('check_ins/reading_goal_progress', [current_goal])
+$if user.is_beta_tester():
+  $ current_goal = get_reading_goals()
+  $if not current_goal:
+    <div class="chip-group">
+      <span class="chip value-chip category-chip chip--selectable goal-chip">
+        <a id="set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"
+          href="javascript:;">$:_('Set <span id="reading-goal-current-year">2023</span> reading goal')</a>
+      </span>
+      $ reading_goal_form = render_template('check_ins/reading_goal_form')
+      $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title="Yearly Reading Goal")
+    </div>
+  $else:
+    $:render_template('check_ins/reading_goal_progress', [current_goal])
 
 $code:
     def compact_carousel(data):
