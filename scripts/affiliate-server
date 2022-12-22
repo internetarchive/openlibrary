@@ -113,7 +113,7 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
 
     if books := [clean_amazon_metadata_for_load(product) for product in products]:
         pending_books = []
-            isbns = [isbn for isbns in [ 
+            isbns = [isbn for isbns in [
                 b.get('isbn_10', []) + b.get('isbn_13', [])
                 for b in books
             ] for isbn in isbns]
@@ -122,7 +122,7 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
             'isbn_': [str(x) for x in isbns]
         }))
         editions = web.ctx.site.get_many(list(unique_edition_ids))
-        # For each amz book, check that we need its data 
+        # For each amz book, check that we need its data
         for book in books:
             if ed := next(
                 ed for ed in editions if
