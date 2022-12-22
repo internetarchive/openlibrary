@@ -80,19 +80,27 @@ def batch_import(promise_id):
     batch.add_items(batch_items)
 
 
-def get_promise_items():
-    url = "https://archive.org/advancedsearch.php"
-    q = "collection%3Abookdonationsfrombetterworldbooks+identifier%3Abwb_daily_pallets_*"
-    sorts = "sort%5B%5D=addeddate+desc&sort%5B%5D=&sort%5B%5D="
-    fields = "fl%5B%5D=identifier"
-    rows = 5000
-    r = requests.get(f"{url}?q={q}&{fields}&{sorts}&rows={rows}&page=1&output=json")
+def get_promise_items(start_date=None, end_date="9999-01-01"):
+    url = get_promise_items_url(start_date=start_date, end_date=end_date)
+    r = requests.get(url)
     return [d['identifier'] for d in r.json()['response']['docs']]
 
 
-def main(ol_config: str):
+def get_promise_items_url(start_date=None, end_date="9999-01-01"):
+    base = "https://archive.org/advancedsearch.php"
+    q = "collection%3Abookdonationsfrombetterworldbooks+identifier%3Abwb_daily_pallets_*"
+    if start_date:
+        q += f"+publicdate%3A[{start_date} TO {end_date}]"
+    sorts = "sort%5B%5D=addeddate+desc&sort%5B%5D=&sort%5B%5D="
+    fields = "fl%5B%5D=identifier"
+    rows = 5000
+    url = f"{base}?q={q}&{fields}&{sorts}&rows={rows}&page=1&output=json"
+    return url
+
+
+def main(ol_config: str, start_date: str):
     load_config(ol_config)
-    promise_ids = get_promise_items()
+    promise_ids = get_promise_items(start_date=start_date)
     for i, promise_id in enumerate(promise_ids):
         batch_import(promise_id)
 
