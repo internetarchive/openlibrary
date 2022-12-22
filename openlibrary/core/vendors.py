@@ -176,7 +176,7 @@ class AmazonAPI:
           'title': 'Boundless: Upgrade Your Brain, Optimize Your Body & Defy Aging',
           'url': 'https://www.amazon.com/dp/1628603976/?tag=internetarchi-20',
           'number_of_pages': 640,
-          'covers': 'https://m.media-amazon.com/images/I/51IT9MV3KqL._AC_.jpg',
+          'cover': 'https://m.media-amazon.com/images/I/51IT9MV3KqL._AC_.jpg',
           'languages': ['English']
           'edition_num': '1'
         }
@@ -385,7 +385,7 @@ def clean_amazon_metadata_for_load(metadata: dict) -> dict:
         'source_records',
         'number_of_pages',
         'publishers',
-        'covers',
+        'cover',
         'isbn_10',
         'isbn_13',
         'physical_format',
