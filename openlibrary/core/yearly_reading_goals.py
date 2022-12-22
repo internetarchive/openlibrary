@@ -11,9 +11,7 @@ class YearlyReadingGoals:
     def create(cls, username: str, year: int, target: int):
         oldb = db.get_db()
 
-        return oldb.insert(
-            cls.TABLENAME, username=username, year=year, target=target
-        )
+        return oldb.insert(cls.TABLENAME, username=username, year=year, target=target)
 
     # Read methods:
     @classmethod
