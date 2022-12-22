@@ -1,21 +1,8 @@
 $def with (user, mybooks, public=False, owners_page=False, counts=None, lists=None)
 
 $ username = user.key.split('/')[-1]
-$if user.is_beta_tester():
-  $ current_goal = get_reading_goals()
 
 <div class="chip-group">
-  $if not current_goal:
-    <span class="chip value-chip category-chip chip--selectable goal-chip">
-      <a id="set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"
-        href="javascript:;">$:_('Set <span id="reading-goal-current-year">2023</span> reading goal')</a>
-    </span>
-
-      $ reading_goal_form = render_template('check_ins/reading_goal_form')
-      $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title="Yearly Reading Goal")
-    $else:
-      $:render_template('check_ins/reading_goal_progress', [current_goal])
-
   <span class="chip value-chip category-chip chip--selectable">
     <a data-ol-link-track="MyBooksSidebar|ReadingStats"
        href="/account/books/already-read/stats">$_('My Reading Stats')</a>
@@ -25,6 +12,19 @@ $if user.is_beta_tester():
        href="/account/import">$_('Import & Export Options')</a>
   </span>
 </div>
+
+$ current_goal = get_reading_goals()
+$if not current_goal:
+  <div class="chip-group">
+    <span class="chip value-chip category-chip chip--selectable goal-chip">
+      <a id="set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"
+        href="javascript:;">$:_('Set <span id="reading-goal-current-year">2023</span> reading goal')</a>
+    </span>
+    $ reading_goal_form = render_template('check_ins/reading_goal_form')
+    $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title="Yearly Reading Goal")
+  </div>
+$else:
+  $:render_template('check_ins/reading_goal_progress', [current_goal])
 
 $code:
     def compact_carousel(data):

@@ -162,18 +162,23 @@
   &__heading,
   &__details {
     width: fit-content;
-    margin: 0 auto;
   }
 
   &__heading {
     font-weight: 900;
   }
 
+  &__body {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
   &__progress-bar {
     background-color: @light-grey;
     border-radius: 5px;
     height: 20px;
-    margin: 5px auto 0;
+    margin: 5px 5px 0 0;
     width: 50%;
   }
 
@@ -183,10 +188,23 @@
     height: inherit;
     border-radius: inherit;
   }
+
+  &__details {
+    align-self: unset;
+    margin-left: 5px;
+  }
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
-  .reading-goal-progress__progress-bar {
-    width: unset;
+  .reading-goal-progress {
+    &__body {
+      flex-direction: row;
+    }
+    &__progress-bar {
+      width: 33%;
+    }
+    &__details {
+      align-self: center;
+    }
   }
 }

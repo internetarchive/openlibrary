@@ -486,10 +486,8 @@ function updateChipGroup(chipGroup, goalModal) {
         .then(function(html) {
             const progress = document.createElement('SPAN')
             progress.innerHTML = html
-            const goalChip = chipGroup.querySelector('.goal-chip')
-            chipGroup.insertBefore(progress, goalChip)
-            goalChip.remove()
-            goalModal.remove()
+            chipGroup.parentElement.insertBefore(progress, chipGroup)
+            chipGroup.remove()
 
             const progressEditLink = progress.querySelector('.edit-reading-goal-link')
             const updateModal = progress.querySelector('dialog')
