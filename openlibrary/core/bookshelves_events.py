@@ -107,7 +107,7 @@ class BookshelvesEvents(db.CommonExtras):
     @classmethod
     def select_distinct_by_user_type_and_year(cls, username, event_type, year):
         """Returns a list of the most recent check-in events, with no repeating
-        work IDs.  Useful for calculating one's yearly reading goal progess.
+        work IDs.  Useful for calculating one's yearly reading goal progress.
         """
         oldb = db.get_db()
 
