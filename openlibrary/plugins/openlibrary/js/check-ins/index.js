@@ -389,6 +389,12 @@ function deleteEvent(rootElem, workOlid, eventId) {
     });
 }
 
+/**
+ * Adds listener to open reading goal modal, and updates year to
+ * local year.
+ *
+ * @param {HTMLElement} link Prompt for adding a reading goal
+ */
 export function initYearlyGoalPrompt(link) {
     const yearlyGoalModal = document.querySelector('#yearly-goal-modal')
 
@@ -399,6 +405,15 @@ export function initYearlyGoalPrompt(link) {
     })
 }
 
+/**
+ * Updates year to the client's local year.
+ *
+ * Used to prevent issues on New Year's day.  Sets
+ * the year input in the reading log form, and updates
+ * the year in the "set goal" CTA link.
+ *
+ * @param {HTMLFormElement} form Reading goal form
+ */
 function setLocalYear(form) {
     const currentYearSpan = document.querySelector('#reading-goal-current-year')
     const currentYear = new Date().getFullYear();
@@ -407,6 +422,11 @@ function setLocalYear(form) {
     form.querySelector('input[name=year]').value = currentYear
 }
 
+/**
+ * Adds click listeners to the given edit goal links.
+ *
+ * @param {HTMLCollection<HTMLElement>} editLinks Edit goal links
+ */
 export function initGoalEditLinks(editLinks) {
     for (const link of editLinks) {
         const parent = link.closest('.reading-goal-progress')
@@ -415,18 +435,39 @@ export function initGoalEditLinks(editLinks) {
     }
 }
 
+/**
+ * Adds click listener to the given edit link.
+ *
+ * Given modal will be displayed when the edit link
+ * is clicked.
+ * @param {HTMLElement} editLink An edit goal link
+ * @param {HTMLDialogElement} modal The modal that will be shown
+ */
 function addGoalEditClickListener(editLink, modal) {
     editLink.addEventListener('click', function() {
         modal.showModal()
     })
 }
 
+/**
+ * Adds click listeners to given collection of goal submission
+ * buttons.
+ *
+ * @param {HTMLCollection<HTMLElement>} submitButtons Submit goal buttons
+ */
 export function initGoalSubmitButtons(submitButtons) {
     for (const button of submitButtons) {
         addGoalSubmissionListener(button)
     }
 }
 
+/**
+ * Adds click listener to given reading goal form submission button.
+ *
+ * On click, POSTs form to server.  Updates view depending on whether
+ * the action set a new goal, or updated an existing goal.
+ * @param {HTMLELement} submitButton Reading goal form submit button
+ */
 function addGoalSubmissionListener(submitButton) {
     submitButton.addEventListener('click', function(event) {
         event.preventDefault()
@@ -461,6 +502,13 @@ function addGoalSubmissionListener(submitButton) {
     })
 }
 
+/**
+ * Updates given reading goal progress component with a new
+ * goal.
+ *
+ * @param {HTMLElement} elem A reading goal progress component
+ * @param {Number} goal The new reading goal
+ */
 function updateProgressComponent(elem, goal) {
     // Calculate new percentage:
     const booksReadSpan = elem.querySelector('.reading-goal-progress__books-read')
@@ -476,6 +524,12 @@ function updateProgressComponent(elem, goal) {
     completedBar.style.width = `${Math.min(100, percentComplete)}%`
 }
 
+/**
+ * Replaces "Set reading goal" chip on My Books page with reading goal
+ * progress component.
+ *
+ * @param {HTMLElement} chipGroup Parent container of "set goal" CTA link
+ */
 function updateChipGroup(chipGroup) {
     fetch('/reading-goal/partials')
         .then((response) => {
