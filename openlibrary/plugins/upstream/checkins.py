@@ -197,6 +197,7 @@ class yearly_reading_goal_json(delegate.page):
 
         return delegate.RawText(json.dumps({'status': 'ok'}))
 
+
 @public
 def get_reading_goals(year=None):
     user = get_current_user()
@@ -209,12 +210,13 @@ def get_reading_goals(year=None):
         return None
 
     books_read = BookshelvesEvents.select_distinct_by_user_type_and_year(
-            username, BookshelfEvent.FINISH, year
-        )
+        username, BookshelfEvent.FINISH, year
+    )
     read_count = len(books_read)
     result = YearlyGoal(data[0].year, data[0].target, read_count)
 
     return result
+
 
 class YearlyGoal:
     def __init__(self, year, goal, books_read):
@@ -231,8 +233,9 @@ class ui_partials(delegate.page):
         i = web.input(year=None)
         year = i.year or datetime.now().year
         goal = get_reading_goals(year=year)
-        component =  render_template('check_ins/reading_goal_progress', [goal])
+        component = render_template('check_ins/reading_goal_progress', [goal])
         return delegate.RawText(component)
+
 
 class yearly_goal_test_page(delegate.page):
     path = "/_test/yearly-goals"
