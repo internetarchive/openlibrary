@@ -191,16 +191,10 @@ class yearly_reading_goal_json(delegate.page):
 
         current_year = i.year or datetime.now().year
 
-        # TODO: Remove "current" from reading goals table and remove this
-        finished = BookshelvesEvents.select_distinct_by_user_type_and_year(
-            username, BookshelfEvent.FINISH, current_year
-        )
-        current_count = len(finished)
-
         if i.is_update:
             YearlyReadingGoals.update_target(username, i.year, goal)
         else:
-            YearlyReadingGoals.create(username, current_year, goal, current_count)
+            YearlyReadingGoals.create(username, current_year, goal)
 
         return delegate.RawText(json.dumps({'status': 'ok'}))
 
