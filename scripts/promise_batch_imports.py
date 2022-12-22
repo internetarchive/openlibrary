@@ -26,10 +26,6 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 logger = logging.getLogger("openlibrary.importer.promises")
 
 
-class MissingDailyPalletsJSON(Exception):
-    pass
-
-
 def format_date(date: str) -> str:
     y = date[0:4]
     m = date[4:6]
@@ -69,11 +65,7 @@ def map_book_to_olbook(book, promise_id):
 def batch_import(promise_id):
     url = "https://archive.org/download/"
     date = promise_id.split("_")[-1]
-    try:
-        books = requests.get(f"{url}{promise_id}/DailyPallets__{date}.json").json()
-    except MissingDailyPalletsJSON as e:
-        logger.info(f"No DailyPallets JSON Error: {e}")
-        return
+    books = requests.get(f"{url}{promise_id}/DailyPallets__{date}.json").json()
     batch = Batch.find(promise_id) or Batch.new(promise_id)
     olbooks = [map_book_to_olbook(book, promise_id) for book in books]
     batch_items = [{'ia_id': b['local_id'][0], 'data': b} for b in olbooks]
