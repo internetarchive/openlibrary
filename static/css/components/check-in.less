@@ -1,3 +1,4 @@
+/* Styles for the check-in form */
 .check-in {
   padding: 10px;
 
@@ -65,37 +66,6 @@
   background: linear-gradient(to bottom, transparent 80%, @lightest-grey);
 }
 
-.last-read-date {
-  margin-bottom: 5px;
-
-  .date-display {
-    display: flex;
-    justify-content: space-between;
-
-    .read-label {
-      font-weight: 700;
-    }
-  }
-
-  .prompt-options {
-    display: inline-block;
-    width: 100%;
-    text-align: center;
-  }
-}
-
-.check-in-prompt {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 5px;
-
-  .prompt-options {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 5px;
-  }
-}
-
 @media only screen and (min-width: @width-breakpoint-tablet) {
   .check-in {
     &__form {
@@ -131,6 +101,110 @@
       > select {
         width: 100%;
       }
+    }
+  }
+}
+
+/* Styles for check-in prompt, located below reading log dropper */
+.last-read-date {
+  margin-bottom: 5px;
+
+  .date-display {
+    display: flex;
+    justify-content: space-between;
+
+    .read-label {
+      font-weight: 700;
+    }
+  }
+
+  .prompt-options {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+  }
+}
+
+.check-in-prompt {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 5px;
+
+  .prompt-options {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+  }
+}
+
+/* Styles for the yearly reading goal form */
+.goal-form {
+  font-size: 16px;
+
+  button {
+    display: inline-block;
+    width: fit-content;
+    margin-left: 10px;
+  }
+
+  input {
+    width: 5em;
+    padding: 10px;
+    font-size: 16px;
+  }
+}
+
+/* Styles for the yearly reading goal progress component */
+.reading-goal-progress {
+  color: @dark-grey;
+  padding: 5px 0;
+
+  &__heading,
+  &__details {
+    width: fit-content;
+  }
+
+  &__heading {
+    font-weight: 900;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  &__progress-bar {
+    background-color: @light-grey;
+    border-radius: 5px;
+    height: 20px;
+    margin: 5px 5px 0 0;
+    width: 50%;
+  }
+
+  &__completed {
+    display: inline-block;
+    background-color: @primary-blue;
+    height: inherit;
+    border-radius: inherit;
+  }
+
+  &__details {
+    align-self: unset;
+    margin-left: 5px;
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .reading-goal-progress {
+    &__body {
+      flex-direction: row;
+    }
+    &__progress-bar {
+      width: 33%;
+    }
+    &__details {
+      align-self: center;
     }
   }
 }

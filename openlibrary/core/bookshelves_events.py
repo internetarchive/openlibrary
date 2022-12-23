@@ -84,7 +84,46 @@ class BookshelvesEvents(db.CommonExtras):
             event_type=$event_type
         """
 
-        return list(db.select(cls.TABLENAME, where=where, vars=data))
+        return list(oldb.select(cls.TABLENAME, where=where, vars=data))
+
+    @classmethod
+    def select_by_user_type_and_year(cls, username, event_type, year):
+        oldb = db.get_db()
+
+        data = {
+            'username': username,
+            'event_type': event_type,
+            'event_date': f'{year}%',
+        }
+
+        where = """
+            username=$username AND
+            event_type=$event_type AND
+            event_date LIKE $event_date
+        """
+
+        return list(oldb.select(cls.TABLENAME, where=where, vars=data))
+
+    @classmethod
+    def select_distinct_by_user_type_and_year(cls, username, event_type, year):
+        """Returns a list of the most recent check-in events, with no repeating
+        work IDs.  Useful for calculating one's yearly reading goal progress.
+        """
+        oldb = db.get_db()
+
+        data = {
+            'username': username,
+            'event_type': event_type,
+            'event_date': f'{year}%',
+        }
+        query = (
+            f"select distinct on (work_id) work_id, * from {cls.TABLENAME} "
+            "where username=$username and event_type=$event_type and "
+            "event_date LIKE $event_date "
+            "order by work_id, updated desc"
+        )
+
+        return list(oldb.query(query, vars=data))
 
     @classmethod
     def exists(cls, pid) -> bool:

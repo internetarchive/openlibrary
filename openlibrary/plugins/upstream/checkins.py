@@ -3,12 +3,16 @@
 import json
 import web
 
+from datetime import datetime
+from math import floor
 from typing import Optional
 
 from infogami.utils import delegate
 from infogami.utils.view import public
 
 from openlibrary.accounts import get_current_user
+from openlibrary.app import render_template
+from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.utils.decorators import authorized_for
@@ -142,6 +146,100 @@ class patron_check_in(delegate.page):
             raise web.notfound('Event does not exist')
         BookshelvesEvents.delete_by_id(check_in_id)
         return web.ok()
+
+
+class yearly_reading_goal_json(delegate.page):
+    path = '/reading-goal'
+    encoding = 'json'
+
+    @authorized_for('/usergroup/beta-testers')
+    def GET(self):
+        i = web.input(year=None)
+
+        user = get_current_user()
+        username = user['key'].split('/')[-1]
+
+        if i.year:
+            results = [
+                {'year': i.year, 'goal': record.target, 'progress': record.current}
+                for record in YearlyReadingGoals.select_by_username_and_year(
+                    username, i.year
+                )
+            ]
+        else:
+            results = [
+                {'year': record.year, 'goal': record.target, 'progress': record.current}
+                for record in YearlyReadingGoals.select_by_username(username)
+            ]
+
+        return delegate.RawText(json.dumps({'status': 'ok', 'goal': results}))
+
+    @authorized_for('/usergroup/beta-testers')
+    def POST(self):
+        i = web.input(goal=0, year=None, is_update=None)
+
+        goal = int(i.goal)
+
+        if not goal or goal < 0:
+            raise web.badrequest('Reading goal must be a positive integer')
+
+        if i.is_update and not i.year:
+            raise web.badrequest('Year required to update reading goals')
+
+        user = get_current_user()
+        username = user['key'].split('/')[-1]
+
+        current_year = i.year or datetime.now().year
+
+        if i.is_update:
+            YearlyReadingGoals.update_target(username, i.year, goal)
+        else:
+            YearlyReadingGoals.create(username, current_year, goal)
+
+        return delegate.RawText(json.dumps({'status': 'ok'}))
+
+
+@public
+def get_reading_goals(year=None):
+    user = get_current_user()
+    username = user['key'].split('/')[-1]
+
+    if not year:
+        year = datetime.now().year
+
+    if not (data := YearlyReadingGoals.select_by_username_and_year(username, year)):
+        return None
+
+    books_read = BookshelvesEvents.select_distinct_by_user_type_and_year(
+        username, BookshelfEvent.FINISH, year
+    )
+    read_count = len(books_read)
+    result = YearlyGoal(data[0].year, data[0].target, read_count)
+
+    return result
+
+
+class YearlyGoal:
+    def __init__(self, year, goal, books_read):
+        self.year = year
+        self.goal = goal
+        self.books_read = books_read
+        self.progress = floor((books_read / goal) * 100)
+
+    @classmethod
+    def calc_progress(cls, books_read, goal):
+        return floor((books_read / goal) * 100)
+
+
+class ui_partials(delegate.page):
+    path = '/reading-goal/partials'
+
+    def GET(self):
+        i = web.input(year=None)
+        year = i.year or datetime.now().year
+        goal = get_reading_goals(year=year)
+        component = render_template('check_ins/reading_goal_progress', [goal])
+        return delegate.RawText(component)
 
 
 def setup():

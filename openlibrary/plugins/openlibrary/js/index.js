@@ -383,12 +383,24 @@ jQuery(function () {
         import(/* webpackChunkName: "dialog" */ './native-dialog')
             .then(module => module.initDialogs(nativeDialogs))
     }
+    const setGoalLink = document.querySelector('#set-reading-goal-link')
+    const goalEditLinks = document.querySelectorAll('.edit-reading-goal-link')
+    const goalSubmitButtons = document.querySelectorAll('.reading-goal-submit-button')
     const checkInForms = document.querySelectorAll('.check-in')
     const checkInPrompts = document.querySelectorAll('.check-in-prompt')
     const checkInEditLinks = document.querySelectorAll('.prompt-edit-date')
-    if (checkInForms.length || checkInPrompts.length || checkInEditLinks.length) {
+    if (setGoalLink || goalEditLinks.length || goalSubmitButtons.length || checkInForms.length || checkInPrompts.length || checkInEditLinks.length) {
         import(/* webpackChunkName: "check-ins" */ './check-ins')
             .then((module) => {
+                if (setGoalLink) {
+                    module.initYearlyGoalPrompt(setGoalLink)
+                }
+                if (goalEditLinks.length) {
+                    module.initGoalEditLinks(goalEditLinks)
+                }
+                if (goalSubmitButtons.length) {
+                    module.initGoalSubmitButtons(goalSubmitButtons)
+                }
                 if (checkInForms.length) {
                     module.initCheckInForms(checkInForms)
                 }
