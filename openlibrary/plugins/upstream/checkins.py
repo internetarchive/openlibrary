@@ -180,7 +180,10 @@ class yearly_reading_goal_json(delegate.page):
 
         goal = int(i.goal)
 
-        if not goal or goal < 0:
+        if i.is_update:
+            if goal < 0:
+                raise web.badrequest('Reading goal update must be 0 or a positive integer')
+        elif not goal or goal < 1:
             raise web.badrequest('Reading goal must be a positive integer')
 
         if i.is_update and not i.year:
@@ -192,7 +195,12 @@ class yearly_reading_goal_json(delegate.page):
         current_year = i.year or datetime.now().year
 
         if i.is_update:
-            YearlyReadingGoals.update_target(username, i.year, goal)
+            if goal == 0:
+                # Delete goal if "0" was submitted:
+                YearlyReadingGoals.delete_by_username_and_year(username, i.year)
+            else:
+                # Update goal normally:
+                YearlyReadingGoals.update_target(username, i.year, goal)
         else:
             YearlyReadingGoals.create(username, current_year, goal)
 

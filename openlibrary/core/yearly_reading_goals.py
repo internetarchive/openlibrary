@@ -100,3 +100,15 @@ class YearlyReadingGoals:
         data = {'username': username}
 
         return oldb.delete(cls.TABLENAME, where=where, vars=data)
+
+    @classmethod
+    def delete_by_username_and_year(cls, username, year):
+        oldb = db.get_db()
+
+        data = {
+            'username': username,
+            'year': year,
+        }
+        where = 'username=$username AND year=$year'
+
+        return oldb.delete(cls.TABLENAME, where=where, vars=data)
