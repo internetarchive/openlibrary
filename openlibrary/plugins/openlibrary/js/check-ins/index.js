@@ -473,6 +473,11 @@ function addGoalSubmissionListener(submitButton) {
         event.preventDefault()
 
         const form = submitButton.closest('form')
+
+        if (!form.checkValidity()) {
+            form.reportValidity()
+            throw new Error('Form invalid')
+        }
         const formData = new FormData(form)
 
         fetch(form.action, {
