@@ -33,7 +33,7 @@ $if ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ct
       </div>
       $# Paste next line into announcement variable to show the blue banner
       $# <strong>Title:</strong> Description &nbsp; <a href="#" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>
-      $ announcement = None
+      $ announcement = '<span class="heart">⬆</span> We recently released a new My Books page &mdash; <a href="https://blog.openlibrary.org/2022/12/27/a-brand-new-my-books-experience/" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary" style="border: 1px solid #999;">What do you think?</a>'
       $if announcement:
         <div class="page-banner page-banner-body">
          $:announcement
