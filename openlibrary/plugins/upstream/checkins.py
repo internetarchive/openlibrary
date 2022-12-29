@@ -52,6 +52,9 @@ def is_valid_date(year: int, month: Optional[int], day: Optional[int]) -> bool:
 @public
 def get_latest_read_date(work_olid: str) -> dict | None:
     user = get_current_user()
+    if not user:
+        return None
+
     username = user['key'].split('/')[-1]
 
     work_id = extract_numeric_id_from_olid(work_olid)
@@ -84,6 +87,9 @@ class patron_check_ins(delegate.page):
             raise web.badrequest(message='Invalid date submitted')
 
         user = get_current_user()
+        if not user:
+            raise web.unauthorized(message='Requires login')
+
         username = user['key'].split('/')[-1]
 
         edition_key = data.get('edition_key', None)
@@ -174,8 +180,10 @@ class yearly_reading_goal_json(delegate.page):
         i = web.input(year=None)
 
         user = get_current_user()
-        username = user['key'].split('/')[-1]
+        if not user:
+            raise web.unauthorized(message='Requires login')
 
+        username = user['key'].split('/')[-1]
         if i.year:
             results = [
                 {'year': i.year, 'goal': record.target, 'progress': record.current}
@@ -209,8 +217,10 @@ class yearly_reading_goal_json(delegate.page):
             raise web.badrequest(message='Year required to update reading goals')
 
         user = get_current_user()
-        username = user['key'].split('/')[-1]
+        if not user:
+            raise web.unauthorized(message='Requires login')
 
+        username = user['key'].split('/')[-1]
         current_year = i.year or datetime.now().year
 
         if i.is_update:
@@ -229,8 +239,10 @@ class yearly_reading_goal_json(delegate.page):
 @public
 def get_reading_goals(year=None):
     user = get_current_user()
-    username = user['key'].split('/')[-1]
+    if not user:
+        return None
 
+    username = user['key'].split('/')[-1]
     if not year:
         year = datetime.now().year
 
