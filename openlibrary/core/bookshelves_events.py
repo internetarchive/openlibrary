@@ -125,10 +125,6 @@ class BookshelvesEvents(db.CommonExtras):
 
         return list(oldb.query(query, vars=data))
 
-    @classmethod
-    def exists(cls, pid) -> bool:
-        return len(cls.select_by_id(pid)) > 0
-
     # Update methods:
     @classmethod
     def update_event(cls, pid, edition_id=None, event_date=None, data=None):
