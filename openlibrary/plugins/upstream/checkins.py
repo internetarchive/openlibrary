@@ -52,6 +52,9 @@ def is_valid_date(year: int, month: Optional[int], day: Optional[int]) -> bool:
 @public
 def get_latest_read_date(work_olid: str) -> dict | None:
     user = get_current_user()
+    if not user:
+        return None
+
     username = user['key'].split('/')[-1]
 
     work_id = extract_numeric_id_from_olid(work_olid)
@@ -81,9 +84,12 @@ class patron_check_ins(delegate.page):
         data = json.loads(web.data())
 
         if not self.validate_data(data):
-            raise web.badrequest('Invalid date submitted')
+            raise web.badrequest(message='Invalid date submitted')
 
         user = get_current_user()
+        if not user:
+            raise web.unauthorized(message='Requires login')
+
         username = user['key'].split('/')[-1]
 
         edition_key = data.get('edition_key', None)
@@ -101,8 +107,14 @@ class patron_check_ins(delegate.page):
 
         if event_id:
             # update existing event
-            if not BookshelvesEvents.exists(event_id):
-                raise web.notfound('Check-in event unavailable for edit')
+            events = BookshelvesEvents.select_by_id(event_id)
+            if not events:
+                raise web.notfound(message='Event does not exist')
+
+            event = events[0]
+            if username != event['username']:
+                raise web.forbidden()
+
             BookshelvesEvents.update_event(
                 event_id, event_date=date_str, edition_id=edition_id
             )
@@ -142,9 +154,19 @@ class patron_check_in(delegate.page):
 
     @authorized_for('/usergroup/beta-testers')
     def DELETE(self, check_in_id):
-        # TODO: Check for authorization after removing authorized_for decorator
-        if not BookshelvesEvents.exists(check_in_id):
-            raise web.notfound('Event does not exist')
+        user = get_current_user()
+        if not user:
+            raise web.unauthorized(message="Requires login")
+
+        events = BookshelvesEvents.select_by_id(check_in_id)
+        if not events:
+            raise web.notfound(message='Event does not exist')
+
+        event = events[0]
+        username = user['key'].split('/')[-1]
+        if username != event['username']:
+            raise web.forbidden()
+
         BookshelvesEvents.delete_by_id(check_in_id)
         return web.ok()
 
@@ -158,8 +180,10 @@ class yearly_reading_goal_json(delegate.page):
         i = web.input(year=None)
 
         user = get_current_user()
-        username = user['key'].split('/')[-1]
+        if not user:
+            raise web.unauthorized(message='Requires login')
 
+        username = user['key'].split('/')[-1]
         if i.year:
             results = [
                 {'year': i.year, 'goal': record.target, 'progress': record.current}
@@ -184,17 +208,19 @@ class yearly_reading_goal_json(delegate.page):
         if i.is_update:
             if goal < 0:
                 raise web.badrequest(
-                    'Reading goal update must be 0 or a positive integer'
+                    message='Reading goal update must be 0 or a positive integer'
                 )
         elif not goal or goal < 1:
-            raise web.badrequest('Reading goal must be a positive integer')
+            raise web.badrequest(message='Reading goal must be a positive integer')
 
         if i.is_update and not i.year:
-            raise web.badrequest('Year required to update reading goals')
+            raise web.badrequest(message='Year required to update reading goals')
 
         user = get_current_user()
-        username = user['key'].split('/')[-1]
+        if not user:
+            raise web.unauthorized(message='Requires login')
 
+        username = user['key'].split('/')[-1]
         current_year = i.year or datetime.now().year
 
         if i.is_update:
@@ -213,8 +239,10 @@ class yearly_reading_goal_json(delegate.page):
 @public
 def get_reading_goals(year=None):
     user = get_current_user()
-    username = user['key'].split('/')[-1]
+    if not user:
+        return None
 
+    username = user['key'].split('/')[-1]
     if not year:
         year = datetime.now().year
 
