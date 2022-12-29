@@ -182,7 +182,9 @@ class yearly_reading_goal_json(delegate.page):
 
         if i.is_update:
             if goal < 0:
-                raise web.badrequest('Reading goal update must be 0 or a positive integer')
+                raise web.badrequest(
+                    'Reading goal update must be 0 or a positive integer'
+                )
         elif not goal or goal < 1:
             raise web.badrequest('Reading goal must be a positive integer')
 
