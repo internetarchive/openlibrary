@@ -88,6 +88,11 @@ export function initCheckInPrompts(elems) {
         customDateLink.addEventListener('click', function() {
             modal.showModal()
         })
+
+        const yearLink = elem.querySelector('.prompt-current-year')
+        yearLink.addEventListener('click', function() {
+            onYearClick(modal)
+        })
     }
 }
 
@@ -126,23 +131,29 @@ function onTodayClick(modal, doSubmit=false) {
     }
 }
 
+function onYearClick(modal) {
+    const year = new Date().getFullYear()
+    setDate(modal, year)
+    submitEvent(modal.querySelector('.check-in'))
+}
+
 /**
  * Sets the date selectors of the given form to the given year, month, and day.
  *
  * @param {HTMLElement} parentElement The root element of the check-in component
  * @param {Number} year Four digit year
- * @param {Number} month One-indexed month
- * @param {Number} day The day
+ * @param {Number|null} month One-indexed month
+ * @param {Number|null} day The day
  */
-export function setDate(parentElement, year, month, day) {
+export function setDate(parentElement, year, month=null, day=null) {
     const yearSelect = parentElement.querySelector('select[name=year]')
     const monthSelect = parentElement.querySelector('select[name=month]')
     const daySelect = parentElement.querySelector('select[name=day]')
     const submitButton = parentElement.querySelector('.check-in__submit-btn')
 
     yearSelect.value = year
-    monthSelect.value = month
-    daySelect.value = day
+    monthSelect.value = month ? month : ''
+    daySelect.value = day ? day : ''
 
     let daysInMonth = DAYS_IN_MONTH[month - 1]
     if (month === 2 && isLeapYear(year)) {
@@ -152,7 +163,7 @@ export function setDate(parentElement, year, month, day) {
     toggleDayVisibility(daySelect, daysInMonth)
 
     monthSelect.disabled = false
-    daySelect.disabled = false
+    daySelect.disabled = day ? false : true
     submitButton.disabled = false
 }
 
