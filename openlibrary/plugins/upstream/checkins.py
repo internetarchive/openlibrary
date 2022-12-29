@@ -81,7 +81,7 @@ class patron_check_ins(delegate.page):
         data = json.loads(web.data())
 
         if not self.validate_data(data):
-            raise web.badrequest('Invalid date submitted')
+            raise web.badrequest(message='Invalid date submitted')
 
         user = get_current_user()
         username = user['key'].split('/')[-1]
@@ -102,7 +102,7 @@ class patron_check_ins(delegate.page):
         if event_id:
             # update existing event
             if not BookshelvesEvents.exists(event_id):
-                raise web.notfound('Check-in event unavailable for edit')
+                raise web.notfound(message='Check-in event unavailable for edit')
             BookshelvesEvents.update_event(
                 event_id, event_date=date_str, edition_id=edition_id
             )
@@ -194,13 +194,13 @@ class yearly_reading_goal_json(delegate.page):
         if i.is_update:
             if goal < 0:
                 raise web.badrequest(
-                    'Reading goal update must be 0 or a positive integer'
+                    message='Reading goal update must be 0 or a positive integer'
                 )
         elif not goal or goal < 1:
-            raise web.badrequest('Reading goal must be a positive integer')
+            raise web.badrequest(message='Reading goal must be a positive integer')
 
         if i.is_update and not i.year:
-            raise web.badrequest('Year required to update reading goals')
+            raise web.badrequest(message='Year required to update reading goals')
 
         user = get_current_user()
         username = user['key'].split('/')[-1]
