@@ -19,10 +19,7 @@ $ prompt_id = 'prompt-%s' % work_olid
   <span class="date-display">
     <span class="read-label">Read: </span>
     <span class="check-in-date">$last_read_date</span>
-  </span>
-
-  <span class="prompt-options">
-    <a class="prompt-edit-date" href="javascript:;" data-work-olid="$(work_olid)" data-ol-link-track="CheckInPrompt|EditDate">$_("Edit Date")</a>
+    <a class="prompt-edit-date" href="javascript:;" data-work-olid="$(work_olid)" data-ol-link-track="CheckInPrompt|EditDate">$_("Edit")</a>
   </span>
 </div>
 
@@ -30,8 +27,10 @@ $ display_prompt = read_status == 3
 <div id="$(prompt_id)" class="check-in-prompt $cond((display_prompt and not last_read_date), '', 'hidden')" data-work-olid="$(work_olid)">
   <span class="prompt-copy">$_("When did you finish this book?")</span>
   <span class="prompt-options">
+    $ year = current_year()
+    <a class="prompt-current-year use-local-year" href="javascript:;" data-ol-link-track="CheckInPrompt|SetDateCurrentYear" data-server-year="$year">$year</a>
     <a class="prompt-today" href="javascript:;" data-ol-link-track="CheckInPrompt|SetDateToday">$_("Today")</a>
-    <a class="prompt-custom" href="javascript:;" data-ol-link-track="CheckInPrompt|SetDateCustom">$_("Custom Date")</a>
+    <a class="prompt-custom" href="javascript:;" data-ol-link-track="CheckInPrompt|SetDateCustom">$_("Other")</a>
   </span>
 </div>
 

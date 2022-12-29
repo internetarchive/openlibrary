@@ -389,7 +389,8 @@ jQuery(function () {
     const checkInForms = document.querySelectorAll('.check-in')
     const checkInPrompts = document.querySelectorAll('.check-in-prompt')
     const checkInEditLinks = document.querySelectorAll('.prompt-edit-date')
-    if (setGoalLink || goalEditLinks.length || goalSubmitButtons.length || checkInForms.length || checkInPrompts.length || checkInEditLinks.length) {
+    const yearElements = document.querySelectorAll('.use-local-year')
+    if (setGoalLink || goalEditLinks.length || goalSubmitButtons.length || checkInForms.length || checkInPrompts.length || checkInEditLinks.length || yearElements.length) {
         import(/* webpackChunkName: "check-ins" */ './check-ins')
             .then((module) => {
                 if (setGoalLink) {
@@ -409,6 +410,9 @@ jQuery(function () {
                 }
                 if (checkInEditLinks.length) {
                     module.initCheckInEdits(checkInEditLinks)
+                }
+                if (yearElements.length) {
+                    module.displayLocalYear(yearElements)
                 }
             })
     }
