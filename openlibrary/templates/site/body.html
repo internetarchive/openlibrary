@@ -33,8 +33,12 @@ $if ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ct
       </div>
       $# Paste next line into announcement variable to show the blue banner
       $# <strong>Title:</strong> Description &nbsp; <a href="#" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>
-      $ copy = _('Let Open Library help you reach your 2023 reading goals')
-      $ announcement = '%s <a href="#" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>'% copy
+      $ learn_more_copy = _('Learn More')
+      $ learn_more_btn = '<a href="#" class="btn primary">%s</a>' % learn_more_copy
+      $ set_goal_copy = _('Set your 2023 goal')
+      $ set_goal_btn = '<a href="/account/books" class="btn primary">%s</a>' % set_goal_copy
+      $ cta_copy = _('Announcing Yearly Reading Goals: %(learn_btn)s or %(set_btn)s', learn_btn=learn_more_btn, set_btn=set_goal_btn)
+      $ announcement = cta_copy
       $if announcement:
         <div class="page-banner page-banner-body">
          $:announcement
