@@ -245,7 +245,6 @@ function addReadingLogButtonClickListener(button) {
 
         const form = button.parentElement
         const dropper = button.closest('.widget-add')
-        const isRemovable = dropper.classList.contains('removable')
         const primaryButton = dropper.querySelector('.want-to-read')
         const initialText = primaryButton.children[1].innerText
         const dropClick = dropper.querySelector('.dropclick')
@@ -339,10 +338,6 @@ function addReadingLogButtonClickListener(button) {
                     btn.classList.remove('hidden')
                 }
                 button.classList.add('hidden')
-            }
-            // Remove work search list item if this is a reading log page:
-            if (isRemovable) {
-                dropper.closest('.searchResultItem').remove()
             }
         }
 
