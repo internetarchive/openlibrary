@@ -47,6 +47,12 @@ export function initCheckInForms(elems) {
         })
 
         const yearSelect = elem.querySelector('select[name=year]')
+        const currentYear = new Date().getFullYear();
+        const hiddenYear = yearSelect.querySelector('.show-if-local-year')
+
+        if (Number(hiddenYear.value) === currentYear) {
+            hiddenYear.classList.remove('hidden')
+        }
         yearSelect.addEventListener('change', function(event) {
             onYearChange(elem, event.target.value)
         })
@@ -390,7 +396,9 @@ function deleteEvent(rootElem, workOlid, eventId) {
 }
 
 /**
- * Adds listener to open reading goal modal, and updates year to
+ * Adds listener to open reading goal modal.
+ *
+ * Updates yearly goal form's current year to the patron's
  * local year.
  *
  * @param {HTMLElement} link Prompt for adding a reading goal
@@ -398,7 +406,9 @@ function deleteEvent(rootElem, workOlid, eventId) {
 export function initYearlyGoalPrompt(link) {
     const yearlyGoalModal = document.querySelector('#yearly-goal-modal')
 
-    setLocalYear(yearlyGoalModal.querySelector('form'))
+    // Set form's year to local year to avoid issues on 1 January
+    const currentYear = new Date().getFullYear();
+    yearlyGoalModal.querySelector('input[name=year]').value = currentYear
 
     link.addEventListener('click', function() {
         yearlyGoalModal.showModal()
@@ -408,18 +418,22 @@ export function initYearlyGoalPrompt(link) {
 /**
  * Updates year to the client's local year.
  *
- * Used to prevent issues on New Year's day.  Sets
- * the year input in the reading log form, and updates
- * the year in the "set goal" CTA link.
+ * Used to display the correct local year on 1 January.
  *
- * @param {HTMLFormElement} form Reading goal form
+ * Elements passed to this function are expected to have a
+ * `data-server-year` attribute, which is set to the server's
+ * local year.
+ *
+ * @param {HTMLCollection<HTMLElement>} elems ELements which display only the current year
  */
-function setLocalYear(form) {
-    const currentYearSpan = document.querySelector('#reading-goal-current-year')
-    const currentYear = new Date().getFullYear();
-    currentYearSpan.textContent = currentYear
-
-    form.querySelector('input[name=year]').value = currentYear
+export function displayLocalYear(elems) {
+    const localYear = new Date().getFullYear()
+    for (const elem of elems) {
+        const serverYear = Number(elem.dataset.serverYear)
+        if (localYear !== serverYear) {
+            elem.textContent = localYear
+        }
+    }
 }
 
 /**
