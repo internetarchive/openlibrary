@@ -103,7 +103,9 @@ class patron_check_ins(delegate.page):
             # update existing event
             if not BookshelvesEvents.exists(event_id):
                 raise web.notfound('Check-in event unavailable for edit')
-            BookshelvesEvents.update_event(event_id, event_date=date_str, edition_id=edition_id)
+            BookshelvesEvents.update_event(
+                event_id, event_date=date_str, edition_id=edition_id
+            )
         else:
             # create new event
             result = BookshelvesEvents.create_event(
