@@ -1,4 +1,4 @@
-$def with (lists, work=None, edition_key=None, key=None, users_work_read_status=None, reading_log_only=False, use_work=False, page_url=None, async_load=False)
+$def with (lists, work=None, edition_key=None, key=None, users_work_read_status=None, include_lists=True, use_work=False, page_url=None, async_load=False)
 
 $ user_key = ctx.user and ctx.user.key
 $ username = ctx.user and ctx.user.key.split('/')[-1]
@@ -79,7 +79,7 @@ $if ctx.user or not work_key:
             </form>
           </div>
 
-          $if not reading_log_only:
+          $if include_lists:
             <div class="reading-lists">
               <p class="reading-list-title">$_('My Reading Lists:')</p>
               <div class="my-lists">
@@ -132,7 +132,7 @@ $if ctx.user or not work_key:
       </div>
     </div>
   </div>
-  $if not reading_log_only and render_once('lists/widget.addList'):
+  $if include_lists and render_once('lists/widget.addList'):
     <div class="hidden">
         <div class="floaterAdd" id="addList">
             <div class="floaterHead">
@@ -167,8 +167,8 @@ $if ctx.user or not work_key:
             </form>
         </div>
     </div>
-  $if work_key and edition_key and ctx.user.is_usergroup_member('/usergroup/beta-testers'):
-    $ last_read_date = get_latest_read_date(work_key, edition_key)
+  $if work_key and ctx.user.is_usergroup_member('/usergroup/beta-testers'):
+    $ last_read_date = get_latest_read_date(work_key)
     $ date = last_read_date['event_date'] if last_read_date else None
     $ event_id = last_read_date['id'] if last_read_date else None
     $:render_template('check_ins/check_in_prompt', work_key, users_work_read_status, edition_key=edition_key, last_read_date=date, event_id=event_id)

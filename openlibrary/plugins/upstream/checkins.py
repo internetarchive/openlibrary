@@ -50,15 +50,14 @@ def is_valid_date(year: int, month: Optional[int], day: Optional[int]) -> bool:
 
 
 @public
-def get_latest_read_date(work_olid: str, edition_olid: str | None) -> str | None:
+def get_latest_read_date(work_olid: str) -> dict | None:
     user = get_current_user()
     username = user['key'].split('/')[-1]
 
     work_id = extract_numeric_id_from_olid(work_olid)
-    edition_id = extract_numeric_id_from_olid(edition_olid) if edition_olid else None
 
     result = BookshelvesEvents.get_latest_event_date(
-        username, work_id, edition_id, BookshelfEvent.FINISH
+        username, work_id, BookshelfEvent.FINISH
     )
     return result
 
@@ -104,7 +103,9 @@ class patron_check_ins(delegate.page):
             # update existing event
             if not BookshelvesEvents.exists(event_id):
                 raise web.notfound('Check-in event unavailable for edit')
-            BookshelvesEvents.update_event_date(event_id, date_str)
+            BookshelvesEvents.update_event(
+                event_id, event_date=date_str, edition_id=edition_id
+            )
         else:
             # create new event
             result = BookshelvesEvents.create_event(
