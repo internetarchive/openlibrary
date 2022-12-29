@@ -473,6 +473,11 @@ function addGoalSubmissionListener(submitButton) {
         event.preventDefault()
 
         const form = submitButton.closest('form')
+
+        if (!form.checkValidity()) {
+            form.reportValidity()
+            throw new Error('Form invalid')
+        }
         const formData = new FormData(form)
 
         fetch(form.action, {
@@ -491,12 +496,22 @@ function addGoalSubmissionListener(submitButton) {
                     modal.close()
                 }
 
-                if (formData.get('is_update')) {
-                    const progressComponent = modal.closest('.reading-goal-progress')
-                    updateProgressComponent(progressComponent, Number(formData.get('goal')))
+                const yearlyGoalSection = modal.closest('.yearly-goal-section')
+                if (formData.get('is_update')) {  // Progress component exists on page
+                    const goalInput = form.querySelector('input[name=goal]')
+                    const isDeleted = Number(goalInput.value) === 0
+
+                    if (isDeleted) {
+                        const chipGroup = yearlyGoalSection.querySelector('.chip-group')
+                        const goalContainer = yearlyGoalSection.querySelector('#reading-goal-container')
+                        goalContainer.remove()
+                        chipGroup.classList.remove('hidden')
+                    } else {
+                        const progressComponent = modal.closest('.reading-goal-progress')
+                        updateProgressComponent(progressComponent, Number(formData.get('goal')))
+                    }
                 } else {
-                    const chipGroup = modal.closest('.chip-group')
-                    updateChipGroup(chipGroup)
+                    fetchProgressAndUpdateView(yearlyGoalSection)
                 }
             })
     })
@@ -525,12 +540,14 @@ function updateProgressComponent(elem, goal) {
 }
 
 /**
- * Replaces "Set reading goal" chip on My Books page with reading goal
- * progress component.
+ * Fetches and displays progress component.
  *
- * @param {HTMLElement} chipGroup Parent container of "set goal" CTA link
+ * Adds listeners to the progress component, and hides
+ * link for setting reading goal.
+ *
+ * @param {HTMLElement} yearlyGoalElem Container for progress component and reading goal link.
  */
-function updateChipGroup(chipGroup) {
+function fetchProgressAndUpdateView(yearlyGoalElem) {
     fetch('/reading-goal/partials')
         .then((response) => {
             if (!response.ok) {
@@ -540,9 +557,12 @@ function updateChipGroup(chipGroup) {
         })
         .then(function(html) {
             const progress = document.createElement('SPAN')
+            progress.id = 'reading-goal-container'
             progress.innerHTML = html
-            chipGroup.parentElement.insertBefore(progress, chipGroup)
-            chipGroup.remove()
+            yearlyGoalElem.appendChild(progress)
+
+            // Hide the "Set 20XX reading goal" link:
+            yearlyGoalElem.children[0].classList.add('hidden')
 
             const progressEditLink = progress.querySelector('.edit-reading-goal-link')
             const updateModal = progress.querySelector('dialog')
