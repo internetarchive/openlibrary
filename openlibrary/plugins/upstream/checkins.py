@@ -142,9 +142,19 @@ class patron_check_in(delegate.page):
 
     @authorized_for('/usergroup/beta-testers')
     def DELETE(self, check_in_id):
-        # TODO: Check for authorization after removing authorized_for decorator
-        if not BookshelvesEvents.exists(check_in_id):
-            raise web.notfound('Event does not exist')
+        user = get_current_user()
+        if not user:
+            raise web.unauthorized(message="Requires login")
+
+        events = BookshelvesEvents.select_by_id(check_in_id)
+        if not events:
+            raise web.notfound(message='Event does not exist')
+
+        event = events[0]
+        username = user['key'].split('/')[-1]
+        if username != event['username']:
+            raise web.forbidden()
+
         BookshelvesEvents.delete_by_id(check_in_id)
         return web.ok()
 
