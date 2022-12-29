@@ -16,6 +16,7 @@ class BookshelfEvent(IntEnum):
 class BookshelvesEvents(db.CommonExtras):
 
     TABLENAME = 'bookshelves_events'
+    NULL_EDITION_ID = -1
 
     # Create methods:
     @classmethod
@@ -33,7 +34,7 @@ class BookshelvesEvents(db.CommonExtras):
             cls.TABLENAME,
             username=username,
             work_id=work_id,
-            edition_id=edition_id,
+            edition_id=edition_id or cls.NULL_EDITION_ID,
             event_type=event_type,
             event_date=event_date,
         )
@@ -46,20 +47,19 @@ class BookshelvesEvents(db.CommonExtras):
         return list(oldb.select(cls.TABLENAME, where='id=$id', vars={'id': pid}))
 
     @classmethod
-    def get_latest_event_date(cls, username, work_id, edition_id, event_type):
+    def get_latest_event_date(cls, username, work_id, event_type):
         oldb = db.get_db()
 
         data = {
             'username': username,
             'work_id': work_id,
-            'edition_id': edition_id,
             'event_type': event_type,
         }
 
         query = (
             f'SELECT id, event_date FROM {cls.TABLENAME}'
             ' WHERE username=$username AND work_id=$work_id'
-            ' AND edition_id=$edition_id AND event_type=$event_type'
+            ' AND event_type=$event_type'
             ' ORDER BY event_date DESC LIMIT 1'
         )
 
@@ -131,13 +131,15 @@ class BookshelvesEvents(db.CommonExtras):
 
     # Update methods:
     @classmethod
-    def update_event(cls, pid, event_date=None, data=None):
+    def update_event(cls, pid, edition_id=None, event_date=None, data=None):
         oldb = db.get_db()
         updates = {}
         if event_date:
             updates['event_date'] = event_date
         if data:
             updates['data'] = data
+        if edition_id:
+            updates['edition_id'] = edition_id
         if updates:
             return oldb.update(
                 cls.TABLENAME,
