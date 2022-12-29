@@ -244,20 +244,18 @@ function addReadingLogButtonClickListener(button) {
         event.preventDefault();
 
         const form = button.parentElement
+        const actionInput = form.querySelector('input[name=action]')
         const dropper = button.closest('.widget-add')
         const primaryButton = dropper.querySelector('.want-to-read')
         const initialText = primaryButton.children[1].innerText
         const dropClick = dropper.querySelector('.dropclick')
-
-        primaryButton.children[1].innerText = 'saving...'
+        const workKey = dropper.querySelector('input[name=work_id').value
+        const workOlid = workKey.split('/').slice(-1).pop()
+        const modal = document.querySelector(`#check-in-dialog-${workOlid}`)
+        // If there is a check-in modal, then a `.check-in-prompt` component may exist:
+        const datePrompt = modal ? document.querySelector(`#prompt-${workOlid}`) : null
 
         const success = function() {
-            const actionInput = form.querySelector('input[name=action]')
-            const workKey = document.querySelector('input[name=work_id').value
-            const workOlid = workKey.split('/').slice(-1).pop()
-            const modal = document.querySelector(`#check-in-dialog-${workOlid}`)
-            // If there is a check-in modal, then a `.check-in-prompt` component may exist:
-            const datePrompt = modal ? document.querySelector(`#prompt-${workOlid}`) : null
             const dateDisplay = document.querySelector(`#check-in-display-${workOlid}`)
 
             if (datePrompt) {
@@ -280,8 +278,7 @@ function addReadingLogButtonClickListener(button) {
                     datePrompt.classList.add('hidden')
                 }
             }
-            if (button.classList.contains('want-to-read')) {
-                // Primary button pressed
+            if (button.classList.contains('want-to-read')) {  // Primary button pressed
                 // Toggle checkmark
                 button.children[0].classList.toggle('hidden')
 
@@ -309,9 +306,8 @@ function addReadingLogButtonClickListener(button) {
                 if ($(dropper).find('.arrow').first().hasClass('up')) {
                     toggleDropper(dropper)
                 }
-            } else {
+            } else {  // Secondary button pressed
                 toggleDropper(dropper)
-                // Secondary button pressed
 
                 // Change primary button's text to new value:
                 primaryButton.children[1].innerText = button.innerText
@@ -341,8 +337,36 @@ function addReadingLogButtonClickListener(button) {
             }
         }
 
-        updateReadingLog(form, success)
+        const checkInDisplay = document.querySelector(`#check-in-display-${workOlid}`)
+        let hasCheckIn = false
+        if (checkInDisplay) {
+            hasCheckIn = checkInDisplay.classList.contains('hidden') ? false : true
+        }
+
+        const hideCheckIn = actionInput.value === 'remove'
+
+        let canUpdateBookshelves = true
+        if (actionInput.value === 'remove' && hasCheckIn) {
+            canUpdateBookshelves = confirmDeletion()
+        }
+        if (canUpdateBookshelves) {
+            primaryButton.children[1].innerText = 'saving...'
+            updateReadingLog(form, success)
+
+            if (hideCheckIn) {
+                checkInDisplay.classList.add('hidden')
+                datePrompt.classList.add('hidden')
+                const checkInIdInput = modal.querySelector('input[name=event_id]')
+                checkInIdInput.value = ''
+                const checkInDeleteButton = modal.querySelector('.check-in__delete-btn')
+                checkInDeleteButton.classList.add('invisible')
+            }
+        }
     })
+}
+
+function confirmDeletion() {
+    return confirm('Removing this book from your shelves will delete your check-ins for this work.  Continue?')
 }
 
 /**
