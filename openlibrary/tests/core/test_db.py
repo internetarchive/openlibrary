@@ -476,12 +476,9 @@ class TestCheckIns:
             == "2019-10"
         )
         assert (
-            BookshelvesEvents.get_latest_event_date('@eliot_rosewater', 3, 3)['id']
-            == 6
+            BookshelvesEvents.get_latest_event_date('@eliot_rosewater', 3, 3)['id'] == 6
         )
-        assert (
-            BookshelvesEvents.get_latest_event_date('@eliot_rosewater', 3, 1) is None
-        )
+        assert BookshelvesEvents.get_latest_event_date('@eliot_rosewater', 3, 1) is None
 
 
 class TestYearlyReadingGoals:
