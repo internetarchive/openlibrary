@@ -21,6 +21,7 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import ia, db, models, lending, helpers as h
+from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.observations import Observations, get_observation_metrics
 from openlibrary.core.models import Booknotes, Work
 from openlibrary.core.sponsorships import qualifies_for_sponsorship
@@ -324,6 +325,7 @@ class work_bookshelves(delegate.page):
             work_bookshelf = Bookshelves.remove(
                 username=username, work_id=work_id, bookshelf_id=current_status
             )
+            BookshelvesEvents.delete_by_username_and_work(username, work_id)
 
         else:
             edition_id = int(i.edition_id.split('/')[2][2:-1]) if i.edition_id else None

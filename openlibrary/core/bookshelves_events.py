@@ -197,3 +197,15 @@ class BookshelvesEvents(db.CommonExtras):
         where_vars = {'username': username}
 
         return oldb.delete(cls.TABLENAME, where=where_clause, vars=where_vars)
+
+    @classmethod
+    def delete_by_username_and_work(cls, username, work_id):
+        oldb = db.get_db()
+
+        where_clause = 'username=$username AND work_id=$work_id'
+        data = {
+            'username': username,
+            'work_id': work_id,
+        }
+
+        return oldb.delete(cls.TABLENAME, where=where_clause, vars=data)

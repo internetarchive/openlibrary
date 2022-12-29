@@ -1,11 +1,11 @@
-$def with (lists, work=None, edition_key=None, key=None, users_work_read_status=None, reading_log_only=False, use_work=False, page_url=None, async_load=False, remove_on_change=False)
+$def with (lists, work=None, edition_key=None, key=None, users_work_read_status=None, reading_log_only=False, use_work=False, page_url=None, async_load=False)
 
 $ user_key = ctx.user and ctx.user.key
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ work_key = work and work.key
 
 $if ctx.user or not work_key:
-  <div class="widget-add $:(not work_key and 'old-style-lists') $:(remove_on_change and 'removable')">
+  <div class="widget-add $:(not work_key and 'old-style-lists')">
     <input type="hidden" name="user-key" value="$(user_key)" />
     <div class="dropit Tools">
       $if edition_key and not work_key:
