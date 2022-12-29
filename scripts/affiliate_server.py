@@ -5,15 +5,15 @@ Usage:
 
 start affiliate-server using dev webserver:
 
-    ./scripts/affiliate-server openlibrary.yml 31337
+    ./scripts/affiliate_server.py openlibrary.yml 31337
 
 start affiliate-server as fastcgi:
 
-    ./scripts/affiliate-server openlibrary.yml fastcgi 31337
+    ./scripts/affiliate_server.py openlibrary.yml fastcgi 31337
 
 start affiliate-server using gunicorn webserver:
 
-    ./scripts/affiliate-server openlibrary.yml --gunicorn -b 0.0.0.0:31337
+    ./scripts/affiliate_server.py openlibrary.yml --gunicorn -b 0.0.0.0:31337
 
 """
 
@@ -57,11 +57,12 @@ API_MAX_ITEMS_PER_CALL = 10
 API_MAX_WAIT_SECONDS = 0.9
 
 batch_name = ""
-batch: Batch = None
+batch: Batch | None = None
 
 web.amazon_queue = queue.Queue()  # a thread-safe multi-producer, multi-consumer queue
-web.amazon_queue.max_qsize = 0  # add a couple of variables for statsd reporting
-web.amazon_queue.dump_count = 0
+# add a couple of variables for statsd reporting
+web.amazon_queue.max_qsize = 0  # type: ignore[attr-defined]
+web.amazon_queue.dump_count = 0  # type: ignore[attr-defined]
 
 
 def get_current_amazon_batch() -> Batch:
@@ -69,10 +70,10 @@ def get_current_amazon_batch() -> Batch:
     At startup or when the month changes, create a new openlibrary.core.imports.Batch()
     """
     global batch_name, batch
-    new_batch_name = f"amz-{date.today():%Y%m}"
-    if batch_name != new_batch_name:
+    if batch_name != (new_batch_name := f"amz-{date.today():%Y%m}"):
         batch_name = new_batch_name
         batch = Batch.find(batch_name) or Batch.new(batch_name)
+    assert batch
     return batch
 
 
@@ -81,11 +82,11 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
     Call the Amazon API to get the products for a list of isbn_10s and store
     each product in memcache using amazon_product_{isbn_13} as the cache key.
     """
-    logger.info("process_amazon_batch(): {} items".format(len(isbn_10s)))
+    logger.info(f"process_amazon_batch(): {len(isbn_10s)} items")
     try:
         products = web.amazon_api.get_products(isbn_10s, serialize=True)
     except Exception:
-        logger.exception("amazon_api.get_products({}, serialize=True)".format(isbn_10s))
+        logger.exception(f"amazon_api.get_products({isbn_10s}, serialize=True)")
         return
 
     for product in products:
@@ -94,23 +95,24 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
             and product.get('isbn_13')[0]
             or isbn_10_to_isbn_13(product.get('isbn_10')[0])
         )
+        assert cache
         cache.memcache_cache.set(  # Add each product to memcache
-            'amazon_product_%s' % cache_key, product, expires=WEEK_SECS
+            f'amazon_product_{cache_key}', product, expires=WEEK_SECS
         )
 
     # Only proceed if config finds infobase db creds
-    if not config.infobase.get('db_parameters'):
+    if not config.infobase.get('db_parameters'):  # type: ignore[attr-defined]
         logger.debug("DB parameters missing from affiliate-server infobase")
         return
 
     # XXX temporarily disable until covers + substantive changes added
-    #if books := [clean_amazon_metadata_for_load(product) for product in products]:
+    # if books := [clean_amazon_metadata_for_load(product) for product in products]:
     #    get_current_amazon_batch().add_items(
     #        [{'ia_id': b['source_records'][0], 'data': b} for b in books]
     #    )
 
 
-def seconds_remaining(start_time: int) -> int:
+def seconds_remaining(start_time: float) -> float:
     return max(API_MAX_WAIT_SECONDS - (time.time() - start_time), 0)
 
 
@@ -122,7 +124,7 @@ def amazon_lookup() -> None:
     """
     while True:
         start_time = time.time()
-        isbn_10s = set()  # no duplicates in the batch
+        isbn_10s: set[str] = set()  # no duplicates in the batch
         while len(isbn_10s) < API_MAX_ITEMS_PER_CALL and seconds_remaining(start_time):
             try:  # queue.get() will block (sleep) until successful or it times out
                 isbn_10s.add(
@@ -152,6 +154,7 @@ class Status:
 
 class Clear:
     """Clear web.amazon_queue and return the queue size before it was cleared."""
+
     def GET(self) -> str:
         qsize = web.amazon_queue.qsize()
         max_qsize = web.amazon_queue.max_qsize
@@ -186,8 +189,8 @@ class Submit:
             )
 
         # Cache lookup by isbn13. If there's a hit return the product to the caller
-        product = cache.memcache_cache.get('amazon_product_%s' % isbn13)
-        if product:
+        assert cache
+        if product := cache.memcache_cache.get(f'amazon_product_{isbn13}'):
             return json.dumps({"status": "success", "hit": product})
 
         # Cache misses will be submitted to Amazon as ASINs (isbn10)
@@ -215,7 +218,7 @@ def load_config(configfile):
         web.amazon_api = AmazonAPI(*args, throttling=0.9)
         logger.info("AmazonAPI Initialized")
     else:
-        raise RuntimeError("{} is missing required keys.".format(configfile))
+        raise RuntimeError(f"{configfile} is missing required keys.")
 
 
 def init_sentry(app):
