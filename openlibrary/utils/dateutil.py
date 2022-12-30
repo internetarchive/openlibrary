@@ -111,6 +111,13 @@ def current_year():
     return datetime.datetime.now().year
 
 
+@public
+def get_reading_goals_year():
+    now  = datetime.datetime.now()
+    year = now.year
+    return year if now.month < 12 else year + 1
+
+
 @contextmanager
 def elapsed_time(name="elapsed_time"):
     """
