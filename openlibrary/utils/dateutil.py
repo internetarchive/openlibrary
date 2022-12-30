@@ -113,7 +113,7 @@ def current_year():
 
 @public
 def get_reading_goals_year():
-    now  = datetime.datetime.now()
+    now = datetime.datetime.now()
     year = now.year
     return year if now.month < 12 else year + 1
 
