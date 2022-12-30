@@ -50,6 +50,9 @@ export function initCheckInForms(elems) {
         const currentYear = new Date().getFullYear();
         const hiddenYear = yearSelect.querySelector('.show-if-local-year')
 
+        // The year selector has a hidden option for next year.  This option is 
+        // shown on 1 January if the client's local year is different from
+        // the server's local year.
         if (Number(hiddenYear.value) === currentYear) {
             hiddenYear.classList.remove('hidden')
         }
@@ -417,10 +420,6 @@ function deleteEvent(rootElem, workOlid, eventId) {
 export function initYearlyGoalPrompt(link) {
     const yearlyGoalModal = document.querySelector('#yearly-goal-modal')
 
-    // Set form's year to local year to avoid issues on 1 January
-    const currentYear = new Date().getFullYear();
-    yearlyGoalModal.querySelector('input[name=year]').value = currentYear
-
     link.addEventListener('click', function() {
         yearlyGoalModal.showModal()
     })
@@ -536,7 +535,8 @@ function addGoalSubmissionListener(submitButton) {
                         updateProgressComponent(progressComponent, Number(formData.get('goal')))
                     }
                 } else {
-                    fetchProgressAndUpdateView(yearlyGoalSection)
+                    const goalYear = formData.get('year')
+                    fetchProgressAndUpdateView(yearlyGoalSection, goalYear)
                 }
             })
     })
@@ -571,9 +571,10 @@ function updateProgressComponent(elem, goal) {
  * link for setting reading goal.
  *
  * @param {HTMLElement} yearlyGoalElem Container for progress component and reading goal link.
+ * @param {string} goalYear Year that the goal is set for.
  */
-function fetchProgressAndUpdateView(yearlyGoalElem) {
-    fetch('/reading-goal/partials')
+function fetchProgressAndUpdateView(yearlyGoalElem, goalYear) {
+    fetch(`/reading-goal/partials?year=${goalYear}`)
         .then((response) => {
             if (!response.ok) {
                 throw new Error('Failed to fetch progress element')
