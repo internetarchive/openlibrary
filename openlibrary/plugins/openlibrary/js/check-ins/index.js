@@ -50,7 +50,7 @@ export function initCheckInForms(elems) {
         const currentYear = new Date().getFullYear();
         const hiddenYear = yearSelect.querySelector('.show-if-local-year')
 
-        // The year selector has a hidden option for next year.  This option is 
+        // The year selector has a hidden option for next year.  This option is
         // shown on 1 January if the client's local year is different from
         // the server's local year.
         if (Number(hiddenYear.value) === currentYear) {
