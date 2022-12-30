@@ -14,25 +14,24 @@ $def year_span(year):
   </span>
 </div>
 
-$if user.is_beta_tester():
-  $ current_goal = get_reading_goals()
-  $ hidden = 'hidden' if current_goal else ''
+$ current_goal = get_reading_goals()
+$ hidden = 'hidden' if current_goal else ''
 
-  <div class="yearly-goal-section">
-    <div class="chip-group $hidden">
-      <span class="chip value-chip category-chip chip--selectable goal-chip">
-        $ year = current_year()
-        $ year_markup = year_span(year)
-        <a id="set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">$:_('Set %(year_span)s reading goal', year_span=year_markup)</a>
-      </span>
-      $ reading_goal_form = render_template('check_ins/reading_goal_form')
-      $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title="Yearly Reading Goal")
-    </div>
-    $if current_goal:
-      <span id="reading-goal-container">
-        $:render_template('check_ins/reading_goal_progress', [current_goal])
-      </span>
+<div class="yearly-goal-section">
+  <div class="chip-group $hidden">
+    <span class="chip value-chip category-chip chip--selectable goal-chip">
+      $ year = current_year()
+      $ year_markup = year_span(year)
+      <a id="set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">$:_('Set %(year_span)s reading goal', year_span=year_markup)</a>
+    </span>
+    $ reading_goal_form = render_template('check_ins/reading_goal_form')
+    $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title="Yearly Reading Goal")
   </div>
+  $if current_goal:
+    <span id="reading-goal-container">
+      $:render_template('check_ins/reading_goal_progress', [current_goal])
+    </span>
+</div>
 
 $code:
     def compact_carousel(data):

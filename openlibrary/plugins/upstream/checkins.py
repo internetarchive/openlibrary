@@ -69,7 +69,6 @@ class patron_check_ins(delegate.page):
     path = r'/works/OL(\d+)W/check-ins'
     encoding = 'json'
 
-    @authorized_for('/usergroup/beta-testers')
     def POST(self, work_id):
         """Validates data, constructs date string, and persists check-in event.
 
@@ -152,7 +151,6 @@ class patron_check_ins(delegate.page):
 class patron_check_in(delegate.page):
     path = r'/check-ins/(\d+)'
 
-    @authorized_for('/usergroup/beta-testers')
     def DELETE(self, check_in_id):
         user = get_current_user()
         if not user:
@@ -175,7 +173,6 @@ class yearly_reading_goal_json(delegate.page):
     path = '/reading-goal'
     encoding = 'json'
 
-    @authorized_for('/usergroup/beta-testers')
     def GET(self):
         i = web.input(year=None)
 
@@ -199,7 +196,6 @@ class yearly_reading_goal_json(delegate.page):
 
         return delegate.RawText(json.dumps({'status': 'ok', 'goal': results}))
 
-    @authorized_for('/usergroup/beta-testers')
     def POST(self):
         i = web.input(goal=0, year=None, is_update=None)
 
