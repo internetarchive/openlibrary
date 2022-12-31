@@ -116,8 +116,8 @@ $def diff_display(name, value):
                 elif p == "authors":
                     label = "authors"
                     t = "/type/author"
-                    ap = a.get_authors()
-                    bp = b.get_authors()
+                    ap = [val.author for val in a.authors]
+                    bp = [val.author for val in b.authors]
                 else:
                     ap = a[p]
                     bp = b[p]
