@@ -759,7 +759,7 @@ class search_json(delegate.page):
         )
 
         # If the query is a /list/ key, create custom list_editions_query
-        q = query.get('q', '')
+        q = query.get('q', '').strip()
         query['q'], page, offset, limit = rewrite_list_query(q, page, offset, limit)
         response = work_search(
             query,
