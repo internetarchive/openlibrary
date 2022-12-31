@@ -2,6 +2,12 @@ $def with (work=None, author=None, recaptcha=None)
 
 $var title: $_("Add a book")
 
+$ i18n_strings = {
+    $ "invalid_checksum": _("Invalid ISBN checksum digit"),
+    $ "invalid_isbn10": _("ID must be exactly 10 characters [0-9 or X]. For example 0-19-853453-1 or 0198534531"),
+    $ "invalid_isbn13": _("ID must be exactly 13 characters [0-9]. For example 978-3-16-148410-0 or 9783161484100")
+    $ }
+
 <div id="contentHead">
     <div class="head">
         <h1>$_("Add a book to Open Library")</h1>
@@ -55,7 +61,7 @@ $var title: $_("Add a book")
         <div class="formElement">
             <div class="label"><label for="id_value">$:_("And optionally, an ID number &#151; like an ISBN &#151; would be helpful...")</label></div>
                 <label for="id_name" class="hidden">$_("ID Type")</label>
-                <div id="id-errors" class="note hidden"></div>
+                <div id="id-errors" class="note hidden" data-i18n="$json_encode(i18n_strings)"></div>
                 <div id="confirm-add" class="note hidden">$_('ISBN may be invalid. Click "Add" again to submit.')</div>
             <div class="input">
                 <select name="id_name" id="id_name">

@@ -1,5 +1,9 @@
 import {parseIsbn, isFormatValidIsbn10, isChecksumValidIsbn10, isFormatValidIsbn13, isChecksumValidIsbn13} from './edit.js'
 
+let invalidChecksum;
+let invalidIsbn10;
+let invalidIsbn13;
+
 export function initAddBookImport () {
     $('.list-books a').on('click', function() {
         var li = $(this).parents('li').first();
@@ -10,19 +14,21 @@ export function initAddBookImport () {
         $('input#work').val('none-of-these');
         $('form#addbook').trigger('submit');
     });
+
+    const i18nStrings = JSON.parse(document.querySelector('#id-errors').dataset.i18n)
+    invalidChecksum = i18nStrings.invalid_checksum
+    invalidIsbn10 = i18nStrings.invalid_isbn10
+    invalidIsbn13 = i18nStrings.invalid_isbn13
+
     $('#addbook').on('submit', parseAndValidateIsbn);
     $('#id_value').on('input', clearIsbnError);
     $('#id_name').on('change', clearIsbnError);
 }
 
-const isbn_invalid_checksum = 'Invalid ISBN checksum digit';
-const isbn10_wrong_length_or_chars = 'ID must be exactly 10 characters [0-9 or X]. For example 0-19-853453-1 or 0198534531';
-const isbn13_wrong_length_or_chars = 'ID must be exactly 13 characters [0-9]. For example 978-3-16-148410-0 or 9783161484100';
-
 // a flag to make raiseIsbnError perform differently upon subsequent calls
 let addBookWithIsbnErrors = false;
 
-function raiseIsbnError(event, errorMessage) {
+function displayIsbnError(event, errorMessage) {
     if (!addBookWithIsbnErrors) {
         addBookWithIsbnErrors = true;
         const errorDiv = document.getElementById('id-errors');
@@ -52,18 +58,18 @@ function parseAndValidateIsbn(event) {
     const isbn = parseIsbn(document.getElementById('id_value').value);
     if (fieldName === 'isbn_10') {
         if (!isFormatValidIsbn10(isbn)) {
-            return raiseIsbnError(event, isbn10_wrong_length_or_chars);
+            return displayIsbnError(event, invalidIsbn10);
         }
         if (!isChecksumValidIsbn10(isbn)) {
-            return raiseIsbnError(event, isbn_invalid_checksum);
+            return displayIsbnError(event, invalidChecksum);
         }
     }
     else if (fieldName === 'isbn_13') {
         if (!isFormatValidIsbn13(isbn)) {
-            return raiseIsbnError(event, isbn13_wrong_length_or_chars);
+            return displayIsbnError(event, invalidIsbn13);
         }
         if (!isChecksumValidIsbn13(isbn)) {
-            return raiseIsbnError(event, isbn_invalid_checksum);
+            return displayIsbnError(event, invalidChecksum);
         }
     }
     // parsing valid ISBN that passes checks
