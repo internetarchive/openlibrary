@@ -106,7 +106,7 @@
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "24KB"
+      "maxSize": "25KB"
     }
   ]
 }
