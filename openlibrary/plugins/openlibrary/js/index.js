@@ -169,7 +169,6 @@ jQuery(function () {
                 }
                 if (autocompleteLanguage) {
                     module.initLanguageMultiInputAutocomplete();
-                    module.initLanguageValidation();
                 }
                 if (autocompleteWorks) {
                     module.initWorksMultiInputAutocomplete();

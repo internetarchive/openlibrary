@@ -239,22 +239,6 @@ export function initIdentifierValidation() {
     });
 }
 
-export function initLanguageValidation() {
-    const firstLanguageField = document.getElementById('language-0');
-    const errorField = document.getElementById('first-language-error');
-
-    const checkLanguageValidity = () => {
-
-        if (!firstLanguageField.checkValidity()) {
-            errorField.innerHTML = 'The first entry cannot be empty'
-        } else {
-            errorField.innerHTML = '';
-        }
-    }
-
-    firstLanguageField.addEventListener('input', checkLanguageValidity);
-}
-
 export function initClassificationValidation() {
     const dataConfig = JSON.parse(document.querySelector('#classifications').dataset.config);
     $('#classifications').repeat({
