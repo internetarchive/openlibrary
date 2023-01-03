@@ -52,4 +52,6 @@ class AuthorSearchScheme(SearchScheme):
             ('q.op', 'AND'),
             ('defType', 'edismax'),
             ('qf', 'name alternate_names'),
+            ('pf', 'name^10 alternate_names^10'),
+            ('bf', 'min(work_count,20)'),
         ]

@@ -610,7 +610,6 @@ class author_search(delegate.page):
             offset=offset,
             rows=limit,
             fields=fields,
-            sort='work_count desc',
         )
 
         return resp
