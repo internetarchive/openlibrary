@@ -421,6 +421,7 @@ export function initYearlyGoalPrompt(link) {
     const yearlyGoalModal = document.querySelector('#yearly-goal-modal')
 
     link.addEventListener('click', function() {
+        link.closest('.chip').classList.remove('animate')
         yearlyGoalModal.showModal()
     })
 }
