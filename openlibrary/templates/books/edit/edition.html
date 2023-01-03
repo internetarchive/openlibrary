@@ -22,8 +22,8 @@ $jsdef render_language_field(i, language, i18n_name):
     <div class="input">
       <input name="languages--$i" class="language language-autocomplete" type="text" id="language-$i" value="$lang_name"/>
       <input name="edition--languages--$i--key" type="hidden" id="language-$i-key" value="$language.key" />
-      <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this language')">[x]</a>
-      <br/><a href="javascript:;" class="add small">$_('Add another language?')</a>
+      <a href="javascript:;" class="remove red plain" title="$_('Remove this language')">[x]</a>
+      <hr /><a href="javascript:;" class="add small">$_('Add another language?')</a>
     </div>
 
 $# Render the ith translated_from language input field
