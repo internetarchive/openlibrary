@@ -134,7 +134,7 @@ class memcache_memoize:
     def update_async(self, *args, **kw):
         """Starts the update process asynchronously."""
         t = threading.Thread(target=self._update_async_worker, args=args, kwargs=kw)
-        self.active_threads[t.getName()] = t
+        self.active_threads[t.name] = t
         t.start()
 
     def _update_async_worker(self, *args, **kw):
