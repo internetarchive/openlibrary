@@ -423,6 +423,13 @@ export function initYearlyGoalPrompt(link) {
     link.addEventListener('click', function() {
         yearlyGoalModal.showModal()
     })
+
+    if (link.offsetParent !== null) {  // Goal link is visible on screen
+        if (link.classList.contains('open')) {
+            link.classList.remove('open')
+            link.click()
+        }
+    }
 }
 
 /**

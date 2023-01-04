@@ -749,9 +749,11 @@ class account_my_books(delegate.page):
 
     @require_login
     def GET(self):
+        i = web.input(goal=None)
         user = accounts.get_current_user()
         username = user.key.split('/')[-1]
-        raise web.seeother(f'/people/{username}/books')
+        query_str = f'?goal={i.goal}' if i.goal else ''
+        raise web.seeother(f'/people/{username}/books{query_str}')
 
 
 # This would be by the civi backend which would require the api keys
