@@ -41,6 +41,16 @@ $ get_loan_for_total_time = time() - get_loan_for_start_time
 
 $ is_edition = doc.key.split('/')[1] == 'books'
 
+$if secondary_action and ocaid and ctx.user and ctx.user.is_printdisabled():
+    <h3>$_('You qualify for special print-disabled access:')</h3>
+    <ul>
+      <li><a href="/borrow/ia/$(ocaid)?ref=ol">$_('Read Now in Browser')</a></li>
+      <li><a href="/borrow/ia/$(ocaid)?ref=ol&action=request&format=epub">$_('Request epub')</a></li>
+      <li><a href="/borrow/ia/$(ocaid)?ref=ol&action=request&format=pdf">$_('Request pdf')</a></li>
+      <li><a href="/borrow/ia/$(ocaid)?ref=ol&action=request&format=daisy">$_('Request daisy')</a></li>
+    </ul>
+    <br>
+
 $if user_loan:
   $:macros.ReadButton(ocaid, loan=user_loan, listen=listen)
   $:macros.FormatExpiry(user_loan['expiry'])
