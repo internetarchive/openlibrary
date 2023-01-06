@@ -4,7 +4,7 @@ $ type = primary.type.key.replace("/type/","")
 $ label = primary.name if type == "author" else primary.title
 
 <div id="contentHead">
-    $:render_template("recentchanges/header", change, label=_(type.capitalize() + ' Merge'))
+    $:render_template("recentchanges/header", change, label=type.capitalize() + ' Merge')
 </div>
 
 
