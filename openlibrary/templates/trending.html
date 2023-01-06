@@ -4,7 +4,7 @@ $ page = int(input(page=1).page)
 
 <div id="contentBody">
   $ pages = {'now': _('Now'), 'daily': _('Today'), 'weekly': _('This Week'), 'monthly': _('This Month'), 'yearly': _('This Year'), 'forever': _('All Time')}
-  <h1>$_('Trending Books'): $_(pages[mode])</h1>
+  <h1>$_('Trending Books'): $(pages[mode])</h1>
   <p>$_("See what readers from the community are adding to their bookshelves")</p>
   <p>
     $for p in pages:
