@@ -936,6 +936,25 @@ class MergeAuthors(Changeset):
         ]
 
 
+class MergeWorks(Changeset):
+    def can_undo(self):
+        return self.get_undo_changeset() is None
+
+    def get_master(self):
+        master = self.data.get("master")
+        return master and web.ctx.site.get(master, lazy=True)
+
+    def get_duplicates(self):
+        duplicates = self.data.get("duplicates")
+        changes = {c['key']: c['revision'] for c in self.changes}
+
+        return duplicates and [
+            web.ctx.site.get(key, revision=changes[key] - 1, lazy=True)
+            for key in duplicates
+            if key in changes
+        ]
+
+
 class Undo(Changeset):
     def can_undo(self):
         return False
@@ -1000,6 +1019,7 @@ def setup():
 
     client.register_changeset_class(None, Changeset)  # set the default class
     client.register_changeset_class('merge-authors', MergeAuthors)
+    client.register_changeset_class('merge-works', MergeWorks)
     client.register_changeset_class('undo', Undo)
 
     client.register_changeset_class('add-book', AddBookChangeset)
