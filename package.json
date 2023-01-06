@@ -11,11 +11,21 @@
       ],
       "extensions": "less",
       "quiet": false
+    },
+    "autoreload": {
+      "patterns": [
+        "static/build"
+      ],
+      "delay": 500,
+      "extensions": "css,js",
+      "quiet": false
     }
   },
   "scripts": {
     "watch": "env WEBPACK_PACKAGE=webpack5 npx webpack --watch --mode=development --progress",
     "watch-css": "npm-watch build-assets:css",
+    "watch-autoreload": "npm-watch autoreload",
+    "autoreload": "curl -s http://localhost:9292/reload",
     "build-assets:webpack": "env NODE_ENV=production WEBPACK_PACKAGE=webpack5 npx webpack --mode=production",
     "build-assets": "make js && make css && make components",
     "build-assets:css": "make css",
