@@ -56,6 +56,10 @@ class Edition(models.Edition):
     title = property(get_title)
     title_prefix = property(get_title_prefix)
 
+    def get_genome(self):
+        # Teo's challenge. How do we fetch this genome? (requests.get?)
+        return requests.get("https://archive.org/download/hitmiss0000jete_u7v5/book_genome.json").json()
+    
     def get_authors(self):
         """Added to provide same interface for work and edition"""
         authors = [follow_redirect(a) for a in self.authors]
