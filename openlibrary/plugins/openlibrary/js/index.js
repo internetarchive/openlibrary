@@ -383,18 +383,18 @@ jQuery(function () {
         import(/* webpackChunkName: "dialog" */ './native-dialog')
             .then(module => module.initDialogs(nativeDialogs))
     }
-    const setGoalLink = document.querySelector('#set-reading-goal-link')
+    const setGoalLinks = document.querySelectorAll('.set-reading-goal-link')
     const goalEditLinks = document.querySelectorAll('.edit-reading-goal-link')
     const goalSubmitButtons = document.querySelectorAll('.reading-goal-submit-button')
     const checkInForms = document.querySelectorAll('.check-in')
     const checkInPrompts = document.querySelectorAll('.check-in-prompt')
     const checkInEditLinks = document.querySelectorAll('.prompt-edit-date')
     const yearElements = document.querySelectorAll('.use-local-year')
-    if (setGoalLink || goalEditLinks.length || goalSubmitButtons.length || checkInForms.length || checkInPrompts.length || checkInEditLinks.length || yearElements.length) {
+    if (setGoalLinks || goalEditLinks.length || goalSubmitButtons.length || checkInForms.length || checkInPrompts.length || checkInEditLinks.length || yearElements.length) {
         import(/* webpackChunkName: "check-ins" */ './check-ins')
             .then((module) => {
-                if (setGoalLink) {
-                    module.initYearlyGoalPrompt(setGoalLink)
+                if (setGoalLinks) {
+                    module.initYearlyGoalPrompt(setGoalLinks)
                 }
                 if (goalEditLinks.length) {
                     module.initGoalEditLinks(goalEditLinks)
