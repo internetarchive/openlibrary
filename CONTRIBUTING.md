@@ -3,7 +3,7 @@
 ## Welcome!
 This welcome section is intended for new contributors.
 
-1. **Quick Tour:** [Quick Public Tour of Open Library (10min)](https://archive.org/embed/openlibrary-tour-2020)
+1. **Quick Tour:** [Quick Public Tour of Open Library (10min)](https://archive.org/embed/openlibrary-tour-2020/openlibrary.ogv)
 2. **Orientation:** [Volunteer Orientation Video (1.5h)](https://archive.org/details/openlibrary-orientation-2020?start=80)
     * [Code of conduct](https://github.com/internetarchive/openlibrary/blob/master/CODE_OF_CONDUCT.md)
 3. **Getting Started:**
