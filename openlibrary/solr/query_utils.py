@@ -232,6 +232,7 @@ def query_dict_to_str(
     escaped: dict | None = None,
     unescaped: dict | None = None,
     op: Literal['AND', 'OR', ''] = '',
+    phrase: bool = False,
 ) -> str:
     """
     Converts a query dict to a search query.
@@ -246,11 +247,16 @@ def query_dict_to_str(
     'title:(foo \\\\? to escape)'
     >>> query_dict_to_str({'title': 'YES AND'})
     'title:(YES and)'
+    >>> query_dict_to_str({'publisher_facet': 'Running Press'}, phrase=True)
+    'publisher_facet:"Running Press"'
     """
     result = ''
     if escaped:
         result += f' {op} '.join(
-            f'{k}:({fully_escape_query(v)})' for k, v in escaped.items()
+            f'{k}:"{fully_escape_query(v)}"'
+            if phrase
+            else f'{k}:({fully_escape_query(v)})'
+            for k, v in escaped.items()
         )
     if unescaped:
         if result:

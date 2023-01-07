@@ -255,6 +255,7 @@ class SubjectEngine:
                 'q': query_dict_to_str(
                     {meta.facet_key: self.normalize_key(meta.path)},
                     unescaped=unescaped_filters,
+                    phrase=True,
                 ),
                 **filters,
             },
