@@ -1,0 +1,63 @@
+@import "../less/font-families.less";
+
+// mobile first
+.work-title-and-author {
+  &.mobile {
+    display: inline;
+  }
+  &.desktop {
+    display: none;
+  }
+
+  & h1 {
+    line-height: normal;
+    &.work-title {
+      font-family: @georgia_serif-1;
+      margin: 10px 0 0;
+      color: @dark-grey;
+      font-size: 2em;
+    }
+  }
+  & h2 {
+    &.work-subtitle {
+      font-family: @georgia_serif-1;
+      margin: 0;
+      color: @grey;
+      font-size: 1.3em;
+      font-weight: normal;
+      font-style: italic;
+    }
+    &.edition-byline {
+      font-size: 1em;
+      font-weight: normal;
+      color: @dark-grey;
+      margin: 10px 0 20px;
+      // margin: 7px 2px 20px;
+    }
+  }
+
+  .work-line {
+    font-style: oblique;
+    color: @grey;
+    a {
+      color: @grey;
+    }
+  }
+
+  .first-published-date {
+    color: @grey;
+    font-size: .8em;
+  }
+}
+
+// desktop
+@media only screen and (min-width: @width-breakpoint-desktop) {
+  .work-title-and-author {
+    &.mobile {
+      display: none
+    }
+    &.desktop{
+      display: inline;
+    }
+  }
+}
