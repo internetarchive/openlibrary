@@ -54,15 +54,6 @@ div.editionAbout {
   }
 }
 
-.work-title{
-  margin-top: 5px;
-  margin-bottom: 0;
-}
-
-.work-subtitle{
-  margin-top: 0;
-}
-
 .work-description{
   pre {
     overflow: auto;
@@ -127,15 +118,6 @@ div.editionAbout {
 h3.edition-header {
   font-size: 14px;
   margin: 0;
-}
-
-h2.edition-byline {
-  margin: 7px 2px 20px;
-}
-
-.first-published-date {
-  color: @grey;
-  font-size: .8em;
 }
 
 .edition-overview {
@@ -302,14 +284,6 @@ div.editionTools {
   color: @grey;
 }
 
-.work-line {
-  font-style: oblique;
-  color: @grey;
-  a {
-    color: @grey;
-  }
-}
-
 .loadingIndicator {
   display: flex;
   justify-content: center;
@@ -322,16 +296,17 @@ div.editionTools {
   color: @link-blue;
 }
 @media only screen and (max-width: @width-breakpoint-desktop){
-  .desktop-book-header{
-    display: none;
-  }
-}
-
-.mobile-book-header {
-  h1 {
-    line-height: normal;
+  div.editionAbout {
+    .book-description.read-more,
+    .book-description.read-less {
+      text-align: center;
+    }
+    .book-description {
+      padding-top: 1em;
+    }
   }
 }
 
 @import (less) "components/compact-title.less";
 @import (less) "components/check-in.less";
+@import (less) "components/work-title-and-author.less";

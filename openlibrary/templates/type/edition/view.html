@@ -164,8 +164,6 @@ $ component_times['ReadlogStats'] = time()
 $ star_ratings_stats = macros.StarRatingsStats(work)
 $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
 
-$ render_summary= render_template("type/edition/title_summary", work, edition, ocaid, work_title, star_ratings_stats)
-
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
   <div class="workDetails">
     $if work and work.key:
@@ -178,7 +176,8 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
       $ modal_links = render_template("type/edition/modal_links", work, edition, share_url)
       $ component_times['databarWork: Modal Links'] = time() - component_times['databarWork: Modal Links']
 
-      $:macros.databarWork(edition or work, editions_page=True, render_times=component_times,summary=render_summary, modal_links=modal_links)
+      $ title_and_author_mobile = render_template("type/edition/title_and_author", work, edition, ocaid, work_title, star_ratings_stats, for_desktop=False)
+      $:macros.databarWork(edition or work, editions_page=True, render_times=component_times, title_and_author=title_and_author_mobile, modal_links=modal_links)
     </div>
 
     <div class="editionAbout">
@@ -187,9 +186,8 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
         $:macros.databarView(page, edition)
         $ component_times['EditTopbar'] = time() - component_times['EditTopbar']
       </div>
-    <!--This section appears only in desktop-->
-    <div class="desktop-book-header">
-      $:render_summary
+      <!-- (desktop only) -->
+      $:render_template("type/edition/title_and_author", work, edition, ocaid, work_title, star_ratings_stats, for_desktop=True)
 
       $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
         $if edition and page.type.key in ["/type/work"]:
@@ -198,7 +196,6 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
           $ edit_url = page.url(suffix="/edit")
       $else:
         $ edit_url = page.key + "?m=edit"
-    </div>
       $:render_template("type/edition/compact_title", book_title, edit_url)
       $ component_times['get_observation_metrics'] = time()
       $ reader_observations = get_observation_metrics(work['key']) if show_observations else {}
