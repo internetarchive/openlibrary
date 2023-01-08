@@ -1,4 +1,4 @@
-$def with (page, editions_page=False, render_times={}, summary=None, modal_links=None)
+$def with (page, editions_page=False, render_times={}, title_and_author=None, modal_links=None)
 
 $if page.type.key == '/type/work' and page.edition_count == 1:
     $ edit_url = page.editions[0].key + '?m=edit'
@@ -44,11 +44,9 @@ $if isbn_10 and not asin:
           $if not page.is_fake_record():
               $:render_template('covers/change', page, ".edition-cover .bookCover img")
         </div>
-        $if summary:
-          <!--This section appears only in mobile/tablet screens-->
-          <div class="mobile-book-header">
-             $:summary
-          </div>
+        $if title_and_author:
+          <!-- (mobile only: desktop title_and_author is in main template) -->
+          $:title_and_author
 
         $ work = (page.works and page.works[0]) or page
         $ edition = page.works and page
