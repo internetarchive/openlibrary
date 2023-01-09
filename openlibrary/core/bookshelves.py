@@ -94,6 +94,9 @@ class Bookshelves(db.CommonExtras):
         since: date | None = None,
         page: int = 1,
         fetch: bool = False,
+        distinct: bool = False,
+        sort_by_count: bool = True,
+        minimum: str = '',
     ) -> list:
         """Returns a ranked list of work OLIDs (in the form of an integer --
         i.e. OL123W would be 123) which have been most logged by
@@ -106,8 +109,19 @@ class Bookshelves(db.CommonExtras):
         where = 'WHERE bookshelf_id' + ('=$shelf_id' if shelf_id else ' IS NOT NULL ')
         if since:
             where += ' AND created >= $since'
-        query = f'select work_id, count(*) as cnt from bookshelves_books {where}'
-        query += ' group by work_id order by cnt desc limit $limit offset $offset'
+        if minimum:
+            minimum = f"HAVING COUNT(*) > {minimum}"
+        groups = [f'work_id {minimum}']
+        group_by = f'group by {", ".join(groups)}'       
+        orders = ['cnt desc']
+        if distinct:
+            orders = ['cnt desc'] + orders
+            distinct = 'distinct on (work_id)'
+        order_by = f'order by {", ".join(orders)}'
+        if not sort_by_count:
+            order_by = ''
+        select = f'select {distinct or ""} work_id, count(*) as cnt from bookshelves_books'
+        query = f'{select} {where} {group_by} {order_by} limit $limit offset $offset'
         logger.info("Query: %s", query)
         data = {'shelf_id': shelf_id, 'limit': limit, 'offset': offset, 'since': since}
         logged_books = list(oldb.query(query, vars=data))
