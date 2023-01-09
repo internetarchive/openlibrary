@@ -1,3 +1,4 @@
+from math import sqrt
 from typing import TypedDict, Optional
 
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
@@ -7,6 +8,7 @@ from . import db
 
 class WorkRatingsSummary(TypedDict):
     ratings_average: float
+    ratings_sortable: float
     ratings_count: int
     ratings_count_1: int
     ratings_count_2: int
@@ -102,7 +104,42 @@ class Ratings(db.CommonExtras):
             GROUP BY work_id
         """
         result = oldb.query(query, vars={'work_id': work_id})
-        return result[0] if result else None
+        if result:
+            ratings_summary = result[0]
+            ratings_summary['ratings_sortable'] = cls.compute_sortable_rating(
+                [ratings_summary[f'ratings_count_{i}'] for i in range(1, 6)]
+            )
+            return ratings_summary
+        return None
+
+    @classmethod
+    def compute_sortable_rating(cls, rating_counts: list[int]) -> float:
+        """
+        Computes a rating that can be used for sorting works by rating. It takes
+        into account the fact that a book with only 1 rating that is 5 stars, is not
+        necessarily "better" than a book with 1 rating that is 1 star, and 10 ratings
+        that are 5 stars. The first book has an average rating of 5, but the second
+        book has an average rating of 4.6 .
+
+        Uses the algorithm from:
+        https://www.evanmiller.org/ranking-items-with-star-ratings.html
+        """
+        n = rating_counts
+        N = sum(n, 0)
+        K = len(n)
+        z = 1.65
+        return sum(
+            ((k + 1) * (n_k + 1) / (N + K) for k, n_k in enumerate(n)), 0
+        ) - z * sqrt(
+            (
+                sum(
+                    (((k + 1) ** 2) * (n_k + 1) / (N + K) for k, n_k in enumerate(n)), 0
+                )
+                - sum(((k + 1) * (n_k + 1) / (N + K) for k, n_k in enumerate(n)), 0)
+                ** 2
+            )
+            / (N + K + 1)
+        )
 
     @classmethod
     def get_all_works_ratings(cls, work_id) -> list:

@@ -13,7 +13,7 @@ from collections import namedtuple
 
 import psycopg2
 
-from openlibrary.core.ratings import WorkRatingsSummary
+from openlibrary.core.ratings import Ratings, WorkRatingsSummary
 from openlibrary.solr import update_work
 from openlibrary.solr.data_provider import DataProvider
 from openlibrary.solr.update_work import load_configs, update_keys
@@ -219,6 +219,10 @@ class LocalPostgresDataProvider(DataProvider):
             ORDER BY "WorkKey" asc
         """
         self.query_all(q, json_cache=self.cached_work_ratings)
+        for row in self.cached_work_ratings.values():
+            row['ratings_sortable'] = Ratings.compute_sortable_rating(
+                [row[f'ratings_count_{i}'] for i in range(1, 6)]
+            )
 
     async def cache_cached_editions_ia_metadata(self):
         ocaids = list({doc['ocaid'] for doc in self.cache.values() if 'ocaid' in doc})

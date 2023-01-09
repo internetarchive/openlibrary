@@ -20,6 +20,7 @@ from web import DB
 
 from infogami.infobase.client import Site
 from openlibrary.core import ia
+from openlibrary.core.ratings import Ratings, WorkRatingsSummary
 
 logger = logging.getLogger("openlibrary.solr.data_provider")
 
@@ -107,17 +108,6 @@ def partition(lst: list, parts: int):
         start = i * size
         end = total_len if (i == parts - 1) else ((i + 1) * size)
         yield lst[start:end]
-
-
-class WorkRatingsSummary(TypedDict):
-    ratings_average: float
-    ratings_median: float
-    ratings_count: int
-    ratings_count_1: int
-    ratings_count_2: int
-    ratings_count_3: int
-    ratings_count_4: int
-    ratings_count_5: int
 
 
 class DataProvider:
