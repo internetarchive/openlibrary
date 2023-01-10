@@ -12,13 +12,10 @@ sys.modules['_init_path'] = MagicMock()
 
 from openlibrary.mocks.mock_infobase import mock_site  # noqa: F401
 from scripts.affiliate_server import (  # noqa: E402
-    AZ_OL_MAP,
     get_isbns_from_book,
     get_isbns_from_books,
-    is_book_needed,
     get_editions_for_books,
     get_pending_books,
-    process_amazon_batch,
 )
 
 ol_editions = {
@@ -68,9 +65,9 @@ def test_get_editions_for_books(mock_site):  # noqa: F811
     """
     start = len(mock_site.docs)
     mock_site.save_many(ol_editions.values())
-    assert len(mock_site.docs) - start == 8  # Passes
+    assert len(mock_site.docs) - start == len(ol_editions)
     editions = get_editions_for_books(amz_books.values())
-    assert len(editions) == 8
+    assert len(editions) == len(ol_editions)
     assert sorted(edition.key for edition in editions) == [
         f"/books/OL{i}M" for i in range(8)
     ]
@@ -82,10 +79,10 @@ def test_get_pending_books(mock_site):  # noqa: F811
     """
     # All books will be pending if they have no corresponding ol editions
     assert len(get_pending_books(amz_books.values())) == len(amz_books)
-    # Save corresponding ol editions
+    # Save corresponding ol editions into the mock site
     start = len(mock_site.docs)
     mock_site.save_many(ol_editions.values())  # Save the ol editions
-    assert len(mock_site.docs) - start == 8  # Passes
+    assert len(mock_site.docs) - start == len(ol_editions)
     books = get_pending_books(amz_books.values())
     assert len(books) == 6  # Only 6 books are missing covers, titles, authors, etc.
 
@@ -115,7 +112,7 @@ def test_get_isbns_from_books():
             "isbn_13": ["1234567890124"],
         },
     ]
-    assert sorted(get_isbns_from_books(books)) == [
+    assert get_isbns_from_books(books) == [
         '1234567890',
         '1234567890123',
         '1234567890124',
