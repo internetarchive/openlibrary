@@ -390,7 +390,7 @@ jQuery(function () {
     const checkInPrompts = document.querySelectorAll('.check-in-prompt')
     const checkInEditLinks = document.querySelectorAll('.prompt-edit-date')
     const yearElements = document.querySelectorAll('.use-local-year')
-    if (setGoalLinks || goalEditLinks.length || goalSubmitButtons.length || checkInForms.length || checkInPrompts.length || checkInEditLinks.length || yearElements.length) {
+    if (setGoalLinks.length || goalEditLinks.length || goalSubmitButtons.length || checkInForms.length || checkInPrompts.length || checkInEditLinks.length || yearElements.length) {
         import(/* webpackChunkName: "check-ins" */ './check-ins')
             .then((module) => {
                 if (setGoalLinks) {
