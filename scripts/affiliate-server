@@ -61,7 +61,7 @@ AZ_OL_MAP = {
     'authors': 'authors',
     'publishers': 'publishers',
     'publish_date': 'publish_date',
-    'number_of_pages': 'pagination',
+    'number_of_pages': 'number_of_pages',
 }
 
 batch_name = ""
