@@ -112,7 +112,7 @@ class Bookshelves(db.CommonExtras):
         if minimum:
             minimum = f"HAVING COUNT(*) > {minimum}"
         groups = [f'work_id {minimum}']
-        group_by = f'group by {", ".join(groups)}'       
+        group_by = f'group by {", ".join(groups)}'
         orders = ['cnt desc']
         if distinct:
             orders = ['cnt desc'] + orders
@@ -120,7 +120,9 @@ class Bookshelves(db.CommonExtras):
         order_by = f'order by {", ".join(orders)}'
         if not sort_by_count:
             order_by = ''
-        select = f'select {distinct or ""} work_id, count(*) as cnt from bookshelves_books'
+        select = (
+            f'select {distinct or ""} work_id, count(*) as cnt from bookshelves_books'
+        )
         query = f'{select} {where} {group_by} {order_by} limit $limit offset $offset'
         logger.info("Query: %s", query)
         data = {'shelf_id': shelf_id, 'limit': limit, 'offset': offset, 'since': since}
