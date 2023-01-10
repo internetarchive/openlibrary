@@ -522,10 +522,9 @@ function addGoalSubmissionListener(submitButton) {
                     modal.close()
                 }
 
-                const progressContainerExists = formData.get('is_update')
-                const yearlyGoalSection = document.querySelector('.yearly-goal-section')
-                const goalInput = progressContainerExists ? document.querySelector('input[name=goal]') : false
-                if (goalInput) {  // Progress component exists on page
+const yearlyGoalSection = modal.closest('.yearly-goal-section')
+                if (formData.get('is_update')) {  // Progress component exists on page
+                    const goalInput = form.querySelector('input[name=goal]')
                     const isDeleted = Number(goalInput.value) === 0
 
                     if (isDeleted) {
@@ -535,10 +534,8 @@ function addGoalSubmissionListener(submitButton) {
                         chipGroup.classList.remove('hidden')
                         location.reload()
                     } else {
-                        const progressComponent = document.querySelector('.reading-goal-progress')
-                        if (progressComponent) {
-                            updateProgressComponent(progressComponent, Number(formData.get('goal')))
-                        }
+                        const progressComponent = modal.closest('.reading-goal-progress')
+                        updateProgressComponent(progressComponent, Number(formData.get('goal')))
                     }
                 } else {
                     const goalYear = formData.get('year')
