@@ -415,14 +415,16 @@ function deleteEvent(rootElem, workOlid, eventId) {
  * Updates yearly goal form's current year to the patron's
  * local year.
  *
- * @param {HTMLElement} link Prompt for adding a reading goal
+ * @param {HTMLCollection<HTMLElement>} links Prompts for adding a reading goal
  */
-export function initYearlyGoalPrompt(link) {
+export function initYearlyGoalPrompt(links) {
     const yearlyGoalModal = document.querySelector('#yearly-goal-modal')
 
-    link.addEventListener('click', function() {
-        yearlyGoalModal.showModal()
-    })
+    for (const link of links) {
+        link.addEventListener('click', function() {
+            yearlyGoalModal.showModal()
+        })
+    }
 }
 
 /**
@@ -530,6 +532,7 @@ function addGoalSubmissionListener(submitButton) {
                         const goalContainer = yearlyGoalSection.querySelector('#reading-goal-container')
                         goalContainer.remove()
                         chipGroup.classList.remove('hidden')
+                        location.reload()
                     } else {
                         const progressComponent = modal.closest('.reading-goal-progress')
                         updateProgressComponent(progressComponent, Number(formData.get('goal')))

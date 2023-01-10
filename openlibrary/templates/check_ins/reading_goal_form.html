@@ -11,5 +11,5 @@ $def with (goal=None, year=None, update=False)
   <input type="number" name="goal" min="$min_value" step="1" value="$goal_value" required>
   <button class="cta-btn cta-btn--shell reading-goal-submit-button" type="submit" data-ol-link-track="YearlyReadingGoals|SubmitGoal">$_("Submit")</button>
   $if goal:
-    <div>$_('Note: Submit "0" to delete your goal.  Your check-ins will be preserved.')</div>
+    <div class="small">$_('Enter "0" to unset your reading goal. Your check-ins will be preserved.')</div>
 </form>
