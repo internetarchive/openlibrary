@@ -522,7 +522,7 @@ function addGoalSubmissionListener(submitButton) {
                     modal.close()
                 }
 
-const yearlyGoalSection = modal.closest('.yearly-goal-section')
+                const yearlyGoalSection = modal.closest('.yearly-goal-section')
                 if (formData.get('is_update')) {  // Progress component exists on page
                     const goalInput = form.querySelector('input[name=goal]')
                     const isDeleted = Number(goalInput.value) === 0
