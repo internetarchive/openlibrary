@@ -1,6 +1,7 @@
 $def with (work, edition, ocaid, work_title, star_ratings_stats, for_desktop=False)
 
-$def content():
+$ view_type = 'desktop' if for_desktop else 'mobile'
+<div class="work-title-and-author $view_type">
   <div class="work-line">
       $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title$cond(work.subtitle, ': %s' % work.subtitle)</a>
       $if work.first_publish_year:
