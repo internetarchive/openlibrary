@@ -169,6 +169,8 @@ $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
     $if work and work.key:
         <link itemprop="exampleOfWork" href="$work.key">
 
+    <!-- (mobile only) -->
+    $:render_template("type/edition/title_and_author", work, edition, ocaid, work_title, star_ratings_stats, for_desktop=False)
     <div class="editionCover">
       $ share_url = request.home + (edition or work).key
 
@@ -176,7 +178,6 @@ $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
       $ modal_links = render_template("type/edition/modal_links", work, edition, share_url)
       $ component_times['databarWork: Modal Links'] = time() - component_times['databarWork: Modal Links']
 
-      $ title_and_author_mobile = render_template("type/edition/title_and_author", work, edition, ocaid, work_title, star_ratings_stats, for_desktop=False)
       $:macros.databarWork(edition or work, editions_page=True, render_times=component_times, modal_links=modal_links)
     </div>
 
