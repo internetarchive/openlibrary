@@ -365,7 +365,7 @@ class Edition(Thing):
                 return f"https://archive.org/download/{self.ocaid}/{filename}"
 
     @classmethod
-    def from_isbn(cls, isbn: str):
+    def from_isbn(cls, isbn: str, retry: bool = False):
         """Attempts to fetch an edition by isbn, or if no edition is found,
         attempts to import from amazon
         :rtype: edition|None
@@ -391,8 +391,9 @@ class Edition(Thing):
                     return web.ctx.site.get(matches[0])
 
         # Attempt to create from amazon, then fetch from OL
+        retries = 5 if retry else 0
         key = (isbn10 or isbn13) and create_edition_from_amazon_metadata(
-            isbn10 or isbn13
+            isbn10 or isbn13, retries=retries
         )
         if key:
             return web.ctx.site.get(key)
@@ -966,8 +967,7 @@ class List(Thing, ListMixin):
         return self.name or "unnamed"
 
     def get_owner(self):
-        match = web.re_compile(r"(/people/[^/]+)/lists/OL\d+L").match(self.key)
-        if match:
+        if match := web.re_compile(r"(/people/[^/]+)/lists/OL\d+L").match(self.key):
             key = match.group(1)
             return self._site.get(key)
 
@@ -1016,8 +1016,7 @@ class List(Thing, ListMixin):
         if isinstance(seed, Thing):
             seed = {"key": seed.key}
 
-        index = self._index_of_seed(seed)
-        if index >= 0:
+        if (index := self._index_of_seed(seed)) >= 0:
             self.seeds.pop(index)
             return True
         else:

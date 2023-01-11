@@ -58,8 +58,7 @@ class read_multiget(delegate.page):
         # Work around issue with gunicorn where semicolon and after
         # get truncated.  (web.input() still seems ok)
         # see https://github.com/benoitc/gunicorn/issues/215
-        raw_uri = web.ctx.env.get("RAW_URI")
-        if raw_uri:
+        if raw_uri := web.ctx.env.get("RAW_URI"):
             raw_path = urllib.parse.urlsplit(raw_uri).path
 
             # handle e.g. '%7C' for '|'

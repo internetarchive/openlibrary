@@ -5,6 +5,7 @@ import string
 import time
 import threading
 import functools
+from typing import Callable, Literal
 
 import memcache
 import json
@@ -50,7 +51,13 @@ class memcache_memoize:
     :param prethread: Function to call on the new thread to set it up
     """
 
-    def __init__(self, f, key_prefix=None, timeout=MINUTE_SECS, prethread=None):
+    def __init__(
+        self,
+        f: Callable,
+        key_prefix: str | None = None,
+        timeout: int = MINUTE_SECS,
+        prethread: Callable | None = None,
+    ):
         """Creates a new memoized function for ``f``."""
         self.f = f
         self.key_prefix = key_prefix or self._generate_key_prefix()
@@ -59,7 +66,7 @@ class memcache_memoize:
         self._memcache = None
 
         self.stats = web.storage(calls=0, hits=0, updates=0, async_updates=0)
-        self.active_threads = {}
+        self.active_threads: dict = {}
         self.prethread = prethread
 
     def _get_memcache(self):
@@ -127,7 +134,7 @@ class memcache_memoize:
     def update_async(self, *args, **kw):
         """Starts the update process asynchronously."""
         t = threading.Thread(target=self._update_async_worker, args=args, kwargs=kw)
-        self.active_threads[t.getName()] = t
+        self.active_threads[t.name] = t
         t.start()
 
     def _update_async_worker(self, *args, **kw):
@@ -311,8 +318,7 @@ class MemcacheCache(Cache):
 
     @cached_property
     def memcache(self):
-        servers = config.get("memcache_servers", None)
-        if servers:
+        if servers := config.get("memcache_servers", None):
             return olmemcache.Client(servers)
         else:
             web.debug(
@@ -456,7 +462,12 @@ class memoize:
     """
 
     def __init__(
-        self, engine="memory", key=None, expires=0, background=False, cacheable=None
+        self,
+        engine: Literal["memory", "memcache", "request"] = "memory",
+        key=None,
+        expires: int = 0,
+        background: bool = False,
+        cacheable: Callable | None = None,
     ):
         self.cache = _get_cache(engine)
         self.keyfunc = self._make_key_func(key)
@@ -488,7 +499,7 @@ class memoize:
 
         return func
 
-    def cache_get(self, key):
+    def cache_get(self, key: str | tuple):
         """Reads value of a key from the cache.
 
         When key is a string, this is equvivalant to::
@@ -507,7 +518,7 @@ class memoize:
         else:
             return self.cache.get(key)
 
-    def cache_set(self, key, value):
+    def cache_set(self, key: str | tuple, value):
         """Sets a key to a given value in the cache.
 
         When key is a string, this is equvivalant to::

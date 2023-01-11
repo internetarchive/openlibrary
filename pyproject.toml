@@ -5,7 +5,7 @@
 
 [tool.black]
 skip-string-normalization = true
-target-version = ["py39", "py310"]
+target-version = ["py310", "py311"]
 
 [tool.codespell]
 ignore-words-list = "beng,curren,datas,furst,nd,nin,ot,ser,spects,te,tha,ue,upto"

@@ -695,9 +695,8 @@ class ils_cover_upload:
         add_cover = covers.add_cover()
 
         data = add_cover.upload(key, i)
-        coverid = data.get('id')
 
-        if coverid:
+        if coverid := data.get('id'):
             add_cover.save(book, coverid)
             raise self.success(i)
         else:

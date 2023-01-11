@@ -2,7 +2,7 @@ import logging
 import web
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Literal, Optional, cast, Any, Final
+from typing import Literal, cast, Any, Final
 from collections.abc import Iterable
 from openlibrary.plugins.worksearch.search import get_solr
 
@@ -88,7 +88,12 @@ class Bookshelves(db.CommonExtras):
 
     @classmethod
     def most_logged_books(
-        cls, shelf_id='', limit=10, since: date | None = None, page=1, fetch=False
+        cls,
+        shelf_id: str = '',
+        limit: int = 10,
+        since: date | None = None,
+        page: int = 1,
+        fetch: bool = False,
     ) -> list:
         """Returns a ranked list of work OLIDs (in the form of an integer --
         i.e. OL123W would be 123) which have been most logged by
@@ -200,10 +205,8 @@ class Bookshelves(db.CommonExtras):
         :param q: an optional query string to filter the results.
         """
         from openlibrary.core.models import LoggedBooksData
-        from openlibrary.plugins.worksearch.code import (
-            run_solr_query,
-            DEFAULT_SEARCH_FIELDS,
-        )
+        from openlibrary.plugins.worksearch.code import run_solr_query
+        from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
         @dataclass
         class ReadingLogItem:
@@ -303,6 +306,7 @@ class Bookshelves(db.CommonExtras):
                 '"/works/OL%sW"' % i['work_id'] for i in reading_log_books
             )
             solr_resp = run_solr_query(
+                scheme=WorkSearchScheme(),
                 param={'q': q},
                 offset=query_params["offset"],
                 rows=limit,
@@ -368,7 +372,7 @@ class Bookshelves(db.CommonExtras):
             ]
             solr_docs = get_solr().get_many(
                 reading_log_work_keys,
-                fields=DEFAULT_SEARCH_FIELDS
+                fields=WorkSearchScheme.default_fetched_fields
                 | {'subject', 'person', 'place', 'time', 'edition_key'},
             )
             solr_docs = add_storage_items_for_redirects(
@@ -437,10 +441,10 @@ class Bookshelves(db.CommonExtras):
     @classmethod
     def get_recently_logged_books(
         cls,
-        bookshelf_id=None,
-        limit=50,
-        page=1,
-        fetch=False,
+        bookshelf_id: str | None = None,
+        limit: int = 50,
+        page: int = 1,
+        fetch: bool = False,
     ) -> list:
         oldb = db.get_db()
         page = int(page or 1)
@@ -458,9 +462,7 @@ class Bookshelves(db.CommonExtras):
         return cls.fetch(logged_books) if fetch else logged_books
 
     @classmethod
-    def get_users_read_status_of_work(
-        cls, username: str, work_id: str
-    ) -> Optional[str]:
+    def get_users_read_status_of_work(cls, username: str, work_id: str) -> str | None:
         """A user can mark a book as (1) want to read, (2) currently reading,
         or (3) already read. Each of these states is mutually
         exclusive. Returns the user's read state of this work, if one

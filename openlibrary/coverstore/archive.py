@@ -54,26 +54,30 @@ class TarManager:
             os.makedirs(dir)
 
         indexpath = path.replace('.tar', '.index')
+        print(indexpath, os.path.exists(path))
+        mode = 'a' if os.path.exists(path) else 'w'
+        # Need USTAR since that used to be the default in Py2
+        return tarfile.TarFile(path, mode, format=tarfile.USTAR_FORMAT), open(
+            indexpath, mode
+        )
 
-        if os.path.exists(path):
-            return tarfile.TarFile(path, 'a'), open(indexpath, 'a')
-        else:
-            return tarfile.TarFile(path, 'w'), open(indexpath, 'w')
+    def add_file(self, name, filepath, mtime):
+        with open(filepath, 'rb') as fileobj:
+            tarinfo = tarfile.TarInfo(name)
+            tarinfo.mtime = mtime
+            tarinfo.size = os.stat(fileobj.name).st_size
 
-    def add_file(self, name, fileobj, mtime):
-        tarinfo = tarfile.TarInfo(name)
-        tarinfo.mtime = mtime
-        tarinfo.size = os.stat(fileobj.name).st_size
+            tar, index = self.get_tarfile(name)
 
-        tar, index = self.get_tarfile(name)
-        # tar.offset is current size of tar file.
-        # Adding 512 bytes for header gives us the starting offset of next file.
-        offset = tar.offset + 512
+            # tar.offset is current size of tar file.
+            # Adding 512 bytes for header gives us the
+            # starting offset of next file.
+            offset = tar.offset + 512
 
-        tar.addfile(tarinfo, fileobj=fileobj)
+            tar.addfile(tarinfo, fileobj=fileobj)
 
-        index.write(f'{name}\t{offset}\t{tarinfo.size}\n')
-        return f"{os.path.basename(tar.name)}:{offset}:{tarinfo.size}"
+            index.write(f'{name}\t{offset}\t{tarinfo.size}\n')
+            return f"{os.path.basename(tar.name)}:{offset}:{tarinfo.size}"
 
     def close(self):
         for name, _tarfile, _indexfile in self.tarfiles.values():
@@ -85,36 +89,47 @@ class TarManager:
 idx = id
 
 
-def archive():
+def archive(test=True):
     """Move files from local disk to tar files and update the paths in the db."""
     tar_manager = TarManager()
 
     _db = db.getdb()
 
     try:
-        covers = _db.select('cover', where='archived=$f', order='id', vars={'f': False})
-        for cover in covers:
-            id = "%010d" % cover.id
+        covers = _db.select(
+            'cover',
+            # IDs before this are legacy and not in the right format this script
+            # expects. Cannot archive those.
+            where='archived=$f and id>7999999',
+            order='id',
+            vars={'f': False},
+            limit=10_000,
+        )
 
+        for cover in covers:
             print('archiving', cover)
 
             files = {
-                'filename': web.storage(name=id + '.jpg', filename=cover.filename),
+                'filename': web.storage(
+                    name="%010d.jpg" % cover.id, filename=cover.filename
+                ),
                 'filename_s': web.storage(
-                    name=id + '-S.jpg', filename=cover.filename_s
+                    name="%010d-S.jpg" % cover.id, filename=cover.filename_s
                 ),
                 'filename_m': web.storage(
-                    name=id + '-M.jpg', filename=cover.filename_m
+                    name="%010d-M.jpg" % cover.id, filename=cover.filename_m
                 ),
                 'filename_l': web.storage(
-                    name=id + '-L.jpg', filename=cover.filename_l
+                    name="%010d-L.jpg" % cover.id, filename=cover.filename_l
                 ),
             }
 
-            for d in files.values():
-                d.path = d.filename and os.path.join(
-                    config.data_root, "localdisk", d.filename
+            for file_type, f in files.items():
+                files[file_type].path = f.filename and os.path.join(
+                    config.data_root, "localdisk", f.filename
                 )
+
+            print(files.values())
 
             if any(
                 d.path is None or not os.path.exists(d.path) for d in files.values()
@@ -130,22 +145,26 @@ def archive():
             timestamp = time.mktime(cover.created.timetuple())
 
             for d in files.values():
-                d.newname = tar_manager.add_file(d.name, open(d.path), timestamp)
+                d.newname = tar_manager.add_file(
+                    d.name, filepath=d.path, mtime=timestamp
+                )
 
-            _db.update(
-                'cover',
-                where="id=$cover.id",
-                archived=True,
-                filename=files['filename'].newname,
-                filename_s=files['filename_s'].newname,
-                filename_m=files['filename_m'].newname,
-                filename_l=files['filename_l'].newname,
-                vars=locals(),
-            )
+            if not test:
+                _db.update(
+                    'cover',
+                    where="id=$cover.id",
+                    archived=True,
+                    filename=files['filename'].newname,
+                    filename_s=files['filename_s'].newname,
+                    filename_m=files['filename_m'].newname,
+                    filename_l=files['filename_l'].newname,
+                    vars=locals(),
+                )
 
-            for d in files.values():
-                print('removing', d.path)
-                os.remove(d.path)
+                for d in files.values():
+                    print('removing', d.path)
+                    os.remove(d.path)
+
     finally:
         # logfile.close()
         tar_manager.close()

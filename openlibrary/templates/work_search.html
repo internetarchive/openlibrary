@@ -33,7 +33,7 @@ $code:
         return "SearchFacet|" + facets[key]
 
 $ param = {}
-$for p in ['q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor', 'publish_place', 'lccn', 'ia', 'first_sentence', 'publisher', 'author_key', 'debug', 'subject', 'place', 'person', 'time'] + facet_fields:
+$for p in {'q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor', 'publish_place', 'lccn', 'ia', 'first_sentence', 'publisher', 'author_key', 'debug', 'subject', 'place', 'person', 'time'} | facet_fields:
     $if p in input and input[p]:
         $ param[p] = input[p]
 
@@ -66,14 +66,14 @@ $ facet_inc = 10
 
 $ facet_map = (
 $    ('has_fulltext', _('eBook?')),
+$    ('language', _('Language')),
 $    ('author_key', _('Author')),
 $    ('subject_facet', _('Subjects')),
+$    ('first_publish_year', _('First published')),
+$    ('publisher_facet', _('Publisher')),
 $    ('person_facet', _('People')),
 $    ('place_facet', _('Places')),
 $    ('time_facet', _('Times')),
-$    ('first_publish_year', _('First published')),
-$    ('publisher_facet', _('Publisher')),
-$    ('language', _('Language')),
 $    ('public_scan_b', _('Classic eBooks')),
 $ )
 
@@ -204,7 +204,7 @@ $ )
 
             $for work in works:
                 $ read_status = work.get('readinglog', None)
-                $ dropper = macros.ReadingLogDropper([], work=work, reading_log_only=True, page_url="/search", users_work_read_status=read_status)
+                $ dropper = macros.ReadingLogDropper([], work=work, include_lists=False, page_url="/search", users_work_read_status=read_status)
                 $:macros.SearchResultsWork(work, reading_log=dropper, show_librarian_extras=show_librarian_extras)
           </ul>
           $:macros.Pager(page, num_found, rows)

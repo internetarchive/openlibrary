@@ -91,7 +91,7 @@ function isIsbnDupe(isbn) {
  * @param {String} isbn  ISBN string to check
  * returns {boolean}  true if the isbn has a valid format
  */
-function isFormatValidIsbn10(isbn) {
+export function isFormatValidIsbn10(isbn) {
     const regex = /^[0-9]{9}[0-9X]$/;
     return regex.test(isbn);
 }
@@ -120,7 +120,7 @@ export function isChecksumValidIsbn10(isbn) {
  * @param {String} isbn  ISBN string to check
  * returns {boolean}  true if the isbn has a valid format
  */
-function isFormatValidIsbn13(isbn) {
+export function isFormatValidIsbn13(isbn) {
     const regex = /^[0-9]{13}$/
     return regex.test(isbn)
 }
@@ -146,7 +146,7 @@ export function isChecksumValidIsbn13(isbn) {
  * @param {String} isbn  ISBN string for parsing
  * @returns {String}  parsed isbn string
  */
-function parseIsbn(isbn) {
+export function parseIsbn(isbn) {
     return isbn.replace(/[ -]/g, '');
 }
 

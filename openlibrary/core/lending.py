@@ -1,6 +1,6 @@
 """Module for providing core functionality of lending on Open Library.
 """
-from typing import Literal, Optional
+from typing import Literal
 
 import web
 import datetime
@@ -63,7 +63,13 @@ config_internal_tests_api_key = None
 
 def setup(config):
     """Initializes this module from openlibrary config."""
-    global config_loanstatus_url, config_ia_access_secret, config_bookreader_host, config_ia_ol_shared_key, config_ia_ol_xauth_s3, config_internal_tests_api_key, config_ia_loan_api_url, config_http_request_timeout, config_ia_availability_api_v2_url, config_ia_ol_metadata_write_s3, config_ia_xauth_api_url, config_http_request_timeout, config_ia_s3_auth_url, config_ia_users_loan_history, config_ia_loan_api_developer_key, config_ia_civicrm_api, config_ia_domain
+    global config_loanstatus_url, config_ia_access_secret, config_bookreader_host
+    global config_ia_ol_shared_key, config_ia_ol_xauth_s3, config_internal_tests_api_key
+    global config_ia_loan_api_url, config_http_request_timeout
+    global config_ia_availability_api_v2_url, config_ia_ol_metadata_write_s3
+    global config_ia_xauth_api_url, config_http_request_timeout, config_ia_s3_auth_url
+    global config_ia_users_loan_history, config_ia_loan_api_developer_key
+    global config_ia_civicrm_api, config_ia_domain
 
     config_loanstatus_url = config.get('loanstatus_url')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
@@ -91,9 +97,9 @@ def compose_ia_url(
     subject=None,
     query=None,
     sorts=None,
-    advanced=True,
-    rate_limit_exempt=True,
-) -> Optional[str]:
+    advanced: bool = True,
+    rate_limit_exempt: bool = True,
+) -> str | None:
     """This needs to be exposed by a generalized API endpoint within
     plugins/api/browse which lets lazy-load more items for
     the homepage carousel and support the upcoming /browse view
@@ -263,11 +269,10 @@ def get_available(
         return {'error': 'request_timeout'}
 
 
-def get_availability(key, ids):
+def get_availability(key: str, ids: list[str]) -> dict:
     """
     :param str key: the type of identifier
     :param list of str ids:
-    :rtype: dict
     """
     ids = [id_ for id_ in ids if id_]  # remove infogami.infobase.client.Nothing
     if not ids:
@@ -394,11 +399,9 @@ def get_availability_of_ocaid(ocaid):
     return get_availability('identifier', [ocaid])
 
 
-def get_availability_of_ocaids(ocaids):
+def get_availability_of_ocaids(ocaids: list[str]) -> dict:
     """
     Retrieves availability based on ocaids/archive.org identifiers
-    :param list[str] ocaids:
-    :rtype: dict
     """
     return get_availability('identifier', ocaids)
 
@@ -865,8 +868,7 @@ class IA_Lending_API:
         params = dict(method="loan.query", identifier=identifier)
         if userid:
             params['userid'] = userid
-        loans = self._post(**params).get('result', [])
-        if loans:
+        if loans := self._post(**params).get('result', []):
             return loans[0]
 
     def find_loans(self, **kw):

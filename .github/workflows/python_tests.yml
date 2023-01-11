@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10"]
+        python-version: ["3.11"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -51,7 +51,6 @@ jobs:
       - name: Run tests
         run: |
           git fetch --no-tags --prune --depth=1 origin master
-          BASE_BRANCH="origin/master" make lint-diff
           make lint
           make test-py
           source scripts/run_doctests.sh

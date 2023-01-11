@@ -63,8 +63,10 @@ from web.template import (
     SuiteNode,
     DefNode,
     PythonTokenizer,
-    INDENT,
+    # INDENT,
 )
+
+INDENT = "    "
 
 
 def extension(parser):
@@ -93,9 +95,6 @@ class JSDefNode(DefNode):
         self.stmt = self.stmt.replace("jsdef", "def")
 
 
-INDENT = "    "
-
-
 class JSNode:
     def __init__(self, node):
         self.node = node
@@ -118,8 +117,7 @@ class JSNode:
         'var x = 1;\n'
         """
         name = "jsemit_" + node.__class__.__name__
-        f = getattr(self, name, None)
-        if f:
+        if f := getattr(self, name, None):
             return f(node, indent)
         else:
             return ""

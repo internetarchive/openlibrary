@@ -82,8 +82,7 @@ class SubjectProcessor:
             self._add_subject('time:', s)
 
     def _add_subject(self, prefix, name):
-        s = self._get_subject(prefix, name)
-        if s:
+        if s := self._get_subject(prefix, name):
             self.subjects[s['key']].append(s['name'])
 
     def _get_subject(self, prefix, subject_name):

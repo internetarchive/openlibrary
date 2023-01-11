@@ -23,7 +23,9 @@ $ userKey = user.key or ctx.user.key
 $ breadcrumb = _("Reading Log")
 $ header_title = ""
 
-$if key == 'currently-reading':
+$if key == 'mybooks':
+  $ header_title = _("My Books")
+$elif key == 'currently-reading':
   $ header_title = _("Currently Reading")
 $elif key == 'want-to-read':
   $ header_title = _("Want To Read")
@@ -46,7 +48,8 @@ $if not header_title:
     $ header_title = docs.get('name', 'List')
   $else:
     $ header_title = key
-  $ breadcrumb = header_title
+
+$ breadcrumb = header_title
 $var title: $header_title
 
 <div class="mybooks">
@@ -55,6 +58,12 @@ $var title: $header_title
 
   <div class="mybooks-details">
     $ component_times['Details header'] = time()
+    $ year = get_reading_goals_year()
+    $ current_goal = get_reading_goals(year=year)
+    $if not current_goal:
+        <div class="page-banner page-banner-body page-banner-mybooks">
+          Announcing Yearly Reading Goals: <a href="https://blog.openlibrary.org/2022/12/31/reach-your-2023-reading-goals-with-open-library" class="btn primary">Learn More</a> or <a class="btn primary set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">$:_('Set %(year)s reading goal', year=year)</a>
+	</div>
     <header>
       <div>
         <div class="small sansserif grey account-settings-menu">
@@ -96,7 +105,9 @@ $var title: $header_title
     $ component_times['Details header'] = time() - component_times['Details header']
     $ component_times['Details content'] = time()
     <div class="details-content">
-    $if key == 'loans':
+    $if key == 'mybooks':
+      $:render_template('account/mybooks', logged_in_user, docs, public=public, owners_page=owners_page, counts=shelf_counts, lists=lists,)
+    $elif key == 'loans':
       $:render_template('account/loans', logged_in_user, docs)
     $elif key == 'notes':
       $:render_template('account/notes', docs, user, shelf_counts['notes'], page=current_page)

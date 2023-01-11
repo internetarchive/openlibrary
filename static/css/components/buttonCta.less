@@ -68,6 +68,11 @@ a.cta-btn {
     border: 2px solid @primary-blue;
     color: @primary-blue;
   }
+  &--shell:disabled {
+    border: 2px solid @light-grey;
+    color: @light-grey;
+    cursor: default;
+  }
   &--sponsor {
     border: 2px solid @link-blue;
     background: lighten(desaturate(@link-blue, 56%), 67%);
@@ -78,6 +83,21 @@ a.cta-btn {
     background: @white;
     color: @black;
     border-radius: 6px;
+  }
+  &--cancel {
+    padding: 5px;
+    border: 2px solid @red;
+    background: @white;
+    color: @red;
+    border-radius: 6px;
+  }
+
+  &--delete {
+    background-color: @red;
+
+    &:hover {
+      background-color: darken(@red, 20%);
+    }
   }
 
   &--sponsor:link, &--sponsor:visited {

@@ -77,8 +77,7 @@ def ol_query(name, value):
         'type': '/type/edition',
         name: value,
     }
-    keys = web.ctx.site.things(query)
-    if keys:
+    if keys := web.ctx.site.things(query):
         return keys[0]
 
 

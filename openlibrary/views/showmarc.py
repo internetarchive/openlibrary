@@ -131,8 +131,7 @@ class show_marc(app.view):
         except requests.HTTPError as e:
             return "ERROR:" + str(e)
 
-        len_in_rec = int(result[:5])
-        if len_in_rec != length:
+        if (len_in_rec := int(result[:5])) != length:
             raise web.seeother(
                 '/show-records/%s:%d:%d' % (filename, offset, len_in_rec)
             )

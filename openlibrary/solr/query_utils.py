@@ -32,6 +32,19 @@ def luqum_remove_child(child: Item, parents: list[Item]):
         raise ValueError("Not supported for generic class Item")
 
 
+def luqum_replace_child(parent: Item, old_child: Item, new_child: Item):
+    """
+    Replaces a child in a luqum parse tree.
+    """
+    if isinstance(parent, (BaseOperation, Group, Unary)):
+        new_children = tuple(
+            new_child if c == old_child else c for c in parent.children
+        )
+        parent.children = new_children
+    else:
+        raise ValueError("Not supported for generic class Item")
+
+
 def luqum_traverse(item: Item, _parents: list[Item] | None = None):
     """
     Traverses every node in the parse tree in depth-first order.
@@ -121,7 +134,7 @@ def fully_escape_query(query: str) -> str:
     """
     escaped = query
     # Escape special characters
-    escaped = re.sub(r'[\[\]\(\)\{\}:"-+?~^/\\,]', r'\\\g<0>', escaped)
+    escaped = re.sub(r'[\[\]\(\)\{\}:"\-+?~^/\\,]', r'\\\g<0>', escaped)
     # Remove boolean operators by making them lowercase
     escaped = re.sub(r'AND|OR|NOT', lambda _1: _1.group(0).lower(), escaped)
     return escaped
@@ -219,6 +232,7 @@ def query_dict_to_str(
     escaped: dict | None = None,
     unescaped: dict | None = None,
     op: Literal['AND', 'OR', ''] = '',
+    phrase: bool = False,
 ) -> str:
     """
     Converts a query dict to a search query.
@@ -233,11 +247,16 @@ def query_dict_to_str(
     'title:(foo \\\\? to escape)'
     >>> query_dict_to_str({'title': 'YES AND'})
     'title:(YES and)'
+    >>> query_dict_to_str({'publisher_facet': 'Running Press'}, phrase=True)
+    'publisher_facet:"Running Press"'
     """
     result = ''
     if escaped:
         result += f' {op} '.join(
-            f'{k}:({fully_escape_query(v)})' for k, v in escaped.items()
+            f'{k}:"{fully_escape_query(v)}"'
+            if phrase
+            else f'{k}:({fully_escape_query(v)})'
+            for k, v in escaped.items()
         )
     if unescaped:
         if result:

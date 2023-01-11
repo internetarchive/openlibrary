@@ -55,8 +55,7 @@ class subjects(delegate.page):
     path = '(/subjects/[^/]+)'
 
     def GET(self, key):
-        nkey = self.normalize_key(key)
-        if nkey != key:
+        if (nkey := self.normalize_key(key)) != key:
             raise web.redirect(nkey)
 
         # this needs to be updated to include:
@@ -95,8 +94,7 @@ class subjects_json(delegate.page):
     def GET(self, key):
         web.header('Content-Type', 'application/json')
         # If the key is not in the normalized form, redirect to the normalized form.
-        nkey = self.normalize_key(key)
-        if nkey != key:
+        if (nkey := self.normalize_key(key)) != key:
             raise web.redirect(nkey)
 
         # Does the key requires any processing before passing using it to query solr?
@@ -241,7 +239,7 @@ class SubjectEngine:
         **filters,
     ):
         # Circular imports are everywhere -_-
-        from openlibrary.plugins.worksearch.code import run_solr_query
+        from openlibrary.plugins.worksearch.code import run_solr_query, WorkSearchScheme
 
         meta = self.get_meta(key)
         subject_type = meta.name
@@ -252,10 +250,12 @@ class SubjectEngine:
             # Don't want this escaped or used in fq for perf reasons
             unescaped_filters['publish_year'] = filters.pop('publish_year')
         result = run_solr_query(
+            WorkSearchScheme(),
             {
                 'q': query_dict_to_str(
                     {meta.facet_key: self.normalize_key(meta.path)},
                     unescaped=unescaped_filters,
+                    phrase=True,
                 ),
                 **filters,
             },
@@ -297,10 +297,10 @@ class SubjectEngine:
                 ('facet.mincount', 1),
                 ('facet.limit', 25),
             ],
-            allowed_filter_params=[
+            allowed_filter_params={
                 'has_fulltext',
                 'publish_year',
-            ],
+            },
         )
 
         subject = Subject(

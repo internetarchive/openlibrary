@@ -459,8 +459,7 @@ class SolrProcessor:
         :return: Year edition was published
         :rtype: str or None
         """
-        pub_date = e.get('publish_date', None)
-        if pub_date:
+        if pub_date := e.get('publish_date', None):
             m = re_year.search(pub_date)
             if m:
                 return m.group(1)
@@ -555,8 +554,7 @@ class SolrProcessor:
             add_list('publish_year', pub_years)
             add('first_publish_year', min(int(y) for y in pub_years))
 
-        number_of_pages_median = pick_number_of_pages_median(editions)
-        if number_of_pages_median:
+        if number_of_pages_median := pick_number_of_pages_median(editions):
             add('number_of_pages_median', number_of_pages_median)
 
         add_list(
@@ -615,20 +613,11 @@ class SolrProcessor:
 
     @staticmethod
     def get_alternate_titles(books: Iterable[dict]) -> set[str]:
-        """Get titles from the editions as alternative titles."""
-        result = set()
-        for bookish in books:
-            full_title = bookish.get('title')
-            if not full_title:
-                # None would've got in if any of the editions has no title.
-                continue
-            if bookish.get('subtitle'):
-                full_title += ': ' + bookish['subtitle']
-            result.add(full_title)
-            result.update(bookish.get('work_titles', []))
-            result.update(bookish.get('other_titles', []))
-
-        return result
+        return {
+            title
+            for bookish in books
+            for title in EditionSolrBuilder(bookish).alternative_title
+        }
 
     @staticmethod
     def get_alternate_subtitles(books: Iterable[dict]) -> set[str]:
@@ -1381,8 +1370,7 @@ def solr_select_work(edition_key):
             'fl': 'key',
         },
     ).json()
-    docs = reply['response'].get('docs', [])
-    if docs:
+    if docs := reply['response'].get('docs', []):
         return docs[0]['key']  # /works/ prefix is in solr
 
 

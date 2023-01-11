@@ -15,7 +15,7 @@ $def with (books=None, books_wo_isbns=None)
           </div>
           <div>
             <input class="cta-btn cta-btn--available cta-btn--small"
-                type="submit" value="$_('Load Books')">
+                type="submit" value="$_('Load Books')" data-ol-link-track="PatronImports|Goodreads">
           </div>
         </form>
       </div>
@@ -26,7 +26,7 @@ $def with (books=None, books_wo_isbns=None)
             enctype="multipart/form-data" class="olform olform--decoration">
           <input type="hidden" name="type" value="reading_log">
           <div>
-            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')">
+            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')" data-ol-link-track="PatronExports|ReadingLog">
           </div>
         </form>
       </div>
@@ -37,7 +37,7 @@ $def with (books=None, books_wo_isbns=None)
             enctype="multipart/form-data" class="olform olform--decoration">
           <input type="hidden" name="type" value="book_notes">
           <div>
-            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')">
+            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')" data-ol-link-track="PatronExports|BookNotes">
           </div>
         </form>
       </div>
@@ -48,7 +48,7 @@ $def with (books=None, books_wo_isbns=None)
             enctype="multipart/form-data" class="olform olform--decoration">
           <input type="hidden" name="type" value="reviews">
           <div>
-            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')">
+            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')" data-ol-link-track="PatronExports|ReviewTags">
           </div>
         </form>
       </div>
@@ -59,7 +59,7 @@ $def with (books=None, books_wo_isbns=None)
             enctype="multipart/form-data" class="olform olform--decoration">
           <input type="hidden" name="type" value="lists">
           <div>
-            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')">
+            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')" data-ol-link-track="PatronExports|ListsSummary">
           </div>
         </form>
       </div>
@@ -70,7 +70,7 @@ $def with (books=None, books_wo_isbns=None)
             enctype="multipart/form-data" class="olform olform--decoration">
           <input type="hidden" name="type" value="ratings">
           <div>
-            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')">
+            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')" data-ol-link-track="PatronExports|StarRatings">
           </div>
         </form>
       </div>

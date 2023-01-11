@@ -1,10 +1,12 @@
 $def with (change)
+$ primary = change.get_master()
+$ type = primary.type.key.replace("/type/","")
+$ label = primary.name if type == "author" else primary.title
 
 <div id="contentHead">
-    $:render_template("recentchanges/header", change, label=_("Author Merge"))
+    $:render_template("recentchanges/header", change, label=type.capitalize() + ' Merge')
 </div>
 
-$ master = change.get_master()
 
 <div id="contentBody">
     $if change.get_undo_changeset():
@@ -14,22 +16,23 @@ $ master = change.get_master()
         </p>
 
     <div id="mergeHead" class="sansserif">
-        <div class="smallest lightgreen">$_('Master')</div>
+        <div class="smallest lightgreen">$_('Primary')</div>
 
         <div id="recordMaster">
             <span id="recordMasterTitle" class="larger">
-                $if master.key:
-                    <strong><a href="$master.key">$master.name</a></strong>
+                $if primary.key:
+                    <strong><a href="$primary.key">$label</a></strong>
                 $else:
-                    <strong>$master.name</strong>
+                    <strong>$label</strong>
 
             </span>
-            <span id="recordMasterDate" class="smaller">
-                $if master.birth_date or master.death_date:
-                    $ birth = master.birth_date or ''
-                    $ death = master.death_date or ''
-                    ($(' - '.join([birth, death])))
-            </span>
+            $if type == "author":
+                <span id="recordMasterDate" class="smaller">
+                    $if primary.birth_date or primary.death_date:
+                        $ birth = primary.birth_date or ''
+                        $ death = primary.death_date or ''
+                        ($(' - '.join([birth, death])))
+                </span>
 
         </div>
 
@@ -37,7 +40,10 @@ $ master = change.get_master()
         <div id="recordDuplicates">
             <p class="small collapse">
                 $for dup in change.get_duplicates():
-                    $dup.name;
+                    $if type == "author":
+                        $dup.name
+                    $else:
+                        $dup.title
             </p>
         </div>
 

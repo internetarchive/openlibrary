@@ -45,6 +45,21 @@ class EditionSolrBuilder:
         return self.get('subtitle')
 
     @property
+    def alternative_title(self) -> set[str]:
+        """Get titles from the editions as alternative titles."""
+        result: set[str] = set()
+        full_title = self.get('title')
+        if not full_title:
+            return result
+        if self.get('subtitle'):
+            full_title += ': ' + self.get('subtitle')
+        result.add(full_title)
+        result.update(self.get('work_titles', []))
+        result.update(self.get('other_titles', []))
+
+        return result
+
+    @property
     def cover_i(self) -> Optional[int]:
         return next(
             (cover_id for cover_id in self.get('covers', []) if cover_id != -1), None
@@ -177,6 +192,7 @@ def build_edition_data(
             # Display data
             'title': ed.title,
             'subtitle': ed.subtitle,
+            'alternative_title': list(ed.alternative_title),
             'cover_i': ed.cover_i,
             'language': ed.languages,
             # Misc useful data

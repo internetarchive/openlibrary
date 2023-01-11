@@ -77,8 +77,7 @@ def on_loan_completed_statsdb(loan):
         "t_end": t_end.isoformat(),
         "status": "completed",
     }
-    old = statsdb.get_entry(key)
-    if old:
+    if old := statsdb.get_entry(key):
         olddata = json.loads(old.json)
         d = dict(olddata, **d)
     statsdb.update_entry(key, d)

@@ -231,8 +231,7 @@ class OPDSEntry(OPDS):
 
         # the collection and inlibrary check is coped from databarWork.html
         collection = set()
-        meta_fields = book.get_ia_meta_fields()
-        if meta_fields:
+        if meta_fields := book.get_ia_meta_fields():
             collection = meta_fields.get('collection', [])
             contrib = meta_fields.get('contributor')
 

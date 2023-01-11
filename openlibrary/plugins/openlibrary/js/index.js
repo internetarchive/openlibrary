@@ -378,6 +378,45 @@ jQuery(function () {
             );
     }
 
+    const nativeDialogs = document.querySelectorAll('.native-dialog')
+    if (nativeDialogs.length) {
+        import(/* webpackChunkName: "dialog" */ './native-dialog')
+            .then(module => module.initDialogs(nativeDialogs))
+    }
+    const setGoalLinks = document.querySelectorAll('.set-reading-goal-link')
+    const goalEditLinks = document.querySelectorAll('.edit-reading-goal-link')
+    const goalSubmitButtons = document.querySelectorAll('.reading-goal-submit-button')
+    const checkInForms = document.querySelectorAll('.check-in')
+    const checkInPrompts = document.querySelectorAll('.check-in-prompt')
+    const checkInEditLinks = document.querySelectorAll('.prompt-edit-date')
+    const yearElements = document.querySelectorAll('.use-local-year')
+    if (setGoalLinks.length || goalEditLinks.length || goalSubmitButtons.length || checkInForms.length || checkInPrompts.length || checkInEditLinks.length || yearElements.length) {
+        import(/* webpackChunkName: "check-ins" */ './check-ins')
+            .then((module) => {
+                if (setGoalLinks.length) {
+                    module.initYearlyGoalPrompt(setGoalLinks)
+                }
+                if (goalEditLinks.length) {
+                    module.initGoalEditLinks(goalEditLinks)
+                }
+                if (goalSubmitButtons.length) {
+                    module.initGoalSubmitButtons(goalSubmitButtons)
+                }
+                if (checkInForms.length) {
+                    module.initCheckInForms(checkInForms)
+                }
+                if (checkInPrompts.length) {
+                    module.initCheckInPrompts(checkInPrompts)
+                }
+                if (checkInEditLinks.length) {
+                    module.initCheckInEdits(checkInEditLinks)
+                }
+                if (yearElements.length) {
+                    module.displayLocalYear(yearElements)
+                }
+            })
+    }
+
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });

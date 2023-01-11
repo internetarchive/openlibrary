@@ -30,9 +30,6 @@ from infogami.infobase.client import Nothing
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
 
-# TODO: i18n should be moved to core or infogami
-from openlibrary.i18n import gettext as _  # noqa: F401
-
 __all__ = [
     "sanitize",
     "json_encode",
@@ -73,9 +70,8 @@ def sanitize(html, encoding='utf8'):
 
     def get_nofollow(name, event):
         attrs = event[1][1]
-        href = attrs.get('href', '')
 
-        if href:
+        if href := attrs.get('href', ''):
             # add rel=nofollow to all absolute links
             _, host, _, _, _ = urlsplit(href)
             if host:
@@ -188,8 +184,7 @@ def sprintf(s, *a, **kw):
     >>> sprintf('hello %(name)s', name='python')
     'hello python'
     """
-    args = kw or a
-    if args:
+    if args := kw or a:
         return s % args
     else:
         return s

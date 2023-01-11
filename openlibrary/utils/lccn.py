@@ -17,8 +17,7 @@ def normalize_lccn(lccn):
     lccn = REV_RE.sub('', lccn)
     m = REMOVESUFFIX_RE.match(lccn)
     lccn = m.group(0) if m else ''
-    hyph = HYPHEN_RE.match(lccn)
-    if hyph:
+    if hyph := HYPHEN_RE.match(lccn):
         lccn = hyph.group(1) + hyph.group(2).zfill(6)
     if LCCN_NORM_RE.match(lccn):
         return lccn

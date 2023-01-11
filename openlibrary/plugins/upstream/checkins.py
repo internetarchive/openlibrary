@@ -3,22 +3,28 @@
 import json
 import web
 
+from datetime import datetime
+from math import floor
 from typing import Optional
 
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from infogami.utils.view import public
 
 from openlibrary.accounts import get_current_user
+from openlibrary.app import render_template
+from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.core.bookshelves_events import BookshelvesEvents, BookshelfEvent
+from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.utils.decorators import authorized_for
 
 
 def make_date_string(year: int, month: Optional[int], day: Optional[int]) -> str:
-    """Creates a date string in 'YYYY-MM-DD' format, given the year, month, and day.
+    """Creates a date string in the expected format, given the year, month, and day.
 
-    Month and day can be None.  If the month is None, only the year is returned.
-    If there is a month but day is None, the year and month are returned.
+    Event dates can take one of three forms:
+    "YYYY"
+    "YYYY-MM"
+    "YYYY-MM-DD"
     """
     result = f'{year}'
     if month:
@@ -28,95 +34,247 @@ def make_date_string(year: int, month: Optional[int], day: Optional[int]) -> str
     return result
 
 
-class check_ins(delegate.page):
-    path = r'/check-ins/OL(\d+)W'
+def is_valid_date(year: int, month: Optional[int], day: Optional[int]) -> bool:
+    """Validates dates.
 
-    @authorized_for('/usergroup/admin')
-    def GET(self, work_id):
-        return render_template('check_ins/test_form')
+    Dates are considered valid if there is:
+    1. A year
+    2. A year and a month
+    3. A year, month, and day
+    """
+    if not year:
+        return False
+    if day and not month:
+        return False
+    return True
 
-    @authorized_for('/usergroup/admin')
-    def POST(self, work_id):
-        """Creates a check-in for the given work.
 
-        Additional data is expected to be sent as JSON in the body, and will
-        have the following keys:
-        edition_olid : str,
-        event_type : str,
-        year : integer,
-        month : integer [optional],
-        day : integer [optional]
-        """
-        data = json.loads(web.data())
-        valid_request = self.is_valid(data)
-        user = get_current_user()
-        username = user['key'].split('/')[-1]
+@public
+def get_latest_read_date(work_olid: str) -> dict | None:
+    user = get_current_user()
+    if not user:
+        return None
 
-        if valid_request and username:
-            edition_id = extract_numeric_id_from_olid(data['edition_olid'])
-            date_str = make_date_string(
-                data['year'], data.get('month', None), data.get('day', None)
-            )
-            event_type = BookshelfEvent[data['event_type']].value
-            BookshelvesEvents.create_event(
-                username, work_id, edition_id, date_str, event_type=event_type
-            )
-        else:
-            return web.badrequest(message="Invalid request")
-        return delegate.RawText(json.dumps({'status': 'ok'}))
+    username = user['key'].split('/')[-1]
 
-    def is_valid(self, data: dict) -> bool:
-        """Validates POSTed check-in data."""
-        if not all(key in data for key in ('edition_olid', 'year', 'event_type')):
-            return False
-        if not BookshelfEvent.has_key(data['event_type']):  # noqa: W601
-            return False
-        return True
+    work_id = extract_numeric_id_from_olid(work_olid)
+
+    result = BookshelvesEvents.get_latest_event_date(
+        username, work_id, BookshelfEvent.FINISH
+    )
+    return result
 
 
 class patron_check_ins(delegate.page):
-    path = r'/people/([^/]+)/checkins'
+    path = r'/works/OL(\d+)W/check-ins'
     encoding = 'json'
 
-    @authorized_for('/usergroup/admin')
-    def POST(self, username):
+    def POST(self, work_id):
+        """Validates data, constructs date string, and persists check-in event.
+
+        Data object should have the following:
+        event_type : number
+        year : number
+        month : number : optional
+        day : number : optional
+        edition_key : string : optional
+        event_id : int : optional
+        """
         data = json.loads(web.data())
 
-        if not self.is_valid(data):
-            return web.badrequest(message="Invalid request")
+        if not self.validate_data(data):
+            raise web.badrequest(message='Invalid date submitted')
 
-        results = BookshelvesEvents.select_by_id(data['id'])
-        if not results:
-            return web.badrequest(message="Invalid request")
+        user = get_current_user()
+        if not user:
+            raise web.unauthorized(message='Requires login')
 
-        row = results[0]
-        if row['username'] != username:  # Cannot update someone else's records
-            return web.badrequest(message="Invalid request")
+        username = user['key'].split('/')[-1]
 
-        updates = {}
-        if 'year' in data:
-            event_date = make_date_string(
-                data['year'], data.get('month', None), data.get('day', None)
-            )
-            updates['event_date'] = event_date
+        edition_key = data.get('edition_key', None)
+        edition_id = extract_numeric_id_from_olid(edition_key) if edition_key else None
 
-        if 'data' in data:
-            updates['data'] = json.dumps(data['data'])
+        event_type = data.get('event_type')
 
-        records_updated = BookshelvesEvents.update_event(data['id'], **updates)
-
-        return delegate.RawText(
-            json.dumps({'status': 'success', 'updatedRecords': records_updated})
+        date_str = make_date_string(
+            data.get('year', None),
+            data.get('month', None),
+            data.get('day', None),
         )
 
-    def is_valid(self, data):
-        """Validates data POSTed to this handler.
+        event_id = data.get('event_id', None)
 
-        A request is invalid if it is:
-        a. Missing an 'id'
-        b. Does not have either 'year' or 'data'
-        """
-        return 'id' in data and 'data' in data and 'year' in data
+        if event_id:
+            # update existing event
+            events = BookshelvesEvents.select_by_id(event_id)
+            if not events:
+                raise web.notfound(message='Event does not exist')
+
+            event = events[0]
+            if username != event['username']:
+                raise web.forbidden()
+
+            BookshelvesEvents.update_event(
+                event_id, event_date=date_str, edition_id=edition_id
+            )
+        else:
+            # create new event
+            result = BookshelvesEvents.create_event(
+                username, work_id, edition_id, date_str, event_type=event_type
+            )
+
+            event_id = result
+
+        return delegate.RawText(json.dumps({'status': 'ok', 'id': event_id}))
+
+    def validate_data(self, data):
+        """Validates data submitted from check-in dialog."""
+
+        # Event type must exist:
+        if 'event_type' not in data:
+            return False
+
+        if not BookshelfEvent.has_value(data.get('event_type')):
+            return False
+
+        # Date must be valid:
+        if not is_valid_date(
+            data.get('year', None),
+            data.get('month', None),
+            data.get('day', None),
+        ):
+            return False
+
+        return True
+
+
+class patron_check_in(delegate.page):
+    path = r'/check-ins/(\d+)'
+
+    def DELETE(self, check_in_id):
+        user = get_current_user()
+        if not user:
+            raise web.unauthorized(message="Requires login")
+
+        events = BookshelvesEvents.select_by_id(check_in_id)
+        if not events:
+            raise web.notfound(message='Event does not exist')
+
+        event = events[0]
+        username = user['key'].split('/')[-1]
+        if username != event['username']:
+            raise web.forbidden()
+
+        BookshelvesEvents.delete_by_id(check_in_id)
+        return web.ok()
+
+
+class yearly_reading_goal_json(delegate.page):
+    path = '/reading-goal'
+    encoding = 'json'
+
+    def GET(self):
+        i = web.input(year=None)
+
+        user = get_current_user()
+        if not user:
+            raise web.unauthorized(message='Requires login')
+
+        username = user['key'].split('/')[-1]
+        if i.year:
+            results = [
+                {'year': i.year, 'goal': record.target, 'progress': record.current}
+                for record in YearlyReadingGoals.select_by_username_and_year(
+                    username, i.year
+                )
+            ]
+        else:
+            results = [
+                {'year': record.year, 'goal': record.target, 'progress': record.current}
+                for record in YearlyReadingGoals.select_by_username(username)
+            ]
+
+        return delegate.RawText(json.dumps({'status': 'ok', 'goal': results}))
+
+    def POST(self):
+        i = web.input(goal=0, year=None, is_update=None)
+
+        goal = int(i.goal)
+
+        if i.is_update:
+            if goal < 0:
+                raise web.badrequest(
+                    message='Reading goal update must be 0 or a positive integer'
+                )
+        elif not goal or goal < 1:
+            raise web.badrequest(message='Reading goal must be a positive integer')
+
+        if i.is_update and not i.year:
+            raise web.badrequest(message='Year required to update reading goals')
+
+        user = get_current_user()
+        if not user:
+            raise web.unauthorized(message='Requires login')
+
+        username = user['key'].split('/')[-1]
+        current_year = i.year or datetime.now().year
+
+        if i.is_update:
+            if goal == 0:
+                # Delete goal if "0" was submitted:
+                YearlyReadingGoals.delete_by_username_and_year(username, i.year)
+            else:
+                # Update goal normally:
+                YearlyReadingGoals.update_target(username, i.year, goal)
+        else:
+            YearlyReadingGoals.create(username, current_year, goal)
+
+        return delegate.RawText(json.dumps({'status': 'ok'}))
+
+
+@public
+def get_reading_goals(year=None):
+    user = get_current_user()
+    if not user:
+        return None
+
+    username = user['key'].split('/')[-1]
+    if not year:
+        year = datetime.now().year
+
+    if not (data := YearlyReadingGoals.select_by_username_and_year(username, year)):
+        return None
+
+    books_read = BookshelvesEvents.select_distinct_by_user_type_and_year(
+        username, BookshelfEvent.FINISH, year
+    )
+    read_count = len(books_read)
+    result = YearlyGoal(data[0].year, data[0].target, read_count)
+
+    return result
+
+
+class YearlyGoal:
+    def __init__(self, year, goal, books_read):
+        self.year = year
+        self.goal = goal
+        self.books_read = books_read
+        self.progress = floor((books_read / goal) * 100)
+
+    @classmethod
+    def calc_progress(cls, books_read, goal):
+        return floor((books_read / goal) * 100)
+
+
+class ui_partials(delegate.page):
+    path = '/reading-goal/partials'
+
+    def GET(self):
+        i = web.input(year=None)
+        year = i.year or datetime.now().year
+        goal = get_reading_goals(year=year)
+        component = render_template('check_ins/reading_goal_progress', [goal])
+        return delegate.RawText(component)
 
 
 def setup():

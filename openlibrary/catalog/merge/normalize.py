@@ -6,12 +6,10 @@ re_normalize = re.compile('[^[:alpha:] ]', re.I)
 re_whitespace_and_punct = re.compile(r'[-\s,;:.]+')
 
 
-def normalize(s):
+def normalize(s: str) -> str:
     """
     Normalizes title by lowercasing, unicode -> NFC,
     stripping extra whitespace and punctuation, and replacing ampersands.
-    :param str s:
-    :rtype: str
     """
 
     if isinstance(s, str):

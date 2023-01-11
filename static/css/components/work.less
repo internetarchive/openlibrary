@@ -1,9 +1,14 @@
 @import (less) "base/dl.less";
+@import (less) "components/nav-bar.less";
 
 @sidebar-width: 225px;
 @sidebar-width-with-margin: 60px + @sidebar-width;
-@compact-title-height: 35px;
 @test-body-mobile-width: 1060px;
+
+// allows smooth scrolling after clicking on book page jump links
+html {
+  scroll-behavior: smooth;
+}
 
 /* stylelint-disable no-descending-specificity */
 .workDetails {
@@ -39,6 +44,10 @@ div.editionAbout {
     margin: 1em 0;
     font-size: 13px;
   }
+  p.book-description {
+    margin: 0;
+    text-align: left;
+  }
 
   p:first-child {
     margin: 0;
@@ -56,6 +65,20 @@ div.editionAbout {
 }
 
 .workFooter {
+  .lists-heading {
+    display: flex;
+
+    h2.lists-title {
+      flex: 1;
+      margin-top: 5px;
+      margin-bottom: 14px;
+      font-size: 1.375em;
+    }
+    a {
+      color: @link-blue;
+      font-size: 16px;
+    }
+  }
   ul.listLists {
     display: flex;
   }
@@ -131,81 +154,6 @@ h3.edition-header {
   font-size: 1.4em;
   font-weight: normal;
   color: @grey;
-}
-
-.nav-bar,
-.work-menu {
-  border-bottom: 1px solid @lighter-grey;
-  font-weight: bold;
-
-  display: block;
-  overflow-x: auto;
-  white-space: nowrap;
-  scroll-behavior: smooth;
-
-  &.sticky {
-    position: sticky;
-    top: 50px;
-    background: @white;
-    z-index: @z-index-level-3;
-    // Make tab bar full width on mobile
-    margin-left: -@contentBody-padding;
-    margin-right: -@contentBody-padding;
-
-    // indent it a bit to make it look more scrollable
-    &:before, &:after {
-      display: inline-block;
-      content: "";
-      width: 10%;
-    }
-  }
-}
-
-@media (min-width: @width-breakpoint-mobile) {
-  .nav-bar.sticky,
-  .work-menu.sticky {
-    &:before, &:after {
-      display: none;
-    }
-  }
-}
-
-@media only screen and (min-width: @width-breakpoint-tablet) {
-  .nav-bar.sticky,
-  .work-menu.sticky {
-    top: @compact-title-height;
-    margin-left: 0;
-    margin-right: 0;
-    width: 100%;
-  }
-}
-
-.nav-bar li,
-.work-menu li {
-  display: inline;
-  font-size: 13px;
-}
-
-.nav-bar li a,
-.work-menu li a {
-  text-decoration: none;
-  color: @grey;
-  padding: 12px 15px 8px;
-  display: inline-block;
-  @media only screen and (min-width: @width-breakpoint-tablet) {
-    padding-top: 4px;
-  }
-}
-
-.nav-bar li.selected a,
-.work-menu li.selected a {
-  color: @link-blue;
-  border-bottom: 2px solid @link-blue;
-}
-
-.nav-bar li:hover a,
-.work-menu li:hover a {
-  border-bottom: 2px solid @link-blue;
 }
 
 a.section-anchor {
@@ -287,20 +235,35 @@ div.editionTools {
 
 .edition-omniline {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   padding: 10px;
-  border-bottom: 1px solid @lighter-grey;
   margin-bottom: 10px;
-  background: @grey-fafafa;
+  overflow-x: auto;
 
   &-item {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    justify-content: top;
+    align-items: center;
     flex: 1;
+    padding: 9px;
+    margin: 0 4px;
+    border: 1px solid @lighter-grey;
+    border-radius: 5px;
     font-size: .8em;
+    word-break: break-word;
+    text-align: center;
+    min-width: 100px;
 
     div {
-      font-weight: bold;
+      margin-bottom: 4px;
+      font-size: .9em;
+      color: @grey;
+      word-wrap: break-word;
+    }
+
+    a {
+      text-decoration: none;
     }
   }
 
@@ -317,12 +280,12 @@ div.editionTools {
   .edition-omniline {
     flex-direction: row;
     justify-content: space-between;
-    overflow-x: auto;
 
     &-item {
       flex-direction: column;
       justify-content: flex-start;
       align-items: center;
+
     }
   }
 }
@@ -364,3 +327,4 @@ div.editionTools {
 
 @import (less) "components/compact-title.less";
 @import (less) "components/work-title-and-author.less";
+@import (less) "components/check-in.less";

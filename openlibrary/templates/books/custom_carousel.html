@@ -12,10 +12,11 @@ $def render_carousel_cover(book, lazy):
   $ url = book.get('key') or book.url
   $ title = book.title
 
+  $ cover_id = book.get('cover_id') or book.get('cover_i') or book.get('covers') and book['covers'][0]
   $if book.get('cover_url'):
     $ cover_url = book.get('cover_url')
-  $elif book.get('cover_id') or book.get('cover_i'):
-    $ cover_url = '%s/b/id/%s-M.jpg'%(cover_host, book.get('cover_id') or book.get('cover_i'))
+  $elif cover_id and cover_id != -1:
+    $ cover_url = '%s/b/id/%s-M.jpg'%(cover_host, cover_id)
   $elif book.get('ia'):
     $ cover_url = '%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ia')[0], fallback_cover)
   $elif book.get('cover_edition_key'):
@@ -64,7 +65,7 @@ $def render_carousel_cover(book, lazy):
   </div>
 
 $if test or (books and len(books) >= min_books):
-      <div class="carousel-section">
+    <div class="carousel-section">
       $if title and url:
         <div class="carousel-section-header">
           <h2 class="home-h2"><a name="$key" href="$url">$title</a></h2>
@@ -83,7 +84,8 @@ $if test or (books and len(books) >= min_books):
           $ config = ['.carousel-' + key, 4, 4, 4, 3, 2, 1, load_more_config ]
         $else:
           $ config = ['.carousel-' + key, 6, 5, 4, 3, 2, 1, load_more_config ]
-        <div class="carousel carousel-$key carousel--progressively-enhanced"
+        $ compact = "carousel--compact" if compact_mode else ""
+        <div class="carousel $compact carousel-$key carousel--progressively-enhanced"
           data-config="$json_encode(config)">
           $for index, book in enumerate(books or []):
               $:render_carousel_cover(book, index > 5)

@@ -3,10 +3,10 @@
 # see .github/workflows/python_tests.yml for more details.
 
 -r requirements.txt
-debugpy>=1.6.0
-flake8==5.0.4
-mypy==0.982
-pymemcache==3.5.2
+debugpy>=1.6.4
+flake8==6.0.0
+mypy==0.991
+pymemcache==4.0.0
 pytest==7.2.0
-pytest-asyncio==0.20.1
-safety==2.3.1
+pytest-asyncio==0.20.2
+safety==2.3.3

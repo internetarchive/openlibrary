@@ -161,7 +161,8 @@ class recentchanges_view(delegate.page):
         if path != web.ctx.path:
             raise web.redirect(path)
         else:
-            tname = "recentchanges/" + change.kind + "/view"
+            kind = "merge" if change.kind.startswith("merge-") else change.kind
+            tname = "recentchanges/" + kind + "/view"
             if tname in render:
                 return render_template(tname, change)
             else:

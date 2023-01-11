@@ -18,7 +18,8 @@ $if record_id:
     $else:
         $:_('Found a <a href="%(url)s">matching record</a> from %(source)s.', url=record.url, source=link(record.source_url, record.source_name))
 $elif 'history_v2' in ctx.features:
-    $ t = get_template('recentchanges/' + v.kind + '/comment') or get_template('recentchanges/default/comment')
+    $ kind = "merge" if v.kind.startswith('merge-') else v.kind
+    $ t = get_template('recentchanges/' + kind + '/comment') or get_template('recentchanges/default/comment')
     $:t(v, v.thing)
 $elif v.comment:
     $v.comment

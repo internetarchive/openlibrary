@@ -1,0 +1,72 @@
+$def with (user, mybooks, public=False, owners_page=False, counts=None, lists=None)
+
+$def year_span(year, use_local_year=False):
+  $if use_local_year:
+    <span class="use-local-year" data-server-year="$year">$year</span>
+  $else:
+    <span>$year</span>
+
+<div class="chip-group">
+  <span class="chip value-chip category-chip chip--selectable">
+    <a data-ol-link-track="MyBooksLandingPage|ReadingStats"
+       href="/account/books/already-read/stats">$_('My Reading Stats')</a>
+  </span>
+  <span class="chip value-chip category-chip chip--selectable">
+    <a data-ol-link-track="MyBooksLandingPage|ImportExport"
+       href="/account/import">$_('Import & Export Options')</a>
+  </span>
+</div>
+
+$ year = get_reading_goals_year()
+$ current_goal = get_reading_goals(year=year)
+$ hidden = 'hidden' if current_goal else ''
+
+<div class="yearly-goal-section">
+  <div class="chip-group $hidden">
+    <span class="chip value-chip category-chip chip--selectable goal-chip">
+      $ year_markup = year_span(year)
+      <a class="set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">$:_('Set %(year_span)s reading goal', year_span=year_markup)</a>
+    </span>
+    $ reading_goal_form = render_template('check_ins/reading_goal_form', year=year)
+    $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title="Yearly Reading Goal")
+  </div>
+  $if current_goal:
+    <span id="reading-goal-container">
+      $:render_template('check_ins/reading_goal_progress', [current_goal])
+    </span>
+</div>
+
+$code:
+    def compact_carousel(data):
+        key, title, url = data
+        books = mybooks[key].docs
+        count = mybooks[key].total_results
+        return render_template("books/custom_carousel", **{
+            "books": books,
+            "title": "%s (%d)" % (title, count),
+            "url": url,
+            "key": key,
+            "min_books": 1,
+            "load_more": None,
+            "compact_mode": True,
+            "test": False
+        }) if books else None
+
+$def empty_carousel(data):
+  $ key, title, url = data
+  <div class="carousel-section-header">
+    <h2 class="home-h2"><a name="$key" href="$url">$title</a></h2>
+  </div>
+  <p>$_('No books are on this shelf')</p>
+
+$# Data for carousels
+$ loans = ["loans", _('My Loans'), "/account/loans"]
+$ currently_reading = ["currently-reading", _('Currently Reading'), "/account/books/currently-reading"]
+$ want_to_read = ["want-to-read", _('Want to Read'), "/account/books/want-to-read"]
+$ already_read = ["already-read", _('Already Read'), "/account/books/already-read"]
+
+$# Render carousels
+$:(compact_carousel(loans) or empty_carousel(loans))
+$:(compact_carousel(currently_reading) or empty_carousel(currently_reading))
+$:(compact_carousel(want_to_read) or empty_carousel(want_to_read))
+$:(compact_carousel(already_read) or empty_carousel(already_read))
