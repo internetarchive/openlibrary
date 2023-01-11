@@ -1,4 +1,4 @@
-$def with (page, editions_page=False, render_times={}, title_and_author=None, modal_links=None)
+$def with (page, editions_page=False, render_times={}, modal_links=None)
 
 $if page.type.key == '/type/work' and page.edition_count == 1:
     $ edit_url = page.editions[0].key + '?m=edit'
