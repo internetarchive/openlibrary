@@ -44,9 +44,6 @@ $if isbn_10 and not asin:
           $if not page.is_fake_record():
               $:render_template('covers/change', page, ".edition-cover .bookCover img")
         </div>
-        $if title_and_author:
-          <!-- (mobile only: desktop title_and_author is in main template) -->
-          $:title_and_author
 
         $ work = (page.works and page.works[0]) or page
         $ edition = page.works and page
