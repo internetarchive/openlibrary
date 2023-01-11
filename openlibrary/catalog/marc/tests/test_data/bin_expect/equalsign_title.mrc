@@ -3,7 +3,7 @@
     "Thedepartment = Yr adran"
   ],
   "pagination": "14p.",
-  "subtitle": "School budgets",
+  "subtitle": "School budgets : 1990/91",
   "title": "Cyllidebau ysgolion",
   "notes": "Welsh and English text = Testyn Cymraeg a Saesneg.",
   "number_of_pages": 14,
