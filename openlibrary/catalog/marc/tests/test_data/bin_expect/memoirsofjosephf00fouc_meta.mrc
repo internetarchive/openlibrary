@@ -52,5 +52,6 @@
   ],
   "subject_times": [
     "1789-1815"
-  ]
+  ],
+  "translated_from": ["fre"]
 }
