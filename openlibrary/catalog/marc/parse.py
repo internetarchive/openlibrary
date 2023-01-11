@@ -295,18 +295,22 @@ def read_languages(rec):
         return
     found = []
     for f in fields:
-        is_translation = f.ind1() == '1'  # It can be a translation even without the original language being coded
+        is_translation = (
+            f.ind1() == '1'
+        )  # It can be a translation even without the original language being coded
         if f.ind2() == '7':
             code_source = ' '.join(f.get_subfield_values('2'))
             # TODO: What's the best way to handle these?
             raise MarcException("Non-MARC language code(s), source = ", code_source)
             continue  # Skip anything which is using a non-MARC code source e.g. iso639-1
         for i in f.get_subfield_values('a'):
-            if i:  # This is carried over from previous code, but won't it always be true?
+            if (
+                i
+            ):  # This is carried over from previous code, but won't it always be true?
                 if len(i) % 3 == 0:
                     # Obsolete cataloging practice was to concatenate all language codes in a single subfield
                     for k in range(0, len(i), 3):
-                        found.append(i[k:k+3].lower())
+                        found.append(i[k : k + 3].lower())
                 else:
                     raise MarcException("Got non-multiple of three language code")
     return [lang_map.get(i, i) for i in found if i != 'zxx']
