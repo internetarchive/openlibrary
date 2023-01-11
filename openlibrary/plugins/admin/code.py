@@ -311,16 +311,25 @@ class people_view:
         i = 0
         edits = 0
         stop = False
+        keys_to_delete = set()
         while not stop:
             changes = account.get_recentchanges(limit=100, offset=100 * i)
+            added_records: list[list[dict]] = [c.changes for c in changes if c.kind == 'add-book']
+            flattened_records: list[dict] = sum(added_records, [])
+            keys_to_delete |= {r['key'] for r in flattened_records}
             changeset_ids = [c.id for c in changes]
             _, len_docs = ipaddress_view().revert(changeset_ids, "Reverted Spam")
             edits += len_docs
             i += 1
             if len(changes) < 100:
                 stop = True
+
+        delete_payload = [
+            {'key': key, 'type': {'key': '/type/delete'}} for key in keys_to_delete
+        ]
+        web.ctx.site.save_many(delete_payload, 'Delete spam')
         add_flash_message(
-            "info", f"Blocked the account and reverted all {edits} edits."
+            "info", f"Blocked the account and reverted all {edits} edits. {len(delete_payload)} records deleted."
         )
         raise web.seeother(web.ctx.path)
 
