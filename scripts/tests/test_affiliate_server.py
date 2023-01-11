@@ -29,7 +29,7 @@ ol_editions = {
         "authors": [{"key": f"/authors/OL{i}A"}],
         "publishers": [f"Publisher {i}"],
         "publish_date": f"Aug 0{i}, 2023",
-        "pagination": f"{i}00",
+        "number_of_pages": int(f"{i}00"),
     }
     for i in range(8)
 }
@@ -38,7 +38,7 @@ ol_editions["1234567892"].pop("title")
 ol_editions["1234567893"].pop("authors")
 ol_editions["1234567894"].pop("publishers")
 ol_editions["1234567895"].pop("publish_date")
-ol_editions["1234567896"].pop("pagination")
+ol_editions["1234567896"].pop("number_of_pages")
 
 amz_books = {
     f"123456789{i}": {
