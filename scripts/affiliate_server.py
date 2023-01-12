@@ -130,18 +130,16 @@ def get_pending_books(books):
     editions = get_editions_for_books(books)  # Make expensive call just once
     # For each amz book, check that we need its data
     for book in books:
-        if ed := next(
+        ed = next(
             (
                 ed
                 for ed in editions
                 if set(book.get('isbn_13')).intersection(set(ed.isbn_13))
                 or set(book.get('isbn_10')).intersection(set(ed.isbn_10))
             ),
-            [],
-        ):
-            if is_book_needed(book, ed):
-                pending_books.append(book)
-        else:  # if no such edition in OL, queue it for import
+            {},
+        )
+        if is_book_needed(book, ed):
             pending_books.append(book)
     return pending_books
 
@@ -152,7 +150,7 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
     each product in memcache using amazon_product_{isbn_13} as the cache key.
     """
     logger.info(f"process_amazon_batch(): {len(isbn_10s)} items")
-    assert cache
+    assert cache  # mypy  workaround for `cache or None`
     try:
         products = web.amazon_api.get_products(isbn_10s, serialize=True)
     except Exception:
@@ -249,6 +247,7 @@ class Submit:
         If isbn is in memcache then return the `hit`.  If not then queue the isbn to be
         looked up and return the equivalent of a promise as `submitted`
         """
+        # cache could be None if reached before initialized (mypy)
         if not web.amazon_api or not cache:
             return json.dumps({"error": "not_configured"})
 
