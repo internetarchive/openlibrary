@@ -40,18 +40,18 @@ bin_samples = [
     'merchantsfromcat00ben_meta.mrc',
     'memoirsofjosephf00fouc_meta.mrc',  # MARC8 encoded with e-acute
     'equalsign_title.mrc',  # Title ending in '='
-    'bpl_0486266893',
+    'bpl_0486266893.mrc',
     'flatlandromanceo00abbouoft_meta.mrc',
     'histoirereligieu05cr_meta.mrc',
-    'ithaca_college_75002321',
-    'lc_0444897283',
-    'lc_1416500308',
-    'ocm00400866',
+    'ithaca_college_75002321.mrc',
+    'lc_0444897283.mrc',
+    'lc_1416500308.mrc',
+    'ocm00400866.mrc',
     'secretcodeofsucc00stjo_meta.mrc',
-    'uoft_4351105_1626',
+    'uoft_4351105_1626.mrc',
     'warofrebellionco1473unit_meta.mrc',
-    'wrapped_lines',
-    'wwu_51323556',
+    'wrapped_lines.mrc',
+    'wwu_51323556.mrc',
     'zweibchersatir01horauoft_meta.mrc',
     'talis_two_authors.mrc',
     'talis_no_title.mrc',
@@ -79,7 +79,7 @@ test_data = "%s/test_data" % os.path.dirname(__file__)
 class TestParseMARCXML:
     @pytest.mark.parametrize('i', xml_samples)
     def test_xml(self, i):
-        expect_filename = f"{test_data}/xml_expect/{i}_marc.xml"
+        expect_filename = f"{test_data}/xml_expect/{i}.json"
         path = f"{test_data}/xml_input/{i}_marc.xml"
         element = etree.parse(open(path)).getroot()
         # Handle MARC XML collection elements in our test_data expectations:
@@ -108,7 +108,7 @@ class TestParseMARCXML:
 class TestParseMARCBinary:
     @pytest.mark.parametrize('i', bin_samples)
     def test_binary(self, i):
-        expect_filename = f'{test_data}/bin_expect/{i}'
+        expect_filename = f'{test_data}/bin_expect/{i}'.replace('.mrc', '.json')
         with open(f'{test_data}/bin_input/{i}', 'rb') as f:
             rec = MarcBinary(f.read())
         edition_marc_bin = read_edition(rec)
