@@ -54,8 +54,7 @@ def get_trending_books(
     page=1,
     books_only=False,
     sort_by_count=True,
-    minimum='',
-    distinct=False,
+    minimum=None,
 ):
     logged_books = (
         Bookshelves.fetch(get_activity_stream(limit=limit, page=page))  # i.e. "now"
@@ -67,7 +66,6 @@ def get_trending_books(
             fetch=True,
             sort_by_count=sort_by_count,
             minimum=minimum,
-            distinct=distinct,
         )
     )
     return (
