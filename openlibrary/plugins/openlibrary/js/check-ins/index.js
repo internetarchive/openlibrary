@@ -532,7 +532,6 @@ function addGoalSubmissionListener(submitButton) {
                         const goalContainer = yearlyGoalSection.querySelector('#reading-goal-container')
                         goalContainer.remove()
                         chipGroup.classList.remove('hidden')
-                        location.reload()
                     } else {
                         const progressComponent = modal.closest('.reading-goal-progress')
                         updateProgressComponent(progressComponent, Number(formData.get('goal')))
@@ -540,6 +539,10 @@ function addGoalSubmissionListener(submitButton) {
                 } else {
                     const goalYear = formData.get('year')
                     fetchProgressAndUpdateView(yearlyGoalSection, goalYear)
+                    const banner = document.querySelector('#goal-announcement-banner')
+                    if (banner) {
+                        banner.remove()
+                    }
                 }
             })
     })
