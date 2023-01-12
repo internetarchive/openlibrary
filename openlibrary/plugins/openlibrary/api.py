@@ -72,7 +72,7 @@ class trending_books_api(delegate.page):
 
         period = period[1:]  # remove slash
         i = web.input(
-            page=1, limit=100, days=0, hours=0, sort_by_count=False, minimum=''
+            page=1, limit=100, days=0, hours=0, sort_by_count=False, minimum=0
         )
         days = SINCE_DAYS.get(period, int(i.days))
         works = get_trending_books(
