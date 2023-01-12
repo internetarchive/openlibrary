@@ -101,13 +101,13 @@ def is_book_needed(book: dict, edition: dict) -> bool:
     :param book: dict from openlibrary.core.vendors.clean_amazon_metadata_for_load()
     :param edition: dict from web.ctx.site.get_many(edition_ids)
     """
-    needed_book_fields = {}  # dict of book fields that should be copied to the edition
+    needed_book_fields = []  # book fields that should be copied to the edition
     for book_field, edition_field in AZ_OL_MAP.items():
         if field_value := book.get(book_field) and not edition.get(edition_field):
-            needed_book_fields[book_field] = field_value
+            needed_book_fields.append(book_field)
     if needed_book_fields:  # Log book fields that should to be copied to the edition
-        fields = ", ".join(f"{k}={v}" for k, v in needed_book_fields.items())
-        logger.debug(f"{edition['key']} needs {fields}")
+        fields = ", ".join(needed_book_fields)
+        logger.debug(f"{edition.get('key', None) or "New Edition"} needs {fields}")
     return bool(needed_book_fields)
 
 
