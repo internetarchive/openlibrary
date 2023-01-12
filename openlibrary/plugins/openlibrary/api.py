@@ -71,7 +71,9 @@ class trending_books_api(delegate.page):
         from openlibrary.views.loanstats import SINCE_DAYS
 
         period = period[1:]  # remove slash
-        i = web.input(page=1, limit=100, days=0, hours=0)
+        i = web.input(
+            page=1, limit=100, days=0, hours=0, sort_by_count=False, minimum=0
+        )
         days = SINCE_DAYS.get(period, int(i.days))
         works = get_trending_books(
             since_days=days,
@@ -79,6 +81,8 @@ class trending_books_api(delegate.page):
             limit=int(i.limit),
             page=int(i.page),
             books_only=True,
+            sort_by_count=not i.sort_by_count == 'false',
+            minimum=i.minimum,
         )
         result = {
             'query': f"/trending/{period}",

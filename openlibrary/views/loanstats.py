@@ -47,7 +47,15 @@ cached_reading_log_summary = cache.memcache_memoize(
 
 
 @public
-def get_trending_books(since_days=1, since_hours=0, limit=18, page=1, books_only=False):
+def get_trending_books(
+    since_days=1,
+    since_hours=0,
+    limit=18,
+    page=1,
+    books_only=False,
+    sort_by_count=True,
+    minimum=None,
+):
     logged_books = (
         Bookshelves.fetch(get_activity_stream(limit=limit, page=page))  # i.e. "now"
         if (since_days == 0 and since_hours == 0)
@@ -56,6 +64,8 @@ def get_trending_books(since_days=1, since_hours=0, limit=18, page=1, books_only
             limit=limit,
             page=page,
             fetch=True,
+            sort_by_count=sort_by_count,
+            minimum=minimum,
         )
     )
     return (
