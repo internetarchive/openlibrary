@@ -17,6 +17,7 @@ start affiliate-server using gunicorn webserver:
 
 """
 
+import itertools
 import json
 import logging
 import os
@@ -55,6 +56,14 @@ urls = (
 
 API_MAX_ITEMS_PER_CALL = 10
 API_MAX_WAIT_SECONDS = 0.9
+AZ_OL_MAP = {
+    'cover': 'covers',
+    'title': 'title',
+    'authors': 'authors',
+    'publishers': 'publishers',
+    'publish_date': 'publish_date',
+    'number_of_pages': 'number_of_pages',
+}
 
 batch_name = ""
 batch: Batch | None = None
@@ -77,12 +86,71 @@ def get_current_amazon_batch() -> Batch:
     return batch
 
 
+def get_isbns_from_book(book: dict) -> list[str]:  # Singular: book
+    return [str(isbn) for isbn in book.get('isbn_10', []) + book.get('isbn_13', [])]
+
+
+def get_isbns_from_books(books: list[dict]) -> list[str]:  # Plural: books
+    return sorted(set(itertools.chain(*[get_isbns_from_book(book) for book in books])))
+
+
+def is_book_needed(book: dict, edition: dict) -> bool:
+    """
+    Should an OL edition's metadata be updated with Amazon book data?
+
+    :param book: dict from openlibrary.core.vendors.clean_amazon_metadata_for_load()
+    :param edition: dict from web.ctx.site.get_many(edition_ids)
+    """
+    needed_book_fields = []  # book fields that should be copied to the edition
+    for book_field, edition_field in AZ_OL_MAP.items():
+        if field_value := book.get(book_field) and not edition.get(edition_field):
+            needed_book_fields.append(book_field)
+    if needed_book_fields:  # Log book fields that should to be copied to the edition
+        fields = ", ".join(needed_book_fields)
+        logger.debug(f"{edition.get('key', None) or 'New Edition'} needs {fields}")
+    return bool(needed_book_fields)
+
+
+def get_editions_for_books(books: list[dict]) -> list[dict]:
+    """
+    Get the OL editions for a list of ISBNs.
+
+    :param isbns: list of book dicts
+    :return: list of OL editions dicts
+    """
+    isbns = get_isbns_from_books(books)
+    unique_edition_ids = set(
+        web.ctx.site.things({'type': '/type/edition', 'isbn_': isbns})
+    )
+    return web.ctx.site.get_many(list(unique_edition_ids))
+
+
+def get_pending_books(books):
+    pending_books = []
+    editions = get_editions_for_books(books)  # Make expensive call just once
+    # For each amz book, check that we need its data
+    for book in books:
+        ed = next(
+            (
+                ed
+                for ed in editions
+                if set(book.get('isbn_13')).intersection(set(ed.isbn_13))
+                or set(book.get('isbn_10')).intersection(set(ed.isbn_10))
+            ),
+            {},
+        )
+        if is_book_needed(book, ed):
+            pending_books.append(book)
+    return pending_books
+
+
 def process_amazon_batch(isbn_10s: list[str]) -> None:
     """
     Call the Amazon API to get the products for a list of isbn_10s and store
     each product in memcache using amazon_product_{isbn_13} as the cache key.
     """
     logger.info(f"process_amazon_batch(): {len(isbn_10s)} items")
+    assert cache  # mypy  workaround for `cache or None`
     try:
         products = web.amazon_api.get_products(isbn_10s, serialize=True)
     except Exception:
@@ -95,7 +163,6 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
             and product.get('isbn_13')[0]
             or isbn_10_to_isbn_13(product.get('isbn_10')[0])
         )
-        assert cache
         cache.memcache_cache.set(  # Add each product to memcache
             f'amazon_product_{cache_key}', product, expires=WEEK_SECS
         )
@@ -105,11 +172,11 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
         logger.debug("DB parameters missing from affiliate-server infobase")
         return
 
-    # XXX temporarily disable until covers + substantive changes added
-    # if books := [clean_amazon_metadata_for_load(product) for product in products]:
-    #    get_current_amazon_batch().add_items(
-    #        [{'ia_id': b['source_records'][0], 'data': b} for b in books]
-    #    )
+    if books := [clean_amazon_metadata_for_load(product) for product in products]:
+        if pending_books := get_pending_books(books):
+            get_current_amazon_batch().add_items(
+                [{'ia_id': b['source_records'][0], 'data': b} for b in pending_books]
+            )
 
 
 def seconds_remaining(start_time: float) -> float:
@@ -137,7 +204,8 @@ def amazon_lookup() -> None:
             process_amazon_batch(list(isbn_10s))
 
 
-threading.Thread(target=amazon_lookup).start()
+if "pytest" not in sys.modules:
+    threading.Thread(target=amazon_lookup).start()
 
 
 class Status:
@@ -179,7 +247,8 @@ class Submit:
         If isbn is in memcache then return the `hit`.  If not then queue the isbn to be
         looked up and return the equivalent of a promise as `submitted`
         """
-        if not web.amazon_api:
+        # cache could be None if reached before initialized (mypy)
+        if not web.amazon_api or not cache:
             return json.dumps({"error": "not_configured"})
 
         isbn10, isbn13 = self.unpack_isbn(isbn)
@@ -189,7 +258,6 @@ class Submit:
             )
 
         # Cache lookup by isbn13. If there's a hit return the product to the caller
-        assert cache
         if product := cache.memcache_cache.get(f'amazon_product_{isbn13}'):
             return json.dumps({"status": "success", "hit": product})
 
