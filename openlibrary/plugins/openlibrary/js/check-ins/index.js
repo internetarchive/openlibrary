@@ -539,7 +539,7 @@ function addGoalSubmissionListener(submitButton) {
                 } else {
                     const goalYear = formData.get('year')
                     fetchProgressAndUpdateView(yearlyGoalSection, goalYear)
-                    const banner = document.querySelector('#goal-announcement-banner')
+                    const banner = document.querySelector('.page-banner-mybooks')
                     if (banner) {
                         banner.remove()
                     }
