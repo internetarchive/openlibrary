@@ -9,7 +9,6 @@ import datetime
 import traceback
 import logging
 import json
-import yaml
 
 from infogami import config
 from infogami.utils import delegate
