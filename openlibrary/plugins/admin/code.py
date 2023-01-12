@@ -9,7 +9,6 @@ import datetime
 import traceback
 import logging
 import json
-import yaml
 
 from infogami import config
 from infogami.utils import delegate
@@ -27,19 +26,12 @@ import openlibrary
 
 from openlibrary import accounts
 
-from openlibrary.core import lending, admin as admin_stats, helpers as h, imports, cache
+from openlibrary.core import admin as admin_stats, helpers as h, imports, cache
 from openlibrary.core.waitinglist import Stats as WLStats
 from openlibrary.core.sponsorships import summary, sync_completed_sponsored_books
-from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.core.ratings import Ratings
-from openlibrary.core.booknotes import Booknotes
-from openlibrary.core.observations import Observations
 from openlibrary.core.models import Work
-
 from openlibrary.plugins.upstream import forms, spamcheck
 from openlibrary.plugins.upstream.account import send_forgot_password_email
-from openlibrary.plugins.admin import services
-
 
 logger = logging.getLogger("openlibrary.admin")
 
