@@ -6,7 +6,6 @@ $jsdef render_subject_field(name, data):
         $code:
             subjects = []
             for s in data:
-                s = s.replace('"', '""')
                 subjects.append('"' + s + '"' if ',' in s else s)
             subject_str = ', '.join(subjects)
             rows = len(subject_str) // 95 + 1
