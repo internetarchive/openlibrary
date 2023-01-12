@@ -224,10 +224,7 @@ class OPDSEntry(OPDS):
             authors = book.get_authors()
             subjects = book.get_subjects()
 
-        if book.pagination:
-            pages = book.pagination
-        else:
-            pages = book.number_of_pages
+        pages = book.pagination or book.number_of_pages
 
         # the collection and inlibrary check is coped from databarWork.html
         collection = set()
