@@ -116,12 +116,14 @@ class Bookshelves(db.CommonExtras):
         orders = ['cnt desc']
         if distinct:
             orders = ['cnt desc'] + orders
-            distinct = 'distinct on (work_id)'
+            distinct_str = 'distinct on (work_id)'
+        else:
+            distinct_str = ''
         order_by = f'order by {", ".join(orders)}'
         if not sort_by_count:
             order_by = ''
         select = (
-            f'select {distinct or ""} work_id, count(*) as cnt from bookshelves_books'
+            f'select {distinct_str} work_id, count(*) as cnt from bookshelves_books'
         )
         query = f'{select} {where} {group_by} {order_by} limit $limit offset $offset'
         logger.info("Query: %s", query)
