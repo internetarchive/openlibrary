@@ -107,7 +107,7 @@ def is_book_needed(book: dict, edition: dict) -> bool:
             needed_book_fields.append(book_field)
     if needed_book_fields:  # Log book fields that should to be copied to the edition
         fields = ", ".join(needed_book_fields)
-        logger.debug(f"{edition.get('key', None) or "New Edition"} needs {fields}")
+        logger.debug(f"{edition.get('key', None) or 'New Edition'} needs {fields}")
     return bool(needed_book_fields)
 
 
