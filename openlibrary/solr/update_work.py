@@ -1282,7 +1282,7 @@ async def update_author(
             ('json.nl', 'arrarr'),
             ('q', 'author_key:%s' % author_id),
             ('sort', 'edition_count desc'),
-            ('row', 1),
+            ('rows', 1),
             ('fl', 'title,subtitle'),
             ('facet', 'true'),
             ('facet.mincount', 1),
