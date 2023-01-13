@@ -888,9 +888,7 @@ class export_books(delegate.page):
         bookshelf_map = {1: 'Want to Read', 2: 'Currently Reading', 3: 'Already Read'}
 
         def get_subjects(work: Work, subject_type: str) -> str:
-            return " | ".join(
-                s.title.replace(",", ";") for s in work.get_subject_links(subject_type)
-            )
+            return " | ".join(s.title for s in work.get_subject_links(subject_type))
 
         def escape_record_string(raw_string: str) -> str:
             """
@@ -925,10 +923,10 @@ class export_books(delegate.page):
                 "ratings_average": ratings_average,
                 "ratings_count": ratings_count,
                 "has_ebook": work.has_ebook(),
-                "subjects": get_subjects(work=work, subject_type="subject"),
-                "subject_people": get_subjects(work=work, subject_type="person"),
-                "subject_places": get_subjects(work=work, subject_type="place"),
-                "subject_times": get_subjects(work=work, subject_type="time"),
+                "subjects": escape_record_string(get_subjects(work=work, subject_type="subject")),
+                "subject_people": escape_record_string(get_subjects(work=work, subject_type="person")),
+                "subject_places": escape_record_string(get_subjects(work=work, subject_type="place")),
+                "subject_times": escape_record_string(get_subjects(work=work, subject_type="time")),
             }
 
         books = Bookshelves.iterate_users_logged_books(username)
