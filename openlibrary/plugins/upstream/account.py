@@ -892,6 +892,14 @@ class export_books(delegate.page):
                 s.title.replace(",", ";") for s in work.get_subject_links(subject_type)
             )
 
+        def escape_record_string(raw_string: str) -> str:
+            """
+            Formats given CVS record string such that it conforms to definition outlined
+            in RFC #4180.
+            """
+            escaped_string = raw_string.replace('"', '""')
+            return f'"{escaped_string}"'
+
         def format_reading_log(book: dict) -> dict:
             """
             Adding, deleting, renaming, or reordering the fields of the dict returned
@@ -907,8 +915,8 @@ class export_books(delegate.page):
             ratings_average, ratings_count = ratings.values()
             return {
                 "work_id": work_key.split("/")[-1],
-                "title": work.title,
-                "authors": " | ".join(work.get_author_names()),
+                "title": escape_record_string(work.title),
+                "authors": escape_record_string(" | ".join(work.get_author_names())),
                 "first_publish_year": work.first_publish_year,
                 "edition_id": edition_id,
                 "edition_count": work.edition_count,
