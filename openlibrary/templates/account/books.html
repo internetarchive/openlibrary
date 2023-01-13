@@ -57,13 +57,16 @@ $var title: $header_title
   $:render_template("account/sidebar", user, key=key, public=public, owners_page=owners_page, counts=shelf_counts, lists=lists, component_times=component_times)
 
   <div class="mybooks-details">
-    $ component_times['Details header'] = time()
-    $ year = get_reading_goals_year()
-    $ current_goal = get_reading_goals(year=year)
-    $if not current_goal:
+    $if key == 'mybooks':
+      $ component_times['Yearly Goal Banner'] = time()
+      $ year = get_reading_goals_year()
+      $ current_goal = get_reading_goals(year=year)
+      $if not current_goal:
         <div class="page-banner page-banner-body page-banner-mybooks">
           Announcing Yearly Reading Goals: <a href="https://blog.openlibrary.org/2022/12/31/reach-your-2023-reading-goals-with-open-library" class="btn primary">Learn More</a> or <a class="btn primary set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">$:_('Set %(year)s reading goal', year=year)</a>
-	</div>
+        </div>
+      $ component_times['Yearly Goal Banner'] = time() - component_times['Yearly Goal Banner']
+    $ component_times['Details header'] = time()
     <header>
       <div>
         <div class="small sansserif grey account-settings-menu">
