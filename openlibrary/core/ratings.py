@@ -92,8 +92,6 @@ class Ratings(db.CommonExtras):
         # see the query in solr_builder.py
         query = """
             SELECT
-                avg(rating)::FLOAT as ratings_average,
-                count(*) as ratings_count,
                 sum( CASE WHEN rating = 1 THEN 1 ELSE 0 END ) as ratings_count_1,
                 sum( CASE WHEN rating = 2 THEN 1 ELSE 0 END ) as ratings_count_2,
                 sum( CASE WHEN rating = 3 THEN 1 ELSE 0 END ) as ratings_count_3,
@@ -104,13 +102,32 @@ class Ratings(db.CommonExtras):
             GROUP BY work_id
         """
         result = oldb.query(query, vars={'work_id': work_id})
-        if result:
-            ratings_summary = result[0]
-            ratings_summary['ratings_sortable'] = cls.compute_sortable_rating(
-                [ratings_summary[f'ratings_count_{i}'] for i in range(1, 6)]
+        if not result:
+            return None
+
+        row = result[0]
+        return cls.work_ratings_summary_from_counts(
+            [row[f'ratings_count_{i}'] for i in range(1, 6)]
+        )
+
+    @classmethod
+    def work_ratings_summary_from_counts(
+        cls, rating_counts: list[int]
+    ) -> WorkRatingsSummary:
+        total_count = sum(rating_counts, 0)
+        return {
+            'ratings_average': sum(
+                (k * n_k for k, n_k in enumerate(rating_counts, 1)), 0
             )
-            return ratings_summary
-        return None
+            / total_count,
+            'ratings_sortable': cls.compute_sortable_rating(rating_counts),
+            'ratings_count': total_count,
+            'ratings_count_1': rating_counts[0],
+            'ratings_count_2': rating_counts[1],
+            'ratings_count_3': rating_counts[2],
+            'ratings_count_4': rating_counts[3],
+            'ratings_count_5': rating_counts[4],
+        }
 
     @classmethod
     def compute_sortable_rating(cls, rating_counts: list[int]) -> float:

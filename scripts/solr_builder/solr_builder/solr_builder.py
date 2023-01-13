@@ -205,8 +205,6 @@ class LocalPostgresDataProvider(DataProvider):
     def cache_work_ratings(self, lo_key, hi_key):
         q = f"""
             SELECT "WorkKey", json_build_object(
-                'ratings_average', avg("Rating"),
-                'ratings_count', count(*),
                 'ratings_count_1', count(*) filter (where "Rating" = 1),
                 'ratings_count_2', count(*) filter (where "Rating" = 2),
                 'ratings_count_3', count(*) filter (where "Rating" = 3),
@@ -220,8 +218,10 @@ class LocalPostgresDataProvider(DataProvider):
         """
         self.query_all(q, json_cache=self.cached_work_ratings)
         for row in self.cached_work_ratings.values():
-            row['ratings_sortable'] = Ratings.compute_sortable_rating(
-                [row[f'ratings_count_{i}'] for i in range(1, 6)]
+            row.update(
+                Ratings.work_ratings_summary_from_counts(
+                    [row[f'ratings_count_{i}'] for i in range(1, 6)]
+                )
             )
 
     async def cache_cached_editions_ia_metadata(self):
