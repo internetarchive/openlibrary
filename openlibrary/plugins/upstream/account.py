@@ -923,10 +923,18 @@ class export_books(delegate.page):
                 "ratings_average": ratings_average,
                 "ratings_count": ratings_count,
                 "has_ebook": work.has_ebook(),
-                "subjects": escape_csv_field(get_subjects(work=work, subject_type="subject")),
-                "subject_people": escape_csv_field(get_subjects(work=work, subject_type="person")),
-                "subject_places": escape_csv_field(get_subjects(work=work, subject_type="place")),
-                "subject_times": escape_csv_field(get_subjects(work=work, subject_type="time")),
+                "subjects": escape_csv_field(
+                    get_subjects(work=work, subject_type="subject")
+                ),
+                "subject_people": escape_csv_field(
+                    get_subjects(work=work, subject_type="person")
+                ),
+                "subject_places": escape_csv_field(
+                    get_subjects(work=work, subject_type="place")
+                ),
+                "subject_times": escape_csv_field(
+                    get_subjects(work=work, subject_type="time")
+                ),
             }
 
         books = Bookshelves.iterate_users_logged_books(username)
