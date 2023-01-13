@@ -890,9 +890,9 @@ class export_books(delegate.page):
         def get_subjects(work: Work, subject_type: str) -> str:
             return " | ".join(s.title for s in work.get_subject_links(subject_type))
 
-        def escape_record_string(raw_string: str) -> str:
+        def escape_csv_field(raw_string: str) -> str:
             """
-            Formats given CVS record string such that it conforms to definition outlined
+            Formats given CVS field string such that it conforms to definition outlined
             in RFC #4180.
             """
             escaped_string = raw_string.replace('"', '""')
@@ -913,8 +913,8 @@ class export_books(delegate.page):
             ratings_average, ratings_count = ratings.values()
             return {
                 "work_id": work_key.split("/")[-1],
-                "title": escape_record_string(work.title),
-                "authors": escape_record_string(" | ".join(work.get_author_names())),
+                "title": escape_csv_field(work.title),
+                "authors": escape_csv_field(" | ".join(work.get_author_names())),
                 "first_publish_year": work.first_publish_year,
                 "edition_id": edition_id,
                 "edition_count": work.edition_count,
@@ -923,10 +923,10 @@ class export_books(delegate.page):
                 "ratings_average": ratings_average,
                 "ratings_count": ratings_count,
                 "has_ebook": work.has_ebook(),
-                "subjects": escape_record_string(get_subjects(work=work, subject_type="subject")),
-                "subject_people": escape_record_string(get_subjects(work=work, subject_type="person")),
-                "subject_places": escape_record_string(get_subjects(work=work, subject_type="place")),
-                "subject_times": escape_record_string(get_subjects(work=work, subject_type="time")),
+                "subjects": escape_csv_field(get_subjects(work=work, subject_type="subject")),
+                "subject_people": escape_csv_field(get_subjects(work=work, subject_type="person")),
+                "subject_places": escape_csv_field(get_subjects(work=work, subject_type="place")),
+                "subject_times": escape_csv_field(get_subjects(work=work, subject_type="time")),
             }
 
         books = Bookshelves.iterate_users_logged_books(username)
