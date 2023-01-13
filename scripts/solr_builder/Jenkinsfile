@@ -99,7 +99,7 @@ pipeline {
                   sh(label: 'Import dump into postgres',
                     script: "./psql-import-in-chunks.sh ${env.DUMP_DIR}/${env.OL_DUMP_FILE} ${env.PARALLEL_PROCESSES}")
                   sh(label: 'Import ratings',
-                    script: "docker-compose exec -T db ./psql-import-simple.sh '${env.OL_RATINGS_FILE}' ratings")
+                    script: "docker-compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_RATINGS_FILE} ratings")
 
                   waitUntil {
                     script {
