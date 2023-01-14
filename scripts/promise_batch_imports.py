@@ -39,7 +39,9 @@ def map_book_to_olbook(book, promise_id):
     title = book['ProductJSON'].get('Title')
     isbn = book.get('ISBN') or ' '
     olbook = {
-        'local_id': [f"urn:bwbsku:{book['BookSKUB'] or book['BookSKU'] or book['BookBarcode']}"],
+        'local_id': [
+            f"urn:bwbsku:{book['BookSKUB'] or book['BookSKU'] or book['BookBarcode']}"
+        ],
         'identifiers': {
             **({'amazon': [book.get('ASIN')]} if not asin_is_isbn_10 else {}),
             **(
@@ -70,7 +72,8 @@ def batch_import(promise_id, batch_size=1000):
     olbooks = [map_book_to_olbook(book, promise_id) for book in books]
     batch_items = [{'ia_id': b['local_id'][0], 'data': b} for b in olbooks]
     for i in range(0, len(batch_items), batch_size):
-        batch.add_items(batch_items[i:i+batch_size])
+        batch.add_items(batch_items[i : i + batch_size])
+
 
 def get_promise_items(**kwargs):
     url = get_promise_items_url(**kwargs)
@@ -78,7 +81,9 @@ def get_promise_items(**kwargs):
     return [d['identifier'] for d in r.json()['response']['docs']]
 
 
-def get_promise_items_url(start_date='1996-01-01', end_date="9999-01-01", exact_date=None):
+def get_promise_items_url(
+    start_date='1996-01-01', end_date="9999-01-01", exact_date=None
+):
     base = "https://archive.org/advancedsearch.php"
     selector = exact_date or '*'
     q = f"collection:bookdonationsfrombetterworldbooks+identifier:bwb_daily_pallets_{selector}"
@@ -111,12 +116,13 @@ def main(ol_config: str, date: str):
     :end_date
     start_date:end_date
     :exact_date:
-    """    
+    """
     load_config(ol_config)
     params = parse_date(date)
     promise_ids = get_promise_items(**params)
     for i, promise_id in enumerate(promise_ids):
         batch_import(promise_id)
+
 
 if __name__ == '__main__':
     FnToCLI(main).run()
