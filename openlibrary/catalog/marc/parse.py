@@ -290,6 +290,17 @@ lang_map = {
 }
 
 
+def read_original_languages(rec):
+    if fields := rec.get_fields('041'):
+        found = []
+        for f in fields:
+            is_translation = f.ind1() == '1'
+            found += [
+                i.lower() for i in f.get_subfield_values('h') if i and len(i) == 3
+            ]
+        return [lang_map.get(i, i) for i in found if i != 'zxx']
+
+
 def read_languages(rec, lang_008: Optional[str] = None):
     """Read languages from 041, if present, and combine with language from 008:35-37"""
     found = []
@@ -704,6 +715,7 @@ def read_edition(rec):
     update_edition(rec, edition, read_location, 'location')
     update_edition(rec, edition, read_toc, 'table_of_contents')
     update_edition(rec, edition, read_url, 'links')
+    update_edition(rec, edition, read_original_languages, 'translated_from')
 
     edition.update(read_contributions(rec))
     edition.update(subjects_for_work(rec))
