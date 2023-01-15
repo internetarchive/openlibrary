@@ -1,4 +1,5 @@
 import re
+from typing import Optional
 
 from openlibrary.catalog.marc.get_subjects import subjects_for_work
 from openlibrary.catalog.marc.marc_base import BadMARC, NoTitle, MarcException
@@ -31,7 +32,8 @@ class SeeAlsoAsTitle(MarcException):
     pass
 
 
-want = (
+# FIXME: This is SUPER hard to find when needing to add a new field. Why not just decode everything?
+FIELDS_WANTED = (
     [
         '001',
         '003',  # for OCLC
@@ -41,6 +43,7 @@ want = (
         '020',  # isbn
         '022',  # issn
         '035',  # oclc
+        '041',  # languages
         '050',  # lc classification
         '082',  # dewey
         '100',
@@ -287,14 +290,30 @@ lang_map = {
 }
 
 
-def read_languages(rec):
-    fields = rec.get_fields('041')
-    if not fields:
-        return
+def read_languages(rec, lang_008: Optional[str] = None):
+    """Read languages from 041, if present, and combine with language from 008:35-37"""
     found = []
-    for f in fields:
-        found += [i.lower() for i in f.get_subfield_values('a') if i and len(i) == 3]
-    return [lang_map.get(i, i) for i in found if i != 'zxx']
+    if lang_008:
+        lang_008 = lang_008.lower()
+        if lang_008 not in ('   ', '###', '|||', '', '???', 'zxx', 'n/a'):
+            found.append(lang_008)
+
+    for f in rec.get_fields('041'):
+        if f.ind2() == '7':
+            code_source = ' '.join(f.get_subfield_values('2'))
+            # TODO: What's the best way to handle these?
+            raise MarcException("Non-MARC language code(s), source = ", code_source)
+            continue  # Skip anything which is using a non-MARC code source e.g. iso639-1
+        for value in f.get_subfield_values('a'):
+            if len(value) % 3 == 0:
+                # Obsolete cataloging practice was to concatenate all language codes in a single subfield
+                for k in range(0, len(value), 3):
+                    code = value[k : k + 3].lower()
+                    if code != 'zxx' and code not in found:
+                        found.append(code)
+            else:
+                raise MarcException("Got non-multiple of three language code")
+    return [lang_map.get(code, code) for code in found]
 
 
 def read_pub_date(rec):
@@ -636,7 +655,7 @@ def read_edition(rec):
     :return: Edition representation
     """
     handle_missing_008 = True
-    rec.build_fields(want)
+    rec.build_fields(FIELDS_WANTED)
     edition = {}
     tag_008 = rec.get_fields('008')
     if len(tag_008) == 0:
@@ -661,9 +680,9 @@ def read_edition(rec):
         publish_country = f[15:18]
         if publish_country not in ('|||', '   ', '\x01\x01\x01', '???'):
             edition["publish_country"] = publish_country.strip()
-        lang = f[35:38].lower()
-        if lang not in ('   ', '|||', '', '???', 'zxx', 'n/a'):
-            edition['languages'] = [lang_map.get(lang, lang)]
+        languages = read_languages(rec, lang_008=f[35:38].lower())
+        if languages:
+            edition['languages'] = languages
     else:
         assert handle_missing_008
         update_edition(rec, edition, read_languages, 'languages')
