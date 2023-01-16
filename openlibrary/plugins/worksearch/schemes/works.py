@@ -72,6 +72,7 @@ class WorkSearchScheme(SearchScheme):
         "publisher_facet",
         "author_facet",
         "first_publish_year",
+        "ratings_count",
         # Subjects
         "subject_key",
         "person_key",
@@ -114,6 +115,9 @@ class WorkSearchScheme(SearchScheme):
         'editions': 'edition_count desc',
         'old': 'def(first_publish_year, 9999) asc',
         'new': 'first_publish_year desc',
+        'rating': 'ratings_sortable desc',
+        'rating asc': 'ratings_sortable asc',
+        'rating desc': 'ratings_sortable desc',
         'title': 'title_sort asc',
         'scans': 'ia_count desc',
         # Classifications
