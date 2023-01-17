@@ -683,7 +683,7 @@ msgstr "Les livres les plus populaires"
 
 #: trending.html:12
 msgid "See what readers from the community are adding to their bookshelves"
-msgstr ""
+msgstr "Voir ce que les lecteurs de cette communauté ajoutent à leur bibliothèque"
 
 #: ReadingLogDropper.html:27 ReadingLogDropper.html:66
 #: ReadingLogDropper.html:189 account/mybooks.html:75 account/sidebar.html:26
