@@ -670,7 +670,7 @@ msgstr "Ce mois-ci"
 
 #: trending.html:10
 msgid "This Year"
-msgstr ""
+msgstr "Cette année"
 
 #: trending.html:10
 #, fuzzy
