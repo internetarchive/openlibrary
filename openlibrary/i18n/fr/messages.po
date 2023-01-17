@@ -936,7 +936,7 @@ msgstr "Journal de lecture"
 #: lib/nav_head.html:76
 #, fuzzy
 msgid "My Books"
-msgstr "Livres électroniques"
+msgstr "Mes livres"
 
 #: account/books.html:35 account/readinglog_shelf_name.html:10
 msgid "Want To Read"
