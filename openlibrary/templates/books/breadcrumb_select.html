@@ -1,0 +1,114 @@
+$def with (key=None, selected="",options=[])
+    <style>
+        .crumb {
+            display: flex;
+            margin: 15px 0px;
+            align-items: center;
+            vertical-align: bottom;
+        }
+        
+        .crumbicon {
+            display: grid;
+            grid: [stack] var(--crumbicon-size) / [stack] var(--crumbicon-size);
+        }
+
+        .crumbicon>* {
+            grid-area: stack;
+            padding-left: 10px;
+        }
+
+        .breadcrumb-title {
+            display: inline-block;
+            margin: 0;
+            padding: 10px 10px 10px 0px;
+            text-decoration: underline;
+            border-right: 1px solid black;
+        }
+
+        .disguised-select {
+            grid-area: stack;
+            min-height: 100%;
+            opacity: .01;
+            font-size: min(100%, 16px); /* Defaults to 16px; fixes iOS zoom */
+        }
+
+        .dropdown {
+            background-color: #ededed;
+            box-shadow: 0 0 0 1px #999;
+            border-radius: 4px;
+        }
+
+        .down-chevron {
+            margin: 0px 6px;
+            display: inline-block;
+            transform: rotate(90deg);
+            z-index: 1;
+        }
+    </style>
+    $if len(options) == 0:
+        $selected
+    $elif len(options) == 1: 
+        $if selected != options[0][0]:
+            <span class="crumb">
+                <span class="crumbicon">
+                    <div class="dropdown">
+                        <h2 class="breadcrumb-title">$selected</h2>
+                        <img class="icon-link__image down-chevron" src="/static/images/icons/right-chevron.svg">
+                    </div>
+                    <select class="disguised-select">
+                        <option selected>$selected</option>
+                        <option value="$options[0][1]">$options[0][0]</option>
+                    </select>
+                </span>
+            </span>
+        $else:
+            <h1>$selected</h1>
+    $else:
+        $ breadcrumb_title = ""
+        $for (title,url) in options:
+            $if '(' in title and title[:title.index('(')-1] == selected:
+                $ breadcrumb_title = title
+            $elif title == selected:
+                $ breadcrumb_title = title;
+        <span class="crumb">
+            <span class="crumbicon">
+                <div class="dropdown">
+                    <h2 class="breadcrumb-title">$breadcrumb_title</h2>
+                    <img class="icon-link__image down-chevron" src="/static/images/icons/right-chevron.svg">
+                </div>
+                <select class="disguised-select">
+                    $for (title, url) in options:
+                        $if '(' in title and title[:title.index('(')-1] == selected:
+                            <option selected>$title</option>
+                        $elif title == selected:
+                            <option selected>$title</option>
+                        $else:
+                            <option value=$url>$title</option> 
+                </select>
+            </span>
+        </span>
+
+<script>
+    const crumbs = document.querySelectorAll('.crumb select')
+    const allowedKeys = new Set(['Tab', 'Enter', ' '])
+    const preventedKeys = new Set(['ArrowUp', 'ArrowDown'])
+
+    // watch crumbs for changes,
+    // ensures it's a full value change, not a user exploring options via keyboard
+    crumbs.forEach(nav => {
+        let ignoreChange = false
+
+        nav.addEventListener('change', e => {
+            if (ignoreChange) return
+            // it's actually changed!
+            window.location = nav.value;
+        })
+
+        nav.addEventListener('keydown', ({ key }) => {
+            if (preventedKeys.has(key))
+            ignoreChange = true
+            else if (allowedKeys.has(key))
+            ignoreChange = false
+        })
+    })
+</script>

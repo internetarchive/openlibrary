@@ -83,8 +83,11 @@ $jsdef render_excluded_works_list(works, total):
 </style>
 
 <div id="contentHead">
-    <div class="small sansserif grey account-settings-menu">
-      <a href="$owner_key">$owner_name</a>
+    <div class="small sansserif grey account-settings-menu" style="font-size: 16px!important">
+        <a href="/account/books" style="text-decoration: none">
+            ← 
+           <span style="text-decoration: underline">My Books</span>
+         </a> 
         &raquo; <a href="$shelf_path">$shelf_name</a>
         &raquo; $_('Stats')
     </div>

@@ -113,6 +113,10 @@
   border-top: 1px solid @book-cover-carousel-border-top;
 }
 
+.carousel-container-decorated.mybooks-mobile {
+  background: #f3edd7;
+}
+
 // TODO: Document where this is used. This is unlikely to need to be so specific.
 .carousel-section {
   .SRPCover {
@@ -175,6 +179,18 @@
   .book .bookcover {
     height: @height-cover-compact;
   }
+
+  .book .book-cover .mobile {
+    height: auto;
+  }
+  .book .bookcover .mobile {
+    height: auto;
+  }
+
+  .book .carousel__item .mobile .mybooks {
+    width: 70px !important;
+  }
+
   .carousel__item__blankcover {
     height: @height-cover-compact;
     padding: 20% 10px 10px;
