@@ -41,15 +41,34 @@
 }
 
 @media only screen and (max-width: @width-breakpoint-tablet) {
-  .mybooks-details header {
-    flex-direction: column-reverse;
+  .mybooks-details {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+
+    header {
+      flex-direction: column-reverse;
+    }
+
+    .page-banner-mybooks {
+      display: none;
+    }
+
+    .details-content {
+      padding: 0;
+    }
   }
 
-  .mybooks-details {
-    width: 100%;
+  .mybooks-details-specific {
+    display: none;
+    padding: 0;
   }
 
   .carousel-container {
     margin: 0 -18px;
+  }
+
+  .carousel-section-header {
+    border-bottom: 1px solid #bbbbbb;
   }
 }
