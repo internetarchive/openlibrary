@@ -1,8 +1,9 @@
-$def with (reader_observations, edition_count=1, show_observations=False)
+$def with (reader_observations, edition_count=1, show_observations=False, for_desktop=False)
 
 $ total_reviews = reader_observations.get('total_respondents', 0)
+$ view_class = "desktop" if for_desktop else "mobile"
 
-<ul class="nav-bar work-menu sticky">
+<ul class="nav-bar work-menu sticky $:view_class">
   <li class="selected">
     <a href="#edition-overview" data-ol-link-track="BookPageNav|Overview">$_("Overview")</a>
   </li>

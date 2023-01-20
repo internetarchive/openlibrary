@@ -30,3 +30,18 @@ export function debounce(func, threshold=100, execAsap=false) {
         timeout = setTimeout(delayed, threshold);
     };
 }
+
+/**
+ * Determines if an HTMLElement is displayed or not
+ *  - e.g. used on books page to determine whether mobile or desktop version of a macro is displayed
+ * @param {*} elem
+ * @returns boolean
+ */
+export const isDisplayed = (elem) => {
+    const mobileCSS = window.getComputedStyle(elem)
+    const displayed = mobileCSS.getPropertyValue("display")
+    if (displayed === "none") {
+        return false
+    }
+    return true
+}

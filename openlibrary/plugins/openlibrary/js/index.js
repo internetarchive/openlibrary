@@ -443,15 +443,16 @@ jQuery(function () {
             .then((module) => module.initRatingHandlers(ratingForms));
     }
 
-    const navbar = document.querySelector('.work-menu');
-    if (navbar) {
+    const navbarMobile = document.querySelector('.work-menu.mobile'); // visible at mobile breakpoint
+    const navbarDesktop = document.querySelector('.work-menu.desktop'); // visible at desktop breakpoint
+    if (navbarMobile && navbarDesktop) {
         const compactTitle = document.querySelector('.compact-title')
         // Add position-aware navbar JS:
         import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
-            .then((module) => module.initNavbar(navbar));
+            .then((module) => module.initNavbar(navbarMobile, navbarDesktop));
         // Add sticky title component animations:
         import(/* webpackChunkName: "compact-title" */ './compact-title')
-            .then((module) => module.initCompactTitle(navbar, compactTitle))
+            .then((module) => module.initCompactTitle(navbarMobile, navbarDesktop, compactTitle))
     }
 
     // Add functionality for librarian merge request table:

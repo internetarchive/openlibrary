@@ -163,12 +163,16 @@ $if is_privileged_user:
 $ component_times['ReadlogStats'] = time()
 $ star_ratings_stats = macros.StarRatingsStats(work)
 $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
-
+<a id="edition-overview" name="edition-overview"></a>
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
   <div class="workDetails">
     $if work and work.key:
         <link itemprop="exampleOfWork" href="$work.key">
 
+    $ reader_observations = get_observation_metrics(work['key']) if show_observations else {}
+    <!-- (mobile only)-->
+    $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations, for_desktop=False)
+    
     <!-- (mobile only) -->
     $:render_template("type/edition/title_and_author", work, edition, ocaid, work_title, star_ratings_stats, for_desktop=False)
     <div class="editionCover">
@@ -182,6 +186,8 @@ $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
     </div>
 
     <div class="editionAbout">
+      <!-- (desktop only) -->
+      $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations, for_desktop=True)
       <div class="editionAll">
         $ component_times['EditTopbar'] = time()
         $:macros.databarView(page, edition)
@@ -199,7 +205,6 @@ $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
         $ edit_url = page.key + "?m=edit"
       $:render_template("type/edition/compact_title", book_title, edit_url)
       $ component_times['get_observation_metrics'] = time()
-      $ reader_observations = get_observation_metrics(work['key']) if show_observations else {}
       $ component_times['get_observation_metrics'] = time() - component_times['get_observation_metrics']
 
       $if work and work.description or edition and edition.description:
@@ -222,8 +227,6 @@ $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
             </div>
         </div>
 
-      $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations)
-      <a id="edition-overview" name="edition-overview"></a>
       <div>
         $if edition:
           <div class="edition-omniline">
