@@ -123,6 +123,10 @@ class WorkSearchScheme(SearchScheme):
         'ddc_sort': 'ddc_sort asc',
         'ddc_sort asc': 'ddc_sort asc',
         'ddc_sort desc': 'ddc_sort desc',
+        # Key
+        'key': 'key asc',
+        'key asc': 'key asc',
+        'key desc': 'key desc',
         # Random
         'random': 'random_1 asc',
         'random asc': 'random_1 asc',
