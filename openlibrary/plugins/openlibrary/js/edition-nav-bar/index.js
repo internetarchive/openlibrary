@@ -2,7 +2,7 @@ import { debounce, isDisplayed } from "../nonjquery_utils"
 
 /**
  * Adds navbar-related click and scroll listeners
- * 
+ *
  * Where relevant, logic is duplicated in both navbars for consistency if user
  * resizes browser window
  *
@@ -12,7 +12,7 @@ import { debounce, isDisplayed } from "../nonjquery_utils"
 export function initNavbar(navbarElemMobile, navbarElemDesktop) {
     /**
      * The scroll containers that contain the navbar links
-     * 
+     *
      * @type {NodeList<HTMLUListElement}
      */
     const scrollContainerMobile = navbarElemMobile.querySelector("ul");
@@ -28,7 +28,7 @@ export function initNavbar(navbarElemMobile, navbarElemDesktop) {
 
     /**
      * Scroll buttons (only found on mobile navbar)
-     * 
+     *
      * @type {HTMLButtonElement}
      */
     const scrollLeftBtn = navbarElemMobile.querySelector("button.scroll-left")
@@ -75,7 +75,7 @@ export function initNavbar(navbarElemMobile, navbarElemDesktop) {
 
     // Add scroll listener that changes 'selected' navbar item based on page position:
     document.addEventListener('scroll', handleScroll)
-    
+
     // Scroll listener for adding and removing scroll buttons based on whether they're
     // needed or not
     scrollContainerMobile.addEventListener('scroll', function() {
@@ -155,7 +155,7 @@ export function initNavbar(navbarElemMobile, navbarElemDesktop) {
         } else if (left === false) {
             scrollLeftBtn.style.visibility = "hidden"
         }
-        
+
         if (right === true) {
             scrollRightBtn.style.visibility = "visible"
         } else if (right === false) {

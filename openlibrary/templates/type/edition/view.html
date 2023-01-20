@@ -172,7 +172,7 @@ $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
     $ reader_observations = get_observation_metrics(work['key']) if show_observations else {}
     <!-- (mobile only)-->
     $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations, for_desktop=False)
-    
+
     <!-- (mobile only) -->
     $:render_template("type/edition/title_and_author", work, edition, ocaid, work_title, star_ratings_stats, for_desktop=False)
     <div class="editionCover">
