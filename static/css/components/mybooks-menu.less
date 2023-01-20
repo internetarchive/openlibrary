@@ -162,7 +162,7 @@
     }
 
     ul li {
-      background: @grey-e7e7e7;
+      background: #ddd;
       list-style: none;
       a.selected {
         background-color: @grey-blue;
@@ -191,6 +191,10 @@
         padding: 4px 11px;
       }
       /* stylelint-enable selector-max-specificity */
+    }
+
+    ul li:not(.section-header) a.mybooks.mobile {
+      padding: 0px;
     }
 
     ul li.section-header {
