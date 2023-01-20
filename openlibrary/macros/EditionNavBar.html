@@ -3,30 +3,34 @@ $def with (reader_observations, edition_count=1, show_observations=False, for_de
 $ total_reviews = reader_observations.get('total_respondents', 0)
 $ view_class = "desktop" if for_desktop else "mobile"
 
-<ul class="nav-bar work-menu sticky $:view_class">
-  <li class="selected">
-    <a href="#edition-overview" data-ol-link-track="BookPageNav|Overview">$_("Overview")</a>
-  </li>
-  <li>
-    <a href="#editions-list" data-ol-link-track="BookPageNav|EditionTable">
-      $ungettext('View %(count)s Edition', 'View %(count)s Editions', edition_count, count=edition_count)
-    </a>
-  </li>
-  <li>
-    <a href="#details" data-ol-link-track="BookPageNav|Details">$_("Details")</a>
-  </li>
-  <li>
-    <a href="#reader-observations" data-ol-link-track="BookPageNav|Reviews">
-      $if total_reviews > 0:
-        $ungettext('%(reviews)s Review', '%(reviews)s Reviews', total_reviews, reviews=total_reviews)
-      $else:
-        $_('Reviews')
-    </a>
-  </li>
-  <li>
-    <a href="#lists-section" data-ol-link-track="BookPageNav|Lists">$_("Lists")</a>
-  </li>
-  <li>
-    <a href="#related-work-carousel" data-ol-link-track="BookPageNav|RelatedBooks">$_("Related Books")</a>
-  </li>
-</ul>
+<div class="nav-bar work-menu sticky $:view_class">
+  <button class="scroll-left" style="visibility: hidden;">&#9666;</button>
+  <ul>
+    <li class="selected">
+      <a href="#edition-overview" data-ol-link-track="BookPageNav|Overview">$_("Overview")</a>
+    </li>
+    <li>
+      <a href="#editions-list" data-ol-link-track="BookPageNav|EditionTable">
+        $ungettext('View %(count)s Edition', 'View %(count)s Editions', edition_count, count=edition_count)
+      </a>
+    </li>
+    <li>
+      <a href="#details" data-ol-link-track="BookPageNav|Details">$_("Details")</a>
+    </li>
+    <li>
+      <a href="#reader-observations" data-ol-link-track="BookPageNav|Reviews">
+        $if total_reviews > 0:
+          $ungettext('%(reviews)s Review', '%(reviews)s Reviews', total_reviews, reviews=total_reviews)
+        $else:
+          $_('Reviews')
+      </a>
+    </li>
+    <li>
+      <a href="#lists-section" data-ol-link-track="BookPageNav|Lists">$_("Lists")</a>
+    </li>
+    <li>
+      <a href="#related-work-carousel" data-ol-link-track="BookPageNav|RelatedBooks">$_("Related Books")</a>
+    </li>
+  </ul>
+  <button class="scroll-right" style="visibility: hidden;">&#9656;</button>
+</div>
