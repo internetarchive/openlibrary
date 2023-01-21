@@ -934,7 +934,6 @@ msgstr "Journal de lecture"
 
 #: account/books.html:31 lib/nav_head.html:13 lib/nav_head.html:25
 #: lib/nav_head.html:76
-#, fuzzy
 msgid "My Books"
 msgstr "Mes livres"
 
