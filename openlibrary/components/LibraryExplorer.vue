@@ -34,6 +34,16 @@ class FilterState {
         this.year = '[1985 TO 9998]';
     }
 
+    constructor(filter, has_ebook, languages, age, year) {
+        this.filter = filter;
+        /** @type { '' | 'true' | 'false' } */
+        this.has_ebook = has_ebook;
+        /** @type {Array<{name: string, key: string}>} */
+        this.languages = languages;
+        this.age = age;
+        this.year = year;
+    }
+
     solrQueryParts() {
         const filters = this.filter ? [this.filter] : [];
         if (this.has_ebook) {
@@ -106,7 +116,11 @@ export default {
             jumpTo = selectedClassification.toQueryFormat(classificationString);
         }
         return {
-            filterState: new FilterState(),
+            if : { //a user is not connected
+                filterState: new FilterState()},
+            else : {
+                filterState: new FilterState(filters['filter'], filters['has_ebook'], filters['languages'], filters['age'], filters['year'])
+                },
 
             sortState: {
                 order: jumpTo ? `${selectedClassification.field}_sort asc` : `random_${new Date().toISOString().split(':')[0]}`,
