@@ -12,6 +12,7 @@ from openlibrary.catalog import add_book
 from openlibrary.catalog.get_ia import get_marc_record_from_ia, get_from_archive_bulk
 from openlibrary import accounts, records
 from openlibrary.core import ia
+from openlibrary.plugins.upstream.utils import get_abbrev_from_full_lang_name
 
 import web
 
@@ -338,24 +339,33 @@ class ia_importapi(importapi):
         lccn = metadata.get('lccn')
         subject = metadata.get('subject')
         oclc = metadata.get('oclc-id')
+        number_of_pages = metadata.get('imagecount')
         d = {
-            'title': metadata.get('title', ''),
+            'title': metadata.get('title', '').strip(),
             'authors': authors,
-            'publish_date': metadata.get('date'),
-            'publisher': metadata.get('publisher'),
+            'publish_date': metadata.get('date', '').strip(),
+            'publisher': metadata.get('publisher', '').strip(),
         }
         if description:
-            d['description'] = description
+            d['description'] = description.strip()
         if isbn:
             d['isbn'] = isbn
-        if language and len(language) == 3:
-            d['languages'] = [language]
+        if language:
+            if len(language) == 3:
+                d['languages'] = [language]
+
+            # Try converting the name of a language to its three character code.
+            # E.g. English -> eng.
+            elif lang_code := get_abbrev_from_full_lang_name(language):
+                d['languages'] = [lang_code]
         if lccn:
             d['lccn'] = [lccn]
         if subject:
             d['subjects'] = subject
         if oclc:
             d['oclc'] = oclc
+        if number_of_pages:
+            d['number_of_pages'] = int(number_of_pages)
         return d
 
     @staticmethod

@@ -1,6 +1,6 @@
 import functools
 from typing import Any
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 import unicodedata
 
 import web
@@ -647,7 +647,14 @@ def get_languages():
     return {lang.key: lang for lang in web.ctx.site.get_many(keys)}
 
 
-def autocomplete_languages(prefix: str):
+def autocomplete_languages(prefix: str) -> Iterator[web.storage]:
+    """
+    Given, e.g., "English", this returns an iterator of:
+        <Storage {'key': '/languages/ang', 'code': 'ang', 'name': 'English, Old (ca. 450-1100)'}>
+        <Storage {'key': '/languages/eng', 'code': 'eng', 'name': 'English'}>
+        <Storage {'key': '/languages/enm', 'code': 'enm', 'name': 'English, Middle (1100-1500)'}>
+    """
+
     def normalize(s: str) -> str:
         return strip_accents(s).lower()
 
@@ -680,6 +687,23 @@ def autocomplete_languages(prefix: str):
                 name=lang.name,
             )
             continue
+
+
+def get_abbrev_from_full_lang_name(lang_name: str) -> str:
+    """
+    Take a language name, in English, such as 'English' or 'French' and return 'eng' or 'fre', respectively.
+    If there's no match, this returns an empty string.
+    """
+    possible_lang_abbrevs = autocomplete_languages(lang_name)
+    target_lang = next(
+        (
+            lang.code
+            for lang in possible_lang_abbrevs
+            if lang_name.lower() == lang.name.lower()
+        ),
+        "",
+    )
+    return target_lang
 
 
 def get_language(lang_or_key: Thing | str) -> Thing | None:
