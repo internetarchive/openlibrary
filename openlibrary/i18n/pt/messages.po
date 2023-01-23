@@ -650,7 +650,7 @@ msgstr "Emprestar"
 #: widget.html:45
 #, python-format
 msgid "Join waitlist for &quot;%(title)s&quot;"
-msgstr "Entrar na lista de espera para «%(title)s»"
+msgstr "Entrar na lista de espera para &quot;%(title)s&quot;"
 
 # Se traduce como «Reservar» para evitar que el texto se corte en el botón donde se muestra.
 #: LoanStatus.html:98 widget.html:45
@@ -660,7 +660,7 @@ msgstr "Reservar"
 #: widget.html:49
 #, python-format
 msgid "Learn more about &quot;%(title)s&quot; at OpenLibrary"
-msgstr "Aprenda mais sobre «%(title)s» na Biblioteca Aberta"
+msgstr "Aprenda mais sobre &quot;%(title)s&quot; na Biblioteca Aberta"
 
 #: LoanStatus.html:117 widget.html:49
 msgid "Learn More"
@@ -1565,7 +1565,7 @@ msgstr "ePub"
 msgid "%d Current Loan"
 msgid_plural "%d Current Loans"
 msgstr[0] "%d empréstimo atual"
-msgstr[1] "%d empréstimos atuales"
+msgstr[1] "%d empréstimos atuais"
 
 #: RecentChanges.html:18 RecentChangesUsers.html:21 admin/ip/view.html:45
 #: admin/loans_table.html:45 admin/people/edits.html:42
@@ -1591,7 +1591,7 @@ msgstr "IP bloqueadas"
 
 #: admin/menu.html:25
 msgid "Spam Words"
-msgstr "Palavras «spam»"
+msgstr "Palavras spam"
 
 #: admin/menu.html:26
 msgid "Solr"
@@ -1980,7 +1980,7 @@ msgid ""
 "Like, \"Agatha Christie\" or \"Jean-Paul Sartre.\" We'll also do a live "
 "check to see if we already know the author."
 msgstr ""
-"Como «Agatha Christie» ou «Jean-Paul Sartre». Também vamos verificar ao vivo "
+"Como \"Agatha Christie\" ou \"Jean-Paul Sartre\". Também vamos verificar ao vivo "
 "para ver se já conhecemos o autor."
 
 #: books/add.html:39 books/edit/edition.html:118
@@ -2198,7 +2198,7 @@ msgstr "Como você descreveria esse livro?"
 
 #: books/edit/about.html:11
 msgid "There's no wrong answer here."
-msgstr "Não existem respoostas erradas aqui."
+msgstr "Não existem respostas erradas aqui."
 
 #: books/edit/about.html:20
 msgid "Subject keywords?"
@@ -2419,7 +2419,7 @@ msgid ""
 "Use a \"*\" for an indent, a \"|\" to add a column, and line breaks for new "
 "lines. Like this:"
 msgstr ""
-"Use um «*» para um recúo, uma «|» para adicionar uma coluna e quebras de "
+"Use um \"*\" para um recúo, uma \"|\" para adicionar uma coluna e quebras de "
 "linha para novas linhas. Assim:"
 
 #: books/edit/edition.html:366
@@ -2675,7 +2675,7 @@ msgid ""
 "Irrelevant sites may be removed. Blatant spam will be deleted without "
 "remorse."
 msgstr ""
-"«Bons» significa que não são links 'spam', por favor. Mantenha-os relevantes "
+"\"Bons\" significa que não são links 'spam', por favor. Mantenha-os relevantes "
 "ao livro. Spam será deletado sem remorso."
 
 #: covers/add.html:11
@@ -3084,7 +3084,7 @@ msgid ""
 "To \"escape\" any Markdown tags (i.e. use an asterisk as an asterisk rather "
 "than emphasizing text) place a backslash \\ prior to the character."
 msgstr ""
-"Para «escapar» de qualquer etiqueta Markdown (ou seja, para usar um "
+"Para \"escapar\" de qualquer etiqueta Markdown (ou seja, para usar um "
 "asterisco como asterisco ao invés de enfatizar o texto) coloque uma barra "
 "invertida \\ antes do caractere."
 
@@ -3190,7 +3190,7 @@ msgstr "Datos em massa da Biblioteca Aberta"
 
 #: lib/nav_foot.html:39
 msgid "Bulk Data Dumps"
-msgstr "Lixões de datos em massa"
+msgstr "Despejos de dados em massa"
 
 #: lib/nav_foot.html:40
 msgid "Write a bot"
@@ -3491,8 +3491,8 @@ msgid ""
 msgstr ""
 "Uma vez que você tenha criado uma lista, você pode <strong>seguir as atualizações</"
 "strong> ou <strong>exportar</strong> todas as edições na lista como "
-"HTML, BibTeX ou JSON. Consulte todas suas listas e qualquer actividade nelas "
-" usando o link «Listas» em sua conta."
+"HTML, BibTeX ou JSON. Consulte todas suas listas e qualquer atividades nelas "
+" usando o link \"Listas\" em sua conta."
 
 #: lists/home.html:18
 msgid "Enjoy!"
@@ -3680,7 +3680,7 @@ msgstr "Por favor, selecione alguns autores para juntar."
 
 #: merge/authors.html:27
 msgid "Select a \"primary\" record that best represents the author -"
-msgstr "Selecione um registro «principal» que melhoor represente o autor -"
+msgstr "Selecione um registro \"principal\" que melhor represente o autor -"
 
 #: merge/authors.html:30
 msgid "Select author records which should be merged with the primary"
@@ -3831,8 +3831,8 @@ msgstr[1] "%(who)s juntou %(count)d duplicados de %(master)s"
 #, python-format
 msgid "one duplicate of %(master)s was merged anonymously"
 msgid_plural "%(count)d duplicates of %(master)s were merged anonymously"
-msgstr[0] "um duplicado de %(master)s foi mesclado anônimamente"
-msgstr[1] "%(count)d duplicados de %(master)s foram mesclados anônimamente"
+msgstr[0] "um duplicado de %(master)s foi mesclado anonimamente"
+msgstr[1] "%(count)d duplicados de %(master)s foram mesclados anonimamente"
 
 #: recentchanges/merge-authors/view.html:8
 msgid "Author Merge"
@@ -4136,7 +4136,7 @@ msgid ""
 "If you \"borrow\" information from somewhere, please make sure to cite the "
 "source."
 msgstr ""
-"Se você pegar «emprestado» informações de algum outro lugar, por favor, não se "
+"Se você pegar \"emprestado\" informações de algum outro lugar, por favor, não se "
 "esqueça de citar a fonte."
 
 #: type/author/edit.html:65
@@ -4153,7 +4153,7 @@ msgid ""
 "recommended."
 msgstr ""
 "Não estamos armazenando datas estruturadas (por enquanto), então se "
-"recomenda uma data como «21 May 2000»."
+"recomenda uma data como \"21 May 2000\"."
 
 #: type/author/edit.html:92
 msgid "Date"
@@ -4166,7 +4166,7 @@ msgid ""
 "Thanks!"
 msgstr ""
 "Este é um campo obsoleto. Você pode ajudar a melhorar esse registro ao remover "
-"essa data e preenchendo os campos «Data de nascimento» e «Data da morte. Obrigado!"
+"essa data e preenchendo os campos \"Data de nascimento\" e \"Data da morte\". Obrigado!"
 
 #: type/author/edit.html:106
 msgid "Does this author go by any other names?"
@@ -4224,7 +4224,7 @@ msgstr "Argh!"
 
 #: type/author/view.html:85
 msgid "That merge didn't work. It's our fault, and we've made a note of it."
-msgstr "Essa fusão falhos. Fpi culpa nossa, e já tomamos nota disso."
+msgstr "Essa fusão falhou. Foi culpa nossa, e já tomamos nota disso."
 
 #: type/author/view.html:97
 msgid "Website"
@@ -4311,7 +4311,7 @@ msgstr "Corpo do documento:"
 
 #: type/edition/admin_bar.html:17
 msgid "Add to Staff Picks"
-msgstr "Adicionar a «Seleções do pessoal»"
+msgstr "Adicionar a Seleções do pessoal"
 
 #: type/edition/admin_bar.html:22
 msgid "Sync Archive.org ID"
@@ -4406,7 +4406,7 @@ msgstr "adicionados por %(authorlink)s."
 
 #: type/edition/view.html:313 type/work/view.html:313
 msgid "added anonymously."
-msgstr "adicionado anônimamente."
+msgstr "adicionado anonimamente."
 
 #: type/edition/view.html:321 type/work/view.html:321
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
@@ -4724,7 +4724,7 @@ msgstr ""
 
 #: type/user/view.html:62
 msgid "This reader has chosen to make their Reading Log private."
-msgstr "Este leitor optou deixar seu regitro de leitura privado."
+msgstr "Este leitor optou deixar seu registro de leitura privado."
 
 #: RecentChangesUsers.html:64 type/user/view.html:84
 msgid "No edits. Yet."
@@ -5013,7 +5013,7 @@ msgstr "Biblioteca cliente"
 
 #: Subnavigation.html:12
 msgid "Data Dumps"
-msgstr "Lixões de datos"
+msgstr "Despejo de dados"
 
 #: Subnavigation.html:14
 msgid "Report an Issue"
@@ -5064,8 +5064,8 @@ msgid ""
 "editing its content."
 msgstr ""
 "Cada peça da Biblioteca Aberta se define pelo tipo de conteúdo que ela "
-"mostra, geralmente pela definição do conteúdo (p. ej., Autores, "
-"Edições, Obras), mas às vezes por uso do conteúdo (p. ej., macro, "
+"mostra, geralmente pela definição do conteúdo (ex.: Autores, "
+"Edições, Obras), mas às vezes por uso do conteúdo (ex.: macro, "
 "template, texto bruto). Mudar isso para uma página existente alterará "
 "sua apresentação e os campos de dato disponíveis para editar seu conteúdo."
 
@@ -5078,7 +5078,7 @@ msgid ""
 "(Simplest solution: If you aren't sure whether this should be changed, don't "
 "change it.)"
 msgstr ""
-"(A solução mais simple: Se você não tem certeza se isso deve ser mudado, não "
+"(A solução mais simples: Se você não tem certeza se isso deve ser mudado, não "
 "o mude.)"
 
 #: WorldcatLink.html:9
@@ -5087,7 +5087,7 @@ msgstr "Buscar em bibliotecas por perto"
 
 #: WorldcatLink.html:13
 msgid "Check WorldCat for an edition near you"
-msgstr "Buscar em WorldCat uma edição perto de você"
+msgstr "Marque WorldCat para uma edição perto de você"
 
 #: daisy.html:10
 msgid "Encrypted daisy download for authorized print-disabled patrons"
@@ -5125,7 +5125,7 @@ msgstr "Editado pela última vez por %(author_link)s"
 
 #: databarHistory.html:18 databarView.html:24
 msgid "Last edited anonymously"
-msgstr "Editado pela última vez anônimamente"
+msgstr "Editado pela última vez anonimamente"
 
 #: databarWork.html:86
 msgid "Buy this book"
@@ -5134,11 +5134,11 @@ msgstr "Comprar este livro"
 #: databarWork.html:105
 #, python-format
 msgid "This book was generously donated by %(donor)s"
-msgstr "Este livro foi generosamente donado por %(donor)s"
+msgstr "Este livro foi generosamente doado por %(donor)s"
 
 #: databarWork.html:107
 msgid "This book was generously donated anonymously"
-msgstr "Este livro foi generosamente donado anônimamente"
+msgstr "Este livro foi generosamente doado anonimamente"
 
 #: databarWork.html:112
 msgid "Learn more about Book Sponsorship"
@@ -5155,7 +5155,7 @@ msgstr ""
 
 #: account.py:489
 msgid "Username must be between 3-20 characters"
-msgstr "O nome de usuário deve ter entre 3-20 caractéres"
+msgstr "O nome de usuário deve ter entre 3-20 caracteres"
 
 #: account.py:491
 msgid "Username may only contain numbers and letters"
@@ -5207,7 +5207,7 @@ msgstr ""
 
 #: account.py:649 account.py:659
 msgid "Password reset failed."
-msgstr "Falha em resetear a senha."
+msgstr "Falha em resetar a senha."
 
 #: account.py:706 account.py:725
 msgid "Notification preferences have been updated successfully."
@@ -5239,7 +5239,7 @@ msgstr "Deve ser entre 3 e 20 letras e números"
 
 #: forms.py:59
 msgid "Must be between 3 and 20 characters"
-msgstr "Deve ser entre 3 e 20 caractéres"
+msgstr "Deve ser entre 3 e 20 caracteres"
 
 #: forms.py:78 forms.py:154
 msgid "Your email address"
