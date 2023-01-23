@@ -251,12 +251,12 @@ msgid ""
 msgstr ""
 "Por favor, insira seu email e senha pertences a sua conta do <a href="
 "\"https://archive.org\">Arquivo da Internet</a> para entrar em sua conta da "
-" Biblioteca Aberta."
+" Open Library."
 
 #: account/create.html:46 login.html:18
 #, python-format
 msgid "You are already logged into Open Library as %(user)s."
-msgstr "Você já está logado na Biblioteca Aberta como %(user)s."
+msgstr "Você já está logado na Open Library como %(user)s."
 
 #: account/create.html:47 login.html:19
 msgid ""
@@ -264,7 +264,7 @@ msgid ""
 "to <a href=\"javascript:;\" onclick=\"document.forms['logout']."
 "submit()\">log out</a> and start the signup process afresh."
 msgstr ""
-"Se quiser criar uma conta nova, diferente da Biblioteca Aberta, "
+"Se quiser criar uma conta nova, diferente da Open Library, "
 " você deve <a href=\"javascript:;\" onclick=\"document.forms['logout']."
 "submit()\">desconectar</a> e iniciar o processo de registro de novo."
 
@@ -292,7 +292,7 @@ msgstr "Esqueceu sua senha?"
 msgid ""
 "Not a member of Open Library? <a href=\"/account/create\">Sign up now</a>."
 msgstr ""
-"Não é membro da Biblioteca Aberta? <a href=\"/account/create"
+"Não é membro da Open Library? <a href=\"/account/create"
 "\">Crie uma conta agora</a>."
 
 #: messages.html:11
@@ -598,7 +598,7 @@ msgid ""
 msgstr ""
 "Se encontrar uma mensagem de erro, por favor a inclua. Para perguntas sobre "
 "nossos livros, por favor inclua o título/autor ou o código (ID) prensente na "
-"Biblioteca Aberta."
+"Open Library."
 
 #: support.html:58
 msgid "Which page were you looking at?"
@@ -660,7 +660,7 @@ msgstr "Reservar"
 #: widget.html:49
 #, python-format
 msgid "Learn more about &quot;%(title)s&quot; at OpenLibrary"
-msgstr "Aprenda mais sobre &quot;%(title)s&quot; na Biblioteca Aberta"
+msgstr "Aprenda mais sobre &quot;%(title)s&quot; na Open Library"
 
 #: LoanStatus.html:117 widget.html:49
 msgid "Learn More"
@@ -955,7 +955,7 @@ msgstr "Manejar seus ajustes de privacidade"
 
 #: account/create.html:9
 msgid "Sign Up to Open Library"
-msgstr "Registre-se na Biblioteca Aberta"
+msgstr "Registre-se na Open Library"
 
 #: account/create.html:12 account/create.html:85 lib/header_dropdown.html:47
 #: lib/nav_head.html:108 lib/search_head.html:78
@@ -1106,7 +1106,7 @@ msgstr "Nenhuma nota foi encontrada."
 
 #: account/notifications.html:7 account/notifications.html:16
 msgid "Notifications from Open Library"
-msgstr "Notificações da Biblioteca Aberta"
+msgstr "Notificações da Open Library"
 
 #: account/notifications.html:14
 msgid "Notifications"
@@ -1125,8 +1125,8 @@ msgstr ""
 #: account/notifications.html:35
 msgid "Would you like to receive very occasional emails from Open Library?"
 msgstr ""
-"Você gostaria de ocasionalmente receber emails da Biblioteca "
-"Aberta?"
+"Você gostaria de ocasionalmente receber emails da Open "
+"Library?"
 
 #: account/notifications.html:42
 msgid "No, thank you"
@@ -1155,7 +1155,7 @@ msgstr "Nenhuma observação foi encontrada."
 
 #: account/privacy.html:7
 msgid "Your Privacy on Open Library"
-msgstr "Sua privacidade na Biblioteca Aberta"
+msgstr "Sua privacidade na Open Library"
 
 #: account/privacy.html:16
 msgid "Privacy Settings"
@@ -1395,8 +1395,8 @@ msgid ""
 "Please enter your Open Library email and password, and we’ll retrieve your "
 "Archive.org email."
 msgstr ""
-"Por favor, digite seu email e senha da Biblioteca "
-"Aberta e obteremos seu email de Archive.org."
+"Por favor, digite seu email e senha da Open "
+"Library e obteremos seu email de Archive.org."
 
 #: account/email/forgot-ia.html:17
 msgid "Your email is:"
@@ -1408,7 +1408,7 @@ msgstr "Voltar ao início da sessão?"
 
 #: account/email/forgot-ia.html:27
 msgid "Open Library Email"
-msgstr "Email da Biblioteca Aberta"
+msgstr "Email da Open Library"
 
 #: account/email/forgot-ia.html:38
 msgid "Retrieve Archive.org Email"
@@ -1421,7 +1421,7 @@ msgstr "Esqueceu da senha de Archive.org?"
 
 #: account/email/forgot.html:15
 msgid "Forgot Your Open Library Email?"
-msgstr "Esqueceu o email da Biblioteca Aberta?"
+msgstr "Esqueceu o email da Open Library?"
 
 #: account/password/forgot.html:7 account/password/sent.html:7
 msgid "Username/Password Reminder"
@@ -1443,8 +1443,8 @@ msgstr "Restabelecer senha"
 #: account/password/reset.html:15
 msgid "Please enter a new password for your Open Library account."
 msgstr ""
-"Por favor, digite uma nova sonha para sua conta da Biblioteca "
-"Aberta."
+"Por favor, digite uma nova sonha para sua conta da Open "
+"Library."
 
 #: account/password/reset.html:23
 msgid "Reset"
@@ -1475,7 +1475,7 @@ msgid ""
 msgstr ""
 "Enviamos um email %(email)s com um lembrete de seu usuário e "
 "instruções para ajudar a restabelecer sua senha da "
-"Biblioteca Aberta. Por favor, acesse sua caixa de entrada para ler "
+"Open Library. Por favor, acesse sua caixa de entrada para ler "
 "uma mensagem nossa."
 
 #: account/verify/activated.html:7
@@ -1958,7 +1958,7 @@ msgstr "Adicionar um livro"
 
 #: books/add.html:11
 msgid "Add a book to Open Library"
-msgstr "Adicionar um livro à Biblioteca Aberta"
+msgstr "Adicionar um livro à Open Library"
 
 #: books/add.html:13
 msgid ""
@@ -2152,7 +2152,7 @@ msgid ""
 "a>)."
 msgstr ""
 "Você pode buscar pelo nombe do autor (como <em>j k rowling</em>) ou pelo "
-"identificador da Biblioteca Aberta (como <a href=\"/authors/OL23919A\" "
+"identificador da Open Library (como <a href=\"/authors/OL23919A\" "
 "target=\"_blank\"><em>OL23919A</em></a>)."
 
 #: books/edit.html:91
@@ -2463,7 +2463,7 @@ msgstr ""
 #: books/edit/edition.html:394
 msgid "You can search by title or by Open Library ID (like"
 msgstr ""
-"Você pode buscar pelo título ou pelo identificador da Biblioteca Aberta "
+"Você pode buscar pelo título ou pelo identificador da Open Library "
 "(como"
 
 #: books/edit/edition.html:397
@@ -2658,7 +2658,7 @@ msgid ""
 "Please connect Open Library records to <u>good</u><span class=\"orange\">*</"
 "span> online resources."
 msgstr ""
-"Por favor, conecte registros da Biblioteca Aberta a <u>buenos</"
+"Por favor, conecte registros da Open Library a <u>buenos</"
 "u><span class=\"orange\">*</span> recursos online."
 
 #: books/edit/web.html:19
@@ -2680,7 +2680,7 @@ msgstr ""
 
 #: covers/add.html:11
 msgid "There are two ways to put an author's image on Open Library"
-msgstr "Há duas formas de introduzir a imagem de um autor a Biblioteca Aberta"
+msgstr "Há duas formas de introduzir a imagem de um autor a Open Library"
 
 #: covers/add.html:13
 msgid "Image Guidelines"
@@ -2688,7 +2688,7 @@ msgstr "Diretrizes de imagem"
 
 #: covers/add.html:15
 msgid "There are two ways to put a cover image on Open Library"
-msgstr "Há duas formas de introduzir uma imagem de capa a Biblioteca Aberta"
+msgstr "Há duas formas de introduzir uma imagem de capa a Open Library"
 
 #: covers/add.html:17
 msgid "Cover Guidelines"
@@ -2817,7 +2817,7 @@ msgid ""
 "Open Library is an open, editable library catalog, building towards a web "
 "page for every book ever published."
 msgstr ""
-"Biblioteca Aberta é um catálogo de biblioteca aberto e editável, "
+"Open Library é um catálogo de biblioteca aberto e editável, "
 "orientado a ter uma página para todo livro já publicado."
 
 #: AffiliateLinks.html:70 home/about.html:16 lib/nav_head.html:40
@@ -2860,7 +2860,7 @@ msgstr[1] "%(count)s livros"
 
 #: home/index.html:8 home/welcome.html:9
 msgid "Welcome to Open Library"
-msgstr "Bem-vinde a Biblioteca Aberta"
+msgstr "Bem-vinde a Open Library"
 
 #: home/index.html:26
 msgid "Classic Books"
@@ -2892,7 +2892,7 @@ msgstr "Apostilas"
 
 #: home/stats.html:9 site/around_the_library.html:52
 msgid "Around the Library"
-msgstr "Sobre a Biblioteca"
+msgstr "Sobre a Library"
 
 #: home/stats.html:10
 msgid ""
@@ -2945,7 +2945,7 @@ msgstr "eBooks emprestados"
 
 #: home/welcome.html:26
 msgid "Read Free Library Books Online"
-msgstr "Ler livros em um biblioteca online de graça"
+msgstr "Ler livros em uma biblioteca online de graça"
 
 #: home/welcome.html:27
 msgid "Millions of books available through Controlled Digital Lending"
@@ -2961,7 +2961,7 @@ msgstr "Organize seus livros utilizando listas e registros de leitura"
 
 #: home/welcome.html:54
 msgid "Try the virtual Library Explorer"
-msgstr "Teste o explorador virtual da Biblioteca"
+msgstr "Teste o explorador virtual da Library"
 
 #: home/welcome.html:55
 msgid "Digital shelves organized like a physical library"
@@ -2973,7 +2973,7 @@ msgstr "Seja um Bibliotecário Aberto"
 
 #: home/welcome.html:69
 msgid "Dozens of ways you can help improve the library"
-msgstr "Dezenas de formas que você pode ajudar a melhorar a Biblioteca"
+msgstr "Dezenas de formas que você pode ajudar a melhorar a biblioteca"
 
 #: home/welcome.html:82
 msgid "Send us feedback"
@@ -3070,7 +3070,7 @@ msgid ""
 "can preview your work in real time below the editing field."
 msgstr ""
 "Usamos um sistema chamado Markdown para formatar o texto de suas edições "
-"na Biblioteca Aberta. Alguns formatos de HTML também são aceitos. Os "
+"na Open Library. Alguns formatos de HTML também são aceitos. Os "
 "os paragráfos se generam automaticamente a partir de qualquer salto de linha dupla "
 "(linhas em branco) dentro do texto. Você pode previsualizar seu texto "
 "em tempo real abaixo do campo de edição."
@@ -3170,7 +3170,7 @@ msgstr "Desenvolver"
 
 #: lib/nav_foot.html:37
 msgid "Explore Open Library Developer Center"
-msgstr "Explorar o Centro de Desenvolvimento da Biblioteca Aberta"
+msgstr "Explorar o Centro de Desenvolvimento da Open Library"
 
 #: lib/nav_foot.html:37 lib/nav_head.html:25
 msgid "Developer Center"
@@ -3178,7 +3178,7 @@ msgstr "Centro de Desenvolvedor"
 
 #: lib/nav_foot.html:38
 msgid "Explore Open Library APIs"
-msgstr "Explorar APIs da Biblioteca Aberta"
+msgstr "Explorar APIs da Open Library"
 
 #: lib/nav_foot.html:38
 msgid "API Documentation"
@@ -3186,7 +3186,7 @@ msgstr "Documentação da API"
 
 #: lib/nav_foot.html:39
 msgid "Bulk Open Library data"
-msgstr "Datos em massa da Biblioteca Aberta"
+msgstr "Datos em massa da Open Library"
 
 #: lib/nav_foot.html:39
 msgid "Bulk Data Dumps"
@@ -3202,7 +3202,7 @@ msgstr "Bots de escrita"
 
 #: lib/nav_foot.html:41
 msgid "Add a new book to Open Library"
-msgstr "Adicionar um novo livro à Biblioteca Aberta"
+msgstr "Adicionar um novo livro à Open Library"
 
 #: lib/nav_foot.html:47
 msgid "Help Center"
@@ -3265,8 +3265,8 @@ msgid ""
 "\">Wayback Machine</a>, <a href=\"//archive.org/\">archive.org</a> and <a "
 "href=\"//archive-it.org\">archive-it.org</a>"
 msgstr ""
-"Biblioteca Aberta é uma iniciativa do <a href=\"//archive.org/\">Arquivo "
-"da Internet</a>, uma organização sem fins lucrativos 501(c)(3), que "
+"Open Library é uma iniciativa da <a href=\"//archive.org/\">Internet "
+"Archive</a>, uma organização sem fins lucrativos 501(c)(3), que "
 "constrói uma biblioteca digital de sites da Internet e outros artefatos "
 "culturais em formato digital. Outros <a href=\"//archive.org/projects/"
 "\">projetos</a> incluem a <a href=\"//archive.org/web/\">Wayback Machine</"
@@ -3320,7 +3320,7 @@ msgstr "Livro aleatório"
 
 #: lib/nav_head.html:39
 msgid "My Open Library"
-msgstr "Minha Biblioteca Aberta"
+msgstr "Minha Open Library"
 
 #: lib/nav_head.html:40 lib/nav_head.html:59
 msgid "Browse"
@@ -3328,11 +3328,11 @@ msgstr "Explorar"
 
 #: lib/nav_head.html:48
 msgid "The Internet Archive's Open Library: One page for every book"
-msgstr "Biblioteca Aberta do Arquivo da Internet: Uma página para cada livro"
+msgstr "The Internet Archive's Open Library: Uma página para cada livro"
 
 #: lib/nav_head.html:52 type/list/embed.html:22
 msgid "Open Library logo"
-msgstr "Logo da Biblioteca Aberta"
+msgstr "Logo da Open Library"
 
 #: lib/nav_head.html:80
 msgid "All"
@@ -3365,10 +3365,10 @@ msgid ""
 "edits and additions."
 msgstr ""
 "<strong>Você não está <a href=\"/account/login\" title=\"Iniciar sessão agora"
-"\">logado</a></strong>. Biblioteca Aberta registrará seu endereço "
+"\">logado</a></strong>. Open Library registrará seu endereço "
 "IP e o incluirá no histórico de edições dessa página de acesso "
 "público. Se <a href=\"/account/create\" title=\"Crie uma conta na "
-"Biblioteca Aberta\">crie uma conta</a>, seu endereço IP continuará oculto e "
+"Open Library\">crie uma conta</a>, seu endereço IP continuará oculto e "
 "você poderá seguir fácilmente todas suas edições e adições."
 
 #: Pager.html:27 lib/pagination.html:22
@@ -3818,7 +3818,7 @@ msgstr "Por bots"
 #: recentchanges/default/message.html:29
 #: recentchanges/edit-book/message.html:29 site/around_the_library.html:45
 msgid "opened a new Open Library account!"
-msgstr "você abriu uma nova conta na Biblioteca Aberta!"
+msgstr "você abriu uma nova conta na Open Library!"
 
 #: recentchanges/merge-authors/message.html:13
 #, python-format
@@ -3892,7 +3892,7 @@ msgstr "Sem resultados"
 #: search/inside.html:7
 #, python-format
 msgid "Search Open Library for %s"
-msgstr "Buscar %s na Biblioteca Aberta"
+msgstr "Buscar %s na Open Library"
 
 #: BookSearchInside.html:9 search/inside.html:10
 msgid "Search Inside"
@@ -3988,13 +3988,13 @@ msgid ""
 "page for every book ever published. Read, borrow, and discover more than 3M "
 "books for free."
 msgstr ""
-"Biblioteca Aberta é um catálogo bibliotecario aberto e editável, que cria "
+"Open Library é um catálogo bibliotecario aberto e editável, que cria "
 "uma página web para cada livro publicado. Leia, pegue emprestado e descubra mais "
 "de 3M livros de forma gratuita."
 
 #: site/neck.html:17
 msgid "Open Library"
-msgstr "Biblioteca Aberta"
+msgstr "Open Library"
 
 #: stats/readinglog.html:8
 msgid "Reading Log Stats"
@@ -4187,7 +4187,7 @@ msgstr "nome ausente"
 #: type/author/view.html:19 type/edition/view.html:60 type/work/view.html:60
 #, python-format
 msgid "%(page_title)s | Open Library"
-msgstr "%(page_title)s | Biblioteca Aberta"
+msgstr "%(page_title)s | Open Library"
 
 #: type/author/view.html:32
 #, python-format
@@ -4267,7 +4267,7 @@ msgstr "OLID"
 #: type/author/view.html:186
 msgid "Links <span class=\"gray small sansserif\">(outside Open Library)"
 msgstr ""
-"Links <span class=\"gray small sansserif\">(fora da Biblioteca Aberta)"
+"Links <span class=\"gray small sansserif\">(fora da Open Library)"
 
 #: type/author/view.html:196
 msgid "No links yet."
@@ -4411,7 +4411,7 @@ msgstr "adicionado anonimamente."
 #: type/edition/view.html:321 type/work/view.html:321
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
 msgstr ""
-"Links <span class=\"gray small sansserif\">fora da Biblioteca Aberta</"
+"Links <span class=\"gray small sansserif\">fora da Open Library</"
 "span>"
 
 #: type/edition/view.html:325 type/work/view.html:325
@@ -4513,7 +4513,7 @@ msgstr "Descrição"
 
 #: type/list/embed.html:22
 msgid "Visit Open Library"
-msgstr "Visitar a Biblioteca Aberta"
+msgstr "Visitar a Open Library"
 
 #: type/list/embed.html:41 type/list/view_body.html:198
 msgid "Unknown authors"
@@ -4587,7 +4587,7 @@ msgstr ""
 #: type/list/view_body.html:8
 #, python-format
 msgid "%(name)s | Lists | Open Library"
-msgstr "%(name)s | Listas | Biblioteca Aberta"
+msgstr "%(name)s | Listas | Open Library"
 
 #: type/list/view_body.html:18
 #, python-format
@@ -4596,7 +4596,7 @@ msgstr "%(title)s: %(description)s"
 
 #: type/list/view_body.html:27
 msgid "View the list on Open Library."
-msgstr "Ver a lista na Biblioteca Aberta."
+msgstr "Ver a lista na Open Library."
 
 #: type/list/view_body.html:164
 msgid "Remove this item?"
@@ -5029,7 +5029,7 @@ msgstr "Bem-vinde"
 
 #: Subnavigation.html:20
 msgid "Searching Open Library"
-msgstr "Busca na Biblioteca Aberta"
+msgstr "Busca na Open Library"
 
 #: Subnavigation.html:21
 msgid "Reading Books"
@@ -5045,7 +5045,7 @@ msgstr "Uso de temas"
 
 #: Subnavigation.html:24
 msgid "Open Library F.A.Q."
-msgstr "Perguntas frequentes da Biblioteca Aberta"
+msgstr "Perguntas frequentes da Open Library"
 
 #: TypeChanger.html:17
 msgid "Page Type"
@@ -5063,7 +5063,7 @@ msgid ""
 "existing page will alter its presentation and the data fields available for "
 "editing its content."
 msgstr ""
-"Cada peça da Biblioteca Aberta se define pelo tipo de conteúdo que ela "
+"Cada peça da Open Library se define pelo tipo de conteúdo que ela "
 "mostra, geralmente pela definição do conteúdo (ex.: Autores, "
 "Edições, Obras), mas às vezes por uso do conteúdo (ex.: macro, "
 "template, texto bruto). Mudar isso para uma página existente alterará "
@@ -5273,7 +5273,7 @@ msgid ""
 msgstr ""
 "Quero receber notícias, anúncios e recursos do <a href=\"https://archive."
 "org/\">Arquivo da Internet</a>, a organização sem fins lucrativos que "
-"administra a Biblioteca Aberta."
+"administra a Open Library."
 
 #: forms.py:149
 msgid "Invalid password"
