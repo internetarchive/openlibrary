@@ -36,7 +36,7 @@ msgstr "Suas notificações"
 
 #: account.html:19
 msgid "Internet Archive Announcements"
-msgstr "Anúncios do Arquivo da Internet"
+msgstr "Anúncios do Internet Archive"
 
 #: account.html:20
 msgid "Your Privacy Settings"
@@ -250,7 +250,7 @@ msgid ""
 "and password to access your Open Library account."
 msgstr ""
 "Por favor, insira seu email e senha pertences a sua conta do <a href="
-"\"https://archive.org\">Arquivo da Internet</a> para entrar em sua conta da "
+"\"https://archive.org\">Internet Archive</a> para entrar em sua conta da "
 " Open Library."
 
 #: account/create.html:46 login.html:18
@@ -274,7 +274,7 @@ msgstr "Email"
 
 #: login.html:41
 msgid "Forgot your Internet Archive email?"
-msgstr "Esqueceu seu email do Arquivo da Internet?"
+msgstr "Esqueceu seu email do Internet Archive?"
 
 #: account/email/forgot-ia.html:33 forms.py:31 login.html:51
 msgid "Password"
@@ -828,6 +828,11 @@ msgstr "menos"
 #: type/user/view.html:55
 msgid "Reading Log"
 msgstr "Registro de leitura"
+
+#: account/books.html:31 lib/nav_head.html:13 lib/nav_head.html:25
+#: lib/nav_head.html:76
+msgid "My Books"
+msgstr "Meus livros"
 
 #: account/books.html:28 account/books.html:83
 msgid "Sponsorships"
@@ -1388,7 +1393,7 @@ msgstr "Abandonar a lista de espera?"
 
 #: account/email/forgot-ia.html:10 account/email/forgot.html:10
 msgid "Forgot Your Internet Archive Email?"
-msgstr "Esqueceu o email do Arquivo da Internet?"
+msgstr "Esqueceu o email do Internet Archive?"
 
 #: account/email/forgot-ia.html:12
 msgid ""
@@ -1781,7 +1786,7 @@ msgstr "Texto simples"
 
 #: book_providers/gutenberg_download_options.html:17
 msgid "Download an ePub from Project Gutenberg"
-msgstr "Baixar um ePub do Arquivo da Internet"
+msgstr "Baixar um ePub do Internet Archive"
 
 #: book_providers/gutenberg_download_options.html:18
 msgid "Download a Kindle file from Project Gutenberg"
@@ -1830,11 +1835,11 @@ msgstr "Fechar"
 
 #: book_providers/ia_download_options.html:12
 msgid "Download a PDF from Internet Archive"
-msgstr "Baixar um PDF do Arquivo da Internet"
+msgstr "Baixar um PDF do Internet Archive"
 
 #: book_providers/ia_download_options.html:14
 msgid "Download a text version from Internet Archive"
-msgstr "Baixar uma versão de texto do Arquivo da Internet"
+msgstr "Baixar uma versão de texto do Internet Archive"
 
 #: book_providers/ia_download_options.html:16
 msgid "Download an ePub from Internet Archive"
@@ -1842,7 +1847,7 @@ msgstr "Baixar um ePub do Arquivo de Internet"
 
 #: book_providers/ia_download_options.html:18
 msgid "Download a MOBI file from Internet Archive"
-msgstr "Baixar um arquivo MOBI do Arquivo da Internet"
+msgstr "Baixar um arquivo MOBI do Internet Archive"
 
 #: book_providers/ia_download_options.html:18
 msgid "MOBI"
@@ -1851,7 +1856,7 @@ msgstr "MOBI"
 #: book_providers/ia_download_options.html:19
 msgid "Download open DAISY from Internet Archive (print-disabled format)"
 msgstr ""
-"Baixar open DAISY do Arquivo da Internet (formato para dificuldades "
+"Baixar open DAISY do Internet Archive (formato para dificuldades "
 "de leitura)"
 
 #: book_providers/ia_download_options.html:19 type/list/embed.html:84
@@ -1860,7 +1865,7 @@ msgstr "DAISY"
 
 #: book_providers/librivox_download_options.html:12
 msgid "Download a ZIP file of the whole book from Internet Archive"
-msgstr "Baixar um arquivo ZIP do livro inteiro do Arquivo da Internet"
+msgstr "Baixar um arquivo ZIP do livro inteiro do Internet Archive"
 
 #: book_providers/librivox_download_options.html:12
 msgid "Whole Book MP3"
@@ -3116,7 +3121,7 @@ msgstr "Blog"
 msgid "Terms of Service"
 msgstr "Termos de serviço"
 
-#: lib/nav_foot.html:19
+#: lib/nav_foot.html:19 site/alert.html:8
 msgid "Donate"
 msgstr "Doar"
 
@@ -4900,16 +4905,16 @@ msgid ""
 "Special ebook access from the Internet Archive for patrons with qualifying "
 "print disabilities"
 msgstr ""
-"Acesso especial a eBooks do Arquivo da Internet para clientes "
+"Acesso especial a eBooks da Internet Archive para clientes "
 "com problemas de leitura"
 
 #: ReadButton.html:16
 msgid "Borrow ebook from Internet Archive"
-msgstr "Pegar emprestado o eBook a partir do Arquivo da Internet"
+msgstr "Pegar emprestado o eBook a partir do Internet Archive"
 
 #: ReadButton.html:20
 msgid "Read ebook from Internet Archive"
-msgstr "Ler eBook a partir do Arquivo da Internet"
+msgstr "Ler eBook a partir do Internet Archive"
 
 #: ReadButton.html:39
 msgid "Listen"
@@ -5246,6 +5251,13 @@ msgid "Your email address"
 msgstr "Seu email"
 
 #: forms.py:90
+msgid ""
+"Choose a screen name. Screen names are public and cannot be changed later."
+msgstr ""
+"Escolha um nome de exibição. Nomes de exibição são públicos e não podem "
+"ser alterados depois."
+
+#: forms.py:90
 msgid "Choose a screen name"
 msgstr "Escolha um nome de exibição"
 
@@ -5272,7 +5284,7 @@ msgid ""
 "Library."
 msgstr ""
 "Quero receber notícias, anúncios e recursos do <a href=\"https://archive."
-"org/\">Arquivo da Internet</a>, a organização sem fins lucrativos que "
+"org/\">Internet Archive</a>, a organização sem fins lucrativos que "
 "administra a Open Library."
 
 #: forms.py:149
