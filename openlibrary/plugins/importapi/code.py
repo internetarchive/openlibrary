@@ -12,7 +12,11 @@ from openlibrary.catalog import add_book
 from openlibrary.catalog.get_ia import get_marc_record_from_ia, get_from_archive_bulk
 from openlibrary import accounts, records
 from openlibrary.core import ia
-from openlibrary.plugins.upstream.utils import get_abbrev_from_full_lang_name
+from openlibrary.plugins.upstream.utils import (
+    LanguageNoMatchError,
+    get_abbrev_from_full_lang_name,
+    LanguageMultipleMatchError,
+)
 
 import web
 
@@ -309,6 +313,7 @@ class ia_importapi(importapi):
             if not force_import:
                 try:
                     raise_non_book_marc(rec, **next_data)
+
                 except BookImportError as e:
                     return self.error(e.error_code, e.error, **e.kwargs)
             result = add_book.load(edition)
@@ -339,15 +344,15 @@ class ia_importapi(importapi):
         lccn = metadata.get('lccn')
         subject = metadata.get('subject')
         oclc = metadata.get('oclc-id')
-        number_of_pages = metadata.get('imagecount')
+        imagecount = metadata.get('imagecount')
         d = {
-            'title': metadata.get('title', '').strip(),
+            'title': metadata.get('title', ''),
             'authors': authors,
-            'publish_date': metadata.get('date', '').strip(),
-            'publisher': metadata.get('publisher', '').strip(),
+            'publish_date': metadata.get('date'),
+            'publisher': metadata.get('publisher'),
         }
         if description:
-            d['description'] = description.strip()
+            d['description'] = description
         if isbn:
             d['isbn'] = isbn
         if language:
@@ -356,16 +361,36 @@ class ia_importapi(importapi):
 
             # Try converting the name of a language to its three character code.
             # E.g. English -> eng.
-            elif lang_code := get_abbrev_from_full_lang_name(language):
-                d['languages'] = [lang_code]
+            else:
+                try:
+                    if lang_code := get_abbrev_from_full_lang_name(language):
+                        d['languages'] = [lang_code]
+                except LanguageMultipleMatchError as e:
+                    logger.warning(
+                        "Multiple language matches for %s. No edition language set for %s.",
+                        e.language_name,
+                        metadata.get("identifier"),
+                    )
+                except LanguageNoMatchError as e:
+                    logger.warning(
+                        "No language matches for %s. No edition language set for %s.",
+                        e.language_name,
+                        metadata.get("identifier"),
+                    )
+
         if lccn:
             d['lccn'] = [lccn]
         if subject:
             d['subjects'] = subject
         if oclc:
             d['oclc'] = oclc
-        if number_of_pages:
-            d['number_of_pages'] = int(number_of_pages)
+        # Ensure no negative page number counts.
+        if imagecount:
+            if int(imagecount) - 4 >= 1:
+                d['number_of_pages'] = int(imagecount) - 4
+            else:
+                d['number_of_pages'] = int(imagecount)
+
         return d
 
     @staticmethod
