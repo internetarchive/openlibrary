@@ -105,6 +105,11 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
         </ul>
       </div>
     </div>
+    <div class="search-barcode-component">
+      <a href="https://openlibrary.org/barcodescanner?returnTo=/isbn/$$$" id="barcode_scanner_link" class="search-barcode-component-link">
+        <img src="../../../static/images/icons/barcode_scanner.svg" alt="Search by barcode" width="100px" height="80%"/>
+      </a>
+    </div>
   </div>
 
   $if not ctx.user:

@@ -381,6 +381,7 @@
   }
 
   .search-component {
+    display: flex;
     width: 45px;
     -webkit-box-ordinal-group: 3;
     -ms-flex-order: 2;
@@ -391,6 +392,17 @@
     -webkit-box-flex: 1;
     -ms-flex: 1;
     flex: 1;
+
+    .search-barcode-component {
+      display: flex;
+      align-items: center;
+
+      .search-barcode-component-link {
+        display: flex;
+        height: 100%;
+        align-items: center;
+      }
+    }
 
     // stylelint-disable selector-max-specificity
     // stylelint-disable max-nesting-depth
