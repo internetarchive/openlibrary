@@ -61,7 +61,7 @@ repos:
           - --keep-runtime-typing
 
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.10.1
+    rev: v0.11
     hooks:
       - id: validate-pyproject
 
