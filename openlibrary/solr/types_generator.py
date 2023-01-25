@@ -29,6 +29,7 @@ def generate():
             'text_international': 'str',
             'text_title_sort': 'str',
             'boolean': 'bool',
+            'pfloat': 'float',
         }
 
         if name in OVERRIDES:

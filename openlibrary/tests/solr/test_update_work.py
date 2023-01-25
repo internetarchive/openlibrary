@@ -3,6 +3,7 @@ import httpx
 from httpx import ConnectError, Response
 import pytest
 from unittest.mock import MagicMock
+from openlibrary.core.ratings import WorkRatingsSummary
 
 from openlibrary.solr import update_work
 from openlibrary.solr.data_provider import DataProvider
@@ -106,6 +107,9 @@ class FakeDataProvider(DataProvider):
 
     def get_metadata(self, id):
         return {}
+
+    def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
+        return None
 
 
 class Test_build_data:

@@ -13,6 +13,7 @@ from collections import namedtuple
 
 import psycopg2
 
+from openlibrary.core.ratings import Ratings, WorkRatingsSummary
 from openlibrary.solr import update_work
 from openlibrary.solr.data_provider import DataProvider
 from openlibrary.solr.update_work import load_configs, update_keys
@@ -65,6 +66,7 @@ class LocalPostgresDataProvider(DataProvider):
         self._conn: psycopg2._psycopg.connection = None
         self.cache: dict = {}
         self.cached_work_editions_ranges: list = []
+        self.cached_work_ratings: dict[str, WorkRatingsSummary] = dict()
 
     def __enter__(self) -> LocalPostgresDataProvider:
         """
@@ -77,11 +79,10 @@ class LocalPostgresDataProvider(DataProvider):
         self.clear_cache()
         self._conn.close()
 
-    def query_all(self, query: str, cache_json: bool = False) -> list:
+    def query_all(self, query: str, json_cache: dict | None = None) -> list:
         """
-        :param str query:
-        :param bool cache_json:
-        :return: a list
+        :param json_cache: if specified, adds records in the second column to the
+        provided dict, with the first column as keys
         """
         cur = self._conn.cursor()
         cur.execute(query)
@@ -89,8 +90,8 @@ class LocalPostgresDataProvider(DataProvider):
         cur.close()
 
         if rows:
-            if cache_json:
-                self.cache.update({row[0]: row[1] for row in rows})
+            if json_cache is not None:
+                json_cache.update({row[0]: row[1] for row in rows})
             return rows
         else:
             return []
@@ -151,7 +152,7 @@ class LocalPostgresDataProvider(DataProvider):
         """.format(
             lo_key, hi_key
         )
-        self.query_all(q, cache_json=True)
+        self.query_all(q, json_cache=self.cache)
 
     def cache_work_editions(self, lo_key, hi_key):
         q = """
@@ -163,7 +164,7 @@ class LocalPostgresDataProvider(DataProvider):
         """.format(
             lo_key, hi_key
         )
-        self.query_all(q, cache_json=True)
+        self.query_all(q, json_cache=self.cache)
         self.cached_work_editions_ranges.append((lo_key, hi_key))
 
     def cache_edition_authors(self, lo_key, hi_key):
@@ -180,7 +181,7 @@ class LocalPostgresDataProvider(DataProvider):
         """.format(
             lo_key, hi_key
         )
-        self.query_all(q, cache_json=True)
+        self.query_all(q, json_cache=self.cache)
 
     def cache_work_authors(self, lo_key, hi_key):
         # Cache upto first five authors
@@ -199,7 +200,29 @@ class LocalPostgresDataProvider(DataProvider):
         """.format(
             lo_key, hi_key
         )
-        self.query_all(q, cache_json=True)
+        self.query_all(q, json_cache=self.cache)
+
+    def cache_work_ratings(self, lo_key, hi_key):
+        q = f"""
+            SELECT "WorkKey", json_build_object(
+                'ratings_count_1', count(*) filter (where "Rating" = 1),
+                'ratings_count_2', count(*) filter (where "Rating" = 2),
+                'ratings_count_3', count(*) filter (where "Rating" = 3),
+                'ratings_count_4', count(*) filter (where "Rating" = 4),
+                'ratings_count_5', count(*) filter (where "Rating" = 5)
+            )
+            FROM "ratings"
+            WHERE '{lo_key}' <= "WorkKey" AND "WorkKey" <= '{hi_key}'
+            GROUP BY "WorkKey"
+            ORDER BY "WorkKey" asc
+        """
+        self.query_all(q, json_cache=self.cached_work_ratings)
+        for row in self.cached_work_ratings.values():
+            row.update(
+                Ratings.work_ratings_summary_from_counts(
+                    [row[f'ratings_count_{i}'] for i in range(1, 6)]
+                )
+            )
 
     async def cache_cached_editions_ia_metadata(self):
         ocaids = list({doc['ocaid'] for doc in self.cache.values() if 'ocaid' in doc})
@@ -244,6 +267,9 @@ class LocalPostgresDataProvider(DataProvider):
         else:
             return self.get_editions_of_work_direct(work)
 
+    def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
+        return self.cached_work_ratings.get(work_key)
+
     async def get_document(self, key):
         if key in self.cache:
             logger.debug("get_document cache hit %s", key)
@@ -265,6 +291,7 @@ class LocalPostgresDataProvider(DataProvider):
     def clear_cache(self):
         super().clear_cache()
         self.cached_work_editions_ranges.clear()
+        self.cached_work_ratings.clear()
         self.cache.clear()
 
 
@@ -537,6 +564,9 @@ async def main(
                         q_auth=plog.last_entry.q_auth + authors_time,
                         cached=len(db.cache) + len(db2.cache),
                     )
+
+                    # cache ratings
+                    db2.cache_work_ratings(*key_range)
                 elif job == "orphans":
                     # cache editions' ocaid metadata
                     ocaids_time, _ = await simple_timeit_async(
@@ -564,6 +594,7 @@ async def main(
                 db.cache.update(db2.cache)
                 db.ia_cache.update(db2.ia_cache)
                 db.cached_work_editions_ranges += db2.cached_work_editions_ranges
+                db.cached_work_ratings.update(db2.cached_work_ratings)
 
             await update_keys(
                 keys,

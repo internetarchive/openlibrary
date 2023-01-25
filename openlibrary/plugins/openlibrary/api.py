@@ -131,6 +131,7 @@ class ratings(delegate.page):
                     'summary': {
                         'average': stats['ratings_average'],
                         'count': stats['ratings_count'],
+                        'sortable': stats['ratings_sortable'],
                     },
                     'counts': {
                         '1': stats['ratings_count_1'],

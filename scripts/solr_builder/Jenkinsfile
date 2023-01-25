@@ -11,7 +11,6 @@ pipeline {
     }
   }
   parameters {
-    string(name: 'PARTIAL_IMPORT_SIZE', defaultValue: '', description: 'If set to a number, will only import that many records from the dump (useful for testing!)')
     booleanParam(name: 'WIPE_OLD_POSTGRES', defaultValue: false, description: 'If true, removes the current postgres')
     booleanParam(name: 'REUSE_POSTGRES', defaultValue: false, description: 'If true, assumes a functioning postgres is running/correct')
 
@@ -37,12 +36,11 @@ pipeline {
       environment {
         // Where to download the ol full dump from
         OL_DUMP_LINK = 'https://openlibrary.org/data/ol_dump_latest.txt.gz'
+        OL_RATINGS_LINK = 'https://openlibrary.org/data/ol_dump_ratings_latest.txt.gz'
         // Get the date-suffixed name of the latest dump
-        FULL_OL_DUMP_FILE = sh(script: "curl '${env.OL_DUMP_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
-        // Name of partial dump file
-        PARTIAL_OL_DUMP_FILE = "partial_${env.FULL_OL_DUMP_FILE}"
-        // Use partial dump file, if specified so in the parameters
-        OL_DUMP_FILE = "${params.PARTIAL_IMPORT_SIZE ? env.PARTIAL_OL_DUMP_FILE : env.FULL_OL_DUMP_FILE}"
+        // eg ol_dump_2021-09-13.txt.gz
+        OL_DUMP_FILE = sh(script: "curl '${env.OL_DUMP_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
+        OL_RATINGS_FILE = sh(script: "curl '${env.OL_RATINGS_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
       }
       stages {
         stage('Wipe old postgres') {
@@ -82,14 +80,7 @@ pipeline {
                   steps {
                     dir(env.DUMP_DIR) {
                       sh "wget --progress=dot:giga --trust-server-names --no-clobber ${env.OL_DUMP_LINK}"
-                    }
-                  }
-                }
-                stage('Create partial dump file') {
-                  when { expression { return params.PARTIAL_IMPORT_SIZE } }
-                  steps {
-                    dir(env.DUMP_DIR) {
-                      sh "zcat ${env.FULL_OL_DUMP_FILE} | head -n ${params.PARTIAL_IMPORT_SIZE} | gzip > ${env.PARTIAL_OL_DUMP_FILE}"
+                      sh "wget --progress=dot:giga --trust-server-names --no-clobber ${env.OL_RATINGS_LINK}"
                     }
                   }
                 }
@@ -107,6 +98,8 @@ pipeline {
                 dir(env.HOST_SOLR_BUILDER_DIR) {
                   sh(label: 'Import dump into postgres',
                     script: "./psql-import-in-chunks.sh ${env.DUMP_DIR}/${env.OL_DUMP_FILE} ${env.PARALLEL_PROCESSES}")
+                  sh(label: 'Import ratings',
+                    script: "docker-compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_RATINGS_FILE} ratings")
 
                   waitUntil {
                     script {
@@ -159,13 +152,6 @@ pipeline {
         }
       }
       post {
-        always {
-          dir(env.DUMP_DIR) {
-            sh(label: 'Remove partial dump file (if we had one)',
-              script: "rm -f ${env.PARTIAL_OL_DUMP_FILE}")
-          }
-        }
-
         unsuccessful {
           dir(env.HOST_SOLR_BUILDER_DIR) {
             sh (label: 'Cleanup postgres',
