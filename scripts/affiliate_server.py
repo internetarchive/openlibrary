@@ -48,6 +48,8 @@ import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONP
 import infogami
 from infogami import config
 from openlibrary.config import load_config as openlibrary_load_config
+from openlibrary.core import cache
+from openlibrary.core import stats
 from openlibrary.core.imports import Batch
 from openlibrary.core.vendors import AmazonAPI, clean_amazon_metadata_for_load
 from openlibrary.utils.dateutil import WEEK_SECS
@@ -159,7 +161,6 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
     each product in memcache using amazon_product_{isbn_13} as the cache key.
     """
     logger.info(f"process_amazon_batch(): {len(isbn_10s)} items")
-    assert cache  # mypy  workaround for `cache or None`
     try:
         products = web.amazon_api.get_products(isbn_10s, serialize=True)
         stats.increment("ol.affiliate.amazon.total_items_fetched", n=len(products))
@@ -193,12 +194,15 @@ def seconds_remaining(start_time: float) -> float:
     return max(API_MAX_WAIT_SECONDS - (time.time() - start_time), 0)
 
 
-def amazon_lookup() -> None:
+def amazon_lookup(site, stats_client) -> None:
     """
     A separate thread of execution that uses the time up to API_MAX_WAIT_SECONDS to
     create a list of isbn_10s that is not larger than API_MAX_ITEMS_PER_CALL and then
     passes them to process_amazon_batch()
     """
+    web.ctx.site = site
+    stats.client = stats_client
+
     while True:
         start_time = time.time()
         isbn_10s: set[str] = set()  # no duplicates in the batch
@@ -212,10 +216,6 @@ def amazon_lookup() -> None:
         if isbn_10s:
             time.sleep(seconds_remaining(start_time))
             process_amazon_batch(list(isbn_10s))
-
-
-if "pytest" not in sys.modules:
-    threading.Thread(target=amazon_lookup).start()
 
 
 class Status:
@@ -256,7 +256,7 @@ class Submit:
         looked up and return the equivalent of a promise as `submitted`
         """
         # cache could be None if reached before initialized (mypy)
-        if not web.amazon_api or not cache or not stats:
+        if not web.amazon_api:
             return json.dumps({"error": "not_configured"})
 
         isbn10, isbn13 = self.unpack_isbn(isbn)
@@ -279,13 +279,10 @@ class Submit:
 
 
 def load_config(configfile):
-    # configfile comes from docker/ol-affiliate-server-start.sh
-    # its current value is /openlibrary.yml
-    # we should change this to be that *path* of the configs
-    # and the following code should load openlibrary.yml + infobase.yml
+    ## This loads openlibrary.yml + infobase.yml
     openlibrary_load_config(configfile)
-    # we manually achieve infobase.yml here:
-    openlibrary_load_config('/infobase.yml')
+
+    stats.client = stats.create_stats_client(cfg=config)
 
     web.amazon_api = None
     args = [
@@ -317,22 +314,19 @@ def setup_env():
     os.environ['REAL_SCRIPT_NAME'] = ""
 
 
-cache = None
-
-
 def start_server():
     sysargs = sys.argv[1:]
     configfile, args = sysargs[0], sysargs[1:]
 
     # # type: (str) -> None
     load_config(configfile)
-    global cache
-    global stats
-    from openlibrary.core import cache
-    from openlibrary.core import stats
+    infogami._setup()
 
     # sentry could be loaded here
     # init_sentry(app)
+
+    if "pytest" not in sys.modules:
+        threading.Thread(target=amazon_lookup, args=(web.ctx.site, stats.client)).start()
 
     sys.argv = [sys.argv[0]] + list(args)
     app.run()
