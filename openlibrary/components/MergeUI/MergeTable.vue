@@ -186,6 +186,7 @@ export default {
 
             const unmergeable_works = this.records
                 .filter(work => work.type.key === '/type/work' &&
+                this.selected[work.key] &&
                 work.key !== this.master_key &&
                 this.editions[work.key].entries.length < this.editions[work.key].size)
                 .map(r => r.key);

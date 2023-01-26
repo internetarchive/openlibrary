@@ -9,7 +9,7 @@ import asyncio
 import itertools
 import logging
 import re
-from typing import List, Optional
+from typing import List, Optional, TypedDict
 from collections.abc import Iterable, Sized
 
 import httpx
@@ -20,6 +20,7 @@ from web import DB
 
 from infogami.infobase.client import Site
 from openlibrary.core import ia
+from openlibrary.core.ratings import Ratings, WorkRatingsSummary
 
 logger = logging.getLogger("openlibrary.solr.data_provider")
 
@@ -274,6 +275,9 @@ class DataProvider:
         """
         raise NotImplementedError()
 
+    def get_work_ratings(self, work_key: str) -> Optional[WorkRatingsSummary]:
+        raise NotImplementedError()
+
     def clear_cache(self):
         self.ia_cache.clear()
 
@@ -300,6 +304,14 @@ class LegacyDataProvider(DataProvider):
     async def get_document(self, key):
         logger.info("get_document %s", key)
         return self._withKey(key)
+
+    def get_work_ratings(self, work_key: str) -> Optional[WorkRatingsSummary]:
+        work_id = int(work_key[len('/works/OL') : -len('W')])
+        return Ratings.get_work_ratings_summary(work_id)
+
+    def clear_cache(self):
+        # Nothing's cached, so nothing to clear!
+        return
 
 
 class ExternalDataProvider(DataProvider):
