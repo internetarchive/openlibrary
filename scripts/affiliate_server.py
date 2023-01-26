@@ -48,7 +48,6 @@ import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONP
 import infogami
 from infogami import config
 from openlibrary.config import load_config as openlibrary_load_config
-from openlibrary.core import stats
 from openlibrary.core.imports import Batch
 from openlibrary.core.vendors import AmazonAPI, clean_amazon_metadata_for_load
 from openlibrary.utils.dateutil import WEEK_SECS
@@ -83,10 +82,6 @@ batch_name = ""
 batch: Batch | None = None
 
 web.amazon_queue = queue.Queue()  # a thread-safe multi-producer, multi-consumer queue
-# add a couple of variables for statsd reporting
-web.amazon_queue.max_qsize = 0  # type: ignore[attr-defined]
-web.amazon_queue.dump_count = 0  # type: ignore[attr-defined]
-
 
 def get_current_amazon_batch() -> Batch:
     """
@@ -167,6 +162,7 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
     assert cache  # mypy  workaround for `cache or None`
     try:
         products = web.amazon_api.get_products(isbn_10s, serialize=True)
+        stats.increment("ol.affiliate.amazon.total_items_fetched", n=len(products))
     except Exception:
         logger.exception(f"amazon_api.get_products({isbn_10s}, serialize=True)")
         return
@@ -188,10 +184,10 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
 
     if books := [clean_amazon_metadata_for_load(product) for product in products]:
         if pending_books := get_pending_books(books):
+            stats.increment("ol.affiliate.amazon.total_items_batched_for_import", n=len(pending_books))
             get_current_amazon_batch().add_items(
                 [{'ia_id': b['source_records'][0], 'data': b} for b in pending_books]
             )
-
 
 def seconds_remaining(start_time: float) -> float:
     return max(API_MAX_WAIT_SECONDS - (time.time() - start_time), 0)
@@ -228,8 +224,6 @@ class Status:
             {
                 "queue_size": web.amazon_queue.qsize(),
                 "queue": list(web.amazon_queue.queue),
-                "max_qsize": web.amazon_queue.max_qsize,
-                "dump_count": web.amazon_queue.dump_count,
             }
         )
 
@@ -239,9 +233,9 @@ class Clear:
 
     def GET(self) -> str:
         qsize = web.amazon_queue.qsize()
-        max_qsize = web.amazon_queue.max_qsize
         web.amazon_queue.queue.clear()
-        return json.dumps({"Cleared": "True", "qsize": qsize, "max_qsize": max_qsize})
+        stats.put("ol.affiliate.amazon.currently_queued_isbns", web.amazon_queue.qsize())
+        return json.dumps({"Cleared": "True", "qsize": qsize})
 
 
 class Submit:
@@ -262,7 +256,7 @@ class Submit:
         looked up and return the equivalent of a promise as `submitted`
         """
         # cache could be None if reached before initialized (mypy)
-        if not web.amazon_api or not cache:
+        if not web.amazon_api or not cache or not stats:
             return json.dumps({"error": "not_configured"})
 
         isbn10, isbn13 = self.unpack_isbn(isbn)
@@ -278,17 +272,20 @@ class Submit:
         # Cache misses will be submitted to Amazon as ASINs (isbn10)
         if isbn10 not in web.amazon_queue.queue:
             web.amazon_queue.put_nowait(isbn10)
-        qsize = web.amazon_queue.qsize()
-        web.amazon_queue.max_qsize = max(web.amazon_queue.max_qsize, qsize)
-        web.amazon_queue.dump_count += 1
-        if web.amazon_queue.dump_count % 20 == 0:  # send one sample in 20 to statsd
-            stats.put("ol.affiliate.amazon.max_qsize", web.amazon_queue.max_qsize)
-            web.amazon_queue.max_qsize = 0
-        return json.dumps({"status": "submitted", "queue": qsize})
+
+        # Give us a snapshot over time of how many new isbns are currently queued
+        stats.put("ol.affiliate.amazon.currently_queued_isbns", web.amazon_queue.qsize(), rate=0.2)
+        return json.dumps({"status": "submitted", "queue":  web.amazon_queue.qsize()})
 
 
 def load_config(configfile):
+    # configfile comes from docker/ol-affiliate-server-start.sh
+    # its current value is /openlibrary.yml
+    # we should change this to be that *path* of the configs
+    # and the following code should load openlibrary.yml + infobase.yml
     openlibrary_load_config(configfile)
+    # we manually achieve infobase.yml here:
+    openlibrary_load_config('/infobase.yml')
 
     web.amazon_api = None
     args = [
@@ -330,7 +327,9 @@ def start_server():
     # # type: (str) -> None
     load_config(configfile)
     global cache
+    global stats
     from openlibrary.core import cache
+    from openlibrary.core import stats
 
     # sentry could be loaded here
     # init_sentry(app)
