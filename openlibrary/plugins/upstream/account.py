@@ -901,6 +901,10 @@ class export_books(delegate.page):
             work: Work = web.ctx.site.get(work_key)
             if not work:
                 raise ValueError(f"No Work found for {work_key}.")
+            if work.type.key == '/type/redirect':
+                # Fetch actual work and resolve redirects before exporting:
+                work = web.ctx.site.get(work.location)
+                work.resolve_redirect_chain(work_key)
             if edition_id := book.get("edition_id") or "":
                 edition_id = f"OL{edition_id}M"
             ratings = work.get_rating_stats() or {"average": "", "count": ""}
