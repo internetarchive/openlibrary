@@ -894,7 +894,7 @@ class export_books(delegate.page):
             """
             Formats given CVS field string such that it conforms to definition outlined
             in RFC #4180.
-            
+
             Note: We should probably use
             https://docs.python.org/3/library/csv.html
             """
