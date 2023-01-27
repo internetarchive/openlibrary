@@ -5,7 +5,8 @@
 # This is in {} so the pyenv and pre-commit steps can run in the background while docker starts
 # A downside is that progress messages from docker and pre-commit may be mixed together.
 {
-    pyenv install
+    pyenv install 3.11 # should match .pre-commit-config.yaml
+    pyenv global 3.11
     pip install pre-commit
     # PIP_USER false because https://github.com/gitpod-io/gitpod/issues/4886#issuecomment-963665656
     env PIP_USER=false pre-commit install
