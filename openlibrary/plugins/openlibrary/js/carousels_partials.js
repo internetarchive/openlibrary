@@ -6,7 +6,7 @@ export function initCarouselsPartials() {
 
     const fetchRelatedWorks = function() {
         $.ajax({
-            url: '/partials',
+            url: '/partials.json',
             type: 'GET',
             data: {
                 workid: $('.RelatedWorksCarousel').data('workid'),
