@@ -19,9 +19,14 @@ tasks:
     # because: https://github.com/gitpod-io/gitpod/issues/9311
     chmod o+rx /workspace/openlibrary
   # init runs once for each commit to the default branch
-  init: ./scripts/setup_gitpod.sh
+  # init: ./scripts/setup_gitpod.sh
   # command runs each time a user starts their workspace
   command: docker-compose up
+- name: Setup Python
+  # init runs once for each commit to the default branch
+  # init: ./scripts/setup_gitpod.sh
+  # command runs each time a user starts their workspace
+  command: ./scripts/setup_gitpod.sh
 
 github:
   prebuilds:
