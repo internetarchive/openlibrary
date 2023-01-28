@@ -7,7 +7,7 @@
 # {
 # pyenv install 3.8 # should match .pre-commit-config.yaml
 pyenv global 3.8
-pip install pre-commit
+sudo python3 -m pip install pre-commit
 # PIP_USER false because https://github.com/gitpod-io/gitpod/issues/4886#issuecomment-963665656
 # env PIP_USER=false pre-commit install
 # env PIP_USER=false pre-commit run
