@@ -1,5 +1,3 @@
-image: gitpod/workspace-python-3.11
-
 ports:
 - port: 8080
 # ignore these ports by default to avoid extra notifications
