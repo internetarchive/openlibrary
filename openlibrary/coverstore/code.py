@@ -268,7 +268,7 @@ class cover:
             value = self.query(category, key, value)
 
         if not value or (value and safeint(value) in config.blocked_covers):
-            raise web.notfound()
+            return notfound()
 
         # redirect to archive.org cluster for large size and original images whenever possible
         if size in ("L", "") and self.is_cover_in_cluster(value):
