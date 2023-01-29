@@ -90,24 +90,25 @@ class TarManager:
 
 idx = id
 
+
 def is_uploaded(item, f):
-    command = f'ia list {item} | grep "{f}\.[tar|index]" | wc -l'
+    command = fr'ia list {item} | grep "{f}\.[tar|index]" | wc -l'
     result = subprocess.run(command, shell=True, capture_output=True)
     output = result.stdout.decode().strip()
     return int(output) == 2
 
 
 def audit(major, minor, upload=False, sizes=('', 's', 'm', 'l')):
-    """Checks the archive.org items pertaining to this `major` set (up to                                                                                       
-    1 million images and size specified, 4-digit e.g. 0008) and each                                                                                            
-    specified size, to verify that all `minor` chunks (up to the                                                                                                
-    specified max) and their indices + tars (of 10k images, 2-digit                                                                                             
-    e.g. 81) have been successfully uploaded.                                                                                                                   
-                                                                                                                                                                
-    {size}_covers_{major}_{minor}:                                                                                                                              
-    major - 4  digit, batches of 1M, 0000 to 9999M                                                                                                              
-    minor - 2 digit, batches of 10k from _00 to _99                                                                                                             
-                                                                                                                                                                
+    """Checks the archive.org items pertaining to this `major` set (up to
+    1 million images and size specified, 4-digit e.g. 0008) and each
+    specified size, to verify that all `minor` chunks (up to the
+    specified max) and their indices + tars (of 10k images, 2-digit
+    e.g. 81) have been successfully uploaded.
+
+    {size}_covers_{major}_{minor}:
+    major - 4  digit, batches of 1M, 0000 to 9999M
+    minor - 2 digit, batches of 10k from _00 to _99
+
     """
     scope = minor if isinstance(minor, range) else range(0, minor)
     for size in sizes:
@@ -126,9 +127,12 @@ def audit(major, minor, upload=False, sizes=('', 's', 'm', 'l')):
         sys.stdout.write("\n")
         sys.stdout.flush()
         if missing_files:
-            print(f"ia upload {item} {' '.join([f'{item}/{mf}*' for mf in missing_files])} --retries 10")
+            print(
+                f"ia upload {item} {' '.join([f'{item}/{mf}*' for mf in missing_files])} --retries 10"
+            )
             if upload:
                 pass
+
 
 def archive(test=True):
     """Move files from local disk to tar files and update the paths in the db."""
