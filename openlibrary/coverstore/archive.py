@@ -90,25 +90,26 @@ class TarManager:
 
 idx = id
 
+
 def is_uploaded(item, f):
-    command = f'ia list {item} | grep "{f}\.[tar|index]" | wc -l'
+    command = fr'ia list {item} | grep "{f}\.[tar|index]" | wc -l'
     result = subprocess.run(command, shell=True, capture_output=True)
     output = result.stdout.decode().strip()
     return int(output) == 2
 
 
-def audit(group_id, chunk_ids=(0,100), sizes=('', 's', 'm', 'l'), upload=False):
+def audit(group_id, chunk_ids=(0, 100), sizes=('', 's', 'm', 'l'), upload=False):
     """Check which cover batches have been uploaded to archive.org.
-    
+
     Checks the archive.org items pertaining to this `group` of up to
     1 million images (4-digit e.g. 0008) for each specified size and verify
     that all the chunks (within specified range) and their .indices + .tars (of 10k images, 2-digit
     e.g. 81) have been successfully uploaded.
-                                                                                                             
-    {size}_covers_{group}_{chunk}:                                                                                           
-    group_id - 4 digit, batches of 1M, 0000 to 9999M                                                                                                              
-    chunk_ids - (min, max) chunk_id range or max_chunk_id; 2 digit, batch of 10k from [00, 99]                                                                                                             
-                                                                                                                                                                
+
+    {size}_covers_{group}_{chunk}:
+    group_id - 4 digit, batches of 1M, 0000 to 9999M
+    chunk_ids - (min, max) chunk_id range or max_chunk_id; 2 digit, batch of 10k from [00, 99]
+
     """
     scope = chunk_ids if isinstance(chunk_ids, range) else range(0, chunk_ids)
     for size in sizes:
@@ -127,9 +128,12 @@ def audit(group_id, chunk_ids=(0,100), sizes=('', 's', 'm', 'l'), upload=False):
         sys.stdout.write("\n")
         sys.stdout.flush()
         if missing_files:
-            print(f"ia upload {item} {' '.join([f'{item}/{mf}*' for mf in missing_files])} --retries 10")
+            print(
+                f"ia upload {item} {' '.join([f'{item}/{mf}*' for mf in missing_files])} --retries 10"
+            )
             if upload:
                 pass
+
 
 def archive(test=True):
     """Move files from local disk to tar files and update the paths in the db."""
