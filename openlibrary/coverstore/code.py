@@ -275,9 +275,9 @@ class cover:
             url = zipview_url_from_id(int(value), size)
             raise web.found(url)
 
-        # covers_0008 partials [_00, _23] are tar'd in archive.org items
+        # covers_0008 partials [_00, _80] are tar'd in archive.org items
         if isinstance(value, int) or value.isnumeric():
-            if 8240000 > int(value) >= 8000000:
+            if 8810000 > int(value) >= 8000000:
                 prefix = f"{size.lower()}_" if size else ""
                 pid = "%010d" % int(value)
                 item_id = f"{prefix}covers_{pid[:4]}"
