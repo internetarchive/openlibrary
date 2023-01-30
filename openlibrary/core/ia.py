@@ -117,10 +117,10 @@ def edition_from_item_metadata(itemid, metadata):
 def get_cover_url(item_id):
     """Gets the URL of the archive.org item's title (or cover) page."""
     base_url = f'{IA_BASE_URL}/download/{item_id}/page/'
-    title_response = requests.head(base_url + 'title.jpg', allow_redirects=True)
-    if title_response.status_code == 404:
-        return base_url + 'cover.jpg'
-    return base_url + 'title.jpg'
+    cover_response = requests.head(base_url + 'cover.jpg', allow_redirects=True)
+    if cover_response.status_code == 404:
+        return base_url + 'title.jpg'
+    return base_url + 'cover.jpg'
 
 
 def get_item_manifest(item_id, item_server, item_path):

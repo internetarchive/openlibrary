@@ -212,6 +212,14 @@ def build_query(rec):
                     raise InvalidLanguage(language)
             book['languages'] = [{'key': '/languages/' + language} for language in v]
             continue
+        if k == 'translated_from':
+            for language in v:
+                if web.ctx.site.get('/languages/' + language) is None:
+                    raise InvalidLanguage(language)
+            book['translated_from'] = [
+                {'key': '/languages/' + language} for language in v
+            ]
+            continue
         if k in type_map:
             t = '/type/' + type_map[k]
             if isinstance(v, list):

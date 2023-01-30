@@ -22,6 +22,8 @@ A record is loaded by calling the load function.
     response = load(record)
 
 """
+from __future__ import annotations
+from collections.abc import Iterable
 import json
 import re
 
@@ -30,6 +32,7 @@ import web
 from collections import defaultdict
 from copy import copy
 from time import sleep
+from typing import cast, TYPE_CHECKING
 
 import requests
 
@@ -51,6 +54,9 @@ from openlibrary.catalog.add_book.load_book import (
     InvalidLanguage,
 )
 from openlibrary.catalog.add_book.match import editions_match
+
+if TYPE_CHECKING:
+    from openlibrary.plugins.upstream.models import Author, Edition
 
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
@@ -678,6 +684,70 @@ def load_data(rec, account_key=None):
     return reply
 
 
+def overwrite_promise_item_using_marc_record(
+    matched_edition: Edition, incoming_rec: dict
+) -> tuple[Edition, bool]:
+    """
+    This (almost) entirely writes over a matched edition with data from
+    incoming record created by POSTing to /api/items/ia.
+
+    This is for when a matched edition is known to have data that is
+    generally less reliable than the incoming record (e.g. because
+    the incoming record is based on MARC data and the matched edition is a
+    revision 1 promise item.)
+    """
+    need_edition_save = False
+    incoming_edition_dict = build_query(incoming_rec)
+
+    # Copy the higher quality data from incoming_rec into the matched edition,
+    # but only do so if the information is actually different so we know
+    # whether to save. Use a dictionary representation of `matched_edition` to
+    # get the data representation as close as possible for easy copying, though
+    # some cases, e.g. `authors`, must be handled case by case because the
+    # representations are still different.
+    matched_edition_dict: dict = matched_edition.dict()
+    for key, value in incoming_edition_dict.items():
+        # Skip fields that shouldn't end up in an edition:
+        if key == "cover":
+            continue
+
+        # Don't overwrite source_records because it will overwrite pallet data.
+        if key == "source_records":
+            for record in cast(Iterable[str], incoming_rec[key]):
+                if record not in matched_edition[key]:
+                    matched_edition[key].append(record)
+                    need_edition_save = True
+            continue
+
+        # Handle special cases where the data representations are different and
+        # don't lend themselves to easy comparison.
+        if key == "authors":
+            incoming_authors = {
+                author.key for author in cast(Iterable["Author"], value)
+            }
+            existing_authors = {
+                author.get("key")
+                for author in cast(
+                    Iterable["Author"], matched_edition_dict.get("authors", [])
+                )
+            }
+            if incoming_authors != existing_authors:
+                matched_edition[key] = value
+            continue
+
+        if key == "number_of_pages":
+            if value.get("value") == matched_edition_dict.get(key):
+                matched_edition[key] = value
+            continue
+
+        # Only overwrite data if values are different between matched_edition and incoming_rec.
+        if matched_edition_dict.get(key) != value:
+            matched_edition[key] = value
+            need_edition_save = True
+
+    return (matched_edition, need_edition_save)
+
+
 def load(rec, account_key=None):
     """Given a record, tries to add/match that edition in the system.
 
@@ -736,7 +806,7 @@ def load(rec, account_key=None):
     # We have an edition match at this point
     need_work_save = need_edition_save = False
     w = None
-    e = web.ctx.site.get(match)
+    e: Edition = web.ctx.site.get(match)
     # check for, and resolve, author redirects
     for a in e.authors:
         while is_redirect(a):
@@ -754,6 +824,19 @@ def load(rec, account_key=None):
         work_created = need_work_save = need_edition_save = True
         w = new_work(e.dict(), rec)
         e.works = [{'key': w['key']}]
+
+    # Overwrite edition data with MARC data if the edition is a revision 1 promise item.
+    is_promise_item = any(
+        rec for rec in e.source_records if rec.split(":")[0] == "promise"
+    )
+    if rec.pop("has_marc_record", False) and e.revision == 1 and is_promise_item:
+        try:
+            e, need_edition_save = overwrite_promise_item_using_marc_record(e, rec)
+        except InvalidLanguage as err:
+            return {
+                'success': False,
+                'error': str(err),
+            }
 
     # Add subjects to work, if not already present
     if 'subjects' in rec:
@@ -805,6 +888,8 @@ def load(rec, account_key=None):
         'lccn',
         'lc_classifications',
         'oclc_numbers',
+        'publish_places',
+        'publishers',
         'source_records',
         'publishers',
     ]
