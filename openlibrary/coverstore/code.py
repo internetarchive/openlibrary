@@ -268,16 +268,16 @@ class cover:
             value = self.query(category, key, value)
 
         if not value or (value and safeint(value) in config.blocked_covers):
-            raise web.notfound()
+            return notfound()
 
         # redirect to archive.org cluster for large size and original images whenever possible
         if size in ("L", "") and self.is_cover_in_cluster(value):
             url = zipview_url_from_id(int(value), size)
             raise web.found(url)
 
-        # covers_0008 partials [_00, _23] are tar'd in archive.org items
+        # covers_0008 partials [_00, _80] are tar'd in archive.org items
         if isinstance(value, int) or value.isnumeric():
-            if 8240000 > int(value) >= 8000000:
+            if 8810000 > int(value) >= 8000000:
                 prefix = f"{size.lower()}_" if size else ""
                 pid = "%010d" % int(value)
                 item_id = f"{prefix}covers_{pid[:4]}"

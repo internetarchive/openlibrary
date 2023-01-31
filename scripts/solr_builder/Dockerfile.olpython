@@ -15,6 +15,7 @@ RUN pip install \
     Cython==3.0.0a11
 
 # Build cython files
+COPY scripts/solr_builder/build-cython.sh scripts/solr_builder/setup.py ./
 RUN ./build-cython.sh
 
 EXPOSE 4000
