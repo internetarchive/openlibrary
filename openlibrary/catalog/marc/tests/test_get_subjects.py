@@ -87,9 +87,9 @@ xml_samples = [
 ]
 
 bin_samples = [
-    ('bpl_0486266893', {}),
+    ('bpl_0486266893.mrc', {}),
     ('flatlandromanceo00abbouoft_meta.mrc', {}),
-    ('lc_1416500308', {}),
+    ('lc_1416500308.mrc', {}),
     ('talis_245p.mrc', {}),
     ('talis_740.mrc', {}),
     ('talis_empty_245.mrc', {}),
@@ -122,7 +122,7 @@ bin_samples = [
         {'org': {'Jesuits': 4}, 'subject': {'Influence': 1, 'History': 1}},
     ),
     (
-        'ithaca_college_75002321',
+        'ithaca_college_75002321.mrc',
         {
             'place': {'New Jersey': 3},
             'subject': {
@@ -138,7 +138,7 @@ bin_samples = [
         {'place': {'Great Britain': 2}, 'subject': {'Statistics': 1, 'Periodicals': 2}},
     ),
     (
-        'lc_0444897283',
+        'lc_0444897283.mrc',
         {
             'subject': {
                 'Shipyards': 1,
@@ -151,7 +151,7 @@ bin_samples = [
         },
     ),
     (
-        'ocm00400866',
+        'ocm00400866.mrc',
         {'subject': {'School songbooks': 1, 'Choruses (Mixed voices) with piano': 1}},
     ),
     (
@@ -183,7 +183,10 @@ bin_samples = [
             'time': {'1945-': 1},
         },
     ),
-    ('uoft_4351105_1626', {'subject': {'Aesthetics': 1, 'History and criticism': 1}}),
+    (
+        'uoft_4351105_1626.mrc',
+        {'subject': {'Aesthetics': 1, 'History and criticism': 1}},
+    ),
     (
         'upei_broken_008.mrc',
         {'place': {'West Africa': 1}, 'subject': {'Social life and customs': 1}},
@@ -209,7 +212,7 @@ bin_samples = [
         },
     ),
     (
-        'wrapped_lines',
+        'wrapped_lines.mrc',
         {
             'org': {
                 'United States': 1,
@@ -220,7 +223,7 @@ bin_samples = [
         },
     ),
     (
-        'wwu_51323556',
+        'wwu_51323556.mrc',
         {
             'subject': {
                 'Statistical methods': 1,
