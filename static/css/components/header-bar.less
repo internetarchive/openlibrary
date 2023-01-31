@@ -453,10 +453,23 @@
 
     .search-bar-submit {
       background: url(/static/images/search-icon.svg) center no-repeat;
-      width: 45px;
+      width: 35px;
       height: 45px;
       border-top-left-radius: .3em;
       border-bottom-left-radius: .3em;
+    }
+
+    .vertical-separator {
+      border-left: 1px solid #d3d3d3;
+      height: 34px;
+      margin: auto 5px auto 0
+    }
+
+    .search-by-barcode-submit {
+      background: url(/static/images/icons/barcode_scanner.svg) center no-repeat;
+      width: 28px;
+      height: 42px;
+      margin-right: 8px;
     }
 
     .search-bar-component {
@@ -693,6 +706,14 @@ div.search-facet:focus-within {
       -moz-appearance: none;
       appearance: none;
     }
+    
+    .vertical-separator {
+      display: none
+    }
+
+    .search-by-barcode-submit {
+      display: none;
+    }
     /* stylelint-enable selector-max-specificity */
   }
 }
@@ -814,10 +835,15 @@ div.search-facet:focus-within {
         input[type=text] {
           display: block;
         }
+
+        .vertical-separator {
+          display: block;
+        }
+
+        .search-by-barcode-submit {
+          display: block;
+        }
         /* stylelint-enable selector-max-specificity */
-      }
-      .search-bar-submit {
-        margin-right: 5px;
       }
       .search-facet {
         display: block;
