@@ -537,7 +537,6 @@ def block_ip_processor(handler):
         and (web.ctx.method == "POST" or web.ctx.path.endswith("/edit"))
         and web.ctx.ip in get_blocked_ips()
     ):
-
         return render_template(
             "permission_denied", web.ctx.path, "Your IP address is blocked."
         )

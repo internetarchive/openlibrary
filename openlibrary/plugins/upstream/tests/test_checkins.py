@@ -32,7 +32,6 @@ class TestMakeDateString:
 
 class TestIsValidDate:
     def test_date_validation(self):
-
         assert is_valid_date(1999, None, None) is True
         assert is_valid_date(1999, 2, None) is True
         assert is_valid_date(1999, 2, 30) is True

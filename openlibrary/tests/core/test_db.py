@@ -156,7 +156,6 @@ class TestUpdateWorkID:
 
 
 class TestUsernameUpdate:
-
     READING_LOG_SETUP_ROWS = [
         {
             "username": "@kilgore_trout",

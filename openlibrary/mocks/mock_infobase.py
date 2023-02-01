@@ -309,7 +309,6 @@ class MockSite:
                 return None
 
     def get_user(self):
-
         if auth_token := web.ctx.get("infobase_auth_token", ""):
             try:
                 user_key, login_time, digest = auth_token.split(',')

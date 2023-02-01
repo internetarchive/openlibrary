@@ -320,7 +320,6 @@ def get_provider_order(prefer_ia=False) -> list[AbstractBookProvider]:
 def get_book_providers(
     ed_or_solr: Union[Edition, dict]
 ) -> Iterator[AbstractBookProvider]:
-
     # On search results which don't have an edition selected, we want to display
     # IA copies first.
     # Issue is that an edition can be provided by multiple providers; we can easily
