@@ -4415,7 +4415,7 @@ msgstr "Personne"
 
 #: search/advancedsearch.html:50
 msgid "Full Text Search"
-msgstr "Essayez la recherche en plein texte"
+msgstr "Recherche en plein texte"
 
 #: search/authors.html:19
 #, fuzzy
