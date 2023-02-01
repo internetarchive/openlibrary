@@ -15,7 +15,7 @@ export function initGoodreadsImport() {
                 $(this).removeAttr('checked');
             }
         });
-        var l = $('.add-book[checked*="checked"]').length;
+        const l = $('.add-book[checked*="checked"]').length;
         $('.import-submit').attr('value', `Import ${l} Books`);
     });
 
@@ -26,7 +26,7 @@ export function initGoodreadsImport() {
         else {
             $(this).removeAttr('checked');
         }
-        var l = $('.add-book[checked*="checked"]').length;
+        const l = $('.add-book[checked*="checked"]').length;
         $('.import-submit').attr('value', `Import ${l} Books`);
     });
 
@@ -54,10 +54,6 @@ export function initGoodreadsImport() {
         $('input.add-book').each(function () {
             var input = $(this),
                 checked = input.prop('checked');
-            if (!checked) {
-                return true;
-            }
-
             var value = JSON.parse(input.val().replace(/'/g, '"'));
             var shelf = value['Exclusive Shelf'];
             var shelf_id = 0;
@@ -66,12 +62,17 @@ export function initGoodreadsImport() {
             };
             var fail = function (reason) {
                 if (!has_failure()) {
-                    var element = $(`[isbn=${value['ISBN']}]`);
+                    const element = $(`[isbn=${value['ISBN']}]`);
                     element.append(`<td class="error-imported">Error</td><td class="error-imported">${reason}</td>'`)
                     element.removeClass('selected');
                     element.addClass('import-failure');
                 }
             };
+
+            if (!checked) {
+                return true;
+            }
+
             if (shelves[shelf]) {
                 shelf_id = shelves[shelf];
             }
@@ -115,7 +116,7 @@ export function initGoodreadsImport() {
                     }
                 }).then(function () {
                     if (value['Date Read'] !== '') {
-                        let date_read = value['Date Read'].split('/'); // Format: "YYYY/MM/DD"
+                        const date_read = value['Date Read'].split('/'); // Format: "YYYY/MM/DD"
                         return $.ajax({
                             url: `${obj['works'][0].key}/check-ins`,
                             type: 'POST',
