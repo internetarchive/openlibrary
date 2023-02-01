@@ -17,7 +17,8 @@ start affiliate-server using gunicorn webserver:
 
 
 Testing Amazon API:
-
+  ol-home0% `docker exec -it openlibrary_affiliate-server_1 bash`
+  openlibrary@ol-home0:/openlibrary$ `python`
     import web
     import infogami
     from openlibrary.config import load_config
