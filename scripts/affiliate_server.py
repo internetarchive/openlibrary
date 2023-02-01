@@ -15,6 +15,20 @@ start affiliate-server using gunicorn webserver:
 
     ./scripts/affiliate_server.py openlibrary.yml --gunicorn -b 0.0.0.0:31337
 
+
+Testing Amazon API:
+  ol-home0% `docker exec -it openlibrary_affiliate-server_1 bash`
+  openlibrary@ol-home0:/openlibrary$ `python`
+    import web
+    import infogami
+    from openlibrary.config import load_config
+    load_config('/olsystem/etc/openlibrary.yml')
+    infogami._setup()
+    from infogami import config;
+    from openlibrary.core.vendors import AmazonAPI, clean_amazon_metadata_for_load
+    params=[config.amazon_api.get('key'), config.amazon_api.get('secret'),config.amazon_api.get('id')]
+    web.amazon_api = AmazonAPI(*params, throttling=0.9)
+    products = web.amazon_api.get_products(["195302114X", "0312368615"], serialize=True)
 """
 
 import itertools
