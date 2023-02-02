@@ -800,14 +800,15 @@ def load(rec, account_key=None):
         need_edition_save = True
 
     # Add list fields to edition as needed
-    edition_fields = [
+    edition_list_fields = [
         'local_id',
         'lccn',
         'lc_classifications',
         'oclc_numbers',
         'source_records',
+        'publishers',
     ]
-    for f in edition_fields:
+    for f in edition_list_fields:
         if f not in rec or not rec[f]:
             continue
         # ensure values is a list
@@ -819,6 +820,17 @@ def load(rec, account_key=None):
         else:
             e[f] = to_add = values
         if to_add:
+            need_edition_save = True
+
+    other_edition_fields = [
+        'number_of_pages',
+        'publish_date',
+    ]
+    for f in other_edition_fields:
+        if f not in rec or not rec[f]:
+            continue
+        if f not in e:
+            e[f] = rec[f]
             need_edition_save = True
 
     # Add new identifiers
