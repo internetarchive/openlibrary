@@ -234,7 +234,6 @@ class ia_importapi(importapi):
                 raise_non_book_marc(marc_record)
             try:
                 edition_data = read_edition(marc_record)
-                edition_data["has_marc_record"] = True
             except MarcException as e:
                 logger.error(
                     'failed to read from MARC record %s: %s', identifier, str(e)
