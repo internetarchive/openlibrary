@@ -14,27 +14,31 @@ export class IntegratedLibrarianEnvironment {
         /** This is the main ILE toolbar. Should be moved to a Vue component. */
         this.$toolbar = $(`
             <div id="ile-toolbar">
-                <div style="flex: 1">
+                <div id="ile-selections">
                     <div id="ile-drag-status">
                         <div class="text"></div>
-                        <div class="images"></div>
+                        <div class="images"><ul></ul></div>
                     </div>
+                    <div id="ile-selection-actions"></div>
                 </div>
                 <div id="ile-drag-actions"></div>
             </div>`.trim());
+        this.$selectionActions = this.$toolbar.find('#ile-selection-actions');
         this.$statusText = this.$toolbar.find('.text');
+        this.$statusImages = this.$toolbar.find('.images ul');
+        this.$actions = this.$toolbar.find('#ile-drag-actions');
     }
 
     init() {
-        this.selectionManager.init();
-
         // Add the ILE toolbar to bottom of screen
-        $(document.body).append(this.$toolbar);
+        $(document.body).append(this.$toolbar.hide());
+        this.selectionManager.init();
     }
 
     /** @param {string} text */
     setStatusText(text) {
         this.$statusText.text(text);
+        this.$toolbar.toggle(text.length > 0);
     }
 
     /**
@@ -44,7 +48,10 @@ export class IntegratedLibrarianEnvironment {
         for (const elem of $('.ile-selected')) {
             elem.classList.remove('ile-selected')
         }
-        this.setStatusText('')
-        $('#ile-drag-actions').empty();
+        this.setStatusText('');
+        this.$selectionActions.empty();
+        this.$statusImages.empty();
+        this.$actions.empty();
+        this.$toolbar.hide();
     }
 }
