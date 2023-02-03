@@ -133,7 +133,7 @@ export default class SelectionManager {
 
         for (const action of SelectionManager.ACTIONS) {
             const items = [];
-            if (this.selectedItems[action.requires_type].length) {
+            if (action.requires_type.every(type => this.selectedItems[type].length > 0)) {
                 action.applies_to_type.forEach(type => items.push(...this.selectedItems[type]));
                 if (action.multiple_only ? items.length > 1 : items.length > 0)
                     this.ile.$actions.append($(`<a target="_blank" href="${action.href(this.getOlidsFromSelectionList(items))}">${action.name}</a>`));
