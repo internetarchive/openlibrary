@@ -42,7 +42,7 @@ export class IntegratedLibrarianEnvironment {
     }
 
     /**
-     * Unselects selected search result items adn resets status bar.
+     * Unselects selected search result items and resets status bar.
      */
     reset() {
         for (const elem of $('.ile-selected')) {
@@ -52,6 +52,5 @@ export class IntegratedLibrarianEnvironment {
         this.$selectionActions.empty();
         this.$statusImages.empty();
         this.$actions.empty();
-        this.$toolbar.hide();
     }
 }
