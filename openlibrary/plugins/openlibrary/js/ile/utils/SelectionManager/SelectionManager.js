@@ -133,9 +133,11 @@ export default class SelectionManager {
 
         for (const action of SelectionManager.ACTIONS) {
             const items = [];
-            action.applies_to_type.forEach(type => items.push(...this.selectedItems[type]));
-            if (action.multiple_only ? items.length > 1 : items.length > 0)
-                this.ile.$actions.append($(`<a target="_blank" href="${action.href(this.getOlidsFromSelectionList(items))}">${action.name}</a>`));
+            if (this.selectedItems[action.requires_type].length) {
+                action.applies_to_type.forEach(type => items.push(...this.selectedItems[type]));
+                if (action.multiple_only ? items.length > 1 : items.length > 0)
+                    this.ile.$actions.append($(`<a target="_blank" href="${action.href(this.getOlidsFromSelectionList(items))}">${action.name}</a>`));
+            }
         }
     }
 
@@ -381,6 +383,7 @@ SelectionManager.SELECTION_PROVIDERS = [
 SelectionManager.ACTIONS = [
     {
         applies_to_type: ['work','edition'],
+        requires_type: ['work'],
         multiple_only: true,
         name: 'Merge Works...',
         href: olids => `/works/merge?records=${olids.join(',')}`,
@@ -388,6 +391,7 @@ SelectionManager.ACTIONS = [
     /* Uncomment this when edition merging is available.
     {
         applies_to_type: ['edition'],
+        requires_type: ['edition'],
         multiple_only: true,
         name: 'Merge Editions...',
         href: olids => `/works/merge?records=${olids.join(',')}`,
@@ -395,6 +399,7 @@ SelectionManager.ACTIONS = [
     */
     {
         applies_to_type: ['author'],
+        requires_type: ['author'],
         multiple_only: true,
         name: 'Merge Authors...',
         href: olids => `/authors/merge?${olids.map(olid => `key=${olid}`).join('&')}`,
