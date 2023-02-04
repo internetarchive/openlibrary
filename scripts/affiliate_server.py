@@ -201,7 +201,10 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
 
     if books := [clean_amazon_metadata_for_load(product) for product in products]:
         if pending_books := get_pending_books(books):
-            stats.increment("ol.affiliate.amazon.total_items_batched_for_import", n=len(pending_books))
+            stats.increment(
+                "ol.affiliate.amazon.total_items_batched_for_import",
+                n=len(pending_books),
+            )
             get_current_amazon_batch().add_items(
                 [{'ia_id': b['source_records'][0], 'data': b} for b in pending_books]
             )
@@ -299,7 +302,7 @@ class Submit:
             web.amazon_queue.qsize(),
             rate=0.2,
         )
-        return json.dumps({"status": "submitted", "queue":  web.amazon_queue.qsize()})
+        return json.dumps({"status": "submitted", "queue": web.amazon_queue.qsize()})
 
 
 def load_config(configfile):
