@@ -19,16 +19,19 @@ start affiliate-server using gunicorn webserver:
 Testing Amazon API:
   ol-home0% `docker exec -it openlibrary_affiliate-server_1 bash`
   openlibrary@ol-home0:/openlibrary$ `python`
-    import web
-    import infogami
-    from openlibrary.config import load_config
-    load_config('/olsystem/etc/openlibrary.yml')
-    infogami._setup()
-    from infogami import config;
-    from openlibrary.core.vendors import AmazonAPI, clean_amazon_metadata_for_load
-    params=[config.amazon_api.get('key'), config.amazon_api.get('secret'),config.amazon_api.get('id')]
-    web.amazon_api = AmazonAPI(*params, throttling=0.9)
-    products = web.amazon_api.get_products(["195302114X", "0312368615"], serialize=True)
+
+```
+import web
+import infogami
+from openlibrary.config import load_config
+load_config('/olsystem/etc/openlibrary.yml')
+infogami._setup()
+from infogami import config;
+from openlibrary.core.vendors import AmazonAPI
+params=[config.amazon_api.get('key'), config.amazon_api.get('secret'),config.amazon_api.get('id')]
+web.amazon_api = AmazonAPI(*params, throttling=0.9)
+products = web.amazon_api.get_products(["195302114X", "0312368615"], serialize=True)
+```
 """
 
 import itertools
@@ -48,7 +51,7 @@ import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONP
 import infogami
 from infogami import config
 from openlibrary.config import load_config as openlibrary_load_config
-from openlibrary.core import stats
+from openlibrary.core import cache, stats
 from openlibrary.core.imports import Batch
 from openlibrary.core.vendors import AmazonAPI, clean_amazon_metadata_for_load
 from openlibrary.utils.dateutil import WEEK_SECS
@@ -83,9 +86,6 @@ batch_name = ""
 batch: Batch | None = None
 
 web.amazon_queue = queue.Queue()  # a thread-safe multi-producer, multi-consumer queue
-# add a couple of variables for statsd reporting
-web.amazon_queue.max_qsize = 0  # type: ignore[attr-defined]
-web.amazon_queue.dump_count = 0  # type: ignore[attr-defined]
 
 
 def get_current_amazon_batch() -> Batch:
@@ -108,7 +108,7 @@ def get_isbns_from_books(books: list[dict]) -> list[str]:  # Plural: books
     return sorted(set(itertools.chain(*[get_isbns_from_book(book) for book in books])))
 
 
-def is_book_needed(book: dict, edition: dict) -> bool:
+def is_book_needed(book: dict, edition: dict) -> list[str]:
     """
     Should an OL edition's metadata be updated with Amazon book data?
 
@@ -119,10 +119,17 @@ def is_book_needed(book: dict, edition: dict) -> bool:
     for book_field, edition_field in AZ_OL_MAP.items():
         if field_value := book.get(book_field) and not edition.get(edition_field):
             needed_book_fields.append(book_field)
+
+    if needed_book_fields == ["authors"]:  # If the only field needed is authors
+        if work_key := edition.get("works") and edition["work"][0].get("key"):
+            work = web.ctx.site.get(work_key)
+            if work.get("authors"):
+                needed_book_fields = []
+
     if needed_book_fields:  # Log book fields that should to be copied to the edition
         fields = ", ".join(needed_book_fields)
         logger.debug(f"{edition.get('key', None) or 'New Edition'} needs {fields}")
-    return bool(needed_book_fields)
+    return needed_book_fields
 
 
 def get_editions_for_books(books: list[dict]) -> list[dict]:
@@ -153,6 +160,7 @@ def get_pending_books(books):
             ),
             {},
         )
+
         if is_book_needed(book, ed):
             pending_books.append(book)
     return pending_books
@@ -164,9 +172,14 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
     each product in memcache using amazon_product_{isbn_13} as the cache key.
     """
     logger.info(f"process_amazon_batch(): {len(isbn_10s)} items")
-    assert cache  # mypy  workaround for `cache or None`
     try:
         products = web.amazon_api.get_products(isbn_10s, serialize=True)
+        # stats_ol_affiliate_amazon_imports - Open Library - Dashboards - Grafana
+        # http://graphite.us.archive.org Metrics.stats.ol...
+        stats.increment(
+            "ol.affiliate.amazon.total_items_fetched",
+            n=len(products),
+        )
     except Exception:
         logger.exception(f"amazon_api.get_products({isbn_10s}, serialize=True)")
         return
@@ -188,6 +201,10 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
 
     if books := [clean_amazon_metadata_for_load(product) for product in products]:
         if pending_books := get_pending_books(books):
+            stats.increment(
+                "ol.affiliate.amazon.total_items_batched_for_import",
+                n=len(pending_books),
+            )
             get_current_amazon_batch().add_items(
                 [{'ia_id': b['source_records'][0], 'data': b} for b in pending_books]
             )
@@ -197,12 +214,15 @@ def seconds_remaining(start_time: float) -> float:
     return max(API_MAX_WAIT_SECONDS - (time.time() - start_time), 0)
 
 
-def amazon_lookup() -> None:
+def amazon_lookup(site, stats_client) -> None:
     """
     A separate thread of execution that uses the time up to API_MAX_WAIT_SECONDS to
     create a list of isbn_10s that is not larger than API_MAX_ITEMS_PER_CALL and then
     passes them to process_amazon_batch()
     """
+    stats.client = stats_client
+    web.ctx.site = site
+
     while True:
         start_time = time.time()
         isbn_10s: set[str] = set()  # no duplicates in the batch
@@ -218,18 +238,12 @@ def amazon_lookup() -> None:
             process_amazon_batch(list(isbn_10s))
 
 
-if "pytest" not in sys.modules:
-    threading.Thread(target=amazon_lookup).start()
-
-
 class Status:
     def GET(self) -> str:
         return json.dumps(
             {
                 "queue_size": web.amazon_queue.qsize(),
                 "queue": list(web.amazon_queue.queue),
-                "max_qsize": web.amazon_queue.max_qsize,
-                "dump_count": web.amazon_queue.dump_count,
             }
         )
 
@@ -239,9 +253,12 @@ class Clear:
 
     def GET(self) -> str:
         qsize = web.amazon_queue.qsize()
-        max_qsize = web.amazon_queue.max_qsize
         web.amazon_queue.queue.clear()
-        return json.dumps({"Cleared": "True", "qsize": qsize, "max_qsize": max_qsize})
+        stats.put(
+            "ol.affiliate.amazon.currently_queued_isbns",
+            web.amazon_queue.qsize(),
+        )
+        return json.dumps({"Cleared": "True", "qsize": qsize})
 
 
 class Submit:
@@ -262,7 +279,7 @@ class Submit:
         looked up and return the equivalent of a promise as `submitted`
         """
         # cache could be None if reached before initialized (mypy)
-        if not web.amazon_api or not cache:
+        if not web.amazon_api:
             return json.dumps({"error": "not_configured"})
 
         isbn10, isbn13 = self.unpack_isbn(isbn)
@@ -278,17 +295,21 @@ class Submit:
         # Cache misses will be submitted to Amazon as ASINs (isbn10)
         if isbn10 not in web.amazon_queue.queue:
             web.amazon_queue.put_nowait(isbn10)
-        qsize = web.amazon_queue.qsize()
-        web.amazon_queue.max_qsize = max(web.amazon_queue.max_qsize, qsize)
-        web.amazon_queue.dump_count += 1
-        if web.amazon_queue.dump_count % 20 == 0:  # send one sample in 20 to statsd
-            stats.put("ol.affiliate.amazon.max_qsize", web.amazon_queue.max_qsize)
-            web.amazon_queue.max_qsize = 0
-        return json.dumps({"status": "submitted", "queue": qsize})
+
+        # Give us a snapshot over time of how many new isbns are currently queued
+        stats.put(
+            "ol.affiliate.amazon.currently_queued_isbns",
+            web.amazon_queue.qsize(),
+            rate=0.2,
+        )
+        return json.dumps({"status": "submitted", "queue": web.amazon_queue.qsize()})
 
 
 def load_config(configfile):
+    # This loads openlibrary.yml + infobase.yml
     openlibrary_load_config(configfile)
+
+    stats.client = stats.create_stats_client(cfg=config)
 
     web.amazon_api = None
     args = [
@@ -303,15 +324,6 @@ def load_config(configfile):
         raise RuntimeError(f"{configfile} is missing required keys.")
 
 
-def init_sentry(app):
-    from openlibrary.utils.sentry import Sentry
-
-    sentry = Sentry(getattr(config, 'sentry', {}))
-    if sentry.enabled:
-        sentry.init()
-        sentry.bind_to_webpy_app(app)
-
-
 def setup_env():
     # make sure PYTHON_EGG_CACHE is writable
     os.environ['PYTHON_EGG_CACHE'] = "/tmp/.python-eggs"
@@ -320,20 +332,22 @@ def setup_env():
     os.environ['REAL_SCRIPT_NAME'] = ""
 
 
-cache = None
-
-
 def start_server():
     sysargs = sys.argv[1:]
     configfile, args = sysargs[0], sysargs[1:]
+    web.ol_configfile = configfile
 
     # # type: (str) -> None
-    load_config(configfile)
-    global cache
-    from openlibrary.core import cache
 
-    # sentry could be loaded here
-    # init_sentry(app)
+    load_config(web.ol_configfile)
+
+    # sentry loaded by infogami
+    infogami._setup()
+
+    if "pytest" not in sys.modules:
+        threading.Thread(
+            target=amazon_lookup, args=(web.ctx.site, stats.client)
+        ).start()
 
     sys.argv = [sys.argv[0]] + list(args)
     app.run()
