@@ -160,7 +160,7 @@ def render_component(name: str, attrs: dict | None = None, json_encode: bool = T
 
     attrs = attrs or {}
     attrs_str = ''
-    for (key, val) in attrs.items():
+    for key, val in attrs.items():
         if json_encode and isinstance(val, dict) or isinstance(val, list):
             val = json.dumps(val)
             # On the Vue side use decodeURIComponent to decode

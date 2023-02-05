@@ -14,7 +14,6 @@ class BookshelfEvent(IntEnum):
 
 
 class BookshelvesEvents(db.CommonExtras):
-
     TABLENAME = 'bookshelves_events'
     NULL_EDITION_ID = -1
 

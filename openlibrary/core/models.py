@@ -749,7 +749,6 @@ class Author(Thing):
 
 
 class User(Thing):
-
     DEFAULT_PREFERENCES = {
         'updates': 'no',
         'public_readlog': 'no'

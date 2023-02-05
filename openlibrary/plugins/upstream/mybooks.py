@@ -159,7 +159,6 @@ def get_public_patron_account(username):
 
 
 class MyBooksTemplate:
-
     # Reading log shelves
     READING_LOG_KEYS = {"currently-reading", "want-to-read", "already-read"}
 
@@ -251,7 +250,6 @@ class MyBooksTemplate:
             ratings = logged_book_data.ratings
 
         if docs is not None:
-
             return render['account/books'](
                 docs=docs,
                 key=self.key,

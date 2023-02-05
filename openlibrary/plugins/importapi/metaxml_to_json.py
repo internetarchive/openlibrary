@@ -55,7 +55,6 @@ def parse_isbn(isbn):
 
 
 def metaxml_to_edition_dict(root):
-
     ia_to_ol_map = {
         'identifier': 'ocaid',
         'creator': 'author',
