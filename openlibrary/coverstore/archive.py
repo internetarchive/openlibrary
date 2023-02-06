@@ -98,7 +98,7 @@ def is_uploaded(item, f):
     return int(output) == 2
 
 
-def audit(group_id, chunk_ids=(0, 100), sizes=('', 's', 'm', 'l'), upload=False):
+def audit(group_id, chunk_ids=(0, 100), sizes=('', 's', 'm', 'l')):
     """Check which cover batches have been uploaded to archive.org.
 
     Checks the archive.org items pertaining to this `group` of up to
@@ -107,15 +107,15 @@ def audit(group_id, chunk_ids=(0, 100), sizes=('', 's', 'm', 'l'), upload=False)
     e.g. 81) have been successfully uploaded.
 
     {size}_covers_{group}_{chunk}:
-    group_id - 4 digit, batches of 1M, 0000 to 9999M
-    chunk_ids - (min, max) chunk_id range or max_chunk_id; 2 digit, batch of 10k from [00, 99]
+    :param group_id: 4 digit, batches of 1M, 0000 to 9999M
+    :param chunk_ids: (min, max) chunk_id range or max_chunk_id; 2 digit, batch of 10k from [00, 99]
 
     """
-    scope = chunk_ids if isinstance(chunk_ids, range) else range(0, chunk_ids)
+    scope = range(*chunk_ids if isinstance(chunk_ids, range) else *(0, chunk_ids))
     for size in sizes:
         prefix = f"{size}_" if size else ''
-        item = f"{prefix}covers_{primary}"
-        files = [f"{prefix}covers_0008_{'%02i' % i}" for i in scope]
+        item = f"{prefix}covers_{group_id:04}"
+        files = (f"{prefix}covers_{group_id:04}_{i:02}" for i in scope)
         missing_files = []
         sys.stdout.write(f"\n{size or 'full'}: ")
         for f in files:
@@ -131,8 +131,6 @@ def audit(group_id, chunk_ids=(0, 100), sizes=('', 's', 'm', 'l'), upload=False)
             print(
                 f"ia upload {item} {' '.join([f'{item}/{mf}*' for mf in missing_files])} --retries 10"
             )
-            if upload:
-                pass
 
 
 def archive(test=True):
