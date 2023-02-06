@@ -111,7 +111,7 @@ def audit(group_id, chunk_ids=(0, 100), sizes=('', 's', 'm', 'l')):
     :param chunk_ids: (min, max) chunk_id range or max_chunk_id; 2 digit, batch of 10k from [00, 99]
 
     """
-    scope = range(*chunk_ids if isinstance(chunk_ids, range) else *(0, chunk_ids))
+    scope = range(*(chunk_ids if isinstance(chunk_ids, tuple) else (0, chunk_ids)))
     for size in sizes:
         prefix = f"{size}_" if size else ''
         item = f"{prefix}covers_{group_id:04}"
