@@ -94,8 +94,8 @@ idx = id
 def is_uploaded(item: str, f: str):
     """
     Looks within an archive.org item and determines whether
-    .tar and .index files exist for the specified filename pattern.  
-    
+    .tar and .index files exist for the specified filename pattern.
+
     :param item: name of archive.org item to look within
     :param f: filename pattern to look for
     """
