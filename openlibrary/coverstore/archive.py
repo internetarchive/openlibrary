@@ -91,7 +91,14 @@ class TarManager:
 idx = id
 
 
-def is_uploaded(item, f):
+def is_uploaded(item: str, f: str):
+    """
+    Looks within an archive.org item and determines whether
+    .tar and .index files exist for the specified filename pattern.  
+    
+    :param item: name of archive.org item to look within
+    :param f: filename pattern to look for
+    """
     command = fr'ia list {item} | grep "{f}\.[tar|index]" | wc -l'
     result = subprocess.run(command, shell=True, capture_output=True)
     output = result.stdout.decode().strip()
