@@ -46,6 +46,20 @@ $ page = int(input(page=1).page)
       <li class="$(mode=='closed' and 'selected' or '')">
         <a href="$changequery(mode='closed', page=None)">$_('Closed') ($total['closed'])</a>
       </li>
+      <li class="assignee">
+        <a href="" >Assignee 
+          <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation" width="7" height="4">
+        </a>
+      </li>
+      <li class="comments">
+        <a href="">Comments</a> 
+      </li>
+      <li class="sort">
+        <a href="">
+          Sort
+          <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation" width="7" height="4">
+        </a> 
+      </li>
     </ul>
   
     <div class="table-wrapper">

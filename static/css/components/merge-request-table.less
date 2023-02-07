@@ -17,7 +17,14 @@
   border-radius: 5px;
 
   .nav-bar {
+    
     background-color: @lightest-grey;
+   
+
+    li:nth-child(n + 3) {
+      float: right;
+    }
+ 
   }
 }
 
@@ -33,6 +40,7 @@
   }
 
   th {
+    display: none;
     position: sticky;
     top: 0;
     vertical-align: top;
@@ -40,7 +48,7 @@
     padding: 5px;
     word-wrap: break-word;
     overflow-wrap: break-word;
-    background-color: @link-blue;
+    background-color: @lightest-grey;
     color: @white;
 
     &.comments-header {
@@ -54,7 +62,6 @@
 
   tr:target{
     border: 1px @dark-grey solid;
-
   }
 }
 
