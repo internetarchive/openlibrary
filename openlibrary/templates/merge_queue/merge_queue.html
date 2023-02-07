@@ -47,21 +47,21 @@ $ page = int(input(page=1).page)
         <a href="$changequery(mode='closed', page=None)">$_('Closed') ($total['closed'])</a>
       </li>
       <li class="assignee">
-        <a href="" >Assignee 
+        <a href="" >Assignee
           <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation" width="7" height="4">
         </a>
       </li>
       <li class="comments">
-        <a href="">Comments</a> 
+        <a href="">Comments</a>
       </li>
       <li class="sort">
         <a href="">
           Sort
           <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation" width="7" height="4">
-        </a> 
+        </a>
       </li>
     </ul>
-  
+
     <div class="table-wrapper">
         <table class="mr-table">
           <thead>
@@ -89,13 +89,13 @@ $ page = int(input(page=1).page)
             <tr id="mrid-$(r['id'])">
               <td>$r['submitter']<br>$datestr(r['created'])</td>
               <td id="status-cell-$(r['id'])">$status</td>
-  
+
               <td id="comment-cell-$(r['id'])" class="comment-cell">
                 <div class="comment-cell__summary">
                   <span>$:_('<strong>%(type)s</strong> merge request for <span class="book-title">%(title)s</span>', title=work_title, type=type_str)</span>
                   <span>$_('Comments'): $len(comments)</span>
                 </div>
-  
+
                 $if len(comments) > 1:
                   <div class="comment-cell__description">
                     <span>$_('Showing most recent comment only.')</span>
