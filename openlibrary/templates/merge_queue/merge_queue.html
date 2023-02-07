@@ -71,8 +71,7 @@ $ page = int(input(page=1).page)
             $ is_open = r['status'] == 1
             $ url = "%s&mrid=%s" % (r['url'], r['id'])
             $ is_submitter = username == r['submitter']
-            $ type_str = _('Author') if r['mr_type'] == 2 else _('Work')    background-color: white;
-            color: red;
+            $ type_str = _('Author') if r['mr_type'] == 2 else _('Work')
             <tr id="mrid-$(r['id'])">
               <td>$r['submitter']<br>$datestr(r['created'])</td>
               <td id="status-cell-$(r['id'])">$status</td>
@@ -126,9 +125,9 @@ $ page = int(input(page=1).page)
           </tbody>
         </table>
     </div>
+     <div class="pager">
+      $:macros.Pager(page, total[mode], results_per_page=25)
+    </div>
 
-  </div>
-   <div class="pager">
-    $:macros.Pager(page, total[mode], results_per_page=25)
   </div>
 </div>
