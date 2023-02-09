@@ -100,12 +100,12 @@ def is_uploaded(item: str, f: str) -> bool:
     :param f: filename pattern to look for
     """
     command = fr'ia list {item} | grep "{f}\.[tar|index]" | wc -l'
-    result = subprocess.run(command, shell=True, capture_output=True)
-    output = result.stdout.decode().strip()
+    result = subprocess.run(command, shell=True, text=True, capture_output=True)
+    output = result.stdout.strip()
     return int(output) == 2
 
 
-def audit(group_id, chunk_ids=(0, 100), sizes=('', 's', 'm', 'l')):
+def audit(group_id, chunk_ids=(0, 100), sizes=('', 's', 'm', 'l')) -> None:
     """Check which cover batches have been uploaded to archive.org.
 
     Checks the archive.org items pertaining to this `group` of up to
