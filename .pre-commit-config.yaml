@@ -28,6 +28,12 @@ repos:
     hooks:
       - id: auto-walrus
 
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.0.244
+    hooks:
+      - id: ruff
+
   - repo: https://github.com/psf/black
     rev: 23.1.0
     hooks:
@@ -46,7 +52,7 @@ repos:
     - id: cython-lint
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v0.991'
+    rev: 'v1.0.0'
     hooks:
       - id: mypy  # See pyproject.toml for args
         additional_dependencies:
@@ -61,7 +67,7 @@ repos:
           - --keep-runtime-typing
 
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: "0.6.0"
+    rev: "0.7.0"
     hooks:
       - id: pyproject-fmt
 

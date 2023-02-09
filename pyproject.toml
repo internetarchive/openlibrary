@@ -28,3 +28,29 @@ ignore_errors = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "strict"
+
+[tool.ruff]
+exclude = [
+    "./.*",
+    "vendor/*",
+    "node_modules/*",
+]
+ignore = [
+    "E402",
+    "E722",
+    "E741",
+    "F401",
+    "F841",
+    "I",
+]
+line-length = 200
+select = [
+    "C9",
+    "E",
+    "F",
+    "W",
+]
+target-version = "py310"
+
+[tool.ruff.mccabe]
+max-complexity = 41
