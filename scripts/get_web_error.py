@@ -25,7 +25,7 @@ filename is like 2023-02-03/000008077313.html"""
 
 def get_web_error(
     filename: str,
-    hosts = ("ol-web1.us.archive.org", "ol-web2.us.archive.org"),
+    hosts=("ol-web1.us.archive.org", "ol-web2.us.archive.org"),
     docker_container: str = "openlibrary_web_1",
 ) -> str:
     """
