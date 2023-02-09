@@ -17,7 +17,6 @@ If lynx is not yet installed, please type `sudo apt-get install lynx` to install
 
 import subprocess
 import sys
-from collections.abc import Iterable
 
 usage = f"""Usage: {sys.argv[0]} [filename] | lynx --stdin
 filename is like 2023-02-03/000008077313.html"""
