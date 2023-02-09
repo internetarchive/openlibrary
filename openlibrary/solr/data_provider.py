@@ -143,6 +143,9 @@ class DataProvider:
                 r = await client.get(
                     "https://archive.org/advancedsearch.php",
                     timeout=30,  # The default is silly short
+                    headers={
+                        'x-application-id': 'ol-solr',
+                    },
                     params={
                         'q': f"identifier:({' OR '.join(ocaids)})",
                         'rows': len(ocaids),
@@ -150,6 +153,7 @@ class DataProvider:
                         'page': 1,
                         'output': 'json',
                         'save': 'yes',
+                        'service': 'metadata__unlimited',
                     },
                 )
             r.raise_for_status()
