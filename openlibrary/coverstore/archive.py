@@ -91,7 +91,7 @@ class TarManager:
 idx = id
 
 
-def is_uploaded(item: str, f: str):
+def is_uploaded(item: str, f: str) -> bool:
     """
     Looks within an archive.org item and determines whether
     .tar and .index files exist for the specified filename pattern.
