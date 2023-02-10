@@ -52,7 +52,7 @@ class community_edits_queue(delegate.page):
             ),
         }
         return render_template(
-            'merge_queue/merge_queue',
+            'merge_queue/merge_queue2',
             total_found,
             merge_requests=merge_requests,
         )
