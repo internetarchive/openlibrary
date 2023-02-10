@@ -65,6 +65,7 @@ $ page = int(input(page=1).page)
     </ul>
 
     <div class="table-wrapper">
+      <!-- new template under construction here -->
       $if not merge_requests:
         <h2>$_('No entries here!')</h2>
       $for r in merge_requests:
@@ -75,6 +76,9 @@ $ page = int(input(page=1).page)
       $ url = "%s&mrid=%s" % (r['url'], r['id'])
       $ is_submitter = username == r['submitter']
       $ type_str = _('Author') if r['mr_type'] == 2 else _('Work')
+      <div class="mr-info">
+        $:_('<span class="book-title">%(title)s</span>', title=work_title, type=type_str)
+      </div>
       <div>
         $if is_open:
         $if is_submitter:
@@ -91,7 +95,7 @@ $ page = int(input(page=1).page)
         <span>$len(comments)</span>
         <img src="/static/images/markdown/quotes.png" alt="">
       </button>
-
+<!-- new template under construction above -->
         <table class="mr-table">
           <!-- <thead>
             <tr>
@@ -105,7 +109,7 @@ $ page = int(input(page=1).page)
           <tbody>
           $if not merge_requests:
             <tr>
-              <td colspan="5">$_('No entries here!')</td>
+              <!-- <td colspan="5">$_('No entries here!')</td> -->
             </tr>
           $for r in merge_requests:
             $ work_title = r.get('title', 'an untitled work')
