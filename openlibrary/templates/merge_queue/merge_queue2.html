@@ -65,8 +65,35 @@ $ page = int(input(page=1).page)
     </ul>
 
     <div class="table-wrapper">
+      $if not merge_requests:
+        <h2>$_('No entries here!')</h2>
+      $for r in merge_requests:
+      $ work_title = r.get('title', 'an untitled work')
+      $ comments = r.get('comments', {}).get('comments', [])
+      $ status = get_status_for_view(r['status'])
+      $ is_open = r['status'] == 1
+      $ url = "%s&mrid=%s" % (r['url'], r['id'])
+      $ is_submitter = username == r['submitter']
+      $ type_str = _('Author') if r['mr_type'] == 2 else _('Work')
+      <div>
+        $if is_open:
+        $if is_submitter:
+          <a class="mr-close-link" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">$_('Close')</a>
+        $elif can_merge:
+          $ show_link = not r.get('reviewer') or r.get('reviewer') == username
+          $ extra_classes = '' if show_link else ' hidden'
+          <button>
+            <a class="mr-resolve-link$extra_classes" id="mr-resolve-link-$r['id']" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="$url" target="_blank">$_('REVIEW')</a>
+          </button>
+        </div>
+     
+      <button>
+        <span>$len(comments)</span>
+        <img src="/static/images/markdown/quotes.png" alt="">
+      </button>
+
         <table class="mr-table">
-          <thead>
+          <!-- <thead>
             <tr>
               <th class="submitter-header">$_('Submitter')</th>
               <th class="status-header">$_('Status')</th>
@@ -74,7 +101,7 @@ $ page = int(input(page=1).page)
               <th class="reviewer-header">$_('Reviewer')</th>
               <th class="resolve-header">$_('Resolve')</th>
             </tr>
-          </thead>
+          </thead> -->
           <tbody>
           $if not merge_requests:
             <tr>
