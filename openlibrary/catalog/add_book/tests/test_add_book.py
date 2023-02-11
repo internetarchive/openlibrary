@@ -27,7 +27,7 @@ def open_test_data(filename):
     return open(fullpath, mode='rb')
 
 
-@pytest.fixture
+@pytest.fixture()
 def ia_writeback(monkeypatch):
     """Prevent ia writeback from making live requests."""
     monkeypatch.setattr(add_book, 'update_ia_metadata_for_ol_edition', lambda olid: {})
