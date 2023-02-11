@@ -59,10 +59,9 @@ class CORSProcessor:
     def is_cors_path(self):
         if self.cors_prefixes is None or web.ctx.path.endswith(".json"):
             return True
-        for path_segment in self.cors_prefixes:
-            if web.ctx.path.startswith(path_segment):
-                return True
-        return False
+        return any(
+            web.ctx.path.startswith(path_segment) for path_segment in self.cors_prefixes
+        )
 
     def add_cors_headers(self):
         # Allow anyone to access GET and OPTIONS requests

@@ -81,7 +81,7 @@ class trending_books_api(delegate.page):
             limit=int(i.limit),
             page=int(i.page),
             books_only=True,
-            sort_by_count=not i.sort_by_count == 'false',
+            sort_by_count=i.sort_by_count != "false",
             minimum=i.minimum,
         )
         result = {

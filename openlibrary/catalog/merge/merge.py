@@ -211,10 +211,7 @@ def short_part_publisher_match(p1, p2):
     pub2 = p2.split()
     if len(pub1) == 1 or len(pub2) == 1:
         return False
-    for i, j in zip(pub1, pub2):
-        if not substr_match(i, j):
-            return False
-    return True
+    return all(substr_match(i, j) for i, j in zip(pub1, pub2))
 
 
 @deprecated('Use openlibrary.catalog.merge.merge_marc.compare_publisher() instead.')
