@@ -32,9 +32,8 @@ if __name__ == "__main__":
         logger.info(f"loading config from {ol_config}")
         # Squelch output from infobase (needed for sentry setup)
         # So it doesn't end up in our data dumps body
-        with open(os.devnull, 'w') as devnull:
-            with redirect_stdout(devnull):
-                load_config(ol_config)
+        with open(os.devnull, 'w') as devnull, redirect_stdout(devnull):
+            load_config(ol_config)
         sentry = Sentry(getattr(config, "sentry_cron_jobs", {}))
         if sentry.enabled:
             sentry.init()

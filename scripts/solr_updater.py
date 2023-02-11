@@ -205,11 +205,7 @@ def is_allowed_itemid(identifier):
 
     # items starts with these prefixes are not books. Ignore them.
     ignore_prefixes = config.get("ia_ignore_prefixes", [])
-    for prefix in ignore_prefixes:
-        if identifier.startswith(prefix):
-            return False
-
-    return True
+    return all(not identifier.startswith(prefix) for prefix in ignore_prefixes)
 
 
 async def update_keys(keys):

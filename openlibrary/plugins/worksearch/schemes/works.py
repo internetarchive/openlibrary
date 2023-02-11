@@ -507,9 +507,8 @@ def ddc_transform(sf: luqum.tree.SearchField):
         val.high.value = normed_range[1] or val.high
     elif isinstance(val, luqum.tree.Word) and val.value.endswith('*'):
         return normalize_ddc_prefix(val.value[:-1]) + '*'
-    elif isinstance(val, luqum.tree.Word) or isinstance(val, luqum.tree.Phrase):
-        normed = normalize_ddc(val.value.strip('"'))
-        if normed:
+    elif isinstance(val, (luqum.tree.Word, luqum.tree.Phrase)):
+        if normed := normalize_ddc(val.value.strip('"')):
             val.value = normed
     else:
         logger.warning(f"Unexpected ddc SearchField value type: {type(val)}")

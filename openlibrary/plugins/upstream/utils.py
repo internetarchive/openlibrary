@@ -726,7 +726,7 @@ def get_abbrev_from_full_lang_name(input_lang_name: str, languages=None) -> str:
             target_abbrev = language.code
             continue
 
-        for key in language.name_translated.keys():
+        for key in language.name_translated:
             if normalize(language.name_translated[key][0]) == normalize(
                 input_lang_name
             ):

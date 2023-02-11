@@ -281,7 +281,7 @@ class people_view:
         elif i.action == "su":
             return self.POST_su(user)
         elif i.action == "anonymize_account":
-            test = True if i.dry_run else False
+            test = bool(i.dry_run)
             return self.POST_anonymize_account(user, test)
         else:
             raise web.seeother(web.ctx.path)
