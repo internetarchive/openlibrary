@@ -38,9 +38,10 @@ def map_book_to_olbook(book, promise_id):
     publish_date = book['ProductJSON'].get('PublicationDate')
     title = book['ProductJSON'].get('Title')
     isbn = book.get('ISBN') or ' '
+    sku = book['BookSKUB'] or book['BookSKU'] or book['BookBarcode']
     olbook = {
         'local_id': [
-            f"urn:bwbsku:{book['BookSKUB'] or book['BookSKU'] or book['BookBarcode']}"
+            f"urn:bwbsku:{sku}"
         ],
         'identifiers': {
             **({'amazon': [book.get('ASIN')]} if not asin_is_isbn_10 else {}),
@@ -55,7 +56,7 @@ def map_book_to_olbook(book, promise_id):
         **({'title': title} if title else {}),
         'authors': [{"name": book['ProductJSON'].get('Author') or '????'}],
         'publishers': [book['ProductJSON'].get('Publisher') or '????'],
-        'source_records': [f"promise:{promise_id}"],
+        'source_records': [f"promise:{promise_id}:{sku}"],
         # format_date adds hyphens between YYYY-MM-DD
         'publish_date': publish_date and format_date(publish_date) or '????',
     }
