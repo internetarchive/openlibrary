@@ -40,9 +40,7 @@ def map_book_to_olbook(book, promise_id):
     isbn = book.get('ISBN') or ' '
     sku = book['BookSKUB'] or book['BookSKU'] or book['BookBarcode']
     olbook = {
-        'local_id': [
-            f"urn:bwbsku:{sku}"
-        ],
+        'local_id': [f"urn:bwbsku:{sku}"],
         'identifiers': {
             **({'amazon': [book.get('ASIN')]} if not asin_is_isbn_10 else {}),
             **(
