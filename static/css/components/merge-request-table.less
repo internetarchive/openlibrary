@@ -21,8 +21,30 @@
     li:nth-child(n + 3) {
       float: right;
     }
-
   }
+}
+
+.mr-table2 {
+  width: 100%;
+  background-color: white;
+
+  tbody {
+    background-color: @white;
+  }
+
+
+  td {
+    padding: 5px;
+    vertical-align: top;
+  }
+
+  tr{
+    background-color: @white;
+  }
+
+  tr:nth-child(even){
+    background-color: @lightest-grey;
+  };
 }
 
 .mr-table {
