@@ -603,13 +603,14 @@ class author_search(delegate.page):
     def GET(self):
         return render_template('search/authors', self.get_results)
 
-    def get_results(self, q, offset=0, limit=100, fields='*'):
+    def get_results(self, q, offset=0, limit=100, fields='*', sort=''):
         resp = run_solr_query(
             AuthorSearchScheme(),
             {'q': q},
             offset=offset,
             rows=limit,
             fields=fields,
+            sort=sort,
         )
 
         return resp
@@ -620,12 +621,14 @@ class author_search_json(author_search):
     encoding = 'json'
 
     def GET(self):
-        i = web.input(q='', offset=0, limit=100, fields='*')
+        i = web.input(q='', offset=0, limit=100, fields='*', sort='')
         offset = safeint(i.offset, 0)
         limit = safeint(i.limit, 100)
         limit = min(1000, limit)  # limit limit to 1000.
 
-        response = self.get_results(i.q, offset=offset, limit=limit, fields=i.fields)
+        response = self.get_results(
+            i.q, offset=offset, limit=limit, fields=i.fields, sort=i.sort
+        )
         raw_resp = response.raw_resp['response']
         for doc in raw_resp['docs']:
             # SIGH the public API exposes the key like this :(
