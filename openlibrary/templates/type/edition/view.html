@@ -80,7 +80,9 @@ $ ocaid = edition.get('ocaid')
 $ book_title = edition.get('title', '') or (work.title if work else '')
 $ work_title = work.title if work else edition.get('title', '')
 $ book_subtitle = edition.get('subtitle', '')
-$ title_suffix = cond(edition.get('publish_date'), u"({0} edition)".format(edition.get('publish_date')), "(edition)")
+$ authors = work.get_authors() if work else edition.get('authors', {})
+$# Only display the first / primary author
+$ title_suffix = "by " + authors[0].name if authors else ""
 $ title = book_title + " " + title_suffix
 $ title_with_site = _("%(page_title)s | Open Library", page_title=title)
 $ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
