@@ -125,10 +125,14 @@ $ counts = counts or pa.get_sidebar_counts
         </li>
         <div class="list-overflow">
           $ placeholder_name = _('Untitled list')
+          $ i = 0
           $for lst in lists:
           $# e.g. OL1L from /people/mekBot/lists/OL1L
+            $if i >= 3:
+              $ break
             $ list_id = lst.key.split('/')[-1]
             $ class_list = ''
+            $ i += 1
             $if key == 'list':
               $# e.g. /people/openlibrary/lists/OL1L/MyList
               $ path_id = ctx.path.split('/')[4]
@@ -145,8 +149,16 @@ $ counts = counts or pa.get_sidebar_counts
               </div>
             </li>
         </div>
+        <li>
+          <div class="carousel-section-header">
+            <a data-ol-link-track="MyBooksSidebar|AllLists" href="/people/$username/lists">
+              $_('View All Lists')
+              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
+            </a>
+          </div>
+        </li>
       </ul>
-      
+
       <div style="width: 100%; background: white">
         <p style="height: 30px"></p>
         <h1 class="details-title" style="padding: 8px; background: white">My Stats</h1>
