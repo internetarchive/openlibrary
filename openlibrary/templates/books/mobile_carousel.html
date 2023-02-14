@@ -63,32 +63,6 @@ $def render_carousel_cover(book, lazy, index):
     </div>
   </div>
 
-<style>
-  .showcase {
-    display: flex;
-    background-color: #f0f0f0;
-    height: 12vh;
-    gap: 15px;
-    padding: 0 15px;
-    padding-top: 20px;
-    margin-bottom: -10px;
-  }
-
-  .showcase__item {
-    margin: 0;
-  }
-
-  .book .book-cover.mobile {
-    height: auto;
-    width: calc(20vw - 15px);
-  }
-
-  #last-book {
-    -webkit-mask-image: linear-gradient(to left, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
-    mask-image: linear-gradient(to left, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
-  }
-</style>
-
 
 $if test or (books and len(books) >= min_books):
     <div class="carousel-section" style="overflow: hidden">
