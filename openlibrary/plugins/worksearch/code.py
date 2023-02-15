@@ -231,8 +231,7 @@ def run_solr_query(
     response = execute_solr_query(solr_select_url, params)
     solr_result = response.json() if response else None
 
-    non_solr_fields = set(fields) & scheme.non_solr_fields
-    if non_solr_fields:
+    if non_solr_fields := set(fields) & scheme.non_solr_fields:
         scheme.add_non_solr_fields(non_solr_fields, solr_result)
 
     return SearchResponse.from_solr_result(solr_result, sort, url)
