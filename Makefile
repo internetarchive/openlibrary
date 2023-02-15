@@ -36,6 +36,11 @@ components: $(COMPONENTS_DIR)/*.vue
 		npx vue-cli-service build --no-clean --mode production --dest $(BUILD)/components/production --target wc --name "ol-{/.}" "{}" \
 	::: $^
 
+vue:
+	mkdir -p $(BUILD)/components
+	rm -rf $(BUILD)/components/vue3
+	npx vite build
+
 i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
 
