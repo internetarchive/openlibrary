@@ -217,7 +217,6 @@ class Edition(models.Edition):
         return self._get_available_loans([])
 
     def _get_available_loans(self, current_loans):
-
         default_type = 'bookreader'
 
         loans = []

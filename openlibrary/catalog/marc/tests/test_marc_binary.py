@@ -17,7 +17,7 @@ class MockMARC:
 
 
 def test_wrapped_lines():
-    filename = '%s/wrapped_lines' % test_data
+    filename = '%s/wrapped_lines.mrc' % test_data
     with open(filename, 'rb') as f:
         rec = MarcBinary(f.read())
         ret = list(rec.read_fields(['520']))

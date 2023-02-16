@@ -150,7 +150,6 @@ class internal_audit(delegate.page):
 
 
 class account_migration(delegate.page):
-
     path = "/internal/account/migration"
 
     def GET(self):
@@ -303,7 +302,6 @@ del delegate.pages['/account/register']
 
 
 class account_login_json(delegate.page):
-
     encoding = "json"
     path = "/account/login"
 
@@ -636,7 +634,6 @@ class account_password_forgot(delegate.page):
 
 
 class account_password_reset(delegate.page):
-
     path = "/account/password/reset/([0-9a-f]*)"
 
     def GET(self, code):
@@ -665,7 +662,6 @@ class account_password_reset(delegate.page):
 
 
 class account_audit(delegate.page):
-
     path = "/account/audit"
 
     def POST(self):
@@ -1027,7 +1023,6 @@ class account_loans(delegate.page):
 
 
 class account_loans_json(delegate.page):
-
     encoding = "json"
     path = "/account/loans"
 

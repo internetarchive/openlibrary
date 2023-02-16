@@ -17,10 +17,7 @@ def all(**params):
 
 def url(**params):
     logger.debug("Evaluate url '%s'" % web.ctx.path)
-    if re.search(params['pattern'], web.ctx.path):
-        return True
-    else:
-        return False
+    return bool(re.search(params["pattern"], web.ctx.path))
 
 
 def loggedin(**kw):

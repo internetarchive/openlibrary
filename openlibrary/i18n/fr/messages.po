@@ -3425,13 +3425,12 @@ msgid "Digital shelves organized like a physical library"
 msgstr "Étagères numériques organisées comme dans une bibliothèque"
 
 #: home/welcome.html:68
-#, fuzzy
 msgid "Try Fulltext Search"
-msgstr "Recherche en plein texte"
+msgstr "Essayez la recherche en plein texte"
 
 #: home/welcome.html:69
 msgid "Find matching results within the text of millions of books"
-msgstr ""
+msgstr "Trouvez des résultats correspondants dans le texte de millions de livres"
 
 #: home/welcome.html:82
 msgid "Be an Open Librarian"

@@ -745,7 +745,6 @@ def get_observation_metrics(work_olid):
 
 
 class Observations(db.CommonExtras):
-
     TABLENAME = "observations"
     NULL_EDITION_VALUE = -1
     PRIMARY_KEY = [

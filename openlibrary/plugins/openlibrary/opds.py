@@ -110,7 +110,6 @@ class OPDS:
     # __init__()
     # ___________________________________________________________________________
     def __init__(self, root_name="feed"):
-
         self.root = self.create_root(root_name)
 
 
@@ -205,7 +204,6 @@ class OPDSEntry(OPDS):
     # __init__()
     # ___________________________________________________________________________
     def __init__(self, book):
-
         self.root = self.create_root('entry')
 
         bookID = book.key

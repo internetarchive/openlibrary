@@ -3,7 +3,6 @@ from . import db
 
 
 class YearlyReadingGoals:
-
     TABLENAME = 'yearly_reading_goals'
 
     # Create methods:

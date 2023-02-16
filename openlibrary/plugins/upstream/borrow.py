@@ -72,9 +72,9 @@ bookreader_stream_base = f'https://{bookreader_host}/stream'
 
 # ######### Page Handlers
 
+
 # Handler for /books/{bookid}/{title}/borrow
 class checkout_with_ocaid(delegate.page):
-
     path = "/borrow/ia/(.*)"
 
     def GET(self, ocaid):
@@ -885,7 +885,6 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
     else:
         # If we know who this user is, from third-party cookies and they are logged into openlibrary.org, check if they have the loan
         if user:
-
             if loan['user'] != user.key:
                 # Borrowed by someone else - OR possibly came in through ezproxy and there's a stale login in on openlibrary.org
                 error_message = 'This book is checked out'
@@ -978,7 +977,6 @@ def make_ia_token(item_id, expiry_seconds):
 
 
 def ia_token_is_current(item_id, access_token):
-
     # Check if token has expired
     try:
         token_timestamp = access_token.split('-')[0]

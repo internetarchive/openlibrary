@@ -65,10 +65,7 @@ def compare_part(p1, p2):
 def compare_parts(parts1, parts2):
     if len(parts1) != len(parts2):
         return False
-    for i, j in zip(parts1, parts2):
-        if not compare_part(i, j):
-            return False
-    return True
+    return all(compare_part(i, j) for i, j in zip(parts1, parts2))
 
 
 def split_parts(s):

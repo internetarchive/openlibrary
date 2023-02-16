@@ -84,7 +84,6 @@ SCHEMA_URL = (
 
 
 class Biblio:
-
     ACTIVE_FIELDS = [
         'title',
         'isbn_13',
@@ -268,7 +267,6 @@ def batch_import(path, batch, batch_size=5000):
         with open(fname, 'rb') as f:
             logger.info(f"Processing: {fname} from line {offset}")
             for line_num, line in enumerate(f):
-
                 # skip over already processed records
                 if offset:
                     if offset > line_num:

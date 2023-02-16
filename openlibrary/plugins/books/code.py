@@ -38,10 +38,7 @@ class read_singleget(delegate.page):
         web.ctx.headers = []
         req = f'{idtype}:{idval}'
         result = readlinks.readlinks(req, i)
-        if req in result:
-            result = result[req]
-        else:
-            result = []
+        result = result.get(req, [])
         return json.dumps(result)
 
 
