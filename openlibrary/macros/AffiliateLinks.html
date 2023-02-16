@@ -10,7 +10,7 @@ $code:
     'analytics_key': 'BetterWorldBooks',
     'name': _('Better World Books'),
     'link': 'https://www.betterworldbooks.com/%s' % (
-      ('-id-%s.aspx' % isbn) if isbn else ('search/results?q=' + page.title.replace(' ','%20'))
+      ('product/detail/-%s' % isbn) if isbn else ('search/results?q=' + page.title.replace(' ','%20'))
     ),
     'price_note': _(' - includes shipping')
   }

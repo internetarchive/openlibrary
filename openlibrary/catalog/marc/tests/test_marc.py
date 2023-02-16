@@ -70,7 +70,7 @@ class TestMarcParse(unittest.TestCase):
             ('97883178953X ', '97883178953X'),
         ]
 
-        for (value, expect) in data:
+        for value, expect in data:
             rec = MockRecord('020', [('a', value)])
             output = read_isbn(rec)
             if len(expect) == 13:
@@ -84,7 +84,7 @@ class TestMarcParse(unittest.TestCase):
             ('xx, 1065 , [57] p.', 1065),
             ('193 p., 31 p. of plates', 193),
         ]
-        for (value, expect) in data:
+        for value, expect in data:
             rec = MockRecord('300', [('a', value)])
             output = read_pagination(rec)
             self.assertEqual(output['number_of_pages'], expect)
@@ -183,7 +183,7 @@ class TestMarcParse(unittest.TestCase):
             )
         ]
 
-        for (value, expect) in data:
+        for value, expect in data:
             output = read_title(MockRecord('245', value))
             self.assertEqual(expect, output)
 
@@ -201,6 +201,6 @@ class TestMarcParse(unittest.TestCase):
                 },
             )
         ]
-        for (value, expect) in data:
+        for value, expect in data:
             output = read_title(MockRecord('245', value))
             self.assertEqual(expect, output)

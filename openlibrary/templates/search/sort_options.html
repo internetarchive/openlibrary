@@ -1,16 +1,23 @@
-$def with (selected_sort, exclude=None, default_sort='relevance')
+$def with (selected_sort, exclude=None, default_sort='relevance', search_scheme='works')
 
 <span class="tools">
     <img src="/images/icons/icon_sort.png" class="" alt="$_('Sorting by')" width="9" height="11" class="sorter" />
     $_('Sorted by'):
-    $code:
-      sort_options = [
-        { 'sort': 'relevance', 'name': _("Relevance"), 'ga_key': 'Relevance' },
-        { 'sort': 'editions', 'name': _("Most Editions"), 'ga_key': 'Editions' },
-        { 'sort': 'old', 'name': _("First Published"), 'ga_key': 'Old' },
-        { 'sort': 'new', 'name': _("Most Recent"), 'ga_key': 'New' },
-        { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random', 'selected': selected_sort and selected_sort.startswith('random') },
+$code:
+     if search_scheme == 'authors':
+       sort_options = [
+         { 'sort': 'relevance', 'name': _("Relevance"), 'ga_key': 'Relevance' },
+         { 'sort': 'work_count desc', 'name': _("Work Count"), 'ga_key': 'WorkCountDesc' },
+         { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random', 'selected': selected_sort and selected_sort.startswith('random') },
       ]
+     else:
+       sort_options = [
+         { 'sort': 'relevance', 'name': _("Relevance"), 'ga_key': 'Relevance' },
+         { 'sort': 'editions', 'name': _("Most Editions"), 'ga_key': 'Editions' },
+         { 'sort': 'old', 'name': _("First Published"), 'ga_key': 'Old' },
+         { 'sort': 'new', 'name': _("Most Recent"), 'ga_key': 'New' },
+         { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random', 'selected': selected_sort and selected_sort.startswith('random') },
+       ]
     $for sort_option in sort_options:
       $if exclude and sort_option['sort'] in exclude:
         $continue

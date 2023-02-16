@@ -3,7 +3,6 @@ from splinter import Browser
 
 
 class TestLanding:
-
     host = 'http://localhost:8080'
 
     def login(self, browser_instance):

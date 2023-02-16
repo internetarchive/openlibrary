@@ -4,7 +4,6 @@ from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 
 class Booknotes(db.CommonExtras):
-
     TABLENAME = "booknotes"
     PRIMARY_KEY = ["username", "work_id", "edition_id"]
     NULL_EDITION_VALUE = -1

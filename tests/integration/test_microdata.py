@@ -3,7 +3,6 @@ from splinter import Browser
 
 
 class TestMicrodata:
-
     host = 'http://localhost:8080'
 
     @pytest.fixture

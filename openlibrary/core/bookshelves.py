@@ -16,7 +16,6 @@ FILTER_BOOK_LIMIT: Final = 30_000
 
 
 class Bookshelves(db.CommonExtras):
-
     TABLENAME = "bookshelves_books"
     PRIMARY_KEY = ["username", "work_id", "bookshelf_id"]
     PRESET_BOOKSHELVES = {'Want to Read': 1, 'Currently Reading': 2, 'Already Read': 3}

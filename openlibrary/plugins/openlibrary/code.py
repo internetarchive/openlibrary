@@ -452,7 +452,6 @@ class health(delegate.page):
 
 
 class isbn_lookup(delegate.page):
-
     path = r'/(?:isbn|ISBN)/([0-9xX-]+)'
 
     def GET(self, isbn):
