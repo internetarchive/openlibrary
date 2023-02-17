@@ -55,6 +55,8 @@ $ counts = counts or pa.get_sidebar_counts
               $ class_list = class_list + 'selected'
           <li><a class="$class_list" data-ol-link-track="MyBooksSidebar|PatronList" href="/people/$username/lists/$list_id"><span class="li-count">$(len(lst.seeds))</span>$(lst['name'] if lst['name'] else '[%s]' % placeholder_name)</a></li>
       </div>
+      $ user_lists = []
+      $:macros.ReadingLogDropper(user_lists)
     </ul>
   </div>
   $ component_times['Sidebar'] = time() - component_times['Sidebar']

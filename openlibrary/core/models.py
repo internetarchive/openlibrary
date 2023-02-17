@@ -860,22 +860,9 @@ class User(Thing):
 
         return self._site.things(q)
 
-    def new_list(self, name, description, seeds, tags=None):
+    def new_list(self, name, description, tags=None):
         tags = tags or []
-        """Creates a new list object with given name, description, and seeds.
-
-        seeds must be a list containing references to author, edition, work or subject strings.
-
-        Sample seeds:
-
-            {"key": "/authors/OL1A"}
-            {"key": "/books/OL1M"}
-            {"key": "/works/OL1W"}
-            "subject:love"
-            "place:san_francisco"
-            "time:1947"
-            "person:gerge"
-
+        """Creates a new list object with given name and description.
         The caller must call list._save(...) to save the list.
         """
         id = self._site.seq.next_value("list")
@@ -888,7 +875,6 @@ class User(Thing):
             "type": {"key": "/type/list"},
             "name": name,
             "description": description,
-            "seeds": seeds,
             "tags": tags,
         }
         return self._site.new(key, doc)

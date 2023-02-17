@@ -134,3 +134,46 @@
     border-bottom: 3px solid @lighter-grey;
   }
 }
+
+/* 'create a new list' within sidebar */
+.sidebar-section {
+  a.dropclick {
+    display: none;
+  }
+
+  .create {
+    float: left;
+  }
+
+  .create-new-list {
+    display: block;
+    border-radius: 5px;
+    cursor: pointer;
+    padding: 7px;
+    line-height: 1.5em;
+    background-color: #0376b8;
+    color: #fff !important;
+}
+
+  div.Tools div.dropper div.dropdown {
+    border-top: 0;
+  }
+
+  .dropdown {
+    display: block !important;
+
+    .my-lists{
+      background-color: inherit !important;
+      padding: 1px !important;
+    }
+  }
+
+  .dropper.on {
+    background-color: inherit !important;
+    box-shadow: none !important;
+  }
+
+  .widget-add div.dropper div.dropdown p.create {
+    border-top: 0;
+  }
+}
