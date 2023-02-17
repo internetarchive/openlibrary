@@ -2,13 +2,50 @@
 
 ## Prerequisites & Troubleshooting
 
-Before attempting to build openlibrary using the Docker instructions below, please follow this checklist. If you encounter an error, this section may serve as a troubleshooting guide:
+The openlibrary repository must be cloned with `ssh` and *not* `https`. See the [Git Cheat Sheet](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet) for more, including how to fix this if you use `git clone https://...`
 
-- Install `docker-ce`: https://docs.docker.com/get-docker/ (tested with version 19.*)
-- Install `docker-compose`: https://docs.docker.com/compose/install/
-- Make sure you `git clone` openlibrary using `ssh` instead of `https` as git submodules (e.g. `infogami` and `acs`) may not fetch correctly otherwise. You can modify an existing openlibrary repository using `git remote rm origin` and then `git remote add origin git@github.com:internetarchive/openlibrary.git`. Then run `git submodule init; git submodule sync; git submodule update` to get rid of the issue.
+Before attempting to build openlibrary using the Docker instructions below, please read through these opening notes about setting up Docker. If you encounter an error, this section may serve as a troubleshooting guide:
 
-## Setup/Teardown Commands
+### Install Docker Engine or Docker Desktop
+Linux users (including those using a VM), can install Docker Engine or Docker Desktop. Docker has an [FAQ about the difference](https://docs.docker.com/desktop/faqs/linuxfaqs/) between the two. Windows and macOS users should use Docker Desktop as of early 2023.
+
+- Docker Engine: https://docs.docker.com/engine/install/#server (tested with 19.*)
+- Docker Desktop: https://docs.docker.com/get-docker/
+
+### A note on `docker-compose` and `docker compose`
+
+As of early 2023, following the installation instructions on Docker's website will install either Docker Desktop, which includes Docker Compose, it will install `docker-ce` and `docker-compose-plugin`, both of which obviate the need to install `docker-compose` separately.
+
+Further, Compose V1 will [no longer be supported by the end of June 2023](https://docs.docker.com/compose/compose-v2/) and will be removed from Docker Desktop. These directions are written for Compose V2, hence the use of `docker compose` rather than `docker-compose`. `docker compose` is [meant to be a drop-in replacement](https://docs.docker.com/compose/compose-v2/#differences-between-compose-v1-and-compose-v2) for `docker-compose`.
+
+If for some reason one cannot use a current version of Docker that includes Docker Compose, the plugin can [be installed separately](https://docs.docker.com/compose/install/)
+
+Finally, as of this writing (early 2023), the `docker-compose` command still works.
+
+#### Test that Docker works
+Before continuing, ensure you can successfully run the hello-world container.
+
+```
+docker run hello-world
+```
+
+The output should include a `Hello from Docker!` message that will confirm everything is working with Docker and you can continue.
+
+If Docker is unable to pull the `hello-world:latest` image from Docker Hub, try disabling your VPN if you are using one.
+
+Linux users, note the lack of `sudo` before `docker run hello-world`. See the [Linux post-installation instructions](https://docs.docker.com/engine/install/linux-postinstall/) if you see the following error:
+```
+docker: permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Post "http://%2Fvar%2Frun%2Fdocker.sock/v1.24/containers/create": dial unix /var/run/docker.sock: connect: permission denied.
+See 'docker run --help'.
+```
+
+### Cloning the Open Library repository
+
+If you have not yet forked and cloned the openlibrary repository, please see the "Preliminary Steps" and the "Forking and Cloning the Open Library Repository" sections of the [Git Cheat Sheet](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet) on the [wiki](https://github.com/internetarchive/openlibrary/wiki).
+
+Note: make sure you `git clone` openlibrary using `ssh` instead of `https` as git submodules (e.g. `infogami` and `acs`) may not fetch correctly otherwise. See the [Git Cheat Sheet](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#fork-the-open-library-repository) if you cloned with `https`.
+
+## Setup Commands
 
 ### For Windows Users Only
 
@@ -32,25 +69,44 @@ Please use [Docker Desktop >= 4.3.0](https://docs.docker.com/desktop/mac/release
 If you are experiencing issues building JS, you may need to increase the RAM available to Docker. The defaults of 2GB ram and 1GB Swap are not enough. We recommend requirements of 4GB ram and 2GB swap. This resolved the error message of `Killed` when running `build-assets`.
 
 ### For All Users
-All commands are from the project root directory:
+All commands are from the project root directory, where `docker-compose.yml` is (i.e. `path/to/your/forked/and/cloned/openlibrary`):
 
-```bash
-# build images
-docker-compose build # 15+ min (Win10Home/Dec 2018)
+#### Build the images
+```
+docker compose build
+```
+This can take from a few minutes to up to 15+ on older hardware. If for some reason the build fails, it's worth running again, as sometimes downloads time out.
 
-# start the app
-docker-compose up    # Ctrl-C to stop
-docker-compose up -d # or, start in detached (silent) mode
+#### Start the app
+```sh
+docker compose up    # Ctrl-C to stop
+docker compose up -d # or, start in detached (silent) mode
+```
 
+You will know the environment is done loading when the text stops furiously scrolling by and you see the following repeating every few seconds on the console:
+
+```
+infobase_1      | 172.19.0.5:45716 - - [16/Feb/2023 16:54:10] "HTTP/1.1 GET /openlibrary.org/log/2023-02-16:0" - 200 OK
+infobase_1      | 172.19.0.5:45730 - - [16/Feb/2023 16:54:15] "HTTP/1.1 GET /openlibrary.org/log/2023-02-16:0" - 200 OK
+infobase_1      | 172.19.0.5:41790 - - [16/Feb/2023 16:54:20] "HTTP/1.1 GET /openlibrary.org/log/2023-02-16:0" - 200 OK
+```
+
+At this point, visit http://localhost:8080 and you should see the Open Library banner image with "development version" emblazoned upon it to signify that it's running from your local development server. From here you can [log in locally](http://localhost:8080/account/login).
+
+That's it for the Docker set up. You can read on for more about Docker, including how to gracefully shut down the Docker development environment. Or you can look at the "Contributing" or "Learning the Code" sections of the [Getting Started](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md) guide for more on git, how to find a good first issue to work on, how to develop for the front end, etc.
+
+## Teardown commands
+
+```sh
 # stop the app (if started in detached mode)
-docker-compose down
+docker compose down
 
 # start specific service
-docker-compose up --no-deps -d solr
+docker compose up --no-deps -d solr
 
 # remove all volumes (i.e. reset all databases); perform WHILE RUNNING
-docker-compose stop
-docker-compose rm -v
+docker compose stop
+docker compose rm -v
 ```
 
 This exposes the following ports:
@@ -66,14 +122,11 @@ For example, to access Solr admin, go to http://localhost:8983/solr/admin/
 
 ## Code Updates
 
-While running the `oldev` container, gunicorn is configured to auto-reload modified files. To see the effects of your changes in the running container, the following apply:
+For changes to the frontend (JS, CSS, and HTML/[Templetor](http://webpy.org/docs/0.3/templetor) templates), see the [Frontend Guide](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide).
 
-- **Editing Python files or web templates (e.g. HTML)?** Simply save the file; gunicorn will auto-reload it.
-    - Note that the home page `openlibrary\templates\home` is cached and each change will take time to apply unless you run `docker-compose restart memcached` which restarts the `memecached` container and renders the change directly. Changing any other web template, auto applies and doesn't need any further commands.
-- **Editing frontend css or js?** Run `docker-compose run --rm home npm run-script build-assets`. This will re-generate the assets in the persistent `ol-build` volume mount (so the latest changes will be available between stopping / starting  `web` containers). Note, if you want to view the generated output you will need to attach to the container (`docker-compose exec web bash`) to examine the files in the volume, not in your local dir.
-- **Watching for file changes (frontend)** To watch for js file changes, run `docker-compose run --rm home npm run-script watch`. Similarly, for css (.less) files, run `docker-compose run --rm home npm run-script watch-css`.
-- **Editing pip packages?** Rebuild the `home` service: `docker-compose build home`
-- **Editing npm packages?** Run `docker-compose run --rm home npm install` (see [#2032](https://github.com/internetarchive/openlibrary/issues/2032) for why)
+Other changes:
+- **Editing pip packages?** Rebuild the `home` service: `docker compose build home`
+- **Editing npm packages?** Run `docker compose run --rm home npm install` (see [#2032](https://github.com/internetarchive/openlibrary/issues/2032) for why)
 - **Editing core dependencies?** You will most likely need to do a full rebuild. This shouldn't happen too frequently. If you are making this sort of change, you will know exactly what you are doing ;) See [Developing the Dockerfile](#developing-the-dockerfile).
 
 ## Useful Runtime Commands
@@ -82,20 +135,20 @@ See Docker's docs for more: https://docs.docker.com/compose/reference/overview
 
 ```bash
 # Read a service's logs (replace `web` with service name)
-docker-compose logs web # Show all logs (onetime)
-docker-compose logs -f --tail=10 web # Show last 10 lines and follow
+docker compose logs web # Show all logs (onetime)
+docker compose logs -f --tail=10 web # Show last 10 lines and follow
 
 # Analyze a container
-docker-compose exec web bash # Launch terminal in `web` service
+docker compose exec web bash # Launch terminal in `web` service
 
 # Run tests
-docker-compose run --rm home make test
+docker compose run --rm home make test
 
 # Install Node.js modules (if you get an error running tests)
 # Important: npm jobs need to be run inside the Docker environment.
-docker-compose run --rm home npm install
+docker compose run --rm home npm install
 # build JS/CSS assets:
-docker-compose run --rm home npm run build-assets
+docker compose run --rm home npm run build-assets
 ```
 
 ## Fully Resetting Your Environment
@@ -104,11 +157,11 @@ Been away for a while? Are you getting strange errors you weren't getting before
 
 ```
 # Stop the site
-docker-compose down
+docker compose down
 
 # Build the latest oldev image, whilst also pulling the latest olbase image from docker hub
 # (Takes a while; ~20min for me)
-docker-compose build --pull
+docker compose build --pull
 
 # Remove any old containers; if you use docker for something special, and have containers you don't want to lose, be careful with this. But you likely don't :)
 docker container prune
@@ -117,7 +170,7 @@ docker container prune
 docker volume rm openlibrary_ol-build openlibrary_ol-nodemodules openlibrary_ol-vendor
 
 # Bring it back up again
-docker-compose up -d
+docker compose up -d
 ```
 
 ## Developing the Dockerfile
@@ -139,7 +192,7 @@ Pull the changes into your openlibrary repository: ```git pull```
 When pulling down new changes you will need to rebuild the JS/CSS assets:
 ```bash
 # build JS/CSS assets:
-docker-compose run --rm home npm run build-assets
+docker compose run --rm home npm run build-assets
 ```
 Note: This is only if you already have an existing docker image, this command is unnecessary the first time you build.
 
@@ -149,16 +202,16 @@ https://github.com/internetarchive/openlibrary/wiki/Deployment-Guide#ol-web1
 
 ```bash
 # Launch a temporary container and run tests
-docker-compose run --rm home make test
+docker compose run --rm home make test
 
 # Run Open Library using a local copy of Infogami for development
 
-docker-compose down && \
-    docker-compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.infogami-local.yml up -d && \
-    docker-compose logs -f --tail=10 web
+docker compose down && \
+    docker compose -f docker compose.yml -f docker compose.override.yml -f docker compose.infogami-local.yml up -d && \
+    docker compose logs -f --tail=10 web
 
 # In your browser, navigate to http://localhost:8080
 
 # To test Open Library on another version of Python, modify Dockerfile.olbase and then
-# rebuild olbase (see above) and oldev (`docker-compose build`)
+# rebuild olbase (see above) and oldev (`docker compose build`)
 ```
