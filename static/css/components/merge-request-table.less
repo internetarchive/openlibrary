@@ -5,7 +5,7 @@
     display: flex;
     flex-direction: column;
     margin-bottom: 10px;
-
+  
     .reviewer-filter {
       margin-bottom: 10px;
     }
@@ -15,113 +15,104 @@
 .librarian-queue-wrapper {
   border: 1px solid @light-grey;
   border-radius: 5px;
+}
 
-  .nav-bar {
-    padding: 0.5%;
+.mr-latest {
+  font-size: 12px;
+  padding-top: 10%;
+}
 
-    background-color: @lightest-grey;
+.mr-opened {
+  font-size: 12px;
+  color: @accessible-grey;
+}
 
-    li {
-      a {
-        font-weight: 400;
-        color: #333;
-      }
-    }
+.mr-opened a {
+  color: @mid-blue;
+}
 
-    //nesting selected not working
-    li.selected {
-      font-size: 14px;
+.nav-bar {
+  padding: .5%;
+  background-color: @lightest-grey;
+}
 
-      a{
-        color: @orange-five;
-        font-weight: bold;
-        border: none;
-      }
-    }
+.nav-bar li a {
+  font-weight: 400;
+  color: @lighter-black;
+}
 
-    li:hover {
-      a{
-        border: none;
-        font-weight: bold;
-      }
-    }
-    li:nth-child(n + 3) {
-      float: right;
-    }
-  }
+.nav-bar li.selected a {
+  font-size: 14px;
+  color: @orange-five;
+  font-weight: bold;
+  border: none;
+}
+
+.nav-bar li:hover a {
+  border: none;
+  font-weight: bold;
+}
+
+.nav-bar li:nth-child(n + 3) {
+  float: right;
 }
 
 .mr-table2 {
   width: 100%;
-  background-color: white;
+  background-color: @white;
 
   tbody {
     background-color: @white;
   }
 
-  tr{
+  tr {
     display: flex;
     justify-content: space-between;
     padding: 1%;
     background-color: @white;
   }
 
-  tr:nth-child(even){
+  tr:nth-child(even) {
     background-color: @lightest-grey;
-  };
+  }
 
   td {
-    padding: 5px;
     vertical-align: top;
     padding: 1%;
   }
-  .mr-info {
-    .mr-latest{
-      font-size: 12px;
-      padding-top: 10%;
-    }
+}
 
-    .mr-opened {
-      font-size: 12px;
-      color: @accessible-grey;
-      a {
-        color: @mid-blue;
-      }
+.mr-table2 .mr-comment-review-cell {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  button {
+    border-radius: 5px;
+    box-shadow: none;
+    border: 1px solid @light-grey;
+    padding: 5%;
+    height: 50px;
+    margin-right: 40px;
+  }
+
+  &__review {
+    background-color: @primary-blue;
+
+    .mr-resolve-link {
+      color: @white;
+      text-decoration: none;
     }
   }
 
-  .mr-comment-review-cell {
+  &__comments{
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    margin-right: 10px;
 
-
-    button {
-      border-radius: 5px;
-      box-shadow: none;
-      border:1px solid @light-grey;
-      padding: 5%;
-      height: 50px;
-      margin-right: 40px;
-    }
-
-    &__review {
-      background-color: @primary-blue;
-
-      .mr-resolve-link {
-        color: @white;
-        text-decoration: none;
-      }
-    }
-
-    &__comments{
-      display: flex;
-      align-items: center;
-      margin-right: 10px;
-
-    }
   }
 }
+
 
 
 // .mr-table {
