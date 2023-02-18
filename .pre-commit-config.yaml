@@ -30,7 +30,7 @@ repos:
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     # Ruff version.
-    rev: v0.0.244
+    rev: v0.0.247
     hooks:
       - id: ruff
 
@@ -67,7 +67,7 @@ repos:
           - --keep-runtime-typing
 
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: "0.7.0"
+    rev: "0.8.0"
     hooks:
       - id: pyproject-fmt
 
