@@ -207,8 +207,7 @@ function addCreateListClickListener(button, parentDropper) {
                 seeds: [seed],
             }
 
-            const successCallback = function(listKey, listTitle) {
-                const seedKey = typeof seed === 'string' ? seed : seed['key']
+            const successCallback = function() {
             }
 
             createList(hiddenUserInput.value, data, successCallback)
