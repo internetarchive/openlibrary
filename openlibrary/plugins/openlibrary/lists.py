@@ -243,7 +243,7 @@ class lists_json(delegate.page):
         lst = user.new_list(
             name=data.get('name', ''),
             description=data.get('description', ''),
-            tags=data.get('tags', [])
+            tags=data.get('tags', []),
         )
 
         if spamcheck.is_spam(lst):
