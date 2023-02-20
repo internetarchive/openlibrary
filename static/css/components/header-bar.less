@@ -381,7 +381,6 @@
   }
 
   .search-component {
-    display: flex;
     width: 45px;
     -webkit-box-ordinal-group: 3;
     -ms-flex-order: 2;
@@ -422,8 +421,15 @@
       }
 
       .search-bar-submit {
-        margin-right: 5px;
         cursor: pointer;
+      }
+
+      .vertical-separator {
+        display: block;
+      }
+
+      .search-by-barcode-submit {
+        display: block;
       }
 
       .search-facet-selector {
@@ -448,15 +454,15 @@
     }
 
     .vertical-separator {
-      border-left: 1px solid @grey;
+      border-left: 1px solid @light-grey;
       height: 34px;
       margin: auto 5px auto 0
     }
 
     .search-by-barcode-submit {
       background: url(/static/images/icons/barcode_scanner.svg) center no-repeat;
+      background-size: 26px;
       width: 28px;
-      height: 42px;
       margin-right: 8px;
     }
 
