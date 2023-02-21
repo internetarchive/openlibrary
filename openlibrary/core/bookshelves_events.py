@@ -1,6 +1,7 @@
-from datetime import datetime
+from datetime import datetime, date
 from enum import IntEnum
 from . import db
+from typing import cast
 
 
 class BookshelfEvent(IntEnum):
@@ -123,6 +124,25 @@ class BookshelvesEvents(db.CommonExtras):
         )
 
         return list(oldb.query(query, vars=data))
+
+    @classmethod
+    def total_yearly_reading_goals(cls, since: date | None = None) -> int:
+        """Returns (int) number of reading goals updated. `since` may be used
+        to limit the result to those books logged since a specific date. Any
+        python datetime.date type should work.
+
+        :param since: returns all logged books after date
+        """
+        oldb = db.get_db()
+
+        query = "SELECT count(*) from yearly_reading_goals"
+        if since:
+            query += " AND updated >= $since"
+        results = cast(
+            tuple[int],
+            oldb.query(query, vars={'since': since}),
+        )
+        return results[0]
 
     # Update methods:
     @classmethod
