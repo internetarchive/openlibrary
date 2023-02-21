@@ -521,8 +521,8 @@ class TestYearlyReadingGoals:
         self.db.query('delete from yearly_reading_goals')
 
     def test_total_yearly_reading_goals(self):
-        assert BookshelvesEvents.total_yearly_reading_goals() == 3 #getting Storage <{'count(*)':3}> instead of 3
-        assert BookshelvesEvents.total_yearly_reading_goals(since = "2022-12-25") == 2
+        assert BookshelvesEvents.total_yearly_reading_goals() == 3 #getting <Storage {'count(*)': 3}> instead of 3
+        assert BookshelvesEvents.total_yearly_reading_goals(since = "2022-12-25") == 2 #Combination of issues
 
     def test_create(self):
         assert len(list(self.db.select(self.TABLENAME))) == 3
