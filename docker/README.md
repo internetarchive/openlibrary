@@ -88,13 +88,23 @@ That's it for the Docker set up. You can read on for more about Docker, includin
 
 ### Possible errors
 
-#### `openlibrary-web-1 | exec docker/ol-web-start.sh: no such file or directory` OR `/usr/bin/env: 'python\r': No such file or directory`
+#### "openlibrary-web-1 | exec docker/ol-web-start.sh: no such file or directory" OR "/usr/bin/env: 'python\r': No such file or directory"
 
-These errors may appear in different containers or with different file names, but look for file-not-found type errors where `\r` is in the filename, or there's `exec`, a path that seems to exist, and a `no such file or directory` error.
+These errors may appear in different containers or with different file names, but look for file-not-found type errors where `\r` is in the filename, or there's `exec`, a path that seems to exist, and a `no such file or directory` error, e.g. `openlibrary-web-1 | exec docker/ol-web-start.sh: no such file or directory`
 
 The likely cause here is that text files were given CRLF line endings during cloning+checkout. See [Fix line endings, symlinks, and git submodules](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm).
 
-#### `OSError: [Errno 12] Cannot allocate memory: '/openlibrary/openlibrary/core'`
+Note: after fixing this error, be on the look out for another error that will appear almost immediately after running `docker compose up` that mentions something about the `role` of `openlibrary` not existing. Read on for addressing that.
+
+#### An error similar to: FATAL: role "openlibrary" does not exist
+
+Look for errors that appear very soon after running `docker compose up` that come from the `openlibrary-db-1` container when it first starts mentioning something about the `role` of `openlibrary` not existing.
+
+In this case, try the steps in [Fully Resetting Your Environment](#fully-resetting-your-environment)
+
+Note: please update this README with the exact wording of the error if you run into it.
+
+#### "OSError: [Errno 12] Cannot allocate memory: '/openlibrary/openlibrary/core'"
 
 `OSError: [Errno 12] Cannot allocate memory:` could occur in conjunction with `/openlibrary/openlibrary/core` or any number of files. Simply try increasing free RAM or increasing swap/page file/virtual memory for your operating system.
 
@@ -189,7 +199,7 @@ docker container prune
 docker volume rm openlibrary_ol-build openlibrary_ol-nodemodules openlibrary_ol-vendor
 
 # Bring it back up again
-docker compose up -d
+docker compose up  # or docker compose up -d
 ```
 
 ## Developing the Dockerfile
