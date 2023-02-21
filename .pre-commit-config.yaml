@@ -30,7 +30,7 @@ repos:
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     # Ruff version.
-    rev: v0.0.247
+    rev: v0.0.249
     hooks:
       - id: ruff
 
@@ -52,7 +52,7 @@ repos:
     - id: cython-lint
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v1.0.0'
+    rev: 'v1.0.1'
     hooks:
       - id: mypy  # See pyproject.toml for args
         additional_dependencies:
@@ -65,11 +65,6 @@ repos:
         args:  # Solr on Cython is not yet ready for 3.10 type hints
           - --py39-plus
           - --keep-runtime-typing
-
-  - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: "0.8.0"
-    hooks:
-      - id: pyproject-fmt
 
   - repo: https://github.com/abravalheri/validate-pyproject
     rev: v0.12.1

@@ -7,9 +7,8 @@
 skip-string-normalization = true
 target-version = ["py310", "py311"]
 
-[tool.codespell]
-ignore-words-list = "beng,curren,datas,furst,nd,nin,ot,ser,spects,te,tha,ue,upto"
-skip = "./.*,*/ocm00400866,*/read_toc.py,*.it,*.js,*.json,*.mrc,*.page,*.pg_dump,*.po,*.txt,*.xml,*.yml"
+[tool.pytest.ini_options]
+asyncio_mode = "strict"
 
 [tool.mypy]
 ignore_missing_imports = true
@@ -26,8 +25,12 @@ module = [
 ]
 ignore_errors = true
 
-[tool.pytest.ini_options]
-asyncio_mode = "strict"
+
+
+
+[tool.codespell]
+ignore-words-list = "beng,curren,datas,furst,nd,nin,ot,ser,spects,te,tha,ue,upto"
+skip = "./.*,*/ocm00400866,*/read_toc.py,*.it,*.js,*.json,*.mrc,*.page,*.pg_dump,*.po,*.txt,*.xml,*.yml"
 
 [tool.ruff]
 exclude = [
