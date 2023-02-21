@@ -82,7 +82,7 @@
     },
     {
       "path": "static/build/page-book.css",
-      "maxSize": "12KB"
+      "maxSize": "13KB"
     },
     {
       "path": "static/build/page-edit.css",
@@ -98,7 +98,7 @@
     },
     {
       "path": "static/build/page-plain.css",
-      "maxSize": "23KB"
+      "maxSize": "24KB"
     },
     {
       "path": "static/build/page-subject.css",

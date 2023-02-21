@@ -98,6 +98,15 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
           <input type="text" name="q" placeholder="$_('Search')" aria-label="Search" autocomplete="off">
           <input name="mode" type="checkbox" aria-hidden="true" aria-label="Search checkbox" checked="checked" value="" id="ftokenstop" class="hidden instantsearch-mode">
           <input type="submit" value="" class="search-bar-submit" aria-label="Search submit">
+          <div class="vertical-separator"></div>
+          <a
+            id="barcode_scanner_link"
+            class="search-by-barcode-submit"
+            aria-label="$_('Search by barcode')"
+            title="$_('Search by barcode')"
+            href="/barcodescanner?returnTo=/isbn/$$$$$$"
+          >
+          </a>
         </form>
       </div>
       <div class="search-dropdown">
