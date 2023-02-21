@@ -137,7 +137,7 @@ class BookshelvesEvents(db.CommonExtras):
 
         query = "SELECT count(*) from yearly_reading_goals"
         if since:
-            query += " AND updated >= $since"
+            query += " WHERE updated >= $since"
         results = cast(
             tuple[int],
             oldb.query(query, vars={'since': since}),
