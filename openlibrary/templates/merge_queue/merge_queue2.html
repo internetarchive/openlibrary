@@ -88,7 +88,29 @@ $ page = int(input(page=1).page)
                   $:_('<span class="book-title">%(title)s</span>', title=work_title, type=type_str)
                 </strong>
                 <br>
-                <span class="mr-latest">latest comment</span>
+
+                <!-- BUILDING COMMENT SECTION HERE -------------------------------------------------------------------------->
+                $if len(comments) > 1:
+                  <div class="comment-cell__description">
+                    <span>$_('Showing most recent comment only.')</span>
+                    <a href="javascript:;" class="comment-expand" data-target-id="hidden-comments-$r['id']">$_('View all')</a>
+                  </div>
+                <div id="hidden-comments-$r['id']" class="comment-cell__old-comments hidden">
+                  $for c in comments[:-1]:
+                    $:render_template('merge_queue/comment', comment=c)
+                </div>
+                <div class="comment-cell__newest-comment">
+                  $if comments:
+                    $:render_template('merge_queue/comment', comment=comments[-1])
+                  $else:
+                    <span>$_('No comments yet.')</span>
+                </div>
+                $if is_submitter or can_merge:
+                  <hr>
+                  <div class="comment-cell__input">
+                    <textarea rows="1" placeholder="$_('Add a comment...')"></textarea>
+                    <input class="mr-comment-btn" type="button" value="Reply" data-mrid="$r['id']" data-merge-type="$r['mr_type']">
+                  </div>
                 <br>
                 <span class="mr-opened">opened $datestr(r['created']) by
                   <a>
@@ -96,6 +118,9 @@ $ page = int(input(page=1).page)
                   </a>
                 </span>
               </td>
+
+              <!-- BUILDING COMMENT SECTION ABOVE -------------------------------------------------------------------------->
+
               <td class="mr-comment-review-cell">
                   $if is_open:
                   $if is_submitter:
@@ -110,6 +135,7 @@ $ page = int(input(page=1).page)
                     </button>
                     <button class="mr-comment-review-cell__comments">
                       <span style="margin-right:5px">$len(comments)</span>
+                      <a href="javascript:;" class="comment-expand" data-target-id="hidden-comments-$r['id']">$_('View all')</a>
                       <img style="margin-right:4px" src="/static/images/markdown/quotes.png" alt="">
                     </button>
               </td>
