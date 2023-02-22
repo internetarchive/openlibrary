@@ -117,8 +117,11 @@ pipeline {
 
                       def cores_completed = sh(script: 'cat logs/psql-chunk-* | grep COPY | wc -l', returnStdout: true).trim()
                       echo "Completed ${cores_completed} core(s) of ${env.PARALLEL_PROCESSES}"
-                      sleep 15*60 // By default this checks every 15s; that's unnecessary for a ~3.5 hour process
-                      return cores_completed == env.PARALLEL_PROCESSES
+                      def is_done = cores_completed == env.PARALLEL_PROCESSES
+                      if (!is_done) {
+                        sleep 15*60 // By default this checks every 15s; that's unnecessary for a ~3.5 hour process
+                      }
+                      return is_done
                     }
                   }
                 }
