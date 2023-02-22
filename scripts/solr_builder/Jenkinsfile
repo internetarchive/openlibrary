@@ -99,12 +99,12 @@ pipeline {
               }
               steps {
                 dir(env.HOST_SOLR_BUILDER_DIR) {
-                  sh(label: 'Import dump into postgres',
-                    script: "./psql-import-in-chunks.sh ${env.DUMP_DIR}/${env.OL_DUMP_FILE} ${env.PARALLEL_PROCESSES}")
                   sh(label: 'Import ratings',
                     script: "docker-compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_RATINGS_FILE} ratings")
                   sh(label: 'Import reading log',
                     script: "docker-compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_READING_LOG_FILE} reading_log")
+                  sh(label: 'Import dump into postgres',
+                    script: "./psql-import-in-chunks.sh ${env.DUMP_DIR}/${env.OL_DUMP_FILE} ${env.PARALLEL_PROCESSES}")
 
                   waitUntil {
                     script {
