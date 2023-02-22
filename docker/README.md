@@ -2,11 +2,11 @@
 
 ## Prerequisites & Troubleshooting
 
-The openlibrary repository must be cloned with `ssh` and *not* `https`. See the [Git Cheat Sheet](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet) for more, including how to fix this if you use `git clone https://...`
+The openlibrary repository _must_ be cloned with `ssh` and *not* `https` so that git submodules can be fetched correctly. See the [Git Cheat Sheet](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet) for more, including how to fix this if you use `git clone https://...`
 
 Windows users should see [Fix line endings, symlinks, and git submodules](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm).
 
-Before attempting to build openlibrary using the Docker instructions below, please read through these opening notes about setting up Docker. If you encounter an error, the following section may serve as a troubleshooting guide.
+Before attempting to build openlibrary using the Docker instructions below, please read through these opening notes about setting up Docker. If you encounter any errors, the following section may serve as a troubleshooting guide.
 
 ### Install Docker Engine or Docker Desktop
 Linux users (including those using a VM), can install Docker Engine or Docker Desktop. Docker has an [FAQ about the difference](https://docs.docker.com/desktop/faqs/linuxfaqs/) between the two. Windows and macOS users should use Docker Desktop as of early 2023.
@@ -16,16 +16,16 @@ Linux users (including those using a VM), can install Docker Engine or Docker De
 
 ### A note on `docker-compose` and `docker compose`
 
-As of early 2023, following the installation instructions on Docker's website will install either Docker Desktop, which includes Docker Compose, it will install `docker-ce` and `docker-compose-plugin` (Linux only), both of which obviate the need to install `docker-compose` separately.
+As of early 2023, following the installation instructions on Docker's website will install either Docker Desktop, which includes Docker Compose v2, it will install `docker-ce` and `docker-compose-plugin` (Linux only), both of which obviate the need to install `docker-compose` v1 separately.
 
 Further, Compose V1 will [no longer be supported by the end of June 2023](https://docs.docker.com/compose/compose-v2/) and will be removed from Docker Desktop. These directions are written for Compose V2, hence the use of `docker compose` rather than `docker-compose`. `docker compose` is [meant to be a drop-in replacement](https://docs.docker.com/compose/compose-v2/#differences-between-compose-v1-and-compose-v2) for `docker-compose`.
 
 If for some reason one cannot use a current version of Docker that includes the Docker Compose plugin, it can [be installed separately](https://docs.docker.com/compose/install/)
 
-Finally, as of this writing (early 2023), the `docker-compose` that comes with relatively recent Linux distributions (e.g. Ubuntu 22.04) still works if one already has it installed.
+Finally, as of this writing (early 2023), the `docker-compose` that comes with relatively recent Linux distributions (e.g. Ubuntu 22.04) still works if it is already installed.
 
 #### Test that Docker works
-Before continuing, ensure you can successfully run the hello-world container.
+Before continuing, ensure you can successfully run Docker's hello-world container.
 
 ```
 docker run hello-world
@@ -33,7 +33,7 @@ docker run hello-world
 
 The output should include a `Hello from Docker!` message that will confirm everything is working with Docker and you can continue.
 
-If Docker is unable to pull the `hello-world:latest` image from Docker Hub, try disabling your VPN if you are using one.
+If Docker is unable to pull the `hello-world:latest` image from Docker Hub, try disabling your VPN if one is installed.
 
 Linux users, note the lack of `sudo` before `docker run hello-world`. See the [Linux post-installation instructions](https://docs.docker.com/engine/install/linux-postinstall/) if you see the following error:
 ```
@@ -66,7 +66,7 @@ All commands are from the project root directory, where `docker-compose.yml` is 
 ```
 docker compose build
 ```
-This can take from a few minutes to up to 15+ on older hardware. If for some reason the build fails, it's worth running again, as sometimes downloads time out.
+This can take from a few minutes to more than 15 on older hardware. If for some reason the build fails, it's worth running again, as sometimes downloads time out.
 
 #### Start the app
 ```sh
@@ -94,7 +94,7 @@ These errors may appear in different containers or with different file names, bu
 
 The likely cause here is that text files were given CRLF line endings during cloning+checkout. See [Fix line endings, symlinks, and git submodules](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm).
 
-Note: after fixing this error, be on the look out for another error that will appear almost immediately after running `docker compose up` that mentions something about the `role` of `openlibrary` not existing. Read on for addressing that.
+Note: after fixing this error, be on the lookout for another error that will appear almost immediately after running `docker compose up` that mentions something about the `role` of `openlibrary` not existing. Read on for how to address that.
 
 #### An error similar to: FATAL: role "openlibrary" does not exist
 
