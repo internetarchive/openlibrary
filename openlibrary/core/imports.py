@@ -139,15 +139,21 @@ class ImportItem(web.storage):
         self.set_status(status='modified', ol_key=ol_key)
 
     @classmethod
-    def delete_items(cls, ia_ids: list[str], sentinel_id: int = 321, _test: bool = False):
+    def delete_items(cls, ia_ids: list[str], batch_id: int | None = None , _test: bool = False):
         oldb = db.get_db()
         data = {
-            'batch_id': sentinel_id,
             'ia_ids': ia_ids,
         }
+
+        where = 'ia_id IN $ia_ids'
+
+        if batch_id:
+            data['batch_id'] = batch_id
+            where += ' AND batch_id=$batch_id'
+
         return oldb.delete(
             'import_item',
-            where=('batch_id > $batch_id AND ia_id IN $ia_ids'),
+            where=where,
             vars=data,
             _test=_test
         )
