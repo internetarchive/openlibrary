@@ -1,5 +1,18 @@
 """
 Deletes entries from the import_item table.
+
+Reads ia_ids that should be deleted from an input file.  The input file is expected to be tab-delimited, and each line will have the following format: 
+{N number of ia_ids in this line} {edition_key} {ia_id 1} [...] {ia_id N}
+
+Requires a configuration file in order to run.  You can use the following as a template for the configuration file:
+
+[args]
+in_file=./import-item-cleanup/in.txt
+state_file=./import-item-cleanup/curline.txt
+error_file=./import-item-cleanup/errors.txt
+batch_size=1000
+dry_run=True
+ol_config=/path/to/openlibrary.yml
 """
 import argparse
 import time
@@ -110,8 +123,8 @@ def init_and_start(args):
     print(f'Records deleted: {results["num_deleted"]}')
 
 def build_parser():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-c', '--config_file', help='Path to configuration file', default='./import-item-cleanup/config.ini')
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('config_file', metavar='config_path', help='Path to configuration file')
     parser.set_defaults(func=init_and_start)
     return parser
 
