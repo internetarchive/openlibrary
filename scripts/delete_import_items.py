@@ -1,7 +1,7 @@
 """
 Deletes entries from the import_item table.
 
-Reads ia_ids that should be deleted from an input file.  The input file is expected to be tab-delimited, and each line will have the following format: 
+Reads ia_ids that should be deleted from an input file.  The input file is expected to be tab-delimited, and each line will have the following format:
 {N number of ia_ids in this line} {edition_key} {ia_id 1} [...] {ia_id N}
 
 Requires a configuration file in order to run.  You can use the following as a template for the configuration file:
@@ -26,8 +26,11 @@ from openlibrary.config import load_config
 from openlibrary.core.imports import ImportItem
 from openlibrary.core.edits import CommunityEditsQueue
 
+
 class DeleteImportItemJob:
-    def __init__(self, in_file='', state_file='', error_file='', batch_size=1000, dry_run=False):
+    def __init__(
+        self, in_file='', state_file='', error_file='', batch_size=1000, dry_run=False
+    ):
         self.in_file = in_file
         self.state_file = state_file
         self.error_file = error_file
@@ -39,58 +42,60 @@ class DeleteImportItemJob:
         state_path = Path(state_file)
         if state_path.exists():
             with state_path.open('r') as f:
-              line = f.readline()
-              if line:
-                self.start_line = int(line)
+                line = f.readline()
+                if line:
+                    self.start_line = int(line)
 
     def run(self):
-      with open(self.in_file, 'r') as f:
-        # Seek to start line
-        for _ in range(1, self.start_line):
-          f.readline()
+        with open(self.in_file) as f:
+            # Seek to start line
+            for _ in range(1, self.start_line):
+                f.readline()
 
-        # Delete a batch of records
-        lines_processed = 0
-        affected_records = 0
-        num_deleted = 0
-        for _ in range(self.batch_size):
-          line = f.readline()
-          if not line:
-            break
-          fields = line.strip().split('\t')
-          ia_ids = fields[2:]
-          try:
-            result = ImportItem.delete_items(ia_ids, _test=self.dry_run)
-            if self.dry_run:
-              # Result is string "DELETE FROM ..."
-              print(result)
-            else:
-              # Result is number of records deleted
-              num_deleted += result
-          except Exception as e:
-            print(f'Error when deleting: {e}')
-            if not self.dry_run:
-              write_to(self.error_file, line, mode='a+')
-          lines_processed += 1
-          affected_records += int(fields[1])
+            # Delete a batch of records
+            lines_processed = 0
+            affected_records = 0
+            num_deleted = 0
+            for _ in range(self.batch_size):
+                line = f.readline()
+                if not line:
+                    break
+                fields = line.strip().split('\t')
+                ia_ids = fields[2:]
+                try:
+                    result = ImportItem.delete_items(ia_ids, _test=self.dry_run)
+                    if self.dry_run:
+                        # Result is string "DELETE FROM ..."
+                        print(result)
+                    else:
+                        # Result is number of records deleted
+                        num_deleted += result
+                except Exception as e:
+                    print(f'Error when deleting: {e}')
+                    if not self.dry_run:
+                        write_to(self.error_file, line, mode='a+')
+                lines_processed += 1
+                affected_records += int(fields[1])
 
-      # Write next line number to state file:
-      if not self.dry_run:
-        write_to(self.state_file, f'{self.start_line + lines_processed}')
+        # Write next line number to state file:
+        if not self.dry_run:
+            write_to(self.state_file, f'{self.start_line + lines_processed}')
 
-      return {
-        'lines_processed': lines_processed,
-        'num_deleted': num_deleted,
-        'affected_records': affected_records,
-      }
+        return {
+            'lines_processed': lines_processed,
+            'num_deleted': num_deleted,
+            'affected_records': affected_records,
+        }
+
 
 def write_to(filepath, s, mode='w+'):
-  print(mode)
-  path = Path(filepath)
-  path.parent.mkdir(exist_ok=True, parents=True)
+    print(mode)
+    path = Path(filepath)
+    path.parent.mkdir(exist_ok=True, parents=True)
 
-  with path.open(mode=mode) as f:
-    f.write(s)
+    with path.open(mode=mode) as f:
+        f.write(s)
+
 
 def read_args_from_config(config_path):
     path = Path(config_path)
@@ -107,8 +112,9 @@ def read_args_from_config(config_path):
         'error_file': args.get('error_file'),
         'batch_size': args.getint('batch_size'),
         'dry_run': bool(args.get('dry_run')),
-        'ol_config': args.get('ol_config')
+        'ol_config': args.get('ol_config'),
     }
+
 
 def init_and_start(args):
     # Read arguments from config file:
@@ -126,11 +132,17 @@ def init_and_start(args):
     print(f'Records read from input file: {results["affected_records"]}')
     print(f'Records deleted: {results["num_deleted"]}')
 
+
 def build_parser():
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('config_file', metavar='config_path', help='Path to configuration file')
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawTextHelpFormatter
+    )
+    parser.add_argument(
+        'config_file', metavar='config_path', help='Path to configuration file'
+    )
     parser.set_defaults(func=init_and_start)
     return parser
+
 
 if __name__ == '__main__':
     start_time = time.time()

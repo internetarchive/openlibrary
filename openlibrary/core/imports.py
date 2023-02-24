@@ -141,7 +141,9 @@ class ImportItem(web.storage):
         self.set_status(status='modified', ol_key=ol_key)
 
     @classmethod
-    def delete_items(cls, ia_ids: list[str], batch_id: int | None = None , _test: bool = False):
+    def delete_items(
+        cls, ia_ids: list[str], batch_id: int | None = None, _test: bool = False
+    ):
         oldb = db.get_db()
         data: dict[str, Any] = {
             'ia_ids': ia_ids,
@@ -153,12 +155,7 @@ class ImportItem(web.storage):
             data['batch_id'] = batch_id
             where += ' AND batch_id=$batch_id'
 
-        return oldb.delete(
-            'import_item',
-            where=where,
-            vars=data,
-            _test=_test
-        )
+        return oldb.delete('import_item', where=where, vars=data, _test=_test)
 
 
 class Stats:

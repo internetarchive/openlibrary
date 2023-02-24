@@ -3,6 +3,7 @@ import web
 from openlibrary.core.db import get_db
 from openlibrary.core.imports import ImportItem
 
+
 class TestImportItem:
     IMPORT_ITEM_DDL = """
     CREATE TABLE import_item (
