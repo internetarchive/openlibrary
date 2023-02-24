@@ -98,10 +98,10 @@ $ page = int(input(page=1).page)
                       $else:
                         <span>$_('No comments yet.')</span>
                     </div>
-                    <div id="hidden-comments-$r['id']" class="comment-cell__old-comments hidden">
-                      $for c in comments[:-1]:
-                        $:render_template('merge_queue/comment', comment=c)
-                    </div>
+                  <div id="hidden-comments-$r['id']" class="comment-cell__old-comments hidden">
+                    $for c in comments:
+                      $:render_template('merge_queue/comment', comment=c)
+                  </div>
                   $if is_submitter or can_merge:
                     <hr>
                     <div class="comment-cell__input">
