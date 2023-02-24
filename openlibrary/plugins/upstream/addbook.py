@@ -800,7 +800,7 @@ class SaveBookHelper:
             and self.edition.get('ocaid')
             and self.edition.get('ocaid') != ocaid
         ):
-            logger.warn(
+            logger.warning(
                 "Attempt to change ocaid of %s from %r to %r.",
                 self.edition.key,
                 self.edition.get('ocaid'),

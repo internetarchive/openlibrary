@@ -51,6 +51,8 @@ select = [
     "C9",
     "E",
     "F",
+    "G010",
+    "PLC",
     "W",
 ]
 target-version = "py310"
