@@ -387,7 +387,7 @@ class BetterDataProvider(LegacyDataProvider):
         if key not in self.cache:
             await self.preload_documents([key])
         if key not in self.cache:
-            logger.warn("NOT FOUND %s", key)
+            logger.warning("NOT FOUND %s", key)
         return self.cache.get(key) or {"key": key, "type": {"key": "/type/delete"}}
 
     async def preload_documents(self, keys):
