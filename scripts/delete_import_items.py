@@ -50,7 +50,8 @@ class DeleteImportItemJob:
           f.readline()
 
         # Delete a batch of records
-        num_processed = 0
+        lines_processed = 0
+        affected_records = 0
         num_deleted = 0
         for _ in range(self.batch_size):
           line = f.readline()
@@ -70,15 +71,17 @@ class DeleteImportItemJob:
             print(f'Error when deleting: {e}')
             if not self.dry_run:
               write_to(self.error_file, line, mode='a+')
-          num_processed += 1
+          lines_processed += 1
+          affected_records += int(fields[1])
 
       # Write next line number to state file:
       if not self.dry_run:
-        write_to(self.state_file, f'{self.start_line + num_processed}')
+        write_to(self.state_file, f'{self.start_line + lines_processed}')
 
       return {
-        'num_processed': num_processed,
-        'num_deleted': num_deleted
+        'lines_processed': lines_processed,
+        'num_deleted': num_deleted,
+        'affected_records': affected_records,
       }
 
 def write_to(filepath, s, mode='w+'):
@@ -119,7 +122,8 @@ def init_and_start(args):
     # Delete affected files
     results = DeleteImportItemJob(**config_args).run()
 
-    print(f'Lines of input processed: {results["num_processed"]}')
+    print(f'Lines of input processed: {results["lines_processed"]}')
+    print(f'Records read from input file: {results["affected_records"]}')
     print(f'Records deleted: {results["num_deleted"]}')
 
 def build_parser():
