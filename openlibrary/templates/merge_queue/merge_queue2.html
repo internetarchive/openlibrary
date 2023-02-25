@@ -92,18 +92,17 @@ $ page = int(input(page=1).page)
                 <!-- BUILDING COMMENT SECTION HERE -------------------------------------------------------------------------->
                 <div id="comment-cell-$(r['id'])" class="comment-cell">
                   $if len(comments) > 1:
-                    <div class="comment-cell__newest-comment">
+                    <div id="latest-comment-$r['id']" class="comment-cell__newest-comment">
                       $if comments:
                         $:render_template('merge_queue/comment2', comment=comments[-1])
                       $else:
                         <span>$_('No comments yet.')</span>
                     </div>
                   <div id="hidden-comments-$r['id']" class="comment-cell__old-comments hidden">
-                    $for c in comments:
-                      $:render_template('merge_queue/comment', comment=c)
+                  $for c in comments:
+                    $:render_template('merge_queue/comment3', comment=c)
                   </div>
                   $if is_submitter or can_merge:
-                    <hr>
                     <div class="comment-cell__input">
                       <textarea rows="1" placeholder="$_('Add a comment...')"></textarea>
                       <input class="mr-comment-btn" type="button" value="Reply" data-mrid="$r['id']" data-merge-type="$r['mr_type']">
@@ -132,9 +131,9 @@ $ page = int(input(page=1).page)
                       <a class="mr-resolve-link$extra_classes" id="mr-resolve-link-$r['id']" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="$url" target="_blank">$_('REVIEW')</a>
                     </strong>
                   </button>
-                  <button class="mr-comment-review-cell__comments">
+                  <button class="mr-comment-review-cell__comments mr-comment-btn">
                     <!-- <div>word</div> -->
-                    <a href="javascript:;" class="comment-expand" data-target-id="hidden-comments-$r['id']">
+                    <a href="javascript:;" class="comment-expand" data-target-id="hidden-comments-$r['id']" data-latest-comment="latest-comment-$r['id']">
                       <span>$len(comments)</span>
                       <img style="margin-right:4px" src="/static/images/markdown/quotes.png" alt="">
                     </a>
