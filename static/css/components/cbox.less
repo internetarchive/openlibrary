@@ -109,6 +109,7 @@
   z-index: @z-index-level-1;
   padding: 11px 17px;
   margin: -11px -17px;
+  cursor: pointer;
   &:visited, &:link, &:hover {
     text-decoration: none;
   }
@@ -184,6 +185,9 @@ div.floater {
       font-weight: normal;
     }
   }
+  .dialog--close-parent {
+    cursor: pointer;
+  }
   div#covers.input {
     max-height: 132px;
     overflow: hidden;
@@ -197,9 +201,16 @@ div.floater {
     padding: 3px;
     margin-left: 30px;
   }
+  input[type=file]::-webkit-file-upload-button {
+    cursor: pointer; 
+  }
   button[type=submit] {
     font-size: 1.125em;
     width: auto !important;
+    cursor: pointer;
+  }
+  a {
+    cursor: pointer;
   }
 }
 
