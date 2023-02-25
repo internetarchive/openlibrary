@@ -459,28 +459,42 @@ jQuery(function () {
     const mergeRequestResolveLinks = document.querySelectorAll('.mr-resolve-link')
     const mergeRequestCommentButtons = document.querySelectorAll('.mr-comment-btn')
     const showCommentsLinks = document.querySelectorAll('.comment-expand')
+    const hideNewestCommentLink = document.querySelectorAll('.comment-hide')
     const unassignElements = document.querySelectorAll('.mr-unassign')
 
-    if (mergeRequestCloseLinks.length || mergeRequestCommentButtons.length || showCommentsLinks.length || mergeRequestResolveLinks.length || unassignElements.length) {
-        import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
-            .then(module => {
-                if (mergeRequestCloseLinks.length) {
-                    module.initCloseLinks(mergeRequestCloseLinks)
-                }
-                if (mergeRequestCommentButtons.length) {
-                    module.initCommenting(mergeRequestCommentButtons)
-                }
-                if (showCommentsLinks.length) {
-                    module.initShowAllCommentsLinks(showCommentsLinks)
-                }
-                if (mergeRequestResolveLinks.length) {
-                    module.initRequestClaiming(mergeRequestResolveLinks)
-                }
-                if (unassignElements.length) {
-                    module.initUnassignment(unassignElements)
-                }
-            })
-    }
+    if (
+			mergeRequestCloseLinks.length ||
+			mergeRequestCommentButtons.length ||
+			showCommentsLinks.length ||
+			hideNewestCommentLink.length ||
+			mergeRequestResolveLinks.length ||
+			unassignElements.length
+		) {
+			import(
+				/* webpackChunkName: "merge-request-table" */ './merge-request-table'
+			).then((module) => {
+				if (mergeRequestCloseLinks.length) {
+					module.initCloseLinks(mergeRequestCloseLinks);
+				}
+				if (mergeRequestCommentButtons.length) {
+					module.initCommenting(mergeRequestCommentButtons);
+				}
+				if (showCommentsLinks.length) {
+					module.initShowAllCommentsLinks(
+						showCommentsLinks
+					);
+				}
+                // if (hideNewestCommentLink.length) {
+                //     module.initHideLatestComment(hideNewestCommentLink);
+				// }
+				if (mergeRequestResolveLinks.length) {
+					module.initRequestClaiming(mergeRequestResolveLinks);
+				}
+				if (unassignElements.length) {
+					module.initUnassignment(unassignElements);
+				}
+			});
+		}
 
     // Add new providers in edit edition view:
     const addProviderRowLink = document.querySelector('#add-new-provider-row')

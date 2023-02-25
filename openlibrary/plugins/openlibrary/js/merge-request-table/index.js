@@ -115,8 +115,9 @@ async function comment(mrid, comment) {
  * @param {string} comment The new comment
  */
 async function updateCommentsView(mrid, comment) {
-    const commentCell = document.querySelector(`#comment-cell-${mrid}`)
+    const commentCell = document.querySelector(`#comment-cell-${mrid}`);
     const newCommentDiv = commentCell.querySelector('.comment-cell__newest-comment')
+    const hiddenCommentDiv = commentCell.querySelector('.comment-cell__old-comments');
 
     await fetch(`/merges/partials?type=comment&comment=${comment}`, {
         method: 'GET'
@@ -133,12 +134,14 @@ async function updateCommentsView(mrid, comment) {
 
             if (newestComment.classList.contains('comment')) {  // "No comments yet" element will not have this class
                 // Append newest comment to old comments element
-                const oldComments = document.querySelector('.comment-cell__old-comments')
+                const oldComments = commentCell.querySelector('.comment-cell__old-comments');
                 oldComments.appendChild(newestComment)
             }
 
             // Display new
             newCommentDiv.appendChild(template.content.firstChild)
+            hiddenCommentDiv.appendChild(newestComment);
+
         })
 }
 
@@ -151,11 +154,12 @@ function removeRow(row) {
     row.parentNode.removeChild(row)
 }
 
+
 /**
- * Adds functionality for toggling visibility of older comments.
- *
- * @param {NodeList<HTMLElement>} elems Links that toggle comment visibility
- */
+ * Adds functionality for toggling visibility of the older comments.
+*
+* @param {NodeList<HTMLElement>} elems Links that toggle comment visibility
+*/
 export function initShowAllCommentsLinks(elems) {
     for (const elem of elems) {
         elem.addEventListener('click', function() {
@@ -166,24 +170,30 @@ export function initShowAllCommentsLinks(elems) {
 
 /**
  * Toggles visibility of a request's older comments.
- *
- * @param {HTMLELement} elem Element which contains a reference to the old comments
- */
+*
+* @param {HTMLELement} elem Element which contains a reference to the old comments
+*/
 function toggleAllComments(elem) {
+    console.log(elem)
     const targetId = elem.dataset.targetId;
+    const targetId2 = elem.dataset.latestComment;
+    console.log(targetId2)
     const target = document.querySelector(`#${targetId}`)
+    const target2 = document.querySelector(`#${targetId2}`)
     target.classList.toggle('hidden')
-
-    const isHidden = target.classList.contains('hidden')
-    const prevSibling = elem.previousElementSibling;
-    if (isHidden) {
-        prevSibling.textContent = 'Showing most recent comment only.'
-        elem.textContent = 'View all'
-    } else {
-        prevSibling.textContent = 'Showing all comments.'
-        elem.textContent = 'View most recent only'
-    }
+    target2.classList.toggle('hidden')
+    
+    // const isHidden = target.classList.contains('hidden')
+    // const prevSibling = elem.previousElementSibling;
+    // if (isHidden) {
+    //     prevSibling.textContent = 'Showing most recent comment only.'
+    //     elem.textContent = 'View all'
+    // } else {
+    //     prevSibling.textContent = 'Showing all comments.'
+    //     elem.textContent = 'View most recent only'
+    // }
 }
+
 
 /**
  * Adds functionality for claiming librarian requests.
