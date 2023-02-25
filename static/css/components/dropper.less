@@ -35,7 +35,7 @@
       background-size: 45px;
     }
     div.arrow-unactivated {
-      background-image: url(/images/icons/icon_dropit2.png);
+      background-image: url(/images/icons/icon_dropit.png);
       background-repeat: no-repeat;
       background-position: 0 0;
       background-size: 45px;
@@ -226,7 +226,6 @@ div#listsWork {
     z-index: @z-index-level-7;
     &.on {
       background-color: @lightest-grey;
-      border: 1px solid @mid-grey;
       border-radius: 4px;
     }
     h3 {
@@ -285,10 +284,9 @@ div#listsWork {
       border-right: 1px solid @lighter-grey;
     }
     &.unactivated {
-      color: @white;
-      background: @green;
-      border: 2px solid @green;
-      border-right: 1px solid @green-two;
+      color: @primary-blue;
+      background: @white;
+      border: 1.5px solid @primary-blue;
     }
     span.activated-check {
       color: @green;
@@ -320,7 +318,8 @@ div#listsWork {
 }
 
 .dropclick-unactivated {
-  background-color: @green;
+  background-color: @white;
+  border: 1.5px solid @primary-blue;
 }
 
 .user-book-options {
