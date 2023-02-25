@@ -105,7 +105,7 @@ $ page = int(input(page=1).page)
                   $for c in comments[:-1]:
                     $:render_template('merge_queue/comment', comment=c)
                 </div>
-                <div class="comment-cell__newest-comment">
+                <div  class="comment-cell__newest-comment">
                   $if comments:
                     $:render_template('merge_queue/comment', comment=comments[-1])
                   $else:
