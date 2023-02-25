@@ -355,14 +355,14 @@ class Bookshelves(db.CommonExtras):
                 query = (
                     "SELECT work_id, created, edition_id from bookshelves_books WHERE "
                     "bookshelf_id=$bookshelf_id AND username=$username "
-                    "ORDER BY created DESC "
+                    "ORDER BY updated DESC "
                     "LIMIT $limit OFFSET $offset"
                 )
             else:
                 query = (
                     "SELECT work_id, created, edition_id from bookshelves_books WHERE "
                     "bookshelf_id=$bookshelf_id AND username=$username "
-                    "ORDER BY created ASC "
+                    "ORDER BY updated ASC "
                     "LIMIT $limit OFFSET $offset"
                 )
             if not bookshelf_id:
@@ -531,6 +531,7 @@ class Bookshelves(db.CommonExtras):
                 where=where,
                 bookshelf_id=bookshelf_id,
                 edition_id=edition_id,
+                updated=datetime.utcnow(),
                 vars=data,
             )
 

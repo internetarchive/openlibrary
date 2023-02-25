@@ -276,7 +276,7 @@ class MyBooksTemplate:
     ):
         def get_shelf(name, page=1):
             return self.readlog.get_works(
-                key=name, page=page, limit=6, sort='created', sort_order='asc'
+                key=name, page=page, limit=6, sort='created', sort_order='desc'
             )
 
         if self.key == 'mybooks':
