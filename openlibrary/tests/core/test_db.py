@@ -487,21 +487,21 @@ class TestYearlyReadingGoals:
             'year': 2022,
             'target': 5,
             'current': 6,
-            'updated': "2022-08-04 00:00:00"
+            'updated': "2022-08-04 00:00:00",
         },
         {
             'username': '@billy_pilgrim',
             'year': 2023,
             'target': 7,
             'current': 0,
-            'updated': "2023-01-01 00:00:00"
+            'updated': "2023-01-01 00:00:00",
         },
         {
             'username': '@kilgore_trout',
             'year': 2022,
             'target': 4,
             'current': 4,
-            'updated': "2022-04-20 00:00:00"
+            'updated': "2022-04-20 00:00:00",
         },
     ]
 
