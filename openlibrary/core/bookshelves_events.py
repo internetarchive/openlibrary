@@ -1,7 +1,6 @@
 from datetime import datetime, date
 from enum import IntEnum
 from . import db
-from typing import cast
 
 
 class BookshelfEvent(IntEnum):
