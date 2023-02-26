@@ -487,21 +487,21 @@ class TestYearlyReadingGoals:
             'year': 2022,
             'target': 5,
             'current': 6,
-            # 'updated': "2022-08-04" #breaking other tests
+            'updated': "2022-08-04 00:00:00"
         },
         {
             'username': '@billy_pilgrim',
             'year': 2023,
             'target': 7,
             'current': 0,
-            #'updated': "2023-01-01" #breaking other tests
+            'updated': "2023-01-01 00:00:00"
         },
         {
             'username': '@kilgore_trout',
             'year': 2022,
             'target': 4,
             'current': 4,
-            #'updated': "2022-04-20" #breaking other tests
+            'updated': "2022-04-20 00:00:00"
         },
     ]
 
@@ -521,10 +521,9 @@ class TestYearlyReadingGoals:
         self.db.query('delete from yearly_reading_goals')
 
     def test_total_yearly_reading_goals(self):
-        # getting <Storage {'count(*)': 3}> instead of 3
         assert BookshelvesEvents.total_yearly_reading_goals() == 3
         # Combination of issues
-        assert BookshelvesEvents.total_yearly_reading_goals(since="2022-12-25") == 2
+        assert BookshelvesEvents.total_yearly_reading_goals(since="2022-12-25") == 1
 
     def test_create(self):
         assert len(list(self.db.select(self.TABLENAME))) == 3

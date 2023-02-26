@@ -139,7 +139,7 @@ class BookshelvesEvents(db.CommonExtras):
         if since:
             query += " WHERE updated >= $since"
         results = tuple(oldb.query(query, vars={'since': since}))
-        return int(results[0])
+        return int(results[0]['count(*)'])
 
     # Update methods:
     @classmethod
