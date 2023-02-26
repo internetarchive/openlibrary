@@ -128,10 +128,10 @@ class BookshelvesEvents(db.CommonExtras):
     @classmethod
     def total_yearly_reading_goals(cls, since: date | None = None) -> int:
         """Returns (int) number of reading goals updated. `since` may be used
-        to limit the result to those books logged since a specific date. Any
-        python datetime.date type should work.
+        to limit the result to those reading goals updated since a specific
+        date. Any python datetime.date type should work.
 
-        :param since: returns all logged books after date
+        :param since: returns all reading goals after date
         """
         oldb = db.get_db()
 
