@@ -451,7 +451,7 @@ $ config = ({'Please select an identifier.': _('Please select an identifier.'), 
                     </tr>
                     <tbody id="identifiers-display">
                         <tr id="identifiers-template" style="display: none;" class="repeat-item">
-                            <td align="right"><strong>{{\$("#select-id").find("option[value=" + name + "]").html()}}</strong></td>
+                            <td align="right"><strong>{{\$("#select-id").find("option[value='" + name + "']").html()}}</strong></td>
                             <td>{{value}}
                                 <input type="hidden" name="{{prefix}}identifiers--{{index}}--name" value="{{name}}"/>
                                 <input type="hidden" name="{{prefix}}identifiers--{{index}}--value" value="{{value}}" class="{{name}}"/>
@@ -516,7 +516,7 @@ $ config = ({'Please select an identifier.': _('Please select an identifier.'), 
                     </tr>
                     <tbody id="classifications-display">
                         <tr id="classifications-template" style="display: none;" class="repeat-item">
-                            <td align="right"><strong>{{\$("#select-classification").find("option[value=" + name + "]").html()}}</strong></td>
+                            <td align="right"><strong>{{\$("#select-classification").find("option[value='" + name + "']").html()}}</strong></td>
                             <td>{{value}}
                                 <input type="hidden" name="{{prefix}}classifications--{{index}}--name" value="{{name}}"/>
                                 <input type="hidden" name="{{prefix}}classifications--{{index}}--value" value="{{value}}"/>

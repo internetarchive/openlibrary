@@ -190,7 +190,7 @@ export function validateIdentifiers(data) {
     if (data.name === '' || data.name === '---') {
         return error('#id-errors', 'select-id', dataConfig['Please select an identifier.'])
     }
-    const label = $('#select-id').find(`option[value='${data.name}']`).html();
+    const label = $('#select-id').find("option[value='" + data.name + "']").html();
     if (data.value === '') {
         return error('#id-errors', 'id-value', dataConfig['You need to give a value to ID.'].replace(/ID/, label));
     }
@@ -208,7 +208,7 @@ export function validateIdentifiers(data) {
         return error('#id-errors', 'id-value', dataConfig['That ISBN already exists for this edition.'].replace(/ISBN/, label));
     }
     // Remove spaces and hyphens before checking ISBN 13.
-    if (data. name === 'isbn_13') {
+    if (data.name === 'isbn_13') {
         data.value = parseIsbn(data.value);
     }
     if (data.name === 'isbn_13' && isFormatValidIsbn13(data.value) === false) {
@@ -248,7 +248,7 @@ export function initClassificationValidation() {
                 return error('#classification-errors', '#select-classification', dataConfig['Please select a classification.']);
             }
             if (data.value === '') {
-                const label = $('#select-classification').find(`option[value='${data.name}']`).html();
+                const label = $('#select-classification').find("option[value='" + data.name + "']").html();
                 return error('#classification-errors', '#classification-value', dataConfig['You need to give a value to CLASS.'].replace(/CLASS/, label));
             }
             $('#classification-errors').hide();
