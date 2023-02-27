@@ -48,7 +48,7 @@ pipeline {
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
               sh(label: 'Stop running db',
-                script: 'docker rm -f -v solr_builder_db_1 solr_builder_adminer_1 || true')
+                script: 'docker rm -f -v solr_builder-db-1 solr_builder-adminer-1 || true')
 
               sh(label: 'Remove db volume',
                 script: 'docker volume rm solr_builder_postgres-data || true')
@@ -180,7 +180,7 @@ pipeline {
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
               sh(label: 'Stop solr if running',
-                script: 'docker rm -f -v solr_builder_solr_1 || true')
+                script: 'docker rm -f -v solr_builder-solr-1 || true')
 
               sh(label: 'Remove solr volume',
                 script: 'docker volume rm solr_builder_solr-data || true')
