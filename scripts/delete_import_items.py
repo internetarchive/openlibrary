@@ -75,7 +75,7 @@ class DeleteImportItemJob:
                     if not self.dry_run:
                         write_to(self.error_file, line, mode='a+')
                 lines_processed += 1
-                affected_records += int(fields[1])
+                affected_records += int(fields[0])
 
         # Write next line number to state file:
         if not self.dry_run:
