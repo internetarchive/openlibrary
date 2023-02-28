@@ -901,7 +901,12 @@ class book_edit(delegate.page):
             else:
                 add_flash_message("info", utils.get_message("flash_book_updated"))
 
-            raise safe_seeother(i.work_key or edition.url())
+            if i.work_key and i.work_key.startswith('/works/'):
+                url = i.work_key
+            else:
+                url = edition.url()
+
+            raise safe_seeother(url)
         except ClientException as e:
             add_flash_message('error', e.args[-1] or e.json)
             return self.GET(key)
