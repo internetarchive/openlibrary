@@ -838,7 +838,7 @@ class book_edit(delegate.page):
     path = r"(/books/OL\d+M)/edit"
 
     def GET(self, key):
-        i = web.input(v=None, work_key=None)
+        i = web.input(v=None)
         v = i.v and safeint(i.v, None)
 
         if not web.ctx.site.can_write(key):
