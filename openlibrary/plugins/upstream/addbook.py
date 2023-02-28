@@ -838,7 +838,7 @@ class book_edit(delegate.page):
     path = r"(/books/OL\d+M)/edit"
 
     def GET(self, key):
-        i = web.input(v=None)
+        i = web.input(v=None, work_key=None)
         v = i.v and safeint(i.v, None)
 
         if not web.ctx.site.can_write(key):
@@ -861,7 +861,7 @@ class book_edit(delegate.page):
         return render_template('books/edit', work, edition, recaptcha=get_recaptcha())
 
     def POST(self, key):
-        i = web.input(v=None, _method="GET")
+        i = web.input(v=None, work_key=None, _method="GET")
 
         if spamcheck.is_spam(allow_privileged_edits=True):
             return render_template(
@@ -901,7 +901,7 @@ class book_edit(delegate.page):
             else:
                 add_flash_message("info", utils.get_message("flash_book_updated"))
 
-            raise safe_seeother(edition.url())
+            raise safe_seeother(i.work_key or edition.url())
         except ClientException as e:
             add_flash_message('error', e.args[-1] or e.json)
             return self.GET(key)
