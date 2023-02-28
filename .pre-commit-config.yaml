@@ -30,7 +30,7 @@ repos:
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     # Ruff version.
-    rev: v0.0.249
+    rev: v0.0.253
     hooks:
       - id: ruff
 
@@ -47,7 +47,7 @@ repos:
           - tomli
 
   - repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.12.4
+    rev: v0.12.5
     hooks:
     - id: cython-lint
 
