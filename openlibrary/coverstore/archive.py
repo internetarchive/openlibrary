@@ -3,6 +3,8 @@
 import tarfile
 import web
 import os
+import sys
+import subprocess
 import time
 
 from openlibrary.coverstore import config, db
@@ -87,6 +89,55 @@ class TarManager:
 
 
 idx = id
+
+
+def is_uploaded(item: str, filename_pattern: str) -> bool:
+    """
+    Looks within an archive.org item and determines whether
+    .tar and .index files exist for the specified filename pattern.
+
+    :param item: name of archive.org item to look within
+    :param filename_pattern: filename pattern to look for
+    """
+    command = fr'ia list {item} | grep "{filename_pattern}\.[tar|index]" | wc -l'
+    result = subprocess.run(command, shell=True, text=True, capture_output=True)
+    output = result.stdout.strip()
+    return int(output) == 2
+
+
+def audit(group_id, chunk_ids=(0, 100), sizes=('', 's', 'm', 'l')) -> None:
+    """Check which cover batches have been uploaded to archive.org.
+
+    Checks the archive.org items pertaining to this `group` of up to
+    1 million images (4-digit e.g. 0008) for each specified size and verify
+    that all the chunks (within specified range) and their .indices + .tars (of 10k images, 2-digit
+    e.g. 81) have been successfully uploaded.
+
+    {size}_covers_{group}_{chunk}:
+    :param group_id: 4 digit, batches of 1M, 0000 to 9999M
+    :param chunk_ids: (min, max) chunk_id range or max_chunk_id; 2 digit, batch of 10k from [00, 99]
+
+    """
+    scope = range(*(chunk_ids if isinstance(chunk_ids, tuple) else (0, chunk_ids)))
+    for size in sizes:
+        prefix = f"{size}_" if size else ''
+        item = f"{prefix}covers_{group_id:04}"
+        files = (f"{prefix}covers_{group_id:04}_{i:02}" for i in scope)
+        missing_files = []
+        sys.stdout.write(f"\n{size or 'full'}: ")
+        for f in files:
+            if is_uploaded(item, f):
+                sys.stdout.write(".")
+            else:
+                sys.stdout.write("X")
+                missing_files.append(f)
+            sys.stdout.flush()
+        sys.stdout.write("\n")
+        sys.stdout.flush()
+        if missing_files:
+            print(
+                f"ia upload {item} {' '.join([f'{item}/{mf}*' for mf in missing_files])} --retries 10"
+            )
 
 
 def archive(test=True):
