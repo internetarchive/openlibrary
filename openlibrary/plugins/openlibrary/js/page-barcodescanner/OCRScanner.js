@@ -1,4 +1,5 @@
 // @ts-check
+/* eslint-disable no-console */
 import { createWorker, createScheduler } from 'tesseract.js';
 
 export default class OCRScanner {

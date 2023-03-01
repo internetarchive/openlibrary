@@ -68,22 +68,23 @@
 .barcodescanner__toolbar {
   font-family: @lucida_sans_serif-1;
   position: relative;
-  background: white;
+  background: @white;
 }
 
 .glass-button {
   cursor: pointer;
-  
+
   border-radius: 10px;
-  color: rgba(255,255,255, 0.8);
-  background: rgba(0,0,0,0.5);
-  border: 1px solid rgba(255,255,255, 0.45);
-  font-size: 0.8em;
+  // stylelint-disable-next-line sh-waqar/declaration-use-variable
+  color: rgba(255,255,255, .8);
+  background: rgba(0,0,0,.5);
+  border: 1px solid rgba(255,255,255, .45);
+  font-size: .8em;
   backdrop-filter: blur(8px);
-  
-  box-shadow: 0 0 3px 0px rgba(0,0,0,0.4);
+
+  box-shadow: 0 0 3px 0 rgba(0,0,0,.4);
   &:disabled {
-    opacity: 0.5;
+    opacity: .5;
   }
 }
 
@@ -100,9 +101,9 @@ details.barcodescanner__advanced {
 
   // For slide up effect
   transform: translateY(100%);
-  transition: transform 0.2s;
+  transition: transform .2s;
   > :not(summary) {
-    transition: opacity 0.2s;
+    transition: opacity .2s;
     opacity: 0;
   }
   &[open] {
@@ -111,7 +112,7 @@ details.barcodescanner__advanced {
   &[open] > :not(summary) {
     opacity: 1;
   }
-  
+
   & > summary {
     position: absolute;
     bottom: 100%;
@@ -130,16 +131,17 @@ details.barcodescanner__advanced {
       width: 32px;
       height: 32px;
       padding: 6px;
-      
-      transition: transform 0.2s;
+
+      transition: transform .2s;
     }
   }
 
-  &:not([open]) > summary:hover svg,
-  &[open] > summary svg {
+  &[open] > summary svg,
+  &:not([open]) > summary:hover svg {
     transform: rotate(20deg);
   }
 
+  // stylelint-disable-next-line no-descending-specificity
   &[open] > summary:hover svg {
     transform: rotate(-20deg);
   }
@@ -150,7 +152,7 @@ details.barcodescanner__advanced {
   padding: 4px;
   padding-top: 0;
   overflow-x: auto;
-  
+
   & > button {
     padding: 8px;
     text-align: left;
@@ -223,7 +225,7 @@ a.lazy-book-card {
     background: @red;
   }
   .title { font-weight: bold; line-height: 1.1em; }
-  .byline { font-size: 0.9em; margin-top: 0.1em; }
+  .byline { font-size: .9em; margin-top: .1em; }
   .cover {
     width: 25%;
     img { width: 100%; height: 100%; object-fit: cover; }
@@ -233,7 +235,7 @@ a.lazy-book-card {
     padding-top: 4px;
     color: @grey-555;
     border-top: 1px dotted;
-    font-family: monospace;
+    font-family: @monospace;
     font-size: 1.2em;
   }
   .info {
