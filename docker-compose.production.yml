@@ -84,6 +84,7 @@ services:
     environment:
       - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs
     restart: unless-stopped
+    hostname: "$HOSTNAME"
     depends_on:
       - covers
     volumes:
