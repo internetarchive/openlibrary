@@ -12,6 +12,20 @@
     font-size: 11px;
   }
 }
+
+.desktop-only {
+  display: none;
+}
+
+@media only screen and (min-width: @width-breakpoint-desktop) {
+  .desktop-only {
+    display: unset;
+  }
+  .mobile-only {
+    display: none;
+  }
+}
+
 #offline-info {
   text-align: center;
   padding: 10px 5px;
