@@ -9,7 +9,7 @@ import asyncio
 import itertools
 import logging
 import re
-from typing import List, Optional, TypedDict
+from typing import List, Optional, TypedDict, cast
 from collections.abc import Iterable, Sized
 
 import httpx
@@ -20,7 +20,9 @@ from web import DB
 
 from infogami.infobase.client import Site
 from openlibrary.core import ia
+from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings, WorkRatingsSummary
+from openlibrary.utils import extract_numeric_id_from_olid
 
 logger = logging.getLogger("openlibrary.solr.data_provider")
 
@@ -108,6 +110,13 @@ def partition(lst: list, parts: int):
         start = i * size
         end = total_len if (i == parts - 1) else ((i + 1) * size)
         yield lst[start:end]
+
+
+class WorkReadingLogSolrSummary(TypedDict):
+    readinglog_count: int
+    want_to_read_count: int
+    currently_reading_count: int
+    already_read_count: int
 
 
 class DataProvider:
@@ -217,13 +226,10 @@ class DataProvider:
             logger.debug("IA metadata cache miss")
             return ia.get_metadata_direct(identifier)
 
-    async def preload_documents(self, keys):
+    async def preload_documents(self, keys: Iterable[str]):
         """
         Preload a set of documents in a single request. Should make subsequent calls to
         get_document faster.
-
-        :param list of str keys: type-prefixed keys to load (ex: /books/OL1M)
-        :return: None
         """
         pass
 
@@ -252,7 +258,7 @@ class DataProvider:
                 if lite_metadata:
                     self.ia_cache[lite_metadata['identifier']] = lite_metadata
 
-    def preload_editions_of_works(self, work_keys):
+    def preload_editions_of_works(self, work_keys: Iterable[str]):
         """
         Preload the editions of the provided works. Should make subsequent calls to
         get_editions_of_work faster.
@@ -280,6 +286,9 @@ class DataProvider:
         raise NotImplementedError()
 
     def get_work_ratings(self, work_key: str) -> Optional[WorkRatingsSummary]:
+        raise NotImplementedError()
+
+    def get_work_reading_log(self, work_key: str) -> WorkReadingLogSolrSummary | None:
         raise NotImplementedError()
 
     def clear_cache(self):
@@ -312,6 +321,17 @@ class LegacyDataProvider(DataProvider):
     def get_work_ratings(self, work_key: str) -> Optional[WorkRatingsSummary]:
         work_id = int(work_key[len('/works/OL') : -len('W')])
         return Ratings.get_work_ratings_summary(work_id)
+
+    def get_work_reading_log(self, work_key: str) -> WorkReadingLogSolrSummary:
+        work_id = extract_numeric_id_from_olid(work_key)
+        counts = Bookshelves.get_work_summary(work_id)
+        return cast(
+            WorkReadingLogSolrSummary,
+            {
+                'readinglog_count': sum(counts.values()),
+                **{f'{shelf}_count': count for shelf, count in counts.items()},
+            },
+        )
 
     def clear_cache(self):
         # Nothing's cached, so nothing to clear!
@@ -390,7 +410,7 @@ class BetterDataProvider(LegacyDataProvider):
             logger.warning("NOT FOUND %s", key)
         return self.cache.get(key) or {"key": key, "type": {"key": "/type/delete"}}
 
-    async def preload_documents(self, keys):
+    async def preload_documents(self, keys: Iterable[str]):
         identifiers = [
             k.replace("/books/ia:", "") for k in keys if k.startswith("/books/ia:")
         ]
@@ -488,7 +508,7 @@ class BetterDataProvider(LegacyDataProvider):
         edition_keys = self.edition_keys_of_works_cache.get(wkey, [])
         return [self.cache[k] for k in edition_keys]
 
-    def preload_editions_of_works(self, work_keys):
+    def preload_editions_of_works(self, work_keys: Iterable[str]):
         work_keys = [
             wkey for wkey in work_keys if wkey not in self.edition_keys_of_works_cache
         ]
