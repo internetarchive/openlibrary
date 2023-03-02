@@ -10,6 +10,10 @@ ports:
 - port: 3000
   onOpen: ignore
 tasks:
+- name: watch-js
+  init: docker-compose run --rm home npm run-script watch
+- name: watch-css
+  init: docker-compose run --rm home npm run-script watch-css
 - name: Start App
   before: |
     # run chown because https://github.com/gitpod-io/gitpod/issues/4851
