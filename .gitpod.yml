@@ -11,8 +11,10 @@ ports:
   onOpen: ignore
 tasks:
 - name: watch-js
+  # This task watches for changes to JS files and automatically builds
   init: gp sync-await docker-up && docker-compose run --rm home npm run-script watch
 - name: watch-css
+  # This task watches for changes to CSS files and automatically builds
   init: gp sync-await docker-up && docker-compose run --rm home npm run-script watch-css
 - name: Start App
   before: |
