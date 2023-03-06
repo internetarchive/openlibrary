@@ -86,6 +86,7 @@ batch_name = ""
 batch: Batch | None = None
 
 web.amazon_queue = queue.Queue()  # a thread-safe multi-producer, multi-consumer queue
+web.amazon_lookup_thread = None
 
 
 def get_current_amazon_batch() -> Batch:
@@ -223,25 +224,45 @@ def amazon_lookup(site, stats_client) -> None:
     stats.client = stats_client
     web.ctx.site = site
 
-    while True:
-        start_time = time.time()
-        isbn_10s: set[str] = set()  # no duplicates in the batch
-        while len(isbn_10s) < API_MAX_ITEMS_PER_CALL and seconds_remaining(start_time):
-            try:  # queue.get() will block (sleep) until successful or it times out
-                isbn_10s.add(
-                    web.amazon_queue.get(timeout=seconds_remaining(start_time))
-                )
-            except queue.Empty:
-                pass
-        if isbn_10s:
-            time.sleep(seconds_remaining(start_time))
-            process_amazon_batch(list(isbn_10s))
+    try:
+        while True:
+            start_time = time.time()
+            isbn_10s: set[str] = set()  # no duplicates in the batch
+            while len(isbn_10s) < API_MAX_ITEMS_PER_CALL and seconds_remaining(
+                start_time
+            ):
+                try:  # queue.get() will block (sleep) until successful or it times out
+                    isbn_10s.add(
+                        web.amazon_queue.get(timeout=seconds_remaining(start_time))
+                    )
+                except queue.Empty:
+                    pass
+            if isbn_10s:
+                time.sleep(seconds_remaining(start_time))
+                stats_client.put("ol.affiliate.amazon.process_batch", len(isbn_10s))
+                process_amazon_batch(list(isbn_10s))
+    except Exception:
+        logger.exception("amazon_lookup()")
+        stats_client.incr("ol.affiliate.amazon.lookup_thread_died")
+
+
+def make_amazon_lookup_thread(site, stats_client) -> threading.Thread:
+    """Called from start_server() and assigned to web.amazon_lookup_thread."""
+    thread = threading.Thread(
+        target=amazon_lookup,
+        args=(site, stats_client),
+        daemon=True,
+    )
+    thread.start()
+    return thread
 
 
 class Status:
     def GET(self) -> str:
         return json.dumps(
             {
+                "thread_is_alive": web.amazon_lookup_thread
+                and web.amazon_lookup_thread.is_alive(),
                 "queue_size": web.amazon_queue.qsize(),
                 "queue": list(web.amazon_queue.queue),
             }
@@ -345,9 +366,7 @@ def start_server():
     infogami._setup()
 
     if "pytest" not in sys.modules:
-        threading.Thread(
-            target=amazon_lookup, args=(web.ctx.site, stats.client)
-        ).start()
+        web.amazon_lookup_thread = make_amazon_lookup_thread(web.ctx.site, stats.client)
 
     sys.argv = [sys.argv[0]] + list(args)
     app.run()
