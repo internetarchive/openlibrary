@@ -261,8 +261,9 @@ class Status:
     def GET(self) -> str:
         return json.dumps(
             {
-                "thread_is_alive": web.amazon_lookup_thread
-                and web.amazon_lookup_thread.is_alive(),
+                "thread_is_alive": bool(
+                    web.amazon_lookup_thread and web.amazon_lookup_thread.is_alive()
+                ),
                 "queue_size": web.amazon_queue.qsize(),
                 "queue": list(web.amazon_queue.queue),
             }
