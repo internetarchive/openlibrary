@@ -82,7 +82,22 @@
   }
 }
 
-.mr-table2 .mr-comment-review-cell {
+.comment-cell__input{
+  .mr-comment-btn{
+    background-color: @primary-blue;
+    color: @white;
+    text-decoration: none;
+    border-radius: 6px;
+    box-shadow: none;
+    border: 1px solid @light-grey;
+    padding: 3%;
+    font-weight: bold;
+  }
+
+  
+}
+
+.mr-comment-review-cell {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -96,6 +111,11 @@
     margin-right: 40px;
   }
 
+  .border-toggle {
+    border: 1.5px solid black;
+  }
+  
+
   &__review {
     background-color: @primary-blue;
 
@@ -106,12 +126,24 @@
   }
 
   &__comments{
-    display: flex;
-    align-items: center;
-    margin-right: 10px;
+    .comment-expand {
+      display: flex;
+      text-decoration: none;
+      align-items: center;
+    }
+    
+    .comment-expand span {
+      font-weight: bold;
+      margin-right: 5px;
+      color: black;
+    }
 
+    .comment-expand img {
+      width: 20px;
+    }
   }
 }
+
 
 .comment-username {
   color: @grey;
