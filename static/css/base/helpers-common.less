@@ -14,15 +14,15 @@
 }
 
 .desktop-only {
-  display: none;
+  display: none !important;
 }
 
 @media only screen and (min-width: @width-breakpoint-desktop) {
   .desktop-only {
-    display: unset;
+    display: revert !important;
   }
   .mobile-only {
-    display: none;
+    display: none !important;
   }
 }
 

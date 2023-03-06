@@ -173,12 +173,17 @@ $ component_times['ReadlogStats'] = time()
 $ star_ratings_stats = macros.StarRatingsStats(work)
 $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
 
+$ component_times['get_observation_metrics'] = time()
+$ reader_observations = get_observation_metrics(work['key']) if show_observations else {}
+$ component_times['get_observation_metrics'] = time() - component_times['get_observation_metrics']
+
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
   <div class="workDetails">
     $if work and work.key:
         <link itemprop="exampleOfWork" href="$work.key">
 
     <!-- (mobile only) -->
+    $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations)
     $:render_template("type/edition/title_and_author", work, edition, ocaid, work_title, star_ratings_stats, for_desktop=False)
     <div class="editionCover">
       $ share_url = request.home + (edition or work).key
@@ -191,6 +196,8 @@ $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
     </div>
 
     <div class="editionAbout">
+      $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations, desktop_only=True)
+      <a id="edition-overview" name="edition-overview"></a>
       <div class="editionAll">
         $ component_times['EditTopbar'] = time()
         $:macros.databarView(page, edition)
@@ -206,10 +213,8 @@ $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
           $ edit_url = page.url(suffix="/edit")
       $else:
         $ edit_url = page.key + "?m=edit"
+
       $:render_template("type/edition/compact_title", book_title, edit_url)
-      $ component_times['get_observation_metrics'] = time()
-      $ reader_observations = get_observation_metrics(work['key']) if show_observations else {}
-      $ component_times['get_observation_metrics'] = time() - component_times['get_observation_metrics']
 
       $if work and work.description or edition and edition.description:
         $if edition and edition.description:
@@ -230,9 +235,6 @@ $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
                 </p>
             </div>
         </div>
-
-      $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations)
-      <a id="edition-overview" name="edition-overview"></a>
       <div>
         $if edition:
           <div class="edition-omniline">

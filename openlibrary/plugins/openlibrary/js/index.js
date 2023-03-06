@@ -447,15 +447,22 @@ jQuery(function () {
             .then((module) => module.initRatingHandlers(ratingForms));
     }
 
-    const navbar = document.querySelector('.work-menu');
-    if (navbar) {
+    const navbars = document.querySelectorAll('.work-menu');
+    if (navbars.length) {
         const compactTitle = document.querySelector('.compact-title')
         // Add position-aware navbar JS:
         import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
-            .then((module) => module.initNavbar(navbar));
-        // Add sticky title component animations:
+            .then((module) => {
+                for (const navbar of navbars) {
+                    module.initNavbar(navbar)
+                }
+            });
+        // Add sticky title component animations to desktop views:
         import(/* webpackChunkName: "compact-title" */ './compact-title')
-            .then((module) => module.initCompactTitle(navbar, compactTitle))
+            .then((module) => {
+                const desktopNavbar = [...navbars].find(elem => elem.classList.contains('desktop-only'))
+                module.initCompactTitle(desktopNavbar, compactTitle)
+            })
     }
 
     // Add functionality for librarian merge request table:
