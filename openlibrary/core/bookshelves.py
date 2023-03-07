@@ -115,7 +115,7 @@ class Bookshelves(db.CommonExtras):
             where += ' AND created >= $since'
         group_by = 'group by work_id'
         if minimum:
-            group_by += f" HAVING COUNT(*) > {minimum}"
+            group_by += " HAVING COUNT(*) > $minimum"
         order_by = 'order by cnt desc' if sort_by_count else ''
         query = f"""
             select work_id, count(*) as cnt
@@ -123,7 +123,14 @@ class Bookshelves(db.CommonExtras):
             {where} {group_by} {order_by}
             limit $limit offset $offset"""
         logger.info("Query: %s", query)
-        data = {'shelf_id': shelf_id, 'limit': limit, 'offset': offset, 'since': since}
+        data = {
+            'shelf_id': shelf_id,
+            'limit': limit,
+            'offset': offset,
+            'since': since,
+            'minimum': minimum,
+        }
+
         logged_books = list(oldb.query(query, vars=data))
         return cls.fetch(logged_books) if fetch else logged_books
 
