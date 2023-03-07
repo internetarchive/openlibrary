@@ -66,8 +66,8 @@ export default class SelectionManager {
 
         // Populate the status bar images for stored selections
         for (const type of SelectionManager.TYPES) {
-            this.selectedItems[type.singular].forEach(item => {
-                this.ile.$statusImages.append(`<li><img title="${item}" src="${type.image(item)}" /></li>`);
+            this.selectedItems[type.singular].forEach(olid => {
+                this.ile.$statusImages.append(`<li><img title="${olid}" src="${type.image(olid)}" /></li>`);
             });
         }
 
@@ -86,19 +86,19 @@ export default class SelectionManager {
         if (window.getSelection()?.toString() !== '') return;
 
         const el = clickEvent.currentTarget;
-        const selected = !el.classList.contains('ile-selected');
+        const isCurSelected = el.classList.contains('ile-selected');
         const provider = this.getProvider(el);
         const olid = provider.data(el);
         const img_src = this.getType(olid)?.image(olid);
-        this.setElementSelectionAttributes(el, selected);
+        this.setElementSelectionAttributes(el, !isCurSelected);
 
-        if (selected) {
-            this.addSelectedItem(olid);
-            this.ile.$statusImages.append(`<li><img title="${olid}" src="${img_src}"/></li>`);
-        } else {
+        if (isCurSelected) {
             this.removeSelectedItem(olid);
             const img_el = $('#ile-drag-status .images img').toArray().find(el => el.src === img_src);
             $(img_el).remove();
+        } else {
+            this.addSelectedItem(olid);
+            this.ile.$statusImages.append(`<li><img title="${olid}" src="${img_src}"/></li>`);
         }
         this.updateToolbar();
     }
