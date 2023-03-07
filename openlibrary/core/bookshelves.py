@@ -117,7 +117,13 @@ class Bookshelves(db.CommonExtras):
             {where} {group_by} {order_by}
             limit $limit offset $offset"""
         logger.info("Query: %s", query)
-        data = {'shelf_id': shelf_id, 'limit': limit, 'offset': offset, 'since': since, 'minimum': minimum}
+        data = {
+            'shelf_id': shelf_id,
+            'limit': limit,
+            'offset': offset,
+            'since': since,
+            'minimum': minimum,
+        }
 
         logged_books = list(oldb.query(query, vars=data))
         return cls.fetch(logged_books) if fetch else logged_books
