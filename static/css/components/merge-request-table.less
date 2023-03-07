@@ -82,7 +82,22 @@
   }
 }
 
+.mr-info {
+  width: 60%;
+}
+
 .comment-cell__input{
+  display: flex;
+  align-items: center;
+  height: 33px;
+  border-radius: 5px;
+
+  textarea {
+    width: 100%;
+    height: 100%;
+    resize: none;
+  }
+
   .mr-comment-btn{
     background-color: @primary-blue;
     color: @white;
@@ -90,11 +105,9 @@
     border-radius: 6px;
     box-shadow: none;
     border: 1px solid @light-grey;
-    padding: 3%;
+    padding: 2%;
     font-weight: bold;
   }
-
-  
 }
 
 .mr-comment-review-cell {
