@@ -109,7 +109,7 @@ class Bookshelves(db.CommonExtras):
             where += ' AND created >= $since'
         group_by = 'group by work_id'
         if minimum:
-            group_by += f" HAVING COUNT(*) > $minimum"
+            group_by += " HAVING COUNT(*) > $minimum"
         order_by = 'order by cnt desc' if sort_by_count else ''
         query = f"""
             select work_id, count(*) as cnt
