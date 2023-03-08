@@ -1,4 +1,5 @@
 import logging
+import random
 import web
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -101,6 +102,7 @@ class Bookshelves(db.CommonExtras):
         fetch: bool = False,
         sort_by_count: bool = True,
         minimum: int = 0,
+        randomize: bool = False,
     ) -> list:
         """Returns a ranked list of work OLIDs (in the form of an integer --
         i.e. OL123W would be 123) which have been most logged by
@@ -132,7 +134,11 @@ class Bookshelves(db.CommonExtras):
         }
 
         logged_books = list(oldb.query(query, vars=data))
-        return cls.fetch(logged_books) if fetch else logged_books
+        if fetch:
+            logged_books = cls.fetch(logged_books)
+        if randomize:
+            random.shuffle(logged_books)
+        return logged_books
 
     @classmethod
     def fetch(cls, readinglog_items):
