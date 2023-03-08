@@ -455,7 +455,6 @@ jQuery(function () {
 
     const navbars = document.querySelectorAll('.work-menu');
     if (navbars.length) {
-        const compactTitle = document.querySelector('.compact-title')
         // Add position-aware navbar JS:
         import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
             .then((module) => {
@@ -466,6 +465,7 @@ jQuery(function () {
         // Add sticky title component animations to desktop views:
         import(/* webpackChunkName: "compact-title" */ './compact-title')
             .then((module) => {
+                const compactTitle = document.querySelector('.compact-title')
                 const desktopNavbar = [...navbars].find(elem => elem.classList.contains('desktop-only'))
                 module.initCompactTitle(desktopNavbar, compactTitle)
             })
