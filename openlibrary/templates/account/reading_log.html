@@ -33,7 +33,7 @@ $if shelf_count > 0:
 
   <div class="mybooks-list">
     $if q:
-      <span class="search-results-stats">$ungettext('1 hit', '%(count)s hits', doc_count, count=commify(doc_count))</span>
+      <span class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', doc_count, count=commify(doc_count))</span>
     $else:
       <span class="mybooks-tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" style="margin-right:10px;" width="9" height="11">
         $if sort_order == 'desc':

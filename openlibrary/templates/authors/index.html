@@ -21,7 +21,7 @@ $var title: $_('Authors')
         $for doc in results.docs:
             $ name = doc['name']
             $ work_count = doc['work_count']
-            $ work_count_str = ungettext("1 book", "%(count)d books", work_count, count=work_count)
+            $ work_count_str = ungettext("%(count)d book", "%(count)d books", work_count, count=work_count)
             $ date = ''
             $if 'birth_date' in doc or 'death_date' in doc:
                 $ date = doc.get('birth_date', '') + ' - ' + doc.get('death_date', '')

@@ -6,7 +6,7 @@ $ edition_list_start = time()
 $if editions_limit or (len(editions) < work.edition_count):
   <p class="small sansserif featured-count">
 
-    $ungettext('Showing one featured edition.', 'Showing %(count)d featured editions.', len(editions), count=len(editions))
+    $ungettext('Showing %(count)d featured edition.', 'Showing %(count)d featured editions.', len(editions), count=len(editions))
     <a href="?mode=all">$_("View all %(count)d editions?", count=work.edition_count)</a>
   </p>
 $if editions and len(editions):

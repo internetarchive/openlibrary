@@ -8,7 +8,7 @@ $def render_author_link(name, url):
     <span $:attrs>$rendered_name</span>
 
 $def render_overflow_link(remaining_authors, overflow_url):
-  <small><em><a href="$overflow_url" $:attrs>$ungettext('1 other', '%(n)s others', remaining_authors, n=remaining_authors)</a></em></small>
+  <small><em><a href="$overflow_url" $:attrs>$ungettext('%(n)s other', '%(n)s others', remaining_authors, n=remaining_authors)</a></em></small>
 
 $code:
   if limit is None:
