@@ -208,7 +208,7 @@ export function validateIdentifiers(data) {
         return error('#id-errors', 'id-value', dataConfig['That ISBN already exists for this edition.'].replace(/ISBN/, label));
     }
     // Remove spaces and hyphens before checking ISBN 13.
-    if (data. name === 'isbn_13') {
+    if (data.name === 'isbn_13') {
         data.value = parseIsbn(data.value);
     }
     if (data.name === 'isbn_13' && isFormatValidIsbn13(data.value) === false) {
