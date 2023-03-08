@@ -197,7 +197,6 @@ $ component_times['get_observation_metrics'] = time() - component_times['get_obs
 
     <div class="editionAbout">
       $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations, desktop_only=True)
-      <a id="edition-overview" name="edition-overview"></a>
       <div class="editionAll">
         $ component_times['EditTopbar'] = time()
         $:macros.databarView(page, edition)
