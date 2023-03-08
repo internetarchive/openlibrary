@@ -72,7 +72,7 @@ export function initNavbar(navbarElem) {
     document.addEventListener('scroll', function() {
         let i = linkedSections.length
         // Find index of lowest element on the page that is positioned below the navbar:
-        while (--i > 0 && navbarElem.offsetTop < linkedSections[i].offsetTop) {}
+        while (--i > 0 && navbarElem.offsetTop + navbarElem.offsetHeight < linkedSections[i].offsetTop) {}
         if (linkedSections[i] !== selectedSection) {
             selectElement(listItems[i], i)
         }
