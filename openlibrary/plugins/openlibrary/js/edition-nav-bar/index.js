@@ -29,6 +29,8 @@ export function initNavbar(navbarElem) {
      */
     let selectedSection
 
+    let scrollY = 0
+
     // Add click listeners
     for (let i = 0; i < listItems.length; ++i) {
         const index = i;
@@ -67,16 +69,6 @@ export function initNavbar(navbarElem) {
             left: selectedElem.offsetLeft - (navbarElem.clientWidth - selectedElem.offsetWidth) / 2,
         });
     }
-
-    // Add scroll listener that changes 'selected' navbar item based on page position:
-    document.addEventListener('scroll', function() {
-        let i = linkedSections.length
-        // Find index of lowest element on the page that is positioned below the navbar:
-        while (--i > 0 && navbarElem.offsetTop + navbarElem.offsetHeight < linkedSections[i].offsetTop) {}
-        if (linkedSections[i] !== selectedSection) {
-            selectElement(listItems[i], i)
-        }
-    })
 }
 
 
