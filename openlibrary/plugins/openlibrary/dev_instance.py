@@ -29,7 +29,7 @@ class CoverstoreMiddleware:
     """Middleware to delegate all /cover/* requests to coverstore.
 
     This avoids starting a new service for coverstore.
-    Assumes that coverstore config is at conf/coverstore.yml
+    Assumes that coverstore config is at conf/coverstore.yaml
     """
 
     def __init__(self, app):
@@ -37,7 +37,7 @@ class CoverstoreMiddleware:
 
         from openlibrary.coverstore import code, server
 
-        server.load_config("conf/coverstore.yml")
+        server.load_config("conf/coverstore.yaml")
         self.coverstore_app = code.app.wsgifunc()
 
     def __call__(self, environ, start_response):

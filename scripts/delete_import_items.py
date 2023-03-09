@@ -12,7 +12,7 @@ state_file=./import-item-cleanup/curline.txt
 error_file=./import-item-cleanup/errors.txt
 batch_size=1000
 dry_run=True
-ol_config=/path/to/openlibrary.yml
+ol_config=/path/to/openlibrary.yaml
 """
 import argparse
 import time

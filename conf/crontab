@@ -1,1 +1,1 @@
-1 * * * * scripts/store_counts.py conf/infobase.yml conf/openlibrary.yml conf/coverstore.yml 1
+1 * * * * scripts/store_counts.py conf/infobase.yaml conf/openlibrary.yaml conf/coverstore.yaml 1

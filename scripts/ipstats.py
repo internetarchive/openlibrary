@@ -100,7 +100,7 @@ if __name__ == "__main__":
         description="Store count of unique IPs per day from the past K days (including today) in infobase."
     )
     parser.add_argument(
-        'config', help="openlibrary.yml (e.g. olsystem/etc/openlibrary.yml)"
+        'config', help="openlibrary.yaml (e.g. olsystem/etc/openlibrary.yaml)"
     )
     parser.add_argument('--days', type=int, default=1, help="how many days to go back")
     parser.add_argument(

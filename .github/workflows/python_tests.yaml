@@ -5,7 +5,7 @@ on:
   pull_request:
     branches: [ master ]
     paths-ignore:
-      - '.github/workflows/javascript_tests.yml'
+      - '.github/workflows/javascript_tests.yaml'
       - 'vendor/js/**'
       - 'package*.json'
       - '**.js'

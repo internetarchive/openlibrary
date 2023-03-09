@@ -4,7 +4,7 @@ As of 2022-12: Run on `ol-home0 cron container as
 ```
 $ ssh -A ol-home0
 $ docker exec -it -uopenlibrary openlibrary_cron-jobs_1 bash
-$ PYTHONPATH="/openlibrary" python3 /openlibrary/scripts/promise_batch_imports.py /olsystem/etc/openlibrary.yml
+$ PYTHONPATH="/openlibrary" python3 /openlibrary/scripts/promise_batch_imports.py /olsystem/etc/openlibrary.yaml
 ```
 
 The imports can be monitored for their statuses and rolled up / counted using this query on `ol-db1`:

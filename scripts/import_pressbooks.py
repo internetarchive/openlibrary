@@ -1,7 +1,7 @@
 """
 To run:
 
-PYTHONPATH=. python ./scripts/import_pressbooks.py /olsystem/etc/openlibrary.yml ./path/to/pressbooks.json
+PYTHONPATH=. python ./scripts/import_pressbooks.py /olsystem/etc/openlibrary.yaml ./path/to/pressbooks.json
 """
 
 import json

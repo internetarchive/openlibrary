@@ -16,7 +16,7 @@ First, `ssh -A ol-covers0` and run `docker exec -it openlibrary_covers_1 bash`. 
 from openlibrary.coverstore import config
 from openlibrary.coverstore.server import load_config
 from openlibrary.coverstore import archive
-load_config("/olsystem/etc/coverstore.yml")
+load_config("/olsystem/etc/coverstore.yaml")
 archive.archive(test=False)
 ```
 
@@ -57,7 +57,7 @@ The item name itself (e.g. `coverd_0007`) is a combination of the prefix `covers
     from openlibrary.coverstore import config
     from openlibrary.coverstore.server import load_config
     from openlibrary.coverstore import archive
-    load_config("/olsystem/etc/coverstore.yml")
+    load_config("/olsystem/etc/coverstore.yaml")
     archive.archive(test=False)
     ```
 2. `ia upload` each partial to the 4 respective items:

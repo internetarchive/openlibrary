@@ -372,7 +372,7 @@ class BetterDataProvider(LegacyDataProvider):
         """Test with
         import web; import infogami
         from openlibrary.config import load_config
-        load_config('/openlibrary/config/openlibrary.yml')
+        load_config('/openlibrary/config/openlibrary.yaml')
         infogami._setup()
         from infogami import config
         """

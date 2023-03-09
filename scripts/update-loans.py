@@ -14,7 +14,7 @@ web.config.debug = False
 
 def usage():
     print(
-        "python scripts/openlibrary-server openlibrary.yml runscript scripts/update-loans.py [update-loans | update-waitinglists]"
+        "python scripts/openlibrary-server openlibrary.yaml runscript scripts/update-loans.py [update-loans | update-waitinglists]"
     )
 
 

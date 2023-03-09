@@ -1,7 +1,7 @@
 # 公共图书馆
 
-![Python Build](https://github.com/internetarchive/openlibrary/actions/workflows/javascript_tests.yml/badge.svg)
-![JS Build](https://github.com/internetarchive/openlibrary/actions/workflows/python_tests.yml/badge.svg)
+![Python Build](https://github.com/internetarchive/openlibrary/actions/workflows/javascript_tests.yaml/badge.svg)
+![JS Build](https://github.com/internetarchive/openlibrary/actions/workflows/python_tests.yaml/badge.svg)
 [![Join the chat at https://gitter.im/theopenlibrary/Lobby](https://badges.gitter.im/theopenlibrary/Lobby.svg)](https://gitter.im/theopenlibrary/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)
 
@@ -37,7 +37,7 @@
 
 ## 安装
 
-执行 `docker-compose up` 并且访问 http://localhost:8080
+执行 `docker compose up` 并且访问 http://localhost:8080
 
 需要更多信息？请查看 [Docker指南](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)
 或者[视频教程](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4)。
@@ -81,7 +81,7 @@
 
 ```
 cd docker/
-docker-compose exec web make test
+docker compose exec web make test
 ```
 
 ### 集成测试

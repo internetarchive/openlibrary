@@ -35,6 +35,6 @@ jobs:
           channel = os.getenv("SLACK_CHANNEL_ABC_TEAM")
           if token and channel:
             slack_sdk.WebClient(token=token).chat_postMessage(channel=channel,
-              text="[cron_watcher](https://github.com/internetarchive/openlibrary/actions/workflows/cron_watcher.yml) has failed.",
+              text="[cron_watcher](https://github.com/internetarchive/openlibrary/actions/workflows/cron_watcher.yaml) has failed.",
             )
           sys.exit(1)

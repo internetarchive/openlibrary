@@ -97,7 +97,7 @@ def start_gunicorn_server():
             server.load_config(configfile)
             return server.app.wsgifunc()
 
-    WSGIServer("%prog infobase.yml --gunicorn [options]").run()
+    WSGIServer("%prog infobase.yaml --gunicorn [options]").run()
 
 
 if __name__ == "__main__":

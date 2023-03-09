@@ -291,7 +291,7 @@ class lists_json(delegate.page):
 
 
 class lists_yaml(lists_json):
-    encoding = "yml"
+    encoding = "yaml"
     content_type = "text/yaml"
 
 
@@ -334,7 +334,7 @@ class list_view_json(delegate.page):
 
 
 class list_view_yaml(list_view_json):
-    encoding = "yml"
+    encoding = "yaml"
     content_type = "text/yaml"
 
 
@@ -405,7 +405,7 @@ class list_seeds(delegate.page):
 
 
 class list_seed_yaml(list_seeds):
-    encoding = "yml"
+    encoding = "yaml"
     content_type = 'text/yaml; charset="utf-8"'
 
 
@@ -446,7 +446,7 @@ class list_editions_json(delegate.page):
 
 
 class list_editions_yaml(list_editions_json):
-    encoding = "yml"
+    encoding = "yaml"
     content_type = 'text/yaml; charset="utf-8"'
 
 
@@ -508,7 +508,7 @@ class list_subjects_json(delegate.page):
 
 
 class list_subjects_yaml(list_subjects_json):
-    encoding = "yml"
+    encoding = "yaml"
     content_type = 'text/yaml; charset="utf-8"'
 
 

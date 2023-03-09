@@ -80,7 +80,7 @@ def import_ocaids(*ocaids, **kwargs):
         $ sudo -u openlibrary \
             HOME=/home/openlibrary OPENLIBRARY_RCFILE=/olsystem/etc/olrc-importbot \
             python scripts/manage-imports.py \
-                --config /olsystem/etc/openlibrary.yml \
+                --config /olsystem/etc/openlibrary.yaml \
                 import-all
     """
     servername = kwargs.get('servername', None)
@@ -203,7 +203,7 @@ def main():
                 os.pardir,
                 'openlibrary',
                 'conf',
-                'openlibrary.yml',
+                'openlibrary.yaml',
             )
         )
 

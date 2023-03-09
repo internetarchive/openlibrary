@@ -1,5 +1,5 @@
 """
-PYTHONPATH=. python ./scripts/update_stale_work_references.py /olsystem/etc/openlibrary.yml
+PYTHONPATH=. python ./scripts/update_stale_work_references.py /olsystem/etc/openlibrary.yaml
 """
 
 import web

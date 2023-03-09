@@ -7,7 +7,7 @@ Open Library JSON import API: https://openlibrary.org/api/import
 
 To Run:
 
-PYTHONPATH=. python ./scripts/partner_batch_imports.py /olsystem/etc/openlibrary.yml
+PYTHONPATH=. python ./scripts/partner_batch_imports.py /olsystem/etc/openlibrary.yaml
 """
 
 from collections.abc import Mapping

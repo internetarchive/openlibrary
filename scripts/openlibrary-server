@@ -5,15 +5,15 @@ USAGE:
 
 * Run openlibrary http server at port 8080.
 
-    $ ./scripts/openlibrary-server infogami.yml startserver 8080
+    $ ./scripts/openlibrary-server infogami.yaml startserver 8080
 
 * Run openlibrary as fastcgi server at port 7070
 
-    $ ./scripts/openlibrary-server infogami.yml startserver fastcgi 8080
+    $ ./scripts/openlibrary-server infogami.yaml startserver fastcgi 8080
 
 * Run openlibrary as gunicorn server at port 8080
 
-    $ ./scripts/openlibrary-server infogami.yml startserver --gunicorn -b 0.0.0.0:8080
+    $ ./scripts/openlibrary-server infogami.yaml startserver --gunicorn -b 0.0.0.0:8080
 """
 import sys
 import os

@@ -606,12 +606,12 @@ class marcxml(delegate.mode):
                 )
 
 
-delegate.media_types['text/x-yaml'] = 'yml'
+delegate.media_types['text/x-yaml'] = 'yaml'
 
 
 class _yaml(delegate.mode):
     name = 'view'
-    encoding = 'yml'
+    encoding = 'yaml'
 
     def GET(self, key):
         d = self.get_data(key)
@@ -651,7 +651,7 @@ class _yaml(delegate.mode):
 
 class _yaml_edit(_yaml):
     name = 'edit'
-    encoding = 'yml'
+    encoding = 'yaml'
 
     def is_admin(self):
         u = delegate.context.user
@@ -686,7 +686,7 @@ class _yaml_edit(_yaml):
             except (client.ClientException, ValidationException) as e:
                 add_flash_message('error', str(e))
                 return render.edit_yaml(key, i.body)
-            raise web.seeother(key + '.yml')
+            raise web.seeother(key + '.yaml')
         elif '_preview' in i:
             add_flash_message('Preview not supported')
             return render.edit_yaml(key, i.body)

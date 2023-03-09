@@ -12,7 +12,7 @@ import json
 import argparse
 
 parser = argparse.ArgumentParser(description='Library of Congress MARC update')
-parser.add_argument('--config', default='openlibrary.yml')
+parser.add_argument('--config', default='openlibrary.yaml')
 args = parser.parse_args()
 
 config_file = args.config

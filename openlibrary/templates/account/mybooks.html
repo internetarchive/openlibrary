@@ -32,8 +32,10 @@ $ hidden = 'hidden' if current_goal else ''
   </div>
   $if current_goal:
     <span id="reading-goal-container">
-      $:render_template('check_ins/reading_goal_progress', [current_goal])
+      $:render_template('check_ins/reading_goal_progress', **{"goals":[current_goal], "count": mybooks["already-read"].total_results})
+
     </span>
+
 </div>
 
 $code:

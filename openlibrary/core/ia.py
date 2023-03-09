@@ -338,7 +338,7 @@ def get_candidate_ocaids(
     Usage:
         >>> from openlibrary.core.ia import get_ia_db, get_candidate_ocaids
         >>> candidates = get_candidate_ocaids(
-        ...    since_days=1, db=get_ia_db('openlibrary/config/openlibrary.yml'))
+        ...    since_days=1, db=get_ia_db('openlibrary/config/openlibrary.yaml'))
 
     Returns:
         A list of identifiers which are candidates for ImportBot, or

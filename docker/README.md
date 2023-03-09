@@ -14,15 +14,15 @@ Linux users (including those using a VM), can install Docker Engine or Docker De
 - Docker Engine: https://docs.docker.com/engine/install/#server (tested with 19.*)
 - Docker Desktop: https://docs.docker.com/get-docker/
 
-### A note on `docker-compose` and `docker compose`
+### A note on `docker compose` and `docker compose`
 
-As of early 2023, following the installation instructions on Docker's website will install either Docker Desktop, which includes Docker Compose v2, or `docker-ce` and `docker-compose-plugin` (Linux only), both of which obviate the need to install `docker-compose` v1 separately.
+As of early 2023, following the installation instructions on Docker's website will install either Docker Desktop, which includes Docker Compose v2, or `docker-ce` and `docker compose-plugin` (Linux only), both of which obviate the need to install `docker compose` v1 separately.
 
-Further, Compose V1 will [no longer be supported by the end of June 2023](https://docs.docker.com/compose/compose-v2/) and will be removed from Docker Desktop. These directions are written for Compose V2, hence the use of `docker compose` rather than `docker-compose`. `docker compose` is [meant to be a drop-in replacement](https://docs.docker.com/compose/compose-v2/#differences-between-compose-v1-and-compose-v2) for `docker-compose`.
+Further, Compose V1 will [no longer be supported by the end of June 2023](https://docs.docker.com/compose/compose-v2/) and will be removed from Docker Desktop. These directions are written for Compose V2, hence the use of `docker compose` rather than `docker compose`. `docker compose` is [meant to be a drop-in replacement](https://docs.docker.com/compose/compose-v2/#differences-between-compose-v1-and-compose-v2) for `docker compose`.
 
 If for some reason one cannot use a current version of Docker that includes the Docker Compose plugin, it can [be installed separately](https://docs.docker.com/compose/install/)
 
-Finally, as of this writing (early 2023), the `docker-compose` that comes with relatively recent Linux distributions (e.g. Ubuntu 22.04) still works if it is already installed.
+Finally, as of this writing (early 2023), the `docker compose` that comes with relatively recent Linux distributions (e.g. Ubuntu 22.04) still works if it is already installed.
 
 #### Test that Docker works
 Before continuing, ensure you can successfully run Docker's hello-world container.
@@ -60,7 +60,7 @@ Please use [Docker Desktop >= 4.3.0](https://docs.docker.com/desktop/mac/release
 If you are experiencing issues building JS, you may need to increase the RAM available to Docker. The defaults of 2GB ram and 1GB Swap are not enough. We recommend requirements of 4GB ram and 2GB swap. This resolved the error message of `Killed` when running `build-assets`.
 
 ### For All Users
-All commands are from the project root directory, where `docker-compose.yml` is (i.e. `path/to/your/forked/and/cloned/openlibrary`):
+All commands are from the project root directory, where `docker-compose.yaml` is (i.e. `path/to/your/forked/and/cloned/openlibrary`):
 
 #### Build the images
 ```
@@ -236,7 +236,7 @@ docker compose run --rm home make test
 # Run Open Library using a local copy of Infogami for development
 
 docker compose down && \
-    docker compose -f docker compose.yml -f docker compose.override.yml -f docker compose.infogami-local.yml up -d && \
+    docker compose -f docker-compose.yaml -f docker-compose.override.yaml -f docker-compose.infogami-local.yaml up -d && \
     docker compose logs -f --tail=10 web
 
 # In your browser, navigate to http://localhost:8080

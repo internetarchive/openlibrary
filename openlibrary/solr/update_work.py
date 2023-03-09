@@ -1546,7 +1546,7 @@ async def do_updates(keys):
     await update_keys(keys, commit=False)
 
 
-def load_config(c_config='conf/openlibrary.yml'):
+def load_config(c_config='conf/openlibrary.yaml'):
     if not config.runtime_config:
         config.load(c_config)
         config.load_config(c_config)
@@ -1578,7 +1578,7 @@ def load_configs(
 async def main(
     keys: list[str],
     ol_url="http://openlibrary.org",
-    ol_config="openlibrary.yml",
+    ol_config="openlibrary.yaml",
     output_file: str | None = None,
     commit=True,
     data_provider: Literal['default', 'legacy', 'external'] = "default",
@@ -1595,7 +1595,7 @@ async def main(
     :param output_file: Where to save output
     :param commit: Whether to also trigger a Solr commit
     :param data_provider: Name of the data provider to use
-    :param solr_base: If wanting to override openlibrary.yml
+    :param solr_base: If wanting to override openlibrary.yaml
     :param solr_next: Whether to assume schema of next solr version is active
     :param update: Whether/how to do the actual solr update call
     """

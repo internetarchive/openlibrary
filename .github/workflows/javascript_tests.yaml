@@ -6,7 +6,7 @@ on:
     branches: [ master ]
     paths:
       - 'Makefile'
-      - '.github/workflows/javascript_tests.yml'
+      - '.github/workflows/javascript_tests.yaml'
       - 'vendor/js/**'
       - '**.json'
       - '**.js'

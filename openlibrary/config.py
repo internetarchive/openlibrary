@@ -20,7 +20,7 @@ def load(config_file):
     """
     if 'pytest' in sys.modules:
         # During pytest ensure we're not using like olsystem or something
-        assert config_file == 'conf/openlibrary.yml'
+        assert config_file == 'conf/openlibrary.yaml'
     # for historic reasons
     global runtime_config
     with open(config_file) as in_file:
@@ -34,7 +34,7 @@ def load_config(config_file):
     """
     if 'pytest' in sys.modules:
         # During pytest ensure we're not using like olsystem or something
-        assert config_file == 'conf/openlibrary.yml'
+        assert config_file == 'conf/openlibrary.yaml'
     infogami.load_config(config_file)
     setup_infobase_config(config_file)
 

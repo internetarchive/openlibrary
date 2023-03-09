@@ -28,7 +28,7 @@ def load(text, format):
 def dump(data, format):
     if format == "json":
         return json.dumps(data, cls=NothingEncoder)
-    elif format == "yml":
+    elif format == "yaml" or "yml":
         return dump_yaml(data)
     else:
         raise Exception("unsupported format %r" % format)

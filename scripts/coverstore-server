@@ -5,15 +5,15 @@ Usage:
 
 start coverstore using dev webserver:
 
-    ./scripts/coverstore-server coverstore.yml 8080
+    ./scripts/coverstore-server coverstore.yaml 8080
 
 start coverstore as fastcgi:
 
-    ./scripts/coverstore-server coverstore.yml fastcgi 7070
+    ./scripts/coverstore-server coverstore.yaml fastcgi 7070
 
 start coverstore using gunicorn webserver:
 
-    ./scripts/coverstore-server coverstore.yml --gunicorn -b 0.0.0.0:8080
+    ./scripts/coverstore-server coverstore.yaml --gunicorn -b 0.0.0.0:8080
 
 """
 
@@ -55,7 +55,7 @@ def start_gunicorn_server():
             server.setup(configfile)
             return code.app.wsgifunc(https_middleware)
 
-    WSGIServer("%prog coverstore.yml --gunicorn [options]").run()
+    WSGIServer("%prog coverstore.yaml --gunicorn [options]").run()
 
 
 def https_middleware(app):

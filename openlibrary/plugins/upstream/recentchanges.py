@@ -50,7 +50,7 @@ class index(delegate.page):
         if kind:
             query['kind'] = kind and kind.strip("/")
 
-        if web.ctx.encoding in ["json", "yml"]:
+        if web.ctx.encoding in ["json", "yaml"]:
             return self.handle_encoding(query, web.ctx.encoding)
 
         return render_template("recentchanges/index", query)
@@ -89,7 +89,7 @@ class index(delegate.page):
         if encoding == "json":
             response = json.dumps(result)
             content_type = "application/json"
-        elif encoding == "yml":
+        elif encoding == "yaml" or "yml":
             response = self.yaml_dump(result)
             content_type = "text/x-yaml"
         else:

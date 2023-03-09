@@ -5,15 +5,15 @@ Usage:
 
 start affiliate-server using dev webserver:
 
-    ./scripts/affiliate_server.py openlibrary.yml 31337
+    ./scripts/affiliate_server.py openlibrary.yaml 31337
 
 start affiliate-server as fastcgi:
 
-    ./scripts/affiliate_server.py openlibrary.yml fastcgi 31337
+    ./scripts/affiliate_server.py openlibrary.yaml fastcgi 31337
 
 start affiliate-server using gunicorn webserver:
 
-    ./scripts/affiliate_server.py openlibrary.yml --gunicorn -b 0.0.0.0:31337
+    ./scripts/affiliate_server.py openlibrary.yaml --gunicorn -b 0.0.0.0:31337
 
 
 Testing Amazon API:
@@ -24,7 +24,7 @@ Testing Amazon API:
 import web
 import infogami
 from openlibrary.config import load_config
-load_config('/olsystem/etc/openlibrary.yml')
+load_config('/olsystem/etc/openlibrary.yaml')
 infogami._setup()
 from infogami import config;
 from openlibrary.core.vendors import AmazonAPI
@@ -306,7 +306,7 @@ class Submit:
 
 
 def load_config(configfile):
-    # This loads openlibrary.yml + infobase.yml
+    # This loads openlibrary.yaml + infobase.yaml
     openlibrary_load_config(configfile)
 
     stats.client = stats.create_stats_client(cfg=config)
@@ -368,7 +368,7 @@ def start_gunicorn_server():
             # init_setry(app)
             return app.wsgifunc(https_middleware)
 
-    WSGIServer("%prog openlibrary.yml --gunicorn [options]").run()
+    WSGIServer("%prog openlibrary.yaml --gunicorn [options]").run()
 
 
 def https_middleware(app):

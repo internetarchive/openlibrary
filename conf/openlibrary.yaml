@@ -33,8 +33,8 @@ infobase_server: infobase:7000
 
 # contents of this file are assigned to config["infobase"]
 # Path can be relative to this file
-infobase_config_file: infobase.yml
-coverstore_config_file: coverstore.yml
+infobase_config_file: infobase.yaml
+coverstore_config_file: coverstore.yaml
 
 loanstatus_url: http://web:8080/
 ia_access_secret: foobar

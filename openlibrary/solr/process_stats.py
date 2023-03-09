@@ -9,7 +9,7 @@ etc. and massages that into a form that can be fed into solr.
 
 How to run:
 
-    ./scripts/openlibrary-server openlibrary.yml runmain openlibrary.solr.process_stats --load
+    ./scripts/openlibrary-server openlibrary.yaml runmain openlibrary.solr.process_stats --load
 
 """
 import sys
@@ -275,7 +275,7 @@ def fix_subject_key(doc, name, prefix):
 
 
 def update_solr(docs):
-    # stats_solr is defined in olsystem etc/openlibrary.yml
+    # stats_solr is defined in olsystem etc/openlibrary.yaml
     solr = SolrWriter(config.stats_solr or "localhost:8983")
     for doc in docs:
         # temp fix for handling already processed data

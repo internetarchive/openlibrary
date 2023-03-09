@@ -18,9 +18,9 @@ fi
 
 # apt list --installed
 sudo apt-get update
-sudo apt-get install -y docker.io docker-compose
+sudo apt-get install -y docker.io docker compose
 docker --version        # 19.03.8
-docker-compose version  #  1.25.0
+docker compose version  #  1.25.0
 sudo systemctl start docker
 sudo systemctl enable docker
 
@@ -52,7 +52,7 @@ sudo find /opt/olsystem -type d -exec chmod g+s {} \;
 
 # Setup docker ferm rules for internal-only servers
 # Note: This is a bit of an anti-pattern ; we should be using docker, not ferm to manage
-# container network access. That would let us use expose/ports from our docker-compose
+# container network access. That would let us use expose/ports from our docker compose
 # to determine what's public. But we'd need a cross-cluster network managed by swarm to
 # do that.
 PUBLIC_FACING=${PUBLIC_FACING:-'false'}
