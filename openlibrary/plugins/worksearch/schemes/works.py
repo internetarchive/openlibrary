@@ -73,6 +73,10 @@ class WorkSearchScheme(SearchScheme):
         "author_facet",
         "first_publish_year",
         "ratings_count",
+        "readinglog_count",
+        "want_to_read_count",
+        "currently_reading_count",
+        "already_read_count",
         # Subjects
         "subject_key",
         "person_key",
@@ -118,6 +122,10 @@ class WorkSearchScheme(SearchScheme):
         'rating': 'ratings_sortable desc',
         'rating asc': 'ratings_sortable asc',
         'rating desc': 'ratings_sortable desc',
+        'readinglog': 'readinglog_count desc',
+        'want_to_read': 'want_to_read_count desc',
+        'currently_reading': 'currently_reading_count desc',
+        'already_read': 'already_read_count desc',
         'title': 'title_sort asc',
         'scans': 'ia_count desc',
         # Classifications
