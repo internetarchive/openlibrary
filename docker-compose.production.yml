@@ -158,8 +158,8 @@ services:
       - webnet
     volumes:
       - ../olsystem/etc/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-    ports:
-      - 7072:7072
+    expose:
+      - 7072
     logging:
       options:
         max-size: "512m"
