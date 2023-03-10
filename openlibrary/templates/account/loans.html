@@ -86,7 +86,7 @@ $else:
                     $ wlsize = book.get_waitinglist_size()
                     $if wlsize:
                         <div class="smallest lightgreen sansserif waitrank">
-                            $ungettext("There is %(count)d person waiting for this book.", "There are %(n)d people waiting for this book.", wlsize, n=wlsize)
+                            $ungettext("There is %(count)d person waiting for this book.", "There are %(count)d people waiting for this book.", wlsize, count=wlsize)
                         </div>
                 </td>
                 <td class="expires">
