@@ -241,7 +241,7 @@ export function clearCreateListForm() {
  * This sets up the 'Remove From Shelf' button to behave as if it were the
  * primaryButton in terms of removal from a shelf.
  */
-function syncReadingLogDropdownRemoveWithPrimaryButton(dropper) {
+export function syncReadingLogDropdownRemoveWithPrimaryButton(dropper) {
     const primaryForm = dropper.querySelector('.readingLog')
     const shelfToRemoveFrom = primaryForm.querySelector('[name=bookshelf_id]').value
     const removalForm = dropper.querySelector('#remove-from-list')
