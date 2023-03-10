@@ -101,12 +101,13 @@ $ page = int(input(page=1).page)
                   <div id="hidden-comments-$r['id']" class="comment-cell__old-comments hidden">
                   $for c in comments:
                     $:render_template('merge_queue/comment3', comment=c)
-                  </div>
                   $if is_submitter or can_merge:
                     <div class="comment-cell__input">
+                      <!-- this is hidden from display and screen readers -->
                       <textarea rows="1" placeholder="$_('Add a comment...')"></textarea>
-                        <input class="mr-comment-btn" type="button" value="REPLY" data-mrid="$r['id']" data-merge-type="$r['mr_type']">
+                      <input class="mr-comment-btn" type="button" value="REPLY" data-mrid="$r['id']" data-merge-type="$r['mr_type']">
                     </div>
+                  </div>
                 </div>
                 <br>
                 <!-- Opened by which user -->
