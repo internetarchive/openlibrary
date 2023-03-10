@@ -146,7 +146,7 @@ export default {
             );
             const responses = promises.map(p => p.value || p);
             return _.fromPairs(
-                this.records.map((work, i) => [work.key, responses[i].counts])
+                this.records.map((work, i) => [work.key, responses[i]])
             );
         },
 
