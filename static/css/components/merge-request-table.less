@@ -89,13 +89,20 @@
 .comment-cell__input{
   display: flex;
   align-items: center;
-  height: 33px;
-  border-radius: 5px;
-
+  height: 30px;
+  
   textarea {
+    padding: 5px;
+    font-size: inherit;
     width: 100%;
     height: 100%;
     resize: none;
+    border-radius: 5px;
+    margin-right: 5px;
+  }
+
+  textarea::placeholder {
+    font-size:inherit;
   }
 
   .mr-comment-btn{
@@ -105,8 +112,10 @@
     border-radius: 6px;
     box-shadow: none;
     border: 1px solid @light-grey;
-    padding: 2%;
+    padding: 0 1.5%;
+    height: 100%;
     font-weight: bold;
+    font-size: inherit;
   }
 }
 
