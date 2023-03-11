@@ -58,6 +58,8 @@ export function initDroppers(droppers) {
         for (const button of submitButtons) {
             addReadingLogButtonClickListener(button)
         }
+
+        syncReadingLogDropdownRemoveWithPrimaryButton(dropper)
     }
 }
 
@@ -233,6 +235,67 @@ export function clearCreateListForm() {
 }
 
 /**
+ * Syncs the 'Remove From Shelf' form element with the primaryButton's bookshelf_id
+ * and displays the 'Remove From Shelf' button only if the book is on a shelf.
+ *
+ * This sets up the 'Remove From Shelf' button to behave as if it were the
+ * primaryButton in terms of removal from a shelf.
+ */
+function syncReadingLogDropdownRemoveWithPrimaryButton(dropper) {
+    const primaryForm = dropper.querySelector('.readingLog')
+    const shelfToRemoveFrom = primaryForm.querySelector('[name=bookshelf_id]').value
+    const removalForm = dropper.querySelector('#remove-from-list')
+    const removalButton = removalForm.querySelector('button')
+
+    // Get the remval bookshelf_id from primaryButton.
+    removalForm.querySelector('[name=bookshelf_id]').value = shelfToRemoveFrom
+
+    // The remove-from-shelf button displays only if a book is already on a bookshelf.
+    if (primaryForm.querySelector('[name=action]').value === 'remove') {
+        removalButton.classList.remove('hidden')
+    } else {
+        removalButton.classList.add('hidden')
+    }
+}
+
+/**
+ * Toggles the primaryButton for a reading log item.
+ *
+ * On click, the patron's reading log will be updated, and the dropper
+ * will be repainted with the new state.
+ * @param {HTMLButtonElement} button Adds click listener to the given reading log button.
+ * @param {HTMLAElement} An anchor element item that expands the dropper.
+ * @param {string} A text string with the initial text value of primaryButton
+ * @param {HTMLDivElement} A div containing the dropper widget
+ */
+function togglePrimaryButton(primaryButton, dropClick, initialText, dropper) {
+    const actionInput = primaryButton.parentElement.querySelector('input[name=action]')
+    // Toggle checkmark
+    primaryButton.children[0].classList.toggle('hidden')
+
+    // Toggle button class 'activated' <-> 'unactivated'
+    primaryButton.classList.toggle('activated')
+    primaryButton.classList.toggle('unactivated')
+
+    // Toggle dropclick and arrow
+    dropClick.classList.toggle('dropclick-activated')
+    dropClick.classList.toggle('dropclick-unactivated')
+
+    dropClick.children[0].classList.toggle('arrow-activated')
+    dropClick.children[0].classList.toggle('arrow-unactivated')
+
+    //Toggle action value 'add' <-> 'remove'
+    actionInput.value = (actionInput.value === 'add') ? 'remove' : 'add'
+
+    primaryButton.children[1].innerText = initialText
+
+    // Close dropper if expanded:
+    if ($(dropper).find('.arrow').first().hasClass('up')) {
+        toggleDropper(dropper)
+    }
+}
+
+/**
  * Adds click listener to the given reading log button.
  *
  * On click, the patron's reading log will be updated, and the dropper
@@ -279,34 +342,14 @@ function addReadingLogButtonClickListener(button) {
                 }
             }
             if (button.classList.contains('want-to-read')) {  // Primary button pressed
-                // Toggle checkmark
-                button.children[0].classList.toggle('hidden')
+                togglePrimaryButton(primaryButton, dropClick, initialText, dropper)
+                syncReadingLogDropdownRemoveWithPrimaryButton(dropper)
+            } else if (button.classList.contains('remove-from-list')) { // Clicking 'remove from list' (i.e. toggling a boofshelf) from the dropper.
+                toggleDropper(dropper)
+                togglePrimaryButton(primaryButton, dropClick, initialText, dropper)
+                syncReadingLogDropdownRemoveWithPrimaryButton(dropper)
 
-                // Toggle button class 'activated' <-> 'unactivated'
-                button.classList.toggle('activated')
-                button.classList.toggle('unactivated')
-
-                // Toggle dropclick and arrow
-                dropClick.classList.toggle('dropclick-activated')
-                dropClick.classList.toggle('dropclick-unactivated')
-
-                dropClick.children[0].classList.toggle('arrow-activated')
-                dropClick.children[0].classList.toggle('arrow-unactivated')
-
-                //Toggle action value 'add' <-> 'remove'
-                if (actionInput.value === 'add') {
-                    actionInput.value = 'remove'
-                } else {
-                    actionInput.value = 'add'
-                }
-
-                button.children[1].innerText = initialText
-
-                // Close dropper if expanded:
-                if ($(dropper).find('.arrow').first().hasClass('up')) {
-                    toggleDropper(dropper)
-                }
-            } else {  // Secondary button pressed
+            } else {  // Secondary button pressed -- all other drop down items.
                 toggleDropper(dropper)
 
                 // Change primary button's text to new value:
@@ -334,6 +377,8 @@ function addReadingLogButtonClickListener(button) {
                     btn.classList.remove('hidden')
                 }
                 button.classList.add('hidden')
+
+                syncReadingLogDropdownRemoveWithPrimaryButton(dropper)
             }
         }
 

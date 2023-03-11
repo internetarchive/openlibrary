@@ -1,5 +1,4 @@
 import web
-from openlibrary.core import yearly_reading_goals
 from openlibrary.core.db import get_db
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.bookshelves_events import BookshelvesEvents

@@ -16,7 +16,9 @@ from openlibrary.plugins.upstream.utils import (
     LanguageNoMatchError,
     get_abbrev_from_full_lang_name,
     LanguageMultipleMatchError,
+    get_location_and_publisher,
 )
+from openlibrary.utils.isbn import get_isbn_10_and_13
 
 import web
 
@@ -137,6 +139,9 @@ class importapi:
                 edition.pop('publishers')
             if edition.get('authors') == [{"name": "????"}]:
                 edition.pop('authors')
+            if edition.get('publish_date') == "????":
+                edition.pop('publish_date')
+
         except DataError as e:
             return self.error(str(e), 'Failed to parse import data')
         except ValidationError as e:
@@ -339,22 +344,26 @@ class ia_importapi(importapi):
         """
         authors = [{'name': name} for name in metadata.get('creator', '').split(';')]
         description = metadata.get('description')
-        isbn = metadata.get('isbn')
+        unparsed_isbns = metadata.get('isbn')
         language = metadata.get('language')
         lccn = metadata.get('lccn')
         subject = metadata.get('subject')
         oclc = metadata.get('oclc-id')
         imagecount = metadata.get('imagecount')
+        unparsed_publishers = metadata.get('publisher')
         d = {
             'title': metadata.get('title', ''),
             'authors': authors,
             'publish_date': metadata.get('date'),
-            'publisher': metadata.get('publisher'),
         }
         if description:
             d['description'] = description
-        if isbn:
-            d['isbn'] = isbn
+        if unparsed_isbns:
+            isbn_10, isbn_13 = get_isbn_10_and_13(unparsed_isbns)
+            if isbn_10:
+                d['isbn_10'] = isbn_10
+            if isbn_13:
+                d['isbn_13'] = isbn_13
         if language:
             if len(language) == 3:
                 d['languages'] = [language]
@@ -390,6 +399,13 @@ class ia_importapi(importapi):
                 d['number_of_pages'] = int(imagecount) - 4
             else:
                 d['number_of_pages'] = int(imagecount)
+
+        if unparsed_publishers:
+            publish_places, publishers = get_location_and_publisher(unparsed_publishers)
+            if publish_places:
+                d['publish_places'] = publish_places
+            if publishers:
+                d['publishers'] = publishers
 
         return d
 

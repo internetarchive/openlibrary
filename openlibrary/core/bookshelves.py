@@ -2,7 +2,7 @@ import logging
 import web
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Literal, cast, Any, Final
+from typing import Literal, cast, Any, Final, TypedDict
 from collections.abc import Iterable
 from openlibrary.plugins.worksearch.search import get_solr
 
@@ -13,6 +13,12 @@ from . import db
 logger = logging.getLogger(__name__)
 
 FILTER_BOOK_LIMIT: Final = 30_000
+
+
+class WorkReadingLogSummary(TypedDict):
+    want_to_read: int
+    currently_reading: int
+    already_read: int
 
 
 class Bookshelves(db.CommonExtras):
@@ -109,7 +115,7 @@ class Bookshelves(db.CommonExtras):
             where += ' AND created >= $since'
         group_by = 'group by work_id'
         if minimum:
-            group_by += f" HAVING COUNT(*) > {minimum}"
+            group_by += " HAVING COUNT(*) > $minimum"
         order_by = 'order by cnt desc' if sort_by_count else ''
         query = f"""
             select work_id, count(*) as cnt
@@ -117,7 +123,14 @@ class Bookshelves(db.CommonExtras):
             {where} {group_by} {order_by}
             limit $limit offset $offset"""
         logger.info("Query: %s", query)
-        data = {'shelf_id': shelf_id, 'limit': limit, 'offset': offset, 'since': since}
+        data = {
+            'shelf_id': shelf_id,
+            'limit': limit,
+            'offset': offset,
+            'since': since,
+            'minimum': minimum,
+        }
+
         logged_books = list(oldb.query(query, vars=data))
         return cls.fetch(logged_books) if fetch else logged_books
 
@@ -562,7 +575,7 @@ class Bookshelves(db.CommonExtras):
             return None
 
     @classmethod
-    def get_num_users_by_bookshelf_by_work_id(cls, work_id: str) -> dict[str, int]:
+    def get_num_users_by_bookshelf_by_work_id(cls, work_id: str) -> dict[int, int]:
         """Returns a dict mapping a work_id to the
         number of number of users who have placed that work_id in each shelf,
         i.e. {bookshelf_id: count}.
@@ -576,6 +589,17 @@ class Bookshelves(db.CommonExtras):
         )
         result = oldb.query(query, vars={'work_id': int(work_id)})
         return {i['bookshelf_id']: i['user_count'] for i in result} if result else {}
+
+    @classmethod
+    def get_work_summary(cls, work_id: str) -> WorkReadingLogSummary:
+        shelf_id_to_count = Bookshelves.get_num_users_by_bookshelf_by_work_id(work_id)
+
+        result = {}
+        # Make sure all the fields are present
+        for shelf_name, shelf_id in Bookshelves.PRESET_BOOKSHELVES_JSON.items():
+            result[shelf_name] = shelf_id_to_count.get(shelf_id, 0)
+
+        return cast(WorkReadingLogSummary, result)
 
     @classmethod
     def user_with_most_books(cls) -> list:
