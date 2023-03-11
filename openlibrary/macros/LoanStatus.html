@@ -130,7 +130,10 @@ $elif ocaid and availability.get('is_previewable') and book_provider.short_name 
       $:macros.BookSearchInside(ocaid)
 
 $else:
-  $:macros.NotInLibrary(work_key)
+  $ oclc_numbers = (doc.oclc_numbers and doc.oclc_numbers[0]) or ""
+  $ isbn_13 = doc.get_isbn13()
+  $ isbn_10 = doc.get_isbn10()
+  $:macros.NotInLibrary(isbn=isbn_13 or isbn_10, oclc_numbers=oclc_numbers, referer=doc.url(relative=False))
 
 $:post
 

@@ -1,0 +1,29 @@
+$def with (isbn=None, oclc_numbers=None, referer="")
+
+<div class="hidden">
+    <div class="floaterAdd" id="libraryModal">
+        <div class="floaterHead">
+            <h2>$_('Check local libraries')</h2>
+            <a class="dialog--close">&times;<span class="shift">$_("×")</span></a>
+        </div>
+        <div class="shareLinks cta-section">
+           <ul class="shareLinks-list">
+               
+                    <li>
+                        <a href="https://labs.library.link/services/borrow/?isbn=$isbn&embed=True&radius=500&refer=$(referer)">
+                            <img title="Check Library.link" alt="Check Library.link" class="share-link"
+                            src="/static/images/icons/icon-library-link.svg" />
+                        </a>
+                        <div class="share-source">Library.link</div>
+                    </li>
+                <li>
+                    <a class="worldcat-link" data-ol-link-track="worldcat-search" href="$macros.WorldcatUrl(isbn=isbn, oclc_numbers=oclc_numbers)" title="$_('Check WorldCat for an edition near you')">
+                        <img title="Check WorldCat" alt="Check WorldCat" class="share-link"
+                            src="/static/images/icons/icon-worldcat.png" />
+                    </a>
+                    <div class="share-source">Worldcat</div>
+                </li>
+            </ul> 
+        </div>
+    </div>
+</div>

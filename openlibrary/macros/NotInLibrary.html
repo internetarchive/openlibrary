@@ -1,6 +1,7 @@
-$def with(work_key)
+$def with(isbn=None, oclc_numbers=None, referer="")
 
 <div class="cta-button-group">
-  <a href="$work_key" class="cta-btn cta-btn--missing"
-     data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
+  <div class="cta-btn cta-btn--shell cta-btn--libraries listClick dialog--open" aria-controls="libraryModal"
+    data-ol-link-track="CTAClick|NotInLibrary">$_('Check local libraries')</div>
+  $:macros.LibraryModal(isbn, oclc_numbers, referer)
 </div>
