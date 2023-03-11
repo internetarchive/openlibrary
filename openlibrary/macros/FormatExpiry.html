@@ -1,4 +1,4 @@
-$def with(expiry, relative=False)
+$def with(expiry)
 
 $if expiry:
     $if render_once('expire-dates-js'):
@@ -19,9 +19,6 @@ $if expiry:
       $_('Expires')
       <span class="localize-time"
 	    data-expiry-utc="$datetimestr_utc(expiry_datetime)">
-        $if relative:
-            $datestr(expiry_datetime)
-        $else:
             $datetimestr_utc(expiry_datetime)
       </span>
     </div>

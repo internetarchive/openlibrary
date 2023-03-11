@@ -37,7 +37,7 @@ $ hidden = 'hidden' if current_goal else ''
 </div>
 
 $code:
-    def compact_carousel(data, check_loan_status=False):
+    def compact_carousel(data, secondary_action=False):
         key, title, url = data
         books = mybooks[key].docs
         count = mybooks[key].total_results
@@ -50,7 +50,7 @@ $code:
             "load_more": None,
             "compact_mode": True,
             "test": False,
-            "check_loan_status": check_loan_status
+            "secondary_action": secondary_action
         }) if books else None
 
 $def empty_carousel(data):
