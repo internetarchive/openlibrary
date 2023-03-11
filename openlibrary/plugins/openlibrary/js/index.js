@@ -425,6 +425,7 @@ jQuery(function () {
 
     $('.hamburger-component .mask-menu').on('click', function () {
         $('details[open]').not(this).removeAttr('open');
+        window.dispatchEvent(new Event('UNLOAD_THIRD_PARTY_LOGINS'))
     });
 
     // Open one dropdown at a time.
@@ -434,6 +435,7 @@ jQuery(function () {
             .filter((_, menu) => !$(event.target).closest(menu).length)
             .find('details')
             .removeAttr('open');
+        window.dispatchEvent(new Event('LOAD_THIRD_PARTY_LOGINS'))
     });
 
     // Prevent default star rating behavior:
