@@ -20,7 +20,7 @@ export const editionIdentifiersSample = `<fieldset id="identifiers" data-config=
     </tr>
     </tbody><tbody id="identifiers-display">
         <tr id="identifiers-template" style="display: none;" class="repeat-item">
-            <td align="right"><strong>{{$("#select-id").find("option[value=" + name + "]").html()}}</strong></td>
+            <td align="right"><strong>{{$("#select-id").find("option[value='" + name + "']").html()}}</strong></td>
             <td>{{value}}
                 <input type="hidden" name="{{prefix}}identifiers--{{index}}--name" value="{{name}}">
                 <input type="hidden" name="{{prefix}}identifiers--{{index}}--value" value="{{value}}" class="{{name}}">

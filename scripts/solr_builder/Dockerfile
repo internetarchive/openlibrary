@@ -1,7 +1,7 @@
 ## This image is where we should execute the Jenkins commands
 
 FROM ubuntu:xenial
-ARG DOCKER_VERSION=5:18.09.0~3-0~ubuntu-xenial
+ARG DOCKER_VERSION=5:20.10.7~3-0~ubuntu-xenial
 
 # Docker dependencies
 RUN apt-get -qq update && apt-get install -y \
@@ -20,7 +20,7 @@ RUN apt-get -qq update && apt-get install -y \
     containerd.io
 
 # Install docker-compose
-RUN curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
+RUN curl -L "https://github.com/docker/compose/releases/download/v2.15.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
     && chmod +x /usr/local/bin/docker-compose
 
 # Script dependencies

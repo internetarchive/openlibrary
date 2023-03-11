@@ -54,6 +54,16 @@ $if ctx.user or not work_key:
 
             $ classes[int(users_work_read_status) - 1] = ' hidden'
 
+            <form id="remove-from-list" class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
+              <input type="hidden" name="action" value="remove"/>
+              <input type="hidden" name="bookshelf_id" value=""/>
+              <input type="hidden" name="default-key" value="$(key)" />
+              $if edition_key:
+                <input type="hidden" name="edition_id" value="$(edition_key)"/>
+              <input type="hidden" id="work_id" name="work_id" value="$(work_key)"/>
+              <button class="remove-from-list hidden" type="submit">$_('Remove From Shelf')</button>
+            </form>
+
             <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
               <input type="hidden" name="action" value="add"/>
               <input type="hidden" name="bookshelf_id" value="1"/>

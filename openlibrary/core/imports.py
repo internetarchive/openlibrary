@@ -1,6 +1,8 @@
 """Interface to import queue.
 """
 from collections import defaultdict
+from typing import Any
+
 import logging
 import datetime
 import time
@@ -137,6 +139,23 @@ class ImportItem(web.storage):
 
     def mark_modified(self, ol_key):
         self.set_status(status='modified', ol_key=ol_key)
+
+    @classmethod
+    def delete_items(
+        cls, ia_ids: list[str], batch_id: int | None = None, _test: bool = False
+    ):
+        oldb = db.get_db()
+        data: dict[str, Any] = {
+            'ia_ids': ia_ids,
+        }
+
+        where = 'ia_id IN $ia_ids'
+
+        if batch_id:
+            data['batch_id'] = batch_id
+            where += ' AND batch_id=$batch_id'
+
+        return oldb.delete('import_item', where=where, vars=data, _test=_test)
 
 
 class Stats:

@@ -13,9 +13,10 @@ from collections import namedtuple
 
 import psycopg2
 
+from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings, WorkRatingsSummary
 from openlibrary.solr import update_work
-from openlibrary.solr.data_provider import DataProvider
+from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
 from openlibrary.solr.update_work import load_configs, update_keys
 
 
@@ -67,6 +68,7 @@ class LocalPostgresDataProvider(DataProvider):
         self.cache: dict = {}
         self.cached_work_editions_ranges: list = []
         self.cached_work_ratings: dict[str, WorkRatingsSummary] = dict()
+        self.cached_work_reading_logs: dict[str, WorkReadingLogSolrSummary] = dict()
 
     def __enter__(self) -> LocalPostgresDataProvider:
         """
@@ -224,6 +226,28 @@ class LocalPostgresDataProvider(DataProvider):
                 )
             )
 
+    def cache_work_reading_logs(self, lo_key: str, hi_key: str):
+        per_shelf_fields = ', '.join(
+            f"""
+                '{json_name}_count', count(*) filter (where "Shelf" = '{human_name}')
+            """.strip()
+            for json_name, human_name in zip(
+                Bookshelves.PRESET_BOOKSHELVES_JSON.keys(),
+                Bookshelves.PRESET_BOOKSHELVES.keys(),
+            )
+        )
+        q = f"""
+            SELECT "WorkKey", json_build_object(
+                'readinglog_count', count(*),
+                {per_shelf_fields}
+            )
+            FROM "reading_log"
+            WHERE '{lo_key}' <= "WorkKey" AND "WorkKey" <= '{hi_key}'
+            GROUP BY "WorkKey"
+            ORDER BY "WorkKey" asc
+        """
+        self.query_all(q, json_cache=self.cached_work_reading_logs)
+
     async def cache_cached_editions_ia_metadata(self):
         ocaids = list({doc['ocaid'] for doc in self.cache.values() if 'ocaid' in doc})
         await self.preload_metadata(ocaids)
@@ -269,6 +293,9 @@ class LocalPostgresDataProvider(DataProvider):
 
     def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
         return self.cached_work_ratings.get(work_key)
+
+    def get_work_reading_log(self, work_key: str) -> WorkReadingLogSolrSummary | None:
+        return self.cached_work_reading_logs.get(work_key)
 
     async def get_document(self, key):
         if key in self.cache:
@@ -565,8 +592,9 @@ async def main(
                         cached=len(db.cache) + len(db2.cache),
                     )
 
-                    # cache ratings
+                    # cache ratings and reading logs
                     db2.cache_work_ratings(*key_range)
+                    db2.cache_work_reading_logs(*key_range)
                 elif job == "orphans":
                     # cache editions' ocaid metadata
                     ocaids_time, _ = await simple_timeit_async(
@@ -595,6 +623,7 @@ async def main(
                 db.ia_cache.update(db2.ia_cache)
                 db.cached_work_editions_ranges += db2.cached_work_editions_ranges
                 db.cached_work_ratings.update(db2.cached_work_ratings)
+                db.cached_work_reading_logs.update(db2.cached_work_reading_logs)
 
             await update_keys(
                 keys,

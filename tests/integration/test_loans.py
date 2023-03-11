@@ -75,9 +75,7 @@ class Borrow_Test(unittest.TestCase):
             conditions = ia_cta_btn and ia_cta_btn.text == ia_ctas[check_cta]['copy']
 
             if make_assert:
-                self.assertTrue(
-                    conditions, 'Unable to find %s button on page.' % check_cta
-                )
+                assert conditions, 'Unable to find %s button on page.' % check_cta
             if not conditions:
                 return False
 
@@ -101,10 +99,9 @@ class Borrow_Test(unittest.TestCase):
                 return False
 
             if make_assert:
-                self.assertTrue(
-                    ol_cta_btn,
-                    f"{check_cta} button not found on OL edition page: {olid}",
-                )
+                assert (
+                    ol_cta_btn
+                ), f'{check_cta} button not found on OL edition page: {olid}'
             elif not ol_cta_btn:
                 return False
             if click:
@@ -125,10 +122,9 @@ class Borrow_Test(unittest.TestCase):
             olid, check_cta="read", make_assert=True, click=False
         )
         userid = cta.get_attribute('data-userid')
-        self.assertTrue(
-            cta.get_attribute('data-userid') == itemname,
-            f'data-userid should be {itemname}, was {userid}',
-        )
+        assert (
+            cta.get_attribute('data-userid') == itemname
+        ), f'data-userid should be {itemname}, was {userid}'
 
     def test_ia_borrow_ol_read_ol_return(self):
         olsession.ia_login(test=self, **LIVE_USER1)
@@ -195,7 +191,7 @@ class Borrow_Test(unittest.TestCase):
         link = olsession.driver.find_element_by_xpath(
             '//a[@href="/books/%s"]' % OL_EDITION
         )
-        self.assertTrue(link, "Book not found in waiting list on loans page")
+        assert link, 'Book not found in waiting list on loans page'
 
         olsession.logout(test=self)
         olsession.login(test=self, **LIVE_USER1)
