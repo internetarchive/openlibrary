@@ -77,7 +77,7 @@ class TestMarcParse(unittest.TestCase):
                 isbn_type = 'isbn_13'
             else:
                 isbn_type = 'isbn_10'
-            self.assertEqual(expect, output[isbn_type][0])
+            assert expect == output[isbn_type][0]
 
     def test_read_pagination(self):
         data = [
@@ -87,8 +87,8 @@ class TestMarcParse(unittest.TestCase):
         for value, expect in data:
             rec = MockRecord('300', [('a', value)])
             output = read_pagination(rec)
-            self.assertEqual(output['number_of_pages'], expect)
-            self.assertEqual(output['pagination'], value)
+            assert output['number_of_pages'] == expect
+            assert output['pagination'] == value
 
     def test_subjects_for_work(self):
         data = [
@@ -185,7 +185,7 @@ class TestMarcParse(unittest.TestCase):
 
         for value, expect in data:
             output = read_title(MockRecord('245', value))
-            self.assertEqual(expect, output)
+            assert expect == output
 
     def test_by_statement(self):
         data = [
@@ -203,4 +203,4 @@ class TestMarcParse(unittest.TestCase):
         ]
         for value, expect in data:
             output = read_title(MockRecord('245', value))
-            self.assertEqual(expect, output)
+            assert expect == output

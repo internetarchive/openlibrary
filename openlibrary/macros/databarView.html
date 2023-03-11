@@ -3,6 +3,7 @@ $def with (page, edition=None)
 $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
     $if edition and page.type.key in ["/type/work"]:
         $ edit_url = edition.url(suffix="/edit")
+        $ edit_url += '?work_key=%s' % page.key
     $else:
         $ edit_url = page.url(suffix="/edit")
 $else:

@@ -222,7 +222,7 @@ class ListMixin:
 
         # Solr has a maxBooleanClauses constraint there too many seeds, the
         if len(self.seeds) > 500:
-            logger.warn(
+            logger.warning(
                 "More than 500 seeds. skipping solr query for finding subjects."
             )
             return []

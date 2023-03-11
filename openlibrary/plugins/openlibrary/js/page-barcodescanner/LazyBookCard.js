@@ -4,6 +4,8 @@
  */
 import Promise from 'promise-polyfill'; // polyfill Promise support for IE11
 
+const OL_BASE = new URLSearchParams(window.location.search).get('ol_base') || '';
+
 export default class LazyBookCard {
     /**
      * @param {LazyBookCardState} state
@@ -86,7 +88,7 @@ export default class LazyBookCard {
             link: `/isbn/${isbn}`,
         });
 
-        fetch(`/isbn/${isbn}.json`).then(r => r.json())
+        fetch(`${OL_BASE}/isbn/${isbn}.json`).then(r => r.json())
             .then(editionRecord => {
                 cardEl.updateState({
                     title: editionRecord.title,
@@ -103,11 +105,11 @@ export default class LazyBookCard {
                     }
                 }
 
-                return fetch(`${editionRecord.works[0].key}.json`).then(r => r.json())
+                return fetch(`${OL_BASE}${editionRecord.works[0].key}.json`).then(r => r.json())
             }).then(workRecord => {
                 return Promise.all(
-                    workRecord.authors.map(a => `${a.author.key}.json`)
-                        .map(link => fetch(link).then(r => r.json()))
+                    workRecord.authors
+                        .map(a => fetch(`${OL_BASE}${a.author.key}.json`).then(r => r.json()))
                 );
             }).then(authorRecords => {
                 cardEl.updateState({

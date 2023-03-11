@@ -790,6 +790,8 @@ def build_data2(
     if get_solr_next():
         # Add ratings info
         doc.update(data_provider.get_work_ratings(w['key']) or {})
+        # Add reading log info
+        doc.update(data_provider.get_work_reading_log(w['key']) or {})
 
     work_cover_id = next(
         itertools.chain(
@@ -1428,7 +1430,7 @@ async def update_keys(
         edition = await data_provider.get_document(k)
 
         if edition and edition['type']['key'] == '/type/redirect':
-            logger.warn("Found redirect to %s", edition['location'])
+            logger.warning("Found redirect to %s", edition['location'])
             edition = await data_provider.get_document(edition['location'])
 
         # When the given key is not found or redirects to another edition/work,
@@ -1437,7 +1439,7 @@ async def update_keys(
             deletes.append(k)
 
         if not edition:
-            logger.warn("No edition found for key %r. Ignoring...", k)
+            logger.warning("No edition found for key %r. Ignoring...", k)
             continue
         elif edition['type']['key'] != '/type/edition':
             logger.info(
@@ -1458,7 +1460,7 @@ async def update_keys(
                 # Also remove if there is any work with that key in solr.
                 wkeys.add(k)
             else:
-                logger.warn(
+                logger.warning(
                     "Found a document of type %r. Ignoring...", edition['type']['key']
                 )
         else:

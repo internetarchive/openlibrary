@@ -37,10 +37,12 @@ pipeline {
         // Where to download the ol full dump from
         OL_DUMP_LINK = 'https://openlibrary.org/data/ol_dump_latest.txt.gz'
         OL_RATINGS_LINK = 'https://openlibrary.org/data/ol_dump_ratings_latest.txt.gz'
+        OL_READING_LOG_LINK = 'https://openlibrary.org/data/ol_dump_reading-log_latest.txt.gz'
         // Get the date-suffixed name of the latest dump
         // eg ol_dump_2021-09-13.txt.gz
         OL_DUMP_FILE = sh(script: "curl '${env.OL_DUMP_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
         OL_RATINGS_FILE = sh(script: "curl '${env.OL_RATINGS_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
+        OL_READING_LOG_FILE = sh(script: "curl '${env.OL_READING_LOG_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
       }
       stages {
         stage('Wipe old postgres') {
@@ -48,7 +50,7 @@ pipeline {
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
               sh(label: 'Stop running db',
-                script: 'docker rm -f -v solr_builder_db_1 solr_builder_adminer_1 || true')
+                script: 'docker rm -f -v solr_builder-db-1 solr_builder-adminer-1 || true')
 
               sh(label: 'Remove db volume',
                 script: 'docker volume rm solr_builder_postgres-data || true')
@@ -81,6 +83,7 @@ pipeline {
                     dir(env.DUMP_DIR) {
                       sh "wget --progress=dot:giga --trust-server-names --no-clobber ${env.OL_DUMP_LINK}"
                       sh "wget --progress=dot:giga --trust-server-names --no-clobber ${env.OL_RATINGS_LINK}"
+                      sh "wget --progress=dot:giga --trust-server-names --no-clobber ${env.OL_READING_LOG_LINK}"
                     }
                   }
                 }
@@ -100,6 +103,8 @@ pipeline {
                     script: "./psql-import-in-chunks.sh ${env.DUMP_DIR}/${env.OL_DUMP_FILE} ${env.PARALLEL_PROCESSES}")
                   sh(label: 'Import ratings',
                     script: "docker-compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_RATINGS_FILE} ratings")
+                  sh(label: 'Import reading log',
+                    script: "docker-compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_READING_LOG_FILE} reading_log")
 
                   waitUntil {
                     script {
@@ -180,7 +185,7 @@ pipeline {
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
               sh(label: 'Stop solr if running',
-                script: 'docker rm -f -v solr_builder_solr_1 || true')
+                script: 'docker rm -f -v solr_builder-solr-1 || true')
 
               sh(label: 'Remove solr volume',
                 script: 'docker volume rm solr_builder_solr-data || true')

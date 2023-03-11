@@ -41,10 +41,9 @@ class OLSession:
         self.driver.find_element_by_id('password').send_keys(password)
         self.driver.find_element_by_name('submit').click()
         if test:
-            test.assertTrue(
-                self.ia_is_logged_in(),
-                f"IA Login failed w/ username: {email} and password: {password}",
-            )
+            assert (
+                self.ia_is_logged_in()
+            ), f"IA Login failed w/ username: {email} and password: {password}"
 
     def ia_is_logged_in(self, domain="https://archive.org"):
         time.sleep(2)
@@ -58,7 +57,7 @@ class OLSession:
     def ia_logout(self, test=None, domain="https://archive.org"):
         self.driver.get('%s/account/logout.php' % domain)
         if test:
-            test.assertTrue(not self.ia_is_logged_in(), "Failed to logout of IA")
+            assert not self.ia_is_logged_in(), "Failed to logout of IA"
 
     def login(self, email, password, test=None, **kwargs):
         self.driver.get(self.url('/account/login'))
@@ -66,10 +65,9 @@ class OLSession:
         self.driver.find_element_by_id("password").send_keys(password)
         self.driver.find_element_by_name('login').click()
         if test:
-            test.assertTrue(
-                self.is_logged_in(),
-                f"OL Login failed w/ username: {email} and password: {password}",
-            )
+            assert (
+                self.is_logged_in()
+            ), f"OL Login failed w/ username: {email} and password: {password}"
 
     def is_logged_in(self):
         time.sleep(2)
@@ -87,7 +85,7 @@ class OLSession:
         ).click()
         self.driver.get(self.url('/account/login'))
         if test:
-            test.assertTrue(not self.is_logged_in(), "Failed to logout of OL")
+            assert not self.is_logged_in(), "Failed to logout of OL"
 
     def connect(self, email, password):
         self.wait_for_clickable('linkAccounts')
