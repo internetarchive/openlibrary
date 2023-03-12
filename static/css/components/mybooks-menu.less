@@ -20,13 +20,16 @@
     cursor: pointer;
     padding: inherit;
     line-height: 1.5em;
-    background-color: hsla(0,0%,78%,.23);
-    border: 1px solid rgb(221, 221, 221);
-    color: rgb(102, 102, 102) !important;}
+    background-color: @background-grey;
+    border: 1px solid @lighter-grey;
+    color: @grey !important;
+  }
 
+  /* stylelint-disable selector-max-specificity */
   div.Tools div.dropper div.dropdown {
     border-top: 0;
   }
+  /* stylelint-enable selector-max-specificity */
 
   .dropdown {
     display: block !important;
@@ -50,6 +53,8 @@
   .widget-add div.dropper div.dropdown p.create {
     border-top: 0;
   }
+  /* stylelint-enable selector-max-specificity */
+
 }
 
 .mybooks-menu {
@@ -112,6 +117,7 @@
       padding: 8px 15px;
     }
 
+    /* stylelint-disable selector-max-specificity */
     &.selected {
       padding: 4px 11px;
     }
