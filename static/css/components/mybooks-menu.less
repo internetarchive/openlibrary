@@ -4,6 +4,54 @@
  *
  * http://localhost:8080/account/books/want-to-read
  */
+
+/* 'create a new list' within sidebar */
+.sidebar-section {
+  a.dropclick {
+    display: none;
+  }
+
+  .create {
+    text-align: center;
+  }
+
+  .create-new-list {
+    border-radius: 5px;
+    cursor: pointer;
+    padding: inherit;
+    line-height: 1.5em;
+    background-color: hsla(0,0%,78%,.23);
+    border: 1px solid rgb(221, 221, 221);
+    color: rgb(102, 102, 102) !important;}
+
+  div.Tools div.dropper div.dropdown {
+    border-top: 0;
+  }
+
+  .dropdown {
+    display: block !important;
+
+    .my-lists{
+      background-color: inherit !important;
+      padding: 1px !important;
+    }
+  }
+
+  .dropit {
+    min-height: 30px;
+  }
+
+  .dropper.on {
+    background-color: inherit !important;
+    box-shadow: none !important;
+  }
+
+  /* stylelint-disable selector-max-specificity */
+  .widget-add div.dropper div.dropdown p.create {
+    border-top: 0;
+  }
+}
+
 .mybooks-menu {
   max-width: none !important; /** fix in media query */
   width: 250px;
@@ -64,7 +112,6 @@
       padding: 8px 15px;
     }
 
-    /* stylelint-disable selector-max-specificity */
     &.selected {
       padding: 4px 11px;
     }
@@ -132,48 +179,5 @@
     resize: vertical;
     overflow: auto;
     border-bottom: 3px solid @lighter-grey;
-  }
-}
-
-/* 'create a new list' within sidebar */
-.sidebar-section {
-  a.dropclick {
-    display: none;
-  }
-
-  .create {
-    float: left;
-  }
-
-  .create-new-list {
-    display: block;
-    border-radius: 5px;
-    cursor: pointer;
-    padding: 7px;
-    line-height: 1.5em;
-    background-color: #0376b8;
-    color: #fff !important;
-}
-
-  div.Tools div.dropper div.dropdown {
-    border-top: 0;
-  }
-
-  .dropdown {
-    display: block !important;
-
-    .my-lists{
-      background-color: inherit !important;
-      padding: 1px !important;
-    }
-  }
-
-  .dropper.on {
-    background-color: inherit !important;
-    box-shadow: none !important;
-  }
-
-  .widget-add div.dropper div.dropdown p.create {
-    border-top: 0;
   }
 }
