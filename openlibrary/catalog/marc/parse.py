@@ -270,7 +270,7 @@ def read_edition_name(rec):
     found = []
     for f in fields:
         f.remove_brackets()
-        found += [v for k, v in f.get_lower_subfields()]
+        found += f.get_lower_subfields()
     return ' '.join(found)
 
 
@@ -615,7 +615,7 @@ def read_toc(rec):
     toc = []
     for f in fields:
         toc_line = []
-        for k, v in f.get_lower_subfields():
+        for k, v in f.get_all_subfields():
             if k == 'a':
                 toc_split = [i.strip() for i in v.split('--')]
                 if any(len(i) > 2048 for i in toc_split):
@@ -638,7 +638,8 @@ def read_toc(rec):
                 else:
                     toc_line = [v.strip('/')]
                 continue
-            toc_line.append(v.strip(' -'))
+            if k.islower():  # Exclude numeric, non-display subfields like $6, $7, $8
+                toc_line.append(v.strip(' -'))
         if toc_line:
             toc.append('-- '.join(toc_line))
     found = []
