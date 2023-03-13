@@ -100,7 +100,8 @@ msgstr "Scanner de code-barres (Beta)"
 msgid "Point your camera at a barcode! 📷"
 msgstr "Pointez votre caméra sur un code-barres ! 📷"
 
-#: borrow_admin.html:97
+#: account/loans.html:63
+#, python-format
 msgid "1 Current Loan"
 msgstr "1 emprunt en cours"
 
@@ -111,18 +112,11 @@ msgid_plural "%(count)d Current Loans"
 msgstr[0] "%(count)d emprunt en cours"
 msgstr[1] "%(count)d emprunts en cours"
 
-#: account/loans.html:65 admin/loans_table.html:41 borrow_admin.html:106
+#: account/loans.html:65 admin/loans_table.html:41
 msgid "Loan Expires"
 msgstr "Échéance de l'emprunt"
 
-#: borrow_admin.html:168
-#, python-format
-msgid "%d person waiting"
-msgid_plural "%d people waiting"
-msgstr[0] "%d personne en attente"
-msgstr[1] "%d personnes en attente"
-
-#: ManageWaitlistButton.html:11 borrow_admin.html:186
+#: ManageWaitlistButton.html:11
 #, python-format
 msgid "Waiting for %d day"
 msgid_plural "Waiting for %d days"
