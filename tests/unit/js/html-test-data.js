@@ -209,3 +209,16 @@ export const checkInForm = `
   </form>
 </div>
 `
+
+export const readingLogDropperForm = `
+<div id="dropper">
+    <form class="readingLog">
+        <input type="hidden" name="bookshelf_id" value="1">
+        <input type="hidden" name="action" value="">
+    </form>
+    <form id="remove-from-list">
+        <input type="hidden" name="bookshelf_id">
+        <button class="hidden">Remove From Shelf</button>
+    </form>
+</div>
+`
