@@ -1,4 +1,5 @@
 $def with (key=None, selected="",options=[])
+<<<<<<< HEAD
     <style>
         .crumb {
             display: flex;
@@ -112,3 +113,13 @@ $def with (key=None, selected="",options=[])
         })
     })
 </script>
+=======
+
+    <span class="crumb">
+        <select class="disguised-select">
+            <option selected>$selected</option>
+            $for (title, url) in options:
+            <option>$title</option> 
+        </select>
+    </span>
+>>>>>>> 351870688 (first test of breadcrumb selector)
