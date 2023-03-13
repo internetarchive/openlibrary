@@ -107,7 +107,7 @@ $ page = int(input(page=1).page)
                     <div class="comment-cell__input">
                       <!-- this is hidden from display and screen readers -->
                       <textarea rows="1" placeholder="$_('Add a comment...')"></textarea>
-                      <input class="mr-comment-btn" type="button" value="REPLY" data-mrid="$r['id']" data-merge-type="$r['mr_type']">
+                      <input class="mr-comment-btn" type="button" value="REPLY" data-mrid="$r['id']" data-merge-type="$r['mr_type']" data-username="$username">
                     </div>
                   </div>
                 </div>
@@ -137,7 +137,7 @@ $ page = int(input(page=1).page)
                   <button id="mr-comment-btn" class="mr-comment-review-cell__comments ">
                     <!-- <div>word</div> -->
                     <a href="javascript:;" class="comment-expand" data-target-id="hidden-comments-$r['id']" data-latest-comment="latest-comment-$r['id']">
-                      <span>$len(comments)</span>
+                      <span class="comment-count">$len(comments)</span>
                       <img style="margin-right:4px" src="/static/images/markdown/quotes.png" alt="">
                     </a>
                   </button>

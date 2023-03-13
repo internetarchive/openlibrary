@@ -60,7 +60,8 @@ export function initCommenting(elems) {
     for (const elem of elems) {
         elem.addEventListener('click', function () {
             const mrid = elem.dataset.mrid
-            onCommentClick(elem.previousElementSibling, mrid)
+            const username = elem.dataset.username;
+            onCommentClick(elem.previousElementSibling, mrid, username)
         })
     }
 }
@@ -71,7 +72,7 @@ export function initCommenting(elems) {
  * @param {HTMLTextAreaElement} textarea The element that contains the comment
  * @param {Number} mrid Unique identifier for the request that is being commented on
  */
-async function onCommentClick(textarea, mrid) {
+async function onCommentClick(textarea, mrid, username) {
     const c = textarea.value;
 
     if (c) {
@@ -80,7 +81,7 @@ async function onCommentClick(textarea, mrid) {
             .then(data => {
                 if (data.status === 'ok') {
                     new FadingToast('Comment updated!').show()
-                    updateCommentsView(mrid, c)
+                    updateCommentsView(mrid, c, username)
                     textarea.value = ''
                 } else {
                     new FadingToast('Failed to submit comment. Please try again in a few moments.').show()
@@ -114,38 +115,51 @@ async function comment(mrid, comment) {
  * @param {Number} mrid Unique identifier for the request that's being commented upon
  * @param {string} comment The new comment
  */
-async function updateCommentsView(mrid, comment) {
+async function updateCommentsView(mrid, comment, username) {
     const commentCell = document.querySelector(`#comment-cell-${mrid}`);
     const newCommentDiv = commentCell.querySelector('.comment-cell__newest-comment')
     const hiddenCommentDiv = commentCell.querySelector('.comment-cell__old-comments-section');
+    const commentCount = document.querySelector('.comment-count');
+    const newComment = document.createElement('div')
+    newComment.innerHTML += `<div class="mr-comment"> 
+    <div class="mr-comment__body"><a href="">@${username}</a> ${comment}</div>
+  </div>`
 
-    await fetch(`/merges/partials?type=comment&comment=${comment}`, {
-        method: 'GET'
-    })
-        .then(result => {result.text(); console.log(result)})
-        .then(html => {
-            // Create new comment element
-            const template = document.createElement('template')
-            console.log(template)
-            template.innerHTML = html.trim()
+  console.log(username)
+    hiddenCommentDiv.prepend(newComment);
 
-            // Remove newest comment (or "No comments yet" message)
-            const newestComment = newCommentDiv.firstElementChild
-            newCommentDiv.removeChild(newestComment)
+    
+    
 
-            if (newestComment.classList.contains('comment')) {  // "No comments yet" element will not have this class
-                // Append newest comment to old comments element
-                // const oldComments = commentCell.querySelector('.comment-cell__old-comments')
-                // oldComments.appendChild(newestComment)
-                commentCell.querySelector('.comment-cell__old-comments').
-                prepend(newestComment)
-            }
+    // await fetch(`/merges/partials?type=comment&comment=${comment}`, {
+    //     method: 'GET'
+    // })
+    //     .then(result => {result.text(); console.log(result)})
+    //     .then(html => {
+    //         console.log(html)
+    //         // Create new comment element
+    //         const template = document.createElement('template')
+    //         console.log(template)
+    //         template.innerHTML = html.trim()
+
+    //         // Remove newest comment (or "No comments yet" message)
+    //         const newestComment = newCommentDiv.firstElementChild
+    //         newCommentDiv.removeChild(newestComment)
+
+    //         if (newestComment.classList.contains('comment')) {  // "No comments yet" element will not have this class
+    //             // Append newest comment to old comments element
+    //             // const oldComments = commentCell.querySelector('.comment-cell__old-comments')
+    //             // oldComments.appendChild(newestComment)
+    //             commentCell.querySelector('.comment-cell__old-comments').
+    //             prepend(newestComment)
+    //         }
 
             // Display new
-            newCommentDiv.prepend(template.content.firstChild)
-            hiddenCommentDiv.prepend(newestComment);
+            //commentCount.innerHTML = 
+        // newCommentDiv.prepend(template.content.firstChild)
+        // hiddenCommentDiv.prepend(newestComment);
 
-        })
+        // })
 }
 
 /**
