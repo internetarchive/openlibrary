@@ -269,9 +269,8 @@ def read_edition_name(rec):
         return
     found = []
     for f in fields:
-        f.remove_brackets()
         found += f.get_lower_subfield_values()
-    return ' '.join(found)
+    return ' '.join(found).strip('[]')
 
 
 lang_map = {
@@ -333,9 +332,8 @@ def read_pub_date(rec):
         return
     found = []
     for f in fields:
-        f.remove_brackets()
-        found += [i for i in f.get_subfield_values('c') if i]
-    return remove_trailing_number_dot(found[0]) if found else None
+        found += [v for v in f.get_subfield_values('c') if v]
+    return remove_trailing_number_dot(found[0].strip('[]')) if found else None
 
 
 def read_publisher(rec):
