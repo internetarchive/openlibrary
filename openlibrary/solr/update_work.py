@@ -787,11 +787,10 @@ def build_data2(
 
     doc = p.build_data(w, editions, ia)
 
-    if get_solr_next():
-        # Add ratings info
-        doc.update(data_provider.get_work_ratings(w['key']) or {})
-        # Add reading log info
-        doc.update(data_provider.get_work_reading_log(w['key']) or {})
+    # Add ratings info
+    doc.update(data_provider.get_work_ratings(w['key']) or {})
+    # Add reading log info
+    doc.update(data_provider.get_work_reading_log(w['key']) or {})
 
     work_cover_id = next(
         itertools.chain(
