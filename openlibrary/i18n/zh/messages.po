@@ -88,25 +88,18 @@ msgstr "条形码扫描器 (Beta)"
 msgid "Point your camera at a barcode! 📷"
 msgstr "请将您的相机对准条形码！ 📷"
 
-#: account/borrow.html:82 borrow_admin.html:104
+#: account/borrow.html:82
 #, python-format
 msgid "%(count)d Current Loan"
 msgid_plural "%(count)d Current Loans"
 msgstr[0] "目前的贷款"
 msgstr[1] "%(count)d 目前贷款"
 
-#: account/borrow.html:84 admin/loans_table.html:41 borrow_admin.html:106
+#: account/borrow.html:84 admin/loans_table.html:41
 msgid "Loan Expires"
 msgstr "贷款到期"
 
-#: borrow_admin.html:168
-#, python-format
-msgid "%d person waiting"
-msgid_plural "%d people waiting"
-msgstr[0] "%d 人等待中"
-msgstr[1] "%d 人等待中"
-
-#: ManageWaitlistButton.html:11 borrow_admin.html:186
+#: ManageWaitlistButton.html:11
 #, python-format
 msgid "Waiting for %d day"
 msgid_plural "Waiting for %d days"

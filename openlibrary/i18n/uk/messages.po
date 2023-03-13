@@ -98,7 +98,7 @@ msgstr "Сканер штрихкоду (бета)"
 msgid "Point your camera at a barcode! 📷"
 msgstr "Наведіть камеру на штрихкод! 📷"
 
-#: account/loans.html:63 borrow_admin.html:104
+#: account/loans.html:63
 #, python-format
 msgid "%(count)d Current Loan"
 msgid_plural "%(count)d Current Loans"
@@ -106,19 +106,11 @@ msgstr[0] "%(count)d активна позика"
 msgstr[1] "%(count)d активні позики"
 msgstr[2] "%(count)d активних позик"
 
-#: account/loans.html:65 admin/loans_table.html:41 borrow_admin.html:106
+#: account/loans.html:65 admin/loans_table.html:41
 msgid "Loan Expires"
 msgstr "Позика закінчується"
 
-#: borrow_admin.html:168
-#, python-format
-msgid "%d person waiting"
-msgid_plural "%d people waiting"
-msgstr[0] "%d людина очікує"
-msgstr[1] "%d людини очікують"
-msgstr[2] "%d людей очікують"
-
-#: ManageWaitlistButton.html:11 borrow_admin.html:186
+#: ManageWaitlistButton.html:11
 #, python-format
 msgid "Waiting for %d day"
 msgid_plural "Waiting for %d days"

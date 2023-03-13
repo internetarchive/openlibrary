@@ -86,25 +86,18 @@ msgstr "Barcode Scanner (Beta)"
 msgid "Point your camera at a barcode! 📷"
 msgstr "Richten Sie die Kamera auf den Barcode! 📷"
 
-#: account/loans.html:69 borrow_admin.html:104
+#: account/loans.html:69
 #, python-format
 msgid "%(count)d Current Loan"
 msgid_plural "%(count)d Current Loans"
 msgstr[0] "%(count)d ausgeliehenes Buch"
 msgstr[1] "%(count)d ausgeliehene Bücher"
 
-#: account/loans.html:71 admin/loans_table.html:41 borrow_admin.html:106
+#: account/loans.html:71 admin/loans_table.html:41
 msgid "Loan Expires"
 msgstr "Rückgabedatum"
 
-#: borrow_admin.html:168
-#, python-format
-msgid "%d person waiting"
-msgid_plural "%d people waiting"
-msgstr[0] "%d wartende Person"
-msgstr[1] "%d wartenden Personen"
-
-#: ManageWaitlistButton.html:11 borrow_admin.html:186
+#: ManageWaitlistButton.html:11
 #, python-format
 msgid "Waiting for %d day"
 msgid_plural "Waiting for %d days"
