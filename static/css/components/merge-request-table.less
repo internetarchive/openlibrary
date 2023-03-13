@@ -86,9 +86,18 @@
   width: 60%;
 }
 
+.comment-cell{
+
+}
+
+.comment-cell__old-comments {
+  margin-left: -3px;
+}
+
 .comment-cell__old-comments-section {
   border: 1px solid @light-grey;
   border-radius: 5px;
+  margin-top: 10px;
   overflow: auto;
   overflow-y: scroll;
 }
@@ -104,6 +113,7 @@
 .comment-cell__input{
   display: flex;
   align-items: center;
+  margin-top: 6px;
   height: 30px;
   
   textarea {
@@ -126,7 +136,7 @@
     text-decoration: none;
     border-radius: 6px;
     box-shadow: none;
-    border: 1px solid @light-grey;
+    border: 1px solid @lightest-grey;
     padding: 0 1.5%;
     height: 100%;
     font-weight: bold;
