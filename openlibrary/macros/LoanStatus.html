@@ -43,7 +43,6 @@ $ is_edition = doc.key.split('/')[1] == 'books'
 
 $if user_loan:
   $:macros.ReadButton(ocaid, loan=user_loan, listen=listen)
-  $:macros.FormatExpiry(user_loan['expiry'])
   $if secondary_action:
     $ return_url = doc.url().rsplit('/', 1)[0] + '/do_return/borrow'
     <form action="$return_url" method="post"
@@ -61,6 +60,7 @@ $if user_loan:
           });
         });
       </script>
+  $:macros.FormatExpiry(user_loan['expiry'])
 
 $elif book_provider and book_provider.short_name != 'ia':
   $# Partner Trusted Book Provider Read Buttons
