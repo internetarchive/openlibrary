@@ -117,15 +117,16 @@ async function comment(mrid, comment) {
 async function updateCommentsView(mrid, comment) {
     const commentCell = document.querySelector(`#comment-cell-${mrid}`);
     const newCommentDiv = commentCell.querySelector('.comment-cell__newest-comment')
-    const hiddenCommentDiv = commentCell.querySelector('.comment-cell__old-comments');
+    const hiddenCommentDiv = commentCell.querySelector('.comment-cell__old-comments-section');
 
     await fetch(`/merges/partials?type=comment&comment=${comment}`, {
         method: 'GET'
     })
-        .then(result => result.text())
+        .then(result => {result.text(); console.log(result)})
         .then(html => {
             // Create new comment element
             const template = document.createElement('template')
+            console.log(template)
             template.innerHTML = html.trim()
 
             // Remove newest comment (or "No comments yet" message)
@@ -134,13 +135,15 @@ async function updateCommentsView(mrid, comment) {
 
             if (newestComment.classList.contains('comment')) {  // "No comments yet" element will not have this class
                 // Append newest comment to old comments element
-                const oldComments = commentCell.querySelector('.comment-cell__old-comments');
-                oldComments.appendChild(newestComment)
+                // const oldComments = commentCell.querySelector('.comment-cell__old-comments')
+                // oldComments.appendChild(newestComment)
+                commentCell.querySelector('.comment-cell__old-comments').
+                prepend(newestComment)
             }
 
             // Display new
-            newCommentDiv.appendChild(template.content.firstChild)
-            hiddenCommentDiv.appendChild(newestComment);
+            newCommentDiv.prepend(template.content.firstChild)
+            hiddenCommentDiv.prepend(newestComment);
 
         })
 }
