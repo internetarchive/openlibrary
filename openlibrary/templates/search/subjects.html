@@ -28,7 +28,7 @@ $ url_map = { 'person': 'person:', 'place': 'place:', 'time': 'time:' }
 $if q:
     $ response = get_results(q, offset=offset, limit=results_per_page)
     $if not response.error:
-        <p class="search-results-stats">$ungettext('1 hit', '%(count)s hits', response.num_found, count=commify(response.num_found))</p>
+        <p class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', response.num_found, count=commify(response.num_found))</p>
 
 $if q and response.error:
     <strong>
@@ -63,7 +63,7 @@ $if q and not response.error:
                     <span class="black">$_("work")</span>
                 $else:
                     $doc['subject_type']
-            <span class="count">&nbsp;&nbsp;<b>$ungettext('1 book', '%(count)d books', doc['work_count'], count=doc['work_count'])</b>, $:render_type(doc['subject_type'])</span>
+            <span class="count">&nbsp;&nbsp;<b>$ungettext('%(count)d book', '%(count)d books', doc['work_count'], count=doc['work_count'])</b>, $:render_type(doc['subject_type'])</span>
         </li>
     </ul>
     $:macros.Pager(page, response.num_found, results_per_page)

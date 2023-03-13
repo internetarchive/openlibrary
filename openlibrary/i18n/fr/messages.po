@@ -13,7 +13,7 @@ msgstr ""
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
 "Language-Team: fr <traduc@traduc.org>\n"
-"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"Plural-Forms: nplurals=2; plural=(n >= 2)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -100,11 +100,15 @@ msgstr "Scanner de code-barres (Beta)"
 msgid "Point your camera at a barcode! 📷"
 msgstr "Pointez votre caméra sur un code-barres ! 📷"
 
-#: account/loans.html:63 borrow_admin.html:104
-#, python-format
+#: borrow_admin.html:97
 msgid "1 Current Loan"
+msgstr "1 emprunt en cours"
+
+#: account/loans.html:59
+#, python-format
+msgid "%(count)d Current Loan"
 msgid_plural "%(count)d Current Loans"
-msgstr[0] "1 emprunt en cours"
+msgstr[0] "%(count)d emprunt en cours"
 msgstr[1] "%(count)d emprunts en cours"
 
 #: account/loans.html:65 admin/loans_table.html:41 borrow_admin.html:106
@@ -428,12 +432,12 @@ msgstr "Périodes"
 msgid "See all works"
 msgstr "Tout voir"
 
-#: merge/authors.html:93 publishers/view.html:17 subjects.html:19
-#: type/author/view.html:121
+#: merge/authors.html:89 publishers/view.html:13 subjects.html:15
+#: type/author/view.html:117
 #, python-format
-msgid "1 work"
+msgid "%(count)d work"
 msgid_plural "%(count)d works"
-msgstr[0] "1 œuvre"
+msgstr[0] "%(count)d œuvre"
 msgstr[1] "%(count)d œuvres"
 
 #: subjects.html:22
@@ -502,13 +506,13 @@ msgstr "Aucun résultat."
 msgid "See more books by, and learn about, this author"
 msgstr "Voir plus de livres de cet auteur et en apprendre plus"
 
-#: account/loans.html:147 authors/index.html:28 publishers/view.html:83
-#: search/authors.html:57 search/publishers.html:29 search/subjects.html:73
-#: subjects.html:88
+#: account/loans.html:143 authors/index.html:24 publishers/view.html:79
+#: search/authors.html:56 search/publishers.html:29 search/subjects.html:66
+#: subjects.html:84
 #, python-format
-msgid "1 book"
+msgid "%(count)d book"
 msgid_plural "%(count)d books"
-msgstr[0] "1 livre"
+msgstr[0] "%(count)d livre"
 msgstr[1] "%(count)d livres"
 
 #: subjects.html:92
@@ -523,12 +527,12 @@ msgstr "qui a écrit le plus de livres sur ce thème"
 msgid "Get more information about this publisher"
 msgstr "Obtenir plus d'informations sur cet éditeur"
 
-#: SearchResultsWork.html:86 books/check.html:36 merge/authors.html:86
-#: publishers/view.html:106 subjects.html:111
+#: SearchResultsWork.html:82 books/check.html:32 merge/authors.html:82
+#: publishers/view.html:102 subjects.html:107
 #, python-format
-msgid "1 edition"
+msgid "%(count)s edition"
 msgid_plural "%(count)s editions"
-msgstr[0] "1 édition"
+msgstr[0] "%(count)s édition"
 msgstr[1] "%(count)s éditions"
 
 #: support.html:7 support.html:10
@@ -874,12 +878,12 @@ msgstr "Rechercher des livres contenant la phrase « %s » ?"
 msgid "Add a new book to Open Library?"
 msgstr "Ajouter un nouveau livre à Open Library"
 
-#: account/reading_log.html:40 search/authors.html:44 search/subjects.html:35
-#: work_search.html:194
+#: account/reading_log.html:36 search/authors.html:41 search/subjects.html:31
+#: work_search.html:190
 #, python-format
-msgid "1 hit"
+msgid "%(count)s hit"
 msgid_plural "%(count)s hits"
-msgstr[0] "1 résultat"
+msgstr[0] "%(count)s résultat"
 msgstr[1] "%(count)s résultats"
 
 #: work_search.html:225
@@ -3293,11 +3297,11 @@ msgstr "Explorer par thèmes"
 msgid "browse %(subject)s books"
 msgstr "explorer des livres au sujet de %(subject)s"
 
-#: home/categories.html:31
+#: home/categories.html:27
 #, python-format
-msgid "1 Book"
+msgid "%(count)s Book"
 msgid_plural "%(count)s Books"
-msgstr[0] "1 livre"
+msgstr[0] "%(count)s livre"
 msgstr[1] "%(count)s livres"
 
 #: home/index.html:8 home/welcome.html:9
@@ -3531,11 +3535,11 @@ msgstr "Historique"
 msgid "Created %(date)s"
 msgstr "Créé le %(date)s"
 
-#: lib/history.html:32
+#: lib/history.html:28
 #, python-format
-msgid "1 revision"
+msgid "%(count)d revision"
 msgid_plural "%(count)d revisions"
-msgstr[0] "1 révision"
+msgstr[0] "%(count)d révision"
 msgstr[1] "%(count)d révisions"
 
 #: lib/history.html:44
@@ -3961,12 +3965,12 @@ msgstr "Listes actives"
 msgid "from <a href=\"%(key)s\">%(owner)s</a>"
 msgstr "de <a href=\"%(key)s\">%(owner)s</a>"
 
-#: lists/home.html:51 lists/preview.html:23 lists/snippet.html:18
-#: type/list/embed.html:18 type/list/view_body.html:39
+#: lists/home.html:47 lists/preview.html:19 lists/snippet.html:14
+#: type/list/embed.html:12 type/list/view_body.html:35
 #, python-format
-msgid "1 item"
+msgid "%(count)d item"
 msgid_plural "%(count)d items"
-msgstr[0] "1 élément"
+msgstr[0] "%(count)d élément"
 msgstr[1] "%(count)d éléments"
 
 #: lists/home.html:53 lists/preview.html:26 lists/snippet.html:20
@@ -4287,11 +4291,11 @@ msgstr "Nous n'avons trouvé aucun livre publié par %(publisher)s."
 msgid "Try something else?"
 msgstr "Essayer autre chose ?"
 
-#: publishers/view.html:19
+#: publishers/view.html:15
 #, python-format
-msgid "1 ebook"
+msgid "%(count)s ebook"
 msgid_plural "%(count)s ebooks"
-msgstr[0] "1 livre électronique"
+msgstr[0] "%(count)s livre électronique"
 msgstr[1] "%(count)s livres électroniques"
 
 #: publishers/view.html:33
@@ -4390,11 +4394,18 @@ msgstr "Principal"
 msgid "Duplicates"
 msgstr "Doublons"
 
-#: recentchanges/merge-authors/view.html:49
+#: recentchanges/merge/comment.html:20
 #, python-format
-msgid "1 record modified."
+msgid "Merged %(count)d duplicate %(type)s record into this primary."
+msgid_plural "Merged %(count)d duplicate %(type)s records into this primary."
+msgstr[0] ""
+msgstr[1] ""
+
+#: recentchanges/merge/view.html:51
+#, python-format
+msgid "%(count)d record modified."
 msgid_plural "%(count)d records modified."
-msgstr[0] "1 entrée modifiée."
+msgstr[0] "%(count)d entrée modifiée."
 msgstr[1] "%(count)d entrées modifiées."
 
 #: recentchanges/merge-authors/view.html:53
@@ -4448,12 +4459,19 @@ msgstr "Recherche plein texte"
 msgid "No hits for: %(query)s"
 msgstr "Aucun résultat pour : %(query)s"
 
-#: search/inside.html:37
+#: search/inside.html:29
 #, python-format
-msgid "About 1 result found in %(seconds)s"
-msgid_plural "About %(count)s results found in %(seconds)s"
-msgstr[0] "Environ 1 résultat trouvé en %(seconds)s secondes"
-msgstr[1] "Environ %(count)s résultats trouvés en %(seconds)s secondes"
+msgid "About %(count)s result found"
+msgid_plural "About %(count)s results found"
+msgstr[0] "Environ %(count)s résultat trouvé"
+msgstr[1] "Environ %(count)s résultats trouvés"
+
+#: search/inside.html:29
+#, python-format
+msgid "in %(seconds)s second"
+msgid_plural "in %(seconds)s seconds"
+msgstr[0] "en %(seconds)s seconde"
+msgstr[1] "en %(seconds)s secondes"
 
 #: search/lists.html:7
 msgid "Search results for Lists"
@@ -4596,12 +4614,12 @@ msgstr "# total d'évaluateurs uniques (de tous les temps)"
 msgid "Most Wanted Books (This Month)"
 msgstr "Lives les plus recherchés (Ce mois-ci)"
 
-#: stats/readinglog.html:71 stats/readinglog.html:79 stats/readinglog.html:88
-#: stats/readinglog.html:97
+#: stats/readinglog.html:67 stats/readinglog.html:75 stats/readinglog.html:84
+#: stats/readinglog.html:93
 #, python-format
-msgid "Added 1 time"
+msgid "Added %(count)d time"
 msgid_plural "Added %(count)d times"
-msgstr[0] "Ajouté 1 fois"
+msgstr[0] "Ajouté %(count)d fois"
 msgstr[1] "Ajouté %(count)d fois"
 
 #: stats/readinglog.html:75
@@ -5312,9 +5330,9 @@ msgstr "Ajouter une autre"
 msgid "Title missing"
 msgstr "Titre manquant"
 
-#: type/work/editions_datatable.html:13
+#: type/work/editions_datatable.html:9
 #, python-format
-msgid "Showing one featured edition."
+msgid "Showing %(count)d featured edition."
 msgid_plural "Showing %(count)d featured editions."
 msgstr[0] ""
 msgstr[1] ""
@@ -5361,11 +5379,11 @@ msgstr "Bookshop.org"
 msgid "Look for this edition for sale at %(store)s"
 msgstr "Rechercher cette édition en vente sur %(store)s"
 
-#: BookByline.html:20
+#: BookByline.html:11
 #, python-format
-msgid "1 other"
+msgid "%(n)s other"
 msgid_plural "%(n)s others"
-msgstr[0] "1 autre"
+msgstr[0] "%(n)s autre"
 msgstr[1] "%(n)s autres"
 
 #: BookByline.html:36

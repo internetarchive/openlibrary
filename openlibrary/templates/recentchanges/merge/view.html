@@ -48,7 +48,7 @@ $ label = primary.name if type == "author" else primary.title
         </div>
 
         <p class="smallest gray sansserif">
-            $ungettext("1 record modified.", "%(count)d records modified.", len(change.changes), count=len(change.changes))
+            $ungettext("%(count)d record modified.", "%(count)d records modified.", len(change.changes), count=len(change.changes))
         </p>
     </div>
 
