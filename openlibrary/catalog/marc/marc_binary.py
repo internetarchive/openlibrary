@@ -109,7 +109,7 @@ class BinaryDataField:
                 j = self.translate(i)
                 yield j[0], j[1:]
 
-    def get_lower_subfields(self):
+    def get_lower_subfield_values(self):
         for k, v in self.get_all_subfields():
             if k.islower():
                 yield v

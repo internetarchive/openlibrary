@@ -270,7 +270,7 @@ def read_edition_name(rec):
     found = []
     for f in fields:
         f.remove_brackets()
-        found += f.get_lower_subfields()
+        found += f.get_lower_subfield_values()
     return ' '.join(found)
 
 
@@ -491,9 +491,7 @@ def read_notes(rec):
         if not fields:
             continue
         for f in fields:
-            x = f.get_lower_subfields()
-            if x:
-                found.append(' '.join(x).strip(' '))
+            found.append(' '.join(f.get_lower_subfield_values()).strip())
     if found:
         return '\n\n'.join(found)
 
@@ -529,7 +527,7 @@ def read_url(rec):
 def read_other_titles(rec):
     return (
         [' '.join(f.get_subfield_values(['a'])) for f in rec.get_fields('246')]
-        + [' '.join(f.get_lower_subfields()) for f in rec.get_fields('730')]
+        + [' '.join(f.get_lower_subfield_values()) for f in rec.get_fields('730')]
         + [
             ' '.join(f.get_subfield_values(['a', 'p', 'n']))
             for f in rec.get_fields('740')

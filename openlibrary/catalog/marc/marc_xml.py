@@ -64,7 +64,7 @@ class DataField:
                 raise BadSubtag
             yield k, i
 
-    def get_lower_subfields(self):
+    def get_lower_subfield_values(self):
         for k, v in self.read_subfields():
             if k.islower():
                 yield get_text(v)
