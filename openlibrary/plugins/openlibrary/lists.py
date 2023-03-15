@@ -244,6 +244,7 @@ class lists_json(delegate.page):
             name=data.get('name', ''),
             description=data.get('description', ''),
             tags=data.get('tags', []),
+            seeds=seeds,
         )
 
         if spamcheck.is_spam(lst):
