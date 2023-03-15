@@ -35,7 +35,7 @@ export function addModeInputsToForm($form, searchMode) {
  * @param {str} q the input text
  */
 export function checkIllegalChars(q) {
-    if ([`'`, `"`, ":"].some(illegalChar => q.indexOf(illegalChar) >= 0) && !(/^".*"$/.test(q))) {
+    if (['\'', '"', ':'].some(illegalChar => q.indexOf(illegalChar) >= 0) && !(/^".*"$/.test(q))) {
         return `"${q}"`;
     }
     return q

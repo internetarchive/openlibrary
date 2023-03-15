@@ -230,7 +230,7 @@ export class SearchBar {
      * @return {String}
      */
     static marshalBookSearchQuery(q) {
-        if (q && q.indexOf(':') === -1 && q.indexOf('"') === -1 && q.indexOf("'") === -1) {
+        if (q && q.indexOf(':') === -1 && q.indexOf('"') === -1 && q.indexOf('\'') === -1) {
             q = `title: "${q}"`;
         }
         return q;
