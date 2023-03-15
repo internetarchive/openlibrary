@@ -92,10 +92,10 @@ class TestParseMARCXML:
         j = json.load(open(expect_filename))
         assert j, 'Unable to open test data: %s' % expect_filename
         assert sorted(edition_marc_xml) == sorted(j), (
-            'Processed MARCXML fields do not match expectations in %s' % expect_filename
+            f'Processed MARCXML fields do not match expectations in {expect_filename}'
         )
         msg = (
-            'Processed MARCXML values do not match expectations in %s' % expect_filename
+            f'Processed MARCXML values do not match expectations in {expect_filename}'
         )
         for key, value in edition_marc_xml.items():
             if isinstance(value, Iterable):  # can not sort a list of dicts
@@ -117,20 +117,17 @@ class TestParseMARCBinary:
         if not os.path.exists(expect_filename):
             # Missing test expectations file. Create a template from the input, but fail the current test.
             json.dump(edition_marc_bin, open(expect_filename, 'w'), indent=2)
-            assert (
-                False
-            ), 'Expectations file {} not found: template generated in {}. Please review and commit this file.'.format(
-                expect_filename, '/bin_expect'
+            data = json.dumps(edition_marc_bin, indent=2)
+            pytest.fail(
+                f'Expectations file {expect_filename} not found: template generated in /bin_expect. Please review and commit this file.\n{data}'
             )
         j = json.load(open(expect_filename))
-        assert j, 'Unable to open test data: %s' % expect_filename
+        assert j, f'Unable to open test data: {expect_filename}'
         assert sorted(edition_marc_bin) == sorted(j), (
-            'Processed binary MARC fields do not match expectations in %s'
-            % expect_filename
+            f'Processed binary MARC fields do not match expectations in {expect_filename}'
         )
         msg = (
-            'Processed binary MARC values do not match expectations in %s'
-            % expect_filename
+            f'Processed binary MARC values do not match expectations in {expect_filename}'
         )
         for key, value in edition_marc_bin.items():
             if isinstance(value, Iterable):  # can not sort a list of dicts
@@ -141,14 +138,14 @@ class TestParseMARCBinary:
                 assert value == j[key], msg
 
     def test_raises_see_also(self):
-        filename = '%s/bin_input/talis_see_also.mrc' % test_data
+        filename = f'{test_data}/bin_input/talis_see_also.mrc'
         with open(filename, 'rb') as f:
             rec = MarcBinary(f.read())
         with pytest.raises(SeeAlsoAsTitle):
             read_edition(rec)
 
     def test_raises_no_title(self):
-        filename = '%s/bin_input/talis_no_title2.mrc' % test_data
+        filename = f'{test_data}/bin_input/talis_no_title2.mrc'
         with open(filename, 'rb') as f:
             rec = MarcBinary(f.read())
         with pytest.raises(NoTitle):
