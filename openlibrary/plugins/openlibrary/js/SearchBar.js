@@ -210,6 +210,9 @@ export class SearchBar {
      */
     static composeSearchUrl(facetEndpoint, q, json=false, limit=null, fields=null) {
         let url = facetEndpoint;
+        if (["'", '"', ":"].some(illegalChar => q.indexOf(illegalChar) >= 0)) {
+            q = `"${q}"`;
+        }
         if (json) {
             url += `.json?q=${q}&_spellcheck_count=0`;
         } else {
@@ -228,7 +231,7 @@ export class SearchBar {
      * @return {String}
      */
     static marshalBookSearchQuery(q) {
-        if (q && q.indexOf(':') === -1 && q.indexOf('"') === -1) {
+        if (q && q.indexOf(':') === -1 && q.indexOf('"') === -1 && q.indexOf("'") === -1) {
             q = `title: "${q}"`;
         }
         return q;
