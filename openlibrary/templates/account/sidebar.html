@@ -38,12 +38,8 @@ $ counts = counts or pa.get_sidebar_counts
         <li><a href="/people/$username/books/sponsorships" data-ol-link-track="MyBooksSidebar|Sponsorships" $('class=selected' if key == 'sponsorships' else '')><span class="li-count">$sponsorship_count</span>$_('Sponsoring')</a></li>
       </ul>
     <ul class="sidebar-section">
-      $if owners_page:
-        <li class="section-header section-header-split"><span>$_('My Lists')</span> <a href="/people/$username/lists" data-ol-link-track="MyBooksSidebar|AllLists" class="li-count">$_('Edit') ($len(lists))</a></li>
-      $else:
-        <li class="section-header section-header-split"><span>$_('Lists')</span> <a href="/people/$username/lists" data-ol-link-track="MyBooksSidebar|AllLists" class="li-count">$_('See All') ($len(lists))</a></li>
-      $ user_lists = []
-      $:macros.ReadingLogDropper(user_lists)
+        <li class="section-header section-header-split"><span>$(_('My lists') if owners_page else _('Lists'))</span> <a href="/people/$username/lists" data-ol-link-track="MyBooksSidebar|AllLists" class="li-count">$(_('Edit') if owners_page else _('See All')) ($len(lists))</a></li>
+      $:macros.CreateList()
       <div class="list-overflow">
         $ placeholder_name = _('Untitled list')
         $for lst in lists:
