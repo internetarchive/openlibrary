@@ -59,14 +59,9 @@ $else:
 
     $if "lists" in ctx.features and lists:
         <div id="listsDisplay">
-            $if owners_page:
-                <h2>$_('My Lists')
-                <span class="sansserif small"><a href="$page.key/lists">$_('Edit')</a></span>
-                </h2>
-            $else:
-                <h2>$_('Lists')
-                <span class="sansserif small"><a href="$page.key/lists">$_('See all')</a></span>
-                </h2>
+            <h2>$(_('My Lists') if owners_page else _('Lists'))
+            <span class="sansserif small"><a href="$page.key/lists">$(_('Edit') if owners_page else _('See All'))</a></span>
+            </h2>
             <div class="mybooks-list--clean mybooks-list">
                 <ul id="listResults">
                     $for list in lists:
