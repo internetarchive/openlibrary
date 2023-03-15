@@ -5,12 +5,8 @@
  * http://localhost:8080/account/books/want-to-read
  */
 
-/* 'create a new list' within sidebar */
+/* 'create a list' within sidebar */
 .sidebar-section {
-  a.dropclick {
-    display: none;
-  }
-
   .create {
     text-align: center;
   }
@@ -18,42 +14,12 @@
   .create-new-list {
     border-radius: 5px;
     cursor: pointer;
-    padding: inherit;
+    padding: 7px;
     line-height: 1.5em;
     background-color: @background-grey;
     border: 1px solid @lighter-grey;
     color: @grey !important;
   }
-
-  /* stylelint-disable selector-max-specificity */
-  div.Tools div.dropper div.dropdown {
-    border-top: 0;
-  }
-  /* stylelint-enable selector-max-specificity */
-
-  .dropdown {
-    display: block !important;
-
-    .my-lists{
-      background-color: inherit !important;
-      padding: 1px !important;
-    }
-  }
-
-  .dropit {
-    min-height: 30px;
-  }
-
-  .dropper.on {
-    background-color: inherit !important;
-    box-shadow: none !important;
-  }
-
-  /* stylelint-disable selector-max-specificity */
-  .widget-add div.dropper div.dropdown p.create {
-    border-top: 0;
-  }
-  /* stylelint-enable selector-max-specificity */
 
 }
 
