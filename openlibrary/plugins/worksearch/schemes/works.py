@@ -288,10 +288,7 @@ class WorkSearchScheme(SearchScheme):
                 'title': 'title',
                 'title_suggest': 'title_suggest',
                 'subtitle': 'subtitle',
-                # TODO: Change to alternative_title after full reindex
-                # Use an OR until that happens, but this will still miss the
-                # "other_titles" field
-                'alternative_title': lambda expr: f'title:({expr}) OR subtitle:({expr})',
+                'alternative_title': 'alternative_title',
                 'alternative_subtitle': 'subtitle',
                 'cover_i': 'cover_i',
                 # Misc useful data

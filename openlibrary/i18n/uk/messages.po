@@ -98,27 +98,19 @@ msgstr "Сканер штрихкоду (бета)"
 msgid "Point your camera at a barcode! 📷"
 msgstr "Наведіть камеру на штрихкод! 📷"
 
-#: account/loans.html:63 borrow_admin.html:104
+#: account/loans.html:63
 #, python-format
-msgid "1 Current Loan"
+msgid "%(count)d Current Loan"
 msgid_plural "%(count)d Current Loans"
 msgstr[0] "%(count)d активна позика"
 msgstr[1] "%(count)d активні позики"
 msgstr[2] "%(count)d активних позик"
 
-#: account/loans.html:65 admin/loans_table.html:41 borrow_admin.html:106
+#: account/loans.html:65 admin/loans_table.html:41
 msgid "Loan Expires"
 msgstr "Позика закінчується"
 
-#: borrow_admin.html:168
-#, python-format
-msgid "%d person waiting"
-msgid_plural "%d people waiting"
-msgstr[0] "%d людина очікує"
-msgstr[1] "%d людини очікують"
-msgstr[2] "%d людей очікують"
-
-#: ManageWaitlistButton.html:11 borrow_admin.html:186
+#: ManageWaitlistButton.html:11
 #, python-format
 msgid "Waiting for %d day"
 msgid_plural "Waiting for %d days"
@@ -425,7 +417,7 @@ msgstr "Побачити всі роботи"
 #: merge/authors.html:93 publishers/view.html:17 subjects.html:19
 #: type/author/view.html:121
 #, python-format
-msgid "1 work"
+msgid "%(count)d work"
 msgid_plural "%(count)d works"
 msgstr[0] "%(count)d робота"
 msgstr[1] "%(count)d роботи"
@@ -500,7 +492,7 @@ msgstr "Побачити більше книг від цього автора і
 #: search/authors.html:57 search/publishers.html:29 search/subjects.html:73
 #: subjects.html:88
 #, python-format
-msgid "1 book"
+msgid "%(count)d book"
 msgid_plural "%(count)d books"
 msgstr[0] "%(count)d книга"
 msgstr[1] "%(count)d книги"
@@ -521,7 +513,7 @@ msgstr "Отримати більше інформації про цього в�
 #: SearchResultsWork.html:86 books/check.html:36 merge/authors.html:86
 #: publishers/view.html:106 subjects.html:111
 #, python-format
-msgid "1 edition"
+msgid "%(count)s edition"
 msgid_plural "%(count)s editions"
 msgstr[0] "%(count)s видання"
 msgstr[1] "%(count)s видання"
@@ -868,7 +860,7 @@ msgstr "Додати нову книгу до Open Library?"
 #: account/reading_log.html:40 search/authors.html:44 search/subjects.html:35
 #: work_search.html:194
 #, python-format
-msgid "1 hit"
+msgid "%(count)s hit"
 msgid_plural "%(count)s hits"
 msgstr[0] "%(count)s співпадіння"
 msgstr[1] "%(count)s співпадіння"
@@ -3245,7 +3237,7 @@ msgstr "Шукати книги з темою %(subject)s"
 
 #: home/categories.html:31
 #, python-format
-msgid "1 Book"
+msgid "%(count)s Book"
 msgid_plural "%(count)s Books"
 msgstr[0] "%(count)s книга"
 msgstr[1] "%(count)s книги"
@@ -3485,7 +3477,7 @@ msgstr "Створено %(date)s"
 
 #: lib/history.html:32
 #, python-format
-msgid "1 revision"
+msgid "%(count)d revision"
 msgid_plural "%(count)d revisions"
 msgstr[0] "%(count)d редагування"
 msgstr[1] "%(count)d редагування"
@@ -3909,7 +3901,7 @@ msgstr "від <a href=\"%(key)s\">%(owner)s</a>"
 #: lists/home.html:51 lists/preview.html:23 lists/snippet.html:18
 #: type/list/embed.html:18 type/list/view_body.html:39
 #, python-format
-msgid "1 item"
+msgid "%(count)d item"
 msgid_plural "%(count)d items"
 msgstr[0] "%(count)d елемент"
 msgstr[1] "%(count)d елементи"
@@ -4225,7 +4217,7 @@ msgstr "Спробувати щось інше?"
 
 #: publishers/view.html:19
 #, python-format
-msgid "1 ebook"
+msgid "%(count)s ebook"
 msgid_plural "%(count)s ebooks"
 msgstr[0] "%(count)s електронна книга"
 msgstr[1] "%(count)s електронні книги"
@@ -4329,7 +4321,7 @@ msgstr "Дублікати"
 
 #: recentchanges/merge-authors/view.html:49
 #, python-format
-msgid "1 record modified."
+msgid "%(count)d record modified."
 msgid_plural "%(count)d records modified."
 msgstr[0] "%(count)d запис змінено."
 msgstr[1] "%(count)d записи змінено."
@@ -4385,13 +4377,21 @@ msgstr "Шукати всередині"
 msgid "No hits for: %(query)s"
 msgstr "Немає результатів для: %(query)s"
 
-#: search/inside.html:37
+#: search/inside.html:29
 #, python-format
-msgid "About 1 result found in %(seconds)s"
-msgid_plural "About %(count)s results found in %(seconds)s"
-msgstr[0] "Близько %(count)s результату знайдено за %(seconds)s"
-msgstr[1] "Близько %(count)s результатів знайдено за %(seconds)s"
-msgstr[2] "Близько %(count)s результатів знайдено за %(seconds)s"
+msgid "About %(count)s result found"
+msgid_plural "About %(count)s results found"
+msgstr[0] "Близько %(count)s результату знайдено"
+msgstr[1] "Близько %(count)s результатів знайдено"
+msgstr[2] "Близько %(count)s результатів знайдено"
+
+#: search/inside.html:29
+#, python-format
+msgid "in %(seconds)s second"
+msgid_plural "in %(seconds)s seconds"
+msgstr[0] "за %(seconds)s"
+msgstr[1] "за %(seconds)s"
+msgstr[2] "за %(seconds)s"
 
 #: search/lists.html:7
 msgid "Search results for Lists"
@@ -4534,7 +4534,7 @@ msgstr "Найбажаніші книги (цього місяця)"
 #: stats/readinglog.html:71 stats/readinglog.html:79 stats/readinglog.html:88
 #: stats/readinglog.html:97
 #, python-format
-msgid "Added 1 time"
+msgid "Added %(count)d time"
 msgid_plural "Added %(count)d times"
 msgstr[0] ""
 msgstr[1] ""
@@ -5230,7 +5230,7 @@ msgstr "Потрібна назва"
 
 #: type/work/editions_datatable.html:13
 #, python-format
-msgid "Showing one featured edition."
+msgid "Showing %(count)d featured edition."
 msgid_plural "Showing %(count)d featured editions."
 msgstr[0] "Показуємо %(count)d вибране видання."
 msgstr[1] "Показуємо %(count)d вибрані видання."
@@ -5280,7 +5280,7 @@ msgstr ""
 
 #: BookByline.html:20
 #, python-format
-msgid "1 other"
+msgid "%(n)s other"
 msgid_plural "%(n)s others"
 msgstr[0] ""
 msgstr[1] ""

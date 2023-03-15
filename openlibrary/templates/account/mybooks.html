@@ -37,7 +37,7 @@ $ hidden = 'hidden' if current_goal else ''
 </div>
 
 $code:
-    def compact_carousel(data):
+    def compact_carousel(data, secondary_action=False):
         key, title, url = data
         books = mybooks[key].docs
         count = mybooks[key].total_results
@@ -49,7 +49,8 @@ $code:
             "min_books": 1,
             "load_more": None,
             "compact_mode": True,
-            "test": False
+            "test": False,
+            "secondary_action": secondary_action
         }) if books else None
 
 $def empty_carousel(data):
@@ -66,7 +67,7 @@ $ want_to_read = ["want-to-read", _('Want to Read'), "/account/books/want-to-rea
 $ already_read = ["already-read", _('Already Read'), "/account/books/already-read"]
 
 $# Render carousels
-$:(compact_carousel(loans) or empty_carousel(loans))
+$:(compact_carousel(loans, True) or empty_carousel(loans))
 $:(compact_carousel(currently_reading) or empty_carousel(currently_reading))
 $:(compact_carousel(want_to_read) or empty_carousel(want_to_read))
 $:(compact_carousel(already_read) or empty_carousel(already_read))

@@ -269,9 +269,8 @@ def read_edition_name(rec):
         return
     found = []
     for f in fields:
-        f.remove_brackets()
-        found += [v for k, v in f.get_all_subfields()]
-    return ' '.join(found)
+        found += f.get_lower_subfield_values()
+    return ' '.join(found).strip('[]')
 
 
 lang_map = {
@@ -333,9 +332,8 @@ def read_pub_date(rec):
         return
     found = []
     for f in fields:
-        f.remove_brackets()
-        found += [i for i in f.get_subfield_values('c') if i]
-    return remove_trailing_number_dot(found[0]) if found else None
+        found += [v for v in f.get_subfield_values('c') if v]
+    return remove_trailing_number_dot(found[0].strip('[]')) if found else None
 
 
 def read_publisher(rec):
@@ -491,9 +489,7 @@ def read_notes(rec):
         if not fields:
             continue
         for f in fields:
-            x = f.get_lower_subfields()
-            if x:
-                found.append(' '.join(x).strip(' '))
+            found.append(' '.join(f.get_lower_subfield_values()).strip())
     if found:
         return '\n\n'.join(found)
 
@@ -529,7 +525,7 @@ def read_url(rec):
 def read_other_titles(rec):
     return (
         [' '.join(f.get_subfield_values(['a'])) for f in rec.get_fields('246')]
-        + [' '.join(f.get_lower_subfields()) for f in rec.get_fields('730')]
+        + [' '.join(f.get_lower_subfield_values()) for f in rec.get_fields('730')]
         + [
             ' '.join(f.get_subfield_values(['a', 'p', 'n']))
             for f in rec.get_fields('740')
@@ -638,7 +634,8 @@ def read_toc(rec):
                 else:
                     toc_line = [v.strip('/')]
                 continue
-            toc_line.append(v.strip(' -'))
+            if k.islower():  # Exclude numeric, non-display subfields like $6, $7, $8
+                toc_line.append(v.strip(' -'))
         if toc_line:
             toc.append('-- '.join(toc_line))
     found = []

@@ -188,9 +188,9 @@ Been away for a while? Are you getting strange errors you weren't getting before
 # Stop the site
 docker compose down
 
-# Build the latest oldev image, whilst also pulling the latest olbase image from docker hub
-# (Takes a while; ~20min for me)
-docker compose build --pull
+# Build the latest oldev image, without cache, whilst also pulling the latest olbase image from docker hub.
+# This can take from a few minutes to more than 20 on older hardware.
+docker compose build --pull --no-cache
 
 # Remove any old containers; if you use docker for something special, and have containers you don't want to lose, be careful with this. But you likely don't :)
 docker container prune

@@ -94,41 +94,14 @@ pipeline {
         stage('Populate postgres') {
           stages {
             stage('Import dump into postgres') {
-              environment {
-                PARALLEL_PROCESSES = '6'
-              }
               steps {
                 dir(env.HOST_SOLR_BUILDER_DIR) {
                   sh(label: 'Import dump into postgres',
-                    script: "./psql-import-in-chunks.sh ${env.DUMP_DIR}/${env.OL_DUMP_FILE} ${env.PARALLEL_PROCESSES}")
+                    script: "docker-compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_DUMP_FILE} test")
                   sh(label: 'Import ratings',
                     script: "docker-compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_RATINGS_FILE} ratings")
                   sh(label: 'Import reading log',
                     script: "docker-compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_READING_LOG_FILE} reading_log")
-
-                  waitUntil {
-                    script {
-                      // Once completed, the log file says "COPY 8828224" (or however many records)
-                      // error if we have anything else
-                      // (cat at the end to avoid grep exiting when no match)
-                      def error_output = sh(script: 'cat logs/psql-chunk-* | grep -v COPY | cat', returnStdout: true)
-                      echo "Assert no psql error"
-                      assert !error_output
-
-                      def cores_completed = sh(script: 'cat logs/psql-chunk-* | grep COPY | wc -l', returnStdout: true).trim()
-                      echo "Completed ${cores_completed} core(s) of ${env.PARALLEL_PROCESSES}"
-                      sleep 15*60 // By default this checks every 15s; that's unnecessary for a ~3.5 hour process
-                      return cores_completed == env.PARALLEL_PROCESSES
-                    }
-                  }
-                }
-              }
-              post {
-                always {
-                  dir(env.HOST_SOLR_BUILDER_DIR) {
-                    sh 'for f in logs/psql-chunk-*.txt; do echo "$f: "; cat "$f"; done > logs/psql-import.log'
-                    archiveArtifacts artifacts: 'logs/psql-import.log'
-                  }
                 }
               }
             }

@@ -17,7 +17,7 @@ $else:
 
     $if context == primary:
         $# comment in the primary record
-        $ungettext('Merged 1 duplicate %(type)s record into this primary.', 'Merged %(count)d duplicate %(type)s records into this primary.', len(duplicates), count=len(duplicates), type=type)
+        $ungettext('Merged %(count)d duplicate %(type)s record into this primary.', 'Merged %(count)d duplicate %(type)s records into this primary.', len(duplicates), count=len(duplicates), type=type)
         $:details
     $elif context in duplicates:
         $# comment in the duplicate record
