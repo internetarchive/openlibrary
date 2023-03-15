@@ -9,15 +9,15 @@ $ params = {'origin': request.home.replace('http:', 'https:')}
 ></iframe>
 
 <script>
-    window.addEventListener('LOAD_THIRD_PARTY_LOGINS', function() {
+    window.LOAD_THIRD_PARTY_LOGINS = function() {
         var iframe = document.getElementById('ia-third-party-logins');
         iframe.src = iframe.getAttribute('data-src')
-    });
+    };
 
-    window.addEventListener('UNLOAD_THIRD_PARTY_LOGINS', function() {
+    window.UNLOAD_THIRD_PARTY_LOGINS = function() {
         var iframe = document.getElementById('ia-third-party-logins');
         iframe.src = '';
-    });
+    };
 </script>
 <script>
     window.addEventListener(

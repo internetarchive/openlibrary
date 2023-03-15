@@ -27,6 +27,7 @@ import '../../../../static/css/js-all.less';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
 import { confirmDialog, initDialogs } from './dialog';
+import detailsPolyfill from 'details-polyfill';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -425,7 +426,6 @@ jQuery(function () {
 
     $('.hamburger-component .mask-menu').on('click', function () {
         $('details[open]').not(this).removeAttr('open');
-        window.dispatchEvent(new Event('UNLOAD_THIRD_PARTY_LOGINS'))
     });
 
     // Open one dropdown at a time.
@@ -435,8 +435,17 @@ jQuery(function () {
             .filter((_, menu) => !$(event.target).closest(menu).length)
             .find('details')
             .removeAttr('open');
-        window.dispatchEvent(new Event('LOAD_THIRD_PARTY_LOGINS'))
     });
+
+    // Load and unload third party login iframes when toggling hamburger menu
+    const hamburgerMenu = document.querySelector('.hamburger-details')
+    hamburgerMenu.addEventListener('toggle', (event) => {
+        if (hamburgerMenu.open) {
+            window.LOAD_THIRD_PARTY_LOGINS()
+        } else {
+            window.UNLOAD_THIRD_PARTY_LOGINS()
+        }
+    })
 
     // Prevent default star rating behavior:
     const ratingForms = document.querySelectorAll('.star-rating-form')
