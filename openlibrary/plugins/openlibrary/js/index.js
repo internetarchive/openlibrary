@@ -27,7 +27,6 @@ import '../../../../static/css/js-all.less';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
 import { confirmDialog, initDialogs } from './dialog';
-import detailsPolyfill from 'details-polyfill';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -439,7 +438,7 @@ jQuery(function () {
 
     // Load and unload third party login iframes when toggling hamburger menu
     const hamburgerMenu = document.querySelector('.hamburger-details')
-    hamburgerMenu.addEventListener('toggle', (event) => {
+    hamburgerMenu.addEventListener('toggle', () => {
         if (hamburgerMenu.open) {
             window.LOAD_THIRD_PARTY_LOGINS()
         } else {
