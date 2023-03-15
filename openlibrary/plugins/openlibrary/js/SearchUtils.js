@@ -30,6 +30,16 @@ export function addModeInputsToForm($form, searchMode) {
     }
 }
 
+/**
+ * If the input text contains illegal characters, enclose the input text with double quotes
+ * @param {str} q the input text
+ */
+export function checkIllegalChars(q) {
+    if ([`'`, `"`, ":"].some(illegalChar => q.indexOf(illegalChar) >= 0) && !(/^".*"$/.test(q))) {
+        return `"${q}"`;
+    }
+    return q
+}
 
 /**
  * @typedef {Object} PersistentValue.Options
