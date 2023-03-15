@@ -99,12 +99,6 @@ class RegisterForm(Form):
             'password',
             description=_('Choose a password'),
             klass='required',
-            validators=[vpass],
-        ),
-        Password(
-            'password2',
-            description=_('Confirm password'),
-            klass='required',
             validators=[
                 vpass,
                 EqualToValidator('password', _("Passwords didn't match.")),
