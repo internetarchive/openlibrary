@@ -206,10 +206,14 @@ function addCreateListClickListener(button, parentDropper) {
             const data = {
                 name: websafe(nameField.value),
                 description: websafe(descriptionField.value),
-                seeds: [seed],
+                seeds: seed ? [seed] : seed
             }
 
-            const successCallback = function() {
+            const successCallback = function(listKey, listTitle) {
+                const seedKey = typeof seed === 'string' ? seed : seed['key']
+                // Add actionable item to view, map
+                const li = updateAlreadyList(listKey, listTitle, '/images/icons/avatar_book-sm.png', seedKey)
+                actionableItems[listKey] = [li]
             }
 
             createList(hiddenUserInput.value, data, successCallback)
