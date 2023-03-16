@@ -223,15 +223,17 @@ def read_title(rec):
     # For cataloging punctuation complexities, see https://www.oclc.org/bibformats/en/onlinecataloging.html#punctuation
     STRIP_CHARS = r' /,;:='  # Typical trailing punctuation for 245 subfields in ISBD cataloging standards
     fields = rec.get_fields('245') or rec.get_fields('740')
+
     if not fields:
         raise NoTitle('No Title found in either 245 or 740 fields.')
     # example MARC record with multiple titles:
     # https://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:299505697:862
     contents = fields[0].get_contents(['a', 'b', 'c', 'h', 'n', 'p', 's'])
+    linkages = fields[0].get_contents(['6'])
     bnps = [i for i in fields[0].get_subfield_values(['b', 'n', 'p', 's']) if i]
     ret = {}
     title = None
-    # MARC record with 245a missing:
+    # MARC record with 245$a missing:
     # https://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:516779055:1304
     if 'a' in contents:
         title = ' '.join(x.strip(STRIP_CHARS) for x in contents['a'])
@@ -239,20 +241,31 @@ def read_title(rec):
         title = bnps.pop(0).strip(STRIP_CHARS)
     # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:183427199:255
     if title in ('See.', 'See also.'):
-        raise SeeAlsoAsTitle('Title is: %s' % title)
+        raise SeeAlsoAsTitle(f'Title is: {title}')
     # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:5654086:483
     if title is None:
         subfields = list(fields[0].get_all_subfields())
         title = ' '.join(v for k, v in subfields)
         if not title:  # ia:scrapbooksofmoun03tupp
             raise NoTitle('No title found from joining subfields.')
-    ret['title'] = remove_trailing_dot(title)
+    title = remove_trailing_dot(title)
+    if '6' in linkages:
+        ret['other_titles'] = [title]
+        alternate = rec.get_linkage('245', linkages['6'][0]).get_contents(['a', 'b', 'c', 'h', 'n', 'p', 's'])
+        title = ' '.join(x.strip(STRIP_CHARS) for x in alternate['a'])
+        ret['title'] = remove_trailing_dot(title)
+    else:
+        ret['title'] = title
+
+    # Subtitle
     if bnps:
         ret['subtitle'] = ' : '.join(
             remove_trailing_dot(x.strip(STRIP_CHARS)) for x in bnps
         )
+    # By statement
     if 'c' in contents:
         ret['by_statement'] = remove_trailing_dot(' '.join(contents['c']))
+    # Physical format
     if 'h' in contents:
         h = ' '.join(contents['h']).strip(' ')
         m = re_bracket_field.match(h)
