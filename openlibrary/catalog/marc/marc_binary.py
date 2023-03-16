@@ -191,7 +191,7 @@ class MarcBinary(MarcBase):
             else:
                 yield tag, BinaryDataField(self, line)
 
-    def get_linkage(self, original, link):
+    def get_linkage(self, original: str, link: str) -> BinaryDataField:
         """
         :param original str: The original field e.g. '245'
         :param link str: The linkage {original}$6 value e.g. '880-01'
