@@ -19,7 +19,7 @@
       "automerge": true
     },
     {
-      "matchPackageNames": ["flake8", "mypy", "pytest", "pytest-asyncio", "safety"],
+      "matchPackageNames": ["mypy", "pytest", "pytest-asyncio", "ruff", "safety"],
       "automerge": true
     },
     {
