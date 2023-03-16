@@ -243,8 +243,8 @@ def read_title(rec):
         raise SeeAlsoAsTitle(f'Title is: {title}')
     # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:5654086:483
     if title is None:
-        subfields = list(fields[0].get_all_subfields())
-        title = ' '.join(v for k, v in subfields)
+        subfields = list(fields[0].get_lower_subfield_values())
+        title = ' '.join(subfields)
         if not title:  # ia:scrapbooksofmoun03tupp
             raise NoTitle('No title found from joining subfields.')
     title = remove_trailing_dot(title)
