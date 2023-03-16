@@ -223,12 +223,11 @@ def read_title(rec):
     # For cataloging punctuation complexities, see https://www.oclc.org/bibformats/en/onlinecataloging.html#punctuation
     STRIP_CHARS = r' /,;:='  # Typical trailing punctuation for 245 subfields in ISBD cataloging standards
     fields = rec.get_fields('245') or rec.get_fields('740')
-
     if not fields:
         raise NoTitle('No Title found in either 245 or 740 fields.')
     # example MARC record with multiple titles:
     # https://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:299505697:862
-    contents = fields[0].get_contents(['a', 'b', 'c', 'h', 'n', 'p', 's'])
+    contents = fields[0].get_contents(['a', 'c', 'h'])
     linkages = fields[0].get_contents(['6'])
     bnps = [i for i in fields[0].get_subfield_values(['b', 'n', 'p', 's']) if i]
     ret = {}
@@ -251,7 +250,7 @@ def read_title(rec):
     title = remove_trailing_dot(title)
     if '6' in linkages:
         ret['other_titles'] = [title]
-        alternate = rec.get_linkage('245', linkages['6'][0]).get_contents(['a', 'b', 'c', 'h', 'n', 'p', 's'])
+        alternate = rec.get_linkage('245', linkages['6'][0]).get_contents(['a'])
         title = ' '.join(x.strip(STRIP_CHARS) for x in alternate['a'])
         ret['title'] = remove_trailing_dot(title)
     else:

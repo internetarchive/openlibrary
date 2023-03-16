@@ -193,7 +193,7 @@ class MarcBinary(MarcBase):
 
     def get_linkage(self, original, link):
         """
-        :param original str: The original field .e.g. '245'
+        :param original str: The original field e.g. '245'
         :param link str: The linkage {original}$6 value e.g. '880-01'
         :rtype: BinaryDataField
         :return: alternate script field (880) corresponding to original
