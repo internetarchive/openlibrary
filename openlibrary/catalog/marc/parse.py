@@ -355,7 +355,11 @@ def read_pub_date(rec):
 
 
 def read_publisher(rec):
-    fields = rec.get_fields('260') or rec.get_fields('264')[:1] or [rec.get_linkage('260', '880')]
+    fields = (
+        rec.get_fields('260')
+        or rec.get_fields('264')[:1]
+        or [rec.get_linkage('260', '880')]
+    )
     if not fields:
         return
     publisher = []
