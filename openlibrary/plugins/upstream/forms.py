@@ -75,7 +75,7 @@ class RegisterForm(Form):
     INPUTS = [
         Textbox(
             'email',
-            description=_('Your email address'),
+            description=_('Email Address *'),
             klass='required',
             id='emailAddr',
             validators=[
@@ -88,10 +88,10 @@ class RegisterForm(Form):
         Textbox(
             'username',
             description=_(
-                "Choose a screen name. Screen names are public and cannot be changed later."
+                "Screen Name *"
             ),
             klass='required',
-            help=_("Letters and numbers only please, and at least 3 characters."),
+            help=_("3+ characters, letters and numbers only: permanent"),
             autocapitalize="off",
             validators=[vlogin, username_validator],
         ),
@@ -113,7 +113,13 @@ class RegisterForm(Form):
         Checkbox(
             'ia_newsletter',
             description=_(
-                """I want to receive news, announcements, and resources from the <a href="https://archive.org/">Internet Archive</a>, the non-profit that runs Open Library."""
+                """Best of the archive : useful resources, unique stories, and fun find from our collections."""
+            ),
+        ),
+        Checkbox(
+            'ib_newsletter',
+            description=_(
+                """Event notices and invitations to and news about our virtual and social events."""
             ),
         ),
     ]
