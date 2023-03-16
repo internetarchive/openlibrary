@@ -235,7 +235,9 @@ def read_title(rec):
     linkages = fields[0].get_contents(['6'])
     bnps = [f for f in fields[0].get_subfield_values(['b', 'n', 'p', 's']) if f]
     ret = {}
-    title = None
+    title = alternate = None
+    if '6' in linkages:
+         alternate = rec.get_linkage('245', linkages['6'][0])
     # MARC record with 245$a missing:
     # https://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:516779055:1304
     if 'a' in contents:
@@ -251,9 +253,9 @@ def read_title(rec):
         title = title_from_list(subfields)
         if not title:  # ia:scrapbooksofmoun03tupp
             raise NoTitle('No title found from joining subfields.')
-    if '6' in linkages:
+    if alternate:
         ret['other_titles'] = [title]
-        alternate = rec.get_linkage('245', linkages['6'][0]).get_contents(['a'])
+        alternate = alternate.get_contents(['a'])
         ret['title'] = title_from_list(alternate['a'])
     else:
         ret['title'] = title

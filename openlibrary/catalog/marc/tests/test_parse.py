@@ -72,6 +72,7 @@ bin_samples = [
     'thewilliamsrecord_vol29b_meta.mrc',
     '13dipolarcycload00burk_meta.mrc',
     '880_alternate_script.mrc',
+    '880_table_of_contents.mrc',
 ]
 
 test_data = "%s/test_data" % os.path.dirname(__file__)
@@ -114,10 +115,10 @@ class TestParseMARCBinary:
         assert edition_marc_bin
         if not os.path.exists(expect_filename):
             # Missing test expectations file. Create a template from the input, but fail the current test.
-            json.dump(edition_marc_bin, open(expect_filename, 'w'), indent=2)
+            # json.dump(edition_marc_bin, open(expect_filename, 'w'), indent=2)
             data = json.dumps(edition_marc_bin, indent=2)
             pytest.fail(
-                f'Expectations file {expect_filename} not found: template generated in /bin_expect. Please review and commit this file.\n{data}'
+                f'Expectations file {expect_filename} not found: Please review and commit this JSON:\n{data}'
             )
         j = json.load(open(expect_filename))
         assert j, f'Unable to open test data: {expect_filename}'
