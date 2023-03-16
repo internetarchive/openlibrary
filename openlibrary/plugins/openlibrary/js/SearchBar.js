@@ -117,7 +117,7 @@ export class SearchBar {
         if (this.facet.read() === 'title') {
             this.$input.val(SearchBar.marshalBookSearchQuery(q));
         }
-        this.$input.val(SearchUtils.checkIllegalChars(q));
+        this.$input.val(SearchUtils.escapeIllegalChars(q));
         this.$form.attr('action', SearchBar.composeSearchUrl(this.facetEndpoint, this.$input.val()));
         SearchUtils.addModeInputsToForm(this.$form, SearchUtils.mode.read());
     }
@@ -211,7 +211,7 @@ export class SearchBar {
      */
     static composeSearchUrl(facetEndpoint, q, json=false, limit=null, fields=null) {
         let url = facetEndpoint;
-        q = SearchUtils.checkIllegalChars(q)
+        q = SearchUtils.escapeIllegalChars(q)
         if (json) {
             url += `.json?q=${q}&_spellcheck_count=0`;
         } else {

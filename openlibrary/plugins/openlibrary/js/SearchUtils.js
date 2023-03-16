@@ -34,9 +34,10 @@ export function addModeInputsToForm($form, searchMode) {
  * If the input text contains illegal characters, enclose the input text with double quotes
  * @param {str} q the input text
  */
-export function checkIllegalChars(q) {
-    if (['\'', '"', ':'].some(illegalChar => q.indexOf(illegalChar) >= 0) && !(/^".*"$/.test(q))) {
-        return `"${q}"`;
+export function escapeIllegalChars(q) {
+    if (['\'', '"', ':'].some(illegalChar => q.indexOf(illegalChar) >= 0)) {
+        // escape the illegal characters that are not already escaped
+        q = q.replace(/([^\\](\\\\)*)(['":])/g, '$1\\$3');
     }
     return q
 }
