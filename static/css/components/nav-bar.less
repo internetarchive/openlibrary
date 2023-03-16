@@ -9,24 +9,6 @@
   white-space: nowrap;
   scroll-behavior: smooth;
 
-  &.sticky {
-    position: sticky;
-    top: 50px;
-    background: @white;
-    z-index: @z-index-level-5;
-    // Make tab bar full width on mobile
-    margin-left: -@contentBody-padding;
-    margin-right: -@contentBody-padding;
-
-    // indent it a bit to make it look more scrollable
-    &:before,
-    &:after {
-      display: inline-block;
-      content: "";
-      width: 10%;
-    }
-  }
-
   li {
     display: inline;
     font-size: 13px;
@@ -53,48 +35,64 @@
   }
 }
 
-@media (min-width: @width-breakpoint-mobile) {
-  .nav-bar.sticky {
-    &:before,
-    &:after {
-      display: none;
-    }
-  }
-}
+.nav-bar-wrapper {
+  display: flex;
+  align-items: baseline;
 
-@media only screen and (min-width: @width-breakpoint-tablet) {
-  .nav-bar.sticky {
-    top: @compact-title-height;
-    margin-left: 0;
-    margin-right: 0;
-    width: 100%;
-  }
-}
-
-.nav-bar.work-menu {
   border-bottom: 1px solid #CCCCCC;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
   clip-path: inset(0 0 -15px 0);
   margin-bottom: 10px;
 
-  li a {
-    padding: 4px 15px;
-    border-radius: 11px;
-    margin-bottom: 6px;
+  background: @white;
+  z-index: @z-index-level-5;
+
+  &.sticky {
+    position: sticky;
+    top: 50px;
   }
 
-  li a:hover {
-    background-color: darken(@primary-blue, 10%);
-    color: white;
+  .nav-arrow {
+    img {
+      max-width: unset !important;
+    }
+    &--left img {
+      transform: rotate(180deg)
+    }
   }
 
-  li.selected a {
-    color: white;
-    background-color: @primary-blue;
+  .nav-bar.work-menu {
+    background: @white;
+    z-index: @z-index-level-5;
 
+    li a {
+      padding: 4px 15px;
+      border-radius: 11px;
+      margin-bottom: 6px;
+    }
+  
+    li a:hover {
+      background-color: darken(@primary-blue, 10%);
+      color: white;
+    }
+  
+    li.selected a {
+      color: white;
+      background-color: @primary-blue;
+  
+    }
+  
+    li.selected a:hover {
+      background-color: darken(@primary-blue, 10%);
+    }
   }
+}
 
-  li.selected a:hover {
-    background-color: darken(@primary-blue, 10%);
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .nav-bar-wrapper.sticky {
+    top: @compact-title-height;
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
   }
 }
