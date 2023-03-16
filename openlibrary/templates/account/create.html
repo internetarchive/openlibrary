@@ -14,8 +14,8 @@ $if not ctx.user:
     $:render_template("account/ia_thirdparty_logins")
     <div class="login-big-or">$_('OR')</div>
 
-    <p class="instruct">$_("Complete the form below to create a new Internet Archive account.")
-    <span class="attn remind">$_("Each field is required")</span></p>
+    <p class="instruct">$_("")
+    <span class="attn remind">$_("")</span></p>
 
 $def field(input, suffix=''):
     $# :param openlibrary.utils.form.Input input:
@@ -43,36 +43,41 @@ $else:
         $if form.note:
             <div class="note">$form.note</div>
 
-        $def screenname_url(): $_('Your URL'): https://openlibrary.org/people/<span id="userUrl">$(form.username.value or _('screenname'))</span>
+        $def screenname_url(): $_('')
 
         $:field(form.email)
         $:field(form.username, suffix=str(screenname_url()))
         $:field(form.password)
         $:field(form.password2)
 
-        <br/>
+<br>
+        $if form.has_recaptcha:
+        <div class="formElement">
+            <div class="label smaller lighter">$_("Please disbale any privacy blockers to verify your identity.")</div>
+            <div class="g-recaptcha" data-sitekey="$form['recaptcha'].public_key"></div>
+            <div class="input">
+                $if form['recaptcha'].error:
+                    <span class="invalid clearfix">$_('Incorrect. Please try again.')</span>
+            </div>
+        </div>
+
+        <br>
+        <b>Subscriptions</b>
+        <br>
         <label>
             $:form.ia_newsletter.render() $:form.ia_newsletter.description
         </label>
-
-        <hr/>
-
-        $if form.has_recaptcha:
-            <div class="formElement">
-                <div class="label smaller lighter">$_("If you have security settings or privacy blockers installed, please disable them to see the reCAPTCHA.")</div>
-                <div class="g-recaptcha" data-sitekey="$form['recaptcha'].public_key"></div>
-                <div class="input">
-                    $if form['recaptcha'].error:
-                        <span class="invalid clearfix">$_('Incorrect. Please try again.')</span>
-                </div>
-            </div>
-
+        <br>
+        <label>
+            $:form.ib_newsletter.render() $:form.ib_newsletter.description
+        </label>
+        <br>
         <small>$:_("By signing up, you agree to the Internet Archive's <a href='//archive.org/about/terms.php' target='_blank'>Terms of Service</a>.")</small>
 
         <div class="formElement bottom">
             <br/>
             <button type="submit" name="signup" id="signup" class="larger">$_("Sign Up")</button>
-            <a href="javascript:history.go(-1);" class="smaller attn">$_("Cancel")</a>
+            <a href="javascript:history.go(-1);" class="smaller attn">$_("")</a>
         </div>
     </form>
 
