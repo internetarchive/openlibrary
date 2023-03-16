@@ -219,7 +219,7 @@ def read_work_titles(rec):
     return remove_duplicates(found)
 
 
-def title_from_list(title_parts, delim=' '):
+def title_from_list(title_parts: list[str], delim: str = ' ') -> str:
     # For cataloging punctuation complexities, see https://www.oclc.org/bibformats/en/onlinecataloging.html#punctuation
     STRIP_CHARS = r' /,;:='  # Typical trailing punctuation for 245 subfields in ISBD cataloging standards
     return delim.join(remove_trailing_dot(s.strip(STRIP_CHARS)) for s in title_parts)
