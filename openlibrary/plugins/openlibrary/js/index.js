@@ -447,20 +447,21 @@ jQuery(function () {
             .then((module) => module.initRatingHandlers(ratingForms));
     }
 
-    const navbars = document.querySelectorAll('.work-menu');
-    if (navbars.length) {
-        // Add position-aware navbar JS:
+    // Book page navbar initialization:
+    const navbarWrappers = document.querySelectorAll('.nav-bar-wrapper')
+    if (navbarWrappers.length) {
+        // Add JS for book page navbar:
         import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
             .then((module) => {
-                for (const navbar of navbars) {
-                    module.initNavbar(navbar)
+                for (const wrapper of navbarWrappers) {
+                    module.initNavbar(wrapper)
                 }
             });
         // Add sticky title component animations to desktop views:
         import(/* webpackChunkName: "compact-title" */ './compact-title')
             .then((module) => {
                 const compactTitle = document.querySelector('.compact-title')
-                const desktopNavbar = [...navbars].find(elem => elem.classList.contains('desktop-only'))
+                const desktopNavbar = [...navbarWrappers].find(elem => elem.classList.contains('desktop-only')).querySelector('ul')
                 module.initCompactTitle(desktopNavbar, compactTitle)
             })
     }

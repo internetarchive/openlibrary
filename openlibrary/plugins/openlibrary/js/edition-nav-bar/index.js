@@ -3,15 +3,36 @@ import { debounce } from '../nonjquery_utils'
 /**
  * Adds navbar-related click and scroll listeners
  *
- * @param {HTMLUListElement} navbarElem The navbar
+ * @param {HTMLElement} navbarWrapper The wrapper that contains the navbar
  */
-export function initNavbar(navbarElem) {
+export function initNavbar(navbarWrapper) {
+    /**
+     * The book page navbar
+     *
+     * @type {HTMLElement}
+     */
+    const navbarElem = navbarWrapper.querySelector('.work-menu')
+    /**
+     * Left and right navigation arrows.  These will only be present in
+     * mobile views.
+     *
+     * @type {HTMLCollection<HTMLElement>}
+     */
+    const navArrows = navbarWrapper.querySelectorAll('.nav-arrow')
+
     /**
      * Each list item in the navbar.
      *
      * @type {HTMLCollection<HTMLLIElement}
      */
-    const listItems = navbarElem.querySelectorAll('li');
+    const listItems = Array.from(navbarElem.querySelectorAll('li'));
+
+    /**
+     * The index of the currently selected item in the `listItems` array.
+     *
+     * @type {number}
+     */
+    let selectedIndex = 0;
 
     /**
      * The targets of the navbar links.
@@ -22,26 +43,40 @@ export function initNavbar(navbarElem) {
      */
     const linkedSections = []
 
-    /**
-     * Reference to the selected target element.
-     *
-     * @type {HTMLElement}
-     */
-    let selectedSection
-
-    let scrollY = 0
-
-    // Add click listeners
+    // Add click listeners to navbar items
     for (let i = 0; i < listItems.length; ++i) {
-        const index = i;
         listItems[i].addEventListener('click', function() {
-            debounce(selectElement(listItems[i], index), 300, false)
+            selectedIndex = i
+            debounce(selectElement(listItems[i]), 300, false)
         })
 
         linkedSections.push(document.querySelector(listItems[i].children[0].hash))
-        if (listItems[i].classList.contains('selected')) {
-            selectedSection = linkedSections[linkedSections.length - 1]
-        }
+    }
+
+    // Initialize mobile-only navigation arrows
+    for (const arrow of navArrows) {
+        const decrementIndex = arrow.classList.contains('nav-arrow--left')
+
+        arrow.addEventListener('click', function() {
+            let selectedElem
+            if (decrementIndex) {
+                if (selectedIndex > 0) {
+                    --selectedIndex
+                    selectedElem = listItems[selectedIndex]
+                    selectElement(selectedElem)
+                }
+            } else {
+                if (selectedIndex < listItems.length - 1) {
+                    ++selectedIndex;
+                    selectedElem = listItems[selectedIndex]
+                    selectElement(selectedElem)
+                }
+            }
+            if (selectedElem) {
+                const anchor = selectedElem.querySelector('a')
+                window.location = anchor.href
+            }
+        })
     }
 
     /**
@@ -50,25 +85,21 @@ export function initNavbar(navbarElem) {
      * Removes 'selected' class from all navbar links, then adds
      * 'selected' to the newly selected link.
      *
-     * Stores reference to the selected target.
-     *
      * @param {HTMLLIElement} selectedElem Element corresponding to the 'selected' navbar item.
-     * @param {Number} targetIndex The index
      */
-    function selectElement(selectedElem, targetIndex) {
+    function selectElement(selectedElem) {
         for (const li of listItems) {
             li.classList.remove('selected')
         }
         selectedElem.classList.add('selected')
-        selectedSection = linkedSections[targetIndex];
+
         // Scroll to / center the item
         // Note: We don't use the browser native scrollIntoView method because
         // that method scrolls _recursively_, so it also tries to scroll the
         // body to center the element on the screen, causing weird jitters.
         navbarElem.scrollTo({
             left: selectedElem.offsetLeft - (navbarElem.clientWidth - selectedElem.offsetWidth) / 2,
+            behavior: 'instant'
         });
     }
 }
-
-
