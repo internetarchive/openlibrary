@@ -237,7 +237,7 @@ def read_title(rec):
     ret = {}
     title = alternate = None
     if '6' in linkages:
-         alternate = rec.get_linkage('245', linkages['6'][0])
+        alternate = rec.get_linkage('245', linkages['6'][0])
     # MARC record with 245$a missing:
     # https://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:516779055:1304
     if 'a' in contents:

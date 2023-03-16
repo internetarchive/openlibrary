@@ -73,6 +73,7 @@ bin_samples = [
     '13dipolarcycload00burk_meta.mrc',
     '880_alternate_script.mrc',
     '880_table_of_contents.mrc',
+    '880_Nihon_no_chasho.mrc',
 ]
 
 test_data = "%s/test_data" % os.path.dirname(__file__)
