@@ -1,0 +1,43 @@
+{
+  "publishers": [
+    "כנרת"
+  ],
+  "publish_places": [
+    "אור יהודה"
+  ],
+  "publish_date": "2011",
+  "publish_country": "is",
+  "languages": [
+    "heb"
+  ],
+  "authors": [
+    {
+      "name": "Hailman, Ben",
+      "entity_type": "person",
+      "personal_name": "Hailman, Ben"
+    }
+  ],
+  "oclc_numbers": [
+    "767498970"
+  ],
+  "work_titles": [
+    "What's the big idea, how big is it?"
+  ],
+  "contributions": [
+    "Śagi, Uri"
+  ],
+  "subjects": [
+    "Size perception",
+    "Juvenile literature"
+  ],
+  "other_titles": [
+    "Zeh gadol?"
+  ],
+  "title": "זה גדול!",
+  "subtitle": "ספר על הדברים הגדולים באמת",
+  "isbn_13": [
+    "9789655220613"
+  ],
+  "pagination": "47 p.",
+  "number_of_pages": 47
+}
