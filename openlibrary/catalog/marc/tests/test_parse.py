@@ -102,7 +102,7 @@ class TestParseMARCXML:
             if isinstance(value, Iterable):  # can not sort a list of dicts
                 assert len(value) == len(j[key]), msg
                 for item in j[key]:
-                    assert item in value, msg
+                    assert item in value, f'{msg}. Key: {key}'
             else:
                 assert value == j[key], msg
 
@@ -132,7 +132,7 @@ class TestParseMARCBinary:
             if isinstance(value, Iterable):  # can not sort a list of dicts
                 assert len(value) == len(j[key]), msg
                 for item in j[key]:
-                    assert item in value, msg
+                    assert item in value, f'{msg}. Key: {key}'
             else:
                 assert value == j[key], msg
 

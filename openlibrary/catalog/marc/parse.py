@@ -255,14 +255,18 @@ def read_title(rec):
             raise NoTitle('No title found from joining subfields.')
     if alternate:
         ret['other_titles'] = [title]
-        alternate = alternate.get_contents(['a'])
-        ret['title'] = title_from_list(alternate['a'])
+        ret['title'] = title_from_list(alternate.get_subfield_values(['a']))
     else:
         ret['title'] = title
 
     # Subtitle
     if bnps:
         ret['subtitle'] = title_from_list(bnps, delim=' : ')
+    elif alternate:
+        subtitle = alternate.get_subfield_values(['b', 'n', 'p', 's'])
+        if subtitle:
+            ret['subtitle'] = title_from_list(subtitle, delim=' : ')
+
     # By statement
     if 'c' in contents:
         ret['by_statement'] = remove_trailing_dot(' '.join(contents['c']))
@@ -351,7 +355,7 @@ def read_pub_date(rec):
 
 
 def read_publisher(rec):
-    fields = rec.get_fields('260') or rec.get_fields('264')[:1]
+    fields = rec.get_fields('260') or rec.get_fields('264')[:1] or [rec.get_linkage('260', '880')]
     if not fields:
         return
     publisher = []

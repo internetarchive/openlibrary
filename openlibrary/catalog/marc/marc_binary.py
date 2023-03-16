@@ -195,8 +195,8 @@ class MarcBinary(MarcBase):
         """
         :param original str: The original field e.g. '245'
         :param link str: The linkage {original}$6 value e.g. '880-01'
-        :rtype: BinaryDataField
-        :return: alternate script field (880) corresponding to original
+        :rtype: BinaryDataField | None
+        :return: alternate script field (880) corresponding to original or None
         """
         linkages = self.read_fields(['880'])
         target = link.replace('880', original)
