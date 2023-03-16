@@ -437,7 +437,7 @@ jQuery(function () {
     });
 
     // Load and unload third party login iframes when toggling hamburger menu
-    const hamburgerMenu = document.querySelector('.hamburger-details')
+    const hamburgerMenu = document.querySelector('.hamburger-component > details')
     hamburgerMenu.addEventListener('toggle', () => {
         if (hamburgerMenu.open) {
             window.LOAD_THIRD_PARTY_LOGINS()

@@ -20,7 +20,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
     $ tracker = 'data-ol-link-track=%s|%s' % (track_prefix, link['track']) if (track_prefix and link.get('track')) else ''
     <a href="$link['href']" $tracker>$(props['label'])</a>
   $else:
-    <details class="$(props['name'])-details">
+    <details>
       <summary $:cond(props['name'] == 'hamburger', 'data-ol-link-track="HeaderBar|Hamburger"')>
         $if props['name'] == 'hamburger' and ctx.user:
             <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="$('My account')">
