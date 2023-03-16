@@ -87,9 +87,7 @@ class RegisterForm(Form):
         ),
         Textbox(
             'username',
-            description=_(
-                "Screen Name *"
-            ),
+            description=_("Screen Name *"),
             klass='required',
             help=_("3+ characters, letters and numbers only: permanent"),
             autocapitalize="off",
