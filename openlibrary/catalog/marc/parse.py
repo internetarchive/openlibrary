@@ -212,16 +212,20 @@ def read_work_titles(rec):
             found.append(remove_trailing_dot(' '.join(title).strip(',')))
     if tag_130 := rec.get_fields('130'):
         for f in tag_130:
-            title = ' '.join(
-                v for k, v in f.get_all_subfields() if k.islower() and k != 'n'
+            title = title_from_list(
+                [v for k, v in f.get_all_subfields() if k.islower() and k != 'n']
             )
-            found.append(remove_trailing_dot(title.strip(',')))
+            found.append(title)
     return remove_duplicates(found)
 
 
-def read_title(rec):
+def title_from_list(title_parts, delim=' '):
     # For cataloging punctuation complexities, see https://www.oclc.org/bibformats/en/onlinecataloging.html#punctuation
     STRIP_CHARS = r' /,;:='  # Typical trailing punctuation for 245 subfields in ISBD cataloging standards
+    return delim.join(remove_trailing_dot(s.strip(STRIP_CHARS)) for s in title_parts)
+
+
+def read_title(rec):
     fields = rec.get_fields('245') or rec.get_fields('740')
     if not fields:
         raise NoTitle('No Title found in either 245 or 740 fields.')
@@ -229,38 +233,34 @@ def read_title(rec):
     # https://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:299505697:862
     contents = fields[0].get_contents(['a', 'c', 'h'])
     linkages = fields[0].get_contents(['6'])
-    bnps = [i for i in fields[0].get_subfield_values(['b', 'n', 'p', 's']) if i]
+    bnps = [f for f in fields[0].get_subfield_values(['b', 'n', 'p', 's']) if f]
     ret = {}
     title = None
     # MARC record with 245$a missing:
     # https://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:516779055:1304
     if 'a' in contents:
-        title = ' '.join(x.strip(STRIP_CHARS) for x in contents['a'])
+        title = title_from_list(contents['a'])
     elif bnps:
-        title = bnps.pop(0).strip(STRIP_CHARS)
+        title = title_from_list([bnps.pop(0)])
     # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:183427199:255
-    if title in ('See.', 'See also.'):
+    if title in ('See', 'See also'):
         raise SeeAlsoAsTitle(f'Title is: {title}')
     # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:5654086:483
     if title is None:
         subfields = list(fields[0].get_lower_subfield_values())
-        title = ' '.join(subfields)
+        title = title_from_list(subfields)
         if not title:  # ia:scrapbooksofmoun03tupp
             raise NoTitle('No title found from joining subfields.')
-    title = remove_trailing_dot(title)
     if '6' in linkages:
         ret['other_titles'] = [title]
         alternate = rec.get_linkage('245', linkages['6'][0]).get_contents(['a'])
-        title = ' '.join(x.strip(STRIP_CHARS) for x in alternate['a'])
-        ret['title'] = remove_trailing_dot(title)
+        ret['title'] = title_from_list(alternate['a'])
     else:
         ret['title'] = title
 
     # Subtitle
     if bnps:
-        ret['subtitle'] = ' : '.join(
-            remove_trailing_dot(x.strip(STRIP_CHARS)) for x in bnps
-        )
+        ret['subtitle'] = title_from_list(bnps, delim=' : ')
     # By statement
     if 'c' in contents:
         ret['by_statement'] = remove_trailing_dot(' '.join(contents['c']))
