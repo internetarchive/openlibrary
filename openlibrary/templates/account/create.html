@@ -53,7 +53,7 @@ $else:
         <br>
         $if form.has_recaptcha:
         <div class="formElement">
-            <div class="label smaller lighter">$_("Please disbale any privacy blockers to verify your identity.")</div>
+            <div class="label smaller lighter">$_("Please disable any privacy blockers to verify your identity.")</div>
             <div class="g-recaptcha" data-sitekey="$form['recaptcha'].public_key"></div>
             <div class="input">
                 $if form['recaptcha'].error:
