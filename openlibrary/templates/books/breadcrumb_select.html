@@ -1,5 +1,4 @@
 $def with (key=None, selected="",options=[])
-<<<<<<< HEAD
     <style>
         .crumb {
             display: flex;
@@ -89,7 +88,7 @@ $def with (key=None, selected="",options=[])
             </span>
         </span>
 
-<script>
+    <script>
     const crumbs = document.querySelectorAll('.crumb select')
     const allowedKeys = new Set(['Tab', 'Enter', ' '])
     const preventedKeys = new Set(['ArrowUp', 'ArrowDown'])
@@ -112,14 +111,4 @@ $def with (key=None, selected="",options=[])
             ignoreChange = false
         })
     })
-</script>
-=======
-
-    <span class="crumb">
-        <select class="disguised-select">
-            <option selected>$selected</option>
-            $for (title, url) in options:
-            <option>$title</option> 
-        </select>
-    </span>
->>>>>>> 351870688 (first test of breadcrumb selector)
+    </script>

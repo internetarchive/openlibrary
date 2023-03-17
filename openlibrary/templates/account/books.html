@@ -23,23 +23,16 @@ $ userKey = user.key or ctx.user.key
 $ breadcrumb = _("Reading Log")
 $ header_title = ""
 
-<<<<<<< HEAD
-$ reading_log = [("Loans", "/account/loans"), ("Currently Reading (" + str(shelf_counts['currently-reading']) + ")", "/people/" + username + "/books/currently-reading"), ("Want to Read (" + str(shelf_counts['want-to-read']) + ")", "/people/" + username + "/books/want-to-read"), ("Already Read (" + str(shelf_counts['already-read']) + ")", "/people/" + username + "/books/already-read"), ("My Notes", "/people/" + username + "/books/notes"), ("My Reviews", "/people/" + username + "/books/observations"), ("My Reading Stats", "/account/books/already-read/stats")]
-$ list = [("My Lists", "/people/" + username + "/lists")]
-=======
-$ currently_reading = [("Want to Read (" + str(shelf_counts['want-to-read']) + ")", "/people/$username/books/want-to-read"), ("Already Read", "/people/$username/books/already-read"), ("My Notes", "/people/$username/books/notes"), ("My Reviews", "/people/$username/books/observations"), ("My Reading Stats", "/account/books/already-read/stats")]
->>>>>>> 351870688 (first test of breadcrumb selector)
+$ reading_log = [("Currently Reading (" + str(shelf_counts['currently-reading']) + ")", "/people/" + $username + "/books/currently-reading"), ("Want to Read (" + str(shelf_counts['want-to-read']) + ")", "/people/" + $username + "/books/want-to-read"), ("Already Read (" + str(shelf_counts['already-read']) + ")", "/people/" + $username + "/books/already-read"), ("My Notes", "/people/" + $username + "/books/notes"), ("My Reviews", "/people/" + $username + "/books/observations"), ("My Reading Stats", "/account/books/already-read/stats")]
+
+$ already_read = [("Want to Read (" + str(shelf_counts['want-to-read']) + ")", "/people/$username/books/want-to-read"), ("Already Read", "/people/$username/books/already-read"), ("My Notes", "/people/$username/books/notes"), ("My Reviews", "/people/$username/books/observations"), ("My Reading Stats", "/account/books/already-read/stats")]
 $ breadcrumb_options = [];
 
 $if key == 'mybooks':
   $ header_title = _("My Books")
 $elif key == 'currently-reading':
   $ header_title = _("Currently Reading")
-<<<<<<< HEAD
   $ breadcrumb_options = reading_log
-=======
-  $ breadcrumb_options = currently_reading
->>>>>>> 351870688 (first test of breadcrumb selector)
 $elif key == 'want-to-read':
   $ header_title = _("Want to Read")
   $ breadcrumb_options = reading_log
@@ -50,22 +43,19 @@ $if not header_title:
   $if key == 'sponsorships':
     $ header_title = _("Sponsorships")
   $elif key == 'notes':
-    $ header_title = _("My Notes")
+    $ header_title = _("Book Notes")
     $ breadcrumb_options = reading_log
   $elif key == 'observations':
-    $ header_title = _("My Reviews")
+    $ header_title = _("Reviews")
     $ breadcrumb_options = reading_log
   $elif key == 'loans':
     $ header_title = _("Loans")
-    $ breadcrumb_options = reading_log
   $elif key == 'imports':
     $ header_title = _("Imports and Exports")
   $elif key == 'lists':
     $ header_title = _('My Lists')
-    $ breadcrumb_options = list;
   $elif key == 'list':
     $ header_title = docs.get('name', 'List')
-    $ breadcrumb_options = list;
   $else:
     $ header_title = key
 
@@ -91,42 +81,18 @@ $var title: $header_title
     $ component_times['Details header'] = time()
     <header>
       <div>
-<<<<<<< HEAD
-        <div class="sansserif grey account-settings-menu" style="font-size: 16px">
-          $if key == 'mybooks':
-            <a href="$userKey">$userDisplayName</a> &raquo; 
-          $else:
-            <a href="/account/books" style="text-decoration: none">
-               ← 
-              <span style="text-decoration: underline">My Books</span>
-            </a> 
-            &raquo;
-            $if key == 'list':
-              My Lists &raquo; 
+        <div class="sansserif grey account-settings-menu" style="font-size: 14px">
+          <a href="$userKey">$userDisplayName</a> &raquo; 
           $:render_template("books/breadcrumb_select", key=key, selected=breadcrumb, options=breadcrumb_options)
           
-=======
-        <div class="small sansserif grey account-settings-menu">
-          <a href="$userKey">$userDisplayName</a> &raquo; 
-          $#:render_template("books/breadcrumb_select", key=key, selected=breadcrumb, options=breadcrumb_options)
-          <span class="crumb">
-            <select class="disguised-select">
-                <option selected>$breadcrumb</option>
-                $for (title, url) in currently_reading:
-                <option>$title</option> 
-            </select>
-        </span>
->>>>>>> 351870688 (first test of breadcrumb selector)
         </div>
         <div>
-          <!--
           <h1 class="details-title">
             $if not owners_page:
               $userDisplayName &raquo; $header_title
             $else:
               $header_title
           </h1>
-          -->
 
           $if owners_page and (key in ['currently-reading', 'already-read', 'want-to-read'] and not checkin_year):
             <a href="$ctx.path/stats" title="$_('View stats about this shelf')">$_('Stats')</a>
