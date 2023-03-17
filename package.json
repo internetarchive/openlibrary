@@ -22,7 +22,7 @@
     "build-assets:components": "make components",
     "build-assets:js": "make js",
     "svg-min": "svgo --config config/svgo.config.js static/images/**/*.svg static/images/*.svg",
-    "lint": "npm run lint:js && npm run lint:css",
+    "lint": "npx concurrently --group npm:lint:js npm:lint:css",
     "lint:js": "eslint --ext js,vue .",
     "lint:css": "stylelint ./**/*.less",
     "lint-fix": "npm run lint-fix:js && npm run lint-fix:css",
