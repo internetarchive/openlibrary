@@ -23,9 +23,7 @@ $ userKey = user.key or ctx.user.key
 $ breadcrumb = _("Reading Log")
 $ header_title = ""
 
-$ reading_log = [("Currently Reading (" + str(shelf_counts['currently-reading']) + ")", "/people/" + $username + "/books/currently-reading"), ("Want to Read (" + str(shelf_counts['want-to-read']) + ")", "/people/" + $username + "/books/want-to-read"), ("Already Read (" + str(shelf_counts['already-read']) + ")", "/people/" + $username + "/books/already-read"), ("My Notes", "/people/" + $username + "/books/notes"), ("My Reviews", "/people/" + $username + "/books/observations"), ("My Reading Stats", "/account/books/already-read/stats")]
-
-$ already_read = [("Want to Read (" + str(shelf_counts['want-to-read']) + ")", "/people/$username/books/want-to-read"), ("Already Read", "/people/$username/books/already-read"), ("My Notes", "/people/$username/books/notes"), ("My Reviews", "/people/$username/books/observations"), ("My Reading Stats", "/account/books/already-read/stats")]
+$ reading_log = [("Loans", "/account/loans"), ("Currently Reading (" + str(shelf_counts['currently-reading']) + ")", "/people/" + username + "/books/currently-reading"), ("Want to Read (" + str(shelf_counts['want-to-read']) + ")", "/people/" + username + "/books/want-to-read"), ("Already Read (" + str(shelf_counts['already-read']) + ")", "/people/" + username + "/books/already-read"), ("My Notes", "/people/" + username + "/books/notes"), ("My Reviews", "/people/" + username + "/books/observations"), ("My Reading Stats", "/account/books/already-read/stats")]
 $ breadcrumb_options = [];
 
 $if key == 'mybooks':
@@ -43,13 +41,14 @@ $if not header_title:
   $if key == 'sponsorships':
     $ header_title = _("Sponsorships")
   $elif key == 'notes':
-    $ header_title = _("Book Notes")
+    $ header_title = _("My Notes")
     $ breadcrumb_options = reading_log
   $elif key == 'observations':
-    $ header_title = _("Reviews")
+    $ header_title = _("My Reviews")
     $ breadcrumb_options = reading_log
   $elif key == 'loans':
     $ header_title = _("Loans")
+    $ breadcrumb_options = reading_log
   $elif key == 'imports':
     $ header_title = _("Imports and Exports")
   $elif key == 'lists':
