@@ -21,7 +21,10 @@
     {
       "name": "El Moudden, Abderrahmane",
       "entity_type": "person",
-      "personal_name": "El Moudden, Abderrahmane"
+      "personal_name": "El Moudden, Abderrahmane",
+      "alternate_names": [
+	"مودن، عبد الرحيم"
+      ]
     }
   ],
   "contributions": [
