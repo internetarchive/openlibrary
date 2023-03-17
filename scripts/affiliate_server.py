@@ -215,7 +215,7 @@ def seconds_remaining(start_time: float) -> float:
     return max(API_MAX_WAIT_SECONDS - (time.time() - start_time), 0)
 
 
-def amazon_lookup(site, stats_client) -> None:
+def amazon_lookup(site, stats_client, logger) -> None:
     """
     A separate thread of execution that uses the time up to API_MAX_WAIT_SECONDS to
     create a list of isbn_10s that is not larger than API_MAX_ITEMS_PER_CALL and then
@@ -224,35 +224,32 @@ def amazon_lookup(site, stats_client) -> None:
     stats.client = stats_client
     web.ctx.site = site
 
-    try:
-        while True:
-            start_time = time.time()
-            isbn_10s: set[str] = set()  # no duplicates in the batch
-            while len(isbn_10s) < API_MAX_ITEMS_PER_CALL and seconds_remaining(
-                start_time
-            ):
-                try:  # queue.get() will block (sleep) until successful or it times out
-                    isbn_10s.add(
-                        web.amazon_queue.get(timeout=seconds_remaining(start_time))
-                    )
-                except queue.Empty:
-                    pass
-            logger.info(f"Before amazon_lookup(): {len(isbn_10s)} items")
-            if isbn_10s:
-                time.sleep(seconds_remaining(start_time))
-                stats_client.put("ol.affiliate.amazon.process_batch", len(isbn_10s))
+    while True:
+        start_time = time.time()
+        isbn_10s: set[str] = set()  # no duplicates in the batch
+        while len(isbn_10s) < API_MAX_ITEMS_PER_CALL and seconds_remaining(start_time):
+            try:  # queue.get() will block (sleep) until successful or it times out
+                isbn_10s.add(
+                    web.amazon_queue.get(timeout=seconds_remaining(start_time))
+                )
+            except queue.Empty:
+                pass
+        logger.info(f"Before amazon_lookup(): {len(isbn_10s)} items")
+        if isbn_10s:
+            time.sleep(seconds_remaining(start_time))
+            try:
                 process_amazon_batch(list(isbn_10s))
-            logger.info(f"After amazon_lookup(): {len(isbn_10s)} items")
-    except Exception:
-        logger.exception("amazon_lookup()")
-        stats_client.incr("ol.affiliate.amazon.lookup_thread_died")
+                logger.info(f"After amazon_lookup(): {len(isbn_10s)} items")
+            except Exception:
+                logger.exception("Amazon Lookup Thread died")
+                stats_client.incr("ol.affiliate.amazon.lookup_thread_died")
 
 
-def make_amazon_lookup_thread(site, stats_client) -> threading.Thread:
+def make_amazon_lookup_thread() -> threading.Thread:
     """Called from start_server() and assigned to web.amazon_lookup_thread."""
     thread = threading.Thread(
         target=amazon_lookup,
-        args=(site, stats_client),
+        args=(web.ctx.site, stats.client, logger),
         daemon=True,
     )
     thread.start()
@@ -369,7 +366,7 @@ def start_server():
     infogami._setup()
 
     if "pytest" not in sys.modules:
-        web.amazon_lookup_thread = make_amazon_lookup_thread(web.ctx.site, stats.client)
+        web.amazon_lookup_thread = make_amazon_lookup_thread()
         thread_is_alive = bool(
             web.amazon_lookup_thread and web.amazon_lookup_thread.is_alive()
         )
