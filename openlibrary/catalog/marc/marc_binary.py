@@ -67,19 +67,6 @@ class BinaryDataField:
     def ind2(self):
         return self.line[1]
 
-    def remove_brackets(self):
-        # TODO: remove this from MARCBinary,
-        # stripping of characters should be done
-        # from strings in openlibrary.catalog.marc.parse
-        # not on the raw binary structure.
-        # The intent is to remove initial and final square brackets
-        # from field content. Try str.strip('[]')
-        line = self.line
-        if line[4] == b'['[0] and line[-2] == b']'[0]:
-            last = line[-1]
-            last_byte = bytes([last]) if isinstance(last, int) else last
-            self.line = b''.join([line[0:4], line[5:-2], last_byte])
-
     def get_subfields(self, want):
         """
         :rtype: collections.Iterable[tuple]
