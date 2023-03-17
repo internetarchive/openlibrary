@@ -86,7 +86,6 @@ $ page = int(input(page=1).page)
 
                 <div id="comment-cell-$(r['id'])" class="comment-cell">
                   <div id="latest-comment-$r['id']" class="comment-cell__newest-comment">
-                    <!-- VERY STRANGE WHY DOESNT THIS WORK WHEN I REMOVE IT??? -->
                     $if len(comments):
                     $if comments:
                       $:render_template('merge_queue/comment2', comment=comments[-1])
