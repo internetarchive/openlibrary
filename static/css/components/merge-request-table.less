@@ -41,6 +41,14 @@
   color: @lighter-black;
 }
 
+.mr-comment {
+  padding: 3px 6px;
+}
+
+.mr-comment .mr-comment__body a{
+  text-decoration: none;
+}
+
 .nav-bar li.selected a {
   font-size: 14px;
   color: @orange-five;
@@ -104,14 +112,6 @@
   height: 65px;
 }
 
-.mr-comment {
-  padding: 3px 6px;
-}
-
-.mr-comment .mr-comment__body a{
-  text-decoration: none;
-}
-
 .comment-cell__input{
   display: flex;
   align-items: center;
@@ -130,7 +130,7 @@
   }
 
   textarea::placeholder {
-    font-size:inherit;
+    font-size: inherit;
   }
 
   .mr-comment-btn{
@@ -164,9 +164,8 @@
   }
 
   .border-toggle {
-    border: 1.5px solid black;
+    border: 1.5px solid @black;
   }
-
 
   &__review {
     background-color: @primary-blue;
@@ -190,7 +189,7 @@
     .comment-expand span {
       font-weight: bold;
       margin-right: 5px;
-      color: black;
+      color: @black;
     }
 
     .comment-expand img {
@@ -198,7 +197,6 @@
     }
   }
 }
-
 
 .comment-username {
   color: @grey;
