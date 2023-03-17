@@ -396,7 +396,7 @@ def read_author_person(f, tag='100') -> dict:
     author = {}
     contents = f.get_contents(['a', 'b', 'c', 'd', 'e', '6'])
     if 'a' not in contents and 'c' not in contents:
-        return  # should at least be a name or title
+        return None  # should at least be a name or title
     if 'd' in contents:
         author = pick_first_date(strip_foc(d).strip(',[]') for d in contents['d'])
         if 'death_date' in author and author['death_date']:
@@ -444,13 +444,11 @@ def read_authors(rec) -> list | None:
     fields_100 = rec.get_fields('100')
     fields_110 = rec.get_fields('110')
     fields_111 = rec.get_fields('111')
-    count = len(fields_100) + len(fields_110) + len(fields_111)
-    if count == 0:
-        return
+    if not any([fields_100, fields_110, fields_111]):
+        return None
     # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:11601515:773 has two authors:
     # 100 1  $aDowling, James Walter Frederick.
     # 111 2  $aConference on Civil Engineering Problems Overseas.
-
     found = [a for a in (read_author_person(f, tag='100') for f in fields_100) if a]
     for f in fields_110:
         name = name_from_list(f.get_subfield_values(['a', 'b']))
@@ -458,8 +456,7 @@ def read_authors(rec) -> list | None:
     for f in fields_111:
         name = name_from_list(f.get_subfield_values(['a', 'c', 'd', 'n']))
         found.append({'entity_type': 'event', 'name': name})
-    if found:
-        return found
+    return found or None
 
 
 def read_pagination(rec):

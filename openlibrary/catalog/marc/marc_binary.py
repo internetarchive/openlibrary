@@ -190,6 +190,7 @@ class MarcBinary(MarcBase):
         for tag, f in linkages:
             if f.get_subfield_values(['6'])[0].startswith(target):
                 return f
+        return None
 
     def get_all_tag_lines(self):
         for line in self.iter_directory():
