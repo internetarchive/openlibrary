@@ -368,6 +368,12 @@ def start_server():
 
     if "pytest" not in sys.modules:
         web.amazon_lookup_thread = make_amazon_lookup_thread(web.ctx.site, stats.client)
+        thread_is_alive = bool(
+            web.amazon_lookup_thread and web.amazon_lookup_thread.is_alive()
+        )
+        logger.info(f"web.amazon_lookup_thread.is_alive() is {thread_is_alive}")
+    else:
+        logger.info("Not starting amazon_lookup_thread in pytest")
 
     sys.argv = [sys.argv[0]] + list(args)
     app.run()
