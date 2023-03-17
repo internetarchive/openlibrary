@@ -203,18 +203,6 @@ function toggleAllComments(elem) {
     target.classList.toggle('hidden')
     target2.classList.toggle('hidden')
     targetBtn.classList.toggle('border-toggle');
-    
-    // document.getElementById(`mr-comment-btn-${}`).classList.toggle('border-toggle')
-    
-    // const isHidden = target.classList.contains('hidden')
-    // const prevSibling = elem.previousElementSibling;
-    // if (isHidden) {
-    //     prevSibling.textContent = 'Showing most recent comment only.'
-    //     elem.textContent = 'View all'
-    // } else {
-    //     prevSibling.textContent = 'Showing all comments.'
-    //     elem.textContent = 'View most recent only'
-    // }
 }
 
 
