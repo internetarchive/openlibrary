@@ -122,44 +122,10 @@ async function updateCommentsView(mrid, comment, username) {
     const commentCount = document.querySelector('.comment-count');
     const newComment = document.createElement('div')
     newComment.innerHTML += `<div class="mr-comment"> 
-    <div class="mr-comment__body"><a href="">@${username}</a> ${comment}</div>
-  </div>`
+      <div class="mr-comment__body"><a href="">@${username}</a> ${comment}</div>
+      </div>`
 
-  console.log(username)
     hiddenCommentDiv.prepend(newComment);
-
-    
-    
-
-    // await fetch(`/merges/partials?type=comment&comment=${comment}`, {
-    //     method: 'GET'
-    // })
-    //     .then(result => {result.text(); console.log(result)})
-    //     .then(html => {
-    //         console.log(html)
-    //         // Create new comment element
-    //         const template = document.createElement('template')
-    //         console.log(template)
-    //         template.innerHTML = html.trim()
-
-    //         // Remove newest comment (or "No comments yet" message)
-    //         const newestComment = newCommentDiv.firstElementChild
-    //         newCommentDiv.removeChild(newestComment)
-
-    //         if (newestComment.classList.contains('comment')) {  // "No comments yet" element will not have this class
-    //             // Append newest comment to old comments element
-    //             // const oldComments = commentCell.querySelector('.comment-cell__old-comments')
-    //             // oldComments.appendChild(newestComment)
-    //             commentCell.querySelector('.comment-cell__old-comments').
-    //             prepend(newestComment)
-    //         }
-
-            // Display new
-            //commentCount.innerHTML = 
-        // newCommentDiv.prepend(template.content.firstChild)
-        // hiddenCommentDiv.prepend(newestComment);
-
-        // })
 }
 
 /**
@@ -204,7 +170,6 @@ function toggleAllComments(elem) {
     target2.classList.toggle('hidden')
     targetBtn.classList.toggle('border-toggle');
 }
-
 
 /**
  * Adds functionality for claiming librarian requests.
