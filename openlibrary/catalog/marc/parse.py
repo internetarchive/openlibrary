@@ -384,7 +384,7 @@ def name_from_list(name_parts: list[str]) -> str:
     return remove_trailing_dot(name)
 
 
-def read_author_person(f, tag='100') -> dict:
+def read_author_person(field, tag: str = '100') -> dict | None:
     """
     This take either a MARC 100 Main Entry - Personal Name (non-repeatable) field
       or
@@ -394,7 +394,7 @@ def read_author_person(f, tag='100') -> dict:
     and returns an author import dict.
     """
     author = {}
-    contents = f.get_contents(['a', 'b', 'c', 'd', 'e', '6'])
+    contents = field.get_contents(['a', 'b', 'c', 'd', 'e', '6'])
     if 'a' not in contents and 'c' not in contents:
         return None  # should at least be a name or title
     if 'd' in contents:
@@ -403,7 +403,7 @@ def read_author_person(f, tag='100') -> dict:
             death_date = author['death_date']
             if re_number_dot.search(death_date):
                 author['death_date'] = death_date[:-1]
-    author['name'] = name_from_list(f.get_subfield_values(['a', 'b', 'c']))
+    author['name'] = name_from_list(field.get_subfield_values(['a', 'b', 'c']))
     author['entity_type'] = 'person'
     subfields = [
         ('a', 'personal_name'),
@@ -415,7 +415,7 @@ def read_author_person(f, tag='100') -> dict:
         if subfield in contents:
             author[field_name] = name_from_list(contents[subfield])
     if '6' in contents:  # alternate script name exists
-        if link := f.rec.get_linkage(tag, contents['6'][0]):
+        if link := field.rec.get_linkage(tag, contents['6'][0]):
             if alt_name := link.get_subfield_values(['a']):
                 author['alternate_names'] = [name_from_list(alt_name)]
     return author
