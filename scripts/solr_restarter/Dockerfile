@@ -4,7 +4,7 @@ FROM docker:latest
 RUN apk add --update nodejs npm
 
 # Install deps globally for this tiny image; don't create a node_modules folder
-RUN npm install -g node-fetch@2
+RUN npm install --no-audit -g node-fetch@2
 ENV NODE_PATH="/usr/local/lib/node_modules:$NODE_PATH"
 
 COPY . /app

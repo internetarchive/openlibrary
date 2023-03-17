@@ -10,7 +10,7 @@ $ port install node (MacPorts)
  or
 $ brew install node (Homebrew)
 
-$ npm install
+$ npm install --no-audit
 ````
 
 ## Running tests
