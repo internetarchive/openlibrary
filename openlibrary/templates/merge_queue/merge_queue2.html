@@ -37,7 +37,6 @@ $ page = int(input(page=1).page)
 <div class="pager">
   $:macros.Pager(page, total[mode], results_per_page=25)
 </div>
-
   <div class="librarian-queue-wrapper">
     <ul class="nav-bar">
       <li class="$(mode=='open' and 'selected' or '')">
@@ -63,10 +62,6 @@ $ page = int(input(page=1).page)
         </a>
       </li>
     </ul>
-
-    <!-- new template under construction here --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
-
-
     <!-- The info section -->
     <table class="mr-table2">
       <tbody>
@@ -88,8 +83,6 @@ $ page = int(input(page=1).page)
                   $:_('<span class="book-title">%(title)s</span>', title=work_title, type=type_str)
                 </strong>
                 <br>
-
-                <!-- BUILDING COMMENT SECTION HERE -------------------------------------------------------------------------->
                 <div id="comment-cell-$(r['id'])" class="comment-cell">
                   $if len(comments) > 1:
                     <div id="latest-comment-$r['id']" class="comment-cell__newest-comment">
@@ -119,9 +112,6 @@ $ page = int(input(page=1).page)
                   </a>
                 </span>
               </td>
-
-              <!-- BUILDING COMMENT SECTION ABOVE -------------------------------------------------------------------------->
-
               <td class="mr-comment-review-cell">
                 $if is_open:
                 $if is_submitter:
@@ -148,10 +138,8 @@ $ page = int(input(page=1).page)
             </tr>
         </tbody>
       </table>
-    <!-- new template under construction above --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------->
      <div class="pager">
       $:macros.Pager(page, total[mode], results_per_page=25)
     </div>
-
   </div>
 </div>
