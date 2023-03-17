@@ -237,10 +237,12 @@ def amazon_lookup(site, stats_client) -> None:
                     )
                 except queue.Empty:
                     pass
+            logger.info(f"Before amazon_lookup(): {len(isbn_10s)} items")
             if isbn_10s:
                 time.sleep(seconds_remaining(start_time))
                 stats_client.put("ol.affiliate.amazon.process_batch", len(isbn_10s))
                 process_amazon_batch(list(isbn_10s))
+            logger.info(f"After amazon_lookup(): {len(isbn_10s)} items")
     except Exception:
         logger.exception("amazon_lookup()")
         stats_client.incr("ol.affiliate.amazon.lookup_thread_died")
@@ -371,9 +373,9 @@ def start_server():
         thread_is_alive = bool(
             web.amazon_lookup_thread and web.amazon_lookup_thread.is_alive()
         )
-        logger.info(f"web.amazon_lookup_thread.is_alive() is {thread_is_alive}")
+        logger.critical(f"web.amazon_lookup_thread.is_alive() is {thread_is_alive}")
     else:
-        logger.info("Not starting amazon_lookup_thread in pytest")
+        logger.critical("Not starting amazon_lookup_thread in pytest")
 
     sys.argv = [sys.argv[0]] + list(args)
     app.run()
