@@ -191,14 +191,20 @@ export function initShowAllCommentsLinks(elems) {
 * @param {HTMLELement} elem Element which contains a reference to the old comments
 */
 function toggleAllComments(elem) {
+    //Id 2 
     const targetId = elem.dataset.targetId;
     const targetId2 = elem.dataset.latestComment || 0;
+    const targetBtnClass = elem.dataset.btnClass;
+
     const target = document.querySelector(`#${targetId}`)
     const target2 = document.querySelector(`#${targetId2}`)
-
-    document.getElementById("mr-comment-btn").classList.toggle('border-toggle')
+    const targetBtn = document.querySelector(`.${targetBtnClass}`);
+    
     target.classList.toggle('hidden')
     target2.classList.toggle('hidden')
+    targetBtn.classList.toggle('border-toggle');
+    
+    // document.getElementById(`mr-comment-btn-${}`).classList.toggle('border-toggle')
     
     // const isHidden = target.classList.contains('hidden')
     // const prevSibling = elem.previousElementSibling;
