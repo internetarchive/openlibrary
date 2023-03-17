@@ -40,7 +40,5 @@ jobs:
         run: npm install
       - run: npm run lint
       - run: make git
-      - run: make js
-      - run: make css
-      - run: make components
+      - run: npx concurrently --group 'make js' 'make css' 'make components'
       - run: npm run test
