@@ -29,5 +29,6 @@
       "matchPackagePatterns": ["^actions/"],
       "automerge": true
     }
-  ]
+  ],
+  "prLabels": "{{#if datasource}}Renovate - {{datasource}}{{/if}}"
 }
