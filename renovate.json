@@ -1,4 +1,12 @@
 {
+  "datasourceRules": [
+    {
+      "matchDatasource": "pypi",
+      "labels": [
+        "Dependency Update from PyPI"
+      ]
+    }
+  ],
   "extends": [
     "config:base"
   ],
