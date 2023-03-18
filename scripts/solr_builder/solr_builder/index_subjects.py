@@ -1,7 +1,7 @@
 import asyncio
 import json
 from asyncio import Future
-from typing import Literal, Set
+from typing import Literal
 
 import httpx
 
