@@ -13,4 +13,4 @@ RUN ln -s /home/openlibrary/.local/bin/pytest /usr/local/bin/pytest
 USER openlibrary
 
 COPY --chown=openlibrary:openlibrary package*.json ./
-RUN npm install
+RUN npm install --no-audit

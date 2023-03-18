@@ -16,7 +16,7 @@ external dependencies.
 ### Installing Bubblewrap
 
 ```shell
-npm i -g @bubblewrap/cli
+npm i --no-audit -g @bubblewrap/cli
 ```
 
 ### Initializing an Android Project
