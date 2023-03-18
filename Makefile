@@ -66,7 +66,7 @@ reindex-solr:
 
 lint:
 	# See the pyproject.toml file for ruff's settings
-	$(PYTHON) -m ruff .
+	$(PYTHON) -m ruff --no-cache .
 
 test-py:
 	pytest . --ignore=tests/integration --ignore=infogami --ignore=vendor --ignore=node_modules
