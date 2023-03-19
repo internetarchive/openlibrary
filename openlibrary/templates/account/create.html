@@ -3,6 +3,7 @@ $def with (form)
 $# :param openlibrary.plugins.upstream.forms.RegisterForm form:
 
 $var title: $_("Sign Up to Open Library")
+<script src="https://www.google.com/recaptcha/api.js"></script>
 
 <div id="contentHead">
     <h1>$_("Sign Up")</h1>
@@ -56,22 +57,17 @@ $else:
         </label>
 
         <hr/>
-
-        $if form.has_recaptcha:
-            <div class="formElement">
-                <div class="label smaller lighter">$_("If you have security settings or privacy blockers installed, please disable them to see the reCAPTCHA.")</div>
-                <div class="g-recaptcha" data-sitekey="$form['recaptcha'].public_key"></div>
-                <div class="input">
-                    $if form['recaptcha'].error:
-                        <span class="invalid clearfix">$_('Incorrect. Please try again.')</span>
-                </div>
-            </div>
-
+        <div class="label smaller lighter">$_("If you have security settings or privacy blockers installed, please disable them to see the reCAPTCHA.")</div>
+    <br/>
         <small>$:_("By signing up, you agree to the Internet Archive's <a href='//archive.org/about/terms.php' target='_blank'>Terms of Service</a>.")</small>
-
         <div class="formElement bottom">
+            <script>
+                function onSubmit(token) {
+                  document.getElementById("demo-form").submit();
+                }
+              </script>
             <br/>
-            <button type="submit" name="signup" id="signup" class="larger">$_("Sign Up")</button>
+            <button type="submit" name="signup" id="signup" class="g-recaptcha" data-sitekey="6LfRaxMlAAAAAHJk5I3MCt1WgfxH5b6gDg0Lzb7W" data-callback='onSubmit' data-action='submit'>$_("Sign Up")</button>
             <a href="javascript:history.go(-1);" class="smaller attn">$_("Cancel")</a>
         </div>
     </form>
