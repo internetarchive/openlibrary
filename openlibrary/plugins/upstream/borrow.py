@@ -158,7 +158,7 @@ class borrow(delegate.page):
             stats.increment('ol.loans.return')
             edition.update_loan_status()
             user.update_loan_status()
-            raise web.seeother('/account/loans')
+            raise web.seeother(web.ctx.path)
         elif action == 'join-waitinglist':
             lending.s3_loan_api(edition.ocaid, s3_keys, action='join_waitlist')
             stats.increment('ol.loans.joinWaitlist')
