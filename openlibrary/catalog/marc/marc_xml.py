@@ -25,20 +25,21 @@ def read_marc_file(f):
         elem.clear()
 
 
-def norm(s):
+def norm(s: str) -> str:
     return normalize('NFC', str(s.replace('\xa0', ' ')))
 
 
-def get_text(e):
+def get_text(e: etree._Element) -> str:
     return norm(e.text) if e.text else ''
 
 
 class DataField:
-    def __init__(self, element):
+    def __init__(self, rec, element: etree._Element) -> None:
         assert element.tag == data_tag
         self.element = element
+        self.rec = rec
 
-    def remove_brackets(self):
+    def remove_brackets(self) -> None:
         first = self.element[0]
         last = self.element[-1]
         if (
@@ -80,7 +81,7 @@ class DataField:
                 continue
             yield k, get_text(v)
 
-    def get_subfield_values(self, want):
+    def get_subfield_values(self, want: list[str]) -> list[str]:
         return [v for k, v in self.get_subfields(want)]
 
     def get_contents(self, want):
@@ -92,10 +93,9 @@ class DataField:
 
 
 class MarcXml(MarcBase):
-    def __init__(self, record):
+    def __init__(self, record: etree._Element) -> None:
         if record.tag == collection_tag:
             record = record[0]
-
         assert record.tag == record_tag
         self.record = record
 
@@ -138,8 +138,8 @@ class MarcXml(MarcBase):
                 continue
             yield i.attrib['tag'], i
 
-    def decode_field(self, field):
+    def decode_field(self, field) -> str | DataField:
         if field.tag == control_tag:
             return get_text(field)
         if field.tag == data_tag:
-            return DataField(field)
+            return DataField(self, field)
