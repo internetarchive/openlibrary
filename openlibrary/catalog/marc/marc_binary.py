@@ -87,9 +87,6 @@ class BinaryDataField(MarcFieldBase):
                 contents.setdefault(k, []).append(v)
         return contents
 
-    def get_subfield_values(self, want: list[str]) -> list[str]:
-        return [v for k, v in self.get_subfields(want)]
-
     def get_all_subfields(self) -> Iterator[tuple[str, str]]:
         for i in self.line[3:-1].split(b'\x1f'):
             if i:

@@ -77,15 +77,12 @@ class DataField(MarcFieldBase):
         for k, v in self.read_subfields():
             yield k, get_text(v)
 
-    def get_subfields(self, want):
+    def get_subfields(self, want: list[str]) -> Iterator[tuple[str, str]]:
         want = set(want)
         for k, v in self.read_subfields():
             if k not in want:
                 continue
             yield k, get_text(v)
-
-    def get_subfield_values(self, want: list[str]) -> list[str]:
-        return [v for k, v in self.get_subfields(want)]
 
     def get_contents(self, want):
         contents = {}
