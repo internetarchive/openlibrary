@@ -420,8 +420,7 @@ def last_name_in_245c(rec: MarcBase, person: MarcFieldBase) -> bool:
     fields = rec.get_fields('245')
     last_name = person_last_name(person).lower()
     return any(
-        any(last_name in v.lower() for v in f.get_subfield_values('c'))
-        for f in fields
+        any(last_name in v.lower() for v in f.get_subfield_values('c')) for f in fields
     )
 
 
@@ -526,10 +525,7 @@ def read_other_titles(rec: MarcBase):
     return (
         [' '.join(f.get_subfield_values('a')) for f in rec.get_fields('246')]
         + [' '.join(f.get_lower_subfield_values()) for f in rec.get_fields('730')]
-        + [
-            ' '.join(f.get_subfield_values('apn'))
-            for f in rec.get_fields('740')
-        ]
+        + [' '.join(f.get_subfield_values('apn')) for f in rec.get_fields('740')]
     )
 
 
@@ -643,7 +639,9 @@ def read_toc(rec: MarcBase) -> list:
     return [{'title': i, 'type': '/type/toc_item'} for i in found]
 
 
-def update_edition(rec: MarcBase, edition: dict[str, Any], func: Callable, field: str) -> None:
+def update_edition(
+    rec: MarcBase, edition: dict[str, Any], func: Callable, field: str
+) -> None:
     if v := func(rec):
         if field in edition and isinstance(edition[field], list):
             edition[field] += v
