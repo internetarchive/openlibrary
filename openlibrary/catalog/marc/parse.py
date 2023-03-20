@@ -686,7 +686,6 @@ def read_edition(rec):
     :return: Edition representation
     """
     handle_missing_008 = True
-    rec.build_fields(FIELDS_WANTED)
     edition = {}
     tag_008 = rec.get_fields('008')
     if len(tag_008) == 0:

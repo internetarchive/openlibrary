@@ -35,17 +35,11 @@ class MarcBase:
             found.append(m.group(1))
         return found
 
-    def build_fields(self, want: list[str]) -> None:
-        self.fields = {}
-        want = set(want)
-        for tag, line in self.read_fields(want):
-            self.fields.setdefault(tag, []).append(line)
-
     def get_fields(self, tag: str) -> list[str | MarcFieldBase]:
         return [v for k, v in self.read_fields([tag])]
 
     def read_fields(self, want: list[str]) -> Iterator[tuple[str, str | MarcFieldBase]]:
-        pass
+        raise NotImplementedError
 
     def get_linkage(self, original: str, link: str):
         """
