@@ -67,14 +67,13 @@ class BinaryDataField(MarcFieldBase):
             return marc8.translate(data)
         return normalize('NFC', data.decode('utf8'))
 
-    def ind1(self):
+    def ind1(self) -> str:
         return self.line[0]
 
-    def ind2(self):
+    def ind2(self) -> str:
         return self.line[1]
 
     def get_subfields(self, want: list[str]) -> Iterator[tuple[str, str]]:
-        want = set(want)
         for i in self.line[3:-1].split(b'\x1f'):
             code = i and (chr(i[0]) if isinstance(i[0], int) else i[0])
             if i and code in want:
@@ -183,7 +182,6 @@ class MarcBinary(MarcBase):
         :rtype: list
         :return: list of tuples (MARC tag (str), field contents ... bytes or str?)
         """
-        want = set(want)
         return [
             (line[:3].decode(), self.get_tag_line(line))
             for line in self.iter_directory()

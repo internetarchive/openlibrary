@@ -91,10 +91,10 @@ def read_dnb(rec: MarcBase) -> dict[str, list[str | None]]:
             return {'dnb': [control_number]}
 
 
-def read_issn(rec: MarcBase) -> dict[str, list[str]]:
+def read_issn(rec: MarcBase) -> dict[str, list[str]] | None:
     fields = rec.get_fields('022')
     if not fields:
-        return
+        return None
     found = []
     for f in fields:
         for k, v in f.get_subfields(['a']):
@@ -174,10 +174,10 @@ def read_lc_classification(rec: MarcBase) -> list[str]:
     return found
 
 
-def read_isbn(rec: MarcBase) -> dict[str, Any]:
+def read_isbn(rec: MarcBase) -> dict[str, Any] | None:
     fields = rec.get_fields('020')
     if not fields:
-        return
+        return None
     found = []
     for f in fields:
         isbn = rec.read_isbn(f)
@@ -193,7 +193,7 @@ def read_isbn(rec: MarcBase) -> dict[str, Any]:
             ret.setdefault('isbn_13', []).append(i)
         elif len(i) <= 16:
             ret.setdefault('isbn_10', []).append(i)
-    return ret
+    return ret or None
 
 
 def read_dewey(rec: MarcBase) -> list[str]:

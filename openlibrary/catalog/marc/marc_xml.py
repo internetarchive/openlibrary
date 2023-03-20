@@ -1,6 +1,7 @@
 from lxml import etree
 from unicodedata import normalize
 from collections.abc import Iterator
+from typing import Any
 
 from openlibrary.catalog.marc.marc_base import MarcBase, MarcFieldBase, MarcException
 
@@ -54,10 +55,10 @@ class DataField(MarcFieldBase):
             first.text = first.text[1:]
             last.text = last.text[:-1]
 
-    def ind1(self):
+    def ind1(self) -> str:
         return self.element.attrib['ind1']
 
-    def ind2(self):
+    def ind2(self) -> str:
         return self.element.attrib['ind2']
 
     def read_subfields(self) -> Iterator[tuple[str, etree._Element]]:
@@ -68,23 +69,21 @@ class DataField(MarcFieldBase):
                 raise BadSubtag
             yield k, sub
 
-    def get_lower_subfield_values(self):
+    def get_lower_subfield_values(self) -> Iterator[str]:
         for k, v in self.read_subfields():
             if k.islower():
                 yield get_text(v)
 
-    def get_all_subfields(self):
+    def get_all_subfields(self) -> Iterator[tuple[str, str]]:
         for k, v in self.read_subfields():
             yield k, get_text(v)
 
     def get_subfields(self, want: list[str]) -> Iterator[tuple[str, str]]:
-        want = set(want)
         for k, v in self.read_subfields():
-            if k not in want:
-                continue
-            yield k, get_text(v)
+            if k in want:
+                yield k, get_text(v)
 
-    def get_contents(self, want):
+    def get_contents(self, want: list[str]) -> dict[str, Any]:
         contents = {}
         for k, v in self.get_subfields(want):
             if v:
@@ -99,7 +98,7 @@ class MarcXml(MarcBase):
         assert record.tag == record_tag
         self.record = record
 
-    def leader(self):
+    def leader(self) -> str:
         leader_element = self.record[0]
         if not isinstance(leader_element.tag, str):
             leader_element = self.record[1]
@@ -115,10 +114,6 @@ class MarcXml(MarcBase):
             yield i.attrib['tag'], i
 
     def read_fields(self, want: list[str]) -> Iterator[tuple[str, str | DataField]]:
-        want = set(want)
-
-        # http://www.archive.org/download/abridgedacademy00levegoog/abridgedacademy00levegoog_marc.xml
-
         non_digit = False
         for f in self.record:
             if f.tag != data_tag and f.tag != control_tag:
@@ -140,5 +135,7 @@ class MarcXml(MarcBase):
     def decode_field(self, field) -> str | DataField:
         if field.tag == control_tag:
             return get_text(field)
-        if field.tag == data_tag:
+        elif field.tag == data_tag:
             return DataField(self, field)
+        else:
+            return ''
