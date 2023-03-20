@@ -29,12 +29,12 @@
       <subfield code="a">200247</subfield>
     </datafield>
     <datafield tag="100" ind1="1" ind2=" ">
-      <subfield code="6"/>
+      <subfield code="6">880-01</subfield>
       <subfield code="a">Dubnow, Simon,</subfield>
       <subfield code="d">1860-1941.</subfield>
     </datafield>
     <datafield tag="245" ind1="1" ind2="0">
-      <subfield code="6"/>
+      <subfield code="6">880-02</subfield>
       <subfield code="a">Tsum hundertsṭn geboyrnṭog fun Shimon Dubnoṿ</subfield>
       <subfield code="h"/>
       <subfield code="b">zamlung /</subfield>

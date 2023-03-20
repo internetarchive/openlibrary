@@ -18,6 +18,10 @@ class NoTitle(MarcException):
     pass
 
 
+class MarcFieldBase:
+    pass
+
+
 class MarcBase:
     def read_isbn(self, f):
         found = []
@@ -36,5 +40,19 @@ class MarcBase:
         for tag, line in self.read_fields(want):
             self.fields.setdefault(tag, []).append(line)
 
-    def get_fields(self, tag: str) -> list:
-        return [self.decode_field(f) for f in self.fields.get(tag, [])]
+    def get_fields(self, tag: str) -> list[str | MarcFieldBase]:
+        return [v for k, v in self.read_fields([tag])]
+
+    def get_linkage(self, original: str, link: str):
+        """
+        :param original str: The original field e.g. '245'
+        :param link str: The linkage {original}$6 value e.g. '880-01'
+        :rtype: BinaryDataField | None
+        :return: alternate script field (880) corresponding to original or None
+        """
+        linkages = self.read_fields(['880'])
+        target = link.replace('880', original)
+        for tag, f in linkages:
+            if f.get_subfield_values(['6'])[0].startswith(target):
+                return f
+        return None

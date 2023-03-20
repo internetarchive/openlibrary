@@ -225,7 +225,7 @@ def title_from_list(title_parts: list[str], delim: str = ' ') -> str:
     return delim.join(remove_trailing_dot(s.strip(STRIP_CHARS)) for s in title_parts)
 
 
-def read_title(rec):
+def read_title(rec) -> dict[str]:
     fields = rec.get_fields('245') or rec.get_fields('740')
     if not fields:
         raise NoTitle('No Title found in either 245 or 740 fields.')
@@ -503,7 +503,7 @@ def read_series(rec):
 
 def read_notes(rec):
     found = []
-    for tag in range(500, 595):
+    for tag in range(500, 590):
         if tag in (505, 520):
             continue
         fields = rec.get_fields(str(tag))
@@ -591,7 +591,7 @@ def read_contributions(rec):
 
     if not skip_authors:
         for tag, f in rec.read_fields(['700', '710', '711', '720']):
-            f = rec.decode_field(f)
+            #f = rec.decode_field(f)
             if tag in ('700', '720'):
                 if 'authors' not in ret or last_name_in_245c(rec, f):
                     ret.setdefault('authors', []).append(read_author_person(f, tag=tag))
@@ -619,7 +619,7 @@ def read_contributions(rec):
 
     for tag, f in rec.read_fields(['700', '710', '711', '720']):
         sub = want[tag]
-        cur = tuple(rec.decode_field(f).get_subfields(sub))
+        cur = tuple(f.get_subfields(sub))
         if tuple(cur) in skip_authors:
             continue
         name = remove_trailing_dot(' '.join(strip_foc(i[1]) for i in cur).strip(','))
@@ -671,7 +671,10 @@ def read_toc(rec):
 
 def update_edition(rec, edition, func, field):
     if v := func(rec):
-        edition[field] = v
+        if field in edition and isinstance(edition[field], list):
+            edition[field] += v
+        else:
+            edition[field] = v
 
 
 def read_edition(rec):
@@ -717,6 +720,17 @@ def read_edition(rec):
         update_edition(rec, edition, read_languages, 'languages')
         update_edition(rec, edition, read_pub_date, 'publish_date')
 
+    update_edition(rec, edition, read_work_titles, 'work_titles')
+    try:
+        edition.update(read_title(rec))
+    except NoTitle:
+        if 'work_titles' in edition:
+            assert len(edition['work_titles']) == 1
+            edition['title'] = edition['work_titles'][0]
+            del edition['work_titles']
+        else:
+            raise
+
     update_edition(rec, edition, read_lccn, 'lccn')
     update_edition(rec, edition, read_dnb, 'identifiers')
     update_edition(rec, edition, read_issn, 'identifiers')
@@ -724,7 +738,6 @@ def read_edition(rec):
     update_edition(rec, edition, read_oclc, 'oclc_numbers')
     update_edition(rec, edition, read_lc_classification, 'lc_classifications')
     update_edition(rec, edition, read_dewey, 'dewey_decimal_class')
-    update_edition(rec, edition, read_work_titles, 'work_titles')
     update_edition(rec, edition, read_other_titles, 'other_titles')
     update_edition(rec, edition, read_edition_name, 'edition_name')
     update_edition(rec, edition, read_series, 'series')
@@ -737,16 +750,6 @@ def read_edition(rec):
 
     edition.update(read_contributions(rec))
     edition.update(subjects_for_work(rec))
-
-    try:
-        edition.update(read_title(rec))
-    except NoTitle:
-        if 'work_titles' in edition:
-            assert len(edition['work_titles']) == 1
-            edition['title'] = edition['work_titles'][0]
-            del edition['work_titles']
-        else:
-            raise
 
     for func in (read_publisher, read_isbn, read_pagination):
         v = func(rec)
