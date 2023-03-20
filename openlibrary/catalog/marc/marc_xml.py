@@ -1,6 +1,6 @@
 from lxml import etree
 from unicodedata import normalize
-from typing import Iterator
+from collections.abc import Iterator
 
 from openlibrary.catalog.marc.marc_base import MarcBase, MarcFieldBase, MarcException
 
