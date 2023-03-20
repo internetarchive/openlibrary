@@ -79,7 +79,7 @@ async function onCommentClick(textarea, mrid, username) {
 
 =======
     const commentCount = document.querySelector(`.comment-count-${mrid}`);
-    
+
 >>>>>>> e32ef5fc7 (fix bug where button is not working)
 
     if (c) {
