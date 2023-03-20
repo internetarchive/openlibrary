@@ -1,4 +1,5 @@
 import re
+from collections import defaultdict
 from collections.abc import Iterator
 
 re_isbn = re.compile(r'([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
@@ -25,6 +26,13 @@ class MarcFieldBase:
 
     def get_subfields(self, want: list[str]) -> Iterator[tuple[str, str]]:
         raise NotImplementedError
+
+    def get_contents(self, want: list[str]) -> dict[str, list[str]]:
+        contents = defaultdict(list)
+        for k, v in self.get_subfields(want):
+            if v:
+                contents[k].append(v)
+        return contents
 
 
 class MarcBase:

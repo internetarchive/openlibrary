@@ -1,7 +1,6 @@
 from lxml import etree
 from unicodedata import normalize
 from collections.abc import Iterator
-from typing import Any
 
 from openlibrary.catalog.marc.marc_base import MarcBase, MarcFieldBase, MarcException
 
@@ -82,13 +81,6 @@ class DataField(MarcFieldBase):
         for k, v in self.read_subfields():
             if k in want:
                 yield k, get_text(v)
-
-    def get_contents(self, want: list[str]) -> dict[str, Any]:
-        contents = {}
-        for k, v in self.get_subfields(want):
-            if v:
-                contents.setdefault(k, []).append(v)
-        return contents
 
 
 class MarcXml(MarcBase):
