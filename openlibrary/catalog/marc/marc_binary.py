@@ -68,10 +68,10 @@ class BinaryDataField(MarcFieldBase):
         return normalize('NFC', data.decode('utf8'))
 
     def ind1(self) -> str:
-        return self.line[0]
+        return chr(self.line[0])
 
     def ind2(self) -> str:
-        return self.line[1]
+        return chr(self.line[1])
 
     def get_subfields(self, want: str) -> Iterator[tuple[str, str]]:
         for i in self.line[3:-1].split(b'\x1f'):
