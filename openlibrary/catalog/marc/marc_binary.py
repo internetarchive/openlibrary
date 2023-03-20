@@ -75,7 +75,7 @@ class BinaryDataField(MarcFieldBase):
 
     def get_subfields(self, want: str) -> Iterator[tuple[str, str]]:
         for i in self.line[3:-1].split(b'\x1f'):
-            code = i and (chr(i[0]) if isinstance(i[0], int) else i[0])
+            code = i and chr(i[0])
             if i and code in want:
                 yield code, self.translate(i[1:])
 
