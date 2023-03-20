@@ -1,4 +1,5 @@
 import re
+from collections.abc import Iterator
 
 re_isbn = re.compile(r'([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
 # handle ISBN like: 1402563884c$26.95
@@ -42,6 +43,9 @@ class MarcBase:
 
     def get_fields(self, tag: str) -> list[str | MarcFieldBase]:
         return [v for k, v in self.read_fields([tag])]
+
+    def read_fields(self, want: list[str]) -> Iterator[tuple[str, str | MarcFieldBase]]:
+        pass
 
     def get_linkage(self, original: str, link: str):
         """
