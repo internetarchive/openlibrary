@@ -74,6 +74,8 @@ export function initCommenting(elems) {
  */
 async function onCommentClick(textarea, mrid, username) {
     const c = textarea.value;
+    const commentCount = document.querySelector('.comment-count');
+    
 
     if (c) {
         await comment(mrid, c)
@@ -83,6 +85,7 @@ async function onCommentClick(textarea, mrid, username) {
                     new FadingToast('Comment updated!').show()
                     updateCommentsView(mrid, c, username)
                     textarea.value = ''
+                    commentCount.innerHTML ++
                 } else {
                     new FadingToast('Failed to submit comment. Please try again in a few moments.').show()
                 }
@@ -116,10 +119,11 @@ async function comment(mrid, comment) {
  * @param {string} comment The new comment
  */
 async function updateCommentsView(mrid, comment, username) {
+
+    
     const commentCell = document.querySelector(`#comment-cell-${mrid}`);
     //const newCommentDiv = commentCell.querySelector('.comment-cell__newest-comment')
     const hiddenCommentDiv = commentCell.querySelector('.comment-cell__old-comments-section');
-    //const commentCount = document.querySelector('.comment-count');
     const newComment = document.createElement('div')
     newComment.innerHTML += `<div class="mr-comment">
       <div class="mr-comment__body"><a href="">@${username}</a> ${comment}</div>
