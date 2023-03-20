@@ -21,13 +21,13 @@ class NoTitle(MarcException):
 
 
 class MarcFieldBase:
-    def get_subfield_values(self, want: list[str]) -> list[str]:
+    def get_subfield_values(self, want: str) -> list[str]:
         return [v for k, v in self.get_subfields(want)]
 
-    def get_subfields(self, want: list[str]) -> Iterator[tuple[str, str]]:
+    def get_subfields(self, want: str) -> Iterator[tuple[str, str]]:
         raise NotImplementedError
 
-    def get_contents(self, want: list[str]) -> dict[str, list[str]]:
+    def get_contents(self, want: str) -> dict[str, list[str]]:
         contents = defaultdict(list)
         for k, v in self.get_subfields(want):
             if v:
@@ -63,6 +63,6 @@ class MarcBase:
         linkages = self.read_fields(['880'])
         target = link.replace('880', original)
         for tag, f in linkages:
-            if f.get_subfield_values(['6'])[0].startswith(target):
+            if f.get_subfield_values('6')[0].startswith(target):
                 return f
         return None

@@ -73,7 +73,7 @@ class BinaryDataField(MarcFieldBase):
     def ind2(self) -> str:
         return self.line[1]
 
-    def get_subfields(self, want: list[str]) -> Iterator[tuple[str, str]]:
+    def get_subfields(self, want: str) -> Iterator[tuple[str, str]]:
         for i in self.line[3:-1].split(b'\x1f'):
             code = i and (chr(i[0]) if isinstance(i[0], int) else i[0])
             if i and code in want:

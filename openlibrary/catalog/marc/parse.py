@@ -231,9 +231,9 @@ def read_title(rec: MarcBase) -> dict[str, Any]:
         raise NoTitle('No Title found in either 245 or 740 fields.')
     # example MARC record with multiple titles:
     # https://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:299505697:862
-    contents = fields[0].get_contents(['a', 'c', 'h'])
-    linkages = fields[0].get_contents(['6'])
-    bnps = [f for f in fields[0].get_subfield_values(['b', 'n', 'p', 's']) if f]
+    contents = fields[0].get_contents('ach')
+    linkages = fields[0].get_contents('6')
+    bnps = [f for f in fields[0].get_subfield_values('bnps') if f]
     ret = {}
     title = alternate = None
     if '6' in linkages:
@@ -255,7 +255,7 @@ def read_title(rec: MarcBase) -> dict[str, Any]:
             raise NoTitle('No title found from joining subfields.')
     if alternate:
         ret['other_titles'] = [title]
-        ret['title'] = title_from_list(alternate.get_subfield_values(['a']))
+        ret['title'] = title_from_list(alternate.get_subfield_values('a'))
     else:
         ret['title'] = title
 
@@ -263,7 +263,7 @@ def read_title(rec: MarcBase) -> dict[str, Any]:
     if bnps:
         ret['subtitle'] = title_from_list(bnps, delim=' : ')
     elif alternate:
-        subtitle = alternate.get_subfield_values(['b', 'n', 'p', 's'])
+        subtitle = alternate.get_subfield_values('bnps')
         if subtitle:
             ret['subtitle'] = title_from_list(subtitle, delim=' : ')
 
