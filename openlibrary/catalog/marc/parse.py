@@ -1,5 +1,5 @@
 import re
-from typing import Optional
+from typing import Any, Optional
 
 from openlibrary.catalog.marc.get_subjects import subjects_for_work
 from openlibrary.catalog.marc.marc_base import BadMARC, NoTitle, MarcException
@@ -225,7 +225,7 @@ def title_from_list(title_parts: list[str], delim: str = ' ') -> str:
     return delim.join(remove_trailing_dot(s.strip(STRIP_CHARS)) for s in title_parts)
 
 
-def read_title(rec) -> dict[str]:
+def read_title(rec) -> dict[str, Any]:
     fields = rec.get_fields('245') or rec.get_fields('740')
     if not fields:
         raise NoTitle('No Title found in either 245 or 740 fields.')
