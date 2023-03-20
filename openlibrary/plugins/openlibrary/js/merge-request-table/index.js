@@ -75,7 +75,7 @@ export function initCommenting(elems) {
 async function onCommentClick(textarea, mrid, username) {
     const c = textarea.value;
     const commentCount = document.querySelector(`.comment-count-${mrid}`);
-    
+
     if (c) {
         await comment(mrid, c)
             .then(result => result.json())
@@ -119,7 +119,7 @@ async function comment(mrid, comment) {
  */
 async function updateCommentsView(mrid, comment, username) {
 
-    
+
     const commentCell = document.querySelector(`#comment-cell-${mrid}`);
     //const newCommentDiv = commentCell.querySelector('.comment-cell__newest-comment')
     const hiddenCommentDiv = commentCell.querySelector('.comment-cell__old-comments-section');
