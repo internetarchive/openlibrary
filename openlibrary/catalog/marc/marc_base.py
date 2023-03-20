@@ -22,7 +22,7 @@ class NoTitle(MarcException):
 
 class MarcFieldBase:
     def get_subfield_values(self, want: str) -> list[str]:
-        return [v for k, v in self.get_subfields(want)]
+        return [v.strip() for _, v in self.get_subfields(want)]
 
     def get_subfields(self, want: str) -> Iterator[tuple[str, str]]:
         raise NotImplementedError
@@ -38,7 +38,7 @@ class MarcFieldBase:
 class MarcBase:
     def read_isbn(self, f: MarcFieldBase) -> list[str]:
         found = []
-        for k, v in f.get_subfields(['a', 'z']):
+        for k, v in f.get_subfields('az'):
             m = re_isbn_and_price.match(v)
             if not m:
                 m = re_isbn.match(v)

@@ -82,34 +82,28 @@ FIELDS_WANTED = (
 )
 
 
-def read_dnb(rec: MarcBase) -> dict[str, list[str | None]]:
+def read_dnb(rec: MarcBase) -> dict[str, list[str]] | None:
     fields = rec.get_fields('016')
     for f in fields:
         (source,) = f.get_subfield_values('2') or [None]
         (control_number,) = f.get_subfield_values('a') or [None]
         if source == DNB_AGENCY_CODE and control_number:
             return {'dnb': [control_number]}
+    return None
 
 
 def read_issn(rec: MarcBase) -> dict[str, list[str]] | None:
     fields = rec.get_fields('022')
     if not fields:
         return None
-    found = []
-    for f in fields:
-        for k, v in f.get_subfields(['a']):
-            issn = v.strip()
-            if issn:
-                found.append(issn)
-    return {'issn': found}
+    return {'issn': [v for f in fields for v in f.get_subfield_values('a')]}
 
 
 def read_lccn(rec: MarcBase) -> list[str]:
     fields = rec.get_fields('010')
     found = []
     for f in fields:
-        for k, v in f.get_subfields(['a']):
-            lccn = v.strip()
+        for lccn in f.get_subfield_values('a'):
             if re_question.match(lccn):
                 continue
             m = re_lccn.search(lccn)
@@ -144,7 +138,7 @@ def read_oclc(rec: MarcBase) -> list[str]:
             found.append(oclc)
 
     for f in rec.get_fields('035'):
-        for k, v in f.get_subfields(['a']):
+        for k, v in f.get_subfields('a'):
             m = re_oclc.match(v)
             if not m:
                 m = re_ocn_or_ocm.match(v)
@@ -161,7 +155,7 @@ def read_lc_classification(rec: MarcBase) -> list[str]:
     fields = rec.get_fields('050')
     found = []
     for f in fields:
-        contents = f.get_contents(['a', 'b'])
+        contents = f.get_contents('ab')
         if 'b' in contents:
             b = ' '.join(contents['b'])
             if 'a' in contents:
@@ -200,7 +194,7 @@ def read_dewey(rec: MarcBase) -> list[str]:
     fields = rec.get_fields('082')
     found = []
     for f in fields:
-        found += f.get_subfield_values(['a'])
+        found += f.get_subfield_values('a')
     return found
 
 
@@ -208,7 +202,7 @@ def read_work_titles(rec: MarcBase) -> list[str]:
     found = []
     if tag_240 := rec.get_fields('240'):
         for f in tag_240:
-            title = f.get_subfield_values(['a', 'm', 'n', 'p', 'r'])
+            title = f.get_subfield_values('amnpr')
             found.append(remove_trailing_dot(' '.join(title).strip(',')))
     if tag_130 := rec.get_fields('130'):
         for f in tag_130:
@@ -361,16 +355,16 @@ def read_publisher(rec: MarcBase) -> dict[str, Any] | None:
     publisher = []
     publish_places = []
     for f in fields:
-        contents = f.get_contents(['a', 'b'])
+        contents = f.get_contents('ab')
         if 'b' in contents:
             publisher += [x.strip(" /,;:[") for x in contents['b']]
         if 'a' in contents:
             publish_places += [x.strip(" /.,;:[") for x in contents['a'] if x]
     edition = {}
     if publisher:
-        edition["publishers"] = publisher
+        edition['publishers'] = publisher
     if len(publish_places) and publish_places[0]:
-        edition["publish_places"] = publish_places
+        edition['publish_places'] = publish_places
     return edition
 
 
@@ -390,7 +384,7 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict | None:
     and returns an author import dict.
     """
     author = {}
-    contents = field.get_contents(['a', 'b', 'c', 'd', 'e', '6'])
+    contents = field.get_contents('abcde6')
     if 'a' not in contents and 'c' not in contents:
         return None  # should at least be a name or title
     if 'd' in contents:
@@ -399,7 +393,7 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict | None:
             death_date = author['death_date']
             if re_number_dot.search(death_date):
                 author['death_date'] = death_date[:-1]
-    author['name'] = name_from_list(field.get_subfield_values(['a', 'b', 'c']))
+    author['name'] = name_from_list(field.get_subfield_values('abc'))
     author['entity_type'] = 'person'
     subfields = [
         ('a', 'personal_name'),
@@ -412,7 +406,7 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict | None:
             author[field_name] = name_from_list(contents[subfield])
     if '6' in contents:  # alternate script name exists
         if link := field.rec.get_linkage(tag, contents['6'][0]):
-            if alt_name := link.get_subfield_values(['a']):
+            if alt_name := link.get_subfield_values('a'):
                 author['alternate_names'] = [name_from_list(alt_name)]
     return author
 
@@ -428,7 +422,7 @@ def last_name_in_245c(rec: MarcBase, person: MarcFieldBase) -> bool:
     fields = rec.get_fields('245')
     last_name = person_last_name(person).lower()
     return any(
-        any(last_name in v.lower() for v in f.get_subfield_values(['c']))
+        any(last_name in v.lower() for v in f.get_subfield_values('c'))
         for f in fields
     )
 
@@ -445,10 +439,10 @@ def read_authors(rec: MarcBase) -> list | None:
     # 111 2  $aConference on Civil Engineering Problems Overseas.
     found = [a for a in (read_author_person(f, tag='100') for f in fields_100) if a]
     for f in fields_110:
-        name = name_from_list(f.get_subfield_values(['a', 'b']))
+        name = name_from_list(f.get_subfield_values('ab'))
         found.append({'entity_type': 'org', 'name': name})
     for f in fields_111:
-        name = name_from_list(f.get_subfield_values(['a', 'c', 'd', 'n']))
+        name = name_from_list(f.get_subfield_values('acdn'))
         found.append({'entity_type': 'event', 'name': name})
     return found or None
 
@@ -460,7 +454,7 @@ def read_pagination(rec: MarcBase):
     pagination = []
     edition = {}
     for f in fields:
-        pagination += f.get_subfield_values(['a'])
+        pagination += f.get_subfield_values('a')
     if pagination:
         edition['pagination'] = ' '.join(pagination)
         # strip trailing characters from pagination
@@ -483,7 +477,7 @@ def read_series(rec: MarcBase):
             continue
         for f in fields:
             this = []
-            for k, v in f.get_subfields(['a', 'v']):
+            for k, v in f.get_subfields('av'):
                 if k == 'v' and v:
                     this.append(v)
                     continue
@@ -515,7 +509,7 @@ def read_description(rec: MarcBase):
         return
     found = []
     for f in fields:
-        this = [i for i in f.get_subfield_values(['a']) if i]
+        this = [i for i in f.get_subfield_values('a') if i]
         found += this
     if found:
         return "\n\n".join(found).strip(' ')
@@ -524,7 +518,7 @@ def read_description(rec: MarcBase):
 def read_url(rec: MarcBase):
     found = []
     for f in rec.get_fields('856'):
-        contents = f.get_contents(['u', 'y', '3', 'z', 'x'])
+        contents = f.get_contents('uy3zx')
         if not contents.get('u'):
             continue
         title = (
@@ -539,10 +533,10 @@ def read_url(rec: MarcBase):
 
 def read_other_titles(rec: MarcBase):
     return (
-        [' '.join(f.get_subfield_values(['a'])) for f in rec.get_fields('246')]
+        [' '.join(f.get_subfield_values('a')) for f in rec.get_fields('246')]
         + [' '.join(f.get_lower_subfield_values()) for f in rec.get_fields('730')]
         + [
-            ' '.join(f.get_subfield_values(['a', 'p', 'n']))
+            ' '.join(f.get_subfield_values('apn'))
             for f in rec.get_fields('740')
         ]
     )
@@ -554,7 +548,7 @@ def read_location(rec: MarcBase):
         return
     found = set()
     for f in fields:
-        found = found.union({v for v in f.get_subfield_values(['a']) if v})
+        found = found.union({v for v in f.get_subfield_values('a') if v})
     return list(found)
 
 

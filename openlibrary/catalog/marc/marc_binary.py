@@ -45,7 +45,7 @@ def handle_wrapped_lines(_iter):
 
 
 class BinaryDataField(MarcFieldBase):
-    def __init__(self, rec, line):
+    def __init__(self, rec, line: bytes) -> None:
         """
         :param rec MarcBinary:
         :param line bytes: Content of a MARC21 binary field
