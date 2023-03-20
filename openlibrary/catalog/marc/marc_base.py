@@ -38,7 +38,7 @@ class MarcFieldBase:
 class MarcBase:
     def read_isbn(self, f: MarcFieldBase) -> list[str]:
         found = []
-        for k, v in f.get_subfields('az'):
+        for v in f.get_subfield_values('az'):
             m = re_isbn_and_price.match(v)
             if not m:
                 m = re_isbn.match(v)

@@ -172,30 +172,19 @@ def read_isbn(rec: MarcBase) -> dict[str, Any] | None:
     fields = rec.get_fields('020')
     if not fields:
         return None
-    found = []
-    for f in fields:
-        isbn = rec.read_isbn(f)
-        if isbn:
-            found += isbn
+    found = [isbn for f in fields for isbn in tidy_isbn(rec.read_isbn(f))]
     ret = {}
-    seen = set()
-    for i in tidy_isbn(found):
-        if i in seen:  # avoid dups
-            continue
-        seen.add(i)
-        if len(i) == 13:
-            ret.setdefault('isbn_13', []).append(i)
-        elif len(i) <= 16:
-            ret.setdefault('isbn_10', []).append(i)
+    for isbn in remove_duplicates(found):
+        if len(isbn) == 13:
+            ret.setdefault('isbn_13', []).append(isbn)
+        elif len(isbn) <= 16:
+            ret.setdefault('isbn_10', []).append(isbn)
     return ret or None
 
 
 def read_dewey(rec: MarcBase) -> list[str]:
     fields = rec.get_fields('082')
-    found = []
-    for f in fields:
-        found += f.get_subfield_values('a')
-    return found
+    return [v for f in fields for v in f.get_subfield_values('a')]
 
 
 def read_work_titles(rec: MarcBase) -> list[str]:
