@@ -28,7 +28,7 @@ class MarcFieldBase:
 
 
 class MarcBase:
-    def read_isbn(self, f):
+    def read_isbn(self, f: MarcFieldBase) -> list[str]:
         found = []
         for k, v in f.get_subfields(['a', 'z']):
             m = re_isbn_and_price.match(v)
@@ -45,12 +45,12 @@ class MarcBase:
     def read_fields(self, want: list[str]) -> Iterator[tuple[str, str | MarcFieldBase]]:
         raise NotImplementedError
 
-    def get_linkage(self, original: str, link: str):
+    def get_linkage(self, original: str, link: str) -> MarcFieldBase | None:
         """
         :param original str: The original field e.g. '245'
         :param link str: The linkage {original}$6 value e.g. '880-01'
-        :rtype: BinaryDataField | None
-        :return: alternate script field (880) corresponding to original or None
+        :rtype: MarcFieldBase | None
+        :return: alternate script field (880) corresponding to original, or None
         """
         linkages = self.read_fields(['880'])
         target = link.replace('880', original)
