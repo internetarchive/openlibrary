@@ -23,7 +23,6 @@ A record is loaded by calling the load function.
 
 """
 from __future__ import annotations
-from collections.abc import Iterable
 import json
 import re
 
@@ -32,7 +31,7 @@ import web
 from collections import defaultdict
 from copy import copy
 from time import sleep
-from typing import cast, TYPE_CHECKING
+from typing import cast, Final, TYPE_CHECKING
 
 import requests
 
@@ -51,25 +50,18 @@ from openlibrary.catalog.add_book.load_book import (
     build_query,
     east_in_by_statement,
     import_author,
+    IncomingEdition,
     InvalidLanguage,
 )
 from openlibrary.catalog.add_book.match import editions_match
 
 if TYPE_CHECKING:
-    from infogami.infobase.client import Thing
-    from openlibrary.plugins.upstream.models import Author, Edition, Work
+    from openlibrary.plugins.upstream.models import Edition, Work
 
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
 re_lang = re.compile('^/languages/([a-z]{3})$')
 ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
-
-
-type_map = {
-    'description': 'text',
-    'notes': 'text',
-    'number_of_pages': 'int',
-}
 
 
 class CoverNotSaved(Exception):
@@ -685,138 +677,288 @@ def load_data(rec, account_key=None):
     return reply
 
 
-def update_matched_edition(
-    edition: Edition, rec: dict, need_edition_save: bool, account_key: str | None = None
+def add_missing_int_and_str_to_edition(
+    incoming_edition: IncomingEdition,
+    matched_edition: Edition,
+    overwrite: bool = False,
 ) -> tuple[Edition, bool]:
     """
-    Update `edition` fields to add values from `rec` that don't currently
-    exist on `edition`. The default is to prefer existing values rather than
-    to overwrite.
-    """
-    # Add cover to `edition`, and remove `cover` from `rec`, because it's not
-    # a valid `Edition` field and would otherwise be copied in.
+    Add missing string-like and int-like values from incoming_edition to the matched_edition.
 
-    cover_url = rec.pop('cover', None)
-    if cover_url and not edition.get_covers():
-        if cover_id := add_cover(cover_url, edition.key, account_key=account_key):
-            edition['covers'] = [cover_id]
+    :param incoming_edition: A rec dictionary returned from build_query().
+    :param matched_edition: The matched target edition that will be updated with any new values.
+    :param overwrite: If True, use incoming_edition values to overwrite those in matched_edition.
+    :return: A tuple containing the (possibly modified) matched_edition and a bool indicating
+        whether the matched_edition needs to be saved.
+    """
+    need_edition_save = False
+    # Update `matched_edition` str and int value fields with `incoming_edition` values. Don't overwrite
+    # existing fields by default.
+    for field, value in incoming_edition.items():
+        if field in matched_edition and overwrite is False:
+            continue
+
+        if isinstance(value, (str, int)):
+            matched_edition[field] = value
             need_edition_save = True
+            continue
+
+        if isinstance(value, dict):
+            if value.get('type') in ('/type/int', '/type/text'):
+                matched_edition[field] = value
+                need_edition_save = True
+                continue
+
+    return matched_edition, need_edition_save
+
+
+# Add list fields to edition as needed.
+# Fields in this list must be the same format in both `incoming_edition` and
+# `matched_edition`. For example, if the `matched_edition` field value is a
+# `Thing`, the fields will not match properly.
+EDITION_LIST_FIELDS: Final = [
+    'author',
+    'dewey_decimal_class',
+    'isbn_10',
+    'isbn_13',
+    'lc_classifications',
+    'lccn',
+    'local_id',
+    'oclc_numbers',
+    'publish_places',
+    'publishers',
+    'series',
+    'source_records',
+    'translation_of',
+    'work_titles',
+]
+
+
+def add_missing_lists_to_edition(
+    incoming_edition: IncomingEdition,
+    matched_edition: Edition,
+    edition_list_fields: list[str],
+    overwrite: bool = False,
+) -> tuple[Edition, bool]:
+    """
+    Add missing lists and list values from incoming_edition to the matched_edition.
+
+    :param incoming_edition: A rec dictionary returned from build_query().
+    :param matched_edition: The matched target edition that will be updated with any new values.
+    :param edition_list_fields: A list of field keys (associated with list values) to copy.
+    :param overwrite: If True, use incoming_edition values to overwrite those in matched_edition.
+    :return: A tuple containing the (possibly modified) edition and a bool indicating
+        whether the matched_edition needs to be saved.
+    """
+    need_edition_save = False
+
+    for field in edition_list_fields:
+        if not incoming_edition.get(field):
+            continue
+
+        # Re-write specific fields in *incoming_edition* to scrub data before (potential)
+        # copying to edition.
+        if field == 'publish_places':
+            # Places such as "[Paris]" should be stripped.
+            incoming_edition[field] = [
+                place.strip("][)(") for place in incoming_edition[field]
+            ]
+
+        # There are three outcomes: write the incoming_edition data to the
+        # matched_edition, append it the matched_edition, or do nothing.
+
+        if (overwrite and field != 'source_records') or field not in matched_edition:
+            matched_edition[field] = incoming_edition[field]
+            need_edition_save = True
+            continue
+
+        if values_to_append := [
+            value
+            for value in incoming_edition[field]
+            if value not in matched_edition[field]
+        ]:
+            matched_edition[field] += values_to_append
+            need_edition_save = True
+
+    return (matched_edition, need_edition_save)
+
+
+# Key: thing-field-name. Value: key-in-thing-item-used-for-comparison.
+#
+# `Thing` values in `matched_edition` must be compared separately, as neither
+# `rec` nor `incoming_edition` have `Thing` values.
+# E.g. `incoming_edition` might have `'languages': [{'key': '/languages/fre'}]`, and `edition`
+# might have `'languages': [Thing(site=<infogami.infobase.client.Site object at 0x7f9fe484f110>, key=/languages/fre, data=None, revision=None)]`,
+# so we'd compare `key`, as both are `/languages/fre`.
+EDITION_THING_FIELDS: Final = {
+    'languages': 'key',
+    'links': 'url',
+    'translated_from': 'key',
+}
+
+
+def add_missing_things_to_edition(
+    incoming_edition: IncomingEdition,
+    matched_edition: Edition,
+    edition_thing_fields: dict[str, str],
+    overwrite: bool = False,
+) -> tuple[Edition, bool]:
+    """
+    Add missing Things and Thing values from incoming_edition to the matched_edition.
+
+    :param incoming_edition: A rec dictionary returned from build_query().
+    :param matched_edition: The matched target edition that will be updated with any new values.
+    :param edition_fields: A list of field names, themselves containing Things, to copy.
+    :param overwrite: If True, use incoming_edition values to overwrite those in matched_edition.
+    :return: A tuple containing the (possibly modified) edition and a bool indicating
+        whether the matched_edition needs to be saved.
+    """
+    need_edition_save = False
+
+    for field, thing_key in edition_thing_fields.items():
+        if not incoming_edition.get(field):
+            continue
+
+        if overwrite or field not in matched_edition:
+            matched_edition[field] = incoming_edition[field]
+            need_edition_save = True
+            continue
+
+        # incoming_edition has a JSON-like representation of some values that are
+        # Thing objects in the edition (e.g. 'languages'). Get the relevant values
+        # for comparison (see the commennt to THING_EDITION_FIELDS), and then add
+        # them to the edition if absent.
+        #
+        # We know if it's absent by comparing the relevant keys in the `Thing`
+        # and the incoming_edition JSON-like representation.
+        #
+        # E.g. if processing the `languages` field, then per THING_EDITION_FIELDS,
+        # the `thing_key` is literally `key`. That `Thing` might look like:
+        # Thing(site=<infogami.infobase.client.Site object at 0x7f9fe484f110>, key=/languages/fre, data=None, revision=None).
+        #
+        # Having gathered all the `thing_key` values, we append anything from
+        # incoming_edition that isn't the value of an existing `thing_key`.
+        values_in_edition = [thing.get(thing_key) for thing in matched_edition[field]]
+        if values_to_append := [
+            item
+            for item in incoming_edition[field]
+            if item.get(thing_key) not in values_in_edition
+        ]:
+            matched_edition[field] += values_to_append
+            need_edition_save = True
+
+    return (matched_edition, need_edition_save)
+
+
+def check_if_edition_should_be_overwritten(
+    matched_edition: Edition, from_marc_record: bool
+) -> bool:
+    """
+    Certain editions should be overwritten with incoming_edition data because
+    of their pervasive low quality, such as revision 1 Promise Items.
+
+    :param matched_edition: The edition to evaluate for overwriting.
+    :param from_marc_record: True if the incoming_edition associated with this
+        matched Edition has a MARC record.
+    :returns: True if the matched_edition data should be overwritten.
+    """
+    if not from_marc_record or matched_edition.get('revision') != 1:
+        return False
+
+    # v1 Promise Items are always index[0] in source_records.
+    if source_records := matched_edition.get('source_records'):
+        if source_records[0].split(":")[0] == "promise":
+            return True
+
+    return False
+
+
+def update_matched_edition(
+    matched_edition: Edition,
+    rec: dict,
+    account_key: str | None = None,
+    from_marc_record: bool = False,
+) -> tuple[Edition, bool]:
+    """
+    Update `matched_edition` fields to add values from `rec` that don't
+    currently exist on `matched_edition`. The default is to prefer existing
+    values rather than to overwrite.
+
+    :param matched_edition: The matched Edition to evaluate for overwriting.
+    :param rec: The `rec` being imported that possibly (1) has new values
+        or (2) should be used for overwriting `matched_edition`.
+    :param from_marc_record: True if the `rec` has a MARC record.
+    :return: A tuple containing the (possibly modified) matched_edition and
+        a bool indicating whether the edition needs to be saved.
+    """
+    # The different update functions called here return bools that, if True,
+    # mean the matched_edition should be saved. Track them for clarity.
+    needs_save: dict[str, bool] = {}
+
+    # Add cover to `matched_edition`, and remove `cover` from `rec`, because
+    # it's not a valid `Edition` field and would otherwise be copied in.
+    cover_url = rec.pop('cover', None)
+    if cover_url and not matched_edition.get_covers():
+        if cover_id := add_cover(
+            cover_url, matched_edition.key, account_key=account_key
+        ):
+            matched_edition['covers'] = [cover_id]
+            needs_save['cover'] = True
 
     # Convert the record to an OpenLibrary Edition suitable for saving, so
     # that values copied from the record into the Edition are of the proper
     # format.
-    rec_edition = build_query(rec)
+    incoming_edition = build_query(rec)
 
-    # Update `edition` str and int value fields with `rec_edition` values. Don't overwrite
-    # existing fields by default.
-    for field, value in rec_edition.items():
-        if (
-            not (
-                isinstance(value, str)
-                or (
-                    isinstance(value, dict)
-                    and value.get("type") == ('/type/text' or '/type/int')
-                )
-            )
-            or field in edition
-        ):
-            continue
+    should_overwrite = check_if_edition_should_be_overwritten(
+        matched_edition, from_marc_record
+    )
 
-        edition[field] = value
-        need_edition_save = True
+    matched_edition, needs_save['int_and_str'] = add_missing_int_and_str_to_edition(
+        incoming_edition, matched_edition, should_overwrite
+    )
 
-    # Add list fields to edition as needed.
-    # Fields in this list must be the same format in both `rec` and `edition`.
-    # For example, if the `edition` field value is a `Thing`, the fields will
-    # not match properly. `Author` objects, strings, etc., are fine.
-    edition_fields = [
-        # 'authors',  # Don't add authors to editions going forward?
-        'contributions',
-        'dewey_decimal_class',
-        'local_id',
-        'lccn',
-        'lc_classifications',
-        'oclc_numbers',
-        'publish_places',
-        'publishers',
-        'series',
-        'source_records',
-        'work_titles',
-    ]
-    for field in edition_fields:
-        if field not in rec_edition or not rec_edition[field]:
-            continue
-        # Ensure values is a list
-        values = (
-            rec_edition[field]
-            if isinstance(rec_edition[field], list)
-            else [rec_edition[field]]
-        )
-        if field in edition:
-            # get values from rec_edition that are not currently on the edition
-            to_add = [v for v in values if v not in edition[field]]
-            edition[field] += to_add
-        else:
-            edition[field] = to_add = values
-        if to_add:
-            need_edition_save = True
+    matched_edition, needs_save['lists'] = add_missing_lists_to_edition(
+        incoming_edition=incoming_edition,
+        matched_edition=matched_edition,
+        edition_list_fields=EDITION_LIST_FIELDS,
+        overwrite=should_overwrite,
+    )
 
-    # `Thing` values in `edition` must be compared separately, as neither `rec` nor
-    # `rec_edition` have `Thing` values.
-    # E.g. `rec` might have `'languages': [{'key': '/languages/fre'}]`, and `edition`
-    # might have `'languages': [Thing(site=<infogami.infobase.client.Site object at 0x7f9fe484f110>, key=/languages/fre, data=None, revision=None)`,
-    # so we'd compare `key`
-    thing_edition_fields = {
-        # 'authors': 'name',
-        'languages': 'key',
-        'links': 'url',
-        'translated_from': 'key',
-    }
-
-    for field, thing_key in thing_edition_fields.items():
-        if field not in rec_edition or not rec_edition[field]:
-            continue
-
-        # Ensure `rec_edition_field_values` is typed as a list[dict].
-        rec_edition_field_values: list[dict]
-        rec_edition_field_values = (
-            rec_edition[field]
-            if isinstance(rec_edition[field], list)
-            else [rec_edition[field]]
-        )
-        if field in edition:
-            # Get `Thing` values from `edition` for comparison with `rec_edition` values.
-            e_comparison_values: list[str] = [
-                thing.get(thing_key) for thing in edition[field]
-            ]
-            # Get values from `rec_edition` that are not currently in `edition`.
-            to_add = [
-                rec_value
-                for rec_value in rec_edition_field_values
-                if rec_value.get(thing_key) not in e_comparison_values
-            ]
-            edition[field] += to_add
-        else:
-            edition[field] = to_add = rec_edition_field_values
-        if to_add:
-            need_edition_save = True
+    matched_edition, needs_save['things'] = add_missing_things_to_edition(
+        incoming_edition=incoming_edition,
+        matched_edition=matched_edition,
+        edition_thing_fields=EDITION_THING_FIELDS,
+        overwrite=should_overwrite,
+    )
 
     # Add new identifiers
-    if 'identifiers' in rec_edition:
-        identifiers = defaultdict(list, edition.dict().get('identifiers', {}))
-        for k, vals in rec_edition['identifiers'].items():
+    if 'identifiers' in incoming_edition:
+        identifiers = defaultdict(list, matched_edition.dict().get('identifiers', {}))
+        for k, vals in incoming_edition['identifiers'].items():
             identifiers[k].extend(vals)
             identifiers[k] = list(set(identifiers[k]))
-        if edition.dict().get('identifiers') != identifiers:
-            edition['identifiers'] = identifiers
+        if matched_edition.dict().get('identifiers') != identifiers:
+            matched_edition['identifiers'] = identifiers
             need_edition_save = True
 
-    return (edition, need_edition_save)
+    need_edition_save = any(needs_save.values())
+
+    return (matched_edition, need_edition_save)
 
 
-def update_matched_work(
-    work: Work, edition: Edition, rec: dict, need_work_save: bool
-) -> tuple[Work, bool]:
+def update_matched_work(work: Work, edition: Edition, rec: dict) -> tuple[Work, bool]:
+    """
+    Update a matched Work.
+
+    :param work: The matched work.
+    :param edition: The matched edition.
+    :param rec: The incoming import record.
+    :return: A tuple containing the (possibly modified) work and a bool indicating
+        whether the work needs to be saved.
+    """
+    need_work_save = False
+
     # Add subjects to work, if not already present
     if 'subjects' in rec:
         work_subjects = list(work.get('subjects', []))
@@ -842,15 +984,18 @@ def update_matched_work(
         rec_authors = [import_author(a) for a in rec.get('authors', [])]
 
         # Get existing author keys
-        # Is author["author"]["key"] asking for a `KeyError`?
-        work_author_keys: list[str] = [
-            author["author"]["key"] for author in work.get("authors", [])
+        work_author_keys: list[str | None] = [
+            author.get("author", {}).get("key")
+            for author in work.get("authors", [])
+            if isinstance(author, dict)
         ]
+
         add_authors = [
             author
             for author in rec_authors
             if author.get("key") not in work_author_keys
         ]
+
         # Authors can only be added, so we can compare the length of the Work's
         # authors to see if we need to save.
         w_original_author_count = len(work.get("authors", []))
@@ -868,10 +1013,20 @@ def update_matched_work(
     return (work, need_work_save)
 
 
-def load(rec, account_key=None):
-    """Given a record, tries to add/match that edition in the system.
+def load(rec, account_key=None, from_marc_record: bool = False):
+    """Given a record, tries to add/match an edition/work in the system.
 
-    Record is a dictionary containing all the metadata of the edition.
+    If rec *is* matched to an edition, fields in the rec that are
+    *not present* in the edition will be added to the edition.
+
+    If the edition is a v1 promise item, and the rec has MARC data,
+    the edition will be entirely overwritten with the rec's data
+    because of promise items' low quality data.
+
+    If rec is *not* matched to an edition, it will be passed to
+    load_data() so a new edition can be created.
+
+    rec is a dictionary containing all the metadata of the edition.
     The following fields are mandatory:
 
         * title: str
@@ -881,6 +1036,7 @@ def load(rec, account_key=None):
     :rtype: dict
     :return: a dict to be converted into a JSON HTTP response, same as load_data()
     """
+
     required_fields = [
         'title',
         'source_records',
@@ -946,23 +1102,23 @@ def load(rec, account_key=None):
         e.works = [{'key': w['key']}]
 
     # Update edition fields from the record.
-    e, need_edition_save = update_matched_edition(
-        e, rec, need_edition_save, account_key
+    e, need_matched_edition_save = update_matched_edition(
+        e, rec, account_key, from_marc_record
     )
 
     w = cast("Work", w)  # w is a work now rather than None.
-    w, need_work_save = update_matched_work(w, e, rec, need_work_save)
+    w, need_matched_work_save = update_matched_work(w, e, rec)
 
     edits = []
-    reply = {
+    reply: dict = {
         'success': True,
         'edition': {'key': match, 'status': 'matched'},
         'work': {'key': w['key'], 'status': 'matched'},
     }
-    if need_edition_save:
+    if need_edition_save or need_matched_edition_save:
         reply['edition']['status'] = 'modified'
         edits.append(e.dict())
-    if need_work_save:
+    if need_work_save or need_matched_work_save:
         reply['work']['status'] = 'created' if work_created else 'modified'
         edits.append(w)
     if edits:

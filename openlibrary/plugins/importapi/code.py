@@ -205,6 +205,8 @@ class ia_importapi(importapi):
         :param bool force_import: force import of this record
         :returns: the data of the imported book or raises  BookImportError
         """
+        from_marc_record = False
+
         # Case 1 - Is this a valid Archive.org item?
         metadata = ia.get_metadata(identifier)
         if not metadata:
@@ -230,6 +232,8 @@ class ia_importapi(importapi):
         if require_marc and not marc_record:
             raise BookImportError('no-marc-record')
         if marc_record:
+            from_marc_record = True
+
             if not force_import:
                 raise_non_book_marc(marc_record)
             try:
@@ -247,7 +251,7 @@ class ia_importapi(importapi):
 
         # Add IA specific fields: ocaid, source_records, and cover
         edition_data = cls.populate_edition_data(edition_data, identifier)
-        return cls.load_book(edition_data)
+        return cls.load_book(edition_data, from_marc_record)
 
     def POST(self):
         web.header('Content-Type', 'application/json')
@@ -410,7 +414,7 @@ class ia_importapi(importapi):
         return d
 
     @staticmethod
-    def load_book(edition_data: dict) -> str:
+    def load_book(edition_data: dict, from_marc_record: bool = False) -> str:
         """
         Takes a well constructed full Edition record and sends it to add_book
         to check whether it is already in the system, and to add it, and a Work
@@ -418,7 +422,7 @@ class ia_importapi(importapi):
 
         :param dict edition_data: Edition record
         """
-        result = add_book.load(edition_data)
+        result = add_book.load(rec=edition_data, from_marc_record=from_marc_record)
         return json.dumps(result)
 
     @staticmethod

@@ -1,3 +1,4 @@
+from typing import NewType
 import web
 from openlibrary.catalog.utils import flip_name, author_dates_match, key_int
 
@@ -182,10 +183,14 @@ class InvalidLanguage(Exception):
         return "invalid language code: '%s'" % self.code
 
 
-type_map = {'description': 'text', 'notes': 'text', 'number_of_pages': 'int'}
+type_map = {'description': 'text', 'notes': 'text'}
+
+# A `rec` value, suitable for saving, returned from `build_query()` to make it
+# more clear which records have been run through `build_query()`.
+IncomingEdition = NewType("IncomingEdition", dict)
 
 
-def build_query(rec):
+def build_query(rec: dict) -> IncomingEdition:
     """
     Takes an edition record dict, rec, and returns an Open Library edition
     suitable for saving.
@@ -194,7 +199,7 @@ def build_query(rec):
     :rtype: dict
     :return: Open Library style edition representation
     """
-    book = {
+    book: dict[str, str | dict | list] = {
         'type': {'key': '/type/edition'},
     }
 
@@ -202,6 +207,7 @@ def build_query(rec):
         if k == 'authors':
             if v and v[0]:
                 book['authors'] = []
+                assert isinstance(book['authors'], list)
                 for author in v:
                     east = east_in_by_statement(rec, author)
                     book['authors'].append(import_author(author, eastern=east))
@@ -220,4 +226,6 @@ def build_query(rec):
                 book[k] = {'type': t, 'value': v}
         else:
             book[k] = v
+
+    book = IncomingEdition(book)
     return book

@@ -8,16 +8,28 @@ from infogami.infobase.core import Text
 from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import (
     add_db_name,
+    add_missing_int_and_str_to_edition,
+    add_missing_lists_to_edition,
+    add_missing_things_to_edition,
     build_pool,
+    check_if_edition_should_be_overwritten,
     editions_matched,
     isbns_from_record,
     load,
     split_subtitle,
+    EDITION_LIST_FIELDS,
     RequiredField,
+    EDITION_THING_FIELDS,
 )
 
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.marc.marc_binary import MarcBinary
+
+from typing import TYPE_CHECKING, cast
+from collections.abc import Generator, Iterator
+
+if TYPE_CHECKING:
+    from openlibrary.plugins.upstream.models import Edition
 
 
 def open_test_data(filename):
@@ -309,7 +321,7 @@ def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
         'source_records': ['ia:test_item'],
         # Titles MUST match to be considered the same
         'title': 'Test item',
-        'languages': ['fre'],
+        'languages': ['eng'],
     }
     reply = load(rec)
     assert reply['success'] is True
@@ -706,7 +718,10 @@ def test_missing_source_records(mock_site, add_languages):
     mock_site.save(
         {
             'authors': [
-                {'author': '/authors/OL592898A', 'type': {'key': '/type/author_role'}}
+                {
+                    'author': {'key': '/authors/OL592898A'},
+                    'type': {'key': '/type/author_role'},
+                }
             ],
             'key': '/works/OL16029710W',
             'subjects': [
@@ -939,3 +954,339 @@ def test_existing_work_with_subtitle(mock_site, add_languages):
     assert reply['authors'][0]['status'] == 'matched'
     e = mock_site.get(reply['edition']['key'])
     assert e.works[0]['key'] == '/works/OL16W'
+
+
+class Test_Add_Missing_Values_To_Edition:
+    """
+    This class tests:
+        - add_missing_int_and_str_to_edition()
+        - add_missing_lists_to_edition()
+        - add_missing_things_to_edition()
+    """
+
+    @pytest.fixture
+    def get_default_rec_and_edition(
+        self, mock_site
+    ) -> Generator[tuple[dict, "Edition"], None, None]:
+        """
+        Create an edition and a new rec to match or update against the
+        edition when re-importing. These tests are to ensure new fields
+        present in rec but not present in edition are added.
+        """
+
+        # Rec for the edition we'll match/modify.
+        rec = {
+            'authors': [{'name': 'John Smith'}],
+            'isbn_10': ['1250144051'],
+            'publish_date': 'Jan 09, 2011',
+            'publishers': ['Black Spot'],
+            'source_records': 'add_field_values:test',
+            'title': 'Adding missing fields',
+        }
+
+        reply = load(rec)
+        edition = mock_site.get(reply['edition']['key'])
+
+        yield (rec, edition)
+
+    def test_missing_ints_are_added(self, get_default_rec_and_edition) -> None:
+        new_rec, edition = get_default_rec_and_edition
+        new_rec['number_of_pages'] = 151
+        edition, need_edition_save = add_missing_int_and_str_to_edition(
+            new_rec,
+            edition,
+        )
+        assert edition.get('number_of_pages') == 151
+        assert need_edition_save is True
+
+    def test_existing_ints_are_not_overwritten_by_default(
+        self, get_default_rec_and_edition
+    ) -> None:
+        new_rec, edition = get_default_rec_and_edition
+        edition['number_of_pages'] = 1
+        new_rec['number_of_pages'] = 222
+        edition, need_edition_save = add_missing_int_and_str_to_edition(
+            new_rec,
+            edition,
+        )
+        assert edition.get('number_of_pages') == 1
+        assert need_edition_save is False
+
+    def test_existing_ints_are_overwritten_with_parameter(
+        self, get_default_rec_and_edition
+    ) -> None:
+        new_rec, edition = get_default_rec_and_edition
+        edition['number_of_pages'] = 1
+        edition, need_edition_save = add_missing_int_and_str_to_edition(
+            new_rec, edition, overwrite=True
+        )
+        assert edition.get('number_of_pages') == 1
+        assert need_edition_save is True
+
+    def test_missing_stings_are_added(self, get_default_rec_and_edition) -> None:
+        new_rec, edition = get_default_rec_and_edition
+        new_rec['publish_country'] = 'cau'
+        edition, need_edition_save = add_missing_int_and_str_to_edition(
+            new_rec,
+            edition,
+        )
+        assert edition.get('publish_country') == 'cau'
+        assert need_edition_save is True
+
+    def test_existing_strings_are_not_overwritten(
+        self, get_default_rec_and_edition
+    ) -> None:
+        new_rec, edition = get_default_rec_and_edition
+        new_rec['publish_date'] = 'Aug 8, 1996'
+        edition, need_edition_save = add_missing_int_and_str_to_edition(
+            new_rec,
+            edition,
+        )
+        assert edition.get('publish_date') == 'Jan 09, 2011'
+        assert need_edition_save is False
+
+    def test_existing_strings_are_overwritten_with_parameter(
+        self, get_default_rec_and_edition
+    ) -> None:
+        new_rec, edition = get_default_rec_and_edition
+        new_rec['publish_date'] = 'Aug 8, 1996'
+        edition, need_edition_save = add_missing_int_and_str_to_edition(
+            new_rec, edition, overwrite=True
+        )
+        assert edition.get('publish_date') == 'Aug 8, 1996'
+        assert need_edition_save is True
+
+    def test_missing_text_types_are_added(self, get_default_rec_and_edition) -> None:
+        new_rec, edition = get_default_rec_and_edition
+        new_rec['description'] = {
+            "type": "/type/text",
+            "value": "Add description when none exists.",
+        }
+        edition, need_edition_save = add_missing_int_and_str_to_edition(
+            new_rec,
+            edition,
+        )
+        assert edition.get('description') == {
+            "type": "/type/text",
+            "value": "Add description when none exists.",
+        }
+        assert need_edition_save is True
+
+    def test_existing_text_types_are_not_overwritten(
+        self, get_default_rec_and_edition
+    ) -> None:
+        new_rec, edition = get_default_rec_and_edition
+        new_rec['description'] = {
+            "type": "/type/text",
+            "value": "This must not overwrite.",
+        }
+        edition['description'] = {
+            "type": "/type/text",
+            "value": "Existing description.",
+        }
+        edition, need_edition_save = add_missing_int_and_str_to_edition(
+            new_rec,
+            edition,
+        )
+        assert edition.get('description') == {
+            "type": "/type/text",
+            "value": "Existing description.",
+        }
+        assert need_edition_save is False
+
+    def test_existing_text_types_are_overwritten_with_parameter(
+        self, get_default_rec_and_edition
+    ) -> None:
+        new_rec, edition = get_default_rec_and_edition
+        new_rec['description'] = {"type": "/type/text", "value": "This MUST overwrite."}
+        edition['description'] = {
+            "type": "/type/text",
+            "value": "Existing description.",
+        }
+        edition, need_edition_save = add_missing_int_and_str_to_edition(
+            new_rec, edition, overwrite=True
+        )
+        assert edition.get('description') == {
+            "type": "/type/text",
+            "value": "This MUST overwrite.",
+        }
+        assert need_edition_save is True
+
+    def test_missing_lists_are_added(self, get_default_rec_and_edition) -> None:
+        new_rec, edition = get_default_rec_and_edition
+        new_rec['publish_places'] = ['New Place']
+        edition, need_edition_save = add_missing_lists_to_edition(
+            new_rec,
+            edition,
+            EDITION_LIST_FIELDS,
+        )
+        assert edition.get('publish_places') == ['New Place']
+        assert need_edition_save is True
+
+    def test_existing_list_items_are_not_duplicated(
+        self, get_default_rec_and_edition
+    ) -> None:
+        new_rec, edition = get_default_rec_and_edition
+        edition['publish_places'] = ['Existing Place']
+        new_rec['publish_places'] = ['Existing Place']
+        edition, need_edition_save = add_missing_lists_to_edition(
+            new_rec,
+            edition,
+            EDITION_LIST_FIELDS,
+        )
+        assert edition.get('publish_places') == ['Existing Place']
+        assert need_edition_save is False
+
+    def test_only_new_items_are_appended_to_existing_lists(
+        self, get_default_rec_and_edition
+    ) -> None:
+        new_rec, edition = get_default_rec_and_edition
+        edition['publish_places'] = ['Existing Place']
+        new_rec['publish_places'] = ['New Place', 'Existing Place']
+        edition, need_edition_save = add_missing_lists_to_edition(
+            new_rec, edition, EDITION_LIST_FIELDS
+        )
+        assert edition.get('publish_places') == ['Existing Place', 'New Place']
+        assert need_edition_save is True
+
+    def test_existing_lists_are_overwritten_with_parameter(
+        self, get_default_rec_and_edition
+    ) -> None:
+        new_rec, edition = get_default_rec_and_edition
+        edition['publish_places'] = ['Existing Place']
+        new_rec['publish_places'] = ['New Place']
+        edition, need_edition_save = add_missing_lists_to_edition(
+            new_rec, edition, EDITION_LIST_FIELDS, overwrite=True
+        )
+        assert edition.get('publish_places') == ['New Place']
+        assert need_edition_save is True
+
+    def test_existing_source_records_are_preserved_and_not_duplicated_when_lists_are_overwritten_with_parameter(
+        self, get_default_rec_and_edition
+    ) -> None:
+        new_rec, edition = get_default_rec_and_edition
+        new_rec['source_records'] = ['new:record', 'add_field_values:test']
+        edition, need_edition_save = add_missing_lists_to_edition(
+            new_rec, edition, EDITION_LIST_FIELDS, overwrite=True
+        )
+        assert edition.get('source_records') == ['add_field_values:test', 'new:record']
+        assert need_edition_save is True
+
+    def test_publish_places_value_in_list_stripped_of_unwanted_characters(
+        self, get_default_rec_and_edition
+    ) -> None:
+        new_rec, edition = get_default_rec_and_edition
+        new_rec['publish_places'] = ['New York', '[Paris]']
+        edition, need_edition_save = add_missing_lists_to_edition(
+            new_rec, edition, EDITION_LIST_FIELDS, overwrite=True
+        )
+        assert edition.get('publish_places') == ['New York', 'Paris']
+        assert need_edition_save is True
+
+    def test_enumerated_things_are_added(self, get_default_rec_and_edition) -> None:
+        new_rec, edition = get_default_rec_and_edition
+        new_rec['languages'] = [{'key': '/languages/eng'}]
+        edition, need_edition_save = add_missing_things_to_edition(
+            new_rec,
+            edition,
+            EDITION_THING_FIELDS,
+        )
+        assert edition.get('languages') == [{'key': '/languages/eng'}]
+        assert need_edition_save is True
+
+    def test_enumerated_things_are_not_duplicated(
+        self, get_default_rec_and_edition
+    ) -> None:
+        new_rec, edition = get_default_rec_and_edition
+        edition['languages'] = [{'key': '/languages/eng'}]
+        new_rec['languages'] = [{'key': '/languages/eng'}]
+        edition, need_edition_save = add_missing_things_to_edition(
+            new_rec,
+            edition,
+            EDITION_THING_FIELDS,
+        )
+        assert edition.get('languages') == [{'key': '/languages/eng'}]
+        assert need_edition_save is False
+
+    def test_only_new_enumerated_things_are_appended(
+        self, get_default_rec_and_edition
+    ) -> None:
+        new_rec, edition = get_default_rec_and_edition
+        edition['languages'] = [{'key': '/languages/eng'}]
+        new_rec['languages'] = [{'key': '/languages/eng'}, {'key': '/languages/fre'}]
+        edition, need_edition_save = add_missing_things_to_edition(
+            new_rec,
+            edition,
+            EDITION_THING_FIELDS,
+        )
+        assert edition.get('languages') == [
+            {'key': '/languages/eng'},
+            {'key': '/languages/fre'},
+        ]
+        assert need_edition_save is True
+
+    def test_enumerated_things_are_overwritten_with_parameter(
+        self, get_default_rec_and_edition
+    ) -> None:
+        new_rec, edition = get_default_rec_and_edition
+        edition['languages'] = [{'key': '/languages/eng'}]
+        new_rec['languages'] = [{'key': '/languages/fre'}]
+        edition, need_edition_save = add_missing_things_to_edition(
+            new_rec,
+            edition,
+            EDITION_THING_FIELDS,
+            overwrite=True,
+        )
+        assert edition.get('languages') == [{'key': '/languages/fre'}]
+        assert need_edition_save is True
+
+
+def test_version_one_promise_items_should_be_overwritten() -> None:
+    edition = {
+        'revision': 1,
+        'source_records': ['promise:bwb_daily_pallets_2022-03-17'],
+    }
+    overwrite = check_if_edition_should_be_overwritten(edition, from_marc_record=True)  # type: ignore [arg-type]
+    assert overwrite is True
+
+
+def test_version_one_promise_items_should_not_be_overwritten_without_marc_data() -> (
+    None
+):
+    edition = {
+        'revision': 1,
+        'source_records': ['promise:bwb_daily_pallets_2022-03-17'],
+    }
+    overwrite = check_if_edition_should_be_overwritten(edition, from_marc_record=False)  # type: ignore [arg-type]
+    assert overwrite is False
+
+
+def test_dont_over_write_promise_item_if_not_v1() -> None:
+    edition = {
+        'revision': 2,
+        'source_records': ['promise:bwb_daily_pallets_2022-03-17'],
+    }
+    overwrite = check_if_edition_should_be_overwritten(edition, from_marc_record=True)  # type: ignore [arg-type]
+    assert overwrite is False
+
+
+def test_dont_overwrite_v1_non_promise_items() -> None:
+    edition = {'revision': 1, 'source_records': ['ia:test']}
+    overwrite = check_if_edition_should_be_overwritten(edition, from_marc_record=True)  # type: ignore [arg-type]
+    assert overwrite is False
+
+
+def test_check_if_edition_should_be_overwritten_handles_editions_without_a_source_record() -> (
+    None
+):
+    edition = {'revision': 1, 'no_source_record': 1}
+    overwrite = check_if_edition_should_be_overwritten(edition, from_marc_record=True)  # type: ignore [arg-type]
+    assert overwrite is False
+
+
+def test_check_if_edition_should_be_overwritten_handles_editions_empty_source_record() -> (
+    None
+):
+    edition = {'revision': 1, 'source_record': ['']}
+    overwrite = check_if_edition_should_be_overwritten(edition, from_marc_record=True)  # type: ignore [arg-type]
+    assert overwrite is False
