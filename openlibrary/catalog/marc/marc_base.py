@@ -22,7 +22,7 @@ class NoTitle(MarcException):
 
 class MarcFieldBase:
     def get_subfield_values(self, want: str) -> list[str]:
-        return [v.strip() for _, v in self.get_subfields(want)]
+        return [v.strip() for _, v in self.get_subfields(want) if v]
 
     def get_subfields(self, want: str) -> Iterator[tuple[str, str]]:
         raise NotImplementedError

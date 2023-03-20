@@ -138,7 +138,7 @@ def read_oclc(rec: MarcBase) -> list[str]:
             found.append(oclc)
 
     for f in rec.get_fields('035'):
-        for k, v in f.get_subfields('a'):
+        for v in f.get_subfield_values('a'):
             m = re_oclc.match(v)
             if not m:
                 m = re_ocn_or_ocm.match(v)
@@ -227,7 +227,7 @@ def read_title(rec: MarcBase) -> dict[str, Any]:
     # https://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:299505697:862
     contents = fields[0].get_contents('ach')
     linkages = fields[0].get_contents('6')
-    bnps = [f for f in fields[0].get_subfield_values('bnps') if f]
+    bnps = fields[0].get_subfield_values('bnps')
     ret = {}
     title = alternate = None
     if '6' in linkages:
@@ -243,7 +243,7 @@ def read_title(rec: MarcBase) -> dict[str, Any]:
         raise SeeAlsoAsTitle(f'Title is: {title}')
     # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:5654086:483
     if title is None:
-        subfields = list(fields[0].get_lower_subfield_values())
+        subfields = fields[0].get_lower_subfield_values()
         title = title_from_list(subfields)
         if not title:  # ia:scrapbooksofmoun03tupp
             raise NoTitle('No title found from joining subfields.')
@@ -304,9 +304,7 @@ def read_original_languages(rec: MarcBase) -> list[str]:
     fields = rec.get_fields('041')
     for f in fields:
         is_translation = f.ind1() == '1'
-        found += [
-            v.lower() for v in f.get_subfield_values('h') if v and len(v) == 3
-        ]
+        found += [v.lower() for v in f.get_subfield_values('h') if len(v) == 3]
     return [lang_map.get(v, v) for v in found if v != 'zxx']
 
 
@@ -340,7 +338,7 @@ def read_pub_date(rec: MarcBase) -> str | None:
     fields = rec.get_fields('260')
     found = []
     for f in fields:
-        found += [v for v in f.get_subfield_values('c') if v]
+        found += f.get_subfield_values('c')
     return remove_trailing_number_dot(found[0].strip('[]')) if found else None
 
 
@@ -359,7 +357,7 @@ def read_publisher(rec: MarcBase) -> dict[str, Any] | None:
         if 'b' in contents:
             publisher += [x.strip(" /,;:[") for x in contents['b']]
         if 'a' in contents:
-            publish_places += [x.strip(" /.,;:[") for x in contents['a'] if x]
+            publish_places += [x.strip(" /.,;:[") for x in contents['a']]
     edition = {}
     if publisher:
         edition['publishers'] = publisher
@@ -413,8 +411,8 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict | None:
 
 # 1. if authors in 100, 110, 111 use them
 # 2. if first contrib is 700, 710, or 711 use it
-def person_last_name(field: MarcFieldBase) -> list[str]:
-    v = list(field.get_subfield_values('a'))[0]
+def person_last_name(field: MarcFieldBase) -> str:
+    v = field.get_subfield_values('a')[0]
     return v[: v.find(', ')] if ', ' in v else v
 
 
@@ -427,7 +425,7 @@ def last_name_in_245c(rec: MarcBase, person: MarcFieldBase) -> bool:
     )
 
 
-def read_authors(rec: MarcBase) -> list | None:
+def read_authors(rec: MarcBase) -> list[dict] | None:
     count = 0
     fields_100 = rec.get_fields('100')
     fields_110 = rec.get_fields('110')
@@ -447,10 +445,10 @@ def read_authors(rec: MarcBase) -> list | None:
     return found or None
 
 
-def read_pagination(rec: MarcBase):
+def read_pagination(rec: MarcBase) -> dict[str, Any] | None:
     fields = rec.get_fields('300')
     if not fields:
-        return
+        return None
     pagination = []
     edition = {}
     for f in fields:
@@ -469,7 +467,7 @@ def read_pagination(rec: MarcBase):
     return edition
 
 
-def read_series(rec: MarcBase):
+def read_series(rec: MarcBase) -> list[str]:
     found = []
     for tag in ('440', '490', '830'):
         fields = rec.get_fields(tag)
@@ -489,33 +487,26 @@ def read_series(rec: MarcBase):
     return found
 
 
-def read_notes(rec: MarcBase):
+def read_notes(rec: MarcBase) -> str:
     found = []
     for tag in range(500, 590):
         if tag in (505, 520):
             continue
         fields = rec.get_fields(str(tag))
-        if not fields:
-            continue
         for f in fields:
             found.append(' '.join(f.get_lower_subfield_values()).strip())
     if found:
         return '\n\n'.join(found)
 
 
-def read_description(rec: MarcBase):
+def read_description(rec: MarcBase) -> str | None:
     fields = rec.get_fields('520')
-    if not fields:
-        return
-    found = []
-    for f in fields:
-        this = [i for i in f.get_subfield_values('a') if i]
-        found += this
-    if found:
-        return "\n\n".join(found).strip(' ')
+    if found := [v for f in fields for v in f.get_subfield_values('a')]:
+        return "\n\n".join(found)
+    return None
 
 
-def read_url(rec: MarcBase):
+def read_url(rec: MarcBase) -> list:
     found = []
     for f in rec.get_fields('856'):
         contents = f.get_contents('uy3zx')
@@ -542,17 +533,13 @@ def read_other_titles(rec: MarcBase):
     )
 
 
-def read_location(rec: MarcBase):
+def read_location(rec: MarcBase) -> list[str] | None:
     fields = rec.get_fields('852')
-    if not fields:
-        return
-    found = set()
-    for f in fields:
-        found = found.union({v for v in f.get_subfield_values('a') if v})
-    return list(found)
+    found = [v for f in fields for v in f.get_subfield_values('a')]
+    return remove_duplicates(found) if fields else None
 
 
-def read_contributions(rec: MarcBase):
+def read_contributions(rec: MarcBase) -> dict[str, Any]:
     """
     Reads contributors from a MARC record
     and use values in 7xx fields to set 'authors'
@@ -614,7 +601,7 @@ def read_contributions(rec: MarcBase):
     return ret
 
 
-def read_toc(rec: MarcBase):
+def read_toc(rec: MarcBase) -> list:
     fields = rec.get_fields('505')
     toc = []
     for f in fields:
@@ -656,7 +643,7 @@ def read_toc(rec: MarcBase):
     return [{'title': i, 'type': '/type/toc_item'} for i in found]
 
 
-def update_edition(rec: MarcBase, edition: dict[str, Any], func: Callable, field: str):
+def update_edition(rec: MarcBase, edition: dict[str, Any], func: Callable, field: str) -> None:
     if v := func(rec):
         if field in edition and isinstance(edition[field], list):
             edition[field] += v
