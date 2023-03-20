@@ -7,7 +7,7 @@ from openlibrary.catalog.marc.marc_base import (
     MarcFieldBase,
     BadMARC,
     NoTitle,
-    MarcException
+    MarcException,
 )
 from openlibrary.catalog.utils import (
     pick_first_date,
@@ -82,7 +82,7 @@ FIELDS_WANTED = (
 )
 
 
-def read_dnb(rec: MarcBase) -> dict[str, list[str|None]]:
+def read_dnb(rec: MarcBase) -> dict[str, list[str | None]]:
     fields = rec.get_fields('016')
     for f in fields:
         (source,) = f.get_subfield_values('2') or [None]
@@ -104,10 +104,8 @@ def read_issn(rec: MarcBase) -> dict[str, list[str]]:
     return {'issn': found}
 
 
-def read_lccn(rec: MarcBase) -> list[str] | None:
+def read_lccn(rec: MarcBase) -> list[str]:
     fields = rec.get_fields('010')
-    if not fields:
-        return None
     found = []
     for f in fields:
         for k, v in f.get_subfields(['a']):
@@ -159,10 +157,8 @@ def read_oclc(rec: MarcBase) -> list[str]:
     return remove_duplicates(found)
 
 
-def read_lc_classification(rec: MarcBase):
+def read_lc_classification(rec: MarcBase) -> list[str]:
     fields = rec.get_fields('050')
-    if not fields:
-        return
     found = []
     for f in fields:
         contents = f.get_contents(['a', 'b'])
@@ -178,7 +174,7 @@ def read_lc_classification(rec: MarcBase):
     return found
 
 
-def read_isbn(rec: MarcBase):
+def read_isbn(rec: MarcBase) -> dict[str, Any]:
     fields = rec.get_fields('020')
     if not fields:
         return
@@ -200,17 +196,15 @@ def read_isbn(rec: MarcBase):
     return ret
 
 
-def read_dewey(rec: MarcBase):
+def read_dewey(rec: MarcBase) -> list[str]:
     fields = rec.get_fields('082')
-    if not fields:
-        return
     found = []
     for f in fields:
         found += f.get_subfield_values(['a'])
     return found
 
 
-def read_work_titles(rec: MarcBase):
+def read_work_titles(rec: MarcBase) -> list[str]:
     found = []
     if tag_240 := rec.get_fields('240'):
         for f in tag_240:
@@ -287,10 +281,8 @@ def read_title(rec: MarcBase) -> dict[str, Any]:
     return ret
 
 
-def read_edition_name(rec: MarcBase):
+def read_edition_name(rec: MarcBase) -> str:
     fields = rec.get_fields('250')
-    if not fields:
-        return
     found = []
     for f in fields:
         found += f.get_lower_subfield_values()
@@ -313,18 +305,18 @@ lang_map = {
 }
 
 
-def read_original_languages(rec: MarcBase):
-    if fields := rec.get_fields('041'):
-        found = []
-        for f in fields:
-            is_translation = f.ind1() == '1'
-            found += [
-                i.lower() for i in f.get_subfield_values('h') if i and len(i) == 3
-            ]
-        return [lang_map.get(i, i) for i in found if i != 'zxx']
+def read_original_languages(rec: MarcBase) -> list[str]:
+    found = []
+    fields = rec.get_fields('041')
+    for f in fields:
+        is_translation = f.ind1() == '1'
+        found += [
+            v.lower() for v in f.get_subfield_values('h') if v and len(v) == 3
+        ]
+    return [lang_map.get(v, v) for v in found if v != 'zxx']
 
 
-def read_languages(rec: MarcBase, lang_008: Optional[str] = None):
+def read_languages(rec: MarcBase, lang_008: Optional[str] = None) -> list[str]:
     """Read languages from 041, if present, and combine with language from 008:35-37"""
     found = []
     if lang_008:
@@ -350,24 +342,22 @@ def read_languages(rec: MarcBase, lang_008: Optional[str] = None):
     return [lang_map.get(code, code) for code in found]
 
 
-def read_pub_date(rec: MarcBase):
+def read_pub_date(rec: MarcBase) -> str | None:
     fields = rec.get_fields('260')
-    if not fields:
-        return
     found = []
     for f in fields:
         found += [v for v in f.get_subfield_values('c') if v]
     return remove_trailing_number_dot(found[0].strip('[]')) if found else None
 
 
-def read_publisher(rec: MarcBase):
+def read_publisher(rec: MarcBase) -> dict[str, Any] | None:
     fields = (
         rec.get_fields('260')
         or rec.get_fields('264')[:1]
         or [rec.get_linkage('260', '880')]
     )
     if not fields:
-        return
+        return None
     publisher = []
     publish_places = []
     for f in fields:
@@ -429,15 +419,13 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict | None:
 
 # 1. if authors in 100, 110, 111 use them
 # 2. if first contrib is 700, 710, or 711 use it
-def person_last_name(field: MarcFieldBase):
+def person_last_name(field: MarcFieldBase) -> list[str]:
     v = list(field.get_subfield_values('a'))[0]
     return v[: v.find(', ')] if ', ' in v else v
 
 
-def last_name_in_245c(rec: MarcBase, person: MarcFieldBase):
+def last_name_in_245c(rec: MarcBase, person: MarcFieldBase) -> bool:
     fields = rec.get_fields('245')
-    if not fields:
-        return
     last_name = person_last_name(person).lower()
     return any(
         any(last_name in v.lower() for v in f.get_subfield_values(['c']))
