@@ -86,14 +86,14 @@ $ page = int(input(page=1).page)
                 <div id="comment-cell-$(r['id'])" class="comment-cell">
                   <div id="latest-comment-$r['id']" class="comment-cell__newest-comment">
                     $if comments:
-                      $:render_template('merge_queue/comment2', comment=comments[-1])
+                      $:render_template('merge_queue/latest_comment', comment=comments[-1])
                     $else:
                       <span>$_('No comments yet.')</span>
                   </div>
                   <div id="hidden-comments-$r['id']" class="comment-cell__old-comments hidden">
                     <div class="comment-cell__old-comments-section">
                       $for c in reversed(comments):
-                        $:render_template('merge_queue/comment3', comment=c)
+                        $:render_template('merge_queue/old_comment', comment=c)
                     </div>
                     $if is_submitter or can_merge:
                       <div class="comment-cell__input">
