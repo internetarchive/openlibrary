@@ -115,7 +115,9 @@ def read_subjects(rec):
                 if v:
                     subjects['org'][v] += 1
         elif tag == '611':  # event
-            v = ' '.join(j.strip() for i, j in field.get_all_subfields() if i not in 'vxyz')
+            v = ' '.join(
+                j.strip() for i, j in field.get_all_subfields() if i not in 'vxyz'
+            )
             if v:
                 v = v.strip()
             v = tidy_subject(v)

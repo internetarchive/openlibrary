@@ -3,7 +3,12 @@ from unicodedata import normalize
 from collections.abc import Iterator
 
 from openlibrary.catalog.marc import mnemonics
-from openlibrary.catalog.marc.marc_base import MarcBase, MarcFieldBase, MarcException, BadMARC
+from openlibrary.catalog.marc.marc_base import (
+    MarcBase,
+    MarcFieldBase,
+    MarcException,
+    BadMARC,
+)
 
 
 marc8 = MARC8ToUnicode(quiet=True)
@@ -140,7 +145,9 @@ class MarcBinary(MarcBase):
     def all_fields(self) -> Iterator[tuple[str, str | BinaryDataField]]:
         return self.read_fields()
 
-    def read_fields(self, want: list[str] | None = None) -> Iterator[tuple[str, str | BinaryDataField]]:
+    def read_fields(
+        self, want: list[str] | None = None
+    ) -> Iterator[tuple[str, str | BinaryDataField]]:
         """
         :param want list | None: list of str, 3 digit MARC field ids, or None for all fields (no limit)
         :rtype: generator
