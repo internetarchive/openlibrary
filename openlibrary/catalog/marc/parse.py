@@ -373,7 +373,8 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict | None:
     author = {}
     contents = field.get_contents('abcde6')
     if 'a' not in contents and 'c' not in contents:
-        return None  # should at least be a name or title
+        # Should have at least a name or title.
+        return None
     if 'd' in contents:
         author = pick_first_date(strip_foc(d).strip(',[]') for d in contents['d'])
         if 'death_date' in author and author['death_date']:
@@ -458,7 +459,7 @@ def read_pagination(rec: MarcBase) -> dict[str, Any] | None:
 def read_series(rec: MarcBase) -> list[str]:
     found = []
     for tag in ('440', '490', '830'):
-        fields = rec.get_fields(tag)  # list[MarcFieldBase]
+        fields = rec.get_fields(tag)
         for f in fields:
             this = []
             for v in f.get_subfield_values('av'):
@@ -477,15 +478,13 @@ def read_notes(rec: MarcBase) -> str:
         fields = rec.get_fields(str(tag))
         for f in fields:
             found.append(' '.join(f.get_lower_subfield_values()).strip())
-    if found:
-        return '\n\n'.join(found)
+    return '\n\n'.join(found)
 
 
-def read_description(rec: MarcBase) -> str | None:
+def read_description(rec: MarcBase) -> str:
     fields = rec.get_fields('520')
-    if found := [v for f in fields for v in f.get_subfield_values('a')]:
-        return "\n\n".join(found)
-    return None
+    found = [v for f in fields for v in f.get_subfield_values('a')]
+    return "\n\n".join(found)
 
 
 def read_url(rec: MarcBase) -> list:
@@ -513,7 +512,7 @@ def read_other_titles(rec: MarcBase):
 
 
 def read_location(rec: MarcBase) -> list[str] | None:
-    fields = rec.get_fields('852')  # list[MarcFieldBase]
+    fields = rec.get_fields('852')
     found = [v for f in fields for v in f.get_subfield_values('a')]
     return remove_duplicates(found) if fields else None
 
