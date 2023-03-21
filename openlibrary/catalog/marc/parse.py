@@ -85,8 +85,8 @@ FIELDS_WANTED = (
 def read_dnb(rec: MarcBase) -> dict[str, list[str]] | None:
     fields = rec.get_fields('016')
     for f in fields:
-        (source,) = f.get_subfield_values('2') or [None]
-        (control_number,) = f.get_subfield_values('a') or [None]
+        (source,) = f.get_subfield_values('2') or ['']
+        (control_number,) = f.get_subfield_values('a') or ['']
         if source == DNB_AGENCY_CODE and control_number:
             return {'dnb': [control_number]}
     return None
@@ -168,18 +168,18 @@ def read_lc_classification(rec: MarcBase) -> list[str]:
     return found
 
 
-def read_isbn(rec: MarcBase) -> dict[str, Any] | None:
+def read_isbn(rec: MarcBase) -> dict[str, str] | None:
     fields = rec.get_fields('020')
     if not fields:
         return None
     found = [isbn for f in fields for isbn in tidy_isbn(rec.read_isbn(f))]
-    ret = {}
+    isbns: dict[str, Any] = {'isbn_10': [], 'isbn_13': []}
     for isbn in remove_duplicates(found):
         if len(isbn) == 13:
-            ret.setdefault('isbn_13', []).append(isbn)
+            isbns['isbn_13'].append(isbn)
         elif len(isbn) <= 16:
-            ret.setdefault('isbn_10', []).append(isbn)
-    return ret or None
+            isbns['isbn_10'].append(isbn)
+    return {k: v for k, v in isbns.items() if v}
 
 
 def read_dewey(rec: MarcBase) -> list[str]:
@@ -191,8 +191,8 @@ def read_work_titles(rec: MarcBase) -> list[str]:
     found = []
     if tag_240 := rec.get_fields('240'):
         for f in tag_240:
-            title = f.get_subfield_values('amnpr')
-            found.append(remove_trailing_dot(' '.join(title).strip(',')))
+            parts = f.get_subfield_values('amnpr')
+            found.append(remove_trailing_dot(' '.join(parts).strip(',')))
     if tag_130 := rec.get_fields('130'):
         for f in tag_130:
             title = title_from_list(
@@ -217,7 +217,7 @@ def read_title(rec: MarcBase) -> dict[str, Any]:
     contents = fields[0].get_contents('ach')
     linkages = fields[0].get_contents('6')
     bnps = fields[0].get_subfield_values('bnps')
-    ret = {}
+    ret: dict[str, Any] = {}
     title = alternate = None
     if '6' in linkages:
         alternate = rec.get_linkage('245', linkages['6'][0])
@@ -231,14 +231,14 @@ def read_title(rec: MarcBase) -> dict[str, Any]:
     if title in ('See', 'See also'):
         raise SeeAlsoAsTitle(f'Title is: {title}')
     # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:5654086:483
-    if title is None:
+    if not title:
         subfields = fields[0].get_lower_subfield_values()
-        title = title_from_list(subfields)
+        title = title_from_list(list(subfields))
         if not title:  # ia:scrapbooksofmoun03tupp
             raise NoTitle('No title found from joining subfields.')
     if alternate:
+        ret['title'] = title_from_list(list(alternate.get_subfield_values('a')))
         ret['other_titles'] = [title]
-        ret['title'] = title_from_list(alternate.get_subfield_values('a'))
     else:
         ret['title'] = title
 
@@ -266,9 +266,7 @@ def read_title(rec: MarcBase) -> dict[str, Any]:
 
 def read_edition_name(rec: MarcBase) -> str:
     fields = rec.get_fields('250')
-    found = []
-    for f in fields:
-        found += f.get_lower_subfield_values()
+    found = [v for f in fields for v in f.get_lower_subfield_values()]
     return ' '.join(found).strip('[]')
 
 
@@ -439,7 +437,7 @@ def read_pagination(rec: MarcBase) -> dict[str, Any] | None:
     if not fields:
         return None
     pagination = []
-    edition = {}
+    edition: dict[str, Any] = {}
     for f in fields:
         pagination += f.get_subfield_values('a')
     if pagination:
@@ -493,13 +491,15 @@ def read_url(rec: MarcBase) -> list:
         contents = f.get_contents('uy3zx')
         if not contents.get('u'):
             continue
-        title = (
+        parts = (
             contents.get('y')
             or contents.get('3')
             or contents.get('z')
             or contents.get('x', ['External source'])
-        )[0].strip()
-        found += [{'url': u.strip(), 'title': title} for u in contents['u']]
+        )
+        if parts:
+            title = parts[0].strip()
+            found += [{'url': u.strip(), 'title': title} for u in contents['u']]
     return found
 
 
@@ -535,7 +535,7 @@ def read_contributions(rec: MarcBase) -> dict[str, Any]:
             ('720', 'a'),
         )
     )
-    ret = {}
+    ret: dict[str, Any] = {}
     skip_authors = set()
     for tag in ('100', '110', '111'):
         fields = rec.get_fields(tag)
@@ -544,6 +544,7 @@ def read_contributions(rec: MarcBase) -> dict[str, Any]:
 
     if not skip_authors:
         for tag, f in rec.read_fields(['700', '710', '711', '720']):
+            assert isinstance(f, MarcFieldBase)
             if tag in ('700', '720'):
                 if 'authors' not in ret or last_name_in_245c(rec, f):
                     ret.setdefault('authors', []).append(read_author_person(f, tag=tag))
@@ -570,6 +571,7 @@ def read_contributions(rec: MarcBase) -> dict[str, Any]:
                 break
 
     for tag, f in rec.read_fields(['700', '710', '711', '720']):
+        assert isinstance(f, MarcFieldBase)
         sub = want[tag]
         cur = tuple(f.get_subfields(sub))
         if tuple(cur) in skip_authors:
@@ -583,7 +585,7 @@ def read_toc(rec: MarcBase) -> list:
     fields = rec.get_fields('505')
     toc = []
     for f in fields:
-        toc_line = []
+        toc_line: list[str] = []
         for k, v in f.get_all_subfields():
             if k == 'a':
                 toc_split = [i.strip() for i in v.split('--')]
@@ -611,14 +613,7 @@ def read_toc(rec: MarcBase) -> list:
                 toc_line.append(v.strip(' -'))
         if toc_line:
             toc.append('-- '.join(toc_line))
-    found = []
-    for i in toc:
-        if len(i) > 2048:
-            i = i.split('  ')
-            found.extend(i)
-        else:
-            found.append(i)
-    return [{'title': i, 'type': '/type/toc_item'} for i in found]
+    return [{'title': s, 'type': '/type/toc_item'} for s in toc]
 
 
 def update_edition(
@@ -641,7 +636,7 @@ def read_edition(rec: MarcBase) -> dict[str, Any]:
     :return: Edition representation
     """
     handle_missing_008 = True
-    edition = {}
+    edition: dict[str, Any] = {}
     if tag_008 := rec.get_control('008'):
         f = re_bad_char.sub(' ', tag_008)
         if not f:
