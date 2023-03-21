@@ -66,14 +66,15 @@ class MarcBase:
     def get_control(self, tag: str) -> str | None:
         control = self.read_fields([tag])
         _, v = next(control, (tag, None))
-        if tag == '008':
+        assert isinstance(v, (str, type(None)))
+        if tag == '008' and v:
             # Handle duplicate 008s, even though control fields are non-repeatable.
-            if others := [d for _, d in list(control) if len(d) == 40]:
+            if others := [str(d) for _, d in list(control) if len(str(d)) == 40]:
                 return min(others + [v], key=lambda s: s.count(' '))
         return v
 
     def get_fields(self, tag: str) -> list[MarcFieldBase]:
-        return [v for _, v in self.read_fields([tag])]
+        return [v for _, v in self.read_fields([tag]) if isinstance(v, MarcFieldBase)]
 
     def read_fields(self, want: list[str]) -> Iterator[tuple[str, str | MarcFieldBase]]:
         raise NotImplementedError
@@ -88,6 +89,7 @@ class MarcBase:
         linkages = self.read_fields(['880'])
         target = link.replace('880', original)
         for tag, f in linkages:
+            assert isinstance(f, MarcFieldBase)
             if f.get_subfield_values('6')[0].startswith(target):
                 return f
         return None
