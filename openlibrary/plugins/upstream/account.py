@@ -399,7 +399,7 @@ class account_login(delegate.page):
             "/account/login",
             "/account/create",
         ]
-        if i.redirect == "" or any([path in i.redirect for path in blacklist]):
+        if i.redirect == "" or any(path in i.redirect for path in blacklist):
             i.redirect = "/account/books"
         raise web.seeother(i.redirect)
 

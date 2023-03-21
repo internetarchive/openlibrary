@@ -1046,7 +1046,7 @@ def is_bot():
     if not web.ctx.env.get('HTTP_USER_AGENT'):
         return True
     user_agent = web.ctx.env['HTTP_USER_AGENT'].lower()
-    return any([bot in user_agent for bot in user_agent_bots])
+    return any(bot in user_agent for bot in user_agent_bots)
 
 
 def setup_template_globals():

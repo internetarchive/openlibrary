@@ -4,7 +4,7 @@ import requests
 import time
 from typing import Any, Optional
 
-import os.path as path
+from os import path
 
 import feedparser
 
