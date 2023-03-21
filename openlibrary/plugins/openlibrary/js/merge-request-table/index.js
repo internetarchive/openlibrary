@@ -74,13 +74,7 @@ export function initCommenting(elems) {
  */
 async function onCommentClick(textarea, mrid, username) {
     const c = textarea.value;
-<<<<<<< HEAD
-    const commentCount = document.querySelector('.comment-count');
-
-=======
     const commentCount = document.querySelector(`.comment-count-${mrid}`);
-
->>>>>>> e32ef5fc7 (fix bug where button is not working)
 
     if (c) {
         await comment(mrid, c)
