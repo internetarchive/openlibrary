@@ -102,7 +102,7 @@ def resize_image(image, size):
         y = size[1]
     size = x, y
 
-    return image.resize(size, Image.ANTIALIAS)
+    return image.resize(size, Image.LANCZOS)
 
 
 def find_image_path(filename):
