@@ -984,6 +984,7 @@ def get_cached_relatedcarousels_component(*args, **kwargs):
 
 class Partials(delegate.page):
     path = '/partials'
+    encoding = 'json'
 
     def GET(self):
         i = web.input(workid=None, _component=None)
@@ -991,7 +992,7 @@ class Partials(delegate.page):
         partial = {}
         if component == "RelatedWorkCarousel":
             partial = _get_relatedcarousels_component(i.workid)
-        return delegate.RawText(json.dumps(partial), content_type="application/json")
+        return delegate.RawText(json.dumps(partial))
 
 
 def is_bot():
