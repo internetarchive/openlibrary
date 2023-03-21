@@ -2,8 +2,8 @@
     openlibrary.catalog.marc.get_subjects is the preferred module
 """
 
-# Tell the flake8 linter to ignore this deprecated file.
-# flake8: noqa
+# Tell the ruff linter to ignore this deprecated file.
+# ruff: noqa
 
 from collections import defaultdict
 from deprecated import deprecated
