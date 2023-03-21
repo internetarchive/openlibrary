@@ -127,10 +127,10 @@ def remove_duplicates(seq: list[Any]) -> list[Any]:
 
 def read_oclc(rec: MarcBase) -> list[str]:
     found = []
-    tag_001 = rec.get_fields('001')
-    tag_003 = rec.get_fields('003')
-    if tag_001 and tag_003 and re_ocolc.match(tag_003[0]):
-        oclc = tag_001[0]
+    tag_001 = rec.get_control('001')
+    tag_003 = rec.get_control('003')
+    if tag_001 and tag_003 and re_ocolc.match(tag_003):
+        oclc = tag_001
         m = re_ocn_or_ocm.match(oclc)
         if m:
             oclc = m.group(1)
@@ -265,7 +265,7 @@ def read_title(rec: MarcBase) -> dict[str, Any]:
 
 
 def read_edition_name(rec: MarcBase) -> str:
-    fields = rec.get_fields('250')  # type: list[MarcFieldBase]
+    fields = rec.get_fields('250')
     found = []
     for f in fields:
         found += f.get_lower_subfield_values()
@@ -290,7 +290,7 @@ lang_map = {
 
 def read_original_languages(rec: MarcBase) -> list[str]:
     found = []
-    fields = rec.get_fields('041') # type: list[MarcFieldBase]
+    fields = rec.get_fields('041')
     for f in fields:
         is_translation = f.ind1() == '1'
         found += [v.lower() for v in f.get_subfield_values('h') if len(v) == 3]
@@ -324,7 +324,7 @@ def read_languages(rec: MarcBase, lang_008: Optional[str] = None) -> list[str]:
 
 
 def read_pub_date(rec: MarcBase) -> str | None:
-    fields = rec.get_fields('260')  # type: list[MarcFieldBase]
+    fields = rec.get_fields('260')
     found = []
     for f in fields:
         found += f.get_subfield_values('c')
@@ -336,7 +336,7 @@ def read_publisher(rec: MarcBase) -> dict[str, Any] | None:
         rec.get_fields('260')
         or rec.get_fields('264')[:1]
         or [rec.get_linkage('260', '880')]
-    )  # type: list[MarcFieldBase]
+    )
     if not fields:
         return None
     publisher = []
@@ -513,7 +513,7 @@ def read_other_titles(rec: MarcBase):
 
 
 def read_location(rec: MarcBase) -> list[str] | None:
-    fields = rec.get_fields('852')
+    fields = rec.get_fields('852')  # list[MarcFieldBase]
     found = [v for f in fields for v in f.get_subfield_values('a')]
     return remove_duplicates(found) if fields else None
 
@@ -643,18 +643,9 @@ def read_edition(rec: MarcBase) -> dict[str, Any]:
     """
     handle_missing_008 = True
     edition = {}
-    tag_008 = rec.get_fields('008')
-    if len(tag_008) == 0:
-        if not handle_missing_008:
-            raise BadMARC("single '008' field required")
-    if len(tag_008) > 1:
-        len_40 = [f for f in tag_008 if len(f) == 40]
-        if len_40:
-            tag_008 = len_40
-        tag_008 = [min(tag_008, key=lambda f: f.count(' '))]
-    if len(tag_008) == 1:
-        # assert len(tag_008[0]) == 40
-        f = re_bad_char.sub(' ', tag_008[0])
+    tag_008 = rec.get_control('008')
+    if tag_008:
+        f = re_bad_char.sub(' ', tag_008)
         if not f:
             raise BadMARC("'008' field must not be blank")
         publish_date = f[7:11]
@@ -669,10 +660,11 @@ def read_edition(rec: MarcBase) -> dict[str, Any]:
         languages = read_languages(rec, lang_008=f[35:38].lower())
         if languages:
             edition['languages'] = languages
-    else:
-        assert handle_missing_008
+    elif handle_missing_008:
         update_edition(rec, edition, read_languages, 'languages')
         update_edition(rec, edition, read_pub_date, 'publish_date')
+    else:
+        raise BadMARC("single '008' field required")
 
     update_edition(rec, edition, read_work_titles, 'work_titles')
     try:

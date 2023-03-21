@@ -63,8 +63,17 @@ class MarcBase:
             found.append(m.group(1))
         return found
 
-    def get_fields(self, tag: str) -> list[str | MarcFieldBase]:
-        return [v for k, v in self.read_fields([tag])]
+    def get_control(self, tag: str) -> str | None:
+        control = self.read_fields([tag])
+        _, v = next(control, (tag, None))
+        if tag == '008':
+            # Handle duplicate 008s, even though control fields are non-repeatable.
+            if others := [d for _, d in list(control) if len(d) == 40]:
+                return min(others + [v], key=lambda s: s.count(' '))
+        return v
+
+    def get_fields(self, tag: str) -> list[MarcFieldBase]:
+        return [v for _, v in self.read_fields([tag])]
 
     def read_fields(self, want: list[str]) -> Iterator[tuple[str, str | MarcFieldBase]]:
         raise NotImplementedError
