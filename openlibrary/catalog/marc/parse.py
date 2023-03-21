@@ -642,8 +642,7 @@ def read_edition(rec: MarcBase) -> dict[str, Any]:
     """
     handle_missing_008 = True
     edition = {}
-    tag_008 = rec.get_control('008')
-    if tag_008:
+    if tag_008 := rec.get_control('008'):
         f = re_bad_char.sub(' ', tag_008)
         if not f:
             raise BadMARC("'008' field must not be blank")
