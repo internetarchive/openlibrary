@@ -42,18 +42,6 @@ class DataField(MarcFieldBase):
         self.rec = rec
         self.tag = element.tag
 
-    def remove_brackets(self) -> None:
-        first = self.element[0]
-        last = self.element[-1]
-        if (
-            first.text
-            and last.text
-            and first.text.startswith('[')
-            and last.text.endswith(']')
-        ):
-            first.text = first.text[1:]
-            last.text = last.text[:-1]
-
     def ind1(self) -> str:
         return self.element.attrib['ind1']
 
@@ -68,19 +56,9 @@ class DataField(MarcFieldBase):
                 raise BadSubtag
             yield k, sub
 
-    def get_lower_subfield_values(self) -> Iterator[str]:
-        for k, v in self.read_subfields():
-            if k.islower():
-                yield get_text(v)
-
     def get_all_subfields(self) -> Iterator[tuple[str, str]]:
         for k, v in self.read_subfields():
             yield k, get_text(v)
-
-    def get_subfields(self, want: str) -> Iterator[tuple[str, str]]:
-        for k, v in self.read_subfields():
-            if k in want:
-                yield k, get_text(v)
 
 
 class MarcXml(MarcBase):

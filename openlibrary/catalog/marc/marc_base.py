@@ -21,10 +21,16 @@ class NoTitle(MarcException):
 
 
 class MarcFieldBase:
+    def ind1(self) -> str:
+        raise NotImplementedError
+
+    def ind2(self) -> str:
+        raise NotImplementedError
+
     def get_subfield_values(self, want: str) -> list[str]:
         return [v.strip() for _, v in self.get_subfields(want) if v]
 
-    def get_subfields(self, want: str) -> Iterator[tuple[str, str]]:
+    def get_all_subfields(self) -> Iterator[tuple[str, str]]:
         raise NotImplementedError
 
     def get_contents(self, want: str) -> dict[str, list[str]]:
@@ -33,6 +39,16 @@ class MarcFieldBase:
             if v:
                 contents[k].append(v)
         return contents
+
+    def get_subfields(self, want: str) -> Iterator[tuple[str, str]]:
+        for k, v in self.get_all_subfields():
+            if k in want:
+                yield k, v
+
+    def get_lower_subfield_values(self) -> Iterator[str]:
+        for k, v in self.get_all_subfields():
+            if k.islower():
+                yield v
 
 
 class MarcBase:
