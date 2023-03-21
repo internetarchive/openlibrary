@@ -1,5 +1,5 @@
-""" Deprecated module,
-    MARC parsing should be done by catalog.marc.parse instead.
+"""Deprecated module,
+MARC parsing should be done by catalog.marc.parse instead.
 """
 
 import re

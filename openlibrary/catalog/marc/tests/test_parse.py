@@ -116,10 +116,10 @@ class TestParseMARCBinary:
         if not os.path.exists(expect_filename):
             # Missing test expectations file. Create a template from the input, but fail the current test.
             json.dump(edition_marc_bin, open(expect_filename, 'w'), indent=2)
-            assert (
-                False
-            ), 'Expectations file {} not found: template generated in {}. Please review and commit this file.'.format(
-                expect_filename, '/bin_expect'
+            raise AssertionError(
+                'Expectations file {} not found: template generated in {}. Please review and commit this file.'.format(
+                    expect_filename, '/bin_expect'
+                )
             )
         j = json.load(open(expect_filename))
         assert j, 'Unable to open test data: %s' % expect_filename

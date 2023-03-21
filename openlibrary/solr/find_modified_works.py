@@ -94,7 +94,7 @@ def poll_for_changes(start_time_file, max_chunk_size, delay):
         url = date.strftime(BASE_URL + "%Y/%m/%d.json")
         logging.debug("-- Fetching changes from %s", url)
         changes = list(requests.get(url).json())
-        unseen_changes = list(x for x in changes if x['id'] not in seen)
+        unseen_changes = [x for x in changes if x['id'] not in seen]
         logging.debug("%d changes fetched", len(changes))
         logging.debug(" of which %d are unseen", len(unseen_changes))
 

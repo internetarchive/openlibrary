@@ -669,7 +669,7 @@ class Work(models.Work):
                     not filter_unicode
                     or (subject.replace(' ', '').isalnum() and is_ascii(subject))
                 )
-                and all([char not in subject for char in blacklist_chars])
+                and all(char not in subject for char in blacklist_chars)
             ):
                 ok_subjects.append(subject)
         return ok_subjects

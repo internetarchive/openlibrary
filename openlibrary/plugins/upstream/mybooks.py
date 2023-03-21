@@ -333,7 +333,6 @@ def get_mybooks_template(username, key, list):
 
 
 class ReadingLog:
-
     """Manages the user's account page books (reading log, waitlists, loans)"""
 
     # Constants

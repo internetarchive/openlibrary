@@ -1,6 +1,6 @@
 """Infobase hook for openlibrary.
 
-    * Log all modified book pages as required for the search engine.
+* Log all modified book pages as required for the search engine.
 """
 
 from infogami.infobase import config
