@@ -109,7 +109,6 @@
   z-index: @z-index-level-1;
   padding: 11px 17px;
   margin: -11px -17px;
-  cursor: pointer;
   &:visited, &:link, &:hover {
     text-decoration: none;
   }
@@ -201,7 +200,7 @@ div.floater {
     padding: 3px;
     margin-left: 30px;
   }
-  input[type=file]::-webkit-file-upload-button {
+  input::file-selector-button{
     cursor: pointer;
   }
   button[type=submit] {
