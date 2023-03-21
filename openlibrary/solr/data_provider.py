@@ -9,7 +9,7 @@ import asyncio
 import itertools
 import logging
 import re
-from typing import List, Optional, TypedDict, cast
+from typing import Optional, TypedDict, cast
 from collections.abc import Iterable, Sized
 
 import httpx
