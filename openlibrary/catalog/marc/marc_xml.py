@@ -75,14 +75,6 @@ class MarcXml(MarcBase):
         assert leader_element.tag == leader_tag
         return get_text(leader_element)
 
-    def all_fields(self) -> Iterator[tuple[str, etree._Element]]:
-        for i in self.record:
-            if i.tag != data_tag and i.tag != control_tag:
-                continue
-            if i.attrib['tag'] == '':
-                raise BlankTag
-            yield i.attrib['tag'], i
-
     def read_fields(self, want: list[str]) -> Iterator[tuple[str, str | DataField]]:
         non_digit = False
         for f in self.record:
@@ -102,7 +94,7 @@ class MarcXml(MarcBase):
                 continue
             yield f.attrib['tag'], self.decode_field(f)
 
-    def decode_field(self, field) -> str | DataField:
+    def decode_field(self, field: etree._Element) -> str | DataField:
         if field.tag == control_tag:
             return get_text(field)
         elif field.tag == data_tag:

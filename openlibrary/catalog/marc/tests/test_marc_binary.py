@@ -48,11 +48,11 @@ class Test_BinaryDataField:
 
 
 class Test_MarcBinary:
-    def test_all_fields(self):
-        filename = '%s/onquietcomedyint00brid_meta.mrc' % test_data
+    def test_read_fields_returns_all(self):
+        filename = f'{test_data}/onquietcomedyint00brid_meta.mrc'
         with open(filename, 'rb') as f:
             rec = MarcBinary(f.read())
-            fields = list(rec.all_fields())
+            fields = list(rec.read_fields())
             assert len(fields) == 13
             assert fields[0][0] == '001'
             for f, v in fields:

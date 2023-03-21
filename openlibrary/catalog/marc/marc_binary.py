@@ -120,9 +120,6 @@ class MarcBinary(MarcBase):
         """
         return self.leader()[9] == ' '
 
-    def all_fields(self) -> Iterator[tuple[str, str | BinaryDataField]]:
-        return self.read_fields()
-
     def read_fields(
         self, want: list[str] | None = None
     ) -> Iterator[tuple[str, str | BinaryDataField]]:
@@ -189,7 +186,3 @@ class MarcBinary(MarcBase):
             if tag_line[1:8] == b'{llig}\x1f':
                 tag_line = tag_line[0] + '\uFE20' + tag_line[7:]
         return tag_line
-
-    def decode_field(self, field):
-        # noop on MARC binary
-        return field
