@@ -3,21 +3,21 @@
 
 Usage:
 
-start affiliate-server using dev webserver:
+start affiliate_server using dev webserver:
 
     ./scripts/affiliate_server.py openlibrary.yml 31337
 
-start affiliate-server as fastcgi:
+start affiliate_server as fastcgi:
 
     ./scripts/affiliate_server.py openlibrary.yml fastcgi 31337
 
-start affiliate-server using gunicorn webserver:
+start affiliate_server using gunicorn webserver:
 
     ./scripts/affiliate_server.py openlibrary.yml --gunicorn -b 0.0.0.0:31337
 
 
 Testing Amazon API:
-  ol-home0% `docker exec -it openlibrary_affiliate-server_1 bash`
+  ol-home0% `docker exec -it openlibrary-affiliate-server-1 bash`
   openlibrary@ol-home0:/openlibrary$ `python`
 
 ```
@@ -61,7 +61,7 @@ from openlibrary.utils.isbn import (
     isbn_10_to_isbn_13,
 )
 
-logger = logging.getLogger("affiliate-server")
+logger = logging.getLogger(__file__)
 
 # fmt: off
 urls = (
@@ -197,7 +197,7 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
 
     # Only proceed if config finds infobase db creds
     if not config.infobase.get('db_parameters'):  # type: ignore[attr-defined]
-        logger.debug("DB parameters missing from affiliate-server infobase")
+        logger.debug("DB parameters missing from affiliate_server infobase")
         return
 
     if books := [clean_amazon_metadata_for_load(product) for product in products]:

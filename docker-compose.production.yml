@@ -28,7 +28,7 @@ services:
       - SOLR_JAVA_MEM=-Xms10g -Xmx10g
     restart: unless-stopped
 
-  solr_haproxy:
+  solr-haproxy:
     profiles: ["ol-solr0"]
     image: haproxy:2.3.5
     restart: unless-stopped
@@ -43,13 +43,13 @@ services:
         max-size: "512m"
         max-file: "4"
 
-  solr_restarter:
+  solr-restarter:
     profiles: ["ol-solr0"]
     build: scripts/solr_restarter
     restart: unless-stopped
     environment:
       - TEST_URL=http://openlibrary.org/search.json?q=hello&mode=everything&limit=0
-      - CONTAINER_NAMES=openlibrary_solr_1 openlibrary_solr_haproxy_1
+      - CONTAINER_NAMES=openlibrary-solr-1 openlibrary-solr-haproxy-1
       - SEND_SLACK_MESSAGE=true
     env_file:
       - ../olsystem/etc/solr_restarter.env
@@ -76,7 +76,7 @@ services:
     deploy:
       replicas: 2
 
-  covers_nginx:
+  covers-nginx:
     profiles: ["ol-covers0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     user: root
@@ -143,13 +143,13 @@ services:
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
-      - INFOBASE_OPTS= fastcgi
+      - INFOBASE_OPTS=fastcgi
       - INFOBASE_CONFIG=/olsystem/etc/infobase.yml
     volumes:
       - ../olsystem:/olsystem
       - infobase-writelog:/1/var/lib/openlibrary/infobase/log
       - infobase-errorlog:/1/var/log/openlibrary/infobase-errors
-  web_haproxy:
+  web-haproxy:
     profiles: ["ol-www0"]
     image: haproxy:2.3.5
     restart: unless-stopped
@@ -164,7 +164,7 @@ services:
       options:
         max-size: "512m"
         max-file: "4"
-  web_nginx:
+  web-nginx:
     profiles: ["ol-www0"]
     restart: unless-stopped
     hostname: "ol-www0" # always want this hostname (or nginx backups will be misnamed)
@@ -203,7 +203,7 @@ services:
       - ssl_certificate
       - ssl_certificate_key
 
-  infobase_nginx:
+  infobase-nginx:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     user: root
