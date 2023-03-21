@@ -265,7 +265,7 @@ def read_title(rec: MarcBase) -> dict[str, Any]:
 
 
 def read_edition_name(rec: MarcBase) -> str:
-    fields = rec.get_fields('250')
+    fields = rec.get_fields('250')  # type: list[MarcFieldBase]
     found = []
     for f in fields:
         found += f.get_lower_subfield_values()
@@ -290,7 +290,7 @@ lang_map = {
 
 def read_original_languages(rec: MarcBase) -> list[str]:
     found = []
-    fields = rec.get_fields('041')
+    fields = rec.get_fields('041') # type: list[MarcFieldBase]
     for f in fields:
         is_translation = f.ind1() == '1'
         found += [v.lower() for v in f.get_subfield_values('h') if len(v) == 3]
@@ -324,7 +324,7 @@ def read_languages(rec: MarcBase, lang_008: Optional[str] = None) -> list[str]:
 
 
 def read_pub_date(rec: MarcBase) -> str | None:
-    fields = rec.get_fields('260')
+    fields = rec.get_fields('260')  # type: list[MarcFieldBase]
     found = []
     for f in fields:
         found += f.get_subfield_values('c')
@@ -336,7 +336,7 @@ def read_publisher(rec: MarcBase) -> dict[str, Any] | None:
         rec.get_fields('260')
         or rec.get_fields('264')[:1]
         or [rec.get_linkage('260', '880')]
-    )
+    )  # type: list[MarcFieldBase]
     if not fields:
         return None
     publisher = []
@@ -458,21 +458,15 @@ def read_pagination(rec: MarcBase) -> dict[str, Any] | None:
 def read_series(rec: MarcBase) -> list[str]:
     found = []
     for tag in ('440', '490', '830'):
-        fields = rec.get_fields(tag)
-        if not fields:
-            continue
+        fields = rec.get_fields(tag)  # list[MarcFieldBase]
         for f in fields:
             this = []
-            for k, v in f.get_subfields('av'):
-                if k == 'v' and v:
-                    this.append(v)
-                    continue
-                v = v.rstrip('.,; ')
-                if v:
+            for v in f.get_subfield_values('av'):
+                if v := v.rstrip('.,; '):
                     this.append(v)
             if this:
-                found += [' -- '.join(this)]
-    return found
+                found.append(' -- '.join(this))
+    return remove_duplicates(found)
 
 
 def read_notes(rec: MarcBase) -> str:
