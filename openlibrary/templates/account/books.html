@@ -24,6 +24,7 @@ $ breadcrumb = _("Reading Log")
 $ header_title = ""
 
 $ reading_log = [("Loans", "/account/loans"), ("Currently Reading (" + str(shelf_counts['currently-reading']) + ")", "/people/" + username + "/books/currently-reading"), ("Want to Read (" + str(shelf_counts['want-to-read']) + ")", "/people/" + username + "/books/want-to-read"), ("Already Read (" + str(shelf_counts['already-read']) + ")", "/people/" + username + "/books/already-read"), ("My Notes", "/people/" + username + "/books/notes"), ("My Reviews", "/people/" + username + "/books/observations"), ("My Reading Stats", "/account/books/already-read/stats")]
+$ list = [("My Lists", "/people/" + username + "/lists")]
 $ breadcrumb_options = [];
 
 $if key == 'mybooks':
@@ -53,8 +54,10 @@ $if not header_title:
     $ header_title = _("Imports and Exports")
   $elif key == 'lists':
     $ header_title = _('My Lists')
+    $ breadcrumb_options = list;
   $elif key == 'list':
     $ header_title = docs.get('name', 'List')
+    $ breadcrumb_options = list;
   $else:
     $ header_title = key
 
@@ -80,18 +83,29 @@ $var title: $header_title
     $ component_times['Details header'] = time()
     <header>
       <div>
-        <div class="sansserif grey account-settings-menu" style="font-size: 14px">
-          <a href="$userKey">$userDisplayName</a> &raquo; 
+        <div class="sansserif grey account-settings-menu" style="font-size: 16px">
+          $if key == 'mybooks':
+            <a href="$userKey">$userDisplayName</a> &raquo; 
+          $else:
+            <a href="/account/books" style="text-decoration: none">
+              <img class="icon-link__image back-chevron" src="/static/images/icons/right-chevron.svg" style="height: 75%; transform: rotate(180deg); vertical-align: bottom;">
+              <span style="text-decoration: underline">Back</span>
+            </a> 
+            &raquo; My Books  &raquo; 
+            $if key == 'list':
+              My Lists &raquo; 
           $:render_template("books/breadcrumb_select", key=key, selected=breadcrumb, options=breadcrumb_options)
           
         </div>
         <div>
+          <!--
           <h1 class="details-title">
             $if not owners_page:
               $userDisplayName &raquo; $header_title
             $else:
               $header_title
           </h1>
+          -->
 
           $if owners_page and key in ['currently-reading', 'already-read', 'want-to-read']:
             <a href="$ctx.path/stats" title="$_('View stats about this shelf')">$_('Stats')</a>
