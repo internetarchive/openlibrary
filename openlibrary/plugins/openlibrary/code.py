@@ -983,6 +983,7 @@ def get_cached_relatedcarousels_component(*args, **kwargs):
 
 class Partials(delegate.page):
     path = '/partials'
+    encoding = 'json'
 
     def GET(self):
         i = web.input(workid=None, _component=None)
@@ -990,7 +991,7 @@ class Partials(delegate.page):
         partial = {}
         if component == "RelatedWorkCarousel":
             partial = _get_relatedcarousels_component(i.workid)
-        return delegate.RawText(json.dumps(partial), content_type="application/json")
+        return delegate.RawText(json.dumps(partial))
 
 
 def is_bot():
@@ -1045,7 +1046,7 @@ def is_bot():
     if not web.ctx.env.get('HTTP_USER_AGENT'):
         return True
     user_agent = web.ctx.env['HTTP_USER_AGENT'].lower()
-    return any([bot in user_agent for bot in user_agent_bots])
+    return any(bot in user_agent for bot in user_agent_bots)
 
 
 def setup_template_globals():

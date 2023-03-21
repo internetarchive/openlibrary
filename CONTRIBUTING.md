@@ -109,7 +109,7 @@ A branch name consists of the: issue number, whether it is a feature/hotfix/refa
 With respect to client side patches, before submitting your patch you'll want to check it adheres to code styling rules and tests. We use `npm` to test our client side code.
 
 ```
-npm install
+npm install --no-audit
 npm test
 ```
 

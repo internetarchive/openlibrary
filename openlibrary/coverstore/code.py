@@ -545,7 +545,7 @@ def render_list_preview_image(lst_key):
             basewidth = 162
             wpercent = basewidth / float(img.size[0])
             hsize = int(float(img.size[1]) * float(wpercent))
-            img = img.resize((basewidth, hsize), Image.ANTIALIAS)
+            img = img.resize((basewidth, hsize), Image.LANCZOS)
             image.append(img)
     max_height = 0
     for img in image:
@@ -576,7 +576,7 @@ def render_list_preview_image(lst_key):
     else:
         background.paste(image[0], (431, 174 + max_height - image[0].size[1]))
 
-    logo = logo.resize((120, 74), Image.ANTIALIAS)
+    logo = logo.resize((120, 74), Image.LANCZOS)
     background.paste(logo, (880, 14), logo)
 
     draw = ImageDraw.Draw(background)

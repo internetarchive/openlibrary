@@ -6,7 +6,7 @@ import re
 from json import JSONDecodeError
 from math import ceil
 from statistics import median
-from typing import Literal, List, Optional, cast, Any, Union
+from typing import Literal, Optional, cast, Any, Union
 from collections.abc import Iterable
 
 import httpx

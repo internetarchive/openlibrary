@@ -527,14 +527,13 @@ def read_contributions(rec: MarcBase) -> dict[str, Any]:
     :param (MarcBinary | MarcXml) rec:
     :rtype: dict
     """
-    want = dict(
-        (
-            ('700', 'abcdeq'),
-            ('710', 'ab'),
-            ('711', 'acdn'),
-            ('720', 'a'),
-        )
-    )
+
+    want = {
+        '700': 'abcdeq',
+        '710': 'ab',
+        '711': 'acdn',
+        '720': 'a',
+    }
     ret: dict[str, Any] = {}
     skip_authors = set()
     for tag in ('100', '110', '111'):

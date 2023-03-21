@@ -1,6 +1,5 @@
 from itertools import groupby
 import re
-from typing import List
 
 from babel.messages.catalog import TranslationError, Message, Catalog
 from babel.messages.checkers import python_format

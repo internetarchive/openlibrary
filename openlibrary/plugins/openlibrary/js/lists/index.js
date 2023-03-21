@@ -582,7 +582,7 @@ export function initListLoading(dropperList, activeList) {
     if (key) {
         fetchPartials(key, function(data) {
             clearInterval(intervalId)
-            replaceLoadingIndicators(dropperList, activeList, data)
+            replaceLoadingIndicators(dropperList, activeList, JSON.parse(data))
         })
     } else {
         removeChildren(dropperList, activeList)
