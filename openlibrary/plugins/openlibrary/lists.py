@@ -86,6 +86,7 @@ def get_user_lists(seed_info):
 
 class lists_partials(delegate.page):
     path = "/lists/partials"
+    encoding = "json"
 
     def GET(self):
         i = web.input(key=None)
@@ -105,7 +106,7 @@ class lists_partials(delegate.page):
             'active': str(active),
         }
 
-        return delegate.RawText(json.dumps(partials), content_type="application/json")
+        return delegate.RawText(json.dumps(partials))
 
     def get_doc(self, key):
         if key.startswith("/subjects/"):

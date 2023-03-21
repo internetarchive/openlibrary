@@ -6,7 +6,7 @@ export function initCarouselsPartials() {
 
     const fetchRelatedWorks = function() {
         $.ajax({
-            url: '/partials',
+            url: '/partials.json',
             type: 'GET',
             data: {
                 workid: $('.RelatedWorksCarousel').data('workid'),
@@ -16,6 +16,7 @@ export function initCarouselsPartials() {
             success: function (response) {
                 $('.loadingIndicator').addClass('hidden');
                 if (response){
+                    response = JSON.parse(response)
                     $('.RelatedWorksCarousel').append(response[0]);
                     const $carouselElements = $('.RelatedWorksCarousel .carousel--progressively-enhanced');
                     if ($carouselElements.length) {
