@@ -7,16 +7,16 @@ version: "3.8"
 services:
   web:
     volumes:
-      - ./vendor/infogami:/openlibrary/vendor/infogami
+      - ./vendor/infogami:/openlibrary/vendor/infogami/infogami
   covers:
     volumes:
-      - ./vendor/infogami:/openlibrary/vendor/infogami
+      - ./vendor/infogami:/openlibrary/vendor/infogami/infogami
   infobase:
     volumes:
-      - ./vendor/infogami:/openlibrary/vendor/infogami
+      - ./vendor/infogami:/openlibrary/vendor/infogami/infogami
   home:
     volumes:
-      - ./vendor/infogami:/openlibrary/vendor/infogami
+      - ./vendor/infogami:/openlibrary/vendor/infogami/infogami
   solr-updater:
     volumes:
-      - ./vendor/infogami:/openlibrary/vendor/infogami
+      - ./vendor/infogami:/openlibrary/vendor/infogami/infogami
