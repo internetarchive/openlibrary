@@ -4,10 +4,6 @@ $ total_reviews = reader_observations.get('total_respondents', 0)
 
 $ display_for = 'desktop-only' if desktop_only else 'mobile-only'
 <span class="nav-bar-wrapper sticky $display_for">
-  $if not desktop_only:
-    <span class="nav-arrow nav-arrow--left">
-      <img src="/static/images/nav-arrow.svg" role="img">
-    </span>
   <ul class="nav-bar work-menu">
     <li class="selected">
       <a href="#top" data-ol-link-track="BookPageNav|Overview">$_("Overview")</a>
