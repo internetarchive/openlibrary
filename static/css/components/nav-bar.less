@@ -38,8 +38,6 @@
 .nav-bar-wrapper {
   display: flex;
   align-items: baseline;
-
-  border-bottom: 1px solid #CCCCCC;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
   clip-path: inset(0 0 -15px 0);
   margin-bottom: 10px;
@@ -62,6 +60,7 @@
   }
 
   .nav-bar.work-menu {
+    padding: 5px 0;
     background: @white;
     z-index: @z-index-level-5;
 
@@ -72,18 +71,18 @@
     }
   
     li a:hover {
-      background-color: darken(@primary-blue, 10%);
+      background-color: darken(@blue-5e88B9, 10%);
       color: white;
     }
   
     li.selected a {
       color: white;
-      background-color: @primary-blue;
+      background-color: @blue-5e88B9;
   
     }
   
     li.selected a:hover {
-      background-color: darken(@primary-blue, 10%);
+      background-color: darken(@blue-5e88B9, 10%);
     }
   }
 }
