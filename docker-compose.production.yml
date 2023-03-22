@@ -28,7 +28,7 @@ services:
       - SOLR_JAVA_MEM=-Xms10g -Xmx10g
     restart: unless-stopped
 
-  solr-haproxy:
+  solr_haproxy:
     profiles: ["ol-solr0"]
     image: haproxy:2.3.5
     restart: unless-stopped
@@ -43,7 +43,7 @@ services:
         max-size: "512m"
         max-file: "4"
 
-  solr-restarter:
+  solr_restarter:
     profiles: ["ol-solr0"]
     build: scripts/solr_restarter
     restart: unless-stopped
@@ -76,7 +76,7 @@ services:
     deploy:
       replicas: 2
 
-  covers-nginx:
+  covers_nginx:
     profiles: ["ol-covers0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     user: root
@@ -149,7 +149,7 @@ services:
       - ../olsystem:/olsystem
       - infobase-writelog:/1/var/lib/openlibrary/infobase/log
       - infobase-errorlog:/1/var/log/openlibrary/infobase-errors
-  web-haproxy:
+  web_haproxy:
     profiles: ["ol-www0"]
     image: haproxy:2.3.5
     restart: unless-stopped
@@ -164,7 +164,7 @@ services:
       options:
         max-size: "512m"
         max-file: "4"
-  web-nginx:
+  web_nginx:
     profiles: ["ol-www0"]
     restart: unless-stopped
     hostname: "ol-www0" # always want this hostname (or nginx backups will be misnamed)
@@ -203,7 +203,7 @@ services:
       - ssl_certificate
       - ssl_certificate_key
 
-  infobase-nginx:
+  infobase_nginx:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     user: root
