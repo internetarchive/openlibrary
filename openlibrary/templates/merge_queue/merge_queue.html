@@ -64,7 +64,7 @@ $ page = int(input(page=1).page)
           $ is_submitter = username == r['submitter']
           $ type_str = _('Author') if r['mr_type'] == 2 else _('Work')
           <tr id="mrid-$(r['id'])">
-            
+
             <td id="comment-cell-$(r['id'])" class="comment-cell">
               <div class="orange-dot"></div>
               <div>
@@ -72,7 +72,7 @@ $ page = int(input(page=1).page)
                   <span>$:_('<strong>%(type)s</strong> merge request for <span class="book-title">%(title)s</span>', title=work_title, type=type_str)</span>
                   <span>$_('Comments'): $len(comments)</span>
                 </div>
-  
+
                 $if len(comments) > 1:
                   <div class="comment-cell__description">
                     <span>$_('Showing most recent comment only.')</span>
