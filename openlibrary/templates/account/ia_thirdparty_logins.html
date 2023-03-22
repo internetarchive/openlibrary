@@ -1,13 +1,23 @@
-$def with ()
+$def with (lazy=False)
 
 $ params = {'origin': request.home.replace('http:', 'https:')}
 <iframe
     id="ia-third-party-logins"
-    src="https://archive.org/account/login.thirdparty.php?$(urlencode(params))"
+    $("src" if not lazy else "data-src")="https://archive.org/account/login.thirdparty.php?$(urlencode(params))"
 
-    style="border:0; width: 100%; height: 44px"
+    style="border:0; width: 100%; min-width: 250px; height: 40px"
 ></iframe>
+
 <script>
+    window.LOAD_THIRD_PARTY_LOGINS = function() {
+        var iframe = document.getElementById('ia-third-party-logins');
+        iframe.src = iframe.getAttribute('data-src')
+    };
+
+    window.UNLOAD_THIRD_PARTY_LOGINS = function() {
+        var iframe = document.getElementById('ia-third-party-logins');
+        iframe.src = '';
+    };
     window.addEventListener(
         'message',
         function(e) {
