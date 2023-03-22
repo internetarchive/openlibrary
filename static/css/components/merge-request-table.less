@@ -12,40 +12,9 @@
   }
 }
 
-.mr-table {
-  table-layout: fixed;
-  border-collapse: collapse;
-  width: 100%;
-  box-shadow: 0 0 20px @boxshadow-black;
-
-  td {
-    padding: 5px;
-    vertical-align: top;
-  }
-
-  th {
-    position: sticky;
-    top: 0;
-    vertical-align: top;
-    text-align: left;
-    padding: 5px;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    background-color: @link-blue;
-    color: @white;
-
-    &.comments-header {
-      width: 50%;
-    }
-
-    &.resolve-header {
-      width: max-content;
-    }
-  }
-
-  tr:target{
-    border: 1px @dark-grey solid;
-  }
+.librarian-queue-wrapper {
+  border: 1px solid @light-grey;
+  border-radius: 5px;
 }
 
 .comment-username {
@@ -73,6 +42,7 @@
 }
 
 .comment-cell {
+  display: flex;
   &__summary,
   &__description {
     display: flex;
@@ -108,6 +78,96 @@
     input {
       height: fit-content;
       margin-left: 10px;
+    }
+  }
+}
+
+//NEW STUFF HERE
+
+.orange-dot {
+  border-radius: 10px;
+  width: 10px;
+  background-color: #fea238;
+  height: 10px;
+  margin-right: 12px;
+}
+
+.nav-bar {
+  padding: .5%;
+  background-color: @lightest-grey;
+
+  li a {
+    font-weight: 400;
+    color: @lighter-black;
+  }
+
+  li.selected a {
+    font-size: 14px;
+    color: @orange-five;
+    font-weight: bold;
+    border: none;
+  }
+
+  li:hover a {
+    border: none;
+    font-weight: bold;
+  }
+
+  li:nth-child(n + 3) {
+    float: right;
+  }
+}
+
+
+.mr-table {
+  width: 100%;
+  background-color: @white;
+
+  tbody {
+    background-color: @white;
+  }
+
+  tr {
+    display: flex;
+    justify-content: space-between;
+    padding: 1%;
+    background-color: @white;
+  }
+
+  tr:nth-child(even) {
+    background-color: @lightest-grey;
+  }
+
+  td {
+    vertical-align: top;
+    padding: 1%;
+  }
+}
+
+.mr-comment-review-cell {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+
+  button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+    box-shadow: none;
+    width: 65px;
+    height: 50px;
+    margin-right: 40px;
+  }
+
+  &__review {
+    background-color: @primary-blue;
+    border: none;
+    width: 63px;
+
+    .mr-resolve-link {
+      color: @white;
+      text-decoration: none;
     }
   }
 }

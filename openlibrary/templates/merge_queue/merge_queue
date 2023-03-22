@@ -37,7 +37,7 @@ $ page = int(input(page=1).page)
 <div class="pager">
   $:macros.Pager(page, total[mode], results_per_page=25)
 </div>
-<div class="librarian-queue-wrapper">
+
   <ul class="nav-bar">
     <li class="$(mode=='open' and 'selected' or '')">
       <a href="$changequery(mode='open', page=None)">$_('Open') ($total['open'])</a>
@@ -48,8 +48,16 @@ $ page = int(input(page=1).page)
   </ul>
 
   <div class="table-wrapper">
-    <!-- reconstruct table below --------------------------------------------->
       <table class="mr-table">
+        <thead>
+          <tr>
+            <th class="submitter-header">$_('Submitter')</th>
+            <th class="status-header">$_('Status')</th>
+            <th class="comments-header">$_('Comments')</th>
+            <th class="reviewer-header">$_('Reviewer')</th>
+            <th class="resolve-header">$_('Resolve')</th>
+          </tr>
+        </thead>
         <tbody>
         $if not merge_requests:
           <tr>
@@ -64,60 +72,58 @@ $ page = int(input(page=1).page)
           $ is_submitter = username == r['submitter']
           $ type_str = _('Author') if r['mr_type'] == 2 else _('Work')
           <tr id="mrid-$(r['id'])">
-            
+            <td>$r['submitter']<br>$datestr(r['created'])</td>
+            <td id="status-cell-$(r['id'])">$status</td>
+
             <td id="comment-cell-$(r['id'])" class="comment-cell">
-              <div class="orange-dot"></div>
-              <div>
-                <div class="comment-cell__summary">
-                  <span>$:_('<strong>%(type)s</strong> merge request for <span class="book-title">%(title)s</span>', title=work_title, type=type_str)</span>
-                  <span>$_('Comments'): $len(comments)</span>
-                </div>
-  
-                $if len(comments) > 1:
-                  <div class="comment-cell__description">
-                    <span>$_('Showing most recent comment only.')</span>
-                    <a href="javascript:;" class="comment-expand" data-target-id="hidden-comments-$r['id']">$_('View all')</a>
-                  </div>
-                <div id="hidden-comments-$r['id']" class="comment-cell__old-comments hidden">
-                  $for c in comments[:-1]:
-                    $:render_template('merge_queue/comment', comment=c)
-                </div>
-                <div class="comment-cell__newest-comment">
-                  $if comments:
-                    $:render_template('merge_queue/comment', comment=comments[-1])
-                  $else:
-                    <span>$_('No comments yet.')</span>
-                </div>
-                $if is_submitter or can_merge:
-                  <hr>
-                  <div class="comment-cell__input">
-                    <textarea rows="1" placeholder="$_('Add a comment...')"></textarea>
-                    <input class="mr-comment-btn" type="button" value="Reply" data-mrid="$r['id']" data-merge-type="$r['mr_type']">
-                  </div>
-
+              <div class="comment-cell__summary">
+                <span>$:_('<strong>%(type)s</strong> merge request for <span class="book-title">%(title)s</span>', title=work_title, type=type_str)</span>
+                <span>$_('Comments'): $len(comments)</span>
               </div>
-            </td>
 
-            <td class="mr-comment-review-cell">
+              $if len(comments) > 1:
+                <div class="comment-cell__description">
+                  <span>$_('Showing most recent comment only.')</span>
+                  <a href="javascript:;" class="comment-expand" data-target-id="hidden-comments-$r['id']">$_('View all')</a>
+                </div>
+              <div id="hidden-comments-$r['id']" class="comment-cell__old-comments hidden">
+                $for c in comments[:-1]:
+                  $:render_template('merge_queue/comment', comment=c)
+              </div>
+              <div class="comment-cell__newest-comment">
+                $if comments:
+                  $:render_template('merge_queue/comment', comment=comments[-1])
+                $else:
+                  <span>$_('No comments yet.')</span>
+              </div>
+              $if is_submitter or can_merge:
+                <hr>
+                <div class="comment-cell__input">
+                  <textarea rows="1" placeholder="$_('Add a comment...')"></textarea>
+                  <input class="mr-comment-btn" type="button" value="Reply" data-mrid="$r['id']" data-merge-type="$r['mr_type']">
+                </div>
+            </td>
+            <td id="reviewer-cell-$(r['id'])">
+              $if can_merge and is_open and r.get('reviewer'):
+                $r['reviewer'] <span class="mr-unassign" data-mrid="$r['id']" data-merge-type="$r['mr_type']">&times;</span>
+                <br>
+                $datestr(r['updated'])
+              $elif r.get('reviewer'):
+                $r['reviewer']
+            </td>
+            <td>
               $if is_open:
-              $if is_submitter:
-                <a class="mr-close-link" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">$_('Close')</a>
-              $elif can_merge:
-                $ show_link = not r.get('reviewer') or r.get('reviewer') == username
-                $ extra_classes = '' if show_link else ' hidden'
-                <button class="mr-comment-review-cell__review">
-                  <strong>
-                    <a class="mr-resolve-link$extra_classes" id="mr-resolve-link-$r['id']" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="$url" target="_blank">$_('REVIEW')</a>
-                  </strong>
-                </button>
-                <!-- ADD COMMENT BUTTON HERE -->
+                $if is_submitter:
+                  <a class="mr-close-link" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">$_('Close')</a>
+                $elif can_merge:
+                  $ show_link = not r.get('reviewer') or r.get('reviewer') == username
+                  $ extra_classes = '' if show_link else ' hidden'
+                  <a class="mr-resolve-link$extra_classes" id="mr-resolve-link-$r['id']" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="$url" target="_blank">$_('Merge')</a>
             </td>
           </tr>
         </tbody>
       </table>
-      <!-- reconstruct table above ------------------------------------------------>
   </div>
-</div>
    <div class="pager">
     $:macros.Pager(page, total[mode], results_per_page=25)
   </div>
