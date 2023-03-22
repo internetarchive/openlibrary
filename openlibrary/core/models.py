@@ -170,7 +170,7 @@ class Thing(client.Thing):
         key. If this method returns a string, it is sanitized and added to key
         after adding a "/".
         """
-        return None
+        return
 
     def _get_lists(self, limit=50, offset=0, sort=True):
         # cache the default case

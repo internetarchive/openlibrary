@@ -244,7 +244,7 @@ class borrow_status(delegate.page):
             'id': key,
             'loan_available': loan_available,
             'available_formats': available_formats,
-            'lending_subjects': [lending_subject for lending_subject in subjects],
+            'lending_subjects': list(subjects),
         }
 
         output_text = json.dumps(output)
@@ -728,7 +728,7 @@ def is_users_turn_to_borrow(user, edition):
 
 
 def is_admin():
-    """ "Returns True if the current user is in admin usergroup."""
+    """Returns True if the current user is in admin usergroup."""
     user = accounts.get_current_user()
     return user and user.key in [
         m.key for m in web.ctx.site.get('/usergroup/admin').members

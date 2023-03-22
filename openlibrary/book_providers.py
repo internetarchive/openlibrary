@@ -383,4 +383,4 @@ def get_solr_keys():
     return [p.solr_key for p in PROVIDER_ORDER]
 
 
-setattr(get_book_provider, 'ia', get_book_provider_by_name('ia'))
+setattr(get_book_provider, 'ia', get_book_provider_by_name('ia'))  # noqa: B010

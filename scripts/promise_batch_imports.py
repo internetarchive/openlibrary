@@ -3,7 +3,7 @@ As of 2022-12: Run on `ol-home0 cron container as
 
 ```
 $ ssh -A ol-home0
-$ docker exec -it -uopenlibrary openlibrary_cron-jobs_1 bash
+$ docker exec -it -uopenlibrary openlibrary-cron-jobs-1 bash
 $ PYTHONPATH="/openlibrary" python3 /openlibrary/scripts/promise_batch_imports.py /olsystem/etc/openlibrary.yml
 ```
 

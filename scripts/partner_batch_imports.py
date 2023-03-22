@@ -15,7 +15,7 @@ import datetime
 import logging
 import os
 import re
-from typing import TypedDict, cast
+from typing import cast
 
 import requests
 

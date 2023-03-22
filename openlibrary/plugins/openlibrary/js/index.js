@@ -436,6 +436,16 @@ jQuery(function () {
             .removeAttr('open');
     });
 
+    // Load and unload third party login iframes when toggling hamburger menu
+    const hamburgerMenu = document.querySelector('.hamburger-component > details')
+    hamburgerMenu.addEventListener('toggle', () => {
+        if (hamburgerMenu.open) {
+            window.LOAD_THIRD_PARTY_LOGINS()
+        } else {
+            window.UNLOAD_THIRD_PARTY_LOGINS()
+        }
+    })
+
     // Prevent default star rating behavior:
     const ratingForms = document.querySelectorAll('.star-rating-form')
     if (ratingForms.length) {

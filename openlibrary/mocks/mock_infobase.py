@@ -351,7 +351,7 @@ class MockStore(dict):
         return [doc['_key'] for doc in self._query(**kw)]
 
     def values(self, **kw):
-        return [doc for doc in self._query(**kw)]
+        return list(self._query(**kw))
 
     def items(self, **kw):
         return [(doc["_key"], doc) for doc in self._query(**kw)]

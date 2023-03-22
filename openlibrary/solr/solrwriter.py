@@ -55,7 +55,6 @@ class SolrWriter:
         self.pending_updates.append(document)
         if len(self.pending_updates) >= 100:
             self.flush()
-        return
 
     def flush(self):
         if self.pending_updates:
