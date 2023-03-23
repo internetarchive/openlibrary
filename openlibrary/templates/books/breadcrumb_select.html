@@ -73,7 +73,7 @@ $def with (key=None, selected="",options=[])
         <span class="crumb">
             <span class="crumbicon">
                 <div class="dropdown">
-                    <h1 class="breadcrumb-title">$breadcrumb_title</h1>
+                    <h2 class="breadcrumb-title">$breadcrumb_title</h2>
                     <img class="icon-link__image down-chevron" src="/static/images/icons/right-chevron.svg">
                 </div>
                 <select class="disguised-select">
@@ -93,22 +93,22 @@ $def with (key=None, selected="",options=[])
             const allowedKeys = new Set(['Tab', 'Enter', ' '])
             const preventedKeys = new Set(['ArrowUp', 'ArrowDown'])
 
-    // watch crumbs for changes,
-    // ensures it's a full value change, not a user exploring options via keyboard
-    crumbs.forEach(nav => {
-        let ignoreChange = false
+            // watch crumbs for changes,
+            // ensures it's a full value change, not a user exploring options via keyboard
+            crumbs.forEach(nav => {
+                let ignoreChange = false
 
-        nav.addEventListener('change', e => {
-            if (ignoreChange) return
-            // it's actually changed!
-            window.location = nav.value;
-        })
-
-                nav.addEventListener('keydown', ({ key }) => {
-                    if (preventedKeys.has(key))
-                    ignoreChange = true
-                    else if (allowedKeys.has(key))
-                    ignoreChange = false
+                nav.addEventListener('change', e => {
+                    if (ignoreChange) return
+                    // it's actually changed!
+                    window.location = nav.value;
                 })
+
+            nav.addEventListener('keydown', ({ key }) => {
+                if (preventedKeys.has(key))
+                ignoreChange = true
+                else if (allowedKeys.has(key))
+                ignoreChange = false
+            })
             })
         </script>
