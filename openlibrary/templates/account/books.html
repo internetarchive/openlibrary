@@ -88,10 +88,10 @@ $var title: $header_title
             <a href="$userKey">$userDisplayName</a> &raquo; 
           $else:
             <a href="/account/books" style="text-decoration: none">
-              <img class="icon-link__image back-chevron" src="/static/images/icons/right-chevron.svg" style="height: 75%; transform: rotate(180deg); vertical-align: bottom;">
-              <span style="text-decoration: underline">Back</span>
+               ← 
+              <span style="text-decoration: underline">My Books</span>
             </a> 
-            &raquo; My Books  &raquo; 
+            &raquo;
             $if key == 'list':
               My Lists &raquo; 
           $:render_template("books/breadcrumb_select", key=key, selected=breadcrumb, options=breadcrumb_options)
