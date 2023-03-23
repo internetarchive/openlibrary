@@ -22,6 +22,8 @@ class NoTitle(MarcException):
 
 
 class MarcFieldBase:
+    rec: "MarcBase"
+
     @abstractmethod
     def ind1(self) -> str:
         raise NotImplementedError

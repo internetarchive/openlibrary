@@ -50,7 +50,7 @@ class BinaryDataField(MarcFieldBase):
         :param rec MarcBinary:
         :param line bytes: Content of a MARC21 binary field
         """
-        self.rec = rec
+        self.rec: MarcBinary = rec
         if line:
             while line[-2] == b'\x1e'[0]:  # ia:engineercorpsofhe00sher
                 line = line[:-1]
