@@ -37,7 +37,7 @@ Here's a quick public tour of Open Library to get you familiar with the service 
 
 ## Installation
 
-Run `docker-compose up` and visit http://localhost:8080
+Run `docker compose up` and visit http://localhost:8080
 
 Need more details? Checkout the [Docker instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)
 or [video tutorial](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4).
@@ -83,7 +83,7 @@ Run tests while the docker container is running.
 
 ```
 cd docker/
-docker-compose exec web make test
+docker compose exec web make test
 ```
 
 ### Integration Tests

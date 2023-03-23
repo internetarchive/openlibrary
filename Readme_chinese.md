@@ -37,7 +37,7 @@
 
 ## 安装
 
-执行 `docker-compose up` 并且访问 http://localhost:8080
+执行 `docker compose up` 并且访问 http://localhost:8080
 
 需要更多信息？请查看 [Docker指南](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)
 或者[视频教程](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4)。
@@ -81,7 +81,7 @@
 
 ```
 cd docker/
-docker-compose exec web make test
+docker compose exec web make test
 ```
 
 ### 集成测试
