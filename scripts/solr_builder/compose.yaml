@@ -47,8 +47,8 @@ services:
 
   # Only run these two services if we're connecting this solr to production/testing
   # To run:
-  # docker-compose down
-  # docker-compose --profile production up -d
+  # docker compose down
+  # docker compose --profile production up -d
   solr_prod:
     profiles:
       - production

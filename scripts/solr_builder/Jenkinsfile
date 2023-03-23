@@ -63,16 +63,16 @@ pipeline {
               steps {
                 dir(env.HOST_SOLR_BUILDER_DIR) {
                   sh(label: 'Launch the database container',
-                    script: 'docker-compose up -d --no-deps db')
+                    script: 'docker compose up -d --no-deps db')
 
                   sh(label: 'optional; GUI for the database at port 8087',
-                    script: 'docker-compose up -d --no-deps adminer')
+                    script: 'docker compose up -d --no-deps adminer')
 
                   // Wait for postgres
                   sleep 10
 
                   sh(label: 'Create the table to store the dump',
-                    script: 'docker-compose exec -T -u postgres db psql -d postgres -f sql/create-dump-table.sql')
+                    script: 'docker compose exec -T -u postgres db psql -d postgres -f sql/create-dump-table.sql')
                 }
               }
             }
@@ -97,11 +97,11 @@ pipeline {
               steps {
                 dir(env.HOST_SOLR_BUILDER_DIR) {
                   sh(label: 'Import dump into postgres',
-                    script: "docker-compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_DUMP_FILE} test")
+                    script: "docker compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_DUMP_FILE} test")
                   sh(label: 'Import ratings',
-                    script: "docker-compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_RATINGS_FILE} ratings")
+                    script: "docker compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_RATINGS_FILE} ratings")
                   sh(label: 'Import reading log',
-                    script: "docker-compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_READING_LOG_FILE} reading_log")
+                    script: "docker compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_READING_LOG_FILE} reading_log")
                 }
               }
             }
@@ -122,7 +122,7 @@ pipeline {
             stage('Create postgres indices') {
               steps {
                 dir(env.HOST_SOLR_BUILDER_DIR) {
-                  sh "docker-compose exec -T -u postgres db psql postgres -f sql/create-indices.sql | ts '[%Y-%m-%d %H:%M:%S]'"
+                  sh "docker compose exec -T -u postgres db psql postgres -f sql/create-indices.sql | ts '[%Y-%m-%d %H:%M:%S]'"
                 }
               }
             }
@@ -133,7 +133,7 @@ pipeline {
         unsuccessful {
           dir(env.HOST_SOLR_BUILDER_DIR) {
             sh (label: 'Cleanup postgres',
-              script:'docker-compose stop db adminer; docker-compose rm -f db adminer; docker volume rm solr_builder_postgres-data')
+              script:'docker compose stop db adminer; docker compose rm -f db adminer; docker volume rm solr_builder_postgres-data')
           }
         }
       }
@@ -146,10 +146,10 @@ pipeline {
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
               sh(label: 'Stop the db containers',
-                script: 'docker-compose stop db adminer')
+                script: 'docker compose stop db adminer')
 
               sh(label: 'Start the db containers',
-                script: 'docker-compose up -d --no-deps db adminer')
+                script: 'docker compose up -d --no-deps db adminer')
             }
           }
         }
@@ -169,13 +169,13 @@ pipeline {
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
               sh(label: 'Launch solr',
-                script: 'docker-compose up --no-deps -d solr')
+                script: 'docker compose up --no-deps -d solr')
 
               sh(label: 'Build "lite" ol environment',
-                script: 'docker-compose build --pull ol')
+                script: 'docker compose build --pull ol')
 
               sh(label: 'Build the cython files',
-                script: 'docker-compose run --rm ol ./build-cython.sh')
+                script: 'docker compose run --rm ol ./build-cython.sh')
             }
           }
         }
@@ -188,7 +188,7 @@ pipeline {
                   when { expression { return params.INDEX_WORKS } }
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh "CHUNK_ETA=70 docker-compose run --name ol_run_works --rm -T ol ./index-type.sh work ${params.MAX_CORES} works"
+                      sh "CHUNK_ETA=70 docker compose run --name ol_run_works --rm -T ol ./index-type.sh work ${params.MAX_CORES} works"
                       solr_commit()
                     }
                   }
@@ -209,7 +209,7 @@ pipeline {
                   when { expression { return params.INDEX_ORPHANS } }
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh "CHUNK_ETA=35 docker-compose run --name ol_run_orphans --rm -T ol ./index-type.sh orphan ${params.MAX_CORES} orphans"
+                      sh "CHUNK_ETA=35 docker compose run --name ol_run_orphans --rm -T ol ./index-type.sh orphan ${params.MAX_CORES} orphans"
                       solr_commit()
                     }
                   }
@@ -232,7 +232,7 @@ pipeline {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
                       sh """
                       for subject_type in subject person place time; do
-                        docker-compose run --name ol_run_subjects_\$subject_type --rm -T ol \
+                        docker compose run --name ol_run_subjects_\$subject_type --rm -T ol \
                           python ./solr_builder/index_subjects.py \
                             \$subject_type \
                             --chunk-size 10000 \
@@ -249,7 +249,7 @@ pipeline {
                   when { expression { return params.INDEX_AUTHORS } }
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh "docker-compose run --name ol_run_authors --rm -T ol ./index-type.sh author ${params.MAX_CORES} authors"
+                      sh "docker compose run --name ol_run_authors --rm -T ol ./index-type.sh author ${params.MAX_CORES} authors"
                       solr_commit()
                     }
                   }
@@ -280,7 +280,7 @@ pipeline {
 //                 unsuccessful {
 //                   dir(env.HOST_SOLR_BUILDER_DIR) {
 //                     sh(label: 'Remove solr service',
-//                       script:'docker-compose stop solr; docker-compose rm -f solr; docker volume rm solr_builder_solr-data')
+//                       script:'docker compose stop solr; docker compose rm -f solr; docker volume rm solr_builder_solr-data')
 //                   }
 //                 }
               }
@@ -292,7 +292,7 @@ pipeline {
           // really be needed after that.
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
-              sh "docker-compose exec -T solr curl -s 'http://localhost:8983/solr/openlibrary/update?optimize=true&maxSegments=1'"
+              sh "docker compose exec -T solr curl -s 'http://localhost:8983/solr/openlibrary/update?optimize=true&maxSegments=1'"
             }
           }
         }
@@ -308,5 +308,5 @@ pipeline {
 
 void solr_commit() {
   sh(label: 'Solr commit the changes',
-    script: "docker-compose exec -T solr curl http://localhost:8983/solr/openlibrary/update?commit=true")
+    script: "docker compose exec -T solr curl http://localhost:8983/solr/openlibrary/update?commit=true")
 }
