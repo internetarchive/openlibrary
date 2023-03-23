@@ -1,4 +1,5 @@
 import re
+from abc import abstractmethod
 from collections import defaultdict
 from collections.abc import Iterator
 
@@ -21,15 +22,18 @@ class NoTitle(MarcException):
 
 
 class MarcFieldBase:
+    @abstractmethod
     def ind1(self) -> str:
         raise NotImplementedError
 
+    @abstractmethod
     def ind2(self) -> str:
         raise NotImplementedError
 
     def get_subfield_values(self, want: str) -> list[str]:
         return [v.strip() for _, v in self.get_subfields(want) if v]
 
+    @abstractmethod
     def get_all_subfields(self) -> Iterator[tuple[str, str]]:
         raise NotImplementedError
 
@@ -76,6 +80,7 @@ class MarcBase:
     def get_fields(self, tag: str) -> list[MarcFieldBase]:
         return [v for _, v in self.read_fields([tag]) if isinstance(v, MarcFieldBase)]
 
+    @abstractmethod
     def read_fields(self, want: list[str]) -> Iterator[tuple[str, str | MarcFieldBase]]:
         raise NotImplementedError
 
