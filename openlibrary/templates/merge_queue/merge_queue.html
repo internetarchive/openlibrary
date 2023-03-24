@@ -74,11 +74,6 @@ $ page = int(input(page=1).page)
                   </strong>
                 </div>
 
-                $if len(comments) > 1:
-                  <div class="comment-cell__description">
-                    <span>$_('Showing most recent comment only.')</span>
-                    <a href="javascript:;" class="comment-expand" data-target-id="hidden-comments-$r['id']">$_('View all')</a>
-                  </div>
                 <div id="hidden-comments-$r['id']" class="comment-cell__old-comments hidden">
                   $for c in comments[:-1]:
                     $:render_template('merge_queue/comment', comment=c)
@@ -112,6 +107,13 @@ $ page = int(input(page=1).page)
                   </strong>
                 </button>
                 <!-- ADD COMMENT BUTTON HERE -->
+                <button id="mr-comment-btn" class="mr-comment-review-cell__comments mr-comment-btn-$r['id']">
+                  <a href="javascript:;" class="comment-expand" data-target-id="hidden-comments-$r['id']"
+                  data-latest-comment="latest-comment-$r['id']"
+                  data-btn-class="mr-comment-btn-$r['id']">
+                    <span class="comment-count-$r['id']">$len(comments)</span>
+                    <img style="margin-right:4px" src="/static/images/markdown/quotes.png" alt="">
+                  </a>
             </td>
           </tr>
         </tbody>
