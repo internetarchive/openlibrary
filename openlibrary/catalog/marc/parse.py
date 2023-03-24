@@ -571,8 +571,9 @@ def read_contributions(rec: MarcBase) -> dict[str, Any]:
                 skip_authors.add(tuple(f.get_subfields(want[tag])))
                 break
 
-    for tag, f in rec.read_fields(['700', '710', '711', '720']):
-        assert isinstance(f, MarcFieldBase)
+    for tag, marc_field_base in rec.read_fields(['700', '710', '711', '720']):
+            assert isinstance(marc_field_base, MarcFieldBase)
+            f = marc_field_base
         sub = want[tag]
         cur = tuple(f.get_subfields(sub))
         if tuple(cur) in skip_authors:
