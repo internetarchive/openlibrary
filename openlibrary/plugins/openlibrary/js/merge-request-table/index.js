@@ -173,8 +173,13 @@ export function initShowAllCommentsLinks(elems) {
  */
 function toggleAllComments(elem) {
     const targetId = elem.dataset.targetId;
+    const targetBtnClass = elem.dataset.btnClass;
+
     const target = document.querySelector(`#${targetId}`)
+    const targetBtn = document.querySelector(`.${targetBtnClass}`);
+
     target.classList.toggle('hidden')
+    targetBtn.classList.toggle('border-toggle');
 
     const isHidden = target.classList.contains('hidden')
     const prevSibling = elem.previousElementSibling;
