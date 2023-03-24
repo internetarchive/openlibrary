@@ -10,6 +10,7 @@ $def with (key=None, selected="",options=[])
         .crumbicon {
             display: grid;
             grid: [stack] var(--crumbicon-size) / [stack] var(--crumbicon-size);
+            place-items: center;
         }
 
         .crumbicon>* {
@@ -28,7 +29,10 @@ $def with (key=None, selected="",options=[])
         .disguised-select {
             grid-area: stack;
             min-height: 100%;
+            inline-size: 100%;
+            block-size: 100%;
             opacity: .01;
+            font-size: min(100%,16px);
             font-size: min(100%, 16px); /* Defaults to 16px; fixes iOS zoom */
         }
 
