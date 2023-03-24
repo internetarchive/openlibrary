@@ -73,7 +73,7 @@ $ page = int(input(page=1).page)
                     $:_('<span class="book-title">%(title)s</span>', title=work_title, type=type_str)
                   </strong>
                 </div>
-                
+
                 <div class="comment-cell__newest-comment">
                   $if comments:
                     $:render_template('merge_queue/comment', comment=comments[-1])
