@@ -66,11 +66,12 @@ $ page = int(input(page=1).page)
           <tr id="mrid-$(r['id'])">
 
             <td id="comment-cell-$(r['id'])" class="comment-cell">
-              <div class="orange-dot"></div>
+              <div class="dot-wrapper"><div class="orange-dot"></div></div>
               <div>
                 <div class="comment-cell__summary">
-                  <span>$:_('<strong>%(type)s</strong> merge request for <span class="book-title">%(title)s</span>', title=work_title, type=type_str)</span>
-                  <span>$_('Comments'): $len(comments)</span>
+                  <strong>
+                    $:_('<span class="book-title">%(title)s</span>', title=work_title, type=type_str)
+                  </strong>
                 </div>
 
                 $if len(comments) > 1:
