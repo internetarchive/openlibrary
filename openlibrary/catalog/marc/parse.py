@@ -333,7 +333,7 @@ def read_publisher(rec: MarcBase) -> dict[str, Any] | None:
     fields = (
         rec.get_fields('260')
         or rec.get_fields('264')[:1]
-        or [rec.get_linkage('260', '880')]
+        or [link for link in [rec.get_linkage('260', '880')] if link]
     )
     if not fields:
         return None
@@ -571,8 +571,8 @@ def read_contributions(rec: MarcBase) -> dict[str, Any]:
                 break
 
     for tag, marc_field_base in rec.read_fields(['700', '710', '711', '720']):
-            assert isinstance(marc_field_base, MarcFieldBase)
-            f = marc_field_base
+        assert isinstance(marc_field_base, MarcFieldBase)
+        f = marc_field_base
         sub = want[tag]
         cur = tuple(f.get_subfields(sub))
         if tuple(cur) in skip_authors:
