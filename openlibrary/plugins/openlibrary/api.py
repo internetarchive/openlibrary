@@ -16,8 +16,8 @@ from infogami.plugins.api.code import jsonapi
 from infogami.utils.view import add_flash_message
 from openlibrary import accounts
 from openlibrary.plugins.openlibrary.code import can_write
-from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import ia, db, models, lending, helpers as h
@@ -634,3 +634,75 @@ class work_delete(delegate.page):
             ),
             content_type="application/json",
         )
+
+class sync_ia_ol(delegate.page):
+    path = '/ia/sync'
+    encoding = 'json'
+
+    def POST(self):
+        # Authenticate request:
+        s3_access_key = web.ctx.env.get('HTTP_X_S3_ACCESS', '')
+        s3_secret_key = web.ctx.env.get('HTTP_X_S3_SECRET', '')
+        
+        if not self.is_authorized(s3_access_key, s3_secret_key):
+            raise web.unauthorized()
+
+        # Validate input
+        i = json.loads(web.data())
+
+        if not self.validate_input(i):
+            raise web.badrequest('Missing required fields')
+
+        # Find record using OLID (raise 404 if not found)
+        edition_key = f'/books/{i.get("olid")}'
+        edition = web.ctx.site.get(edition_key)
+
+        if not edition:
+            raise web.notfound()
+
+        # Update record
+        match i.get('action', ''):
+            case 'darken':
+                self.darken_record(edition)
+            case 'modify':
+                self.modify_ocaid(edition, i.get('ocaid'))
+            case '_':
+                raise web.badrequest('Unknown action')
+
+        return delegate.RawText(json.dumps({"status": "ok"}))
+
+    @cache.memoize(engine="memcache", key=lambda self, access, secret: f'ia_sync-{access}', expires=5 * 60)
+    def is_authorized(self, access_key, secret_key):
+        """Returns True if account is authorized to make changes to records."""
+        auth = accounts.InternetArchiveAccount.s3auth(access_key, secret_key)
+
+        if not auth.get('username', ''):
+            return False
+
+        acct = accounts.OpenLibraryAccount.get(email=auth.get('username'))
+        user = acct.get_user() if acct else None
+
+        if not user or (user and not user.is_usergroup_member('/usergroup/ia')):
+            return False
+
+        return True
+
+    def validate_input(self, i):
+        """Returns True if the request is valid.
+        All requests must have an olid and an action.  If the action is
+        'modify', the requst must also include 'ocaid'.
+        """
+        action = i.get('action', '')
+        return 'olid' in i and (action == 'darken' or (action == 'modify' and 'ocaid' in i))
+
+    def darken_record(self, edition):
+        """Deletes OCAID from given edition"""
+        data = edition.dict()
+        del data['ocaid']
+        web.ctx.site.save(data, 'Darken record')
+
+    def modify_ocaid(self, edition, new_ocaid):
+        """Adds the given new_ocaid to an edition."""
+        data = edition.dict()
+        data['ocaid'] = new_ocaid
+        web.ctx.site.save(data, 'Update OCAID')
