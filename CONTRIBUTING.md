@@ -152,7 +152,7 @@ We use assignee to denote PR ownership. If you are the assignee, then you should
 The assignee of a PR is responsible for:
 - **being the primary contact** for the PR author. Be polite; you're the face of the community to this contributor.
 - **managing the PR's labels**. Add `Needs: Author Input` or `Needs: Review` as necessary.
-- **ensuring the PR doesn't get stuck**. Avoid leaving the author wondering about the state of the PR. If you don't have time right now, saying "I'm a little swamped now but will try to get to this in" is better than radio silence for a week.
+- **ensuring the PR doesn't get stuck**. Avoid leaving the author wondering about the state of the PR. If you don't have time right now, saying "I'm a little swamped now but will try to get to this in \_" is better than radio silence for a week.
 - **getting the PR code reviewed** either by yourself (often so) or by someone else.
 - **getting merge approval**. If a PR requires a special deploy, label as `Needs: Deploy Approval` and get that approval before merging.
 - **testing the PR** before merging. Comment about how you tested in the PR. If _any_ changes are made to the PR code, you will have to test it again before merging.
