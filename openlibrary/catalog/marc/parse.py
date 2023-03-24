@@ -545,7 +545,6 @@ def read_contributions(rec: MarcBase) -> dict[str, Any]:
         for tag, marc_field_base in rec.read_fields(['700', '710', '711', '720']):
             assert isinstance(marc_field_base, MarcFieldBase)
             f = marc_field_base
-            assert isinstance(f, MarcFieldBase)
             if tag in ('700', '720'):
                 if 'authors' not in ret or last_name_in_245c(rec, f):
                     ret.setdefault('authors', []).append(read_author_person(f, tag=tag))
