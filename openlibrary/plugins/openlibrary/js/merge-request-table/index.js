@@ -73,6 +73,7 @@ export function initCommenting(elems) {
  */
 async function onCommentClick(textarea, mrid) {
     const c = textarea.value;
+    const commentCount = document.querySelector(`.comment-count-${mrid}`);
 
     if (c) {
         await comment(mrid, c)
@@ -82,6 +83,7 @@ async function onCommentClick(textarea, mrid) {
                     new FadingToast('Comment updated!').show()
                     updateCommentsView(mrid, c)
                     textarea.value = ''
+                    commentCount.innerHTML ++
                 } else {
                     new FadingToast('Failed to submit comment. Please try again in a few moments.').show()
                 }
