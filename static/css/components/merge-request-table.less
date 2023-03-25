@@ -73,9 +73,9 @@
 }
 
 .dot-wrapper {
-  height: 100%;
-  display: flex;
-  align-items: center;
+  // height: 100%;
+  // display: flex;
+  // align-items: center;
 }
 
 .book-title {
@@ -121,6 +121,20 @@
   }
 }
 
+.mr-latest {
+  font-size: 12px;
+  padding-top: 10%;
+}
+
+.mr-opened {
+  font-size: 12px;
+  color: @accessible-grey;
+
+  a {
+    color: @mid-blue;
+  }
+}
+
 .mr-table {
   width: 100%;
   background-color: @white;
@@ -145,6 +159,73 @@
     padding: 1%;
   }
 }
+
+.mr-comment {
+  padding: 3px 6px;
+
+  &__body a {
+    text-decoration: none;
+  }
+}
+
+.mr-info {
+  width: 60%;
+}
+
+.comment-cell__newest-comment{
+  margin-top: 8px;
+}
+
+.comment-cell__old-comments {
+  margin-left: -3px;
+}
+
+.comment-cell__old-comments-section {
+  border: 1px solid @light-grey;
+  background-color: @white;
+  border-radius: 5px;
+  margin-top: 8px;
+  overflow: auto;
+  overflow-y: scroll;
+  height: 65px;
+}
+
+.comment-cell__input{
+  display: flex;
+  align-items: center;
+  margin-top: 6px;
+  height: 30px;
+
+  textarea {
+    padding: 5px;
+    font-size: inherit;
+    width: 100%;
+    height: 100%;
+    resize: none;
+    border: 1px solid @light-grey;
+    border-radius: 5px;
+    margin-right: 5px;
+  }
+
+  textarea::placeholder {
+    font-size: inherit;
+  }
+
+  .mr-comment-btn{
+    background-color: @primary-blue;
+    color: @white;
+    text-decoration: none;
+    border: none;
+    border-radius: 6px;
+    box-shadow: none;
+    padding: 0 1.5%;
+    height: 100%;
+    font-weight: bold;
+    font-size: inherit;
+  }
+}
+
+
 
 .mr-comment-review-cell {
   display: flex;
@@ -195,6 +276,10 @@
       width: 20px;
     }
   }
+}
+
+.comment-username {
+  color: @grey;
 }
 
 .mr-unassign {
