@@ -73,16 +73,16 @@ $ page = int(input(page=1).page)
                     $:_('<span class="book-title">%(title)s</span>', title=work_title, type=type_str)
                   </strong>
                 </div>
-
+                
+                <div id="hidden-comments-$r['id']" class="comment-cell__old-comments hidden">
+                  $for c in comments[:-1]:
+                  $:render_template('merge_queue/comment', comment=c)
+                </div>
                 <div class="comment-cell__newest-comment">
                   $if comments:
                     $:render_template('merge_queue/comment', comment=comments[-1])
                   $else:
                     <span>$_('No comments yet.')</span>
-                </div>
-                <div id="hidden-comments-$r['id']" class="comment-cell__old-comments hidden">
-                  $for c in reversed(comments[:-1]):
-                    $:render_template('merge_queue/comment', comment=c)
                 </div>
                 $if is_submitter or can_merge:
                   <hr>
