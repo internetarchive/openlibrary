@@ -117,31 +117,31 @@ async function comment(mrid, comment) {
  * @param {string} comment The new comment
  */
 async function updateCommentsView(mrid, comment) {
-    const commentCell = document.querySelector(`#comment-cell-${mrid}`)
-    const newCommentDiv = commentCell.querySelector('.comment-cell__newest-comment')
+  const commentCell = document.querySelector(`#comment-cell-${mrid}`)
+  const newCommentDiv = commentCell.querySelector('.comment-cell__newest-comment')
 
-    await fetch(`/merges/partials?type=comment&comment=${comment}`, {
-        method: 'GET'
-    })
-        .then(result => result.text())
-        .then(html => {
-            // Create new comment element
-            const template = document.createElement('template')
-            template.innerHTML = html.trim()
+  await fetch(`/merges/partials?type=comment&comment=${comment}`, {
+      method: 'GET'
+  })
+      .then(result => result.text())
+      .then(html => {
+          // Create new comment element
+          const template = document.createElement('template')
+          template.innerHTML = html.trim()
 
-            // Remove newest comment (or "No comments yet" message)
-            const newestComment = newCommentDiv.firstElementChild
-            newCommentDiv.removeChild(newestComment)
+          // Remove newest comment (or "No comments yet" message)
+          const newestComment = newCommentDiv.firstElementChild
+          newCommentDiv.removeChild(newestComment)
 
-            if (newestComment.classList.contains('comment')) {  // "No comments yet" element will not have this class
-                // Append newest comment to old comments element
-                const oldComments = document.querySelector('.comment-cell__old-comments')
-                oldComments.appendChild(newestComment)
-            }
+          if (newestComment.classList.contains('comment')) {  // "No comments yet" element will not have this class
+              // Append newest comment to old comments element
+              const oldComments = document.querySelector('.comment-cell__old-comments')
+              oldComments.appendChild(newestComment)
+          }
 
-            // Display new
-            newCommentDiv.appendChild(template.content.firstChild)
-        })
+          // Display new
+          newCommentDiv.appendChild(template.content.firstChild)
+      })
 }
 
 /**
