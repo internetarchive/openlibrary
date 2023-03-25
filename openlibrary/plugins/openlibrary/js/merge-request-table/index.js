@@ -60,7 +60,8 @@ export function initCommenting(elems) {
     for (const elem of elems) {
         elem.addEventListener('click', function () {
             const mrid = elem.dataset.mrid
-            onCommentClick(elem.previousElementSibling, mrid)
+            const username = elem.dataset.username;
+            onCommentClick(elem.previousElementSibling, mrid, username)
         })
     }
 }
@@ -71,7 +72,7 @@ export function initCommenting(elems) {
  * @param {HTMLTextAreaElement} textarea The element that contains the comment
  * @param {Number} mrid Unique identifier for the request that is being commented on
  */
-async function onCommentClick(textarea, mrid) {
+async function onCommentClick(textarea, mrid, username) {
     const c = textarea.value;
     const commentCount = document.querySelector(`.comment-count-${mrid}`);
 
@@ -81,7 +82,7 @@ async function onCommentClick(textarea, mrid) {
             .then(data => {
                 if (data.status === 'ok') {
                     new FadingToast('Comment updated!').show()
-                    updateCommentsView(mrid, c)
+                    updateCommentsView(mrid, c, username)
                     textarea.value = ''
                     commentCount.innerHTML ++
                 } else {
@@ -116,32 +117,18 @@ async function comment(mrid, comment) {
  * @param {Number} mrid Unique identifier for the request that's being commented upon
  * @param {string} comment The new comment
  */
-async function updateCommentsView(mrid, comment) {
-    const commentCell = document.querySelector(`#comment-cell-${mrid}`)
-    const newCommentDiv = commentCell.querySelector('.comment-cell__newest-comment')
+async function updateCommentsView(mrid, comment, username) {
 
-    await fetch(`/merges/partials?type=comment&comment=${comment}`, {
-        method: 'GET'
-    })
-        .then(result => result.text())
-        .then(html => {
-            // Create new comment element
-            const template = document.createElement('template')
-            template.innerHTML = html.trim()
 
-            // Remove newest comment (or "No comments yet" message)
-            const newestComment = newCommentDiv.firstElementChild
-            newCommentDiv.removeChild(newestComment)
+    const commentCell = document.querySelector(`#comment-cell-${mrid}`);
+    //const newCommentDiv = commentCell.querySelector('.comment-cell__newest-comment')
+    const hiddenCommentDiv = commentCell.querySelector('.comment-cell__old-comments-section');
+    const newComment = document.createElement('div')
+    newComment.innerHTML += `<div class="mr-comment">
+      <div class="mr-comment__body"><a href="">@${username}</a> ${comment}</div>
+      </div>`
 
-            if (newestComment.classList.contains('comment')) {  // "No comments yet" element will not have this class
-                // Append newest comment to old comments element
-                const oldComments = document.querySelector('.comment-cell__old-comments')
-                oldComments.appendChild(newestComment)
-            }
-
-            // Display new
-            newCommentDiv.appendChild(template.content.firstChild)
-        })
+    hiddenCommentDiv.prepend(newComment);
 }
 
 /**
@@ -153,11 +140,12 @@ function removeRow(row) {
     row.parentNode.removeChild(row)
 }
 
+
 /**
- * Adds functionality for toggling visibility of older comments.
- *
- * @param {NodeList<HTMLElement>} elems Links that toggle comment visibility
- */
+ * Adds functionality for toggling visibility of the older comments.
+*
+* @param {NodeList<HTMLElement>} elems Links that toggle comment visibility
+*/
 export function initShowAllCommentsLinks(elems) {
     for (const elem of elems) {
         elem.addEventListener('click', function() {
@@ -168,28 +156,22 @@ export function initShowAllCommentsLinks(elems) {
 
 /**
  * Toggles visibility of a request's older comments.
- *
- * @param {HTMLELement} elem Element which contains a reference to the old comments
- */
+*
+* @param {HTMLELement} elem Element which contains a reference to the old comments
+*/
 function toggleAllComments(elem) {
+    //Id 2
     const targetId = elem.dataset.targetId;
+    const targetId2 = elem.dataset.latestComment || 0;
     const targetBtnClass = elem.dataset.btnClass;
 
     const target = document.querySelector(`#${targetId}`)
+    const target2 = document.querySelector(`#${targetId2}`)
     const targetBtn = document.querySelector(`.${targetBtnClass}`);
 
     target.classList.toggle('hidden')
+    target2.classList.toggle('hidden')
     targetBtn.classList.toggle('border-toggle');
-
-    const isHidden = target.classList.contains('hidden')
-    const prevSibling = elem.previousElementSibling;
-    if (isHidden) {
-        prevSibling.textContent = 'Showing most recent comment only.'
-        elem.textContent = 'View all'
-    } else {
-        prevSibling.textContent = 'Showing all comments.'
-        elem.textContent = 'View most recent only'
-    }
 }
 
 /**
