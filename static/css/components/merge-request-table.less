@@ -91,6 +91,23 @@
   margin-right: 22px;
 }
 
+.mr-opened {
+  font-size: 12px;
+  color: @accessible-grey;
+
+  a {
+    color: @mid-blue;
+  }
+}
+
+.mr-comment {
+  padding: 3px 6px;
+
+  &__body a {
+    text-decoration: none;
+  }
+}
+
 .table-header {
   display: flex;
   padding: .5%;
@@ -126,15 +143,6 @@
   padding-top: 10%;
 }
 
-.mr-opened {
-  font-size: 12px;
-  color: @accessible-grey;
-
-  a {
-    color: @mid-blue;
-  }
-}
-
 .mr-table {
   width: 100%;
   background-color: @white;
@@ -157,14 +165,6 @@
   td {
     vertical-align: top;
     padding: 1%;
-  }
-}
-
-.mr-comment {
-  padding: 3px 6px;
-
-  &__body a {
-    text-decoration: none;
   }
 }
 
@@ -225,8 +225,6 @@
     font-size: inherit;
   }
 }
-
-
 
 .mr-comment-review-cell {
   display: flex;
