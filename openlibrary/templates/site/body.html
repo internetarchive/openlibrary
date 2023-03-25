@@ -32,7 +32,7 @@ $if ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ct
       $# Paste next line into announcement variable to show the blue banner
       $# <strong>Title:</strong> Description &nbsp; <a href="#" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>
       $# Please keep the announcement a dict object with 'title' and 'message' keys
-      $ announcement = {'title': 'hii', 'message': 'hii'}
+      $ announcement = {'title': None, 'message': None}
       $if announcement and announcement['message'] and announcement['title']:
         <div title="$announcement['title']" id="announcement-banner" class="page-banner page-banner-body">
           $:announcement['message']
