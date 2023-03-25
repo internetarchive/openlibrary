@@ -96,14 +96,14 @@ $ page = int(input(page=1).page)
                       <input class="mr-comment-btn" type="button" value="REPLY" data-mrid="$r['id']" data-merge-type="$r['mr_type']" data-username="$username">
                     </div>
                 </div>
+                
+                <!-- Opened by which user -->
+                <span class="mr-opened">MR #$r['id'] opened $datestr(r['created']) by
+                  <a>
+                    @$r['submitter']
+                  </a>
+                </span>
               </div>
-              <br>
-              <!-- Opened by which user -->
-              <span class="mr-opened">MR #$r['id'] opened $datestr(r['created']) by
-                <a>
-                  @$r['submitter']
-                </a>
-              </span>
             </td>
 
             <td class="mr-comment-review-cell">
