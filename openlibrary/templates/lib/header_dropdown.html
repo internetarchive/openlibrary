@@ -54,6 +54,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
               <li class="$(link['loginClass'])">
                 <a class="login-links__secondary" href="/account/login">$_('Log In')</a>
                 <a class="login-links__primary" href="/account/create">$_('Sign Up')</a>
+                $:render_template("account/ia_thirdparty_logins", lazy=True)
               </li>
             $else:
               <li>
