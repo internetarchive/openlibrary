@@ -15,7 +15,7 @@ import web
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 import infogami  # must be after _init_path
 from openlibrary.config import load_config
-from typing import Dict, IO, List
+from typing import IO
 
 
 def run_piped(cmds: list[list[str]], stdin: IO | None = None):
