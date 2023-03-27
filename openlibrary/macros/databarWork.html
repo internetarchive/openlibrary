@@ -62,6 +62,16 @@ $if isbn_10 and not asin:
         $if modal_links:
           <hr>
           $:modal_links
+
+        <div class="readers-stats__wrapper mobile">
+          $ star_ratings_stats = macros.StarRatingsStats(work)
+          $:star_ratings_stats
+
+          $if modal_links:
+            <hr>
+            $:modal_links
+        </div>
+
         $if editions_page:
           $ render_times['databarWork: Book provider'] = time()
           $ book_provider = get_book_provider(page)
