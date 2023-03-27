@@ -146,7 +146,7 @@ Guidelines for repo maintainers.
 
 We use assignee to denote PR ownership. If you are the assignee, then you should have the PR on your todo list until you merge or close it.
 - **Assign yourself** to a PR if you have the time to take on the responsibilities of ownership (described below).
-- **Don't assign others** to a PR. Feel free to ask someone to take ownership, but respect others time restrictions.
+- **Don't assign others** to a PR. Feel free to ask someone to take ownership, but respect others' time restrictions.
 - **Avoid assignee=author**. In the case where the PR author is also a maintainer, we will strive to have another maintainer own and merge the PR to ensure these steps are followed fairly by all.
 
 The assignee of a PR is responsible for:
