@@ -22,10 +22,10 @@ $def render_carousel_cover(book, lazy):
     $ num_seeds = len(seeds)
     $if num_seeds > 3:
       $ num_seeds = 3
-    
+
     $ lst_url = url + "/" + list_id
     <a class="my-lists-item" href="$url">
-    
+
       $ lst_title = lst['name']
       $if len(lst_title) >= 16:
         $ lst_title = lst_title[0:16] + "..."
@@ -36,7 +36,7 @@ $def render_carousel_cover(book, lazy):
         $else:
           <p class="my-list-num-books">1 Book</p>
       </div>
-    
+
       <div class="my-list-covers">
         $for i in range(num_seeds):
           $ bk = seeds[i-1]
@@ -126,7 +126,7 @@ $if test or (books and len(books) >= min_books) or (lists and len(lists) >= min_
         <div class="carousel-section-header">
           <h2 class="home-h2"><a name="$key" href="$url">$title</a></h2>
         </div>
-      
+
       $# The decorations are different for the My Lists carousel.
       $if key == "my-lists":
         $ container_decorated = "my-lists-container"
