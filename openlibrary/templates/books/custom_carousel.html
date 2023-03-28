@@ -1,4 +1,4 @@
-$def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False, compact_mode=False, secondary_action=False)
+$def with(lists=[], books=[], title="", url="", key="", min_books=1, load_more=None, test=False, compact_mode=False, secondary_action=False)
 
 $ ctx.setdefault("links", [])
 $# Apparently fonts always need crossorigin for some reason
@@ -12,65 +12,126 @@ $def render_carousel_cover(book, lazy):
   $ url = book.get('key') or book.url
   $ title = book.title
 
-  $ cover_id = book.get('cover_id') or book.get('cover_i') or book.get('covers') and book['covers'][0]
-  $if book.get('cover_url'):
-    $ cover_url = book.get('cover_url')
-  $elif cover_id and cover_id != -1:
-    $ cover_url = '%s/b/id/%s-M.jpg'%(cover_host, cover_id)
-  $elif book.get('ia'):
-    $ cover_url = '%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ia')[0], fallback_cover)
-  $elif book.get('cover_edition_key'):
-    $ cover_url = '%s/b/olid/%s-M.jpg'%(cover_host, book.get('cover_edition_key'))
-  $else:
-    $ cover_url = False
-
-  $if book.get('authors'):
-    $ author_names = [author.name for author in book.authors]
-  $elif book.get('author_name'):
-    $ author_names = book.get('author_name', [])
-  $else:
-    $ author_names = []
-
-  $if author_names:
-    $ byline = _(' by %(name)s', name=', '.join(author_names))
-  $else:
-    $ byline = ''
-
-  $ modifier = ''
-  $ work_key = book.key if book.key.startswith('/work') else book.get('work_key')
-
-  <div class="book carousel__item">
-    <div class="book-cover">
-      <a href="$(url)">
-        $if cover_url:
-          <img class="bookcover" loading="lazy"
-            title="$('%s%s'%(title,byline))"
-            alt="$('%s%s'%(title,byline))"
-          $if lazy:
-            data-lazy="$(cover_url)"
-            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
-          $else:
-            src="$(cover_url)"/>
+  $# In case the carusel is for My Lists, the items are rendered in a different way.
+  $if key == "my-lists":
+    $# Here, 'book' is actually a 'list'.
+    $ lst = book
+    $ title = lst.title
+    $ list_id = lst.key.split('/')[-1]
+    $ seeds = lst.get_seeds(sort=True, resolve_redirects=True)
+    $ num_seeds = len(seeds)
+    $if num_seeds > 3:
+      $ num_seeds = 3
+    
+    $ lst_url = url + "/" + list_id
+    <a class="my-lists-item" href="$url">
+    
+      $ lst_title = lst['name']
+      $if len(lst_title) >= 16:
+        $ lst_title = lst_title[0:16] + "..."
+      <div class="my-list-name-tag">
+        <p class="my-list-title">${lst_title}</p>
+        $if num_seeds > 1:
+          <p class="my-list-num-books">${num_seeds} Books</p>
         $else:
-          <div class="carousel__item__blankcover"  title="$(title)">
-            <div class="carousel__item__blankcover--title">$:macros.TruncateString(title, 70)</div>
-            $if author_names:
-              <div class="carousel__item__blankcover--authors">$:macros.TruncateString(', '.join(author_names), 30)</div>
-          </div>
-      </a>
-    </div>
-    <div class="book-cta">
-      $:macros.LoanStatus(book, work_key=work_key, listen=False, secondary_action=secondary_action)
-    </div>
-  </div>
+          <p class="my-list-num-books">1 Book</p>
+      </div>
+    
+      <div class="my-list-covers">
+        $for i in range(num_seeds):
+          $ bk = seeds[i-1]
+          $ default_image = "https://openlibrary.org/images/icons/avatar_book-sm.png"
+          $ cover = bk.get_cover()
+          $if cover:
+            $ cover_url = item_image(cover.url("M"), default=default_image)
+          $else:
+            $ cover_url = default_image
 
-$if test or (books and len(books) >= min_books):
+          <div class="book-cover my-list-cover">
+            $if cover_url:
+              <img class="bookcover" loading="lazy"
+                title="$('%s'%(title))"
+                alt="$('%s'%(title))"
+              $if lazy:
+                data-lazy="$(cover_url)"
+                src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
+              $else:
+                src="$(cover_url)"/>
+            $else:
+              <div class="carousel__item__blankcover"  title="$(title)">
+                <div class="carousel__item__blankcover--title">$:macros.TruncateString(title, 70)</div>
+              </div>
+          </div>
+        </div>
+      </a>
+
+    $# If the carosuel is not for My Lists, the items can be rendered as any other.
+  $else:
+    $ cover_id = book.get('cover_id') or book.get('cover_i') or book.get('covers') and book['covers'][0]
+    $if book.get('cover_url'):
+      $ cover_url = book.get('cover_url')
+    $elif cover_id and cover_id != -1:
+      $ cover_url = '%s/b/id/%s-M.jpg'%(cover_host, cover_id)
+    $elif book.get('ia'):
+      $ cover_url = '%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ia')[0], fallback_cover)
+    $elif book.get('cover_edition_key'):
+      $ cover_url = '%s/b/olid/%s-M.jpg'%(cover_host, book.get('cover_edition_key'))
+    $else:
+      $ cover_url = False
+
+    $if book.get('authors'):
+      $ author_names = [author.name for author in book.authors]
+    $elif book.get('author_name'):
+      $ author_names = book.get('author_name', [])
+    $else:
+      $ author_names = []
+
+    $if author_names:
+      $ byline = _(' by %(name)s', name=', '.join(author_names))
+    $else:
+      $ byline = ''
+
+    $ modifier = ''
+    $ work_key = book.key if book.key.startswith('/work') else book.get('work_key')
+
+    <div class="book carousel__item">
+      <div class="book-cover">
+        <a href="$(url)">
+          $if cover_url:
+            <img class="bookcover" loading="lazy"
+              title="$('%s%s'%(title,byline))"
+              alt="$('%s%s'%(title,byline))"
+            $if lazy:
+              data-lazy="$(cover_url)"
+              src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
+            $else:
+              src="$(cover_url)"/>
+          $else:
+            <div class="carousel__item__blankcover"  title="$(title)">
+              <div class="carousel__item__blankcover--title">$:macros.TruncateString(title, 70)</div>
+              $if author_names:
+                <div class="carousel__item__blankcover--authors">$:macros.TruncateString(', '.join(author_names), 30)</div>
+            </div>
+        </a>
+      </div>
+      <div class="book-cta">
+        $:macros.LoanStatus(book, work_key=work_key, listen=False, secondary_action=secondary_action)
+      </div>
+    </div>
+
+$if test or (books and len(books) >= min_books) or (lists and len(lists) >= min_books):
     <div class="carousel-section">
       $if title and url:
         <div class="carousel-section-header">
           <h2 class="home-h2"><a name="$key" href="$url">$title</a></h2>
         </div>
-      <div class="carousel-container carousel-container-decorated">
+      
+      $# The decorations are different for the My Lists carousel.
+      $if key == "my-lists":
+        $ container_decorated = "my-lists-container"
+      $else:
+        $ container_decorated = "carousel-container-decorated"
+      <div class="carousel-container $container_decorated">
         $ attrs = ''
         $if load_more:
           $ load_more_config = {
@@ -87,8 +148,15 @@ $if test or (books and len(books) >= min_books):
         $ compact = "carousel--compact" if compact_mode else ""
         <div class="carousel $compact carousel-$key carousel--progressively-enhanced"
           data-config="$json_encode(config)">
-          $for index, book in enumerate(books or []):
-              $:render_carousel_cover(book, index > 5)
+          $if key == "my-lists":
+            $for index, lst in enumerate(lists or []):
+              $if index < 4:
+                $:render_carousel_cover(lst, index > 4)
+              $else:
+                $break
+          $else:
+            $for index, book in enumerate(books or []):
+                $:render_carousel_cover(book, index > 5)
         </div>
       </div>
     </div>
