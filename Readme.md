@@ -25,7 +25,7 @@ Are you looking to get started? [This is the guide](https://github.com/interneta
 
 ## Overview
 
-Open Library is an effort started in 2006 to create "one web page for every book ever published". It provides access to many public domain and out-of-print books, which can be read online.
+Open Library is an effort started in 2006 to create "one web page for every book ever published." It provides access to many public domain and out-of-print books, which can be read online.
 
 Here's a quick public tour of Open Library to get you familiar with the service and its offerings (10min).
 
