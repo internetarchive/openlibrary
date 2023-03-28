@@ -1,5 +1,12 @@
 $def with (user, mybooks, public=False, owners_page=False, counts=None, lists=None)
 
+$ username = user.key.split('/')[-1]
+
+$if not (lists and counts):
+  $ pa = get_public_patron_account(username)
+$ lists = lists or pa.lists
+$ counts = counts or pa.get_sidebar_counts
+
 $def year_span(year, use_local_year=False):
   $if use_local_year:
     <span class="use-local-year" data-server-year="$year">$year</span>
@@ -34,14 +41,20 @@ $ hidden = 'hidden' if current_goal else ''
     <span id="reading-goal-container">
       $:render_template('check_ins/reading_goal_progress', [current_goal])
     </span>
-</div>
+  </div>
 
 $code:
     def compact_carousel(data, secondary_action=False):
-        key, title, url = data
-        books = mybooks[key].docs
-        count = mybooks[key].total_results
+        key, title, url, lsts = data
+        # In case the carousel is for My Lists, no books are sent, only the lists.
+        if key == "my-lists":
+          books = []
+          count = len(lsts)
+        else:
+          books = mybooks[key].docs
+          count = mybooks[key].total_results
         return render_template("books/custom_carousel", **{
+            "lists": lsts,
             "books": books,
             "title": "%s (%d)" % (title, count),
             "url": url,
@@ -51,23 +64,27 @@ $code:
             "compact_mode": True,
             "test": False,
             "secondary_action": secondary_action
-        }) if books else None
+        }) if (books or lsts) else None
 
 $def empty_carousel(data):
-  $ key, title, url = data
+  $ key, title, url, lsts = data
   <div class="carousel-section-header">
     <h2 class="home-h2"><a name="$key" href="$url">$title</a></h2>
   </div>
   <p>$_('No books are on this shelf')</p>
 
 $# Data for carousels
-$ loans = ["loans", _('My Loans'), "/account/loans"]
-$ currently_reading = ["currently-reading", _('Currently Reading'), "/account/books/currently-reading"]
-$ want_to_read = ["want-to-read", _('Want to Read'), "/account/books/want-to-read"]
-$ already_read = ["already-read", _('Already Read'), "/account/books/already-read"]
+$ loans = ["loans", _('My Loans'), "/account/loans", []]
+$ currently_reading = ["currently-reading", _('Currently Reading'), "/account/books/currently-reading", []]
+$ want_to_read = ["want-to-read", _('Want to Read'), "/account/books/want-to-read", []]
+$ already_read = ["already-read", _('Already Read'), "/account/books/already-read", []]
+
+$ my_lists_url = "/people/%s/lists" % (username)
+$ my_lists = ["my-lists", _('My Lists'), my_lists_url, lists]
 
 $# Render carousels
 $:(compact_carousel(loans, True) or empty_carousel(loans))
 $:(compact_carousel(currently_reading) or empty_carousel(currently_reading))
 $:(compact_carousel(want_to_read) or empty_carousel(want_to_read))
 $:(compact_carousel(already_read) or empty_carousel(already_read))
+$:(compact_carousel(my_lists) or empty_carousel(my_lists))
