@@ -139,6 +139,7 @@
 }
 
 .my-list {
+  @name-tag-layer: 4;
   &-name-tag {
     border: 1px solid @my-lists-item-border;
     border-radius: 2px 2px 4px 4px;
@@ -150,7 +151,7 @@
     height: 35%;
     padding-top: 3px;
     padding-left: 4px;
-    z-index: 4;
+    z-index: @name-tag-layer;
   }
 
   &-title {
@@ -163,7 +164,7 @@
     margin: auto;
     padding: 0;
     color: @grey-555;
-    font-size: 0.7em;
+    font-size: .7em;
   }
 
   &-cover {
@@ -178,20 +179,23 @@
     width: 80%;
     margin: 0 auto;
     position: relative;
-
-    .my-list-cover:nth-child(1) {
-      z-index: 3;
-      margin-left: 5px;
-    }
-
-    .my-list-cover:nth-child(2) {
-      z-index: 2;
-    }
-
-    .my-list-cover:nth-child(3) {
-      z-index: 1;
-    }
   }
+}
+
+@top-cover: 3;
+@mid-cover: 2;
+@bottom-cover: 1;
+.cover-0 {
+  z-index: @top-cover;
+  margin-left: 5px;
+}
+
+.cover-1 {
+  z-index: @mid-cover;
+}
+
+.cover-2 {
+  z-index: @bottom-cover;
 }
 
 // TODO: Document where this is used. This is unlikely to need to be so specific.
@@ -274,7 +278,4 @@
     content: "←" !important;
   }
 }
-
-
-
 @import (less) "category-item.less";
