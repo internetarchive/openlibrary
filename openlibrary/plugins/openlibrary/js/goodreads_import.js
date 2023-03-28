@@ -31,8 +31,8 @@ export function initGoodreadsImport() {
     });
 
     function func1(value) {
-        var l = $('.add-book[checked*="checked"]').length;
-        var elem = document.getElementById('myBar');
+        const l = $('.add-book[checked*="checked"]').length;
+        const elem = document.getElementById('myBar');
         elem.style.width = `${value * (100 / l)}%`;
         elem.innerHTML = `${value} Books`;
         if (value * (100 / l) >= 100) {
@@ -57,11 +57,11 @@ export function initGoodreadsImport() {
             var value = JSON.parse(input.val().replace(/'/g, '"'));
             var shelf = value['Exclusive Shelf'];
             var shelf_id = 0;
-            var has_failure = function () {
+            const hasFailure = function () {
                 return $(`[isbn=${value['ISBN']}]`).hasClass('import-failure');
             };
-            var fail = function (reason) {
-                if (!has_failure()) {
+            const fail = function (reason) {
+                if (!hasFailure()) {
                     const element = $(`[isbn=${value['ISBN']}]`);
                     element.append(`<td class="error-imported">Error</td><td class="error-imported">${reason}</td>'`)
                     element.removeClass('selected');
@@ -70,7 +70,7 @@ export function initGoodreadsImport() {
             };
 
             if (!checked) {
-                return true;
+                return false;
             }
 
             if (shelves[shelf]) {
@@ -79,7 +79,7 @@ export function initGoodreadsImport() {
             if (shelf_id === 0) {
                 fail('Book in different Shelf');
                 func1(++count);
-                return true;
+                return false;
             }
 
             prevPromise = prevPromise.then(function () { // prevPromise changes in each iteration
@@ -139,7 +139,7 @@ export function initGoodreadsImport() {
                         });
                     }
                 });
-                if (!has_failure()) {
+                if (!hasFailure()) {
                     $(`[isbn=${value['ISBN']}]`).append('<td class="success-imported">Imported</td>')
                     $(`[isbn=${value['ISBN']}]`).removeClass('selected');
                 }
