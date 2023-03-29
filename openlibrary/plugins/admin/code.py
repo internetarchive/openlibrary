@@ -891,7 +891,13 @@ class solr:
 
 class imports_home:
     def GET(self):
-        return render_template("admin/imports", imports.Stats())
+        return render_template("admin/imports", imports.Stats)
+
+
+class imports_public(delegate.page):
+    path = "/imports"
+    def GET(self):
+        return imports_home().GET()
 
 
 class imports_add:
