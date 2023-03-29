@@ -206,3 +206,15 @@ class BookshelvesEvents(db.CommonExtras):
         }
 
         return oldb.delete(cls.TABLENAME, where=where_clause, vars=data)
+
+    @classmethod
+    def get_completed_checkin_counts_per_year(cls, username):
+        oldb = db.get_db()
+        query = """
+        SELECT SUBSTRING(event_date, 1, 4) AS year, COUNT(*) AS total_items
+        FROM bookshelves_events
+        WHERE event_type=3 AND username = $username 
+        GROUP BY year
+        ORDER BY year DESC
+        """
+        return oldb.query(cls.TABLENAME, query, vars={'username': username})

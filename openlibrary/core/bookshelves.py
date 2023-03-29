@@ -378,7 +378,6 @@ class Bookshelves(db.CommonExtras):
             the Solr response.
             """
             if checkin_year:
-                logger.warning(f"### YEAR: {checkin_year}")
                 query = """
                 SELECT b.work_id, b.created, b.edition_id
                 FROM bookshelves_books b
@@ -403,7 +402,6 @@ class Bookshelves(db.CommonExtras):
                 # XXX Removing limit, offset, etc from data looks like a bug
                 # unrelated / not fixing in this PR.
                 query_params = {'username': username}
-
             reading_log_books: list[web.storage] = list(
                 oldb.query(query, vars=query_params)
             )
