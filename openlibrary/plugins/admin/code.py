@@ -493,15 +493,6 @@ class stats:
         return doc
 
 
-class ipstats:
-    def GET(self):
-        web.header('Content-Type', 'application/json')
-        text = requests.get(
-            "http://www.archive.org/download/stats/numUniqueIPsOL.json"
-        ).text
-        return delegate.RawText(text)
-
-
 class block:
     def GET(self):
         page = web.ctx.site.get("/admin/block") or web.storage(
@@ -882,7 +873,6 @@ def setup():
     register_admin_page('/admin/ip', ipaddress, label='IP')
     register_admin_page('/admin/ip/(.*)', ipaddress_view, label='View IP')
     register_admin_page(r'/admin/stats/(\d\d\d\d-\d\d-\d\d)', stats, label='Stats JSON')
-    register_admin_page('/admin/ipstats', ipstats, label='IP Stats JSON')
     register_admin_page('/admin/block', block, label='')
     register_admin_page(
         '/admin/attach_debugger', attach_debugger, label='Attach Debugger'

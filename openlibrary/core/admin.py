@@ -1,5 +1,4 @@
-"""Admin functionality.
-"""
+"""Admin functionality."""
 
 import calendar
 import datetime
@@ -101,6 +100,30 @@ class LoanStats(Stats):
             return Stats.get_counts(self, ndays, times)
 
 
+@cache.memoize(engine="memcache", key="admin.get_visitors_per_day", expires=5 * 60)
+def get_visitors_per_day(ndays: int = 28) -> list[tuple[int, int]]:
+    """
+    Read the unique visitors (IP addresses) per day for the last ndays from graphite.
+    """
+    try:
+        response = requests.get(
+            "http://graphite.us.archive.org/render/",
+            params={
+                "target": "hitcount(stats.uniqueips.openlibrary, '1d')",
+                "from": f"-{ndays}days",
+                "tz": "UTC",
+                "format": "json",
+            },
+        )
+        response.raise_for_status()
+        visitors = response.json()[0]['datapoints']
+    except requests.exceptions.RequestException:
+        visitors = []
+
+    # Flip the order, convert timestamp to msec and convert count==None to zero
+    return [(int(timestamp * 1000), int(count or 0)) for count, timestamp in visitors]
+
+
 @cache.memoize(engine="memcache", key="admin._get_count_docs", expires=5 * 60)
 def _get_count_docs(ndays):
     """Returns the count docs from admin stats database.
@@ -124,7 +147,7 @@ def get_stats(ndays=30):
         'human_edits': Stats(docs, "human_edits", "human_edits"),
         'bot_edits': Stats(docs, "bot_edits", "bot_edits"),
         'lists': Stats(docs, "lists", "total_lists"),
-        'visitors': Stats(docs, "visitors", "visitors"),
+        'visitors': get_visitors_per_day(ndays),
         'loans': LoanStats(docs, "loans", "loans"),
         'members': Stats(docs, "members", "total_members"),
         'works': Stats(docs, "works", "total_works"),

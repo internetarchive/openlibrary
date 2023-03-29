@@ -150,30 +150,6 @@ admin_range__lists = functools.partial(single_thing_skeleton, type="list")
 admin_range__members = functools.partial(single_thing_skeleton, type="user")
 
 
-def admin_range__visitors(**kargs):
-    "Finds number of unique IPs to visit the OL website."
-    try:
-        date = kargs['start']
-    except KeyError as k:
-        raise TypeError("%s is a required argument for admin_range__visitors" % k)
-    global sqlitefile
-    if not sqlitefile:
-        sqlitefile = tempfile.mktemp(prefix="sqlite-")
-        url = "http://www.archive.org/download/stats/numUniqueIPsOL.sqlite"
-        logging.debug("  Downloading '%s'", url)
-        with open(sqlitefile, "wb") as f:
-            f.write(requests.get(url).content)
-    db = web.database(dbn="sqlite", db=sqlitefile)
-    d = date.replace(hour=0, minute=0, second=0, microsecond=0)
-    key = calendar.timegm(d.timetuple())
-    q = "SELECT value AS count FROM data WHERE timestamp = %d" % key
-    if result := list(db.query(q)):
-        return result[0].count
-    else:
-        logging.debug("  No statistics obtained for %s (%d)", date, key)
-        raise NoStats("No record for %s" % date)
-
-
 def admin_range__loans(**kargs):
     """Finds the number of loans on a given day.
 
