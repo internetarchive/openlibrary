@@ -249,6 +249,9 @@ def read_title(rec: MarcBase) -> dict[str, Any]:
         subtitle = alternate.get_subfield_values('bnps')
         if subtitle:
             ret['subtitle'] = title_from_list(subtitle, delim=' : ')
+    if 'subtitle' in ret and re_bracket_field.match(ret['subtitle']):
+        # Remove entirely bracketed subtitles
+        ret.pop('subtitle')
 
     # By statement
     if 'c' in contents:
