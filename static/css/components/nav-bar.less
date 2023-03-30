@@ -1,4 +1,4 @@
-@compact-title-height: 35px;
+@import (less) "components/compact-title.less";
 
 .nav-bar {
   border-bottom: 1px solid @lighter-grey;
@@ -89,9 +89,35 @@
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
   .nav-bar-wrapper.sticky {
-    top: @compact-title-height;
+    top: 0;
     margin-left: 0;
     margin-right: 0;
     width: 100%;
+
+    &.nav-bar-wrapper--slidedown {
+      animation-duration: .15s;
+      animation-name: slidedown;
+    }
+
+    @keyframes slidedown {
+      to {
+        top: @compact-title-height;
+      }
+    }
+
+    &.nav-bar-wrapper--slideup {
+      animation-duration: .5s;
+      animation-name: slideup
+    }
+  
+    @keyframes slideup {
+      to {
+        top: 0;
+      }
+    }
+
+    &.sticky--lowest {
+      top: @compact-title-height;
+    }
   }
 }
