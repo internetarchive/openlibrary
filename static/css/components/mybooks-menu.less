@@ -136,11 +136,21 @@
   }
 
   .li-count {
+    position: relative;
     float: right;
     font-size: .9em;
     margin-top: 1px;
     color: @count-blue-grey;
     margin-left: 4px;
+  }
+
+  .li-count .chevron:after {
+    content: "\203A";
+    margin-left: 5px;
+    display: inline-block;
+    transform: scale(2.0);
+    position: absolute;
+    top: 0.2em;
   }
 }
 
