@@ -461,7 +461,7 @@ jQuery(function () {
         import(/* webpackChunkName: "compact-title" */ './compact-title')
             .then((module) => {
                 const compactTitle = document.querySelector('.compact-title')
-                const desktopNavbar = [...navbarWrappers].find(elem => elem.classList.contains('desktop-only')).querySelector('ul')
+                const desktopNavbar = [...navbarWrappers].find(elem => elem.classList.contains('desktop-only'))
                 module.initCompactTitle(desktopNavbar, compactTitle)
             })
     }
