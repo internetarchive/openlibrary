@@ -298,7 +298,7 @@ class sync_ia_ol(delegate.page):
     def validate_input(self, i):
         """Returns True if the request is valid.
         All requests must have an olid and an action.  If the action is
-        'modify', the requst must also include 'ocaid'.
+        'modify', the request must also include 'ocaid'.
         """
         action = i.get('action', '')
         return 'olid' in i and (
