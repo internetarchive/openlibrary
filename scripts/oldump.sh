@@ -204,9 +204,10 @@ if [[ ! -d $TMPDIR/sitemaps ]]
 then
     log "generating sitemaps"
     mkdir -p $TMPDIR/sitemaps
+    rm -fr $TMPDIR/sitemaps/*
     cd $TMPDIR/sitemaps
     time python $SCRIPTS/sitemaps/sitemap.py $TMPDIR/dumps/$dump/$dump.txt.gz > sitemaps.log
-    rm -fr $TMPDIR/sitemaps
+    # rm -fr $TMPDIR/sitemaps
     ls -lh
 else
     log "Skipping sitemaps"
