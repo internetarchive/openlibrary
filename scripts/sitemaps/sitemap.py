@@ -81,7 +81,8 @@ def process_dump(dumpfile):
     The summary file contains: sort-key, path and last_modified columns.
     """
     rows = (line.decode().strip().split("\t") for line in xopen(dumpfile))
-    for type, key, revision, last_modified, jsontext in rows:
+    yield_count = 0
+    for i, (type, key, revision, last_modified, jsontext) in enumerate(rows):
         if type not in ['/type/work', '/type/author']:
             continue
 
@@ -94,6 +95,13 @@ def process_dump(dumpfile):
         sortkey = get_sort_key(key)
         if sortkey:
             yield [sortkey, path, last_modified]
+            yield_count += 1
+        if i % 10000 == 0:
+            log(f"{i} records with {yield_count} yielded ({yield_count / i:.2f}%)")
+    log(
+        "process_dump complete: "
+        f"{i} records with {yield_count} yielded ({yield_count / i:.2f}%)"
+    )
 
 
 re_key = re.compile(r"^/(authors|works)/OL\d+[AMW]$")
