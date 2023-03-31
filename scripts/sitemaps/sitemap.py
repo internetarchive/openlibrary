@@ -12,7 +12,10 @@ import json
 import logging
 import os
 import re
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import datetime
+from time import perf_counter
 
 import web
 
@@ -52,11 +55,28 @@ def log(*args) -> None:
     print(msg, file=sys.stderr)
 
 
-def xopen(filename):
+@contextmanager
+def elapsed_time(name: str = "elapsed_time"):
+    """
+    Two ways to use elapsed_time():
+    1. As a decorator to time the execution of an entire function:
+        @elapsed_time("my_slow_function")
+        def my_slow_function(n=10_000_000):
+            pass
+    2. As a context manager to time the execution of a block of code inside a function:
+        with elapsed_time("my_slow_block_of_code"):
+            pass
+    """
+    start = perf_counter()
+    yield
+    log(f"Elapsed time ({name}): {perf_counter() - start:0.8} seconds")
+
+
+def xopen(filename: str):
     return gzip.open(filename) if filename.endswith(".gz") else open(filename)
 
 
-def urlsafe(name):
+def urlsafe(name: str) -> str:
     """Slugifies the name to produce OL url slugs
 
     XXX This is duplicated from openlibrary.core.helpers because there
@@ -75,45 +95,54 @@ def urlsafe(name):
     return safepath_re.sub('_', name).replace(' ', '-').strip('_')[:100]
 
 
-def process_dump(dumpfile):
+@elapsed_time("process_dump")
+def process_dump(
+    dumpfile: str, *, verbose: bool = False
+) -> Iterator[tuple[str, str, str]]:
     """Generates a summary file used to generate sitemaps.
 
     The summary file contains: sort-key, path and last_modified columns.
     """
     rows = (line.decode().strip().split("\t") for line in xopen(dumpfile))
-    for type, key, revision, last_modified, jsontext in rows:
-        if type not in ['/type/work', '/type/author']:
+    yield_count = 0
+    for i, (type, key, revision, last_modified, jsontext) in enumerate(rows, 1):
+        if type not in ('/type/work', '/type/author'):
             continue
 
         doc = json.loads(jsontext)
-        title = doc.get('name', '') if type == '/type/author' else doc.get('title', '')
+        name_or_title = 'name' if type == '/type/author' else 'title'
+        title = doc.get(name_or_title, '')
 
-        path = key + "/" + urlsafe(title.strip())
+        path = f"{key}/{urlsafe(title.strip())}"
 
-        last_modified = last_modified.replace(' ', 'T') + 'Z'
-        sortkey = get_sort_key(key)
-        if sortkey:
-            yield [sortkey, path, last_modified]
+        last_modified = f"{last_modified.replace(' ', 'T')}Z"
+        if sortkey := get_sort_key(key):
+            yield (sortkey, path, last_modified)
+            yield_count += 1
+        if verbose and yield_count % 500_000 == 0:
+            log(f"{i:,} records with {yield_count:,} yielded ({yield_count / i:.2f}%)")
+    log(
+        "process_dump complete: "
+        f"{i:,} records with {yield_count:,} yielded ({yield_count / i:.2f}%)"
+    )
 
 
 re_key = re.compile(r"^/(authors|works)/OL\d+[AMW]$")
 
 
-def get_sort_key(key):
+def get_sort_key(key: str) -> str | None:
     """Returns a sort key used to group urls in 10K batches.
 
     >>> get_sort_key("/authors/OL123456A")
     'authors_0012'
     """
-    m = re_key.match(key)
-    if not m:
-        return
-    prefix = m.group(1)
-    num = int(web.numify(key)) / 10000
-    return "%s_%04d" % (prefix, num)
+    if m := re_key.match(key):
+        return f"{m.group(1)}_{int(web.numify(key)) // 10000:04}"
+    return None
 
 
-def generate_sitemaps(filename):
+@elapsed_time("generate_sitemaps")
+def generate_sitemaps(filename: str) -> None:
     rows = (line.strip().split("\t") for line in open(filename))
     for sortkey, chunk in itertools.groupby(rows, lambda row: row[0]):
         things = []
@@ -129,16 +158,17 @@ def generate_sitemaps(filename):
             write(f"sitemaps/sitemap_{sortkey}.xml.gz", sitemap(things))
 
 
-def generate_siteindex():
+@elapsed_time("generate_siteindex")
+def generate_siteindex() -> None:
     filenames = sorted(os.listdir("sitemaps"))
     if "siteindex.xml.gz" in filenames:
         filenames.remove("siteindex.xml.gz")
-    timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S') + 'Z'
+    timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     index = siteindex(filenames, timestamp)
     write("sitemaps/siteindex.xml.gz", index)
 
 
-def write(path, text):
+def write(path: str, text: str) -> None:
     try:
         text = web.safestr(text)
         log('writing', path, text.count('\n'))
@@ -149,14 +179,14 @@ def write(path, text):
     # os.system("gzip " + path)
 
 
-def write_tsv(path, rows):
+def write_tsv(path: str, rows: Iterator[tuple[str, str, str]]) -> None:
     lines = ("\t".join(row) + "\n" for row in rows)
     with open(path, "w") as f:
         f.writelines(lines)
 
 
-def system_memory():
-    """Returns system memory in MB."""
+def system_memory() -> int:
+    """Linux-specific.  Returns system memory in MB."""
     try:
         x = os.popen("cat /proc/meminfo | grep MemTotal | sed 's/[^0-9]//g'").read()
         # proc gives memory in KB, converting it to MB
@@ -166,13 +196,14 @@ def system_memory():
         return 1024
 
 
-def system(cmd):
+def system(cmd) -> None:
     log("executing:", cmd)
     if (status := os.system(cmd)) != 0:
         raise Exception("%r failed with exit status: %d" % (cmd, status))
 
 
-def main(dumpfile):
+@elapsed_time(f"{__file__}.main")
+def main(dumpfile: str) -> None:
     system("rm -rf sitemaps sitemaps_data.txt*; mkdir sitemaps")
 
     log("processing the dump")
