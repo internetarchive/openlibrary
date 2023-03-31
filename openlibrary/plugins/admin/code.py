@@ -266,8 +266,8 @@ class sync_ia_ol(delegate.page):
 
         # Update record
         match i.get('action', ''):
-            case 'darken':
-                self.darken_record(edition)
+            case 'remove':
+                self.remove_ocaid(edition)
             case 'modify':
                 self.modify_ocaid(edition, i.get('ocaid'))
             case '_':
@@ -297,13 +297,13 @@ class sync_ia_ol(delegate.page):
         'modify', the requst must also include 'ocaid'.
         """
         action = i.get('action', '')
-        return 'olid' in i and (action == 'darken' or (action == 'modify' and 'ocaid' in i))
+        return 'olid' in i and (action == 'remove' or (action == 'modify' and 'ocaid' in i))
 
-    def darken_record(self, edition):
+    def remove_ocaid(self, edition):
         """Deletes OCAID from given edition"""
         data = edition.dict()
         del data['ocaid']
-        web.ctx.site.save(data, 'Darken record')
+        web.ctx.site.save(data, 'Remove OCAID: Item no longer available to borrow.')
 
     def modify_ocaid(self, edition, new_ocaid):
         """Adds the given new_ocaid to an edition."""
