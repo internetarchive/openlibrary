@@ -205,8 +205,9 @@ then
     log "generating sitemaps"
     mkdir -p $TMPDIR/sitemaps
     cd $TMPDIR/sitemaps
+    rm -fr $TMPDIR/sitemaps/*
     time python $SCRIPTS/sitemaps/sitemap.py $TMPDIR/dumps/$dump/$dump.txt.gz > sitemaps.log
-    rm -fr $TMPDIR/sitemaps
+    # rm -fr $TMPDIR/sitemaps
     ls -lh
 else
     log "Skipping sitemaps"
