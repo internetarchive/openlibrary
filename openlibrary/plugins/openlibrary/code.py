@@ -217,6 +217,14 @@ class routes(delegate.page):
         )
 
 
+class team(delegate.page):
+    path = '/about/team'
+
+    def GET(self):
+        return render_template("about/team.html")
+    
+
+
 class addbook(delegate.page):
     path = '/addbook'
 
