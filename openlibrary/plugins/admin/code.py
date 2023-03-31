@@ -247,7 +247,7 @@ class sync_ia_ol(delegate.page):
         # Authenticate request:
         s3_access_key = web.ctx.env.get('HTTP_X_S3_ACCESS', '')
         s3_secret_key = web.ctx.env.get('HTTP_X_S3_SECRET', '')
-        
+
         if not self.is_authorized(s3_access_key, s3_secret_key):
             raise web.unauthorized()
 
@@ -275,7 +275,11 @@ class sync_ia_ol(delegate.page):
 
         return delegate.RawText(json.dumps({"status": "ok"}))
 
-    @cache.memoize(engine="memcache", key=lambda self, access, secret: f'ia_sync-{access}', expires=5 * 60)
+    @cache.memoize(
+        engine="memcache",
+        key=lambda self, access, secret: f'ia_sync-{access}',
+        expires=5 * 60,
+    )
     def is_authorized(self, access_key, secret_key):
         """Returns True if account is authorized to make changes to records."""
         auth = accounts.InternetArchiveAccount.s3auth(access_key, secret_key)
@@ -297,7 +301,9 @@ class sync_ia_ol(delegate.page):
         'modify', the requst must also include 'ocaid'.
         """
         action = i.get('action', '')
-        return 'olid' in i and (action == 'remove' or (action == 'modify' and 'ocaid' in i))
+        return 'olid' in i and (
+            action == 'remove' or (action == 'modify' and 'ocaid' in i)
+        )
 
     def remove_ocaid(self, edition):
         """Deletes OCAID from given edition"""
