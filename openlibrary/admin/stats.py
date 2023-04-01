@@ -188,7 +188,4 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
         store_data(data, start.strftime("%Y-%m-%d"))
         end = start
         start = end - datetime.timedelta(days=1)
-    if numbers.sqlitefile:
-        logger.info("Removing sqlite file used for ipstats")
-        os.unlink(numbers.sqlitefile)
     return 0
