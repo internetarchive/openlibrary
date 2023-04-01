@@ -1,7 +1,7 @@
 /**
  * Init the announcement banners if any
  * If patron has dismissed the banner by clicking the 'X' button, banner storage key will be added to localstorage
- * Banners with storage keys within the localstorage will not show again 
+ * Banners with storage keys within the localstorage will not show again
  */
 export function initAnnouncementBanner() {
     const announcementBanner = document.getElementById('announcement-banner');
