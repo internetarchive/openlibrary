@@ -4,24 +4,24 @@
  * Banners with storage keys within the localstorage will not show again 
  */
 export function initAnnouncementBanner() {
-    const announcementBanner = document.getElementById("announcement-banner");
+    const announcementBanner = document.getElementById('announcement-banner');
     const storedHiddenBannerKeys = localStorage.getItem('hiddenBannerKeys');
-    const bannerKey = announcementBanner.getAttribute("data-storage-key");
+    const bannerKey = announcementBanner.getAttribute('data-storage-key');
     if (storedHiddenBannerKeys) {
         const hiddenBannerKeys = JSON.parse(storedHiddenBannerKeys);
         if (hiddenBannerKeys[bannerKey] === true) {
-        announcementBanner.style.display = "none";
+            announcementBanner.style.display = 'none';
         }
     }
-    const closeButton = document.getElementById("close-banner");
+    const closeButton = document.getElementById('close-banner');
     closeButton.addEventListener('click', function() {
         const bannerKeys = storedHiddenBannerKeys ? JSON.parse(storedHiddenBannerKeys) : {};
 
         // add banner Key to localstorage array if it's not already there
         if (!bannerKeys[bannerKey]) {
-        bannerKeys[bannerKey] = true;
-        localStorage.setItem('hiddenBannerKeys', JSON.stringify(bannerKeys));
+            bannerKeys[bannerKey] = true;
+            localStorage.setItem('hiddenBannerKeys', JSON.stringify(bannerKeys));
         }
-        announcementBanner.style.display = "none";
+        announcementBanner.style.display = 'none';
     });
 }
