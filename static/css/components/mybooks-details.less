@@ -69,12 +69,12 @@
   }
 
   .carousel-section-header {
-    border-bottom: 1px solid #bbbbbb;
+    border-bottom: 1px solid @light-mid-grey;
   }
 
   .showcase {
     display: flex;
-    background-color: #f0f0f0;
+    background-color: @lightest-grey;
     height: 12vh;
     gap: 15px;
     padding: 0 15px;
@@ -86,13 +86,17 @@
     margin: 0;
   }
 
+  .nopadding {
+    padding: 0px;
+  }
+
+  .last-book {
+    -webkit-mask-image: linear-gradient(to left, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
+    mask-image: linear-gradient(to left, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
+  }
+
   .book .book-cover.mobile {
     height: auto;
     width: calc(20vw - 15px);
-  }
-
-  #last-book {
-    -webkit-mask-image: linear-gradient(to left, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
-    mask-image: linear-gradient(to left, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
   }
 }

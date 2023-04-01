@@ -39,15 +39,18 @@ $def render_carousel_cover(book, lazy, index):
   $ modifier = ''
   $ work_key = book.key if book.key.startswith('/work') else book.get('work_key')
 
+  $ last_book = ''
+  $if index==4:
+    $ last_book = 'last-book'
+
+
   <div class="book showcase__item">
     <div class="book-cover mobile">
-      <a class="mybooks mobile" href="$(url)">
+      <a class="mybooks mobile nopadding" href="$(url)">
         $if cover_url:
-          <img class="bookcover mobile" loading="lazy"
+          <img class="bookcover mobile $(last_book)" loading="lazy"
             title="$('%s%s'%(title,byline))"
             alt="$('%s%s'%(title,byline))"
-          $if index==4:
-            id="last-book"
           $if lazy:
             data-lazy="$(cover_url)"
             src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
