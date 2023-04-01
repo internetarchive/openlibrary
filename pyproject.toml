@@ -7,8 +7,9 @@
 skip-string-normalization = true
 target-version = ["py310", "py311"]
 
-[tool.pytest.ini_options]
-asyncio_mode = "strict"
+[tool.codespell]
+ignore-words-list = "beng,curren,datas,furst,nd,nin,ot,ser,spects,te,tha,ue,upto"
+skip = "./.*,*/ocm00400866,*/read_toc.py,*.it,*.js,*.json,*.mrc,*.page,*.pg_dump,*.po,*.txt,*.xml,*.yml"
 
 [tool.mypy]
 ignore_missing_imports = true
@@ -25,38 +26,96 @@ module = [
 ]
 ignore_errors = true
 
-
-
-
-[tool.codespell]
-ignore-words-list = "beng,curren,datas,furst,nd,nin,ot,ser,spects,te,tha,ue,upto"
-skip = "./.*,*/ocm00400866,*/read_toc.py,*.it,*.js,*.json,*.mrc,*.page,*.pg_dump,*.po,*.txt,*.xml,*.yml"
+[tool.pytest.ini_options]
+asyncio_mode = "strict"
 
 [tool.ruff]
 exclude = [
-    "./.*",
-    "vendor/*",
-    "node_modules/*",
+  "./.*",
+  "node_modules/*",
+  "vendor/*",
 ]
 ignore = [
-    "E402",
-    "E722",
-    "E741",
-    "F401",
-    "F841",
-    "I",
-    "PLC1901",  # `s == ''` can be simplified to `not s` as an empty string is falsey
+  "C408",
+  "E402",
+  "E722",
+  "E741",
+  "F401",
+  "F841",
+  "I",
+  "PIE790",
+  "PIE804",
+  "PLC1901",
+  "RSE102",
+  "SLF001",
+  "UP007",
+  "UP031",
+  "UP035",
+  "UP038",
 ]
-line-length = 200
+line-length = 162
 select = [
-    "C9",
-    "E",
-    "F",
-    "G010",
-    "PLC",
-    "W",
+  "C4",      # flake8-comprehensions
+  "C90",     # McCabe cyclomatic complexity
+  "E",       # pycodestyle
+  "F",       # Pyflakes
+  "G010",    # flake8-logging-format
+  "I",       # isort
+  "ICN",     # flake8-import-conventions
+  "INT",     # flake8-gettext
+  "PIE",     # flake8-pie
+  "PLC",     # Pylint conventions
+  "PLE",     # Pylint errors
+  "PLR091",  # Pylint Refactor just for max-args, max-branches, etc.
+  "PYI",     # flake8-pyi
+  "RSE",     # flake8-raise
+  "SLF",     # flake8-self
+  "T10",     # flake8-debugger
+  "UP",      # pyupgrade
+  "W",       # pycodestyle
+  "YTT",     # flake8-2020
+  # "A",     # flake8-builtins
+  # "ANN",   # flake8-annotations
+  # "ARG",   # flake8-unused-arguments
+  # "B",     # flake8-bugbear
+  # "BLE",   # flake8-blind-except
+  # "COM",   # flake8-commas
+  # "D",     # pydocstyle
+  # "DJ",    # flake8-django
+  # "DTZ",   # flake8-datetimez
+  # "EM",    # flake8-errmsg
+  # "ERA",   # eradicate
+  # "EXE",   # flake8-executable
+  # "FBT",   # flake8-boolean-trap
+  # "G",     # flake8-logging-format
+  # "INP",   # flake8-no-pep420
+  # "ISC",   # flake8-implicit-str-concat
+  # "N",     # pep8-naming
+  # "NPY",   # NumPy-specific rules
+  # "PD",    # pandas-vet
+  # "PGH",   # pygrep-hooks
+  # "PT",    # flake8-pytest-style
+  # "PTH",   # flake8-use-pathlib
+  # "Q",     # flake8-quotes
+  # "RET",   # flake8-return
+  # "RUF",   # Ruff-specific rules
+  # "S",     # flake8-bandit
+  # "SIM",   # flake8-simplify
+  # "T20",   # flake8-print
+  # "TCH",   # flake8-type-checking
+  # "TID",   # flake8-tidy-imports
+  # "TRY",   # tryceratops
 ]
 target-version = "py311"
 
 [tool.ruff.mccabe]
 max-complexity = 41
+
+[tool.ruff.pylint]
+max-args = 15
+max-branches = 42
+max-returns = 14
+max-statements = 106
+
+[tool.ruff.per-file-ignores]
+"tests/*" = ["S101"]

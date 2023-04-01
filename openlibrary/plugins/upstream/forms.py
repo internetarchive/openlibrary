@@ -88,7 +88,8 @@ class RegisterForm(Form):
         Textbox(
             'username',
             description=_(
-                "Choose a screen name. Screen names are public and cannot be changed later."
+                "Choose a screen name. Screen names are public and cannot be changed "
+                "later."
             ),
             klass='required',
             help=_("Letters and numbers only please, and at least 3 characters."),
@@ -113,7 +114,9 @@ class RegisterForm(Form):
         Checkbox(
             'ia_newsletter',
             description=_(
-                """I want to receive news, announcements, and resources from the <a href="https://archive.org/">Internet Archive</a>, the non-profit that runs Open Library."""
+                'I want to receive news, announcements, and resources from the '
+                '<a href="https://archive.org/">Internet Archive</a>, the non-profit '
+                'that runs Open Library.'
             ),
         ),
     ]

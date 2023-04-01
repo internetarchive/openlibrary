@@ -32,12 +32,12 @@ repos:
       - id: auto-walrus
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.259
+    rev: v0.0.260
     hooks:
       - id: ruff
 
   - repo: https://github.com/psf/black
-    rev: 23.1.0
+    rev: 23.3.0
     hooks:
       - id: black  # See pyproject.toml for args
 

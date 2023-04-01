@@ -25,7 +25,9 @@ def test_full_title():
 
 def test_merge_titles():
     marc = {
-        'title_with_subtitles': 'Spytime : the undoing of James Jesus Angleton : a novel',
+        'title_with_subtitles': (
+            'Spytime : the undoing of James Jesus Angleton : a novel'
+        ),
         'title': 'Spytime',
         'full_title': 'Spytime : the undoing of James Jesus Angleton : a novel',
     }
@@ -210,8 +212,12 @@ def test_merge5():
         'isbn_10': ['0002174049'],
         'number_of_pages': 120,
         'short_title': 'netherlandish and german ',
-        'normalized_title': 'netherlandish and german paintings national gallery schools of painting',
-        'full_title': 'Netherlandish and German Paintings (National Gallery Schools of Painting)',
+        'normalized_title': (
+            'netherlandish and german paintings national gallery schools of painting'
+        ),
+        'full_title': (
+            'Netherlandish and German Paintings (National Gallery Schools of Painting)'
+        ),
         'titles': [
             'Netherlandish and German Paintings (National Gallery Schools of Painting)',
             'netherlandish and german paintings national gallery schools of painting',
@@ -293,11 +299,19 @@ def test_merge7():
         'publisher': ['Collins'],
         'isbn_10': ['0002176319'],
         'short_title': 'pucklers progress  the ad',
-        'normalized_title': 'pucklers progress  the adventures of prince puckler muskau in england wales and ireland as told in letters to his former wife 1826 9',
-        'full_title': "Puckler's progress : the adventures of Prince Pu\u0308ckler-Muskau in England, Wales, and Ireland as told in letters to his former wife, 1826-9",
+        'normalized_title': (
+            'pucklers progress  the adventures of prince puckler muskau in england '
+            'wales and ireland as told in letters to his former wife 1826 9'
+        ),
+        'full_title': (
+            "Puckler's progress : the adventures of Prince Pu\u0308ckler-Muskau in "
+            "England, Wales, and Ireland as told in letters to his former wife, 1826-9"
+        ),
         'titles': [
-            "Puckler's progress : the adventures of Prince Pu\u0308ckler-Muskau in England, Wales, and Ireland as told in letters to his former wife, 1826-9",
-            'pucklers progress  the adventures of prince puckler muskau in england wales and ireland as told in letters to his former wife 1826 9',
+            "Puckler's progress : the adventures of Prince Pu\u0308ckler-Muskau in "
+            "England, Wales, and Ireland as told in letters to his former wife, 1826-9",
+            'pucklers progress  the adventures of prince puckler muskau in england '
+            'wales and ireland as told in letters to his former wife 1826 9',
         ],
         'publish_date': '1987',
         'authors': [

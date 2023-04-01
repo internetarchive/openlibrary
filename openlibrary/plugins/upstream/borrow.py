@@ -760,7 +760,7 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
     """Returns response similar to one of these:
     {'success':true,'token':'1287185207-fa72103dd21073add8f87a5ad8bce845','borrowed':true}
     {'success':false,'msg':'Book is checked out','borrowed':false, 'resolution': 'You can visit <a href="http://openlibary.org/ia/someid">this book\'s page on Open Library</a>.'}
-    """
+    """  # noqa: E501
 
     base_url = 'http://' + web.ctx.host
     resolution_dict = {'base_url': base_url, 'item_id': item_id}
