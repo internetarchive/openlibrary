@@ -29,38 +29,13 @@ $if ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ct
       $for flash in get_flash_messages():
         <div class="$flash.type"><span>$flash.message</span></div>
       </div>
-      $# Paste next line into announcement variable to show the blue banner
-      $# <strong>Title:</strong> Description &nbsp; <a href="#" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>
-      $# Please keep the announcement a dict object with 'title' and 'message' keys
-      $ announcement = {'title': None, 'message': None}
-      $if announcement and announcement['message'] and announcement['title']:
-        <div title="$announcement['title']" id="announcement-banner" class="page-banner page-banner-body">
-          $:announcement['message']
-          <button id="close-banner" class="page-banner-close">X</button>
-        </div>
-        <script>
-            var announcementBanner = document.getElementById("announcement-banner");
-            var storedHiddenBannerTitles = localStorage.getItem('hiddenBannerTitles');
-            var bannerTitle = announcementBanner.getAttribute("title");
-
-            // hide banner if it's title is already in localstorage
-            if (storedHiddenBannerTitles) {
-              var hiddenBannerTitles = JSON.parse(storedHiddenBannerTitles);
-              if (hiddenBannerTitles.includes(bannerTitle)) {
-                announcementBanner.style.display = "none";
-              }
-            }
-            var closeButton = document.getElementById("close-banner");
-            closeButton.addEventListener('click', function() {
-              var bannerTitles = storedHiddenBannerTitles ? JSON.parse(storedHiddenBannerTitles) : [];
-
-              // add banner title to localstorage array if it's not already there
-              if (!bannerTitles.includes(bannerTitle)) {
-                bannerTitles.push(bannerTitle);
-                localStorage.setItem('hiddenBannerTitles', JSON.stringify(bannerTitles));
-              }
-              announcementBanner.style.display = "none";
-            });
-        </script>
+      $# To create a new announcement banner, please input the message within the announcement variable and
+      $# add a key with the following schema YYYY_MM_DD_Title_Of_Banner within the storage_key variable
+      $# If you are using the blue banner (see 'site/banner'), do add a title in the title variable 
+      $ announcement = ''
+      $ storage_key = ''
+      $ title = ''
+      $ announcement_bar = render_template('site/banner', announcement, storage_key, title) if announcement and storage_key else ''
+      $:announcement_bar
     $:page
   </div>
