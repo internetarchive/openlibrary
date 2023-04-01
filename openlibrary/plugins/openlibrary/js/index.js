@@ -499,6 +499,7 @@ jQuery(function () {
             .then(module => module.initAddProviderRowLink(addProviderRowLink))
     }
 
+    // Add banner for site announcements
     const siteBanner = document.getElementById('announcement-banner')
     if (siteBanner) {
         import(/* webpackChunkName: "announcement-banner" */ './initAnnouncementBanner')
