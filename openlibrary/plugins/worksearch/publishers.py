@@ -61,29 +61,28 @@ class publisher_search(delegate.page):
     def GET(self):
         i = web.input(q="")
         solr = search.get_solr()
-        q = {"publisher": i.q}
+        query_str = f"publisher:\"{i.q}\""
 
         result = solr.select(
-            q,
+            query_str,
             facets=["publisher_facet"],
             fields=["publisher", "publisher_facet"],
-            rows=0,
+            rows=25,
         )
         result = self.process_result(result)
         return render_template('search/publishers', i.q, result)
 
     def process_result(self, result):
-        solr = search.get_solr()
-
         def process(p):
             return web.storage(
                 name=p.value,
                 key="/publishers/" + p.value.replace(" ", "_"),
-                count=solr.select({"publisher_facet": p.value}, rows=0)['num_found'],
+                count=p.count,
             )
 
-        publisher_facets = result['facets']['publisher_facet'][:25]
+        publisher_facets = result['facets']['publisher_facet']
         return [process(p) for p in publisher_facets]
+
 
 
 class PublisherEngine(subjects.SubjectEngine):
