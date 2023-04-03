@@ -76,7 +76,7 @@ RUN ln -s /home/openlibrary/.local/bin/ia /usr/local/bin/ia
 USER openlibrary
 
 COPY --chown=openlibrary:openlibrary package*.json ./
-RUN npm ci
+RUN npm ci --no-audit
 
 COPY --chown=openlibrary:openlibrary . /openlibrary
 
