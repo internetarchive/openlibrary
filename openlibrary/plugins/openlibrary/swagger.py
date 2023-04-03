@@ -5,6 +5,7 @@ from infogami.utils.view import render_template
 def setup():
     pass
 
+
 class swagger(delegate.page):
     path = "/swagger_api/docs"
 

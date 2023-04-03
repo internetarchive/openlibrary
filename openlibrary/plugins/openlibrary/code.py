@@ -1127,7 +1127,7 @@ def setup():
         design,
         status,
         authors,
-        swagger
+        swagger,
     )
 
     sentry.setup()
