@@ -7,7 +7,7 @@ def setup():
 
 
 class swagger(delegate.page):
-    path = "/api/docs"
+    path = "/swagger/docs"
 
     def GET(self):
         return render_template("swagger/swaggerui.html")
