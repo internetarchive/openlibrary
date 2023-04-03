@@ -84,7 +84,6 @@ class publisher_search(delegate.page):
         return [process(p) for p in publisher_facets]
 
 
-
 class PublisherEngine(subjects.SubjectEngine):
     def normalize_key(self, key):
         return key
