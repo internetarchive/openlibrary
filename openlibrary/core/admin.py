@@ -64,6 +64,25 @@ class Stats:
         return sum(x[1] for x in self.get_counts(ndays))
 
 
+@cache.memoize(
+    engine="memcache", key="admin._get_loan_counts_from_graphite", expires=5 * 60
+)
+def _get_loan_counts_from_graphite(ndays: int) -> list[list[int]] | None:
+    try:
+        r = requests.get(
+            'http://graphite.us.archive.org/render',
+            params={
+                'target': 'hitcount(stats.ol.loans.bookreader, "1d")',
+                'from': '-%ddays' % ndays,
+                'tz': 'UTC',
+                'format': 'json',
+            },
+        )
+        return r.json()[0]['datapoints']
+    except (requests.exceptions.RequestException, ValueError, AttributeError):
+        return None
+
+
 class LoanStats(Stats):
     """
     Temporary (2020-03-19) override of Stats for loans, due to bug
@@ -72,65 +91,50 @@ class LoanStats(Stats):
     so that we don't forget.
     """
 
-    @cache.method_memoize
-    def _get_graphite_data(self, ndays):
-        try:
-            r = requests.get(
-                'http://graphite.us.archive.org/render',
-                params={
-                    'target': 'hitcount(stats.ol.loans.bookreader, "1d")',
-                    'from': '-%ddays' % ndays,
-                    'tz': 'UTC',
-                    'format': 'json',
-                },
-            )
-            return r.json()[0]['datapoints']
-        except (requests.exceptions.RequestException, ValueError, AttributeError):
-            return None
-
     def get_counts(self, ndays=28, times=False):
         # Let dev.openlibrary.org show the true state of things
         if 'dev' in config.features:
             return Stats.get_counts(self, ndays, times)
 
-        if graphite_data := self._get_graphite_data(ndays):
+        if graphite_data := _get_loan_counts_from_graphite(ndays):
             # convert timestamp seconds to ms (as required by API)
             return [[timestamp * 1000, count] for [count, timestamp] in graphite_data]
         else:
             return Stats.get_counts(self, ndays, times)
 
 
-class VisitorStats(Stats):
-    # @cache.memoize(engine="memcache", key="admin.get_visitors_per_day", expires=5 * 60)
-    @cache.method_memoize
-    def _get_visitors_per_day(self, ndays: int = 28) -> list[list[int]]:
-        """
-        Read the unique visitors (IP addresses) per day for the last ndays from graphite.
-        :param ndays: number of days to read
-        :return: list containing [count, timestamp] for ndays
-        """
-        try:
-            response = requests.get(
-                "http://graphite.us.archive.org/render/",
-                params={
-                    "target": "hitcount(stats.uniqueips.openlibrary, '1d')",
-                    "from": f"-{ndays}days",
-                    "tz": "UTC",
-                    "format": "json",
-                },
-            )
-            response.raise_for_status()
-            visitors = response.json()[0]['datapoints']
-        except requests.exceptions.RequestException:
-            visitors = []
-        return visitors
+@cache.memoize(
+    engine="memcache", key="admin._get_visitor_counts_from_graphite", expires=5 * 60
+)
+def _get_visitor_counts_from_graphite(self, ndays: int = 28) -> list[list[int]]:
+    """
+    Read the unique visitors (IP addresses) per day for the last ndays from graphite.
+    :param ndays: number of days to read
+    :return: list containing [count, timestamp] for ndays
+    """
+    try:
+        response = requests.get(
+            "http://graphite.us.archive.org/render/",
+            params={
+                "target": "hitcount(stats.uniqueips.openlibrary, '1d')",
+                "from": f"-{ndays}days",
+                "tz": "UTC",
+                "format": "json",
+            },
+        )
+        response.raise_for_status()
+        visitors = response.json()[0]['datapoints']
+    except requests.exceptions.RequestException:
+        visitors = []
+    return visitors
 
-    def get_counts(self, ndays: int = 28, times: bool = False) -> list[list[int]]:
-        print(f"get_counts({ndays})")
-        visitors = self._get_visitors_per_day(ndays)
+
+class VisitorStats(Stats):
+    def get_counts(self, ndays: int = 28, times: bool = False) -> list[tuple[int, int]]:
+        visitors = _get_visitor_counts_from_graphite(ndays)
         # Flip the order, convert timestamp to msec and convert count==None to zero
         return [
-            [int(timestamp * 1000), int(count or 0)] for count, timestamp in visitors
+            (int(timestamp * 1000), int(count or 0)) for count, timestamp in visitors
         ]
 
 
