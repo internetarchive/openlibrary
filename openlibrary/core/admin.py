@@ -100,28 +100,38 @@ class LoanStats(Stats):
             return Stats.get_counts(self, ndays, times)
 
 
-@cache.memoize(engine="memcache", key="admin.get_visitors_per_day", expires=5 * 60)
-def get_visitors_per_day(ndays: int = 28) -> list[tuple[int, int]]:
-    """
-    Read the unique visitors (IP addresses) per day for the last ndays from graphite.
-    """
-    try:
-        response = requests.get(
-            "http://graphite.us.archive.org/render/",
-            params={
-                "target": "hitcount(stats.uniqueips.openlibrary, '1d')",
-                "from": f"-{ndays}days",
-                "tz": "UTC",
-                "format": "json",
-            },
-        )
-        response.raise_for_status()
-        visitors = response.json()[0]['datapoints']
-    except requests.exceptions.RequestException:
-        visitors = []
+class VisitorStats(Stats):
+    # @cache.memoize(engine="memcache", key="admin.get_visitors_per_day", expires=5 * 60)
+    @cache.method_memoize
+    def _get_visitors_per_day(self, ndays: int = 28) -> list[list[int]]:
+        """
+        Read the unique visitors (IP addresses) per day for the last ndays from graphite.
+        :param ndays: number of days to read
+        :return: list containing [count, timestamp] for ndays
+        """
+        try:
+            response = requests.get(
+                "http://graphite.us.archive.org/render/",
+                params={
+                    "target": "hitcount(stats.uniqueips.openlibrary, '1d')",
+                    "from": f"-{ndays}days",
+                    "tz": "UTC",
+                    "format": "json",
+                },
+            )
+            response.raise_for_status()
+            visitors = response.json()[0]['datapoints']
+        except requests.exceptions.RequestException:
+            visitors = []
+        return visitors
 
-    # Flip the order, convert timestamp to msec and convert count==None to zero
-    return [(int(timestamp * 1000), int(count or 0)) for count, timestamp in visitors]
+    def get_counts(self, ndays: int = 28, times: bool = False) -> list[list[int]]:
+        print(f"get_counts({ndays})")
+        visitors = self._get_visitors_per_day(ndays)
+        # Flip the order, convert timestamp to msec and convert count==None to zero
+        return [
+            [int(timestamp * 1000), int(count or 0)] for count, timestamp in visitors
+        ]
 
 
 @cache.memoize(engine="memcache", key="admin._get_count_docs", expires=5 * 60)
@@ -147,7 +157,7 @@ def get_stats(ndays=30):
         'human_edits': Stats(docs, "human_edits", "human_edits"),
         'bot_edits': Stats(docs, "bot_edits", "bot_edits"),
         'lists': Stats(docs, "lists", "total_lists"),
-        'visitors': get_visitors_per_day(ndays),
+        'visitors': VisitorStats(docs, "visitors", "visitors"),
         'loans': LoanStats(docs, "loans", "loans"),
         'members': Stats(docs, "members", "total_members"),
         'works': Stats(docs, "works", "total_works"),
