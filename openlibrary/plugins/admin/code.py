@@ -275,11 +275,6 @@ class sync_ia_ol(delegate.page):
 
         return delegate.RawText(json.dumps({"status": "ok"}))
 
-    @cache.memoize(
-        engine="memcache",
-        key=lambda self, access, secret: f'ia_sync-{access}',
-        expires=5 * 60,
-    )
     def is_authorized(self, access_key, secret_key):
         """Returns True if account is authorized to make changes to records."""
         auth = accounts.InternetArchiveAccount.s3auth(access_key, secret_key)
