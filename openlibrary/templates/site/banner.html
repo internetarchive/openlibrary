@@ -1,7 +1,7 @@
-$def with (announcement, storage_key, title=None)
+$def with (announcement, storage_key)
 
 $# Paste next line into the span element to show the blue banner
-$# <strong>$:title</strong> $:announcement &nbsp; <a href="#" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>
+$# <strong>Title</strong> $:announcement &nbsp; <a href="#" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>
 <div data-storage-key="$storage_key" id="announcement-banner" class="site-banner">
     <span class="site-banner-content">$:announcement</span>
     <button id="close-banner" class="site-banner-close">X</button>

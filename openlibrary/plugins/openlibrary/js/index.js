@@ -503,6 +503,6 @@ jQuery(function () {
     const siteBanner = document.getElementById('announcement-banner')
     if (siteBanner) {
         import(/* webpackChunkName: "announcement-banner" */ './initAnnouncementBanner')
-            .then(module => module.initAnnouncementBanner())
+            .then(module => module.initAnnouncementBanner(siteBanner))
     }
 });
