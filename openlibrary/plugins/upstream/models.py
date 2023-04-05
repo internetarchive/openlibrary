@@ -1012,6 +1012,7 @@ class ListChangeset(Changeset):
             seed = self._site.get(seed['key'])
         return models.Seed(self.get_list(), seed)
 
+
 class Tag(models.Tag):
     pass
 
