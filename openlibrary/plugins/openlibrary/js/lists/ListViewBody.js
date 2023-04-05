@@ -10,22 +10,22 @@
  * @param {function} success - click function
  */
 function remove_seed(list_key, seed, success) {
-    if (seed[0] == "/") {
-        seed = {"key": seed}
+    if (seed[0] === '/') {
+        seed = {key: seed}
     }
 
     $.ajax({
-        type: "POST",
-        url: list_key + "/seeds.json",
-        contentType: "application/json",
+        type: 'POST',
+        url: `${list_key}/seeds.json`,
+        contentType: 'application/json',
         data: JSON.stringify({
-            "remove": [seed]
+            remove: [seed]
         }),
-        dataType: "json",
+        dataType: 'json',
 
         beforeSend: function(xhr) {
-            xhr.setRequestHeader("Content-Type", "application/json");
-            xhr.setRequestHeader("Accept", "application/json");
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('Accept', 'application/json');
         },
         success: success
     });
@@ -35,7 +35,7 @@ function remove_seed(list_key, seed, success) {
  * @returns {number} count of number of seed books in a list
  */
 function get_seed_count() {
-    return $("ul#listResults").children().length;
+    return $('ul#listResults').children().length;
 }
 
 /**
@@ -55,86 +55,86 @@ const getConfirmButtonLabelText = () => {
 };
 
 // Add listeners to each .listDelete link element
-$(".listDelete a").on('click', function() {
+$('.listDelete a').on('click', function() {
     if (get_seed_count() > 1) {
-        $("#remove-seed-dialog")
-            .data("seed-key", $(this).closest("[data-seed-key]").data('seed-key'))
-            .data("list-key", $(this).closest("[data-list-key]").data('list-key'))
-            .dialog("open");
-        $("#remove-seed-dialog").removeClass('hidden');
+        $('#remove-seed-dialog')
+            .data('seed-key', $(this).closest('[data-seed-key]').data('seed-key'))
+            .data('list-key', $(this).closest('[data-list-key]').data('list-key'))
+            .dialog('open');
+        $('#remove-seed-dialog').removeClass('hidden');
     }
     else {
-        $("#delete-list-dialog")
-            .data("list-key", $(this).closest("[data-list-key]").data('list-key'))
-            .dialog("open");
-        $("#delete-list-dialog").removeClass('hidden');
+        $('#delete-list-dialog')
+            .data('list-key', $(this).closest('[data-list-key]').data('list-key'))
+            .dialog('open');
+        $('#delete-list-dialog').removeClass('hidden');
     }
 });
 
 // Set up 'Remove Seed' dialog; force user to confirm the destructive action of removing a seed
-$("#remove-seed-dialog").dialog({
+$('#remove-seed-dialog').dialog({
     autoOpen: false,
     width: 400,
     modal: true,
     resizable: false,
     buttons: {
-        "ConfirmRemoveSeed": {
+        ConfirmRemoveSeed: {
             text: getConfirmButtonLabelText(),
-            id: "remove-seed-dialog--confirm",
+            id: 'remove-seed-dialog--confirm',
             click: function() {
-                var list_key = $(this).data("list-key");
-                var seed_key = $(this).data("seed-key");
+                var list_key = $(this).data('list-key');
+                var seed_key = $(this).data('seed-key');
 
                 var _this = this;
 
                 remove_seed(list_key, seed_key, function() {
-                    $(`[data-seed-key="${seed_key}"]`).remove();
+                    $(`[data-seed-key='${seed_key}']`).remove();
                     // update seed count
-                    $("#list-items-count").load(location.href + " #list-items-count");
+                    $('#list-items-count').load(`${location.href} #list-items-count`);
 
                     // TODO: update edition count
 
-                    $(_this).dialog("close");
-                    $("#remove-seed-dialog").addClass('hidden');
+                    $(_this).dialog('close');
+                    $('#remove-seed-dialog').addClass('hidden');
                 });
             }
         },
-        "CancelRemoveSeed": {
+        CancelRemoveSeed: {
             text: getCancelButtonLabelText(),
-            id: "remove-seed-dialog--cancel",
+            id: 'remove-seed-dialog--cancel',
             click: function() {
-                $(this).dialog("close");
-                $("#remove-seed-dialog").addClass('hidden');
+                $(this).dialog('close');
+                $('#remove-seed-dialog').addClass('hidden');
             }
         }
     }
 });
 
 // Set up 'Delete List' dialog; force user to confirm the destructive action of deleting a list
-$("#delete-list-dialog").dialog({
+$('#delete-list-dialog').dialog({
     autoOpen: false,
     width: 400,
     modal: true,
     resizable: false,
     buttons: {
-        "ConfirmDeleteList": {
+        ConfirmDeleteList: {
             text: getConfirmButtonLabelText(),
-            id: "delete-list-dialog--confirm",
+            id: 'delete-list-dialog--confirm',
             click: function() {
-                var list_key = $(this).data("list-key");
+                var list_key = $(this).data('list-key');
                 var _this = this;
 
-                $.post(list_key + "/delete.json", function() {
-                    $(_this).dialog("close");
+                $.post(`${list_key}/delete.json`, function() {
+                    $(_this).dialog('close');
                     window.location.reload();
                 });
             }
         },
-        "CancelDeleteList": {
+        CancelDeleteList: {
             text: getCancelButtonLabelText(),
-            id: "delete-list-dialog--cancel",
+            id: 'delete-list-dialog--cancel',
             click: function() {
-                $(this).dialog("close");
+                $(this).dialog('close');
             }
         }
     }
