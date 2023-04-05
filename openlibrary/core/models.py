@@ -1119,6 +1119,17 @@ class Subject(web.storage):
             if cover_id:
                 return Image(web.ctx.site, "b", cover_id)
 
+# TODO: expand on tag model
+class Tag(Thing):
+    """Class to represent /type/tag objects in OL."""
+
+    def url(self, suffix="", **params):
+        return self.get_url(suffix, **params)
+
+    def get_url_suffix(self):
+        return self.name or "unnamed"
+
+    
 
 class Tag(Thing):
     """Class to represent /type/tag objects in OL."""
