@@ -202,7 +202,7 @@ def commify(number, lang=None):
     """localized version of web.commify"""
     try:
         lang = lang or web.ctx.get("lang") or "en"
-        return babel.numbers.format_decimal(int(number), lang)
+        return babel.numbers.format_decimal(int(number), locale=lang)
     except Exception:
         return str(number)
 
