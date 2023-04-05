@@ -25,12 +25,12 @@
     }
   }
 
-  li.selected a {
+  &:not(.work-menu) li.selected a {
     color: @link-blue;
     border-bottom: 2px solid @link-blue;
   }
 
-  li:hover a {
+  &:not(.work-menu) li:hover a {
     border-bottom: 2px solid @link-blue;
   }
 }
@@ -69,20 +69,17 @@
       border-radius: 11px;
       margin-bottom: 6px;
     }
-  
-    li a:hover {
-      background-color: darken(@blue-5e88B9, 10%);
-      color: white;
+
+    @media (hover: hover) and (pointer: fine) {
+      li:hover a {
+        background-color: darken(@blue-5e88B9, 10%);
+        color: white;
+      }
     }
-  
+
     li.selected a {
       color: white;
       background-color: @blue-5e88B9;
-  
-    }
-  
-    li.selected a:hover {
-      background-color: darken(@blue-5e88B9, 10%);
     }
   }
 }
@@ -109,7 +106,7 @@
       animation-duration: .5s;
       animation-name: slideup
     }
-  
+
     @keyframes slideup {
       to {
         top: 0;
