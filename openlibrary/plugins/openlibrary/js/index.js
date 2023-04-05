@@ -454,7 +454,11 @@ jQuery(function () {
         import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
             .then((module) => {
                 for (const wrapper of navbarWrappers) {
-                    module.initNavbar(wrapper)
+                    // The book page has 2 navbars (one for mobile views; one for desktop).
+                    // We only want to initialize the visible navbar:
+                    if (wrapper.checkVisibility()) {
+                        module.initNavbar(wrapper)
+                    }
                 }
             });
         // Add sticky title component animations to desktop views:
