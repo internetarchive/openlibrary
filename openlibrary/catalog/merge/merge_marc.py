@@ -299,9 +299,9 @@ def compare_publisher(e1, e2):
                 e2_norm = normalize(e2_pub)
                 if e1_norm == e2_norm:
                     return ('publisher', 'match', 100)
-                elif substr_match(e1_norm, e2_norm):
-                    return ('publisher', 'occur within the other', 100)
-                elif substr_match(e1_norm.replace(' ', ''), e2_norm.replace(' ', '')):
+                elif substr_match(e1_norm, e2_norm) or substr_match(
+                    e1_norm.replace(' ', ''), e2_norm.replace(' ', '')
+                ):
                     return ('publisher', 'occur within the other', 100)
                 elif short_part_publisher_match(e1_norm, e2_norm):
                     return ('publisher', 'match', 100)

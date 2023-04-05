@@ -47,6 +47,11 @@ ignore = [
   "PIE804",
   "PLC1901",
   "RSE102",
+  "SIM102",
+  "SIM105",
+  "SIM108",
+  "SIM115",
+  "SIM300",
   "SLF001",
   "UP007",
   "UP031",
@@ -69,6 +74,7 @@ select = [
   "PLR091",  # Pylint Refactor just for max-args, max-branches, etc.
   "PYI",     # flake8-pyi
   "RSE",     # flake8-raise
+  "SIM",     # flake8-simplify
   "SLF",     # flake8-self
   "T10",     # flake8-debugger
   "UP",      # pyupgrade
@@ -100,7 +106,6 @@ select = [
   # "RET",   # flake8-return
   # "RUF",   # Ruff-specific rules
   # "S",     # flake8-bandit
-  # "SIM",   # flake8-simplify
   # "T20",   # flake8-print
   # "TCH",   # flake8-type-checking
   # "TID",   # flake8-tidy-imports

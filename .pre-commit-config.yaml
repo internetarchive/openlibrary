@@ -32,7 +32,7 @@ repos:
       - id: auto-walrus
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.260
+    rev: v0.0.261
     hooks:
       - id: ruff
 
@@ -49,7 +49,7 @@ repos:
           - tomli
 
   - repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.14.0
+    rev: v0.15.0
     hooks:
     - id: cython-lint
 
