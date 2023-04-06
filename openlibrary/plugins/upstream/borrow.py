@@ -583,12 +583,9 @@ def is_loaned_out(resource_id):
 
 
 def is_loaned_out_from_status(status):
-    if not status:
+    if not status or status['returned'] == 'T':
+        # Current loan has been returned
         return False
-    else:
-        if status['returned'] == 'T':
-            # Current loan has been returned
-            return False
 
     # Has status and not returned
     return True

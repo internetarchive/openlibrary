@@ -307,9 +307,7 @@ def copy_list(src, dest, list_key, comment):
         return d['entries']  # [x['url'] for x in d['entries']]
 
     def add_seed(seed):
-        if seed['type'] == 'edition':
-            keys.add(seed['url'])
-        elif seed['type'] == 'work':
+        if seed['type'] in ('edition', 'work'):
             keys.add(seed['url'])
         elif seed['type'] == 'subject':
             doc = jsonget(seed['url'] + '.json')
