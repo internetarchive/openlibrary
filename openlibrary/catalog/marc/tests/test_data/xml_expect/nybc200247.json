@@ -1,10 +1,11 @@
 {
   "other_titles": [
+    "Tsum hundertsṭn geboyrnṭog fun Shimon Dubnoṿ",
     "Tzum hundertstn geboirntog fun Shimen Dubnow",
     "Centennial of the historian Shimen Dubnow"
   ],
   "publishers": [
-    "I\u1e33uf"
+    "Iḳuf"
   ],
   "pagination": "92 p.",
   "table_of_contents": [
@@ -22,7 +23,7 @@
     }
   ],
   "subtitle": "zamlung",
-  "title": "Tsum hunderts\u1e6dn geboyrn\u1e6dog fun Shimon Dubno\u1e7f",
+  "title": "צום הונדערטסטן געבוירנטאג פון שמעון דובנאוו",
   "series": [
     "Steven Spielberg digital Yiddish library -- no. 00247"
   ],
@@ -44,7 +45,10 @@
       "personal_name": "Dubnow, Simon",
       "death_date": "1941",
       "name": "Dubnow, Simon",
-      "entity_type": "person"
+      "entity_type": "person",
+      "alternate_names": [
+        "דובנאוו, שמעון"
+      ]
     }
   ],
   "subject_people": [
