@@ -6,7 +6,7 @@ $ display_for = 'desktop-only' if desktop_only else 'mobile-only'
 <span class="nav-bar-wrapper sticky $display_for">
   <ul class="nav-bar work-menu">
     <li class="selected">
-      <a href="#top" data-ol-link-track="BookPageNav|Overview">$_("Overview")</a>
+      <a href="#overview$('-mobile' if not desktop_only else '')" data-ol-link-track="BookPageNav|Overview">$_("Overview")</a>
     </li>
     <li>
       <a href="#editions-list" data-ol-link-track="BookPageNav|EditionTable">

@@ -184,6 +184,7 @@ $ component_times['get_observation_metrics'] = time() - component_times['get_obs
 
     <!-- (mobile only) -->
     $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations)
+    <a id="overview-mobile" name="overview-mobile" class="section-anchor section-anchor--no-height"></a>
     $:render_template("type/edition/title_and_author", work, edition, ocaid, work_title, star_ratings_stats, for_desktop=False)
     <div class="editionCover">
       $ share_url = request.home + (edition or work).key
@@ -202,6 +203,7 @@ $ component_times['get_observation_metrics'] = time() - component_times['get_obs
         $:macros.databarView(page, edition)
         $ component_times['EditTopbar'] = time() - component_times['EditTopbar']
       </div>
+      <a id="overview" name="overview" class="section-anchor section-anchor--no-height"></a>
       <!-- (desktop only) -->
       $:render_template("type/edition/title_and_author", work, edition, ocaid, work_title, star_ratings_stats, for_desktop=True)
 
@@ -531,11 +533,11 @@ $ component_times['get_observation_metrics'] = time() - component_times['get_obs
             </div>
           </div>
       </div>
+      <a id="related-work-carousel" name="related-work-carousel tab-section" class="section-anchor"></a>
     </div>
   </div>
 
   $ component_times['RelatedWorksCarousel'] = time()
-  <a id="related-work-carousel" name="related-work-carousel tab-section" class="section-anchor"></a>
   <div class="RelatedWorksCarousel" data-workid="$work.key.split('/')[-1]">
     <div class="hidden loadingIndicator">
         <figure>
