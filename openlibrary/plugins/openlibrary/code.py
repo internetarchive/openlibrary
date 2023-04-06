@@ -2,6 +2,12 @@
 Open Library Plugin.
 """
 
+import urllib
+from infogami.core.db import get_recent_changes as _get_recentchanges
+from openlibrary.plugins.openlibrary import lists
+from openlibrary.core import models
+from openlibrary.core import schema
+from openlibrary.plugins.openlibrary import connection
 import requests
 import web
 import json
@@ -52,20 +58,19 @@ except:
     api = None  # type: ignore[assignment]
 
 # http header extension for OL API
-infogami.config.http_ext_header_uri = 'http://openlibrary.org/dev/docs/api'  # type: ignore[attr-defined]
+# type: ignore[attr-defined]
+infogami.config.http_ext_header_uri = 'http://openlibrary.org/dev/docs/api'
 
 # setup special connection with caching support
-from openlibrary.plugins.openlibrary import connection
 
-client._connection_types['ol'] = connection.OLConnection  # type: ignore[assignment]
+# type: ignore[assignment]
+client._connection_types['ol'] = connection.OLConnection
 infogami.config.infobase_parameters = dict(type='ol')
 
 # set up infobase schema. required when running in standalone mode.
-from openlibrary.core import schema
 
 schema.register_schema()
 
-from openlibrary.core import models
 
 models.register_models()
 models.register_types()
@@ -75,7 +80,6 @@ infogami._install_hooks = [
     h for h in infogami._install_hooks if h.__name__ != 'movefiles'
 ]
 
-from openlibrary.plugins.openlibrary import lists
 
 lists.setup()
 
@@ -95,7 +99,8 @@ class hooks(client.hook):
             if page.type.key == '/type/author':
                 return
 
-            books = web.ctx.site.things({'type': '/type/edition', 'authors': page.key})
+            books = web.ctx.site.things(
+                {'type': '/type/edition', 'authors': page.key})
             books = books or web.ctx.site.things(
                 {'type': '/type/work', 'authors': {'author': {'key': page.key}}}
             )
@@ -222,7 +227,13 @@ class team(delegate.page):
 
     def GET(self):
         return render_template("about/team.html")
-    
+
+
+class teammember(delegate.page):
+    path = '/about/teammember'
+
+    def GET(self):
+        return render_template("about/team_member.html")
 
 
 class addbook(delegate.page):
@@ -263,7 +274,8 @@ class widget(delegate.page):
             ]
             return delegate.RawText(
                 render_template(
-                    'widget', item if _type == 'books' else format_work_data(item)
+                    'widget', item if _type == 'books' else format_work_data(
+                        item)
                 ),
                 content_type='text/html',
             )
@@ -845,10 +857,6 @@ def changequery(query=None, **kw):
 # Hack to limit recent changes offset.
 # Large offsets are blowing up the database.
 
-from infogami.core.db import get_recent_changes as _get_recentchanges
-
-import urllib
-
 
 @public
 def get_recent_changes(*a, **kw):
@@ -1099,7 +1107,8 @@ def setup_template_globals():
 def setup_context_defaults():
     from infogami.utils import context
 
-    context.defaults.update({'features': [], 'user': None, 'MAX_VISIBLE_BOOKS': 5})
+    context.defaults.update(
+        {'features': [], 'user': None, 'MAX_VISIBLE_BOOKS': 5})
 
 
 def setup():
