@@ -692,10 +692,13 @@ class account_privacy(delegate.page):
 
     @require_login
     def POST(self):
+        #i = web_input(public_readlog="", safe_mode="")
         user = accounts.get_current_user()
-        user.save_preferences(web.input())
+        user.save_preferences(web_input())
+        #web.setcookie('sfw', i.get('safe_mode'), expires=expires)
         add_flash_message(
             'note', _("Notification preferences have been updated successfully.")
+            #'note', _(str(i.get('safe_mode')))
         )
         web.seeother("/account")
 
