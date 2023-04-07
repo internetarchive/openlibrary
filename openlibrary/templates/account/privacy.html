@@ -16,6 +16,7 @@ $def selected(value, value2):
     $if value == value2: checked="checked"
 
 $ public_readlog = d.get('public_readlog', 'no')
+$ safe_mode = d.get('safe_mode', 'no')
 
 <div id="contentBody">
     <form method="post" class="olform" action="" id="privacy">
@@ -40,17 +41,6 @@ $ public_readlog = d.get('public_readlog', 'no')
                 </div>
             </div>
         </div>
-        <div class="formElement bottom">
-            <div class="input">
-                <br/>
-                <button type="submit" class="larger" name="save" title="$_('Save')">$_("Save")</button>
-                &nbsp;
-                <a href="javascript:history.go(-1);" class="smaller attn">$_('Cancel')</a>
-            </div>
-        </div>
-    </form>
-    <form method="post" class="olform" action="" id="safe_mode">
-
         <div class="formElement">
             <h3 class="collapse">Enable Safe Mode? Safe Mode helps you tailor your experience where possible to moderate the content you are shown.</h3>
         </div>
@@ -80,4 +70,5 @@ $ public_readlog = d.get('public_readlog', 'no')
             </div>
         </div>
     </form>
-</div>
+
+
