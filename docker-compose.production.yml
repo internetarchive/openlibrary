@@ -94,7 +94,7 @@ services:
       - ./docker/public_nginx.conf:/etc/nginx/sites-available/public_nginx.conf:ro
       # Needs access to openlibrary for static files
       - ../olsystem:/olsystem
-      - /1/var/lib/openlibrary/sitemaps/sitemaps:/sitemaps
+      - /1/var/lib/openlibrary/sitemaps:/sitemaps
       # web log rotation
       - ../olsystem/etc/logrotate.d/nginx:/etc/logrotate.d/nginx
       # Persist the nginx logs
