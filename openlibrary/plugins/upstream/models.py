@@ -1014,6 +1014,7 @@ class ListChangeset(Changeset):
 
 
 class Tag(models.Tag):
+    """Class to represent /type/tag objects in Open Library."""
     pass
 
 
