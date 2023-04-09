@@ -38,12 +38,12 @@ class addTag(delegate.page):
         if not self.has_permission():
             return safe_seeother(f"/account/login?redirect={self.path}")
 
-        i = web.input(work=None, author=None)
-        work = i.work and web.ctx.site.get(i.work)
+        i = web.input(tag=None, author=None)
+        tag = i.tag and web.ctx.site.get(i.tag)
         author = i.author and web.ctx.site.get(i.author)
 
         return render_template(
-            'tags/add', work=work, author=author, recaptcha=get_recaptcha()
+            'tags/add', tag=tag, author=author, recaptcha=get_recaptcha()
         )
 
     def has_permission(self) -> bool:
@@ -84,7 +84,7 @@ class addTag(delegate.page):
                 return 'No match found'
 
         elif match and match.key.startswith('/tags'):
-            # work match but not edition
+            # tag match
             tag = match
             return self.tag_match(tag)
         else:
@@ -123,13 +123,11 @@ class addTag(delegate.page):
 
     def no_match(self, i: web.utils.Storage) -> NoReturn:
         """
-        Action to take when no matches are found.
+        Action to take when no tags are found.
         Creates a new Tag.
-        Redirects the user to the work/edition edit page
-        in `add-work` mode.
+        Redirects the user to the tag edit page
+        in `add-tag` mode.
         """
-        # Any new author has been created and added to
-        # saveutil, and author_key added to i
         tag = new_doc("/type/tag", name=i.name, authors=i.authors)
 
         web.ctx.site.save(tag, comment="Created new tag.")
