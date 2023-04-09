@@ -109,9 +109,11 @@ def new_doc(type_: Literal["/type/edition"], **data) -> Edition:
 def new_doc(type_: Literal["/type/work"], **data) -> Work:
     ...
 
+
 @overload
 def new_doc(type_: Literal["/type/tag"], **data) -> Tag:
     ...
+
 
 def new_doc(type_: str, **data) -> Author | Edition | Work | Tag:
     """

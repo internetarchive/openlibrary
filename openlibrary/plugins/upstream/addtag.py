@@ -28,6 +28,7 @@ from openlibrary.plugins.upstream.utils import render_template
 
 logger = logging.getLogger("openlibrary.tag")
 
+
 class addTag(delegate.page):
     path = '/tags/add'
 
@@ -44,7 +45,7 @@ class addTag(delegate.page):
         return render_template(
             'tags/add', work=work, author=author, recaptcha=get_recaptcha()
         )
-    
+
     def has_permission(self) -> bool:
         """
         Can a tag be added?
@@ -74,7 +75,7 @@ class addTag(delegate.page):
                 )
 
         i = utils.unflatten(i)
-        match = self.find_match(i) # returns None or Tag (if match found)
+        match = self.find_match(i)  # returns None or Tag (if match found)
 
         if i._test == 'true' and not isinstance(match, list):
             if match:
@@ -90,9 +91,7 @@ class addTag(delegate.page):
             # no match
             return self.no_match(i)
 
-    def find_match(
-        self, i: web.utils.Storage
-    ) -> None | Tag:
+    def find_match(self, i: web.utils.Storage) -> None | Tag:
         """
         Tries to find an existing tag that matches the data provided by the user.
 
@@ -114,7 +113,7 @@ class addTag(delegate.page):
             return None  # Case 1, from add page
         else:
             return result.docs[0]  # Case 2
-    
+
     def tag_match(self, tag: Tag) -> NoReturn:
         """
         Action for when an existing tag has been found.
@@ -136,6 +135,7 @@ class addTag(delegate.page):
         web.ctx.site.save(tag, comment="Created new tag.")
 
         raise safe_seeother(tag.url("/edit"))
+
 
 class tag_edit(delegate.page):
     path = r"(/tags/OL\d+T)/edit"
@@ -180,7 +180,7 @@ class tag_edit(delegate.page):
             raise web.notfound()
 
         try:
-            helper = SaveTagHelper(tag, None) # TODO: add SaveTagHelper
+            helper = SaveTagHelper(tag, None)  # TODO: add SaveTagHelper
             helper.save(web.input())
             add_flash_message("info", utils.get_message("flash_tag_updated"))
             raise safe_seeother(tag.url())
