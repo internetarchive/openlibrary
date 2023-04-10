@@ -47,7 +47,7 @@ plurals = {f + 's': f for f in ('publisher', 'author')}
 
 if hasattr(config, 'plugin_worksearch'):
     solr_select_url = (
-            config.plugin_worksearch.get('solr_base_url', 'localhost') + '/select'
+        config.plugin_worksearch.get('solr_base_url', 'localhost') + '/select'
     )
 
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
@@ -75,7 +75,7 @@ def read_author_facet(author_facet: str) -> tuple[str, str]:
 
 
 def process_facet(
-        field: str, facets: Iterable[tuple[str, int]]
+    field: str, facets: Iterable[tuple[str, int]]
 ) -> tuple[str, str, int]:
     if field == 'has_fulltext':
         counts = dict(facets)
@@ -95,7 +95,7 @@ def process_facet(
 
 
 def process_facet_counts(
-        facet_counts: dict[str, list]
+    facet_counts: dict[str, list]
 ) -> dict[str, tuple[str, str, int]]:
     for field, facets in facet_counts.items():
         if field == 'author_facet':
@@ -104,7 +104,7 @@ def process_facet_counts(
 
 
 def execute_solr_query(
-        solr_path: str, params: Union[dict, list[tuple[str, Any]]]
+    solr_path: str, params: Union[dict, list[tuple[str, Any]]]
 ) -> Optional[Response]:
     url = solr_path
     if params:
@@ -128,17 +128,17 @@ public(has_solr_editions_enabled)
 
 
 def run_solr_query(
-        scheme: SearchScheme,
-        param: Optional[dict] = None,
-        rows=100,
-        page=1,
-        sort: str | None = None,
-        spellcheck_count=None,
-        offset=None,
-        fields: Union[str, list[str]] | None = None,
-        facet: Union[bool, Iterable[str]] = True,
-        allowed_filter_params: set[str] = None,
-        extra_params: Optional[list[tuple[str, Any]]] = None,
+    scheme: SearchScheme,
+    param: Optional[dict] = None,
+    rows=100,
+    page=1,
+    sort: str | None = None,
+    spellcheck_count=None,
+    offset=None,
+    fields: Union[str, list[str]] | None = None,
+    facet: Union[bool, Iterable[str]] = True,
+    allowed_filter_params: set[str] = None,
+    extra_params: Optional[list[tuple[str, Any]]] = None,
 ):
     """
     :param param: dict of query parameters
@@ -155,11 +155,11 @@ def run_solr_query(
         offset = rows * (page - 1)
 
     params = [
-                 *(('fq', subquery) for subquery in scheme.universe),
-                 ('start', offset),
-                 ('rows', rows),
-                 ('wt', param.get('wt', 'json')),
-             ] + (extra_params or [])
+        *(('fq', subquery) for subquery in scheme.universe),
+        ('start', offset),
+        ('rows', rows),
+        ('wt', param.get('wt', 'json')),
+    ] + (extra_params or [])
 
     if spellcheck_count is None:
         spellcheck_count = default_spellcheck_count
@@ -242,9 +242,9 @@ class SearchResponse:
 
     @staticmethod
     def from_solr_result(
-            solr_result: Optional[dict],
-            sort: str,
-            solr_select: str,
+        solr_result: Optional[dict],
+        sort: str,
+        solr_select: str,
     ) -> 'SearchResponse':
         if not solr_result or 'error' in solr_result:
             return SearchResponse(
@@ -275,11 +275,11 @@ class SearchResponse:
 
 
 def do_search(
-        param: dict,
-        sort: Optional[str],
-        page=1,
-        rows=100,
-        spellcheck_count=None,
+    param: dict,
+    sort: Optional[str],
+    page=1,
+    rows=100,
+    spellcheck_count=None,
 ):
     """
     :param param: dict of search url parameters
@@ -317,7 +317,7 @@ def get_doc(doc: SolrDocument, editions_limit=1, editions_offset=0, editions_pag
     if editions_page > 1:
         editions_offset = (editions_page - 1) * editions_limit
 
-    limited_editions = all_editions[editions_offset: editions_offset + editions_limit]
+    limited_editions = all_editions[editions_offset : editions_offset + editions_limit]
     return web.storage(
         key=doc['key'],
         title=doc['title'],
@@ -468,13 +468,13 @@ class search(delegate.page):
 
 
 def works_by_author(
-        akey: str,
-        sort='editions',
-        page=1,
-        rows=100,
-        facet=False,
-        has_fulltext=False,
-        query: str | None = None,
+    akey: str,
+    sort='editions',
+    page=1,
+    rows=100,
+    facet=False,
+    has_fulltext=False,
+    query: str | None = None,
 ):
     param = {'q': query or '*:*'}
     if has_fulltext:
@@ -487,13 +487,13 @@ def works_by_author(
         rows=rows,
         sort=sort,
         facet=(
-                facet
-                and [
-                    "subject_facet",
-                    "person_facet",
-                    "place_facet",
-                    "time_facet",
-                ]
+            facet
+            and [
+                "subject_facet",
+                "person_facet",
+                "place_facet",
+                "time_facet",
+            ]
         ),
         fields=WorkSearchScheme.default_fetched_fields | {'editions'},
         extra_params=[
@@ -714,16 +714,16 @@ def fetch_editions(work_key, editions_limit, editions_offset):
 
 @public
 def work_search(
-        query: dict,
-        sort: str | None = None,
-        page: int = 1,
-        offset: int = 0,
-        limit: int = 100,
-        fields: str = '*',
-        facet: bool = True,
-        spellcheck_count: int | None = None,
-        editions_limit: int = 1,
-        editions_offset: int = 0,
+    query: dict,
+    sort: str | None = None,
+    page: int = 1,
+    offset: int = 0,
+    limit: int = 100,
+    fields: str = '*',
+    facet: bool = True,
+    spellcheck_count: int | None = None,
+    editions_limit: int = 1,
+    editions_offset: int = 0,
 ) -> dict:
     """
     :param sort: key of SORTS dict at the top of this file
