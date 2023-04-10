@@ -300,7 +300,7 @@ def do_search(
 
 
 def get_editions_of_work(work_key):
-    work = models.Work.get(work_key)
+    work = models.Work.get(key=work_key)
     editions = work.get_editions()
     return [edition.dict() for edition in editions]
 
@@ -698,6 +698,8 @@ def rewrite_list_query(q, page, offset, limit):
 
 
 def fetch_editions(work_key, editions_limit, editions_offset):
+
+    # fetch edition from solr server
     solr_url = "http://localhost:8983/solr/openlibrary/select"
     
     params = {
