@@ -34,6 +34,7 @@ from openlibrary.plugins.worksearch.schemes.works import (
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.query_utils import fully_escape_query
 from openlibrary.utils.isbn import normalize_isbn
+from openlibrary.core import models
 
 
 logger = logging.getLogger("openlibrary.worksearch")
@@ -298,12 +299,27 @@ def do_search(
     )
 
 
-def get_doc(doc: SolrDocument):
+def get_editions_of_work(work_key):
+    work = models.Work.get(work_key)
+    editions = work.get_editions()
+    return [edition.dict() for edition in editions]
+
+
+
+def get_doc(doc: SolrDocument,editions_limit=1, editions_offset=0, editions_page=1):
     """
     Coerce a solr document to look more like an Open Library edition/work. Ish.
 
     called from work_search template
     """
+    work_key = doc['key']
+    all_editions = get_editions_of_work(work_key)  # Fetch all editions using the work key
+
+    if editions_page > 1:
+        editions_offset = (editions_page - 1) * editions_limit
+
+    limited_editions = all_editions[editions_offset:editions_offset + editions_limit]
+
     return web.storage(
         key=doc['key'],
         title=doc['title'],
@@ -344,9 +360,9 @@ def get_doc(doc: SolrDocument):
                     'url': f"{ed['key']}/{urlsafe(ed.get('title', 'Untitled'))}",
                 }
             )
-            for ed in doc.get('editions', {}).get('docs', [])
+            for ed in limited_editions
         ],
-    )
+        )
 
 
 class scan(delegate.page):
@@ -414,7 +430,7 @@ class search(delegate.page):
             person_facet=[],
             place_facet=[],
             time_facet=[],
-            public_scan_b=[],
+            public_scan_b=[]
         )
 
         # Send to full-text Search Inside if checkbox checked
@@ -681,6 +697,22 @@ def rewrite_list_query(q, page, offset, limit):
     return q, page, offset, limit
 
 
+def fetch_editions(work_key, editions_limit, editions_offset):
+    solr_url = "http://localhost:8983/solr/openlibrary/select"
+    
+    params = {
+        "q": f"work_key:{work_key}",
+        "wt": "json",
+        "rows": editions_limit,
+        "start": editions_offset,
+    }
+    
+    response = requests.get(solr_url, params=params)
+    response_json = response.json()
+    
+    return response_json["response"]["docs"]
+
+
 @public
 def work_search(
     query: dict,
@@ -691,6 +723,8 @@ def work_search(
     fields: str = '*',
     facet: bool = True,
     spellcheck_count: int | None = None,
+    editions_limit: int = 1, 
+    editions_offset: int = 0
 ) -> dict:
     """
     :param sort: key of SORTS dict at the top of this file
@@ -720,6 +754,11 @@ def work_search(
     response['num_found'] = response['numFound']
     if fields == '*' or 'availability' in fields:
         response['docs'] = add_availability(response['docs'])
+
+    for doc in response['docs']:
+        work_key = doc["key"]
+        # Add editions to response
+        doc["editions"] = fetch_editions(work_key, editions_limit, editions_offset)
     return response
 
 
