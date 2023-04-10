@@ -19,6 +19,7 @@ from openlibrary.catalog.utils import (
 DNB_AGENCY_CODE = 'DE-101'
 max_number_of_pages = 50000  # no monograph should be longer than 50,000 pages
 re_bad_char = re.compile('\ufffd')
+re_date = re.compile(r'^[0-9]+u*$')
 re_question = re.compile(r'^\?+$')
 re_lccn = re.compile(r'([ \dA-Za-z\-]{3}[\d/-]+).*')
 re_oclc = re.compile(r'^\(OCoLC\).*?0*(\d+)')
@@ -664,7 +665,7 @@ def read_edition(rec: MarcBase) -> dict[str, Any]:
             raise BadMARC("'008' field must not be blank")
         publish_date = f[7:11]
 
-        if publish_date.isdigit() and publish_date != '0000':
+        if re_date.match(publish_date) and publish_date != '0000':
             edition["publish_date"] = publish_date
         if f[6] == 't':
             edition["copyright_date"] = f[11:15]
