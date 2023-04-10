@@ -710,7 +710,7 @@ def fetch_editions(work_key, editions_limit, editions_offset):
     response = requests.get(solr_url, params=params)
     response_json = response.json()
     
-    return response_json["response"]["docs"]
+    return response_json["response"]["docs"]    
 
 
 @public
