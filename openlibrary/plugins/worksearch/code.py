@@ -699,7 +699,6 @@ def rewrite_list_query(q, page, offset, limit):
 
 
 def fetch_editions(work_key, editions_limit, editions_offset):
-
     # fetch edition from solr server
     solr_url = "http://localhost:8983/solr/openlibrary/select"
 
