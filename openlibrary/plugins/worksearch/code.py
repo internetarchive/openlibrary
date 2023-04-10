@@ -305,20 +305,21 @@ def get_editions_of_work(work_key):
     return [edition.dict() for edition in editions]
 
 
-
-def get_doc(doc: SolrDocument,editions_limit=1, editions_offset=0, editions_page=1):
+def get_doc(doc: SolrDocument, editions_limit=1, editions_offset=0, editions_page=1):
     """
     Coerce a solr document to look more like an Open Library edition/work. Ish.
 
     called from work_search template
     """
     work_key = doc['key']
-    all_editions = get_editions_of_work(work_key)  # Fetch all editions using the work key
+    all_editions = get_editions_of_work(
+        work_key
+    )  # Fetch all editions using the work key
 
     if editions_page > 1:
         editions_offset = (editions_page - 1) * editions_limit
 
-    limited_editions = all_editions[editions_offset:editions_offset + editions_limit]
+    limited_editions = all_editions[editions_offset : editions_offset + editions_limit]
 
     return web.storage(
         key=doc['key'],
@@ -362,7 +363,7 @@ def get_doc(doc: SolrDocument,editions_limit=1, editions_offset=0, editions_page
             )
             for ed in limited_editions
         ],
-        )
+    )
 
 
 class scan(delegate.page):
@@ -430,7 +431,7 @@ class search(delegate.page):
             person_facet=[],
             place_facet=[],
             time_facet=[],
-            public_scan_b=[]
+            public_scan_b=[],
         )
 
         # Send to full-text Search Inside if checkbox checked
@@ -701,18 +702,18 @@ def fetch_editions(work_key, editions_limit, editions_offset):
 
     # fetch edition from solr server
     solr_url = "http://localhost:8983/solr/openlibrary/select"
-    
+
     params = {
         "q": f"work_key:{work_key}",
         "wt": "json",
         "rows": editions_limit,
         "start": editions_offset,
     }
-    
+
     response = requests.get(solr_url, params=params)
     response_json = response.json()
-    
-    return response_json["response"]["docs"]    
+
+    return response_json["response"]["docs"]
 
 
 @public
@@ -725,8 +726,8 @@ def work_search(
     fields: str = '*',
     facet: bool = True,
     spellcheck_count: int | None = None,
-    editions_limit: int = 1, 
-    editions_offset: int = 0
+    editions_limit: int = 1,
+    editions_offset: int = 0,
 ) -> dict:
     """
     :param sort: key of SORTS dict at the top of this file
