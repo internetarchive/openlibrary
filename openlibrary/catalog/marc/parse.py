@@ -327,7 +327,7 @@ def read_languages(rec: MarcBase, lang_008: Optional[str] = None) -> list[str]:
 def read_pub_date(rec: MarcBase) -> str | None:
     def publish_date(s: str) -> str:
         date = s.strip('[]')
-        if date == 'n.d.':  # No date
+        if date.lower() == 'n.d.':  # No date
             date = '[n.d.]'
         return remove_trailing_number_dot(date)
 
@@ -337,14 +337,14 @@ def read_pub_date(rec: MarcBase) -> str | None:
 
 def read_publisher(rec: MarcBase) -> dict[str, Any] | None:
     def publisher_name(s: str) -> str:
-        name = s.strip(' /,;:[')
-        if name == 's.n.':  # Sine nomine
+        name = s.strip(' /,;:[]')
+        if name.lower() == 's.n.':  # Sine nomine
             name = '[s.n.]'
         return name
 
     def publish_place(s: str) -> str:
         place = s.strip(' /.,;:[')
-        if place == 's.l.':  # Sine loco
+        if place.lower().startswith('s.l.'):  # Sine loco
             place = '[s.l.]'
         return place
 
