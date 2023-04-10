@@ -300,7 +300,8 @@ def do_search(
 def get_editions_of_work(work_key):
     work = models.Work(web.ctx.site, work_key)
     editions = work.get_editions()
-    return [edition.dict() for edition in editions]
+
+    return [edition.dict() for edition in editions if edition]
 
 
 def get_doc(doc: SolrDocument, editions_limit=1, editions_offset=0, editions_page=1):
