@@ -319,7 +319,6 @@ def get_doc(doc: SolrDocument, editions_limit=1, editions_offset=0, editions_pag
     all_editions = get_editions_of_work(
         work_key
     )  # Fetch all editions using the work key
-
     if editions_page > 1:
         editions_offset = (editions_page - 1) * editions_limit
 
