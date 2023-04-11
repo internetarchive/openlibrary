@@ -2,14 +2,15 @@ import copy
 import json
 import logging
 import re
-import requests
 import urllib
-import web
 from collections.abc import Iterable
 from dataclasses import dataclass
-from requests import Response
 from typing import Any, Union, Optional
 from unicodedata import normalize
+
+import requests
+import web
+from requests import Response
 
 from infogami import config
 from infogami.utils import delegate, stats
@@ -47,7 +48,7 @@ plurals = {f + 's': f for f in ('publisher', 'author')}
 
 if hasattr(config, 'plugin_worksearch'):
     solr_select_url = (
-        config.plugin_worksearch.get('solr_base_url', 'localhost') + '/select'
+            config.plugin_worksearch.get('solr_base_url', 'localhost') + '/select'
     )
 
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
@@ -75,7 +76,7 @@ def read_author_facet(author_facet: str) -> tuple[str, str]:
 
 
 def process_facet(
-    field: str, facets: Iterable[tuple[str, int]]
+        field: str, facets: Iterable[tuple[str, int]]
 ) -> tuple[str, str, int]:
     if field == 'has_fulltext':
         counts = dict(facets)
@@ -95,7 +96,7 @@ def process_facet(
 
 
 def process_facet_counts(
-    facet_counts: dict[str, list]
+        facet_counts: dict[str, list]
 ) -> dict[str, tuple[str, str, int]]:
     for field, facets in facet_counts.items():
         if field == 'author_facet':
@@ -104,7 +105,7 @@ def process_facet_counts(
 
 
 def execute_solr_query(
-    solr_path: str, params: Union[dict, list[tuple[str, Any]]]
+        solr_path: str, params: Union[dict, list[tuple[str, Any]]]
 ) -> Optional[Response]:
     url = solr_path
     if params:
@@ -128,17 +129,17 @@ public(has_solr_editions_enabled)
 
 
 def run_solr_query(
-    scheme: SearchScheme,
-    param: Optional[dict] = None,
-    rows=100,
-    page=1,
-    sort: str | None = None,
-    spellcheck_count=None,
-    offset=None,
-    fields: Union[str, list[str]] | None = None,
-    facet: Union[bool, Iterable[str]] = True,
-    allowed_filter_params: set[str] = None,
-    extra_params: Optional[list[tuple[str, Any]]] = None,
+        scheme: SearchScheme,
+        param: Optional[dict] = None,
+        rows=100,
+        page=1,
+        sort: str | None = None,
+        spellcheck_count=None,
+        offset=None,
+        fields: Union[str, list[str]] | None = None,
+        facet: Union[bool, Iterable[str]] = True,
+        allowed_filter_params: set[str] = None,
+        extra_params: Optional[list[tuple[str, Any]]] = None,
 ):
     """
     :param param: dict of query parameters
@@ -155,11 +156,11 @@ def run_solr_query(
         offset = rows * (page - 1)
 
     params = [
-        *(('fq', subquery) for subquery in scheme.universe),
-        ('start', offset),
-        ('rows', rows),
-        ('wt', param.get('wt', 'json')),
-    ] + (extra_params or [])
+                 *(('fq', subquery) for subquery in scheme.universe),
+                 ('start', offset),
+                 ('rows', rows),
+                 ('wt', param.get('wt', 'json')),
+             ] + (extra_params or [])
 
     if spellcheck_count is None:
         spellcheck_count = default_spellcheck_count
@@ -242,9 +243,9 @@ class SearchResponse:
 
     @staticmethod
     def from_solr_result(
-        solr_result: Optional[dict],
-        sort: str,
-        solr_select: str,
+            solr_result: Optional[dict],
+            sort: str,
+            solr_select: str,
     ) -> 'SearchResponse':
         if not solr_result or 'error' in solr_result:
             return SearchResponse(
@@ -275,11 +276,11 @@ class SearchResponse:
 
 
 def do_search(
-    param: dict,
-    sort: Optional[str],
-    page=1,
-    rows=100,
-    spellcheck_count=None,
+        param: dict,
+        sort: Optional[str],
+        page=1,
+        rows=100,
+        spellcheck_count=None,
 ):
     """
     :param param: dict of search url parameters
@@ -318,7 +319,7 @@ def get_doc(doc: SolrDocument, editions_limit=1, editions_offset=0, editions_pag
     if editions_page > 1:
         editions_offset = (editions_page - 1) * editions_limit
 
-    limited_editions = all_editions[editions_offset : editions_offset + editions_limit]
+    limited_editions = all_editions[editions_offset: editions_offset + editions_limit]
     return web.storage(
         key=doc['key'],
         title=doc['title'],
@@ -469,13 +470,13 @@ class search(delegate.page):
 
 
 def works_by_author(
-    akey: str,
-    sort='editions',
-    page=1,
-    rows=100,
-    facet=False,
-    has_fulltext=False,
-    query: str | None = None,
+        akey: str,
+        sort='editions',
+        page=1,
+        rows=100,
+        facet=False,
+        has_fulltext=False,
+        query: str | None = None,
 ):
     param = {'q': query or '*:*'}
     if has_fulltext:
@@ -488,13 +489,13 @@ def works_by_author(
         rows=rows,
         sort=sort,
         facet=(
-            facet
-            and [
-                "subject_facet",
-                "person_facet",
-                "place_facet",
-                "time_facet",
-            ]
+                facet
+                and [
+                    "subject_facet",
+                    "person_facet",
+                    "place_facet",
+                    "time_facet",
+                ]
         ),
         fields=WorkSearchScheme.default_fetched_fields | {'editions'},
         extra_params=[
@@ -696,35 +697,49 @@ def rewrite_list_query(q, page, offset, limit):
     return q, page, offset, limit
 
 
-def fetch_editions(work_key, editions_limit, editions_offset):
-    # fetch edition from solr server
-    solr_url = "http://localhost:8983/solr/openlibrary/select"
+def fetch_editions(query, work_key, editions_limit=1, editions_offset=0, editions_page=1):
+    solr_url = "http://solr:8983/solr/openlibrary/select"
 
-    params = {
-        "q": f"work_key:{work_key}",
-        "wt": "json",
-        "rows": editions_limit,
-        "start": editions_offset,
-    }
+    # if editions.page is provided we use pagination otherwise offset
+    if editions_page:
+        params = {
+            "q": query,
+            "work_key": work_key,
+            "wt": "json",
+            "rows": editions_limit,
+            "start": (editions_page - 1) * editions_limit,
+        }
+
+    else:
+        params = {
+            "q": query,
+            "work_key": work_key,
+            "wt": "json",
+            "rows": editions_limit,
+            "start": editions_offset,
+        }
 
     response = requests.get(solr_url, params=params)
     response_json = response.json()
-
-    return response_json["response"]["docs"]
+    resp = response_json["response"]
+    docs = resp.get('docs', [])
+    resp['docs'] = [{'title': d.get('title'), 'key': d.get('key', '')} for d in docs]
+    return resp
 
 
 @public
 def work_search(
-    query: dict,
-    sort: str | None = None,
-    page: int = 1,
-    offset: int = 0,
-    limit: int = 100,
-    fields: str = '*',
-    facet: bool = True,
-    spellcheck_count: int | None = None,
-    editions_limit: int = 1,
-    editions_offset: int = 0,
+        query: dict,
+        sort: str | None = None,
+        page: int = 1,
+        offset: int = 0,
+        limit: int = 100,
+        fields: str = '*',
+        facet: bool = True,
+        spellcheck_count: int | None = None,
+        editions_limit: int = 1,
+        editions_offset: int = 0,
+        editions_page: int = 0,
 ) -> dict:
     """
     :param sort: key of SORTS dict at the top of this file
@@ -757,7 +772,7 @@ def work_search(
 
     for doc in response['docs']:
         work_key = doc["key"]
-        doc["editions"] = fetch_editions(work_key, editions_limit, editions_offset)
+        doc["editions"] = fetch_editions(query, work_key, editions_limit, editions_offset, editions_page)
 
     return response
 
@@ -801,6 +816,10 @@ class search_json(delegate.page):
 
         # If the query is a /list/ key, create custom list_editions_query
         q = query.get('q', '').strip()
+        editions_limit = int(query.get('editions.limit', 1))
+        editions_offset = int(query.get('editions.offset', 0))
+        editions_page = int(query.get('editions.page', 0))
+
         query['q'], page, offset, limit = rewrite_list_query(q, page, offset, limit)
         response = work_search(
             query,
@@ -813,6 +832,9 @@ class search_json(delegate.page):
             # so disable it. This makes it much faster.
             facet=False,
             spellcheck_count=spellcheck_count,
+            editions_limit=editions_limit,
+            editions_offset=editions_offset,
+            editions_page=editions_page,
         )
         response['q'] = q
         response['offset'] = offset
