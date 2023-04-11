@@ -681,7 +681,6 @@ class account_audit(delegate.page):
         result = audit_accounts(email, password, test=test)
         return delegate.RawText(json.dumps(result), content_type="application/json")
 
-
 class account_privacy(delegate.page):
     path = "/account/privacy"
 
@@ -692,10 +691,11 @@ class account_privacy(delegate.page):
 
     @require_login
     def POST(self):
-        #i = web_input(public_readlog="", safe_mode="")
+        expires = 3600 * 24 * 365 
+        i = web.input(public_readlog="", safe_mode="")
         user = accounts.get_current_user()
-        user.save_preferences(web_input())
-        #web.setcookie('sfw', i.get('safe_mode'), expires=expires)
+        user.save_preferences(i)
+        web.setcookie('sfw', i.safe_mode, expires=expires)
         add_flash_message(
             'note', _("Notification preferences have been updated successfully.")
             #'note', _(str(i.get('safe_mode')))
