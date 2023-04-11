@@ -681,6 +681,7 @@ class account_audit(delegate.page):
         result = audit_accounts(email, password, test=test)
         return delegate.RawText(json.dumps(result), content_type="application/json")
 
+
 class account_privacy(delegate.page):
     path = "/account/privacy"
 
