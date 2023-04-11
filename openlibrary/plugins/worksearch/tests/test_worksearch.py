@@ -27,9 +27,7 @@ def mock_site():
     return site
 
 
-
 def test_get_doc():
-
     # Temporarily replace web.ctx.site with the mock_site object
     original_site = web.ctx.site
     web.ctx.site = mock_site
@@ -52,7 +50,6 @@ def test_get_doc():
 
     # Restore the original web.ctx.site
     web.ctx.site = original_site
-
 
     assert doc == web.storage(
         {
