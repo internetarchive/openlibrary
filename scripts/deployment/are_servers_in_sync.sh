@@ -4,21 +4,38 @@ SERVERS="ol-home0 ol-covers0 ol-web1 ol-web2 ol-www0 ol-solr0"
 POLICY_SERVERS="ol-home0 ol-web1 ol-web2"
 REPO_DIRS="/opt/olsystem /opt/openlibrary /opt/openlibrary/vendor/infogami"
 
-for REPO_DIR in $REPO_DIRS; do
-    echo $REPO_DIR
+print_git_sha() {
+    SERVER=$1
+    REPO_DIR=$2
+    ssh $SERVER "
+        cd $REPO_DIR;
+        printf '%-15s' $SERVER;
+        sudo git rev-parse HEAD
+    "
+}
 
-    for SERVER in $SERVERS; do
-        ssh $SERVER "cd $REPO_DIR; echo -ne $SERVER'\t' ; sudo git rev-parse HEAD"
-    done
-    echo "---"
-done
+export -f print_git_sha
 
-echo "/opt/booklending_utils"
-for SERVER in $POLICY_SERVERS; do
-    ssh $SERVER "cd /opt/booklending_utils; echo -ne $SERVER'\t' ; sudo git rev-parse HEAD"
-done
-echo "---"
+check_repos() {
+    SERVERS=$1
+    REPO_DIRS=$2
+    parallel --header --group "
+        echo -e {dir}
+        parallel --header --group print_git_sha {server} {dir} ::: server $SERVERS | sort
+        echo ---
+    " ::: dir $REPO_DIRS
+}
 
-for SERVER in $SERVERS; do
-    ssh $SERVER "hostname | docker image ls | grep olbase | grep latest"
-done
+check_docker_images() {
+    parallel --group "
+        ssh {} '
+            printf '%-15s' {};
+            hostname | docker image ls | grep olbase | grep latest
+        ';
+    " ::: $SERVERS | sort;
+    echo "";
+}
+
+check_repos "$SERVERS" "$REPO_DIRS"
+check_repos "$POLICY_SERVERS" "/opt/booklending_utils"
+check_docker_images
