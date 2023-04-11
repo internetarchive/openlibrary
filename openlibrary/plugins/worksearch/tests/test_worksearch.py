@@ -30,7 +30,7 @@ def mock_site():
 def test_get_doc():
     # Temporarily replace web.ctx.site with the mock_site object
     original_site = web.ctx.site
-    web.ctx.site = mock_site
+    web.ctx.site = mock_site()
 
     doc = get_doc(
         {
