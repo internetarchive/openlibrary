@@ -302,10 +302,7 @@ def get_editions_of_work(work_key):
     work = models.Work(web.ctx.site, work_key)
     editions = work.get_editions()
 
-    data = []
-    for edition in editions:
-        if edition:
-            data.append(edition.dict())
+    data = [edition.dict() for edition in editions if edition]
     return data
 
 
