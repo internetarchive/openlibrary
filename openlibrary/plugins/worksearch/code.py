@@ -300,7 +300,7 @@ def do_search(
 
 
 def get_editions_of_work(work_key):
-    work = models.Work(web.ctx.site,work_key)
+    work = models.Work(web.ctx.site, work_key)
     editions = work.get_editions()
     return [edition.dict() for edition in editions]
 
