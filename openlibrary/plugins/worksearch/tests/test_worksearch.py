@@ -21,7 +21,7 @@ def mock_site():
     # For example, if the get() method should return a mock work object:
     mock_work = MagicMock()
     mock_work.key = "/works/OL1820355W"
-    mock_work.get_editions.return_value = [{},{}]  
+    mock_work.get_editions.return_value = [{}, {}]
     site.get.return_value = mock_work
 
     return site
