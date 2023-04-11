@@ -251,6 +251,9 @@ class MockSite:
 
     def _load(self, key, revision=None):
         doc = self.get(key, revision=revision)
+        if doc is None:
+            # Handle the case when doc is None
+            return None
         data = doc.dict()
         data = web.storage(common.parse_query(data))
         return self._process_dict(data)

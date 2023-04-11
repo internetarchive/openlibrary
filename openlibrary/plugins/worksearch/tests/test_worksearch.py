@@ -1,4 +1,5 @@
 import web
+from unittest.mock import MagicMock
 from openlibrary.plugins.worksearch.code import (
     process_facet,
     get_doc,
@@ -13,7 +14,27 @@ def test_process_facet():
     ]
 
 
+@pytest.fixture
+def mock_site():
+    site = MagicMock()
+
+    # Set up the mock site with the necessary data
+    # For example, if the get() method should return a mock work object:
+    mock_work = MagicMock()
+    mock_work.key = "/works/OL1820355W"
+    mock_work.get_editions.return_value = [...]  # Replace with the mock editions you expect
+    site.get.return_value = mock_work
+
+    return site
+
+
+
 def test_get_doc():
+
+    # Temporarily replace web.ctx.site with the mock_site object
+    original_site = web.ctx.site
+    web.ctx.site = mock_site
+
     doc = get_doc(
         {
             'author_key': ['OL218224A'],
@@ -29,6 +50,11 @@ def test_get_doc():
             'title': 'The computer glossary',
         }
     )
+
+    # Restore the original web.ctx.site
+    web.ctx.site = original_site
+
+
     assert doc == web.storage(
         {
             'key': '/works/OL1820355W',
