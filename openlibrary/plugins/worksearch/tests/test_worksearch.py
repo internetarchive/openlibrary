@@ -14,7 +14,6 @@ def test_process_facet():
     ]
 
 
-@pytest.fixture
 def mock_site():
     site = MagicMock()
 
@@ -22,7 +21,7 @@ def mock_site():
     # For example, if the get() method should return a mock work object:
     mock_work = MagicMock()
     mock_work.key = "/works/OL1820355W"
-    mock_work.get_editions.return_value = [...]  # Replace with the mock editions you expect
+    mock_work.get_editions.return_value = [{},{}]  
     site.get.return_value = mock_work
 
     return site
