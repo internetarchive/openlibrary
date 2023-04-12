@@ -37,9 +37,7 @@ class addtag(delegate.page):
         if not self.has_permission():
             return safe_seeother(f"/account/login?redirect={self.path}")
 
-        return render_template(
-            'tag/add', recaptcha=get_recaptcha()
-        )
+        return render_template('tag/add', recaptcha=get_recaptcha())
 
     def has_permission(self) -> bool:
         """
@@ -121,10 +119,11 @@ class addtag(delegate.page):
 
 # remove existing definitions of addtag
 delegate.pages.pop('/addtag', None)
+
+
 class addtag(delegate.page):  # type: ignore[no-redef] # noqa: F811
     def GET(self):
         raise web.redirect("/tag/add")
-
 
 
 # class tag_edit(delegate.page):
