@@ -1,4 +1,4 @@
-@compact-title-height: 35px;
+@import (less) "components/compact-title.less";
 
 .nav-bar {
   border-bottom: 1px solid @lighter-grey;
@@ -9,64 +9,112 @@
   white-space: nowrap;
   scroll-behavior: smooth;
 
-  &.sticky {
-    position: sticky;
-    top: 50px;
-    background: @white;
-    z-index: @z-index-level-3;
-    // Make tab bar full width on mobile
-    margin-left: -@contentBody-padding;
-    margin-right: -@contentBody-padding;
+  li {
+    display: inline;
+    font-size: 13px;
+  }
 
-    // indent it a bit to make it look more scrollable
-    &:before,
-    &:after {
-      display: inline-block;
-      content: "";
-      width: 10%;
+  li a {
+    text-decoration: none;
+    color: @grey;
+    padding: 12px 15px 8px;
+    display: inline-block;
+
+    @media only screen and (min-width: @width-breakpoint-tablet) {
+      padding-top: 4px;
     }
+  }
+
+  &:not(.work-menu) li.selected a {
+    color: @link-blue;
+    border-bottom: 2px solid @link-blue;
+  }
+
+  &:not(.work-menu) li:hover a {
+    border-bottom: 2px solid @link-blue;
   }
 }
 
-@media (min-width: @width-breakpoint-mobile) {
-  .nav-bar.sticky {
-    &:before,
-    &:after {
-      display: none;
+.nav-bar-wrapper {
+  display: flex;
+  align-items: baseline;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  clip-path: inset(0 0 -15px 0);
+  margin-bottom: 10px;
+
+  background: @white;
+  z-index: @z-index-level-5;
+
+  &.sticky {
+    position: sticky;
+    top: 50px;
+  }
+
+  .nav-arrow {
+    img {
+      max-width: unset !important;
+    }
+    &--left img {
+      transform: rotate(180deg)
+    }
+  }
+
+  .nav-bar.work-menu {
+    padding: 5px 0;
+    background: @white;
+    z-index: @z-index-level-5;
+
+    li a {
+      padding: 4px 15px;
+      border-radius: 11px;
+      margin-bottom: 6px;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      li:hover a {
+        background-color: darken(@blue-5e88B9, 10%);
+        color: white;
+      }
+    }
+
+    li.selected a {
+      color: white;
+      background-color: @blue-5e88B9;
     }
   }
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
-  .nav-bar.sticky {
-    top: @compact-title-height;
+  .nav-bar-wrapper.sticky {
+    top: 0;
     margin-left: 0;
     margin-right: 0;
     width: 100%;
+
+    &.nav-bar-wrapper--slidedown {
+      animation-duration: .15s;
+      animation-name: slidedown;
+    }
+
+    @keyframes slidedown {
+      to {
+        top: @compact-title-height;
+      }
+    }
+
+    &.nav-bar-wrapper--slideup {
+      animation-duration: .5s;
+      animation-name: slideup
+    }
+
+    @keyframes slideup {
+      to {
+        top: 0;
+      }
+    }
+
+    &.sticky--lowest {
+      top: @compact-title-height;
+    }
   }
-}
-
-.nav-bar li {
-  display: inline;
-  font-size: 13px;
-}
-
-.nav-bar li a {
-  text-decoration: none;
-  color: @grey;
-  padding: 12px 15px 8px;
-  display: inline-block;
-
-  @media only screen and (min-width: @width-breakpoint-tablet) {
-    padding-top: 4px;
-  }
-}
-
-.nav-bar li.selected a {
-  color: @link-blue;
-  border-bottom: 2px solid @link-blue;
-}
-
-.nav-bar li:hover a {
-  border-bottom: 2px solid @link-blue;
 }

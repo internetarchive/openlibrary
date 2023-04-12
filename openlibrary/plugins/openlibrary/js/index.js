@@ -453,15 +453,27 @@ jQuery(function () {
             .then((module) => module.initRatingHandlers(ratingForms));
     }
 
-    const navbar = document.querySelector('.work-menu');
-    if (navbar) {
-        const compactTitle = document.querySelector('.compact-title')
-        // Add position-aware navbar JS:
+    // Book page navbar initialization:
+    const navbarWrappers = document.querySelectorAll('.nav-bar-wrapper')
+    if (navbarWrappers.length) {
+        // Add JS for book page navbar:
         import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
-            .then((module) => module.initNavbar(navbar));
-        // Add sticky title component animations:
+            .then((module) => {
+                for (const wrapper of navbarWrappers) {
+                    // The book page has 2 navbars (one for mobile views; one for desktop).
+                    // We only want to initialize the visible navbar:
+                    if (wrapper.checkVisibility()) {
+                        module.initNavbar(wrapper)
+                    }
+                }
+            });
+        // Add sticky title component animations to desktop views:
         import(/* webpackChunkName: "compact-title" */ './compact-title')
-            .then((module) => module.initCompactTitle(navbar, compactTitle))
+            .then((module) => {
+                const compactTitle = document.querySelector('.compact-title')
+                const desktopNavbar = [...navbarWrappers].find(elem => elem.classList.contains('desktop-only'))
+                module.initCompactTitle(desktopNavbar, compactTitle)
+            })
     }
 
     // Add functionality for librarian merge request table:

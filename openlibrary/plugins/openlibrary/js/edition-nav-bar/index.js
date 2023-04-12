@@ -1,17 +1,37 @@
-import { debounce } from '../nonjquery_utils'
-
 /**
  * Adds navbar-related click and scroll listeners
  *
- * @param {HTMLUListElement} navbarElem The navbar
+ * @param {HTMLElement} navbarWrapper The wrapper that contains the navbar
  */
-export function initNavbar(navbarElem) {
+export function initNavbar(navbarWrapper) {
+    /**
+     * The book page navbar
+     *
+     * @type {HTMLElement}
+     */
+    const navbarElem = navbarWrapper.querySelector('.work-menu')
+
+    /**
+     * Right navigation arrow.  This will only be present in
+     * mobile views.
+     *
+     * @type {HTMLElement}
+     */
+    const navArrow = navbarWrapper.querySelector('.nav-arrow')
+
     /**
      * Each list item in the navbar.
      *
      * @type {HTMLCollection<HTMLLIElement}
      */
-    const listItems = navbarElem.querySelectorAll('li');
+    const listItems = Array.from(navbarElem.querySelectorAll('li'));
+
+    /**
+     * The index of the currently selected item in the `listItems` array.
+     *
+     * @type {number}
+     */
+    let selectedIndex = 0;
 
     /**
      * The targets of the navbar links.
@@ -22,25 +42,42 @@ export function initNavbar(navbarElem) {
      */
     const linkedSections = []
 
-    /**
-     * Reference to the selected target element.
-     *
-     * @type {HTMLElement}
-     */
-    let selectedSection
-
-    // Add click listeners
+    // Add click listeners to navbar items
     for (let i = 0; i < listItems.length; ++i) {
-        const index = i;
         listItems[i].addEventListener('click', function() {
-            debounce(selectElement(listItems[i], index), 300, false)
+            selectedIndex = i
+            selectElement(listItems[i])
         })
 
-        linkedSections.push(document.querySelector(listItems[i].children[0].hash))
+        linkedSections.push(document.getElementById(listItems[i].children[0].hash.substring(1)))
         if (listItems[i].classList.contains('selected')) {
-            selectedSection = linkedSections[linkedSections.length - 1]
+            selectedIndex = i
         }
     }
+
+    // Initialize mobile-only navigation arrow
+    if (navArrow) {
+        navArrow.addEventListener('click', function() {
+            if (selectedIndex < listItems.length - 1) {
+                ++selectedIndex;
+                listItems[selectedIndex].children[0].click()
+            }
+        })
+    }
+
+    // Add scroll listener that changes 'selected' navbar item based on page position:
+    document.addEventListener('scroll', function() {
+
+        const navbarHeight = navbarWrapper.getBoundingClientRect().height
+        if (navbarHeight > 0) {
+            let i = listItems.length
+            while (--i > 0 && navbarWrapper.offsetTop + navbarHeight < linkedSections[i].offsetTop) {}
+            if (i !== selectedIndex) {
+                selectedIndex = i
+                selectElement(listItems[i])
+            }
+        }
+    })
 
     /**
      * Adds 'selected' class to the given element.
@@ -48,35 +85,28 @@ export function initNavbar(navbarElem) {
      * Removes 'selected' class from all navbar links, then adds
      * 'selected' to the newly selected link.
      *
-     * Stores reference to the selected target.
-     *
      * @param {HTMLLIElement} selectedElem Element corresponding to the 'selected' navbar item.
-     * @param {Number} targetIndex The index
      */
-    function selectElement(selectedElem, targetIndex) {
+    function selectElement(selectedElem) {
         for (const li of listItems) {
             li.classList.remove('selected')
         }
         selectedElem.classList.add('selected')
-        selectedSection = linkedSections[targetIndex];
-        // Scroll to / center the item
+        scrollNavbar(selectedElem)
+    }
+
+    /**
+     * Centers given nav item in the navbar, if navbar has overflow (mobile views)
+     *
+     * @param {HTMLElement} selectedItem Newly selected nav item
+     */
+    function scrollNavbar(selectedItem) {
         // Note: We don't use the browser native scrollIntoView method because
         // that method scrolls _recursively_, so it also tries to scroll the
         // body to center the element on the screen, causing weird jitters.
+
         navbarElem.scrollTo({
-            left: selectedElem.offsetLeft - (navbarElem.clientWidth - selectedElem.offsetWidth) / 2,
-        });
+            left: selectedItem.offsetLeft - (navbarElem.clientWidth - selectedItem.offsetWidth) / 2,
+            behavior: 'instant'})
     }
-
-    // Add scroll listener that changes 'selected' navbar item based on page position:
-    document.addEventListener('scroll', function() {
-        let i = linkedSections.length
-        // Find index of lowest element on the page that is positioned below the navbar:
-        while (--i > 0 && navbarElem.offsetTop < linkedSections[i].offsetTop) {}
-        if (linkedSections[i] !== selectedSection) {
-            selectElement(listItems[i], i)
-        }
-    })
 }
-
-
