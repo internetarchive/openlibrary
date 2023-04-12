@@ -42,6 +42,7 @@ re_bracket_field = re.compile(r'^\s*(\[.*\])\.?\s*$')
 # (S	Greek
 # (2	Hebrew
 
+
 def strip_foc(s: str) -> str:
     foc = '[from old catalog]'
     return s[: -len(foc)].rstrip() if s.endswith(foc) else s
@@ -98,7 +99,7 @@ FIELDS_WANTED = (
 
 
 def read_dnb(rec: MarcBase) -> dict[str, list[str]] | None:
-    """Read DNB ID from - National Bibliographic Agency Control Number """
+    """Read DNB ID from - National Bibliographic Agency Control Number"""
     # TODO: Why only DNB and not any of the other national libraries?
     fields = rec.get_fields('016')
     for f in fields:
@@ -408,7 +409,9 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict | None:
         # Should have at least a name or title.
         return None
     name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'b', 'c'])]
-    attribution_qualifier_and_affiliation = [v.strip(' /,;:') for v in f.get_subfield_values(['j','u'])]
+    attribution_qualifier_and_affiliation = [
+        v.strip(' /,;:') for v in f.get_subfield_values(['j', 'u'])
+    ]
 
     if 'd' in contents:
         author = pick_first_date(strip_foc(d).strip(',[]') for d in contents['d'])
