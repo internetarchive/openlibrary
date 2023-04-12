@@ -88,7 +88,7 @@ class addtag(delegate.page):
         :return: None or Tag.
         """
 
-        q = {'type': '/type/work', 'name': i.name, 'type': i.type}
+        q = {'type': '/type/tag', 'name': i.name, 'tag_type': i.type}
         match = list(web.ctx.site.things(q))
 
         if len(match) == 0:

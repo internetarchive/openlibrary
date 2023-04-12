@@ -21,7 +21,7 @@ export function initAddTagImport () {
             }
 
             const successCallback = function() {
-                console.log("Successfuly created tag")
+                return
             }
 
             createTag(data, successCallback)
@@ -33,7 +33,7 @@ export function initAddTagImport () {
  * Makes a POST to a `.json` endpoint.
  * @param {object} data Configurations and payload for POST request.
  */
- function post(data) {
+function post(data) {
     $.ajax({
         type: 'POST',
         url: data.url,
@@ -53,7 +53,7 @@ export function initAddTagImport () {
 
 export function createTag(data, success) {
     post({
-        url: `/tag.json`,
+        url: '/tag.json',
         data: data,
         success: function(resp) {
             success(resp.key, data.name)
