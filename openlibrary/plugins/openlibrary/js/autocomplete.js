@@ -50,6 +50,7 @@ export default function($) {
      *     element in the autocomplete list. The function takes the query and should return a boolean.
      *     a boolean.
      * @property{string} [new_name] - name to display when __new__ selected. Defaults to the query
+     * @property {boolean} [allow_empty] - whether to allow empty list. Only applies to multi-select
      */
 
     /**
@@ -144,46 +145,45 @@ export default function($) {
     /**
      * @this HTMLElement - the element that contains the different inputs.
      * @param {string} autocomplete_selector - selector to find the input element use for autocomplete.
-     * @param {Function} input_renderer - ((index, item) -> html_string) render the ith div.input.
+     * @param {Function} input_renderer - ((index, item) -> html_string) render the ith .input.
      * @param {OpenLibraryAutocompleteOptions} ol_ac_opts
      * @param {Object} ac_opts - options given to override defaults of $.autocomplete; see that.
      */
     $.fn.setup_multi_input_autocomplete = function(autocomplete_selector, input_renderer, ol_ac_opts, ac_opts) {
+        /** @type {JQuery<HTMLElement>} */
         var container = $(this);
 
         // first let's init any pre-existing inputs
         container.find(autocomplete_selector).each(function() {
             setup_autocomplete(this, ol_ac_opts, ac_opts);
         });
+        const allow_empty = ol_ac_opts.allow_empty;
 
         function update_visible() {
-            if (container.find('div.input').length > 1) {
-                container.find('a.remove').show();
+            if (allow_empty || container.find('.mia__input').length > 1) {
+                container.find('.mia__remove').show();
             }
             else {
-                container.find('a.remove').hide();
+                container.find('.mia__remove').hide();
             }
-
-            container.find('a.add:not(:last)').hide();
-            container.find('a.add:last').show();
         }
 
         update_visible();
 
-        container.on('click', 'a.remove', function() {
-            if (container.find('div.input').length > 1) {
-                $(this).closest('div.input').remove();
+        container.on('click', '.mia__remove', function() {
+            if (allow_empty || container.find('.mia__input').length > 1) {
+                $(this).closest('.mia__input').remove();
                 update_visible();
             }
         });
 
-        container.on('click', 'a.add', function(event) {
+        container.on('click', '.mia__add', function(event) {
             var next_index, new_input;
             event.preventDefault();
 
-            next_index = container.find('div.input').length;
+            next_index = container.find('.mia__input').length;
             new_input = $(input_renderer(next_index, {key: '', name: ''}));
-            container.append(new_input);
+            new_input.insertBefore(container.find('.mia__add'));
             setup_autocomplete(
                 new_input.find(autocomplete_selector)[0],
                 ol_ac_opts,
