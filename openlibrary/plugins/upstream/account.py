@@ -698,8 +698,8 @@ class account_privacy(delegate.page):
         user.save_preferences(i)
         web.setcookie('sfw', i.safe_mode, expires=expires)
         add_flash_message(
-            'note', _("Notification preferences have been updated successfully.")
-            #'note', _(str(i.get('safe_mode')))
+            'note',
+            _("Notification preferences have been updated successfully.")
         )
         web.seeother("/account")
 
