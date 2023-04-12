@@ -19,11 +19,10 @@ $jsdef render_language_autocomplete_item(item):
 $# Render the ith language input field
 $jsdef render_language_field(i, language, i18n_name):
     $ lang_name = i18n_name or language.name
-    <div class="input">
+    <div class="input mia__input">
       <input name="languages--$i" class="language language-autocomplete" type="text" id="language-$i" value="$lang_name"/>
       <input name="edition--languages--$i--key" type="hidden" id="language-$i-key" value="$language.key" />
-      <a href="javascript:;" class="remove red plain" title="$_('Remove this language')">[x]</a>
-      <hr /><a href="javascript:;" class="add small">$_('Add another language?')</a>
+      <a href="javascript:;" class="mia__remove red plain" title="$_('Remove this language')">[x]</a>
     </div>
 
 $# Render the ith translated_from language input field
@@ -31,9 +30,7 @@ $jsdef render_translated_from_language_field(i, language):
     <div class="input">
       <input type="text" name="translated_from--$i" class="language language-autocomplete" id="edition-translated_from-$i" value="$language.name"/>
       <input type="hidden" name="edition--translated_from--$i--key"  id="edition-translated_from-$i-key" value="$language.key" />
-      <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this language')">[x]</a>
-      $# Limit to only 1
-      $# <br/><a href="javascript:;" class="add small">Add another language?</a>
+      <a href="javascript:;" class="mia__remove red plain hidden" title="$_('Remove this language')">[x]</a>
     </div>
 
 
@@ -42,9 +39,7 @@ $jsdef render_work_field(i, work):
     <div class="input">
         <input name="works--$i" class="work work-autocomplete" type="text" id="work-$i" value="$work.key.split('/')[-1]"/>
         <input name="edition--works--$i--key" type="hidden" id="work-$i-key" value="$work.key" />
-        <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this work')">[x]</a>
-        $# Limit to only 1
-        $# <a href="javascript:;" class="add hidden">Add another work?</a>
+        <a href="javascript:;" class="mia__remove red plain hidden" title="$_('Remove this work')">[x]</a>
     </div>
 
 $jsdef render_work_autocomplete_item(item):
@@ -285,6 +280,7 @@ $jsdef render_work_autocomplete_item(item):
                         $:render_language_field(i, lang, get_language_name(lang))
                 $else:
                     $:render_language_field(0, storage(name="", key=""), None)
+                <a href="javascript:;" class="mia__add small">$_('Add another language?')</a>
             </div>
 
             <div class="formElement" id="translated-from">
@@ -398,7 +394,7 @@ $jsdef render_work_autocomplete_item(item):
                     $_("WARNING: Any edits made to the work from this page will be ignored.")
                 </span>
             </div>
-            $ config = {'isPrivilegedUser': cond(is_privileged_user, 'true', 'false'), '-- Move to a new work': _('-- Move to a new work')}
+            $ config = {'addnew': is_privileged_user, 'new_name': _('-- Move to a new work')}
             <div class="multi-input-autocomplete--works" data-config="$dumps(config)">
                 $if book.works:
                     $for i, work in enumerate(book.works):

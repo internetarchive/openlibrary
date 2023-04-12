@@ -277,21 +277,22 @@ export function initWorksMultiInputAutocomplete() {
     $(function() {
         getJqueryElements('.multi-input-autocomplete--works').forEach(jqueryElement => {
             /* Values in the html passed from Python code */
-            const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
+            const dataConfig = JSON.parse(jqueryElement[0].dataset.config || '{}');
             jqueryElement.setup_multi_input_autocomplete(
                 'input.work-autocomplete',
                 render_work_field,
                 {
                     endpoint: '/works/_autocomplete',
-                    addnew: dataConfig['isPrivilegedUser'] === 'true',
-                    new_name: dataConfig['-- Move to a new work'],
+                    addnew: dataConfig['addnew'] || false,
+                    new_name: dataConfig['new_name'] || '',
+                    allow_empty: dataConfig['allow_empty'] || false,
                 },
                 {
                     minChars: 2,
                     max: 11,
                     matchSubset: false,
                     autoFill: true,
-                    formatItem: render_work_autocomplete_item
+                    formatItem: render_work_autocomplete_item,
                 });
         });
     });
