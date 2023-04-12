@@ -18,7 +18,7 @@ insert into meta (version) values (10);
 create table thing (
     id serial primary key,
     key text,
-    type int references thing,   
+    type int references thing,
     latest_revision int default 1,
     created timestamp default(current_timestamp at time zone 'utc'),
     last_modified timestamp default(current_timestamp at time zone 'utc')
@@ -75,8 +75,8 @@ create table property (
     UNIQUE (type, name)
 );
 
-CREATE FUNCTION get_property_name(integer, integer) 
-RETURNS text AS 
+CREATE FUNCTION get_property_name(integer, integer)
+RETURNS text AS
 'select property.name FROM property, thing WHERE thing.type = property.type AND thing.id=$1 AND property.id=$2;'
 LANGUAGE SQL;
 
