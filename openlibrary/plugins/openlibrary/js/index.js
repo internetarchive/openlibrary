@@ -309,6 +309,11 @@ jQuery(function () {
             .then(module => module.initAddBookImport());
     }
 
+    if (document.getElementById('addtag')) {
+        import(/* webpackChunkName: "add-book" */ './add-tag')
+            .then(module => module.initAddTagImport());
+    }
+
     if (document.getElementById('autofill-dev-credentials')) {
         document.getElementById('username').value = 'openlibrary@example.com'
         document.getElementById('password').value = 'admin123'

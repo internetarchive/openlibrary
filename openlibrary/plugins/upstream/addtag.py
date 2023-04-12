@@ -17,7 +17,6 @@ from infogami.utils.view import safeint, add_flash_message
 from infogami.infobase.client import ClientException
 
 from openlibrary.plugins.openlibrary.processors import urlsafe
-from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.i18n import gettext as _
 import logging
 
@@ -29,8 +28,8 @@ from openlibrary.plugins.upstream.utils import render_template
 logger = logging.getLogger("openlibrary.tag")
 
 
-class addTag(delegate.page):
-    path = '/tags/add'
+class addtag(delegate.page):
+    path = '/tag/add'
 
     def GET(self):
         """Main user interface for adding a tag to Open Library."""
@@ -38,26 +37,21 @@ class addTag(delegate.page):
         if not self.has_permission():
             return safe_seeother(f"/account/login?redirect={self.path}")
 
-        i = web.input(tag=None, author=None)
-        tag = i.tag and web.ctx.site.get(i.tag)
-        author = i.author and web.ctx.site.get(i.author)
-
         return render_template(
-            'tags/add', tag=tag, author=author, recaptcha=get_recaptcha()
+            'tag/add', recaptcha=get_recaptcha()
         )
 
     def has_permission(self) -> bool:
         """
         Can a tag be added?
         """
-        return web.ctx.site.can_write("/tags/add")
+        return web.ctx.site.can_write("/tag/add")
 
     def POST(self):
         i = web.input(
             name="",
             id_name="",
             id_value="",
-            _test="false",
         )
 
         if spamcheck.is_spam(i, allow_privileged_edits=True):
@@ -77,13 +71,7 @@ class addTag(delegate.page):
         i = utils.unflatten(i)
         match = self.find_match(i)  # returns None or Tag (if match found)
 
-        if i._test == 'true' and not isinstance(match, list):
-            if match:
-                return f'Matched <a href="{match.key}">{match.key}</a>'
-            else:
-                return 'No match found'
-
-        elif match and match.key.startswith('/tags'):
+        if match and match.key.startswith('/tags'):
             # tag match
             tag = match
             return self.tag_match(tag)
@@ -102,17 +90,13 @@ class addTag(delegate.page):
         :return: None or Tag.
         """
 
-        solr = get_solr()
-        # Less exact solr search than try_edition_match(), search by supplied title and author only.
-        result = solr.select(
-            {'name': i.name, 'type': i.type},
-            q_op="AND",
-        )
+        q = {'type': '/type/work', 'name': i.name, 'type': i.type}
+        match = list(web.ctx.site.things(q))
 
-        if result.num_found == 0:
+        if len(match) == 0:
             return None  # Case 1, from add page
         else:
-            return result.docs[0]  # Case 2
+            return match[0]  # Case 2
 
     def tag_match(self, tag: Tag) -> NoReturn:
         """
@@ -128,63 +112,71 @@ class addTag(delegate.page):
         Redirects the user to the tag edit page
         in `add-tag` mode.
         """
-        tag = new_doc("/type/tag", name=i.name, authors=i.authors)
+        tag = new_doc("/type/tag", name=i.name, type=i.type)
 
         web.ctx.site.save(tag, comment="Created new tag.")
 
         raise safe_seeother(tag.url("/edit"))
 
 
-class tag_edit(delegate.page):
-    path = r"(/tags/OL\d+T)/edit"
+# remove existing definitions of addtag
+delegate.pages.pop('/addtag', None)
+class addtag(delegate.page):  # type: ignore[no-redef] # noqa: F811
+    def GET(self):
+        raise web.redirect("/tag/add")
 
-    def GET(self, key):
-        i = web.input(v=None, _method="GET")
-        v = i.v and safeint(i.v, None)
 
-        if not web.ctx.site.can_write(key):
-            return render_template(
-                "permission_denied",
-                web.ctx.fullpath,
-                "Permission denied to edit " + key + ".",
-            )
 
-        tag = web.ctx.site.get(key, v)
-        if tag is None:
-            raise web.notfound()
+# class tag_edit(delegate.page):
+#     path = r"(/tags/OL\d+T)/edit"
 
-        return render_template('tags/edit', tag, recaptcha=get_recaptcha())
+#     def GET(self, key):
+#         i = web.input(v=None, _method="GET")
+#         v = i.v and safeint(i.v, None)
 
-    def POST(self, key):
-        i = web.input(v=None, _method="GET")
+#         if not web.ctx.site.can_write(key):
+#             return render_template(
+#                 "permission_denied",
+#                 web.ctx.fullpath,
+#                 "Permission denied to edit " + key + ".",
+#             )
 
-        if spamcheck.is_spam(allow_privileged_edits=True):
-            return render_template(
-                "message.html", "Oops", 'Something went wrong. Please try again later.'
-            )
+#         tag = web.ctx.site.get(key, v)
+#         if tag is None:
+#             raise web.notfound()
 
-        recap = get_recaptcha()
+#         return render_template('tags/edit', tag, recaptcha=get_recaptcha())
 
-        if recap and not recap.validate():
-            return render_template(
-                "message.html",
-                'Recaptcha solution was incorrect',
-                'Please <a href="javascript:history.back()">go back</a> and try again.',
-            )
+#     def POST(self, key):
+#         i = web.input(v=None, _method="GET")
 
-        v = i.v and safeint(i.v, None)
-        tag = web.ctx.site.get(key, v)
-        if tag is None:
-            raise web.notfound()
+#         if spamcheck.is_spam(allow_privileged_edits=True):
+#             return render_template(
+#                 "message.html", "Oops", 'Something went wrong. Please try again later.'
+#             )
 
-        try:
-            helper = SaveTagHelper(tag, None)  # TODO: add SaveTagHelper
-            helper.save(web.input())
-            add_flash_message("info", utils.get_message("flash_tag_updated"))
-            raise safe_seeother(tag.url())
-        except (ClientException, ValidationException) as e:
-            add_flash_message('error', str(e))
-            return self.GET(key)
+#         recap = get_recaptcha()
+
+#         if recap and not recap.validate():
+#             return render_template(
+#                 "message.html",
+#                 'Recaptcha solution was incorrect',
+#                 'Please <a href="javascript:history.back()">go back</a> and try again.',
+#             )
+
+#         v = i.v and safeint(i.v, None)
+#         tag = web.ctx.site.get(key, v)
+#         if tag is None:
+#             raise web.notfound()
+
+#         try:
+#             helper = SaveTagHelper(tag, None)  # TODO: add SaveTagHelper
+#             helper.save(web.input())
+#             add_flash_message("info", utils.get_message("flash_tag_updated"))
+#             raise safe_seeother(tag.url())
+#         except (ClientException, ValidationException) as e:
+#             add_flash_message('error', str(e))
+#             return self.GET(key)
 
 
 def setup():
