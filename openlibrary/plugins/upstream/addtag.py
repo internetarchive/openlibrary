@@ -56,7 +56,7 @@ class addtag(delegate.page):
             return render_template(
                 "message.html", "Oops", 'Something went wrong. Please try again later.'
             )
-
+        
         if not web.ctx.site.get_user():
             recap = get_recaptcha()
             if recap and not recap.validate():
@@ -69,38 +69,28 @@ class addtag(delegate.page):
         i = utils.unflatten(i)
         match = self.find_match(i)  # returns None or Tag (if match found)
 
-        if match and match.key.startswith('/tags'):
+        if len(match) > 0:
             # tag match
-            tag = match
-            return self.tag_match(tag)
+            return self.tag_match(match)
         else:
             # no match
             return self.no_match(i)
 
-    def find_match(self, i: web.utils.Storage) -> None | Tag:
+    def find_match(self, i: web.utils.Storage):
         """
         Tries to find an existing tag that matches the data provided by the user.
-
-        Case#1: No match. None is returned.
-        Case#2: Tag match. Tag is returned.
-
-        :param web.utils.Storage i: addtag user supplied formdata
-        :return: None or Tag.
         """
 
-        q = {'type': '/type/tag', 'name': i.name, 'tag_type': i.type}
+        q = {'type':  '/type/tag', 'name': i.tag_name, 'tag_type': f'type/{i.tag_type}'}
         match = list(web.ctx.site.things(q))
+        return match
 
-        if len(match) == 0:
-            return None  # Case 1, from add page
-        else:
-            return match[0]  # Case 2
-
-    def tag_match(self, tag: Tag) -> NoReturn:
+    def tag_match(self, match: list) -> NoReturn:
         """
         Action for when an existing tag has been found.
         Redirect user to the found tag's edit page to add any missing details.
         """
+        tag = web.ctx.site.get(match[0])
         raise safe_seeother(tag.url("/edit"))
 
     def no_match(self, i: web.utils.Storage) -> NoReturn:
@@ -110,13 +100,14 @@ class addtag(delegate.page):
         Redirects the user to the tag edit page
         in `add-tag` mode.
         """
-        tag = new_doc(
-            "/type/tag", name=i.tag_name, type=i.tag_type, description=i.tag_description
+        key = web.ctx.site.new_key('/type/tag')
+        web.ctx.path = key
+        web.ctx.site.save(
+            {'key': key, 'name': i.tag_name, 'tag_description': i.tag_description, 'tag_type': f'type/{i.tag_type}', 'type': dict(key='/type/tag')},
+            comment='New Tag',
         )
-
-        web.ctx.site.save(tag, comment="Created new tag.")
-
-        raise safe_seeother(tag.url("/edit"))
+        raise web.HTTPError('200 OK', {}, key)
+        raise safe_seeother(tag.url('/edit'))
 
 
 # remove existing definitions of addtag
@@ -128,56 +119,53 @@ class addtag(delegate.page):  # type: ignore[no-redef] # noqa: F811
         raise web.redirect("/tag/add")
 
 
-# class tag_edit(delegate.page):
-#     path = r"(/tags/OL\d+T)/edit"
+class tag_edit(delegate.page):
+    path = r"(/tags/OL\d+T)/edit"
 
-#     def GET(self, key):
-#         i = web.input(v=None, _method="GET")
-#         v = i.v and safeint(i.v, None)
+    def GET(self, key):
+        if not web.ctx.site.can_write(key):
+            return render_template(
+                "permission_denied",
+                web.ctx.fullpath,
+                "Permission denied to edit " + key + ".",
+            )
 
-#         if not web.ctx.site.can_write(key):
-#             return render_template(
-#                 "permission_denied",
-#                 web.ctx.fullpath,
-#                 "Permission denied to edit " + key + ".",
-#             )
+        tag = web.ctx.site.get(key)
+        if tag is None:
+            raise web.notfound()
 
-#         tag = web.ctx.site.get(key, v)
-#         if tag is None:
-#             raise web.notfound()
+        return render_template('type/tag/edit', tag)
 
-#         return render_template('tags/edit', tag, recaptcha=get_recaptcha())
+    # def POST(self, key):
+    #     i = web.input(v=None, _method="GET")
 
-#     def POST(self, key):
-#         i = web.input(v=None, _method="GET")
+    #     if spamcheck.is_spam(allow_privileged_edits=True):
+    #         return render_template(
+    #             "message.html", "Oops", 'Something went wrong. Please try again later.'
+    #         )
 
-#         if spamcheck.is_spam(allow_privileged_edits=True):
-#             return render_template(
-#                 "message.html", "Oops", 'Something went wrong. Please try again later.'
-#             )
+    #     recap = get_recaptcha()
 
-#         recap = get_recaptcha()
+    #     if recap and not recap.validate():
+    #         return render_template(
+    #             "message.html",
+    #             'Recaptcha solution was incorrect',
+    #             'Please <a href="javascript:history.back()">go back</a> and try again.',
+    #         )
 
-#         if recap and not recap.validate():
-#             return render_template(
-#                 "message.html",
-#                 'Recaptcha solution was incorrect',
-#                 'Please <a href="javascript:history.back()">go back</a> and try again.',
-#             )
+    #     v = i.v and safeint(i.v, None)
+    #     tag = web.ctx.site.get(key, v)
+    #     if tag is None:
+    #         raise web.notfound()
 
-#         v = i.v and safeint(i.v, None)
-#         tag = web.ctx.site.get(key, v)
-#         if tag is None:
-#             raise web.notfound()
-
-#         try:
-#             helper = SaveTagHelper(tag, None)  # TODO: add SaveTagHelper
-#             helper.save(web.input())
-#             add_flash_message("info", utils.get_message("flash_tag_updated"))
-#             raise safe_seeother(tag.url())
-#         except (ClientException, ValidationException) as e:
-#             add_flash_message('error', str(e))
-#             return self.GET(key)
+    #     try:
+    #         helper = SaveTagHelper(tag, None)  # TODO: add SaveTagHelper
+    #         helper.save(web.input())
+    #         add_flash_message("info", utils.get_message("flash_tag_updated"))
+    #         raise safe_seeother(tag.url())
+    #     except (ClientException, ValidationException) as e:
+    #         add_flash_message('error', str(e))
+    #         return self.GET(key)
 
 
 def setup():
