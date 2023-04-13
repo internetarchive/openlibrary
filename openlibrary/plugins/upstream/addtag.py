@@ -113,7 +113,7 @@ class addtag(delegate.page):
             comment='New Tag',
         )
         raise web.HTTPError('200 OK', {}, key)
-        raise safe_seeother(tag.url('/edit'))
+        # raise safe_seeother(tag.url('/edit'))
 
 
 # remove existing definitions of addtag
