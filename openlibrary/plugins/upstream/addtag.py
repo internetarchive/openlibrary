@@ -56,7 +56,7 @@ class addtag(delegate.page):
             return render_template(
                 "message.html", "Oops", 'Something went wrong. Please try again later.'
             )
-        
+
         if not web.ctx.site.get_user():
             recap = get_recaptcha()
             if recap and not recap.validate():
@@ -81,7 +81,7 @@ class addtag(delegate.page):
         Tries to find an existing tag that matches the data provided by the user.
         """
 
-        q = {'type':  '/type/tag', 'name': i.tag_name, 'tag_type': f'type/{i.tag_type}'}
+        q = {'type': '/type/tag', 'name': i.tag_name, 'tag_type': f'type/{i.tag_type}'}
         match = list(web.ctx.site.things(q))
         return match
 
@@ -103,7 +103,13 @@ class addtag(delegate.page):
         key = web.ctx.site.new_key('/type/tag')
         web.ctx.path = key
         web.ctx.site.save(
-            {'key': key, 'name': i.tag_name, 'tag_description': i.tag_description, 'tag_type': f'type/{i.tag_type}', 'type': dict(key='/type/tag')},
+            {
+                'key': key,
+                'name': i.tag_name,
+                'tag_description': i.tag_description,
+                'tag_type': f'type/{i.tag_type}',
+                'type': dict(key='/type/tag'),
+            },
             comment='New Tag',
         )
         raise web.HTTPError('200 OK', {}, key)
