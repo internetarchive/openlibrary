@@ -1,6 +1,18 @@
-.teamPageTitle {
+.teamPageTop {
 	margin-bottom: 0;
 	padding-left: 2rem;
+}
+
+.teamPage__inMemorySectionTitle {
+	padding-left: 2rem;
+	margin-bottom: 0;
+	margin-top: 2rem;
+}
+
+.teamPageSectionTitle {
+	padding-left: 2rem;
+	margin-bottom: 0;
+	margin-top: 4rem;
 }
 
 .container {
@@ -11,8 +23,50 @@
 	gap: 2rem;
 }
 
+.teamCard__inMemoryContainer {
+	height: 380px;
+	width: 400px;
+	display: flex;
+	align-items: flex-end;
+}
+
+.teamCard__inMemory {
+	background: #e4e0cc;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	height: 300px;
+	align-items: center;
+	position: relative;
+	justify-content: flex-end;
+	border-radius: 2rem;
+}
+
+.teamCard__inMemory__name {
+	text-decoration: underline;
+	padding-top: 100px;
+}
+
+.teamCard__inMemory__title {
+	font-weight: 400;
+}
+
+.teamCard__inMemory__title,
+.teamCard__inMemory__name {
+	margin: 0;
+	padding-left: 15px;
+	padding-right: 15px;
+	text-align: center;
+}
+
+.teamCard__inMemory__bio {
+	padding: 15px;
+	margin: 0;
+	line-height: 130%;
+}
+
 .teamCard__container {
-	height: 330px;
+	height: 390px;
 	width: 280px;
 	display: flex;
 	align-items: flex-end;
@@ -23,10 +77,9 @@
 	display: flex;
 	flex-direction: column;
 	width: 100%;
-	height: 250px;
+	height: 310px;
 	align-items: center;
 	position: relative;
-	justify-content: flex-end;
 	border-radius: 2rem;
 }
 
@@ -59,20 +112,24 @@
 .teamCard__description__name {
 	text-decoration: underline;
 	margin-bottom: 10px;
+	padding-top: 90px;
 }
 
 .teamCard__description__title {
 	font-weight: 400;
+	height: 60px;
 }
 
 .teamCard__description__title,
 .teamCard__description__name {
 	margin: 0;
+	padding-left: 15px;
+	padding-right: 15px;
+	text-align: center;
 }
 
 .teamCard__description__bio {
 	padding: 15px;
 	margin: 0;
-	text-align: center;
-	line-height: 110%;
+	line-height: 130%;
 }
