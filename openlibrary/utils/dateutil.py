@@ -119,7 +119,13 @@ def get_reading_goals_year():
 
 
 @public
-def within_date_range(start_month: int, start_day: int, end_month: int, end_day: int, current_date: datetime.datetime | None = None) -> bool:
+def within_date_range(
+    start_month: int,
+    start_day: int,
+    end_month: int,
+    end_day: int,
+    current_date: datetime.datetime | None = None,
+) -> bool:
     """
     Checks if the current date is within the given duration.
     If now current_date is given, the actual current date is instead.
@@ -130,18 +136,23 @@ def within_date_range(start_month: int, start_day: int, end_month: int, end_day:
     current_day = now.day
 
     if start_month < end_month:  # Duration spans a single calendar year
-        if (current_month < start_month or current_month > end_month) or \
-            (current_month == start_month and current_day < start_day) or \
-            (current_month == end_month and current_day > end_day):
+        if (
+            (current_month < start_month or current_month > end_month)
+            or (current_month == start_month and current_day < start_day)
+            or (current_month == end_month and current_day > end_day)
+        ):
             return False
     elif start_month > end_month:  # Duration spans two years
-        if (current_month > end_month and current_month < start_month) or \
-            (current_month == start_month and current_day < start_day) or \
-            (current_month == end_month and current_day > end_day):
+        if (
+            (current_month > end_month and current_month < start_month)
+            or (current_month == start_month and current_day < start_day)
+            or (current_month == end_month and current_day > end_day)
+        ):
             return False
     else:  # Duration is within a single month
-        if (current_month != start_month) or \
-            (current_day < start_day or current_day > end_day):
+        if (current_month != start_month) or (
+            current_day < start_day or current_day > end_day
+        ):
             return False
 
     return True
