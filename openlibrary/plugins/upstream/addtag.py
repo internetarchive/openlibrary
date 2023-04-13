@@ -110,7 +110,9 @@ class addtag(delegate.page):
         Redirects the user to the tag edit page
         in `add-tag` mode.
         """
-        tag = new_doc("/type/tag", name=i.tag_name, type=i.tag_type, description=i.tag_description)
+        tag = new_doc(
+            "/type/tag", name=i.tag_name, type=i.tag_type, description=i.tag_description
+        )
 
         web.ctx.site.save(tag, comment="Created new tag.")
 
