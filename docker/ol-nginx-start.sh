@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -n "$CRONTAB_FILES" ] ; then
-  crontab $CRONTAB_FILES
+  cat $CRONTAB_FILES | crontab -
   service cron start
 fi
 
