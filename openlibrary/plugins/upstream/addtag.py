@@ -47,9 +47,9 @@ class addtag(delegate.page):
 
     def POST(self):
         i = web.input(
-            name="",
-            id_name="",
-            id_value="",
+            tag_name="",
+            tag_type="",
+            tag_description="",
         )
 
         if spamcheck.is_spam(i, allow_privileged_edits=True):
@@ -110,7 +110,7 @@ class addtag(delegate.page):
         Redirects the user to the tag edit page
         in `add-tag` mode.
         """
-        tag = new_doc("/type/tag", name=i.name, type=i.type)
+        tag = new_doc("/type/tag", name=i.tag_name, type=i.tag_type, description=i.tag_description)
 
         web.ctx.site.save(tag, comment="Created new tag.")
 

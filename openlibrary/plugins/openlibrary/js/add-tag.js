@@ -7,26 +7,26 @@ export function initAddTagImport () {
     var tagType = tagSelect.options[tagSelect.selectedIndex].text;
     const button = document.querySelector('#create-tag-button')
 
-    button.addEventListener('click', function(event){
-        // if form is valid:
-        if (nameField.checkValidity()) {
-            // prevent default button behavior
-            event.preventDefault()
+    // button.addEventListener('click', function(event){
+    //     // if form is valid:
+    //     if (nameField.checkValidity()) {
+    //         // prevent default button behavior
+    //         event.preventDefault()
 
-            // Make call to create list
-            const data = {
-                name: websafe(nameField.value),
-                description: websafe(descriptionField.value),
-                type: websafe(tagType)
-            }
+    //         // Make call to create list
+    //         const data = {
+    //             name: websafe(nameField.value),
+    //             description: websafe(descriptionField.value),
+    //             type: websafe(tagType)
+    //         }
 
-            const successCallback = function() {
-                return
-            }
+    //         const successCallback = function() {
+    //             return
+    //         }
 
-            createTag(data, successCallback)
-        }
-    })
+    //         createTag(data, successCallback)
+    //     }
+    // })
 }
 
 /**
