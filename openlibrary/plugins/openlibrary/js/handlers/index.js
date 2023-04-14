@@ -1,10 +1,14 @@
 import { FadingToast } from '../Toast.js';
 
 export function initRatingHandlers(ratingForms) {
-    for (const form of ratingForms) {
-        form.addEventListener('submit', function(e) {
-            handleRatingSubmission(e, form);
-        })
+    const isLoggedIn = !document.querySelector('.auth-component')
+
+    if (isLoggedIn) {
+        for (const form of ratingForms) {
+            form.addEventListener('submit', function(e) {
+                handleRatingSubmission(e, form);
+            })
+        }
     }
 }
 
