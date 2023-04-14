@@ -692,11 +692,10 @@ class account_privacy(delegate.page):
 
     @require_login
     def POST(self):
-        expires = 3600 * 24 * 365
         i = web.input(public_readlog="", safe_mode="")
         user = accounts.get_current_user()
         user.save_preferences(i)
-        web.setcookie('sfw', i.safe_mode, expires=expires)
+        web.setcookie('sfw', i.safe_mode, expires="" if i.safe_mode == 'yes' else -1)
         add_flash_message(
             'note', _("Notification preferences have been updated successfully.")
         )
