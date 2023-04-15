@@ -1,14 +1,10 @@
 import { FadingToast } from '../Toast.js';
 
 export function initRatingHandlers(ratingForms) {
-    const isLoggedIn = !document.querySelector('.auth-component')
-
-    if (isLoggedIn) {
-        for (const form of ratingForms) {
-            form.addEventListener('submit', function(e) {
-                handleRatingSubmission(e, form);
-            })
-        }
+    for (const form of ratingForms) {
+        form.addEventListener('submit', function(e) {
+            handleRatingSubmission(e, form);
+        })
     }
 }
 
@@ -35,6 +31,10 @@ function handleRatingSubmission(event, form) {
             body: new URLSearchParams(formData)
         })
             .then((response) => {
+                // POST handler will redirect to login page when not logged in
+                if (response.redirected) {
+                    window.location = response.url
+                }
                 if (!response.ok) {
                     throw new Error('Ratings update failed')
                 }
