@@ -13,6 +13,8 @@ from babel.messages.pofile import read_po, write_po
 from babel.messages.mofile import write_mo
 from babel.messages.extract import extract_from_file, extract_from_dir, extract_python
 
+from infogami.infobase.client import Nothing
+
 from .validators import validate
 
 root = os.path.dirname(__file__)
@@ -314,6 +316,8 @@ class GetText:
         if args:
             value = value % args
         elif kwargs:
+            if isinstance(kwargs.get('count'), Nothing):
+                kwargs['count'] = 0
             value = value % kwargs
 
         return value
