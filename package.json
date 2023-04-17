@@ -10,12 +10,14 @@
         "css"
       ],
       "extensions": "less",
-      "quiet": false
+      "quiet": false,
+      "legacyWatch": true
     }
   },
   "scripts": {
-    "watch": "npx webpack --watch --mode=development --progress",
-    "watch-css": "npm-watch build-assets:css",
+    "watch": "npx concurrently npm:watch:js npm:watch:css",
+    "watch:js": "npx webpack --watch --mode=development --progress --watch-options-poll=1000",
+    "watch:css": "npx npm-watch build-assets:css",
     "build-assets:webpack": "env NODE_ENV=production npx webpack --mode=production",
     "build-assets": "make js && make css && make components",
     "build-assets:css": "make css",

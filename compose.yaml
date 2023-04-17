@@ -4,7 +4,7 @@ services:
     image: "${OLIMAGE:-oldev:latest}"
     environment:
       - OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
-      - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 4 --timeout 180}
+      - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 1 --timeout 180}
     command: docker/ol-web-start.sh
     ports:
       - ${WEB_PORT:-8080}:8080
