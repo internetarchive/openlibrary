@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SERVERS="ol-home0 ol-covers0 ol-web1 ol-web2 ol-www0 ol-solr0"
+ALL_SERVERS="ol-home0 ol-covers0 ol-web1 ol-web2 ol-www0 ol-solr0"
 POLICY_SERVERS="ol-home0 ol-web1 ol-web2"
 REPO_DIRS="/opt/olsystem /opt/openlibrary /opt/openlibrary/vendor/infogami"
 
@@ -27,6 +27,7 @@ check_repos() {
 }
 
 check_docker_images() {
+    SERVERS=$1
     parallel --group "
         ssh {} '
             printf '%-15s' {};
@@ -36,6 +37,6 @@ check_docker_images() {
     echo "";
 }
 
-check_repos "$SERVERS" "$REPO_DIRS"
+check_repos "$ALL_SERVERS" "$REPO_DIRS"
 check_repos "$POLICY_SERVERS" "/opt/booklending_utils"
-check_docker_images
+check_docker_images "$ALL_SERVERS"
