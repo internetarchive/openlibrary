@@ -390,6 +390,9 @@ class account_login(delegate.page):
         if error := audit.get('error'):
             return self.render_error(error, i)
 
+        ol_account = OpenLibraryAccount.get(email=email)
+        if ol_account.get_user().preferences()['safe_mode'].lower() == 'yes':
+            web.setcookie('sfw', 'yes')
         expires = 3600 * 24 * 365 if i.remember else ""
         web.setcookie('pd', int(audit.get('special_access')) or '', expires=expires)
         web.setcookie(
@@ -695,7 +698,9 @@ class account_privacy(delegate.page):
         i = web.input(public_readlog="", safe_mode="")
         user = accounts.get_current_user()
         user.save_preferences(i)
-        web.setcookie('sfw', i.safe_mode, expires="" if i.safe_mode == 'yes' else -1)
+        web.setcookie(
+            'sfw', i.safe_mode, expires="" if i.safe_mode.lower() == 'yes' else -1
+        )
         add_flash_message(
             'note', _("Notification preferences have been updated successfully.")
         )
