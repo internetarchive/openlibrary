@@ -520,7 +520,8 @@ class delete:
                 return 'cover has been deleted successfully.'
         else:
             return 'no such id: %s' % id
-        
+
+
 class print_author_query:
     def POST(self, category):
         i = web.input(id=None, redirect_url=None)
@@ -531,6 +532,8 @@ class print_author_query:
             raise web.seeother(redirect_url)
         else:
             return 'author does not appear in the search'
+
+
 # This prints the print_author_query code
 
 
