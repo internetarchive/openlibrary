@@ -6,6 +6,7 @@
 .teamMember__name {
 	font-size: 3rem;
 	padding-left: 2rem;
+	color: hsl(224, 83%, 23%);
 }
 
 .teamMember__title {
@@ -29,7 +30,7 @@
 	height: auto;
 }
 
-.teamMember__sideBar {
+.sideBar {
 	background: #e4e0cc;
 	display: flex;
 	flex-direction: column;
@@ -42,7 +43,7 @@
 	height: 100%;
 }
 
-.teamMember__sideBar__photoContainer {
+.sideBar__photoContainer {
 	position: absolute;
 	top: -80px;
 	height: 160px;
@@ -54,7 +55,7 @@
 	overflow: hidden;
 }
 
-.teamMember__sideBar__photo {
+.photoContainer__photo {
 	width: 150px;
 	height: 150px;
 	border-radius: 50%;
@@ -62,14 +63,20 @@
 	object-fit: cover;
 }
 
-.teamMember__sideBar__contactInfo {
+.sideBar__contactInfo {
 	display: flex;
 	flex-direction: column;
 	width: 100%;
 	padding-left: 2rem;
+	gap: 1rem;
 }
 
-.teamMember__container {
+.sideBar__contactInfo p {
+	margin: 0;
+	margin-bottom: 10px;
+}
+
+.bio {
 	width: 70%;
 	display: flex;
 	border-radius: 2rem;
@@ -79,7 +86,20 @@
 	gap: 20px;
 }
 
-.teamMember__container p {
+.bio p {
 	padding: 0;
 	margin: 0;
+}
+
+@media screen and (max-width: 450px) {
+	.container {
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		padding-left: 0;
+		padding-right: 0;
+	}
+	.bio {
+		width: 90%;
+	}
 }
