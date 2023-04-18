@@ -144,6 +144,36 @@ def delete(id):
         t.commit()
 
 
+def print_author_query(query):
+    # create the process to print for the query
+    process = Process()
+    # reports the process name for that query
+    print(process(query))
+    query = 'any'
+    author = 'ID.key'  # Gets the ID for the author
+    key = author.key
+    process = process.start(query, author)  # Will get us the query ???
+    db = getdb()
+    now = datetime.datetime.itcnow()
+    t = db.transaction()
+    try:
+        db.query(
+            'UPDATE cover set deleted=$true AND last_modified=$now WHERE id=$id AND author=$author AND key=$key',
+            vars=locals(),
+        )
+        db.insert("log", action="print", timestamp=now, cover_id=id, author=author, key=key)
+    except:
+        t.rollback()
+        raise
+    else:
+        t.commit()
+    result = query + author
+    # This gets us the result and shows what the author is when it is implemented
+    print(result)
+    # This function will take the response to see what happens to the author
+# This is a test function to print the query...
+# ???
+
 def get_filename(id):
     d = getdb().select('cover', what='filename', where='id=$id', vars=locals())
     return d and d[0].filename or None

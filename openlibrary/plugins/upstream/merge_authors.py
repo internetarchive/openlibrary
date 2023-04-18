@@ -256,6 +256,20 @@ class merge_authors(delegate.page):
         d = {doc.key: doc.type.key for doc in docs}
         return [k for k in keys if d.get("/authors/" + k) == '/type/author']
 
+
+    def merge_author_record(self):
+        i = web.input(key=[], mrid=None)
+        keys = uniq(i.key)
+        user = get_current_user()
+        can_merge = user and (
+            user.is_admin() or user.is_usergroup_member('/usergroup/super-librarians')
+        )
+        author1 = web.input('merge/authors/record', keys, top_books_from_author, i.mrid, can_merge)
+        author2 = web.input('merge/authors1/record', keys, top_books_from_author, i.mrid, can_merge)
+        BasicMergeEngine.merge(author1, author2)
+        # The point of this function is to merge the author records to get a more accurate history for it...
+
+
     def GET(self):
         i = web.input(key=[], mrid=None)
         keys = uniq(i.key)
