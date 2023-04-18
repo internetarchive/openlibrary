@@ -1,6 +1,6 @@
+from unittest.mock import patch
 import pytest
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
-
 
 # {'Test name': ('query', fields[])}
 QUERY_PARSER_TESTS = {
@@ -119,3 +119,29 @@ QUERY_PARSER_TESTS = {
 def test_process_user_query(query, parsed_query):
     s = WorkSearchScheme()
     assert s.process_user_query(query) == parsed_query
+
+
+EDITION_KEY_TESTS = {
+    'edition_key:OL123M': '+key:\\"/books/OL123M\\"',
+    'edition_key:"OL123M"': '+key:\\"/books/OL123M\\"',
+    'edition_key:"/books/OL123M"': '+key:\\"/books/OL123M\\"',
+    'edition_key:(OL123M)': '+key:(\\"/books/OL123M\\")',
+    'edition_key:(OL123M OR OL456M)': '+key:(\\"/books/OL123M\\" OR \\"/books/OL456M\\")',
+}
+
+
+@pytest.mark.parametrize("query,edQuery", EDITION_KEY_TESTS.items())
+def test_q_to_solr_params_edition_key(query, edQuery):
+    import web
+
+    web.ctx.lang = 'en'
+    s = WorkSearchScheme()
+
+    with patch(
+        'openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc'
+    ) as mock_fn:
+        mock_fn.return_value = 'eng'
+        params = s.q_to_solr_params(query, {'editions:[subquery]'}, [])
+    params_d = dict(params)
+    assert params_d['workQuery'] == query
+    assert edQuery in params_d['edQuery']

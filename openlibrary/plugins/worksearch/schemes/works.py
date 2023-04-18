@@ -357,6 +357,22 @@ class WorkSearchScheme(SearchScheme):
                                 node.name = new_name
                             else:
                                 node.name = f'+{new_name}'
+                            if new_name == 'key':
+                                # need to convert eg 'edition_key:OL123M' to
+                                # 'key:(/books/OL123M)'. Or
+                                # key:(/books/OL123M OR /books/OL456M)
+                                for n, n_parents in luqum_traverse(node.expr):
+                                    if isinstance(
+                                        n, (luqum.tree.Word, luqum.tree.Phrase)
+                                    ):
+                                        val = (
+                                            n.value
+                                            if isinstance(n, luqum.tree.Word)
+                                            else n.value[1:-1]
+                                        )
+                                        if val.startswith('/books/'):
+                                            val = val[7:]
+                                        n.value = f'"/books/{val}"'
                         elif callable(new_name):
                             # Replace this node with a new one
                             # First process the expr
