@@ -38,7 +38,7 @@ $ page = int(input(page=1).page)
   $:macros.Pager(page, total[mode], results_per_page=25)
 </div>
 <div class="librarian-queue-wrapper">
-  <ul class="nav-bar">
+  <ul class="table-header">
     <li class="$(mode=='open' and 'selected' or '')">
       <a href="$changequery(mode='open', page=None)">$_('Open') ($total['open'])</a>
     </li>
