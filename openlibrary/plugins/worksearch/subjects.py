@@ -355,7 +355,7 @@ class SubjectEngine:
                     subject[meta.key].pop(i)
                     break
 
-            q = {'type': '/type/tag', 'name': subject.name, 'tag_type': f'type/subject'}
+            q = {'type': '/type/tag', 'name': subject.name, 'tag_type': 'type/subject'}
             match = web.ctx.site.things(q)
             if match:
                 tag = web.ctx.site.get(match[0])
