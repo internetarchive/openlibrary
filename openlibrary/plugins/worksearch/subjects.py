@@ -354,6 +354,19 @@ class SubjectEngine:
                     subject.name = s.name
                     subject[meta.key].pop(i)
                     break
+            
+            q = {'type': '/type/tag', 'name': subject.name, 'tag_type': f'type/subject'}
+            match = web.ctx.site.things(q)
+            if match:
+                tag = web.ctx.site.get(match[0])
+                match = [
+                    dict(
+                        name=web.safestr(tag.tag_name),
+                        id=tag.key,
+                        description=tag.tag_description,
+                    )
+                ]
+                subject.tag = match
 
         return subject
 
