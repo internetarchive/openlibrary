@@ -388,6 +388,13 @@ SelectionManager.ACTIONS = [
         name: 'Merge Works...',
         href: olids => `/works/merge?records=${olids.join(',')}`,
     },
+    {
+        applies_to_type: ['work','edition'],
+        requires_type: [],
+        multiple_only: false,
+        name: 'Create list...',
+        href: olids => `/lists/add?seeds=${olids.join(',')}`,
+    },
     /* Uncomment this when edition merging is available.
     {
         applies_to_type: ['edition'],
