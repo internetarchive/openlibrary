@@ -415,7 +415,7 @@ class BetterDataProvider(LegacyDataProvider):
             k.replace("/books/ia:", "") for k in keys if k.startswith("/books/ia:")
         ]
         # self.preload_ia_items(identifiers)
-        re_key = web.re_compile(r"/(books|works|authors)/OL\d+[MWA]")
+        re_key = web.re_compile(r"/(books|works|authors|lists)/OL\d+[MWAL]")
 
         keys2 = {k for k in keys if re_key.match(k)}
         # keys2.update(k for k in self.ia_redirect_cache.values() if k is not None)

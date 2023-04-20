@@ -1089,13 +1089,45 @@ class works_autocomplete(delegate.page):
                 docs = [work.as_fake_solr_record()]
 
         for d in docs:
-            # Required by the frontend
+            # 'name' is used by jquery-ui autocomplete as the displayed
+            # value in the input
             d['name'] = d['key'].split('/')[-1]
             d['full_title'] = d['title']
             if 'subtitle' in d:
                 d['full_title'] += ": " + d['subtitle']
 
         return to_json(docs)
+
+
+class lists_autocomplete(delegate.page):
+    path = "/lists/_autocomplete"
+
+    def GET(self):
+        i = web.input(q="", limit=5)
+        i.limit = safeint(i.limit, 5)
+
+        solr = get_solr()
+
+        # look for ID in query string here
+        q = solr.escape(i.q).strip()
+        # TODO: Update for lists
+        embedded_olid = find_work_olid_in_string(q)
+        if embedded_olid:
+            solr_q = 'key:"/works/%s"' % embedded_olid
+        else:
+            solr_q = f'name:"{q}"^2 OR name:({q}*)'
+
+        params = {
+            'q_op': 'AND',
+            'rows': i.limit,
+            'fq': 'type:list',
+            # limit the fields returned for better performance
+            'fl': 'key,name',
+        }
+
+        data = solr.select(solr_q, **params)
+
+        return to_json(data['docs'])
 
 
 class authors_autocomplete(delegate.page):

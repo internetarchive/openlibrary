@@ -1379,6 +1379,28 @@ def solr_select_work(edition_key):
         return docs[0]['key']  # /works/ prefix is in solr
 
 
+def build_list_data(lst):
+    return {
+        'key': lst['key'],
+        'name': lst['name'],
+        'type': 'list',
+        'seed': [seed['key'] for seed in lst.get('seeds', [])],
+    }
+
+
+async def update_list(lst):
+    reqs = []
+    if lst['type']['key'] == '/type/list':
+        solr_doc = build_list_data(lst)
+        reqs.append(AddRequest(solr_doc))
+    elif lst['type']['key'] in ['/type/delete', '/type/redirect']:
+        reqs.append(DeleteRequest([lst['key']]))
+    else:
+        logger.error("unknown type: %s", lst['type']['key'])
+
+    return reqs
+
+
 async def update_keys(
     keys,
     commit=True,
@@ -1487,6 +1509,15 @@ async def update_keys(
             requests += await update_work(w)
         except:
             logger.error("Failed to update work %s", k, exc_info=True)
+
+    # update lists
+    for k in (k for k in keys if "/lists/" in k):
+        logger.debug("updating list %s", k)
+        try:
+            lst = await data_provider.get_document(k)
+            requests += await update_list(lst)
+        except:
+            logger.error("Failed to update list %s", k, exc_info=True)
 
     if requests:
         if commit:

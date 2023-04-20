@@ -220,7 +220,8 @@ async def update_keys(keys):
     keys = [
         k
         for k in keys
-        if k.count("/") == 2 and k.split("/")[1] in ("books", "authors", "works")
+        if k.count("/") == 2
+        and k.split("/")[1] in ("books", "authors", "works", "lists")
     ]
 
     count = 0
