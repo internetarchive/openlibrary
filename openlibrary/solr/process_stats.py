@@ -195,19 +195,8 @@ def process(data):
     return solrdoc
 
 
-def read_events():
-    for line in sys.stdin:
-        doc = json.loads(line.strip())
-        yield doc
-
-
-def read_events_from_db(keys=None, day=None):
-    if keys:
-        result = get_db().query(
-            "SELECT key, json FROM stats WHERE key in $keys ORDER BY updated",
-            vars=locals(),
-        )
-    elif day:
+def read_events_from_db(day=None):
+    if day:
         last_updated = day
         result = get_db().query(
             "SELECT key, json FROM stats WHERE updated >= $last_updated AND updated < $last_updated::timestamp + interval '1' day ORDER BY updated",
@@ -225,10 +214,6 @@ def read_events_from_db(keys=None, day=None):
         yield doc
 
 
-def debug():
-    """Prints debug info about solr."""
-
-
 def add_events_to_solr(events):
     events = list(events)
     preload(events)
@@ -242,31 +227,15 @@ def main(*args):
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
     )
-    if "--load" in args:
-        docs = read_events()
-        update_solr(docs)
-    elif args and args[0] == "--load-from-db":
+    if args and args[0] == "--load-from-db":
         events = read_events_from_db()
-        add_events_to_solr(events)
-    elif args and args[0] == "--load-keys":
-        keys = args[1:]
-        events = read_events_from_db(keys=keys)
         add_events_to_solr(events)
     elif args and args[0] == "--day":
         day = args[1]
         events = read_events_from_db(day=day)
         add_events_to_solr(events)
-    elif args and args[0] == "--debug":
-        debug()
     else:
-        docs = read_events()
-        # each doc is one row from couchdb view response when called with include_docs=True
-        for e in docs:
-            try:
-                result = process(e['doc'])
-                print(json.dumps(result))
-            except Exception:
-                logger.error("Failed to process %s", e['doc']['_id'], exc_info=True)
+        raise Exception("Unknown args: %r" % args)
 
 
 def fix_subject_key(doc, name, prefix):
