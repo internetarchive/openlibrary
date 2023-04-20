@@ -1,3 +1,50 @@
+.crumb {
+  display: flex;
+  margin: 15px 0;
+  align-items: center;
+  vertical-align: bottom;
+}
+
+.crumbicon {
+  display: grid;
+  grid: [stack] var(--crumbicon-size) / [stack] var(--crumbicon-size);
+  place-items: center;
+}
+
+.crumbicon>* {
+  grid-area: stack;
+  padding-left: 10px;
+}
+
+.breadcrumb-title {
+  display: inline-block;
+  margin: 0;
+  padding: 10px 10px 10px 0;
+  border-right: 1px solid @black;
+}
+
+.disguised-select {
+  grid-area: stack;
+  min-height: 100%;
+  inline-size: 100%;
+  block-size: 100%;
+  opacity: .01;
+  font-size: min(100%,16px); /* Defaults to 16px; fixes iOS zoom */
+}
+
+.dropdown {
+  background-color: @lightest-grey;
+  box-shadow: 0 0 0 1px @mid-grey;
+  border-radius: 4px;
+}
+
+.down-chevron {
+  margin: 6px 10px 0 6px;
+  display: inline-block;
+  transform: rotate(90deg);
+  z-index: @z-index-level-1;
+}
+
 .mybooks-details {
   padding: 10px;
   display: flex;
@@ -38,54 +85,6 @@
     margin-left: 8px;
   }
   /* stylelint-enable selector-max-specificity */
-}
-
-.crumb {
-  display: flex;
-  margin: 15px 0px;
-  align-items: center;
-  vertical-align: bottom;
-}
-
-.crumbicon {
-  display: grid;
-  grid: [stack] var(--crumbicon-size) / [stack] var(--crumbicon-size);
-  place-items: center;
-}
-
-.crumbicon>* {
-  grid-area: stack;
-  padding-left: 10px;
-}
-
-.breadcrumb-title {
-  display: inline-block;
-  margin: 0;
-  padding: 10px 10px 10px 0px;
-  border-right: 1px solid black;
-}
-
-.disguised-select {
-  grid-area: stack;
-  min-height: 100%;
-  inline-size: 100%;
-  block-size: 100%;
-  opacity: .01;
-  font-size: min(100%,16px);
-  font-size: min(100%, 16px); /* Defaults to 16px; fixes iOS zoom */
-}
-
-.dropdown {
-  background-color: #ededed;
-  box-shadow: 0 0 0 1px #999;
-  border-radius: 4px;
-}
-
-.down-chevron {
-  margin: 6px 10px 0px 6px;
-  display: inline-block;
-  transform: rotate(90deg);
-  z-index: 1;
 }
 
 @media only screen and (max-width: @width-breakpoint-tablet) {
