@@ -1,8 +1,11 @@
 """Lists implementation.
 """
+from dataclasses import dataclass, field
 import json
 import random
 import tempfile
+from typing import Literal
+
 import web
 
 from infogami.utils import delegate
@@ -14,8 +17,9 @@ from openlibrary.core import formats, cache
 from openlibrary.core.lists.model import ListMixin
 import openlibrary.core.helpers as h
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.upstream.addbook import safe_seeother
 from openlibrary.utils import dateutil
-from openlibrary.plugins.upstream import spamcheck
+from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.worksearch import subjects
 from openlibrary.coverstore.code import render_list_preview_image
@@ -72,7 +76,10 @@ def get_list_data(list, seed, include_cover_url=True):
         if 'None' in d['cover_url']:
             d['cover_url'] = "/images/icons/avatar_book-sm.png"
     owner = list.get_owner()
-    d['owner'] = web.storage(displayname=owner.displayname or "", key=owner.key)
+    if owner:
+        d['owner'] = web.storage(displayname=owner.displayname or "", key=owner.key)
+    else:
+        d['owner'] = None
     return d
 
 
@@ -149,6 +156,110 @@ class lists(delegate.page):
 
     def render(self, doc, lists):
         return render_template("lists/lists.html", doc, lists)
+
+
+def olid_to_key(olid: str) -> str:
+    if olid.endswith("M"):
+        return f"/books/{olid}"
+    elif olid.endswith("W"):
+        return f"/works/{olid}"
+    elif olid.endswith("A"):
+        return f"/authors/{olid}"
+    elif olid.endswith("L"):
+        return f"/lists/{olid}"
+    else:
+        raise ValueError(f"Invalid OLID: {olid}")
+
+
+@dataclass
+class ListRecord:
+    key: str = None
+    name: str = ''
+    description: str = ''
+    list_type: Literal["user", "series"] = "user"
+    seeds: list = field(default_factory=list)
+
+    @staticmethod
+    def from_input():
+        i = utils.unflatten(
+            web.input(
+                key=None,
+                name='',
+                description='',
+                list_type="user",
+                seeds=[],
+            )
+        )
+
+        normalized_seeds = [
+            {'key': seed if seed.startswith('/') else olid_to_key(seed)}
+            if isinstance(seed, str) and not seed.startswith('/subjects/')
+            else seed
+            for seed_list in i.seeds
+            for seed in (
+                seed_list.split(',') if isinstance(seed_list, str) else [seed_list]
+            )
+        ]
+        normalized_seeds = [
+            seed
+            for seed in normalized_seeds
+            if seed and (isinstance(seed, str) or seed.get('key'))
+        ]
+        return ListRecord(
+            key=i.key,
+            name=i.name,
+            description=i.description,
+            list_type=i.list_type,
+            seeds=normalized_seeds,
+        )
+
+
+class lists_edit(delegate.page):
+    path = r"(/lists/OL\d+L|/people/[^/]+/lists/OL\d+L)/edit"
+
+    def GET(self, key):
+        if not web.ctx.site.can_write(key):
+            return render_template(
+                "permission_denied",
+                web.ctx.fullpath,
+                f"Permission denied to edit {key}.",
+            )
+
+        lst = web.ctx.site.get(key)
+        if lst is None:
+            raise web.notfound()
+        return render_template("type/list/edit", lst, edit=True)
+
+    def POST(self, key: str | None = None):
+        i = ListRecord.from_input()
+        if not i.name:
+            raise web.badrequest()
+
+        user = get_current_user()
+        if not user:
+            raise web.seeother("/account/login?redirect=/lists/add")
+
+        if key is None:
+            id = web.ctx.site.seq.next_value("list")
+            key = f"/lists/OL{id}L"
+        doc = {
+            "type": {"key": "/type/list"},
+            "key": key,
+            "name": i.name,
+            "description": i.description,
+            "list_type": i.list_type,
+            "seeds": i.seeds,
+        }
+        web.ctx.site.save(doc, action="lists", comment="Added list.")
+        return safe_seeother(key)
+
+
+class lists_add(lists_edit):
+    path = r"/lists/add"
+
+    def GET(self):
+        i = ListRecord.from_input()
+        return render_template("type/list/edit", i, edit=False)
 
 
 class lists_delete(delegate.page):

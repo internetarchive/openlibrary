@@ -267,7 +267,9 @@ def unflatten(d, separator="--"):
             k, k2 = k.split(separator, 1)
             setvalue(data.setdefault(k, {}), k2, v)
         else:
-            data[k] = v
+            # Don't overwrite if the key already exists
+            if k not in data:
+                data[k] = v
 
     def makelist(d):
         """Convert d into a list if all the keys of d are integers."""

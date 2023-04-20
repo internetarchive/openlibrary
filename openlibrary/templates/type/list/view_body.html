@@ -37,15 +37,25 @@ $jsdef render_seed_count(seed_count):
 $if not is_owner:
     <div id="contentHead" style="margin-bottom:0;">
         $:macros.databarView(list)
-        <div class="superNav">
-            $ owner = list.get_owner()
-            <a href="$owner.key">$owner.displayname</a>
-            /
-            <a href="$owner.key/lists">$_('Lists')</a>
-        </div>
-        <h1>$list.name</h1>
+        $ owner = list.get_owner()
+        $if owner:
+            <div class="superNav">
+                <a href="$owner.key">$owner.displayname</a>
+                /
+                <a href="$owner.key/lists">$_('Lists')</a>
+            </div>
+        <h1>$list.name</small></h1>
         <p class="collapse sansserif">
             $ component_times['render_seed_count'] = time()
+            <i>
+                $if not list.list_type or list.list_type == 'user':
+                    $_('User list')
+                $elif list.list_type == 'series':
+                    $_('Series')
+                $else:
+                    $list.list_type
+            </i>
+            &bull;
             <span class="darkgreen" id="list-items-count"><strong>$:render_seed_count(len(list.seeds))</strong></span>
             $ component_times['render_seed_count'] = time() - component_times['render_seed_count']
         </p>
@@ -154,20 +164,10 @@ window.q.push(function(){
 </script>
 
 $def remove_item_link():
-    $if ctx.user and ctx.user.key == list.get_owner().key:
+    $ owner = list.get_owner()
+    $if owner and ctx.user and ctx.user.key == owner.key:
         <span class="listDelete sansserif smaller">
             <a href="javascript:;"><span></span>$_('Remove this item?')</a>
-        </span>
-
-$def seed_meta_line(seed):
-    <span class="meta">
-        <!-- FIXME: I18N using internal seed.type directly for display is not internationalizable -->
-        <span class="type small">$seed.type</span>
-    </span>
-
-    $if seed.last_update:
-        <span class="time">
-            $:_('Last updated <span>%(date)s</span>', date=datestr(seed.last_update))
         </span>
 
 $def seed_attrs(seed):
@@ -196,12 +196,12 @@ $def seed_attrs(seed):
 
         <ul id="listResults" class="list-books clearfix">
             $ component_times['get_seeds'] = time()
-            $ seeds = list.get_seeds(sort=True, resolve_redirects=True)[page*page_size:page*page_size+page_size]
+            $ seeds = list.get_seeds(sort=False, resolve_redirects=True)[page*page_size:page*page_size+page_size]
             $ component_times['get_seeds'] = time() - component_times['get_seeds']
 
         $ solr_works = get_solr_works(s.key for s in seeds if s.type == 'work')
         $ availabilities = get_availabilities([solr_works.get(seed.key) or seed.document for seed in seeds if seed.type in ['edition', 'work']])
-        $for seed in seeds:
+        $for i, seed in enumerate(seeds):
             $ default_image = "https://openlibrary.org/images/icons/avatar_book-sm.png"
             $ cover = seed.get_cover()
             $if cover:
@@ -209,9 +209,13 @@ $def seed_attrs(seed):
             $else:
                 $ cover_url = default_image
 
+            $if list.list_type == 'series':
+                $ prefix = _('Book #%d', i + 1)
+            $else:
+                $ prefix = None
             $if seed.type in ['edition', 'work']:
                 $ doc = solr_works.get(seed.key) or seed.document
-                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed))
+                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=availabilities.get(seed.key), decorations=remove_item_link(), prefix=prefix)
             $else:
                 <li class="searchResultItem" $:seed_attrs(seed)>
                     <span class="bookcover">
@@ -224,7 +228,6 @@ $def seed_attrs(seed):
                             <h3 class="booktitle">
                                 <a href="$seed.url" class="results">$seed.title</a>
                             </h3>
-                            $:seed_meta_line(seed)
                         </div>
                     </div>
                     <span class="searchResultItemCTA">

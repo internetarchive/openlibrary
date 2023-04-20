@@ -1,43 +1,248 @@
-$def with (page)
+$def with (lst, edit=False)
 
-$var title: $page.name
+$var title: $(_("Create a list") if not edit else _("Editing list: %(list_name)s", list_name=lst.name))
 
 $putctx("robots", "noindex,nofollow")
 
 <div id="contentHead">
-    $:macros.databarEdit(page)
-
-    <h1>$_("Edit List")</h1>
+    $:macros.databarEdit(lst)
+    <h1>$(_("Edit List") if edit else _("Create a list"))</h1>
 </div>
 
+<script>
+    window.LAZY_BOOK_QUEUE = [];
+</script>
+<script type="module">
+    import debounce from 'https://esm.sh/lodash@4.17.21/debounce';
+
+    class LazyBookQueue {
+        constructor() {
+            this.queue = [];
+            this.cache = {};
+
+            this.renderDebounced = debounce(this.render.bind(this), 100);
+        }
+
+        push({key, render_fn_name}) {
+            if (this.cache[key]) {
+                this.renderKey(key, render_fn_name, this.cache[key]);
+            } else {
+                this.queue.push({key, render_fn_name});
+                this.renderDebounced();
+            }
+        }
+
+        renderKey(key, render_fn_name, book) {
+            const $$el = $$(`[data-key="$${key}"]`);
+            $$el.html(window[render_fn_name](book));
+        }
+
+        async getBooks(keys) {
+            const workKeys = keys.filter(key => key.startsWith('/works/'));
+            const editionKeys = keys.filter(key => key.startsWith('/books/'));
+            let query = '';
+            if (workKeys.length) {
+                query += `key:($${workKeys.join(' OR ')})`;
+            }
+            if (editionKeys.length) {
+                if (query) query += ' OR ';
+                query += `edition_key:($${editionKeys
+                    .map(key => key.split('/').pop())
+                    .join(' OR ')})`;
+            }
+            const resp = await fetch(`/search.json?$${new URLSearchParams({
+                q: query,
+                fields: 'key,cover_i,first_publish_year,author_name,title,subtitle,edition_count,editions',
+            })}`);
+            return await resp.json();
+        }
+
+        async render() {
+            const keys = this.queue.map(({key}) => key);
+            const resp = await this.getBooks(keys);
+            const books = resp.docs;
+            for (const book of books) {
+                this.cache[book.key] = book;
+                book.full_title = book.subtitle ? `$${book.title}: $${book.subtitle}` : book.title;
+                if (book.editions.docs.length) {
+                    const ed = book.editions.docs[0];
+                    ed.full_title = ed.subtitle ? `$${ed.title}: $${ed.subtitle}` : ed.title;
+                    ed.author_name = book.author_name;
+                    ed.edition_count = book.edition_count;
+                    this.cache[ed.key] = ed;
+                }
+            }
+
+            const missingKeys = keys.filter(key => !this.cache[key]);
+            console.warn('Missing books', missingKeys);
+            
+            for (const {key, render_fn_name} of this.queue) {
+                this.renderKey(key, render_fn_name, this.cache[key]);
+            }
+            this.queue = [];
+        }
+    }
+    const pre_queue = window.LAZY_BOOK_QUEUE;
+    window.LAZY_BOOK_QUEUE = new LazyBookQueue();
+    for (const item of pre_queue) {
+        window.LAZY_BOOK_QUEUE.push(item);
+    }
+</script>
+
+<style>
+    #new-list {
+        max-width: 800px;
+    }
+    #new-list [name=name] {
+        font-size: 1.5em;
+    }
+
+    #new-list > *:not(div), #new-list textarea {
+        display: block;
+        width: 100%;
+    }
+
+    #new-list textarea, #new-list input {
+        padding: 4px;
+        max-width: 800px;
+    }
+    #new-list > *:not(:first-child) {
+        margin-top: 6px;
+    }
+
+    #new-list .mia__input {
+        width: 90%;
+        margin-top: 6px;
+        border: 1px solid #bbb;
+        border-radius: 4px;
+        padding: 8px;
+        background: #f8f8f8;
+    }
+
+    #new-list .mia__input hr {
+        width: calc(100% - 20px);
+    }
+
+    .new-list__seed__position {
+        font-size: 0.9em;
+    }
+    .work-autocomplete {
+        width: calc(100% - 8ch);
+    }
+</style>
+
+$# Render the ith seed input field
+$jsdef render_seed_field(i, seed):
+    <li class="mia__input">
+        $# Displayed
+        <input id="work-$i" class="work work-autocomplete" value="$seed['key'].split('/')[-1]" placeholder="$_('Search for a book')" />
+        $# Actual value
+        <input id="work-$i-key" name="seeds--$i--key" type="hidden" value="$seed['key']" />
+        <a href="javascript:;" class="mia__remove red plain" title="$_('Remove this item')">[x]</a>        
+        $if seed['key']:
+        <hr />
+        $if seed['key'].startswith('/works/') or seed['key'].startswith('/books/'):
+            $:render_lazy_book(seed['key'], 'render_work_autocomplete_item')
+        $else:
+            $_("No preview")
+        <hr />
+    </li>
+
+$jsdef render_lazy_book(key, render_fn_name):
+    <div data-key="$key">
+        $code:
+            fake_item = {
+                'key': key,
+                'title': '...',
+                'full_title': '...',
+                'author_name': ['...'],
+                'edition_count': '_',
+             }
+        $:render_work_autocomplete_item(fake_item)
+    </div>
+    <script>
+        window.LAZY_BOOK_QUEUE.push({ key: '$key', render_fn_name: '$render_fn_name' });
+    </script>
+
+$jsdef render_work_autocomplete_item(item):
+    <div class="ac_work" title="Select this work">
+        <div class="cover">
+            $if 'cover_i' in item and item['cover_i']:
+                <img
+                    src="https://covers.openlibrary.org/b/id/$(item['cover_i'])-M.jpg"
+                    alt="$_('Cover of: %(title)s', title=item['title'])"
+                    loading="lazy"
+                >
+        </div>
+        <span class="olid">$item['key'].split('/')[2]</span>
+        <span class="name">
+            <span class="title">$item['full_title']</span>
+            $if 'first_publish_year' in item:
+                <span class="first_publish_year">($item['first_publish_year'])</span>
+        </span>
+        <span class="byline">
+            $if item['author_name']:
+                $_('by') <span class="authors">${', '.join(item['author_name'])}</span>
+        </span>
+        &bull;
+        $if item['edition_count'] == 1:
+            <span class="edition_count">$item['edition_count'] edition</span>
+        $else:
+            <span class="edition_count">$item['edition_count'] editions</span>
+        <div class="clear"></div>
+    </div>
 
 <div id="contentBody">
+    <form method="post" id="new-list" $:cond(query_param('debug'), 'action="?debug=true"')>
+        <label>
+            $_('List type')
+            <select name="list_type">
+                <option value="user" $:cond(lst.list_type == 'user', 'selected')>$_('User List')</option>
+                <option value="series" $:cond(lst.list_type == 'series', 'selected')>$_('Series')</option>
+            </select>
+        </label>
 
-    <form id="editList" name="edit" method="post" action="" class="olform validate">
+        <input
+            required
+            placeholder="$_('List Name')"
+            name="name"
+            value="$lst.name"
+        />
 
-
-        <div class="formElement">
-            <div class="label">
-                <label for="name">$_("Label")</label>
-            </div>
-            <div class="input">
-                <input type="text" name="name" id="name" value="$page.name" />
-            </div>
+        <div>
+            <textarea
+                placeholder="$_('Description (optional)')"
+                class="markdown"
+                name="description"
+                rows="3" cols="30"
+            >$lst.description</textarea>
         </div>
 
-        <div class="formElement">
-            <div class="label">
-                <label for="list_description">$_("Description")</label>
-            </div>
-            <div class="input">
-                <textarea id="list_description" name="description" class="markdown" rows="5" cols="80" style="width: 100%">$page.description</textarea>
-            </div>
-        </div>
+        <hr />
 
-        <div class="clearfix"></div>
+        $code:
+            mia_config = {
+                'render_field': 'render_seed_field',
+                'formatItem': 'render_work_autocomplete_item',
+                'allow_empty': True,
+            }
+
+        <ol class="new-list__items multi-input-autocomplete--works" data-config="$dumps(mia_config)">
+            $if lst.seeds:
+                $for i, seed in enumerate(lst.seeds):
+                    $:render_seed_field(i, seed)
+            $else:
+                $:render_seed_field(0, {'key': ''})
+            <a href="javascript:;" class="mia__add">$_('Add another item')</a>
+        </ol>
+
+        <hr />
 
         <div class="formElement bottom">
-            $:macros.EditButtons(comment=page.comment_)
+            $if edit:
+                $:macros.EditButtons(comment=lst.comment_)
+            $else:
+            <button type="submit" class="larger">$_('Create new list')</button>
         </div>
     </form>
 </div>

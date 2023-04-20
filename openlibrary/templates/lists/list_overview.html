@@ -1,6 +1,6 @@
 $def with (list, user_key, seed_info)
 
-$ remove = (list.owner.key == user_key)
+$ remove = list.owner and list.owner.key == user_key
 $ actionable = 'class=actionable-item' if remove else ''
 <li $actionable>
     <span class="image">
@@ -20,9 +20,10 @@ $ actionable = 'class=actionable-item' if remove else ''
 
                 <a href="$list.key" class="remove-from-list red smaller arial plain" data-list-key="$list.key" title="$_('Remove from your list?')">[X]</a>
         </span>
-        $if remove:
-            <span class="owner">from <a href="$list.owner.key">$_('You')</a></span>
-        $else:
-            <span class="owner">from <a href="$list.owner.key">$list.owner.displayname</a></span>
+        $if list.owner:
+            $if remove:
+                <span class="owner">from <a href="$list.owner.key">$_('You')</a></span>
+            $else:
+                <span class="owner">from <a href="$list.owner.key">$list.owner.displayname</a></span>
     </span>
 </li>

@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, reading_log=None, show_librarian_extras=False)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, reading_log=None, show_librarian_extras=False, prefix='')
 
 $code:
   max_rendered_authors = 9
@@ -44,7 +44,8 @@ $code:
   </span>
 
   <div class="details">
-      <div class="resultTitle">
+    <div class="resultTitle">
+         <small>$prefix</small>
          <h3 itemprop="name" class="booktitle">
            <a itemprop="url" href="$work_edition_url" class="results">$full_title</a>
          </h3>
