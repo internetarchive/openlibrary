@@ -628,9 +628,16 @@ def get_cached_homepage():
     if pd:
         key += '.pd'
 
-    return cache.memcache_memoize(
+    mc = cache.memcache_memoize(
         get_homepage, key, timeout=five_minutes, prethread=caching_prethread()
-    )()
+    )
+
+    page = mc()
+
+    if not page:
+        mc(_cache='delete')
+
+    return page
 
 
 # Because of caching, memcache will call `get_homepage` on another thread! So we
