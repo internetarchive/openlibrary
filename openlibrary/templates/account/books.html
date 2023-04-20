@@ -24,7 +24,7 @@ $ breadcrumb = _("Reading Log")
 $ header_title = ""
 
 $ reading_log = [("Loans", "/account/loans"), ("Currently Reading (" + str(shelf_counts['currently-reading']) + ")", "/people/" + username + "/books/currently-reading"), ("Want to Read (" + str(shelf_counts['want-to-read']) + ")", "/people/" + username + "/books/want-to-read"), ("Already Read (" + str(shelf_counts['already-read']) + ")", "/people/" + username + "/books/already-read"), ("My Notes", "/people/" + username + "/books/notes"), ("My Reviews", "/people/" + username + "/books/observations"), ("My Reading Stats", "/account/books/already-read/stats")]
-$ list = [("My Lists", "/people/" + username + "/lists")]
+$#list = [("My Lists", "/people/" + username + "/lists")]
 $ breadcrumb_options = [];
 
 $if key == 'mybooks':
@@ -54,10 +54,10 @@ $if not header_title:
     $ header_title = _("Imports and Exports")
   $elif key == 'lists':
     $ header_title = _('My Lists')
-    $ breadcrumb_options = list;
+    $#breadcrumb_options = list;
   $elif key == 'list':
     $ header_title = docs.get('name', 'List')
-    $ breadcrumb_options = list;
+    $#breadcrumb_options = list;
   $else:
     $ header_title = key
 
@@ -93,9 +93,14 @@ $var title: $header_title
             </a> 
             &raquo;
             $if key == 'list':
-              My Lists &raquo; 
-          $:render_template("books/breadcrumb_select", key=key, selected=breadcrumb, options=breadcrumb_options)
-          
+              <a href="/account/lists" style="text-decoration: none">
+                <span style="text-decoration: underline">My Lists</span>
+              </a>
+              &raquo;
+          $if len(breadcrumb_options) > 0:
+            $:render_template("books/breadcrumb_select", key=key, selected=breadcrumb, options=breadcrumb_options)
+          $else:
+            $_(header_title)
         </div>
         <div>
           <!--
