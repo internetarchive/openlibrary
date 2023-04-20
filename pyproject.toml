@@ -51,7 +51,6 @@ ignore = [
   "PIE790",
   "PIE804",
   "PLC1901",
-  "PLR2004",
   "PLR5501",
   "PLW0602",
   "PLW0603",
@@ -125,6 +124,7 @@ target-version = "py311"
 max-complexity = 41
 
 [tool.ruff.pylint]
+allow-magic-value-types = ["bytes", "float", "int", "str"]
 max-args = 15
 max-branches = 42
 max-returns = 14
