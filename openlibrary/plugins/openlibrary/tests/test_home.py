@@ -1,4 +1,5 @@
 import datetime
+from unittest.mock import patch
 import pytest
 import web
 
@@ -182,3 +183,23 @@ class Test_format_book_data:
         assert home.format_book_data(book)['authors'] == [
             {"key": "/authors/OL2A", "name": "A2"}
         ]
+
+
+def test_get_monthly_reads(mock_site):
+    mock_site.quicksave(
+        "/collections/january",
+        "/type/page",
+        **{
+            'body': {
+                'value': """
+                    STUFF STUFF
+                    {{QueryCarousel('foo:bar', limit=1, sort='random')}}
+
+                    MORE STUFF
+                    {{QueryCarousel("bar:baz", limit=1, sort='random')}}
+                    """
+            }
+        },
+    )
+    with patch('openlibrary.plugins.openlibrary.home._', lambda x: x):
+        assert home.get_monthly_reads(1).query == '(foo:bar) OR (bar:baz)'
