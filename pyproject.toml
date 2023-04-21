@@ -36,9 +36,14 @@ exclude = [
   "vendor/*",
 ]
 ignore = [
+  "B007",
+  "B009",
+  "B015",
+  "B023",
+  "B904",
+  "B905",
   "C408",
   "E402",
-  "E722",
   "E741",
   "F401",
   "F841",
@@ -46,6 +51,10 @@ ignore = [
   "PIE790",
   "PIE804",
   "PLC1901",
+  "PLR5501",
+  "PLW0602",
+  "PLW0603",
+  "PLW2901",
   "RSE102",
   "SIM102",
   "SIM105",
@@ -60,6 +69,8 @@ ignore = [
 ]
 line-length = 162
 select = [
+  "B",       # flake8-bugbear
+  "BLE",     # flake8-blind-except
   "C4",      # flake8-comprehensions
   "C90",     # McCabe cyclomatic complexity
   "E",       # pycodestyle
@@ -69,9 +80,7 @@ select = [
   "ICN",     # flake8-import-conventions
   "INT",     # flake8-gettext
   "PIE",     # flake8-pie
-  "PLC",     # Pylint conventions
-  "PLE",     # Pylint errors
-  "PLR091",  # Pylint Refactor just for max-args, max-branches, etc.
+  "PL",      # Pylint
   "PYI",     # flake8-pyi
   "RSE",     # flake8-raise
   "SIM",     # flake8-simplify
@@ -83,8 +92,6 @@ select = [
   # "A",     # flake8-builtins
   # "ANN",   # flake8-annotations
   # "ARG",   # flake8-unused-arguments
-  # "B",     # flake8-bugbear
-  # "BLE",   # flake8-blind-except
   # "COM",   # flake8-commas
   # "D",     # pydocstyle
   # "DJ",    # flake8-django
@@ -117,10 +124,50 @@ target-version = "py311"
 max-complexity = 41
 
 [tool.ruff.pylint]
+allow-magic-value-types = ["bytes", "float", "int", "str"]
 max-args = 15
 max-branches = 42
 max-returns = 14
 max-statements = 106
 
 [tool.ruff.per-file-ignores]
+"openlibrary/admin/stats.py" = ["BLE001"]
+"openlibrary/catalog/get_ia.py" = ["BLE001", "E722"]
+"openlibrary/catalog/marc/marc_binary.py" = ["BLE001"]
+"openlibrary/catalog/utils/edit.py" = ["E722"]
+"openlibrary/catalog/utils/query.py" = ["E722"]
+"openlibrary/core/booknotes.py" = ["E722"]
+"openlibrary/core/bookshelves.py" = ["BLE001"]
+"openlibrary/core/helpers.py" = ["BLE001"]
+"openlibrary/core/processors/invalidation.py" = ["BLE001"]
+"openlibrary/core/ratings.py" = ["E722"]
+"openlibrary/core/sponsorships.py" = ["E722"]
+"openlibrary/core/stats.py" = ["BLE001"]
+"openlibrary/coverstore/code.py" = ["E722"]
+"openlibrary/i18n/__init__.py" = ["BLE001"]
+"openlibrary/plugins/admin/code.py" = ["E722"]
+"openlibrary/plugins/admin/mem.py" = ["E722"]
+"openlibrary/plugins/admin/memory.py" = ["E722"]
+"openlibrary/plugins/admin/services.py" = ["BLE001"]
+"openlibrary/plugins/books/dynlinks.py" = ["E722"]
+"openlibrary/plugins/books/readlinks.py" = ["E722"]
+"openlibrary/plugins/importapi/code.py" = ["BLE001"]
+"openlibrary/plugins/ol_infobase.py" = ["BLE001"]
+"openlibrary/plugins/openlibrary/code.py" = ["BLE001", "E722"]
+"openlibrary/plugins/openlibrary/connection.py" = ["E722"]
+"openlibrary/plugins/openlibrary/stats.py" = ["BLE001"]
+"openlibrary/plugins/upstream/account.py" = ["BLE001"]
+"openlibrary/plugins/upstream/borrow.py" = ["BLE001", "E722"]
+"openlibrary/plugins/upstream/models.py" = ["BLE001"]
+"openlibrary/plugins/upstream/utils.py" = ["BLE001"]
+"openlibrary/solr/update_work.py" = ["E722"]
+"openlibrary/utils/retry.py" = ["BLE001"]
+"scripts/copydocs.py" = ["BLE001"]
+"scripts/delete_import_items.py" = ["BLE001"]
+"scripts/import_book_covers.py" = ["BLE001"]
+"scripts/lc_marc_update.py" = ["E722"]
+"scripts/manage-imports.py" = ["BLE001"]
+"scripts/sitemaps/sitemap.py" = ["BLE001"]
+"tests/integration/__init__.py" = ["E722"]
+"tests/integration/test_loans.py" = ["E722"]
 "tests/*" = ["S101"]
