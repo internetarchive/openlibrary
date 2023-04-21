@@ -23,7 +23,7 @@ echo "Starting production deployment at $(date)"
 parallel --quote ssh {1} "echo -e '\n\n{}'; cd {2} && sudo git pull origin master" ::: $SERVERS ::: /opt/olsystem /opt/openlibrary
 
 # Get all Docker images and sort them by creation date
-images=($(docker image ls --format '{{.ID}} {{.CreatedAt}}' | sort -k 2 -r | awk '{print $1}'))
+images=($(docker image ls --format '{{.ID}} {{.CreatedAt}} {{.Repository}}' | grep 'openlibrary/olbase' | sort -k 2 -r | awk '{print $1}'))
 
 # Keep the first three images and remove the rest to save disk space
 for image in "${images[@]:3}"
