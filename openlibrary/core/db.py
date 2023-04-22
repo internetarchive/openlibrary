@@ -166,10 +166,12 @@ def _proxy(method_name):
     f.__doc__ = "Equivalent to get_db().%s(*args, **kwargs)." "" % method_name
     return f
 
+
 def adapt_datetime_iso(val):
     """Adapt datetime.datetime to timezone-naive ISO 8601 date."""
-    
+
     return val.isoformat(" ")
+
 
 sqlite3.register_adapter(datetime.datetime, adapt_datetime_iso)
 query = _proxy("query")
