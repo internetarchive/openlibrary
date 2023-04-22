@@ -101,17 +101,17 @@ $ page = int(input(page=1).page)
 
             <td class="mr-comment-review-cell">
               $if is_open:
-              $if is_submitter:
-                <a class="mr-close-link" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">$_('Close')</a>
-              $elif can_merge:
-                $ show_link = not r.get('reviewer') or r.get('reviewer') == username
-                $ extra_classes = '' if show_link else ' hidden'
-                <button class="mr-comment-review-cell__review">
-                  <strong>
-                    <a class="mr-resolve-link$extra_classes" id="mr-resolve-link-$r['id']" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="$url" target="_blank">$_('REVIEW')</a>
-                  </strong>
-                </button>
-                <!-- ADD COMMENT BUTTON HERE -->
+                $if is_submitter:
+                  <a class="mr-close-link" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">$_('Close')</a>
+                $elif can_merge:
+                  $ show_link = not r.get('reviewer') or r.get('reviewer') == username
+                  $ extra_classes = '' if show_link else ' hidden'
+                  <button class="mr-comment-review-cell__review">
+                    <strong>
+                      <a class="mr-resolve-link$extra_classes" id="mr-resolve-link-$r['id']" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="$url" target="_blank">$_('REVIEW')</a>
+                    </strong>
+                  </button>
+                  <!-- ADD COMMENT BUTTON HERE -->
             </td>
           </tr>
         </tbody>
