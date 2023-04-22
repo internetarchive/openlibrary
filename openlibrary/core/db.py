@@ -1,6 +1,8 @@
 """Interface to access the database of openlibrary.
 """
 import web
+import sqlite3
+import datetime
 from sqlite3 import IntegrityError
 from psycopg2.errors import UniqueViolation
 from infogami.utils import stats
@@ -164,7 +166,12 @@ def _proxy(method_name):
     f.__doc__ = "Equivalent to get_db().%s(*args, **kwargs)." "" % method_name
     return f
 
+def adapt_datetime_iso(val):
+    """Adapt datetime.datetime to timezone-naive ISO 8601 date."""
+    
+    return val.isoformat(" ")
 
+sqlite3.register_adapter(datetime.datetime, adapt_datetime_iso)
 query = _proxy("query")
 select = _proxy("select")
 where = _proxy("where")
