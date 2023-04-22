@@ -12,40 +12,9 @@
   }
 }
 
-.mr-table {
-  table-layout: fixed;
-  border-collapse: collapse;
-  width: 100%;
-  box-shadow: 0 0 20px @boxshadow-black;
-
-  td {
-    padding: 5px;
-    vertical-align: top;
-  }
-
-  th {
-    position: sticky;
-    top: 0;
-    vertical-align: top;
-    text-align: left;
-    padding: 5px;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    background-color: @link-blue;
-    color: @white;
-
-    &.comments-header {
-      width: 50%;
-    }
-
-    &.resolve-header {
-      width: max-content;
-    }
-  }
-
-  tr:target{
-    border: 1px @dark-grey solid;
-  }
+.librarian-queue-wrapper {
+  border: 1px solid @light-grey;
+  border-radius: 5px;
 }
 
 .comment-username {
@@ -73,22 +42,13 @@
 }
 
 .comment-cell {
+  display: flex;
   &__summary,
   &__description {
     display: flex;
     justify-content: space-between;
     padding: 2px 5px;
     margin-bottom: 5px;
-  }
-
-  &__summary {
-    background-color: @link-blue;
-    color: @white;
-    border-radius: 5px;
-
-    .book-title {
-      font-weight: bold;
-    }
   }
 
   &__input {
@@ -108,6 +68,108 @@
     input {
       height: fit-content;
       margin-left: 10px;
+    }
+  }
+}
+
+.dot-wrapper {
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.book-title {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.green-dot {
+  border-radius: 10px;
+  width: 10px;
+  background-color: @open-green;
+  height: 10px;
+  margin-right: 12px;
+}
+
+.table-header {
+  display: flex;
+  padding: .5%;
+  background-color: @grey-fafafa;
+
+  li a {
+    font-size: 12px;
+    font-weight: 400;
+    margin-left: 10px;
+    text-decoration: none;
+    color: @closed-red;
+  }
+
+  li.selected a {
+    font-size: 14px;
+    color: @open-green;
+    font-weight: 700;
+    border: none;
+  }
+
+  li:hover a {
+    border: none;
+    font-weight: bold;
+  }
+
+  li:nth-child(n + 3) {
+    float: right;
+  }
+}
+
+.mr-table {
+  width: 100%;
+  background-color: @white;
+
+  tbody {
+    background-color: @white;
+  }
+
+  tr {
+    display: flex;
+    justify-content: space-between;
+    padding: 1%;
+    background-color: @white;
+  }
+
+  tr:nth-child(even) {
+    background-color: @lightest-grey;
+  }
+
+  td {
+    vertical-align: top;
+    padding: 1%;
+  }
+}
+
+.mr-comment-review-cell {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+
+  button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+    box-shadow: none;
+    width: 80px;
+    height: 40px;
+    margin-right: 40px;
+  }
+
+  &__review {
+    background-color: @primary-blue;
+    border: none;
+    width: 63px;
+
+    .mr-resolve-link {
+      color: @white;
+      text-decoration: none;
     }
   }
 }
