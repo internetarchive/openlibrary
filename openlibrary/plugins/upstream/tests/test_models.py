@@ -78,3 +78,10 @@ class TestModels:
 
         assert callable(work.get_sorted_editions)  # Issue #3633
         assert work.get_sorted_editions() == []
+
+    def test_user_settings(self):
+        user = models.User(web.ctx.site,'user')
+
+        assert(user.get_safe_mode() == '')
+        user.save_preferences({'safe_mode': 'yes'})
+        assert(user.get_safe_mode() == 'yes')
