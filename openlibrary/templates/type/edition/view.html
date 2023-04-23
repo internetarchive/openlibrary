@@ -19,6 +19,13 @@ $else:
   $ work = page.make_work_from_orphaned_edition()
   $ show_observations = False
 
+$# This can happen when looking at past versions of an edition who's work
+$# has since been merged.
+$if work.type.key == '/type/redirect':
+  $ redir = work
+  $ work = get_document(redir.key)
+  $ work['title'] = '↪ ' + redir.key
+
 $ edition = storage({})
 $if query_param('edition', '').startswith('key:'):
   $ edition = get_type(query_param('edition', '').split(':')[1])
