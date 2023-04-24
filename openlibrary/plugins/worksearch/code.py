@@ -783,8 +783,14 @@ class search_json(delegate.page):
 
 
 def setup():
-    from openlibrary.plugins.worksearch import subjects, languages, publishers
+    from openlibrary.plugins.worksearch import (
+        autocomplete,
+        subjects,
+        languages,
+        publishers,
+    )
 
+    autocomplete.setup()
     subjects.setup()
     publishers.setup()
     languages.setup()
