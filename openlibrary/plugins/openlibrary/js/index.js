@@ -498,11 +498,4 @@ jQuery(function () {
         import(/* webpackChunkName "add-provider-link" */ './add_provider')
             .then(module => module.initAddProviderRowLink(addProviderRowLink))
     }
-
-    // Add banner for site announcements
-    const siteBanner = document.getElementById('announcement-banner')
-    if (siteBanner) {
-        import(/* webpackChunkName: "announcement-banner" */ './initAnnouncementBanner')
-            .then(module => module.initAnnouncementBanner(siteBanner))
-    }
 });
