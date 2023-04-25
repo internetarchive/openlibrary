@@ -91,6 +91,18 @@ class CommunityEditsQueue:
         return oldb.query(query, vars=kwargs)[0]['count']
 
     @classmethod
+    def get_submitters(cls):
+        oldb = db.get_db()
+        query = f'SELECT DISTINCT submitter FROM {cls.TABLENAME}'
+        return list(oldb.query(query))
+
+    @classmethod
+    def get_reviewers(cls):
+        oldb = db.get_db()
+        query = f'SELECT DISTINCT reviewer FROM {cls.TABLENAME}'
+        return list(oldb.query(query))
+
+    @classmethod
     def where_clause(cls, mode, **kwargs):
         wheres = []
 

@@ -277,3 +277,95 @@ function toggleMergeLink(mergeLink) {
         mergeLink.classList.toggle('hidden')
     }
 }
+
+/**
+ * Toggle a dropdown menu while closing other dropdown menus.
+ *
+ * @param {Event} event
+ * @param {string} menuButtonId
+ */
+function toggleAMenuWhileClosingOthers(event, menuButtonId) {
+    // prevent closing of menu on bubbling unless click menuButton itself
+    if (event.target.id === menuButtonId) {
+        // close other open menus, then toggle selected menu
+        closeOtherMenus(menuButtonId)
+        event.target.firstElementChild.classList.toggle('hidden')
+    }
+}
+
+/**
+ * Close dropdown menus whose menu button doesn't match a given id.
+ *
+ * @param {string} menuButtonId
+ */
+function closeOtherMenus(menuButtonId) {
+    const dropMenus = document.querySelectorAll('.mr-dropdown')
+    dropMenus.forEach((menuButton) => {
+        if (menuButton.id !== menuButtonId) {
+            menuButton.firstElementChild.classList.add('hidden')
+        }
+    })
+}
+
+/**
+ * Filters of dropdown menu items using case-insensitive string matching.
+ *
+ * @param {Event} event
+ */
+function filterMenuItems(event) {
+    const input = document.getElementById(event.target.id)
+    const filter = input.value.toUpperCase()
+    const menu = input.closest('.mr-dropdown-menu')
+    const items = menu.getElementsByClassName('dropdown-item')
+    // skip first item in menu
+    for (let i=1; i < items.length; i++) {
+        const text = items[i].textContent
+        if (text.toUpperCase().indexOf(filter) > -1) {
+            items[i].style.display = ''
+        }
+        else {
+            items[i].style.display = 'none'
+        }
+    }
+}
+
+/**
+ * Close all dropdown menus when click anywhere on screen that's not part of
+ * the dropdown menu; otherwise, keep dropdown menu open.
+ *
+ * @param {Event} event
+ */
+function closeMenusIfClickOutside(event, dropMenuButtons, dropMenus) {
+    const menusClicked = Array.from(dropMenuButtons).filter((menuButton) => {
+        return menuButton.contains(event.target)
+    })
+    // want to preserve clicking in a menu, i.e. when filtering for users
+    if (!menusClicked.length) {
+        dropMenus.forEach((menu) => menu.classList.add('hidden'))
+    }
+}
+
+/**
+ * Initialize events for merge queue filter dropdown menu functionality.
+ *
+ */
+export function initFilters() {
+    const dropMenuButtons = document.querySelectorAll('.mr-dropdown')
+    const dropMenus = document.querySelectorAll('.mr-dropdown-menu')
+    dropMenuButtons.forEach((menu) => {
+        menu.addEventListener('click', (event) => {
+            toggleAMenuWhileClosingOthers(event, menu.id)
+        })
+    })
+    const closeButtons = document.querySelectorAll('.dropdown-close')
+    closeButtons.forEach((button) => {
+        button.addEventListener('click', (event) => {
+            event.target.closest('.mr-dropdown-menu').classList.toggle('hidden')
+        })
+    })
+    const inputs = document.querySelectorAll('.filter')
+    inputs.forEach((input) => {
+        input.addEventListener('keyup', (event) => filterMenuItems(event))
+    })
+    document.addEventListener('click', (event) => closeMenusIfClickOutside(event, dropMenuButtons, dropMenus))
+}
