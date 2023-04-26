@@ -91,13 +91,6 @@ jQuery(function () {
         };
     }
 
-    // Polyfill for .checkVisibility()
-    if (!Element.prototype.checkVisibility) {
-        Element.prototype.checkVisibility = function() {
-            return this.offsetHeight > 0
-        }
-    }
-
     const $markdownTextAreas = $('textarea.markdown');
     // Live NodeList is cast to static array to avoid infinite loops
     const $carouselElements = $('.carousel--progressively-enhanced');
@@ -467,11 +460,7 @@ jQuery(function () {
         import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
             .then((module) => {
                 for (const wrapper of navbarWrappers) {
-                    // The book page has 2 navbars (one for mobile views; one for desktop).
-                    // We only want to initialize the visible navbar:
-                    if (wrapper.checkVisibility()) {
-                        module.initNavbar(wrapper)
-                    }
+                    module.initNavbar(wrapper)
                 }
             });
         // Add sticky title component animations to desktop views:
