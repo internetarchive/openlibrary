@@ -459,9 +459,7 @@ jQuery(function () {
         // Add JS for book page navbar:
         import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
             .then((module) => {
-                for (const wrapper of navbarWrappers) {
-                    module.initNavbar(wrapper)
-                }
+                module.initNavbars(navbarWrappers)
             });
         // Add sticky title component animations to desktop views:
         import(/* webpackChunkName: "compact-title" */ './compact-title')

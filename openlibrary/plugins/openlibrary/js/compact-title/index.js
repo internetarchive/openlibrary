@@ -3,6 +3,8 @@
  * @module compact-title/index
  */
 
+import { updateSelectedNavItem } from '../edition-nav-bar';
+
 /**
  * True if compact title component is visible on screen.
  * @type {boolean}
@@ -63,6 +65,8 @@ function onScroll(navbar, title) {
                     $(navbar).addClass('sticky--lowest')
                     $(navbar).removeClass('nav-bar-wrapper--slidedown')
                     isTitleVisible = true
+                    // Ensure correct nav item is selected after compact title slides in:
+                    updateSelectedNavItem()
                 })
         } else {
             if (navbarBounds.top < compactTitleBounds.bottom) {  // We've scrolled to the bottom of the container, and the navbar is unstuck
