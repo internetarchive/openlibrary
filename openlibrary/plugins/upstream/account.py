@@ -37,6 +37,7 @@ from openlibrary.accounts import (
 )
 from openlibrary.plugins.upstream import borrow, forms, utils
 from openlibrary.utils.dateutil import elapsed_time
+import openlibrary.core.stats
 
 logger = logging.getLogger("openlibrary.account")
 
@@ -336,7 +337,7 @@ class account_login_json(delegate.page):
             expires = 3600 * 24 * 365 if remember.lower() == 'true' else ""
             web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
             ol_account = OpenLibraryAccount.get(email=email)
-            if ol_account.get_user().preferences()['safe_mode'].lower() == 'yes':
+            if ol_account.get_user().get_safe_mode() == 'yes':
                 web.setcookie('sfw', 'yes', expires=expires)
         # Fallback to infogami user/pass
         else:
@@ -402,7 +403,7 @@ class account_login(delegate.page):
             config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
         )
         ol_account = OpenLibraryAccount.get(email=email)
-        if ol_account.get_user().preferences()['safe_mode'].lower() == 'yes':
+        if ol_account.get_user().get_safe_mode() == 'yes':
             web.setcookie('sfw', 'yes', expires=expires)
         blacklist = [
             "/account/login",
@@ -703,6 +704,8 @@ class account_privacy(delegate.page):
     def POST(self):
         i = web.input(public_readlog="", safe_mode="")
         user = accounts.get_current_user()
+        if user.get_safe_mode() != 'yes' and i.safe_mode == 'yes':
+            stats.increment('ol.account.safe_mode')
         user.save_preferences(i)
         web.setcookie(
             'sfw', i.safe_mode, expires="" if i.safe_mode.lower() == 'yes' else -1

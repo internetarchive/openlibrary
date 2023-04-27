@@ -833,7 +833,7 @@ class User(models.User):
             lending.sync_loan(loan['ocaid'])
 
     def get_safe_mode(self):
-        return self.get_users_settings().get('safe_mode', "")
+        return self.get_users_settings().get('safe_mode', "").lower()
 
 
 class UnitParser:
