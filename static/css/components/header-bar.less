@@ -137,7 +137,7 @@
       margin: 0 8px;
     }
 
-    li a, li button {
+    li a, li button, .login-links {
       padding: 10px 8px;
     }
 
@@ -154,11 +154,9 @@
 
     .login-links {
       display: flex;
-      flex-direction: column;
       border-bottom: none;
       justify-content: space-evenly;
-      gap: 8px;
-      padding: 10px 8px;
+      column-gap: 16px;
       &:hover {
         background-color: transparent;
       }
@@ -171,7 +169,6 @@
       align-items: center;
       border-radius: 6px;
       padding: 6px;
-      min-height: 38px;
       transition: .3s;
     }
 
