@@ -92,7 +92,11 @@ ERROR_BAD_IMAGE = 3, "Invalid Image"
 
 class index:
     def GET(self):
-        return '<h1>Open Library Book Covers Repository</h1><div>See <a href="https://openlibrary.org/dev/docs/api/covers">Open Library Covers API</a> for details.</div>'
+        return (
+            '<h1>Open Library Book Covers Repository</h1><div>See <a '
+            'href="https://openlibrary.org/dev/docs/api/covers">Open Library Covers '
+            'API</a> for details.</div>'
+        )
 
 
 def _cleanup():

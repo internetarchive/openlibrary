@@ -1,7 +1,8 @@
 from lxml import etree
 from unicodedata import normalize
+from collections.abc import Iterator
 
-from openlibrary.catalog.marc.marc_base import MarcBase, MarcException
+from openlibrary.catalog.marc.marc_base import MarcBase, MarcFieldBase, MarcException
 
 data_tag = '{http://www.loc.gov/MARC21/slim}datafield'
 control_tag = '{http://www.loc.gov/MARC21/slim}controlfield'
@@ -25,105 +26,61 @@ def read_marc_file(f):
         elem.clear()
 
 
-def norm(s):
+def norm(s: str) -> str:
     return normalize('NFC', str(s.replace('\xa0', ' ')))
 
 
-def get_text(e):
+def get_text(e: etree._Element) -> str:
     return norm(e.text) if e.text else ''
 
 
-class DataField:
-    def __init__(self, element):
-        assert element.tag == data_tag
+class DataField(MarcFieldBase):
+    def __init__(self, rec, element: etree._Element) -> None:
+        assert element.tag == data_tag, f'Got {element.tag}'
         self.element = element
+        assert isinstance(element, etree._Element)
+        self.rec = rec
+        self.tag = element.tag
 
-    def remove_brackets(self):
-        first = self.element[0]
-        last = self.element[-1]
-        if (
-            first.text
-            and last.text
-            and first.text.startswith('[')
-            and last.text.endswith(']')
-        ):
-            first.text = first.text[1:]
-            last.text = last.text[:-1]
-
-    def ind1(self):
+    def ind1(self) -> str:
         return self.element.attrib['ind1']
 
-    def ind2(self):
+    def ind2(self) -> str:
         return self.element.attrib['ind2']
 
-    def read_subfields(self):
-        for i in self.element:
-            assert i.tag == subfield_tag
-            k = i.attrib['code']
+    def read_subfields(self) -> Iterator[tuple[str, etree._Element]]:
+        for sub in self.element:
+            assert sub.tag == subfield_tag
+            k = sub.attrib['code']
             if k == '':
                 raise BadSubtag
-            yield k, i
+            yield k, sub
 
-    def get_lower_subfield_values(self):
-        for k, v in self.read_subfields():
-            if k.islower():
-                yield get_text(v)
-
-    def get_all_subfields(self):
+    def get_all_subfields(self) -> Iterator[tuple[str, str]]:
         for k, v in self.read_subfields():
             yield k, get_text(v)
-
-    def get_subfields(self, want):
-        want = set(want)
-        for k, v in self.read_subfields():
-            if k not in want:
-                continue
-            yield k, get_text(v)
-
-    def get_subfield_values(self, want):
-        return [v for k, v in self.get_subfields(want)]
-
-    def get_contents(self, want):
-        contents = {}
-        for k, v in self.get_subfields(want):
-            if v:
-                contents.setdefault(k, []).append(v)
-        return contents
 
 
 class MarcXml(MarcBase):
-    def __init__(self, record):
+    def __init__(self, record: etree._Element) -> None:
         if record.tag == collection_tag:
             record = record[0]
-
         assert record.tag == record_tag
         self.record = record
 
-    def leader(self):
+    def leader(self) -> str:
         leader_element = self.record[0]
         if not isinstance(leader_element.tag, str):
             leader_element = self.record[1]
         assert leader_element.tag == leader_tag
         return get_text(leader_element)
 
-    def all_fields(self):
-        for i in self.record:
-            if i.tag != data_tag and i.tag != control_tag:
-                continue
-            if i.attrib['tag'] == '':
-                raise BlankTag
-            yield i.attrib['tag'], i
-
-    def read_fields(self, want):
-        want = set(want)
-
-        # http://www.archive.org/download/abridgedacademy00levegoog/abridgedacademy00levegoog_marc.xml
-
+    def read_fields(self, want: list[str]) -> Iterator[tuple[str, str | DataField]]:
         non_digit = False
-        for i in self.record:
-            if i.tag != data_tag and i.tag != control_tag:
+        for f in self.record:
+            if f.tag != data_tag and f.tag != control_tag:
                 continue
-            tag = i.attrib['tag']
+            tag = f.attrib['tag']
             if tag == '':
                 raise BlankTag
             if tag == 'FMT':
@@ -133,13 +90,14 @@ class MarcXml(MarcBase):
             else:
                 if tag[0] != '9' and non_digit:
                     raise BadSubtag
-
-            if i.attrib['tag'] not in want:
+            if f.attrib['tag'] not in want:
                 continue
-            yield i.attrib['tag'], i
+            yield f.attrib['tag'], self.decode_field(f)
 
-    def decode_field(self, field):
+    def decode_field(self, field: etree._Element) -> str | DataField:
         if field.tag == control_tag:
             return get_text(field)
-        if field.tag == data_tag:
-            return DataField(field)
+        elif field.tag == data_tag:
+            return DataField(self, field)
+        else:
+            return ''

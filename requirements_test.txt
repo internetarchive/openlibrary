@@ -8,5 +8,5 @@ mypy==1.1.1
 pymemcache==4.0.0
 pytest==7.2.2
 pytest-asyncio==0.20.3
-ruff==0.0.256
+ruff==0.0.260
 safety==2.3.5

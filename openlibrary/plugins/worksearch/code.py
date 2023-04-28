@@ -79,7 +79,7 @@ def process_facet(
     field: str, facets: Iterable[tuple[str, int]]
 ) -> tuple[str, str, int]:
     if field == 'has_fulltext':
-        counts = {val: count for val, count in facets}
+        counts = dict(facets)
         yield ('true', 'yes', counts.get('true', 0))
         yield ('false', 'no', counts.get('false', 0))
     else:

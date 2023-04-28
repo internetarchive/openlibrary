@@ -1105,6 +1105,7 @@ def setup():
         design,
         status,
         authors,
+        swagger,
     )
 
     sentry.setup()
@@ -1116,6 +1117,7 @@ def setup():
     events.setup()
     status.setup()
     authors.setup()
+    swagger.setup()
 
     from openlibrary.plugins.openlibrary import api
 

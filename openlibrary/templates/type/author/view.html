@@ -174,7 +174,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
         $if "lists" in ctx.features:
             <div class="section Tools">
-                $:render_template("lists/widget", page, include_rating=False)
+                $:render_template("lists/widget", page, include_rating=False, exclude_own_lists=True)
             </div>
 
         <div class="section">

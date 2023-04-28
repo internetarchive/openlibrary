@@ -38,7 +38,7 @@ $ page = int(input(page=1).page)
   $:macros.Pager(page, total[mode], results_per_page=25)
 </div>
 <div class="librarian-queue-wrapper">
-  <ul class="nav-bar">
+  <ul class="table-header">
     <li class="$(mode=='open' and 'selected' or '')">
       <a href="$changequery(mode='open', page=None)">$_('Open') ($total['open'])</a>
     </li>
@@ -66,7 +66,7 @@ $ page = int(input(page=1).page)
           <tr id="mrid-$(r['id'])">
 
             <td id="comment-cell-$(r['id'])" class="comment-cell">
-              <div class="dot-wrapper"><div class="orange-dot"></div></div>
+              <div class="dot-wrapper"><div class="green-dot"></div></div>
               <div>
                 <div class="comment-cell__summary">
                   <strong>
@@ -84,6 +84,7 @@ $ page = int(input(page=1).page)
                   $else:
                     <span>$_('No comments yet.')</span>
                 </div>
+
                 $if is_submitter or can_merge:
                   <hr>
                   <div class="comment-cell__input">
@@ -114,6 +115,7 @@ $ page = int(input(page=1).page)
                     <span class="comment-count-$r['id']">$len(comments)</span>
                     <img style="margin-right:4px" src="/static/images/markdown/quotes.png" alt="">
                   </a>
+
             </td>
           </tr>
         </tbody>

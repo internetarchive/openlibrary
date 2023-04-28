@@ -374,21 +374,13 @@ class Seed:
                 return None
 
     @cached_property
-    def type(self):
+    def type(self) -> str:
         if self._type:
             return self._type
-        type = self.document.type.key
-
-        if type == "/type/edition":
-            return "edition"
-        elif type == "/type/work":
-            return "work"
-        elif type == "/type/author":
-            return "author"
-        elif type == "/type/redirect":
-            return "redirect"
-        else:
-            return "unknown"
+        key = self.document.type.key
+        if key in ("/type/author", "/type/edition", "/type/redirect", "/type/work"):
+            return key.split("/")[-1]
+        return "unknown"
 
     @property
     def title(self):

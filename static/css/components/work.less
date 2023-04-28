@@ -24,6 +24,8 @@ html {
   padding-right: 1.5em;
   .cover-animation {
     transition: transform .8s, opacity .8s;
+    position: relative;
+    z-index: @z-index-level-negative;
   }
   .cover-animation:hover {
     transform: perspective(465px) rotateX(0deg) rotateY(-10deg);
