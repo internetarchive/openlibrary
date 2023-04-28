@@ -253,9 +253,8 @@ export function syncReadingLogDropdownRemoveWithPrimaryButton(dropper) {
  * @param {HTMLButtonElement} button Adds click listener to the given reading log button.
  * @param {HTMLAElement} An anchor element item that expands the dropper.
  * @param {string} A text string with the initial text value of primaryButton
- * @param {HTMLDivElement} A div containing the dropper widget
  */
-function togglePrimaryButton(primaryButton, dropClick, initialText, dropper) {
+function togglePrimaryButton(primaryButton, dropClick, initialText) {
     const actionInput = primaryButton.parentElement.querySelector('input[name=action]')
     // Toggle checkmark
     primaryButton.children[0].classList.toggle('hidden')
