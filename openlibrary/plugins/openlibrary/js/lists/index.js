@@ -129,24 +129,11 @@ function addListClickListener(elem, parentDropper) {
                     actionableItems[listKey] = [li]
                 }
             }
-
-            // close dropper
-            toggleDropper(parentDropper)
         }
 
         addToList(listKey, seed, successCallback)
 
     })
-}
-
-/**
- * Toggles given dropper's expanded state.
- *
- * @param {HTMLDivElement} dropper A reading log button reference.
- */
-function toggleDropper(dropper) {
-    $(dropper).find('.dropdown').first().slideToggle(25);
-    $(dropper).find('.arrow').first().toggleClass('up');
 }
 
 /**
@@ -288,11 +275,6 @@ function togglePrimaryButton(primaryButton, dropClick, initialText, dropper) {
     actionInput.value = (actionInput.value === 'add') ? 'remove' : 'add'
 
     primaryButton.children[1].innerText = initialText
-
-    // Close dropper if expanded:
-    if ($(dropper).find('.arrow').first().hasClass('up')) {
-        toggleDropper(dropper)
-    }
 }
 
 /**
@@ -345,13 +327,10 @@ function addReadingLogButtonClickListener(button) {
                 togglePrimaryButton(primaryButton, dropClick, initialText, dropper)
                 syncReadingLogDropdownRemoveWithPrimaryButton(dropper)
             } else if (button.classList.contains('remove-from-list')) { // Clicking 'remove from list' (i.e. toggling a boofshelf) from the dropper.
-                toggleDropper(dropper)
                 togglePrimaryButton(primaryButton, dropClick, initialText, dropper)
                 syncReadingLogDropdownRemoveWithPrimaryButton(dropper)
 
             } else {  // Secondary button pressed -- all other drop down items.
-                toggleDropper(dropper)
-
                 // Change primary button's text to new value:
                 primaryButton.children[1].innerText = button.innerText
 
