@@ -38,7 +38,7 @@ const ReadingLog = {
  *
  * @param {HTMLCollection} droppers Collection of reading log droppers.
  */
-export function initDroppers(droppers) {
+export function initReadingLogDroppers(droppers) {
     for (const dropper of droppers) {
         const anchors = dropper.querySelectorAll('.add-to-list');
         initAddToListAnchors(anchors, dropper)

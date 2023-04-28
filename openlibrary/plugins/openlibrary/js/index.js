@@ -354,18 +354,24 @@ jQuery(function () {
         $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
     }
 
+    const dropper = document.querySelector('.dropit')
+    if (dropper) {
+        import(/* webpackChunkName: "droppers" */ './droppers')
+            .then((module) => module.initDroppers())
+    }
+
     // "Want to Read" buttons:
-    const droppers = document.getElementsByClassName('widget-add');
+    const readingLogDroppers = document.getElementsByClassName('widget-add');
 
     // Async lists components:
     const wtrLoadingIndicator = document.querySelector('.list-loading-indicator')
     const overviewLoadingIndicator = document.querySelector('.list-overview-loading-indicator')
 
-    if (droppers.length || wtrLoadingIndicator || overviewLoadingIndicator) {
+    if (readingLogDroppers.length || wtrLoadingIndicator || overviewLoadingIndicator) {
         import(/* webpackChunkName: "lists" */ './lists')
             .then((module) => {
-                if (droppers.length) {
-                    module.initDroppers(droppers);
+                if (readingLogDroppers.length) {
+                    module.initReadingLogDroppers(readingLogDroppers);
                     // Removable list items:
                     // TODO: Is this the correct place to initalize these?
                     const actionableListItems = document.querySelectorAll('.actionable-item')
