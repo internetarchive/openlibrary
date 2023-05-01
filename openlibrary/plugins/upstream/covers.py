@@ -37,7 +37,7 @@ class add_cover(delegate.page):
             raise web.notfound("")
 
         user = accounts.get_current_user()
-        if user.is_read_only():
+        if user and user.is_read_only():
             raise web.forbidden(message="Patron not permitted to upload images")
 
         i = web.input(file={}, url="")
