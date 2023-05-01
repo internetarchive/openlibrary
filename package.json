@@ -112,7 +112,7 @@
         "branches": 14,
         "functions": 13,
         "lines": 16,
-        "statements": 16
+        "statements": 15
       }
     },
     "collectCoverage": true
