@@ -255,7 +255,7 @@ class MyBooksTemplate:
         # Reading log for non-logged in users.
         elif self.key in self.READING_LOG_KEYS and is_public:
             logged_book_data: LoggedBooksData = self.readlog.get_works(  # type: ignore[no-redef]
-                key=self.key, page=page, sort='created', sort_order=sort, q=q
+                key=self.key, page=page, sort='created', sort_order=sort, q=q, year=year
             )
             docs = add_availability(logged_book_data.docs, mode="openlibrary_work")
             doc_count = logged_book_data.total_results
@@ -276,6 +276,7 @@ class MyBooksTemplate:
                 q=q,
                 results_per_page=RESULTS_PER_PAGE,
                 ratings=ratings,
+                checkin_year=year,
             )
 
         raise web.seeother(self.user.key)
