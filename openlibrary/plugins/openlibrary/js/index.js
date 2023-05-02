@@ -354,10 +354,10 @@ jQuery(function () {
         $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
     }
 
-    const dropper = document.querySelector('.dropit')
-    if (dropper) {
+    const droppers = document.querySelectorAll('.dropit')
+    if (droppers.length) {
         import(/* webpackChunkName: "droppers" */ './droppers')
-            .then((module) => module.initDroppers())
+            .then((module) => module.initDroppers(droppers))
     }
 
     // "Want to Read" buttons:

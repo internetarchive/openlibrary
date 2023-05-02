@@ -474,7 +474,7 @@ function addRemoveClickListener(elem) {
  * @returns {HTMLParagraphElement} The newly created add-to-list link.
  */
 function updateDropperList(listKey, listTitle, coverUrl) {
-    const itemMarkUp = `<a href="${listKey}" class="add-to-list" data-list-cover-url="${coverUrl}" data-list-key="${listKey}">${listTitle}</a>`
+    const itemMarkUp = `<a href="${listKey}" class="add-to-list dropper__close" data-list-cover-url="${coverUrl}" data-list-key="${listKey}">${listTitle}</a>`
 
     const p = document.createElement('p')
     p.classList.add('list')
