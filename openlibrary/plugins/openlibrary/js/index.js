@@ -354,7 +354,7 @@ jQuery(function () {
         $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
     }
 
-    const droppers = document.querySelectorAll('.dropit')
+    const droppers = document.querySelectorAll('.dropper')
     if (droppers.length) {
         import(/* webpackChunkName: "droppers" */ './droppers')
             .then((module) => module.initDroppers(droppers))

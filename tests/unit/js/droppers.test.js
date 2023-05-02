@@ -16,10 +16,10 @@ describe('initDroppers', () => {
         // Stub debounce to avoid have to manipulate time (!)
         const stub = sinon.stub(nonjquery_utils, 'debounce').callsFake(fn => fn);
 
-        initDroppers();
         $(document.body).html(bookDropdownSample);
         const $dropclick = $('.dropclick');
         const $arrow = $dropclick.find('.arrow');
+        initDroppers(document.querySelectorAll('.dropper'));
 
         for (let i = 0; i < 2; i++) {
             $dropclick.trigger('click');
