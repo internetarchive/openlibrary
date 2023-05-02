@@ -20,6 +20,7 @@ import infogami.core.code as core
 
 from openlibrary import accounts
 from openlibrary.i18n import gettext as _
+from openlibrary.core import stats
 from openlibrary.core import helpers as h, lending
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
@@ -37,7 +38,6 @@ from openlibrary.accounts import (
 )
 from openlibrary.plugins.upstream import borrow, forms, utils
 from openlibrary.utils.dateutil import elapsed_time
-import openlibrary.core.stats
 
 logger = logging.getLogger("openlibrary.account")
 
