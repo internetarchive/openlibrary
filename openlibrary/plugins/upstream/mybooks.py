@@ -113,7 +113,6 @@ class readinglog_yearly(delegate.page):
         return MyBooksTemplate(username, 'already-read').render(year=year)
 
 
-        
 class readinglog_stats(delegate.page):
     path = "/people/([^/]+)/books/([a-zA-Z_-]+)/stats"
 
@@ -195,8 +194,14 @@ class MyBooksTemplate:
         self.counts = self.readlog.reading_log_counts
 
     def render(
-        self, page=1, sort='desc', list=None, q="", doc_count: int = 0,
-        ratings=None, year=None
+        self,
+        page=1,
+        sort='desc',
+        list=None,
+        q="",
+        doc_count: int = 0,
+        ratings=None,
+        year=None,
     ):
         """
         Gather the data necessary to render the My Books template, and then
@@ -234,8 +239,12 @@ class MyBooksTemplate:
             # Reading log for logged in users.
             elif self.key in self.READING_LOG_KEYS:
                 logged_book_data: LoggedBooksData = self.readlog.get_works(
-                    key=self.key, page=page, sort='created',
-                    sort_order=sort, q=q, year=year,
+                    key=self.key,
+                    page=page,
+                    sort='created',
+                    sort_order=sort,
+                    q=q,
+                    year=year,
                 )
                 docs = add_availability(logged_book_data.docs, mode="openlibrary_work")
                 doc_count = logged_book_data.total_results
@@ -403,7 +412,7 @@ class ReadingLog:
         sort: str = 'created',
         sort_order: str = 'desc',
         q: str = "",
-        year: int = None,
+        year: int | None = None,
     ) -> LoggedBooksData:
         """
         Get works for want-to-read, currently-reading, and already-read as

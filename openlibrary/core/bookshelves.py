@@ -210,7 +210,7 @@ class Bookshelves(db.CommonExtras):
         limit: int = 100,
         page: int = 1,  # Not zero-based counting!
         sort: Literal['created asc', 'created desc'] = 'created desc',
-        checkin_year: int = None,
+        checkin_year: int | None = None,
         q: str = "",
     ) -> Any:  # Circular imports prevent type hinting LoggedBooksData
         """
@@ -233,7 +233,7 @@ class Bookshelves(db.CommonExtras):
         shelf_totals = cls.count_total_books_logged_by_user_per_shelf(username)
         oldb = db.get_db()
         page = int(page or 1)
-        query_params: dict[str, str | int] = {
+        query_params: dict[str, str | int | None] = {
             'username': username,
             'limit': limit,
             'offset': limit * (page - 1),
@@ -307,7 +307,7 @@ class Bookshelves(db.CommonExtras):
             return solr_docs
 
         def get_filtered_reading_log_books(
-            q: str, query_params: dict[str, str | int], filter_book_limit: int
+            q: str, query_params: dict[str, str | int | None], filter_book_limit: int
         ) -> LoggedBooksData:
             """
             Filter reading log books based an a query and return LoggedBooksData.
@@ -364,9 +364,9 @@ class Bookshelves(db.CommonExtras):
             )
 
         def get_sorted_reading_log_books(
-            query_params: dict[str, str | int],
+            query_params: dict[str, str | int | None],
             sort: Literal['created asc', 'created desc'],
-            checkin_year: int,
+            checkin_year: int | None,
         ):
             """
             Get a page of sorted books from the reading log. This does not work with
@@ -383,8 +383,8 @@ class Bookshelves(db.CommonExtras):
                 FROM bookshelves_books b
                 INNER JOIN bookshelves_events e
                 ON b.work_id = e.work_id AND b.username = e.username
-                WHERE b.bookshelf_id = $bookshelf_id 
-                AND b.username = $username 
+                WHERE b.bookshelf_id = $bookshelf_id
+                AND b.username = $username
                 AND e.event_date LIKE $checkin_year || '%'
                 ORDER BY b.created DESC
                 LIMIT $limit OFFSET $offset

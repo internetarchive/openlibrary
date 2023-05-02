@@ -213,7 +213,7 @@ class BookshelvesEvents(db.CommonExtras):
         query = """
         SELECT SUBSTRING(event_date, 1, 4) AS year, COUNT(*) AS total_items
         FROM bookshelves_events
-        WHERE event_type=3 AND username = $username 
+        WHERE event_type=3 AND username = $username
         GROUP BY year
         ORDER BY year DESC
         """
