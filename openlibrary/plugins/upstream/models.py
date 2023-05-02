@@ -832,6 +832,9 @@ class User(models.User):
         for loan in loans:
             lending.sync_loan(loan['ocaid'])
 
+    def get_safe_mode(self):
+        return self.get_users_settings().get('safe_mode', "").lower()
+
 
 class UnitParser:
     """Parsers values like dimensions and weight.

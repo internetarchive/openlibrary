@@ -20,6 +20,7 @@ import infogami.core.code as core
 
 from openlibrary import accounts
 from openlibrary.i18n import gettext as _
+from openlibrary.core import stats
 from openlibrary.core import helpers as h, lending
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
@@ -314,6 +315,8 @@ class account_login_json(delegate.page):
         from openlibrary.plugins.openlibrary.code import BadRequest
 
         d = json.loads(web.data())
+        email = d.get('email', "")
+        remember = d.get('remember', "")
         access = d.get('access', None)
         secret = d.get('secret', None)
         test = d.get('test', False)
@@ -331,7 +334,11 @@ class account_login_json(delegate.page):
             error = audit.get('error')
             if error:
                 raise olib.code.BadRequest(error)
+            expires = 3600 * 24 * 365 if remember.lower() == 'true' else ""
             web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
+            ol_account = OpenLibraryAccount.get(email=email)
+            if ol_account.get_user().get_safe_mode() == 'yes':
+                web.setcookie('sfw', 'yes', expires=expires)
         # Fallback to infogami user/pass
         else:
             from infogami.plugins.api.code import login as infogami_login
@@ -395,6 +402,9 @@ class account_login(delegate.page):
         web.setcookie(
             config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
         )
+        ol_account = OpenLibraryAccount.get(email=email)
+        if ol_account.get_user().get_safe_mode() == 'yes':
+            web.setcookie('sfw', 'yes', expires=expires)
         blacklist = [
             "/account/login",
             "/account/create",
@@ -692,8 +702,14 @@ class account_privacy(delegate.page):
 
     @require_login
     def POST(self):
+        i = web.input(public_readlog="", safe_mode="")
         user = accounts.get_current_user()
-        user.save_preferences(web.input())
+        if user.get_safe_mode() != 'yes' and i.safe_mode == 'yes':
+            stats.increment('ol.account.safe_mode')
+        user.save_preferences(i)
+        web.setcookie(
+            'sfw', i.safe_mode, expires="" if i.safe_mode.lower() == 'yes' else -1
+        )
         add_flash_message(
             'note', _("Notification preferences have been updated successfully.")
         )
