@@ -1031,17 +1031,15 @@ _get_blog_feeds = cache.memcache_memoize(
 
 
 def get_donation_include(include):
-    web_input = web.input()
-
+    ia_host = get_ia_host(allow_dev=True)
     # The following allows archive.org staff to test banners without
-    # needing to reload openlibrary services:
-    dev_host = web_input.pop("dev_host", "")  # e.g. `www-user`
-    if dev_host and re.match('^[a-zA-Z0-9-.]+$', dev_host):
-        script_src = "https://%s.archive.org/includes/donate.js" % dev_host
+    # needing to reload openlibrary services
+    if ia_host != "archive.org":
+        script_src = f"https://{ia_host}/includes/donate.js"
     else:
         script_src = "/cdn/archive.org/donate.js"
 
-    if 'ymd' in web_input:
+    if 'ymd' in (web_input := web.input()):
         script_src += '?ymd=' + web_input.ymd
 
     html = (
@@ -1055,6 +1053,17 @@ def get_donation_include(include):
 
 
 # get_donation_include = cache.memcache_memoize(get_donation_include, key_prefix="upstream.get_donation_include", timeout=60)
+
+
+@public
+def get_ia_host(allow_dev=False):
+    if allow_dev:
+        web_input = web.input()
+        dev_host = web_input.pop("dev_host", "")  # e.g. `www-user`
+        if dev_host and re.match('^[a-zA-Z0-9-.]+$', dev_host):
+            return dev_host + ".archive.org"
+
+    return "archive.org"
 
 
 @public

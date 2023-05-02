@@ -193,8 +193,11 @@ def is_number(s):
 
 
 def get_software_version() -> str:
+    """
+    assert get_software_version()  # Should never return a falsy value
+    """
     cmd = "git rev-parse --short HEAD --".split()
-    return run(cmd, text=True).stdout
+    return run(cmd, capture_output=True, text=True).stdout.strip()
 
 
 # See https://docs.python.org/3/library/enum.html#orderedenum

@@ -44,7 +44,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends nginx curl \
     # nginx-plus
     apt-transport-https lsb-release ca-certificates wget \
     # log rotation service for ol-nginx
-    logrotate
+    logrotate \
+    # rsync service for pulling monthly sitemaps from ol-home0 to ol-www0
+    rsync
 RUN wget -O - https://openresty.org/package/pubkey.gpg | apt-key add -
 RUN echo "deb http://openresty.org/package/debian $(lsb_release -sc) openresty" \
     | tee /etc/apt/sources.list.d/openresty.list

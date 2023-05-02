@@ -223,6 +223,10 @@ jQuery(function () {
         import(/* webpackChunkName: "carousels-partials" */'./carousels_partials.js')
             .then(module => module.initCarouselsPartials());
     }
+    // conditionally load list seed item deletion dialog functionality based on class in the page
+    if (document.getElementsByClassName('listDelete').length) {
+        import(/* webpackChunkName: "ListViewBody" */'./lists/ListViewBody.js');
+    }
     // Enable any carousels in the page
     if ($carouselElements.length) {
         import(/* webpackChunkName: "carousel" */ './carousel')
@@ -435,16 +439,6 @@ jQuery(function () {
             .find('details')
             .removeAttr('open');
     });
-
-    // Load and unload third party login iframes when toggling hamburger menu
-    const hamburgerMenu = document.querySelector('.hamburger-component > details')
-    hamburgerMenu.addEventListener('toggle', () => {
-        if (hamburgerMenu.open) {
-            window.LOAD_THIRD_PARTY_LOGINS()
-        } else {
-            window.UNLOAD_THIRD_PARTY_LOGINS()
-        }
-    })
 
     // Prevent default star rating behavior:
     const ratingForms = document.querySelectorAll('.star-rating-form')

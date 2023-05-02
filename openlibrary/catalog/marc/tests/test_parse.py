@@ -76,6 +76,8 @@ bin_samples = [
     '880_Nihon_no_chasho.mrc',
     '880_publisher_unlinked.mrc',
     '880_arabic_french_many_linkages.mrc',
+    'test-publish-sn-sl.mrc',
+    'test-publish-sn-sl-nd.mrc',
 ]
 
 test_data = "%s/test_data" % os.path.dirname(__file__)

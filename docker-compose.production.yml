@@ -94,7 +94,7 @@ services:
       - ./docker/public_nginx.conf:/etc/nginx/sites-available/public_nginx.conf:ro
       # Needs access to openlibrary for static files
       - ../olsystem:/olsystem
-      - /1/var/lib/openlibrary/sitemaps/sitemaps:/sitemaps
+      - /1/var/lib/openlibrary/sitemaps:/sitemaps
       # web log rotation
       - ../olsystem/etc/logrotate.d/nginx:/etc/logrotate.d/nginx
       # Persist the nginx logs
@@ -172,7 +172,7 @@ services:
     user: root
     command: docker/ol-nginx-start.sh
     environment:
-      - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs
+      - CRONTAB_FILES="/etc/cron.d/archive-webserver-logs /etc/cron.d/pull-sitemaps-from-ol-home0"
     volumes:
       # nginx configurations
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -186,7 +186,7 @@ services:
       # Persist the nginx logs
       - /1/var/log/nginx:/var/log/nginx
       # sitemap generation (we also need olsystem/etc/cron.d + openlibrary/scripts)
-      - /1/var/lib/openlibrary/sitemaps/sitemaps:/sitemaps
+      - /1/var/lib/openlibrary/sitemaps:/sitemaps
       # Archive nginx logs regularly
       - ../olsystem/etc/cron.d/archive-webserver-logs:/etc/cron.d/archive-webserver-logs
       - archive-webserver-logs-data:/archive-webserver-logs-data
