@@ -453,13 +453,7 @@ jQuery(function () {
         // Add JS for book page navbar:
         import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
             .then((module) => {
-                for (const wrapper of navbarWrappers) {
-                    // The book page has 2 navbars (one for mobile views; one for desktop).
-                    // We only want to initialize the visible navbar:
-                    if (wrapper.checkVisibility()) {
-                        module.initNavbar(wrapper)
-                    }
-                }
+                module.initNavbars(navbarWrappers)
             });
         // Add sticky title component animations to desktop views:
         import(/* webpackChunkName: "compact-title" */ './compact-title')

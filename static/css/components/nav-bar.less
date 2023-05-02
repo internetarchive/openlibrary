@@ -51,6 +51,8 @@
   }
 
   .nav-arrow {
+    padding-left: 20px;
+
     img {
       max-width: unset !important;
     }
@@ -85,6 +87,13 @@
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
+  .nav-bar-wrapper.sticky {
+    position: sticky;
+    top: 62px;  /* The header has a 62px height in tablet views */
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-desktop) {
   .nav-bar-wrapper.sticky {
     top: 0;
     margin-left: 0;
