@@ -14,10 +14,7 @@
   .create-new-list {
     border-radius: 5px;
     cursor: pointer;
-    padding-left: 5%;
-    padding-right: 5%;
-    padding-top: 2px;
-    padding-bottom: 2px;
+    padding: 2px 5%;
     font-size: .96em;
     background-color: @background-grey;
     border: 1px solid @lighter-grey;
@@ -144,14 +141,16 @@
     margin-left: 4px;
   }
 
-  .li-count .chevron:after {
+  /* stylelint-disable selector-max-specificity */
+  .li-count.chevron:after {
     content: "\203A";
     margin-left: 5px;
     display: inline-block;
     transform: scale(2.0);
     position: absolute;
-    top: 0.2em;
+    top: .2em;
   }
+  /* stylelint-enable selector-max-specificity */
 }
 
 @media only screen and (max-width: @width-breakpoint-tablet) {
