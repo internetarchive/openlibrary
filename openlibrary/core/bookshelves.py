@@ -387,7 +387,6 @@ class Bookshelves(db.CommonExtras):
                 AND b.username = $username
                 AND e.event_date LIKE $checkin_year || '%'
                 ORDER BY b.created DESC
-                LIMIT $limit OFFSET $offset
                 """
             else:
                 query = (

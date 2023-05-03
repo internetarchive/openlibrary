@@ -28,14 +28,19 @@ $add_metatag(property="og:site_name", content="Open Library")
 $add_metatag(property="og:description", content=og_description)
 $add_metatag(property="og:image", content=meta_photo_url)
 
-$# The reading log search is only displayed on non-empty shelves because some patrons were confused and searching empty reading lists, perhaps thinking they could add books that way. See #7143.
-$if len(docs) > 0:
-  <form method="GET" class="olform pagesearchbox">
-    <input type="text" minlength="3" placeholder="$_('Search your reading log')" name="q" value="$(query_param('q', ''))"/>
-    <input type="submit"/>
-  </form>
+<div class="mybooks-list">
+  $ yearly_goal = get_reading_goals(year=checkin_year)
+  $if yearly_goal:
+    <div class="yearly-goal-section">
+      $:render_template('check_ins/reading_goal_progress', [yearly_goal])
+    </div>
 
-  <div class="mybooks-list">
+  $# The reading log search is only displayed on non-empty shelves because some patrons were confused and searching empty reading lists, perhaps thinking they could add books that way. See #7143.
+  $if len(docs) > 0:
+    <form method="GET" class="olform pagesearchbox">
+      <input type="text" minlength="3" placeholder="$_('Search your reading log')" name="q" value="$(query_param('q', ''))"/>
+      <input type="submit"/>
+    </form>
     $if q:
       <span class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', doc_count, count=commify(doc_count))</span>
     $else:
@@ -50,7 +55,8 @@ $if len(docs) > 0:
           <strong class="lightgreen">$_("Date Added (oldest)")</strong>
       </span>
 
-    $:macros.Pager(current_page, doc_count, results_per_page=results_per_page)
+    $if not checkin_year:
+      $:macros.Pager(current_page, doc_count, results_per_page=results_per_page)
     <ul class="list-books">
       $if docs:
         $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3}.get(key, None)
@@ -62,13 +68,12 @@ $if len(docs) > 0:
           $:macros.SearchResultsWork(doc, reading_log=dropper, availability=doc.get('availability'), rating=star_rating)
           $ doc_number = doc_number + 1
     </ul>
-    $:macros.Pager(current_page, doc_count, results_per_page=results_per_page)
-  </div>
-$else:
-  <div class="mybooks-list">
+    $if not checkin_year:
+      $:macros.Pager(current_page, doc_count, results_per_page=results_per_page)
+  $else:
     <ul class="list-books">
       $if checkin_year:
-        <p>$_("You haven't added any check-ins for this year yet.")</p>
+        <p>$_("You haven't marked any books as read for this year.")</p>
       $else:
         <p>$_("You haven't added any books to this shelf yet.")</p>
         <p>$:_('<a href="/search">Search for a book</a> to add to your reading log. <a href="/help/faq/reading-log">Learn more</a> about the reading log.')</p>

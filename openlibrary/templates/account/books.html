@@ -31,7 +31,7 @@ $elif key == 'want-to-read':
   $ header_title = _("Want To Read")
 $elif key == 'already-read':
   $if checkin_year:
-    $ header_title = _("%(year)d Check-Ins", year=checkin_year)
+    $ header_title = _("Already Read: %(year)d", year=checkin_year)
   $else:
     $ header_title = _("Already Read")
 $if not header_title:
@@ -57,7 +57,7 @@ $var title: $header_title
 
 <div class="mybooks">
 
-  $:render_template("account/sidebar", user, key=key, public=public, owners_page=owners_page, counts=shelf_counts, lists=lists, component_times=component_times, checkin_year=checkin_year)
+  $:render_template("account/sidebar", user, key=key, public=public, owners_page=owners_page, counts=shelf_counts, lists=lists, component_times=component_times)
 
   <div class="mybooks-details">
     $if key == 'mybooks':
@@ -75,7 +75,10 @@ $var title: $header_title
     <header>
       <div>
         <div class="small sansserif grey account-settings-menu">
-          <a href="$userKey">$userDisplayName</a> &raquo; $breadcrumb
+          <a href="$userKey">$userDisplayName</a> &raquo; 
+          $if checkin_year:
+            <a href="/account/books/already-read">$_("Already Read")</a> &raquo; 
+          $breadcrumb
         </div>
         <div>
           <h1 class="details-title">

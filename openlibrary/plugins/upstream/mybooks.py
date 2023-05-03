@@ -110,6 +110,10 @@ class readinglog_yearly(delegate.page):
 
     def GET(self, username, year=None):
         year = int(year or current_year())
+        if year < 1000:
+            # The year is used in a LIKE statement when we query for the yearly summary, so
+            # ensuring that the year is at least four digits long avoids incorrect results.
+            raise web.badrequest(message="Year must be four digits")
         return MyBooksTemplate(username, 'already-read').render(year=year)
 
 
