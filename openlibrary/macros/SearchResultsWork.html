@@ -34,7 +34,9 @@ $code:
     full_work_title = doc.get('title', '') + (': ' + doc.subtitle if doc.get('subtitle') else '')
 
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book" $:attrs>
-  <span class="bookcover">
+  $ safe_mode = True # Placeholder variable
+  $ bookcover_class = "safe-mode-bookcover" if safe_mode else "bookcover"
+  <span class=$bookcover_class>
     $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
     <a href="$work_edition_url"><img
             itemprop="image"
@@ -88,7 +90,8 @@ $code:
           $if doc.get('ia'):
             &mdash; $_('%s previewable', len(doc.get('ia')))
             $if len(doc.get('ia')) > 1:
-              <span class="preview-covers">
+              $ preview_cover_class = "safe-mode-preview-covers" if safe_mode else "preview-covers"
+              <span class=$preview_cover_class>
                 $for x, i in enumerate(doc.get('ia')[1:10]):
                   <a href="$(book_url)?edition=ia:$(urlquote(i))">
                     <img width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="Cover of edition $i">
