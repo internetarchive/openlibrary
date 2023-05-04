@@ -1,4 +1,4 @@
-$def with (input, q_param, do_search, get_doc, fulltext_search, facet_fields)
+$def with (input, q_param, do_search, get_doc, fulltext_search, facet_fields, safe_mode)
 
 $ fulltext_names = {'true': 'Ebooks', 'false': 'Exclude ebooks'}
 
@@ -205,7 +205,7 @@ $ )
             $for work in works:
                 $ read_status = work.get('readinglog', None)
                 $ dropper = macros.ReadingLogDropper([], work=work, include_lists=False, page_url="/search", users_work_read_status=read_status)
-                $:macros.SearchResultsWork(work, reading_log=dropper, show_librarian_extras=show_librarian_extras)
+                $:macros.SearchResultsWork(work, reading_log=dropper, show_librarian_extras=show_librarian_extras, safe_mode=safe_mode)
           </ul>
           $:macros.Pager(page, num_found, rows)
         </div>
