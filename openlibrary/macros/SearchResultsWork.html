@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, reading_log=None, show_librarian_extras=False)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, reading_log=None, show_librarian_extras=False, safe_mode="")
 
 $code:
   max_rendered_authors = 9
@@ -34,8 +34,7 @@ $code:
     full_work_title = doc.get('title', '') + (': ' + doc.subtitle if doc.get('subtitle') else '')
 
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book" $:attrs>
-  $ safe_mode = True # Placeholder variable
-  $ bookcover_class = "safe-mode-bookcover" if safe_mode else "bookcover"
+  $ bookcover_class = "safe-mode-bookcover" if safe_mode == 'yes' else "bookcover"
   <span class=$bookcover_class>
     $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
     <a href="$work_edition_url"><img
@@ -90,7 +89,7 @@ $code:
           $if doc.get('ia'):
             &mdash; $_('%s previewable', len(doc.get('ia')))
             $if len(doc.get('ia')) > 1:
-              $ preview_cover_class = "safe-mode-preview-covers" if safe_mode else "preview-covers"
+              $ preview_cover_class = "safe-mode-preview-covers" if safe_mode == 'yes' else "preview-covers"
               <span class=$preview_cover_class>
                 $for x, i in enumerate(doc.get('ia')[1:10]):
                   <a href="$(book_url)?edition=ia:$(urlquote(i))">
