@@ -65,20 +65,13 @@ $ page = int(input(page=1).page)
           $ type_str = _('Author') if r['mr_type'] == 2 else _('Work')
           <tr id="mrid-$(r['id'])">
 
-            <td id="comment-cell-$(r['id'])" class="comment-cell">
+            <td class="mr-info">
               <div class="dot-wrapper"><div class="green-dot"></div></div>
-              <div>
-                <div class="comment-cell__summary">
-                  <strong>
-                    $:_('<span class="book-title">%(title)s</span>', title=work_title, type=type_str)
-                  </strong>
-                </div>
-
-                <div id="hidden-comments-$r['id']" class="comment-cell__old-comments hidden">
-                  $for c in comments[:-1]:
-                  $:render_template('merge_queue/comment', comment=c)
-                </div>
-                <div class="comment-cell__newest-comment">
+              <div id="comment-cell-$(r['id'])" class="comment-cell">
+                <strong>
+                  $:_('<span class="book-title">%(title)s</span>', title=work_title, type=type_str)
+                </strong>
+                <div id="latest-comment-$r['id']" class="comment-cell__newest-comment">
                   $if comments:
                     $:render_template('merge_queue/newest_comment', comment=comments[-1])
                   $else:

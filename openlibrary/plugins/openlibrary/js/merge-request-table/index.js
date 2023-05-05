@@ -148,7 +148,7 @@ function removeRow(row) {
 export function initShowAllCommentsLinks(elems) {
     for (const elem of elems) {
         elem.addEventListener('click', function() {
-            toggleAllComments(elem)
+            toggleAllComments(elem);
         })
     }
 }
@@ -163,11 +163,12 @@ function toggleAllComments(elem) {
     const targetId = elem.dataset.targetId;
     const targetId2 = elem.dataset.latestComment || 0;
     const targetBtnClass = elem.dataset.btnClass;
+    console.log(targetBtnClass)
 
     const target = document.querySelector(`#${targetId}`)
     const target2 = document.querySelector(`#${targetId2}`)
     const targetBtn = document.querySelector(`.${targetBtnClass}`);
-
+  
     target.classList.toggle('hidden')
     target2.classList.toggle('hidden')
     targetBtn.classList.toggle('border-toggle');
