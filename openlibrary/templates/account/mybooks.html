@@ -217,7 +217,7 @@ $ counts = counts or pa.get_sidebar_counts
                 $_('Sponsorships')
                 $ sponsorship_count = ''
                 $if counts.get('sponsorships', None):
-                  $ sponsorship_count = "%d(" % counts['sponsorships'] % ")"
+                  $ sponsorship_count = "(%d)" % counts['sponsorships']
                 $sponsorship_count
               </a>
             </div>
