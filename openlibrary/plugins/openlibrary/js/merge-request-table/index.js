@@ -168,7 +168,7 @@ function toggleAllComments(elem) {
     const target = document.querySelector(`#${targetId}`)
     const target2 = document.querySelector(`#${targetId2}`)
     const targetBtn = document.querySelector(`.${targetBtnClass}`);
-  
+
     target.classList.toggle('hidden')
     target2.classList.toggle('hidden')
     targetBtn.classList.toggle('border-toggle');
