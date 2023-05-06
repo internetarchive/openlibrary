@@ -196,16 +196,19 @@ $ )
         <div id="searchResults">
           <ul class="list-books">
             $ works = [get_doc(d) for d in docs]
+            $ subject_keys = [d['subject_key'] for d in docs]
             $ add_availability([(w.get('editions') or [None])[0] or w for w in works])
             $ username = ctx.user and ctx.user.key.split('/')[-1]
             $if username:
                 $ works = add_read_statuses(username, works)
             $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians'))
 
-            $for work in works:
+            $for work,subject_key in zip(works,subject_keys):
                 $ read_status = work.get('readinglog', None)
                 $ dropper = macros.ReadingLogDropper([], work=work, include_lists=False, page_url="/search", users_work_read_status=read_status)
-                $:macros.SearchResultsWork(work, reading_log=dropper, show_librarian_extras=show_librarian_extras, safe_mode=safe_mode)
+                $ content_warning = len([s for s in subject_key if s.startswith("content_warning")]) != 0
+                $ blur = True if content_warning and safe_mode else False
+                $:macros.SearchResultsWork(work, reading_log=dropper, show_librarian_extras=show_librarian_extras, blur=blur)
           </ul>
           $:macros.Pager(page, num_found, rows)
         </div>

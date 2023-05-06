@@ -287,19 +287,15 @@ def do_search(
     :param sort: csv sort ordering
     :param spellcheck_count: Not really used; should probably drop
     """
-    
+
     if web.cookies(sfw="").sfw == 'yes':
-        fields=list(WorkSearchScheme.default_fetched_fields | {'editions'} | {'subject_key'})
-    else: 
-        fields=list(WorkSearchScheme.default_fetched_fields | {'editions'})
+        fields = list(
+            WorkSearchScheme.default_fetched_fields | {'editions'} | {'subject_key'}
+        )
+    else:
+        fields = list(WorkSearchScheme.default_fetched_fields | {'editions'})
     return run_solr_query(
-        WorkSearchScheme(),
-        param,
-        rows,
-        page,
-        sort,
-        spellcheck_count,
-        fields=fields
+        WorkSearchScheme(), param, rows, page, sort, spellcheck_count, fields=fields
     )
 
 
@@ -456,7 +452,7 @@ class search(delegate.page):
             get_doc,
             fulltext_search,
             WorkSearchScheme.facet_fields,
-            safe_mode_cookie.sfw,
+            safe_mode_cookie.sfw == 'yes',
         )
 
 
