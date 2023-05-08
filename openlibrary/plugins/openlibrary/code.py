@@ -99,8 +99,7 @@ class hooks(client.hook):
             if page.type.key == '/type/author':
                 return
 
-            books = web.ctx.site.things(
-                {'type': '/type/edition', 'authors': page.key})
+            books = web.ctx.site.things({'type': '/type/edition', 'authors': page.key})
             books = books or web.ctx.site.things(
                 {'type': '/type/work', 'authors': {'author': {'key': page.key}}}
             )
@@ -274,8 +273,7 @@ class widget(delegate.page):
             ]
             return delegate.RawText(
                 render_template(
-                    'widget', item if _type == 'books' else format_work_data(
-                        item)
+                    'widget', item if _type == 'books' else format_work_data(item)
                 ),
                 content_type='text/html',
             )
@@ -1107,8 +1105,7 @@ def setup_template_globals():
 def setup_context_defaults():
     from infogami.utils import context
 
-    context.defaults.update(
-        {'features': [], 'user': None, 'MAX_VISIBLE_BOOKS': 5})
+    context.defaults.update({'features': [], 'user': None, 'MAX_VISIBLE_BOOKS': 5})
 
 
 def setup():
