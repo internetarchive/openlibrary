@@ -43,6 +43,7 @@
 
 .comment-cell {
   display: flex;
+  flex-direction: column;
   &__summary,
   &__description {
     display: flex;
@@ -223,6 +224,7 @@
     width: 80px;
     height: 40px;
     margin-right: 40px;
+    padding: 0;
   }
 
   .border-toggle {
@@ -246,6 +248,9 @@
       display: flex;
       text-decoration: none;
       align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
     }
 
     .comment-expand span {
