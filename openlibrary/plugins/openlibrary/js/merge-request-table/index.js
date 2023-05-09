@@ -118,9 +118,12 @@ async function comment(mrid, comment) {
  * @param {string} comment The new comment
  */
 async function updateCommentsView(mrid, comment, username) {
+  
+  const commentCell = document.querySelector(`#comment-cell-${mrid}`);
+  const newestComment = commentCell.querySelector('.comment-cell__newest-comment') ;
+  
+  newestComment.innerHTML = `${comment}`
 
-
-    const commentCell = document.querySelector(`#comment-cell-${mrid}`);
     const hiddenCommentDiv = commentCell.querySelector('.comment-cell__old-comments-section');
     const newComment = document.createElement('div')
     newComment.innerHTML += `<div class="mr-comment">
