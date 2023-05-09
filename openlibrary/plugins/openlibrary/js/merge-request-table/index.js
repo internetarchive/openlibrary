@@ -124,13 +124,12 @@ async function updateCommentsView(mrid, comment, username) {
 
   newestComment.innerHTML = `${comment}`
 
-    const hiddenCommentDiv = commentCell.querySelector('.comment-cell__old-comments-section');
-    const newComment = document.createElement('div')
-    newComment.innerHTML += `<div class="mr-comment">
-      <div class="mr-comment__body"><a href="">@${username}</a> ${comment}</div>
-      </div>`
+  const newComment = document.createElement('div')
+  newComment.innerHTML += `<div class="mr-comment">
+    <div class="mr-comment__body"><a href="">@${username}</a> ${comment}</div>
+    </div>`
 
-    hiddenCommentDiv.prepend(newComment);
+  hiddenCommentDiv.prepend(newComment);
 }
 
 /**
