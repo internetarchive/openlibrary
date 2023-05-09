@@ -32,7 +32,7 @@ repos:
       - id: auto-walrus
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.263
+    rev: v0.0.265
     hooks:
       - id: ruff
 
