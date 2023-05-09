@@ -27,16 +27,10 @@
         background-position: -22px 0;
       }
     }
-    div.arrow-activated {
+    div.arrow {
       background-image: url(/images/icons/icon_dropit.png);
       background-repeat: no-repeat;
       filter: grayscale(100%);
-      background-position: 0 0;
-      background-size: 45px;
-    }
-    div.arrow-unactivated {
-      background-image: url(/images/icons/icon_dropit.png);
-      background-repeat: no-repeat;
       background-position: 0 0;
       background-size: 45px;
     }
@@ -226,6 +220,7 @@ div#listsWork {
     z-index: @z-index-level-7;
     &.on {
       background-color: @lightest-grey;
+      border: 1px solid @mid-grey;
       border-radius: 4px;
     }
     h3 {
@@ -275,19 +270,11 @@ div#listsWork {
     width: 100%;
     padding: 7px 0;
     margin: 0;
+    color: @dark-grey;
+    background: @lightest-grey;
+    border: 2px solid @grey-f3f3f3;
+    border-right: 1px solid @lighter-grey;
 
-    /* stylelint-disable selector-max-specificity */
-    &.activated {
-      color: @dark-grey;
-      background: @lightest-grey;
-      border: 2px solid @grey-f3f3f3;
-      border-right: 1px solid @lighter-grey;
-    }
-    &.unactivated {
-      color: @primary-blue;
-      background: @white;
-      border: 1.5px solid @primary-blue;
-    }
     span.activated-check {
       color: @green;
       margin-right: 2px;
@@ -315,11 +302,6 @@ div#listsWork {
 
 .dropclick-prevent {
   .display-flex();
-}
-
-.dropclick-unactivated {
-  background-color: @white;
-  border: 1.5px solid @primary-blue;
 }
 
 .user-book-options {
