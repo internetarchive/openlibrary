@@ -2,12 +2,6 @@
 Open Library Plugin.
 """
 
-import urllib
-from infogami.core.db import get_recent_changes as _get_recentchanges
-from openlibrary.plugins.openlibrary import lists
-from openlibrary.core import models
-from openlibrary.core import schema
-from openlibrary.plugins.openlibrary import connection
 import requests
 import web
 import json
@@ -58,19 +52,20 @@ except:
     api = None  # type: ignore[assignment]
 
 # http header extension for OL API
-# type: ignore[attr-defined]
-infogami.config.http_ext_header_uri = 'http://openlibrary.org/dev/docs/api'
+infogami.config.http_ext_header_uri = 'http://openlibrary.org/dev/docs/api' # type: ignore[attr-defined]
 
 # setup special connection with caching support
+from openlibrary.plugins.openlibrary import connection
 
-# type: ignore[assignment]
-client._connection_types['ol'] = connection.OLConnection
+client._connection_types['ol'] = connection.OLConnection # type: ignore[assignment]
 infogami.config.infobase_parameters = dict(type='ol')
 
 # set up infobase schema. required when running in standalone mode.
+from openlibrary.core import schema
 
 schema.register_schema()
 
+from openlibrary.core import models
 
 models.register_models()
 models.register_types()
@@ -80,6 +75,7 @@ infogami._install_hooks = [
     h for h in infogami._install_hooks if h.__name__ != 'movefiles'
 ]
 
+from openlibrary.plugins.openlibrary import lists
 
 lists.setup()
 
@@ -854,6 +850,10 @@ def changequery(query=None, **kw):
 
 # Hack to limit recent changes offset.
 # Large offsets are blowing up the database.
+
+from infogami.core.db import get_recent_changes as _get_recentchanges
+
+import urllib
 
 
 @public
