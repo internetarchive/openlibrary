@@ -50,32 +50,6 @@
     }
   }
 
-  // Preview links for titles within a carousel should appear as a
-  // button without an icon (default is text link with book icon)
-  // Main styles for this type of CTA are in buttonCta.less
-  &:not(.carousel--compact) {
-    /* stylelint-disable selector-max-specificity */
-    a.cta-btn--preview, a.cta-btn--preview:link {
-      .shell-btn--active();
-
-      flex-grow: 1;
-      margin-top: 0;
-      padding: 7px;
-      width: 100%;
-
-      /* stylelint-disable max-nesting-depth */
-      &::before {
-        display: none;
-      }
-
-      &:hover {
-        text-decoration: none;
-      }
-    }
-    /* stylelint-enable max-nesting-depth */
-    /* stylelint-enable selector-max-specificity */
-  }
-
   // Modifiers
   // A smaller carousel.
   &--minimal {
