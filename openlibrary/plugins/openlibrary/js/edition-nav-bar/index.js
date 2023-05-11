@@ -18,7 +18,6 @@ export function initNavbars(navbarWrappers) {
     }
 }
 
-<<<<<<< HEAD
 /**
  * Updates the "selected" nav item of each navbar.
  *
