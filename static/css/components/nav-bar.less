@@ -1,7 +1,6 @@
 @import (less) "components/compact-title.less";
 
 .nav-bar {
-  border-bottom: 1px solid @lighter-grey;
   font-weight: bold;
 
   display: block;
@@ -50,6 +49,9 @@
   &.sticky {
     position: sticky;
     top: 50px;
+    margin-left: -20px;
+    margin-right: -20px;
+    padding: 8px 20px 0 20px;
   }
 
   .nav-arrow {
@@ -64,7 +66,7 @@
   }
 
   .nav-bar.work-menu {
-    padding: 5px 0;
+    padding: 0;
     background: @white;
     z-index: @z-index-level-5;
 
@@ -104,6 +106,7 @@
     top: 0;
     margin-left: 0;
     margin-right: 0;
+    padding-left: 0;
     width: 100%;
 
     &.nav-bar-wrapper--slidedown {
