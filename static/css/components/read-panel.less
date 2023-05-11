@@ -38,11 +38,13 @@
     padding: 5px 20px 10px; // Increasing click area for mobile text link
     background-color: transparent;
 
-    // When Preview button is a text link, have it take up only the width of the content (not full 100% width)
+    // When Preview button is a text link, have it take up only the width
+    // of the content (not full 100% width)
     flex-basis: content;
     flex-grow: 0;
     width: auto;
 
+    /* stylelint-disable selector-max-specificity */
     &:hover {
       text-decoration: underline;
     }
@@ -56,7 +58,7 @@
       top: 2px;
 
       // Setting pseudo-element content to book icon; mask is used to allow for a 'fill' color
-      content: '';
+      content: "";
       -webkit-mask: url(../images/icons/open-book.svg);
       mask: url(../images/icons/open-book.svg);
       -webkit-mask-size: cover;
@@ -68,6 +70,7 @@
     span {
       display: none;
     }
+    /* stylelint-enable selector-max-specificity */
   }
 
   .waitinglist-message {
@@ -163,6 +166,7 @@
 
 // desktop
 @media only screen and (min-width: @width-breakpoint-desktop){
+  /* stylelint-disable selector-max-specificity */
   .mobile-vendor,
   .cta-button-group.mobile,
   #read-options > .modal-links > .star-rating-form,
@@ -176,6 +180,7 @@
   .cta-button-group.desktop {
     display: flex;
   }
+  /* stylelint-enable selector-max-specificity */
 }
 
 // mobile
@@ -190,13 +195,16 @@
   .Tools .btn-notice,
   .read-options {
     border: none;
-
     // Hide desktop version of modal links and ratings form on mobile
+    /* stylelint-disable selector-max-specificity */
+    /* stylelint-disable no-descending-specificity */
     &> hr,
     &> .lists-widget-container > #ratingsForm,
     &> .modal-links {
       display: none;
     }
+    /* stylelint-enable no-descending-specificity */
+    /* stylelint-enable selector-max-specificity */
   }
 
   .cta-button-group.mobile {
@@ -221,7 +229,8 @@
       justify-content: space-between;
       margin: 0;
       width: 100%;
-
+      /* stylelint-disable max-nesting-depth*/
+      /* stylelint-disable selector-max-specificity */
       li {
         border-right: 1px solid @lighter-grey;
         display: flex;
@@ -232,7 +241,11 @@
         text-align: center;
 
         .readers-stats__label {
-          font-size: 0.85em;
+          font-size: .85em;
+        }
+
+        & + li {
+          border-right: solid 1px @lighter-grey;
         }
 
         &:last-child {
@@ -241,17 +254,15 @@
 
         // Clearing out the 'dot' spacer content used on desktop
         &::after {
-          content: '';
+          content: "";
         }
-      }
-
-      li + li {
-        border-right: solid 1px @lighter-grey;
       }
 
       li.avg-ratings, li.readers-stats__review-count {
         display: none;
       }
+      /* stylelint-enable selector-max-specificity */
+      /* stylelint-enable max-nesting-depth */
     }
   }
 }

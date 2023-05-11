@@ -260,7 +260,6 @@ div#listsWork {
     flex: 1;
   }
   button[type=submit] {
-    background-color: inherit;
     border: none;
     border-radius: 4px;
     border-bottom-right-radius: 0;
@@ -272,9 +271,12 @@ div#listsWork {
     margin: 0;
     color: @dark-grey;
     background: @lightest-grey;
+    // stylelint-disable declaration-block-no-duplicate-properties
     border: 2px solid @grey-f3f3f3;
     border-right: 1px solid @lighter-grey;
+    // stylelint-enable declaration-block-no-duplicate-properties
 
+    /* stylelint-disable selector-max-specificity */
     span.activated-check {
       color: @green;
       margin-right: 2px;

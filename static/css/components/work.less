@@ -64,7 +64,7 @@ div.editionAbout {
 .workFooter {
   .lists-heading {
     display: flex;
-
+    /* stylelint-disable selector-max-specificity */
     h2.lists-title {
       flex: 1;
       margin-top: 5px;
@@ -75,6 +75,7 @@ div.editionAbout {
       color: @link-blue;
       font-size: 16px;
     }
+    /* stylelint-enable selector-max-specificity */
   }
   ul.listLists {
     display: flex;
@@ -317,6 +318,7 @@ div.editionTools {
 }
 @media only screen and (max-width: @width-breakpoint-desktop){
   div.editionAbout {
+    /* stylelint-disable selector-max-specificity */
     .book-description.read-more,
     .book-description.read-less {
       text-align: center;
@@ -324,6 +326,7 @@ div.editionTools {
     .book-description {
       padding-top: 1em;
     }
+    /* stylelint-enable selector-max-specificity */
   }
 }
 

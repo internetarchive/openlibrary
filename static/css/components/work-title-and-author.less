@@ -81,7 +81,7 @@
     }
 
     h2.edition-byline {
-      font-size: 0.875em;
+      font-size: .875em;
       margin-bottom: 10px;
 
       &> a {
@@ -98,7 +98,7 @@
 
       .icon-link__text {
         color: @dark-grey;
-        font-size: 0.675em;
+        font-size: .675em;
       }
     }
 
@@ -107,10 +107,12 @@
       &__review-count--none {
         height: 0;
         margin: 0;
-
+        /* stylelint-disable selector-max-specificity */
+        /* stylelint-disable max-nesting-depth */
         li.readers-stats__review-count {
           display: none;
         }
+        /* stylelint-enable max-nesting-depth */
       }
 
       li.avg-ratings .dot,
@@ -120,19 +122,20 @@
 
       li.avg-ratings,
       li.readers-stats__review-count {
-        font-size: 0.85em;
+        font-size: .85em;
 
       }
 
       // On mobile only, the rating count text has parentheses around it
       li.readers-stats__review-count::before {
-        content: '(';
+        content: "(";
         margin-right: -2px;
       }
       li.readers-stats__review-count::after {
-        content: ')';
+        content: ")";
         margin: 0 0 0 -1px;
       }
+      /* stylelint-enable selector-max-specificity */
     }
   }
 }
