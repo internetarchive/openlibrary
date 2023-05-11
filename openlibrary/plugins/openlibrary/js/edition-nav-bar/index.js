@@ -4,7 +4,7 @@ import EdtionNavBar from './EditionNavBar';
  * Holds references to each book page navbar.
  * @type {Array<EditionNavBar>}
  */
-    const navbars = []
+const navbars = []
 
 /**
  * Initializes and stores references to each book page navbar.
