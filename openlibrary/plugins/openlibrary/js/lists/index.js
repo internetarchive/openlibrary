@@ -59,7 +59,10 @@ export function initDroppers(droppers) {
             addReadingLogButtonClickListener(button)
         }
 
-        syncReadingLogDropdownRemoveWithPrimaryButton(dropper)
+        const readingLogForm = dropper.querySelector('.readingLog')
+        if (readingLogForm) {
+            syncReadingLogDropdownRemoveWithPrimaryButton(dropper, readingLogForm)
+        }
     }
 }
 
@@ -240,18 +243,25 @@ export function clearCreateListForm() {
  *
  * This sets up the 'Remove From Shelf' button to behave as if it were the
  * primaryButton in terms of removal from a shelf.
+ * @param {HTMLDivElement} A div containing the dropper widget
+ * @param {HTMLFormElement} The form with the .readingLog selector.
  */
-export function syncReadingLogDropdownRemoveWithPrimaryButton(dropper) {
-    const primaryForm = dropper.querySelector('.readingLog')
-    const shelfToRemoveFrom = primaryForm.querySelector('[name=bookshelf_id]').value
+export function syncReadingLogDropdownRemoveWithPrimaryButton(dropper, readingLogForm) {
+    if (!readingLogForm) {
+        return;
+    }
+    const shelfToRemoveFrom = readingLogForm.querySelector('[name=bookshelf_id]').value
     const removalForm = dropper.querySelector('#remove-from-list')
+    if (!removalForm) {
+        return;
+    }
     const removalButton = removalForm.querySelector('button')
 
     // Get the remval bookshelf_id from primaryButton.
     removalForm.querySelector('[name=bookshelf_id]').value = shelfToRemoveFrom
 
     // The remove-from-shelf button displays only if a book is already on a bookshelf.
-    if (primaryForm.querySelector('[name=action]').value === 'remove') {
+    if (readingLogForm.querySelector('[name=action]').value === 'remove') {
         removalButton.classList.remove('hidden')
     } else {
         removalButton.classList.add('hidden')
@@ -309,6 +319,7 @@ function addReadingLogButtonClickListener(button) {
         const form = button.parentElement
         const actionInput = form.querySelector('input[name=action]')
         const dropper = button.closest('.widget-add')
+        const readingLogForm = dropper.querySelector('.readingLog')
         const primaryButton = dropper.querySelector('.want-to-read')
         const initialText = primaryButton.children[1].innerText
         const dropClick = dropper.querySelector('.dropclick')
@@ -343,11 +354,11 @@ function addReadingLogButtonClickListener(button) {
             }
             if (button.classList.contains('want-to-read')) {  // Primary button pressed
                 togglePrimaryButton(primaryButton, dropClick, initialText, dropper)
-                syncReadingLogDropdownRemoveWithPrimaryButton(dropper)
+                syncReadingLogDropdownRemoveWithPrimaryButton(dropper, readingLogForm)
             } else if (button.classList.contains('remove-from-list')) { // Clicking 'remove from list' (i.e. toggling a boofshelf) from the dropper.
                 toggleDropper(dropper)
                 togglePrimaryButton(primaryButton, dropClick, initialText, dropper)
-                syncReadingLogDropdownRemoveWithPrimaryButton(dropper)
+                syncReadingLogDropdownRemoveWithPrimaryButton(dropper, readingLogForm)
 
             } else {  // Secondary button pressed -- all other drop down items.
                 toggleDropper(dropper)
@@ -378,7 +389,7 @@ function addReadingLogButtonClickListener(button) {
                 }
                 button.classList.add('hidden')
 
-                syncReadingLogDropdownRemoveWithPrimaryButton(dropper)
+                syncReadingLogDropdownRemoveWithPrimaryButton(dropper, readingLogForm)
             }
         }
 
