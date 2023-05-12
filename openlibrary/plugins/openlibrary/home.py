@@ -691,7 +691,9 @@ def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None):
         sorts=sorts,
         query=query,
     )
-    formatted_books = [format_book_data(book, False) for book in books if book != 'error']
+    formatted_books = [
+        format_book_data(book, False) for book in books if book != 'error'
+    ]
     return formatted_books
 
 
