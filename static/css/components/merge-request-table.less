@@ -215,25 +215,25 @@
   align-items: start;
 
   button {
+    margin-right: 40px;
+  }
+  
+  .border-toggle {
+    border: 1.5px solid @black;
+  }
+  
+  &__review {
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 5px;
+    padding: 0;
     box-shadow: none;
     width: 80px;
     height: 40px;
-    margin-right: 40px;
-    padding: 0;
-  }
-
-  .border-toggle {
-    border: 1.5px solid @black;
-  }
-
-  &__review {
     background-color: @primary-blue;
     border: none;
-    width: 63px;
+    
 
     .mr-resolve-link {
       color: @white;
