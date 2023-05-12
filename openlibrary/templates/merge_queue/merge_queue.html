@@ -101,11 +101,13 @@ $ page = int(input(page=1).page)
             <td class="mr-comment-review-cell">
               <div>
                 $if can_merge and is_open and r.get('reviewer'):
-                  $r['reviewer'] <span class="mr-unassign" data-mrid="$r['id']" data-merge-type="$r['mr_type']">&times;</span>
-                  <br>
-
+                  <div class="reviewer-section">
+                    <span class="reviewer" >@$r['reviewer']</span> <span class="mr-unassign" data-mrid="$r['id']" data-merge-type="$r['mr_type']" style="margin-left: 3px;">&times;</span>
+                  </div>
                 $elif r.get('reviewer'):
-                  $r['reviewer']
+                  <div class="reviewer-section">
+                    <img src="/static/images/icons/icon_check.png" style="height: 10px; margin-right: 3px;"><span class="reviewer">@$r['reviewer']</span>
+                  </div>
                 $else:
                   $if is_submitter:
                     <a class="mr-close-link" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">$_('Close')</a>

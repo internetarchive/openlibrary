@@ -25,9 +25,10 @@
   margin: 5px 0;
   padding: 5px;
   border-radius: 5px;
-
+  
   &__body a {
     text-decoration: none;
+    color: @primary-blue;
   }
 
   // &__header {
@@ -217,12 +218,19 @@
   justify-content: space-between;
   align-items: start;
 
-  button {
+  .border-toggle {
+    border: 1.5px solid @black;
+  }
+  
+  .reviewer-section {
+    display: flex;
+    height: 40px;
+    align-items: center;
     margin-right: 40px;
   }
 
-  .border-toggle {
-    border: 1.5px solid @black;
+  .reviewer {
+    color: @primary-blue;
   }
 
   &__review {
@@ -234,6 +242,7 @@
     box-shadow: none;
     width: 80px;
     height: 40px;
+    margin-right: 40px;
     background-color: @primary-blue;
     border: none;
 
@@ -249,6 +258,7 @@
     border-radius: 5px;
     width: 55px;
     height: 40px;
+    
     .comment-expand {
       display: flex;
       text-decoration: none;
