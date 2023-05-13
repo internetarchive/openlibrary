@@ -64,3 +64,24 @@ repos:
     rev: v0.12.2
     hooks:
       - id: validate-pyproject
+
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.40.0
+    hooks:
+      - id: eslint
+        types: [file]
+        types_or: [javascript, vue]
+        additional_dependencies:
+          - eslint@6.8.0
+          - eslint-plugin-no-jquery@2.6.0
+          - eslint-plugin-vue@7.15.0
+          - babel-eslint@10.1.0
+
+  - repo: https://github.com/awebdeveloper/pre-commit-stylelint
+    rev: 0.0.2
+    hooks:
+    - id: stylelint
+      files: \.(css|less)$
+      additional_dependencies:
+        - stylelint@13.13.1
+        - stylelint-declaration-use-variable@1.7.3
