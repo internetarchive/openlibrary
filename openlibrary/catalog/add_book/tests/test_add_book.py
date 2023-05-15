@@ -8,6 +8,8 @@ from infogami.infobase.core import Text
 
 from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import (
+    PublicationYearTooOld,
+    PublishedInFutureYear,
     add_db_name,
     build_pool,
     editions_matched,
@@ -15,6 +17,7 @@ from openlibrary.catalog.add_book import (
     load,
     split_subtitle,
     RequiredField,
+    validate_publication_year,
 )
 
 from openlibrary.catalog.marc.parse import read_edition
@@ -1185,3 +1188,22 @@ def test_add_identifiers_to_edition(mock_site) -> None:
     e = mock_site.get(reply['edition']['key'])
     assert e.works[0]['key'] == '/works/OL19W'
     assert e.identifiers._data == {'goodreads': ['1234'], 'librarything': ['5678']}
+
+
+@pytest.mark.parametrize(
+    'year,error,override',
+    [
+        (1499, PublicationYearTooOld, False),
+        (1499, None, True),
+        (3000, PublishedInFutureYear, False),
+        (3000, PublishedInFutureYear, True),
+        (1500, None, False),
+        (1501, None, False),
+    ],
+)
+def test_validate_publication_year(year, error, override) -> None:
+    if error:
+        with pytest.raises(error):
+            validate_publication_year(year)
+    else:
+        validate_publication_year(year, override)

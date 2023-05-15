@@ -1,5 +1,7 @@
+import datetime
 import re
-from re import Match
+from re import compile, Match
+from typing import cast, Mapping
 import web
 from unicodedata import normalize
 from openlibrary.catalog.merge.merge_marc import build_titles
@@ -319,3 +321,79 @@ def expand_record(rec: dict) -> dict[str, str | list[str]]:
         if f in rec:
             expanded_rec[f] = rec[f]
     return expanded_rec
+
+
+def get_publication_year(publish_date: str | int | None) -> int | None:
+    """
+    Try to get the publication year from a book in YYYY format by looking for four
+    consecutive digits not followed by another digit.
+
+    >>> get_publication_year('1999-01')
+    1999
+    >>> get_publication_year('January 1, 1999')
+    1999
+    """
+    if publish_date is None:
+        return None
+
+    pattern = compile(r"\b\d{4}(?!\d)\b")
+    match = pattern.search(str(publish_date))
+
+    return int(match.group(0)) if match else None
+
+
+def published_in_future_year(publish_year: int) -> bool:
+    """
+    Look to see if a book is published in a future year as compared to the
+    current year.
+
+    Some import sources have publication dates in a future year, and the
+    likelihood is high that this is bad data. So we don't want to import these.
+    """
+    return publish_year > datetime.datetime.now().year
+
+
+def publication_year_too_old(publish_year: int) -> bool:
+    """
+    Returns True if publish_year is < 1,500 CE, and False otherwise.
+    """
+    return publish_year < 1500
+
+
+def is_independently_published(publishers: list[str]) -> bool:
+    """
+    Return True if publishers contains (casefolded) "independently published".
+    """
+    return any(
+        publisher.casefold() == "independently published" for publisher in publishers
+    )
+
+
+def needs_isbn_and_lacks_one(rec: dict) -> bool:
+    """
+    Check a record to see if the source indicates that an ISBN is
+    required.
+
+    If an ISBN is NOT required, return False. If an ISBN is required:
+        - return False if an ISBN is present (because the rec needs an ISBN and
+          has one); or
+        - return True if there's no ISBN.
+
+    This exists because certain sources do not have great records and requiring
+    an ISBN may help improve quality:
+        https://docs.google.com/document/d/1dlN9klj27HeidWn3G9GUYwDNZ2F5ORoEZnG4L-7PcgA/edit#heading=h.1t78b24dg68q
+
+    :param dict rec: an import dictionary record.
+    """
+
+    def needs_isbn(rec: dict) -> bool:
+        sources_requiring_isbn = ['amazon', 'bwb']
+        return any(
+            record.split(":")[0] in sources_requiring_isbn
+            for record in rec.get('source_records', [])
+        )
+
+    def has_isbn(rec: dict) -> bool:
+        return any(rec.get('isbn_10', []) or rec.get('isbn_13', []))
+
+    return needs_isbn(rec) and not has_isbn(rec)

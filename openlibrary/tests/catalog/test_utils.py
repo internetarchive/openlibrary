@@ -1,13 +1,19 @@
 import pytest
+from datetime import datetime, timedelta
 from openlibrary.catalog.utils import (
     author_dates_match,
     expand_record,
     flip_name,
+    get_publication_year,
+    is_independently_published,
+    needs_isbn_and_lacks_one,
     pick_first_date,
     pick_best_name,
     pick_best_author,
     match_with_bad_chars,
     mk_norm,
+    publication_year_too_old,
+    published_in_future_year,
     strip_count,
     remove_trailing_dot,
 )
@@ -282,3 +288,85 @@ def test_expand_record_isbn():
     )
     expanded_record = expand_record(edition)
     assert expanded_record['isbn'] == ['1234567890', '123', '321', '1234567890123']
+
+
+@pytest.mark.parametrize(
+    'year,expected',
+    [
+        ('1999-01', 1999),
+        ('1999', 1999),
+        ('01-1999', 1999),
+        ('May 5, 1999', 1999),
+        ('May 5, 19999', None),
+        ('1999-01-01', 1999),
+        ('1999/1/1', 1999),
+        ('01-01-1999', 1999),
+        ('1/1/1999', 1999),
+        ('199', None),
+        ('19990101', None),
+        (None, None),
+        (1999, 1999),
+        (19999, None),
+    ],
+)
+def test_publication_year(year, expected) -> None:
+    assert get_publication_year(year) == expected
+
+
+@pytest.mark.parametrize(
+    'years_from_today,expected',
+    [
+        (1, True),
+        (0, False),
+        (-1, False),
+    ],
+)
+def test_published_in_future_year(years_from_today, expected) -> None:
+    """Test with last year, this year, and next year."""
+
+    def get_datetime_for_years_from_now(years: int) -> datetime:
+        """Get a datetime for now +/- x years."""
+        now = datetime.now()
+        return now + timedelta(days=365 * years)
+
+    year = get_datetime_for_years_from_now(years_from_today).year
+    assert published_in_future_year(year) == expected
+
+
+@pytest.mark.parametrize(
+    'year,expected',
+    [
+        (1499, True),
+        (1500, False),
+        (1501, False),
+    ],
+)
+def test_publication_year_too_old(year, expected) -> None:
+    assert publication_year_too_old(year) == expected
+
+
+@pytest.mark.parametrize(
+    'publishers,expected',
+    [
+        (['INDEPENDENTLY PUBLISHED'], True),
+        (['Another Publisher', 'independently published'], True),
+        (['Another Publisher'], False),
+    ],
+)
+def test_independently_published(publishers, expected) -> None:
+    assert is_independently_published(publishers) == expected
+
+
+@pytest.mark.parametrize(
+    'rec,expected',
+    [
+        ({'source_records': ['bwb:123'], 'isbn_10': ['1234567890']}, False),
+        ({'source_records': ['amazon:123'], 'isbn_13': ['1234567890123']}, False),
+        ({'source_records': ['bwb:123'], 'isbn_10': []}, True),
+        ({'source_records': ['bwb:123']}, True),
+        ({'source_records': ['ia:someocaid']}, False),
+        ({'source_records': ['amazon:123']}, True),
+    ],
+)
+def test_needs_isbn_and_lacks_one(rec, expected) -> None:
+    assert needs_isbn_and_lacks_one(rec) == expected
