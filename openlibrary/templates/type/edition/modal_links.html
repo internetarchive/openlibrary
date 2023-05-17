@@ -18,11 +18,13 @@ $def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None
     $ review_content = icon_link("observations-modal-link", "/static/images/icons/reviews.svg", _("Review"), ga_data="ModalLinkClick|ReviewIcon")
     $:macros.ObservationsModal(work, review_content, 'sidebar-review')
 
+    $:macros.StarRatings(work, edition)
+
     $ notes_content = icon_link("notes-modal-link", "/static/images/icons/notes.svg", _("Notes"), ga_data="ModalLinkClick|NoteIcon")
     $:macros.NotesModal(work, edition, notes_content, 'sidebar-notes')
 
   $if ctx.get('share_links'):
     $ share_content = icon_link("share-modal-link", "/static/images/icons/share.svg", _("Share"), login_redirect=False, ga_data="ModalLinkClick|ShareIcon")
     $ share_links = ctx.get('share_links')
-    $:macros.ShareModal(share_links, page_url, share_content)
+    $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper")
 </div>

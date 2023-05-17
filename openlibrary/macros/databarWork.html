@@ -1,4 +1,4 @@
-$def with (page, editions_page=False, render_times={}, summary=None, modal_links=None)
+$def with (page, editions_page=False, render_times={}, modal_links=None)
 
 $if page.type.key == '/type/work' and page.edition_count == 1:
     $ edit_url = page.editions[0].key + '?m=edit'
@@ -44,11 +44,6 @@ $if isbn_10 and not asin:
           $if not page.is_fake_record():
               $:render_template('covers/change', page, ".edition-cover .bookCover img")
         </div>
-        $if summary:
-          <!--This section appears only in mobile/tablet screens-->
-          <div class="mobile-book-header">
-             $:summary
-          </div>
 
         $ work = (page.works and page.works[0]) or page
         $ edition = page.works and page
@@ -67,6 +62,16 @@ $if isbn_10 and not asin:
         $if modal_links:
           <hr>
           $:modal_links
+
+        <div class="readers-stats__wrapper mobile">
+          $ star_ratings_stats = macros.StarRatingsStats(work)
+          $:star_ratings_stats
+
+          $if modal_links:
+            <hr>
+            $:modal_links
+        </div>
+
         $if editions_page:
           $ render_times['databarWork: Book provider'] = time()
           $ book_provider = get_book_provider(page)

@@ -173,13 +173,19 @@ $ component_times['ReadlogStats'] = time()
 $ star_ratings_stats = macros.StarRatingsStats(work)
 $ component_times['ReadlogStats'] = time() - component_times['ReadlogStats']
 
-$ render_summary= render_template("type/edition/title_summary", work, edition, ocaid, work_title, star_ratings_stats)
+$ component_times['get_observation_metrics'] = time()
+$ reader_observations = get_observation_metrics(work['key']) if show_observations else {}
+$ component_times['get_observation_metrics'] = time() - component_times['get_observation_metrics']
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
   <div class="workDetails">
     $if work and work.key:
         <link itemprop="exampleOfWork" href="$work.key">
 
+    <!-- (mobile only) -->
+    $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations)
+    <a id="overview-mobile" name="overview-mobile" class="section-anchor section-anchor--no-height"></a>
+    $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats, for_desktop=False)
     <div class="editionCover">
       $ share_url = request.home + (edition or work).key
 
@@ -187,18 +193,19 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
       $ modal_links = render_template("type/edition/modal_links", work, edition, share_url)
       $ component_times['databarWork: Modal Links'] = time() - component_times['databarWork: Modal Links']
 
-      $:macros.databarWork(edition or work, editions_page=True, render_times=component_times,summary=render_summary, modal_links=modal_links)
+      $:macros.databarWork(edition or work, editions_page=True, render_times=component_times, modal_links=modal_links)
     </div>
 
     <div class="editionAbout">
+      $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations, desktop_only=True)
       <div class="editionAll">
         $ component_times['EditTopbar'] = time()
         $:macros.databarView(page, edition)
         $ component_times['EditTopbar'] = time() - component_times['EditTopbar']
       </div>
-    <!--This section appears only in desktop-->
-    <div class="desktop-book-header">
-      $:render_summary
+      <a id="overview" name="overview" class="section-anchor section-anchor--no-height"></a>
+      <!-- (desktop only) -->
+      $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats, for_desktop=True)
 
       $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
         $if edition and page.type.key in ["/type/work"]:
@@ -207,13 +214,28 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
           $ edit_url = page.url(suffix="/edit")
       $else:
         $ edit_url = page.key + "?m=edit"
-    </div>
+
       $:render_template("type/edition/compact_title", book_title, edit_url)
-      $ component_times['get_observation_metrics'] = time()
-      $ reader_observations = get_observation_metrics(work['key']) if show_observations else {}
-      $ component_times['get_observation_metrics'] = time() - component_times['get_observation_metrics']
-      $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations)
-      <a id="edition-overview" name="edition-overview"></a>
+
+      $if work and work.description or edition and edition.description:
+        $if edition and edition.description:
+          $ overview_desc = edition.description
+        $else:
+          $ overview_desc = work.description
+        <div class="book-description">
+            <div class="book-description-content restricted-view">
+                $:sanitize(format(overview_desc))
+            </div>
+            $:macros.ReadMore("book-description")
+        </div>
+      $elif edition:
+        <div class="book-description">
+            <div class="book-description-content">
+                <p class="workHelp">
+                    $:_("This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=edition.url('/edit')+"#about/about")
+                </p>
+            </div>
+        </div>
       <div>
         $if edition:
           <div class="edition-omniline">
@@ -306,26 +328,6 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
               $ seen.add(e.languages[0].name)
               <a href="$work.key?edition=$(e.ocaid)">$get_language_name(e.languages[0].key)</a>
         </p>
-
-      $if work and work.description or edition and edition.description:
-        $if edition and edition.description:
-          $ overview_desc = edition.description
-        $else:
-          $ overview_desc = work.description
-        <div class="book-description">
-            <div class="book-description-content restricted-view">
-                $:sanitize(format(overview_desc))
-            </div>
-            $:macros.ReadMore("book-description")
-        </div>
-      $elif edition:
-        <div class="book-description">
-            <div class="book-description-content">
-                <p class="workHelp">
-                    $:_("This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=edition.url('/edit')+"#about/about")
-                </p>
-            </div>
-        </div>
 
     <div class="subjects">
       <div class="subjects-content">
@@ -508,26 +510,34 @@ $ render_summary= render_template("type/edition/title_summary", work, edition, o
         $# pages like /books/ia:foo00bar are fake records created from metadata API.
         $# Adding them to lists doesn't work. Disabling it to avoid any issues.
         $if "lists" in ctx.features and not page.is_fake_record():
-          <h2 class="list-heading"><a href="$page.url()/lists">$_('Lists containing this Book')</a></h2>
+          <div class="lists-heading">
+            <h2 class="lists-title">$_('Lists')</h2>
+            $ has_lists = False
+            $if (work and work.get_lists()) or (edition and edition.get_lists()):
+              $ has_lists = True
+            $if has_lists:
+              <a href="$page.url()/lists">$_('See All')</a>
+          </div>
           <div class="user-book-options">
             <div class="Tools tools-override">
               $if work:
                 $ component_times['lists widget: WorkListTime'] = time()
                 $:render_template("lists/widget", work, include_header=False, include_widget=False)
                 $ component_times['lists widget: WorkListTime'] = time() - component_times['lists widget: WorkListTime']
-
               $if edition and is_editionless_work:
                 $ component_times['lists widget: EditionListTime'] = time()
                 $:render_template("lists/widget", edition, include_header=False, include_widget=False)
                 $ component_times['lists widget: EditionListTime'] = time() - component_times['lists widget: EditionListTime']
+              $if not has_lists:
+                $_('This work does not appear on any lists.')
             </div>
           </div>
       </div>
+      <a id="related-work-carousel" name="related-work-carousel tab-section" class="section-anchor"></a>
     </div>
   </div>
 
   $ component_times['RelatedWorksCarousel'] = time()
-  <a id="related-work-carousel" name="related-work-carousel tab-section" class="section-anchor"></a>
   <div class="RelatedWorksCarousel" data-workid="$work.key.split('/')[-1]">
     <div class="hidden loadingIndicator">
         <figure>
