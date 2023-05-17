@@ -38,7 +38,7 @@ const ReadingLog = {
  *
  * @param {HTMLCollection} droppers Collection of reading log droppers.
  */
-export function initDroppers(droppers) {
+export function initReadingLogDroppers(droppers) {
     for (const dropper of droppers) {
         const anchors = dropper.querySelectorAll('.add-to-list');
         initAddToListAnchors(anchors, dropper)
@@ -132,24 +132,11 @@ function addListClickListener(elem, parentDropper) {
                     actionableItems[listKey] = [li]
                 }
             }
-
-            // close dropper
-            toggleDropper(parentDropper)
         }
 
         addToList(listKey, seed, successCallback)
 
     })
-}
-
-/**
- * Toggles given dropper's expanded state.
- *
- * @param {HTMLDivElement} dropper A reading log button reference.
- */
-function toggleDropper(dropper) {
-    $(dropper).find('.dropdown').first().slideToggle(25);
-    $(dropper).find('.arrow').first().toggleClass('up');
 }
 
 /**
@@ -276,9 +263,8 @@ export function syncReadingLogDropdownRemoveWithPrimaryButton(dropper, readingLo
  * @param {HTMLButtonElement} button Adds click listener to the given reading log button.
  * @param {HTMLAElement} An anchor element item that expands the dropper.
  * @param {string} A text string with the initial text value of primaryButton
- * @param {HTMLDivElement} A div containing the dropper widget
  */
-function togglePrimaryButton(primaryButton, dropClick, initialText, dropper) {
+function togglePrimaryButton(primaryButton, dropClick, initialText) {
     const actionInput = primaryButton.parentElement.querySelector('input[name=action]')
     // Toggle checkmark
     primaryButton.children[0].classList.toggle('hidden')
@@ -298,11 +284,6 @@ function togglePrimaryButton(primaryButton, dropClick, initialText, dropper) {
     actionInput.value = (actionInput.value === 'add') ? 'remove' : 'add'
 
     primaryButton.children[1].innerText = initialText
-
-    // Close dropper if expanded:
-    if ($(dropper).find('.arrow').first().hasClass('up')) {
-        toggleDropper(dropper)
-    }
 }
 
 /**
@@ -356,13 +337,10 @@ function addReadingLogButtonClickListener(button) {
                 togglePrimaryButton(primaryButton, dropClick, initialText, dropper)
                 syncReadingLogDropdownRemoveWithPrimaryButton(dropper, readingLogForm)
             } else if (button.classList.contains('remove-from-list')) { // Clicking 'remove from list' (i.e. toggling a boofshelf) from the dropper.
-                toggleDropper(dropper)
                 togglePrimaryButton(primaryButton, dropClick, initialText, dropper)
                 syncReadingLogDropdownRemoveWithPrimaryButton(dropper, readingLogForm)
 
             } else {  // Secondary button pressed -- all other drop down items.
-                toggleDropper(dropper)
-
                 // Change primary button's text to new value:
                 primaryButton.children[1].innerText = button.innerText
 
@@ -507,7 +485,7 @@ function addRemoveClickListener(elem) {
  * @returns {HTMLParagraphElement} The newly created add-to-list link.
  */
 function updateDropperList(listKey, listTitle, coverUrl) {
-    const itemMarkUp = `<a href="${listKey}" class="add-to-list" data-list-cover-url="${coverUrl}" data-list-key="${listKey}">${listTitle}</a>`
+    const itemMarkUp = `<a href="${listKey}" class="add-to-list dropper__close" data-list-cover-url="${coverUrl}" data-list-key="${listKey}">${listTitle}</a>`
 
     const p = document.createElement('p')
     p.classList.add('list')
