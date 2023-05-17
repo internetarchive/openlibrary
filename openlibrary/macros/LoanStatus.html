@@ -46,9 +46,10 @@ $if user_loan:
   $if secondary_action:
     $ return_url = doc.url().rsplit('/', 1)[0] + '/do_return/borrow'
     <form action="$return_url" method="post"
-          class="waitinglist-form return-book">
+          class="waitinglist-form return-book" style="margin-bottom: 10px;">
       <input type="hidden" name="action" value="return" />
-      <input type="submit" value="$_('Return eBook')" class="cta-btn cta-btn--shell" id="return_ebook"/>
+      <input type="submit" value="$_('Return eBook')" class="cta-btn cta-btn--shell" id="return_ebook" style="margin-bottom: 0px;" />
+      $:macros.FormatExpiry(user_loan['expiry'])
     </form>
     $if render_once('LoanStatus:return-book-js'):
       <script type="text/javascript">
@@ -60,7 +61,6 @@ $if user_loan:
           });
         });
       </script>
-  $:macros.FormatExpiry(user_loan['expiry'])
 
 $elif book_provider and book_provider.short_name != 'ia':
   $# Partner Trusted Book Provider Read Buttons
