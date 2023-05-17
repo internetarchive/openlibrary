@@ -22,10 +22,9 @@
 }
 
 .mr-comment {
-  margin: 5px 0;
-  padding: 5px;
-  border-radius: 5px;
-
+  margin: 5px;
+  padding: 1px;
+  
   &__body a {
     text-decoration: none;
     color: @primary-blue;
@@ -58,6 +57,7 @@
   &__input {
     display: flex;
     align-items: flex-end;
+    margin-bottom: 17px;
 
     textarea,
     input {
@@ -85,6 +85,7 @@
 .book-title {
   font-weight: bold;
   font-size: 1rem;
+  margin-bottom: 5px;
 }
 
 .green-dot {
@@ -97,21 +98,25 @@
 
 .table-header {
   display: flex;
+  align-items: center;
   padding: .5%;
   background-color: @grey-fafafa;
+  height: 40px;
 
   li a {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 400;
-    margin-left: 10px;
+    margin-left: 21px;
     text-decoration: none;
     color: @closed-red;
+
   }
 
   li.selected a {
-    font-size: 14px;
+    font-size: 13px;
     color: @open-green;
     font-weight: 700;
+    margin-left: 41px;
     border: none;
   }
 
@@ -156,12 +161,13 @@
 }
 
 .mr-info {
-  width: 60%;
   display: flex;
+  margin-left: 14px;
+  width: 60%;
 }
 
 .comment-cell__newest-comment{
-  margin: 5px 0;
+  margin-bottom: 6px;
 }
 
 .comment-cell__old-comments {
@@ -172,22 +178,23 @@
   border: 1px solid @light-grey;
   background-color: @white;
   border-radius: 5px;
-  margin-top: 8px;
+  margin-bottom: 6px;
   overflow: auto;
   overflow-y: scroll;
-  height: 65px;
+  width: 400px;
+  height: 55px;
 }
 
 .comment-cell__input{
   display: flex;
   align-items: center;
   margin-top: 6px;
-  height: 30px;
-
+  height: 27px;
+  
   textarea {
     padding: 5px;
     font-size: inherit;
-    width: 100%;
+    width: 337px;
     height: 100%;
     resize: none;
     border: 1px solid @light-grey;
@@ -207,6 +214,7 @@
     border-radius: 6px;
     box-shadow: none;
     padding: 0 1.5%;
+    width: 60;
     height: 100%;
     font-weight: bold;
     font-size: inherit;
@@ -240,8 +248,8 @@
     border-radius: 5px;
     padding: 0;
     box-shadow: none;
-    width: 80px;
-    height: 40px;
+    width: 75px;
+    height: 41px;
     margin-right: 40px;
     background-color: @primary-blue;
     border: none;
@@ -256,9 +264,9 @@
   &__comments{
     border: 1px solid @light-grey;
     border-radius: 5px;
-    width: 55px;
-    height: 40px;
-
+    width: 54px;
+    height: 41px;
+    
     .comment-expand {
       display: flex;
       text-decoration: none;
