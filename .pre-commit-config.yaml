@@ -76,6 +76,7 @@ repos:
           - eslint-plugin-no-jquery@2.6.0
           - eslint-plugin-vue@7.15.0
           - babel-eslint@10.1.0
+        args: [--fix]
 
   - repo: https://github.com/awebdeveloper/pre-commit-stylelint
     rev: 0.0.2
@@ -85,3 +86,4 @@ repos:
       additional_dependencies:
         - stylelint@13.13.1
         - stylelint-declaration-use-variable@1.7.3
+      args: [--fix]
