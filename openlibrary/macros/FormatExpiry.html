@@ -18,7 +18,8 @@ $if expiry:
     <div class="local-date-time">
       $_('Expires')
       <time class="localize-time"
-	    datetime="$datestr(expiry_datetime)">
+	    datetime="$datetimestr_utc(expiry_datetime)"
+            title="$datetimestr_utc(expiry_datetime)">
 	    $datestr(expiry_datetime)
       </time>
     </div>
