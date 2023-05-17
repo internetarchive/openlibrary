@@ -1,24 +1,10 @@
 $def with(expiry)
 
 $if expiry:
-    $if render_once('expire-dates-js'):
-        <script type="text/javascript">
-        <!--
-        // window.q.push(function(){
-        //     \$(".localize-time").each(function() {
-        //         var expiry_utc = \$(this).attr("datetime");
-        //         var options = {hour: '2-digit', minute:'2-digit', month:'2-digit', day:'2-digit', year:'numeric'};
-        //         \$(this).html((new Date(expiry_utc)).toLocaleString([], options));
-        //     });
-        // });
-        //-->
-        </script>
-
     $ expiry_datetime = datetime_from_isoformat(expiry)
     <div class="local-date-time">
       $_('Expires')
-      <time class="localize-time"
-	    datetime="$datetimestr_utc(expiry_datetime)"
+      <time datetime="$datetimestr_utc(expiry_datetime)"
             title="$datetimestr_utc(expiry_datetime)">
 	    $datestr(expiry_datetime)
       </time>
