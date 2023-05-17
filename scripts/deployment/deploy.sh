@@ -4,7 +4,7 @@ set -o xtrace
 
 # See https://github.com/internetarchive/openlibrary/wiki/Deployment-Scratchpad
 SERVERS="ol-home0 ol-covers0 ol-web1 ol-web2 ol-www0 ol-solr0"
-COMPOSE_FILE="docker-compose.yml:docker-compose.production.yml"
+COMPOSE_FILE="compose.yaml:compose.production.yaml"
 
 # This script must be run on ol-home0 to start a new deployment.
 HOSTNAME="${HOSTNAME:-$HOST}"
@@ -47,7 +47,7 @@ parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; th
 parallel --quote ssh {} "echo -e '\n\n{}'; docker image prune -f" ::: $SERVERS
 
 # Pull the latest docker images
-parallel --quote ssh {} "echo -e '\n\n{}'; cd /opt/openlibrary && COMPOSE_FILE=\"$COMPOSE_FILE\" docker-compose --profile {} pull --quiet" ::: $SERVERS
+parallel --quote ssh {} "echo -e '\n\n{}'; cd /opt/openlibrary && COMPOSE_FILE=\"$COMPOSE_FILE\" docker compose --profile {} pull --quiet" ::: $SERVERS
 
 # Add a git SHA tag to the Docker image to facilitate rapid rollback
 cd /opt/openlibrary

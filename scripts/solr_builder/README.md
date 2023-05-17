@@ -1,3 +1,4 @@
+
 ## Solr reindex from OL dump
 
 This goes through building a solr instance from a dump file. To build the reindex (only tested on the OJF environment):
@@ -70,7 +71,7 @@ Solution: Dashboard > Manage Jenkins > Manage Plugins. In the left-hand menu, cl
 
 ## Final Sync
 
-TODO. Something along the lines of: Add a solrupdater to docker-compose.production.yml that points to the new server, and set its offset to be the correct date. See [5493 Move production solr from solr1 to solr0](https://github.com/internetarchive/openlibrary/issues/5493) for hints.
+TODO. Something along the lines of: Add a solrupdater to compose.production.yaml that points to the new server, and set its offset to be the correct date. See [5493 Move production solr from solr1 to solr0](https://github.com/internetarchive/openlibrary/issues/5493) for hints.
 
 ## Deploy
 
@@ -97,12 +98,12 @@ time scp YOU@SOLR_BUILDER_SERVER:/tmp/solr/solrbuilder-2020-03-02.tar.gz /tmp/so
 # Restore backup file (7min; 2021-08-11 ol-solr0)
 # Note the name "openlibrary_solr-data" should match "{OL_DIR}_{SOLR_DATA_VOLUME}", where:
 #    OL_DIR: is the name of the directory where the openlibrary repo is; likely openlibrary
-#    SOLR_DATA_VOLUME: is the name of the volume the solr service uses; defined in docker-compose.yml
+#    SOLR_DATA_VOLUME: is the name of the volume the solr service uses; defined in compose.yaml
 time docker run -v openlibrary_solr-data:/var/solr/data -v /tmp/solr:/backup ubuntu:xenial \
     tar xzf /backup/solrbuilder-2021-08-11.tar.gz
 
 # Start the services
-COMPOSE_FILE="docker-compose.yml:docker-compose.production.yml" HOSTNAME="$HOSTNAME"docker-compose --profile=ol-solr0 up -d
+COMPOSE_FILE="compose.yaml:compose.production.yaml" HOSTNAME="$HOSTNAME"docker compose --profile=ol-solr0 up -d
 ```
 
 ## Resetting
