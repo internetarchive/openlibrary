@@ -32,7 +32,7 @@ let mainTitleElem;
  * @param {HTMLElement} title The compact title component
  */
 export function initCompactTitle(navbar, title) {
-    mainTitleElem = document.querySelector('.work-title-and-author.desktop-only .work-title')
+    mainTitleElem = document.querySelector('.work-title-and-author.desktop .work-title')
     // Show compact title on page reload:
     onScroll(navbar, title);
     // And update on scroll

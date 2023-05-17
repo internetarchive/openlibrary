@@ -1,7 +1,6 @@
 @import (less) "components/compact-title.less";
 
 .nav-bar {
-  border-bottom: 1px solid @lighter-grey;
   font-weight: bold;
 
   display: block;
@@ -19,10 +18,6 @@
     color: @grey;
     padding: 12px 15px 8px;
     display: inline-block;
-
-    @media only screen and (min-width: @width-breakpoint-tablet) {
-      padding-top: 4px;
-    }
   }
 
   /* stylelint-disable selector-max-specificity */
@@ -35,6 +30,12 @@
     border-bottom: 2px solid @link-blue;
   }
   /* stylelint-enable selector-max-specificity */
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .nav-bar li a {
+    padding-top: 4px;
+  }
 }
 
 .nav-bar-wrapper {
@@ -50,6 +51,9 @@
   &.sticky {
     position: sticky;
     top: 50px;
+    margin-left: -20px;
+    margin-right: -20px;
+    padding: 8px 20px 0 20px;
   }
 
   .nav-arrow {
@@ -64,29 +68,42 @@
   }
 
   .nav-bar.work-menu {
-    padding: 5px 0;
+    padding: 0;
     background: @white;
     z-index: @z-index-level-5;
 
-    /* stylelint-disable selector-max-specificity */
-    li a {
-      padding: 4px 15px;
+    li {
+      display: inline-block;
+      height: 30px;
       border-radius: 11px;
       margin-bottom: 6px;
     }
 
+    /* stylelint-disable selector-max-specificity */
+    li a {
+      padding: 4px 15px;
+      vertical-align: text-top;
+
+    }
+
     @media (hover: hover) and (pointer: fine) {
       /* stylelint-disable max-nesting-depth */
-      li:hover a {
+      li:hover {
         background-color: darken(@blue-5e88B9, 10%);
-        color: @white;
+
+        a {
+          color: @white;
+        }
       }
       /* stylelint-enable max-nesting-depth */
     }
 
-    li.selected a {
-      color: @white;
+    li.selected {
       background-color: @blue-5e88B9;
+
+      a {
+        color: @white;
+      }
     }
     /* stylelint-enable selector-max-specificity */
   }
@@ -104,6 +121,7 @@
     top: 0;
     margin-left: 0;
     margin-right: 0;
+    padding-left: 0;
     width: 100%;
 
     &.nav-bar-wrapper--slidedown {
