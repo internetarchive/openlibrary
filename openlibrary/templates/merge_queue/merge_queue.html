@@ -68,9 +68,7 @@ $ page = int(input(page=1).page)
             <td class="mr-info">
               <div class="dot-wrapper"><div class="green-dot"></div></div>
               <div id="comment-cell-$(r['id'])" class="comment-cell">
-                <strong>
-                  $:_('<span class="book-title">%(title)s</span>', title=work_title, type=type_str)
-                </strong>
+                $:_('<span class="book-title">%(title)s</span>', title=work_title, type=type_str)
                 <div id="latest-comment-$r['id']" class="comment-cell__newest-comment">
                   $if comments:
                     $:render_template('merge_queue/newest_comment', comment=comments[-1])
