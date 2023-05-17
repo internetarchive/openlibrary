@@ -17,7 +17,7 @@ services:
         max-file: "4"
 
   solr:
-    image: solr:8.10.1
+    image: solr:8.11.2
     expose:
       - 8983
     environment:

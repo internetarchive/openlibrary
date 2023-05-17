@@ -29,7 +29,7 @@ services:
   solr:
     profiles:
       - build
-    image: solr:8.10.1
+    image: solr:8.11.2
     restart: on-failure
     environment:
       # This is optimized for bulk loading, but should be shortened for production
@@ -53,7 +53,7 @@ services:
     profiles:
       - production
     restart: unless-stopped
-    image: solr:8.10.1
+    image: solr:8.11.2
     expose:
       - 8983
     environment:
