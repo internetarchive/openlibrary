@@ -121,18 +121,20 @@ select = [
 target-version = "py311"
 
 [tool.ruff.mccabe]
-max-complexity = 41
+max-complexity = 28
 
 [tool.ruff.pylint]
 allow-magic-value-types = ["bytes", "float", "int", "str"]
 max-args = 15
-max-branches = 42
+max-branches = 22
 max-returns = 14
-max-statements = 106
+max-statements = 70
 
 [tool.ruff.per-file-ignores]
 "openlibrary/admin/stats.py" = ["BLE001"]
+"openlibrary/catalog/add_book/__init__.py" = ["C901", "PLR0912", "PLR0915"]
 "openlibrary/catalog/get_ia.py" = ["BLE001", "E722"]
+"openlibrary/catalog/marc/get_subjects.py" = ["C901", "PLR0912", "PLR0915"]
 "openlibrary/catalog/marc/marc_binary.py" = ["BLE001"]
 "openlibrary/catalog/utils/edit.py" = ["E722"]
 "openlibrary/catalog/utils/query.py" = ["E722"]
@@ -160,7 +162,7 @@ max-statements = 106
 "openlibrary/plugins/upstream/borrow.py" = ["BLE001", "E722"]
 "openlibrary/plugins/upstream/models.py" = ["BLE001"]
 "openlibrary/plugins/upstream/utils.py" = ["BLE001"]
-"openlibrary/solr/update_work.py" = ["E722"]
+"openlibrary/solr/update_work.py" = ["C901", "E722", "PLR0912", "PLR0915"]
 "openlibrary/utils/retry.py" = ["BLE001"]
 "scripts/copydocs.py" = ["BLE001"]
 "scripts/delete_import_items.py" = ["BLE001"]
