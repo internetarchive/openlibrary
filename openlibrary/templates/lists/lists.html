@@ -19,59 +19,18 @@ $if "type" in doc and doc.type.key == "/type/user":
     </style>
     $if ctx.user and ctx.user.key == doc.key:
         $ deleteType = 'deleteList'
+        $# The link below is a placeholder that gets inserted into the correct place in the DOM on page load via ListViewBody.js
         <span class="listDelete sansserif smaller listDelete--myLists hidden">
             <a href="javascript:;" data-confirm-text="$:_('Yes, I\'m sure')" data-cancel-text="$_('No, cancel')"><span></span>$_('Delete this list')</a>
         </span>
         <div id="delete-list-dialog" class="hidden" title="$_('Delete list')">$_('Are you sure you want to delete this list?')</div>
 $else:
-    <script type="text/javascript">
-        window.q.push(function() {
-            \$("#listResults .resultTitle.my-list")
-            .prepend('' +
-                '<span class="listDelete sansserif smaller">' +
-                    '<a href="javascript:;"><span></span>$_("Remove this seed?")</a>' +
-                '</span>')
-            .find(".listDelete a")
-            .on('click', function() {
-                \$('#remove-dialog')
-                    .ol_confirm_dialog(function() {
-                        var seed = $:json_encode(seed);
-                        var list_id = "#" + \$(this).data("list-id");
-                        var key = \$(list_id + " a:first").attr("href");
-
-                        var dialog = this;
-
-                        remove_seed(key, seed, function() {
-                            \$(list_id).remove();
-                            \$(dialog).dialog("×");
-                        });
-                    })
-                    .data("list-id", \$(this).closest("li").attr("id"))
-                    .dialog('open');
-                return false;
-            });
-        });
-
-        function remove_seed(list_key, seed, success) {
-            \$.ajax({
-                type: "POST",
-                url: list_key + "/seeds.json",
-                contentType: "application/json",
-                data: JSON.stringify({
-                    "remove": [seed]
-                }),
-                dataType: "json",
-
-                beforeSend: function(xhr) {
-                    xhr.setRequestHeader("Content-Type", "application/json");
-                    xhr.setRequestHeader("Accept", "application/json");
-                },
-                success: success
-            });
-        }
-    </script>
     $ deleteType = 'deleteSeed'
-    <div id="remove-dialog" class="hidden" title="Remove">$:_('Are you sure you want to remove <strong>%(title)s</strong> from this list?', title=header.title)</div>
+    $# The link below is a placeholder that gets inserted into the correct place in the DOM on page load via ListViewBody.js
+    <span class="listDelete sansserif smaller seedDelete--myLists hidden">
+        <a href="javascript:;" data-confirm-text="$:_('Yes, I\'m sure')" data-cancel-text="$_('No, cancel')"><span></span>$_('Remove this seed?')</a>
+    </span>
+    <div id="remove-seed-dialog" class="hidden" title="Remove">$:_('Are you sure you want to remove <strong>%(title)s</strong> from this list?', title=header.title)</div>
 
 $def seed_attrs(seed):
   data-list-key="$list.key"

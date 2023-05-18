@@ -4,7 +4,7 @@
  */
 
 /**
- * Adds the delete link HTML to individual lists (i.e. on My Lists page) where the 'deleteList' class appears
+ * Adds the delete list link HTML to individual lists (i.e. on My Lists page) where the 'deleteList' class appears (from lists.html template)
  */
 const itemsWithDeleteList = $('.deleteList .resultTitle');
 if (itemsWithDeleteList.length) {
@@ -12,6 +12,23 @@ if (itemsWithDeleteList.length) {
     itemsWithDeleteList.each(function() {
         $(deleteListLink).clone().prependTo(this).removeClass('hidden');
     });
+
+    // Clean up and remove placeholder element
+    $('.listDelete--myLists.hidden').remove();
+}
+
+/**
+ * Adds the delete seed link HTML to individual items where the 'deleteSeed' class appears (from lists.html template)
+ */
+const itemsWithDeleteSeed = $('.deleteSeed .resultTitle');
+if (itemsWithDeleteSeed.length) {
+    const deleteSeedLink = $('.seedDelete--myLists');
+    itemsWithDeleteSeed.each(function() {
+        $(deleteSeedLink).clone().prependTo(this).removeClass('hidden');
+    });
+
+    // Clean up and remove placeholder element
+    $('.seedDelete--myLists.hidden').remove();
 }
 
 /**
