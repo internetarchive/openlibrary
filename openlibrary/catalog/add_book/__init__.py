@@ -30,6 +30,7 @@ import web
 from collections import defaultdict
 from copy import copy
 from time import sleep
+from web import storage
 
 import requests
 
@@ -39,6 +40,7 @@ from openlibrary import accounts
 from openlibrary.catalog.utils import (
     get_publication_year,
     is_independently_published,
+    is_promise_item,
     mk_norm,
     needs_isbn_and_lacks_one,
     publication_year_too_old,
@@ -771,10 +773,12 @@ def validate_publication_year(publication_year: int, override: bool = False) -> 
         raise PublishedInFutureYear(publication_year)
 
 
-def validate_record(rec: dict) -> None:
+def validate_record(rec: dict, override_validation: bool = False) -> None:
     """
     Check the record for various issues.
     Each check raises and error or returns None.
+
+    If all the validations pass, implicitly return None.
     """
     required_fields = [
         'title',
@@ -784,13 +788,21 @@ def validate_record(rec: dict) -> None:
         if not rec.get(field):
             raise RequiredField(field)
 
-    if publication_year := get_publication_year(rec.get('publish_date')):
-        validate_publication_year(publication_year)
+    if (
+        publication_year := get_publication_year(rec.get('publish_date'))
+    ) and not override_validation:
+        if publication_year_too_old(publication_year):
+            raise PublicationYearTooOld(publication_year)
+        elif published_in_future_year(publication_year):
+            raise PublishedInFutureYear(publication_year)
 
-    if is_independently_published(rec.get('publishers', [])):
+    if (
+        is_independently_published(rec.get('publishers', []))
+        and not override_validation
+    ):
         raise IndependentlyPublished
 
-    if needs_isbn_and_lacks_one(rec):
+    if needs_isbn_and_lacks_one(rec) and not override_validation:
         raise SourceNeedsISBN
 
 
