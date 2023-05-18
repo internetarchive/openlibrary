@@ -18,7 +18,8 @@ $# YearlyGoal.progress : int : Percent of goal achieved
           <span class="reading-goal-progress__completed" style="width: $(completed)%;"></span>
         </div>
         <div class="reading-goal-progress__details">
-          $:_('<span class="reading-goal-progress__books-read">%(books_read)d</span>/<span class="reading-goal-progress__goal">%(goal)d</span> books', books_read=goal.books_read, goal=goal.goal) <span class="reading-goal-progress__percentage">($goal.progress%)</span>
+          <a href="/account/books/already-read/year/$(goal.year)" data-ol-link-track="ReadingGoalProgress|AnnualSummaryLink">$:_('<span class="reading-goal-progress__books-read">%(books_read)d</span>/<span class="reading-goal-progress__goal">%(goal)d</span> books', books_read=goal.books_read, goal=goal.goal)</a>
+          <span class="reading-goal-progress__percentage">($goal.progress%)</span>
           <a class="edit-reading-goal-link" href="javascript:;">$_('Edit')</a> or
 	  <a href="https://blog.openlibrary.org/2022/12/31/reach-your-2023-reading-goals-with-open-library">$_('Learn more')</a>
         </div>

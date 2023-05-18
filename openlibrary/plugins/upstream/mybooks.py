@@ -8,6 +8,7 @@ from infogami.utils.view import public, safeint, render
 
 from openlibrary import accounts
 from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.dateutil import current_year
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.lending import add_availability, get_loans_of_user
@@ -104,6 +105,18 @@ class public_my_books_json(delegate.page):
             )
 
 
+class readinglog_yearly(delegate.page):
+    path = "/people/([^/]+)/books/already-read/year/([0-9]+)"
+
+    def GET(self, username, year=None):
+        year = int(year or current_year())
+        if year < 1000:
+            # The year is used in a LIKE statement when we query for the yearly summary, so
+            # ensuring that the year is at least four digits long avoids incorrect results.
+            raise web.badrequest(message="Year must be four digits")
+        return MyBooksTemplate(username, 'already-read').render(year=year)
+
+
 class readinglog_stats(delegate.page):
     path = "/people/([^/]+)/books/([a-zA-Z_-]+)/stats"
 
@@ -185,7 +198,14 @@ class MyBooksTemplate:
         self.counts = self.readlog.reading_log_counts
 
     def render(
-        self, page=1, sort='desc', list=None, q="", doc_count: int = 0, ratings=None
+        self,
+        page=1,
+        sort='desc',
+        list=None,
+        q="",
+        doc_count: int = 0,
+        ratings=None,
+        year=None,
     ):
         """
         Gather the data necessary to render the My Books template, and then
@@ -223,7 +243,12 @@ class MyBooksTemplate:
             # Reading log for logged in users.
             elif self.key in self.READING_LOG_KEYS:
                 logged_book_data: LoggedBooksData = self.readlog.get_works(
-                    key=self.key, page=page, sort='created', sort_order=sort, q=q
+                    key=self.key,
+                    page=page,
+                    sort='created',
+                    sort_order=sort,
+                    q=q,
+                    year=year,
                 )
                 docs = add_availability(logged_book_data.docs, mode="openlibrary_work")
                 doc_count = logged_book_data.total_results
@@ -243,7 +268,7 @@ class MyBooksTemplate:
         # Reading log for non-logged in users.
         elif self.key in self.READING_LOG_KEYS and is_public:
             logged_book_data: LoggedBooksData = self.readlog.get_works(  # type: ignore[no-redef]
-                key=self.key, page=page, sort='created', sort_order=sort, q=q
+                key=self.key, page=page, sort='created', sort_order=sort, q=q, year=year
             )
             docs = add_availability(logged_book_data.docs, mode="openlibrary_work")
             doc_count = logged_book_data.total_results
@@ -264,6 +289,7 @@ class MyBooksTemplate:
                 q=q,
                 results_per_page=RESULTS_PER_PAGE,
                 ratings=ratings,
+                checkin_year=year,
             )
 
         raise web.seeother(self.user.key)
@@ -390,6 +416,7 @@ class ReadingLog:
         sort: str = 'created',
         sort_order: str = 'desc',
         q: str = "",
+        year: int | None = None,
     ) -> LoggedBooksData:
         """
         Get works for want-to-read, currently-reading, and already-read as
@@ -421,6 +448,7 @@ class ReadingLog:
             page=page,
             limit=limit,
             sort=sort_literal,  # type: ignore[arg-type]
+            checkin_year=year,
             q=q,
         )
 
