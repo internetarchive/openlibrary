@@ -3,11 +3,11 @@
 # Create a dump of all Open Library records, and generate sitemaps
 #
 # To run in local environment:
-#     docker-compose exec web scripts/oldump.sh $(date +%Y-%m-%d)
+#     docker compose exec web scripts/oldump.sh $(date +%Y-%m-%d)
 # Will create files in the OL root at dumps/ , including edits up to today.
 #
 # Call flow:
-# docker-compose.production.yml defines `cron-jobs` Docker container.
+# compose.production.yaml defines `cron-jobs` Docker container.
 # --> docker/ol-cron-start.sh sets up the cron tasks.
 #     --> olsystem: /etc/cron.d/openlibrary.ol_home0 defines the actual job
 #         --> scripts/oldump.sh

@@ -1,6 +1,6 @@
 -- used by olsystem/bin/cron/oldump.sh
 -- To run locally:
---     docker-compose exec web psql -h db --set=upto="$(date +%Y-%m-%d)" -f scripts/dump-ratings.sql
+--     docker compose exec web psql -h db --set=upto="$(date +%Y-%m-%d)" -f scripts/dump-ratings.sql
 COPY (
   SELECT
     concat('/works/OL', work_id, 'W') AS work_key,

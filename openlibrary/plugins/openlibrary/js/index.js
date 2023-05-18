@@ -358,18 +358,24 @@ jQuery(function () {
         $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
     }
 
+    const droppers = document.querySelectorAll('.dropper')
+    if (droppers.length) {
+        import(/* webpackChunkName: "droppers" */ './droppers')
+            .then((module) => module.initDroppers(droppers))
+    }
+
     // "Want to Read" buttons:
-    const droppers = document.getElementsByClassName('widget-add');
+    const readingLogDroppers = document.getElementsByClassName('widget-add');
 
     // Async lists components:
     const wtrLoadingIndicator = document.querySelector('.list-loading-indicator')
     const overviewLoadingIndicator = document.querySelector('.list-overview-loading-indicator')
 
-    if (droppers.length || wtrLoadingIndicator || overviewLoadingIndicator) {
+    if (readingLogDroppers.length || wtrLoadingIndicator || overviewLoadingIndicator) {
         import(/* webpackChunkName: "lists" */ './lists')
             .then((module) => {
-                if (droppers.length) {
-                    module.initDroppers(droppers);
+                if (readingLogDroppers.length) {
+                    module.initReadingLogDroppers(readingLogDroppers);
                     // Removable list items:
                     // TODO: Is this the correct place to initalize these?
                     const actionableListItems = document.querySelectorAll('.actionable-item')
@@ -447,15 +453,21 @@ jQuery(function () {
             .then((module) => module.initRatingHandlers(ratingForms));
     }
 
-    const navbar = document.querySelector('.work-menu');
-    if (navbar) {
-        const compactTitle = document.querySelector('.compact-title')
-        // Add position-aware navbar JS:
+    // Book page navbar initialization:
+    const navbarWrappers = document.querySelectorAll('.nav-bar-wrapper')
+    if (navbarWrappers.length) {
+        // Add JS for book page navbar:
         import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
-            .then((module) => module.initNavbar(navbar));
-        // Add sticky title component animations:
+            .then((module) => {
+                module.initNavbars(navbarWrappers)
+            });
+        // Add sticky title component animations to desktop views:
         import(/* webpackChunkName: "compact-title" */ './compact-title')
-            .then((module) => module.initCompactTitle(navbar, compactTitle))
+            .then((module) => {
+                const compactTitle = document.querySelector('.compact-title')
+                const desktopNavbar = [...navbarWrappers].find(elem => elem.classList.contains('desktop-only'))
+                module.initCompactTitle(desktopNavbar, compactTitle)
+            })
     }
 
     // Add functionality for librarian merge request table:

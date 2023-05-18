@@ -5,11 +5,11 @@ USAGE:
 
 * Run Infobase http server at port 7070.
 
-    $ python ./scripts/infobase-server infobase.yaml 7070
+    $ python ./scripts/infobase-server infobase.yml 7070
 
 * Run Infobase as fastcgi server at port 7070
 
-    $ python ./scripts/infobase-server infobase.yaml fastcgi 7070
+    $ python ./scripts/infobase-server infobase.yml fastcgi 7070
 """
 
 import logging

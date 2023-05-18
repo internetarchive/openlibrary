@@ -1,8 +1,8 @@
 ##
 ## Production server config (wip)
 ## You probably want to run:
-## export COMPOSE_FILE="docker-compose.yml:docker-compose.production.yml"
-## docker-compose up -d
+## export COMPOSE_FILE="compose.yaml:compose.production.yaml"
+## docker compose up -d
 ##
 
 version: "3.8"

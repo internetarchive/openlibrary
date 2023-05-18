@@ -60,7 +60,7 @@ Please use [Docker Desktop >= 4.3.0](https://docs.docker.com/desktop/mac/release
 If you are experiencing issues building JS, you may need to increase the RAM available to Docker. The defaults of 2GB ram and 1GB Swap are not enough. We recommend requirements of 4GB ram and 2GB swap. This resolved the error message of `Killed` when running `build-assets`.
 
 ### For All Users
-All commands are from the project root directory, where `docker-compose.yml` is (i.e. `path/to/your/forked/and/cloned/openlibrary`):
+All commands are from the project root directory, where `compose.yaml` is (i.e. `path/to/your/forked/and/cloned/openlibrary`):
 
 #### Build the images
 ```
@@ -236,7 +236,7 @@ docker compose run --rm home make test
 # Run Open Library using a local copy of Infogami for development
 
 docker compose down && \
-    docker compose -f docker compose.yml -f docker compose.override.yml -f docker compose.infogami-local.yml up -d && \
+    docker compose -f compose.yaml -f compose.override.yaml -f compose.infogami-local.yaml up -d && \
     docker compose logs -f --tail=10 web
 
 # In your browser, navigate to http://localhost:8080

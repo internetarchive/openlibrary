@@ -69,9 +69,11 @@ export const editionIdentifiersSample = `<fieldset id="identifiers" data-config=
 
 /** Part/Simplification of the .widget-add element */
 export const bookDropdownSample = `
-    <a href="javascript:;" class="dropclick dropclick-unactivated">
-        <div class="arrow arrow-unactivated"></div>
-    </a>
+    <div class="dropper">
+        <a href="javascript:;" class="dropclick dropclick-unactivated">
+            <div class="arrow arrow-unactivated"></div>
+        </a>
+    </div>
 `;
 
 export const listCreationForm = `

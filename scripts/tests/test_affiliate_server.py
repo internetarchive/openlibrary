@@ -2,7 +2,7 @@
 Requires pytest-mock to be installed: `pip install pytest-mock`
 for access to the mocker fixture.
 
-# docker-compose run --rm home pytest scripts/tests/test_affiliate_server.py
+# docker compose run --rm home pytest scripts/tests/test_affiliate_server.py
 """
 import sys
 from unittest.mock import MagicMock

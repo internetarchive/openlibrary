@@ -125,7 +125,9 @@ def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None):
         sorts=sorts,
         query=query,
     )
-    formatted_books = [format_book_data(book) for book in books if book != 'error']
+    formatted_books = [
+        format_book_data(book, False) for book in books if book != 'error'
+    ]
     return formatted_books
 
 
@@ -258,7 +260,7 @@ def format_work_data(work):
     return d
 
 
-def format_book_data(book):
+def format_book_data(book, fetch_availability=True):
     d = web.storage()
     d.key = book.get('key')
     d.url = book.url()
@@ -280,13 +282,14 @@ def format_book_data(book):
     elif d.ocaid:
         d.cover_url = 'https://archive.org/services/img/%s' % d.ocaid
 
-    if d.ocaid:
-        collections = ia.get_metadata(d.ocaid).get('collection', [])
+    if fetch_availability:
+        if d.ocaid:
+            collections = ia.get_metadata(d.ocaid).get('collection', [])
 
-        if 'lendinglibrary' in collections or 'inlibrary' in collections:
-            d.borrow_url = book.url("/borrow")
-        else:
-            d.read_url = book.url("/borrow")
+            if 'lendinglibrary' in collections or 'inlibrary' in collections:
+                d.borrow_url = book.url("/borrow")
+            else:
+                d.read_url = book.url("/borrow")
     return d
 
 
