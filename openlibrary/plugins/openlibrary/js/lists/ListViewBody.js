@@ -1,7 +1,18 @@
 /**
- * Defines functions used in 'view_body' template for Lists.
+ * Defines functions used in the 'lists' and 'view_body' templates for Lists.
  * @module lists/ListViewBody
  */
+
+/**
+ * Adds the delete link HTML to individual lists (i.e. on My Lists page) where the 'deleteList' class appears
+ */
+const itemsWithDeleteList = $('.deleteList .resultTitle');
+if (itemsWithDeleteList.length) {
+    const deleteListLink = $('.listDelete--myLists');
+    itemsWithDeleteList.each(function() {
+        $(deleteListLink).clone().prependTo(this).removeClass('hidden');
+    });
+}
 
 /**
  * Makes a POST to a `.json` endpoint to remove a seed item from a list.
@@ -55,8 +66,9 @@ const getConfirmButtonLabelText = () => {
 };
 
 // Add listeners to each .listDelete link element
-$('.listDelete a').on('click', function() {
-    if (get_seed_count() > 1) {
+// Sometimes .listDelete is dynamically added to the DOM, so we'll add the listener to a parent element
+$('#listResults').on('click', '.listDelete a', function() {
+    if (get_seed_count() > 1 && !$(this).parent().hasClass('listDelete--myLists')) {
         $('#remove-seed-dialog')
             .data('seed-key', $(this).closest('[data-seed-key]').data('seed-key'))
             .data('list-key', $(this).closest('[data-list-key]').data('list-key'))
