@@ -129,7 +129,6 @@ class importapi:
             raise web.HTTPError('403 Forbidden')
 
         data = web.data()
-        i = web.input()
 
         try:
             edition, format = parse_data(data)
@@ -152,9 +151,7 @@ class importapi:
             return self.error('unknown-error', 'Failed to parse import data')
 
         try:
-            reply = add_book.load(
-                edition, override_validation=i.get('override-validation', False)
-            )
+            reply = add_book.load(edition)
             # TODO: If any records have been created, return a 201, otherwise 200
             return json.dumps(reply)
         except add_book.RequiredField as e:

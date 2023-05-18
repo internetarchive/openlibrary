@@ -1,11 +1,13 @@
 import datetime
 import re
 from re import compile, Match
-from typing import cast, Mapping
 import web
 from unicodedata import normalize
 from openlibrary.catalog.merge.merge_marc import build_titles
 import openlibrary.catalog.merge.normalize as merge
+
+
+EARLIEST_PUBLISH_YEAR = 1500
 
 
 def cmp(x, y):
@@ -357,7 +359,7 @@ def publication_year_too_old(publish_year: int) -> bool:
     """
     Returns True if publish_year is < 1,500 CE, and False otherwise.
     """
-    return publish_year < 1500
+    return publish_year < EARLIEST_PUBLISH_YEAR
 
 
 def is_independently_published(publishers: list[str]) -> bool:
@@ -404,3 +406,12 @@ def is_promise_item(rec: dict) -> bool:
         record.startswith("promise:".lower())
         for record in rec.get('source_records', "")
     )
+
+
+def get_missing_fields(rec: dict) -> list[str]:
+    """Return missing fields, if any."""
+    required_fields = [
+        'title',
+        'source_records',
+    ]
+    return [field for field in required_fields if rec.get(field, None) is None]
