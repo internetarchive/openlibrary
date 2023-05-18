@@ -1,5 +1,6 @@
-$def with (key=None, selected="",options=[])
-    $if len(options) == 0:
+$def with (key=None, selected="", options=None)
+
+    $if not options:
         $selected
     $elif len(options) == 1:
         $if selected != options[0][0]:
