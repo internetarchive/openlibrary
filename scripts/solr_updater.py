@@ -6,19 +6,21 @@ Changes:
 2013-02-25: First version
 2018-02-11: Use newer config method
 """
-from typing import Union
-from collections.abc import Iterator
-import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
-
-import logging
-import json
+import asyncio
 import datetime
-import time
-import web
-import sys
+import json
+import logging
 import re
 import socket
+import sys
 import urllib
+
+from typing import Union
+from collections.abc import Iterator
+
+import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
+
+import web
 
 from openlibrary.solr import update_work
 from openlibrary.config import load_config
@@ -309,7 +311,7 @@ async def main(
         # While the commit was on, some more edits might have happened.
         if count == 0:
             logger.debug("No more log records available, sleeping...")
-            time.sleep(5)
+            await asyncio.sleep(5)
 
 
 if __name__ == "__main__":
