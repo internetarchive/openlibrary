@@ -47,6 +47,7 @@ ignore = [
   "E741",
   "F401",
   "F841",
+  "FLY002",
   "I",
   "PIE790",
   "PIE804",
@@ -75,6 +76,8 @@ select = [
   "C90",     # McCabe cyclomatic complexity
   "E",       # pycodestyle
   "F",       # Pyflakes
+  "FA",      # flake8-future-annotations
+  "FLY",     # flynt
   "G010",    # flake8-logging-format
   "I",       # isort
   "ICN",     # flake8-import-conventions
@@ -92,6 +95,7 @@ select = [
   # "A",     # flake8-builtins
   # "ANN",   # flake8-annotations
   # "ARG",   # flake8-unused-arguments
+  # "ASYNC", # flake8-async
   # "COM",   # flake8-commas
   # "D",     # pydocstyle
   # "DJ",    # flake8-django
@@ -115,6 +119,7 @@ select = [
   # "S",     # flake8-bandit
   # "T20",   # flake8-print
   # "TCH",   # flake8-type-checking
+  # "TD",    # flake8-todos
   # "TID",   # flake8-tidy-imports
   # "TRY",   # tryceratops
 ]
