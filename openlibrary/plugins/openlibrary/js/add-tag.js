@@ -3,7 +3,7 @@ import { websafe } from './jsdef'
 export function initAddTagImport () {
     const nameField = document.querySelector('#tag_name');
     const descriptionField = document.querySelector('#tag_description')
-    var tagSelect = document.querySelector("#tag_type");
+    var tagSelect = document.querySelector('#tag_type');
     var tagType = tagSelect.options[tagSelect.selectedIndex].text;
     const button = document.querySelector('#create-tag-button')
 

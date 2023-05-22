@@ -36,9 +36,7 @@ class addtag(delegate.page):
         """Main user interface for adding a tag to Open Library."""
 
         if not self.has_permission():
-            raise common.PermissionDenied(
-                message='Permission denied to add tags'
-            )
+            raise common.PermissionDenied(message='Permission denied to add tags')
 
         return render_template('tag/add', recaptcha=get_recaptcha())
 
@@ -46,7 +44,9 @@ class addtag(delegate.page):
         """
         Can a tag be added?
         """
-        return web.ctx.user and (web.ctx.user.is_usergroup_member('/usergroup/super-librarians'))
+        return web.ctx.user and (
+            web.ctx.user.is_usergroup_member('/usergroup/super-librarians')
+        )
         # return web.ctx.site.can_write("/tag/add")
 
     def POST(self):
