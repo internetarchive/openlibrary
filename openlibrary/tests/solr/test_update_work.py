@@ -560,8 +560,17 @@ class Test_update_items:
             }
         )
 
-        mock_get = MagicMock(return_value=empty_solr_resp)
-        monkeypatch.setattr(httpx, 'get', mock_get)
+        class MockAsyncClient:
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, exc_type, exc_val, exc_tb):
+                pass
+
+            async def get(self, url, params):
+                return empty_solr_resp
+
+        monkeypatch.setattr(httpx, 'AsyncClient', MockAsyncClient)
         requests = await update_work.update_author('/authors/OL25A')
         assert len(requests) == 1
         assert isinstance(requests[0], update_work.AddRequest)
