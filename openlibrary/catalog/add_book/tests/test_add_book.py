@@ -2,6 +2,7 @@ import os
 import pytest
 
 from copy import deepcopy
+from infogami.infobase.client import Nothing
 
 from infogami.infobase.core import Text
 
@@ -939,3 +940,242 @@ def test_existing_work_with_subtitle(mock_site, add_languages):
     assert reply['authors'][0]['status'] == 'matched'
     e = mock_site.get(reply['edition']['key'])
     assert e.works[0]['key'] == '/works/OL16W'
+
+
+def test_subtitle_gets_split_from_title(mock_site) -> None:
+    """
+    Ensures that if there is a subtitle (designated by a colon) in the title
+    that it is split and put into the subtitle field.
+    """
+    rec = {
+        'source_records': 'non-marc:test',
+        'title': 'Work with a subtitle: not yet split',
+        'publishers': ['Black Spot'],
+        'publish_date': 'Jan 09, 2011',
+        'isbn_10': ['1250144051'],
+    }
+
+    reply = load(rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'created'
+    assert reply['work']['status'] == 'created'
+    assert reply['work']['key'] == '/works/OL1W'
+    e = mock_site.get(reply['edition']['key'])
+    assert e.works[0]['title'] == "Work with a subtitle"
+    assert isinstance(
+        e.works[0]['subtitle'], Nothing
+    )  # FIX: this is presumably a bug. See `new_work` not assigning 'subtitle'
+    assert e['title'] == "Work with a subtitle"
+    assert e['subtitle'] == "not yet split"
+
+
+def test_find_match_is_used_when_looking_for_edition_matches(mock_site) -> None:
+    """
+    This tests the case where there is an edition_pool, but `early_exit()`
+    and `find_exact_match()` find no matches, so this should return a
+    match from `find_match()`.
+
+    This also indirectly tests `merge_marc.editions_match()` (even though it's
+    not a MARC record.
+    """
+    author = {
+        'type': {'key': '/type/author'},
+        'name': 'John Smith',
+        'key': '/authors/OL20A',
+    }
+    existing_work = {
+        'authors': [{'author': '/authors/OL20A', 'type': {'key': '/type/author_role'}}],
+        'key': '/works/OL16W',
+        'title': 'Finding Existing',
+        'subtitle': 'sub',
+        'type': {'key': '/type/work'},
+    }
+
+    existing_edition_1 = {
+        'key': '/books/OL16M',
+        'title': 'Finding Existing',
+        'subtitle': 'sub',
+        'publishers': ['Black Spot'],
+        'type': {'key': '/type/edition'},
+        'source_records': ['non-marc:test'],
+    }
+
+    existing_edition_2 = {
+        'key': '/books/OL17M',
+        'source_records': ['non-marc:test'],
+        'title': 'Finding Existing',
+        'subtitle': 'sub',
+        'publishers': ['Black Spot'],
+        'type': {'key': '/type/edition'},
+        'publish_country': 'usa',
+        'publish_date': 'Jan 09, 2011',
+    }
+    mock_site.save(author)
+    mock_site.save(existing_work)
+    mock_site.save(existing_edition_1)
+    mock_site.save(existing_edition_2)
+    rec = {
+        'source_records': ['non-marc:test'],
+        'title': 'Finding Existing',
+        'subtitle': 'sub',
+        'authors': [{'name': 'John Smith'}],
+        'publishers': ['Black Spot substring match'],
+        'publish_date': 'Jan 09, 2011',
+        'isbn_10': ['1250144051'],
+        'publish_country': 'usa',
+    }
+    reply = load(rec)
+    assert reply['edition']['key'] == '/books/OL17M'
+    e = mock_site.get(reply['edition']['key'])
+    assert e['key'] == '/books/OL17M'
+
+
+def test_covers_are_added_to_edition(mock_site, monkeypatch) -> None:
+    """Ensures a cover from rec is added to a matched edition."""
+    author = {
+        'type': {'key': '/type/author'},
+        'name': 'John Smith',
+        'key': '/authors/OL20A',
+    }
+
+    existing_work = {
+        'authors': [{'author': '/authors/OL20A', 'type': {'key': '/type/author_role'}}],
+        'key': '/works/OL16W',
+        'title': 'Covers',
+        'type': {'key': '/type/work'},
+    }
+
+    existing_edition = {
+        'key': '/books/OL16M',
+        'title': 'Covers',
+        'publishers': ['Black Spot'],
+        'type': {'key': '/type/edition'},
+        'source_records': ['non-marc:test'],
+    }
+
+    mock_site.save(author)
+    mock_site.save(existing_work)
+    mock_site.save(existing_edition)
+
+    rec = {
+        'source_records': ['non-marc:test'],
+        'title': 'Covers',
+        'authors': [{'name': 'John Smith'}],
+        'publishers': ['Black Spot'],
+        'publish_date': 'Jan 09, 2011',
+        'cover': 'https://www.covers.org/cover.jpg',
+    }
+
+    monkeypatch.setattr(add_book, "add_cover", lambda _, __, account_key: 1234)
+    reply = load(rec)
+
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'modified'
+    e = mock_site.get(reply['edition']['key'])
+    assert e['covers'] == [1234]
+
+
+def test_add_description_to_work(mock_site) -> None:
+    """
+    Ensure that if an edition has a description, and the associated work does
+    not, that the edition's description is added to the work.
+    """
+    author = {
+        'type': {'key': '/type/author'},
+        'name': 'John Smith',
+        'key': '/authors/OL20A',
+    }
+
+    existing_work = {
+        'authors': [{'author': '/authors/OL20A', 'type': {'key': '/type/author_role'}}],
+        'key': '/works/OL16W',
+        'title': 'Finding Existing Works',
+        'type': {'key': '/type/work'},
+    }
+
+    existing_edition = {
+        'key': '/books/OL16M',
+        'title': 'Finding Existing Works',
+        'publishers': ['Black Spot'],
+        'type': {'key': '/type/edition'},
+        'source_records': ['non-marc:test'],
+        'publish_date': 'Jan 09, 2011',
+        'isbn_10': ['1250144051'],
+        'works': [{'key': '/works/OL16W'}],
+        'description': 'An added description from an existing edition',
+    }
+
+    mock_site.save(author)
+    mock_site.save(existing_work)
+    mock_site.save(existing_edition)
+
+    rec = {
+        'source_records': 'non-marc:test',
+        'title': 'Finding Existing Works',
+        'authors': [{'name': 'John Smith'}],
+        'publishers': ['Black Spot'],
+        'publish_date': 'Jan 09, 2011',
+        'isbn_10': ['1250144051'],
+    }
+
+    reply = load(rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'matched'
+    assert reply['work']['status'] == 'modified'
+    assert reply['work']['key'] == '/works/OL16W'
+    e = mock_site.get(reply['edition']['key'])
+    assert e.works[0]['key'] == '/works/OL16W'
+    assert e.works[0]['description'] == 'An added description from an existing edition'
+
+
+def test_add_identifiers_to_edition(mock_site) -> None:
+    """
+    Ensure a rec's identifiers that are not present in a matched edition are
+    added to that matched edition.
+    """
+    author = {
+        'type': {'key': '/type/author'},
+        'name': 'John Smith',
+        'key': '/authors/OL20A',
+    }
+
+    existing_work = {
+        'authors': [{'author': '/authors/OL20A', 'type': {'key': '/type/author_role'}}],
+        'key': '/works/OL19W',
+        'title': 'Finding Existing Works',
+        'type': {'key': '/type/work'},
+    }
+
+    existing_edition = {
+        'key': '/books/OL19M',
+        'title': 'Finding Existing Works',
+        'publishers': ['Black Spot'],
+        'type': {'key': '/type/edition'},
+        'source_records': ['non-marc:test'],
+        'publish_date': 'Jan 09, 2011',
+        'isbn_10': ['1250144051'],
+        'works': [{'key': '/works/OL19W'}],
+    }
+
+    mock_site.save(author)
+    mock_site.save(existing_work)
+    mock_site.save(existing_edition)
+
+    rec = {
+        'source_records': 'non-marc:test',
+        'title': 'Finding Existing Works',
+        'authors': [{'name': 'John Smith'}],
+        'publishers': ['Black Spot'],
+        'publish_date': 'Jan 09, 2011',
+        'isbn_10': ['1250144051'],
+        'identifiers': {'goodreads': ['1234'], 'librarything': ['5678']},
+    }
+
+    reply = load(rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'modified'
+    assert reply['work']['status'] == 'matched'
+    assert reply['work']['key'] == '/works/OL19W'
+    e = mock_site.get(reply['edition']['key'])
+    assert e.works[0]['key'] == '/works/OL19W'
+    assert e.identifiers._data == {'goodreads': ['1234'], 'librarything': ['5678']}
