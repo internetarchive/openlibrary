@@ -24,7 +24,7 @@ $var title: $_("Add a tag")
             </div>
         </div>
 
-        <fieldset class="major">
+        <fieldset class="major" style="padding:0; margin:0;">
             <div class="formElement">
                 <div class="label">
                     <label for="tag-description">$_("How would you describe this tag?")</label>
@@ -32,6 +32,18 @@ $var title: $_("Add a tag")
                 </div>
                 <div class="input">
                     <textarea name="tag_description" id="tag_description" class="markdown" cols="55" rows="5" tabindex="0"></textarea>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="major" style="padding:0; margin:0;">
+            <div class="formElement">
+                <div class="label">
+                    <label for="tag-plugins">$_("Plugins")</label>
+                    <span class="tip">$_("Plugins for rendering templates.")</span>
+                </div>
+                <div class="input">
+                    <textarea name="tag_plugins" id="tag_plugins" cols="55" rows="5" tabindex="0"></textarea>
                 </div>
             </div>
         </fieldset>

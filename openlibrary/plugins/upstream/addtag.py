@@ -10,6 +10,7 @@ import datetime
 from typing import NoReturn
 
 from infogami import config
+from infogami.infobase import account, common
 from infogami.core import code as core
 from infogami.core.db import ValidationException
 from infogami.utils import delegate
@@ -35,7 +36,9 @@ class addtag(delegate.page):
         """Main user interface for adding a tag to Open Library."""
 
         if not self.has_permission():
-            return safe_seeother(f"/account/login?redirect={self.path}")
+            raise common.PermissionDenied(
+                message='Permission denied to add tags'
+            )
 
         return render_template('tag/add', recaptcha=get_recaptcha())
 
@@ -43,13 +46,15 @@ class addtag(delegate.page):
         """
         Can a tag be added?
         """
-        return web.ctx.site.can_write("/tag/add")
+        return web.ctx.user and (web.ctx.user.is_usergroup_member('/usergroup/super-librarians'))
+        # return web.ctx.site.can_write("/tag/add")
 
     def POST(self):
         i = web.input(
             tag_name="",
             tag_type="",
             tag_description="",
+            tag_plugins="",
         )
 
         if spamcheck.is_spam(i, allow_privileged_edits=True):
@@ -108,6 +113,7 @@ class addtag(delegate.page):
                 'name': i.tag_name,
                 'tag_description': i.tag_description,
                 'tag_type': f'type/{i.tag_type}',
+                'tag_plugins': i.tag_plugins.split(','),
                 'type': dict(key='/type/tag'),
             },
             comment='New Tag',
