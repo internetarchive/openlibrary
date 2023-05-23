@@ -1,0 +1,4 @@
+$def with (plugins)
+
+$for template, data in plugins.items():
+    $:macros[template](**data)

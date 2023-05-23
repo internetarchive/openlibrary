@@ -1,21 +1,12 @@
 """Handlers for adding and editing tags."""
 
-import io
-import itertools
 import web
 import json
-import csv
-import datetime
 
 from typing import NoReturn
 
-from infogami import config
 from infogami.infobase import account, common
-from infogami.core import code as core
-from infogami.core.db import ValidationException
 from infogami.utils import delegate
-from infogami.utils.view import safeint, add_flash_message
-from infogami.infobase.client import ClientException
 
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.i18n import gettext as _
@@ -23,7 +14,7 @@ import logging
 
 from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.models import Tag
-from openlibrary.plugins.upstream.addbook import get_recaptcha, safe_seeother, new_doc
+from openlibrary.plugins.upstream.addbook import get_recaptcha, safe_seeother, trim_value
 from openlibrary.plugins.upstream.utils import render_template
 
 logger = logging.getLogger("openlibrary.tag")
@@ -44,10 +35,15 @@ class addtag(delegate.page):
         """
         Can a tag be added?
         """
+<<<<<<< Updated upstream
         return web.ctx.user and (
             web.ctx.user.is_usergroup_member('/usergroup/super-librarians')
         )
         # return web.ctx.site.can_write("/tag/add")
+=======
+        # return web.ctx.user and (web.ctx.user.is_usergroup_member('/usergroup/super-librarians'))
+        return web.ctx.site.can_write("/tag/add")
+>>>>>>> Stashed changes
 
     def POST(self):
         i = web.input(
@@ -113,7 +109,7 @@ class addtag(delegate.page):
                 'name': i.tag_name,
                 'tag_description': i.tag_description,
                 'tag_type': f'type/{i.tag_type}',
-                'tag_plugins': i.tag_plugins.split(','),
+                'tag_plugins': i.tag_plugins,
                 'type': dict(key='/type/tag'),
             },
             comment='New Tag',
