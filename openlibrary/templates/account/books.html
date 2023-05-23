@@ -23,12 +23,15 @@ $ userKey = user.key or ctx.user.key
 $ breadcrumb = _("Reading Log")
 $ header_title = ""
 
+$ padding = ""
+
 $ reading_log = [("Loans", "/account/loans"), ("Currently Reading (" + str(shelf_counts['currently-reading']) + ")", "/people/" + username + "/books/currently-reading"), ("Want to Read (" + str(shelf_counts['want-to-read']) + ")", "/people/" + username + "/books/want-to-read"), ("Already Read (" + str(shelf_counts['already-read']) + ")", "/people/" + username + "/books/already-read"), ("My Notes", "/people/" + username + "/books/notes"), ("My Reviews", "/people/" + username + "/books/observations"), ("My Reading Stats", "/account/books/already-read/stats")]
 $#list = [("My Lists", "/people/" + username + "/lists")]
 $ breadcrumb_options = [];
 
 $if key == 'mybooks':
   $ header_title = _("My Books")
+  $ padding = _("no-padding")
 $elif key == 'currently-reading':
   $ header_title = _("Currently Reading")
   $ breadcrumb_options = reading_log
@@ -68,7 +71,7 @@ $var title: $header_title
 
   $:render_template("account/sidebar", user, key=key, public=public, owners_page=owners_page, counts=shelf_counts, lists=lists, component_times=component_times)
 
-  <div class="mybooks-details">
+  <div class="mybooks-details $padding">
     $if key == 'mybooks':
       $ component_times['Yearly Goal Banner'] = time()
       $ year = get_reading_goals_year()

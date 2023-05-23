@@ -29,7 +29,6 @@
   inline-size: 100%;
   block-size: 100%;
   opacity: .01;
-  font-size: min(100%,16px); /* Defaults to 16px; fixes iOS zoom */
 }
 
 .dropdown {
@@ -89,7 +88,7 @@
 
 @media only screen and (max-width: @width-breakpoint-tablet) {
   .mybooks-details {
-    padding: 0;
+    padding: 10px;
     margin: 0;
     width: 100%;
 
@@ -104,6 +103,10 @@
     .details-content {
       padding: 0;
     }
+  }
+
+  .no-padding {
+    padding: 0;
   }
 
   .mybooks-details-specific {
