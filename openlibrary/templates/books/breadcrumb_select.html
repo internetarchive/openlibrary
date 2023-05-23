@@ -1,7 +1,7 @@
 $def with (key=None, selected="",options=[])
     $if len(options) == 0:
         $selected
-    $elif len(options) == 1: 
+    $elif len(options) == 1:
         $if selected != options[0][0]:
             <span class="crumb">
                 <span class="crumbicon">
@@ -37,7 +37,7 @@ $def with (key=None, selected="",options=[])
                         $elif title == selected:
                             <option selected>$title</option>
                         $else:
-                            <option value=$url>$title</option> 
+                            <option value=$url>$title</option>
                 </select>
             </span>
         </span>
