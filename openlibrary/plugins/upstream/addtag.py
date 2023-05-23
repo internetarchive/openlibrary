@@ -167,7 +167,7 @@ class tag_edit(delegate.page):
             tag.update(formdata)
             tag['comment_'] = i._comment
             return render_template("type/tag/edit", tag)
-        
+
     def process_input(self, i):
         i = utils.unflatten(i)
         tag = trim_doc(i)
