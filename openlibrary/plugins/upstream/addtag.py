@@ -5,7 +5,10 @@ import json
 
 from typing import NoReturn
 
-from infogami.infobase import account, common
+from infogami.core.db import ValidationException
+from infogami.infobase import common
+from infogami.utils.view import add_flash_message
+from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 
 from openlibrary.plugins.openlibrary.processors import urlsafe
@@ -14,7 +17,7 @@ import logging
 
 from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.models import Tag
-from openlibrary.plugins.upstream.addbook import get_recaptcha, safe_seeother, trim_value
+from openlibrary.plugins.upstream.addbook import get_recaptcha, safe_seeother, trim_doc
 from openlibrary.plugins.upstream.utils import render_template
 
 logger = logging.getLogger("openlibrary.tag")
@@ -35,15 +38,10 @@ class addtag(delegate.page):
         """
         Can a tag be added?
         """
-<<<<<<< Updated upstream
-        return web.ctx.user and (
-            web.ctx.user.is_usergroup_member('/usergroup/super-librarians')
-        )
-        # return web.ctx.site.can_write("/tag/add")
-=======
-        # return web.ctx.user and (web.ctx.user.is_usergroup_member('/usergroup/super-librarians'))
+        # return web.ctx.user and (
+        #     web.ctx.user.is_usergroup_member('/usergroup/super-librarians')
+        # )
         return web.ctx.site.can_write("/tag/add")
->>>>>>> Stashed changes
 
     def POST(self):
         i = web.input(
@@ -144,36 +142,36 @@ class tag_edit(delegate.page):
 
         return render_template('type/tag/edit', tag)
 
-    # def POST(self, key):
-    #     i = web.input(v=None, _method="GET")
+    def POST(self, key):
+        tag = web.ctx.site.get(key)
+        if tag is None:
+            raise web.notfound()
 
-    #     if spamcheck.is_spam(allow_privileged_edits=True):
-    #         return render_template(
-    #             "message.html", "Oops", 'Something went wrong. Please try again later.'
-    #         )
-
-    #     recap = get_recaptcha()
-
-    #     if recap and not recap.validate():
-    #         return render_template(
-    #             "message.html",
-    #             'Recaptcha solution was incorrect',
-    #             'Please <a href="javascript:history.back()">go back</a> and try again.',
-    #         )
-
-    #     v = i.v and safeint(i.v, None)
-    #     tag = web.ctx.site.get(key, v)
-    #     if tag is None:
-    #         raise web.notfound()
-
-    #     try:
-    #         helper = SaveTagHelper(tag, None)  # TODO: add SaveTagHelper
-    #         helper.save(web.input())
-    #         add_flash_message("info", utils.get_message("flash_tag_updated"))
-    #         raise safe_seeother(tag.url())
-    #     except (ClientException, ValidationException) as e:
-    #         add_flash_message('error', str(e))
-    #         return self.GET(key)
+        i = web.input(_comment=None)
+        formdata = self.process_input(i)
+        try:
+            if not formdata:
+                raise web.badrequest()
+            elif "_save" in i:
+                tag.update(formdata)
+                tag._save(comment=i._comment)
+                raise safe_seeother(key)
+            elif "_delete" in i:
+                tag = web.ctx.site.new(
+                    key, {"key": key, "type": {"key": "/type/delete"}}
+                )
+                tag._save(comment=i._comment)
+                raise safe_seeother(key)
+        except (ClientException, ValidationException) as e:
+            add_flash_message('error', str(e))
+            tag.update(formdata)
+            tag['comment_'] = i._comment
+            return render_template("type/tag/edit", tag)
+        
+    def process_input(self, i):
+        i = utils.unflatten(i)
+        tag = trim_doc(i)
+        return tag
 
 
 def setup():

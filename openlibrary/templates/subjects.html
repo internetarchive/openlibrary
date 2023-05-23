@@ -29,7 +29,6 @@ $ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), 
 </div>
 
 <div class="contentBody">
-
   $if 'tag' in page and 'plugins' in page.tag:
     <div style="padding-bottom: 20px;">
       $:macros.Plugins(page.tag['plugins'])
