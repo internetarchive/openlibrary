@@ -45,7 +45,7 @@ from openlibrary.catalog.utils import (
     needs_isbn_and_lacks_one,
     publication_year_too_old,
     published_in_future_year,
-    EARLIEST_PUBLISH_YEAR,
+    EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS,
 )
 from openlibrary.core import lending
 from openlibrary.plugins.upstream.utils import strip_accents
@@ -98,7 +98,7 @@ class PublicationYearTooOld(Exception):
         self.year = year
 
     def __str__(self):
-        return f"publication year is too old (i.e. earlier than {EARLIEST_PUBLISH_YEAR}): {self.year}"
+        return f"publication year is too old (i.e. earlier than {EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS}): {self.year}"
 
 
 class PublishedInFutureYear(Exception):
@@ -782,7 +782,7 @@ def validate_record(rec: dict) -> None:
     If all the validations pass, implicitly return None.
     """
     if publication_year := get_publication_year(rec.get('publish_date')):
-        if publication_year_too_old(publication_year):
+        if publication_year_too_old(rec):
             raise PublicationYearTooOld(publication_year)
         elif published_in_future_year(publication_year):
             raise PublishedInFutureYear(publication_year)
