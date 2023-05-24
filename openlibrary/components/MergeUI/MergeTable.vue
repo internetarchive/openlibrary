@@ -163,7 +163,7 @@ export default {
         },
 
         async merge() {
-            if (!this.master_key || !this.records || !this.editions || !this.lists || !this.bookshelves)
+            if (!this.master_key || !this.records || !this.editions)
                 return undefined;
 
             const master = this.records.find(r => r.key === this.master_key);
