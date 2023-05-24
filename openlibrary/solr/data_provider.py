@@ -360,7 +360,9 @@ class ExternalDataProvider(DataProvider):
         return resp['entries']
 
     async def get_document(self, key: str):
-        return requests.get(f"http://{self.ol_host}{key}.json").json()
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"http://{self.ol_host}{key}.json")
+            return response.json()
 
 
 class BetterDataProvider(LegacyDataProvider):

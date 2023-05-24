@@ -36,6 +36,7 @@ exclude = [
   "vendor/*",
 ]
 ignore = [
+  "ASYNC101",
   "B007",
   "B009",
   "B015",
@@ -70,6 +71,7 @@ ignore = [
 ]
 line-length = 162
 select = [
+  "ASYNC",   # flake8-async
   "B",       # flake8-bugbear
   "BLE",     # flake8-blind-except
   "C4",      # flake8-comprehensions
@@ -95,7 +97,6 @@ select = [
   # "A",     # flake8-builtins
   # "ANN",   # flake8-annotations
   # "ARG",   # flake8-unused-arguments
-  # "ASYNC", # flake8-async
   # "COM",   # flake8-commas
   # "D",     # pydocstyle
   # "DJ",    # flake8-django

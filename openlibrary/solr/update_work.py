@@ -1276,20 +1276,22 @@ async def update_author(
     facet_fields = ['subject', 'time', 'person', 'place']
     base_url = get_solr_base_url() + '/select'
 
-    reply = requests.get(
-        base_url,
-        params=[  # type: ignore[arg-type]
-            ('wt', 'json'),
-            ('json.nl', 'arrarr'),
-            ('q', 'author_key:%s' % author_id),
-            ('sort', 'edition_count desc'),
-            ('rows', 1),
-            ('fl', 'title,subtitle'),
-            ('facet', 'true'),
-            ('facet.mincount', 1),
-        ]
-        + [('facet.field', '%s_facet' % field) for field in facet_fields],
-    ).json()
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            base_url,
+            params=[  # type: ignore[arg-type]
+                ('wt', 'json'),
+                ('json.nl', 'arrarr'),
+                ('q', 'author_key:%s' % author_id),
+                ('sort', 'edition_count desc'),
+                ('rows', 1),
+                ('fl', 'title,subtitle'),
+                ('facet', 'true'),
+                ('facet.mincount', 1),
+            ]
+            + [('facet.field', '%s_facet' % field) for field in facet_fields],
+        )
+        reply = response.json()
     work_count = reply['response']['numFound']
     docs = reply['response'].get('docs', [])
     top_work = None
