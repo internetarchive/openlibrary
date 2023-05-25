@@ -192,7 +192,7 @@ $if edition.get('identifiers'):
 $if isbn_10 and not asin:
     $ asin = isbn_10
 
-$ affiliate_links = macros.AffiliateLinks(edition), {'isbn': isbn_13, 'asin': asin, 'prices': prices})
+$ affiliate_links = macros.AffiliateLinks(edition, {'isbn': isbn_13, 'asin': asin, 'prices': prices})
 $ component_times['affiliate_links component'] = time() - component_times['affiliate_links component']
 
 $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
