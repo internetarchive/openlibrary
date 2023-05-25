@@ -96,8 +96,7 @@ class addtag(delegate.page):
         """
         Action to take when no tags are found.
         Creates a new Tag.
-        Redirects the user to the tag edit page
-        in `add-tag` mode.
+        Redirects the user to the tag's home page
         """
         key = web.ctx.site.new_key('/type/tag')
         web.ctx.path = key
