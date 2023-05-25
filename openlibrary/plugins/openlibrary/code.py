@@ -221,14 +221,14 @@ class team(delegate.page):
     path = '/about/team'
 
     def GET(self):
-        return render_template("about/team.html")
+        return render_template("about/index.html")
 
 
 class teammember(delegate.page):
     path = '/about/teammember'
 
     def GET(self):
-        return render_template("about/team_member.html")
+        return render_template("about/member/index.html")
 
 
 class addbook(delegate.page):

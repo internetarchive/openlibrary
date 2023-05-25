@@ -1,0 +1,106 @@
+@import (less) "less/colors.less";
+
+.teamPageTitle {
+  margin-bottom: 0;
+  padding-left: 2rem;
+}
+
+.teamMember__name {
+  font-size: 3rem;
+  padding-left: 2rem;
+  color: @dark-blue;
+}
+
+.teamMember__title {
+  font-weight: 100;
+  padding-left: 2rem;
+}
+
+.container {
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding-left: 2rem;
+  padding-top: 5rem;
+}
+
+.teamMember__sideBar__container {
+  width: 280px;
+  display: flex;
+  align-items: flex-start;
+  height: auto;
+}
+
+.sideBar {
+  background: @beige;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
+  position: relative;
+  border-radius: 2rem;
+  padding-top: 5rem;
+  height: 100%;
+}
+
+.sideBar__photoContainer {
+  position: absolute;
+  top: -80px;
+  height: 160px;
+  width: 160px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.photoContainer__photo {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: @book-cover-carousel-border-top;
+  object-fit: cover;
+}
+
+.sideBar__contactInfo {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding-left: 2rem;
+  gap: 1rem;
+}
+
+.sideBar__contactInfo p {
+  margin: 0;
+  margin-bottom: 10px;
+}
+
+.bio {
+  width: 70%;
+  display: flex;
+  border-radius: 2rem;
+  flex-direction: column;
+  background: @grey-f3f3f3;
+  padding: 20px;
+  gap: 20px;
+}
+
+.bio p {
+  padding: 0;
+  margin: 0;
+}
+
+@media screen and (max-width: 450px) {
+  .container {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .bio {
+    width: 90%;
+  }
+}
