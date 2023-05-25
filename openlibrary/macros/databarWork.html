@@ -1,4 +1,4 @@
-$def with (page, editions_page=False, render_times={}, modal_links=None)
+$def with (page, worldcat_links, affiliate_links, editions_page=False, render_times={}, modal_links=None)
 
 $if page.type.key == '/type/work' and page.edition_count == 1:
     $ edit_url = page.editions[0].key + '?m=edit'
@@ -8,19 +8,6 @@ $else:
     $ edit_url = page.key + "?m=edit"
 
 $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
-$ prices = page.key.startswith('/books/')
-
-$ oclc_numbers = (page.oclc_numbers and page.oclc_numbers[0]) or ""
-$ isbn_13 = page.get_isbn13()
-$ isbn_10 = page.get_isbn10()
-
-$ asin = None
-$if page.get('identifiers'):
-    $if page.identifiers.get('amazon'):
-        $ asin = page.identifiers.amazon[0]
-
-$if isbn_10 and not asin:
-    $ asin = isbn_10
 
 <div class="Tools">
   <div id="read">
@@ -81,28 +68,13 @@ $if isbn_10 and not asin:
       </div>
     </div>
 
-    $ prices = page.key.startswith('/books/')
-
-    $ oclc_numbers = (page.oclc_numbers and page.oclc_numbers[0]) or ""
-    $ isbn_13 = page.get_isbn13()
-    $ isbn_10 = page.get_isbn10()
-
-    $ asin = None
-    $if page.get('identifiers'):
-        $if page.identifiers.get('amazon'):
-            $ asin = page.identifiers.amazon[0]
-
-    $if isbn_10 and not asin:
-        $ asin = isbn_10
     <div class="panel desktop-vendor">
       <div class="btn-notice">
-        $:macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
+        $:worldcat_links
 
         <div class="cta-section">
           <p class="cta-section-title">$_('Buy this book')</p>
-          $ render_times['databarWork: AffiliateLinks'] = time()
-          $:macros.AffiliateLinks(page, {'isbn': isbn_13, 'asin': asin, 'prices': prices})
-          $ render_times['databarWork: AffiliateLinks'] = time() - render_times['databarWork: AffiliateLinks']
+          $:affiliate_links
         </div>
       </div>
     </div>

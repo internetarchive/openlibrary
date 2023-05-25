@@ -177,6 +177,26 @@ $ component_times['get_observation_metrics'] = time()
 $ reader_observations = get_observation_metrics(work['key']) if show_observations else {}
 $ component_times['get_observation_metrics'] = time() - component_times['get_observation_metrics']
 
+$ component_times['affiliate_links component'] = time()
+$ prices = page.key.startswith('/books/')
+
+$ oclc_numbers = (page.oclc_numbers and page.oclc_numbers[0]) or ""
+$ isbn_13 = page.get_isbn13()
+$ isbn_10 = page.get_isbn10()
+
+$ asin = None
+$if page.get('identifiers'):
+    $if page.identifiers.get('amazon'):
+        $ asin = page.identifiers.amazon[0]
+
+$if isbn_10 and not asin:
+    $ asin = isbn_10
+
+$ affiliate_links = macros.AffiliateLinks(page, {'isbn': isbn_13, 'asin': asin, 'prices': prices})
+$ component_times['affiliate_links component'] = time() - component_times['affiliate_links component']
+
+$ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
+
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
   <div class="workDetails">
     $if work and work.key:
@@ -193,7 +213,7 @@ $ component_times['get_observation_metrics'] = time() - component_times['get_obs
       $ modal_links = render_template("type/edition/modal_links", work, edition, share_url)
       $ component_times['databarWork: Modal Links'] = time() - component_times['databarWork: Modal Links']
 
-      $:macros.databarWork(edition or work, editions_page=True, render_times=component_times, modal_links=modal_links)
+      $:macros.databarWork(edition or work, worldcat_links, affiliate_links, editions_page=True, render_times=component_times, modal_links=modal_links)
     </div>
 
     <div class="editionAbout">
@@ -293,27 +313,14 @@ $ component_times['get_observation_metrics'] = time() - component_times['get_obs
           </div>
       </div>
 
-      $ prices = page.key.startswith('/books/')
-
-      $ oclc_numbers = (page.oclc_numbers and page.oclc_numbers[0]) or ""
-      $ isbn_13 = page.get_isbn13()
-      $ isbn_10 = page.get_isbn10()
-
-      $ asin = None
-      $if page.get('identifiers'):
-          $if page.identifiers.get('amazon'):
-              $ asin = page.identifiers.amazon[0]
-
-      $if isbn_10 and not asin:
-          $ asin = isbn_10
       <div class="Tools">
         <div class="panel mobile-vendor">
           <div class="btn-notice">
-            $:macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
+            $:worldcat_links
 
             <div class="cta-section">
               <p class="cta-section-title">$_('Buy this book')</p>
-              $:macros.AffiliateLinks(page, {'isbn': isbn_13, 'asin': asin, 'prices': prices})
+              $:affiliate_links
             </div>
           </div>
         </div>
