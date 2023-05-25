@@ -90,7 +90,7 @@ class addtag(delegate.page):
         Redirect user to the found tag's edit page to add any missing details.
         """
         tag = web.ctx.site.get(match[0])
-        raise safe_seeother(tag.url("/edit"))
+        raise safe_seeother(tag.key + "/edit")
 
     def no_match(self, i: web.utils.Storage) -> NoReturn:
         """
@@ -112,8 +112,7 @@ class addtag(delegate.page):
             },
             comment='New Tag',
         )
-        raise web.HTTPError('200 OK', {}, key)
-        # raise safe_seeother(tag.url('/edit'))
+        raise safe_seeother(key)
 
 
 # remove existing definitions of addtag

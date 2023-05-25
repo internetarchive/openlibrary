@@ -1,8 +1,21 @@
 $def with (tag)
 
 $var title: $tag.name
+$ title = tag.name
 
-
-<div>
-    Tags View Page
+<div id="contentHead">
+    $:macros.databarView(tag)
+    <h1 itemprop="name">
+        $title
+    </h1>
+    <h3 itemprop="description" style="padding-top: 30px;">
+        $tag.tag_description
+    </h3>
+    $if tag.tag_type == 'type/subject':
+        $ subject_name = title.replace(' ', "_")
+    <footer>
+        <a href="/subjects/$subject_name">
+            $_('View subject page for %(name)s.', name=title)
+        </a>
+    </footer>
 </div>
