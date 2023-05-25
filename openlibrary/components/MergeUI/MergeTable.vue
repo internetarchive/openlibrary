@@ -181,7 +181,7 @@ export default {
 
             const extras = {
                 edition_count: _.sum(records.map(r => this.editions[r.key].size)),
-                list_count: _.sum(records.map(r => this.lists[r.key].size))
+                list_count: (this.lists) ? _.sum(records.map(r => this.lists[r.key].size)) : null
             };
 
             const unmergeable_works = this.records

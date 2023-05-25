@@ -18,7 +18,7 @@
             <span v-else>{{ratings[record.key].summary.count}}</span>
         </div>
     </div>
-    <div class="list-counts" v-else-if="merged && record == merged.record">{{merged.list_count}} list{{merged.list_count == 1 ? '' : 's'}}</div>
+    <div class="list-counts" v-else-if="merged && record == merged.record && merged.list_count != null">{{merged.list_count}} list{{merged.list_count == 1 ? '' : 's'}}</div>
 </template>
 
 <script>
