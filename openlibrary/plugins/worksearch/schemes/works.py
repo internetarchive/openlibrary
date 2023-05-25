@@ -64,7 +64,6 @@ class WorkSearchScheme(SearchScheme):
         "time",
         "has_fulltext",
         "title_suggest",
-        "edition_count",
         "publish_year",
         "language",
         "number_of_pages_median",
