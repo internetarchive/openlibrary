@@ -136,21 +136,21 @@ export function get_editions(work_key) {
 export function get_lists(key, limit=10) {
     return fetch(`${key}/lists.json?${new URLSearchParams({ limit })}`).then(r => {
         if (r.ok) return r.json();
-        if (confirm(`Network error; failed to load list data for ${key}. Click OK to reload.`)) location.reload();
+        return {error: true};
     });
 }
 
 export function get_bookshelves(key) {
     return fetch(`${key}/bookshelves.json`).then(r => {
         if (r.ok) return r.json();
-        if (confirm(`Network error; failed to load reading log data for ${key}. Click OK to reload.`)) location.reload();
+        return {error: true};
     });
 }
 
 export function get_ratings(key) {
     return fetch(`${key}/ratings.json`).then(r => {
         if (r.ok) return r.json();
-        if (confirm(`Network error; failed to load ratings for ${key}. Click OK to reload.`)) location.reload();
+        return {error: true};
     });
 }
 
