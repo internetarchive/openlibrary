@@ -476,7 +476,7 @@ jQuery(function () {
     const mergeRequestCommentButtons = document.querySelectorAll('.mr-comment-btn')
     const showCommentsLinks = document.querySelectorAll('.comment-expand')
     const unassignElements = document.querySelectorAll('.mr-unassign')
-    const mergeRequestFilters = document.querySelectorAll('.mr-dropdown-menu')
+    const mergeRequestFilters = document.querySelectorAll('.mr-dropdown')
 
     if (mergeRequestCloseLinks.length || mergeRequestCommentButtons.length || showCommentsLinks.length || mergeRequestResolveLinks.length ||
         unassignElements.length || mergeRequestFilters.length) {

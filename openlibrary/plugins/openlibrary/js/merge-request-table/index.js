@@ -1,6 +1,10 @@
 import { FadingToast } from '../Toast';
 import { commentOnRequest, declineRequest, claimRequest, unassignRequest } from './MergeRequestService';
 
+// "cache" results in file-level variables to prevent re-querying of DOM
+var dropMenuButtons
+var dropMenus
+
 /**
  * Adds functionality for closing librarian requests.
  *
@@ -299,8 +303,7 @@ function toggleAMenuWhileClosingOthers(event, menuButtonId) {
  * @param {string} menuButtonId
  */
 function closeOtherMenus(menuButtonId) {
-    const dropMenus = document.querySelectorAll('.mr-dropdown')
-    dropMenus.forEach((menuButton) => {
+    dropMenuButtons.forEach((menuButton) => {
         if (menuButton.id !== menuButtonId) {
             menuButton.firstElementChild.classList.add('hidden')
         }
@@ -335,7 +338,7 @@ function filterMenuItems(event) {
  *
  * @param {Event} event
  */
-function closeMenusIfClickOutside(event, dropMenuButtons, dropMenus) {
+function closeMenusIfClickOutside(event) {
     const menusClicked = Array.from(dropMenuButtons).filter((menuButton) => {
         return menuButton.contains(event.target)
     })
@@ -350,11 +353,11 @@ function closeMenusIfClickOutside(event, dropMenuButtons, dropMenus) {
  *
  */
 export function initFilters() {
-    const dropMenuButtons = document.querySelectorAll('.mr-dropdown')
-    const dropMenus = document.querySelectorAll('.mr-dropdown-menu')
-    dropMenuButtons.forEach((menu) => {
-        menu.addEventListener('click', (event) => {
-            toggleAMenuWhileClosingOthers(event, menu.id)
+    dropMenuButtons = document.querySelectorAll('.mr-dropdown')
+    dropMenus = document.querySelectorAll('.mr-dropdown-menu')
+    dropMenuButtons.forEach((menuButton) => {
+        menuButton.addEventListener('click', (event) => {
+            toggleAMenuWhileClosingOthers(event, menuButton.id)
         })
     })
     const closeButtons = document.querySelectorAll('.dropdown-close')
@@ -367,5 +370,5 @@ export function initFilters() {
     inputs.forEach((input) => {
         input.addEventListener('keyup', (event) => filterMenuItems(event))
     })
-    document.addEventListener('click', (event) => closeMenusIfClickOutside(event, dropMenuButtons, dropMenus))
+    document.addEventListener('click', (event) => closeMenusIfClickOutside(event))
 }
