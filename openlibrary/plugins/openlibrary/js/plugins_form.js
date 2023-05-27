@@ -47,7 +47,7 @@ export function initAddTagForm() {
         .addEventListener('submit', function(e) {
             e.preventDefault();
             const pluginsData = getPluginsData();
-            var pluginsInput = document.getElementById('tag_plugins');
+            const pluginsInput = document.getElementById('tag_plugins');
             pluginsInput.value = JSON.stringify(pluginsData);
             // Submit the form
             this.submit();
@@ -60,7 +60,7 @@ export function initEditTagForm() {
         .addEventListener('submit', function(e) {
             e.preventDefault();
             const pluginsData = getPluginsData();
-            var pluginsInput = document.getElementById('tag_plugins');
+            const pluginsInput = document.getElementById('tag_plugins');
             pluginsInput.value = JSON.stringify(pluginsData);
             // Submit the form
             this.submit();
