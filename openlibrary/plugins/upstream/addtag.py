@@ -106,7 +106,7 @@ class addtag(delegate.page):
                 'name': i.tag_name,
                 'tag_description': i.tag_description,
                 'tag_type': f'type/{i.tag_type}',
-                'tag_plugins': json.loads(i.tag_plugins or []),
+                'tag_plugins': json.loads(i.tag_plugins or "[]"),
                 'type': dict(key='/type/tag'),
             },
             comment='New Tag',
