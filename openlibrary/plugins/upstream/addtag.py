@@ -171,6 +171,7 @@ class tag_edit(delegate.page):
         tag = trim_doc(i)
         return tag
 
+
 @public
 def process_plugins_data(data):
     plugin_type = list(data.keys())[0]
@@ -187,6 +188,7 @@ def process_plugins_data(data):
         plugin_data[key] = eval(value)
 
     return plugin_type, plugin_data
+
 
 @public
 def display_plugins_data(data):
@@ -207,12 +209,11 @@ def display_plugins_data(data):
 
     return plugin_type, plugin_data
 
+
 @public
 def get_plugin_types():
-    return [
-        "QueryCarousel",
-        "ListCarousel"
-    ]
+    return ["QueryCarousel", "ListCarousel"]
+
 
 def setup():
     """Do required setup."""

@@ -6,6 +6,7 @@ import json
 
 from infogami.utils.view import public
 
+
 @public
 def process_plugins_data(data):
     plugin_type = list(data.keys())[0]
