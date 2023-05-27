@@ -13,9 +13,7 @@ $putctx("robots", "noindex,nofollow")
 
 <div id="contentBody">
 
-    <form id="editTag" name="edit" method="post" action="" class="olform validate">
-
-
+    <form id="edittag" name="edit" method="post" action="" class="olform validate">
         <div class="formElement">
             <div class="label">
                 <label for="name">$_("Label")</label>
@@ -34,15 +32,7 @@ $putctx("robots", "noindex,nofollow")
             </div>
         </div>
 
-        <div class="formElement">
-            <div class="label">
-                <label for="tag-plugins">$_("Plugins")</label>
-                <span class="tip">$_("Plugins for rendering templates.")</span>
-            </div>
-            <div class="input">
-                <textarea name="tag_plugins" id="tag_plugins" cols="55" rows="5" tabindex="0">$page.tag_plugins</textarea>
-            </div>
-        </div>
+        $:render_template("tag/pluginsForm", plugins=page.tag_plugins)
 
         <div class="clearfix"></div>
 

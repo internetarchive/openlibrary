@@ -13,7 +13,7 @@ $var title: $_("Add a tag")
 
 <div id="contentBody">
 
-    <form method="post" action="" id="addtag" class="olform addtag1 validate" name="edit">
+    <form method="post" action="" id="addtag" class="olform addtag1 validate">
 
         <div class="formElement">
             <div class="label">
@@ -36,17 +36,7 @@ $var title: $_("Add a tag")
             </div>
         </fieldset>
 
-        <fieldset class="major" style="padding:0; margin:0;">
-            <div class="formElement">
-                <div class="label">
-                    <label for="tag-plugins">$_("Plugins")</label>
-                    <span class="tip">$_("Plugins for rendering templates.")</span>
-                </div>
-                <div class="input">
-                    <textarea name="tag_plugins" id="tag_plugins" cols="55" rows="5" tabindex="0"></textarea>
-                </div>
-            </div>
-        </fieldset>
+        $:render_template("tag/pluginsForm")
 
         <div class="formElement">
             <div class="label"><label for="id_value">$_("Tag type")</label></div>

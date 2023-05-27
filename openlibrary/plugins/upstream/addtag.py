@@ -7,7 +7,7 @@ from typing import NoReturn
 
 from infogami.core.db import ValidationException
 from infogami.infobase import common
-from infogami.utils.view import add_flash_message
+from infogami.utils.view import add_flash_message, public
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 
@@ -106,7 +106,7 @@ class addtag(delegate.page):
                 'name': i.tag_name,
                 'tag_description': i.tag_description,
                 'tag_type': f'type/{i.tag_type}',
-                'tag_plugins': i.tag_plugins,
+                'tag_plugins': json.loads(i.tag_plugins or []),
                 'type': dict(key='/type/tag'),
             },
             comment='New Tag',
@@ -150,27 +150,69 @@ class tag_edit(delegate.page):
         try:
             if not formdata:
                 raise web.badrequest()
-            elif "_save" in i:
-                tag.update(formdata)
-                tag._save(comment=i._comment)
-                raise safe_seeother(key)
             elif "_delete" in i:
                 tag = web.ctx.site.new(
                     key, {"key": key, "type": {"key": "/type/delete"}}
                 )
                 tag._save(comment=i._comment)
                 raise safe_seeother(key)
+            else:
+                tag.update(formdata)
+                tag._save(comment=i._comment)
+                raise safe_seeother(key)
         except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))
-            tag.update(formdata)
-            tag['comment_'] = i._comment
             return render_template("type/tag/edit", tag)
 
     def process_input(self, i):
         i = utils.unflatten(i)
+        if i.tag_plugins:
+            i.tag_plugins = json.loads(i.tag_plugins)
         tag = trim_doc(i)
         return tag
 
+@public
+def process_plugins_data(data):
+    plugin_type = list(data.keys())[0]
+    # Split the string into key-value pairs
+    parameters = data[plugin_type].split(',')
+
+    # Create a dictionary to store the formatted parameters
+    plugin_data = {}
+
+    # Iterate through the pairs and extract the key-value information
+    for pair in parameters:
+        key, value = pair.split('=')
+        key = key.strip()
+        plugin_data[key] = eval(value)
+
+    return plugin_type, plugin_data
+
+@public
+def display_plugins_data(data):
+    plugin_type = list(data.keys())[0]
+    # Split the string into key-value pairs
+    parameters = data[plugin_type].split(',')
+
+    # Create a dictionary to store the formatted parameters
+    plugin_fields = []
+
+    # Iterate through the pairs and extract the key-value information
+    for pair in parameters:
+        key, value = pair.split('=')
+        key = key.strip()
+        plugin_fields.append(f'{key}={value}')
+
+    plugin_data = ', '.join(plugin_fields)
+
+    return plugin_type, plugin_data
+
+@public
+def get_plugin_types():
+    return [
+        "QueryCarousel",
+        "ListCarousel"
+    ]
 
 def setup():
     """Do required setup."""

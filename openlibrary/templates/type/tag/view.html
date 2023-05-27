@@ -13,9 +13,9 @@ $ title = tag.name
     </h3>
     $if tag.tag_type == 'type/subject':
         $ subject_name = title.replace(' ', "_")
-    <footer>
-        <a href="/subjects/$subject_name">
-            $_('View subject page for %(name)s.', name=title)
-        </a>
-    </footer>
+        <footer>
+            <a href="/subjects/$subject_name">
+                $_('View subject page for %(name)s.', name=title)
+            </a>
+        </footer>
 </div>

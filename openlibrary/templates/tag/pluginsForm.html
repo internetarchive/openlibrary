@@ -1,0 +1,44 @@
+$def with (plugins=None)
+
+<div class="formElement">
+    <input type="hidden" id="tag_plugins" name="tag_plugins" value="" />
+    <div class="label">
+        <label for="tag-plugins">$_("Plugins")</label>
+        <span class="tip">$_("Plugins for rendering templates.")</span>
+    </div>
+    <div class="input">
+        <table>
+            <thead>
+                <tr>
+                    <th>
+                        <label for="plugins_type">$_("Plugin Type")</label>
+                    </th>
+                    <th>
+                        <label for="data_input">$_("Data Input")</label>
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="pluginsFormRows">
+                $if plugins:
+                    $for plugin in plugins:
+                        $ plugin_type, plugin_data = display_plugins_data(plugin)
+                        <tr class="plugins-input-row">
+                            <td>
+                                <select id="plugins_type">
+                                    <option value="$plugin_type">$plugin_type</option>
+                                    $for other_plugin_type in get_plugin_types():
+                                        $if plugin_type != other_plugin_type:
+                                            <option value="$other_plugin_type">$other_plugin_type</option>
+                                </select>
+                            </td>
+                            <td>
+                                <textarea id="data_input" cols="55" rows="5" tabindex="0">$plugin_data</textarea>
+                            </td>
+                            <td><span class="drag-handle">☰</span></td>
+                            <td><button type="button" class="deletePluginBtn">[X]</button></td>
+                        </tr>
+            </tbody>
+        </table>
+    </div>
+    <button type="button" id="addPluginBtn">Add Row</button>
+</div>

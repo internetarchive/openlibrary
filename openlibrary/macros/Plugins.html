@@ -1,4 +1,5 @@
 $def with (plugins)
 
-$for template, data in plugins.items():
-    $:macros[template](**data)
+$for plugin in plugins:
+    $ plugin_type, plugin_data = process_plugins_data(plugin)
+    $:macros[plugin_type](**plugin_data)

@@ -363,7 +363,7 @@ class SubjectEngine:
                     name=tag.name,
                     id=tag.key,
                     description=tag.tag_description,
-                    plugins=json.loads(tag.tag_plugins or "{}"),
+                    plugins=tag.tag_plugins,
                 )
                 subject.tag = match
 
