@@ -1,6 +1,6 @@
 $def with (plugins=None)
 
-<div class="formElement">
+<div class="plugins-form">
     <input type="hidden" id="tag_plugins" name="tag_plugins" value="" />
     <div class="label">
         <label for="tag-plugins">$_("Plugins")</label>
@@ -11,10 +11,10 @@ $def with (plugins=None)
             <thead>
                 <tr>
                     <th>
-                        <label for="plugins_type">$_("Plugin Type")</label>
+                        <label for="plugins_type" class="tip">$_("Plugin Type")</label>
                     </th>
                     <th>
-                        <label for="data_input">$_("Data Input")</label>
+                        <label for="data_input" class="tip">$_("Parameters")</label>
                     </th>
                 </tr>
             </thead>
@@ -24,7 +24,7 @@ $def with (plugins=None)
                         $ plugin_type, plugin_data = display_plugins_data(plugin)
                         <tr class="plugins-input-row">
                             <td>
-                                <select id="plugins_type">
+                                <select id="plugins_type" style="margin: 5px; max-width: 130px;">
                                     <option value="$plugin_type">$plugin_type</option>
                                     $for other_plugin_type in get_plugin_types():
                                         $if plugin_type != other_plugin_type:
@@ -32,13 +32,14 @@ $def with (plugins=None)
                                 </select>
                             </td>
                             <td>
-                                <textarea id="data_input" cols="55" rows="5" tabindex="0">$plugin_data</textarea>
+                                <textarea id="data_input" cols="55" rows="5">$plugin_data</textarea>
                             </td>
-                            <td><span class="drag-handle">☰</span></td>
-                            <td><button type="button" class="deletePluginBtn">[X]</button></td>
+                            <td><span class="deletePluginBtn" style="color: red; cursor: pointer; margin-left: 10px;">[X]</span></td>
+                            <td><span class="drag-handle" style="margin: 10px; font-size: 20px; cursor: move;">☰</span></td>
                         </tr>
             </tbody>
         </table>
     </div>
-    <button type="button" id="addPluginBtn">Add Row</button>
+    <div id="plugin_errors" class="hidden" style="color: red; font-size: 10px; margin-top: 5px;"></div>
+    <button type="button" id="addPluginBtn" style="margin-top: 10px;">Add Plugin</button>
 </div>

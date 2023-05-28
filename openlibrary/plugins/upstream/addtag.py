@@ -201,9 +201,12 @@ def display_plugins_data(data):
 
     # Iterate through the pairs and extract the key-value information
     for pair in parameters:
-        key, value = pair.split('=')
-        key = key.strip()
-        plugin_fields.append(f'{key}={value}')
+        try:
+            key, value = pair.split('=',1)
+            key = key.strip()
+            plugin_fields.append(f'{key}={value}')
+        except ValueError:
+            plugin_fields.append(pair)
 
     plugin_data = ', '.join(plugin_fields)
 
