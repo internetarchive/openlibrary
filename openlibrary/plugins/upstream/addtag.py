@@ -80,7 +80,7 @@ class addtag(delegate.page):
         Tries to find an existing tag that matches the data provided by the user.
         """
 
-        q = {'type': '/type/tag', 'name': i.tag_name, 'tag_type': f'type/{i.tag_type}'}
+        q = {'type': '/type/tag', 'name': i.tag_name, 'tag_type': i.tag_type}
         match = list(web.ctx.site.things(q))
         return match
 
@@ -105,7 +105,7 @@ class addtag(delegate.page):
                 'key': key,
                 'name': i.tag_name,
                 'tag_description': i.tag_description,
-                'tag_type': f'type/{i.tag_type}',
+                'tag_type': i.tag_type,
                 'tag_plugins': json.loads(i.tag_plugins or "[]"),
                 'type': dict(key='/type/tag'),
             },
@@ -212,6 +212,10 @@ def display_plugins_data(data):
 
     return plugin_type, plugin_data
 
+
+@public
+def get_tag_types():
+    return ["subject", "work", "collection"]
 
 @public
 def get_plugin_types():

@@ -16,10 +16,10 @@ $putctx("robots", "noindex,nofollow")
     <form id="edittag" name="edit" method="post" action="" class="olform validate">
         <div class="formElement">
             <div class="label">
-                <label for="name">$_("Label")</label>
+                <label for="name">$_("Label")</label>*<span class="tip">$_("Required field")</span>
             </div>
             <div class="input">
-                <input type="text" name="name" id="name" value="$page.name" />
+                <input type="text" name="name" id="tag_name" value="$page.name" />
             </div>
         </div>
 
@@ -33,6 +33,19 @@ $putctx("robots", "noindex,nofollow")
         </div>
 
         $:render_template("tag/pluginsForm", plugins=page.tag_plugins)
+
+        <div class="formElement">
+            <div class="label"><label for="id_value">$_("Tag type")</label></div>
+            <div class="input">
+                <select name="tag_type" id="tag_type">
+                    <option value="$page.tag_type">$page.tag_type</option>
+                    $ tag_types = get_tag_types()
+                    $for tag_type in tag_types:
+                        $if tag_type != page.tag_type:
+                            <option value="$tag_type">$tag_type</option>
+                </select>
+            </div>
+        </div>
 
         <div class="clearfix"></div>
 

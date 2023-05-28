@@ -5,6 +5,24 @@ import 'jquery-ui/ui/widgets/sortable';
 
 const pluginsTypesList = ['QueryCarousel', 'ListCarousel']
 
+function checkRequiredFields() {
+    const nameInput = document.getElementById('tag_name');
+    const descriptionInput = document.getElementById('tag_description');
+    const tagType = document.getElementById('tag_type');
+    if (!nameInput.value) {
+        nameInput.focus({focusVisible: true});
+        throw new Error('Name is required');
+    }
+    if (!descriptionInput.value) {
+        descriptionInput.focus({focusVisible: true});
+        throw new Error('Description is required');
+    }
+    if (!tagType.value) {
+        tagType.focus({focusVisible: true});
+        throw new Error('Tag type is required');
+    }
+}
+
 export function initPluginsForm() {
     document.getElementById('addPluginBtn').addEventListener('click', function() {
         const newRow =
@@ -49,7 +67,12 @@ export function initAddTagForm() {
         .getElementById('addtag')
         .addEventListener('submit', function(e) {
             e.preventDefault();
-            clearPluginsError();
+            clearPluginsAndInputErrors();
+            try {
+              checkRequiredFields();
+            } catch (e) {
+              return;
+            }
             let pluginsData = [];
             try {
                 pluginsData = getPluginsData();
@@ -68,7 +91,12 @@ export function initEditTagForm() {
         .getElementById('edittag')
         .addEventListener('submit', function(e) {
             e.preventDefault();
-            clearPluginsError();
+            clearPluginsAndInputErrors();
+            try {
+              checkRequiredFields();
+            } catch (e) {
+              return;
+            }
             let pluginsData = [];
             try {
                 pluginsData = getPluginsData();
@@ -105,7 +133,13 @@ function getPluginsData() {
     return formData;
 }
 
-function clearPluginsError() {
+function clearPluginsAndInputErrors() {
+    const nameInput = document.getElementById('tag_name');
+    const descriptionInput = document.getElementById('tag_description');
+    const tagType = document.getElementById('tag_type');
+    nameInput.focus({focusVisible: false});
+    descriptionInput.focus({focusVisible: false});
+    tagType.focus({focusVisible: false});
     const errorDiv = document.getElementById('plugin_errors');
     errorDiv.classList.add('hidden');
     document.querySelectorAll('.plugins-input-row').forEach(function(row) {

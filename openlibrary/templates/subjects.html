@@ -4,6 +4,7 @@ $var title: $page.name
 
 $ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), ('people', _('People'), 10), ('times', _('Times'), 10)]
 $ can_add_tag = ctx.user and (ctx.user.is_usergroup_member('/usergroup/super-librarians'))
+$ has_tag = 'tag' in page
 
 <div id="scrollHere"></div>
 
@@ -27,6 +28,10 @@ $ can_add_tag = ctx.user and (ctx.user.is_usergroup_member('/usergroup/super-lib
             <strong><span><a href="/search?$page.subject_type=$page.name.replace('&','%26')" title="$_('See all works')">$ungettext("%(count)d work", "%(count)d works", page.work_count, count=page.work_count)</a></span></strong>
         </span>
     </span>
+    $if has_tag:
+      <h3 itemprop="description">
+        $page.tag['description']
+      </h3>
     <a href="#search" class="shift">$_('Search for books with subject %(name)s.', name=page.name)</a>
 
     <form action="/search" class="olform pagesearchbox">
@@ -37,11 +42,13 @@ $ can_add_tag = ctx.user and (ctx.user.is_usergroup_member('/usergroup/super-lib
 </div>
 
 <div class="contentBody">
-  $if 'tag' in page and 'plugins' in page.tag:
+  $if has_tag and 'plugins' in page.tag:
     <div style="padding-bottom: 20px;">
       $:macros.Plugins(page.tag['plugins'])
     </div>
-  $:render_template("books/custom_carousel", books=page.works, key="subjects", load_more={"url": page.key + ".json", "limit": len(page.works)})
+  $ default_carousel_title = _('Books about %(name)s', name=page.name)
+  $ default_carousel_url = '/search?q='+page.name
+  $:render_template("books/custom_carousel", title=default_carousel_title, url=default_carousel_url, books=page.works, key="subjects", load_more={"url": page.key + ".json", "limit": len(page.works)})
 
     <div class="head" id="subjectRelated">
       <h2>$_("Related...")
