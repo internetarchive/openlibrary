@@ -73,7 +73,6 @@ export function initEditTagForm() {
             try {
                 pluginsData = getPluginsData();
             } catch (e) {
-                console.log(e);
                 return;
             }
             const pluginsInput = document.getElementById('tag_plugins');
@@ -133,7 +132,7 @@ function parseAndValidatePluginsData(plugin) {
             return 'Missing equal sign: Each parameter should be in the form of \'key=value\'';
         }
         const splitResults = pair.split('=');
-        if (splitResults.length != 2) {
+        if (splitResults.length !== 2) {
             return 'Too many equal signs: Each parameter should be in the form of \'key=value\'';
         }
         const value = splitResults[1];
