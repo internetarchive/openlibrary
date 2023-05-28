@@ -217,6 +217,7 @@ def display_plugins_data(data):
 def get_tag_types():
     return ["subject", "work", "collection"]
 
+
 @public
 def get_plugin_types():
     return ["QueryCarousel", "ListCarousel"]

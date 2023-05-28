@@ -69,9 +69,9 @@ export function initAddTagForm() {
             e.preventDefault();
             clearPluginsAndInputErrors();
             try {
-              checkRequiredFields();
+                checkRequiredFields();
             } catch (e) {
-              return;
+                return;
             }
             let pluginsData = [];
             try {
@@ -93,9 +93,9 @@ export function initEditTagForm() {
             e.preventDefault();
             clearPluginsAndInputErrors();
             try {
-              checkRequiredFields();
+                checkRequiredFields();
             } catch (e) {
-              return;
+                return;
             }
             let pluginsData = [];
             try {
