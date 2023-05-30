@@ -2,6 +2,8 @@ import os
 import pytest
 
 from copy import deepcopy
+
+from web import storage
 from infogami.infobase.client import Nothing
 
 from infogami.infobase.core import Text
@@ -13,13 +15,21 @@ from openlibrary.catalog.add_book import (
     PublishedInFutureYear,
     SourceNeedsISBN,
     add_db_name,
+    add_description_to_work,
+    add_full_title,
+    add_ocaid_to_edition,
+    add_subjects_to_work,
     build_pool,
+    deduplicate_authors,
     editions_matched,
+    ensure_source_records_is_list,
     isbns_from_record,
     load,
     split_subtitle,
     RequiredField,
     validate_record,
+    get_missing_fields,
+    split_subtitle_if_needed,
 )
 
 from openlibrary.catalog.marc.parse import read_edition
@@ -1086,7 +1096,7 @@ def test_covers_are_added_to_edition(mock_site, monkeypatch) -> None:
     assert e['covers'] == [1234]
 
 
-def test_add_description_to_work(mock_site) -> None:
+def test_integration_add_description_to_work(mock_site) -> None:
     """
     Ensure that if an edition has a description, and the associated work does
     not, that the edition's description is added to the work.
@@ -1315,3 +1325,229 @@ def test_reimport_updates_edition_and_work_description(mock_site) -> None:
     work = mock_site.get(reply['work']['key'])
     assert edition.description == "A genuinely enjoyable read."
     assert work.description == "A genuinely enjoyable read."
+
+
+@pytest.mark.parametrize(
+    "name,rec,expected",
+    [
+        (
+            "One missing required field returns the field",
+            {'title': 'Great Book'},
+            ['source_records'],
+        ),
+        (
+            "Multiple missing fields returns the missing fields",
+            {},
+            ['title', 'source_records'],
+        ),
+        (
+            "Returns an empty list when all required fields are present",
+            {'title': 'Great Book', 'source_records': ['amazon:123']},
+            [],
+        ),
+    ],
+)
+def test_validate_required_fields(name, rec, expected) -> None:
+    assert sorted(get_missing_fields(rec)) == sorted(expected), f"Test failed: {name}"
+
+
+@pytest.mark.parametrize(
+    "name,rec,expected",
+    [
+        (
+            "source_records that are already lists stay lists",
+            {'source_records': ['amazon:123']},
+            {'source_records': ['amazon:123']},
+        ),
+        (
+            "non-lists become lists",
+            {'source_records': 'amazon:123'},
+            {'source_records': ['amazon:123']},
+        ),
+    ],
+)
+def test_ensure_source_records_is_list(name, rec, expected) -> None:
+    assert ensure_source_records_is_list(rec) == expected, f"Test failed: {name}"
+
+
+@pytest.mark.parametrize(
+    'name, rec, expected',
+    [
+        (
+            "Handles records with existing subtitles",
+            {'title': 'Title', 'subtitle': 'Subtitle'},
+            {'title': 'Title', 'subtitle': 'Subtitle'},
+        ),
+        (
+            "Handles records without a colon in the title",
+            {'title': 'Title'},
+            {'title': 'Title'},
+        ),
+        (
+            "Splits subtitle out of title if necessary",
+            {'title': 'Title: Subtitle'},
+            {'title': 'Title', 'subtitle': 'Subtitle'},
+        ),
+    ],
+)
+def test_split_subtitle_if_needed(name, rec, expected) -> None:
+    assert split_subtitle_if_needed(rec) == expected, f"Test failed: {name}"
+
+
+@pytest.mark.parametrize(
+    'name, rec, expected',
+    [
+        (
+            'Removes a duplicate author',
+            {
+                'authors': [
+                    {'name': 'John Brown'},
+                    {'name': 'John Muir'},
+                    {'name': 'John Brown'},
+                ]
+            },
+            {'authors': [{'name': 'John Brown'}, {'name': 'John Muir'}]},
+        ),
+        (
+            'Does not alter unique authors',
+            {'authors': [{'name': 'John Brown'}, {'name': 'John Muir'}]},
+            {'authors': [{'name': 'John Brown'}, {'name': 'John Muir'}]},
+        ),
+    ],
+)
+def test_deduplicate_authors(name, rec, expected) -> None:
+    assert deduplicate_authors(rec) == expected, f"Test failed: {name}"
+
+
+@pytest.mark.parametrize(
+    'name, rec, expected',
+    [
+        (
+            'The subtitle is added to the title',
+            {'title': 'Title', 'subtitle': 'Subtitle'},
+            {'title': 'Title', 'subtitle': 'Subtitle', 'full_title': 'Title Subtitle'},
+        ),
+        (
+            'It handles cases without a subtitle',
+            {'title': 'Title'},
+            {'title': 'Title', 'full_title': 'Title'},
+        ),
+    ],
+)
+def test_add_full_title(name, rec, expected) -> None:
+    assert add_full_title(rec) == expected, f"Test failed: {name}"
+
+
+@pytest.mark.parametrize(
+    "name, rec, work, need_work_save, expected",
+    [
+        (
+            "Add subjects when work has existing subjects and record has additional subjects",
+            {'subjects': ['Math', 'Science']},
+            {'subjects': ['English']},
+            False,
+            ({'subjects': ['English', 'Math', 'Science']}, True),
+        ),
+        (
+            "Do not add subjects when work already has subjects and record has no subjects",
+            {'subjects': []},
+            {'subjects': ['Math', 'Science']},
+            False,
+            ({'subjects': ['Math', 'Science']}, False),
+        ),
+        (
+            "Do not add subjects when work and record have the same subjects",
+            {'subjects': ['English', 'History']},
+            {'subjects': ['English', 'History']},
+            False,
+            ({'subjects': ['English', 'History']}, False),
+        ),
+        (
+            "Do not add subjects when record has no subjects",
+            {},
+            {'subjects': ['Math', 'Science']},
+            False,
+            ({'subjects': ['Math', 'Science']}, False),
+        ),
+    ],
+)
+def test_add_subjects_to_work(name, rec, work, need_work_save, expected):
+    assert add_subjects_to_work(rec, work, need_work_save) == expected, name
+
+
+@pytest.mark.parametrize(
+    "name, work, edition, need_work_save, expected",
+    [
+        (
+            "Add description when work has no description and edition has a description",
+            {'description': None},
+            {'description': 'Sample description'},
+            False,
+            ({'description': 'Sample description'}, True),
+        ),
+        (
+            "Do not add description when work already has a description",
+            {'description': 'Existing description'},
+            {'description': 'New description'},
+            False,
+            ({'description': 'Existing description'}, False),
+        ),
+        (
+            "Do not add description when work and edition both have no description",
+            {'description': None},
+            {'description': None},
+            False,
+            ({'description': None}, False),
+        ),
+        (
+            "Do not add description when work has no description and edition has no description",
+            {'description': None},
+            {'description': None},
+            True,
+            ({'description': None}, True),
+        ),
+    ],
+)
+def test_add_description_to_work(name, work, edition, need_work_save, expected):
+    assert (
+        add_description_to_work(work, edition, need_work_save) == expected
+    ), f"Test failed: {name}"
+
+
+@pytest.mark.parametrize(
+    "name, rec, edition, need_edition_save, expected",
+    [
+        (
+            "ocaid in rec and edition",
+            {'ocaid': '456'},
+            storage({'ocaid': '123'}),
+            False,
+            ({'ocaid': '123'}, False),
+        ),
+        (
+            "ocaid not in rec and not in edition",
+            {},
+            storage({'ocaid': ''}),
+            False,
+            ({'ocaid': ''}, False),
+        ),
+        (
+            "ocaid in edition but not in rec",
+            {},
+            storage({'ocaid': '123'}),
+            False,
+            ({'ocaid': '123'}, False),
+        ),
+        (
+            "ocaid in rec but not in edition",
+            {'ocaid': '456'},
+            storage({'ocaid': ''}),
+            False,
+            ({'ocaid': '456'}, True),
+        ),
+    ],
+)
+def test_add_ocaid_to_edition(name, rec, edition, need_edition_save, expected):
+    assert (
+        add_ocaid_to_edition(rec, edition, need_edition_save) == expected
+    ), f"Test failed: {name}"
