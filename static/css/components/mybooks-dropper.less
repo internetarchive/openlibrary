@@ -1,0 +1,71 @@
+/* Styling for the My Books dropper's primary action: */
+.droppe__primary {
+  .readingLog {
+    .activated-check {
+      color: @green;
+      margin-right: 2px;
+    }
+  }
+}
+
+/* Styling for the My Books dropper's dropdown content: */
+.droppe__dropdown {
+  background-color: @lightest-grey;
+
+  p {
+    font-size: .875em;
+    margin-bottom: 5px;
+    margin-top: 0;
+    color: @grey;
+
+    a {
+      font-size: .875em;
+    }
+
+    span {
+      font-size: .8125em;
+    }
+  }
+
+  form:last-child {
+    button.nostyle-btn {
+      border: none;
+    }
+  }
+
+  p.create {
+    border-top: 1px solid @lightest-grey;
+    padding: 5px 10px;
+    text-decoration: none;
+    font-weight: bold;
+
+    a {
+      color: @dark-grey;
+      text-decoration: none;
+    }
+
+  }
+
+  .reading-lists {
+    .reading-list-title {
+      background: @white;
+      padding: 5px 0 0 10px;
+      margin: 0;
+      font-size: .8em;
+    }
+    .my-lists {
+      background: @white;
+      max-height: 250px;
+      overflow-y: auto;
+      padding: 10px 15px;
+
+      .list {
+        margin-top: 0;
+      }
+    }
+  }
+
+  p a {
+    display: block;
+  }
+}

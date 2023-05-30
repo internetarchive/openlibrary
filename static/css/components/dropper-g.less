@@ -1,0 +1,65 @@
+.droppe {
+  min-height: 37px;
+  box-shadow: 0 0 0 1px @mid-grey;
+  border-radius: 4px;
+
+  &__actions {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    cursor: pointer;
+
+      * {
+        color: @dark-grey;
+        background-color: @lightest-grey;
+      }
+
+    .droppe__primary {
+      flex: 1;
+      margin: auto;
+      min-height: inherit;
+
+      button {
+        border: 2px solid @grey-f3f3f3;
+        border-right: 1px solid @lighter-grey;
+        border-bottom-right-radius: 0;
+        border-top-right-radius: 0;
+        cursor: pointer;
+        font-size: 1em;
+        width: 100%;
+        padding: 7px 0;
+        margin: 0;
+      }
+    }
+    .droppe__dropclick {
+      border-radius: 4px;
+      border-bottom-left-radius: 0;
+      border-top-left-radius: 0;
+      .display-flex();
+
+      h3 {
+        flex: 1;
+      }
+    
+      .arrow {
+        width: 23px;
+        margin: 6px 5px;
+        background-image: url(/images/icons/icon_dropit.png);
+        background-repeat: no-repeat;
+        filter: grayscale(100%);
+        background-position: 0 0;
+        background-size: 45px;
+
+        &.up {
+          background-position: -22px 0;
+        }
+      }
+    }
+  }
+  &__dropdown {
+    display: none;
+    border-top: 1px solid @lighter-grey;
+  }
+}
+
+@import (less) "components/mybooks-dropper.less";

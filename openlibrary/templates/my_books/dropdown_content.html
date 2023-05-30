@@ -1,0 +1,127 @@
+$def with(user_lists, seed_key, work_key, edition_key, users_work_read_status, async_load=False)
+
+$def reading_log_selections(work_key, edition_key, users_work_read_status):
+  $ remove_btn_visibility = 'hidden' if not users_work_read_status else ''
+  $ btn_visibilities = [remove_btn_visibility, '', '', '']
+
+  $ read_status = users_work_read_status or 1
+  $ btn_visibilities[int(read_status)] = 'hidden'
+
+  <div class="read-statuses">
+    <form id="remove-from-list" class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
+      <input type="hidden" name="action" value="remove"/>
+      $# XXX: Is bookshelf_id needed for item removal?
+      <input type="hidden" name="bookshelf_id" value=""/>
+      $# XXX: Default key used here --- may not be needed
+      $# XXX: Inconsistent naming convention: name hyphenated
+      <!--input type="hidden" name="default-key" value="(seed_key)" /-->
+      $# XXX: Is edition_id needed for removal?
+      $if edition_key:
+        <input type="hidden" name="edition_id" value="$(edition_key)"/>
+      <input type="hidden" id="work_id" name="work_id" value="$(work_key)"/>
+      $# XXX: Closes dropper
+      $# XXX: Should this be hidden?  Is visibility always toggled client-side?
+      <button class="remove-from-list $(btn_visibilities[0])" type="submit">$_('Remove From Shelf')</button>
+    </form>
+    
+    <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
+      <input type="hidden" name="action" value="add"/>
+      <input type="hidden" name="bookshelf_id" value="1"/>
+      $if edition_key:
+        <input type="hidden" name="edition_id" value="$(edition_key)"/>
+      $# XXX: Closes dropper
+      <button class="nostyle-btn $(btn_visibilities[1])" type="submit">$_('Want to Read')</button>
+    </form>
+    
+    <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
+      <input type="hidden" name="action" value="add"/>
+      <input type="hidden" name="bookshelf_id" value="2"/>
+      $if edition_key:
+        <input type="hidden" name="edition_id" value="$(edition_key)"/>
+      $# XXX: Closes dropper
+      <button class="nostyle-btn $(btn_visibilities[2])" type="submit">$_('Currently Reading')</button>
+    </form>
+    
+    <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
+      <input type="hidden" name="action" value="add"/>
+      <input type="hidden" name="bookshelf_id" value="3"/>
+      $if edition_key:
+        <input type="hidden" name="edition_id" value="$(edition_key)"/>
+      $# XXX: Closes dropper
+      <button class="nostyle-btn $(btn_visibilities[3])" type="submit">$_('Already Read')</button>
+    </form>
+  </div>
+
+$def list_selections(user_lists, work_key, edition_key, async_load):
+  $# Render list forms:
+  <div class="reading-lists">
+    <p class="reading-list-title">$_('My Reading Lists:')</p>
+    <div class="my-lists">
+      $# XXX: Remove and False
+      $if async_load and False:
+        $ ed_attr = 'data-edition-key=%s' % edition_key if edition_key else ''
+        $ work_attr = 'data-work-key=%s' % work_key if work_key else ''
+        <div class="list-loading-indicator" $ed_attr $work_attr>Loading<span class="loading-ellipsis">...</span></div>
+      $else:
+        $:render_template('lists/dropper_lists', user_lists)
+    </div>
+    $if edition_key:
+      <p class="create checkboxes">
+        <label>
+          <input type="checkbox" class="work-checkbox"/>
+          <span>$_('Use this Work')</span>
+        </label>
+      </p>
+    <p class="create">
+      <a href="javascript:;" class="create-new-list" aria-controls="addList">$_('Create a new list')</a>
+    </p>
+  </div>
+
+$def new_list_modal_content():
+  <div class="hidden">
+    <div class="floaterAdd" id="addList">
+      <h2>$_('Create a new list')</h2>
+      <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+    </div>
+    <div class="floaterHead">
+      <h2>$_('Create a new list')</h2>
+      <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+    </div>
+    $# XXX: May need id="new-list"
+    <form method="post" class="floatform" name="new-list">
+      <div class="formElement">
+        <div class="label">
+          <label for="list_label">$_('Name:')</label>
+        </div>
+        <div class="input">
+          <input type="text" name="list_label" id="list_label" class="text required" value="" required/>
+        </div>
+      </div>
+      <div class="formElement">
+        <div class="label">
+          <label for="list_desc">$_('Description:')</label>
+        </div>
+        <div class="input">
+          <textarea name="list_desc" id="list_desc" rows="5" cols="30"></textarea>
+        </div>
+      </div>
+      <div class="formElement">
+        <div class="input">
+          <button id="create-list-button" type="submit" class="larger">$_('Create new list')</button>
+          &nbsp; &nbsp;
+          <a class="small dialog--close plain red">$_('Cancel')</a>
+        </div>
+        $# XXX: May need this:
+        <!--div class="label"></div-->
+      </div>
+    </form>
+  </div>
+
+$if work_key:
+  $:reading_log_selections(work_key, edition_key, users_work_read_status)
+
+$:list_selections(user_lists, work_key, edition_key, async_load)
+
+$# XXX: Change render_once key:
+$if render_once('lists/widget.addList'):
+  $:new_list_modal_content()
