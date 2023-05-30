@@ -27,7 +27,6 @@ def get_status_for_view(status_code: int) -> str:
 
 
 class CommunityEditsQueue:
-
     """Schema
     id: Primary identifier
     submitter: username of person that made the request

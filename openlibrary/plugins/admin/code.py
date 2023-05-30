@@ -239,6 +239,80 @@ class sync_ol_ia:
         return delegate.RawText(json.dumps(data), content_type="application/json")
 
 
+class sync_ia_ol(delegate.page):
+    path = '/ia/sync'
+    encoding = 'json'
+
+    def POST(self):
+        # Authenticate request:
+        s3_access_key = web.ctx.env.get('HTTP_X_S3_ACCESS', '')
+        s3_secret_key = web.ctx.env.get('HTTP_X_S3_SECRET', '')
+
+        if not self.is_authorized(s3_access_key, s3_secret_key):
+            raise web.unauthorized()
+
+        # Validate input
+        i = json.loads(web.data())
+
+        if not self.validate_input(i):
+            raise web.badrequest('Missing required fields')
+
+        # Find record using OLID (raise 404 if not found)
+        edition_key = f'/books/{i.get("olid")}'
+        edition = web.ctx.site.get(edition_key)
+
+        if not edition:
+            raise web.notfound()
+
+        # Update record
+        match i.get('action', ''):
+            case 'remove':
+                self.remove_ocaid(edition)
+            case 'modify':
+                self.modify_ocaid(edition, i.get('ocaid'))
+            case '_':
+                raise web.badrequest('Unknown action')
+
+        return delegate.RawText(json.dumps({"status": "ok"}))
+
+    def is_authorized(self, access_key, secret_key):
+        """Returns True if account is authorized to make changes to records."""
+        auth = accounts.InternetArchiveAccount.s3auth(access_key, secret_key)
+
+        if not auth.get('username', ''):
+            return False
+
+        acct = accounts.OpenLibraryAccount.get(email=auth.get('username'))
+        user = acct.get_user() if acct else None
+
+        if not user or (user and not user.is_usergroup_member('/usergroup/ia')):
+            return False
+
+        return True
+
+    def validate_input(self, i):
+        """Returns True if the request is valid.
+        All requests must have an olid and an action.  If the action is
+        'modify', the request must also include 'ocaid'.
+        """
+        action = i.get('action', '')
+        return 'olid' in i and (
+            action == 'remove' or (action == 'modify' and 'ocaid' in i)
+        )
+
+    def remove_ocaid(self, edition):
+        """Deletes OCAID from given edition"""
+        data = edition.dict()
+        del data['ocaid']
+        web.ctx.site.save(data, 'Remove OCAID: Item no longer available to borrow.')
+
+    def modify_ocaid(self, edition, new_ocaid):
+        """Adds the given new_ocaid to an edition."""
+        data = edition.dict()
+        data['ocaid'] = new_ocaid
+        web.ctx.site.save(data, 'Update OCAID')
+
+
 class people_view:
     def GET(self, key):
         account = accounts.find(username=key) or accounts.find(email=key)
@@ -491,15 +565,6 @@ class stats:
         }
         doc.members = stats.new_accounts
         return doc
-
-
-class ipstats:
-    def GET(self):
-        web.header('Content-Type', 'application/json')
-        text = requests.get(
-            "http://www.archive.org/download/stats/numUniqueIPsOL.json"
-        ).text
-        return delegate.RawText(text)
 
 
 class block:
@@ -882,7 +947,6 @@ def setup():
     register_admin_page('/admin/ip', ipaddress, label='IP')
     register_admin_page('/admin/ip/(.*)', ipaddress_view, label='View IP')
     register_admin_page(r'/admin/stats/(\d\d\d\d-\d\d-\d\d)', stats, label='Stats JSON')
-    register_admin_page('/admin/ipstats', ipstats, label='IP Stats JSON')
     register_admin_page('/admin/block', block, label='')
     register_admin_page(
         '/admin/attach_debugger', attach_debugger, label='Attach Debugger'

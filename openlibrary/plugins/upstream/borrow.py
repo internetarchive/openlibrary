@@ -158,7 +158,7 @@ class borrow(delegate.page):
             stats.increment('ol.loans.return')
             edition.update_loan_status()
             user.update_loan_status()
-            raise web.seeother('/account/loans')
+            raise web.seeother(web.ctx.path)
         elif action == 'join-waitinglist':
             lending.s3_loan_api(edition.ocaid, s3_keys, action='join_waitlist')
             stats.increment('ol.loans.joinWaitlist')
@@ -244,7 +244,7 @@ class borrow_status(delegate.page):
             'id': key,
             'loan_available': loan_available,
             'available_formats': available_formats,
-            'lending_subjects': [lending_subject for lending_subject in subjects],
+            'lending_subjects': list(subjects),
         }
 
         output_text = json.dumps(output)
@@ -255,98 +255,6 @@ class borrow_status(delegate.page):
             output_text = f'{i.callback} ( {output_text} );'
 
         return delegate.RawText(output_text, content_type=content_type)
-
-
-class borrow_admin(delegate.page):
-    path = "(/books/.*)/borrow_admin"
-
-    def GET(self, key):
-        if not is_admin():
-            return render_template(
-                'permission_denied', web.ctx.path, "Permission denied."
-            )
-
-        edition = web.ctx.site.get(key)
-        if not edition:
-            raise web.notfound()
-
-        if edition.ocaid:
-            lending.sync_loan(edition.ocaid)
-            ebook_key = "ebooks/" + edition.ocaid
-            ebook = web.ctx.site.store.get(ebook_key) or {}
-        else:
-            ebook = None
-
-        edition_loans = get_edition_loans(edition)
-
-        user_loans = []
-        if user := accounts.get_current_user():
-            user_loans = get_loans(user)
-
-        return render_template(
-            "borrow_admin", edition, edition_loans, ebook, user_loans, web.ctx.ip
-        )
-
-    def POST(self, key):
-        if not is_admin():
-            return render_template(
-                'permission_denied', web.ctx.path, "Permission denied."
-            )
-
-        edition = web.ctx.site.get(key)
-        if not edition:
-            raise web.notfound()
-        if not edition.ocaid:
-            raise web.seeother(edition.url("/borrow_admin"))
-
-        lending.sync_loan(edition.ocaid)
-        i = web.input(action=None, loan_key=None)
-
-        if i.action == 'delete' and i.loan_key:
-            loan = lending.get_loan(edition.ocaid)
-            if loan and loan['_key'] == i.loan_key:
-                loan.delete()
-        raise web.seeother(web.ctx.path + '/borrow_admin')
-
-
-class borrow_admin_no_update(delegate.page):
-    path = "(/books/.*)/borrow_admin_no_update"
-
-    def GET(self, key):
-        if not is_admin():
-            return render_template(
-                'permission_denied', web.ctx.path, "Permission denied."
-            )
-
-        edition = web.ctx.site.get(key)
-
-        if not edition:
-            raise web.notfound()
-
-        edition_loans = get_edition_loans(edition)
-
-        user_loans = []
-        if user := accounts.get_current_user():
-            user_loans = get_loans(user)
-
-        return render_template(
-            "borrow_admin_no_update", edition, edition_loans, user_loans, web.ctx.ip
-        )
-
-    def POST(self, key):
-        if not is_admin():
-            return render_template(
-                'permission_denied', web.ctx.path, "Permission denied."
-            )
-
-        i = web.input(action=None, loan_key=None)
-
-        if i.action == 'delete' and i.loan_key:
-            delete_loan(i.loan_key)
-
-        raise web.seeother(
-            web.ctx.path
-        )  # $$$ why doesn't this redirect to borrow_admin_no_update?
 
 
 class ia_loan_status(delegate.page):
@@ -675,12 +583,9 @@ def is_loaned_out(resource_id):
 
 
 def is_loaned_out_from_status(status):
-    if not status:
+    if not status or status['returned'] == 'T':
+        # Current loan has been returned
         return False
-    else:
-        if status['returned'] == 'T':
-            # Current loan has been returned
-            return False
 
     # Has status and not returned
     return True
@@ -820,7 +725,7 @@ def is_users_turn_to_borrow(user, edition):
 
 
 def is_admin():
-    """ "Returns True if the current user is in admin usergroup."""
+    """Returns True if the current user is in admin usergroup."""
     user = accounts.get_current_user()
     return user and user.key in [
         m.key for m in web.ctx.site.get('/usergroup/admin').members
@@ -852,7 +757,7 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
     """Returns response similar to one of these:
     {'success':true,'token':'1287185207-fa72103dd21073add8f87a5ad8bce845','borrowed':true}
     {'success':false,'msg':'Book is checked out','borrowed':false, 'resolution': 'You can visit <a href="http://openlibary.org/ia/someid">this book\'s page on Open Library</a>.'}
-    """
+    """  # noqa: E501
 
     base_url = 'http://' + web.ctx.host
     resolution_dict = {'base_url': base_url, 'item_id': item_id}

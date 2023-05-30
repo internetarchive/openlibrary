@@ -25,7 +25,7 @@ Are you looking to get started? [This is the guide](https://github.com/interneta
 
 ## Overview
 
-Open Library is an effort started in 2006 to create "one web page for every book ever published". It provides access to many public domain and out-of-print books, which can be read online.
+Open Library is an effort started in 2006 to create "one web page for every book ever published." It provides access to many public domain and out-of-print books, which can be read online.
 
 Here's a quick public tour of Open Library to get you familiar with the service and its offerings (10min).
 
@@ -37,7 +37,7 @@ Here's a quick public tour of Open Library to get you familiar with the service 
 
 ## Installation
 
-Run `docker-compose up` and visit http://localhost:8080
+Run `docker compose up` and visit http://localhost:8080
 
 Need more details? Checkout the [Docker instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)
 or [video tutorial](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4).
@@ -83,7 +83,7 @@ Run tests while the docker container is running.
 
 ```
 cd docker/
-docker-compose exec web make test
+docker compose exec web make test
 ```
 
 ### Integration Tests

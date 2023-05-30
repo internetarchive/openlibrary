@@ -184,6 +184,9 @@ div.floater {
       font-weight: normal;
     }
   }
+  .dialog--close-parent {
+    cursor: pointer;
+  }
   div#covers.input {
     max-height: 132px;
     overflow: hidden;
@@ -197,9 +200,16 @@ div.floater {
     padding: 3px;
     margin-left: 30px;
   }
+  input::file-selector-button{
+    cursor: pointer;
+  }
   button[type=submit] {
     font-size: 1.125em;
     width: auto !important;
+    cursor: pointer;
+  }
+  a {
+    cursor: pointer;
   }
 }
 

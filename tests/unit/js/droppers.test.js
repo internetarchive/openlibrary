@@ -1,6 +1,6 @@
 import jquery from 'jquery';
 import sinon from 'sinon';
-import { initReadingListFeature } from '../../../openlibrary/plugins/openlibrary/js/ol';
+import { initDroppers } from '../../../openlibrary/plugins/openlibrary/js/droppers';
 import { bookDropdownSample } from './html-test-data'
 import * as nonjquery_utils from '../../../openlibrary/plugins/openlibrary/js/nonjquery_utils.js';
 let sandbox;
@@ -11,15 +11,15 @@ beforeEach(() => {
     sandbox.stub(global, '$').callsFake(jquery);
 });
 
-describe('initReadingList', () => {
+describe('initDroppers', () => {
     test.only('dropdown changes arrow direction on click', () => {
         // Stub debounce to avoid have to manipulate time (!)
         const stub = sinon.stub(nonjquery_utils, 'debounce').callsFake(fn => fn);
 
-        initReadingListFeature();
         $(document.body).html(bookDropdownSample);
         const $dropclick = $('.dropclick');
         const $arrow = $dropclick.find('.arrow');
+        initDroppers(document.querySelectorAll('.dropper'));
 
         for (let i = 0; i < 2; i++) {
             $dropclick.trigger('click');

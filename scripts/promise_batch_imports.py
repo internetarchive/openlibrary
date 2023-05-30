@@ -3,7 +3,7 @@ As of 2022-12: Run on `ol-home0 cron container as
 
 ```
 $ ssh -A ol-home0
-$ docker exec -it -uopenlibrary openlibrary_cron-jobs_1 bash
+$ docker exec -it -uopenlibrary openlibrary-cron-jobs-1 bash
 $ PYTHONPATH="/openlibrary" python3 /openlibrary/scripts/promise_batch_imports.py /olsystem/etc/openlibrary.yml
 ```
 
@@ -18,6 +18,7 @@ from __future__ import annotations
 import requests
 import logging
 
+import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 from infogami import config  # noqa: F401
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch

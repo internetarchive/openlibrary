@@ -9,7 +9,7 @@ import asyncio
 import itertools
 import logging
 import re
-from typing import List, Optional, TypedDict, cast
+from typing import Optional, TypedDict, cast
 from collections.abc import Iterable, Sized
 
 import httpx
@@ -360,7 +360,9 @@ class ExternalDataProvider(DataProvider):
         return resp['entries']
 
     async def get_document(self, key: str):
-        return requests.get(f"http://{self.ol_host}{key}.json").json()
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"http://{self.ol_host}{key}.json")
+            return response.json()
 
 
 class BetterDataProvider(LegacyDataProvider):

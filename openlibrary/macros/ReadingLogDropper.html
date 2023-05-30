@@ -31,7 +31,7 @@ $if ctx.user or not work_key:
             <input type="hidden" name="bookshelf_id" value="$(bookshelf_id_value)"/>
             <input type="hidden" name="default-key" value="$(key)" />
 
-            <button class="book-progress-btn want-to-read $(activated_status)" type="submit">
+            <button class="book-progress-btn want-to-read $(activated_status) dropper__close" type="submit">
               <span class="activated-check$(checkmark_visibility)">✓</span>
               <span class="btn-text">$(message)</span>
             </button>
@@ -61,7 +61,7 @@ $if ctx.user or not work_key:
               $if edition_key:
                 <input type="hidden" name="edition_id" value="$(edition_key)"/>
               <input type="hidden" id="work_id" name="work_id" value="$(work_key)"/>
-              <button class="remove-from-list hidden" type="submit">$_('Remove From Shelf')</button>
+              <button class="remove-from-list dropper__close hidden" type="submit">$_('Remove From Shelf')</button>
             </form>
 
             <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
@@ -69,7 +69,7 @@ $if ctx.user or not work_key:
               <input type="hidden" name="bookshelf_id" value="1"/>
               $if edition_key:
                 <input type="hidden" name="edition_id" value="$(edition_key)"/>
-              <button class="nostyle-btn$(classes[0])" type="submit">$_('Want to Read')</button>
+              <button class="nostyle-btn$(classes[0]) dropper__close" type="submit">$_('Want to Read')</button>
             </form>
 
             <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
@@ -77,7 +77,7 @@ $if ctx.user or not work_key:
               <input type="hidden" name="bookshelf_id" value="2"/>
               $if edition_key:
                 <input type="hidden" name="edition_id" value="$(edition_key)"/>
-              <button class="nostyle-btn$(classes[1])" type="submit">$_('Currently Reading')</button>
+              <button class="nostyle-btn$(classes[1]) dropper__close" type="submit">$_('Currently Reading')</button>
             </form>
 
             <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
@@ -85,7 +85,7 @@ $if ctx.user or not work_key:
               <input type="hidden" name="bookshelf_id" value="3"/>
               $if edition_key:
                 <input type="hidden" name="edition_id" value="$(edition_key)"/>
-              <button class="nostyle-btn$(classes[2])" type="submit">$_('Already Read')</button>
+              <button class="nostyle-btn$(classes[2]) dropper__close" type="submit">$_('Already Read')</button>
             </form>
           </div>
 

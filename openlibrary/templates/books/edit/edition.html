@@ -90,7 +90,14 @@ $jsdef render_work_autocomplete_item(item):
                 <span class="tip">$_("Enter the title of this specific edition.")</span>
             </div>
             <div class="input">
-                <input type="text" name="edition--title" id="edition-title" value="$book.title"/>
+                <input
+                    type="text"
+                    name="edition--title"
+                    id="edition-title"
+                    value="$book.title"
+                    $# Prevent erasure of edition title
+                    $cond(book.title, 'required', '')
+                />
                 <input type="hidden" name="edition--title_prefix" value=""/>
             </div>
         </div>

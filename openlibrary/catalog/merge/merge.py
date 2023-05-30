@@ -223,9 +223,9 @@ def compare_publisher(amazon, marc):
             norm_marc = normalize(marc_pub)
             if norm_amazon == norm_marc:
                 return ('publisher', 'match', 100)
-            elif substr_match(norm_amazon, norm_marc):
-                return ('publisher', 'occur within the other', 100)
-            elif substr_match(norm_amazon.replace(' ', ''), norm_marc.replace(' ', '')):
+            elif substr_match(norm_amazon, norm_marc) or substr_match(
+                norm_amazon.replace(' ', ''), norm_marc.replace(' ', '')
+            ):
                 return ('publisher', 'occur within the other', 100)
             elif short_part_publisher_match(norm_amazon, norm_marc):
                 return ('publisher', 'match', 100)

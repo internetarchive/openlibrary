@@ -13,11 +13,14 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
+      - id: check-toml
       - id: check-yaml
       - id: detect-private-key
       - id: end-of-file-fixer
         types_or: [python]
       - id: mixed-line-ending
+        args:
+          - --fix=lf
       - id: requirements-txt-fixer
       - id: trailing-whitespace
         args:
@@ -29,49 +32,58 @@ repos:
       - id: auto-walrus
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    # Ruff version.
-    rev: v0.0.254
+    rev: v0.0.269
     hooks:
       - id: ruff
 
   - repo: https://github.com/psf/black
-    rev: 23.1.0
+    rev: 23.3.0
     hooks:
       - id: black  # See pyproject.toml for args
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.2
+    rev: v2.2.4
     hooks:
       - id: codespell  # See pyproject.toml for args
         additional_dependencies:
           - tomli
 
   - repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.12.5
+    rev: v0.15.0
     hooks:
     - id: cython-lint
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v1.0.1'
+    rev: v1.3.0
     hooks:
       - id: mypy  # See pyproject.toml for args
         additional_dependencies:
           - types-all
 
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.3.1
-    hooks:
-      - id: pyupgrade
-        args:  # Solr on Cython is not yet ready for 3.10 type hints
-          - --py39-plus
-          - --keep-runtime-typing
-
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.12.1
+    rev: v0.13
     hooks:
       - id: validate-pyproject
 
-  - repo: https://github.com/pycqa/flake8
-    rev: 6.0.0
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.41.0
     hooks:
-      - id: flake8  # See the file .flake8 for args
+      - id: eslint
+        types: [file]
+        types_or: [javascript, vue]
+        additional_dependencies:
+          - eslint@6.8.0
+          - eslint-plugin-no-jquery@2.6.0
+          - eslint-plugin-vue@7.15.0
+          - babel-eslint@10.1.0
+        args: [--fix]
+
+  - repo: https://github.com/awebdeveloper/pre-commit-stylelint
+    rev: 0.0.2
+    hooks:
+    - id: stylelint
+      files: \.(css|less)$
+      additional_dependencies:
+        - stylelint@13.13.1
+        - stylelint-declaration-use-variable@1.7.3
+      args: [--fix]

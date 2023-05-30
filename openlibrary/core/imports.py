@@ -76,7 +76,7 @@ class Batch(web.storage):
             i.e. of a format id_type:value which cannot be a valid IA id.
         """
         if not items:
-            return None
+            return
 
         logger.info("batch %s: adding %d items", self.name, len(items))
 
@@ -95,7 +95,7 @@ class Batch(web.storage):
                         pass
             logger.info("batch %s: added %d items", self.name, len(items))
 
-        return None
+        return
 
     def get_items(self, status="pending"):
         result = db.where("import_item", batch_id=self.id, status=status)

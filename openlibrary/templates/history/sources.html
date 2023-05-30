@@ -33,6 +33,9 @@ $code:
         if item.startswith("ia:"):
             source_name = "Internet Archive"
             source_url = "//archive.org/details/" + item[3:]
+        elif item.startswith("promise:"):
+            source_name = "Promise Item"
+            source_url = "https://archive.org/details/" + item[8:]
         elif item.startswith("amazon:"):
             source_name = "amazon.com"
             source_url = "https://www.amazon.com/?tag=" + affiliate_id('amazon')

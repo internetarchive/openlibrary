@@ -109,7 +109,7 @@ A branch name consists of the: issue number, whether it is a feature/hotfix/refa
 With respect to client side patches, before submitting your patch you'll want to check it adheres to code styling rules and tests. We use `npm` to test our client side code.
 
 ```
-npm install
+npm install --no-audit
 npm test
 ```
 
@@ -146,7 +146,7 @@ Guidelines for repo maintainers.
 
 We use assignee to denote PR ownership. If you are the assignee, then you should have the PR on your todo list until you merge or close it.
 - **Assign yourself** to a PR if you have the time to take on the responsibilities of ownership (described below).
-- **Don't assign others** to a PR. Feel free to ask someone to take ownership, but respect others time restrictions.
+- **Don't assign others** to a PR. Feel free to ask someone to take ownership, but respect others' time restrictions.
 - **Avoid assignee=author**. In the case where the PR author is also a maintainer, we will strive to have another maintainer own and merge the PR to ensure these steps are followed fairly by all.
 
 The assignee of a PR is responsible for:

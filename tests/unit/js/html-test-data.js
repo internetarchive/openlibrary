@@ -69,9 +69,11 @@ export const editionIdentifiersSample = `<fieldset id="identifiers" data-config=
 
 /** Part/Simplification of the .widget-add element */
 export const bookDropdownSample = `
-    <a href="javascript:;" class="dropclick dropclick-unactivated">
-        <div class="arrow arrow-unactivated"></div>
-    </a>
+    <div class="dropper">
+        <a href="javascript:;" class="dropclick dropclick-unactivated">
+            <div class="arrow arrow-unactivated"></div>
+        </a>
+    </div>
 `;
 
 export const listCreationForm = `
@@ -207,5 +209,18 @@ export const checkInForm = `
       <button type="submit" class="check-in__submit-btn cta-btn cta-btn--shell" disabled>Submit</button>
     </span>
   </form>
+</div>
+`
+
+export const readingLogDropperForm = `
+<div id="dropper">
+    <form class="readingLog">
+        <input type="hidden" name="bookshelf_id" value="1">
+        <input type="hidden" name="action" value="">
+    </form>
+    <form id="remove-from-list">
+        <input type="hidden" name="bookshelf_id">
+        <button class="hidden">Remove From Shelf</button>
+    </form>
 </div>
 `

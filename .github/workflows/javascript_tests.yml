@@ -37,10 +37,8 @@ jobs:
           # Note the version number in this string -- update it when updating Node!
           key: ${{ runner.os }}-node16-${{ hashFiles('**/package-lock.json') }}
       - if: steps.npm-cache.outputs.cache-hit != 'true'
-        run: npm install
+        run: npm install --no-audit
       - run: npm run lint
       - run: make git
-      - run: make js
-      - run: make css
-      - run: make components
+      - run: npx concurrently --group 'make js' 'make css' 'make components'
       - run: npm run test

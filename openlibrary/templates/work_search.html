@@ -187,7 +187,7 @@ $ )
 
     $elif param and not error and len(docs):
         <div class="search-results-stats">
-          $ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))
+          $ungettext('%(count)s hit', '%(count)s hits', num_found, count=commify(num_found))
 
           $if num_found > 1:
             $:render_template("search/sort_options.html", sort)

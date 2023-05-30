@@ -2,7 +2,7 @@
 
 import logging
 import re
-from typing import List, Optional, TypeVar
+from typing import Optional, TypeVar
 from collections.abc import Callable, Iterable
 
 import requests

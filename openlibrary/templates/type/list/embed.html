@@ -9,7 +9,7 @@ $ page = safeint(query_param('page'), 1) - 1
 $ page_size = 10
 
 $def render_seed_count(seed_count):
-    $ungettext("1 item", "%(count)d items", seed_count, count=seed_count)
+    $ungettext("%(count)d item", "%(count)d items", seed_count, count=seed_count)
 
 <div id="contentHead" style="margin-bottom:0;">
     <div class="superNav">

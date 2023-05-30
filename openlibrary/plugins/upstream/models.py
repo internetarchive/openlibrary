@@ -669,7 +669,7 @@ class Work(models.Work):
                     not filter_unicode
                     or (subject.replace(' ', '').isalnum() and is_ascii(subject))
                 )
-                and all([char not in subject for char in blacklist_chars])
+                and all(char not in subject for char in blacklist_chars)
             ):
                 ok_subjects.append(subject)
         return ok_subjects
@@ -831,6 +831,9 @@ class User(models.User):
         loans = lending.get_loans_of_user(self.key)
         for loan in loans:
             lending.sync_loan(loan['ocaid'])
+
+    def get_safe_mode(self):
+        return self.get_users_settings().get('safe_mode', "").lower()
 
 
 class UnitParser:

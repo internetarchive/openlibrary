@@ -88,7 +88,7 @@ $def with (books=None, books_wo_isbns=None)
     </div>
 
     <input type="submit" class="import-submit cta-btn cta-btn--unavailable" value="Import $len(books) Books">
-    $ keys = ['ISBN', 'Title', 'My Rating', 'Exclusive Shelf']
+    $ keys = ['ISBN', 'Title', 'My Rating', 'Exclusive Shelf', 'Date Read']
     <div class="div-class">
       <table class="import-table">
         <thead>
@@ -110,8 +110,8 @@ $def with (books=None, books_wo_isbns=None)
           $for isbn in books:
             <tr class="table-row" isbn="$isbn">
               <td>
-              $ dict = {'ISBN':'', 'Title':'', 'My Rating':'', 'Exclusive Shelf':''}
-              $ k = ['ISBN', 'My Rating', 'Exclusive Shelf']
+              $ dict = {'ISBN':'', 'Title':'', 'My Rating':'', 'Exclusive Shelf':'', 'Date Read':''}
+              $ k = ['ISBN', 'My Rating', 'Exclusive Shelf', 'Date Read']
               $for key in k:
                   $ dict[key] = books[isbn].get(key)
               <input class="add-book" value="$(dict)" type="checkbox" checked="checked">

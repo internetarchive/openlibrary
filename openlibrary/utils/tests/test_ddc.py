@@ -82,7 +82,11 @@ TESTS = [
     ('823/.92 22', ['823.92'], 'catalog number without leading 0 (real world)'),
     ("813.' 54", ['813.54'], 'Space and quote separate (real world)'),
     ("726. 6' 0945' 51 (ddc21)", ['726.6'], 'Random spaces (real world)'),
-    ('813./​54', ['813.54'], 'Random non-printable chars (real world)'),
+    (
+        '813./​54',  # noqa: PLE2515
+        ['813.54'],
+        'Random non-printable chars (real world)',
+    ),
     ('868 G216m', ['868'], 'Cutter number (real world)'),
     ('863.,64', ['863.64'], 'Random comma (real world)'),
     ('616..8/3', ['616.83'], 'Double dot (real world)'),

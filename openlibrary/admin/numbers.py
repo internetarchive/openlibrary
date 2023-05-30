@@ -37,9 +37,6 @@ class NoStats(TypeError):
     pass
 
 
-sqlitefile = None
-
-
 # Utility functions
 def query_single_thing(db, typ, start, end):
     "Query the counts a single type from the things table"
@@ -93,8 +90,10 @@ def admin_range__human_edits(**kargs):
     total_edits = result[0].count
     q1 = (
         "SELECT count(DISTINCT t.id) AS count FROM transaction t, version v WHERE "
-        "v.transaction_id=t.id AND t.created >= '%s' and t.created < '%s' AND "
-        "t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')" % (start, end)
+        "v.transaction_id=t.id AND t.created >= '{}' and t.created < '{}' AND "
+        "t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')".format(
+            start, end
+        )
     )
     result = db.query(q1)
     bot_edits = result[0].count
@@ -113,8 +112,10 @@ def admin_range__bot_edits(**kargs):
         raise TypeError("%s is a required argument for admin_range__bot_edits" % k)
     q1 = (
         "SELECT count(*) AS count FROM transaction t, version v WHERE "
-        "v.transaction_id=t.id AND t.created >= '%s' and t.created < '%s' AND "
-        "t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')" % (start, end)
+        "v.transaction_id=t.id AND t.created >= '{}' and t.created < '{}' AND "
+        "t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')".format(
+            start, end
+        )
     )
     result = db.query(q1)
     count = result[0].count
@@ -144,30 +145,6 @@ admin_range__users = functools.partial(single_thing_skeleton, type="user")
 admin_range__authors = functools.partial(single_thing_skeleton, type="author")
 admin_range__lists = functools.partial(single_thing_skeleton, type="list")
 admin_range__members = functools.partial(single_thing_skeleton, type="user")
-
-
-def admin_range__visitors(**kargs):
-    "Finds number of unique IPs to visit the OL website."
-    try:
-        date = kargs['start']
-    except KeyError as k:
-        raise TypeError("%s is a required argument for admin_range__visitors" % k)
-    global sqlitefile
-    if not sqlitefile:
-        sqlitefile = tempfile.mktemp(prefix="sqlite-")
-        url = "http://www.archive.org/download/stats/numUniqueIPsOL.sqlite"
-        logging.debug("  Downloading '%s'", url)
-        with open(sqlitefile, "wb") as f:
-            f.write(requests.get(url).content)
-    db = web.database(dbn="sqlite", db=sqlitefile)
-    d = date.replace(hour=0, minute=0, second=0, microsecond=0)
-    key = calendar.timegm(d.timetuple())
-    q = "SELECT value AS count FROM data WHERE timestamp = %d" % key
-    if result := list(db.query(q)):
-        return result[0].count
-    else:
-        logging.debug("  No statistics obtained for %s (%d)", date, key)
-        raise NoStats("No record for %s" % date)
 
 
 def admin_range__loans(**kargs):
