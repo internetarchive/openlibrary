@@ -34,7 +34,7 @@ async def fetch_docs(params: dict[str, str | int], solr_base: str, page_size=100
         return data['response']['docs']
 
 
-async def stream_bounds(params: dict[str, str | int], solr_base: str, page_size=100):
+async def stream_bounds(params: dict[str, str], solr_base: str, page_size=100):
     """Stream bounds from a Solr query. Uses cursors."""
     params = params.copy()
     params['rows'] = page_size
@@ -140,7 +140,7 @@ async def main(
         print(result, flush=True)
 
     # now run N workers in async pool to process the bounds
-    running = set()
+    running: set[asyncio.Task] = set()
     async for bounds in stream_bounds(galloping_params, solr_base, page_size=page_size):
         if len(running) >= workers:
             done, running = await asyncio.wait(
