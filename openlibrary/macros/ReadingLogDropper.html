@@ -143,7 +143,7 @@ $if ctx.user or not work_key:
     </div>
   </div>
   $if include_lists:
-      $:macros.CreateList()
+      $:macros.CreateListModal()
   $if work_key:
     $ last_read_date = get_latest_read_date(work_key)
     $ date = last_read_date['event_date'] if last_read_date else None
