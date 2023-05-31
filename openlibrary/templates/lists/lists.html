@@ -114,12 +114,13 @@ $else:
             </ul>
         </div>
     $elif not ctx.user or ctx.user.key != doc.key:
-        <p>$_("This reader hasn't created any lists yet.")</p>
+        <p>$_("There are no items on this list.")</p>
     $else:
-        <p>$_("You haven't created any lists yet.")</p>
+        <p>$_("There are no items on this list!")</p>
         <p>
-          <a href="/help/faq/reading-log#lists"
-               target="_blank">$_('Learn how to create your first list.')</a>
+            <a href="/search" target="_blank">$_('Search for book, subjects, or authors')</a>
+            $_('to add to your list.')
+            <a href="/help/faq/reading-log#lists" target="_blank">$_('Learn more.')</a>
         </p>
     <div class="clearfix"></div>
 
