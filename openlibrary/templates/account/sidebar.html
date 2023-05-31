@@ -40,14 +40,26 @@ $ counts = counts or pa.get_sidebar_counts
       </ul>
     <ul class="sidebar-section">
         <li class="section-header section-header-split"><span>$(_('My lists') if owners_page else _('Lists'))</span> <a href="/people/$username/lists" data-ol-link-track="MyBooksSidebar|AllLists" class="li-count chevron">$(_('See All'))</a></li>
-        <div class="widget-add">
-            <input type="hidden" name="user-key" value="$(user_key)">
-            <input id="default-key" type="hidden" name="default-key" value="">
-            <p class="create">
-                <a href="javascript:;" class="create-new-list">$_('Create a list')</a>
-            </p>
-        </div>
-        $:macros.CreateList()
+        $if owners_page:
+            <div class="widget-add">
+                <input type="hidden" name="user-key" value="$(user_key)">
+                <input id="default-key" type="hidden" name="default-key" value="">
+                <p class="create">
+                    <a href="javascript:;" class="create-new-list">$_('Create a list')</a>
+                </p>
+            </div>
+        $:macros.CreateListModal()
+        <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                const form = document.getElementById('new-list');
+                const button = form.querySelector('#create-list-button');
+                button.addEventListener('click', function() {
+                  setTimeout(function() {
+                    location.reload();
+                  }, 300);
+                });
+            });
+        </script>
       <div class="list-overflow">
         $ placeholder_name = _('Untitled list')
         $for lst in lists:
