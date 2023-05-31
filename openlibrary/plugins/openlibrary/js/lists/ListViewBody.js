@@ -31,6 +31,7 @@ function remove_seed(list_key, seed, success) {
     });
 }
 
+// eslint-disable-next-line no-unused-vars
 /**
  * @returns {number} count of number of seed books in a list
  */
