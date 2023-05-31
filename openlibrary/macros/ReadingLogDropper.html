@@ -142,7 +142,7 @@ $if ctx.user or not work_key:
       </div>
     </div>
   </div>
-  $if include_lists and render_once('lists/widget.addList'):
+  $if include_lists:
       $:macros.CreateList()
   $if work_key:
     $ last_read_date = get_latest_read_date(work_key)
