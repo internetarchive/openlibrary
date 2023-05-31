@@ -56,11 +56,11 @@ const getConfirmButtonLabelText = () => {
 
 // Add listeners to each .listDelete link element
 $('.listDelete a').on('click', function() {
-        $('#remove-seed-dialog')
-            .data('seed-key', $(this).closest('[data-seed-key]').data('seed-key'))
-            .data('list-key', $(this).closest('[data-list-key]').data('list-key'))
-            .dialog('open');
-        $('#remove-seed-dialog').removeClass('hidden');
+    $('#remove-seed-dialog')
+        .data('seed-key', $(this).closest('[data-seed-key]').data('seed-key'))
+        .data('list-key', $(this).closest('[data-list-key]').data('list-key'))
+        .dialog('open');
+    $('#remove-seed-dialog').removeClass('hidden');
 });
 
 // Set up 'Remove Seed' dialog; force user to confirm the destructive action of removing a seed
