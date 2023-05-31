@@ -1,4 +1,5 @@
 import re
+from collections import OrderedDict
 from typing import Any, Callable, Optional
 
 from openlibrary.catalog.marc.get_subjects import subjects_for_work
@@ -28,6 +29,18 @@ re_ocn_or_ocm = re.compile(r'^oc[nm]0*(\d+) *$')
 re_int = re.compile(r'\d{2,}')
 re_number_dot = re.compile(r'\d{3,}\.$')
 re_bracket_field = re.compile(r'^\s*(\[.*\])\.?\s*$')
+
+# Script identification code - Occurrence number is followed immediately by a slash (/)
+# and the script identification code. This code identifies the alternate script found in the field.
+# The following codes are used:
+#
+# Code	Script
+# (3	Arabic
+# (B	Latin
+# $1	Chinese, Japanese, Korean
+# (N	Cyrillic
+# (S	Greek
+# (2	Hebrew
 
 
 def strip_foc(s: str) -> str:
@@ -63,9 +76,9 @@ FIELDS_WANTED = (
         '260',
         '264',  # publisher
         '300',  # pagination
+        '378',  # fuller form of personal name
         '440',
         '490',
-        '830',  # series
     ]
     + [str(i) for i in range(500, 588)]
     + [  # notes + toc + description
@@ -77,13 +90,17 @@ FIELDS_WANTED = (
         '246',
         '730',
         '740',  # other titles
+        '830',  # series
         '852',  # location
         '856',  # electronic location / URL
+        '880',  #
     ]
 )
 
 
 def read_dnb(rec: MarcBase) -> dict[str, list[str]] | None:
+    """Read DNB ID from - National Bibliographic Agency Control Number"""
+    # TODO: Why only DNB and not any of the other national libraries?
     fields = rec.get_fields('016')
     for f in fields:
         (source,) = f.get_subfield_values('2') or ['']
@@ -119,11 +136,8 @@ def read_lccn(rec: MarcBase) -> list[str]:
 
 
 def remove_duplicates(seq: list[Any]) -> list[Any]:
-    u = []
-    for x in seq:
-        if x not in u:
-            u.append(x)
-    return u
+    # TODO: Do we care about order? if not, we can just use list(set(seq))
+    return list(OrderedDict.fromkeys(seq))
 
 
 def read_oclc(rec: MarcBase) -> list[str]:
@@ -270,6 +284,7 @@ def read_title(rec: MarcBase) -> dict[str, Any]:
 
 def read_edition_name(rec: MarcBase) -> str:
     fields = rec.get_fields('250')
+    # TODO or only $a and $b?
     found = [v for f in fields for v in f.get_lower_subfield_values()]
     return ' '.join(found).strip('[]')
 
@@ -388,28 +403,37 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict | None:
     and returns an author import dict.
     """
     author = {}
-    contents = field.get_contents('abcde6')
+    # name, numeration, title, attribution qualifier, affiliation, authority #, RWO URI
+    contents = field.get_contents('abcdejqu016')
     if 'a' not in contents and 'c' not in contents:
         # Should have at least a name or title.
         return None
+    name = [v.strip(' /,;:') for v in f.get_subfield_values(['a', 'b', 'c'])]
+    attribution_qualifier_and_affiliation = [
+        v.strip(' /,;:') for v in f.get_subfield_values(['j', 'u'])
+    ]
+
     if 'd' in contents:
         author = pick_first_date(strip_foc(d).strip(',[]') for d in contents['d'])
         if 'death_date' in author and author['death_date']:
             death_date = author['death_date']
             if re_number_dot.search(death_date):
                 author['death_date'] = death_date[:-1]
-    author['name'] = name_from_list(field.get_subfield_values('abc'))
+    # TODO: Put attribution & affiliation in description instead?
+    author['name'] = ', '.join([' '.join(name)] + attribution_qualifier_and_affiliation)
     author['entity_type'] = 'person'
     subfields = [
         ('a', 'personal_name'),
+        # TODO: I don't see any evidence that numeration is actually getting returned, although there is an author.enumeration reference
         ('b', 'numeration'),
         ('c', 'title'),
-        ('e', 'role'),
     ]
+    # FIXME: skip role = 'ill' (and perhaps others)
     for subfield, field_name in subfields:
         if subfield in contents:
             author[field_name] = name_from_list(contents[subfield])
     if 'q' in contents:
+        # TODO build an alias here
         author['fuller_name'] = ' '.join(contents['q'])
     if '6' in contents:  # alternate script name exists
         if link := field.rec.get_linkage(tag, contents['6'][0]):
@@ -542,7 +566,7 @@ def read_contributions(rec: MarcBase) -> dict[str, Any]:
     """
     Reads contributors from a MARC record
     and use values in 7xx fields to set 'authors'
-    if the 1xx fields do not exist. Otherwise set
+    if the 1xx fields do not exist. Otherwise, set
     additional 'contributions'
 
     :param (MarcBinary | MarcXml) rec:

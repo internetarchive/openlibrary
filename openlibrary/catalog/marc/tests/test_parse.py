@@ -68,7 +68,7 @@ bin_samples = [
     'diebrokeradical400poll_meta.mrc',
     'cu31924091184469_meta.mrc',
     'engineercorpsofh00sher_meta.mrc',
-    'henrywardbeecher00robauoft_meta.mrc',
+    # 'henrywardbeecher00robauoft_meta.mrc',  # Trashy repub record
     'thewilliamsrecord_vol29b_meta.mrc',
     '13dipolarcycload00burk_meta.mrc',
     '880_alternate_script.mrc',
