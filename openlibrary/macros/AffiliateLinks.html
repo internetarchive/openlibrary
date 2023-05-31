@@ -55,6 +55,14 @@ $def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
   </li>
 
 <ul class="buy-options-table">
+    $for provider in page.get('providers', []):
+      $if provider.get('rel') == 'http://opds-spec.org/acquisition/buy' and provider.get('href'):
+        $ name = provider.get('name', _('Official Vendor'))
+        $ href = provider.get('href')
+        $ price = provider.get('properties', {}).get('price', {}).get('value')
+        $if price:
+          $ price = '$%.2f' % price
+        $:affiliate_link('direct', 'direct', name, href, price)
     $for store in primary_stores:
       $:affiliate_link(store['key'], store['analytics_key'], store['name'], store['link'], store.get('price', ''), store.get('price_note', ''))
     $if more_stores:

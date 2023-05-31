@@ -214,7 +214,9 @@ def run_solr_query(
         q = f'{q} {params_q}' if q else params_q
 
     if q:
-        solr_fields = set(fields or scheme.default_fetched_fields)
+        solr_fields = (
+            set(fields or scheme.default_fetched_fields) - scheme.non_solr_fields
+        )
         if 'editions' in solr_fields:
             solr_fields.remove('editions')
             solr_fields.add('editions:[subquery]')
@@ -228,6 +230,10 @@ def run_solr_query(
 
     response = execute_solr_query(solr_select_url, params)
     solr_result = response.json() if response else None
+
+    if non_solr_fields := set(fields) & scheme.non_solr_fields:
+        scheme.add_non_solr_fields(non_solr_fields, solr_result)
+
     return SearchResponse.from_solr_result(solr_result, sort, url)
 
 
@@ -294,7 +300,9 @@ def do_search(
         page,
         sort,
         spellcheck_count,
-        fields=list(WorkSearchScheme.default_fetched_fields | {'editions'}),
+        fields=list(
+            WorkSearchScheme.default_fetched_fields | {'editions', 'providers'}
+        ),
     )
 
 
