@@ -39,7 +39,7 @@ services:
     ports:
       - 8983:8983
     volumes:
-      - solr-data:/var/solr/data
+      - solr-data:/var/solr
       - ../../conf/solr:/opt/solr/server/solr/configsets/olconfig:ro
     networks:
       - solr-access
@@ -64,7 +64,7 @@ services:
       # More memory for production
       - SOLR_JAVA_MEM=-Xms10g -Xmx10g
     volumes:
-      - solr-data:/var/solr/data
+      - solr-data:/var/solr
       - ../../conf/solr:/opt/solr/server/solr/configsets/olconfig:ro
     networks:
       solr-access:
