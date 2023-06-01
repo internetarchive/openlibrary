@@ -38,7 +38,7 @@
     catchall "text" field, and use that for searching.
 -->
 
-<schema name="default-config" version="1.6">
+<schema name="openlibrary-config" version="1.6">
     <!-- attribute "name" is the name of this schema and is only used for display purposes.
        version="x.y" is Solr's version number for the schema syntax and
        semantics.  It should not normally be changed by applications.
@@ -110,7 +110,7 @@
          If you don't need it, consider removing it and the corresponding copyField directive.
     -->
 
-    <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+    <!-- <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false" /> -->
     <!-- docValues are enabled by default for long type so we don't need to index the version field  -->
     <field name="_version_" type="plong" indexed="false" stored="false"/>
 
@@ -125,6 +125,110 @@
     <!-- This can be enabled, in case the client does not know what fields may be searched. It isn't enabled by default
          because it's very expensive to index everything twice. -->
     <!-- <copyField source="*" dest="_text_"/> -->
+
+    <!-- OpenLibrary field definitions -->
+
+    <field name="key" type="string" required="true"/>
+    <field name="type" type="string" required="true"/>
+
+    <field name="redirects" type="string" multiValued="true"/>
+    <field name="has_fulltext" type="boolean"/>
+    <field name="title" type="text_en_splitting"/>
+    <field name="title_suggest" type="text_general" multiValued="false"/>
+    <field name="title_sort" type="text_title_sort" multiValued="false"/>
+    <field name="subtitle" type="text_en_splitting"/>
+    <field name="alternative_title" type="text_en_splitting" stored="false" multiValued="true"/>
+    <field name="alternative_subtitle" type="text_en_splitting" stored="false" multiValued="true"/>
+
+    <field name="edition_count" type="pint"/>
+    <field name="edition_key" type="string" multiValued="true"/>
+    <field name="cover_edition_key" type="string" indexed="false"/>
+    <field name="by_statement" type="text_en_splitting" stored="false" multiValued="true"/>
+    <field name="publish_date" type="text_en_splitting" multiValued="true"/>
+    <field name="publish_year" type="pint" multiValued="true"/>
+    <field name="first_publish_year" type="pint"/>
+    <field name="first_edition" type="string" indexed="false"/>
+    <field name="first_publisher" type="string" indexed="false"/>
+    <field name="language" type="string" multiValued="true"/>
+    <field name="number_of_pages_median" type="pint" />
+    <field name="lccn" type="text_general" multiValued="true"/>
+    <field name="ia" type="string" multiValued="true"/>
+    <field name="ia_box_id" type="string" multiValued="true"/>
+    <field name="ia_loaded_id" type="string" multiValued="true"/>
+    <field name="ia_count" type="pint"/>
+    <field name="ia_collection" type="string" multiValued="true" />
+    <field name="oclc" type="text_en_splitting" multiValued="true"/>
+    <field name="isbn" type="string" multiValued="true"/>
+    <field name="ebook_access" type="ebookAccessLevel" multiValued="false"/>
+
+    <!-- Classifications -->
+    <field name="lcc" type="string" multiValued="true" />
+    <field name="lcc_sort" type="string" stored="false" /> <!-- Need non-multiValued for sorting -->
+    <field name="ddc" type="string" multiValued="true" />
+    <field name="ddc_sort" type="string" stored="false" /> <!-- Need non-multiValued for sorting -->
+
+    <field name="contributor" type="text_general" multiValued="true"/>
+    <field name="publish_place" type="text_en_splitting" multiValued="true"/>
+    <field name="publisher" type="text_en_splitting" multiValued="true"/>
+    <field name="format" type="text_en_splitting" multiValued="true"/>
+    <field name="publisher_facet" type="string" stored="false" multiValued="true"/>
+    <field name="first_sentence" type="text_en_splitting" multiValued="true"/>
+    <field name="author_key" type="string" multiValued="true"/>
+    <field name="author_name" type="text_international" multiValued="true"/>
+    <field name="author_alternative_name" type="text_international" multiValued="true"/>
+    <field name="author_facet" type="string" stored="false" multiValued="true"/>
+    <field name="subject" type="text_en_splitting" multiValued="true"/>
+    <field name="subject_facet" type="string" stored="false" multiValued="true"/>
+    <field name="subject_key" type="string" stored="false" multiValued="true"/>
+    <field name="place" type="text_general" multiValued="true"/>
+    <field name="place_facet" type="string" stored="false" multiValued="true"/>
+    <field name="place_key" type="string" stored="false" multiValued="true"/>
+    <field name="person" type="text_general" multiValued="true"/>
+    <field name="person_facet" type="string" stored="false" multiValued="true"/>
+    <field name="person_key" type="string" stored="false" multiValued="true"/>
+    <field name="time" type="text_en_splitting" multiValued="true"/>
+    <field name="time_facet" type="string" stored="false" multiValued="true"/>
+    <field name="time_key" type="string" stored="false" multiValued="true"/>
+
+    <!-- Ratings -->
+    <field name="ratings_average" type="pfloat"/>
+    <field name="ratings_sortable" type="pfloat"/>
+    <field name="ratings_count" type="pint"/>
+    <field name="ratings_count_1" type="pint"/>
+    <field name="ratings_count_2" type="pint"/>
+    <field name="ratings_count_3" type="pint"/>
+    <field name="ratings_count_4" type="pint"/>
+    <field name="ratings_count_5" type="pint"/>
+
+    <!-- Reading Log -->
+    <field name="readinglog_count" type="pint"/>
+    <field name="want_to_read_count" type="pint"/>
+    <field name="currently_reading_count" type="pint"/>
+    <field name="already_read_count" type="pint"/>
+
+    <field name="text" type="text_en_splitting" stored="false" multiValued="true"/>
+
+    <field name="seed" type="string" multiValued="true"/>
+
+
+   <!-- fields used by documents of type author -->
+   <field name="name" type="text_international" indexed="true" stored="true" multiValued="false"/>
+   <field name="name_str" type="string" indexed="true" stored="false"/>
+   <field name="alternate_names" type="text_international" indexed="true" stored="true" multiValued="true"/>
+   <field name="birth_date" type="string" indexed="true" stored="true"/>
+   <field name="death_date" type="string" indexed="true" stored="true"/>
+   <field name="date" type="string" indexed="true" stored="true"/>
+   <field name="work_count" type="pint" indexed="true" stored="true"/>
+   <field name="top_work" type="string" indexed="false" stored="true"/>
+   <field name="top_subjects" type="string" indexed="false" stored="true" multiValued="true"/>
+
+   <!-- additional fields used by documents of type subject -->
+   <field name="subject_type" type="string" indexed="true" stored="true"/>
+
+    <!-- dynamic fields -->
+    <dynamicField name="id_*"  type="string"  indexed="true"  stored="true" multiValued="true"/>
+
+   <!-- **** End of OpenLibrary field definitions **** -->
 
     <!-- Dynamic field definitions allow using convention over configuration
        for fields via the specification of patterns to match field names.
@@ -168,7 +272,7 @@
     <!-- Field to use to determine and enforce document uniqueness.
       Unless this field is marked with required="false", it will be a required field
     -->
-    <uniqueKey>id</uniqueKey>
+    <uniqueKey>key</uniqueKey>
 
     <!-- copyField commands copy one field to another at the time a document
        is added to the index.  It's used either to index the same field differently,
@@ -176,6 +280,48 @@
 
     <copyField source="sourceFieldName" dest="destinationFieldName"/>
     -->
+
+    <!-- *** copyFields for OpenLibrary fields *** -->
+    <!-- TODO: Can we pare this down for performance and storage? -->
+
+    <copyField source="title" dest="title_suggest"/>
+    <copyField source="title" dest="title_sort"/>
+    <copyField source="publisher" dest="publisher_facet"/>
+    <copyField source="subject" dest="subject_facet"/>
+    <copyField source="place" dest="place_facet"/>
+    <copyField source="person" dest="person_facet"/>
+    <copyField source="time" dest="time_facet"/>
+
+    <copyField source="key" dest="text"/>
+    <copyField source="redirects" dest="text"/>
+    <copyField source="title" dest="text"/>
+    <copyField source="subtitle" dest="text"/>
+    <copyField source="alternative_title" dest="text"/>
+    <copyField source="alternative_subtitle" dest="text"/>
+    <copyField source="edition_key" dest="text"/>
+    <copyField source="by_statement" dest="text"/>
+    <copyField source="lccn" dest="text"/>
+    <copyField source="ia" dest="text"/>
+    <copyField source="oclc" dest="text"/>
+    <copyField source="isbn" dest="text"/>
+    <copyField source="contributor" dest="text"/>
+    <copyField source="publisher" dest="text"/>
+    <copyField source="format" dest="text"/>
+    <copyField source="first_sentence" dest="text"/>
+    <copyField source="author_key" dest="text"/>
+    <copyField source="author_name" dest="text"/>
+    <copyField source="author_alternative_name" dest="text"/>
+    <copyField source="subject" dest="text"/>
+    <copyField source="place" dest="text"/>
+    <copyField source="person" dest="text"/>
+    <copyField source="time" dest="text"/>
+
+    <!-- Copy author search fields into default search field "text" -->
+    <copyField source="name" dest="text"/>
+    <copyField source="name_str" dest="text"/>
+    <copyField source="alternate_names" dest="text"/>
+
+    <!-- *** END of OpenLibrary copyFields *** -->
 
     <!-- field type definitions. The "name" attribute is
        just a label to be used by field definitions.  The "class"
@@ -253,6 +399,9 @@
     <!--Binary data type. The data should be sent/retrieved in as Base64 encoded Strings -->
     <fieldType name="binary" class="solr.BinaryField"/>
 
+    <!-- Custom field to allow storing sortable access -->
+    <fieldType name="ebookAccessLevel" class="solr.EnumFieldType" docValues="true" enumsConfig="enumsConfig.xml" enumName="ebookAccess"/>
+
     <!--
     RankFields can be used to store scoring factors to improve document ranking. They should be used
     in combination with RankQParserPlugin.
@@ -313,6 +462,31 @@
     </fieldType>
 
 
+    <!-- A text field with better cross-language defaults:
+               it tokenizes with StandardTokenizer,
+	       removes stop words from case-insensitive "stopwords.txt"
+	       (empty by default), and down cases.  At query time only, it
+	       also applies synonyms.
+	  -->
+    <fieldType name="text_international" class="solr.TextField" positionIncrementGap="100" multiValued="true">
+      <analyzer type="index">
+        <tokenizer name="standard" />
+        <filter name="stop" ignoreCase="true" words="stopwords.txt" />
+        <!-- in this example, we will only use synonyms at query time
+        <filter name="synonymGraph" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
+        <filter name="flattenGraph"/>
+        -->
+	      <filter name="icuFolding"/>
+      </analyzer>
+      <analyzer type="query">
+        <tokenizer name="standard"/>
+        <filter name="stop" ignoreCase="true" words="stopwords.txt" />
+        <filter name="synonymGraph" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+	      <filter name="icuFolding"/>
+      </analyzer>
+    </fieldType>
+
+
     <!-- SortableTextField generaly functions exactly like TextField,
          except that it supports, and by default uses, docValues for sorting (or faceting)
          on the first 1024 characters of the original field values (which is configurable).
@@ -334,6 +508,20 @@
         <filter name="stop" ignoreCase="true" words="stopwords.txt" />
         <filter name="synonymGraph" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
         <filter name="lowercase"/>
+      </analyzer>
+    </fieldType>
+
+    <!-- A text field that applies standard title sorting conventions to its content -->
+    <fieldType name="text_title_sort" class="solr.TextField" sortMissingLast="false" omitNorms="true">
+      <analyzer>
+        <tokenizer name="keyword" />
+        <filter name="lowercase" />
+        <filter name="trim" />
+        <filter name="patternReplace"
+                pattern="^(an? |the |l[aeo]s? |l'|de la |el |il |un[ae]? |du |de[imrst]? |das |ein |eine[mnrs]? |bir )(.*)"
+                replacement="$2, $1"
+                replace="all"
+        />
       </analyzer>
     </fieldType>
 
@@ -397,10 +585,12 @@
         -->
         <!-- Case insensitive stop word removal.
         -->
-        <filter name="stop"
+        <!-- Disabling because it's causing a few issues with our queries. See https://github.com/internetarchive/openlibrary/issues/3317#issuecomment-837506502 -->
+        <!-- <filter name="stop"
                 ignoreCase="true"
                 words="lang/stopwords_en.txt"
-        />
+        /> -->
+        <filter name="icuFolding"/>
         <filter name="wordDelimiterGraph" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
         <filter name="lowercase"/>
         <filter name="keywordMarker" protected="protwords.txt"/>
@@ -410,10 +600,12 @@
       <analyzer type="query">
         <tokenizer name="whitespace"/>
         <filter name="synonymGraph" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
-        <filter name="stop"
+        <!-- Disabling because it's causing a few issues with our queries. See https://github.com/internetarchive/openlibrary/issues/3317#issuecomment-837506502 -->
+        <!-- <filter name="stop"
                 ignoreCase="true"
                 words="lang/stopwords_en.txt"
-        />
+        /> -->
+        <filter name="icuFolding"/>
         <filter name="wordDelimiterGraph" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0" splitOnCaseChange="1"/>
         <filter name="lowercase"/>
         <filter name="keywordMarker" protected="protwords.txt"/>
