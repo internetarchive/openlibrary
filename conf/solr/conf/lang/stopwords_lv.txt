@@ -1,7 +1,7 @@
 # Set of Latvian stopwords from A Stemming Algorithm for Latvian, Karlis Kreslins
-# the original list of over 800 forms was refined: 
+# the original list of over 800 forms was refined:
 #   pronouns, adverbs, interjections were removed
-# 
+#
 # prepositions
 aiz
 ap
@@ -101,8 +101,8 @@ tak
 iekams
 vien
 # modal verbs
-būt  
-biju 
+būt
+biju
 biji
 bija
 bijām
@@ -110,8 +110,8 @@ bijāt
 esmu
 esi
 esam
-esat 
-būšu     
+esat
+būšu
 būsi
 būs
 būsim
