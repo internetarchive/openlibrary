@@ -2,7 +2,7 @@
 # See http://members.unine.ch/jacques.savoy/clef/index.html.
 # Also see http://www.opensource.org/licenses/bsd-license.html
 # Cleaned on October 11, 2009 (not normalized, so use before normalization)
-# This means that when modifying this list, you might need to add some 
+# This means that when modifying this list, you might need to add some
 # redundant entries, for example containing forms with both أ and ا
 من
 ومن

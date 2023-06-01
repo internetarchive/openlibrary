@@ -17,7 +17,7 @@
 #  noun-common: Common nouns or nouns where the sub-classification is undefined
 #名詞-一般
 #
-#  noun-proper: Proper nouns where the sub-classification is undefined 
+#  noun-proper: Proper nouns where the sub-classification is undefined
 #名詞-固有名詞
 #
 #  noun-proper-misc: miscellaneous proper nouns
@@ -26,7 +26,7 @@
 #  noun-proper-person: Personal names where the sub-classification is undefined
 #名詞-固有名詞-人名
 #
-#  noun-proper-person-misc: names that cannot be divided into surname and 
+#  noun-proper-person-misc: names that cannot be divided into surname and
 #  given name; foreign names; names where the surname or given name is unknown.
 #  e.g. お市の方
 #名詞-固有名詞-人名-一般
@@ -50,28 +50,28 @@
 #  e.g. アジア, バルセロナ, 京都
 #名詞-固有名詞-地域-一般
 #
-#  noun-proper-place-country: Country names. 
+#  noun-proper-place-country: Country names.
 #  e.g. 日本, オーストラリア
 #名詞-固有名詞-地域-国
 #
 #  noun-pronoun: Pronouns where the sub-classification is undefined
 #名詞-代名詞
 #
-#  noun-pronoun-misc: miscellaneous pronouns: 
+#  noun-pronoun-misc: miscellaneous pronouns:
 #  e.g. それ, ここ, あいつ, あなた, あちこち, いくつ, どこか, なに, みなさん, みんな, わたくし, われわれ
 #名詞-代名詞-一般
 #
-#  noun-pronoun-contraction: Spoken language contraction made by combining a 
+#  noun-pronoun-contraction: Spoken language contraction made by combining a
 #  pronoun and the particle 'wa'.
-#  e.g. ありゃ, こりゃ, こりゃあ, そりゃ, そりゃあ 
+#  e.g. ありゃ, こりゃ, こりゃあ, そりゃ, そりゃあ
 #名詞-代名詞-縮約
 #
-#  noun-adverbial: Temporal nouns such as names of days or months that behave 
+#  noun-adverbial: Temporal nouns such as names of days or months that behave
 #  like adverbs. Nouns that represent amount or ratios and can be used adverbially,
 #  e.g. 金曜, 一月, 午後, 少量
 #名詞-副詞可能
 #
-#  noun-verbal: Nouns that take arguments with case and can appear followed by 
+#  noun-verbal: Nouns that take arguments with case and can appear followed by
 #  'suru' and related verbs (する, できる, なさる, くださる)
 #  e.g. インプット, 愛着, 悪化, 悪戦苦闘, 一安心, 下取り
 #名詞-サ変接続
@@ -87,28 +87,28 @@
 #  noun-affix: noun affixes where the sub-classification is undefined
 #名詞-非自立
 #
-#  noun-affix-misc: Of adnominalizers, the case-marker の ("no"), and words that 
-#  attach to the base form of inflectional words, words that cannot be classified 
+#  noun-affix-misc: Of adnominalizers, the case-marker の ("no"), and words that
+#  attach to the base form of inflectional words, words that cannot be classified
 #  into any of the other categories below. This category includes indefinite nouns.
-#  e.g. あかつき, 暁, かい, 甲斐, 気, きらい, 嫌い, くせ, 癖, こと, 事, ごと, 毎, しだい, 次第, 
-#       順, せい, 所為, ついで, 序で, つもり, 積もり, 点, どころ, の, はず, 筈, はずみ, 弾み, 
+#  e.g. あかつき, 暁, かい, 甲斐, 気, きらい, 嫌い, くせ, 癖, こと, 事, ごと, 毎, しだい, 次第,
+#       順, せい, 所為, ついで, 序で, つもり, 積もり, 点, どころ, の, はず, 筈, はずみ, 弾み,
 #       拍子, ふう, ふり, 振り, ほう, 方, 旨, もの, 物, 者, ゆえ, 故, ゆえん, 所以, わけ, 訳,
 #       わり, 割り, 割, ん-口語/, もん-口語/
 #名詞-非自立-一般
 #
 #  noun-affix-adverbial: noun affixes that that can behave as adverbs.
-#  e.g. あいだ, 間, あげく, 挙げ句, あと, 後, 余り, 以外, 以降, 以後, 以上, 以前, 一方, うえ, 
-#       上, うち, 内, おり, 折り, かぎり, 限り, きり, っきり, 結果, ころ, 頃, さい, 際, 最中, さなか, 
-#       最中, じたい, 自体, たび, 度, ため, 為, つど, 都度, とおり, 通り, とき, 時, ところ, 所, 
-#       とたん, 途端, なか, 中, のち, 後, ばあい, 場合, 日, ぶん, 分, ほか, 他, まえ, 前, まま, 
+#  e.g. あいだ, 間, あげく, 挙げ句, あと, 後, 余り, 以外, 以降, 以後, 以上, 以前, 一方, うえ,
+#       上, うち, 内, おり, 折り, かぎり, 限り, きり, っきり, 結果, ころ, 頃, さい, 際, 最中, さなか,
+#       最中, じたい, 自体, たび, 度, ため, 為, つど, 都度, とおり, 通り, とき, 時, ところ, 所,
+#       とたん, 途端, なか, 中, のち, 後, ばあい, 場合, 日, ぶん, 分, ほか, 他, まえ, 前, まま,
 #       儘, 侭, みぎり, 矢先
 #名詞-非自立-副詞可能
 #
-#  noun-affix-aux: noun affixes treated as 助動詞 ("auxiliary verb") in school grammars 
+#  noun-affix-aux: noun affixes treated as 助動詞 ("auxiliary verb") in school grammars
 #  with the stem よう(だ) ("you(da)").
 #  e.g.  よう, やう, 様 (よう)
 #名詞-非自立-助動詞語幹
-#  
+#
 #  noun-affix-adjective-base: noun affixes that can connect to the indeclinable
 #  connection form な (aux "da").
 #  e.g. みたい, ふう
@@ -117,8 +117,8 @@
 #  noun-special: special nouns where the sub-classification is undefined.
 #名詞-特殊
 #
-#  noun-special-aux: The そうだ ("souda") stem form that is used for reporting news, is 
-#  treated as 助動詞 ("auxiliary verb") in school grammars, and attach to the base 
+#  noun-special-aux: The そうだ ("souda") stem form that is used for reporting news, is
+#  treated as 助動詞 ("auxiliary verb") in school grammars, and attach to the base
 #  form of inflectional words.
 #  e.g. そう
 #名詞-特殊-助動詞語幹
@@ -126,9 +126,9 @@
 #  noun-suffix: noun suffixes where the sub-classification is undefined.
 #名詞-接尾
 #
-#  noun-suffix-misc: Of the nouns or stem forms of other parts of speech that connect 
+#  noun-suffix-misc: Of the nouns or stem forms of other parts of speech that connect
 #  to ガル or タイ and can combine into compound nouns, words that cannot be classified into
-#  any of the other categories below. In general, this category is more inclusive than 
+#  any of the other categories below. In general, this category is more inclusive than
 #  接尾語 ("suffix") and is usually the last element in a compound noun.
 #  e.g. おき, かた, 方, 甲斐 (がい), がかり, ぎみ, 気味, ぐるみ, (～した) さ, 次第, 済 (ず) み,
 #       よう, (でき)っこ, 感, 観, 性, 学, 類, 面, 用
@@ -139,23 +139,23 @@
 #  e.g. 君, 様, 著
 #名詞-接尾-人名
 #
-#  noun-suffix-place: Suffixes that form nouns and attach to place names more often 
+#  noun-suffix-place: Suffixes that form nouns and attach to place names more often
 #  than other nouns.
 #  e.g. 町, 市, 県
 #名詞-接尾-地域
 #
-#  noun-suffix-verbal: Of the suffixes that attach to nouns and form nouns, those that 
+#  noun-suffix-verbal: Of the suffixes that attach to nouns and form nouns, those that
 #  can appear before スル ("suru").
 #  e.g. 化, 視, 分け, 入り, 落ち, 買い
 #名詞-接尾-サ変接続
 #
-#  noun-suffix-aux: The stem form of そうだ (様態) that is used to indicate conditions, 
-#  is treated as 助動詞 ("auxiliary verb") in school grammars, and attach to the 
+#  noun-suffix-aux: The stem form of そうだ (様態) that is used to indicate conditions,
+#  is treated as 助動詞 ("auxiliary verb") in school grammars, and attach to the
 #  conjunctive form of inflectional words.
 #  e.g. そう
 #名詞-接尾-助動詞語幹
 #
-#  noun-suffix-adjective-base: Suffixes that attach to other nouns or the conjunctive 
+#  noun-suffix-adjective-base: Suffixes that attach to other nouns or the conjunctive
 #  form of inflectional words and appear before the copula だ ("da").
 #  e.g. 的, げ, がち
 #名詞-接尾-形容動詞語幹
@@ -164,8 +164,8 @@
 #  e.g. 後 (ご), 以後, 以降, 以前, 前後, 中, 末, 上, 時 (じ)
 #名詞-接尾-副詞可能
 #
-#  noun-suffix-classifier: Suffixes that attach to numbers and form nouns. This category 
-#  is more inclusive than 助数詞 ("classifier") and includes common nouns that attach 
+#  noun-suffix-classifier: Suffixes that attach to numbers and form nouns. This category
+#  is more inclusive than 助数詞 ("classifier") and includes common nouns that attach
 #  to numbers.
 #  e.g. 個, つ, 本, 冊, パーセント, cm, kg, カ月, か国, 区画, 時間, 時半
 #名詞-接尾-助数詞
@@ -174,18 +174,18 @@
 #  e.g. (楽し) さ, (考え) 方
 #名詞-接尾-特殊
 #
-#  noun-suffix-conjunctive: Nouns that behave like conjunctions and join two words 
+#  noun-suffix-conjunctive: Nouns that behave like conjunctions and join two words
 #  together.
 #  e.g. (日本) 対 (アメリカ), 対 (アメリカ), (3) 対 (5), (女優) 兼 (主婦)
 #名詞-接続詞的
 #
-#  noun-verbal_aux: Nouns that attach to the conjunctive particle て ("te") and are 
+#  noun-verbal_aux: Nouns that attach to the conjunctive particle て ("te") and are
 #  semantically verb-like.
 #  e.g. ごらん, ご覧, 御覧, 頂戴
 #名詞-動詞非自立的
 #
-#  noun-quotation: text that cannot be segmented into words, proverbs, Chinese poetry, 
-#  dialects, English, etc. Currently, the only entry for 名詞 引用文字列 ("noun quotation") 
+#  noun-quotation: text that cannot be segmented into words, proverbs, Chinese poetry,
+#  dialects, English, etc. Currently, the only entry for 名詞 引用文字列 ("noun quotation")
 #  is いわく ("iwaku").
 #名詞-引用文字列
 #
@@ -198,7 +198,7 @@
 #  prefix: unclassified prefixes
 #接頭詞
 #
-#  prefix-nominal: Prefixes that attach to nouns (including adjective stem forms) 
+#  prefix-nominal: Prefixes that attach to nouns (including adjective stem forms)
 #  excluding numerical expressions.
 #  e.g. お (水), 某 (氏), 同 (社), 故 (～氏), 高 (品質), お (見事), ご (立派)
 #接頭詞-名詞接続
@@ -246,20 +246,20 @@
 #  adverb: unclassified adverbs
 #副詞
 #
-#  adverb-misc: Words that can be segmented into one unit and where adnominal 
+#  adverb-misc: Words that can be segmented into one unit and where adnominal
 #  modification is not possible.
 #  e.g. あいかわらず, 多分
 #副詞-一般
 #
-#  adverb-particle_conjunction: Adverbs that can be followed by の, は, に, 
+#  adverb-particle_conjunction: Adverbs that can be followed by の, は, に,
 #  な, する, だ, etc.
 #  e.g. こんなに, そんなに, あんなに, なにか, なんでも
 #副詞-助詞類接続
 #
 #####
 #  adnominal: Words that only have noun-modifying forms.
-#  e.g. この, その, あの, どの, いわゆる, なんらかの, 何らかの, いろんな, こういう, そういう, ああいう, 
-#       どういう, こんな, そんな, あんな, どんな, 大きな, 小さな, おかしな, ほんの, たいした, 
+#  e.g. この, その, あの, どの, いわゆる, なんらかの, 何らかの, いろんな, こういう, そういう, ああいう,
+#       どういう, こんな, そんな, あんな, どんな, 大きな, 小さな, おかしな, ほんの, たいした,
 #       「(, も) さる (ことながら)」, 微々たる, 堂々たる, 単なる, いかなる, 我が」「同じ, 亡き
 #連体詞
 #
@@ -279,27 +279,27 @@
 #  e.g. から, が, で, と, に, へ, より, を, の, にて
 助詞-格助詞-一般
 #
-#  particle-case-quote: the "to" that appears after nouns, a person’s speech, 
+#  particle-case-quote: the "to" that appears after nouns, a person’s speech,
 #  quotation marks, expressions of decisions from a meeting, reasons, judgements,
 #  conjectures, etc.
 #  e.g. ( だ) と (述べた.), ( である) と (して執行猶予...)
 助詞-格助詞-引用
 #
-#  particle-case-compound: Compounds of particles and verbs that mainly behave 
+#  particle-case-compound: Compounds of particles and verbs that mainly behave
 #  like case particles.
 #  e.g. という, といった, とかいう, として, とともに, と共に, でもって, にあたって, に当たって, に当って,
-#       にあたり, に当たり, に当り, に当たる, にあたる, において, に於いて,に於て, における, に於ける, 
-#       にかけ, にかけて, にかんし, に関し, にかんして, に関して, にかんする, に関する, に際し, 
-#       に際して, にしたがい, に従い, に従う, にしたがって, に従って, にたいし, に対し, にたいして, 
+#       にあたり, に当たり, に当り, に当たる, にあたる, において, に於いて,に於て, における, に於ける,
+#       にかけ, にかけて, にかんし, に関し, にかんして, に関して, にかんする, に関する, に際し,
+#       に際して, にしたがい, に従い, に従う, にしたがって, に従って, にたいし, に対し, にたいして,
 #       に対して, にたいする, に対する, について, につき, につけ, につけて, につれ, につれて, にとって,
-#       にとり, にまつわる, によって, に依って, に因って, により, に依り, に因り, による, に依る, に因る, 
+#       にとり, にまつわる, によって, に依って, に因って, により, に依り, に因り, による, に依る, に因る,
 #       にわたって, にわたる, をもって, を以って, を通じ, を通じて, を通して, をめぐって, をめぐり, をめぐる,
 #       って-口語/, ちゅう-関西弁「という」/, (何) ていう (人)-口語/, っていう-口語/, といふ, とかいふ
 助詞-格助詞-連語
 #
 #  particle-conjunctive:
-#  e.g. から, からには, が, けれど, けれども, けど, し, つつ, て, で, と, ところが, どころか, とも, ども, 
-#       ながら, なり, ので, のに, ば, ものの, や ( した), やいなや, (ころん) じゃ(いけない)-口語/, 
+#  e.g. から, からには, が, けれど, けれども, けど, し, つつ, て, で, と, ところが, どころか, とも, ども,
+#       ながら, なり, ので, のに, ば, ものの, や ( した), やいなや, (ころん) じゃ(いけない)-口語/,
 #       (行っ) ちゃ(いけない)-口語/, (言っ) たって (しかたがない)-口語/, (それがなく)ったって (平気)-口語/
 助詞-接続助詞
 #
@@ -308,9 +308,9 @@
 助詞-係助詞
 #
 #  particle-adverbial:
-#  e.g. がてら, かも, くらい, 位, ぐらい, しも, (学校) じゃ(これが流行っている)-口語/, 
+#  e.g. がてら, かも, くらい, 位, ぐらい, しも, (学校) じゃ(これが流行っている)-口語/,
 #       (それ)じゃあ (よくない)-口語/, ずつ, (私) なぞ, など, (私) なり (に), (先生) なんか (大嫌い)-口語/,
-#       (私) なんぞ, (先生) なんて (大嫌い)-口語/, のみ, だけ, (私) だって-口語/, だに, 
+#       (私) なんぞ, (先生) なんて (大嫌い)-口語/, のみ, だけ, (私) だって-口語/, だに,
 #       (彼)ったら-口語/, (お茶) でも (いかが), 等 (とう), (今後) とも, ばかり, ばっか-口語/, ばっかり-口語/,
 #       ほど, 程, まで, 迄, (誰) も (が)([助詞-格助詞] および [助詞-係助詞] の前に位置する「も」)
 助詞-副助詞
@@ -324,11 +324,11 @@
 助詞-並立助詞
 #
 #  particle-final:
-#  e.g. かい, かしら, さ, ぜ, (だ)っけ-口語/, (とまってる) で-方言/, な, ナ, なあ-口語/, ぞ, ね, ネ, 
+#  e.g. かい, かしら, さ, ぜ, (だ)っけ-口語/, (とまってる) で-方言/, な, ナ, なあ-口語/, ぞ, ね, ネ,
 #       ねぇ-口語/, ねえ-口語/, ねん-方言/, の, のう-口語/, や, よ, ヨ, よぉ-口語/, わ, わい-口語/
 助詞-終助詞
 #
-#  particle-adverbial/conjunctive/final: The particle "ka" when unknown whether it is 
+#  particle-adverbial/conjunctive/final: The particle "ka" when unknown whether it is
 #  adverbial, conjunctive, or sentence final. For example:
 #       (a) 「A か B か」. Ex:「(国内で運用する) か,(海外で運用する) か (.)」
 #       (b) Inside an adverb phrase. Ex:「(幸いという) か (, 死者はいなかった.)」
@@ -337,16 +337,16 @@
 #  e.g. か
 助詞-副助詞／並立助詞／終助詞
 #
-#  particle-adnominalizer: The "no" that attaches to nouns and modifies 
+#  particle-adnominalizer: The "no" that attaches to nouns and modifies
 #  non-inflectional words.
 助詞-連体化
 #
-#  particle-adnominalizer: The "ni" and "to" that appear following nouns and adverbs 
+#  particle-adnominalizer: The "ni" and "to" that appear following nouns and adverbs
 #  that are giongo, giseigo, or gitaigo.
 #  e.g. に, と
 助詞-副詞化
 #
-#  particle-special: A particle that does not fit into one of the above classifications. 
+#  particle-special: A particle that does not fit into one of the above classifications.
 #  This includes particles that are used in Tanka, Haiku, and other poetry.
 #  e.g. かな, けむ, ( しただろう) に, (あんた) にゃ(わからん), (俺) ん (家)
 助詞-特殊
@@ -357,7 +357,7 @@
 #
 #####
 #  interjection: Greetings and other exclamations.
-#  e.g. おはよう, おはようございます, こんにちは, こんばんは, ありがとう, どうもありがとう, ありがとうございます, 
+#  e.g. おはよう, おはようございます, こんにちは, こんばんは, ありがとう, どうもありがとう, ありがとうございます,
 #       いただきます, ごちそうさま, さよなら, さようなら, はい, いいえ, ごめん, ごめんなさい
 #感動詞
 #
@@ -395,7 +395,7 @@
 #  other: unclassified other
 #その他
 #
-#  other-interjection: Words that are hard to classify as noun-suffixes or 
+#  other-interjection: Words that are hard to classify as noun-suffixes or
 #  sentence-final particles.
 #  e.g. (だ)ァ
 その他-間投
