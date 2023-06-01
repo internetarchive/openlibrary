@@ -110,7 +110,6 @@ def generate_cdump(data_file, date=None):
     """Generates cdump from a copy of data table.  If date is specified, only revisions
     created on or before that date will be considered.
     """
-    logger.error(f"generate_cdump({data_file}, {date}) reading")
     # adding Z to the date will make sure all the timestamps are less than that date.
     #
     #   >>> "2010-05-17T10:20:30" < "2010-05-17"
@@ -120,6 +119,7 @@ def generate_cdump(data_file, date=None):
     #
     # If scripts/oldump.sh has exported $OLDUMP_TESTING then save a lot of time by only
     # processing a subset of the lines in data_file.
+    log(f"generate_cdump({data_file}, {date}) reading")
     max_lines = 1_000_000 if os.getenv("OLDUMP_TESTING") else 0  # 0 means unlimited.
     filter = date and (lambda doc: doc["last_modified"]["value"] < date + "Z")
     print_dump(read_data_file(data_file, max_lines), filter=filter)
@@ -341,8 +341,8 @@ def main(cmd, args):
     if func:
         func(*args, **kwargs)
     else:
-        logger.error(f"Unknown command: {cmd}")
         log(f"Unknown command: {cmd}")
+        logger.error(f"Unknown command: {cmd}")
 
 
 if __name__ == "__main__":
