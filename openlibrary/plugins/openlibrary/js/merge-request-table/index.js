@@ -130,7 +130,7 @@ async function updateCommentsView(mrid, comment, username) {
     <div class="mr-comment__body"><a href="">@${username}</a> ${comment}</div>
     </div>`
 
-  hiddenCommentDiv.prepend(newComment);
+  hiddenCommentDiv.append(newComment);
 }
 
 /**
@@ -165,16 +165,23 @@ function toggleAllComments(elem) {
     //Id 2
     const targetId = elem.dataset.targetId;
     const targetId2 = elem.dataset.latestComment || 0;
+    const targetIdOldComments = elem.dataset.oldComments;
     const targetBtnClass = elem.dataset.btnClass;
-    console.log(targetBtnClass)
 
     const target = document.querySelector(`#${targetId}`)
     const target2 = document.querySelector(`#${targetId2}`)
+    const oldCommentstarget = document.querySelector(`#${targetIdOldComments}`)
     const targetBtn = document.querySelector(`.${targetBtnClass}`);
 
     target.classList.toggle('hidden')
     target2.classList.toggle('hidden')
     targetBtn.classList.toggle('border-toggle');
+    
+    //for scrolling to bottom of div
+    oldCommentstarget.scrollTop = oldCommentstarget.scrollHeight;
+
+    console.log(oldCommentstarget)
+
 }
 
 /**
