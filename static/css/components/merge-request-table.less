@@ -88,12 +88,21 @@
   margin-bottom: 5px;
 }
 
-.green-dot {
+.dot {
   border-radius: 10px;
   width: 10px;
-  background-color: @open-green;
   height: 10px;
   margin-right: 22px;
+
+  &__green {
+    &:extend(.dot);
+    background-color: @open-green;
+  }
+
+  &__red {
+    &:extend(.dot);
+    background-color: red;
+  }
 }
 
 .table-header {
@@ -108,13 +117,18 @@
     font-weight: 400;
     margin-left: 21px;
     text-decoration: none;
-    color: @closed-red;
+  }
 
+  .open {
+    color: @open-green;
+  }
+  
+  .closed {
+    color: @closed-red;
   }
 
   li.selected a {
     font-size: 13px;
-    color: @open-green;
     font-weight: 700;
     margin-left: 41px;
     border: none;
