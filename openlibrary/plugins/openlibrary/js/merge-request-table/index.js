@@ -176,7 +176,7 @@ function toggleAllComments(elem) {
     target.classList.toggle('hidden')
     target2.classList.toggle('hidden')
     targetBtn.classList.toggle('border-toggle');
-    
+
     //for scrolling to bottom of div
     oldCommentstarget.scrollTop = oldCommentstarget.scrollHeight;
 
