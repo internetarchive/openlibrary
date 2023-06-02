@@ -14,13 +14,14 @@ $code:
     selected_ed = doc.get('editions')[0]
 
   book_url = doc.url() if doc_type.startswith('infogami_') else doc.key
-  book_provider = get_book_provider(doc)
   if doc_type == 'solr_edition':
     work_edition_url = book_url + '?edition=' + urlquote('key:' + selected_ed.key)
-  elif book_provider and doc_type.endswith('_work'):
-    work_edition_url = book_url + '?edition=' + urlquote(book_provider.get_best_identifier_slug(doc))
   else:
-    work_edition_url = book_url
+    book_provider = get_book_provider(doc)
+    if book_provider and doc_type.endswith('_work'):
+      work_edition_url = book_url + '?edition=' + urlquote(book_provider.get_best_identifier_slug(doc))
+    else:
+      work_edition_url = book_url
 
   edition_work = None
   if doc_type == 'infogami_edition' and 'works' in doc:
