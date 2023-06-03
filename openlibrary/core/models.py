@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta
 import logging
 import web
+import json
 import requests
 from typing import Any
 from collections import defaultdict
@@ -1116,6 +1117,41 @@ class Subject(web.storage):
                 return Image(web.ctx.site, "b", cover_id)
 
 
+# TODO: expand on tag model
+class Tag(Thing):
+    """Class to represent /type/tag objects in OL."""
+    @classmethod
+    def get_tag(cls, tag_name, tag_type):
+        """Returns a Tag object for a given tag name and tag type."""
+        q = {'type': '/type/tag', 'name': tag_name, 'tag_type': tag_type}
+        match = list(web.ctx.site.things(q))
+        return match[0] if match else None
+    
+    @classmethod
+    def create_tag(cls, tag_name, tag_description, tag_type, tag_plugins):
+        """Creates a new Tag object."""
+        key = web.ctx.site.new_key('/type/tag')
+        web.ctx.path = key
+        web.ctx.site.save(
+            {
+                'key': key,
+                'name': tag_name,
+                'tag_description': tag_description,
+                'tag_type': tag_type,
+                'tag_plugins': json.loads(tag_plugins or "[]"),
+                'type': dict(key='/type/tag'),
+            },
+            comment='New Tag',
+        )
+        return key
+
+    def url(self, suffix="", **params):
+        return self.get_url(suffix, **params)
+
+    def get_url_suffix(self):
+        return self.name or "unnamed"
+
+
 @dataclass
 class LoggedBooksData:
     """
@@ -1164,6 +1200,7 @@ def register_models():
     client.register_thing_class('/type/user', User)
     client.register_thing_class('/type/list', List)
     client.register_thing_class('/type/usergroup', UserGroup)
+    client.register_thing_class('/type/tag', Tag)
 
 
 def register_types():
@@ -1174,6 +1211,7 @@ def register_types():
     types.register_type('^/books/[^/]*$', '/type/edition')
     types.register_type('^/works/[^/]*$', '/type/work')
     types.register_type('^/languages/[^/]*$', '/type/language')
+    types.register_type('^/tags/[^/]*$', '/type/tag')
 
     types.register_type('^/usergroup/[^/]*$', '/type/usergroup')
     types.register_type('^/permission/[^/]*$', '/type/permission')
