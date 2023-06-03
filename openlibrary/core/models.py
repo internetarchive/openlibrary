@@ -1120,13 +1120,14 @@ class Subject(web.storage):
 # TODO: expand on tag model
 class Tag(Thing):
     """Class to represent /type/tag objects in OL."""
+
     @classmethod
     def get_tag(cls, tag_name, tag_type):
         """Returns a Tag object for a given tag name and tag type."""
         q = {'type': '/type/tag', 'name': tag_name, 'tag_type': tag_type}
         match = list(web.ctx.site.things(q))
         return match[0] if match else None
-    
+
     @classmethod
     def create_tag(cls, tag_name, tag_description, tag_type, tag_plugins):
         """Creates a new Tag object."""

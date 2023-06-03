@@ -93,6 +93,7 @@ class addtag(delegate.page):
         key = Tag.create_tag(i.tag_name, i.tag_description, i.tag_type, i.tag_plugins)
         raise safe_seeother(key)
 
+
 class tag_edit(delegate.page):
     path = r"(/tags/OL\d+T)/edit"
 
@@ -140,6 +141,7 @@ class tag_edit(delegate.page):
             i.tag_plugins = json.loads(i.tag_plugins)
         tag = trim_doc(i)
         return tag
+
 
 def setup():
     """Do required setup."""
