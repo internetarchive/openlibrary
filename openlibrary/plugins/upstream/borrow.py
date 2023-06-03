@@ -144,6 +144,7 @@ class borrow(delegate.page):
             account = OpenLibraryAccount.get_by_email(user.email)
             ia_itemname = account.itemname if account else None
             s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
+            lending.get_loans_of_user(user).cache_reset()
         if not user or not ia_itemname or not s3_keys:
             web.setcookie(config.login_cookie_name, "", expires=-1)
             redirect_url = "/account/login?redirect={}/borrow?action={}".format(
