@@ -505,8 +505,9 @@ def cache_user_loans(func):
             cached_loans[args] = dict(result, timestamp=time.time())
             return result
 
-    cache_func.cache_reset = lambda : func.cached_loans.clear()
+    cache_func.cache_reset = lambda: func.cached_loans.clear()
     return cache_func
+
 
 @cache_user_loans
 def get_loans_of_user(user_key):
