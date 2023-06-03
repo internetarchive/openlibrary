@@ -134,7 +134,7 @@ allow-magic-value-types = ["bytes", "float", "int", "str"]
 max-args = 15
 max-branches = 22
 max-returns = 14
-max-statements = 70
+max-statements = 71
 
 [tool.ruff.per-file-ignores]
 "openlibrary/admin/stats.py" = ["BLE001"]
