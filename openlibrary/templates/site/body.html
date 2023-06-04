@@ -34,7 +34,9 @@ $if ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ct
       $ announcement = ''
       $# Using the current date in YYYY-MM-DD format for storage_key will prevent the use of duplicate keys.
       $ storage_key = ''
-      $ announcement_bar = render_template('site/banner', announcement, storage_key) if announcement and storage_key else ''
-      $:announcement_bar
+      $ hide_banner = ctx.user and ctx.user.preferences().get('hidden-banner') == storage_key
+      $if announcement and storage_key:
+        $if not hide_banner:
+          $:render_template('site/banner', announcement, storage_key)
     $:page
   </div>

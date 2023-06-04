@@ -1,22 +1,10 @@
 $def with (announcement, storage_key)
 
-$ hidden = False
-$if ctx.user and ctx.user.preferences().get('hidden-banner') == storage_key:
-    $ hidden = True
-
-$def hideBanner():
-    $ctx.user.save_preferences({'hidden-banner': storage_key})
-
 $# Paste next line into the span element to show the blue banner
 $# <strong>Title</strong> $:announcement &nbsp; <a href="#" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>
-$if not hidden:
-    <div data-storage-key="$storage_key" class="page-banner--dismissable">
-        <span class="page-banner--dismissable-content">$:announcement</span>
-        $if ctx.user:
-            <button class="page-banner--dismissable-close" onclick="
-                $hideBanner();
-                window.location.reload();
-            ">
-                X
-            </button>
-    </div>
+
+<div data-storage-key="$storage_key" id="announcement-banner" class="page-banner--dismissable">
+    <span class="page-banner--dismissable-content">$:announcement</span>
+    $if ctx.user:
+        <button class="page-banner--dismissable-close" id="close-banner">X</button>
+</div>
