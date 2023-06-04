@@ -1,11 +1,13 @@
 """Utility to move files from local disk to tar files and update the paths in the db.
 """
-import tarfile
+
 import web
 import os
 import sys
 import subprocess
 import time
+import tarfile
+import zipfile
 
 from openlibrary.coverstore import config, db
 from openlibrary.coverstore.coverlib import find_image_path
@@ -20,6 +22,53 @@ def log(*args):
     # print >> logfile, msg
     # logfile.flush()
 
+class ZipManager:
+    def __init__(self):
+        self.zipfiles = {}
+        for size in ['', 'S', 'M', 'L']:
+            self.zipfiles[size] = (None, None)
+
+    def get_zipfile(self, name):
+        id = web.numify(name)
+        zipname = f"covers_{id[:4]}_{id[4:6]}.zip"
+
+        # for id-S.jpg, id-M.jpg, id-L.jpg
+        if '-' in name:
+            size = name[len(id + '-') :][0].lower()
+            zipname = size + "_" + zipname
+        else:
+            size = ""
+
+        _zipname, _zipfile = self.zipfiles[size.upper()]
+        if _zipname != zipname:
+            _zipname and _zipfile.close()
+            _zipfile = self.open_zipfile(zipname)
+            self.zipfiles[size.upper()] = zipname, _zipfile
+            log('writing', zipname)
+
+        return _zipfile
+
+    def open_zipfile(self, name):
+        path = os.path.join(config.data_root, "items", name[: -len("_XX.zip")], name)
+        dir = os.path.dirname(path)
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+
+        return zipfile.ZipFile(path, 'a')
+
+    def add_file(self, name, filepath, mtime):
+        with open(filepath, 'rb') as fileobj:
+            zipper = self.get_zipfile(name)
+
+            # Set compression to ZIP_STORED to avoid compression
+            zipper.write(filepath, arcname=name, compress_type=zipfile.ZIP_STORED)
+
+            return os.path.basename(zipper.filename)
+    
+    def close(self):
+        for name, _zipfile in self.zipfiles.values():
+            if name:
+                _zipfile.close()
 
 class TarManager:
     def __init__(self):
@@ -88,9 +137,6 @@ class TarManager:
                 _indexfile.close()
 
 
-idx = id
-
-
 def is_uploaded(item: str, filename_pattern: str) -> bool:
     """
     Looks within an archive.org item and determines whether
@@ -139,10 +185,9 @@ def audit(group_id, chunk_ids=(0, 100), sizes=('', 's', 'm', 'l')) -> None:
                 f"ia upload {item} {' '.join([f'{item}/{mf}*' for mf in missing_files])} --retries 10"
             )
 
-
-def archive(test=True):
+def archive(test=True, limit=10_000, archive_format='tar'):
     """Move files from local disk to tar files and update the paths in the db."""
-    tar_manager = TarManager()
+    file_manager = TarManager() if archive_format == 'tar' else ZipManager()
 
     _db = db.getdb()
 
@@ -154,7 +199,7 @@ def archive(test=True):
             where='archived=$f and id>7999999',
             order='id',
             vars={'f': False},
-            limit=10_000,
+            limit=limit,
         )
 
         for cover in covers:
@@ -196,7 +241,7 @@ def archive(test=True):
             timestamp = time.mktime(cover.created.timetuple())
 
             for d in files.values():
-                d.newname = tar_manager.add_file(
+                d.newname = file_manager.add_file(
                     d.name, filepath=d.path, mtime=timestamp
                 )
 
@@ -217,5 +262,4 @@ def archive(test=True):
                     os.remove(d.path)
 
     finally:
-        # logfile.close()
-        tar_manager.close()
+        file_manager.close()
