@@ -282,14 +282,13 @@ def format_book_data(book, fetch_availability=True):
     elif d.ocaid:
         d.cover_url = 'https://archive.org/services/img/%s' % d.ocaid
 
-    if fetch_availability:
-        if d.ocaid:
-            collections = ia.get_metadata(d.ocaid).get('collection', [])
+    if fetch_availability and d.ocaid:
+        collections = ia.get_metadata(d.ocaid).get('collection', [])
 
-            if 'lendinglibrary' in collections or 'inlibrary' in collections:
-                d.borrow_url = book.url("/borrow")
-            else:
-                d.read_url = book.url("/borrow")
+        if 'lendinglibrary' in collections or 'inlibrary' in collections:
+            d.borrow_url = book.url("/borrow")
+        else:
+            d.read_url = book.url("/borrow")
     return d
 
 

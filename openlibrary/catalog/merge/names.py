@@ -117,9 +117,8 @@ def marc_title(amazon_first_parts, marc_first_parts):
         if verbose:
             print("partial match with MARC end title")
         return True
-    if match_seq(marc_first_parts, amazon_first_parts):
-        if verbose:
-            print("partial match with MARC end title")
+    if verbose and match_seq(marc_first_parts, amazon_first_parts):
+        print("partial match with MARC end title")
     return False
 
 

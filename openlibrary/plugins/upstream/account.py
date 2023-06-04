@@ -443,9 +443,8 @@ class account_verify(delegate.page):
             doc = docs[0]
 
             account = accounts.find(username=doc['username'])
-            if account:
-                if account['status'] != "pending":
-                    return render['account/verify/activated'](account)
+            if account and account['status'] != "pending":
+                return render['account/verify/activated'](account)
             account.activate()
             user = web.ctx.site.get("/people/" + doc['username'])  # TBD
             return render['account/verify/success'](account)
@@ -1002,9 +1001,10 @@ class export_books(delegate.page):
                 row["list_name"] = (list.name or '').replace('"', '""')
                 row["list_description"] = (list.description or '').replace('"', '""')
                 row["created_on"] = list.created.strftime(self.date_format)
-                if last_updated := list.last_modified or "":
-                    if isinstance(last_updated, datetime):  # placate mypy
-                        last_updated = last_updated.strftime(self.date_format)
+                if (last_updated := list.last_modified or "") and isinstance(
+                    last_updated, datetime
+                ):  # placate mypy
+                    last_updated = last_updated.strftime(self.date_format)
                 row["last_updated"] = last_updated
                 for seed in list.seeds:
                     row["entry"] = seed if isinstance(seed, str) else seed.key

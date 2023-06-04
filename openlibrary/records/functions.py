@@ -349,22 +349,20 @@ def edition_doc_to_things(doc):
 
 def work_doc_to_things(doc):
     new_things = []
-    if 'authors' in doc:
-        if all(
-            isinstance(x, dict) for x in doc['authors']
-        ):  # Ugly hack to prevent Things from being processed
-            authors = doc['authors']
-            author_entries = []
-            for i in authors:
-                i['type'] = '/type/author'
-                new_author = doc_to_things(i)
-                new_things.extend(new_author)
-                a = {
-                    'type': '/type/author_role',
-                    'author': new_author[0]['key'],
-                }  # TODO : Check this with Anandb
-                author_entries.append(a)
-            doc['authors'] = author_entries
+    # Ugly hack to prevent Things from being processed
+    if 'authors' in doc and all(isinstance(x, dict) for x in doc['authors']):
+        authors = doc['authors']
+        author_entries = []
+        for i in authors:
+            i['type'] = '/type/author'
+            new_author = doc_to_things(i)
+            new_things.extend(new_author)
+            a = {
+                'type': '/type/author_role',
+                'author': new_author[0]['key'],
+            }  # TODO : Check this with Anandb
+            author_entries.append(a)
+        doc['authors'] = author_entries
     return new_things
 
 

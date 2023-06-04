@@ -687,9 +687,8 @@ class Work(models.Work):
         """
         work_id = self.key.replace('/works/', '')
         availability = lending.get_work_availability(work_id)
-        if work_id in availability:
-            if 'openlibrary_edition' in availability[work_id]:
-                return '/books/%s' % availability[work_id]['openlibrary_edition']
+        if ol_edition := availability.get(work_id, {}).get('openlibrary_edition'):
+            return f'/books/{ol_edition}'
 
         return None
 

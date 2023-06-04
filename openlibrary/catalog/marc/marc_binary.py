@@ -181,8 +181,7 @@ class MarcBinary(MarcBase):
         except IndexError:
             pass
         tag_line = data[offset + 1 : offset + length + 1]
-        if line[0:2] != '00':
-            # marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:636441290:1277
-            if tag_line[1:8] == b'{llig}\x1f':
-                tag_line = tag_line[0] + '\uFE20' + tag_line[7:]
+        # marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:636441290:1277
+        if line[0:2] != '00' and tag_line[1:8] == b'{llig}\x1f':
+            tag_line = tag_line[0] + '\uFE20' + tag_line[7:]
         return tag_line

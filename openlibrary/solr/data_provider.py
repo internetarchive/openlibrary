@@ -460,9 +460,8 @@ class BetterDataProvider(LegacyDataProvider):
     async def _preload_metadata_of_editions(self):
         identifiers = []
         for doc in self.cache.values():
-            if doc and doc['type']['key'] == '/type/edition':
-                if doc.get('ocaid'):
-                    identifiers.append(doc['ocaid'])
+            if doc and doc['type']['key'] == '/type/edition' and doc.get('ocaid'):
+                identifiers.append(doc['ocaid'])
                 # source_records = doc.get("source_records", [])
                 # identifiers.extend(r[len("ia:"):] for r in source_records if r.startswith("ia:"))
         await self.preload_metadata(identifiers)

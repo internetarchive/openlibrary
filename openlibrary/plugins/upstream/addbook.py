@@ -402,15 +402,14 @@ class addbook(delegate.page):
             )
             for e in editions:
                 d: dict = {}
-                if publisher:
-                    if not e.publishers or e.publishers[0] != publisher:
-                        continue
-                if publish_year:
-                    if not e.publish_date or publish_year != self.extract_year(
-                        e.publish_date
-                    ):
-                        continue
-                if id_value and id_name in mapping:
+                if publisher and (not e.publishers or e.publishers[0] != publisher):
+                    continue
+                if publish_year and (
+                    not e.publish_date
+                    or publish_year != self.extract_year(e.publish_date)
+                ):
+                    continue
+                if id_value and id_name in mapping:  # noqa: SIM102
                     if id_name not in e or id_value not in e[id_name]:
                         continue
                 # return the first good likely matching Edition
@@ -715,13 +714,11 @@ class SaveBookHelper:
 
         edition = trim_doc(edition)
 
-        if physical_dimensions := (edition.get('physical_dimensions', [])):
-            if list(physical_dimensions) == ['units']:
-                edition.physical_dimensions = None
+        if list(edition.get('physical_dimensions', [])) == ['units']:
+            edition.physical_dimensions = None
 
-        if weight := (edition.get('weight', [])):
-            if list(weight) == ['units']:
-                edition.weight = None
+        if list(edition.get('weight', [])) == ['units']:
+            edition.weight = None
 
         for k in ['roles', 'identifiers', 'classifications']:
             edition[k] = edition.get(k) or []

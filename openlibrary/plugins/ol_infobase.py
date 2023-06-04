@@ -48,7 +48,7 @@ def init_plugin():
     ib.add_event_listener(invalidate_most_recent_change)
     setup_logging()
 
-    if ol:
+    if ol:  # noqa: SIM102
         # install custom indexer
         # XXX-Anand: this might create some trouble. Commenting out.
         # ol.store.indexer = Indexer()
