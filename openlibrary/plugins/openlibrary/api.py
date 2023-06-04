@@ -635,6 +635,7 @@ class work_delete(delegate.page):
             content_type="application/json",
         )
 
+
 class hide_banner(delegate.page):
     path = '/hide_banner'
 
