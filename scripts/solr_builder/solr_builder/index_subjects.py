@@ -22,24 +22,35 @@ async def index_subjects(
     """
     print(json.dumps({'event': 'starting', 'offset': offset}))
     async with httpx.AsyncClient() as client:
-        resp = (
-            await client.get(
-                f'{solr_base_url}/select',
-                timeout=30,  # Usually <10, but just in case
-                params={
-                    'q': 'type:work',
-                    'rows': 0,
-                    'facet': 'true',
-                    'facet.field': f'{subject_type}_facet',
-                    'facet.limit': limit,
-                    'facet.offset': offset,
-                    'facet.sort': 'index',
-                    'facet.mincount': 1,
-                    'wt': 'json',
-                    'json.nl': 'arrarr',
-                },
+        response = await client.get(
+            f'{solr_base_url}/select',
+            timeout=30,  # Usually <10, but just in case
+            params={
+                'q': 'type:work',
+                'rows': 0,
+                'facet': 'true',
+                'facet.field': f'{subject_type}_facet',
+                'facet.limit': limit,
+                'facet.offset': offset,
+                'facet.sort': 'index',
+                'facet.mincount': 1,
+                'wt': 'json',
+                'json.nl': 'arrarr',
+            },
+        )
+        try:
+            resp = response.json()
+        except json.decoder.JSONDecodeError:
+            print(
+                json.dumps(
+                    {
+                        'event': 'error',
+                        'offset': offset,
+                        'response': response.text,
+                    }
+                )
             )
-        ).json()
+            raise
     facets = resp['facet_counts']['facet_fields'][f'{subject_type}_facet']
     docs = [
         build_subject_doc(subject_type, subject_name, work_count)
