@@ -579,7 +579,7 @@ class Test_update_items:
     def test_delete_requests(self):
         olids = ['/works/OL1W', '/works/OL2W', '/works/OL3W']
         json_command = update_work.DeleteRequest(olids).to_json_command()
-        assert '"delete": ["/works/OL1W", "/works/OL2W", "/works/OL3W"]' == json_command
+        assert json_command == '"delete": ["/works/OL1W", "/works/OL2W", "/works/OL3W"]'
 
 
 class TestUpdateWork:

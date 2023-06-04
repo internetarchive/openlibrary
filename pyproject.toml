@@ -59,10 +59,8 @@ ignore = [
   "PLW2901",
   "RSE102",
   "SIM102",
-  "SIM105",
   "SIM108",
   "SIM115",
-  "SIM300",
   "SLF001",
   "UP007",
   "UP031",
@@ -134,7 +132,7 @@ allow-magic-value-types = ["bytes", "float", "int", "str"]
 max-args = 15
 max-branches = 22
 max-returns = 14
-max-statements = 71
+max-statements = 70
 
 [tool.ruff.per-file-ignores]
 "openlibrary/admin/stats.py" = ["BLE001"]
@@ -146,6 +144,7 @@ max-statements = 71
 "openlibrary/catalog/utils/query.py" = ["E722"]
 "openlibrary/core/booknotes.py" = ["E722"]
 "openlibrary/core/bookshelves.py" = ["BLE001"]
+"openlibrary/core/db.py" = ["SIM105"]
 "openlibrary/core/helpers.py" = ["BLE001"]
 "openlibrary/core/processors/invalidation.py" = ["BLE001"]
 "openlibrary/core/ratings.py" = ["E722"]
@@ -170,6 +169,7 @@ max-statements = 71
 "openlibrary/plugins/upstream/utils.py" = ["BLE001"]
 "openlibrary/solr/update_work.py" = ["C901", "E722", "PLR0912", "PLR0915"]
 "openlibrary/utils/retry.py" = ["BLE001"]
+"scripts/affiliate_server*.py" = ["SIM105"]
 "scripts/copydocs.py" = ["BLE001"]
 "scripts/delete_import_items.py" = ["BLE001"]
 "scripts/import_book_covers.py" = ["BLE001"]

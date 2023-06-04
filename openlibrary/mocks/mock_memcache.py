@@ -2,6 +2,7 @@
 """
 import memcache
 import pytest
+import contextlib
 
 
 class Client:
@@ -26,10 +27,8 @@ class Client:
             return False
 
     def delete(self, key):
-        try:
+        with contextlib.suppress(KeyError):
             del self.cache[key]
-        except KeyError:
-            pass
 
 
 @pytest.fixture
