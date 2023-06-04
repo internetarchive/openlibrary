@@ -131,6 +131,8 @@ def fully_escape_query(query: str) -> str:
     'x\\\\:\\\\[A TO Z\\\\}'
     >>> fully_escape_query('foo AND bar')
     'foo and bar'
+    >>> fully_escape_query("foo's bar")
+    "foo\\\\'s bar"
     """
     escaped = query
     # Escape special characters
