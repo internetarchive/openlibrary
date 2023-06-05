@@ -77,7 +77,7 @@ class Series:
         return ""
 
 
-def setup():
+def setup() -> None:
     web.template.Template.globals.update(
         {
             'GraphiteGraph': GraphiteGraph,

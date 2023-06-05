@@ -7,6 +7,8 @@ import copy
 import re
 
 from infogami.utils.view import render
+from openlibrary.i18n import LazyObject
+from typing import Callable, Optional, Type, Union
 
 
 class AttributeList(dict):
@@ -28,7 +30,13 @@ class AttributeList(dict):
 
 
 class Input:
-    def __init__(self, name, description=None, value=None, **kw):
+    def __init__(
+        self,
+        name: str,
+        description: Optional[LazyObject] = None,
+        value: None = None,
+        **kw,
+    ) -> None:
         self.name = name
         self.description = description or ""
         self.value = value
@@ -124,7 +132,7 @@ class Hidden(Input):
 
 
 class Form:
-    def __init__(self, *inputs, **kw):
+    def __init__(self, *inputs, **kw) -> None:
         self.inputs = inputs
         self.validators = kw.pop('validators', [])
         self.note = None
@@ -174,7 +182,9 @@ class Form:
 
 
 class Validator:
-    def __init__(self, msg, test):
+    def __init__(
+        self, msg: Union[LazyObject, str], test: Optional[Union[Callable, type[bool]]]
+    ) -> None:
         self.msg = msg
         self.test = test
 
@@ -196,7 +206,7 @@ notnull = Validator("Required", bool)
 
 
 class RegexpValidator(Validator):
-    def __init__(self, rexp, msg):
+    def __init__(self, rexp: str, msg: LazyObject) -> None:
         self.rexp = re.compile(rexp)
         self.msg = msg
 

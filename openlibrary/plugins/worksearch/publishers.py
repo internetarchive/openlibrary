@@ -105,7 +105,7 @@ class PublisherEngine(subjects.SubjectEngine):
         return counts.get('true')
 
 
-def setup():
+def setup() -> None:
     d = web.storage(
         name="publisher",
         key="publishers",

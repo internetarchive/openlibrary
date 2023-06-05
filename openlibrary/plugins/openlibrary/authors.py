@@ -2,7 +2,7 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template
 
 
-def setup():
+def setup() -> None:
     pass
 
 

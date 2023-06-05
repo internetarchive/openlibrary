@@ -89,5 +89,5 @@ class ol_cdumps(delegate.page):
             raise web.found(download_url(item, item + ".txt.gz"))
 
 
-def setup():
+def setup() -> None:
     pass

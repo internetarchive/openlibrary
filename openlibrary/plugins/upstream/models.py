@@ -15,21 +15,25 @@ from infogami.utils.view import safeint
 from infogami.utils import stats
 
 from openlibrary.core import models, ia
-from openlibrary.core.models import Image
+from openlibrary.core.models import Thing, Image
 from openlibrary.core import lending
 
 from openlibrary.plugins.upstream.utils import MultiDict, parse_toc, get_edition_config
 from openlibrary.plugins.upstream import account
 from openlibrary.plugins.upstream import borrow
-from openlibrary.plugins.worksearch.code import works_by_author
+from openlibrary.plugins.worksearch.code import SearchResponse, works_by_author
 from openlibrary.plugins.worksearch.search import get_solr
 
 from openlibrary.utils import dateutil
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 from openlibrary.utils.lccn import normalize_lccn
+from infogami.infobase.client import Nothing
+from openlibrary.plugins.upstream.models import Edition
+from typing import Any, Dict, List, Optional, Union
+from web.utils import Storage
 
 
-def follow_redirect(doc):
+def follow_redirect(doc: Union[Thing, Author]) -> "Author":
     if isinstance(doc, str) and doc.startswith("/a/"):
         # Some edition records have authors as ["/a/OL1A""] instead of [{"key": "/a/OL1A"}].
         # Hack to fix it temporarily.
@@ -43,7 +47,7 @@ def follow_redirect(doc):
 
 
 class Edition(models.Edition):
-    def get_title(self):
+    def get_title(self) -> str:
         if self['title_prefix']:
             return self['title_prefix'] + ' ' + self['title']
         else:
@@ -56,35 +60,35 @@ class Edition(models.Edition):
     title = property(get_title)
     title_prefix = property(get_title_prefix)
 
-    def get_authors(self):
+    def get_authors(self) -> list[Any]:
         """Added to provide same interface for work and edition"""
         authors = [follow_redirect(a) for a in self.authors]
         authors = [a for a in authors if a and a.type.key == "/type/author"]
         return authors
 
-    def get_covers(self):
+    def get_covers(self) -> list[Union[Image, Any]]:
         """
         This methods excludes covers that are -1 or None, which are in the data
         but should not be.
         """
         return [Image(self._site, 'b', c) for c in self.covers if c and c > 0]
 
-    def get_cover(self):
+    def get_cover(self) -> Optional[Image]:
         covers = self.get_covers()
         return covers and covers[0] or None
 
-    def get_cover_url(self, size):
+    def get_cover_url(self, size: str) -> Optional[str]:
         if cover := self.get_cover():
             return cover.url(size)
         elif self.ocaid:
             return self.get_ia_cover(self.ocaid, size)
 
-    def get_ia_cover(self, itemid, size):
+    def get_ia_cover(self, itemid: str, size: str) -> str:
         image_sizes = dict(S=(116, 58), M=(180, 360), L=(500, 500))
         w, h = image_sizes[size.upper()]
         return f"https://archive.org/download/{itemid}/page/cover_w{w}_h{h}.jpg"
 
-    def get_isbn10(self):
+    def get_isbn10(self) -> Union[Nothing, str]:
         """Fetches either isbn_10 or isbn_13 from record and returns canonical
         isbn_10
         """
@@ -94,7 +98,7 @@ class Edition(models.Edition):
             return isbn_13 and isbn_13_to_isbn_10(isbn_13)
         return isbn_10
 
-    def get_isbn13(self):
+    def get_isbn13(self) -> Union[Nothing, str]:
         """Fetches either isbn_13 or isbn_10 from record and returns canonical
         isbn_13
         """
@@ -104,14 +108,14 @@ class Edition(models.Edition):
             return isbn_10 and isbn_10_to_isbn_13(isbn_10)
         return isbn_13
 
-    def get_identifiers(self):
+    def get_identifiers(self) -> MultiDict:
         """Returns (name, value) pairs of all available identifiers."""
         names = ['ocaid', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers']
         return self._process_identifiers(
             get_edition_config().identifiers, names, self.identifiers
         )
 
-    def get_ia_meta_fields(self):
+    def get_ia_meta_fields(self) -> dict[str, Union[str, list[str], bool]]:
         # Check for cached value
         # $$$ we haven't assigned _ia_meta_fields the first time around but there's apparently
         #     some magic that lets us check this way (and breaks using hasattr to check if defined)
@@ -270,7 +274,9 @@ class Edition(models.Edition):
         if self.ocaid:
             lending.sync_loan(self.ocaid)
 
-    def _process_identifiers(self, config_, names, values):
+    def _process_identifiers(
+        self, config_: list[Storage], names: list[str], values: Union[Nothing, Thing]
+    ) -> MultiDict:
         id_map = {}
         for id in config_:
             id_map[id.name] = id
@@ -303,7 +309,7 @@ class Edition(models.Edition):
 
         return d
 
-    def set_identifiers(self, identifiers):
+    def set_identifiers(self, identifiers: list[dict[str, str]]) -> None:
         """Updates the edition from identifiers specified as (name, value) pairs."""
         names = (
             'isbn_10',
@@ -340,13 +346,13 @@ class Edition(models.Edition):
             else:
                 self.identifiers[name] = value
 
-    def get_classifications(self):
+    def get_classifications(self) -> MultiDict:
         names = ["dewey_decimal_class", "lc_classifications"]
         return self._process_identifiers(
             get_edition_config().classifications, names, self.classifications
         )
 
-    def set_classifications(self, classifications):
+    def set_classifications(self, classifications: list[dict[str, str]]) -> None:
         names = ["dewey_decimal_class", "lc_classifications"]
         d = defaultdict(list)
         for c in classifications:
@@ -368,19 +374,19 @@ class Edition(models.Edition):
             else:
                 self.classifications[name] = value
 
-    def get_weight(self):
+    def get_weight(self) -> Nothing:
         """returns weight as a storage object with value and units fields."""
         w = self.weight
         return w and UnitParser(["value"]).parse(w)
 
-    def set_weight(self, w):
+    def set_weight(self, w: None) -> None:
         self.weight = w and UnitParser(["value"]).format(w)
 
-    def get_physical_dimensions(self):
+    def get_physical_dimensions(self) -> Nothing:
         d = self.physical_dimensions
         return d and UnitParser(["height", "width", "depth"]).parse(d)
 
-    def set_physical_dimensions(self, d):
+    def set_physical_dimensions(self, d: None) -> None:
         # don't overwrite physical dimensions if nothing was passed in - there
         # may be dimensions in the database that don't conform to the d x d x d format
         if d:
@@ -388,13 +394,13 @@ class Edition(models.Edition):
                 d
             )
 
-    def get_toc_text(self):
+    def get_toc_text(self) -> str:
         def format_row(r):
             return "*" * r.level + " " + " | ".join([r.label, r.title, r.pagenum])
 
         return "\n".join(format_row(r) for r in self.get_table_of_contents())
 
-    def get_table_of_contents(self):
+    def get_table_of_contents(self) -> list[Any]:
         def row(r):
             if isinstance(r, str):
                 level = 0
@@ -413,10 +419,10 @@ class Edition(models.Edition):
         d = [row(r) for r in self.table_of_contents]
         return [row for row in d if any(row.values())]
 
-    def set_toc_text(self, text):
+    def set_toc_text(self, text: None) -> None:
         self.table_of_contents = parse_toc(text)
 
-    def get_links(self):
+    def get_links(self) -> list[Any]:
         links1 = [
             web.storage(url=url, title=title)
             for url, title in zip(self.uris, self.uri_descriptions)
@@ -424,11 +430,11 @@ class Edition(models.Edition):
         links2 = list(self.links)
         return links1 + links2
 
-    def get_olid(self):
+    def get_olid(self) -> str:
         return self.key.split('/')[-1]
 
     @property
-    def wp_citation_fields(self):
+    def wp_citation_fields(self) -> dict[str, Optional[str]]:
         """
         Builds a Wikipedia book citation as defined by https://en.wikipedia.org/wiki/Template:Cite_book
         """
@@ -466,7 +472,7 @@ class Edition(models.Edition):
             citation.pop('orig-date')
         return citation
 
-    def is_fake_record(self):
+    def is_fake_record(self) -> bool:
         """Returns True if this is a record is not a real record from database,
         but created on the fly.
 
@@ -480,26 +486,26 @@ class Edition(models.Edition):
             self.providers = []
         self.providers.append(data)
 
-    def set_providers(self, providers):
+    def set_providers(self, providers: list[Any]) -> None:
         self.providers = providers
 
 
 class Author(models.Author):
-    def get_photos(self):
+    def get_photos(self) -> list[Any]:
         return [Image(self._site, "a", id) for id in self.photos if id > 0]
 
-    def get_photo(self):
+    def get_photo(self) -> None:
         photos = self.get_photos()
         return photos and photos[0] or None
 
-    def get_photo_url(self, size):
+    def get_photo_url(self, size: str) -> None:
         photo = self.get_photo()
         return photo and photo.url(size)
 
-    def get_olid(self):
+    def get_olid(self) -> str:
         return self.key.split('/')[-1]
 
-    def get_books(self, q=''):
+    def get_books(self, q: None = '') -> SearchResponse:
         i = web.input(sort='editions', page=1, rows=20, mode="")
         try:
             # safegaurd from passing zero/negative offsets to solr
@@ -610,13 +616,13 @@ class Work(models.Work):
                 author_names.append(author_name)
         return author_names
 
-    def get_authors(self):
+    def get_authors(self) -> list[Author]:
         authors = [a.author for a in self.authors]
         authors = [follow_redirect(a) for a in authors]
         authors = [a for a in authors if a and a.type.key == "/type/author"]
         return authors
 
-    def get_subjects(self):
+    def get_subjects(self) -> Union[Nothing, list[str]]:
         """Return subject strings."""
         subjects = self.subjects
 
@@ -631,7 +637,9 @@ class Work(models.Work):
         return subjects
 
     @staticmethod
-    def filter_problematic_subjects(subjects, filter_unicode=True):
+    def filter_problematic_subjects(
+        subjects: Union[Nothing, list[str]], filter_unicode: bool = True
+    ) -> list[Union[str, Any]]:
         def is_ascii(s):
             try:
                 return s.isascii()
@@ -674,7 +682,9 @@ class Work(models.Work):
                 ok_subjects.append(subject)
         return ok_subjects
 
-    def get_related_books_subjects(self, filter_unicode=True):
+    def get_related_books_subjects(
+        self, filter_unicode: bool = True
+    ) -> list[Union[str, Any]]:
         return self.filter_problematic_subjects(self.get_subjects(), filter_unicode)
 
     def get_representative_edition(self) -> str | None:
@@ -997,7 +1007,7 @@ class ListChangeset(Changeset):
         if removed and len(removed) == 1:
             return self.get_seed(removed[0])
 
-    def get_list(self):
+    def get_list(self) -> Thing:
         return self.get_changes()[0]
 
     def get_seed(self, seed):
@@ -1007,7 +1017,7 @@ class ListChangeset(Changeset):
         return models.Seed(self.get_list(), seed)
 
 
-def setup():
+def setup() -> None:
     models.register_models()
 
     client.register_thing_class('/type/edition', Edition)

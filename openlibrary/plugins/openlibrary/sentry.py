@@ -7,7 +7,7 @@ from openlibrary.utils.sentry import Sentry, SentryProcessor
 sentry: Optional[Sentry] = None
 
 
-def setup():
+def setup() -> None:
     global sentry
     sentry = Sentry(getattr(infogami.config, 'sentry', {}))
 

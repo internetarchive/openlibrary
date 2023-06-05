@@ -3,6 +3,7 @@
 import memcache
 from openlibrary.utils.olcompress import OLCompressor
 import web
+from typing import List
 
 
 class Client:
@@ -10,7 +11,7 @@ class Client:
     Compatible with memcache Client API.
     """
 
-    def __init__(self, servers):
+    def __init__(self, servers: list[str]) -> None:
         self._client = memcache.Client(servers)
         compressor = OLCompressor()
         self.compress = compressor.compress

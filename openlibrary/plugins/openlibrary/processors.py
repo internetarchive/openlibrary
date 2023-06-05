@@ -5,6 +5,10 @@ import web
 from openlibrary.core.processors import ReadableUrlProcessor
 
 from openlibrary.core import helpers as h
+from infogami.utils.delegate import RawText
+from typing import Callable, Optional, Set, Union
+from web.template import TemplateResult
+from web.webapi import OK
 
 urlsafe = h.urlsafe
 _safepath = h.urlsafe
@@ -13,7 +17,7 @@ _safepath = h.urlsafe
 class ProfileProcessor:
     """Processor to profile the webpage when ?_profile=true is added to the url."""
 
-    def __call__(self, handler):
+    def __call__(self, handler: Callable) -> Union[RawText, TemplateResult, OK]:
         i = web.input(_method="GET", _profile="")
         if i._profile.lower() == "true":
             out, result = web.profile(handler)()
@@ -45,10 +49,10 @@ class CORSProcessor:
     Cross Origin Resource Sharing.
     """
 
-    def __init__(self, cors_prefixes=None):
+    def __init__(self, cors_prefixes: Optional[set[str]] = None) -> None:
         self.cors_prefixes = cors_prefixes
 
-    def __call__(self, handler):
+    def __call__(self, handler: Callable) -> Union[RawText, TemplateResult, OK]:
         if self.is_cors_path():
             self.add_cors_headers()
         if web.ctx.method == "OPTIONS":
@@ -56,14 +60,14 @@ class CORSProcessor:
         else:
             return handler()
 
-    def is_cors_path(self):
+    def is_cors_path(self) -> bool:
         if self.cors_prefixes is None or web.ctx.path.endswith(".json"):
             return True
         return any(
             web.ctx.path.startswith(path_segment) for path_segment in self.cors_prefixes
         )
 
-    def add_cors_headers(self):
+    def add_cors_headers(self) -> None:
         # Allow anyone to access GET and OPTIONS requests
         allowed = "GET, OPTIONS"
         # unless the path is /account/* or /admin/*

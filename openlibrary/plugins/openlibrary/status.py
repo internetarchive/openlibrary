@@ -8,6 +8,7 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template, public
 from openlibrary.core import stats
 from openlibrary.utils import get_software_version
+from web.utils import Storage
 
 status_info: dict[str, Any] = {}
 feature_flagso: dict[str, Any] = {}
@@ -19,7 +20,7 @@ class status(delegate.page):
 
 
 @public
-def get_git_revision_short_hash():
+def get_git_revision_short_hash() -> str:
     return (
         status_info.get('Software version')
         if status_info and isinstance(status_info, dict)
@@ -27,11 +28,11 @@ def get_git_revision_short_hash():
     )
 
 
-def get_features_enabled():
+def get_features_enabled() -> Storage:
     return config.features
 
 
-def setup():
+def setup() -> None:
     "Basic startup status for the server"
     global status_info, feature_flags
     host = socket.gethostname()

@@ -2,7 +2,7 @@ import web
 from infogami.infobase.client import ClientException
 from infogami.core import forms
 
-from openlibrary.i18n import lgettext as _
+from openlibrary.i18n import LazyObject, lgettext as _
 from openlibrary.utils.form import (
     Form,
     Textbox,
@@ -61,7 +61,7 @@ vemail = RegexpValidator(r".*@.*", _("Must be a valid email address"))
 
 
 class EqualToValidator(Validator):
-    def __init__(self, fieldname, message):
+    def __init__(self, fieldname: str, message: LazyObject) -> None:
         Validator.__init__(self, message, None)
         self.fieldname = fieldname
         self.form = None
@@ -121,7 +121,7 @@ class RegisterForm(Form):
         ),
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         Form.__init__(self, *self.INPUTS)
 
     def validates(self, source):

@@ -15,6 +15,8 @@ from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream.utils import get_blog_feeds, get_coverstore_public_url
 from openlibrary.plugins.worksearch import search, subjects
+from typing import Any, Callable, Dict, List, Optional, Union
+from web.template import TemplateResult
 
 logger = logging.getLogger("openlibrary.home")
 
@@ -38,7 +40,7 @@ CAROUSELS_PRESETS = {
 }
 
 
-def get_homepage():
+def get_homepage() -> dict[str, str]:
     try:
         stats = admin.get_stats()
     except Exception:
@@ -54,7 +56,7 @@ def get_homepage():
     return dict(page)
 
 
-def get_cached_homepage():
+def get_cached_homepage() -> dict[str, str]:
     five_minutes = 5 * dateutil.MINUTE_SECS
     lang = web.ctx.lang
     pd = web.cookies().get('pd', False)
@@ -72,7 +74,7 @@ def get_cached_homepage():
 # We do that by using a python closure. The outer function is executed on the main
 # thread, so all the web.* stuff is correct. The inner function is executed on the
 # other thread, so all the web.* stuff will be dummy.
-def caching_prethread():
+def caching_prethread() -> Callable:
     # web.ctx.lang is undefined on the new thread, so need to transfer it over
     lang = web.ctx.lang
 
@@ -89,7 +91,7 @@ def caching_prethread():
 class home(delegate.page):
     path = "/"
 
-    def GET(self):
+    def GET(self) -> TemplateResult:
         cached_homepage = get_cached_homepage()
         # when homepage is cached, home/index.html template
         # doesn't run ctx.setdefault to set the cssfile so we must do so here:
@@ -111,7 +113,12 @@ class random_book(delegate.page):
         raise web.seeother(key)
 
 
-def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None):
+def get_ia_carousel_books(
+    query: Optional[str] = None,
+    subject: Optional[str] = None,
+    sorts: Optional[Union[str, list[str]]] = None,
+    limit: Optional[int] = None,
+) -> list[Any]:
     if 'env' not in web.ctx:
         delegate.fakeload()
 
@@ -131,7 +138,7 @@ def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None):
     return formatted_books
 
 
-def get_featured_subjects():
+def get_featured_subjects() -> list[dict[str, Union[str, int]]]:
     # web.ctx must be initialized as it won't be available to the background thread.
     if 'env' not in web.ctx:
         delegate.fakeload()
@@ -163,7 +170,7 @@ def get_featured_subjects():
 
 
 @public
-def get_cached_featured_subjects():
+def get_cached_featured_subjects() -> list[dict[str, Union[str, int]]]:
     return cache.memcache_memoize(
         get_featured_subjects,
         f"home.featured_subjects.{web.ctx.lang}",
@@ -174,12 +181,12 @@ def get_cached_featured_subjects():
 
 @public
 def generic_carousel(
-    query=None,
-    subject=None,
-    sorts=None,
-    limit=None,
-    timeout=None,
-):
+    query: Optional[str] = None,
+    subject: Optional[str] = None,
+    sorts: Optional[Union[str, list[str]]] = None,
+    limit: Optional[int] = None,
+    timeout: None = None,
+) -> list[Any]:
     memcache_key = 'home.ia_carousel_books'
     cached_ia_carousel_books = cache.memcache_memoize(
         get_ia_carousel_books,
@@ -293,5 +300,5 @@ def format_book_data(book, fetch_availability=True):
     return d
 
 
-def setup():
+def setup() -> None:
     pass

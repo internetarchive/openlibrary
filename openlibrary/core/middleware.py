@@ -3,15 +3,19 @@
 import web
 from io import BytesIO
 import gzip
+from itertools import chain
+from typing import Any, Callable, Dict, List, Union
 
 
 class GZipMiddleware:
     """WSGI middleware to gzip the response."""
 
-    def __init__(self, app):
+    def __init__(self, app: Callable) -> None:
         self.app = app
 
-    def __call__(self, environ, start_response):
+    def __call__(
+        self, environ: dict[str, Any], start_response: Callable
+    ) -> Union[chain, list[bytes]]:
         accept_encoding = environ.get("HTTP_ACCEPT_ENCODING", "")
         if 'gzip' not in accept_encoding:
             return self.app(environ, start_response)

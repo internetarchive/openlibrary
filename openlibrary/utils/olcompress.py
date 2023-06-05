@@ -15,6 +15,6 @@ seed4 = '{"name": "Alberto Tebechrani", "personal_name": "Alberto Tebechrani", "
 seed = seed1 + seed2 + seed3 + seed4
 
 
-def OLCompressor():
+def OLCompressor() -> Compressor:
     """Create a compressor object for compressing OL data."""
     return Compressor(seed)

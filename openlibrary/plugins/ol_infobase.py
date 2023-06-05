@@ -21,11 +21,15 @@ from ..utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10, normalize_isbn
 
 # relative import
 from .openlibrary import schema
+from infogami.infobase.cache import MemcachedDict
+from infogami.infobase.core import Reference
+from typing import Any, List, Optional, Union
+from web.db import PostgresDB
 
 logger = logging.getLogger("infobase.ol")
 
 
-def init_plugin():
+def init_plugin() -> None:
     """Initialize infobase plugin."""
     from infogami.infobase import common, dbstore
     from infogami.infobase import logger as infobase_logger
@@ -82,7 +86,7 @@ def init_plugin():
     server.app.add_mapping(r"/_inspect", __name__ + "._inspect")
 
 
-def setup_logging():
+def setup_logging() -> None:
     try:
         logconfig = config.get("logging_config_file")
         if logconfig and os.path.exists(logconfig):
@@ -118,7 +122,7 @@ class _inspect:
             return traceback.format_exc()
 
 
-def get_db():
+def get_db() -> PostgresDB:
     site = server.get_site('openlibrary.org')
     return site.store.db
 
@@ -133,14 +137,14 @@ def get_property_id(type, name):
         return None
 
 
-def get_thing_id(key):
+def get_thing_id(key: str) -> int:
     try:
         return get_db().where('thing', key=key)[0].id
     except IndexError:
         return None
 
 
-def count(table, type, key, value):
+def count(table: str, type: str, key: str, value: str) -> int:
     pid = get_property_id(type, key)
 
     value_id = get_thing_id(value)
@@ -451,7 +455,7 @@ class MemcacheInvalidater:
 olmemcache = __import__('openlibrary.utils.olmemcache', None, None, ['x'])
 
 
-def MemcachedDict(servers=None):
+def MemcachedDict(servers: Optional[list[str]] = None) -> MemcachedDict:
     servers = servers or []
     """Cache implementation with OL customized memcache client."""
     client = olmemcache.Client(servers)
@@ -461,7 +465,7 @@ def MemcachedDict(servers=None):
 cache.register_cache('memcache', MemcachedDict)
 
 
-def _process_key(key):
+def _process_key(key: str) -> str:
     mapping = (
         '/l/',
         '/languages/',
@@ -478,7 +482,7 @@ def _process_key(key):
     return key
 
 
-def _process_data(data):
+def _process_data(data: Any) -> Any:
     if isinstance(data, list):
         return [_process_data(d) for d in data]
     elif isinstance(data, dict):
@@ -525,7 +529,7 @@ def fix_table_of_contents(table_of_contents):
     return [row for row in d if any(row.values())]
 
 
-def process_json(key, json_str):
+def process_json(key: Union[Reference, str], json_str: Optional[str]) -> Optional[str]:
     if key is None or json_str is None:
         return None
     base = key[1:].split('/')[0]

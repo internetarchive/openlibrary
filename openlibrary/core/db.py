@@ -4,6 +4,8 @@ import web
 from sqlite3 import IntegrityError
 from psycopg2.errors import UniqueViolation
 from infogami.utils import stats
+from typing import Callable
+from web.db import PostgresDB
 
 
 @web.memoize
@@ -11,7 +13,7 @@ def _get_db():
     return web.database(**web.config.db_parameters)
 
 
-def get_db():
+def get_db() -> PostgresDB:
     """Returns an instance of webpy database object.
 
     The database object is cached so that one object is used everywhere.
@@ -145,7 +147,7 @@ class CommonExtras:
         return rows_deleted
 
 
-def _proxy(method_name):
+def _proxy(method_name: str) -> Callable:
     """Create a new function that call method with given name on the
     database object.
 

@@ -14,6 +14,7 @@ from babel.messages.mofile import write_mo
 from babel.messages.extract import extract_from_file, extract_from_dir, extract_python
 
 from .validators import validate
+from typing import Callable, Union
 
 root = os.path.dirname(__file__)
 
@@ -305,7 +306,7 @@ def load_locale(lang):
 
 
 class GetText:
-    def __call__(self, string, *args, **kwargs):
+    def __call__(self, string: str, *args, **kwargs) -> str:
         """Translate a given string to the language of the current locale."""
         # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
         translations = load_translations(web.ctx.lang)
@@ -326,13 +327,13 @@ class GetText:
 
 
 class LazyGetText:
-    def __call__(self, string, *args, **kwargs):
+    def __call__(self, string: str, *args, **kwargs) -> "LazyObject":
         """Translate a given string lazily."""
         return LazyObject(lambda: GetText()(string, *args, **kwargs))
 
 
 class LazyObject:
-    def __init__(self, creator):
+    def __init__(self, creator: Callable) -> None:
         self._creator = creator
 
     def __str__(self):
@@ -348,7 +349,7 @@ class LazyObject:
         return other + self._creator()
 
 
-def ungettext(s1, s2, _n, *a, **kw):
+def ungettext(s1: str, s2: str, _n: Union[float, int], *a, **kw) -> str:
     # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
     translations = load_translations(web.ctx.lang)
     value = translations and translations.ungettext(s1, s2, _n)

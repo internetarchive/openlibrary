@@ -8,6 +8,7 @@ from openlibrary import accounts
 from openlibrary.core.edits import CommunityEditsQueue, get_status_for_view
 from infogami.utils import delegate
 from infogami.utils.view import render_template
+from web.template import TemplateResult
 
 
 def response(status='ok', **kwargs):
@@ -30,7 +31,7 @@ def process_merge_request(rtype, data):
 class community_edits_queue(delegate.page):
     path = '/merges'
 
-    def GET(self):
+    def GET(self) -> TemplateResult:
         i = web.input(
             page=1, limit=25, mode="open", submitter=None, reviewer=None, order='desc'
         )
@@ -198,5 +199,5 @@ class ui_partials(delegate.page):
             return delegate.RawText(component)
 
 
-def setup():
+def setup() -> None:
     pass

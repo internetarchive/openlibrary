@@ -2,9 +2,10 @@
 """
 from infogami.infobase import dbstore
 import web
+from infogami.infobase._dbstore.schema import Schema
 
 
-def get_schema():
+def get_schema() -> Schema:
     schema = dbstore.Schema()
     schema.add_table_group('type', '/type/type')
     schema.add_table_group('type', '/type/property')
@@ -105,7 +106,7 @@ def get_schema():
     return schema
 
 
-def register_schema():
+def register_schema() -> None:
     """Register the schema defined in this module as the default schema."""
     dbstore.default_schema = get_schema()
 

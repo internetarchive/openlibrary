@@ -11,6 +11,9 @@ import datetime
 from openlibrary.core import ia
 
 import logging
+from infogami.infobase.client import LocalConnection, RemoteConnection
+from openlibrary.utils.olmemcache import Client
+from typing import Any, Dict, List, Optional, Union
 
 
 logger = logging.getLogger("openlibrary")
@@ -19,16 +22,31 @@ logger = logging.getLogger("openlibrary")
 class ConnectionMiddleware:
     response_type = "json"
 
-    def __init__(self, conn):
+    def __init__(
+        self, conn: Union[HybridConnection, MigrationMiddleware, MemcacheMiddleware]
+    ) -> None:
         self.conn = conn
 
     def get_auth_token(self):
         return self.conn.get_auth_token()
 
-    def set_auth_token(self, token):
+    def set_auth_token(self, token: Optional[str]) -> None:
         self.conn.set_auth_token(token)
 
-    def request(self, sitename, path, method='GET', data=None):
+    def request(
+        self,
+        sitename: str,
+        path: str,
+        method: str = 'GET',
+        data: Optional[
+            Union[
+                str,
+                dict[str, Union[str, int]],
+                dict[str, str],
+                dict[str, Optional[str]],
+            ]
+        ] = None,
+    ) -> Union[bytes, str]:
         if path == '/get':
             return self.get(sitename, data)
         elif path == '/get_many':
@@ -60,31 +78,33 @@ class ConnectionMiddleware:
 
         return self.conn.request(sitename, path, method, data)
 
-    def account_request(self, sitename, path, method="GET", data=None):
+    def account_request(
+        self, sitename: str, path: str, method: str = "GET", data: None = None
+    ) -> str:
         return self.conn.request(sitename, path, method, data)
 
-    def get(self, sitename, data):
+    def get(self, sitename: str, data: dict[str, Optional[Union[str, int]]]) -> str:
         return self.conn.request(sitename, '/get', 'GET', data)
 
-    def get_many(self, sitename, data):
+    def get_many(self, sitename: str, data: dict[str, str]) -> str:
         return self.conn.request(sitename, '/get_many', 'GET', data)
 
-    def versions(self, sitename, data):
+    def versions(self, sitename: str, data: dict[str, str]) -> str:
         return self.conn.request(sitename, '/versions', 'GET', data)
 
-    def recentchanges(self, sitename, data):
+    def recentchanges(self, sitename: str, data: dict[str, str]) -> str:
         return self.conn.request(sitename, '/_recentchanges', 'GET', data)
 
-    def things(self, sitename, data):
+    def things(self, sitename: str, data: dict[str, str]) -> str:
         return self.conn.request(sitename, '/things', 'GET', data)
 
     def write(self, sitename, data):
         return self.conn.request(sitename, '/write', 'POST', data)
 
-    def save(self, sitename, path, data):
+    def save(self, sitename: str, path: str, data: str) -> bytes:
         return self.conn.request(sitename, path, 'POST', data)
 
-    def save_many(self, sitename, data):
+    def save_many(self, sitename: str, data: dict[str, str]) -> bytes:
         # Work-around for https://github.com/internetarchive/openlibrary/issues/4285
         # Infogami seems to read encoded bytes as a string with a byte literal inside
         # of it, which is invalid JSON and also can't be decode()'d.
@@ -92,7 +112,7 @@ class ConnectionMiddleware:
             data['query'] = data['query'].decode()
         return self.conn.request(sitename, '/save_many', 'POST', data)
 
-    def store_get(self, sitename, path):
+    def store_get(self, sitename: str, path: str) -> str:
         return self.conn.request(sitename, path, 'GET')
 
     def store_put(self, sitename, path, data):
@@ -109,7 +129,7 @@ _memcache = None
 
 
 class IAMiddleware(ConnectionMiddleware):
-    def _get_itemid(self, key):
+    def _get_itemid(self, key: Optional[str]) -> None:
         """Returns internet archive item id from the key.
 
         If the key is of the form "/books/ia:.*", the part after "/books/ia:"
@@ -118,7 +138,7 @@ class IAMiddleware(ConnectionMiddleware):
         if key and key.startswith("/books/ia:") and key.count("/") == 2:
             return key[len("/books/ia:") :]
 
-    def get(self, sitename, data):
+    def get(self, sitename: str, data: dict[str, Optional[Union[str, int]]]) -> str:
         key = data.get('key')
 
         if itemid := self._get_itemid(key):
@@ -219,7 +239,7 @@ class IAMiddleware(ConnectionMiddleware):
         except:
             logger.error("error", exc_info=True)
 
-    def versions(self, sitename, data):
+    def versions(self, sitename: str, data: dict[str, str]) -> str:
         # handle the query of type {"query": '{"key": "/books/ia:foo00bar", ...}}
         if 'query' in data:
             q = json.loads(data['query'])
@@ -231,7 +251,7 @@ class IAMiddleware(ConnectionMiddleware):
         # if not just go the default way
         return ConnectionMiddleware.versions(self, sitename, data)
 
-    def recentchanges(self, sitename, data):
+    def recentchanges(self, sitename: str, data: dict[str, str]) -> str:
         # handle the query of type {"query": '{"key": "/books/ia:foo00bar", ...}}
         if 'query' in data:
             q = json.loads(data['query'])
@@ -274,11 +294,11 @@ class IAMiddleware(ConnectionMiddleware):
 
 
 class MemcacheMiddleware(ConnectionMiddleware):
-    def __init__(self, conn, memcache_servers):
+    def __init__(self, conn: "HybridConnection", memcache_servers: list[str]) -> None:
         ConnectionMiddleware.__init__(self, conn)
         self.memcache = self.get_memcache(memcache_servers)
 
-    def get_memcache(self, memcache_servers):
+    def get_memcache(self, memcache_servers: list[str]) -> Client:
         global _memcache
         if _memcache is None:
             from openlibrary.utils import olmemcache
@@ -286,7 +306,7 @@ class MemcacheMiddleware(ConnectionMiddleware):
             _memcache = olmemcache.Client(memcache_servers)
         return _memcache
 
-    def get(self, sitename, data):
+    def get(self, sitename: str, data: dict[str, Optional[Union[str, int]]]) -> str:
         key = data.get('key')
         revision = data.get('revision')
 
@@ -311,7 +331,7 @@ class MemcacheMiddleware(ConnectionMiddleware):
                     self.mc_set(mc_key, result, time=60)  # cache for a minute
             return result
 
-    def get_many(self, sitename, data):
+    def get_many(self, sitename: str, data: dict[str, str]) -> str:
         keys = json.loads(data['keys'])
 
         stats.begin("memcache.get_multi")
@@ -337,7 +357,7 @@ class MemcacheMiddleware(ConnectionMiddleware):
 
         return json.dumps(result)
 
-    def mc_get(self, key):
+    def mc_get(self, key: str) -> Optional[str]:
         stats.begin("memcache.get", key=key)
         result = self.memcache.get(key)
         stats.end(hit=bool(result))
@@ -353,12 +373,12 @@ class MemcacheMiddleware(ConnectionMiddleware):
         self.memcache.add(key, value)
         stats.end()
 
-    def mc_set(self, key, value, time=0):
+    def mc_set(self, key: str, value: str, time: int = 0) -> None:
         stats.begin("memcache.set", key=key)
         self.memcache.add(key, value, time=time)
         stats.end()
 
-    def mc_set_multi(self, mapping):
+    def mc_set_multi(self, mapping: dict[str, str]) -> None:
         stats.begin("memcache.set_multi")
         self.memcache.set_multi(mapping)
         stats.end()
@@ -368,7 +388,7 @@ class MemcacheMiddleware(ConnectionMiddleware):
         self.memcache.delete_multi(keys)
         stats.end()
 
-    def store_get(self, sitename, path):
+    def store_get(self, sitename: str, path: str) -> str:
         # path will be "/_store/$key"
         result = self.mc_get(path)
 
@@ -405,7 +425,9 @@ class MemcacheMiddleware(ConnectionMiddleware):
         self.mc_delete(key)
         return result
 
-    def account_request(self, sitename, path, method="GET", data=None):
+    def account_request(
+        self, sitename: str, path: str, method: str = "GET", data: None = None
+    ) -> str:
         # For post requests, remove the account entry from the cache.
         if method == "POST" and isinstance(data, dict):
             deletes = []
@@ -445,7 +467,7 @@ class MemcacheMiddleware(ConnectionMiddleware):
 class MigrationMiddleware(ConnectionMiddleware):
     """Temporary middleware to handle upstream to www migration."""
 
-    def _process_key(self, key):
+    def _process_key(self, key: str) -> str:
         mapping = (
             "/l/",
             "/languages/",
@@ -470,7 +492,7 @@ class MigrationMiddleware(ConnectionMiddleware):
         except client.ClientException as e:
             return False
 
-    def _process(self, data):
+    def _process(self, data: Any) -> Any:
         if isinstance(data, list):
             return [self._process(d) for d in data]
         elif isinstance(data, dict):
@@ -480,7 +502,7 @@ class MigrationMiddleware(ConnectionMiddleware):
         else:
             return data
 
-    def get(self, sitename, data):
+    def get(self, sitename: str, data: dict[str, Optional[Union[str, int]]]) -> str:
         if web.ctx.get('path') == "/api/get" and 'key' in data:
             data['key'] = self._process_key(data['key'])
 
@@ -492,7 +514,7 @@ class MigrationMiddleware(ConnectionMiddleware):
             response = json.dumps(data)
         return response
 
-    def fix_doc(self, doc):
+    def fix_doc(self, doc: dict[str, Any]) -> dict[str, Any]:
         type = doc.get("type", {}).get("key")
 
         if type == "/type/work":
@@ -527,7 +549,7 @@ class MigrationMiddleware(ConnectionMiddleware):
                 return doc['location']
         return key
 
-    def get_many(self, sitename, data):
+    def get_many(self, sitename: str, data: dict[str, str]) -> str:
         response = ConnectionMiddleware.get_many(self, sitename, data)
         if response:
             data = json.loads(response)
@@ -548,19 +570,32 @@ class HybridConnection(client.Connection):
     down the overhead of http calls present in case of remote connections.
     """
 
-    def __init__(self, reader, writer):
+    def __init__(self, reader: LocalConnection, writer: RemoteConnection) -> None:
         client.Connection.__init__(self)
         self.reader = reader
         self.writer = writer
 
-    def set_auth_token(self, token):
+    def set_auth_token(self, token: Optional[str]) -> None:
         self.reader.set_auth_token(token)
         self.writer.set_auth_token(token)
 
     def get_auth_token(self):
         return self.writer.get_auth_token()
 
-    def request(self, sitename, path, method="GET", data=None):
+    def request(
+        self,
+        sitename: str,
+        path: str,
+        method: str = "GET",
+        data: Optional[
+            Union[
+                str,
+                dict[str, Union[str, int]],
+                dict[str, str],
+                dict[str, Optional[str]],
+            ]
+        ] = None,
+    ) -> Union[bytes, str]:
         if method == "GET":
             return self.reader.request(sitename, path, method, data=data)
         else:
@@ -582,22 +617,22 @@ def _update_infobase_config():
     server.update_config(config.infobase)
 
 
-def create_local_connection():
+def create_local_connection() -> LocalConnection:
     _update_infobase_config()
     return client.connect(type='local', **web.config.db_parameters)
 
 
-def create_remote_connection():
+def create_remote_connection() -> RemoteConnection:
     return client.connect(type='remote', base_url=config.infobase_server)
 
 
-def create_hybrid_connection():
+def create_hybrid_connection() -> HybridConnection:
     local = create_local_connection()
     remote = create_remote_connection()
     return HybridConnection(local, remote)
 
 
-def OLConnection():
+def OLConnection() -> IAMiddleware:
     """Create a connection to Open Library infobase server."""
 
     def create_connection():
