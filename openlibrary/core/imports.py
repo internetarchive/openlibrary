@@ -12,6 +12,7 @@ import json
 from psycopg2.errors import UndefinedTable, UniqueViolation
 
 from . import db
+import contextlib
 
 logger = logging.getLogger("openlibrary.imports")
 
@@ -89,10 +90,9 @@ class Batch(web.storage):
                 db.get_db().multiple_insert("import_item", items)
             except UniqueViolation:
                 for item in items:
-                    try:
+                    with contextlib.suppress(UniqueViolation):
                         db.get_db().insert("import_item", **item)
-                    except UniqueViolation:
-                        pass
+
             logger.info("batch %s: added %d items", self.name, len(items))
 
         return

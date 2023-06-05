@@ -412,8 +412,7 @@ class WorkSearchScheme(SearchScheme):
                 if param_name != 'fq' or param_value.startswith('type:'):
                     continue
                 field_name, field_val = param_value.split(':', 1)
-                ed_field = convert_work_field_to_edition_field(field_name)
-                if ed_field:
+                if ed_field := convert_work_field_to_edition_field(field_name):
                     editions_fq.append(f'{ed_field}:{field_val}')
             for fq in editions_fq:
                 new_params.append(('editions.fq', fq))
@@ -445,10 +444,7 @@ class WorkSearchScheme(SearchScheme):
         if ed_q or len(editions_fq) > 1:
             # The elements in _this_ edition query should cause works not to
             # match _at all_ if matching editions are not found
-            if ed_q:
-                new_params.append(('edQuery', full_ed_query))
-            else:
-                new_params.append(('edQuery', '*:*'))
+            new_params.append(('edQuery', full_ed_query if ed_q else '*:*'))
             q = (
                 f'+{full_work_query} '
                 # This is using the special parent query syntax to, on top of
