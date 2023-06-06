@@ -336,9 +336,10 @@ class account_login_json(delegate.page):
                 raise olib.code.BadRequest(error)
             expires = 3600 * 24 * 365 if remember.lower() == 'true' else ""
             web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
-            ol_account = OpenLibraryAccount.get(email=email)
-            if ol_account.get_user().get_safe_mode() == 'yes':
-                web.setcookie('sfw', 'yes', expires=expires)
+            if audit.get('ia_email'):
+                ol_account = OpenLibraryAccount.get(email=audit['ia_email'])
+                if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
+                    web.setcookie('sfw', 'yes', expires=expires)
         # Fallback to infogami user/pass
         else:
             from infogami.plugins.api.code import login as infogami_login
@@ -403,7 +404,7 @@ class account_login(delegate.page):
             config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
         )
         ol_account = OpenLibraryAccount.get(email=email)
-        if ol_account.get_user().get_safe_mode() == 'yes':
+        if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
             web.setcookie('sfw', 'yes', expires=expires)
         blacklist = [
             "/account/login",
