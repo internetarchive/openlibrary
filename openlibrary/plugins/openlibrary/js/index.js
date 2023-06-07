@@ -388,6 +388,9 @@ jQuery(function () {
     if (readingLogDroppers.length || wtrLoadingIndicator || overviewLoadingIndicator) {
         import(/* webpackChunkName: "lists" */ './lists')
             .then((module) => {
+                if (wtrLoadingIndicator || overviewLoadingIndicator) {
+                    // module.initListLoading(wtrLoadingIndicator, overviewLoadingIndicator)
+                }
                 if (readingLogDroppers.length) {
                     module.initReadingLogDroppers(readingLogDroppers);
                     // Removable list items:
@@ -395,11 +398,13 @@ jQuery(function () {
                     const actionableListItems = document.querySelectorAll('.actionable-item')
                     module.registerListItems(actionableListItems);
                 }
-                if (wtrLoadingIndicator || overviewLoadingIndicator) {
-                    module.initListLoading(wtrLoadingIndicator, overviewLoadingIndicator)
-                }
-            }
-            );
+            });
+    }
+
+    const myBooksDroppers = document.querySelectorAll('.my-books-dropper')
+    if (myBooksDroppers.length) {
+        import(/* webpackChunkName: "my-books-dropper" */ './my-books')
+            .then(module => module.initMyBooksDroppers(myBooksDroppers))
     }
 
     const nativeDialogs = document.querySelectorAll('.native-dialog')

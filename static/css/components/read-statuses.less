@@ -5,6 +5,14 @@
 .read-statuses {
   border-bottom: 1px solid @lightest-grey;
   button {
+    &.remove-from-list {
+      color: @red;
+
+      &:hover {
+        color: @red;
+      }
+    }
+
     border: none;
     background: none;
     cursor: pointer;
@@ -19,10 +27,6 @@
       color: @black;
       background-color: @white;
     }
-  }
-
-  .remove-from-list {
-    color: @red;
   }
 
   /* stylelint-disable selector-max-specificity */

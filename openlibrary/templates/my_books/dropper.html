@@ -41,4 +41,10 @@ $ show_list_i18n_strings = {
 
 $ primary_action = render_template('my_books/primary_action', work_key, edition_key, user_key, users_work_read_status, page_url)
 $ dropdown_content = render_template('my_books/dropdown_content', user_lists, seed_key, work_key, edition_key, users_work_read_status, async_load=async_load)
-$:render_template('lib/dropper', primary_action, dropdown_content)
+$:render_template('lib/dropper', primary_action, dropdown_content, additional_classes='my-books-dropper')
+$if work_key:
+    $ last_read_date = get_latest_read_date(work_key)
+    $ date = last_read_date['event_date'] if last_read_date else None
+    $ event_id = last_read_date['id'] if last_read_date else None
+    $:render_template('check_ins/check_in_prompt', work_key, users_work_read_status, edition_key=edition_key, last_read_date=date, event_id=event_id)
+

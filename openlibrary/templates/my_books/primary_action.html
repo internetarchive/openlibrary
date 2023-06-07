@@ -1,7 +1,7 @@
 $def with(work_key, edition_key, user_key, read_status, page_url)
 
 $def reading_log_cta(work_key, edition_key, user_key, read_status):
-  <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
+  <form class="reading-log primary-action" method="POST" action="$(work_key)/bookshelves.json">
     $if read_status == 3:
       $ message = _("Already Read")
     $elif read_status == 2:
@@ -29,7 +29,7 @@ $def reading_log_cta(work_key, edition_key, user_key, read_status):
       <input type="hidden" name="user-key" value="$(user_key)" />
 
     $# XXX: Closes dropper
-    <button class="book-progress-btn want-to-read $(activated_status)" type="submit">
+    <button class="book-progress-btn primary-action $(activated_status)" type="submit">
       <span class="activated-check $(checkmark_visibility)">✓</span>
       <span class="btn-text">$(message)</span>
     </button>
