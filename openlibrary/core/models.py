@@ -1117,19 +1117,18 @@ class Subject(web.storage):
                 return Image(web.ctx.site, "b", cover_id)
 
 
-# TODO: expand on tag model
 class Tag(Thing):
     """Class to represent /type/tag objects in OL."""
 
     @classmethod
-    def get_tag(cls, tag_name, tag_type):
+    def get(cls, tag_name, tag_type):
         """Returns a Tag object for a given tag name and tag type."""
         q = {'type': '/type/tag', 'name': tag_name, 'tag_type': tag_type}
         match = list(web.ctx.site.things(q))
         return match[0] if match else None
 
     @classmethod
-    def create_tag(cls, tag_name, tag_description, tag_type, tag_plugins):
+    def create(cls, tag_name, tag_description, tag_type, tag_plugins):
         """Creates a new Tag object."""
         key = web.ctx.site.new_key('/type/tag')
         web.ctx.path = key

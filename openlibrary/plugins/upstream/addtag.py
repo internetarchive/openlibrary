@@ -74,7 +74,7 @@ class addtag(delegate.page):
         Tries to find an existing tag that matches the data provided by the user.
         """
 
-        return Tag.get_tag(i.tag_name, i.tag_type)
+        return Tag.get(i.tag_name, i.tag_type)
 
     def tag_match(self, match: list) -> NoReturn:
         """
@@ -90,7 +90,7 @@ class addtag(delegate.page):
         Creates a new Tag.
         Redirects the user to the tag's home page
         """
-        key = Tag.create_tag(i.tag_name, i.tag_description, i.tag_type, i.tag_plugins)
+        key = Tag.create(i.tag_name, i.tag_description, i.tag_type, i.tag_plugins)
         raise safe_seeother(key)
 
 

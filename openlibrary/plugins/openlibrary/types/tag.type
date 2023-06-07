@@ -1,6 +1,7 @@
 {
     "name": "Tag",
     "key": "/type/tag",
+    "id": 121411342,
     "kind": "regular",
     "created": {
         "type": "/type/datetime",
