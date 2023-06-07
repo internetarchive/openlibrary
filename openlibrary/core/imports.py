@@ -190,9 +190,15 @@ class Stats:
 
     @classmethod
     def get_count(cls, status=None, use_cache=False):
-        return (cache.memcache_memoize(
-            cls._get_count, "imports.get_count", timeout=5*60,
-        ) if use_cache else cls._get_count)(status=status)
+        return (
+            cache.memcache_memoize(
+                cls._get_count,
+                "imports.get_count",
+                timeout=5 * 60,
+            )
+            if use_cache
+            else cls._get_count
+        )(status=status)
 
     @staticmethod
     def get_count_by_status(date=None):
@@ -223,7 +229,8 @@ class Stats:
         if use_cache:
             date_counts = cache.memcache_memoize(
                 cls._get_count_by_date_status,
-                "imports.get_count_by_date_status", timeout=60*60
+                "imports.get_count_by_date_status",
+                timeout=60 * 60,
             )(ndays=ndays)
             # Don't cache today
             date_counts[0] = cls._get_count_by_date_status(ndays=1)
@@ -234,6 +241,7 @@ class Stats:
     def _get_books_imported_per_day():
         def date2millis(date):
             return time.mktime(date.timetuple()) * 1000
+
         try:
             query = """
             SELECT import_time::date as date, count(*) as count
@@ -248,10 +256,15 @@ class Stats:
 
     @classmethod
     def get_books_imported_per_day(cls, use_cache=False):
-        return (cache.memcache_memoize(
-            cls._get_books_imported_per_day,
-            "import_stats.get_books_imported_per_day", timeout=60*60,
-        ) if use_cache else cls._get_books_imported_per_day)()
+        return (
+            cache.memcache_memoize(
+                cls._get_books_imported_per_day,
+                "import_stats.get_books_imported_per_day",
+                timeout=60 * 60,
+            )
+            if use_cache
+            else cls._get_books_imported_per_day
+        )()
 
     @staticmethod
     def get_items(date=None, order=None, limit=None):
@@ -276,4 +289,3 @@ class Stats:
             vars=locals(),
         )
         return {"counts": {row.status: row.count for row in rows}}
-
