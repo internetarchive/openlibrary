@@ -70,12 +70,13 @@ async def stream_bounds(params: dict[str, str], solr_base: str, page_size=100):
             if docs:
                 seen += len(docs)
                 yield docs[0]['key'], docs[-1]['key']
-                params['cursorMark'] = data['nextCursorMark']
             else:
                 break
 
             if params['cursorMark'] == data['nextCursorMark']:
                 break
+            else:
+                params['cursorMark'] = data['nextCursorMark']
 
 
 async def main(
