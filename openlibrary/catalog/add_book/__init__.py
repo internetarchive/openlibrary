@@ -806,7 +806,6 @@ def load(rec, account_key=None):
         'lc_classifications',
         'oclc_numbers',
         'source_records',
-        'publishers',
     ]
     for f in edition_list_fields:
         if f not in rec or not rec[f]:
@@ -824,6 +823,7 @@ def load(rec, account_key=None):
 
     other_edition_fields = [
         'number_of_pages',
+        'publishers',
         'publish_date',
     ]
     for f in other_edition_fields:
