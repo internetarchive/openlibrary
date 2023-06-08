@@ -133,9 +133,7 @@ class VisitorStats(Stats):
     def get_counts(self, ndays: int = 28, times: bool = False) -> list[tuple[int, int]]:
         visitors = _get_visitor_counts_from_graphite(ndays)
         # Flip the order, convert timestamp to msec and convert count==None to zero
-        return [
-            (int(timestamp * 1000), int(count or 0)) for count, timestamp in visitors
-        ]
+        return [(int(timestamp * 10), int(count or 0)) for count, timestamp in visitors]
 
 
 @cache.memoize(engine="memcache", key="admin._get_count_docs", expires=5 * 60)
