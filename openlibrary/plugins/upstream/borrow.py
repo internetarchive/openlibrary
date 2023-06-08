@@ -198,7 +198,9 @@ class borrow(delegate.page):
 
             # Look for loans for this book
             user.update_loan_status()
-            loans = get_loans(user, use_cache=False) # fetch loans from API instead of cache
+            loans = get_loans(
+                user, use_cache=False
+            )  # fetch loans from API instead of cache
             for loan in loans:
                 if loan['book'] == edition.key:
                     raise web.seeother(

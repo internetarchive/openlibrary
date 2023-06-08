@@ -498,13 +498,17 @@ def cache_user_loans(func):
     cached_loans = func.cached_loans = {}
 
     def cache_func(*args, **kwargs):
-        if kwargs.get('use_cache', True) and args in cached_loans and time.time() - cached_loans[args]['timestamp'] < 300:
+        if (
+            kwargs.get('use_cache', True)
+            and args in cached_loans
+            and time.time() - cached_loans[args]['timestamp'] < 300
+        ):
             return cached_loans[args]['loans']
         else:
             result = func(*args)
             cached_loans[args] = dict(loans=result, timestamp=time.time())
             return result
-        
+
     def cache_reset(*args):
         if args:
             del cached_loans[args]
