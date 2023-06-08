@@ -144,7 +144,7 @@ class borrow(delegate.page):
             account = OpenLibraryAccount.get_by_email(user.email)
             ia_itemname = account.itemname if account else None
             s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
-            lending.get_loans_of_user(user).cache_reset()
+            lending.get_loans_of_user.cache_reset(user.key)
         if not user or not ia_itemname or not s3_keys:
             web.setcookie(config.login_cookie_name, "", expires=-1)
             redirect_url = "/account/login?redirect={}/borrow?action={}".format(
@@ -198,7 +198,7 @@ class borrow(delegate.page):
 
             # Look for loans for this book
             user.update_loan_status()
-            loans = get_loans(user)
+            loans = get_loans(user, use_cache=False) # fetch loans from API instead of cache
             for loan in loans:
                 if loan['book'] == edition.key:
                     raise web.seeother(
@@ -465,8 +465,8 @@ def get_all_loans():
     return get_all_store_values(type='/type/loan')
 
 
-def get_loans(user):
-    return lending.get_loans_of_user(user.key)
+def get_loans(user, use_cache=True):
+    return lending.get_loans_of_user(user.key, use_cache=use_cache)
 
 
 def get_edition_loans(edition):
@@ -698,7 +698,7 @@ def user_can_borrow_edition(user, edition):
 
     book_is_lendable = lending_st.get('is_lendable', False)
     book_is_waitlistable = lending_st.get('available_to_waitlist', False)
-    user_is_below_loan_limit = user.get_loan_count() < user_max_loans
+    user_is_below_loan_limit = user.get_loan_count(use_cache=False) < user_max_loans
 
     if book_is_lendable:
         if web.cookies().get('pd', False):

@@ -497,20 +497,26 @@ def _get_ia_loan(identifier, userid):
 def cache_user_loans(func):
     cached_loans = func.cached_loans = {}
 
-    def cache_func(*args):
-        if args in cached_loans and time.time() - cached_loans[args]['timestamp'] < 300:
+    def cache_func(*args, **kwargs):
+        if kwargs.get('use_cache', True) and args in cached_loans and time.time() - cached_loans[args]['timestamp'] < 300:
             return cached_loans[args]['loans']
         else:
             result = func(*args)
             cached_loans[args] = dict(loans=result, timestamp=time.time())
             return result
+        
+    def cache_reset(*args):
+        if args:
+            del cached_loans[args]
+        else:
+            cached_loans.clear()
 
-    cache_func.cache_reset = lambda: func.cached_loans.clear()
+    cache_func.cache_reset = cache_reset
     return cache_func
 
 
 @cache_user_loans
-def get_loans_of_user(user_key):
+def get_loans_of_user(user_key, use_cache=True):
     """TODO: Remove inclusion of local data; should only come from IA"""
     account = OpenLibraryAccount.get(username=user_key.split('/')[-1])
 
