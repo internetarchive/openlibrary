@@ -604,9 +604,14 @@ class author_search(delegate.page):
         return render_template('search/authors', self.get_results)
 
     def get_results(self, q, offset=0, limit=100, fields='*', sort=''):
+        q1 = q
+        q2 = f"/authors/{q}"
+
+        combined_query = f"({q1}) OR ({q2})"
+        
         resp = run_solr_query(
             AuthorSearchScheme(),
-            {'q': q},
+            {'q': combined_query},
             offset=offset,
             rows=limit,
             fields=fields,
