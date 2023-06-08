@@ -20,52 +20,44 @@ $ total_docs = shelf_counts.get(key, None)
 $ userDisplayName = user.displayname or ctx.user.displayname
 $ userKey = user.key or ctx.user.key
 
-$ breadcrumb = _("Reading Log")
 $ header_title = ""
 
 $ padding = ""
 
-$ reading_log = [("Loans", "/account/loans"), ("Currently Reading (" + str(shelf_counts['currently-reading']) + ")", "/people/" + username + "/books/currently-reading"), ("Want to Read (" + str(shelf_counts['want-to-read']) + ")", "/people/" + username + "/books/want-to-read"), ("Already Read (" + str(shelf_counts['already-read']) + ")", "/people/" + username + "/books/already-read"), ("My Notes", "/people/" + username + "/books/notes"), ("My Reviews", "/people/" + username + "/books/observations"), ("My Reading Stats", "/account/books/already-read/stats")]
-$#list = [("My Lists", "/people/" + username + "/lists")]
-$ breadcrumb_options = [];
-
 $if key == 'mybooks':
   $ header_title = _("My Books")
-  $ padding = _("no-padding")
+  $ padding = "no-padding"
 $elif key == 'currently-reading':
   $ header_title = _("Currently Reading")
-  $ breadcrumb_options = reading_log
 $elif key == 'want-to-read':
   $ header_title = _("Want to Read")
-  $ breadcrumb_options = reading_log
 $elif key == 'already-read':
   $ header_title = _("Already Read")
-  $ breadcrumb_options = reading_log
 $if not header_title:
   $if key == 'sponsorships':
     $ header_title = _("Sponsorships")
   $elif key == 'notes':
     $ header_title = _("My Notes")
-    $ breadcrumb_options = reading_log
   $elif key == 'observations':
     $ header_title = _("My Reviews")
-    $ breadcrumb_options = reading_log
   $elif key == 'loans':
-    $ header_title = _("Loans")
-    $ breadcrumb_options = reading_log
+    $ header_title = _("My Loans")
   $elif key == 'imports':
     $ header_title = _("Imports and Exports")
   $elif key == 'lists':
-    $ header_title = _('My Lists')
-    $#breadcrumb_options = list;
+    $ header_title = _("My Lists")
   $elif key == 'list':
     $ header_title = docs.get('name', 'List')
-    $#breadcrumb_options = list;
   $else:
     $ header_title = key
 
-$ breadcrumb = header_title
 $var title: $header_title
+
+$ url_prefix = "/people/" + username
+$ readlog_url = url_prefix + "/books/%s/"
+$ options = [(_("Want to Read (%(count)d)", count=shelf_counts['want-to-read']), readlog_url % "want-to-read"), (_("Currently Reading (%(count)d)", count=shelf_counts['currently-reading']), readlog_url % "currently-reading"), (_("Already Read (%(count)d)", count=shelf_counts['already-read']), readlog_url % "already-read"), (_("My Lists (%(count)d)" if owners_page else "Lists (%(count)d)", count=len(lists)) , url_prefix + "/lists")]
+$if owners_page:
+  $ options = [("My Loans", "/account/loans")] + options + [(_("My Notes"), url_prefix + "/books/notes"), (_("My Reviews"), url_prefix + "/books/observations")]
 
 <div class="mybooks">
 
@@ -86,34 +78,30 @@ $var title: $header_title
     $ component_times['Details header'] = time()
     <header>
       <div>
-        <div class="sansserif grey account-settings-menu" style="font-size: 16px">
-          $if key == 'mybooks':
-            <a href="$userKey">$userDisplayName</a> &raquo;
-          $else:
-            <a href="/account/books" style="text-decoration: none">
-               ←
-              <span style="text-decoration: underline">My Books</span>
-            </a>
+        <div class="sansserif grey account-settings-menu">
+	  $# Only show breadcrumbs when we're not on mybooks
+          $if key != 'mybooks':
+            $if not owners_page:
+	      <a href="$userKey">
+	        ← <span>$userDisplayName</span></a>
+            $else:        
+              <a href="/account/books">
+                ← <span>$_("My Books")</span></a>
             &raquo;
+      
             $if key == 'list':
-              <a href="/account/lists" style="text-decoration: none">
-                <span style="text-decoration: underline">My Lists</span>
-              </a>
-              &raquo;
-          $if len(breadcrumb_options) > 0:
-            $:render_template("books/breadcrumb_select", key=key, selected=breadcrumb, options=breadcrumb_options)
-          $else:
-            $_(header_title)
+	      $ list_url = "/account" if owners_page else userKey
+              <a href="$(list_url)/lists"><span>$(_("%(userDisplayName)s's Lists", userDisplayName=userDisplayName) if not owners_page else _("My Lists"))</span></a>
+	      &raquo;
+	      
+	    $else:
+              $:render_template("books/breadcrumb_select", key=key, selected=header_title, options=options)
         </div>
         <div>
-          <!--
-          <h1 class="details-title">
-            $if not owners_page:
-              $userDisplayName &raquo; $header_title
-            $else:
-              $header_title
-          </h1>
-          -->
+          $if key in ['mybooks', 'list']:
+            <h1 class="details-title">
+	      $header_title
+	    </h1>
 
           $if owners_page and (key in ['currently-reading', 'already-read', 'want-to-read'] and not checkin_year):
             <a href="$ctx.path/stats" title="$_('View stats about this shelf')">$_('Stats')</a>

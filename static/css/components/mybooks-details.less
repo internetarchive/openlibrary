@@ -8,7 +8,7 @@
 .crumbicon {
   display: grid;
   grid: [stack] var(--crumbicon-size) / [stack] var(--crumbicon-size);
-  place-items: center;
+  place-items: start;
 }
 
 .crumbicon>* {
@@ -19,8 +19,7 @@
 .breadcrumb-title {
   display: inline-block;
   margin: 0;
-  padding: 10px 10px 10px 0;
-  border-right: 1px solid @black;
+  padding: 5px 5px 5px 0;
 }
 
 .disguised-select {
@@ -32,13 +31,12 @@
 }
 
 .dropdown {
-  background-color: @lightest-grey;
-  box-shadow: 0 0 0 1px @mid-grey;
+  box-shadow: 0 0 0 1px @lightest-grey;
   border-radius: 4px;
 }
 
 .down-chevron {
-  margin: 6px 10px 0 6px;
+  margin: 6px 10px 0 3px;
   display: inline-block;
   transform: rotate(90deg);
   z-index: @z-index-level-1;
@@ -128,7 +126,8 @@
     gap: 15px;
     padding: 0 15px;
     padding-top: 20px;
-    margin-bottom: -40px;
+    height: 25vw;
+    margin-bottom: -10px;
   }
 
   .showcase__item {

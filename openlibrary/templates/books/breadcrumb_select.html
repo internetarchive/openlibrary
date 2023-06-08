@@ -1,5 +1,5 @@
-$def with (key=None, selected="",options=[])
-    $if len(options) == 0:
+$def with (key=None, selected="", options=None)
+    $if not options:
         $selected
     $elif len(options) == 1:
         $if selected != options[0][0]:
@@ -19,7 +19,7 @@ $def with (key=None, selected="",options=[])
             <h1>$selected</h1>
     $else:
         $ breadcrumb_title = ""
-        $for (title,url) in options:
+        $for (title, url) in options:
             $if '(' in title and title[:title.index('(')-1] == selected:
                 $ breadcrumb_title = title
             $elif title == selected:
