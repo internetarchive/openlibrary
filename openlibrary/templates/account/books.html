@@ -84,16 +84,16 @@ $if owners_page:
             $if not owners_page:
 	      <a href="$userKey">
 	        ← <span>$userDisplayName</span></a>
-            $else:        
+            $else:
               <a href="/account/books">
                 ← <span>$_("My Books")</span></a>
             &raquo;
-      
+
             $if key == 'list':
 	      $ list_url = "/account" if owners_page else userKey
               <a href="$(list_url)/lists"><span>$(_("%(userDisplayName)s's Lists", userDisplayName=userDisplayName) if not owners_page else _("My Lists"))</span></a>
 	      &raquo;
-	      
+
 	    $else:
               $:render_template("books/breadcrumb_select", key=key, selected=header_title, options=options)
         </div>
