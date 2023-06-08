@@ -608,7 +608,7 @@ class author_search(delegate.page):
         q2 = f"/authors/{q}"
 
         combined_query = f"({q1}) OR ({q2})"
-        
+
         resp = run_solr_query(
             AuthorSearchScheme(),
             {'q': combined_query},
