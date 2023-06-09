@@ -22,7 +22,7 @@ from infogami.utils.context import context
 
 from openlibrary import accounts
 
-from openlibrary.plugins.upstream import addbook, addtag, covers, models, utils
+from openlibrary.plugins.upstream import addbook, covers, models, utils
 from openlibrary.plugins.upstream import spamcheck
 from openlibrary.plugins.upstream import merge_authors
 from openlibrary.plugins.upstream import edits
@@ -384,7 +384,6 @@ def setup():
     models.setup()
     utils.setup()
     addbook.setup()
-    addtag.setup()
     covers.setup()
     merge_authors.setup()
     # merge_works.setup() # ILE code
