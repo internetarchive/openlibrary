@@ -1,6 +1,25 @@
 #!/usr/bin/env python
 """
     Script for creating a file of similar ISBNs or LCCNs from Solr.
+
+    Run on ol-solr1 (the staging solr). Turn off solr-next-updater on
+    ol-home0 , to avoid extra strain on the server, and then kick it off with:
+
+    1. `tmux` (use tmux so if the ssh connection disconnects the process continues)
+    ```
+    docker rm similarities-dump
+    docker run --name similarities-dump -it -v "/opt/openlibrary/openlibrary:/openlibrary" --network host openlibrary/olbase:latest bash -c '
+        PYTHONPATH=. python scripts/solr_dump_xisbn.py > output/isbn_sim_dump_$(date +"%Y-%m-%d").txt
+    '
+
+    docker rm similarities-dump
+    docker run --name similarities-dump -it -v "/opt/openlibrary/openlibrary:/openlibrary" --network host openlibrary/olbase:latest bash -c '
+        PYTHONPATH=. python scripts/solr_dump_xisbn.py --id-field lccn > output/lccn_sim_dump_$(date +"%Y-%m-%d").txt
+    '
+    ```
+
+    Note the `output` directory was added manually and `chown 999:root` so
+    that the container can write to it.
 """
 import asyncio
 import sys
