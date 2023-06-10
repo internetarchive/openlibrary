@@ -113,7 +113,7 @@ $ page = int(input(page=1).page)
                 $if can_merge and not r.get('reviewer'):
                   $ show_link = not r.get('reviewer') or r.get('reviewer') == username
                   $ extra_classes = '' if show_link else ' hidden'
-                
+
                   <button id="mr-resolve-btn-$r['id']"class="mr-comment-review-cell__review">
                     <strong>
                       <a class="mr-resolve-link$extra_classes" id="mr-resolve-link-$r['id']" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="$url" target="_blank">$_('REVIEW')</a>
@@ -123,10 +123,10 @@ $ page = int(input(page=1).page)
                 $if r.get('reviewer'):
                   <img src="/static/images/icons/icon_check.png" style="height: 10px; margin-right: 3px;"><span class="reviewer">@$r['reviewer']</span>
               </td>
-                  
-              
 
-            
+
+
+
               <td class="mr-comment-review-cell">
                 <button id="mr-comment-btn" class="mr-comment-review-cell__comments mr-comment-btn-$r['id']">
                   <!-- <div>word</div> -->
@@ -140,7 +140,7 @@ $ page = int(input(page=1).page)
                 </button>
               </div>
             </td>
-            
+
 
           </tr>
         </tbody>
