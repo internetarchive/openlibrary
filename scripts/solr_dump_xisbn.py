@@ -157,7 +157,8 @@ async def main(
             if len(identifiers) > 1:
                 result += ' '.join(identifiers) + '\n'
         print(f'[x] FETCH {bounds=}', file=sys.stderr)
-        print(result, flush=True)
+        if result:
+            print(result, flush=True)
 
     # now run N workers in async pool to process the bounds
     running: set[asyncio.Task] = set()
