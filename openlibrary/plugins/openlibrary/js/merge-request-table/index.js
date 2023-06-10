@@ -294,9 +294,9 @@ function toggleMergeLink(mergeLinkData) {
   const mergeType = mergeLinkData.mergeType;
 
   const reviewCell = document.querySelector(`#reviewer-cell-${mrid}`);
-  
+
   console.log('The merge link data in toggleMergeLink', mergeLinkData)
-  
+
   reviewCell.innerHTML += `
   <button id="mr-resolve-btn-${mrid}"class="mr-comment-review-cell__review">
   <strong>
