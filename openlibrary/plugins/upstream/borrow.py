@@ -117,7 +117,7 @@ class borrow(delegate.page):
 
         ol_host = i.ol_host or 'openlibrary.org'
         action = i.action
-        borrowed=False
+        borrowed = False
         edition = web.ctx.site.get(key)
         if not edition:
             raise web.notfound()
@@ -200,7 +200,9 @@ class borrow(delegate.page):
             loans = get_loans(user)
             for loan in loans:
                 if loan['book'] == edition.key:
-                    edition.update_loan_status(loan=loan, ia_availability=availability, borrowed=borrowed)
+                    edition.update_loan_status(
+                        loan=loan, ia_availability=availability, borrowed=borrowed
+                    )
                     raise web.seeother(
                         make_bookreader_auth_link(
                             loan['_key'],

@@ -577,7 +577,9 @@ def sync_loan(identifier, loan=NOT_INITIALIZED, ia_availability=None, borrowed=F
         "type": "ebook",
         "identifier": identifier,
         "loan": ebook_loan_data,
-        "borrowed": 'true' if borrowed else str(response['status'] not in ['open', 'borrow_available']).lower(),
+        "borrowed": 'true'
+        if borrowed
+        else str(response['status'] not in ['open', 'borrow_available']).lower(),
         "wl_size": num_waiting,
     }
     try:
