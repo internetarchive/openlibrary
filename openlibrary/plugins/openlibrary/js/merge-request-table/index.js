@@ -1,3 +1,4 @@
+import { merge } from 'jquery';
 import { FadingToast } from '../Toast';
 import { commentOnRequest, declineRequest, claimRequest, unassignRequest } from './MergeRequestService';
 
@@ -180,7 +181,7 @@ function toggleAllComments(elem) {
     //for scrolling to bottom of div
     oldCommentstarget.scrollTop = oldCommentstarget.scrollHeight;
 
-    console.log(oldCommentstarget)
+    //console.log(oldCommentstarget)
 
 }
 
@@ -210,13 +211,15 @@ async function claim(mrid) {
             if (data.status === 'ok') {
                 const reviewerHtml = `${data.reviewer}
                     <span class="mr-unassign" data-mrid="${mrid}">&times;</span>`
+                console.log('data from claim', data)
                 updateRow(mrid, data.newStatus, reviewerHtml)
 
                 // Hide the row's merge link:
-                const mergeLink = document.querySelector(`#mr-resolve-link-${mrid}`)
-                if (!mergeLink.classList.contains('hidden')) {
-                    toggleMergeLink(mergeLink)
-                }
+                const mergeBtn = document.querySelector(`#mr-resolve-btn-${mrid}`)
+                //  if (mergeLink.classList.contains('hidden')) {
+                //     toggleMergeLink(mergeLink)
+                //  }
+                toggleMergeLink(mergeBtn)
             }
         })
 }
@@ -229,15 +232,16 @@ async function claim(mrid) {
  * @param {string} reviewer Optional new value for the row's reviewer cell
  */
 function updateRow(mrid, status=null, reviewer=null) {
-    if (status) {
-        const statusCell = document.querySelector(`#status-cell-${mrid}`)
-        statusCell.textContent = status
-    }
+    // if (status) {
+    //     const statusCell = document.querySelector(`#status-cell-${mrid}`)
+    //     statusCell.textContent = status
+    // }
     if (reviewer) {
         const reviewerCell = document.querySelector(`#reviewer-cell-${mrid}`)
         reviewerCell.innerHTML = reviewer
 
         initUnassignment(reviewerCell.querySelectorAll('.mr-unassign'))
+
     }
 }
 
@@ -245,6 +249,7 @@ export function initUnassignment(elems) {
     for (const elem of elems) {
         elem.addEventListener('click', function() {
             const mrid = elem.dataset.mrid
+            console.log('init unassign', elem)
             unassign(mrid)
         })
     }
@@ -258,12 +263,14 @@ async function unassign(mrid) {
                 updateRow(mrid, data.newStatus, ' ')
 
                 // Display the row's merge link:
-                const mergeLink = document.querySelector(`#mr-resolve-link-${mrid}`)
-                if (mergeLink.classList.contains('hidden')) {
-                    toggleMergeLink(mergeLink)
-                }
+                const mergeBtn = document.querySelector(`#mr-resolve-btn-${mrid}`)
+                //  if (mergeLink.classList.contains('hidden')) {
+                //     toggleMergeLink(mergeLink)
+                //  }
+                toggleMergeLink(mergeBtn)
             }
         })
+
 }
 
 /**
@@ -271,8 +278,9 @@ async function unassign(mrid) {
  *
  * @param {HTMLElement} mergeLink Reference to a merge link element
  */
-function toggleMergeLink(mergeLink) {
-    if (mergeLink) {
-        mergeLink.classList.toggle('hidden')
-    }
+function toggleMergeLink(mergeBtn) {
+  //    if (mergeLink) {
+  //       mergeLink.classList.toggle('hidden')
+  //    }
+  mergeBtn.classList.toggle('hidden')
 }
