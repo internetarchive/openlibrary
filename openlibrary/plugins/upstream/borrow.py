@@ -117,6 +117,7 @@ class borrow(delegate.page):
 
         ol_host = i.ol_host or 'openlibrary.org'
         action = i.action
+        borrowed=False
         edition = web.ctx.site.get(key)
         if not edition:
             raise web.notfound()
@@ -156,8 +157,7 @@ class borrow(delegate.page):
         if action == 'return':
             lending.s3_loan_api(edition.ocaid, s3_keys, action='return_loan')
             stats.increment('ol.loans.return')
-            edition.update_loan_status()
-            user.update_loan_status()
+            edition.update_loan_status(ia_availability=availability)
             raise web.seeother(web.ctx.path)
         elif action == 'join-waitinglist':
             lending.s3_loan_api(edition.ocaid, s3_keys, action='join_waitlist')
@@ -189,6 +189,7 @@ class borrow(delegate.page):
             stats.increment('ol.loans.bookreader')
             stats.increment('ol.loans.%s' % borrow_access)
             action = 'read'
+            borrowed = True
 
         if action == 'read':
             bookPath = '/stream/' + edition.ocaid
@@ -196,10 +197,10 @@ class borrow(delegate.page):
                 bookPath += '?_autoReadAloud=show'
 
             # Look for loans for this book
-            user.update_loan_status()
             loans = get_loans(user)
             for loan in loans:
                 if loan['book'] == edition.key:
+                    edition.update_loan_status(loan=loan, ia_availability=availability, borrowed=borrowed)
                     raise web.seeother(
                         make_bookreader_auth_link(
                             loan['_key'],
