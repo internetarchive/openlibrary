@@ -1,7 +1,35 @@
 /**
- * Defines functions used in 'view_body' template for Lists.
+ * Defines functions used in the 'lists' and 'view_body' templates for Lists.
  * @module lists/ListViewBody
  */
+
+/**
+ * Adds the delete list link HTML to individual lists (i.e. on My Lists page) where the 'deleteList' class appears (from lists.html template)
+ */
+const itemsWithDeleteList = $('.deleteList .resultTitle');
+if (itemsWithDeleteList.length) {
+    const deleteListLink = $('.listDelete--myLists');
+    itemsWithDeleteList.each(function() {
+        $(deleteListLink).clone().prependTo(this).removeClass('hidden');
+    });
+
+    // Clean up and remove placeholder element
+    $('.listDelete--myLists.hidden').remove();
+}
+
+/**
+ * Adds the delete seed link HTML to individual items where the 'deleteSeed' class appears (from lists.html template)
+ */
+const itemsWithDeleteSeed = $('.deleteSeed .resultTitle');
+if (itemsWithDeleteSeed.length) {
+    const deleteSeedLink = $('.seedDelete--myLists');
+    itemsWithDeleteSeed.each(function() {
+        $(deleteSeedLink).clone().prependTo(this).removeClass('hidden');
+    });
+
+    // Clean up and remove placeholder element
+    $('.seedDelete--myLists.hidden').remove();
+}
 
 /**
  * Makes a POST to a `.json` endpoint to remove a seed item from a list.
@@ -31,7 +59,6 @@ function remove_seed(list_key, seed, success) {
     });
 }
 
-/* eslint-disable no-unused-vars */
 /**
  * @returns {number} count of number of seed books in a list
  */
@@ -56,12 +83,21 @@ const getConfirmButtonLabelText = () => {
 };
 
 // Add listeners to each .listDelete link element
-$('.listDelete a').on('click', function() {
-    $('#remove-seed-dialog')
-        .data('seed-key', $(this).closest('[data-seed-key]').data('seed-key'))
-        .data('list-key', $(this).closest('[data-list-key]').data('list-key'))
-        .dialog('open');
-    $('#remove-seed-dialog').removeClass('hidden');
+// Sometimes .listDelete is dynamically added to the DOM, so we'll add the listener to a parent element
+$('#listResults').on('click', '.listDelete a', function() {
+    if (get_seed_count() > 1 && !$(this).parent().hasClass('listDelete--myLists')) {
+        $('#remove-seed-dialog')
+            .data('seed-key', $(this).closest('[data-seed-key]').data('seed-key'))
+            .data('list-key', $(this).closest('[data-list-key]').data('list-key'))
+            .dialog('open');
+        $('#remove-seed-dialog').removeClass('hidden');
+    }
+    else {
+        $('#delete-list-dialog')
+            .data('list-key', $(this).closest('[data-list-key]').data('list-key'))
+            .dialog('open');
+        $('#delete-list-dialog').removeClass('hidden');
+    }
 });
 
 // Set up 'Remove Seed' dialog; force user to confirm the destructive action of removing a seed
