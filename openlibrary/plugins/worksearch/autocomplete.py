@@ -37,7 +37,10 @@ class autocomplete(delegate.page):
         if 'name' not in doc:
             doc['name'] = doc.get('title')
 
-    def GET(self, fq: list[str] | None = None):
+    def GET(self):
+        return self.direct_get()
+
+    def direct_get(self, fq: list[str] | None = None):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
 
@@ -135,7 +138,7 @@ class subjects_autocomplete(autocomplete):
         if i.type:
             fq = fq + [f'subject_type:{i.type}']
 
-        return super().GET(fq=fq)
+        return super().direct_get(fq=fq)
 
 
 def setup():
