@@ -56,10 +56,13 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
 
 $def list_selections(user_lists, work_key, edition_key, async_load):
   $# Render list forms:
+  $ user_key = ctx.user and ctx.user.key
+
   <div class="reading-lists">
     <p class="reading-list-title">$_('My Reading Lists:')</p>
-    <div class="my-lists">
+    <div class="my-lists" data-seed-key="$(seed_key)" data-work-key="$(work_key)" data-user-key="$(user_key)">
       $if async_load:
+        $# XXX : Change edition key to seed key for author pages
         $ ed_attr = 'data-edition-key=%s' % edition_key if edition_key else ''
         $ work_attr = 'data-work-key=%s' % work_key if work_key else ''
         <div class="list-loading-indicator" $ed_attr $work_attr>Loading<span class="loading-ellipsis">...</span></div>

@@ -32,7 +32,7 @@ function post(data) {
  * @param {object} data Object containing the new list's name, description, and seeds.
  * @param {function} success Callback to be executed on successful POST.
  */
-export function createList(userKey, data, success) {
+export function createNewList(userKey, data, success) {
     post({
         url: `${userKey}/lists.json`,
         data: data,
@@ -40,6 +40,17 @@ export function createList(userKey, data, success) {
             success(resp.key, data.name)
         }
     });
+}
+
+export async function createList(userKey, data) {
+    return await fetch(`${userKey}/lists.json`, {
+        method: 'post',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
 }
 
 /**
@@ -58,6 +69,18 @@ export function addToList(listKey, seed, success) {
     });
 }
 
+export async function addItem(listKey, seed) {
+    const body = { add: [seed] }
+    return await fetch(`${listKey}/seeds.json`, {
+        method: 'post',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+        },
+        body: JSON.stringify(body)
+    })
+}
+
 /**
  * Submits request to remove given seed from list.
  *
@@ -72,6 +95,18 @@ export function removeFromList(listKey, seed, success) {
         data: { remove: [seed] },
         success: success
     });
+}
+
+export async function removeItem(listKey, seed) {
+    const body = { remove: [seed] }
+    return await fetch(`${listKey}/seeds.json`, {
+        method: 'post',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+        },
+        body: JSON.stringify(body)
+    })
 }
 
 /**

@@ -3,11 +3,15 @@
  * @module my-books/ReadingLists
  */
 import { getDropperCloseEvent } from '../droppers'
-import { addToList, createList, removeFromList } from '../lists/ListService'
+import { addItem, removeItem, createList } from '../lists/ListService'
 import { websafe } from '../jsdef'
 
+
+const DEFAULT_COVER_URL = '/images/icons/avatar_book-sm.png'
 /**
- * XXX: What am I?
+ * Represents a single My Books dropper's list affordances, and defines their
+ * functionalities.
+ *
  * @class
  */
 export default class ReadingLists {
@@ -16,17 +20,7 @@ export default class ReadingLists {
      * @param {HTMLElement} dropper
      */
     constructor(dropper) {
-        /**
-         * This dropper's "Add to list" links.
-         * @param {NodeList<HTMLElement>}
-         */
-        this.addToListAnchors = dropper.querySelectorAll('.add-to-list')
-
-        /**
-         * This dropper's "Create a new list" link.
-         * @param {HTMLElement}
-         */
-        this.openListModalButton = dropper.querySelector('.create-new-list')
+        this.dropper = dropper
 
         /**
          * References the "Create list" form's submission button.  There should only
@@ -35,14 +29,18 @@ export default class ReadingLists {
          */
         this.createListButton = document.querySelector('#create-list-button')
 
-        this.actionableItems = {}
-
-        this.dropperLists = {}
+        // XXX: Search page issues here:
+        this.showcaseItems = document.querySelectorAll('.actionable-item')
 
         this.workCheckBox = dropper.querySelector('.work-checkbox')
-        this.hiddenWorkInput = dropper.querySelector('input[name=work_id]')
-        this.hiddenKeyInput = dropper.querySelector('input[name=default-key]')
-        this.hiddenUserInput = dropper.querySelector('input[name=user-key]')
+        this.workCheckBox.checked = false
+
+        this.dropperListsElement = dropper.querySelector('.my-lists')
+        this.seedKey = this.dropperListsElement.dataset.seedKey
+        this.workKey = this.dropperListsElement.dataset.workKey
+        this.userKey = this.dropperListsElement.dataset.userKey
+
+        this.patronLists = {}
 
         this.initialize()
     }
@@ -51,93 +49,145 @@ export default class ReadingLists {
      * Adds functionality to all of the dropper's list affordances.
      */
     initialize() {
-        this.initAddToListAnchors(this.addToListAnchors)
-        if (this.openListModalButton) {
-            this.addOpenListModalClickListener()
+        this.initAddToListAnchors(this.dropper.querySelectorAll('.add-to-list'))
+        this.registerListItems(this.showcaseItems)
+
+        const openListModalButton = this.dropper.querySelector('.create-new-list')
+
+        if (openListModalButton) {
+            this.addOpenListModalClickListener(openListModalButton)
 
             if (this.createListButton) {
-                this.addCreateListClickListener()
+                this.createListButton.addEventListener('click', (event) => {
+                    event.preventDefault()
+                    this.createNewList()
+                })
+            }
+        }
+
+        if (this.workCheckBox) {
+            this.workCheckBox.addEventListener('click', () => {
+                const isWork = this.workCheckBox.checked
+                this.updateListDisplays(isWork)
+            })
+        }
+    }
+
+    updateListDisplays(isWorkSelected) {
+        for (const key of Object.keys(this.patronLists)) {
+            const listData = this.patronLists[key]
+
+            if (isWorkSelected) {
+                this.toggleDisplayedType(listData.workOnList, key)
+            } else {
+                this.toggleDisplayedType(listData.itemOnList, key)
             }
         }
     }
 
-    /**
-     * XXX: Improve documentation, improve approach
-     * Populates `dropperLists` with patron's list info, and adds click
-     * listeners to each list anchor in the dropper.
-     */
+    toggleDisplayedType(isListMember, listKey) {
+        const listData = this.patronLists[listKey]
+
+        if (isListMember) {
+            if (listData.showcaseListItem) {
+                listData.showcaseListItem.classList.remove('hidden')
+            } else {
+                this.addToShowcase(listKey, this.seedKey, listData.title)
+            }
+            listData.dropperAnchor.classList.add('hidden')
+        } else {
+            if (listData.showcaseListItem) {
+                listData.showcaseListItem.classList.add('hidden')
+            }
+            listData.dropperAnchor.classList.remove('hidden')
+        }
+    }
+
     initAddToListAnchors(addToListAnchors) {
         for (const anchor of addToListAnchors) {
-            this.dropperLists[anchor.dataset.listKey] = {
+            const listItemKeys = anchor.dataset.listItems
+
+            this.patronLists[anchor.dataset.listKey] = {
                 title: anchor.innerText,
-                element: anchor
+                coverUrl: anchor.listCoverUrl,
+                itemOnList: listItemKeys.includes(this.seedKey),
+                dropperAnchor: anchor.parentElement,
+                showcaseListItem: null
             }
-            this.addListClickListener(anchor)
+            // XXX: Make sure a cover URL is always in the data attribute (update template)
+            if (!this.patronLists[anchor.dataset.listKey].coverUrl) {
+                this.patronLists[anchor.dataset.listKey].coverUrl = DEFAULT_COVER_URL
+            }
+            if (this.workCheckBox) {
+                this.patronLists[anchor.dataset.listKey].workOnList = listItemKeys.includes(this.workKey)
+            }
+
+            anchor.addEventListener('click', (event) => {
+                event.preventDefault()
+                this.addItemToList(anchor)
+            })
         }
     }
 
-    /**
-     * XXX: improve approach
-     *
-     * Click listener for dropper anchor tags
-     */
-    addListClickListener(anchor) {
-        anchor.addEventListener('click', (event) => {
-            event.preventDefault()
+    async addItemToList(anchor) {
+        let seed
+        const isWork = this.workCheckBox && this.workCheckBox.checked
 
-            const anchorParent = anchor.parentElement
+        // Seed will be a string if its type is 'subject'
+        const isSubjectSeed = this.seedKey[0] !== '/'
 
-            let seed
-            const isWork = this.workCheckBox && this.workCheckBox.checked
+        if (isWork) {
+            seed = { key: this.workKey }
+        } else if (isSubjectSeed) {
+            seed = this.seedKey
+        } else {
+            seed = { key: this.seedKey }
+        }
 
-            // Seed will be a string if its type is 'subject'
-            const isSubjectSeed = this.hiddenKeyInput.value[0] !== '/'
-            if (isWork) {
-                seed = { key: this.hiddenWorkInput.value }
-            } else if (isSubjectSeed) {
-                seed = this.hiddenKeyInput.value
-            } else {
-                seed = { key: this.hiddenKeyInput.value }
-            }
+        const listKey = anchor.dataset.listKey
 
-            const listKey = anchor.dataset.listKey
-
-            const successCallback = () => {
-                if (!isWork) {
-                    const seedKey = isSubjectSeed ? seed : seed['key']
-                    const listTitle = anchor.innerText
-                    const listUrl = anchor.dataset.listCoverUrl
-                    const li = this.updateAlreadyList(listKey, listTitle, listUrl, seedKey)
-
-                    if (this.dropperLists.hasOwnProperty(listKey)) {
-                        this.dropperLists[listKey].element.remove()
-                        delete this.dropperLists[listKey]
-                    }
-
-                    if (this.actionableItems.hasOwnProperty(listKey)) {
-                        this.actionableItems[listKey].append(li)
-                    } else {
-                        this.actionableItems[listKey] = [li]
-                    }
-                }
-
-                // Close dropper
-                anchorParent.dispatchEvent(getDropperCloseEvent())
-            }
-
-            addToList(listKey, seed, successCallback)
-        })
+        await addItem(listKey, seed)
+            .then(response => response.json())
+            .then(() => {
+                this.onAddItemSuccess(listKey, seed, isWork)
+            })
     }
 
-    /**
-     * Adds a new list to the "already on list" of lists.
-     * @param {*} listKey 
-     * @param {*} listTitle 
-     * @param {*} coverUrl 
-     * @param {*} seedKey 
-     * @returns 
-     */
-    updateAlreadyList(listKey, listTitle, coverUrl, seedKey) {
+    onAddItemSuccess(listKey, seed, isWork) {
+        const elemToHide = this.patronLists[listKey].dropperAnchor
+
+        if (isWork) {
+            this.patronLists[listKey].workOnList = true
+        } else {
+            this.patronLists[listKey].itemOnList = true
+        }
+
+        // Seeds of subjects are strings; all others, objects.
+        const isSubjectSeed = typeof seed === 'string'
+        const seedKey = isSubjectSeed ? seed : seed['key']
+
+        if (isWork) {
+            this.patronLists[listKey].workOnList = true
+        } else {
+            this.patronLists[listKey].itemOnList = true
+        }
+
+        this.addToShowcase(listKey, seedKey, this.patronLists[listKey].title)
+
+        elemToHide.classList.add('hidden')
+
+        // Close dropper
+        elemToHide.dispatchEvent(getDropperCloseEvent())
+    }
+
+    addToShowcase(listKey, seedKey, listTitle) {
+        const listData = this.patronLists[listKey]
+        const primaryShowcaseItem = listData.showcaseListItem
+        if (primaryShowcaseItem) {
+            primaryShowcaseItem.classList.remove('hidden')
+            return primaryShowcaseItem
+        }
+
         // XXX: May have multiple on the page (search results):
         const alreadyLists = document.querySelector('.already-lists')
         const splitKey = listKey.split('/')
@@ -147,102 +197,91 @@ export default class ReadingLists {
         const seedType = seedKey[0] !== '/' ? 'subject' : ''
 
         const itemMarkUp = `<span class="image">
-                <a href="${listKey}"><img src="${coverUrl}" alt="${i18nStrings['cover_of']}${listTitle}" title="${i18nStrings['cover_of']}${listTitle}"/></a>
-            </span>
-            <span class="data">
-                <span class="label">
-                    <a href="${listKey}" data-list-title="${listTitle}" title="${i18nStrings['see_this_list']}">${listTitle}</a>
-                    <input type="hidden" name="seed-title" value="${listTitle}"/>
-                    <input type="hidden" name="seed-key" value="${seedKey}"/>
-                    <input type="hidden" name="seed-type" value="${seedType}"/>
-                    <a href="${listKey}" class="remove-from-list red smaller arial plain" data-list-key="${listKey}" title="${i18nStrings['remove_from_list']}">[X]</a>
-                </span>
-                <span class="owner">${i18nStrings['from']} <a href="${userKey}">${i18nStrings['you']}</a></span>
-            </span>`
+                        <a href="${listKey}"><img src="${listData.coverUrl}" alt="${i18nStrings['cover_of']}${listTitle}" title="${i18nStrings['cover_of']}${listData.title}"/></a>
+                    </span>
+                    <span class="data">
+                        <span class="label">
+                            <a href="${listKey}" data-list-title="${listData.title}" title="${i18nStrings['see_this_list']}">${listData.title}</a>
+                            <input type="hidden" name="seed-title" value="${listData.title}"/>
+                            <input type="hidden" name="seed-key" value="${seedKey}"/>
+                            <input type="hidden" name="seed-type" value="${seedType}"/>
+                            <a href="${listKey}" class="remove-from-list red smaller arial plain" data-list-key="${listKey}" title="${i18nStrings['remove_from_list']}">[X]</a>
+                        </span>
+                        <span class="owner">${i18nStrings['from']} <a href="${userKey}">${i18nStrings['you']}</a></span>
+                    </span>`
 
         const li = document.createElement('li')
         li.classList.add('actionable-item')
+        li.dataset.listKey = listKey
         li.innerHTML = itemMarkUp
         alreadyLists.appendChild(li)
 
-        this.addRemoveClickListener(li)
+        this.patronLists[listKey].showcaseListItem = li
+
+        this.registerShowcaseItem(li)
 
         return li;
     }
 
-    /**
-     * Click listener for removing item from list
-     * @param {*} elem 
-     */
-    addRemoveClickListener(elem) {
+    registerShowcaseItem(elem) {
+        // XXX: How many variable are really needed here?
         const label = elem.querySelector('.label')
         const anchors = label.querySelectorAll('a')
-        const listTitle = anchors[0].dataset.listTitle
         const listKey = anchors[1].dataset.listKey
         const type = label.querySelector('input[name=seed-type]').value
         const key = label.querySelector('input[name=seed-key]').value
 
-        const seed = type === 'subject' ? key : { key: key }
+        const isSubject = type === 'subject'
+
+        let seed
+        if (isSubject) {
+            seed = key
+        } else {
+            if (this.workCheckBox.checked) {
+                seed = { key: this.workKey }
+            } else {
+                seed = { key: key }
+            }
+        }
 
         anchors[1].addEventListener('click', (event) => {
             event.preventDefault()
-
-            const successCallback = () => {
-                // Update view:
-                // Remove this element from the view and map:
-                if (this.actionableItems.hasOwnProperty(listKey)) {
-                    for (const e of this.actionableItems[listKey]) {
-                        e.remove()
-                    }
-                    delete this.actionableItems[listKey]
-                }
-
-                if (!this.dropperLists.hasOwnProperty(listKey)) {
-                    // Add list item to dropper
-                    const coverUrl = elem.querySelector('img').src
-                    const p = this.updateDropperList(listKey, listTitle, coverUrl)
-
-                    this.dropperLists[listKey] = {
-                        title: listTitle,
-                        element: p.children[0]
-                    }
-                }
-            }
-
-            removeFromList(listKey, seed, successCallback)
+            this.updateShowcase(elem, listKey, seed)
         })
     }
 
-    /**
-     * XXX: Just hide and show the list
-     * Adds list anchor to dropper.
-     * @param {*} listKey 
-     * @param {*} listTitle 
-     * @param {*} coverUrl 
-     * @returns 
-     */
-    updateDropperList(listKey, listTitle, coverUrl) {
-        const itemMarkUp = `<a href="${listKey}" class="add-to-list dropper__close" data-list-cover-url="${coverUrl}" data-list-key="${listKey}">${listTitle}</a>`
+    async updateShowcase(showcaseItem, listKey, seed) {
+        await removeItem(listKey, seed)
+            .then(response => response.json())
+            .then(this.onUpdateShowcaseSuccess(showcaseItem, listKey))
+    }
 
-        const p = document.createElement('p')
-        p.classList.add('list')
-        p.innerHTML = itemMarkUp
-        // XXX: May be multiple on page (search results)
-        const dropperList = document.querySelector('.my-lists')
-        dropperList.appendChild(p)
-        this.addListClickListener(p.children[0])
+    onUpdateShowcaseSuccess(showcaseItem, listKey) {
+        const parentList = showcaseItem.closest('ul')
 
-        return p
+        if (!parentList.classList.contains('already-lists')) {  // In the "Lists" section of the books page
+            showcaseItem.remove()
+        }
+
+        this.patronLists[listKey].showcaseListItem.classList.add('hidden')
+
+        if (this.workCheckBox.checked) {
+            this.patronLists[listKey].workOnList = false
+        } else {
+            this.patronLists[listKey].itemOnList = false
+        }
+
+        this.patronLists[listKey].dropperAnchor.classList.remove('hidden')
     }
 
     /**
-     * Adds click listener to the dropper's "Create a new list" button.
+     * Adds click listener to the given "Create a new list" button.
      *
      * When the button is clicked, a modal containing the list creation form
      * is displayed. When the modal is closed, the form's inputs are cleared.
      */
-    addOpenListModalClickListener() {
-        this.openListModalButton.addEventListener('click', (event) => {
+    addOpenListModalClickListener(openListModalButton) {
+        openListModalButton.addEventListener('click', (event) => {
             event.preventDefault()
 
             $.colorbox({
@@ -262,61 +301,81 @@ export default class ReadingLists {
         document.querySelector('#list_desc').value = ''
     }
 
-    /**
-     * Adds listener to create list button
-     */
-    addCreateListClickListener() {
+    async createNewList() {
         const nameField = document.querySelector('#list_label')
         const descriptionField = document.querySelector('#list_desc')
 
-        this.createListButton.addEventListener('click', (event) => {
-            event.preventDefault()
+        let seed;
+        if (this.workCheckBox && this.workCheckBox.checked) {
+            // seed is work key
+            seed = this.workKey
+        } else {
+            // seed is edition key
+            seed = this.seedKey
+        }
 
-            let seed;
-            if (this.workCheckBox && this.workCheckBox.checked) {
-                // seed is work key
-                seed = this.hiddenWorkInput.value
-            } else {
-                // seed is edition key
-                seed = this.hiddenKeyInput.value
-            }
+        const listTitle = websafe(nameField.value)
 
-            // Make call to create list
-            const data = {
-                name: websafe(nameField.value),
-                description: websafe(descriptionField.value),
-                seeds: [seed]
-            }
+        // Make call to create list
+        const data = {
+            name: listTitle,
+            description: websafe(descriptionField.value),
+            seeds: [seed]
+        }
 
-            const successCallback = (listKey, listTitle) => {
-                const seedKey = typeof seed === 'string' ? seed : seed['key']
-                // XXX: Why the default image:
-                const li = this.updateAlreadyList(listKey, listTitle, '/images/icons/avatar_book-sm.png', seedKey)
-                this.actionableItems[listKey] = [li]
-            }
+        await createList(this.userKey, data)
+            .then(response => response.json())
+            .then((data) => {
+                this.onListCreationSuccess(data['key'], listTitle, seed)
+            })
 
-            createList(this.hiddenUserInput.value, data, successCallback)
-
-            $.colorbox.close()
-        })
+        $.colorbox.close()
     }
 
-    /**
-     * Adds click listeners to the remove from list "X" buttons
-     * @param {*} listItemElements 
-     */
+    onListCreationSuccess(listKey, listTitle, seed) {
+        const dropperAnchor = this.createDropdownListAnchor(listKey, listTitle)
+
+        this.patronLists[listKey] = {
+            title: listTitle,
+            coverUrl: DEFAULT_COVER_URL,
+            dropperAnchor: dropperAnchor
+        }
+
+        if (this.workCheckBox.checked) {
+            this.patronLists[listKey].itemOnList = false
+            this.patronLists[listKey].workOnList = true
+        } else {
+            this.patronLists[listKey].itemOnList = true
+            this.patronLists[listKey].workOnList = false
+        }
+
+        this.addToShowcase(listKey, seed, listTitle)
+    }
+
+    createDropdownListAnchor(listKey, listTitle) {
+        const itemMarkUp = `<a href="${listKey}" class="add-to-list dropper__close" data-list-cover-url="${DEFAULT_COVER_URL}" data-list-key="${listKey}">${listTitle}</a>`
+        const p = document.createElement('p')
+        p.classList.add('list', 'hidden')
+        p.innerHTML = itemMarkUp
+        this.dropperListsElement.appendChild(p)
+
+        p.children[0].addEventListener('click', (event) => {
+            event.preventDefault()
+            this.addItemToList(p.children[0])
+        })
+
+        return p
+    }
+
     registerListItems(listItemElements) {
         for (const elem of listItemElements) {
-            this.addRemoveClickListener(elem)
+            const parentList = elem.closest('ul')
 
-            const label = elem.querySelector('.label')
-            const anchors = label.querySelectorAll('a')
-            const listKey = anchors[1].dataset.listKey
+            this.registerShowcaseItem(elem)
 
-            if (this.actionableItems.hasOwnProperty(listKey)) {
-                this.actionableItems[listKey].push(elem)
-            } else {
-                this.actionableItems[listKey] = [elem]
+            if (parentList.classList.contains('already-lists')) {
+                const listKey = elem.dataset.listKey
+                this.patronLists[listKey].showcaseListItem = elem
             }
         }
     }

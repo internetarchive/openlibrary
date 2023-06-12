@@ -81,7 +81,6 @@ export default class MyBooksDropper {
     }
 
     replaceLoadingIndicators(dropperLists, activeLists, partials) {
-        console.log('in replaceLoadingIndicators()')
         const dropperParent = dropperLists ? dropperLists.parentElement : null
         const activeListsParent = activeLists ? activeLists.parentElement : null
 
