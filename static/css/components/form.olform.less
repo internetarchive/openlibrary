@@ -39,7 +39,7 @@
   }
 
   .multi-input-autocomplete--language {
-    div{
+    .mia__input {
       display: flex;
       flex-flow: wrap;
       flex: 1
@@ -53,6 +53,15 @@
       margin: 0;
       border: 0;
     }
+  }
+
+  // Spacing is controlled by parent not individual input elements
+  .mia__input > input {
+    padding: 0;
+  }
+
+  .mia__input.ui-sortable-helper {
+    margin-top: -20px;
   }
 
   input[type=number],

@@ -263,7 +263,10 @@ export function initLanguageMultiInputAutocomplete() {
             jqueryElement.setup_multi_input_autocomplete(
                 'input.language-autocomplete',
                 render_language_field,
-                {endpoint: '/languages/_autocomplete'},
+                {
+                    endpoint: '/languages/_autocomplete',
+                    sortable: true,
+                },
                 {
                     max: 6,
                     formatItem: render_language_autocomplete_item
@@ -309,6 +312,7 @@ export function initAuthorMultiInputAutocomplete() {
                 endpoint: '/authors/_autocomplete',
                 // Don't render "Create new author" if searching by key
                 addnew: query => !/OL\d+A/i.test(query),
+                sortable: true,
             },
             {
                 minChars: 2,

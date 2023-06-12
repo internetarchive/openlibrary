@@ -20,6 +20,7 @@ $# Render the ith language input field
 $jsdef render_language_field(i, language, i18n_name):
     $ lang_name = i18n_name or language.name
     <div class="input mia__input">
+      <div class="mia__reorder">≡</div>
       <input name="languages--$i" class="language language-autocomplete" type="text" id="language-$i" value="$lang_name"/>
       <input name="edition--languages--$i--key" type="hidden" id="language-$i-key" value="$language.key" />
       <a href="javascript:;" class="mia__remove red plain" title="$_('Remove this language')">[x]</a>

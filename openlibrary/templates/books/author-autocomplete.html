@@ -33,6 +33,7 @@ $jsdef render_author_autocomplete_item(item):
 
 $jsdef render_author(name_path, dict_path, readonly, i, author):
     <div class="input mia__input">
+        <div class="mia__reorder">≡</div>
         <input name="$name_path--$i" class="author author-autocomplete" type="text" id="author-$i" value="$author.name" $cond(readonly, 'readonly', '')>
         <input name="$dict_path--$i--author--key" type="hidden" id="author-$i-key" value="$author.key" />
         <a href="javascript:;" class="mia__remove red plain" title="$_('Remove this author')">[&times;]</a>&nbsp;
