@@ -1,14 +1,6 @@
-const sinon = require('sinon');
-const jquery = require('jquery');
 const { urlencode, Subject,
     renderTag, slice } = require('../../../openlibrary/plugins/openlibrary/js/subjects');
-let sandbox;
 
-beforeEach(() => {
-    sandbox = sinon.createSandbox();
-    global.$ = jquery;
-    sandbox.stub(global, '$').callsFake(jquery);
-});
 
 describe('urlencode', () => {
     test('empty array', () => {
