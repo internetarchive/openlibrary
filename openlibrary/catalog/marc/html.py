@@ -13,7 +13,9 @@ def esc(s):
 def subfields(line):
     if isinstance(line, str):
         return esc(line)
-    return f"{line['ind1']}{line['ind2']} " + ''.join([f'<b>${k}</b>{esc(v)}' for s in line['subfields'] for k, v in s.items()])
+    return f"{line['ind1']}{line['ind2']} " + ''.join(
+        [f'<b>${k}</b>{esc(v)}' for s in line['subfields'] for k, v in s.items()]
+    )
 
 
 class html_record:
@@ -24,5 +26,9 @@ class html_record:
 
     def html(self):
         return '<br>\n'.join(
-            [f'<b>{tag}</b> <code>{subfields(value)}</code>' for r in self.record.as_dict()['fields'] for tag, value in r.items()]
+            [
+                f'<b>{tag}</b> <code>{subfields(value)}</code>'
+                for r in self.record.as_dict()['fields']
+                for tag, value in r.items()
+            ]
         )
