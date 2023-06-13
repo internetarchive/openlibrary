@@ -24,5 +24,5 @@ class html_record:
 
     def html(self):
         return '<br>\n'.join(
-            [f'<large>{tag}</large> <code>{subfields(value)}</code>' for r in self.record.as_dict()['fields'] for tag, value in r.items()]
+            [f'<b>{tag}</b> <code>{subfields(value)}</code>' for r in self.record.as_dict()['fields'] for tag, value in r.items()]
         )
