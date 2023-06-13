@@ -56,7 +56,7 @@ def is_spam(i=None, allow_privileged_edits: bool = False) -> bool:
     if i is None:
         i = web.input()
     text = str(dict(i)).lower()
-    return any(re.search(w.lower(), text) for w in spamwords)
+    return any(re.search(w.lower().replace('.', '\.'), text) for w in spamwords)
 
 
 def is_spam_email(email: str) -> bool:
