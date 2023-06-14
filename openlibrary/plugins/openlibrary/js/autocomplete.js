@@ -90,7 +90,7 @@ export default function($) {
             select: function (_event, ui) {
                 var item = ui.item;
                 var $this = $(this);
-                $(`#${_this.id}-key`).val(item.key);
+                $this.closest('.ac-input').find('.ac-input__value').val(item.key);
                 setTimeout(function() {
                     $this.addClass('accept');
                 }, 0);
@@ -149,17 +149,26 @@ export default function($) {
 
     /**
      * @this HTMLElement - the element that contains the different inputs.
-     * @param {string} autocomplete_selector - selector to find the input element use for autocomplete.
+     * Expects an html structure like:
+     * <div class="multi-input-autocomplete">
+     *   <div class="ac-input mia__input">
+     *      <div class="mia__reorder">≡</div>
+     *      <input class="ac-input__visible" type="text" name="fake_name--0" value="Author 1" />
+     *      <input class="ac-input__value" type="hidden" name="author--0" value="/authors/OL1234A" />
+     *      <a class="mia__remove" href="javascript:;">[x]</a>
+     *   </div>
+     *  ...
+     * < /div>
      * @param {Function} input_renderer - ((index, item) -> html_string) render the ith .input.
      * @param {OpenLibraryAutocompleteOptions} ol_ac_opts
      * @param {Object} ac_opts - options given to override defaults of $.autocomplete; see that.
      */
-    $.fn.setup_multi_input_autocomplete = function(autocomplete_selector, input_renderer, ol_ac_opts, ac_opts) {
+    $.fn.setup_multi_input_autocomplete = function(input_renderer, ol_ac_opts, ac_opts) {
         /** @type {JQuery<HTMLElement>} */
         var container = $(this);
 
         // first let's init any pre-existing inputs
-        container.find(autocomplete_selector).each(function() {
+        container.find('.ac-input__visible').each(function() {
             setup_autocomplete(this, ol_ac_opts, ac_opts);
         });
         const allow_empty = ol_ac_opts.allow_empty;
@@ -210,7 +219,7 @@ export default function($) {
             new_input = $(input_renderer(next_index, {key: '', name: ''}));
             new_input.insertBefore(container.find('.mia__add'));
             setup_autocomplete(
-                new_input.find(autocomplete_selector)[0],
+                new_input.find('.ac-input__visible')[0],
                 ol_ac_opts,
                 ac_opts);
             update_visible();

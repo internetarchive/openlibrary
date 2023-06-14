@@ -261,7 +261,6 @@ export function initLanguageMultiInputAutocomplete() {
     $(function() {
         getJqueryElements('.multi-input-autocomplete--language').forEach(jqueryElement => {
             jqueryElement.setup_multi_input_autocomplete(
-                'input.language-autocomplete',
                 render_language_field,
                 {
                     endpoint: '/languages/_autocomplete',
@@ -282,7 +281,6 @@ export function initWorksMultiInputAutocomplete() {
             /* Values in the html passed from Python code */
             const dataConfig = JSON.parse(jqueryElement[0].dataset.config || '{}');
             jqueryElement.setup_multi_input_autocomplete(
-                'input.work-autocomplete',
                 render_work_field,
                 {
                     endpoint: '/works/_autocomplete',
@@ -306,7 +304,6 @@ export function initAuthorMultiInputAutocomplete() {
         /* Values in the html passed from Python code */
         const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
         jqueryElement.setup_multi_input_autocomplete(
-            'input.author-autocomplete',
             render_author.bind(null, dataConfig.name_path, dataConfig.dict_path, false),
             {
                 endpoint: '/authors/_autocomplete',

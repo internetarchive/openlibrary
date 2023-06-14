@@ -19,28 +19,27 @@ $jsdef render_language_autocomplete_item(item):
 $# Render the ith language input field
 $jsdef render_language_field(i, language, i18n_name):
     $ lang_name = i18n_name or language.name
-    <div class="input mia__input">
+    <div class="input ac-input mia__input">
       <div class="mia__reorder">≡</div>
-      <input name="languages--$i" class="language language-autocomplete" type="text" id="language-$i" value="$lang_name"/>
-      <input name="edition--languages--$i--key" type="hidden" id="language-$i-key" value="$language.key" />
-      <a href="javascript:;" class="mia__remove red plain" title="$_('Remove this language')">[x]</a>
+      <input class="ac-input__visible" name="languages--$i" type="text" value="$lang_name"/>
+      <input class="ac-input__value" name="edition--languages--$i--key" type="hidden" value="$language.key" />
+      <a class="mia__remove" href="javascript:;" title="$_('Remove this language')">[x]</a>
     </div>
 
 $# Render the ith translated_from language input field
 $jsdef render_translated_from_language_field(i, language):
-    <div class="input">
-      <input type="text" name="translated_from--$i" class="language language-autocomplete" id="edition-translated_from-$i" value="$language.name"/>
-      <input type="hidden" name="edition--translated_from--$i--key"  id="edition-translated_from-$i-key" value="$language.key" />
-      <a href="javascript:;" class="mia__remove red plain hidden" title="$_('Remove this language')">[x]</a>
+    <div class="input ac-input">
+      <input class="ac-input__visible" type="text" name="translated_from--$i" value="$language.name"/>
+      <input class="ac-input__value" type="hidden" name="edition--translated_from--$i--key" value="$language.key" />
     </div>
 
 
 $# Render the ith work input field
 $jsdef render_work_field(i, work):
-    <div class="input">
-        <input name="works--$i" class="work work-autocomplete" type="text" id="work-$i" value="$work.key.split('/')[-1]"/>
-        <input name="edition--works--$i--key" type="hidden" id="work-$i-key" value="$work.key" />
-        <a href="javascript:;" class="mia__remove red plain hidden" title="$_('Remove this work')">[x]</a>
+    <div class="input ac-input">
+        <input class="ac-input__visible" name="works--$i" type="text" value="$work.key.split('/')[-1]"/>
+        <input class="ac-input__value" name="edition--works--$i--key" type="hidden" value="$work.key" />
+        <a class="mia__remove hidden" href="javascript:;" title="$_('Remove this work')">[x]</a>
     </div>
 
 $jsdef render_work_autocomplete_item(item):
