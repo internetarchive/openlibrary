@@ -1,8 +1,8 @@
-import os
+from pathlib import Path
 from openlibrary.catalog.marc.html import html_record
 
 
-TEST_DATA = f'{os.path.dirname(__file__)}/test_data/bin_input/'
+TEST_DATA = f'{Path(__file__).parent}/test_data/bin_input/'
 
 
 def test_html_line_marc8():

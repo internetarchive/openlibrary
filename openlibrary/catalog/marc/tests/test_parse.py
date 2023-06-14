@@ -9,7 +9,7 @@ from openlibrary.catalog.marc.parse import (
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import DataField, MarcXml
 from lxml import etree
-import os
+from pathlib import Path
 import json
 from collections.abc import Iterable
 
@@ -80,14 +80,14 @@ bin_samples = [
     'test-publish-sn-sl-nd.mrc',
 ]
 
-test_data = "%s/test_data" % os.path.dirname(__file__)
+TEST_DATA = f'{Path(__file__).parent}/test_data'
 
 
 class TestParseMARCXML:
     @pytest.mark.parametrize('i', xml_samples)
     def test_xml(self, i):
-        expect_filename = f"{test_data}/xml_expect/{i}.json"
-        path = f"{test_data}/xml_input/{i}_marc.xml"
+        expect_filename = f'{TEST_DATA}/xml_expect/{i}.json'
+        path = f'{TEST_DATA}/xml_input/{i}_marc.xml'
         element = etree.parse(open(path)).getroot()
         # Handle MARC XML collection elements in our test_data expectations:
         if element.tag == collection_tag and element[0].tag == record_tag:
@@ -114,12 +114,12 @@ class TestParseMARCXML:
 class TestParseMARCBinary:
     @pytest.mark.parametrize('i', bin_samples)
     def test_binary(self, i):
-        expect_filename = f'{test_data}/bin_expect/{i}'.replace('.mrc', '.json')
-        with open(f'{test_data}/bin_input/{i}', 'rb') as f:
+        expect_filename = f'{TEST_DATA}/bin_expect/{i}'.replace('.mrc', '.json')
+        with open(f'{TEST_DATA}/bin_input/{i}', 'rb') as f:
             rec = MarcBinary(f.read())
         edition_marc_bin = read_edition(rec)
         assert edition_marc_bin
-        if not os.path.exists(expect_filename):
+        if not Path(expect_filename).is_file():
             # Missing test expectations file. Create a template from the input, but fail the current test.
             data = json.dumps(edition_marc_bin, indent=2)
             pytest.fail(
@@ -140,14 +140,14 @@ class TestParseMARCBinary:
                 assert value == j[key], msg
 
     def test_raises_see_also(self):
-        filename = f'{test_data}/bin_input/talis_see_also.mrc'
+        filename = f'{TEST_DATA}/bin_input/talis_see_also.mrc'
         with open(filename, 'rb') as f:
             rec = MarcBinary(f.read())
         with pytest.raises(SeeAlsoAsTitle):
             read_edition(rec)
 
     def test_raises_no_title(self):
-        filename = f'{test_data}/bin_input/talis_no_title2.mrc'
+        filename = f'{TEST_DATA}/bin_input/talis_no_title2.mrc'
         with open(filename, 'rb') as f:
             rec = MarcBinary(f.read())
         with pytest.raises(NoTitle):

@@ -1,8 +1,7 @@
-import os
-
+from pathlib import Path
 from openlibrary.catalog.marc.marc_binary import BinaryDataField, MarcBinary
 
-test_data = "%s/test_data/bin_input/" % os.path.dirname(__file__)
+TEST_DATA = f'{Path(__file__).parent}/test_data/bin_input/'
 
 
 class MockMARC:
@@ -17,7 +16,7 @@ class MockMARC:
 
 
 def test_wrapped_lines():
-    filename = '%s/wrapped_lines.mrc' % test_data
+    filename = f'{TEST_DATA}/wrapped_lines.mrc'
     with open(filename, 'rb') as f:
         rec = MarcBinary(f.read())
         ret = list(rec.read_fields(['520']))
@@ -49,7 +48,7 @@ class Test_BinaryDataField:
 
 class Test_MarcBinary:
     def test_read_fields_returns_all(self):
-        filename = f'{test_data}/onquietcomedyint00brid_meta.mrc'
+        filename = f'{TEST_DATA}/onquietcomedyint00brid_meta.mrc'
         with open(filename, 'rb') as f:
             rec = MarcBinary(f.read())
             fields = list(rec.read_fields())
@@ -67,7 +66,7 @@ class Test_MarcBinary:
             assert isinstance(f100, BinaryDataField)
 
     def test_get_subfield_value(self):
-        filename = '%s/onquietcomedyint00brid_meta.mrc' % test_data
+        filename = f'{TEST_DATA}/onquietcomedyint00brid_meta.mrc'
         with open(filename, 'rb') as f:
             rec = MarcBinary(f.read())
             author_field = rec.get_fields('100')

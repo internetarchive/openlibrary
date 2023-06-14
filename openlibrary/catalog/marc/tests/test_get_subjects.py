@@ -2,7 +2,7 @@ from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.get_subjects import four_types, read_subjects
 from lxml import etree
-import os
+from pathlib import Path
 import pytest
 
 xml_samples = [
@@ -235,13 +235,13 @@ bin_samples = [
 ]
 
 record_tag = '{http://www.loc.gov/MARC21/slim}record'
-
+TEST_DATA = f'{Path(__file__).parent}/test_data'
 
 class TestSubjects:
     @pytest.mark.parametrize('item,expected', xml_samples)
     def test_subjects_xml(self, item, expected):
         filename = (
-            os.path.dirname(__file__) + '/test_data/xml_input/' + item + '_marc.xml'
+            f'{TEST_DATA}/xml_input/{item}_marc.xml'
         )
         element = etree.parse(filename).getroot()
         if element.tag != record_tag and element[0].tag == record_tag:
@@ -251,7 +251,7 @@ class TestSubjects:
 
     @pytest.mark.parametrize('item,expected', bin_samples)
     def test_subjects_bin(self, item, expected):
-        filename = os.path.dirname(__file__) + '/test_data/bin_input/' + item
+        filename = f'{TEST_DATA}/bin_input/{item}'
         with open(filename, mode='rb') as f:
             rec = MarcBinary(f.read())
         assert read_subjects(rec) == expected
