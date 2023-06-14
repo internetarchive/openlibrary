@@ -237,12 +237,11 @@ bin_samples = [
 record_tag = '{http://www.loc.gov/MARC21/slim}record'
 TEST_DATA = f'{Path(__file__).parent}/test_data'
 
+
 class TestSubjects:
     @pytest.mark.parametrize('item,expected', xml_samples)
     def test_subjects_xml(self, item, expected):
-        filename = (
-            f'{TEST_DATA}/xml_input/{item}_marc.xml'
-        )
+        filename = f'{TEST_DATA}/xml_input/{item}_marc.xml'
         element = etree.parse(filename).getroot()
         if element.tag != record_tag and element[0].tag == record_tag:
             element = element[0]
