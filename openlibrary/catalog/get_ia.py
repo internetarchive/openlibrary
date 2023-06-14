@@ -12,11 +12,10 @@ from openlibrary.core import ia
 
 
 IA_BASE_URL = config.get('ia_base_url')
-IA_DOWNLOAD_URL = '%s/download/' % IA_BASE_URL
+IA_DOWNLOAD_URL = f'{IA_BASE_URL}/download/'
 MAX_MARC_LENGTH = 100000
 
 
-# This function is called in openlibrary/catalog/marc/marc_subject.py as well as this file.
 def urlopen_keep_trying(url, headers=None, **kwargs):
     """Tries to request the url three times, raises HTTPError if 403, 404, or 416.  Returns a requests.Response"""
     for i in range(3):
