@@ -4,7 +4,7 @@ beautifulsoup4==4.12.2
 DBUtils==1.4
 Deprecated==1.2.13
 eventer==0.1.1
-feedparser==6.0.8
+feedparser==6.0.10
 flup-py3==1.0.3
 Genshi==0.7.7
 gunicorn==20.1.0
