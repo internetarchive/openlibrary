@@ -1121,29 +1121,33 @@ class Tag(Thing):
     """Class to represent /type/tag objects in OL."""
 
     @classmethod
-    def get(cls, tag_name, tag_type):
+    def find(cls, tag_name, tag_type):
         """Returns a Tag object for a given tag name and tag type."""
         q = {'type': '/type/tag', 'name': tag_name, 'tag_type': tag_type}
         match = list(web.ctx.site.things(q))
         return match[0] if match else None
 
     @classmethod
-    def create(cls, tag_name, tag_description, tag_type, tag_plugins):
+    def create(cls, tag_name, tag_description, tag_type, tag_plugins, ip='127.0.0.1', comment='New Tag'):
         """Creates a new Tag object."""
+        current_user = web.ctx.site.get_user()
+        patron = current_user and current_user.username or 'ImportBot'
         key = web.ctx.site.new_key('/type/tag')
-        web.ctx.path = key
-        web.ctx.site.save(
-            {
-                'key': key,
-                'name': tag_name,
-                'tag_description': tag_description,
-                'tag_type': tag_type,
-                'tag_plugins': json.loads(tag_plugins or "[]"),
-                'type': dict(key='/type/tag'),
-            },
-            comment='New Tag',
-        )
-        return key
+        from openlibrary.accounts import RunAs
+        with RunAs(patron):
+            web.ctx.ip = web.ctx.ip or ip
+            web.ctx.site.save(
+                {
+                    'key': key,
+                    'name': tag_name,
+                    'tag_description': tag_description,
+                    'tag_type': tag_type,
+                    'tag_plugins': json.loads(tag_plugins or "[]"),
+                    'type': dict(key='/type/tag'),
+                },
+                comment=comment,
+            )
+            return key
 
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
