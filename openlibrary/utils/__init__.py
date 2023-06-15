@@ -190,6 +190,29 @@ def extract_numeric_id_from_olid(olid):
     return olid
 
 
+def olid_to_key(olid: str) -> str:
+    """
+    >>> olid_to_key("OL123W")
+    '/works/OL123W'
+    >>> olid_to_key("OL123A")
+    '/authors/OL123A'
+    >>> olid_to_key("OL123M")
+    '/books/OL123M'
+    >>> olid_to_key("OL123L")
+    '/lists/OL123L'
+    """
+    if olid.endswith("M"):
+        return f"/books/{olid}"
+    elif olid.endswith("W"):
+        return f"/works/{olid}"
+    elif olid.endswith("A"):
+        return f"/authors/{olid}"
+    elif olid.endswith("L"):
+        return f"/lists/{olid}"
+    else:
+        raise ValueError(f"Invalid OLID: {olid}")
+
+
 def is_number(s):
     """
     >>> all(is_number(n) for n in (1234, "1234", -1234, "-1234", 123.4, -123.4))

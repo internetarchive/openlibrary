@@ -125,21 +125,24 @@ jQuery(function () {
 
     const edition = document.getElementById('tabsAddbook');
     const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
+    const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
+    const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
+    const autocompleteSeeds = document.querySelector('.multi-input-autocomplete--seeds');
+    const autocompleteSubjects = document.querySelector('.csv-autocomplete--subjects');
     const addRowButton = document.getElementById('add_row_button');
     const roles = document.querySelector('#roles');
     const identifiers = document.querySelector('#identifiers');
     const classifications = document.querySelector('#classifications');
-    const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
-    const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
-    const autocompleteSubjects = document.querySelector('.csv-autocomplete--subjects');
     const excerpts = document.getElementById('excerpts');
     const links = document.getElementById('links');
 
     // conditionally load for user edit page
     if (
         edition ||
-        autocompleteAuthor || addRowButton || roles || identifiers || classifications ||
-        autocompleteLanguage || autocompleteWorks || excerpts || links
+        autocompleteAuthor || autocompleteLanguage || autocompleteWorks ||
+        autocompleteSeeds || autocompleteSubjects ||
+        addRowButton || roles || identifiers || classifications ||
+        excerpts || links
     ) {
         import(/* webpackChunkName: "user-website" */ './edit')
             .then(module => {
@@ -175,6 +178,9 @@ jQuery(function () {
                 }
                 if (autocompleteSubjects) {
                     module.initSubjectsAutocomplete();
+                }
+                if (autocompleteSeeds) {
+                    module.initSeedsMultiInputAutocomplete();
                 }
             });
     }

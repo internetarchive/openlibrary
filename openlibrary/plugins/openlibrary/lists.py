@@ -1,11 +1,13 @@
 """Lists implementation.
 """
+from dataclasses import dataclass, field
 import json
 import random
+from typing import TypedDict
 import web
 
 from infogami.utils import delegate
-from infogami.utils.view import render_template, public
+from infogami.utils.view import render_template, public, require_login
 from infogami.infobase import client, common
 
 from openlibrary.accounts import get_current_user
@@ -13,11 +15,76 @@ from openlibrary.core import formats, cache
 from openlibrary.core.lists.model import ListMixin
 import openlibrary.core.helpers as h
 from openlibrary.i18n import gettext as _
-from openlibrary.utils import dateutil
-from openlibrary.plugins.upstream import spamcheck
+from openlibrary.plugins.upstream.addbook import safe_seeother
+from openlibrary.utils import dateutil, olid_to_key
+from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.worksearch import subjects
 from openlibrary.coverstore.code import render_list_preview_image
+
+
+class SeedDict(TypedDict):
+    key: str
+
+
+@dataclass
+class ListRecord:
+    key: str | None = None
+    name: str = ''
+    description: str = ''
+    seeds: list[SeedDict | str] = field(default_factory=list)
+
+    @staticmethod
+    def normalize_input_seed(seed: dict | str) -> SeedDict | str:
+        if isinstance(seed, str):
+            if seed.startswith('/subjects/'):
+                return seed
+            else:
+                return {'key': seed if seed.startswith('/') else olid_to_key(seed)}
+        else:
+            if seed['key'].startswith('/subjects/'):
+                return seed['key'].split('/', 2)[-1]
+            else:
+                return seed
+
+    @staticmethod
+    def from_input():
+        i = utils.unflatten(
+            web.input(
+                key=None,
+                name='',
+                description='',
+                seeds=[],
+            )
+        )
+
+        normalized_seeds = [
+            ListRecord.normalize_input_seed(seed)
+            for seed_list in i.seeds
+            for seed in (
+                seed_list.split(',') if isinstance(seed_list, str) else [seed_list]
+            )
+        ]
+        normalized_seeds = [
+            seed
+            for seed in normalized_seeds
+            if seed and (isinstance(seed, str) or seed.get('key'))
+        ]
+        return ListRecord(
+            key=i.key,
+            name=i.name,
+            description=i.description,
+            seeds=normalized_seeds,
+        )
+
+    def to_thing_json(self):
+        return {
+            "key": self.key,
+            "type": {"key": "/type/list"},
+            "name": self.name,
+            "description": self.description,
+            "seeds": self.seeds,
+        }
 
 
 class lists_home(delegate.page):
@@ -150,6 +217,64 @@ class lists(delegate.page):
 
     def render(self, doc, lists):
         return render_template("lists/lists.html", doc, lists)
+
+
+class lists_edit(delegate.page):
+    path = r"(/people/[^/]+/lists/OL\d+L)/edit"
+
+    @require_login
+    def GET(self, key: str):  # type: ignore[override]
+        if not web.ctx.site.can_write(key):
+            return render_template(
+                "permission_denied",
+                web.ctx.fullpath,
+                f"Permission denied to edit {key}.",
+            )
+
+        lst = web.ctx.site.get(key)
+        if lst is None:
+            raise web.notfound()
+        return render_template("type/list/edit", lst, edit=True)
+
+    @require_login
+    def POST(self, key: str):  # type: ignore[override]
+        if not web.ctx.site.can_write(key):
+            return render_template(
+                "permission_denied",
+                web.ctx.fullpath,
+                f"Permission denied to edit {key}.",
+            )
+
+        list_record = ListRecord.from_input()
+        if not list_record.name:
+            raise web.badrequest()
+
+        user = get_current_user()
+        if not user:
+            raise web.seeother("/account/login?redirect=/lists/add")
+
+        web.ctx.site.save(
+            list_record.to_thing_json(),
+            action="lists",
+            comment="Added list.",
+        )
+        return safe_seeother(key)
+
+
+class lists_add(lists_edit):
+    path = r"/lists/add"
+
+    @require_login
+    def GET(self):
+        list_record = ListRecord.from_input()
+        return render_template("type/list/edit", list_record, edit=False)
+
+    @require_login
+    def POST(self):
+        user = get_current_user()
+        list_num = web.ctx.site.seq.next_value("list")
+        key = f"{user.key}/lists/OL{list_num}L"
+        return super().POST(key)
 
 
 class lists_delete(delegate.page):

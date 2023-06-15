@@ -47,6 +47,18 @@
     }
   }
 
+  .multi-input-autocomplete--seeds {
+    counter-reset: list-seeds;
+    li.mia__input::before {
+      counter-increment: list-seeds;
+      content: counters(list-seeds, ".") ".";
+    }
+
+    .mia__preview .ac_work .cover {
+      margin-right: 9px;
+    }
+  }
+
   .mia__input {
     display: flex;
     flex-flow: wrap;
@@ -71,6 +83,10 @@
     .mia__remove {
       color: @red;
       text-decoration: none;
+    }
+
+    .mia__preview {
+      width: 100%;
     }
 
     // Weird glitch where while dragging the element is very offset
@@ -107,8 +123,6 @@
   }
 
   select {
-    width: 100%;
-    font-size: 1.125em;
     font-family: @lucida_sans_serif-1;
     padding: 3px;
   }

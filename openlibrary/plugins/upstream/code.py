@@ -69,8 +69,10 @@ class edit(core.edit):
 
     def GET(self, key):
         page = web.ctx.site.get(key)
-
-        if web.re_compile('/(authors|books|works)/OL.*').match(key):
+        editable_keys_re = web.re_compile(
+            r"/(authors|books|works|people/[^/]+/lists)/OL.*"
+        )
+        if editable_keys_re.match(key):
             if page is None:
                 raise web.seeother(key)
             else:
