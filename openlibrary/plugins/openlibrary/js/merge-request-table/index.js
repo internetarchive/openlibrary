@@ -1,9 +1,8 @@
 import { FadingToast } from '../Toast';
 import { commentOnRequest, declineRequest, claimRequest, unassignRequest } from './MergeRequestService';
 
-// "cache" results in file-level variables to prevent re-querying of DOM
-var dropMenuButtons
-var dropMenus
+let dropMenuButtons
+let dropMenus
 
 /**
  * Adds functionality for closing librarian requests.
@@ -324,10 +323,10 @@ function filterMenuItems(event) {
     for (let i=1; i < items.length; i++) {
         const text = items[i].textContent
         if (text.toUpperCase().indexOf(filter) > -1) {
-            items[i].style.display = ''
+            items[i].classList.remove('hidden')
         }
         else {
-            items[i].style.display = 'none'
+            items[i].classList.add('hidden')
         }
     }
 }
