@@ -1128,12 +1128,21 @@ class Tag(Thing):
         return match[0] if match else None
 
     @classmethod
-    def create(cls, tag_name, tag_description, tag_type, tag_plugins, ip='127.0.0.1', comment='New Tag'):
+    def create(
+        cls,
+        tag_name,
+        tag_description,
+        tag_type,
+        tag_plugins,
+        ip='127.0.0.1',
+        comment='New Tag',
+    ):
         """Creates a new Tag object."""
         current_user = web.ctx.site.get_user()
         patron = current_user and current_user.username or 'ImportBot'
         key = web.ctx.site.new_key('/type/tag')
         from openlibrary.accounts import RunAs
+
         with RunAs(patron):
             web.ctx.ip = web.ctx.ip or ip
             web.ctx.site.save(
