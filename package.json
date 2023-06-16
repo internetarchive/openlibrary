@@ -97,6 +97,7 @@
     "workbox-webpack-plugin": "6.1.5"
   },
   "jest": {
+    "setupFiles": ["./tests/setup-jest.js"],
     "roots": [
       "<rootDir>/openlibrary/plugins/openlibrary/js/",
       "<rootDir>/tests/unit/js/"
