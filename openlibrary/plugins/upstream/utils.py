@@ -1030,7 +1030,8 @@ _get_blog_feeds = cache.memcache_memoize(
 )
 
 
-def get_donation_include(include):
+@public
+def get_donation_include():
     ia_host = get_ia_host(allow_dev=True)
     # The following allows archive.org staff to test banners without
     # needing to reload openlibrary services
@@ -1040,7 +1041,11 @@ def get_donation_include(include):
         script_src = "/cdn/archive.org/donate.js"
 
     if 'ymd' in (web_input := web.input()):
-        script_src += '?ymd=' + web_input.ymd
+        # Should be eg 20220101 (YYYYMMDD)
+        if len(web_input.ymd) == 8 and web_input.ymd.isdigit():
+            script_src += '?' + urllib.parse.urlencode({'ymd': web_input.ymd})
+        else:
+            raise ValueError('?ymd should be 8 digits (eg 20220101)')
 
     html = (
         """
@@ -1050,9 +1055,6 @@ def get_donation_include(include):
         % script_src
     )
     return html
-
-
-# get_donation_include = cache.memcache_memoize(get_donation_include, key_prefix="upstream.get_donation_include", timeout=60)
 
 
 @public
@@ -1275,7 +1277,6 @@ def setup():
             'request': Request(),
             'logger': logging.getLogger("openlibrary.template"),
             'sum': sum,
-            'get_donation_include': get_donation_include,
             'websafe': web.websafe,
         }
     )

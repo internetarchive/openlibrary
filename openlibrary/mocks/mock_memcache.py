@@ -26,10 +26,7 @@ class Client:
             return False
 
     def delete(self, key):
-        try:
-            del self.cache[key]
-        except KeyError:
-            pass
+        self.cache.pop(key, None)
 
 
 @pytest.fixture

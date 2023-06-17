@@ -12,6 +12,7 @@ $if doc.key.startswith("/subjects/"):
 $else:
     $ seed = {"key": doc.key}
 
+$ deleteType = ''
 
 $if "type" in doc and doc.type.key == "/type/user":
     <style type="text/css">

@@ -50,7 +50,10 @@ class community_edits_queue(delegate.page):
             "closed": CommunityEditsQueue.get_counts_by_mode(
                 mode='closed', submitter=i.submitter, reviewer=i.reviewer
             ),
+            "submitters": CommunityEditsQueue.get_submitters(),
+            "reviewers": CommunityEditsQueue.get_reviewers(),
         }
+
         return render_template(
             'merge_queue/merge_queue',
             total_found,
