@@ -15,12 +15,12 @@ $if not keys:
 
 $if formdata:
     $if not formdata.master:
-        <div class="note">$_("Please select a primary author record.")</div>
+        <div class="note">$_("Please select a primary author record.")</div> 
     $if len(formdata.selected) == 0:
         <div class="note">$_("Please select some authors to merge.")</div>
 
 <ol class="sansserif">
-    <li>$_('Select a "primary" record that best represents the author -')
+    <li>$_('Chose the oldest profile as primary -')
         <input type="radio" name="radio" id="radio" checked="checked"/>
     </li>
     <li>$_('Select author records which should be merged with the primary')
@@ -54,7 +54,7 @@ $if can_merge:
             <div class="data count">&nbsp;</div>
         </div>
 
-        $if keys:
+        $if keys: 
             $ master = formdata and formdata.master or keys[0]
         $else:
             $ master = None
@@ -70,6 +70,7 @@ $if can_merge:
                     <input type="checkbox" value="$k" name="merge_key" id="$k" $cond(formdata and k in formdata.selected, 'checked="checked"', '')/>
                 </div>
                 <div class="data record">
+                    <span class="metaDate"> ${k} </span>
                     <label for="$k">
                         <span class="name">$a.name</span>
                         $if a.birth_date or a.death_date:
