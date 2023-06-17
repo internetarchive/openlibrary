@@ -16,7 +16,9 @@
     "sourceType": "module",
     "ecmaVersion": 6
   },
-  "globals": {},
+  "globals": {
+    "global": "readonly"
+  },
   "rules": {
     "prefer-template": "error",
     "eqeqeq": ["error", "always"],
