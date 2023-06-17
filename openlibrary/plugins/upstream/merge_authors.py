@@ -263,6 +263,9 @@ class merge_authors(delegate.page):
         # filter bad keys
         keys = self.filter_authors(keys)
 
+        # sort keys by lowest OL number
+        keys = sorted(keys, key=lambda key: int(key[2:-1]))
+
         user = get_current_user()
         can_merge = user and (
             user.is_admin() or user.is_usergroup_member('/usergroup/super-librarians')
