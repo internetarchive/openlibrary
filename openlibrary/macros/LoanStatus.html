@@ -34,7 +34,7 @@ $ borrow_link = '/borrow/ia/%s' % ocaid
 
 $# Checks to see if patron has actively loan / waitlist for this book
 $ get_loan_for_start_time = time()
-$ user_loan = doc.get('loan') or (check_loan_status and ocaid and ctx.user and ctx.user.get_loan_for(ocaid))
+$ user_loan = doc.get('loan') or (check_loan_status and ocaid and ctx.user and ctx.user.get_loan_for(ocaid, use_cache=True))
 $ get_loan_for_total_time = time() - get_loan_for_start_time
 
 $ is_edition = doc.key.split('/')[1] == 'books'

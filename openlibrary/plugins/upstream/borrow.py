@@ -467,7 +467,7 @@ def get_all_loans():
     return get_all_store_values(type='/type/loan')
 
 
-def get_loans(user, use_cache=True):
+def get_loans(user, use_cache=False):
     return lending.get_loans_of_user(user.key, use_cache=use_cache)
 
 

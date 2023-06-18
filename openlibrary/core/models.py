@@ -906,14 +906,14 @@ class User(Thing):
         loan = self.get_loan_for(book.ocaid)
         return loan is not None
 
-    def get_loan_for(self, ocaid):
+    def get_loan_for(self, ocaid, use_cache=False):
         """Returns the loan object for given ocaid.
 
         Returns None if this user hasn't borrowed the given book.
         """
         from ..plugins.upstream import borrow
 
-        loans = borrow.get_loans(self)
+        loans = borrow.get_loans(self, use_cache=use_cache)
         for loan in loans:
             if ocaid == loan['ocaid']:
                 return loan

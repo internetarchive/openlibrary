@@ -819,7 +819,7 @@ class User(models.User):
         else:
             return 0
 
-    def get_loan_count(self, use_cache=True):
+    def get_loan_count(self, use_cache=False):
         return len(borrow.get_loans(self, use_cache))
 
     def get_loans(self):
