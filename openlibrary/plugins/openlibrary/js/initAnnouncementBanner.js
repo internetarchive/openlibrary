@@ -1,7 +1,7 @@
 /**
- * Init the announcement banners if any
- * If patron has dismissed the banner by clicking the 'X' button, banner storage key will be added to localstorage
- * Banners with storage keys within the localstorage will not show again
+ * Init the banners dismissal functionality
+ * If patron has dismissed the banner by clicking the 'X' button, banner storage key will be saved in the user preferences under the 'hidden-banners' field
+ * Banners with storage keys within the 'hidden-banners' field will be hidden
  */
 function addBannerStorageKeyToUserPreferences(bannerKey, success) {
     $.ajax({
@@ -20,7 +20,7 @@ function addBannerStorageKeyToUserPreferences(bannerKey, success) {
 }
 
 export function initAnnouncementBanner(announcementBanner) {
-    const bannerKey = announcementBanner.getAttribute('data-storage-key');
+    const bannerKey = announcementBanner.dataset.storageKey;
     const closeButton = document.getElementById('close-banner');
     closeButton.addEventListener('click', function() {
         const successCallback = function(){

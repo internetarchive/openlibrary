@@ -650,4 +650,4 @@ class hide_banner(delegate.page):
                 json.dumps({status: msg}), content_type="application/json"
             )
 
-        return response('Banner hidden')
+        return response('Preference saved')
