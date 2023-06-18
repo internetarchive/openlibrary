@@ -38,7 +38,6 @@ exclude = [
 ignore = [
   "ASYNC101",
   "B007",
-  "B009",
   "B015",
   "B023",
   "B904",
@@ -150,6 +149,7 @@ max-statements = 70
 "openlibrary/core/ratings.py" = ["E722"]
 "openlibrary/core/sponsorships.py" = ["E722"]
 "openlibrary/core/stats.py" = ["BLE001"]
+"openlibrary/core/vendors.py" = ["B009"]
 "openlibrary/coverstore/code.py" = ["E722"]
 "openlibrary/i18n/__init__.py" = ["BLE001"]
 "openlibrary/plugins/admin/code.py" = ["E722"]

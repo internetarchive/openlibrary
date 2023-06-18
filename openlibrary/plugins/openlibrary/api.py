@@ -498,7 +498,7 @@ class price_api(delegate.page):
             ed = web.ctx.site.get(book_key)
             if ed:
                 metadata['key'] = ed.key
-                if getattr(ed, 'ocaid'):
+                if getattr(ed, 'ocaid'):  # noqa: B009
                     metadata['ocaid'] = ed.ocaid
 
         return json.dumps(metadata)
