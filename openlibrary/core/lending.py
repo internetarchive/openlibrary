@@ -493,24 +493,33 @@ def _get_ia_loan(identifier, userid):
     ia_loan = ia_lending_api.get_loan(identifier, userid)
     return ia_loan and Loan.from_ia_loan(ia_loan)
 
+
 def get_loans_of_user(user_key, use_cache=False):
     """TODO: Remove inclusion of local data; should only come from IA"""
     if use_cache:
         return get_cached_user_loans(user_key)
-    
+
     else:
         account = OpenLibraryAccount.get(username=user_key.split('/')[-1])
 
-        loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
+        loandata = web.ctx.site.store.values(
+            type='/type/loan', name='user', value=user_key
+        )
         loans = [Loan(d) for d in loandata] + (_get_ia_loans_of_user(account.itemname))
-        get_cached_user_loans.memcache_set(user_key, {}, loans, time.time()) # rehydrate cache
+        get_cached_user_loans.memcache_set(
+            user_key, {}, loans, time.time()
+        )  # rehydrate cache
         return loans
 
-ttl_for_cached_loans = 5 * cache.MINUTE_SECS # time to live for cached loans = 5 minutes
+
+ttl_for_cached_loans = (
+    5 * cache.MINUTE_SECS
+)  # time to live for cached loans = 5 minutes
 
 get_cached_user_loans = cache.memcache_memoize(
     get_loans_of_user, key_prefix='lending.cached_loans', timeout=ttl_for_cached_loans
 )
+
 
 def _get_ia_loans_of_user(userid):
     ia_loans = ia_lending_api.find_loans(userid=userid)
