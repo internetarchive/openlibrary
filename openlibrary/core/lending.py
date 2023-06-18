@@ -499,7 +499,7 @@ def get_loans_of_user(user_key, use_cache=False):
 
     if use_cache:
         if 'env' not in web.ctx:
-            """For the get_cached_user_loans to call the API if no cache is present, 
+            """For the get_cached_user_loans to call the API if no cache is present,
             we have to fakeload the web.ctx
             """
             delegate.fakeload()
