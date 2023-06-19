@@ -70,7 +70,7 @@ $if can_merge:
                     <input type="checkbox" value="$k" name="merge_key" id="$k" $cond(formdata and k in formdata.selected, 'checked="checked"', '')/>
                 </div>
                 <div class="data record">
-                    <span class="metaDate"> ${k} </span>
+                    <span class="ol-num"> ${k} </span>
                     <label for="$k">
                         <span class="name">$a.name</span>
                         $if a.birth_date or a.death_date:
