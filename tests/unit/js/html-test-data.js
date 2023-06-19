@@ -238,328 +238,328 @@ export const initRoleValidationHtml = `
                 <select name="role" id="select-role" class="sansserif large">
                     <option value="" selected="selected">Select role</option>
                     <option>Adapted from original work by</option>
-                    
+
                     <option>Additional Author (this edition)</option>
-                    
+
                     <option value="afterword">Afterword</option>
-                    
+
                     <option>Collected by</option>
-                    
+
                     <option>Commentary</option>
-                    
+
                     <option>Compiler</option>
-                    
+
                     <option>Consultant</option>
-                    
+
                     <option>Foreword</option>
-                    
+
                     <option>Editor</option>
-                    
+
                     <option>Illustrator</option>
-                    
+
                     <option>Introduction</option>
-                    
+
                     <option>Narrator/Reader</option>
-                    
+
                     <option>Notes by</option>
-                    
+
                     <option>Revised by</option>
-                    
+
                     <option>Selected by</option>
-                    
+
                     <option>Translator</option>
-                    
+
                     <option>---</option>
-                    
+
                     <option>Accountability</option>
-                    
+
                     <option>Acquisition Editor</option>
-                    
+
                     <option>Acquisitions Coordinator</option>
-                    
+
                     <option>Additional Research</option>
-                    
+
                     <option>Advisory Editor</option>
-                    
+
                     <option>Agent</option>
-                    
+
                     <option>Appendix</option>
-                    
+
                     <option>Archival photos</option>
-                    
+
                     <option>Art Director</option>
-                    
+
                     <option>Assistant Editor</option>
-                    
+
                     <option>Assisted by</option>
-                    
+
                     <option>Associate Editor</option>
-                    
+
                     <option>As told to</option>
-                    
+
                     <option>Author Photographer</option>
-                    
+
                     <option>Board of Consultants</option>
-                    
+
                     <option>Book Designer</option>
-                    
+
                     <option>Brand Manager</option>
-                    
+
                     <option>Cartographer</option>
-                    
+
                     <option>Chapter Author</option>
-                    
+
                     <option>Chef</option>
-                    
+
                     <option>Chief editor</option>
-                    
+
                     <option>Co-Author</option>
-                    
+
                     <option>Colorist</option>
-                    
+
                     <option>Colour Separations</option>
-                    
+
                     <option>Commissioning Editor</option>
-                    
+
                     <option>Composition</option>
-                    
+
                     <option>Computer Designer</option>
-                    
+
                     <option>Conductor</option>
-                    
+
                     <option>Consulting Editor</option>
-                    
+
                     <option>Contributing artist</option>
-                    
+
                     <option>Contributing Editor</option>
-                    
+
                     <option>Contributor</option>
-                    
+
                     <option>Coordinating author</option>
-                    
+
                     <option>Copy Editor</option>
-                    
+
                     <option>Copyright</option>
-                    
+
                     <option>Cover and Text Design</option>
-                    
+
                     <option>Cover Art</option>
-                    
+
                     <option>Cover Design</option>
-                    
+
                     <option>Cover Photographer</option>
-                    
+
                     <option>Cover Printer</option>
-                    
+
                     <option>Creator</option>
-                    
+
                     <option>Curator</option>
-                    
+
                     <option>Decorator</option>
-                    
+
                     <option>Dedicated to</option>
-                    
+
                     <option>Designer</option>
-                    
+
                     <option>Development Editor</option>
-                    
+
                     <option>Diffuseur</option>
-                    
+
                     <option>Director</option>
-                    
+
                     <option>Distributors</option>
-                    
+
                     <option>Drawings</option>
-                    
+
                     <option>Editor-in-Chief</option>
-                    
+
                     <option>Editorial</option>
-                    
+
                     <option>Editorial Assistant</option>
-                    
+
                     <option>Editorial Board Member</option>
-                    
+
                     <option>Editorial Director</option>
-                    
+
                     <option>Editorial Intern</option>
-                    
+
                     <option>Editorial Manager</option>
-                    
+
                     <option>Editorial Team Leader</option>
-                    
+
                     <option>Engraver</option>
-                    
+
                     <option>Epigraph</option>
-                    
+
                     <option>Epilogue</option>
-                    
+
                     <option>Essayist</option>
-                    
+
                     <option>Export Assistant</option>
-                    
+
                     <option>Food Photographer</option>
-                    
+
                     <option>Food Stylist</option>
-                    
+
                     <option>From the Library of</option>
-                    
+
                     <option>Frontispiece</option>
-                    
+
                     <option>General Editor</option>
-                    
+
                     <option>Glossary</option>
-                    
+
                     <option>Graphic Design</option>
-                    
+
                     <option>Graphic Layout</option>
-                    
+
                     <option>Home Economist</option>
-                    
+
                     <option>Image editor</option>
-                    
+
                     <option>Indexer</option>
-                    
+
                     <option>Information Director</option>
-                    
+
                     <option>Information Officer</option>
-                    
+
                     <option>Interior Design</option>
-                    
+
                     <option>Interior Photos</option>
-                    
+
                     <option>interviewee</option>
-                    
+
                     <option>Interviewer</option>
-                    
+
                     <option>Jacket Design</option>
-                    
+
                     <option>Jacket Photo</option>
-                    
+
                     <option>Jacket Printer</option>
-                    
+
                     <option>Language activities</option>
-                    
+
                     <option>Lettering</option>
-                    
+
                     <option>Librorum Censor</option>
-                    
+
                     <option>Lithography</option>
-                    
+
                     <option>Logo Designer</option>
-                    
+
                     <option>Lyricist</option>
-                    
+
                     <option>Managing Editor</option>
-                    
+
                     <option>Marketing Manager</option>
-                    
+
                     <option>Meterological tables</option>
-                    
+
                     <option>Musical Director</option>
-                    
+
                     <option>Orchestra</option>
-                    
+
                     <option>Photo Editor</option>
-                    
+
                     <option>Photographer</option>
-                    
+
                     <option>Photo Library</option>
-                    
+
                     <option>Photo Research</option>
-                    
+
                     <option>Photo Scanning Specialist</option>
-                    
+
                     <option>Poet</option>
-                    
+
                     <option>Portrait</option>
-                    
+
                     <option>Preface</option>
-                    
+
                     <option>Prepared by</option>
-                    
+
                     <option>Printer</option>
-                    
+
                     <option>Printmaker</option>
-                    
+
                     <option>Producer</option>
-                    
+
                     <option>Production Assistant</option>
-                    
+
                     <option>Production Controller</option>
-                    
+
                     <option>Production Coordinator</option>
-                    
+
                     <option>Production Editor</option>
-                    
+
                     <option>Project Coordinator</option>
-                    
+
                     <option>Project Editor</option>
-                    
+
                     <option>Project Team Leader</option>
-                    
+
                     <option>Prologue</option>
-                    
+
                     <option>Proofreader</option>
-                    
+
                     <option>Publishing Director</option>
-                    
+
                     <option>Reading Director</option>
-                    
+
                     <option>Recipe Tester</option>
-                    
+
                     <option>Recording Producer</option>
-                    
+
                     <option>Recording Studio</option>
-                    
+
                     <option>Redactor</option>
-                    
+
                     <option>Research Director</option>
-                    
+
                     <option>Researcher</option>
-                    
+
                     <option>Reviewer</option>
-                    
+
                     <option>Science Editor</option>
-                    
+
                     <option>Scientific advisor</option>
-                    
+
                     <option>Screenplay</option>
-                    
+
                     <option>Script</option>
-                    
+
                     <option>Senior Editor</option>
-                    
+
                     <option>Series Design</option>
-                    
+
                     <option>Series General Editor</option>
-                    
+
                     <option>Soloist</option>
-                    
+
                     <option>Songs translated by</option>
-                    
+
                     <option>Sponsor</option>
-                    
+
                     <option>Stylist</option>
-                    
+
                     <option>Technical draftsman</option>
-                    
+
                     <option>Technical Editor</option>
-                    
+
                     <option>Technical Reviewer</option>
-                    
+
                     <option>Tests and evaluations</option>
-                    
+
                     <option>Text Design</option>
-                    
+
                     <option>Thanks</option>
-                    
+
                     <option>Typesetter</option>
-                    
+
                     <option>Typography</option>
-                    
+
                     <option>Web Programming &amp; Design</option>
-                  
-                    
+
+
 
                 </select>
             </td>
