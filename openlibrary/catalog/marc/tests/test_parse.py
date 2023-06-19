@@ -1,3 +1,4 @@
+import json
 import pytest
 
 from openlibrary.catalog.marc.parse import (
@@ -10,14 +11,13 @@ from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import DataField, MarcXml
 from lxml import etree
 from pathlib import Path
-import json
 from collections.abc import Iterable
 
 collection_tag = '{http://www.loc.gov/MARC21/slim}collection'
 record_tag = '{http://www.loc.gov/MARC21/slim}record'
 
 xml_samples = [
-    '39002054008678.yale.edu',
+    '39002054008678_yale_edu',
     'flatlandromanceo00abbouoft',
     'nybc200247',
     'secretcodeofsucc00stjo',
@@ -80,25 +80,25 @@ bin_samples = [
     'test-publish-sn-sl-nd.mrc',
 ]
 
-TEST_DATA = f'{Path(__file__).parent}/test_data'
+TEST_DATA = Path(__file__).with_name('test_data')
 
 
 class TestParseMARCXML:
     @pytest.mark.parametrize('i', xml_samples)
     def test_xml(self, i):
-        expect_filename = f'{TEST_DATA}/xml_expect/{i}.json'
-        path = f'{TEST_DATA}/xml_input/{i}_marc.xml'
-        element = etree.parse(open(path)).getroot()
+        expect_filepath = (TEST_DATA / 'xml_expect' / i).with_suffix('.json')
+        filepath = TEST_DATA / 'xml_input' / f'{i}_marc.xml'
+        element = etree.parse(filepath).getroot()
         # Handle MARC XML collection elements in our test_data expectations:
         if element.tag == collection_tag and element[0].tag == record_tag:
             element = element[0]
         rec = MarcXml(element)
         edition_marc_xml = read_edition(rec)
         assert edition_marc_xml
-        j = json.load(open(expect_filename))
-        assert j, 'Unable to open test data: %s' % expect_filename
+        j = json.load(expect_filepath.open())
+        assert j, f'Unable to open test data: {expect_filepath}'
         msg = (
-            f'Processed MARCXML values do not match expectations in {expect_filename}.'
+            f'Processed MARCXML values do not match expectations in {expect_filepath}.'
         )
         assert sorted(edition_marc_xml) == sorted(j), msg
         msg += ' Key: '
@@ -114,23 +114,23 @@ class TestParseMARCXML:
 class TestParseMARCBinary:
     @pytest.mark.parametrize('i', bin_samples)
     def test_binary(self, i):
-        expect_filename = f'{TEST_DATA}/bin_expect/{i}'.replace('.mrc', '.json')
-        with open(f'{TEST_DATA}/bin_input/{i}', 'rb') as f:
-            rec = MarcBinary(f.read())
+        expect_filepath = (TEST_DATA / 'bin_expect' / i).with_suffix('.json')
+        filepath = TEST_DATA / 'bin_input' / i
+        rec = MarcBinary(filepath.read_bytes())
         edition_marc_bin = read_edition(rec)
         assert edition_marc_bin
-        if not Path(expect_filename).is_file():
+        if not Path(expect_filepath).is_file():
             # Missing test expectations file. Create a template from the input, but fail the current test.
             data = json.dumps(edition_marc_bin, indent=2)
             pytest.fail(
-                f'Expectations file {expect_filename} not found: Please review and commit this JSON:\n{data}'
+                f'Expectations file {expect_filepath} not found: Please review and commit this JSON:\n{data}'
             )
-        j = json.load(open(expect_filename))
-        assert j, f'Unable to open test data: {expect_filename}'
+        j = json.load(expect_filepath.open())
+        assert j, f'Unable to open test data: {expect_filepath}'
         assert sorted(edition_marc_bin) == sorted(
             j
-        ), f'Processed binary MARC fields do not match expectations in {expect_filename}'
-        msg = f'Processed binary MARC values do not match expectations in {expect_filename}'
+        ), f'Processed binary MARC fields do not match expectations in {expect_filepath}'
+        msg = f'Processed binary MARC values do not match expectations in {expect_filepath}'
         for key, value in edition_marc_bin.items():
             if isinstance(value, Iterable):  # can not sort a list of dicts
                 assert len(value) == len(j[key]), msg
@@ -140,16 +140,14 @@ class TestParseMARCBinary:
                 assert value == j[key], msg
 
     def test_raises_see_also(self):
-        filename = f'{TEST_DATA}/bin_input/talis_see_also.mrc'
-        with open(filename, 'rb') as f:
-            rec = MarcBinary(f.read())
+        filepath = TEST_DATA / 'bin_input' / 'talis_see_also.mrc'
+        rec = MarcBinary(filepath.read_bytes())
         with pytest.raises(SeeAlsoAsTitle):
             read_edition(rec)
 
     def test_raises_no_title(self):
-        filename = f'{TEST_DATA}/bin_input/talis_no_title2.mrc'
-        with open(filename, 'rb') as f:
-            rec = MarcBinary(f.read())
+        filepath = TEST_DATA / 'bin_input' / 'talis_no_title2.mrc'
+        rec = MarcBinary(filepath.read_bytes())
         with pytest.raises(NoTitle):
             read_edition(rec)
 

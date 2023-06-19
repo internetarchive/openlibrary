@@ -39,7 +39,7 @@ xml_samples = [
         {'place': {'Spain': 1}, 'subject': {'Courts and court life': 1, 'History': 1}},
     ),
     (
-        '39002054008678.yale.edu',
+        '39002054008678_yale_edu',
         {
             'place': {'Ontario': 2},
             'subject': {'Description and travel': 1, 'History': 1},
@@ -235,14 +235,14 @@ bin_samples = [
 ]
 
 record_tag = '{http://www.loc.gov/MARC21/slim}record'
-TEST_DATA = f'{Path(__file__).parent}/test_data'
+TEST_DATA = Path(__file__).with_name('test_data')
 
 
 class TestSubjects:
     @pytest.mark.parametrize('item,expected', xml_samples)
     def test_subjects_xml(self, item, expected):
-        filename = f'{TEST_DATA}/xml_input/{item}_marc.xml'
-        element = etree.parse(filename).getroot()
+        filepath = TEST_DATA / 'xml_input' / f'{item}_marc.xml'
+        element = etree.parse(filepath).getroot()
         if element.tag != record_tag and element[0].tag == record_tag:
             element = element[0]
         rec = MarcXml(element)
@@ -250,9 +250,8 @@ class TestSubjects:
 
     @pytest.mark.parametrize('item,expected', bin_samples)
     def test_subjects_bin(self, item, expected):
-        filename = f'{TEST_DATA}/bin_input/{item}'
-        with open(filename, mode='rb') as f:
-            rec = MarcBinary(f.read())
+        filepath = TEST_DATA / 'bin_input' / item
+        rec = MarcBinary(filepath.read_bytes())
         assert read_subjects(rec) == expected
 
     def test_four_types_combine(self):
