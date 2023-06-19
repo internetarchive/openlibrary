@@ -524,17 +524,20 @@ def find_exact_match(rec, edition_pool):
     return False
 
 
-def find_marc_match(e1, edition_pool):
+def find_enriched_match(rec, edition_pool):
     """
-    Find the best match for e1 in edition_pool and return its key.
-    :param dict e1: the new edition we are trying to match, output of build_marc(import record)
-    :param list edition_pool: list of possible edition matches, output of build_pool(import record)
+    Find the best match for rec in edition_pool and return its key.
+    :param dict rec: the new edition we are trying to match.
+    :param list edition_pool: list of possible edition key matches, output of build_pool(import record)
     :rtype: str|None
-    :return: None or the edition key '/books/OL...M' of the best edition match for e1 in edition_pool
+    :return: None or the edition key '/books/OL...M' of the best edition match for enriched_rec in edition_pool
     """
+    enriched_rec = build_marc(rec)
+    add_db_name(enriched_rec)
+
     seen = set()
-    for k, v in edition_pool.items():
-        for edition_key in v:
+    for edition_keys in edition_pool.values():
+        for edition_key in edition_keys:
             if edition_key in seen:
                 continue
             thing = None
@@ -551,7 +554,7 @@ def find_marc_match(e1, edition_pool):
                     # which will raise an exception in editions_match()
             if not found:
                 continue
-            if editions_match(e1, thing):
+            if editions_match(enriched_rec, thing):
                 return edition_key
 
 
@@ -730,9 +733,7 @@ def find_match(rec, edition_pool) -> str | None:
         if subtitle := rec.get('subtitle'):
             rec['full_title'] += ' ' + subtitle
 
-        enriched_rec = build_marc(rec)
-        add_db_name(enriched_rec)
-        match = find_marc_match(enriched_rec, edition_pool)
+        match = find_enriched_match(rec, edition_pool)
 
     return match
 
