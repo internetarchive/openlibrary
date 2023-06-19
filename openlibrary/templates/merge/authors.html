@@ -15,7 +15,7 @@ $if not keys:
 
 $if formdata:
     $if not formdata.master:
-        <div class="note">$_("Please select a primary author record.")</div> 
+        <div class="note">$_("Please select a primary author record.")</div>
     $if len(formdata.selected) == 0:
         <div class="note">$_("Please select some authors to merge.")</div>
 
@@ -54,7 +54,7 @@ $if can_merge:
             <div class="data count">&nbsp;</div>
         </div>
 
-        $if keys: 
+        $if keys:
             $ master = formdata and formdata.master or keys[0]
         $else:
             $ master = None
