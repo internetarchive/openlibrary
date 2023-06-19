@@ -91,7 +91,9 @@ class TestGetIA:
         monkeypatch.setattr(
             ia,
             'get_metadata',
-            lambda itemid: {'_filenames': [f'{itemid}_{s}' for s in ('marc.xml', 'meta.mrc')]}
+            lambda itemid: {
+                '_filenames': [f'{itemid}_{s}' for s in ('marc.xml', 'meta.mrc')]
+            },
         )
         result = get_ia.get_marc_record_from_ia(item)
         assert isinstance(
