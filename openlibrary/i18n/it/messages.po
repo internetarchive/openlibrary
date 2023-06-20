@@ -226,7 +226,7 @@ msgid ""
 "We've noted the error %s and will look into it as soon as possible. Head "
 "for <a href=\"/\">home</a>?"
 msgstr ""
-"Abbiamo notato un errore %d e lo investigheremo il prima possibile. Torna"
+"Abbiamo notato un errore %s e lo investigheremo il prima possibile. Torna"
 " alla <a href=\"/\">home</a>?"
 
 #: lib/nav_head.html:30 library_explorer.html:6
