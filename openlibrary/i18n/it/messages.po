@@ -3334,7 +3334,7 @@ msgid ""
 "href=\"/recentchanges\">recent changes</a>"
 msgstr ""
 "Cosa è successo negli scorsi 28 giorni. <a "
-"\"href=\"/recentchanges\">cambiamenti più recenti</a>"
+"href=\"/recentchanges\">cambiamenti più recenti</a>"
 
 #: home/stats.html:15 home/stats.html:17
 msgid "See all visitors to OpenLibrary.org"
@@ -4823,7 +4823,7 @@ msgid ""
 "finish</u> the update.</i>"
 msgstr ""
 "La fusione è in corso. <i>L'aggiornamento richiederà <u>qualche "
-"minuto<u></i>."
+"minuto</u></i>."
 
 #: type/author/view.html:95
 msgid "Argh!"
