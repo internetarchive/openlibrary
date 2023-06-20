@@ -291,7 +291,7 @@ describe('initRoleValidation ', () => {
         const cssDisplay = $("#role-errors").css("display");
         expect(cssDisplay).toBe("none");
     });
-    
+
     it('Valida se o role e o name estão vazios', () => {
         $('#select-role').val('');
         $('#role-name').val('');
