@@ -509,4 +509,12 @@ jQuery(function () {
         import(/* webpackChunkName "add-provider-link" */ './add_provider')
             .then(module => module.initAddProviderRowLink(addProviderRowLink))
     }
+
+
+    // Allow banner announcements to be dismissable for logged-in users:
+    const siteBanner = document.getElementById('announcement-banner')
+    if (siteBanner) {
+        import(/* webpackChunkName: "announcement-banner" */ './initAnnouncementBanner')
+            .then(module => module.initAnnouncementBanner(siteBanner))
+    }
 });
