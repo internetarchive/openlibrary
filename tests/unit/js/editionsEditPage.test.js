@@ -235,6 +235,13 @@ describe("initRoleValidation ", () => {
     initRoleValidation();
   });
 
+  it("Valida se o role e o name estão preenchido", () => {
+    $("#select-role").val("afterword");
+    $("#role-name").val("gustavo");
+    $(".repeat-add").trigger("click");
+    const cssDisplay = $("#role-errors").css("display");
+    expect(cssDisplay).toBe("none");
+  });
   it("Valida se o role e o name estão vazios", () => {
     $("#select-role").val("");
     $("#role-name").val("");
@@ -269,12 +276,5 @@ describe("initRoleValidation ", () => {
     $(".repeat-add").trigger("click");
     const cssDisplay = $("#role-errors").css("display");
     expect(cssDisplay).toBe("block");
-  });
-  it("Valida se o role e o name estão preenchido", () => {
-    $("#select-role").val("afterword");
-    $("#role-name").val("gustavo");
-    $(".repeat-add").trigger("click");
-    const cssDisplay = $("#role-errors").css("display");
-    expect(cssDisplay).toBe("none");
   });
 });
