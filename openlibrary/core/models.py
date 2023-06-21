@@ -15,6 +15,7 @@ from openlibrary.core.helpers import parse_datetime, safesort, urlsafe
 # TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
 from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.core import lending
 from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.booknotes import Booknotes
@@ -913,7 +914,7 @@ class User(Thing):
         """
         from ..plugins.upstream import borrow
 
-        loans = borrow.get_loans(self, use_cache=use_cache)
+        loans = lending.get_cached_user_loans(self) if use_cache else borrow.get_loans(self)
         for loan in loans:
             if ocaid == loan['ocaid']:
                 return loan
