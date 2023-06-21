@@ -914,7 +914,9 @@ class User(Thing):
         """
         from ..plugins.upstream import borrow
 
-        loans = lending.get_cached_user_loans(self) if use_cache else borrow.get_loans(self)
+        loans = (
+            lending.get_cached_user_loans(self) if use_cache else borrow.get_loans(self)
+        )
         for loan in loans:
             if ocaid == loan['ocaid']:
                 return loan

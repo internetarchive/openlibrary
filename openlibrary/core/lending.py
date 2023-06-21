@@ -504,17 +504,18 @@ def get_loans_of_user(user_key):
 
     account = OpenLibraryAccount.get(username=user_key.split('/')[-1])
 
-    loandata = web.ctx.site.store.values(
-        type='/type/loan', name='user', value=user_key
-    )
+    loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
     loans = [Loan(d) for d in loandata] + (_get_ia_loans_of_user(account.itemname))
     get_cached_user_loans.memcache_set(
         user_key, {}, loans, time.time()
     )  # rehydrate cache
     return loans
 
+
 get_cached_user_loans = cache.memcache_memoize(
-    get_loans_of_user, key_prefix='lending.cached_loans', timeout=5 * dateutil.MINUTE_SECS # time to live for cached loans = 5 minutes
+    get_loans_of_user,
+    key_prefix='lending.cached_loans',
+    timeout=5 * dateutil.MINUTE_SECS,  # time to live for cached loans = 5 minutes
 )
 
 
