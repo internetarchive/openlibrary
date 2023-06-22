@@ -54,8 +54,6 @@ plugin_worksearch:
 
 http_request_timeout: 10
 
-stats_solr: solr:8983
-
 features:
     cache_most_recent: enabled
     dev: enabled

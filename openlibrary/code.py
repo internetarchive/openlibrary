@@ -64,7 +64,6 @@ def setup_logging():
 def load_views():
     """Registers all views by loading all view modules."""
     from .views import showmarc
-    from .views import loanstats
 
 
 setup()
