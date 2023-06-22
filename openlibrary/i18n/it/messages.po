@@ -502,8 +502,8 @@ msgstr "Ottieni più informazioni su questo editore"
 #, python-format
 msgid "%(count)s edition"
 msgid_plural "%(count)s editions"
-msgstr[0] "%(counts)s edizione"
-msgstr[1] "%(counts)s edizioni"
+msgstr[0] "%(count)s edizione"
+msgstr[1] "%(count)s edizioni"
 
 #: support.html:7 support.html:10
 msgid "How can we help?"
