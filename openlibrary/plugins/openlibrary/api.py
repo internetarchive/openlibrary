@@ -8,6 +8,7 @@ import web
 import re
 import json
 from collections import defaultdict
+from openlibrary.views.loanstats import get_trending_books
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render_template  # noqa: F401 used for its side effects
@@ -59,6 +60,37 @@ class book_availability(delegate.page):
             if id_type == "identifier"
             else []
         )
+
+
+class trending_books_api(delegate.page):
+    path = "/trending(/?.*)"
+    # path = "/trending/(now|daily|weekly|monthly|yearly|forever)"
+    encoding = "json"
+
+    def GET(self, period="/daily"):
+        from openlibrary.views.loanstats import SINCE_DAYS
+
+        period = period[1:]  # remove slash
+        i = web.input(
+            page=1, limit=100, days=0, hours=0, sort_by_count=False, minimum=0
+        )
+        days = SINCE_DAYS.get(period, int(i.days))
+        works = get_trending_books(
+            since_days=days,
+            since_hours=int(i.hours),
+            limit=int(i.limit),
+            page=int(i.page),
+            books_only=True,
+            sort_by_count=i.sort_by_count != "false",
+            minimum=i.minimum,
+        )
+        result = {
+            'query': f"/trending/{period}",
+            'works': [dict(work) for work in works],
+            'days': days,
+            'hours': i.hours,
+        }
+        return delegate.RawText(json.dumps(result), content_type="application/json")
 
 
 class browse(delegate.page):
