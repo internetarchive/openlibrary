@@ -1,6 +1,5 @@
 import { isChecksumValidIsbn10, isChecksumValidIsbn13 } from '../../../openlibrary/plugins/openlibrary/js/edit.js';
 import { validateIdentifiers } from '../../../openlibrary/plugins/openlibrary/js/edit.js';
-import jquery from 'jquery';
 import sinon from 'sinon';
 import * as testData from './html-test-data';
 import { htmlquote } from '../../../openlibrary/plugins/openlibrary/js/jsdef';
@@ -57,11 +56,9 @@ describe('isChecksumValidIsbn13', () => {
 beforeEach(() => {
     // Clear session storage
     sandbox = sinon.createSandbox();
-    global.$ = jquery;
     global.htmlquote = htmlquote;
     // htmlquote is used inside an eval expression (yuck) so is an implied dependency
     sandbox.stub(global, 'htmlquote').callsFake(htmlquote);
-    sandbox.stub(global, '$').callsFake(jquery);
     // setup Query repeat
     jQueryRepeat(global.$);
     // setup the HTML

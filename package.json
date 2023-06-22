@@ -104,6 +104,9 @@
     "moduleNameMapper": {
       "\\.(css|less)$": "<rootDir>/tests/unit/js/styleMock.js"
     },
+    "setupFiles": [
+      "<rootDir>/tests/unit/js/setup.js"
+    ],
     "testEnvironment": "jsdom",
     "collectCoverageFrom": [
       "openlibrary/plugins/openlibrary/js/**/*.js"

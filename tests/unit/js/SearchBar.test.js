@@ -1,6 +1,5 @@
 import sinon from 'sinon';
 import { SearchBar } from '../../../openlibrary/plugins/openlibrary/js/SearchBar';
-import $ from 'jquery';
 import * as SearchUtils from '../../../openlibrary/plugins/openlibrary/js/SearchUtils';
 import * as nonjquery_utils from '../../../openlibrary/plugins/openlibrary/js/nonjquery_utils.js';
 

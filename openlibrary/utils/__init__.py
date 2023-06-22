@@ -132,34 +132,46 @@ def dicthash(d):
         return d
 
 
-author_olid_embedded_re = re.compile(r'OL\d+A', re.IGNORECASE)
+olid_re = re.compile(r'OL\d+[A-Z]', re.IGNORECASE)
 
 
-def find_author_olid_in_string(s):
+def find_olid_in_string(s: str, olid_suffix: str | None = None) -> str | None:
     """
-    >>> find_author_olid_in_string("ol123a")
-    'OL123A'
-    >>> find_author_olid_in_string("/authors/OL123A/edit")
-    'OL123A'
-    >>> find_author_olid_in_string("some random string")
-    """
-    found = re.search(author_olid_embedded_re, s)
-    return found and found.group(0).upper()
-
-
-work_olid_embedded_re = re.compile(r'OL\d+W', re.IGNORECASE)
-
-
-def find_work_olid_in_string(s):
-    """
-    >>> find_work_olid_in_string("ol123w")
+    >>> find_olid_in_string("ol123w")
     'OL123W'
-    >>> find_work_olid_in_string("/works/OL123W/Title_of_book")
-    'OL123W'
-    >>> find_work_olid_in_string("some random string")
+    >>> find_olid_in_string("/authors/OL123A/DAVIE_BOWIE")
+    'OL123A'
+    >>> find_olid_in_string("/authors/OL123A/DAVIE_BOWIE", "W")
+    >>> find_olid_in_string("some random string")
     """
-    found = re.search(work_olid_embedded_re, s)
-    return found and found.group(0).upper()
+    found = re.search(olid_re, s)
+    if not found:
+        return None
+    olid = found.group(0).upper()
+
+    if olid_suffix and not olid.endswith(olid_suffix):
+        return None
+
+    return olid
+
+
+def olid_to_key(olid: str) -> str:
+    """
+    >>> olid_to_key('OL123W')
+    '/works/OL123W'
+    >>> olid_to_key('OL123A')
+    '/authors/OL123A'
+    >>> olid_to_key('OL123M')
+    '/books/OL123M'
+    """
+    typ = {
+        'A': 'authors',
+        'W': 'works',
+        'M': 'books',
+    }[olid[-1]]
+    if not typ:
+        raise ValueError(f"Invalid olid: {olid}")
+    return f"/{typ}/{olid}"
 
 
 def extract_numeric_id_from_olid(olid):
