@@ -13,12 +13,6 @@
   gap: 2rem;
 }
 
-.teamCard__container {
-  height: 450px;
-  width: 280px;
-  display: flex;
-  align-items: flex-end;
-}
 
 .teamCard {
   background: @beige;
@@ -31,42 +25,67 @@
   border-radius: 2rem;
 }
 
-.teamCard__photoContainer {
-  position: absolute;
-  top: -80px;
-  height: 160px;
-  width: 160px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-  overflow: hidden;
-}
-
-.teamCard__photo {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  background: @beige;
-  object-fit: cover;
-}
-
-.teamCard__description {
+.teamCard {
+  &__container {
+    height: 450px;
+    width: 280px;
+    display: flex;
+    align-items: flex-end;
+  }
+  &__photoContainer {
+    position: absolute;
+    top: -80px;
+    height: 160px;
+    width: 160px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+  &__photo {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: @beige;
+    object-fit: cover;
+  }
+  &__description {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
+  }
 }
 
-.description__name {
-  text-decoration: underline;
-  padding-top: 90px;
-}
-
-.description__role {
-  font-weight: 400;
-  height: 35px;
-  font-size: 18px;
+.description {
+  &__name {
+    text-decoration: underline;
+    padding-top: 90px;
+  }
+  &__role {
+    font-weight: 400;
+    height: 35px;
+    font-size: 18px;
+  }
+  &__status {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    height: 28px;
+  }
+  &__bio {
+    padding: 15px;
+    margin: 0;
+    line-height: 130%;
+    height: 130px;
+  }
+  &__links {
+    display: flex;
+    height: 60px;
+    width: 100%;
+    justify-content: space-evenly;
+    align-items: center;
+  }
 }
 
 .description__role,
@@ -76,27 +95,6 @@
   padding-left: 15px;
   padding-right: 15px;
   text-align: center;
-}
-
-.description__status {
-  padding-top: 5px;
-  padding-bottom: 5px;
-  height: 28px;
-}
-
-.description__bio {
-  padding: 15px;
-  margin: 0;
-  line-height: 130%;
-  height: 130px;
-}
-
-.description__links {
-  display: flex;
-  height: 60px;
-  width: 100%;
-  justify-content: space-evenly;
-  align-items: center;
 }
 
 .links__site,

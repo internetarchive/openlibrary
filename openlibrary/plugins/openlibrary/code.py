@@ -221,7 +221,6 @@ class team(delegate.page):
     path = '/about/team'
 
     def GET(self):
-        # return render_template("about/index.html") 
         with Path('/openlibrary/openlibrary/templates/about/team.json').open(
             mode='r'
         ) as f:
