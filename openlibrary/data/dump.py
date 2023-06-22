@@ -45,8 +45,12 @@ def print_dump(json_records, filter=None):
 
         key = web.safestr(d["key"])
 
-        # skip user and admin pages
-        if key.startswith(("/people/", "/admin/")):
+        # skip user pages
+        if key.startswith("/people/") and not re.match(r"^/people/[^/]+/lists/OL\d+L$", key):
+            continue
+
+        # skip admin pages
+        if key.startswith("/admin/"):
             continue
 
         # skip obsolete pages. Obsolete pages include volumes, scan_records and users
@@ -206,7 +210,13 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
     """Split dump into authors, editions and works."""
     log(f"split_dump({dump_file}, format={format})")
     start_time = datetime.now()
-    types = ("/type/edition", "/type/author", "/type/work", "/type/redirect")
+    types = (
+        "/type/edition",
+        "/type/author",
+        "/type/work",
+        "/type/redirect",
+        "/type/list",
+    )
     files = {}
     for t in types:
         tname = t.split("/")[-1] + "s"
@@ -236,7 +246,7 @@ def make_index(dump_file):
         if type in ("/type/edition", "/type/work"):
             title = data.get("title", "untitled")
             path = key + "/" + urlsafe(title)
-        elif type == "/type/author":
+        elif type in ("/type/author", "/type/list"):
             title = data.get("name", "unnamed")
             path = key + "/" + urlsafe(title)
         else:
