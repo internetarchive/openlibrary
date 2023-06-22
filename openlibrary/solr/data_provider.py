@@ -398,7 +398,7 @@ class BetterDataProvider(LegacyDataProvider):
             infogami._setup()
             delegate.fakeload()
 
-            from openlibrary.solr.process_stats import get_db
+            from openlibrary.core.db import get_db
 
             self.db: DB = get_db()
         else:
