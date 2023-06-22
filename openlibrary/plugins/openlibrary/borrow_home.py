@@ -91,6 +91,6 @@ def _get_loan_key(loan):
     return "loans/" + loan.get("uuid") or loan["_key"]
 
 
-def setup():
+def setup() -> None:
     eventer.bind("loan-created", on_loan_created_statsdb)
     eventer.bind("loan-completed", on_loan_completed_statsdb)

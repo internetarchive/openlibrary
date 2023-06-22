@@ -782,7 +782,7 @@ class search_json(delegate.page):
         return delegate.RawText(json.dumps(response, indent=4))
 
 
-def setup():
+def setup() -> None:
     from openlibrary.plugins.worksearch import subjects, languages, publishers
 
     subjects.setup()

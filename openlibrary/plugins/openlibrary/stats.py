@@ -8,7 +8,7 @@ import sys
 import time
 import traceback
 from types import TracebackType
-from typing import Any, Optional
+from typing import Callable, List, Tuple, Any, Optional
 
 from infogami.utils.app import find_page, find_view, find_mode
 from openlibrary.core import stats as graphite_stats
@@ -17,6 +17,7 @@ from infogami import config
 from infogami.utils import delegate, stats
 
 import openlibrary.plugins.openlibrary.filters as stats_filters
+from web.utils import Storage
 
 logger = logging.getLogger("openlibrary.stats")
 TIME_BUCKETS = [10, 100, 1000, 5000, 10000, 20000]  # in ms
@@ -24,7 +25,7 @@ TIME_BUCKETS = [10, 100, 1000, 5000, 10000, 20000]  # in ms
 filters: dict[str, Any] = {}
 
 
-def evaluate_and_store_stat(name, stat, summary):
+def evaluate_and_store_stat(name: str, stat: Storage, summary: Storage) -> None:
     """Evaluates whether the given statistic is to be recorded and if
     so, records it."""
     global filters
@@ -50,7 +51,7 @@ def evaluate_and_store_stat(name, stat, summary):
         logger.warning(traceback.format_exc())
 
 
-def update_all_stats(stats_summary):
+def update_all_stats(stats_summary: Storage) -> None:
     """
     Run through the filters and record requested items in graphite
     """
@@ -58,7 +59,7 @@ def update_all_stats(stats_summary):
         evaluate_and_store_stat(stat, config.stats.get(stat), stats_summary)
 
 
-def stats_hook():
+def stats_hook() -> None:
     """web.py unload hook to add X-OL-Stats header.
 
     Also, send stats to graphite using statsd
@@ -98,7 +99,7 @@ def stats_hook():
         graphite_stats.put(key, time)
 
 
-def format_stats(stats):
+def format_stats(stats: Storage) -> str:
     s = " ".join("%s %d %0.03f" % entry for entry in process_stats(stats))
     return '"%s"' % s
 
@@ -113,7 +114,7 @@ labels = {
 }
 
 
-def process_stats(stats):
+def process_stats(stats: Storage) -> list[tuple[str, int, float]]:
     """Process stats and returns a list of (label, count, time) for each entry.
 
     Entries like "memcache.get" and "memcache.set" will be collapsed into "memcache".
@@ -132,7 +133,7 @@ def process_stats(stats):
     return [(label, count, time) for label, (count, time) in sorted(d.items())]
 
 
-def register_filter(name, function):
+def register_filter(name: str, function: Callable) -> None:
     global filters
     filters[name] = function
 
@@ -304,7 +305,7 @@ def find_topmost_useful_file(
     return file_path
 
 
-def setup():
+def setup() -> None:
     """
     This function is called from the main application startup
     routine to set things up.

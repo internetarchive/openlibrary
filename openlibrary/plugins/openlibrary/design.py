@@ -14,5 +14,5 @@ class home(delegate.page):
         return render_template("design")
 
 
-def setup():
+def setup() -> None:
     pass

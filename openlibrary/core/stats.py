@@ -36,7 +36,7 @@ def create_stats_client(cfg=config):
         return False
 
 
-def put(key, value, rate=1.0):
+def put(key: str, value: float, rate: float = 1.0) -> None:
     "Records this ``value`` with the given ``key``. It is stored as a millisecond count"
     global client
     if client:
@@ -44,7 +44,7 @@ def put(key, value, rate=1.0):
         client.timing(key, value, rate)
 
 
-def increment(key, n=1, rate=1.0):
+def increment(key: str, n: int = 1, rate: float = 1.0) -> None:
     "Increments the value of ``key`` by ``n``"
     global client
     if client:

@@ -17,11 +17,11 @@ from openlibrary.utils import olmemcache
 logger = logging.getLogger("openlibrary.olbase")
 
 
-def setup():
+def setup() -> None:
     setup_event_listener()
 
 
-def setup_event_listener():
+def setup_event_listener() -> None:
     logger.info("setting up infobase events for Open Library")
 
     ol = server.get_site('openlibrary.org')

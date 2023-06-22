@@ -8,6 +8,7 @@ from sys import stderr
 from time import perf_counter
 
 from infogami.utils.view import public
+from typing import Optional
 
 
 MINUTE_SECS = 60
@@ -18,7 +19,7 @@ DAY_SECS = HOUR_SECS * 24
 WEEK_SECS = DAY_SECS * 7
 
 
-def days_in_current_month():
+def days_in_current_month() -> int:
     now = datetime.datetime.now()
     return calendar.monthrange(now.year, now.month)[1]
 
@@ -27,7 +28,7 @@ def todays_date_minus(**kwargs):
     return datetime.date.today() - datetime.timedelta(**kwargs)
 
 
-def date_n_days_ago(n=None, start=None):
+def date_n_days_ago(n: Optional[int] = None, start: None = None) -> datetime.date:
     """
     Args:
         n (int) - number of days since start
