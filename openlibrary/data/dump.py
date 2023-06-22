@@ -46,7 +46,9 @@ def print_dump(json_records, filter=None):
         key = web.safestr(d["key"])
 
         # skip user pages
-        if key.startswith("/people/") and not re.match(r"^/people/[^/]+/lists/OL\d+L$", key):
+        if key.startswith("/people/") and not re.match(
+            r"^/people/[^/]+/lists/OL\d+L$", key
+        ):
             continue
 
         # skip admin pages
