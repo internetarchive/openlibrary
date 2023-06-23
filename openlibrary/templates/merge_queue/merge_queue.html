@@ -9,6 +9,7 @@ $ can_merge = ctx.user and (ctx.user.is_usergroup_member('/usergroup/super-libra
 $ reviewer = query_param('reviewer', None)
 $ submitter = query_param('submitter', None)
 $ mode = query_param('mode', 'open')
+$ toggleBtn = ''
 
 $if submitter:
   $ desc = _("Showing %(username)s's requests only.", username=submitter)
@@ -103,27 +104,24 @@ $ page = int(input(page=1).page)
             </td>
 
             <td id="reviewer-cell-$(r['id'])" class="reviewer-section">
-              $if is_open:
-                $if is_submitter:
-                  <a class="mr-close-link" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">$_('Close')</a>
-                $if r.get('reviewer'):
-                  <span class="reviewer">@$r['reviewer']</span>
-                  $if can_merge:
-                    <span class="mr-unassign" data-mrid="$r['id']" data-merge-type="$r['mr_type']">&times;</span>
-                
+              $if can_merge and is_open and r.get('reviewer'):
+                $r['reviewer'] <span class="mr-unassign" data-mrid="$r['id']" data-merge-type="$r['mr_type']">&times;</span>
               $if not is_open:
                 $if r.get('reviewer'):
                   <img src="/static/images/icons/icon_check.png" style="height: 10px; margin-right: 3px;"><span class="reviewer">@$r['reviewer']</span>
               </td>
               <td class="reviewer-btn">
-                $if is_open and can_merge and not r.get('reviewer'):
-                  $ show_link = not r.get('reviewer') or r.get('reviewer') == username
-                  $ extra_classes = '' if show_link else ' hidden'
-                  <button id="mr-resolve-btn-$r['id']"class="mr-comment-review-cell__review">
-                    <strong>
-                      <a class="mr-resolve-link$extra_classes" id="mr-resolve-link-$r['id']" data-mrid="$r['id']" data-merge-type="$r['mr_type']" data-url="$url" href="$url" target="_blank"><span class="WHITE">$_('REVIEW')</span></a>
-                    </strong>
-                  </button>
+                $if is_open:
+                  $if is_submitter:
+                    <a class="mr-close-link" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">$_('Close')</a>
+                  $elif can_merge:
+                    $ show_link = not r.get('reviewer') or r.get('reviewer') == username
+                    $ extra_classes = '' if show_link else ' hidden'
+                    <button id="mr-resolve-btn-$r['id']"class="mr-comment-review-cell__review">
+                      <strong>
+                        <a class="mr-resolve-link" id="mr-resolve-link-$r['id']" data-mrid="$r['id']" data-merge-type="$r['mr_type']" data-url="$url" href="$url" target="_blank"><span class="WHITE">$_('REVIEW')</span></a>
+                      </strong>
+                    </button>
               </td>
 
 

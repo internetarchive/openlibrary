@@ -185,45 +185,84 @@ function toggleAllComments(elem) {
 
 }
 
-/**
- * Adds functionality for claiming librarian requests.
- *
- * @param {NodeList<HTMLElement>} elems Elements that, on click, initiates a claim
- */
+// /**
+//  * Adds functionality for claiming librarian requests.
+//  *
+//  * @param {NodeList<HTMLElement>} elems Elements that, on click, initiates a claim
+//  */
+// export function initRequestClaiming(elems) {
+//     for (const elem of elems) {
+//         elem.addEventListener('click', function() {
+//             const mrid = elem.dataset.mrid
+//             claim(mrid, elem)
+//         })
+//     }
+// }
+
 export function initRequestClaiming(elems) {
     for (const elem of elems) {
+        const mrid = elem.dataset.mrid;
+        const unassignElements = document.querySelectorAll(`.mr-unassign[data-mrid="${mrid}"]`);
+        
+        if (unassignElements.length > 0) {
+            const mergeBtn = document.querySelector(`#mr-resolve-btn-${mrid}`);
+            mergeBtn.classList.add('hidden');
+        }
+
         elem.addEventListener('click', function() {
-            const mrid = elem.dataset.mrid
-            claim(mrid, elem)
-        })
+            claim(mrid, elem);
+        });
     }
 }
+
 
 /**
  * Sends a claim request to the server and updates the table on success.
  *
  * @param {Number} mrid Unique identifier for the request being claimed
  */
+// async function claim(mrid) {
+//     await claimRequest(mrid)
+//         .then(result => result.json())
+//         .then(data => {
+//             if (data.status === 'ok') {
+//                 const reviewerHtml = `${data.reviewer}
+//                     <span class="mr-unassign" data-mrid="${mrid}">&times;</span>`
+//                 const mergeLinkData = document.querySelector(`#mr-resolve-link-${mrid}`).dataset;
+//                 //console.log('The merge link data', mergeLinkData)
+//                 updateRow(mrid, data.newStatus, reviewerHtml, mergeLinkData)
+
+//                 // Hide the row's merge link:
+//                 const mergeBtn = document.querySelector(`#mr-resolve-btn-${mrid}`)
+//                 //  if (mergeLink.classList.contains('hidden')) {
+//                 //     toggleMergeLink(mergeLink)
+//                 //  }
+//                 toggleMergeLink(mergeLinkData)
+//             }
+//         })
+// }
+
 async function claim(mrid) {
     await claimRequest(mrid)
         .then(result => result.json())
         .then(data => {
             if (data.status === 'ok') {
                 const reviewerHtml = `${data.reviewer}
-                    <span class="mr-unassign" data-mrid="${mrid}">&times;</span>`
+                    <span class="mr-unassign" data-mrid="${mrid}">&times;</span>`;
                 const mergeLinkData = document.querySelector(`#mr-resolve-link-${mrid}`).dataset;
-                //console.log('The merge link data', mergeLinkData)
-                updateRow(mrid, data.newStatus, reviewerHtml, mergeLinkData)
 
-                // Hide the row's merge link:
-                const mergeBtn = document.querySelector(`#mr-resolve-btn-${mrid}`)
-                //  if (mergeLink.classList.contains('hidden')) {
-                //     toggleMergeLink(mergeLink)
-                //  }
-                //toggleMergeLink(mergeLinkData)
+                const unassignElements = document.querySelectorAll(`.mr-unassign[data-mrid="${mrid}"]`);
+                if (unassignElements.length > 0) {
+                    const mergeBtn = document.querySelector(`#mr-resolve-btn-${mrid}`);
+                    mergeBtn.classList.add('hidden');
+                }
+
+                updateRow(mrid, data.newStatus, reviewerHtml, mergeLinkData);
+                toggleMergeLink(mrid);
             }
-        })
+        });
 }
+
 
 /**
  * Updates status and reviewer of the designated request table row.
@@ -247,6 +286,7 @@ export function initUnassignment(elems, mergeLinkData) {
     for (const elem of elems) {
         elem.addEventListener('click', function() {
             const mrid = elem.dataset.mrid
+            const btn = document.querySelector(`#mr-resolve-btn-${mrid}`)
             unassign(mrid, mergeLinkData)
         })
     }
@@ -258,7 +298,7 @@ async function unassign(mrid, mergeLinkData) {
         .then(data => {
             if (data.status === 'ok') {
                 updateRow(mrid, data.newStatus, ' ', mergeLinkData)
-                toggleMergeLink(mergeLinkData)
+                toggleMergeLink(mrid)
             }
         })
 
@@ -269,21 +309,14 @@ async function unassign(mrid, mergeLinkData) {
  *
  * @param {HTMLElement} mergeLinkData References to a merge link element dataset
  */
-function toggleMergeLink(mergeLinkData) {
-  const mrid = mergeLinkData.mrid;
-  const url = mergeLinkData.url;
-  const mergeType = mergeLinkData.mergeType;
+function toggleMergeLink(mrid) {
 
-  const reviewCell = document.querySelector(`#reviewer-cell-${mrid}`);
-
-//   reviewCell.innerHTML += `
-//   <button id="mr-resolve-btn-${mrid}"class="mr-comment-review-cell__review">
-//   <strong>
-//   <a class="mr-resolve-link$extra_classes" id="mr-resolve-link-${mrid}" data-mrid=${mrid} data-merge-type=${mergeType} data-url=${url} href=${url} target="_blank"><span class="WHITE">${"REVIEW"}</span></a>
-//   </strong>
-//   </button>`
-
-const btn = document.querySelector(`#mr-resolve-btn-${mrid}`)
-
-btn.classList.toggle('hidden')
+   //const mrid = mergeLinkData.mrid
+    const btn = document.querySelector(`#mr-resolve-btn-${mrid}`)
+    if(btn.classList.contains('hidden')){
+        console.log('it does contain hidden')
+        btn.classList.remove('hidden');
+    } else {
+        btn.classList.add('hidden');
+    }
 }
