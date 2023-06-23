@@ -73,7 +73,7 @@ test-py:
 
 test-i18n:
 	# Valid locale codes should be added as arguments to validate
-	$(PYTHON) ./scripts/i18n-messages validate de es fr hr ja zh
+	$(PYTHON) ./scripts/i18n-messages validate de es fr hr it ja zh
 
 test:
 	make test-py && npm run test && make test-i18n
