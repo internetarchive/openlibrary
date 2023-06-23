@@ -113,10 +113,9 @@ $ page = int(input(page=1).page)
                 $if can_merge and not r.get('reviewer'):
                   $ show_link = not r.get('reviewer') or r.get('reviewer') == username
                   $ extra_classes = '' if show_link else ' hidden'
-
-                  <button id="mr-resolve-btn-$r['id']"class="mr-comment-review-cell__review">
+                  <button id="btn-$r['id']"class="mr-comment-review-cell__review">
                     <strong>
-                      <a class="mr-resolve-link$extra_classes" id="mr-resolve-link-$r['id']" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="$url" target="_blank">$_('REVIEW')</a>
+                      <a class="mr-resolve-link$extra_classes" id="mr-resolve-link-$r['id']" data-mrid="$r['id']" data-merge-type="$r['mr_type']" data-url="$url" href="$url" target="_blank"><span class="WHITE">$_('REVIEW')</span></a>
                     </strong>
                   </button>
               $if not is_open:

@@ -220,7 +220,7 @@ async function claim(mrid) {
                 //  if (mergeLink.classList.contains('hidden')) {
                 //     toggleMergeLink(mergeLink)
                 //  }
-               // toggleMergeLink(mergeBtn)
+               // toggleMergeLink(mergeLinkData)
             }
         })
 }
@@ -289,18 +289,18 @@ function toggleMergeLink(mergeLinkData) {
   //    }
   //mergeBtn.classList.toggle('hidden')
 
-  const mrid = mergeLinkData.mrid
-  const url = mergeLinkData.href;
+  const mrid = mergeLinkData.mrid;
+  const url = mergeLinkData.url;
   const mergeType = mergeLinkData.mergeType;
 
   const reviewCell = document.querySelector(`#reviewer-cell-${mrid}`);
 
-  console.log('The merge link data in toggleMergeLink', mergeLinkData)
+  //console.log('merge link data url type:', typeof url)
 
   reviewCell.innerHTML += `
   <button id="mr-resolve-btn-${mrid}"class="mr-comment-review-cell__review">
   <strong>
-  <a class="mr-resolve-link$extra_classes" id="mr-resolve-link-${mrid}" data-mrid=${mrid} data-merge-type=${mergeType} href=${url} target="_blank">REVIEW</a>
+  <a class="mr-resolve-link$extra_classes" id="mr-resolve-link-${mrid}" data-mrid=${mrid} data-merge-type=${mergeType} data-url=${url} href=${url} target="_blank"><span class="WHITE">${"REVIEW"}</span></a>
   </strong>
   </button>`
 }
