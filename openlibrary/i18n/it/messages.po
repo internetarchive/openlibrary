@@ -1366,7 +1366,7 @@ msgid ""
 "%(username)s is reading %(total)d books. Join %(username)s on "
 "OpenLibrary.org and tell the world what you're reading."
 msgstr ""
-"%(username)s sta leggendo %(total)d libri. Unisciti a %(usernam)s su "
+"%(username)s sta leggendo %(total)d libri. Unisciti a %(username)s su "
 "OpenLibrary.org e fai sapere al mondo che stai leggendo."
 
 #: account/reading_log.html:15
