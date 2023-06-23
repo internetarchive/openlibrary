@@ -220,7 +220,7 @@ async function claim(mrid) {
                 //  if (mergeLink.classList.contains('hidden')) {
                 //     toggleMergeLink(mergeLink)
                 //  }
-               // toggleMergeLink(mergeLinkData)
+                //toggleMergeLink(mergeLinkData)
             }
         })
 }
@@ -231,18 +231,14 @@ async function claim(mrid) {
  * @param {Number} mrid The row's unique identifier
  * @param {string} status Optional new value for the row's status cell
  * @param {string} reviewer Optional new value for the row's reviewer cell
+ * @param {Object} mergeLinkData Data from the resolve link to be passed into the "REVIEW" button toggle 
  */
 function updateRow(mrid, status=null, reviewer=null, mergeLinkData) {
-    // if (status) {
-    //     const statusCell = document.querySelector(`#status-cell-${mrid}`)
-    //     statusCell.textContent = status
-    // }
     if (reviewer) {
         const reviewerCell = document.querySelector(`#reviewer-cell-${mrid}`)
         reviewerCell.innerHTML = reviewer
 
         initUnassignment(reviewerCell.querySelectorAll('.mr-unassign'), mergeLinkData)
-
     }
 }
 
@@ -251,7 +247,6 @@ export function initUnassignment(elems, mergeLinkData) {
     for (const elem of elems) {
         elem.addEventListener('click', function() {
             const mrid = elem.dataset.mrid
-            //console.log(elem.dataset)
             unassign(mrid, mergeLinkData)
         })
     }
@@ -263,15 +258,6 @@ async function unassign(mrid, mergeLinkData) {
         .then(data => {
             if (data.status === 'ok') {
                 updateRow(mrid, data.newStatus, ' ', mergeLinkData)
-
-                // Display the row's merge link:
-
-
-               // console.log("Merge Link", mergeLink)
-                //const mergeLinkData = mergeLink.dataset
-                //  if (mergeLink.classList.contains('hidden')) {
-                //     toggleMergeLink(mergeLink)
-                //  }
                 toggleMergeLink(mergeLinkData)
             }
         })
@@ -279,28 +265,25 @@ async function unassign(mrid, mergeLinkData) {
 }
 
 /**
- * Toggles 'hidden' class for element with given ID.
+ * Toggles merge queue button by adding it to innerHTML for element with given ID.
  *
- * @param {HTMLElement} mergeLink Reference to a merge link element
+ * @param {HTMLElement} mergeLinkData References to a merge link element dataset
  */
 function toggleMergeLink(mergeLinkData) {
-  //    if (mergeLink) {
-  //       mergeLink.classList.toggle('hidden')
-  //    }
-  //mergeBtn.classList.toggle('hidden')
-
   const mrid = mergeLinkData.mrid;
   const url = mergeLinkData.url;
   const mergeType = mergeLinkData.mergeType;
 
   const reviewCell = document.querySelector(`#reviewer-cell-${mrid}`);
 
-  //console.log('merge link data url type:', typeof url)
+//   reviewCell.innerHTML += `
+//   <button id="mr-resolve-btn-${mrid}"class="mr-comment-review-cell__review">
+//   <strong>
+//   <a class="mr-resolve-link$extra_classes" id="mr-resolve-link-${mrid}" data-mrid=${mrid} data-merge-type=${mergeType} data-url=${url} href=${url} target="_blank"><span class="WHITE">${"REVIEW"}</span></a>
+//   </strong>
+//   </button>`
 
-  reviewCell.innerHTML += `
-  <button id="mr-resolve-btn-${mrid}"class="mr-comment-review-cell__review">
-  <strong>
-  <a class="mr-resolve-link$extra_classes" id="mr-resolve-link-${mrid}" data-mrid=${mrid} data-merge-type=${mergeType} data-url=${url} href=${url} target="_blank"><span class="WHITE">${"REVIEW"}</span></a>
-  </strong>
-  </button>`
+const btn = document.querySelector(`#mr-resolve-btn-${mrid}`)
+
+btn.classList.toggle('hidden')
 }
