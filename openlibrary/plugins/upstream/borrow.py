@@ -189,8 +189,10 @@ class borrow(delegate.page):
             stats.increment('ol.loans.bookreader')
             stats.increment('ol.loans.%s' % borrow_access)
             action = 'read'
-            loans = get_loans(user) # Refetch loans after borrow
-            response = lending.get_availability_of_ocaid(edition.ocaid) # Refetch availability after borrow
+            loans = get_loans(user)  # Refetch loans after borrow
+            response = lending.get_availability_of_ocaid(
+                edition.ocaid
+            )  # Refetch availability after borrow
             availability = response[edition.ocaid] if response else {}
 
         if action == 'read':
@@ -200,9 +202,7 @@ class borrow(delegate.page):
 
             for loan in loans:
                 if loan['book'] == edition.key:
-                    edition.update_loan_status(
-                        loan=loan, ia_availability=availability
-                    )
+                    edition.update_loan_status(loan=loan, ia_availability=availability)
                     raise web.seeother(
                         make_bookreader_auth_link(
                             loan['_key'],
