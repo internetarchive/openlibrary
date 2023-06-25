@@ -35,12 +35,16 @@ from infogami.utils.view import render, get_template, public, query_param
 from infogami.utils.macro import macro
 from infogami.utils.context import InfogamiContext, context
 from infogami.infobase.client import Nothing, storify #Changeset #
-from openlibrary.core.models import Thing, List
-from openlibrary.plugins.upstream.models import AddBookChangeset, Changeset, ListChangeset
 
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
 from openlibrary.core import cache
+
+if TYPE_CHECKING:
+    from openlibrary.core.models import Thing, List
+    from openlibrary.plugins.upstream.models import AddBookChangeset, Changeset, ListChangeset
+    from web.utils import Storage
+    from web.template import TemplateResult
 
 
 STRIP_CHARS = ",'\" "
@@ -97,7 +101,7 @@ class MultiDict(MutableMapping):
         else:
             raise KeyError(key)
 
-    def __setitem__(self, key: str, value: Storage) -> None:
+    def __setitem__(self, key: str, value: "Storage") -> None:
         self._items.append((key, value))
 
     def __delitem__(self, key):
@@ -115,13 +119,16 @@ class MultiDict(MutableMapping):
     def keys(self):
         return [k for k, v in self._items]
 
-    def values(self) -> list[Union[Storage, Any]]:
+    # Subclasses of MutableMapping should return a dictionary view object for
+    # the values() method, but this implementation returns a list.
+    # https://docs.python.org/3/library/stdtypes.html#dict-views
+    def values(self) -> list[Union["Storage", Any]]:  # type: ignore[override]
         return [v for k, v in self._items]
 
     def items(self):
         return self._items[:]
 
-    def multi_items(self) -> list[Union[Any, Tuple[str, list[Storage]]]]:
+    def multi_items(self) -> list[Union[Any, Tuple[str, list["Storage"]]]]:
         """Returns items as tuple of key and a list of values."""
         items = []
         d: dict = {}
@@ -136,7 +143,7 @@ class MultiDict(MutableMapping):
 
 @macro
 @public
-def render_template(name: str, *a, **kw) -> TemplateResult:
+def render_template(name: str, *a, **kw) -> "TemplateResult":
     if "." in name:
         name = name.rsplit(".", 1)[0]
     return render[name](*a, **kw)
@@ -246,7 +253,7 @@ def json_encode(d):
     return json.dumps(d)
 
 
-def unflatten(d: Storage, separator: str="--") -> Storage:
+def unflatten(d: "Storage", separator: str="--") -> "Storage":
     """Convert flattened data into nested form.
 
     >>> unflatten({"a": 1, "b--x": 2, "b--y": 3, "c--0": 4, "c--1": 5})
@@ -335,7 +342,7 @@ def get_coverstore_public_url() -> str:
     return config.get('coverstore_public_url', get_coverstore_url()).rstrip('/')
 
 
-def _get_changes_v1_raw(query: Dict[str, Union[str, int]], revision: Optional[int]=None) -> list[Storage]:
+def _get_changes_v1_raw(query: Dict[str, Union[str, int]], revision: Optional[int]=None) -> list["Storage"]:
     """Returns the raw versions response.
 
     Revision is taken as argument to make sure a new cache entry is used when a new revision of the page is created.
@@ -356,7 +363,7 @@ def _get_changes_v1_raw(query: Dict[str, Union[str, int]], revision: Optional[in
     return versions
 
 
-def get_changes_v1(query: Dict[str, Union[str, int]], revision: Optional[int]=None) -> list[Storage]:
+def get_changes_v1(query: Dict[str, Union[str, int]], revision: Optional[int]=None) -> list["Storage"]:
     # uses the cached function _get_changes_v1_raw to get the raw data
     # and processes to before returning.
     def process(v):
@@ -384,7 +391,7 @@ def _get_changes_v2_raw(query: Dict[str, Union[str, int]], revision: Optional[in
 # _get_changes_v2_raw = cache.memcache_memoize(_get_changes_v2_raw, key_prefix="upstream._get_changes_v2_raw", timeout=10*60)
 
 
-def get_changes_v2(query: Dict[str, Union[str, int]], revision: Optional[int]=None) -> list[Union[Changeset, AddBookChangeset, ListChangeset]]:
+def get_changes_v2(query: Dict[str, Union[str, int]], revision: Optional[int]=None) -> list[Union["Changeset", "AddBookChangeset", "ListChangeset"]]:
     page = web.ctx.site.get(query['key'])
 
     def first(seq, default=None):
@@ -422,7 +429,7 @@ def get_changes(query: Dict[str, Union[str, int]], revision: Optional[int]=None)
 
 
 @public
-def get_history(page: Union[openlibrary.plugins.upstream.models.Work, openlibrary.plugins.upstream.models.Author, openlibrary.plugins.upstream.models.Edition]) -> Storage:
+def get_history(page: Union[openlibrary.plugins.upstream.models.Work, openlibrary.plugins.upstream.models.Author, openlibrary.plugins.upstream.models.Edition]) -> "Storage":
     h = web.storage(
         revision=page.revision, lastest_revision=page.revision, created=page.created
     )
@@ -803,7 +810,7 @@ def _get_author_config():
 
 
 @public
-def get_edition_config() -> Storage:
+def get_edition_config() -> "Storage":
     return _get_edition_config()
 
 
@@ -864,8 +871,6 @@ from openlibrary.utils import olmemcache
 import memcache
 import openlibrary.core.models
 import openlibrary.plugins.upstream.models
-from web.template import TemplateResult
-from web.utils import Storage
 
 
 class UpstreamMemcacheClient:
@@ -1087,7 +1092,7 @@ def item_image(image_path: Optional[str], default: Optional[str]=None) -> str | 
 
 
 @public
-def get_blog_feeds() -> list[Storage]:
+def get_blog_feeds() -> list["Storage"]:
     def process(post):
         post = web.storage(post)
         post.pubdate = parse_datetime(post.pubdate)
