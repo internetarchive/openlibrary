@@ -1,6 +1,8 @@
 """Interface to access the database of openlibrary.
 """
 import web
+import sqlite3
+from datetime import datetime
 from sqlite3 import IntegrityError
 from psycopg2.errors import UniqueViolation
 from infogami.utils import stats
@@ -165,6 +167,16 @@ def _proxy(method_name):
     return f
 
 
+def adapt_datetime_iso(date_time: datetime) -> str:
+    """
+    Convert a Python datetime.datetime into a timezone-naive ISO 8601 date string.
+    >>> adapt_datetime_iso(datetime(2023, 4, 5, 6, 7, 8, 9))
+    '2023-04-05 06:07:08.000009'
+    """
+    return date_time.isoformat(" ")
+
+
+sqlite3.register_adapter(datetime, adapt_datetime_iso)
 query = _proxy("query")
 select = _proxy("select")
 where = _proxy("where")
