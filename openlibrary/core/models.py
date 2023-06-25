@@ -921,11 +921,14 @@ class User(Thing):
             if ocaid == loan['ocaid']:
                 return loan
 
-    def get_waiting_loan_for(self, ocaid):
+    def get_waiting_loan_for(self, ocaid, use_cache=False):
         """
-        :param str or None ocaid:
+        :param str or None ocaid: edition ocaid
+        :param bool use_cache: whether to use cached value, defaults to False
         :rtype: dict (e.g. {position: number})
         """
+        if use_cache:
+            return ocaid and WaitingLoan.get_cached_waiting_loan(self.key, ocaid)
         return ocaid and WaitingLoan.find(self.key, ocaid)
 
     def __repr__(self):
