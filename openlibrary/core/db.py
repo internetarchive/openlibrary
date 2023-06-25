@@ -176,7 +176,7 @@ def adapt_datetime_iso(date_time: datetime) -> str:
     return date_time.isoformat(" ")
 
 
-sqlite3.register_adapter(datetime.datetime, adapt_datetime_iso)
+sqlite3.register_adapter(datetime, adapt_datetime_iso)
 query = _proxy("query")
 select = _proxy("select")
 where = _proxy("where")
