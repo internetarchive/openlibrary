@@ -170,7 +170,7 @@ def _proxy(method_name):
 def adapt_datetime_iso(date_time: datetime) -> str:
     """
     Convert a Python datetime.datetime into a timezone-naive ISO 8601 date string.
-    >>> adapt_datetime_iso(datetime(2023, 4, 5, 6, 7, 8, 9)
+    >>> adapt_datetime_iso(datetime(2023, 4, 5, 6, 7, 8, 9))
     '2023-04-05 06:07:08.000009'
     """
     return date_time.isoformat(" ")
