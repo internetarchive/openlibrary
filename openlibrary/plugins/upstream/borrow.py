@@ -117,7 +117,6 @@ class borrow(delegate.page):
 
         ol_host = i.ol_host or 'openlibrary.org'
         action = i.action
-        borrowed = False
         edition = web.ctx.site.get(key)
         if not edition:
             raise web.notfound()
@@ -173,11 +172,12 @@ class borrow(delegate.page):
         # Added so that direct bookreader links being routed through
         # here can use a single action of 'borrow', regardless of
         # whether the book has been checked out or not.
-        elif user.has_borrowed(edition):
+        loans = get_loans(user)
+        if user.has_borrowed(edition, loans):
             action = 'read'
 
         elif action in ('borrow', 'browse'):
-            borrow_access = user_can_borrow_edition(user, edition)
+            borrow_access = user_can_borrow_edition(user, edition, len(loans))
 
             if not (s3_keys and borrow_access):
                 stats.increment('ol.loans.outdatedAvailabilityStatus')
@@ -189,19 +189,19 @@ class borrow(delegate.page):
             stats.increment('ol.loans.bookreader')
             stats.increment('ol.loans.%s' % borrow_access)
             action = 'read'
-            borrowed = True
+            loans = get_loans(user) # Refetch loans after borrow
+            response = lending.get_availability_of_ocaid(edition.ocaid) # Refetch availability after borrow
+            availability = response[edition.ocaid] if response else {}
 
         if action == 'read':
             bookPath = '/stream/' + edition.ocaid
             if i._autoReadAloud is not None:
                 bookPath += '?_autoReadAloud=show'
 
-            # Look for loans for this book
-            loans = get_loans(user)
             for loan in loans:
                 if loan['book'] == edition.key:
                     edition.update_loan_status(
-                        loan=loan, ia_availability=availability, borrowed=borrowed
+                        loan=loan, ia_availability=availability
                     )
                     raise web.seeother(
                         make_bookreader_auth_link(
@@ -690,7 +690,7 @@ def resource_uses_bss(resource_id):
     return False
 
 
-def user_can_borrow_edition(user, edition):
+def user_can_borrow_edition(user, edition, loan_count=None):
     """Returns the type of borrow for which patron is eligible, favoring
     "browse" over "borrow" where available, otherwise return False if
     patron is not eligible.
@@ -700,7 +700,8 @@ def user_can_borrow_edition(user, edition):
 
     book_is_lendable = lending_st.get('is_lendable', False)
     book_is_waitlistable = lending_st.get('available_to_waitlist', False)
-    user_is_below_loan_limit = user.get_loan_count() < user_max_loans
+    user_loan_count = loan_count or user.get_loan_count()
+    user_is_below_loan_limit = user_loan_count < user_max_loans
 
     if book_is_lendable:
         if web.cookies().get('pd', False):

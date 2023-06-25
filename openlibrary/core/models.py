@@ -901,20 +901,20 @@ class User(Thing):
         """Returns list of records for all the books the user is currently waiting for."""
         return waitinglist.get_waitinglist_for_user(self.key)
 
-    def has_borrowed(self, book):
+    def has_borrowed(self, book, loans=None):
         """Returns True if this user has borrowed given book."""
-        loan = self.get_loan_for(book.ocaid)
+        loan = self.get_loan_for(book.ocaid, loans)
         return loan is not None
 
-    def get_loan_for(self, ocaid):
+    def get_loan_for(self, ocaid, loans=None):
         """Returns the loan object for given ocaid.
 
         Returns None if this user hasn't borrowed the given book.
         """
         from ..plugins.upstream import borrow
 
-        loans = borrow.get_loans(self)
-        for loan in loans:
+        user_loans = loans or borrow.get_loans(self)
+        for loan in user_loans:
             if ocaid == loan['ocaid']:
                 return loan
 
