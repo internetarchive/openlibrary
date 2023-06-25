@@ -133,7 +133,7 @@ class WaitingLoan(dict):
         result = cls.query(userid=itemname, identifier=identifier)
         if result:
             return result[0]
-        
+
     @classmethod
     @cache.memoize(
         engine="memcache", key="gt-waiting-loan", expires=5 * dateutil.MINUTE_SECS
