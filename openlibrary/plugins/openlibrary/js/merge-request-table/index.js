@@ -141,6 +141,9 @@ async function updateCommentsView(mrid, comment, username) {
  */
 function removeRow(row) {
     row.parentNode.removeChild(row)
+    const modal = document.getElementById("myModal");
+    const refreshButton = document.getElementById("refreshButton");
+    toggleRefreshModal(modal, refreshButton) 
 }
 
 
@@ -320,3 +323,20 @@ function toggleMergeLink(mrid) {
         btn.classList.add('hidden');
     }
 }
+
+function toggleRefreshModal(modal, refreshButton) {
+    modal.style.display = "block"
+    refreshButton.addEventListener("click", function() {
+      location.reload(); // Refresh the page
+    });
+}
+
+function showModal() {
+  modal.style.display = "block";
+}
+
+function hideModal() {
+  modal.style.display = "none";
+}
+
+

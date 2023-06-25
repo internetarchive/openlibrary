@@ -21,6 +21,14 @@ $else:
   $ href = changequery(submitter=username, page=None) if username else changequery(submitter=None, page=None)
 
 <div class="librarian-queue-page">
+  <div id="myModal" class="modal">
+    <div class="modal-content">
+      <h2>Important Message</h2>
+      <p>Please refresh the page to continue.</p>
+      <button id="refreshButton">Refresh</button>
+    </div>
+  </div>
+  
   <h1>$_('Community Edit Requests')</h1>
 
   <div class="description">
@@ -113,7 +121,7 @@ $ page = int(input(page=1).page)
               <div class="reviewer-btn">
                 $if is_open:
                   $if is_submitter:
-                    <a class="mr-close-link" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">$_('Close')</a>
+                    <a class="mr-close-link" title="Click to close this Merge Request" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">$_('Close')&times;</a>
                   $elif can_merge:
                     $ show_link = not r.get('reviewer') or r.get('reviewer') == username
                     $ extra_classes = '' if show_link else ' hidden'
