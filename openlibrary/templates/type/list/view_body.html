@@ -30,6 +30,7 @@ $add_metatag(property="og:description", content=meta_description)
 $add_metatag(property="og:image", content=request.canonical_url + "/preview.png")
 
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
+$ sort = query_param('sort', None)
 
 $jsdef render_seed_count(seed_count):
     $ungettext("%(count)d item", "%(count)d items", seed_count, count=seed_count)
@@ -63,9 +64,9 @@ $def seed_meta_line(seed):
         <span class="type small">$seed.type</span>
     </span>
 
-    $if seed.last_update:
+    $if sort == 'last_modified' and seed.last_update:
         <span class="time">
-            $:_('Last updated <span>%(date)s</span>', date=datestr(seed.last_update))
+            $:_('Last modified <span>%(date)s</span>', date=datestr(seed.last_update))
         </span>
 
 $def seed_attrs(seed):
@@ -73,6 +74,7 @@ $def seed_attrs(seed):
     data-list-key="$list.key"
 
 <div id="contentBody">
+    $:render_template("search/sort_options.html", selected_sort=sort, default_sort='index', search_scheme="lists_seeds")
     <div id="remove-seed-dialog" class="hidden" title="$_('Remove seed')">$_('Are you sure you want to remove this item from the list?')</div>
     <div id="delete-list-dialog" class="hidden" title="$_('Remove Seed')">
         $_('You are about to remove the last item in the list. That will delete the whole list. Are you sure you want to continue?')
@@ -95,7 +97,7 @@ $def seed_attrs(seed):
 
         <ul id="listResults" class="list-books clearfix">
             $ component_times['get_seeds'] = time()
-            $ seeds = list.get_seeds(sort=True, resolve_redirects=True)[page*page_size:page*page_size+page_size]
+            $ seeds = list.get_seeds(sort=(sort == 'last_modified'), resolve_redirects=True)[page*page_size:page*page_size+page_size]
             $ component_times['get_seeds'] = time() - component_times['get_seeds']
 
         $ solr_works = get_solr_works(s.key for s in seeds if s.type == 'work')
