@@ -324,6 +324,12 @@ function toggleMergeLink(mrid) {
     }
 }
 
+/**
+ * Toggles the modal to fresh the page after a close action is performed.
+ *
+ * @param {HTMLElement} modal References the refresh modal
+ * @param {HTMLElement} refreshButton references the refresh
+ */
 function toggleRefreshModal(modal, refreshButton) {
     modal.style.display = "block"
     refreshButton.addEventListener("click", function() {
@@ -331,12 +337,5 @@ function toggleRefreshModal(modal, refreshButton) {
     });
 }
 
-function showModal() {
-  modal.style.display = "block";
-}
-
-function hideModal() {
-  modal.style.display = "none";
-}
 
 
