@@ -34,7 +34,7 @@ from infogami.utils import view, delegate, stats
 from infogami.utils.view import render, get_template, public, query_param
 from infogami.utils.macro import macro
 from infogami.utils.context import InfogamiContext, context
-from infogami.infobase.client import Nothing, storify #Changeset #
+from infogami.infobase.client import Nothing, storify
 
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
@@ -42,7 +42,14 @@ from openlibrary.core import cache
 
 if TYPE_CHECKING:
     from openlibrary.core.models import Thing, List
-    from openlibrary.plugins.upstream.models import AddBookChangeset, Changeset, ListChangeset, Work, Author, Edition
+    from openlibrary.plugins.upstream.models import (
+        AddBookChangeset,
+        Changeset,
+        ListChangeset,
+        Work,
+        Author,
+        Edition,
+    )
     from web.utils import Storage
     from web.template import TemplateResult
 
@@ -88,7 +95,7 @@ class MultiDict(MutableMapping):
     [('x', [1, 2]), ('y', [3])]
     """
 
-    def __init__(self, items: Tuple=(), **kw) -> None:
+    def __init__(self, items: tuple = (), **kw) -> None:
         self._items: list = []
 
         for k, v in items:
@@ -128,7 +135,7 @@ class MultiDict(MutableMapping):
     def items(self):
         return self._items[:]
 
-    def multi_items(self) -> list[Union[Any, Tuple[str, list["Storage"]]]]:
+    def multi_items(self) -> list[Union[Any, tuple[str, list["Storage"]]]]:
         """Returns items as tuple of key and a list of values."""
         items = []
         d: dict = {}
@@ -164,7 +171,9 @@ def kebab_case(upper_camel_case: str) -> str:
 
 
 @public
-def render_component(name: str, attrs: dict | None = None, json_encode: bool = True) -> str:
+def render_component(
+    name: str, attrs: dict | None = None, json_encode: bool = True
+) -> str:
     """
     :param str name: Name of the component (excluding extension)
     :param dict attrs: attributes to add to the component element
@@ -210,7 +219,9 @@ def get_message(name: str, *args) -> str:
     return get_message_from_template("messages", name, args)
 
 
-def get_message_from_template(template_name: str, name: str, args: Tuple[(Any, ...)]) -> str:
+def get_message_from_template(
+    template_name: str, name: str, args: tuple[(Any, ...)]
+) -> str:
     d = render_template(template_name).get("messages", {})
     msg = d.get(name) or name.lower().replace("_", " ")
 
@@ -253,7 +264,7 @@ def json_encode(d):
     return json.dumps(d)
 
 
-def unflatten(d: "Storage", separator: str="--") -> "Storage":
+def unflatten(d: "Storage", separator: str = "--") -> "Storage":
     """Convert flattened data into nested form.
 
     >>> unflatten({"a": 1, "b--x": 2, "b--y": 3, "c--0": 4, "c--1": 5})
@@ -342,7 +353,9 @@ def get_coverstore_public_url() -> str:
     return config.get('coverstore_public_url', get_coverstore_url()).rstrip('/')
 
 
-def _get_changes_v1_raw(query: Dict[str, Union[str, int]], revision: Optional[int]=None) -> list["Storage"]:
+def _get_changes_v1_raw(
+    query: dict[str, Union[str, int]], revision: Optional[int] = None
+) -> list["Storage"]:
     """Returns the raw versions response.
 
     Revision is taken as argument to make sure a new cache entry is used when a new revision of the page is created.
@@ -363,7 +376,9 @@ def _get_changes_v1_raw(query: Dict[str, Union[str, int]], revision: Optional[in
     return versions
 
 
-def get_changes_v1(query: Dict[str, Union[str, int]], revision: Optional[int]=None) -> list["Storage"]:
+def get_changes_v1(
+    query: dict[str, Union[str, int]], revision: Optional[int] = None
+) -> list["Storage"]:
     # uses the cached function _get_changes_v1_raw to get the raw data
     # and processes to before returning.
     def process(v):
@@ -375,7 +390,9 @@ def get_changes_v1(query: Dict[str, Union[str, int]], revision: Optional[int]=No
     return [process(v) for v in _get_changes_v1_raw(query, revision)]
 
 
-def _get_changes_v2_raw(query: Dict[str, Union[str, int]], revision: Optional[int]=None) -> list[Dict[str, Optional[Union[str, list[Dict[str, Union[str, int]]], Dict[str, str], Dict[str, Union[Dict[str, str], list[Dict[str, str]]]]]]]]:
+def _get_changes_v2_raw(
+    query: dict[str, Union[str, int]], revision: Optional[int] = None
+) -> list[dict]:
     """Returns the raw recentchanges response.
 
     Revision is taken as argument to make sure a new cache entry is used when a new revision of the page is created.
@@ -391,7 +408,9 @@ def _get_changes_v2_raw(query: Dict[str, Union[str, int]], revision: Optional[in
 # _get_changes_v2_raw = cache.memcache_memoize(_get_changes_v2_raw, key_prefix="upstream._get_changes_v2_raw", timeout=10*60)
 
 
-def get_changes_v2(query: Dict[str, Union[str, int]], revision: Optional[int]=None) -> list[Union["Changeset", "AddBookChangeset", "ListChangeset"]]:
+def get_changes_v2(
+    query: dict[str, Union[str, int]], revision: Optional[int] = None
+) -> list[Union["Changeset", "AddBookChangeset", "ListChangeset"]]:
     page = web.ctx.site.get(query['key'])
 
     def first(seq, default=None):
@@ -424,7 +443,9 @@ def get_changes_v2(query: Dict[str, Union[str, int]], revision: Optional[int]=No
     return [process_change(c) for c in changes]
 
 
-def get_changes(query: Dict[str, Union[str, int]], revision: Optional[int]=None) -> list[Union["Changeset", "AddBookChangeset", "ListChangeset"]]:
+def get_changes(
+    query: dict[str, Union[str, int]], revision: Optional[int] = None
+) -> list[Union["Changeset", "AddBookChangeset", "ListChangeset"]]:
     return get_changes_v2(query, revision=revision)
 
 
@@ -456,7 +477,7 @@ def get_version(key, revision):
 
 
 @public
-def get_recent_author(doc: "Work") -> "Thing" | None:
+def get_recent_author(doc: "Work") -> Union["Thing", None]:
     versions = get_changes_v1(
         {'key': doc.key, 'limit': 1, "offset": 0}, revision=doc.revision
     )
@@ -481,13 +502,19 @@ def get_locale():
 
 
 @public
-def process_version(v: List | "AddBookChangeset" | "Changeset" | "ListChangeset") -> List | "AddBookChangeset" | "Changeset" | "ListChangeset":
+def process_version(
+    v: Union["List", "AddBookChangeset", "Changeset", "ListChangeset"]
+) -> Union["List", "AddBookChangeset", "Changeset", "ListChangeset"]:
     """Looks at the version and adds machine_comment required for showing "View MARC" link."""
     comments = [
         "found a matching marc record",
         "add publisher and source",
     ]
-    if isinstance(v, List) and v.key.startswith('/books/') and not v.get('machine_comment'):
+    if (
+        isinstance(v, List)
+        and v.key.startswith('/books/')
+        and not v.get('machine_comment')
+    ):
         thing = v.get('thing') or web.ctx.site.get(v.key, v.revision)
         if (
             thing.source_records
@@ -515,7 +542,7 @@ def putctx(key: str, value: Union[str, bool]) -> str:
 
 
 class Metatag:
-    def __init__(self, tag: str="meta", **attrs) -> None:
+    def __init__(self, tag: str = "meta", **attrs) -> None:
         self.tag = tag
         self.attrs = attrs
 
@@ -528,7 +555,7 @@ class Metatag:
 
 
 @public
-def add_metatag(tag: str="meta", **attrs) -> None:
+def add_metatag(tag: str = "meta", **attrs) -> None:
     context.setdefault('metatags', [])
     context.metatags.append(Metatag(tag, **attrs))
 
@@ -541,7 +568,7 @@ def url_quote(text: str | bytes) -> str:
 
 
 @public
-def urlencode(dict_or_list_of_tuples: Union[Dict, list[Tuple[str, Any]]]) -> str:
+def urlencode(dict_or_list_of_tuples: Union[dict, list[tuple[str, Any]]]) -> str:
     """
     You probably want to use this, if you're looking to urlencode parameters. This will
     encode things to utf8 that would otherwise cause urlencode to error.
@@ -561,7 +588,9 @@ def entity_decode(text: str) -> str:
 
 
 @public
-def set_share_links(url: str='#', title: str='', view_context: Optional[InfogamiContext]=None) -> None:
+def set_share_links(
+    url: str = '#', title: str = '', view_context: Optional[InfogamiContext] = None
+) -> None:
     """
     Constructs list share links for social platforms and assigns to view context attribute
 
@@ -756,7 +785,7 @@ def get_abbrev_from_full_lang_name(input_lang_name: str, languages=None) -> str:
     return target_abbrev
 
 
-def get_language(lang_or_key: str) -> None | Thing | Nothing: 
+def get_language(lang_or_key: str) -> Union[None, "Thing", "Nothing"]:
     if isinstance(lang_or_key, str):
         return get_languages().get(lang_or_key)
     else:
@@ -764,16 +793,16 @@ def get_language(lang_or_key: str) -> None | Thing | Nothing:
 
 
 @public
-def get_language_name(lang_or_key: Union[Nothing, str, Thing]) -> Union[Nothing, str]:
+def get_language_name(lang_or_key: Union[Nothing, str, "Thing"]) -> Union[Nothing, str]:
     if isinstance(lang_or_key, str):
         lang = get_language(lang_or_key)
         if not lang:
             return lang_or_key
     else:
-        lang = lang_or_key 
+        lang = lang_or_key
 
     user_lang = web.ctx.lang or 'en'
-    return safeget(lambda: lang['name_translated'][user_lang][0]) or lang.name # type: ignore[index]
+    return safeget(lambda: lang['name_translated'][user_lang][0]) or lang.name  # type: ignore[index]
 
 
 @functools.cache
@@ -836,7 +865,7 @@ def _get_edition_config():
 from openlibrary.core.olmarkdown import OLMarkdown
 
 
-def get_markdown(text: str, safe_mode: bool=False) -> OLMarkdown:
+def get_markdown(text: str, safe_mode: bool = False) -> OLMarkdown:
     md = OLMarkdown(source=text, safe_mode=safe_mode)
     view._register_mdx_extensions(md)
     md.postprocessors += view.wiki_processors
@@ -869,8 +898,6 @@ from openlibrary.plugins.upstream import adapter
 from openlibrary.utils.olcompress import OLCompressor
 from openlibrary.utils import olmemcache
 import memcache
-import openlibrary.core.models
-import openlibrary.plugins.upstream.models
 
 
 class UpstreamMemcacheClient:
@@ -1072,7 +1099,7 @@ def get_donation_include() -> str:
 
 
 @public
-def get_ia_host(allow_dev: bool=False) -> str:
+def get_ia_host(allow_dev: bool = False) -> str:
     if allow_dev:
         web_input = web.input()
         dev_host = web_input.pop("dev_host", "")  # e.g. `www-user`
@@ -1083,7 +1110,9 @@ def get_ia_host(allow_dev: bool=False) -> str:
 
 
 @public
-def item_image(image_path: Optional[str], default: Optional[str]=None) -> str | None: ###
+def item_image(
+    image_path: Optional[str], default: Optional[str] = None
+) -> str | None:  ###
     if image_path is None:
         return default
     if image_path.startswith('https:'):
