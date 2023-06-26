@@ -42,7 +42,7 @@ from openlibrary.core import cache
 
 if TYPE_CHECKING:
     from openlibrary.core.models import Thing, List
-    from openlibrary.plugins.upstream.models import AddBookChangeset, Changeset, ListChangeset
+    from openlibrary.plugins.upstream.models import AddBookChangeset, Changeset, ListChangeset, Work, Author, Edition
     from web.utils import Storage
     from web.template import TemplateResult
 
@@ -424,12 +424,12 @@ def get_changes_v2(query: Dict[str, Union[str, int]], revision: Optional[int]=No
     return [process_change(c) for c in changes]
 
 
-def get_changes(query: Dict[str, Union[str, int]], revision: Optional[int]=None) -> list[Union[Changeset, AddBookChangeset, ListChangeset]]:
+def get_changes(query: Dict[str, Union[str, int]], revision: Optional[int]=None) -> list[Union["Changeset", "AddBookChangeset", "ListChangeset"]]:
     return get_changes_v2(query, revision=revision)
 
 
 @public
-def get_history(page: Union[openlibrary.plugins.upstream.models.Work, openlibrary.plugins.upstream.models.Author, openlibrary.plugins.upstream.models.Edition]) -> "Storage":
+def get_history(page: Union["Work", "Author", "Edition"]) -> "Storage":
     h = web.storage(
         revision=page.revision, lastest_revision=page.revision, created=page.created
     )
@@ -456,7 +456,7 @@ def get_version(key, revision):
 
 
 @public
-def get_recent_author(doc: openlibrary.plugins.upstream.models.Work) -> openlibrary.core.models.Thing | None:
+def get_recent_author(doc: "Work") -> "Thing" | None:
     versions = get_changes_v1(
         {'key': doc.key, 'limit': 1, "offset": 0}, revision=doc.revision
     )
@@ -481,7 +481,7 @@ def get_locale():
 
 
 @public
-def process_version(v: List | AddBookChangeset | Changeset | ListChangeset) -> List | AddBookChangeset | Changeset | ListChangeset:
+def process_version(v: List | "AddBookChangeset" | "Changeset" | "ListChangeset") -> List | "AddBookChangeset" | "Changeset" | "ListChangeset":
     """Looks at the version and adds machine_comment required for showing "View MARC" link."""
     comments = [
         "found a matching marc record",
