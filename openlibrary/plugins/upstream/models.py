@@ -331,7 +331,8 @@ class Edition(models.Edition):
             name, value = id['name'], id['value']
             if name == 'lccn':
                 value = normalize_lccn(value)
-            d.setdefault(name, []).append(value)
+            if value is not None:
+                d.setdefault(name, []).append(value)
 
         # clear existing value first
         for name in names:
@@ -464,7 +465,8 @@ class Edition(models.Edition):
         )
 
         if self.lccn:
-            citation['lccn'] = normalize_lccn(self.lccn[0])
+            if lccn := normalize_lccn(self.lccn[0]):
+                citation['lccn'] = lccn
         if self.get('oclc_numbers'):
             citation['oclc'] = self.oclc_numbers[0]
         citation['ol'] = str(self.get_olid())[2:]
