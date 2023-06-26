@@ -673,7 +673,7 @@ msgstr "Lettura in corso"
 #: books/edit/edition.html:672 books/show.html:34 trending.html:23
 #: type/list/embed.html:69 widget.html:34
 msgid "Read"
-msgstr "Letto"
+msgstr "Leggi"
 
 #: trending.html:24
 #, python-format
