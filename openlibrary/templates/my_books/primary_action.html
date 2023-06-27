@@ -1,7 +1,10 @@
 $def with(work_key, edition_key, user_key, read_status, page_url)
 
 $def reading_log_cta(work_key, edition_key, user_key, read_status):
-  <form class="reading-log primary-action" method="POST" action="$(work_key)/bookshelves.json">
+  $ url_data = ''
+  $if page_url:
+    $ url_data = 'data-page-url="%s"' % page_url
+  <form class="reading-log primary-action" $(url_data) method="POST" action="$(work_key)/bookshelves.json">
     $if read_status == 3:
       $ message = _("Already Read")
     $elif read_status == 2:
@@ -37,7 +40,7 @@ $def reading_log_cta(work_key, edition_key, user_key, read_status):
 
 $def list_cta(user_key, page_url):
   $if user_key:
-    <h3>$_('Add to List')</h3>
+    <h3 class="primary-action">$_('Add to List')</h3>
   $else:
     $# XXX: Check if classes are needed here
     <a href="/account/login?redirect=$page_url" class="dropclick plain">

@@ -14,37 +14,30 @@ $ edition_key = edition and edition.key
 $ work = (page.works and page.works[0]) if edition else page if page.key.startswith("/works/") else None
 $ work_key = work and work.key
 
-$ user_key = ctx.user and ctx.user.key
-$ username = user_key and user_key.split('/')[-1]
+$ username = ctx.user and ctx.user.key.split('/')[-1]
 
 $# XXX: Find more performant way to get read statuses
 $# XXX: Read status values and their meanings should probably be here in a comment
-$ users_work_read_status = work.get_users_read_status(username) if work and username else None
+$ users_work_read_status = get_patrons_work_read_status(username, work_key) if work and username else None
 
 $ seed_info = get_seed_info(page)
-$# user_lists = [] if async_load or not ctx.user else get_user_lists(seed_info)
-$ user_lists = [] if not ctx.user else get_user_lists(seed_info)
-$# XXX: Not used here
-$ page_lists = [get_list_data(list, seed_info['seed']) for list in page.get_lists(sort=False)]
-$ page_url = page.url()
+$ user_lists = [] if async_load or not ctx.user else get_user_lists(seed_info)
+$# user_lists = [] if not ctx.user else get_user_lists(seed_info)
+$ page_url = ctx.path
 
 $# XXX: Else condition is for subjects, which can be removed
 $ seed_key = seed_info['seed']['key']
 
-$ show_list_i18n_strings = {
-  $ "cover_of": _('Cover of: %(title)s', title=''),
-  $ "see_this_list": _('See this list'),
-  $ "remove_from_list": _('Remove from your list?'),
-  $ "from": _('from'),
-  $ "you": _('You')
-  $ }
+$ additional_classes = 'my-books-dropper'
+$if not ctx.user:
+  $ additional_classes += ' g-dropper--disabled'
 
-$ primary_action = render_template('my_books/primary_action', work_key, edition_key, user_key, users_work_read_status, page_url)
+$ primary_action = render_template('my_books/primary_action', work_key, edition_key, (ctx.user and ctx.user.key), users_work_read_status, page_url)
 $ dropdown_content = render_template('my_books/dropdown_content', user_lists, seed_key, work_key, edition_key, users_work_read_status, async_load=async_load)
-$:render_template('lib/dropper', primary_action, dropdown_content, additional_classes='my-books-dropper')
+$:render_template('lib/dropper', primary_action, dropdown_content, additional_classes=additional_classes)
+
 $if work_key:
     $ last_read_date = get_latest_read_date(work_key)
     $ date = last_read_date['event_date'] if last_read_date else None
     $ event_id = last_read_date['id'] if last_read_date else None
     $:render_template('check_ins/check_in_prompt', work_key, users_work_read_status, edition_key=edition_key, last_read_date=date, event_id=event_id)
-

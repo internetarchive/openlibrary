@@ -36,7 +36,9 @@ export default class MyBooksDropper {
 
     // XXX: Will not work on search results pages
     loadLists() {
-        const dropperListPlaceholder = document.querySelector('.list-loading-indicator')
+        const dropperListPlaceholder = this.dropper.querySelector('.list-loading-indicator')
+
+        // Already lists --- assuming one per page
         const listDisplayPlaceholder = document.querySelector('.list-overview-loading-indicator')
 
         const loadingIndicators = dropperListPlaceholder ? [dropperListPlaceholder.querySelector('.loading-ellipsis')] : []

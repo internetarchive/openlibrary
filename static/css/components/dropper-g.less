@@ -1,7 +1,19 @@
+.dropper-wrapper {
+  position: relative;
+
+  z-index: @z-index-level-4;
+
+  &--active {
+    z-index: @z-index-level-5;
+  }
+}
+
 .droppe {
-  min-height: 37px;
   box-shadow: 0 0 0 1px @mid-grey;
   border-radius: 4px;
+  position: absolute;
+  width: 100%;
+  z-index: @z-index-level-14;
 
   &__actions {
     display: flex;
@@ -17,7 +29,7 @@
     .droppe__primary {
       flex: 1;
       margin: auto;
-      min-height: inherit;
+      // min-height: inherit;
 
       button {
         border: 2px solid @grey-f3f3f3;
@@ -58,7 +70,11 @@
   }
   &__dropdown {
     display: none;
+    width: 100%;
+    // border: 1px solid @mid-grey;
     border-top: 1px solid @lighter-grey;
+    position: absolute;
+    // z-index: @z-index-level-15;
   }
 }
 

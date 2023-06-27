@@ -3,7 +3,7 @@
  * @module my-books/ReadingLogForms
  */
 
-import {getDropperCloseEvent} from '../droppers';
+import {fireDropperCloseEvent, fireDropperToggleEvent} from '../droppers';
 
 /**
  * Enum for reading log shelf values.
@@ -81,6 +81,10 @@ export default class ReadingLogForms {
             }
         }
 
+        if (!this.primaryButton) {
+            this.primaryButton = dropper.querySelector('.primary-action')
+        }
+
         /**
          * Reference to the dropper's read date prompt and display components.
          *
@@ -89,24 +93,34 @@ export default class ReadingLogForms {
         this.readDateComponents = readDateComponents
 
         const readingLogForms = dropper.querySelectorAll('form.reading-log')
-        this.initialize(readingLogForms)
+        const isDropperDisabled = dropper.classList.contains('g-dropper--disabled')
+        this.initialize(readingLogForms, isDropperDisabled)
     }
 
     /**
      * Adds click listeners to each of the given form's submit buttons.
      *
      * @param {NodeList<HTMLFormElement>} readingLogForms
+     * @param {boolean} isDropperDisabled
      */
-    initialize(readingLogForms) {
-        for (const form of readingLogForms) {
-            const submitButton = form.querySelector('button[type=submit]')
-            submitButton.addEventListener('click', (event) => {
-                event.preventDefault()
-                this.updateReadingLog(form)
+    initialize(readingLogForms, isDropperDisabled) {
+        if (!isDropperDisabled) {
+            if (readingLogForms.length) {
+                for (const form of readingLogForms) {
+                    const submitButton = form.querySelector('button[type=submit]')
+                    submitButton.addEventListener('click', (event) => {
+                        event.preventDefault()
+                        this.updateReadingLog(form)
 
-                // Close the dropper
-                this.primaryForm.dispatchEvent(getDropperCloseEvent())
-            })
+                        // Close the dropper
+                        fireDropperCloseEvent(this.primaryForm)
+                    })
+                }
+            } else {
+                this.primaryButton.addEventListener('click', () => {
+                    fireDropperToggleEvent(this.primaryButton)
+                })
+            }
         }
     }
 

@@ -2,7 +2,7 @@
  * Defines functionality related to the My Books dropper's list affordances.
  * @module my-books/ReadingLists
  */
-import { getDropperCloseEvent } from '../droppers'
+import { fireDropperCloseEvent } from '../droppers'
 import { addItem, removeItem, createList } from '../lists/ListService'
 import { websafe } from '../jsdef'
 
@@ -23,17 +23,22 @@ export default class ReadingLists {
         this.dropper = dropper
 
         /**
-         * References the "Create list" form's submission button.  There should only
-         * be a single "Create list" form per page.
+         * References the "Create list" form's submission button.
          * @param {HTMLElement}
          */
-        this.createListButton = document.querySelector('#create-list-button')
+        // XXX: There should only be a single "Create list" form per page.
+        this.createListButton = dropper.querySelector('#create-list-button')
 
         // XXX: Search page issues here:
         this.showcaseItems = document.querySelectorAll('.actionable-item')
 
+        /**
+         * @param {HTMLElement|null}
+         */
         this.workCheckBox = dropper.querySelector('.work-checkbox')
-        this.workCheckBox.checked = false
+        if (this.workCheckBox) {
+            this.workCheckBox.checked = false
+        }
 
         this.dropperListsElement = dropper.querySelector('.my-lists')
         this.seedKey = this.dropperListsElement.dataset.seedKey
@@ -177,7 +182,7 @@ export default class ReadingLists {
         elemToHide.classList.add('hidden')
 
         // Close dropper
-        elemToHide.dispatchEvent(getDropperCloseEvent())
+        fireDropperCloseEvent(elemToHide)
     }
 
     addToShowcase(listKey, seedKey, listTitle) {
@@ -214,11 +219,11 @@ export default class ReadingLists {
         li.classList.add('actionable-item')
         li.dataset.listKey = listKey
         li.innerHTML = itemMarkUp
-        alreadyLists.appendChild(li)
-
-        this.patronLists[listKey].showcaseListItem = li
-
-        this.registerShowcaseItem(li)
+        if (alreadyLists) {
+            alreadyLists.appendChild(li)
+            this.patronLists[listKey].showcaseListItem = li
+            this.registerShowcaseItem(li)
+        }
 
         return li;
     }
@@ -237,7 +242,7 @@ export default class ReadingLists {
         if (isSubject) {
             seed = key
         } else {
-            if (this.workCheckBox.checked) {
+            if (this.workCheckBox && this.workCheckBox.checked) {
                 seed = { key: this.workKey }
             } else {
                 seed = { key: key }
@@ -265,7 +270,7 @@ export default class ReadingLists {
 
         this.patronLists[listKey].showcaseListItem.classList.add('hidden')
 
-        if (this.workCheckBox.checked) {
+        if (this.workCheckBox && this.workCheckBox.checked) {
             this.patronLists[listKey].workOnList = false
         } else {
             this.patronLists[listKey].itemOnList = false
@@ -341,7 +346,7 @@ export default class ReadingLists {
             dropperAnchor: dropperAnchor
         }
 
-        if (this.workCheckBox.checked) {
+        if (this.workCheckBox && this.workCheckBox.checked) {
             this.patronLists[listKey].itemOnList = false
             this.patronLists[listKey].workOnList = true
         } else {
