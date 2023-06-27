@@ -4119,10 +4119,6 @@ msgstr "Principal"
 msgid "Merge"
 msgstr "Fusionner"
 
-#merge_queue/merge_queue.html:119
-msgid "REVIEW"
-msgstr "EXAMEN"
-
 #: merge/authors.html:86
 msgid "Open in a new window"
 msgstr "Ouvrir dans une nouvelle fenêtre"
