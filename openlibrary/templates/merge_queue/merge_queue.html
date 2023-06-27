@@ -9,6 +9,7 @@ $ can_merge = ctx.user and (ctx.user.is_usergroup_member('/usergroup/super-libra
 $ reviewer = query_param('reviewer', None)
 $ submitter = query_param('submitter', None)
 $ mode = query_param('mode', 'open')
+$ toggleBtn = ''
 
 $if submitter:
   $ desc = _("Showing %(username)s's requests only.", username=submitter)
@@ -20,6 +21,14 @@ $else:
   $ href = changequery(submitter=username, page=None) if username else changequery(submitter=None, page=None)
 
 <div class="librarian-queue-page">
+  <div id="myModal" class="modal">
+    <div class="modal-content">
+      <h2>You have successfully closed a request!</h2>
+      <p>Please refresh the page to continue.</p>
+      <button id="refreshButton">Refresh</button>
+    </div>
+  </div>
+  
   <h1>$_('Community Edit Requests')</h1>
 
   <div class="description">
@@ -48,7 +57,6 @@ $ page = int(input(page=1).page)
   </ul>
 
   <div class="table-wrapper">
-    <!-- reconstruct table below --------------------------------------------->
       <table class="mr-table">
         <tbody>
         $if not merge_requests:
@@ -93,39 +101,35 @@ $ page = int(input(page=1).page)
                       <input class="mr-comment-btn" type="button" value="REPLY" data-mrid="$r['id']" data-merge-type="$r['mr_type']" data-username="$username">
                     </div>
                 </div>
-
                 <span class="mr-opened">MR #$r['id'] opened $datestr(r['created']) by
-                  <a>
+                  <a class="mr-submitter">
                     @$r['submitter']
-                  </a>
+                  </a> 
+                  $if is_open:
+                    $if is_submitter:
+                      <a class="mr-close-link" title="Click to close this Merge Request" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">&times;</a>
                 </span>
               </div>
             </td>
-
-            <td id="reviewer-cell-$(r['id'])" class="reviewer-section">
-              $if is_open:
-                $if is_submitter:
-                  <a class="mr-close-link" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">$_('Close')</a>
-                $if r.get('reviewer'):
-                  <span class="reviewer">@$r['reviewer']</span>
-                  $if can_merge:
-                    <span class="mr-unassign" data-mrid="$r['id']" data-merge-type="$r['mr_type']">&times;</span>
-                $if can_merge and not r.get('reviewer'):
+            <td class="review-cell">
+              <div id="reviewer-cell-$(r['id'])" class="review-cell__unassign">
+                $if can_merge and is_open and r.get('reviewer'):
+                  $r['reviewer'] <span class="mr-unassign" data-mrid="$r['id']" data-merge-type="$r['mr_type']">&times;</span>
+                $if not is_open:
+                  $if r.get('reviewer'):
+                    <img src="/static/images/icons/icon_check.png" style="height: 10px; margin-right: 3px;"><span class="reviewer">@$r['reviewer']</span>
+              </div>
+              <div class="reviewer-btn">
+                $if is_open and can_merge:
                   $ show_link = not r.get('reviewer') or r.get('reviewer') == username
                   $ extra_classes = '' if show_link else ' hidden'
-                  <button id="btn-$r['id']"class="mr-comment-review-cell__review">
+                  <button id="mr-resolve-btn-$r['id']"class="review-cell__review">
                     <strong>
-                      <a class="mr-resolve-link$extra_classes" id="mr-resolve-link-$r['id']" data-mrid="$r['id']" data-merge-type="$r['mr_type']" data-url="$url" href="$url" target="_blank"><span class="WHITE">$_('REVIEW')</span></a>
+                      <a class="mr-resolve-link" id="mr-resolve-link-$r['id']" data-mrid="$r['id']" data-merge-type="$r['mr_type']" data-url="$url" href="$url" target="_blank"><span class="WHITE">$_('REVIEW')</span></a>
                     </strong>
                   </button>
-              $if not is_open:
-                $if r.get('reviewer'):
-                  <img src="/static/images/icons/icon_check.png" style="height: 10px; margin-right: 3px;"><span class="reviewer">@$r['reviewer']</span>
+                </div>
               </td>
-
-
-
-
               <td class="mr-comment-review-cell">
                 <button id="mr-comment-btn" class="mr-comment-review-cell__comments mr-comment-btn-$r['id']">
                   <!-- <div>word</div> -->
@@ -139,12 +143,9 @@ $ page = int(input(page=1).page)
                 </button>
               </div>
             </td>
-
-
           </tr>
         </tbody>
       </table>
-      <!-- reconstruct table above ------------------------------------------------>
   </div>
 </div>
    <div class="pager">
