@@ -166,7 +166,6 @@ export function initShowAllCommentsLinks(elems) {
 * @param {HTMLELement} elem Element which contains a reference to the old comments
 */
 function toggleAllComments(elem) {
-    //Id 2
     const targetId = elem.dataset.targetId;
     const targetId2 = elem.dataset.latestComment || 0;
     const targetIdOldComments = elem.dataset.oldComments;
@@ -181,26 +180,8 @@ function toggleAllComments(elem) {
     target2.classList.toggle('hidden')
     targetBtn.classList.toggle('border-toggle');
 
-    //for scrolling to bottom of div
     oldCommentstarget.scrollTop = oldCommentstarget.scrollHeight;
-
-    //console.log(oldCommentstarget)
-
 }
-
-// /**
-//  * Adds functionality for claiming librarian requests.
-//  *
-//  * @param {NodeList<HTMLElement>} elems Elements that, on click, initiates a claim
-//  */
-// export function initRequestClaiming(elems) {
-//     for (const elem of elems) {
-//         elem.addEventListener('click', function() {
-//             const mrid = elem.dataset.mrid
-//             claim(mrid, elem)
-//         })
-//     }
-// }
 
 export function initRequestClaiming(elems) {
     for (const elem of elems) {
@@ -217,33 +198,6 @@ export function initRequestClaiming(elems) {
         });
     }
 }
-
-
-/**
- * Sends a claim request to the server and updates the table on success.
- *
- * @param {Number} mrid Unique identifier for the request being claimed
- */
-// async function claim(mrid) {
-//     await claimRequest(mrid)
-//         .then(result => result.json())
-//         .then(data => {
-//             if (data.status === 'ok') {
-//                 const reviewerHtml = `${data.reviewer}
-//                     <span class="mr-unassign" data-mrid="${mrid}">&times;</span>`
-//                 const mergeLinkData = document.querySelector(`#mr-resolve-link-${mrid}`).dataset;
-//                 //console.log('The merge link data', mergeLinkData)
-//                 updateRow(mrid, data.newStatus, reviewerHtml, mergeLinkData)
-
-//                 // Hide the row's merge link:
-//                 const mergeBtn = document.querySelector(`#mr-resolve-btn-${mrid}`)
-//                 //  if (mergeLink.classList.contains('hidden')) {
-//                 //     toggleMergeLink(mergeLink)
-//                 //  }
-//                 toggleMergeLink(mergeLinkData)
-//             }
-//         })
-// }
 
 async function claim(mrid) {
     await claimRequest(mrid)
@@ -308,13 +262,12 @@ async function unassign(mrid, mergeLinkData) {
 }
 
 /**
- * Toggles merge queue button by adding it to innerHTML for element with given ID.
+ * Toggles hidden class on review button 
  *
- * @param {HTMLElement} mergeLinkData References to a merge link element dataset
+ * @param {Number} mrid Unique identifier for the request being claimed
  */
 function toggleMergeLink(mrid) {
 
-   //const mrid = mergeLinkData.mrid
     const btn = document.querySelector(`#mr-resolve-btn-${mrid}`)
     if(btn.classList.contains('hidden')){
         console.log('it does contain hidden')
