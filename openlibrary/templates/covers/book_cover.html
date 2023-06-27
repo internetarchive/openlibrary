@@ -1,4 +1,4 @@
-$def with(book)
+$def with(book, preload=False)
 
 $ title = book.title
 $ author_names = None
@@ -12,6 +12,9 @@ $ cover_lg = book.get_cover_url("L")
 
 $ src = cover_url or '/images/icons/avatar_book.png'
 $ srcset = '%s 2x' % (cover_lg or '/images/icons/avatar_book-lg.png')
+
+$if preload:
+    $add_metatag(tag="link", **{'rel': 'preload', 'as': 'image', 'href': src, 'imagesrcset': srcset})
 
 <div class="coverMagic cover-animation">
     <div class="SRPCover bookCover" style="display: $cond(cover_url, 'block', 'none');">
