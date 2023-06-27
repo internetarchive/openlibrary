@@ -3051,7 +3051,7 @@ msgstr "Vision"
 
 #: lib/nav_foot.html:14
 msgid "Volunteer"
-msgstr "Frewiwillige"
+msgstr "Freiwillige"
 
 #: lib/nav_foot.html:15
 msgid "Partner With Us"
