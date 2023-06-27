@@ -28,7 +28,7 @@ $else:
       <button id="refreshButton">Refresh</button>
     </div>
   </div>
-
+  
   <h1>$_('Community Edit Requests')</h1>
 
   <div class="description">
@@ -104,7 +104,7 @@ $ page = int(input(page=1).page)
                 <span class="mr-opened">MR #$r['id'] opened $datestr(r['created']) by
                   <a class="mr-submitter">
                     @$r['submitter']
-                  </a>
+                  </a> 
                   $if is_open:
                     $if is_submitter:
                       <a class="mr-close-link" title="Click to close this Merge Request" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">&times;</a>

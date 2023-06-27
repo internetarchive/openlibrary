@@ -141,6 +141,9 @@ async function updateCommentsView(mrid, comment, username) {
  */
 function removeRow(row) {
     row.parentNode.removeChild(row)
+    const modal = document.getElementById("myModal");
+    const refreshButton = document.getElementById("refreshButton");
+    toggleRefreshModal(modal, refreshButton) 
 }
 
 
@@ -163,7 +166,6 @@ export function initShowAllCommentsLinks(elems) {
 * @param {HTMLELement} elem Element which contains a reference to the old comments
 */
 function toggleAllComments(elem) {
-    //Id 2
     const targetId = elem.dataset.targetId;
     const targetId2 = elem.dataset.latestComment || 0;
     const targetIdOldComments = elem.dataset.oldComments;
@@ -178,52 +180,46 @@ function toggleAllComments(elem) {
     target2.classList.toggle('hidden')
     targetBtn.classList.toggle('border-toggle');
 
-    //for scrolling to bottom of div
     oldCommentstarget.scrollTop = oldCommentstarget.scrollHeight;
-
-    //console.log(oldCommentstarget)
-
 }
 
-/**
- * Adds functionality for claiming librarian requests.
- *
- * @param {NodeList<HTMLElement>} elems Elements that, on click, initiates a claim
- */
 export function initRequestClaiming(elems) {
     for (const elem of elems) {
+        const mrid = elem.dataset.mrid;
+        const unassignElements = document.querySelectorAll(`.mr-unassign[data-mrid="${mrid}"]`);
+        
+        if (unassignElements.length > 0) {
+            const mergeBtn = document.querySelector(`#mr-resolve-btn-${mrid}`);
+            mergeBtn.classList.add('hidden');
+        }
+
         elem.addEventListener('click', function() {
-            const mrid = elem.dataset.mrid
-            claim(mrid, elem)
-        })
+            claim(mrid, elem);
+        });
     }
 }
 
-/**
- * Sends a claim request to the server and updates the table on success.
- *
- * @param {Number} mrid Unique identifier for the request being claimed
- */
 async function claim(mrid) {
     await claimRequest(mrid)
         .then(result => result.json())
         .then(data => {
             if (data.status === 'ok') {
                 const reviewerHtml = `${data.reviewer}
-                    <span class="mr-unassign" data-mrid="${mrid}">&times;</span>`
+                    <span class="mr-unassign" data-mrid="${mrid}">&times;</span>`;
                 const mergeLinkData = document.querySelector(`#mr-resolve-link-${mrid}`).dataset;
-                //console.log('The merge link data', mergeLinkData)
-                updateRow(mrid, data.newStatus, reviewerHtml, mergeLinkData)
 
-                // Hide the row's merge link:
-                const mergeBtn = document.querySelector(`#mr-resolve-btn-${mrid}`)
-                //  if (mergeLink.classList.contains('hidden')) {
-                //     toggleMergeLink(mergeLink)
-                //  }
-               // toggleMergeLink(mergeLinkData)
+                const unassignElements = document.querySelectorAll(`.mr-unassign[data-mrid="${mrid}"]`);
+                if (unassignElements.length > 0) {
+                    const mergeBtn = document.querySelector(`#mr-resolve-btn-${mrid}`);
+                    mergeBtn.classList.add('hidden');
+                }
+
+                updateRow(mrid, data.newStatus, reviewerHtml, mergeLinkData);
+                toggleMergeLink(mrid);
             }
-        })
+        });
 }
+
 
 /**
  * Updates status and reviewer of the designated request table row.
@@ -231,18 +227,14 @@ async function claim(mrid) {
  * @param {Number} mrid The row's unique identifier
  * @param {string} status Optional new value for the row's status cell
  * @param {string} reviewer Optional new value for the row's reviewer cell
+ * @param {Object} mergeLinkData Data from the resolve link to be passed into the "REVIEW" button toggle 
  */
 function updateRow(mrid, status=null, reviewer=null, mergeLinkData) {
-    // if (status) {
-    //     const statusCell = document.querySelector(`#status-cell-${mrid}`)
-    //     statusCell.textContent = status
-    // }
     if (reviewer) {
         const reviewerCell = document.querySelector(`#reviewer-cell-${mrid}`)
         reviewerCell.innerHTML = reviewer
 
         initUnassignment(reviewerCell.querySelectorAll('.mr-unassign'), mergeLinkData)
-
     }
 }
 
@@ -251,7 +243,7 @@ export function initUnassignment(elems, mergeLinkData) {
     for (const elem of elems) {
         elem.addEventListener('click', function() {
             const mrid = elem.dataset.mrid
-            //console.log(elem.dataset)
+            const btn = document.querySelector(`#mr-resolve-btn-${mrid}`)
             unassign(mrid, mergeLinkData)
         })
     }
@@ -263,44 +255,41 @@ async function unassign(mrid, mergeLinkData) {
         .then(data => {
             if (data.status === 'ok') {
                 updateRow(mrid, data.newStatus, ' ', mergeLinkData)
-
-                // Display the row's merge link:
-
-
-               // console.log("Merge Link", mergeLink)
-                //const mergeLinkData = mergeLink.dataset
-                //  if (mergeLink.classList.contains('hidden')) {
-                //     toggleMergeLink(mergeLink)
-                //  }
-                toggleMergeLink(mergeLinkData)
+                toggleMergeLink(mrid)
             }
         })
 
 }
 
 /**
- * Toggles 'hidden' class for element with given ID.
+ * Toggles hidden class on review button 
  *
- * @param {HTMLElement} mergeLink Reference to a merge link element
+ * @param {Number} mrid Unique identifier for the request being claimed
  */
-function toggleMergeLink(mergeLinkData) {
-  //    if (mergeLink) {
-  //       mergeLink.classList.toggle('hidden')
-  //    }
-  //mergeBtn.classList.toggle('hidden')
+function toggleMergeLink(mrid) {
 
-  const mrid = mergeLinkData.mrid;
-  const url = mergeLinkData.url;
-  const mergeType = mergeLinkData.mergeType;
-
-  const reviewCell = document.querySelector(`#reviewer-cell-${mrid}`);
-
-  //console.log('merge link data url type:', typeof url)
-
-  reviewCell.innerHTML += `
-  <button id="mr-resolve-btn-${mrid}"class="mr-comment-review-cell__review">
-  <strong>
-  <a class="mr-resolve-link$extra_classes" id="mr-resolve-link-${mrid}" data-mrid=${mrid} data-merge-type=${mergeType} data-url=${url} href=${url} target="_blank"><span class="WHITE">${"REVIEW"}</span></a>
-  </strong>
-  </button>`
+    const btn = document.querySelector(`#mr-resolve-btn-${mrid}`)
+    if(btn.classList.contains('hidden')){
+        console.log('it does contain hidden')
+        btn.classList.remove('hidden');
+    } else {
+        btn.classList.add('hidden');
+    }
 }
+
+/**
+ * Toggles the modal to fresh the page after a close action is performed.
+ *
+ * @param {HTMLElement} modal References the refresh modal
+ * @param {HTMLElement} refreshButton references the refresh
+ */
+function toggleRefreshModal(modal, refreshButton) {
+    modal.style.display = "block"
+    refreshButton.addEventListener("click", function() {
+      location.reload(); // Refresh the page
+    });
+}
+
+
+
+
