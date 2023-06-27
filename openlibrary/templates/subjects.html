@@ -6,6 +6,7 @@ $ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), 
 $ can_add_tag = ctx.user and (ctx.user.is_usergroup_member('/usergroup/super-librarians'))
 $ has_tag = 'tag' in page
 
+
 <div id="scrollHere"></div>
 
 <!--
@@ -14,11 +15,12 @@ $ has_tag = 'tag' in page
 
 <div class="page-heading-search-box">
     $if can_add_tag:
-      <div class="subjectTagInfo">
-        $if 'tag' in page:
-            <a href="$page.tag.get('id')/edit" rel="nofollow" title="Edit Subject Tag">$_('Edit Subject Tag')</a>
-        $else:
-            <a href="/tag/add" title="$_('Add a new subject tag')">$_("Add Subject Tag")</a>
+      <div class="subjectTagEdit">
+        $ edit_tag_url = page.tag.get('id') + '/edit' if 'tag' in page else '/tag/add'
+        <div class="editButton">
+          <a class="linkButton larger" href="$edit_tag_url" title="$_('Edit Subject Tag')"
+             data-ol-link-track="CTAClick|Edit" accesskey="e">$_("Edit")</a>
+        </div>
       </div>
     <h1 class="inline">
         $page.name
