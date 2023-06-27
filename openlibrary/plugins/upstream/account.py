@@ -841,7 +841,7 @@ def csv_string(source: Iterable[Mapping], row_formatter: Callable | None = None)
     """
     if not row_formatter:  # The default formatter reuses the inbound dict unmodified
 
-        def row_formatter(row: Mapping) -> dict:
+        def row_formatter(row: Mapping) -> Mapping:
             return row
 
     def csv_body() -> Iterable[str]:
