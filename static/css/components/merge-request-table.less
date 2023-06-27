@@ -261,6 +261,22 @@
   }
 }
 
+.mr-close-link {
+  display: none; /* Initially hide the mr-close-link */
+}
+
+.mr-opened:hover .mr-close-link {
+  display: inline; /* Show mr-close-link when hovering over mr-opened */
+  color: @closed-red;
+  text-decoration: none;
+  font-size: medium;
+}
+
+.mr-opened:hover .mr-submitter {
+  color: @closed-red;
+  text-decoration: underline;
+}
+
 .review-cell {
   display: flex;
   flex-direction: column;

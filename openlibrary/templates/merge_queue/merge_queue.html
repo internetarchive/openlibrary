@@ -104,12 +104,12 @@ $ page = int(input(page=1).page)
                 </div>
 
                 <span class="mr-opened">MR #$r['id'] opened $datestr(r['created']) by
-                  <a>
+                  <a class="mr-submitter">
                     @$r['submitter']
-                    $if is_open:
-                      $if is_submitter:
-                        <a class="mr-close-link" title="Click to close this Merge Request" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">&times;</a>
                   </a> 
+                  $if is_open:
+                    $if is_submitter:
+                      <a class="mr-close-link" title="Click to close this Merge Request" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">&times;</a>
                 </span>
               </div>
             </td>
@@ -145,8 +145,6 @@ $ page = int(input(page=1).page)
                 </button>
               </div>
             </td>
-
-
           </tr>
         </tbody>
       </table>
