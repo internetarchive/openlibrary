@@ -143,7 +143,7 @@ function removeRow(row) {
     row.parentNode.removeChild(row)
     const modal = document.getElementById("myModal");
     const refreshButton = document.getElementById("refreshButton");
-    toggleRefreshModal(modal, refreshButton) 
+    toggleRefreshModal(modal, refreshButton)
 }
 
 
@@ -187,7 +187,7 @@ export function initRequestClaiming(elems) {
     for (const elem of elems) {
         const mrid = elem.dataset.mrid;
         const unassignElements = document.querySelectorAll(`.mr-unassign[data-mrid="${mrid}"]`);
-        
+
         if (unassignElements.length > 0) {
             const mergeBtn = document.querySelector(`#mr-resolve-btn-${mrid}`);
             mergeBtn.classList.add('hidden');
@@ -227,7 +227,7 @@ async function claim(mrid) {
  * @param {Number} mrid The row's unique identifier
  * @param {string} status Optional new value for the row's status cell
  * @param {string} reviewer Optional new value for the row's reviewer cell
- * @param {Object} mergeLinkData Data from the resolve link to be passed into the "REVIEW" button toggle 
+ * @param {Object} mergeLinkData Data from the resolve link to be passed into the "REVIEW" button toggle
  */
 function updateRow(mrid, status=null, reviewer=null, mergeLinkData) {
     if (reviewer) {
@@ -262,7 +262,7 @@ async function unassign(mrid, mergeLinkData) {
 }
 
 /**
- * Toggles hidden class on review button 
+ * Toggles hidden class on review button
  *
  * @param {Number} mrid Unique identifier for the request being claimed
  */
