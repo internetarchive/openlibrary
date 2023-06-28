@@ -127,9 +127,7 @@ async function updateCommentsView(mrid, comment, username) {
   newestComment.innerHTML = `${comment}`
 
   const newComment = document.createElement('div')
-  newComment.innerHTML += `<div class="mr-comment">
-    <div class="mr-comment__body"><a href="">@${username}</a> ${comment}</div>
-    </div>`
+  newComment.innerHTML += `<div class="mr-comment__body"><span>@${username}</span> ${comment}</div>`
 
   hiddenCommentDiv.append(newComment);
 }

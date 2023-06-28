@@ -58,9 +58,13 @@
 
 .mr-comment {
   margin: 5px;
-  padding: 1px;
+  
+  &__body {
+    padding-top: 7px;
+    padding-left: 8px;    
+  }
 
-  &__body a {
+  &__body span{
     text-decoration: none;
     color: @primary-blue;
   }
@@ -271,6 +275,10 @@
   text-decoration: none;
 }
 
+.mr-submitter {
+  color: @primary-blue;
+}
+
 .mr-opened:hover .mr-submitter {
   color: @closed-red;
   text-decoration: underline;
@@ -289,6 +297,7 @@
   &__unassign {
     display: flex;
     justify-content: center;
+    color:@primary-blue;
   }
 
   &__review{
