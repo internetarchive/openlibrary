@@ -119,6 +119,9 @@ async function comment(mrid, comment) {
  * @param {string} comment The new comment
  */
 async function updateCommentsView(mrid, comment, username) {
+    function scrollToBottom() {
+        hiddenCommentDiv.scrollTop = hiddenCommentDiv.scrollHeight;
+        }
 
   const commentCell = document.querySelector(`#comment-cell-${mrid}`);
   const hiddenCommentDiv = commentCell.querySelector('.comment-cell__old-comments-section');
@@ -130,6 +133,7 @@ async function updateCommentsView(mrid, comment, username) {
   newComment.innerHTML += `<div class="mr-comment__body"><span>@${username}</span> ${comment}</div>`
 
   hiddenCommentDiv.append(newComment);
+  scrollToBottom()
 }
 
 /**
