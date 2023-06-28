@@ -143,8 +143,8 @@ async function updateCommentsView(mrid, comment, username) {
  */
 function removeRow(row) {
     row.parentNode.removeChild(row)
-    const modal = document.getElementById("myModal");
-    const refreshButton = document.getElementById("refreshButton");
+    const modal = document.getElementById("mr-close-request-modal");
+    const refreshButton = document.getElementById("mr-close-refresh-btn");
     toggleRefreshModal(modal, refreshButton)
 }
 
