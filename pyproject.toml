@@ -5,7 +5,7 @@
 
 [tool.black]
 skip-string-normalization = true
-target-version = ["py310", "py311"]
+target-version = ["py311"]
 
 [tool.codespell]
 ignore-words-list = "beng,curren,datas,furst,nd,nin,ot,ser,spects,te,tha,ue,upto"
@@ -81,20 +81,24 @@ select = [
   "I",       # isort
   "ICN",     # flake8-import-conventions
   "INT",     # flake8-gettext
+  "PERF",    # Perflint
   "PIE",     # flake8-pie
   "PL",      # Pylint
   "PYI",     # flake8-pyi
   "RSE",     # flake8-raise
   "SIM",     # flake8-simplify
   "SLF",     # flake8-self
+  "SLOT",    # flake8-slots
   "T10",     # flake8-debugger
   "UP",      # pyupgrade
   "W",       # pycodestyle
   "YTT",     # flake8-2020
   # "A",     # flake8-builtins
+  # "AIR",   # Airflow
   # "ANN",   # flake8-annotations
   # "ARG",   # flake8-unused-arguments
   # "COM",   # flake8-commas
+  # "CPY",   # Copyright-related rules
   # "D",     # pydocstyle
   # "DJ",    # flake8-django
   # "DTZ",   # flake8-datetimez
@@ -102,6 +106,7 @@ select = [
   # "ERA",   # eradicate
   # "EXE",   # flake8-executable
   # "FBT",   # flake8-boolean-trap
+  # "FIX",   # flake8-fixme
   # "G",     # flake8-logging-format
   # "INP",   # flake8-no-pep420
   # "ISC",   # flake8-implicit-str-concat
