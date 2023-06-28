@@ -187,5 +187,6 @@ class community_edits_queue(delegate.page):
                     return author.name
         return 'Unknown record'
 
+
 def setup():
     pass
