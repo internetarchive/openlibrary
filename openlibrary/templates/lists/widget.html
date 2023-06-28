@@ -84,10 +84,7 @@ $if include_widget:
     $:macros.ReadingLogDropper(user_lists, work=work, edition_key=(edition and edition.key), key=default_seed_key, users_work_read_status=users_work_read_status, page_url=page_url, async_load=async_load)
 
   $if username and show_already_lists:
-    $if render_once('lists/widget.i18n-strings'):
-      $:i18n_input()
-    $# XXX: Uniquely identify if more than one of these will appear on the page at once
-    <ul id="already-lists" class="listLists already-lists">
+    <ul class="listLists already-lists">
       $if async_load:
           <div class="list-overview-loading-indicator">Loading<span class="loading-ellipsis">...</span></div>
       $else:

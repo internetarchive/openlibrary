@@ -53,7 +53,6 @@ export function initReadingLogDroppers(droppers) {
             }
         }
 
-        // XXX: Selecting on `button` here is a mistake. Use a class instead.
         const submitButtons = dropper.querySelectorAll('button')
 
         for (const button of submitButtons) {

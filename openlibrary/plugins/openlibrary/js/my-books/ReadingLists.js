@@ -26,13 +26,19 @@ export default class ReadingLists {
          * References the "Create list" form's submission button.
          * @param {HTMLElement}
          */
-        // XXX: There should only be a single "Create list" form per page.
+        // XXX: Use class-based query here, and ensure that this ID is unique in template (or remove)
         this.createListButton = dropper.querySelector('#create-list-button')
 
-        // XXX: Search page issues here:
+        /**
+         * References to each showcase item that can be removed by the patron.  Showcase items
+         * can be found in a patron's "Already lists" list, or in the "Lists" section of the
+         * books page.
+         * @param {NodeList<HTMLElement>}
+         */
         this.showcaseItems = document.querySelectorAll('.actionable-item')
 
         /**
+         * Reference to the "Use work" checkbox.
          * @param {HTMLElement|null}
          */
         this.workCheckBox = dropper.querySelector('.work-checkbox')
@@ -40,11 +46,45 @@ export default class ReadingLists {
             this.workCheckBox.checked = false
         }
 
+        /**
+         * Reference to the "My Reading Lists" section of the dropdown content.
+         * @param {HTMLElement}
+         */
         this.dropperListsElement = dropper.querySelector('.my-lists')
+        /**
+         * Key of the document that will be added to or removed from a list.
+         * @param {string}
+         */
         this.seedKey = this.dropperListsElement.dataset.seedKey
+        /**
+         * Key of the work associated with this dropper. Will be an empty
+         * string if no work is associated.
+         * @param {string}
+         */
         this.workKey = this.dropperListsElement.dataset.workKey
+        /**
+         * The patron's user key.
+         * @param {string}
+         */
         this.userKey = this.dropperListsElement.dataset.userKey
 
+        /**
+         * Stores information about a single list.
+         *
+         * @typedef ActiveListData
+         * @type {object}
+         * @property {string} title The title of the list
+         * @property {string} coverUrl URL for the seed's image
+         * @property {boolean} itemOnList True if the list contains the default seed key
+         * @property {boolean} workOnList True if the list contains a reference to a work
+         * @property {HTMLElement} dropperAnchor Reference to the "Add to list" dropdown affordance
+         * @property {HTMLElement} showcaseListItem Reference to this list in the "Already list" showcase
+         */
+        /**
+         * Maps list keys to objects containing more data about the list.
+         *
+         * @type {Record<string, ActiveListData>}
+         */
         this.patronLists = {}
 
         this.initialize()
@@ -78,6 +118,12 @@ export default class ReadingLists {
         }
     }
 
+    /**
+     * Updates dropdown and "Already list" list affordances when the "Use work" checkbox
+     * is ticked.
+     *
+     * @param {boolean} isWorkSelected True if the "Use work" checkbox is ticked
+     */
     updateListDisplays(isWorkSelected) {
         for (const key of Object.keys(this.patronLists)) {
             const listData = this.patronLists[key]
@@ -90,6 +136,17 @@ export default class ReadingLists {
         }
     }
 
+    /**
+     * Changes list affordance visibility in the dropper and "Already list"
+     * list based on an item's membership to the given list.
+     *
+     * If the item is on the list, the "Already list" list affordance is displayed
+     * and the dropdown affordance is hidden (and vice versa if the item is not on
+     * the list)
+     *
+     * @param {boolean} isListMember True if the item is on the list
+     * @param {string} listKey Unique identifier for a list
+     */
     toggleDisplayedType(isListMember, listKey) {
         const listData = this.patronLists[listKey]
 
@@ -108,33 +165,46 @@ export default class ReadingLists {
         }
     }
 
+    /**
+     * Hydrates the given "Add to list" elements and stores list data.
+     *
+     * Each given element is decorated with additional information
+     * about the list.  This method also populates the patronLists
+     * record.
+     * @param {NodeList<HTMLElement>} addToListAnchors
+     */
     initAddToListAnchors(addToListAnchors) {
         for (const anchor of addToListAnchors) {
             const listItemKeys = anchor.dataset.listItems
+            const listKey = anchor.dataset.listKey
 
-            this.patronLists[anchor.dataset.listKey] = {
+            this.patronLists[listKey] = {
                 title: anchor.innerText,
                 coverUrl: anchor.listCoverUrl,
                 itemOnList: listItemKeys.includes(this.seedKey),
                 dropperAnchor: anchor.parentElement,
                 showcaseListItem: null
             }
-            // XXX: Make sure a cover URL is always in the data attribute (update template)
-            if (!this.patronLists[anchor.dataset.listKey].coverUrl) {
-                this.patronLists[anchor.dataset.listKey].coverUrl = DEFAULT_COVER_URL
+            if (!this.patronLists[listKey].coverUrl) {
+                this.patronLists[listKey].coverUrl = DEFAULT_COVER_URL
             }
             if (this.workCheckBox) {
-                this.patronLists[anchor.dataset.listKey].workOnList = listItemKeys.includes(this.workKey)
+                this.patronLists[listKey].workOnList = listItemKeys.includes(this.workKey)
             }
 
             anchor.addEventListener('click', (event) => {
                 event.preventDefault()
-                this.addItemToList(anchor)
+                this.addItemToList(listKey)
             })
         }
     }
 
-    async addItemToList(anchor) {
+    /**
+     * Adds a document to the list identified by the given key.
+     *
+     * @param {string} listKey Unique key for list
+     */
+    async addItemToList(listKey) {
         let seed
         const isWork = this.workCheckBox && this.workCheckBox.checked
 
@@ -149,16 +219,24 @@ export default class ReadingLists {
             seed = { key: this.seedKey }
         }
 
-        const listKey = anchor.dataset.listKey
-
         await addItem(listKey, seed)
             .then(response => response.json())
             .then(() => {
-                this.onAddItemSuccess(listKey, seed, isWork)
+                this.updateViewAfterAddingItem(listKey, seed, isWork)
             })
     }
 
-    onAddItemSuccess(listKey, seed, isWork) {
+    /**
+     * Updates view and patronLists record after an item has been added to a list.
+     *
+     * Hides appropriate "Add to list" dropdown element, add the list to the patron's
+     * "Already list" list, and closes the dropper.
+     *
+     * @param {string} listKey
+     * @param {object|string} seed
+     * @param {boolean} isWork
+     */
+    updateViewAfterAddingItem(listKey, seed, isWork) {
         const elemToHide = this.patronLists[listKey].dropperAnchor
 
         if (isWork) {
@@ -171,12 +249,6 @@ export default class ReadingLists {
         const isSubjectSeed = typeof seed === 'string'
         const seedKey = isSubjectSeed ? seed : seed['key']
 
-        if (isWork) {
-            this.patronLists[listKey].workOnList = true
-        } else {
-            this.patronLists[listKey].itemOnList = true
-        }
-
         this.addToShowcase(listKey, seedKey, this.patronLists[listKey].title)
 
         elemToHide.classList.add('hidden')
@@ -185,6 +257,18 @@ export default class ReadingLists {
         fireDropperCloseEvent(elemToHide)
     }
 
+    /**
+     * Updates view to add a list to the "Already list" showcase.
+     *
+     * First checks the patronLists record for a reference to an existing
+     * showcase element.  If one is found, its visibility is toggled.  Otherwise,
+     * a new element is rendered and hydrated.
+     *
+     * @param {string} listKey Unique identifier to a list
+     * @param {string} seedKey Identifies the item that was added to the list
+     * @param {string} listTitle The title of the list
+     * @returns {HTMLElement} Reference to the showcase item
+     */
     addToShowcase(listKey, seedKey, listTitle) {
         const listData = this.patronLists[listKey]
         const primaryShowcaseItem = listData.showcaseListItem
@@ -193,7 +277,6 @@ export default class ReadingLists {
             return primaryShowcaseItem
         }
 
-        // XXX: May have multiple on the page (search results):
         const alreadyLists = document.querySelector('.already-lists')
         const splitKey = listKey.split('/')
         const userKey = `/${splitKey[1]}/${splitKey[2]}`
@@ -228,8 +311,13 @@ export default class ReadingLists {
         return li;
     }
 
+    /**
+     * Adds "Remove from list" click handlers to showcase list items.
+     *
+     * @param {HTMLElement} elem
+     */
     registerShowcaseItem(elem) {
-        // XXX: How many variable are really needed here?
+        // XXX: How many variables are really needed here?
         const label = elem.querySelector('.label')
         const anchors = label.querySelectorAll('a')
         const listKey = anchors[1].dataset.listKey
@@ -251,17 +339,31 @@ export default class ReadingLists {
 
         anchors[1].addEventListener('click', (event) => {
             event.preventDefault()
-            this.updateShowcase(elem, listKey, seed)
+            this.removeShowcaseItem(elem, listKey, seed)
         })
     }
 
-    async updateShowcase(showcaseItem, listKey, seed) {
+    /**
+     * Sends request to remove an item from a list, then updates the view.
+     *
+     * @param {HTMLElement} showcaseItem Reference to the showcase element that will be hidden
+     * @param {string} listKey Unique identifier for the list
+     * @param {object|string} seed Identifies item being removed from list
+     */
+    async removeShowcaseItem(showcaseItem, listKey, seed) {
         await removeItem(listKey, seed)
             .then(response => response.json())
-            .then(this.onUpdateShowcaseSuccess(showcaseItem, listKey))
+            .then(this.updateViewAfterRemovingItem(showcaseItem, listKey))
     }
 
-    onUpdateShowcaseSuccess(showcaseItem, listKey) {
+    /**
+     * Hides the given showcase item, and removes "hidden" class from the
+     * appropriate "Add to list" dropdown affordance.
+     *
+     * @param {HTMLElement} showcaseItem Element to be hidden
+     * @param {string} listKey Unique identifier for the list
+     */
+    updateViewAfterRemovingItem(showcaseItem, listKey) {
         const parentList = showcaseItem.closest('ul')
 
         if (!parentList.classList.contains('already-lists')) {  // In the "Lists" section of the books page
@@ -284,6 +386,8 @@ export default class ReadingLists {
      *
      * When the button is clicked, a modal containing the list creation form
      * is displayed. When the modal is closed, the form's inputs are cleared.
+     *
+     * @param {HTMLElement} openListModalButton
      */
     addOpenListModalClickListener(openListModalButton) {
         openListModalButton.addEventListener('click', (event) => {
@@ -306,10 +410,14 @@ export default class ReadingLists {
         document.querySelector('#list_desc').value = ''
     }
 
+    /**
+     * Creates a new list and updates the view.
+     */
     async createNewList() {
         const nameField = document.querySelector('#list_label')
         const descriptionField = document.querySelector('#list_desc')
 
+        // XXX: Double-check if new list can be made on author, subject pages
         let seed;
         if (this.workCheckBox && this.workCheckBox.checked) {
             // seed is work key
@@ -337,6 +445,15 @@ export default class ReadingLists {
         $.colorbox.close()
     }
 
+    /**
+     * Updates patronLists record and adds the list to the showcase.
+     *
+     * Creates and hydrates an "Add to list" dropdown affordance, as well.
+     *
+     * @param {string} listKey Unique identifier for the new list
+     * @param {string} listTitle Title of the list
+     * @param {string} seed Identifies the item that was added to the list
+     */
     onListCreationSuccess(listKey, listTitle, seed) {
         const dropperAnchor = this.createDropdownListAnchor(listKey, listTitle)
 
@@ -357,6 +474,13 @@ export default class ReadingLists {
         this.addToShowcase(listKey, seed, listTitle)
     }
 
+    /**
+     * Creates and hydrates a new, hidden, "Add to list" dropdown affordance.
+     *
+     * @param {string} listKey Unique identifier for a list
+     * @param {string} listTitle The list's title
+     * @returns {HTMLElement} Reference to the newly created element
+     */
     createDropdownListAnchor(listKey, listTitle) {
         const itemMarkUp = `<a href="${listKey}" class="add-to-list dropper__close" data-list-cover-url="${DEFAULT_COVER_URL}" data-list-key="${listKey}">${listTitle}</a>`
         const p = document.createElement('p')
@@ -372,6 +496,15 @@ export default class ReadingLists {
         return p
     }
 
+    /**
+     * Hydrates all given showcase elements.
+     *
+     * Used to hydrate all showcases' items on a page.  If an element is
+     * located within the "Already lists" list, it is added to the
+     * patronLists record.
+     *
+     * @param {NodeList<HTMLElement>} listItemElements 
+     */
     registerListItems(listItemElements) {
         for (const elem of listItemElements) {
             const parentList = elem.closest('ul')

@@ -19,19 +19,12 @@ $def reading_log_cta(work_key, edition_key, user_key, read_status):
 
     <input type="hidden" name="action" value="$(action_value)"/>
     <input type="hidden" name="bookshelf_id" value="$(bookshelf_id_value)"/>
-    $# XXX: Default key used here --- may not be needed
-    $# XXX: Inconsistent naming convention: name hyphenated
-    <!--input type="hidden" name="default-key" value="(seed_key)"/-->
-    $# XXX: May need id="work_id"
     <input type="hidden" name="work_id" value="$(work_key)"/>
     $if edition_key:
-      $# XXX: May need id="edition_id"
       <input type="hidden" name="edition_id" value="$(edition_key)"/>
     $if user_key:
-      $# XXX: Inconsistent naming convention: name hyphenated
       <input type="hidden" name="user-key" value="$(user_key)" />
 
-    $# XXX: Closes dropper
     <button class="book-progress-btn primary-action $(activated_status)" type="submit">
       <span class="activated-check $(checkmark_visibility)">✓</span>
       <span class="btn-text">$(message)</span>

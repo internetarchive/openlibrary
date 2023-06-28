@@ -392,7 +392,6 @@ jQuery(function () {
                 }
                 module.initReadingLogDroppers(readingLogDroppers);
                 // Removable list items:
-                // TODO: Is this the correct place to initalize these?
                 const actionableListItems = document.querySelectorAll('.actionable-item')
                 module.registerListItems(actionableListItems);
             });

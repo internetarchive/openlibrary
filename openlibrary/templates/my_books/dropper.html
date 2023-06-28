@@ -1,31 +1,17 @@
 $def with(page, async_load=False)
 
-$code:
-  '''
-  To start, this should get all of the parameters that the lists/widget gets.
-  In general:
-    1. We must determine if there is a work.  If not, the dropper only contains lists.
-    2. Is the patron logged in?  If not, clicking dropper should redirect to login page.
-       Dropdown doesn't need to be rendered in this situation.
-    3. Ensure that forms contain all the data necessary for a submission (lists and reading log)
-  '''
 $ edition = page if page.key.startswith("/books/") else None
 $ edition_key = edition and edition.key
 $ work = (page.works and page.works[0]) if edition else page if page.key.startswith("/works/") else None
 $ work_key = work and work.key
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
-
-$# XXX: Find more performant way to get read statuses
-$# XXX: Read status values and their meanings should probably be here in a comment
 $ users_work_read_status = get_patrons_work_read_status(username, work_key) if work and username else None
 
 $ seed_info = get_seed_info(page)
 $ user_lists = [] if async_load or not ctx.user else get_user_lists(seed_info)
-$# user_lists = [] if not ctx.user else get_user_lists(seed_info)
 $ page_url = ctx.path
 
-$# XXX: Else condition is for subjects, which can be removed
 $ seed_key = seed_info['seed']['key']
 
 $ additional_classes = 'my-books-dropper'

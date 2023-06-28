@@ -157,7 +157,6 @@ export default class ReadingLogForms {
 
                         if (hasAddedBook) {
                             const primaryButtonClicked = form.classList.contains('primary-action')
-                            // XXX: Why was this using let in the first place?
                             const newBookshelfId = form.querySelector('input[name=bookshelf_id]').value
 
                             if (!primaryButtonClicked) {
@@ -189,7 +188,6 @@ export default class ReadingLogForms {
                     this.updatePrimaryButtonText(newPrimaryButtonText)
                 })
         } else {
-            // XXX: Use async/await to DRY button text updates
             // Remove "saving..." message from button:
             this.updatePrimaryButtonText(newPrimaryButtonText)
         }

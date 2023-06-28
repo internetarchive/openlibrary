@@ -25,6 +25,13 @@ export default class ReadDateComponents {
      * @param {HTMLElement} dropper
      */
     constructor(dropper) {
+        const workIdField = dropper.querySelector('input[name=work_id]')
+
+        // If there is no work ID field, there will be no check-ins for this document
+        if (!workIdField) {
+            return
+        }
+
         const workKey = dropper.querySelector('input[name=work_id]').value
         const workOlid = workKey.split('/').slice(-1).pop()
 

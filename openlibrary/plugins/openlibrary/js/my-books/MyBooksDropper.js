@@ -1,8 +1,17 @@
+/**
+ * Defines functionality related to Open Library's My Books dropper components.
+ * @module my-books/MyBooksDropper
+ */
 import ReadDateComponents from './ReadDateComponents'
 import ReadingLists from './ReadingLists'
 import ReadingLogForms from './ReadingLogForms'
 import { fetchPartials } from '../lists/ListService'
 
+/**
+ * Represents a single My Books dropper.  Hydrates droppers on instantiation.
+ *
+ * @class
+ */
 export default class MyBooksDropper {
     /**
      * Creates references to the given dropper's reading log forms, read date affordances, and
@@ -11,6 +20,10 @@ export default class MyBooksDropper {
      * @param {HTMLElement} dropper
      */
     constructor(dropper) {
+        /**
+         * Reference to the dropper itself.
+         * @param {HTMLElement}
+         */
         this.dropper = dropper
 
         /**
@@ -25,6 +38,10 @@ export default class MyBooksDropper {
          */
         this.readingLogForms = new ReadingLogForms(dropper, this.readDateComponents)
 
+        /**
+         * Reference to this dropper's list content.
+         * @param {ReadingLists}
+         */
         this.readingLists = new ReadingLists(dropper)
 
         this.initialize()
@@ -34,11 +51,13 @@ export default class MyBooksDropper {
         this.loadLists()
     }
 
-    // XXX: Will not work on search results pages
+    /**
+     * Replaces loading indicators with HTML fetched from the server.
+     */
     loadLists() {
         const dropperListPlaceholder = this.dropper.querySelector('.list-loading-indicator')
 
-        // Already lists --- assuming one per page
+        // Already lists showcase --- assuming one per page
         const listDisplayPlaceholder = document.querySelector('.list-overview-loading-indicator')
 
         const loadingIndicators = dropperListPlaceholder ? [dropperListPlaceholder.querySelector('.loading-ellipsis')] : []
@@ -48,7 +67,7 @@ export default class MyBooksDropper {
         const intervalId = this.initLoadingAnimation(loadingIndicators)
 
         let key
-        if (dropperListPlaceholder) {  // Not defined for logged-out patrons
+        if (dropperListPlaceholder) {  // Not rendered for logged-out patrons
             if (dropperListPlaceholder.dataset.editionKey) {
                 key = dropperListPlaceholder.dataset.editionKey
             } else if (dropperListPlaceholder.dataset.workKey) {
@@ -66,6 +85,12 @@ export default class MyBooksDropper {
         }
     }
 
+    /**
+     * Creates loading animation for list affordances.
+     *
+     * @param {Array<HTMLElement>} loadingIndicators
+     * @returns {NodeJS.Timer}
+     */
     initLoadingAnimation(loadingIndicators) {
         let count = 0
         const intervalId = setInterval(function() {
@@ -82,9 +107,23 @@ export default class MyBooksDropper {
         return intervalId
     }
 
-    replaceLoadingIndicators(dropperLists, activeLists, partials) {
-        const dropperParent = dropperLists ? dropperLists.parentElement : null
-        const activeListsParent = activeLists ? activeLists.parentElement : null
+    /**
+     * Object returned by the list partials endpoint.
+     *
+     * @typedef {Object} ListPartials
+     * @property {string} dropper HTML string for dropdown list content
+     * @property {string} active HTML string for patron's active lists
+     */
+    /**
+     * Replaces list loading indicators with the given partially rendered HTML.
+     *
+     * @param {HTMLElement} dropperListsPlaceholder Loading indicator found inside of the dropdown content
+     * @param {HTMLElement} activeListsPlaceholder Loading indicator for patron's active lists
+     * @param {ListPartials} partials
+     */
+    replaceLoadingIndicators(dropperListsPlaceholder, activeListsPlaceholder, partials) {
+        const dropperParent = dropperListsPlaceholder ? dropperListsPlaceholder.parentElement : null
+        const activeListsParent = activeListsPlaceholder ? activeListsPlaceholder.parentElement : null
 
         if (dropperParent) {
             this.removeChildren(dropperParent)
@@ -102,6 +141,11 @@ export default class MyBooksDropper {
         }
     }
 
+    /**
+     * Removes children of each given element.
+     *
+     * @param  {Array<HTMLElement>} elements
+     */
     removeChildren(...elements) {
         for (const elem of elements) {
             if (elem) {
