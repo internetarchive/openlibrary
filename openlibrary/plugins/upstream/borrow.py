@@ -163,16 +163,16 @@ class borrow(delegate.page):
             user.update_loan_status()
             raise web.seeother(web.ctx.path)
         elif action == 'join-waitinglist':
-            waitinglist.WaitingLoan.get_cached_waiting_loan.memcache_delete(
-                user.key, edition.ocaid, None, {}
-            )  # invalidate cache for user waiting loan
+            waitinglist.WaitingLoan.fetch_cached_user_waiting_loans.memcache_delete(
+                user.key, {}
+            )  # invalidate cache for user waiting loans
             lending.s3_loan_api(edition.ocaid, s3_keys, action='join_waitlist')
             stats.increment('ol.loans.joinWaitlist')
             raise web.redirect(edition_redirect)
         elif action == 'leave-waitinglist':
-            waitinglist.WaitingLoan.get_cached_waiting_loan.memcache_delete(
-                user.key, edition.ocaid, None, {}
-            )  # invalidate cache for user waiting loan
+            waitinglist.WaitingLoan.fetch_cached_user_waiting_loans.memcache_delete(
+                user.key, {}
+            )  # invalidate cache for user waiting loans
             lending.s3_loan_api(edition.ocaid, s3_keys, action='leave_waitlist')
             stats.increment('ol.loans.leaveWaitlist')
             raise web.redirect(edition_redirect)

@@ -915,21 +915,29 @@ class User(Thing):
         from ..plugins.upstream import borrow
 
         loans = (
-            lending.get_cached_user_loans(self) if use_cache else borrow.get_loans(self)
+            lending.get_cached_user_loans(self.key) if use_cache else borrow.get_loans(self)
         )
         for loan in loans:
             if ocaid == loan['ocaid']:
                 return loan
 
-    def get_waiting_loan_for(self, ocaid, use_cache=False):
+    def get_waiting_loan_for(self, ocaid):
         """
         :param str or None ocaid: edition ocaid
-        :param bool use_cache: whether to use cached value, defaults to False
         :rtype: dict (e.g. {position: number})
         """
-        if use_cache:
-            return ocaid and WaitingLoan.get_cached_waiting_loan(self.key, ocaid)
         return ocaid and WaitingLoan.find(self.key, ocaid)
+    
+    def get_user_waiting_loans(self, ocaid=None, use_cache=False):
+        """
+        Similar to get_waiting_loan_for, but fetches and caches all of user's waiting loans
+        :param str or None ocaid: edition ocaid
+        :rtype: dict (e.g. {position: number})
+        """
+        all_user_waiting_loans = WaitingLoan.fetch_cached_user_waiting_loans(self.key) if use_cache else WaitingLoan.fetch_user_waiting_loans(self.key)
+        if ocaid:
+            return ocaid and next((loan for loan in all_user_waiting_loans if loan['ocaid'] == ocaid), None)
+        return all_user_waiting_loans
 
     def __repr__(self):
         return "<User: %s>" % repr(self.key)

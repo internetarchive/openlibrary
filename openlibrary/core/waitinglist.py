@@ -133,13 +133,30 @@ class WaitingLoan(dict):
         result = cls.query(userid=itemname, identifier=identifier)
         if result:
             return result[0]
-
+    
     @classmethod
-    @cache.memoize(
-        engine="memcache", key="gt-waiting-loan", expires=5 * dateutil.MINUTE_SECS
+    def find_all(cls, user_key):
+        """Returns the waitingloans of the user.
+
+        Returns [] if user has no waitingloans.
+        """
+        account = OpenLibraryAccount.get(key=user_key)
+        itemname = account.itemname
+        result = cls.query(userid=itemname)
+        return result or []
+    
+    @classmethod
+    def fetch_user_waiting_loans(cls, user_key):
+        """
+        Fetches all the waiting loans for a user and store in memcache
+        """
+        return cls.find_all(cls, user_key)
+    
+    fetch_cached_user_waiting_loans = cache.memcache_memoize(
+        fetch_user_waiting_loans,
+        key_prefix='waitinglist.user_waiting_loans',
+        timeout=10 * dateutil.MINUTE_SECS,  # time to live for cached waiting loans = 10 minutes
     )
-    def get_cached_waiting_loan(cls, user_key, identifier, itemname=None):
-        return cls.find(cls, user_key, identifier, itemname)
 
     @classmethod
     def prune_expired(cls, identifier=None):

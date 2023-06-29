@@ -17,7 +17,7 @@ $ ocaid = doc.get('ocaid') or availability.get('identifier')
 $ work_key = work_key or (doc.get('works') and doc.works[0].key)
 
 $ waiting_loan_start_time = time()
-$ waiting_loan = check_loan_status and ocaid and ctx.user and ctx.user.get_waiting_loan_for(ocaid, use_cache=True)
+$ waiting_loan = check_loan_status and ocaid and ctx.user and ctx.user.get_user_waiting_loans(ocaid, use_cache=True)
 $ waiting_loan_total_time = time() - waiting_loan_start_time
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
 
