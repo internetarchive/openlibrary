@@ -150,7 +150,7 @@ class WaitingLoan(dict):
         """
         Fetches all the waiting loans for a user and store in memcache
         """
-        return cls.find_all(cls, user_key)
+        return cls.find_all(user_key)
 
     fetch_cached_user_waiting_loans = cache.memcache_memoize(
         fetch_user_waiting_loans,
