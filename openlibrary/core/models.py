@@ -943,7 +943,11 @@ class User(Thing):
         )
         if ocaid:
             return ocaid and next(
-                (loan for loan in all_user_waiting_loans if loan['identifier'] == ocaid),
+                (
+                    loan
+                    for loan in all_user_waiting_loans
+                    if loan['identifier'] == ocaid
+                ),
                 None,
             )
         return all_user_waiting_loans
