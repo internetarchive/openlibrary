@@ -834,6 +834,8 @@ def get_markdown(text, safe_mode=False):
 
 
 class HTML(str):
+    __slots__ = ()
+
     def __init__(self, html):
         str.__init__(self, web.safeunicode(html))
 
