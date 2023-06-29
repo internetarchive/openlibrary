@@ -32,9 +32,19 @@ def parse_datetime(value: datetime | str) -> datetime:
     return datetime(*(int(token) for token in tokens))  # type: ignore[arg-type]
 
 
-pytest.mark.parametrize(
+@pytest.mark.parametrize(
     "data,expected",
     [
+        ({}, {}),
+        ({"value": "", "type": "/type/text"}, ""),
+        ({"value": "hello, world"}, {"value": "hello, world"}),
+        ({"value": "hello, world", "type": "/type/text"}, Text("hello, world")),
+        ({"type": "/type/invalid", "value": "hello, world"}, "hello, world"),
+        ([{"type": "/type/invalid", "value": "hello, world"}], ["hello, world"]),
+        (
+            {"value": "2009-01-02T03:04:05.006789", "type": "/type/datetime"},
+            parse_datetime("2009-01-02T03:04:05.006789"),
+        ),
         (
             [
                 {"type": "/type/text", "value": "hello, world"},
@@ -45,13 +55,6 @@ pytest.mark.parametrize(
                 parse_datetime("2009-01-02T03:04:05.006789"),
             ],
         ),
-        ({"value": "hello, world", "type": "/type/text"}, Text("hello, world")),
-        (
-            {"value": "2009-01-02T03:04:05.006789", "type": "/type/datetime"},
-            parse_datetime("2009-01-02T03:04:05.006789"),
-        ),
-        ({}, {}),
-        ({"value": "hello, world"}, {"value": "hello, world"}),
         (
             {
                 "key1": "value1",
@@ -64,12 +67,7 @@ pytest.mark.parametrize(
                 "key3": "2009-01-02T03:04:05.006789",
             },
         ),
-        ([{"type": "/type/invalid", "value": "hello, world"}], ["hello, world"]),
-        ({"type": "/type/invalid", "value": "hello, world"}, "hello, world"),
-        ({"value": "", "type": "/type/text"}, ""),
     ],
 )
-
-
 def test_unmarshal(data, expected) -> None:
     assert unmarshal(data) == expected
