@@ -9,6 +9,7 @@ from statistics import median
 from typing import Literal, Optional, cast, Any, Union
 from collections.abc import Iterable
 
+import aiofiles
 import httpx
 import requests
 import sys
@@ -1495,11 +1496,10 @@ async def update_keys(
             requests += [CommitRequest()]
 
         if output_file:
-            with open(output_file, "w") as f:
+            async with aiofiles.open(output_file, "w") as f:
                 for r in requests:
                     if isinstance(r, AddRequest):
-                        f.write(r.tojson())
-                        f.write("\n")
+                        await f.write(f"{r.tojson()}\n")
         else:
             _solr_update(requests)
 
@@ -1517,11 +1517,10 @@ async def update_keys(
 
     if requests:
         if output_file:
-            with open(output_file, "w") as f:
+            async with aiofiles.open(output_file, "w") as f:
                 for r in requests:
                     if isinstance(r, AddRequest):
-                        f.write(r.tojson())
-                        f.write("\n")
+                        await f.write(f"{r.tojson()}\n")
         else:
             if commit:
                 requests += [CommitRequest()]

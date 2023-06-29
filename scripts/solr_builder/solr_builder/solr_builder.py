@@ -11,6 +11,7 @@ import time
 import uuid
 from collections import namedtuple
 
+import aiofiles
 import psycopg2
 
 from openlibrary.core.bookshelves import Bookshelves
@@ -535,10 +536,10 @@ async def main(
 
         if progress:
             # Clear the file
-            with open(progress, 'w') as f:
-                f.write('')
-            with open(progress, 'a') as f:
-                f.write('Calculating total... ')
+            async with aiofiles.open(progress, 'w') as f:
+                await f.write('')
+            async with aiofiles.open(progress, 'a') as f:
+                await f.write('Calculating total... ')
 
         start = time.time()
         q_count = """SELECT COUNT(*) FROM(%s) AS foo""" % q
@@ -546,9 +547,9 @@ async def main(
         end = time.time()
 
         if progress:
-            with open(progress, 'a') as f:
-                f.write('%d (%.2fs)\n' % (count, end - start))
-                f.write('\t'.join(PLogEntry._fields) + '\n')
+            async with aiofiles.open(progress, 'a') as f:
+                await f.write('%d (%.2fs)\n' % (count, end - start))
+                await f.write('\t'.join(PLogEntry._fields) + '\n')
 
         plog.log(
             PLogEntry(0, count, '0.00%', 0, '?', '?', '?', '?', '?', start_at or '?')
