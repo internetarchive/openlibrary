@@ -930,7 +930,7 @@ class User(Thing):
         :rtype: dict (e.g. {position: number})
         """
         return ocaid and WaitingLoan.find(self.key, ocaid)
-    
+
     def fetch_user_waiting_loans(self, user_key):
         """Returns the waitingloans of the user.
 
