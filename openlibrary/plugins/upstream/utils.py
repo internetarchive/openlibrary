@@ -295,7 +295,7 @@ def unflatten(d: Storage, separator: str = "--") -> Storage:
             if all(isint(k) for k in d):
                 return [makelist(d[k]) for k in sorted(d, key=int)]
             else:
-                return web.storage((k, makelist(v)) for k, v in d.items())
+                return Storage((k, makelist(v)) for k, v in d.items())
         else:
             return d
 
@@ -383,7 +383,7 @@ def get_changes_v1(
     # uses the cached function _get_changes_v1_raw to get the raw data
     # and processes to before returning.
     def process(v):
-        v = web.storage(v)
+        v = Storage(v)
         v.created = parse_datetime(v.created)
         v.author = v.author and web.ctx.site.get(v.author, lazy=True)
         return v
@@ -452,7 +452,7 @@ def get_changes(
 
 @public
 def get_history(page: "Work | Author | Edition") -> Storage:
-    h = web.storage(
+    h = Storage(
         revision=page.revision, lastest_revision=page.revision, created=page.created
     )
     if h.revision < 5:
@@ -659,7 +659,7 @@ def parse_toc_row(line):
         title = text
         label = page = ""
 
-    return web.storage(
+    return Storage(
         level=len(level), label=label.strip(), title=title.strip(), pagenum=page.strip()
     )
 
@@ -706,7 +706,7 @@ def get_languages() -> dict:
     return {lang.key: lang for lang in web.ctx.site.get_many(keys)}
 
 
-def autocomplete_languages(prefix: str) -> Iterator[web.storage]:
+def autocomplete_languages(prefix: str) -> Iterator[Storage]:
     """
     Given, e.g., "English", this returns an iterator of:
         <Storage {'key': '/languages/ang', 'code': 'ang', 'name': 'English, Old (ca. 450-1100)'}>
@@ -722,7 +722,7 @@ def autocomplete_languages(prefix: str) -> Iterator[web.storage]:
     for lang in get_languages().values():
         user_lang_name = safeget(lambda: lang['name_translated'][user_lang][0])
         if user_lang_name and normalize(user_lang_name).startswith(prefix):
-            yield web.storage(
+            yield Storage(
                 key=lang.key,
                 code=lang.code,
                 name=user_lang_name,
@@ -732,7 +732,7 @@ def autocomplete_languages(prefix: str) -> Iterator[web.storage]:
         lang_iso_code = safeget(lambda: lang['identifiers']['iso_639_1'][0])
         native_lang_name = safeget(lambda: lang['name_translated'][lang_iso_code][0])
         if native_lang_name and normalize(native_lang_name).startswith(prefix):
-            yield web.storage(
+            yield Storage(
                 key=lang.key,
                 code=lang.code,
                 name=native_lang_name,
@@ -740,7 +740,7 @@ def autocomplete_languages(prefix: str) -> Iterator[web.storage]:
             continue
 
         if normalize(lang.name).startswith(prefix):
-            yield web.storage(
+            yield Storage(
                 key=lang.key,
                 code=lang.code,
                 name=lang.name,
@@ -833,10 +833,10 @@ def _get_author_config():
     """
     thing = web.ctx.site.get('/config/author')
     if hasattr(thing, "identifiers"):
-        identifiers = [web.storage(t.dict()) for t in thing.identifiers if 'name' in t]
+        identifiers = [Storage(t.dict()) for t in thing.identifiers if 'name' in t]
     else:
         identifiers = {}
-    return web.storage(identifiers=identifiers)
+    return Storage(identifiers=identifiers)
 
 
 @public
@@ -853,12 +853,10 @@ def _get_edition_config():
     This is is cached because fetching and creating the Thing object was taking about 20ms of time for each book request.
     """
     thing = web.ctx.site.get('/config/edition')
-    classifications = [
-        web.storage(t.dict()) for t in thing.classifications if 'name' in t
-    ]
-    identifiers = [web.storage(t.dict()) for t in thing.identifiers if 'name' in t]
+    classifications = [Storage(t.dict()) for t in thing.classifications if 'name' in t]
+    identifiers = [Storage(t.dict()) for t in thing.identifiers if 'name' in t]
     roles = thing.roles
-    return web.storage(
+    return Storage(
         classifications=classifications, identifiers=identifiers, roles=roles
     )
 
@@ -889,7 +887,7 @@ _websafe = web.websafe
 def websafe(text: str) -> str:
     if isinstance(text, HTML):
         return text
-    elif isinstance(text, web.template.TemplateResult):
+    elif isinstance(text, TemplateResult):
         return web.safestr(text)
     else:
         return _websafe(text)
@@ -974,10 +972,10 @@ def _get_recent_changes():
     result = result[:50]
 
     def process_thing(thing):
-        t = web.storage()
+        t = Storage()
         for k in ["key", "title", "name", "displayname"]:
             t[k] = thing[k]
-        t['type'] = web.storage(key=thing.type.key)
+        t['type'] = Storage(key=thing.type.key)
         return t
 
     for r in result:
@@ -1122,7 +1120,7 @@ def item_image(image_path: str | None, default: str | None = None) -> str | None
 @public
 def get_blog_feeds() -> list[Storage]:
     def process(post):
-        post = web.storage(post)
+        post = Storage(post)
         post.pubdate = parse_datetime(post.pubdate)
         return post
 
