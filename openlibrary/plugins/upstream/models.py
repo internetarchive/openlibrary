@@ -1007,7 +1007,6 @@ class ListChangeset(Changeset):
         return models.Seed(self.get_list(), seed)
 
 
-
 def setup():
     models.register_models()
 
