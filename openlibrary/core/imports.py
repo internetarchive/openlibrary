@@ -233,7 +233,7 @@ class Stats:
                 timeout=60 * 60,
             )(ndays=ndays)
             # Don't cache today
-            date_counts[0] = cls._get_count_by_date_status(ndays=1)
+            date_counts[0] = cls._get_count_by_date_status(ndays=1)[0]
             return date_counts
         return cls._get_count_by_date_status(ndays=ndays)
 
