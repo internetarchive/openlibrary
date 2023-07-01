@@ -450,9 +450,7 @@ class Test_build_data:
 
     @pytest.mark.asyncio()
     @pytest.mark.parametrize(
-        ('doc_lccs', 'solr_lccs', 'sort_lcc_index'),
-        LCC_TESTS.values(),
-        ids=LCC_TESTS.keys(),
+        "doc_lccs,solr_lccs,sort_lcc_index", LCC_TESTS.values(), ids=LCC_TESTS.keys()
     )
     async def test_lccs(self, doc_lccs, solr_lccs, sort_lcc_index):
         work = make_work()
@@ -494,9 +492,7 @@ class Test_build_data:
 
     @pytest.mark.asyncio()
     @pytest.mark.parametrize(
-        ('doc_ddcs', 'solr_ddcs', 'sort_ddc_index'),
-        DDC_TESTS.values(),
-        ids=DDC_TESTS.keys(),
+        "doc_ddcs,solr_ddcs,sort_ddc_index", DDC_TESTS.values(), ids=DDC_TESTS.keys()
     )
     async def test_ddcs(self, doc_ddcs, solr_ddcs, sort_ddc_index):
         work = make_work()

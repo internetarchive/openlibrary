@@ -88,7 +88,7 @@ bookseller_titles = [
 ]
 
 
-@pytest.mark.parametrize(('full_title', 'title', 'subtitle'), bookseller_titles)
+@pytest.mark.parametrize('full_title,title,subtitle', bookseller_titles)
 def test_split_subtitle(full_title, title, subtitle):
     assert split_subtitle(full_title) == (title, subtitle)
 

@@ -45,7 +45,7 @@ isbn_cases = [
 ]
 
 
-@pytest.mark.parametrize(('isbnlike', 'expected'), isbn_cases)
+@pytest.mark.parametrize('isbnlike,expected', isbn_cases)
 def test_normalize_isbn(isbnlike, expected):
     assert normalize_isbn(isbnlike) == expected
 
