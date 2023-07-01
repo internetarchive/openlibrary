@@ -2,7 +2,6 @@ import logging
 import re
 from functools import cached_property
 
-import requests
 import sys
 import web
 

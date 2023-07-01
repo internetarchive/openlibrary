@@ -1,9 +1,7 @@
 import datetime
 import itertools
 import logging
-import os
 import re
-from json import JSONDecodeError
 from math import ceil
 from statistics import median
 from typing import Literal, Optional, cast, Any, Union
@@ -15,12 +13,9 @@ import sys
 import time
 
 from httpx import HTTPError, HTTPStatusError, TimeoutException
-from urllib.parse import urlparse
 from collections import defaultdict
-from unicodedata import normalize
 
 import json
-from http.client import HTTPConnection
 import web
 
 from openlibrary import config
