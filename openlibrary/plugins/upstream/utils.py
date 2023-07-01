@@ -40,6 +40,9 @@ from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
 from openlibrary.core import cache
 
+from web.utils import Storage
+from web.template import TemplateResult
+
 if TYPE_CHECKING:
     from openlibrary.core.models import Thing, List
     from openlibrary.plugins.upstream.models import (
@@ -50,8 +53,6 @@ if TYPE_CHECKING:
         Author,
         Edition,
     )
-    from web.utils import Storage
-    from web.template import TemplateResult
 
 
 STRIP_CHARS = ",'\" "
@@ -108,7 +109,7 @@ class MultiDict(MutableMapping):
         else:
             raise KeyError(key)
 
-    def __setitem__(self, key: str, value: "Storage") -> None:
+    def __setitem__(self, key: str, value: Storage) -> None:
         self._items.append((key, value))
 
     def __delitem__(self, key):
@@ -129,13 +130,13 @@ class MultiDict(MutableMapping):
     # Subclasses of MutableMapping should return a dictionary view object for
     # the values() method, but this implementation returns a list.
     # https://docs.python.org/3/library/stdtypes.html#dict-views
-    def values(self) -> list[Union["Storage", Any]]:  # type: ignore[override]
+    def values(self) -> list[Storage | Any]:  # type: ignore[override]
         return [v for k, v in self._items]
 
     def items(self):
         return self._items[:]
 
-    def multi_items(self) -> list[Union[Any, tuple[str, list["Storage"]]]]:
+    def multi_items(self) -> list[Any | tuple[str, list[Storage]]]:
         """Returns items as tuple of key and a list of values."""
         items = []
         d: dict = {}
@@ -150,7 +151,7 @@ class MultiDict(MutableMapping):
 
 @macro
 @public
-def render_template(name: str, *a, **kw) -> "TemplateResult":
+def render_template(name: str, *a, **kw) -> TemplateResult:
     if "." in name:
         name = name.rsplit(".", 1)[0]
     return render[name](*a, **kw)
@@ -264,7 +265,7 @@ def json_encode(d):
     return json.dumps(d)
 
 
-def unflatten(d: "Storage", separator: str = "--") -> "Storage":
+def unflatten(d: Storage, separator: str = "--") -> Storage:
     """Convert flattened data into nested form.
 
     >>> unflatten({"a": 1, "b--x": 2, "b--y": 3, "c--0": 4, "c--1": 5})
@@ -354,8 +355,8 @@ def get_coverstore_public_url() -> str:
 
 
 def _get_changes_v1_raw(
-    query: dict[str, Union[str, int]], revision: Optional[int] = None
-) -> list["Storage"]:
+    query: dict[str, str | int], revision: int | None = None
+) -> list[Storage]:
     """Returns the raw versions response.
 
     Revision is taken as argument to make sure a new cache entry is used when a new revision of the page is created.
@@ -377,8 +378,8 @@ def _get_changes_v1_raw(
 
 
 def get_changes_v1(
-    query: dict[str, Union[str, int]], revision: Optional[int] = None
-) -> list["Storage"]:
+    query: dict[str, str | int], revision: int | None = None
+) -> list[Storage]:
     # uses the cached function _get_changes_v1_raw to get the raw data
     # and processes to before returning.
     def process(v):
@@ -391,7 +392,7 @@ def get_changes_v1(
 
 
 def _get_changes_v2_raw(
-    query: dict[str, Union[str, int]], revision: Optional[int] = None
+    query: dict[str, str | int], revision: int | None = None
 ) -> list[dict]:
     """Returns the raw recentchanges response.
 
@@ -409,8 +410,8 @@ def _get_changes_v2_raw(
 
 
 def get_changes_v2(
-    query: dict[str, Union[str, int]], revision: Optional[int] = None
-) -> list[Union["Changeset", "AddBookChangeset", "ListChangeset"]]:
+    query: dict[str, str | int], revision: int | None = None
+) -> list["Changeset | AddBookChangeset | ListChangeset"]:
     page = web.ctx.site.get(query['key'])
 
     def first(seq, default=None):
@@ -444,13 +445,13 @@ def get_changes_v2(
 
 
 def get_changes(
-    query: dict[str, Union[str, int]], revision: Optional[int] = None
-) -> list[Union["Changeset", "AddBookChangeset", "ListChangeset"]]:
+    query: dict[str, str | int], revision: int | None = None
+) -> list["Changeset | AddBookChangeset | ListChangeset"]:
     return get_changes_v2(query, revision=revision)
 
 
 @public
-def get_history(page: Union["Work", "Author", "Edition"]) -> "Storage":
+def get_history(page: "Work | Author | Edition") -> Storage:
     h = web.storage(
         revision=page.revision, lastest_revision=page.revision, created=page.created
     )
@@ -477,7 +478,7 @@ def get_version(key, revision):
 
 
 @public
-def get_recent_author(doc: "Work") -> Union["Thing", None]:
+def get_recent_author(doc: "Work") -> "Thing | None":
     versions = get_changes_v1(
         {'key': doc.key, 'limit': 1, "offset": 0}, revision=doc.revision
     )
@@ -503,8 +504,8 @@ def get_locale():
 
 @public
 def process_version(
-    v: Union["List", "AddBookChangeset", "Changeset", "ListChangeset"]
-) -> Union["List", "AddBookChangeset", "Changeset", "ListChangeset"]:
+    v: "List | AddBookChangeset | Changeset | ListChangeset",
+) -> "List | AddBookChangeset | Changeset | ListChangeset":
     """Looks at the version and adds machine_comment required for showing "View MARC" link."""
     comments = [
         "found a matching marc record",
@@ -535,7 +536,7 @@ def is_thing(t):
 
 
 @public
-def putctx(key: str, value: Union[str, bool]) -> str:
+def putctx(key: str, value: str | bool) -> str:
     """Save a value in the context."""
     context[key] = value
     return ""
@@ -568,7 +569,7 @@ def url_quote(text: str | bytes) -> str:
 
 
 @public
-def urlencode(dict_or_list_of_tuples: Union[dict, list[tuple[str, Any]]]) -> str:
+def urlencode(dict_or_list_of_tuples: dict | list[tuple[str, Any]]) -> str:
     """
     You probably want to use this, if you're looking to urlencode parameters. This will
     encode things to utf8 that would otherwise cause urlencode to error.
@@ -589,7 +590,7 @@ def entity_decode(text: str) -> str:
 
 @public
 def set_share_links(
-    url: str = '#', title: str = '', view_context: Optional[InfogamiContext] = None
+    url: str = '#', title: str = '', view_context: InfogamiContext | None = None
 ) -> None:
     """
     Constructs list share links for social platforms and assigns to view context attribute
@@ -785,7 +786,7 @@ def get_abbrev_from_full_lang_name(input_lang_name: str, languages=None) -> str:
     return target_abbrev
 
 
-def get_language(lang_or_key: str) -> Union[None, "Thing", "Nothing"]:
+def get_language(lang_or_key: str) -> "None | Thing | Nothing":
     if isinstance(lang_or_key, str):
         return get_languages().get(lang_or_key)
     else:
@@ -793,7 +794,7 @@ def get_language(lang_or_key: str) -> Union[None, "Thing", "Nothing"]:
 
 
 @public
-def get_language_name(lang_or_key: Union[Nothing, str, "Thing"]) -> Union[Nothing, str]:
+def get_language_name(lang_or_key: "Nothing | str | Thing") -> Nothing | str:
     if isinstance(lang_or_key, str):
         lang = get_language(lang_or_key)
         if not lang:
@@ -806,7 +807,7 @@ def get_language_name(lang_or_key: Union[Nothing, str, "Thing"]) -> Union[Nothin
 
 
 @functools.cache
-def convert_iso_to_marc(iso_639_1: str) -> Union[str, None]:
+def convert_iso_to_marc(iso_639_1: str) -> str | None:
     """
     e.g. 'en' -> 'eng'
     """
@@ -839,7 +840,7 @@ def _get_author_config():
 
 
 @public
-def get_edition_config() -> "Storage":
+def get_edition_config() -> Storage:
     return _get_edition_config()
 
 
@@ -1110,9 +1111,7 @@ def get_ia_host(allow_dev: bool = False) -> str:
 
 
 @public
-def item_image(
-    image_path: Optional[str], default: Optional[str] = None
-) -> str | None:  ###
+def item_image(image_path: str | None, default: str | None = None) -> str | None:
     if image_path is None:
         return default
     if image_path.startswith('https:'):
@@ -1121,7 +1120,7 @@ def item_image(
 
 
 @public
-def get_blog_feeds() -> list["Storage"]:
+def get_blog_feeds() -> list[Storage]:
     def process(post):
         post = web.storage(post)
         post.pubdate = parse_datetime(post.pubdate)
