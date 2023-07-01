@@ -1,5 +1,4 @@
 # from py.test import config
-import web
 import json
 
 import cookielib
