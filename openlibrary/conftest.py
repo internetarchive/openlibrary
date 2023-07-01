@@ -43,7 +43,7 @@ def no_sleep(monkeypatch):
     monkeypatch.setattr("time.sleep", mock_sleep)
 
 
-@pytest.fixture
+@pytest.fixture()
 def monkeytime(monkeypatch):
     cur_time = 1
 
@@ -58,12 +58,12 @@ def monkeytime(monkeypatch):
     monkeypatch.setattr("time.sleep", sleep)
 
 
-@pytest.fixture
+@pytest.fixture()
 def wildcard():
     return Wildcard()
 
 
-@pytest.fixture
+@pytest.fixture()
 def render_template(request):
     """Utility to test templates."""
     template.load_templates("openlibrary")

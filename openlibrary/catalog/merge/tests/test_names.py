@@ -32,7 +32,7 @@ samples = [
 ]
 
 
-@pytest.mark.parametrize('amazon,marc', samples)
+@pytest.mark.parametrize(("amazon", "marc"), samples)
 def test_names(amazon, marc):
     assert names.match_name(amazon, marc)
 
