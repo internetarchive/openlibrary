@@ -108,7 +108,7 @@ class show_marc(app.view):
             loc = f'CollingswoodLibraryMarcDump10-27-2008/Collingswood.out:{offset}:{length}'
             raise web.seeother('/show-records/' + loc)
 
-        loc = ':'.join(['marc', filename, offset, length])
+        loc = f"marc:{filename}:{offset}:{length}"
 
         books = web.ctx.site.things(
             {
