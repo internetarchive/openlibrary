@@ -2,7 +2,6 @@
 """
 import json
 import random
-import tempfile
 import web
 
 from infogami.utils import delegate

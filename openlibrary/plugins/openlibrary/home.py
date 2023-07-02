@@ -1,6 +1,5 @@
 """Controller for home page.
 """
-import datetime
 import random
 import web
 import logging

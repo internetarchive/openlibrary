@@ -1,5 +1,4 @@
 import functools
-from dataclasses import dataclass
 from typing import Any
 from collections.abc import Iterable, Iterator
 import unicodedata

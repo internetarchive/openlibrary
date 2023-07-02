@@ -18,11 +18,8 @@ Functions with names other than the these will not be called from the
 main harness. They can be utility functions.
 
 """
-import calendar
 import functools
 import logging
-import requests
-import tempfile
 
 import web
 
