@@ -1,4 +1,3 @@
-from importlib import import_module
 import sys
 from unittest.mock import MagicMock
 
