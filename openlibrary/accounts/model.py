@@ -444,13 +444,11 @@ class OpenLibraryAccount(Account):
         username = new_username
         if test:
             return cls(
-                **{
-                    'itemname': '@' + username,
-                    'email': email,
-                    'username': username,
-                    'displayname': displayname,
-                    'test': True,
-                }
+                itemname=f'@{username}',
+                email=email,
+                username=username,
+                displayname=displayname,
+                test=True,
             )
         try:
             account = web.ctx.site.register(
@@ -751,12 +749,10 @@ class InternetArchiveAccount(web.storage):
     @classmethod
     def authenticate(cls, email, password, test=False):
         email = email.strip().lower()
-        response = cls.xauth(
-            'authenticate', test=test, **{"email": email, "password": password}
-        )
+        response = cls.xauth('authenticate', test=test, email=email, password=password)
         if not response.get('success'):
             reason = response['values'].get('reason')
-            if reason and reason == 'account_not_verified':
+            if reason == 'account_not_verified':
                 response['values']['reason'] = 'ia_account_not_verified'
         return response
 
