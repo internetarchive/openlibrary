@@ -28,7 +28,7 @@ def open_test_data(filename):
     return open(fullpath, mode='rb')
 
 
-@pytest.fixture
+@pytest.fixture()
 def ia_writeback(monkeypatch):
     """Prevent ia writeback from making live requests."""
     monkeypatch.setattr(add_book, 'update_ia_metadata_for_ol_edition', lambda olid: {})
@@ -143,7 +143,8 @@ def test_load_test_item(mock_site, add_languages, ia_writeback):
     assert e.ocaid == 'test_item'
     assert e.source_records == ['ia:test_item']
     languages = e.languages
-    assert len(languages) == 1 and languages[0].key == '/languages/eng'
+    assert len(languages) == 1
+    assert languages[0].key == '/languages/eng'
 
     assert reply['work']['status'] == 'created'
     w = mock_site.get(reply['work']['key'])

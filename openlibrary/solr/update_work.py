@@ -838,9 +838,8 @@ def build_data2(
                 ia_loaded_id.add(e['ia_loaded_id'])
             else:
                 try:
-                    assert isinstance(e['ia_loaded_id'], list) and isinstance(
-                        e['ia_loaded_id'][0], str
-                    )
+                    assert isinstance(e['ia_loaded_id'], list)
+                    assert isinstance(e['ia_loaded_id'][0], str)
                 except AssertionError:
                     logger.error(
                         "AssertionError: ia=%s, ia_loaded_id=%s",
@@ -854,9 +853,8 @@ def build_data2(
                 ia_box_id.add(e['ia_box_id'])
             else:
                 try:
-                    assert isinstance(e['ia_box_id'], list) and isinstance(
-                        e['ia_box_id'][0], str
-                    )
+                    assert isinstance(e['ia_box_id'], list)
+                    assert isinstance(e['ia_box_id'][0], str)
                 except AssertionError:
                     logger.error("AssertionError: %s", e['key'])
                     raise

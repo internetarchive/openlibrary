@@ -80,7 +80,8 @@ def test_create(config):
         "seeds": ["subject:cheese"],
     }
     result = api.create_list(data)
-    assert "key" in result and result['revision'] == 1
+    assert "key" in result
+    assert result['revision'] == 1
     list_key = result['key']
 
     # test get

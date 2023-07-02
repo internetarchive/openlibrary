@@ -563,7 +563,8 @@ def add_db_name(rec):
     for a in rec['authors']:
         date = None
         if 'date' in a:
-            assert 'birth_date' not in a and 'death_date' not in a
+            assert 'birth_date' not in a
+            assert 'death_date' not in a
             date = a['date']
         elif 'birth_date' in a or 'death_date' in a:
             date = a.get('birth_date', '') + '-' + a.get('death_date', '')

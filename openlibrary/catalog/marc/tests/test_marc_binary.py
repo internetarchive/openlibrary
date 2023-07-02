@@ -21,7 +21,8 @@ def test_wrapped_lines():
     ret = list(rec.read_fields(['520']))
     assert len(ret) == 2
     a, b = ret
-    assert a[0] == '520' and b[0] == '520'
+    assert a[0] == '520'
+    assert b[0] == '520'
     a_content = list(a[1].get_all_subfields())[0][1]
     assert len(a_content) == 2290
     b_content = list(b[1].get_all_subfields())[0][1]
