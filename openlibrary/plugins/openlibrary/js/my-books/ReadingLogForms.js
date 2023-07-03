@@ -92,21 +92,18 @@ export default class ReadingLogForms {
          */
         this.readDateComponents = readDateComponents
 
-        const readingLogForms = dropper.querySelectorAll('form.reading-log')
-        const isDropperDisabled = dropper.classList.contains('g-dropper--disabled')
-        this.initialize(readingLogForms, isDropperDisabled)
+        this.readingLogForms = dropper.querySelectorAll('form.reading-log')
+        this.isDropperDisabled = dropper.classList.contains('g-dropper--disabled')
+        // this.initialize(readingLogForms, isDropperDisabled)
     }
 
     /**
-     * Adds click listeners to each of the given form's submit buttons.
-     *
-     * @param {NodeList<HTMLFormElement>} readingLogForms
-     * @param {boolean} isDropperDisabled
+     * Adds click listeners to each of the form's submit buttons.
      */
-    initialize(readingLogForms, isDropperDisabled) {
-        if (!isDropperDisabled) {
-            if (readingLogForms.length) {
-                for (const form of readingLogForms) {
+    initialize() {
+        if (!this.isDropperDisabled) {
+            if (this.readingLogForms.length) {
+                for (const form of this.readingLogForms) {
                     const submitButton = form.querySelector('button[type=submit]')
                     submitButton.addEventListener('click', (event) => {
                         event.preventDefault()

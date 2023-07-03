@@ -37,14 +37,14 @@ export default class MyBooksDropper {
          * @param {ReadingLogForms}
          */
         this.readingLogForms = new ReadingLogForms(dropper, this.readDateComponents)
+        this.readingLogForms.initialize()
 
         /**
          * Reference to this dropper's list content.
          * @param {ReadingLists}
          */
         this.readingLists = new ReadingLists(dropper)
-
-        this.initialize()
+        this.readingLists.initialize()
     }
 
     initialize() {

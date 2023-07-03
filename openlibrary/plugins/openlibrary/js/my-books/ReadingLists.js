@@ -87,7 +87,7 @@ export default class ReadingLists {
          */
         this.patronLists = {}
 
-        this.initialize()
+        // this.initialize()
     }
 
     /**
