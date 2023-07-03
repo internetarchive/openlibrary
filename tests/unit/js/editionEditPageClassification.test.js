@@ -19,50 +19,20 @@ beforeEach(() => {
     initClassificationValidation();
 });
 
-
-describe('initClassificationValidation', ()=>{
-
-    it('Validates that Select and Value are empty', ()=>{
-        $('#select-classification').val('');
-        $('#classification-value').val('');
+describe('initClassificationValidation', () => {
+    test.each([
+    // format: [testName, selectValue, classificationValue, expectedDisplay]
+        ['Can have a classification and any value', 'lc_classifications', 'anything at all', 'none'],
+        ['Cannot have both an empty classification and classification value', '', '', 'block'],
+        ['Cannot have an empty classification', '', 'Test', 'block'],
+        ['Cannot have an empty classification value', 'lc_classifications', '', 'block'],
+        ['Cannot have --- as a classification WITHOUT a value', '---', 'test', 'block'],
+        ['Cannot have --- as a classification with a value', '---', '', 'block'],
+    ])('Test: %s', (testName, selectValue, classificationValue, expectedDisplay) => {
+        $('#select-classification').val(selectValue);
+        $('#classification-value').val(classificationValue);
         $('.repeat-add').trigger('click');
         const displayError = $('#classification-errors').css('display');
-        expect(displayError).toBe('block');
-
-    });
-    it('Validates that the select is empty and the value has some value', ()=>{
-        $('#select-classification').val('');
-        $('#classification-value').val('Test');
-        $('.repeat-add').trigger('click');
-        const displayError = $('#classification-errors').css('display');
-        expect(displayError).toBe('block');
-    });
-    it('Validates that Select is selected and Value is empty', ()=>{
-        $('#select-classification').val('lc_classifications');
-        $('#classification-value').val('');
-        $('.repeat-add').trigger('click');
-        const displayError = $('#classification-errors').css('display');
-        expect(displayError).toBe('block');
-    });
-    it('Validates that Select is selected and Value has any value', ()=>{
-        $('#select-classification').val('lc_classifications');
-        $('#classification-value').val('Test');
-        $('.repeat-add').trigger('click');
-        const displayError = $('#classification-errors').css('display');
-        expect(displayError).toBe('none');
-    });
-    it('Validates that select is with "---" and value is empty', ()=>{
-        $('#select-classification').val('---');
-        $('#classification-value').val('');
-        $('.repeat-add').trigger('click');
-        const displayError = $('#classification-errors').css('display');
-        expect(displayError).toBe('block');
-    });
-    it('Validates that the select is with "---" and the value is with some value', ()=>{
-        $('#select-classification').val('---');
-        $('#classification-value').val('Test');
-        $('.repeat-add').trigger('click');
-        const displayError = $('#classification-errors').css('display');
-        expect(displayError).toBe('block');
+        expect(displayError).toBe(expectedDisplay);
     });
 });
