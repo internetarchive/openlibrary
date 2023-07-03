@@ -160,7 +160,7 @@ def read_lc_classification(rec: MarcBase) -> list[str]:
         if 'b' in contents:
             b = ' '.join(contents['b'])
             if 'a' in contents:
-                found += [' '.join([a, b]) for a in contents['a']]
+                found += [f'{a} {b}' for a in contents['a']]
             else:
                 found += [b]
         # https://openlibrary.org/show-marc/marc_university_of_toronto/uoft.marc:671135731:596

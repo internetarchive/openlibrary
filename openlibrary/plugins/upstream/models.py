@@ -389,7 +389,7 @@ class Edition(models.Edition):
 
     def get_toc_text(self):
         def format_row(r):
-            return "*" * r.level + " " + " | ".join([r.label, r.title, r.pagenum])
+            return f"{'*' * r.level} {r.label} | {r.title} | {r.pagenum}"
 
         return "\n".join(format_row(r) for r in self.get_table_of_contents())
 

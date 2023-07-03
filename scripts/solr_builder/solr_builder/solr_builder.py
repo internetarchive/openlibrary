@@ -375,7 +375,7 @@ def build_job_query(
     if job == 'orphans':
         q_where += """ AND "JSON" -> 'works' -> 0 ->> 'key' IS NULL"""
 
-    return ' '.join([q_select, q_where, q_order, q_offset, q_limit])
+    return f"{q_select} {q_where} {q_order} {q_offset} {q_limit}"
 
 
 async def main(

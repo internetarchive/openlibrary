@@ -7,14 +7,7 @@ QUERY_PARSER_TESTS = {
     'No fields': ('query here', 'query here'),
     'Misc': (
         'title:(Holidays are Hell) authors:(Kim Harrison) OR authors:(Lynsay Sands)',
-        ' '.join(
-            [
-                'alternative_title:(Holidays are Hell)',
-                'author_name:(Kim Harrison)',
-                'OR',
-                'author_name:(Lynsay Sands)',
-            ]
-        ),
+        'alternative_title:(Holidays are Hell) author_name:(Kim Harrison) OR author_name:(Lynsay Sands)',
     ),
     'Author field': (
         'food rules author:pollan',
