@@ -47,6 +47,7 @@ ignore = [
   "F401",
   "F841",
   "I",
+  "PERF401",
   "PIE790",
   "PLC1901",
   "PLR5501",
@@ -175,6 +176,7 @@ max-statements = 70
 "openlibrary/plugins/upstream/utils.py" = ["BLE001"]
 "openlibrary/solr/update_work.py" = ["C901", "E722", "PLR0912", "PLR0915"]
 "openlibrary/utils/retry.py" = ["BLE001"]
+"openlibrary/utils/schema.py" = ["PERF402"]
 "openlibrary/utils/tests/test_retry.py" = ["PT012", "PT017"]
 "scripts/affiliate_server*.py" = ["SIM105"]
 "scripts/copydocs.py" = ["BLE001"]
