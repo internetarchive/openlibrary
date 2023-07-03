@@ -30,7 +30,7 @@ def get_schema():
 
     schema.add_seq('/type/work', '/works/OL%dW')
     schema.add_seq('/type/publisher', '/publishers/OL%dP')
-    # schema.add_seq('/type/tag', '/tags/OL%dT')
+    schema.add_seq('/type/tag', '/tags/OL%dT')
 
     _sql = schema.sql
 
