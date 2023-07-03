@@ -1,6 +1,6 @@
 import functools
-from typing import Any, TYPE_CHECKING
-from collections.abc import Callable, Iterable, Iterator
+from typing import Any
+from collections.abc import Iterable, Iterator
 import unicodedata
 
 import web
@@ -33,26 +33,12 @@ from infogami import config
 from infogami.utils import view, delegate, stats
 from infogami.utils.view import render, get_template, public, query_param
 from infogami.utils.macro import macro
-from infogami.utils.context import InfogamiContext, context
-from infogami.infobase.client import Nothing, storify
+from infogami.utils.context import context
+from infogami.infobase.client import Thing, Changeset, storify
 
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
 from openlibrary.core import cache
-
-from web.utils import Storage
-from web.template import TemplateResult
-
-if TYPE_CHECKING:
-    from openlibrary.core.models import Thing, List
-    from openlibrary.plugins.upstream.models import (
-        AddBookChangeset,
-        Changeset,
-        ListChangeset,
-        Work,
-        Author,
-        Edition,
-    )
 
 
 STRIP_CHARS = ",'\" "
@@ -76,9 +62,6 @@ class LanguageNoMatchError(Exception):
 class MultiDict(MutableMapping):
     """Ordered Dictionary that can store multiple values.
 
-    Must be initialized without an `items` parameter, or `items` must be an
-    iterable of two-value sequences. E.g., items=(('a', 1), ('b', 2))
-
     >>> d = MultiDict()
     >>> d['x'] = 1
     >>> d['x'] = 2
@@ -97,12 +80,10 @@ class MultiDict(MutableMapping):
     [('x', 1), ('x', 2), ('y', 3)]
     >>> list(d.multi_items())
     [('x', [1, 2]), ('y', [3])]
-    >>> d1 = MultiDict(items=(('a', 1), ('b', 2)), a=('x', 10, 11, 12))
-    [('a', [1, ('x', 10, 11, 12)]), ('b', [2])]
     """
 
-    def __init__(self, items: Iterable[tuple[Any, Any]] = (), **kw) -> None:
-        self._items: list = []
+    def __init__(self, items=(), **kw):
+        self._items = []
 
         for k, v in items:
             self[k] = v
@@ -114,7 +95,7 @@ class MultiDict(MutableMapping):
         else:
             raise KeyError(key)
 
-    def __setitem__(self, key: str, value: Any) -> None:
+    def __setitem__(self, key, value):
         self._items.append((key, value))
 
     def __delitem__(self, key):
@@ -130,21 +111,18 @@ class MultiDict(MutableMapping):
         return [v for k, v in self._items if k == key]
 
     def keys(self):
-        return [k for k, _ in self._items]
+        return [k for k, v in self._items]
 
-    # Subclasses of MutableMapping should return a dictionary view object for
-    # the values() method, but this implementation returns a list.
-    # https://docs.python.org/3/library/stdtypes.html#dict-views
-    def values(self) -> list[Any]:  # type: ignore[override]
-        return [v for _, v in self._items]
+    def values(self):
+        return [v for k, v in self._items]
 
     def items(self):
         return self._items[:]
 
-    def multi_items(self) -> list[tuple[str, list]]:
-        """Returns items as list of tuples of key and a list of values."""
+    def multi_items(self):
+        """Returns items as tuple of key and a list of values."""
         items = []
-        d: dict = {}
+        d = {}
 
         for k, v in self._items:
             if k not in d:
@@ -156,7 +134,7 @@ class MultiDict(MutableMapping):
 
 @macro
 @public
-def render_template(name: str, *a, **kw) -> TemplateResult:
+def render_template(name, *a, **kw):
     if "." in name:
         name = name.rsplit(".", 1)[0]
     return render[name](*a, **kw)
@@ -177,9 +155,7 @@ def kebab_case(upper_camel_case: str) -> str:
 
 
 @public
-def render_component(
-    name: str, attrs: dict | None = None, json_encode: bool = True
-) -> str:
+def render_component(name: str, attrs: dict | None = None, json_encode: bool = True):
     """
     :param str name: Name of the component (excluding extension)
     :param dict attrs: attributes to add to the component element
@@ -220,14 +196,12 @@ def get_error(name, *args):
 
 
 @public
-def get_message(name: str, *args) -> str:
+def get_message(name, *args):
     """Return message with given name from messages.tmpl template"""
     return get_message_from_template("messages", name, args)
 
 
-def get_message_from_template(
-    template_name: str, name: str, args: tuple[(Any, ...)]
-) -> str:
+def get_message_from_template(template_name, name, args):
     d = render_template(template_name).get("messages", {})
     msg = d.get(name) or name.lower().replace("_", " ")
 
@@ -257,7 +231,7 @@ def list_recent_pages(path, limit=100, offset=0):
 
 
 @public
-def commify_list(items: Iterable[Any]) -> str:
+def commify_list(items: Iterable[Any]):
     # Not sure why lang is sometimes ''
     lang = web.ctx.lang or 'en'
     # If the list item is a template/html element, we strip it
@@ -270,7 +244,7 @@ def json_encode(d):
     return json.dumps(d)
 
 
-def unflatten(d: Storage, separator: str = "--") -> Storage:
+def unflatten(d, separator="--"):
     """Convert flattened data into nested form.
 
     >>> unflatten({"a": 1, "b--x": 2, "b--y": 3, "c--0": 4, "c--1": 5})
@@ -300,11 +274,11 @@ def unflatten(d: Storage, separator: str = "--") -> Storage:
             if all(isint(k) for k in d):
                 return [makelist(d[k]) for k in sorted(d, key=int)]
             else:
-                return Storage((k, makelist(v)) for k, v in d.items())
+                return web.storage((k, makelist(v)) for k, v in d.items())
         else:
             return d
 
-    d2: dict = {}
+    d2 = {}
     for k, v in d.items():
         setvalue(d2, k, v)
     return makelist(d2)
@@ -359,9 +333,7 @@ def get_coverstore_public_url() -> str:
     return config.get('coverstore_public_url', get_coverstore_url()).rstrip('/')
 
 
-def _get_changes_v1_raw(
-    query: dict[str, str | int], revision: int | None = None
-) -> list[Storage]:
+def _get_changes_v1_raw(query, revision=None):
     """Returns the raw versions response.
 
     Revision is taken as argument to make sure a new cache entry is used when a new revision of the page is created.
@@ -376,19 +348,17 @@ def _get_changes_v1_raw(
         v.author = v.author and v.author.key
 
         # XXX-Anand: hack to avoid too big data to be stored in memcache.
-        # v.changes is not used and it contributes to memcache bloat in a big way.
+        # v.changes is not used and it contrinutes to memcache bloat in a big way.
         v.changes = '[]'
 
     return versions
 
 
-def get_changes_v1(
-    query: dict[str, str | int], revision: int | None = None
-) -> list[Storage]:
+def get_changes_v1(query, revision=None):
     # uses the cached function _get_changes_v1_raw to get the raw data
     # and processes to before returning.
     def process(v):
-        v = Storage(v)
+        v = web.storage(v)
         v.created = parse_datetime(v.created)
         v.author = v.author and web.ctx.site.get(v.author, lazy=True)
         return v
@@ -396,9 +366,7 @@ def get_changes_v1(
     return [process(v) for v in _get_changes_v1_raw(query, revision)]
 
 
-def _get_changes_v2_raw(
-    query: dict[str, str | int], revision: int | None = None
-) -> list[dict]:
+def _get_changes_v2_raw(query, revision=None):
     """Returns the raw recentchanges response.
 
     Revision is taken as argument to make sure a new cache entry is used when a new revision of the page is created.
@@ -414,9 +382,7 @@ def _get_changes_v2_raw(
 # _get_changes_v2_raw = cache.memcache_memoize(_get_changes_v2_raw, key_prefix="upstream._get_changes_v2_raw", timeout=10*60)
 
 
-def get_changes_v2(
-    query: dict[str, str | int], revision: int | None = None
-) -> list["Changeset | AddBookChangeset | ListChangeset"]:
+def get_changes_v2(query, revision=None):
     page = web.ctx.site.get(query['key'])
 
     def first(seq, default=None):
@@ -449,15 +415,13 @@ def get_changes_v2(
     return [process_change(c) for c in changes]
 
 
-def get_changes(
-    query: dict[str, str | int], revision: int | None = None
-) -> list["Changeset | AddBookChangeset | ListChangeset"]:
+def get_changes(query, revision=None):
     return get_changes_v2(query, revision=revision)
 
 
 @public
-def get_history(page: "Work | Author | Edition") -> Storage:
-    h = Storage(
+def get_history(page):
+    h = web.storage(
         revision=page.revision, lastest_revision=page.revision, created=page.created
     )
     if h.revision < 5:
@@ -483,13 +447,12 @@ def get_version(key, revision):
 
 
 @public
-def get_recent_author(doc: "Work") -> "Thing | None":
+def get_recent_author(doc):
     versions = get_changes_v1(
         {'key': doc.key, 'limit': 1, "offset": 0}, revision=doc.revision
     )
     if versions:
         return versions[0].author
-    return None
 
 
 @public
@@ -508,19 +471,13 @@ def get_locale():
 
 
 @public
-def process_version(
-    v: "List | AddBookChangeset | Changeset | ListChangeset",
-) -> "List | AddBookChangeset | Changeset | ListChangeset":
+def process_version(v):
     """Looks at the version and adds machine_comment required for showing "View MARC" link."""
     comments = [
         "found a matching marc record",
         "add publisher and source",
     ]
-    if (
-        isinstance(v, List)
-        and v.key.startswith('/books/')
-        and not v.get('machine_comment')
-    ):
+    if v.key.startswith('/books/') and not v.get('machine_comment'):
         thing = v.get('thing') or web.ctx.site.get(v.key, v.revision)
         if (
             thing.source_records
@@ -541,18 +498,18 @@ def is_thing(t):
 
 
 @public
-def putctx(key: str, value: str | bool) -> str:
+def putctx(key, value):
     """Save a value in the context."""
     context[key] = value
     return ""
 
 
 class Metatag:
-    def __init__(self, tag: str = "meta", **attrs) -> None:
+    def __init__(self, tag="meta", **attrs):
         self.tag = tag
         self.attrs = attrs
 
-    def __str__(self) -> str:
+    def __str__(self):
         attrs = ' '.join(f'{k}="{websafe(v)}"' for k, v in self.attrs.items())
         return f'<{self.tag} {attrs} />'
 
@@ -561,13 +518,13 @@ class Metatag:
 
 
 @public
-def add_metatag(tag: str = "meta", **attrs) -> None:
+def add_metatag(tag="meta", **attrs):
     context.setdefault('metatags', [])
     context.metatags.append(Metatag(tag, **attrs))
 
 
 @public
-def url_quote(text: str | bytes) -> str:
+def url_quote(text):
     if isinstance(text, str):
         text = text.encode('utf8')
     return urllib.parse.quote_plus(text)
@@ -589,14 +546,12 @@ def urlencode(dict_or_list_of_tuples: dict | list[tuple[str, Any]]) -> str:
 
 
 @public
-def entity_decode(text: str) -> str:
+def entity_decode(text):
     return unescape(text)
 
 
 @public
-def set_share_links(
-    url: str = '#', title: str = '', view_context: InfogamiContext | None = None
-) -> None:
+def set_share_links(url='#', title='', view_context=None):
     """
     Constructs list share links for social platforms and assigns to view context attribute
 
@@ -621,8 +576,7 @@ def set_share_links(
             'url': f'https://pinterest.com/pin/create/link/?url={encoded_url}&description={text}',
         },
     ]
-    if view_context is not None:
-        view_context.share_links = links
+    view_context.share_links = links
 
 
 def pad(seq, size, e=None):
@@ -664,19 +618,19 @@ def parse_toc_row(line):
         title = text
         label = page = ""
 
-    return Storage(
+    return web.storage(
         level=len(level), label=label.strip(), title=title.strip(), pagenum=page.strip()
     )
 
 
-def parse_toc(text: None) -> list[Any]:
+def parse_toc(text):
     """Parses each line of toc"""
     if text is None:
         return []
     return [parse_toc_row(line) for line in text.splitlines() if line.strip(" |")]
 
 
-def safeget(func: Callable) -> Any:
+def safeget(func):
     """
     TODO: DRY with solrbuilder copy
     >>> safeget(lambda: {}['foo'])
@@ -711,7 +665,7 @@ def get_languages() -> dict:
     return {lang.key: lang for lang in web.ctx.site.get_many(keys)}
 
 
-def autocomplete_languages(prefix: str) -> Iterator[Storage]:
+def autocomplete_languages(prefix: str) -> Iterator[web.storage]:
     """
     Given, e.g., "English", this returns an iterator of:
         <Storage {'key': '/languages/ang', 'code': 'ang', 'name': 'English, Old (ca. 450-1100)'}>
@@ -727,7 +681,7 @@ def autocomplete_languages(prefix: str) -> Iterator[Storage]:
     for lang in get_languages().values():
         user_lang_name = safeget(lambda: lang['name_translated'][user_lang][0])
         if user_lang_name and normalize(user_lang_name).startswith(prefix):
-            yield Storage(
+            yield web.storage(
                 key=lang.key,
                 code=lang.code,
                 name=user_lang_name,
@@ -737,7 +691,7 @@ def autocomplete_languages(prefix: str) -> Iterator[Storage]:
         lang_iso_code = safeget(lambda: lang['identifiers']['iso_639_1'][0])
         native_lang_name = safeget(lambda: lang['name_translated'][lang_iso_code][0])
         if native_lang_name and normalize(native_lang_name).startswith(prefix):
-            yield Storage(
+            yield web.storage(
                 key=lang.key,
                 code=lang.code,
                 name=native_lang_name,
@@ -745,7 +699,7 @@ def autocomplete_languages(prefix: str) -> Iterator[Storage]:
             continue
 
         if normalize(lang.name).startswith(prefix):
-            yield Storage(
+            yield web.storage(
                 key=lang.key,
                 code=lang.code,
                 name=lang.name,
@@ -791,7 +745,7 @@ def get_abbrev_from_full_lang_name(input_lang_name: str, languages=None) -> str:
     return target_abbrev
 
 
-def get_language(lang_or_key: str) -> "None | Thing | Nothing":
+def get_language(lang_or_key: Thing | str) -> Thing | None:
     if isinstance(lang_or_key, str):
         return get_languages().get(lang_or_key)
     else:
@@ -799,7 +753,7 @@ def get_language(lang_or_key: str) -> "None | Thing | Nothing":
 
 
 @public
-def get_language_name(lang_or_key: "Nothing | str | Thing") -> Nothing | str:
+def get_language_name(lang_or_key: Thing | str):
     if isinstance(lang_or_key, str):
         lang = get_language(lang_or_key)
         if not lang:
@@ -808,7 +762,7 @@ def get_language_name(lang_or_key: "Nothing | str | Thing") -> Nothing | str:
         lang = lang_or_key
 
     user_lang = web.ctx.lang or 'en'
-    return safeget(lambda: lang['name_translated'][user_lang][0]) or lang.name  # type: ignore[index]
+    return safeget(lambda: lang['name_translated'][user_lang][0]) or lang.name
 
 
 @functools.cache
@@ -838,14 +792,14 @@ def _get_author_config():
     """
     thing = web.ctx.site.get('/config/author')
     if hasattr(thing, "identifiers"):
-        identifiers = [Storage(t.dict()) for t in thing.identifiers if 'name' in t]
+        identifiers = [web.storage(t.dict()) for t in thing.identifiers if 'name' in t]
     else:
         identifiers = {}
-    return Storage(identifiers=identifiers)
+    return web.storage(identifiers=identifiers)
 
 
 @public
-def get_edition_config() -> Storage:
+def get_edition_config():
     return _get_edition_config()
 
 
@@ -858,10 +812,12 @@ def _get_edition_config():
     This is is cached because fetching and creating the Thing object was taking about 20ms of time for each book request.
     """
     thing = web.ctx.site.get('/config/edition')
-    classifications = [Storage(t.dict()) for t in thing.classifications if 'name' in t]
-    identifiers = [Storage(t.dict()) for t in thing.identifiers if 'name' in t]
+    classifications = [
+        web.storage(t.dict()) for t in thing.classifications if 'name' in t
+    ]
+    identifiers = [web.storage(t.dict()) for t in thing.identifiers if 'name' in t]
     roles = thing.roles
-    return Storage(
+    return web.storage(
         classifications=classifications, identifiers=identifiers, roles=roles
     )
 
@@ -869,7 +825,7 @@ def _get_edition_config():
 from openlibrary.core.olmarkdown import OLMarkdown
 
 
-def get_markdown(text: str, safe_mode: bool = False) -> OLMarkdown:
+def get_markdown(text, safe_mode=False):
     md = OLMarkdown(source=text, safe_mode=safe_mode)
     view._register_mdx_extensions(md)
     md.postprocessors += view.wiki_processors
@@ -889,10 +845,10 @@ class HTML(str):
 _websafe = web.websafe
 
 
-def websafe(text: str) -> str:
+def websafe(text):
     if isinstance(text, HTML):
         return text
-    elif isinstance(text, TemplateResult):
+    elif isinstance(text, web.template.TemplateResult):
         return web.safestr(text)
     else:
         return _websafe(text)
@@ -977,10 +933,10 @@ def _get_recent_changes():
     result = result[:50]
 
     def process_thing(thing):
-        t = Storage()
+        t = web.storage()
         for k in ["key", "title", "name", "displayname"]:
             t[k] = thing[k]
-        t['type'] = Storage(key=thing.type.key)
+        t['type'] = web.storage(key=thing.type.key)
         return t
 
     for r in result:
@@ -1076,7 +1032,7 @@ _get_blog_feeds = cache.memcache_memoize(
 
 
 @public
-def get_donation_include() -> str:
+def get_donation_include():
     ia_host = get_ia_host(allow_dev=True)
     # The following allows archive.org staff to test banners without
     # needing to reload openlibrary services
@@ -1103,7 +1059,7 @@ def get_donation_include() -> str:
 
 
 @public
-def get_ia_host(allow_dev: bool = False) -> str:
+def get_ia_host(allow_dev=False):
     if allow_dev:
         web_input = web.input()
         dev_host = web_input.pop("dev_host", "")  # e.g. `www-user`
@@ -1114,7 +1070,7 @@ def get_ia_host(allow_dev: bool = False) -> str:
 
 
 @public
-def item_image(image_path: str | None, default: str | None = None) -> str | None:
+def item_image(image_path, default=None):
     if image_path is None:
         return default
     if image_path.startswith('https:'):
@@ -1123,9 +1079,9 @@ def item_image(image_path: str | None, default: str | None = None) -> str | None
 
 
 @public
-def get_blog_feeds() -> list[Storage]:
+def get_blog_feeds():
     def process(post):
-        post = Storage(post)
+        post = web.storage(post)
         post.pubdate = parse_datetime(post.pubdate)
         return post
 
@@ -1139,7 +1095,7 @@ class Request:
     fullpath = property(lambda self: web.ctx.fullpath)
 
     @property
-    def canonical_url(self) -> str:
+    def canonical_url(self):
         """Returns the https:// version of the URL.
 
         Used for adding <meta rel="canonical" ..> tag in all web pages.
@@ -1168,7 +1124,7 @@ class Request:
 
 
 @public
-def render_once(key: str) -> bool:
+def render_once(key):
     rendered = web.ctx.setdefault('render_once', {})
     if key in rendered:
         return False
@@ -1304,7 +1260,7 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
     return ([], [loc_pub.strip(STRIP_CHARS)])
 
 
-def setup() -> None:
+def setup():
     """Do required initialization"""
     # monkey-patch get_markdown to use OL Flavored Markdown
     view.get_markdown = get_markdown
