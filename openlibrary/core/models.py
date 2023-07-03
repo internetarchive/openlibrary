@@ -812,6 +812,9 @@ class User(Thing):
     def is_librarian(self):
         return self.is_usergroup_member('/usergroup/librarians')
 
+    def is_super_librarian(self):
+        return self.is_usergroup_member('/usergroup/super-librarians')
+
     def in_sponsorship_beta(self):
         return self.is_usergroup_member('/usergroup/sponsors')
 
