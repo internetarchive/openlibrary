@@ -2,6 +2,40 @@
   min-height: 50px;
 }
 
+// Styling overrides for author and orphaned edition pages
+.old-style-lists {
+  h3 {
+    font-size: .75em;
+    text-align: left;
+    padding: 10px;
+    min-width: 150px;
+    font-weight: bold;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  /* Hide "My Reading Lists" heading */
+  .reading-list-title {
+    display: none;
+  }
+
+  .generic-dropper__dropclick {
+    padding: 5px;
+    text-decoration: none;
+
+    .arrow {
+      visibility: hidden;
+    }
+  }
+
+  .list {
+    padding-left: 0;
+  }
+}
+
+// Styling for My Books droppers
 /* Styling for the My Books dropper's primary action: */
 .generic-dropper__primary {
   .reading-log {
