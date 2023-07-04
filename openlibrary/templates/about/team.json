@@ -4,7 +4,7 @@
 		"status": "Staff",
 		"role": "",
 		"bio": "",
-		"photo_url": "https://scontent-lga3-2.xx.fbcdn.net/v/t39.30808-1/347564285_1478873239584126_8295394847869589900_n.jpg?stp=dst-jpg_p320x320&_nc_cat=107&ccb=1-7&_nc_sid=7206a8&_nc_ohc=pXhxdwYi9r4AX_j6UcQ&_nc_ht=scontent-lga3-2.xx&oh=00_AfAbI_BP0B9px9S1H68Y6Kxhhf8HRpIpQtRq2fHhvyBjAw&oe=6483BD02",
+		"photo_path": "",
 		"ol_user_url": "https://openlibrary.org/people/ScarTissue",
 		"personal_url": "",
 		"favorite_book_url": ""
@@ -14,7 +14,7 @@
 		"status": "Staff",
 		"role": "Developer",
 		"bio": "",
-		"photo_url": "https://avatars.githubusercontent.com/u/28732543?v=4",
+		"photo_path": "../../../static/images/team/Jim_Champ.png",
 		"ol_user_url": "https://openlibrary.org/people/jchamp_archive",
 		"personal_url": "",
 		"favorite_book_url": ""
@@ -24,7 +24,7 @@
 		"status": "Staff",
 		"role": "Chief of Staff",
 		"bio": "Over 70% of the world lives on less than $10 a day. This means up to 2/3 of our neighbors can't afford all the resources they need to reach their full potential. Because of this, we're letting billions of...",
-		"photo_url": "https://cyber.harvard.edu/sites/default/files/styles/teaser/public/2022-08/berkman-photo.png?h=6cb7e18c&itok=rXzz8t8C",
+		"photo_path": "../../../static/images/team/Mek.png",
 		"ol_user_url": "https://openlibrary.org/people/mekBot",
 		"personal_url": "https://mek.fyi/",
 		"favorite_book_url": ""
@@ -32,9 +32,9 @@
 	{
 		"name": "Scott Barnes",
 		"status": "Staff",
-		"role": "Programmer",
+		"role": "Developer",
 		"bio": "I like mountains. And computers.",
-		"photo_url": "https://avatars.githubusercontent.com/u/26524678?v=4",
+		"photo_path": "../../../static/images/team/Scott_Barnes.jpg",
 		"ol_user_url": "https://openlibrary.org/people/srb36/",
 		"personal_url": "https://github.com/scottbarnes",
 		"favorite_book_url": "https://openlibrary.org/books/OL22552226M/The_High_Sierra"
@@ -44,7 +44,7 @@
 		"status": "Staff",
 		"role": "Python Backend",
 		"bio": "",
-		"photo_url": "https://avatars.githubusercontent.com/u/3709715?v=4",
+		"photo_path": "../../../static/images/team/Chris_Clauss.jpg",
 		"ol_user_url": "",
 		"personal_url": "",
 		"favorite_book_url": ""
@@ -54,7 +54,7 @@
 		"status": "Staff",
 		"role": "Patron Services",
 		"bio": "Lead Community Librarian. Editing questions? Slack me @Lisa (aka Sapphire). Or email me via https://openlibrary.org/contact. Favorite genres: good books",
-		"photo_url": "",
+		"photo_path": "",
 		"ol_user_url": "https://openlibrary.org/people/agent-lisa",
 		"personal_url": "",
 		"favorite_book_url": ""
@@ -64,7 +64,7 @@
 		"status": "Volunteer",
 		"role": "",
 		"bio": "",
-		"photo_url": "https://avatars.githubusercontent.com/danafein",
+		"photo_path": "../../../static/images/team/Dana.jpg",
 		"ol_user_url": "https://openlibrary.org/people/danafs/books",
 		"personal_url": "https://www.danafeinschaffer.com",
 		"favorite_book_url": "https://openlibrary.org/works/OL17332479W/Six_of_Crows?edition=key%3A/books/OL37753024M"
@@ -74,7 +74,7 @@
 		"status": "Volunteer",
 		"role": "Design Engineer",
 		"bio": "",
-		"photo_url": "https://media.licdn.com/dms/image/C4E03AQGrJbjbtOlyKA/profile-displayphoto-shrink_800_800/0/1657907085913?e=1689811200&v=beta&t=yvJnaSn7e-746j1vvBsMCMoS6RKo9Et3v-68KSCztFU",
+		"photo_path": "../../../static/images/team/Sam.jpg",
 		"ol_user_url": "https://openlibrary.org/people/samstupendous",
 		"personal_url": "",
 		"favorite_book_url": ""
@@ -84,7 +84,7 @@
 		"status": "Volunteer",
 		"role": "",
 		"bio": "",
-		"photo_url": "",
+		"photo_path": "",
 		"ol_user_url": "",
 		"personal_url": "",
 		"favorite_book_url": ""
@@ -94,7 +94,7 @@
 		"status": "Volunteer",
 		"role": "Design Research",
 		"bio": "",
-		"photo_url": "https://lh3.googleusercontent.com/I8AFlpM44TxleGZTnpbnwq522sbgqi-r7vkBGcYIhdjmm75ZhhjiKug8nl7xmOKKJAZjmIN1CBxFo9_UEVgNoziE4fafW_4B7id8_0fn8AKP7GZYpL0U7Yr64YrC_7ahYUxicYMsTIvy8Q13wzaxXQAIpMk-j7d_cYBoWOsgd7Hx5R1TXcudi0PCMrxdZOo8w98eSzOtHEzVcp-1vfgzhOhRmqJBlQCrnVi7eH5Ab3MVTBrI_hFCmf4r1hvfenjA5lcWFJzsjt947YZ_nLuJGVZpuezQiBmu7xmpiKLH3Gsf6sfpv_w3mIdj-NO0E_P1rax-Eieu1qVpY7BEoYQ_O3_oJiXhQhjVA1R--Jyawt_oTFBInzS6Keuq8-659ug0oFLeiTQikIbGRjvotuEGjMaVysxF1S3_f1Aev0dDKeDhWAFemxu1VokTePL2DxuVAON3cW6x5QL6_wPQdjySlAKs5IRjFLt0QAVbyY9RT7CKS3vbsS8huu6YJYNwMpVlRYyEGxZxxFRo7voDbbp_lJnjncEU0csicWpDNRhJEXomVpR9FwZsoUcNUJVeNNSIBz9_d23DzqcZcC5CVZi5vVllQ2k9q1vU51FB35-XYpl9htd7RARJPd-2zcXdHQeE9Lec2kFY6uL8-V_F22OeBsLLm6vKyUy_mxn09e1o0iKaWFmjlpGooFFwYLUeeGiTllJUWfKU-hmFGHf6I8_dW_bFFh88JpBIpVSWrb0EDzjlc_8KeqThJ2PqwFk_jtOC8E_ww2a9gSA6hOhLILnfIBoDSzQZjkRAIONiFEdrKNnXEfFspJf0ypqwtTB5VGrdxGSAHdUsXMyPA7xOOsTxu8FI5L9hgoiilukmlYsLZ-4Kg8T10d3desM1M4Q7gYS1vsrZiZz1JRXgBFwvmMpsG8eboWhvDh0krzQM8yz98RcNg9W7-jrAVACxtcbNmGujXvYTcGssRk4Dun_IB4YvJWXDzWiYOj9_fZ0dgDLmc05W4W0nxGZdYtY=s220-no?authuser=0",
+		"photo_path": "../../../static/images/team/Abbey_Ripstra.jpg",
 		"ol_user_url": "",
 		"personal_url": "",
 		"favorite_book_url": ""
@@ -104,7 +104,7 @@
 		"status": "Volunteer",
 		"role": "Contributor",
 		"bio": "",
-		"photo_url": "https://media.licdn.com/dms/image/D5603AQELzkbn3C60wQ/profile-displayphoto-shrink_800_800/0/1687396518213?e=1692835200&v=beta&t=S5RE9QE1k8F21T8lAJ7Lut5wr97JeVajHcIspoPWhxg",
+		"photo_path": "../../../static/images/team/Jaye_Rasmussen.jpg",
 		"ol_user_url": "https://openlibrary.org/people/lasseignejk",
 		"personal_url": "https://github.com/Lasseignejk",
 		"favorite_book_url": "https://openlibrary.org/books/OL24383834M/The_Way_of_Kings"
@@ -114,7 +114,7 @@
 		"status": "Staff, Emeritus",
 		"role": "Co-Founder",
 		"bio": "",
-		"photo_url": "https://miro.medium.com/v2/resize:fit:1104/1*TDZRRY3cvrBqjM4gccgg1w.png",
+		"photo_path": "../../../static/images/team/Aaron_Swartz.png",
 		"ol_user_url": "",
 		"personal_url": "",
 		"favorite_book_url": ""
@@ -124,7 +124,7 @@
 		"status": "Volunteer",
 		"role": "",
 		"bio": "",
-		"photo_url": "https://pbs.twimg.com/profile_images/1262093518685851651/V0atr2UP_400x400.jpg",
+		"photo_path": "../../../static/images/team/Keita_Ohshiro.jpg",
 		"ol_user_url": "",
 		"personal_url": "https://bick-jp.github.io/",
 		"favorite_book_url": ""
@@ -134,7 +134,7 @@
 		"status": "Volunteer",
 		"role": "Lead Communications Fellow",
 		"bio": "Here at Open Library, I'm part of a high-impact fellowship to design and execute a strategic communications plan. This opportunity allows me to contribute to our mission of...",
-		"photo_url": "https://lh3.googleusercontent.com/lBm1JN0jc6m2UqBstRwG9Fhh3GiZswW_1-qWQWz4lNcZxC1KRv0qHCkwr6AVCPbPDcgievdDZII0yn-cJPMDglcyz-tWQNXoJcLygr0-SQem1J4FoBYE_r-vXnpA5y1VoAlZtfSmHSosD9XsJ4TdTMmMdnwvNzZbKI5IIEP70e_VM4q6SD87ed1anAPGSS3imsrxVZauBhjl-QxJIucMBc9z3ha3HWkGJxNMLCTSBc2CG71OhOOU87SM3EW9oW2HtV23QwKckXvywZ_Gy-b8XV-otePiyEpsaAdNIBB837dc4ghog5Ye2vjMhOwPt45O0BzEgTGlZ3WIjUZ4wR1_SbaCE5YgpjorUjLIS8uKZ_FGWSyR0sZc0XCZCnvE5fQwZvvwDdQ8039qXmUSuQvWNnuJJkJ1E-IlDGcJH7UbpLZwz07FNtPBtJu4SaOMXA_k88i0VawnrFPBgtBDHmTRijKTzu3bSKLHgcVXZ9-sEE3vF7cG1qMsmC7i3zricobru9CqrGtuQ4ExGUNLD8o-NX1dOnPV85wB3uNsiOsMQ9ZKQ6RXUo41nbl5uHNNCsLSXTbJJ60SEgOTG-o69Y64g2ayCJ548ZZKjjoMG5KApQ5sfmVFg-0uwKbZmVu4FESLlwuOPrbAfQSbcbF9nBudvNyp06IbHmYNcpgOeZK6vn-xPTTH8pfTjWRu8pgosJUiACOqlkdTN122UhTPk4yZA6HRvyVBkCiNbGlKOIEz9vuAAzcdqgLoX6mhSX44eMyLuRwibYybQFpV1eCRrlqv-VlvMz-mePp8Y8KY3O1yFJ0dLim3zNFerigppRnEnS-vFshFwupCeFQF8Ltlc5CscceRv28sSD8HqJ6YH7JqKQnZLSnJ_4eJ7Uk3dumaoobBipxhLD_oTARAkUw4PhqWMti_xKWWNFvcjsghnwPPpfEln6MyklGR_bav_dIi03pJwSELAzhxG_rvcDrTOKPlwj12Eo5dTFQvm9c2P9XJMtWo2gpd81VxWcs=w872-h872-s-no?authuser=0",
+		"photo_path": "../../../static/images/team/Nick_Norman.jpg",
 		"ol_user_url": "",
 		"personal_url": "https://www.linkedin.com/in/imnick/",
 		"favorite_book_url": ""

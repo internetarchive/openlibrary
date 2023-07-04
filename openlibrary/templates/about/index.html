@@ -23,7 +23,7 @@ $ default_profile_image = '../../../static/images/openlibrary-180x180.png'
 				<div class="teamCard__photoContainer">
 					<img
 						class="teamCard__photo"
-						src="$(member.get('photo_url', '') or default_profile_image)"
+						src="$(member.get('photo_path', '') or default_profile_image)"
 						alt="" />
 				</div>
 				<div class="teamCard__description">

@@ -230,13 +230,6 @@ class team(delegate.page):
             return render_template("about/index.html", team_members=team_members)
 
 
-class teammember(delegate.page):
-    path = '/about/teammember'
-
-    def GET(self):
-        return render_template("about/member/index.html")
-
-
 class addbook(delegate.page):
     path = '/addbook'
 
