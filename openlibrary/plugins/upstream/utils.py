@@ -1,5 +1,5 @@
 import functools
-from typing import Any, TYPE_CHECKING
+from typing import Any, Protocol, TYPE_CHECKING
 from collections.abc import Callable, Iterable, Iterator
 import unicodedata
 
@@ -34,7 +34,7 @@ from infogami.utils import view, delegate, stats
 from infogami.utils.view import render, get_template, public, query_param
 from infogami.utils.macro import macro
 from infogami.utils.context import InfogamiContext, context
-from infogami.infobase.client import Nothing, storify
+from infogami.infobase.client import Changeset, Nothing, Thing, storify
 
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
@@ -44,10 +44,8 @@ from web.utils import Storage
 from web.template import TemplateResult
 
 if TYPE_CHECKING:
-    from openlibrary.core.models import Thing, List
     from openlibrary.plugins.upstream.models import (
         AddBookChangeset,
-        Changeset,
         ListChangeset,
         Work,
         Author,
@@ -507,31 +505,34 @@ def get_locale():
         return babel.Locale("en")
 
 
+class HasGetKeyRevision(Protocol):
+    key: str
+    revision: int
+
+    def get(self, item) -> Any:
+        ...
+
+
 @public
-def process_version(
-    v: "List | AddBookChangeset | Changeset | ListChangeset",
-) -> "List | AddBookChangeset | Changeset | ListChangeset":
+def process_version(v: HasGetKeyRevision) -> HasGetKeyRevision:
     """Looks at the version and adds machine_comment required for showing "View MARC" link."""
     comments = [
         "found a matching marc record",
         "add publisher and source",
     ]
-    if (
-        isinstance(v, List)
-        and v.key.startswith('/books/')
-        and not v.get('machine_comment')
-    ):
+
+    if v.key.startswith('/books/') and not v.get('machine_comment'):
         thing = v.get('thing') or web.ctx.site.get(v.key, v.revision)
         if (
             thing.source_records
             and v.revision == 1
-            or (v.comment and v.comment.lower() in comments)
+            or (v.comment and v.comment.lower() in comments)  # type: ignore [attr-defined]
         ):
             marc = thing.source_records[-1]
             if marc.startswith('marc:'):
-                v.machine_comment = marc[len("marc:") :]
+                v.machine_comment = marc[len("marc:") :]  # type: ignore [attr-defined]
             else:
-                v.machine_comment = marc
+                v.machine_comment = marc  # type: ignore [attr-defined]
     return v
 
 
