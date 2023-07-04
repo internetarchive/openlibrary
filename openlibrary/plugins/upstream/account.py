@@ -20,6 +20,7 @@ import infogami.core.code as core
 
 from openlibrary import accounts
 from openlibrary.i18n import gettext as _
+from openlibrary.core import stats
 from openlibrary.core import helpers as h, lending
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
@@ -314,6 +315,8 @@ class account_login_json(delegate.page):
         from openlibrary.plugins.openlibrary.code import BadRequest
 
         d = json.loads(web.data())
+        email = d.get('email', "")
+        remember = d.get('remember', "")
         access = d.get('access', None)
         secret = d.get('secret', None)
         test = d.get('test', False)
@@ -331,7 +334,12 @@ class account_login_json(delegate.page):
             error = audit.get('error')
             if error:
                 raise olib.code.BadRequest(error)
+            expires = 3600 * 24 * 365 if remember.lower() == 'true' else ""
             web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
+            if audit.get('ia_email'):
+                ol_account = OpenLibraryAccount.get(email=audit['ia_email'])
+                if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
+                    web.setcookie('sfw', 'yes', expires=expires)
         # Fallback to infogami user/pass
         else:
             from infogami.plugins.api.code import login as infogami_login
@@ -395,6 +403,9 @@ class account_login(delegate.page):
         web.setcookie(
             config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
         )
+        ol_account = OpenLibraryAccount.get(email=email)
+        if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
+            web.setcookie('sfw', 'yes', expires=expires)
         blacklist = [
             "/account/login",
             "/account/create",
@@ -692,8 +703,14 @@ class account_privacy(delegate.page):
 
     @require_login
     def POST(self):
+        i = web.input(public_readlog="", safe_mode="")
         user = accounts.get_current_user()
-        user.save_preferences(web.input())
+        if user.get_safe_mode() != 'yes' and i.safe_mode == 'yes':
+            stats.increment('ol.account.safe_mode')
+        user.save_preferences(i)
+        web.setcookie(
+            'sfw', i.safe_mode, expires="" if i.safe_mode.lower() == 'yes' else -1
+        )
         add_flash_message(
             'note', _("Notification preferences have been updated successfully.")
         )
@@ -812,10 +829,10 @@ def csv_header_and_format(row: Mapping[str, Any]) -> tuple[str, str]:
 @elapsed_time("csv_string")
 def csv_string(source: Iterable[Mapping], row_formatter: Callable | None = None) -> str:
     """
-    Given an list of dicts, generate comma separated values where each dict is a row.
+    Given a list of dicts, generate comma-separated values where each dict is a row.
     An optional reformatter function can be provided to transform or enrich each dict.
-    The order and names of the formatter's the output dict keys will determine the
-    order and header column titles of the resulting csv string.
+    The order and names of the formatter's output dict keys will determine the order
+    and header column titles of the resulting csv string.
     :param source: An iterable of all the rows that should appear in the csv string.
     :param formatter: A Callable that accepts a Mapping and returns a dict.
     >>> csv = csv_string([{"row_id": x, "t w o": 2, "upper": x.upper()} for x in "ab"])
@@ -824,13 +841,13 @@ def csv_string(source: Iterable[Mapping], row_formatter: Callable | None = None)
     """
     if not row_formatter:  # The default formatter reuses the inbound dict unmodified
 
-        def row_formatter(row: dict) -> dict:
+        def row_formatter(row: Mapping) -> Mapping:
             return row
 
     def csv_body() -> Iterable[str]:
         """
         On the first row, use csv_header_and_format() to get and yield the csv_header.
-        Then use csv_format to yield each row as a string of comma separated values.
+        Then use csv_format to yield each row as a string of comma-separated values.
         """
         assert row_formatter, "Placate mypy."
         for i, row in enumerate(source):

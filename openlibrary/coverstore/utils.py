@@ -15,6 +15,7 @@ from urllib.parse import urlencode as real_urlencode
 from openlibrary.coverstore import config, oldb
 
 from io import IOBase as file
+import contextlib
 
 socket.setdefaulttimeout(10.0)
 
@@ -120,10 +121,8 @@ def read_file(path, offset, size, chunk=50 * 1024):
 
 
 def rm_f(filename):
-    try:
+    with contextlib.suppress(OSError):
         os.remove(filename)
-    except OSError:
-        pass
 
 
 chars = string.ascii_letters + string.digits

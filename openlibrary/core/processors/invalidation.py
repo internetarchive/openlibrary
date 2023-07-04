@@ -3,6 +3,7 @@ import datetime
 from infogami.infobase import client
 
 from openlibrary.core import helpers as h
+import contextlib
 
 __all__ = ["InvalidationProcessor"]
 
@@ -139,10 +140,9 @@ class InvalidationProcessor:
             web.ctx._invalidation_inprogress = True
             docs = web.ctx.site.get_many(keys)
             for doc in docs:
-                try:
+                with contextlib.suppress(Exception):
                     client._run_hooks("on_new_version", doc)
-                except Exception:
-                    pass
+
             self.last_update_time = max(doc.last_modified for doc in docs)
             reloaded = True
             del web.ctx._invalidation_inprogress

@@ -77,13 +77,13 @@ def parse_data(data: bytes) -> tuple[dict | None, str | None]:
     data = data.strip()
     if b'<?xml' in data[:10]:
         root = etree.fromstring(data)
-        if '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF' == root.tag:
+        if root.tag == '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF':
             edition_builder = import_rdf.parse(root)
             format = 'rdf'
-        elif '{http://www.w3.org/2005/Atom}entry' == root.tag:
+        elif root.tag == '{http://www.w3.org/2005/Atom}entry':
             edition_builder = import_opds.parse(root)
             format = 'opds'
-        elif '{http://www.loc.gov/MARC21/slim}record' == root.tag:
+        elif root.tag == '{http://www.loc.gov/MARC21/slim}record':
             if root.tag == '{http://www.loc.gov/MARC21/slim}collection':
                 root = root[0]
             rec = MarcXml(root)

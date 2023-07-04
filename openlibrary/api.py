@@ -282,10 +282,14 @@ def parse_datetime(value):
 
 
 class Text(str):
+    __slots__ = ()
+
     def __repr__(self):
         return "<text: %s>" % str.__repr__(self)
 
 
 class Reference(str):
+    __slots__ = ()
+
     def __repr__(self):
         return "<ref: %s>" % str.__repr__(self)

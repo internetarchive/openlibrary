@@ -1,5 +1,5 @@
-from distutils.core import setup
 from pathlib import Path
+from setuptools import setup
 from Cython.Build import cythonize
 
 setup(

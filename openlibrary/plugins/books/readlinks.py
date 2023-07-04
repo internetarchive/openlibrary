@@ -104,30 +104,21 @@ class ReadProcessor:
     def __init__(self, options):
         self.options = options
 
-    def get_item_status(self, ekey, iaid, collections, subjects):
+    def get_item_status(self, ekey, iaid, collections, subjects) -> str:
         if 'lendinglibrary' in collections:
-            if 'Lending library' not in subjects:
-                status = 'restricted'
-            else:
-                status = 'lendable'
+            status = 'lendable' if 'Lending library' in subjects else 'restricted'
         elif 'inlibrary' in collections:
-            if 'In library' not in subjects:
-                status = 'restricted'
-            elif True:  # not self.get_inlibrary(): - Deprecated
-                status = 'restricted'
+            status = 'restricted'
+            if 'In library' in subjects:  # self.get_inlibrary() is deprecated
                 if self.options.get('debug_items'):
                     status = 'restricted - not inlib'
                 elif self.options.get('show_inlibrary'):
                     status = 'lendable'
-            else:
-                status = 'lendable'
-        elif 'printdisabled' in collections:
-            status = 'restricted'
         else:
-            status = 'full access'
+            status = 'restricted' if 'printdisabled' in collections else 'full access'
 
         if status == 'lendable':
-            loanstatus = web.ctx.site.store.get('ebooks/' + iaid, {'borrowed': 'false'})
+            loanstatus = web.ctx.site.store.get(f'ebooks/{iaid}', {'borrowed': 'false'})
             if loanstatus['borrowed'] == 'true':
                 status = 'checked out'
 

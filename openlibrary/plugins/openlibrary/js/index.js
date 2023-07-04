@@ -223,6 +223,10 @@ jQuery(function () {
         import(/* webpackChunkName: "carousels-partials" */'./carousels_partials.js')
             .then(module => module.initCarouselsPartials());
     }
+    // conditionally load list seed item deletion dialog functionality based on id on lists pages
+    if (document.getElementById('listResults')) {
+        import(/* webpackChunkName: "ListViewBody" */'./lists/ListViewBody.js');
+    }
     // Enable any carousels in the page
     if ($carouselElements.length) {
         import(/* webpackChunkName: "carousel" */ './carousel')
@@ -354,18 +358,24 @@ jQuery(function () {
         $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
     }
 
+    const droppers = document.querySelectorAll('.dropper')
+    if (droppers.length) {
+        import(/* webpackChunkName: "droppers" */ './droppers')
+            .then((module) => module.initDroppers(droppers))
+    }
+
     // "Want to Read" buttons:
-    const droppers = document.getElementsByClassName('widget-add');
+    const readingLogDroppers = document.getElementsByClassName('widget-add');
 
     // Async lists components:
     const wtrLoadingIndicator = document.querySelector('.list-loading-indicator')
     const overviewLoadingIndicator = document.querySelector('.list-overview-loading-indicator')
 
-    if (droppers.length || wtrLoadingIndicator || overviewLoadingIndicator) {
+    if (readingLogDroppers.length || wtrLoadingIndicator || overviewLoadingIndicator) {
         import(/* webpackChunkName: "lists" */ './lists')
             .then((module) => {
-                if (droppers.length) {
-                    module.initDroppers(droppers);
+                if (readingLogDroppers.length) {
+                    module.initReadingLogDroppers(readingLogDroppers);
                     // Removable list items:
                     // TODO: Is this the correct place to initalize these?
                     const actionableListItems = document.querySelectorAll('.actionable-item')
@@ -436,16 +446,6 @@ jQuery(function () {
             .removeAttr('open');
     });
 
-    // Load and unload third party login iframes when toggling hamburger menu
-    const hamburgerMenu = document.querySelector('.hamburger-component > details')
-    hamburgerMenu.addEventListener('toggle', () => {
-        if (hamburgerMenu.open) {
-            window.LOAD_THIRD_PARTY_LOGINS()
-        } else {
-            window.UNLOAD_THIRD_PARTY_LOGINS()
-        }
-    })
-
     // Prevent default star rating behavior:
     const ratingForms = document.querySelectorAll('.star-rating-form')
     if (ratingForms.length) {
@@ -453,15 +453,21 @@ jQuery(function () {
             .then((module) => module.initRatingHandlers(ratingForms));
     }
 
-    const navbar = document.querySelector('.work-menu');
-    if (navbar) {
-        const compactTitle = document.querySelector('.compact-title')
-        // Add position-aware navbar JS:
+    // Book page navbar initialization:
+    const navbarWrappers = document.querySelectorAll('.nav-bar-wrapper')
+    if (navbarWrappers.length) {
+        // Add JS for book page navbar:
         import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
-            .then((module) => module.initNavbar(navbar));
-        // Add sticky title component animations:
+            .then((module) => {
+                module.initNavbars(navbarWrappers)
+            });
+        // Add sticky title component animations to desktop views:
         import(/* webpackChunkName: "compact-title" */ './compact-title')
-            .then((module) => module.initCompactTitle(navbar, compactTitle))
+            .then((module) => {
+                const compactTitle = document.querySelector('.compact-title')
+                const desktopNavbar = [...navbarWrappers].find(elem => elem.classList.contains('desktop-only'))
+                module.initCompactTitle(desktopNavbar, compactTitle)
+            })
     }
 
     // Add functionality for librarian merge request table:
@@ -470,8 +476,10 @@ jQuery(function () {
     const mergeRequestCommentButtons = document.querySelectorAll('.mr-comment-btn')
     const showCommentsLinks = document.querySelectorAll('.comment-expand')
     const unassignElements = document.querySelectorAll('.mr-unassign')
+    const mergeRequestFilters = document.querySelectorAll('.mr-dropdown')
 
-    if (mergeRequestCloseLinks.length || mergeRequestCommentButtons.length || showCommentsLinks.length || mergeRequestResolveLinks.length || unassignElements.length) {
+    if (mergeRequestCloseLinks.length || mergeRequestCommentButtons.length || showCommentsLinks.length || mergeRequestResolveLinks.length ||
+        unassignElements.length || mergeRequestFilters.length) {
         import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
             .then(module => {
                 if (mergeRequestCloseLinks.length) {
@@ -489,6 +497,9 @@ jQuery(function () {
                 if (unassignElements.length) {
                     module.initUnassignment(unassignElements)
                 }
+                if (mergeRequestFilters.length) {
+                    module.initFilters()
+                }
             })
     }
 
@@ -497,5 +508,13 @@ jQuery(function () {
     if (addProviderRowLink) {
         import(/* webpackChunkName "add-provider-link" */ './add_provider')
             .then(module => module.initAddProviderRowLink(addProviderRowLink))
+    }
+
+
+    // Allow banner announcements to be dismissable for logged-in users:
+    const siteBanner = document.getElementById('announcement-banner')
+    if (siteBanner) {
+        import(/* webpackChunkName: "announcement-banner" */ './initAnnouncementBanner')
+            .then(module => module.initAnnouncementBanner(siteBanner))
     }
 });

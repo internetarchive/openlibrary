@@ -120,7 +120,7 @@ class Test_build_data:
     def setup_class(cls):
         update_work.data_provider = FakeDataProvider()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_simple_work(self):
         work = {"key": "/works/OL1M", "type": {"key": "/type/work"}, "title": "Foo"}
 
@@ -130,7 +130,7 @@ class Test_build_data:
         assert d["has_fulltext"] is False
         assert d["edition_count"] == 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_edition_count_when_editions_on_work(self):
         work = make_work()
 
@@ -145,7 +145,7 @@ class Test_build_data:
         d = await build_data(work)
         assert d['edition_count'] == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_edition_count_when_editions_in_data_provider(self):
         work = make_work()
         d = await build_data(work)
@@ -163,7 +163,7 @@ class Test_build_data:
         d = await build_data(work)
         assert d['edition_count'] == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_edition_key(self):
         work = make_work()
         update_work.data_provider = FakeDataProvider(
@@ -178,7 +178,7 @@ class Test_build_data:
         d = await build_data(work)
         assert d['edition_key'] == ["OL1M", "OL2M", "OL3M"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_publish_year(self):
         test_dates = [
             "2000",
@@ -199,7 +199,7 @@ class Test_build_data:
         assert sorted(d['publish_year']) == ["2000", "2001", "2002", "2003", "2004"]
         assert d["first_publish_year"] == 2000
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_isbns(self):
         work = make_work()
         update_work.data_provider = FakeDataProvider(
@@ -214,7 +214,7 @@ class Test_build_data:
         d = await build_data(work)
         assert sorted(d['isbn']) == ['123456789X', '9781234567897']
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_other_identifiers(self):
         work = make_work()
         update_work.data_provider = FakeDataProvider(
@@ -228,7 +228,7 @@ class Test_build_data:
         assert sorted(d['oclc']) == ['123', '234']
         assert sorted(d['lccn']) == ['lccn-1', 'lccn-2', 'lccn-3']
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_identifiers(self):
         work = make_work()
         update_work.data_provider = FakeDataProvider(
@@ -241,7 +241,7 @@ class Test_build_data:
         d = await build_data(work)
         assert sorted(d['id_librarything']) == ['lt-1', 'lt-2']
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_ia_boxid(self):
         w = make_work()
         update_work.data_provider = FakeDataProvider([w, make_edition(w)])
@@ -256,7 +256,7 @@ class Test_build_data:
         assert 'ia_box_id' in d
         assert d['ia_box_id'] == ['foo']
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_with_one_lending_edition(self):
         w = make_work()
         update_work.data_provider = FakeDataProvider(
@@ -273,7 +273,7 @@ class Test_build_data:
         assert d['edition_count'] == 1
         assert d['ebook_count_i'] == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_with_two_lending_editions(self):
         w = make_work()
         update_work.data_provider = FakeDataProvider(
@@ -299,7 +299,7 @@ class Test_build_data:
         assert d['edition_count'] == 2
         assert d['ebook_count_i'] == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_with_one_inlibrary_edition(self):
         w = make_work()
         update_work.data_provider = FakeDataProvider(
@@ -316,7 +316,7 @@ class Test_build_data:
         assert d['edition_count'] == 1
         assert d['ebook_count_i'] == 1
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_with_one_printdisabled_edition(self):
         w = make_work()
         update_work.data_provider = FakeDataProvider(
@@ -346,7 +346,7 @@ class Test_build_data:
         assert f([only_title, no_title]) == {'foo'}
         assert f([with_subtitle, only_title]) == {'foo 2: bar', 'foo'}
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_with_multiple_editions(self):
         w = make_work()
         update_work.data_provider = FakeDataProvider(
@@ -374,7 +374,7 @@ class Test_build_data:
         assert d['edition_count'] == 4
         assert d['ebook_count_i'] == 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_subjects(self):
         w = make_work(subjects=["a", "b c"])
         d = await build_data(w)
@@ -400,7 +400,7 @@ class Test_build_data:
             assert d[k + '_facet'] == ['a', "b c"]
             assert d[k + '_key'] == ['a', "b_c"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_author_info(self):
         w = make_work(
             authors=[
@@ -448,7 +448,7 @@ class Test_build_data:
         ),
     }
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @pytest.mark.parametrize(
         "doc_lccs,solr_lccs,sort_lcc_index", LCC_TESTS.values(), ids=LCC_TESTS.keys()
     )
@@ -490,7 +490,7 @@ class Test_build_data:
         'Skips 092s': (['092', '123.5'], ['123.5'], 0),
     }
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     @pytest.mark.parametrize(
         "doc_ddcs,solr_ddcs,sort_ddc_index", DDC_TESTS.values(), ids=DDC_TESTS.keys()
     )
@@ -525,7 +525,7 @@ class Test_update_items:
     def setup_class(cls):
         update_work.data_provider = FakeDataProvider()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_delete_author(self):
         update_work.data_provider = FakeDataProvider(
             [make_author(key='/authors/OL23A', type={'key': '/type/delete'})]
@@ -533,7 +533,7 @@ class Test_update_items:
         requests = await update_work.update_author('/authors/OL23A')
         assert requests[0].to_json_command() == '"delete": ["/authors/OL23A"]'
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_redirect_author(self):
         update_work.data_provider = FakeDataProvider(
             [make_author(key='/authors/OL24A', type={'key': '/type/redirect'})]
@@ -541,7 +541,7 @@ class Test_update_items:
         requests = await update_work.update_author('/authors/OL24A')
         assert requests[0].to_json_command() == '"delete": ["/authors/OL24A"]'
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_update_author(self, monkeypatch):
         update_work.data_provider = FakeDataProvider(
             [make_author(key='/authors/OL25A', name='Somebody')]
@@ -560,9 +560,17 @@ class Test_update_items:
             }
         )
 
-        monkeypatch.setattr(
-            update_work.requests, 'get', lambda url, **kwargs: empty_solr_resp
-        )
+        class MockAsyncClient:
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, exc_type, exc_val, exc_tb):
+                pass
+
+            async def get(self, url, params):
+                return empty_solr_resp
+
+        monkeypatch.setattr(httpx, 'AsyncClient', MockAsyncClient)
         requests = await update_work.update_author('/authors/OL25A')
         assert len(requests) == 1
         assert isinstance(requests[0], update_work.AddRequest)
@@ -571,7 +579,7 @@ class Test_update_items:
     def test_delete_requests(self):
         olids = ['/works/OL1W', '/works/OL2W', '/works/OL3W']
         json_command = update_work.DeleteRequest(olids).to_json_command()
-        assert '"delete": ["/works/OL1W", "/works/OL2W", "/works/OL3W"]' == json_command
+        assert json_command == '"delete": ["/works/OL1W", "/works/OL2W", "/works/OL3W"]'
 
 
 class TestUpdateWork:
@@ -579,7 +587,7 @@ class TestUpdateWork:
     def setup_class(cls):
         update_work.data_provider = FakeDataProvider()
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_delete_work(self):
         requests = await update_work.update_work(
             {'key': '/works/OL23W', 'type': {'key': '/type/delete'}}
@@ -587,7 +595,7 @@ class TestUpdateWork:
         assert len(requests) == 1
         assert requests[0].to_json_command() == '"delete": ["/works/OL23W"]'
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_delete_editions(self):
         requests = await update_work.update_work(
             {'key': '/works/OL23M', 'type': {'key': '/type/delete'}}
@@ -595,7 +603,7 @@ class TestUpdateWork:
         assert len(requests) == 1
         assert requests[0].to_json_command() == '"delete": ["/works/OL23M"]'
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_redirects(self):
         requests = await update_work.update_work(
             {'key': '/works/OL23W', 'type': {'key': '/type/redirect'}}
@@ -603,7 +611,7 @@ class TestUpdateWork:
         assert len(requests) == 1
         assert requests[0].to_json_command() == '"delete": ["/works/OL23W"]'
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_no_title(self):
         requests = await update_work.update_work(
             {'key': '/books/OL1M', 'type': {'key': '/type/edition'}}
@@ -616,7 +624,7 @@ class TestUpdateWork:
         assert len(requests) == 1
         assert requests[0].doc['title'] == "__None__"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_work_no_title(self):
         work = {'key': '/works/OL23W', 'type': {'key': '/type/work'}}
         ed = make_edition(work)

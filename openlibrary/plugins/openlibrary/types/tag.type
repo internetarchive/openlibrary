@@ -1,0 +1,61 @@
+{
+    "name": "Tag",
+    "key": "/type/tag",
+    "id": 121411342,
+    "kind": "regular",
+    "created": {
+        "type": "/type/datetime",
+        "value": "2023-04-05T22:27:36.162339"
+    },
+    "last_modified": {
+        "type": "/type/datetime",
+        "value": "2023-04-05T22:37:06.504291"
+    },
+    "latest_revision": 3,
+    "type": {
+        "key": "/type/type"
+    },
+    "properties": [
+        {
+            "expected_type": {
+                "key": "/type/string",
+            },
+            "name": "name",
+            "type": {
+                "key": "/type/property"
+            },
+            "unique": true
+        },
+        {
+            "expected_type": {
+                "key": "/type/string",
+            },
+            "name": "tag_description",
+            "type": {
+                "key": "/type/property"
+            },
+            "unique": true
+        },
+        {
+            "expected_type": {
+                "key": "/type/string",
+            },
+            "name": "tag_plugins",
+            "type": {
+                "key": "/type/property"
+            },
+            "unique": true
+        },
+        {
+            "expected_type": {
+                "key": "/type/string",
+            },
+            "name": "tag_type",
+            "type": {
+                "key": "/type/property"
+            },
+            "unique": true
+        },
+    ],
+    "revision": 3
+}

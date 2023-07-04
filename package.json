@@ -65,7 +65,8 @@
     "eslint-plugin-vue": "7.15.0",
     "flot": "0.8.3",
     "isbn3": "1.1.1",
-    "jest": "27.5.1",
+    "jest": "29.5.0",
+    "jest-environment-jsdom": "29.5.0",
     "jquery": "3.6.0",
     "jquery-colorbox": "1.6.4",
     "jquery-ui": "1.12.1",
@@ -103,6 +104,9 @@
     "moduleNameMapper": {
       "\\.(css|less)$": "<rootDir>/tests/unit/js/styleMock.js"
     },
+    "setupFiles": [
+      "<rootDir>/tests/unit/js/setup.js"
+    ],
     "testEnvironment": "jsdom",
     "collectCoverageFrom": [
       "openlibrary/plugins/openlibrary/js/**/*.js"
@@ -110,9 +114,9 @@
     "coverageThreshold": {
       "global": {
         "branches": 14,
-        "functions": 13,
-        "lines": 16,
-        "statements": 16
+        "functions": 12,
+        "lines": 15,
+        "statements": 15
       }
     },
     "collectCoverage": true

@@ -2,7 +2,6 @@ import logging
 import re
 from functools import cached_property
 
-import requests
 import sys
 import web
 
@@ -390,7 +389,7 @@ class Edition(models.Edition):
 
     def get_toc_text(self):
         def format_row(r):
-            return "*" * r.level + " " + " | ".join([r.label, r.title, r.pagenum])
+            return f"{'*' * r.level} {r.label} | {r.title} | {r.pagenum}"
 
         return "\n".join(format_row(r) for r in self.get_table_of_contents())
 
@@ -831,6 +830,9 @@ class User(models.User):
         loans = lending.get_loans_of_user(self.key)
         for loan in loans:
             lending.sync_loan(loan['ocaid'])
+
+    def get_safe_mode(self):
+        return (self.get_users_settings() or {}).get('safe_mode', "").lower()
 
 
 class UnitParser:

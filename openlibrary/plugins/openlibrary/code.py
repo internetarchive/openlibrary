@@ -12,7 +12,7 @@ import datetime
 import logging
 from time import time
 import math
-
+from pathlib import Path
 import infogami
 
 # make sure infogami.config.features is set
@@ -215,6 +215,19 @@ class routes(delegate.page):
             indent=4,
             separators=(',', ': '),
         )
+
+
+class team(delegate.page):
+    path = '/about/team'
+
+    def GET(self):
+        with Path('/openlibrary/openlibrary/templates/about/team.json').open(
+            mode='r'
+        ) as f:
+            team_members: list[dict[str, str]] = sorted(
+                json.load(f), key=lambda member: member['name'].split()[-1]
+            )
+            return render_template("about/index.html", team_members=team_members)
 
 
 class addbook(delegate.page):
@@ -655,7 +668,7 @@ class _yaml_edit(_yaml):
 
     def is_admin(self):
         u = delegate.context.user
-        return u and u.is_admin()
+        return u and (u.is_admin() or u.is_super_librarian())
 
     def GET(self, key):
         # only allow admin users to edit yaml

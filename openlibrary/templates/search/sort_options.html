@@ -10,12 +10,30 @@ $code:
          { 'sort': 'work_count desc', 'name': _("Work Count"), 'ga_key': 'WorkCountDesc' },
          { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random', 'selected': selected_sort and selected_sort.startswith('random') },
       ]
+     elif search_scheme == 'lists_seeds':
+       sort_options = [
+         { 'sort': 'index', 'name': _("List Order"), 'ga_key': 'ListOrder' },
+         { 'sort': 'last_modified', 'name': _("Last Modified"), 'ga_key': 'LastModified' },
+       ]
      else:
        sort_options = [
          { 'sort': 'relevance', 'name': _("Relevance"), 'ga_key': 'Relevance' },
          { 'sort': 'editions', 'name': _("Most Editions"), 'ga_key': 'Editions' },
          { 'sort': 'old', 'name': _("First Published"), 'ga_key': 'Old' },
          { 'sort': 'new', 'name': _("Most Recent"), 'ga_key': 'New' },
+         { 'sort': 'rating', 'name': _("Top Rated"), 'ga_key': 'Rating' },
+         {
+            'sort': 'readinglog',
+            'name': _("Reading Log"),
+            'ga_key': 'ReadingLog',
+            'selected': selected_sort in ('readinglog', 'want_to_read', 'currently_reading', 'already_read'),
+            'sub_sorts': [
+              { 'sort': 'readinglog', 'name': _("Any"), 'ga_key': 'ReadingLogAny' },
+              { 'sort': 'want_to_read', 'name': _("Want to Read"), 'ga_key': 'ReadingLogWantToRead' },
+              { 'sort': 'currently_reading', 'name': _("Currently Reading"), 'ga_key': 'ReadingLogCurrentlyReading' },
+              { 'sort': 'already_read', 'name': _("Already Read"), 'ga_key': 'ReadingLogAlreadyRead' },
+            ]
+          },
          { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random', 'selected': selected_sort and selected_sort.startswith('random') },
        ]
     $for sort_option in sort_options:
@@ -28,8 +46,20 @@ $code:
           <a href="$changequery(sort=cond(sort_option['sort'] == default_sort, None, sort_option['sort']))"
              data-ol-link-track="SearchSort|$sort_option['ga_key']"
           >$sort_option['name']</a>
+      $if sort_option.get('sub_sorts') and is_selected:
+        <select
+          data-ol-link-track="SearchSort|$sort_option['ga_key']SubSort"
+          onchange="window.location.href = this.value"
+        >
+          $for sub_sort in sort_option['sub_sorts']:
+            $ is_selected = sub_sort['sort'] == selected_sort
+            <option
+              value="$changequery(sort=cond(sub_sort['sort'] == default_sort, None, sub_sort['sort']))"
+              $cond(is_selected, 'selected')
+            >$sub_sort['name']</option>
+        </select>
       $if not loop.last:
-          |
+        |
     $if selected_sort and selected_sort.startswith('random'):
       (<a href="$changequery(sort='random_%s' % today().timestamp())"
          data-ol-link-track="SearchSort|RandomShuffle"

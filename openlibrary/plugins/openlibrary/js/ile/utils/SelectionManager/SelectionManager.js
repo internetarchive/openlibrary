@@ -82,8 +82,10 @@ export default class SelectionManager {
      * @param {MouseEvent & { currentTarget: HTMLElement }} clickEvent
      */
     toggleSelected(clickEvent) {
-        // If there is text selection, dont do anything
-        if (window.getSelection()?.toString() !== '') return;
+        // If there is text selection or the click is on a link that isn't a select handle, don't do anything
+        if (window.getSelection()?.toString() !== '' ||
+            ($(clickEvent.target).closest('a').is('a') &&
+            $(clickEvent.target).not('.ile-select-handle').length > 0)) return;
 
         const el = clickEvent.currentTarget;
         const isCurSelected = el.classList.contains('ile-selected');

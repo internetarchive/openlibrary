@@ -18,6 +18,7 @@ from __future__ import annotations
 import requests
 import logging
 
+import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 from infogami import config  # noqa: F401
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch

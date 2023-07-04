@@ -1,6 +1,6 @@
 ##
-## Helper docker-compose for doing local infogami dev. You probably want to run something like:
-## docker-compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.infogami-local.yml up -d
+## Helper docker compose file for doing local infogami dev. You probably want to run something like:
+## docker compose -f compose.yaml -f compose.override.yaml -f compose.infogami-local.yaml up -d
 ##
 
 version: "3.8"

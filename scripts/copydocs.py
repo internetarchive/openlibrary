@@ -135,6 +135,8 @@ def get_references(doc, result=None):
 class KeyVersionPair(namedtuple('KeyVersionPair', 'key version')):
     """Helper class to store uri's like /works/OL1W?v=2"""
 
+    __slots__ = ()
+
     @staticmethod
     def from_uri(uri: str) -> KeyVersionPair:
         """

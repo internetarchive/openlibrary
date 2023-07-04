@@ -64,7 +64,6 @@ class WorkSearchScheme(SearchScheme):
         "time",
         "has_fulltext",
         "title_suggest",
-        "edition_count",
         "publish_year",
         "language",
         "number_of_pages_median",
@@ -72,6 +71,11 @@ class WorkSearchScheme(SearchScheme):
         "publisher_facet",
         "author_facet",
         "first_publish_year",
+        "ratings_count",
+        "readinglog_count",
+        "want_to_read_count",
+        "currently_reading_count",
+        "already_read_count",
         # Subjects
         "subject_key",
         "person_key",
@@ -114,6 +118,13 @@ class WorkSearchScheme(SearchScheme):
         'editions': 'edition_count desc',
         'old': 'def(first_publish_year, 9999) asc',
         'new': 'first_publish_year desc',
+        'rating': 'ratings_sortable desc',
+        'rating asc': 'ratings_sortable asc',
+        'rating desc': 'ratings_sortable desc',
+        'readinglog': 'readinglog_count desc',
+        'want_to_read': 'want_to_read_count desc',
+        'currently_reading': 'currently_reading_count desc',
+        'already_read': 'already_read_count desc',
         'title': 'title_sort asc',
         'scans': 'ia_count desc',
         # Classifications
@@ -357,6 +368,22 @@ class WorkSearchScheme(SearchScheme):
                                 node.name = new_name
                             else:
                                 node.name = f'+{new_name}'
+                            if new_name == 'key':
+                                # need to convert eg 'edition_key:OL123M' to
+                                # 'key:(/books/OL123M)'. Or
+                                # key:(/books/OL123M OR /books/OL456M)
+                                for n, n_parents in luqum_traverse(node.expr):
+                                    if isinstance(
+                                        n, (luqum.tree.Word, luqum.tree.Phrase)
+                                    ):
+                                        val = (
+                                            n.value
+                                            if isinstance(n, luqum.tree.Word)
+                                            else n.value[1:-1]
+                                        )
+                                        if val.startswith('/books/'):
+                                            val = val[7:]
+                                        n.value = f'"/books/{val}"'
                         elif callable(new_name):
                             # Replace this node with a new one
                             # First process the expr
@@ -385,8 +412,7 @@ class WorkSearchScheme(SearchScheme):
                 if param_name != 'fq' or param_value.startswith('type:'):
                     continue
                 field_name, field_val = param_value.split(':', 1)
-                ed_field = convert_work_field_to_edition_field(field_name)
-                if ed_field:
+                if ed_field := convert_work_field_to_edition_field(field_name):
                     editions_fq.append(f'{ed_field}:{field_val}')
             for fq in editions_fq:
                 new_params.append(('editions.fq', fq))
@@ -418,10 +444,7 @@ class WorkSearchScheme(SearchScheme):
         if ed_q or len(editions_fq) > 1:
             # The elements in _this_ edition query should cause works not to
             # match _at all_ if matching editions are not found
-            if ed_q:
-                new_params.append(('edQuery', full_ed_query))
-            else:
-                new_params.append(('edQuery', '*:*'))
+            new_params.append(('edQuery', full_ed_query if ed_q else '*:*'))
             q = (
                 f'+{full_work_query} '
                 # This is using the special parent query syntax to, on top of

@@ -45,7 +45,7 @@ a.cta-btn {
     text-decoration: none;
   }
 
-  &--available {
+  &--available, &--preview {
     background-color: @primary-blue;
     color: @white;
     &:hover { background-color: darken(@primary-blue, 20%); }
@@ -64,9 +64,7 @@ a.cta-btn {
     &:hover { background-color: darken(@primary-blue, 20%); }
   }
   &--shell, &--shell:link, &--shell:visited {
-    background-color: @white;
-    border: 2px solid @primary-blue;
-    color: @primary-blue;
+    .shell-btn--active();
   }
   &--shell:disabled {
     border: 2px solid @light-grey;

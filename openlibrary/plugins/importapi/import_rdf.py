@@ -24,10 +24,10 @@ def parse_subject(e, key):
         '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource'
     )
     val = e.find('.//{http://www.w3.org/1999/02/22-rdf-syntax-ns#}value')
-    if 'http://purl.org/dc/terms/DDC' == resource_type:
+    if resource_type == 'http://purl.org/dc/terms/DDC':
         new_key = 'dewey_decimal_class'
         return (new_key, val.text)
-    elif 'http://purl.org/dc/terms/LCC' == resource_type:
+    elif resource_type == 'http://purl.org/dc/terms/LCC':
         new_key = 'lc_classification'
         return (new_key, val.text)
     else:
@@ -44,9 +44,9 @@ def parse_identifier(e, key):
     ia_str = 'http://www.archive.org/details/'
     if val.startswith(isbn_str):
         isbn = val[len(isbn_str) :]
-        if 10 == len(isbn):
+        if len(isbn) == 10:
             return ('isbn_10', isbn)
-        elif 13 == len(isbn):
+        elif len(isbn) == 13:
             return ('isbn_13', isbn)
     elif val.startswith(ia_str):
         return ('ocaid', val[len(ia_str) :])

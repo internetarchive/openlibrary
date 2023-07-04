@@ -1,9 +1,12 @@
-import os
 import pytest
+from pathlib import Path
 from openlibrary.catalog import get_ia
 from openlibrary.core import ia
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.marc_binary import MarcBinary, BadLength, BadMARC
+
+
+TEST_DATA = Path(__file__).parents[2] / 'catalog' / 'marc' / 'tests' / 'test_data'
 
 
 class MockResponse:
@@ -13,24 +16,21 @@ class MockResponse:
 
     def __init__(self, data):
         self.content = data
-        self.text = data.decode("utf-8")
+        self.text = data.decode('utf-8')
 
 
 def return_test_marc_bin(url):
-    assert url, f"return_test_marc_bin({url})"
-    return return_test_marc_data(url, "bin_input")
+    return return_test_marc_data(url, 'bin_input')
 
 
 def return_test_marc_xml(url):
-    assert url, f"return_test_marc_xml({url})"
-    return return_test_marc_data(url, "xml_input")
+    return return_test_marc_data(url, 'xml_input')
 
 
-def return_test_marc_data(url, test_data_subdir="xml_input"):
+def return_test_marc_data(url, test_data_subdir='xml_input'):
     filename = url.split('/')[-1]
-    test_data_dir = f"/../../catalog/marc/tests/test_data/{test_data_subdir}/"
-    path = os.path.dirname(__file__) + test_data_dir + filename
-    return MockResponse(open(path, mode='rb').read())
+    path = TEST_DATA / test_data_subdir / filename
+    return MockResponse(path.read_bytes())
 
 
 class TestGetIA:
@@ -64,7 +64,7 @@ class TestGetIA:
         'cu31924091184469',  # is <collection>
         '00schlgoog',
         '13dipolarcycload00burk',
-        '39002054008678.yale.edu',
+        '39002054008678_yale_edu',
         'abhandlungender01ggoog',
         'bijouorannualofl1828cole',
         'dasrmischepriv00rein',
@@ -91,9 +91,10 @@ class TestGetIA:
         monkeypatch.setattr(
             ia,
             'get_metadata',
-            lambda itemid: {'_filenames': [itemid + '_marc.xml', itemid + '_meta.mrc']},
+            lambda itemid: {
+                '_filenames': [f'{itemid}_{s}' for s in ('marc.xml', 'meta.mrc')]
+            },
         )
-
         result = get_ia.get_marc_record_from_ia(item)
         assert isinstance(
             result, MarcXml
@@ -104,25 +105,22 @@ class TestGetIA:
         """When no XML MARC is listed in _filenames, the Binary MARC should be fetched."""
         monkeypatch.setattr(get_ia, 'urlopen_keep_trying', return_test_marc_bin)
         monkeypatch.setattr(
-            ia, 'get_metadata', lambda itemid: {'_filenames': [itemid + "_meta.mrc"]}
+            ia, 'get_metadata', lambda itemid: {'_filenames': [f'{itemid}_meta.mrc']}
         )
-
         result = get_ia.get_marc_record_from_ia(item)
         assert isinstance(
             result, MarcBinary
         ), f"{item}: expected instanceof MarcBinary, got {type(result)}"
         field_245 = next(result.read_fields(['245']))
         title = next(field_245[1].get_all_subfields())[1].encode('utf8')
-        print(f"{item}:\n\tUNICODE: [{result.leader()[9]}]\n\tTITLE: {title}")
 
     @pytest.mark.parametrize('bad_marc', bad_marcs)
     def test_incorrect_length_marcs(self, bad_marc, monkeypatch):
         """If a Binary MARC has a different length than stated in the MARC leader, it is probably due to bad character conversions."""
         monkeypatch.setattr(get_ia, 'urlopen_keep_trying', return_test_marc_bin)
         monkeypatch.setattr(
-            ia, 'get_metadata', lambda itemid: {'_filenames': [itemid + "_meta.mrc"]}
+            ia, 'get_metadata', lambda itemid: {'_filenames': [f'{itemid}_meta.mrc']}
         )
-
         with pytest.raises(BadLength):
             result = get_ia.get_marc_record_from_ia(bad_marc)
 

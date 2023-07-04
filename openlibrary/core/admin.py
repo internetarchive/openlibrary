@@ -116,7 +116,7 @@ def _get_visitor_counts_from_graphite(self, ndays: int = 28) -> list[list[int]]:
         response = requests.get(
             "http://graphite.us.archive.org/render/",
             params={
-                "target": "hitcount(stats.uniqueips.openlibrary, '1d')",
+                "target": "summarize(stats.uniqueips.openlibrary, '1d')",
                 "from": f"-{ndays}days",
                 "tz": "UTC",
                 "format": "json",
@@ -132,7 +132,7 @@ def _get_visitor_counts_from_graphite(self, ndays: int = 28) -> list[list[int]]:
 class VisitorStats(Stats):
     def get_counts(self, ndays: int = 28, times: bool = False) -> list[tuple[int, int]]:
         visitors = _get_visitor_counts_from_graphite(ndays)
-        # Flip the order, convert timestamp to msec and convert count==None to zero
+        # Flip the order, convert timestamp to msec, and convert count==None to zero
         return [
             (int(timestamp * 1000), int(count or 0)) for count, timestamp in visitors
         ]

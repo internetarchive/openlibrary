@@ -22,7 +22,6 @@ A record is loaded by calling the load function.
     response = load(record)
 
 """
-import json
 import re
 
 import web
@@ -564,7 +563,8 @@ def add_db_name(rec):
     for a in rec['authors']:
         date = None
         if 'date' in a:
-            assert 'birth_date' not in a and 'death_date' not in a
+            assert 'birth_date' not in a
+            assert 'death_date' not in a
             date = a['date']
         elif 'birth_date' in a or 'death_date' in a:
             date = a.get('birth_date', '') + '-' + a.get('death_date', '')
@@ -806,7 +806,6 @@ def load(rec, account_key=None):
         'lc_classifications',
         'oclc_numbers',
         'source_records',
-        'publishers',
     ]
     for f in edition_list_fields:
         if f not in rec or not rec[f]:
@@ -824,6 +823,7 @@ def load(rec, account_key=None):
 
     other_edition_fields = [
         'number_of_pages',
+        'publishers',
         'publish_date',
     ]
     for f in other_edition_fields:

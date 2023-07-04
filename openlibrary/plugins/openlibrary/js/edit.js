@@ -360,6 +360,7 @@ export function initLanguageMultiInputAutocomplete() {
                 );
             }
         );
+       
     });
 }
 
@@ -394,7 +395,7 @@ export function initAuthorMultiInputAutocomplete() {
     getJqueryElements('.multi-input-autocomplete--author').forEach(
         (jqueryElement) => {
             /* Values in the html passed from Python code */
-            const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
+            const dataConfig = JSON.parse(jqueryElement[0].dataset.config || '{}');
             jqueryElement.setup_multi_input_autocomplete(
                 'input.author-autocomplete',
                 render_author.bind(
@@ -407,6 +408,12 @@ export function initAuthorMultiInputAutocomplete() {
                     endpoint: '/authors/_autocomplete',
                     // Don't render "Create new author" if searching by key
                     addnew: (query) => !/OL\d+A/i.test(query),
+                render_work_field,
+                {
+                    endpoint: '/works/_autocomplete',
+                    addnew: dataConfig['addnew'] || false,
+                    new_name: dataConfig['new_name'] || '',
+                    allow_empty: dataConfig['allow_empty'] || false,
                 },
                 {
                     minChars: 2,
@@ -418,6 +425,32 @@ export function initAuthorMultiInputAutocomplete() {
             );
         }
     );
+                    formatItem: render_work_autocomplete_item,
+                });
+        });
+    });
+}
+
+export function initAuthorMultiInputAutocomplete() {
+    getJqueryElements('.multi-input-autocomplete--author').forEach(jqueryElement => {
+        /* Values in the html passed from Python code */
+        const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
+        jqueryElement.setup_multi_input_autocomplete(
+            render_author.bind(null, dataConfig.name_path, dataConfig.dict_path, false),
+            {
+                endpoint: '/authors/_autocomplete',
+                // Don't render "Create new author" if searching by key
+                addnew: query => !/OL\d+A/i.test(query),
+                sortable: true,
+            },
+            {
+                minChars: 2,
+                max: 11,
+                matchSubset: false,
+                autoFill: true,
+                formatItem: render_author_autocomplete_item
+            });
+    });
 }
 
 export function initSubjectsAutocomplete() {

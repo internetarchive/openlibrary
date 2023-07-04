@@ -36,6 +36,10 @@ class add_cover(delegate.page):
         if not book:
             raise web.notfound("")
 
+        user = accounts.get_current_user()
+        if user and user.is_read_only():
+            raise web.forbidden(message="Patron not permitted to upload images")
+
         i = web.input(file={}, url="")
 
         # remove references to field storage objects

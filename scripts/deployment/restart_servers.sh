@@ -10,7 +10,7 @@ set -o xtrace
 
 # https://github.com/internetarchive/openlibrary/wiki/Deployment-Scratchpad
 
-PRODUCTION="docker-compose.yml:docker-compose.production.yml"
+PRODUCTION="compose.yaml:compose.production.yaml"
 # zsh uses HOST (although we're in a bash context, so maybe not needed?)
 HOSTNAME="${HOSTNAME:-$HOST}"
 OLIMAGE="${OLIMAGE:-}"
@@ -24,5 +24,5 @@ fi
 
 for SERVER in $SERVERS; do
     HOSTNAME=$(host $SERVER | cut -d " " -f 1)
-    ssh $SERVER "cd /opt/openlibrary; COMPOSE_FILE=$PRODUCTION HOSTNAME=$HOSTNAME OLIMAGE=$OLIMAGE docker-compose --profile $(echo $SERVER | cut -f1 -d '.') up --build --no-deps -d"
+    ssh $SERVER "cd /opt/openlibrary; COMPOSE_FILE=$PRODUCTION HOSTNAME=$HOSTNAME OLIMAGE=$OLIMAGE docker compose --profile $(echo $SERVER | cut -f1 -d '.') up --build --no-deps -d"
 done

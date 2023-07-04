@@ -24,9 +24,9 @@ def parse_identifier(e, key):
     ia_str = 'http://www.archive.org/details/'
     if val.startswith(isbn_str):
         isbn = val[len(isbn_str) :]
-        if 10 == len(isbn):
+        if len(isbn) == 10:
             return ('isbn_10', isbn)
-        elif 13 == len(isbn):
+        elif len(isbn) == 13:
             return ('isbn_13', isbn)
     elif val.startswith(ia_str):
         return ('ocaid', val[len(ia_str) :])
