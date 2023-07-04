@@ -31,7 +31,7 @@ repos:
     hooks:
       - id: auto-walrus
 
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
+  - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.0.276
     hooks:
       - id: ruff
