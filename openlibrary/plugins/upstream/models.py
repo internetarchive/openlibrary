@@ -264,10 +264,13 @@ class Edition(models.Edition):
 
         return loans
 
-    def update_loan_status(self):
-        """Update the loan status"""
+    def update_loan_status(self, loan=None, ia_availability=None):
+        """
+        Update the loan status of this edition.
+        Loan's availability is optional, and if not provided, will be fetched from archive.org
+        """
         if self.ocaid:
-            lending.sync_loan(self.ocaid)
+            lending.sync_loan(self.ocaid, loan, ia_availability)
 
     def _process_identifiers(self, config_, names, values):
         id_map = {}

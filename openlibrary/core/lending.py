@@ -527,7 +527,7 @@ def create_loan(identifier, resource_type, user_key, book_key=None):
 NOT_INITIALIZED = object()
 
 
-def sync_loan(identifier, loan=NOT_INITIALIZED):
+def sync_loan(identifier, loan=NOT_INITIALIZED, ia_availability=None):
     """Updates the loan info stored in openlibrary.
 
     The loan records are stored at the Internet Archive. There is no way for
@@ -551,8 +551,13 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
         book=loan['book'],
     )
 
-    responses = get_availability_of_ocaid(identifier)
-    response = responses[identifier] if responses else {}
+    response = {}
+    if ia_availability:
+        response = ia_availability
+    else:
+        availability = get_availability_of_ocaid(identifier)
+        response = availability[identifier] if availability else {}
+
     if response:
         num_waiting = int(response.get('num_waitlist', 0) or 0)
 
