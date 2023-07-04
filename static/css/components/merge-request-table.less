@@ -205,6 +205,7 @@
 
 .mr-info {
   display: flex;
+  align-items: center;
   margin-left: 14px;
   width: 60%;
 }
@@ -265,23 +266,12 @@
   }
 }
 
-.mr-close-link {
-  display: none; /* Initially hide the mr-close-link */
-}
 
-.mr-opened:hover .mr-close-link {
-  display: inline; /* Show mr-close-link when hovering over mr-opened */
-  color: @closed-red;
-  text-decoration: none;
-}
-
-.mr-submitter {
-  color: @primary-blue;
-}
-
-.mr-opened:hover .mr-submitter {
-  color: @closed-red;
-  text-decoration: underline;
+.mr-opened {
+  .mr-close-link {
+    color: @closed-red;
+    text-decoration: none;
+  }
 }
 
 .review-cell {
