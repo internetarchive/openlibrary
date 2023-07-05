@@ -2,7 +2,8 @@ from datetime import datetime
 import logging
 import re
 import sys
-from typing import Any, Callable, Optional
+from typing import Any, Optional
+from collections.abc import Callable
 
 import luqum.tree
 import web
