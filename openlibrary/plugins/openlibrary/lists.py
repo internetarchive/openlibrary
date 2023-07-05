@@ -78,9 +78,11 @@ def get_list_data(list, seed, include_cover_url=True):
 @public
 def get_user_lists(seed_info):
     user = get_current_user()
+    if not user:
+        return []
     user_lists = user.get_lists(sort=True)
     seed = seed_info['seed']
-    return [get_list_data(list, seed) for list in user_lists]
+    return [get_list_data(user_list, seed) for user_list in user_lists]
 
 
 class lists_partials(delegate.page):
