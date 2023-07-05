@@ -96,8 +96,8 @@ $ page = int(input(page=1).page)
                       <input class="mr-comment-btn" type="button" value="REPLY" data-mrid="$r['id']" data-merge-type="$r['mr_type']" data-username="$username">
                     </div>
                 </div>
-                <span class="mr-opened">MR #$r['id'] opened $datestr(r['created']) by
-                    @$r['submitter']
+                <span class="mr-opened">
+                  MR #$r['id'] opened $datestr(r['created']) by @$r['submitter']
                   $if is_open:
                     $if is_submitter:
                       <a class="mr-close-link" title="Click to close this Merge Request" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">&times;</a>
@@ -110,7 +110,7 @@ $ page = int(input(page=1).page)
                   $r['reviewer'] <span class="mr-unassign" data-mrid="$r['id']" data-merge-type="$r['mr_type']">&times;</span>
                 $if not is_open:
                   $if r.get('reviewer'):
-                    <img src="/static/images/icons/icon_check.png" style="height: 10px; margin-right: 3px;"><span class="reviewer">@$r['reviewer']</span>
+                    <img class="review-cell__check" src="/static/images/icons/icon_check.png"><span class="reviewer">@$r['reviewer']</span>
               </div>
               <div class="reviewer-btn">
                 $if is_open and can_merge:
@@ -125,12 +125,13 @@ $ page = int(input(page=1).page)
               </td>
               <td class="mr-comment-review-cell">
                 <button id="mr-comment-btn" class="mr-comment-review-cell__comments mr-comment-btn-$r['id']">
-                  <a href="javascript:;" class="comment-expand" data-target-id="hidden-comments-$r['id']"
+                  <a href="javascript:;" class="comment-expand" 
+                  data-hidden-comments="hidden-comments-$r['id']"
                   data-latest-comment="latest-comment-$r['id']"
-                  data-btn-class="mr-comment-btn-$r['id']"
+                  data-btn-comments="mr-comment-btn-$r['id']"
                   data-old-comments="old-comments-section-$r['id']">
                     <span class="comment-count-$r['id']">$len(comments)</span>
-                    <img style="margin-right:4px" src="/static/images/speech-bubble.png" alt="">
+                    <img class="mr-comment-review-cell__speech" src="/static/images/speech-bubble.png" alt="">
                   </a>
                 </button>
               </div>
