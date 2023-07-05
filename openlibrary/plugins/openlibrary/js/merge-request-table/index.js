@@ -161,21 +161,21 @@ export function initShowAllCommentsLinks(elems) {
 * @param {HTMLELement} elem Element which contains a reference to the old comments
 */
 function toggleAllComments(elem) {
-    const targetId = elem.dataset.targetId;
-    const targetId2 = elem.dataset.latestComment || 0;
+    const targetHiddenComments = elem.dataset.hiddenComments;
+    const targetLatestComment = elem.dataset.latestComment || 0;
     const targetIdOldComments = elem.dataset.oldComments;
-    const targetBtnClass = elem.dataset.btnClass;
+    const targetBtnComments = elem.dataset.btnComments;
 
-    const target = document.querySelector(`#${targetId}`)
-    const target2 = document.querySelector(`#${targetId2}`)
-    const oldCommentstarget = document.querySelector(`#${targetIdOldComments}`)
-    const targetBtn = document.querySelector(`.${targetBtnClass}`);
+    const hiddenCommentsTarget = document.querySelector(`#${targetHiddenComments}`)
+    const latestCommentTarget = document.querySelector(`#${targetLatestComment}`)
+    const oldCommentsTarget = document.querySelector(`#${targetIdOldComments}`)
+    const targetCommentsBtn = document.querySelector(`.${targetBtnComments}`);
 
-    target.classList.toggle('hidden')
-    target2.classList.toggle('hidden')
-    targetBtn.classList.toggle('border-toggle');
+    hiddenCommentsTarget.classList.toggle('hidden')
+    latestCommentTarget.classList.toggle('hidden')
+    targetCommentsBtn.classList.toggle('border-toggle');
 
-    oldCommentstarget.scrollTop = oldCommentstarget.scrollHeight;
+    oldCommentsTarget.scrollTop = oldCommentsTarget.scrollHeight;
 }
 
 export function initRequestClaiming(elems) {
