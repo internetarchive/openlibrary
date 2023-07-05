@@ -1,6 +1,7 @@
 from datetime import datetime
 import logging
-from typing import Callable, Union
+from typing import Union
+from collections.abc import Callable
 
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 
