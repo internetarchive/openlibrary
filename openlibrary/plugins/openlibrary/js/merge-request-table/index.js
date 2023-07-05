@@ -11,7 +11,7 @@ export function initCloseLinks(elems) {
     for (const elem of elems) {
         elem.addEventListener('click', function () {
             const mrid = elem.dataset.mrid
-            onCloseClick(mrid, elem.parentNode.parentNode)
+            onCloseClick(mrid, elem.parentNode.parentNode.parentNode.parentNode)
         })
     }
 }
@@ -143,9 +143,6 @@ async function updateCommentsView(mrid, comment, username) {
  */
 function removeRow(row) {
     row.parentNode.removeChild(row)
-    const modal = document.getElementById("mr-close-request-modal");
-    const refreshButton = document.getElementById("mr-close-refresh-btn");
-    toggleRefreshModal(modal, refreshButton)
 }
 
 
@@ -272,24 +269,11 @@ function toggleMergeLink(mrid) {
 
     const btn = document.querySelector(`#mr-resolve-btn-${mrid}`)
     if(btn.classList.contains('hidden')){
-        console.log('it does contain hidden')
+        //console.log('it does contain hidden')
         btn.classList.remove('hidden');
     } else {
         btn.classList.add('hidden');
     }
-}
-
-/**
- * Toggles the modal to fresh the page after a close action is performed.
- *
- * @param {HTMLElement} modal References the refresh modal
- * @param {HTMLElement} refreshButton references the refresh
- */
-function toggleRefreshModal(modal, refreshButton) {
-    modal.style.display = "block"
-    refreshButton.addEventListener("click", function() {
-      location.reload(); // Refresh the page
-    });
 }
 
 
