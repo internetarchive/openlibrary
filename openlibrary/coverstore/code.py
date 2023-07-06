@@ -280,7 +280,7 @@ class cover:
             raise web.found(url)
 
         # covers_0008 partials [_00, _80] are tar'd in archive.org items
-        if isinstance(value, int) or value.isnumeric():
+        if isinstance(value, int) or value.isnumeric():  # noqa: SIM102
             if 8810000 > int(value) >= 8000000:
                 prefix = f"{size.lower()}_" if size else ""
                 pid = "%010d" % int(value)
@@ -302,14 +302,12 @@ class cover:
                 raise web.notmodified()
 
             web.header('Cache-Control', 'public')
-            web.expires(
-                100 * 365 * 24 * 3600
-            )  # this image is not going to expire in next 100 years.
+            # this image is not going to expire in next 100 years.
+            web.expires(100 * 365 * 24 * 3600)
         else:
             web.header('Cache-Control', 'public')
-            web.expires(
-                10 * 60
-            )  # Allow the client to cache the image for 10 mins to avoid further requests
+            # Allow the client to cache the image for 10 mins to avoid further requests
+            web.expires(10 * 60)
 
         web.header('Content-Type', 'image/jpeg')
         try:
@@ -327,7 +325,7 @@ class cover:
         # Not a text item or no images or scan is not complete yet
         if (
             d.get("mediatype") != "texts"
-            or d.get("repub_state", "4") not in ["4", "6"]
+            or d.get("repub_state", "4") not in ("4", "6")
             or "imagecount" not in d
         ):
             return

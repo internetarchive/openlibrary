@@ -181,21 +181,18 @@ def compare_authors(e1, e2):
     :return: str?, message, score
     """
 
-    if 'authors' in e1 and 'authors' in e2:
+    if 'authors' in e1 and 'authors' in e2:  # noqa: SIM102
         if compare_author_fields(e1['authors'], e2['authors']):
             return ('authors', 'exact match', 125)
-    if (
-        'authors' in e1
-        and 'contribs' in e2
-        and compare_author_fields(e1['authors'], e2['contribs'])
-    ):
-        return ('authors', 'exact match', 125)
-    if (
-        'contribs' in e1
-        and 'authors' in e2
-        and compare_author_fields(e1['contribs'], e2['authors'])
-    ):
-        return ('authors', 'exact match', 125)
+
+    if 'authors' in e1 and 'contribs' in e2:  # noqa: SIM102
+        if compare_author_fields(e1['authors'], e2['contribs']):
+            return ('authors', 'exact match', 125)
+
+    if 'contribs' in e1 and 'authors' in e2:  # noqa: SIM102
+        if compare_author_fields(e1['contribs'], e2['authors']):
+            return ('authors', 'exact match', 125)
+
     if 'authors' in e1 and 'authors' in e2:
         return compare_author_keywords(e1['authors'], e2['authors'])
 

@@ -816,41 +816,36 @@ def audit_accounts(
         ol_account = OpenLibraryAccount.get(link=ia_account.itemname, test=test)
         link = ol_account.itemname if ol_account else None
 
-        # The fact that there is no link implies no Open Library
-        # account exists containing a link to this Internet Archive
-        # account...
+        # The fact that there is no link implies no Open Library account exists
+        # containing a link to this Internet Archive account...
         if not link:
             # then check if there's an Open Library account which shares
             # the same email as this IA account.
             ol_account = OpenLibraryAccount.get(email=email, test=test)
 
-            # If an Open Library account with a matching email account exist...
-            if ol_account:
-                # Check whether it is linked already, i.e. has an itemname
-                # set. We already determined that no OL account is
-                # linked to our IA account. Therefore this Open
-                # Library account having the same email as our IA
-                # account must have been linked to a different
-                # Internet Archive account.
-                if ol_account.itemname:
-                    return {'error': 'wrong_ia_account'}
+            # If an Open Library account with a matching email account exists...
+            # Check if it is linked already, i.e. has an itemname set. We already
+            # determined that no OL account is linked to our IA account. Therefore this
+            # Open Library account having the same email as our IA account must have
+            # been linked to a different Internet Archive account.
+            if ol_account and ol_account.itemname:
+                return {'error': 'wrong_ia_account'}
 
-        # At this point, it must either be the case that (a)
-        # `ol_account` already links to our IA account (in which case
-        # `link` has a correct value), (b) that an unlinked
-        # `ol_account` shares the same email as our IA account and
-        # thus can and should be safely linked to our IA account, or
-        # (c) no `ol_account` which is linked or can be linked has
-        # been found and therefore, assuming
-        # lending.config_ia_auth_only is enabled, we need to create
-        # and link it.
+        # At this point, it must either be the case that
+        # (a) `ol_account` already links to our IA account (in which case `link` has a
+        #     correct value),
+        # (b) that an unlinked `ol_account` shares the same email as our IA account and
+        #     thus can and should be safely linked to our IA account, or
+        # (c) no `ol_account` which is linked or can be linked has been found and
+        #     therefore, assuming lending.config_ia_auth_only is enabled, we need to
+        #     create and link it.
         if not ol_account:
             try:
                 ol_account = OpenLibraryAccount.create(
                     ia_account.itemname,
                     email,
-                    # since switching to IA creds, OL password
-                    # not used; make challenging random
+                    # since switching to IA creds, OL password not used; make
+                    # challenging random
                     secrets.token_urlsafe(32),
                     displayname=ia_account.screenname,
                     verified=True,
@@ -863,17 +858,16 @@ def audit_accounts(
             ol_account.link(ia_account.itemname)
             stats.increment('ol.account.xauth.ia-auto-created-ol')
 
-        # So long as there's either a linked OL account, or an unlinked OL
-        # account with the same email, set them as linked (and let the
-        # finalize logic link them, if needed)
+        # So long as there's either a linked OL account, or an unlinked OL account with
+        # the same email, set them as linked (and let the finalize logic link them, if
+        # needed)
         else:
             if not ol_account.itemname:
                 ol_account.link(ia_account.itemname)
                 stats.increment('ol.account.xauth.auto-linked')
             if not ol_account.verified:
-                # The IA account is activated (verifying the
-                # integrity of their email), so we make a judgement
-                # call to safely activate them.
+                # The IA account is activated (verifying the integrity of their email),
+                # so we make a judgement call to safely activate them.
                 ol_account.activate()
             if ol_account.blocked:
                 return {'error': 'account_blocked'}
@@ -890,18 +884,14 @@ def audit_accounts(
         }
         ol_account.save_s3_keys(s3_keys)
 
-    # When a user logs in with OL credentials, the
-    # web.ctx.site.login() is called with their OL user
-    # credentials, which internally sets an auth_token
-    # enabling the user's session.  The web.ctx.site.login
-    # method requires OL credentials which are not present in
-    # the case where a user logs in with their IA
-    # credentials. As a result, when users login with their
-    # valid IA credentials, the following kludge allows us to
-    # fetch the OL account linked to their IA account, bypass
-    # this web.ctx.site.login method (which requires OL
-    # credentials), and directly set an auth_token to
-    # enable the user's session.
+    # When a user logs in with OL credentials, the web.ctx.site.login() is called with
+    # their OL user credentials, which internally sets an auth_token enabling the
+    # user's session.  The web.ctx.site.login method requires OL credentials which are
+    # not present in the case where a user logs in with their IA credentials. As a
+    # result, when users login with their valid IA credentials, the following kludge
+    # allows us to fetch the OL account linked to their IA account, bypass this
+    # web.ctx.site.login method (which requires OL credentials), and directly set an
+    # auth_token to enable the user's session.
     web.ctx.conn.set_auth_token(ol_account.generate_login_code())
     return {
         'authenticated': True,

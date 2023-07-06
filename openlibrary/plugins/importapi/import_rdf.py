@@ -78,15 +78,13 @@ def parse(root):
     edition_builder = import_edition_builder.import_edition_builder()
 
     for e in root.iter():
-        if isinstance(e.tag, str):
-            # print e.tag
-            if e.tag in parser_map:
-                key = parser_map[e.tag][0]
-                (new_key, val) = parser_map[e.tag][1](e, key)
-                if new_key:
-                    if isinstance(val, list):
-                        for v in val:
-                            edition_builder.add(new_key, v)
-                    else:
-                        edition_builder.add(new_key, val)
+        if isinstance(e.tag, str) and e.tag in parser_map:
+            key = parser_map[e.tag][0]
+            (new_key, val) = parser_map[e.tag][1](e, key)
+            if new_key:
+                if isinstance(val, list):
+                    for v in val:
+                        edition_builder.add(new_key, v)
+                else:
+                    edition_builder.add(new_key, val)
     return edition_builder
