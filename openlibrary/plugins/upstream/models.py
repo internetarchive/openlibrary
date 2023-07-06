@@ -6,7 +6,7 @@ import sys
 import web
 
 from collections import defaultdict
-from isbnlib import canonical
+from isbnlib import canonical, mask
 
 from infogami import config
 from infogami.infobase import client
@@ -450,7 +450,7 @@ class Edition(models.Edition):
                 else None,
                 'publication-place': self.get('publish_places', [None])[0],
                 'publisher': self.get('publishers', [None])[0],
-                'isbn': isbns[0],
+                'isbn': mask(isbns[0]),
                 'issn': self.get('identifiers', {}).get('issn', [None])[0],
             }
         )
