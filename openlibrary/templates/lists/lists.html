@@ -1,5 +1,7 @@
 $def with (doc, lists, show_header=True)
 
+$ deleteType = ''
+
 $if show_header:
     <div id="contentHead">
         $ header = render_template("lists/header", doc, lists)
