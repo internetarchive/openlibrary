@@ -17,10 +17,8 @@ $ has_tag = 'tag' in page
     $if can_add_tag:
       <div class="subjectTagEdit">
         $ edit_tag_url = page.tag.get('id') + '/edit' if 'tag' in page else '/tag/add'
-        <div class="editButton">
-          <a class="linkButton larger" href="$edit_tag_url" title="$_('Edit Subject Tag')"
-             data-ol-link-track="CTAClick|Edit" accesskey="e">$_("Edit")</a>
-        </div>
+        <a class="editTagButton" href="$edit_tag_url" title="$_('Edit Subject Tag')"
+            data-ol-link-track="CTAClick|Edit" accesskey="e">$_("Edit")</a>
       </div>
     <h1 class="inline">
         $page.name
