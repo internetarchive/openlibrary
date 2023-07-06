@@ -6,7 +6,7 @@ import sys
 import web
 
 from collections import defaultdict
-from isbnlib import canonical, mask
+from isbnlib import canonical, mask, NotValidISBNError
 
 from infogami import config
 from infogami.infobase import client
@@ -102,6 +102,15 @@ class Edition(models.Edition):
             isbn_10 = self.isbn_10 and self.isbn_10[0]
             return isbn_10 and isbn_10_to_isbn_13(isbn_10)
         return isbn_13
+
+    def get_isbnmask(self):
+        """Returns a masked (hyphenated) ISBN if possible."""
+        isbns = self.get('isbn_13', []) + self.get('isbn_10', [None])
+        try:
+            isbn = mask(isbns[0])
+        except NotValidISBNError:
+            return isbns[0]
+        return isbn if isbn else isbns[0]
 
     def get_identifiers(self):
         """Returns (name, value) pairs of all available identifiers."""
@@ -437,9 +446,8 @@ class Edition(models.Edition):
             citation['author'] = authors[0].name
         else:
             for i, a in enumerate(authors):
-                citation['author%s' % (i + 1)] = a.name
+                citation[f'author{i + 1}'] = a.name
 
-        isbns = self.get('isbn_13', []) + self.get('isbn_10', [None])
         citation.update(
             {
                 'date': self.get('publish_date'),
@@ -450,7 +458,7 @@ class Edition(models.Edition):
                 else None,
                 'publication-place': self.get('publish_places', [None])[0],
                 'publisher': self.get('publishers', [None])[0],
-                'isbn': mask(isbns[0]),
+                'isbn': self.get_isbnmask(),
                 'issn': self.get('identifiers', {}).get('issn', [None])[0],
             }
         )
