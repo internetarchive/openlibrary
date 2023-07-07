@@ -36,7 +36,6 @@ exclude = [
   "vendor/*",
 ]
 ignore = [
-  "ASYNC101",
   "B007",
   "B015",
   "B023",
