@@ -110,7 +110,7 @@ class Edition(models.Edition):
             isbn = mask(isbns[0])
         except NotValidISBNError:
             return isbns[0]
-        return isbn if isbn else isbns[0]
+        return isbn or isbns[0]
 
     def get_identifiers(self):
         """Returns (name, value) pairs of all available identifiers."""
@@ -445,8 +445,8 @@ class Edition(models.Edition):
         if len(authors) == 1:
             citation['author'] = authors[0].name
         else:
-            for i, a in enumerate(authors):
-                citation[f'author{i + 1}'] = a.name
+            for i, a in enumerate(authors, 1):
+                citation[f'author{i}'] = a.name
 
         citation.update(
             {
