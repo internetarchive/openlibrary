@@ -3,7 +3,7 @@
 		"stylelint-declaration-strict-value"
 	],
 	"rules": {
-		"AndyOGo/stylelint-declaration-strict-value": [
+		"AndyOGo/declaration-strict-value": [
 			[
 				"font-family",
 				{
