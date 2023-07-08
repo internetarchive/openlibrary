@@ -8,7 +8,7 @@ from babel.messages.checkers import python_format
 def validate(message: Message, catalog: Catalog) -> list[str]:
     errors = [f'    {str(err)}' for err in message.check(catalog)]
     if message.python_format and not message.pluralizable and message.string:
-        errors.extend(_validate_cfmt(message.id, message.string))
+        errors.extend(_validate_cfmt(str(message.id or ''), str(message.string or '')))
 
     return errors
 
