@@ -43,7 +43,6 @@ $else:
         $if form.note:
             <div class="note">$form.note</div>
 
-        $def screenname_url(): $_('')
 
         $:field(form.email)
         $:field(form.username, suffix=str(screenname_url()))
