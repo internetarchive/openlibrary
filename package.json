@@ -120,5 +120,8 @@
       }
     },
     "collectCoverage": true
+  },
+  "dependencies": {
+    "postcss-less": "^6.0.0"
   }
 }

@@ -32,7 +32,7 @@ repos:
       - id: auto-walrus
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.0.276
+    rev: v0.0.277
     hooks:
       - id: ruff
 
@@ -84,6 +84,7 @@ repos:
     - id: stylelint
       files: \.(css|less)$
       additional_dependencies:
-        - stylelint@13.13.1
-        - stylelint-declaration-use-variable@1.7.3
+        - stylelint@15.10.1
+        - stylelint-declaration-strict-value@1.9.2
+        - postcss-less@3.1.4
       args: [--fix]
