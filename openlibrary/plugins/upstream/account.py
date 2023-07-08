@@ -263,39 +263,44 @@ class account_create(delegate.page):
             or "openlibrary.plugins." + name in delegate.get_plugins()
         )
 
-    def POST(self):
-        f: forms.RegisterForm = self.get_form()
 
-        if f.validates(web.input()):
-            try:
-                # Create ia_account: require they activate via IA email
-                # and then login to OL. Logging in after activation with
-                # IA credentials will auto create and link OL account.
+def POST(self):
+    f: forms.RegisterForm = self.get_form()
 
-                """NOTE: the values for the notifications must be kept in sync
-                with the values in the `MAILING_LIST_KEYS` array in
-                https://git.archive.org/ia/petabox/blob/master/www/common/MailSync/Settings.inc
-                Currently, per the fundraising/development team, the
-                "announcements checkbox" should map to BOTH `ml_best_of` and
-                `ml_updates`
-                """  # nopep8
-                mls = ['ml_best_of', 'ml_updates']
-                notifications = mls if f.ia_newsletter.checked else []
-                InternetArchiveAccount.create(
-                    screenname=f.username.value,
-                    email=f.email.value,
-                    password=f.password.value,
-                    notifications=notifications,
-                    verified=False,
-                    retries=USERNAME_RETRIES,
-                )
-                return render['account/verify'](
-                    username=f.username.value, email=f.email.value
-                )
-            except ValueError:
-                f.note = LOGIN_ERRORS['max_retries_exceeded']
+    if f.validates(web.input()):
+        try:
+            # Create ia_account: require they activate via IA email
+            # and then login to OL. Logging in after activation with
+            # IA credentials will auto create and link OL account.
 
-        return render['account/create'](f)
+            """NOTE: the values for the notifications must be kept in sync
+            with the values in the `MAILING_LIST_KEYS` array in
+            https://git.archive.org/ia/petabox/blob/master/www/common/MailSync/Settings.inc
+            Currently, per the fundraising/development team, the
+            "announcements checkbox" should map to BOTH `ml_best_of` and
+            `ml_updates`
+            """  # nopep8
+            notifications = []
+            if f.ia_newsletter.checked:
+                notifications.append('ml_best_of')
+            if f.ia_events_notifications.checked:
+                notifications.append('ml_updates')
+
+            InternetArchiveAccount.create(
+                screenname=f.username.value,
+                email=f.email.value,
+                password=f.password.value,
+                notifications=notifications,
+                verified=False,
+                retries=USERNAME_RETRIES,
+            )
+            return render['account/verify'](
+                username=f.username.value, email=f.email.value
+            )
+        except ValueError:
+            f.note = LOGIN_ERRORS['max_retries_exceeded']
+
+    return render['account/create'](f)
 
 
 del delegate.pages['/account/register']
