@@ -85,5 +85,5 @@ repos:
       files: \.(css|less)$
       additional_dependencies:
         - stylelint@13.13.1
-        - stylelint-declaration-use-variable@1.7.3
+        - stylelint-declaration-strict-value@1.9.2
       args: [--fix]
