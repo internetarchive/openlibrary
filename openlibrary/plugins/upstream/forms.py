@@ -115,7 +115,7 @@ class RegisterForm(Form):
             ),
         ),
         Checkbox(
-            'ib_newsletter',
+            'ia_events_notifications',
             description=_(
                 """Event notices and invitations to and news about our virtual and social events."""
             ),
