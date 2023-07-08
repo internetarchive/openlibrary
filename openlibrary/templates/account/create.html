@@ -64,7 +64,8 @@ $else:
                 }
               </script>
             <br/>
-            <button type="submit" name="signup" id="signup" class="g-recaptcha" data-sitekey="reCAPTCHA_site_key" data-callback='onSubmit' data-action='submit'>$_("Sign Up")</button>
+            $ sitekey = form['recaptcha'].public_key if form.has_recaptcha else ''
+            <button type="submit" name="signup" id="signup" class="g-recaptcha larger" data-sitekey="$sitekey">$_("Sign Up")</button>
             <a href="javascript:history.go(-1);" class="smaller attn">$_("Cancel")</a>
         </div>
     </form>
