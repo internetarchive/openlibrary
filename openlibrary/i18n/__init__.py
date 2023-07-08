@@ -2,7 +2,7 @@ import os
 import shutil
 import sys
 from collections.abc import Iterator
-from io import BytesIO
+from io import StringIO
 
 import web
 
@@ -132,7 +132,7 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
         # Replace/remove inline js '\$' which interferes with the Babel python parser:
         cleaned_string = instring.replace(r'\$', '')
         code = web.template.Template.generate_code(cleaned_string, fileobj.name)
-        f = BytesIO(code.encode('utf-8'))  # Babel wants bytes, not strings
+        f = StringIO(code)
     except Exception as e:
         print('Failed to extract ' + fileobj.name + ':', repr(e), file=web.debug)
         return []
