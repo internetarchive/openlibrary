@@ -3,7 +3,7 @@
 		"stylelint-declaration-strict-value"
 	],
 	"rules": {
-		"sh-waqar/declaration-use-variable": [
+		"AndyOGo/stylelint-declaration-strict-value": [
 			[
 				"font-family",
 				{
