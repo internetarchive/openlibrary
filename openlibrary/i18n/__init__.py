@@ -1,12 +1,12 @@
-import sys
-from collections.abc import Iterator
-
-import web
 import os
 import shutil
+import sys
+from collections.abc import Iterator
+from io import BytesIO
+
+import web
 
 import babel
-from babel._compat import BytesIO
 from babel.support import Translations
 from babel.messages import Catalog, Message
 from babel.messages.pofile import read_po, write_po
