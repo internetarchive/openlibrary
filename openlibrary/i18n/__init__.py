@@ -216,7 +216,9 @@ def check_status(locales: list[str]):
             with open(po_path, 'rb') as f:
                 catalog = read_po(f)
                 ids_with_translations = {
-                    message.id for message in catalog if ''.join(message.string or '').strip()
+                    message.id
+                    for message in catalog
+                    if ''.join(message.string or '').strip()
                 }
 
             ids_completed = message_ids.intersection(ids_with_translations)
