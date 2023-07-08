@@ -1,6 +1,6 @@
 {
 	"plugins": [
-		"stylelint-declaration-use-variable"
+		"stylelint-declaration-strict-value"
 	],
 	"rules": {
 		"sh-waqar/declaration-use-variable": [
