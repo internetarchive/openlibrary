@@ -1,37 +1,26 @@
 {
-	"plugins": [
-		"stylelint-declaration-use-variable"
-	],
-	"rules": {
-		"sh-waqar/declaration-use-variable": [
-			[
-				"font-family",
-				{
-					"ignoreValues": [
-						"inherit", "transparent"
-					]
-				},
-				"background-color",
-				{
-					"ignoreValues": [
-						"inherit",
-						"none",
-						"transparent"
-					]
-				},
-				"z-index", {},
-				"color",
-				{
-					"ignoreValues": [
-						"inherit",
-						"transparent"
-					]
-				}
-			]
-		],
-		"color-no-hex": true,
-		"color-named": "never",
-		"declaration-block-no-duplicate-properties": true,
+  "customSyntax": "postcss-less",
+  "plugins": [
+    "stylelint-declaration-strict-value"
+  ],
+  "rules": {
+    "scale-unlimited/declaration-strict-value": [
+      [
+        "font-family",
+        "background-color",
+        "z-index",
+        "color"
+      ],
+      {
+        "disableFix": true,
+        "ignoreValues": [
+          "inherit", "transparent", "none"
+        ]
+      }
+    ],
+    "color-no-hex": true,
+    "color-named": "never",
+    "declaration-block-no-duplicate-properties": true,
 		"declaration-block-no-redundant-longhand-properties": true,
 		"no-duplicate-selectors": true,
 		"block-no-empty": true,
@@ -63,5 +52,5 @@
 		"string-quotes": ["double", {"avoidEscape":false}],
 		"declaration-bang-space-before": "always",
 		"declaration-colon-space-after": "always"
-	}
+  }
 }
