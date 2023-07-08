@@ -3,7 +3,7 @@ amightygirl.paapi5-python-sdk==1.0.0
 Babel==2.9.1
 beautifulsoup4==4.12.2
 DBUtils==1.4
-Deprecated==1.2.13
+Deprecated==1.2.14
 eventer==0.1.1
 feedparser==6.0.10
 flup-py3==1.0.3
