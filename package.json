@@ -77,7 +77,7 @@
     "lodash": "4.17.21",
     "lucene-query-parser": "1.2.0",
     "npm-watch": "0.11.0",
-    "promise-polyfill": "8.2.0",
+    "promise-polyfill": "8.3.0",
     "regenerator-runtime": "0.13.7",
     "sinon": "14.0.0",
     "slick-carousel": "1.6.0",
