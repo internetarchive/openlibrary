@@ -137,9 +137,7 @@ class internal_audit(delegate.page):
                     email=i.email, link=i.itemname, username=i.username
                 )
                 if result is None:
-                    raise ValueError(
-                        'Invalid Open Library account email ' 'or itemname'
-                    )
+                    raise ValueError('Invalid Open Library account email or itemname')
                 result.enc_password = 'REDACTED'
                 if i.new_itemname:
                     result.link(i.new_itemname)
