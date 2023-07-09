@@ -838,7 +838,7 @@ def changequery(query=None, **kw):
             query[k] = v
 
     query = {
-        k: (list(map(web.safestr, v)) if isinstance(v, list) else web.safestr(v))
+        k: [web.safestr(s) for s in v] if isinstance(v, list) else web.safestr(v)
         for k, v in query.items()
     }
     out = web.ctx.get('readable_path', web.ctx.path)

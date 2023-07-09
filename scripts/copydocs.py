@@ -197,18 +197,11 @@ def copy(
         return docs
 
     def fetch(uris: list[str]) -> list[dict | web.storage]:
-        docs: list = []
-
         # The remaining code relies on cache being a dict.
         if not isinstance(cache, dict):
-            return docs
-
-        key_pairs = list(map(KeyVersionPair.from_uri, uris))
-
-        for pair in key_pairs:
-            if pair.key in cache:
-                docs.append(cache[pair.key])
-
+            return []
+        key_pairs = [KeyVersionPair.from_uri(uri) for uri in uris]
+        docs = [cache[pair.key] for pair in key_pairs if pair.key in cache]
         key_pairs = [pair for pair in key_pairs if pair.to_uri() not in cache]
 
         unversioned_keys = [pair.key for pair in key_pairs if pair.version is None]
