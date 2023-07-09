@@ -163,7 +163,7 @@ def _proxy(method_name):
         return result
 
     f.__name__ = method_name
-    f.__doc__ = "Equivalent to get_db().%s(*args, **kwargs)." "" % method_name
+    f.__doc__ = f"Equivalent to get_db().{method_name}(*args, **kwargs)."
     return f
 
 

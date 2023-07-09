@@ -46,6 +46,7 @@ ignore = [
   "F401",
   "F841",
   "I",
+  "ISC003",
   "PERF401",
   "PIE790",
   "PLC1901",
@@ -79,6 +80,7 @@ select = [
   "I",       # isort
   "ICN",     # flake8-import-conventions
   "INT",     # flake8-gettext
+  "ISC",     # flake8-implicit-str-concat
   "PERF",    # Perflint
   "PIE",     # flake8-pie
   "PL",      # Pylint
@@ -108,7 +110,6 @@ select = [
   # "FIX",   # flake8-fixme
   # "G",     # flake8-logging-format
   # "INP",   # flake8-no-pep420
-  # "ISC",   # flake8-implicit-str-concat
   # "N",     # pep8-naming
   # "NPY",   # NumPy-specific rules
   # "PD",    # pandas-vet
