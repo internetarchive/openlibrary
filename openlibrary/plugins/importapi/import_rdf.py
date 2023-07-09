@@ -10,9 +10,8 @@ def parse_string(e, key):
 
 
 def parse_authors(e, key):
-    authors = []
-    for name in e.iterfind('.//{http://www.w3.org/1999/02/22-rdf-syntax-ns#}value'):
-        authors.append(name.text)
+    s = './/{http://www.w3.org/1999/02/22-rdf-syntax-ns#}value'
+    authors = [name.text for name in e.iterfind(s)]
     return (key, authors)
 
 

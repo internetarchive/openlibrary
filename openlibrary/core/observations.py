@@ -582,7 +582,7 @@ def _get_deleted_types_and_values():
             results['types'].append(o['id'])
         else:
             for v in o['values']:
-                if 'deleted' in v and v['deleted']:
+                if v.get('deleted'):
                     results['values'][o['id']].append(v['id'])
 
     return results
