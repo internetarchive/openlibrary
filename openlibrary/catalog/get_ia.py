@@ -145,34 +145,3 @@ def item_file_url(identifier, ending, host=None, path=None):
     else:
         url = '{0}{1}/{1}_{2}'.format(IA_DOWNLOAD_URL, identifier, ending)
     return url
-
-
-def marc_formats(identifier, host=None, path=None):
-    files = {
-        identifier + '_marc.xml': 'xml',
-        identifier + '_meta.mrc': 'bin',
-    }
-    has = {'xml': False, 'bin': False}
-    url = item_file_url(identifier, 'files.xml', host, path)
-    for attempt in range(10):
-        f = urlopen_keep_trying(url)
-        if f is not None:
-            break
-        sleep(10)
-    if f is None:
-        # TODO: log this, if anything uses this code
-        msg = "error reading %s_files.xml" % identifier
-        return has
-    data = f.content
-    try:
-        root = etree.fromstring(data)
-    except:
-        print(('bad:', repr(data)))
-        return has
-    for e in root:
-        name = e.attrib['name']
-        if name in files:
-            has[files[name]] = True
-        if all(has.values()):
-            break
-    return has
