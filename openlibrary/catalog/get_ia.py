@@ -36,7 +36,7 @@ def get_marc_record_from_ia(identifier):
     when the /api/import/ia endpoint is POSTed to.
 
     :param str identifier: ocaid
-    :rtype: MarcXML | MarcBinary
+    :rtype: MarcBinary | MarcXML
     """
     metadata = ia.get_metadata(identifier)
     filenames = metadata['_filenames']
@@ -46,7 +46,12 @@ def get_marc_record_from_ia(identifier):
 
     item_base = f'{IA_DOWNLOAD_URL}{identifier}/'
 
-    # Try marc.xml first
+    # Try marc.bin first
+    if marc_bin_filename in filenames:
+        data = urlopen_keep_trying(item_base + marc_bin_filename).content
+        return MarcBinary(data)
+
+    # If that fails, try marc.xml
     if marc_xml_filename in filenames:
         data = urlopen_keep_trying(item_base + marc_xml_filename).content
         try:
@@ -55,11 +60,6 @@ def get_marc_record_from_ia(identifier):
         except Exception as e:
             print("Unable to read MarcXML: %s" % e)
             traceback.print_exc()
-
-    # If that fails, try marc.bin
-    if marc_bin_filename in filenames:
-        data = urlopen_keep_trying(item_base + marc_bin_filename).content
-        return MarcBinary(data)
 
 
 def files(identifier):
