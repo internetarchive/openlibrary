@@ -57,3 +57,32 @@ class TestAuthorName:
         len_if_author_dead = 11
         for date in author_dates:
             assert len(date) == len_if_no_birth_data or len(date) == len_if_author_alive or len(date) == len_if_author_dead
+            
+    def test_all_works_from_author(self, browser):
+        url = 'http://localhost:8080/authors/OL18319A/Mark_Twain'
+        browser.visit(url)
+        error = browser.find_by_css(".error")
+        if error:
+            raise Exception("Error in page")
+        titles = browser.find_by_css(".bookauthor")
+        for title_driver in titles:
+            title = title_driver.text
+            title_length = len(title)
+            author_dates = []
+            authors_quantity = title.count('(')
+            for  i in range(0,authors_quantity):
+                if author_dates != []:
+                    title = title[end_of_date+1:title_length]
+                begin_of_date = title.find('(')
+                if begin_of_date:
+                    begin_of_date+=1
+                else:
+                    break
+                end_of_date = title.find(')')
+                date = title[begin_of_date:end_of_date]
+                author_dates.append(date)
+            len_if_no_birth_data = 3
+            len_if_author_alive = 7
+            len_if_author_dead = 11
+            for date in author_dates:
+                assert len(date) == len_if_no_birth_data or len(date) == len_if_author_alive or len(date) == len_if_author_dead
