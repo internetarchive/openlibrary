@@ -518,6 +518,7 @@ get_cached_loans_of_user = cache.memcache_memoize(
     timeout=5 * dateutil.MINUTE_SECS,  # time to live for cached loans = 5 minutes
 )
 
+
 def get_user_waiting_loans(user_key):
     """Returns the waitingloans of the user.
 
@@ -531,12 +532,14 @@ def get_user_waiting_loans(user_key):
     )  # rehydrate cache
     return result or []
 
+
 get_cached_user_waiting_loans = cache.memcache_memoize(
     get_user_waiting_loans,
     key_prefix='waitinglist.user_waiting_loans',
     timeout=10
     * dateutil.MINUTE_SECS,  # time to live for cached waiting loans = 10 minutes
 )
+
 
 def _get_ia_loans_of_user(userid):
     ia_loans = ia_lending_api.find_loans(userid=userid)
