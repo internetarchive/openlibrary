@@ -1,4 +1,3 @@
-import xml.parsers.expat
 import requests
 
 from infogami import config
@@ -54,42 +53,6 @@ def get_marc_record_from_ia(identifier: str) -> MarcBinary | MarcXml:
         return MarcXml(root)
 
 
-def files(identifier):
-    url = item_file_url(identifier, 'files.xml')
-    for i in range(5):
-        try:
-            tree = etree.parse(urlopen_keep_trying(url).content)
-            break
-        except xml.parsers.expat.ExpatError:
-            sleep(2)
-    tree = etree.parse(urlopen_keep_trying(url).content)
-    assert tree
-    for i in tree.getroot():
-        assert i.tag == 'file'
-        name = i.attrib['name']
-        if name == 'wfm_bk_marc' or name.endswith(
-            ('.dat', '.marc', '.mrc', '.out', '.records.utf8')
-        ):
-            size = i.find('size')
-            if size is not None:
-                yield name, int(size.text)
-            else:
-                yield name, None
-
-
-def get_from_archive(locator):
-    """
-    Gets a single binary MARC record from within an Archive.org
-    bulk MARC item - data only.
-
-    :param str locator: Locator ocaid/filename:offset:length
-    :rtype: str|None
-    :return: Binary MARC data
-    """
-    data, offset, length = get_from_archive_bulk(locator)
-    return data
-
-
 def get_from_archive_bulk(locator):
     """
     Gets a single binary MARC record from within an Archive.org
@@ -134,11 +97,3 @@ def get_from_archive_bulk(locator):
             else:
                 next_offset = next_length = None
     return data, next_offset, next_length
-
-
-def item_file_url(identifier, ending, host=None, path=None):
-    if host and path:
-        url = f'http://{host}{path}/{identifier}_{ending}'
-    else:
-        url = '{0}{1}/{1}_{2}'.format(IA_DOWNLOAD_URL, identifier, ending)
-    return url
