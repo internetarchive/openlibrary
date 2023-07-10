@@ -1,4 +1,3 @@
-import traceback
 import xml.parsers.expat
 
 from infogami import config
@@ -54,12 +53,8 @@ def get_marc_record_from_ia(identifier):
     # If that fails, try marc.xml
     if marc_xml_filename in filenames:
         data = urlopen_keep_trying(item_base + marc_xml_filename).content
-        try:
-            root = etree.fromstring(data)
-            return MarcXml(root)
-        except Exception as e:
-            print("Unable to read MarcXML: %s" % e)
-            traceback.print_exc()
+        root = etree.fromstring(data)
+        return MarcXml(root)
 
 
 def files(identifier):
@@ -70,11 +65,7 @@ def files(identifier):
             break
         except xml.parsers.expat.ExpatError:
             sleep(2)
-    try:
-        tree = etree.parse(urlopen_keep_trying(url).content)
-    except:
-        print("error reading", url)
-        raise
+    tree = etree.parse(urlopen_keep_trying(url).content)
     assert tree
     for i in tree.getroot():
         assert i.tag == 'file'
