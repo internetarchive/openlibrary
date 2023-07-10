@@ -74,7 +74,8 @@ class MarcXml(MarcBase):
             leader_element = self.record[1]
         assert (
             leader_element.tag == leader_tag
-        ), f"{leader_element.tag = } != {leader_tag = }"
+        ), f'MARC XML is possibly corrupt in conversion. \
+             Unexpected non-Leader tag: {leader_element.tag}'
         return get_text(leader_element)
 
     def read_fields(self, want: list[str]) -> Iterator[tuple[str, str | DataField]]:
