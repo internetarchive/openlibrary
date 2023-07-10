@@ -1,14 +1,10 @@
 import datetime
-import pytest
 import web
 
-from infogami.utils import template, context
-from openlibrary.i18n import gettext
 from openlibrary.core.admin import Stats
 from openlibrary.mocks.mock_infobase import MockSite
 from bs4 import BeautifulSoup
 
-from openlibrary import core
 from openlibrary.plugins.openlibrary import home
 
 

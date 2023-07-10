@@ -2,12 +2,11 @@ import logging
 import re
 from functools import cached_property
 
-import requests
 import sys
 import web
 
 from collections import defaultdict
-from isbnlib import canonical
+from isbnlib import canonical, mask, NotValidISBNError
 
 from infogami import config
 from infogami.infobase import client
@@ -103,6 +102,15 @@ class Edition(models.Edition):
             isbn_10 = self.isbn_10 and self.isbn_10[0]
             return isbn_10 and isbn_10_to_isbn_13(isbn_10)
         return isbn_13
+
+    def get_isbnmask(self):
+        """Returns a masked (hyphenated) ISBN if possible."""
+        isbns = self.get('isbn_13', []) + self.get('isbn_10', [None])
+        try:
+            isbn = mask(isbns[0])
+        except NotValidISBNError:
+            return isbns[0]
+        return isbn or isbns[0]
 
     def get_identifiers(self):
         """Returns (name, value) pairs of all available identifiers."""
@@ -390,7 +398,7 @@ class Edition(models.Edition):
 
     def get_toc_text(self):
         def format_row(r):
-            return "*" * r.level + " " + " | ".join([r.label, r.title, r.pagenum])
+            return f"{'*' * r.level} {r.label} | {r.title} | {r.pagenum}"
 
         return "\n".join(format_row(r) for r in self.get_table_of_contents())
 
@@ -437,10 +445,9 @@ class Edition(models.Edition):
         if len(authors) == 1:
             citation['author'] = authors[0].name
         else:
-            for i, a in enumerate(authors):
-                citation['author%s' % (i + 1)] = a.name
+            for i, a in enumerate(authors, 1):
+                citation[f'author{i}'] = a.name
 
-        isbns = self.get('isbn_13', []) + self.get('isbn_10', [None])
         citation.update(
             {
                 'date': self.get('publish_date'),
@@ -451,7 +458,7 @@ class Edition(models.Edition):
                 else None,
                 'publication-place': self.get('publish_places', [None])[0],
                 'publisher': self.get('publishers', [None])[0],
-                'isbn': isbns[0],
+                'isbn': self.get_isbnmask(),
                 'issn': self.get('identifiers', {}).get('issn', [None])[0],
             }
         )
@@ -687,9 +694,8 @@ class Work(models.Work):
         """
         work_id = self.key.replace('/works/', '')
         availability = lending.get_work_availability(work_id)
-        if work_id in availability:
-            if 'openlibrary_edition' in availability[work_id]:
-                return '/books/%s' % availability[work_id]['openlibrary_edition']
+        if ol_edition := availability.get(work_id, {}).get('openlibrary_edition'):
+            return f'/books/{ol_edition}'
 
         return None
 
@@ -833,7 +839,7 @@ class User(models.User):
             lending.sync_loan(loan['ocaid'])
 
     def get_safe_mode(self):
-        return self.get_users_settings().get('safe_mode', "").lower()
+        return (self.get_users_settings() or {}).get('safe_mode', "").lower()
 
 
 class UnitParser:

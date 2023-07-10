@@ -31,8 +31,8 @@ repos:
     hooks:
       - id: auto-walrus
 
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.270
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.0.277
     hooks:
       - id: ruff
 
@@ -42,7 +42,7 @@ repos:
       - id: black  # See pyproject.toml for args
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.4
+    rev: v2.2.5
     hooks:
       - id: codespell  # See pyproject.toml for args
         additional_dependencies:
@@ -54,7 +54,7 @@ repos:
     - id: cython-lint
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.3.0
+    rev: v1.4.1
     hooks:
       - id: mypy  # See pyproject.toml for args
         additional_dependencies:
@@ -66,7 +66,7 @@ repos:
       - id: validate-pyproject
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.41.0
+    rev: v8.44.0
     hooks:
       - id: eslint
         types: [file]
@@ -84,6 +84,7 @@ repos:
     - id: stylelint
       files: \.(css|less)$
       additional_dependencies:
-        - stylelint@13.13.1
-        - stylelint-declaration-use-variable@1.7.3
+        - stylelint@15.10.1
+        - stylelint-declaration-strict-value@1.9.2
+        - postcss-less@3.1.4
       args: [--fix]

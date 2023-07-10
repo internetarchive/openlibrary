@@ -2,7 +2,6 @@
 
 import datetime
 import hashlib
-import io
 import json
 import os.path
 import random

@@ -13,7 +13,7 @@ class TestSharing:
         browser_instance.fill('password', 'openlibrary')
         browser_instance.find_by_value('Log In').first.click()
 
-    @pytest.fixture
+    @pytest.fixture()
     def browser(self):
         browser = Browser('chrome')
         yield browser

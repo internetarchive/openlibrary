@@ -101,7 +101,6 @@ The codebase has deprecated translations in the [/openlibrary/i18n](https://gith
 Languages with deprecated translations:
 
 * hi Hindi
-* it Italian
 * kn Kannada
 * mr Marathi
 * nl Dutch

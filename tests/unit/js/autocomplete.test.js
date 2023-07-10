@@ -1,15 +1,5 @@
 import { highlight, mapApiResultsToAutocompleteSuggestions } from '../../../openlibrary/plugins/openlibrary/js/autocomplete.js';
 
-const sinon = require('sinon');
-const jquery = require('jquery');
-let sandbox;
-
-beforeEach(() => {
-    sandbox = sinon.createSandbox();
-    global.$ = jquery;
-    sandbox.stub(global, '$').callsFake(jquery);
-});
-
 describe('highlight', () => {
 
     test('Highlights terms with strong tag', () => {

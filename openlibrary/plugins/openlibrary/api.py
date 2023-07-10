@@ -498,7 +498,7 @@ class price_api(delegate.page):
             ed = web.ctx.site.get(book_key)
             if ed:
                 metadata['key'] = ed.key
-                if getattr(ed, 'ocaid'):
+                if getattr(ed, 'ocaid'):  # noqa: B009
                     metadata['ocaid'] = ed.ocaid
 
         return json.dumps(metadata)
@@ -634,3 +634,20 @@ class work_delete(delegate.page):
             ),
             content_type="application/json",
         )
+
+
+class hide_banner(delegate.page):
+    path = '/hide_banner'
+
+    def POST(self):
+        data = json.loads(web.data())
+        user = accounts.get_current_user()
+
+        user.save_preferences({'hidden-banner': data['storage-key']})
+
+        def response(msg, status="success"):
+            return delegate.RawText(
+                json.dumps({status: msg}), content_type="application/json"
+            )
+
+        return response('Preference saved')

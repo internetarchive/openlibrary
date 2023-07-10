@@ -1,15 +1,8 @@
-import jquery from 'jquery';
 import sinon from 'sinon';
 import { initDroppers } from '../../../openlibrary/plugins/openlibrary/js/droppers';
 import { bookDropdownSample } from './html-test-data'
 import * as nonjquery_utils from '../../../openlibrary/plugins/openlibrary/js/nonjquery_utils.js';
-let sandbox;
 
-beforeEach(() => {
-    sandbox = sinon.createSandbox();
-    global.$ = jquery;
-    sandbox.stub(global, '$').callsFake(jquery);
-});
 
 describe('initDroppers', () => {
     test.only('dropdown changes arrow direction on click', () => {

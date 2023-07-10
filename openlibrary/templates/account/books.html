@@ -20,46 +20,50 @@ $ total_docs = shelf_counts.get(key, None)
 $ userDisplayName = user.displayname or ctx.user.displayname
 $ userKey = user.key or ctx.user.key
 
-$ breadcrumb = _("Reading Log")
 $ header_title = ""
+
+$ padding = ""
 
 $if key == 'mybooks':
   $ header_title = _("My Books")
+  $ padding = "no-padding"
 $elif key == 'currently-reading':
   $ header_title = _("Currently Reading")
 $elif key == 'want-to-read':
-  $ header_title = _("Want To Read")
+  $ header_title = _("Want to Read")
 $elif key == 'already-read':
-  $if checkin_year:
-    $ header_title = _("Already Read: %(year)d", year=checkin_year)
-  $else:
-    $ header_title = _("Already Read")
+  $ header_title = _("Already Read")
 $if not header_title:
   $if key == 'sponsorships':
     $ header_title = _("Sponsorships")
   $elif key == 'notes':
-    $ header_title = _("Book Notes")
+    $ header_title = _("My Notes")
   $elif key == 'observations':
-    $ header_title = _("Reviews")
+    $ header_title = _("My Reviews")
   $elif key == 'loans':
-    $ header_title = _("Loans")
+    $ header_title = _("My Loans")
   $elif key == 'imports':
     $ header_title = _("Imports and Exports")
   $elif key == 'lists':
-    $ header_title = _('My Lists')
+    $ header_title = _("My Lists")
   $elif key == 'list':
     $ header_title = docs.get('name', 'List')
   $else:
     $ header_title = key
 
-$ breadcrumb = header_title
 $var title: $header_title
+
+$ url_prefix = "/people/" + username
+$ readlog_url = url_prefix + "/books/%s/"
+$ options = [(_("Want to Read (%(count)d)", count=shelf_counts['want-to-read']), readlog_url % "want-to-read"), (_("Currently Reading (%(count)d)", count=shelf_counts['currently-reading']), readlog_url % "currently-reading"), (_("Already Read (%(count)d)", count=shelf_counts['already-read']), readlog_url % "already-read"), (_("My Lists (%(count)d)" if owners_page else "Lists (%(count)d)", count=len(lists)) , url_prefix + "/lists")]
+$if owners_page:
+  $ options = [("My Loans", "/account/loans")] + options + [(_("My Notes"), url_prefix + "/books/notes"), (_("My Reviews"), url_prefix + "/books/observations")]
 
 <div class="mybooks">
 
   $:render_template("account/sidebar", user, key=key, public=public, owners_page=owners_page, counts=shelf_counts, lists=lists, component_times=component_times)
 
-  <div class="mybooks-details">
+  <div class="mybooks-details $padding">
     $if key == 'mybooks':
       $ component_times['Yearly Goal Banner'] = time()
       $ year = get_reading_goals_year()
@@ -74,19 +78,30 @@ $var title: $header_title
     $ component_times['Details header'] = time()
     <header>
       <div>
-        <div class="small sansserif grey account-settings-menu">
-          <a href="$userKey">$userDisplayName</a> &raquo;
-          $if checkin_year:
-            <a href="/account/books/already-read">$_("Already Read")</a> &raquo;
-          $breadcrumb
+        <div class="sansserif grey account-settings-menu">
+	  $# Only show breadcrumbs when we're not on mybooks
+          $if key != 'mybooks':
+            $if not owners_page:
+	      <a href="$userKey">
+	        ← <span>$userDisplayName</span></a>
+            $else:
+              <a href="/account/books">
+                ← <span>$_("My Books")</span></a>
+            &raquo;
+
+            $if key == 'list':
+	      $ list_url = "/account" if owners_page else userKey
+              <a href="$(list_url)/lists"><span>$(_("%(userDisplayName)s's Lists", userDisplayName=userDisplayName) if not owners_page else _("My Lists"))</span></a>
+	      &raquo;
+
+	    $else:
+              $:render_template("books/breadcrumb_select", key=key, selected=header_title, options=options)
         </div>
         <div>
-          <h1 class="details-title">
-            $if not owners_page:
-              $userDisplayName &raquo; $header_title
-            $else:
-              $header_title
-          </h1>
+          $if key in ['mybooks', 'list']:
+            <h1 class="details-title">
+	      $header_title
+	    </h1>
 
           $if owners_page and (key in ['currently-reading', 'already-read', 'want-to-read'] and not checkin_year):
             <a href="$ctx.path/stats" title="$_('View stats about this shelf')">$_('Stats')</a>
@@ -117,7 +132,7 @@ $var title: $header_title
     $ component_times['Details content'] = time()
     <div class="details-content">
     $if key == 'mybooks':
-      $:render_template('account/mybooks', logged_in_user, docs, public=public, owners_page=owners_page, counts=shelf_counts, lists=lists,)
+      $:render_template('account/mybooks', logged_in_user, docs, key=key, public=public, owners_page=owners_page, counts=shelf_counts, lists=lists, component_times=component_times)
     $elif key == 'loans':
       $:render_template('account/loans', logged_in_user, docs)
     $elif key == 'notes':

@@ -401,6 +401,42 @@ create table work_str (
 create index work_str_idx ON work_str(key_id, value);
 create index work_str_thing_id_idx ON work_str(thing_id);
 
+create table tag_boolean (
+    thing_id int references thing,
+    key_id int references property,
+    value boolean,
+    ordering int default NULL
+);
+create index tag_boolean_idx ON tag_boolean(key_id, value);
+create index tag_boolean_thing_id_idx ON tag_boolean(thing_id);
+
+create table tag_int (
+    thing_id int references thing,
+    key_id int references property,
+    value int,
+    ordering int default NULL
+);
+create index tag_int_idx ON tag_int(key_id, value);
+create index tag_int_thing_id_idx ON tag_int(thing_id);
+
+create table tag_ref (
+    thing_id int references thing,
+    key_id int references property,
+    value int references thing,
+    ordering int default NULL
+);
+create index tag_ref_idx ON tag_ref(key_id, value);
+create index tag_ref_thing_id_idx ON tag_ref(thing_id);
+
+create table tag_str (
+    thing_id int references thing,
+    key_id int references property,
+    value varchar(2048),
+    ordering int default NULL
+);
+create index tag_str_idx ON tag_str(key_id, value);
+create index tag_str_thing_id_idx ON tag_str(thing_id);
+
 -- sequences --
 CREATE SEQUENCE type_edition_seq;
 
@@ -409,6 +445,8 @@ CREATE SEQUENCE type_author_seq;
 CREATE SEQUENCE type_work_seq;
 
 CREATE SEQUENCE type_publisher_seq;
+
+CREATE SEQUENCE type_tag_seq;
 
 create table store (
     id serial primary key,

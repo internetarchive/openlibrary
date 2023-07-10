@@ -29,12 +29,14 @@ $if ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ct
       $for flash in get_flash_messages():
         <div class="$flash.type"><span>$flash.message</span></div>
       </div>
-      $# Paste next line into announcement variable to show the blue banner
-      $# <strong>Title:</strong> Description &nbsp; <a href="#" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>
-      $ announcement = None
-      $if announcement:
-        <div class="page-banner page-banner-body">
-         $:announcement
-        </div>
+      $# Announcement banner will only be rendered if announcement and storage_key variables are set.
+      $# Be sure to escape any single quotes inside of the announcement HTML string.
+      $ announcement = ''
+      $# Using the current date in YYYY-MM-DD format for storage_key will prevent the use of duplicate keys.
+      $ storage_key = ''
+      $if announcement and storage_key:
+        $ hide_banner = ctx.user and ctx.user.preferences().get('hidden-banner') == storage_key
+        $if not hide_banner:
+          $:render_template('site/banner', announcement, storage_key)
     $:page
   </div>

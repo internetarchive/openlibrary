@@ -20,7 +20,7 @@ $if formdata:
         <div class="note">$_("Please select some authors to merge.")</div>
 
 <ol class="sansserif">
-    <li>$_('Select a "primary" record that best represents the author -')
+    <li>$_('Select the oldest profile as primary -')
         <input type="radio" name="radio" id="radio" checked="checked"/>
     </li>
     <li>$_('Select author records which should be merged with the primary')
@@ -70,6 +70,7 @@ $if can_merge:
                     <input type="checkbox" value="$k" name="merge_key" id="$k" $cond(formdata and k in formdata.selected, 'checked="checked"', '')/>
                 </div>
                 <div class="data record">
+                    <span class="ol-num"> ${k} </span>
                     <label for="$k">
                         <span class="name">$a.name</span>
                         $if a.birth_date or a.death_date:

@@ -24,9 +24,9 @@ def parse_identifier(e, key):
     ia_str = 'http://www.archive.org/details/'
     if val.startswith(isbn_str):
         isbn = val[len(isbn_str) :]
-        if 10 == len(isbn):
+        if len(isbn) == 10:
             return ('isbn_10', isbn)
-        elif 13 == len(isbn):
+        elif len(isbn) == 13:
             return ('isbn_13', isbn)
     elif val.startswith(ia_str):
         return ('ocaid', val[len(ia_str) :])
@@ -59,12 +59,10 @@ def parse(root):
     edition_builder = import_edition_builder.import_edition_builder()
 
     for e in root:
-        if isinstance(e.tag, str):
-            # print e.tag
-            if e.tag in parser_map:
-                key = parser_map[e.tag][0]
-                (new_key, val) = parser_map[e.tag][1](e, key)
-                if new_key:
-                    edition_builder.add(new_key, val)
+        if isinstance(e.tag, str) and e.tag in parser_map:
+            key = parser_map[e.tag][0]
+            (new_key, val) = parser_map[e.tag][1](e, key)
+            if new_key:
+                edition_builder.add(new_key, val)
 
     return edition_builder

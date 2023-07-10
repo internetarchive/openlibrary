@@ -72,7 +72,9 @@ class MarcXml(MarcBase):
         leader_element = self.record[0]
         if not isinstance(leader_element.tag, str):
             leader_element = self.record[1]
-        assert leader_element.tag == leader_tag
+        assert (
+            leader_element.tag == leader_tag
+        ), f"{leader_element.tag = } != {leader_tag = }"
         return get_text(leader_element)
 
     def read_fields(self, want: list[str]) -> Iterator[tuple[str, str | DataField]]:

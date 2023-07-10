@@ -1,26 +1,22 @@
 import datetime
 import itertools
 import logging
-import os
 import re
-from json import JSONDecodeError
 from math import ceil
 from statistics import median
 from typing import Literal, Optional, cast, Any, Union
 from collections.abc import Iterable
 
+import aiofiles
 import httpx
 import requests
 import sys
 import time
 
 from httpx import HTTPError, HTTPStatusError, TimeoutException
-from urllib.parse import urlparse
 from collections import defaultdict
-from unicodedata import normalize
 
 import json
-from http.client import HTTPConnection
 import web
 
 from openlibrary import config
@@ -843,9 +839,8 @@ def build_data2(
                 ia_loaded_id.add(e['ia_loaded_id'])
             else:
                 try:
-                    assert isinstance(e['ia_loaded_id'], list) and isinstance(
-                        e['ia_loaded_id'][0], str
-                    )
+                    assert isinstance(e['ia_loaded_id'], list)
+                    assert isinstance(e['ia_loaded_id'][0], str)
                 except AssertionError:
                     logger.error(
                         "AssertionError: ia=%s, ia_loaded_id=%s",
@@ -859,9 +854,8 @@ def build_data2(
                 ia_box_id.add(e['ia_box_id'])
             else:
                 try:
-                    assert isinstance(e['ia_box_id'], list) and isinstance(
-                        e['ia_box_id'][0], str
-                    )
+                    assert isinstance(e['ia_box_id'], list)
+                    assert isinstance(e['ia_box_id'][0], str)
                 except AssertionError:
                     logger.error("AssertionError: %s", e['key'])
                     raise
@@ -1495,11 +1489,10 @@ async def update_keys(
             requests += [CommitRequest()]
 
         if output_file:
-            with open(output_file, "w") as f:
+            async with aiofiles.open(output_file, "w") as f:
                 for r in requests:
                     if isinstance(r, AddRequest):
-                        f.write(r.tojson())
-                        f.write("\n")
+                        await f.write(f"{r.tojson()}\n")
         else:
             _solr_update(requests)
 
@@ -1517,11 +1510,10 @@ async def update_keys(
 
     if requests:
         if output_file:
-            with open(output_file, "w") as f:
+            async with aiofiles.open(output_file, "w") as f:
                 for r in requests:
                     if isinstance(r, AddRequest):
-                        f.write(r.tojson())
-                        f.write("\n")
+                        await f.write(f"{r.tojson()}\n")
         else:
             if commit:
                 requests += [CommitRequest()]

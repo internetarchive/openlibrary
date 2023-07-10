@@ -476,8 +476,10 @@ jQuery(function () {
     const mergeRequestCommentButtons = document.querySelectorAll('.mr-comment-btn')
     const showCommentsLinks = document.querySelectorAll('.comment-expand')
     const unassignElements = document.querySelectorAll('.mr-unassign')
+    const mergeRequestFilters = document.querySelectorAll('.mr-dropdown')
 
-    if (mergeRequestCloseLinks.length || mergeRequestCommentButtons.length || showCommentsLinks.length || mergeRequestResolveLinks.length || unassignElements.length) {
+    if (mergeRequestCloseLinks.length || mergeRequestCommentButtons.length || showCommentsLinks.length || mergeRequestResolveLinks.length ||
+        unassignElements.length || mergeRequestFilters.length) {
         import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
             .then(module => {
                 if (mergeRequestCloseLinks.length) {
@@ -495,6 +497,9 @@ jQuery(function () {
                 if (unassignElements.length) {
                     module.initUnassignment(unassignElements)
                 }
+                if (mergeRequestFilters.length) {
+                    module.initFilters()
+                }
             })
     }
 
@@ -503,5 +508,13 @@ jQuery(function () {
     if (addProviderRowLink) {
         import(/* webpackChunkName "add-provider-link" */ './add_provider')
             .then(module => module.initAddProviderRowLink(addProviderRowLink))
+    }
+
+
+    // Allow banner announcements to be dismissable for logged-in users:
+    const siteBanner = document.getElementById('announcement-banner')
+    if (siteBanner) {
+        import(/* webpackChunkName: "announcement-banner" */ './initAnnouncementBanner')
+            .then(module => module.initAnnouncementBanner(siteBanner))
     }
 });
