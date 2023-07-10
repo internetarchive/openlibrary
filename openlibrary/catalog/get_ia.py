@@ -47,12 +47,11 @@ def get_marc_record_from_ia(identifier: str) -> MarcBinary | MarcXml | None:
         return MarcBinary(data)
 
     # If that fails, try marc.xml
-    elif marc_xml_filename in filenames:
+    if marc_xml_filename in filenames:
         data = urlopen_keep_trying(item_base + marc_xml_filename).content
         root = etree.fromstring(data)
         return MarcXml(root)
-    else:
-        return None
+    return None
 
 
 def get_from_archive_bulk(locator):
