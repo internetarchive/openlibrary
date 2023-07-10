@@ -1,8 +1,8 @@
 import xml.parsers.expat
+import requests
 
 from infogami import config
 from lxml import etree
-import requests
 from time import sleep
 
 from openlibrary.catalog.marc.marc_binary import MarcBinary
@@ -15,7 +15,7 @@ IA_DOWNLOAD_URL = f'{IA_BASE_URL}/download/'
 MAX_MARC_LENGTH = 100000
 
 
-def urlopen_keep_trying(url, headers=None, **kwargs):
+def urlopen_keep_trying(url: str, headers=None, **kwargs):
     """Tries to request the url three times, raises HTTPError if 403, 404, or 416.  Returns a requests.Response"""
     for i in range(3):
         try:
@@ -28,14 +28,11 @@ def urlopen_keep_trying(url, headers=None, **kwargs):
         sleep(2)
 
 
-def get_marc_record_from_ia(identifier):
+def get_marc_record_from_ia(identifier: str) -> MarcBinary | MarcXml:
     """
     Takes IA identifiers and returns MARC record instance.
     08/2018: currently called by openlibrary/plugins/importapi/code.py
     when the /api/import/ia endpoint is POSTed to.
-
-    :param str identifier: ocaid
-    :rtype: MarcBinary | MarcXML
     """
     metadata = ia.get_metadata(identifier)
     filenames = metadata['_filenames']
