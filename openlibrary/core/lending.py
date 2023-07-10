@@ -15,7 +15,6 @@ from infogami.utils.view import public
 from infogami.utils import delegate
 from openlibrary.core import cache
 from openlibrary.accounts.model import OpenLibraryAccount
-from .waitinglist import WaitingLoan
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil, uniq
 
@@ -524,6 +523,7 @@ def get_user_waiting_loans(user_key):
 
     Returns [] if user has no waitingloans.
     """
+    from .waitinglist import WaitingLoan
     account = OpenLibraryAccount.get(key=user_key)
     itemname = account.itemname
     result = WaitingLoan.query(userid=itemname)
