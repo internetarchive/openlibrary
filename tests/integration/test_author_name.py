@@ -34,29 +34,26 @@ class TestAuthorName:
         len_if_author_dead = 11
         assert len(date) == len_if_author_alive or len(date) == len_if_author_dead
         
-browser = Browser('chrome')
-test = TestAuthorName()
-test.test_author_name_with_dates(browser=browser)
-test.test_author_birth_and_death_year(browser=browser)
-# class TestMicrodata:
-#     host = 'http://localhost:8080'
-
-#     @pytest.fixture()
-#     def browser(self):
-#         browser = Browser('chrome')
-#         yield browser
-#         browser.quit()
-
-#     def test_open_graph_metadata_on_work(self, browser):
-#         url = self.host + '/works/OL6037022W/Remix'
-#         browser.visit(url)
-#         assert browser.is_element_present_by_css(
-#             "#content > div.contentContainer[itemtype='https://schema.org/Book']"
-#         )
-
-#     def test_open_graph_metadata_on_edition(self, browser):
-#         url = self.host + '/books/OL24218235M/Remix'
-#         browser.visit(url)
-#         assert browser.is_element_present_by_css(
-#             "#contentBody[itemtype='https://schema.org/Book']"
-#         )
+    def test_all_author_birth_and_death_year(self, browser):
+        url = self.host + '/OL5702375W/Three_cups_of_tea'
+        browser.visit(url)
+        title = browser.find_by_css(".edition-byline")[0].text
+        title_length = len(title)
+        author_dates = []
+        authors_quantity = title.count('(')
+        for  i in range(0,authors_quantity):
+            if author_dates != []:
+                title = title[end_of_date+1:title_length]
+            begin_of_date = title.find('(')
+            if begin_of_date:
+                begin_of_date+=1
+            else:
+                break
+            end_of_date = title.find(')')
+            date = title[begin_of_date:end_of_date]
+            author_dates.append(date)
+        len_if_no_birth_data = 3
+        len_if_author_alive = 7
+        len_if_author_dead = 11
+        for date in author_dates:
+            assert len(date) == len_if_no_birth_data or len(date) == len_if_author_alive or len(date) == len_if_author_dead
