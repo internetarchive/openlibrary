@@ -27,7 +27,7 @@ def urlopen_keep_trying(url: str, headers=None, **kwargs):
         sleep(2)
 
 
-def get_marc_record_from_ia(identifier: str) -> MarcBinary | MarcXml:
+def get_marc_record_from_ia(identifier: str) -> MarcBinary | MarcXml | None:
     """
     Takes IA identifiers and returns MARC record instance.
     08/2018: currently called by openlibrary/plugins/importapi/code.py
