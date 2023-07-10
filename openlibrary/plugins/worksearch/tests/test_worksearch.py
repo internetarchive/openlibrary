@@ -48,7 +48,7 @@ def test_get_doc():
                         'name': 'Alan Freedman',
                         'url': '/authors/OL218224A/Alan_Freedman',
                         'birth_date': None,
-                        'death_date': None
+                        'death_date': None,
                     }
                 )
             ],
