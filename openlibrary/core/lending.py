@@ -524,6 +524,7 @@ def get_user_waiting_loans(user_key):
     Returns [] if user has no waitingloans.
     """
     from .waitinglist import WaitingLoan
+
     account = OpenLibraryAccount.get(key=user_key)
     itemname = account.itemname
     result = WaitingLoan.query(userid=itemname)
