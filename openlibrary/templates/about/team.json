@@ -4,7 +4,7 @@
 		"status": "Staff",
 		"role": "Developer",
 		"bio": "",
-		"photo_path": "",
+		"photo_path": "../../../static/images/team/Drini.jpg",
 		"ol_user_url": "https://openlibrary.org/people/ScarTissue",
 		"personal_url": "",
 		"favorite_book_url": ""
