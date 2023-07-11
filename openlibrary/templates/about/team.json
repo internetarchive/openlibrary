@@ -2,7 +2,7 @@
 	{
 		"name": "Drini Cami",
 		"status": "Staff",
-		"role": "",
+		"role": "Developer",
 		"bio": "",
 		"photo_path": "",
 		"ol_user_url": "https://openlibrary.org/people/ScarTissue",
@@ -54,7 +54,7 @@
 		"status": "Staff",
 		"role": "Patron Services",
 		"bio": "Lead Community Librarian. Editing questions? Slack me @Lisa (aka Sapphire). Or email me via https://openlibrary.org/contact. Favorite genres: good books",
-		"photo_path": "",
+		"photo_path": "../../../static/images/team/Lisa.jpg",
 		"ol_user_url": "https://openlibrary.org/people/agent-lisa",
 		"personal_url": "",
 		"favorite_book_url": ""
@@ -72,7 +72,7 @@
 	{
 		"name": "Sam",
 		"status": "Volunteer",
-		"role": "Design Engineer",
+		"role": "Design Engineering",
 		"bio": "",
 		"photo_path": "../../../static/images/team/Sam.jpg",
 		"ol_user_url": "https://openlibrary.org/people/samstupendous",
@@ -82,12 +82,12 @@
 	{
 		"name": "Debbie",
 		"status": "Volunteer",
-		"role": "",
+		"role": "Developer",
 		"bio": "",
-		"photo_path": "",
+		"photo_path": "../../../static/images/team/Debbie.jpg",
 		"ol_user_url": "",
-		"personal_url": "",
-		"favorite_book_url": ""
+		"personal_url": "https://github.com/debbiesan/openlibrary",
+		"favorite_book_url": "https://openlibrary.org/works/OL15154986W/Two_solitudes.?edition=key%3A/books/OL24222633M"
 	},
 	{
 		"name": "Abbey Ripstra",
