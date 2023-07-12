@@ -2,8 +2,8 @@
   "openapi": "3.0.2",
   "info": {
     "title": "Open Library API",
-    "version": "unversioned",
-    "description": "- These are still in development and may not be perfect\n- Contribute via [openapi.json](https://github.com/internetarchive/openlibrary/blob/master/static/openapi.json)\n- Please do not use our APIs for bulk downloads, see [dev center](https://openlibrary.org/developers/api)"
+    "version": "0.1.0",
+    "description": "- These are still in development and may not be perfect\n- Contribute by proposing edits to [openapi.json](https://github.com/internetarchive/openlibrary/blob/master/static/openapi.json)\n- Please do not use our APIs for bulk downloads, see [dev center](https://openlibrary.org/developers/api)"
   },
   "tags": [
     {
