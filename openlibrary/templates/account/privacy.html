@@ -22,7 +22,8 @@ $ safe_mode = d.get('safe_mode', 'no')
     <form method="post" class="olform" action="" id="privacy">
 
         <div class="formElement">
-            <h3 class="collapse">Would you like to make your <a href="/account/books">Reading Log</a> public?</h3>
+            <h3 class="collapse">$:_('Would you like to make your <a href="/account/books">Reading Log</a> public?')</h3>
+            <p>$_("This will enable others to see what books you want to read, are reading, or have already read.")</p>
         </div>
         <br/>
         <div class="formElement">
@@ -42,7 +43,8 @@ $ safe_mode = d.get('safe_mode', 'no')
             </div>
         </div>
         <div class="formElement">
-            <h3 class="collapse">Enable Safe Mode? Safe Mode helps you tailor your experience where possible to moderate the content you are shown.</h3>
+            <h3 class="collapse">$_("Enable Safe Mode?")</h3>
+            <p>$_("Safe Mode blurs book covers that have been flagged as having sensitive imagery.")</p>
         </div>
         <br/>
         <div class="formElement">
