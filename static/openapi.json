@@ -63,7 +63,18 @@
               "type": "string"
             },
             "name": "bibkeys",
-            "in": "query"
+            "in": "query",
+            "examples": {
+              "isbn": {
+                "value": "ISBN:0201558025"
+              },
+              "oclc": {
+                "value": "OCLC:263296519"
+              },
+              "multiple": {
+                "value": "ISBN:9781408113479,OCLC:420517"
+              }
+            }
           },
           {
             "required": false,
@@ -73,7 +84,8 @@
               "default": "json"
             },
             "name": "format",
-            "in": "query"
+            "in": "query",
+            "description": "Specifies the response format. Possible values are json and javascript. When not specified the format is javascript."
           },
           {
             "required": false,
@@ -81,7 +93,8 @@
               "title": "Callback"
             },
             "name": "callback",
-            "in": "query"
+            "in": "query",
+            "description": "The name of the JavaScript function to call with the result. This is considered only when the format is javascript."
           },
           {
             "required": false,
@@ -91,7 +104,8 @@
               "default": "viewapi"
             },
             "name": "jscmd",
-            "in": "query"
+            "in": "query",
+            "description": "Decides what information to provide for each matched bib_key. Possible values are viewapi and data. The default value is viewapi."
           }
         ],
         "responses": {
@@ -269,7 +283,8 @@
           {
             "required": true,
             "schema": {
-              "title": "Olid"
+              "title": "Olid",
+              "example": "OL53924W"
             },
             "name": "olid",
             "in": "path"
