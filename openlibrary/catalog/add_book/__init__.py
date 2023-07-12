@@ -23,6 +23,7 @@ A record is loaded by calling the load function.
 
 """
 import re
+from typing import TYPE_CHECKING
 
 import web
 
@@ -51,6 +52,8 @@ from openlibrary.catalog.add_book.load_book import (
 )
 from openlibrary.catalog.add_book.match import editions_match
 
+if TYPE_CHECKING:
+    from openlibrary.core.models import Edition, Work
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
 re_lang = re.compile('^/languages/([a-z]{3})$')
@@ -422,7 +425,7 @@ def build_pool(rec):
     return {k: list(v) for k, v in pool.items() if v}
 
 
-def early_exit(rec):
+def find_quick_match(rec):
     """
     Attempts to quickly find an existing item match using bibliographic keys.
 
@@ -521,17 +524,20 @@ def find_exact_match(rec, edition_pool):
     return False
 
 
-def find_match(e1, edition_pool):
+def find_enriched_match(rec, edition_pool):
     """
-    Find the best match for e1 in edition_pool and return its key.
-    :param dict e1: the new edition we are trying to match, output of build_marc(import record)
-    :param list edition_pool: list of possible edition matches, output of build_pool(import record)
+    Find the best match for rec in edition_pool and return its key.
+    :param dict rec: the new edition we are trying to match.
+    :param list edition_pool: list of possible edition key matches, output of build_pool(import record)
     :rtype: str|None
-    :return: None or the edition key '/books/OL...M' of the best edition match for e1 in edition_pool
+    :return: None or the edition key '/books/OL...M' of the best edition match for enriched_rec in edition_pool
     """
+    enriched_rec = build_marc(rec)
+    add_db_name(enriched_rec)
+
     seen = set()
-    for k, v in edition_pool.items():
-        for edition_key in v:
+    for edition_keys in edition_pool.values():
+        for edition_key in edition_keys:
             if edition_key in seen:
                 continue
             thing = None
@@ -548,7 +554,7 @@ def find_match(e1, edition_pool):
                     # which will raise an exception in editions_match()
             if not found:
                 continue
-            if editions_match(e1, thing):
+            if editions_match(enriched_rec, thing):
                 return edition_key
 
 
@@ -678,18 +684,16 @@ def load_data(rec, account_key=None):
     return reply
 
 
-def load(rec, account_key=None):
-    """Given a record, tries to add/match that edition in the system.
+def normalize_import_record(rec: dict) -> None:
+    """
+    Normalize the import record by:
+        - Verifying required fields
+        - Ensuring source_records is a list
+        - Splitting subtitles out of the title field
+        - Cleaning all ISBN and LCCN fields ('bibids'), and
+        - Deduplicate authors.
 
-    Record is a dictionary containing all the metadata of the edition.
-    The following fields are mandatory:
-
-        * title: str
-        * source_records: list
-
-    :param dict rec: Edition record to add
-    :rtype: dict
-    :return: a dict to be converted into a JSON HTTP response, same as load_data()
+        NOTE: This function modifies the passed-in rec in place.
     """
     required_fields = [
         'title',
@@ -698,11 +702,13 @@ def load(rec, account_key=None):
     for field in required_fields:
         if not rec.get(field):
             raise RequiredField(field)
+
+    # Ensure source_records is a list.
     if not isinstance(rec['source_records'], list):
         rec['source_records'] = [rec['source_records']]
 
     # Split subtitle if required and not already present
-    if ':' in rec.get('title') and not rec.get('subtitle'):
+    if ':' in rec.get('title', '') and not rec.get('subtitle'):
         title, subtitle = split_subtitle(rec.get('title'))
         if subtitle:
             rec['title'] = title
@@ -710,61 +716,38 @@ def load(rec, account_key=None):
 
     rec = normalize_record_bibids(rec)
 
-    edition_pool = build_pool(rec)
     # deduplicate authors
     rec['authors'] = uniq(rec.get('authors', []), dicthash)
-    if not edition_pool:
-        # No match candidates found, add edition
-        return load_data(rec, account_key=account_key)
 
-    match = early_exit(rec)
+
+def find_match(rec, edition_pool) -> str | None:
+    """Use rec to try to find an existing edition key that matches."""
+    match = find_quick_match(rec)
     if not match:
         match = find_exact_match(rec, edition_pool)
 
     if not match:
+        # Add 'full_title' to the rec by conjoining 'title' and 'subtitle'.
+        # build_marc() uses this for matching.
         rec['full_title'] = rec['title']
-        if rec.get('subtitle'):
-            rec['full_title'] += ' ' + rec['subtitle']
-        e1 = build_marc(rec)
-        add_db_name(e1)
-        match = find_match(e1, edition_pool)
+        if subtitle := rec.get('subtitle'):
+            rec['full_title'] += ' ' + subtitle
 
-    if not match:
-        # No match found, add edition
-        return load_data(rec, account_key=account_key)
+        match = find_enriched_match(rec, edition_pool)
 
-    # We have an edition match at this point
-    need_work_save = need_edition_save = False
-    w = None
-    e = web.ctx.site.get(match)
-    # check for, and resolve, author redirects
-    for a in e.authors:
-        while is_redirect(a):
-            if a in e.authors:
-                e.authors.remove(a)
-            a = web.ctx.site.get(a.location)
-            if not is_redirect(a):
-                e.authors.append(a)
+    return match
 
-    if e.get('works'):
-        w = e.works[0].dict()
-        work_created = False
-    else:
-        # Found an edition without a work
-        work_created = need_work_save = need_edition_save = True
-        w = new_work(e.dict(), rec)
-        e.works = [{'key': w['key']}]
 
-    # Add subjects to work, if not already present
-    if 'subjects' in rec:
-        work_subjects = list(w.get('subjects', []))
-        for s in rec['subjects']:
-            if s not in work_subjects:
-                work_subjects.append(s)
-                need_work_save = True
-        if need_work_save and work_subjects:
-            w['subjects'] = work_subjects
+def update_edition_with_rec_data(
+    rec: dict, account_key: str | None, e: "Edition"
+) -> bool:
+    """
+    Enrich the Edition by adding certain fields present in rec but absent
+    in edition.
 
+    NOTE: This modifies the passed-in Edition in place.
+    """
+    need_edition_save = False
     # Add cover to edition
     if 'cover' in rec and not e.get_covers():
         cover_url = rec['cover']
@@ -772,27 +755,6 @@ def load(rec, account_key=None):
         if cover_id:
             e['covers'] = [cover_id]
             need_edition_save = True
-
-    # Add cover to work, if needed
-    if not w.get('covers') and e.get_covers():
-        w['covers'] = [e['covers'][0]]
-        need_work_save = True
-
-    # Add description to work, if needed
-    if not w.get('description') and e.get('description'):
-        w['description'] = e['description']
-        need_work_save = True
-
-    # Add authors to work, if needed
-    if not w.get('authors'):
-        authors = [import_author(a) for a in rec.get('authors', [])]
-        w['authors'] = [
-            {'type': {'key': '/type/author_role'}, 'author': a.key}
-            for a in authors
-            if a.get('key')
-        ]
-        if w.get('authors'):
-            need_work_save = True
 
     # Add ocaid to edition (str), if needed
     if 'ocaid' in rec and not e.ocaid:
@@ -842,6 +804,110 @@ def load(rec, account_key=None):
         if e.dict().get('identifiers') != identifiers:
             e['identifiers'] = identifiers
             need_edition_save = True
+
+    return need_edition_save
+
+
+def update_work_with_rec_data(
+    rec: dict, e: "Edition", w: "Work", need_work_save: bool
+) -> bool:
+    """
+    Enrich the Work by adding certain fields present in rec but absent
+    in work.
+
+    NOTE: This modifies the passed-in Work in place.
+    """
+    # Add subjects to work, if not already present
+    if 'subjects' in rec:
+        work_subjects = list(w.get('subjects', []))
+        for s in rec['subjects']:
+            if s not in work_subjects:
+                work_subjects.append(s)
+                need_work_save = True
+        if need_work_save and work_subjects:
+            w['subjects'] = work_subjects
+
+    # Add cover to work, if needed
+    if not w.get('covers') and e.get_covers():
+        w['covers'] = [e['covers'][0]]
+        need_work_save = True
+
+    # Add description to work, if needed
+    if not w.get('description') and e.get('description'):
+        w['description'] = e['description']
+        need_work_save = True
+
+    # Add authors to work, if needed
+    if not w.get('authors'):
+        authors = [import_author(a) for a in rec.get('authors', [])]
+        w['authors'] = [
+            {'type': {'key': '/type/author_role'}, 'author': a.key}
+            for a in authors
+            if a.get('key')
+        ]
+        if w.get('authors'):
+            need_work_save = True
+
+    return need_work_save
+
+
+def load(rec, account_key=None):
+    """Given a record, tries to add/match that edition in the system.
+
+    Record is a dictionary containing all the metadata of the edition.
+    The following fields are mandatory:
+
+        * title: str
+        * source_records: list
+
+    :param dict rec: Edition record to add
+    :rtype: dict
+    :return: a dict to be converted into a JSON HTTP response, same as load_data()
+    """
+
+    normalize_import_record(rec)
+
+    # Resolve an edition if possible, or create and return one if not.
+
+    edition_pool = build_pool(rec)
+    if not edition_pool:
+        # No match candidates found, add edition
+        return load_data(rec, account_key=account_key)
+
+    match = find_match(rec, edition_pool)
+    if not match:
+        # No match found, add edition
+        return load_data(rec, account_key=account_key)
+
+    # We have an edition match at this point
+    need_work_save = need_edition_save = False
+    # w = None
+    w: "Work"
+    e: "Edition" = web.ctx.site.get(match)
+    # check for, and resolve, author redirects
+    for a in e.authors:
+        while is_redirect(a):
+            if a in e.authors:
+                e.authors.remove(a)
+            a = web.ctx.site.get(a.location)
+            if not is_redirect(a):
+                e.authors.append(a)
+
+    if e.get('works'):
+        w = e.works[0].dict()
+        work_created = False
+    else:
+        # Found an edition without a work
+        work_created = need_work_save = need_edition_save = True
+        w = new_work(e.dict(), rec)
+        e.works = [{'key': w['key']}]
+
+    need_edition_save = update_edition_with_rec_data(
+        rec=rec, account_key=account_key, e=e
+    )
+    need_work_save = update_work_with_rec_data(
+        rec=rec, e=e, w=w, need_work_save=need_work_save
+    )
 
     edits = []
     reply = {
