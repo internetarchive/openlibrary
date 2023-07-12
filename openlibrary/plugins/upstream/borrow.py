@@ -146,8 +146,8 @@ class borrow(delegate.page):
             s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
         if not user or not ia_itemname or not s3_keys:
             web.setcookie(config.login_cookie_name, "", expires=-1)
-            redirect_url = "/account/login?redirect={}/borrow?action={}".format(
-                edition_redirect, action
+            redirect_url = (
+                f"/account/login?redirect={edition_redirect}/borrow?action={action}"
             )
             if i._autoReadAloud is not None:
                 redirect_url += '&_autoReadAloud=' + i._autoReadAloud
