@@ -174,6 +174,46 @@ CREATE TABLE public.bookshelves_books (
 ALTER TABLE public.bookshelves_books OWNER TO postgres;
 
 --
+-- Name: bookshelves_events; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
+--
+
+CREATE TABLE public.bookshelves_events (
+    id integer NOT NULL,
+    username text NOT NULL,
+    work_id integer NOT NULL,
+    edition_id integer NOT NULL,
+    event_type integer NOT NULL,
+    event_date text NOT NULL,
+    data json,
+    updated timestamp without time zone DEFAULT timezone('utc'::text, now()),
+    created timestamp without time zone DEFAULT timezone('utc'::text, now())
+);
+
+
+ALTER TABLE public.bookshelves_events OWNER TO postgres;
+
+--
+-- Name: bookshelves_events_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.bookshelves_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.bookshelves_events_id_seq OWNER TO postgres;
+
+--
+-- Name: bookshelves_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.bookshelves_events_id_seq OWNED BY public.bookshelves_events.id;
+
+
+--
 -- Name: bookshelves_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -227,6 +267,47 @@ ALTER TABLE public.bookshelves_votes_bookshelf_id_seq OWNER TO postgres;
 --
 
 ALTER SEQUENCE public.bookshelves_votes_bookshelf_id_seq OWNED BY public.bookshelves_votes.bookshelf_id;
+
+
+--
+-- Name: community_edits_queue; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
+--
+
+CREATE TABLE public.community_edits_queue (
+    id integer NOT NULL,
+    title text,
+    submitter text NOT NULL,
+    reviewer text,
+    url text NOT NULL,
+    mr_type integer DEFAULT 1 NOT NULL,
+    status integer DEFAULT 1 NOT NULL,
+    comments json,
+    created timestamp without time zone DEFAULT timezone('utc'::text, now()),
+    updated timestamp without time zone DEFAULT timezone('utc'::text, now())
+);
+
+
+ALTER TABLE public.community_edits_queue OWNER TO postgres;
+
+--
+-- Name: community_edits_queue_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.community_edits_queue_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.community_edits_queue_id_seq OWNER TO postgres;
+
+--
+-- Name: community_edits_queue_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.community_edits_queue_id_seq OWNED BY public.community_edits_queue.id;
 
 
 --
@@ -339,6 +420,82 @@ CREATE TABLE public.edition_str (
 
 
 ALTER TABLE public.edition_str OWNER TO openlibrary;
+
+--
+-- Name: import_batch; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+--
+
+CREATE TABLE public.import_batch (
+    id integer NOT NULL,
+    name text,
+    submitter text,
+    submit_time timestamp without time zone DEFAULT timezone('utc'::text, now())
+);
+
+
+ALTER TABLE public.import_batch OWNER TO openlibrary;
+
+--
+-- Name: import_batch_id_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
+--
+
+CREATE SEQUENCE public.import_batch_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.import_batch_id_seq OWNER TO openlibrary;
+
+--
+-- Name: import_batch_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: openlibrary
+--
+
+ALTER SEQUENCE public.import_batch_id_seq OWNED BY public.import_batch.id;
+
+
+--
+-- Name: import_item; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+--
+
+CREATE TABLE public.import_item (
+    id integer NOT NULL,
+    batch_id integer,
+    added_time timestamp without time zone DEFAULT timezone('utc'::text, now()),
+    import_time timestamp without time zone,
+    status text DEFAULT 'pending'::text,
+    error text,
+    ia_id text,
+    data text,
+    ol_key text,
+    comments text
+);
+
+
+ALTER TABLE public.import_item OWNER TO openlibrary;
+
+--
+-- Name: import_item_id_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
+--
+
+CREATE SEQUENCE public.import_item_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.import_item_id_seq OWNER TO openlibrary;
+
+--
+-- Name: import_item_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: openlibrary
+--
+
+ALTER SEQUENCE public.import_item_id_seq OWNED BY public.import_item.id;
+
 
 --
 -- Name: meta; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
@@ -1011,6 +1168,21 @@ CREATE TABLE public.work_str (
 ALTER TABLE public.work_str OWNER TO openlibrary;
 
 --
+-- Name: yearly_reading_goals; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
+--
+
+CREATE TABLE public.yearly_reading_goals (
+    username text NOT NULL,
+    year integer NOT NULL,
+    target integer NOT NULL,
+    created timestamp without time zone DEFAULT timezone('utc'::text, now()),
+    updated timestamp without time zone DEFAULT timezone('utc'::text, now())
+);
+
+
+ALTER TABLE public.yearly_reading_goals OWNER TO postgres;
+
+--
 -- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1018,10 +1190,38 @@ ALTER TABLE ONLY public.bookshelves ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
+-- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.bookshelves_events ALTER COLUMN id SET DEFAULT nextval('public.bookshelves_events_id_seq'::regclass);
+
+
+--
 -- Name: bookshelf_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.bookshelves_votes ALTER COLUMN bookshelf_id SET DEFAULT nextval('public.bookshelves_votes_bookshelf_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.community_edits_queue ALTER COLUMN id SET DEFAULT nextval('public.community_edits_queue_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
+--
+
+ALTER TABLE ONLY public.import_batch ALTER COLUMN id SET DEFAULT nextval('public.import_batch_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
+--
+
+ALTER TABLE ONLY public.import_item ALTER COLUMN id SET DEFAULT nextval('public.import_item_id_seq'::regclass);
 
 
 --
@@ -1363,9 +1563,9 @@ COPY public.booknotes (username, work_id, edition_id, notes, updated, created) F
 --
 
 COPY public.bookshelves (id, name, description, archived, updated, created) FROM stdin;
-1	Want to Read	A list of books I want to read	f	2022-05-25 22:03:50.632041	2022-05-25 22:03:50.632041
-2	Currently Reading	A list of books I am currently reading	f	2022-05-25 22:03:50.633232	2022-05-25 22:03:50.633232
-3	Already Read	A list of books I have finished reading	f	2022-05-25 22:03:50.634206	2022-05-25 22:03:50.634206
+1	Want to Read	A list of books I want to read	f	2023-07-01 00:59:58.907822	2023-07-01 00:59:58.907822
+2	Currently Reading	A list of books I am currently reading	f	2023-07-01 00:59:58.909062	2023-07-01 00:59:58.909062
+3	Already Read	A list of books I have finished reading	f	2023-07-01 00:59:58.910091	2023-07-01 00:59:58.910091
 \.
 
 
@@ -1375,6 +1575,21 @@ COPY public.bookshelves (id, name, description, archived, updated, created) FROM
 
 COPY public.bookshelves_books (username, work_id, bookshelf_id, edition_id, private, updated, created) FROM stdin;
 \.
+
+
+--
+-- Data for Name: bookshelves_events; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.bookshelves_events (id, username, work_id, edition_id, event_type, event_date, data, updated, created) FROM stdin;
+\.
+
+
+--
+-- Name: bookshelves_events_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.bookshelves_events_id_seq', 1, false);
 
 
 --
@@ -1397,6 +1612,21 @@ COPY public.bookshelves_votes (username, bookshelf_id, updated, created) FROM st
 --
 
 SELECT pg_catalog.setval('public.bookshelves_votes_bookshelf_id_seq', 1, false);
+
+
+--
+-- Data for Name: community_edits_queue; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.community_edits_queue (id, title, submitter, reviewer, url, mr_type, status, comments, created, updated) FROM stdin;
+\.
+
+
+--
+-- Name: community_edits_queue_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.community_edits_queue_id_seq', 1, false);
 
 
 --
@@ -4829,6 +5059,36 @@ COPY public.edition_str (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
+-- Data for Name: import_batch; Type: TABLE DATA; Schema: public; Owner: openlibrary
+--
+
+COPY public.import_batch (id, name, submitter, submit_time) FROM stdin;
+\.
+
+
+--
+-- Name: import_batch_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
+--
+
+SELECT pg_catalog.setval('public.import_batch_id_seq', 1, false);
+
+
+--
+-- Data for Name: import_item; Type: TABLE DATA; Schema: public; Owner: openlibrary
+--
+
+COPY public.import_item (id, batch_id, added_time, import_time, status, error, ia_id, data, ol_key, comments) FROM stdin;
+\.
+
+
+--
+-- Name: import_item_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
+--
+
+SELECT pg_catalog.setval('public.import_item_id_seq', 1, false);
+
+
+--
 -- Data for Name: meta; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
@@ -7828,6 +8088,14 @@ COPY public.work_str (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
+-- Data for Name: yearly_reading_goals; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.yearly_reading_goals (username, year, target, created, updated) FROM stdin;
+\.
+
+
+--
 -- Name: account_email_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
@@ -7852,6 +8120,14 @@ ALTER TABLE ONLY public.bookshelves_books
 
 
 --
+-- Name: bookshelves_events_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
+--
+
+ALTER TABLE ONLY public.bookshelves_events
+    ADD CONSTRAINT bookshelves_events_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: bookshelves_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
 --
 
@@ -7865,6 +8141,38 @@ ALTER TABLE ONLY public.bookshelves
 
 ALTER TABLE ONLY public.bookshelves_votes
     ADD CONSTRAINT bookshelves_votes_pkey PRIMARY KEY (username, bookshelf_id);
+
+
+--
+-- Name: community_edits_queue_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
+--
+
+ALTER TABLE ONLY public.community_edits_queue
+    ADD CONSTRAINT community_edits_queue_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: import_batch_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
+--
+
+ALTER TABLE ONLY public.import_batch
+    ADD CONSTRAINT import_batch_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: import_item_batch_id_ia_id_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
+--
+
+ALTER TABLE ONLY public.import_item
+    ADD CONSTRAINT import_item_batch_id_ia_id_key UNIQUE (batch_id, ia_id);
+
+
+--
+-- Name: import_item_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
+--
+
+ALTER TABLE ONLY public.import_item
+    ADD CONSTRAINT import_item_pkey PRIMARY KEY (id);
 
 
 --
@@ -7972,6 +8280,14 @@ ALTER TABLE ONLY public.version
 
 
 --
+-- Name: yearly_reading_goals_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
+--
+
+ALTER TABLE ONLY public.yearly_reading_goals
+    ADD CONSTRAINT yearly_reading_goals_pkey PRIMARY KEY (username, year);
+
+
+--
 -- Name: account_thing_active_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
@@ -8053,6 +8369,20 @@ CREATE INDEX author_str_idx ON public.author_str USING btree (key_id, value);
 --
 
 CREATE INDEX author_str_thing_id_idx ON public.author_str USING btree (thing_id);
+
+
+--
+-- Name: booknotes_work_id_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace:
+--
+
+CREATE INDEX booknotes_work_id_idx ON public.booknotes USING btree (work_id);
+
+
+--
+-- Name: bookshelves_books_work_id_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace:
+--
+
+CREATE INDEX bookshelves_books_work_id_idx ON public.bookshelves_books USING btree (work_id);
 
 
 --
@@ -8161,6 +8491,62 @@ CREATE INDEX edition_str_thing_id_idx ON public.edition_str USING btree (thing_i
 
 
 --
+-- Name: import_batch_name; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+--
+
+CREATE INDEX import_batch_name ON public.import_batch USING btree (name);
+
+
+--
+-- Name: import_batch_submit_time_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+--
+
+CREATE INDEX import_batch_submit_time_idx ON public.import_batch USING btree (submit_time);
+
+
+--
+-- Name: import_batch_submitter_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+--
+
+CREATE INDEX import_batch_submitter_idx ON public.import_batch USING btree (submitter);
+
+
+--
+-- Name: import_item_batch_id; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+--
+
+CREATE INDEX import_item_batch_id ON public.import_item USING btree (batch_id);
+
+
+--
+-- Name: import_item_ia_id; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+--
+
+CREATE INDEX import_item_ia_id ON public.import_item USING btree (ia_id);
+
+
+--
+-- Name: import_item_import_time; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+--
+
+CREATE INDEX import_item_import_time ON public.import_item USING btree (import_time);
+
+
+--
+-- Name: import_item_status; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+--
+
+CREATE INDEX import_item_status ON public.import_item USING btree (status);
+
+
+--
+-- Name: observations_username_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace:
+--
+
+CREATE INDEX observations_username_idx ON public.observations USING btree (username);
+
+
+--
 -- Name: publisher_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
@@ -8214,6 +8600,13 @@ CREATE INDEX publisher_str_idx ON public.publisher_str USING btree (key_id, valu
 --
 
 CREATE INDEX publisher_str_thing_id_idx ON public.publisher_str USING btree (thing_id);
+
+
+--
+-- Name: ratings_work_id_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace:
+--
+
+CREATE INDEX ratings_work_id_idx ON public.ratings USING btree (work_id);
 
 
 --
@@ -8792,6 +9185,14 @@ ALTER TABLE ONLY public.edition_str
 
 
 --
+-- Name: import_item_batch_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
+--
+
+ALTER TABLE ONLY public.import_item
+    ADD CONSTRAINT import_item_batch_id_fkey FOREIGN KEY (batch_id) REFERENCES public.import_batch(id);
+
+
+--
 -- Name: property_type_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
@@ -9339,6 +9740,16 @@ GRANT SELECT ON TABLE public.bookshelves_books TO readcreateaccess;
 
 
 --
+-- Name: TABLE bookshelves_events; Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON TABLE public.bookshelves_events FROM PUBLIC;
+REVOKE ALL ON TABLE public.bookshelves_events FROM postgres;
+GRANT ALL ON TABLE public.bookshelves_events TO postgres;
+GRANT SELECT ON TABLE public.bookshelves_events TO readcreateaccess;
+
+
+--
 -- Name: TABLE bookshelves_votes; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -9346,6 +9757,16 @@ REVOKE ALL ON TABLE public.bookshelves_votes FROM PUBLIC;
 REVOKE ALL ON TABLE public.bookshelves_votes FROM postgres;
 GRANT ALL ON TABLE public.bookshelves_votes TO postgres;
 GRANT SELECT ON TABLE public.bookshelves_votes TO readcreateaccess;
+
+
+--
+-- Name: TABLE community_edits_queue; Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON TABLE public.community_edits_queue FROM PUBLIC;
+REVOKE ALL ON TABLE public.community_edits_queue FROM postgres;
+GRANT ALL ON TABLE public.community_edits_queue TO postgres;
+GRANT SELECT ON TABLE public.community_edits_queue TO readcreateaccess;
 
 
 --
@@ -9756,6 +10177,16 @@ REVOKE ALL ON TABLE public.work_str FROM PUBLIC;
 REVOKE ALL ON TABLE public.work_str FROM openlibrary;
 GRANT ALL ON TABLE public.work_str TO openlibrary;
 GRANT SELECT ON TABLE public.work_str TO readcreateaccess;
+
+
+--
+-- Name: TABLE yearly_reading_goals; Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON TABLE public.yearly_reading_goals FROM PUBLIC;
+REVOKE ALL ON TABLE public.yearly_reading_goals FROM postgres;
+GRANT ALL ON TABLE public.yearly_reading_goals TO postgres;
+GRANT SELECT ON TABLE public.yearly_reading_goals TO readcreateaccess;
 
 
 --
