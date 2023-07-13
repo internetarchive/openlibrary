@@ -237,7 +237,7 @@ class Stats:
                 cls._get_count_by_date_status,
                 "imports.get_count_by_date_status_today",
                 timeout=60 * 3,
-            )(ndays=1)
+            )(ndays=1)[0]
             return date_counts
         return cls._get_count_by_date_status(ndays=ndays)
 
