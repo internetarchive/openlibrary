@@ -68,7 +68,7 @@ class addtag(delegate.page):
         i = utils.unflatten(i)
         match = self.find_match(i)  # returns None or Tag (if match found)
 
-        if len(match) > 0:
+        if match:
             # tag match
             return self.tag_match(match)
         else:
