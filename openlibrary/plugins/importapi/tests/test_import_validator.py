@@ -2,7 +2,14 @@ import pytest
 
 from pydantic import ValidationError
 
-from openlibrary.plugins.importapi.import_validator import import_validator
+from openlibrary.plugins.importapi.import_validator import import_validator, Author
+
+
+def test_create_an_author_with_no_name():
+    Author(name="Valid Name")
+    with pytest.raises(ValidationError):
+        Author(name="")
+
 
 valid_values = {
     "title": "Beowulf",
