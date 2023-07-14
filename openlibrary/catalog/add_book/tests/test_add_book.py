@@ -537,6 +537,11 @@ def test_add_db_name():
     add_db_name(rec)
     assert rec == {}
 
+    # Handle `None` authors values.
+    rec = {'authors': None}
+    add_db_name(rec)
+    assert rec == {'authors': None}
+
 
 def test_extra_author(mock_site, add_languages):
     mock_site.save(

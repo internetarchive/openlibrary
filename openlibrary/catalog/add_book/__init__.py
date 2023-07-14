@@ -558,7 +558,7 @@ def find_enriched_match(rec, edition_pool):
                 return edition_key
 
 
-def add_db_name(rec):
+def add_db_name(rec: dict) -> None:
     """
     db_name = Author name followed by dates.
     adds 'db_name' in place for each author.
@@ -566,7 +566,7 @@ def add_db_name(rec):
     if 'authors' not in rec:
         return
 
-    for a in rec['authors']:
+    for a in rec['authors'] or []:
         date = None
         if 'date' in a:
             assert 'birth_date' not in a
