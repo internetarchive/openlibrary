@@ -8,6 +8,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
+    hostname: docker-openlibrary-web-1
     ports:
       # Debugger
       - 3000:3000
@@ -26,6 +27,7 @@ services:
       - infobase
 
   solr:
+    hostname: docker-openlibrary-solr-1
     ports:
       - 8983:8983
 
@@ -35,6 +37,7 @@ services:
       dockerfile: docker/Dockerfile.oldev
     environment:
       - EXTRA_OPTS=--solr-next
+    hostname: docker-openlibrary-solr-updater-1
     volumes:
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor
@@ -48,6 +51,7 @@ services:
       # This is okay for dev, but may need to be explored for prod
       # This allows postgres access for psql user w/o password required
       - POSTGRES_HOST_AUTH_METHOD=trust
+    hostname: docker-openlibrary-db-1
     volumes:
       - .:/openlibrary
       # Any files inside /docker-entrypoint-initdb.d/ will get run by postgres
@@ -59,6 +63,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
+    hostname: docker-openlibrary-covers-1
     ports:
       - 7075:7075
     volumes:
@@ -69,6 +74,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
+    hostname: docker-openlibrary-infobase-1
     # Commented out because not needed for most dev work, and 7000 conflicts
     # with OS port on Mac. Uncomment if you need to test infobase directly.
     # Mac users can do eg "7070:7000" to change the port used on the host
@@ -87,6 +93,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
+    hostname: docker-openlibrary-home-1
     command: docker/ol-home-start.sh
     networks:
       - webnet

@@ -10,8 +10,8 @@ services:
   web:
     profiles: ["ol-web1", "ol-web2"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
+    hostname: docker-openlibrary-web-1
     restart: unless-stopped
-    hostname: "$HOSTNAME"
     environment:
       - GUNICORN_OPTS= --workers 50 --timeout 300 --max-requests 500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
@@ -23,6 +23,7 @@ services:
 
   solr:
     profiles: ["ol-solr0"]
+    hostname: docker-openlibrary-sorl-1
     environment:
       # More memory for production
       - SOLR_JAVA_MEM=-Xms10g -Xmx10g
@@ -36,6 +37,7 @@ services:
       - webnet
     volumes:
       - ./conf/solr/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    hostname: docker-openlibrary-solr_haproxy-1
     ports:
       - 8984:8984
     logging:
@@ -45,6 +47,7 @@ services:
 
   solr_restarter:
     profiles: ["ol-solr0"]
+    hostname: docker-openlibrary-solr_restarter-1
     build: scripts/solr_restarter
     restart: unless-stopped
     environment:
@@ -65,8 +68,8 @@ services:
   covers:
     profiles: ["ol-covers0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
+    hostname: docker-openlibrary-covers-1
     restart: unless-stopped
-    hostname: "$HOSTNAME"
     environment:
       - GUNICORN_OPTS= --workers 30 --max-requests 500
       - COVERSTORE_CONFIG=/olsystem/etc/coverstore.yml
@@ -79,12 +82,12 @@ services:
   covers_nginx:
     profiles: ["ol-covers0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
+    hostname: docker-openlibrary-covers_nginx-1
     user: root
     command: docker/ol-nginx-start.sh
     environment:
       - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs
     restart: unless-stopped
-    hostname: "$HOSTNAME"
     depends_on:
       - covers
     volumes:
@@ -123,7 +126,7 @@ services:
   cron-jobs:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
-    hostname: "$HOSTNAME"
+    hostname: docker-openlibrary-cron-jobs-1
     user: root
     command: docker/ol-cron-start.sh
     restart: unless-stopped
@@ -140,8 +143,8 @@ services:
   infobase:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
+    hostname: docker-openlibrary-infobase-1
     restart: unless-stopped
-    hostname: "$HOSTNAME"
     environment:
       - INFOBASE_OPTS=fastcgi
       - INFOBASE_CONFIG=/olsystem/etc/infobase.yml
@@ -149,21 +152,23 @@ services:
       - ../olsystem:/olsystem
       - infobase-writelog:/1/var/lib/openlibrary/infobase/log
       - infobase-errorlog:/1/var/log/openlibrary/infobase-errors
+
   web_haproxy:
     profiles: ["ol-www0"]
     image: haproxy:2.3.5
     restart: unless-stopped
-    hostname: "$HOSTNAME"
     networks:
       - webnet
     volumes:
       - ../olsystem/etc/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    hostname: docker-openlibrary-web_haproxy-1
     expose:
       - 7072
     logging:
       options:
         max-size: "512m"
         max-file: "4"
+
   web_nginx:
     profiles: ["ol-www0"]
     restart: unless-stopped
@@ -218,6 +223,7 @@ services:
       - ../olsystem:/olsystem
       # Log rotation
       - ../olsystem/etc/logrotate.d/nginx:/etc/logrotate.d/nginx
+    hostname: docker-openlibrary-infobase_nginx-1
     ports:
       - 7000:7000
     networks:
@@ -227,10 +233,10 @@ services:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: unless-stopped
-    hostname: "$HOSTNAME"
     environment:
       - AFFILIATE_CONFIG=/openlibrary.yml
     command: docker/ol-affiliate-server-start.sh
+    hostname: docker-openlibrary-affiliate-server-1
     ports:
       - 31337:31337
     volumes:
@@ -247,8 +253,8 @@ services:
   solr-updater:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
+    hostname: docker-openlibrary-solr-updater-1
     restart: unless-stopped
-    hostname: "$HOSTNAME"
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
@@ -267,8 +273,8 @@ services:
     # explicitly start it (usually only when a solr reindex project is in progress)
     profiles: ["ol-never"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
+    hostname: docker-openlibrary-solr-next-updater-1
     restart: unless-stopped
-    hostname: "$HOSTNAME"
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
@@ -287,8 +293,8 @@ services:
     profiles: ["ol-home0"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     command: docker/ol-importbot-start.sh
+    hostname: docker-openlibrary-importbot-1
     restart: unless-stopped
-    hostname: "$HOSTNAME"
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OPENLIBRARY_RCFILE=/olsystem/etc/olrc-importbot

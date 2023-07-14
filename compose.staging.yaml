@@ -12,7 +12,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile.oldev
     restart: unless-stopped
-    hostname: "$HOSTNAME"
+    hostname: docker-openlibrary-web-1
     environment:
       - GUNICORN_OPTS= --workers 4 --timeout 180
       - OL_CONFIG=/olsystem/etc/openlibrary.yml

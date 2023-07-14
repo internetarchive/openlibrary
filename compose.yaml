@@ -6,6 +6,7 @@ services:
       - OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
       - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 4 --timeout 180}
     command: docker/ol-web-start.sh
+    hostname: docker-openlibrary-web-1
     ports:
       - ${WEB_PORT:-8080}:8080
     networks:
@@ -18,6 +19,7 @@ services:
 
   solr:
     image: solr:8.10.1
+    hostname: docker-openlibrary-solr-1
     expose:
       - 8983
     environment:
@@ -47,8 +49,8 @@ services:
 
   solr-updater:
     image: "${OLIMAGE:-oldev:latest}"
+    hostname: docker-openlibrary-solr-updater-1
     command: docker/ol-solr-updater-start.sh
-    hostname: "${HOSTNAME:-$HOST}"
     environment:
       - OL_CONFIG=conf/openlibrary.yml
       - OL_URL=http://web:8080/
@@ -61,6 +63,7 @@ services:
 
   memcached:
     image: memcached
+    hostname: docker-openlibrary-memcached-1
     networks:
       - webnet
 
@@ -70,6 +73,7 @@ services:
       - COVERSTORE_CONFIG=${COVERSTORE_CONFIG:-/openlibrary/conf/coverstore.yml}
       - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 1 --max-requests 250}
     command: docker/ol-covers-start.sh
+    hostname: docker-openlibrary-covers-1
     expose:
       - 7075
     networks:
@@ -86,6 +90,7 @@ services:
       - INFOBASE_CONFIG=${INFOBASE_CONFIG:-/openlibrary/conf/infobase.yml}
       - INFOBASE_OPTS=${INFOBASE_OPTS:-}
     command: docker/ol-infobase-start.sh
+    hostname: docker-openlibrary-infobase-1
     expose:
       - 7000
     networks:
