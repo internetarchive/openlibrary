@@ -331,6 +331,8 @@ class Edition(models.Edition):
             name, value = id['name'], id['value']
             if name == 'lccn':
                 value = normalize_lccn(value)
+            # `None` in this field causes errors. See #7999.
+            # We should surface to the patron that an invalid LCCN is dropped. See #8092.
             if value is not None:
                 d.setdefault(name, []).append(value)
 
@@ -464,9 +466,8 @@ class Edition(models.Edition):
             }
         )
 
-        if self.lccn:
-            if lccn := normalize_lccn(self.lccn[0]):
-                citation['lccn'] = lccn
+        if self.lccn and (lccn := normalize_lccn(self.lccn[0])):
+            citation['lccn'] = lccn
         if self.get('oclc_numbers'):
             citation['oclc'] = self.oclc_numbers[0]
         citation['ol'] = str(self.get_olid())[2:]
