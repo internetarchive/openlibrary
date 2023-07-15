@@ -613,7 +613,7 @@ class work_delete(delegate.page):
                 else:
                     break
         else:
-            all_keys: list = web.ctx.site.things(
+            all_keys = web.ctx.site.things(
                 {"type": "/type/edition", "works": work.key, "limit": limit}
             )
             if len(all_keys) == limit:
