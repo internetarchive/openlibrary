@@ -591,21 +591,42 @@ class work_delete(delegate.page):
     path = r"/works/(OL\d+W)/[^/]+/delete"
 
     def get_editions_of_work(self, work: Work) -> list[dict]:
+        i = web.input(bulk=False)
         limit = 1_000  # This is the max limit of the things function
-        keys: list = web.ctx.site.things(
-            {"type": "/type/edition", "works": work.key, "limit": limit}
-        )
-        if len(keys) == limit:
-            raise web.HTTPError(
-                '400 Bad Request',
-                data=json.dumps(
+        all_keys: list = []
+
+        if i.bulk:
+            offset = 0
+
+            while True:
+                keys: list = web.ctx.site.things(
                     {
-                        'error': f'API can only delete {limit} editions per work',
+                        "type": "/type/edition",
+                        "works": work.key,
+                        "limit": limit,
+                        "offset": offset,
                     }
-                ),
-                headers={"Content-Type": "application/json"},
+                )
+                all_keys.extend(keys)
+                if len(keys) == limit:
+                    offset += limit
+                else:
+                    break
+        else:
+            all_keys: list = web.ctx.site.things(
+                {"type": "/type/edition", "works": work.key, "limit": limit}
             )
-        return web.ctx.site.get_many(keys, raw=True)
+            if len(all_keys) == limit:
+                raise web.HTTPError(
+                    '400 Bad Request',
+                    data=json.dumps(
+                        {
+                            'error': f'API can only delete {limit} editions per work.',
+                        }
+                    ),
+                    headers={"Content-Type": "application/json"},
+                )
+        return web.ctx.site.get_many(all_keys, raw=True)
 
     def POST(self, work_id: str):
         if not can_write():
