@@ -58,14 +58,10 @@ $else:
         <hr/>
         <small>$:_("By signing up, you agree to the Internet Archive's <a href='//archive.org/about/terms.php' target='_blank'>Terms of Service</a>.")</small>
         <div class="formElement bottom">
-            <script>
-                function onSubmit(token) {
-                  document.getElementById("demo-form").submit();
-                }
-              </script>
+
             <br/>
             $ sitekey = form['recaptcha'].public_key if form.has_recaptcha else ''
-            <button type="submit" name="signup" id="signup" class="g-recaptcha larger" data-sitekey="$sitekey">$_("Sign Up")</button>
+             <button type="submit" name="signup" id="signup" class="g-recaptcha" data-sitekey="reCAPTCHA_site_key" data-callback='onSubmit' data-action='submit'>$_("Sign Up")</button>
             <a href="javascript:history.go(-1);" class="smaller attn">$_("Cancel")</a>
         </div>
     </form>
