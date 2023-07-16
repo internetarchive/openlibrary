@@ -418,7 +418,7 @@ class Bookshelves(db.CommonExtras):
             )
             assert len(solr_docs) == len(
                 reading_log_work_keys
-            ), "solr_docs is missing an item/items from reading_log_work_keys; see add_storage_items_for_redirects()"  # noqa E501
+            ), "solr_docs is missing an item/items from reading_log_work_keys; see add_storage_items_for_redirects()"  # E501
 
             total_results = shelf_totals.get(bookshelf_id, 0)
             solr_docs = add_reading_log_data(reading_log_books, solr_docs)

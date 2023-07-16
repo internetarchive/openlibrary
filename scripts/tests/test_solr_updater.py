@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 # TODO: Can we remove _init_path someday :(
 sys.modules['_init_path'] = MagicMock()
 
-from scripts.solr_updater import parse_log  # noqa: E402
+from scripts.solr_updater import parse_log
 
 
 class TestParseLog:

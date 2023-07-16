@@ -281,7 +281,7 @@ class ia_importapi(importapi):
                 rec = MarcBinary(data)
                 edition = read_edition(rec)
             except MarcException as e:
-                details = f"{identifier}: {str(e)}"
+                details = f"{identifier}: {e}"
                 logger.error("failed to read from bulk MARC record %s", details)
                 return self.error('invalid-marc-record', details, **next_data)
 

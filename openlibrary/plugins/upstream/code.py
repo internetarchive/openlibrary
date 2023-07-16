@@ -16,7 +16,7 @@ from infogami.plugins.api.code import request as infogami_request
 from infogami.infobase import client
 from infogami.utils import delegate, app, types
 from infogami.utils.view import public, safeint, render
-from infogami.utils.view import render_template  # noqa: F401 used for its side effects
+from infogami.utils.view import render_template  # used for its side effects
 from infogami.utils.context import context
 
 from openlibrary import accounts
