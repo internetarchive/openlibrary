@@ -227,7 +227,7 @@ def _query_count(db, table, type, property, distinct=False):
     else:
         what = 'count(thing_id) as count'
     result = db.select(
-        table, what=what, where='key_id=$key_id', vars=dict(key_id=key_id)
+        table, what=what, where='key_id=$key_id', vars={"key_id": key_id}
     )
     return result[0].count
 

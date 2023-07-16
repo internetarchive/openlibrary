@@ -1155,7 +1155,7 @@ class Tag(Thing):
                     'tag_description': tag_description,
                     'tag_type': tag_type,
                     'tag_plugins': json.loads(tag_plugins or "[]"),
-                    'type': dict(key='/type/tag'),
+                    'type': {"key": '/type/tag'},
                 },
                 comment=comment,
             )

@@ -28,8 +28,7 @@ _wl_api = lending.ia_lending_api
 
 
 def _get_book(identifier):
-    keys = web.ctx.site.things(dict(type='/type/edition', ocaid=identifier))
-    if keys:
+    if keys := web.ctx.site.things({"type": '/type/edition', "ocaid": identifier}):
         return web.ctx.site.get(keys[0])
     else:
         key = "/books/ia:" + identifier

@@ -1014,7 +1014,7 @@ class AddRequest(SolrUpdateRequest):
         self.doc = doc
 
     def to_json_command(self):
-        return f'"{self.type}": {json.dumps(dict(doc=self.doc))}'
+        return f'"{self.type}": {json.dumps({"doc": self.doc})}'
 
     def tojson(self) -> str:
         return json.dumps(self.doc)

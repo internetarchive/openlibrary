@@ -57,7 +57,7 @@ class history(delegate.mode):
         query['sort'] = '-created'
         # Possibly use infogami.plugins.upstream.utils get_changes to avoid json load/dump?
         history = json.loads(
-            infogami_request('/versions', data=dict(query=json.dumps(query)))
+            infogami_request('/versions', data={'query': json.dumps(query)})
         )
         for i, row in enumerate(history):
             history[i].pop("ip")

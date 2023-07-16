@@ -91,7 +91,7 @@ def render_template(request):
 
     from openlibrary.plugins.openlibrary import code
 
-    web.config.db_parameters = dict()
+    web.config.db_parameters = {}
     code.setup_template_globals()
 
     def finalizer():

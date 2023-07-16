@@ -49,7 +49,7 @@ def ol_things(key, value):
             'limit': 10,
         }
         try:
-            d = dict(query=json.dumps(query))
+            d = {"query": json.dumps(query)}
             result = download(get_ol_url() + '/api/things?' + real_urlencode(d))
             result = json.loads(result)
             return result['result']

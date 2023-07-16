@@ -119,12 +119,12 @@ class ImportItem(web.storage):
     def set_status(self, status, error=None, ol_key=None):
         id_ = self.ia_id or f"{self.batch_id}:{self.id}"
         logger.info("set-status %s - %s %s %s", id_, status, error, ol_key)
-        d = dict(
-            status=status,
-            error=error,
-            ol_key=ol_key,
-            import_time=datetime.datetime.utcnow(),
-        )
+        d = {
+            "status": status,
+            "error": error,
+            "ol_key": ol_key,
+            "import_time": datetime.datetime.utcnow(),
+        }
         if status != 'failed':
             d = dict(**d, data=None)
         db.update("import_item", where="id=$id", vars=self, **d)

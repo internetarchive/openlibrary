@@ -85,7 +85,7 @@ CREATE TABLE yearly_reading_goals (
 class TestUpdateWorkID:
     @classmethod
     def setup_class(cls):
-        web.config.db_parameters = dict(dbn="sqlite", db=":memory:")
+        web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
         db = get_db()
         db.query(READING_LOG_DDL)
         db.query(BOOKNOTES_DDL)
@@ -226,7 +226,7 @@ class TestUsernameUpdate:
 
     @classmethod
     def setup_class(cls):
-        web.config.db_parameters = dict(dbn="sqlite", db=":memory:")
+        web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
         db = get_db()
         db.query(RATINGS_DDL)
         db.query(OBSERVATIONS_DDL)
@@ -360,7 +360,7 @@ class TestCheckIns:
 
     @classmethod
     def setup_class(cls):
-        web.config.db_parameters = dict(dbn="sqlite", db=":memory:")
+        web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
         db = get_db()
         db.query(BOOKSHELVES_EVENTS_DDL)
 
@@ -505,7 +505,7 @@ class TestYearlyReadingGoals:
 
     @classmethod
     def setup_class(cls):
-        web.config.db_parameters = dict(dbn='sqlite', db=':memory:')
+        web.config.db_parameters = {"dbn": 'sqlite', "db": ':memory:'}
         db = get_db()
         db.query(YEARLY_READING_GOALS_DDL)
 

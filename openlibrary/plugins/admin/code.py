@@ -882,9 +882,11 @@ class solr:
     def POST(self):
         i = web.input(keys="")
         keys = i['keys'].strip().split()
-        web.ctx.site.store['solr-force-update'] = dict(
-            type="solr-force-update", keys=keys, _rev=None
-        )
+        web.ctx.site.store['solr-force-update'] = {
+            "type": "solr-force-update",
+            "keys": keys,
+            "_rev": None,
+        }
         add_flash_message("info", "Added the specified keys to solr update queue.!")
         return self.GET()
 

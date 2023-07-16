@@ -68,8 +68,8 @@ class LocalPostgresDataProvider(DataProvider):
         self._conn: psycopg2._psycopg.connection = None
         self.cache: dict = {}
         self.cached_work_editions_ranges: list = []
-        self.cached_work_ratings: dict[str, WorkRatingsSummary] = dict()
-        self.cached_work_reading_logs: dict[str, WorkReadingLogSolrSummary] = dict()
+        self.cached_work_ratings: dict[str, WorkRatingsSummary] = {}
+        self.cached_work_reading_logs: dict[str, WorkReadingLogSolrSummary] = {}
 
     def __enter__(self) -> LocalPostgresDataProvider:
         """

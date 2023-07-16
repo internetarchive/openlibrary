@@ -58,7 +58,7 @@ infogami.config.http_ext_header_uri = 'http://openlibrary.org/dev/docs/api'  # t
 from openlibrary.plugins.openlibrary import connection
 
 client._connection_types['ol'] = connection.OLConnection  # type: ignore[assignment]
-infogami.config.infobase_parameters = dict(type='ol')
+infogami.config.infobase_parameters = {'type': 'ol'}
 
 # set up infobase schema. required when running in standalone mode.
 from openlibrary.core import schema
@@ -285,7 +285,7 @@ class addauthor(delegate.page):
         key = web.ctx.site.new_key('/type/author')
         web.ctx.path = key
         web.ctx.site.save(
-            {'key': key, 'name': i.name, 'type': dict(key='/type/author')},
+            {'key': key, 'name': i.name, 'type': {'key': '/type/author'}},
             comment='New Author',
         )
         raise web.HTTPError('200 OK', {}, key)
@@ -321,24 +321,24 @@ class search(delegate.page):
             things = web.ctx.site.things(q)
             things = [web.ctx.site.get(key) for key in things]
             result = [
-                dict(
-                    type=[{'id': t.key, 'name': t.key}],
-                    name=web.safestr(t.name),
-                    guid=t.key,
-                    id=t.key,
-                    article=dict(id=t.key),
-                )
+                {
+                    'type': [{'id': t.key, 'name': t.key}],
+                    'name': web.safestr(t.name),
+                    'guid': t.key,
+                    'id': t.key,
+                    'article': {'id': t.key},
+                }
                 for t in things
             ]
         else:
             result = []
         callback = i.pop('callback', None)
-        d = dict(
-            status='200 OK',
-            query=dict(i, escape='html'),
-            code='/api/status/ok',
-            result=result,
-        )
+        d = {
+            'status': '200 OK',
+            'query': dict(i, escape='html'),
+            'code': '/api/status/ok',
+            'result': result,
+        }
 
         if callback:
             data = f'{callback}({json.dumps(d)})'
@@ -363,8 +363,8 @@ class blurb(delegate.page):
         if author.bio:
             body += web.safestr(author.bio)
 
-        result = dict(body=body, media_type='text/html', text_encoding='utf-8')
-        d = dict(status='200 OK', code='/api/status/ok', result=result)
+        result = {'body': body, 'media_type': 'text/html', 'text_encoding': 'utf-8'}
+        d = {'status': '200 OK', 'code': '/api/status/ok', 'result': result}
         if callback := i.pop('callback', None):
             data = f'{callback}({json.dumps(d)})'
         else:
@@ -404,7 +404,7 @@ def change_ext(filename, ext):
 
 
 def get_pages(type, processor):
-    pages = web.ctx.site.things(dict(type=type))
+    pages = web.ctx.site.things({'type': type})
     for p in pages:
         processor(web.ctx.site.get(p))
 
@@ -639,7 +639,7 @@ class _yaml(delegate.mode):
     def get_data(self, key):
         i = web.input(v=None)
         v = safeint(i.v, None)
-        data = dict(key=key, revision=v)
+        data = {'key': key, 'revision': v}
         try:
             d = api.request('/get', data=data)
         except client.ClientException as e:

@@ -186,7 +186,7 @@ def update_docs(docs, comment, author, ip="127.0.0.1"):
         db.multiple_insert(
             "version",
             [
-                dict(thing_id=doc.id, transaction_id=tx_id, revision=doc.revision)
+                {"thing_id": doc.id, "transaction_id": tx_id, "revision": doc.revision}
                 for doc in docs
             ],
             seqname=False,
