@@ -58,6 +58,11 @@ ignore = [
   "PT006",
   "PT021",
   "RSE102",
+  "RUF001",
+  "RUF002",
+  "RUF005",
+  "RUF012",
+  "RUF100",
   "SIM108",
   "SIM115",
   "SLF001",
@@ -87,6 +92,7 @@ select = [
   "PT",      # flake8-pytest-style
   "PYI",     # flake8-pyi
   "RSE",     # flake8-raise
+  "RUF",     # Ruff-specific rules
   "SIM",     # flake8-simplify
   "SLF",     # flake8-self
   "SLOT",    # flake8-slots
@@ -117,7 +123,6 @@ select = [
   # "PTH",   # flake8-use-pathlib
   # "Q",     # flake8-quotes
   # "RET",   # flake8-return
-  # "RUF",   # Ruff-specific rules
   # "S",     # flake8-bandit
   # "T20",   # flake8-print
   # "TCH",   # flake8-type-checking
