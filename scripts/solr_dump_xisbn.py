@@ -7,30 +7,33 @@
 
     1. `tmux` (use tmux so if the ssh connection disconnects the process continues)
     ```
-    docker rm similarities-dump
-    docker run --name similarities-dump -it -v "/opt/openlibrary/openlibrary:/openlibrary" --network host openlibrary/olbase:latest bash -c '
+    docker run --rm --name similarities-dump -it -v "/opt/openlibrary/openlibrary:/openlibrary" --network host openlibrary/olbase:latest bash -c '
         PYTHONPATH=. python scripts/solr_dump_xisbn.py > output/isbn_sim_dump_$(date +"%Y-%m-%d").txt
     '
 
-    docker rm similarities-dump
-    docker run --name similarities-dump -it -v "/opt/openlibrary/openlibrary:/openlibrary" --network host openlibrary/olbase:latest bash -c '
+    docker run --rm --name similarities-dump -it -v "/opt/openlibrary/openlibrary:/openlibrary" --network host openlibrary/olbase:latest bash -c '
         PYTHONPATH=. python scripts/solr_dump_xisbn.py --id-field lccn > output/lccn_sim_dump_$(date +"%Y-%m-%d").txt
     '
     ```
 
-    Note the `output` directory was added manually and `chown 999:root` so
+    Note the `/opt/openlibrary/openlibrary/output` directory was added manually and `chown 999:root` so
     that the container can write to it.
 """
 import asyncio
 import sys
 from typing import Literal
+from collections.abc import AsyncGenerator
 
 import httpx
 
 # EG http://localhost:8984/solr/openlibrary/select?editions.fl=key%2Cisbn&editions.q=(%7B!terms%20f%3D_root_%20v%3D%24row.key%7D)%20AND%20language%3Aeng%20AND%20isbn%3A*%20AND%20type%3Aedition&editions.rows=1000000&fl=key%2Ceditions%3A%5Bsubquery%5D&fq=type%3Awork&indent=true&q=isbn%3A*%20AND%20NOT%20subject%3Atextbook%20AND%20_query_%3A(%7B!parent%20which%3Dtype%3Awork%20v%3D%22language%3Aeng%20AND%20ia_box_id%3A*%22%20filters%3D%22type%3Aedition%22%7D)&sort=key%20asc&wt=json
 
 
-async def fetch_docs(params: dict[str, str | int], solr_base: str, page_size=100):
+async def fetch_docs(
+    params: dict[str, str | int],
+    solr_base: str,
+    page_size=100,
+) -> list[dict]:
     """Stream results from a Solr query. Uses cursors."""
     params = params.copy()
     params['rows'] = page_size
@@ -53,7 +56,11 @@ async def fetch_docs(params: dict[str, str | int], solr_base: str, page_size=100
         return data['response']['docs']
 
 
-async def stream_bounds(params: dict[str, str], solr_base: str, page_size=100):
+async def stream_bounds(
+    params: dict[str, str],
+    solr_base: str,
+    page_size=100,
+) -> AsyncGenerator[tuple[str, str], None]:
     """Stream bounds from a Solr query. Uses cursors."""
     params = params.copy()
     params['rows'] = page_size
@@ -103,7 +110,7 @@ async def main(
     workers=10,
     page_size=100,
     id_field: Literal['isbn', 'lccn'] = 'isbn',
-):
+) -> None:
     """
     :param solr_base: Base URL of Solr instance
     :param workers: Number of workers to use
