@@ -106,6 +106,10 @@ class EditionSolrBuilder:
         return uniq(isbn for isbn in isbns if isbn)
 
     @property
+    def lccn(self) -> list[str]:
+        return uniq(lccn.strip() for lccn in self.get('lccn', []))
+
+    @property
     def publish_date(self) -> Optional[str]:
         return self.get('publish_date')
 
@@ -201,6 +205,7 @@ def build_edition_data(
             'publish_year': [ed.publish_year] if ed.publish_year else None,
             # Identifiers
             'isbn': ed.isbn,
+            'lccn': ed.lccn,
             **ed.identifiers,
             # IA
             'ia': [ed.ia] if ed.ia else None,
