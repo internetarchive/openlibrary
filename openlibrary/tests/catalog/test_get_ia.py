@@ -83,11 +83,11 @@ class TestGetIA:
         'zweibchersatir01horauoft',
     ]
 
-    @pytest.mark.parametrize('item', xml_items)
+    @pytest.mark.parametrize('item', bin_items)
     def test_get_marc_record_from_ia(self, item, monkeypatch):
         """Tests the method returning MARC records from IA
-        used by the import API. It should return an XML MARC if one exists."""
-        monkeypatch.setattr(get_ia, 'urlopen_keep_trying', return_test_marc_xml)
+        used by the import API. It should return a binary MARC if one exists."""
+        monkeypatch.setattr(get_ia, 'urlopen_keep_trying', return_test_marc_bin)
         monkeypatch.setattr(
             ia,
             'get_metadata',
@@ -97,22 +97,20 @@ class TestGetIA:
         )
         result = get_ia.get_marc_record_from_ia(item)
         assert isinstance(
-            result, MarcXml
-        ), f"{item}: expected instanceof MarcXml, got {type(result)}"
+            result, MarcBinary
+        ), f"{item}: expected instanceof MarcBinary, got {type(result)}"
 
-    @pytest.mark.parametrize('item', bin_items)
+    @pytest.mark.parametrize('item', xml_items)
     def test_no_marc_xml(self, item, monkeypatch):
-        """When no XML MARC is listed in _filenames, the Binary MARC should be fetched."""
-        monkeypatch.setattr(get_ia, 'urlopen_keep_trying', return_test_marc_bin)
+        """When no binary MARC is listed in _filenames, the MARC XML should be fetched."""
+        monkeypatch.setattr(get_ia, 'urlopen_keep_trying', return_test_marc_xml)
         monkeypatch.setattr(
-            ia, 'get_metadata', lambda itemid: {'_filenames': [f'{itemid}_meta.mrc']}
+            ia, 'get_metadata', lambda itemid: {'_filenames': [f'{itemid}_marc.xml']}
         )
         result = get_ia.get_marc_record_from_ia(item)
         assert isinstance(
-            result, MarcBinary
-        ), f"{item}: expected instanceof MarcBinary, got {type(result)}"
-        field_245 = next(result.read_fields(['245']))
-        title = next(field_245[1].get_all_subfields())[1].encode('utf8')
+            result, MarcXml
+        ), f"{item}: expected instanceof MarcXml, got {type(result)}"
 
     @pytest.mark.parametrize('bad_marc', bad_marcs)
     def test_incorrect_length_marcs(self, bad_marc, monkeypatch):
