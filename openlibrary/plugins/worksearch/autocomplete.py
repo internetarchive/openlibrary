@@ -115,7 +115,7 @@ class authors_autocomplete(autocomplete):
     fq = ['type:author']
     fl = 'key,name,alternate_names,birth_date,death_date,work_count,works,subjects'
     olid_suffix = 'A'
-    query = 'name:({q}*) OR alternate_names:({q}*)'
+    query = 'name:({q}*) OR alternate_names:({q}*) OR name:"{q}"^2 OR alternate_names:"{q}"^2'
 
     def doc_wrap(self, doc: dict):
         if 'top_work' in doc:
