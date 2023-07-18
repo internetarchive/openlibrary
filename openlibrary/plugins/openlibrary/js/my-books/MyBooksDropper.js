@@ -57,13 +57,8 @@ export default class MyBooksDropper {
     loadLists() {
         const dropperListPlaceholder = this.dropper.querySelector('.list-loading-indicator')
 
-        // Already lists showcase --- assuming one per page
-        const listDisplayPlaceholder = document.querySelector('.list-overview-loading-indicator')
-
         const loadingIndicators = dropperListPlaceholder ? [dropperListPlaceholder.querySelector('.loading-ellipsis')] : []
-        if (listDisplayPlaceholder) {
-            loadingIndicators.push(listDisplayPlaceholder.querySelector('.loading-ellipsis'))
-        }
+
         const intervalId = this.initLoadingAnimation(loadingIndicators)
 
         let key
@@ -78,10 +73,10 @@ export default class MyBooksDropper {
         if (key) {
             fetchPartials(key, (data) => {
                 clearInterval(intervalId)
-                this.replaceLoadingIndicators(dropperListPlaceholder, listDisplayPlaceholder, JSON.parse(data))
+                this.replaceLoadingIndicators(dropperListPlaceholder, JSON.parse(data))
             })
         } else {
-            this.removeChildren(dropperListPlaceholder, listDisplayPlaceholder)
+            this.removeChildren(dropperListPlaceholder)
         }
     }
 
@@ -118,26 +113,17 @@ export default class MyBooksDropper {
      * Replaces list loading indicators with the given partially rendered HTML.
      *
      * @param {HTMLElement} dropperListsPlaceholder Loading indicator found inside of the dropdown content
-     * @param {HTMLElement} activeListsPlaceholder Loading indicator for patron's active lists
      * @param {ListPartials} partials
      */
-    replaceLoadingIndicators(dropperListsPlaceholder, activeListsPlaceholder, partials) {
+    replaceLoadingIndicators(dropperListsPlaceholder, partials) {
         const dropperParent = dropperListsPlaceholder ? dropperListsPlaceholder.parentElement : null
-        const activeListsParent = activeListsPlaceholder ? activeListsPlaceholder.parentElement : null
 
         if (dropperParent) {
             this.removeChildren(dropperParent)
             dropperParent.insertAdjacentHTML('afterbegin', partials['dropper'])
 
-            const anchors = this.dropper.querySelectorAll('.add-to-list')
-            this.readingLists.initAddToListAnchors(anchors)
-        }
-
-        if (activeListsParent) {
-            this.removeChildren(activeListsParent)
-            activeListsParent.insertAdjacentHTML('afterbegin', partials['active'])
-            const actionableListItems = activeListsParent.querySelectorAll('.actionable-item')
-            this.readingLists.registerListItems(actionableListItems)
+            const anchors = this.dropper.querySelectorAll('.modify-list')
+            this.readingLists.initModifyListAffordances(anchors)
         }
     }
 

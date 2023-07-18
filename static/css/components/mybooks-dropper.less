@@ -105,7 +105,17 @@
       /* stylelint-disable selector-max-specificity */
       /* stylelint-disable max-nesting-depth */
       .list {
+        display: flex;
         margin-top: 0;
+
+        .check {
+          margin-right: 8px;
+          visibility: hidden;
+        }
+      }
+
+      .list--active .check {
+        visibility: visible;
       }
       /* stylelint-enable max-nesting-depth */
       /* stylelint-enable selector-max-specificity */

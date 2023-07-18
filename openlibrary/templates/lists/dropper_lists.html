@@ -7,8 +7,8 @@ $for list in lists:
         <a href="$list.key" class="add-to-list dropper__close" data-list-cover-url="$list.cover_url" data-list-key="$list.key">$list.name</a>
       </p>
   $else:
-    $ additional_classes = 'hidden' if list['active'] else ''
-    <p class="list $(additional_classes)">
-      <a href="$list.key" class="add-to-list dropper__close" data-list-cover-url="$list.cover_url" data-list-key="$list.key"
-      data-list-items="$(json_encode(list.list_items))">$list.name</a>
+    $ list_active = "list--active" if list['active'] else ""
+    <p class="list $list_active">
+      <span class="check">✔️</span>
+      <a href="$list.key" class="modify-list dropper__close" data-list-cover-url="$list.cover_url" data-list-key="$list.key" data-list-items="$(json_encode(list.list_items))">$list.name</a>
     </p>
