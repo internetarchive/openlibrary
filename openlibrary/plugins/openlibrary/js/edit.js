@@ -55,7 +55,7 @@ function limitChars(textid, limit) {
 function getJqueryElements(selector) {
     const queryResult = $(selector)
     const jQueryElementArray = []
-    for (let i = 0 i < queryResult.length i++) {
+    for (let i = 0 ;i < queryResult.length ;i++) {
         jQueryElementArray.push(queryResult.eq(i))
     }
     return jQueryElementArray
