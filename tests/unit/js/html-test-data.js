@@ -65,7 +65,7 @@ export const editionIdentifiersSample = `<fieldset id="identifiers" data-config=
             <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
         </tr></tbody>
 </table>
-</fieldset>`;
+</fieldset>`
 
 /** Part/Simplification of the .widget-add element */
 export const bookDropdownSample = `
@@ -101,7 +101,7 @@ export const listCreationForm = `
             <a class="small dialog--close plain red" href="javascript:;">Cancel</a>
         </div>
     </div>
-    </form>`;
+    </form>`
 
 export const clamperSample = `
       <span class='clamp' data-before='▾  ' style='display: unset;'>
@@ -126,7 +126,7 @@ export const clamperSample = `
           <a>orphans</a>
           <a>fantasy fiction</a>
           <a>England in fiction</a>
-      </span>`;
+      </span>`
 
 export const checkInForm = `
 <div class="check-in" data-modal-ref="dialog-OL53924W" data-event-type="1">
@@ -210,7 +210,7 @@ export const checkInForm = `
     </span>
   </form>
 </div>
-`;
+`
 
 export const readingLogDropperForm = `
 <div id="dropper">
@@ -223,7 +223,7 @@ export const readingLogDropperForm = `
         <button class="hidden">Remove From Shelf</button>
     </form>
 </div>
-`;
+`
 export const initRoleValidationHtml = `
 <div class="formElement" id="roles" data-config="{&quot;Please select a role.&quot;: &quot;Please select a role.&quot;, &quot;You need to give this ROLE a name.&quot;: &quot;You need to give this ROLE a name.&quot;}">
 <div class="label">
@@ -593,7 +593,7 @@ export const initRoleValidationHtml = `
     </table>
 </div>
 </div>
-`;
+`
 
 export const readClassification = `
 <fieldset class="major" id="classifications" data-config="{&quot;Please select a classification.&quot;: &quot;Please select a classification.&quot;, &quot;You need to give a value to CLASS.&quot;: &quot;You need to give a value to CLASS.&quot;}">
@@ -686,4 +686,4 @@ export const readClassification = `
         </div>
     </div>
 </fieldset>
-`;
+`
