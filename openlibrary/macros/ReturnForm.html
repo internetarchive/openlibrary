@@ -1,6 +1,11 @@
 $def with (ocaid)
 
-<form action="/borrow/ia/$ocaid" method="post">
+<form
+  action="/borrow/ia/$ocaid"
+  method="post"
+  class="return-form"
+>
   <input class="cta-btn cta-btn--vanilla" type="submit" value="$_('Return book')" />
   <input type="hidden" name="action" value="return" />
+  <input type="hidden" name="redirect" value="$request.fullpath" />
 </form>
