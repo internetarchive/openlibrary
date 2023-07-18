@@ -113,7 +113,7 @@ class works_autocomplete(autocomplete):
 class authors_autocomplete(autocomplete):
     path = "/authors/_autocomplete"
     fq = ['type:author']
-    fl = 'key,name,alternate_names,birth_date,death_date,work_count,works,subjects'
+    fl = 'key,name,alternate_names,birth_date,death_date,work_count,top_work,top_subjects'
     olid_suffix = 'A'
     query = 'name:({q}*) OR alternate_names:({q}*) OR name:"{q}"^2 OR alternate_names:"{q}"^2'
 
