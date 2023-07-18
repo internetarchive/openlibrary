@@ -66,7 +66,7 @@ repos:
       - id: validate-pyproject
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.44.0
+    rev: v8.45.0
     hooks:
       - id: eslint
         types: [file]
