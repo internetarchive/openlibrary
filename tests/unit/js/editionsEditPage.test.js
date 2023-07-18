@@ -7,7 +7,7 @@ import sinon from 'sinon';
 import * as testData from './html-test-data';
 import { htmlquote } from '../../../openlibrary/plugins/openlibrary/js/jsdef';
 import jQueryRepeat from '../../../openlibrary/plugins/openlibrary/js/jquery.repeat';
-
+import { initRoleValidation } from '../../../openlibrary/plugins/openlibrary/js/edit.js';
 let sandbox;
 
 describe('isChecksumValidIsbn10', () => {
@@ -214,7 +214,7 @@ describe('initIdentifierValidation', () => {
     });
 });
 
-import { initRoleValidation } from '../../../openlibrary/plugins/openlibrary/js/edit.js';
+
 
 describe('initRoleValidation ', () => {
     beforeEach(() => {
