@@ -325,6 +325,13 @@ jQuery(function () {
             });
     }
 
+    if (document.getElementById('related-subjects')) {
+        import(/* webpackChunkName: "plugins_form" */ './related_subjects.js')
+            .then(module => {
+                module.initRelatedSubjectsCarousel();
+            });
+    }
+
     if (document.getElementById('autofill-dev-credentials')) {
         document.getElementById('username').value = 'openlibrary@example.com'
         document.getElementById('password').value = 'admin123'

@@ -20,6 +20,7 @@ $def with (plugins=None)
             </thead>
             <tbody id="pluginsFormRows">
                 $if plugins:
+                    $ plugins = load_plugin_json(plugins)
                     $for plugin in plugins:
                         $ plugin_type, plugin_data = display_plugins_data(plugin)
                         <tr class="plugins-input-row">

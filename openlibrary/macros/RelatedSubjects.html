@@ -1,0 +1,21 @@
+$def with(subjects)
+
+$# Takes following parameters
+$# * subjects (str) -- A string containing a comma-separated list of subjects
+
+$ subject_filters = subjects.split('+')
+
+$jsdef render_subjects_carousel(query_string):
+    <div>
+       $query_string
+    </div>
+
+<body id="related-subjects">
+    <div id="related-subject-filters">
+        <label><input type="checkbox" class="select-all"> Select All</label>
+        $for filter in subject_filters:
+            <label><input type="checkbox" class="subject-filter"> $filter</label>
+    </div>
+    <div id="related-subjects-carousel" class="hidden">
+    </div>
+</body>

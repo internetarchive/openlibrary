@@ -151,8 +151,6 @@ class tag_edit(delegate.page):
 
     def process_input(self, i):
         i = utils.unflatten(i)
-        if i.tag_plugins:
-            i.tag_plugins = json.loads(i.tag_plugins)
         tag = trim_doc(i)
         return tag
 
@@ -174,6 +172,10 @@ def process_plugins_data(data):
 
     return plugin_type, plugin_data
 
+
+@public
+def load_plugin_json(plugins_str):
+    return json.loads(plugins_str)
 
 @public
 def display_plugins_data(data):
@@ -205,7 +207,7 @@ def get_tag_types():
 
 @public
 def get_plugin_types():
-    return ["QueryCarousel", "ListCarousel"]
+    return ["RelatedSubjects", "QueryCarousel", "ListCarousel"]
 
 
 def setup():

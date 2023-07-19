@@ -1119,8 +1119,6 @@ class Subject(web.storage):
             if cover_id:
                 return Image(web.ctx.site, "b", cover_id)
 
-
-# TODO: expand on tag model
 class Tag(Thing):
     """Class to represent /type/tag objects in OL."""
 
@@ -1129,10 +1127,6 @@ class Tag(Thing):
 
     def get_url_suffix(self):
         return self.name or "unnamed"
-
-
-class Tag(Thing):
-    """Class to represent /type/tag objects in OL."""
 
     @classmethod
     def find(cls, tag_name, tag_type):
@@ -1153,7 +1147,7 @@ class Tag(Thing):
     ):
         """Creates a new Tag object."""
         current_user = web.ctx.site.get_user()
-        patron = current_user and current_user.username or 'ImportBot'
+        patron = current_user.get_username() if current_user else 'ImportBot'
         key = web.ctx.site.new_key('/type/tag')
         from openlibrary.accounts import RunAs
 
@@ -1165,7 +1159,7 @@ class Tag(Thing):
                     'name': tag_name,
                     'tag_description': tag_description,
                     'tag_type': tag_type,
-                    'tag_plugins': json.loads(tag_plugins or "[]"),
+                    'tag_plugins': tag_plugins or "[]",
                     'type': dict(key='/type/tag'),
                 },
                 comment=comment,

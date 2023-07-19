@@ -3,7 +3,7 @@
  */
 import 'jquery-ui/ui/widgets/sortable';
 
-const pluginsTypesList = ['QueryCarousel', 'ListCarousel']
+const pluginsTypesList = ['RelatedSubjects', 'QueryCarousel', 'ListCarousel']
 
 function checkRequiredFields() {
     const nameInput = document.getElementById('tag_name');
