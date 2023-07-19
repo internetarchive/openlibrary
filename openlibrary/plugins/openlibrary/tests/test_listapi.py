@@ -35,7 +35,7 @@ class ListAPI:
         return self.opener.open(req)
 
     def login(self):
-        data = dict(username=self.username, password=self.password)
+        data = {'username': self.username, 'password': self.password}
         self.urlopen("/account/login", data=urllib.parse.urlencode(data), method="POST")
         print(self.cookiejar)
 

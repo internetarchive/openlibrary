@@ -69,7 +69,7 @@ def get_cover_id(olkeys):
 
 def _query(category, key, value):
     if key == 'olid':
-        prefixes = dict(a="/authors/", b="/books/", w="/works/")
+        prefixes = {"a": "/authors/", "b": "/books/", "w": "/works/"}
         if category in prefixes:
             olkey = prefixes[category] + value
             return get_cover_id([olkey])

@@ -17,7 +17,7 @@ def setup_module(mod):
     # delegate.fakeload()
 
     # models module imports openlibrary.code, which imports ol_infobase and that expects db_parameters.
-    web.config.db_parameters = dict(dbn="sqlite", db=":memory:")
+    web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
     from openlibrary.plugins.upstream import models
 
     models.setup()

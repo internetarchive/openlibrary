@@ -39,7 +39,7 @@ class TestImportItem:
 
     @classmethod
     def setup_class(cls):
-        web.config.db_parameters = dict(dbn='sqlite', db=':memory:')
+        web.config.db_parameters = {'dbn': 'sqlite', 'db': ':memory:'}
         db = get_db()
         db.query(cls.IMPORT_ITEM_DDL)
 

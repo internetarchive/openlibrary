@@ -247,7 +247,7 @@ class DataProcessor:
                     label = r.get('label', '')
                     title = r.get('title', '')
                     pagenum = r.get('pagenum', '')
-                r = dict(level=level, label=label, title=title, pagenum=pagenum)
+                r = {'level': level, 'label': label, 'title': title, 'pagenum': pagenum}
                 return r
 
             d = [row(r) for r in toc]
@@ -293,7 +293,7 @@ class DataProcessor:
                 doc.get("table_of_contents", [])
             ),
             "links": [
-                dict(title=link.get("title"), url=link['url'])
+                {'title': link.get("title"), 'url': link['url']}
                 for link in w.get('links', '')
                 if link.get('url')
             ],

@@ -1064,9 +1064,11 @@ def _get_blog_feeds():
         pubdate = datetime.datetime.strptime(
             item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S +0000'
         ).isoformat()
-        return dict(
-            title=item.find("title").text, link=item.find("link").text, pubdate=pubdate
-        )
+        return {
+            "title": item.find("title").text,
+            "link": item.find("link").text,
+            "pubdate": pubdate,
+        }
 
     return [parse_item(item) for item in tree.findall(".//item")]
 
