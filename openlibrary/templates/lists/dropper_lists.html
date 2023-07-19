@@ -10,5 +10,5 @@ $for list in lists:
     $ list_active = "list--active" if list['active'] else ""
     <p class="list $list_active">
       <span class="check">✔️</span>
-      <a href="$list.key" class="modify-list dropper__close" data-list-cover-url="$list.cover_url" data-list-key="$list.key" data-list-items="$(json_encode(list.list_items))">$list.name</a>
+      <a href="$list.key" class="modify-list" data-list-cover-url="$list.cover_url" data-list-key="$list.key" data-list-items="$(json_encode(list.list_items))">$list.name</a>
     </p>
