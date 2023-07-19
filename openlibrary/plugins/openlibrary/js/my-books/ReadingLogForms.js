@@ -93,8 +93,7 @@ export default class ReadingLogForms {
         this.readDateComponents = readDateComponents
 
         this.readingLogForms = dropper.querySelectorAll('form.reading-log')
-        this.isDropperDisabled = dropper.classList.contains('g-dropper--disabled')
-        // this.initialize(readingLogForms, isDropperDisabled)
+        this.isDropperDisabled = dropper.classList.contains('generic-dropper--disabled')
     }
 
     /**

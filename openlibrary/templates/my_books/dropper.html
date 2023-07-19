@@ -18,7 +18,7 @@ $ additional_classes = 'my-books-dropper'
 $if not work_key:
   $ additional_classes += ' old-style-lists'
 $if not ctx.user:
-  $ additional_classes += ' g-dropper--disabled'
+  $ additional_classes += ' generic-dropper--disabled'
 
 $ primary_action = render_template('my_books/primary_action', work_key, edition_key, (ctx.user and ctx.user.key), users_work_read_status, page_url)
 $ dropdown_content = render_template('my_books/dropdown_content', user_lists, seed_key, work_key, edition_key, users_work_read_status, async_load=async_load)
