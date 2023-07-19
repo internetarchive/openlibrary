@@ -19,7 +19,7 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
       <input type="hidden" name="work_id" value="$(work_key)"/>
       <button class="remove-from-list $(btn_visibilities[0])" type="submit">$_('Remove From Shelf')</button>
     </form>
-    
+
     <form class="reading-log" method="POST" action="$(work_key)/bookshelves.json">
       <input type="hidden" name="action" value="add"/>
       <input type="hidden" name="bookshelf_id" value="1"/>
@@ -27,7 +27,7 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
         <input type="hidden" name="edition_id" value="$(edition_key)"/>
       <button class="nostyle-btn $(btn_visibilities[1])" type="submit">$_('Want to Read')</button>
     </form>
-    
+
     <form class="reading-log" method="POST" action="$(work_key)/bookshelves.json">
       <input type="hidden" name="action" value="add"/>
       <input type="hidden" name="bookshelf_id" value="2"/>
@@ -35,7 +35,7 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
         <input type="hidden" name="edition_id" value="$(edition_key)"/>
       <button class="nostyle-btn $(btn_visibilities[2])" type="submit">$_('Currently Reading')</button>
     </form>
-    
+
     <form class="reading-log" method="POST" action="$(work_key)/bookshelves.json">
       <input type="hidden" name="action" value="add"/>
       <input type="hidden" name="bookshelf_id" value="3"/>

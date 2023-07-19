@@ -134,7 +134,12 @@ def get_list_data(list, seed, include_cover_url=True):
         list_items.append(s.key)
 
     d = web.storage(
-        {"name": list.name or "", "key": list.key, "active": list.has_seed(seed), "list_items": list_items}
+        {
+            "name": list.name or "",
+            "key": list.key,
+            "active": list.has_seed(seed),
+            "list_items": list_items,
+        }
     )
     if include_cover_url:
         cover = list.get_cover() or list.get_default_cover()
@@ -170,7 +175,9 @@ class lists_partials(delegate.page):
         seed_info = get_seed_info(doc)
         user_lists = get_user_lists(seed_info)
 
-        dropper = render_template('lists/dropper_lists', user_lists, legacy_rendering=False)
+        dropper = render_template(
+            'lists/dropper_lists', user_lists, legacy_rendering=False
+        )
         active = render_template(
             'lists/active_lists', user_lists, user['key'], seed_info
         )
