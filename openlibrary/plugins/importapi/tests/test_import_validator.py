@@ -27,7 +27,9 @@ def test_validate():
     assert validator.validate(valid_values) is True
 
 
-@pytest.mark.parametrize('field', ["title", "source_records", "authors", "publishers", "publish_date"])
+@pytest.mark.parametrize(
+    'field', ["title", "source_records", "authors", "publishers", "publish_date"]
+)
 def test_validate_record_with_missing_required_fields(field):
     invalid_values = valid_values.copy()
     del invalid_values[field]
