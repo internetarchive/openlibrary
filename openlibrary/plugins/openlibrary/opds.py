@@ -8,12 +8,12 @@ from infogami.infobase.utils import parse_datetime
 
 
 class OPDS:
-    xmlns_atom = 'http://www.w3.org/2005/Atom'
-    xmlns_dcterms = 'http://purl.org/dc/terms/'
-    xmlns_opds = 'http://opds-spec.org/'
-    xmlns_rdvocab = 'http://RDVocab.info/elements/'
-    xmlns_bibo = 'http://purl.org/ontology/bibo/'
-    xmlns_xsi = 'http://www.w3.org/2001/XMLSchema-instance'
+    xmlns_atom = 'https://www.w3.org/2005/Atom'
+    xmlns_dcterms = 'https://purl.org/dc/terms/'
+    xmlns_opds = 'https://opds-spec.org/'
+    xmlns_rdvocab = 'https://RDVocab.info/elements/'
+    xmlns_bibo = 'https://purl.org/ontology/bibo/'
+    xmlns_xsi = 'https://www.w3.org/2001/XMLSchema-instance'
 
     nsmap = {
         None: xmlns_atom,
