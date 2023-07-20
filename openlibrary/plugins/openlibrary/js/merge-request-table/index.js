@@ -1,4 +1,3 @@
-import { merge } from 'jquery';
 import { FadingToast } from '../Toast';
 import { commentOnRequest, declineRequest, claimRequest, unassignRequest } from './MergeRequestService';
 
@@ -88,7 +87,6 @@ async function onCommentClick(textarea, mrid, username) {
                     new FadingToast('Comment updated!').show()
                     updateCommentsView(mrid, c, username)
                     textarea.value = ''
-                    commentCount.innerHTML ++
                 } else {
                     new FadingToast('Failed to submit comment. Please try again in a few moments.').show()
                 }
@@ -146,10 +144,10 @@ function removeRow(row) {
 
 
 /**
- * Adds functionality for toggling visibility of the older comments.
-*
-* @param {NodeList<HTMLElement>} elems Links that toggle comment visibility
-*/
+ * Adds functionality for toggling visibility of older comments.
+ *
+ * @param {NodeList<HTMLElement>} elems Links that toggle comment visibility
+ */
 export function initShowAllCommentsLinks(elems) {
     for (const elem of elems) {
         elem.addEventListener('click', function() {
@@ -160,9 +158,9 @@ export function initShowAllCommentsLinks(elems) {
 
 /**
  * Toggles visibility of a request's older comments.
-*
-* @param {HTMLELement} elem Element which contains a reference to the old comments
-*/
+ *
+ * @param {HTMLELement} elem Element which contains a reference to the old comments
+ */
 function toggleAllComments(elem) {
     const targetHiddenComments = elem.dataset.hiddenComments;
     const targetLatestComment = elem.dataset.latestComment || 0;
@@ -204,8 +202,6 @@ async function claim(mrid) {
             if (data.status === 'ok') {
                 const reviewerHtml = `${data.reviewer}
                     <span class="mr-unassign" data-mrid="${mrid}">&times;</span>`;
-                //const mergeLinkData = document.querySelector(`#mr-resolve-link-${mrid}`).dataset;
-                //const btn = document.querySelector(`#mr-resolve-btn-${mrid}`)
                 const unassignElements = document.querySelectorAll(`.mr-unassign[data-mrid="${mrid}"]`);
                 //for hiding the button it is being unassigned
                 const mergeBtn = document.querySelector(`#mr-resolve-btn-${mrid}`);
@@ -216,7 +212,7 @@ async function claim(mrid) {
                 updateRow(mrid, data.newStatus, reviewerHtml, mergeBtn);
                 toggleMergeLink(mrid, mergeBtn);
             }
-        });
+        })
 }
 
 
@@ -267,10 +263,7 @@ async function unassign(mrid, btn) {
  */
 function toggleMergeLink(mrid, btn) {
 
-    //const btn = document.querySelector(`#mr-resolve-btn-${mrid}`)
-    console.log('What is the btn?', btn)
     if (btn.classList.contains('hidden')){
-        //console.log('it does contain hidden')
         btn.classList.remove('hidden');
     } else {
         btn.classList.add('hidden');
