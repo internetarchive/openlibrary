@@ -13,7 +13,7 @@ export function initCloseLinks(elems) {
     for (const elem of elems) {
         elem.addEventListener('click', function () {
             const mrid = elem.dataset.mrid
-            onCloseClick(mrid, elem.parentNode.parentNode)
+            onCloseClick(mrid, elem.parentNode.parentNode.parentNode.parentNode)
         })
     }
 }
@@ -63,7 +63,8 @@ export function initCommenting(elems) {
     for (const elem of elems) {
         elem.addEventListener('click', function () {
             const mrid = elem.dataset.mrid
-            onCommentClick(elem.previousElementSibling, mrid)
+            const username = elem.dataset.username;
+            onCommentClick(elem.previousElementSibling, mrid, username)
         })
     }
 }
@@ -74,8 +75,9 @@ export function initCommenting(elems) {
  * @param {HTMLTextAreaElement} textarea The element that contains the comment
  * @param {Number} mrid Unique identifier for the request that is being commented on
  */
-async function onCommentClick(textarea, mrid) {
+async function onCommentClick(textarea, mrid, username) {
     const c = textarea.value;
+    const commentCount = document.querySelector(`.comment-count-${mrid}`);
 
     if (c) {
         await comment(mrid, c)
@@ -83,7 +85,7 @@ async function onCommentClick(textarea, mrid) {
             .then(data => {
                 if (data.status === 'ok') {
                     new FadingToast('Comment updated!').show()
-                    updateCommentsView(mrid, c)
+                    updateCommentsView(mrid, c, username)
                     textarea.value = ''
                 } else {
                     new FadingToast('Failed to submit comment. Please try again in a few moments.').show()
@@ -117,32 +119,18 @@ async function comment(mrid, comment) {
  * @param {Number} mrid Unique identifier for the request that's being commented upon
  * @param {string} comment The new comment
  */
-async function updateCommentsView(mrid, comment) {
-    const commentCell = document.querySelector(`#comment-cell-${mrid}`)
-    const newCommentDiv = commentCell.querySelector('.comment-cell__newest-comment')
+async function updateCommentsView(mrid, comment, username) {
+    const commentCell = document.querySelector(`#comment-cell-${mrid}`);
+    const hiddenCommentDiv = commentCell.querySelector('.comment-cell__old-comments-section');
+    const newestComment = commentCell.querySelector('.comment-cell__newest-comment') ;
 
-    await fetch(`/merges/partials?type=comment&comment=${comment}`, {
-        method: 'GET'
-    })
-        .then(result => result.text())
-        .then(html => {
-            // Create new comment element
-            const template = document.createElement('template')
-            template.innerHTML = html.trim()
+    newestComment.innerHTML = `${comment}`
 
-            // Remove newest comment (or "No comments yet" message)
-            const newestComment = newCommentDiv.firstElementChild
-            newCommentDiv.removeChild(newestComment)
+    const newComment = document.createElement('div')
+    newComment.innerHTML += `<div class="mr-comment__body"><span>@${username}</span> ${comment}</div>`
 
-            if (newestComment.classList.contains('comment')) {  // "No comments yet" element will not have this class
-                // Append newest comment to old comments element
-                const oldComments = document.querySelector('.comment-cell__old-comments')
-                oldComments.appendChild(newestComment)
-            }
-
-            // Display new
-            newCommentDiv.appendChild(template.content.firstChild)
-        })
+    hiddenCommentDiv.append(newComment);
+    hiddenCommentDiv.scrollTop = hiddenCommentDiv.scrollHeight;
 }
 
 /**
@@ -153,6 +141,7 @@ async function updateCommentsView(mrid, comment) {
 function removeRow(row) {
     row.parentNode.removeChild(row)
 }
+
 
 /**
  * Adds functionality for toggling visibility of older comments.
@@ -173,57 +162,59 @@ export function initShowAllCommentsLinks(elems) {
  * @param {HTMLELement} elem Element which contains a reference to the old comments
  */
 function toggleAllComments(elem) {
-    const targetId = elem.dataset.targetId;
-    const target = document.querySelector(`#${targetId}`)
-    target.classList.toggle('hidden')
+    const targetHiddenComments = elem.dataset.hiddenComments;
+    const targetLatestComment = elem.dataset.latestComment || 0;
+    const targetIdOldComments = elem.dataset.oldComments;
+    const targetBtnComments = elem.dataset.btnComments;
 
-    const isHidden = target.classList.contains('hidden')
-    const prevSibling = elem.previousElementSibling;
-    if (isHidden) {
-        prevSibling.textContent = 'Showing most recent comment only.'
-        elem.textContent = 'View all'
-    } else {
-        prevSibling.textContent = 'Showing all comments.'
-        elem.textContent = 'View most recent only'
-    }
+    const hiddenCommentsTarget = document.querySelector(`#${targetHiddenComments}`)
+    const latestCommentTarget = document.querySelector(`#${targetLatestComment}`)
+    const oldCommentsTarget = document.querySelector(`#${targetIdOldComments}`)
+    const targetCommentsBtn = document.querySelector(`.${targetBtnComments}`);
+
+    hiddenCommentsTarget.classList.toggle('hidden')
+    latestCommentTarget.classList.toggle('hidden')
+    targetCommentsBtn.classList.toggle('border-toggle');
+
+    oldCommentsTarget.scrollTop = oldCommentsTarget.scrollHeight;
 }
 
-/**
- * Adds functionality for claiming librarian requests.
- *
- * @param {NodeList<HTMLElement>} elems Elements that, on click, initiates a claim
- */
 export function initRequestClaiming(elems) {
     for (const elem of elems) {
+        const mrid = elem.dataset.mrid;
+        const unassignElements = document.querySelectorAll(`.mr-unassign[data-mrid="${mrid}"]`);
+
+        if (unassignElements.length > 0) {
+            const mergeBtn = document.querySelector(`#mr-resolve-btn-${mrid}`);
+            mergeBtn.classList.add('hidden');
+        }
+
         elem.addEventListener('click', function() {
-            const mrid = elem.dataset.mrid
-            claim(mrid, elem)
-        })
+            claim(mrid, elem);
+        });
     }
 }
 
-/**
- * Sends a claim request to the server and updates the table on success.
- *
- * @param {Number} mrid Unique identifier for the request being claimed
- */
 async function claim(mrid) {
     await claimRequest(mrid)
         .then(result => result.json())
         .then(data => {
             if (data.status === 'ok') {
                 const reviewerHtml = `${data.reviewer}
-                    <span class="mr-unassign" data-mrid="${mrid}">&times;</span>`
-                updateRow(mrid, data.newStatus, reviewerHtml)
-
-                // Hide the row's merge link:
-                const mergeLink = document.querySelector(`#mr-resolve-link-${mrid}`)
-                if (!mergeLink.classList.contains('hidden')) {
-                    toggleMergeLink(mergeLink)
+                    <span class="mr-unassign" data-mrid="${mrid}">&times;</span>`;
+                const unassignElements = document.querySelectorAll(`.mr-unassign[data-mrid="${mrid}"]`);
+                //for hiding the button it is being unassigned
+                const mergeBtn = document.querySelector(`#mr-resolve-btn-${mrid}`);
+                if (unassignElements.length > 0) {
+                    mergeBtn.classList.add('hidden');
                 }
+
+                updateRow(mrid, data.newStatus, reviewerHtml, mergeBtn);
+                toggleMergeLink(mrid, mergeBtn);
             }
         })
 }
+
 
 /**
  * Updates status and reviewer of the designated request table row.
@@ -231,53 +222,51 @@ async function claim(mrid) {
  * @param {Number} mrid The row's unique identifier
  * @param {string} status Optional new value for the row's status cell
  * @param {string} reviewer Optional new value for the row's reviewer cell
+ * @param {Object} mergeLinkData Data from the resolve link to be passed into the "REVIEW" button toggle
  */
-function updateRow(mrid, status=null, reviewer=null) {
-    if (status) {
-        const statusCell = document.querySelector(`#status-cell-${mrid}`)
-        statusCell.textContent = status
-    }
+function updateRow(mrid, status=null, reviewer=null, btn) {
     if (reviewer) {
         const reviewerCell = document.querySelector(`#reviewer-cell-${mrid}`)
         reviewerCell.innerHTML = reviewer
 
-        initUnassignment(reviewerCell.querySelectorAll('.mr-unassign'))
+        initUnassignment(reviewerCell.querySelectorAll('.mr-unassign'), btn)
     }
 }
 
-export function initUnassignment(elems) {
+export function initUnassignment(elems, mergeLinkData) {
+
     for (const elem of elems) {
         elem.addEventListener('click', function() {
             const mrid = elem.dataset.mrid
-            unassign(mrid)
+            const btn = document.querySelector(`#mr-resolve-btn-${mrid}`)
+            unassign(mrid, btn)
         })
     }
 }
 
-async function unassign(mrid) {
-    await unassignRequest(mrid)
+async function unassign(mrid, btn) {
+    await unassignRequest(mrid, btn)
         .then(result => result.json())
         .then(data => {
             if (data.status === 'ok') {
-                updateRow(mrid, data.newStatus, ' ')
-
-                // Display the row's merge link:
-                const mergeLink = document.querySelector(`#mr-resolve-link-${mrid}`)
-                if (mergeLink.classList.contains('hidden')) {
-                    toggleMergeLink(mergeLink)
-                }
+                updateRow(mrid, data.newStatus, ' ', btn)
+                toggleMergeLink(mrid, btn)
             }
         })
+
 }
 
 /**
- * Toggles 'hidden' class for element with given ID.
+ * Toggles hidden class on review button
  *
- * @param {HTMLElement} mergeLink Reference to a merge link element
+ * @param {Number} mrid Unique identifier for the request being claimed
  */
-function toggleMergeLink(mergeLink) {
-    if (mergeLink) {
-        mergeLink.classList.toggle('hidden')
+function toggleMergeLink(mrid, btn) {
+
+    if (btn.classList.contains('hidden')){
+        btn.classList.remove('hidden');
+    } else {
+        btn.classList.add('hidden');
     }
 }
 

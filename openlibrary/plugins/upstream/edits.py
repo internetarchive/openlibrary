@@ -191,15 +191,5 @@ class community_edits_queue(delegate.page):
         return 'Unknown record'
 
 
-class ui_partials(delegate.page):
-    path = '/merges/partials'
-
-    def GET(self):
-        i = web.input(type=None, comment='')
-        if i.type == 'comment':
-            component = render_template('merge_queue/comment', comment_str=i.comment)
-            return delegate.RawText(component)
-
-
 def setup():
     pass
