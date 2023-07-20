@@ -1,3 +1,4 @@
+import pytest
 from typing import Final
 import web
 
@@ -47,54 +48,50 @@ IMPORT_ITEM_DATA = [
 ]
 
 
+@pytest.fixture(scope="module")
+def setup_item_db():
+    web.config.db_parameters = {'dbn': 'sqlite', 'db': ':memory:'}
+    db = get_db()
+    db.query(IMPORT_ITEM_DDL)
+    yield db
+    db.query('delete from import_item;')
+
+
+@pytest.fixture()
+def import_item_db(setup_item_db):
+    setup_item_db.multiple_insert('import_item', IMPORT_ITEM_DATA)
+    yield setup_item_db
+    setup_item_db.query('delete from import_item;')
+
+
 class TestImportItem:
-    @classmethod
-    def setup_class(cls):
-        web.config.db_parameters = {'dbn': 'sqlite', 'db': ':memory:'}
-        db = get_db()
-        db.query(IMPORT_ITEM_DDL)
-
-    @classmethod
-    def teardown_class(cls):
-        db = get_db()
-        db.query('delete from import_item;')
-
-    def setup_method(self):
-        self.db = get_db()
-        self.db.multiple_insert('import_item', IMPORT_ITEM_DATA)
-
-    def teardown_method(self):
-        self.db.query('delete from import_item;')
-
-    def test_delete(self):
-        assert len(list(self.db.select('import_item'))) == 3
+    def test_delete(self, import_item_db):
+        assert len(list(import_item_db.select('import_item'))) == 3
 
         ImportItem.delete_items(['unique_id_1'])
-        assert len(list(self.db.select('import_item'))) == 1
+        assert len(list(import_item_db.select('import_item'))) == 1
 
-    def test_delete_with_batch_id(self):
-        assert len(list(self.db.select('import_item'))) == 3
+    def test_delete_with_batch_id(self, import_item_db):
+        assert len(list(import_item_db.select('import_item'))) == 3
 
         ImportItem.delete_items(['unique_id_1'], batch_id=1)
-        assert len(list(self.db.select('import_item'))) == 2
+        assert len(list(import_item_db.select('import_item'))) == 2
 
         ImportItem.delete_items(['unique_id_1'], batch_id=2)
-        assert len(list(self.db.select('import_item'))) == 1
+        assert len(list(import_item_db.select('import_item'))) == 1
+
+
+@pytest.fixture(scope="module")
+def setup_batch_db():
+    web.config.db_parameters = {'dbn': 'sqlite', 'db': ':memory:'}
+    db = get_db()
+    db.query(IMPORT_BATCH_DDL)
+    yield db
+    db.query('delete from import_batch;')
 
 
 class TestBatchItem:
-    @classmethod
-    def setup_class(cls):
-        web.config.db_parameters = dict(dbn='sqlite', db=':memory:')
-        db = get_db()
-        db.query(IMPORT_BATCH_DDL)
-
-    @classmethod
-    def teardown_class(cls):
-        db = get_db()
-        db.query('delete from import_batch;')
-
-    def test_add_items_legacy(self):
+    def test_add_items_legacy(self, setup_batch_db):
         """This tests the legacy format of list[str] for items."""
         legacy_items = ["ocaid_1", "ocaid_2"]
         batch = Batch.new("test-legacy-batch")
