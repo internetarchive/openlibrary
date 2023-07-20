@@ -122,17 +122,17 @@ async function comment(mrid, comment) {
  * @param {string} comment The new comment
  */
 async function updateCommentsView(mrid, comment, username) {
-  const commentCell = document.querySelector(`#comment-cell-${mrid}`);
-  const hiddenCommentDiv = commentCell.querySelector('.comment-cell__old-comments-section');
-  const newestComment = commentCell.querySelector('.comment-cell__newest-comment') ;
+    const commentCell = document.querySelector(`#comment-cell-${mrid}`);
+    const hiddenCommentDiv = commentCell.querySelector('.comment-cell__old-comments-section');
+    const newestComment = commentCell.querySelector('.comment-cell__newest-comment') ;
 
-  newestComment.innerHTML = `${comment}`
+    newestComment.innerHTML = `${comment}`
 
-  const newComment = document.createElement('div')
-  newComment.innerHTML += `<div class="mr-comment__body"><span>@${username}</span> ${comment}</div>`
+    const newComment = document.createElement('div')
+    newComment.innerHTML += `<div class="mr-comment__body"><span>@${username}</span> ${comment}</div>`
 
-  hiddenCommentDiv.append(newComment);
-  hiddenCommentDiv.scrollTop = hiddenCommentDiv.scrollHeight;
+    hiddenCommentDiv.append(newComment);
+    hiddenCommentDiv.scrollTop = hiddenCommentDiv.scrollHeight;
 }
 
 /**
@@ -269,7 +269,7 @@ function toggleMergeLink(mrid, btn) {
 
     //const btn = document.querySelector(`#mr-resolve-btn-${mrid}`)
     console.log('What is the btn?', btn)
-    if(btn.classList.contains('hidden')){
+    if (btn.classList.contains('hidden')){
         //console.log('it does contain hidden')
         btn.classList.remove('hidden');
     } else {
