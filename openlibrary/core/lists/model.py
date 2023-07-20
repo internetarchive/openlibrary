@@ -14,6 +14,7 @@ from openlibrary.core import helpers as h
 from openlibrary.core import cache
 
 from openlibrary.plugins.worksearch.search import get_solr
+import contextlib
 
 logger = logging.getLogger("openlibrary.lists.model")
 
@@ -205,12 +206,10 @@ class ListMixin:
         """
         for e in editions:
             if "recent_changeset" not in e:
-                try:
+                with contextlib.suppress(IndexError):
                     e['recent_changeset'] = self._site.recentchanges(
                         {"key": e.key, "limit": 1}
                     )[0]
-                except IndexError:
-                    pass
 
     def _get_solr_query_for_subjects(self):
         terms = [seed.get_solr_query_term() for seed in self.get_seeds()]

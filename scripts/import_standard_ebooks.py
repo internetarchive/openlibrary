@@ -11,7 +11,7 @@ import feedparser
 from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 from openlibrary.config import load_config
-from infogami import config  # noqa: F401
+from infogami import config
 
 FEED_URL = 'https://standardebooks.org/opds/all'
 LAST_UPDATED_TIME = './standard_ebooks_last_updated.txt'
@@ -50,7 +50,7 @@ def map_data(entry) -> dict[str, Any]:
     }
 
     if image_uris:
-        import_record['cover'] = f'{BASE_SE_URL}{list(image_uris)[0]["href"]}'
+        import_record['cover'] = f'{BASE_SE_URL}{next(iter(image_uris))["href"]}'
 
     return import_record
 

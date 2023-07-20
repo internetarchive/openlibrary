@@ -26,13 +26,10 @@ class Client:
             return False
 
     def delete(self, key):
-        try:
-            del self.cache[key]
-        except KeyError:
-            pass
+        self.cache.pop(key, None)
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_memcache(request, monkeypatch):
     """This patches all the existing memcache connections to use mock memcache instance."""
     m = monkeypatch

@@ -18,11 +18,8 @@ Functions with names other than the these will not be called from the
 main harness. They can be utility functions.
 
 """
-import calendar
 import functools
 import logging
-import requests
-import tempfile
 
 import web
 
@@ -230,7 +227,7 @@ def _query_count(db, table, type, property, distinct=False):
     else:
         what = 'count(thing_id) as count'
     result = db.select(
-        table, what=what, where='key_id=$key_id', vars=dict(key_id=key_id)
+        table, what=what, where='key_id=$key_id', vars={"key_id": key_id}
     )
     return result[0].count
 

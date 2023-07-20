@@ -145,8 +145,8 @@ for f in to_upload:
         continue
 
     loc_file = item_id + '/' + f
-    for p, l, marc_data in iter_marc(data):
-        loc = '%s:%d:%d' % (loc_file, p, l)
+    for pos, length, marc_data in iter_marc(data):
+        loc = '%s:%d:%d' % (loc_file, pos, length)
         headers['x-archive-meta-source-record'] = 'marc:' + loc
         try:
             h1 = httplib.HTTPConnection('openlibrary.org')

@@ -137,7 +137,7 @@
       margin: 0 8px;
     }
 
-    li a, li button {
+    li a, li button, .login-links {
       padding: 10px 8px;
     }
 
@@ -154,11 +154,9 @@
 
     .login-links {
       display: flex;
-      flex-direction: column;
       border-bottom: none;
       justify-content: space-evenly;
-      gap: 8px;
-      padding: 10px 8px;
+      column-gap: 16px;
       &:hover {
         background-color: transparent;
       }
@@ -171,7 +169,6 @@
       align-items: center;
       border-radius: 6px;
       padding: 6px;
-      min-height: 38px;
       transition: .3s;
     }
 
@@ -263,10 +260,12 @@
   .mask-menu {
     position: fixed;
     top: 75px;
+    // stylelint-disable declaration-block-no-redundant-longhand-properties
     left: 0;
     right: 0;
     opacity: 0;
     bottom: 0;
+    // stylelint-enable declaration-block-no-redundant-longhand-properties
     background: linear-gradient(to bottom, transparent 0, @black);
     z-index: @z-index-level-1;
     visibility: hidden;
@@ -342,8 +341,8 @@
     -webkit-box-ordinal-group: 6;
     -ms-flex-order: 5;
     order: 5;
-    // Despite occurring later in the DOM, this header should be overlaid underneath the items above
-    // e.g. search and account dropdowns.
+    // Despite occurring later in the DOM, this header should be overlaid underneath the items
+    // above. E.g. search and account dropdowns.
     z-index: @z-index-level-1;
 
     li {

@@ -1,8 +1,8 @@
 ##
 ## Staging server config (wip)
 ## You probably want to run:
-## export COMPOSE_FILE="docker-compose.yml:docker-compose.staging.yml"
-## docker-compose up -d
+## export COMPOSE_FILE="compose.yaml:compose.staging.yaml"
+## docker compose up -d
 ##
 
 version: "3.8"

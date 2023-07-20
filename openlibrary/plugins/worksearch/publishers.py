@@ -8,9 +8,6 @@ import logging
 from . import subjects
 from . import search
 
-import urllib
-
-
 logger = logging.getLogger("openlibrary.worksearch")
 
 

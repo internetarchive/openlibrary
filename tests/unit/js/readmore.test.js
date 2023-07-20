@@ -1,5 +1,4 @@
 import { initClampers, resetReadMoreButtons } from '../../../openlibrary/plugins/openlibrary/js/readmore';
-import $ from 'jquery';
 import {clamperSample} from './html-test-data'
 
 describe('resetReadMoreButtons', () => {

@@ -18,9 +18,35 @@ fi
 
 # apt list --installed
 sudo apt-get update
-sudo apt-get install -y docker.io docker-compose
-docker --version        # 19.03.8
-docker-compose version  #  1.25.0
+# Remove any old versions and install newer versions of Docker Engine and Docker Compose.
+# See https://docs.docker.com/engine/install/ubuntu/ for any possible changes.
+sudo apt-get remove docker docker-engine docker.io containerd runc
+DOCKER_VERSION=5:20.10.7~3-0~ubuntu-focal
+sudo apt-get install \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release
+
+sudo mkdir -m 0755 -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+    $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+sudo apt-get update
+
+sudo apt-get install -y \
+    # *REQUIRED* on Internet Archive servers
+    apparmor \
+    containerd.io \
+    docker-ce=$DOCKER_VERSION \
+    docker-ce-cli=$DOCKER_VERSION \
+    docker-buildx-plugin \
+    docker-compose-plugin
+
+docker --version        # 20.10.7, build f0df350
+docker compose version  # v2.16.0
 sudo systemctl start docker
 sudo systemctl enable docker
 
@@ -52,7 +78,7 @@ sudo find /opt/olsystem -type d -exec chmod g+s {} \;
 
 # Setup docker ferm rules for internal-only servers
 # Note: This is a bit of an anti-pattern ; we should be using docker, not ferm to manage
-# container network access. That would let us use expose/ports from our docker-compose
+# container network access. That would let us use expose/ports from our docker compose file
 # to determine what's public. But we'd need a cross-cluster network managed by swarm to
 # do that.
 PUBLIC_FACING=${PUBLIC_FACING:-'false'}

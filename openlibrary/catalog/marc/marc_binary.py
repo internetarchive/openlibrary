@@ -26,21 +26,20 @@ def handle_wrapped_lines(_iter):
     """
     cur_lines = []
     cur_tag = None
-    maybe_wrap = False
-    for t, l in _iter:
-        if len(l) > 500 and l.endswith(b'++\x1e'):
-            assert not cur_tag or cur_tag == t
-            cur_tag = t
-            cur_lines.append(l)
+    for tag, line in _iter:
+        if len(line) > 500 and line.endswith(b'++\x1e'):
+            assert not cur_tag or cur_tag == tag
+            cur_tag = tag
+            cur_lines.append(line)
             continue
         if cur_lines:
             yield cur_tag, cur_lines[0][:-3] + b''.join(
                 i[2:-3] for i in cur_lines[1:]
-            ) + l[2:]
+            ) + line[2:]
             cur_tag = None
             cur_lines = []
             continue
-        yield t, l
+        yield tag, line
     assert not cur_lines
 
 
@@ -181,8 +180,7 @@ class MarcBinary(MarcBase):
         except IndexError:
             pass
         tag_line = data[offset + 1 : offset + length + 1]
-        if line[0:2] != '00':
-            # marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:636441290:1277
-            if tag_line[1:8] == b'{llig}\x1f':
-                tag_line = tag_line[0] + '\uFE20' + tag_line[7:]
+        # marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:636441290:1277
+        if line[0:2] != '00' and tag_line[1:8] == b'{llig}\x1f':
+            tag_line = tag_line[0] + '\uFE20' + tag_line[7:]
         return tag_line

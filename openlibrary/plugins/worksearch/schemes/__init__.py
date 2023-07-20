@@ -1,5 +1,6 @@
 import logging
-from typing import Callable, Optional, Union
+from typing import Optional, Union
+from collections.abc import Callable
 
 import luqum.tree
 from luqum.exceptions import ParseError

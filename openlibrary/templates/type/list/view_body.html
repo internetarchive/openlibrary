@@ -30,6 +30,7 @@ $add_metatag(property="og:description", content=meta_description)
 $add_metatag(property="og:image", content=request.canonical_url + "/preview.png")
 
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
+$ sort = query_param('sort', None)
 
 $jsdef render_seed_count(seed_count):
     $ungettext("%(count)d item", "%(count)d items", seed_count, count=seed_count)
@@ -51,112 +52,10 @@ $if not is_owner:
         </p>
     </div>
 
-<script type="text/javascript">
-<!--
-window.q.push(function(){
-    \$('ul#listResults li:last').css('border-bottom','1px dotted #ebebeb');
-});
-
-function remove_seed(list_key, seed, success) {
-    if (seed[0] == "/") {
-        seed = {"key": seed}
-    }
-
-    \$.ajax({
-        type: "POST",
-        url: list_key + "/seeds.json",
-        contentType: "application/json",
-        data: JSON.stringify({
-            "remove": [seed]
-        }),
-        dataType: "json",
-
-        beforeSend: function(xhr) {
-            xhr.setRequestHeader("Content-Type", "application/json");
-            xhr.setRequestHeader("Accept", "application/json");
-        },
-        success: success
-    });
-}
-
-function get_seed_count() {
-    return \$("ul#listResults").children().length;
-}
-
-window.q.push(function(){
-    \$(".listDelete a").on('click', function() {
-        if (get_seed_count() > 1) {
-            \$("#remove-seed-dialog")
-                .data("seed-key", \$(this).closest("[data-seed-key]").data('seed-key'))
-                .dialog("open");
-            \$("#remove-seed-dialog").removeClass('hidden');
-        }
-        else {
-            \$("#delete-list-dialog").dialog("open");
-            \$("#delete-list-dialog").removeClass('hidden');
-        }
-
-    });
-
-    \$("#remove-seed-dialog").dialog({
-        autoOpen: false,
-        width: 400,
-        modal: true,
-        resizable: false,
-        buttons: {
-            "$:_('Yes, I\'m sure')": function() {
-                var list_key = $:json_encode(list.key);
-                var seed_key = \$(this).data("seed-key");
-
-                var _this = this;
-
-                remove_seed(list_key, seed_key, function() {
-                    \$(`[data-seed-key="\${seed_key}"]`).remove();
-                    // update seed count
-                    \$("#list-items-count").load(location.href + " #list-items-count");
-
-                    // TODO: update edition count
-
-                    \$(_this).dialog("close");
-                    \$("#remove-seed-dialog").addClass('hidden');
-                });
-            },
-            "$_('No, cancel')": function() {
-                \$(this).dialog("close");
-                \$("#remove-seed-dialog").addClass('hidden');
-            }
-        }
-    });
-
-    \$("#delete-list-dialog").dialog({
-        autoOpen: false,
-        width: 400,
-        modal: true,
-        resizable: false,
-        buttons: {
-            "$:_('Yes, I\'m sure')": function() {
-                var list_key = $:json_encode(list.key);
-                var _this = this;
-
-                \$.post(list_key + "/delete.json", function() {
-                    \$(_this).dialog("close");
-                    window.location.reload();
-                });
-            },
-            "$_('No, cancel')": function() {
-                \$(this).dialog("close");
-            }
-        }
-    });
-});
-
-//-->
-</script>
-
 $def remove_item_link():
     $if ctx.user and ctx.user.key == list.get_owner().key:
         <span class="listDelete sansserif smaller">
-            <a href="javascript:;"><span></span>$_('Remove this item?')</a>
+            <a href="javascript:;" data-confirm-text="$:_('Yes, I\'m sure')" data-cancel-text="$_('No, cancel')"><span></span>$_('Remove this item?')</a>
         </span>
 
 $def seed_meta_line(seed):
@@ -165,15 +64,17 @@ $def seed_meta_line(seed):
         <span class="type small">$seed.type</span>
     </span>
 
-    $if seed.last_update:
+    $if sort == 'last_modified' and seed.last_update:
         <span class="time">
-            $:_('Last updated <span>%(date)s</span>', date=datestr(seed.last_update))
+            $:_('Last modified <span>%(date)s</span>', date=datestr(seed.last_update))
         </span>
 
 $def seed_attrs(seed):
     data-seed-key="$seed.key"
+    data-list-key="$list.key"
 
 <div id="contentBody">
+    $:render_template("search/sort_options.html", selected_sort=sort, default_sort='index', search_scheme="lists_seeds")
     <div id="remove-seed-dialog" class="hidden" title="$_('Remove seed')">$_('Are you sure you want to remove this item from the list?')</div>
     <div id="delete-list-dialog" class="hidden" title="$_('Remove Seed')">
         $_('You are about to remove the last item in the list. That will delete the whole list. Are you sure you want to continue?')
@@ -196,7 +97,7 @@ $def seed_attrs(seed):
 
         <ul id="listResults" class="list-books clearfix">
             $ component_times['get_seeds'] = time()
-            $ seeds = list.get_seeds(sort=True, resolve_redirects=True)[page*page_size:page*page_size+page_size]
+            $ seeds = list.get_seeds(sort=(sort == 'last_modified'), resolve_redirects=True)[page*page_size:page*page_size+page_size]
             $ component_times['get_seeds'] = time() - component_times['get_seeds']
 
         $ solr_works = get_solr_works(s.key for s in seeds if s.type == 'work')

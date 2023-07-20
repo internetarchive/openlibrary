@@ -1,14 +1,14 @@
 """Handlers for borrowing books"""
 
 import copy
-import datetime
-import time
 import hashlib
 import hmac
-import re
-import requests
 import json
 import logging
+import re
+import requests
+import time
+from datetime import datetime
 
 import web
 
@@ -112,7 +112,12 @@ class borrow(delegate.page):
         """Called when the user wants to borrow the edition"""
 
         i = web.input(
-            action='borrow', format=None, ol_host=None, _autoReadAloud=None, q=""
+            action='borrow',
+            format=None,
+            ol_host=None,
+            _autoReadAloud=None,
+            q="",
+            redirect="",
         )
 
         ol_host = i.ol_host or 'openlibrary.org'
@@ -137,7 +142,7 @@ class borrow(delegate.page):
             raise web.seeother(archive_url)
 
         error_redirect = archive_url
-        edition_redirect = urllib.parse.quote(edition.url())
+        edition_redirect = urllib.parse.quote(i.redirect or edition.url())
         user = accounts.get_current_user()
 
         if user:
@@ -146,8 +151,8 @@ class borrow(delegate.page):
             s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
         if not user or not ia_itemname or not s3_keys:
             web.setcookie(config.login_cookie_name, "", expires=-1)
-            redirect_url = "/account/login?redirect={}/borrow?action={}".format(
-                edition_redirect, action
+            redirect_url = (
+                f"/account/login?redirect={edition_redirect}/borrow?action={action}"
             )
             if i._autoReadAloud is not None:
                 redirect_url += '&_autoReadAloud=' + i._autoReadAloud
@@ -158,7 +163,7 @@ class borrow(delegate.page):
             stats.increment('ol.loans.return')
             edition.update_loan_status()
             user.update_loan_status()
-            raise web.seeother('/account/loans')
+            raise web.seeother(edition_redirect)
         elif action == 'join-waitinglist':
             lending.s3_loan_api(edition.ocaid, s3_keys, action='join_waitlist')
             stats.increment('ol.loans.joinWaitlist')
@@ -397,14 +402,12 @@ def is_loan_available(edition, type):
 @public
 def datetime_from_isoformat(expiry):
     """Returns datetime object, or None"""
-    if expiry is None:
-        return None
-    return parse_datetime(expiry)
+    return None if expiry is None else parse_datetime(expiry)
 
 
 @public
 def datetime_from_utc_timestamp(seconds):
-    return datetime.datetime.utcfromtimestamp(seconds)
+    return datetime.utcfromtimestamp(seconds)
 
 
 @public
@@ -575,11 +578,8 @@ def is_loaned_out(resource_id):
         return lending.is_loaned_out_on_ia(identifier)
 
     # Find the loan and check if it has expired
-    if loan := web.ctx.site.store.get(loan_key):
-        if datetime_from_isoformat(loan['expiry']) < datetime.datetime.utcnow():
-            return True
-
-    return False
+    loan = web.ctx.site.store.get(loan_key)
+    return bool(loan and datetime_from_isoformat(loan['expiry']) < datetime.utcnow())
 
 
 def is_loaned_out_from_status(status):
@@ -610,7 +610,7 @@ def _update_loan_status(loan_key, loan, bss_status=None):
     if loan['resource_type'] == 'bookreader':
         # delete loan record if has expired
         # $$$ consolidate logic for checking expiry.  keep loan record for some time after it expires.
-        if loan['expiry'] and loan['expiry'] < datetime.datetime.utcnow().isoformat():
+        if loan['expiry'] and loan['expiry'] < datetime.utcnow().isoformat():
             logger.info("%s: loan expired. deleting...", loan_key)
             web.ctx.site.store.delete(loan_key)
         return
@@ -801,7 +801,7 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
                     'books available to borrow</a>.' % resolution_dict
                 )
 
-            elif loan['expiry'] < datetime.datetime.utcnow().isoformat():
+            elif loan['expiry'] < datetime.utcnow().isoformat():
                 # User has the loan, but it's expired
                 error_message = 'Your loan has expired'
                 resolution_message = (

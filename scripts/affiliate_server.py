@@ -121,7 +121,7 @@ def is_book_needed(book: dict, edition: dict) -> list[str]:
         if field_value := book.get(book_field) and not edition.get(edition_field):
             needed_book_fields.append(book_field)
 
-    if needed_book_fields == ["authors"]:  # If the only field needed is authors
+    if needed_book_fields == ["authors"]:  # noqa: SIM102
         if work_key := edition.get("works") and edition["work"][0].get("key"):
             work = web.ctx.site.get(work_key)
             if work.get("authors"):
@@ -200,15 +200,15 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
         logger.debug("DB parameters missing from affiliate-server infobase")
         return
 
-    if books := [clean_amazon_metadata_for_load(product) for product in products]:
-        if pending_books := get_pending_books(books):
-            stats.increment(
-                "ol.affiliate.amazon.total_items_batched_for_import",
-                n=len(pending_books),
-            )
-            get_current_amazon_batch().add_items(
-                [{'ia_id': b['source_records'][0], 'data': b} for b in pending_books]
-            )
+    books = [clean_amazon_metadata_for_load(product) for product in products]
+    if books and (pending_books := get_pending_books(books)):
+        stats.increment(
+            "ol.affiliate.amazon.total_items_batched_for_import",
+            n=len(pending_books),
+        )
+        get_current_amazon_batch().add_items(
+            [{'ia_id': b['source_records'][0], 'data': b} for b in pending_books]
+        )
 
 
 def seconds_remaining(start_time: float) -> float:

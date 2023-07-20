@@ -357,7 +357,7 @@ class MockStore(dict):
         return [(doc["_key"], doc) for doc in self._query(**kw)]
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_site(request):
     """mock_site funcarg.
 
@@ -367,7 +367,7 @@ def mock_site(request):
     def read_types():
         for path in glob.glob("openlibrary/plugins/openlibrary/types/*.type"):
             text = open(path).read()
-            doc = eval(text, dict(true=True, false=False))
+            doc = eval(text, {'true': True, 'false': False})
             if isinstance(doc, list):
                 yield from doc
             else:

@@ -502,12 +502,11 @@ class MigrationMiddleware(ConnectionMiddleware):
                 doc['authors'] = [
                     a for a in doc['authors'] if 'author' in a and 'key' in a['author']
                 ]
-        elif type == "/type/edition":
+        elif type == "/type/edition" and 'title_prefix' in doc:
             # get rid of title_prefix.
-            if 'title_prefix' in doc:
-                title = doc['title_prefix'].strip() + ' ' + doc.get('title', '')
-                doc['title'] = title.strip()
-                del doc['title_prefix']
+            title = doc['title_prefix'].strip() + ' ' + doc.get('title', '')
+            doc['title'] = title.strip()
+            del doc['title_prefix']
 
         return doc
 

@@ -103,10 +103,9 @@ def normalize_ddc(ddc: str) -> list[str]:
 
             # Discard catalog edition number
             # At least one classification number available
-            if len(results) > 0:
-                # Check if number is without decimal component
-                if re.search(r'(^0?\d{1,2}$)', parts['number']):
-                    continue
+            # And number is without decimal component
+            if len(results) and re.search(r'(^0?\d{1,2}$)', parts['number']):
+                continue
 
         # Handle [Fic] or [E]
         elif parts['fic']:

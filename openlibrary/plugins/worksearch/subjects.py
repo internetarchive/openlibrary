@@ -64,6 +64,7 @@ class subjects(delegate.page):
             key,
             details=True,
             filters={'public_scan_b': 'false', 'lending_edition_s': '*'},
+            sort=web.input(sort='readinglog').sort,
         )
 
         delegate.context.setdefault('cssfile', 'subject')

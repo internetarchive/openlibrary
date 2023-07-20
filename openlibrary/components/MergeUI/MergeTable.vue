@@ -146,7 +146,7 @@ export default {
             );
             const responses = promises.map(p => p.value || p);
             return _.fromPairs(
-                this.records.map((work, i) => [work.key, responses[i].counts])
+                this.records.map((work, i) => [work.key, responses[i]])
             );
         },
 
@@ -163,7 +163,7 @@ export default {
         },
 
         async merge() {
-            if (!this.master_key || !this.records || !this.editions || !this.lists || !this.bookshelves)
+            if (!this.master_key || !this.records || !this.editions)
                 return undefined;
 
             const master = this.records.find(r => r.key === this.master_key);
@@ -181,7 +181,7 @@ export default {
 
             const extras = {
                 edition_count: _.sum(records.map(r => this.editions[r.key].size)),
-                list_count: _.sum(records.map(r => this.lists[r.key].size))
+                list_count: (this.lists) ? _.sum(records.map(r => this.lists[r.key].size)) : null
             };
 
             const unmergeable_works = this.records

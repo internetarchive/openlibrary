@@ -11,13 +11,13 @@ git pull origin master
 cd /opt/booklending_utils
 git pull origin master
 
-export COMPOSE_FILE="docker-compose.yml:docker-compose.infogami-local.yml:docker-compose.production.yml"
+export COMPOSE_FILE="compose.yaml:compose.infogami-local.yaml:compose.production.yaml"
 # SERVICE can be: web, covers, infobase, home
 SERVICE=${SERVICE:-web}
 echo "Starting $SERVICE"
 cd /opt/openlibrary
-docker-compose build --pull $SERVICE
-docker-compose down
-# docker-compose up -d --no-deps memcached
-HOSTNAME=$HOSTNAME docker-compose up -d --no-deps $SERVICE
-# docker-compose logs -f --tail=10 $SERVICE
+docker compose build --pull $SERVICE
+docker compose down
+# docker compose up -d --no-deps memcached
+HOSTNAME=$HOSTNAME docker compose up -d --no-deps $SERVICE
+# docker compose logs -f --tail=10 $SERVICE

@@ -5,7 +5,6 @@ from typing import Literal
 import web
 import datetime
 import logging
-import random
 import time
 import uuid
 
@@ -544,13 +543,13 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
         loan = get_loan(identifier)
 
     # The data of the loan without the user info.
-    loan_data = loan and dict(
-        uuid=loan['uuid'],
-        loaned_at=loan['loaned_at'],
-        resource_type=loan['resource_type'],
-        ocaid=loan['ocaid'],
-        book=loan['book'],
-    )
+    loan_data = loan and {
+        'uuid': loan['uuid'],
+        'loaned_at': loan['loaned_at'],
+        'resource_type': loan['resource_type'],
+        'ocaid': loan['ocaid'],
+        'book': loan['book'],
+    }
 
     responses = get_availability_of_ocaid(identifier)
     response = responses[identifier] if responses else {}
@@ -760,8 +759,7 @@ class Loan(dict):
 
 def resolve_identifier(identifier):
     """Returns the OL book key for given IA identifier."""
-    keys = web.ctx.site.things(dict(type='/type/edition', ocaid=identifier))
-    if keys:
+    if keys := web.ctx.site.things({'type': '/type/edition', 'ocaid': identifier}):
         return keys[0]
     else:
         return "/books/ia:" + identifier
@@ -865,7 +863,7 @@ class IA_Lending_API:
     """Archive.org waiting list API."""
 
     def get_loan(self, identifier, userid=None):
-        params = dict(method="loan.query", identifier=identifier)
+        params = {'method': "loan.query", 'identifier': identifier}
         if userid:
             params['userid'] = userid
         if loans := self._post(**params).get('result', []):

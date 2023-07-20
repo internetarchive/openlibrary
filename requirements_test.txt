@@ -4,9 +4,10 @@
 
 -r requirements.txt
 debugpy>=1.6.4
-mypy==1.1.1
+mypy==1.4.1
 pymemcache==4.0.0
-pytest==7.2.2
-pytest-asyncio==0.20.3
-ruff==0.0.260
+pytest==7.4.0
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+ruff==0.0.277
 safety==2.3.5

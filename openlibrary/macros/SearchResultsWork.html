@@ -14,13 +14,20 @@ $code:
     selected_ed = doc.get('editions')[0]
 
   book_url = doc.url() if doc_type.startswith('infogami_') else doc.key
-  book_provider = get_book_provider(doc)
   if doc_type == 'solr_edition':
     work_edition_url = book_url + '?edition=' + urlquote('key:' + selected_ed.key)
-  elif book_provider and doc_type.endswith('_work'):
-    work_edition_url = book_url + '?edition=' + urlquote(book_provider.get_best_identifier_slug(doc))
   else:
-    work_edition_url = book_url
+    book_provider = get_book_provider(doc)
+    if book_provider and doc_type.endswith('_work'):
+      work_edition_url = book_url + '?edition=' + urlquote(book_provider.get_best_identifier_slug(doc))
+    else:
+      work_edition_url = book_url
+
+  work_edition_all_url = work_edition_url
+  if '?' in work_edition_url:
+    work_edition_all_url += '&mode=all'
+  else:
+    work_edition_all_url += '?mode=all'
 
   edition_work = None
   if doc_type == 'infogami_edition' and 'works' in doc:
@@ -79,7 +86,7 @@ $code:
             $_('First published in %(year)s', year=doc.first_publish_year)
           </span>
         $if doc.get('edition_count'):
-          <a href="$work_edition_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count)</a>
+          <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count)</a>
           $if doc.get('languages'):
             <span class="languages">
               $:ungettext('in <a class="hoverlink" title="%(langs)s">%(count)d language</a>', 'in <a class="hoverlink" title="%(langs)s">%(count)d languages</a>', len(doc.languages), count=len(doc.languages), langs=commify_list([get_language_name('/languages/' + lang) for lang in doc.languages]))

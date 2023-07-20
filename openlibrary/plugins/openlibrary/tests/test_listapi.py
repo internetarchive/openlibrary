@@ -1,5 +1,4 @@
 # from py.test import config
-import web
 import json
 
 import cookielib
@@ -36,7 +35,7 @@ class ListAPI:
         return self.opener.open(req)
 
     def login(self):
-        data = dict(username=self.username, password=self.password)
+        data = {'username': self.username, 'password': self.password}
         self.urlopen("/account/login", data=urllib.parse.urlencode(data), method="POST")
         print(self.cookiejar)
 
@@ -81,7 +80,8 @@ def test_create(config):
         "seeds": ["subject:cheese"],
     }
     result = api.create_list(data)
-    assert "key" in result and result['revision'] == 1
+    assert "key" in result
+    assert result['revision'] == 1
     list_key = result['key']
 
     # test get

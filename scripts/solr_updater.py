@@ -6,19 +6,22 @@ Changes:
 2013-02-25: First version
 2018-02-11: Use newer config method
 """
-from typing import Union
-from collections.abc import Iterator
-import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
-
-import logging
-import json
+import asyncio
 import datetime
-import time
-import web
-import sys
+import json
+import logging
 import re
 import socket
+import sys
 import urllib
+
+from typing import Union
+from collections.abc import Iterator
+
+import _init_path  # Imported for its side effect of setting PYTHONPATH
+
+import aiofiles
+import web
 
 from openlibrary.solr import update_work
 from openlibrary.config import load_config
@@ -302,14 +305,14 @@ async def main(
         if logfile.tell() != offset:
             offset = logfile.tell()
             logger.info("saving offset %s", offset)
-            with open(state_file, "w") as f:
-                f.write(offset)
+            async with aiofiles.open(state_file, "w") as f:
+                await f.write(offset)
 
         # don't sleep after committing some records.
         # While the commit was on, some more edits might have happened.
         if count == 0:
             logger.debug("No more log records available, sleeping...")
-            time.sleep(5)
+            await asyncio.sleep(5)
 
 
 if __name__ == "__main__":

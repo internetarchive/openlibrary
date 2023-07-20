@@ -13,8 +13,6 @@ from openlibrary.plugins.upstream.utils import get_language_name
 from . import subjects
 from . import search
 
-import urllib
-
 
 logger = logging.getLogger("openlibrary.worksearch")
 

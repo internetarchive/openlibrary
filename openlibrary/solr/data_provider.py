@@ -129,7 +129,7 @@ class DataProvider:
     """
 
     def __init__(self) -> None:
-        self.ia_cache: dict[str, Optional[dict]] = dict()
+        self.ia_cache: dict[str, Optional[dict]] = {}
 
     @staticmethod
     async def _get_lite_metadata(ocaids: list[str], _recur_depth=0, _max_recur_depth=3):
@@ -360,7 +360,9 @@ class ExternalDataProvider(DataProvider):
         return resp['entries']
 
     async def get_document(self, key: str):
-        return requests.get(f"http://{self.ol_host}{key}.json").json()
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"http://{self.ol_host}{key}.json")
+            return response.json()
 
 
 class BetterDataProvider(LegacyDataProvider):
@@ -396,7 +398,7 @@ class BetterDataProvider(LegacyDataProvider):
             infogami._setup()
             delegate.fakeload()
 
-            from openlibrary.solr.process_stats import get_db
+            from openlibrary.core.db import get_db
 
             self.db: DB = get_db()
         else:
@@ -458,9 +460,8 @@ class BetterDataProvider(LegacyDataProvider):
     async def _preload_metadata_of_editions(self):
         identifiers = []
         for doc in self.cache.values():
-            if doc and doc['type']['key'] == '/type/edition':
-                if doc.get('ocaid'):
-                    identifiers.append(doc['ocaid'])
+            if doc and doc['type']['key'] == '/type/edition' and doc.get('ocaid'):
+                identifiers.append(doc['ocaid'])
                 # source_records = doc.get("source_records", [])
                 # identifiers.extend(r[len("ia:"):] for r in source_records if r.startswith("ia:"))
         await self.preload_metadata(identifiers)
@@ -532,7 +533,7 @@ class BetterDataProvider(LegacyDataProvider):
             + f"   AND edition_ref.key_id=({key_query})"
             + "   AND work.key in $keys"
         )
-        result = self.db.query(q, vars=dict(keys=work_keys))
+        result = self.db.query(q, vars={"keys": work_keys})
         for row in result:
             self.edition_keys_of_works_cache.setdefault(row.work_key, []).append(
                 row.edition_key

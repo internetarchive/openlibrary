@@ -20,12 +20,13 @@ describe('syncReadingLogDropdownRemoveWithPrimaryButton', () => {
         // Setup
         document.body.innerHTML = readingLogDropperForm
         const dropper = document.querySelector('#dropper');
+        const readingLogForm = document.querySelector('.readingLog')
 
         // Add "remove" to the action to simulate a book on the shelf
         document.querySelector('[name=action]').value = 'remove'
 
         // Test
-        syncReadingLogDropdownRemoveWithPrimaryButton(dropper);
+        syncReadingLogDropdownRemoveWithPrimaryButton(dropper, readingLogForm);
 
         // Verify
         const removalButton = dropper.querySelector('#remove-from-list button');
@@ -39,12 +40,13 @@ describe('syncReadingLogDropdownRemoveWithPrimaryButton', () => {
         // Setup
         document.body.innerHTML = readingLogDropperForm
         const dropper = document.querySelector('#dropper');
+        const readingLogForm = document.querySelector('.readingLog')
 
         // Add "add" to the action to simulate a book off the shelf
         document.querySelector('[name=action]').value = 'add'
 
         // Test
-        syncReadingLogDropdownRemoveWithPrimaryButton(dropper);
+        syncReadingLogDropdownRemoveWithPrimaryButton(dropper, readingLogForm);
 
         // Verify
         const removalButton = dropper.querySelector('#remove-from-list button');
@@ -58,12 +60,13 @@ describe('syncReadingLogDropdownRemoveWithPrimaryButton', () => {
         // Setup
         document.body.innerHTML = readingLogDropperForm
         const dropper = document.querySelector('#dropper');
+        const readingLogForm = document.querySelector('.readingLog')
 
         // Sync the shelf for removal.
         document.querySelector('[name=bookshelf_id]').value = '2'
 
         // Test
-        syncReadingLogDropdownRemoveWithPrimaryButton(dropper);
+        syncReadingLogDropdownRemoveWithPrimaryButton(dropper, readingLogForm);
 
         // Verify
         const removalForm = dropper.querySelector('#remove-from-list')

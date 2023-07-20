@@ -16,16 +16,19 @@ def setup_db():
     """These tests have to run as the openlibrary user."""
     system('dropdb coverstore_test')
     system('createdb coverstore_test')
-    config.db_parameters = dict(
-        dbn='postgres', db='coverstore_test', user='openlibrary', pw=''
-    )
+    config.db_parameters = {
+        'dbn': 'postgres',
+        'db': 'coverstore_test',
+        'user': 'openlibrary',
+        'pw': '',
+    }
     db_schema = schema.get_schema('postgres')
     db = web.database(**config.db_parameters)
     db.query(db_schema)
     db.insert('category', name='b')
 
 
-@pytest.fixture
+@pytest.fixture()
 def image_dir(tmpdir):
     tmpdir.mkdir('localdisk')
     tmpdir.mkdir('items')

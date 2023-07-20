@@ -12,6 +12,20 @@
     font-size: 11px;
   }
 }
+
+.desktop-only {
+  display: none !important;
+}
+
+@media only screen and (min-width: @width-breakpoint-desktop) {
+  .desktop-only {
+    display: block !important;
+  }
+  .mobile-only {
+    display: none !important;
+  }
+}
+
 #offline-info {
   text-align: center;
   padding: 10px 5px;
@@ -38,9 +52,13 @@
 }
 
 .read-more-button, .read-less-button {
-  color: @link-blue;
   cursor: pointer;
+  color: @link-blue;
 }
+.read-more-button::after, .read-less-button::after {
+  content: attr(data-after);
+}
+
 a.hoverlink {
   text-decoration: underline;
   text-decoration-style: dotted;

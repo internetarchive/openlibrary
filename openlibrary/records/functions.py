@@ -137,7 +137,7 @@ def find_matches_by_identifiers(identifiers):
             q[i] = identifiers[i]
             matches_any.update(web.ctx.site.things(q))
     matches_any = list(matches_any)
-    return dict(all=matches_all, any=matches_any)
+    return {"all": matches_all, "any": matches_any}
 
 
 def find_matches_by_title_and_publishers(doc):
@@ -166,7 +166,7 @@ def massage_search_results(things, input_query=None):
         matches = things_to_matches(things)
     else:
         doc = build_create_input(input_query)
-        matches = [dict(edition=None, work=None)]
+        matches = [{"edition": None, "work": None}]
     return {'doc': doc, 'matches': matches}
 
 
@@ -276,7 +276,7 @@ def things_to_matches(things):
         if key.startswith("/works"):
             work = key
             edition = None
-        matches.append(dict(edition=edition, work=work))
+        matches.append({"edition": edition, "work": work})
     return matches
 
 
@@ -349,22 +349,20 @@ def edition_doc_to_things(doc):
 
 def work_doc_to_things(doc):
     new_things = []
-    if 'authors' in doc:
-        if all(
-            isinstance(x, dict) for x in doc['authors']
-        ):  # Ugly hack to prevent Things from being processed
-            authors = doc['authors']
-            author_entries = []
-            for i in authors:
-                i['type'] = '/type/author'
-                new_author = doc_to_things(i)
-                new_things.extend(new_author)
-                a = {
-                    'type': '/type/author_role',
-                    'author': new_author[0]['key'],
-                }  # TODO : Check this with Anandb
-                author_entries.append(a)
-            doc['authors'] = author_entries
+    # Ugly hack to prevent Things from being processed
+    if 'authors' in doc and all(isinstance(x, dict) for x in doc['authors']):
+        authors = doc['authors']
+        author_entries = []
+        for i in authors:
+            i['type'] = '/type/author'
+            new_author = doc_to_things(i)
+            new_things.extend(new_author)
+            a = {
+                'type': '/type/author_role',
+                'author': new_author[0]['key'],
+            }  # TODO : Check this with Anandb
+            author_entries.append(a)
+        doc['authors'] = author_entries
     return new_things
 
 

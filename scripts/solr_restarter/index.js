@@ -1,8 +1,8 @@
 // @ts-check
 /**
  * Util script to restart solr. This file should probably be using something built
- * into docker-compose, but that looks like it's not quite available
- * for docker-compose? It might be docker swarm only? It's unclear.
+ * into docker compose, but that looks like it's not quite available
+ * for docker compose? It might be docker swarm only? It's unclear.
  *
  * This script is necessary to prevent solr from going occasionally going down
  * in-explicably. Well, it doesn't prevent it, but it force it to restart after ~3min

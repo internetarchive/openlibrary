@@ -16,7 +16,7 @@ from infogami.utils import delegate, stats
 from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
 from openlibrary.core.lending import add_availability
-from openlibrary.core.models import Edition  # noqa: E402
+from openlibrary.core.models import Edition
 from openlibrary.plugins.inside.code import fulltext_search
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import (
@@ -138,7 +138,7 @@ def run_solr_query(
     offset=None,
     fields: Union[str, list[str]] | None = None,
     facet: Union[bool, Iterable[str]] = True,
-    allowed_filter_params: set[str] = None,
+    allowed_filter_params: set[str] | None = None,
     extra_params: Optional[list[tuple[str, Any]]] = None,
 ):
     """
@@ -783,8 +783,14 @@ class search_json(delegate.page):
 
 
 def setup():
-    from openlibrary.plugins.worksearch import subjects, languages, publishers
+    from openlibrary.plugins.worksearch import (
+        autocomplete,
+        subjects,
+        languages,
+        publishers,
+    )
 
+    autocomplete.setup()
     subjects.setup()
     publishers.setup()
     languages.setup()

@@ -210,6 +210,7 @@ class Bookshelves(db.CommonExtras):
         limit: int = 100,
         page: int = 1,  # Not zero-based counting!
         sort: Literal['created asc', 'created desc'] = 'created desc',
+        checkin_year: int | None = None,
         q: str = "",
     ) -> Any:  # Circular imports prevent type hinting LoggedBooksData
         """
@@ -228,6 +229,17 @@ class Bookshelves(db.CommonExtras):
         from openlibrary.core.models import LoggedBooksData
         from openlibrary.plugins.worksearch.code import run_solr_query
         from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+
+        shelf_totals = cls.count_total_books_logged_by_user_per_shelf(username)
+        oldb = db.get_db()
+        page = int(page or 1)
+        query_params: dict[str, str | int | None] = {
+            'username': username,
+            'limit': limit,
+            'offset': limit * (page - 1),
+            'bookshelf_id': bookshelf_id,
+            'checkin_year': checkin_year,
+        }
 
         @dataclass
         class ReadingLogItem:
@@ -295,7 +307,7 @@ class Bookshelves(db.CommonExtras):
             return solr_docs
 
         def get_filtered_reading_log_books(
-            q: str, query_params: dict[str, str | int], filter_book_limit: int
+            q: str, query_params: dict[str, str | int | None], filter_book_limit: int
         ) -> LoggedBooksData:
             """
             Filter reading log books based an a query and return LoggedBooksData.
@@ -352,8 +364,9 @@ class Bookshelves(db.CommonExtras):
             )
 
         def get_sorted_reading_log_books(
-            query_params: dict[str, str | int],
+            query_params: dict[str, str | int | None],
             sort: Literal['created asc', 'created desc'],
+            checkin_year: int | None,
         ):
             """
             Get a page of sorted books from the reading log. This does not work with
@@ -364,26 +377,30 @@ class Bookshelves(db.CommonExtras):
             Solr for more complete book information, and then put the logged info into
             the Solr response.
             """
-            if sort == 'created desc':
-                query = (
-                    "SELECT work_id, created, edition_id from bookshelves_books WHERE "
-                    "bookshelf_id=$bookshelf_id AND username=$username "
-                    "ORDER BY created DESC "
-                    "LIMIT $limit OFFSET $offset"
-                )
+            if checkin_year:
+                query = """
+                SELECT b.work_id, b.created, b.edition_id
+                FROM bookshelves_books b
+                INNER JOIN bookshelves_events e
+                ON b.work_id = e.work_id AND b.username = e.username
+                WHERE b.bookshelf_id = $bookshelf_id
+                AND b.username = $username
+                AND e.event_date LIKE $checkin_year || '%'
+                ORDER BY b.created DESC
+                """
             else:
                 query = (
                     "SELECT work_id, created, edition_id from bookshelves_books WHERE "
                     "bookshelf_id=$bookshelf_id AND username=$username "
-                    "ORDER BY created ASC "
+                    f"ORDER BY created {'DESC' if sort == 'created desc' else 'ASC'} "
                     "LIMIT $limit OFFSET $offset"
                 )
+
             if not bookshelf_id:
                 query = "SELECT * from bookshelves_books WHERE username=$username"
                 # XXX Removing limit, offset, etc from data looks like a bug
                 # unrelated / not fixing in this PR.
                 query_params = {'username': username}
-
             reading_log_books: list[web.storage] = list(
                 oldb.query(query, vars=query_params)
             )
@@ -399,9 +416,10 @@ class Bookshelves(db.CommonExtras):
             solr_docs = add_storage_items_for_redirects(
                 reading_log_work_keys, solr_docs
             )
-            assert len(solr_docs) == len(
-                reading_log_work_keys
-            ), "solr_docs is missing an item/items from reading_log_work_keys; see add_storage_items_for_redirects()"  # noqa E501
+            assert len(solr_docs) == len(reading_log_work_keys), (
+                "solr_docs is missing an item/items from reading_log_work_keys; "
+                "see add_storage_items_for_redirects()"
+            )
 
             total_results = shelf_totals.get(bookshelf_id, 0)
             solr_docs = add_reading_log_data(reading_log_books, solr_docs)
@@ -415,24 +433,15 @@ class Bookshelves(db.CommonExtras):
                 docs=solr_docs,
             )
 
-        shelf_totals = cls.count_total_books_logged_by_user_per_shelf(username)
-        oldb = db.get_db()
-        page = int(page or 1)
-        query_params: dict[str, str | int] = {
-            'username': username,
-            'limit': limit,
-            'offset': limit * (page - 1),
-            'bookshelf_id': bookshelf_id,
-        }
-
-        # q won't have a value, and therefore filtering won't occur, unless len(q) >= 3,
-        # as limited in mybooks.my_books_view().
         if q:
+            # checkin_year ignored :(
             return get_filtered_reading_log_books(
                 q=q, query_params=query_params, filter_book_limit=FILTER_BOOK_LIMIT
             )
         else:
-            return get_sorted_reading_log_books(query_params=query_params, sort=sort)
+            return get_sorted_reading_log_books(
+                query_params=query_params, sort=sort, checkin_year=checkin_year
+            )
 
     @classmethod
     def iterate_users_logged_books(cls, username: str) -> Iterable[dict]:

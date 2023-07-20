@@ -48,7 +48,7 @@ def init_plugin():
     ib.add_event_listener(invalidate_most_recent_change)
     setup_logging()
 
-    if ol:
+    if ol:  # noqa: SIM102
         # install custom indexer
         # XXX-Anand: this might create some trouble. Commenting out.
         # ol.store.indexer = Indexer()
@@ -519,7 +519,7 @@ def fix_table_of_contents(table_of_contents):
         else:
             return {}
 
-        return dict(level=level, label=label, title=title, pagenum=pagenum)
+        return {"level": level, "label": label, "title": title, "pagenum": pagenum}
 
     d = [row(r) for r in table_of_contents]
     return [row for row in d if any(row.values())]

@@ -13,9 +13,9 @@ import web
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 sys.path.insert(0, ".")  # Enable scripts/copydocs.py to be run.
-import scripts._init_path  # noqa: E402,F401
+import scripts._init_path
 import scripts.tests.test_copydocs
-from openlibrary.api import OpenLibrary, marshal  # noqa: E402
+from openlibrary.api import OpenLibrary, marshal
 
 __version__ = "0.2"
 
@@ -135,6 +135,8 @@ def get_references(doc, result=None):
 class KeyVersionPair(namedtuple('KeyVersionPair', 'key version')):
     """Helper class to store uri's like /works/OL1W?v=2"""
 
+    __slots__ = ()
+
     @staticmethod
     def from_uri(uri: str) -> KeyVersionPair:
         """
@@ -195,18 +197,11 @@ def copy(
         return docs
 
     def fetch(uris: list[str]) -> list[dict | web.storage]:
-        docs: list = []
-
         # The remaining code relies on cache being a dict.
         if not isinstance(cache, dict):
-            return docs
-
-        key_pairs = list(map(KeyVersionPair.from_uri, uris))
-
-        for pair in key_pairs:
-            if pair.key in cache:
-                docs.append(cache[pair.key])
-
+            return []
+        key_pairs = [KeyVersionPair.from_uri(uri) for uri in uris]
+        docs = [cache[pair.key] for pair in key_pairs if pair.key in cache]
         key_pairs = [pair for pair in key_pairs if pair.to_uri() not in cache]
 
         unversioned_keys = [pair.key for pair in key_pairs if pair.version is None]
