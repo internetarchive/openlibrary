@@ -300,7 +300,9 @@ def get_availability(key: str, ids: list[str]) -> dict:
             "x-application-id": "openlibrary",
         }
         if config_ia_ol_metadata_write_s3:
-            headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(**config_ia_ol_metadata_write_s3)
+            headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(
+                **config_ia_ol_metadata_write_s3
+            )
 
         # Make authenticated request to Bulk Availability API
         response = requests.get(
