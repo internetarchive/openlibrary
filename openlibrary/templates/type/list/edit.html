@@ -23,18 +23,23 @@ $putctx("robots", "noindex,nofollow")
             this.renderDebounced = debounce(this.render.bind(this), 100);
         }
 
-        push({key, render_fn_name}) {
+        /**
+         * @param {string} key
+         * @param {string | Function} render_fn
+         */
+        push({key, render_fn}) {
+            render_fn = typeof render_fn == 'string' ? window[render_fn] : render_fn;
             if (this.cache[key]) {
-                this.renderKey(key, render_fn_name, this.cache[key]);
+                this.renderKey(key, render_fn, this.cache[key]);
             } else {
-                this.queue.push({key, render_fn_name});
+                this.queue.push({key, render_fn});
                 this.renderDebounced();
             }
         }
 
-        renderKey(key, render_fn_name, book) {
+        renderKey(key, render_fn, book) {
             const $$el = $$(`[data-key="$${key}"]`);
-            $$el.html(window[render_fn_name](book));
+            $$el.html(render_fn(book));
         }
 
         async getThings(keys) {
@@ -93,8 +98,8 @@ $putctx("robots", "noindex,nofollow")
             const missingKeys = keys.filter(key => !this.cache[key]);
             console.warn('Missing books', missingKeys);
 
-            for (const {key, render_fn_name} of this.queue) {
-                this.renderKey(key, render_fn_name, this.cache[key]);
+            for (const {key, render_fn} of this.queue) {
+                this.renderKey(key, render_fn, this.cache[key]);
             }
             this.queue = [];
         }
@@ -113,7 +118,7 @@ $jsdef render_seed_field(i, seed):
             <div class="mia__reorder mia__index">≡ #$(i + 1)</div>
             <button class="mia__remove" href="javascript:;">Remove</button>
         </div>
-        <div class="mia__preview">
+        <main>
             <input class="ac-input__value" name="seeds--$i--key" type="hidden" value="$seed['key']" />
             $# Displayed
             <input
@@ -123,11 +128,13 @@ $jsdef render_seed_field(i, seed):
                 $if seed['key']:
                     type="hidden"
             />
-            $if seed['key'] and seed['key'].split('/')[1] == 'works' or seed['key'].split('/')[1] == 'books':
-                $:render_lazy_preview(seed['key'], 'render_work_autocomplete_item')
-            $else:
-                $seed['key']
-        </div>
+            <div class="ac-input__preview">
+                $if seed['key'] and seed['key'].split('/')[1] == 'works' or seed['key'].split('/')[1] == 'books':
+                    $:render_lazy_preview(seed['key'], 'render_work_autocomplete_item')
+                $else:
+                    $seed['key']
+            </div>
+        </main>
     </li>
 
 $jsdef render_work_autocomplete_item(work):
@@ -174,7 +181,7 @@ $jsdef render_lazy_preview(key, render_fn_name):
         $:render_work_autocomplete_item(fake_item)
     </div>
     <script>
-        window.LAZY_BOOK_QUEUE.push({ key: '$key', render_fn_name: '$render_fn_name' });
+        window.LAZY_BOOK_QUEUE.push({ key: '$key', render_fn: '$render_fn_name' });
     </script>
 
 <div id="contentBody">

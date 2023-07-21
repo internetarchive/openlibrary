@@ -91,6 +91,10 @@ export default function($) {
                 var item = ui.item;
                 var $this = $(this);
                 $this.closest('.ac-input').find('.ac-input__value').val(item.key);
+                const $preview = $this.closest('.ac-input').find('.ac-input__preview');
+                if ($preview.length) {
+                    $preview.html(item.label);
+                }
                 setTimeout(function() {
                     $this.addClass('accept');
                 }, 0);
