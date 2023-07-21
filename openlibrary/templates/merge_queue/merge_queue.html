@@ -1,6 +1,7 @@
-$def with(total, merge_requests=None)
+$def with(total, librarians, merge_requests=None)
 
 $# total : dict : {"open": int, "closed": int}; The total number of merge requests found for the current mode
+$# librarians : dict : {"submitters": list[str], "reviewers": list[str]}
 $# merge_requests : list : Merge requests to be displayed in the table
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
@@ -54,7 +55,7 @@ $ page = int(input(page=1).page)
           <span class="$('' if submitter==username else 'invisible') item-checked">✓</span>
           <span><b>$_('Submitted by me')</b></span>
         </a>
-      $for s in total['submitters']:
+      $for s in librarians['submitters']:
         $ submitter_name = s.get('submitter', 'default submitter')
         $ submitter_href = changequery(submitter=submitter_name, page=None) if submitter != submitter_name else changequery(submitter=None, page=None)
         <a href="$submitter_href" class="dropdown-item">
@@ -76,7 +77,7 @@ $ page = int(input(page=1).page)
           <span><b>$_('Assigned to nobody')
           </b></span>
         </a>
-      $for r in total['reviewers']:
+      $for r in librarians['reviewers']:
         $ reviewer_name = r.get('reviewer', 'default reviewer')
         $ reviewer_href = changequery(reviewer=reviewer_name, page=None) if reviewer != reviewer_name else changequery(reviewer=None, page=None)
         $if reviewer_name and reviewer_name != username:

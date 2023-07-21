@@ -54,9 +54,15 @@ class community_edits_queue(delegate.page):
             "reviewers": CommunityEditsQueue.get_reviewers(),
         }
 
+        librarians = {
+            'submitters': CommunityEditsQueue.get_submitters(),
+            'reviewers': CommunityEditsQueue.get_reviewers(),
+        }
+
         return render_template(
             'merge_queue/merge_queue',
             total_found,
+            librarians,
             merge_requests=merge_requests,
         )
 
