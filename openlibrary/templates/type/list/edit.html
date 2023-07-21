@@ -9,108 +9,6 @@ $putctx("robots", "noindex,nofollow")
     <h1>$(_("Edit List") if edit else _("Create a list"))</h1>
 </div>
 
-<script>
-    window.LAZY_BOOK_QUEUE = [];
-</script>
-<script type="module">
-    import debounce from 'https://esm.sh/lodash@4.17.21/debounce';
-
-    class LazyBookQueue {
-        constructor() {
-            this.queue = [];
-            this.cache = {};
-
-            this.renderDebounced = debounce(this.render.bind(this), 100);
-        }
-
-        /**
-         * @param {string} key
-         * @param {string | Function} render_fn
-         */
-        push({key, render_fn}) {
-            render_fn = typeof render_fn == 'string' ? window[render_fn] : render_fn;
-            if (this.cache[key]) {
-                this.renderKey(key, render_fn, this.cache[key]);
-            } else {
-                this.queue.push({key, render_fn});
-                this.renderDebounced();
-            }
-        }
-
-        renderKey(key, render_fn, book) {
-            const $$el = $$(`[data-key="$${key}"]`);
-            $$el.html(render_fn(book));
-        }
-
-        async getThings(keys) {
-            const workKeys = keys.filter(key => key.startsWith('/works/'));
-            const editionKeys = keys.filter(key => key.startsWith('/books/'));
-            const authorKeys = keys.filter(key => key.startsWith('/authors/'));
-            const fields = 'key,cover_i,first_publish_year,author_name,title,subtitle,edition_count,editions';
-            let docs = [];
-            if (workKeys.length) {
-                const resp = await fetch(`/search.json?$${new URLSearchParams({
-                    q: `key:($${workKeys.join(' OR ')})`,
-                    fields,
-                })}`).then(r => r.json());
-                docs = docs.concat(resp.docs);
-            }
-            if (editionKeys.length) {
-                const resp = await fetch(`/search.json?$${new URLSearchParams({
-                    q: `edition_key:($${editionKeys
-                        .map(key => key.split('/').pop())
-                        .join(' OR ')})`,
-                    fields,
-                })}`).then(r => r.json());
-                docs = docs.concat(resp.docs);
-            }
-            if (authorKeys.length) {
-                const resp = await fetch(`/search/authors.json?$${new URLSearchParams({
-                    q: `key:($${authorKeys.join(' OR ')})`,
-                    fields: 'key,type,name,top_work,top_subjects,birth_date,death_date',
-                })}`).then(r => r.json());
-                docs = docs.concat(resp.docs);
-            }
-
-            return docs;
-        }
-
-        async render() {
-            const keys = this.queue.map(({key}) => key);
-            const books = await this.getThings(keys);
-            for (const thing of books) {
-                this.cache[thing.key] = thing;
-                if (thing.type == 'author') {
-                    const author = thing;
-                } else {
-                    const book = thing;
-                    book.full_title = book.subtitle ? `$${book.title}: $${book.subtitle}` : book.title;
-                    if (book.editions.docs.length) {
-                        const ed = book.editions.docs[0];
-                        ed.full_title = ed.subtitle ? `$${ed.title}: $${ed.subtitle}` : ed.title;
-                        ed.author_name = book.author_name;
-                        ed.edition_count = book.edition_count;
-                        this.cache[ed.key] = ed;
-                    }
-                }
-            }
-
-            const missingKeys = keys.filter(key => !this.cache[key]);
-            console.warn('Missing books', missingKeys);
-
-            for (const {key, render_fn} of this.queue) {
-                this.renderKey(key, render_fn, this.cache[key]);
-            }
-            this.queue = [];
-        }
-    }
-    const pre_queue = window.LAZY_BOOK_QUEUE;
-    window.LAZY_BOOK_QUEUE = new LazyBookQueue();
-    for (const item of pre_queue) {
-        window.LAZY_BOOK_QUEUE.push(item);
-    }
-</script>
-
 $# Render the ith seed input field
 $jsdef render_seed_field(i, seed):
     <li class="mia__input ac-input">
@@ -130,7 +28,7 @@ $jsdef render_seed_field(i, seed):
             />
             <div class="ac-input__preview">
                 $if seed['key'] and seed['key'].split('/')[1] == 'works' or seed['key'].split('/')[1] == 'books':
-                    $:render_lazy_preview(seed['key'], 'render_work_autocomplete_item')
+                    $:lazy_thing_preview(seed['key'], 'render_work_autocomplete_item')
                 $else:
                     $seed['key']
             </div>
@@ -167,8 +65,8 @@ $jsdef render_work_autocomplete_item(work):
         </div>
 
 
-$jsdef render_lazy_preview(key, render_fn_name):
-    <div data-key="$key">
+$jsdef lazy_thing_preview(key, render_fn_name):
+    <div class="lazy-thing-preview" data-key="$key" data-render-fn="$render_fn_name">
         $code:
             fake_item = {
                 'key': key,
@@ -180,9 +78,6 @@ $jsdef render_lazy_preview(key, render_fn_name):
              }
         $:render_work_autocomplete_item(fake_item)
     </div>
-    <script>
-        window.LAZY_BOOK_QUEUE.push({ key: '$key', render_fn: '$render_fn_name' });
-    </script>
 
 <div id="contentBody">
     <form method="post" id="list-edit" class="olform" $:cond(query_param('debug'), 'action="?debug=true"')>

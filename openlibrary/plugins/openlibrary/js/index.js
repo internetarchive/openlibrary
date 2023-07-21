@@ -268,6 +268,11 @@ jQuery(function () {
             });
     }
 
+    if ($('.lazy-thing-preview').length) {
+        import(/* webpackChunkName: "lazy-thing-preview" */ './lazy-thing-preview')
+            .then((module) => new module.LazyThingPreview().init());
+    }
+
     const $observationModalLinks = $('.observations-modal-link');
     const $notesModalLinks = $('.notes-modal-link');
     const $notesPageButtons = $('.note-page-buttons');
