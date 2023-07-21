@@ -147,6 +147,7 @@ services:
       - INFOBASE_CONFIG=/olsystem/etc/infobase.yml
     volumes:
       - ../olsystem:/olsystem
+      - /1/var/lib/openlibrary/infobase:/var/lib/openlibrary/infobase
   web_haproxy:
     profiles: ["ol-www0"]
     image: haproxy:2.3.5
