@@ -108,32 +108,25 @@ $putctx("robots", "noindex,nofollow")
 
 $# Render the ith seed input field
 $jsdef render_seed_field(i, seed):
-    $ type = 'works'
-    $if seed['key']:
-        $ typ = seed['key'].split('/')[1]
     <li class="mia__input ac-input">
-        <div class="mia__reorder">≡</div>
-        $# Displayed
-        <input class="ac-input__visible" value="$seed['key'].split('/')[-1]" placeholder="$_('Search for a book')" />
-        $# Actual value
-        <input class="ac-input__value" name="seeds--$i--key" type="hidden" value="$seed['key']" />
-        <a class="mia__remove" href="javascript:;" title="$_('Remove this item')">[x]</a>
-        <hr />
+        <div class="seed--controls">
+            <div class="mia__reorder mia__index">≡ #$(i + 1)</div>
+            <button class="mia__remove" href="javascript:;">Remove</button>
+        </div>
         <div class="mia__preview">
-            <div>
-                $if typ == 'works':
-                    $_('📘 Work')
-                $elif typ == 'books':
-                    $_('📗 Edition')
-                $elif typ == 'authors':
-                    $_('🖋️ Author')
-                $elif typ == 'subjects':
-                    $_('🏷️ Subject')
-                $else:
-                    $typ
-            </div>
+            <input class="ac-input__value" name="seeds--$i--key" type="hidden" value="$seed['key']" />
+            $# Displayed
+            <input
+                class="ac-input__visible"
+                value="$seed['key'].split('/')[-1]"
+                placeholder="$_('Search for a book')"
+                $if seed['key']:
+                    type="hidden"
+            />
             $if seed['key'] and seed['key'].split('/')[1] == 'works' or seed['key'].split('/')[1] == 'books':
                 $:render_lazy_preview(seed['key'], 'render_work_autocomplete_item')
+            $else:
+                $seed['key']
         </div>
     </li>
 
@@ -148,7 +141,7 @@ $jsdef render_work_autocomplete_item(work):
                         loading="lazy"
                     >
             </div>
-            <span class="olid">$work['key'].split('/')[2]</span>
+            <span class="olid">$work['key']</span>
             <span class="name">
                 <span class="title">$work['full_title']</span>
                 $if 'first_publish_year' in work:

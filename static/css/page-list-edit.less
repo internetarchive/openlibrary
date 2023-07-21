@@ -1,0 +1,56 @@
+/**
+ * Stylesheet entry point for pages with body-edit
+
+ * Used in templates:
+ * - openlibrary/templates/type/list/edit.html
+ * Used on pages:
+ * - /list/add
+ */
+@import (less) "less/colors.less";
+@import (less) "less/breakpoints.less";
+@import (less) "less/mixins.less";
+@import (less) "less/font-families.less";
+@import (less) "legacy.less";
+
+#list-edit {
+    max-width: 800px;
+
+    [name=name] {
+        font-size: 1.5em;
+    }
+
+    > *:not(div), textarea {
+        display: block;
+        width: 100%;
+    }
+
+    textarea, input {
+        padding: 4px;
+        max-width: 800px;
+    }
+
+    > *:not(:first-child) {
+        margin-top: 6px;
+    }
+
+    .mia__input {
+        width: 90%;
+        margin-top: 6px;
+        border: 1px solid #bbb;
+        border-radius: 4px;
+        padding: 8px;
+        background: #f8f8f8;
+
+        hr {
+            width: calc(100% - 20px);
+        }
+    }
+}
+
+.new-list__seed__position {
+    font-size: 0.9em;
+}
+
+.work-autocomplete {
+    width: calc(100% - 8ch);
+}

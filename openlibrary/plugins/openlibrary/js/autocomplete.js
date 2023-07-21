@@ -186,9 +186,13 @@ export default function($) {
 
         if (ol_ac_opts.sortable) {
             container.sortable({
+                handle: '.mia__reorder',
                 items: '.mia__input',
                 update: function() {
                     container.find('.mia__input').each(function(index) {
+                        $(this).find('.mia__index').each(function () {
+                            $(this).text($(this).text().replace(/\d+/, index + 1));
+                        });
                         $(this).find('[name]').each(function() {
                             // this won't behave nicely with nested numeric things, if that ever happens
                             if ($(this).attr('name').match(/\d+/)?.length > 1) {

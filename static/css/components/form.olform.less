@@ -48,10 +48,36 @@
   }
 
   .multi-input-autocomplete--seeds {
-    counter-reset: list-seeds;
-    li.mia__input::before {
-      counter-increment: list-seeds;
-      content: counters(list-seeds, ".") ".";
+    li.mia__input {
+      list-style: none;
+    }
+
+    .seed--controls {
+      display: flex;
+      flex-direction: column;
+      padding-right: 4px;
+      border-right: 1px solid #aaa;
+      margin-right: 4px;
+
+      .mia__reorder {
+        flex: 1;
+        text-align: left;
+      }
+    }
+
+    @media (max-width: @width-breakpoint-mobile) {
+      li.mia__input {
+        flex-direction: column;
+      }
+      .seed--controls {
+        flex-direction: row;
+        padding-right: 0;
+        border-right: 0;
+        margin-right: 0;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #aaa;
+        margin-bottom: 4px;
+      }
     }
 
     .mia__preview .ac_work .cover {
@@ -86,7 +112,7 @@
     }
 
     .mia__preview {
-      width: 100%;
+      flex: 1;
     }
 
     // Weird glitch where while dragging the element is very offset
