@@ -8,16 +8,16 @@ from openlibrary.catalog.utils import (
     get_publication_year,
     is_independently_published,
     is_promise_item,
-    needs_isbn_and_lacks_one,
-    pick_first_date,
-    pick_best_name,
-    pick_best_author,
     match_with_bad_chars,
     mk_norm,
-    publication_year_too_old,
+    needs_isbn_and_lacks_one,
+    pick_best_author,
+    pick_best_name,
+    pick_first_date,
+    publication_too_old_and_not_exempt,
     published_in_future_year,
-    strip_count,
     remove_trailing_dot,
+    strip_count,
 )
 
 
@@ -293,7 +293,7 @@ def test_expand_record_isbn():
 
 
 @pytest.mark.parametrize(
-    'year,expected',
+    'year, expected',
     [
         ('1999-01', 1999),
         ('1999', 1999),
@@ -316,7 +316,7 @@ def test_publication_year(year, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    'years_from_today,expected',
+    'years_from_today, expected',
     [
         (1, True),
         (0, False),
@@ -336,7 +336,7 @@ def test_published_in_future_year(years_from_today, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    'name,rec,expected',
+    'name, rec, expected',
     [
         (
             "1399 is too old for an Amazon source",
@@ -370,16 +370,16 @@ def test_published_in_future_year(years_from_today, expected) -> None:
         ),
     ],
 )
-def test_publication_year_too_old(name, rec, expected) -> None:
+def test_publication_too_old_and_not_exempt(name, rec, expected) -> None:
     """
-    See publication_year_too_old for an explanation of which sources require
+    See publication_too_old_and_not_exempt() for an explanation of which sources require
     which publication years.
     """
-    assert publication_year_too_old(rec) == expected, f"Test failed: {name}"
+    assert publication_too_old_and_not_exempt(rec) == expected, f"Test failed: {name}"
 
 
 @pytest.mark.parametrize(
-    'publishers,expected',
+    'publishers, expected',
     [
         (['INDEPENDENTLY PUBLISHED'], True),
         (['Another Publisher', 'independently published'], True),
@@ -391,7 +391,7 @@ def test_independently_published(publishers, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    'rec,expected',
+    'rec, expected',
     [
         ({'source_records': ['bwb:123'], 'isbn_10': ['1234567890']}, False),
         ({'source_records': ['amazon:123'], 'isbn_13': ['1234567890123']}, False),
@@ -406,7 +406,7 @@ def test_needs_isbn_and_lacks_one(rec, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    'rec,expected',
+    'rec, expected',
     [
         ({'source_records': ['promise:123', 'ia:456']}, True),
         ({'source_records': ['ia:456']}, False),
@@ -419,7 +419,7 @@ def test_is_promise_item(rec, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    'name,rec,expected',
+    'name, rec, expected',
     [
         (
             "Returns an empty list if no fields are missing",

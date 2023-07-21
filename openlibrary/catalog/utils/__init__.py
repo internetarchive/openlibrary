@@ -356,7 +356,7 @@ def published_in_future_year(publish_year: int) -> bool:
     return publish_year > datetime.datetime.now().year
 
 
-def publication_year_too_old(rec: dict) -> bool:
+def publication_too_old_and_not_exempt(rec: dict) -> bool:
     """
     Returns True for books that are 'too old' per
     EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS, but that only applies to

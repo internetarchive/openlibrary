@@ -1193,10 +1193,10 @@ def test_add_identifiers_to_edition(mock_site) -> None:
 
 
 @pytest.mark.parametrize(
-    'name,rec,error,expected',
+    'name, rec, error',
     [
         (
-            "Books prior to 1400 can't be imported if from a bookseller requiring additional validation",
+            "Books prior to 1400 CANNOT be imported if from a bookseller requiring additional validation",
             {
                 'title': 'a book',
                 'source_records': ['amazon:123'],
@@ -1204,10 +1204,9 @@ def test_add_identifiers_to_edition(mock_site) -> None:
                 'isbn_10': ['1234567890'],
             },
             PublicationYearTooOld,
-            None,
         ),
         (
-            "But 1400 CE+ can be imported",
+            "Books published on or after 1400 CE+ can be imported from any source",
             {
                 'title': 'a book',
                 'source_records': ['amazon:123'],
@@ -1215,35 +1214,54 @@ def test_add_identifiers_to_edition(mock_site) -> None:
                 'isbn_10': ['1234567890'],
             },
             None,
-            None,
         ),
         (
-            "But trying to import a book from a future year raises an error",
+            "Trying to import a book from a future year raises an error",
             {'title': 'a book', 'source_records': ['ia:ocaid'], 'publish_date': '3000'},
             PublishedInFutureYear,
-            None,
         ),
         (
-            "Independently published books can't be imported",
+            "Independently published books CANNOT be imported",
             {
                 'title': 'a book',
                 'source_records': ['ia:ocaid'],
                 'publishers': ['Independently Published'],
             },
             IndependentlyPublished,
+        ),
+        (
+            "Non-independently published books can be imported",
+            {
+                'title': 'a book',
+                'source_records': ['ia:ocaid'],
+                'publishers': ['Best Publisher'],
+            },
             None,
         ),
         (
-            "Can't import sources that require an ISBN",
+            "Import sources that require an ISBN CANNOT be imported without an ISBN",
             {'title': 'a book', 'source_records': ['amazon:amazon_id'], 'isbn_10': []},
             SourceNeedsISBN,
+        ),
+        (
+            "Can import sources that require an ISBN and have ISBN",
+            {
+                'title': 'a book',
+                'source_records': ['amazon:amazon_id'],
+                'isbn_10': ['1234567890'],
+            },
+            None,
+        ),
+        (
+            "Can import from sources that don't require an ISBN",
+            {'title': 'a book', 'source_records': ['ia:wheeee'], 'isbn_10': []},
             None,
         ),
     ],
 )
-def test_validate_record(name, rec, error, expected) -> None:
+def test_validate_record(name, rec, error) -> None:
     if error:
         with pytest.raises(error):
             validate_record(rec)
     else:
-        assert validate_record(rec) == expected, f"Test failed: {name}"  # type: ignore [func-returns-value]
+        assert validate_record(rec) is None, f"Test failed: {name}"  # type: ignore [func-returns-value]

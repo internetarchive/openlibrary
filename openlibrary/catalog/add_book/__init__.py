@@ -37,15 +37,14 @@ from infogami import config
 
 from openlibrary import accounts
 from openlibrary.catalog.utils import (
+    EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS,
     get_publication_year,
     is_independently_published,
-    get_missing_fields,
     is_promise_item,
     mk_norm,
     needs_isbn_and_lacks_one,
-    publication_year_too_old,
+    publication_too_old_and_not_exempt,
     published_in_future_year,
-    EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS,
 )
 from openlibrary.core import lending
 from openlibrary.plugins.upstream.utils import strip_accents
@@ -762,27 +761,21 @@ def normalize_import_record(rec: dict) -> None:
     rec['authors'] = uniq(rec.get('authors', []), dicthash)
 
 
-def validate_publication_year(publication_year: int, override: bool = False) -> None:
-    """
-    Validate the publication year and raise an error if:
-        - the book is published prior to 1500 AND override = False; or
-        - the book is published in a future year.
-    """
-    if publication_year_too_old(publication_year) and not override:
-        raise PublicationYearTooOld(publication_year)
-    elif published_in_future_year(publication_year):
-        raise PublishedInFutureYear(publication_year)
-
-
 def validate_record(rec: dict) -> None:
     """
-    Check the record for various issues.
-    Each check raises and error or returns None.
+    Check for:
+        - publication years too old from non-exempt sources (e.g. Amazon);
+        - publish dates in a future year;
+        - independently published books; and
+        - books that need an ISBN and lack one.
+
+    Each check raises an error or returns None.
 
     If all the validations pass, implicitly return None.
     """
+    # Only validate publication year if a year is found.
     if publication_year := get_publication_year(rec.get('publish_date')):
-        if publication_year_too_old(rec):
+        if publication_too_old_and_not_exempt(rec):
             raise PublicationYearTooOld(publication_year)
         elif published_in_future_year(publication_year):
             raise PublishedInFutureYear(publication_year)
@@ -938,7 +931,8 @@ def load(rec, account_key=None):
     :rtype: dict
     :return: a dict to be converted into a JSON HTTP response, same as load_data()
     """
-    validate_record(rec)
+    if not is_promise_item(rec):
+        validate_record(rec)
     normalize_import_record(rec)
 
     # Resolve an edition if possible, or create and return one if not.
