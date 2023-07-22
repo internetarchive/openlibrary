@@ -66,7 +66,7 @@ export class LazyThingPreview {
         const workKeys = keys.filter(key => key.startsWith('/works/'));
         const editionKeys = keys.filter(key => key.startsWith('/books/'));
         const authorKeys = keys.filter(key => key.startsWith('/authors/'));
-        const fields = 'key,cover_i,first_publish_year,author_name,title,subtitle,edition_count,editions';
+        const fields = 'key,type,cover_i,first_publish_year,author_name,title,subtitle,edition_count,editions';
         let docs = [];
         if (workKeys.length) {
             const resp = await fetch(`/search.json?${new URLSearchParams({
@@ -89,6 +89,10 @@ export class LazyThingPreview {
                 q: `key:(${authorKeys.join(' OR ')})`,
                 fields: 'key,type,name,top_work,top_subjects,birth_date,death_date',
             })}`).then(r => r.json());
+            for (const doc of resp.docs) {
+                // This API returns keys without the /authors/ prefix 😭
+                doc.key = `/authors/${doc.key}`;
+            }
             docs = docs.concat(resp.docs);
         }
 
@@ -97,16 +101,19 @@ export class LazyThingPreview {
 
     async render() {
         const keys = this.queue.map(({key}) => key);
-        const books = await this.getThings(keys);
-        for (const book of books) {
-            this.cache[book.key] = book;
-            book.full_title = book.subtitle ? `${book.title}: ${book.subtitle}` : book.title;
-            if (book.editions.docs.length) {
-                const ed = book.editions.docs[0];
-                ed.full_title = ed.subtitle ? `${ed.title}: ${ed.subtitle}` : ed.title;
-                ed.author_name = book.author_name;
-                ed.edition_count = book.edition_count;
-                this.cache[ed.key] = ed;
+        const things = await this.getThings(keys);
+        for (const thing of things) {
+            this.cache[thing.key] = thing;
+            if (thing.type === 'work') {
+                const book = thing;
+                book.full_title = book.subtitle ? `${book.title}: ${book.subtitle}` : book.title;
+                if (book.editions.docs.length) {
+                    const ed = book.editions.docs[0];
+                    ed.full_title = ed.subtitle ? `${ed.title}: ${ed.subtitle}` : ed.title;
+                    ed.author_name = book.author_name;
+                    ed.edition_count = book.edition_count;
+                    this.cache[ed.key] = ed;
+                }
             }
         }
 

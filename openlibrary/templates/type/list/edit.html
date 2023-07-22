@@ -28,8 +28,14 @@ $jsdef render_seed_field(i, seed):
             />
             <div class="ac-input__preview">
                 $# Note: Cannot use "in" because this is a jsdef function
-                $if seed['key'] and (seed['key'].split('/')[1] == 'works' or seed['key'].split('/')[1] == 'books'):
-                    $:lazy_thing_preview(seed['key'], 'render_lazy_work_preview')
+                $if seed['key']:
+                    $ prefix = seed['key'].split('/')[1]
+                    $if prefix == 'works' or prefix == 'books':
+                        $:lazy_thing_preview(seed['key'], 'render_lazy_work_preview')
+                    $elif prefix == 'authors':
+                        $:lazy_thing_preview(seed['key'], 'render_lazy_author_preview')
+                    $else:
+                        $seed['key']
                 $else:
                     $seed['key']
             </div>
@@ -38,20 +44,35 @@ $jsdef render_seed_field(i, seed):
 
 $# import the side-effect of the jsdef function
 $:render_template('jsdef/LazyWorkPreview', None)
+$:render_template('jsdef/LazyAuthorPreview', None)
 
 $jsdef lazy_thing_preview(key, render_fn_name):
     <div class="lazy-thing-preview" data-key="$key" data-render-fn="$render_fn_name">
-        $code:
-            fake_item = {
-                'key': key,
-                'title': '...',
-                'full_title': '...',
-                'author_name': ['...'],
-                'edition_count': '_',
-                'cover_i': None,
-             }
         $if not is_jsdef():
-            $:render_template('jsdef/LazyWorkPreview', fake_item)
+            $ prefix = key.split('/')[1]
+            $if prefix == 'works' or prefix == 'books':
+                $code:
+                    fake_book = {
+                        'key': key,
+                        'title': '...',
+                        'full_title': '...',
+                        'author_name': ['...'],
+                        'edition_count': '_',
+                        'cover_i': None,
+                    }
+                $:render_template('jsdef/LazyWorkPreview', fake_book)
+            $elif prefix == 'authors':
+                $code:
+                    fake_author = {
+                        'key': key,
+                        'name': '...',
+                        'birth_date': None,
+                        'death_date': None,
+                        'work_count': '_',
+                        'top_work': ['...'],
+                        'subjects': ['...'],
+                    }
+                $:render_template('jsdef/LazyAuthorPreview', fake_author)
     </div>
 
 <div id="contentBody">
