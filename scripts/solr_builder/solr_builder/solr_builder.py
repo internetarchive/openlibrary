@@ -145,33 +145,29 @@ class LocalPostgresDataProvider(DataProvider):
         cur.close()
 
     def cache_edition_works(self, lo_key, hi_key):
-        q = """
+        q = f"""
             SELECT works."Key", works."JSON"
             FROM "test" editions
             INNER JOIN test works
                 ON editions."JSON" -> 'works' -> 0 ->> 'key' = works."Key"
             WHERE editions."Type" = '/type/edition'
-                AND '{}' <= editions."Key" AND editions."Key" <= '{}'
-        """.format(
-            lo_key, hi_key
-        )
+                AND '{lo_key}' <= editions."Key" AND editions."Key" <= '{hi_key}'
+        """
         self.query_all(q, json_cache=self.cache)
 
     def cache_work_editions(self, lo_key, hi_key):
-        q = """
+        q = f"""
             SELECT "Key", "JSON"
             FROM "test"
             WHERE "Type" = '/type/edition'
-                AND '{}' <= "JSON" -> 'works' -> 0 ->> 'key'
-                AND "JSON" -> 'works' -> 0 ->> 'key' <= '{}'
-        """.format(
-            lo_key, hi_key
-        )
+                AND '{lo_key}' <= "JSON" -> 'works' -> 0 ->> 'key'
+                AND "JSON" -> 'works' -> 0 ->> 'key' <= '{hi_key}'
+        """
         self.query_all(q, json_cache=self.cache)
         self.cached_work_editions_ranges.append((lo_key, hi_key))
 
     def cache_edition_authors(self, lo_key, hi_key):
-        q = """
+        q = f"""
             SELECT authors."Key", authors."JSON"
             FROM "test" editions
             INNER JOIN test works
@@ -180,15 +176,13 @@ class LocalPostgresDataProvider(DataProvider):
                 ON works."JSON" -> 'authors' -> 0 -> 'author' ->> 'key' = authors."Key"
             WHERE editions."Type" = '/type/edition'
                 AND editions."JSON" -> 'works' -> 0 ->> 'key' IS NULL
-                AND '{}' <= editions."Key" AND editions."Key" <= '{}'
-        """.format(
-            lo_key, hi_key
-        )
+                AND '{lo_key}' <= editions."Key" AND editions."Key" <= '{hi_key}'
+        """
         self.query_all(q, json_cache=self.cache)
 
     def cache_work_authors(self, lo_key, hi_key):
         # Cache upto first five authors
-        q = """
+        q = f"""
             SELECT authors."Key", authors."JSON"
             FROM "test" works
             INNER JOIN "test" authors ON (
@@ -199,10 +193,8 @@ class LocalPostgresDataProvider(DataProvider):
                 works."JSON" -> 'authors' -> 4 -> 'author' ->> 'key' = authors."Key"
             )
             WHERE works."Type" = '/type/work'
-            AND '{}' <= works."Key" AND works."Key" <= '{}'
-        """.format(
-            lo_key, hi_key
-        )
+            AND '{lo_key}' <= works."Key" AND works."Key" <= '{hi_key}'
+        """
         self.query_all(q, json_cache=self.cache)
 
     def cache_work_ratings(self, lo_key, hi_key):

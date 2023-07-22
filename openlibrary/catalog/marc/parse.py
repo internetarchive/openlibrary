@@ -413,9 +413,10 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict | None:
     if 'q' in contents:
         author['fuller_name'] = ' '.join(contents['q'])
     if '6' in contents:  # noqa: SIM102 - alternate script name exists
-        if link := field.rec.get_linkage(tag, contents['6'][0]):
-            if alt_name := link.get_subfield_values('a'):
-                author['alternate_names'] = [name_from_list(alt_name)]
+        if (link := field.rec.get_linkage(tag, contents['6'][0])) and (
+            alt_name := link.get_subfield_values('a')
+        ):
+            author['alternate_names'] = [name_from_list(alt_name)]
     return author
 
 

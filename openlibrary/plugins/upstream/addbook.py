@@ -778,14 +778,14 @@ class SaveBookHelper:
             return
 
         # read ocaid from form data
-        try:
-            ocaid = [
-                id['value']
-                for id in edition.get('identifiers', [])
-                if id['name'] == 'ocaid'
-            ][0]
-        except IndexError:
-            ocaid = None
+        ocaid = next(
+            (
+                id_['value']
+                for id_ in edition.get('identifiers', [])
+                if id_['name'] == 'ocaid'
+            ),
+            None,
+        )
 
         # 'self.edition' is the edition doc from the db and 'edition' is the doc from formdata
         if (

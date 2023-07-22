@@ -112,7 +112,7 @@ def run_filter(matched_keys, params):
             # In case of the 'title' and 'authors', if it's there in
             # the search params, it *should* match.
             for k in i2:
-                if k == "title" or k == "authors":
+                if k in {"title", "authors"}:
                     # Special case title and authors. Return False if not present in thing
                     # TODO: Convert author names to keys.
                     if k not in i1 or not compare(i1[k], i2[k]):
