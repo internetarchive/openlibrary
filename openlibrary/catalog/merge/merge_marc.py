@@ -175,8 +175,8 @@ def compare_authors(e1, e2):
     Compares the authors of two edition representations and
     returns a evaluation and score.
 
-    :param dict e1: Edition, output of build_marc()
-    :param dict e2: Edition, output of build_marc()
+    :param dict e1: Edition, output of expand_record()
+    :param dict e2: Edition, output of expand_record()
     :rtype: tuple
     :return: str?, message, score
     """
@@ -308,7 +308,7 @@ def compare_publisher(e1, e2):
         return ('publisher', 'either missing', 0)
 
 
-def build_marc(edition):
+def expand_record(edition):
     """
     Returns an expanded representation of an edition dict,
     usable for accurate comparisons between existing and new
