@@ -36,10 +36,10 @@ import requests
 from infogami import config
 
 from openlibrary import accounts
-from openlibrary.catalog.merge.merge_marc import expand_record
 from openlibrary.catalog.utils import mk_norm
 from openlibrary.core import lending
 from openlibrary.plugins.upstream.utils import strip_accents
+from openlibrary.catalog.utils import expand_record
 from openlibrary.utils import uniq, dicthash
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.lccn import normalize_lccn

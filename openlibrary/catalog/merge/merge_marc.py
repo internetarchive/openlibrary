@@ -308,41 +308,6 @@ def compare_publisher(e1, e2):
         return ('publisher', 'either missing', 0)
 
 
-def expand_record(rec: dict) -> dict[str, str | list[str]]:
-    """
-    Returns an expanded representation of an edition dict,
-    usable for accurate comparisons between existing and new
-    records.
-    Called from openlibrary.catalog.add_book.load()
-
-    :param dict edition: Import edition representation, requires 'full_title'
-    :rtype: dict
-    :return: An expanded version of an edition dict
-        more titles, normalized + short
-        all isbns in "isbn": []
-    """
-    expanded_rec = build_titles(rec['full_title'])
-    expanded_rec['isbn'] = []
-    for f in 'isbn', 'isbn_10', 'isbn_13':
-        expanded_rec['isbn'].extend(rec.get(f, []))
-    if 'publish_country' in rec and rec['publish_country'] not in (
-        '   ',
-        '|||',
-    ):
-        expanded_rec['publish_country'] = rec['publish_country']
-    for f in (
-        'lccn',
-        'publishers',
-        'publish_date',
-        'number_of_pages',
-        'authors',
-        'contribs',
-    ):
-        if f in rec:
-            expanded_rec[f] = rec[f]
-    return expanded_rec
-
-
 def attempt_merge(e1, e2, threshold, debug=False):
     """Renaming for clarity, use editions_match() instead."""
     return editions_match(e1, e2, threshold, debug=False)

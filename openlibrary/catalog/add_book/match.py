@@ -1,9 +1,7 @@
 import web
 from deprecated import deprecated
-from openlibrary.catalog.merge.merge_marc import (
-    expand_record,
-    editions_match as threshold_match,
-)
+from openlibrary.catalog.utils import expand_record
+from openlibrary.catalog.merge.merge_marc import editions_match as threshold_match
 
 
 threshold = 875

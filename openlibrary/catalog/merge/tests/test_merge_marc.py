@@ -1,6 +1,7 @@
 import pytest
+
+from openlibrary.catalog.utils import expand_record
 from openlibrary.catalog.merge.merge_marc import (
-    expand_record,
     build_titles,
     compare_authors,
     compare_publisher,
@@ -126,21 +127,6 @@ class TestTitles:
         # Check for duplicates:
         assert len(titles_period) == len(set(titles_period))
         # assert len(titles) == len(set(titles))
-
-
-def test_expand_record():
-    # used in openlibrary.catalog.add_book.load()
-    # when trying to find an existing edition match
-    edition = {
-        'title': 'A test title (parens)',
-        'full_title': 'A test full title : subtitle (parens).',  # required, and set by add_book.load()
-        'source_records': ['ia:test-source'],
-    }
-    result = expand_record(edition)
-    assert isinstance(result['titles'], list)
-    assert result['isbn'] == []
-    assert result['normalized_title'] == 'a test full title subtitle (parens)'
-    assert result['short_title'] == 'a test full title subtitl'
 
 
 def test_compare_publisher():
