@@ -471,17 +471,23 @@ jQuery(function () {
     }
 
     // Add functionality for librarian merge request table:
+    const librarianQueue = document.querySelector('.librarian-queue-wrapper')
+
+    // Legacy:
     const mergeRequestCloseLinks = document.querySelectorAll('.mr-close-link')
     const mergeRequestResolveLinks = document.querySelectorAll('.mr-resolve-link')
     const mergeRequestCommentButtons = document.querySelectorAll('.mr-comment-btn')
     const showCommentsLinks = document.querySelectorAll('.comment-expand')
     const unassignElements = document.querySelectorAll('.mr-unassign')
-    const mergeRequestFilters = document.querySelectorAll('.mr-dropdown')
 
-    if (mergeRequestCloseLinks.length || mergeRequestCommentButtons.length || showCommentsLinks.length || mergeRequestResolveLinks.length ||
-        unassignElements.length || mergeRequestFilters.length) {
+    if (librarianQueue || mergeRequestCloseLinks.length || mergeRequestCommentButtons.length || showCommentsLinks.length || mergeRequestResolveLinks.length ||
+        unassignElements.length) {
         import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
             .then(module => {
+                if (librarianQueue) {
+                    module.initLibrarianQueue(librarianQueue)
+                }
+                // Legacy initializations:
                 if (mergeRequestCloseLinks.length) {
                     module.initCloseLinks(mergeRequestCloseLinks)
                 }
@@ -496,9 +502,6 @@ jQuery(function () {
                 }
                 if (unassignElements.length) {
                     module.initUnassignment(unassignElements)
-                }
-                if (mergeRequestFilters.length) {
-                    module.initFilters()
                 }
             })
     }
