@@ -2,6 +2,7 @@
 import 'jquery-ui/ui/widget';
 import 'jquery-ui/ui/widgets/mouse';
 import 'jquery-ui/ui/widgets/sortable';
+import 'jquery-ui-touch-punch'; // this makes drag-to-reorder work on touch devices
 
 /**
  * Port of code in vendor/js/jquery-autocomplete removed in e91119b
