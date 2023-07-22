@@ -82,11 +82,10 @@ $else:
         $for r in librarians['reviewers']:
           $ reviewer_name = r.get('reviewer', 'default reviewer')
           $ reviewer_href = changequery(reviewer=reviewer_name, page=None) if reviewer != reviewer_name else changequery(reviewer=None, page=None)
-          $if reviewer_name and reviewer_name != username:
-            <a href="$reviewer_href" class="dropdown-item">
-              <span class="$('' if reviewer==reviewer_name else 'invisible') item-checked">✓</span>
-              <span>$reviewer_name</span>
-            </a>
+          <a href="$reviewer_href" class="dropdown-item">
+            <span class="$('' if reviewer==reviewer_name else 'invisible') item-checked">✓</span>
+            <span>$reviewer_name</span>
+          </a>
         </div>
       </div>
       <div class="mr-dropdown" id="sort-menu-button">$_('Sort ▾')
