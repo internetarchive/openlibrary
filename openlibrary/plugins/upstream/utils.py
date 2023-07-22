@@ -1081,6 +1081,11 @@ _get_blog_feeds = cache.memcache_memoize(
 
 
 @public
+def is_jsdef():
+    return False
+
+
+@public
 def get_donation_include() -> str:
     ia_host = get_ia_host(allow_dev=True)
     # The following allows archive.org staff to test banners without

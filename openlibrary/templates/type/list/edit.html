@@ -29,42 +29,15 @@ $jsdef render_seed_field(i, seed):
             <div class="ac-input__preview">
                 $# Note: Cannot use "in" because this is a jsdef function
                 $if seed['key'] and (seed['key'].split('/')[1] == 'works' or seed['key'].split('/')[1] == 'books'):
-                    $:lazy_thing_preview(seed['key'], 'render_work_autocomplete_item')
+                    $:lazy_thing_preview(seed['key'], 'render_lazy_work_preview')
                 $else:
                     $seed['key']
             </div>
         </main>
     </li>
 
-$jsdef render_work_autocomplete_item(work):
-    $if work:
-        <div class="ac_work" title="Select this work">
-            <div class="cover">
-                $if work['cover_i']:
-                    <img
-                        src="https://covers.openlibrary.org/b/id/$(work['cover_i'])-M.jpg"
-                        alt="$_('Cover of: %(title)s', title=work['title'])"
-                        loading="lazy"
-                    >
-            </div>
-            <div class="olid">$work['key']</div>
-            <span class="name">
-                <span class="title">$work['full_title']</span>
-                $if 'first_publish_year' in work:
-                    <span class="first_publish_year">($work['first_publish_year'])</span>
-            </span>
-            <span class="byline">
-                $if work['author_name']:
-                    $_('by') <span class="authors">${', '.join(work['author_name'])}</span>
-            </span>
-            &bull;
-            $if work['edition_count'] == 1:
-                <span class="edition_count">$work['edition_count'] edition</span>
-            $else:
-                <span class="edition_count">$work['edition_count'] editions</span>
-            <div class="clear"></div>
-        </div>
-
+$# import the side-effect of the jsdef function
+$:render_template('jsdef/LazyWorkPreview', None)
 
 $jsdef lazy_thing_preview(key, render_fn_name):
     <div class="lazy-thing-preview" data-key="$key" data-render-fn="$render_fn_name">
@@ -77,7 +50,8 @@ $jsdef lazy_thing_preview(key, render_fn_name):
                 'edition_count': '_',
                 'cover_i': None,
              }
-        $:render_work_autocomplete_item(fake_item)
+        $if not is_jsdef():
+            $:render_template('jsdef/LazyWorkPreview', fake_item)
     </div>
 
 <div id="contentBody">
