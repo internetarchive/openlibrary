@@ -27,7 +27,8 @@ $jsdef render_seed_field(i, seed):
                     type="hidden"
             />
             <div class="ac-input__preview">
-                $if seed['key'] and seed['key'].split('/')[1] == 'works' or seed['key'].split('/')[1] == 'books':
+                $# Note: Cannot use "in" because this is a jsdef function
+                $if seed['key'] and (seed['key'].split('/')[1] == 'works' or seed['key'].split('/')[1] == 'books'):
                     $:lazy_thing_preview(seed['key'], 'render_work_autocomplete_item')
                 $else:
                     $seed['key']
@@ -46,7 +47,7 @@ $jsdef render_work_autocomplete_item(work):
                         loading="lazy"
                     >
             </div>
-            <span class="olid">$work['key']</span>
+            <div class="olid">$work['key']</div>
             <span class="name">
                 <span class="title">$work['full_title']</span>
                 $if 'first_publish_year' in work:

@@ -237,7 +237,7 @@ class lists_edit(delegate.page):
         return render_template("type/list/edit", lst, edit=True)
 
     @require_login
-    def POST(self, key: str):  # type: ignore[override]
+    def POST(self, key: str | None = None):  # type: ignore[override]
         if not web.ctx.site.can_write(key):
             return render_template(
                 "permission_denied",
@@ -253,12 +253,12 @@ class lists_edit(delegate.page):
         if not user:
             raise web.seeother("/account/login?redirect=/lists/add")
 
-        web.ctx.site.save(
-            list_record.to_thing_json(),
-            action="lists",
-            comment="Added list.",
-        )
-        return safe_seeother(key)
+        if key is None:
+            list_num = web.ctx.site.seq.next_value("list")
+            list_record.key = f"{user.key}/lists/OL{list_num}L"
+
+        web.ctx.site.save(list_record.to_thing_json(), action="lists")
+        return safe_seeother(list_record.key)
 
 
 class lists_add(lists_edit):
@@ -268,13 +268,6 @@ class lists_add(lists_edit):
     def GET(self):
         list_record = ListRecord.from_input()
         return render_template("type/list/edit", list_record, edit=False)
-
-    @require_login
-    def POST(self):
-        user = get_current_user()
-        list_num = web.ctx.site.seq.next_value("list")
-        key = f"{user.key}/lists/OL{list_num}L"
-        return super().POST(key)
 
 
 class lists_delete(delegate.page):
