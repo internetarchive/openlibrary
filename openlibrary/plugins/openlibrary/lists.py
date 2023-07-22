@@ -35,7 +35,7 @@ class ListRecord:
     seeds: list[SeedDict | str] = field(default_factory=list)
 
     @staticmethod
-    def normalize_input_seed(seed: dict | str) -> SeedDict | str:
+    def normalize_input_seed(seed: SeedDict | str) -> SeedDict | str:
         if isinstance(seed, str):
             if seed.startswith('/subjects/'):
                 return seed
