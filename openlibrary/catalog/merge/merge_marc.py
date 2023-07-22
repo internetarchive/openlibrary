@@ -308,7 +308,7 @@ def compare_publisher(e1, e2):
         return ('publisher', 'either missing', 0)
 
 
-def expand_record(edition):
+def expand_record(rec: dict) -> dict[str, str | list[str]]:
     """
     Returns an expanded representation of an edition dict,
     usable for accurate comparisons between existing and new
@@ -321,15 +321,15 @@ def expand_record(edition):
         more titles, normalized + short
         all isbns in "isbn": []
     """
-    marc = build_titles(edition['full_title'])
-    marc['isbn'] = []
+    expanded_rec = build_titles(rec['full_title'])
+    expanded_rec['isbn'] = []
     for f in 'isbn', 'isbn_10', 'isbn_13':
-        marc['isbn'].extend(edition.get(f, []))
-    if 'publish_country' in edition and edition['publish_country'] not in (
+        expanded_rec['isbn'].extend(rec.get(f, []))
+    if 'publish_country' in rec and rec['publish_country'] not in (
         '   ',
         '|||',
     ):
-        marc['publish_country'] = edition['publish_country']
+        expanded_rec['publish_country'] = rec['publish_country']
     for f in (
         'lccn',
         'publishers',
@@ -338,9 +338,9 @@ def expand_record(edition):
         'authors',
         'contribs',
     ):
-        if f in edition:
-            marc[f] = edition[f]
-    return marc
+        if f in rec:
+            expanded_rec[f] = rec[f]
+    return expanded_rec
 
 
 def attempt_merge(e1, e2, threshold, debug=False):
