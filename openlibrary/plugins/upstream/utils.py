@@ -1304,6 +1304,16 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
     # Fall back to making the input a list returning that and an empty location.
     return ([], [loc_pub.strip(STRIP_CHARS)])
 
+@public
+def get_related_subjects_query() -> str:
+    """
+    Returns a query string for related subjects page carousel.
+    """
+    i = web.input(subjects='')
+    if not i.subjects:
+        return 'None'
+    subjects = i.subjects.split('&')
+    return 'subject:("' + ('" AND "').join(subjects) + '")'
 
 def setup() -> None:
     """Do required initialization"""

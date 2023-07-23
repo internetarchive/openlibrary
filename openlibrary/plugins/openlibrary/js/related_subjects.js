@@ -16,15 +16,14 @@ function generateQuery() {
         const subject = checkbox.parentNode.textContent.trim();
         selectedSubjects.push(subject);
     });
-    const generatedString = 'subject:("' + selectedSubjects.join('" AND "') + '")';
+    const generatedString = selectedSubjects.join('&');
     return generatedString;
 }
 
 function renderSubjectsCarousel() {
     const queryString = generateQuery();
-    const container = document.getElementById('related-subjects-carousel');
-    $(window.render_subjects_carousel(queryString));
+    const url = new URL(window.location.href);
+    url.searchParams.set('subjects', queryString);
+    window.history.replaceState(null, null, url);
     $( "#related-subjects-carousel" ).load(window.location.href + " #related-subjects-carousel" )
-    container.classList.remove('hidden');
-    // $('#related-subjects-carousel').html(render_subjects_carousel(queryString));
 }
