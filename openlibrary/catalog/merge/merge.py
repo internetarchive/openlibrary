@@ -1,7 +1,5 @@
-from deprecated import deprecated
 import re
 
-from openlibrary.catalog.merge.names import match_name
 from openlibrary.catalog.merge.normalize import normalize
 
 
@@ -67,61 +65,6 @@ def compare_date(e1, e2):
             return ('date', 'mismatch', -250)
     except ValueError as TypeError:
         return ('date', 'mismatch', -250)
-
-
-@deprecated('Use openlibrary.catalog.merge.merge_marc.compare_isbn10() instead.')
-def compare_isbn10(e1, e2):
-    if len(e1['isbn']) == 0 or len(e2['isbn']) == 0:
-        return ('ISBN', 'missing', 0)
-    for i in e1['isbn']:
-        for j in e2['isbn']:
-            if i == j:
-                return ('ISBN', 'match', isbn_match)
-
-    return ('ISBN', 'mismatch', -225)
-
-
-@deprecated('Use openlibrary.catalog.merge.merge_marc.level1_merge() instead.')
-def level1_merge(e1, e2):
-    score = []
-    if e1['short_title'] == e2['short_title']:
-        score.append(('short-title', 'match', 450))
-    else:
-        score.append(('short-title', 'mismatch', 0))
-
-    score.append(compare_date(e1, e2))
-    score.append(compare_isbn10(e1, e2))
-    return score
-
-
-@deprecated('Use openlibrary.catalog.merge.merge_marc.compare_authors() instead.')
-def compare_authors(amazon, marc):
-    if len(amazon['authors']) == 0 and 'authors' not in marc:
-        return ('main', 'no authors', 75)
-    if len(amazon['authors']) == 0:
-        return ('main', 'field missing from one record', -25)
-
-    for name in amazon['authors']:
-        if 'authors' in marc and match_name(name, marc['authors'][0]['name']):
-            return ('main', 'exact match', 125)
-        if 'by_statement' in marc and marc['by_statement'].find(name) != -1:
-            return ('main', 'exact match', 125)
-    if 'authors' not in marc:
-        return ('main', 'field missing from one record', -25)
-
-    max_score = 0
-    for a in amazon['authors']:
-        percent, ordered = keyword_match(a[0], marc['authors'][0]['name'])
-        if percent > 0.50:
-            score = percent * 80
-            if ordered:
-                score += 10
-            if score > max_score:
-                max_score = score
-    if max_score:
-        return ('main', 'keyword match', max_score)
-    else:
-        return ('main', 'mismatch', -200)
 
 
 def title_replace_amp(amazon):
@@ -205,63 +148,8 @@ def compare_number_of_pages(amazon, marc):
         return ('pagination', 'non-match (by more than 10)', -225)
 
 
-@deprecated
-def short_part_publisher_match(p1, p2):
-    pub1 = p1.split()
-    pub2 = p2.split()
-    if len(pub1) == 1 or len(pub2) == 1:
-        return False
-    return all(substr_match(i, j) for i, j in zip(pub1, pub2))
-
-
-@deprecated('Use openlibrary.catalog.merge.merge_marc.compare_publisher() instead.')
-def compare_publisher(amazon, marc):
-    if 'publisher' in amazon and 'publishers' in marc:
-        amazon_pub = amazon['publisher']
-        norm_amazon = normalize(amazon_pub)
-        for marc_pub in marc['publishers']:
-            norm_marc = normalize(marc_pub)
-            if norm_amazon == norm_marc:
-                return ('publisher', 'match', 100)
-            elif substr_match(norm_amazon, norm_marc) or substr_match(
-                norm_amazon.replace(' ', ''), norm_marc.replace(' ', '')
-            ):
-                return ('publisher', 'occur within the other', 100)
-            elif short_part_publisher_match(norm_amazon, norm_marc):
-                return ('publisher', 'match', 100)
-        return ('publisher', 'mismatch', -25)
-
-    if 'publisher' not in amazon or 'publishers' not in marc:
-        return ('publisher', 'either missing', 0)
-
-
-@deprecated('Use openlibrary.catalog.merge.merge_marc.level2_merge() instead.')
-def level2_merge(amazon, marc):
-    score = []
-    score.append(compare_date(amazon, marc))
-    score.append(compare_isbn10(amazon, marc))
-    score.append(compare_title(amazon, marc))
-    if page_score := compare_number_of_pages(amazon, marc):
-        score.append(page_score)
-
-    score.append(compare_publisher(amazon, marc))
-    score.append(compare_authors(amazon, marc))
-    return score
-
-
 def full_title(edition):
     title = edition['title']
     if 'subtitle' in edition:
         title += ' ' + edition['subtitle']
     return title
-
-
-@deprecated('Use openlibrary.catalog.merge.merge_marc.attempt_merge() instead.')
-def attempt_merge(amazon, marc, threshold):
-    l1 = level1_merge(amazon, marc)
-    total = sum(i[2] for i in l1)
-    if total >= threshold:
-        return True
-    l2 = level2_merge(amazon, marc)
-    total = sum(i[2] for i in l2)
-    return total >= threshold
