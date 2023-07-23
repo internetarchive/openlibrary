@@ -36,10 +36,10 @@ import requests
 from infogami import config
 
 from openlibrary import accounts
-from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.utils import mk_norm
 from openlibrary.core import lending
 from openlibrary.plugins.upstream.utils import strip_accents
+from openlibrary.catalog.utils import expand_record
 from openlibrary.utils import uniq, dicthash
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.lccn import normalize_lccn
@@ -532,7 +532,7 @@ def find_enriched_match(rec, edition_pool):
     :rtype: str|None
     :return: None or the edition key '/books/OL...M' of the best edition match for enriched_rec in edition_pool
     """
-    enriched_rec = build_marc(rec)
+    enriched_rec = expand_record(rec)
     add_db_name(enriched_rec)
 
     seen = set()
@@ -728,7 +728,7 @@ def find_match(rec, edition_pool) -> str | None:
 
     if not match:
         # Add 'full_title' to the rec by conjoining 'title' and 'subtitle'.
-        # build_marc() uses this for matching.
+        # expand_record() uses this for matching.
         rec['full_title'] = rec['title']
         if subtitle := rec.get('subtitle'):
             rec['full_title'] += ' ' + subtitle
