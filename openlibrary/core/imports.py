@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 
 class Batch(web.storage):
     @staticmethod
-    def find(name, create=False):
+    def find(name: str, create: bool = False) -> "Batch":  # type: ignore[return]
         result = db.query("SELECT * FROM import_batch where name=$name", vars=locals())
         if result:
             return Batch(result[0])
@@ -40,8 +40,8 @@ class Batch(web.storage):
             return Batch.new(name)
 
     @staticmethod
-    def new(name):
-        db.insert("import_batch", name=name)
+    def new(name: str, submitter: str | None = None) -> "Batch":
+        db.insert("import_batch", name=name, submitter=submitter)
         return Batch.find(name=name)
 
     def load_items(self, filename):
@@ -82,12 +82,15 @@ class Batch(web.storage):
                         if item.get('data')
                         else None
                     ),
+                    'submitter': (
+                        item.get('submitter') if item.get('submitter') else None
+                    ),
                 }
             )
             for item in items
         ]
 
-    def add_items(self, items: list[str] | list[dict]) -> None:
+    def add_items(self, items: list[str] | list[dict]) -> str | None:
         """
         :param items: either a list of `ia_id`  (legacy) or a list of dicts
             containing keys `ia_id` and book `data`. In the case of
@@ -95,7 +98,7 @@ class Batch(web.storage):
             i.e. of a format id_type:value which cannot be a valid IA id.
         """
         if not items:
-            return
+            return None
 
         logger.info("batch %s: adding %d items", self.name, len(items))
 
@@ -113,7 +116,7 @@ class Batch(web.storage):
 
             logger.info("batch %s: added %d items", self.name, len(items))
 
-        return
+        return f"batch {self.name}: added {len(items)}"
 
     def get_items(self, status="pending"):
         result = db.where("import_item", batch_id=self.id, status=status)
