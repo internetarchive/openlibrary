@@ -30,10 +30,9 @@ ignore_errors = true
 asyncio_mode = "strict"
 
 [tool.ruff]
-exclude = [
+extend-exclude = [
   "./.*",
-  "node_modules/*",
-  "vendor/*",
+  "vendor",
 ]
 ignore = [
   "B007",
