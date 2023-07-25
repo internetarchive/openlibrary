@@ -39,7 +39,7 @@ $else:
   <div class="pager">
     $:macros.Pager(page, total[mode], results_per_page=25)
   </div>
-  <div class="librarian-queue-wrapper">
+  <div class="librarian-queue-wrapper" data-username="$username">
     <div class="table-header">
       <a class="$(mode=='open' and 'selected' or '') mode-open" href="$changequery(mode='open', page=None)">$total['open'] $_('Open')</a>
       <a class="$(mode=='closed' and 'selected' or '') mode-closed" href="$changequery(mode='closed', page=None)">$total['closed'] $_('Closed')</a>
@@ -109,7 +109,7 @@ $else:
       </div>
     </div>
 
-    <table class="mr-table" data-username="$username">
+    <table class="mr-table">
       <tbody>
       $if not merge_requests:
         $# XXX : mr-table-row class?

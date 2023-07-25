@@ -5,8 +5,8 @@
  * @module merge-request-table/LibrarianQueue
  */
 
-import Table from './Table'
-import TableHeader from './TableHeader'
+import TableHeader from './LibrarianQueue/TableHeader'
+import TableRow from './LibrarianQueue/TableRow'
 
 /**
  * Class representing the librarian request table.
@@ -21,14 +21,38 @@ export default class LibrarianQueue {
      * @param {HTMLElement} librarianRequestTable
      */
     constructor(librarianRequestTable) {
-        this.table = new Table(librarianRequestTable.querySelector('.mr-table'))
+        /**
+         * The `username` of the authenticated patron, or '' if logged out.
+         *
+         * @param {string}
+         */
+        this.username = librarianRequestTable.dataset.username
 
+        /**
+         * Reference to this table's header.
+         *
+         * @param {HTMLElement}
+         */
         this.tableHeader = new TableHeader(librarianRequestTable.querySelector('.table-header'))
+
+        /**
+         * References to each row in the table.
+         *
+         * @param {Array<TableRow>}
+         */
+        this.tableRows = []
+        const rowElements = librarianRequestTable.querySelectorAll('.mr-table-row')
+        for (const elem of rowElements) {
+            this.tableRows.push(new TableRow(elem, this.username))
+        }
     }
 
+    /**
+     * Hydrates the librarian request table.
+     */
     initialize() {
-        this.table.initialize()
         this.tableHeader.initialize()
         document.addEventListener('click', (event) => this.tableHeader.closeMenusIfClickOutside(event))
+        this.tableRows.forEach(elem => elem.initialize())
     }
 }

@@ -473,35 +473,11 @@ jQuery(function () {
     // Add functionality for librarian merge request table:
     const librarianQueue = document.querySelector('.librarian-queue-wrapper')
 
-    // Legacy:
-    const mergeRequestCloseLinks = document.querySelectorAll('.mr-close-link')
-    const mergeRequestResolveLinks = document.querySelectorAll('.mr-resolve-link')
-    const mergeRequestCommentButtons = document.querySelectorAll('.mr-comment-btn')
-    const showCommentsLinks = document.querySelectorAll('.comment-expand')
-    const unassignElements = document.querySelectorAll('.mr-unassign')
-
-    if (librarianQueue || mergeRequestCloseLinks.length || mergeRequestCommentButtons.length || showCommentsLinks.length || mergeRequestResolveLinks.length ||
-        unassignElements.length) {
+    if (librarianQueue) {
         import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
             .then(module => {
                 if (librarianQueue) {
                     module.initLibrarianQueue(librarianQueue)
-                }
-                // Legacy initializations:
-                if (mergeRequestCloseLinks.length) {
-                    module.initCloseLinks(mergeRequestCloseLinks)
-                }
-                if (mergeRequestCommentButtons.length) {
-                    module.initCommenting(mergeRequestCommentButtons)
-                }
-                if (showCommentsLinks.length) {
-                    module.initShowAllCommentsLinks(showCommentsLinks)
-                }
-                if (mergeRequestResolveLinks.length) {
-                    module.initRequestClaiming(mergeRequestResolveLinks)
-                }
-                if (unassignElements.length) {
-                    module.initUnassignment(unassignElements)
                 }
             })
     }
