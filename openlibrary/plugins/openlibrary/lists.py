@@ -7,7 +7,7 @@ from typing import TypedDict
 import web
 
 from infogami.utils import delegate
-from infogami.utils.view import render_template, public, require_login
+from infogami.utils.view import render_template, public
 from infogami.infobase import client, common
 
 from openlibrary.accounts import get_current_user
@@ -220,10 +220,10 @@ class lists(delegate.page):
 
 
 class lists_edit(delegate.page):
-    path = r"(/people/[^/]+/lists/OL\d+L)/edit"
+    path = r"(/people/[^/]+)(/lists/OL\d+L)/edit"
 
-    @require_login
-    def GET(self, key: str):  # type: ignore[override]
+    def GET(self, user_key: str, list_key: str):  # type: ignore[override]
+        key = user_key + list_key
         if not web.ctx.site.can_write(key):
             return render_template(
                 "permission_denied",
@@ -236,8 +236,11 @@ class lists_edit(delegate.page):
             raise web.notfound()
         return render_template("type/list/edit", lst, edit=True)
 
-    @require_login
-    def POST(self, key: str | None = None):  # type: ignore[override]
+    def POST(self, user_key: str, list_key: str | None = None):  # type: ignore[override]
+        key = user_key
+        if list_key:
+            key += list_key
+
         if not web.ctx.site.can_write(key):
             return render_template(
                 "permission_denied",
@@ -247,27 +250,33 @@ class lists_edit(delegate.page):
 
         list_record = ListRecord.from_input()
         if not list_record.name:
-            raise web.badrequest()
+            raise web.badrequest('A list name is required.')
 
-        user = get_current_user()
-        if not user:
-            raise web.seeother("/account/login?redirect=/lists/add")
-
-        if key is None:
+        # Creating a new list
+        if not list_key:
             list_num = web.ctx.site.seq.next_value("list")
-            list_record.key = f"{user.key}/lists/OL{list_num}L"
+            list_key = f"/lists/OL{list_num}L"
+            list_record.key = user_key + list_key
 
         web.ctx.site.save(list_record.to_thing_json(), action="lists")
         return safe_seeother(list_record.key)
 
 
-class lists_add(lists_edit):
-    path = r"/lists/add"
+class lists_add(delegate.page):
+    path = r"(/people/[^/]+)/lists/add"
 
-    @require_login
-    def GET(self):
+    def GET(self, user_key: str):  # type: ignore[override]
+        if not web.ctx.site.can_write(user_key):
+            return render_template(
+                "permission_denied",
+                web.ctx.fullpath,
+                f"Permission denied to edit {user_key}.",
+            )
         list_record = ListRecord.from_input()
         return render_template("type/list/edit", list_record, edit=False)
+
+    def POST(self, user_key: str):  # type: ignore[override]
+        return lists_edit().POST(user_key, None)
 
 
 class lists_delete(delegate.page):
