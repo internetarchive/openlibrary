@@ -609,14 +609,14 @@ class work_delete(delegate.page):
             if len(keys) == limit:
                 if not i.bulk:
                     raise web.HTTPError(
-                    '400 Bad Request',
-                    data=json.dumps(
-                        {
-                            'error': f'API can only delete {limit} editions per work.',
-                        }
-                    ),
-                    headers={"Content-Type": "application/json"},
-                )
+                        '400 Bad Request',
+                        data=json.dumps(
+                            {
+                                'error': f'API can only delete {limit} editions per work.',
+                            }
+                        ),
+                        headers={"Content-Type": "application/json"},
+                    )
                 else:
                     offset += limit
             else:
