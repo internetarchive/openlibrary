@@ -13,6 +13,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    PositiveInt,
     RootModel,
     StringConstraints,
     ValidationError,
@@ -118,7 +119,7 @@ class Book(BaseModel):
     )
     location: Optional[NonEmptyList[NonEmptyStr]] = None
     publish_places: Optional[NonEmptyList[NonEmptyStr]] = None
-    number_of_pages: Optional[float] = None
+    number_of_pages: Optional[PositiveInt] = None
     pagination: Optional[str] = None
     by_statement: Optional[str] = None
     description: Optional[str] = None
