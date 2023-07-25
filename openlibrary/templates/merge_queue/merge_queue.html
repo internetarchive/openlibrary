@@ -53,7 +53,7 @@ $else:
           <input type="text" class="filter" placeholder="$_('Filter submitters')" id="submitter-filter">
           $ submitted_by_me_href = changequery(submitter=username, page=None) if submitter != username else changequery(submitter=None,page=None)
           <a href="$submitted_by_me_href" class="dropdown-item">
-            <span class="$('' if submitter==username else 'invisible') item-checked">✓</span>
+            <span class="$('' if username and submitter==username else 'invisible') item-checked">✓</span>
             <span><b>$_('Submitted by me')</b></span>
           </a>
         $for s in librarians['submitters']:
@@ -108,99 +108,88 @@ $else:
         </div>
       </div>
     </div>
-    <table class="mr-table">
+
+    <table class="mr-table" data-username="$username">
       <tbody>
       $if not merge_requests:
+        $# XXX : mr-table-row class?
         <tr>
           <td colspan="5">$_('No entries here!')</td>
         </tr>
       $for r in merge_requests:
-        $ work_title = r.get('title', 'an untitled work')
+        $ request_title = r.get('title', _('An untitled work') if r['mr_type'] != 2 else _('An unnamed author'))
         $ comments = r.get('comments', {}).get('comments', [])
-        $ status = get_status_for_view(r['status'])
         $ is_open = r['status'] == 1
         $ review_url = "%s&mrid=%s" % (r['url'], r['id'])
         $ is_submitter = username == r['submitter']
-        $ type_str = _('Author') if r['mr_type'] == 2 else _('Work')
-        <tr class="mr-table-row" id="mrid-$(r['id'])">
+
+        <tr id="mrid-$(r['id'])" class="mr-table-row" data-mrid="$(r['id'])">
           <td class="mr-info">
-            $# XXX : does this need to be wrapped?
-            <div class="dot-wrapper">
-              $if is_open:
-                <div class="dot--open"></div>
-              $else:
-                <div class="dot--closed"></div>
-            </div>
-            $# XXX: id
-            <div id="comment-cell-$(r['id'])" class="comment-cell">
-              $:_('<span class="book-title">%(title)s</span>', title=work_title, type=type_str)
-              <div id="latest-comment-$r['id']" class="comment-cell__newest-comment">
-                $if comments:
-                  <div class="mr-latest-comment">
-                    <div class="mr-latest-comment__body">
-                      $comments[-1]['message']
-                    </div>
-                  </div>
-                $else:
-                  <span>$_('No comments yet.')</span>
+            $# Start : Status dot indicator
+            $ dot_status = 'dot--open' if is_open else 'dot--closed'
+            <div class="dot $dot_status"></div>
+            $# End : Status dot indicator
+
+            <div class="mr-details">
+              $:_('<span class="mr-details__request-title">%(title)s</span>', title=request_title)
+
+              $# Start : Most recent comment preview
+              <div class="mr-details__comment-preview">
+                $ latest_comment = comments[-1]['message'] if comments else _('No comments yet.')
+                $latest_comment
               </div>
-              <div id="hidden-comments-$r['id']" class="comment-cell__old-comments hidden">
-                <div id="old-comments-section-$r['id']" class="comment-cell__old-comments-section">
+              $# End : Most recent comment preview
+
+              $# Start : Comment section
+              $# XXX : Replace this with a modal form
+              <div class="comment-panel hidden">
+                <div class="comment-panel__comment-display">
                   $for c in comments:
-                    <div class="mr-comment__body"><span>@$c['username']</span> $c['message']</div>
+                    <div class="comment-panel__comment"><span class="commenter">@$c['username']</span> $c['message']</div>
                 </div>
                 $if is_submitter or can_merge:
-                  <div class="comment-cell__input">
-                    <!-- this is hidden from display and screen readers -->
-                    <textarea rows="1" placeholder="$_('Add a comment...')"></textarea>
-                    <input class="mr-comment-btn" type="button" value="REPLY" data-mrid="$r['id']" data-merge-type="$r['mr_type']" data-username="$username">
+                  <div class="comment-panel__input">
+                    $# XXX: Ensure that this has a drag handle
+                    <textarea class="comment-panel__reply-input" rows="1" placeholder="$_('Add a comment...')"></textarea>
+                    <input class="comment-panel__reply-btn" type="button" value="$_('Reply')">
                   </div>
               </div>
-              <span class="mr-opened">
-                $:_('MR #%(id)s opened %(date)s by @%(submitter)s', id=r['id'], date=datestr(r["created"]), submitter=r["submitter"])
-                $if is_open and is_submitter:
-                  <a class="mr-close-link" title="Click to close this Merge Request" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">&times;</a>
-              </span>
-            </div>
-          </td>
-          <td class="review-cell">
-            $# XXX : Rename class
-            <div id="reviewer-cell-$(r['id'])" class="review-cell__unassign">
+              $# End : Comment section
 
-              $# XXX: Fix logic here --- Fix inconsistent structure
-              $if can_merge and is_open and r.get('reviewer'):
-                $r['reviewer'] <span class="mr-unassign" data-mrid="$r['id']" data-merge-type="$r['mr_type']">&times;</span>
-              $if not is_open:
-                $if r.get('reviewer'):
-                  <img class="review-cell__check" src="/static/images/icons/icon_check.png"><span class="reviewer">@$r['reviewer']</span>
-            </div>
-            <div class="reviewer-btn">
-              $if is_open and can_merge:
-                $ show_link = not r.get('reviewer') or r.get('reviewer') == username
-                $ extra_classes = '' if show_link else ' hidden'
-                $# XXX: id
-                <button id="mr-resolve-btn-$r['id']" class="review-cell__review">
-                  $# XXX: anchor cannot be child of button --- remove strong tag
-                  <strong>
-                    <a class="mr-resolve-link" id="mr-resolve-link-$r['id']" data-mrid="$r['id']" data-merge-type="$r['mr_type']" data-url="$review_url" href="$review_url" target="_blank"><span class="white">$_('Review')</span></a>
-                  </strong>
-                </button>
+              $# Start : Submitted by line
+              <span class="mr-details__opened-by">
+                $:_('MR #%(id)s opened %(date)s by <span class="commenter">@%(submitter)s</span>', id=r['id'], date=datestr(r["created"]), submitter=r["submitter"])
+                $if is_open and is_submitter:
+                  <a class="mr-close-link" title="$_('Click to close this Merge Request')" href="javascript:;">&times;</a>
+              </span>
+              $# End : Submitted by line
             </div>
           </td>
-          <td class="mr-comment-review-cell">
-            $# XXX: id is not unique
-            <button id="mr-comment-btn" class="mr-comment-review-cell__comments mr-comment-btn-$r['id']">
-              $# XXX: anchor cannot be child of button
-              <a href="javascript:;" class="comment-expand"
-              data-hidden-comments="hidden-comments-$r['id']"
-              data-latest-comment="latest-comment-$r['id']"
-              data-btn-comments="mr-comment-btn-$r['id']"
-              data-old-comments="old-comments-section-$r['id']">
-                <span class="comment-count-$r['id']">$len(comments)</span>
-                $# XXX: Replace image with emoji
-                <img class="mr-comment-review-cell__speech" src="/static/images/speech-bubble.png" alt="">
-              </a>
-            </button>
+          <td class="mr-review-actions">
+            $ show_review_button = is_open and can_merge and not r.get('reviewer', '')
+            <div class="mr-review-actions__assignee $('hidden' if show_review_button else '')">
+              $ request_reviewer = r.get('reviewer', '')
+              $if request_reviewer:
+                $ request_reviewer = '@' + request_reviewer
+              $if is_open:
+                $ icon_classes = 'mr-review-actions__unassign'
+                $if not can_merge:
+                  $ icon_classes = '%s hidden' % icon_classes
+                $ icon_content = '&times;'
+              $else:
+                $ icon_classes = 'mr-review-actions__checkmark'
+                $ icon_content = '✓'
+
+              <span class="mr-review-actions__assignee-name">$request_reviewer</span>
+              <span class="$icon_classes">$:icon_content</span>
+            </div>
+            <a href="$review_url" target="_blank" class="cta-btn mr-review-actions__review-btn $('' if show_review_button else 'hidden')">$_('Review')</a>
+          </td>
+          <td class="mr-comment-toggle">
+            <a href="javascript:;" class="mr-comment-toggle__comment-expand cta-btn">
+              <span class="mr-comment-toggle__comment-count">$len(comments)</span>
+              <img class="mr-comment-review-cell__speech mr-comment-toggle__speech-bubble" src="/static/images/speech-bubble.svg" alt="">
+            </a>
           </td>
         </tr>
       </tbody>
