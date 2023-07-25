@@ -113,7 +113,7 @@ class Book(BaseModel):
     subtitle: Optional[str] = None
     source_records: NonEmptyList[NonEmptyStr]
     publishers: NonEmptyList[NonEmptyStr]
-    authors: list[Author]
+    authors: NonEmptyList[Author]
     publish_date: NonEmptyStr = Field(
         ..., examples=['1992', 'December 1992', '12 January 2002']
     )
