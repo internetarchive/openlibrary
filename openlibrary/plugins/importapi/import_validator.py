@@ -5,27 +5,27 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TypeVar, Optional, Any
+from typing import Annotated, Any, Optional, TypeVar
+
 from annotated_types import MinLen
 from pydantic import (
-    ConfigDict,
-    BaseModel,
-    Field,
-    constr,
-    RootModel,
-    ValidationError,
     AnyHttpUrl,
+    BaseModel,
+    ConfigDict,
+    Field,
+    RootModel,
+    StringConstraints,
+    ValidationError,
 )
-from typing import Annotated
 
 T = TypeVar("T")
 
 NonEmptyList = Annotated[list[T], MinLen(1)]
-NonEmptyStr = Annotated[str, MinLen(1)]
+NonEmptyStr = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 
 
 class PublishCountry(RootModel):
-    root: constr(pattern=r'^[a-z]{2,3}$') = Field(  # type: ignore
+    root: Annotated[str, StringConstraints(pattern=r'^[a-z]{2,3}$')] = Field(
         ...,
         description='The MARC21 country code. See https://www.loc.gov/marc/countries/cou_home.html',
         examples=['enk', 'gw', 'flu'],
@@ -33,7 +33,7 @@ class PublishCountry(RootModel):
 
 
 class LanguageCode(RootModel):
-    root: constr(pattern=r'^[a-z]{3}$') = Field(  # type: ignore
+    root: Annotated[str, StringConstraints(pattern=r'^[a-z]{3}$')] = Field(
         ...,
         description='The MARC21 language code. See https://www.loc.gov/marc/languages/language_code.html',
         examples=['eng', 'fre', 'ger', 'tha'],
@@ -41,21 +41,21 @@ class LanguageCode(RootModel):
 
 
 class Isbn10(RootModel):
-    root: constr(pattern=r'^([0-9][- ]*){9}[0-9X]$')  # type: ignore
+    root: Annotated[str, StringConstraints(pattern=r'^([0-9][- ]*){9}[0-9X]$')]
 
 
 class Isbn13(RootModel):
-    root: constr(pattern=r'^([0-9][- ]*){13}$')  # type: ignore
+    root: Annotated[str, StringConstraints(pattern=r'^([0-9][- ]*){13}$')]
 
 
 class WorkKey(RootModel):
-    root: constr(pattern=r'^/works/OL[0-9]+W$')  # type: ignore
+    root: Annotated[str, StringConstraints(pattern=r'^/works/OL[0-9]+W$')]
 
 
 class Language(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    key: constr(pattern=r'^/languages/[a-z]{3}$') = Field(  # type: ignore
+    key: Annotated[str, StringConstraints(pattern=r'^/languages/[a-z]{3}$')] = Field(
         ..., examples=['/languages/eng', '/languages/ger']
     )
 
@@ -108,12 +108,12 @@ class Author(BaseModel):
 class Book(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    title: str
+    title: NonEmptyStr
     subtitle: Optional[str] = None
     source_records: NonEmptyList[NonEmptyStr]
     publishers: NonEmptyList[NonEmptyStr]
     authors: list[Author]
-    publish_date: str = Field(
+    publish_date: NonEmptyStr = Field(
         ..., examples=['1992', 'December 1992', '12 January 2002']
     )
     location: Optional[NonEmptyList[NonEmptyStr]] = None
@@ -153,8 +153,11 @@ class Book(BaseModel):
     weight: Optional[str] = Field(
         None, examples=['300 grams', '0.3 kilos', '12 ounces', '1 pounds']
     )
-    identifiers: Optional[  # type: ignore
-        dict[constr(pattern=r'^\w+'), NonEmptyList[NonEmptyStr]]
+    identifiers: Optional[
+        dict[
+            Annotated[str, StringConstraints(pattern=r'^\w+')],
+            NonEmptyList[NonEmptyStr],
+        ]
     ] = Field(
         None,
         description='Unique identifiers used by external sites to identify a book. Used by Open Library to link offsite.',
