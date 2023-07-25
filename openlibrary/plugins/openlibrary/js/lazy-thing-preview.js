@@ -72,6 +72,7 @@ export class LazyThingPreview {
             const resp = await fetch(`/search.json?${new URLSearchParams({
                 q: `key:(${workKeys.join(' OR ')})`,
                 fields,
+                limit: '100',
             })}`).then(r => r.json());
             docs = docs.concat(resp.docs);
         }
@@ -81,6 +82,7 @@ export class LazyThingPreview {
                     .map(key => key.split('/').pop())
                     .join(' OR ')})`,
                 fields,
+                limit: '100',
             })}`).then(r => r.json());
             docs = docs.concat(resp.docs);
         }
@@ -88,6 +90,7 @@ export class LazyThingPreview {
             const resp = await fetch(`/search/authors.json?${new URLSearchParams({
                 q: `key:(${authorKeys.join(' OR ')})`,
                 fields: 'key,type,name,top_work,top_subjects,birth_date,death_date',
+                limit: '100',
             })}`).then(r => r.json());
             for (const doc of resp.docs) {
                 // This API returns keys without the /authors/ prefix 😭
@@ -122,7 +125,9 @@ export class LazyThingPreview {
         console.warn('Books missing from cache', missingKeys);
 
         for (const {key, render_fn} of this.queue) {
-            this.renderKey(key, render_fn, this.cache[key]);
+            if (this.cache[key]) {
+                this.renderKey(key, render_fn, this.cache[key]);
+            }
         }
         this.queue = [];
     }
