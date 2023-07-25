@@ -594,30 +594,21 @@ class work_delete(delegate.page):
         i = web.input(bulk=False)
         limit = 1_000  # This is the max limit of the things function
         all_keys: list = []
+        offset = 0
 
-        if i.bulk:
-            offset = 0
-
-            while True:
-                keys: list = web.ctx.site.things(
-                    {
-                        "type": "/type/edition",
-                        "works": work.key,
-                        "limit": limit,
-                        "offset": offset,
-                    }
-                )
-                all_keys.extend(keys)
-                if len(keys) == limit:
-                    offset += limit
-                else:
-                    break
-        else:
-            all_keys = web.ctx.site.things(
-                {"type": "/type/edition", "works": work.key, "limit": limit}
+        while True:
+            keys: list = web.ctx.site.things(
+                {
+                    "type": "/type/edition",
+                    "works": work.key,
+                    "limit": limit,
+                    "offset": offset,
+                }
             )
-            if len(all_keys) == limit:
-                raise web.HTTPError(
+            all_keys.extend(keys)
+            if len(keys) == limit:
+                if not i.bulk:
+                    raise web.HTTPError(
                     '400 Bad Request',
                     data=json.dumps(
                         {
@@ -626,6 +617,11 @@ class work_delete(delegate.page):
                     ),
                     headers={"Content-Type": "application/json"},
                 )
+                else:
+                    offset += limit
+            else:
+                break
+
         return web.ctx.site.get_many(all_keys, raw=True)
 
     def POST(self, work_id: str):
