@@ -6,7 +6,7 @@
  */
 
 import TableHeader from './LibrarianQueue/TableHeader'
-import TableRow from './LibrarianQueue/TableRow'
+import { setI18nStrings, TableRow } from './LibrarianQueue/TableRow'
 
 /**
  * Class representing the librarian request table.
@@ -27,6 +27,9 @@ export default class LibrarianQueue {
          * @param {string}
          */
         this.username = librarianRequestTable.dataset.username
+
+        const localizedStrings = JSON.parse(librarianRequestTable.dataset.i18n)
+        setI18nStrings(localizedStrings)
 
         /**
          * Reference to this table's header.

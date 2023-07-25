@@ -7,6 +7,12 @@
 import { claimRequest, commentOnRequest, declineRequest, unassignRequest } from '../MergeRequestService'
 import { FadingToast } from '../../Toast'
 
+let i18nStrings;
+
+export function setI18nStrings(localizedStrings) {
+    i18nStrings = localizedStrings;
+}
+
 /**
  * Represents a row in the librarian request table.
  *
@@ -19,7 +25,7 @@ import { FadingToast } from '../../Toast'
  *
  * @class
  */
-export default class TableRow {
+export class TableRow {
     /**
      * Creates a new librarian request table row.
      *
@@ -153,10 +159,6 @@ export default class TableRow {
 
         // Add depressed effect to toggle button:
         this.toggleCommentButton.classList.toggle('mr-comment-toggle__comment-expand--active');
-
-        // Scroll to bottom of clamped comment display:
-        // XXX : Maybe this should only happen when a comment is added?
-        this.commentsDisplay.scrollTop = this.commentsDisplay.scrollHeight
     }
 
     /**
@@ -164,8 +166,7 @@ export default class TableRow {
      * row from the DOM.
      */
     async closeRequest() {
-        // XXX : i18n strings
-        const comment = prompt('(Optional) Why are you closing this request?')
+        const comment = prompt(i18nStrings['close_request_comment_prompt'])
         if (comment !== null) {  // Comment will be `null` if "Cancel" button pressed
             await declineRequest(this.mrid, comment)
                 .then(result => result.json())
@@ -196,7 +197,7 @@ export default class TableRow {
                         this.updateCommentViews(comment)
                         this.commentReplyInput.value = ''
                     } else {
-                        new FadingToast('Failed to submit comment. Please try again in a few moments.').show()
+                        new FadingToast(i18nStrings['comment_submission_failure_message']).show()
                     }
                 })
                 .catch(e => {

@@ -4,6 +4,11 @@ $# total : dict : {"open": int, "closed": int}; The total number of merge reques
 $# librarians : dict : {"submitters": list[str], "reviewers": list[str]}
 $# merge_requests : list : Merge requests to be displayed in the table
 
+$ i18n_strings = {
+  $ 'comment_submission_failure_message': _('Failed to submit comment. Please try again in a few moments.'),
+  $ 'close_request_comment_prompt': _('(Optional) Why are you closing this request?')
+  $ }
+
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ can_merge = ctx.user and (ctx.user.is_usergroup_member('/usergroup/super-librarians'))
 
@@ -39,7 +44,7 @@ $else:
   <div class="pager">
     $:macros.Pager(page, total[mode], results_per_page=25)
   </div>
-  <div class="librarian-queue-wrapper" data-username="$username">
+  <div class="librarian-queue-wrapper" data-username="$username" data-i18n="$json_encode(i18n_strings)">
     <div class="table-header">
       <a class="$(mode=='open' and 'selected' or '') mode-open" href="$changequery(mode='open', page=None)">$total['open'] $_('Open')</a>
       <a class="$(mode=='closed' and 'selected' or '') mode-closed" href="$changequery(mode='closed', page=None)">$total['closed'] $_('Closed')</a>
@@ -112,7 +117,6 @@ $else:
     <table class="mr-table">
       <tbody>
       $if not merge_requests:
-        $# XXX : mr-table-row class?
         <tr>
           <td colspan="5">$_('No entries here!')</td>
         </tr>
