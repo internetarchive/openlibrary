@@ -14,7 +14,6 @@ def test_create_an_author_with_no_name():
 valid_values = {
     "title": "Beowulf",
     "source_records": ["key:value"],
-    "author": {"name": "Tom Robbins"},
     "authors": [{"name": "Tom Robbins"}, {"name": "Dean Koontz"}],
     "publishers": ["Harper Collins", "OpenStax"],
     "publish_date": "December 2018",
