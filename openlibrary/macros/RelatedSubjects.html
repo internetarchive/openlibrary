@@ -13,7 +13,6 @@ $ subject_filters = subjects.split('+')
     </div>
     <div id="related-subjects-carousel">
         $ query_string = get_related_subjects_query()
-        $query_string
         $:macros.QueryCarousel(query=query_string, title=_("You might also like"), key="related-subjects-carousel")
     </div>
 </body>
