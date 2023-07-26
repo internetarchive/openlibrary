@@ -488,7 +488,7 @@ def find_exact_match(rec, edition_pool):
     :return: edition key
     """
     seen = set()
-    for field, editions in edition_pool.items():
+    for editions in edition_pool.values():
         for ekey in editions:
             if ekey in seen:
                 continue
@@ -882,8 +882,8 @@ def load(rec, account_key=None):
     # We have an edition match at this point
     need_work_save = need_edition_save = False
     # w = None
-    w: "Work"
-    e: "Edition" = web.ctx.site.get(match)
+    w: Work
+    e: Edition = web.ctx.site.get(match)
     # check for, and resolve, author redirects
     for a in e.authors:
         while is_redirect(a):

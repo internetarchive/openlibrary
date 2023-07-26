@@ -325,7 +325,7 @@ class SolrProcessor:
                 if 'ia_box_id' in e and isinstance(e['ia_box_id'], str):
                     e['ia_box_id'] = [e['ia_box_id']]
                 if ia_meta_fields.get('boxid'):
-                    box_id = list(ia_meta_fields['boxid'])[0]
+                    box_id = next(iter(ia_meta_fields['boxid']))
                     e.setdefault('ia_box_id', [])
                     if box_id.lower() not in [x.lower() for x in e['ia_box_id']]:
                         e['ia_box_id'].append(box_id)

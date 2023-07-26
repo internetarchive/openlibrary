@@ -310,7 +310,7 @@ class Reindexer:
                 if table in all_tables:
                     data[table].append(doc['id'])
 
-        for table, thing_ids in data.items():
+        for table in data:
             self.db.delete(table, where="thing_id IN $thing_ids", vars=locals())
 
     def create_new_index(self, documents, tables=None):

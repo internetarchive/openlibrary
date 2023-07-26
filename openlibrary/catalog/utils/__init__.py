@@ -239,7 +239,7 @@ def strip_count(counts):
             (i, j)
         )
     ret = {}
-    for k, v in foo.items():
+    for v in foo.values():
         m = max(v, key=lambda x: len(x[1]))[0]
         bar = []
         for i, j in v:

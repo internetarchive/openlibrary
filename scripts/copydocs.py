@@ -127,7 +127,7 @@ def get_references(doc, result=None):
         if 'key' in doc and len(doc) == 1:
             result.append(doc['key'])
 
-        for k, v in doc.items():
+        for v in doc.values():
             get_references(v, result)
     return result
 

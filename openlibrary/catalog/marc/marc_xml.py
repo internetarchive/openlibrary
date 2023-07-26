@@ -81,7 +81,7 @@ class MarcXml(MarcBase):
     def read_fields(self, want: list[str]) -> Iterator[tuple[str, str | DataField]]:
         non_digit = False
         for f in self.record:
-            if f.tag != data_tag and f.tag != control_tag:
+            if f.tag not in {data_tag, control_tag}:
                 continue
             tag = f.attrib['tag']
             if tag == '':
