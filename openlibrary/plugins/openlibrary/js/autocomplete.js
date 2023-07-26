@@ -186,29 +186,31 @@ export default function($) {
             }
         }
 
+        function update_indices() {
+            container.find('.mia__input').each(function(index) {
+                $(this).find('.mia__index').each(function () {
+                    $(this).text($(this).text().replace(/\d+/, index + 1));
+                });
+                $(this).find('[name]').each(function() {
+                    // this won't behave nicely with nested numeric things, if that ever happens
+                    if ($(this).attr('name').match(/\d+/)?.length > 1) {
+                        throw new Error('nested numeric names not supported');
+                    }
+                    $(this).attr('name', $(this).attr('name').replace(/\d+/, index));
+                    if ($(this).attr('id')) {
+                        $(this).attr('id', $(this).attr('id').replace(/\d+/, index));
+                    }
+                });
+            });
+        }
+
         update_visible();
 
         if (ol_ac_opts.sortable) {
             container.sortable({
                 handle: '.mia__reorder',
                 items: '.mia__input',
-                update: function() {
-                    container.find('.mia__input').each(function(index) {
-                        $(this).find('.mia__index').each(function () {
-                            $(this).text($(this).text().replace(/\d+/, index + 1));
-                        });
-                        $(this).find('[name]').each(function() {
-                            // this won't behave nicely with nested numeric things, if that ever happens
-                            if ($(this).attr('name').match(/\d+/)?.length > 1) {
-                                throw new Error('nested numeric names not supported');
-                            }
-                            $(this).attr('name', $(this).attr('name').replace(/\d+/, index));
-                            if ($(this).attr('id')) {
-                                $(this).attr('id', $(this).attr('id').replace(/\d+/, index));
-                            }
-                        });
-                    });
-                }
+                update: update_indices,
             });
         }
 
@@ -216,6 +218,7 @@ export default function($) {
             if (allow_empty || container.find('.mia__input').length > 1) {
                 $(this).closest('.mia__input').remove();
                 update_visible();
+                update_indices();
             }
         });
 

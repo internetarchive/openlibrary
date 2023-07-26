@@ -258,7 +258,11 @@ class lists_edit(delegate.page):
             list_key = f"/lists/OL{list_num}L"
             list_record.key = user_key + list_key
 
-        web.ctx.site.save(list_record.to_thing_json(), action="lists")
+        web.ctx.site.save(
+            list_record.to_thing_json(),
+            action="lists",
+            comment=web.input(_comment="")._comment or None,
+        )
         return safe_seeother(list_record.key)
 
 
