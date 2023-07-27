@@ -94,11 +94,7 @@ class languages_autocomplete(delegate.page):
 
 class works_autocomplete(autocomplete):
     path = "/works/_autocomplete"
-    fq = [
-        'type:work',
-        # Exclude orphaned editions from search results
-        'key:*W',
-    ]
+    fq = ['type:work']
     fl = 'key,title,subtitle,cover_i,first_publish_year,author_name,edition_count'
     olid_suffix = 'W'
     query = 'title:"{q}"^2 OR title:({q}*)'
