@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Annotated, Any, Optional, TypeVar
+from typing import Annotated, Any, Optional, TypeVar, Literal
 
 from annotated_types import MinLen
 from pydantic import (
@@ -86,12 +86,6 @@ class Link(BaseModel):
     type: Optional[Type] = None
 
 
-class EntityType(Enum):
-    person = 'person'
-    org = 'org'
-    event = 'event'
-
-
 class Author(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -102,7 +96,7 @@ class Author(BaseModel):
     )
     birth_date: Optional[NonEmptyStr] = Field(None, examples=[])
     death_date: Optional[NonEmptyStr] = Field(None, examples=[])
-    entity_type: Optional[EntityType] = None
+    entity_type: Optional[Literal["person"]] = None
     title: Optional[NonEmptyStr] = Field(None, examples=["duc d'Otrante"])
 
 
