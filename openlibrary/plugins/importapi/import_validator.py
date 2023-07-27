@@ -117,7 +117,6 @@ class Book(BaseModel):
     publish_date: NonEmptyStr = Field(
         ..., examples=['1992', 'December 1992', '12 January 2002']
     )
-    location: Optional[NonEmptyList[NonEmptyStr]] = None
     publish_places: Optional[NonEmptyList[NonEmptyStr]] = None
     number_of_pages: Optional[PositiveInt] = None
     pagination: Optional[NonEmptyStr] = None

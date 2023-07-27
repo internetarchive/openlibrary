@@ -10,7 +10,6 @@ import_examples = [
         'number_of_pages': 444,
         'languages': ['eng'],
         'publish_date': '1921',
-        'location': ['GLAD'],
         'authors': [
             {
                 'birth_date': '1877',
