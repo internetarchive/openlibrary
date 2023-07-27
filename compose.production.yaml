@@ -7,11 +7,12 @@
 
 version: "3.8"
 services:
-  web:
-    profiles: ["ol-web1", "ol-web2"]
+  # Use YAML anchor (&) and alias (*) to provide different profiles and hostnames
+  web:  &web_configuration
+    profiles: ["ol-web1"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: unless-stopped
-    hostname: "$HOSTNAME"
+    hostname: "docker-ol-web1"
     environment:
       - GUNICORN_OPTS= --workers 50 --timeout 300 --max-requests 500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
@@ -20,6 +21,11 @@ services:
       - ../booklending_utils:/booklending_utils
       - ../olsystem:/olsystem
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
+
+  web2:
+    <<: *web_configuration
+    profiles: ["ol-web2"]
+    hostname: "docker-ol-web2"
 
   solr:
     profiles: ["ol-solr0"]
