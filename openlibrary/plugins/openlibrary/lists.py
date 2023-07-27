@@ -234,7 +234,7 @@ class lists_edit(delegate.page):
         lst = web.ctx.site.get(key)
         if lst is None:
             raise web.notfound()
-        return render_template("type/list/edit", lst, edit=True)
+        return render_template("type/list/edit", lst, new=False)
 
     def POST(self, user_key: str, list_key: str | None = None):  # type: ignore[override]
         key = user_key
@@ -277,7 +277,7 @@ class lists_add(delegate.page):
                 f"Permission denied to edit {user_key}.",
             )
         list_record = ListRecord.from_input()
-        return render_template("type/list/edit", list_record, edit=False)
+        return render_template("type/list/edit", list_record, new=True)
 
     def POST(self, user_key: str):  # type: ignore[override]
         return lists_edit().POST(user_key, None)

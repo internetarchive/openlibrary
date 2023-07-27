@@ -14,7 +14,7 @@ import debounce from 'lodash/debounce';
  * And then calls `$render_fn_name` with the response from search engine.
  * Bundles/dedupes requests throughout the page and does other smart things.
  * Someday: Only load if in viewport.
- * Currently only works with works/editions.
+ * Currently only works with works, editions, and authors.
  */
 export class LazyThingPreview {
     constructor() {

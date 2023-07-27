@@ -1,12 +1,12 @@
-$def with (lst, edit=False)
+$def with (lst, new=False)
 $putctx('cssfile', 'list-edit')
-$var title: $(_("Create a list") if not edit else _("Editing list: %(list_name)s", list_name=lst.name))
+$var title: $(_("Create a list") if new else _("Editing list: %(list_name)s", list_name=lst.name))
 
 $putctx("robots", "noindex,nofollow")
 
 <div id="contentHead">
     $:macros.databarEdit(lst)
-    <h1>$(_("Edit List") if edit else _("Create a list"))</h1>
+    <h1>$(_("Create a list") if new else _("Edit List"))</h1>
 </div>
 
 $# Render the ith seed input field
@@ -77,7 +77,7 @@ $jsdef lazy_thing_preview(key, render_fn_name):
 
 <div id="contentBody">
     <form method="post" id="list-edit" class="olform" $:cond(query_param('debug'), 'action="?debug=true"')>
-        $if edit:
+        $if not new:
             <input
                 required
                 type="hidden"
@@ -117,10 +117,10 @@ $jsdef lazy_thing_preview(key, render_fn_name):
         <hr />
 
         <div class="formElement bottom">
-            $if edit:
-                $:macros.EditButtons(comment=lst.comment_)
+            $if new:
+                <button type="submit" class="larger">$_('Create new list')</button>
             $else:
-            <button type="submit" class="larger">$_('Create new list')</button>
+                $:macros.EditButtons(comment=lst.comment_)
         </div>
     </form>
 </div>
