@@ -2,10 +2,7 @@
  * Defines functionality related to the My Books dropper's list affordances.
  * @module my-books/ReadingLists
  */
-import { fireDropperCloseEvent } from '../droppers'
-import { addItem, removeItem, createList } from '../lists/ListService'
-import { websafe } from '../jsdef'
-
+import { addItem, removeItem } from '../lists/ListService'
 
 const DEFAULT_COVER_URL = '/images/icons/avatar_book-sm.png'
 
@@ -19,32 +16,38 @@ export default class ReadingLists {
     /**
      * Adds functionality to the given dropper's list affordances.
      * @param {HTMLElement} dropper
+     * @param {Record<string, CallableFunction>} dropperActionCallbacks
      */
-    constructor(dropper) {
+    constructor(dropper, dropperActionCallbacks) {
         /**
-         * References the given My Books Dropper
-         * @param {HTMLElement}
+         * References the given My Books Dropper root element.
+         *
+         * @member {HTMLElement}
          */
         this.dropper = dropper
 
         /**
-         * References the "Create list" form's submission button.
-         * @param {HTMLElement}
+         * Contains references to the parent dropper's close and
+         * toggle functions.  These functions are bound to the
+         * parent dropper element.
+         *
+         * @member {Record<string, CallableFunction>}
          */
-        // XXX: Use class-based query here, and ensure that this ID is unique in template (or remove)
-        this.createListButton = dropper.querySelector('#create-list-button')
+        this.dropperActions = dropperActionCallbacks
 
         /**
          * References to each showcase item that can be removed by the patron.  Showcase items
          * can be found in a patron's "Already lists" list, or in the "Lists" section of the
          * books page.
-         * @param {NodeList<HTMLElement>}
+         *
+         * @member {NodeList<HTMLElement>}
          */
         this.showcaseItems = document.querySelectorAll('.actionable-item')
 
         /**
          * Reference to the "Use work" checkbox.
-         * @param {HTMLElement|null}
+         *
+         * @member {HTMLElement|null}
          */
         this.workCheckBox = dropper.querySelector('.work-checkbox')
         if (this.workCheckBox) {
@@ -54,26 +57,30 @@ export default class ReadingLists {
 
         /**
          * Reference to the "My Reading Lists" section of the dropdown content.
-         * @param {HTMLElement}
+         *
+         * @member {HTMLElement}
          */
         this.dropperListsElement = dropper.querySelector('.my-lists')
 
         /**
          * Key of the document that will be added to or removed from a list.
-         * @param {string}
+         *
+         * @member {string}
          */
         this.seedKey = this.dropperListsElement.dataset.seedKey
 
         /**
          * Key of the work associated with this dropper. Will be an empty
          * string if no work is associated.
-         * @param {string}
+         *
+         * @member {string}
          */
         this.workKey = this.dropperListsElement.dataset.workKey
 
         /**
          * The patron's user key.
-         * @param {string}
+         *
+         * @member {string}
          */
         this.userKey = this.dropperListsElement.dataset.userKey
 
@@ -91,7 +98,7 @@ export default class ReadingLists {
         /**
          * Maps list keys to objects containing more data about the list.
          *
-         * @type {Record<string, ActiveListData>}
+         * @member {Record<string, ActiveListData>}
          */
         this.patronLists = {}
     }
@@ -107,13 +114,6 @@ export default class ReadingLists {
 
         if (openListModalButton) {
             this.addOpenListModalClickListener(openListModalButton)
-
-            if (this.createListButton) {
-                this.createListButton.addEventListener('click', (event) => {
-                    event.preventDefault()
-                    this.createNewList()
-                })
-            }
         }
 
         if (this.workCheckBox) {
@@ -199,6 +199,7 @@ export default class ReadingLists {
     /**
      * Adds or removes a document to or from the list identified by the given key.
      *
+     * @async
      * @param {string} listKey Unique key for list
      * @param {boolean} isAddingItem `true` if an item is being added to a list
      */
@@ -250,7 +251,7 @@ export default class ReadingLists {
         }
 
         // Close dropper
-        fireDropperCloseEvent(this.patronLists[listKey].dropperListAffordance)
+        this.dropperActions.closeDropper()
     }
 
     /**
@@ -337,64 +338,22 @@ export default class ReadingLists {
             $.colorbox({
                 inline: true,
                 opacity: '0.5',
-                href: '#addList',
-                onClosed: this.clearCreateListForm
+                href: '#addList'
             })
         })
     }
 
     /**
-     * Clears the inpus of the "Create new list" modal form.
-     */
-    clearCreateListForm() {
-        document.querySelector('#list_label').value = ''
-        document.querySelector('#list_desc').value = ''
-    }
-
-    /**
-     * Creates a new list and updates the view.
-     */
-    async createNewList() {
-        const nameField = document.querySelector('#list_label')
-        const descriptionField = document.querySelector('#list_desc')
-
-        let seed;
-        if (this.workCheckBox && this.workCheckBox.checked) {
-            // seed is work key
-            seed = this.workKey
-        } else {
-            // seed is edition or author key
-            seed = this.seedKey
-        }
-
-        const listTitle = websafe(nameField.value)
-
-        // Make call to create list
-        const data = {
-            name: listTitle,
-            description: websafe(descriptionField.value),
-            seeds: [seed]
-        }
-
-        await createList(this.userKey, data)
-            .then(response => response.json())
-            .then((data) => {
-                this.onListCreationSuccess(data['key'], listTitle)
-            })
-
-        $.colorbox.close()
-    }
-
-    /**
-     * Updates patronLists record and adds the list to the showcase.
+     * Adds new entry to `patronLists` record and updates list dropdown.
      *
-     * Creates and hydrates an "Add to list" dropdown affordance, as well.
+     * Creates and hydrates an "Add to list" dropdown affordance.
      *
      * @param {string} listKey Unique identifier for the new list
      * @param {string} listTitle Title of the list
+     * @param {boolean} isActive `True` if this dropper's seed is on the list
      */
-    onListCreationSuccess(listKey, listTitle) {
-        const dropperListAffordance = this.createDropdownListAffordance(listKey, listTitle)
+    onListCreationSuccess(listKey, listTitle, isActive) {
+        const dropperListAffordance = this.createDropdownListAffordance(listKey, listTitle, isActive)
 
         this.patronLists[listKey] = {
             title: listTitle,
@@ -402,12 +361,14 @@ export default class ReadingLists {
             dropperListAffordance: dropperListAffordance
         }
 
-        if (this.workCheckBox && this.workCheckBox.checked) {
-            this.patronLists[listKey].itemOnList = false
-            this.patronLists[listKey].workOnList = true
-        } else {
-            this.patronLists[listKey].itemOnList = true
-            this.patronLists[listKey].workOnList = false
+        if (isActive) {
+            if (this.workCheckBox && this.workCheckBox.checked) {
+                this.patronLists[listKey].itemOnList = false
+                this.patronLists[listKey].workOnList = true
+            } else {
+                this.patronLists[listKey].itemOnList = true
+                this.patronLists[listKey].workOnList = false
+            }
         }
     }
 
@@ -416,14 +377,18 @@ export default class ReadingLists {
      *
      * @param {string} listKey Unique identifier for a list
      * @param {string} listTitle The list's title
+     * @param {boolean} isActive `true` if the seed is on this list
      * @returns {HTMLElement} Reference to the newly created element
      */
-    createDropdownListAffordance(listKey, listTitle) {
+    createDropdownListAffordance(listKey, listTitle, isActive) {
         const itemMarkUp = `<span class="check">✔️</span>
         <a href="${listKey}" class="modify-list dropper__close" data-list-cover-url="${DEFAULT_COVER_URL}" data-list-key="${listKey}">${listTitle}</a>
         `
         const p = document.createElement('p')
-        p.classList.add('list', 'list--active')
+        p.classList.add('list')
+        if (isActive) {
+            p.classList.add('list--active')
+        }
         p.innerHTML = itemMarkUp
         this.dropperListsElement.appendChild(p)
 
@@ -448,5 +413,19 @@ export default class ReadingLists {
         for (const elem of showcaseItemElements) {
             this.registerShowcaseItem(elem)
         }
+    }
+
+    /**
+     * Returns the seed of the object that can be added to this list.
+     *
+     * @returns {string} The seed key
+     */
+    getSeed() {
+        if (this.workCheckBox && this.workCheckBox.checked) {
+            // seed is the work key:
+            return this.workKey
+        }
+
+        return this.seedKey
     }
 }

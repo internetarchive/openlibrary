@@ -3,8 +3,6 @@
  * @module my-books/ReadingLogForms
  */
 
-import {fireDropperCloseEvent, fireDropperToggleEvent} from '../droppers';
-
 /**
  * Enum for reading log shelf values.
  * @readonly
@@ -40,34 +38,44 @@ export default class ReadingLogForms {
      *
      * @param {HTMLElement} dropper
      * @param {import('./ReadDateComponents')} readDateComponents
+     * @param {Record<string, CallableFunction>} dropperActionCallbacks
      */
-    constructor(dropper, readDateComponents) {
+    constructor(dropper, readDateComponents, dropperActionCallbacks) {
+        /**
+         * Contains references to the parent dropper's close and
+         * toggle functions.  These functions are bound to the
+         * parent dropper element.
+         *
+         * @member {Record<string, CallableFunction>}
+         */
+        this.dropperActions = dropperActionCallbacks
+
         /**
          * Reference to each reading log submit button.  This includes the
          * primary dropper button and the buttons in the dropdown.
          *
-         * @param {NodeList<HTMLElement>}
+         * @member {NodeList<HTMLElement>}
          */
         this.submitButtons = dropper.querySelectorAll('.reading-log button')
 
         /**
          * Reference to this dropper's primary form.
          *
-         * @param {HTMLFormElement}
+         * @member {HTMLFormElement}
          */
         this.primaryForm = null;
 
         /**
          * Reference to this dropper's primary button.
          *
-         * @param {HTMLButtonElement}
+         * @member {HTMLButtonElement}
          */
         this.primaryButton = null;
 
         /**
          * Reference to this dropper's "Remove from shelf" button.
          *
-         * @param {HTMLButtonElement}
+         * @member {HTMLButtonElement}
          */
         this.removeButton = null;
 
@@ -76,19 +84,19 @@ export default class ReadingLogForms {
                 this.primaryButton = button
                 this.primaryForm = button.closest('form')
             }
-            else if (button.classList.contains('remove-from-list')) {
+            else if (button.classList.contains('remove-from-list')) {  // XXX : Rename class `remove-from-shelf`?
                 this.removeButton = button
             }
         }
 
-        if (!this.primaryButton) {
+        if (!this.primaryButton) {  // This dropper only contains list affordances
             this.primaryButton = dropper.querySelector('.primary-action')
         }
 
         /**
          * Reference to the dropper's read date prompt and display components.
          *
-         * @param {import('./ReadDateComponents')}
+         * @member {import('./ReadDateComponents')}
          */
         this.readDateComponents = readDateComponents
 
@@ -109,12 +117,13 @@ export default class ReadingLogForms {
                         this.updateReadingLog(form)
 
                         // Close the dropper
-                        fireDropperCloseEvent(this.primaryForm)
+                        this.dropperActions.closeDropper()
                     })
                 }
             } else {
+                // Toggle the dropper when there is no "Reading Log" primary action:
                 this.primaryButton.addEventListener('click', () => {
-                    fireDropperToggleEvent(this.primaryButton)
+                    this.dropperActions.toggleDropper()
                 })
             }
         }
@@ -184,7 +193,7 @@ export default class ReadingLogForms {
                     this.updatePrimaryButtonText(newPrimaryButtonText)
                 })
         } else {
-            // Remove "saving..." message from button:
+            // Remove "saving..." message from button if shelf cannot be updated:
             this.updatePrimaryButtonText(newPrimaryButtonText)
         }
     }

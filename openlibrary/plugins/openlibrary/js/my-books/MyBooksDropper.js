@@ -2,17 +2,28 @@
  * Defines functionality related to Open Library's My Books dropper components.
  * @module my-books/MyBooksDropper
  */
+import myBooksStore from './store'
 import ReadDateComponents from './ReadDateComponents'
 import ReadingLists from './ReadingLists'
 import ReadingLogForms from './ReadingLogForms'
+import Dropper from '../dropper/Dropper'
 import { fetchPartials } from '../lists/ListService'
 
 /**
- * Represents a single My Books dropper.  Hydrates droppers on instantiation.
+ * Represents a single My Books Dropper.
  *
+ * The My Books Dropper component provides the patron with a number of actions
+ * that they can perform on a single book or author.
+ *
+ * At the very least, My Books droppers will contain affordances for managing one's
+ * lists. If the dropper is linked to a book, and the book has a work key, the dropper
+ * will contain affordances for reading log shelf and last read date management.
+ *
+ * @see `/openlibrary/templates/my_books/dropper.html` for base template of this component.
  * @class
+ * @augments Dropper
  */
-export default class MyBooksDropper {
+export default class MyBooksDropper extends Dropper {
     /**
      * Creates references to the given dropper's reading log forms, read date affordances, and
      * list affordances.
@@ -20,34 +31,42 @@ export default class MyBooksDropper {
      * @param {HTMLElement} dropper
      */
     constructor(dropper) {
-        /**
-         * Reference to the dropper itself.
-         * @param {HTMLElement}
-         */
-        this.dropper = dropper
+        super(dropper)
 
-        /**
-         * References this dropper's read date prompt and display.
-         * @param {ReadDateComponents}
-         */
-        this.readDateComponents = new ReadDateComponents(dropper)
-
-        /**
-         * References this dropper's reading log buttons.
-         * @param {ReadingLogForms}
-         */
-        this.readingLogForms = new ReadingLogForms(dropper, this.readDateComponents)
-        this.readingLogForms.initialize()
+        const dropperActionCallbacks = {
+            closeDropper: this.closeDropper.bind(this),
+            toggleDropper: this.toggleDropper.bind(this)
+        }
 
         /**
          * Reference to this dropper's list content.
-         * @param {ReadingLists}
+         * @member {ReadingLists}
          */
-        this.readingLists = new ReadingLists(dropper)
-        this.readingLists.initialize()
+        this.readingLists = new ReadingLists(dropper, dropperActionCallbacks)
+
+        /**
+         * References this dropper's reading log buttons.
+         * @member {ReadingLogForms}
+         */
+        this.readingLogForms = new ReadingLogForms(dropper, this.readDateComponents, dropperActionCallbacks)
+
+        /**
+         * References this dropper's read date prompt and display.
+         * @member {ReadDateComponents}
+         */
+        this.readDateComponents = new ReadDateComponents(dropper)
     }
 
+    /**
+     * Hydrates dropper contents and loads patron's lists.
+     */
     initialize() {
+        super.initialize()
+
+        this.readingLogForms.initialize()
+        this.readingLists.initialize()
+
+        // XXX : This is happening for every dropper?
         this.loadLists()
     }
 
@@ -139,6 +158,38 @@ export default class MyBooksDropper {
                     elem.removeChild(elem.firstChild)
                 }
             }
+        }
+    }
+
+    /**
+     * Closes dropper if opened; opens dropper if closed.
+     *
+     * If the dropper is open, the store is updated with
+     * a reference to the dropper and the seed identifier
+     * @override
+     */
+    toggleDropper() {
+        super.toggleDropper()
+
+        if (!this.isDropperDisabled && this.isOpen()) {
+            myBooksStore.set('OPEN_DROPPER', this)
+            myBooksStore.set('LIST_SEED', this.readingLists.getSeed())
+        }
+    }
+
+    /**
+     * Closes dropper and nullifies open dropper and list
+     * seed in the My Books data store.
+     *
+     * **Important Note** The data store is not updated when
+     * the dropper is closed by clicking outside of the dropper.
+     */
+    closeDropper() {
+        super.closeDropper()
+
+        if (!this.isDropperDisabled) {
+            myBooksStore.set('OPEN_DROPPER', null)
+            myBooksStore.set('LIST_SEED', null)
         }
     }
 }

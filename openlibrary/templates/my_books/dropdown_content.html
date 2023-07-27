@@ -10,10 +10,8 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
   <div class="read-statuses">
     <form class="reading-log" method="POST" action="$(work_key)/bookshelves.json">
       <input type="hidden" name="action" value="remove"/>
-      $# XXX: Is bookshelf_id needed for item removal?
       <input type="hidden" name="bookshelf_id" value="-1"/>
       <input type="hidden" name="default-key" value="$(seed_key)" />
-      $# XXX: Is edition_id needed for removal?
       $if edition_key:
         <input type="hidden" name="edition_id" value="$(edition_key)"/>
       <input type="hidden" name="work_id" value="$(work_key)"/>
@@ -80,7 +78,7 @@ $def new_list_modal_content():
         <h2>$_('Create a new list')</h2>
         <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
       </div>
-      <form method="post" class="floatform" name="new-list">
+      <form method="post" class="floatform" name="new-list" id="create-list-form">
         <div class="formElement">
           <div class="label">
             <label for="list_label">$_('Name:')</label>
