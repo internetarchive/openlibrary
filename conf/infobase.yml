@@ -20,8 +20,8 @@ cache:
     servers:
         - "memcached:11211"
 
-errorlog: /var/log/openlibrary/infobase-errors
-writelog: /var/lib/openlibrary/infobase-writelog
+errorlog: /var/log/openlibrary/infobase/errorlog
+writelog: /var/lib/openlibrary/infobase/writelog
 
 sentry:
     enabled: false
