@@ -38,7 +38,6 @@
       display: flex;
     }
     .mia__reorder {
-      flex: 1;
       text-align: left;
     }
 
@@ -51,6 +50,7 @@
         padding-bottom: 4px;
         border-bottom: 1px solid @light-mid-grey;
         margin-bottom: 4px;
+        justify-content: space-between;
       }
     }
 
@@ -58,7 +58,9 @@
       li.mia__input {
         flex-direction: row;
       }
-
+      .mia__reorder {
+        flex: 1;
+      }
       .seed--controls {
         flex-direction: column;
         padding-right: 4px;
