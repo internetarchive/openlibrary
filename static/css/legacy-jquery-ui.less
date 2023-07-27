@@ -23,8 +23,9 @@
 .ui-sortable-placeholder {
   border: 1px dotted @mid-grey;
   visibility: visible !important;
+  filter: brightness(.85);
   border-radius: 6px;
-  * {
+  *, &:before, &:after {
     visibility: hidden;
   }
 }

@@ -290,7 +290,9 @@ def unflatten(d: Storage, separator: str = "--") -> Storage:
             k, k2 = k.split(separator, 1)
             setvalue(data.setdefault(k, {}), k2, v)
         else:
-            data[k] = v
+            # Don't overwrite if the key already exists
+            if k not in data:
+                data[k] = v
 
     def makelist(d):
         """Convert d into a list if all the keys of d are integers."""
@@ -1076,6 +1078,11 @@ def _get_blog_feeds():
 _get_blog_feeds = cache.memcache_memoize(
     _get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=5 * 60
 )
+
+
+@public
+def is_jsdef():
+    return False
 
 
 @public
