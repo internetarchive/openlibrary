@@ -37,6 +37,10 @@ class autocomplete(delegate.page):
         if 'name' not in doc:
             doc['name'] = doc.get('title')
 
+    def doc_filter(self, doc: dict) -> bool:
+        """Exclude certain documents"""
+        return True
+
     def GET(self):
         return self.direct_get()
 
@@ -75,10 +79,13 @@ class autocomplete(delegate.page):
             if fake_doc:
                 docs = [fake_doc]
 
+        result_docs = []
         for d in docs:
-            self.doc_wrap(d)
+            if self.doc_filter(d):
+                self.doc_wrap(d)
+                result_docs.append(d)
 
-        return to_json(docs)
+        return to_json(result_docs)
 
 
 class languages_autocomplete(delegate.page):
@@ -94,14 +101,16 @@ class languages_autocomplete(delegate.page):
 
 class works_autocomplete(autocomplete):
     path = "/works/_autocomplete"
-    fq = [
-        'type:work',
-        # Exclude orphaned editions from search results
-        'key:*W',
-    ]
+    fq = ['type:work']
     fl = 'key,title,subtitle,cover_i,first_publish_year,author_name,edition_count'
     olid_suffix = 'W'
     query = 'title:"{q}"^2 OR title:({q}*)'
+
+    def doc_filter(self, doc: dict) -> bool:
+        # Exclude orphaned editions from autocomplete results
+        # Note: Do this here instead of with an `fq=key:*W` for performance
+        # reasons.
+        return doc['key'][-1] == 'W'
 
     def doc_wrap(self, doc: dict):
         doc['full_title'] = doc['title']
