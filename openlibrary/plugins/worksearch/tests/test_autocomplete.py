@@ -52,6 +52,11 @@ def test_works_autocomplete():
                     'type': 'work',
                     'title': 'Foo Baz',
                 },
+                {
+                    'key': '/works/OL789M',
+                    'type': 'work',
+                    'title': 'Foo Baz',
+                },
             ]
         }
         result = json.loads(ac.GET().rawtext)
