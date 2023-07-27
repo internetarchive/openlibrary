@@ -42,11 +42,11 @@ class LanguageCode(RootModel):
 
 
 class Isbn10(RootModel):
-    root: Annotated[str, StringConstraints(pattern=r'^([0-9][- ]*){9}[0-9X]$')]
+    root: Annotated[str, StringConstraints(pattern=r'^([0-9][- ]?){9}[0-9X]$')]
 
 
 class Isbn13(RootModel):
-    root: Annotated[str, StringConstraints(pattern=r'^([0-9][- ]*){13}$')]
+    root: Annotated[str, StringConstraints(pattern=r'^([0-9][- ]?){13}$')]
 
 
 class WorkKey(RootModel):
