@@ -16,11 +16,11 @@ tasks:
 - name: Start App
   before: |
     # run chown because https://github.com/gitpod-io/gitpod/issues/4851
-    sudo chown -R gitpod:999 /workspace/openlibrary
+    sudo chown -R gitpod:999 $GITPOD_REPO_ROOT
     # Give container (ie group) write access to this volume
-    sudo chmod g+w -R /workspace/openlibrary/
+    sudo chmod g+w -R $GITPOD_REPO_ROOT
     # because: https://github.com/gitpod-io/gitpod/issues/9311
-    chmod o+rx /workspace/openlibrary
+    chmod o+rx $GITPOD_REPO_ROOT
   # init runs once for each commit to the default branch
   init: docker compose up --no-start && gp sync-done docker-up
   # command runs each time a user starts their workspace

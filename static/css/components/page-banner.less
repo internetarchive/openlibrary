@@ -65,4 +65,30 @@
     line-height: 25px;
     text-align: center;
   }
+
+  &--dismissable {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: @white;
+    font-family: @lucida_sans_serif-1;
+    background: @dark-grey;
+    padding: 15px;
+    border-bottom: 1px solid @beige;
+
+    &-content {
+      flex: 1;
+      text-align: center;
+    }
+
+    &-close {
+      height: 100%;
+      margin-left: auto;
+      color: @white;
+      border: none;
+      background-color: transparent;
+      cursor: pointer;
+    }
+  }
+
 }

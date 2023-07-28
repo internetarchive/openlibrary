@@ -33,9 +33,9 @@ def get_contact(username=None, contact_id=None):
             lending.config_ia_civicrm_api.get("url", ""),
             params=data,
             timeout=3,
-            headers=dict(
-                Authorization=f"Basic {lending.config_ia_civicrm_api.get('auth', '')}"
-            ),
+            headers={
+                'Authorization': f"Basic {lending.config_ia_civicrm_api.get('auth', '')}"
+            },
         )
         contacts = r.status_code == 200 and r.json().get("values", None)
         return contacts and contacts[0]
@@ -84,9 +84,9 @@ def get_sponsorships_by_contact_id(contact_id=None, isbn=None):
                 lending.config_ia_civicrm_api.get("url", ""),
                 timeout=3,
                 params=data,
-                headers=dict(
-                    Authorization=f"Basic {lending.config_ia_civicrm_api.get('auth', '')}"
-                ),
+                headers={
+                    'Authorization': f"Basic {lending.config_ia_civicrm_api.get('auth', '')}"
+                },
             )
             .json()
             .get("values")

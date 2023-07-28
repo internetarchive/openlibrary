@@ -10,6 +10,11 @@ $code:
          { 'sort': 'work_count desc', 'name': _("Work Count"), 'ga_key': 'WorkCountDesc' },
          { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random', 'selected': selected_sort and selected_sort.startswith('random') },
       ]
+     elif search_scheme == 'lists_seeds':
+       sort_options = [
+         { 'sort': 'index', 'name': _("List Order"), 'ga_key': 'ListOrder' },
+         { 'sort': 'last_modified', 'name': _("Last Modified"), 'ga_key': 'LastModified' },
+       ]
      else:
        sort_options = [
          { 'sort': 'relevance', 'name': _("Relevance"), 'ga_key': 'Relevance' },

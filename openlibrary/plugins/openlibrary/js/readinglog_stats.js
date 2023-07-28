@@ -115,7 +115,6 @@ export function init(config) {
     const defaultFieldRender = field => `OPTIONAL { ?x ${field.relation} ?${field.name}. }`;
 
     const SPARQL_FIELDS = [
-        { name: 'ethnic_group', type: 'uri', relation: 'wdt:P172' },
         { name: 'sex', type: 'uri', relation: 'wdt:P21' },
         { name: 'dob', type: 'literal', relation: 'wdt:P569' },
         { name: 'country_of_citizenship', type: 'uri', relation: 'wdt:P27' },

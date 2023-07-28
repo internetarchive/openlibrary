@@ -1,6 +1,5 @@
 """Controller for home page.
 """
-import datetime
 import random
 import web
 import logging
@@ -62,9 +61,16 @@ def get_cached_homepage():
     if pd:
         key += '.pd'
 
-    return cache.memcache_memoize(
+    mc = cache.memcache_memoize(
         get_homepage, key, timeout=five_minutes, prethread=caching_prethread()
-    )()
+    )
+
+    page = mc()
+
+    if not page:
+        mc(_cache='delete')
+
+    return page
 
 
 # Because of caching, memcache will call `get_homepage` on another thread! So we
@@ -282,14 +288,13 @@ def format_book_data(book, fetch_availability=True):
     elif d.ocaid:
         d.cover_url = 'https://archive.org/services/img/%s' % d.ocaid
 
-    if fetch_availability:
-        if d.ocaid:
-            collections = ia.get_metadata(d.ocaid).get('collection', [])
+    if fetch_availability and d.ocaid:
+        collections = ia.get_metadata(d.ocaid).get('collection', [])
 
-            if 'lendinglibrary' in collections or 'inlibrary' in collections:
-                d.borrow_url = book.url("/borrow")
-            else:
-                d.read_url = book.url("/borrow")
+        if 'lendinglibrary' in collections or 'inlibrary' in collections:
+            d.borrow_url = book.url("/borrow")
+        else:
+            d.read_url = book.url("/borrow")
     return d
 
 

@@ -23,12 +23,14 @@ def get_schema():
     schema.add_table_group('work', '/type/work', datatypes)
     schema.add_table_group('publisher', '/type/publisher', datatypes)
     schema.add_table_group('subject', '/type/subject', datatypes)
+    # schema.add_table_group('tag', '/type/tag', datatypes)
 
     schema.add_seq('/type/edition', '/books/OL%dM')
     schema.add_seq('/type/author', '/authors/OL%dA')
 
     schema.add_seq('/type/work', '/works/OL%dW')
     schema.add_seq('/type/publisher', '/publishers/OL%dP')
+    schema.add_seq('/type/tag', '/tags/OL%dT')
 
     _sql = schema.sql
 

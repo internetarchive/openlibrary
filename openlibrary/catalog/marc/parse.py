@@ -1,5 +1,6 @@
 import re
-from typing import Any, Callable, Optional
+from typing import Any, Optional
+from collections.abc import Callable
 
 from openlibrary.catalog.marc.get_subjects import subjects_for_work
 from openlibrary.catalog.marc.marc_base import (
@@ -160,7 +161,7 @@ def read_lc_classification(rec: MarcBase) -> list[str]:
         if 'b' in contents:
             b = ' '.join(contents['b'])
             if 'a' in contents:
-                found += [' '.join([a, b]) for a in contents['a']]
+                found += [f'{a} {b}' for a in contents['a']]
             else:
                 found += [b]
         # https://openlibrary.org/show-marc/marc_university_of_toronto/uoft.marc:671135731:596
@@ -411,10 +412,11 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict | None:
             author[field_name] = name_from_list(contents[subfield])
     if 'q' in contents:
         author['fuller_name'] = ' '.join(contents['q'])
-    if '6' in contents:  # alternate script name exists
-        if link := field.rec.get_linkage(tag, contents['6'][0]):
-            if alt_name := link.get_subfield_values('a'):
-                author['alternate_names'] = [name_from_list(alt_name)]
+    if '6' in contents:  # noqa: SIM102 - alternate script name exists
+        if (link := field.rec.get_linkage(tag, contents['6'][0])) and (
+            alt_name := link.get_subfield_values('a')
+        ):
+            author['alternate_names'] = [name_from_list(alt_name)]
     return author
 
 

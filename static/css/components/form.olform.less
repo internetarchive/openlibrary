@@ -39,19 +39,47 @@
   }
 
   .multi-input-autocomplete--language {
-    div{
-      display: flex;
-      flex-flow: wrap;
-      flex: 1
-    }
-    input {
-      flex: 1;
-    }
     hr {
       flex-basis: 100%;
       height: 0;
       margin: 0;
       border: 0;
+    }
+  }
+
+  .mia__input {
+    display: flex;
+    flex-flow: wrap;
+    flex: 1;
+
+    & + .mia__input {
+      margin-top: 3px;
+    }
+
+    .ac-input__visible {
+      flex: 1;
+      // Spacing is controlled by parent not individual input elements
+      margin: 0;
+    }
+
+    .mia__reorder {
+      cursor: move;
+      min-width: 24px;
+      text-align: center;
+    }
+
+    .mia__remove {
+      color: @red;
+      text-decoration: none;
+    }
+
+    .mia__preview {
+      flex: 1;
+    }
+
+    // Weird glitch where while dragging the element is very offset
+    &.ui-sortable-helper {
+      margin-top: -20px;
     }
   }
 
@@ -83,8 +111,6 @@
   }
 
   select {
-    width: 100%;
-    font-size: 1.125em;
     font-family: @lucida_sans_serif-1;
     padding: 3px;
   }

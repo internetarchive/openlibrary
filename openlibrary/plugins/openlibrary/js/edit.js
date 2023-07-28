@@ -1,5 +1,5 @@
 import { isbnOverride } from './isbnOverride';
-/* global render_language_field, render_work_autocomplete_item, render_language_autocomplete_item, render_work_field */
+/* global render_seed_field, render_language_field, render_lazy_work_preview, render_language_autocomplete_item, render_work_field, render_work_autocomplete_item */
 /* Globals are provided by the edit edition template */
 
 /* global render_author, render_author_autocomplete_item */
@@ -261,9 +261,11 @@ export function initLanguageMultiInputAutocomplete() {
     $(function() {
         getJqueryElements('.multi-input-autocomplete--language').forEach(jqueryElement => {
             jqueryElement.setup_multi_input_autocomplete(
-                'input.language-autocomplete',
                 render_language_field,
-                {endpoint: '/languages/_autocomplete'},
+                {
+                    endpoint: '/languages/_autocomplete',
+                    sortable: true,
+                },
                 {
                     max: 6,
                     formatItem: render_language_autocomplete_item
@@ -277,21 +279,44 @@ export function initWorksMultiInputAutocomplete() {
     $(function() {
         getJqueryElements('.multi-input-autocomplete--works').forEach(jqueryElement => {
             /* Values in the html passed from Python code */
-            const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
+            const dataConfig = JSON.parse(jqueryElement[0].dataset.config || '{}');
             jqueryElement.setup_multi_input_autocomplete(
-                'input.work-autocomplete',
                 render_work_field,
                 {
                     endpoint: '/works/_autocomplete',
-                    addnew: dataConfig['isPrivilegedUser'] === 'true',
-                    new_name: dataConfig['-- Move to a new work'],
+                    addnew: dataConfig['addnew'] || false,
+                    new_name: dataConfig['new_name'] || '',
+                    allow_empty: dataConfig['allow_empty'] || false,
                 },
                 {
                     minChars: 2,
                     max: 11,
                     matchSubset: false,
                     autoFill: true,
-                    formatItem: render_work_autocomplete_item
+                    formatItem: render_work_autocomplete_item,
+                });
+        });
+    });
+}
+
+export function initSeedsMultiInputAutocomplete() {
+    $(function() {
+        getJqueryElements('.multi-input-autocomplete--seeds').forEach(jqueryElement => {
+            /* Values in the html passed from Python code */
+            jqueryElement.setup_multi_input_autocomplete(
+                render_seed_field,
+                {
+                    endpoint: '/works/_autocomplete',
+                    addnew: false,
+                    allow_empty: true,
+                    sortable: true,
+                },
+                {
+                    minChars: 2,
+                    max: 11,
+                    matchSubset: false,
+                    autoFill: true,
+                    formatItem: render_lazy_work_preview,
                 });
         });
     });
@@ -302,12 +327,12 @@ export function initAuthorMultiInputAutocomplete() {
         /* Values in the html passed from Python code */
         const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
         jqueryElement.setup_multi_input_autocomplete(
-            'input.author-autocomplete',
             render_author.bind(null, dataConfig.name_path, dataConfig.dict_path, false),
             {
                 endpoint: '/authors/_autocomplete',
                 // Don't render "Create new author" if searching by key
                 addnew: query => !/OL\d+A/i.test(query),
+                sortable: true,
             },
             {
                 minChars: 2,

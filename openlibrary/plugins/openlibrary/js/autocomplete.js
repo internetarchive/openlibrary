@@ -1,4 +1,9 @@
 // jquery plugins to provide author, language, and subject autocompletes.
+import 'jquery-ui/ui/widget';
+import 'jquery-ui/ui/widgets/mouse';
+import 'jquery-ui/ui/widgets/sortable';
+import 'jquery-ui-touch-punch'; // this makes drag-to-reorder work on touch devices
+
 /**
  * Port of code in vendor/js/jquery-autocomplete removed in e91119b
  * @param {string} value
@@ -50,6 +55,8 @@ export default function($) {
      *     element in the autocomplete list. The function takes the query and should return a boolean.
      *     a boolean.
      * @property{string} [new_name] - name to display when __new__ selected. Defaults to the query
+     * @property {boolean} [allow_empty] - whether to allow empty list. Only applies to multi-select
+     * @property {boolean} [sortable=false]
      */
 
     /**
@@ -84,7 +91,11 @@ export default function($) {
             select: function (_event, ui) {
                 var item = ui.item;
                 var $this = $(this);
-                $(`#${_this.id}-key`).val(item.key);
+                $this.closest('.ac-input').find('.ac-input__value').val(item.key);
+                const $preview = $this.closest('.ac-input').find('.ac-input__preview');
+                if ($preview.length) {
+                    $preview.html(item.label);
+                }
                 setTimeout(function() {
                     $this.addClass('accept');
                 }, 0);
@@ -143,49 +154,84 @@ export default function($) {
 
     /**
      * @this HTMLElement - the element that contains the different inputs.
-     * @param {string} autocomplete_selector - selector to find the input element use for autocomplete.
-     * @param {Function} input_renderer - ((index, item) -> html_string) render the ith div.input.
+     * Expects an html structure like:
+     * <div class="multi-input-autocomplete">
+     *   <div class="ac-input mia__input">
+     *      <div class="mia__reorder">≡</div>
+     *      <input class="ac-input__visible" type="text" name="fake_name--0" value="Author 1" />
+     *      <input class="ac-input__value" type="hidden" name="author--0" value="/authors/OL1234A" />
+     *      <a class="mia__remove" href="javascript:;">[x]</a>
+     *   </div>
+     *  ...
+     * < /div>
+     * @param {Function} input_renderer - ((index, item) -> html_string) render the ith .input.
      * @param {OpenLibraryAutocompleteOptions} ol_ac_opts
      * @param {Object} ac_opts - options given to override defaults of $.autocomplete; see that.
      */
-    $.fn.setup_multi_input_autocomplete = function(autocomplete_selector, input_renderer, ol_ac_opts, ac_opts) {
+    $.fn.setup_multi_input_autocomplete = function(input_renderer, ol_ac_opts, ac_opts) {
+        /** @type {JQuery<HTMLElement>} */
         var container = $(this);
 
         // first let's init any pre-existing inputs
-        container.find(autocomplete_selector).each(function() {
+        container.find('.ac-input__visible').each(function() {
             setup_autocomplete(this, ol_ac_opts, ac_opts);
         });
+        const allow_empty = ol_ac_opts.allow_empty;
 
         function update_visible() {
-            if (container.find('div.input').length > 1) {
-                container.find('a.remove').show();
+            if (allow_empty || container.find('.mia__input').length > 1) {
+                container.find('.mia__remove').show();
             }
             else {
-                container.find('a.remove').hide();
+                container.find('.mia__remove').hide();
             }
+        }
 
-            container.find('a.add:not(:last)').hide();
-            container.find('a.add:last').show();
+        function update_indices() {
+            container.find('.mia__input').each(function(index) {
+                $(this).find('.mia__index').each(function () {
+                    $(this).text($(this).text().replace(/\d+/, index + 1));
+                });
+                $(this).find('[name]').each(function() {
+                    // this won't behave nicely with nested numeric things, if that ever happens
+                    if ($(this).attr('name').match(/\d+/)?.length > 1) {
+                        throw new Error('nested numeric names not supported');
+                    }
+                    $(this).attr('name', $(this).attr('name').replace(/\d+/, index));
+                    if ($(this).attr('id')) {
+                        $(this).attr('id', $(this).attr('id').replace(/\d+/, index));
+                    }
+                });
+            });
         }
 
         update_visible();
 
-        container.on('click', 'a.remove', function() {
-            if (container.find('div.input').length > 1) {
-                $(this).closest('div.input').remove();
+        if (ol_ac_opts.sortable) {
+            container.sortable({
+                handle: '.mia__reorder',
+                items: '.mia__input',
+                update: update_indices,
+            });
+        }
+
+        container.on('click', '.mia__remove', function() {
+            if (allow_empty || container.find('.mia__input').length > 1) {
+                $(this).closest('.mia__input').remove();
                 update_visible();
+                update_indices();
             }
         });
 
-        container.on('click', 'a.add', function(event) {
+        container.on('click', '.mia__add', function(event) {
             var next_index, new_input;
             event.preventDefault();
 
-            next_index = container.find('div.input').length;
+            next_index = container.find('.mia__input').length;
             new_input = $(input_renderer(next_index, {key: '', name: ''}));
-            container.append(new_input);
+            new_input.insertBefore(container.find('.mia__add'));
             setup_autocomplete(
-                new_input.find(autocomplete_selector)[0],
+                new_input.find('.ac-input__visible')[0],
                 ol_ac_opts,
                 ac_opts);
             update_visible();

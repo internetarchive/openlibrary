@@ -2,6 +2,7 @@
  * Functionality for templates/covers
  */
 import 'jquery-ui/ui/widgets/sortable';
+import 'jquery-ui-touch-punch'; // this makes drag-to-reorder work on touch devices
 
 //cover/change.html
 export function initCoversChange() {

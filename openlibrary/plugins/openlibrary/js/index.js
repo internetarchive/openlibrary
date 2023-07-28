@@ -125,21 +125,24 @@ jQuery(function () {
 
     const edition = document.getElementById('tabsAddbook');
     const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
+    const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
+    const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
+    const autocompleteSeeds = document.querySelector('.multi-input-autocomplete--seeds');
+    const autocompleteSubjects = document.querySelector('.csv-autocomplete--subjects');
     const addRowButton = document.getElementById('add_row_button');
     const roles = document.querySelector('#roles');
     const identifiers = document.querySelector('#identifiers');
     const classifications = document.querySelector('#classifications');
-    const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
-    const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
-    const autocompleteSubjects = document.querySelector('.csv-autocomplete--subjects');
     const excerpts = document.getElementById('excerpts');
     const links = document.getElementById('links');
 
     // conditionally load for user edit page
     if (
         edition ||
-        autocompleteAuthor || addRowButton || roles || identifiers || classifications ||
-        autocompleteLanguage || autocompleteWorks || excerpts || links
+        autocompleteAuthor || autocompleteLanguage || autocompleteWorks ||
+        autocompleteSeeds || autocompleteSubjects ||
+        addRowButton || roles || identifiers || classifications ||
+        excerpts || links
     ) {
         import(/* webpackChunkName: "user-website" */ './edit')
             .then(module => {
@@ -175,6 +178,9 @@ jQuery(function () {
                 }
                 if (autocompleteSubjects) {
                     module.initSubjectsAutocomplete();
+                }
+                if (autocompleteSeeds) {
+                    module.initSeedsMultiInputAutocomplete();
                 }
             });
     }
@@ -223,8 +229,8 @@ jQuery(function () {
         import(/* webpackChunkName: "carousels-partials" */'./carousels_partials.js')
             .then(module => module.initCarouselsPartials());
     }
-    // conditionally load list seed item deletion dialog functionality based on class in the page
-    if (document.getElementsByClassName('listDelete').length) {
+    // conditionally load list seed item deletion dialog functionality based on id on lists pages
+    if (document.getElementById('listResults')) {
         import(/* webpackChunkName: "ListViewBody" */'./lists/ListViewBody.js');
     }
     // Enable any carousels in the page
@@ -260,6 +266,11 @@ jQuery(function () {
                 Array.from(document.getElementsByClassName('toast'))
                     .forEach(el => new module.Toast($(el)));
             });
+    }
+
+    if ($('.lazy-thing-preview').length) {
+        import(/* webpackChunkName: "lazy-thing-preview" */ './lazy-thing-preview')
+            .then((module) => new module.LazyThingPreview().init());
     }
 
     const $observationModalLinks = $('.observations-modal-link');
@@ -476,8 +487,10 @@ jQuery(function () {
     const mergeRequestCommentButtons = document.querySelectorAll('.mr-comment-btn')
     const showCommentsLinks = document.querySelectorAll('.comment-expand')
     const unassignElements = document.querySelectorAll('.mr-unassign')
+    const mergeRequestFilters = document.querySelectorAll('.mr-dropdown')
 
-    if (mergeRequestCloseLinks.length || mergeRequestCommentButtons.length || showCommentsLinks.length || mergeRequestResolveLinks.length || unassignElements.length) {
+    if (mergeRequestCloseLinks.length || mergeRequestCommentButtons.length || showCommentsLinks.length || mergeRequestResolveLinks.length ||
+        unassignElements.length || mergeRequestFilters.length) {
         import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
             .then(module => {
                 if (mergeRequestCloseLinks.length) {
@@ -495,6 +508,9 @@ jQuery(function () {
                 if (unassignElements.length) {
                     module.initUnassignment(unassignElements)
                 }
+                if (mergeRequestFilters.length) {
+                    module.initFilters()
+                }
             })
     }
 
@@ -503,5 +519,13 @@ jQuery(function () {
     if (addProviderRowLink) {
         import(/* webpackChunkName "add-provider-link" */ './add_provider')
             .then(module => module.initAddProviderRowLink(addProviderRowLink))
+    }
+
+
+    // Allow banner announcements to be dismissable for logged-in users:
+    const siteBanner = document.getElementById('announcement-banner')
+    if (siteBanner) {
+        import(/* webpackChunkName: "announcement-banner" */ './initAnnouncementBanner')
+            .then(module => module.initAnnouncementBanner(siteBanner))
     }
 });

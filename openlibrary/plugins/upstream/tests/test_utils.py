@@ -1,6 +1,6 @@
 from openlibrary.mocks.mock_infobase import MockSite
 from .. import utils
-from openlibrary.catalog.add_book.tests.conftest import add_languages
+from openlibrary.catalog.add_book.tests.conftest import add_languages  # noqa: F401
 import web
 import pytest
 
@@ -158,7 +158,7 @@ def test_reformat_html():
         f(multi_line_string) == 'This sentence has 32 '
         'characters.<br>This new sentence has 36 characters.'
     )
-    assert f(multi_line_string, 34) == 'This sentence has 32 ' 'characters.<br>T...'
+    assert f(multi_line_string, 34) == 'This sentence has 32 characters.<br>T...'
 
     assert f("<script>alert('hello')</script>", 34) == "alert(&#39;hello&#39;)"
     assert f("&lt;script&gt;") == "&lt;script&gt;"

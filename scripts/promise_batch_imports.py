@@ -18,8 +18,8 @@ from __future__ import annotations
 import requests
 import logging
 
-import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
-from infogami import config  # noqa: F401
+import _init_path  # Imported for its side effect of setting PYTHONPATH
+from infogami import config
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI

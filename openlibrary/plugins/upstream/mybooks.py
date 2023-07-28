@@ -133,7 +133,8 @@ class readinglog_stats(delegate.page):
         works = readlog.get_works(key, page=1, limit=2000).docs
         works_json = [
             {
-                'title': w.get('title'),
+                # Fallback to key if it is a redirect
+                'title': w.get('title') or w.key,
                 'key': w.get('key'),
                 'author_keys': ['/authors/' + key for key in w.get('author_key', [])],
                 'first_publish_year': w.get('first_publish_year') or None,
@@ -313,13 +314,13 @@ class MyBooksTemplate:
             # Ideally, do all 3 lookups in one add_availability call
             want_to_read.docs = add_availability(
                 [d for d in want_to_read.docs if d.get('title')]
-            )[:4]
+            )[:5]
             currently_reading.docs = add_availability(
                 [d for d in currently_reading.docs if d.get('title')]
-            )[:4]
+            )[:5]
             already_read.docs = add_availability(
                 [d for d in already_read.docs if d.get('title')]
-            )[:4]
+            )[:5]
 
             # Marshal loans into homogeneous data that carousel can render
             loans = get_loans_of_user(logged_in_user.key)

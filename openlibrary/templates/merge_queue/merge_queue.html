@@ -9,6 +9,7 @@ $ can_merge = ctx.user and (ctx.user.is_usergroup_member('/usergroup/super-libra
 $ reviewer = query_param('reviewer', None)
 $ submitter = query_param('submitter', None)
 $ mode = query_param('mode', 'open')
+$ order = query_param('order', 'desc')
 
 $if submitter:
   $ desc = _("Showing %(username)s's requests only.", username=submitter)
@@ -38,14 +39,74 @@ $ page = int(input(page=1).page)
   $:macros.Pager(page, total[mode], results_per_page=25)
 </div>
 
-  <ul class="nav-bar">
-    <li class="$(mode=='open' and 'selected' or '')">
-      <a href="$changequery(mode='open', page=None)">$_('Open') ($total['open'])</a>
-    </li>
-    <li class="$(mode=='closed' and 'selected' or '')">
-      <a href="$changequery(mode='closed', page=None)">$_('Closed') ($total['closed'])</a>
-    </li>
-  </ul>
+  <div class="table-header">
+    <a class="$(mode=='open' and 'selected' or '') mode-open" href="$changequery(mode='open', page=None)">$total['open'] $_('Open')</a>
+    <a class="$(mode=='closed' and 'selected' or '') mode-closed" href="$changequery(mode='closed', page=None)">$total['closed'] $_('Closed')</a>
+    <div class="flex-auto"></div>
+    <div class="mr-dropdown" id="submitter-menu-button">$_('Submitter ▾')
+      <div class="mr-dropdown-menu hidden">
+        <header class="dropdown-header">
+            <span>$_('Submitter')</span>
+            <button class="dropdown-close">&times;</button>
+        </header>
+        <input type="text" class="filter" placeholder="$_('Filter submitters')" id="submitter-filter">
+        $ submitted_by_me_href = changequery(submitter=username, page=None) if submitter != username else changequery(submitter=None,page=None)
+        <a href="$submitted_by_me_href" class="dropdown-item">
+          <span class="$('' if submitter==username else 'invisible') item-checked">✓</span>
+          <span><b>$_('Submitted by me')</b></span>
+        </a>
+      $for s in total['submitters']:
+        $ submitter_name = s.get('submitter', 'default submitter')
+        $ submitter_href = changequery(submitter=submitter_name, page=None) if submitter != submitter_name else changequery(submitter=None, page=None)
+        <a href="$submitter_href" class="dropdown-item">
+          <span class="$('' if submitter==submitter_name else 'invisible') item-checked">✓</span>
+          <span>$submitter_name</span>
+        </a>
+      </div>
+    </div>
+    <div class="mr-dropdown" id="reviewer-menu-button">$_('Reviewer ▾')
+      <div class="mr-dropdown-menu hidden">
+        <header class="dropdown-header">
+          <span>$_('Reviewer')</span>
+          <button class="dropdown-close">&times;</button>
+        </header>
+        <input type="text" class="filter" placeholder="$_('Filter reviewers')" id="reviewer-filter">
+        $ no_reviewer_href = changequery(reviewer='None', page=None) if reviewer==None else changequery(reviewer=None,page=None)
+        <a href="$no_reviewer_href" class="dropdown-item">
+          <span class="$('' if reviewer=='None' else 'invisible') item-checked">✓</span>
+          <span><b>$_('Assigned to nobody')
+          </b></span>
+        </a>
+      $for r in total['reviewers']:
+        $ reviewer_name = r.get('reviewer', 'default reviewer')
+        $ reviewer_href = changequery(reviewer=reviewer_name, page=None) if reviewer != reviewer_name else changequery(reviewer=None, page=None)
+        $if reviewer_name and reviewer_name != username:
+          <a href="$reviewer_href" class="dropdown-item">
+            <span class="$('' if reviewer==reviewer_name else 'invisible') item-checked">✓</span>
+            <span>$reviewer_name</span>
+          </a>
+      </div>
+    </div>
+    <div class="mr-dropdown" id="sort-menu-button">$_('Sort ▾')
+      <div class="mr-dropdown-menu sort hidden">
+        <header class="dropdown-header">
+          <span>$_('Sort')</span>
+          <button class="dropdown-close">&times;</button>
+        </header>
+        $ desc_href = changequery(order='desc', page=None) if order!='desc' else changequery(order=None, page=None)
+        <a href="$desc_href" class="dropdown-item">
+          <span class="$('' if order=='desc' else 'invisible') item-checked">✓</span>
+          <span>$_('Newest')
+          </span>
+        </a>
+        $ asc_href = changequery(order='asc', page=None) if order!='asc' else changequery(order=None, page=None)
+        <a href="$asc_href" class="dropdown-item">
+          <span class="$('' if order=='asc' else 'invisible') item-checked">✓</span>
+          <span>$_('Oldest')</span>
+        </a>
+      </div>
+    </div>
+  </div>
 
   <div class="table-wrapper">
       <table class="mr-table">

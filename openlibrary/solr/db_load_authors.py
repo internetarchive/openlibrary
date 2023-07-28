@@ -9,7 +9,7 @@ db.printing = False
 
 total = 6540759
 
-sizes = dict(name=512, birth_date=256, death_date=256, date=256)
+sizes = {'name': 512, 'birth_date': 256, 'death_date': 256, 'date': 256}
 
 for num, line in enumerate(open('author_file')):
     if num % 10000 == 0:

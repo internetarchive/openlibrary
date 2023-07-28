@@ -39,7 +39,8 @@ class TestModels:
     def test_work_without_data(self):
         work = models.Work(web.ctx.site, '/works/OL42679M')
         assert repr(work) == str(work) == "<Work: '/works/OL42679M'>"
-        assert isinstance(work, client.Thing) and isinstance(work, models.Work)
+        assert isinstance(work, client.Thing)
+        assert isinstance(work, models.Work)
         assert work._site == web.ctx.site
         assert work.key == '/works/OL42679M'
         assert work._data is None
@@ -53,10 +54,12 @@ class TestModels:
     def test_work_with_data(self):
         work = models.Work(web.ctx.site, '/works/OL42679M', web.Storage())
         assert repr(work) == str(work) == "<Work: '/works/OL42679M'>"
-        assert isinstance(work, client.Thing) and isinstance(work, models.Work)
+        assert isinstance(work, client.Thing)
+        assert isinstance(work, models.Work)
         assert work._site == web.ctx.site
         assert work.key == '/works/OL42679M'
-        assert isinstance(work._data, web.Storage) and isinstance(work._data, dict)
+        assert isinstance(work._data, web.Storage)
+        assert isinstance(work._data, dict)
         assert hasattr(work, 'data')
         assert isinstance(work.data, client.Nothing)
 

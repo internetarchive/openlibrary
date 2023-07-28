@@ -30,13 +30,14 @@ $add_metatag(property="og:description", content=meta_description)
 $add_metatag(property="og:image", content=request.canonical_url + "/preview.png")
 
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
+$ sort = query_param('sort', None)
 
 $jsdef render_seed_count(seed_count):
     $ungettext("%(count)d item", "%(count)d items", seed_count, count=seed_count)
 
 $if not is_owner:
     <div id="contentHead" style="margin-bottom:0;">
-        $:macros.databarView(list)
+        $:macros.databarView(list, edit=False)
         <div class="superNav">
             $ owner = list.get_owner()
             <a href="$owner.key">$owner.displayname</a>
@@ -63,9 +64,9 @@ $def seed_meta_line(seed):
         <span class="type small">$seed.type</span>
     </span>
 
-    $if seed.last_update:
+    $if sort == 'last_modified' and seed.last_update:
         <span class="time">
-            $:_('Last updated <span>%(date)s</span>', date=datestr(seed.last_update))
+            $:_('Last modified <span>%(date)s</span>', date=datestr(seed.last_update))
         </span>
 
 $def seed_attrs(seed):
@@ -90,12 +91,13 @@ $def seed_attrs(seed):
         $if list.description:
             $:format(list.description)
 
+        $:render_template("search/sort_options.html", selected_sort=sort, default_sort='index', search_scheme="lists_seeds")
         $:macros.Pager(page+1, len(list.seeds), page_size)
         <div class="clearfix"></div>
 
         <ul id="listResults" class="list-books clearfix">
             $ component_times['get_seeds'] = time()
-            $ seeds = list.get_seeds(sort=True, resolve_redirects=True)[page*page_size:page*page_size+page_size]
+            $ seeds = list.get_seeds(sort=(sort == 'last_modified'), resolve_redirects=True)[page*page_size:page*page_size+page_size]
             $ component_times['get_seeds'] = time() - component_times['get_seeds']
 
         $if not seeds:

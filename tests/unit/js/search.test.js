@@ -1,4 +1,3 @@
-import jquery from 'jquery';
 import { more, less } from '../../../openlibrary/plugins/openlibrary/js/search.js';
 
 /** Creates a dummy search facets section with a list of 'facetEntry' element and a
@@ -136,10 +135,6 @@ const _stubbedGetClientRects = function() {
     }
     return [{width: 1, height: 1}];
 };
-
-beforeAll(() => {
-    global.$ = jquery;
-});
 
 describe('more', () => {
     [

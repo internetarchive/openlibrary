@@ -1,0 +1,106 @@
+/**
+ * Stylesheet entry point for pages with body-edit
+
+ * Used in templates:
+ * - openlibrary/templates/type/list/edit.html
+ * Used on pages:
+ * - /list/add
+ */
+@import (less) "less/colors.less";
+@import (less) "less/breakpoints.less";
+@import (less) "less/mixins.less";
+@import (less) "less/font-families.less";
+@import (less) "legacy.less";
+
+#list-edit {
+  max-width: 800px;
+
+  [name=name] {
+    font-size: 1.5em;
+  }
+
+  > *:not(div), textarea {
+    display: block;
+    width: 100%;
+  }
+
+  textarea, input {
+    padding: 4px;
+    max-width: 800px;
+  }
+
+  > *:not(:first-child) {
+    margin-top: 6px;
+  }
+
+  .multi-input-autocomplete--seeds {
+    .seed--controls {
+      display: flex;
+    }
+    .mia__reorder {
+      text-align: left;
+    }
+
+    @media (max-width: @width-breakpoint-mobile) {
+      li.mia__input {
+        flex-direction: column;
+      }
+      .seed--controls {
+        flex-direction: row;
+        padding-bottom: 4px;
+        border-bottom: 1px solid @light-mid-grey;
+        margin-bottom: 4px;
+        justify-content: space-between;
+      }
+    }
+
+    @media (min-width: @width-breakpoint-mobile) {
+      li.mia__input {
+        flex-direction: row;
+      }
+      .mia__reorder {
+        flex: 1;
+      }
+      .seed--controls {
+        flex-direction: column;
+        padding-right: 4px;
+        border-right: 1px solid @light-mid-grey;
+        margin-right: 4px;
+      }
+    }
+
+    .mia__preview .ac_work .cover {
+      margin-right: 9px;
+    }
+  }
+
+  .mia__input {
+    list-style: none;
+    width: 90%;
+    margin-top: 6px;
+    border: 1px solid @light-grey;
+    border-radius: 4px;
+    padding: 8px;
+    background: @grey-fafafa;
+
+    main {
+      flex: 1;
+    }
+
+    .ac-input__visible {
+      width: 100%;
+    }
+
+    .ac-input__visible.accept {
+      display: none;
+    }
+  }
+}
+
+.new-list__seed__position {
+  font-size: .9em;
+}
+
+.work-autocomplete {
+  width: calc(100% - 8ch);
+}

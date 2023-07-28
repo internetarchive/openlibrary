@@ -117,9 +117,8 @@ def marc_title(amazon_first_parts, marc_first_parts):
         if verbose:
             print("partial match with MARC end title")
         return True
-    if match_seq(marc_first_parts, amazon_first_parts):
-        if verbose:
-            print("partial match with MARC end title")
+    if verbose and match_seq(marc_first_parts, amazon_first_parts):
+        print("partial match with MARC end title")
     return False
 
 
@@ -224,8 +223,7 @@ def match_surname(surname, name):
 
 
 def amazon_spaced_name(amazon, marc):
-    len_amazon = len(amazon)
-    if len_amazon != 30 and len_amazon != 31:
+    if len(amazon) not in {30, 31}:
         return False
     m = re_amazon_space_name.search(amazon)
     if not m:
