@@ -180,7 +180,6 @@ class borrow(delegate.page):
         # whether the book has been checked out or not.
         elif user.has_borrowed(edition):
             action = 'read'
-
         elif action in ('borrow', 'browse'):
             borrow_access = user_can_borrow_edition(user, edition)
 
@@ -188,12 +187,22 @@ class borrow(delegate.page):
                 stats.increment('ol.loans.outdatedAvailabilityStatus')
                 raise web.seeother(error_redirect)
 
-            lending.s3_loan_api(
-                edition.ocaid, s3_keys, action='%s_book' % borrow_access
-            )
-            stats.increment('ol.loans.bookreader')
-            stats.increment('ol.loans.%s' % borrow_access)
-            action = 'read'
+            # Check if the user has already borrowed the book
+            if user.has_borrowed(edition):
+                action = 'read'
+            else:
+                # If the book is available, update the user's loan status and borrow the book
+                if availability and availability['status'] == 'open':
+                    user.update_loan_status()
+                    lending.s3_loan_api(
+                        edition.ocaid, s3_keys, action='%s_book' % borrow_access
+                    )
+                    stats.increment('ol.loans.bookreader')
+                    stats.increment('ol.loans.%s' % borrow_access)
+                    action = 'read'
+                else:
+                    # If the book is not available, redirect to the book's details page
+                    raise web.seeother(edition.url())
 
         if action == 'read':
             bookPath = '/stream/' + edition.ocaid
