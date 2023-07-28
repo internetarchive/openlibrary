@@ -4,26 +4,6 @@
  *
  * http://localhost:8080/account/books/want-to-read
  */
-
-/* 'create a list' within sidebar */
-.sidebar-section {
-  .widget-add {
-    text-align: center;
-    padding: 6px 0;
-  }
-
-  .create-new-list {
-    border-radius: 5px;
-    cursor: pointer;
-    padding: 2px 5%;
-    font-size: .96em;
-    background-color: @background-grey;
-    border: 1px solid @lighter-grey;
-    color: @grey !important;
-  }
-
-}
-
 .mybooks-menu {
   max-width: none !important; /** fix in media query */
   width: 250px;
@@ -102,6 +82,23 @@
     border-left: 0;
     border-right: 0;
     margin-bottom: 5px;
+  }
+
+  /* 'create a list' within sidebar */
+  ul li.create-new-list {
+    text-align: center;
+    padding: 6px 0;
+
+    > a {
+      display: inline-block;
+      border-radius: 5px;
+      cursor: pointer;
+      padding: 2px 5%;
+      font-size: .96em;
+      background-color: @background-grey;
+      border: 1px solid @lighter-grey;
+      color: @grey;
+    }
   }
 
   /* stylelint-disable selector-max-specificity */
