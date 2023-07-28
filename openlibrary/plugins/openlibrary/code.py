@@ -1006,6 +1006,7 @@ class Partials(delegate.page):
             partial = _get_relatedcarousels_component(i.workid)
         return delegate.RawText(json.dumps(partial))
 
+
 class tags_partials(delegate.page):
     path = "/tags/partials"
     encoding = "json"
@@ -1022,6 +1023,7 @@ class tags_partials(delegate.page):
         }
 
         return delegate.RawText(json.dumps(partials))
+
 
 class bulk_tag_works(delegate.page):
     path = "/tags/bulk_tag_works"
@@ -1043,19 +1045,22 @@ class bulk_tag_works(delegate.page):
             for subject_type, subject_list in subjects.items():
                 if subject_list:
                     subject_list_set = set(subject_list)
-                    current_subjects[subject_type] = list(current_subjects[subject_type].union(subject_list_set))
+                    current_subjects[subject_type] = list(
+                        current_subjects[subject_type].union(subject_list_set)
+                    )
                     w[subject_type] = current_subjects[subject_type]
-            
+
             docs_to_update.append(w.dict())
-        
+
         web.ctx.site.save_many(docs_to_update, comment="Bulk tagging works")
 
         def response(msg, status="success"):
             return delegate.RawText(
                 json.dumps({status: msg}), content_type="application/json"
             )
+
         return response('Tagged works successfully')
-                    
+
 
 def is_bot():
     r"""Generated on ol-www1 within /var/log/nginx with:

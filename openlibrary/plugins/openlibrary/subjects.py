@@ -3,6 +3,7 @@ from infogami.utils.view import render_template, public
 import web
 import json
 
+
 class tags_partials(delegate.page):
     path = "/tags/partials"
     encoding = "json"

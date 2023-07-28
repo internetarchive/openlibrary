@@ -1,10 +1,10 @@
 import { debounce } from './nonjquery_utils';
 
 const subjectTypeColors = {
-    'subject': '#0067D5',
-    'person': '#D100D5',
-    'place': '#D50033',
-    'time': '#D5A600'
+    subject: '#0067D5',
+    person: '#D100D5',
+    place: '#D50033',
+    time: '#D5A600'
 }
 
 function newSubjectRowHtml(subjectName, subjectType = null, isSelected = false) {
@@ -38,16 +38,16 @@ function newSubjectRowHtml(subjectName, subjectType = null, isSelected = false) 
         name.style.display = 'flex';
         name.style.flexDirection = 'column';
         name.style.justifyContent = 'center';
-        let p = document.createElement('div');
+        const p = document.createElement('div');
         p.innerHTML = `Create new subject <strong>'${subjectName}'</strong> with type:`;
         p.style = 'font-size: 13px; color: black; font-weight: 400; margin-bottom: 5px;'
         name.appendChild(p);
 
-        let subjectTypeOptions = ['subject', 'person', 'place', 'time'];
-        let select = document.createElement('div');
+        const subjectTypeOptions = ['subject', 'person', 'place', 'time'];
+        const select = document.createElement('div');
         select.style = 'width: 100%; display: flex; flex-direction: row; gap: 5px;';
         subjectTypeOptions.forEach((option) => {
-            let optionElement = document.createElement('div');
+            const optionElement = document.createElement('div');
             optionElement.style = 'font-size: 11px; color: white; font-weight: 400; width: fit-content; padding: 3px 6px; border-radius: 8px; cursor: pointer;';
             optionElement.style.backgroundColor = subjectTypeColors[option];
             optionElement.textContent = option;
@@ -86,7 +86,7 @@ function fetchSubjects(searchTerm) {
                 data['docs'].slice(0, maxDisplayResults)
                     .forEach(result => {
                         const isSelected = hiddenInput.value.includes(result.name);
-                        
+
                         const div = newSubjectRowHtml(result.name, result['subject_type'], isSelected);
                         console.log(div);
                         resultsContainer.appendChild(div);
@@ -115,7 +115,7 @@ function handleSelectSubject(name, rawSubjectType, button=null) {
     const selectedTagsContainer = document.getElementById('selected-tag-subjects');
     const subjectType = parseSubjectType(rawSubjectType);
 
-    const existingSubjects = JSON.parse(hiddenInput.value == "" ? "{}" : hiddenInput.value);
+    const existingSubjects = JSON.parse(hiddenInput.value == '' ? '{}' : hiddenInput.value);
     existingSubjects[subjectType] = existingSubjects[subjectType] || [];
 
     // Check if the name is already in the hidden input value
@@ -126,7 +126,7 @@ function handleSelectSubject(name, rawSubjectType, button=null) {
         existingSubjects[subjectType] = existingSubjects[subjectType].filter((subject) => subject !== name);
 
         // Remove the corresponding tag element
-        const tagToRemove = selectedTagsContainer.querySelector(`[data-name="${rawSubjectType + '-' + name}"]`);
+        const tagToRemove = selectedTagsContainer.querySelector(`[data-name="${`${rawSubjectType}-${name}`}"]`);
         if (tagToRemove) {
             tagToRemove.remove();
         }
@@ -140,7 +140,7 @@ function handleSelectSubject(name, rawSubjectType, button=null) {
         // Create a new tag element
         const newTag = document.createElement('div');
         newTag.innerText = name;
-        newTag.dataset.name = rawSubjectType + '-' + name;
+        newTag.dataset.name = `${rawSubjectType}-${name}`;
         newTag.style = 'border: 1px solid #CCC; padding: 2px 6px; font-size: 13px; width: fit-content;';
         newTag.style.backgroundColor = subjectTypeColors[rawSubjectType];
 
@@ -165,7 +165,7 @@ function handleRemoveSubject(name, subjectType, tagElement) {
     const selectedTagsContainer = document.getElementById('selected-tag-subjects');
     subjectType = parseSubjectType(subjectType);
 
-    const existingSubjects = JSON.parse(hiddenInput.value == "" ? "{}" : hiddenInput.value);
+    const existingSubjects = JSON.parse(hiddenInput.value == '' ? '{}' : hiddenInput.value);
     existingSubjects[subjectType] = existingSubjects[subjectType] || [];
 
     // Remove the name from the hidden input value
@@ -179,14 +179,14 @@ function handleRemoveSubject(name, subjectType, tagElement) {
 
 function parseSubjectType(subjectType) {
     switch (subjectType) {
-        case 'subject':
-            return 'subjects';
-        case 'person':
-            return 'subject_people';
-        case 'place':
-            return 'subject_places';
-        case 'time':
-            return 'subject_times';
+    case 'subject':
+        return 'subjects';
+    case 'person':
+        return 'subject_people';
+    case 'place':
+        return 'subject_places';
+    case 'time':
+        return 'subject_times';
     }
 }
 
