@@ -175,9 +175,9 @@ class lists_partials(delegate.page):
         seed_info = get_seed_info(doc)
         user_lists = get_user_lists(seed_info)
 
-        dropper = render_template(
-            'lists/dropper_lists', user_lists, legacy_rendering=False
-        )
+        use_legacy_droppers = "my_books_dropper" not in web.ctx.features
+
+        dropper = render_template('lists/dropper_lists', user_lists, legacy_rendering=use_legacy_droppers)
         active = render_template(
             'lists/active_lists', user_lists, user['key'], seed_info
         )
