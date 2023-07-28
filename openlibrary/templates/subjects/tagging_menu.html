@@ -1,0 +1,25 @@
+$def with (work_ids)
+
+<form action="/tags/bulk_tag_works?debug=True" method="post" id="bulk-tagging-form" style="width: 300px; min-height: 400px; right:30px; bottom:50px; border: 1px solid lightgray; box-shadow: 0px 5px 5px 2px gray; background-color: white; border-radius: 10px; position:absolute;">
+    <div style="display: flex; justify-content: space-between; align-items: center; height: 33px; padding: 7px 15px;">
+        <p style="font-weight: bold; font-size: 13px;">Manage Subjects</p>
+        <div id="close-bulk-tagging-form" style="cursor: pointer; color: black; font-size: 17px;">x</div>
+    </div>
+    <div style="border-top: 1px solid lightgray; border-bottom: 1px solid lightgray;">
+        <input
+            type="text"
+            id="subjects-search-input"
+            style="width: 281px; height: 31px; border: 1px solid lightgray; border-radius: 5px; background: #FFF; margin: 6px 7px; padding: 5px; font-size: 14px; color: #000;"
+            placeholder='Filter subjects e.g. Epic'
+            onfocus="this.style.borderColor = '#0067D5';"
+            onblur="this.style.borderColor = 'lightgray';"
+        >
+    </div>
+    <div id="subjects-search-results" style="height: 200px; overflow-y: auto; border-bottom: 1px solid lightgray;">
+
+    </div>
+    <input id="tag-work-ids" name="work_ids" value="$work_ids" style="display: none;"></input>
+    <input id="tag-subjects" name="tag_subjects" value="" style="display: none;"></input>
+    <div id="selected-tag-subjects" style="display: flex; flex-wrap: wrap; gap: 5px; padding: 5px;"></div>
+    <button type="submit" id="bulk-tagging-submit" style="position: absolute; bottom: 10px; right: 10px; border: none; border-radius: 4px; height: 25px; cursor: pointer;">Submit</button>
+</form>
