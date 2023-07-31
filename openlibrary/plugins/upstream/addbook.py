@@ -218,9 +218,6 @@ class addbook(delegate.page):
             _test="false",
         )
 
-        print('debug id_value: ' + i.id_value)
-        print('debug id_name: ' + i.id_name)
-
         if spamcheck.is_spam(i, allow_privileged_edits=True):
             return render_template(
                 "message.html", "Oops", 'Something went wrong. Please try again later.'
