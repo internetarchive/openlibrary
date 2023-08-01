@@ -100,6 +100,13 @@ $def seed_attrs(seed):
             $ seeds = list.get_seeds(sort=(sort == 'last_modified'), resolve_redirects=True)[page*page_size:page*page_size+page_size]
             $ component_times['get_seeds'] = time() - component_times['get_seeds']
 
+        $if not seeds:
+            <p>$_("There are no items on this list.")</p>
+            <p>
+                $:_('<a href="/search" target="_blank">Search for book, subjects, or authors</a> to add to your list.')
+                <a href="/help/faq/reading-log#lists" target="_blank">$_('Learn more.')</a>
+            </p>
+
         $ solr_works = get_solr_works(s.key for s in seeds if s.type == 'work')
         $ availabilities = get_availabilities([solr_works.get(seed.key) or seed.document for seed in seeds if seed.type in ['edition', 'work']])
         $for seed in seeds:
