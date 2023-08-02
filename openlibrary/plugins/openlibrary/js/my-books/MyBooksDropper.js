@@ -6,8 +6,7 @@ import myBooksStore from './store'
 import ReadDateComponents from './ReadDateComponents'
 import ReadingLists from './ReadingLists'
 import ReadingLogForms from './ReadingLogForms'
-import Dropper from '../dropper/Dropper'
-import { fetchPartials } from '../lists/ListService'
+import { Dropper } from '../dropper/Dropper'
 
 /**
  * Represents a single My Books Dropper.
@@ -159,7 +158,7 @@ export default class MyBooksDropper extends Dropper {
     toggleDropper() {
         super.toggleDropper()
 
-        if (!this.isDropperDisabled && this.isOpen()) {
+        if (!this.isDropperDisabled && this.isDropperOpen) {
             myBooksStore.set('OPEN_DROPPER', this)
             myBooksStore.set('LIST_SEED', this.readingLists.getSeed())
         }

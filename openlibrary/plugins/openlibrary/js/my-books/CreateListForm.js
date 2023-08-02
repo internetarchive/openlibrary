@@ -17,7 +17,7 @@ import { createList } from '../lists/ListService'
  *
  * @class
  */
-export default class CreateListForm {
+export class CreateListForm {
 
     /**
      * Creates a new `CreateListForm` object.
