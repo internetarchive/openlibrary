@@ -739,7 +739,7 @@ def find_match(rec, edition_pool) -> str | None:
 
 
 def update_edition_with_rec_data(
-    rec: dict, account_key: str | None, e: "Edition"
+    rec: dict, account_key: str | None, edition: "Edition"
 ) -> bool:
     """
     Enrich the Edition by adding certain fields present in rec but absent
@@ -749,16 +749,16 @@ def update_edition_with_rec_data(
     """
     need_edition_save = False
     # Add cover to edition
-    if 'cover' in rec and not e.get_covers():
+    if 'cover' in rec and not edition.get_covers():
         cover_url = rec['cover']
-        cover_id = add_cover(cover_url, e.key, account_key=account_key)
+        cover_id = add_cover(cover_url, edition.key, account_key=account_key)
         if cover_id:
-            e['covers'] = [cover_id]
+            edition['covers'] = [cover_id]
             need_edition_save = True
 
     # Add ocaid to edition (str), if needed
-    if 'ocaid' in rec and not e.ocaid:
-        e['ocaid'] = rec['ocaid']
+    if 'ocaid' in rec and not edition.ocaid:
+        edition['ocaid'] = rec['ocaid']
         need_edition_save = True
 
     # Add list fields to edition as needed
@@ -774,12 +774,12 @@ def update_edition_with_rec_data(
             continue
         # ensure values is a list
         values = rec[f] if isinstance(rec[f], list) else [rec[f]]
-        if f in e:
+        if f in edition:
             # get values from rec that are not currently on the edition
-            to_add = [v for v in values if v not in e[f]]
-            e[f] += to_add
+            to_add = [v for v in values if v not in edition[f]]
+            edition[f] += to_add
         else:
-            e[f] = to_add = values
+            edition[f] = to_add = values
         if to_add:
             need_edition_save = True
 
@@ -791,25 +791,25 @@ def update_edition_with_rec_data(
     for f in other_edition_fields:
         if f not in rec or not rec[f]:
             continue
-        if f not in e:
-            e[f] = rec[f]
+        if f not in edition:
+            edition[f] = rec[f]
             need_edition_save = True
 
     # Add new identifiers
     if 'identifiers' in rec:
-        identifiers = defaultdict(list, e.dict().get('identifiers', {}))
+        identifiers = defaultdict(list, edition.dict().get('identifiers', {}))
         for k, vals in rec['identifiers'].items():
             identifiers[k].extend(vals)
             identifiers[k] = list(set(identifiers[k]))
-        if e.dict().get('identifiers') != identifiers:
-            e['identifiers'] = identifiers
+        if edition.dict().get('identifiers') != identifiers:
+            edition['identifiers'] = identifiers
             need_edition_save = True
 
     return need_edition_save
 
 
 def update_work_with_rec_data(
-    rec: dict, e: "Edition", w: dict[str, Any], need_work_save: bool
+    rec: dict, edition: "Edition", work: dict[str, Any], need_work_save: bool
 ) -> bool:
     """
     Enrich the Work by adding certain fields present in rec but absent
@@ -819,33 +819,33 @@ def update_work_with_rec_data(
     """
     # Add subjects to work, if not already present
     if 'subjects' in rec:
-        work_subjects = list(w.get('subjects', []))
+        work_subjects = list(work.get('subjects', []))
         for s in rec['subjects']:
             if s not in work_subjects:
                 work_subjects.append(s)
                 need_work_save = True
         if need_work_save and work_subjects:
-            w['subjects'] = work_subjects
+            work['subjects'] = work_subjects
 
     # Add cover to work, if needed
-    if not w.get('covers') and e.get_covers():
-        w['covers'] = [e['covers'][0]]
+    if not work.get('covers') and edition.get_covers():
+        work['covers'] = [edition['covers'][0]]
         need_work_save = True
 
     # Add description to work, if needed
-    if not w.get('description') and e.get('description'):
-        w['description'] = e['description']
+    if not work.get('description') and edition.get('description'):
+        work['description'] = edition['description']
         need_work_save = True
 
     # Add authors to work, if needed
-    if not w.get('authors'):
+    if not work.get('authors'):
         authors = [import_author(a) for a in rec.get('authors', [])]
-        w['authors'] = [
+        work['authors'] = [
             {'type': {'key': '/type/author_role'}, 'author': a.key}
             for a in authors
             if a.get('key')
         ]
-        if w.get('authors'):
+        if work.get('authors'):
             need_work_save = True
 
     return need_work_save
@@ -881,45 +881,45 @@ def load(rec, account_key=None):
 
     # We have an edition match at this point
     need_work_save = need_edition_save = False
-    w: dict[str, Any]
-    e: "Edition" = web.ctx.site.get(match)
+    work: dict[str, Any]
+    edition: Edition = web.ctx.site.get(match)
     # check for, and resolve, author redirects
-    for a in e.authors:
+    for a in edition.authors:
         while is_redirect(a):
-            if a in e.authors:
-                e.authors.remove(a)
+            if a in edition.authors:
+                edition.authors.remove(a)
             a = web.ctx.site.get(a.location)
             if not is_redirect(a):
-                e.authors.append(a)
+                edition.authors.append(a)
 
-    if e.get('works'):
-        w = e.works[0].dict()
+    if edition.get('works'):
+        work = edition.works[0].dict()
         work_created = False
     else:
         # Found an edition without a work
         work_created = need_work_save = need_edition_save = True
-        w = new_work(e.dict(), rec)
-        e.works = [{'key': w['key']}]
+        work = new_work(edition.dict(), rec)
+        edition.works = [{'key': work['key']}]
 
     need_edition_save = update_edition_with_rec_data(
-        rec=rec, account_key=account_key, e=e
+        rec=rec, account_key=account_key, edition=edition
     )
     need_work_save = update_work_with_rec_data(
-        rec=rec, e=e, w=w, need_work_save=need_work_save
+        rec=rec, edition=edition, work=work, need_work_save=need_work_save
     )
 
     edits = []
     reply = {
         'success': True,
         'edition': {'key': match, 'status': 'matched'},
-        'work': {'key': w['key'], 'status': 'matched'},
+        'work': {'key': work['key'], 'status': 'matched'},
     }
     if need_edition_save:
         reply['edition']['status'] = 'modified'
-        edits.append(e.dict())
+        edits.append(edition.dict())
     if need_work_save:
         reply['work']['status'] = 'created' if work_created else 'modified'
-        edits.append(w)
+        edits.append(work)
     if edits:
         web.ctx.site.save_many(
             edits, comment='import existing book', action='edit-book'
