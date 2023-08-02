@@ -397,10 +397,13 @@ jQuery(function () {
             });
     }
 
+    // New "My Books" dropper:
     const myBooksDroppers = document.querySelectorAll('.my-books-dropper')
     if (myBooksDroppers.length) {
-        import(/* webpackChunkName: "my-books-dropper" */ './my-books')
-            .then(module => module.initMyBooksDroppers(myBooksDroppers))
+        import(/* webpackChunkName: "my-books" */ './my-books')
+            .then((module) => {
+                module.initMyBooksAffordances(myBooksDroppers)
+            })
     }
 
     const nativeDialogs = document.querySelectorAll('.native-dialog')

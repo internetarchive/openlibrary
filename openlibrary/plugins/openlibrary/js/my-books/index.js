@@ -1,8 +1,10 @@
 import CreateListForm from './CreateListForm'
 import MyBooksDropper from './MyBooksDropper'
 import myBooksStore from './store'
+import { getListPartials } from '../lists/ListService'
 
-export function initMyBooksDroppers(dropperElements) {
+// XXX : jsdoc
+export function initMyBooksAffordances(dropperElements) {
     const form = document.querySelector('#create-list-form')
     const createListForm = new CreateListForm(form)
     createListForm.initialize()
@@ -20,4 +22,12 @@ export function initMyBooksDroppers(dropperElements) {
     myBooksStore.set('USER_KEY', userKey)
 
     myBooksStore.set('DROPPERS', droppers)
+
+    getListPartials()
+        .then(response => response.json())
+        .then((data) => {
+            for (const dropper of droppers) {
+                dropper.updateReadingLists(data['dropper'])
+            }
+        })
 }

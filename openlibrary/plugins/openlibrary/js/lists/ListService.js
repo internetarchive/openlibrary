@@ -162,3 +162,14 @@ export function fetchPartials(key, success) {
         success: success
     })
 }
+
+// XXX : jsdoc
+export async function getListPartials() {
+    return await fetch('/lists/partials.json', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+        }
+    })
+}

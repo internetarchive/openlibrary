@@ -137,7 +137,7 @@ def get_list_data(list, seed, include_cover_url=True):
         {
             "name": list.name or "",
             "key": list.key,
-            "active": list.has_seed(seed),
+            "active": list.has_seed(seed) if seed else False,
             "list_items": list_items,
         }
     )
@@ -159,7 +159,7 @@ def get_user_lists(seed_info):
     if not user:
         return []
     user_lists = user.get_lists(sort=True)
-    seed = seed_info['seed']
+    seed = seed_info['seed'] if seed_info else None
     return [get_list_data(user_list, seed) for user_list in user_lists]
 
 
@@ -169,25 +169,38 @@ class lists_partials(delegate.page):
 
     def GET(self):
         i = web.input(key=None)
-
+        use_legacy_droppers = "my_books_dropper" not in web.ctx.features
         user = get_current_user()
-        doc = self.get_doc(i.key)
+
+        if use_legacy_droppers:
+            partials = self.legacy_get_partials(i.key, user)
+        else:
+            partials = self.get_partials(user)
+
+        return delegate.RawText(json.dumps(partials))
+
+    def legacy_get_partials(self, key, user):
+        doc = self.get_doc(key)
         seed_info = get_seed_info(doc)
         user_lists = get_user_lists(seed_info)
 
-        use_legacy_droppers = "my_books_dropper" not in web.ctx.features
-
-        dropper = render_template('lists/dropper_lists', user_lists, legacy_rendering=use_legacy_droppers)
+        dropper = render_template('lists/dropper_lists', user_lists)
         active = render_template(
             'lists/active_lists', user_lists, user['key'], seed_info
         )
 
-        partials = {
+        return {
             'dropper': str(dropper),
             'active': str(active),
         }
 
-        return delegate.RawText(json.dumps(partials))
+    def get_partials(self, user):
+        user_lists = get_user_lists(None)
+        dropper = render_template('lists/dropper_lists', user_lists, legacy_rendering=False)
+
+        return {
+            'dropper': str(dropper),
+        }
 
     def get_doc(self, key):
         if key.startswith("/subjects/"):

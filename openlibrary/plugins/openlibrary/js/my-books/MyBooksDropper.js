@@ -45,6 +45,20 @@ export default class MyBooksDropper extends Dropper {
         this.readingLists = new ReadingLists(dropper, dropperActionCallbacks)
 
         /**
+         * Reference to the dropper's list loading indicator.
+         *
+         * This is only rendered when the patron is logged in.
+         * @member {HTMLElement|null}
+         */
+        this.loadingIndicator = dropper.querySelector('.list-loading-indicator')
+
+        /**
+         * Reference to the interval ID of the animation `setInterval` call.
+         * @member {NodeJS.Timer|undefined}
+         */
+        this.loadingAnimationId
+
+        /**
          * References this dropper's reading log buttons.
          * @member {ReadingLogForms}
          */
@@ -66,59 +80,33 @@ export default class MyBooksDropper extends Dropper {
         this.readingLogForms.initialize()
         this.readingLists.initialize()
 
-        // XXX : This is happening for every dropper?
-        this.loadLists()
+        this.loadingAnimationId = this.initLoadingAnimation(this.dropper.querySelector('.loading-ellipsis'))
     }
 
     /**
-     * Replaces loading indicators with HTML fetched from the server.
-     */
-    loadLists() {
-        const dropperListPlaceholder = this.dropper.querySelector('.list-loading-indicator')
-
-        const loadingIndicators = dropperListPlaceholder ? [dropperListPlaceholder.querySelector('.loading-ellipsis')] : []
-
-        const intervalId = this.initLoadingAnimation(loadingIndicators)
-
-        let key
-        if (dropperListPlaceholder) {  // Not rendered for logged-out patrons
-            if (dropperListPlaceholder.dataset.editionKey) {
-                key = dropperListPlaceholder.dataset.editionKey
-            } else if (dropperListPlaceholder.dataset.workKey) {
-                key = dropperListPlaceholder.dataset.workKey
-            }
-        }
-
-        if (key) {
-            fetchPartials(key, (data) => {
-                clearInterval(intervalId)
-                this.replaceLoadingIndicators(dropperListPlaceholder, JSON.parse(data))
-            })
-        } else {
-            this.removeChildren(dropperListPlaceholder)
-        }
-    }
-
-    /**
-     * Creates loading animation for list affordances.
+     * Creates loading animation for list loading indicator.
      *
-     * @param {Array<HTMLElement>} loadingIndicators
+     * @param {HTMLElement} loadingIndicator
      * @returns {NodeJS.Timer}
      */
-    initLoadingAnimation(loadingIndicators) {
+    initLoadingAnimation(loadingIndicator) {
         let count = 0
         const intervalId = setInterval(function() {
             let ellipsis = ''
             for (let i = 0; i < count % 4; ++i) {
                 ellipsis += '.'
             }
-            for (const elem of loadingIndicators) {
-                elem.innerText = ellipsis
-            }
+            loadingIndicator.innerText = ellipsis
             ++count
         }, 1500)
 
         return intervalId
+    }
+
+    // XXX : jsdoc
+    updateReadingLists(partialHtml) {
+        clearInterval(this.loadingAnimationId)
+        this.replaceLoadingIndicators(this.loadingIndicator, partialHtml)
     }
 
     /**
@@ -134,12 +122,12 @@ export default class MyBooksDropper extends Dropper {
      * @param {HTMLElement} dropperListsPlaceholder Loading indicator found inside of the dropdown content
      * @param {ListPartials} partials
      */
-    replaceLoadingIndicators(dropperListsPlaceholder, partials) {
+    replaceLoadingIndicators(dropperListsPlaceholder, partialHTML) {
         const dropperParent = dropperListsPlaceholder ? dropperListsPlaceholder.parentElement : null
 
         if (dropperParent) {
             this.removeChildren(dropperParent)
-            dropperParent.insertAdjacentHTML('afterbegin', partials['dropper'])
+            dropperParent.insertAdjacentHTML('afterbegin', partialHTML)
 
             const anchors = this.dropper.querySelectorAll('.modify-list')
             this.readingLists.initModifyListAffordances(anchors)
@@ -174,22 +162,6 @@ export default class MyBooksDropper extends Dropper {
         if (!this.isDropperDisabled && this.isOpen()) {
             myBooksStore.set('OPEN_DROPPER', this)
             myBooksStore.set('LIST_SEED', this.readingLists.getSeed())
-        }
-    }
-
-    /**
-     * Closes dropper and nullifies open dropper and list
-     * seed in the My Books data store.
-     *
-     * **Important Note** The data store is not updated when
-     * the dropper is closed by clicking outside of the dropper.
-     */
-    closeDropper() {
-        super.closeDropper()
-
-        if (!this.isDropperDisabled) {
-            myBooksStore.set('OPEN_DROPPER', null)
-            myBooksStore.set('LIST_SEED', null)
         }
     }
 }

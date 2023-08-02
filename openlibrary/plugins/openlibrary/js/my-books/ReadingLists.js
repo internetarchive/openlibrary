@@ -174,18 +174,36 @@ export default class ReadingLists {
         for (const elem of modifyListElements) {
             const listItemKeys = elem.dataset.listItems
             const listKey = elem.dataset.listKey
+            const itemOnList = listItemKeys.includes(this.seedKey)
+            const elemParent = elem.parentElement
 
             this.patronLists[listKey] = {
                 title: elem.innerText,
                 coverUrl: elem.listCoverUrl,
-                itemOnList: listItemKeys.includes(this.seedKey),
-                dropperListAffordance: elem.parentElement,  // The .list element
+                itemOnList: itemOnList,
+                dropperListAffordance: elemParent,  // The .list element
             }
             if (!this.patronLists[listKey].coverUrl) {
                 this.patronLists[listKey].coverUrl = DEFAULT_COVER_URL
             }
             if (this.workCheckBox) {
-                this.patronLists[listKey].workOnList = listItemKeys.includes(this.workKey)
+                // Check for work key membership:
+                const workOnList = listItemKeys.includes(this.workKey)
+                this.patronLists[listKey].workOnList = workOnList
+
+                if (this.workCheckBox.checked) {
+                    if (workOnList) {
+                        elemParent.classList.add('list--active')
+                    }
+                } else {
+                    if (itemOnList) {
+                        elemParent.classList.add('list--active')
+                    }
+                }
+            } else {
+                if (itemOnList) {
+                    elemParent.classList.add('list--active')
+                }
             }
 
             elem.addEventListener('click', (event) => {
@@ -205,7 +223,7 @@ export default class ReadingLists {
      */
     async modifyList(listKey, isAddingItem) {
         let seed
-        const isWork = this.workCheckBox && this.workCheckBox.checked
+        const isWork = this.seedKey.endsWith('W')
 
         // Seed will be a string if its type is 'subject'
         const isSubjectSeed = this.seedKey[0] !== '/'
@@ -391,10 +409,12 @@ export default class ReadingLists {
         }
         p.innerHTML = itemMarkUp
         this.dropperListsElement.appendChild(p)
+        const listAffordance = p.querySelector('.modify-list')
 
-        p.children[0].addEventListener('click', (event) => {
+        listAffordance.addEventListener('click', (event) => {
             event.preventDefault()
-            this.modifyList(p.children[0], true)
+            const isAddingItem = !this.patronLists[listKey].dropperListAffordance.classList.contains('list--active')
+            this.modifyList(listKey, isAddingItem)
         })
 
         return p
