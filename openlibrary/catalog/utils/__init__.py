@@ -1,6 +1,6 @@
 import datetime
 import re
-from re import compile, Match
+from re import Match
 import web
 from unicodedata import normalize
 from openlibrary.catalog.merge.merge_marc import build_titles
@@ -339,8 +339,9 @@ def get_publication_year(publish_date: str | int | None) -> int | None:
     if publish_date is None:
         return None
 
-    pattern = compile(r"\b\d{4}(?!\d)\b")
-    match = pattern.search(str(publish_date))
+    from openlibrary.catalog.utils import re_year
+
+    match = re_year.search(str(publish_date))
 
     return int(match.group(0)) if match else None
 
