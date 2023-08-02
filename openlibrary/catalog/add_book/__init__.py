@@ -23,7 +23,7 @@ A record is loaded by calling the load function.
 
 """
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import web
 
@@ -53,7 +53,7 @@ from openlibrary.catalog.add_book.load_book import (
 from openlibrary.catalog.add_book.match import editions_match
 
 if TYPE_CHECKING:
-    from openlibrary.core.models import Edition, Work
+    from openlibrary.plugins.upstream.models import Edition
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
 re_lang = re.compile('^/languages/([a-z]{3})$')
@@ -809,7 +809,7 @@ def update_edition_with_rec_data(
 
 
 def update_work_with_rec_data(
-    rec: dict, e: "Edition", w: "Work", need_work_save: bool
+    rec: dict, e: "Edition", w: dict[str, Any], need_work_save: bool
 ) -> bool:
     """
     Enrich the Work by adding certain fields present in rec but absent
@@ -881,9 +881,8 @@ def load(rec, account_key=None):
 
     # We have an edition match at this point
     need_work_save = need_edition_save = False
-    # w = None
-    w: Work
-    e: Edition = web.ctx.site.get(match)
+    w: dict[str, Any]
+    e: "Edition" = web.ctx.site.get(match)
     # check for, and resolve, author redirects
     for a in e.authors:
         while is_redirect(a):
