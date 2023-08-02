@@ -8,6 +8,10 @@ from infogami.infobase.core import Text
 
 from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import (
+    IndependentlyPublished,
+    PublicationYearTooOld,
+    PublishedInFutureYear,
+    SourceNeedsISBN,
     add_db_name,
     build_pool,
     editions_matched,
@@ -15,6 +19,7 @@ from openlibrary.catalog.add_book import (
     load,
     split_subtitle,
     RequiredField,
+    validate_record,
 )
 
 from openlibrary.catalog.marc.parse import read_edition
@@ -1185,3 +1190,78 @@ def test_add_identifiers_to_edition(mock_site) -> None:
     e = mock_site.get(reply['edition']['key'])
     assert e.works[0]['key'] == '/works/OL19W'
     assert e.identifiers._data == {'goodreads': ['1234'], 'librarything': ['5678']}
+
+
+@pytest.mark.parametrize(
+    'name, rec, error',
+    [
+        (
+            "Books prior to 1400 CANNOT be imported if from a bookseller requiring additional validation",
+            {
+                'title': 'a book',
+                'source_records': ['amazon:123'],
+                'publish_date': '1399',
+                'isbn_10': ['1234567890'],
+            },
+            PublicationYearTooOld,
+        ),
+        (
+            "Books published on or after 1400 CE+ can be imported from any source",
+            {
+                'title': 'a book',
+                'source_records': ['amazon:123'],
+                'publish_date': '1400',
+                'isbn_10': ['1234567890'],
+            },
+            None,
+        ),
+        (
+            "Trying to import a book from a future year raises an error",
+            {'title': 'a book', 'source_records': ['ia:ocaid'], 'publish_date': '3000'},
+            PublishedInFutureYear,
+        ),
+        (
+            "Independently published books CANNOT be imported",
+            {
+                'title': 'a book',
+                'source_records': ['ia:ocaid'],
+                'publishers': ['Independently Published'],
+            },
+            IndependentlyPublished,
+        ),
+        (
+            "Non-independently published books can be imported",
+            {
+                'title': 'a book',
+                'source_records': ['ia:ocaid'],
+                'publishers': ['Best Publisher'],
+            },
+            None,
+        ),
+        (
+            "Import sources that require an ISBN CANNOT be imported without an ISBN",
+            {'title': 'a book', 'source_records': ['amazon:amazon_id'], 'isbn_10': []},
+            SourceNeedsISBN,
+        ),
+        (
+            "Can import sources that require an ISBN and have ISBN",
+            {
+                'title': 'a book',
+                'source_records': ['amazon:amazon_id'],
+                'isbn_10': ['1234567890'],
+            },
+            None,
+        ),
+        (
+            "Can import from sources that don't require an ISBN",
+            {'title': 'a book', 'source_records': ['ia:wheeee'], 'isbn_10': []},
+            None,
+        ),
+    ],
+)
+def test_validate_record(name, rec, error) -> None:
+    if error:
+        with pytest.raises(error):
+            validate_record(rec)
+    else:
+        assert validate_record(rec) is None, f"Test failed: {name}"  # type: ignore [func-returns-value]

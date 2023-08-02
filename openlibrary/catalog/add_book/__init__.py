@@ -36,7 +36,16 @@ import requests
 from infogami import config
 
 from openlibrary import accounts
-from openlibrary.catalog.utils import mk_norm
+from openlibrary.catalog.utils import (
+    EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS,
+    get_publication_year,
+    is_independently_published,
+    is_promise_item,
+    mk_norm,
+    needs_isbn_and_lacks_one,
+    publication_too_old_and_not_exempt,
+    published_in_future_year,
+)
 from openlibrary.core import lending
 from openlibrary.plugins.upstream.utils import strip_accents
 from openlibrary.catalog.utils import expand_record
@@ -80,7 +89,39 @@ class RequiredField(Exception):
         self.f = f
 
     def __str__(self):
-        return "missing required field: %s" % self.f
+        return "missing required field(s): %s" % ", ".join(self.f)
+
+
+class PublicationYearTooOld(Exception):
+    def __init__(self, year):
+        self.year = year
+
+    def __str__(self):
+        return f"publication year is too old (i.e. earlier than {EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS}): {self.year}"
+
+
+class PublishedInFutureYear(Exception):
+    def __init__(self, year):
+        self.year = year
+
+    def __str__(self):
+        return f"published in future year: {self.year}"
+
+
+class IndependentlyPublished(Exception):
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        return "book is independently published"
+
+
+class SourceNeedsISBN(Exception):
+    def __init__(self):
+        pass
+
+    def __str__(self):
+        return "this source needs an ISBN"
 
 
 # don't use any of these as work titles
@@ -720,6 +761,32 @@ def normalize_import_record(rec: dict) -> None:
     rec['authors'] = uniq(rec.get('authors', []), dicthash)
 
 
+def validate_record(rec: dict) -> None:
+    """
+    Check for:
+        - publication years too old from non-exempt sources (e.g. Amazon);
+        - publish dates in a future year;
+        - independently published books; and
+        - books that need an ISBN and lack one.
+
+    Each check raises an error or returns None.
+
+    If all the validations pass, implicitly return None.
+    """
+    # Only validate publication year if a year is found.
+    if publication_year := get_publication_year(rec.get('publish_date')):
+        if publication_too_old_and_not_exempt(rec):
+            raise PublicationYearTooOld(publication_year)
+        elif published_in_future_year(publication_year):
+            raise PublishedInFutureYear(publication_year)
+
+    if is_independently_published(rec.get('publishers', [])):
+        raise IndependentlyPublished
+
+    if needs_isbn_and_lacks_one(rec):
+        raise SourceNeedsISBN
+
+
 def find_match(rec, edition_pool) -> str | None:
     """Use rec to try to find an existing edition key that matches."""
     match = find_quick_match(rec)
@@ -864,7 +931,8 @@ def load(rec, account_key=None):
     :rtype: dict
     :return: a dict to be converted into a JSON HTTP response, same as load_data()
     """
-
+    if not is_promise_item(rec):
+        validate_record(rec)
     normalize_import_record(rec)
 
     # Resolve an edition if possible, or create and return one if not.
