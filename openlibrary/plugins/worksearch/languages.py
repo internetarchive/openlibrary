@@ -70,7 +70,8 @@ class index_json(delegate.page):
 
     @jsonapi
     def GET(self):
-        return json.dumps(get_top_languages(15))
+        i = web.input(limit=15)
+        return json.dumps(get_top_languages(safeint(i.limit, 15)))
 
 
 class language_search(delegate.page):
