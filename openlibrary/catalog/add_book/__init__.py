@@ -22,6 +22,7 @@ A record is loaded by calling the load function.
     response = load(record)
 
 """
+# from icecream import ic
 import re
 from typing import TYPE_CHECKING, Any
 
@@ -47,7 +48,7 @@ from openlibrary.catalog.utils import (
     published_in_future_year,
 )
 from openlibrary.core import lending
-from openlibrary.plugins.upstream.utils import strip_accents
+from openlibrary.plugins.upstream.utils import strip_accents, safeget
 from openlibrary.catalog.utils import expand_record
 from openlibrary.utils import uniq, dicthash
 from openlibrary.utils.isbn import normalize_isbn
@@ -919,7 +920,32 @@ def update_work_with_rec_data(
     return need_work_save
 
 
-def load(rec, account_key=None):
+def overwrite_if_rev1_promise_item(
+    rec: dict, edition: "Edition", from_marc_record: bool = False
+) -> bool:
+    """
+    Overwrite if rev1 promise item.
+    """
+    # TODO: better explanation
+    # TODO this probably simply needs to call load_data().
+    # if edition.get('revision') != 1 or not from_marc_record:
+    if not from_marc_record:
+        return False
+
+    # if not edition.get('source_records', ["stop index error"])[0].startswith("promise"):
+    if not safeget(lambda: edition['source_records'][0].startswith("promise")):
+        return False
+
+    for field, value in rec.items():
+        if field == "source_records":
+            edition['source_records'].extend(value)
+        else:
+            edition[field] = value
+
+    return True
+
+
+def load(rec, account_key=None, from_marc_record: bool = False):
     """Given a record, tries to add/match that edition in the system.
 
     Record is a dictionary containing all the metadata of the edition.
@@ -929,11 +955,13 @@ def load(rec, account_key=None):
         * source_records: list
 
     :param dict rec: Edition record to add
+    :param bool from_marc_record: whether the record is based on a MARC record.
     :rtype: dict
     :return: a dict to be converted into a JSON HTTP response, same as load_data()
     """
     if not is_promise_item(rec):
         validate_record(rec)
+
     normalize_import_record(rec)
 
     # Resolve an edition if possible, or create and return one if not.
@@ -970,6 +998,10 @@ def load(rec, account_key=None):
         work = new_work(edition.dict(), rec)
         edition.works = [{'key': work['key']}]
 
+    overwrite_promise_item = overwrite_if_rev1_promise_item(
+        rec=rec, edition=edition, from_marc_record=from_marc_record
+    )
+
     need_edition_save = update_edition_with_rec_data(
         rec=rec, account_key=account_key, edition=edition
     )
@@ -977,17 +1009,23 @@ def load(rec, account_key=None):
         rec=rec, edition=edition, work=work, need_work_save=need_work_save
     )
 
+    # ic(e.dict())
+    # ic(rec)
+    # ic(w)
+
     edits = []
     reply = {
         'success': True,
         'edition': {'key': match, 'status': 'matched'},
         'work': {'key': work['key'], 'status': 'matched'},
     }
+
     if need_edition_save:
-        reply['edition']['status'] = 'modified'
+        # if need_edition_save or overwrite_promise_item:
+        reply['edition']['status'] = 'modified'  # type: ignore[index]
         edits.append(edition.dict())
     if need_work_save:
-        reply['work']['status'] = 'created' if work_created else 'modified'
+        reply['work']['status'] = 'created' if work_created else 'modified'  # type: ignore[index]
         edits.append(work)
     if edits:
         web.ctx.site.save_many(
