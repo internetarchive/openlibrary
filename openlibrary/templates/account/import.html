@@ -10,7 +10,7 @@ $def with (books=None, books_wo_isbns=None)
         <form method="POST" action="/account/import/goodreads"
             enctype="multipart/form-data" class="olform olform--decoration">
           <div>
-            <input type="file" name="csv" />
+            <input required type="file" name="csv" />
             <br>$_("File size limit 10MB and .csv file type only")
           </div>
           <div>
