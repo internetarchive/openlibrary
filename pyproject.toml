@@ -36,7 +36,6 @@ extend-exclude = [
 ]
 ignore = [
   "B007",
-  "B015",
   "B023",
   "B904",
   "B905",
