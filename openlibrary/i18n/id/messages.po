@@ -1,0 +1,62 @@
+# Translation for Open Library.
+# Copyright (C) 2010 Internet Archive
+# This file is distributed under the same license as the Open Library
+# project.
+# Clonewayx <EMAIL@ADDRESS>, 2017.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Open Library VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2018-03-15 22:37+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: cs <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.5.3\n"
+"Language: id\n"
+
+#: account.py:347 account.py:382 account.py:422 password/reset_success.html:6
+#: verify.html:5 verify/activated.html:6 verify/success.html:6
+msgid "Hi, %(user)s"
+msgstr "Halo %(user)s"
+
+#: account.py:348 account.py:383
+#, python-format
+msgid ""
+"We've sent the verification email to %(email)s. You'll need to read that "
+"and click on the verification link to verify your email."
+msgstr ""
+"Kami telah mengirim email verifikasi ke %(email)s. Anda perlu membacanya "
+"dan mengklik link verifikasi untuk memverifikasi email Anda."
+
+#: account.py:423
+#, python-format
+msgid ""
+"We've sent an email to %(email)s. You'll need to read that and click on "
+"the verification link to update your email."
+msgstr ""
+"Kami telah mengirim email verifikasi ke %(email)s. Anda perlu membacanya dan mengklik "
+"link verifikasi untuk memverifikasi email Anda."
+
+#: account.py:441
+msgid "Email address is already used."
+msgstr "Alamat email telah digunakan."
+
+#: account.py:442
+msgid ""
+"Your email address couldn't be updated. The specified email address is "
+"already used."
+msgstr ""
+"Alamat email anda tidak dapat diperbarui. Alamat email "
+"telah digunakan."
+
+
+
+#: account.py:446
+msgid "Email verification successful."
+msgstr "Email verifikasi berhasil"
+
