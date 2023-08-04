@@ -731,6 +731,7 @@ def _matches_lang_name(prefix: str, language, translation: str | None = None) ->
                 code=language.code,
                 name=lang_name,
             )
+    return None
 
 def autocomplete_languages(prefix: str, limit: int) -> Iterator[Storage]:
     """
