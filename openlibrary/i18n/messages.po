@@ -26,7 +26,7 @@ msgid "Hi, %(user)s"
 msgstr "Halo %(user)s"
 
 #: account.py:348 account.py:383
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "We've sent the verification email to %(email)s. You'll need to read that "
 "and click on the verification link to verify your email."
