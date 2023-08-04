@@ -97,7 +97,7 @@ class languages_autocomplete(delegate.page):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
         return to_json(
-            list(itertools.islice(utils.autocomplete_languages(i.q), i.limit))
+            list(utils.autocomplete_languages(i.q, i.limit))
         )
 
 
