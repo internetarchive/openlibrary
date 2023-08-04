@@ -718,7 +718,10 @@ def get_languages(limit: int = 1000) -> dict:
 def _normalize(s: str) -> str:
     return strip_accents(s).lower()
 
-def _matches_lang_name(prefix: str, language, translation: str | None = None) -> Storage | None:
+
+def _matches_lang_name(
+    prefix: str, language, translation: str | None = None
+) -> Storage | None:
     lang_name = language.name
     if translation is not None:
         lang_name = safeget(lambda: language['name_translated'][translation][0])
@@ -732,6 +735,7 @@ def _matches_lang_name(prefix: str, language, translation: str | None = None) ->
                 name=lang_name,
             )
     return None
+
 
 def autocomplete_languages(prefix: str, limit: int) -> Iterator[Storage]:
     """
@@ -754,7 +758,7 @@ def autocomplete_languages(prefix: str, limit: int) -> Iterator[Storage]:
         #     The language's name translated into its native name (lang_iso_code)
         #     The language's name as it was fetched from get_languages() (None)
         # First matching result is yielded to the autocomplete iterator results
-        for translation in [ user_lang, lang_iso_code, None ]:
+        for translation in [user_lang, lang_iso_code, None]:
             match = _matches_lang_name(prefix, language, translation=translation)
             if match is not None:
                 matches += 1

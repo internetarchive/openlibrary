@@ -96,9 +96,7 @@ class languages_autocomplete(delegate.page):
     def GET(self):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
-        return to_json(
-            list(utils.autocomplete_languages(i.q, i.limit))
-        )
+        return to_json(list(utils.autocomplete_languages(i.q, i.limit)))
 
 
 class works_autocomplete(autocomplete):
