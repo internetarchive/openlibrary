@@ -99,7 +99,9 @@ class CommunityEditsQueue:
     @classmethod
     def get_reviewers(cls):
         oldb = db.get_db()
-        query = f'SELECT DISTINCT reviewer FROM {cls.TABLENAME} WHERE reviewer IS NOT NULL'
+        query = (
+            f'SELECT DISTINCT reviewer FROM {cls.TABLENAME} WHERE reviewer IS NOT NULL'
+        )
         return list(oldb.query(query))
 
     @classmethod
