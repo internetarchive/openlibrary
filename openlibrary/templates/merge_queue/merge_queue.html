@@ -130,8 +130,9 @@ $else:
         <tr id="mrid-$(r['id'])" class="mr-table-row" data-mrid="$(r['id'])">
           <td class="mr-info">
             $# Start : Status dot indicator
-            $ dot_status = 'dot--open' if is_open else 'dot--closed'
-            <div class="dot $dot_status"></div>
+            $ dot_status_class = 'dot--open' if is_open else 'dot--closed'
+            $ status = _('Open request') if is_open else _('Closed request')
+            <div class="dot $dot_status_class" title="$status"></div>
             $# End : Status dot indicator
 
             <div class="mr-details">
@@ -162,7 +163,7 @@ $else:
 
               $# Start : Submitted by line
               <span class="mr-details__opened-by">
-                $:_('MR #%(id)s opened %(date)s by <span class="commenter">@%(submitter)s</span>', id=r['id'], date=datestr(r["created"]), submitter=r["submitter"])
+                $:_('MR #%(id)s opened %(date)s by <a href="/people/%(submitter)s" class="commenter">@%(submitter)s</a>', id=r['id'], date=datestr(r["created"]), submitter=r["submitter"])
                 $if is_open and is_submitter:
                   <a class="mr-close-link" title="$_('Click to close this Merge Request')" href="javascript:;">&times;</a>
               </span>

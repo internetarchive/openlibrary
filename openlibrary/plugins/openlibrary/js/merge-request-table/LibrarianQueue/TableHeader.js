@@ -97,12 +97,7 @@ export default class TableHeader {
         // skip first item in menu
         for (let i=1; i < items.length; i++) {
             const text = items[i].textContent
-            if (text.toUpperCase().indexOf(filter) > -1) {
-                items[i].classList.remove('hidden')
-            }
-            else {
-                items[i].classList.add('hidden')
-            }
+            items[i].classList.toggle('hidden', text.toUpperCase().indexOf(filter) === -1);
         }
     }
 
