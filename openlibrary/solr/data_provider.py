@@ -522,16 +522,16 @@ class BetterDataProvider(LegacyDataProvider):
         # time consuming.
         key_query = (
             "select id from property where name='works'"
-            + " and type=(select id from thing where key='/type/edition')"
+            " and type=(select id from thing where key='/type/edition')"
         )
 
         q = (
             "SELECT edition.key as edition_key, work.key as work_key"
-            + " FROM thing as edition, thing as work, edition_ref"
-            + " WHERE edition_ref.thing_id=edition.id"
-            + "   AND edition_ref.value=work.id"
-            + f"   AND edition_ref.key_id=({key_query})"
-            + "   AND work.key in $keys"
+            " FROM thing as edition, thing as work, edition_ref"
+            " WHERE edition_ref.thing_id=edition.id"
+            "   AND edition_ref.value=work.id"
+            f"   AND edition_ref.key_id=({key_query})"
+            "   AND work.key in $keys"
         )
         result = self.db.query(q, vars={"keys": work_keys})
         for row in result:

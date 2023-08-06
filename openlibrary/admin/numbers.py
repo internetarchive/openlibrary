@@ -159,9 +159,9 @@ def admin_range__loans(**kargs):
         raise TypeError("%s is a required argument for admin_total__ebooks" % k)
     result = db.query(
         "SELECT count(*) as count FROM stats"
-        + " WHERE type='loan'"
-        + "   AND created >= $start"
-        + "   AND created < $end",
+        " WHERE type='loan'"
+        "   AND created >= $start"
+        "   AND created < $end",
         vars=locals(),
     )
     return result[0].count

@@ -75,18 +75,10 @@ class contact(delegate.page):
 def sendmail(from_address, to_address, subject, message):
     if config.get('dummy_sendmail'):
         msg = (
-            ''
-            + 'To: '
-            + to_address
-            + '\n'
-            + 'From:'
-            + from_address
-            + '\n'
-            + 'Subject:'
-            + subject
-            + '\n'
-            + '\n'
-            + web.safestr(message)
+            f'To: {to_address}\n'
+            f'From:{from_address}\n'
+            f'Subject:{subject}\n'
+            f'\n{web.safestr(message)}'
         )
 
         logger.info("sending email:\n%s", msg)

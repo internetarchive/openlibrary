@@ -169,7 +169,7 @@ class Stats:
         try:
             result = db.query(
                 "SELECT count(*) as count FROM import_item"
-                + " WHERE import_time > CURRENT_TIMESTAMP - interval '1' hour"
+                " WHERE import_time > CURRENT_TIMESTAMP - interval '1' hour"
             )
         except UndefinedTable:
             logger.exception("Database table import_item may not exist on localhost")
@@ -210,9 +210,10 @@ class Stats:
         try:
             result = db.query(
                 "SELECT added_time::date as date, status, count(*)"
-                + " FROM import_item "
-                + " WHERE added_time > current_date - interval '$ndays' day"
-                " GROUP BY 1, 2" + " ORDER BY 1 desc",
+                " FROM import_item "
+                " WHERE added_time > current_date - interval '$ndays' day"
+                " GROUP BY 1, 2"
+                " ORDER BY 1 desc",
                 vars=locals(),
             )
         except UndefinedTable:
@@ -287,8 +288,8 @@ class Stats:
         """Returns all rows with given added date."""
         rows = db.query(
             "SELECT status, count(*) as count"
-            + " FROM import_item"
-            + " WHERE added_time::date = $date"
+            " FROM import_item"
+            " WHERE added_time::date = $date"
             " GROUP BY status",
             vars=locals(),
         )

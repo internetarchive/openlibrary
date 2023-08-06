@@ -194,16 +194,16 @@ class DocumentLoader:
         # update latest_revision and last_modified in thing table
         self.db.query(
             "UPDATE thing"
-            + " SET last_modified=$timestamp, latest_revision=latest_revision+1"
-            + " WHERE key IN $keys",
+            " SET last_modified=$timestamp, latest_revision=latest_revision+1"
+            " WHERE key IN $keys",
             vars=locals(),
         )
 
         # fetch the current data
         rows = self.db.query(
             "SELECT thing.id, thing.key, thing.created, thing.latest_revision, data.data"
-            + " FROM thing, data"
-            + " WHERE data.thing_id=thing.id AND data.revision=thing.latest_revision-1 and thing.key in $keys",
+            " FROM thing, data"
+            " WHERE data.thing_id=thing.id AND data.revision=thing.latest_revision-1 and thing.key in $keys",
             vars=locals(),
         )
 
@@ -287,8 +287,8 @@ class Reindexer:
         """Get documents with given keys from database and add "id" and "type_id" to them."""
         rows = self.db.query(
             "SELECT thing.id, thing.type, data.data"
-            + " FROM thing, data"
-            + " WHERE data.thing_id=thing.id AND data.revision=thing.latest_revision and thing.key in $keys",
+            " FROM thing, data"
+            " WHERE data.thing_id=thing.id AND data.revision=thing.latest_revision and thing.key in $keys",
             vars=locals(),
         )
 

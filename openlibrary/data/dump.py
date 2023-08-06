@@ -196,12 +196,12 @@ def generate_idump(day, **db_parameters):
     db.setup_database(**db_parameters)
     rows = db.longquery(
         "SELECT data.* FROM data, version, transaction "
-        + " WHERE data.thing_id=version.thing_id"
-        + "     AND data.revision=version.revision"
-        + "     AND version.transaction_id=transaction.id"
-        + "     AND transaction.created >= $day"
-        + "     AND transaction.created < date $day + interval '1 day'"
-        + " ORDER BY transaction.created",
+        " WHERE data.thing_id=version.thing_id"
+        "     AND data.revision=version.revision"
+        "     AND version.transaction_id=transaction.id"
+        "     AND transaction.created >= $day"
+        "     AND transaction.created < date $day + interval '1 day'"
+        " ORDER BY transaction.created",
         vars=locals(),
         chunk_size=10_000,
     )
