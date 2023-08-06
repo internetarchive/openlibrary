@@ -157,11 +157,11 @@ class WaitingLoan(dict):
 class Stats:
     def get_popular_books(self, limit=10):
         rows = db.query(
-            "select book_key, count(*) as count"
-            " from waitingloan"
-            " group by 1"
-            " order by 2 desc"
-            " limit $limit",
+            "SELECT book_key, count(*) as count"
+            " FROM waitingloan"
+            " GROUP by 1"
+            " ORDER by 2 desc"
+            " LIMIT $limit",
             vars=locals(),
         ).list()
         docs = web.ctx.site.get_many([row.book_key for row in rows])
