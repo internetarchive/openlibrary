@@ -851,6 +851,7 @@ def update_edition_with_rec_data(
             need_edition_save = True
 
     other_edition_fields = [
+        'description',
         'number_of_pages',
         'publishers',
         'publish_date',

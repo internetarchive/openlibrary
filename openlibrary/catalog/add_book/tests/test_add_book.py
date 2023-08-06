@@ -1265,3 +1265,53 @@ def test_validate_record(name, rec, error) -> None:
             validate_record(rec)
     else:
         assert validate_record(rec) is None, f"Test failed: {name}"  # type: ignore [func-returns-value]
+
+
+def test_reimport_updates_edition_and_work_description(mock_site) -> None:
+    author = {
+        'type': {'key': '/type/author'},
+        'name': 'John Smith',
+        'key': '/authors/OL1A',
+    }
+
+    existing_work = {
+        'authors': [{'author': '/authors/OL1A', 'type': {'key': '/type/author_role'}}],
+        'key': '/works/OL1W',
+        'title': 'A Good Book',
+        'type': {'key': '/type/work'},
+    }
+
+    existing_edition = {
+        'key': '/books/OL1M',
+        'title': 'A Good Book',
+        'publishers': ['Black Spot'],
+        'type': {'key': '/type/edition'},
+        'source_records': ['ia:someocaid'],
+        'publish_date': 'Jan 09, 2011',
+        'isbn_10': ['1234567890'],
+        'works': [{'key': '/works/OL1W'}],
+    }
+
+    mock_site.save(author)
+    mock_site.save(existing_work)
+    mock_site.save(existing_edition)
+
+    rec = {
+        'source_records': 'ia:someocaid',
+        'title': 'A Good Book',
+        'authors': [{'name': 'John Smith'}],
+        'publishers': ['Black Spot'],
+        'publish_date': 'Jan 09, 2011',
+        'isbn_10': ['1234567890'],
+        'description': 'A genuinely enjoyable read.',
+    }
+
+    reply = load(rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'modified'
+    assert reply['work']['status'] == 'modified'
+    assert reply['work']['key'] == '/works/OL1W'
+    edition = mock_site.get(reply['edition']['key'])
+    work = mock_site.get(reply['work']['key'])
+    assert edition.description == "A genuinely enjoyable read."
+    assert work.description == "A genuinely enjoyable read."
