@@ -195,10 +195,12 @@ class addbook(delegate.page):
 
         i = web.input(work=None, author=None)
         work = i.work and web.ctx.site.get(i.work)
+        print('DEBUG work: ', work.authors, file=web.debug)
         author = i.author and web.ctx.site.get(i.author)
+        print('DEBUG author: ', author, file=web.debug)
 
         return render_template(
-            'books/add', work=work, author=author, recaptcha=get_recaptcha()
+            'books/add', work=work, authors=work.authors, author=author, recaptcha=get_recaptcha()
         )
 
     def has_permission(self) -> bool:
