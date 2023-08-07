@@ -17,6 +17,8 @@ from openlibrary.catalog.add_book import (
     editions_matched,
     isbns_from_record,
     load,
+    load_data,
+    should_overwrite_promise_item,
     split_subtitle,
     RequiredField,
     validate_record,
@@ -1315,3 +1317,137 @@ def test_reimport_updates_edition_and_work_description(mock_site) -> None:
     work = mock_site.get(reply['work']['key'])
     assert edition.description == "A genuinely enjoyable read."
     assert work.description == "A genuinely enjoyable read."
+
+
+@pytest.mark.parametrize(
+    "name, edition, marc, expected",
+    [
+        (
+            "Overwrites revision 1 promise items with MARC data",
+            {'revision': 1, 'source_records': ['promise:bwb_daily_pallets_2022-03-17']},
+            True,
+            True,
+        ),
+        (
+            "Doesn't overwrite rev 1 promise items WITHOUT MARC data",
+            {'revision': 1, 'source_records': ['promise:bwb_daily_pallets_2022-03-17']},
+            False,
+            False,
+        ),
+        (
+            "Doesn't overwrite non-revision 1 promise items",
+            {'revision': 2, 'source_records': ['promise:bwb_daily_pallets_2022-03-17']},
+            True,
+            False,
+        ),
+        (
+            "Doesn't overwrite revision 1 NON-promise items",
+            {'revision': 1, 'source_records': ['ia:test']},
+            True,
+            False,
+        ),
+        (
+            "Can handle editions with an empty source record",
+            {'revision': 1, 'source_records': ['']},
+            True,
+            False,
+        ),
+        ("Can handle editions without a source record", {'revision': 1}, True, False),
+        (
+            "Can handle editions without a revision",
+            {'source_records': ['promise:bwb_daily_pallets_2022-03-17']},
+            True,
+            False,
+        ),
+    ],
+)
+def test_overwrite_if_rev1_promise_item(name, edition, marc, expected) -> None:
+    """
+    Specifically unit test the function that determines if a promise
+    item should be overwritten.
+    """
+    result = should_overwrite_promise_item(edition=edition, from_marc_record=marc)
+    assert (
+        result == expected
+    ), f"Test {name} failed. Expected {expected}, but got {result}"
+
+
+@pytest.fixture()
+def setup_load_data(mock_site):
+    existing_author = {
+        'key': '/authors/OL1A',
+        'name': 'John Smith',
+        'type': {'key': '/type/author'},
+    }
+
+    existing_work = {
+        'authors': [{'author': '/authors/OL1A', 'type': {'key': '/type/author_role'}}],
+        'key': '/works/OL1W',
+        'title': 'Finding Existing Works',
+        'type': {'key': '/type/work'},
+    }
+
+    existing_edition = {
+        'isbn_10': ['1234567890'],
+        'key': '/books/OL1M',
+        'publish_date': 'Jan 1st, 3000',
+        'publishers': ['BOOK BOOK BOOK'],
+        'source_records': ['promise:bwb_daily_pallets_2022-03-17'],
+        'title': 'Originally A Promise Item',
+        'type': {'key': '/type/edition'},
+        'works': [{'key': '/works/OL1W'}],
+    }
+
+    incoming_rec = {
+        'authors': [{'name': 'John Smith'}],
+        'description': 'A really fun book.',
+        'dewey_decimal_class': ['853.92'],
+        'identifiers': {'goodreads': ['1234'], 'librarything': ['5678']},
+        'isbn_10': ['1234567890'],
+        'ocaid': 'newlyscannedpromiseitem',
+        'publish_country': 'fr',
+        'publish_date': '2017',
+        'publish_places': ['Paris'],
+        'publishers': ['Gallimard'],
+        'series': ['Folio, Policier : roman noir -- 820'],
+        'source_records': ['ia:newlyscannedpromiseitem'],
+        'title': 'Originally A Promise Item',
+        'translated_from': ['yid'],
+    }
+
+    mock_site.save(existing_author)
+    mock_site.save(existing_work)
+    mock_site.save(existing_edition)
+
+    return incoming_rec
+
+
+class TestLoadDataWithARev1PromiseItem:
+    """
+    Test the process of overwriting a rev1 promise item by passing it, and
+    an incoming record with MARC data, to load_data.
+    """
+
+    def test_passing_edition_to_load_data_overwrites_edition_with_rec_data(
+        self, mock_site, add_languages, ia_writeback, setup_load_data
+    ) -> None:
+        rec: dict = setup_load_data
+        edition = mock_site.get('/books/OL1M')
+
+        reply = load_data(rec=rec, existing_edition=edition)
+        assert reply['edition']['status'] == 'modified'
+        assert reply['success'] is True
+        assert reply['work']['key'] == '/works/OL1W'
+        assert reply['work']['status'] == 'matched'
+
+        edition = mock_site.get(reply['edition']['key'])
+        assert edition.dewey_decimal_class == ['853.92']
+        assert edition.publish_date == '2017'
+        assert edition.publish_places == ['Paris']
+        assert edition.publishers == ['Gallimard']
+        assert edition.series == ['Folio, Policier : roman noir -- 820']
+        assert edition.source_records == [
+            'promise:bwb_daily_pallets_2022-03-17',
+            'ia:newlyscannedpromiseitem',
+        ]
+        assert edition.works[0]['key'] == '/works/OL1W'

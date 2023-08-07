@@ -22,7 +22,6 @@ A record is loaded by calling the load function.
     response = load(record)
 
 """
-# from icecream import ic
 import re
 from typing import TYPE_CHECKING, Any
 
@@ -63,7 +62,7 @@ from openlibrary.catalog.add_book.load_book import (
 from openlibrary.catalog.add_book.match import editions_match
 
 if TYPE_CHECKING:
-    from openlibrary.plugins.upstream.models import Edition
+    from openlibrary.plugins.upstream.models import Edition, Work
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
 re_lang = re.compile('^/languages/([a-z]{3})$')
@@ -619,9 +618,15 @@ def add_db_name(rec: dict) -> None:
         a['db_name'] = ' '.join([a['name'], date]) if date else a['name']
 
 
-def load_data(rec, account_key=None):
+def load_data(rec, account_key=None, existing_edition: "Edition | None" = None):
     """
-    Adds a new Edition to Open Library. Checks for existing Works.
+    Adds a new Edition to Open Library, or overwrites existing_edition with rec data.
+
+    The overwrite option exists for cases where the existing edition data
+    should be (nearly) completely overwritten by rec data. Revision 1 promise
+    items are an example.
+
+    Checks for existing Works.
     Creates a new Work, and Author, if required,
     otherwise associates the new Edition with the existing Work.
 
@@ -647,21 +652,35 @@ def load_data(rec, account_key=None):
         del rec['cover']
     try:
         # get an OL style edition dict
-        edition = build_query(rec)
+        rec_as_edition = build_query(rec)
+        edition: dict[str, Any]
+        if existing_edition:
+            edition = build_query(existing_edition.dict()) | rec_as_edition
+            # Preserve a source_records to avoid data loss and preserve the
+            # edition's work to avoid an unnecessary database call.
+            edition['source_records'] = existing_edition.get(
+                'source_records', []
+            ) + rec.get('source_records', [])
+            edition['works'] = existing_edition.get('works', '')
+        else:
+            edition = rec_as_edition
+
     except InvalidLanguage as e:
         return {
             'success': False,
             'error': str(e),
         }
 
-    ekey = web.ctx.site.new_key('/type/edition')
+    if not (ekey := edition.get('key')):
+        ekey = web.ctx.site.new_key('/type/edition')
+
     cover_id = None
     if cover_url:
         cover_id = add_cover(cover_url, ekey, account_key=account_key)
     if cover_id:
         edition['covers'] = [cover_id]
 
-    edits = []  # Things (Edition, Work, Authors) to be saved
+    edits: list[dict] = []  # Things (Edition, Work, Authors) to be saved
     reply = {}
     # TOFIX: edition.authors has already been processed by import_authors() in build_query(), following line is a NOP?
     author_in = [
@@ -677,15 +696,14 @@ def load_data(rec, account_key=None):
         edition['authors'] = authors
         reply['authors'] = author_reply
 
-    wkey = None
+    wkey = safeget(lambda: edition['works'][0]['key'])
     work_state = 'created'
     # Look for an existing work
-    if 'authors' in edition:
+    if not wkey and 'authors' in edition:
         wkey = find_matching_work(edition)
     if wkey:
         w = web.ctx.site.get(wkey)
         work_state = 'matched'
-        found_wkey_match = True
         need_update = False
         for k in subject_fields:
             if k not in rec:
@@ -705,6 +723,7 @@ def load_data(rec, account_key=None):
     else:
         # Create new work
         w = new_work(edition, rec, cover_id)
+        work_state = 'created'
         wkey = w['key']
         edits.append(w)
 
@@ -713,7 +732,12 @@ def load_data(rec, account_key=None):
     edition['key'] = ekey
     edits.append(edition)
 
-    web.ctx.site.save_many(edits, comment='import new book', action='add-book')
+    if existing_edition:
+        web.ctx.site.save_many(
+            edits, comment='overwrite promise item', action='add-book'
+        )
+    else:
+        web.ctx.site.save_many(edits, comment='import new book', action='add-book')
 
     # Writes back `openlibrary_edition` and `openlibrary_work` to
     # archive.org item after successful import:
@@ -721,7 +745,11 @@ def load_data(rec, account_key=None):
         update_ia_metadata_for_ol_edition(ekey.split('/')[-1])
 
     reply['success'] = True
-    reply['edition'] = {'key': ekey, 'status': 'created'}
+    reply['edition'] = (
+        {'key': ekey, 'status': 'modified'}
+        if existing_edition
+        else {'key': ekey, 'status': 'created'}
+    )
     reply['work'] = {'key': wkey, 'status': work_state}
     return reply
 
@@ -920,29 +948,21 @@ def update_work_with_rec_data(
     return need_work_save
 
 
-def overwrite_if_rev1_promise_item(
-    rec: dict, edition: "Edition", from_marc_record: bool = False
+def should_overwrite_promise_item(
+    edition: "Edition", from_marc_record: bool = False
 ) -> bool:
     """
-    Overwrite if rev1 promise item.
+    Returns True for revision 1 promise items with MARC data available.
+
+    Promise items frequently have low quality data, and MARC data is high
+    quality. Overwriting revision 1 promise items with MARC data ensures
+    higher quality records and eliminates the risk of obliterating human edits.
     """
-    # TODO: better explanation
-    # TODO this probably simply needs to call load_data().
-    # if edition.get('revision') != 1 or not from_marc_record:
-    if not from_marc_record:
+    if edition.get('revision') != 1 or not from_marc_record:
         return False
 
-    # if not edition.get('source_records', ["stop index error"])[0].startswith("promise"):
-    if not safeget(lambda: edition['source_records'][0].startswith("promise")):
-        return False
-
-    for field, value in rec.items():
-        if field == "source_records":
-            edition['source_records'].extend(value)
-        else:
-            edition[field] = value
-
-    return True
+    # Promise items are always index 0 in source_records.
+    return bool(safeget(lambda: edition['source_records'][0].startswith("promise")))
 
 
 def load(rec, account_key=None, from_marc_record: bool = False):
@@ -980,6 +1000,7 @@ def load(rec, account_key=None, from_marc_record: bool = False):
     need_work_save = need_edition_save = False
     work: dict[str, Any]
     edition: Edition = web.ctx.site.get(match)
+
     # check for, and resolve, author redirects
     for a in edition.authors:
         while is_redirect(a):
@@ -998,9 +1019,10 @@ def load(rec, account_key=None, from_marc_record: bool = False):
         work = new_work(edition.dict(), rec)
         edition.works = [{'key': work['key']}]
 
-    overwrite_promise_item = overwrite_if_rev1_promise_item(
-        rec=rec, edition=edition, from_marc_record=from_marc_record
-    )
+    if should_overwrite_promise_item(
+        edition=edition, from_marc_record=from_marc_record
+    ):
+        return load_data(rec, account_key=account_key, existing_edition=edition)
 
     need_edition_save = update_edition_with_rec_data(
         rec=rec, account_key=account_key, edition=edition
@@ -1008,10 +1030,6 @@ def load(rec, account_key=None, from_marc_record: bool = False):
     need_work_save = update_work_with_rec_data(
         rec=rec, edition=edition, work=work, need_work_save=need_work_save
     )
-
-    # ic(e.dict())
-    # ic(rec)
-    # ic(w)
 
     edits = []
     reply = {
