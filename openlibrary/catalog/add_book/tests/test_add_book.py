@@ -982,9 +982,9 @@ def test_subtitle_gets_split_from_title(mock_site) -> None:
 
 def test_find_match_is_used_when_looking_for_edition_matches(mock_site) -> None:
     """
-    This tests the case where there is an edition_pool, but `early_exit()`
+    This tests the case where there is an edition_pool, but `find_quick_match()`
     and `find_exact_match()` find no matches, so this should return a
-    match from `find_match()`.
+    match from `find_enriched_match()`.
 
     This also indirectly tests `merge_marc.editions_match()` (even though it's
     not a MARC record.
