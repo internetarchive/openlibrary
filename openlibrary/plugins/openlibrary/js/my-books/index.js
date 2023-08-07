@@ -1,9 +1,8 @@
-import CreateListForm from './CreateListForm'
-import MyBooksDropper from './MyBooksDropper'
+import { CreateListForm } from './CreateListForm'
+import { MyBooksDropper } from './MyBooksDropper'
 import myBooksStore from './store'
 import { getListPartials } from '../lists/ListService'
 
-// XXX : jsdoc
 export function initMyBooksAffordances(dropperElements) {
     const form = document.querySelector('#create-list-form')
     const createListForm = new CreateListForm(form)

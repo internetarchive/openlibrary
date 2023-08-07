@@ -3,9 +3,9 @@
  * @module my-books/MyBooksDropper
  */
 import myBooksStore from './store'
-import ReadDateComponents from './ReadDateComponents'
-import ReadingLists from './ReadingLists'
-import ReadingLogForms from './ReadingLogForms'
+import { ReadDateComponents } from './MyBooksDropper/ReadDateComponents'
+import { ReadingLists } from './MyBooksDropper/ReadingLists'
+import { ReadingLogForms } from './MyBooksDropper/ReadingLogForms'
 import { Dropper } from '../dropper/Dropper'
 
 /**
@@ -22,7 +22,7 @@ import { Dropper } from '../dropper/Dropper'
  * @class
  * @augments Dropper
  */
-export default class MyBooksDropper extends Dropper {
+export class MyBooksDropper extends Dropper {
     /**
      * Creates references to the given dropper's reading log forms, read date affordances, and
      * list affordances.

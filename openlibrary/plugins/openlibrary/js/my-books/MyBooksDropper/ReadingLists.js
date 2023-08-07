@@ -1,8 +1,8 @@
 /**
  * Defines functionality related to the My Books dropper's list affordances.
- * @module my-books/ReadingLists
+ * @module my-books/MyBooksDropper/ReadingLists
  */
-import { addItem, removeItem } from '../lists/ListService'
+import { addItem, removeItem } from '../../lists/ListService'
 
 const DEFAULT_COVER_URL = '/images/icons/avatar_book-sm.png'
 
@@ -12,7 +12,7 @@ const DEFAULT_COVER_URL = '/images/icons/avatar_book-sm.png'
  *
  * @class
  */
-export default class ReadingLists {
+export class ReadingLists {
     /**
      * Adds functionality to the given dropper's list affordances.
      * @param {HTMLElement} dropper
@@ -34,15 +34,6 @@ export default class ReadingLists {
          * @member {Record<string, CallableFunction>}
          */
         this.dropperActions = dropperActionCallbacks
-
-        /**
-         * References to each showcase item that can be removed by the patron.  Showcase items
-         * can be found in a patron's "Already lists" list, or in the "Lists" section of the
-         * books page.
-         *
-         * @member {NodeList<HTMLElement>}
-         */
-        this.showcaseItems = document.querySelectorAll('.actionable-item')
 
         /**
          * Reference to the "Use work" checkbox.
@@ -108,7 +99,6 @@ export default class ReadingLists {
      */
     initialize() {
         this.initModifyListAffordances(this.dropper.querySelectorAll('.modify-list'))
-        this.registerShowcases(this.showcaseItems)
 
         const openListModalButton = this.dropper.querySelector('.create-new-list')
 
@@ -246,76 +236,6 @@ export default class ReadingLists {
     }
 
     /**
-     * Updates view and patronLists record after an item has been added to a list.
-     *
-     * Toggles checkmark in appropriate "Add to list" dropdown element, add the list
-     * to the patron's "Already list" list, and closes the dropper.
-     *
-     * @param {string} listKey Unique identifier for a list
-     * @param {boolean} isWork `true` if seed represents a work
-     * @param {boolean} wasAdded `true` if the seed was added from the list
-     */
-    updateViewAfterModifyingList(listKey, isWork, wasAdded) {
-        if (isWork) {
-            this.patronLists[listKey].workOnList = wasAdded
-        } else {
-            this.patronLists[listKey].itemOnList = wasAdded
-        }
-
-        if (wasAdded) {
-            this.patronLists[listKey].dropperListAffordance.classList.add('list--active')
-        } else {
-            this.patronLists[listKey].dropperListAffordance.classList.remove('list--active')
-        }
-
-        // Close dropper
-        this.dropperActions.closeDropper()
-    }
-
-    /**
-     * Adds "Remove from list" click handlers to showcase list items.
-     *
-     * @param {HTMLElement} elem
-     */
-    registerShowcaseItem(elem) {
-        // XXX: How many variables are really needed here?
-        const label = elem.querySelector('.label')
-        const anchors = label.querySelectorAll('a')
-        const listKey = anchors[1].dataset.listKey
-        const type = label.querySelector('input[name=seed-type]').value
-        const key = label.querySelector('input[name=seed-key]').value
-
-        const isSubject = type === 'subject'
-        const isWork = !isSubject && key.slice(-1) === 'W'
-
-        let seed
-        if (isSubject) {
-            seed = key
-        } else {
-            seed = { key: key }
-        }
-
-        anchors[1].addEventListener('click', (event) => {
-            event.preventDefault()
-            this.removeShowcaseItem(elem, listKey, seed, isWork)
-        })
-    }
-
-    /**
-     * Sends request to remove an item from a list, then updates the view.
-     *
-     * @param {HTMLElement} showcaseItem Reference to the showcase element that will be hidden
-     * @param {string} listKey Unique identifier for the list
-     * @param {object|string} seed Identifies item being removed from list
-     * @param {boolean} isWork `true` if the seed references a work
-     */
-    async removeShowcaseItem(showcaseItem, listKey, seed, isWork) {
-        await removeItem(listKey, seed)
-            .then(response => response.json())
-            .then(this.updateViewAfterRemovingItem(showcaseItem, listKey, isWork))
-    }
-
-    /**
      * Removes the given showcase item, and hides checkmark in the
      * appropriate "Add to list" dropdown affordance.
      *
@@ -323,7 +243,7 @@ export default class ReadingLists {
      * @param {string} listKey Unique identifier for the list
      * @param {boolean} isWork `true` if the seed references a work
      */
-    updateViewAfterRemovingItem(showcaseItem, listKey, isWork) {
+    updateViewAfterModifyingList(showcaseItem, listKey, isWork) {
         showcaseItem.remove()
 
         if (isWork) {
@@ -418,21 +338,6 @@ export default class ReadingLists {
         })
 
         return p
-    }
-
-    /**
-     * Hydrates all given showcase elements.
-     *
-     * Used to hydrate all showcases' items on a page.  If an element is
-     * located within the "Already lists" list, it is added to the
-     * patronLists record.
-     *
-     * @param {NodeList<HTMLElement>} showcaseItemElements
-     */
-    registerShowcases(showcaseItemElements) {
-        for (const elem of showcaseItemElements) {
-            this.registerShowcaseItem(elem)
-        }
     }
 
     /**

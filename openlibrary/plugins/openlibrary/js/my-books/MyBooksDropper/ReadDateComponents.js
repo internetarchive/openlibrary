@@ -1,8 +1,8 @@
 /**
  * Defines functionality related to the My Books dropper's read date affordances.
- * @module my-books/ReadDateComponents
+ * @module my-books/MyBooksDropper/ReadDateComponents
  */
-import { CheckInEvent } from '../check-ins'
+import { CheckInEvent } from '../../check-ins'
 
 /**
  * Class representing a dropper's read date prompt and display affordances.
@@ -19,7 +19,7 @@ import { CheckInEvent } from '../check-ins'
  *
  * @class
  */
-export default class ReadDateComponents {
+export class ReadDateComponents {
     /**
      * Add functionality to the given dropper's read date components.
      * @param {HTMLElement} dropper

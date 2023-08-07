@@ -1,6 +1,6 @@
 /**
  * Defines functionality related to the My Books dropper's reading log forms.
- * @module my-books/ReadingLogForms
+ * @module my-books/MyBooksDropper/ReadingLogForms
  */
 
 /**
@@ -32,7 +32,7 @@ const ReadingLogShelves = {
  *
  * @class
  */
-export default class ReadingLogForms {
+export class ReadingLogForms {
     /**
      * Adds functionality to a single dropper's reading log forms.
      *
