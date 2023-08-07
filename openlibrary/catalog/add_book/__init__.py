@@ -618,7 +618,9 @@ def add_db_name(rec: dict) -> None:
         a['db_name'] = ' '.join([a['name'], date]) if date else a['name']
 
 
-def load_data(rec, account_key=None, existing_edition: "Edition | None" = None):
+def load_data(
+    rec: dict, account_key: str | None = None, existing_edition: "Edition | None" = None
+):
     """
     Adds a new Edition to Open Library, or overwrites existing_edition with rec data.
 
@@ -696,13 +698,13 @@ def load_data(rec, account_key=None, existing_edition: "Edition | None" = None):
         edition['authors'] = authors
         reply['authors'] = author_reply
 
-    wkey = safeget(lambda: edition['works'][0]['key'])
+    work_key = safeget(lambda: edition['works'][0]['key'])
     work_state = 'created'
     # Look for an existing work
-    if not wkey and 'authors' in edition:
-        wkey = find_matching_work(edition)
-    if wkey:
-        w = web.ctx.site.get(wkey)
+    if not work_key and 'authors' in edition:
+        work_key = find_matching_work(edition)
+    if work_key:
+        work = web.ctx.site.get(work_key)
         work_state = 'matched'
         need_update = False
         for k in subject_fields:
@@ -710,25 +712,25 @@ def load_data(rec, account_key=None, existing_edition: "Edition | None" = None):
                 continue
             for s in rec[k]:
                 if normalize(s) not in [
-                    normalize(existing) for existing in w.get(k, [])
+                    normalize(existing) for existing in work.get(k, [])
                 ]:
-                    w.setdefault(k, []).append(s)
+                    work.setdefault(k, []).append(s)
                     need_update = True
         if cover_id:
-            w.setdefault('covers', []).append(cover_id)
+            work.setdefault('covers', []).append(cover_id)
             need_update = True
         if need_update:
             work_state = 'modified'
-            edits.append(w.dict())
+            edits.append(work.dict())
     else:
         # Create new work
-        w = new_work(edition, rec, cover_id)
+        work = new_work(edition, rec, cover_id)
         work_state = 'created'
-        wkey = w['key']
-        edits.append(w)
+        work_key = work['key']
+        edits.append(work)
 
-    assert wkey
-    edition['works'] = [{'key': wkey}]
+    assert work_key
+    edition['works'] = [{'key': work_key}]
     edition['key'] = ekey
     edits.append(edition)
 
@@ -750,7 +752,7 @@ def load_data(rec, account_key=None, existing_edition: "Edition | None" = None):
         if existing_edition
         else {'key': ekey, 'status': 'created'}
     )
-    reply['work'] = {'key': wkey, 'status': work_state}
+    reply['work'] = {'key': work_key, 'status': work_state}
     return reply
 
 
