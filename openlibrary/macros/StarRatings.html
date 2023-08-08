@@ -45,6 +45,6 @@ $ form_id = "ratingsForm%s" % id
   $ class_list = "star-messaging"
   $if not rating:
     $ class_list = "%s hidden" % (class_list)
-    <span class="star-rating__not-rated">Rate</span>
+    <!-- <span class="star-rating__not-rated">Rate</span> -->
   <button type="submit" class="$class_list">$_("Clear my rating")</button>
 </form>
