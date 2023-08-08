@@ -19,7 +19,9 @@ import myBooksStore from '../my-books/store'
  *
  * Active showcases are closely related to the My Books dropper,
  * and are updated when a book is added to or removed from a
- * list.
+ * list.  Active showcases can display one of two sets of items
+ * at once: those with work type seed keys, and those with any
+ * other type of seed key.
  * @class
  */
 export class ShowcaseItem {
@@ -104,35 +106,87 @@ export class ShowcaseItem {
 
     /**
      * Sends request to remove an item from a list, then updates the view.
+     *
+     * Removes any affiliated showcase items from the DOM, and updates all
+     * dropper list affordances.
      */
     async removeShowcaseItem() {
         await removeItem(this.listKey, this.seed)
             .then(response => response.json())
             .then(() => {
                 const showcases = myBooksStore.get('SHOWCASES')
+
+                // Remove self:
+                this.removeSelf()
+
+                // Remove other showcase items that are associated with the list and seed key:
                 for (const showcase of showcases) {
-                    if (showcase.listKey === this.listKey && showcase.seedKey === this.seedKey) {
-                        showcase.removeOrHideSelf()
+                    if (showcase.isShowcaseForListAndSeed(this.listKey, this.seedKey)) {
+                        showcase.removeSelf()
                     }
                 }
 
+                // Update droppers:
                 const droppers = myBooksStore.get('DROPPERS')
                 for (const dropper of droppers) {
-                    // XXX : test this:
-                    dropper.readingLists.updateViewAfterModifyingList(this.listKey, this.isWork, false, this.seedKey)
+                    dropper.readingLists.updateViewAfterModifyingList(this.listKey, this.isWork, false)
                 }
             })
     }
 
     /**
-     * Removes or hides this showcase item.
+     * Removes associated showcase item from the DOM.
      *
-     * If this showcase item is not a member of the active showcase,
-     * it will be removed from the DOM.  Otherwise, the item is
-     * hidden.
+     * Removes self from the myBooksStore's showcase array
+     * upon success.
      */
-    removeOrHideSelf() {
-        this.isActiveShowcase ? this.showcaseElem.classList.add('hidden') : this.showcaseElem.remove()
+    removeSelf() {
+        const showcases = myBooksStore.get('SHOWCASES')
+        const thisIndex = showcases.indexOf(this)
+        if (thisIndex >= 0) {
+            this.showcaseElem.remove()
+            showcases.splice(thisIndex, 1)
+        }
+    }
+
+    /**
+     * Toggles the visiblity of active showcase items depending on their seed type.
+     *
+     * If `showWorks` is `true`, the only active showcase items that will be visible will
+     * be those with a work seed type.  Otherwise, these active work showcase items are
+     * hidden and all others are displayed.
+     *
+     * This function has no effect on non-active showcase items.
+     *
+     * @param {boolean} showWorks `true` if only active showcase items related to works should be displayed
+     */
+    toggleVisibility(showWorks) {
+        if (this.isActiveShowcase) {
+            if (showWorks) {
+                if (this.isWork) {
+                    this.showcaseElem.classList.remove('hidden')
+                } else {
+                    this.showcaseElem.classList.add('hidden')
+                }
+            } else {
+                if (this.isWork) {
+                    this.showcaseElem.classList.add('hidden')
+                } else {
+                    this.showcaseElem.classList.remove('hidden')
+                }
+            }
+        }
+    }
+
+    /**
+     * Determines if this showcase item is linked to the given keys.
+     *
+     * @param {string} listKey
+     * @param {string} seedKey
+     * @return {boolean} `true` if the given keys match this item's keys
+     */
+    isShowcaseForListAndSeed(listKey, seedKey) {
+        return (this.listKey === listKey) && (this.seedKey === seedKey)
     }
 }
 
@@ -142,6 +196,8 @@ export class ShowcaseItem {
  * @type {Record<string, string>}
  */
 let i18nStrings
+
+const DEFAULT_COVER_URL = '/images/icons/avatar_book-sm.png'
 
 /**
  * Returns the inferred type of the given seed key.
@@ -165,6 +221,7 @@ function getSeedType(seed) {
     }
 }
 
+// XXX : remove this?
 /**
  * Creates and returns a new active list showcase item element.
  *
@@ -173,10 +230,10 @@ function getSeedType(seed) {
  * @param {string} listKey
  * @param {string} seedKey
  * @param {string} listTitle
- * @param {string} coverUrl
+ * @param {string} [coverUrl]
  * @returns {HTMLLIElement}
  */
-export function createActiveShowcaseItem(listKey, seedKey, listTitle, coverUrl) {
+export function createActiveShowcaseItem(listKey, seedKey, listTitle, coverUrl = DEFAULT_COVER_URL) {
     if (!i18nStrings) {
         const i18nInput = document.querySelector('input[name=list-i18n-strings]')
         i18nStrings = JSON.parse(i18nInput.value)
@@ -206,4 +263,49 @@ export function createActiveShowcaseItem(listKey, seedKey, listTitle, coverUrl) 
     li.innerHTML = itemMarkUp
 
     return li
+}
+
+/**
+ * Toggles visibility of each set of active showcase items.
+ *
+ * If `showWorksOnly` is `true`, only active showcase items
+ * associated with works will be displayed.  Otherwise, all
+ * other active showcase items will be displayed, while
+ * works are hidden.
+ *
+ * @param {boolean} showWorksOnly
+ */
+export function toggleActiveShowcaseItems(showWorksOnly) {
+    for (const item of myBooksStore.get('SHOWCASES')) {
+        item.toggleVisibility(showWorksOnly)
+    }
+}
+
+/**
+ * Creates and hydrates new active showcase item.
+ *
+ * Constructs new showcase item `li`, adds it to the
+ * active showcase, and adds click listeners.  Adds new
+ * ShowcaseItem object to the myBooksStore showcases array.
+ *
+ * If no active showcase exists, no new element nor object
+ * is created.
+ *
+ * @param {string} listKey
+ * @param {string} seedKey
+ * @param {string} listTitle
+ * @param {string} [coverUrl]
+ */
+export function attachNewActiveShowcaseItem(listKey, seedKey, listTitle, coverUrl = DEFAULT_COVER_URL) {
+    const activeListsShowcase = document.querySelector('.already-lists')
+
+    if (activeListsShowcase) {
+        const li = createActiveShowcaseItem(listKey, seedKey, listTitle, coverUrl)
+        activeListsShowcase.appendChild(li)
+
+        const showcase = new ShowcaseItem(li)
+        showcase.initialize()
+
+        myBooksStore.get('SHOWCASES').push(showcase)
+    }
 }

@@ -6,6 +6,7 @@
 import myBooksStore from './store'
 import { websafe } from '../jsdef'
 import { createList } from '../lists/ListService'
+import { attachNewActiveShowcaseItem } from '../lists/ShowcaseItem'
 
 /**
  * Represents the list creation form displayed when a patron
@@ -47,6 +48,9 @@ export class CreateListForm {
          * @member {HTMLElement}
          */
         this.listDescriptionInput = form.querySelector('#list_desc')
+
+        // Clear form on page refresh:
+        this.resetForm()
     }
 
     /**
@@ -63,13 +67,14 @@ export class CreateListForm {
      * Creates a new patron list.
      *
      * When a new list is created, the list's title and description
-     * are pulled from the form. The patron's user key and the seed
+     * are taken from the form. The patron's user key and the seed
      * identifier of the first list item are provided by the open dropper
      * referenced in the shared My Books store.
      *
      * On success, updates all My Books droppers on the page,
      * resets the list creation form fields, and closes the
-     * modal containing the form.
+     * modal containing the form.  A new showcase item is added
+     * to the active lists showcase, if the showcase exists.
      *
      * @async
      */
@@ -81,18 +86,22 @@ export class CreateListForm {
         const openDropper = myBooksStore.get('OPEN_DROPPER')
         const seed = openDropper.readingLists.getSeed()
 
-        const data = {
+        const postData = {
             name: listTitle,
             description: listDescription,
             seeds: [seed]
         }
 
         // Call list creation service with seed object:
-        await createList(myBooksStore.get('USER_KEY'), data)
+        await createList(myBooksStore.get('USER_KEY'), postData)
             .then(response => response.json())
             .then((data) => {
+                // Update active lists showcase:
+                attachNewActiveShowcaseItem(data['key'], seed, listTitle, '/images/icons/avatar_book-sm.png')
+
                 // Update all droppers with new list data
                 this.updateDroppersOnListCreation(data['key'], listTitle)
+
                 // Clear list creation form fields, nullify seed
                 this.resetForm()
             })

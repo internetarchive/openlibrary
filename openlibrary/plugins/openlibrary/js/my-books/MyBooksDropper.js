@@ -7,6 +7,7 @@ import { ReadDateComponents } from './MyBooksDropper/ReadDateComponents'
 import { ReadingLists } from './MyBooksDropper/ReadingLists'
 import { ReadingLogForms } from './MyBooksDropper/ReadingLogForms'
 import { Dropper } from '../dropper/Dropper'
+import { removeChildren } from '../utils'
 
 /**
  * Represents a single My Books Dropper.
@@ -102,10 +103,32 @@ export class MyBooksDropper extends Dropper {
         return intervalId
     }
 
-    // XXX : jsdoc
+    /**
+     * Replaces dropper loading indicator with the given
+     * partially rendered list affordances.
+     *
+     * @param {string} partialHtml
+     */
     updateReadingLists(partialHtml) {
         clearInterval(this.loadingAnimationId)
         this.replaceLoadingIndicators(this.loadingIndicator, partialHtml)
+    }
+
+    /**
+     * Returns an array of seed keys associated with this dropper.
+     *
+     * If the seed identifies a book, there should be both an
+     * edition and work key in the results. Otherwise, the results
+     * array should only contain the primary seed key.
+     *
+     * @returns {Array<string>}
+     */
+    getSeedKeys() {
+        const results = [this.readingLists.seedKey]
+        if (this.readingLists.workKey) {
+            results.push(this.readingLists.workKey)
+        }
+        return results
     }
 
     /**
@@ -125,26 +148,11 @@ export class MyBooksDropper extends Dropper {
         const dropperParent = dropperListsPlaceholder ? dropperListsPlaceholder.parentElement : null
 
         if (dropperParent) {
-            this.removeChildren(dropperParent)
+            removeChildren(dropperParent)
             dropperParent.insertAdjacentHTML('afterbegin', partialHTML)
 
             const anchors = this.dropper.querySelectorAll('.modify-list')
             this.readingLists.initModifyListAffordances(anchors)
-        }
-    }
-
-    /**
-     * Removes children of each given element.
-     *
-     * @param  {Array<HTMLElement>} elements
-     */
-    removeChildren(...elements) {
-        for (const elem of elements) {
-            if (elem) {
-                while (elem.firstChild) {
-                    elem.removeChild(elem.firstChild)
-                }
-            }
         }
     }
 

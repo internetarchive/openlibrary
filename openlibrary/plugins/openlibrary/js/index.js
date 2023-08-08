@@ -400,9 +400,11 @@ jQuery(function () {
     // New "My Books" dropper:
     const myBooksDroppers = document.querySelectorAll('.my-books-dropper')
     if (myBooksDroppers.length) {
+        const actionableListShowcases = document.querySelectorAll('.actionable-item')
+
         import(/* webpackChunkName: "my-books" */ './my-books')
             .then((module) => {
-                module.initMyBooksAffordances(myBooksDroppers)
+                module.initMyBooksAffordances(myBooksDroppers, actionableListShowcases)
             })
     }
 

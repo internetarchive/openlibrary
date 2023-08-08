@@ -175,7 +175,7 @@ class lists_partials(delegate.page):
         if use_legacy_droppers:
             partials = self.legacy_get_partials(i.key, user)
         else:
-            partials = self.get_partials(user)
+            partials = self.get_partials()
 
         return delegate.RawText(json.dumps(partials))
 
@@ -194,12 +194,22 @@ class lists_partials(delegate.page):
             'active': str(active),
         }
 
-    def get_partials(self, user):
+    def get_partials(self):
         user_lists = get_user_lists(None)
-        dropper = render_template('lists/dropper_lists', user_lists, legacy_rendering=False)
+
+        dropper = render_template(
+            'lists/dropper_lists', user_lists, legacy_rendering=False
+        )
+        list_data = {
+            list_data['key']: {
+                'members': list_data['list_items'],
+                'listName': list_data['name']
+            } for list_data in user_lists
+        }
 
         return {
             'dropper': str(dropper),
+            'listData': list_data,
         }
 
     def get_doc(self, key):

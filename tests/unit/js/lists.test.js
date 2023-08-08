@@ -105,11 +105,17 @@ describe('CreateListForm class tests', () => {
     })
 
     test('`resetForm()` clears a filled form', () => {
-        document.body.innerHTML = filledListCreationForm
+        document.body.innerHTML = listCreationForm
         const formElem = document.querySelector('form')
         const listForm = new CreateListForm(formElem)
 
         // Initial checks
+        expect(listForm.listTitleInput.value).not.toBeTruthy()
+        expect(listForm.listDescriptionInput.value).not.toBeTruthy()
+
+        // After setting input values
+        listForm.listTitleInput.value = 'New List'
+        listForm.listDescriptionInput.value = 'My new list.'
         expect(listForm.listTitleInput.value).toBeTruthy()
         expect(listForm.listDescriptionInput.value).toBeTruthy()
 
@@ -117,6 +123,22 @@ describe('CreateListForm class tests', () => {
         listForm.resetForm()
         expect(listForm.listTitleInput.value).not.toBeTruthy()
         expect(listForm.listDescriptionInput.value).not.toBeTruthy()
+    })
+
+    it('should have empty inputs after instantiation', () => {
+        document.body.innerHTML = filledListCreationForm
+        const formElem = document.querySelector('form')
+        const titleInput = formElem.querySelector('#list_label')
+        const descriptionInput = formElem.querySelector('#list_desc')
+
+        // Form is initially filled
+        expect(titleInput.value).toBeTruthy()
+        expect(descriptionInput.value).toBeTruthy()
+
+        // Creating new CreateListForm should clear the form
+        const listForm = new CreateListForm(formElem)
+        expect(titleInput.value).not.toBeTruthy()
+        expect(descriptionInput.value).not.toBeTruthy()
     })
 })
 
@@ -183,6 +205,19 @@ describe('createActiveShowcaseItem() tests', () => {
         const bogusItem = createActiveShowcaseItem(listKey, bogusKey, listTitle, coverUrl)
         expect(bogusItem.querySelector('input[name=seed-type]').value).toBe('undefined')
     })
+
+    it('sets the correct default value for `coverUrl`', () => {
+        document.body.innerHTML = showcaseI18nInput
+        const listKey = '/people/openlibrary/lists/OL1L'
+        const seedKey = '/books/OL3421846M'
+        const listTitle = 'My First List'
+
+        const li = createActiveShowcaseItem(listKey, seedKey, listTitle)
+        const coverImage = li.querySelector('img')
+
+        const expectedCoverUrl = '/images/icons/avatar_book-sm.png'
+        expect(coverImage.src.endsWith(expectedCoverUrl)).toBe(true)
+    })
 })
 
 describe('ShowcaseItem class tests', () => {
@@ -241,33 +276,5 @@ describe('ShowcaseItem class tests', () => {
         })
     })
 
-    test('`removeOrHideSelf()` hides active showcase items', () => {
-        document.body.innerHTML = activeListShowcase
-        const showcaseElem = document.querySelector('.actionable-item')
-        const showcase = new ShowcaseItem(showcaseElem)
-
-        // Initial checks:
-        expect(showcase.isActiveShowcase).toBe(true)
-        expect(showcaseElem.classList.contains('hidden')).toBe(false)
-        expect(document.contains(showcaseElem)).toBe(true)
-
-        // Active showcases should be hidden after invoking:
-        showcase.removeOrHideSelf()
-        expect(showcaseElem.classList.contains('hidden')).toBe(true)
-        expect(document.contains(showcaseElem)).toBe(true)
-    })
-
-    test('`removeOrHideSelf()` removes other shocase items from the DOM', () => {
-        document.body.innerHTML = listsSectionShowcase
-        const showcaseElem = document.querySelector('.actionable-item')
-        const showcase = new ShowcaseItem(showcaseElem)
-
-        // Initial checks:
-        expect(showcase.isActiveShowcase).toBe(false)
-        expect(document.contains(showcaseElem)).toBe(true)
-
-        // Non-active showcase items should be removed from the DOM
-        showcase.removeOrHideSelf()
-        expect(document.contains(showcaseElem)).toBe(false)
-    })
+    // XXX : test : removeSelf() fails safely when myBooksStore has not been created?
 })

@@ -2,7 +2,10 @@
  * Defines functionality related to the My Books dropper's list affordances.
  * @module my-books/MyBooksDropper/ReadingLists
  */
+import myBooksStore from '../store'
+
 import { addItem, removeItem } from '../../lists/ListService'
+import { attachNewActiveShowcaseItem, toggleActiveShowcaseItems } from '../../lists/ShowcaseItem'
 
 const DEFAULT_COVER_URL = '/images/icons/avatar_book-sm.png'
 
@@ -108,19 +111,17 @@ export class ReadingLists {
 
         if (this.workCheckBox) {
             this.workCheckBox.addEventListener('click', () => {
-                const isWork = this.workCheckBox.checked
-                this.updateListDisplays(isWork)
+                this.updateListDisplays()
+                toggleActiveShowcaseItems(this.workCheckBox.checked)
             })
         }
     }
 
     /**
-     * Updates dropdown and "Already list" list affordances when the "Use work" checkbox
-     * is ticked.
-     *
-     * @param {boolean} isWorkSelected True if the "Use work" checkbox is ticked
+     * Updates dropdown list affordances when an update occurs.
      */
-    updateListDisplays(isWorkSelected) {
+    updateListDisplays() {
+        const isWorkSelected = this.workCheckBox && this.workCheckBox.checked
         for (const key of Object.keys(this.patronLists)) {
             const listData = this.patronLists[key]
 
@@ -213,7 +214,7 @@ export class ReadingLists {
      */
     async modifyList(listKey, isAddingItem) {
         let seed
-        const isWork = this.seedKey.endsWith('W')
+        const isWork = this.workCheckBox && this.workCheckBox.checked
 
         // Seed will be a string if its type is 'subject'
         const isSubjectSeed = this.seedKey[0] !== '/'
@@ -232,33 +233,39 @@ export class ReadingLists {
             .then(response => response.json())
             .then(() => {
                 this.updateViewAfterModifyingList(listKey, isWork, isAddingItem)
+
+                const seedKey = isWork ? this.workKey : this.seedKey
+                if (isAddingItem) {
+                    // make new active showcase item
+                    const listTitle = this.patronLists[listKey].title
+                    attachNewActiveShowcaseItem(listKey, seedKey, listTitle)
+                } else {
+                    // remove existing showcase items
+                    const showcases = myBooksStore.get('SHOWCASES')
+                    const matchingShowcases = showcases.filter((item) => item.listKey === listKey && item.seedKey === seedKey)
+                    for (const item of matchingShowcases) {
+                        item.removeSelf()
+                    }
+                }
             })
     }
 
     /**
-     * Removes the given showcase item, and hides checkmark in the
-     * appropriate "Add to list" dropdown affordance.
+     * Updates `patronLists` with the new list membership information,
+     * then updates the view.
      *
-     * @param {HTMLElement} showcaseItem Element to be hidden
-     * @param {string} listKey Unique identifier for the list
-     * @param {boolean} isWork `true` if the seed references a work
+     * @param {string} listKey Unique identifier for the modified list
+     * @param {boolean} isWork `true` if a work was added or removed
+     * @param {boolean} wasItemAdded `true` if item was added to list
      */
-    updateViewAfterModifyingList(showcaseItem, listKey, isWork) {
-        showcaseItem.remove()
-
+    updateViewAfterModifyingList(listKey, isWork, wasItemAdded) {
         if (isWork) {
-            this.patronLists[listKey].workOnList = false
+            this.patronLists[listKey].workOnList = wasItemAdded
         } else {
-            this.patronLists[listKey].itemOnList = false
+            this.patronLists[listKey].itemOnList = wasItemAdded
         }
 
-        if (this.workCheckBox) {  // This is a book page
-            if ((this.workCheckBox.checked && isWork) || (!this.workCheckBox.checked && !isWork)) {
-                this.patronLists[listKey].dropperListAffordance.classList.remove('list--active')
-            }
-        } else {
-            this.patronLists[listKey].dropperListAffordance.classList.remove('list--active')
-        }
+        this.updateListDisplays()
     }
 
     /**
