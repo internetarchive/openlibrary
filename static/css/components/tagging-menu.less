@@ -1,167 +1,166 @@
 #bulk-tagging-form {
-    width: 300px;
-    min-height: 400px;
-    right: 30px;
-    bottom: 50px;
-    border: 1px solid lightgray;
-    box-shadow: 0px 5px 5px 2px gray;
-    background-color: white;
-    border-radius: 10px;
+  width: 300px;
+  min-height: 400px;
+  right: 30px;
+  bottom: 50px;
+  border: 1px solid lightgray;
+  box-shadow: 0 5px 5px 2px gray;
+  background-color: white;
+  border-radius: 10px;
+  position: absolute;
+
+  #form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 33px;
+    padding: 7px 15px;
+
+    #form-header-text {
+      font-weight: bold;
+      font-size: 13px;
+    }
+
+    #close-bulk-tagging-form {
+      cursor: pointer;
+      color: black;
+      font-size: 17px;
+    }
+  }
+
+  #search-container {
+    border-top: 1px solid lightgray;
+    border-bottom: 1px solid lightgray;
+
+    #subjects-search-input {
+      width: 281px;
+      height: 31px;
+      border: 1px solid lightgray;
+      border-radius: 5px;
+      background: #FFF;
+      margin: 6px 7px;
+      padding: 5px;
+      font-size: 14px;
+      color: #000;
+
+      &:focus {
+        border-color: #0067D5;
+      }
+
+      &:blur {
+        border-color: lightgray;
+      }
+    }
+  }
+
+  #subjects-search-results {
+    height: 200px;
+    overflow-y: auto;
+    border-bottom: 1px solid lightgray;
+  }
+
+  #tag-work-ids,
+  #tag-subjects {
+    display: none;
+  }
+
+  #selected-tag-subjects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 5px;
+  }
+
+  #bulk-tagging-submit {
     position: absolute;
-
-    #form-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        height: 33px;
-        padding: 7px 15px;
-
-        #form-header-text {
-            font-weight: bold;
-            font-size: 13px;
-        }
-
-        #close-bulk-tagging-form {
-            cursor: pointer;
-            color: black;
-            font-size: 17px;
-        }
-    }
-
-    #search-container {
-        border-top: 1px solid lightgray;
-        border-bottom: 1px solid lightgray;
-
-        #subjects-search-input {
-            width: 281px;
-            height: 31px;
-            border: 1px solid lightgray;
-            border-radius: 5px;
-            background: #FFF;
-            margin: 6px 7px;
-            padding: 5px;
-            font-size: 14px;
-            color: #000;
-
-            &:focus {
-                border-color: #0067D5;
-            }
-
-            &:blur {
-                border-color: lightgray;
-            }
-        }
-    }
-
-    #subjects-search-results {
-        height: 200px;
-        overflow-y: auto;
-        border-bottom: 1px solid lightgray;
-    }
-
-    #tag-work-ids,
-    #tag-subjects {
-        display: none;
-    }
-
-    #selected-tag-subjects {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
-        padding: 5px;
-    }
-
-    #bulk-tagging-submit {
-        position: absolute;
-        bottom: 10px;
-        right: 10px;
-        border: none;
-        border-radius: 4px;
-        height: 25px;
-        cursor: pointer;
-    }
+    bottom: 10px;
+    right: 10px;
+    border: none;
+    border-radius: 4px;
+    height: 25px;
+    cursor: pointer;
+  }
 }
 
 .subject-row {
-    display: flex;
-    align-items: center;
-    font-size: 16px;
-    border-bottom: 1px solid lightgray;
-    padding: 9px 10px;
-    width: 100%;
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  border-bottom: 1px solid lightgray;
+  padding: 9px 10px;
+  width: 100%;
 
-    &.subject-row-exists {
-        height: 33px;
-    }
+  &.subject-row-exists {
+    height: 33px;
+  }
 }
 
 .row-button {
-    font-size: 13px;
-    color: black;
-    font-weight: 700;
-    cursor: pointer;
-    width: 40px;
+  font-size: 13px;
+  color: black;
+  font-weight: 700;
+  cursor: pointer;
+  width: 40px;
 }
 
 .row-name {
-    font-size: 13px;
-    color: black;
-    font-weight: 400;
+  font-size: 13px;
+  color: black;
+  font-weight: 400;
 
-    &.row-name-create {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
+  &.row-name-create {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 
-        .row-name-create-p {
-            font-size: 13px;
-            color: black;
-            font-weight: 400;
-            margin-bottom: 5px;
-        }
-
-        .row-name-create-select {
-            width: 100%;
-            display: flex;
-            flex-direction: row;
-            gap: 5px;
-        }
-
-        .subject-type-option {
-            font-size: 11px;
-            color: white;
-            font-weight: 400;
-            width: fit-content;
-            padding: 3px 6px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
+    .row-name-create-p {
+      font-size: 13px;
+      color: black;
+      font-weight: 400;
+      margin-bottom: 5px;
     }
+
+    .row-name-create-select {
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      gap: 5px;
+    }
+
+    .subject-type-option {
+      font-size: 11px;
+      color: white;
+      font-weight: 400;
+      width: fit-content;
+      padding: 3px 6px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  }
 }
 
 .row-tag {
-    font-size: 11px;
-    font-weight: 400;
-    border-radius: 8px;
-    border-top: 1px solid #CCC;
-    border-bottom: 1px solid #CCC;
-    padding: 2px 6px;
-    color: #FFF;
-    margin-left: auto;
+  font-size: 11px;
+  font-weight: 400;
+  border-radius: 8px;
+  border-top: 1px solid #CCC;
+  border-bottom: 1px solid #CCC;
+  padding: 2px 6px;
+  color: #FFF;
+  margin-left: auto;
 }
 
 .new-tag {
-    border: 1px solid #CCC;
-    padding: 2px 6px;
-    font-size: 13px;
-    width: fit-content;
+  border: 1px solid #CCC;
+  padding: 2px 6px;
+  font-size: 13px;
+  width: fit-content;
 }
 
 .remove-button {
-    font-size: 11px;
-    color: black;
-    font-weight: bold;
-    cursor: pointer;
-    margin-left: 7px;
+  font-size: 11px;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 7px;
 }
-

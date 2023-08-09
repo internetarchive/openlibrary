@@ -164,14 +164,14 @@ function handleRemoveSubject(name, subjectType, tagElement) {
 
 function parseSubjectType(subjectType) {
     switch (subjectType) {
-        case 'subject':
-            return 'subjects';
-        case 'person':
-            return 'subject_people';
-        case 'place':
-            return 'subject_places';
-        case 'time':
-            return 'subject_times';
+    case 'subject':
+        return 'subjects';
+    case 'person':
+        return 'subject_people';
+    case 'place':
+        return 'subject_places';
+    case 'time':
+        return 'subject_times';
     }
 }
 

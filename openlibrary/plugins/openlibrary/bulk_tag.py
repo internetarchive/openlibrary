@@ -42,12 +42,14 @@ class bulk_tag_works(delegate.page):
             }
             for subject_type, subject_list in incoming_subjects.items():
                 if subject_list:
-                    current_subjects[subject_type] = uniq( # dedupe incoming subjects
+                    current_subjects[subject_type] = uniq(  # dedupe incoming subjects
                         current_subjects[subject_type] + subject_list
                     )
                     w[subject_type] = current_subjects[subject_type]
 
-            docs_to_update.append(w.dict()) # need to convert class to raw dict in order for save_many to work
+            docs_to_update.append(
+                w.dict()
+            )  # need to convert class to raw dict in order for save_many to work
 
         web.ctx.site.save_many(docs_to_update, comment="Bulk tagging works")
 
@@ -57,6 +59,7 @@ class bulk_tag_works(delegate.page):
             )
 
         return response('Tagged works successfully')
+
 
 def setup():
     pass
