@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, reading_log=None, show_librarian_extras=False)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, reading_log=None, show_librarian_extras=False, include_dropper=False)
 
 $code:
   max_rendered_authors = 9
@@ -128,6 +128,17 @@ $code:
 
       $if reading_log:
         $:reading_log
+
+      $if include_dropper:
+        $ edition_key = None
+        $if doc_type == 'solr_edition':
+          $ edition_key = selected_ed.key
+        $elif doc_type == 'infogami_edition':
+          $ edition_key = doc.key
+        $elif doc_type == 'solr_work':
+          $ edition_key = doc.get('edition_key') and doc.get("edition_key")[0]
+          $ edition_key = '/books/%s' % edition_key
+        $:render_template('my_books/dropper', doc, edition_key=edition_key, async_load=True)
 
       $if rating:
         $:rating

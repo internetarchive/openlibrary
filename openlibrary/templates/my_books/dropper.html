@@ -1,8 +1,10 @@
-$def with(page, async_load=False)
+$def with(page, edition_key=None, async_load=False)
 
-$ edition = page if page.key.startswith("/books/") else None
-$ edition_key = edition and edition.key
-$ work = (page.works and page.works[0]) if edition else page if page.key.startswith("/works/") else None
+$if not edition_key:
+  $ edition = page if page.key.startswith("/books/") else None
+  $ edition_key = edition and edition.key
+
+$ work = page if page.key.startswith('/works/') else page.works[0] if page.works else None
 $ work_key = work and work.key
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
@@ -13,6 +15,8 @@ $ user_lists = [] if async_load or not ctx.user else get_user_lists(seed_info)
 $ page_url = ctx.path
 
 $ seed_key = seed_info['seed']['key']
+$if seed_key.startswith('/works/') and edition_key:
+  $ seed_key = edition_key
 
 $ additional_classes = 'my-books-dropper'
 $if not work_key:
