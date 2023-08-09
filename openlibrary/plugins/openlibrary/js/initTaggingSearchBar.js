@@ -8,7 +8,7 @@ const subjectTypeColors = {
 };
 
 function newSubjectRowHtml(subjectName, subjectType = null, isSelected = false) {
-    const exists = subjectType != null;
+    const exists = subjectType !== null;
 
     const div = document.createElement('div');
     div.className = 'subject-row';
@@ -73,11 +73,11 @@ function fetchSubjects(searchTerm) {
     const resultsContainer = document.getElementById('subjects-search-results');
     const hiddenInput = document.getElementById('tag-subjects');
     resultsContainer.innerHTML = '';
-    fetch(`/search/subjects.json?q=${searchTerm}`)
+    fetch(`/search/subjects.json?q=${searchTerm}&limit=${maxDisplayResults}`)
         .then((response) => response.json())
         .then((data) => {
             if (data['docs'].length !== 0) {
-                data['docs'].slice(0, maxDisplayResults)
+                data['docs']
                     .forEach(result => {
                         const isSelected = hiddenInput.value.includes(result.name);
 
@@ -85,7 +85,7 @@ function fetchSubjects(searchTerm) {
                         resultsContainer.appendChild(div);
                     });
             }
-            if (searchTerm != '') { // create new subject option
+            if (searchTerm !== '') { // create new subject option
                 const div = newSubjectRowHtml(searchTerm);
                 resultsContainer.appendChild(div);
             }
@@ -108,7 +108,7 @@ function handleSelectSubject(name, rawSubjectType, button=null) {
     const selectedTagsContainer = document.getElementById('selected-tag-subjects');
     const subjectType = parseSubjectType(rawSubjectType);
 
-    const existingSubjects = JSON.parse(hiddenInput.value == '' ? '{}' : hiddenInput.value);
+    const existingSubjects = JSON.parse(hiddenInput.value === '' ? '{}' : hiddenInput.value);
     existingSubjects[subjectType] = existingSubjects[subjectType] || [];
 
     const isTagged = existingSubjects[subjectType].includes(name);
@@ -152,7 +152,7 @@ function handleRemoveSubject(name, subjectType, tagElement) {
     const selectedTagsContainer = document.getElementById('selected-tag-subjects');
     subjectType = parseSubjectType(subjectType);
 
-    const existingSubjects = JSON.parse(hiddenInput.value == '' ? '{}' : hiddenInput.value);
+    const existingSubjects = JSON.parse(hiddenInput.value === '' ? '{}' : hiddenInput.value);
     existingSubjects[subjectType] = existingSubjects[subjectType] || [];
 
     existingSubjects[subjectType] = existingSubjects[subjectType].filter((subject) => subject !== name);
