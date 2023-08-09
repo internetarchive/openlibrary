@@ -96,7 +96,7 @@ export class ReadingLogForms {
         /**
          * Reference to the dropper's read date prompt and display components.
          *
-         * @member {import('./ReadDateComponents')}
+         * @member {import('./ReadDateComponents') | null}
          */
         this.readDateComponents = readDateComponents
 
@@ -106,6 +106,8 @@ export class ReadingLogForms {
 
     /**
      * Adds click listeners to each of the form's submit buttons.
+     *
+     * If dropper is disabled, no event listeners will be added.
      */
     initialize() {
         if (!this.isDropperDisabled) {
@@ -136,7 +138,8 @@ export class ReadingLogForms {
      */
     updateReadingLog(form) {
         let newPrimaryButtonText = this.primaryButton.querySelector('.btn-text').innerText
-        this.updatePrimaryButtonText('saving...') // XXX: Use i18n strings
+        // XXX: Use i18n strings
+        this.updatePrimaryButtonText('saving...')
 
         const formData = new FormData(form)
         const url = form.getAttribute('action')
@@ -145,7 +148,7 @@ export class ReadingLogForms {
 
         let canUpdateShelf = true
 
-        if (!hasAddedBook && this.readDateComponents.hasReadDate()) {
+        if (!hasAddedBook && this.readDateComponents && this.readDateComponents.hasReadDate()) {
             // XXX: Use i18n strings
             canUpdateShelf = confirm('Removing this book from your shelves will delete your check-ins for this work.  Continue?')
         }
@@ -176,13 +179,15 @@ export class ReadingLogForms {
                             }
 
                             // Update check-ins:
-                            if (!this.readDateComponents.hasReadDate() && newBookshelfId === ReadingLogShelves.ALREADY_READ) {
-                                this.readDateComponents.showDatePrompt()
-                            } else {
-                                this.readDateComponents.hideDatePrompt()
+                            if (this.readDateComponents) {
+                                if (!this.readDateComponents.hasReadDate() && newBookshelfId === ReadingLogShelves.ALREADY_READ) {
+                                    this.readDateComponents.showDatePrompt()
+                                } else {
+                                    this.readDateComponents.hideDatePrompt()
+                                }
                             }
 
-                        } else {
+                        } else if (this.readDateComponents) {
                             // Update check-ins:
                             this.readDateComponents.hideDatePrompt()
                             this.readDateComponents.hideReadDate()
