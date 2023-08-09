@@ -3,52 +3,48 @@
   min-height: 400px;
   right: 30px;
   bottom: 50px;
-  border: 1px solid lightgray;
-  box-shadow: 0 5px 5px 2px gray;
-  background-color: white;
+  border: 1px solid @light-grey;
+  box-shadow: 0 5px 5px 2px @accessible-grey;
+  background-color: @white;
   border-radius: 10px;
   position: absolute;
 
-  #form-header {
+  .form-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     height: 33px;
     padding: 7px 15px;
 
-    #form-header-text {
+    .form-header-text {
       font-weight: bold;
       font-size: 13px;
     }
 
     #close-bulk-tagging-form {
       cursor: pointer;
-      color: black;
+      color: @black;
       font-size: 17px;
     }
   }
 
-  #search-container {
-    border-top: 1px solid lightgray;
-    border-bottom: 1px solid lightgray;
+  .search-container {
+    border-top: 1px solid @light-grey;
+    border-bottom: 1px solid @light-grey;
 
     #subjects-search-input {
       width: 281px;
       height: 31px;
-      border: 1px solid lightgray;
+      border: 1px solid @light-grey;
       border-radius: 5px;
-      background: #FFF;
+      background: @white;
       margin: 6px 7px;
       padding: 5px;
       font-size: 14px;
-      color: #000;
+      color: @black;
 
       &:focus {
-        border-color: #0067D5;
-      }
-
-      &:blur {
-        border-color: lightgray;
+        border-color: @blue-3366ff;
       }
     }
   }
@@ -56,7 +52,7 @@
   #subjects-search-results {
     height: 200px;
     overflow-y: auto;
-    border-bottom: 1px solid lightgray;
+    border-bottom: 1px solid @light-grey;
   }
 
   #tag-work-ids,
@@ -86,7 +82,7 @@
   display: flex;
   align-items: center;
   font-size: 16px;
-  border-bottom: 1px solid lightgray;
+  border-bottom: 1px solid @light-grey;
   padding: 9px 10px;
   width: 100%;
 
@@ -97,7 +93,7 @@
 
 .row-button {
   font-size: 13px;
-  color: black;
+  color: @black;
   font-weight: 700;
   cursor: pointer;
   width: 40px;
@@ -105,7 +101,7 @@
 
 .row-name {
   font-size: 13px;
-  color: black;
+  color: @black;
   font-weight: 400;
 
   &.row-name-create {
@@ -115,7 +111,7 @@
 
     .row-name-create-p {
       font-size: 13px;
-      color: black;
+      color: @black;
       font-weight: 400;
       margin-bottom: 5px;
     }
@@ -129,7 +125,7 @@
 
     .subject-type-option {
       font-size: 11px;
-      color: white;
+      color: @white;
       font-weight: 400;
       width: fit-content;
       padding: 3px 6px;
@@ -143,15 +139,15 @@
   font-size: 11px;
   font-weight: 400;
   border-radius: 8px;
-  border-top: 1px solid #CCC;
-  border-bottom: 1px solid #CCC;
+  border-top: 1px solid @lighter-grey;
+  border-bottom: 1px solid @lighter-grey;
   padding: 2px 6px;
-  color: #FFF;
+  color: @white;
   margin-left: auto;
 }
 
 .new-tag {
-  border: 1px solid #CCC;
+  border: 1px solid @lighter-grey;
   padding: 2px 6px;
   font-size: 13px;
   width: fit-content;
@@ -159,7 +155,7 @@
 
 .remove-button {
   font-size: 11px;
-  color: black;
+  color: @black;
   font-weight: bold;
   cursor: pointer;
   margin-left: 7px;

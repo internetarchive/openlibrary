@@ -149,7 +149,6 @@ function handleSelectSubject(name, rawSubjectType, button=null) {
 
 function handleRemoveSubject(name, subjectType, tagElement) {
     const hiddenInput = document.getElementById('tag-subjects');
-    const selectedTagsContainer = document.getElementById('selected-tag-subjects');
     subjectType = parseSubjectType(subjectType);
 
     const existingSubjects = JSON.parse(hiddenInput.value === '' ? '{}' : hiddenInput.value);
