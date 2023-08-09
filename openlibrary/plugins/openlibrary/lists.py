@@ -203,8 +203,9 @@ class lists_partials(delegate.page):
         list_data = {
             list_data['key']: {
                 'members': list_data['list_items'],
-                'listName': list_data['name']
-            } for list_data in user_lists
+                'listName': list_data['name'],
+            }
+            for list_data in user_lists
         }
 
         return {

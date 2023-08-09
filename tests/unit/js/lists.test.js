@@ -136,6 +136,7 @@ describe('CreateListForm class tests', () => {
         expect(descriptionInput.value).toBeTruthy()
 
         // Creating new CreateListForm should clear the form
+        // eslint-disable-next-line no-unused-vars
         const listForm = new CreateListForm(formElem)
         expect(titleInput.value).not.toBeTruthy()
         expect(descriptionInput.value).not.toBeTruthy()

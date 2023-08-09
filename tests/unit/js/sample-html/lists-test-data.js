@@ -68,7 +68,7 @@ function createShowcaseMarkup(isActiveShowcase, showcaseData) {
                     <input type="hidden" name="seed-title" value="${data.listTitle}">
                     <input type="hidden" name="seed-key" value="${data.seedKey}">
                     <input type="hidden" name="seed-type" value="${data.seedType}">
-                    
+
                     <a href="${data.listKey}" class="remove-from-list red smaller arial plain" data-list-key="${data.listKey}" title="Remove from your list?">[X]</a>
                 </span>
                 <span class="owner">from <a href="${data.listOwner}">You</a></span>

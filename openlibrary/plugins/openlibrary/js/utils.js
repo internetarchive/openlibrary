@@ -35,11 +35,10 @@ export function cond(predicate, true_value, false_value) {
     }
 }
 
-// XXX : test cases
 /**
  * Removes children of each given element.
  *
- * @param  {Array<HTMLElement>} elements
+ * @param  {...HTMLElement} elements
  */
 export function removeChildren(...elements) {
     for (const elem of elements) {
