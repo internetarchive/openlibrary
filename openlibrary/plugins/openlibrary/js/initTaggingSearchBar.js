@@ -5,57 +5,51 @@ const subjectTypeColors = {
     person: '#D100D5',
     place: '#D50033',
     time: '#D5A600'
-}
+};
 
 function newSubjectRowHtml(subjectName, subjectType = null, isSelected = false) {
     const exists = subjectType != null;
-    const buttonStyle = 'font-size: 13px; color: black; font-weight: 700; cursor: pointer; width: 40px;';
-    const nameStyle = 'font-size: 13px; color: black; font-weight: 400';
-    const tagStyle = 'font-size: 11px; font-weight: 400; border-radius: 8px; border-top: 1px solid #CCC; border-bottom: 1px solid #CCC; padding: 2px 6px; color: #FFF; margin-left: auto';
-    const divStyle = 'display: flex; align-items: center; font-size: 16px; border-bottom: 1px solid lightgray; padding: 9px 10px; width: 100%;';
 
     const div = document.createElement('div');
-    div.style = divStyle;
+    div.className = 'subject-row';
     if (exists) {
-        div.style.height = '33px';
+        div.classList.add('subject-row-exists');
     }
 
     if (exists) {
         const buttonIcon = isSelected ? '-' : '+';
         const button = document.createElement('div');
         button.innerText = buttonIcon;
-        button.style = buttonStyle;
+        button.className = 'row-button';
         button.addEventListener('click', () => handleSelectSubject(subjectName, subjectType, button));
 
         div.appendChild(button);
     }
 
     const name = document.createElement('div');
-    name.style = nameStyle;
+    name.className = 'row-name';
     if (exists) {
         name.innerText = subjectName;
     } else {
-        name.style.display = 'flex';
-        name.style.flexDirection = 'column';
-        name.style.justifyContent = 'center';
+        name.className += ' row-name-create';
         const p = document.createElement('div');
         p.innerHTML = `Create new subject <strong>'${subjectName}'</strong> with type:`;
-        p.style = 'font-size: 13px; color: black; font-weight: 400; margin-bottom: 5px;'
+        p.className = 'row-name-create-p';
         name.appendChild(p);
 
         const subjectTypeOptions = ['subject', 'person', 'place', 'time'];
         const select = document.createElement('div');
-        select.style = 'width: 100%; display: flex; flex-direction: row; gap: 5px;';
+        select.className = 'row-name-create-select';
         subjectTypeOptions.forEach((option) => {
             const optionElement = document.createElement('div');
-            optionElement.style = 'font-size: 11px; color: white; font-weight: 400; width: fit-content; padding: 3px 6px; border-radius: 8px; cursor: pointer;';
-            optionElement.style.backgroundColor = subjectTypeColors[option];
+            optionElement.className = 'subject-type-option';
             optionElement.textContent = option;
+            optionElement.style.backgroundColor = subjectTypeColors[option];
 
             optionElement.addEventListener('click', () => handleSelectSubject(subjectName, option, null));
 
             select.appendChild(optionElement);
-        })
+        });
         name.appendChild(select);
     }
 
@@ -64,7 +58,7 @@ function newSubjectRowHtml(subjectName, subjectType = null, isSelected = false) 
     const tag = document.createElement('div');
     if (exists) {
         tag.innerText = subjectType;
-        tag.style = tagStyle;
+        tag.className = 'row-tag';
         tag.style.backgroundColor = subjectTypeColors[subjectType];
 
         div.appendChild(tag);
@@ -88,11 +82,10 @@ function fetchSubjects(searchTerm) {
                         const isSelected = hiddenInput.value.includes(result.name);
 
                         const div = newSubjectRowHtml(result.name, result['subject_type'], isSelected);
-                        console.log(div);
                         resultsContainer.appendChild(div);
                     });
             }
-            if (searchTerm != '' && (data['docs'].length == 0 || !data['docs'].slice(0, maxDisplayResults).includes(searchTerm))) {
+            if (searchTerm != '') { // create new subject option
                 const div = newSubjectRowHtml(searchTerm);
                 resultsContainer.appendChild(div);
             }
@@ -118,14 +111,11 @@ function handleSelectSubject(name, rawSubjectType, button=null) {
     const existingSubjects = JSON.parse(hiddenInput.value == '' ? '{}' : hiddenInput.value);
     existingSubjects[subjectType] = existingSubjects[subjectType] || [];
 
-    // Check if the name is already in the hidden input value
     const isTagged = existingSubjects[subjectType].includes(name);
 
     if (isTagged) {
-        // Remove the name from the hidden input value
         existingSubjects[subjectType] = existingSubjects[subjectType].filter((subject) => subject !== name);
 
-        // Remove the corresponding tag element
         const tagToRemove = selectedTagsContainer.querySelector(`[data-name="${`${rawSubjectType}-${name}`}"]`);
         if (tagToRemove) {
             tagToRemove.remove();
@@ -134,26 +124,23 @@ function handleSelectSubject(name, rawSubjectType, button=null) {
             button.innerText = '+';
         }
     } else {
-        // Append the name to the hidden input value
         existingSubjects[subjectType].push(name);
 
-        // Create a new tag element
         const newTag = document.createElement('div');
         newTag.innerText = name;
         newTag.dataset.name = `${rawSubjectType}-${name}`;
-        newTag.style = 'border: 1px solid #CCC; padding: 2px 6px; font-size: 13px; width: fit-content;';
+        newTag.className = 'new-tag';
         newTag.style.backgroundColor = subjectTypeColors[rawSubjectType];
 
         const removeButton = document.createElement('span');
         removeButton.innerText = 'X';
-        removeButton.style = 'font-size: 11px; color: black; font-weight: bold; cursor: pointer; margin-left: 7px;';
+        removeButton.className = 'remove-button';
         removeButton.addEventListener('click', () => handleRemoveSubject(name, subjectType, newTag));
         newTag.appendChild(removeButton);
 
         if (button) {
             button.innerText = '-';
         }
-        // Add the new tag element to the "selected-tag-subjects" div
         selectedTagsContainer.appendChild(newTag);
     }
 
@@ -168,10 +155,8 @@ function handleRemoveSubject(name, subjectType, tagElement) {
     const existingSubjects = JSON.parse(hiddenInput.value == '' ? '{}' : hiddenInput.value);
     existingSubjects[subjectType] = existingSubjects[subjectType] || [];
 
-    // Remove the name from the hidden input value
     existingSubjects[subjectType] = existingSubjects[subjectType].filter((subject) => subject !== name);
 
-    // Remove the corresponding tag element
     tagElement.remove();
 
     hiddenInput.value = JSON.stringify(existingSubjects);
@@ -179,14 +164,14 @@ function handleRemoveSubject(name, subjectType, tagElement) {
 
 function parseSubjectType(subjectType) {
     switch (subjectType) {
-    case 'subject':
-        return 'subjects';
-    case 'person':
-        return 'subject_people';
-    case 'place':
-        return 'subject_places';
-    case 'time':
-        return 'subject_times';
+        case 'subject':
+            return 'subjects';
+        case 'person':
+            return 'subject_people';
+        case 'place':
+            return 'subject_places';
+        case 'time':
+            return 'subject_times';
     }
 }
 
@@ -196,6 +181,3 @@ function hideTaggingMenu() {
         form.style.display = 'none';
     }
 }
-
-
-

@@ -268,7 +268,7 @@ class merge_authors(delegate.page):
 
         user = get_current_user()
         can_merge = user and (
-            # user.is_admin() or user.is_usergroup_member('/usergroup/super-librarians')
+            user.is_admin() or user.is_usergroup_member('/usergroup/super-librarians')
         )
         return render_template(
             'merge/authors',
@@ -285,7 +285,7 @@ class merge_authors(delegate.page):
 
         user = get_current_user()
         can_merge = user and (
-            # user.is_admin() or user.is_usergroup_member('/usergroup/super-librarians')
+            user.is_admin() or user.is_usergroup_member('/usergroup/super-librarians')
         )
         can_request_merge = not can_merge and (
             user and user.is_usergroup_member('/usergroup/librarians')

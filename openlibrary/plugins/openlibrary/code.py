@@ -75,9 +75,10 @@ infogami._install_hooks = [
     h for h in infogami._install_hooks if h.__name__ != 'movefiles'
 ]
 
-from openlibrary.plugins.openlibrary import lists
+from openlibrary.plugins.openlibrary import lists, bulk_tag
 
 lists.setup()
+bulk_tag.setup()
 
 logger = logging.getLogger('openlibrary')
 
@@ -1005,61 +1006,6 @@ class Partials(delegate.page):
         if component == "RelatedWorkCarousel":
             partial = _get_relatedcarousels_component(i.workid)
         return delegate.RawText(json.dumps(partial))
-
-
-class tags_partials(delegate.page):
-    path = "/tags/partials"
-    encoding = "json"
-
-    def GET(self):
-        i = web.input(key=None)
-
-        works = i.work_ids
-
-        tagging_menu = render_template('subjects/tagging_menu', works)
-
-        partials = {
-            'tagging_menu': str(tagging_menu),
-        }
-
-        return delegate.RawText(json.dumps(partials))
-
-
-class bulk_tag_works(delegate.page):
-    path = "/tags/bulk_tag_works"
-
-    def POST(self):
-        i = web.input()
-        works = i.work_ids.split(',')
-        subjects = json.loads(i.tag_subjects)
-        docs_to_update = []
-
-        for work in works:
-            w = web.ctx.site.get(f"/works/{work}")
-            current_subjects = {
-                'subjects': set(w.get('subjects', '')),
-                'subject_people': set(w.get('subject_people', '')),
-                'subject_places': set(w.get('subject_places', '')),
-                'subject_times': set(w.get('subject_times', '')),
-            }
-            for subject_type, subject_list in subjects.items():
-                if subject_list:
-                    subject_list_set = set(subject_list)
-                    current_subjects[subject_type] = list(
-                        current_subjects[subject_type].union(subject_list_set)
-                    )
-                    w[subject_type] = current_subjects[subject_type]
-
-            docs_to_update.append(w.dict())
-
-        web.ctx.site.save_many(docs_to_update, comment="Bulk tagging works")
-
-        def response(msg, status="success"):
-            return delegate.RawText(
-                json.dumps({status: msg}), content_type="application/json"
-            )
-
-        return response('Tagged works successfully')
 
 
 def is_bot():
