@@ -591,7 +591,10 @@ def render_list_preview_image(lst_key):
 
     para = textwrap.wrap(lst.name, width=45)
     current_h = 42
-    author_text = f"A list by {lst.get_owner().displayname}"
+
+    author_text = "A list on Open Library"
+    if owner := lst.get_owner():
+        author_text = f"A list by {owner.displayname}"
     w, h = draw.textsize(author_text, font=font_author)
     draw.text(((W - w) / 2, current_h), author_text, font=font_author, fill=(0, 0, 0))
     current_h += h + 5

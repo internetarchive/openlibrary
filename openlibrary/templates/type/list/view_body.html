@@ -37,12 +37,13 @@ $jsdef render_seed_count(seed_count):
 
 $if not is_owner:
     <div id="contentHead" style="margin-bottom:0;">
-        $:macros.databarView(list, edit=False)
+        $ owner = list.get_owner()
+        $:macros.databarView(list, edit=not owner)
         <div class="superNav">
-            $ owner = list.get_owner()
-            <a href="$owner.key">$owner.displayname</a>
-            /
-            <a href="$owner.key/lists">$_('Lists')</a>
+            $if owner:
+                <a href="$owner.key">$owner.displayname</a>
+                /
+                <a href="$owner.key/lists">$_('Lists')</a>
         </div>
         <h1>$list.name</h1>
         <p class="collapse sansserif">
@@ -53,7 +54,8 @@ $if not is_owner:
     </div>
 
 $def remove_item_link():
-    $if ctx.user and ctx.user.key == list.get_owner().key:
+    $ owner = list.get_owner()
+    $if owner and ctx.user and ctx.user.key == owner.key:
         <span class="listDelete sansserif smaller">
             <a href="javascript:;" data-confirm-text="$:_('Yes, I\'m sure')" data-cancel-text="$_('No, cancel')"><span></span>$_('Remove this item?')</a>
         </span>
