@@ -277,7 +277,11 @@ class lists_add(delegate.page):
                 f"Permission denied to edit {user_key}.",
             )
         list_record = ListRecord.from_input()
-        return render_template("type/list/edit", list_record, new=True)
+        # Only admins can add global lists for now
+        admin_only = not user_key
+        return render_template(
+            "type/list/edit", list_record, new=True, admin_only=admin_only
+        )
 
     def POST(self, user_key: str | None):  # type: ignore[override]
         return lists_edit().POST(user_key, None)

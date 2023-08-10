@@ -1,12 +1,21 @@
-$def with (lst, new=False)
+$def with (lst, new=False, admin_only=False)
 $putctx('cssfile', 'list-edit')
 $var title: $(_("Create a list") if new else _("Editing list: %(list_name)s", list_name=lst.name))
 
 $putctx("robots", "noindex,nofollow")
 
+$ can_save = True
+$if admin_only:
+    $ can_save = (ctx.user and ctx.user.is_admin())
+
 <div id="contentHead">
     $:macros.databarEdit(lst)
     <h1>$(_("Create a list") if new else _("Edit List"))</h1>
+
+    $if admin_only:
+        <b class="warning">
+            $_("⚠️ Saving global lists is admin-only while the feature is under development.")
+        </b>
 </div>
 
 $# Render the ith seed input field
@@ -118,7 +127,7 @@ $jsdef lazy_thing_preview(key, render_fn_name):
 
         <div class="formElement bottom">
             $if new:
-                <button type="submit" class="larger">$_('Create new list')</button>
+                <button type="submit" class="larger" $cond(not can_save, 'disabled')>$_('Create new list')</button>
             $else:
                 $:macros.EditButtons(comment=lst.comment_)
         </div>
