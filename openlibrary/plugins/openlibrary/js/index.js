@@ -370,10 +370,16 @@ jQuery(function () {
     }
 
     const droppers = document.querySelectorAll('.dropper')
-    if (droppers.length) {
-        import(/* webpackChunkName: "droppers" */ './droppers')
-            .then((module) => module.initDroppers(droppers))
+    const genericDroppers = document.querySelectorAll('.generic-dropper-wrapper')
+    if (droppers.length || genericDroppers.length) {
+        import(/* webpackChunkName: "droppers" */ './dropper')
+            .then((module) => {
+                module.initDroppers(droppers)
+                module.initGenericDroppers(genericDroppers)
+            })
     }
+
+
 
     // "Want to Read" buttons:
     const readingLogDroppers = document.getElementsByClassName('widget-add');
