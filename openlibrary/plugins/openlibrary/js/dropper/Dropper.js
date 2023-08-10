@@ -9,7 +9,7 @@
  * A dropper is a button with a two clickable regions: a primary action button
  * and a button to toggle an initially hidden drop-down that provides additional
  * additional functionality.
- * 
+ *
  * A dropper can have a "disabled" state.  If a dropper is disabled, it cannot be
  * opened nor closed.  This is useful when the dropdown content contains affordances
  * which make authenticated API requests, as droppers can be disabled for logged-out
