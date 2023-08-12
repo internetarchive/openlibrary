@@ -1,11 +1,28 @@
 import { debounce } from './nonjquery_utils';
 
 const subjectTypeColors = {
-    subject: '#0067D5',
-    person: '#D100D5',
-    place: '#D50033',
-    time: '#D5A600'
+    subject: 'subject-blue',
+    person: 'subject-purple',
+    place: 'subject-red',
+    time: 'subject-yellow'
 };
+
+function addSubjectTypeBackgroundColor(element, subjectType) {
+    element.classList.add(subjectTypeColors[subjectType]);
+}
+
+function parseSubjectType(subjectType) {
+    switch (subjectType) {
+    case 'subject':
+        return 'subjects';
+    case 'person':
+        return 'subject_people';
+    case 'place':
+        return 'subject_places';
+    case 'time':
+        return 'subject_times';
+    }
+}
 
 function newSubjectRowHtml(subjectName, subjectType, workCount) {
     const div = document.createElement('div');
@@ -21,7 +38,7 @@ function newSubjectRowHtml(subjectName, subjectType, workCount) {
     const tag = document.createElement('div');
     tag.innerText = subjectType;
     tag.className = 'search-subject-type';
-    tag.style.backgroundColor = subjectTypeColors[subjectType];
+    addSubjectTypeBackgroundColor(tag, subjectType)
     subjectInfoDiv.appendChild(tag);
 
     const workCountDiv = document.createElement('div');
@@ -56,7 +73,7 @@ function newCreateSubjectOption(subjectName) {
         const optionElement = document.createElement('div');
         optionElement.className = 'subject-type-option';
         optionElement.textContent = option;
-        optionElement.style.backgroundColor = subjectTypeColors[option];
+        addSubjectTypeBackgroundColor(optionElement, option)
 
         optionElement.addEventListener('click', () => handleSelectSubject(subjectName, option, null));
 
@@ -122,7 +139,7 @@ function handleSelectSubject(name, rawSubjectType) {
         newTag.innerText = name;
         newTag.dataset.name = `${rawSubjectType}-${name}`;
         newTag.className = 'new-selected-subject-tag';
-        newTag.style.backgroundColor = subjectTypeColors[rawSubjectType];
+        addSubjectTypeBackgroundColor(newTag, rawSubjectType)
 
         const removeButton = document.createElement('span');
         removeButton.innerText = 'X';
@@ -147,19 +164,6 @@ function handleRemoveSubject(name, subjectType, tagElement) {
     tagElement.remove();
 
     hiddenInput.setAttribute('value', JSON.stringify(existingSubjects));
-}
-
-function parseSubjectType(subjectType) {
-    switch (subjectType) {
-    case 'subject':
-        return 'subjects';
-    case 'person':
-        return 'subject_people';
-    case 'place':
-        return 'subject_places';
-    case 'time':
-        return 'subject_times';
-    }
 }
 
 function hideTaggingMenu() {
