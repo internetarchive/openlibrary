@@ -167,7 +167,7 @@ function handleRemoveSubject(name, subjectType, tagElement) {
 }
 
 function hideTaggingMenu() {
-    const form = document.getElementById('bulk-tagging-form');
+    const form = document.querySelector('.bulk-tagging-form');
     if (form) {
         form.style.display = 'none';
     }

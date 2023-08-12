@@ -1,7 +1,7 @@
 import { initSubjectTagsSearchBox } from '../../initTaggingSearchBar';
 
 export function renderBulkTaggingMenu(workIds) {
-    const existingForm = document.getElementById('bulk-tagging-form');
+    const existingForm = document.querySelector('.bulk-tagging-form');
     if (existingForm) {
         existingForm.style.display = 'block';
         const target = document.getElementById('ile-hidden-forms')
