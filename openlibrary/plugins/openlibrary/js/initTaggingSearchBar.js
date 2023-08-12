@@ -7,67 +7,67 @@ const subjectTypeColors = {
     time: '#D5A600'
 };
 
-function newSubjectRowHtml(subjectName, subjectType = null, isSelected = false) {
-    const exists = subjectType !== null;
-
+function newSubjectRowHtml(subjectName, subjectType, workCount) {
     const div = document.createElement('div');
-    div.className = 'subject-row';
-    if (exists) {
-        div.classList.add('subject-row-exists');
-    }
-
-    if (exists) {
-        const buttonIcon = isSelected ? '-' : '+';
-        const button = document.createElement('div');
-        button.innerText = buttonIcon;
-        button.className = 'row-button';
-        button.addEventListener('click', () => handleSelectSubject(subjectName, subjectType, button));
-
-        div.appendChild(button);
-    }
+    div.className = 'search-subject-row';
 
     const name = document.createElement('div');
-    name.className = 'row-name';
-    if (exists) {
-        name.innerText = subjectName;
-    } else {
-        name.className += ' row-name-create';
-        const p = document.createElement('div');
-        p.innerHTML = `Create new subject <strong>'${subjectName}'</strong> with type:`;
-        p.className = 'row-name-create-p';
-        name.appendChild(p);
-
-        const subjectTypeOptions = ['subject', 'person', 'place', 'time'];
-        const select = document.createElement('div');
-        select.className = 'row-name-create-select';
-        subjectTypeOptions.forEach((option) => {
-            const optionElement = document.createElement('div');
-            optionElement.className = 'subject-type-option';
-            optionElement.textContent = option;
-            optionElement.style.backgroundColor = subjectTypeColors[option];
-
-            optionElement.addEventListener('click', () => handleSelectSubject(subjectName, option, null));
-
-            select.appendChild(optionElement);
-        });
-        name.appendChild(select);
-    }
-
+    name.className = 'search-subject-row-name';
+    name.innerText = subjectName;
     div.appendChild(name);
 
+    const subjectInfoDiv = document.createElement('div');
+    subjectInfoDiv.className = 'search-subject-row-subject-info';
     const tag = document.createElement('div');
-    if (exists) {
-        tag.innerText = subjectType;
-        tag.className = 'row-tag';
-        tag.style.backgroundColor = subjectTypeColors[subjectType];
+    tag.innerText = subjectType;
+    tag.className = 'search-subject-type';
+    tag.style.backgroundColor = subjectTypeColors[subjectType];
+    subjectInfoDiv.appendChild(tag);
 
-        div.appendChild(tag);
+    const workCountDiv = document.createElement('div');
+    if (workCount > 1000) {
+        workCount.innerText = '1000+';
     }
+    workCountDiv.innerText = "works: " + workCount;
+    workCountDiv.className = 'search-subject-work-count';
+    subjectInfoDiv.appendChild(workCountDiv);
+
+
+    div.appendChild(subjectInfoDiv);
+    div.addEventListener('click', () => handleSelectSubject(subjectName, subjectType));
 
     return div;
 }
 
-const maxDisplayResults = 10;
+function newCreateSubjectOption(subjectName) {
+    const div = document.createElement('div');
+    div.className = 'search-subject-row-name';
+
+    div.className += ' search-subject-row-name-create';
+    const p = document.createElement('div');
+    p.innerHTML = `Create new subject <strong>'${subjectName}'</strong> with type:`;
+    p.className = 'search-subject-row-name-create-p';
+    div.appendChild(p);
+
+    const subjectTypeOptions = ['subject', 'person', 'place', 'time'];
+    const select = document.createElement('div');
+    select.className = 'search-subject-row-name-create-select';
+    subjectTypeOptions.forEach((option) => {
+        const optionElement = document.createElement('div');
+        optionElement.className = 'subject-type-option';
+        optionElement.textContent = option;
+        optionElement.style.backgroundColor = subjectTypeColors[option];
+
+        optionElement.addEventListener('click', () => handleSelectSubject(subjectName, option, null));
+
+        select.appendChild(optionElement);
+    });
+    div.appendChild(select);
+
+    return div
+}
+
+const maxDisplayResults = 25;
 
 function fetchSubjects(searchTerm) {
     const resultsContainer = document.getElementById('subjects-search-results');
@@ -81,13 +81,15 @@ function fetchSubjects(searchTerm) {
                     .forEach(result => {
                         const isSelected = hiddenInput.value.includes(result.name);
 
-                        const div = newSubjectRowHtml(result.name, result['subject_type'], isSelected);
+                        const div = newSubjectRowHtml(result.name, result['subject_type'], result['work_count'], isSelected);
                         resultsContainer.appendChild(div);
                     });
             }
+            const createSubjectContainer = document.getElementById('create-new-subject-tag');
+            createSubjectContainer.innerHTML = '';
             if (searchTerm !== '') { // create new subject option
-                const div = newSubjectRowHtml(searchTerm);
-                resultsContainer.appendChild(div);
+                const div = newCreateSubjectOption(searchTerm);
+                createSubjectContainer.appendChild(div);
             }
         });
 }
@@ -103,7 +105,7 @@ export function initSubjectTagsSearchBox() {
     });
 }
 
-function handleSelectSubject(name, rawSubjectType, button=null) {
+function handleSelectSubject(name, rawSubjectType) {
     const hiddenInput = document.getElementById('tag-subjects');
     const selectedTagsContainer = document.getElementById('selected-tag-subjects');
     const subjectType = parseSubjectType(rawSubjectType);
@@ -113,43 +115,29 @@ function handleSelectSubject(name, rawSubjectType, button=null) {
 
     const isTagged = existingSubjects[subjectType].includes(name);
 
-    if (isTagged) {
-        existingSubjects[subjectType] = existingSubjects[subjectType].filter((subject) => subject !== name);
-
-        const tagToRemove = selectedTagsContainer.querySelector(`[data-name="${`${rawSubjectType}-${name}`}"]`);
-        if (tagToRemove) {
-            tagToRemove.remove();
-        }
-        if (button) {
-            button.innerText = '+';
-        }
-    } else {
+    if (!isTagged) {
         existingSubjects[subjectType].push(name);
 
         const newTag = document.createElement('div');
         newTag.innerText = name;
         newTag.dataset.name = `${rawSubjectType}-${name}`;
-        newTag.className = 'new-tag';
+        newTag.className = 'new-selected-subject-tag';
         newTag.style.backgroundColor = subjectTypeColors[rawSubjectType];
 
         const removeButton = document.createElement('span');
         removeButton.innerText = 'X';
-        removeButton.className = 'remove-button';
+        removeButton.className = 'remove-selected-subject';
         removeButton.addEventListener('click', () => handleRemoveSubject(name, subjectType, newTag));
         newTag.appendChild(removeButton);
 
-        if (button) {
-            button.innerText = '-';
-        }
         selectedTagsContainer.appendChild(newTag);
-    }
 
-    hiddenInput.value = JSON.stringify(existingSubjects);
+        hiddenInput.setAttribute('value', JSON.stringify(existingSubjects));
+    }
 }
 
 function handleRemoveSubject(name, subjectType, tagElement) {
     const hiddenInput = document.getElementById('tag-subjects');
-    subjectType = parseSubjectType(subjectType);
 
     const existingSubjects = JSON.parse(hiddenInput.value === '' ? '{}' : hiddenInput.value);
     existingSubjects[subjectType] = existingSubjects[subjectType] || [];
@@ -158,7 +146,7 @@ function handleRemoveSubject(name, subjectType, tagElement) {
 
     tagElement.remove();
 
-    hiddenInput.value = JSON.stringify(existingSubjects);
+    hiddenInput.setAttribute('value', JSON.stringify(existingSubjects));
 }
 
 function parseSubjectType(subjectType) {

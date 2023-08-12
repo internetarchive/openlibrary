@@ -2,7 +2,6 @@
 import $ from 'jquery';
 import { move_to_work, move_to_author } from '../ol.js';
 import { renderBulkTaggingMenu } from '../subject.js';
-// import { openTagDropdown } from '../../../../../../components/TagUI/utils.js';
 import './SelectionManager.less';
 
 /**
