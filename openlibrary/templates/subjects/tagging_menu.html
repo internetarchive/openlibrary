@@ -3,17 +3,17 @@ $def with (work_ids)
 <form action="/tags/bulk_tag_works?debug=True" method="post" id="bulk-tagging-form">
     <div class="form-header">
         <p>Manage Subjects</p>
-        <div id="close-bulk-tagging-form">x</div>
+        <div class="close-bulk-tagging-form">x</div>
     </div>
     <div class="search-subject-container">
-        <input type="text" id="subjects-search-input" placeholder='Filter subjects e.g. Epic'>
+        <input type="text" class="subjects-search-input" placeholder='Filter subjects e.g. Epic'>
     </div>
-    <div id="subjects-search-results"></div>
-    <input id="tag-work-ids" name="work_ids" value="$work_ids">
-    <input id="tag-subjects" name="tag_subjects" value="">
-    <div id="create-new-subject-tag"></div>
-    <div id="selected-tag-subjects"></div>
+    <div class="subjects-search-results"></div>
+    <input class="tag-work-ids" name="work_ids" value="$work_ids">
+    <input class="tag-subjects" name="tag_subjects" value="">
+    <div class="create-new-subject-tag"></div>
+    <div class="selected-tag-subjects"></div>
     <div class="submit-tags-section">
-        <button type="submit" id="bulk-tagging-submit">Submit</button>
+        <button type="submit" class="bulk-tagging-submit">Submit</button>
     </div>
 </form>

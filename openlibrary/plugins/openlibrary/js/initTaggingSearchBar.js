@@ -87,8 +87,8 @@ function newCreateSubjectOption(subjectName) {
 const maxDisplayResults = 25;
 
 function fetchSubjects(searchTerm) {
-    const resultsContainer = document.getElementById('subjects-search-results');
-    const hiddenInput = document.getElementById('tag-subjects');
+    const resultsContainer = document.querySelector('.subjects-search-results');
+    const hiddenInput = document.querySelector('.tag-subjects');
     resultsContainer.innerHTML = '';
     fetch(`/search/subjects.json?q=${searchTerm}&limit=${maxDisplayResults}`)
         .then((response) => response.json())
@@ -102,7 +102,7 @@ function fetchSubjects(searchTerm) {
                         resultsContainer.appendChild(div);
                     });
             }
-            const createSubjectContainer = document.getElementById('create-new-subject-tag');
+            const createSubjectContainer = document.querySelector('.create-new-subject-tag');
             createSubjectContainer.innerHTML = '';
             if (searchTerm !== '') { // create new subject option
                 const div = newCreateSubjectOption(searchTerm);
@@ -114,8 +114,8 @@ function fetchSubjects(searchTerm) {
 const debouncedFetchSubjects = debounce(fetchSubjects, 500);
 
 export function initSubjectTagsSearchBox() {
-    const searchInput = document.getElementById('subjects-search-input');
-    document.getElementById('close-bulk-tagging-form').addEventListener('click', hideTaggingMenu)
+    const searchInput = document.querySelector('.subjects-search-input');
+    document.querySelector('.close-bulk-tagging-form').addEventListener('click', hideTaggingMenu)
     searchInput.addEventListener('input', function () {
         const searchTerm = this.value.trim();
         debouncedFetchSubjects(searchTerm);
@@ -123,8 +123,8 @@ export function initSubjectTagsSearchBox() {
 }
 
 function handleSelectSubject(name, rawSubjectType) {
-    const hiddenInput = document.getElementById('tag-subjects');
-    const selectedTagsContainer = document.getElementById('selected-tag-subjects');
+    const hiddenInput = document.querySelector('.tag-subjects');
+    const selectedTagsContainer = document.querySelector('.selected-tag-subjects');
     const subjectType = parseSubjectType(rawSubjectType);
 
     const existingSubjects = JSON.parse(hiddenInput.value === '' ? '{}' : hiddenInput.value);
@@ -154,7 +154,7 @@ function handleSelectSubject(name, rawSubjectType) {
 }
 
 function handleRemoveSubject(name, subjectType, tagElement) {
-    const hiddenInput = document.getElementById('tag-subjects');
+    const hiddenInput = document.querySelector('.tag-subjects');
 
     const existingSubjects = JSON.parse(hiddenInput.value === '' ? '{}' : hiddenInput.value);
     existingSubjects[subjectType] = existingSubjects[subjectType] || [];

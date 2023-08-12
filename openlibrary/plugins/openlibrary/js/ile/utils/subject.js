@@ -7,7 +7,7 @@ export function renderBulkTaggingMenu(workIds) {
         const target = document.getElementById('ile-hidden-forms')
         target.style.display = 'block';
         // If the form already exists, change the value of the hidden input to include the new work ids
-        const hiddenInput = document.getElementById('tag-work-ids');
+        const hiddenInput = document.querySelector('.tag-work-ids');
         hiddenInput.defaultValue = workIds.join(',');
     } else {
         fetchTaggingMenu(workIds);
