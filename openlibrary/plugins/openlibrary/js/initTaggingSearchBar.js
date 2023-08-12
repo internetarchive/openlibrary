@@ -28,7 +28,7 @@ function newSubjectRowHtml(subjectName, subjectType, workCount) {
     if (workCount > 1000) {
         workCount.innerText = '1000+';
     }
-    workCountDiv.innerText = "works: " + workCount;
+    workCountDiv.innerText = `works: ${workCount}`;
     workCountDiv.className = 'search-subject-work-count';
     subjectInfoDiv.appendChild(workCountDiv);
 
