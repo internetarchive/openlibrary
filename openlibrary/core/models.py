@@ -1159,7 +1159,7 @@ class Tag(Thing):
                     'name': tag_name,
                     'tag_description': tag_description,
                     'tag_type': tag_type,
-                    'tag_plugins': tag_plugins or "[]",
+                    'tag_plugins': tag_plugins or [],
                     'type': dict(key='/type/tag'),
                 },
                 comment=comment,

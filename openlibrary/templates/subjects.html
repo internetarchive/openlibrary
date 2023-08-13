@@ -43,7 +43,7 @@ $ has_tag = 'tag' in page
 
 <div class="contentBody">
   $if has_tag and 'plugins' in page.tag:
-    <div style="padding-bottom: 20px;">
+    <div class="subject-plugins-section">
       $:macros.Plugins(page.tag['plugins'])
     </div>
   $ default_carousel_title = _('Books about %(name)s', name=page.name)

@@ -24,25 +24,23 @@ function checkRequiredFields() {
 }
 
 export function initPluginsForm() {
-    document.getElementById('addPluginBtn').addEventListener('click', function() {
-        const newRow =
-    `${'<tr class="plugins-input-row">' +
-    '<td>' +
-    '<select id="plugins_type" style="margin: 5px; max-width: 130px;">' +
-    '<option value="">Select Plugin</option>'}${
-        pluginsTypesList.map(function(pluginType) {
-            return `<option value="${pluginType}">${pluginType}</option>`;
-        }).join('')
-    }</select>` +
-    '</td>' +
-    '<td><textarea id="data_input" cols="55" rows="5" tabindex="0"></textarea></td>' +
-    '<td><span class="deletePluginBtn" style="color: red; cursor: pointer; margin-left: 10px;">[X]</span></td>' +
-    '<td><span class="drag-handle" style="margin: 10px; font-size: 20px; cursor: move;">☰</span></td>' +
-    '</tr>';
+    document.querySelector('.addPluginBtn').addEventListener('click', function() {
+        const newRow = `
+        <tr class="plugins-input-row">
+            <td>
+                <select id="plugins_type" class="select-tag-plugins-container">
+                    <option value="">Select Plugin</option>
+                    ${pluginsTypesList.map(pluginType => `<option value="${pluginType}">${pluginType}</option>`).join('')}
+                </select>
+            </td>
+            <td><textarea id="plugin_data_input"></textarea></td>
+            <td><span class="delete-plugin-btn">[X]</span></td>
+            <td><span class="drag-handle">☰</span></td>
+        </tr>`
         document
             .getElementById('pluginsFormRows')
             .insertAdjacentHTML('beforeEnd', newRow);
-        initDeletePluginBtns(); // Reinitialize the delete-row-buttons' onclick listener
+            initDeletePluginbtns(); // Reinitialize the delete-row-buttons' onclick listener
     });
 
     // Make the table rows draggable
@@ -50,12 +48,12 @@ export function initPluginsForm() {
         handle: '.drag-handle'
     });
 
-    initDeletePluginBtns();
+    initDeletePluginbtns();
 }
 
 // Handle plugin deletion
-function initDeletePluginBtns() {
-    document.querySelectorAll('.deletePluginBtn').forEach(function(row) {
+function initDeletePluginbtns() {
+    document.querySelectorAll('.delete-plugin-btn').forEach(function(row) {
         row.addEventListener('click', function() {
             row.closest('.plugins-input-row').remove();
         });
@@ -114,7 +112,7 @@ function getPluginsData() {
     const formData = [];
     document.querySelectorAll('.plugins-input-row').forEach(function(row) {
         const pluginsType = row.querySelector('#plugins_type').value;
-        const dataInput = row.querySelector('#data_input').value;
+        const dataInput = row.querySelector('#plugin_data_input').value;
 
         const newPlugin = {}
         newPlugin[pluginsType] = dataInput
@@ -123,7 +121,7 @@ function getPluginsData() {
             const errorDiv = document.getElementById('plugin_errors');
             errorDiv.classList.remove('hidden');
             errorDiv.textContent = error;
-            row.setAttribute('style', 'border: 1px solid red;');
+            row.classList.add('invalid-tag-plugins-error');
             throw new Error(error);
         }
 
@@ -143,7 +141,7 @@ function clearPluginsAndInputErrors() {
     const errorDiv = document.getElementById('plugin_errors');
     errorDiv.classList.add('hidden');
     document.querySelectorAll('.plugins-input-row').forEach(function(row) {
-        row.removeAttribute('style');
+        row.classList.remove('invalid-tag-plugins-error');
     });
 }
 
