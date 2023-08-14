@@ -11,7 +11,7 @@ from openlibrary.coverstore import config, db
 from openlibrary.coverstore.coverlib import find_image_path
 
 
-# logfile = open('log.txt', 'a')
+BATCH_SIZE = 10_000
 
 
 def log(*args):
@@ -90,6 +90,26 @@ class TarManager:
 
 idx = id
 
+
+def get_covers(limit=BATCH_SIZE, failed=False, archived=False, deleted=False, uploaded=False):
+    _db = db.getdb()
+    where = "deleted=$deleted AND archived=$archived AND uploaded=$uploaded AND failed=$failed"
+    return _db.select(
+        'cover',
+        where=where,
+        order='id asc',
+        vars={
+            'archived': archived,
+            'deleted': deleted,
+            'uploaded': uploaded,
+            'failed': failed,
+        },
+        limit=limit
+    )
+
+
+def get_unarchived_covers(limit=BATCH_SIZE):
+    return get_covers(limit=limit, failed=False, archived=False)
 
 def is_uploaded(item: str, filename_pattern: str) -> bool:
     """
