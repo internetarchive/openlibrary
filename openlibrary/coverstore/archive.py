@@ -91,7 +91,9 @@ class TarManager:
 idx = id
 
 
-def get_covers(limit=BATCH_SIZE, failed=False, archived=False, deleted=False, uploaded=False):
+def get_covers(
+    limit=BATCH_SIZE, failed=False, archived=False, deleted=False, uploaded=False
+):
     _db = db.getdb()
     where = "deleted=$deleted AND archived=$archived AND uploaded=$uploaded AND failed=$failed"
     return _db.select(
@@ -104,12 +106,13 @@ def get_covers(limit=BATCH_SIZE, failed=False, archived=False, deleted=False, up
             'uploaded': uploaded,
             'failed': failed,
         },
-        limit=limit
+        limit=limit,
     )
 
 
 def get_unarchived_covers(limit=BATCH_SIZE):
     return get_covers(limit=limit, failed=False, archived=False)
+
 
 def is_uploaded(item: str, filename_pattern: str) -> bool:
     """
