@@ -46,18 +46,10 @@ def sendmail(to, msg, cc=None):
     cc = cc or []
     if config.get('dummy_sendmail'):
         message = (
-            ''
-            + 'To: '
-            + to
-            + '\n'
-            + 'From:'
-            + config.from_address
-            + '\n'
-            + 'Subject:'
-            + msg.subject
-            + '\n'
-            + '\n'
-            + web.safestr(msg)
+            f"To: {to}\n"
+            f"From:{config.from_address}\n"
+            f"Subject: {msg.subject}\n"
+            f"\n{web.safestr(msg)}"
         )
 
         print("sending email", message, file=web.debug)

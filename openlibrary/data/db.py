@@ -111,10 +111,10 @@ def _fill_data(docs):
             return []
         return db.query(
             "SELECT thing.id, thing.key, data.revision, data.data"
-            + " FROM thing, data"
-            + " WHERE thing.id = data.thing_id"
-            + " AND thing.latest_revision = data.revision"
-            + " AND key in $keys",
+            " FROM thing, data"
+            " WHERE thing.id = data.thing_id"
+            " AND thing.latest_revision = data.revision"
+            " AND key in $keys",
             vars=locals(),
         )
 

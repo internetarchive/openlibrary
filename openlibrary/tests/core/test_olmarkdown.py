@@ -13,11 +13,11 @@ def test_olmarkdown():
     assert md("<b>foo</b>") == p('<b>foo</b>')
     assert md("https://openlibrary.org") == p(
         '<a href="https://openlibrary.org" rel="nofollow">'
-        + 'https://openlibrary.org'
-        + '</a>'
+        'https://openlibrary.org'
+        '</a>'
     )
     assert md("http://example.org") == p(
-        '<a href="http://example.org" rel="nofollow">' + 'http://example.org' + '</a>'
+        '<a href="http://example.org" rel="nofollow">http://example.org</a>'
     )
 
     # why extra spaces?
