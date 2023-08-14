@@ -488,34 +488,13 @@ jQuery(function () {
     }
 
     // Add functionality for librarian merge request table:
-    const mergeRequestCloseLinks = document.querySelectorAll('.mr-close-link')
-    const mergeRequestResolveLinks = document.querySelectorAll('.mr-resolve-link')
-    const mergeRequestCommentButtons = document.querySelectorAll('.mr-comment-btn')
-    const showCommentsLinks = document.querySelectorAll('.comment-expand')
-    const unassignElements = document.querySelectorAll('.mr-unassign')
-    const mergeRequestFilters = document.querySelectorAll('.mr-dropdown')
+    const librarianQueue = document.querySelector('.librarian-queue-wrapper')
 
-    if (mergeRequestCloseLinks.length || mergeRequestCommentButtons.length || showCommentsLinks.length || mergeRequestResolveLinks.length ||
-        unassignElements.length || mergeRequestFilters.length) {
+    if (librarianQueue) {
         import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
             .then(module => {
-                if (mergeRequestCloseLinks.length) {
-                    module.initCloseLinks(mergeRequestCloseLinks)
-                }
-                if (mergeRequestCommentButtons.length) {
-                    module.initCommenting(mergeRequestCommentButtons)
-                }
-                if (showCommentsLinks.length) {
-                    module.initShowAllCommentsLinks(showCommentsLinks)
-                }
-                if (mergeRequestResolveLinks.length) {
-                    module.initRequestClaiming(mergeRequestResolveLinks)
-                }
-                if (unassignElements.length) {
-                    module.initUnassignment(unassignElements)
-                }
-                if (mergeRequestFilters.length) {
-                    module.initFilters()
+                if (librarianQueue) {
+                    module.initLibrarianQueue(librarianQueue)
                 }
             })
     }
