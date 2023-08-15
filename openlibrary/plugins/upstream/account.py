@@ -436,28 +436,32 @@ class account_login(delegate.page):
         )
         return render.message(title, message)
 
-    def set_screener_cookie(self, account : OpenLibraryAccount):
+    def set_screener_cookie(self, account: OpenLibraryAccount):
         if self.is_eligible_for_screener(account):
             # `se` is "Survey eligible"
             web.setcookie('se', '1', expires=(3600 * 24 * 30))  # Expires in 30 days
 
-    def is_eligible_for_screener(self, account : OpenLibraryAccount) -> bool:
-        if (now := datetime.now()) and now.month != 8:  # Current month must be August
+    def is_eligible_for_screener(self, account: OpenLibraryAccount) -> bool:
+        # Current month must be August:
+        if (now := datetime.now()) and now.month != 8:
             return False
 
-        if days_since(account.creation_time()) < 90:  # Account must be at least 90 days old
+        # Account must be at least 90 days old:
+        if days_since(account.creation_time()) < 90:
             return False
 
+        # Account was created using a university's domain:
         email = account.email
-        if not self.is_edu_domain(email):  # Account was created using a university's domain
+        if not self.is_edu_domain(email):
             return False
 
-        if not self.has_borrowed_at_least(3):  # Has borrowed at least three books
+        # Has borrowed at least three books:
+        if not self.has_borrowed_at_least(3):
             return False
 
         return True
 
-    def is_edu_domain(self, email : str) -> bool:
+    def is_edu_domain(self, email: str) -> bool:
         if not email or '@' not in email:
             return False
 
@@ -471,7 +475,7 @@ class account_login(delegate.page):
 
         return False
 
-    def has_borrowed_at_least(self, amount : int) -> bool:
+    def has_borrowed_at_least(self, amount: int) -> bool:
         return False
 
 
