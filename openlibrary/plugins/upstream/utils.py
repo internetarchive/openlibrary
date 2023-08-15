@@ -1311,6 +1311,16 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
     return ([], [loc_pub.strip(STRIP_CHARS)])
 
 
+@functools.cache
+def get_edu_domains():
+    f = open('static/edu-domains.txt')
+    results = []
+    for line in f:
+        results.append(line.strip())
+
+    return results
+
+
 def setup() -> None:
     """Do required initialization"""
     # monkey-patch get_markdown to use OL Flavored Markdown

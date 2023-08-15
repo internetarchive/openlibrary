@@ -1,3 +1,4 @@
+from bisect import bisect_left
 from datetime import datetime
 import json
 import logging
@@ -25,6 +26,7 @@ from openlibrary.core import stats
 from openlibrary.core import helpers as h, lending
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.helpers import days_since
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.recaptcha import recaptcha
@@ -403,6 +405,9 @@ class account_login(delegate.page):
             config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
         )
         ol_account = OpenLibraryAccount.get(email=email)
+
+        self.set_screener_cookie(ol_account)
+
         if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
             web.setcookie('sfw', 'yes', expires=expires)
         blacklist = [
@@ -430,6 +435,44 @@ class account_login(delegate.page):
             email=account.email,
         )
         return render.message(title, message)
+
+    def set_screener_cookie(self, account : OpenLibraryAccount):
+        if self.is_eligible_for_screener(account):
+            # `se` is "Survey eligible"
+            web.setcookie('se', '', expires=(3600 * 24 * 30))  # Expires in 30 days
+
+    def is_eligible_for_screener(self, account : OpenLibraryAccount) -> bool:
+        if (now := datetime.now()) and now.month != 8:  # Current month must be August
+            return False
+
+        if days_since(account.creation_time()) < 90:  # Account must be at least 90 days old
+            return False
+
+        email = account.email
+        if not self.is_edu_domain(email):  # Account was created using a university's domain
+            return False
+
+        if not self.has_borrowed_at_least(3):  # Has borrowed at least three books
+            return False
+
+        return True
+
+    def is_edu_domain(self, email : str) -> bool:
+        if not email or '@' not in email:
+            return False
+
+        domain = email.split('@')[-1]
+
+        sorted_edu_domains = utils.get_edu_domains()
+
+        i = bisect_left(sorted_edu_domains, domain)
+        if i != len(sorted_edu_domains) and sorted_edu_domains[i] == domain:
+            return True
+
+        return False
+
+    def has_borrowed_at_least(self, amount : int) -> bool:
+        return False
 
 
 class account_verify(delegate.page):
