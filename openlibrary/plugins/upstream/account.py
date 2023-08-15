@@ -439,7 +439,7 @@ class account_login(delegate.page):
     def set_screener_cookie(self, account : OpenLibraryAccount):
         if self.is_eligible_for_screener(account):
             # `se` is "Survey eligible"
-            web.setcookie('se', '', expires=(3600 * 24 * 30))  # Expires in 30 days
+            web.setcookie('se', '1', expires=(3600 * 24 * 30))  # Expires in 30 days
 
     def is_eligible_for_screener(self, account : OpenLibraryAccount) -> bool:
         if (now := datetime.now()) and now.month != 8:  # Current month must be August
