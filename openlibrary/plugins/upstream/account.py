@@ -1,4 +1,3 @@
-from bisect import bisect_left
 from datetime import datetime
 import json
 import logging
@@ -443,8 +442,8 @@ class account_login(delegate.page):
             web.setcookie('se', '1', expires=(3600 * 24 * 30))  # Expires in 30 days
 
     def is_eligible_for_screener(self, account: OpenLibraryAccount) -> bool:
-        # Current month must be August:
-        if (now := datetime.now()) and now.month != 8:
+        # It is August 2023:
+        if (now := datetime.now()) and now.month != 8 and now.year != 2023:
             return False
 
         # Account must be at least 90 days old:
@@ -470,11 +469,7 @@ class account_login(delegate.page):
 
         sorted_edu_domains = utils.get_edu_domains()
 
-        i = bisect_left(sorted_edu_domains, domain)
-        if i != len(sorted_edu_domains) and sorted_edu_domains[i] == domain:
-            return True
-
-        return False
+        return domain in sorted_edu_domains
 
     def has_borrowed_at_least(self, amount: int, s3_keys) -> bool:
         resp = s3_loan_api(s3_keys, action='user_borrow_history', limit=amount).json()

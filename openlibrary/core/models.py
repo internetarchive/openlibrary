@@ -810,8 +810,6 @@ class User(Thing):
         return web.cookies().get('pd')
 
     def is_screener_eligible(self):
-        if not self.is_admin():
-            return False
         return web.cookies().get('se')
 
     def is_admin(self):
