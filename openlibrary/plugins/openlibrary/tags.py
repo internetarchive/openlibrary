@@ -2,9 +2,11 @@ from infogami.utils.view import public
 import web
 import json
 
+
 @public
 def load_plugin_json(plugins_str):
     return json.loads(plugins_str)
+
 
 @public
 def display_plugins_data(data):

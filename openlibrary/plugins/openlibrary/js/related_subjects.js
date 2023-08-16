@@ -25,5 +25,5 @@ function renderSubjectsCarousel() {
     const url = new URL(window.location.href);
     url.searchParams.set('subjects', queryString);
     window.history.replaceState(null, null, url);
-    $( "#related-subjects-carousel" ).load(window.location.href + " #related-subjects-carousel" )
+    $('#related-subjects-carousel').load(`${window.location.href} #related-subjects-carousel`)
 }

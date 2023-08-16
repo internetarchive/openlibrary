@@ -40,7 +40,7 @@ export function initPluginsForm() {
         document
             .getElementById('pluginsFormRows')
             .insertAdjacentHTML('beforeEnd', newRow);
-            initDeletePluginbtns(); // Reinitialize the delete-row-buttons' onclick listener
+        initDeletePluginbtns(); // Reinitialize the delete-row-buttons' onclick listener
     });
 
     // Make the table rows draggable
