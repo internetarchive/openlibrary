@@ -477,9 +477,7 @@ class account_login(delegate.page):
         return False
 
     def has_borrowed_at_least(self, amount: int, s3_keys) -> bool:
-        resp = s3_loan_api(
-            s3_keys, action='user_borrow_history', limit=amount
-        ).json()
+        resp = s3_loan_api(s3_keys, action='user_borrow_history', limit=amount).json()
         return len(resp) == amount
 
 
