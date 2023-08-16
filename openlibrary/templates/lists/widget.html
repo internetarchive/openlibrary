@@ -31,7 +31,8 @@ $def render_widget_display(lists, limit, user_key, exclude_own_lists):
     $for i, list in enumerate(lists):
         $if count < limit:
             $if exclude_own_lists:
-                $if user_key != list.owner.key:
+                $ own_list = list.owner and list.owner.key == user_key
+                $if not own_list:
                     $:render_template('lists/list_overview', list, user_key, seed_info)
                     $ count = count + 1
             $else:

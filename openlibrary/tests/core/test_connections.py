@@ -86,7 +86,7 @@ class TestMigrationMiddleware:
             return json.loads(json_data)
 
         def get_many(keys):
-            data = dict(keys=json.dumps(keys))
+            data = {"keys": json.dumps(keys)}
             json_data = conn.request("openlibrary.org", "/get_many", data=data)
             return json.loads(json_data)
 

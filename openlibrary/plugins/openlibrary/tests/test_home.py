@@ -88,20 +88,20 @@ class TestHomeTemplates:
                 subjects=1,
             )
         ] * 100
-        stats = dict(
-            human_edits=Stats(docs, "human_edits", "human_edits"),
-            bot_edits=Stats(docs, "bot_edits", "bot_edits"),
-            lists=Stats(docs, "lists", "total_lists"),
-            visitors=Stats(docs, "visitors", "visitors"),
-            loans=Stats(docs, "loans", "loans"),
-            members=Stats(docs, "members", "total_members"),
-            works=Stats(docs, "works", "total_works"),
-            editions=Stats(docs, "editions", "total_editions"),
-            ebooks=Stats(docs, "ebooks", "total_ebooks"),
-            covers=Stats(docs, "covers", "total_covers"),
-            authors=Stats(docs, "authors", "total_authors"),
-            subjects=Stats(docs, "subjects", "total_subjects"),
-        )
+        stats = {
+            'human_edits': Stats(docs, "human_edits", "human_edits"),
+            'bot_edits': Stats(docs, "bot_edits", "bot_edits"),
+            'lists': Stats(docs, "lists", "total_lists"),
+            'visitors': Stats(docs, "visitors", "visitors"),
+            'loans': Stats(docs, "loans", "loans"),
+            'members': Stats(docs, "members", "total_members"),
+            'works': Stats(docs, "works", "total_works"),
+            'editions': Stats(docs, "editions", "total_editions"),
+            'ebooks': Stats(docs, "ebooks", "total_ebooks"),
+            'covers': Stats(docs, "covers", "total_covers"),
+            'authors': Stats(docs, "authors", "total_authors"),
+            'subjects': Stats(docs, "subjects", "total_subjects"),
+        }
 
         mock_site.quicksave("/people/foo/lists/OL1L", "/type/list")
 

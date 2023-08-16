@@ -12,7 +12,9 @@ import json
 from psycopg2.errors import UndefinedTable, UniqueViolation
 
 from . import db
+
 import contextlib
+from openlibrary.core import cache
 
 logger = logging.getLogger("openlibrary.imports")
 
@@ -56,7 +58,7 @@ class Batch(web.storage):
 
     def normalize_items(self, items):
         return [
-            {'ia_id': item}
+            {'batch_id': self.id, 'ia_id': item}
             if type(item) is str
             else {
                 'batch_id': self.id,
@@ -117,12 +119,12 @@ class ImportItem(web.storage):
     def set_status(self, status, error=None, ol_key=None):
         id_ = self.ia_id or f"{self.batch_id}:{self.id}"
         logger.info("set-status %s - %s %s %s", id_, status, error, ol_key)
-        d = dict(
-            status=status,
-            error=error,
-            ol_key=ol_key,
-            import_time=datetime.datetime.utcnow(),
-        )
+        d = {
+            "status": status,
+            "error": error,
+            "ol_key": ol_key,
+            "import_time": datetime.datetime.utcnow(),
+        }
         if status != 'failed':
             d = dict(**d, data=None)
         db.update("import_item", where="id=$id", vars=self, **d)
@@ -161,19 +163,21 @@ class ImportItem(web.storage):
 class Stats:
     """Import Stats."""
 
-    def get_imports_per_hour(self):
+    @staticmethod
+    def get_imports_per_hour():
         """Returns the number imports happened in past one hour duration."""
         try:
             result = db.query(
                 "SELECT count(*) as count FROM import_item"
-                + " WHERE import_time > CURRENT_TIMESTAMP - interval '1' hour"
+                " WHERE import_time > CURRENT_TIMESTAMP - interval '1' hour"
             )
         except UndefinedTable:
             logger.exception("Database table import_item may not exist on localhost")
             return 0
         return result[0].count
 
-    def get_count(self, status=None):
+    @staticmethod
+    def _get_count(status=None):
         where = "status=$status" if status else "1=1"
         try:
             rows = db.select(
@@ -184,17 +188,32 @@ class Stats:
             return 0
         return rows[0].count
 
-    def get_count_by_status(self, date=None):
+    @classmethod
+    def get_count(cls, status=None, use_cache=False):
+        return (
+            cache.memcache_memoize(
+                cls._get_count,
+                "imports.get_count",
+                timeout=5 * 60,
+            )
+            if use_cache
+            else cls._get_count
+        )(status=status)
+
+    @staticmethod
+    def get_count_by_status(date=None):
         rows = db.query("SELECT status, count(*) FROM import_item GROUP BY status")
         return {row.status: row.count for row in rows}
 
-    def get_count_by_date_status(self, ndays=10):
+    @staticmethod
+    def _get_count_by_date_status(ndays=10):
         try:
             result = db.query(
                 "SELECT added_time::date as date, status, count(*)"
-                + " FROM import_item "
-                + " WHERE added_time > current_date - interval '$ndays' day"
-                " GROUP BY 1, 2" + " ORDER BY 1 desc",
+                " FROM import_item "
+                " WHERE added_time > current_date - interval '$ndays' day"
+                " GROUP BY 1, 2"
+                " ORDER BY 1 desc",
                 vars=locals(),
             )
         except UndefinedTable:
@@ -203,24 +222,57 @@ class Stats:
         d = defaultdict(dict)
         for row in result:
             d[row.date][row.status] = row.count
-        return sorted(d.items(), reverse=True)
+        date_counts = sorted(d.items(), reverse=True)
+        return date_counts
 
-    def get_books_imported_per_day(self):
+    @classmethod
+    def get_count_by_date_status(cls, ndays=10, use_cache=False):
+        if use_cache:
+            date_counts = cache.memcache_memoize(
+                cls._get_count_by_date_status,
+                "imports.get_count_by_date_status",
+                timeout=60 * 60,
+            )(ndays=ndays)
+            # Don't cache today
+            date_counts[0] = cache.memcache_memoize(
+                cls._get_count_by_date_status,
+                "imports.get_count_by_date_status_today",
+                timeout=60 * 3,
+            )(ndays=1)[0]
+            return date_counts
+        return cls._get_count_by_date_status(ndays=ndays)
+
+    @staticmethod
+    def _get_books_imported_per_day():
+        def date2millis(date):
+            return time.mktime(date.timetuple()) * 1000
+
         try:
-            rows = db.query(
-                "SELECT import_time::date as date, count(*) as count"
-                " FROM import_item" + " WHERE status='created'"
-                " GROUP BY 1" + " ORDER BY 1"
-            )
+            query = """
+            SELECT import_time::date as date, count(*) as count
+            FROM import_item WHERE status ='created'
+            GROUP BY 1 ORDER BY 1
+            """
+            rows = db.query(query)
         except UndefinedTable:
             logger.exception("Database table import_item may not exist on localhost")
             return []
-        return [[self.date2millis(row.date), row.count] for row in rows]
+        return [[date2millis(row.date), row.count] for row in rows]
 
-    def date2millis(self, date):
-        return time.mktime(date.timetuple()) * 1000
+    @classmethod
+    def get_books_imported_per_day(cls, use_cache=False):
+        return (
+            cache.memcache_memoize(
+                cls._get_books_imported_per_day,
+                "import_stats.get_books_imported_per_day",
+                timeout=60 * 60,
+            )
+            if use_cache
+            else cls._get_books_imported_per_day
+        )()
 
-    def get_items(self, date=None, order=None, limit=None):
+    @staticmethod
+    def get_items(date=None, order=None, limit=None):
         """Returns all rows with given added date."""
         where = "added_time::date = $date" if date else "1 = 1"
         try:
@@ -231,12 +283,13 @@ class Stats:
             logger.exception("Database table import_item may not exist on localhost")
             return []
 
-    def get_items_summary(self, date):
+    @staticmethod
+    def get_items_summary(date):
         """Returns all rows with given added date."""
         rows = db.query(
             "SELECT status, count(*) as count"
-            + " FROM import_item"
-            + " WHERE added_time::date = $date"
+            " FROM import_item"
+            " WHERE added_time::date = $date"
             " GROUP BY status",
             vars=locals(),
         )

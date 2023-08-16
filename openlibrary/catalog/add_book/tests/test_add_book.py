@@ -8,6 +8,10 @@ from infogami.infobase.core import Text
 
 from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import (
+    IndependentlyPublished,
+    PublicationYearTooOld,
+    PublishedInFutureYear,
+    SourceNeedsISBN,
     add_db_name,
     build_pool,
     editions_matched,
@@ -15,6 +19,7 @@ from openlibrary.catalog.add_book import (
     load,
     split_subtitle,
     RequiredField,
+    validate_record,
 )
 
 from openlibrary.catalog.marc.parse import read_edition
@@ -537,6 +542,11 @@ def test_add_db_name():
     add_db_name(rec)
     assert rec == {}
 
+    # Handle `None` authors values.
+    rec = {'authors': None}
+    add_db_name(rec)
+    assert rec == {'authors': None}
+
 
 def test_extra_author(mock_site, add_languages):
     mock_site.save(
@@ -972,9 +982,9 @@ def test_subtitle_gets_split_from_title(mock_site) -> None:
 
 def test_find_match_is_used_when_looking_for_edition_matches(mock_site) -> None:
     """
-    This tests the case where there is an edition_pool, but `early_exit()`
+    This tests the case where there is an edition_pool, but `find_quick_match()`
     and `find_exact_match()` find no matches, so this should return a
-    match from `find_match()`.
+    match from `find_enriched_match()`.
 
     This also indirectly tests `merge_marc.editions_match()` (even though it's
     not a MARC record.
@@ -1180,3 +1190,128 @@ def test_add_identifiers_to_edition(mock_site) -> None:
     e = mock_site.get(reply['edition']['key'])
     assert e.works[0]['key'] == '/works/OL19W'
     assert e.identifiers._data == {'goodreads': ['1234'], 'librarything': ['5678']}
+
+
+@pytest.mark.parametrize(
+    'name, rec, error',
+    [
+        (
+            "Books prior to 1400 CANNOT be imported if from a bookseller requiring additional validation",
+            {
+                'title': 'a book',
+                'source_records': ['amazon:123'],
+                'publish_date': '1399',
+                'isbn_10': ['1234567890'],
+            },
+            PublicationYearTooOld,
+        ),
+        (
+            "Books published on or after 1400 CE+ can be imported from any source",
+            {
+                'title': 'a book',
+                'source_records': ['amazon:123'],
+                'publish_date': '1400',
+                'isbn_10': ['1234567890'],
+            },
+            None,
+        ),
+        (
+            "Trying to import a book from a future year raises an error",
+            {'title': 'a book', 'source_records': ['ia:ocaid'], 'publish_date': '3000'},
+            PublishedInFutureYear,
+        ),
+        (
+            "Independently published books CANNOT be imported",
+            {
+                'title': 'a book',
+                'source_records': ['ia:ocaid'],
+                'publishers': ['Independently Published'],
+            },
+            IndependentlyPublished,
+        ),
+        (
+            "Non-independently published books can be imported",
+            {
+                'title': 'a book',
+                'source_records': ['ia:ocaid'],
+                'publishers': ['Best Publisher'],
+            },
+            None,
+        ),
+        (
+            "Import sources that require an ISBN CANNOT be imported without an ISBN",
+            {'title': 'a book', 'source_records': ['amazon:amazon_id'], 'isbn_10': []},
+            SourceNeedsISBN,
+        ),
+        (
+            "Can import sources that require an ISBN and have ISBN",
+            {
+                'title': 'a book',
+                'source_records': ['amazon:amazon_id'],
+                'isbn_10': ['1234567890'],
+            },
+            None,
+        ),
+        (
+            "Can import from sources that don't require an ISBN",
+            {'title': 'a book', 'source_records': ['ia:wheeee'], 'isbn_10': []},
+            None,
+        ),
+    ],
+)
+def test_validate_record(name, rec, error) -> None:
+    if error:
+        with pytest.raises(error):
+            validate_record(rec)
+    else:
+        assert validate_record(rec) is None, f"Test failed: {name}"  # type: ignore [func-returns-value]
+
+
+def test_reimport_updates_edition_and_work_description(mock_site) -> None:
+    author = {
+        'type': {'key': '/type/author'},
+        'name': 'John Smith',
+        'key': '/authors/OL1A',
+    }
+
+    existing_work = {
+        'authors': [{'author': '/authors/OL1A', 'type': {'key': '/type/author_role'}}],
+        'key': '/works/OL1W',
+        'title': 'A Good Book',
+        'type': {'key': '/type/work'},
+    }
+
+    existing_edition = {
+        'key': '/books/OL1M',
+        'title': 'A Good Book',
+        'publishers': ['Black Spot'],
+        'type': {'key': '/type/edition'},
+        'source_records': ['ia:someocaid'],
+        'publish_date': 'Jan 09, 2011',
+        'isbn_10': ['1234567890'],
+        'works': [{'key': '/works/OL1W'}],
+    }
+
+    mock_site.save(author)
+    mock_site.save(existing_work)
+    mock_site.save(existing_edition)
+
+    rec = {
+        'source_records': 'ia:someocaid',
+        'title': 'A Good Book',
+        'authors': [{'name': 'John Smith'}],
+        'publishers': ['Black Spot'],
+        'publish_date': 'Jan 09, 2011',
+        'isbn_10': ['1234567890'],
+        'description': 'A genuinely enjoyable read.',
+    }
+
+    reply = load(rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'modified'
+    assert reply['work']['status'] == 'modified'
+    assert reply['work']['key'] == '/works/OL1W'
+    edition = mock_site.get(reply['edition']['key'])
+    work = mock_site.get(reply['work']['key'])
+    assert edition.description == "A genuinely enjoyable read."
+    assert work.description == "A genuinely enjoyable read."

@@ -111,10 +111,10 @@ def _fill_data(docs):
             return []
         return db.query(
             "SELECT thing.id, thing.key, data.revision, data.data"
-            + " FROM thing, data"
-            + " WHERE thing.id = data.thing_id"
-            + " AND thing.latest_revision = data.revision"
-            + " AND key in $keys",
+            " FROM thing, data"
+            " WHERE thing.id = data.thing_id"
+            " AND thing.latest_revision = data.revision"
+            " AND key in $keys",
             vars=locals(),
         )
 
@@ -186,7 +186,7 @@ def update_docs(docs, comment, author, ip="127.0.0.1"):
         db.multiple_insert(
             "version",
             [
-                dict(thing_id=doc.id, transaction_id=tx_id, revision=doc.revision)
+                {"thing_id": doc.id, "transaction_id": tx_id, "revision": doc.revision}
                 for doc in docs
             ],
             seqname=False,

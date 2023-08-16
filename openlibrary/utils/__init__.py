@@ -163,11 +163,14 @@ def olid_to_key(olid: str) -> str:
     '/authors/OL123A'
     >>> olid_to_key('OL123M')
     '/books/OL123M'
+    >>> olid_to_key("OL123L")
+    '/lists/OL123L'
     """
     typ = {
         'A': 'authors',
         'W': 'works',
         'M': 'books',
+        'L': 'lists',
     }[olid[-1]]
     if not typ:
         raise ValueError(f"Invalid olid: {olid}")

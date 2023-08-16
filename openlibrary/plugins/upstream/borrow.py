@@ -112,7 +112,12 @@ class borrow(delegate.page):
         """Called when the user wants to borrow the edition"""
 
         i = web.input(
-            action='borrow', format=None, ol_host=None, _autoReadAloud=None, q=""
+            action='borrow',
+            format=None,
+            ol_host=None,
+            _autoReadAloud=None,
+            q="",
+            redirect="",
         )
 
         ol_host = i.ol_host or 'openlibrary.org'
@@ -137,7 +142,7 @@ class borrow(delegate.page):
             raise web.seeother(archive_url)
 
         error_redirect = archive_url
-        edition_redirect = urllib.parse.quote(edition.url())
+        edition_redirect = urllib.parse.quote(i.redirect or edition.url())
         user = accounts.get_current_user()
 
         if user:
@@ -146,8 +151,8 @@ class borrow(delegate.page):
             s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
         if not user or not ia_itemname or not s3_keys:
             web.setcookie(config.login_cookie_name, "", expires=-1)
-            redirect_url = "/account/login?redirect={}/borrow?action={}".format(
-                edition_redirect, action
+            redirect_url = (
+                f"/account/login?redirect={edition_redirect}/borrow?action={action}"
             )
             if i._autoReadAloud is not None:
                 redirect_url += '&_autoReadAloud=' + i._autoReadAloud
@@ -158,7 +163,7 @@ class borrow(delegate.page):
             stats.increment('ol.loans.return')
             edition.update_loan_status()
             user.update_loan_status()
-            raise web.seeother(web.ctx.path)
+            raise web.seeother(edition_redirect)
         elif action == 'join-waitinglist':
             lending.s3_loan_api(edition.ocaid, s3_keys, action='join_waitlist')
             stats.increment('ol.loans.joinWaitlist')

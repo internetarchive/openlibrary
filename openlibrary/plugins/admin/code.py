@@ -882,16 +882,25 @@ class solr:
     def POST(self):
         i = web.input(keys="")
         keys = i['keys'].strip().split()
-        web.ctx.site.store['solr-force-update'] = dict(
-            type="solr-force-update", keys=keys, _rev=None
-        )
+        web.ctx.site.store['solr-force-update'] = {
+            "type": "solr-force-update",
+            "keys": keys,
+            "_rev": None,
+        }
         add_flash_message("info", "Added the specified keys to solr update queue.!")
         return self.GET()
 
 
 class imports_home:
     def GET(self):
-        return render_template("admin/imports", imports.Stats())
+        return render_template("admin/imports", imports.Stats)
+
+
+class imports_public(delegate.page):
+    path = "/imports"
+
+    def GET(self):
+        return imports_home().GET()
 
 
 class imports_add:

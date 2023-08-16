@@ -42,33 +42,16 @@ $jsdef render_work_field(i, work):
         <a class="mia__remove hidden" href="javascript:;" title="$_('Remove this work')">[x]</a>
     </div>
 
+$# Import the side-effect of the jsdef function
+$:render_template('jsdef/LazyWorkPreview', None)
+
 $jsdef render_work_autocomplete_item(item):
     $if item.key == "__new__":
         <div class="ac_work ac_addnew">
             <span class="action">$_('-- Move to a new work')</span>
         </div>
     $else:
-        <div class="ac_work" title="Select this work">
-            <div class="cover">
-                $if item.cover_i:
-                    <img src="https://covers.openlibrary.org/b/id/$(item.cover_i)-M.jpg" alt="$_('Cover of: %(title)s', title=item.title)">
-            </div>
-            <span class="olid">$item.key.split('/')[2]</span>
-            <span class="name">
-                <span class="title">$item.full_title</span>
-                $if item.first_publish_year:
-                <span class="first_publish_year">($item.first_publish_year)</span>
-            </span>
-            <span class="byline">
-                $if item.author_name:
-                    $_('by') <span class="authors">${', '.join(item.author_name)}</span>
-            </span>
-            &bull;
-            $if item.edition_count == 1:
-                <span class="edition_count">$item.edition_count edition</span>
-            $else:
-                <span class="edition_count">$item.edition_count editions</span>
-        </div>
+        $:render_lazy_work_preview(item)
 
 
 <fieldset class="major">

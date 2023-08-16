@@ -129,7 +129,7 @@ class DataProvider:
     """
 
     def __init__(self) -> None:
-        self.ia_cache: dict[str, Optional[dict]] = dict()
+        self.ia_cache: dict[str, Optional[dict]] = {}
 
     @staticmethod
     async def _get_lite_metadata(ocaids: list[str], _recur_depth=0, _max_recur_depth=3):
@@ -522,18 +522,18 @@ class BetterDataProvider(LegacyDataProvider):
         # time consuming.
         key_query = (
             "select id from property where name='works'"
-            + " and type=(select id from thing where key='/type/edition')"
+            " and type=(select id from thing where key='/type/edition')"
         )
 
         q = (
             "SELECT edition.key as edition_key, work.key as work_key"
-            + " FROM thing as edition, thing as work, edition_ref"
-            + " WHERE edition_ref.thing_id=edition.id"
-            + "   AND edition_ref.value=work.id"
-            + f"   AND edition_ref.key_id=({key_query})"
-            + "   AND work.key in $keys"
+            " FROM thing as edition, thing as work, edition_ref"
+            " WHERE edition_ref.thing_id=edition.id"
+            "   AND edition_ref.value=work.id"
+            f"   AND edition_ref.key_id=({key_query})"
+            "   AND work.key in $keys"
         )
-        result = self.db.query(q, vars=dict(keys=work_keys))
+        result = self.db.query(q, vars={"keys": work_keys})
         for row in result:
             self.edition_keys_of_works_cache.setdefault(row.work_key, []).append(
                 row.edition_key

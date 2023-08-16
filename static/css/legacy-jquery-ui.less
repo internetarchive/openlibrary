@@ -20,15 +20,16 @@
   filter: alpha(opacity=50);
   z-index: @z-index-level-13 !important;
 }
-.ui-sortable {
+.ui-sortable-placeholder {
+  border: 1px dotted @mid-grey;
+  visibility: visible !important;
+  filter: brightness(.85);
+  border-radius: 6px;
+  *, &:before, &:after {
+    visibility: hidden;
+  }
+}
+.ui-sortable--covers {
   max-height: 270px;
   overflow: auto;
-  &-placeholder {
-    border: 1px dotted @mid-grey;
-    visibility: visible !important;
-    border-radius: 6px;
-    * {
-      visibility: hidden;
-    }
-  }
 }

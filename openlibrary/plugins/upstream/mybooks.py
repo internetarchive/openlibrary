@@ -479,7 +479,7 @@ class PatronBooknotes:
     """Manages the patron's book notes and observations"""
 
     def __init__(self, user):
-        user = user
+        self.user = user
         self.username = user.key.split('/')[-1]
 
     def get_notes(self, limit=RESULTS_PER_PAGE, page=1):

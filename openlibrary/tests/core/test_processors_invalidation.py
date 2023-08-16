@@ -185,7 +185,7 @@ class TestInvalidationProcessor:
         web.ctx.site = MockSite()
 
         def setcookie(name, value, expires):
-            self.cookie = dict(name=name, value=value, expires=expires)
+            self.cookie = {"name": name, "value": value, "expires": expires}
 
         monkeypatch.setattr(web, "setcookie", setcookie)
 

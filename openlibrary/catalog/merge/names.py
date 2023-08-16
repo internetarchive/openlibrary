@@ -223,8 +223,7 @@ def match_surname(surname, name):
 
 
 def amazon_spaced_name(amazon, marc):
-    len_amazon = len(amazon)
-    if len_amazon != 30 and len_amazon != 31:
+    if len(amazon) not in {30, 31}:
         return False
     m = re_amazon_space_name.search(amazon)
     if not m:

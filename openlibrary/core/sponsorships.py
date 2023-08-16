@@ -258,11 +258,11 @@ def email_sponsor(recipient, book, bcc="mek@archive.org"):
         "Internet Archive: Your Open Library Book Sponsorship is Ready",
         (
             '<p>'
-            + f'<a href="{url}">{book.title}</a> '
-            + 'is now available to read on Open Library!'
-            + '</p>'
-            + '<p>Thank you,</p>'
-            + '<p>The <a href="https://openlibrary.org">Open Library</a> Team</p>'
+            f'<a href="{url}">{book.title}</a> '
+            'is now available to read on Open Library!'
+            '</p>'
+            '<p>Thank you,</p>'
+            '<p>The <a href="https://openlibrary.org">Open Library</a> Team</p>'
         ),
         bcc=bcc,
         headers={'Content-Type': 'text/html;charset=utf-8'},

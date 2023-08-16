@@ -1,6 +1,7 @@
 import pytest
+
+from openlibrary.catalog.utils import expand_record
 from openlibrary.catalog.merge.merge_marc import (
-    build_marc,
     build_titles,
     compare_authors,
     compare_publisher,
@@ -35,7 +36,7 @@ class TestAuthors:
             'by_statement': 'Alistair Smith.',
         }
 
-        result = compare_authors(build_marc(rec1), build_marc(rec2))
+        result = compare_authors(expand_record(rec1), expand_record(rec2))
         assert result == ('main', 'exact match', 125)
 
     def test_author_contrib(self):
@@ -76,8 +77,8 @@ class TestAuthors:
             'publishers': ['Harvard University Press'],
         }
 
-        e1 = build_marc(rec1)
-        e2 = build_marc(rec2)
+        e1 = expand_record(rec1)
+        e2 = expand_record(rec2)
 
         assert compare_authors(e1, e2) == ('authors', 'exact match', 125)
         threshold = 875
@@ -86,7 +87,7 @@ class TestAuthors:
 
 class TestTitles:
     def test_build_titles(self):
-        # Used by openlibrary.catalog.merge.merge_marc.build_marc()
+        # Used by openlibrary.catalog.merge.merge_marc.expand_record()
         full_title = 'This is a title.'
         normalized = 'this is a title'
         result = build_titles(full_title)
@@ -126,21 +127,6 @@ class TestTitles:
         # Check for duplicates:
         assert len(titles_period) == len(set(titles_period))
         # assert len(titles) == len(set(titles))
-
-
-def test_build_marc():
-    # used in openlibrary.catalog.add_book.load()
-    # when trying to find an existing edition match
-    edition = {
-        'title': 'A test title (parens)',
-        'full_title': 'A test full title : subtitle (parens).',  # required, and set by add_book.load()
-        'source_records': ['ia:test-source'],
-    }
-    result = build_marc(edition)
-    assert isinstance(result['titles'], list)
-    assert result['isbn'] == []
-    assert result['normalized_title'] == 'a test full title subtitle (parens)'
-    assert result['short_title'] == 'a test full title subtitl'
 
 
 def test_compare_publisher():
@@ -214,8 +200,8 @@ class TestRecordMatching:
 
     def test_match_low_threshold(self):
         # year is off by < 2 years, counts a little
-        # build_marc() will place all isbn_ types in the 'isbn' field.
-        e1 = build_marc(
+        # expand_record() will place all isbn_ types in the 'isbn' field.
+        e1 = expand_record(
             {
                 'publishers': ['Collins'],
                 'isbn_10': ['0002167530'],
@@ -229,7 +215,7 @@ class TestRecordMatching:
             }
         )
 
-        e2 = build_marc(
+        e2 = expand_record(
             {
                 'publishers': ['Collins'],
                 'isbn_10': ['0002167530'],

@@ -1,5 +1,5 @@
 import { isbnOverride } from './isbnOverride';
-/* global render_language_field, render_work_autocomplete_item, render_language_autocomplete_item, render_work_field */
+/* global render_seed_field, render_language_field, render_lazy_work_preview, render_language_autocomplete_item, render_work_field, render_work_autocomplete_item */
 /* Globals are provided by the edit edition template */
 
 /* global render_author, render_author_autocomplete_item */
@@ -294,6 +294,29 @@ export function initWorksMultiInputAutocomplete() {
                     matchSubset: false,
                     autoFill: true,
                     formatItem: render_work_autocomplete_item,
+                });
+        });
+    });
+}
+
+export function initSeedsMultiInputAutocomplete() {
+    $(function() {
+        getJqueryElements('.multi-input-autocomplete--seeds').forEach(jqueryElement => {
+            /* Values in the html passed from Python code */
+            jqueryElement.setup_multi_input_autocomplete(
+                render_seed_field,
+                {
+                    endpoint: '/works/_autocomplete',
+                    addnew: false,
+                    allow_empty: true,
+                    sortable: true,
+                },
+                {
+                    minChars: 2,
+                    max: 11,
+                    matchSubset: false,
+                    autoFill: true,
+                    formatItem: render_lazy_work_preview,
                 });
         });
     });

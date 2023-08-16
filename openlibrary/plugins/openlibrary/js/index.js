@@ -125,21 +125,24 @@ jQuery(function () {
 
     const edition = document.getElementById('tabsAddbook');
     const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
+    const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
+    const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
+    const autocompleteSeeds = document.querySelector('.multi-input-autocomplete--seeds');
+    const autocompleteSubjects = document.querySelector('.csv-autocomplete--subjects');
     const addRowButton = document.getElementById('add_row_button');
     const roles = document.querySelector('#roles');
     const identifiers = document.querySelector('#identifiers');
     const classifications = document.querySelector('#classifications');
-    const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
-    const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
-    const autocompleteSubjects = document.querySelector('.csv-autocomplete--subjects');
     const excerpts = document.getElementById('excerpts');
     const links = document.getElementById('links');
 
     // conditionally load for user edit page
     if (
         edition ||
-        autocompleteAuthor || addRowButton || roles || identifiers || classifications ||
-        autocompleteLanguage || autocompleteWorks || excerpts || links
+        autocompleteAuthor || autocompleteLanguage || autocompleteWorks ||
+        autocompleteSeeds || autocompleteSubjects ||
+        addRowButton || roles || identifiers || classifications ||
+        excerpts || links
     ) {
         import(/* webpackChunkName: "user-website" */ './edit')
             .then(module => {
@@ -175,6 +178,9 @@ jQuery(function () {
                 }
                 if (autocompleteSubjects) {
                     module.initSubjectsAutocomplete();
+                }
+                if (autocompleteSeeds) {
+                    module.initSeedsMultiInputAutocomplete();
                 }
             });
     }
@@ -260,6 +266,11 @@ jQuery(function () {
                 Array.from(document.getElementsByClassName('toast'))
                     .forEach(el => new module.Toast($(el)));
             });
+    }
+
+    if ($('.lazy-thing-preview').length) {
+        import(/* webpackChunkName: "lazy-thing-preview" */ './lazy-thing-preview')
+            .then((module) => new module.LazyThingPreview().init());
     }
 
     const $observationModalLinks = $('.observations-modal-link');
@@ -382,10 +393,16 @@ jQuery(function () {
     }
 
     const droppers = document.querySelectorAll('.dropper')
-    if (droppers.length) {
-        import(/* webpackChunkName: "droppers" */ './droppers')
-            .then((module) => module.initDroppers(droppers))
+    const genericDroppers = document.querySelectorAll('.generic-dropper-wrapper')
+    if (droppers.length || genericDroppers.length) {
+        import(/* webpackChunkName: "droppers" */ './dropper')
+            .then((module) => {
+                module.initDroppers(droppers)
+                module.initGenericDroppers(genericDroppers)
+            })
     }
+
+
 
     // "Want to Read" buttons:
     const readingLogDroppers = document.getElementsByClassName('widget-add');
@@ -494,34 +511,13 @@ jQuery(function () {
     }
 
     // Add functionality for librarian merge request table:
-    const mergeRequestCloseLinks = document.querySelectorAll('.mr-close-link')
-    const mergeRequestResolveLinks = document.querySelectorAll('.mr-resolve-link')
-    const mergeRequestCommentButtons = document.querySelectorAll('.mr-comment-btn')
-    const showCommentsLinks = document.querySelectorAll('.comment-expand')
-    const unassignElements = document.querySelectorAll('.mr-unassign')
-    const mergeRequestFilters = document.querySelectorAll('.mr-dropdown')
+    const librarianQueue = document.querySelector('.librarian-queue-wrapper')
 
-    if (mergeRequestCloseLinks.length || mergeRequestCommentButtons.length || showCommentsLinks.length || mergeRequestResolveLinks.length ||
-        unassignElements.length || mergeRequestFilters.length) {
+    if (librarianQueue) {
         import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
             .then(module => {
-                if (mergeRequestCloseLinks.length) {
-                    module.initCloseLinks(mergeRequestCloseLinks)
-                }
-                if (mergeRequestCommentButtons.length) {
-                    module.initCommenting(mergeRequestCommentButtons)
-                }
-                if (showCommentsLinks.length) {
-                    module.initShowAllCommentsLinks(showCommentsLinks)
-                }
-                if (mergeRequestResolveLinks.length) {
-                    module.initRequestClaiming(mergeRequestResolveLinks)
-                }
-                if (unassignElements.length) {
-                    module.initUnassignment(unassignElements)
-                }
-                if (mergeRequestFilters.length) {
-                    module.initFilters()
+                if (librarianQueue) {
+                    module.initLibrarianQueue(librarianQueue)
                 }
             })
     }

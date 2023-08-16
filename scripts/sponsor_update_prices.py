@@ -47,9 +47,7 @@ if __name__ == "__main__":
         orders = session.get('%s/services/orders.aspx?op=History' % BWB_URL).json()
         order_ids = [order['OrderID'] for order in orders['Orders']]
         # NB: We select the *last
-        order_url = '{}/services/orders.aspx?op=Details&OrderID={}'.format(
-            BWB_URL, order_ids[0]
-        )
+        order_url = f'{BWB_URL}/services/orders.aspx?op=Details&OrderID={order_ids[0]}'
         order = session.get(order_url).json()
 
     for orderitem in order['Items']:

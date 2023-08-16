@@ -25,7 +25,7 @@ from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 
 # Seed might look unused, but removing it causes an error :/
-from openlibrary.core.lists.model import ListMixin, Seed  # noqa: F401
+from openlibrary.core.lists.model import ListMixin, Seed
 from . import cache, waitinglist
 
 import urllib
@@ -1158,9 +1158,9 @@ class Tag(Thing):
                     'key': key,
                     'name': tag_name,
                     'tag_description': tag_description,
-                    'tag_type': tag_type,
-                    'tag_plugins': tag_plugins or [],
-                    'type': dict(key='/type/tag'),
+                    'tag_type': tag_type or [],
+                    'tag_plugins': json.loads(tag_plugins or "[]"),
+                    'type': {"key": '/type/tag'},
                 },
                 comment=comment,
             )

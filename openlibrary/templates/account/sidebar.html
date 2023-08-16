@@ -46,20 +46,25 @@ $ counts = counts or pa.get_sidebar_counts
         <li><a href="/people/$username/books/sponsorships" data-ol-link-track="MyBooksSidebar|Sponsorships" $('class=selected' if key == 'sponsorships' else '')><span class="li-count">$sponsorship_count</span>$_('Sponsoring')</a></li>
       </ul>
     <ul class="sidebar-section">
-      <li class="section-header section-header-split"><span>$_('Lists')</span> <a href="/people/$username/lists" data-ol-link-track="MyBooksSidebar|AllLists" class="li-count">$_('See All') ($len(lists))</a></li>
-        <div class="list-overflow">
-          $ placeholder_name = _('Untitled list')
-          $for lst in lists:
-          $# e.g. OL1L from /people/mekBot/lists/OL1L
-            $ list_id = lst.key.split('/')[-1]
-            $ class_list = ''
-            $if key == 'list':
-              $# e.g. /people/openlibrary/lists/OL1L/MyList
-              $ path_id = ctx.path.split('/')[4]
-              $if list_id == path_id:
-                $ class_list = class_list + 'selected'
-            <li><a class="$class_list" data-ol-link-track="MyBooksSidebar|PatronList" href="/people/$username/lists/$list_id"><span class="li-count">$(len(lst.seeds))</span>$(lst['name'] if lst['name'] else '[%s]' % placeholder_name)</a></li>
-        </div>
+      <li class="section-header section-header-split"><span>$(_('My lists') if owners_page else _('Lists'))</span> <a href="/people/$username/lists" data-ol-link-track="MyBooksSidebar|AllLists" class="li-count chevron">$(_('See All'))</a></li>
+      $if owners_page:
+        <li class="create-new-list">
+          <a href="/people/$username/lists/add">$_('Create a list')</a>
+        </li>
+
+      <div class="list-overflow">
+        $ placeholder_name = _('Untitled list')
+        $for lst in lists:
+        $# e.g. OL1L from /people/mekBot/lists/OL1L
+          $ list_id = lst.key.split('/')[-1]
+          $ class_list = ''
+          $if key == 'list':
+            $# e.g. /people/openlibrary/lists/OL1L/MyList
+            $ path_id = ctx.path.split('/')[4]
+            $if list_id == path_id:
+              $ class_list = class_list + 'selected'
+          <li><a class="$class_list" data-ol-link-track="MyBooksSidebar|PatronList" href="/people/$username/lists/$list_id"><span class="li-count">$(len(lst.seeds))</span>$(lst['name'] if lst['name'] else '[%s]' % placeholder_name)</a></li>
+      </div>
     </ul>
   </div>
   $ component_times['Sidebar'] = time() - component_times['Sidebar']

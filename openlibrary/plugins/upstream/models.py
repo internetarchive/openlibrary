@@ -79,7 +79,7 @@ class Edition(models.Edition):
             return self.get_ia_cover(self.ocaid, size)
 
     def get_ia_cover(self, itemid, size):
-        image_sizes = dict(S=(116, 58), M=(180, 360), L=(500, 500))
+        image_sizes = {"S": (116, 58), "M": (180, 360), "L": (500, 500)}
         w, h = image_sizes[size.upper()]
         return f"https://archive.org/download/{itemid}/page/cover_w{w}_h{h}.jpg"
 
@@ -331,7 +331,10 @@ class Edition(models.Edition):
             name, value = id['name'], id['value']
             if name == 'lccn':
                 value = normalize_lccn(value)
-            d.setdefault(name, []).append(value)
+            # `None` in this field causes errors. See #7999.
+            # We should surface to the patron that an invalid LCCN is dropped. See #8092.
+            if value is not None:
+                d.setdefault(name, []).append(value)
 
         # clear existing value first
         for name in names:
@@ -463,8 +466,8 @@ class Edition(models.Edition):
             }
         )
 
-        if self.lccn:
-            citation['lccn'] = normalize_lccn(self.lccn[0])
+        if self.lccn and (lccn := normalize_lccn(self.lccn[0])):
+            citation['lccn'] = lccn
         if self.get('oclc_numbers'):
             citation['oclc'] = self.oclc_numbers[0]
         citation['ol'] = str(self.get_olid())[2:]
