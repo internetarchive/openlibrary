@@ -158,6 +158,7 @@ class tag_edit(delegate.page):
         tag = trim_doc(i)
         return tag
 
+
 def setup():
     """Do required setup."""
     pass

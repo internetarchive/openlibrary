@@ -1119,6 +1119,7 @@ class Subject(web.storage):
             if cover_id:
                 return Image(web.ctx.site, "b", cover_id)
 
+
 class Tag(Thing):
     """Class to represent /type/tag objects in OL."""
 
