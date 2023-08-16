@@ -27,6 +27,7 @@ from openlibrary.core import helpers as h, lending
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.helpers import days_since
+from openlibrary.core.lending import s3_loan_api
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.recaptcha import recaptcha
@@ -456,7 +457,7 @@ class account_login(delegate.page):
             return False
 
         # Has borrowed at least three books:
-        if not self.has_borrowed_at_least(3):
+        if not self.has_borrowed_at_least(3, account.s3_keys):
             return False
 
         return True
@@ -475,8 +476,9 @@ class account_login(delegate.page):
 
         return False
 
-    def has_borrowed_at_least(self, amount: int) -> bool:
-        return False
+    def has_borrowed_at_least(self, amount: int, s3_keys) -> bool:
+        resp = s3_loan_api(s3_keys, action='user_borrow_history', data={'limit': amount}).json()
+        return len(resp) == amount
 
 
 class account_verify(delegate.page):
