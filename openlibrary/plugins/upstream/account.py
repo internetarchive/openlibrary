@@ -406,7 +406,9 @@ class account_login(delegate.page):
         )
         ol_account = OpenLibraryAccount.get(email=email)
 
-        self.set_screener_cookie(ol_account)
+        # Don't overwrite the cookie, which will contain banner display preferences
+        if not web.cookies().get('se', False):
+            self.set_screener_cookie(ol_account)
 
         if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
             web.setcookie('sfw', 'yes', expires=expires)
