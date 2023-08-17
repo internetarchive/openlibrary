@@ -33,8 +33,7 @@ $if ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ct
       $# Be sure to escape any single quotes inside of the announcement HTML string.
       $ announcement = ''
       $# Include date in cookie name to avoid name collisions (something like '{prefix}{YY}{MM}{DD}' would work well)
-      $ cookie_name = ''
-      $if announcement and cookie_name:
-        $:render_template('site/banner', announcement, cookie_name)
+      $if announcement:
+        $:render_template('site/banner', announcement, cookie_name="b2308", cookie_duration_days=30)
     $:page
   </div>

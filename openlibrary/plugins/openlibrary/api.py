@@ -660,7 +660,8 @@ class hide_banner(delegate.page):
         data = json.loads(web.data())
 
         # Set truthy cookie that expires in 30 days:
-        web.setcookie(data['cookie-name'], '1', expires=(3600 * 24 * 30))
+        DAY_SECONDS = 60 * 60 * 24
+        web.setcookie(data['cookie-name'], '1', expires=data.get('cookie-duration-days', 30) * DAY_SECONDS))
 
         return delegate.RawText(
             json.dumps({'success': 'Preference saved'}), content_type="application/json"

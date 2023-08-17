@@ -4,13 +4,14 @@
  * Executes the success callback on successful response.
  *
  * @param {string} cookieName
+ * @param {int} cookieDurationDays
  * @param {Function} successCallback
  */
-function setBannerCookie(cookieName, successCallback) {
+function setBannerCookie(cookieName, cookieDurationDays, successCallback) {
     $.ajax({
         type: 'POST',
         url: '/hide_banner',
-        data: JSON.stringify({'cookie-name': cookieName}),
+        data: JSON.stringify({'cookie-name': cookieName, 'cookie-duration-days': cookieDurationDays}),
         contentType: 'application/json',
         dataType: 'json',
 
@@ -30,13 +31,14 @@ function setBannerCookie(cookieName, successCallback) {
 export function initDismissibleBanners(banners) {
     for (const banner of banners) {
         const cookieName = banner.dataset.cookieName
+        const cookieDurationDays = banner.dataset.cookieDurationDays
 
         const dismissButton = banner.querySelector('.page-banner--dismissable-close')
         dismissButton.addEventListener('click', () => {
             const successCallback = () => {
                 banner.remove()
             }
-            setBannerCookie(cookieName, successCallback)
+            setBannerCookie(cookieName, cookieDurationDays, successCallback)
         })
     }
 }
