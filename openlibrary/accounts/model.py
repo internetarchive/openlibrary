@@ -885,6 +885,8 @@ def audit_accounts(
     # web.ctx.site.login method (which requires OL credentials), and directly set an
     # auth_token to enable the user's session.
     web.ctx.conn.set_auth_token(ol_account.generate_login_code())
+    ol_account['last_login'] = datetime.datetime.utcnow().isoformat()
+    ol_account._save()
     return {
         'authenticated': True,
         'special_access': getattr(ia_account, 'has_disability_access', False),
