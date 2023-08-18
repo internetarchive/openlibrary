@@ -70,7 +70,7 @@ export class Dropper {
          *
          * @member {boolean}
          */
-        this.isDropperDisabled = dropper.querySelector('.generic-dropper').classList.contains('generic-dropper--disabled')
+        this.isDropperDisabled = dropper.classList.contains('generic-dropper--disabled')
     }
 
     /**

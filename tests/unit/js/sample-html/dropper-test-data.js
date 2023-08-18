@@ -22,14 +22,13 @@ function generateDropperMarkup(isDropperOpen, isDropperDisabled = false) {
         arrowClasses += ' up'
     }
 
-    let dropperClasses = 'generic-dropper'
     if (isDropperDisabled) {
-        dropperClasses += ' generic-dropper--disabled'
+        wrapperClasses += ' generic-dropper--disabled'
     }
 
     return `
       <div class="${wrapperClasses}">
-        <div class="${dropperClasses}">
+        <div class="generic-dropper">
           <div class="generic-dropper__actions">
             <div class="generic-dropper__primary">
               <button>Primary Action</button>

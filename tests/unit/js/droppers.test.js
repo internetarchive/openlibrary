@@ -93,7 +93,7 @@ describe('Generic Droppers', () => {
         const arrow = wrapper.querySelector('.arrow')
 
         // Sanity checks
-        expect(wrapper.querySelector('div').classList.contains('generic-dropper--disabled')).toBe(true)
+        expect(wrapper.classList.contains('generic-dropper--disabled')).toBe(true)
         expect(wrapper.classList.contains('generic-dropper-wrapper--active')).toBe(false)
         expect(arrow.classList.contains('up')).toBe(false)
 
