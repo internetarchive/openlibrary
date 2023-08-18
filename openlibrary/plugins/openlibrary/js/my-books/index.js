@@ -16,15 +16,13 @@ export function initMyBooksAffordances(dropperElements, showcaseElements) {
         showcases.push(showcase)
     }
 
-    myBooksStore.set('SHOWCASES', showcases)
+    myBooksStore.setShowcases(showcases)
 
     const form = document.querySelector('#create-list-form')
     const createListForm = new CreateListForm(form)
     createListForm.initialize()
 
-    /** @type {Array<MyBooksDropper>} */
     const droppers = []
-    /** @type {Array<string>} */
     const seedKeys = []
     for (const dropper of dropperElements) {
         const myBooksDropper = new MyBooksDropper(dropper)
@@ -39,16 +37,14 @@ export function initMyBooksAffordances(dropperElements, showcaseElements) {
 
     // Get user key from first Dropper and add to store:
     const userKey = droppers[0].readingLists.userKey
-    myBooksStore.set('USER_KEY', userKey)
-
-    myBooksStore.set('DROPPERS', droppers)
+    myBooksStore.setUserKey(userKey)
+    myBooksStore.setDroppers(droppers)
 
     getListPartials()
         .then(response => response.json())
         .then((data) => {
             // XXX : convert this block to one or two function calls
             const listData = data.listData
-            /** @type {Array<HTMLLIElement>} */
             const activeShowcaseItems = []
             for (const listKey in listData) {
                 // Check for matches between seed keys and list members

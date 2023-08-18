@@ -83,7 +83,7 @@ export class CreateListForm {
         const listTitle = websafe(this.listTitleInput.value)
         const listDescription = websafe(this.listDescriptionInput.value)
 
-        const openDropper = myBooksStore.get('OPEN_DROPPER')
+        const openDropper = myBooksStore.getOpenDropper()
         const seed = openDropper.readingLists.getSeed()
 
         const postData = {
@@ -93,7 +93,7 @@ export class CreateListForm {
         }
 
         // Call list creation service with seed object:
-        await createList(myBooksStore.get('USER_KEY'), postData)
+        await createList(myBooksStore.getUserKey(), postData)
             .then(response => response.json())
             .then((data) => {
                 // Update active lists showcase:
@@ -118,8 +118,8 @@ export class CreateListForm {
      * @param {string} listTitle Title of the new list
      */
     updateDroppersOnListCreation(listKey, listTitle) {
-        const droppers = myBooksStore.get('DROPPERS')
-        const openDropper = myBooksStore.get('OPEN_DROPPER')
+        const droppers = myBooksStore.getDroppers()
+        const openDropper = myBooksStore.getOpenDropper()
 
         for (const dropper of droppers) {
             const isActive = dropper === openDropper

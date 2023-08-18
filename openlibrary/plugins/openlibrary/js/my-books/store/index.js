@@ -12,27 +12,68 @@ class MyBooksStore {
      * Initializes the store.
      */
     constructor() {
-        this._store = {}
+        this._store = {
+            droppers: [],
+            showcases: [],
+            userkey: '',
+            openDropper: null
+        }
     }
 
     /**
-     * Adds data to the store, using the given key.
-     *
-     * @param {string} key
-     * @param {*} data
+     * @returns {Array<MyBooksDropper>}
      */
-    set(key, data) {
-        this._store[key] = data
+    getDroppers() {
+        return this._store.droppers
     }
 
     /**
-     * Gets the store data referenced by the given key.
-     *
-     * @param {string} key
-     * @returns {*} Stored data, or `undefined` if no entry exists.
+     * @param {Array<MyBooksDropper>} droppers
      */
-    get(key) {
-        return this._store[key]
+    setDroppers(droppers) {
+        this._store.droppers = droppers
+    }
+
+    /**
+     * @returns {Array<ShowcaseItem>}
+     */
+    getShowcases() {
+        return this._store.showcases
+    }
+
+    /**
+     * @param {Array<ShowcaseItem>} showcases
+     */
+    setShowcases(showcases) {
+        this._store.showcases = showcases
+    }
+
+    /**
+     * @returns {string}
+     */
+    getUserKey() {
+        return this._store.userKey
+    }
+
+    /**
+     * @param {string} userKey
+     */
+    setUserKey(userKey) {
+        this._store.userkey = userKey
+    }
+
+    /**
+     * @returns {MyBooksDropper}
+     */
+    getOpenDropper() {
+        return this._store.openDropper
+    }
+
+    /**
+     * @param {MyBooksDropper} dropper
+     */
+    setOpenDropper(dropper) {
+        this._store.openDropper = dropper
     }
 }
 

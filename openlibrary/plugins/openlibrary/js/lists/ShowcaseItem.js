@@ -114,7 +114,7 @@ export class ShowcaseItem {
         await removeItem(this.listKey, this.seed)
             .then(response => response.json())
             .then(() => {
-                const showcases = myBooksStore.get('SHOWCASES')
+                const showcases = myBooksStore.getShowcases()
 
                 // Remove self:
                 this.removeSelf()
@@ -127,7 +127,7 @@ export class ShowcaseItem {
                 }
 
                 // Update droppers:
-                const droppers = myBooksStore.get('DROPPERS')
+                const droppers = myBooksStore.getDroppers()
                 for (const dropper of droppers) {
                     dropper.readingLists.updateViewAfterModifyingList(this.listKey, this.isWork, false)
                 }
@@ -141,7 +141,7 @@ export class ShowcaseItem {
      * upon success.
      */
     removeSelf() {
-        const showcases = myBooksStore.get('SHOWCASES')
+        const showcases = myBooksStore.getShowcases()
         const thisIndex = showcases.indexOf(this)
         if (thisIndex >= 0) {
             this.showcaseElem.remove()
@@ -276,7 +276,7 @@ export function createActiveShowcaseItem(listKey, seedKey, listTitle, coverUrl =
  * @param {boolean} showWorksOnly
  */
 export function toggleActiveShowcaseItems(showWorksOnly) {
-    for (const item of myBooksStore.get('SHOWCASES')) {
+    for (const item of myBooksStore.getShowcases()) {
         item.toggleVisibility(showWorksOnly)
     }
 }
@@ -306,6 +306,6 @@ export function attachNewActiveShowcaseItem(listKey, seedKey, listTitle, coverUr
         const showcase = new ShowcaseItem(li)
         showcase.initialize()
 
-        myBooksStore.get('SHOWCASES').push(showcase)
+        myBooksStore.getShowcases().push(showcase)
     }
 }

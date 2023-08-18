@@ -241,7 +241,7 @@ export class ReadingLists {
                     attachNewActiveShowcaseItem(listKey, seedKey, listTitle)
                 } else {
                     // remove existing showcase items
-                    const showcases = myBooksStore.get('SHOWCASES')
+                    const showcases = myBooksStore.getShowcases()
                     const matchingShowcases = showcases.filter((item) => item.listKey === listKey && item.seedKey === seedKey)
                     for (const item of matchingShowcases) {
                         item.removeSelf()
