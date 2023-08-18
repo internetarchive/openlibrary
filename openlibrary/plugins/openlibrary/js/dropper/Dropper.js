@@ -61,7 +61,7 @@ export class Dropper {
          *
          * @member {boolean}
          */
-        this.isDropperOpen = dropper.classList.contains('dropper-wrapper--active')
+        this.isDropperOpen = dropper.classList.contains('generic-dropper-wrapper--active')
 
         /**
          * Tracks whether this dropper is disabled.
@@ -100,7 +100,7 @@ export class Dropper {
         if (!this.isDropperDisabled) {
             this.$dropper.find('.generic-dropper__dropdown').slideToggle(25);
             this.$dropper.find('.arrow').toggleClass('up')
-            this.$dropper.toggleClass('dropper-wrapper--active')
+            this.$dropper.toggleClass('generic-dropper-wrapper--active')
             this.isDropperOpen = !this.isDropperOpen
         }
     }
@@ -116,7 +116,7 @@ export class Dropper {
         if (!this.isDropperDisabled) {
             this.$dropper.find('.generic-dropper__dropdown').slideUp(25)
             this.$dropper.find('.arrow').removeClass('up');
-            this.$dropper.removeClass('dropper-wrapper--active')
+            this.$dropper.removeClass('generic-dropper-wrapper--active')
             this.isDropperOpen = false
         }
     }

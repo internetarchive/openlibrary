@@ -59,16 +59,16 @@ export class MyBooksDropper extends Dropper {
         this.loadingAnimationId
 
         /**
-         * References this dropper's reading log buttons.
-         * @member {ReadingLogForms}
-         */
-        this.readingLogForms = new ReadingLogForms(dropper, this.readDateComponents, dropperActionCallbacks)
-
-        /**
          * References this dropper's read date prompt and display.
          * @member {ReadDateComponents}
          */
         this.readDateComponents = new ReadDateComponents(dropper)
+
+        /**
+         * References this dropper's reading log buttons.
+         * @member {ReadingLogForms}
+         */
+        this.readingLogForms = new ReadingLogForms(dropper, this.readDateComponents, dropperActionCallbacks)
     }
 
     /**
@@ -167,8 +167,7 @@ export class MyBooksDropper extends Dropper {
         super.toggleDropper()
 
         if (!this.isDropperDisabled && this.isDropperOpen) {
-            myBooksStore.set('OPEN_DROPPER', this)
-            myBooksStore.set('LIST_SEED', this.readingLists.getSeed())
+            myBooksStore.setOpenDropper(this)
         }
     }
 }
