@@ -84,9 +84,9 @@ class EditionSolrBuilder:
 
     @property
     def number_of_pages(self) -> Optional[int]:
-        if self.get('number_of_pages') and type(self.get('number_of_pages')) == int:
-            return cast(int, self.get('number_of_pages'))
-        else:
+        try:
+            return int(self.get('number_of_pages')) or None
+        except (TypeError, ValueError):  # int(None) -> TypeErr, int("vii") -> ValueErr
             return None
 
     @property

@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Literal
-from collections.abc import Awaitable, Iterator
-
-
-from configparser import ConfigParser
 import logging
 import time
 import uuid
 from collections import namedtuple
+from collections.abc import Awaitable, Iterator
+from configparser import ConfigParser
+from typing import Any, Literal, Self
 
 import aiofiles
 import psycopg2
@@ -19,7 +17,6 @@ from openlibrary.core.ratings import Ratings, WorkRatingsSummary
 from openlibrary.solr import update_work
 from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
 from openlibrary.solr.update_work import load_configs, update_keys
-
 
 logger = logging.getLogger("openlibrary.solr-builder")
 
@@ -71,7 +68,7 @@ class LocalPostgresDataProvider(DataProvider):
         self.cached_work_ratings: dict[str, WorkRatingsSummary] = {}
         self.cached_work_reading_logs: dict[str, WorkReadingLogSolrSummary] = {}
 
-    def __enter__(self) -> LocalPostgresDataProvider:
+    def __enter__(self) -> Self:
         """
         :rtype: LocalPostgresDataProvider
         """
