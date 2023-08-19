@@ -9,5 +9,5 @@ pymemcache==4.0.0
 pytest==7.4.0
 pytest-asyncio==0.21.1
 pytest-cov==4.1.0
-ruff==0.0.280
+ruff==0.0.285
 safety==2.3.5
