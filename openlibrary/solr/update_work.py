@@ -188,10 +188,14 @@ def pick_cover_edition(editions, work_cover_id):
 
 
 def pick_number_of_pages_median(editions: list[dict]) -> Optional[int]:
+    def to_int(x: Any) -> Optional[int]:
+        try:
+            return int(x) or None
+        except (TypeError, ValueError):  # int(None) -> TypeErr, int("vii") -> ValueErr
+            return None
+
     number_of_pages = [
-        cast(int, e.get('number_of_pages'))
-        for e in editions
-        if e.get('number_of_pages') and type(e.get('number_of_pages')) == int
+        pages for e in editions if (pages := to_int(e.get('number_of_pages')))
     ]
 
     if number_of_pages:

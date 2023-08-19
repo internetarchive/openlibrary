@@ -59,7 +59,7 @@ class Batch(web.storage):
     def normalize_items(self, items):
         return [
             {'batch_id': self.id, 'ia_id': item}
-            if type(item) is str
+            if isinstance(item, str)
             else {
                 'batch_id': self.id,
                 # Partner bots set ia_id to eg "partner:978..."
