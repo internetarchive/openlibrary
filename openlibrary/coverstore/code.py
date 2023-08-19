@@ -209,15 +209,6 @@ def trim_microsecond(date):
     return datetime.datetime(*date.timetuple()[:6])
 
 
-def zipview_url(item, zipfile, filename):
-    # http or https
-    protocol = web.ctx.protocol
-    return (
-        "%(protocol)s://archive.org/download/%(item)s/%(zipfile)s/%(filename)s"
-        % locals()
-    )
-
-
 # Number of images stored in one archive.org item
 IMAGES_PER_ITEM = 10000
 
@@ -228,7 +219,8 @@ def zipview_url_from_id(coverid, size):
     itemid = "olcovers%d" % item_index
     zipfile = itemid + suffix + ".zip"
     filename = "%d%s.jpg" % (coverid, suffix)
-    return zipview_url(itemid, zipfile, filename)
+    protocol = web.ctx.protocol  # http or https                                                                                           
+    return f"{protocol}://archive.org/download/{itemid}/{zipfile}/{filename}"
 
 
 class cover:
@@ -279,13 +271,14 @@ class cover:
             url = zipview_url_from_id(int(value), size)
             raise web.found(url)
 
-        # covers_0008 partials [_00, _80] are tar'd in archive.org items
-        if isinstance(value, int) or value.isnumeric():  # noqa: SIM102
-            if 8810000 > int(value) >= 8000000:
+        # covers_0008 batches [_00, _82] are tar'd / zip'd in archive.org items                                                                        
+	    if isinstance(value, int) or value.isnumeric():  # noqa: SIM102                                                                                
+            if 8_830_000 > int(value) >= 8_000_000:
                 prefix = f"{size.lower()}_" if size else ""
                 pid = "%010d" % int(value)
                 item_id = f"{prefix}covers_{pid[:4]}"
-                item_tar = f"{prefix}covers_{pid[:4]}_{pid[4:6]}.tar"
+                ext = "tar" if int(value) < 8_820_000 else "zip"
+                item_tar = f"{prefix}covers_{pid[:4]}_{pid[4:6]}.{ext}"
                 item_file = f"{pid}{'-' + size.upper() if size else ''}"
                 path = f"{item_id}/{item_tar}/{item_file}.jpg"
                 protocol = web.ctx.protocol
