@@ -166,7 +166,7 @@ def get_filepath(item_id, batch_id, ext="", size=""):
     filename = f"{prefix}covers_{item_id}_{batch_id}{ext}"
     filepath = os.path.join(config.data_root, "items" folder, filename)
     return filepath
-    
+
 
 def get_cover_files(cover):
     files = {
