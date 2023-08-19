@@ -20,21 +20,11 @@ def log(*args):
     print(msg)
 
 
-def get_filepath(item_id, batch_id, ext="", size=""):
-    ext = ".{ext}" if ext else ""
-    prefix = f"{size.lower()}_" if size else ""
-    folder = f"{prefix}covers_{item_id}"
-    filename = f"{prefix}covers_{item_id}_{batch_id}{ext}"
-    filepath = os.path.join(config.data_root, "items" folder, filename)
-    print(filepath)
-    return filepath
-
-
-
 class CoverDB:
+
     TABLE = 'cover'
-    BATCH_SIZE = 10_000
     ITEM_SIZE = 1_000_000
+    BATCH_SIZE = 10_000
     STATUS_KEYS = ('failed', 'archived', 'deleted', 'uploaded')
 
     def __init__(self):
@@ -134,7 +124,7 @@ class CoverDB:
         )
 
 
-def archive(limit=None, start_id=0, archive_format='zip'):
+def archive(limit=None, start_id=None, archive_format='zip'):
     """Move files from local disk to tar files and update the paths in the db."""
 
     file_manager = TarManager() if archive_format == 'tar' else ZipManager()
@@ -151,7 +141,7 @@ def archive(limit=None, start_id=0, archive_format='zip'):
             files = get_cover_files(cover)
             print(files.values())
 
-            if any(d.path and os.path.exists(d.path) for d in files.values()):
+            if any(not (d.path and os.path.exists(d.path)) for d in files.values()):
                 print("Missing image file for %010d" % cover.id, file=web.debug)
                 cdb.update(cover.id, failed=True)
                 continue
@@ -168,6 +158,15 @@ def archive(limit=None, start_id=0, archive_format='zip'):
     finally:
         file_manager.close()
 
+
+def get_filepath(item_id, batch_id, ext="", size=""):
+    ext = f".{ext}" if ext else ""
+    prefix = f"{size.lower()}_" if size else ""
+    folder = f"{prefix}covers_{item_id}"
+    filename = f"{prefix}covers_{item_id}_{batch_id}{ext}"
+    filepath = os.path.join(config.data_root, "items" folder, filename)
+    return filepath
+    
 
 def get_cover_files(cover):
     files = {
