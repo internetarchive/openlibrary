@@ -219,7 +219,7 @@ def zipview_url_from_id(coverid, size):
     itemid = "olcovers%d" % item_index
     zipfile = itemid + suffix + ".zip"
     filename = "%d%s.jpg" % (coverid, suffix)
-    protocol = web.ctx.protocol  # http or https                                                                                           
+    protocol = web.ctx.protocol  # http or https
     return f"{protocol}://archive.org/download/{itemid}/{zipfile}/{filename}"
 
 
@@ -271,8 +271,8 @@ class cover:
             url = zipview_url_from_id(int(value), size)
             raise web.found(url)
 
-        # covers_0008 batches [_00, _82] are tar'd / zip'd in archive.org items                                                                        
-	    if isinstance(value, int) or value.isnumeric():  # noqa: SIM102                                                                                
+        # covers_0008 batches [_00, _82] are tar'd / zip'd in archive.org items
+	    if isinstance(value, int) or value.isnumeric():  # noqa: SIM102
             if 8_830_000 > int(value) >= 8_000_000:
                 prefix = f"{size.lower()}_" if size else ""
                 pid = "%010d" % int(value)

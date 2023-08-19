@@ -19,7 +19,6 @@ def log(*args):
 
 
 class CoverDB:
-
     TABLE = 'cover'
     BATCH_SIZE = 10_000
     STATUS_KEYS = ('failed', 'archived', 'deleted', 'uploaded')
@@ -29,27 +28,28 @@ class CoverDB:
 
     @classmethod
     def get_batch_end_id(cls, start_id):
-        """Calculates the end of the batch based on the start_id and the                                                                                                                                                                                                                                                                        
-        batch_size                                                                                                                                                                                                                                                                                                                              
+        """Calculates the end of the batch based on the start_id and the
+        batch_size
         """
         return start_id - (start_id % cls.BATCH_SIZE) + cls.BATCH_SIZE
 
     def get_covers(self, limit=None, start_id=None, **kwargs):
-        """Utility for fetching covers from the database                                                                                                                                                                                                                                                                                        
-                                                                                                                                                                                                                                                                                                                                                
-        start_id: explicitly define a starting id. This is significant                                                                                                                                                                                                                                                                          
-        because an offset would define a number of rows in the db to                                                                                                                                                                                                                                                                            
-        skip but this value may not equate to the desired                                                                                                                                                                                                                                                                                       
-        start_id. When start_id used, a end_id is calculated for the                                                                                                                                                                                                                                                                            
-        end of the current batch. When a start_id is used, limit is ignored.                                                                                                                                                                                                                                                                    
-                                                                                                                                                                                                                                                                                                                                                
-        limit: if no start_id is present, specifies num rows to return.                                                                                                                                                                                                                                                                         
-                                                                                                                                                                                                                                                                                                                                                
-        kwargs: additional specifiable cover table query arguments                                                                                                                                                                                                                                                                              
-        like those found in STATUS_KEYS                                                                                                                                                                                                                                                                                                         
+        """Utility for fetching covers from the database
+
+        start_id: explicitly define a starting id. This is significant
+        because an offset would define a number of rows in the db to
+        skip but this value may not equate to the desired
+        start_id. When start_id used, a end_id is calculated for the
+        end of the current batch. When a start_id is used, limit is ignored.
+
+        limit: if no start_id is present, specifies num rows to return.
+
+        kwargs: additional specifiable cover table query arguments
+        like those found in STATUS_KEYS
         """
         wheres = [
-            f"{key}=${key}" for key in kwargs
+            f"{key}=${key}"
+            for key in kwargs
             if key in self.STATUS_KEYS and kwargs.get(key) is not None
         ]
         if start_id:
@@ -67,7 +67,9 @@ class CoverDB:
         )
 
     def get_unarchived_covers(self, limit, **kwargs):
-        return self.get_covers(limit=limit, failed=False, archived=False, uploaded=False, **kwargs)
+        return self.get_covers(
+            limit=limit, failed=False, archived=False, uploaded=False, **kwargs
+        )
 
     def _get_current_batch_start_id(self, **kwargs):
         c = self.get_covers(limit=1, **kwargs)[0]
@@ -90,9 +92,7 @@ class CoverDB:
         return self.db.update(
             self.TABLE,
             where="id=$cid",
-            vars={
-                'cid': cid
-            },
+            vars={'cid': cid},
             **kwargs,
         )
 
@@ -105,7 +105,8 @@ def archive(limit=None, archive_format='zip'):
 
     try:
         covers = (
-            cdb.get_unarchived_covers(limit=limit) if limit
+            cdb.get_unarchived_covers(limit=limit)
+            if limit
             else cdb.get_current_batch_unarchived()
         )
 
@@ -125,6 +126,7 @@ def archive(limit=None, archive_format='zip'):
 
             if isinstance(cover.created, str):
                 from infogami.infobase import utils
+
                 cover.created = utils.parse_datetime(cover.created)
             timestamp = time.mktime(cover.created.timetuple())
             for d in files.values():
@@ -142,9 +144,7 @@ def file_exists(path):
 
 def get_cover_files(cover):
     files = {
-        'filename': web.storage(
-            name="%010d.jpg" % cover.id, filename=cover.filename
-        ),
+        'filename': web.storage(name="%010d.jpg" % cover.id, filename=cover.filename),
         'filename_s': web.storage(
             name="%010d-S.jpg" % cover.id, filename=cover.filename_s
         ),
@@ -179,7 +179,7 @@ def is_uploaded(item: str, filename_pattern: str) -> bool:
     tar_result = subprocess.run(command, shell=True, text=True, capture_output=True)
     if int(tar_result.stdout.strip()) == 2:
         return True
-    
+
     return False
 
 
@@ -219,7 +219,6 @@ def audit(group_id, chunk_ids=(0, 100), sizes=('', 's', 'm', 'l')) -> None:
 
 
 class ZipManager:
-
     def __init__(self):
         self.zipfiles = {}
         for size in ['', 'S', 'M', 'L']:
@@ -229,7 +228,7 @@ class ZipManager:
         cid = web.numify(name)
         zipname = f"covers_{cid[:4]}_{cid[4:6]}.zip"
 
-        # for {cid}-[SML].jpg                                                                                                                                                                                                                                                                                                                                                                                                     
+        # for {cid}-[SML].jpg
         if '-' in name:
             size = name[len(cid + '-') :][0].lower()
             zipname = size + "_" + zipname
@@ -258,7 +257,7 @@ class ZipManager:
 
         if name not in zipper.namelist():
             with open(filepath, 'rb') as fileobj:
-                # Set compression to ZIP_STORED to avoid compression                                                                                                                                                                                                                                                                                                                                                              
+                # Set compression to ZIP_STORED to avoid compression
                 zipper.write(filepath, arcname=name, compress_type=zipfile.ZIP_STORED)
 
         return os.path.basename(zipper.filename)
@@ -279,6 +278,7 @@ class ZipManager:
             file_list = zip_file.namelist()
             if file_list:
                 return max(file_list)
+
     def __init__(self):
         self.tarfiles = {}
         self.tarfiles[''] = (None, None, None)
@@ -344,6 +344,7 @@ class ZipManager:
                 _tarfile.close()
                 _indexfile.close()
 
+
 class TarManager:
     def __init__(self):
         self.tarfiles = {}
@@ -356,7 +357,7 @@ class TarManager:
         cid = web.numify(name)
         tarname = f"covers_{cid[:4]}_{cid[4:6]}.tar"
 
-        # for {cid}-[SML].jpg                                                                                                                                                                                                                                                                                                                                                                                                     
+        # for {cid}-[SML].jpg
         if '-' in name:
             size = name[len(cid + '-') :][0].lower()
             tarname = size + "_" + tarname
@@ -381,7 +382,7 @@ class TarManager:
         indexpath = path.replace('.tar', '.index')
         print(indexpath, os.path.exists(path))
         mode = 'a' if os.path.exists(path) else 'w'
-        # Need USTAR since that used to be the default in Py2                                                                                                                                                                                                                                                                                                                                                                     
+        # Need USTAR since that used to be the default in Py2
         return tarfile.TarFile(path, mode, format=tarfile.USTAR_FORMAT), open(
             indexpath, mode
         )
@@ -394,9 +395,9 @@ class TarManager:
 
             tar, index = self.get_tarfile(name)
 
-            # tar.offset is current size of tar file.                                                                                                                                                                                                                                                                                                                                                                             
-            # Adding 512 bytes for header gives us the                                                                                                                                                                                                                                                                                                                                                                            
-            # starting offset of next file.                                                                                                                                                                                                                                                                                                                                                                                       
+            # tar.offset is current size of tar file.
+            # Adding 512 bytes for header gives us the
+            # starting offset of next file.
             offset = tar.offset + 512
 
             tar.addfile(tarinfo, fileobj=fileobj)
