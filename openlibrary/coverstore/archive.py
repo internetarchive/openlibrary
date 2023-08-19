@@ -9,6 +9,8 @@ import time
 import tarfile
 import zipfile
 
+from infogami.infobase import utils
+
 from openlibrary.coverstore import config, db
 from openlibrary.coverstore.coverlib import find_image_path
 
@@ -18,13 +20,48 @@ def log(*args):
     print(msg)
 
 
+def get_filepath(item_id, batch_id, ext="", size=""):
+    ext = ".{ext}" if ext else ""
+    prefix = f"{size.lower()}_" if size else ""
+    folder = f"{prefix}covers_{item_id}"
+    filename = f"{prefix}covers_{item_id}_{batch_id}{ext}"
+    filepath = os.path.join(config.data_root, "items" folder, filename)
+    print(filepath)
+    return filepath
+
+
+
 class CoverDB:
     TABLE = 'cover'
     BATCH_SIZE = 10_000
+    ITEM_SIZE = 1_000_000
     STATUS_KEYS = ('failed', 'archived', 'deleted', 'uploaded')
 
     def __init__(self):
         self.db = db.getdb()
+
+    def is_zip_complete(self, item_id, batch_id, size="", verbose=False):
+        errors = []
+        filepath = get_filepath(item_id, batch_id, size=size, ext="zip")
+        item_id, batch_id = int(item_id), int(batch_id)
+        start_id = (item_id * self.ITEM_SIZE) + (batch_id * self.BATCH_SIZE)
+        unarchived = len(self.get_batch_unarchived(start_id))
+
+        if unarchived:
+            errors.append({"error": "archival_incomplete", "remaining": unarchived})
+        if not os.path.exists(filepath):
+            errors.append({'error': 'nozip'})
+        else:
+            expected_num_files = len(self.get_batch_archived(start_id=start_id))
+            num_files = ZipManager.count_files_in_zip(filepath)
+            if num_files != expected_num_files:
+                errors.append({
+                    "error": "zip_discrepency",
+                    "expected": expected_num_files,
+                    "actual": num_files
+                })
+        success = not len(errors)
+        return success, errors if verbose else success
 
     @classmethod
     def get_batch_end_id(cls, start_id):
@@ -75,18 +112,18 @@ class CoverDB:
         c = self.get_covers(limit=1, **kwargs)[0]
         return c.id - (c.id % self.BATCH_SIZE)
 
-    def _get_current_batch(self, **kwargs):
+    def _get_batch(self, **kwargs):
         start_id = self._get_current_batch_start_id(**kwargs)
         return self.get_covers(start_id=start_id, **kwargs)
 
-    def get_current_batch_unarchived(self):
-        return self._get_current_batch(failed=False, archived=False, uploaded=False)
+    def get_batch_unarchived(self):
+        return self._get_batch(failed=False, archived=False, uploaded=False)
 
-    def get_current_batch_failures(self):
-        return self._get_current_batch(failed=True)
+    def get_batch_failures(self):
+        return self._get_batch(failed=True)
 
-    def get_current_batch_undeleted(self):
-        return self._get_current_batch(deleted=False)
+    def get_batch_undeleted(self):
+        return self._get_batch(deleted=False)
 
     def update(self, cid, **kwargs):
         return self.db.update(
@@ -97,7 +134,7 @@ class CoverDB:
         )
 
 
-def archive(limit=None, archive_format='zip'):
+def archive(limit=None, start_id=0, archive_format='zip'):
     """Move files from local disk to tar files and update the paths in the db."""
 
     file_manager = TarManager() if archive_format == 'tar' else ZipManager()
@@ -105,9 +142,8 @@ def archive(limit=None, archive_format='zip'):
 
     try:
         covers = (
-            cdb.get_unarchived_covers(limit=limit)
-            if limit
-            else cdb.get_current_batch_unarchived()
+            cdb.get_unarchived_covers(limit=limit) if limit
+            else cdb.get_batch_unarchived(start_id=start_id)
         )
 
         for cover in covers:
@@ -115,20 +151,15 @@ def archive(limit=None, archive_format='zip'):
             files = get_cover_files(cover)
             print(files.values())
 
-            if any(file_exists(d.path) for d in files.values()):
+            if any(d.path and os.path.exists(d.path) for d in files.values()):
                 print("Missing image file for %010d" % cover.id, file=web.debug)
                 cdb.update(cover.id, failed=True)
                 continue
 
-            if cover.archived:
-                print("Cover already in archive")
-                continue
-
             if isinstance(cover.created, str):
-                from infogami.infobase import utils
-
                 cover.created = utils.parse_datetime(cover.created)
             timestamp = time.mktime(cover.created.timetuple())
+
             for d in files.values():
                 d.newname = file_manager.add_file(
                     d.name, filepath=d.path, mtime=timestamp
@@ -136,10 +167,6 @@ def archive(limit=None, archive_format='zip'):
             cdb.update(cover.id, archived=True)
     finally:
         file_manager.close()
-
-
-def file_exists(path):
-    return path is not None and os.path.exists(path)
 
 
 def get_cover_files(cover):
@@ -198,9 +225,7 @@ def audit(group_id, chunk_ids=(0, 100), sizes=('', 's', 'm', 'l')) -> None:
     """
     scope = range(*(chunk_ids if isinstance(chunk_ids, tuple) else (0, chunk_ids)))
     for size in sizes:
-        prefix = f"{size}_" if size else ''
-        item = f"{prefix}covers_{group_id:04}"
-        files = (f"{prefix}covers_{group_id:04}_{i:02}" for i in scope)
+        files = (get_filepath(f"{group_id:04}", f"{i:02}", size=size) for i in scope)
         missing_files = []
         sys.stdout.write(f"\n{size or 'full'}: ")
         for f in files:
@@ -223,6 +248,12 @@ class ZipManager:
         self.zipfiles = {}
         for size in ['', 'S', 'M', 'L']:
             self.zipfiles[size] = (None, None)
+
+    @staticmethod
+    def count_files_in_zip(filepath):
+        command = f'unzip -l {filepath} | grep "jpg" |  wc -l'
+        result = subprocess.run(command, shell=True, text=True, capture_output=True)
+        return int(result.stdout.strip())
 
     def get_zipfile(self, name):
         cid = web.numify(name)
