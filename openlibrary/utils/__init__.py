@@ -2,7 +2,7 @@
 
 from enum import Enum
 import re
-from subprocess import run
+from subprocess import CalledProcessError, run
 from typing import TypeVar, Literal, Optional
 from collections.abc import Iterable, Callable
 
