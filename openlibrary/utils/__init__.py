@@ -2,7 +2,7 @@
 
 from enum import Enum
 import re
-from subprocess import run
+from subprocess import CalledProcessError, run
 from typing import TypeVar, Literal, Optional
 from collections.abc import Iterable, Callable
 
@@ -212,7 +212,10 @@ def get_software_version() -> str:
     assert get_software_version()  # Should never return a falsy value
     """
     cmd = "git rev-parse --short HEAD --".split()
-    return run(cmd, capture_output=True, text=True, check=True).stdout.strip()
+    try:
+        return run(cmd, capture_output=True, text=True, check=True).stdout.strip()
+    except CalledProcessError:
+        return "unknown"
 
 
 # See https://docs.python.org/3/library/enum.html#orderedenum
