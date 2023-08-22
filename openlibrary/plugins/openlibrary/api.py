@@ -661,7 +661,7 @@ class hide_banner(delegate.page):
 
         # Set truthy cookie that expires in 30 days:
         DAY_SECONDS = 60 * 60 * 24
-        cookie_duration_days = data.get('cookie-duration-days', 30)
+        cookie_duration_days = int(data.get('cookie-duration-days', 30))
         web.setcookie(
             data['cookie-name'], '1', expires=(cookie_duration_days * DAY_SECONDS)
         )
