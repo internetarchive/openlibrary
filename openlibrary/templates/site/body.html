@@ -32,11 +32,9 @@ $if ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ct
       $# Announcement banner will only be rendered if announcement and storage_key variables are set.
       $# Be sure to escape any single quotes inside of the announcement HTML string.
       $ announcement = ''
-      $# Using the current date in YYYY-MM-DD format for storage_key will prevent the use of duplicate keys.
-      $ storage_key = ''
-      $if announcement and storage_key:
-        $ hide_banner = ctx.user and ctx.user.preferences().get('hidden-banner') == storage_key
-        $if not hide_banner:
-          $:render_template('site/banner', announcement, storage_key)
+      $# Include date in cookie name to avoid name collisions (something like '{prefix}{YY}{MM}{DD}' would work well)
+      $ cookie_name = ''
+      $if announcement and cookie_name:
+        $:render_template('site/banner', announcement, cookie_name, cookie_duration_days=30)
     $:page
   </div>

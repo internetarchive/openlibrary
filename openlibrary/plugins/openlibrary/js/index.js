@@ -507,10 +507,10 @@ jQuery(function () {
     }
 
 
-    // Allow banner announcements to be dismissable for logged-in users:
-    const siteBanner = document.getElementById('announcement-banner')
-    if (siteBanner) {
-        import(/* webpackChunkName: "announcement-banner" */ './initAnnouncementBanner')
-            .then(module => module.initAnnouncementBanner(siteBanner))
+    // Allow banner announcements to be dismissed by logged-in users:
+    const banners = document.querySelectorAll('.page-banner--dismissable')
+    if (banners) {
+        import(/* webpackChunkName: "dismissible-banner" */ './banner')
+            .then(module => module.initDismissibleBanners(banners))
     }
 });
