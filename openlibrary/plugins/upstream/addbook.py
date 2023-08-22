@@ -193,12 +193,14 @@ class addbook(delegate.page):
         if not self.has_permission():
             return safe_seeother(f"/account/login?redirect={self.path}")
 
-        i = web.input(work=None, author=None)
+        i = web.input(work=None)
         work = i.work and web.ctx.site.get(i.work)
-        author = i.author and web.ctx.site.get(i.author)
+        authors = (work and work.authors) or []
+        if work and authors:
+            authors = [a.author for a in authors]
 
         return render_template(
-            'books/add', work=work, author=author, recaptcha=get_recaptcha()
+            'books/add', work=work, authors=authors, recaptcha=get_recaptcha()
         )
 
     def has_permission(self) -> bool:
