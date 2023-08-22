@@ -1167,13 +1167,6 @@ class Tag(Thing):
             )
             return key
 
-    def url(self, suffix="", **params):
-        return self.get_url(suffix, **params)
-
-    def get_url_suffix(self):
-        return self.name or "unnamed"
-
-
 @dataclass
 class LoggedBooksData:
     """
