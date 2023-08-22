@@ -55,23 +55,25 @@ function clearIsbnError() {
 
 function parseAndValidateIsbn(event) {
     const fieldName = document.getElementById('id_name').value;
-    const isbn = parseIsbn(document.getElementById('id_value').value);
+    let idValue = document.getElementById('id_value').value;
+    // parsing valid ISBN that passes checks
     if (fieldName === 'isbn_10') {
-        if (!isFormatValidIsbn10(isbn)) {
+        idValue = parseIsbn(idValue);
+        if (!isFormatValidIsbn10(idValue)) {
             return displayIsbnError(event, invalidIsbn10);
         }
-        if (!isChecksumValidIsbn10(isbn)) {
+        if (!isChecksumValidIsbn10(idValue)) {
             return displayIsbnError(event, invalidChecksum);
         }
     }
     else if (fieldName === 'isbn_13') {
-        if (!isFormatValidIsbn13(isbn)) {
+        idValue = parseIsbn(idValue);
+        if (!isFormatValidIsbn13(idValue)) {
             return displayIsbnError(event, invalidIsbn13);
         }
-        if (!isChecksumValidIsbn13(isbn)) {
+        if (!isChecksumValidIsbn13(idValue)) {
             return displayIsbnError(event, invalidChecksum);
         }
     }
-    // parsing valid ISBN that passes checks
-    document.getElementById('id_value').value = isbn;
+    document.getElementById('id_value').value = idValue;
 }
