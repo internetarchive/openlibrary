@@ -1167,6 +1167,7 @@ class Tag(Thing):
             )
             return key
 
+
 @dataclass
 class LoggedBooksData:
     """
