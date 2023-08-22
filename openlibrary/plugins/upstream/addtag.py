@@ -43,10 +43,9 @@ class addtag(delegate.page):
         """
         Can a tag be added?
         """
-        # return web.ctx.user and (
-        #     web.ctx.user.is_usergroup_member('/usergroup/super-librarians')
-        # )
-        return True
+        return web.ctx.user and (
+            web.ctx.user.is_usergroup_member('/usergroup/super-librarians')
+        )
 
     def POST(self):
         i = web.input(
