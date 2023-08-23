@@ -27,10 +27,13 @@ $ default_profile_image = '../../../static/images/openlibrary-180x180.png'
 						alt="" />
 				</div>
 				<div class="teamCard__description">
-					<a href="$member.get('ol_user_url', '')"><h2 class="description__name">$member.get('name', '')</h2></a>
-					<h4 class="description__status">$member.get('status', '')</h4>
-					<h3 class="description__role">$member.get('role', '')</h3>
-					<p class="description__bio">$member.get('bio', '')</p>
+					<a href="$member.get('ol_user_url', '')">
+						$if len(member.get('name', '')) >= 18:
+							<h2 class="description__name--length-long">$member.get('name', '')</h2></a>
+						$else: 
+							<h2 class="description__name--length-short">$member.get('name', '')</h2></a>
+					<h4 class="description__role">$member.get('role', '')</h4>
+					<h3 class="description__department">$member.get('department', '')</h3>
 					<div class="description__links">
 					$if member.get('personal_url', ''):
 						<a href="$member.get('personal_url')"><img src="$personal_url_icon" alt="" class="links__site"></a>
@@ -48,3 +51,39 @@ $ default_profile_image = '../../../static/images/openlibrary-180x180.png'
     <a href="https://forms.gle/zPyuXGf4Bg6RzbDA7">Open Library team information form</a>.
 	</p>
 </div>
+<script>
+	const team = [
+		{
+			name: "Drini",
+			role: "Staff",
+		},
+		{
+			name: "Jim",
+			role: "Staff",
+		},
+		{
+			name: "Aaron",
+			role: "Staff, Emeritus",
+		},
+		{
+			name: "Sam",
+			role: "Fellow",
+		},
+		{
+			name: "Abbey",
+			role: "Fellow"
+		},
+		{
+			name: "Jaye",
+			role: "Volunteer"
+		},
+		{
+			name: "Keita",
+			role: "Volunteer"
+		}
+	]
+	const staff = team.filter((person) => person.role.includes("Staff"))
+	const fellows = team.filter((person) => person.role.includes("Fellow"))
+	const volunteers = team.filter((person) => person.role.includes("Volunteer"))
+	console.log(staff)
+</script>

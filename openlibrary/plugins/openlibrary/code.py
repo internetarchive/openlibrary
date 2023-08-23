@@ -225,9 +225,15 @@ class team(delegate.page):
         with Path('/openlibrary/openlibrary/templates/about/team.json').open(
             mode='r'
         ) as f:
+            # original code
+            #    team_members: list[dict[str, str]] = sorted(
+            #     json.load(f), key=lambda member: member['name'].split()[-1]
+            # )
+            # this works, but only if everyone on team.json matches the sort_order terms exactly, no exceptions
+            sort_order = ["Staff", "Fellow", "Volunteer"]
             team_members: list[dict[str, str]] = sorted(
-                json.load(f), key=lambda member: member['name'].split()[-1]
-            )
+                json.load(f), key=lambda member: (sort_order.index(member.get('role', '')), member['name'].split()[-1])
+                )
             return render_template("about/index.html", team_members=team_members)
 
 

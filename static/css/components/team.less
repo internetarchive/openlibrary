@@ -23,12 +23,12 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 375px;
+  // height: 280px;
   align-items: center;
   position: relative;
   border-radius: 2rem;
   &__container {
-    height: 450px;
+    height: 340px;
     width: 280px;
     display: flex;
     align-items: flex-end;
@@ -60,25 +60,26 @@
 }
 
 .description {
-  &__name {
+  &__name--length-long {
     text-decoration: underline;
-    padding-top: 90px;
+    padding-top: 80px;
+    font-size: 18px;
+    margin-bottom: 0px;
+  }
+  &__name--length-short {
+    text-decoration: underline;
+    padding-top: 68px;
+    margin-bottom: 0px;
   }
   &__role {
-    font-weight: 400;
-    height: 35px;
-    font-size: 18px;
-  }
-  &__status {
     padding-top: 5px;
     padding-bottom: 5px;
     height: 28px;
   }
-  &__bio {
-    padding: 15px;
-    margin: 0;
-    line-height: 130%;
-    height: 130px;
+    &__department {
+    font-weight: 400;
+    height: 35px;
+    font-size: 18px;
   }
   &__links {
     display: flex;
@@ -91,7 +92,7 @@
 
 .description__role,
 .description__name,
-.description__status {
+.description__department {
   margin: 0;
   padding-left: 15px;
   padding-right: 15px;
