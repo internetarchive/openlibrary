@@ -79,7 +79,7 @@ $if owners_page:
       $# Start : Persona research banner
       $if user:
         $if user.is_screener_eligible():
-          $ banner_key = 'edu-2023-08'
+          $ banner_key = 'pr2308'
           $ hide_banner = user.preferences().get('hidden-banner') == banner_key
           $if not hide_banner:
             $ announcement = _('Are you a K-12 or University educator or student? Please <a href="/" class="btn primary">help us improve</a>')
