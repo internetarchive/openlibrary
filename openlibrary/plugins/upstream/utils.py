@@ -1313,7 +1313,7 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
 
 
 @cache.memoize(engine="memcache", key="edu_domains", expires=0)
-def get_edu_domains() -> dict[str, bool]:
+def get_edu_domains() -> list[str]:
     """
     This list created using this gist: https://gist.github.com/jimchamp/f67ef14c3bcf11593f393ee5288f6476 on
     https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json.
