@@ -11,7 +11,6 @@ $.fn.focusNextInputField = function() {
 };
 
 // closes active popup
-// used in templates/covers/saved.html
 export function closePopup() {
     parent.jQuery.fn.colorbox.close();
 }
