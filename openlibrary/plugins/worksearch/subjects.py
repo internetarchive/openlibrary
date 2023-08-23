@@ -363,7 +363,7 @@ class SubjectEngine:
                     'name': tag.name,
                     'id': tag.key,
                     'description': tag.tag_description,
-                    'plugins': json.loads(tag.tag_plugins),
+                    'plugins': json.loads(tag.tag_plugins) if tag.tag_plugins else {},
                 }
                 subject.tag = match
 
