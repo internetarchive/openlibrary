@@ -23,6 +23,11 @@ from openlibrary.plugins.upstream.utils import render_template
 logger = logging.getLogger("openlibrary.tag")
 
 
+@public
+def get_tag_types():
+    return ["subject", "work", "collection"]
+
+
 class addtag(delegate.page):
     path = '/tag/add'
 
@@ -38,9 +43,9 @@ class addtag(delegate.page):
         """
         Can a tag be added?
         """
-        return web.ctx.user and (
-            web.ctx.user.is_usergroup_member('/usergroup/super-librarians')
-        )
+
+        user = web.ctx.site.get_user()
+        return user and (user.is_usergroup_member('/usergroup/super-librarians'))
 
     def POST(self):
         i = web.input(
@@ -152,24 +157,6 @@ class tag_edit(delegate.page):
         i = utils.unflatten(i)
         tag = trim_doc(i)
         return tag
-
-
-@public
-def process_plugins_data(data):
-    plugin_type = list(data.keys())[0]
-    # Split the string into key-value pairs
-    parameters = data[plugin_type].split(',')
-
-    # Create a dictionary to store the formatted parameters
-    plugin_data = {}
-
-    # Iterate through the pairs and extract the key-value information
-    for pair in parameters:
-        key, value = pair.split('=')
-        key = key.strip()
-        plugin_data[key] = eval(value)
-
-    return plugin_type, plugin_data
 
 
 def setup():

@@ -204,10 +204,7 @@ def render_component(
         html += '<script src="%s"></script>' % url
         included.append(name)
 
-    html += '<ol-{name} {attrs}></ol-{name}>'.format(
-        name=kebab_case(name),
-        attrs=attrs_str,
-    )
+    html += f'<ol-{kebab_case(name)} {attrs_str}></ol-{kebab_case(name)}>'
     return html
 
 

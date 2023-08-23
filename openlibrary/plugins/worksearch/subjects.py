@@ -359,12 +359,12 @@ class SubjectEngine:
             match = web.ctx.site.things(q)
             if match:
                 tag = web.ctx.site.get(match[0])
-                match = dict(
-                    name=tag.name,
-                    id=tag.key,
-                    description=tag.tag_description,
-                    plugins=json.loads(tag.tag_plugins),
-                )
+                match = {
+                    'name': tag.name,
+                    'id': tag.key,
+                    'description': tag.tag_description,
+                    'plugins': json.loads(tag.tag_plugins),
+                }
                 subject.tag = match
 
         return subject

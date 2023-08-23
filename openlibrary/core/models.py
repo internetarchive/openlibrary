@@ -803,6 +803,9 @@ class User(Thing):
             usergroup = '/usergroup/%s' % usergroup
         return usergroup in [g.key for g in self.usergroups]
 
+    def has_cookie(self, name):
+        return web.cookies().get(name, False)
+
     def is_printdisabled(self):
         return web.cookies().get('pd')
 
@@ -1166,12 +1169,6 @@ class Tag(Thing):
                 comment=comment,
             )
             return key
-
-    def url(self, suffix="", **params):
-        return self.get_url(suffix, **params)
-
-    def get_url_suffix(self):
-        return self.name or "unnamed"
 
 
 @dataclass

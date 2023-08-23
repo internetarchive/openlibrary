@@ -4,8 +4,8 @@ import tarfile
 import web
 import os
 import sys
-import subprocess
 import time
+from subprocess import run
 
 from openlibrary.coverstore import config, db
 from openlibrary.coverstore.coverlib import find_image_path
@@ -100,7 +100,7 @@ def is_uploaded(item: str, filename_pattern: str) -> bool:
     :param filename_pattern: filename pattern to look for
     """
     command = fr'ia list {item} | grep "{filename_pattern}\.[tar|index]" | wc -l'
-    result = subprocess.run(command, shell=True, text=True, capture_output=True)
+    result = run(command, shell=True, text=True, capture_output=True, check=True)
     output = result.stdout.strip()
     return int(output) == 2
 

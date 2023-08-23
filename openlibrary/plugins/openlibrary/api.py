@@ -658,13 +658,14 @@ class hide_banner(delegate.page):
 
     def POST(self):
         data = json.loads(web.data())
-        user = accounts.get_current_user()
 
-        user.save_preferences({'hidden-banner': data['storage-key']})
+        # Set truthy cookie that expires in 30 days:
+        DAY_SECONDS = 60 * 60 * 24
+        cookie_duration_days = int(data.get('cookie-duration-days', 30))
+        web.setcookie(
+            data['cookie-name'], '1', expires=(cookie_duration_days * DAY_SECONDS)
+        )
 
-        def response(msg, status="success"):
-            return delegate.RawText(
-                json.dumps({status: msg}), content_type="application/json"
-            )
-
-        return response('Preference saved')
+        return delegate.RawText(
+            json.dumps({'success': 'Preference saved'}), content_type="application/json"
+        )
