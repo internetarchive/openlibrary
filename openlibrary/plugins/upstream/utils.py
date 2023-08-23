@@ -1322,10 +1322,10 @@ def get_edu_domains() -> dict[str, bool]:
     """
     p = Path(Path.cwd(), 'static', 'edu-domains.txt')
 
-    results = {}
+    results = []
     with p.open() as f:
         for line in f:
-            results[line] = True
+            results.append(line.strip())
 
     return results
 
