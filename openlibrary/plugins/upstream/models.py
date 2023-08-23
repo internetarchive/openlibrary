@@ -1016,6 +1016,12 @@ class ListChangeset(Changeset):
         return models.Seed(self.get_list(), seed)
 
 
+class Tag(models.Tag):
+    """Class to represent /type/tag objects in Open Library."""
+
+    pass
+
+
 def setup():
     models.register_models()
 
@@ -1027,6 +1033,7 @@ def setup():
     client.register_thing_class('/type/place', SubjectPlace)
     client.register_thing_class('/type/person', SubjectPerson)
     client.register_thing_class('/type/user', User)
+    client.register_thing_class('/type/tag', Tag)
 
     client.register_changeset_class(None, Changeset)  # set the default class
     client.register_changeset_class('merge-authors', MergeAuthors)
