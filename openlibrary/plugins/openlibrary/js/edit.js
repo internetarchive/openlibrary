@@ -156,7 +156,8 @@ export function parseIsbn(isbn) {
  * @param {Object} data  data from the input form, gathered via js/jquery.repeat.js
  * @param {String} isbnConfirmString  a const with the HTML to create the confirmation message/buttons
  */
-export function isbnConfirmAdd(data, isbnConfirmString) {
+export function isbnConfirmAdd(data) {
+    const isbnConfirmString = `ISBN ${data.value} may be invalid. Add it anyway? <button class="repeat-add" id="yes-add-isbn" type="button">Yes</button>&nbsp;<button id="do-not-add-isbn" type="button">No</button>`;
     // Display the error and option to add the ISBN anyway.
     $('#id-errors').show().html(isbnConfirmString);
 
@@ -177,15 +178,68 @@ export function isbnConfirmAdd(data, isbnConfirmString) {
 }
 
 /**
+ * Called by validateIdentifiers(), validates the addition of new
+ * ISBN 10 to an edition.
+ * @params {Object} data  data from the input form
+ * @params {Object} dataConfig
+ * @params {String} label formatted value of the identifier type name
+ * @returns {boolean}  true if ISBN passes validation
+ */
+function validateIsbn10(data, dataConfig, label) {
+    data.value = parseIsbn(data.value);
+
+    if (isFormatValidIsbn10(data.value) === false) {
+        return error('#id-errors', 'id-value', dataConfig['ID must be exactly 10 characters [0-9] or X.'].replace(/ID/, label));
+    }
+    else if (isIsbnDupe(data.value) === true) {
+        return error('#id-errors', 'id-value', dataConfig['That ISBN already exists for this edition.'].replace(/ISBN/, label));
+    }
+    // Here the ISBN has a valid format, but also has an invalid checksum. Give the user a chance to verify
+    // the ISBN, as books sometimes issue with invalid ISBNs and we want to be able to add them.
+    // See https://en-academic.com/dic.nsf/enwiki/8948#cite_ref-18 for more.
+    else if (isFormatValidIsbn10(data.value) === true && isChecksumValidIsbn10(data.value) === false) {
+        isbnConfirmAdd(data)
+        return false
+    }
+    return true;
+}
+
+/**
+ * Called by validateIdentifiers(), validates the addition of new
+ * ISBN 13 to an edition.
+ * @params {Object} data  data from the input form
+ * @params {Object} dataConfig
+ * @params {String} label formatted value of the identifier type name
+ * @returns {boolean}  true if ISBN passes validation
+ */
+function validateIsbn13(data, dataConfig, label) {
+    data.value = parseIsbn(data.value);
+
+    if (isFormatValidIsbn13(data.value) === false) {
+        return error('#id-errors', 'id-value', dataConfig['ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4'].replace(/ID/, label));
+    }
+    else if (isIsbnDupe(data.value) === true) {
+        return error('#id-errors', 'id-value', dataConfig['That ISBN already exists for this edition.'].replace(/ISBN/, label));
+    }
+    // Here the ISBN has a valid format, but also has an invalid checksum. Give the user a chance to verify
+    // the ISBN, as books sometimes issue with invalid ISBNs and we want to be able to add them.
+    // See https://en-academic.com/dic.nsf/enwiki/8948#cite_ref-18 for more.
+    else if (isFormatValidIsbn13(data.value) === true && isChecksumValidIsbn13(data.value) === false) {
+        isbnConfirmAdd(data)
+        return false
+    }
+    return true;
+}
+
+/**
  * Called by initIdentifierValidation(), along with tests in
  * tests/unit/js/editEditionsPage.test.js, to validate the addition of new
- * ISBNs to an edition.
+ * identifiers (ISBN, LCCN) to an edition.
  * @params {Object} data  data from the input form
  * @returns {boolean}  true if ISBN passes validation
  */
 export function validateIdentifiers(data) {
     const dataConfig = JSON.parse(document.querySelector('#identifiers').dataset.config);
-    const isbnConfirmString = `ISBN ${data.value} may be invalid. Add it anyway? <button class="repeat-add" id="yes-add-isbn" type="button">Yes</button>&nbsp;<button id="do-not-add-isbn" type="button">No</button>`;
 
     if (data.name === '' || data.name === '---') {
         return error('#id-errors', 'select-id', dataConfig['Please select an identifier.'])
@@ -197,39 +251,18 @@ export function validateIdentifiers(data) {
     if (['ocaid'].includes(data.name) && /\s/g.test(data.value)) {
         return error('#id-errors', 'id-value', dataConfig['ID ids cannot contain whitespace.'].replace(/ID/, label));
     }
-    // Remove spaces and hyphens before checking ISBN 10.
+
+    let validId = false;
+
     if (data.name === 'isbn_10') {
-        data.value = parseIsbn(data.value);
+        validId = validateIsbn10(data, dataConfig, label);
     }
-    if (data.name === 'isbn_10' && isFormatValidIsbn10(data.value) === false) {
-        return error('#id-errors', 'id-value', dataConfig['ID must be exactly 10 characters [0-9] or X.'].replace(/ID/, label));
+    else if (data.name === 'isbn_13') {
+        validId = validateIsbn13(data, dataConfig, label);
     }
-    if (data.name === 'isbn_10' && isIsbnDupe(data.value) === true) {
-        return error('#id-errors', 'id-value', dataConfig['That ISBN already exists for this edition.'].replace(/ISBN/, label));
-    }
-    // Remove spaces and hyphens before checking ISBN 13.
-    if (data.name === 'isbn_13') {
-        data.value = parseIsbn(data.value);
-    }
-    if (data.name === 'isbn_13' && isFormatValidIsbn13(data.value) === false) {
-        return error('#id-errors', 'id-value', dataConfig['ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4'].replace(/ID/, label));
-    }
-    if (data.name === 'isbn_13' && isIsbnDupe(data.value) === true) {
-        return error('#id-errors', 'id-value', dataConfig['That ISBN already exists for this edition.'].replace(/ISBN/, label));
-    }
-    // Here the ISBN has a valid format, but also has an invalid checksum. Give the user a chance to verify
-    // the ISBN, as books sometimes issue with invalid ISBNs and we want to be able to add them.
-    // See https://en-academic.com/dic.nsf/enwiki/8948#cite_ref-18 for more.
-    if (data.name === 'isbn_10' && isFormatValidIsbn10(data.value) === true && isChecksumValidIsbn10(data.value) === false) {
-        isbnConfirmAdd(data, isbnConfirmString)
-        return false
-    }
-    if (data.name === 'isbn_13' && isFormatValidIsbn13(data.value) === true && isChecksumValidIsbn13(data.value) === false) {
-        isbnConfirmAdd(data, isbnConfirmString)
-        return false
-    }
-    $('#id-errors').hide();
-    return true;
+    
+    if (validId) $('#id-errors').hide();
+    return validId;
 }
 
 export function initIdentifierValidation() {
