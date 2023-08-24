@@ -1,18 +1,22 @@
 from .. import archive
 
+
 def test_get_filename():
     # Basic usage
     assert archive.Batch.get_relpath("0008", "80") == "covers_0008/covers_0008_80"
 
     # Sizes
     assert (
-        archive.Batch.get_relpath("0008", "80", size="s") == "s_covers_0008/s_covers_0008_80"
+        archive.Batch.get_relpath("0008", "80", size="s")
+        == "s_covers_0008/s_covers_0008_80"
     )
     assert (
-        archive.Batch.get_relpath("0008", "80", size="m") == "m_covers_0008/m_covers_0008_80"
+        archive.Batch.get_relpath("0008", "80", size="m")
+        == "m_covers_0008/m_covers_0008_80"
     )
     assert (
-        archive.Batch.get_relpath("0008", "80", size="l") == "l_covers_0008/l_covers_0008_80"
+        archive.Batch.get_relpath("0008", "80", size="l")
+        == "l_covers_0008/l_covers_0008_80"
     )
 
     # Ext

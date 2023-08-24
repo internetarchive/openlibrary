@@ -304,8 +304,13 @@ class cover:
         web.header('Content-Type', 'image/jpeg')
         try:
             from openlibrary.coverstore import archive
+
             if d.id >= 8_820_000 and d.uploaded and '.zip' in d.filename:
-                raise web.found(archive.Cover.get_cover_url(d.id, size=size, protocol=web.ctx.protocol))
+                raise web.found(
+                    archive.Cover.get_cover_url(
+                        d.id, size=size, protocol=web.ctx.protocol
+                    )
+                )
             return read_image(d, size)
         except OSError:
             raise web.notfound()

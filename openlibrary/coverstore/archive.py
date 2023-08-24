@@ -27,7 +27,6 @@ def log(*args):
 
 
 class Uploader:
-
     @staticmethod
     def _get_s3():
         s3_keys = config.get('ia_s3_covers')
@@ -38,15 +37,20 @@ class Uploader:
         md = {
             "title": "Open Library Cover Archive",
             "mediatype": "data",
-            "collection": ["ol_data","ol_exports"]
+            "collection": ["ol_data", "ol_exports"],
         }
         access_key, secret_key = cls._get_s3()
         return ia.get_item(itemname).upload(
-            filepaths, metadata=md, retries=10, verbose=True, access_key=access_key, secret_key=secret_key
+            filepaths,
+            metadata=md,
+            retries=10,
+            verbose=True,
+            access_key=access_key,
+            secret_key=secret_key,
         )
 
     @staticmethod
-    def is_uploaded(item: str, filename: str, verbose:bool=False) -> bool:
+    def is_uploaded(item: str, filename: str, verbose: bool = False) -> bool:
         """
         Looks within an archive.org item and determines whether
         either a .zip files exists
@@ -64,7 +68,6 @@ class Uploader:
 
 
 class Batch:
-
     @staticmethod
     def get_relpath(item_id, batch_id, ext="", size=""):
         """e.g. s_covers_0008/s_covers_0008_82.zip or covers_0008/covers_0008_82.zip"""
@@ -83,8 +86,7 @@ class Batch:
     @staticmethod
     def zip_path_to_item_and_batch_id(zpath):
         zfilename = zpath.split(os.path.sep)[-1]
-        match = re.match(r"(?:[lsm]_)?covers_(\d+)_(\d+)\.zip", zfilename)
-        if match:
+        if match := re.match(r"(?:[lsm]_)?covers_(\d+)_(\d+)\.zip", zfilename):
             return match.group(1), match.group(2)
 
     @classmethod
@@ -107,7 +109,8 @@ class Batch:
 
             for size in BATCH_SIZES:
                 itemname, filename = cls.get_relpath(
-                    item_id, batch_id, ext="zip", size=size).split(os.path.sep)
+                    item_id, batch_id, ext="zip", size=size
+                ).split(os.path.sep)
 
                 # TODO Uploader.check_item_health(itemname)
                 # to ensure no conflicting tasks/redrows
@@ -116,12 +119,14 @@ class Batch:
                 if not zip_uploaded:
                     batch_complete = False
                     zip_complete, errors = cls.is_zip_complete(
-                        item_id, batch_id, size=size, verbose=True)
+                        item_id, batch_id, size=size, verbose=True
+                    )
                     print(f"* Completed? {zip_complete} {errors or ''}")
                     if zip_complete and upload:
                         print(f"=> Uploading {filename} to {itemname}")
                         fullpath = os.path.join(
-                            config.data_root, "items", itemname, filename)
+                            config.data_root, "items", itemname, filename
+                        )
                         Uploader.upload(itemname, fullpath)
 
             print(f"* Finalize? {finalize}")
@@ -145,9 +150,7 @@ class Batch:
         """
         zipfiles = []
         # find any zips on disk of any size
-        item_dirs = glob.glob(
-            os.path.join(config.data_root, "items", "covers_*")
-        )
+        item_dirs = glob.glob(os.path.join(config.data_root, "items", "covers_*"))
         for item_dir in item_dirs:
             zipfiles.extend(glob.glob(os.path.join(item_dir, "*.zip")))
 
@@ -183,8 +186,10 @@ class Batch:
     def finalize(cls, start_id, test=True):
         """Update all covers in batch to point to zips, delete files, set deleted=True"""
         cdb = CoverDB()
-        covers = (Cover(**c) for c in cdb._get_batch(
-            start_id=start_id, failed=False, uploaded=False))
+        covers = (
+            Cover(**c)
+            for c in cdb._get_batch(start_id=start_id, failed=False, uploaded=False)
+        )
 
         for cover in covers:
             if not cover.has_valid_files():
@@ -252,9 +257,7 @@ class CoverDB:
         )
 
     def get_unarchived_covers(self, limit, **kwargs):
-        return self.get_covers(
-            limit=limit, failed=False, archived=False, **kwargs
-        )
+        return self.get_covers(limit=limit, failed=False, archived=False, **kwargs)
 
     def _get_current_batch_start_id(self, **kwargs):
         c = self.get_covers(limit=1, **kwargs)[0]
@@ -266,7 +269,9 @@ class CoverDB:
 
     def get_batch_unarchived(self, start_id=None):
         return self._get_batch(
-            start_id=start_id, failed=False, archived=False,
+            start_id=start_id,
+            failed=False,
+            archived=False,
         )
 
     def get_batch_archived(self, start_id=None):
@@ -291,18 +296,14 @@ class CoverDB:
             where="id>=$start_id AND id<$end_id AND archived=true AND failed=false AND uploaded=false",
             vars={'start_id': start_id, 'end_id': end_id},
             uploaded=True,
-            filename=Batch.get_relpath(
-                item_id, batch_id, ext="zip"),
-            filename_s=Batch.get_relpath(
-                item_id, batch_id, ext="zip", size="s"),
-            filename_m=Batch.get_relpath(
-                item_id, batch_id, ext="zip", size="m"),
-            filename_l=Batch.get_relpath(
-                item_id, batch_id, ext="zip", size="l"),
+            filename=Batch.get_relpath(item_id, batch_id, ext="zip"),
+            filename_s=Batch.get_relpath(item_id, batch_id, ext="zip", size="s"),
+            filename_m=Batch.get_relpath(item_id, batch_id, ext="zip", size="m"),
+            filename_l=Batch.get_relpath(item_id, batch_id, ext="zip", size="l"),
         )
 
-class Cover(web.Storage):
 
+class Cover(web.Storage):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.files = self.get_files()
@@ -319,7 +320,8 @@ class Cover(web.Storage):
     @property
     def timestamp(self):
         t = (
-            utils.parse_datetime(self.created) if isinstance(self.created, str)
+            utils.parse_datetime(self.created)
+            if isinstance(self.created, str)
             else self.created
         )
         return time.mktime(t.timetuple())
@@ -377,7 +379,8 @@ def archive(limit=None, start_id=None):
 
     try:
         covers = (
-            cdb.get_unarchived_covers(limit=limit) if limit
+            cdb.get_unarchived_covers(limit=limit)
+            if limit
             else cdb.get_batch_unarchived(start_id=start_id)
         )
 
@@ -392,9 +395,7 @@ def archive(limit=None, start_id=None):
                 continue
 
             for d in cover.files.values():
-                file_manager.add_file(
-                    d.name, filepath=d.path, mtime=cover.timestamp
-                )
+                file_manager.add_file(d.name, filepath=d.path, mtime=cover.timestamp)
             cdb.update(cover.id, archived=True)
     finally:
         file_manager.close()
@@ -416,7 +417,10 @@ def audit(item_id, batch_ids=(0, 100), sizes=BATCH_SIZES) -> None:
     """
     scope = range(*(batch_ids if isinstance(batch_ids, tuple) else (0, batch_ids)))
     for size in sizes:
-        files = (Batch.get_relpath(f"{item_id:04}", f"{i:02}", ext="zip", size=size) for i in scope)
+        files = (
+            Batch.get_relpath(f"{item_id:04}", f"{i:02}", ext="zip", size=size)
+            for i in scope
+        )
         missing_files = []
         sys.stdout.write(f"\n{size or 'full'}: ")
         for f in files:
@@ -449,7 +453,6 @@ class ZipManager:
             command, shell=True, text=True, capture_output=True, check=True
         )
         return int(result.stdout.strip())
-
 
     def get_zipfile(self, name):
         cid = web.numify(name)
