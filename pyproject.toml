@@ -4,7 +4,7 @@
 # character.
 
 [project]
-requires-python = "3.11.1"
+requires-python = '3.11.1'
 
 [tool.black]
 skip-string-normalization = true
