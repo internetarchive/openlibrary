@@ -1,4 +1,4 @@
-import { isChecksumValidIsbn10, isChecksumValidIsbn13 } from '../../../openlibrary/plugins/openlibrary/js/edit.js';
+import { isChecksumValidIsbn10, isChecksumValidIsbn13 } from '../../../openlibrary/plugins/openlibrary/js/idValidation.js';
 import { validateIdentifiers } from '../../../openlibrary/plugins/openlibrary/js/edit.js';
 import sinon from 'sinon';
 import * as testData from './html-test-data';
