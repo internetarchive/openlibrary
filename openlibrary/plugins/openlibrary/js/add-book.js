@@ -1,4 +1,10 @@
-import {parseIsbn, isFormatValidIsbn10, isChecksumValidIsbn10, isFormatValidIsbn13, isChecksumValidIsbn13} from './edit.js'
+import {
+    parseIsbn,
+    isChecksumValidIsbn10,
+    isChecksumValidIsbn13,
+    isFormatValidIsbn10,
+    isFormatValidIsbn13
+} from './idValidation.js'
 
 let invalidChecksum;
 let invalidIsbn10;
