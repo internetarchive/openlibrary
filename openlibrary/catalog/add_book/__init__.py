@@ -840,6 +840,29 @@ def resolve_author_redirects(edition: "Edition") -> "Edition":
     return edition
 
 
+def get_or_create_work(
+    edition: "Edition", record: dict
+) -> tuple["Edition", dict, bool]:
+    """
+    Get the existing work from edition, or create a new work and add it to
+    the edition.
+
+    Returns the edition, the work, and a bool used to indicate whether saving
+    is necessary.
+    """
+    work: dict[str, Any]
+    if edition.get('works'):
+        work = edition.works[0].dict()
+        work_created = False
+    else:
+        # Found an edition without a work
+        work_created = True
+        work = new_work(edition.dict(), record)
+        edition.works = [{'key': work['key']}]
+
+    return (edition, work, work_created)
+
+
 def add_subjects_to_work(
     record: dict, work: dict[str, Any]
 ) -> tuple[dict[str, Any], bool]:
@@ -1019,19 +1042,11 @@ def load(incoming_record, account_key=None) -> dict:
         return load_data(record, account_key=account_key)
 
     # We have an edition match at this point
-    work: dict[str, Any]
     edition: Edition = web.ctx.site.get(edition_match)
     edition = resolve_author_redirects(edition)
 
-    # Get or create the work.
-    if edition.get('works'):
-        work = edition.works[0].dict()
-        work_created = False
-    else:
-        # Found an edition without a work
-        work_created = True
-        work = new_work(edition.dict(), record)
-        edition.works = [{'key': work['key']}]
+    # Get or create a work.
+    edition, work, work_created = get_or_create_work(edition, record)
 
     # Enrich the edition by adding certain fields present in incoming_record
     # but absent in the edition.
