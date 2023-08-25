@@ -650,9 +650,9 @@ def load_data(rec, account_key=None):
         edition = build_query(rec)
     except InvalidLanguage as e:
         return {
-                'success': False,
-                'error': str(e),
-                }
+            'success': False,
+            'error': str(e),
+        }
 
     ekey = web.ctx.site.new_key('/type/edition')
     cover_id = None
@@ -665,13 +665,13 @@ def load_data(rec, account_key=None):
     reply = {}
     # TOFIX: edition.authors has already been processed by import_authors() in build_query(), following line is a NOP?
     author_in = [
-            import_author(a, eastern=east_in_by_statement(rec, a))
-            for a in edition.get('authors', [])
-            ]
+        import_author(a, eastern=east_in_by_statement(rec, a))
+        for a in edition.get('authors', [])
+    ]
     # build_author_reply() adds authors to edits
     (authors, author_reply) = build_author_reply(
-            author_in, edits, rec['source_records'][0]
-            )
+        author_in, edits, rec['source_records'][0]
+    )
 
     if authors:
         edition['authors'] = authors
@@ -692,8 +692,8 @@ def load_data(rec, account_key=None):
                 continue
             for s in rec[k]:
                 if normalize(s) not in [
-                        normalize(existing) for existing in w.get(k, [])
-                        ]:
+                    normalize(existing) for existing in w.get(k, [])
+                ]:
                     w.setdefault(k, []).append(s)
                     need_update = True
         if cover_id:
@@ -752,7 +752,7 @@ def validate_record(rec: dict) -> None:
         raise SourceNeedsISBN
 
 
-def find_match(rec, edition_pool) -> str | None:
+def find_edition_match(rec, edition_pool) -> str | None:
     """Use rec to try to find an existing edition key that matches."""
     match = find_quick_match(rec)
     if not match:
@@ -770,36 +770,36 @@ def find_match(rec, edition_pool) -> str | None:
     return match
 
 
-def get_missing_fields(rec: dict) -> list[str]:
+def get_missing_fields(record: dict) -> list[str]:
     """Return a list of the missing fields, if any, in rec."""
-    return [field for field in REQUIRED_FIELDS if not rec.get(field)]
+    return [field for field in REQUIRED_FIELDS if not record.get(field)]
 
 
-def ensure_source_records_is_list(rec: dict) -> dict:
+def ensure_source_records_is_list(record: dict) -> dict:
     """Ensure rec['source_records'] is a list and return rec."""
-    if not isinstance(rec['source_records'], list):
-        rec['source_records'] = [rec['source_records']]
+    if not isinstance(record['source_records'], list):
+        record['source_records'] = [record['source_records']]
 
-    return rec
+    return record
 
 
-def split_subtitle_if_needed(rec: dict) -> dict:
+def split_subtitle_if_needed(record: dict) -> dict:
     """
     Split the subtitle from the title if there is no subtitle and the
     title has a colon in it.
 
     Returns potentially modified record.
     """
-    if ':' in rec.get('title', '') and not rec.get('subtitle'):
-        title, subtitle = split_subtitle(rec.get('title'))
+    if ':' in record.get('title', '') and not record.get('subtitle'):
+        title, subtitle = split_subtitle(record.get('title'))
         if subtitle:
-            rec['title'] = title
-            rec['subtitle'] = subtitle
+            record['title'] = title
+            record['subtitle'] = subtitle
 
-    return rec
+    return record
 
 
-def deduplicate_authors(rec: dict) -> dict:
+def deduplicate_authors(recrd: dict) -> dict:
     """
     Deduplicate authors from rec, as needed.
     Returns the deduplicated records.
@@ -808,125 +808,130 @@ def deduplicate_authors(rec: dict) -> dict:
     any special operations vis-a-vis authors. See `uniq` in
     openlibrary/utils/__init__.py
     """
-    rec['authors'] = uniq(rec.get('authors', []), dicthash)
-    return rec
+    recrd['authors'] = uniq(recrd.get('authors', []), dicthash)
+    return recrd
 
 
-def add_full_title(rec: dict) -> dict:
+def add_full_title(record: dict) -> dict:
     """
     Add 'full_title' to rec by conjoining 'title' and 'subtitle'.
     expand_record() uses this for matching.
     """
-    rec['full_title'] = rec['title']
-    if subtitle := rec.get('subtitle'):
-        rec['full_title'] += ' ' + subtitle
+    record['full_title'] = record['title']
+    if subtitle := record.get('subtitle'):
+        record['full_title'] += ' ' + subtitle
 
-    return rec
+    return record
 
 
-def resolve_author_redirects(e: "Edition") -> "Edition":
+def resolve_author_redirects(edition: "Edition") -> "Edition":
     """
     Check for and resolve author redirects.
     Returns a possibly updated edition.
     """
-    for author in e.authors:
+    for author in edition.authors:
         while is_redirect(author):
-            if author in e.authors:
-                e.authors.remove(author)
+            if author in edition.authors:
+                edition.authors.remove(author)
             author = web.ctx.site.get(author.location)
             if not is_redirect(author):
-                e.authors.append(author)
+                edition.authors.append(author)
 
-    return e
+    return edition
 
 
 def add_subjects_to_work(
-    rec: dict, work: dict[str, Any], need_work_save: bool
+    record: dict, work: dict[str, Any]
 ) -> tuple[dict[str, Any], bool]:
     """
     Add subjects to work, if not already present, and return the work.
     """
-    if 'subjects' in rec:
+    updated = False
+    if 'subjects' in record:
         work_subjects = list(work.get('subjects', []))
-        for s in rec['subjects']:
+        for s in record['subjects']:
             if s not in work_subjects:
                 work_subjects.append(s)
-                need_work_save = True
+                updated = True
 
-        if need_work_save and work_subjects:
+        if updated and work_subjects:
             work['subjects'] = work_subjects
 
-    return (work, need_work_save)
+    return (work, updated)
 
 
 def add_cover_to_edition(
-    rec: dict, edition: "Edition", need_edition_save: bool, account_key: str | None = None
+    record: dict,
+    edition: "Edition",
+    account_key: str | None = None,
 ) -> tuple["Edition", bool]:
     """Add a cover to the edition, if needed."""
-    if 'cover' in rec and not edition.get_covers():
-        cover_url = rec['cover']
+    updated = False
+    if 'cover' in record and not edition.get_covers():
+        cover_url = record['cover']
         cover_id = add_cover(cover_url, edition.key, account_key=account_key)
         if cover_id:
             edition['covers'] = [cover_id]
-            need_edition_save = True
+            updated = True
 
-    return (edition, need_edition_save)
+    return (edition, updated)
 
 
 def add_cover_to_work(
-    work: dict[str, Any], e: "Edition", need_work_save: bool
+    work: dict[str, Any], edition: "Edition"
 ) -> tuple[dict[str, Any], bool]:
     """Add a cover to the work, if needed."""
-    if not work.get('covers') and e.get_covers():
-        work['covers'] = [e['covers'][0]]
-        need_work_save = True
+    updated = False
+    if not work.get('covers') and edition.get_covers():
+        work['covers'] = [edition['covers'][0]]
+        updated = True
 
-    return work, need_work_save
+    return work, updated
 
 
 def add_description_to_work(
-    work: dict[str, Any], e: "Edition", need_work_save: bool
+    work: dict[str, Any], edition: "Edition"
 ) -> tuple[dict[str, Any], bool]:
+    updated = False
     # Add description to work, if needed
-    if not work.get('description') and e.get('description'):
-        work['description'] = e['description']
-        need_work_save = True
+    if not work.get('description') and edition.get('description'):
+        work['description'] = edition['description']
+        updated = True
 
-    return (work, need_work_save)
+    return (work, updated)
 
 
 def add_authors_to_work(
-    rec: dict, work: dict[str, Any], need_work_save: bool
+    record: dict, work: dict[str, Any]
 ) -> tuple[dict[str, Any], bool]:
+    updated = False
     # Add authors to work, if needed
     if not work.get('authors'):
-        authors = [import_author(a) for a in rec.get('authors', [])]
+        authors = [import_author(author) for author in record.get('authors', [])]
         work['authors'] = [
-            {'type': {'key': '/type/author_role'}, 'author': a.key}
-            for a in authors
-            if a.get('key')
+            {'type': {'key': '/type/author_role'}, 'author': author.key}
+            for author in authors
+            if author.get('key')
         ]
         if work.get('authors'):
-            need_work_save = True
+            updated = True
 
-    return (work, need_work_save)
+    return (work, updated)
 
 
-def add_ocaid_to_edition(
-    rec: dict, e: "Edition", need_edition_save: bool
-) -> tuple["Edition", bool]:
+def add_ocaid_to_edition(record: dict, edition: "Edition") -> tuple["Edition", bool]:
     """Add the OCAID to the edition, if needed."""
-    if 'ocaid' in rec and not e.ocaid:
-        e['ocaid'] = rec['ocaid']
-        need_edition_save = True
+    updated = False
+    if 'ocaid' in record and not edition.ocaid:
+        edition['ocaid'] = record['ocaid']
+        updated = True
 
-    return (e, need_edition_save)
+    return (edition, updated)
 
 
-def add_fields_to_edition(
-    rec: dict, e: "Edition", need_edition_save: bool
-) -> tuple["Edition", bool]:
+def add_fields_to_edition(record: dict, edition: "Edition") -> tuple["Edition", bool]:
     """Add fields to edition as needed."""
+    updated = False
     edition_list_fields = [
         'local_id',
         'lccn',
@@ -934,19 +939,19 @@ def add_fields_to_edition(
         'oclc_numbers',
         'source_records',
     ]
-    for f in edition_list_fields:
-        if f not in rec or not rec[f]:
+    for field in edition_list_fields:
+        if field not in record or not record[field]:
             continue
         # ensure values is a list
-        values = rec[f] if isinstance(rec[f], list) else [rec[f]]
-        if f in e:
+        values = record[field] if isinstance(record[field], list) else [record[field]]
+        if field in edition:
             # get values from rec that are not currently on the edition
-            to_add = [v for v in values if v not in e[f]]
-            e[f] += to_add
+            to_add = [value for value in values if value not in edition[field]]
+            edition[field] += to_add
         else:
-            e[f] = to_add = values
+            edition[field] = to_add = values
         if to_add:
-            need_edition_save = True
+            updated = True
 
     other_edition_fields = [
         'description',
@@ -954,20 +959,19 @@ def add_fields_to_edition(
         'publishers',
         'publish_date',
     ]
-    for f in other_edition_fields:
-        if f not in rec or not rec[f]:
+    for field in other_edition_fields:
+        if field not in record or not record[field]:
             continue
-        if f not in e:
-            e[f] = rec[f]
-            need_edition_save = True
+        if field not in edition:
+            edition[field] = record[field]
+            updated = True
 
-    return (e, need_edition_save)
+    return (edition, updated)
 
 
-def add_identifiers_to_edition(
-    rec: dict, e: "Edition", need_edition_save
-) -> tuple["Edition", bool]:
+def add_identifiers_to_edition(rec: dict, e: "Edition") -> tuple["Edition", bool]:
     """Add identifiers to edition as needed."""
+    updated = False
     if 'identifiers' in rec:
         identifiers = defaultdict(list, e.dict().get('identifiers', {}))
         for k, vals in rec['identifiers'].items():
@@ -975,8 +979,8 @@ def add_identifiers_to_edition(
             identifiers[k] = list(set(identifiers[k]))
         if e.dict().get('identifiers') != identifiers:
             e['identifiers'] = identifiers
-            need_edition_save = True
-    return (e, need_edition_save)
+            updated = True
+    return (e, updated)
 
 
 def load(incoming_record, account_key=None) -> dict:
@@ -988,8 +992,7 @@ def load(incoming_record, account_key=None) -> dict:
         * title: str
         * source_records: list
 
-    :param dict rec: Edition record to add
-    :rtype: dict
+    :param dict incoming_record: Edition record to add
     :return: a dict to be converted into a JSON HTTP response, same as load_data()
     """
     if not is_promise_item(incoming_record):
@@ -1010,15 +1013,14 @@ def load(incoming_record, account_key=None) -> dict:
         # No match candidates found, add edition
         return load_data(record, account_key=account_key)
 
-    match = find_match(record, edition_pool)
-    if not match:
+    edition_match = find_edition_match(record, edition_pool)
+    if not edition_match:
         # No match found, add edition
         return load_data(record, account_key=account_key)
 
     # We have an edition match at this point
-    need_work_save = need_edition_save = False
     work: dict[str, Any]
-    edition: Edition = web.ctx.site.get(match)
+    edition: Edition = web.ctx.site.get(edition_match)
     edition = resolve_author_redirects(edition)
 
     # Get or create the work.
@@ -1027,46 +1029,64 @@ def load(incoming_record, account_key=None) -> dict:
         work_created = False
     else:
         # Found an edition without a work
-        work_created = need_work_save = need_edition_save = True
+        work_created = True
         work = new_work(edition.dict(), record)
         edition.works = [{'key': work['key']}]
 
     # Enrich the edition by adding certain fields present in incoming_record
     # but absent in the edition.
-    edition, need_edition_save = add_cover_to_edition(
-        record, edition, need_edition_save, account_key
+    edition, edition_cover_updated = add_cover_to_edition(record, edition, account_key)
+    edition, edition_ocaid_updated = add_ocaid_to_edition(record, edition)
+    edition, edition_fields_updated = add_fields_to_edition(record, edition)
+    edition, edition_identifiers_updated = add_identifiers_to_edition(record, edition)
+
+    need_edition_save = any(
+        [
+            work_created,  # the edition needs the new work.
+            edition_cover_updated,
+            edition_ocaid_updated,
+            edition_fields_updated,
+            edition_identifiers_updated,
+        ]
     )
-    edition, need_edition_save = add_ocaid_to_edition(record, edition, need_edition_save)
-    edition, need_edition_save = add_fields_to_edition(record, edition, need_edition_save)
-    edition, need_edition_save = add_identifiers_to_edition(record, edition, need_edition_save)
 
     # Enrich the work by adding certain fields presennt in incoming_record but
     # absent in the work.
-    work, need_work_save = add_subjects_to_work(
-        rec=record, work=work, need_work_save=need_work_save
+    work, work_subjects_updated = add_subjects_to_work(record=record, work=work)
+    work, work_cover_updated = add_cover_to_work(work, edition)
+    work, work_description_updated = add_description_to_work(work, edition)
+    work, work_authors_updated = add_authors_to_work(record, work)
+
+    need_work_save = any(
+        [
+            work_created,
+            work_subjects_updated,
+            work_cover_updated,
+            work_description_updated,
+            work_authors_updated,
+        ]
     )
-    work, need_work_save = add_cover_to_work(work, edition, need_work_save)
-    work, need_work_save = add_description_to_work(work, edition, need_work_save)
-    work, need_work_save = add_authors_to_work(record, work, need_work_save)
 
     edits = []
     reply = {
         'success': True,
-        'edition': {'key': match, 'status': 'matched'},
+        'edition': {'key': edition_match, 'status': 'matched'},
         'work': {'key': work['key'], 'status': 'matched'},
     }
     if need_edition_save:
-        reply['edition']['status'] = 'modified'
+        reply['edition']['status'] = 'modified'  # type: ignore[index]
         edits.append(edition.dict())
     if need_work_save:
-        reply['work']['status'] = 'created' if work_created else 'modified'
+        reply['work']['status'] = (  # type: ignore[index]
+            'created' if work_created else 'modified'
+        )
         edits.append(work)
     if edits:
         web.ctx.site.save_many(
             edits, comment='import existing book', action='edit-book'
         )
     if 'ocaid' in record:
-        update_ia_metadata_for_ol_edition(match.split('/')[-1])
+        update_ia_metadata_for_ol_edition(edition_match.split('/')[-1])
 
     # TODO: add something to ensure `rec` hasn't changed from input.
     return reply

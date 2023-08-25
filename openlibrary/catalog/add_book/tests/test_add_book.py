@@ -1439,115 +1439,99 @@ def test_add_full_title(name, rec, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    "name, rec, work, need_work_save, expected",
+    "name, rec, work, expected",
     [
         (
             "Add subjects when work has existing subjects and record has additional subjects",
             {'subjects': ['Math', 'Science']},
             {'subjects': ['English']},
-            False,
             ({'subjects': ['English', 'Math', 'Science']}, True),
         ),
         (
             "Do not add subjects when work already has subjects and record has no subjects",
             {'subjects': []},
             {'subjects': ['Math', 'Science']},
-            False,
             ({'subjects': ['Math', 'Science']}, False),
         ),
         (
             "Do not add subjects when work and record have the same subjects",
             {'subjects': ['English', 'History']},
             {'subjects': ['English', 'History']},
-            False,
             ({'subjects': ['English', 'History']}, False),
         ),
         (
             "Do not add subjects when record has no subjects",
             {},
             {'subjects': ['Math', 'Science']},
-            False,
             ({'subjects': ['Math', 'Science']}, False),
         ),
     ],
 )
-def test_add_subjects_to_work(name, rec, work, need_work_save, expected):
-    assert add_subjects_to_work(rec, work, need_work_save) == expected, name
+def test_add_subjects_to_work(name, rec, work, expected):
+    assert add_subjects_to_work(rec, work) == expected, name
 
 
 @pytest.mark.parametrize(
-    "name, work, edition, need_work_save, expected",
+    "name, work, edition, expected",
     [
         (
             "Add description when work has no description and edition has a description",
             {'description': None},
             {'description': 'Sample description'},
-            False,
             ({'description': 'Sample description'}, True),
         ),
         (
             "Do not add description when work already has a description",
             {'description': 'Existing description'},
             {'description': 'New description'},
-            False,
             ({'description': 'Existing description'}, False),
         ),
         (
             "Do not add description when work and edition both have no description",
             {'description': None},
             {'description': None},
-            False,
             ({'description': None}, False),
         ),
         (
             "Do not add description when work has no description and edition has no description",
             {'description': None},
             {'description': None},
-            True,
-            ({'description': None}, True),
+            ({'description': None}, False),
         ),
     ],
 )
-def test_add_description_to_work(name, work, edition, need_work_save, expected):
-    assert (
-        add_description_to_work(work, edition, need_work_save) == expected
-    ), f"Test failed: {name}"
+def test_add_description_to_work(name, work, edition, expected):
+    assert add_description_to_work(work, edition) == expected, f"Test failed: {name}"
 
 
 @pytest.mark.parametrize(
-    "name, rec, edition, need_edition_save, expected",
+    "name, rec, edition, expected",
     [
         (
             "ocaid in rec and edition",
             {'ocaid': '456'},
             storage({'ocaid': '123'}),
-            False,
             ({'ocaid': '123'}, False),
         ),
         (
             "ocaid not in rec and not in edition",
             {},
             storage({'ocaid': ''}),
-            False,
             ({'ocaid': ''}, False),
         ),
         (
             "ocaid in edition but not in rec",
             {},
             storage({'ocaid': '123'}),
-            False,
             ({'ocaid': '123'}, False),
         ),
         (
             "ocaid in rec but not in edition",
             {'ocaid': '456'},
             storage({'ocaid': ''}),
-            False,
             ({'ocaid': '456'}, True),
         ),
     ],
 )
-def test_add_ocaid_to_edition(name, rec, edition, need_edition_save, expected):
-    assert (
-        add_ocaid_to_edition(rec, edition, need_edition_save) == expected
-    ), f"Test failed: {name}"
+def test_add_ocaid_to_edition(name, rec, edition, expected):
+    assert add_ocaid_to_edition(rec, edition) == expected, f"Test failed: {name}"
