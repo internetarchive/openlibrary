@@ -181,8 +181,8 @@ export function isbnConfirmAdd(data) {
  * Called by validateIdentifiers(), validates the addition of new
  * ISBN 10 to an edition.
  * @params {Object} data  data from the input form
- * @params {Object} dataConfig
- * @params {String} label formatted value of the identifier type name
+ * @params {Object} dataConfig  object mapping error messages to their string values
+ * @params {String} label  formatted value of the identifier type name (ISBN 10)
  * @returns {boolean}  true if ISBN passes validation
  */
 function validateIsbn10(data, dataConfig, label) {
@@ -208,8 +208,8 @@ function validateIsbn10(data, dataConfig, label) {
  * Called by validateIdentifiers(), validates the addition of new
  * ISBN 13 to an edition.
  * @params {Object} data  data from the input form
- * @params {Object} dataConfig
- * @params {String} label formatted value of the identifier type name
+ * @params {Object} dataConfig  object mapping error messages to their string values
+ * @params {String} label  formatted value of the identifier type name (ISBN 13)
  * @returns {boolean}  true if ISBN passes validation
  */
 function validateIsbn13(data, dataConfig, label) {
