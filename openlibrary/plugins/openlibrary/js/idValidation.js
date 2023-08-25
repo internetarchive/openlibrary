@@ -43,8 +43,8 @@ export function isChecksumValidIsbn10(isbn) {
  * @returns {boolean}  true if the isbn has a valid format
  */
 export function isFormatValidIsbn13(isbn) {
-  const regex = /^[0-9]{13}$/
-  return regex.test(isbn)
+  const regex = /^[0-9]{13}$/;
+  return regex.test(isbn);
 }
 
 /**
@@ -61,4 +61,44 @@ export function isChecksumValidIsbn13(isbn) {
 
   // The ISBN 13 is valid if the checksum mod 10 is 0.
   return sum % 10 === 0;
+}
+
+/**
+ * JS re-write of the existing python LCCN parsing found in /openlibrary/utils/lccn.py.
+ * Validates the syntax described at https://www.loc.gov/marc/lccn-namespace.html
+ * @param {String} lccn  LCCN string for parsing
+ * @returns {String}  parsed LCCN string, returns empty string if given LCCN fails parsing
+ */
+export function parseLccn(lccn) {
+  // cleaning initial lccn entry
+  let parsed = lccn
+    // any alpha characters need to be lowercase
+    .toLowerCase()
+    // remove any whitespace
+    .replace(/\s/g, '')
+    // remove leading and trailing dashes
+    .replace(/^[-]+/, '').replace(/[-]+$/, '')
+    // remove any revised text
+    .replace(/rev.*/g, '')
+    // remove first forward slash and everything to its right
+    .replace(/[\/]+.*$/, '');
+  
+  // splitting at hyphen and padding the right hand value with zeros up to 6 characters
+  let groups = parsed.match(/(.+)-+([0-9]+)/)
+  if (groups && groups.length == 3) {
+    return groups[1] + groups[2].padStart(6, '0');
+  }
+  return '';
+}
+
+/**
+ * Verify LCCN syntax. Based on instructions from https://www.loc.gov/marc/lccn-namespace.html.
+ * @param {String} lccn  LCCN string to test for valid syntax
+ * @returns {boolean}  true if given LCCN is valid syntax, false otherwise
+ */
+export function isValidLccn(lccn) {
+  // matching parsed entry to regex representing valid lccn
+  // regex taken from /openlibrary/utils/lccn.py
+  const regex = /([a-z]|[a-z]?([a-z]{2}|[0-9]{2})|[a-z]{2}[0-9]{2})?[0-9]{8}$/;
+  return regex.test(lccn);
 }

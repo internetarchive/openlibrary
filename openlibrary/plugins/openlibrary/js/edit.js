@@ -1,10 +1,12 @@
 import { isbnOverride } from './isbnOverride';
 import {
     parseIsbn,
+    parseLccn,
     isChecksumValidIsbn10,
     isChecksumValidIsbn13,
     isFormatValidIsbn10,
-    isFormatValidIsbn13
+    isFormatValidIsbn13,
+    isValidLccn
 } from './idValidation';
 /* global render_seed_field, render_language_field, render_lazy_work_preview, render_language_autocomplete_item, render_work_field, render_work_autocomplete_item */
 /* Globals are provided by the edit edition template */
@@ -125,7 +127,7 @@ export function isbnConfirmAdd(data) {
  * @param {Object} data  data from the input form
  * @param {Object} dataConfig  object mapping error messages to their string values
  * @param {String} label  formatted value of the identifier type name (ISBN 10)
- * @returns {boolean}  true if ISBN passes validation
+ * @returns {boolean}  true if ISBN passes validation, else returns false and displays appropriate error
  */
 function validateIsbn10(data, dataConfig, label) {
     data.value = parseIsbn(data.value);
@@ -152,7 +154,7 @@ function validateIsbn10(data, dataConfig, label) {
  * @param {Object} data  data from the input form
  * @param {Object} dataConfig  object mapping error messages to their string values
  * @param {String} label  formatted value of the identifier type name (ISBN 13)
- * @returns {boolean}  true if ISBN passes validation
+ * @returns {boolean}  true if ISBN passes validation, else returns false and displays appropriate error
  */
 function validateIsbn13(data, dataConfig, label) {
     data.value = parseIsbn(data.value);
@@ -173,12 +175,21 @@ function validateIsbn13(data, dataConfig, label) {
     return true;
 }
 
+function validateLccn(data) {
+    data.value = parseLccn(data.value);
+
+    if (!isValidLccn(data.value)) {
+        return error('#id-errors', 'id-value', 'Invalid format for LCCN.');
+    }
+    return true;
+}
+
 /**
  * Called by initIdentifierValidation(), along with tests in
  * tests/unit/js/editEditionsPage.test.js, to validate the addition of new
  * identifiers (ISBN, LCCN) to an edition.
  * @param {Object} data  data from the input form
- * @returns {boolean}  true if ISBN passes validation
+ * @returns {boolean}  true if identifier passes validation
  */
 export function validateIdentifiers(data) {
     const dataConfig = JSON.parse(document.querySelector('#identifiers').dataset.config);
@@ -201,6 +212,9 @@ export function validateIdentifiers(data) {
     }
     else if (data.name === 'isbn_13') {
         validId = validateIsbn13(data, dataConfig, label);
+    }
+    else if (data.name === 'lccn') {
+        validId = validateLccn(data, dataConfig, label);
     }
     
     if (validId) $('#id-errors').hide();
