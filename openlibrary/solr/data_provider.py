@@ -106,7 +106,7 @@ def partition(lst: list, parts: int):
     parts = min(total_len, parts)
     size = total_len // parts
 
-    for i in range(0, parts):
+    for i in range(parts):
         start = i * size
         end = total_len if (i == parts - 1) else ((i + 1) * size)
         yield lst[start:end]
