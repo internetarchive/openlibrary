@@ -25,7 +25,7 @@ export function truncate(text, limit) {
     }
 }
 
-// used in templates/admin/ip/view.html
+// used in openlibrary/templates/books/edit/excerpts.html
 export function cond(predicate, true_value, false_value) {
     if (predicate) {
         return true_value;
