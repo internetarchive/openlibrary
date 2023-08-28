@@ -14,6 +14,21 @@ $ default_profile_image = '../../../static/images/openlibrary-180x180.png'
 		100 volunteers from around the globe.
 		<a href="https://openlibrary.org/volunteer"> Want to join us?</a>
 	</p>
+	<label for="roles">Roles:</label>
+	<select name="roles" id="role">
+		<option value="All">All</option>
+		<option value="Staff">Staff</option>
+		<option value="Fellow">Fellows</option>
+		<option value="Volunteer">Volunteers</option>
+	</select>
+	<label for="departments">Departments:</label>
+	<select name="departments" id="department">
+		<option value="All">All</option>
+		<option value="Communications">Communications</option>
+		<option value="Design">Design</option>
+		<option value="Engineering">Engineering</option>
+		<option value="Librarianship">Librarianship</option>
+	</select>
 </div>
 
 <div class="cards_container">
@@ -51,39 +66,65 @@ $ default_profile_image = '../../../static/images/openlibrary-180x180.png'
     <a href="https://forms.gle/zPyuXGf4Bg6RzbDA7">Open Library team information form</a>.
 	</p>
 </div>
-<script>
-	const team = [
-		{
-			name: "Drini",
-			role: "Staff",
-		},
-		{
-			name: "Jim",
-			role: "Staff",
-		},
-		{
-			name: "Aaron",
-			role: "Staff, Emeritus",
-		},
-		{
-			name: "Sam",
-			role: "Fellow",
-		},
-		{
-			name: "Abbey",
-			role: "Fellow"
-		},
-		{
-			name: "Jaye",
-			role: "Volunteer"
-		},
-		{
-			name: "Keita",
-			role: "Volunteer"
-		}
-	]
-	const staff = team.filter((person) => person.role.includes("Staff"))
-	const fellows = team.filter((person) => person.role.includes("Fellow"))
-	const volunteers = team.filter((person) => person.role.includes("Volunteer"))
-	console.log(staff)
+<!-- <script src="../../../openlibrary/plugins/openlibrary/js/about/index.js"></script> -->
+<script>const team = [
+    {
+        name: "Drini",
+        role: "Staff",
+		department: "Engineering"
+    },
+    {
+        name: "Jim",
+        role: "Staff",
+		department: "Communications"
+    },
+    {
+        name: "Aaron",
+        role: "Staff, Emeritus",
+		department: "Communications"
+    },
+    {
+        name: "Sam",
+        role: "Fellow",
+		department: "Communications"
+    },
+    {
+        name: "Abbey",
+        role: "Fellow",
+		department: "Design"
+    },
+    {
+        name: "Jaye",
+        role: "Volunteer",
+		department: "Engineering"
+    },
+    {
+        name: "Keita",
+        role: "Volunteer",
+		department: "Librarianship"
+    },
+];
+
+const staff = team.filter((person) => person.role.includes("Staff"));
+const fellows = team.filter((person) => person.role.includes("Fellow"));
+const volunteers = team.filter((person) =>
+    person.role.includes("Volunteer")
+);
+
+const filterTeam = (role, department) => {
+	if (role == "All") {
+		role = ""
+	} else if (department == "All") {
+		department = ""
+	}
+
+	const filteredTeam = team.filter((person) => person.role.includes(role) && person.department.includes(department))
+	console.log(filteredTeam)
+}
+
+const roleFilter = document.getElementById("role")
+const departmentFilter = document.getElementById("department")
+
+roleFilter.addEventListener("change", (e) => filterTeam(e.target.value, departmentFilter.value))
+departmentFilter.addEventListener("change", (e) => filterTeam(roleFilter.value, e.target.value))
 </script>
