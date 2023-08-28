@@ -14,7 +14,7 @@ describe('parseIsbn', () => {
     });
     it('correctly parses ISBN 13 with dashes', () => {
         expect(parseIsbn('978-0-553-38168-9')).toBe('9780553381689');
-    })
+    });
 })
 
 // testing from examples listed here:
@@ -56,6 +56,7 @@ describe('isChecksumValidIsbn10', () => {
     it('returns true with valid ISBN 10 (numerical check character, check 2)', () => {
         expect(isChecksumValidIsbn10('1617295981')).toBe(true);
     });
+
     it('returns false with an invalid ISBN 10', () => {
         expect(isChecksumValidIsbn10('1234567890')).toBe(false);
     });
@@ -68,6 +69,7 @@ describe('isChecksumValidIsbn13', () => {
     it('returns true with valid ISBN 13 (check 2)', () => {
         expect(isChecksumValidIsbn13('9798430918002')).toBe(true);
     });
+
     it('returns false with an invalid ISBN 13 (check 1)', () => {
         expect(isChecksumValidIsbn13('1234567890123')).toBe(false);
     });
@@ -77,13 +79,58 @@ describe('isChecksumValidIsbn13', () => {
 })
 
 describe('isFormatValidIsbn10', () => {
-    
+    it('returns true with valid ISBN 10 (X check character)', () => {
+        expect(isFormatValidIsbn10('080442957X')).toBe(true);
+    });
+    it('returns true with valid ISBN 10', () => {
+        expect(isFormatValidIsbn10('1593279280')).toBe(true);
+    });
+
+    it('returns false with invalid ISBN 10', () => {
+        expect(isFormatValidIsbn10('a234567890')).toBe(false);
+    });
+    it('returns false with blank value', () => {
+        expect(isFormatValidIsbn10('')).toBe(false);
+    });
 })
 
 describe('isFormatValidIsbn13', () => {
-    
+    it('returns true with valid ISBN 13', () => {
+        expect(isFormatValidIsbn13('9781789801217')).toBe(true);
+    });
+
+    it('returns false with invalid ISBN 13 (too long)', () => {
+        expect(isFormatValidIsbn13('97918430918002')).toBe(false);
+    });
+    it('returns false with invalid ISBN 13 (too short)', () => {
+        expect(isFormatValidIsbn13('979843091802')).toBe(false);
+    });
+    it('returns false with invalis ISBN 13 (non-numeric)', () => {
+        expect(isFormatValidIsbn13('979a430918002')).toBe(false);
+    });
 })
 
 describe('isValidLccn', () => {
-    
+    it('returns true for LCCN of length 8', () => {
+        expect(isValidLccn('85000002')).toBe(true);
+    });
+    it('returns true for LCCN of length 9', () => {
+        expect(isValidLccn('n78890351')).toBe(true);
+    });
+    it('returns true for LCCN of length 10 (all digits)', () => {
+        expect(isValidLccn('2001000002')).toBe(true);
+    });
+    it('returns true for LCCN of length 10 (alpha prefix)', () => {
+        expect(isValidLccn('sn85000678')).toBe(true);
+    });
+    it('returns true for LCCN of length 11 (alpha-numeric prefix)', () => {
+        expect(isValidLccn('a2500000003')).toBe(true);
+    });
+    it('returns true for LCCN of length 11 (alpha prefix)', () => {
+        expect(isValidLccn('agr25000003')).toBe(true);
+    });
+    it('returns true for LCCN of length 12', () => {
+        expect(isValidLccn('mm2002084896')).toBe(true);
+    });
+
 })
