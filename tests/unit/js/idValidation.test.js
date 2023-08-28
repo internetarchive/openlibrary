@@ -110,6 +110,9 @@ describe('isFormatValidIsbn13', () => {
     });
 })
 
+// testing from examples listed here:
+// https://www.loc.gov/marc/lccn-namespace.html
+// https://www.oclc.org/bibformats/en/0xx/010.html
 describe('isValidLccn', () => {
     it('returns true for LCCN of length 8', () => {
         expect(isValidLccn('85000002')).toBe(true);
@@ -133,4 +136,22 @@ describe('isValidLccn', () => {
         expect(isValidLccn('mm2002084896')).toBe(true);
     });
 
+    it('returns false for LCCN below minimum length', () => {
+        expect(isValidLccn('8500002')).toBe(false);
+    });
+    it('returns false for LCCN of length 9 with all digits', () => {
+        expect(isValidLccn('178890351')).toBe(false);
+    });
+    it('returns false for LCCN of length 10 with alpha characters', () => {
+        expect(isValidLccn('a001000002')).toBe(false);
+    });
+    it('returns false for LCCN of length 11 with all digits', () => {
+        expect(isValidLccn('12500000003')).toBe(false);
+    });
+    it('returns false for LCCN of length 12 with all digits', () => {
+        expect(isValidLccn('125000000003')).toBe(false);
+    });
+    it('returns false for LCCN of length 13', () => {
+        expect(isValidLccn('1250000000003')).toBe(false);
+    });
 })

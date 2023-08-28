@@ -100,6 +100,6 @@ export function parseLccn(lccn) {
 export function isValidLccn(lccn) {
   // matching parsed entry to regex representing valid lccn
   // regex taken from /openlibrary/utils/lccn.py
-  const regex = /([a-z]|[a-z]?([a-z]{2}|[0-9]{2})|[a-z]{2}[0-9]{2})?[0-9]{8}$/;
+  const regex = /^([a-z]|[a-z]?([a-z]{2}|[0-9]{2})|[a-z]{2}[0-9]{2})?[0-9]{8}$/;
   return regex.test(lccn);
 }
