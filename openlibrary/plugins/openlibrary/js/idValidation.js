@@ -67,7 +67,7 @@ export function isChecksumValidIsbn13(isbn) {
  * JS re-write of the existing python LCCN parsing found in /openlibrary/utils/lccn.py.
  * Validates the syntax described at https://www.loc.gov/marc/lccn-namespace.html
  * @param {String} lccn  LCCN string for parsing
- * @returns {String}  parsed LCCN string, returns empty string if given LCCN fails parsing
+ * @returns {String}  parsed LCCN string
  */
 export function parseLccn(lccn) {
   // cleaning initial lccn entry
@@ -88,7 +88,7 @@ export function parseLccn(lccn) {
   if (groups && groups.length == 3) {
     return groups[1] + groups[2].padStart(6, '0');
   }
-  return '';
+  return parsed;
 }
 
 /**
