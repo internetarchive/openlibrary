@@ -175,11 +175,19 @@ function validateIsbn13(data, dataConfig, label) {
     return true;
 }
 
-function validateLccn(data) {
+/**
+ * Called by validateIdentifiers(), validates the addition of new
+ * LCCN to an edition.
+ * @param {Object} data  data from the input form
+ * @param {Object} dataConfig  object mapping error messages to their string values
+ * @param {String} label  formatted value of the identifier type name (LCCN)
+ * @returns {boolean}  true if LCCN passes validation, else returns false and displays appropriate error
+ */
+function validateLccn(data, dataConfig, label) {
     data.value = parseLccn(data.value);
 
     if (!isValidLccn(data.value)) {
-        return error('#id-errors', 'id-value', 'Invalid format for LCCN.');
+        return error('#id-errors', 'id-value', dataConfig['Invalid ID format'].replace(/ID/, label));
     }
     return true;
 }
