@@ -92,7 +92,8 @@ export function parseLccn(lccn) {
 }
 
 /**
- * Verify LCCN syntax. Based on instructions from https://www.loc.gov/marc/lccn-namespace.html.
+ * Verify LCCN syntax. Regex taken from /openlibrary/utils/lccn.py.
+ * Based on instructions from https://www.loc.gov/marc/lccn-namespace.html.
  * @param {String} lccn  LCCN string to test for valid syntax
  * @returns {boolean}  true if given LCCN is valid syntax, false otherwise
  */
