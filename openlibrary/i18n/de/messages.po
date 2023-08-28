@@ -31,7 +31,7 @@ msgstr "Passwort ändern"
 
 #: account.html:17
 msgid "Update Email Address"
-msgstr "E-Mail-Adresse aktalisieren"
+msgstr "E-Mail-Adresse aktualisieren"
 
 #: account.html:18
 msgid "Your Notifications"
@@ -343,7 +343,7 @@ msgstr "Zugriff"
 
 #: permission.html:28
 msgid "Child Permission"
-msgstr ""
+msgstr "Untergeordneter Zugriff"
 
 #: permission_denied.html:10
 msgid "Permission denied."
@@ -1584,11 +1584,11 @@ msgstr "Graphen"
 
 #: admin/menu.html:30
 msgid "Inspect store"
-msgstr ""
+msgstr "Speicher untersuchen"
 
 #: admin/menu.html:31
 msgid "Inspect memcache"
-msgstr ""
+msgstr "Memcache untersuchen"
 
 #: admin/people/view.html:172 admin/profile.html:7
 msgid "Admin"
@@ -1600,7 +1600,7 @@ msgstr ""
 
 #: admin/solr.html:32
 msgid "Write one entry per line"
-msgstr ""
+msgstr "Schreiben Sie einen Eintrag pro Zeile"
 
 #: admin/solr.html:41
 msgid "Update"
@@ -3267,7 +3267,7 @@ msgstr "Hilfe & Support"
 
 #: lib/nav_head.html:33
 msgid "K-12 Student Library"
-msgstr ""
+msgstr "K-12 Studentenbibliothek"
 
 #: lib/nav_head.html:34
 msgid "Random Book"
@@ -3629,7 +3629,7 @@ msgstr "Bitte Autoren auswählen, die zusammengeführt werden sollen."
 #: merge/authors.html:27
 msgid "Select a \"primary\" record that best represents the author -"
 msgstr ""
-"Wählen Sie den ältesten Eintrag als \"primären\" Eintrag aus.
+"Wählen Sie den ältesten Eintrag als \"primären\" Eintrag aus."
 
 #: merge/authors.html:30
 msgid "Select author records which should be merged with the primary"
@@ -4006,13 +4006,14 @@ msgstr "Dieser Monat"
 
 #: stats/readinglog.html:28
 msgid "# Unique Users Logging Books"
-msgstr ""
+msgstr "Zahl der eindeutigen Benutzer, die Bücher loggen"
 
 #: stats/readinglog.html:29
 msgid ""
 "The total number of unique users who have logged at least one book using the "
 "Reading Log feature"
-msgstr ""
+msgstr "Die Gesamtzahl der Benutzer, die zumindest ein Buch mit der Leselog-Funktion"
+"geloggt haben"
 
 #: stats/readinglog.html:45
 msgid "# Books Starred"
@@ -4024,11 +4025,11 @@ msgstr "Die gesamte Anzahl an Büchern, welche bewertet wurden"
 
 #: stats/readinglog.html:58
 msgid "Total # Unique Raters (all time)"
-msgstr ""
+msgstr "Gesamtzahl an eindeutigen Bewertern (seit Beginn)"
 
 #: stats/readinglog.html:66
 msgid "Most Wanted Books (All Time)"
-msgstr ""
+msgstr "Meistgewünschte Bücher (seit Beginn)"
 
 #: stats/readinglog.html:70 stats/readinglog.html:78 stats/readinglog.html:87
 #: stats/readinglog.html:96
@@ -4044,7 +4045,7 @@ msgstr "Meistgewünschte Bücher (dieser Monat)"
 
 #: stats/readinglog.html:82
 msgid "Most Logged Books"
-msgstr ""
+msgstr "Meistgeloggte Bücher"
 
 #: stats/readinglog.html:83
 msgid "Most Read Books (All Time)"
@@ -4057,7 +4058,7 @@ msgstr "Meistbewertete Bücher"
 
 #: stats/readinglog.html:92
 msgid "Most Rated Books (All Time)"
-msgstr ""
+msgstr "Meistbewertete Bücher (seit Beginn)"
 
 # | msgid "We couldn't find any books published by %s."
 #: subjects/notfound.html:13
@@ -4074,7 +4075,7 @@ msgstr "Bearbeite %(title)s"
 #: type/about/edit.html:20
 msgid ""
 "This only appears in the document head, and gets attached to bookmark labels"
-msgstr ""
+msgstr "Das erscheint nur im Dokumentenkopf und wird an Lesezeichen-Label angehängt"
 
 #: type/about/edit.html:29
 msgid "Intro"
@@ -4082,11 +4083,11 @@ msgstr "Einleitung"
 
 #: type/about/edit.html:30
 msgid "This appears in first column."
-msgstr ""
+msgstr "Das erscheint in der ersten Spalte"
 
 #: type/about/edit.html:40
 msgid "This appears in the second column, at top."
-msgstr ""
+msgstr "Das erscheint in der zweiten Spalte am Anfang"
 
 # | msgid "Reading Lists"
 #: type/about/edit.html:49
@@ -4095,7 +4096,7 @@ msgstr "Mailingliste"
 
 #: type/about/edit.html:50
 msgid "This appears below the links list."
-msgstr ""
+msgstr "Das erscheint unter der Link-Liste"
 
 #: type/author/edit.html:13
 msgid "Edit Author"
@@ -4229,7 +4230,7 @@ msgid ""
 "Showing all works by author. Would you like to see <a href=\"%(url)s\">only "
 "ebooks</a>?"
 msgstr ""
-"Zeigt all Werke eines Autors. Möchten Sie nur <a href=\"%(url)s\">eBooks</a> sehen?"
+"Zeigt alle Werke eines Autors. Möchten Sie nur <a href=\"%(url)s\">eBooks</a> sehen?"
 
 #: type/author/view.html:121
 #, python-format
@@ -4294,11 +4295,11 @@ msgstr "Seitenhistorie ansehen"
 
 #: type/doc/edit.html:33 type/page/edit.html:31
 msgid "Document Body:"
-msgstr ""
+msgstr "Dokumenteninhalt:"
 
 #: type/edition/admin_bar.html:17
 msgid "Add to Staff Picks"
-msgstr ""
+msgstr "Zur Auswahl der Mitarbeitenden hinzufügen"
 
 #: type/edition/admin_bar.html:22
 msgid "Sync Archive.org ID"
@@ -4418,6 +4419,10 @@ msgstr "Library of Congress"
 #: type/edition/view.html:340 type/work/view.html:340
 msgid "Dewey"
 msgstr "Dewey"
+
+#: type/edition/view.html:539
+msgid "This work does not appear on any lists."
+msgstr "Dieses Werk ist in keiner Liste enthalten."
 
 #: databarHistory.html:26 databarView.html:33 type/edition/view.html:358
 #: type/work/view.html:358
@@ -4656,7 +4661,7 @@ msgstr "Autoren"
 
 #: type/rawtext/edit.html:31 type/template/edit.html:41
 msgid "Document Body"
-msgstr ""
+msgstr "Dokumenteninhalt"
 
 # | msgid "Delete this book?"
 #: type/template/edit.html:51
@@ -4670,7 +4675,7 @@ msgstr "Art"
 # | msgid "Differences"
 #: type/type/view.html:31
 msgid "Backreferences"
-msgstr ""
+msgstr "Rückverweise"
 
 #: type/user/edit.html:13
 msgid "Currently Editing:"
@@ -4889,13 +4894,13 @@ msgstr "Erste"
 
 #: ReadButton.html:11
 msgid "Special Access"
-msgstr ""
+msgstr "Spezieller Zugriff"
 
 #: ReadButton.html:12
 msgid ""
 "Special ebook access from the Internet Archive for patrons with qualifying print "
 "disabilities"
-msgstr ""
+msgstr "Spezieller eBook-Zugriff vom Internet Archive für Gönner mit Einschränkungen für Druckwerke"
 
 #: ReadButton.html:16
 msgid "Borrow ebook from Internet Archive"
@@ -5371,7 +5376,7 @@ msgstr "Diese Person hat sich entschieden ihr Lese-Logbuch privat zu halten"
 
 #: editions_datatable.html:24
 msgid "Locate"
-msgstr ""
+msgstr "Lokalisieren"
 
 #: editions_datatable.html:45
 #, python-format
@@ -5569,7 +5574,7 @@ msgstr "Buchdeckel von: %(listname)s"
 
 #: authors.html:58
 msgid "Select author records which should be merged with the master"
-msgstr ""
+msgstr "Autoreneinträge wählen, die mit dem Master zusammengeführt werden sollen"
 
 #: authors.html:66
 msgid "No Primary record"
