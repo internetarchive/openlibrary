@@ -224,7 +224,7 @@ export function validateIdentifiers(data) {
     else if (data.name === 'lccn') {
         validId = validateLccn(data, dataConfig, label);
     }
-    
+
     if (validId) $('#id-errors').hide();
     return validId;
 }

@@ -31,8 +31,8 @@ export function initAddBookImport () {
     invalidLccn = i18nStrings.invalid_lccn;
 
     $('#addbook').on('submit', parseAndValidateId);
-    $('#id_value').on('input', clearIsbnError);
-    $('#id_name').on('change', clearIsbnError);
+    $('#id_value').on('input', clearErrors);
+    $('#id_name').on('change', clearErrors);
 }
 
 // a flag to make raiseIsbnError perform differently upon subsequent calls
@@ -63,7 +63,7 @@ function displayLccnError(event, errorMessage) {
     return;
 }
 
-function clearIsbnError() {
+function clearErrors() {
     addBookWithIsbnErrors = false;
     const errorDiv = document.getElementById('id-errors');
     errorDiv.classList.add('hidden');
@@ -71,22 +71,17 @@ function clearIsbnError() {
     confirm.classList.add('hidden');
 }
 
-function clearLccnError() {
-    const errorDiv = document.getElementById('id-errors');
-    errorDiv.classList.add('hidden');
-}
-
 function parseAndValidateId(event) {
     const fieldName = document.getElementById('id_name').value;
-    let idValue = document.getElementById('id_value').value;
+    const idValue = document.getElementById('id_value').value;
 
-    if (fieldName == 'isbn_10') {
+    if (fieldName === 'isbn_10') {
         parseAndValidateIsbn10(event, idValue);
     }
-    else if (fieldName == 'isbn_13') {
+    else if (fieldName === 'isbn_13') {
         parseAndValidateIsbn13(event, idValue);
     }
-    else if (fieldName == 'lccn') {
+    else if (fieldName === 'lccn') {
         parseAndValidateLccn(event, idValue);
     }
 }
