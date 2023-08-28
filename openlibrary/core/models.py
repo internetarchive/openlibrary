@@ -38,6 +38,7 @@ from .ia import get_metadata
 from .waitinglist import WaitingLoan
 from ..accounts import OpenLibraryAccount
 from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_url
+from ..plugins.wikidata.code import get_wikidata_entity
 
 logger = logging.getLogger("openlibrary.core")
 
@@ -755,6 +756,9 @@ class Author(Thing):
 
     def get_url_suffix(self):
         return self.name or "unnamed"
+
+    def wikidata(self, QID: str = "Q44"):
+        return get_wikidata_entity(QID)
 
     def __repr__(self):
         return "<Author: %s>" % repr(self.key)
