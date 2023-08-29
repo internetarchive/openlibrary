@@ -30,5 +30,12 @@
     "scope": "/",
     "background_color": "#e2dcc5",
     "display": "standalone",
-    "theme_color": "#e2dcc5"
+    "theme_color": "#e2dcc5",
+    "share_target": {
+        "action": "/search",
+        "method": "GET",
+        "params": {
+            "text": "q"
+        }
+    }
 }
