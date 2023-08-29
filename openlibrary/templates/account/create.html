@@ -31,6 +31,9 @@ $def field(input, suffix=''):
     </div>
 
 $if ctx.user:
+    <div class="hidden">
+        <form name="logout" action="$homepath()/account/logout" method="post"></form>
+    </div>
     $def user_link(): <a href="$ctx.user.key">$ctx.user.displayname</a>
     <p>$:_("You are already logged into Open Library as %(user)s.", user=str(user_link()))</p>
     <p>$:_('If you\'d like to create a new, different Open Library account, you\'ll need to <a href="javascript:;" onclick="document.forms[\'logout\'].submit()">log out</a> and start the signup process afresh.')</p>

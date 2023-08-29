@@ -11,12 +11,15 @@ $var title: $("Log In")
       <p>$:_('Please enter your <a href="https://archive.org">Internet Archive</a> email and password to access your Open Library account.')</p>
 
   $if ctx.user:
+      <div class="hidden">
+        <form name="logout" action="$homepath()/account/logout" method="post"></form>
+      </div>
       <p>$:_("You are already logged into Open Library as %(user)s.", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))</p>
       <p>$:_('If you\'d like to create a new, different Open Library account, you\'ll need to <a href="javascript:;" onclick="document.forms[\'logout\'].submit()">log out</a> and start the signup process afresh.')</p>
-
   $else:
       <form id="register" class="login olform" name="register" method="post">
           $if "dev" in ctx.features:
+          
               <div class="flash-messages" id="autofill-dev-credentials">
                   <div class="info">
                       <span>
