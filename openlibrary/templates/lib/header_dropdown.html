@@ -57,8 +57,9 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
               </li>
             $else:
               <li>
-              $if 'post' in link:
-                <form action="$(link['post'])" method="post">
+              $if 'name' in link:
+                $ name = 'name=%s' % link['name']
+                <form $name action="$(link['post'])" method="post">
                   <button $(tracker)>$(link["text"])</button>
                 </form>
               $else:
