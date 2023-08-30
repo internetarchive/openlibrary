@@ -276,6 +276,10 @@ def unflatten(d: Storage, separator: str = "--") -> Storage:
     >>> unflatten({"a--0--x": 1, "a--0--y": 2, "a--1--x": 3, "a--1--y": 4})
     {'a': [{'x': 1, 'y': 2}, {'x': 3, 'y': 4}]}
 
+    if a simple param name matches the unflattened one, it'll get overwritten
+    >>> unflatten({"a": 1, "a--0--x": 2, "a--1--x": 3})
+    {'a': [{'x': 2}, {'x': 3}]} # note "a": 1 has been lost.
+
     """
 
     def isint(k):
@@ -288,6 +292,8 @@ def unflatten(d: Storage, separator: str = "--") -> Storage:
     def setvalue(data, k, v):
         if '--' in k:
             k, k2 = k.split(separator, 1)
+            if not isinstance(data, dict):
+                data = {}
             setvalue(data.setdefault(k, {}), k2, v)
         else:
             # Don't overwrite if the key already exists
