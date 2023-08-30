@@ -621,7 +621,7 @@ def add_db_name(rec: dict) -> None:
 def load_data(
     rec: dict,
     account_key: str | None = None,
-    existing_edition: "Edition | None" = None
+    existing_edition: "Edition | None" = None,
 ):
     """
     Adds a new Edition to Open Library, or overwrites existing_edition with rec data.
@@ -659,6 +659,9 @@ def load_data(
         rec_as_edition = build_query(rec)
         edition: dict[str, Any]
         if existing_edition:
+            # Note: This will overwrite any fields in the existing edition. This is ok for
+            # now, because we'll really only come here when overwriting a promise
+            # item
             edition = existing_edition.dict() | rec_as_edition
 
             # Preserve source_records to avoid data loss.
@@ -741,7 +744,7 @@ def load_data(
     edition['key'] = edition_key
     edits.append(edition)
 
-    comment = "overwrite promise item" if existing_edition else "import new book"
+    comment = "overwrite existing edition" if existing_edition else "import new book"
     web.ctx.site.save_many(edits, comment=comment, action='add-book')
 
     # Writes back `openlibrary_edition` and `openlibrary_work` to
@@ -967,7 +970,7 @@ def should_overwrite_promise_item(
         return False
 
     # Promise items are always index 0 in source_records.
-    return bool(safeget(lambda: edition['source_records'][0].startswith("promise")))
+    return bool(safeget(lambda: edition['source_records'][0], '').startswith("promise"))
 
 
 def load(rec, account_key=None, from_marc_record: bool = False):

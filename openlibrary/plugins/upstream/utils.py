@@ -1,5 +1,5 @@
 import functools
-from typing import Any, Protocol, TYPE_CHECKING
+from typing import Any, Protocol, TYPE_CHECKING, TypeVar
 from collections.abc import Callable, Iterable, Iterator
 import unicodedata
 
@@ -676,7 +676,10 @@ def parse_toc(text: None) -> list[Any]:
     return [parse_toc_row(line) for line in text.splitlines() if line.strip(" |")]
 
 
-def safeget(func: Callable) -> Any:
+T = TypeVar('T')
+
+
+def safeget(func: Callable[[], T], default=None) -> T:
     """
     TODO: DRY with solrbuilder copy
     >>> safeget(lambda: {}['foo'])
@@ -689,7 +692,7 @@ def safeget(func: Callable) -> Any:
     try:
         return func()
     except (KeyError, IndexError, TypeError):
-        return None
+        return default
 
 
 def strip_accents(s: str) -> str:
