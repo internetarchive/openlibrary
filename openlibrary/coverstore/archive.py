@@ -7,7 +7,6 @@ import glob
 import os
 import re
 import sys
-import subprocess
 import time
 import zipfile
 import web
@@ -452,11 +451,8 @@ class ZipManager:
 
     @staticmethod
     def count_files_in_zip(filepath):
-        command = f'unzip -l {filepath} | grep "jpg" |  wc -l'
-        result = subprocess.run(
-            command, shell=True, text=True, capture_output=True, check=True
-        )
-        return int(result.stdout.strip())
+        with zipfile.ZipFile(filepath, 'r') as zip_ref:
+            return len(name for name in zip_ref.namelist() if name.endswith(".jpg"))
 
     def get_zipfile(self, name):
         cid = web.numify(name)
