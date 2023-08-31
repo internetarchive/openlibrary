@@ -367,11 +367,9 @@ class Cover:
 
 def archive(limit=None, start_id=None):
     """Move files from local disk to tar files and update the paths in the db."""
-
-    file_manager = ZipManager()
     cdb = CoverDB()
 
-    try:
+    with ZipManager() as file_manager:
         covers = map(
             Cover.from_db_entry,
             (
@@ -393,8 +391,6 @@ def archive(limit=None, start_id=None):
             for d in cover.files:
                 file_manager.add_file(d.name, filepath=d.path)
             cdb.update(cover.id, archived=True)
-    finally:
-        file_manager.close()
 
 
 def audit(item_id, batch_ids=(0, 100), sizes=BATCH_SIZES) -> None:
@@ -481,7 +477,10 @@ class ZipManager:
                 # Set compression to ZIP_STORED to avoid compression
                 zipper.write(filepath, arcname=name, compress_type=zipfile.ZIP_STORED)
 
-    def close(self):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
         for name, _zipfile in self.zipfiles.values():
             if name:
                 _zipfile.close()
