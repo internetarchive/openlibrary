@@ -448,9 +448,7 @@ def audit(item_id, batch_ids=(0, 100), sizes=BATCH_SIZES) -> None:
 
 class ZipManager:
     def __init__(self):
-        self.zipfiles = {}
-        for size in BATCH_SIZES:
-            self.zipfiles[size.upper()] = (None, None)
+        self.zipfiles = {size.upper(): (None, None) for size in BATCH_SIZES}
 
     @staticmethod
     def count_files_in_zip(filepath):
@@ -492,11 +490,9 @@ class ZipManager:
         zipper = self.get_zipfile(name)
 
         if name not in zipper.namelist():
-            with open(filepath, 'rb') as fileobj:
+            with open(filepath, 'rb'):
                 # Set compression to ZIP_STORED to avoid compression
                 zipper.write(filepath, arcname=name, compress_type=zipfile.ZIP_STORED)
-
-        return os.path.basename(zipper.filename)
 
     def close(self):
         for name, _zipfile in self.zipfiles.values():
