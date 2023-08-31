@@ -1,5 +1,7 @@
 """Utility to move files from local disk to zip files and update the paths in the db"""
 
+from dataclasses import dataclass
+from datetime import datetime
 from functools import cached_property
 import glob
 import os
@@ -179,9 +181,9 @@ class Batch:
     def finalize(cls, start_id, test=True):
         """Update all covers in batch to point to zips, delete files, set deleted=True"""
         cdb = CoverDB()
-        covers = (
-            Cover(**c)
-            for c in cdb._get_batch(start_id=start_id, failed=False, uploaded=False)
+        covers = map(
+            Cover.from_db_entry,
+            cdb._get_batch(start_id=start_id, failed=False, uploaded=False),
         )
 
         for cover in covers:
@@ -296,9 +298,14 @@ class CoverDB:
         )
 
 
-class Cover(web.Storage):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+@dataclass
+class Cover:
+    id: int
+    created: str | datetime
+    filename: str | None
+    filename_s: str | None
+    filename_m: str | None
+    filename_l: str | None
 
     @classmethod
     def get_cover_url(cls, cover_id: int, size="", ext="zip", protocol="https"):
@@ -330,6 +337,17 @@ class Cover(web.Storage):
                 config.data_root, "localdisk", f.filename
             )
         return files
+
+    @staticmethod
+    def from_db_entry(db_entry: dict) -> 'Cover':
+        return Cover(
+            id=db_entry['id'],
+            created=db_entry['created'],
+            filename=db_entry.get('filename'),
+            filename_s=db_entry.get('filename_s'),
+            filename_m=db_entry.get('filename_m'),
+            filename_l=db_entry.get('filename_l'),
+        )
 
     def has_valid_files(self):
         return all(f.path and os.path.exists(f.path) for f in self.files)
@@ -364,14 +382,16 @@ def archive(limit=None, start_id=None):
     cdb = CoverDB()
 
     try:
-        covers = (
-            cdb.get_unarchived_covers(limit=limit)
-            if limit
-            else cdb.get_batch_unarchived(start_id=start_id)
+        covers = map(
+            Cover.from_db_entry,
+            (
+                cdb.get_unarchived_covers(limit=limit)
+                if limit
+                else cdb.get_batch_unarchived(start_id=start_id)
+            ),
         )
 
         for cover in covers:
-            cover = Cover(**cover)
             print('archiving', cover)
             print(cover.files)
 
