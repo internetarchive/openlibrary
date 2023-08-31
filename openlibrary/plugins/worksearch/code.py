@@ -23,6 +23,7 @@ from openlibrary.plugins.upstream.utils import (
     get_language_name,
     urlencode,
 )
+from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
@@ -219,8 +220,9 @@ def run_solr_query(
             solr_fields.remove('editions')
             solr_fields.add('editions:[subquery]')
         if ed_sort := param.get('editions.sort'):
-            # Future: This should use its own scheme not the works scheme
-            params.append(('editions.sort', scheme.process_user_sort(ed_sort)))
+            params.append(
+                ('editions.sort', EditionSearchScheme().process_user_sort(ed_sort))
+            )
         params.append(('fl', ','.join(solr_fields)))
         params += scheme.q_to_solr_params(q, solr_fields, params)
 

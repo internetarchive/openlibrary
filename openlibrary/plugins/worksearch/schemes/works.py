@@ -135,6 +135,10 @@ class WorkSearchScheme(SearchScheme):
         'ddc_sort': 'ddc_sort asc',
         'ddc_sort asc': 'ddc_sort asc',
         'ddc_sort desc': 'ddc_sort desc',
+        # Ebook access
+        'ebook_access': 'ebook_access desc',
+        'ebook_access asc': 'ebook_access asc',
+        'ebook_access desc': 'ebook_access desc',
         # Key
         'key': 'key asc',
         'key asc': 'key asc',
