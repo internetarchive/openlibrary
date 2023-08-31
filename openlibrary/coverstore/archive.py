@@ -485,15 +485,3 @@ class ZipManager:
         for name, _zipfile in self.zipfiles.values():
             if name:
                 _zipfile.close()
-
-    @classmethod
-    def contains(cls, zip_file_path, filename):
-        with zipfile.ZipFile(zip_file_path, 'r') as zip_file:
-            return filename in zip_file.namelist()
-
-    @classmethod
-    def get_last_file_in_zip(cls, zip_file_path):
-        with zipfile.ZipFile(zip_file_path, 'r') as zip_file:
-            file_list = zip_file.namelist()
-            if file_list:
-                return max(file_list)
