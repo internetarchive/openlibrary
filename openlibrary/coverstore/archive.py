@@ -64,7 +64,28 @@ class Uploader:
 class Batch:
     @staticmethod
     def get_relpath(item_id, batch_id, ext="", size=""):
-        """e.g. s_covers_0008/s_covers_0008_82.zip or covers_0008/covers_0008_82.zip"""
+        """
+        e.g. s_covers_0008/s_covers_0008_82.zip or covers_0008/covers_0008_82.zip
+
+        >>> Batch.get_relpath("0008", "80")
+        'covers_0008/covers_0008_80'
+
+        # Sizes
+        >>> Batch.get_relpath("0008", "80", size="s")
+        's_covers_0008/s_covers_0008_80'
+        >>> Batch.get_relpath("0008", "80", size="m")
+        'm_covers_0008/m_covers_0008_80'
+        >>> Batch.get_relpath("0008", "80", size="l")
+        'l_covers_0008/l_covers_0008_80'
+
+        # Ext
+        >>> Batch.get_relpath("0008", "80", ext="tar")
+        'covers_0008/covers_0008_80.tar'
+
+        # Ext + Size
+        >>> Batch.get_relpath("0008", "80", size="l", ext="zip")
+        'l_covers_0008/l_covers_0008_80.zip'
+        """
         ext = f".{ext}" if ext else ""
         prefix = f"{size.lower()}_" if size else ""
         folder = f"{prefix}covers_{item_id}"
@@ -214,6 +235,9 @@ class CoverDB:
     def _get_batch_end_id(start_id):
         """Calculates the end of the batch based on the start_id and the
         batch_size
+
+        >>> CoverDB._get_batch_end_id(start_id=8820500)
+        8830000
         """
         return start_id - (start_id % BATCH_SIZE) + BATCH_SIZE
 
@@ -353,7 +377,6 @@ class Cover:
         representing the value of the millions place and a 2-digit,
         0-padded batch_id representing the ten-thousandth place, e.g.
 
-        Usage:
         >>> Cover.id_to_item_and_batch_id(987_654_321)
         ('0987', '65')
         """
