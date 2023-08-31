@@ -11,9 +11,7 @@ import web
 import internetarchive as ia
 
 from infogami.infobase import utils
-
 from openlibrary.coverstore import config, db
-from openlibrary.coverstore.coverlib import find_image_path
 
 
 ITEM_SIZE = 1_000_000
@@ -58,13 +56,7 @@ class Uploader:
         :param item: name of archive.org item to look within, e.g. `s_covers_0008`
         :param filename: filename to look for within item
         """
-        zip_command = fr'ia list {item} | grep "{filename}" | wc -l'
-        if verbose:
-            print(zip_command)
-        zip_result = subprocess.run(
-            zip_command, shell=True, text=True, capture_output=True, check=True
-        )
-        return int(zip_result.stdout.strip()) == 1
+        return filename in (f['name'] for f in ia.get_item(item).files)
 
 
 class Batch:
@@ -309,9 +301,8 @@ class Cover(web.Storage):
         self.files = self.get_files()
 
     @classmethod
-    def get_cover_url(cls, cover_id, size="", ext="zip", protocol="https"):
-        pcid = "%010d" % int(cover_id)
-        img_filename = item_file = f"{pcid}{'-' + size.upper() if size else ''}.jpg"
+    def get_cover_url(cls, cover_id: int, size="", ext="zip", protocol="https"):
+        img_filename = f"{cover_id:010}{'-' + size.upper() if size else ''}.jpg"
         item_id, batch_id = cls.id_to_item_and_batch_id(cover_id)
         relpath = Batch.get_relpath(item_id, batch_id, size=size, ext=ext)
         path = os.path.join(relpath, img_filename)

@@ -219,8 +219,7 @@ def zipview_url_from_id(coverid, size):
     itemid = "olcovers%d" % item_index
     zipfile = itemid + suffix + ".zip"
     filename = "%d%s.jpg" % (coverid, suffix)
-    protocol = web.ctx.protocol  # http or https
-    return f"{protocol}://archive.org/download/{itemid}/{zipfile}/{filename}"
+    return f"{web.ctx.protocol}://archive.org/download/{itemid}/{zipfile}/{filename}"
 
 
 class cover:
@@ -308,7 +307,7 @@ class cover:
             if d.id >= 8_820_000 and d.uploaded and '.zip' in d.filename:
                 raise web.found(
                     archive.Cover.get_cover_url(
-                        d.id, size=size, protocol=web.ctx.protocol
+                        int(d.id), size=size, protocol=web.ctx.protocol
                     )
                 )
             return read_image(d, size)
