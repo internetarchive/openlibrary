@@ -1,5 +1,6 @@
 """Utility to move files from local disk to zip files and update the paths in the db"""
 
+from functools import cached_property
 import glob
 import os
 import re
@@ -298,7 +299,6 @@ class CoverDB:
 class Cover(web.Storage):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.files = self.get_files()
 
     @classmethod
     def get_cover_url(cls, cover_id: int, size="", ext="zip", protocol="https"):
@@ -317,30 +317,25 @@ class Cover(web.Storage):
         )
         return time.mktime(t.timetuple())
 
-    def has_valid_files(self):
-        return all(f.path and os.path.exists(f.path) for f in self.files.values())
-
-    def get_files(self):
-        files = {
-            'filename': web.storage(name="%010d.jpg" % self.id, filename=self.filename),
-            'filename_s': web.storage(
-                name="%010d-S.jpg" % self.id, filename=self.filename_s
-            ),
-            'filename_m': web.storage(
-                name="%010d-M.jpg" % self.id, filename=self.filename_m
-            ),
-            'filename_l': web.storage(
-                name="%010d-L.jpg" % self.id, filename=self.filename_l
-            ),
-        }
-        for file_type, f in files.items():
-            files[file_type].path = f.filename and os.path.join(
+    @cached_property
+    def files(self):
+        files = [
+            web.storage(name=f"{self.id:010}.jpg", filename=self.filename),
+            web.storage(name=f"{self.id:010}-S.jpg", filename=self.filename_s),
+            web.storage(name=f"{self.id:010}-M.jpg", filename=self.filename_m),
+            web.storage(name=f"{self.id:010}-L.jpg", filename=self.filename_l),
+        ]
+        for f in files:
+            f.path = f.filename and os.path.join(
                 config.data_root, "localdisk", f.filename
             )
         return files
 
+    def has_valid_files(self):
+        return all(f.path and os.path.exists(f.path) for f in self.files)
+
     def delete_files(self):
-        for f in self.files.values():
+        for f in self.files:
             print('removing', f.path)
             os.remove(f.path)
 
@@ -378,14 +373,14 @@ def archive(limit=None, start_id=None):
         for cover in covers:
             cover = Cover(**cover)
             print('archiving', cover)
-            print(cover.files.values())
+            print(cover.files)
 
             if not cover.has_valid_files():
                 print("Missing image file for %010d" % cover.id, file=web.debug)
                 cdb.update(cover.id, failed=True)
                 continue
 
-            for d in cover.files.values():
+            for d in cover.files:
                 file_manager.add_file(d.name, filepath=d.path, mtime=cover.timestamp)
             cdb.update(cover.id, archived=True)
     finally:
