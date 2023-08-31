@@ -218,6 +218,9 @@ def run_solr_query(
         if 'editions' in solr_fields:
             solr_fields.remove('editions')
             solr_fields.add('editions:[subquery]')
+        if ed_sort := param.get('editions.sort'):
+            # Future: This should use its own scheme not the works scheme
+            params.append(('editions.sort', scheme.process_user_sort(ed_sort)))
         params.append(('fl', ','.join(solr_fields)))
         params += scheme.q_to_solr_params(q, solr_fields, params)
 
