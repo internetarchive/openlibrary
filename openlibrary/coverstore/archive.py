@@ -314,15 +314,6 @@ class Cover:
         path = os.path.join(relpath, img_filename)
         return f"{protocol}://archive.org/download/{path}"
 
-    @property
-    def timestamp(self):
-        t = (
-            utils.parse_datetime(self.created)
-            if isinstance(self.created, str)
-            else self.created
-        )
-        return time.mktime(t.timetuple())
-
     @cached_property
     def files(self):
         files = [
@@ -400,7 +391,7 @@ def archive(limit=None, start_id=None):
                 continue
 
             for d in cover.files:
-                file_manager.add_file(d.name, filepath=d.path, mtime=cover.timestamp)
+                file_manager.add_file(d.name, filepath=d.path)
             cdb.update(cover.id, archived=True)
     finally:
         file_manager.close()
@@ -482,7 +473,7 @@ class ZipManager:
 
         return zipfile.ZipFile(path, 'a')
 
-    def add_file(self, name, filepath, **args):
+    def add_file(self, name, filepath):
         zipper = self.get_zipfile(name)
 
         if name not in zipper.namelist():
