@@ -22,8 +22,8 @@ $:macros.HiddenSaveButton("addAuthor")
     <form id="addAuthor" name="edit" method="post" action="" class="olform books validate">
 
 
-    <div class="formElement title">
-        <div class="formElement">
+    <div class="formElement title" style="display:flex">
+        <div class="formElement" style="flex-basis: calc(2 / 3 * 100%);">
             <div class="label">
                 <label for="name">$_("Name")</label>
                 <span class="tip">
@@ -35,6 +35,9 @@ $:macros.HiddenSaveButton("addAuthor")
                 <input type="text" name="author--name" id="name" value="$page.name" class="required"/>
             </div>
         </div>
+        $ wd_entity = page.wikidata()
+        $if wd_entity:
+            $:render_template("wikidata_author", wd_entity)
     </div>
 
         <div>
