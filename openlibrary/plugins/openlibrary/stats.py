@@ -8,7 +8,7 @@ import sys
 import time
 import traceback
 from types import TracebackType
-from typing import Any, Optional
+from typing import Any
 
 from infogami.utils.app import find_page, find_view, find_mode
 from openlibrary.core import stats as graphite_stats

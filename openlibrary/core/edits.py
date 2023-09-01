@@ -1,6 +1,5 @@
 import datetime
 import json
-from typing import Optional
 import web
 from sqlite3 import IntegrityError
 from psycopg2.errors import UniqueViolation

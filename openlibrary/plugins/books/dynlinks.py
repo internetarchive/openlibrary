@@ -1,6 +1,5 @@
 import json
 import sys
-from typing import Optional
 from collections.abc import Hashable, Iterable, Mapping
 
 import web

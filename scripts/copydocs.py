@@ -5,7 +5,6 @@ from collections import namedtuple
 import json
 import os
 import sys
-from typing import Union
 from collections.abc import Iterator
 
 import web

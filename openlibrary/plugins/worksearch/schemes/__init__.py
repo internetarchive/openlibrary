@@ -1,5 +1,4 @@
 import logging
-from typing import Optional, Union
 from collections.abc import Callable
 
 import luqum.tree

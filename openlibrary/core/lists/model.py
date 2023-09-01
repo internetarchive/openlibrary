@@ -1,7 +1,6 @@
 """Helper functions used by the List model.
 """
 from functools import cached_property
-from typing import Union
 
 import web
 import logging

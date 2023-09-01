@@ -5,7 +5,6 @@ import web
 
 from datetime import datetime
 from math import floor
-from typing import Optional
 
 from infogami.utils import delegate
 from infogami.utils.view import public

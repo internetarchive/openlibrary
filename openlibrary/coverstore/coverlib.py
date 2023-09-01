@@ -2,7 +2,6 @@
 import datetime
 from logging import getLogger
 import os
-from typing import Optional
 
 from io import BytesIO
 

@@ -2,7 +2,7 @@
 import json
 import requests
 import time
-from typing import Any, Optional
+from typing import Any
 
 from os import path
 

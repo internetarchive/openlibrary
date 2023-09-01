@@ -1,5 +1,5 @@
 import re
-from typing import Any, Optional
+from typing import Any
 from collections.abc import Callable
 
 from openlibrary.catalog.marc.get_subjects import subjects_for_work

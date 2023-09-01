@@ -1,5 +1,5 @@
 from math import sqrt
-from typing import TypedDict, Optional
+from typing import TypedDict
 
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
