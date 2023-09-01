@@ -105,8 +105,8 @@ def process_facet_counts(
 
 
 def execute_solr_query(
-    solr_path: str, params: Union[dict, list[tuple[str, Any]]]
-) -> Optional[Response]:
+    solr_path: str, params: dict | list[tuple[str, Any]]
+) -> Response | None:
     url = solr_path
     if params:
         url += '&' if '?' in url else '?'
@@ -130,16 +130,16 @@ public(has_solr_editions_enabled)
 
 def run_solr_query(
     scheme: SearchScheme,
-    param: Optional[dict] = None,
+    param: dict | None = None,
     rows=100,
     page=1,
     sort: str | None = None,
     spellcheck_count=None,
     offset=None,
-    fields: Union[str, list[str]] | None = None,
-    facet: Union[bool, Iterable[str]] = True,
+    fields: str | list[str] | None = None,
+    facet: bool | Iterable[str] = True,
     allowed_filter_params: set[str] | None = None,
-    extra_params: Optional[list[tuple[str, Any]]] = None,
+    extra_params: list[tuple[str, Any]] | None = None,
 ):
     """
     :param param: dict of query parameters
@@ -243,7 +243,7 @@ class SearchResponse:
 
     @staticmethod
     def from_solr_result(
-        solr_result: Optional[dict],
+        solr_result: dict | None,
         sort: str,
         solr_select: str,
     ) -> 'SearchResponse':
@@ -277,7 +277,7 @@ class SearchResponse:
 
 def do_search(
     param: dict,
-    sort: Optional[str],
+    sort: str | None,
     page=1,
     rows=100,
     spellcheck_count=None,

@@ -4,7 +4,7 @@ import infogami
 from infogami.utils import delegate
 from openlibrary.utils.sentry import Sentry, SentryProcessor
 
-sentry: Optional[Sentry] = None
+sentry: Sentry | None = None
 
 
 def setup():

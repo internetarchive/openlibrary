@@ -333,7 +333,7 @@ class Seed:
         * cover
     """
 
-    def __init__(self, list, value: Union[web.storage, str]):
+    def __init__(self, list, value: web.storage | str):
         self._list = list
         self._type = None
 

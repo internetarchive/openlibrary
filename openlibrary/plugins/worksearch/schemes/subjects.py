@@ -33,7 +33,7 @@ class SubjectSearchScheme(SearchScheme):
         'subject_type',
         'work_count',
     }
-    facet_rewrites: dict[tuple[str, str], Union[str, Callable[[], str]]] = {}
+    facet_rewrites: dict[tuple[str, str], str | Callable[[], str]] = {}
 
     def q_to_solr_params(
         self,
