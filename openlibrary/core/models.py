@@ -8,7 +8,7 @@ from openlibrary.core.vendors import get_amazon_metadata
 import web
 import json
 import requests
-from typing import Any
+from typing import Any, Optional
 from collections import defaultdict
 from dataclasses import dataclass, field
 
@@ -38,7 +38,7 @@ from .ia import get_metadata
 from .waitinglist import WaitingLoan
 from ..accounts import OpenLibraryAccount
 from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_url
-from ..plugins.wikidata.code import get_wikidata_entity
+from ..plugins.wikidata.code import WikiDataEntity, get_wikidata_entity
 
 logger = logging.getLogger("openlibrary.core")
 
@@ -757,7 +757,7 @@ class Author(Thing):
     def get_url_suffix(self):
         return self.name or "unnamed"
 
-    def wikidata(self, use_cache: bool = True):
+    def wikidata(self, use_cache: bool = True) -> Optional[WikiDataEntity]:
         if wd_id := self.remote_ids.get("wikidata"):
             if use_cache:
                 return get_wikidata_entity(wd_id)

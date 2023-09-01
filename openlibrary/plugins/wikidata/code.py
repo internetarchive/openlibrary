@@ -4,6 +4,7 @@ The purpose of this file is to:
 2. Store the results
 3. Make the results easy to access from other files
 """
+from typing import Optional
 import requests
 from dataclasses import dataclass
 from openlibrary.core.helpers import seconds_since
@@ -18,13 +19,15 @@ class WikiDataEntity:
     id: str
     descriptions: dict[str, str]
 
-    def description(self, language: str = 'en') -> str | None:
+    def description(self, language: str = 'en') -> Optional[str]:
         # If a description isn't available in the requested language default to English
         return self.descriptions.get(language) or self.descriptions.get('en')
 
 
 # ttl (time to live) inspired by the cachetools api https://cachetools.readthedocs.io/en/latest/#cachetools.TTLCache
-def get_wikidata_entity(QID: str, ttl: int = MONTH_IN_SECONDS) -> WikiDataEntity | None:
+def get_wikidata_entity(
+    QID: str, ttl: int = MONTH_IN_SECONDS
+) -> Optional[WikiDataEntity]:
     entity = WikidataEntities.get_by_id(QID)
     if entity and seconds_since(entity.updated) < ttl:
         return WikiDataEntity(id=QID, descriptions=entity.data["descriptions"])
