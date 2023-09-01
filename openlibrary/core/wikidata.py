@@ -2,6 +2,7 @@
 The purpose of this file is to interact with postgres in relation to Wikidata.
 """
 
+from datetime import datetime
 import json
 from openlibrary.core import db
 
@@ -9,7 +10,7 @@ from openlibrary.core import db
 class WikidataRow:
     id: str
     data: dict
-    updated: str
+    updated: datetime
 
 
 class WikidataEntities(db.CommonExtras):
