@@ -8,7 +8,7 @@ from openlibrary.core.vendors import get_amazon_metadata
 import web
 import json
 import requests
-from typing import Any, Optional
+from typing import Any
 from collections import defaultdict
 from dataclasses import dataclass, field
 
@@ -757,7 +757,7 @@ class Author(Thing):
     def get_url_suffix(self):
         return self.name or "unnamed"
 
-    def wikidata(self, use_cache: bool = True) -> Optional[WikiDataEntity]:
+    def wikidata(self, use_cache: bool = True) -> WikiDataEntity | None:
         if wd_id := self.remote_ids.get("wikidata"):
             if use_cache:
                 return get_wikidata_entity(QID=wd_id)
