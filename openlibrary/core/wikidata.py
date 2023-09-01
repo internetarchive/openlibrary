@@ -4,6 +4,7 @@ The purpose of this file is to interact with postgres in relation to Wikidata.
 
 from datetime import datetime
 import json
+from typing import Optional
 from openlibrary.core import db
 
 
@@ -17,7 +18,7 @@ class WikidataEntities(db.CommonExtras):
     TABLENAME = "wikidata"
 
     @classmethod
-    def get_by_id(cls, id) -> WikidataRow | None:
+    def get_by_id(cls, id: str) -> Optional[WikidataRow]:
         if len(result := cls.get_by_ids([id])) > 0:
             return result[0]
         return None
