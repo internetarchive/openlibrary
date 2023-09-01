@@ -19,7 +19,8 @@ class WikiDataEntity:
     descriptions: dict[str, str]
 
     def description(self, language: str = 'en') -> str | None:
-        return self.descriptions[language]
+        # If a description isn't available in the requested language default to English
+        return self.descriptions.get(language) or self.descriptions.get('en')
 
 
 # ttl (time to live) inspired by the cachetools api https://cachetools.readthedocs.io/en/latest/#cachetools.TTLCache
