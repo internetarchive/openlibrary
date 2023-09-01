@@ -389,7 +389,7 @@ def archive(limit=None, start_id=None):
             print('archiving', cover)
             print(cover.files.values())
 
-            if not cover.has_valid_files:
+            if not cover.has_valid_files():
                 print("Missing image file for %010d" % cover.id, file=web.debug)
                 cdb.update(cover.id, failed=True)
                 continue
