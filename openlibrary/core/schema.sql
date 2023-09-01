@@ -92,7 +92,7 @@ CREATE TABLE yearly_reading_goals (
 );
 
 CREATE TABLE wikidata (
-    id text not null  primary key,
+    id text not null primary key,
     data json,
     updated timestamp without time zone default (current_timestamp at time zone 'utc')
 )
