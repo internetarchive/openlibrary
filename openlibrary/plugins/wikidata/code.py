@@ -33,7 +33,14 @@ def get_wikidata_entity(QID: str, ttl: int = MONTH_IN_SECONDS) -> WikiDataEntity
     else:
         response = requests.get(
             'https://www.wikidata.org/w/rest.php/wikibase/v0/entities/items/{QID}'
-        ).json()
-        # TODO check for 200?
-        WikidataEntities.add(QID, response)
-        return WikiDataEntity(id=response["id"], descriptions=response["descriptions"])
+        )
+        if response.status_code == 200:
+            response_json = response.json()
+            WikidataEntities.add(QID, response_json)
+            return WikiDataEntity(
+                id=response_json["id"], descriptions=response_json["descriptions"]
+            )
+        else:
+            return None
+        # TODO: What should we do in non-200 cases?
+        # They're documented here https://doc.wikimedia.org/Wikibase/master/js/rest-api/
