@@ -20,7 +20,7 @@ class WikiDataEntity:
     descriptions: dict[str, str]
 
     def description(self, language: str = 'en') -> Optional[str]:
-        # If a description isn't available in the requested language default to English
+        """If a description isn't available in the requested language default to English"""
         return self.descriptions.get(language) or self.descriptions.get('en')
 
 
