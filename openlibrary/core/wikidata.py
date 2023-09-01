@@ -15,7 +15,6 @@ class WikidataRow:
 
 class WikidataEntities(db.CommonExtras):
     TABLENAME = "wikidata"
-    PRIMARY_KEY = "id"
 
     @classmethod
     def get_by_id(cls, id) -> WikidataRow | None:
@@ -36,7 +35,7 @@ class WikidataEntities(db.CommonExtras):
         json_data = json.dumps(data)
 
         if cls.get_by_id(id) is None:
+            return oldb.insert(cls.TABLENAME, id=id, data=json_data)
+        else:
             where = "id=$id"
             return oldb.update(cls.TABLENAME, where=where, id=id, data=json_data)
-        else:
-            return oldb.insert(cls.TABLENAME, id=id, data=json_data)
