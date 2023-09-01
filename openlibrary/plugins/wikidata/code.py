@@ -4,7 +4,6 @@ The purpose of this file is to:
 2. Store the results
 3. Make the results easy to access from other files
 """
-from typing import Optional
 import requests
 from dataclasses import dataclass
 from openlibrary.core.helpers import seconds_since
@@ -19,14 +18,12 @@ class WikiDataEntity:
     id: str
     descriptions: dict[str, str]
 
-    def description(self, language: str = 'en') -> Optional[str]:
+    def description(self, language: str = 'en') -> str | None:
         """If a description isn't available in the requested language default to English"""
         return self.descriptions.get(language) or self.descriptions.get('en')
 
 
-def get_wikidata_entity(
-    QID: str, ttl: int = MONTH_IN_SECONDS
-) -> Optional[WikiDataEntity]:
+def get_wikidata_entity(QID: str, ttl: int = MONTH_IN_SECONDS) -> WikiDataEntity | None:
     """
     This only supports QIDs, if we want to support PIDs we need to use different endpoints
     ttl (time to live) inspired by the cachetools api https://cachetools.readthedocs.io/en/latest/#cachetools.TTLCache
