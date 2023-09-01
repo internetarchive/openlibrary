@@ -34,8 +34,9 @@ class WikidataEntities(db.CommonExtras):
         oldb = db.get_db()
         json_data = json.dumps(data)
 
-        if cls.get_by_id(id) is None:
-            return oldb.insert(cls.TABLENAME, id=id, data=json_data)
+        if cls.get_by_id(id):
+            return oldb.update(
+                cls.TABLENAME, where="id=$id", vars={'id': id}, data=json_data
+            )
         else:
-            where = "id=$id"
-            return oldb.update(cls.TABLENAME, where=where, id=id, data=json_data)
+            return oldb.insert(cls.TABLENAME, id=id, data=json_data)

@@ -27,19 +27,15 @@ class WikiDataEntity:
 def get_wikidata_entity(QID: str, ttl: int = MONTH_IN_SECONDS) -> WikiDataEntity | None:
     entity = WikidataEntities.get_by_id(QID)
     if entity and seconds_since(entity.updated) < ttl:
-        return WikiDataEntity(
-            id=entity.data["id"], descriptions=entity.data["descriptions"]
-        )
+        return WikiDataEntity(id=QID, descriptions=entity.data["descriptions"])
     else:
         response = requests.get(
             f'https://www.wikidata.org/w/rest.php/wikibase/v0/entities/items/{QID}'
         )
         if response.status_code == 200:
             response_json = response.json()
-            WikidataEntities.add(QID, response_json)
-            return WikiDataEntity(
-                id=response_json["id"], descriptions=response_json["descriptions"]
-            )
+            WikidataEntities.add(id=QID, data=response_json)
+            return WikiDataEntity(id=QID, descriptions=response_json["descriptions"])
         else:
             return None
         # TODO: What should we do in non-200 cases?
