@@ -24,10 +24,13 @@ class WikiDataEntity:
         return self.descriptions.get(language) or self.descriptions.get('en')
 
 
-# ttl (time to live) inspired by the cachetools api https://cachetools.readthedocs.io/en/latest/#cachetools.TTLCache
 def get_wikidata_entity(
     QID: str, ttl: int = MONTH_IN_SECONDS
 ) -> Optional[WikiDataEntity]:
+    """
+    This only supports QIDs, if we want to support PIDs we need to use different endpoints
+    ttl (time to live) inspired by the cachetools api https://cachetools.readthedocs.io/en/latest/#cachetools.TTLCache
+    """
     entity = WikidataEntities.get_by_id(QID)
     if entity and seconds_since(entity.updated) < ttl:
         return WikiDataEntity(id=QID, descriptions=entity.data["descriptions"])
