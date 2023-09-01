@@ -1,0 +1,12 @@
+$def with (wd_entity)
+
+$if wd_entity:
+    <div class="section">
+        <p>Short Description: $wd_entity.description()</p>
+        <span style="font-size: .6em;">Powered by
+            <a href="http://www.wikidata.org/entity/$wd_entity.id">Wikidata
+                <!--MIT Licensed Pencil: https://iconduck.com/icons/53881/pencil-->
+                <svg height="8" viewBox="0 0 8 8" width="8" xmlns="http://www.w3.org/2000/svg"><path d="m6 0-1 1 2 2 1-1zm-2 2-4 4v2h2l4-4z"/></svg>
+            </a>
+        </span>
+    </div>

@@ -156,14 +156,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
         $ wd_entity = page.wikidata()
         $if wd_entity:
-            <div class="section">
-                <p>Short Description: $wd_entity.description()</p>
-                <span style="font-size: .6em;">Powered by
-                    <a href="http://www.wikidata.org/entity/$wd_entity.id">Wikidata
-                    <img style="height: 1em;" src="https://www.wikidata.org/w/extensions/Wikibase/view/resources/jquery/wikibase/toolbar/themes/default/images/icons/ooui/edit.png">
-                    </a>
-                </span>
-            </div>
+            $:render_template("wikidata_author", wd_entity)
 
         $def render_subjects(label, subjects, prefix):
             $if subjects:
