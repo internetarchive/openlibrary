@@ -35,8 +35,8 @@ RUN apt-get -qq update && apt-get install -y \
     lftp
 
 # Install LTS version of node.js
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - \
-    && apt-get install -y nodejs
+COPY scripts/install_nodejs.sh ./
+RUN ./install_nodejs.sh && rm ./install_nodejs.sh
 
 # Install Archive.org nginx w/ IP anonymization
 USER root
