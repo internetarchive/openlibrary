@@ -32,7 +32,7 @@ def get_wikidata_entity(QID: str, ttl: int = MONTH_IN_SECONDS) -> WikiDataEntity
         )
     else:
         response = requests.get(
-            'https://www.wikidata.org/w/rest.php/wikibase/v0/entities/items/{QID}'
+            f'https://www.wikidata.org/w/rest.php/wikibase/v0/entities/items/{QID}'
         )
         if response.status_code == 200:
             response_json = response.json()
