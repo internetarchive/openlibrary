@@ -84,6 +84,7 @@ export default {
             // See https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
             this.$set(this.assignedIdentifiers, this.selectedIdentifier, this.inputValue);
             this.inputValue = '';
+            this.selectedIdentifier = '';
         },
         /** Removes an identifier with value from memory and it will be deleted from database on save */
         removeIdentifier: function(identifierName){
