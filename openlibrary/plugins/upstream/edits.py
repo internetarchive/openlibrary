@@ -60,7 +60,7 @@ class community_edits_queue(delegate.page):
         }
 
         return render_template(
-            'merge_queue/merge_queue',
+            'merge_request_table/merge_request_table.html',
             total_found,
             librarians,
             merge_requests=merge_requests,
