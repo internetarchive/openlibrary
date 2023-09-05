@@ -2,11 +2,11 @@
  * Defines functionality related to librarian request table and header.
  *
  * Base template for the table is openlibrary/templates/merge_queue/merge_queue.html
- * @module merge-request-table/LibrarianQueue
+ * @module merge-request-table/MergeRequestTable
  */
 
-import TableHeader from './LibrarianQueue/TableHeader'
-import { setI18nStrings, TableRow } from './LibrarianQueue/TableRow'
+import TableHeader from './MergeRequestTable/TableHeader'
+import { setI18nStrings, TableRow } from './MergeRequestTable/TableRow'
 
 /**
  * Class representing the librarian request table.
