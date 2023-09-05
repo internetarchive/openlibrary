@@ -1,4 +1,4 @@
-$def with (input, q_param, do_search, get_doc, fulltext_search, facet_fields)
+$def with (input, q_param, do_search, get_doc, fulltext_search, facet_fields, safe_mode)
 
 $ fulltext_names = {'true': 'Ebooks', 'false': 'Exclude ebooks'}
 
@@ -202,10 +202,18 @@ $ )
                 $ works = add_read_statuses(username, works)
             $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians'))
 
-            $for work in works:
-                $ read_status = work.get('readinglog', None)
-                $ dropper = macros.ReadingLogDropper([], work=work, include_lists=False, page_url="/search", users_work_read_status=read_status)
-                $:macros.SearchResultsWork(work, reading_log=dropper, show_librarian_extras=show_librarian_extras)
+            $if safe_mode:
+                $ subject_keys = [d['subject_key'] for d in docs]
+                $for work,subject_key in zip(works,subject_keys):
+                    $ read_status = work.get('readinglog', None)
+                    $ dropper = macros.ReadingLogDropper([], work=work, include_lists=False, page_url="/search", users_work_read_status=read_status)
+                    $ content_warning = len([s for s in subject_key if s.startswith("content_warning")]) != 0
+                    $:macros.SearchResultsWork(work, reading_log=dropper, show_librarian_extras=show_librarian_extras, blur=content_warning)
+            $else:
+                $for work in works:
+                    $ read_status = work.get('readinglog', None)
+                    $ dropper = macros.ReadingLogDropper([], work=work, include_lists=False, page_url="/search", users_work_read_status=read_status)
+                    $:macros.SearchResultsWork(work, reading_log=dropper, show_librarian_extras=show_librarian_extras, blur=False)
           </ul>
           $:macros.Pager(page, num_found, rows)
         </div>

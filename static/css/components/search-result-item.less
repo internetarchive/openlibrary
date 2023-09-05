@@ -71,6 +71,16 @@
     border-radius: 4px;
     opacity: .7;
   }
+  .safe-mode-preview-covers {
+    display: block;
+    height: 45px;
+    overflow: hidden;
+  }
+  .safe-mode-preview-covers img {
+    border-radius: 4px;
+    opacity: .7;
+    filter: blur(2px)
+  }
   .bookcover {
     width: 100%;
     margin: 10px 10px 0 5px;
@@ -82,6 +92,20 @@
       max-height: 300px;
       width: 175px;
     }
+  }
+  .safe-mode-bookcover {
+    width: 100%;
+    margin: 10px 10px 0 5px;
+    text-align: center;
+    overflow: hidden;
+    img {
+      border-radius: 4px;
+      max-width: 100%;
+      max-height: 300px;
+      width: 175px;
+      filter: blur(4px)
+    }
+
   }
   .imageLg {
     text-align: center;
