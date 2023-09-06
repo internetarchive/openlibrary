@@ -7,8 +7,6 @@ import 'jquery-colorbox';
 // jquery.form#2.36 not on npm, no longer getting worked on
 import '../../../../vendor/js/jquery-form/jquery.form.js';
 import autocompleteInit from './autocomplete';
-// Used only by the openlibrary/templates/books/edit/addfield.html template
-import addNewFieldInit from './add_new_field';
 import automaticInit from './automatic';
 import bookReaderInit from './bookreader_direct';
 import { ungettext, ugettext,  sprintf } from './i18n';
@@ -107,7 +105,6 @@ jQuery(function () {
 
     initValidate($);
     autocompleteInit($);
-    addNewFieldInit($);
     automaticInit($);
     // wmd editor
     if ($markdownTextAreas.length) {
