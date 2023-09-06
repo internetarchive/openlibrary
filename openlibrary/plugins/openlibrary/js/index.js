@@ -510,12 +510,11 @@ jQuery(function () {
     const teamCards = document.querySelector('.teamCards_container')
     if (teamCards) {
         import('./team')
-        .then(module => {
-            if (teamCards) {
-                module.initTeamFilter();
-            }
-        })
-        
+            .then(module => {
+                if (teamCards) {
+                    module.initTeamFilter();
+                }
+            })
     }
 
     // Add new providers in edit edition view:
