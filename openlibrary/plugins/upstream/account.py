@@ -445,7 +445,7 @@ class account_login(delegate.page):
 
     def is_eligible_for_screener(self, account: OpenLibraryAccount) -> bool:
         # It is August 2023:
-        if (now := datetime.now()) and now.month != 8 and now.year != 2023:
+        if (now := datetime.now()) and now.month != 9 and now.year != 2023:
             return False
 
         # Account must be at least 90 days old:
