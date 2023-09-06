@@ -82,7 +82,7 @@ $if owners_page:
           $ banner_key = 'pr2308'
           $ hide_banner = user.preferences().get('hidden-banner') == banner_key
           $if not hide_banner:
-            $ announcement = _('Are you a K-12 or University educator or student? Please <a href="/" class="btn primary">help us improve</a>')
+            $ announcement = _('Are you a K-12 or University educator or student? Please <a href="https://forms.gle/sR7V2hZFJbavhffy5" class="btn primary">help us improve</a>')
             $:render_template('site/banner', announcement, banner_key)
       $# End : Persona research banner
 
