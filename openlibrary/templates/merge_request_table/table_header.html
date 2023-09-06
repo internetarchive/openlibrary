@@ -1,3 +1,12 @@
+$def with(header_context)
+$ mode = header_context['mode']
+$ total = header_context['total']
+$ submitter = header_context['submitter']
+$ username = header_context['username']
+$ librarians = header_context['librarians']
+$ reviewer = header_context['reviewer']
+$ order = header_context['order']
+
 <div class="table-header">
     <a class="$(mode=='open' and 'selected' or '') mode-open" href="$changequery(mode='open', page=None)">$total['open'] $_('Open')</a>
     <a class="$(mode=='closed' and 'selected' or '') mode-closed" href="$changequery(mode='closed', page=None)">$total['closed'] $_('Closed')</a>
@@ -65,4 +74,5 @@
         </a>
       </div>
     </div>
-  </div>
+</div>
+

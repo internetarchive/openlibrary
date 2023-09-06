@@ -3,6 +3,8 @@ $def with(total, librarians, merge_requests=None)
 $# total : dict : {"open": int, "closed": int}; The total number of merge requests found for the current mode
 $# librarians : dict : {"submitters": list[str], "reviewers": list[str]}
 $# merge_requests : list : Merge requests to be displayed in the table
+$# header_context: all the arguments to be passed into the table_header template.
+$# row_context: all the arguments to be passed into the table_row template.
 
 $ i18n_strings = {
   $ 'comment_submission_failure_message': _('Failed to submit comment. Please try again in a few moments.'),
@@ -45,7 +47,9 @@ $else:
     $:macros.Pager(page, total[mode], results_per_page=25)
   </div>
   <div class="librarian-queue-wrapper" data-username="$username" data-i18n="$json_encode(i18n_strings)">
-
+    <!-- header goes here -->
+    $ header_context = {'mode': mode, 'total': total, 'submitter': submitter, 'username': username, 'librarians': librarians, 'reviewer': reviewer, 'order': order }
+    $:render_template('merge_request_table/table_header', header_context=header_context)
     <table class="mr-table">
       <tbody>
       $if not merge_requests:
@@ -58,77 +62,9 @@ $else:
         $ is_open = r['status'] == 1
         $ review_url = "%s&mrid=%s" % (r['url'], r['id'])
         $ is_submitter = username == r['submitter']
-
-        <tr id="mrid-$(r['id'])" class="mr-table-row" data-mrid="$(r['id'])">
-          <td class="mr-info">
-            $# Start : Status dot indicator
-            $ dot_status_class = 'dot--open' if is_open else 'dot--closed'
-            $ status = _('Open request') if is_open else _('Closed request')
-            <div class="dot $dot_status_class" title="$status"></div>
-            $# End : Status dot indicator
-
-            <div class="mr-details">
-              $:_('<span class="mr-details__request-title">%(title)s</span>', title=request_title)
-
-              $# Start : Most recent comment preview
-              <div class="mr-details__comment-preview">
-                $ latest_comment = comments[-1]['message'] if comments else _('No comments yet.')
-                $latest_comment
-              </div>
-              $# End : Most recent comment preview
-
-              $# Start : Comment section
-              $# XXX : Replace this with a modal form
-              <div class="comment-panel hidden">
-                <div class="comment-panel__comment-display">
-                  $for c in comments:
-                    <div class="comment-panel__comment"><span class="commenter">@$c['username']</span> $c['message']</div>
-                </div>
-                $if is_submitter or can_merge:
-                  <div class="comment-panel__input">
-                    $# XXX: Ensure that this has a drag handle
-                    <textarea class="comment-panel__reply-input" rows="1" placeholder="$_('Add a comment...')"></textarea>
-                    <input class="comment-panel__reply-btn" type="button" value="$_('Reply')">
-                  </div>
-              </div>
-              $# End : Comment section
-
-              $# Start : Submitted by line
-              <span class="mr-details__opened-by">
-                $:_('MR #%(id)s opened %(date)s by <a href="/people/%(submitter)s" class="commenter">@%(submitter)s</a>', id=r['id'], date=datestr(r["created"]), submitter=r["submitter"])
-                $if is_open and is_submitter:
-                  <a class="mr-close-link" title="$_('Click to close this Merge Request')" href="javascript:;">&times;</a>
-              </span>
-              $# End : Submitted by line
-            </div>
-          </td>
-          <td class="mr-review-actions">
-            $ show_review_button = is_open and can_merge and not r.get('reviewer', '')
-            <div class="mr-review-actions__assignee $('hidden' if show_review_button else '')">
-              $ request_reviewer = r.get('reviewer', '')
-              $if request_reviewer:
-                $ request_reviewer = '@' + request_reviewer
-              $if is_open:
-                $ icon_classes = 'mr-review-actions__unassign'
-                $if not can_merge:
-                  $ icon_classes = '%s hidden' % icon_classes
-                $ icon_content = '&times;'
-              $else:
-                $ icon_classes = 'mr-review-actions__checkmark'
-                $ icon_content = '✓'
-
-              <span class="mr-review-actions__assignee-name">$request_reviewer</span>
-              <span class="$icon_classes">$:icon_content</span>
-            </div>
-            <a href="$review_url" target="_blank" class="cta-btn mr-review-actions__review-btn $('' if show_review_button else 'hidden')">$_('Review')</a>
-          </td>
-          <td class="mr-comment-toggle">
-            <a href="javascript:;" class="mr-comment-toggle__comment-expand cta-btn">
-              <span class="mr-comment-toggle__comment-count">$len(comments)</span>
-              <img class="mr-comment-review-cell__speech mr-comment-toggle__speech-bubble" src="/static/images/speech-bubble.svg" alt="">
-            </a>
-          </td>
-        </tr>
+        <!-- row goes here -->
+        $ row_context = {'request_title': request_title, 'comments': comments, 'is_open': is_open, 'review_url': review_url, 'is_submitter': is_submitter, 'r': r, 'can_merge': can_merge}
+        $:render_template('merge_request_table/table_row', row_context=row_context)
       </tbody>
     </table>
   </div>
