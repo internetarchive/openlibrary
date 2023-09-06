@@ -47,8 +47,8 @@ $else:
     $:macros.Pager(page, total[mode], results_per_page=25)
   </div>
   <div class="librarian-queue-wrapper" data-username="$username" data-i18n="$json_encode(i18n_strings)">
-    <!-- header goes here -->
     $ header_context = {'mode': mode, 'total': total, 'submitter': submitter, 'username': username, 'librarians': librarians, 'reviewer': reviewer, 'order': order }
+    
     $:render_template('merge_request_table/table_header', header_context=header_context)
     <table class="mr-table">
       <tbody>
@@ -62,8 +62,8 @@ $else:
         $ is_open = r['status'] == 1
         $ review_url = "%s&mrid=%s" % (r['url'], r['id'])
         $ is_submitter = username == r['submitter']
-        <!-- row goes here -->
         $ row_context = {'request_title': request_title, 'comments': comments, 'is_open': is_open, 'review_url': review_url, 'is_submitter': is_submitter, 'r': r, 'can_merge': can_merge}
+        
         $:render_template('merge_request_table/table_row', row_context=row_context)
       </tbody>
     </table>
