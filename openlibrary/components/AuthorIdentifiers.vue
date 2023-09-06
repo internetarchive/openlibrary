@@ -29,7 +29,7 @@
 </template>
 
 <script>
-const identifier_regex  = {
+const identifierPatterns  = {
     wikidata: /^Q[1-9]\d*$/i,
     isni: /^[0]{4} ?[0-9]{4} ?[0-9]{4} ?[0-9]{3}[0-9X]$/i,
     storygraph: /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i,
@@ -110,8 +110,8 @@ export default {
         },
         selectIdentifierByInputValue: function() {
             // Selects the dropdown identifier based on the input value when possible
-            for (const idtype in identifier_regex) {
-                if (this.inputValue.match(identifier_regex[idtype])){
+            for (const idtype in identifierPatterns) {
+                if (this.inputValue.match(identifierPatterns[idtype])){
                     this.selectedIdentifier = idtype;
                     break;
                 }
