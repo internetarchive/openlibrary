@@ -47,8 +47,8 @@ $else:
   </div>
   <div class="librarian-queue-wrapper" data-username="$username" data-i18n="$json_encode(i18n_strings)">
     <div class="table-header">
-      <a class="$(mode=='open' and 'selected' or '') mode-open" href="$changequery(mode='open', page=None)">$total['open'] $_('Open')</a>
-      <a class="$(mode=='closed' and 'selected' or '') mode-closed" href="$changequery(mode='closed', page=None)">$total['closed'] $_('Closed')</a>
+      <a class="$(mode=='open' and 'selected' or '') mode-open" href="$changequery(mode='open', status=None, page=None)">$total['open'] $_('Open')</a>
+      <a class="$(mode=='closed' and 'selected' or '') mode-closed" href="$changequery(mode='closed', status=None, page=None)">$total['closed'] $_('Closed')</a>
       <div class="flex-auto"></div>
       $if mode != 'open':
         $# Add filter for request status
