@@ -21,103 +21,103 @@ msgstr ""
 #: account.html:7 account.html:15 account/notifications.html:13
 #: account/privacy.html:13 lib/nav_head.html:15 type/user/view.html:27
 msgid "Settings"
-msgstr ""
+msgstr "Ayarlar"
 
 #: account.html:20
 msgid "Settings & Privacy"
-msgstr ""
+msgstr "Ayarlar & Gizlilik"
 
 #: account.html:21 databarDiff.html:12
 msgid "View"
-msgstr ""
+msgstr "Görüntüle"
 
 #: account.html:21
 msgid "or"
-msgstr ""
+msgstr "veya"
 
 #: account.html:21 check_ins/check_in_prompt.html:26
 #: check_ins/reading_goal_progress.html:26 databarHistory.html:27
 #: databarTemplate.html:13 databarView.html:34
 #: type/edition/compact_title.html:11
 msgid "Edit"
-msgstr ""
+msgstr "Düzenle"
 
 #: account.html:21
 msgid "Your Profile Page"
-msgstr ""
+msgstr "Profil sayfanız"
 
 #: account.html:22
 msgid "View or Edit your Reading Log"
-msgstr ""
+msgstr "Okuma kaydınızı görüntüleyin veya düzenleyin"
 
 #: account.html:23
 msgid "View or Edit your Lists"
-msgstr ""
+msgstr "Listenizi görüntüleyin veya düzenleyin"
 
 #: account.html:24
 msgid "Import and Export Options"
-msgstr ""
+msgstr "İçe ve dışa aktarım seçenekleri"
 
 #: account.html:25
 msgid "Manage Privacy Settings"
-msgstr ""
+msgstr "Gizlilik ayarlarını yönet"
 
 #: account.html:26
 msgid "Manage Notifications Settings"
-msgstr ""
+msgstr "Bildirim ayarlarını yönet"
 
 #: account.html:27
 msgid "Manage Mailing List Subscriptions"
-msgstr ""
+msgstr "E-posta listesi aboneliklerini yönet"
 
 #: account.html:28
 msgid "Change Password"
-msgstr ""
+msgstr "Şifre değiştir"
 
 #: account.html:29
 msgid "Update Email Address"
-msgstr ""
+msgstr "E-posta adresi güncelle"
 
 #: account.html:30
 msgid "Deactivate Account"
-msgstr ""
+msgstr "Hesabı etkinsizleştir"
 
 #: account.html:32
 msgid "Please contact us if you need help with anything else."
-msgstr ""
+msgstr "Eğer başka bir konuda yardıma ihtiyacınız olursa bizimle iletişime geçin."
 
 #: barcodescanner.html:7
 msgid "Barcode Scanner (Beta)"
-msgstr ""
+msgstr "Barkod okuyucu (Beta)"
 
 #: barcodescanner.html:15
 msgid "Point your camera at a barcode! 📷"
-msgstr ""
+msgstr "Kameranızı barkoda doğru tutun! 📷"
 
 #: account/loans.html:59
 #, python-format
 msgid "%(count)d Current Loan"
 msgid_plural "%(count)d Current Loans"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d Güncel kredi"
+msgstr[1] "%(count)d Güncel krediler"
 
 #: account/loans.html:65 admin/loans_table.html:41 borrow_admin.html:106
 msgid "Loan Expires"
-msgstr ""
+msgstr "Kredi süresi doluyor"
 
 #: borrow_admin.html:168
 #, python-format
 msgid "%d person waiting"
 msgid_plural "%d people waiting"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d kişi bekliyor"
+msgstr[1] "%d kişi bekliyor"
 
 #: ManageWaitlistButton.html:11 borrow_admin.html:186
 #, python-format
 msgid "Waiting for %d day"
 msgid_plural "Waiting for %d days"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d gündür bekliyor"
+msgstr[1] "%d gündür bekliyor"
 
 #: diff.html:7
 #, python-format
@@ -126,19 +126,19 @@ msgstr ""
 
 #: diff.html:26
 msgid "Added"
-msgstr ""
+msgstr "Eklendi"
 
 #: diff.html:27
 msgid "Modified"
-msgstr ""
+msgstr "Değiştirildi"
 
 #: diff.html:28
 msgid "Removed"
-msgstr ""
+msgstr "Kaldırıldı"
 
 #: diff.html:29
 msgid "Not changed"
-msgstr ""
+msgstr "Değiştirilmedi"
 
 #: diff.html:39
 #, python-format
@@ -149,27 +149,27 @@ msgstr ""
 #: covers/book_cover.html:41 covers/book_cover_single_edition.html:36
 #: covers/book_cover_work.html:32 diff.html:42 lists/preview.html:20
 msgid "by"
-msgstr ""
+msgstr "tarafından"
 
 #: diff.html:44
 msgid "by Anonymous"
-msgstr ""
+msgstr "Anonim tarafından"
 
 #: diff.html:110
 msgid "Differences"
-msgstr ""
+msgstr "Farklar"
 
 #: diff.html:168
 msgid "Both the revisions are identical."
-msgstr ""
+msgstr "İki revizyonda aynı"
 
 #: edit_yaml.html:14 lib/edit_head.html:17
 msgid "You're in edit mode."
-msgstr ""
+msgstr "Düzenleme modundasınız"
 
 #: edit_yaml.html:15 lib/edit_head.html:18
 msgid "Cancel, and go back."
-msgstr ""
+msgstr "İptal et ve geri dön."
 
 #: edit_yaml.html:22
 msgid "YAML Representation:"
@@ -177,33 +177,33 @@ msgstr ""
 
 #: BookPreview.html:11 books/edit/edition.html:669 editpage.html:15
 msgid "Preview"
-msgstr ""
+msgstr "Önizleme"
 
 #: history.html:23
 msgid "History of edits to"
-msgstr ""
+msgstr "Yapılan düzenlemelerin geçmişi"
 
 #: history.html:31
 msgid "Revision"
-msgstr ""
+msgstr "Revizyon"
 
 #: RecentChanges.html:17 RecentChangesAdmin.html:20 RecentChangesUsers.html:20
 #: admin/ip/view.html:44 admin/people/edits.html:41 history.html:32
 #: recentchanges/render.html:30 recentchanges/updated_records.html:28
 msgid "When"
-msgstr ""
+msgstr "Ne zaman"
 
 #: RecentChanges.html:19 admin/ip/view.html:46 admin/loans_table.html:46
 #: admin/people/edits.html:43 admin/waitinglists.html:28 history.html:33
 #: recentchanges/render.html:32
 msgid "Who"
-msgstr ""
+msgstr "Kim"
 
 #: RecentChanges.html:20 RecentChangesUsers.html:22 admin/ip/view.html:47
 #: admin/people/edits.html:44 history.html:34 recentchanges/render.html:33
 #: recentchanges/updated_records.html:30
 msgid "Comment"
-msgstr ""
+msgstr "Yorum"
 
 #: history.html:35
 msgid "Diff"
@@ -211,7 +211,7 @@ msgstr ""
 
 #: history.html:42 history.html:73
 msgid "Compare"
-msgstr ""
+msgstr "Karşılaştır"
 
 #: history.html:42 history.html:73
 msgid "See Diff"
@@ -220,50 +220,50 @@ msgstr ""
 #: history.html:48 lib/history.html:76
 #, python-format
 msgid "View revision %s"
-msgstr ""
+msgstr "%s revizyonunu incele"
 
 #: history.html:85
 msgid "Back"
-msgstr ""
+msgstr "Geri"
 
 #: Pager.html:34 history.html:87 lib/pagination.html:37 showmarc.html:54
 msgid "Next"
-msgstr ""
+msgstr "İleri"
 
 #: internalerror.html:14
 msgid "Sorry. There seems to be a problem with what you were just looking at."
-msgstr ""
+msgstr "Üzgünüm. Az önce baktığınız şeyle ilgili bir problem var gibi gözüküyor."
 
 #: internalerror.html:15
 #, python-format
 msgid ""
 "We've noted the error %s and will look into it as soon as possible. Head "
 "for <a href=\"/\">home</a>?"
-msgstr ""
+msgstr "%s hatasını not ettik ve en kısa zamanda inceleceğiz."
 
 #: lib/nav_head.html:30 library_explorer.html:6
 msgid "Library Explorer"
-msgstr ""
+msgstr "Kütüphane gezgini"
 
 #: lib/header_dropdown.html:59 lib/nav_head.html:118 login.html:10
 #: login.html:75
 msgid "Log In"
-msgstr ""
+msgstr "Oturum aç"
 
 #: account/create.html:19 login.html:16
 msgid "OR"
-msgstr ""
+msgstr "VEYA"
 
 #: login.html:18
 msgid ""
 "Please enter your <a href=\"https://archive.org\">Internet Archive</a> "
 "email and password to access your Open Library account."
-msgstr ""
+msgstr "Open Library hesabınıza ulaşmak için lütfen e-postanızı ve şifrenizi giriniz. <a href=\"https://archive.org\">Internet Archive</a>"
 
 #: account/create.html:50 login.html:21
 #, python-format
 msgid "You are already logged into Open Library as %(user)s."
-msgstr ""
+msgstr "Open Library'de zaten %(user)s olarak oturum açmış durumdasınız. "
 
 #: account/create.html:51 login.html:22
 msgid ""
@@ -275,98 +275,97 @@ msgstr ""
 
 #: login.html:42
 msgid "Email"
-msgstr ""
+msgstr "E-posta"
 
 #: login.html:44
 msgid "Forgot your Internet Archive email?"
-msgstr ""
+msgstr "Internet Archive e-postanızı unuttunuz mu?"
 
 #: account/email/forgot-ia.html:33 forms.py:31 login.html:54
 msgid "Password"
-msgstr ""
+msgstr "Şifre"
 
 #: login.html:64
 msgid "Remember me"
-msgstr ""
+msgstr "Beni hatırla"
 
 #: account/email/forgot.html:48 login.html:79
 msgid "Forgot your Password?"
-msgstr ""
+msgstr "Şifrenizi mi unuttunuz?"
 
 #: login.html:81
 msgid "Not a member of Open Library? <a href=\"/account/create\">Sign up now</a>."
-msgstr ""
+msgstr "Open Library'nin bir üyesi değil misiniz? <a href=\"/account/create\">Şimdi kaydolun</a>. "
 
 #: messages.html:11
 msgid "Created new author record."
-msgstr ""
+msgstr "Yeni yazar kaydı oluşturuldu."
 
 #: messages.html:12
 msgid "Created new edition record."
-msgstr ""
+msgstr "Yeni basım kaydı oluşturuldu."
 
 #: messages.html:13
 msgid "Created new work record."
-msgstr ""
+msgstr "Yeni iş kaydı oluşturuldu."
 
 #: messages.html:14
 msgid "Added new book."
-msgstr ""
+msgstr "Yeni kitap eklendi."
 
 #: messages.html:16
 msgid "Thank you very much for adding that new book!"
-msgstr ""
+msgstr "Bu yeni kitabı eklediğiniz için çok teşekkür ederiz!"
 
 #: messages.html:17 messages.html:18
 msgid "Thank you very much for improving that record!"
-msgstr ""
+msgstr "Bu kaydı geliştirdiğiniz için çok teşekkür ederiz!"
 
 #: notfound.html:7
 #, python-format
 msgid "%(path)s is not found"
-msgstr ""
+msgstr "%(path)s bulunamadı"
 
 #: languages/notfound.html:10 notfound.html:14
 msgid "404 - Page Not Found"
-msgstr ""
+msgstr "404 - Sayfa bulunamadı"
 
 #: notfound.html:18
 #, python-format
 msgid "%(path)s does not exist."
-msgstr ""
+msgstr "%(path)s mevcut değil"
 
 #: notfound.html:22
 msgid "Create it?"
-msgstr ""
+msgstr "Oluşturmak mı?"
 
 #: notfound.html:26
 msgid "Looking for a template/macro?"
-msgstr ""
+msgstr "Bir şablon/model mi arıyorsunuz? "
 
 #: permission.html:10
 msgid "Permission of"
-msgstr ""
+msgstr "İzni ile"
 
 #: permission.html:18
 msgid "Permission"
-msgstr ""
-
+msgstr "İzin"
 #: permission.html:28
 msgid "Child Permission"
-msgstr ""
+msgstr "Çocuk izni"
 
 #: permission_denied.html:10
 msgid "Permission denied."
-msgstr ""
+msgstr "İzin reddedildi"
 
 #: permission_denied.html:30
 #, python-format
 msgid "You may <a href=\"%s\">log in</a> if you have the required permissions."
-msgstr ""
+msgstr "Eğer gerekli izniniz varsa <a href=\"%s\">oturum açabilirsiniz</a>."
 
 #: showamazon.html:8 showamazon.html:11 showbwb.html:8 showbwb.html:11
 msgid "Record details of"
-msgstr ""
+msgstr "Kaydının detayları"
 
 #: showamazon.html:15 showbwb.html:15
 msgid "This record came from"
