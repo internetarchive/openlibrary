@@ -95,6 +95,17 @@ function isIsbnDupe(isbn) {
 }
 
 /**
+ * Takes an LCCN string normalized using logic in idValidation.js and returns
+ * true if the identifier has already been added
+ * @param {String} lccn  LCCN string to check
+ * @return {boolean}  true if given LCCN is already added to the edition
+ */
+function isLccnDupe(lccn) {
+    const lccnEntries = document.querySelectorAll('.lccn');
+    return Array.from(lccnEntries).some(entry => entry['value'] === lccn);
+}
+
+/**
  * Displays a confirmation box in the error div to confirm the addition of an
  * ISBN with a valid form but which fails the checksum.
  * @param {Object} data  data from the input form, gathered via js/jquery.repeat.js
@@ -188,6 +199,9 @@ function validateLccn(data, dataConfig, label) {
 
     if (!isValidLccn(data.value)) {
         return error('#id-errors', 'id-value', dataConfig['Invalid ID format'].replace(/ID/, label));
+    }
+    else if (isLccnDupe(data.value) === true) {
+        return error('#id-errors', 'id-value', dataConfig['That ISBN already exists for this edition.'].replace(/ISBN/, label));
     }
     return true;
 }
