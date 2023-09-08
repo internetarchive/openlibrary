@@ -506,7 +506,7 @@ jQuery(function () {
 
     // Allow banner announcements to be dismissed by logged-in users:
     const banners = document.querySelectorAll('.page-banner--dismissable')
-    if (banners) {
+    if (banners.length) {
         import(/* webpackChunkName: "dismissible-banner" */ './banner')
             .then(module => module.initDismissibleBanners(banners))
     }
