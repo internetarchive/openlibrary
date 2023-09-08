@@ -120,6 +120,13 @@ $else:
         <tr>
           <td colspan="5">$_('No entries here!')</td>
         </tr>
+      $code:
+        # Maps request statuses to status dot class names
+        status_dot_mapping = {
+          0: 'dot--closed',
+          1: 'dot--open',
+          2: 'dot--merged'
+        }
       $for r in merge_requests:
         $ request_title = r.get('title', _('An untitled work') if r['mr_type'] != 2 else _('An unnamed author'))
         $ comments = r.get('comments', {}).get('comments', [])
@@ -130,7 +137,7 @@ $else:
         <tr id="mrid-$(r['id'])" class="mr-table-row" data-mrid="$(r['id'])">
           <td class="mr-info">
             $# Start : Status dot indicator
-            $ dot_status_class = 'dot--open' if is_open else 'dot--closed'
+            $ dot_status_class = status_dot_mapping[r['status']]
             $ status = _('Open request') if is_open else _('Closed request')
             <div class="dot $dot_status_class" title="$status"></div>
             $# End : Status dot indicator
