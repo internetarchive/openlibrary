@@ -227,7 +227,7 @@ export function validateIdentifiers(data) {
         return error('#id-errors', 'id-value', dataConfig['ID ids cannot contain whitespace.'].replace(/ID/, label));
     }
 
-    let validId = false;
+    let validId = true;
 
     if (data.name === 'isbn_10') {
         validId = validateIsbn10(data, dataConfig, label);
