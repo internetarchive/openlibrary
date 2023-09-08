@@ -1,4 +1,13 @@
-export const editionIdentifiersSample = `<fieldset id="identifiers" data-config="{&quot;Please select an identifier.&quot;: &quot;Please select an identifier.&quot;, &quot;You need to give a value to ID.&quot;: &quot;You need to give a value to ID.&quot;, &quot;ID ids cannot contain whitespace.&quot;: &quot;ID ids cannot contain whitespace.&quot;, &quot;ID must be exactly 10 characters [0-9] or X.&quot;: &quot;ID must be exactly 10 characters [0-9] or X.&quot;, &quot;That ISBN already exists for this edition.&quot;: &quot;That ISBN already exists for this edition.&quot;, &quot;ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4&quot;: &quot;ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4&quot;}">
+export const editionIdentifiersSample = `
+<fieldset id="identifiers" data-config="{
+    &quot;Please select an identifier.&quot;: &quot;Please select an identifier.&quot;,
+    &quot;You need to give a value to ID.&quot;: &quot;You need to give a value to ID.&quot;,
+    &quot;ID ids cannot contain whitespace.&quot;: &quot;ID ids cannot contain whitespace.&quot;,
+    &quot;ID must be exactly 10 characters [0-9] or X.&quot;: &quot;ID must be exactly 10 characters [0-9] or X.&quot;,
+    &quot;That ISBN already exists for this edition.&quot;: &quot;That ISBN already exists for this edition.&quot;,
+    &quot;ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4&quot;: &quot;ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4&quot;,
+    &quot;Invalid ID format&quot;: &quot;Invalid ID format&quot;
+}">
 <div id="id-errors" class="note" style="display: none"></div>
 <table class="identifiers">
     <tbody><tr id="identifiers-form">
@@ -9,6 +18,7 @@ export const editionIdentifiersSample = `<fieldset id="identifiers" data-config=
                 <option value="goodreads">Goodreads</option>
                 <option value="isbn_10">ISBN 10</option>
                 <option value="isbn_13">ISBN 13</option>
+                <option value="lccn">LC Control Number</option>
             </select>
         </td>
         <td>
