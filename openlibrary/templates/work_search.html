@@ -33,7 +33,7 @@ $code:
         return "SearchFacet|" + facets[key]
 
 $ param = {}
-$for p in {'q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor', 'publish_place', 'lccn', 'ia', 'first_sentence', 'publisher', 'author_key', 'debug', 'subject', 'place', 'person', 'time'} | facet_fields:
+$for p in {'q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor', 'publish_place', 'lccn', 'ia', 'first_sentence', 'publisher', 'author_key', 'debug', 'subject', 'place', 'person', 'time', 'editions.sort'} | facet_fields:
     $if p in input and input[p]:
         $ param[p] = input[p]
 
