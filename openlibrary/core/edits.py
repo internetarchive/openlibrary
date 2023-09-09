@@ -1,6 +1,5 @@
 import datetime
 import json
-from typing import Optional
 import web
 from sqlite3 import IntegrityError
 from psycopg2.errors import UniqueViolation
@@ -206,9 +205,7 @@ class CommunityEditsQueue:
         )
 
     @classmethod
-    def assign_request(
-        cls, rid: int, reviewer: Optional[str]
-    ) -> dict[str, Optional[str]]:
+    def assign_request(cls, rid: int, reviewer: str | None) -> dict[str, str | None]:
         """Changes assignees to the request with the given ID.
 
         This method only modifies requests that are not closed.

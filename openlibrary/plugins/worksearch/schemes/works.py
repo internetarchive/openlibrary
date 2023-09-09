@@ -2,7 +2,7 @@ from datetime import datetime
 import logging
 import re
 import sys
-from typing import Any, Optional
+from typing import Any
 from collections.abc import Callable
 
 import luqum.tree
@@ -327,7 +327,7 @@ class WorkSearchScheme(SearchScheme):
 
             def convert_work_field_to_edition_field(
                 field: str,
-            ) -> Optional[str | Callable[[str], str]]:
+            ) -> str | Callable[[str], str] | None:
                 """
                 Convert a SearchField name (eg 'title') to the correct fieldname
                 for use in an edition query.

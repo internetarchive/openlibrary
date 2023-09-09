@@ -3,7 +3,7 @@
 from enum import Enum
 import re
 from subprocess import CalledProcessError, run
-from typing import TypeVar, Literal, Optional
+from typing import TypeVar, Literal
 from collections.abc import Iterable, Callable
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
@@ -92,7 +92,7 @@ def take_best(
 
 def multisort_best(
     items: list[T], specs: list[tuple[Literal["min", "max"], Callable[[T], float]]]
-) -> Optional[T]:
+) -> T | None:
     """
     Takes the best item, taking into account the multisorts
 
