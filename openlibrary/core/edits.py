@@ -122,6 +122,9 @@ class CommunityEditsQueue:
                 if kwargs.get("submitter") is None
                 else "submitter=$submitter"
             )
+        # If status not specified, don't include it
+        if 'status' in kwargs and kwargs.get('status'):
+            wheres.append('status=$status')
         if "url" in kwargs:
             wheres.append("url=$url")
         if "id" in kwargs:

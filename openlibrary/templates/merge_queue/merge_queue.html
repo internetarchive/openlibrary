@@ -16,6 +16,7 @@ $ reviewer = query_param('reviewer', None)
 $ submitter = query_param('submitter', None)
 $ mode = query_param('mode', 'open')
 $ order = query_param('order', 'desc')
+$ status = query_param('status', None)
 
 $if submitter:
   $ desc = _("Showing %(username)s's requests only.", username=submitter)
@@ -46,9 +47,30 @@ $else:
   </div>
   <div class="librarian-queue-wrapper" data-username="$username" data-i18n="$json_encode(i18n_strings)">
     <div class="table-header">
-      <a class="$(mode=='open' and 'selected' or '') mode-open" href="$changequery(mode='open', page=None)">$total['open'] $_('Open')</a>
-      <a class="$(mode=='closed' and 'selected' or '') mode-closed" href="$changequery(mode='closed', page=None)">$total['closed'] $_('Closed')</a>
+      <a class="$(mode=='open' and 'selected' or '') mode-open" href="$changequery(mode='open', status=None, page=None)">$total['open'] $_('Open')</a>
+      <a class="$(mode=='closed' and 'selected' or '') mode-closed" href="$changequery(mode='closed', status=None, page=None)">$total['closed'] $_('Closed')</a>
       <div class="flex-auto"></div>
+      $if mode != 'open':
+        $# Add filter for request status
+        <div class="mr-dropdown">$_('Status ▾')
+          <div class="mr-dropdown-menu sort hidden">
+            <header class="dropdown-header">
+              <span>$_('Request Status')</span>
+              <button class="dropdown-close">&times;</button>
+            </header>
+            $ merged_href = changequery(status='2', page=None) if status!='2' else changequery(status=None, page=None)
+            <a href="$merged_href" class="dropdown-item">
+              <span class="$('' if status=='2' else 'invisible') item-checked">✓</span>
+              <span>$_('Merged')
+              </span>
+            </a>
+            $ declined_href = changequery(status='0', page=None) if status!='0' else changequery(status=None, page=None)
+            <a href="$declined_href" class="dropdown-item">
+              <span class="$('' if status=='0' else 'invisible') item-checked">✓</span>
+              <span>$_('Declined')</span>
+            </a>
+          </div>
+        </div>
       <div class="mr-dropdown" id="submitter-menu-button">$_('Submitter ▾')
         <div class="mr-dropdown-menu hidden">
           <header class="dropdown-header">
