@@ -6,7 +6,8 @@ import {
     isChecksumValidIsbn13,
     isFormatValidIsbn10,
     isFormatValidIsbn13,
-    isValidLccn
+    isValidLccn,
+    isIdDupe
 } from './idValidation';
 /* global render_seed_field, render_language_field, render_lazy_work_preview, render_language_autocomplete_item, render_work_field, render_work_autocomplete_item */
 /* Globals are provided by the edit edition template */
@@ -84,28 +85,6 @@ export function initRoleValidation() {
 }
 
 /**
- * Takes an isbn string and returns true if the given ISBN is already added
- * to this edition.
- * @param {String} isbn  ISBN string duplication checking
- * @return {boolean}  true if the given ISBN is already added to the edition
- */
-function isIsbnDupe(isbn) {
-    const isbnEntries = document.querySelectorAll('.isbn_10, .isbn_13');
-    return Array.from(isbnEntries).some(entry => entry['value'] === isbn);
-}
-
-/**
- * Takes an LCCN string normalized using logic in idValidation.js and returns
- * true if the identifier has already been added
- * @param {String} lccn  LCCN string to check
- * @return {boolean}  true if given LCCN is already added to the edition
- */
-function isLccnDupe(lccn) {
-    const lccnEntries = document.querySelectorAll('.lccn');
-    return Array.from(lccnEntries).some(entry => entry['value'] === lccn);
-}
-
-/**
  * Displays a confirmation box in the error div to confirm the addition of an
  * ISBN with a valid form but which fails the checksum.
  * @param {Object} data  data from the input form, gathered via js/jquery.repeat.js
@@ -146,8 +125,9 @@ function validateIsbn10(data, dataConfig, label) {
     if (isFormatValidIsbn10(data.value) === false) {
         return error('#id-errors', 'id-value', dataConfig['ID must be exactly 10 characters [0-9] or X.'].replace(/ID/, label));
     }
-    else if (isIsbnDupe(data.value) === true) {
-        return error('#id-errors', 'id-value', dataConfig['That ISBN already exists for this edition.'].replace(/ISBN/, label));
+    const entries = document.querySelectorAll(`.${data.name}`);
+    if (isIdDupe(entries, data.value) === true) {
+        return error('#id-errors', 'id-value', dataConfig['That ID already exists for this edition.'].replace(/ID/, label));
     }
     // Here the ISBN has a valid format, but also has an invalid checksum. Give the user a chance to verify
     // the ISBN, as books sometimes issue with invalid ISBNs and we want to be able to add them.
@@ -173,8 +153,9 @@ function validateIsbn13(data, dataConfig, label) {
     if (isFormatValidIsbn13(data.value) === false) {
         return error('#id-errors', 'id-value', dataConfig['ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4'].replace(/ID/, label));
     }
-    else if (isIsbnDupe(data.value) === true) {
-        return error('#id-errors', 'id-value', dataConfig['That ISBN already exists for this edition.'].replace(/ISBN/, label));
+    const entries = document.querySelectorAll(`.${data.name}`);
+    if (isIdDupe(entries, data.value) === true) {
+        return error('#id-errors', 'id-value', dataConfig['That ID already exists for this edition.'].replace(/ID/, label));
     }
     // Here the ISBN has a valid format, but also has an invalid checksum. Give the user a chance to verify
     // the ISBN, as books sometimes issue with invalid ISBNs and we want to be able to add them.
@@ -200,8 +181,9 @@ function validateLccn(data, dataConfig, label) {
     if (!isValidLccn(data.value)) {
         return error('#id-errors', 'id-value', dataConfig['Invalid ID format'].replace(/ID/, label));
     }
-    else if (isLccnDupe(data.value) === true) {
-        return error('#id-errors', 'id-value', dataConfig['That ISBN already exists for this edition.'].replace(/ISBN/, label));
+    const entries = document.querySelectorAll(`.${data.name}`);
+    if (isIdDupe(entries, data.value) === true) {
+        return error('#id-errors', 'id-value', dataConfig['That ID already exists for this edition.'].replace(/ID/, label));
     }
     return true;
 }
