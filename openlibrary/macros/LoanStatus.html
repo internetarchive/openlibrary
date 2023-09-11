@@ -44,16 +44,6 @@ $if user_loan:
   $if secondary_action:
     $:macros.ReturnForm(ocaid)
     $:macros.FormatExpiry(user_loan['expiry'])
-    $if render_once('LoanStatus:return-book-js'):
-      <script type="text/javascript">
-        window.q.push(function() {
-          \$('.return-form').on('submit', function(event) {
-            if (!confirm("$_('Really return this book?')")) {
-              event.preventDefault();
-            }
-          });
-        });
-      </script>
 
 $elif book_provider and book_provider.short_name != 'ia':
   $# Partner Trusted Book Provider Read Buttons

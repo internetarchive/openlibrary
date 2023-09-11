@@ -510,4 +510,10 @@ jQuery(function () {
         import(/* webpackChunkName: "dismissible-banner" */ './banner')
             .then(module => module.initDismissibleBanners(banners))
     }
+
+    const returnForms = document.querySelectorAll('.return-form')
+    if (returnForms.length) {
+        import(/* webpackChunkName: "return-form" */ './return-form')
+            .then(module => module.initReturnForms(returnForms))
+    }
 });
