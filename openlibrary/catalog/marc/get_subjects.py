@@ -121,7 +121,7 @@ def read_subjects(rec):
                 # TODO: unsure what this is for -- it is not tested
                 continue
             subjects['subject'][tidy_subject(v)] += 1
-    return {k: dict(v) for k, v in subjects.items() if k}
+    return {k: dict(v) for k, v in subjects.items()}
 
 
 def subjects_for_work(rec):
