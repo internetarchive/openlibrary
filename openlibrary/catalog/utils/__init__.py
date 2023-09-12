@@ -97,12 +97,11 @@ def remove_trailing_number_dot(date):
         return date
 
 
-def remove_trailing_dot(s):
-    if s.endswith(" Dept."):
+def remove_trailing_dot(s: str) -> str:
+    if s.endswith(' Dept.'):
         return s
-    m = re_end_dot.search(s)
-    if m:
-        s = s[:-1]
+    elif m := re_end_dot.search(s):
+        return s[:-1]
     return s
 
 
