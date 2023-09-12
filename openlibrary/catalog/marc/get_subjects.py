@@ -57,23 +57,6 @@ def four_types(i):
     return ret
 
 
-re_aspects = re.compile(' [Aa]spects$')
-
-
-def find_aspects(f):
-    cur = [(i, j) for i, j in f.get_subfields('ax')]
-    if len(cur) < 2 or cur[0][0] != 'a' or cur[1][0] != 'x':
-        return
-    a, x = cur[0][1], cur[1][1]
-    x = x.strip('. ')
-    a = a.strip('. ')
-    if not re_aspects.search(x):
-        return
-    if a == 'Body, Human':
-        a = 'the Human body'
-    return x + ' of ' + flip_subject(a)
-
-
 def read_subjects(rec):
     subject_fields = {'600', '610', '611', '630', '648', '650', '651', '662'}
     subjects = defaultdict(lambda: defaultdict(int))
@@ -113,9 +96,6 @@ def read_subjects(rec):
         for v in field.get_subfield_values('z'):  # Geographic subdivision
             subjects['place'][flip_place(v)] += 1
         for v in field.get_subfield_values('x'):  # General subdivision
-            if find_aspects(field) and re_aspects.search(v):
-                # TODO: unsure what this is for -- it is not tested
-                continue
             subjects['subject'][tidy_subject(v)] += 1
     return {k: dict(v) for k, v in subjects.items()}
 
