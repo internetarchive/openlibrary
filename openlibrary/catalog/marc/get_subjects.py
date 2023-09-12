@@ -91,10 +91,6 @@ def read_subjects(rec):
         elif tag == '610':  # org
             if v := tidy_subject(' '.join(field.get_subfield_values('abcd'))):
                 subjects['org'][v] += 1
-
-            # TODO: is this duplicating 610$a?
-            for v in field.get_subfield_values('a'):
-                subjects['org'][tidy_subject(v)] += 1
         elif tag == '611':  # Meeting Name (event)
             v = ' '.join(
                 j.strip() for i, j in field.get_all_subfields() if i not in 'vxyz'
@@ -131,7 +127,5 @@ def subjects_for_work(rec):
         'time': 'subject_times',
         'person': 'subject_people',
     }
-
     subjects = four_types(read_subjects(rec))
-
     return {field_map[k]: list(v) for k, v in subjects.items()}
