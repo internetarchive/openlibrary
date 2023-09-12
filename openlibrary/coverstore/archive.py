@@ -1,19 +1,19 @@
 """Utility to move files from local disk to zip files and update the paths in the db"""
 
+from dataclasses import dataclass
+from datetime import datetime
+from functools import cached_property
 import glob
 import os
 import re
 import sys
-import subprocess
 import time
 import zipfile
 import web
 import internetarchive as ia
 
 from infogami.infobase import utils
-
 from openlibrary.coverstore import config, db
-from openlibrary.coverstore.coverlib import find_image_path
 
 
 ITEM_SIZE = 1_000_000
@@ -58,19 +58,34 @@ class Uploader:
         :param item: name of archive.org item to look within, e.g. `s_covers_0008`
         :param filename: filename to look for within item
         """
-        zip_command = fr'ia list {item} | grep "{filename}" | wc -l'
-        if verbose:
-            print(zip_command)
-        zip_result = subprocess.run(
-            zip_command, shell=True, text=True, capture_output=True, check=True
-        )
-        return int(zip_result.stdout.strip()) == 1
+        return filename in (f['name'] for f in ia.get_item(item).files)
 
 
 class Batch:
     @staticmethod
     def get_relpath(item_id, batch_id, ext="", size=""):
-        """e.g. s_covers_0008/s_covers_0008_82.zip or covers_0008/covers_0008_82.zip"""
+        """
+        e.g. s_covers_0008/s_covers_0008_82.zip or covers_0008/covers_0008_82.zip
+
+        >>> Batch.get_relpath("0008", "80")
+        'covers_0008/covers_0008_80'
+
+        # Sizes
+        >>> Batch.get_relpath("0008", "80", size="s")
+        's_covers_0008/s_covers_0008_80'
+        >>> Batch.get_relpath("0008", "80", size="m")
+        'm_covers_0008/m_covers_0008_80'
+        >>> Batch.get_relpath("0008", "80", size="l")
+        'l_covers_0008/l_covers_0008_80'
+
+        # Ext
+        >>> Batch.get_relpath("0008", "80", ext="tar")
+        'covers_0008/covers_0008_80.tar'
+
+        # Ext + Size
+        >>> Batch.get_relpath("0008", "80", size="l", ext="zip")
+        'l_covers_0008/l_covers_0008_80.zip'
+        """
         ext = f".{ext}" if ext else ""
         prefix = f"{size.lower()}_" if size else ""
         folder = f"{prefix}covers_{item_id}"
@@ -186,9 +201,9 @@ class Batch:
     def finalize(cls, start_id, test=True):
         """Update all covers in batch to point to zips, delete files, set deleted=True"""
         cdb = CoverDB()
-        covers = (
-            Cover(**c)
-            for c in cdb._get_batch(start_id=start_id, failed=False, uploaded=False)
+        covers = map(
+            Cover.from_db_entry,
+            cdb._get_batch(start_id=start_id, failed=False, uploaded=False),
         )
 
         for cover in covers:
@@ -220,6 +235,9 @@ class CoverDB:
     def _get_batch_end_id(start_id):
         """Calculates the end of the batch based on the start_id and the
         batch_size
+
+        >>> CoverDB._get_batch_end_id(start_id=8820500)
+        8830000
         """
         return start_id - (start_id % BATCH_SIZE) + BATCH_SIZE
 
@@ -303,53 +321,53 @@ class CoverDB:
         )
 
 
-class Cover(web.Storage):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.files = self.get_files()
+@dataclass
+class Cover:
+    id: int
+    created: str | datetime
+    filename: str | None
+    filename_s: str | None
+    filename_m: str | None
+    filename_l: str | None
 
     @classmethod
-    def get_cover_url(cls, cover_id, size="", ext="zip", protocol="https"):
-        pcid = "%010d" % int(cover_id)
-        img_filename = item_file = f"{pcid}{'-' + size.upper() if size else ''}.jpg"
+    def get_cover_url(cls, cover_id: int, size="", ext="zip", protocol="https"):
+        img_filename = f"{cover_id:010}{'-' + size.upper() if size else ''}.jpg"
         item_id, batch_id = cls.id_to_item_and_batch_id(cover_id)
         relpath = Batch.get_relpath(item_id, batch_id, size=size, ext=ext)
         path = os.path.join(relpath, img_filename)
         return f"{protocol}://archive.org/download/{path}"
 
-    @property
-    def timestamp(self):
-        t = (
-            utils.parse_datetime(self.created)
-            if isinstance(self.created, str)
-            else self.created
-        )
-        return time.mktime(t.timetuple())
-
-    def has_valid_files(self):
-        return all(f.path and os.path.exists(f.path) for f in self.files.values())
-
-    def get_files(self):
-        files = {
-            'filename': web.storage(name="%010d.jpg" % self.id, filename=self.filename),
-            'filename_s': web.storage(
-                name="%010d-S.jpg" % self.id, filename=self.filename_s
-            ),
-            'filename_m': web.storage(
-                name="%010d-M.jpg" % self.id, filename=self.filename_m
-            ),
-            'filename_l': web.storage(
-                name="%010d-L.jpg" % self.id, filename=self.filename_l
-            ),
-        }
-        for file_type, f in files.items():
-            files[file_type].path = f.filename and os.path.join(
+    @cached_property
+    def files(self):
+        files = [
+            web.storage(name=f"{self.id:010}.jpg", filename=self.filename),
+            web.storage(name=f"{self.id:010}-S.jpg", filename=self.filename_s),
+            web.storage(name=f"{self.id:010}-M.jpg", filename=self.filename_m),
+            web.storage(name=f"{self.id:010}-L.jpg", filename=self.filename_l),
+        ]
+        for f in files:
+            f.path = f.filename and os.path.join(
                 config.data_root, "localdisk", f.filename
             )
         return files
 
+    @staticmethod
+    def from_db_entry(db_entry: dict) -> 'Cover':
+        return Cover(
+            id=db_entry['id'],
+            created=db_entry['created'],
+            filename=db_entry.get('filename'),
+            filename_s=db_entry.get('filename_s'),
+            filename_m=db_entry.get('filename_m'),
+            filename_l=db_entry.get('filename_l'),
+        )
+
+    def has_valid_files(self):
+        return all(f.path and os.path.exists(f.path) for f in self.files)
+
     def delete_files(self):
-        for f in self.files.values():
+        for f in self.files:
             print('removing', f.path)
             os.remove(f.path)
 
@@ -359,7 +377,6 @@ class Cover(web.Storage):
         representing the value of the millions place and a 2-digit,
         0-padded batch_id representing the ten-thousandth place, e.g.
 
-        Usage:
         >>> Cover.id_to_item_and_batch_id(987_654_321)
         ('0987', '65')
         """
@@ -373,32 +390,30 @@ class Cover(web.Storage):
 
 def archive(limit=None, start_id=None):
     """Move files from local disk to tar files and update the paths in the db."""
-
-    file_manager = ZipManager()
     cdb = CoverDB()
 
-    try:
-        covers = (
-            cdb.get_unarchived_covers(limit=limit)
-            if limit
-            else cdb.get_batch_unarchived(start_id=start_id)
+    with ZipManager() as file_manager:
+        covers = map(
+            Cover.from_db_entry,
+            (
+                cdb.get_unarchived_covers(limit=limit)
+                if limit
+                else cdb.get_batch_unarchived(start_id=start_id)
+            ),
         )
 
         for cover in covers:
-            cover = Cover(**cover)
             print('archiving', cover)
-            print(cover.files.values())
+            print(cover.files)
 
             if not cover.has_valid_files():
                 print("Missing image file for %010d" % cover.id, file=web.debug)
                 cdb.update(cover.id, failed=True)
                 continue
 
-            for d in cover.files.values():
-                file_manager.add_file(d.name, filepath=d.path, mtime=cover.timestamp)
+            for d in cover.files:
+                file_manager.add_file(d.name, filepath=d.path)
             cdb.update(cover.id, archived=True)
-    finally:
-        file_manager.close()
 
 
 def audit(item_id, batch_ids=(0, 100), sizes=BATCH_SIZES) -> None:
@@ -442,17 +457,12 @@ def audit(item_id, batch_ids=(0, 100), sizes=BATCH_SIZES) -> None:
 
 class ZipManager:
     def __init__(self):
-        self.zipfiles = {}
-        for size in BATCH_SIZES:
-            self.zipfiles[size.upper()] = (None, None)
+        self.zipfiles = {size.upper(): (None, None) for size in BATCH_SIZES}
 
     @staticmethod
     def count_files_in_zip(filepath):
-        command = f'unzip -l {filepath} | grep "jpg" |  wc -l'
-        result = subprocess.run(
-            command, shell=True, text=True, capture_output=True, check=True
-        )
-        return int(result.stdout.strip())
+        with zipfile.ZipFile(filepath, 'r') as zip_ref:
+            return len(name for name in zip_ref.namelist() if name.endswith(".jpg"))
 
     def get_zipfile(self, name):
         cid = web.numify(name)
@@ -482,29 +492,18 @@ class ZipManager:
 
         return zipfile.ZipFile(path, 'a')
 
-    def add_file(self, name, filepath, **args):
+    def add_file(self, name, filepath):
         zipper = self.get_zipfile(name)
 
         if name not in zipper.namelist():
-            with open(filepath, 'rb') as fileobj:
+            with open(filepath, 'rb'):
                 # Set compression to ZIP_STORED to avoid compression
                 zipper.write(filepath, arcname=name, compress_type=zipfile.ZIP_STORED)
 
-        return os.path.basename(zipper.filename)
+    def __enter__(self):
+        return self
 
-    def close(self):
+    def __exit__(self, exc_type, exc_value, traceback):
         for name, _zipfile in self.zipfiles.values():
             if name:
                 _zipfile.close()
-
-    @classmethod
-    def contains(cls, zip_file_path, filename):
-        with zipfile.ZipFile(zip_file_path, 'r') as zip_file:
-            return filename in zip_file.namelist()
-
-    @classmethod
-    def get_last_file_in_zip(cls, zip_file_path):
-        with zipfile.ZipFile(zip_file_path, 'r') as zip_file:
-            file_list = zip_file.namelist()
-            if file_list:
-                return max(file_list)
