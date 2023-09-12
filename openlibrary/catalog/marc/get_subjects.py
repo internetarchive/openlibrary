@@ -89,14 +89,12 @@ def read_subjects(rec):
             for v in field.get_subfield_values('a'):
                 subjects['place'][flip_place(v)] += 1
 
+        for v in field.get_subfield_values('vx'):  # Form and General subdivisions
+            subjects['subject'][tidy_subject(v)] += 1
         for v in field.get_subfield_values('y'):  # Chronological subdivision
             subjects['time'][tidy_subject(v)] += 1
-        for v in field.get_subfield_values('v'):  # Form subdivision
-            subjects['subject'][tidy_subject(v)] += 1
         for v in field.get_subfield_values('z'):  # Geographic subdivision
             subjects['place'][flip_place(v)] += 1
-        for v in field.get_subfield_values('x'):  # General subdivision
-            subjects['subject'][tidy_subject(v)] += 1
     return {k: dict(v) for k, v in subjects.items()}
 
 
