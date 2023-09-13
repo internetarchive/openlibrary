@@ -483,7 +483,7 @@
             "label": "Hathi Trust"
         },
         {
-            "url": "https://hollis.harvard.edu/primo_library/libweb/action/display.do?doc=HVD_ALEPH@@@",
+            "url": "https://id.lib.harvard.edu/alma/@@@/catalog",
             "website": "https://library.harvard.edu",
             "name": "harvard",
             "label": "Harvard University Library"
