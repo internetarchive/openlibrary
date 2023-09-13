@@ -1,3 +1,4 @@
+https://github.com/internetarchive/openlibrary/blob/845e3ac61075ae93f49c019ab0ec368e06dbb81d/CONTRIBUTING.md
 # Getting Started
 
 ## Welcome!
