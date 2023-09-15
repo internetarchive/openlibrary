@@ -78,13 +78,6 @@ export class Dropper {
      */
     initialize() {
         this.dropClick.addEventListener('click', () => {
-            // REVIEWER: `debounce` call was removed here.
-            // Could not get it to work --- suspect that this has something to
-            // do with `debounce` being called from an arrow function?
-            //
-            // I wonder if it's still needed? I don't think that we're doing
-            // anything computationally heavy when this is opened or closed.
-            // No calls to the server, either.
             this.toggleDropper()
         })
     }
