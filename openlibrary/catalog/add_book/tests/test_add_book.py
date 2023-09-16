@@ -985,7 +985,9 @@ def test_subtitle_gets_split_from_title(mock_site) -> None:
     assert e['subtitle'] == "not yet split"
 
 
-@pytest.mark.xfail(reason='This documents the fact that titles DO NOT have trailing periods stripped (at this point.')
+@pytest.mark.xfail(
+    reason='This documents the fact that titles DO NOT have trailing periods stripped (at this point).'
+)
 def test_title_with_trailing_period_is_stripped() -> None:
     rec = {
         'source_records': 'non-marc:test',

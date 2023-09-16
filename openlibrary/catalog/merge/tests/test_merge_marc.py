@@ -89,7 +89,7 @@ class TestTitles:
     def test_build_titles(self):
         # Used by openlibrary.catalog.merge.merge_marc.expand_record()
         full_title = 'This is a title.'  # Input title
-        normalized = 'this is a title'   # Expected normalization
+        normalized = 'this is a title'  # Expected normalization
         result = build_titles(full_title)
         assert isinstance(result['titles'], list)
         assert result['full_title'] == full_title
@@ -106,8 +106,6 @@ class TestTitles:
         assert 'This & that' in result['titles']
 
     def test_build_titles_complex(self):
-        # TODO: There are issues with this method
-        # see https://github.com/internetarchive/openlibrary/issues/2410
         full_title = 'A test full title : subtitle (parens)'
         full_title_period = 'A test full title : subtitle (parens).'
         titles_period = build_titles(full_title_period)['titles']
