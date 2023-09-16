@@ -14,7 +14,7 @@ def set_isbn_match(score):
     isbn_match = score
 
 
-def build_titles(title):
+def build_titles(title: str):
     """
     Uses a full title to create normalized and short title versions.
 
@@ -48,7 +48,7 @@ def build_titles(title):
     return {
         'full_title': title,
         'normalized_title': normalized_title,
-        'titles': titles,
+        'titles': list(set(titles)),
         'short_title': normalized_title[:25],
     }
 

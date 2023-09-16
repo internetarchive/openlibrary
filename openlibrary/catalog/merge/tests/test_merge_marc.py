@@ -88,8 +88,8 @@ class TestAuthors:
 class TestTitles:
     def test_build_titles(self):
         # Used by openlibrary.catalog.merge.merge_marc.expand_record()
-        full_title = 'This is a title.'
-        normalized = 'this is a title'
+        full_title = 'This is a title.'  # Input title
+        normalized = 'this is a title'   # Expected normalization
         result = build_titles(full_title)
         assert isinstance(result['titles'], list)
         assert result['full_title'] == full_title
@@ -118,15 +118,12 @@ class TestTitles:
             assert t in titles
             assert t in titles_period
 
-        # Missing variations:
-        # assert 'test full title subtitle' in a_titles
         assert 'test full title subtitle' in titles
-        # assert 'a test full title subtitle' in a_titles
         assert 'a test full title subtitle' in titles
 
         # Check for duplicates:
         assert len(titles_period) == len(set(titles_period))
-        # assert len(titles) == len(set(titles))
+        assert len(titles) == len(set(titles))
 
 
 def test_compare_publisher():
