@@ -22,23 +22,21 @@ def build_titles(title: str):
     :rtype: dict
     :return: An expanded set of title variations
     """
-    normalized_title = normalize(title).lower()
+    normalized_title = normalize(title)
     titles = [title, normalized_title]
-    if title.find(' & ') != -1:
-        t = title.replace(" & ", " and ")
-        titles.append(t)
-        titles.append(normalize(t))
     t2 = []
     for t in titles:
-        if t.lower().startswith('the '):
+        t = normalize(t)
+        if t.startswith('the '):
             t2.append(t[4:])
-        elif t.lower().startswith('a '):
+        elif t.startswith('a '):
             t2.append(t[2:])
     titles += t2
 
-    if re_amazon_title_paren.match(title):
+    if re_amazon_title_paren.match(normalized_title):
         t2 = []
         for t in titles:
+            t = normalize(t)
             m = re_amazon_title_paren.match(t)
             if m:
                 t2.append(m.group(1))

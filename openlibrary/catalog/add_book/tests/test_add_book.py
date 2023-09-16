@@ -24,6 +24,7 @@ from openlibrary.catalog.add_book import (
     split_subtitle,
     RequiredField,
     validate_record,
+    normalize_import_record,
 )
 
 from openlibrary.catalog.marc.parse import read_edition
@@ -982,6 +983,16 @@ def test_subtitle_gets_split_from_title(mock_site) -> None:
     )  # FIX: this is presumably a bug. See `new_work` not assigning 'subtitle'
     assert e['title'] == "Work with a subtitle"
     assert e['subtitle'] == "not yet split"
+
+
+@pytest.mark.xfail(reason='This documents the fact that titles DO NOT have trailing periods stripped (at this point.')
+def test_title_with_trailing_period_is_stripped() -> None:
+    rec = {
+        'source_records': 'non-marc:test',
+        'title': 'Title with period.',
+    }
+    normalize_import_record(rec)
+    assert rec['title'] == 'Title with period.'
 
 
 def test_find_match_is_used_when_looking_for_edition_matches(mock_site) -> None:

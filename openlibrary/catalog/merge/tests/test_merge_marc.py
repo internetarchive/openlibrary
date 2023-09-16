@@ -95,7 +95,15 @@ class TestTitles:
         assert result['full_title'] == full_title
         assert result['short_title'] == normalized
         assert result['normalized_title'] == normalized
-        assert result['titles'] == ['This is a title.', 'this is a title']
+        assert len(result['titles']) == 2
+        assert full_title in result['titles']
+        assert normalized in result['titles']
+
+    def test_build_titles_ampersand(self):
+        full_title = 'This & that'
+        result = build_titles(full_title)
+        assert 'this and that' in result['titles']
+        assert 'This & that' in result['titles']
 
     def test_build_titles_complex(self):
         # TODO: There are issues with this method
@@ -124,6 +132,7 @@ class TestTitles:
         # Check for duplicates:
         assert len(titles_period) == len(set(titles_period))
         assert len(titles) == len(set(titles))
+        assert len(titles) == len(titles_period)
 
 
 def test_compare_publisher():
