@@ -19,6 +19,8 @@ import { removeChildren } from '../utils'
  * lists. If the dropper is linked to a book, and the book has a work key, the dropper
  * will contain affordances for reading log shelf and last read date management.
  *
+ * My Books droppers will be disabled if the patron is not authenticated.
+ *
  * @see `/openlibrary/templates/my_books/dropper.html` for base template of this component.
  * @class
  * @augments Dropper
@@ -165,5 +167,14 @@ export class MyBooksDropper extends Dropper {
         myBooksStore.setDroppers(this)
     }
 
+    /**
+     * Redirects to login page when disabled dropper is clicked.
+     *
+     * My Books droppers are disabled for unauthenticated patrons.
+     *
+     * @override
+     */
+    onDisabledClick() {
+        window.location = `/account/login?redirect=${location.pathname}`
     }
 }
