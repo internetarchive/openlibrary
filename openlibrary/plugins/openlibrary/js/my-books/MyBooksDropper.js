@@ -157,17 +157,13 @@ export class MyBooksDropper extends Dropper {
     }
 
     /**
-     * Closes dropper if opened; opens dropper if closed.
+     * Updates store with reference to the opened dropper.
      *
-     * If the dropper is open, the store is updated with
-     * a reference to the dropper and the seed identifier
      * @override
      */
-    toggleDropper() {
-        super.toggleDropper()
+    onOpen() {
+        myBooksStore.setDroppers(this)
+    }
 
-        if (!this.isDropperDisabled && this.isDropperOpen) {
-            myBooksStore.setOpenDropper(this)
-        }
     }
 }

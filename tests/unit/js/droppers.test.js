@@ -219,4 +219,87 @@ describe('Dropper.js class', () => {
         expect(arrow.classList.contains('up')).toBe(false)
         expect(wrapper.classList.contains('generic-dropper-wrapper--active')).toBe(false)
     })
+
+    describe('Dropper event methods', () => {
+        afterEach(() => {
+            jest.clearAllMocks()
+        })
+
+        it('calls `onDisabledClick()` when dropper is clicked while disabled', () => {
+            document.body.innerHTML = disabledDropperMarkup
+            const wrapper = document.querySelector('.generic-dropper-wrapper')
+            const dropper = new Dropper(wrapper)
+            dropper.initialize()
+
+            const onDisabledClickFn = jest.spyOn(dropper, 'onDisabledClick')
+
+            // Check initial state:
+            expect(dropper.isDropperDisabled).toBe(true)
+            expect(onDisabledClickFn).not.toHaveBeenCalled()
+
+            // Check state after toggling:
+            dropper.toggleDropper()
+            expect(dropper.isDropperDisabled).toBe(true)
+            expect(onDisabledClickFn).toHaveBeenCalledTimes(1)
+
+            // Check state after closing:
+            dropper.closeDropper()
+            expect(dropper.isDropperDisabled).toBe(true)
+            expect(onDisabledClickFn).toHaveBeenCalledTimes(2)
+        })
+
+        it('calls `onClose()` when active dropper is closed', () => {
+            document.body.innerHTML = openDropperMarkup
+            const wrapper = document.querySelector('.generic-dropper-wrapper')
+            const dropper = new Dropper(wrapper)
+            dropper.initialize()
+
+            const onCloseFn = jest.spyOn(dropper, 'onClose')
+
+            // Check initial state:
+            expect(dropper.isDropperOpen).toBe(true)
+            expect(onCloseFn).not.toHaveBeenCalled()
+
+            // Check state after closing:
+            dropper.closeDropper()
+            expect(dropper.isDropperOpen).toBe(false)
+            expect(onCloseFn).toHaveBeenCalledTimes(1)
+
+            // Check state after toggling open then closed:
+            dropper.toggleDropper()
+            expect(dropper.isDropperOpen).toBe(true)
+            expect(onCloseFn).toHaveBeenCalledTimes(1) // Should not be called when dropper is closed
+
+            dropper.toggleDropper()
+            expect(dropper.isDropperOpen).toBe(false)
+            expect(onCloseFn).toHaveBeenCalledTimes(2)
+        })
+
+        test('toggling dropper results in correct event method being called', () => {
+            document.body.innerHTML = closedDropperMarkup
+            const wrapper = document.querySelector('.generic-dropper-wrapper')
+            const dropper = new Dropper(wrapper)
+            dropper.initialize()
+
+            const onCloseFn = jest.spyOn(dropper, 'onClose')
+            const onOpenFn = jest.spyOn(dropper, 'onOpen')
+
+            // Check initial state:
+            expect(dropper.isDropperOpen).toBe(false)
+            expect(onCloseFn).not.toHaveBeenCalled()
+            expect(onOpenFn).not.toHaveBeenCalled()
+
+            // Check after toggling open:
+            dropper.toggleDropper()
+            expect(dropper.isDropperOpen).toBe(true)
+            expect(onCloseFn).toHaveBeenCalledTimes(0)
+            expect(onOpenFn).toHaveBeenCalledTimes(1)
+
+            // Check after toggling closed:
+            dropper.toggleDropper()
+            expect(dropper.isDropperOpen).toBe(false)
+            expect(onCloseFn).toHaveBeenCalledTimes(1)
+            expect(onOpenFn).toHaveBeenCalledTimes(1)
+        })
+    })
 })

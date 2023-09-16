@@ -83,18 +83,52 @@ export class Dropper {
     }
 
     /**
+     * Function that is called after a dropper has opened.
+     *
+     * Subclasses of `Dropper` may override this to add
+     * functionality that should occur on dropper open.
+     */
+    onOpen() {}
+
+    /**
+     * Function that is called after a dropper has closed.
+     *
+     * Subclasses of `Dropper` may override this to add
+     * functionality that should occur on dropper close.
+     */
+    onClose() {}
+
+    /**
+     * Function that is called when the drop-click affordance of
+     * a disabled dropper is clicked.
+     *
+     * Subclasses of `Dropper` may override this as needed.
+     */
+    onDisabledClick() {}
+
+    /**
      * Closes dropper if opened; opens dropper if closed.
      *
      * Toggles value of `isDropperOpen`.
      *
-     * Does nothing if this dropper is disabled.
+     * Calls `onDisabledClick()` if this dropper is disabled.
+     * Calls either `onOpen()` or `onClose()` after the dropper
+     * has been toggled.
      */
     toggleDropper() {
-        if (!this.isDropperDisabled) {
+        if (this.isDropperDisabled) {
+            this.onDisabledClick();
+        } else {
             this.$dropper.find('.generic-dropper__dropdown').slideToggle(25);
             this.$dropper.find('.arrow').toggleClass('up')
             this.$dropper.toggleClass('generic-dropper-wrapper--active')
             this.isDropperOpen = !this.isDropperOpen
+
+            if (this.isDropperOpen) {
+                this.onOpen()
+            } else {
+                this.onClose()
+            }
         }
     }
 
@@ -103,14 +137,19 @@ export class Dropper {
      *
      * Sets `isDropperOpen` to `false`.
      *
-     * Does nothing if this dropper is disabled.
+     * Calls `onDisabledClick()` if this dropper is disabled.
+     * Otherwise, closes dropper and calls `onClose()`.
      */
     closeDropper() {
-        if (!this.isDropperDisabled) {
+        if (this.isDropperDisabled) {
+            this.onDisabledClick();
+        } else {
             this.$dropper.find('.generic-dropper__dropdown').slideUp(25)
             this.$dropper.find('.arrow').removeClass('up');
             this.$dropper.removeClass('generic-dropper-wrapper--active')
             this.isDropperOpen = false
+
+            this.onClose()
         }
     }
 }
