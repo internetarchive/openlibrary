@@ -172,7 +172,11 @@ class TestAuthors:
             'publish_date': '1957',
             'publishers': ['Harvard University Press'],
         }
-        assert compare_authors(expand_record(rec1), expand_record(rec2)) == ('authors', 'exact match', 125)
+        assert compare_authors(expand_record(rec1), expand_record(rec2)) == (
+            'authors',
+            'exact match',
+            125,
+        )
         threshold = 875
         assert threshold_match(rec1, rec2, threshold) is True
 
@@ -273,38 +277,45 @@ class TestRecordMatching:
             'number_of_pages': 215,
             'publish_date': '1956',
             'publishers': ['Little, Brown'],
-            'source_records': ['marc:marc_records_scriblio_net/part04.dat:119539872:591'],
+            'source_records': [
+                'marc:marc_records_scriblio_net/part04.dat:119539872:591'
+            ],
         }
 
-        assert compare_authors(expand_record(bpl), expand_record(lc)) == ('authors', 'exact match', 125)
+        assert compare_authors(expand_record(bpl), expand_record(lc)) == (
+            'authors',
+            'exact match',
+            125,
+        )
         threshold = 875
         assert threshold_match(bpl, lc, threshold) is True
-
 
     def test_match_low_threshold(self):
         # year is off by < 2 years, counts a little
         e1 = {
-                'publishers': ['Collins'],
-                'isbn_10': ['0002167530'],
-                'number_of_pages': 287,
-                'title': 'Sea Birds Britain Ireland',
-                'publish_date': '1975',
-                'authors': [{'name': 'Stanley Cramp'}],
-            }
+            'publishers': ['Collins'],
+            'isbn_10': ['0002167530'],
+            'number_of_pages': 287,
+            'title': 'Sea Birds Britain Ireland',
+            'publish_date': '1975',
+            'authors': [{'name': 'Stanley Cramp'}],
+        }
         e2 = {
-                'publishers': ['Collins'],
-                'isbn_10': ['0002167530'],
-                'title': 'seabirds of Britain and Ireland',
-                'publish_date': '1974',
-                'authors': [
-                    {
-                        'entity_type': 'person',
-                        'name': 'Stanley Cramp.',
-                        'personal_name': 'Cramp, Stanley.',
-                    }
-                ],
-                'source_records': ['marc:marc_records_scriblio_net/part08.dat:61449973:855'],
-            }
+            'publishers': ['Collins'],
+            'isbn_10': ['0002167530'],
+            'title': 'seabirds of Britain and Ireland',
+            'publish_date': '1974',
+            'authors': [
+                {
+                    'entity_type': 'person',
+                    'name': 'Stanley Cramp.',
+                    'personal_name': 'Cramp, Stanley.',
+                }
+            ],
+            'source_records': [
+                'marc:marc_records_scriblio_net/part08.dat:61449973:855'
+            ],
+        }
         threshold = 515
         assert threshold_match(e1, e2, threshold, debug=True)
         assert threshold_match(e1, e2, threshold + 1) is False

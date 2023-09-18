@@ -365,7 +365,7 @@ def compare_publisher(e1, e2):
         return ('publisher', 'either missing', 0)
 
 
-def threshold_match(e1: dict, e2: dict, threshold: int, debug: bool=False):
+def threshold_match(e1: dict, e2: dict, threshold: int, debug: bool = False):
     """
     Determines (according to a threshold) whether two edition representations are
     sufficiently the same. Used when importing new books.
