@@ -1,19 +1,18 @@
 import web
-from openlibrary.catalog.utils import expand_record
-from openlibrary.catalog.merge.merge_marc import editions_match as threshold_match
+from openlibrary.catalog.merge.merge_marc import threshold_match
 
 
 threshold = 875
 
 
-def editions_match(candidate, existing):
+def editions_match(rec: dict, existing):
     """
     Converts the existing edition into a comparable dict and performs a
     thresholded comparison to decide whether they are the same.
     Used by add_book.load() -> add_book.find_match() to check whether two
     editions match.
 
-    :param dict candidate: Output of expand_record(import record candidate)
+    :param dict rec: Import record candidate
     :param Thing existing: Edition object to be tested against candidate
     :rtype: bool
     :return: Whether candidate is sufficiently the same as the 'existing' edition
@@ -50,5 +49,4 @@ def editions_match(candidate, existing):
             if death := a.get('death_date'):
                 author['death_date'] = death
             rec2['authors'].append(author)
-    e2 = expand_record(rec2)
-    return threshold_match(candidate, e2, threshold)
+    return threshold_match(rec, rec2, threshold)

@@ -48,7 +48,6 @@ from openlibrary.catalog.utils import (
 )
 from openlibrary.core import lending
 from openlibrary.plugins.upstream.utils import strip_accents, safeget
-from openlibrary.catalog.utils import expand_record
 from openlibrary.utils import uniq, dicthash
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.lccn import normalize_lccn
@@ -573,7 +572,6 @@ def find_enriched_match(rec, edition_pool):
     :rtype: str|None
     :return: None or the edition key '/books/OL...M' of the best edition match for enriched_rec in edition_pool
     """
-    enriched_rec = expand_record(rec)
     seen = set()
     for edition_keys in edition_pool.values():
         for edition_key in edition_keys:
@@ -593,7 +591,7 @@ def find_enriched_match(rec, edition_pool):
                     # which will raise an exception in editions_match()
             if not found:
                 continue
-            if editions_match(enriched_rec, thing):
+            if editions_match(rec, thing):
                 return edition_key
 
 
