@@ -9,7 +9,6 @@ from openlibrary.catalog.utils import (
     is_independently_published,
     is_promise_item,
     match_with_bad_chars,
-    mk_norm,
     needs_isbn_and_lacks_one,
     pick_best_author,
     pick_best_name,
@@ -195,31 +194,6 @@ def test_remove_trailing_dot():
     for input, expect in data:
         output = remove_trailing_dot(input)
         assert output == expect
-
-
-mk_norm_conversions = [
-    ("Hello I'm a  title.", "helloi'matitle"),
-    ("Hello I'm a  title.", "helloi'matitle"),
-    ('Forgotten Titles: A Novel.', 'forgottentitlesanovel'),
-    ('Kitāb Yatīmat ud-Dahr', 'kitābyatīmatuddahr'),
-    ('The Fish and Chips', 'fishchips'),
-    ('A Fish & Chip shop', 'fishchipshop'),
-]
-
-
-@pytest.mark.parametrize('title,expected', mk_norm_conversions)
-def test_mk_norm(title, expected):
-    assert mk_norm(title) == expected
-
-
-mk_norm_matches = [
-    ("Your Baby's First Word Will Be DADA", "Your baby's first word will be DADA"),
-]
-
-
-@pytest.mark.parametrize('a,b', mk_norm_matches)
-def test_mk_norm_equality(a, b):
-    assert mk_norm(a) == mk_norm(b)
 
 
 @pytest.mark.parametrize(

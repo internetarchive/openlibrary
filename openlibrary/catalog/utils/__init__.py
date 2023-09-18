@@ -2,7 +2,6 @@ import datetime
 import re
 import web
 from unicodedata import normalize
-from openlibrary.catalog.add_book import match
 
 
 EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS = 1400
@@ -32,8 +31,6 @@ re_l_in_date = re.compile(r'(l\d|\dl)')
 re_end_dot = re.compile(r'[^ .][^ .]\.$', re.UNICODE)
 re_marc_name = re.compile('^(.*?),+ (.*)$')
 re_year = re.compile(r'\b(\d{4})\b')
-
-re_brackets = re.compile(r'^(.+)\[.*?\]$')
 
 
 def key_int(rec):
@@ -264,24 +261,6 @@ def get_title(e):
     else:
         title = e['title']
     return title
-
-
-def mk_norm(s: str) -> str:
-    """
-    Normalizes titles and strips ALL spaces and small words
-    to aid with string comparisons of two titles.
-
-    :param str s: A book title to normalize and strip.
-    :return: a lowercase string with no spaces, containing the main words of the title.
-    """
-    if m := re_brackets.match(s):
-        s = m.group(1)
-    norm = match.normalize(s).replace(' and ', '')
-    if norm.startswith('the '):
-        norm = norm[4:]
-    elif norm.startswith('a '):
-        norm = norm[2:]
-    return norm.replace(' ', '')
 
 
 def get_publication_year(publish_date: str | int | None) -> int | None:

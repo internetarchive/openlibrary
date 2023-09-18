@@ -11,6 +11,7 @@ from openlibrary.catalog.add_book.match import (
     editions_match,
     expand_record,
     normalize,
+    mk_norm,
     threshold_match,
 )
 
@@ -59,12 +60,39 @@ titles = [
     ('A Title.', 'a title'),  # period and space stripping
     ('A Title. ', 'a title'),
     ('A Title .', 'a title'),
+    ('The Fish and Chips', 'the fish and chips'),
+    ('A Fish & Chip shop', 'a fish and chip shop'),
 ]
 
 
 @pytest.mark.parametrize('title,normalized', titles)
 def test_normalize(title, normalized):
     assert normalize(title) == normalized
+
+
+mk_norm_conversions = [
+    ("Hello I'm a  title.", "helloi'matitle"),
+    ("Hello I'm a  title.", "helloi'matitle"),
+    ('Forgotten Titles: A Novel.', 'forgottentitlesanovel'),
+    ('Kitāb Yatīmat ud-Dahr', 'kitābyatīmatuddahr'),
+    ('The Fish and Chips', 'fishchips'),
+    ('A Fish & Chip shop', 'fishchipshop'),
+]
+
+
+@pytest.mark.parametrize('title,expected', mk_norm_conversions)
+def test_mk_norm(title, expected):
+    assert mk_norm(title) == expected
+
+
+mk_norm_matches = [
+    ("Your Baby's First Word Will Be DADA", "Your baby's first word will be DADA"),
+]
+
+
+@pytest.mark.parametrize('a,b', mk_norm_matches)
+def test_mk_norm_equality(a, b):
+    assert mk_norm(a) == mk_norm(b)
 
 
 class TestExpandRecord:

@@ -8,6 +8,7 @@ threshold = 875
 # title, subtitle, isbn, publish_country, lccn, publishers, publish_date, number_of_pages, authors
 
 re_amazon_title_paren = re.compile(r'^(.*) \([^)]+?\)$')
+re_brackets = re.compile(r'^(.+)\[.*?\]$')
 # re_brace = re.compile('{[^{}]+?}')
 re_normalize = re.compile('[^[:alpha:] ]', re.I)
 re_whitespace_and_punct = re.compile(r'[-\s,;:.]+')
@@ -79,6 +80,25 @@ def normalize(s: str) -> str:
     s = re_whitespace_and_punct.sub(' ', s.lower())
     s = re_normalize.sub('', s.strip())
     return s
+
+
+def mk_norm(s: str) -> str:
+    """
+    Normalizes titles and strips ALL spaces and small words
+    to aid with string comparisons of two titles.
+    Used in comparing Work titles.
+
+    :param str s: A book title to normalize and strip.
+    :return: a lowercase string with no spaces, containing the main words of the title.
+    """
+    if m := re_brackets.match(s):
+        s = m.group(1)
+    norm = normalize(s).replace(' and ', '')
+    if norm.startswith('the '):
+        norm = norm[4:]
+    elif norm.startswith('a '):
+        norm = norm[2:]
+    return norm.replace(' ', '')
 
 
 def set_isbn_match(score):

@@ -41,7 +41,6 @@ from openlibrary.catalog.utils import (
     get_publication_year,
     is_independently_published,
     is_promise_item,
-    mk_norm,
     needs_isbn_and_lacks_one,
     publication_too_old_and_not_exempt,
     published_in_future_year,
@@ -58,7 +57,7 @@ from openlibrary.catalog.add_book.load_book import (
     import_author,
     InvalidLanguage,
 )
-from openlibrary.catalog.add_book.match import editions_match
+from openlibrary.catalog.add_book.match import editions_match, mk_norm
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Edition
@@ -211,8 +210,6 @@ def find_matching_work(e):
     :rtype: None or str
     :return: the matched work key "/works/OL..W" if found
     """
-
-    norm_title = mk_norm(get_title(e))
     seen = set()
     for a in e['authors']:
         q = {'type': '/type/work', 'authors': {'author': {'key': a['key']}}}
@@ -224,7 +221,7 @@ def find_matching_work(e):
             seen.add(wkey)
             if not w.get('title'):
                 continue
-            if mk_norm(w['title']) == norm_title:
+            if mk_norm(w['title']) == mk_norm(get_title(e)):
                 assert w.type.key == '/type/work'
                 return wkey
 
