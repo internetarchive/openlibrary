@@ -125,13 +125,6 @@ function validateIsbn10(data, dataConfig, label) {
     if (isFormatValidIsbn10(data.value) === false) {
         return error('#id-errors', 'id-value', dataConfig['ID must be exactly 10 characters [0-9] or X.'].replace(/ID/, label));
     }
-    // hacky special case, dupe checking needs to be here before isbnConfirmAdd
-    // if placed after, duped isbns can be entered by selecting 'Yes' from isbnConfirmAdd
-    // because the isbnConfirmAdd error text with yes/no options is overwritten by dupe error message
-    const entries = document.querySelectorAll(`.${data.name}`);
-    if (isIdDupe(entries, data.value) === true) {
-        return error('#id-errors', 'id-value', dataConfig['That ID already exists for this edition.'].replace(/ID/, label));
-    }
     // Here the ISBN has a valid format, but also has an invalid checksum. Give the user a chance to verify
     // the ISBN, as books sometimes issue with invalid ISBNs and we want to be able to add them.
     // See https://en-academic.com/dic.nsf/enwiki/8948#cite_ref-18 for more.
@@ -155,13 +148,6 @@ function validateIsbn13(data, dataConfig, label) {
 
     if (isFormatValidIsbn13(data.value) === false) {
         return error('#id-errors', 'id-value', dataConfig['ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4'].replace(/ID/, label));
-    }
-    // hacky special case, dupe checking needs to be here before isbnConfirmAdd
-    // if placed after, duped isbns can be entered by selecting 'Yes' from isbnConfirmAdd
-    // because the isbnConfirmAdd error text with yes/no options is overwritten by dupe error message
-    const entries = document.querySelectorAll(`.${data.name}`);
-    if (isIdDupe(entries, data.value) === true) {
-        return error('#id-errors', 'id-value', dataConfig['That ID already exists for this edition.'].replace(/ID/, label));
     }
     // Here the ISBN has a valid format, but also has an invalid checksum. Give the user a chance to verify
     // the ISBN, as books sometimes issue with invalid ISBNs and we want to be able to add them.
@@ -221,14 +207,17 @@ export function validateIdentifiers(data) {
     else if (data.name === 'lccn') {
         validId = validateLccn(data, dataConfig, label);
     }
-    if (validId === false) return false;
 
     // checking for duplicate identifier entry on all identifier types
     // expects parsed ids so placed after validate
     const entries = document.querySelectorAll(`.${data.name}`);
     if (isIdDupe(entries, data.value) === true) {
+        // isbnOverride being set will override the dupe checker, so clear isbnOverride if there's a dupe.
+        if (isbnOverride.get()) {isbnOverride.clear()}
         return error('#id-errors', 'id-value', dataConfig['That ID already exists for this edition.'].replace(/ID/, label));
     }
+
+    if (validId === false) return false;
 
     $('#id-errors').hide();
     return true;
