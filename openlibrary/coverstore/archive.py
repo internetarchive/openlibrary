@@ -223,7 +223,7 @@ class CoverDB:
         """
         return start_id - (start_id % BATCH_SIZE) + BATCH_SIZE
 
-    def get_covers(self, limit=None, start_id=None, **kwargs):
+    def get_covers(self, limit=None, start_id=None, end_id=None, **kwargs):
         """Utility for fetching covers from the database
 
         start_id: explicitly define a starting id. This is significant
@@ -245,7 +245,7 @@ class CoverDB:
         if start_id:
             wheres.append("id>=$start_id AND id<$end_id")
             kwargs['start_id'] = start_id
-            kwargs['end_id'] = self._get_batch_end_id(start_id)
+            kwargs['end_id'] = end_id or self._get_batch_end_id(start_id)
             limit = None
 
         return self.db.select(
@@ -267,11 +267,12 @@ class CoverDB:
         start_id = start_id or self._get_current_batch_start_id(**kwargs)
         return self.get_covers(start_id=start_id, **kwargs)
 
-    def get_batch_unarchived(self, start_id=None):
+    def get_batch_unarchived(self, start_id=None, end_id=None):
         return self._get_batch(
             start_id=start_id,
             failed=False,
             archived=False,
+            end_id=end_id,
         )
 
     def get_batch_archived(self, start_id=None):
@@ -371,7 +372,7 @@ class Cover(web.Storage):
         return item_id, batch_id
 
 
-def archive(limit=None, start_id=None):
+def archive(limit=None, start_id=None, end_id=None):
     """Move files from local disk to tar files and update the paths in the db."""
 
     file_manager = ZipManager()
@@ -381,7 +382,7 @@ def archive(limit=None, start_id=None):
         covers = (
             cdb.get_unarchived_covers(limit=limit)
             if limit
-            else cdb.get_batch_unarchived(start_id=start_id)
+            else cdb.get_batch_unarchived(start_id=start_id, end_id=end_id)
         )
 
         for cover in covers:
