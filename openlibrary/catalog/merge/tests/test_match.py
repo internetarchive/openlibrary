@@ -1,6 +1,7 @@
 import pytest
 
 from copy import deepcopy
+from openlibrary.catalog.merge.normalize import normalize
 from openlibrary.catalog.merge.merge_marc import (
     add_db_name,
     build_titles,
@@ -32,6 +33,22 @@ def test_add_db_name():
     rec = {'authors': None}
     add_db_name(rec)
     assert rec == {'authors': None}
+
+
+titles = [
+    ('Hello this is a           Title', 'hello this is a title'),  # Spaces
+    ('Kitāb Yatīmat ud-Dahr', 'kitāb yatīmat ud dahr'),  # Unicode
+    ('This and That', 'this and that'),
+    ('This & That', 'this and that'),  # ampersand
+    ('A Title.', 'a title'),  # period and space stripping
+    ('A Title. ', 'a title'),
+    ('A Title .', 'a title'),
+]
+
+
+@pytest.mark.parametrize('title,normalized', titles)
+def test_normalize(title, normalized):
+    assert normalize(title) == normalized
 
 
 class TestExpandRecord:
