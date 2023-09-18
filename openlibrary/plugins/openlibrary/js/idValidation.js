@@ -103,3 +103,19 @@ export function isValidLccn(lccn) {
     const regex = /^([a-z]|[a-z]?([a-z]{2}|[0-9]{2})|[a-z]{2}[0-9]{2})?[0-9]{8}$/;
     return regex.test(lccn);
 }
+
+/**
+ * Given a list of identifier entries from edition page form and a new
+ * identifier, determines if the new identifier has already been entered
+ * under the same type as an existing identifier entry.
+ * Expects identifiers that have already been parsed/normalized.
+ * @param {Array} idEntries  Array of identifier entries
+ * @param {String} newId  New identifier entry to be checked
+ * @returns {boolean}  true if the new identifier has already been entered
+ */
+export function isIdDupe(idEntries, newId) {
+    // check each current entry value against new identifier
+    return Array.from(idEntries).some(
+        entry => entry['value'] === newId
+    );
+}
