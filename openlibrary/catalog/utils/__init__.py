@@ -2,7 +2,7 @@ import datetime
 import re
 import web
 from unicodedata import normalize
-from openlibrary.catalog.add_book import match as merge
+from openlibrary.catalog.add_book import match
 
 
 EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS = 1400
@@ -276,7 +276,7 @@ def mk_norm(s: str) -> str:
     """
     if m := re_brackets.match(s):
         s = m.group(1)
-    norm = merge.normalize(s).replace(' and ', '')
+    norm = match.normalize(s).replace(' and ', '')
     return norm.replace(' ', '')
 
 

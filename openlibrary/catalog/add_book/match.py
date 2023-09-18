@@ -79,6 +79,8 @@ def normalize(s: str) -> str:
     s = re_whitespace_and_punct.sub(' ', s.lower())
     s = re_normalize.sub('', s.strip())
     return s
+
+
 def set_isbn_match(score):
     isbn_match = score
 
@@ -233,7 +235,7 @@ def compare_isbn10(e1: dict, e2: dict):
 # 450 + 200 + 85 + 200
 
 
-def level1_merge(e1: dict, e2: dict):
+def level1_match(e1: dict, e2: dict):
     """
     :param dict e1: Expanded Edition, output of expand_record()
     :param dict e2: Expanded Edition, output of expand_record()
@@ -252,7 +254,7 @@ def level1_merge(e1: dict, e2: dict):
     return score
 
 
-def level2_merge(e1: dict, e2: dict):
+def level2_match(e1: dict, e2: dict):
     """
     :param dict e1: Expanded Edition, output of expand_record()
     :param dict e2: Expanded Edition, output of expand_record()
@@ -449,14 +451,14 @@ def threshold_match(rec1: dict, rec2: dict, threshold: int, debug: bool = False)
     """
     e1 = expand_record(rec1)
     e2 = expand_record(rec2)
-    level1 = level1_merge(e1, e2)
+    level1 = level1_match(e1, e2)
     total = sum(i[2] for i in level1)
     if debug:
         print(f"E1: {e1}\nE2: {e2}")
         print(f"TOTAL 1 = {total} : {level1}")
     if total >= threshold:
         return True
-    level2 = level2_merge(e1, e2)
+    level2 = level2_match(e1, e2)
     total = sum(i[2] for i in level2)
     if debug:
         print(f"TOTAL 2 = {total} : {level2}")
