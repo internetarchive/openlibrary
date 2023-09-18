@@ -34,84 +34,75 @@ def test_add_db_name():
     assert rec == {'authors': None}
 
 
-valid_edition = {
-    'title': 'A test full title',
-    'subtitle': 'subtitle (parens).',
-    'source_records': ['ia:test-source'],
-}
+class TestExpandRecord:
+    rec = {
+        'title': 'A test full title',
+        'subtitle': 'subtitle (parens).',
+        'source_records': ['ia:test-source'],
+    }
 
+    def test_expand_record(self):
+        edition = self.rec.copy()
+        expanded_record = expand_record(edition)
+        assert isinstance(expanded_record['titles'], list)
+        assert self.rec['title'] not in expanded_record['titles']
 
-def test_expand_record():
-    # used in openlibrary.catalog.add_book.load()
-    # when trying to find an existing edition match
-    edition = valid_edition.copy()
-    expanded_record = expand_record(edition)
-    assert isinstance(expanded_record['titles'], list)
-    # expand_record() and build_titles() do NOT use plain title, only the generated full_title:
-    assert valid_edition['title'] not in expanded_record['titles']
+        expected_titles = [
+            edition['full_title'],
+            'a test full title subtitle (parens)',
+            'test full title subtitle (parens)',
+            'a test full title subtitle',
+            'test full title subtitle',
+        ]
+        for t in expected_titles:
+            assert t in expanded_record['titles']
+        assert len(set(expanded_record['titles'])) == len(set(expected_titles))
+        assert expanded_record['normalized_title'] == 'a test full title subtitle (parens)'
+        assert expanded_record['short_title'] == 'a test full title subtitl'
 
-    expected_titles = [
-        edition['full_title'],
-        'a test full title subtitle (parens)',
-        'test full title subtitle (parens)',
-        'a test full title subtitle',
-        'test full title subtitle',
-    ]
-    for t in expected_titles:
-        assert t in expanded_record['titles']
-    assert len(set(expanded_record['titles'])) == len(set(expected_titles))
+    def test_expand_record_publish_country(self):
+        edition = self.rec.copy()
+        expanded_record = expand_record(edition)
+        assert 'publish_country' not in expanded_record
+        for publish_country in ('   ', '|||'):
+            edition['publish_country'] = publish_country
+            assert 'publish_country' not in expand_record(edition)
+        for publish_country in ('USA', 'usa'):
+            edition['publish_country'] = publish_country
+            assert expand_record(edition)['publish_country'] == publish_country
 
-    assert expanded_record['normalized_title'] == 'a test full title subtitle (parens)'
-    assert expanded_record['short_title'] == 'a test full title subtitl'
+    def test_expand_record_transfer_fields(self):
+        edition = self.rec.copy()
+        expanded_record = expand_record(edition)
+        transfer_fields = (
+            'lccn',
+            'publishers',
+            'publish_date',
+            'number_of_pages',
+            'authors',
+            'contribs',
+        )
+        for field in transfer_fields:
+            assert field not in expanded_record
+        for field in transfer_fields:
+            edition[field] = []
+        expanded_record = expand_record(edition)
+        for field in transfer_fields:
+            assert field in expanded_record
 
-
-def test_expand_record_publish_country():
-    # used in openlibrary.catalog.add_book.load()
-    # when trying to find an existing edition match
-    edition = valid_edition.copy()
-    expanded_record = expand_record(edition)
-    assert 'publish_country' not in expanded_record
-    for publish_country in ('   ', '|||'):
-        edition['publish_country'] = publish_country
-        assert 'publish_country' not in expand_record(edition)
-    for publish_country in ('USA', 'usa'):
-        edition['publish_country'] = publish_country
-        assert expand_record(edition)['publish_country'] == publish_country
-
-
-def test_expand_record_transfer_fields():
-    edition = valid_edition.copy()
-    expanded_record = expand_record(edition)
-    transfer_fields = (
-        'lccn',
-        'publishers',
-        'publish_date',
-        'number_of_pages',
-        'authors',
-        'contribs',
-    )
-    for field in transfer_fields:
-        assert field not in expanded_record
-    for field in transfer_fields:
-        edition[field] = []
-    expanded_record = expand_record(edition)
-    for field in transfer_fields:
-        assert field in expanded_record
-
-
-def test_expand_record_isbn():
-    edition = valid_edition.copy()
-    expanded_record = expand_record(edition)
-    assert expanded_record['isbn'] == []
-    edition.update(
-        {
-            'isbn': ['1234567890'],
-            'isbn_10': ['123', '321'],
-            'isbn_13': ['1234567890123'],
-        }
-    )
-    expanded_record = expand_record(edition)
-    assert expanded_record['isbn'] == ['1234567890', '123', '321', '1234567890123']
+    def test_expand_record_isbn(self):
+        edition = self.rec.copy()
+        expanded_record = expand_record(edition)
+        assert expanded_record['isbn'] == []
+        edition.update(
+            {
+                'isbn': ['1234567890'],
+                'isbn_10': ['123', '321'],
+                'isbn_13': ['1234567890123'],
+            }
+        )
+        expanded_record = expand_record(edition)
+        assert expanded_record['isbn'] == ['1234567890', '123', '321', '1234567890123']
 
 
 class TestAuthors:
@@ -124,8 +115,6 @@ class TestAuthors:
         )
     )
     def test_compare_authors_by_statement(self):
-        # Requires db_name to be present on both records
-        # expand_record() adds these.
         rec1 = {
             'title': 'Full Title, required',
             'authors': [{'name': 'Alistair Smith'}],
@@ -281,7 +270,6 @@ class TestRecordMatching:
                 'marc:marc_records_scriblio_net/part04.dat:119539872:591'
             ],
         }
-
         assert compare_authors(expand_record(bpl), expand_record(lc)) == (
             'authors',
             'exact match',
@@ -317,5 +305,5 @@ class TestRecordMatching:
             ],
         }
         threshold = 515
-        assert threshold_match(e1, e2, threshold, debug=True)
+        assert threshold_match(e1, e2, threshold) is True
         assert threshold_match(e1, e2, threshold + 1) is False
