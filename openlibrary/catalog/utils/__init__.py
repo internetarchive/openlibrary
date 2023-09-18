@@ -2,7 +2,7 @@ import datetime
 import re
 import web
 from unicodedata import normalize
-import openlibrary.catalog.merge.normalize as merge
+from openlibrary.catalog.add_book import match as merge
 
 
 EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS = 1400

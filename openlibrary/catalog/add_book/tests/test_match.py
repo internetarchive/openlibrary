@@ -3,14 +3,14 @@ import pytest
 from copy import deepcopy
 
 from openlibrary.catalog.add_book import load
-from openlibrary.catalog.add_book.match import editions_match
-from openlibrary.catalog.merge.normalize import normalize
-from openlibrary.catalog.merge.merge_marc import (
+from openlibrary.catalog.add_book.match import (
     add_db_name,
     build_titles,
     compare_authors,
     compare_publisher,
+    editions_match,
     expand_record,
+    normalize,
     threshold_match,
 )
 

@@ -1,5 +1,5 @@
 import re
-from openlibrary.catalog.merge.normalize import normalize
+from openlibrary.catalog.add_book.match import normalize
 
 re_split_parts = re.compile('(.*?[. ]+)')
 re_marc_name = re.compile('^(.*), (.*)$')
