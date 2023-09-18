@@ -75,5 +75,8 @@ test-i18n:
 	# Valid locale codes should be added as arguments to validate
 	$(PYTHON) ./scripts/i18n-messages validate de es fr hr it ja zh
 
+test-mypy:
+	mypy --install-types --non-interactive .
+
 test:
-	make test-py && npm run test && make test-i18n
+	make test-py && npm run test && make test-i18n && make test-mypy
