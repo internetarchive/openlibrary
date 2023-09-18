@@ -1006,9 +1006,11 @@ def test_find_match_is_used_when_looking_for_edition_matches(mock_site) -> None:
     This also indirectly tests `merge_marc.editions_match()` (even though it's
     not a MARC record.
     """
+    # Unfortunately this Work level author is totally irrelevant to the matching
+    # The code apparently only checks for authors on Editions, not Works
     author = {
         'type': {'key': '/type/author'},
-        'name': 'John Smith',
+        'name': 'IRRELEVANT WORK AUTHOR',
         'key': '/authors/OL20A',
     }
     existing_work = {
