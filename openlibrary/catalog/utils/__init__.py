@@ -1,6 +1,5 @@
 import datetime
 import re
-from re import Match
 import web
 from unicodedata import normalize
 import openlibrary.catalog.merge.normalize as merge
@@ -76,17 +75,14 @@ def flip_name(name: str) -> str:
     :param str name: e.g. "Smith, John." or "Smith, J."
     :return: e.g. "John Smith" or "J. Smith"
     """
-
     m = re_end_dot.search(name)
     if m:
         name = name[:-1]
     if name.find(', ') == -1:
         return name
-    m = re_marc_name.match(name)
-    if isinstance(m, Match):
+    if m := re_marc_name.match(name):
         return m.group(2) + ' ' + m.group(1)
-
-    return ""
+    return ''
 
 
 def remove_trailing_number_dot(date):
@@ -278,15 +274,9 @@ def mk_norm(s: str) -> str:
     :param str s: A book title to normalize and strip.
     :return: a lowercase string with no spaces, containing the main words of the title.
     """
-
     if m := re_brackets.match(s):
         s = m.group(1)
-    norm = merge.normalize(s).strip(' ')
-    norm = norm.replace(' and ', ' ')
-    if norm.startswith('the '):
-        norm = norm[4:]
-    elif norm.startswith('a '):
-        norm = norm[2:]
+    norm = merge.normalize(s).replace(' and ', '')
     return norm.replace(' ', '')
 
 
@@ -302,11 +292,7 @@ def get_publication_year(publish_date: str | int | None) -> int | None:
     """
     if publish_date is None:
         return None
-
-    from openlibrary.catalog.utils import re_year
-
     match = re_year.search(str(publish_date))
-
     return int(match.group(0)) if match else None
 
 
