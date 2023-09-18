@@ -835,12 +835,6 @@ def find_match(rec, edition_pool) -> str | None:
         match = find_exact_match(rec, edition_pool)
 
     if not match:
-        # Add 'full_title' to the rec by conjoining 'title' and 'subtitle'.
-        # expand_record() uses this for matching.
-        rec['full_title'] = rec['title']
-        if subtitle := rec.get('subtitle'):
-            rec['full_title'] += ' ' + subtitle
-
         match = find_enriched_match(rec, edition_pool)
 
     return match

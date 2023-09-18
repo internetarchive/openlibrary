@@ -21,11 +21,11 @@ class TestAuthors:
     def test_compare_authors_by_statement(self):
         # requires db_name to be present on both records.
         rec1 = {
-            'full_title': 'Full Title, required',
+            'title': 'Full Title, required',
             'authors': [{'name': 'Alistair Smith', 'db_name': 'Alistair Smith'}],
         }
         rec2 = {
-            'full_title': 'A different Full Title, only matching authors here.',
+            'title': 'A different Full Title, only matching authors here.',
             'authors': [
                 {
                     'db_name': 'National Gallery (Great Britain)',
@@ -42,10 +42,8 @@ class TestAuthors:
     def test_author_contrib(self):
         rec1 = {
             'authors': [{'db_name': 'Bruner, Jerome S.', 'name': 'Bruner, Jerome S.'}],
-            'full_title': (
-                'Contemporary approaches to cognition '
-                'a symposium held at the University of Colorado.'
-            ),
+            'title': 'Contemporary approaches to cognition ',
+            'subtitle': 'a symposium held at the University of Colorado.',
             'number_of_pages': 210,
             'publish_country': 'xxu',
             'publish_date': '1957',
@@ -66,10 +64,8 @@ class TestAuthors:
                 }
             ],
             'contribs': [{'db_name': 'Bruner, Jerome S.', 'name': 'Bruner, Jerome S.'}],
-            'full_title': (
-                'Contemporary approaches to cognition '
-                'a symposium held at the University of Colorado'
-            ),
+            'title': 'Contemporary approaches to cognition ',
+            'subtitle': 'a symposium held at the University of Colorado',
             'lccn': ['57012963'],
             'number_of_pages': 210,
             'publish_country': 'mau',
@@ -210,10 +206,7 @@ class TestRecordMatching:
                 'publishers': ['Collins'],
                 'isbn_10': ['0002167530'],
                 'number_of_pages': 287,
-                'short_title': 'sea birds britain ireland',
-                'normalized_title': 'sea birds britain ireland',
-                'full_title': 'Sea Birds Britain Ireland',
-                'titles': ['Sea Birds Britain Ireland', 'sea birds britain ireland'],
+                'title': 'Sea Birds Britain Ireland',
                 'publish_date': '1975',
                 'authors': [{'name': 'Stanley Cramp', 'db_name': 'Cramp, Stanley'}],
             }
@@ -223,13 +216,7 @@ class TestRecordMatching:
             {
                 'publishers': ['Collins'],
                 'isbn_10': ['0002167530'],
-                'short_title': 'seabirds of britain and i',
-                'normalized_title': 'seabirds of britain and ireland',
-                'full_title': 'seabirds of Britain and Ireland',
-                'titles': [
-                    'seabirds of Britain and Ireland',
-                    'seabirds of britain and ireland',
-                ],
+                'title': 'seabirds of Britain and Ireland',
                 'publish_date': '1974',
                 'authors': [
                     {

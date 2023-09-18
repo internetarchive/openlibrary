@@ -221,10 +221,8 @@ def test_mk_norm_equality(a, b):
 
 
 valid_edition = {
-    'title': 'A test title (parens)',
+    'title': 'A test full title',
     'subtitle': 'subtitle (parens).',
-    # Unsure whether this is a realistic full_title, they may be pre-cleaned by this point
-    'full_title': 'A test full title : subtitle (parens).',  # required, and set by add_book.load()
     'source_records': ['ia:test-source'],
 }
 
@@ -235,7 +233,7 @@ def test_expand_record():
     edition = valid_edition.copy()
     expanded_record = expand_record(edition)
     assert isinstance(expanded_record['titles'], list)
-    # expand_record() and build_titles() do NOT use title, only full_title:
+    # expand_record() and build_titles() do NOT use plain title, only the generated full_title:
     assert valid_edition['title'] not in expanded_record['titles']
 
     expected_titles = [

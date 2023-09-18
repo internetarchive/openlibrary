@@ -303,6 +303,9 @@ def expand_record(rec: dict) -> dict[str, str | list[str]]:
         more titles, normalized + short
         all isbns in "isbn": []
     """
+    rec['full_title'] = rec['title']
+    if subtitle := rec.get('subtitle'):
+        rec['full_title'] += ' ' + subtitle
     expanded_rec = build_titles(rec['full_title'])
     expanded_rec['isbn'] = []
     for f in 'isbn', 'isbn_10', 'isbn_13':
