@@ -9,7 +9,6 @@ titles = [
     ('A Title.', 'a title'),  # period and space stripping
     ('A Title. ', 'a title'),
     ('A Title .', 'a title'),
-
 ]
 
 
