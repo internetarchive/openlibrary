@@ -71,7 +71,7 @@ def expand_record(rec: dict) -> dict[str, str | list[str]]:
     return expanded_rec
 
 
-def build_titles(title: str) -> dict[str, str | list[str]]:
+def build_titles(title: str):
     """
     Uses a full title to create normalized and short title versions.
     Used for expanding a set of title variants for matching,
@@ -367,7 +367,7 @@ def compare_publisher(e1: dict, e2: dict):
         return ('publisher', 'either missing', 0)
 
 
-def threshold_match(rec1: dict, rec2: dict, threshold: int, debug: bool=False):
+def threshold_match(rec1: dict, rec2: dict, threshold: int, debug: bool = False):
     """
     Determines (according to a threshold) whether two edition representations are
     sufficiently the same. Used when importing new books.
