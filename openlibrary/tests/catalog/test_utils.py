@@ -202,6 +202,8 @@ mk_norm_conversions = [
     ("Hello I'm a  title.", "helloi'matitle"),
     ('Forgotten Titles: A Novel.', 'forgottentitlesanovel'),
     ('Kitāb Yatīmat ud-Dahr', 'kitābyatīmatuddahr'),
+    ('The Fish and Chips', 'fishchips'),
+    ('A Fish & Chip shop', 'fishchipshop'),
 ]
 
 

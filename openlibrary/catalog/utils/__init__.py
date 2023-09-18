@@ -277,6 +277,10 @@ def mk_norm(s: str) -> str:
     if m := re_brackets.match(s):
         s = m.group(1)
     norm = match.normalize(s).replace(' and ', '')
+    if norm.startswith('the '):
+        norm = norm[4:]
+    elif norm.startswith('a '):
+        norm = norm[2:]
     return norm.replace(' ', '')
 
 
