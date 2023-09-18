@@ -71,10 +71,10 @@ def expand_record(rec: dict) -> dict[str, str | list[str]]:
     return expanded_rec
 
 
-def build_titles(title: str):
+def build_titles(title: str) -> dict[str, str | list[str]]:
     """
     Uses a full title to create normalized and short title versions.
-    Used for expanding a set of titles variant for matching,
+    Used for expanding a set of title variants for matching,
     not for storing on records or display.
 
     :param str title: Full title of an edition
@@ -114,7 +114,7 @@ def within(a, b, distance):
     return abs(a - b) <= distance
 
 
-def compare_country(e1, e2):
+def compare_country(e1: dict, e2: dict):
     field = 'publish_country'
     if field not in e1 or field not in e2:
         return (field, 'value missing', 0)
@@ -126,7 +126,7 @@ def compare_country(e1, e2):
     return (field, 'mismatch', -205)
 
 
-def compare_lccn(e1, e2):
+def compare_lccn(e1: dict, e2: dict):
     field = 'lccn'
     if field not in e1 or field not in e2:
         return (field, 'value missing', 0)
@@ -135,7 +135,7 @@ def compare_lccn(e1, e2):
     return (field, 'mismatch', -320)
 
 
-def compare_date(e1, e2):
+def compare_date(e1: dict, e2: dict):
     if 'publish_date' not in e1 or 'publish_date' not in e2:
         return ('date', 'value missing', 0)
     if e1['publish_date'] == e2['publish_date']:
@@ -151,7 +151,7 @@ def compare_date(e1, e2):
         return ('date', 'mismatch', -250)
 
 
-def compare_isbn10(e1, e2):
+def compare_isbn10(e1: dict, e2: dict):
     if len(e1['isbn']) == 0 or len(e2['isbn']) == 0:
         return ('ISBN', 'missing', 0)
     for i in e1['isbn']:
@@ -164,9 +164,10 @@ def compare_isbn10(e1, e2):
 # 450 + 200 + 85 + 200
 
 
-def level1_merge(e1, e2):
+def level1_merge(e1: dict, e2: dict):
     """
-    :param dict e1, e2: editions to match
+    :param dict e1: Expanded Edition, output of expand_record()
+    :param dict e2: Expanded Edition, output of expand_record()
     :rtype: list
     :return: a list of tuples (field/category, result str, score int)
     """
@@ -182,8 +183,10 @@ def level1_merge(e1, e2):
     return score
 
 
-def level2_merge(e1, e2):
+def level2_merge(e1: dict, e2: dict):
     """
+    :param dict e1: Expanded Edition, output of expand_record()
+    :param dict e2: Expanded Edition, output of expand_record()
     :rtype: list
     :return: a list of tuples (field/category, result str, score int)
     """
@@ -227,17 +230,16 @@ def compare_author_keywords(e1_authors, e2_authors):
         return ('authors', 'mismatch', -200)
 
 
-def compare_authors(e1, e2):
+def compare_authors(e1: dict, e2: dict):
     """
     Compares the authors of two edition representations and
     returns a evaluation and score.
 
-    :param dict e1: Edition, output of expand_record()
-    :param dict e2: Edition, output of expand_record()
+    :param dict e1: Expanded Edition, output of expand_record()
+    :param dict e2: Expanded Edition, output of expand_record()
     :rtype: tuple
     :return: str?, message, score
     """
-
     if 'authors' in e1 and 'authors' in e2:  # noqa: SIM102
         if compare_author_fields(e1['authors'], e2['authors']):
             return ('authors', 'exact match', 125)
@@ -268,7 +270,7 @@ def title_replace_amp(amazon):
     return normalize(amazon['full-title'].replace(" & ", " and ")).lower()
 
 
-def substr_match(a, b):
+def substr_match(a: str, b: str):
     return a.find(b) != -1 or b.find(a) != -1
 
 
@@ -345,7 +347,7 @@ def short_part_publisher_match(p1, p2):
     return all(substr_match(i, j) for i, j in zip(pub1, pub2))
 
 
-def compare_publisher(e1, e2):
+def compare_publisher(e1: dict, e2: dict):
     if 'publishers' in e1 and 'publishers' in e2:
         for e1_pub in e1['publishers']:
             e1_norm = normalize(e1_pub)
@@ -365,7 +367,7 @@ def compare_publisher(e1, e2):
         return ('publisher', 'either missing', 0)
 
 
-def threshold_match(e1: dict, e2: dict, threshold: int, debug: bool = False):
+def threshold_match(rec1: dict, rec2: dict, threshold: int, debug: bool=False):
     """
     Determines (according to a threshold) whether two edition representations are
     sufficiently the same. Used when importing new books.
@@ -376,8 +378,8 @@ def threshold_match(e1: dict, e2: dict, threshold: int, debug: bool = False):
     :rtype: bool
     :return: Whether two editions have sufficient fields in common to be considered the same
     """
-    e1 = expand_record(e1)
-    e2 = expand_record(e2)
+    e1 = expand_record(rec1)
+    e2 = expand_record(rec2)
     level1 = level1_merge(e1, e2)
     total = sum(i[2] for i in level1)
     if debug:
