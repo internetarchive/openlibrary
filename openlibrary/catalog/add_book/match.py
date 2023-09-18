@@ -94,11 +94,21 @@ def mk_norm(s: str) -> str:
     if m := re_brackets.match(s):
         s = m.group(1)
     norm = normalize(s).replace(' and ', '')
-    if norm.startswith('the '):
-        norm = norm[4:]
-    elif norm.startswith('a '):
-        norm = norm[2:]
-    return norm.replace(' ', '')
+    return strip_articles(norm).replace(' ', '')
+
+
+def strip_articles(s: str) -> str:
+    """
+    Strip articles for matching purposes.
+    TODO: Expand using
+    https://web.archive.org/web/20230320141510/https://www.loc.gov/marc/bibliographic/bdapndxf.html
+    or something sensible.
+    """
+    if s.lower().startswith('the '):
+        s = s[4:]
+    elif s.lower().startswith('a '):
+        s = s[2:]
+    return s
 
 
 def set_isbn_match(score):
@@ -173,25 +183,14 @@ def build_titles(title: str):
     :return: An expanded set of title variations
     """
     normalized_title = normalize(title)
-    titles = [title, normalized_title]
-    t2 = []
-    for t in titles:
-        t = normalize(t)
-        if t.startswith('the '):
-            t2.append(t[4:])
-        elif t.startswith('a '):
-            t2.append(t[2:])
-    titles += t2
-
-    if re_amazon_title_paren.match(normalized_title):
-        t2 = []
-        for t in titles:
-            t = normalize(t)
-            m = re_amazon_title_paren.match(t)
-            if m:
-                t2.append(m.group(1))
-                t2.append(normalize(m.group(1)))
-        titles += t2
+    titles = [
+        title,
+        normalized_title,
+        strip_articles(normalized_title)
+    ]
+    if m := re_amazon_title_paren.match(normalized_title):
+        titles.append(m.group(1))
+        titles.append(strip_articles(m.group(1)))
 
     return {
         'full_title': title,
