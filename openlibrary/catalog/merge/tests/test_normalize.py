@@ -6,6 +6,9 @@ titles = [
     ('Kitāb Yatīmat ud-Dahr', 'kitāb yatīmat ud dahr'),  # Unicode
     ('This and That', 'this and that'),
     ('This & That', 'this and that'),  # ampersand
+    ('A Title.', 'a title'),  # period and space stripping
+    ('A Title. ', 'a title'),
+    ('A Title .', 'a title'),
 
 ]
 
