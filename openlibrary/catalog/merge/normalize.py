@@ -8,7 +8,8 @@ re_whitespace_and_punct = re.compile(r'[-\s,;:.]+')
 
 def normalize(s: str) -> str:
     """
-    Normalizes title by lowercasing, unicode -> NFC,
+    Normalizes a title for matching purposes, not display,
+    by lowercasing, unicode -> NFC,
     stripping extra whitespace and punctuation, and replacing ampersands.
     """
 

@@ -1,22 +1,18 @@
 import pytest
 from openlibrary.catalog.merge.normalize import normalize
 
+titles = [
+    ('Hello this is a           Title', 'hello this is a title'),  # Spaces
+    ('Kitāb Yatīmat ud-Dahr', 'kitāb yatīmat ud dahr'),  # Unicode
+    ('This and That', 'this and that'),
+    ('This & That', 'this and that'),  # ampersand
 
-def test_normalize():
-    assert normalize('Hello this is a           Title') == 'hello this is a title'
-
-
-def test_normalize_titles_with_and():
-    a = 'This and That'
-    b = 'This & that'
-    norm = "this and that"
-    assert normalize(a) == normalize(b)
-    assert normalize(b) == norm
+]
 
 
-def test_normalize_unicode():
-    a = 'Kitāb Yatīmat ud-Dahr'
-    assert normalize(a) == 'kitāb yatīmat ud dahr'
+@pytest.mark.parametrize('title,normalized', titles)
+def test_normalize(title, normalized):
+    assert normalize(title) == normalized
 
 
 @pytest.mark.skip(
