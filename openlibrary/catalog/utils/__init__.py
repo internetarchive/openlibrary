@@ -291,6 +291,25 @@ def mk_norm(s: str) -> str:
     return norm.replace(' ', '')
 
 
+def add_db_name(rec: dict) -> None:
+    """
+    db_name = Author name followed by dates.
+    adds 'db_name' in place for each author.
+    """
+    if 'authors' not in rec:
+        return
+
+    for a in rec['authors'] or []:
+        date = None
+        if 'date' in a:
+            assert 'birth_date' not in a
+            assert 'death_date' not in a
+            date = a['date']
+        elif 'birth_date' in a or 'death_date' in a:
+            date = a.get('birth_date', '') + '-' + a.get('death_date', '')
+        a['db_name'] = ' '.join([a['name'], date]) if date else a['name']
+
+
 def expand_record(rec: dict) -> dict[str, str | list[str]]:
     """
     Returns an expanded representation of an edition dict,
@@ -325,6 +344,7 @@ def expand_record(rec: dict) -> dict[str, str | list[str]]:
     ):
         if f in rec:
             expanded_rec[f] = rec[f]
+    add_db_name(expanded_rec)
     return expanded_rec
 
 
