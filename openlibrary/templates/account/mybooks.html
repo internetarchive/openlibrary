@@ -56,7 +56,10 @@ $def year_span(year, use_local_year=False):
   $def empty_carousel(data):
     $ key, title, url = data
     <div class="carousel-section-header">
-      <h2 class="home-h2"><a name="$key" href="$url">$title</a></h2>
+      <a name="$key" href="$url" class="my-books-title">
+        <h2 class="home-h2 my-books-title">$title</h2>
+        <p class="my-books-title">SEE ALL ></p>
+      </a>
     </div>
     <p>$_('No books are on this shelf')</p>
 
