@@ -1,13 +1,12 @@
-$def with(row_context)
-  $ request_title = row_context['request_title']
-  $ comments = row_context['comments']
-  $ is_open = row_context['is_open']
-  $ review_url = row_context['review_url']
-  $ is_submitter = row_context['is_submitter']
-  $ r = row_context['r']
-  $ can_merge = row_context['can_merge']
+$def with (request, username, can_merge)
+	
+	$ request_title = request.get('title', _('An untitled work') if request['mr_type'] != 2 else _('An unnamed author'))
+	$ comments = request.get('comments', {}).get('comments', [])
+	$ is_open = request['status'] == 1
+	$ review_url = "%s&mrid=%s" % (request['url'], request['id'])
+	$ is_submitter = username == request['submitter']
 
-<tr id="mrid-$(r['id'])" class="mr-table-row" data-mrid="$(r['id'])">
+  <tr id="mrid-$(request['id'])" class="mr-table-row" data-mrid="$(request['id'])">
     <td class="mr-info">
       $# Start : Status dot indicator
       $ dot_status_class = 'dot--open' if is_open else 'dot--closed'
@@ -43,7 +42,7 @@ $def with(row_context)
 
         $# Start : Submitted by line
         <span class="mr-details__opened-by">
-          $:_('MR #%(id)s opened %(date)s by <a href="/people/%(submitter)s" class="commenter">@%(submitter)s</a>', id=r['id'], date=datestr(r["created"]), submitter=r["submitter"])
+          $:_('MR #%(id)s opened %(date)s by <a href="/people/%(submitter)s" class="commenter">@%(submitter)s</a>', id=request['id'], date=datestr(request["created"]), submitter=request["submitter"])
           $if is_open and is_submitter:
             <a class="mr-close-link" title="$_('Click to close this Merge Request')" href="javascript:;">&times;</a>
         </span>
@@ -51,9 +50,9 @@ $def with(row_context)
       </div>
     </td>
     <td class="mr-review-actions">
-      $ show_review_button = is_open and can_merge and not r.get('reviewer', '')
+      $ show_review_button = is_open and can_merge and not request.get('reviewer', '')
       <div class="mr-review-actions__assignee $('hidden' if show_review_button else '')">
-        $ request_reviewer = r.get('reviewer', '')
+        $ request_reviewer = request.get('reviewer', '')
         $if request_reviewer:
           $ request_reviewer = '@' + request_reviewer
         $if is_open:
@@ -77,3 +76,4 @@ $def with(row_context)
       </a>
     </td>
   </tr>
+  
