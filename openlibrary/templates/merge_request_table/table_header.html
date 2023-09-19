@@ -1,6 +1,6 @@
 $def with (total, librarians, mode, username, submitter, reviewer)
 	
-  $ order = query_param('order', 'desc')
+$ order = query_param('order', 'desc')
 
 <div class="table-header">
     <a class="$(mode=='open' and 'selected' or '') mode-open" href="$changequery(mode='open', page=None)">$total['open'] $_('Open')</a>
