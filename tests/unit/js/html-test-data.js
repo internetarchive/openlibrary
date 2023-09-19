@@ -4,7 +4,7 @@ export const editionIdentifiersSample = `
     &quot;You need to give a value to ID.&quot;: &quot;You need to give a value to ID.&quot;,
     &quot;ID ids cannot contain whitespace.&quot;: &quot;ID ids cannot contain whitespace.&quot;,
     &quot;ID must be exactly 10 characters [0-9] or X.&quot;: &quot;ID must be exactly 10 characters [0-9] or X.&quot;,
-    &quot;That ISBN already exists for this edition.&quot;: &quot;That ISBN already exists for this edition.&quot;,
+    &quot;That ID already exists for this edition.&quot;: &quot;That ID already exists for this edition.&quot;,
     &quot;ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4&quot;: &quot;ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4&quot;,
     &quot;Invalid ID format&quot;: &quot;Invalid ID format&quot;
 }">
