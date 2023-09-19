@@ -19,24 +19,14 @@ export class ReadingLists {
     /**
      * Adds functionality to the given dropper's list affordances.
      * @param {HTMLElement} dropper
-     * @param {Record<string, CallableFunction>} dropperActionCallbacks
      */
-    constructor(dropper, dropperActionCallbacks) {
+    constructor(dropper) {
         /**
          * References the given My Books Dropper root element.
          *
          * @member {HTMLElement}
          */
         this.dropper = dropper
-
-        /**
-         * Contains references to the parent dropper's close and
-         * toggle functions.  These functions are bound to the
-         * parent dropper element.
-         *
-         * @member {Record<string, CallableFunction>}
-         */
-        this.dropperActions = dropperActionCallbacks
 
         /**
          * Reference to the "Use work" checkbox.
