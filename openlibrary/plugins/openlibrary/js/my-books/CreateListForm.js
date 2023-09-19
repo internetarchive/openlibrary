@@ -97,10 +97,10 @@ export class CreateListForm {
             .then(response => response.json())
             .then((data) => {
                 // Update active lists showcase:
-                attachNewActiveShowcaseItem(data['key'], seed, listTitle, '/images/icons/avatar_book-sm.png')
+                attachNewActiveShowcaseItem(data['key'], seed, listTitle, data['key'])
 
                 // Update all droppers with new list data
-                this.updateDroppersOnListCreation(data['key'], listTitle)
+                this.updateDroppersOnListCreation(data['key'], listTitle, data['key'])
 
                 // Clear list creation form fields, nullify seed
                 this.resetForm()
@@ -117,13 +117,13 @@ export class CreateListForm {
      * @param {string} listKey Key of the newly created list
      * @param {string} listTitle Title of the new list
      */
-    updateDroppersOnListCreation(listKey, listTitle) {
+    updateDroppersOnListCreation(listKey, listTitle, coverUrl) {
         const droppers = myBooksStore.getDroppers()
         const openDropper = myBooksStore.getOpenDropper()
 
         for (const dropper of droppers) {
             const isActive = dropper === openDropper
-            dropper.readingLists.onListCreationSuccess(listKey, listTitle, isActive)
+            dropper.readingLists.onListCreationSuccess(listKey, listTitle, coverUrl, isActive)
         }
     }
 

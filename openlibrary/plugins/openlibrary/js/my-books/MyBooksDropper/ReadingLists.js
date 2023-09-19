@@ -286,13 +286,14 @@ export class ReadingLists {
      * @param {string} listKey Unique identifier for the new list
      * @param {string} listTitle Title of the list
      * @param {boolean} isActive `True` if this dropper's seed is on the list
+     * @param {string} coverUrl URL for the list's cover image
      */
-    onListCreationSuccess(listKey, listTitle, isActive) {
+    onListCreationSuccess(listKey, listTitle, isActive, coverUrl) {
         const dropperListAffordance = this.createDropdownListAffordance(listKey, listTitle, isActive)
 
         this.patronLists[listKey] = {
             title: listTitle,
-            coverUrl: DEFAULT_COVER_URL,
+            coverUrl: coverUrl,
             dropperListAffordance: dropperListAffordance
         }
 
@@ -317,7 +318,7 @@ export class ReadingLists {
      */
     createDropdownListAffordance(listKey, listTitle, isActive) {
         const itemMarkUp = `<span class="check">✔️</span>
-        <a href="${listKey}" class="modify-list dropper__close" data-list-cover-url="${DEFAULT_COVER_URL}" data-list-key="${listKey}">${listTitle}</a>
+        <a href="${listKey}" class="modify-list dropper__close" data-list-cover-url="${listKey}" data-list-key="${listKey}">${listTitle}</a>
         `
         const p = document.createElement('p')
         p.classList.add('list')
