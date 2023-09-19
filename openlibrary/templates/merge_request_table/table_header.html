@@ -1,11 +1,6 @@
-$def with(header_context)
-$ mode = header_context['mode']
-$ total = header_context['total']
-$ submitter = header_context['submitter']
-$ username = header_context['username']
-$ librarians = header_context['librarians']
-$ reviewer = header_context['reviewer']
-$ order = header_context['order']
+$def with (total, librarians, mode, username, submitter, reviewer)
+	
+  $ order = query_param('order', 'desc')
 
 <div class="table-header">
     <a class="$(mode=='open' and 'selected' or '') mode-open" href="$changequery(mode='open', page=None)">$total['open'] $_('Open')</a>
