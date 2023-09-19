@@ -160,7 +160,7 @@ export class ReadingLists {
 
             this.patronLists[listKey] = {
                 title: elem.innerText,
-                coverUrl: elem.listCoverUrl,
+                coverUrl: elem.dataset.listCoverUrl,
                 itemOnList: itemOnList,
                 dropperListAffordance: elemParent,  // The .list element
             }
