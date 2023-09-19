@@ -228,7 +228,7 @@ export class ReadingLists {
                 if (isAddingItem) {
                     // make new active showcase item
                     const listTitle = this.patronLists[listKey].title
-                    attachNewActiveShowcaseItem(listKey, seedKey, listTitle)
+                    attachNewActiveShowcaseItem(listKey, seedKey, listTitle, this.patronLists[listKey].coverUrl)
                 } else {
                     // remove existing showcase items
                     const showcases = myBooksStore.getShowcases()
