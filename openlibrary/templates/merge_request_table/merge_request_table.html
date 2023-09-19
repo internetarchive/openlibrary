@@ -3,8 +3,6 @@ $def with(total, librarians, merge_requests=None)
 $# total : dict : {"open": int, "closed": int}; The total number of merge requests found for the current mode
 $# librarians : dict : {"submitters": list[str], "reviewers": list[str]}
 $# merge_requests : list : Merge requests to be displayed in the table
-$# header_context: all the arguments to be passed into the table_header template.
-$# row_context: all the arguments to be passed into the table_row template.
 
 $ i18n_strings = {
   $ 'comment_submission_failure_message': _('Failed to submit comment. Please try again in a few moments.'),
@@ -17,7 +15,6 @@ $ can_merge = ctx.user and (ctx.user.is_usergroup_member('/usergroup/super-libra
 $ reviewer = query_param('reviewer', None)
 $ submitter = query_param('submitter', None)
 $ mode = query_param('mode', 'open')
-$ order = query_param('order', 'desc')
 
 $if submitter:
   $ desc = _("Showing %(username)s's requests only.", username=submitter)
@@ -47,9 +44,7 @@ $else:
     $:macros.Pager(page, total[mode], results_per_page=25)
   </div>
   <div class="librarian-queue-wrapper" data-username="$username" data-i18n="$json_encode(i18n_strings)">
-    $ header_context = {'mode': mode, 'total': total, 'submitter': submitter, 'username': username, 'librarians': librarians, 'reviewer': reviewer, 'order': order }
-
-    $:render_template('merge_request_table/table_header', header_context=header_context)
+    $:render_template('merge_request_table/table_header', total, librarians, mode, username, submitter, reviewer)
     <table class="mr-table">
       <tbody>
       $if not merge_requests:
@@ -57,14 +52,7 @@ $else:
           <td colspan="5">$_('No entries here!')</td>
         </tr>
       $for r in merge_requests:
-        $ request_title = r.get('title', _('An untitled work') if r['mr_type'] != 2 else _('An unnamed author'))
-        $ comments = r.get('comments', {}).get('comments', [])
-        $ is_open = r['status'] == 1
-        $ review_url = "%s&mrid=%s" % (r['url'], r['id'])
-        $ is_submitter = username == r['submitter']
-        $ row_context = {'request_title': request_title, 'comments': comments, 'is_open': is_open, 'review_url': review_url, 'is_submitter': is_submitter, 'r': r, 'can_merge': can_merge}
-
-        $:render_template('merge_request_table/table_row', row_context=row_context)
+        $:render_template('merge_request_table/table_row', r, username, can_merge)
       </tbody>
     </table>
   </div>
