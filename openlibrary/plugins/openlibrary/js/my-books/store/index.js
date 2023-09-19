@@ -59,7 +59,7 @@ class MyBooksStore {
      * @param {string} userKey
      */
     setUserKey(userKey) {
-        this._store.userkey = userKey
+        this._store.userKey = userKey
     }
 
     /**

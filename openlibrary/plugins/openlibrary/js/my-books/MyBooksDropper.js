@@ -164,7 +164,7 @@ export class MyBooksDropper extends Dropper {
      * @override
      */
     onOpen() {
-        myBooksStore.setDroppers(this)
+        myBooksStore.setOpenDropper(this)
     }
 
     /**
