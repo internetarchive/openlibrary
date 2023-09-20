@@ -1,7 +1,7 @@
 /**
  * Defines functionality related to librarian request table header.
  *
- * @module merge-request-table/LibrarianQueue/TableHeader
+ * @module merge-request-table/MergeRequestTable/TableHeader
  */
 
 /**

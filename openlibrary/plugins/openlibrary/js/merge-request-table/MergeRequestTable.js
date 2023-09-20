@@ -2,33 +2,33 @@
  * Defines functionality related to librarian request table and header.
  *
  * Base template for the table is openlibrary/templates/merge_queue/merge_queue.html
- * @module merge-request-table/LibrarianQueue
+ * @module merge-request-table/MergeRequestTable
  */
 
-import TableHeader from './LibrarianQueue/TableHeader'
-import { setI18nStrings, TableRow } from './LibrarianQueue/TableRow'
+import TableHeader from './MergeRequestTable/TableHeader'
+import { setI18nStrings, TableRow } from './MergeRequestTable/TableRow'
 
 /**
  * Class representing the librarian request table.
  *
  * @class
  */
-export default class LibrarianQueue {
+export default class MergeRequestTable {
 
     /**
      * Creates references to the table and its header and hydrates each.
      *
-     * @param {HTMLElement} librarianRequestTable
+     * @param {HTMLElement} mergeRequestTable
      */
-    constructor(librarianRequestTable) {
+    constructor(mergeRequestTable) {
         /**
          * The `username` of the authenticated patron, or '' if logged out.
          *
          * @param {string}
          */
-        this.username = librarianRequestTable.dataset.username
+        this.username = mergeRequestTable.dataset.username
 
-        const localizedStrings = JSON.parse(librarianRequestTable.dataset.i18n)
+        const localizedStrings = JSON.parse(mergeRequestTable.dataset.i18n)
         setI18nStrings(localizedStrings)
 
         /**
@@ -36,7 +36,7 @@ export default class LibrarianQueue {
          *
          * @param {HTMLElement}
          */
-        this.tableHeader = new TableHeader(librarianRequestTable.querySelector('.table-header'))
+        this.tableHeader = new TableHeader(mergeRequestTable.querySelector('.table-header'))
 
         /**
          * References to each row in the table.
@@ -44,7 +44,7 @@ export default class LibrarianQueue {
          * @param {Array<TableRow>}
          */
         this.tableRows = []
-        const rowElements = librarianRequestTable.querySelectorAll('.mr-table-row')
+        const rowElements = mergeRequestTable.querySelectorAll('.mr-table-row')
         for (const elem of rowElements) {
             this.tableRows.push(new TableRow(elem, this.username))
         }
