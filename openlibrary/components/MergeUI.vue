@@ -105,7 +105,7 @@ export default {
                     }
                 } catch (e) {
                     this.mergeOutput = e.message;
-                    this.mergeStatus = this.isSuperLibrarian() ? DO_MERGE : REQUEST_MERGE;
+                    this.mergeStatus = this.isSuperLibrarian ? DO_MERGE : REQUEST_MERGE;
                     throw e;
                 }
             } else {
