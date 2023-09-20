@@ -52,7 +52,7 @@ $else:
         <tr>
           <td colspan="5">$_('No entries here!')</td>
         </tr>
-    
+
       $for r in merge_requests:
        $:render_template('merge_request_table/table_row', r, username, can_merge)
       </tbody>
