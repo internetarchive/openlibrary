@@ -192,8 +192,10 @@ docker compose down
 # This can take from a few minutes to more than 20 on older hardware.
 docker compose build --pull --no-cache
 
-# Remove any old containers; if you use docker for something special, and have containers you don't want to lose, be careful with this. But you likely don't :)
-docker container prune
+# Remove any old containers/images
+# If you use docker for other things, and have containers/images you don't want to lose, be careful with this. But you likely don't :)
+docker container prune --filter label="com.docker.compose.project=openlibrary" --force
+docker image prune --filter label="com.docker.compose.project=openlibrary" --force
 
 # Remove volumes that might have outdated dependencies/code
 docker volume rm openlibrary_ol-build openlibrary_ol-nodemodules openlibrary_ol-vendor
