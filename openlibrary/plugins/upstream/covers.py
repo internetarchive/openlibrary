@@ -60,8 +60,8 @@ class add_cover(delegate.page):
         """Uploads a cover to coverstore and returns the response."""
         olid = key.split("/")[-1]
 
-        if i.file is not None and hasattr(i.file, 'value'):
-            data = i.file.value
+        if i.file is not None and hasattr(i.file, 'file'):
+            data = i.file.file.read()
         else:
             data = None
 
