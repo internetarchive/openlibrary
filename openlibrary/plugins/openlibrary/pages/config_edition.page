@@ -401,7 +401,7 @@
             "label": "Books For You"
         },
         {
-            "url": "https://bostonpl.bibliocommons.com/item/show/@@@",
+            "url": "https://bostonpl.bibliocommons.com/v2/record/@@@",
             "website": " https://bostonpl.bibliocommons.com",
             "notes": "",
             "name": "boston_public_library",
