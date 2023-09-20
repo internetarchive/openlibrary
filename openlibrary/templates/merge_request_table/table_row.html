@@ -1,5 +1,5 @@
 $def with (request, username, can_merge)
-	
+
 $ request_title = request.get('title', _('An untitled work') if request['mr_type'] != 2 else _('An unnamed author'))
 $ comments = request.get('comments', {}).get('comments', [])
 $ is_open = request['status'] == 1
