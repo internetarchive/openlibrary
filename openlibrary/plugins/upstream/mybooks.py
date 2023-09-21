@@ -172,6 +172,15 @@ def get_public_patron_account(username):
     return ReadingLog(user=user)
 
 
+@public
+def get_patrons_work_read_status(username, work_key):
+    if not username:
+        return None
+    work_id = extract_numeric_id_from_olid(work_key)
+    status_id = Bookshelves.get_users_read_status_of_work(username, work_id)
+    return status_id
+
+
 class MyBooksTemplate:
     # Reading log shelves
     READING_LOG_KEYS = {"currently-reading", "want-to-read", "already-read"}

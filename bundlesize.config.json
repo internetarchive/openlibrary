@@ -70,19 +70,19 @@
     },
     {
       "path": "static/build/lists.*.js",
-      "maxSize": "5KB"
+      "maxSize": "5.5KB"
     },
     {
       "path": "static/build/all.js",
-      "maxSize": "129KB"
+      "maxSize": "130KB"
     },
     {
       "path": "static/build/page-admin.css",
-      "maxSize": "26KB"
+      "maxSize": "27KB"
     },
     {
       "path": "static/build/page-book.css",
-      "maxSize": "13KB"
+      "maxSize": "13.5KB"
     },
     {
       "path": "static/build/page-edit.css",

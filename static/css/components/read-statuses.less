@@ -5,6 +5,17 @@
 .read-statuses {
   border-bottom: 1px solid @lightest-grey;
   button {
+    &.remove-from-list {
+      color: @red;
+      /* stylelint-disable selector-max-specificity */
+      /* stylelint-disable max-nesting-depth */
+      &:hover {
+        color: @red;
+      }
+      /* stylelint-enable max-nesting-depth */
+      /* stylelint-enable selector-max-specificity */
+    }
+
     border: none;
     background: none;
     cursor: pointer;
@@ -19,10 +30,6 @@
       color: @black;
       background-color: @white;
     }
-  }
-
-  .remove-from-list {
-    color: @red;
   }
 
   /* stylelint-disable selector-max-specificity */

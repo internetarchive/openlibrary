@@ -1,4 +1,4 @@
-$def with (page, include_rating=True, include_header=True, include_widget=True, include_showcase=True, read_status=None, exclude_own_lists=False, async_load=False)
+$def with (page, include_rating=True, include_header=True, include_widget=True, include_showcase=True, read_status=None, exclude_own_lists=False, async_load=False, show_active_lists=False)
 
 $ edition = page if page.key.startswith("/books/") else None
 $ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
@@ -77,24 +77,25 @@ $def i18n_input():
 $if include_widget:
   $if render_once('lists/widget.i18n-strings'):
     $:i18n_input()
-  $:macros.ReadingLogDropper(user_lists, work=work, edition_key=(edition and edition.key), key=default_seed_key, users_work_read_status=users_work_read_status, page_url=page_url, async_load=async_load)
-  <ul id="already-lists" class="listLists already-lists">
-    $if async_load:
-        <div class="list-overview-loading-indicator">Loading<span class="loading-ellipsis">...</span></div>
-    $else:
-        $:render_already_lists(user_lists, user_key)
-  </ul>
+
+  $if 'my_books_dropper' in ctx.features:
+    $:render_template('my_books/dropper', page, async_load=async_load)
+  $else:
+    $:macros.ReadingLogDropper(user_lists, work=work, edition_key=(edition and edition.key), key=default_seed_key, users_work_read_status=users_work_read_status, page_url=page_url, async_load=async_load)
+
+  $if username and show_active_lists:
+    <ul class="listLists already-lists">
+        $if async_load:
+          <div class="list-overview-loading-indicator">Loading<span class="loading-ellipsis">...</span></div>
+        $else:
+          $:render_already_lists(user_lists, user_key)
+    </ul>
   $if work and include_rating:
     $:macros.StarRatings(work, edition)
 
 $if include_showcase:
-  $if render_once('lists/widget.i18n-strings'):
-    $i18n_input()
   <ul id="list-lists" class="listLists">
     $:render_widget_display(page_lists, 3, user_key, exclude_own_lists)
   </ul>
-
-$if render_once('lists/widget.remove-dialog'):
-    <div id="remove-dialog" class="hidden" title="$_('Remove')"></div>
 
 </div>

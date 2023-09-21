@@ -34,3 +34,18 @@ export function cond(predicate, true_value, false_value) {
         return false_value;
     }
 }
+
+/**
+ * Removes children of each given element.
+ *
+ * @param  {...HTMLElement} elements
+ */
+export function removeChildren(...elements) {
+    for (const elem of elements) {
+        if (elem) {
+            while (elem.firstChild) {
+                elem.removeChild(elem.firstChild)
+            }
+        }
+    }
+}

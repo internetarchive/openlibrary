@@ -3,7 +3,7 @@
  * @module lists/index
  */
 
-import { createList, addToList, removeFromList, updateReadingLog, fetchPartials } from './ListService'
+import { createNewList, addToList, removeFromList, updateReadingLog, fetchPartials } from './ListService'
 import { websafe } from '../jsdef'
 import { CheckInEvent } from '../check-ins'
 
@@ -206,7 +206,7 @@ function addCreateListClickListener(button, parentDropper) {
                 actionableItems[listKey] = [li]
             }
 
-            createList(hiddenUserInput.value, data, successCallback)
+            createNewList(hiddenUserInput.value, data, successCallback)
 
             // Close colorbox
             $.colorbox.close()
@@ -638,7 +638,7 @@ function replaceLoadingIndicators(dropperLists, activeLists, partials) {
 /**
  * Removes all child elements from each given element
  *
- * @param {HTMLElement} elem The element that we are removing children from
+ * @param {Array<HTMLElement>} elements The elements that we are removing children from
  */
 function removeChildren(...elements) {
     for (const elem of elements) {

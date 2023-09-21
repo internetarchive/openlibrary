@@ -381,25 +381,31 @@ jQuery(function () {
     // "Want to Read" buttons:
     const readingLogDroppers = document.getElementsByClassName('widget-add');
 
-    // Async lists components:
-    const wtrLoadingIndicator = document.querySelector('.list-loading-indicator')
-    const overviewLoadingIndicator = document.querySelector('.list-overview-loading-indicator')
-
-    if (readingLogDroppers.length || wtrLoadingIndicator || overviewLoadingIndicator) {
+    if (readingLogDroppers.length) {
+        // Async lists components:
+        const wtrLoadingIndicator = document.querySelector('.list-loading-indicator')
+        const overviewLoadingIndicator = document.querySelector('.list-overview-loading-indicator')
         import(/* webpackChunkName: "lists" */ './lists')
             .then((module) => {
-                if (readingLogDroppers.length) {
-                    module.initReadingLogDroppers(readingLogDroppers);
-                    // Removable list items:
-                    // TODO: Is this the correct place to initalize these?
-                    const actionableListItems = document.querySelectorAll('.actionable-item')
-                    module.registerListItems(actionableListItems);
-                }
                 if (wtrLoadingIndicator || overviewLoadingIndicator) {
                     module.initListLoading(wtrLoadingIndicator, overviewLoadingIndicator)
                 }
-            }
-            );
+                module.initReadingLogDroppers(readingLogDroppers);
+                // Removable list items:
+                const actionableListItems = document.querySelectorAll('.actionable-item')
+                module.registerListItems(actionableListItems);
+            });
+    }
+
+    // New "My Books" dropper:
+    const myBooksDroppers = document.querySelectorAll('.my-books-dropper')
+    if (myBooksDroppers.length) {
+        const actionableListShowcases = document.querySelectorAll('.actionable-item')
+
+        import(/* webpackChunkName: "my-books" */ './my-books')
+            .then((module) => {
+                module.initMyBooksAffordances(myBooksDroppers, actionableListShowcases)
+            })
     }
 
     const nativeDialogs = document.querySelectorAll('.native-dialog')
