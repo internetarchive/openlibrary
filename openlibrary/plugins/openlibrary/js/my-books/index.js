@@ -52,7 +52,11 @@ export function initMyBooksAffordances(dropperElements, showcaseElements) {
 
                 for (const seedKey of listData[listKey].members) {
                     if (seedKeySet.has(seedKey)) {
-                        activeShowcaseItems.push(createActiveShowcaseItem(listKey, seedKey, listData[listKey].listName))
+                        const key = listData[listKey].members[0]
+                        const coverID = key.slice(key.indexOf("OL"))
+                        const cover = `https://covers.openlibrary.org/b/olid/${coverID}-S.jpg`
+                        
+activeShowcaseItems.push(createActiveShowcaseItem(listKey, seedKey, listData[listKey].listName, cover))
                     }
                 }
             }
