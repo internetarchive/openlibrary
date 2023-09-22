@@ -91,7 +91,7 @@
     "vue-async-computed": "3.9.0",
     "vue-loader": "^15.10.0",
     "vue-multiselect": "2.1.6",
-    "webpack": "4.46.0",
+    "webpack": "5.88.2",
     "webpack-cli": "4.10.0",
     "webpack5": "npm:webpack@5.44.0",
     "workbox-webpack-plugin": "6.1.5"
