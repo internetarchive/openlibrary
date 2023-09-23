@@ -1,6 +1,6 @@
 # See https://github.com/nodesource/distributions#debian-and-ubuntu-based-distributions
 
-NODE_MAJOR=16
+NODE_MAJOR=20
 
 # Download and import the Nodesource GPG key
 apt-get install -y ca-certificates curl gnupg
