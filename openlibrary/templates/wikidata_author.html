@@ -2,15 +2,10 @@ $def with (wd_entity)
 
 $if wd_entity:
     <div class="section wikidatabox read-options">
-        <style>
-            .wikidatabox p {
-                margin-bottom: 0;
-            }
-        </style>
-        <h3 style="margin-top: 2px;margin-bottom: 2px;" class="bold black">$_('Quick Info')</h3>
-        <div style="margin: 5px;">
+        <h3 class="bold black">$_('Quick Info')</h3>
+        <div>
             <p>$wd_entity.description(i18n.get_locale())</p>
-            <a href="http://www.wikidata.org/entity/$wd_entity.id" style="font-size: .6em;">$_('Powered by Wikidata')
+            <a class="powered-by-link" href="http://www.wikidata.org/entity/$wd_entity.id">$_('Powered by Wikidata')
                 <img src="/static/images/icons/edit.svg">
             </a>
         </div>

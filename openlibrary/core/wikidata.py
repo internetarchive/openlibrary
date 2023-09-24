@@ -24,6 +24,7 @@ class WikidataEntities:
 
     @classmethod
     def get_by_ids(cls, ids: list[str]) -> list[WikidataRow]:
+        # TODO: convert to WikidataRow ?
         return list(
             db.get_db().query(
                 'select * from wikidata where id IN ($ids)',
