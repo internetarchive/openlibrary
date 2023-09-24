@@ -13,7 +13,7 @@ class WikidataRow:
     updated: datetime
 
 
-class WikidataEntities(db.CommonExtras):
+class WikidataEntities:
     TABLENAME = "wikidata"
 
     @classmethod
@@ -24,9 +24,12 @@ class WikidataEntities(db.CommonExtras):
 
     @classmethod
     def get_by_ids(cls, ids: list[str]) -> list[WikidataRow]:
-        oldb = db.get_db()
-        query = 'select * from wikidata where id IN ($ids)'
-        return list(oldb.query(query, vars={'ids': ids}))
+        return list(
+            db.get_db().query(
+                'select * from wikidata where id IN ($ids)',
+                vars={'ids': ids},
+            )
+        )
 
     @classmethod
     def add(cls, id: str, data: dict) -> None:
