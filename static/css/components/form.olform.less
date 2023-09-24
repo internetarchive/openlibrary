@@ -193,6 +193,10 @@
     color: @grey;
     font-family: @lucida_sans_serif-1 !important;
   }
+  .nameAndWikidata {
+    display: flex;
+    flex-direction: column;
+  }
 }
 
 .olform__input--large {
@@ -258,6 +262,13 @@
         input#author {
           width: 550px !important;
         }
+      }
+    }
+
+    .nameAndWikidata {
+      flex-direction: row;
+      .formElement{
+        flex-basis: calc(2 / 3 * 100%);
       }
     }
   }
