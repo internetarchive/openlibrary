@@ -507,6 +507,7 @@ jQuery(function () {
             })
     }
 
+    // Add functionality to the team page for filtering members:
     const teamCards = document.querySelector('.teamCards_container')
     if (teamCards) {
         import('./team')

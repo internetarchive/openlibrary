@@ -8,21 +8,27 @@ $ _x = ctx.setdefault('cssfile', 'team')
 		over 100 volunteers from around the globe.
 		<a href="https://openlibrary.org/volunteer"> Want to join us?</a>
 	</p>
-	<label for="roles">Role:</label>
-	<select name="roles" id="role">
-		<option value="All" selected>All</option>
-		<option value="Staff">Staff</option>
-		<option value="Fellow">Fellows</option>
-		<option value="Volunteer">Volunteers</option>
-	</select>
-	<label for="departments">Department:</label>
-	<select name="departments" id="department">
-		<option value="All" selected>All</option>
-		<option value="Communication">Communications</option>
-		<option value="Design">Design</option>
-		<option value="Engineer">Engineering</option>
-		<option value="Librarian">Librarianship</option>
-	</select>
+	<div class="teamPage__selectElements">
+		<div class="selectElement">
+			<label for="roles">Role:</label>
+			<select name="roles" id="role">
+				<option value="All" selected>All</option>
+				<option value="Staff">Staff</option>
+				<option value="Fellow">Fellows</option>
+				<option value="Volunteer">Volunteers</option>
+			</select>
+	    </div>
+		<div>
+			<label for="departments">Department:</label>
+			<select name="departments" id="department">
+				<option value="All" selected>All</option>
+				<option value="Communication">Communications</option>
+				<option value="Design">Design</option>
+				<option value="Engineer">Engineering</option>
+				<option value="Librarian">Librarianship</option>
+			</select>
+		</div>
+	</div>
 </div>
 
 <div class="teamCards_container"></div>

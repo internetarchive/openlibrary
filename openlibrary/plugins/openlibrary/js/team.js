@@ -46,6 +46,7 @@ export function initTeamFilter() {
     const createCards = (array) => {
         if (array.length === 0) {
             const noResults = document.createElement('h3');
+            noResults.classList = 'noResults'
             noResults.innerHTML =
 				'It looks like we don\'t have anyone with those specifications.';
             cardsContainer.append(noResults);
