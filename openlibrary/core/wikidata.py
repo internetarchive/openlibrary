@@ -80,7 +80,7 @@ def get_wikidata_entity(QID: str, ttl_days: int = 30) -> WikiDataEntity | None:
     ttl (time to live) inspired by the cachetools api https://cachetools.readthedocs.io/en/latest/#cachetools.TTLCache
     """
 
-    entity = WikidataEntities.get_by_id(QID)
+    entity = _get_from_cache(QID)
     if entity and days_since(entity.updated) < ttl_days:
         return WikiDataEntity(
             id=QID,
@@ -97,24 +97,20 @@ class WikidataRow:
     updated: datetime
 
 
-class WikidataEntities:
-    TABLENAME = "wikidata"
-
-    @classmethod
-    def get_by_id(cls, id: str) -> WikidataRow | None:
-        if len(result := cls.get_by_ids([id])) > 0:
-            return result[0]
-        return None
-
-    @classmethod
-    def get_by_ids(cls, ids: list[str]) -> list[WikidataRow]:
-        # TODO: convert to WikidataRow ?
-        return list(
-            db.get_db().query(
-                'select * from wikidata where id IN ($ids)',
-                vars={'ids': ids},
-            )
+def _get_from_cache_by_ids(ids: list[str]) -> list[WikidataRow]:
+    # TODO: convert to WikidataRow ?
+    return list(
+        db.get_db().query(
+            'select * from wikidata where id IN ($ids)',
+            vars={'ids': ids},
         )
+    )
+
+
+def _get_from_cache(id: str) -> WikiDataEntity | None:
+    if len(result := _get_from_cache_by_ids([id])) > 0:
+        return result[0]
+    return None
 
 
 # TODO: typehint the data?
@@ -122,11 +118,8 @@ def _add_to_cache(id: str, data: dict) -> None:
     # TODO: when we upgrade to postgres 9.5+ we should use upsert here
     oldb = db.get_db()
     json_data = json.dumps(data)
-    cls = WikidataEntities
 
-    if cls.get_by_id(id):
-        return oldb.update(
-            cls.TABLENAME, where="id=$id", vars={'id': id}, data=json_data
-        )
+    if _get_from_cache(id):
+        return oldb.update("wikidata", where="id=$id", vars={'id': id}, data=json_data)
     else:
-        return oldb.insert(cls.TABLENAME, id=id, data=json_data)
+        return oldb.insert("wikidata", id=id, data=json_data)
