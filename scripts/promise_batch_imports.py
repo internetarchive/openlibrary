@@ -45,11 +45,11 @@ def format_date(date: str, use_only_year: Pattern[str]) -> str:
     a date matches use_only_year, then return only "yyyy". See
     https://github.com/internetarchive/openlibrary/issues/7757
     """
-    y = date[0:4]
-    m = date[4:6]
-    d = date[6:8]
-
-    return y if use_only_year.match(date) else f"{y}-{m}-{d}"
+    return (
+        date[:4]
+        if use_only_year.match(date)
+        else f"{date[0:4]}-{date[4:6]}-{date[6:8]}"
+    )
 
 
 def map_book_to_olbook(book, promise_id):
