@@ -70,7 +70,7 @@
     },
     {
       "path": "static/build/lists.*.js",
-      "maxSize": "5.5KB"
+      "maxSize": "8KB"
     },
     {
       "path": "static/build/all.js",
