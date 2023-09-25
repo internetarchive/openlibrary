@@ -15,8 +15,10 @@ The imports can be monitored for their statuses and rolled up / counted using th
 """
 
 from __future__ import annotations
+from typing import TYPE_CHECKING
 import requests
 import logging
+import re
 
 import _init_path  # Imported for its side effect of setting PYTHONPATH
 from infogami import config
@@ -24,14 +26,30 @@ from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
+if TYPE_CHECKING:
+    from re import Pattern
+
 logger = logging.getLogger("openlibrary.importer.promises")
 
 
-def format_date(date: str) -> str:
+USE_ONLY_YEAR = re.compile(r"\d{4}(0101|0000)")
+
+
+def format_date(date: str, use_only_year: Pattern[str]) -> str:
+    """
+    Format date as "yyyy-mm-dd", or "yyyy" if the month/day are likely invalid.
+
+    The date parameter is expected to be in "yyyymmdd" format.
+
+    By default, dates will be formatted into "yyyy-mm-dd" format. However, if
+    a date matches use_only_year, then return only "yyyy". See
+    https://github.com/internetarchive/openlibrary/issues/7757
+    """
     y = date[0:4]
     m = date[4:6]
     d = date[6:8]
-    return f"{y}-{m}-{d}"
+
+    return y if use_only_year.match(date) else f"{y}-{m}-{d}"
 
 
 def map_book_to_olbook(book, promise_id):
@@ -57,7 +75,9 @@ def map_book_to_olbook(book, promise_id):
         'publishers': [book['ProductJSON'].get('Publisher') or '????'],
         'source_records': [f"promise:{promise_id}:{sku}"],
         # format_date adds hyphens between YYYY-MM-DD
-        'publish_date': publish_date and format_date(publish_date) or '????',
+        'publish_date': publish_date
+        and format_date(publish_date, USE_ONLY_YEAR)
+        or '????',
     }
     if not olbook['identifiers']:
         del olbook['identifiers']
