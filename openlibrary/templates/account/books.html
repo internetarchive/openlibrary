@@ -55,9 +55,19 @@ $var title: $header_title
 
 $ url_prefix = "/people/" + username
 $ readlog_url = url_prefix + "/books/%s/"
-$ options = [(_("Want to Read (%(count)d)", count=shelf_counts['want-to-read']), readlog_url % "want-to-read"), (_("Currently Reading (%(count)d)", count=shelf_counts['currently-reading']), readlog_url % "currently-reading"), (_("Already Read (%(count)d)", count=shelf_counts['already-read']), readlog_url % "already-read"), (_("My Lists (%(count)d)" if owners_page else "Lists (%(count)d)", count=len(lists)) , url_prefix + "/lists")]
+$ options = [
+$   (_("Want to Read (%(count)d)", count=shelf_counts['want-to-read']), readlog_url % "want-to-read"),
+$   (_("Currently Reading (%(count)d)", count=shelf_counts['currently-reading']), readlog_url % "currently-reading"),
+$   (_("Already Read (%(count)d)", count=shelf_counts['already-read']), readlog_url % "already-read"),
+$   (_("My Lists (%(count)d)" if owners_page else "Lists (%(count)d)", count=len(lists)) , url_prefix + "/lists")
+$ ]
 $if owners_page:
-  $ options = [("My Loans", "/account/loans")] + options + [(_("My Notes"), url_prefix + "/books/notes"), (_("My Reviews"), url_prefix + "/books/observations")]
+  $ options += [
+  $   (_("My Loans"), "/account/loans"),
+  $   (_("My Notes"), url_prefix + "/books/notes"),
+  $   (_("My Reviews"), url_prefix + "/books/observations"),
+  $   (_("Imports and Exports"), "/account/import")
+  $ ]
 
 <div class="mybooks">
 
