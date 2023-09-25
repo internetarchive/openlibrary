@@ -95,7 +95,7 @@ class TestGetIA:
                 '_filenames': [f'{itemid}_{s}' for s in ('marc.xml', 'meta.mrc')]
             },
         )
-        result = get_ia.get_marc_record_from_ia(item)
+        result = get_ia.get_marc_record_from_ia(item, metadata=None)
         assert isinstance(
             result, MarcBinary
         ), f"{item}: expected instanceof MarcBinary, got {type(result)}"
@@ -107,7 +107,7 @@ class TestGetIA:
         monkeypatch.setattr(
             ia, 'get_metadata', lambda itemid: {'_filenames': [f'{itemid}_marc.xml']}
         )
-        result = get_ia.get_marc_record_from_ia(item)
+        result = get_ia.get_marc_record_from_ia(item, metadata=None)
         assert isinstance(
             result, MarcXml
         ), f"{item}: expected instanceof MarcXml, got {type(result)}"
@@ -120,7 +120,7 @@ class TestGetIA:
             ia, 'get_metadata', lambda itemid: {'_filenames': [f'{itemid}_meta.mrc']}
         )
         with pytest.raises(BadLength):
-            result = get_ia.get_marc_record_from_ia(bad_marc)
+            result = get_ia.get_marc_record_from_ia(bad_marc, metadata=None)
 
     def test_bad_binary_data(self):
         with pytest.raises(BadMARC):

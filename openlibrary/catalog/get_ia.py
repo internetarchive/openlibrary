@@ -27,14 +27,17 @@ def urlopen_keep_trying(url: str, headers=None, **kwargs):
         sleep(2)
 
 
-def get_marc_record_from_ia(identifier: str) -> MarcBinary | MarcXml | None:
+def get_marc_record_from_ia(
+    identifier: str, metadata: dict | None = None
+) -> MarcBinary | MarcXml | None:
     """
-    Takes IA identifiers and returns MARC record instance.
+    Takes IA identifiers and optional IA metadata and returns MARC record instance.
     08/2018: currently called by openlibrary/plugins/importapi/code.py
     when the /api/import/ia endpoint is POSTed to.
     """
-    metadata = ia.get_metadata(identifier)
-    filenames = metadata['_filenames']
+    if not metadata:
+        metadata = ia.get_metadata(identifier)
+    filenames = metadata['_filenames']  # type: ignore[index]
 
     marc_xml_filename = identifier + '_marc.xml'
     marc_bin_filename = identifier + '_meta.mrc'
