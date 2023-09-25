@@ -1,7 +1,7 @@
 /**
  * Defines functionality related to librarian request table rows.
  *
- * @module merge-request-table/LibrarianQueue/TableRow
+ * @module merge-request-table/MergeRequestTable/TableRow
  */
 
 import { claimRequest, commentOnRequest, declineRequest, unassignRequest } from '../MergeRequestService'
