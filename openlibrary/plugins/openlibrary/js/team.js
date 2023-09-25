@@ -24,11 +24,16 @@ export function initTeamFilter() {
     }
     sortByLastName(team)
 
+    // Match a substring in each person's role
+    const matchSubstring = (array, substring) => {
+        return array.some(item => item.includes(substring))
+    }
+
     // Team sorted by role
-    const staff = team.filter((person) => person.roles.includes('Staff'));
-    const fellows = team.filter((person) => person['roles'].includes('Fellow'));
+    const staff = team.filter((person) => matchSubstring(person.roles, "staff"));
+    const fellows = team.filter((person) => matchSubstring(person.roles, "fellow"))
     const volunteers = team.filter((person) =>
-        person['roles'].includes('Volunteer')
+        matchSubstring(person.roles, "volunteer") && !matchSubstring(person.roles, "fellow")
     );
 
     // Selectors and eventListeners
@@ -43,7 +48,7 @@ export function initTeamFilter() {
     const cardsContainer = document.querySelector('.teamCards_container');
 
     // Functions
-    const createCards = (array) => {
+    const createCards = (array, role) => {
         if (array.length === 0) {
             const noResults = document.createElement('h3');
             noResults.classList = 'noResults'
@@ -62,8 +67,9 @@ export function initTeamFilter() {
                 const teamCardDescription = document.createElement('div');
                 const memberOlLink = document.createElement('a');
                 const memberName = document.createElement('h2');
-                const memberRole = document.createElement('h4');
-                const memberDepartment = document.createElement('h3');
+                // const memberRole = document.createElement('h4');
+                // const memberDepartment = document.createElement('h3');
+                const memberTitle = document.createElement('h3')
 
                 const descriptionLinks = document.createElement('div');
 
@@ -89,10 +95,12 @@ export function initTeamFilter() {
 							'description__name--length-short');
 
                 memberName.innerHTML = `${member.name}`;
-                memberRole.classList = 'description__role';
-                memberRole.innerHTML = `${member.roles}`;
-                memberDepartment.classList = 'description__department';
-                memberDepartment.innerHTML = `${member.departments}`;
+                // memberRole.classList = 'description__role';
+                // memberRole.innerHTML = `${role}`;
+                // memberDepartment.classList = 'description__department';
+                // memberDepartment.innerHTML = `${member.departments}`;
+                memberTitle.classList = 'description__title'
+                memberTitle.innerHTML = `${member.title}`
 
                 descriptionLinks.classList = 'description__links';
                 if (member.personal_url) {
@@ -124,8 +132,9 @@ export function initTeamFilter() {
                 memberOlLink.append(memberName);
                 teamCardDescription.append(
                     memberOlLink,
-                    memberRole,
-                    memberDepartment,
+                    // memberRole,
+                    // memberDepartment,
+                    memberTitle,
                     descriptionLinks
                 );
                 teamCard.append(teamCardPhotoContainer,teamCardDescription);
@@ -135,11 +144,13 @@ export function initTeamFilter() {
         }
     };
 
-    const createSection = (array) => {
+    const createSection = (array, text) => {
         const sectionSeparator = document.createElement('div');
-        array === staff
-            ? (sectionSeparator.classList = 'hidden')
-            : (sectionSeparator.classList = 'sectionSeparator');
+        sectionSeparator.innerHTML = `${text}`
+        sectionSeparator.classList = 'sectionSeparator'
+        // array === staff
+        //     ? (sectionSeparator.classList = 'hidden')
+        //     : (sectionSeparator.classList = 'sectionSeparator');
         cardsContainer.append(sectionSeparator);
         createCards(array);
     };
@@ -147,44 +158,54 @@ export function initTeamFilter() {
     const filterTeam = (role, department) => {
         cardsContainer.innerHTML = '';
         if (role === 'All' && department === 'All') {
-            createSection(staff);
-            createSection(fellows);
-            createSection(volunteers);
+            createSection(staff, "Staff");
+            createSection(fellows, "Fellows");
+            createSection(volunteers, "Volunteers");
         } else if (role === 'All' && department !== 'All') {
             role = '';
             const filteredTeam = team.filter(
                 (person) =>
-                    person.roles.includes(role) &&
-                    person.departments.includes(department)
+                    matchSubstring(person.roles, role) && matchSubstring(person.departments, department)
             );
 
-            const staff = filteredTeam.filter((person) => person.roles.includes('Staff'))
-            const fellows = filteredTeam.filter((person) => person.roles.includes('Fellow'))
-            const volunteers = filteredTeam.filter((person) => person.roles.includes('Volunteer'))
+            const staff = team.filter((person) => matchSubstring(person.roles, "staff"));
+            const fellows = team.filter((person) => matchSubstring(person.roles, "fellow"))
+            const volunteers = team.filter((person) =>
+            matchSubstring(person.roles, "volunteer") && !matchSubstring(person.roles, "fellow")
+        );
 
-            staff.length !== 0 && createSection(staff)
-            fellows.length !== 0 && createSection(fellows)
-            volunteers.length !== 0 && createSection(volunteers)
+            staff.length !== 0 && createSection(staff, "Staff")
+            fellows.length !== 0 && createSection(fellows, "Fellows")
+            volunteers.length !== 0 && createSection(volunteers, "Volunteers")
         } else if ((department === 'All') & (role !== 'All')) {
             department = '';
             const filteredTeam = team.filter(
                 (person) =>
-                    person.roles.includes(role) &&
-                    person.departments.includes(department)
+                    matchSubstring(person.roles, role) && matchSubstring(person.departments, department)
             );
-            createCards(filteredTeam);
+            // createCards(filteredTeam);
+            createSection(filteredTeam, capitalize(role))
         } else {
             const filteredTeam = team.filter(
                 (person) =>
-                    person.roles.includes(role) &&
-                    person.departments.includes(department)
+                matchSubstring(person.roles, role) && matchSubstring(person.departments, department)
             );
             createCards(filteredTeam);
         }
     };
 
+    const capitalize = (text) => {
+        const firstLetter = text[0].toUpperCase()
+        if (text == "fellow" || text == "volunteer") {
+            return firstLetter + text.slice(1) + "s"
+        }
+        else {
+            return firstLetter + text.slice(1)
+        }
+    }
+
     // on page load
-    createSection(staff);
-    createSection(fellows);
-    createSection(volunteers);
+    createSection(staff, "Staff");
+    createSection(fellows, "Fellows");
+    createSection(volunteers, "Volunteers");
 }
