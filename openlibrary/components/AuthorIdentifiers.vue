@@ -25,6 +25,29 @@
         </td>
       </tr>
     </template>
+    <tr v-if="assignedIdentifiers['wikidata']">
+      <td colspan="3">
+        <a href="#" @click.prevent="suggestWikidata">suggest based on Wikidata value</a>
+      </td>
+    </tr>
+    <tr v-if="assignedIdentifiers['viaf']">
+      <td colspan="3">
+        <a href="#" @click.prevent="suggestViaf">suggest based on viaf value</a>
+      </td>
+    </tr>
+    <template v-for="(suggestion, name) in suggestions">
+      <tr :key="'suggest-' + name" v-if="showSuggestion(name)">
+        <td>
+          {{ identifierConfigsByKey[name].label }}
+        </td>
+        <td>
+          <a targe="_blank"
+            :href="identifierConfigsByKey[name].url.replace('@@@', suggestion.value.replaceAll(' ', ''))">{{
+              suggestion.value }}</a>
+        </td>
+        <td><a href="#" @click.prevent="acceptSuggestion(name, suggestion.value)">accept</a></td>
+      </tr>
+    </template>
   </table>
 </template>
 
@@ -65,6 +88,7 @@ export default {
             selectedIdentifier: '', // Which identifier is selected in dropdown
             inputValue: '', // What user put into input
             assignedIdentifiers: {}, // IDs assigned to the entity Ex: {'viaf': '12632978'}
+            suggestions: {}
         }
     },
 
@@ -97,6 +121,17 @@ export default {
         removeIdentifier: function(identifierName){
             this.$set(this.assignedIdentifiers, identifierName, '');
         },
+        showSuggestion: function(name){
+            if (this.identifierConfigsByKey.hasOwnProperty(name)) {
+                if (this.suggestions[name].value.replaceAll(' ', '') !== this.assignedIdentifiers[name]) {
+                    return true;
+                }
+            }
+            return false;
+        },
+        acceptSuggestion: function(identifierName, identifierValue){
+            this.$set(this.assignedIdentifiers, identifierName, identifierValue.replaceAll(' ', ''));
+        },
         createHiddenInputs: function(){
             /** Right now, we have a vue component embedded as a small part of a larger form
               * There is no way for that parent form to automatically detect the inputs in a component without JS
@@ -116,7 +151,43 @@ export default {
                     break;
                 }
             }
-        }
+        },
+        suggestViaf: async function(){
+            const id = this.assignedIdentifiers['viaf'];
+            const url = new URL(`https://viaf.org/viaf/${id}/justlinks.json`);
+            const viafjson = await fetch(url).then(body => body.json());
+            const suggestions = {};
+            if (viafjson.WKP) {
+                suggestions.wikidata = { value: viafjson.WKP[0] };
+            }
+            if (viafjson.ISNI) {
+                suggestions.isni = { value: viafjson.ISNI[0].replaceAll(' ', '') };
+            }
+            this.suggestions = suggestions;
+        },
+        suggestWikidata: async function() {
+            const id = this.assignedIdentifiers['wikidata'];
+            const url = new URL('https://query.wikidata.org/sparql');
+            const sparqlQuery = `
+SELECT ?isni ?viaf ?project_gutenberg ?amazon ?youtube ?librivox ?librarything ?goodreads {
+  VALUES ?item { wd:${id} }
+  OPTIONAL { ?item wdt:P213 ?isni }
+  OPTIONAL { ?item wdt:P214 ?viaf }
+  OPTIONAL { ?item wdt:P1938 ?project_gutenberg }
+  OPTIONAL { ?item wdt:P4862 ?amazon }
+  OPTIONAL { ?item wdt:P2963 ?goodreads }
+  OPTIONAL { ?item wdt:P7400 ?librarything }
+  OPTIONAL { ?item wdt:P11245 ?youtube }
+  OPTIONAL { ?item wdt:P1899 ?librivox }
+}
+`;
+            url.searchParams.append('query', sparqlQuery);
+            const headers = { Accept: 'application/sparql-results+json' };
+
+            this.suggestions = await fetch(url, { headers })
+                .then(body => body.json())
+                .then(json => json.results.bindings[0])
+        },
     },
     created: function(){
         this.assignedIdentifiers = JSON.parse(decodeURIComponent(this.assigned_ids_string));
