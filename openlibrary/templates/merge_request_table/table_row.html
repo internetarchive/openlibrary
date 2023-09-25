@@ -1,10 +1,21 @@
 $def with (request, username, can_merge)
+$# request : dict : Dict containing information about a single merge request.
+$# username : str | None : The patron's username, if currently authenticated. `None` if unauthenticated.
+$# can_merge : boolean : `True` if patron has merge privileges.
+
 $ request_title = request.get('title', _('An untitled work') if request['mr_type'] != 2 else _('An unnamed author'))
 $ comments = request.get('comments', {}).get('comments', [])
 $ is_open = request['status'] == 1
 $ review_url = "%s&mrid=%s" % (request['url'], request['id'])
 $ is_submitter = username == request['submitter']
-$ status_dot_mapping = {0: 'dot--closed', 1: 'dot--open',2: 'dot--merged'}
+
+$code:
+  # Maps request statuses to status dot class names
+  status_dot_mapping = {
+    0: 'dot--closed',
+    1: 'dot--open',
+    2: 'dot--merged'
+  }
 
 <tr id="mrid-$(request['id'])" class="mr-table-row" data-mrid="$(request['id'])">
     <td class="mr-info">

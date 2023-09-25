@@ -54,7 +54,7 @@ $else:
         </tr>
 
       $for r in merge_requests:
-       $:render_template('merge_request_table/table_row', r, username, can_merge)
+        $:render_template('merge_request_table/table_row', r, username, can_merge)
       </tbody>
     </table>
   </div>
