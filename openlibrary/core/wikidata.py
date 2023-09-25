@@ -6,6 +6,7 @@ The purpose of this file is to:
 """
 import requests
 import web
+import dataclasses
 from dataclasses import dataclass
 from openlibrary.core.helpers import days_since
 
@@ -62,12 +63,13 @@ def _get_from_web(id: str) -> WikiDataEntity | None:
     )
     if response.status_code == 200:
         response_json = response.json()
-        _add_to_cache(id=id, data=response_json)
-        return WikiDataEntity(
+        entity = WikiDataEntity(
             id=id,
             data=WikiDataAPIResponse.from_dict(response_json),
             updated=datetime.now(),
         )
+        _add_to_cache(id=id, data=dataclasses.asdict(entity.data))
+        return entity
     else:
         return None
     # TODO: What should we do in non-200 cases?
@@ -91,20 +93,14 @@ def get_wikidata_entity(QID: str, ttl_days: int = 30) -> WikiDataEntity | None:
         return _get_from_web(QID)
 
 
-class WikidataRow:
-    id: str
-    data: dict
-    updated: datetime
-
-
-def _get_from_cache_by_ids(ids: list[str]) -> list[WikidataRow]:
-    # TODO: convert to WikidataRow ?
-    return list(
+def _get_from_cache_by_ids(ids: list[str]) -> list[WikiDataEntity]:
+    response = list(
         db.get_db().query(
             'select * from wikidata where id IN ($ids)',
             vars={'ids': ids},
         )
     )
+    return [WikiDataEntity.from_db_query(r) for r in response]
 
 
 def _get_from_cache(id: str) -> WikiDataEntity | None:
