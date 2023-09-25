@@ -763,7 +763,7 @@ class Author(Thing):
             if use_cache:
                 return get_wikidata_entity(QID=wd_id)
             else:
-                return get_wikidata_entity(QID=wd_id, ttl=0)
+                return get_wikidata_entity(QID=wd_id, ttl_days=0)
         return None
 
     def __repr__(self):
