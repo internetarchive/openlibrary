@@ -51,7 +51,7 @@
     "@vue/cli-plugin-eslint": "^5.0.8",
     "@vue/cli-service": "^5.0.8",
     "babel-loader": "^8.3.0",
-    "bundlesize": "0.18.1",
+    "bundlesize2": "^0.0.31",
     "chart.js": "2.9.4",
     "chartjs-plugin-datalabels": "0.7.0",
     "concurrently": "^7.6.0",
