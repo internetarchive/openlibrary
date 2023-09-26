@@ -62,7 +62,7 @@ class WikiDataEntity:
         return cls(
             id=data.id,
             data=data,
-            updated=datetime.now,
+            updated=datetime.now(),
         )
 
 
