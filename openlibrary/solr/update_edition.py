@@ -37,11 +37,11 @@ class EditionSolrBuilder:
         return self.edition['key']
 
     @property
-    def title(self) -> Optional[str]:
+    def title(self) -> str | None:
         return self.get('title')
 
     @property
-    def subtitle(self) -> Optional[str]:
+    def subtitle(self) -> str | None:
         return self.get('subtitle')
 
     @property
@@ -60,7 +60,7 @@ class EditionSolrBuilder:
         return result
 
     @property
-    def cover_i(self) -> Optional[int]:
+    def cover_i(self) -> int | None:
         return next(
             (cover_id for cover_id in self.get('covers', []) if cover_id != -1), None
         )
@@ -83,7 +83,7 @@ class EditionSolrBuilder:
         )
 
     @property
-    def number_of_pages(self) -> Optional[int]:
+    def number_of_pages(self) -> int | None:
         try:
             return int(self.get('number_of_pages')) or None
         except (TypeError, ValueError):  # int(None) -> TypeErr, int("vii") -> ValueErr
@@ -110,11 +110,11 @@ class EditionSolrBuilder:
         return uniq(lccn.strip() for lccn in self.get('lccn', []))
 
     @property
-    def publish_date(self) -> Optional[str]:
+    def publish_date(self) -> str | None:
         return self.get('publish_date')
 
     @property
-    def publish_year(self) -> Optional[int]:
+    def publish_year(self) -> int | None:
         if self.publish_date:
             m = re_year.search(self.publish_date)
             return int(m.group(1)) if m else None
@@ -122,7 +122,7 @@ class EditionSolrBuilder:
             return None
 
     @property
-    def ia(self) -> Optional[str]:
+    def ia(self) -> str | None:
         ocaid = self.get('ocaid')
         return ocaid.strip() if ocaid else None
 

@@ -39,7 +39,7 @@ class Solr:
         key: str,
         fields: list[str] | None = None,
         doc_wrapper: Callable[[dict], T] = web.storage,
-    ) -> Optional[T]:
+    ) -> T | None:
         """Get a specific item from solr"""
         logger.info(f"solr /get: {key}, {fields}")
         resp = self.session.get(

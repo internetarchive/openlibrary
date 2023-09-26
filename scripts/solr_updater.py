@@ -111,7 +111,7 @@ class InfobaseLog:
             self.offset = d['offset']
 
 
-def find_keys(d: Union[dict, list]) -> Iterator[str]:
+def find_keys(d: dict | list) -> Iterator[str]:
     """
     Find any keys in the given dict or list.
 
