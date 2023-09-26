@@ -49,11 +49,11 @@ class WikiDataEntity:
         return self.data.descriptions.get(language) or self.data.descriptions.get('en')
 
     @classmethod
-    def from_db_query(cls, data: web.utils.Storage):
+    def from_db_query(cls, response: web.utils.Storage):
         return cls(
-            id=data.id,
-            data=data.data,
-            updated=data.updated,
+            id=response.id,
+            data=response.data,  # TODO: convert this?
+            updated=response.updated,
         )
 
 
@@ -68,7 +68,7 @@ def _get_from_web(id: str) -> WikiDataEntity | None:
             data=WikiDataAPIResponse.from_dict(response_json),
             updated=datetime.now(),
         )
-        _add_to_cache(id=id, data=dataclasses.asdict(entity.data))
+        _add_to_cache(entity)
         return entity
     else:
         return None
@@ -84,11 +84,7 @@ def get_wikidata_entity(QID: str, ttl_days: int = 30) -> WikiDataEntity | None:
 
     entity = _get_from_cache(QID)
     if entity and days_since(entity.updated) < ttl_days:
-        return WikiDataEntity(
-            id=QID,
-            data=WikiDataAPIResponse.from_dict(entity.data),
-            updated=datetime.now(),
-        )
+        return entity
     else:
         return _get_from_web(QID)
 
@@ -109,13 +105,14 @@ def _get_from_cache(id: str) -> WikiDataEntity | None:
     return None
 
 
-# TODO: typehint the data?
-def _add_to_cache(id: str, data: dict) -> None:
+def _add_to_cache(entity: WikiDataEntity) -> None:
     # TODO: when we upgrade to postgres 9.5+ we should use upsert here
     oldb = db.get_db()
-    json_data = json.dumps(data)
+    json_data = json.dumps(dataclasses.asdict(entity.data))
 
-    if _get_from_cache(id):
-        return oldb.update("wikidata", where="id=$id", vars={'id': id}, data=json_data)
+    if _get_from_cache(entity.id):
+        return oldb.update(
+            "wikidata", where="id=$id", vars={'id': entity.id}, data=json_data
+        )
     else:
-        return oldb.insert("wikidata", id=id, data=json_data)
+        return oldb.insert("wikidata", id=entity.id, data=json_data)
