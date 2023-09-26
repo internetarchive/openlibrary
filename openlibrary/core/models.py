@@ -40,7 +40,6 @@ from .waitinglist import WaitingLoan
 from ..accounts import OpenLibraryAccount
 from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_url
 
-
 logger = logging.getLogger("openlibrary.core")
 
 
