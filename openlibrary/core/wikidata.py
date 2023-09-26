@@ -58,7 +58,7 @@ class WikiDataEntity:
 
     @classmethod
     def from_web(cls, response: dict):
-        data = WikiDataAPIResponse.from_dict(response.data)
+        data = WikiDataAPIResponse.from_dict(response)
         return cls(
             id=data.id,
             data=data,
