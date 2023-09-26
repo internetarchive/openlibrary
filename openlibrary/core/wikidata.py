@@ -52,28 +52,18 @@ class WikiDataEntity:
     def from_db_query(cls, response: web.utils.Storage):
         return cls(
             id=response.id,
-            data=response.data,  # TODO: convert this?
+            data=WikiDataAPIResponse.from_dict(response.data),
             updated=response.updated,
         )
 
-
-def _get_from_web(id: str) -> WikiDataEntity | None:
-    response = requests.get(
-        f'https://www.wikidata.org/w/rest.php/wikibase/v0/entities/items/{id}'
-    )
-    if response.status_code == 200:
-        response_json = response.json()
-        entity = WikiDataEntity(
-            id=id,
-            data=WikiDataAPIResponse.from_dict(response_json),
-            updated=datetime.now(),
+    @classmethod
+    def from_web(cls, response: dict):
+        data = WikiDataAPIResponse.from_dict(response.data)
+        return cls(
+            id=data.id,
+            data=data,
+            updated=datetime.now,
         )
-        _add_to_cache(entity)
-        return entity
-    else:
-        return None
-    # TODO: What should we do in non-200 cases?
-    # They're documented here https://doc.wikimedia.org/Wikibase/master/js/rest-api/
 
 
 def get_wikidata_entity(QID: str, ttl_days: int = 30) -> WikiDataEntity | None:
@@ -87,6 +77,20 @@ def get_wikidata_entity(QID: str, ttl_days: int = 30) -> WikiDataEntity | None:
         return entity
     else:
         return _get_from_web(QID)
+
+
+def _get_from_web(id: str) -> WikiDataEntity | None:
+    response = requests.get(
+        f'https://www.wikidata.org/w/rest.php/wikibase/v0/entities/items/{id}'
+    )
+    if response.status_code == 200:
+        entity = WikiDataEntity.from_web(response.json())
+        _add_to_cache(entity)
+        return entity
+    else:
+        return None
+    # TODO: What should we do in non-200 cases?
+    # They're documented here https://doc.wikimedia.org/Wikibase/master/js/rest-api/
 
 
 def _get_from_cache_by_ids(ids: list[str]) -> list[WikiDataEntity]:
