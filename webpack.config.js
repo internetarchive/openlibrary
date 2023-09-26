@@ -1,7 +1,7 @@
 /* eslint-env node, es6 */
 // https://webpack.js.org/configuration
 const
-    webpack = require('webpack5'),
+    webpack = require('webpack'),
     path = require('path'),
     prod = process.env.NODE_ENV === 'production',
     // The output directory for all build artifacts. Only absolute paths are accepted by

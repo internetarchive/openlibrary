@@ -14,9 +14,9 @@
     }
   },
   "scripts": {
-    "watch": "env WEBPACK_PACKAGE=webpack5 npx webpack --watch --mode=development --progress",
+    "watch": "npx webpack --watch --mode=development --progress",
     "watch-css": "npm-watch build-assets:css",
-    "build-assets:webpack": "env NODE_ENV=production WEBPACK_PACKAGE=webpack5 npx webpack --mode=production",
+    "build-assets:webpack": "env NODE_ENV=production npx webpack --mode=production",
     "build-assets": "make js && make css && make components",
     "build-assets:css": "make css",
     "build-assets:components": "make components",
@@ -46,10 +46,10 @@
     "@storybook/addon-links": "^7.0.0",
     "@storybook/storybook-deployer": "^2.8.12",
     "@storybook/vue": "^7.0.0",
-    "@vue/cli": "^4.5.18",
-    "@vue/cli-plugin-babel": "^4.5.18",
+    "@vue/cli": "^5.0.8",
+    "@vue/cli-plugin-babel": "^5.0.8",
     "@vue/cli-plugin-eslint": "^5.0.8",
-    "@vue/cli-service": "^4.5.18",
+    "@vue/cli-service": "^5.0.8",
     "babel-loader": "^8.3.0",
     "bundlesize": "0.18.1",
     "chart.js": "2.9.4",
@@ -91,9 +91,8 @@
     "vue-async-computed": "3.9.0",
     "vue-loader": "^15.10.0",
     "vue-multiselect": "2.1.6",
-    "webpack": "4.46.0",
-    "webpack-cli": "4.10.0",
-    "webpack5": "npm:webpack@5.44.0",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4",
     "workbox-webpack-plugin": "6.1.5"
   },
   "jest": {
