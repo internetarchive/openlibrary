@@ -27,14 +27,15 @@ class WikiDataAPIResponse:
 
     @classmethod
     def from_dict(cls, data: dict):
+        # use [''] instead of get so this fails if fields are missing
         return cls(
-            type=data.get('type'),
-            labels=data.get('labels'),
-            descriptions=data.get('descriptions'),
-            aliases=data.get('aliases'),
-            statements=data.get('statements'),
-            sitelinks=data.get('sitelinks'),
-            id=data.get('id'),
+            type=data['type'],
+            labels=data['labels'],
+            descriptions=data['descriptions'],
+            aliases=data['aliases'],
+            statements=data['statements'],
+            sitelinks=data['sitelinks'],
+            id=data['id'],
         )
 
 
