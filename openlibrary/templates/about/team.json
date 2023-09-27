@@ -1,142 +1,152 @@
 [
 	{
 		"name": "Drini Cami",
-		"status": "Staff",
-		"role": "Developer",
-		"bio": "",
+		"title": "Developer",
+		"roles": ["Staff"],
+		"departments": ["engineering"],
 		"photo_path": "../../../static/images/team/Drini.jpg",
-		"ol_user_url": "https://openlibrary.org/people/ScarTissue",
 		"personal_url": "",
-		"favorite_book_url": ""
+		"favorite_book_url": "",
+		"ol_key": "ScarTissue"
 	},
 	{
 		"name": "Jim Champ",
-		"status": "Staff",
-		"role": "Developer",
-		"bio": "",
+		"title": "Developer",
+		"roles": ["Staff"],
+		"departments": ["engineering"],
 		"photo_path": "../../../static/images/team/Jim_Champ.png",
-		"ol_user_url": "https://openlibrary.org/people/jchamp_archive",
 		"personal_url": "",
-		"favorite_book_url": ""
+		"favorite_book_url": "",
+		"ol_key": "jchamp_archive"
 	},
 	{
 		"name": "Mek",
-		"status": "Staff",
-		"role": "Chief of Staff",
-		"bio": "Over 70% of the world lives on less than $10 a day. This means up to 2/3 of our neighbors can't afford all the resources they need to reach their full potential. Because of this, we're letting billions of...",
+		"title": "Chief of Staff",
+		"roles": ["Staff"],
+		"departments": ["engineering"],
 		"photo_path": "../../../static/images/team/Mek.png",
-		"ol_user_url": "https://openlibrary.org/people/mekBot",
 		"personal_url": "https://mek.fyi/",
-		"favorite_book_url": ""
+		"favorite_book_url": "",
+		"ol_key": "mekBot"
 	},
 	{
 		"name": "Scott Barnes",
-		"status": "Staff",
-		"role": "Developer",
-		"bio": "I like mountains. And computers.",
+		"title": "Developer",
+		"roles": ["Staff"],
+		"departments": ["engineering"],
 		"photo_path": "../../../static/images/team/Scott_Barnes.jpg",
-		"ol_user_url": "https://openlibrary.org/people/srb36/",
 		"personal_url": "https://github.com/scottbarnes",
-		"favorite_book_url": "https://openlibrary.org/books/OL22552226M/The_High_Sierra"
+		"favorite_book_url": "https://openlibrary.org/books/OL22552226M/The_High_Sierra",
+		"ol_key": "srb36"
 	},
 	{
 		"name": "Chris Clauss",
-		"status": "Staff",
-		"role": "Python Backend",
-		"bio": "",
+		"title": "Python Backend",
+		"roles": ["Staff"],
+		"departments": ["engineering"],
 		"photo_path": "../../../static/images/team/Chris_Clauss.jpg",
-		"ol_user_url": "",
 		"personal_url": "",
-		"favorite_book_url": ""
+		"favorite_book_url": "",
+		"ol_key": ""
 	},
 	{
 		"name": "Lisa",
-		"status": "Staff",
-		"role": "Patron Services & Lead Community Librarian",
-		"bio": "Lead Community Librarian. Editing questions? Slack me @Lisa (aka Sapphire). Or email me via https://openlibrary.org/contact. Favorite genres: good books",
+		"title": "Patron Services & Lead Community Librarian",
+		"roles": ["Staff"],
+		"departments": ["librarian"],
 		"photo_path": "../../../static/images/team/Lisa.jpg",
-		"ol_user_url": "https://openlibrary.org/people/agent-lisa",
 		"personal_url": "",
-		"favorite_book_url": ""
+		"favorite_book_url": "",
+		"ol_key": "agent-lisa"
 	},
 	{
 		"name": "Dana",
-		"status": "Fellow",
-		"role": "Design",
-		"bio": "",
+		"title": "Design",
+		"roles": ["Fellow-2022"],
+		"departments": ["design", "engineering"],
 		"photo_path": "../../../static/images/team/Dana.jpg",
-		"ol_user_url": "https://openlibrary.org/people/danafs/books",
 		"personal_url": "https://www.danafeinschaffer.com",
-		"favorite_book_url": "https://openlibrary.org/works/OL17332479W/Six_of_Crows?edition=key%3A/books/OL37753024M"
+		"favorite_book_url": "https://openlibrary.org/works/OL17332479W/Six_of_Crows?edition=key%3A/books/OL37753024M",
+		"ol_key": "danafs/books"
 	},
 	{
 		"name": "Sam",
-		"status": "Fellow",
-		"role": "Design & Engineering",
-		"bio": "",
+		"title": "Design & Engineering",
+		"roles": ["Fellow-2022"],
+		"departments": ["design", "engineering"],
 		"photo_path": "../../../static/images/team/Sam.jpg",
-		"ol_user_url": "https://openlibrary.org/people/samstupendous",
 		"personal_url": "",
-		"favorite_book_url": ""
+		"favorite_book_url": "",
+		"ol_key": "samstupendous"
 	},
 	{
 		"name": "Debbie",
-		"status": "Volunteer",
-		"role": "Developer",
-		"bio": "In addition to being an advocate for improving the design of lists on Open Library, Debbie designed this team page!",
+		"title": "Developer",
+		"roles": ["Volunteer"],
+		"departments": ["engineering"],
 		"photo_path": "../../../static/images/team/Debbie.jpg",
-		"ol_user_url": "",
 		"personal_url": "https://github.com/debbiesan/openlibrary",
-		"favorite_book_url": "https://openlibrary.org/works/OL15154986W/Two_solitudes.?edition=key%3A/books/OL24222633M"
+		"favorite_book_url": "https://openlibrary.org/works/OL15154986W/Two_solitudes.?edition=key%3A/books/OL24222633M",
+		"ol_key": ""
 	},
 	{
 		"name": "Abbey Ripstra",
-		"status": "Fellow",
-		"role": "Design Research",
-		"bio": "Former Wikimedia Foundation Lead Design Researcher, Abbey helps the Open Library team perform design research.",
+		"title": "Design Research",
+		"roles": ["Fellow-2023"],
+		"departments": ["design", "engineering"],
 		"photo_path": "../../../static/images/team/Abbey_Ripstra.jpg",
-		"ol_user_url": "",
 		"personal_url": "https://www.wikidata.org/wiki/Q28051212",
-		"favorite_book_url": ""
+		"favorite_book_url": "",
+		"ol_key": "bodiceaa"
 	},
 	{
 		"name": "Jaye Rasmussen",
-		"status": "Volunteer",
-		"role": "Contributor",
-		"bio": "Jaye helped implement the team page with Debbie!",
+		"title": "Contributor",
+		"roles": ["Volunteer"],
+		"departments": ["engineering"],
 		"photo_path": "../../../static/images/team/Jaye_Rasmussen.jpg",
-		"ol_user_url": "https://openlibrary.org/people/lasseignejk",
 		"personal_url": "https://github.com/Lasseignejk",
-		"favorite_book_url": "https://openlibrary.org/books/OL24383834M/The_Way_of_Kings"
+		"favorite_book_url": "https://openlibrary.org/books/OL24383834M/The_Way_of_Kings",
+		"ol_key": "lasseignejk"
 	},
 	{
 		"name": "Aaron Swartz",
-		"status": "Staff, Emeritus",
-		"role": "Co-Founder",
-		"bio": "",
+		"title": "Co-Founder",
+		"roles": ["Staff, Emeritus"],
+		"departments": ["engineering"],
 		"photo_path": "../../../static/images/team/Aaron_Swartz.png",
-		"ol_user_url": "",
 		"personal_url": "",
-		"favorite_book_url": ""
+		"favorite_book_url": "",
+		"ol_key": ""
 	},
 	{
 		"name": "Keita Ohshiro",
-		"status": "Volunteer",
-		"role": "Design & Accessibility",
-		"bio": "",
+		"title": "Design & Accessibility",
+		"roles": ["Volunteer"],
+		"departments": ["engineering"],
 		"photo_path": "../../../static/images/team/Keita_Ohshiro.jpg",
-		"ol_user_url": "",
 		"personal_url": "https://bick-jp.github.io/",
-		"favorite_book_url": ""
+		"favorite_book_url": "",
+		"ol_key": ""
 	},
 	{
 		"name": "Nick Norman",
-		"status": "Fellow",
-		"role": "Communications Lead",
-		"bio": "Here at Open Library, I'm part of a high-impact fellowship to design and execute a strategic communications plan. This opportunity allows me to contribute to our mission of...",
+		"title": "Communications Lead",
+		"roles": ["Fellow-2023"],
+		"departments": ["communications"],
 		"photo_path": "../../../static/images/team/Nick_Norman.jpg",
-		"ol_user_url": "",
 		"personal_url": "https://www.linkedin.com/in/imnick/",
-		"favorite_book_url": ""
+		"favorite_book_url": "",
+		"ol_key": ""
+	},
+	{
+		"name": "Edgar Leung",
+		"title": "Developer",
+		"roles": ["Volunteer"],
+		"departments": ["engineering"],
+		"photo_path": "",
+		"personal_url": "https://www.linkedin.com/in/imnick/",
+		"favorite_book_url": "",
+		"ol_key": "edtea3293"
 	}
 ]
