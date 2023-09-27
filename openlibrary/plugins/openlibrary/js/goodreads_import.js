@@ -30,6 +30,7 @@ export function initGoodreadsImport() {
         $('.import-submit').attr('value', `Import ${l} Books`);
     });
 
+    //updates the progress bar based on the book count
     function func1(value) {
         const l = $('.add-book[checked*="checked"]').length;
         const elem = document.getElementById('myBar');
@@ -70,16 +71,19 @@ export function initGoodreadsImport() {
             };
 
             if (!checked) {
-                return false;
+                func1(++count);
+                return;
             }
 
             if (shelves[shelf]) {
                 shelf_id = shelves[shelf];
             }
+
+            //used 'return' instead of 'return false' because the loop was being exited entirely
             if (shelf_id === 0) {
-                fail('Book in different Shelf');
+                fail('Custom shelves are not supported');
                 func1(++count);
-                return false;
+                return;
             }
 
             prevPromise = prevPromise.then(function () { // prevPromise changes in each iteration
@@ -129,7 +133,7 @@ export function initGoodreadsImport() {
                             }),
                             dataType: 'json',
                             contentType: 'application/json',
-                            beforeSend: function(xhr) {
+                            beforeSend: function (xhr) {
                                 xhr.setRequestHeader('Content-Type', 'application/json');
                                 xhr.setRequestHeader('Accept', 'application/json');
                             },
