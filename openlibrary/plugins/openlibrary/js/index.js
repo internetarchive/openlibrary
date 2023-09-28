@@ -15,7 +15,6 @@ import { enumerate, htmlquote, websafe, foreach, join, len, range } from './jsde
 import initAnalytics from './ol.analytics';
 import init from './ol.js';
 import * as Browser from './Browser';
-import { commify } from './python';
 import { Subject, urlencode, slice } from './subjects';
 import Template from './template.js';
 // Add $.fn.focusNextInputField
@@ -30,7 +29,6 @@ import { confirmDialog, initDialogs } from './dialog';
 // we add them to the window object for backwards compatibility.
 // closePopup used in openlibrary/templates/covers/saved.html
 window.closePopup = closePopup;
-window.commify = commify;
 window.cond = cond;
 window.enumerate = enumerate;
 window.foreach = foreach;
