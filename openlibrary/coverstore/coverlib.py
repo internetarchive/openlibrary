@@ -2,7 +2,6 @@
 import datetime
 from logging import getLogger
 import os
-from typing import Optional
 
 from io import BytesIO
 
@@ -60,7 +59,7 @@ def make_path_prefix(olid, date=None):
     )
 
 
-def write_image(data: bytes, prefix: str) -> Optional[Image.Image]:
+def write_image(data: bytes, prefix: str) -> Image.Image | None:
     path_prefix = find_image_path(prefix)
     dirname = os.path.dirname(path_prefix)
     if not os.path.exists(dirname):

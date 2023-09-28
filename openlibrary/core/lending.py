@@ -191,17 +191,22 @@ def get_groundtruth_availability(ocaid, s3_keys=None):
     return data
 
 
-def s3_loan_api(ocaid, s3_keys, action='browse'):
+def s3_loan_api(s3_keys, ocaid=None, action='browse', **kwargs):
     """Uses patrons s3 credentials to initiate or return a browse or
     borrow loan on Archive.org.
 
     :param dict s3_keys: {'access': 'xxx', 'secret': 'xxx'}
-    :param str action: 'browse_book' or 'borrow_book' or 'return_loan'
+    :param str  action : 'browse_book' or 'borrow_book' or 'return_loan'
+    :param dict kwargs   : Additional data to be sent in the POST request body (limit, offset)
 
     """
-    params = f'?action={action}&identifier={ocaid}'
+    fields = {'identifier': ocaid, 'action': action}
+    params = '?' + '&'.join([f"{k}={v}" for (k, v) in fields.items() if v])
     url = S3_LOAN_URL % config_bookreader_host
-    response = requests.post(url + params, data=s3_keys)
+
+    data = s3_keys | kwargs
+
+    response = requests.post(url + params, data=data)
     response.raise_for_status()
     return response
 

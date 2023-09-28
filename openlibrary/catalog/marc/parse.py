@@ -1,5 +1,5 @@
 import re
-from typing import Any, Optional
+from typing import Any
 from collections.abc import Callable
 
 from openlibrary.catalog.marc.get_subjects import subjects_for_work
@@ -300,7 +300,7 @@ def read_original_languages(rec: MarcBase) -> list[str]:
     return [lang_map.get(v, v) for v in found if v != 'zxx']
 
 
-def read_languages(rec: MarcBase, lang_008: Optional[str] = None) -> list[str]:
+def read_languages(rec: MarcBase, lang_008: str | None = None) -> list[str]:
     """Read languages from 041, if present, and combine with language from 008:35-37"""
     found = []
     if lang_008:

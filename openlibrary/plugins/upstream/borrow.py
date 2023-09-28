@@ -159,17 +159,17 @@ class borrow(delegate.page):
             raise web.seeother(redirect_url)
 
         if action == 'return':
-            lending.s3_loan_api(edition.ocaid, s3_keys, action='return_loan')
+            lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='return_loan')
             stats.increment('ol.loans.return')
             edition.update_loan_status()
             user.update_loan_status()
             raise web.seeother(edition_redirect)
         elif action == 'join-waitinglist':
-            lending.s3_loan_api(edition.ocaid, s3_keys, action='join_waitlist')
+            lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='join_waitlist')
             stats.increment('ol.loans.joinWaitlist')
             raise web.redirect(edition_redirect)
         elif action == 'leave-waitinglist':
-            lending.s3_loan_api(edition.ocaid, s3_keys, action='leave_waitlist')
+            lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='leave_waitlist')
             stats.increment('ol.loans.leaveWaitlist')
             raise web.redirect(edition_redirect)
 
@@ -189,7 +189,7 @@ class borrow(delegate.page):
                 raise web.seeother(error_redirect)
 
             lending.s3_loan_api(
-                edition.ocaid, s3_keys, action='%s_book' % borrow_access
+                s3_keys, ocaid=edition.ocaid, action='%s_book' % borrow_access
             )
             stats.increment('ol.loans.bookreader')
             stats.increment('ol.loans.%s' % borrow_access)

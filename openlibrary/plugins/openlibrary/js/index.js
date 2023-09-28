@@ -7,8 +7,6 @@ import 'jquery-colorbox';
 // jquery.form#2.36 not on npm, no longer getting worked on
 import '../../../../vendor/js/jquery-form/jquery.form.js';
 import autocompleteInit from './autocomplete';
-// Used only by the openlibrary/templates/books/edit/addfield.html template
-import addNewFieldInit from './add_new_field';
 import automaticInit from './automatic';
 import bookReaderInit from './bookreader_direct';
 import { ungettext, ugettext,  sprintf } from './i18n';
@@ -107,7 +105,6 @@ jQuery(function () {
 
     initValidate($);
     autocompleteInit($);
-    addNewFieldInit($);
     automaticInit($);
     // wmd editor
     if ($markdownTextAreas.length) {
@@ -384,25 +381,31 @@ jQuery(function () {
     // "Want to Read" buttons:
     const readingLogDroppers = document.getElementsByClassName('widget-add');
 
-    // Async lists components:
-    const wtrLoadingIndicator = document.querySelector('.list-loading-indicator')
-    const overviewLoadingIndicator = document.querySelector('.list-overview-loading-indicator')
-
-    if (readingLogDroppers.length || wtrLoadingIndicator || overviewLoadingIndicator) {
+    if (readingLogDroppers.length) {
+        // Async lists components:
+        const wtrLoadingIndicator = document.querySelector('.list-loading-indicator')
+        const overviewLoadingIndicator = document.querySelector('.list-overview-loading-indicator')
         import(/* webpackChunkName: "lists" */ './lists')
             .then((module) => {
-                if (readingLogDroppers.length) {
-                    module.initReadingLogDroppers(readingLogDroppers);
-                    // Removable list items:
-                    // TODO: Is this the correct place to initalize these?
-                    const actionableListItems = document.querySelectorAll('.actionable-item')
-                    module.registerListItems(actionableListItems);
-                }
                 if (wtrLoadingIndicator || overviewLoadingIndicator) {
                     module.initListLoading(wtrLoadingIndicator, overviewLoadingIndicator)
                 }
-            }
-            );
+                module.initReadingLogDroppers(readingLogDroppers);
+                // Removable list items:
+                const actionableListItems = document.querySelectorAll('.actionable-item')
+                module.registerListItems(actionableListItems);
+            });
+    }
+
+    // New "My Books" dropper:
+    const myBooksDroppers = document.querySelectorAll('.my-books-dropper')
+    if (myBooksDroppers.length) {
+        const actionableListShowcases = document.querySelectorAll('.actionable-item')
+
+        import(/* webpackChunkName: "my-books" */ './my-books')
+            .then((module) => {
+                module.initMyBooksAffordances(myBooksDroppers, actionableListShowcases)
+            })
     }
 
     const nativeDialogs = document.querySelectorAll('.native-dialog')
@@ -509,8 +512,14 @@ jQuery(function () {
 
     // Allow banner announcements to be dismissed by logged-in users:
     const banners = document.querySelectorAll('.page-banner--dismissable')
-    if (banners) {
+    if (banners.length) {
         import(/* webpackChunkName: "dismissible-banner" */ './banner')
             .then(module => module.initDismissibleBanners(banners))
+    }
+
+    const returnForms = document.querySelectorAll('.return-form')
+    if (returnForms.length) {
+        import(/* webpackChunkName: "return-form" */ './return-form')
+            .then(module => module.initReturnForms(returnForms))
     }
 });

@@ -332,7 +332,6 @@ class Edition(models.Edition):
             if name == 'lccn':
                 value = normalize_lccn(value)
             # `None` in this field causes errors. See #7999.
-            # We should surface to the patron that an invalid LCCN is dropped. See #8092.
             if value is not None:
                 d.setdefault(name, []).append(value)
 

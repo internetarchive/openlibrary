@@ -29,6 +29,13 @@
 </template>
 
 <script>
+const identifierPatterns  = {
+    wikidata: /^Q[1-9]\d*$/i,
+    isni: /^[0]{4} ?[0-9]{4} ?[0-9]{4} ?[0-9]{3}[0-9X]$/i,
+    storygraph: /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i,
+    amazon: /^B[0-9A-Za-z]{9}$/,
+    youtube: /^@[A-Za-z0-9_\-.]{3,30}/,
+}
 export default {
     // Props are for external options; if a subelement of this is modified,
     // the view automatically re-renders
@@ -84,6 +91,7 @@ export default {
             // See https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
             this.$set(this.assignedIdentifiers, this.selectedIdentifier, this.inputValue);
             this.inputValue = '';
+            this.selectedIdentifier = '';
         },
         /** Removes an identifier with value from memory and it will be deleted from database on save */
         removeIdentifier: function(identifierName){
@@ -101,14 +109,12 @@ export default {
             document.querySelector(this.output_selector).innerHTML = html;
         },
         selectIdentifierByInputValue: function() {
-            // Selects the dropdown identifier based on the input value
-            // Only supports wikidata and isni because the other identifiers are just numbers
-            const wikiDatas = this.inputValue.match(/^Q[1-9]\d*$/i);
-            const isnis = this.inputValue.match(/^\d{15}[\dX]$/i);
-            if (wikiDatas?.length > 0){
-                this.selectedIdentifier = 'wikidata';
-            } else if (isnis?.length > 0){
-                this.selectedIdentifier = 'isni';
+            // Selects the dropdown identifier based on the input value when possible
+            for (const idtype in identifierPatterns) {
+                if (this.inputValue.match(identifierPatterns[idtype])){
+                    this.selectedIdentifier = idtype;
+                    break;
+                }
             }
         }
     },
