@@ -206,7 +206,7 @@ $ )
             $ subject_keys = [d.get('subject', []) for d in docs]
             $ use_my_books_droppers = 'my_books_dropper' in ctx.features
             $for work, subjects in zip(works, subject_keys):
-                $if not use_my_books_droppers:
+                $if use_my_books_droppers:
                     $ dropper = None
                 $else:
                     $ read_status = work.get('readinglog', None)
