@@ -37,13 +37,9 @@ USE_ONLY_YEAR = re.compile(r"\d{4}(0101|0000)")
 
 def format_date(date: str, only_year: bool) -> str:
     """
-    Format date as "yyyy-mm-dd", or "yyyy" if the month/day are likely invalid.
+    Format date as "yyyy-mm-dd" or only "yyyy"
 
-    The date parameter is expected to be in "yyyymmdd" format.
-
-    By default, dates will be formatted into "yyyy-mm-dd" format. However, if
-    only_year is truthy, then return only "yyyy". See
-    https://github.com/internetarchive/openlibrary/issues/7757
+    :param date: Date in "yyyymmdd" format.
     """
     return date[:4] if only_year else f"{date[0:4]}-{date[4:6]}-{date[6:8]}"
 
