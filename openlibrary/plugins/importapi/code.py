@@ -215,9 +215,12 @@ class ia_importapi(importapi):
         # The scan operators search OL before loading the book and add the
         # OL key if a match is found. We can trust them and attach the item
         # to that edition.
-        if metadata.get('mediatype') == 'texts' and metadata.get('openlibrary'):
+        edition_olid = metadata.get('openlibrary_edition') or metadata.get(
+            'openlibrary'
+        )
+        if metadata.get('mediatype') == 'texts' and edition_olid:
             edition_data = cls.get_ia_record(metadata)
-            edition_data['openlibrary'] = metadata['openlibrary']
+            edition_data['openlibrary'] = edition_olid
             edition_data = cls.populate_edition_data(edition_data, identifier)
             return cls.load_book(edition_data)
 
