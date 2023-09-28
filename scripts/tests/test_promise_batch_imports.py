@@ -1,15 +1,15 @@
 import pytest
 
-from ..promise_batch_imports import format_date, USE_ONLY_YEAR
+from ..promise_batch_imports import format_date
 
 
 @pytest.mark.parametrize(
-    "date, return_only_year_pattern, expected",
+    "date, only_year, expected",
     [
-        ("20001020", USE_ONLY_YEAR, "2000-10-20"),
-        ("20000101", USE_ONLY_YEAR, "2000"),
-        ("20000000", USE_ONLY_YEAR, "2000"),
+        ("20001020", False, "2000-10-20"),
+        ("20000101", True, "2000"),
+        ("20000000", True, "2000"),
     ],
 )
-def test_format_date(date, return_only_year_pattern, expected) -> None:
-    assert format_date(date, return_only_year_pattern) == expected
+def test_format_date(date, only_year, expected) -> None:
+    assert format_date(date=date, only_year=only_year) == expected

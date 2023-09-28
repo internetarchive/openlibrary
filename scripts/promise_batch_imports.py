@@ -35,21 +35,17 @@ logger = logging.getLogger("openlibrary.importer.promises")
 USE_ONLY_YEAR = re.compile(r"\d{4}(0101|0000)")
 
 
-def format_date(date: str, use_only_year: Pattern[str]) -> str:
+def format_date(date: str, only_year: bool) -> str:
     """
     Format date as "yyyy-mm-dd", or "yyyy" if the month/day are likely invalid.
 
     The date parameter is expected to be in "yyyymmdd" format.
 
     By default, dates will be formatted into "yyyy-mm-dd" format. However, if
-    a date matches use_only_year, then return only "yyyy". See
+    only_year is truthy, then return only "yyyy". See
     https://github.com/internetarchive/openlibrary/issues/7757
     """
-    return (
-        date[:4]
-        if use_only_year.match(date)
-        else f"{date[0:4]}-{date[4:6]}-{date[6:8]}"
-    )
+    return date[:4] if only_year else f"{date[0:4]}-{date[4:6]}-{date[6:8]}"
 
 
 def map_book_to_olbook(book, promise_id):
@@ -74,10 +70,12 @@ def map_book_to_olbook(book, promise_id):
         'authors': [{"name": book['ProductJSON'].get('Author') or '????'}],
         'publishers': [book['ProductJSON'].get('Publisher') or '????'],
         'source_records': [f"promise:{promise_id}:{sku}"],
-        # format_date adds hyphens between YYYY-MM-DD
-        'publish_date': publish_date
-        and format_date(publish_date, USE_ONLY_YEAR)
-        or '????',
+        # format_date adds hyphens between YYYY-MM-DD, or use only YYYY if date is suspect.
+        'publish_date': format_date(
+            date=publish_date, only_year=publish_date[-4:] in ('0000', '0101')
+        )
+        if publish_date
+        else '????',
     }
     if not olbook['identifiers']:
         del olbook['identifiers']
