@@ -15,7 +15,7 @@
         "roles": ["fellow-2023"],
 		"projects": ["Persona Research"],
         "departments": ["design"],
-        "photo_path": "path/to/Abbey_Ripstra.jpg",
+        "photo_path": "../../../static/images/team/Abbey_Ripstra.jpg",
         "personal_url": "https://www.wikidata.org/wiki/Q28051212",
         "ol_key": "bodiceaa"
     },
@@ -130,7 +130,7 @@
         "roles": ["volunteer-active"],
         "departments": ["engineering"],
         "bio": "Keita Ohshiro's bio goes here.",
-        "photo_path": "path/to/Keita_Ohshiro.jpg",
+        "photo_path": "../../../static/images/team/Keita_Ohshiro.jpg",
         "personal_url": "https://bick-jp.github.io/",
         "favorite_book_url": "",
         "ol_key": ""
@@ -161,7 +161,7 @@
         "title": "Communications Lead",
         "roles": ["fellow-2022", "fellow-2023"],
         "departments": ["communications"],
-        "photo_path": "path/to/Nick.jpg",
+        "photo_path": "../../../static/images/team/Nick_Norman.jpg",
         "personal_url": "https://www.linkedin.com/in/imnick/",
         "favorite_book_url": "",
         "ol_key": ""
@@ -171,7 +171,7 @@
         "title": "Engineering Fellow",
         "roles": ["fellow-2021-gsoc"],
         "departments": ["engineering"],
-        "projects": ["Open Book Genome Project (OBGP)”],
+        "projects": ["Open Book Genome Project (OBGP)"],
         "photo_path": "",
         "ol_key": ""
     },
@@ -199,7 +199,7 @@
     },
     {
         "name": "Sabreen Praveen",
-        "title": "Design & Engineering Fellow”,
+        "title": "Design & Engineering Fellow",
         "roles": ["fellow-2021"],
         "departments": ["design", "engineering"],
         "projects": ["Homepage Onboarding Cards"],
@@ -234,7 +234,7 @@
         "roles": ["fellow-2022", "staff-active"],
         "departments": ["engineering"],
         "bio": "Scott Barnes's bio goes here.",
-        "photo_path": "path/to/Scott_Barnes.jpg",
+        "photo_path": "../../../static/images/team/Scott_Barnes.jpg",
         "personal_url": "https://github.com/scottbarnes",
         "favorite_book_url": "https://openlibrary.org/books/OL22552226M/The_High_Sierra",
         "ol_key": "srb36"
@@ -251,10 +251,10 @@
         "title": "Engineering Fellow",
         "roles": ["fellow-2022"],
         "departments": ["engineering"],
-	"projects": ["Open Book Genome Project (OBGP)"],
+	    "projects": ["Open Book Genome Project (OBGP)"],
         "photo_path": "path/to/Teo_Cheng.jpg",
         "personal_url": "",
         "favorite_book_url": "",
         "ol_key": ""
-    },
+    }
 ]
