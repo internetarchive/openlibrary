@@ -606,6 +606,9 @@ class SaveBookHelper:
                     edition_data.works = [{'key': self.work.key}]
 
             if self.work is not None:
+                identifiers = work_data.pop('identifiers', [])
+                self.work.set_identifiers(identifiers)
+
                 self.work.update(work_data)
                 saveutil.save(self.work)
 

@@ -17,7 +17,12 @@ from openlibrary.core import models, ia
 from openlibrary.core.models import Image
 from openlibrary.core import lending
 
-from openlibrary.plugins.upstream.utils import MultiDict, parse_toc, get_edition_config
+from openlibrary.plugins.upstream.utils import (
+    MultiDict,
+    parse_toc,
+    get_edition_config,
+    get_work_config,
+)
 from openlibrary.plugins.upstream import account
 from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.worksearch.code import works_by_author
@@ -560,6 +565,62 @@ class Work(models.Work):
             return self.get_covers_from_solr()
         else:
             return []
+
+    def get_identifiers(self):
+        """Returns (name, value) pairs of all available identifiers."""
+        return self._process_identifiers(
+            get_work_config().identifiers, self.identifiers
+        )
+
+    def set_identifiers(self, identifiers):
+        """Updates the work from identifiers specified as (name, value) pairs."""
+
+        d = {}
+        for id in identifiers:
+            # ignore bad values
+            if 'name' not in id or 'value' not in id:
+                continue
+            name, value = id['name'], id['value']
+            if name == 'lccn':
+                value = normalize_lccn(value)
+            # `None` in this field causes errors. See #7999.
+            if value is not None:
+                d.setdefault(name, []).append(value)
+
+        self.identifiers = {}
+
+        for name, value in d.items():
+            self.identifiers[name] = value
+
+    def _process_identifiers(self, config_, values):
+        id_map = {}
+        for id in config_:
+            id_map[id.name] = id
+            id.setdefault("label", id.name)
+            id.setdefault("url_format", None)
+
+        d = MultiDict()
+
+        def process(name, value):
+            if value:
+                if not isinstance(value, list):
+                    value = [value]
+
+                id = id_map.get(name) or web.storage(
+                    name=name, label=name, url_format=None
+                )
+                for v in value:
+                    d[id.name] = web.storage(
+                        name=id.name,
+                        label=id.label,
+                        value=v,
+                        url=id.get('url') and id.url.replace('@@@', v.replace(' ', '')),
+                    )
+
+        for name in values:
+            process(name, values[name])
+
+        return d
 
     def get_covers_from_solr(self):
         try:

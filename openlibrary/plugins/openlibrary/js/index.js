@@ -127,6 +127,7 @@ jQuery(function () {
     const addRowButton = document.getElementById('add_row_button');
     const roles = document.querySelector('#roles');
     const identifiers = document.querySelector('#identifiers');
+    const workIdentifiers = document.querySelector('#workidentifiers');
     const classifications = document.querySelector('#classifications');
     const excerpts = document.getElementById('excerpts');
     const links = document.getElementById('links');
@@ -161,6 +162,9 @@ jQuery(function () {
                 }
                 if (identifiers) {
                     module.initIdentifierValidation();
+                }
+                if (workIdentifiers) {
+                    module.initWorkIdentifierValidation();
                 }
                 if (classifications) {
                     module.initClassificationValidation();

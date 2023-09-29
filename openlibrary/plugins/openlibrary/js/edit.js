@@ -9,6 +9,8 @@ import {
     isValidLccn,
     isIdDupe
 } from './idValidation';
+import { extractWorkIdFromUrl, } from './idExtraction';
+import { detectTypeFromWorkId, } from './idDetection';
 /* global render_seed_field, render_language_field, render_lazy_work_preview, render_language_autocomplete_item, render_work_field, render_work_autocomplete_item */
 /* Globals are provided by the edit edition template */
 
@@ -230,6 +232,32 @@ export function initIdentifierValidation() {
     });
 }
 
+export function initWorkIdentifierValidation() {
+    $('#workidentifiers').repeat({
+        vars: {prefix: 'work--'},
+        validate: function(data) {return validateWorkIdentifiers(data)},
+    });
+    $('#workidentifiers').on('repeat-add', function () {
+        $('#workselect-id option').first().prop('selected',true);
+    });
+    $('#workid-value').on('input', function () {
+        const input = $('#workid-value').val().trim();
+        $('#workid-value').val(input);
+        if (/^https?:/.test(input)) {
+            const [id, type] = extractWorkIdFromUrl(input);
+            if (id && type) {
+                $('#workselect-id').val(type);
+                $('#workid-value').val(id);
+            }
+        } else {
+            const type = detectTypeFromWorkId(input);
+            if (type) {
+                $('#workselect-id').val(type);
+            }
+        }
+    });
+}
+
 export function initClassificationValidation() {
     const dataConfig = JSON.parse(document.querySelector('#classifications').dataset.config);
     $('#classifications').repeat({
@@ -246,6 +274,42 @@ export function initClassificationValidation() {
             return true;
         }
     });
+}
+
+/**
+ * Called by initWorkIdentifierValidation(), along with tests in
+ * tests/unit/js/editEditionsPage.test.js, to validate the addition of new
+ * identifiers (ISBN, LCCN) to an edition.
+ * @param {Object} data  data from the input form
+ * @returns {boolean}  true if identifier passes validation
+ */
+export function validateWorkIdentifiers(data) {
+    const dataConfig = JSON.parse(document.querySelector('#workidentifiers').dataset.config);
+
+    if (data.name === '' || data.name === '---') {
+        return error('#workid-errors', 'workselect-id', dataConfig['Please select an identifier.'])
+    }
+    const label = $('#workselect-id').find(`option[value='${data.name}']`).html();
+    if (data.value === '') {
+        return error('#workid-errors', 'workid-value', dataConfig['You need to give a value to ID.'].replace(/ID/, label));
+    }
+
+    let validId = true;
+    if (data.name === 'lccn') {
+        validId = validateLccn(data, dataConfig, label);
+    }
+
+    // checking for duplicate identifier entry on all identifier types
+    // expects parsed ids so placed after validate
+    const entries = document.querySelectorAll(`.${data.name}`);
+    if (isIdDupe(entries, data.value) === true) {
+        return error('#workid-errors', 'workid-value', dataConfig['That ID already exists for this work.'].replace(/ID/, label));
+    }
+
+    if (validId === false) return false;
+
+    $('#workid-errors').hide();
+    return true;
 }
 
 export function initLanguageMultiInputAutocomplete() {

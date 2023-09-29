@@ -512,6 +512,20 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
                   <li><a href="$link.url">$link.title</a></li>
                 </ul>
               </div>
+
+            <div class="section">
+              <h3 class="list-header collapse">$_("Work ID Numbers")</h3>
+              <dl class="meta">
+                  $:display_identifiers("Open Library", [storage(url=None, value=work.key.split("/")[-1])])
+                  $for name, values in work.get_identifiers().multi_items():
+                    $ identifier_label = values[0].label
+                    $:display_identifiers(identifier_label, values)
+
+                  $:display_goodreads("Open Library", [storage(url=None, value=work.key.split("/")[-1])])
+                  $for name, values in work.get_identifiers().multi_items():
+                    $:display_goodreads(values[0].label, values)
+              </dl>
+            </div>
       </div>
 
       $if show_observations:

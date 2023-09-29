@@ -77,6 +77,54 @@ export const editionIdentifiersSample = `
 </table>
 </fieldset>`;
 
+export const workIdentifiersSample = `
+<fieldset class="major" id="workidentifiers" data-config="{
+&quot;Please select an identifier.&quot;: &quot;Please select an identifier.&quot;,
+&quot;You need to give a value to ID.&quot;: &quot;You need to give a value to ID.&quot;,
+&quot;ID ids cannot contain whitespace.&quot;: &quot;ID ids cannot contain whitespace.&quot;,
+&quot;That ID already exists for this work.&quot;: &quot;That ID already exists for this work.&quot;,
+&quot;Invalid ID format&quot;: &quot;Invalid ID format&quot;
+}">
+  <legend>ID Numbers</legend>
+  <!-- skipped the label html to match edition test sample above -->
+  <table class="identifiers">
+      <tbody><tr id="workidentifiers-form">
+          <td align="right">
+              <select name="name" id="workselect-id">
+              <option value="">Select one of many...</option>
+              <option value="viaf">VIAF</option>
+              <option value="wikidata">Wikidata</option>
+              <option value="storygraph">Storygraph</option>
+              <option value="librarything">Library Thing</option>
+              <option value="goodreads">Goodreads</option>
+              </select>
+          </td>
+          <td>
+              <input type="text" name="value" id="workid-value">
+          </td>
+          <td>
+              <button type="button" name="add" class="repeat-add larger">Add</button>
+          </td>
+      </tr>
+      </tbody><tbody id="workidentifiers-display">
+          <tr id="workidentifiers-template" style="display: none;" class="repeat-item">
+              <td align="right"><strong>{{$("#workselect-id").find("option[value='" + name + "']").html()}}</strong></td>
+              <td>{{value}}
+                  <input type="hidden" name="{{prefix}}identifiers--{{index}}--name" value="{{name}}">
+                  <input type="hidden" name="{{prefix}}identifiers--{{index}}--value" value="{{value}}" class="{{name}}">
+              </td>
+              <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
+          </tr>
+          <tr>
+              <td align="right">Open Library</td>
+              <td>OL8193465W</td>
+              <td></td>
+          </tr>
+      </tbody>
+  </table>
+</fieldset>
+`;
+
 export const clamperSample = `
       <span class='clamp' data-before='▾  ' style='display: unset;'>
           <h6>Subjects</h6>

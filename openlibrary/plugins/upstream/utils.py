@@ -847,6 +847,27 @@ def _get_author_config():
 
 
 @public
+def get_work_config() -> Storage:
+    return _get_work_config()
+
+
+@web.memoize
+def _get_work_config():
+    """Returns the work config.
+
+    The results are cached on the first invocation. Any changes to /config/work page require restarting the app.
+
+    This is is cached because fetching and creating the Thing object was taking about 20ms of time for each book request.
+    """
+    thing = web.ctx.site.get('/config/work')
+    if hasattr(thing, "identifiers"):
+        identifiers = [Storage(t.dict()) for t in thing.identifiers if 'name' in t]
+    else:
+        identifiers = {}
+    return Storage(identifiers=identifiers)
+
+
+@public
 def get_edition_config() -> Storage:
     return _get_edition_config()
 
