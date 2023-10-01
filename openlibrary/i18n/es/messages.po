@@ -312,19 +312,19 @@ msgstr ""
 
 #: messages.html:11
 msgid "Created new author record."
-msgstr "Creado nuevo registro de autor."
+msgstr "Se ha creado un nuevo un registro de autor."
 
 #: messages.html:12
 msgid "Created new edition record."
-msgstr "Creado nuevo registro de edición."
+msgstr "Se ha creado un nuevo un registro de edición."
 
 #: messages.html:13
 msgid "Created new work record."
-msgstr "Creado nuevo registro de obra."
+msgstr "Se ha creado un nuevo registro de obra."
 
 #: messages.html:14
 msgid "Added new book."
-msgstr "Añadido nuevo libro."
+msgstr "Se ha añadido un nuevo libro."
 
 #: messages.html:16
 msgid "Thank you very much for adding that new book!"
@@ -354,7 +354,7 @@ msgstr "¿Crearlo?"
 
 #: notfound.html:26
 msgid "Looking for a template/macro?"
-msgstr "¿Buscar una plantilla/macro?"
+msgstr "¿Buscas una plantilla/macro?"
 
 #: permission.html:10
 msgid "Permission of"
@@ -5375,11 +5375,11 @@ msgstr "Libros relacionados"
 # Se traduce como «Devolver libro» para evitar que el texto se corte en el botón donde se muestra.
 #: LoanStatus.html:56
 msgid "Return eBook"
-msgstr "Devolver libro"
+msgstr "Devolver libro electrónico"
 
 #: LoanStatus.html:62
 msgid "Really return this book?"
-msgstr "¿Devolver este libro de verdad?"
+msgstr "¿Devolver este libro, de verdad?"
 
 #: LoanStatus.html:97
 msgid "You are <strong>next</strong> on the waiting list"
@@ -5535,11 +5535,11 @@ msgstr "Título de la obra"
 
 #: ShareModal.html:44
 msgid "Embed this book in your website"
-msgstr "Incrusta este libro en tu página web"
+msgstr "Inserta este libro en tu página web"
 
 #: ShareModal.html:48
 msgid "Embed"
-msgstr "Incrustar"
+msgstr "Insertar"
 
 #: StarRatings.html:52
 msgid "Clear my rating"
@@ -5571,7 +5571,7 @@ msgstr "API web"
 
 #: Subnavigation.html:11
 msgid "Client Library"
-msgstr "Biblioteca cliente"
+msgstr "Biblioteca de cliente"
 
 #: Subnavigation.html:12
 msgid "Data Dumps"
