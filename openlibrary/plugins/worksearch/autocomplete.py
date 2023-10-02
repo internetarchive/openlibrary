@@ -24,7 +24,7 @@ class autocomplete(delegate.page):
     fq = ['-type:edition']
     fl = 'key,type,name,title,score'
     olid_suffix: str | None = None
-    sort: str = None
+    sort: str | None = None
     query = 'title:"{q}"^2 OR title:({q}*) OR name:"{q}"^2 OR name:({q}*)'
 
     def db_fetch(self, key: str) -> Thing | None:
