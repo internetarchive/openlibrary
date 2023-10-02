@@ -37,5 +37,39 @@
         "params": {
             "text": "q"
         }
-    }
+    },
+    "shortcuts": [
+      {
+        "name": "My Books",
+        "url": "/account/books"
+      }
+      {
+        "name": "Subjects",
+        "url": "/subjects"
+      },
+      {
+        "name": "Trending",
+        "url": "/trending"
+      },
+      {
+        "name": "Explore",
+        "url": "/explore"
+      },
+      {
+        "name": "Lists",
+        "url": "/lists"
+      },
+      {
+        "name": "Collections",
+        "url": "/lists"
+      },
+      {
+        "name": "Random Book",
+        "url": "/random"
+      },
+      {
+        "name": "Advanced Search",
+        "url": "/advancedsearch"
+      }
+  ]
 }
