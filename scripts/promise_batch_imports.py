@@ -15,10 +15,8 @@ The imports can be monitored for their statuses and rolled up / counted using th
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
 import requests
 import logging
-import re
 
 import _init_path  # Imported for its side effect of setting PYTHONPATH
 from infogami import config
@@ -26,13 +24,8 @@ from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
-if TYPE_CHECKING:
-    from re import Pattern
 
 logger = logging.getLogger("openlibrary.importer.promises")
-
-
-USE_ONLY_YEAR = re.compile(r"\d{4}(0101|0000)")
 
 
 def format_date(date: str, only_year: bool) -> str:
