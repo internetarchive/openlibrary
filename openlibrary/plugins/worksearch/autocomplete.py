@@ -24,6 +24,7 @@ class autocomplete(delegate.page):
     fq = ['-type:edition']
     fl = 'key,type,name,title,score'
     olid_suffix: str | None = None
+    sort: str = None
     query = 'title:"{q}"^2 OR title:({q}*) OR name:"{q}"^2 OR name:({q}*)'
 
     def db_fetch(self, key: str) -> Thing | None:
@@ -68,6 +69,7 @@ class autocomplete(delegate.page):
             **({'fq': fq} if fq else {}),
             # limit the fields returned for better performance
             'fl': self.fl,
+            **({'sort': self.sort} if self.sort else {}),
         }
 
         data = solr.select(solr_q, **params)
@@ -125,6 +127,7 @@ class authors_autocomplete(autocomplete):
     fl = 'key,name,alternate_names,birth_date,death_date,work_count,top_work,top_subjects'
     olid_suffix = 'A'
     query = 'name:({q}*) OR alternate_names:({q}*) OR name:"{q}"^2 OR alternate_names:"{q}"^2'
+    sort = 'work_count desc'
 
     def doc_wrap(self, doc: dict):
         if 'top_work' in doc:
@@ -138,8 +141,9 @@ class subjects_autocomplete(autocomplete):
     # can't use /subjects/_autocomplete because the subjects endpoint = /subjects/[^/]+
     path = "/subjects_autocomplete"
     fq = ['type:subject']
-    fl = 'key,name'
+    fl = 'key,name,work_count'
     query = 'name:({q}*)'
+    sort = 'work_count desc'
 
     def GET(self):
         i = web.input(type="")
