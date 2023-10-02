@@ -19,7 +19,7 @@ import { commify } from './python';
 import { Subject, urlencode, slice } from './subjects';
 import Template from './template.js';
 // Add $.fn.focusNextInputField
-import { closePopup, truncate, cond } from './utils';
+import { truncate, cond } from './utils';
 import initValidate from './validate';
 import '../../../../static/css/js-all.less';
 // polyfill Promise support for IE11
@@ -28,8 +28,6 @@ import { confirmDialog, initDialogs } from './dialog';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
-// closePopup used in openlibrary/templates/covers/saved.html
-window.closePopup = closePopup;
 window.commify = commify;
 window.cond = cond;
 window.enumerate = enumerate;
