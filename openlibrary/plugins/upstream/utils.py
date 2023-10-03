@@ -720,11 +720,11 @@ def _normalize(s: str) -> str:
 
 
 def _matches_lang_name(
-    word_prefix: str, language, translation: str | None = None
+    word_prefix: str, language: dict, prefix_language: str | None = None
 ) -> Storage | None:
     lang_name = language.name
-    if translation is not None:
-        lang_name = safeget(lambda: language['name_translated'][translation][0])
+    if prefix_language is not None:
+        lang_name = safeget(lambda: language['name_translated'][prefix_language][0])
     # Compare to each inner word of language name for more accurate matching
     # Eg. for prefix 'greek' will match with 'Ancient Greek' as well as 'Greek'
     for inner in lang_name.split(' '):
@@ -737,16 +737,15 @@ def _matches_lang_name(
     return None
 
 
-def autocomplete_languages(prefix: str, limit: int) -> Iterator[Storage]:
+def autocomplete_languages(prefix: str) -> Iterator[Storage]:
     """
-    Given, e.g., "English", this returns an iterator of the following up to given limit:
+    Given, e.g., "English", this returns an iterator of the following:
         <Storage {'key': '/languages/ang', 'code': 'ang', 'name': 'English, Old (ca. 450-1100)'}>
         <Storage {'key': '/languages/cpe', 'code': 'cpe', 'name': 'Creoles and Pidgins, English-based (Other)'}>
         <Storage {'key': '/languages/eng', 'code': 'eng', 'name': 'English'}>
         <Storage {'key': '/languages/enm', 'code': 'enm', 'name': 'English, Middle (1100-1500)'}>
     """
 
-    matches = 0
     prefix = _normalize(prefix)
     user_lang = web.ctx.lang or 'en'
     for language in get_languages().values():
@@ -759,14 +758,10 @@ def autocomplete_languages(prefix: str, limit: int) -> Iterator[Storage]:
         #     The language's name as it was fetched from get_languages() (None)
         # First matching result is yielded to the autocomplete iterator results
         for translation in [user_lang, lang_iso_code, None]:
-            match = _matches_lang_name(prefix, language, translation=translation)
+            match = _matches_lang_name(prefix, language, prefix_language=translation)
             if match is not None:
-                matches += 1
                 yield match
                 break
-        # Stop once the limit (originating from url param) is reached
-        if matches == limit:
-            break
 
 
 def get_abbrev_from_full_lang_name(input_lang_name: str, languages=None) -> str:
