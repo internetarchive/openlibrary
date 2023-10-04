@@ -842,7 +842,7 @@ class ACS4Item:
         try:
             return requests.get(url).json()
         except OSError:
-            logger.exception("unable to conact BSS server")
+            logger.exception("unable to connect BSS server")
 
     def has_loan(self):
         return bool(self.get_loan())
