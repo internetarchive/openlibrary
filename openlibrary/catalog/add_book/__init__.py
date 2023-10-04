@@ -1028,7 +1028,7 @@ def load(rec, account_key=None, from_marc_record: bool = False):
         existing_edition.works = [{'key': work['key']}]
 
     # Send revision 1 promise item editions to the same pipeline as new editions
-    # beecause we want to overwrite most of their data.
+    # because we want to overwrite most of their data.
     if should_overwrite_promise_item(
         edition=existing_edition, from_marc_record=from_marc_record
     ):
