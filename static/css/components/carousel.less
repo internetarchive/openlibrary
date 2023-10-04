@@ -26,6 +26,11 @@
   overflow-x: scroll;
   padding: 10px 20px;
 
+  &.carousel--grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-gap: 30px;
+  }
   a,
   a:link {
     text-decoration: none;
