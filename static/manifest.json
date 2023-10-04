@@ -42,7 +42,7 @@
       {
         "name": "My Books",
         "url": "/account/books"
-      }
+      },
       {
         "name": "Subjects",
         "url": "/subjects"
