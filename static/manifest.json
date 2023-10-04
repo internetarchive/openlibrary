@@ -1,7 +1,7 @@
 {
     "short_name": "Open Library",
-    "name": "Open Library: One webpage for every book ever published!",
-    "description": "An Open, Editable library catalog, building towards a web page for every book ever published.",
+    "name": "Open Library: A page for every book published",
+    "description": "An open, editable library catalog for every book published.",
     "icons": [
         {
             "src": "/static/images/openlibrary-192x192.png",
