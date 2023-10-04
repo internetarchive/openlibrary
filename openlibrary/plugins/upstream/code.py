@@ -184,7 +184,7 @@ def static_url(path):
 
 
 class DynamicDocument:
-    """Dynamic document is created by concatinating various rawtext documents in the DB.
+    """Dynamic document is created by concatenating various rawtext documents in the DB.
     Used to generate combined js/css using multiple js/css files in the system.
     """
 

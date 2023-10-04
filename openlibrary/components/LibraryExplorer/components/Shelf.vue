@@ -124,7 +124,7 @@ class FetchCoordinator {
     }
 
     enqueue(fetchRequest) {
-        // console.log(`Enqueing request #${this.requestedFetches.length + 1}: ${fetchRequest.name}`);
+        // console.log(`Enqueuing request #${this.requestedFetches.length + 1}: ${fetchRequest.name}`);
         this.requestedFetches.push(fetchRequest);
         this.activate();
     }

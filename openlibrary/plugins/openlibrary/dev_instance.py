@@ -135,7 +135,7 @@ def update_solr(changeset):
 
 @infogami.install_hook
 def add_ol_user():
-    """Creates openlibrary user with admin previleges."""
+    """Creates openlibrary user with admin privileges."""
     # Create openlibrary user
     if web.ctx.site.get("/people/openlibrary") is None:
         web.ctx.site.register(
