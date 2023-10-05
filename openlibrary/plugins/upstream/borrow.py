@@ -173,25 +173,21 @@ class borrow(delegate.page):
             stats.increment('ol.loans.leaveWaitlist')
             raise web.redirect(edition_redirect)
 
-        elif user.has_borrowed(edition):
-            action = 'read'
+        elif action in ('borrow', 'browse') and not user.has_borrowed(edition):
+            borrow_access = user_can_borrow_edition(user, edition)
 
-        elif action in ('borrow', 'browse'):
-            if not user.has_borrowed(edition):
-                borrow_access = user_can_borrow_edition(user, edition)
+            if not (s3_keys and borrow_access):
+                stats.increment('ol.loans.outdatedAvailabilityStatus')
+                raise web.seeother(error_redirect)
 
-                if not (s3_keys and borrow_access):
-                    stats.increment('ol.loans.outdatedAvailabilityStatus')
-                    raise web.seeother(error_redirect)
-
-                try:
-                    lending.s3_loan_api(
-                        s3_keys, ocaid=edition.ocaid, action='%s_book' % borrow_access
-                    )
-                    stats.increment('ol.loans.bookreader')
-                    stats.increment('ol.loans.%s' % borrow_access)
-                except lending.PatronAccessException as e:
-                    stats.increment('ol.loans.blocked')
+            try:
+                lending.s3_loan_api(
+                    s3_keys, ocaid=edition.ocaid, action='%s_book' % borrow_access
+                )
+                stats.increment('ol.loans.bookreader')
+                stats.increment('ol.loans.%s' % borrow_access)
+            except lending.PatronAccessException as e:
+                stats.increment('ol.loans.blocked')
 
         if action in ('borrow', 'browse', 'read'):
             bookPath = '/stream/' + edition.ocaid
