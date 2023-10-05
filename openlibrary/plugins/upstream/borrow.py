@@ -190,7 +190,7 @@ class borrow(delegate.page):
                     )
                     stats.increment('ol.loans.bookreader')
                     stats.increment('ol.loans.%s' % borrow_access)
-                except PatronAccessException as e:
+                except lending.PatronAccessException as e:
                     stats.increment('ol.loans.blocked')
 
         if action in ('borrow', 'browse', 'read'):
