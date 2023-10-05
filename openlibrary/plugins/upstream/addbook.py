@@ -1010,9 +1010,7 @@ class author_edit(delegate.page):
             author = trim_doc(i.author)
             alternate_names = author.get('alternate_names', None) or ''
             author.alternate_names = [
-                name.strip()
-                for name in alternate_names.replace("\n", ";").split(';')
-                if name.strip()
+                name.strip() for name in alternate_names.split('\n') if name.strip()
             ]
             author.links = author.get('links') or []
             return author
