@@ -43,7 +43,7 @@ MAX_IA_RESULTS = 1000
 
 
 class PatronAccessException(Exception):
-    def __init__(self, message="Access to this book is temporarily forbidden (403)."):
+    def __init__(self, message="Access to this item is temporarily locked."):
         self.message = message
         super().__init__(self.message)
 
@@ -213,7 +213,7 @@ def s3_loan_api(s3_keys, ocaid=None, action='browse', **kwargs):
     data = s3_keys | kwargs
 
     response = requests.post(url + params, data=data)
-    if response.status_code == 403:
+    if response.status_code == 429:
         raise PatronAccessException()
     response.raise_for_status()
     return response
