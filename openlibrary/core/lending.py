@@ -41,6 +41,10 @@ BOOKREADER_STREAM_URL_PATTERN = "https://{0}/stream/{1}"
 DEFAULT_IA_RESULTS = 42
 MAX_IA_RESULTS = 1000
 
+class PatronAccessException(Exception):
+    def __init__(self, message="Access to this book is temporarily forbidden (403)."):
+        self.message = message
+        super().__init__(self.message)
 
 config_ia_loan_api_url = None
 config_ia_xauth_api_url = None
@@ -207,6 +211,8 @@ def s3_loan_api(s3_keys, ocaid=None, action='browse', **kwargs):
     data = s3_keys | kwargs
 
     response = requests.post(url + params, data=data)
+    if response.status_code == 403:
+        raise PatronAccessException()
     response.raise_for_status()
     return response
 
