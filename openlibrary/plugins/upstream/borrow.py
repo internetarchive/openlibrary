@@ -173,7 +173,6 @@ class borrow(delegate.page):
             stats.increment('ol.loans.leaveWaitlist')
             raise web.redirect(edition_redirect)
 
-
         elif user.has_borrowed(edition):
             action = 'read'
 
