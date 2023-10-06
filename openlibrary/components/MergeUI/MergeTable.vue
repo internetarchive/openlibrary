@@ -79,7 +79,7 @@ export default {
         };
     },
     async created(){
-        // using await in created won't block the lifecycle, just the rest of the function
+        // using await in created won't block the Vue lifecycle, just the rest of this function
         await this.getRecords();
         this.getBookshelves();
         this.getEditions();
