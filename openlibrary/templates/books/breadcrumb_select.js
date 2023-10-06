@@ -11,7 +11,6 @@ function handleNavEvents(nav) {
         // It's actually changed!
         window.location = nav.value;
     });
-
     nav.addEventListener('keydown', ({ key }) => {
         if (preventedKeys.has(key)) {
             ignoreChange = true;
