@@ -16,7 +16,7 @@ $else:
   $ title = _("Read ebook from Internet Archive")
 
 <div class="cta-button-group">
-  <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--available cta-btn--$(action)"
+  <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action)"
      $if loan:
        data-userid="$(loan['userid'])"
      $elif printdisabled:
@@ -30,7 +30,7 @@ $else:
     <a href="$(stream_url)&_autoReadAloud=show"
        title="$title using Read Aloud"
        data-ol-link-track="CTAClick|$(action.capitalize())Listen"
-       class="cta-btn cta-btn--available">
+       class="cta-btn cta-btn--available cta-btn--w-icon">
       <span class="btn-icon read-aloud"></span>
       <span class="btn-label">$_('Listen')</span>
     </a>

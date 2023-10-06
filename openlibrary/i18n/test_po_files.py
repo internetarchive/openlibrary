@@ -8,7 +8,7 @@ from openlibrary.i18n import get_locales
 
 root = os.path.dirname(__file__)
 # Fix these and then remove them from this list
-ALLOW_FAILURES = ('cs', 'hr', 'pl')
+ALLOW_FAILURES = {'pl'}
 
 
 def trees_equal(el1: etree.Element, el2: etree.Element, error=True):
@@ -74,14 +74,19 @@ def gen_html_entries():
             continue
 
         if locale in ALLOW_FAILURES:
-            yield pytest.param(locale, msgid, msgstr, id=f'{locale}-{msgid}',
-                               marks=pytest.mark.xfail)
+            yield pytest.param(
+                locale, msgid, msgstr, id=f'{locale}-{msgid}', marks=pytest.mark.xfail
+            )
         else:
             yield pytest.param(locale, msgid, msgstr, id=f'{locale}-{msgid}')
 
 
 @pytest.mark.parametrize("locale,msgid,msgstr", gen_html_entries())
 def test_html_format(locale: str, msgid: str, msgstr: str):
-    id_tree = etree.fromstring(f'<root>{msgid}</root>')
-    str_tree = etree.fromstring(f'<root>{msgstr}</root>')
-    assert trees_equal(id_tree, str_tree)
+    # Need this to support &nbsp;, since etree only parses XML.
+    # Find a better solution?
+    entities = '<!DOCTYPE text [ <!ENTITY nbsp "&#160;"> ]>'
+    id_tree = etree.fromstring(f'{entities}<root>{msgid}</root>')
+    str_tree = etree.fromstring(f'{entities}<root>{msgstr}</root>')
+    if not msgstr.startswith('<!-- i18n-lint no-tree-equal -->'):
+        assert trees_equal(id_tree, str_tree)

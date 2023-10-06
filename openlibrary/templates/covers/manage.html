@@ -1,6 +1,7 @@
 $def with (key, images)
 
 $putctx("cssfile", "form")
+$putctx("show_ol_shell", False)
 $putctx('robots', 'noindex,nofollow')
 
 <div class="imageIntro">
@@ -8,7 +9,7 @@ $putctx('robots', 'noindex,nofollow')
 </div>
 
 <form class="floatform" action="" method="post">
-    <div class="column">
+    <div class="column ui-sortable--covers">
     $for image in images:
         <div class="portlet">
             <div class="portlet-header">

@@ -2,6 +2,7 @@ import { debounce } from './nonjquery_utils.js';
 import * as SearchUtils from './SearchUtils';
 import { PersistentValue } from './SearchUtils';
 import $ from 'jquery';
+import { websafe } from './jsdef'
 
 /** Mapping of search bar facets to search endpoints */
 const FACET_TO_ENDPOINT = {
@@ -17,6 +18,7 @@ const DEFAULT_JSON_FIELDS = [
     'key',
     'cover_i',
     'title',
+    'subtitle',
     'author_name',
     'name',
 ];
@@ -29,7 +31,7 @@ const RENDER_AUTOCOMPLETE_RESULT = {
                 <a href="${work.key}">
                     <img src="//covers.openlibrary.org/b/id/${work.cover_i}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png" alt=""/>
                     <span class="book-desc">
-                        <div class="book-title">${work.title}</div> by <span class="book-author">${author_name}</span>
+                        <div class="book-title">${websafe(work.title)}</div><div class="book-subtitle">${websafe(work.subtitle)}</div> by <span class="book-author">${websafe(author_name)}</span>
                     </span>
                 </a>
             </li>`;
@@ -38,8 +40,8 @@ const RENDER_AUTOCOMPLETE_RESULT = {
         return `
             <li>
                 <a href="/authors/${author.key}">
-                    <img src="http://covers.openlibrary.org/a/olid/${author.key}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png" alt=""/>
-                    <span class="author-desc"><div class="author-name">${author.name}</div></span>
+                    <img src="//covers.openlibrary.org/a/olid/${author.key}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png" alt=""/>
+                    <span class="author-desc"><div class="author-name">${websafe(author.name)}</div></span>
                 </a>
             </li>`;
     }
@@ -98,7 +100,7 @@ export class SearchBar {
             this.facet.write(urlParams.facet);
         }
 
-        if (urlParams.q) {
+        if (urlParams.q && window.location.pathname.match(/^\/search/)) {
             let q = urlParams.q.replace(/\+/g, ' ');
             if (this.facet.read() === 'title' && q.indexOf('title:') !== -1) {
                 const parts = q.split('"');
@@ -125,19 +127,25 @@ export class SearchBar {
         $(window).on('resize', debounce(() => {
             this.toggleCollapsibleModeForSmallScreens($(window).width());
         }, 50));
-        $(document).on('submit','.in-collapsible-mode', event => {
-            if (this.collapsed) {
+
+        const expandAndFocusSearch = (event) => {
+            if (this.inCollapsibleMode && this.collapsed) {
                 event.preventDefault();
                 this.toggleCollapse();
                 this.$input.trigger('focus');
             }
-        });
-        // Collapse search bar when clicking outside of search bar
+        }
+        const expandSelectors = ['.search-component', 'a[href="/search"]'];
+
+        // When clicking on the search bar or a link to /search, expand search if it isn't already.
+        // If clicking elsewhere, collapse search.
+        $(document).on('submit', '.in-collapsible-mode', event => expandAndFocusSearch(event));
         $(document).on('click', event => {
-            if ($(event.target).closest('.search-component').length === 0) {
-                if (!this.collapsed) {
-                    this.toggleCollapse();
-                }
+            const shouldExpand = (item) => $(event.target).closest(item).length === 1;
+            if (expandSelectors.some(shouldExpand)) {
+                expandAndFocusSearch(event);
+            } else {
+                if (!this.collapsed) this.toggleCollapse();
             }
         });
     }
@@ -203,7 +211,7 @@ export class SearchBar {
     static composeSearchUrl(facetEndpoint, q, json=false, limit=null, fields=null) {
         let url = facetEndpoint;
         if (json) {
-            url += `.json?q=${q}&_facet=false&_spellcheck_count=0`;
+            url += `.json?q=${q}&_spellcheck_count=0`;
         } else {
             url += `?q=${q}`;
         }

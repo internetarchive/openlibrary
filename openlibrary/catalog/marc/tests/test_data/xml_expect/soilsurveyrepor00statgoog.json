@@ -1,0 +1,30 @@
+{
+  "pagination": "no. in v.",
+  "title": "Soil survey report",
+  "lccn": [
+    "37038470"
+  ],
+  "notes": "Serial.",
+  "languages": [
+    "eng"
+  ],
+  "subject_places": [
+    "Iowa. [from old catalog]"
+  ],
+  "lc_classifications": [
+    "S599.I7 A3"
+  ],
+  "publish_country": "iau",
+  "authors": [
+    {
+      "name": "Iowa. Agricultural and Home Economics Experiment Station, Ames",
+      "entity_type": "org"
+    }
+  ],
+  "publish_places": [
+    "Ames"
+  ],
+  "subjects": [
+    "Soil surveys"
+  ]
+}

@@ -1,0 +1,30 @@
+$def with (logged_books=None, mode='now')
+
+$ page = int(input(page=1).page)
+
+<div id="contentBody">
+  $ pages = {'now': _('Now'), 'daily': _('Today'), 'weekly': _('This Week'), 'monthly': _('This Month'), 'yearly': _('This Year'), 'forever': _('All Time')}
+  <h1>$_('Trending Books'): $(pages[mode])</h1>
+  <p>$_("See what readers from the community are adding to their bookshelves")</p>
+  <p>
+    $for p in pages:
+      <a style="$('font-weight: bold;' if p==mode else '')" href="/trending/$(p)">$pages[p]</a>
+  </p>
+
+  <div class="mybooks-list">
+    <ul class="list-books">
+      $if logged_books:
+        $for entry in logged_books:
+          $if 'bookshelf_id' in entry:
+            $ shelf = {1: _("Want to Read"), 2: _("Currently Reading"), 3: _("Read")}[entry['bookshelf_id']]
+            $ extra = _("Someone marked as %(shelf)s %(k_hours_ago)s", shelf=shelf, k_hours_ago=datestr(entry['created']))
+          $else:
+            $ extra = _('Logged %(count)i times %(time_unit)s', count=entry['cnt'], time_unit=pages[mode])
+          $if entry.get('work'):
+            $:macros.SearchResultsWork(entry['work'], extra=extra, availability=entry['work'].get('availability'))
+    </ul>
+  </div>
+  <div class="pager">
+    $:macros.Pager(page, 200, results_per_page=20)
+  </div>
+</div>

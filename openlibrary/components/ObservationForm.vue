@@ -5,7 +5,6 @@
       :work-key="work_key"
       :username="username"
       />
-
     <CategorySelector
       ref="categories"
       :observations-array="observationsArray"
@@ -85,7 +84,7 @@ export default {
     data: function() {
         return {
             /**
-             * An object respresenting the currently selected tag type.
+             * An object representing the currently selected tag type.
              *
              * @example
              * {

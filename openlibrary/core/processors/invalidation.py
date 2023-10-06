@@ -3,10 +3,10 @@ import datetime
 from infogami.infobase import client
 
 from openlibrary.core import helpers as h
+import contextlib
 
-__all__ = [
-    "InvalidationProcessor"
-]
+__all__ = ["InvalidationProcessor"]
+
 
 class InvalidationProcessor:
     """Application processor to invalidate/update locally cached documents.
@@ -68,6 +68,7 @@ class InvalidationProcessor:
     * last_update_time: timestamp of the most recent update known to this
       process.
     """
+
     def __init__(self, prefixes, timeout=60, cookie_name="lastupdate"):
         self.prefixes = prefixes
         self.timeout = datetime.timedelta(0, timeout)
@@ -78,7 +79,9 @@ class InvalidationProcessor:
 
         # set expire_time slightly more than timeout
         self.expire_time = 3 * timeout
-        self.hook = _InvalidationHook(prefixes=prefixes, cookie_name=cookie_name, expire_time=self.expire_time)
+        self.hook = _InvalidationHook(
+            prefixes=prefixes, cookie_name=cookie_name, expire_time=self.expire_time
+        )
 
     def __call__(self, handler):
         def t(date):
@@ -86,15 +89,19 @@ class InvalidationProcessor:
 
         cookie_time = self.get_cookie_time()
 
-        if cookie_time and cookie_time > self.last_poll_time:
-            self.reload()
-        elif self.is_timeout():
+        if self.is_timeout() or cookie_time and cookie_time > self.last_poll_time:
             self.reload()
 
         # last update in recent timeout seconds?
         has_recent_update = (self.last_poll_time - self.last_update_time) < self.timeout
-        if has_recent_update and (cookie_time is None or cookie_time < self.last_update_time):
-            web.setcookie(self.cookie_name, self.last_update_time.isoformat(), expires=self.expire_time)
+        if has_recent_update and (
+            cookie_time is None or cookie_time < self.last_update_time
+        ):
+            web.setcookie(
+                self.cookie_name,
+                self.last_update_time.isoformat(),
+                expires=self.expire_time,
+            )
 
         return handler()
 
@@ -116,24 +123,26 @@ class InvalidationProcessor:
             return None
 
     def reload(self):
-        """Triggers on_new_version event for all the documents modified since last_poll_time.
-        """
+        """Triggers on_new_version event for all the documents modified since last_poll_time."""
         t = datetime.datetime.utcnow()
         reloaded = False
 
         keys = []
         for prefix in self.prefixes:
-            q = {"key~": prefix + "*", "last_modified>": self.last_poll_time.isoformat(), "limit": 1000}
+            q = {
+                "key~": prefix + "*",
+                "last_modified>": self.last_poll_time.isoformat(),
+                "limit": 1000,
+            }
             keys += web.ctx.site.things(q)
 
         if keys:
             web.ctx._invalidation_inprogress = True
             docs = web.ctx.site.get_many(keys)
             for doc in docs:
-                try:
+                with contextlib.suppress(Exception):
                     client._run_hooks("on_new_version", doc)
-                except Exception:
-                    pass
+
             self.last_update_time = max(doc.last_modified for doc in docs)
             reloaded = True
             del web.ctx._invalidation_inprogress
@@ -141,11 +150,13 @@ class InvalidationProcessor:
         self.last_poll_time = t
         return reloaded
 
+
 class _InvalidationHook:
     """Infogami client hook to get notification on edits.
 
     This sets a cookie when any of the documents under the given prefixes is modified.
     """
+
     def __init__(self, prefixes, cookie_name, expire_time):
         self.prefixes = prefixes
         self.cookie_name = cookie_name

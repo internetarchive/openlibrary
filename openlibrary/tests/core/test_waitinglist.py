@@ -3,16 +3,21 @@ from openlibrary.core import lending
 import json
 import pytest
 
+
 class TestWaitingLoan:
     def test_new(self, monkeypatch):
         user_key = '/people/user1'
         identifier = 'foobar'
-        monkeypatch.setattr(lending.ia_lending_api, 'join_waitinglist', lambda identifier, userid: True)
-        monkeypatch.setattr(lending.ia_lending_api, 'query', lambda **kw: [({'status': 'waiting'})])
+        monkeypatch.setattr(
+            lending.ia_lending_api, 'join_waitinglist', lambda identifier, userid: True
+        )
+        monkeypatch.setattr(
+            lending.ia_lending_api, 'query', lambda **kw: [({'status': 'waiting'})]
+        )
         # POSTs to api to add to waiting list, then queries ia_lending_api for the result
-        w = WaitingLoan.new(user_key=user_key,
-                            identifier=identifier,
-                            itemname='@ol_foobar')
+        w = WaitingLoan.new(
+            user_key=user_key, identifier=identifier, itemname='@ol_foobar'
+        )
         assert w is not None
         assert w['status'] == 'waiting'
 
@@ -36,5 +41,4 @@ class TestWaitingLoan:
 
     def test_prune_expired(self):
         # prune_expired does nothing now but 'return'
-        assert WaitingLoan.prune_expired() == None
-
+        assert WaitingLoan.prune_expired() is None

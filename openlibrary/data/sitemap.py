@@ -12,7 +12,6 @@ http://www.archive.org/download/ol-sitemaps/sitindex-authors.xml.gz
 http://www.archive.org/download/ol-sitemaps/sitindex-works.xml.gz
 http://www.archive.org/download/ol-sitemaps/sitindex-subjects.xml.gz
 """
-from __future__ import print_function
 
 import sys
 import os
@@ -24,24 +23,29 @@ from openlibrary.plugins.openlibrary.processors import urlsafe
 
 t = web.template.Template
 
-t_sitemap = t("""$def with (docs)
+t_sitemap = t(
+    """$def with (docs)
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 $for path, title, created, last_modified in docs:
     <url><loc>http://openlibrary.org$path</loc><lastmod>${last_modified}Z</lastmod></url>
 </urlset>
-""")
+"""
+)
 
-t_siteindex = t("""$def with (base_url, rows)
+t_siteindex = t(
+    """$def with (base_url, rows)
 <?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 $for filename, timestamp in rows:
     <sitemap><loc>$base_url/$filename</loc><lastmod>$timestamp</lastmod></sitemap>
 </sitemapindex>
-""")
+"""
+)
 
 
-t_html_layout = t("""$def with (page)
+t_html_layout = t(
+    """$def with (page)
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -57,22 +61,26 @@ t_html_layout = t("""$def with (page)
 <div id="position">$:page</div>
 </div>
 </div>
-</body></html>""")
+</body></html>"""
+)
 
-t_html_sitemap = t("""$def with (back, docs)
+t_html_sitemap = t(
+    """$def with (back, docs)
 $var title: Index
 <p><a href="$back">&larr; Back to Index</a></p>
 <ul>
 $for path, title in docs:
     <li><a href="$path">$title</a></li>
 </ul>
-""")
+"""
+)
 
 
 def gzwrite(path, data):
     f = gzopen(path, 'w')
     f.write(data)
     f.close()
+
 
 def write_sitemaps(data, outdir, prefix):
     timestamp = datetime.datetime.utcnow().isoformat() + 'Z'
@@ -88,6 +96,7 @@ def write_sitemaps(data, outdir, prefix):
         gzwrite(path, sitemap)
         yield filename, timestamp
 
+
 def write_siteindex(data, outdir, prefix):
     rows = write_sitemaps(data, outdir, prefix)
     base_url = "http://openlibrary.org/static/sitemaps/"
@@ -100,18 +109,22 @@ def write_siteindex(data, outdir, prefix):
 
     gzwrite(path, siteindex)
 
+
 def parse_index_file(index_file):
     data = (line.strip().split("\t") for line in open(index_file))
     data = ([t[0], " ".join(t[1:-2]), t[-2], t[-1]] for t in data)
     return data
 
+
 def generate_sitemaps(index_file, outdir, prefix):
     data = parse_index_file(index_file)
     write_siteindex(data, outdir, prefix)
 
+
 def mkdir_p(dir):
     if not os.path.exists(dir):
         os.makedirs(dir)
+
 
 def write(path, data):
     print("writing", path)
@@ -121,12 +134,14 @@ def write(path, data):
     f.write(data)
     f.close()
 
+
 def dirindex(dir, back=".."):
     data = [(f, f) for f in sorted(os.listdir(dir))]
     index = t_html_layout(t_html_sitemap(back, data))
 
     path = dir + "/index.html"
     write(path, web.safestr(index))
+
 
 def generate_html_index(index_file, outdir):
     data = parse_index_file(index_file)
@@ -136,7 +151,7 @@ def generate_html_index(index_file, outdir):
         back = ".."
         index = t_html_layout(t_html_sitemap(back, chunk))
 
-        path = outdir + "/%02d/%05d.html" % (i/1000, i)
+        path = outdir + "/%02d/%05d.html" % (i / 1000, i)
         write(path, web.safestr(index))
 
     for f in os.listdir(outdir):

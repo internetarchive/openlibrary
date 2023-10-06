@@ -3,8 +3,8 @@
 set -o xtrace
 
 # See https://github.com/internetarchive/openlibrary/wiki/Deployment-Scratchpad
-SERVERS="ol-home0 ol-covers0 ol-web1 ol-web2"
-COMPOSE_FILE="docker-compose.yml:docker-compose.production.yml"
+SERVERS="ol-home0 ol-covers0 ol-web1 ol-web2 ol-www0 ol-solr0"
+COMPOSE_FILE="compose.yaml:compose.production.yaml"
 
 # This script must be run on ol-home0 to start a new deployment.
 HOSTNAME="${HOSTNAME:-$HOST}"
@@ -22,12 +22,23 @@ echo "Starting production deployment at $(date)"
 # `sudo git pull origin master` the core Open Library repos:
 parallel --quote ssh {1} "echo -e '\n\n{}'; cd {2} && sudo git pull origin master" ::: $SERVERS ::: /opt/olsystem /opt/openlibrary
 
+# Get all Docker images and sort them by creation date
+images=($(docker image ls --format '{{.ID}} {{.CreatedAt}} {{.Repository}}' | grep 'openlibrary/olbase' | sort -k 2 -r | awk '{print $1}'))
+
+# Keep the first three images and remove the rest to save disk space
+for image in "${images[@]:3}"
+do
+    docker rmi $image
+done
+
 # Rebuild & upload docker image for olbase
 cd /opt/openlibrary
-make git
-docker build -t openlibrary/olbase:latest -f docker/Dockerfile.olbase .
+sudo make git
+set -e
+docker build -t openlibrary/olbase:latest -t "openlibrary/olbase:deploy-$(date '+%Y-%m-%d')" -f docker/Dockerfile.olbase .
 docker login
 docker push openlibrary/olbase:latest
+set +e
 
 # Clone booklending utils
 parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $SERVERS ::: /opt/booklending_utils
@@ -36,11 +47,11 @@ parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; th
 parallel --quote ssh {} "echo -e '\n\n{}'; docker image prune -f" ::: $SERVERS
 
 # Pull the latest docker images
-parallel --quote ssh {} "echo -e '\n\n{}'; cd /opt/openlibrary && COMPOSE_FILE=\"$COMPOSE_FILE\" docker-compose --profile {} pull --quiet" ::: $SERVERS
+parallel --quote ssh {} "echo -e '\n\n{}'; cd /opt/openlibrary && COMPOSE_FILE=\"$COMPOSE_FILE\" docker compose --profile {} pull --quiet" ::: $SERVERS
 
 # Add a git SHA tag to the Docker image to facilitate rapid rollback
 cd /opt/openlibrary
-CUR_SHA=$(git rev-parse HEAD | head -c7)
+CUR_SHA=$(sudo git rev-parse HEAD | head -c7)
 parallel --quote ssh {} "echo -e '\n\n{}'; echo 'FROM openlibrary/olbase:latest' | docker build -t 'openlibrary/olbase:$CUR_SHA' -" ::: $SERVERS
 
 # And tag the deploy!

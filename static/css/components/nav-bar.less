@@ -1,0 +1,152 @@
+@import (less) "components/compact-title.less";
+
+.nav-bar {
+  font-weight: bold;
+
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+  scroll-behavior: smooth;
+
+  li {
+    display: inline;
+    font-size: 13px;
+  }
+
+  li a {
+    text-decoration: none;
+    color: @grey;
+    padding: 12px 15px 8px;
+    display: inline-block;
+  }
+
+  /* stylelint-disable selector-max-specificity */
+  &:not(.work-menu) li.selected a {
+    color: @link-blue;
+    border-bottom: 2px solid @link-blue;
+  }
+
+  &:not(.work-menu) li:hover a {
+    border-bottom: 2px solid @link-blue;
+  }
+  /* stylelint-enable selector-max-specificity */
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .nav-bar li a {
+    padding-top: 4px;
+  }
+}
+
+.nav-bar-wrapper {
+  display: flex;
+  align-items: baseline;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+  clip-path: inset(0 0 -15px 0);
+  margin-bottom: 10px;
+
+  background: @white;
+  z-index: @z-index-level-5;
+
+  &.sticky {
+    position: sticky;
+    top: 50px;
+    margin-left: -20px;
+    margin-right: -20px;
+    padding: 8px 20px 0;
+  }
+
+  .nav-arrow {
+    padding-left: 20px;
+
+    img {
+      max-width: unset !important;
+    }
+    &--left img {
+      transform: rotate(180deg)
+    }
+  }
+
+  .nav-bar.work-menu {
+    padding: 0;
+    background: @white;
+    z-index: @z-index-level-5;
+
+    /* stylelint-disable selector-max-specificity */
+    li {
+      display: inline-block;
+      height: 30px;
+      border-radius: 11px;
+      margin-bottom: 6px;
+    }
+
+    li a {
+      padding: 4px 15px;
+      vertical-align: text-top;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      /* stylelint-disable max-nesting-depth */
+      li:hover {
+        background-color: darken(@blue-5e88B9, 10%);
+
+        a {
+          color: @white;
+        }
+      }
+    }
+
+    li.selected {
+      background-color: @blue-5e88B9;
+
+      a {
+        color: @white;
+      }
+    }
+    /* stylelint-enable max-nesting-depth */
+    /* stylelint-enable selector-max-specificity */
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .nav-bar-wrapper.sticky {
+    position: sticky;
+    top: 62px;  /* The header has a 62px height in tablet views */
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-desktop) {
+  .nav-bar-wrapper.sticky {
+    top: 0;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    width: 100%;
+
+    &.nav-bar-wrapper--slidedown {
+      animation-duration: .15s;
+      animation-name: slidedown;
+    }
+
+    @keyframes slidedown {
+      to {
+        top: @compact-title-height;
+      }
+    }
+
+    &.nav-bar-wrapper--slideup {
+      animation-duration: .5s;
+      animation-name: slideup
+    }
+
+    @keyframes slideup {
+      to {
+        top: 0;
+      }
+    }
+
+    &.sticky--lowest {
+      top: @compact-title-height;
+    }
+  }
+}

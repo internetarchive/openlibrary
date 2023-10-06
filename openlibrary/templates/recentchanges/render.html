@@ -6,7 +6,8 @@ $else:
     $ page = 1
 
 $def call_template(name, change):
-    $ t = get_template("recentchanges/" + change.kind + "/" + name) or get_template("recentchanges/default/" + name)
+    $ kind = "merge" if change.kind.startswith('merge-') else change.kind
+    $ t = get_template("recentchanges/" + kind + "/" + name) or get_template("recentchanges/default/" + name)
     $:t(change)
 
 $ changes = recentchanges(dict(query, limit=limit, offset=(page-1) * limit))
@@ -43,7 +44,12 @@ $if "ip" in query and ctx.user and ctx.user.is_admin():
                 <td class="history"><a rel="nofollow" href="$ip_url" class="$klass" title="When you see numbers here, that's the IP address of the anonymous editor">$c.ip</a></td>
             $else:
                 <td class="history">$c.ip</td>
-            <td class="comment">$:call_template("comment", c)</td>
+            <td class="comment">
+                $if c.kind == 'add-cover':
+                    Added new cover <img class="comment__cover" src='$:call_template("comment", c)' alt=""/>
+                $else:
+                    $:call_template("comment", c)
+            </td>
         </tr>
     </tbody>
 </table>
@@ -51,8 +57,8 @@ $if "ip" in query and ctx.user and ctx.user.is_admin():
 $if paginate:
     <div class="historyPager small sansserif gray">
         $if len(changes) == limit:
-            <a href="$:changequery(page=page + 1)$hash" rel="nofollow">&larr; $_("Older")</a>
+            <a href="$changequery(page=page + 1)$hash" rel="nofollow">&larr; $_("Older")</a>
         $if page > 1:
              &nbsp;|&nbsp;
-            <a href="$:changequery(page=page - 1)$hash" rel="nofollow">$_("Newer") &rarr;</a>
+            <a href="$changequery(page=page - 1)$hash" rel="nofollow">$_("Newer") &rarr;</a>
     </div>

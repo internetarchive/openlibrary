@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """Open Library plugin for infobase.
 """
-from __future__ import print_function
 
 import datetime
 import json
@@ -11,13 +10,12 @@ import os
 import re
 import sys
 import traceback
-import unicodedata
 
 import requests
-import six
 import web
 
 from infogami.infobase import cache, common, config, dbstore, server
+from openlibrary.plugins.upstream.utils import strip_accents
 
 from ..utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10, normalize_isbn
 
@@ -32,13 +30,14 @@ def init_plugin():
     from infogami.infobase import common, dbstore
     from infogami.infobase import logger as infobase_logger
     from infogami.infobase import server
+
     dbstore.default_schema = schema.get_schema()
 
     # Replace infobase Indexer with OL custom Indexer
     dbstore.Indexer = OLIndexer
 
     if config.get('errorlog'):
-        common.record_exception = lambda: save_error(config.errorlog, 'infobase')
+        common.record_exception = lambda: save_error(config.errorlog, 'infobase')  # type: ignore[attr-defined]
 
     ol = server.get_site('openlibrary.org')
     ib = server._infobase
@@ -49,7 +48,7 @@ def init_plugin():
     ib.add_event_listener(invalidate_most_recent_change)
     setup_logging()
 
-    if ol:
+    if ol:  # noqa: SIM102
         # install custom indexer
         # XXX-Anand: this might create some trouble. Commenting out.
         # ol.store.indexer = Indexer()
@@ -65,9 +64,15 @@ def init_plugin():
         #     ol.add_trigger(None, MemcacheInvalidater())
 
     # hook to add count functionality
-    server.app.add_mapping(r"/([^/]*)/count_editions_by_author", __name__ + ".count_editions_by_author")
-    server.app.add_mapping(r"/([^/]*)/count_editions_by_work", __name__ + ".count_editions_by_work")
-    server.app.add_mapping(r"/([^/]*)/count_edits_by_user", __name__ + ".count_edits_by_user")
+    server.app.add_mapping(
+        r"/([^/]*)/count_editions_by_author", __name__ + ".count_editions_by_author"
+    )
+    server.app.add_mapping(
+        r"/([^/]*)/count_editions_by_work", __name__ + ".count_editions_by_work"
+    )
+    server.app.add_mapping(
+        r"/([^/]*)/count_edits_by_user", __name__ + ".count_edits_by_user"
+    )
     server.app.add_mapping(r"/([^/]*)/most_recent", __name__ + ".most_recent")
     server.app.add_mapping(r"/([^/]*)/clear_cache", __name__ + ".clear_cache")
     server.app.add_mapping(r"/([^/]*)/stats/(\d\d\d\d-\d\d-\d\d)", __name__ + ".stats")
@@ -102,10 +107,12 @@ class _inspect:
 
     Tries to import _inspect module and executes inspect function in that. The module is reloaded on every invocation.
     """
+
     def GET(self):
         sys.modules.pop("_inspect", None)
         try:
             import _inspect
+
             return _inspect.inspect()
         except Exception:
             return traceback.format_exc()
@@ -139,7 +146,14 @@ def count(table, type, key, value):
     value_id = get_thing_id(value)
     if value_id is None:
         return 0
-    return get_db().query("SELECT count(*) FROM " + table + " WHERE key_id=$pid AND value=$value_id", vars=locals())[0].count
+    return (
+        get_db()
+        .query(
+            "SELECT count(*) FROM " + table + " WHERE key_id=$pid AND value=$value_id",
+            vars=locals(),
+        )[0]
+        .count
+    )
 
 
 class count_editions_by_author:
@@ -161,7 +175,14 @@ class count_edits_by_user:
     def GET(self, sitename):
         i = server.input('key')
         author_id = get_thing_id(i.key)
-        return get_db().query("SELECT count(*) as count FROM transaction WHERE author_id=$author_id", vars=locals())[0].count
+        return (
+            get_db()
+            .query(
+                "SELECT count(*) as count FROM transaction WHERE author_id=$author_id",
+                vars=locals(),
+            )[0]
+            .count
+        )
 
 
 class has_user:
@@ -175,7 +196,10 @@ class has_user:
 
         key = "/user/" + i.username.lower()
         type_user = get_thing_id("/type/user")
-        d = get_db().query("SELECT * from thing WHERE lower(key) = $key AND type=$type_user", vars=locals())
+        d = get_db().query(
+            "SELECT * from thing WHERE lower(key) = $key AND type=$type_user",
+            vars=locals(),
+        )
         return bool(d)
 
 
@@ -191,14 +215,18 @@ class stats:
         yield 'new_accounts', self.new_accounts(today, tomorrow)
 
     def nextday(self, today):
-        return get_db().query("SELECT date($today) + 1 AS value", vars=locals())[0].value
+        return (
+            get_db().query("SELECT date($today) + 1 AS value", vars=locals())[0].value
+        )
 
     def edits(self, today, tomorrow, bots=False):
         tables = 'version v, transaction t'
         where = 'v.transaction_id=t.id AND t.created >= date($today) AND t.created < date($tomorrow)'
 
         if bots:
-            where += " AND t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"
+            where += (
+                " AND t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"
+            )
 
         return self.count(tables=tables, where=where, vars=locals())
 
@@ -207,19 +235,19 @@ class stats:
         return self.count(
             'thing',
             'type=$type_user AND created >= date($today) AND created < date($tomorrow)',
-            vars=locals())
+            vars=locals(),
+        )
 
     def total_accounts(self):
         type_user = get_thing_id('/type/user')
         return self.count(tables='thing', where='type=$type_user', vars=locals())
 
     def count(self, tables, where, vars):
-        return get_db().select(
-            what="count(*) as value",
-            tables=tables,
-            where=where,
-            vars=vars
-        )[0].value
+        return (
+            get_db()
+            .select(what="count(*) as value", tables=tables, where=where, vars=vars)[0]
+            .value
+        )
 
 
 most_recent_change = None
@@ -244,6 +272,7 @@ class clear_cache:
     @server.jsonify
     def POST(self, sitename):
         from infogami.infobase import cache
+
         cache.global_cache.clear()
         return {'done': True}
 
@@ -252,7 +281,9 @@ class olid_to_key:
     @server.jsonify
     def GET(self, sitename):
         i = server.input('olid')
-        d = get_db().query('SELECT key FROM thing WHERE get_olid(key) = $i.olid', vars=locals())
+        d = get_db().query(
+            'SELECT key FROM thing WHERE get_olid(key) = $i.olid', vars=locals()
+        )
         key = d and d[0].key or None
         return {'olid': i.olid, 'key': key}
 
@@ -273,8 +304,14 @@ def save_error(dir, prefix):
         now = datetime.datetime.utcnow()
         path = '%s/%04d-%02d-%02d/%s-%02d%02d%02d.%06d.html' % (
             dir,
-            now.year, now.month, now.day, prefix,
-            now.hour, now.minute, now.second, now.microsecond
+            now.year,
+            now.month,
+            now.day,
+            prefix,
+            now.hour,
+            now.minute,
+            now.second,
+            now.microsecond,
         )
         logger.error('Error saved to %s', path)
         write(path, web.safestr(error))
@@ -284,6 +321,7 @@ def save_error(dir, prefix):
 
 def get_object_data(site, thing):
     """Return expanded data of specified object."""
+
     def expand(value):
         if isinstance(value, list):
             return [expand(v) for v in value]
@@ -314,8 +352,18 @@ def http_notify(site, old, new):
 
     # optimize the most common case.
     # The following prefixes are never cached at the client. Avoid cache invalidation in that case.
-    not_cached = ['/b/', '/a/', '/books/', '/authors/', '/works/', '/subjects/', '/publishers/', '/user/',
-                  '/usergroup/', '/people/']
+    not_cached = [
+        '/b/',
+        '/a/',
+        '/books/',
+        '/authors/',
+        '/works/',
+        '/subjects/',
+        '/publishers/',
+        '/user/',
+        '/usergroup/',
+        '/people/',
+    ]
     for prefix in not_cached:
         if key.startswith(prefix):
             return
@@ -324,10 +372,13 @@ def http_notify(site, old, new):
         try:
             response = requests.get(url, params=json_data)
             response.raise_for_status()
-            print('http_notify', repr(url), repr(key), repr(response.text), file=web.debug)
+            print(
+                'http_notify', repr(url), repr(key), repr(response.text), file=web.debug
+            )
         except Exception:
             print('failed to send http_notify', repr(url), repr(key), file=web.debug)
             import traceback
+
             traceback.print_exc()
 
 
@@ -412,14 +463,18 @@ cache.register_cache('memcache', MemcachedDict)
 
 def _process_key(key):
     mapping = (
-        '/l/', '/languages/',
-        '/a/', '/authors/',
-        '/b/', '/books/',
-        '/user/', '/people/'
+        '/l/',
+        '/languages/',
+        '/a/',
+        '/authors/',
+        '/b/',
+        '/books/',
+        '/user/',
+        '/people/',
     )
     for old, new in web.group(mapping, 2):
         if key.startswith(old):
-            return new + key[len(old):]
+            return new + key[len(old) :]
     return key
 
 
@@ -429,13 +484,13 @@ def _process_data(data):
     elif isinstance(data, dict):
         if 'key' in data:
             data['key'] = _process_key(data['key'])
-        return dict((k, _process_data(v)) for k, v in data.items())
+        return {k: _process_data(v) for k, v in data.items()}
     else:
         return data
 
 
 def safeint(value, default=0):
-    """Convers the value to integer. Returns 0, if the conversion fails."""
+    """Convert the value to integer. Returns default, if the conversion fails."""
     try:
         return int(value)
     except Exception:
@@ -443,10 +498,10 @@ def safeint(value, default=0):
 
 
 def fix_table_of_contents(table_of_contents):
-    """Some books have bad table_of_contents. This function converts them in to correct format.
-    """
+    """Some books have bad table_of_contents. This function converts them in to correct format."""
+
     def row(r):
-        if isinstance(r, six.string_types):
+        if isinstance(r, str):
             level = 0
             label = ''
             title = web.safeunicode(r)
@@ -464,7 +519,7 @@ def fix_table_of_contents(table_of_contents):
         else:
             return {}
 
-        return dict(level=level, label=label, title=title, pagenum=pagenum)
+        return {"level": level, "label": label, "title": title, "pagenum": pagenum}
 
     d = [row(r) for r in table_of_contents]
     return [row for row in d if any(row.values())]
@@ -474,7 +529,15 @@ def process_json(key, json_str):
     if key is None or json_str is None:
         return None
     base = key[1:].split('/')[0]
-    if base in ['authors', 'books', 'works', 'languages', 'people', 'usergroup', 'permission']:
+    if base in [
+        'authors',
+        'books',
+        'works',
+        'languages',
+        'people',
+        'usergroup',
+        'permission',
+    ]:
         data = json.loads(json_str)
         data = _process_data(data)
 
@@ -492,9 +555,9 @@ _Indexer = dbstore.Indexer
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
 
 
-class OLIndexer(_Indexer):
-    """OL custom indexer to index normalized_title etc.
-    """
+class OLIndexer(_Indexer):  # type: ignore[misc,valid-type]
+    """OL custom indexer to index normalized_title etc."""
+
     def compute_index(self, doc):
         type = self.get_type(doc)
 
@@ -525,12 +588,8 @@ class OLIndexer(_Indexer):
         if isinstance(title, bytes):
             title = title.decode('utf-8', 'ignore')
 
-        if not isinstance(title, six.text_type):
+        if not isinstance(title, str):
             return ""
-
-        # http://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-in-a-python-unicode-string
-        def strip_accents(s):
-            return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
 
         norm = strip_accents(title).lower()
         norm = norm.replace(' and ', ' ')
@@ -541,8 +600,7 @@ class OLIndexer(_Indexer):
         return norm.replace(' ', '')[:25]
 
     def expand_isbns(self, isbns):
-        """Expands the list of isbns by adding ISBN-10 for ISBN-13 and vice-verse.
-        """
+        """Expands the list of isbns by adding ISBN-10 for ISBN-13 and vice-verse."""
         s = set(isbns)
         for isbn in isbns:
             if len(isbn) == 10:

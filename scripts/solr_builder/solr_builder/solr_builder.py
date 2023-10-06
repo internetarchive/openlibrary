@@ -1,118 +1,38 @@
-from __future__ import division
+from __future__ import annotations
 
-import asyncio
-import itertools
 import json
-import re
-from typing import Awaitable, List, Iterable, Literal, Sized
-
-import httpx
-from httpx import HTTPError
-from configparser import ConfigParser
 import logging
 import time
 import uuid
 from collections import namedtuple
+from collections.abc import Awaitable, Iterator
+from configparser import ConfigParser
+from typing import Any, Literal, Self
 
+import aiofiles
 import psycopg2
 
-from openlibrary.core import ia
+from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.ratings import Ratings, WorkRatingsSummary
 from openlibrary.solr import update_work
-from openlibrary.solr.data_provider import DataProvider
+from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
 from openlibrary.solr.update_work import load_configs, update_keys
 
 logger = logging.getLogger("openlibrary.solr-builder")
-LITE_METADATA_FIELDS = ('identifier', 'boxid', 'collection')
-OCAID_PATTERN = re.compile(r'^[^\s&#?/]+$')
 
 
-def is_valid_ocaid(ocaid: str):
-    return bool(OCAID_PATTERN.match(ocaid))
-
-
-def config_section_to_dict(config_file, section):
+def config_section_to_dict(config_file: str, section: str) -> dict:
     """
     Read a config file's section as a dict
 
     :param str config_file: filename of config file
     :param str section: section to pull data from
     :return: dict of key value pairs
-    :rtype: dict
     """
     config = ConfigParser()
     config.read(config_file)
     result = {key: config.get(section, key) for key in config.options(section)}
     return result
-
-
-def partition(lst: List, parts: int):
-    """
-    >>> list(partition([1,2,3,4,5,6], 1))
-    [[1, 2, 3, 4, 5, 6]]
-    >>> list(partition([1,2,3,4,5,6], 2))
-    [[1, 2, 3], [4, 5, 6]]
-    >>> list(partition([1,2,3,4,5,6], 3))
-    [[1, 2], [3, 4], [5, 6]]
-    >>> list(partition([1,2,3,4,5,6], 4))
-    [[1], [2], [3], [4, 5, 6]]
-    >>> list(partition([1,2,3,4,5,6], 5))
-    [[1], [2], [3], [4], [5, 6]]
-    >>> list(partition([1,2,3,4,5,6], 6))
-    [[1], [2], [3], [4], [5], [6]]
-    >>> list(partition([1,2,3,4,5,6], 7))
-    [[1], [2], [3], [4], [5], [6]]
-
-    >>> list(partition([1,2,3,4,5,6,7], 3))
-    [[1, 2], [3, 4], [5, 6, 7]]
-
-    >>> list(partition([], 5))
-    []
-    """
-    if not lst:
-        return
-
-    total_len = len(lst)
-    parts = min(total_len, parts)
-    size = total_len // parts
-
-    for i in range(0, parts):
-        start = i * size
-        end = total_len if (i == parts - 1) else ((i + 1) * size)
-        yield lst[start:end]
-
-
-def batch_until_len(items: Iterable[Sized], max_batch_len: int):
-    batch_len = 0
-    batch = []  # type: List[Sized]
-    for item in items:
-        if batch_len + len(item) > max_batch_len and batch:
-            yield batch
-            batch = [item]
-            batch_len = len(item)
-        else:
-            batch.append(item)
-            batch_len += len(item)
-    if batch:
-        yield batch
-
-
-def batch(items: List, max_batch_len: int):
-    """
-    >>> list(batch([1,2,3,4,5], 2))
-    [[1, 2], [3, 4], [5]]
-    >>> list(batch([], 2))
-    []
-    >>> list(batch([1,2,3,4,5], 3))
-    [[1, 2, 3], [4, 5]]
-    >>> list(batch([1,2,3,4,5], 5))
-    [[1, 2, 3, 4, 5]]
-    >>> list(batch([1,2,3,4,5], 6))
-    [[1, 2, 3, 4, 5]]
-    """
-    start = 0
-    while start < len(items):
-        yield items[start:start + max_batch_len]
-        start += max_batch_len
 
 
 def safeget(func):
@@ -136,18 +56,19 @@ class LocalPostgresDataProvider(DataProvider):
     This class uses a local postgres dump of the database.
     """
 
-    def __init__(self, db_conf_file):
+    def __init__(self, db_conf_file: str):
         """
         :param str db_conf_file: file to DB config with [postgres] section
         """
+        super().__init__()
         self._db_conf = config_section_to_dict(db_conf_file, "postgres")
-        self._conn = None  # type: psycopg2._psycopg.connection
-        self.cache = dict()
-        self.cached_work_editions_ranges = []
-        self.ia_cache = dict()
-        self.ia = None
+        self._conn: psycopg2._psycopg.connection = None
+        self.cache: dict = {}
+        self.cached_work_editions_ranges: list = []
+        self.cached_work_ratings: dict[str, WorkRatingsSummary] = {}
+        self.cached_work_reading_logs: dict[str, WorkReadingLogSolrSummary] = {}
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         """
         :rtype: LocalPostgresDataProvider
         """
@@ -158,12 +79,10 @@ class LocalPostgresDataProvider(DataProvider):
         self.clear_cache()
         self._conn.close()
 
-    def query_all(self, query, cache_json=False):
+    def query_all(self, query: str, json_cache: dict | None = None) -> list:
         """
-
-        :param str query:
-        :param bool cache_json:
-        :rtype: list
+        :param json_cache: if specified, adds records in the second column to the
+        provided dict, with the first column as keys
         """
         cur = self._conn.cursor()
         cur.execute(query)
@@ -171,8 +90,8 @@ class LocalPostgresDataProvider(DataProvider):
         cur.close()
 
         if rows:
-            if cache_json:
-                self.cache.update({row[0]: row[1] for row in rows})
+            if json_cache is not None:
+                json_cache.update({row[0]: row[1] for row in rows})
             return rows
         else:
             return []
@@ -185,22 +104,28 @@ class LocalPostgresDataProvider(DataProvider):
             rows = cur.fetchmany(size)
             if not rows:
                 break
-            for row in rows:
-                yield row
+            yield from rows
 
         cur.close()
 
-    def query_batched(self, query, size, cursor_name=None, cache_json=False):
+    def query_batched(
+        self,
+        query: str,
+        size: int,
+        cursor_name: str | None = None,
+        cache_json: bool = False,
+    ) -> Iterator:
         """
         :param str query:
         :param int size:
         :param str or None cursor_name: if wanting to use a specific cursor
         :param bool cache_json: Requires the select statement to be "Key", "JSON"
-        :return:
+        :return: None
         """
         # Not sure if this name needs to be unique
-        cursor_name = cursor_name \
-            or 'solr_builder_server_side_cursor_' + uuid.uuid4().hex
+        cursor_name = (
+            cursor_name or 'solr_builder_server_side_cursor_' + uuid.uuid4().hex
+        )
         cur = self._conn.cursor(name=cursor_name)
         cur.itersize = size
         cur.execute(query)
@@ -216,125 +141,30 @@ class LocalPostgresDataProvider(DataProvider):
 
         cur.close()
 
-    @staticmethod
-    async def _get_lite_metadata(ocaids, _recur_depth=0, _max_recur_depth=3):
-        """
-        For bulk fetch, some of the ocaids in Open Library may be bad
-        and break archive.org ES fetches. When this happens, we (up to
-        3 times) recursively split up the pool of ocaids to do as many
-        successful sub-bulk fetches as we can and then when limit is
-        reached, downstream code will fetch remaining ocaids individually
-        (and skip bad ocaids)
-        """
-        if not ocaids or _recur_depth > _max_recur_depth:
-            logger.warning('Max recursion exceeded trying fetch IA data', extra={
-                'ocaids': ocaids
-            })
-            return []
-
-        try:
-            async with httpx.AsyncClient() as client:
-                r = await client.get(
-                    "https://archive.org/advancedsearch.php",
-                    timeout=30,  # The default is silly short
-                    params={
-                        'q': f"identifier:({' OR '.join(ocaids)})",
-                        'rows': len(ocaids),
-                        'fl': ','.join(LITE_METADATA_FIELDS),
-                        'page': 1,
-                        'output': 'json',
-                        'save': 'yes',
-                    }
-                )
-            r.raise_for_status()
-            return r.json()['response']['docs']
-        except HTTPError:
-            logger.warning("IA bulk query failed")
-        except (ValueError, KeyError):
-            logger.warning(f"IA bulk query failed {r.status_code}: {r.json()['error']}")
-
-        # Only here if an exception occurred
-        # there's probably a bad apple; try splitting the batch
-        parts = await asyncio.gather(*(
-            LocalPostgresDataProvider._get_lite_metadata(
-                part, _recur_depth=_recur_depth + 1)
-            for part in partition(ocaids, 6)
-        ))
-        return list(itertools.chain(*parts))
-
-    @staticmethod
-    async def _get_lite_metadata_direct(ocaid: str):
-        try:
-            async with httpx.AsyncClient() as client:
-                r = await client.get(
-                    f"https://archive.org/metadata/{ocaid}/metadata",
-                    timeout=30,  # The default is silly short
-                )
-            r.raise_for_status()
-            response = r.json()
-            if 'error' not in response:
-                lite_metadata = {
-                    key: response['result'][key]
-                    for key in LITE_METADATA_FIELDS if key in response['result']
-                }
-                return lite_metadata
-            else:
-                return {
-                    'error': response['error'],
-                    'identifier': ocaid,
-                }
-        except HTTPError:
-            logger.warning(f'Error fetching metadata for {ocaid}')
-            return None
-
-    async def cache_ia_metadata(self, ocaids: List[str]):
-        invalid_ocaids = set(ocaid for ocaid in ocaids if not is_valid_ocaid(ocaid))
-        if invalid_ocaids:
-            logger.warning(f"Trying to cache invalid OCAIDs: {invalid_ocaids}")
-        valid_ocaids = list(set(ocaids) - invalid_ocaids)
-        batches = list(batch_until_len(valid_ocaids, 3000))
-        # Start them all async
-        tasks = [asyncio.create_task(self._get_lite_metadata(b)) for b in batches]
-        for task in tasks:
-            for doc in await task:
-                self.ia_cache[doc['identifier']] = doc
-
-        missing_ocaids = [ocaid for ocaid in valid_ocaids if ocaid not in self.ia_cache]
-        missing_ocaid_batches = list(batch(missing_ocaids, 6))
-        for ocaids in missing_ocaid_batches:
-            # Start them all async
-            tasks = [
-                asyncio.create_task(self._get_lite_metadata_direct(ocaid))
-                for ocaid in ocaids]
-            for task in tasks:
-                lite_metadata = await task
-                if lite_metadata:
-                    self.ia_cache[lite_metadata['identifier']] = lite_metadata
-
     def cache_edition_works(self, lo_key, hi_key):
-        q = """
+        q = f"""
             SELECT works."Key", works."JSON"
             FROM "test" editions
             INNER JOIN test works
                 ON editions."JSON" -> 'works' -> 0 ->> 'key' = works."Key"
             WHERE editions."Type" = '/type/edition'
-                AND '%s' <= editions."Key" AND editions."Key" <= '%s'
-        """ % (lo_key, hi_key)
-        self.query_all(q, cache_json=True)
+                AND '{lo_key}' <= editions."Key" AND editions."Key" <= '{hi_key}'
+        """
+        self.query_all(q, json_cache=self.cache)
 
     def cache_work_editions(self, lo_key, hi_key):
-        q = """
+        q = f"""
             SELECT "Key", "JSON"
             FROM "test"
             WHERE "Type" = '/type/edition'
-                AND '%s' <= "JSON" -> 'works' -> 0 ->> 'key'
-                AND "JSON" -> 'works' -> 0 ->> 'key' <= '%s'
-        """ % (lo_key, hi_key)
-        self.query_all(q, cache_json=True)
+                AND '{lo_key}' <= "JSON" -> 'works' -> 0 ->> 'key'
+                AND "JSON" -> 'works' -> 0 ->> 'key' <= '{hi_key}'
+        """
+        self.query_all(q, json_cache=self.cache)
         self.cached_work_editions_ranges.append((lo_key, hi_key))
 
     def cache_edition_authors(self, lo_key, hi_key):
-        q = """
+        q = f"""
             SELECT authors."Key", authors."JSON"
             FROM "test" editions
             INNER JOIN test works
@@ -343,13 +173,13 @@ class LocalPostgresDataProvider(DataProvider):
                 ON works."JSON" -> 'authors' -> 0 -> 'author' ->> 'key' = authors."Key"
             WHERE editions."Type" = '/type/edition'
                 AND editions."JSON" -> 'works' -> 0 ->> 'key' IS NULL
-                AND '%s' <= editions."Key" AND editions."Key" <= '%s'
-        """ % (lo_key, hi_key)
-        self.query_all(q, cache_json=True)
+                AND '{lo_key}' <= editions."Key" AND editions."Key" <= '{hi_key}'
+        """
+        self.query_all(q, json_cache=self.cache)
 
     def cache_work_authors(self, lo_key, hi_key):
         # Cache upto first five authors
-        q = """
+        q = f"""
             SELECT authors."Key", authors."JSON"
             FROM "test" works
             INNER JOIN "test" authors ON (
@@ -360,75 +190,126 @@ class LocalPostgresDataProvider(DataProvider):
                 works."JSON" -> 'authors' -> 4 -> 'author' ->> 'key' = authors."Key"
             )
             WHERE works."Type" = '/type/work'
-            AND '%s' <= works."Key" AND works."Key" <= '%s'
-        """ % (lo_key, hi_key)
-        self.query_all(q, cache_json=True)
+            AND '{lo_key}' <= works."Key" AND works."Key" <= '{hi_key}'
+        """
+        self.query_all(q, json_cache=self.cache)
+
+    def cache_work_ratings(self, lo_key, hi_key):
+        q = f"""
+            SELECT "WorkKey", json_build_object(
+                'ratings_count_1', count(*) filter (where "Rating" = 1),
+                'ratings_count_2', count(*) filter (where "Rating" = 2),
+                'ratings_count_3', count(*) filter (where "Rating" = 3),
+                'ratings_count_4', count(*) filter (where "Rating" = 4),
+                'ratings_count_5', count(*) filter (where "Rating" = 5)
+            )
+            FROM "ratings"
+            WHERE '{lo_key}' <= "WorkKey" AND "WorkKey" <= '{hi_key}'
+            GROUP BY "WorkKey"
+            ORDER BY "WorkKey" asc
+        """
+        self.query_all(q, json_cache=self.cached_work_ratings)
+        for row in self.cached_work_ratings.values():
+            row.update(
+                Ratings.work_ratings_summary_from_counts(
+                    [row[f'ratings_count_{i}'] for i in range(1, 6)]
+                )
+            )
+
+    def cache_work_reading_logs(self, lo_key: str, hi_key: str):
+        per_shelf_fields = ', '.join(
+            f"""
+                '{json_name}_count', count(*) filter (where "Shelf" = '{human_name}')
+            """.strip()
+            for json_name, human_name in zip(
+                Bookshelves.PRESET_BOOKSHELVES_JSON.keys(),
+                Bookshelves.PRESET_BOOKSHELVES.keys(),
+            )
+        )
+        q = f"""
+            SELECT "WorkKey", json_build_object(
+                'readinglog_count', count(*),
+                {per_shelf_fields}
+            )
+            FROM "reading_log"
+            WHERE '{lo_key}' <= "WorkKey" AND "WorkKey" <= '{hi_key}'
+            GROUP BY "WorkKey"
+            ORDER BY "WorkKey" asc
+        """
+        self.query_all(q, json_cache=self.cached_work_reading_logs)
 
     async def cache_cached_editions_ia_metadata(self):
-        ocaids = list(set(
-            doc['ocaid'] for doc in self.cache.values()
-            if 'ocaid' in doc))
-        await self.cache_ia_metadata(ocaids)
+        ocaids = list({doc['ocaid'] for doc in self.cache.values() if 'ocaid' in doc})
+        await self.preload_metadata(ocaids)
 
     def find_redirects(self, key):
         """Returns keys of all things which redirect to this one."""
         logger.debug("find_redirects %s", key)
-        q = """
+        q = (
+            """
         SELECT "Key" FROM test
         WHERE "Type" = '/type/redirect' AND "JSON" ->> 'location' = '%s'
-        """ % key
+        """
+            % key
+        )
         return [r[0] for r in self.query_iter(q)]
 
     def get_editions_of_work_direct(self, work):
-        q = """
+        q = (
+            """
         SELECT "JSON" FROM test
         WHERE "Type" = '/type/edition' AND "JSON" -> 'works' -> 0 ->> 'key' = '%s'
-        """ % work['key']
+        """
+            % work['key']
+        )
         return [r[0] for r in self.query_iter(q)]
 
     def get_editions_of_work(self, work):
         # They should all be cached...
         cache_hit = any(
-            lo <= work['key'] <= hi
-            for (lo, hi) in self.cached_work_editions_ranges)
+            lo <= work['key'] <= hi for (lo, hi) in self.cached_work_editions_ranges
+        )
         if cache_hit:
             return [
-                doc for doc in self.cache.values()
-                if (doc['type']['key'] == '/type/edition' and
-                    safeget(lambda: doc['works'][0]['key'] == work['key']))
+                doc
+                for doc in self.cache.values()
+                if (
+                    doc['type']['key'] == '/type/edition'
+                    and safeget(lambda: doc['works'][0]['key'] == work['key'])
+                )
             ]
         else:
             return self.get_editions_of_work_direct(work)
 
-    def get_metadata(self, identifier):
-        if identifier in self.ia_cache:
-            logger.debug("IA metadata cache hit")
-            return self.ia_cache[identifier]
-        elif not is_valid_ocaid(identifier):
-            return None
-        else:
-            logger.debug("IA metadata cache miss")
-            return ia.get_metadata_direct(identifier)
+    def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
+        return self.cached_work_ratings.get(work_key)
 
-    def get_document(self, key):
+    def get_work_reading_log(self, work_key: str) -> WorkReadingLogSolrSummary | None:
+        return self.cached_work_reading_logs.get(work_key)
+
+    async def get_document(self, key):
         if key in self.cache:
             logger.debug("get_document cache hit %s", key)
             return self.cache[key]
 
         logger.debug("get_document cache miss %s", key)
 
-        q = """
+        q = (
+            """
         SELECT "JSON" FROM test
         WHERE "Key" = '%s'
-        """ % key
+        """
+            % key
+        )
         row = next(self.query_iter(q))
         if row:
             return row[0]
 
     def clear_cache(self):
+        super().clear_cache()
         self.cached_work_editions_ranges.clear()
+        self.cached_work_ratings.clear()
         self.cache.clear()
-        self.ia_cache.clear()
 
 
 def simple_timeit(fn):
@@ -446,11 +327,11 @@ async def simple_timeit_async(awaitable: Awaitable):
 
 
 def build_job_query(
-        job: Literal['works', 'orphans', 'authors'],
-        start_at: str = None,
-        offset: int = 0,
-        last_modified: str = None,
-        limit: int = None
+    job: Literal['works', 'orphans', 'authors'],
+    start_at: str | None = None,
+    offset: int = 0,
+    last_modified: str | None = None,
+    limit: int | None = None,
 ) -> str:
     """
     :param job: job to complete
@@ -459,11 +340,7 @@ def build_job_query(
     :param offset: Use `start_at` if possible.
     :param last_modified: Only import docs modified after this date.
     """
-    type = {
-        "works": "work",
-        "orphans": "edition",
-        "authors": "author"
-    }[job]
+    type = {"works": "work", "orphans": "edition", "authors": "author"}[job]
 
     q_select = """SELECT "Key", "JSON" FROM test"""
     q_where = """WHERE "Type" = '/type/%s'""" % type
@@ -488,25 +365,25 @@ def build_job_query(
     if job == 'orphans':
         q_where += """ AND "JSON" -> 'works' -> 0 ->> 'key' IS NULL"""
 
-    return ' '.join([q_select, q_where, q_order, q_offset, q_limit])
+    return f"{q_select} {q_where} {q_order} {q_offset} {q_limit}"
 
 
 async def main(
-        cmd: Literal['index', 'fetch-end'],
-        job: Literal['works', 'orphans', 'authors'],
-        postgres="postgres.ini",
-        ol="http://ol/",
-        ol_config="../../conf/openlibrary.yml",
-        solr: str = None,
-        skip_solr_id_check=True,
-        start_at: str = None,
-        offset=0,
-        limit=1,
-        last_modified: str = None,
-        progress: str = None,
-        log_file: str = None,
-        log_level=logging.INFO,
-        dry_run=False,
+    cmd: Literal['index', 'fetch-end'],
+    job: Literal['works', 'orphans', 'authors'],
+    postgres="postgres.ini",
+    ol="http://ol/",
+    ol_config="../../conf/openlibrary.yml",
+    solr: str | None = None,
+    skip_solr_id_check: bool = True,
+    start_at: str | None = None,
+    offset=0,
+    limit=1,
+    last_modified: str | None = None,
+    progress: str | None = None,
+    log_file: str | None = None,
+    log_level=logging.INFO,
+    dry_run: bool = False,
 ) -> None:
     """
     :param cmd: Whether to do the index or just fetch end of the chunk
@@ -526,15 +403,27 @@ async def main(
     logging.basicConfig(
         filename=log_file,
         level=log_level,
-        format="%(asctime)s [%(levelname)s] %(message)s"
+        format="%(asctime)s [%(levelname)s] %(message)s",
     )
 
     if solr:
         update_work.set_solr_base_url(solr)
 
-    PLogEntry = namedtuple('PLogEntry', [
-        'seen', 'total', 'percent', 'elapsed', 'q_1', 'q_auth', 'q_ia', 'cached',
-        'ia_cache', 'next'])
+    PLogEntry = namedtuple(
+        'PLogEntry',
+        [
+            'seen',
+            'total',
+            'percent',
+            'elapsed',
+            'q_1',
+            'q_auth',
+            'q_ia',
+            'cached',
+            'ia_cache',
+            'next',
+        ],
+    )
 
     class PLog:
         def __init__(self, filename):
@@ -551,12 +440,26 @@ async def main(
             self.last_entry = entry
             if self.filename:
                 with open(progress, 'a') as f:
-                    f.write('\t'.join(
-                        self.fmt(k, val) for k, val in entry._asdict().items()))
+                    f.write(
+                        '\t'.join(
+                            self.fmt(k, val) for k, val in entry._asdict().items()
+                        )
+                    )
                     f.write('\n')
 
-        def update(self, seen=None, total=None, percent=None, elapsed=None, q_1=None,
-                   q_auth=None, cached=None, q_ia=None, ia_cache=None, next=None):
+        def update(
+            self,
+            seen: str | int | None = None,
+            total: str | int | None = None,
+            percent: str | float | None = None,
+            elapsed: str | float | None = None,
+            q_1: str | float | None = None,
+            q_auth: str | float | None = None,
+            cached: str | int | None = None,
+            q_ia: str | float | None = None,
+            ia_cache: str | int | None = None,
+            next: str | None = None,
+        ) -> None:
             """
             :param str or int or None seen:
             :param str or int or None total:
@@ -571,16 +474,16 @@ async def main(
             :return: None
             """
             args = locals()
-            entry = self.last_entry._replace(**{
-                f: args[f] for f in PLogEntry._fields if args[f] is not None
-            })
+            entry = self.last_entry._replace(
+                **{f: args[f] for f in PLogEntry._fields if args[f] is not None}
+            )
             self.log(entry)
 
-        def fmt(self, k, val):
+        def fmt(self, k: str, val: Any) -> str:
             """
             :param str k:
             :param Any val:
-            :rtype: str
+            :return: str
             """
             if val is None:
                 return '?'
@@ -608,20 +511,24 @@ async def main(
                 print(next_start_results[0][0])
             return
 
-        logger.info(json.dumps({
-            'scope': 'solr_builder::main',
-            'event': 'Indexing started',
-            'start_at': start_at,
-        }))
+        logger.info(
+            json.dumps(
+                {
+                    'scope': 'solr_builder::main',
+                    'event': 'Indexing started',
+                    'start_at': start_at,
+                }
+            )
+        )
         load_configs(ol, ol_config, db)
         q = build_job_query(job, start_at, offset, last_modified, limit)
 
         if progress:
             # Clear the file
-            with open(progress, 'w') as f:
-                f.write('')
-            with open(progress, 'a') as f:
-                f.write('Calculating total... ')
+            async with aiofiles.open(progress, 'w') as f:
+                await f.write('')
+            async with aiofiles.open(progress, 'a') as f:
+                await f.write('Calculating total... ')
 
         start = time.time()
         q_count = """SELECT COUNT(*) FROM(%s) AS foo""" % q
@@ -629,12 +536,13 @@ async def main(
         end = time.time()
 
         if progress:
-            with open(progress, 'a') as f:
-                f.write('%d (%.2fs)\n' % (count, end - start))
-                f.write('\t'.join(PLogEntry._fields) + '\n')
+            async with aiofiles.open(progress, 'a') as f:
+                await f.write('%d (%.2fs)\n' % (count, end - start))
+                await f.write('\t'.join(PLogEntry._fields) + '\n')
 
         plog.log(
-            PLogEntry(0, count, '0.00%', 0, '?', '?', '?', '?', '?', start_at or '?'))
+            PLogEntry(0, count, '0.00%', 0, '?', '?', '?', '?', '?', start_at or '?')
+        )
         plog.update(q_1=0, q_auth=0, q_ia=0)
 
         start = time.time()
@@ -649,33 +557,52 @@ async def main(
                 if job == "works":
                     # cache editions
                     editions_time, _ = simple_timeit(
-                        lambda: db2.cache_work_editions(*key_range))
-                    plog.update(q_1=plog.last_entry.q_1 + editions_time,
-                                cached=len(db.cache) + len(db2.cache))
+                        lambda: db2.cache_work_editions(*key_range)
+                    )
+                    plog.update(
+                        q_1=plog.last_entry.q_1 + editions_time,
+                        cached=len(db.cache) + len(db2.cache),
+                    )
 
                     # cache editions' ocaid metadata
                     ocaids_time, _ = await simple_timeit_async(
-                        db2.cache_cached_editions_ia_metadata())
-                    plog.update(q_ia=plog.last_entry.q_ia + ocaids_time,
-                                ia_cache=len(db2.ia_cache))
+                        db2.cache_cached_editions_ia_metadata()
+                    )
+                    plog.update(
+                        q_ia=plog.last_entry.q_ia + ocaids_time,
+                        ia_cache=len(db2.ia_cache),
+                    )
 
                     # cache authors
                     authors_time, _ = simple_timeit(
-                        lambda: db2.cache_work_authors(*key_range))
-                    plog.update(q_auth=plog.last_entry.q_auth + authors_time,
-                                cached=len(db.cache) + len(db2.cache))
+                        lambda: db2.cache_work_authors(*key_range)
+                    )
+                    plog.update(
+                        q_auth=plog.last_entry.q_auth + authors_time,
+                        cached=len(db.cache) + len(db2.cache),
+                    )
+
+                    # cache ratings and reading logs
+                    db2.cache_work_ratings(*key_range)
+                    db2.cache_work_reading_logs(*key_range)
                 elif job == "orphans":
                     # cache editions' ocaid metadata
                     ocaids_time, _ = await simple_timeit_async(
-                        db2.cache_cached_editions_ia_metadata())
-                    plog.update(q_ia=plog.last_entry.q_ia + ocaids_time,
-                                ia_cache=len(db2.ia_cache))
+                        db2.cache_cached_editions_ia_metadata()
+                    )
+                    plog.update(
+                        q_ia=plog.last_entry.q_ia + ocaids_time,
+                        ia_cache=len(db2.ia_cache),
+                    )
 
                     # cache authors
                     authors_time, _ = simple_timeit(
-                        lambda: db2.cache_edition_authors(*key_range))
-                    plog.update(q_auth=plog.last_entry.q_auth + authors_time,
-                                cached=len(db.cache) + len(db2.cache))
+                        lambda: db2.cache_edition_authors(*key_range)
+                    )
+                    plog.update(
+                        q_auth=plog.last_entry.q_auth + authors_time,
+                        cached=len(db.cache) + len(db2.cache),
+                    )
                 elif job == "authors":
                     # Nothing to cache; update_work.py queries solr directly for each
                     # other, and provides no way to cache.
@@ -685,19 +612,29 @@ async def main(
                 db.cache.update(db2.cache)
                 db.ia_cache.update(db2.ia_cache)
                 db.cached_work_editions_ranges += db2.cached_work_editions_ranges
+                db.cached_work_ratings.update(db2.cached_work_ratings)
+                db.cached_work_reading_logs.update(db2.cached_work_reading_logs)
 
-            update_keys(keys, commit=False, commit_way_later=True,
-                        skip_id_check=skip_solr_id_check,
-                        update='quiet' if dry_run else 'update')
+            await update_keys(
+                keys,
+                commit=False,
+                skip_id_check=skip_solr_id_check,
+                update='quiet' if dry_run else 'update',
+            )
 
             seen += len(keys)
             plog.update(
                 elapsed=time.time() - start,
-                seen=seen, percent=seen / count,
-                cached=len(db.cache), ia_cache=len(db.ia_cache))
+                seen=seen,
+                percent=seen / count,
+                cached=len(db.cache),
+                ia_cache=len(db.ia_cache),
+            )
 
             db.clear_cache()
 
+
 if __name__ == '__main__':
     from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
+
     FnToCLI(main).run()

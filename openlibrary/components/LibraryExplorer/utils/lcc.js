@@ -9,7 +9,7 @@ const LCC_PARTS_RE = new RegExp(
         (?<letters>[A-HJ-NP-VWZ][A-Z-]{0,2})
         \s?
         (?<number>\d{1,4}(\.\d+)?)?
-        (?<cutter1>[\s.][^\d\s\[]{1,3}\d*\S*)?
+        (?<cutter1>\s*\.\s*[^\d\s\[]{1,3}\d*\S*)?
         (?<rest>\s.*)?
         $`.replace(/\s/g, ''),
     'i');

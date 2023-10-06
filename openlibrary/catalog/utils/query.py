@@ -1,36 +1,39 @@
-from __future__ import print_function
 import requests
 import web
 import json
 from time import sleep
-from six.moves import urllib
+import urllib
 import sys
 
 
 query_host = 'openlibrary.org'
 
+
 def urlopen(url, data=None):
     version = "%s.%s.%s" % sys.version_info[:3]
-    user_agent = 'Mozilla/5.0 (openlibrary; %s) Python/%s' % (__name__, version)
-    headers = {
-        'User-Agent': user_agent
-    }
-    
+    user_agent = f'Mozilla/5.0 (openlibrary; {__name__}) Python/{version}'
+    headers = {'User-Agent': user_agent}
+
     return requests.get(url, data=data, headers=headers)
+
 
 def jsonload(url):
     return urlopen(url).json()
 
+
 def urlread(url):
     return urlopen(url).content
+
 
 def set_query_host(host):
     global query_host
     query_host = host
 
+
 def has_cover(key):
     url = 'https://covers.openlibrary.org/' + key[1] + '/query?olid=' + key[3:]
     return urlread(url).strip() != '[]'
+
 
 def has_cover_retry(key):
     for attempt in range(5):
@@ -42,11 +45,14 @@ def has_cover_retry(key):
             pass
         sleep(2)
 
+
 def base_url():
     return "http://" + query_host
 
+
 def query_url():
     return base_url() + "/query.json?query="
+
 
 def get_all_ia():
     print('c')
@@ -58,11 +64,11 @@ def get_all_ia():
     while True:
         url = base_url() + "/api/things?query=" + web.urlquote(json.dumps(q))
         ret = jsonload(url)['result']
-        for i in ret:
-            yield i
+        yield from ret
         if not ret:
             return
         q['offset'] += limit
+
 
 def query(q):
     url = query_url() + urllib.parse.quote(json.dumps(q))
@@ -74,7 +80,7 @@ def query(q):
                 ret = urlread(url)
             if not ret:
                 print('ret == None')
-        except IOError:
+        except OSError:
             pass
         if ret:
             try:
@@ -90,6 +96,7 @@ def query(q):
                 print(url)
         sleep(20)
 
+
 def query_iter(q, limit=500, offset=0):
     q['limit'] = limit
     q['offset'] = offset
@@ -97,15 +104,21 @@ def query_iter(q, limit=500, offset=0):
         ret = query(q)
         if not ret:
             return
-        for i in ret:
-            yield i
+        yield from ret
         # We haven't got as many we have requested. No point making one more request
         if len(ret) < limit:
             break
         q['offset'] += limit
 
+
 def get_editions_with_covers_by_author(author, count):
-    q = {'type': '/type/edition', 'title_prefix': None, 'subtitle': None, 'title': None, 'authors': author}
+    q = {
+        'type': '/type/edition',
+        'title_prefix': None,
+        'subtitle': None,
+        'title': None,
+        'authors': author,
+    }
     with_covers = []
     for e in query_iter(q, limit=count):
         if not has_cover(e['key']):
@@ -115,6 +128,7 @@ def get_editions_with_covers_by_author(author, count):
             return with_covers
     return with_covers
 
+
 def version_iter(q, limit=500, offset=0):
     q['limit'] = limit
     q['offset'] = offset
@@ -123,9 +137,9 @@ def version_iter(q, limit=500, offset=0):
         v = jsonload(url)
         if not v:
             return
-        for i in query(q):
-            yield i
+        yield from query(q)
         q['offset'] += limit
+
 
 def withKey(key):
     url = base_url() + key + '.json'
@@ -137,6 +151,7 @@ def withKey(key):
         print('retry:', i)
         print(url)
 
+
 def get_marc_src(e):
     mc = get_mc(e['key'])
     if mc:
@@ -147,10 +162,15 @@ def get_marc_src(e):
         if src.startswith('marc:') and src != 'marc:' + mc:
             yield src[5:]
 
-def get_mc(key): # get machine comment
+
+def get_mc(key):  # get machine comment
     v = jsonload(base_url() + key + '.json?m=history')
 
-    comments = [i['machine_comment'] for i in v if i.get('machine_comment', None) and ':' in i['machine_comment']]
+    comments = [
+        i['machine_comment']
+        for i in v
+        if i.get('machine_comment', None) and ':' in i['machine_comment']
+    ]
     if len(comments) == 0:
         return None
     if len(set(comments)) != 1:

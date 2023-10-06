@@ -1,10 +1,15 @@
+import { declineRequest } from './merge-request-table/MergeRequestService';
+
 export function initAuthorMergePage() {
     $('#save').on('click', function () {
         const n = $('#mergeForm input[type=radio]:checked').length;
+        const confirmMergeButton = document.querySelector('#confirmMerge')
         if (n === 0) {
             $('#noMaster').dialog('open');
-        } else {
+        } else if (confirmMergeButton) {
             $('#confirmMerge').dialog('open');
+        } else {
+            $('#mergeForm').trigger('submit')
         }
         return false;
     });
@@ -33,6 +38,25 @@ export function initAuthorMergePage() {
             }
         }
     });
+    initRejectButton()
+}
+
+function initRejectButton() {
+    const rejectButton = document.querySelector('#reject-author-merge-btn')
+    if (rejectButton) {
+        rejectButton.addEventListener('click', function() {
+            rejectMerge()
+            rejectButton.disabled = true
+            const approveButton = document.querySelector('#save')
+            approveButton.disabled = true
+        })
+    }
+}
+
+function rejectMerge() {
+    const commentInput = document.querySelector('#author-merge-comment')
+    const mridInput = document.querySelector('#mrid-input')
+    declineRequest(Number(mridInput.value), commentInput.value)
 }
 
 /**
@@ -49,20 +73,27 @@ export function initAuthorView() {
 
     const data = {
         master: dataKeysJSON['master'],
-        duplicates: dataKeysJSON['duplicates']
+        duplicates: dataKeysJSON['duplicates'],
+        olids: dataKeysJSON['olids']
     };
+
+    const mrid = dataKeysJSON['mrid']
+    const comment = dataKeysJSON['comment']
+
+    if (mrid) {
+        data['mrid'] = mrid
+    }
+    if (comment) {
+        data['comment'] = comment
+    }
 
     $.ajax({
         url: '/authors/merge.json',
         type: 'POST',
         data: JSON.stringify(data),
-        success: function() {
+        complete: function() {
             $('#preMerge').fadeOut();
             $('#postMerge').fadeIn();
-        },
-        error: function() {
-            $('#preMerge').fadeOut();
-            $('#errorMerge').fadeIn();
         }
     });
 }

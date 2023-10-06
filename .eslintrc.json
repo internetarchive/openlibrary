@@ -12,7 +12,7 @@
     "jquery": true
   },
   "parserOptions": {
-    "parser": "babel-eslint",
+    "parser": "@babel/eslint-parser",
     "sourceType": "module",
     "ecmaVersion": 6
   },
@@ -38,6 +38,9 @@
     "quote-props": ["error", "as-needed"],
     "keyword-spacing": ["error", { "before": true, "after": true } ],
     "key-spacing": ["error", { "mode": "strict" }],
-    "vue/no-mutating-props": "off"
+    "vue/no-mutating-props": "off",
+    "vue/multi-word-component-names": ["error", {
+      "ignores": ["Bookshelf", "Shelf"]
+    }]
   }
 }

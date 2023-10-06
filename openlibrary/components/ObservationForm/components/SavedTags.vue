@@ -39,7 +39,7 @@ import Vue from 'vue'
 
 import OLChip from './OLChip'
 
-import { deleteObservation } from '../ObservationService'
+import { updateObservation } from '../ObservationService'
 
 
 export default {
@@ -108,12 +108,16 @@ export default {
             const valueArr = this.allSelectedValues[type];
             valueArr.splice(valueIndex, 1);
 
-            if (valueArr.length === 0) {
-                delete this.allSelectedValues[type]
-                Vue.delete(this.allSelectedValues, type)
-            }
-
-            deleteObservation(type, value, this.workKey, this.username)
+            updateObservation('delete', type, value, this.workKey, this.username)
+                .catch(() => {
+                    valueArr.push(value);
+                })
+                .finally(() => {
+                    if (valueArr.length === 0) {
+                        delete this.allSelectedValues[type]
+                        Vue.delete(this.allSelectedValues, type)
+                    }
+                })
 
             // Remove hover class:
             this.removeHoverClass(chipText);

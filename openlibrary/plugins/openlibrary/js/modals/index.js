@@ -1,6 +1,10 @@
-import { Toast } from '../Toast.js';
+import { FadingToast } from '../Toast.js';
 import '../../../../../static/css/components/metadata-form.less';
-import '../../../../../static/css/components/toast.less';
+
+
+export function initShareModal($modalLinks) {
+    addClickListeners($modalLinks, '400px');
+}
 
 /**
  * Initializes a collection of notes modals.
@@ -35,7 +39,7 @@ function addNotesModalButtonListeners() {
                 contentType: false,
                 processData: false,
                 success: function() {
-                    showToast($('body'), 'Update successful!')
+                    showToast('Update successful!')
                     $.colorbox.close();
                     $deleteButton.removeClass('hidden');
                 }
@@ -62,7 +66,7 @@ function addNotesModalButtonListeners() {
                 contentType: false,
                 processData: false,
                 success: function() {
-                    showToast($('body'), 'Note deleted.');
+                    showToast('Note deleted.');
                     $.colorbox.close();
                     $button.toggleClass('hidden');
                     $button.closest('form').find('textarea').val('');
@@ -96,7 +100,7 @@ export function addNotesPageButtonListeners() {
             contentType: false,
             processData: false,
             success: function() {
-                showToast($('body'), 'Update successful!')
+                showToast('Update successful!')
             }
         });
     });
@@ -118,7 +122,7 @@ export function addNotesPageButtonListeners() {
                 contentType: false,
                 processData: false,
                 success: function() {
-                    showToast($('body'), 'Note deleted.');
+                    showToast('Note deleted.');
 
                     // Remove list element from UI:
                     if ($parent.closest('.notes-list').children().length === 1) {
@@ -162,11 +166,11 @@ function addNotesReloadListeners($notesTextareas) {
 /**
  * Creates and displays a toast component.
  *
- * @param {JQuery} $parent Mount point for toast component
  * @param {String} message Message displayed in toast component
+ * @param {JQuery} $parent Mount point for toast component
  */
-function showToast($parent, message) {
-    new Toast($parent, message).show();
+function showToast(message, $parent) {
+    new FadingToast(message, $parent).show();
 }
 
 /**
@@ -184,7 +188,7 @@ export function initObservationsModal($modalLinks) {
 
     $modalLinks.each(function(_i, modalLinkElement) {
         const $element = $(modalLinkElement);
-        const context = $element.data('context');
+        const context = JSON.parse(getModalContent($element).dataset['context'])
 
         addObservationChangeListeners($element.next(), context);
     })
@@ -201,10 +205,22 @@ export function initObservationsModal($modalLinks) {
 function addClickListeners($modalLinks, maxWidth) {
     $modalLinks.each(function(_i, modalLinkElement) {
         $(modalLinkElement).on('click', function() {
-            const context = $(this).data('context');
-            displayModal(context.id, context.reloadId, maxWidth);
+            // Get context, which is attached to the modal content
+            const content = getModalContent($(this))
+            displayModal(content, maxWidth);
         })
     })
+}
+
+/**
+ * Gets reference to modal content that is associated with the
+ * given modal link.
+ *
+ * @param {JQuery} $modalLink Link that triggers a modal
+ * @returns {HTMLElement}  Reference to a modal's content
+ */
+function getModalContent($modalLink) {
+    return $modalLink.siblings()[0].children[0]
 }
 
 /**
@@ -339,14 +355,18 @@ function clearForm($form) {
  *
  * Optionally fires a reload event to a list with the given ID.
  *
- * @param {String} modalId  A string that uniquely identifies a modal.
- * @param {String} [reloadId]   ID of list receiving a reload event
+ * @param {HTMLElement} content  Content that will be displayed in the modal
+ * @param {String} maxWidth  The max width of the modal
  */
-function displayModal(modalId, reloadId, maxWidth) {
+function displayModal(content, maxWidth) {
+    const modalId = `#${content.id}`
+    const context = content.dataset['context'] ? JSON.parse(content.dataset['context']) : null;
+    const reloadId = context ? context.reloadId : null;
+
     $.colorbox({
         inline: true,
         opacity: '0.5',
-        href: `#${modalId}-metadata-form`,
+        href: modalId,
         width: '100%',
         maxWidth: maxWidth,
         onClosed: function() {
@@ -420,6 +440,6 @@ function submitObservation($input, workOlid, data, sectionType) {
             toastMessage = `${capitalizedType} save failed...`;
         })
         .always(function() {
-            showToast($input.closest('.metadata-form'), toastMessage);
+            showToast(toastMessage, $input.closest('.metadata-form'));
         });
 }

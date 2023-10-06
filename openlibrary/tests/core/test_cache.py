@@ -3,6 +3,7 @@ import time
 from openlibrary.core import cache
 from openlibrary.mocks import mock_memcache
 
+
 class Test_memcache_memoize:
     def test_encode_args(self):
         m = cache.memcache_memoize(None, key_prefix="foo")
@@ -17,6 +18,7 @@ class Test_memcache_memoize:
     def test_generate_key_prefix(self):
         def foo():
             pass
+
         m = cache.memcache_memoize(foo)
         assert m.key_prefix[:4] == "foo_"
 
@@ -58,16 +60,20 @@ class Test_memcache_memoize:
 
         assert m.memcache_get([20], {})[0] == 400
 
-    def test_timeout(self):
+    def test_timeout(self, monkeytime):
         m = self.square_memoize()
         m.timeout = 0.1
         s = m.stats
 
         assert m(10) == 100
-        time.sleep(0.1)
 
+        time.sleep(0.1)
         assert m(10) == 100
-        assert [s.calls, s.hits, s.updates, s.async_updates] == [2, 1, 1, 1]
+        assert [s.calls, s.hits, s.updates, s.async_updates] == [2, 1, 1, 0]
+
+        time.sleep(0.01)
+        assert m(10) == 100
+        assert [s.calls, s.hits, s.updates, s.async_updates] == [3, 2, 1, 1]
 
     def test_delete(self):
         m = self.square_memoize()
@@ -82,6 +88,7 @@ class Test_memcache_memoize:
         m(10)
         assert m.stats.updates == 2
 
+
 class Test_memoize:
     def teardown_method(self, method):
         cache.memory_cache.clear()
@@ -94,9 +101,9 @@ class Test_memoize:
 
     def test_signatures(self):
         def square(x):
-            """Returns square x.
-            """
+            """Returns square x."""
             return x * x
+
         msquare = cache.memoize(engine="memory", key="square")(square)
         assert msquare.__name__ == square.__name__
         assert msquare.__doc__ == square.__doc__

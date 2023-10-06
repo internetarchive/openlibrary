@@ -103,7 +103,7 @@
   font-size: 1.2em;
   // Increase clickable are to the recommended size (44x44px) according to
   // https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
-  // but avoid modifing the UI
+  // but avoid modifying the UI
   display: inline-block;
   position: relative;
   z-index: @z-index-level-1;
@@ -157,6 +157,10 @@ div.floater {
       padding: 0;
       flex: 1;
     }
+
+    &.right-justify {
+      justify-content: right;
+    }
   }
   &Body {
     padding: 20px;
@@ -180,6 +184,9 @@ div.floater {
       font-weight: normal;
     }
   }
+  .dialog--close-parent {
+    cursor: pointer;
+  }
   div#covers.input {
     max-height: 132px;
     overflow: hidden;
@@ -193,9 +200,16 @@ div.floater {
     padding: 3px;
     margin-left: 30px;
   }
+  input::file-selector-button{
+    cursor: pointer;
+  }
   button[type=submit] {
     font-size: 1.125em;
     width: auto !important;
+    cursor: pointer;
+  }
+  a {
+    cursor: pointer;
   }
 }
 

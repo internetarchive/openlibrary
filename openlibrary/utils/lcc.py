@@ -84,8 +84,9 @@ But it works for subject-related range queries, so we consider it sufficient.
 [1]: https://www.terkko.helsinki.fi/files/9666/classify_trnee_manual.pdf
 [2]: https://ejournals.bc.edu/index.php/ital/article/download/11585/9839/
 """
+from __future__ import annotations
 import re
-from typing import Iterable
+from collections.abc import Iterable
 
 from openlibrary.utils.ddc import collapse_multiple_space
 
@@ -93,24 +94,26 @@ from openlibrary.utils.ddc import collapse_multiple_space
 # LibraryExplorer/utils/lcc.js :(
 # KEEP IN SYNC!
 
-LCC_PARTS_RE = re.compile(r'''
+LCC_PARTS_RE = re.compile(
+    r'''
     ^
     # trailing dash only valid in "sortable" LCCs
     # Include W, even though technically part of NLM system
     (?P<letters>[A-HJ-NP-VWZ][A-Z-]{0,2})
     \s?
     (?P<number>\d{1,4}(\.\d+)?)?
-    (?P<cutter1>[\s.][^\d\s\[]{1,3}\d*\S*)?
+    (?P<cutter1>\s*\.\s*[^\d\s\[]{1,3}\d*\S*)?
     (?P<rest>\s.*)?
     $
-''', re.IGNORECASE | re.X)
+''',
+    re.IGNORECASE | re.X,
+)
 
 
-def short_lcc_to_sortable_lcc(lcc):
+def short_lcc_to_sortable_lcc(lcc: str) -> str | None:
     """
     See Sorting section of doc above
     :param str lcc: unformatted lcc
-    :rtype: basestring|None
     """
     m = LCC_PARTS_RE.match(clean_raw_lcc(lcc))
     if not m:
@@ -132,13 +135,12 @@ def short_lcc_to_sortable_lcc(lcc):
     return '%(letters)s%(number)013.8f%(cutter1)s%(rest)s' % parts
 
 
-def sortable_lcc_to_short_lcc(lcc):
+def sortable_lcc_to_short_lcc(lcc: str) -> str:
     """
     As close to the inverse of make_sortable_lcc as possible
-    :param basestring lcc:
-    :rtype: basestring
     """
     m = LCC_PARTS_RE.match(lcc)
+    assert m, f'Unable to parse LCC "{lcc}"'
     parts = m.groupdict()
     parts['letters'] = parts['letters'].strip('-')
     parts['number'] = parts['number'].strip('0').strip('.')  # Need to do in order!
@@ -148,24 +150,22 @@ def sortable_lcc_to_short_lcc(lcc):
     return '%(letters)s%(number)s%(cutter1)s%(rest)s' % parts
 
 
-def clean_raw_lcc(raw_lcc):
+def clean_raw_lcc(raw_lcc: str) -> str:
     """
     Remove noise in lcc before matching to LCC_PARTS_RE
-    :param basestring raw_lcc:
-    :rtype: basestring
     """
     lcc = collapse_multiple_space(raw_lcc.replace('\\', ' ').strip(' '))
-    if ((lcc.startswith('[') and lcc.endswith(']')) or
-            (lcc.startswith('(') and lcc.endswith(')'))):
+    if (lcc.startswith('[') and lcc.endswith(']')) or (
+        lcc.startswith('(') and lcc.endswith(')')
+    ):
         lcc = lcc[1:-1]
     return lcc
 
 
-def normalize_lcc_prefix(prefix):
+def normalize_lcc_prefix(prefix: str) -> str | None:
     """
     :param str prefix: An LCC prefix
     :return: Prefix transformed to be a prefix for sortable LCC
-    :rtype: str|None
 
     >>> normalize_lcc_prefix('A123')
     'A--0123'
@@ -198,16 +198,14 @@ def normalize_lcc_prefix(prefix):
             return None
 
 
-def normalize_lcc_range(start, end):
+def normalize_lcc_range(start: str, end: str) -> list[str | None]:
     """
     :param str start: LCC prefix to start range
     :param str end: LCC prefix to end range
     :return: range with prefixes being prefixes for sortable LCCs
-    :rtype: [str, str]
     """
     return [
-        lcc if lcc == '*' else short_lcc_to_sortable_lcc(lcc)
-        for lcc in (start, end)
+        lcc if lcc == '*' else short_lcc_to_sortable_lcc(lcc) for lcc in (start, end)
     ]
 
 
@@ -216,4 +214,5 @@ def choose_sorting_lcc(sortable_lccs: Iterable[str]) -> str:
     # Note we go to short-form first, so eg 'A123' beats 'A'
     def short_len(lcc: str) -> int:
         return len(sortable_lcc_to_short_lcc(lcc))
+
     return sorted(sortable_lccs, key=short_len, reverse=True)[0]

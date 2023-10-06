@@ -10,7 +10,7 @@ $if snippets:
   <section class="fulltext-excerpts" aria-label="search results from: $doc['edition']['title']">
     <ul>
       $for snippet in snippets:
-        $if snippet: 
+        $if snippet:
           <li class="fulltext-excerpt">
             &hellip;$:(snippet.replace("<", "&laquo;").replace(">", "&raquo;").replace("{{{", "<mark class='highlight'><strong>").replace("}}}", "</strong></mark>"))&hellip;
           </li>

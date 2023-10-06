@@ -1,0 +1,27 @@
+$def with (change, page=None)
+
+$ type = change.kind.replace("merge-","")[:-1]
+
+$if page is None:
+    Merged duplicate $type records.
+$else:
+    $ primary = change.data.get("master")
+    $ duplicates = change.data.get("duplicates", [])
+    $ pagetype = page.split("/")[1][:-1]
+    $if isinstance(page, str):
+        $ context = page
+        $ details = ''
+    $else:
+        $ context = page.key
+        $ details = 'See <a href="' + change.url() + '">details</a>.'
+
+    $if context == primary:
+        $# comment in the primary record
+        $ungettext('Merged %(count)d duplicate %(type)s record into this primary.', 'Merged %(count)d duplicate %(type)s records into this primary.', len(duplicates), count=len(duplicates), type=type)
+        $:details
+    $elif context in duplicates:
+        $# comment in the duplicate record
+        Marked as duplicate. $:details
+    $else:
+        $# comment in the affected records
+        Merged $pagetype into primary $type record. $:details

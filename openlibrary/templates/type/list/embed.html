@@ -3,21 +3,23 @@ $def with (list)
 $var title: $list.name
 
 $putctx('cssfile', 'form')
+$putctx("show_ol_shell", False)
 
 $ page = safeint(query_param('page'), 1) - 1
 $ page_size = 10
 
 $def render_seed_count(seed_count):
-    $ungettext("1 item", "%(count)d items", seed_count, count=seed_count)
+    $ungettext("%(count)d item", "%(count)d items", seed_count, count=seed_count)
 
 <div id="contentHead" style="margin-bottom:0;">
     <div class="superNav">
         <a href="/" title="$_('Visit Open Library')"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="$_('Open Library logo')" class="right"/></a>
 
         $ owner = list.get_owner()
-        <a href="$owner.key">$owner.displayname</a>
-        /
-        <a href="$owner.key/lists">$_('Lists')</a>
+        $if owner:
+            <a href="$owner.key">$owner.displayname</a>
+            /
+            <a href="$owner.key/lists">$_('Lists')</a>
     </div>
     <h1>
         $list.name
@@ -45,7 +47,6 @@ $def render_seed_count(seed_count):
             <span class="image">
                 <a href="$seed.url"><img src="$cover_url" height="70"/></a>
             </span>
-            <span class="seed-key hidden">$seed.key</span>
             <div class="details">
                 <div class="resultTitle">
                     $if seed.type in ['edition', 'work']:

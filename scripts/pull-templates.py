@@ -1,8 +1,7 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 """Script to pull templates and macros from an openlibrary instance to repository.
 """
-from __future__ import print_function
-import _init_path
+import _init_path  # Imported for its side effect of setting PYTHONPATH
 
 import os
 import web
@@ -10,10 +9,22 @@ from optparse import OptionParser
 
 from openlibrary.api import OpenLibrary, marshal
 
+
 def parse_options(args=None):
     parser = OptionParser(args)
-    parser.add_option("-s", "--server", dest="server", default="http://openlibrary.org/", help="URL of the openlibrary website (default: %default)")
-    parser.add_option("--template-root", dest="template_root", default="/upstream", help="Template root (default: %default)")
+    parser.add_option(
+        "-s",
+        "--server",
+        dest="server",
+        default="http://openlibrary.org/",
+        help="URL of the openlibrary website (default: %default)",
+    )
+    parser.add_option(
+        "--template-root",
+        dest="template_root",
+        default="/upstream",
+        help="Template root (default: %default)",
+    )
     parser.add_option(
         "--default-plugin",
         dest="default_plugin",
@@ -25,6 +36,7 @@ def parse_options(args=None):
 
     options.template_root = options.template_root.rstrip("/")
     return options, args
+
 
 def write(path, text):
     print("saving", path)
@@ -39,10 +51,12 @@ def write(path, text):
     f.write(text.encode("utf-8"))
     f.close()
 
+
 def delete(path):
     print("deleting", path)
     if os.path.exists(path):
         os.remove(path)
+
 
 def make_path(doc):
     if doc['key'].endswith(".css"):
@@ -54,7 +68,8 @@ def make_path(doc):
         key = web.lstrips(key, options.template_root)
 
         plugin = doc.get("plugin", options.default_plugin)
-        return "openlibrary/plugins/%s%s.html" % (plugin, key)
+        return f"openlibrary/plugins/{plugin}{key}.html"
+
 
 def get_value(doc, property):
     value = doc.get(property, "")
@@ -62,6 +77,7 @@ def get_value(doc, property):
         return value['value']
     else:
         return value
+
 
 def main():
     global options
@@ -83,6 +99,7 @@ def main():
                 write(make_path(doc), get_value(doc, 'body'))
             else:
                 delete(make_path(doc))
+
 
 if __name__ == "__main__":
     main()

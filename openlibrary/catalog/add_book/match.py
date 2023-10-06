@@ -1,7 +1,7 @@
 import web
 from deprecated import deprecated
-from openlibrary.catalog.merge.merge_marc import (
-    build_marc, editions_match as threshold_match)
+from openlibrary.catalog.utils import expand_record
+from openlibrary.catalog.merge.merge_marc import editions_match as threshold_match
 
 
 threshold = 875
@@ -28,7 +28,7 @@ def editions_match(candidate, existing):
     Used by add_book.load() -> add_book.find_match() to check whether two
     editions match.
 
-    :param dict candidate: Output of build_marc(import record candidate)
+    :param dict candidate: Output of expand_record(import record candidate)
     :param Thing existing: Edition object to be tested against candidate
     :rtype: bool
     :return: Whether candidate is sufficiently the same as the 'existing' edition
@@ -42,7 +42,15 @@ def editions_match(candidate, existing):
     rec2['full_title'] = existing.title
     if existing.subtitle:
         rec2['full_title'] += ' ' + existing.subtitle
-    for f in 'isbn', 'isbn_10', 'isbn_13', 'lccn', 'publish_country', 'publishers', 'publish_date':
+    for f in (
+        'isbn',
+        'isbn_10',
+        'isbn_13',
+        'lccn',
+        'publish_country',
+        'publishers',
+        'publish_date',
+    ):
         if existing.get(f):
             rec2[f] = existing[f]
     if existing.authors:
@@ -53,5 +61,5 @@ def editions_match(candidate, existing):
             if a.type.key == '/type/author':
                 assert a['name']
                 rec2['authors'].append({'name': a['name'], 'db_name': db_name(a)})
-    e2 = build_marc(rec2)
+    e2 = expand_record(rec2)
     return threshold_match(candidate, e2, threshold)

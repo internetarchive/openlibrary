@@ -2,15 +2,18 @@
 
 from openlibrary.utils import schema
 
+
 def get_schema(engine='postgres'):
     s = schema.Schema()
 
-    s.add_table('category',
+    s.add_table(
+        'category',
         s.column('id', 'serial', primary_key=True),
-        s.column('name', 'string')
+        s.column('name', 'string'),
     )
 
-    s.add_table('cover',
+    s.add_table(
+        'cover',
         s.column('id', 'serial', primary_key=True),
         s.column('category_id', 'integer', references='category'),
         s.column('olid', 'string'),
@@ -36,11 +39,12 @@ def get_schema(engine='postgres'):
     s.add_index('cover', 'deleted')
     s.add_index('cover', 'archived')
 
-    s.add_table("log",
+    s.add_table(
+        "log",
         s.column("id", "serial", primary_key=True),
         s.column("cover_id", "integer", references="cover"),
         s.column("action", "text"),
-        s.column("timestamp", "timestamp")
+        s.column("timestamp", "timestamp"),
     )
     s.add_index("log", "timestamp")
 

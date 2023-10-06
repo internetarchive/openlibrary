@@ -2,9 +2,11 @@
 Tests for the services module used by the admin interface.
 """
 
+
 def test_loader(serviceconfig):
     "Make sure services are loaded"
     from .. import services
+
     services = services.load_all(serviceconfig, "http://nagios.url")
     assert len(list(services)) == 2
     s = sorted(services)

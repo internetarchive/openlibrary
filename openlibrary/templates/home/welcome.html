@@ -9,7 +9,7 @@ $def with (test=False)
     <div
       class="carousel carousel--progressively-enhanced"
       id="welcome_carousel"
-      data-config="$json_encode(['#welcome_carousel', 3, 3, 2, 1, 1])"
+      data-config="$json_encode(['#welcome_carousel', 3, 2, 2, 1, 1])"
     >
       <div class="carousel__item tutorial__item">
         <a
@@ -55,6 +55,20 @@ $def with (test=False)
 
       <div class="carousel__item tutorial__item">
         <a
+        href="/search/inside"
+        tabindex="0"
+        data-ol-link-track="OnboardingCarouselClick|FulltextSearch"
+        >
+          <img src="/static/images/onboarding/fulltext.png" />
+          <div class="card__text">
+            <p>$_('Try Fulltext Search')</p>
+            <p class="small">$_('Find matching results within the text of millions of books')</p>
+          </div>
+        </a>
+      </div>
+
+      <div class="carousel__item tutorial__item">
+        <a
           href="/librarians"
           tabindex="0"
           data-ol-link-track="OnboardingCarouselClick|Librarians"
@@ -66,7 +80,7 @@ $def with (test=False)
           </div>
         </a>
       </div>
-      
+
       <div class="carousel__item tutorial__item">
         <a
           href="https://forms.gle/enM9rGoPBGB89kd4A"

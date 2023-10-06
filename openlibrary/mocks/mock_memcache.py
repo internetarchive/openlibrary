@@ -3,8 +3,10 @@
 import memcache
 import pytest
 
+
 class Client:
     """Mock memcache client."""
+
     def __init__(self, servers=None):
         servers = servers or []
         self.servers = servers
@@ -24,15 +26,12 @@ class Client:
             return False
 
     def delete(self, key):
-        try:
-            del self.cache[key]
-        except KeyError:
-            pass
+        self.cache.pop(key, None)
 
-@pytest.fixture
+
+@pytest.fixture()
 def mock_memcache(request, monkeypatch):
-    """This patches all the existing memcache connections to use mock memcache instance.
-    """
+    """This patches all the existing memcache connections to use mock memcache instance."""
     m = monkeypatch
     request.addfinalizer(m.undo)
 
@@ -40,8 +39,10 @@ def mock_memcache(request, monkeypatch):
 
     def proxy(name):
         method = getattr(mock_memcache, name)
+
         def f(self, *a, **kw):
             return method(*a, **kw)
+
         return f
 
     m.setattr(memcache.Client, "get", proxy("get"))
@@ -49,4 +50,3 @@ def mock_memcache(request, monkeypatch):
     m.setattr(memcache.Client, "add", proxy("add"))
 
     return mock_memcache
-

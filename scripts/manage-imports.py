@@ -1,14 +1,16 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
-import sys
-import web
+import datetime
 import json
 import logging
-import datetime
+import sys
 import time
-import _init_path
+
+import _init_path  # Imported for its side effect of setting PYTHONPATH
+import web
+
+from openlibrary.api import OLError, OpenLibrary
 from openlibrary.config import load_config
-from openlibrary.api import OpenLibrary, OLError
 from openlibrary.core.ia import get_candidate_ocaids
 from openlibrary.core.imports import Batch, ImportItem
 
@@ -23,11 +25,10 @@ def get_ol(servername=None):
 
 
 def ol_import_request(item, retries=5, servername=None, require_marc=True):
-    """Requests OL to import an item and retries on server errors.
-    """
+    """Requests OL to import an item and retries on server errors."""
     # logger uses batch_id:id for item.data identifier if no item.ia_id
-    _id = item.ia_id or "%s:%s" % (item.batch_id, item.id)
-    logger.info("importing %s", _id)
+    _id = item.ia_id or f"{item.batch_id}:{item.id}"
+    logger.info(f"importing {_id}")
     for i in range(retries):
         if i != 0:
             logger.info("sleeping for 5 seconds before next attempt.")
@@ -37,29 +38,33 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
             if item.data:
                 return ol.import_data(item.data)
             return ol.import_ocaid(item.ia_id, require_marc=require_marc)
-        except IOError as e:
-            logger.warning("Failed to contact OL server. error=%s", e)
+        except OSError as e:
+            logger.warning(f"Failed to contact OL server. error={e!r}")
         except OLError as e:
+            logger.warning(f"Failed to contact OL server. error={e!r}")
             if e.code < 500:
                 return e.text
-            logger.warning("Failed to contact OL server. error=%s", e)
 
 
 def do_import(item, servername=None, require_marc=True):
+    import os
+
+    logger.info(f"do_import START (pid:{os.getpid()})")
     response = ol_import_request(item, servername=servername, require_marc=require_marc)
     if response and response.startswith('{'):
         d = json.loads(response)
         if d.get('success') and 'edition' in d:
             edition = d['edition']
-            logger.info("success: %s %s", edition['status'], edition['key'])
+            logger.info(f"success: {edition['status']} {edition['key']}")
             item.set_status(edition['status'], ol_key=edition['key'])
         else:
             error_code = d.get('error_code', 'unknown-error')
-            logger.error("failed with error code: %s", error_code)
+            logger.error(f"failed with error code: {error_code}")
             item.set_status("failed", error=error_code)
     else:
-        logger.error("failed with internal error: %s", response)
+        logger.error(f"failed with internal error: {response}")
         item.set_status("failed", error='internal-error')
+    logger.info(f"do_import END (pid:{os.getpid()})")
 
 
 def add_items(batch_name, filename):
@@ -84,11 +89,11 @@ def import_ocaids(*ocaids, **kwargs):
     date = datetime.date.today()
     if not ocaids:
         raise ValueError("Must provide at least one ocaid")
-    batch_name = "import-%s-%04d%02d" % (ocaids[0], date.year, date.month)
+    batch_name = f"import-{ocaids[0]}-{date.year:04}{date.month:02}"
     try:
         batch = Batch.new(batch_name)
     except Exception as e:
-        logger.info(str(e))
+        logger.info(repr(e))
     try:
         batch.add_items(ocaids)
     except Exception:
@@ -99,12 +104,11 @@ def import_ocaids(*ocaids, **kwargs):
         if item:
             do_import(item, servername=servername, require_marc=require_marc)
         else:
-            logger.error("%s is not found in the import queue", ocaid)
+            logger.error(f"{ocaid} is not found in the import queue")
 
 
 def add_new_scans(args):
-    """Adds new scans from yesterday.
-    """
+    """Adds new scans from yesterday."""
     if args:
         datestr = args[0]
         yyyy, mm, dd = datestr.split("-")
@@ -114,7 +118,7 @@ def add_new_scans(args):
         date = datetime.date.today() - datetime.timedelta(days=1)
 
     items = get_candidate_ocaids(since_date=date)
-    batch_name = "new-scans-%04d%02d" % (date.year, date.month)
+    batch_name = f"new-scans-{date.year:04}{date.month:02}"
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch.add_items(items)
 
@@ -136,24 +140,35 @@ def import_item(args, **kwargs):
     servername = kwargs.get('servername', None)
     require_marc = not kwargs.get('no_marc', False)
     ia_id = args[0]
-    item = ImportItem.find_by_identifier(ia_id)
-    if item:
+    if item := ImportItem.find_by_identifier(ia_id):
         do_import(item, servername=servername, require_marc=require_marc)
     else:
-        logger.error("%s is not found in the import queue", ia_id)
+        logger.error(f"{ia_id} is not found in the import queue")
 
 
 def import_all(args, **kwargs):
+    import multiprocessing
+
     servername = kwargs.get('servername', None)
     require_marc = not kwargs.get('no_marc', False)
-    while True:
-        items = ImportItem.find_pending()
-        if not items:
-            logger.info("No pending items found. sleeping for a minute.")
-            time.sleep(60)
 
-        for item in items:
-            do_import(item, servername=servername, require_marc=require_marc)
+    # Use multiprocessing to call do_import on each item
+    with multiprocessing.Pool(processes=10) as pool:
+        while True:
+            logger.info("find_pending START")
+            items = ImportItem.find_pending()
+            logger.info("find_pending END")
+
+            if not items:
+                logger.info("No pending items found. sleeping for a minute.")
+                time.sleep(60)
+
+            logger.info("starmap START")
+            pool.starmap(
+                do_import, ((item, servername, require_marc) for item in items)
+            )
+            logger.info("starmap END")
+
 
 def retroactive_import(start=None, stop=None, servername=None):
     """Retroactively searches and imports all previously missed books
@@ -163,9 +178,10 @@ def retroactive_import(start=None, stop=None, servername=None):
     """
     scribe3_repub_states = [19, 20, 22]
     items = get_candidate_ocaids(
-        scanned_within_days=None, repub_states=scribe3_repub_states)[start:stop]
+        scanned_within_days=None, repub_states=scribe3_repub_states
+    )[start:stop]
     date = datetime.date.today()
-    batch_name = "new-scans-%04d%02d" % (date.year, date.month)
+    batch_name = f"new-scans-{date.year:04}{date.month:02}"
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch.add_items(items)
     for item in batch.get_items():
@@ -175,20 +191,30 @@ def retroactive_import(start=None, stop=None, servername=None):
 def main():
     if "--config" in sys.argv:
         index = sys.argv.index("--config")
-        configfile = sys.argv[index+1]
-        del sys.argv[index:index+2]
+        configfile = sys.argv[index + 1]
+        del sys.argv[index : index + 2]
     else:
         import os
-        configfile = os.path.abspath(os.path.join(
-            os.path.dirname(__file__), os.pardir, os.pardir,
-            'openlibrary', 'conf', 'openlibrary.yml'))
+
+        configfile = os.path.abspath(
+            os.path.join(
+                os.path.dirname(__file__),
+                os.pardir,
+                os.pardir,
+                'openlibrary',
+                'conf',
+                'openlibrary.yml',
+            )
+        )
 
     load_config(configfile)
 
     from infogami import config
 
     cmd = sys.argv[1]
-    args, flags = [], {'servername': config.get('servername', 'https://openlibrary.org')}
+    args, flags = [], {
+        'servername': config.get('servername', 'https://openlibrary.org')
+    }
     for i in sys.argv[2:]:
         if i.startswith('--'):
             flags[i[2:]] = True
@@ -196,9 +222,12 @@ def main():
             args.append(i)
 
     if cmd == "import-retro":
-        start, stop = (int(a) for a in args) if \
-                      (args and len(args) == 2) else (None, None)
-        return retroactive_import(start=start, stop=stop, servername=flags['servername'])
+        start, stop = (
+            (int(a) for a in args) if (args and len(args) == 2) else (None, None)
+        )
+        return retroactive_import(
+            start=start, stop=stop, servername=flags['servername']
+        )
     if cmd == "import-ocaids":
         return import_ocaids(*args, **flags)
     if cmd == "add-items":
@@ -212,7 +241,7 @@ def main():
     elif cmd == "import-item":
         return import_item(args, **flags)
     else:
-        logger.error("Unknown command: %s", cmd)
+        logger.error(f"Unknown command: {cmd}")
 
 
 if __name__ == "__main__":

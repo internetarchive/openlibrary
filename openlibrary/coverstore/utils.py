@@ -9,26 +9,24 @@ import string
 
 import requests
 import web
-from six.moves.urllib.parse import splitquery, unquote, unquote_plus
-from six.moves.urllib.parse import urlencode as real_urlencode
+from urllib.parse import urlsplit, urlunsplit, parse_qsl, unquote, unquote_plus  # type: ignore[attr-defined]
+from urllib.parse import urlencode as real_urlencode
 
 from openlibrary.coverstore import config, oldb
 
-try:
-    file           # Python 2
-except NameError:  # Python 3
-    from io import IOBase as file
+from io import IOBase as file
+import contextlib
 
 socket.setdefaulttimeout(10.0)
 
 
 def safeint(value, default=None):
     """
-        >>> safeint('1')
-        1
-        >>> safeint('x')
-        >>> safeint('x', 0)
-        0
+    >>> safeint('1')
+    1
+    >>> safeint('x')
+    >>> safeint('x', 0)
+    0
     """
     try:
         return int(value)
@@ -48,15 +46,16 @@ def ol_things(key, value):
             'type': '/type/edition',
             key: value,
             'sort': 'last_modified',
-            'limit': 10
+            'limit': 10,
         }
         try:
-            d = dict(query=json.dumps(query))
+            d = {"query": json.dumps(query)}
             result = download(get_ol_url() + '/api/things?' + real_urlencode(d))
             result = json.loads(result)
             return result['result']
-        except IOError:
+        except OSError:
             import traceback
+
             traceback.print_exc()
             return []
 
@@ -67,46 +66,48 @@ def ol_get(olkey):
     else:
         try:
             return json.loads(download(get_ol_url() + olkey + ".json"))
-        except IOError:
+        except OSError:
             return None
 
 
-USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
+USER_AGENT = (
+    "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
+)
 
 
 def download(url):
     return requests.get(url, headers={'User-Agent': USER_AGENT}).content
 
 
-def urldecode(url):
+def urldecode(url: str) -> tuple[str, dict[str, str]]:
     """
-        >>> urldecode('http://google.com/search?q=bar&x=y')
-        ('http://google.com/search', {'q': 'bar', 'x': 'y'})
-        >>> urldecode('http://google.com/')
-        ('http://google.com/', {})
+    >>> urldecode('http://google.com/search?q=bar&x=y')
+    ('http://google.com/search', {'q': 'bar', 'x': 'y'})
+    >>> urldecode('http://google.com/')
+    ('http://google.com/', {})
     """
-    base, query = splitquery(url)
-    query = query or ""
-    items = [item.split('=', 1) for item in query.split('&') if '=' in item]
-    d = dict((unquote(k), unquote_plus(v)) for (k, v) in items)
+    split_url = urlsplit(url)
+    items = parse_qsl(split_url.query)
+    d = {unquote(k): unquote_plus(v) for (k, v) in items}
+    base = urlunsplit(split_url._replace(query=''))
     return base, d
 
 
 def changequery(url, **kw):
     """
-        >>> changequery('http://google.com/search?q=foo', q='bar', x='y')
-        'http://google.com/search?q=bar&x=y'
+    >>> changequery('http://google.com/search?q=foo', q='bar', x='y')
+    'http://google.com/search?q=bar&x=y'
     """
     base, params = urldecode(url)
     params.update(kw)
     return base + '?' + real_urlencode(params)
 
 
-def read_file(path, offset, size, chunk=50*1024):
+def read_file(path, offset, size, chunk=50 * 1024):
     """Returns an iterator over file data at specified offset and size.
 
-        >>> len(b"".join(read_file('/dev/urandom', 100, 10000)))
-        10000
+    >>> len(b"".join(read_file('/dev/urandom', 100, 10000)))
+    10000
     """
     with open(path, "rb") as f:
         f.seek(offset)
@@ -116,14 +117,12 @@ def read_file(path, offset, size, chunk=50*1024):
             if data:
                 yield data
             else:
-                raise IOError("file truncated")
+                raise OSError("file truncated")
 
 
 def rm_f(filename):
-    try:
+    with contextlib.suppress(OSError):
         os.remove(filename)
-    except OSError:
-        pass
 
 
 chars = string.ascii_letters + string.digits
@@ -155,7 +154,9 @@ def urlencode(data):
         def encode(key, value, out):
             if isinstance(value, file):
                 out.append('--' + BOUNDARY)
-                out.append('Content-Disposition: form-data; name="%s"; filename="%s"' % (key, value.name))
+                out.append(
+                    f'Content-Disposition: form-data; name="{key}"; filename="{value.name}"'
+                )
                 out.append('Content-Type: %s' % get_content_type(value.name))
                 out.append('')
                 out.append(value.read())
@@ -180,4 +181,5 @@ def urlencode(data):
 
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

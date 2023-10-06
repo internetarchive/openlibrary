@@ -8,9 +8,11 @@ class MockSite:
     def _get_backreferences(self, thing):
         return {}
 
+
 class MockLendableEdition(models.Edition):
     def get_ia_collections(self):
         return ['lendinglibrary']
+
 
 class MockPrivateEdition(models.Edition):
     def get_ia_collections(self):
@@ -19,11 +21,7 @@ class MockPrivateEdition(models.Edition):
 
 class TestEdition:
     def mock_edition(self, edition_class):
-        data = {
-            "key": "/books/OL1M",
-            "type": {"key": "/type/edition"},
-            "title": "foo"
-        }
+        data = {"key": "/books/OL1M", "type": {"key": "/type/edition"}, "title": "foo"}
         return edition_class(MockSite(), "/books/OL1M", data=data)
 
     def test_url(self):
@@ -62,11 +60,7 @@ class TestEdition:
 
 class TestAuthor:
     def test_url(self):
-        data = {
-            "key": "/authors/OL1A",
-            "type": {"key": "/type/author"},
-            "name": "foo"
-        }
+        data = {"key": "/authors/OL1A", "type": {"key": "/type/author"}, "name": "foo"}
 
         e = models.Author(MockSite(), "/authors/OL1A", data=data)
 
@@ -84,9 +78,7 @@ class TestAuthor:
 
 class TestSubject:
     def test_url(self):
-        subject = models.Subject({
-            "key": "/subjects/love"
-        })
+        subject = models.Subject({"key": "/subjects/love"})
         assert subject.url() == "/subjects/love"
         assert subject.url("/lists") == "/subjects/love/lists"
 
@@ -100,13 +92,14 @@ class TestList:
 
     def _test_list_owner(self, user_key):
         from openlibrary.mocks.mock_infobase import MockSite
+
         site = MockSite()
         list_key = user_key + "/lists/OL1L"
 
         self.save_doc(site, "/type/user", user_key)
         self.save_doc(site, "/type/list", list_key)
 
-        list =  site.get(list_key)
+        list = site.get(list_key)
         assert list is not None
         assert isinstance(list, models.List)
 
@@ -114,9 +107,42 @@ class TestList:
         assert list.get_owner().key == user_key
 
     def save_doc(self, site, type, key, **fields):
-        d = {
-            "key": key,
-            "type": {"key": type}
-        }
+        d = {"key": key, "type": {"key": type}}
         d.update(fields)
         site.save(d)
+
+
+class TestWork:
+    def test_resolve_redirect_chain(self, monkeypatch):
+        # e.g. https://openlibrary.org/works/OL2163721W.json
+
+        # Chain:
+        type_redir = {"key": "/type/redirect"}
+        type_work = {"key": "/type/work"}
+        work1_key = "/works/OL123W"
+        work2_key = "/works/OL234W"
+        work3_key = "/works/OL345W"
+        work4_key = "/works/OL456W"
+        work1 = {"key": work1_key, "location": work2_key, "type": type_redir}
+        work2 = {"key": work2_key, "location": work3_key, "type": type_redir}
+        work3 = {"key": work3_key, "location": work4_key, "type": type_redir}
+        work4 = {"key": work4_key, "type": type_work}
+
+        import web
+        from openlibrary.mocks import mock_infobase
+
+        site = mock_infobase.MockSite()
+        site.save(web.storage(work1))
+        site.save(web.storage(work2))
+        site.save(web.storage(work3))
+        site.save(web.storage(work4))
+        monkeypatch.setattr(web.ctx, "site", site, raising=False)
+
+        work_key = "/works/OL123W"
+        redirect_chain = models.Work.get_redirect_chain(work_key)
+        assert redirect_chain
+        resolved_work = redirect_chain[-1]
+        assert (
+            str(resolved_work.type) == type_work['key']
+        ), f"{resolved_work} of type {resolved_work.type} should be {type_work['key']}"
+        assert resolved_work.key == work4_key, f"Should be work4.key: {resolved_work}"

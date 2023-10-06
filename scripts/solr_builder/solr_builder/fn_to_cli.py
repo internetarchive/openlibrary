@@ -1,6 +1,12 @@
 import asyncio
+import types
 import typing
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, Namespace
+from argparse import (
+    ArgumentParser,
+    ArgumentDefaultsHelpFormatter,
+    BooleanOptionalAction,
+    Namespace,
+)
 
 
 class FnToCLI:
@@ -25,24 +31,25 @@ class FnToCLI:
     if __name__ == '__main__':
         FnToCLI(my_func).run()
     """
+
     def __init__(self, fn: typing.Callable):
         self.fn = fn
-        arg_names = fn.__code__.co_varnames[:fn.__code__.co_argcount]
-        annotations = fn.__annotations__
-        num_required = len(arg_names) - len(fn.__defaults__)  # type: ignore
+        arg_names = fn.__code__.co_varnames[: fn.__code__.co_argcount]
+        annotations = typing.get_type_hints(fn)
+        defaults: list = fn.__defaults__ or []  # type: ignore[assignment]
+        num_required = len(arg_names) - len(defaults)
         default_args = arg_names[num_required:]
-        defaults = {
-            arg: default
-            for [arg, default] in zip(default_args, fn.__defaults__)  # type: ignore
+        defaults: dict = {  # type: ignore[no-redef]
+            arg: default for [arg, default] in zip(default_args, defaults)
         }
 
         docs = fn.__doc__ or ''
         arg_docs = self.parse_docs(docs)
         self.parser = ArgumentParser(
             description=docs.split(':param', 1)[0],
-            formatter_class=ArgumentDefaultsHelpFormatter
+            formatter_class=ArgumentDefaultsHelpFormatter,
         )
-        self.args: typing.Optional[Namespace] = None
+        self.args: Namespace | None = None
         for arg in arg_names:
             optional = arg in defaults
             cli_name = arg.replace('_', '-')
@@ -50,7 +57,7 @@ class FnToCLI:
             if arg in annotations:
                 arg_opts = self.type_to_argparse(annotations[arg])
             elif arg in defaults:
-                arg_opts = self.type_to_argparse(type(defaults[arg]))
+                arg_opts = self.type_to_argparse(type(defaults[arg]))  # type: ignore[call-overload]
             else:
                 raise ValueError(f'{arg} has no type information')
 
@@ -59,7 +66,7 @@ class FnToCLI:
 
             if optional:
                 opt_name = f'--{cli_name}' if len(cli_name) > 1 else f'-{cli_name}'
-                self.parser.add_argument(opt_name, default=defaults[arg], **arg_opts)
+                self.parser.add_argument(opt_name, default=defaults[arg], **arg_opts)  # type: ignore[call-overload]
             else:
                 self.parser.add_argument(cli_name, **arg_opts)
 
@@ -71,10 +78,7 @@ class FnToCLI:
         if not self.args:
             self.parse_args()
 
-        return {
-            k.replace('-', '_'): v
-            for k, v in self.args.__dict__.items()
-        }
+        return {k.replace('-', '_'): v for k, v in self.args.__dict__.items()}
 
     def run(self):
         args_dicts = self.args_dict()
@@ -88,22 +92,28 @@ class FnToCLI:
         params = docs.strip().split(':param ')[1:]
         params = [p.strip() for p in params]
         params = [p.split(':', 1) for p in params if p]
-        return {
-            name: docs.strip()
-            for [name, docs] in params
-        }
+        return {name: docs.strip() for [name, docs] in params}
 
     @staticmethod
-    def type_to_argparse(typ):
+    def type_to_argparse(typ: type) -> dict:
+        if FnToCLI.is_optional(typ):
+            return FnToCLI.type_to_argparse(
+                next(t for t in typing.get_args(typ) if not isinstance(t, type(None)))
+            )
         if typ == bool:
-            from argparse import BooleanOptionalAction  # type: ignore
             return {'type': typ, 'action': BooleanOptionalAction}
         if typ in (int, str, float):
             return {'type': typ}
-        if typ == typing.List[str]:
+        if typ == list[str]:
             return {'nargs': '*'}
-        if not hasattr(typ, '__origin__'):
-            raise ValueError(f'Cannot determine type of {typ}')
-        if typ.__origin__ == typing.Literal:
-            return {'choices': typ.__args__}
+        if typing.get_origin(typ) == typing.Literal:
+            return {'choices': typing.get_args(typ)}
         raise ValueError(f'Unsupported type: {typ}')
+
+    @staticmethod
+    def is_optional(typ: type) -> bool:
+        return (
+            (typing.get_origin(typ) is typing.Union or isinstance(typ, types.UnionType))
+            and type(None) in typing.get_args(typ)
+            and len(typing.get_args(typ)) == 2
+        )

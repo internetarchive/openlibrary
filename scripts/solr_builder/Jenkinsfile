@@ -11,14 +11,16 @@ pipeline {
     }
   }
   parameters {
-    string(name: 'PARTIAL_IMPORT_SIZE', defaultValue: '', description: 'If set to a number, will only import that many records from the dump (useful for testing!)')
+    booleanParam(name: 'WIPE_OLD_POSTGRES', defaultValue: false, description: 'If true, removes the current postgres')
     booleanParam(name: 'REUSE_POSTGRES', defaultValue: false, description: 'If true, assumes a functioning postgres is running/correct')
+
+    booleanParam(name: 'WIPE_OLD_SOLR', defaultValue: false, description: 'If true, removes the current solr')
     booleanParam(name: 'INTO_SOLR_FROM_DUMP', defaultValue: true, description: 'If true, reindexes dump into solr')
     booleanParam(name: 'INDEX_WORKS', defaultValue: true, description: 'If true, reindexes works into solr')
     booleanParam(name: 'INDEX_ORPHANS', defaultValue: true, description: 'If true, reindexes orphans into solr')
     booleanParam(name: 'INDEX_SUBJECTS', defaultValue: true, description: 'If true, reindexes subjects into solr')
     booleanParam(name: 'INDEX_AUTHORS', defaultValue: true, description: 'If true, reindexes authors into solr')
-    string(name: 'MAX_CORES', defaultValue: '12', description: 'Max number of simultaneous cores')
+    string(name: 'MAX_CORES', defaultValue: '18', description: 'Max number of simultaneous cores')
   }
   environment {
     // The *host* location of Jenkins directory
@@ -34,30 +36,43 @@ pipeline {
       environment {
         // Where to download the ol full dump from
         OL_DUMP_LINK = 'https://openlibrary.org/data/ol_dump_latest.txt.gz'
+        OL_RATINGS_LINK = 'https://openlibrary.org/data/ol_dump_ratings_latest.txt.gz'
+        OL_READING_LOG_LINK = 'https://openlibrary.org/data/ol_dump_reading-log_latest.txt.gz'
         // Get the date-suffixed name of the latest dump
-        FULL_OL_DUMP_FILE = sh(script: "curl '${env.OL_DUMP_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
-        // Nmae of partial dump file
-        PARTIAL_OL_DUMP_FILE = "partial_${env.FULL_OL_DUMP_FILE}"
-        // Use partial dump file, if specified so in the parameters
-        OL_DUMP_FILE = "${params.PARTIAL_IMPORT_SIZE ? env.PARTIAL_OL_DUMP_FILE : env.FULL_OL_DUMP_FILE}"
+        // eg ol_dump_2021-09-13.txt.gz
+        OL_DUMP_FILE = sh(script: "curl '${env.OL_DUMP_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
+        OL_RATINGS_FILE = sh(script: "curl '${env.OL_RATINGS_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
+        OL_READING_LOG_FILE = sh(script: "curl '${env.OL_READING_LOG_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
       }
       stages {
+        stage('Wipe old postgres') {
+          when { expression { return params.WIPE_OLD_POSTGRES } }
+          steps {
+            dir(env.HOST_SOLR_BUILDER_DIR) {
+              sh(label: 'Stop running db',
+                script: 'docker rm -f -v solr_builder-db-1 solr_builder-adminer-1 || true')
+
+              sh(label: 'Remove db volume',
+                script: 'docker volume rm solr_builder_postgres-data || true')
+            }
+          }
+        }
         stage('Setup') {
           parallel {
             stage('Launch postgres containers') {
               steps {
                 dir(env.HOST_SOLR_BUILDER_DIR) {
                   sh(label: 'Launch the database container',
-                    script: 'docker-compose up -d --no-deps db')
+                    script: 'docker compose up -d --no-deps db')
 
                   sh(label: 'optional; GUI for the database at port 8087',
-                    script: 'docker-compose up -d --no-deps adminer')
+                    script: 'docker compose up -d --no-deps adminer')
 
                   // Wait for postgres
                   sleep 10
 
                   sh(label: 'Create the table to store the dump',
-                    script: 'docker-compose exec -T -u postgres db psql -d postgres -f sql/create-dump-table.sql')
+                    script: 'docker compose exec -T -u postgres db psql -d postgres -f sql/create-dump-table.sql')
                 }
               }
             }
@@ -67,14 +82,8 @@ pipeline {
                   steps {
                     dir(env.DUMP_DIR) {
                       sh "wget --progress=dot:giga --trust-server-names --no-clobber ${env.OL_DUMP_LINK}"
-                    }
-                  }
-                }
-                stage('Create partial dump file') {
-                  when { expression { return params.PARTIAL_IMPORT_SIZE } }
-                  steps {
-                    dir(env.DUMP_DIR) {
-                      sh "zcat ${env.FULL_OL_DUMP_FILE} | head -n ${params.PARTIAL_IMPORT_SIZE} | gzip > ${env.PARTIAL_OL_DUMP_FILE}"
+                      sh "wget --progress=dot:giga --trust-server-names --no-clobber ${env.OL_RATINGS_LINK}"
+                      sh "wget --progress=dot:giga --trust-server-names --no-clobber ${env.OL_READING_LOG_LINK}"
                     }
                   }
                 }
@@ -85,37 +94,14 @@ pipeline {
         stage('Populate postgres') {
           stages {
             stage('Import dump into postgres') {
-              environment {
-                PARALLEL_PROCESSES = '6'
-              }
               steps {
                 dir(env.HOST_SOLR_BUILDER_DIR) {
                   sh(label: 'Import dump into postgres',
-                    script: "./psql-import-in-chunks.sh ${env.DUMP_DIR}/${env.OL_DUMP_FILE} ${env.PARALLEL_PROCESSES}")
-                  
-                  waitUntil {
-                    script {
-                      // Once completed, the log file says "COPY 8828224" (or however many records)
-                      // error if we have anything else
-                      // (cat at the end to avoid grep exiting when no match)
-                      def error_output = sh(script: 'cat logs/psql-chunk-* | grep -v COPY | cat', returnStdout: true)
-                      echo "Assert no psql error"
-                      assert !error_output
-                      
-                      def cores_completed = sh(script: 'cat logs/psql-chunk-* | grep COPY | wc -l', returnStdout: true).trim()
-                      echo "Completed ${cores_completed} core(s) of ${env.PARALLEL_PROCESSES}"
-                      sleep 15*60 // By default this checks every 15s; that's unnecessary for a ~3.5 hour process
-                      return cores_completed == env.PARALLEL_PROCESSES
-                    }
-                  }
-                }
-              }
-              post {
-                always {
-                  dir(env.HOST_SOLR_BUILDER_DIR) {
-                    sh 'for f in logs/psql-chunk-*.txt; do echo "$f: "; cat "$f"; done > logs/psql-import.log'
-                    archiveArtifacts artifacts: 'logs/psql-import.log'
-                  }
+                    script: "docker compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_DUMP_FILE} test")
+                  sh(label: 'Import ratings',
+                    script: "docker compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_RATINGS_FILE} ratings")
+                  sh(label: 'Import reading log',
+                    script: "docker compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_READING_LOG_FILE} reading_log")
                 }
               }
             }
@@ -136,7 +122,7 @@ pipeline {
             stage('Create postgres indices') {
               steps {
                 dir(env.HOST_SOLR_BUILDER_DIR) {
-                  sh "docker-compose exec -T -u postgres db psql postgres -f sql/create-indices.sql | ts '[%Y-%m-%d %H:%M:%S]'"
+                  sh "docker compose exec -T -u postgres db psql postgres -f sql/create-indices.sql | ts '[%Y-%m-%d %H:%M:%S]'"
                 }
               }
             }
@@ -144,17 +130,10 @@ pipeline {
         }
       }
       post {
-        always {
-          dir(env.DUMP_DIR) {
-            sh(label: 'Remove partial dump file (if we had one)',
-              script: "rm -f ${env.PARTIAL_OL_DUMP_FILE}")
-          }
-        }
-
         unsuccessful {
           dir(env.HOST_SOLR_BUILDER_DIR) {
             sh (label: 'Cleanup postgres',
-              script:'docker-compose stop db adminer; docker-compose rm -f db adminer; docker volume rm solr_builder_postgres-data')
+              script:'docker compose stop db adminer; docker compose rm -f db adminer; docker volume rm solr_builder_postgres-data')
           }
         }
       }
@@ -167,10 +146,22 @@ pipeline {
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
               sh(label: 'Stop the db containers',
-                script: 'docker-compose stop db adminer')
+                script: 'docker compose stop db adminer')
 
               sh(label: 'Start the db containers',
-                script: 'docker-compose up -d --no-deps db adminer')
+                script: 'docker compose up -d --no-deps db adminer')
+            }
+          }
+        }
+        stage('Wipe old solr') {
+          when { expression { return params.WIPE_OLD_SOLR } }
+          steps {
+            dir(env.HOST_SOLR_BUILDER_DIR) {
+              sh(label: 'Stop solr if running',
+                script: 'docker rm -f -v solr_builder-solr-1 || true')
+
+              sh(label: 'Remove solr volume',
+                script: 'docker volume rm solr_builder_solr-data || true')
             }
           }
         }
@@ -178,13 +169,13 @@ pipeline {
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
               sh(label: 'Launch solr',
-                script: 'docker-compose up --no-deps -d solr')
+                script: 'docker compose up --no-deps -d solr')
 
               sh(label: 'Build "lite" ol environment',
-                script: 'docker-compose build --pull ol')
-              
+                script: 'docker compose build --pull ol')
+
               sh(label: 'Build the cython files',
-                script: 'docker-compose run --rm ol ./build-cython.sh')
+                script: 'docker compose run --rm ol ./build-cython.sh')
             }
           }
         }
@@ -197,8 +188,8 @@ pipeline {
                   when { expression { return params.INDEX_WORKS } }
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh "CHUNK_ETA=70 docker-compose run --name ol_run_works --rm -T ol ./index-type.sh work ${params.MAX_CORES} works"
-                      solr_commit('solr')
+                      sh "CHUNK_ETA=70 docker compose run --name ol_run_works --rm -T ol ./index-type.sh work ${params.MAX_CORES} works"
+                      solr_commit()
                     }
                   }
                   post {
@@ -218,8 +209,8 @@ pipeline {
                   when { expression { return params.INDEX_ORPHANS } }
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh "CHUNK_ETA=35 docker-compose run --name ol_run_orphans --rm -T ol ./index-type.sh orphan ${params.MAX_CORES} orphans"
-                      solr_commit('solr')
+                      sh "CHUNK_ETA=35 docker compose run --name ol_run_orphans --rm -T ol ./index-type.sh orphan ${params.MAX_CORES} orphans"
+                      solr_commit()
                     }
                   }
                   post {
@@ -241,7 +232,7 @@ pipeline {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
                       sh """
                       for subject_type in subject person place time; do
-                        docker-compose run --name ol_run_subjects_\$subject_type --rm -T ol \
+                        docker compose run --name ol_run_subjects_\$subject_type --rm -T ol \
                           python ./solr_builder/index_subjects.py \
                             \$subject_type \
                             --chunk-size 10000 \
@@ -250,7 +241,7 @@ pipeline {
                             --skip-id-check
                       done
                       """
-                      solr_commit('solr')
+                      solr_commit()
                     }
                   }
                 }
@@ -258,8 +249,8 @@ pipeline {
                   when { expression { return params.INDEX_AUTHORS } }
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh "docker-compose run --name ol_run_authors --rm -T ol ./index-type.sh author ${params.MAX_CORES} authors"
-                      solr_commit('solr')
+                      sh "docker compose run --name ol_run_authors --rm -T ol ./index-type.sh author ${params.MAX_CORES} authors"
+                      solr_commit()
                     }
                   }
                   post {
@@ -289,7 +280,7 @@ pipeline {
 //                 unsuccessful {
 //                   dir(env.HOST_SOLR_BUILDER_DIR) {
 //                     sh(label: 'Remove solr service',
-//                       script:'docker-compose stop solr; docker-compose rm -f solr; docker volume rm solr_builder_solr-data')
+//                       script:'docker compose stop solr; docker compose rm -f solr; docker volume rm solr_builder_solr-data')
 //                   }
 //                 }
               }
@@ -301,7 +292,7 @@ pipeline {
           // really be needed after that.
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
-              sh "docker-compose exec -T solr curl -s http://localhost:8983/solr/openlibrary/update?optimize=true&maxSegments=1"
+              sh "docker compose exec -T solr curl -s 'http://localhost:8983/solr/openlibrary/update?optimize=true&maxSegments=1'"
             }
           }
         }
@@ -315,14 +306,7 @@ pipeline {
   }
 }
 
-String solr_query_count(String solr_name, String type_to_count) {
-  def solr_url = "http://localhost:8983/solr/select/?q=type%3A${type_to_count}&rows=0"
-  def count_cmd = "docker-compose exec -T ${solr_name} curl -s '${solr_url}' | xmlstarlet sel -t -v '//result/@numFound'"
-  def count = sh(script: count_cmd, returnStdout: true).trim()
-  return count
-}
-
-void solr_commit(String solr_name) {
+void solr_commit() {
   sh(label: 'Solr commit the changes',
-    script: "docker-compose exec -T ${solr_name} curl http://localhost:8983/solr/openlibrary/update?commit=true")
+    script: "docker compose exec -T solr curl http://localhost:8983/solr/openlibrary/update?commit=true")
 }

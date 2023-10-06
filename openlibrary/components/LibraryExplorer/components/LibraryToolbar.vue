@@ -130,6 +130,12 @@
                   <label>
                     <input type="radio" v-model="sortState.order" value="old">Oldest
                   </label>
+                  <label>
+                    <input type="radio" v-model="sortState.order" value="rating">Top Rated
+                  </label>
+                  <label>
+                    <input type="radio" v-model="sortState.order" value="readinglog">Reading Log
+                  </label>
                   <label title="I.e. Classification order. Note some books maybe missing when sorting by shelf order–we're working on it.">
                     <input type="radio" v-model="sortState.order" :value="`${settingsState.selectedClassification.field}_sort asc`" >Shelf Order
                   </label>
@@ -243,7 +249,8 @@ export default {
     },
 
     async created() {
-        this.topLanguages = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages.json`).then(r => r.json());
+        const params = CONFIGS.LANG ? `?lang=${CONFIGS.LANG}` : '';
+        this.topLanguages = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages.json${params}`).then(r => r.json());
         this.langOpts = this.topLanguages;
     },
 
@@ -311,11 +318,13 @@ export default {
                 // fetch top languages
                 this.langOpts = this.topLanguages;
             } else {
+                const params = new URLSearchParams({q: query, limit: 15});
+                if (CONFIGS.LANG) {
+                    params.set('lang', CONFIGS.LANG);
+                }
                 // Actually search
-                this.langOpts = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages/_autocomplete.json?${new URLSearchParams({
-                    q: query,
-                    limit: 15,
-                })}`).then(r => r.json());
+                this.langOpts = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages/_autocomplete.json?${params}`)
+                    .then(r => r.json());
             }
 
             this.langLoading = false;
@@ -455,9 +464,7 @@ export default {
 
     .multiselect__content {
       display: flex !important;
-      // Since this control is always at the bottom for us, have the results in
-      // reverse order, so that the likeliest match is closest to the input field.
-      flex-direction: column-reverse;
+      flex-direction: column;
     }
   }
 
@@ -484,8 +491,6 @@ export default {
     display: flex;
     flex-direction: column-reverse;
     border-radius: 4px 4px 0 0;
-    overflow: hidden;
-    overflow: clip;
     box-shadow: 0 0 5px rgba(0, 0, 0, .2);
     background: linear-gradient(to bottom, #fff, #ebdfc5 150%);
     max-width: 100%;

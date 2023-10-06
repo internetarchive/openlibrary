@@ -6,8 +6,7 @@ from openlibrary.core import fulltext
 
 
 class Test_fulltext_search_api:
-    def test_config(self):
-        assert not hasattr(config, "plugin_inside")
+    def test_no_config(self):
         response = fulltext.fulltext_search_api({})
         assert response == {"error": "Unable to prepare search engine"}
 
@@ -26,7 +25,9 @@ class Test_fulltext_search_api:
     def test_bad_json(self):
         with patch("openlibrary.core.fulltext.requests.get") as mock_get:
             config.plugin_inside = {"search_endpoint": "mock"}
-            mock_response = Mock(json=Mock(side_effect=JSONDecodeError('Not JSON', 'Not JSON', 0)))
+            mock_response = Mock(
+                json=Mock(side_effect=JSONDecodeError('Not JSON', 'Not JSON', 0))
+            )
             mock_get.return_value = mock_response
 
             response = fulltext.fulltext_search_api({"q": "hello"})

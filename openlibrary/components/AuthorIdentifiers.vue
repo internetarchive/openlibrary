@@ -29,6 +29,13 @@
 </template>
 
 <script>
+const identifierPatterns  = {
+    wikidata: /^Q[1-9]\d*$/i,
+    isni: /^[0]{4} ?[0-9]{4} ?[0-9]{4} ?[0-9]{3}[0-9X]$/i,
+    storygraph: /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i,
+    amazon: /^B[0-9A-Za-z]{9}$/,
+    youtube: /^@[A-Za-z0-9_\-.]{3,30}/,
+}
 export default {
     // Props are for external options; if a subelement of this is modified,
     // the view automatically re-renders
@@ -76,10 +83,15 @@ export default {
             // if no identifier selected don't execute
             if (!this.setButtonEnabled) return
 
+            if (this.selectedIdentifier === 'isni') {
+                this.inputValue = this.inputValue.replace(/\s/g, '')
+            }
+
             // We use $set otherwise we wouldn't get the reactivity desired
             // See https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
             this.$set(this.assignedIdentifiers, this.selectedIdentifier, this.inputValue);
             this.inputValue = '';
+            this.selectedIdentifier = '';
         },
         /** Removes an identifier with value from memory and it will be deleted from database on save */
         removeIdentifier: function(identifierName){
@@ -95,6 +107,15 @@ export default {
                 .map(([name, value]) => `<input type="hidden" name="author--remote_ids--${name}" value="${value}"/>`)
                 .join('');
             document.querySelector(this.output_selector).innerHTML = html;
+        },
+        selectIdentifierByInputValue: function() {
+            // Selects the dropdown identifier based on the input value when possible
+            for (const idtype in identifierPatterns) {
+                if (this.inputValue.match(identifierPatterns[idtype])){
+                    this.selectedIdentifier = idtype;
+                    break;
+                }
+            }
         }
     },
     created: function(){
@@ -105,7 +126,11 @@ export default {
             {
                 handler: function(){this.createHiddenInputs()},
                 deep: true
-            }
+            },
+        inputValue:
+            {
+                handler: function(){this.selectIdentifierByInputValue()},
+            },
     }
 }
 </script>

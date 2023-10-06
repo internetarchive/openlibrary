@@ -48,15 +48,11 @@ plugin_modules:
     - infogami.plugins.api
 
 plugin_worksearch:
+    solr_next: true
     solr_base_url: http://solr:8983/solr/openlibrary
     spellcheck_count: 3
-    ebook_count_db_parameters:
-        db: openlibrary_ebook_count
-        host: localhost
 
 http_request_timeout: 10
-
-stats_solr: solr:8983
 
 features:
     cache_most_recent: enabled
@@ -77,9 +73,8 @@ features:
     support: admin
     undo: enabled
     upstream: enabled
-    user_metadata:
-        filter: usergroup
-        usergroup: /usergroup/beta-testers
+    # Uncomment below line to enable the My Books Dropper
+    # my_books_dropper: enabled
 
 upstream_to_www_migration: true
 default_template_root: /upstream
@@ -145,7 +140,7 @@ stats: # This section is used to state what stats need to be gathered.
       pattern: /api/volumes/.*
       time: total
 
-# prefixes ignored for /books/ia:xxx URLs and new-solr-updater.py
+# prefixes ignored for /books/ia:xxx URLs and solr_updater.py
 ia_ignore_prefixes:
     - "jstor-"
     - "imslp-"
@@ -182,6 +177,13 @@ ia_civicrm_api:
     auth: XXX
 
 sentry:
+    enabled: false
+    # Dummy endpoint; where sentry logs are sent to
+    dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
+    traces_sample_rate: 1.0
+    environment: 'local'
+
+sentry_cron_jobs:
     enabled: false
     # Dummy endpoint; where sentry logs are sent to
     dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'

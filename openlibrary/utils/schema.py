@@ -3,17 +3,26 @@
 """
 
 __all__ = [
-    "Schema", "Table", "Column",
-    "register_datatype", "register_constant",
+    "Schema",
+    "Table",
+    "Column",
+    "register_datatype",
+    "register_constant",
 ]
 
 _datatypes = {}
+
+
 def register_datatype(name, datatype):
     _datatypes[name] = datatype
 
+
 _adapters = {}
+
+
 def register_adapter(name, adapter):
     _adapters[name] = adapter
+
 
 def get_adapter(name):
     if isinstance(name, AbstractAdapter):
@@ -21,12 +30,17 @@ def get_adapter(name):
     else:
         return _adapters[name]()
 
+
 _constants = {}
+
+
 def register_constant(name, constant):
     _constants[name] = constant
 
+
 def get_constant(name):
     return _constants(name)
+
 
 class AbstractAdapter:
     def type_to_sql(self, type, limit=None):
@@ -67,6 +81,7 @@ class AbstractAdapter:
     def quote(self):
         raise NotImplementedError()
 
+
 class MockAdapter(AbstractAdapter):
     def get_native_type(self, type):
         return type
@@ -76,6 +91,7 @@ class MockAdapter(AbstractAdapter):
 
     def quote(self, value):
         return repr(value)
+
 
 class MySQLAdapter(AbstractAdapter):
     native_types = {
@@ -89,7 +105,7 @@ class MySQLAdapter(AbstractAdapter):
         'time': 'time',
         'date': 'date',
         'binary': 'blob',
-        'boolean': 'boolean'
+        'boolean': 'boolean',
     }
     constants = {
         'CURRENT_TIMESTAMP': 'CURRENT_TIMESTAMP',
@@ -99,8 +115,10 @@ class MySQLAdapter(AbstractAdapter):
         'CURRENT_UTC_DATE': 'UTC_DATE',
         'CURRENT_UTC_TIME': 'UTC_TIME',
     }
+
     def references_to_sql(self, column_name, value):
-        return {'constraint': 'foreign key (%s) references %s' % (column_name, value)}
+        return {'constraint': f'foreign key ({column_name}) references {value}'}
+
 
 class PostgresAdapter(AbstractAdapter):
     native_types = {
@@ -114,7 +132,7 @@ class PostgresAdapter(AbstractAdapter):
         'time': 'time',
         'date': 'date',
         'binary': 'bytea',
-        'boolean': 'boolean'
+        'boolean': 'boolean',
     }
     constants = {
         'CURRENT_TIMESTAMP': 'current_timestamp',
@@ -128,6 +146,7 @@ class PostgresAdapter(AbstractAdapter):
     def references_to_sql(self, column_name, value):
         return 'references ' + value
 
+
 class SQLiteAdapter(AbstractAdapter):
     native_types = {
         'serial': 'integer autoincrement',
@@ -140,7 +159,7 @@ class SQLiteAdapter(AbstractAdapter):
         'time': 'datetime',
         'date': 'date',
         'binary': 'blob',
-        'boolean': 'boolean'
+        'boolean': 'boolean',
     }
     constants = {
         'CURRENT_TIMESTAMP': "CURRENT_TIMESTAMP",
@@ -151,15 +170,18 @@ class SQLiteAdapter(AbstractAdapter):
         'CURRENT_UTC_TIME': "CURRENT_TIME",
     }
 
+
 register_adapter('mysql', MySQLAdapter)
 register_adapter('postgres', PostgresAdapter)
 register_adapter('sqlite', SQLiteAdapter)
+
 
 def sqlrepr(s):
     if isinstance(s, str):
         return repr(s)
     else:
         return s
+
 
 class Datatype:
     def __init__(self, name=None):
@@ -168,6 +190,7 @@ class Datatype:
     def sql(self, engine):
         return get_adapter(engine).type_to_sql(self.name)
 
+
 class Constant:
     def __init__(self, name=None):
         self.name = name
@@ -175,8 +198,17 @@ class Constant:
     def sql(self, engine):
         return get_adapter(engine).get_constant(self.name)
 
-for c in ['CURRENT_TIMESTAMP', 'CURRENT_DATE', 'CURRENT_TIME', 'CURRENT_UTC_TIMESTAMP', 'CURRENT_UTC_DATE', 'CURRENT_UTC_TIME']:
+
+for c in [
+    'CURRENT_TIMESTAMP',
+    'CURRENT_DATE',
+    'CURRENT_TIME',
+    'CURRENT_UTC_TIMESTAMP',
+    'CURRENT_UTC_DATE',
+    'CURRENT_UTC_TIME',
+]:
     register_constant(c, Constant(c))
+
 
 class Schema:
     def __init__(self):
@@ -200,14 +232,16 @@ class Schema:
     def sql(self, engine):
         return "\n".join(x.sql(engine) for x in self.tables + self.indexes)
 
+
 class Table:
     """Database table.
-        >>> t = Table('user', Column('name', 'string'))
-        >>> print(t.sql('postgres'))
-        create table user (
-            name character varying(255)
-        );
+    >>> t = Table('user', Column('name', 'string'))
+    >>> print(t.sql('postgres'))
+    create table user (
+        name character varying(255)
+    );
     """
+
     def __init__(self, name, *columns, **options):
         self.name = name
         self.columns = columns
@@ -218,20 +252,24 @@ class Table:
         for c in self.columns:
             for constraint in c.constraints:
                 columns.append(constraint)
-        return "create table %s (\n    %s\n);" % (self.name, ",\n    ".join(columns))
+        return "create table {} (\n    {}\n);".format(
+            self.name, ",\n    ".join(columns)
+        )
+
 
 class Column:
     """Column in a database table.
 
-        >>> Column('name', 'text').sql('mock')
-        'name text'
-        >>> Column('id', 'serial', primary_key=True).sql('mock')
-        'id serial primary key'
-        >>> Column('revision', 'integer', default=1).sql('mock')
-        'revision integer default 1'
-        >>> Column('name', 'string', default='joe').sql('mock')
-        "name string(255) default 'joe'"
+    >>> Column('name', 'text').sql('mock')
+    'name text'
+    >>> Column('id', 'serial', primary_key=True).sql('mock')
+    'id serial primary key'
+    >>> Column('revision', 'integer', default=1).sql('mock')
+    'revision integer default 1'
+    >>> Column('name', 'string', default='joe').sql('mock')
+    "name string(255) default 'joe'"
     """
+
     def __init__(self, name, type, **options):
         self.name = name
         self.type = type
@@ -255,23 +293,27 @@ class Column:
             result = adapter.column_option_to_sql(self.name, k, v)
             if result is None:
                 continue
-            elif isinstance(result, dict): # a way for column options to add constraints
+            elif isinstance(
+                result, dict
+            ):  # a way for column options to add constraints
                 self.constraints.append(result['constraint'])
             else:
                 tokens.append(result)
 
         return " ".join(tokens)
 
+
 class Index:
     """Database index.
 
-        >>> Index('user', 'email').sql('mock')
-        'create index user_email_idx on user(email);'
-        >>> Index('user', 'email', unique=True).sql('mock')
-        'create unique index user_email_idx on user(email);'
-        >>> Index('page', ['path', 'revision']).sql('mock')
-        'create index page_path_revision_idx on page(path, revision);'
+    >>> Index('user', 'email').sql('mock')
+    'create index user_email_idx on user(email);'
+    >>> Index('user', 'email', unique=True).sql('mock')
+    'create unique index user_email_idx on user(email);'
+    >>> Index('page', ['path', 'revision']).sql('mock')
+    'create index page_path_revision_idx on page(path, revision);'
     """
+
     def __init__(self, table, columns, **options):
         self.table = table
         if not isinstance(columns, list):
@@ -292,8 +334,9 @@ class Index:
             s = 'create index '
 
         s += adapter.index_name(self.table, self.columns)
-        s += ' on %s(%s);' % (self.table, ", ".join(self.columns))
+        s += ' on {}({});'.format(self.table, ", ".join(self.columns))
         return s
+
 
 def _test():
     """
@@ -349,11 +392,13 @@ def _test():
         );
         create index posts_slug_idx on posts(slug);
 
-    Thats all.
+    That's all.
     """
+
 
 if __name__ == "__main__":
     register_adapter('mock', MockAdapter)
 
     import doctest
+
     doctest.testmod()

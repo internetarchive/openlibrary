@@ -1,222 +1,222 @@
 {
-    "kind": "regular", 
+    "kind": "regular",
     "created": {
-        "type": "/type/datetime", 
+        "type": "/type/datetime",
         "value": "2008-08-18T22:51:38.685066"
-    }, 
-    "title": "/type/work", 
+    },
+    "title": "/type/work",
     "backreferences": [
         {
             "expected_type": {
                 "key": "/type/edition"
-            }, 
+            },
             "type": {
                 "key": "/type/backreference"
-            }, 
-            "name": "editions", 
+            },
+            "name": "editions",
             "property_name": "works"
         }
-    ], 
+    ],
     "last_modified": {
-        "type": "/type/datetime", 
+        "type": "/type/datetime",
         "value": "2010-08-09T23:37:25.678493"
-    }, 
-    "latest_revision": 14, 
-    "key": "/type/work", 
+    },
+    "latest_revision": 14,
+    "key": "/type/work",
     "type": {
         "key": "/type/type"
-    }, 
+    },
     "properties": [
         {
             "expected_type": {
                 "key": "/type/string"
-            }, 
-            "unique": true, 
+            },
+            "unique": true,
             "type": {
                 "key": "/type/property"
-            }, 
+            },
             "name": "title"
-        }, 
+        },
         {
             "expected_type": {
                 "key": "/type/string"
-            }, 
-            "unique": true, 
+            },
+            "unique": true,
             "type": {
                 "key": "/type/property"
-            }, 
+            },
             "name": "subtitle"
-        }, 
+        },
         {
             "expected_type": {
                 "key": "/type/author_role"
-            }, 
-            "unique": false, 
+            },
+            "unique": false,
             "type": {
                 "key": "/type/property"
-            }, 
+            },
             "name": "authors"
-        }, 
+        },
         {
             "expected_type": {
                 "key": "/type/translated_string"
-            }, 
-            "unique": false, 
+            },
+            "unique": false,
             "type": {
                 "key": "/type/property"
-            }, 
+            },
             "name": "translated_titles"
-        }, 
+        },
         {
             "expected_type": {
                 "key": "/type/string"
-            }, 
-            "unique": false, 
+            },
+            "unique": false,
             "type": {
                 "key": "/type/property"
-            }, 
+            },
             "name": "subjects"
-        }, 
+        },
         {
             "expected_type": {
                 "key": "/type/string"
-            }, 
-            "unique": false, 
+            },
+            "unique": false,
             "type": {
                 "key": "/type/property"
-            }, 
+            },
             "name": "subject_places"
-        }, 
+        },
         {
             "expected_type": {
                 "key": "/type/string"
-            }, 
-            "unique": false, 
+            },
+            "unique": false,
             "type": {
                 "key": "/type/property"
-            }, 
+            },
             "name": "subject_times"
-        }, 
+        },
         {
             "expected_type": {
                 "key": "/type/string"
-            }, 
-            "unique": false, 
+            },
+            "unique": false,
             "type": {
                 "key": "/type/property"
-            }, 
+            },
             "name": "subject_people"
-        }, 
+        },
         {
             "expected_type": {
                 "key": "/type/text"
-            }, 
-            "unique": true, 
+            },
+            "unique": true,
             "type": {
                 "key": "/type/property"
-            }, 
+            },
             "name": "description"
-        }, 
+        },
         {
             "expected_type": {
                 "key": "/type/string"
-            }, 
-            "unique": false, 
+            },
+            "unique": false,
             "type": {
                 "key": "/type/property"
-            }, 
+            },
             "name": "dewey_number"
-        }, 
+        },
         {
             "expected_type": {
                 "key": "/type/string"
-            }, 
-            "unique": false, 
+            },
+            "unique": false,
             "type": {
                 "key": "/type/property"
-            }, 
+            },
             "name": "lc_classifications"
-        }, 
+        },
         {
             "expected_type": {
                 "key": "/type/text"
-            }, 
-            "unique": true, 
+            },
+            "unique": true,
             "type": {
                 "key": "/type/property"
-            }, 
+            },
             "name": "first_sentence"
-        }, 
+        },
         {
             "expected_type": {
                 "key": "/type/language"
-            }, 
-            "unique": false, 
+            },
+            "unique": false,
             "type": {
                 "key": "/type/property"
-            }, 
+            },
             "name": "original_languages"
-        }, 
+        },
         {
             "expected_type": {
                 "key": "/type/string"
-            }, 
-            "unique": false, 
+            },
+            "unique": false,
             "type": {
                 "key": "/type/property"
-            }, 
+            },
             "name": "other_titles"
-        }, 
+        },
         {
             "expected_type": {
                 "key": "/type/string"
-            }, 
-            "unique": true, 
+            },
+            "unique": true,
             "type": {
                 "key": "/type/property"
-            }, 
+            },
             "name": "first_publish_date"
-        }, 
+        },
         {
             "expected_type": {
                 "key": "/type/link"
-            }, 
-            "unique": false, 
+            },
+            "unique": false,
             "type": {
                 "key": "/type/property"
-            }, 
+            },
             "name": "links"
-        }, 
+        },
         {
             "expected_type": {
                 "key": "/type/text"
-            }, 
-            "unique": true, 
+            },
+            "unique": true,
             "type": {
                 "key": "/type/property"
-            }, 
+            },
             "name": "notes"
-        }, 
+        },
         {
             "expected_type": {
                 "key": "/type/edition"
-            }, 
-            "unique": true, 
+            },
+            "unique": true,
             "type": {
                 "key": "/type/property"
-            }, 
+            },
             "name": "cover_edition"
-        }, 
+        },
         {
             "expected_type": {
                 "key": "/type/int"
-            }, 
-            "unique": false, 
+            },
+            "unique": false,
             "type": {
                 "key": "/type/property"
-            }, 
+            },
             "name": "covers"
         }
-    ], 
+    ],
     "revision": 14
 }

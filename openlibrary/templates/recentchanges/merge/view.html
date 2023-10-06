@@ -1,0 +1,57 @@
+$def with (change)
+$ primary = change.get_master()
+$ type = primary.type.key.replace("/type/","")
+$ label = primary.name if type == "author" else primary.title
+
+<div id="contentHead">
+    $:render_template("recentchanges/header", change, label=type.capitalize() + ' Merge')
+</div>
+
+
+<div id="contentBody">
+    $if change.get_undo_changeset():
+        <p class="alert">
+            $_('This merge has been undone.')
+            <a href="$change.get_undo_changeset().url()">$_('Details here')</a>
+        </p>
+
+    <div id="mergeHead" class="sansserif">
+        <div class="smallest lightgreen">$_('Primary')</div>
+
+        <div id="recordMaster">
+            <span id="recordMasterTitle" class="larger">
+                $if primary.key:
+                    <strong><a href="$primary.key">$label</a></strong>
+                $else:
+                    <strong>$label</strong>
+
+            </span>
+            $if type == "author":
+                <span id="recordMasterDate" class="smaller">
+                    $if primary.birth_date or primary.death_date:
+                        $ birth = primary.birth_date or ''
+                        $ death = primary.death_date or ''
+                        ($(' - '.join([birth, death])))
+                </span>
+
+        </div>
+
+        <div class="smallest lightgreen">$_('Duplicates')</div>
+        <div id="recordDuplicates">
+            <p class="small collapse">
+                $for dup in change.get_duplicates():
+                    $if type == "author":
+                        $dup.name
+                    $else:
+                        $dup.title
+            </p>
+        </div>
+
+        <p class="smallest gray sansserif">
+            $ungettext("%(count)d record modified.", "%(count)d records modified.", len(change.changes), count=len(change.changes))
+        </p>
+    </div>
+
+    <h3>$_('Updated Records')</h3>
+    $:render_template("recentchanges/updated_records", change)
+</div>

@@ -1,0 +1,17 @@
+$def with(primary_button, dropdown_content, classes='')
+
+<div class="generic-dropper-wrapper $(classes)">
+  <div class="generic-dropper">
+    <div class="generic-dropper__actions">
+      <div class="generic-dropper__primary">
+        $:primary_button
+      </div>
+      <a class="generic-dropper__dropclick" href="javascript:;">
+        <div class="arrow"></div>
+      </a>
+    </div>
+    <div class="generic-dropper__dropdown">
+      $:dropdown_content
+    </div>
+  </div>
+</div>

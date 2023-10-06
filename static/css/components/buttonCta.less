@@ -38,28 +38,38 @@ a.cta-btn {
     background-position: center;
   }
 
-  .btn-label { padding: 0 20px; }
+  .btn-label { padding: 0 10px; }
 
   &:link, &:visited {
     color: @white;
     text-decoration: none;
   }
 
-  &--available {
+  &--available, &--preview {
     background-color: @primary-blue;
     color: @white;
     &:hover { background-color: darken(@primary-blue, 20%); }
   }
 
+  &--external {
+    background-image: url(/static/images/icons/octicon-link-external-24.svg);
+    background-repeat: no-repeat;
+    background-size: 20px;
+    background-position: center right 8px;
+  }
+
   &--unavailable {
-    background-color: @burnt-sienna;
+    background-color: @primary-blue;
     color: @white;
-    &:hover { background-color: darken(@burnt-sienna, 20%); }
+    &:hover { background-color: darken(@primary-blue, 20%); }
   }
   &--shell, &--shell:link, &--shell:visited {
-    background-color: @white;
-    border: 2px solid @primary-blue;
-    color: @primary-blue;
+    .shell-btn--active();
+  }
+  &--shell:disabled {
+    border: 2px solid @light-grey;
+    color: @light-grey;
+    cursor: default;
   }
   &--sponsor {
     border: 2px solid @link-blue;
@@ -71,6 +81,21 @@ a.cta-btn {
     background: @white;
     color: @black;
     border-radius: 6px;
+  }
+  &--cancel {
+    padding: 5px;
+    border: 2px solid @red;
+    background: @white;
+    color: @red;
+    border-radius: 6px;
+  }
+
+  &--delete {
+    background-color: @red;
+
+    &:hover {
+      background-color: darken(@red, 20%);
+    }
   }
 
   &--sponsor:link, &--sponsor:visited {
@@ -110,6 +135,10 @@ a.cta-btn {
   align-items: center;
   position: relative;
 
+  .cta-btn--w-icon {
+    display: flex;
+  }
+
   .cta-btn {
     margin: 0;
     padding: 8px 0;
@@ -125,7 +154,6 @@ a.cta-btn {
       width: 40px;
       transition: width .2s;
       overflow: hidden;
-      display: flex;
       border-radius: 2px 6px 6px 2px;
     }
 

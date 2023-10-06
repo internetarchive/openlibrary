@@ -43,6 +43,7 @@ from .matchers import match_functions
 
 logger = Logging.getLogger("openlibrary.importapi")
 
+
 def search(params):
     params = params["doc"]
     matched_keys = run_matchers(params)
@@ -59,6 +60,7 @@ def run_matchers(params):
         logger.debug("Running %s", i.__name__)
         keys.append(i(params))
     return itertools.chain.from_iterable(keys)
+
 
 def run_filter(matched_keys, params):
     """
@@ -86,7 +88,7 @@ def run_filter(matched_keys, params):
 
         `i1` is originally the `thing` and `i2` the search parameters.
         """
-        if i1 == i2: # Trivially the same
+        if i1 == i2:  # Trivially the same
             return True
 
         if isinstance(i1, list) and isinstance(i2, list):
@@ -99,7 +101,7 @@ def run_filter(matched_keys, params):
                     if compare(i, j):
                         matched = True
                         break
-                if not matched: # A match couldn't be found for atleast one element
+                if not matched:  # A match couldn't be found for at least one element
                     logger.debug("Couldn't match %s in %s", i, i1)
                     return False
             return True
@@ -110,7 +112,7 @@ def run_filter(matched_keys, params):
             # In case of the 'title' and 'authors', if it's there in
             # the search params, it *should* match.
             for k in i2:
-                if k == "title" or k == "authors":
+                if k in {"title", "authors"}:
                     # Special case title and authors. Return False if not present in thing
                     # TODO: Convert author names to keys.
                     if k not in i1 or not compare(i1[k], i2[k]):
@@ -129,5 +131,7 @@ def run_filter(matched_keys, params):
 
     docs = (thing_to_doc(web.ctx.site.get(x)) for x in matched_keys)
 
-    return itertools.imap(lambda x: web.ctx.site.get(x['key']),
-                          itertools.ifilter(lambda y: compare(y, params), docs))
+    return itertools.imap(
+        lambda x: web.ctx.site.get(x['key']),
+        itertools.ifilter(lambda y: compare(y, params), docs),
+    )
