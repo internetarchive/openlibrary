@@ -75,8 +75,8 @@ export default {
     },
     data() {
         return {
-            /** @type {{[key: string]: Boolean}} */
-            selected: []
+            // /** @type {{[key: string]: Boolean}} */
+            // selected: []
         };
     },
     props: {
@@ -93,8 +93,6 @@ export default {
             const records = _.orderBy(
                 await Promise.all(olids_sorted.map(fetchRecord)),
                 record => record.type.key, 'desc');
-
-            this.selected = _.fromPairs(records.map(record => [record.key, record.type.key.includes('work')]));
 
             return records;
         },
@@ -163,6 +161,15 @@ export default {
         }
     },
     computed: {
+        selected(){
+            /** @type {{[key: string]: Boolean}} */
+            /*
+            Maybe this and master_key shouldn't be computed since they only matter on first one.
+            But I think that it's okay since this.records will never change.
+            */
+            if (!this.records) return []
+            return _.fromPairs(this.records.map(record => [record.key, record.type.key.includes('work')]));
+        },
         master_key(){
             if (!this.records) return null
 
