@@ -14,7 +14,7 @@ $def with (key=None, selected="", options=None)
                         <option value="$options[0][1]">$options[0][0]</option>
                     </select>
                 </span>
-            </span>
+            </span>s
         $else:
             <h1>$selected</h1>
     $else:
@@ -42,27 +42,4 @@ $def with (key=None, selected="", options=None)
             </span>
         </span>
 
-        <script>
-            const crumbs = document.querySelectorAll('.crumb select')
-            const allowedKeys = new Set(['Tab', 'Enter', ' '])
-            const preventedKeys = new Set(['ArrowUp', 'ArrowDown'])
-
-            // watch crumbs for changes,
-            // ensures it's a full value change, not a user exploring options via keyboard
-            crumbs.forEach(nav => {
-                let ignoreChange = false
-
-                nav.addEventListener('change', e => {
-                    if (ignoreChange) return
-                    // it's actually changed!
-                    window.location = nav.value;
-                })
-
-            nav.addEventListener('keydown', ({ key }) => {
-                if (preventedKeys.has(key))
-                ignoreChange = true
-                else if (allowedKeys.has(key))
-                ignoreChange = false
-            })
-            })
-        </script>
+        <script src="breadcrumb_select.js"></script>
