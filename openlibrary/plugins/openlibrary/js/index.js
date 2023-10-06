@@ -251,9 +251,9 @@ jQuery(function () {
             .then((module) => module.init());
     }
 
-    if (window.READINGLOG_STATS_CONFIG) {
+    if ($('div.readinglog-charts').length) {
         import(/* webpackChunkName: "readinglog-stats" */ './readinglog_stats')
-            .then(module => module.init(window.READINGLOG_STATS_CONFIG));
+            .then(module => module.init($('div.readinglog-charts').data('config')));
     }
 
     const pageEl = $('#page-barcodescanner');
