@@ -28,9 +28,14 @@
 
   &.carousel--grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    grid-gap: 30px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-gap: 30px 20px;
+    padding: 10px;
+
+    // Fallback for non-grid browsers
+    flex-wrap: wrap;
   }
+
   a,
   a:link {
     text-decoration: none;
@@ -53,6 +58,10 @@
       border: 5px solid @orange;
       outline: 0;
     }
+  }
+
+  &.carousel--grid .carousel__item {
+    margin: 0;  // Handled by grid gap
   }
 
   // Modifiers
