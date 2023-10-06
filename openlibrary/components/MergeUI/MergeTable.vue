@@ -101,7 +101,7 @@ export default {
         async getRecords(){
             // gets records from api and sets them
             const olids_sorted = _.sortBy(this.olids, olid =>
-                parseFloat(olid.match(/\d+/)[0])
+                parseInt(olid.match(/\d+/)[0])
             );
             // Ensure orphaned editions are at the bottom of the list
             const records = _.orderBy(
