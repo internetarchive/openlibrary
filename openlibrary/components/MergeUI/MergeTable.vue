@@ -75,9 +75,11 @@ export default {
     },
     data() {
         return {
-            // /** @type {{[key: string]: Boolean}} */
-            // selected: []
+            records: []
         };
+    },
+    created(){
+        this.getRecords();
     },
     props: {
         olids: Array,
@@ -85,20 +87,8 @@ export default {
         primary: String
     },
     asyncComputed: {
-        async records() {
-            const olids_sorted = _.sortBy(this.olids, olid =>
-                parseFloat(olid.match(/\d+/)[0])
-            );
-            // Ensure orphaned editions are at the bottom of the list
-            const records = _.orderBy(
-                await Promise.all(olids_sorted.map(fetchRecord)),
-                record => record.type.key, 'desc');
-
-            return records;
-        },
-
         async editions() {
-            if (!this.records) return null;
+            if (!this.recordsExist) return null;
 
             const editionPromises = await Promise.all(
                 this.records.map(r => r.type.key.includes('work') ? get_editions(r.key) : {size: 0})
@@ -117,7 +107,7 @@ export default {
         },
 
         async lists() {
-            if (!this.records) return null;
+            if (!this.recordsExist) return null;
 
             // We only need the count, so set limit=0 (waaaay faster!)
             const promises = await Promise.all(
@@ -129,7 +119,7 @@ export default {
             );
         },
         async bookshelves() {
-            if (!this.records) return null;
+            if (!this.recordsExist) return null;
 
             const promises = await Promise.all(
                 this.records.map(r => (r.type.key === '/type/work') ? get_bookshelves(r.key) : {})
@@ -141,7 +131,7 @@ export default {
         },
 
         async ratings() {
-            if (!this.records) return null;
+            if (!this.recordsExist) return null;
 
             const promises = await Promise.all(
                 this.records.map(r => (r.type.key === '/type/work') ? get_ratings(r.key) : {})
@@ -158,20 +148,35 @@ export default {
             return field in this.merge.sources
                 ? this.merge.sources[field].includes(record.key)
                 : record.key === this.master_key;
+        },
+        async getRecords(){
+            // gets records from api and sets them
+            const olids_sorted = _.sortBy(this.olids, olid =>
+                parseFloat(olid.match(/\d+/)[0])
+            );
+            // Ensure orphaned editions are at the bottom of the list
+            const records = _.orderBy(
+                await Promise.all(olids_sorted.map(fetchRecord)),
+                record => record.type.key, 'desc');
+
+            this.records = records;
         }
     },
     computed: {
+        recordsExist(){
+            return this.records && this.records.length > 1;
+        },
         selected(){
             /** @type {{[key: string]: Boolean}} */
             /*
             Maybe this and master_key shouldn't be computed since they only matter on first one.
             But I think that it's okay since this.records will never change.
             */
-            if (!this.records) return []
+            if (!this.recordsExist) return []
             return _.fromPairs(this.records.map(record => [record.key, record.type.key.includes('work')]));
         },
         master_key(){
-            if (!this.records) return null
+            if (!this.recordsExist) return null
 
             let masterIndex = 0;
             if (this.primary) {
@@ -237,7 +242,7 @@ export default {
             ];
         },
         merge(){
-            if (!this.master_key || !this.records || !this.editions)
+            if (!this.master_key || !this.recordsExist || !this.editions)
                 return undefined;
 
             const master = this.records.find(r => r.key === this.master_key);
