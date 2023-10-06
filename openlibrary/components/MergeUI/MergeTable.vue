@@ -72,19 +72,19 @@ export default {
     data() {
         return {
             records: [],
-            ratings: null,
-            lists: null,
             bookshelves: null,
-            editions: null
+            editions: null,
+            lists: null,
+            ratings: null
         };
     },
     async created(){
         // using await in created won't block the lifecycle, just the rest of the function
         await this.getRecords();
-        this.getRatings();
-        this.getLists();
         this.getBookshelves();
         this.getEditions();
+        this.getLists();
+        this.getRatings();
     },
     props: {
         olids: Array,
@@ -110,6 +110,22 @@ export default {
 
             this.records = records;
         },
+        async getBookshelves() {this.bookshelves = await this.fetchData(get_bookshelves)},
+        async getEditions() {
+            const editionsMap = await this.fetchData(get_editions, { size: 0 });
+
+            // If any of the records are editions, insert the record as its own edition list
+            Object.keys(editionsMap).forEach((key, index) => {
+                if (key.includes('M')) editionsMap[key] = {size: 1, entries: [this.records[index]]};
+            });
+
+            this.editions = editionsMap;
+        },
+        async getLists() {
+            // TODO: we can simplify if we set default to zero...
+            this.lists = await this.fetchData((r) => get_lists(r, 0));
+        },
+        async getRatings() {this.ratings = await this.fetchData(get_ratings)},
         async fetchData(getter, defaultValue = {}){
             /*
               If recordsExist, for each work call the getter and then return a dict with
@@ -127,27 +143,6 @@ export default {
             return _.fromPairs(
                 this.records.map((work, i) => [work.key, responses[i]])
             );
-        },
-        async getEditions() {
-            const editionsMap = await this.fetchData(get_editions, { size: 0 });
-
-            // If any of the records are editions, insert the record as its own edition list
-            Object.keys(editionsMap).forEach((key, index) => {
-                if (key.includes('M')) editionsMap[key] = {size: 1, entries: [this.records[index]]};
-            });
-
-            this.editions = editionsMap;
-        },
-
-        async getLists() {
-            // todo we can simplify if we set default to zero...
-            this.lists = await this.fetchData((r) => get_lists(r, 0));
-        },
-        async getBookshelves() {
-            this.bookshelves = await this.fetchData(get_bookshelves);
-        },
-        async getRatings() {
-            this.ratings = await this.fetchData(get_ratings);
         },
     },
     computed: {
