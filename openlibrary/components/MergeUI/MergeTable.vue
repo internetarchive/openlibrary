@@ -91,11 +91,11 @@ export default {
             if (!this.recordsExist) return null;
 
             const editionPromises = await Promise.all(
-                this.records.map(r => r.type.key.includes('work') ? get_editions(r.key) : {size: 0})
+                this.records.map(r => (r.type.key === '/type/work') ? get_editions(r.key) : {size: 0})
             );
-            const editions = editionPromises.map(p => p.value || p);
+            const promises = editionPromises.map(p => p.value || p);
             const editionsMap = _.fromPairs(
-                this.records.map((work, i) => [work.key, editions[i]])
+                this.records.map((work, i) => [work.key, promises[i]])
             );
 
             // If any of the records are editions, insert the record as its own edition list
