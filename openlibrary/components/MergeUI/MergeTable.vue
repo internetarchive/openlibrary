@@ -77,12 +77,18 @@ export default {
         return {
             records: [],
             ratings: null,
+            lists: null,
+            // bookshelves: null,
+            // editions: null
         };
     },
     async created(){
-        // Note: created won't block the lifecycle when waiting
+        // using await in created won't block the lifecycle, just the rest of the function
         await this.getRecords();
         this.getRatings();
+        this.getLists();
+        // this.getBookshelves();
+        // this.getEditions();
     },
     props: {
         olids: Array,
@@ -107,19 +113,6 @@ export default {
             });
 
             return editionsMap;
-        },
-
-        async lists() {
-            if (!this.recordsExist) return null;
-
-            // We only need the count, so set limit=0 (waaaay faster!)
-            const promises = await Promise.all(
-                this.records.map(r => (r.type.key === '/type/work') ? get_lists(r.key, 0) : {})
-            );
-            const responses = promises.map(p => p.value || p);
-            return _.fromPairs(
-                this.records.map((work, i) => [work.key, responses[i]])
-            );
         },
         async bookshelves() {
             if (!this.recordsExist) return null;
@@ -162,7 +155,7 @@ export default {
             if (!this.recordsExist) return null;
 
             const promises = await Promise.all(
-                this.records.map(r => r.type.key === '/type/work' ? getter(r.key) : defaultValue)
+                this.records.map(r => (r.type.key === '/type/work') ? getter(r.key) : defaultValue)
             );
 
             const responses = promises.map(p => p.value || p);
@@ -170,16 +163,17 @@ export default {
                 this.records.map((work, i) => [work.key, responses[i]])
             );
         },
-        // async editions() {
+        // async getEditions() {
         //     return this.fetchData(get_editions, { size: 0 });
         // },
 
-        // async lists() {
-        //     return this.fetchData((r) => get_lists(r.key, 0));
-        // },
+        async getLists() {
+            // todo we can simplify if we set default to zero...
+            this.lists = await this.fetchData((r) => get_lists(r, 0));
+        },
 
-        // async bookshelves() {
-        //     return this.fetchData(get_bookshelves);
+        // async getBookshelves() {
+        //     this.bookshelves = await this.fetchData(get_bookshelves);
         // },
         async getRatings() {
             this.ratings = await this.fetchData(get_ratings);
