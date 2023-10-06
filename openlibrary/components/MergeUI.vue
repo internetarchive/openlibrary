@@ -11,10 +11,11 @@
             <button class="reject-btn" v-if="showRejectButton" @click="rejectMerge">Reject Merge</button>
         </div>
         <div id="diffs-toggle">
-        <label>
-            <input type="checkbox" title="Show textual differences" v-model="show_diffs" />
-            Show text diffs
-        </label>
+            <label>
+                <input type="checkbox" title="Show textual differences" v-model="show_diffs" />
+                Show text diffs
+            </label>
+        </div>
     </div>
     <pre v-if="mergeOutput">{{mergeOutput}}</pre>
   </div>
