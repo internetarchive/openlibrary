@@ -75,7 +75,6 @@ export default {
     },
     data() {
         return {
-            master_key: null,
             /** @type {{[key: string]: Boolean}} */
             selected: []
         };
@@ -95,13 +94,6 @@ export default {
                 await Promise.all(olids_sorted.map(fetchRecord)),
                 record => record.type.key, 'desc');
 
-            let masterIndex = 0
-            if (this.primary) {
-                const primaryKey = `/works/${this.primary}`
-                masterIndex = records.findIndex(elem => elem.key === primaryKey)
-            }
-
-            this.master_key = records[masterIndex].key
             this.selected = _.fromPairs(records.map(record => [record.key, record.type.key.includes('work')]));
 
             return records;
@@ -171,6 +163,17 @@ export default {
         }
     },
     computed: {
+        master_key(){
+            if (!this.records) return null
+
+            let masterIndex = 0;
+            if (this.primary) {
+                const primaryKey = `/works/${this.primary}`
+                masterIndex = this.records.findIndex(elem => elem.key === primaryKey)
+            }
+
+            return this.records[masterIndex].key
+        },
         fields() {
             const at_start = ['covers'];
             const together = ['key', 'title', 'subtitle', 'authors', 'error'];
