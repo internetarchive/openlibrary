@@ -78,7 +78,7 @@ export default {
             records: [],
             ratings: null,
             lists: null,
-            // bookshelves: null,
+            bookshelves: null,
             // editions: null
         };
     },
@@ -87,7 +87,7 @@ export default {
         await this.getRecords();
         this.getRatings();
         this.getLists();
-        // this.getBookshelves();
+        this.getBookshelves();
         // this.getEditions();
     },
     props: {
@@ -113,18 +113,7 @@ export default {
             });
 
             return editionsMap;
-        },
-        async bookshelves() {
-            if (!this.recordsExist) return null;
-
-            const promises = await Promise.all(
-                this.records.map(r => (r.type.key === '/type/work') ? get_bookshelves(r.key) : {})
-            );
-            const responses = promises.map(p => p.value || p);
-            return _.fromPairs(
-                this.records.map((work, i) => [work.key, responses[i]])
-            );
-        },
+        }
     },
     methods: {
         isCellUsed(record, field) {
@@ -171,10 +160,9 @@ export default {
             // todo we can simplify if we set default to zero...
             this.lists = await this.fetchData((r) => get_lists(r, 0));
         },
-
-        // async getBookshelves() {
-        //     this.bookshelves = await this.fetchData(get_bookshelves);
-        // },
+        async getBookshelves() {
+            this.bookshelves = await this.fetchData(get_bookshelves);
+        },
         async getRatings() {
             this.ratings = await this.fetchData(get_ratings);
         },
