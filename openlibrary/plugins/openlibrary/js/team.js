@@ -30,11 +30,12 @@ export function initTeamFilter() {
     }
 
     // Team sorted by role
-    const staff = team.filter((person) => matchSubstring(person.roles, "staff"));
-    const fellows = team.filter((person) => matchSubstring(person.roles, "fellow"))
+    const staff = team.filter((person) => matchSubstring(person.roles, 'staff'));
+    const fellows = team.filter((person) => matchSubstring(person.roles, 'fellow') && !matchSubstring(person.roles, 'staff'))
     const volunteers = team.filter((person) =>
-        matchSubstring(person.roles, "volunteer") && !matchSubstring(person.roles, "fellow")
+        matchSubstring(person.roles, 'volunteer') && !matchSubstring(person.roles, 'fellow')
     );
+
 
     // Selectors and eventListeners
     const roleFilter = document.getElementById('role');
@@ -48,7 +49,7 @@ export function initTeamFilter() {
     const cardsContainer = document.querySelector('.teamCards_container');
 
     // Functions
-    const createCards = (array, role) => {
+    const createCards = (array) => {
         if (array.length === 0) {
             const noResults = document.createElement('h3');
             noResults.classList = 'noResults'
@@ -86,9 +87,9 @@ export function initTeamFilter() {
                 }`;
 
                 teamCardDescription.classList.add('teamCard__description');
-                memberOlLink.href = `${
-                    member.ol_user_url ? member.ol_user_url : ''
-                }`;
+                if (member.ol_key) {
+                    memberOlLink.href = `https://openlibrary.org/people/${member.ol_key}`;
+                }
                 member.name.length >= 18
                     ? (memberName.classList = 'description__name--length-long')
                     : (memberName.classList =
@@ -148,56 +149,52 @@ export function initTeamFilter() {
         const sectionSeparator = document.createElement('div');
         sectionSeparator.innerHTML = `${text}`
         sectionSeparator.classList = 'sectionSeparator'
-        // array === staff
-        //     ? (sectionSeparator.classList = 'hidden')
-        //     : (sectionSeparator.classList = 'sectionSeparator');
         cardsContainer.append(sectionSeparator);
         createCards(array);
     };
 
     const filterTeam = (role, department) => {
         cardsContainer.innerHTML = '';
+        // **************************************** default sort *****************************************
         if (role === 'All' && department === 'All') {
-            createSection(staff, "Staff");
-            createSection(fellows, "Fellows");
-            createSection(volunteers, "Volunteers");
-        } else if (role === 'All' && department !== 'All') {
+            createSection(staff, 'Staff');
+            createSection(fellows, 'Fellows');
+            createSection(volunteers, 'Volunteers');
+        }
+        // ************************************* sort by department ***************************************
+        else if (role === 'All' && department !== 'All') {
             role = '';
             const filteredTeam = team.filter(
                 (person) =>
                     matchSubstring(person.roles, role) && matchSubstring(person.departments, department)
             );
 
-            const staff = team.filter((person) => matchSubstring(person.roles, "staff"));
-            const fellows = team.filter((person) => matchSubstring(person.roles, "fellow"))
-            const volunteers = team.filter((person) =>
-            matchSubstring(person.roles, "volunteer") && !matchSubstring(person.roles, "fellow")
-        );
+            const staff = filteredTeam.filter((person) => matchSubstring(person.roles, 'staff'));
+            const fellows = filteredTeam.filter((person) => matchSubstring(person.roles, 'fellow') && !matchSubstring(person.roles, 'staff'))
+            const volunteers = filteredTeam.filter((person) => matchSubstring(person.roles, 'volunteer') && !matchSubstring(person.roles, 'fellow'));
 
-            staff.length !== 0 && createSection(staff, "Staff")
-            fellows.length !== 0 && createSection(fellows, "Fellows")
-            volunteers.length !== 0 && createSection(volunteers, "Volunteers")
-        } else if ((department === 'All') & (role !== 'All')) {
-            department = '';
-            const filteredTeam = team.filter(
+            staff.length !== 0 && createSection(staff, 'Staff')
+            fellows.length !== 0 && createSection(fellows, 'Fellows')
+            volunteers.length !== 0 && createSection(volunteers, 'Volunteers')
+        }
+        // ****************************** sort by role and/or department *******************************
+        else {
+            department === 'All' ? department = '' : department
+            const filteredTeam = role === 'fellow' ? team.filter(
+                (person) =>
+                    matchSubstring(person.roles, role) && !matchSubstring(person.roles, 'staff') && matchSubstring(person.departments, department)
+            ) : team.filter(
                 (person) =>
                     matchSubstring(person.roles, role) && matchSubstring(person.departments, department)
             );
-            // createCards(filteredTeam);
             createSection(filteredTeam, capitalize(role))
-        } else {
-            const filteredTeam = team.filter(
-                (person) =>
-                matchSubstring(person.roles, role) && matchSubstring(person.departments, department)
-            );
-            createCards(filteredTeam);
         }
     };
 
     const capitalize = (text) => {
         const firstLetter = text[0].toUpperCase()
-        if (text == "fellow" || text == "volunteer") {
-            return firstLetter + text.slice(1) + "s"
+        if (text === 'fellow' || text === 'volunteer') {
+            return `${firstLetter + text.slice(1)}s`
         }
         else {
             return firstLetter + text.slice(1)
@@ -205,7 +202,7 @@ export function initTeamFilter() {
     }
 
     // on page load
-    createSection(staff, "Staff");
-    createSection(fellows, "Fellows");
-    createSection(volunteers, "Volunteers");
+    createSection(staff, 'Staff');
+    createSection(fellows, 'Fellows');
+    createSection(volunteers, 'Volunteers');
 }
