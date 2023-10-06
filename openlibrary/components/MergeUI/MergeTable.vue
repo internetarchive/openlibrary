@@ -44,12 +44,8 @@
 <script>
 /* eslint no-console: 0 */
 import _ from 'lodash';
-import Vue from 'vue';
-import AsyncComputed from 'vue-async-computed';
 import MergeRow from './MergeRow.vue';
 import { merge, get_editions, get_lists, get_bookshelves, get_ratings } from './utils.js';
-
-Vue.use(AsyncComputed);
 
 /**
  * @param {string} olid
@@ -94,8 +90,6 @@ export default {
         olids: Array,
         show_diffs: Boolean,
         primary: String
-    },
-    asyncComputed: {
     },
     methods: {
         isCellUsed(record, field) {
