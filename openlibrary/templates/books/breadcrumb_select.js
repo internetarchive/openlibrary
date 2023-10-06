@@ -2,14 +2,13 @@ const crumbs = document.querySelectorAll('.crumb select');
 const allowedKeys = new Set(['Tab', 'Enter', ' ']);
 const preventedKeys = new Set(['ArrowUp', 'ArrowDown']);
 
-// watch crumbs for changes,
-// ensures it's a full value change, not a user exploring options via keyboard
-crumbs.forEach(nav => {
+// Define a function that handles the events for each nav element
+function handleNavEvents(nav) {
     let ignoreChange = false;
 
-    nav.addEventListener('change', e => {
+    nav.addEventListener('change', () => {
         if (ignoreChange) return;
-        // it's actually changed!
+        // It's actually changed!
         window.location = nav.value;
     });
 
@@ -20,4 +19,7 @@ crumbs.forEach(nav => {
             ignoreChange = false;
         }
     });
-});
+}
+
+// Attach the event handlers to each nav element
+crumbs.forEach(handleNavEvents);
