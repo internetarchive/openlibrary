@@ -79,7 +79,7 @@ export default {
             ratings: null,
             lists: null,
             bookshelves: null,
-            // editions: null
+            editions: null
         };
     },
     async created(){
@@ -88,7 +88,7 @@ export default {
         this.getRatings();
         this.getLists();
         this.getBookshelves();
-        // this.getEditions();
+        this.getEditions();
     },
     props: {
         olids: Array,
@@ -96,24 +96,6 @@ export default {
         primary: String
     },
     asyncComputed: {
-        async editions() {
-            if (!this.recordsExist) return null;
-
-            const promises = await Promise.all(
-                this.records.map(r => (r.type.key === '/type/work') ? get_editions(r.key) : {size: 0})
-            );
-            const responses = promises.map(p => p.value || p);
-            const editionsMap = _.fromPairs(
-                this.records.map((work, i) => [work.key, responses[i]])
-            );
-
-            // If any of the records are editions, insert the record as its own edition list
-            Object.keys(editionsMap).forEach((key, index) => {
-                if (key.includes('M')) editionsMap[key] = {size: 1, entries: [this.records[index]]};
-            });
-
-            return editionsMap;
-        }
     },
     methods: {
         isCellUsed(record, field) {
@@ -152,9 +134,16 @@ export default {
                 this.records.map((work, i) => [work.key, responses[i]])
             );
         },
-        // async getEditions() {
-        //     return this.fetchData(get_editions, { size: 0 });
-        // },
+        async getEditions() {
+            const editionsMap = await this.fetchData(get_editions, { size: 0 });
+
+            // If any of the records are editions, insert the record as its own edition list
+            Object.keys(editionsMap).forEach((key, index) => {
+                if (key.includes('M')) editionsMap[key] = {size: 1, entries: [this.records[index]]};
+            });
+
+            this.editions = editionsMap;
+        },
 
         async getLists() {
             // todo we can simplify if we set default to zero...
