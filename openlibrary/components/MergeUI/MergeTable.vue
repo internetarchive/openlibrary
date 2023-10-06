@@ -75,11 +75,14 @@ export default {
     },
     data() {
         return {
-            records: []
+            records: [],
+            ratings: null,
         };
     },
-    created(){
-        this.getRecords();
+    async created(){
+        // Note: created won't block the lifecycle when waiting
+        await this.getRecords();
+        this.getRatings();
     },
     props: {
         olids: Array,
@@ -129,18 +132,6 @@ export default {
                 this.records.map((work, i) => [work.key, responses[i]])
             );
         },
-
-        async ratings() {
-            if (!this.recordsExist) return null;
-
-            const promises = await Promise.all(
-                this.records.map(r => (r.type.key === '/type/work') ? get_ratings(r.key) : {})
-            );
-            const responses = promises.map(p => p.value || p);
-            return _.fromPairs(
-                this.records.map((work, i) => [work.key, responses[i]])
-            );
-        },
     },
     methods: {
         isCellUsed(record, field) {
@@ -160,7 +151,39 @@ export default {
                 record => record.type.key, 'desc');
 
             this.records = records;
-        }
+        },
+        async fetchData(getter, defaultValue = {}){
+            /*
+              If recordsExist, for each work call the getter and then return a dict with
+                 1. the record key as the key
+                 2. the response as the value
+                 3. the default value if the type isn't a work
+            */
+            if (!this.recordsExist) return null;
+
+            const promises = await Promise.all(
+                this.records.map(r => r.type.key === '/type/work' ? getter(r.key) : defaultValue)
+            );
+
+            const responses = promises.map(p => p.value || p);
+            return _.fromPairs(
+                this.records.map((work, i) => [work.key, responses[i]])
+            );
+        },
+        // async editions() {
+        //     return this.fetchData(get_editions, { size: 0 });
+        // },
+
+        // async lists() {
+        //     return this.fetchData((r) => get_lists(r.key, 0));
+        // },
+
+        // async bookshelves() {
+        //     return this.fetchData(get_bookshelves);
+        // },
+        async getRatings() {
+            this.ratings = await this.fetchData(get_ratings);
+        },
     },
     computed: {
         recordsExist(){
