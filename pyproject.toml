@@ -178,6 +178,7 @@ max-statements = 70
 "openlibrary/solr/solr_types.py" = ["UP007"]
 "openlibrary/solr/update_work.py" = ["C901", "E722", "PLR0912", "PLR0915"]
 "openlibrary/utils/retry.py" = ["BLE001"]
+"openlibrary/utils/open_syllabus_project.py" = ["BLE001"]
 "openlibrary/utils/schema.py" = ["PERF402"]
 "openlibrary/utils/tests/test_retry.py" = ["PT012", "PT017"]
 "scripts/affiliate_server*.py" = ["SIM105"]
