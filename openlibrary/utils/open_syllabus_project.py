@@ -34,13 +34,12 @@ def get_total_by_olid(olid: str) -> int | None:
 
         if result:
             return result[0]
-        else:
-            return None
-    # pylint: disable=BLE001
+
     except Exception as e:
         print(f"Error querying the database: {e}")
     finally:
         conn.close()
+    return None
 
 
 def generate_osp_db(input_directory: str) -> None:
