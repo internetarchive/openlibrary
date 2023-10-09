@@ -672,20 +672,6 @@ $if is_privileged_user:
         <a href="javascript:;" id="add-new-provider-row" data-index="$provider_index">$_("Add a provider")</a>
     </fieldset>
 
-$if ctx.user and ctx.user.is_admin():
-    <fieldset class="major adminOnly">
-        <legend>$_("Admin Only")</legend>
-        <div class="formElement">
-            <div class="label">
-                <label for="additional_metadata">$_("Additional Metadata")</label>
-                <span class="tip">$_('This field can accept arbitrary key:value pairs')</span>
-            </div>
-            <div class="input">
-                <textarea name="additional_metadata" id="additional_metadata" rows="15" cols="50">foo:bar</textarea>
-            </div>
-        </div>
-    </fieldset>
-
 $if ctx.user:
     <fieldset class="major">
         <div class="formElement">
@@ -695,6 +681,20 @@ $if ctx.user:
             </div>
             <div class="input">
                 <textarea name="edition--first_sentence" id="edition-first_sentence" rows="3" cols="50">$book.first_sentence</textarea>
+            </div>
+        </div>
+    </fieldset>
+
+$if ctx.user and ctx.user.is_admin():
+    <fieldset class="major adminOnly">
+        <legend>$_("Admin Only")</legend>
+        <div class="formElement">
+            <div class="label">
+                <label for="additional_metadata">$_("Additional Metadata")</label>
+                <span class="tip">$_('This field can accept arbitrary key:value pairs')</span>
+            </div>
+            <div class="input">
+                <textarea name="additional_metadata" id="additional_metadata" rows="4" placeholder="foo:bar"></textarea>
             </div>
         </div>
     </fieldset>
