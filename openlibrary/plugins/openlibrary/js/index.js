@@ -196,9 +196,10 @@ jQuery(function () {
     }
 
     // conditionally load for type changing input
-    if (document.getElementById('type.key')) {
+    const typeChanger = document.getElementById('type.key')
+    if (typeChanger) {
         import(/* webpackChunkName: "type-changer" */ './type_changer.js')
-            .then(module => module.initTypeChanger());
+            .then(module => module.initTypeChanger(typeChanger));
     }
 
     // conditionally load real time signup functionality based on class in the page

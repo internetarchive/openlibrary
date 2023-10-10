@@ -2,15 +2,15 @@
  * Functionality for TypeChanger.html
  */
 
-export function initTypeChanger() {
+export function initTypeChanger(elem) {
     // /about?m=edit - where this code is run
 
     function changeTemplate() {
         // Change the template of the page based on the selected value
         const searchParams = new URLSearchParams(window.location.search);
-        const t = document.getElementById('type.key').value;
+        const t = elem.value
         searchParams.set('t', t);
         window.location.search = searchParams.toString();
     }
-    document.getElementById('type.key').onchange = changeTemplate;
+    elem.addEventListener('change', () => changeTemplate())
 }
