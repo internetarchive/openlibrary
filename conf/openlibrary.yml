@@ -18,7 +18,7 @@ debug: True
 coverstore_url: http://covers:7075
 # URL to use inside HTML files; must be publicly accessible from
 # a client's browser
-coverstore_public_url: http://localhost:7075
+coverstore_public_url: https://covers.openlibrary.org
 
 state_dir: var/run
 

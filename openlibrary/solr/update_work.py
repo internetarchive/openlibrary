@@ -832,6 +832,18 @@ def build_data2(
         },
     )
 
+    add_field_list(
+        doc,
+        'chapter',
+        uniq(
+            [
+                ed.key.split('/')[-1] + ' ' + chapter
+                for ed in editions
+                for chapter in EditionSolrBuilder(ed).chapter
+            ]
+        ),
+    )
+
     languages: list[str] = []
     ia_loaded_id = set()
     ia_box_id = set()

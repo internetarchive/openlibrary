@@ -140,6 +140,8 @@
     <field name="alternative_title" type="text_en_splitting" stored="false" multiValued="true"/>
     <field name="alternative_subtitle" type="text_en_splitting" stored="false" multiValued="true"/>
 
+    <field name="chapter" type="text_en_splitting" multiValued="true"/>
+
     <field name="edition_count" type="pint"/>
     <field name="edition_key" type="string" multiValued="true"/>
     <field name="cover_edition_key" type="string" indexed="false"/>

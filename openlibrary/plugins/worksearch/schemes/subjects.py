@@ -39,6 +39,7 @@ class SubjectSearchScheme(SearchScheme):
         q: str,
         solr_fields: set[str],
         cur_solr_params: list[tuple[str, str]],
+        highlight: bool = False,
     ) -> list[tuple[str, str]]:
         return [
             ('q', q),

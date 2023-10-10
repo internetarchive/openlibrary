@@ -76,6 +76,15 @@ class EditionSolrBuilder:
         return uniq(result)
 
     @property
+    def chapter(self) -> list[str]:
+        chapters = [
+            f'{chapter.get("label", "")} | {chapter.get("title", "")} | {chapter.get("pagenum", "")}'
+            for chapter in self.get('table_of_contents', [])
+        ]
+        print('fooooo', chapters)
+        return chapters
+
+    @property
     def publisher(self) -> list[str]:
         return uniq(
             publisher if not is_sine_nomine(publisher) else 'Sine nomine'
@@ -199,6 +208,7 @@ def build_edition_data(
             'alternative_title': list(ed.alternative_title),
             'cover_i': ed.cover_i,
             'language': ed.languages,
+            'chapter': ed.chapter,
             # Misc useful data
             'publisher': ed.publisher,
             'publish_date': [ed.publish_date] if ed.publish_date else None,

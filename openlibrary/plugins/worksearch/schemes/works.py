@@ -47,6 +47,7 @@ class WorkSearchScheme(SearchScheme):
         "edition_count",
         "edition_key",
         "by_statement",
+        "chapter",
         "publish_date",
         "lccn",
         "ia",
@@ -261,6 +262,7 @@ class WorkSearchScheme(SearchScheme):
         q: str,
         solr_fields: set[str],
         cur_solr_params: list[tuple[str, str]],
+        highlight: bool = False,
     ) -> list[tuple[str, str]]:
         new_params: list[tuple[str, str]] = []
 
@@ -281,7 +283,7 @@ class WorkSearchScheme(SearchScheme):
             # qf: the fields to query un-prefixed parts of the query.
             # e.g. 'harry potter' becomes
             # 'text:(harry potter) OR alternative_title:(harry potter)^20 OR ...'
-            qf='text alternative_title^20 author_name^20',
+            qf='text alternative_title^20 author_name^20 chapter',
             # bf (boost factor): boost results based on the value of this
             # field. I.e. results with more editions get boosted, upto a
             # max of 100, after which we don't see it as good signal of
@@ -309,6 +311,7 @@ class WorkSearchScheme(SearchScheme):
                 'cover_i': 'cover_i',
                 # Misc useful data
                 'language': 'language',
+                'chapter': 'chapter',
                 'publisher': 'publisher',
                 'publisher_facet': 'publisher_facet',
                 'publish_date': 'publish_date',
@@ -427,7 +430,7 @@ class WorkSearchScheme(SearchScheme):
             ed_q = convert_work_query_to_edition_query(str(work_q_tree))
             full_ed_query = '({{!edismax bq="{bq}" v="{v}" qf="{qf}"}})'.format(
                 # See qf in work_query
-                qf='text title^4',
+                qf='text title^4 chapter',
                 # Because we include the edition query inside the v="..." part,
                 # we need to escape quotes. Also note that if there is no
                 # edition query (because no fields in the user's work query apply),
@@ -446,6 +449,7 @@ class WorkSearchScheme(SearchScheme):
                 ),
             )
 
+        # TODO: This should still apply for no ed_q
         if ed_q or len(editions_fq) > 1:
             # The elements in _this_ edition query should cause works not to
             # match _at all_ if matching editions are not found
@@ -479,8 +483,19 @@ class WorkSearchScheme(SearchScheme):
             )
             new_params.append(('editions.rows', '1'))
             new_params.append(('editions.fl', ','.join(edition_fields)))
+            # if highlight:
+            #     new_params.append(('editions.hl', 'true'))
+            #     new_params.append(('editions.hl.fl', '*'))
         else:
             new_params.append(('q', full_work_query))
+
+        if highlight:
+            new_params.append(('hl', 'true'))
+            new_params.append(('hl.fl', 'chapter'))
+            # TODO: Need to limit to matching edition key THAT'S IMPOSSIBLE
+            # Need to make a separate request with the edition keys or'd together
+            new_params.append(('hl.q', str(work_q_tree)))
+            new_params.append(('hl.snippets', '3'))
 
         return new_params
 

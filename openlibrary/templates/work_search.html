@@ -212,7 +212,7 @@ $ )
                     $ read_status = work.get('readinglog', None)
                     $ dropper = macros.ReadingLogDropper([], work=work, include_lists=False, page_url="/search", users_work_read_status=read_status)
                 $ content_warning = len([s for s in subjects if s.startswith("content_warning:")]) != 0
-                $:macros.SearchResultsWork(work, reading_log=dropper, show_librarian_extras=show_librarian_extras, include_dropper=use_my_books_droppers, blur=content_warning)
+                $:macros.SearchResultsWork(work, reading_log=dropper, show_librarian_extras=show_librarian_extras, include_dropper=use_my_books_droppers, blur=content_warning, highlighting=results.highlighting[work.key])
           </ul>
           $:macros.Pager(page, num_found, rows)
         </div>

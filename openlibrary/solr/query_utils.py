@@ -142,6 +142,17 @@ def fully_escape_query(query: str) -> str:
     escaped = re.sub(r'AND|OR|NOT', lambda _1: _1.group(0).lower(), escaped)
     return escaped
 
+class SearchQuery:
+    parse_tree: Item
+
+    def __init__(self, parse_tree: Item):
+        self.parse_tree = parse_tree
+
+    @staticmethod
+    def from_string(query: str) -> 'SearchQuery':
+        return SearchQuery(
+            parse_tree=luqum_parser(query)
+        )
 
 def luqum_parser(query: str) -> Item:
     """

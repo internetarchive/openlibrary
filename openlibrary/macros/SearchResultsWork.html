@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, reading_log=None, show_librarian_extras=False, include_dropper=False, blur=False)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, reading_log=None, show_librarian_extras=False, include_dropper=False, blur=False, highlighting=None)
 
 $code:
   max_rendered_authors = 9
@@ -94,14 +94,65 @@ $code:
             </span>
           $if doc.get('ia'):
             &mdash; $_('%s previewable', len(doc.get('ia')))
-            $if len(doc.get('ia')) > 1:
-              $ blur_preview = "preview-covers--blur" if blur else ""
-              <span class="preview-covers $blur_preview">
-                $for x, i in enumerate(doc.get('ia')[1:10]):
-                  <a href="$(book_url)?edition=ia:$(urlquote(i))">
-                    <img width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="Cover of edition $i">
-                  </a>
-              </span>
+          $if highlighting:
+            <br />
+            $_('Matching chapters:')
+            $if highlighting.get('chapter'):
+              $ matching_chapters = highlighting.get('chapter', [])
+              <style>
+                .srw__chapters {
+                  background: rgba(0, 124, 255, 0.2);
+                  border-radius: 4px;
+                  color: black;
+                }
+                .srw__chapter {
+                  border-radius: inherit;
+                  padding: 6px 8px;
+                  display: flex;
+                  gap: 4px;
+                  line-height: 1.2em;
+                  transition: background-color 0.2s;
+                }
+                a.srw__chapter:hover {
+                  background: rgba(0, 124, 255, 0.2);
+                }
+                .srw__chapter em {
+                  font-weight: bold;
+                }
+              </style>
+              <div class="srw__chapters">
+                $for chapter in matching_chapters:
+                  $if not chapter.strip():
+                    $continue
+                  $ chapter_parts = chapter.split('|')
+                  $if len(chapter_parts) < 3:
+                    $ chapter_parts = ['', chapter, '']
+                  $ pagenum = None
+                  $if chapter_parts[2].strip():
+                    $ pagenum = chapter_parts[2].strip()
+                  $ tag = 'a' if pagenum else 'div'
+                  <$tag class="srw__chapter" $cond(pagenum, 'href="%s"' % '#foo')>
+                    <span>
+                      $if not chapter_parts[0].strip().endswith('.'):
+                        $ chapter_parts[0] = chapter_parts[0].strip() + '. '
+                      $# This isn't html injection, because solr returns everything
+                      $# already html escaped except for the <em> of the highlight
+                      $:chapter_parts[0]
+                      $:chapter_parts[1]
+                    </span>
+                    $if pagenum:
+                      <div style="flex:1; border-bottom: 1px dotted;"></div>
+                      Page $pagenum
+                  </$tag>
+              </div>
+          $if len(doc.get('ia')) > 1:
+            $ blur_preview = "preview-covers--blur" if blur else ""
+            <span class="preview-covers $blur_preview">
+              $for x, i in enumerate(doc.get('ia')[1:10]):
+                <a href="$(book_url)?edition=ia:$(urlquote(i))">
+                  <img width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="Cover of edition $i">
+                </a>
+            </span>
       </span>
       $if show_librarian_extras:
         <div class="searchResultItem__librarian-extras" title="$_('This is only visible to librarians.')">
