@@ -6,8 +6,8 @@ This welcome section is intended for new contributors.
 1. **Quick Tour:** [Quick Public Tour of Open Library (10min)](https://archive.org/embed/openlibrary-tour-2020/openlibrary.ogv)
 2. **Orientation:** [Volunteer Orientation Video (1.5h)](https://archive.org/details/openlibrary-orientation-2020?start=80)
     * [Code of conduct](https://github.com/internetarchive/openlibrary/blob/master/CODE_OF_CONDUCT.md)
-3. **Getting Started:**
-    * [Installation README](https://github.com/internetarchive/openlibrary/tree/master/docker) + [Docker Setup Walk-through (video)](https://archive.org/embed/openlibrary-developer-docs/zoom_0.mp4?autoplay=1&start=2)
+3. **Setup:**
+    * [Installation README](https://github.com/internetarchive/openlibrary/tree/master/docker#welcome-to-the-docker-installation-guide-for-open-library-developers) + [Docker Setup Walk-through (video)](https://archive.org/embed/openlibrary-developer-docs/zoom_0.mp4?autoplay=1&start=2)
 4. **Contributing:**
     * [How we use git](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet)
     * [Finding good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Needs%3A+Help%22+label%3A%22Good+First+Issue%22)
