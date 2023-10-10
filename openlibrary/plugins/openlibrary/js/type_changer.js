@@ -8,9 +8,12 @@ export function initTypeChanger(elem) {
     function changeTemplate() {
         // Change the template of the page based on the selected value
         const searchParams = new URLSearchParams(window.location.search);
-        const t = elem.value
+        const t = elem.value;
         searchParams.set('t', t);
+
+        // Update the URL and navigate to the new page
         window.location.search = searchParams.toString();
     }
-    elem.addEventListener('change', () => changeTemplate())
+
+    elem.addEventListener('change', changeTemplate);
 }
