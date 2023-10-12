@@ -531,7 +531,10 @@ class list_seeds(delegate.page):
         lst = get_list_seeds(key)
         if not lst:
             raise web.notfound()
-        return delegate.RawText(formats.dump(lst, self.encoding))
+
+        return delegate.RawText(
+            formats.dump(lst, self.encoding), content_type=self.content_type
+        )
 
     def POST(self, key):
         site = web.ctx.site
