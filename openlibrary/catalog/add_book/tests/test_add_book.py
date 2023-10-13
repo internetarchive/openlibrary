@@ -1462,9 +1462,11 @@ class TestNormalizeImportRecord:
             ("2000-11-11", True),
             (str(datetime.now().year), True),
             (str(datetime.now().year + 1), False),
+            ("9999-01-01", False),
         ],
     )
     def test_future_publication_dates_are_deleted(self, year, expected):
+        """It should be impossible to import books publish_date in a future year."""
         rec = {
             'title': 'test book',
             'source_records': ['ia:blob'],
