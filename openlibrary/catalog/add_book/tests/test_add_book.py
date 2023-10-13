@@ -1473,6 +1473,5 @@ class TestNormalizeImportRecord:
             'publish_date': year,
         }
         normalize_import_record(rec=rec)
-        print(rec)
         result = 'publish_date' in rec
         assert result == expected
