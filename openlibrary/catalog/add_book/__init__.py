@@ -785,6 +785,10 @@ def normalize_import_record(rec: dict) -> None:
     if not isinstance(rec['source_records'], list):
         rec['source_records'] = [rec['source_records']]
 
+    publication_year = get_publication_year(rec.get('publish_date'))
+    if publication_year and published_in_future_year(publication_year):
+        del rec['publish_date']
+
     # Split subtitle if required and not already present
     if ':' in rec.get('title', '') and not rec.get('subtitle'):
         title, subtitle = split_subtitle(rec.get('title'))
