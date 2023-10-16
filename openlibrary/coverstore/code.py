@@ -595,12 +595,15 @@ def render_list_preview_image(lst_key):
     author_text = "A list on Open Library"
     if owner := lst.get_owner():
         author_text = f"A list by {owner.displayname}"
-    w, h = draw.textsize(author_text, font=font_author)
+
+    left, top, right, bottom = font_author.getbbox(author_text)
+    w, h = right - left, bottom - top
     draw.text(((W - w) / 2, current_h), author_text, font=font_author, fill=(0, 0, 0))
     current_h += h + 5
 
     for line in para:
-        w, h = draw.textsize(line, font=font_title)
+        left, top, right, bottom = font_title.getbbox(line)
+        w, h = right - left, bottom - top
         draw.text(((W - w) / 2, current_h), line, font=font_title, fill=(0, 0, 0))
         current_h += h
 
