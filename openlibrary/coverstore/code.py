@@ -602,7 +602,7 @@ def render_list_preview_image(lst_key):
     current_h += h + 5
 
     for line in para:
-        left, top, right, bottom = font_author.getbbox(line)
+        left, top, right, bottom = font_title.getbbox(line)
         w, h = right - left, bottom - top
         draw.text(((W - w) / 2, current_h), line, font=font_title, fill=(0, 0, 0))
         current_h += h
