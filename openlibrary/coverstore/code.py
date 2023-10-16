@@ -595,7 +595,7 @@ def render_list_preview_image(lst_key):
     author_text = "A list on Open Library"
     if owner := lst.get_owner():
         author_text = f"A list by {owner.displayname}"
-    
+
     left, top, right, bottom = font_author.getbbox(author_text)
     w, h = right - left, bottom - top
     draw.text(((W - w) / 2, current_h), author_text, font=font_author, fill=(0, 0, 0))
