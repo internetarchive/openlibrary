@@ -77,6 +77,14 @@ $if can_merge:
                             <span class="metaDate" title="birth/death date">$a.get('birth_date', '') - $a.get('death_date', '')</span>
                         $elif a.date:
                             <span class="metaDate">$a.date</span>
+                        $if a.remote_ids:
+                            <div>
+                            $ configured_ids = get_author_config()['identifiers']
+                            $for id in configured_ids:
+                                $if id.name in a.remote_ids:
+                                    $ href = id.url.replace('@@@', a.remote_ids[id.name])
+                                    <small>$id.label:<a href="$href">$a.remote_ids[id.name]</a></small>
+                            </div>
                     </label>
                     <ul>
                     $for doc in top.docs:

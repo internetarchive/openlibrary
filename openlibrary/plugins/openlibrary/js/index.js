@@ -195,6 +195,13 @@ jQuery(function () {
             });
     }
 
+    // conditionally load for type changing input
+    const typeChanger = document.getElementById('type.key')
+    if (typeChanger) {
+        import(/* webpackChunkName: "type-changer" */ './type_changer.js')
+            .then(module => module.initTypeChanger(typeChanger));
+    }
+
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
         import(/* webpackChunkName: "realtime-account-validation" */'./realtime_account_validation.js')

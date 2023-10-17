@@ -73,8 +73,7 @@ features:
     support: admin
     undo: enabled
     upstream: enabled
-    # Uncomment below line to enable the My Books Dropper
-    # my_books_dropper: enabled
+    my_books_dropper: enabled
 
 upstream_to_www_migration: true
 default_template_root: /upstream
