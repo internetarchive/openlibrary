@@ -370,9 +370,12 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
             <p>"$(edition.first_sentence)"</p>
             </div>
 
-          $ component_times['TableOfContents'] = time()
-          $:macros.TableOfContents(edition, ocaid)
-          $ component_times['TableOfContents'] = time() - component_times['TableOfContents']
+          <div class="section">
+            <h3>$_("Table of Contents")</h3>
+            $ component_times['TableOfContents'] = time()
+            $:macros.TableOfContents(edition, ocaid)
+            $ component_times['TableOfContents'] = time() - component_times['TableOfContents']
+          </div>
 
           $if edition.notes or edition.series or edition.volume or edition.genres or edition.other_titles or edition.copyright_date or edition.translation_of or edition.translated_from:
             <div class="section">
