@@ -213,7 +213,10 @@ def s3_loan_api(s3_keys, ocaid=None, action='browse', **kwargs):
     data = s3_keys | kwargs
 
     response = requests.post(url + params, data=data)
-    if response.status_code == 409:
+    # We want this to be just `409` but first
+    # `www/common/Lending.inc#L111-114` needs to 
+    # be updated on petabox
+    if response.status_code in [400, 409]:
         raise PatronAccessException()
     response.raise_for_status()
     return response
