@@ -255,18 +255,18 @@ class sync_ia_ol(delegate.page):
             # XXX we could lookup the edition in OL by ocaid even if no openlibrary_edition specified
             # there's an example of doing this somewher in our code
             raise web.badrequest(f'No openlibrary_edition specified in item')
-            
+
         edition = web.ctx.site.get(f'/books/{metadata'openlibrary_edition'})
         if not edition:
             raise web.notfound()
-        
+
         if metadata.get('is_dark'):
             # XXX remove `ocaid` from edition.ocaids, save
             return
 
         if i.old_ocaid:
             # Remove old_ocaid from edition.ocaids and ensure `ocaid` _is_ in the list
-        
+
         # XXX Update validation based on get_metadata (instead of web.data)
         if not self.validate_input(i):
             raise web.badrequest('Missing required fields')
