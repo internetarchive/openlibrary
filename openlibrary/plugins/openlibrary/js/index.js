@@ -251,9 +251,11 @@ jQuery(function () {
             .then((module) => module.init());
     }
 
-    if ($('div.readinglog-charts').length) {
+    const readingLogCharts = document.querySelector('.readinglog-charts')
+    if (readingLogCharts) {
+        const readingLogConfig = JSON.parse(readingLogCharts.dataset.config)
         import(/* webpackChunkName: "readinglog-stats" */ './readinglog_stats')
-            .then(module => module.init($('div.readinglog-charts').data('config')));
+            .then(module => module.init(readingLogConfig));
     }
 
     const pageEl = $('#page-barcodescanner');
