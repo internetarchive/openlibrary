@@ -27,6 +27,7 @@ import openlibrary
 from openlibrary import accounts
 
 from openlibrary.core import admin as admin_stats, helpers as h, imports, cache
+from openlibrary.core.ia import get_metadata
 from openlibrary.core.waitinglist import Stats as WLStats
 from openlibrary.core.sponsorships import summary, sync_completed_sponsored_books
 from openlibrary.core.models import Work
@@ -240,29 +241,35 @@ class sync_ol_ia:
 
 
 class sync_ia_ol(delegate.page):
-    path = '/ia/sync'
+    path = '/ia/sync/(.*)'
     encoding = 'json'
 
-    def POST(self):
-        # Authenticate request:
-        s3_access_key = web.ctx.env.get('HTTP_X_S3_ACCESS', '')
-        s3_secret_key = web.ctx.env.get('HTTP_X_S3_SECRET', '')
+    def GET(self, ocaid):
+        self.bounce_unauthorized(s3_access_key, s3_secret_key)
 
-        if not self.is_authorized(s3_access_key, s3_secret_key):
-            raise web.unauthorized()
-
-        # Validate input
-        i = json.loads(web.data())
-
-        if not self.validate_input(i):
-            raise web.badrequest('Missing required fields')
-
-        # Find record using OLID (raise 404 if not found)
-        edition_key = f'/books/{i.get("olid")}'
-        edition = web.ctx.site.get(edition_key)
-
+        i = web.input(old_ocaid=None)
+        metadata = get_metadata(ocaid)
+        if not metadata:
+            raise web.badrequest(f'Failed to lookup archive.org item with ocaid {ocaid}')
+        if not metadata.get('openlibrary_edition'):
+            # XXX we could lookup the edition in OL by ocaid even if no openlibrary_edition specified
+            # there's an example of doing this somewher in our code
+            raise web.badrequest(f'No openlibrary_edition specified in item')
+            
+        edition = web.ctx.site.get(f'/books/{metadata'openlibrary_edition'})
         if not edition:
             raise web.notfound()
+        
+        if metadata.get('is_dark'):
+            # XXX remove `ocaid` from edition.ocaids, save
+            return
+
+        if i.old_ocaid:
+            # Remove old_ocaid from edition.ocaids and ensure `ocaid` _is_ in the list
+        
+        # XXX Update validation based on get_metadata (instead of web.data)
+        if not self.validate_input(i):
+            raise web.badrequest('Missing required fields')
 
         # Update record
         match i.get('action', ''):
@@ -275,20 +282,21 @@ class sync_ia_ol(delegate.page):
 
         return delegate.RawText(json.dumps({"status": "ok"}))
 
-    def is_authorized(self, access_key, secret_key):
+    def bounce_authorized(self):
         """Returns True if account is authorized to make changes to records."""
+        # Authenticate request:
+        s3_access_key = web.ctx.env.get('HTTP_X_S3_ACCESS', '')
+        s3_secret_key = web.ctx.env.get('HTTP_X_S3_SECRET', '')
         auth = accounts.InternetArchiveAccount.s3auth(access_key, secret_key)
 
-        if not auth.get('username', ''):
-            return False
+        if auth.get('username', ''):
+            acct = accounts.OpenLibraryAccount.get(email=auth.get('username'))
+            user = acct.get_user() if acct else None
 
-        acct = accounts.OpenLibraryAccount.get(email=auth.get('username'))
-        user = acct.get_user() if acct else None
+            if user and user.is_usergroup_member('/usergroup/ia'):
+                return True
 
-        if not user or (user and not user.is_usergroup_member('/usergroup/ia')):
-            return False
-
-        return True
+        raise web.unauthorized()
 
     def validate_input(self, i):
         """Returns True if the request is valid.
