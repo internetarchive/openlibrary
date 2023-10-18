@@ -1,4 +1,4 @@
-import { initSubjectTagsSearchBox } from '../../initTaggingSearchBar';
+import { initSubjectTagsSearchBox } from '../initTaggingSearchBar';
 
 export function renderBulkTaggingMenu(workIds) {
     const existingForm = document.querySelector('.bulk-tagging-form');
