@@ -71,12 +71,23 @@
     "ol_key": "ScarTissue"
   },
   {
-    "name": "Giacomo",
+    "name": "Edgar Leung",
+    "title": "Engineering Volunteer",
+    "roles": ["volunteer"],
+    "departments": ["engineering"],
+    "projects": ["Librarian Merge Queue"],
+    "photo_path": "https://lh3.googleusercontent.com/u/0/drive-viewer/AK7aPaCDKs7PIcfRPs-qDojkA9qpZAs53bEbUF3dOhCgIVFgPKgHw_I90u0uF2sxCkRJqJM1ZQ3D5hKQSjH7xiSreGRMKW07=w2652-h1228",
+    "personal_url": "",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Giacomo Cignoni",
     "title": "Fellow 2019 (GSoC) - Engineering",
     "roles": ["fellow-2019-gsoc"],
     "departments": ["engineering"],
-    "projects": ["Bookreader Selection"],
-    "photo_path": "",
+    "projects": ["<a href='https://blog.openlibrary.org/2020/08/29/giacomo-cignoni-my-internship-at-the-internet-archive/'>Bookreader Selection</a>"],
+    "photo_path": "https://media.licdn.com/dms/image/C4E03AQH9rdV9VCt0-w/profile-displayphoto-shrink_400_400/0/1657834448565?e=1703116800&v=beta&t=Wul7NBW-NlPqaVg8Mtry38Y8j2zfHomi6-tvDxgHQ3Y",
     "personal_url": "",
     "favorite_book_url": "",
     "ol_key": ""
@@ -100,8 +111,8 @@
     "projects": [
       "<a href='https://blog.openlibrary.org/2023/08/25/google-summer-of-code-2023-supercharging-subject-pages/'>Tag-powered Subjects</a>"
     ],
-    "photo_path": "",
-    "personal_url": "",
+    "photo_path": "https://media.licdn.com/dms/image/D4E03AQGwfvWjoll47g/profile-displayphoto-shrink_400_400/0/1696947292009?e=1703116800&v=beta&t=wvrxAn6Om5w0lDxdN64ddrIKei_3XZPh6H7_AY9lNPQ",
+    "personal_url": "https://www.linkedin.com/in/jayden-teoh/",
     "favorite_book_url": "",
     "ol_key": ""
   },
@@ -119,8 +130,8 @@
   {
     "name": "Jon Robson",
     "title": "Frontend Lead",
-    "roles": ["fellow-2017", "staff-emeritus"],
-    "departments": ["engineering", "design"],
+    "roles": ["fellow-2017"],
+    "departments": ["engineering"],
     "photo_path": "",
     "personal_url": "",
     "favorite_book_url": "",
@@ -176,13 +187,13 @@
     "ol_key": ""
   },
   {
-    "name": "Roya",
+    "name": "Roya E.",
     "title": "Design Fellow",
     "roles": ["fellow-2023"],
     "departments": ["design"],
     "projects": ["Design System"],
     "photo_path": "",
-    "personal_url": "",
+    "personal_url": "https://royaebtehaj.com",
     "favorite_book_url": "",
     "ol_key": ""
   },
@@ -192,8 +203,8 @@
     "roles": ["fellow-2023"],
     "departments": ["design"],
     "projects": ["Account Registration", "Persona Research"],
-    "photo_path": "",
-    "personal_url": "",
+    "photo_path": "https://storage.googleapis.com/uxfolio/629144af56aeec0003c789b7/629144b056aeec0003c789b9/kMkCW291M7DpLafP.jpg",
+    "personal_url": "https://uxfol.io/d5b318c4",
     "favorite_book_url": "",
     "ol_key": ""
   },
@@ -203,8 +214,8 @@
     "roles": ["fellow-2021"],
     "departments": ["design", "engineering"],
     "projects": ["Homepage Onboarding Cards"],
-    "photo_path": "",
-    "personal_url": "",
+    "photo_path": "https://pbs.twimg.com/profile_images/1344528993236647936/YktB5pg8_400x400.jpg",
+    "personal_url": "https://www.linkedin.com/in/sabreen-parveen-4a6641190",
     "favorite_book_url": "",
     "ol_key": ""
   },
@@ -225,7 +236,7 @@
     "roles": ["fellow-2022"],
     "departments": ["design", "engineering"],
     "projects": ["My Book Page (Mobile)"],
-    "photo_path": "",
+    "photo_path": "https://www.inspiricapros.com/wp-content/uploads/2021/11/Samuel-Grunebaum.jpg.webp",
     "ol_key": "samstupendous"
   },
   {
@@ -241,8 +252,9 @@
   {
     "name": "Tabish Shaikh",
     "title": "Engineering Fellow",
-    "roles": ["fellow-2020-gsoc", "fellow-2019-iasoc"],
+    "roles": ["fellow-2020-gsoc", "fellow-2019-iasoc", "staff-emeritus"],
     "departments": ["engineering"],
+    "photo_path": "https://media.licdn.com/dms/image/D4D03AQFT2zb-MFX6ew/profile-displayphoto-shrink_800_800/0/1673440954545?e=2147483647&v=beta&t=cVjgjHfsFsRCPoR_siw7MPWtI4_MsTe7ztwlYfJuewI",
     "ol_key": ""
   },
   {
@@ -251,8 +263,8 @@
     "roles": ["fellow-2022"],
     "departments": ["engineering"],
     "projects": ["Open Book Genome Project (OBGP)"],
-    "photo_path": "",
-    "personal_url": "",
+    "photo_path": "https://media.licdn.com/dms/image/D5603AQELxHjGPUmY7g/profile-displayphoto-shrink_400_400/0/1680211721055?e=1703116800&v=beta&t=ubJ8o5N9Oba2AD_5vE6pizFm0RLzyTjTNT734MEyDPI",
+    "personal_url": "https://www.linkedin.com/in/teo-cheng/",
     "favorite_book_url": "",
     "ol_key": ""
   }
