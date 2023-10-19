@@ -207,14 +207,14 @@ jQuery(function () {
         import(/* webpackChunkName: "realtime-account-validation" */'./realtime_account_validation.js')
             .then(module => module.initRealTimeValidation());
     }
-    // conditionally load readmore button based on class in the page
-    const readMoreButtons = document.getElementsByClassName('read-more-button');
+    // conditionally load clamping components
+    const readMoreComponents = document.getElementsByClassName('read-more');
     const clampers = document.querySelectorAll('.clamp');
-    if (readMoreButtons.length || clampers.length) {
+    if (readMoreComponents.length || clampers.length) {
         import(/* webpackChunkName: "readmore" */ './readmore.js')
             .then(module => {
-                if (readMoreButtons.length) {
-                    module.initReadMoreButton();
+                if (readMoreComponents.length) {
+                    module.ReadMoreComponent.init();
                 }
                 if (clampers.length) {
                     module.initClampers(clampers);

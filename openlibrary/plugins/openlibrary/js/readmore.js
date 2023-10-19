@@ -1,38 +1,55 @@
 import { debounce } from './nonjquery_utils.js';
 import $ from 'jquery';
 
-export function resetReadMoreButtons(){
-    $('.restricted-view').each(function() {
-        const className = $(this).parent().attr('class');
-        // 58 is based on the height attribute of .restricted-height
-        if ($(this)[0].scrollHeight <= 58) {
-            $(`.${className}.read-more`).addClass('hidden');
-            $(`.${className}.read-less`).addClass('hidden');
-            $(this).removeClass('restricted-height');
+export class ReadMoreComponent {
+    /**
+     * @param {HTMLElement} container
+     */
+    constructor(container) {
+        /** @type {HTMLElement} */
+        this.$container = container;
+        this.$content = container.querySelector('.read-more__content');
+        this.$readMoreButton = container.querySelector('.read-more__toggle--more');
+        this.$readLessButton = container.querySelector('.read-more__toggle--less');
+
+        this.maxHeight = parseFloat(this.$content.style.height);
+    }
+
+    attach() {
+        this.$readMoreButton.addEventListener('click', () => this.expand());
+        this.$readLessButton.addEventListener('click', () => this.collapse());
+        window.addEventListener('resize', debounce(() => this.reset()), 50);
+
+        this.reset();
+    }
+
+    expand() {
+        this.$container.classList.add('read-more--expanded');
+        this.$content.style.height = 'auto';
+    }
+
+    collapse() {
+        this.$container.classList.remove('read-more--expanded');
+        this.$content.style.height = `${this.maxHeight}px`;
+    }
+
+    reset() {
+        // Fudge factor to account for non-significant read/more
+        // (e.g missing a bit of padding)
+        if (this.$content.scrollHeight <= (this.maxHeight + 1)) {
+            this.expand();
+            this.$container.classList.add('read-more--unnecessary');
         } else {
-            $(`.${className}.read-more`).removeClass('hidden');
-            $(`.${className}.read-less`).addClass('hidden');
-            $(this).addClass('restricted-height');
+            this.collapse();
+            this.$container.classList.remove('read-more--unnecessary');
         }
-    });
-}
+    }
 
-
-export function initReadMoreButton() {
-    $('.read-more-button').on('click',function(){
-        const up = $(this).parent().parent();
-        $(`.${up.attr('class')}-content`).removeClass('restricted-height', 300);
-        $(`.${up.attr('class')}.read-more`).addClass('hidden');
-        $(`.${up.attr('class')}.read-less`).removeClass('hidden');
-    });
-    $('.read-less-button').on('click',function(){
-        const up = $(this).parent().parent();
-        $(`.${up.attr('class')}-content`).addClass('restricted-height', 300);
-        $(`.${up.attr('class')}.read-more`).removeClass('hidden');
-        $(`.${up.attr('class')}.read-less`).addClass('hidden');
-    });
-    resetReadMoreButtons();
-    $(window).on('resize', debounce(resetReadMoreButtons, 50));
+    static init() {
+        for (const el of document.querySelectorAll('.read-more')) {
+            new ReadMoreComponent(el).attach();
+        }
+    }
 }
 
 export function initClampers(clampers) {

@@ -1,8 +1,8 @@
-$def with (edition, ocaid=None, highlighting=False, controls=True)
+$def with (edition, ocaid=None, highlighting=False, cls='', attrs='')
 
 $ table_of_contents = edition.get_table_of_contents()
 $if table_of_contents and len(table_of_contents) > 1:
-  <div class="toc">
+  <div class="toc $cls" $:attrs>
     $for chapter in table_of_contents:
       $ is_link = chapter.pagenum and ocaid
       $ tag = 'a' if is_link else 'div'

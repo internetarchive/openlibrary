@@ -1,23 +1,40 @@
-import { initClampers, resetReadMoreButtons } from '../../../openlibrary/plugins/openlibrary/js/readmore';
+import { initClampers, ReadMoreComponent } from '../../../openlibrary/plugins/openlibrary/js/readmore';
 import {clamperSample} from './html-test-data'
 
-describe('resetReadMoreButtons', () => {
-    const $dummyEl = $('<div class="a-parent"><div class="restricted-view"></div></div>');
-    $dummyEl.appendTo(document.body);
+describe('ReadMoreComponent', () => {
+    /** @type {ReadMoreComponent} */
+    let readMore;
 
-    test('restricted view if big scroll height', () => {
-        const restrictedViewEl = $dummyEl.find('.restricted-view')[0];
-        jest.spyOn(restrictedViewEl, 'scrollHeight', 'get').mockImplementation(() => 100);
-        resetReadMoreButtons();
-        expect(restrictedViewEl.classList.contains('restricted-height')).toBe(true);
+    beforeEach(() => {
+        readMore = new ReadMoreComponent(
+            $(`
+                <div class="read-more">
+                    <div class="read-more__content" style="height:40px">
+                    </div>
+                </div>
+            `)
+                .appendTo(document.body)[0]
+        );
     });
 
-    test('no restricted view if small scroll height', () => {
-        const restrictedViewEl = $dummyEl.find('.restricted-view')[0];
-        jest.spyOn(restrictedViewEl, 'scrollHeight', 'get').mockImplementation(() => 50);
-        resetReadMoreButtons();
-        expect(restrictedViewEl.classList.contains('restricted-height')).toBe(false);
-        $dummyEl.remove();
+    afterEach(() => {
+        readMore.$container.remove();
+    });
+
+    test('collapsed if big scroll height', () => {
+        jest.spyOn(readMore.$content, 'scrollHeight', 'get').mockImplementation(() => 100);
+        readMore.reset();
+        expect(readMore.$container.classList.contains('read-more--unnecessary')).toBe(false);
+        expect(readMore.$container.classList.contains('read-more--expanded')).toBe(false);
+        expect(readMore.$content.style.height).not.toBe('auto');
+    });
+
+    test('expanded if small scroll height', () => {
+        jest.spyOn(readMore.$content, 'scrollHeight', 'get').mockImplementation(() => 30);
+        readMore.reset();
+        expect(readMore.$container.classList.contains('read-more--unnecessary')).toBe(true);
+        expect(readMore.$container.classList.contains('read-more--expanded')).toBe(true);
+        expect(readMore.$content.style.height).toBe('auto');
     });
 });
 
