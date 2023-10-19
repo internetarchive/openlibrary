@@ -837,7 +837,7 @@ def build_data2(
         'chapter',
         uniq(
             [
-                ed.key.split('/')[-1] + ' ' + chapter
+                chapter
                 for ed in editions
                 for chapter in EditionSolrBuilder(ed).chapter
             ]

@@ -95,9 +95,21 @@ $code:
           $if doc.get('ia'):
             &mdash; $_('%s previewable', len(doc.get('ia')))
           $if highlighting:
-            <br />
-            $_('Matching chapters:')
+            $if highlighting.get('subject'):
+              <br />
+              <style>
+                .srw__subjects em {
+                  font-weight: bold;
+                }
+              </style>
+              $_('Matching subjects:')
+              <span class="srw__subjects">
+                $for subj in highlighting['subject']:
+                  <a href="/subjects/$utf8(subj.lower().replace(' ', '_').replace(',', '').replace('/', '').replace('<em>', '').replace('</em>', ''))" style="text-decoration:underline">$:subj</a>
+              </span>
             $if highlighting.get('chapter'):
+              <br />
+              $_('Matching chapters:')
               $ matching_chapters = highlighting.get('chapter', [])
               <style>
                 .srw__chapters {
@@ -131,9 +143,9 @@ $code:
                   $if chapter_parts[2].strip():
                     $ pagenum = chapter_parts[2].strip()
                   $ tag = 'a' if pagenum else 'div'
-                  <$tag class="srw__chapter" $cond(pagenum, 'href="%s"' % '#foo')>
+                  <$tag class="srw__chapter" $:cond(pagenum, 'href="https://archive.org/details/%s?admin=1#page/%s"' % (selected_ed.get('ia')[0], pagenum))>
                     <span>
-                      $if not chapter_parts[0].strip().endswith('.'):
+                      $if chapter_parts[0].strip() and not chapter_parts[0].strip().endswith('.'):
                         $ chapter_parts[0] = chapter_parts[0].strip() + '. '
                       $# This isn't html injection, because solr returns everything
                       $# already html escaped except for the <em> of the highlight

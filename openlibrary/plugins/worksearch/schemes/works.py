@@ -283,7 +283,7 @@ class WorkSearchScheme(SearchScheme):
             # qf: the fields to query un-prefixed parts of the query.
             # e.g. 'harry potter' becomes
             # 'text:(harry potter) OR alternative_title:(harry potter)^20 OR ...'
-            qf='text alternative_title^20 author_name^20 chapter',
+            qf='text alternative_title^20 author_name^20 chapter^35',
             # bf (boost factor): boost results based on the value of this
             # field. I.e. results with more editions get boosted, upto a
             # max of 100, after which we don't see it as good signal of
@@ -430,7 +430,7 @@ class WorkSearchScheme(SearchScheme):
             ed_q = convert_work_query_to_edition_query(str(work_q_tree))
             full_ed_query = '({{!edismax bq="{bq}" v="{v}" qf="{qf}"}})'.format(
                 # See qf in work_query
-                qf='text title^4 chapter',
+                qf='text title^4 chapter^4',
                 # Because we include the edition query inside the v="..." part,
                 # we need to escape quotes. Also note that if there is no
                 # edition query (because no fields in the user's work query apply),
@@ -491,7 +491,7 @@ class WorkSearchScheme(SearchScheme):
 
         if highlight:
             new_params.append(('hl', 'true'))
-            new_params.append(('hl.fl', 'chapter'))
+            new_params.append(('hl.fl', 'subject,chapter'))
             # TODO: Need to limit to matching edition key THAT'S IMPOSSIBLE
             # Need to make a separate request with the edition keys or'd together
             new_params.append(('hl.q', str(work_q_tree)))
