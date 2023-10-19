@@ -61,7 +61,7 @@
   },
   {
     "name": "Drini Cami",
-    "title": "Developer",
+    "title": "Core Developer",
     "roles": ["staff-active"],
     "departments": ["engineering"],
     "projects": ["Library Explorer"],
@@ -82,6 +82,17 @@
     "ol_key": ""
   },
   {
+    "name": "Edward Betts",
+    "title": "Core Developer",
+    "roles": ["staff-emeritus"],
+    "departments": ["engineering"],
+    "projects": ["Librarian Merge Queue"],
+    "photo_path": "https://git.4angle.com/avatar/1e64ab07e0faced09520a5c589deb70b?size=512",
+    "personal_url": "https://edwardbetts.com/",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
     "name": "Giacomo Cignoni",
     "title": "Fellow 2019 (GSoC) - Engineering",
     "roles": ["fellow-2019-gsoc"],
@@ -89,6 +100,17 @@
     "projects": ["<a href='https://blog.openlibrary.org/2020/08/29/giacomo-cignoni-my-internship-at-the-internet-archive/'>Bookreader Selection</a>"],
     "photo_path": "https://media.licdn.com/dms/image/C4E03AQH9rdV9VCt0-w/profile-displayphoto-shrink_400_400/0/1657834448565?e=1703116800&v=beta&t=Wul7NBW-NlPqaVg8Mtry38Y8j2zfHomi6-tvDxgHQ3Y",
     "personal_url": "",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "George Oates",
+    "title": "Program Lead",
+    "roles": ["staff-emeritus"],
+    "departments": ["design", "product"],
+    "projects": ["Subjects Page", "Logo"],
+    "photo_path": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTNXUQFbwaLB07_H8ZbzkR4EEZmhPUuoGyZZVXGuFD9raGW8uLD",
+    "personal_url": "http://abitofgeorge.com/",
     "favorite_book_url": "",
     "ol_key": ""
   },
@@ -128,11 +150,22 @@
     "ol_key": "lasseignejk"
   },
   {
+    "name": "Jim Champ",
+    "title": "Core Developer",
+    "roles": ["staff-active"],
+    "departments": ["engineering"],
+    "projects": ["Books Page Redesign", "My Books Dropper", "Librarian Merge Queue"],
+    "photo_path": "https://avatars.githubusercontent.com/u/28732543?v=4",
+    "personal_url": "https://github.com/jimchamp",
+    "favorite_book_url": "https://openlibrary.org/books/OL24383834M/The_Way_of_Kings",
+    "ol_key": "lasseignejk"
+  },
+  {
     "name": "Jon Robson",
     "title": "Frontend Lead",
     "roles": ["fellow-2017"],
     "departments": ["engineering"],
-    "photo_path": "",
+    "photo_path": "https://media.licdn.com/dms/image/C4E03AQHsUBUdt5_UAA/profile-displayphoto-shrink_400_400/0/1516543040876?e=1703116800&v=beta&t=9wHnzD5M1bXezjyZb7Jz-T_dfXgpG0Ea18GgtT73DMsz",
     "personal_url": "",
     "favorite_book_url": "",
     "ol_key": ""
@@ -148,7 +181,7 @@
     "ol_key": ""
   },
   {
-    "name": "Lisa",
+    "name": "Lisa S.",
     "title": "Patron Services & Lead Community Librarian",
     "roles": ["staff-active", "fellow-2018"],
     "departments": ["librarians"],
@@ -168,7 +201,7 @@
     "ol_key": "mekBot"
   },
   {
-    "name": "Nick",
+    "name": "Nick Norman",
     "title": "Communications Lead",
     "roles": ["fellow-2022", "fellow-2023"],
     "departments": ["communications"],
@@ -183,7 +216,7 @@
     "roles": ["fellow-2021-gsoc"],
     "departments": ["engineering"],
     "projects": ["Open Book Genome Project (OBGP)"],
-    "photo_path": "",
+    "photo_path": "https://media.licdn.com/dms/image/D4E03AQGLGv88S5Ix6Q/profile-displayphoto-shrink_800_800/0/1693451292055?e=2147483647&v=beta&t=TmFFYiu5JJFXHIkyoL_xU23M8WALhX8biykVX0F5j0g",
     "ol_key": ""
   },
   {
@@ -191,8 +224,8 @@
     "title": "Design Fellow",
     "roles": ["fellow-2023"],
     "departments": ["design"],
-    "projects": ["Design System"],
-    "photo_path": "",
+    "projects": ["Design System", "Subjects Page"],
+    "photo_path": "https://www.scu.edu/media/college-of-arts-and-sciences/art-and-art-history/faculty-and-staff/RE-profile.jpg",
     "personal_url": "https://royaebtehaj.com",
     "favorite_book_url": "",
     "ol_key": ""
