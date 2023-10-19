@@ -12,7 +12,8 @@ export class ReadMoreComponent {
         this.$readMoreButton = container.querySelector('.read-more__toggle--more');
         this.$readLessButton = container.querySelector('.read-more__toggle--less');
 
-        this.maxHeight = parseFloat(this.$content.style.height);
+        this.collapsedHeight = parseFloat(this.$content.style.height);
+        this.fullHeight = this.$content.scrollHeight;
     }
 
     attach() {
@@ -25,18 +26,19 @@ export class ReadMoreComponent {
 
     expand() {
         this.$container.classList.add('read-more--expanded');
-        this.$content.style.height = 'auto';
+        this.$content.style.height = `${this.fullHeight}px`;
     }
 
     collapse() {
         this.$container.classList.remove('read-more--expanded');
-        this.$content.style.height = `${this.maxHeight}px`;
+        this.$content.style.height = `${this.collapsedHeight}px`;
     }
 
     reset() {
+        this.fullHeight = this.$content.scrollHeight;
         // Fudge factor to account for non-significant read/more
         // (e.g missing a bit of padding)
-        if (this.$content.scrollHeight <= (this.maxHeight + 1)) {
+        if (this.$content.scrollHeight <= (this.collapsedHeight + 1)) {
             this.expand();
             this.$container.classList.add('read-more--unnecessary');
         } else {

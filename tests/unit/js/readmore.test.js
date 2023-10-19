@@ -26,7 +26,7 @@ describe('ReadMoreComponent', () => {
         readMore.reset();
         expect(readMore.$container.classList.contains('read-more--unnecessary')).toBe(false);
         expect(readMore.$container.classList.contains('read-more--expanded')).toBe(false);
-        expect(readMore.$content.style.height).not.toBe('auto');
+        expect(readMore.$content.style.height).toBe('40px');
     });
 
     test('expanded if small scroll height', () => {
@@ -34,7 +34,7 @@ describe('ReadMoreComponent', () => {
         readMore.reset();
         expect(readMore.$container.classList.contains('read-more--unnecessary')).toBe(true);
         expect(readMore.$container.classList.contains('read-more--expanded')).toBe(true);
-        expect(readMore.$content.style.height).toBe('auto');
+        expect(readMore.$content.style.height).not.toBe('40px');
     });
 });
 
