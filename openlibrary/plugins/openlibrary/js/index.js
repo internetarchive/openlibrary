@@ -507,6 +507,17 @@ jQuery(function () {
             })
     }
 
+    // Add functionality to the team page for filtering members:
+    const teamCards = document.querySelector('.teamCards_container')
+    if (teamCards) {
+        import('./team')
+            .then(module => {
+                if (teamCards) {
+                    module.initTeamFilter();
+                }
+            })
+    }
+
     // Add new providers in edit edition view:
     const addProviderRowLink = document.querySelector('#add-new-provider-row')
     if (addProviderRowLink) {
