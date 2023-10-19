@@ -34,6 +34,22 @@
 @import (less) "components/buttonBtn.less";
 @import (less) "components/modal-links.less";
 
+// Mobile
+html {
+  // Take into account the header bar + tab bar
+  scroll-padding-top: 100px;
+
+  // Tablet
+  @media only screen and (min-width: @width-breakpoint-tablet) {
+    scroll-padding-top: 110px;
+  }
+
+  // Desktop
+  @media all and ( min-width: @width-breakpoint-desktop ) {
+    scroll-padding-top: 0;
+  }
+}
+
 @media only screen and (min-width: @width-breakpoint-tablet) {
   @import (less) "components/edit-toolbar--tablet.less";
 }

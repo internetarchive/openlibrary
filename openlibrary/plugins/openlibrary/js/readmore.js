@@ -32,6 +32,13 @@ export class ReadMoreComponent {
     readLessClick = () => {
         this.collapse();
         this.manuallyExpanded = false;
+        // scroll top of the read-more container into view if the top is not visible
+        if (this.$container.getBoundingClientRect().top < 0) {
+            this.$container.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            });
+        }
     }
 
     expand() {
