@@ -243,7 +243,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
         $else:
           $ overview_desc = work.description
         <div class="book-description read-more">
-            <div class="read-more__content" style="height:58px">
+            <div class="read-more__content" style="max-height:58px">
                 $:sanitize(format(overview_desc))
             </div>
             $:macros.ReadMore()
@@ -375,7 +375,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
             <div class="section read-more">
               <h3>$_("Table of Contents")</h3>
               $ component_times['TableOfContents'] = time()
-              $:macros.TableOfContents(table_of_contents, ocaid, cls='read-more__content', attrs='style="height:350px"')
+              $:macros.TableOfContents(table_of_contents, ocaid, cls='read-more__content', attrs='style="max-height:350px"')
               $ component_times['TableOfContents'] = time() - component_times['TableOfContents']
               $:macros.ReadMore()
             </div>
@@ -468,7 +468,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
             $if work.description and work.description != overview_desc:
               <h4>$_("Work Description")</h4>
               <div class="work-description read-more">
-                <div class="read-more__content" style="height:58px">
+                <div class="read-more__content" style="max-height:58px">
                   $:sanitize(format(work.description))
                 </div>
                 $:macros.ReadMore()

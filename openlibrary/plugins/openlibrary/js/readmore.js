@@ -12,7 +12,7 @@ export class ReadMoreComponent {
         this.$readMoreButton = container.querySelector('.read-more__toggle--more');
         this.$readLessButton = container.querySelector('.read-more__toggle--less');
 
-        this.collapsedHeight = parseFloat(this.$content.style.height);
+        this.collapsedHeight = parseFloat(this.$content.style.maxHeight);
         this.fullHeight = this.$content.scrollHeight;
     }
 
@@ -26,12 +26,12 @@ export class ReadMoreComponent {
 
     expand() {
         this.$container.classList.add('read-more--expanded');
-        this.$content.style.height = `${this.fullHeight}px`;
+        this.$content.style.maxHeight = `${this.fullHeight}px`;
     }
 
     collapse() {
         this.$container.classList.remove('read-more--expanded');
-        this.$content.style.height = `${this.collapsedHeight}px`;
+        this.$content.style.maxHeight = `${this.collapsedHeight}px`;
     }
 
     reset() {
