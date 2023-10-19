@@ -19,10 +19,6 @@
     }
   }
 
-  &.read-more--unnecessary .read-more__toggle {
-    display: none;
-  }
-
   .read-more__toggle {
     cursor: pointer;
     color: @link-blue;
@@ -30,10 +26,16 @@
     background: transparent;
     border: 0;
     font-family: inherit;
+    width: 100%;
+    padding: 10px;
+    text-align: left;
 
     @media only screen and (max-width: @width-breakpoint-desktop) {
       text-align: center;
-      width: 100%;
     }
+  }
+
+  &.read-more--unnecessary .read-more__toggle {
+    display: none;
   }
 }
