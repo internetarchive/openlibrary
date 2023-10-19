@@ -23,8 +23,10 @@ export default class SelectionManager {
         this.curpath = curpath;
         this.inited = false;
         this.selectedItems = {};
+        this.lastSelectedIndex = -1;
 
-        this.toggleSelected = this.toggleSelected.bind(this);
+        this.processClick = this.processClick.bind(this);
+        this.changeSelectedState = this.changeSelectedState.bind(this);
         this.clearSelectedItems = this.clearSelectedItems.bind(this);
         this.dragStart = this.dragStart.bind(this);
         this.dragEnd = this.dragEnd.bind(this);
@@ -44,7 +46,7 @@ export default class SelectionManager {
         const providerSelectors = providers.map(p => p.selector);
         $(providerSelectors.join(', '))
             .addClass('ile-selectable')
-            .on('click', this.toggleSelected);
+            .on('click', this.processClick);
 
         for (const provider of providers) {
             for (const el of $(provider.selector).toArray()) {
@@ -82,19 +84,44 @@ export default class SelectionManager {
     /**
      * @param {MouseEvent & { currentTarget: HTMLElement }} clickEvent
      */
-    toggleSelected(clickEvent) {
+    processClick(clickEvent) {
         // If there is text selection or the click is on a link that isn't a select handle, don't do anything
-        if (window.getSelection()?.toString() !== '' ||
+        if ((!clickEvent.shiftKey && window.getSelection()?.toString() !== '') ||
             ($(clickEvent.target).closest('a').is('a') &&
             $(clickEvent.target).not('.ile-select-handle').length > 0)) return;
 
         const el = clickEvent.currentTarget;
+        const elIndex = $(el).closest('li,tr')?.index();
+
+        if (clickEvent.shiftKey && this.lastSelectedIndex !== -1 && Math.abs(elIndex - this.lastSelectedIndex) > 1) {
+            // Shift-Clicking creates unwanted text selections that need to be unset
+            const selection = window.getSelection ? window.getSelection() : document.selection ? document.selection : null;
+            if (!!selection) selection.empty ? selection.empty() : selection.removeAllRanges();
+            const commonParent = $(el).closest('li,tr')?.parent();
+            const allHandles = commonParent.find('.ile-selectable');
+            let affectedHandles;
+            if (elIndex > this.lastSelectedIndex) {
+                affectedHandles = allHandles.slice(this.lastSelectedIndex + 1, elIndex + 1);
+            } else {
+                affectedHandles = allHandles.slice(elIndex, this.lastSelectedIndex);
+            }
+            const stateChange = el.classList.contains('ile-selected') ? 'deselect' : 'select';
+            for (const handle of affectedHandles) this.changeSelectedState(handle, stateChange);
+        } else {
+            this.changeSelectedState(el);
+        }
+        this.lastSelectedIndex = elIndex;
+        this.updateToolbar();
+    }
+
+    changeSelectedState(el, action='toggle') {
         const isCurSelected = el.classList.contains('ile-selected');
         const provider = this.getProvider(el);
         const olid = provider.data(el);
         const img_src = this.getType(olid)?.image(olid);
-        this.setElementSelectionAttributes(el, !isCurSelected);
 
+        if ((action === 'select' && isCurSelected) || (action === 'deselect' && !isCurSelected)) return;
+        this.setElementSelectionAttributes(el, !isCurSelected);
         if (isCurSelected) {
             this.removeSelectedItem(olid);
             const img_el = $('#ile-drag-status .images img').toArray().find(el => el.src === img_src);
@@ -103,7 +130,7 @@ export default class SelectionManager {
             this.addSelectedItem(olid);
             this.ile.$statusImages.append(`<li><img title="${olid}" src="${img_src}"/></li>`);
         }
-        this.updateToolbar();
+
     }
 
     setElementSelectionAttributes(el, selected) {
