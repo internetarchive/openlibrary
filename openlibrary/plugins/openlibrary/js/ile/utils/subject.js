@@ -1,4 +1,4 @@
-import { initSubjectTagsSearchBox } from '../initTaggingSearchBar';
+import { BulkTagger } from '../BulkTagger';
 
 export function renderBulkTaggingMenu(workIds) {
     const existingForm = document.querySelector('.bulk-tagging-form');
@@ -14,6 +14,7 @@ export function renderBulkTaggingMenu(workIds) {
     }
 }
 
+// XXX : Why is this being fetched as a partial?
 const fetchTaggingMenu = function(workIds) {
     $.ajax({
         url: '/tags/partials.json',
@@ -28,7 +29,10 @@ const fetchTaggingMenu = function(workIds) {
                 const target = document.getElementById('ile-hidden-forms')
                 target.style.display = 'block';
                 target.innerHTML += response['tagging_menu']
-                initSubjectTagsSearchBox();
+                // initSubjectTagsSearchBox();
+                const bulkTaggerElem = document.querySelector('.bulk-tagging-form');
+                const bulkTagger = new BulkTagger(bulkTaggerElem)
+                bulkTagger.initialize()
             }
         }
     });
