@@ -17,11 +17,21 @@ export class ReadMoreComponent {
     }
 
     attach() {
-        this.$readMoreButton.addEventListener('click', () => this.expand());
-        this.$readLessButton.addEventListener('click', () => this.collapse());
+        this.$readMoreButton.addEventListener('click', this.readMoreClick);
+        this.$readLessButton.addEventListener('click', this.readLessClick);
         window.addEventListener('resize', debounce(() => this.reset()), 50);
 
         this.reset();
+    }
+
+    readMoreClick = () => {
+        this.expand();
+        this.manuallyExpanded = true;
+    }
+
+    readLessClick = () => {
+        this.collapse();
+        this.manuallyExpanded = false;
     }
 
     expand() {
@@ -42,7 +52,11 @@ export class ReadMoreComponent {
             this.expand();
             this.$container.classList.add('read-more--unnecessary');
         } else {
-            this.collapse();
+            // Don't collapse if the user has manually expanded. Fixes
+            // issue where user e.g. presses ctrl-f, triggering a resize
+            if (!this.manuallyExpanded) {
+                this.collapse();
+            }
             this.$container.classList.remove('read-more--unnecessary');
         }
     }
