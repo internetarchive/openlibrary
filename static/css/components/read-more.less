@@ -1,0 +1,39 @@
+@import (reference) "../less/z-index.less";
+
+.read-more {
+  z-index: @z-index-level-1;
+
+  .read-more__content {
+    overflow: hidden;
+  }
+
+  &.read-more--expanded {
+    .read-more__toggle--more {
+      display: none;
+    }
+  }
+
+  &:not(.read-more--expanded) {
+    .read-more__toggle--less {
+      display: none;
+    }
+  }
+
+  &.read-more--unnecessary .read-more__toggle {
+    display: none;
+  }
+
+  .read-more__toggle {
+    cursor: pointer;
+    color: @link-blue;
+    // Reset button
+    background: transparent;
+    border: 0;
+    font-family: inherit;
+
+    @media only screen and (max-width: @width-breakpoint-desktop) {
+      text-align: center;
+      width: 100%;
+    }
+  }
+}
