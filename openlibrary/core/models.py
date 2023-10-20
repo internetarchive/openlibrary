@@ -1165,7 +1165,7 @@ class Tag(Thing):
                     'key': key,
                     'name': tag_name,
                     'tag_description': tag_description,
-                    'tag_type': tag_type,
+                    'tag_type': tag_type or [],
                     'tag_plugins': json.loads(tag_plugins or "[]"),
                     'type': {"key": '/type/tag'},
                 },

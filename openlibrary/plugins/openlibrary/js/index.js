@@ -324,6 +324,29 @@ jQuery(function () {
             .then(module => module.initAddBookImport());
     }
 
+    if (document.getElementById('addtag')) {
+        import(/* webpackChunkName: "plugins_form" */ './plugins_form.js')
+            .then(module => {
+                module.initPluginsForm();
+                module.initAddTagForm();
+            });
+    }
+
+    if (document.getElementById('edittag')) {
+        import(/* webpackChunkName: "plugins_form" */ './plugins_form.js')
+            .then(module => {
+                module.initPluginsForm();
+                module.initEditTagForm();
+            });
+    }
+
+    if (document.getElementById('related-subjects')) {
+        import(/* webpackChunkName: "plugins_form" */ './related_subjects.js')
+            .then(module => {
+                module.initRelatedSubjectsCarousel();
+            });
+    }
+
     if (document.getElementById('autofill-dev-credentials')) {
         document.getElementById('username').value = 'openlibrary@example.com'
         document.getElementById('password').value = 'admin123'

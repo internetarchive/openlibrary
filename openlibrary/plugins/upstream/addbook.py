@@ -20,7 +20,7 @@ from openlibrary import accounts
 import logging
 
 from openlibrary.plugins.upstream import spamcheck, utils
-from openlibrary.plugins.upstream.models import Author, Edition, Work
+from openlibrary.plugins.upstream.models import Author, Edition, Work, Tag
 from openlibrary.plugins.upstream.utils import render_template, fuzzy_find
 
 from openlibrary.plugins.upstream.account import as_admin
@@ -110,7 +110,12 @@ def new_doc(type_: Literal["/type/work"], **data) -> Work:
     ...
 
 
-def new_doc(type_: str, **data) -> Author | Edition | Work:
+@overload
+def new_doc(type_: Literal["/type/tag"], **data) -> Tag:
+    ...
+
+
+def new_doc(type_: str, **data) -> Author | Edition | Work | Tag:
     """
     Create an new OL doc item.
     :param str type_: object type e.g. /type/edition

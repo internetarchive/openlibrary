@@ -32,6 +32,8 @@ $putctx("robots", "noindex,nofollow")
             </div>
         </div>
 
+        $:render_template("tag/pluginsForm", plugins=page.tag_plugins)
+
         <div class="formElement">
             <div class="label"><label for="id_value">$_("Tag type")</label></div>
             <div class="input">

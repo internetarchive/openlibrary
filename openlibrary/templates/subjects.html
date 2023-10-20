@@ -42,29 +42,13 @@ $ has_tag = 'tag' in page
 </div>
 
 <div class="contentBody">
-
-  $:render_template("books/custom_carousel", books=page.works, key="subjects", load_more={"url": page.key + ".json", "limit": len(page.works)})
-
-  <div class="head">
-    <h2 class="inline">
-      $_("Publishing History")
-    </h2>
-      <span class="shift">$:_('This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href="#subjectRelated">Click here to skip the chart</a>.')</span>
-      <span class="count hidden chartZoom">&nbsp;<a href="javascript:;" class="resetSelection small">$_("Reset chart")</a> $_("or continue zooming in.")</span>
-      <span class="count chartUnzoom">&nbsp;$_("This graph charts editions published on this subject.")</span>
-  </div>
-
-    <script type="text/json+graph" id="graph-json-chartPubHistory">$:json_encode(page.publishing_history)</script>
-
-    <div class="chart">
-        <div class="chartYaxis">$_("Editions Published")</div>
-        <div id="chartPubHistory" class="thisChart">
-            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
-        </div>
-        <div class="chartXaxis">$_("Year of Publication")</div>
+  $if has_tag and 'plugins' in page.tag:
+    <div class="subject-plugins-section">
+      $:macros.Plugins(page.tag['plugins'])
     </div>
-
-    <div class="clearfix"></div>
+  $ default_carousel_title = _('Books about %(name)s', name=page.name)
+  $ default_carousel_url = '/search?q='+page.name
+  $:render_template("books/custom_carousel", title=default_carousel_title, url=default_carousel_url, books=page.works, key="subjects", load_more={"url": page.key + ".json", "limit": len(page.works)})
 
     <div class="head" id="subjectRelated">
       <h2>$_("Related...")
@@ -129,6 +113,27 @@ $if "lists" in ctx.features and "my_books_dropper" not in ctx.features:
     <div id="subjectLists" class="widget-box">
         $:render_template("lists/widget", page, include_rating=False, exclude_own_lists=True)
     </div>
+
+<div class="clearfix"></div>
+
+<div class="head">
+  <h2 class="inline">
+    $_("Publishing History")
+  </h2>
+    <span class="shift">$:_('This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href="#subjectRelated">Click here to skip the chart</a>.')</span>
+    <span class="count hidden chartZoom">&nbsp;<a href="javascript:;" class="resetSelection small">$_("Reset chart")</a> $_("or continue zooming in.")</span>
+    <span class="count chartUnzoom">&nbsp;$_("This graph charts editions published on this subject.")</span>
+</div>
+
+  <script type="text/json+graph" id="graph-json-chartPubHistory">$:json_encode(page.publishing_history)</script>
+
+  <div class="chart">
+      <div class="chartYaxis">$_("Editions Published")</div>
+      <div id="chartPubHistory" class="thisChart">
+          <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+      </div>
+      <div class="chartXaxis">$_("Year of Publication")</div>
+  </div>
 
 <div class="section clearfix"></div>
 

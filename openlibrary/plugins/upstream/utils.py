@@ -1315,6 +1315,18 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
     return ([], [loc_pub.strip(STRIP_CHARS)])
 
 
+@public
+def get_related_subjects_query() -> str:
+    """
+    Returns a query string for related subjects page carousel.
+    """
+    i = web.input(subjects='')
+    if not i.subjects:
+        return 'None'
+    subjects = i.subjects.split('&')
+    return 'subject:("' + ('" AND "').join(subjects) + '")'
+
+
 @cache.memoize(engine="memcache", key="edu_domains", expires=0)
 def get_edu_domains() -> list[str]:
     """

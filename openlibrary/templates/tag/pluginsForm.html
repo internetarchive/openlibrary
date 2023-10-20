@@ -1,0 +1,46 @@
+$def with (plugins=None)
+
+<div class="plugins-form">
+    <input type="hidden" id="tag_plugins" name="tag_plugins" value="" />
+    <div class="label">
+        <label for="tag-plugins">$_("Plugins")</label>
+        <span class="tip">$_("For rendering templates in subject pages.")</span>
+    </div>
+    <table class="plugins-input-table">
+        <thead>
+            <tr>
+                <th>
+                    <label for="plugins_type" class="tip">$_("Plugin Type")</label>
+                </th>
+                <th>
+                    <label for="plugin_data_input" class="tip">$_("Plugin Parameters")</label>
+                </th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="pluginsFormRows">
+            $if plugins:
+                $ plugins = load_plugin_json(plugins)
+                $for plugin in plugins:
+                    $ plugin_type, plugin_data = display_plugins_data(plugin)
+                    <tr class="plugins-input-row">
+                        <td>
+                            <select id="plugins_type" class="select-tag-plugins-container">
+                                <option value="$plugin_type">$plugin_type</option>
+                                $for other_plugin_type in get_plugin_types():
+                                    $if plugin_type != other_plugin_type:
+                                        <option value="$other_plugin_type">$other_plugin_type</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input id="plugin_data_input">$plugin_data</input>
+                        </td>
+                        <td><span class="delete-plugin-btn">[X]</span></td>
+                        <td><span class="drag-handle">☰</span></td>
+                    </tr>
+        </tbody>
+    </table>
+    <div id="plugin_errors" class="red hidden"></div>
+    <button type="button" class="addPluginBtn">Add Plugin</button>
+</div>

@@ -75,9 +75,10 @@ infogami._install_hooks = [
     h for h in infogami._install_hooks if h.__name__ != 'movefiles'
 ]
 
-from openlibrary.plugins.openlibrary import lists, bulk_tag
+from openlibrary.plugins.openlibrary import tags, lists, bulk_tag
 
 lists.setup()
+tags.setup()
 bulk_tag.setup()
 
 logger = logging.getLogger('openlibrary')

@@ -25,6 +25,7 @@ $var title: $_("Add a tag")
         </div>
 
         <fieldset class="major">
+
             <div class="formElement">
                 <div class="label">
                     <label for="tag-description">$_("How would you describe this tag?")</label>
@@ -35,6 +36,8 @@ $var title: $_("Add a tag")
                 </div>
             </div>
         </fieldset>
+
+        $:render_template("tag/pluginsForm")
 
         <div class="formElement">
             <div class="label"><label for="id_value">$_("Tag type")</label></div>
