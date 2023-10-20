@@ -667,10 +667,13 @@ def read_edition(rec: MarcBase) -> dict[str, Any]:
             raise BadMARC("'008' field must not be blank")
         publish_date = f[7:11]
 
-        if re_date.match(publish_date) and publish_date != '0000':
-            edition["publish_date"] = publish_date
-        if f[6] == 't':
-            edition["copyright_date"] = f[11:15]
+        if re_date.match(publish_date) and publish_date not in ('0000', '9999'):
+            edition['publish_date'] = publish_date
+        if f[6] == 't':  # Copyright date
+            edition['copyright_date'] = f[11:15]
+        if f[6] == 'r':  # Reprint date
+            if f[11:15] > publish_date:
+                update_edition(rec, edition, read_pub_date, 'publish_date')
         publish_country = f[15:18]
         if publish_country not in ('|||', '   ', '\x01\x01\x01', '???'):
             edition["publish_country"] = publish_country.strip()
