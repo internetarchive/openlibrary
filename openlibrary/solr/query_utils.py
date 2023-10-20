@@ -168,7 +168,7 @@ def luqum_parser(query: str) -> Item:
     """
     tree = parser.parse(query)
 
-    def find_next_word(item: Item) -> Optional[tuple[Word, Optional[BaseOperation]]]:
+    def find_next_word(item: Item) -> tuple[Word, BaseOperation | None] | None:
         if isinstance(item, Word):
             return item, None
         elif isinstance(item, BaseOperation) and isinstance(item.children[0], Word):

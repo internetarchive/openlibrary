@@ -19,7 +19,9 @@ create table cover (
     isbn text,
     width int,
     height int,
+    failed boolean,
     archived boolean,
+    uploaded boolean,
     deleted boolean default false,
     created timestamp default(current_timestamp at time zone 'utc'),
     last_modified timestamp default(current_timestamp at time zone 'utc')
@@ -29,6 +31,8 @@ create index cover_olid_idx ON cover (olid);
 create index cover_last_modified_idx ON cover (last_modified);
 create index cover_created_idx ON cover (created);
 create index cover_deleted_idx ON cover(deleted);
+create index cover_uploaded_idx ON cover(uploaded);
+create index cover_failed_idx ON cover(failed);
 create index cover_archived_idx ON cover(archived);
 
 create table log (

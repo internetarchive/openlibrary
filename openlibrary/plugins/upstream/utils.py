@@ -1,5 +1,5 @@
 import functools
-from typing import Any, Protocol, TYPE_CHECKING
+from typing import Any, Protocol, TYPE_CHECKING, TypeVar
 from collections.abc import Callable, Iterable, Iterator
 import unicodedata
 
@@ -16,6 +16,7 @@ import xml.etree.ElementTree as etree
 import datetime
 import logging
 from html.parser import HTMLParser
+from pathlib import Path
 
 import requests
 
@@ -676,7 +677,10 @@ def parse_toc(text: None) -> list[Any]:
     return [parse_toc_row(line) for line in text.splitlines() if line.strip(" |")]
 
 
-def safeget(func: Callable) -> Any:
+T = TypeVar('T')
+
+
+def safeget(func: Callable[[], T], default=None) -> T:
     """
     TODO: DRY with solrbuilder copy
     >>> safeget(lambda: {}['foo'])
@@ -689,7 +693,7 @@ def safeget(func: Callable) -> Any:
     try:
         return func()
     except (KeyError, IndexError, TypeError):
-        return None
+        return default
 
 
 def strip_accents(s: str) -> str:
@@ -1321,6 +1325,24 @@ def get_related_subjects_query() -> str:
         return 'None'
     subjects = i.subjects.split('&')
     return 'subject:("' + ('" AND "').join(subjects) + '")'
+
+
+@cache.memoize(engine="memcache", key="edu_domains", expires=0)
+def get_edu_domains() -> list[str]:
+    """
+    This list created using this gist: https://gist.github.com/jimchamp/f67ef14c3bcf11593f393ee5288f6476 on
+    https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json.
+
+    See: https://github.com/internetarchive/openlibrary/issues/8180
+    """
+    p = Path(Path.cwd(), 'static', 'edu-domains.txt')
+
+    results = []
+    with p.open() as f:
+        for line in f:
+            results.append(line.strip())
+
+    return results
 
 
 def setup() -> None:

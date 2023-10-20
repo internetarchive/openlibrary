@@ -1,5 +1,4 @@
 import logging
-from typing import Optional, Union
 from collections.abc import Callable
 
 import luqum.tree
@@ -23,11 +22,11 @@ class SearchScheme:
     # Mapping of user-only fields to solr fields
     field_name_map: dict[str, str]
     # Mapping of user sort to solr sort
-    sorts: dict[str, Union[str, Callable[[], str]]]
+    sorts: dict[str, str | Callable[[], str]]
     # Default
     default_fetched_fields: set[str]
     # Fields that should be rewritten
-    facet_rewrites: dict[tuple[str, str], Union[str, Callable[[], str]]]
+    facet_rewrites: dict[tuple[str, str], str | Callable[[], str]]
 
     def is_search_field(self, field: str):
         return field in self.all_fields or field in self.field_name_map
@@ -101,7 +100,7 @@ class SearchScheme:
     ) -> luqum.tree.Item:
         return q_tree
 
-    def build_q_from_params(self, params: dict) -> Optional[str]:
+    def build_q_from_params(self, params: dict) -> str | None:
         return None
 
     def q_to_solr_params(

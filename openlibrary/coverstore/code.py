@@ -209,15 +209,6 @@ def trim_microsecond(date):
     return datetime.datetime(*date.timetuple()[:6])
 
 
-def zipview_url(item, zipfile, filename):
-    # http or https
-    protocol = web.ctx.protocol
-    return (
-        "%(protocol)s://archive.org/download/%(item)s/%(zipfile)s/%(filename)s"
-        % locals()
-    )
-
-
 # Number of images stored in one archive.org item
 IMAGES_PER_ITEM = 10000
 
@@ -228,7 +219,8 @@ def zipview_url_from_id(coverid, size):
     itemid = "olcovers%d" % item_index
     zipfile = itemid + suffix + ".zip"
     filename = "%d%s.jpg" % (coverid, suffix)
-    return zipview_url(itemid, zipfile, filename)
+    protocol = web.ctx.protocol  # http or https
+    return f"{protocol}://archive.org/download/{itemid}/{zipfile}/{filename}"
 
 
 class cover:
@@ -279,9 +271,9 @@ class cover:
             url = zipview_url_from_id(int(value), size)
             raise web.found(url)
 
-        # covers_0008 partials [_00, _80] are tar'd in archive.org items
+        # covers_0008 batches [_00, _82] are tar'd / zip'd in archive.org items
         if isinstance(value, int) or value.isnumeric():  # noqa: SIM102
-            if 8810000 > int(value) >= 8000000:
+            if 8_820_000 > int(value) >= 8_000_000:
                 prefix = f"{size.lower()}_" if size else ""
                 pid = "%010d" % int(value)
                 item_id = f"{prefix}covers_{pid[:4]}"
@@ -311,6 +303,14 @@ class cover:
 
         web.header('Content-Type', 'image/jpeg')
         try:
+            from openlibrary.coverstore import archive
+
+            if d.id >= 8_820_000 and d.uploaded and '.zip' in d.filename:
+                raise web.found(
+                    archive.Cover.get_cover_url(
+                        d.id, size=size, protocol=web.ctx.protocol
+                    )
+                )
             return read_image(d, size)
         except OSError:
             raise web.notfound()
@@ -595,12 +595,15 @@ def render_list_preview_image(lst_key):
     author_text = "A list on Open Library"
     if owner := lst.get_owner():
         author_text = f"A list by {owner.displayname}"
-    w, h = draw.textsize(author_text, font=font_author)
+
+    left, top, right, bottom = font_author.getbbox(author_text)
+    w, h = right - left, bottom - top
     draw.text(((W - w) / 2, current_h), author_text, font=font_author, fill=(0, 0, 0))
     current_h += h + 5
 
     for line in para:
-        w, h = draw.textsize(line, font=font_title)
+        left, top, right, bottom = font_title.getbbox(line)
+        w, h = right - left, bottom - top
         draw.text(((W - w) / 2, current_h), line, font=font_title, fill=(0, 0, 0))
         current_h += h
 

@@ -3,7 +3,7 @@ import copy
 import json
 import logging
 import re
-from typing import Any, Union, Optional
+from typing import Any
 from collections.abc import Iterable
 from unicodedata import normalize
 import requests
@@ -23,6 +23,7 @@ from openlibrary.plugins.upstream.utils import (
     get_language_name,
     urlencode,
 )
+from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
@@ -105,8 +106,8 @@ def process_facet_counts(
 
 
 def execute_solr_query(
-    solr_path: str, params: Union[dict, list[tuple[str, Any]]]
-) -> Optional[Response]:
+    solr_path: str, params: dict | list[tuple[str, Any]]
+) -> Response | None:
     url = solr_path
     if params:
         url += '&' if '?' in url else '?'
@@ -130,16 +131,16 @@ public(has_solr_editions_enabled)
 
 def run_solr_query(
     scheme: SearchScheme,
-    param: Optional[dict] = None,
+    param: dict | None = None,
     rows=100,
     page=1,
     sort: str | None = None,
     spellcheck_count=None,
     offset=None,
-    fields: Union[str, list[str]] | None = None,
-    facet: Union[bool, Iterable[str]] = True,
+    fields: str | list[str] | None = None,
+    facet: bool | Iterable[str] = True,
     allowed_filter_params: set[str] | None = None,
-    extra_params: Optional[list[tuple[str, Any]]] = None,
+    extra_params: list[tuple[str, Any]] | None = None,
 ):
     """
     :param param: dict of query parameters
@@ -218,6 +219,10 @@ def run_solr_query(
         if 'editions' in solr_fields:
             solr_fields.remove('editions')
             solr_fields.add('editions:[subquery]')
+        if ed_sort := param.get('editions.sort'):
+            params.append(
+                ('editions.sort', EditionSearchScheme().process_user_sort(ed_sort))
+            )
         params.append(('fl', ','.join(solr_fields)))
         params += scheme.q_to_solr_params(q, solr_fields, params)
 
@@ -243,7 +248,7 @@ class SearchResponse:
 
     @staticmethod
     def from_solr_result(
-        solr_result: Optional[dict],
+        solr_result: dict | None,
         sort: str,
         solr_select: str,
     ) -> 'SearchResponse':
@@ -277,7 +282,7 @@ class SearchResponse:
 
 def do_search(
     param: dict,
-    sort: Optional[str],
+    sort: str | None,
     page=1,
     rows=100,
     spellcheck_count=None,
@@ -287,14 +292,15 @@ def do_search(
     :param sort: csv sort ordering
     :param spellcheck_count: Not really used; should probably drop
     """
+
+    if web.cookies(sfw="").sfw == 'yes':
+        fields = list(
+            WorkSearchScheme.default_fetched_fields | {'editions'} | {'subject'}
+        )
+    else:
+        fields = list(WorkSearchScheme.default_fetched_fields | {'editions'})
     return run_solr_query(
-        WorkSearchScheme(),
-        param,
-        rows,
-        page,
-        sort,
-        spellcheck_count,
-        fields=list(WorkSearchScheme.default_fetched_fields | {'editions'}),
+        WorkSearchScheme(), param, rows, page, sort, spellcheck_count, fields=fields
     )
 
 

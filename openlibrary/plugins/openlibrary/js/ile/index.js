@@ -22,11 +22,13 @@ export class IntegratedLibrarianEnvironment {
                     <div id="ile-selection-actions"></div>
                 </div>
                 <div id="ile-drag-actions"></div>
+                <div id="ile-hidden-forms"></div>
             </div>`.trim());
         this.$selectionActions = this.$toolbar.find('#ile-selection-actions');
         this.$statusText = this.$toolbar.find('.text');
         this.$statusImages = this.$toolbar.find('.images ul');
         this.$actions = this.$toolbar.find('#ile-drag-actions');
+        this.$hiddenForms = this.$toolbar.find('#ile-hidden-forms');
     }
 
     init() {

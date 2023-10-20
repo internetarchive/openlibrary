@@ -39,7 +39,7 @@ class Solr:
         key: str,
         fields: list[str] | None = None,
         doc_wrapper: Callable[[dict], T] = web.storage,
-    ) -> Optional[T]:
+    ) -> T | None:
         """Get a specific item from solr"""
         logger.info(f"solr /get: {key}, {fields}")
         resp = self.session.get(
@@ -82,7 +82,7 @@ class Solr:
         """Execute a solr query.
 
         query can be a string or a dictionary. If query is a dictionary, query
-        is constructed by concatinating all the key-value pairs with AND condition.
+        is constructed by concatenating all the key-value pairs with AND condition.
         """
         params = {'wt': 'json'}
 

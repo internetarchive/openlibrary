@@ -1,4 +1,3 @@
-import { isChecksumValidIsbn10, isChecksumValidIsbn13 } from '../../../openlibrary/plugins/openlibrary/js/edit.js';
 import { validateIdentifiers } from '../../../openlibrary/plugins/openlibrary/js/edit.js';
 import sinon from 'sinon';
 import * as testData from './html-test-data';
@@ -7,48 +6,20 @@ import jQueryRepeat from '../../../openlibrary/plugins/openlibrary/js/jquery.rep
 
 let sandbox;
 
-describe('isChecksumValidIsbn10', () => {
-    it('returns true with valid ISBN 10 (X check character)', () => {
-        expect(isChecksumValidIsbn10('080442957X')).toBe(true);
-    });
-    it('returns true with valid ISBN 10 (numerical check character, check 1)', () => {
-        expect(isChecksumValidIsbn10('1593279280')).toBe(true);
-    });
-    it('returns true with valid ISBN 10 (numerical check character, check 2)', () => {
-        expect(isChecksumValidIsbn10('1617295981')).toBe(true);
-    });
-    it('returns false with an invalid ISBN 10', () => {
-        expect(isChecksumValidIsbn10('1234567890')).toBe(false);
-    });
-})
-
-describe('isChecksumValidIsbn13', () => {
-    it('returns true with valid ISBN 13 (check 1)', () => {
-        expect(isChecksumValidIsbn13('9781789801217')).toBe(true);
-    });
-    it('returns true with valid ISBN 13 (check 2)', () => {
-        expect(isChecksumValidIsbn13('9798430918002')).toBe(true);
-    });
-    it('returns false with an invalid ISBN 13 (check 1)', () => {
-        expect(isChecksumValidIsbn13('1234567890123')).toBe(false);
-    });
-    it('returns false with an invalid ISBN 13 (check 2)', () => {
-        expect(isChecksumValidIsbn13('9790000000000')).toBe(false);
-    });
-})
-
 /**
  * Test various patterns with the editions identifier parsing function,
  * validateIdentifiers(), that initIdentifierValidation() calls when
- * attempting to add and validate a new ISBN to an edition.
- * These tests are meant to make sure that when adding ISBN 10 and ISBN 13:
- * - valid numbers are accepted;
- * - duplicate numbers are not;
- * - formally valid numbers (correct number of digits) but with a failed
+ * attempting to add and validate a new ISBN or LCCN to an edition.
+ * These tests are meant to make sure that when adding ISBN 10, ISBN 13, and LCCN:
+ * - valid identifiers are accepted;
+ * - duplicate identifiers are not;
+ * - formally valid ISBNs (correct number of digits) but with a failed
  *   check digit calculation can be added with a user override.
- * - numbers can be entered with spaces and hyphens;
- * - any numbers or hyphens are stripped before passing to the back end; and
- * - stripped and unstripped numbers are treated equally as identical.
+ * - ISBNs can be entered with spaces and hyphens;
+ * - any numbers or hyphens are stripped before passing to the back end;
+ * - stripped and unstripped identifiers are treated equally as identical;
+ * - LCCNs are properly normalized and
+ * - normalized LCCNs are treated the same as non-normalized after entry.
  */
 
 // Adapted from jquery.repeat.test.js
@@ -204,6 +175,48 @@ describe('initIdentifierValidation', () => {
         $('.repeat-add').trigger('click');
         $('#select-id').val('isbn_13');
         $('#id-value').val('9798664653403');
+        $('.repeat-add').trigger('click');
+        expect($('.repeat-item').length).toBe(6);
+    });
+
+    //LCCN
+    it('does add a valid LCCN', () => {
+        $('#select-id').val('lccn');
+        $('#id-value').val('n78-890351');
+        $('.repeat-add').trigger('click');
+        expect($('.repeat-item').length).toBe(6);
+    });
+
+    it('does NOT add an invalid LCCN', () => {
+        $('#select-id').val('lccn');
+        $('#id-value').val('12345');
+        $('.repeat-add').trigger('click');
+        expect($('.repeat-item').length).toBe(5);
+    });
+
+    it('does NOT add a duplicate LCCN', () => {
+        $('#select-id').val('lccn');
+        $('#id-value').val('n78-890351');
+        $('.repeat-add').trigger('click');
+        $('#select-id').val('lccn');
+        $('#id-value').val('n78-890351');
+        $('.repeat-add').trigger('click');
+        expect($('.repeat-item').length).toBe(6);
+    });
+
+    it('does properly normalize a valid LCCN and add it', () => {
+        $('#select-id').val('lccn');
+        $('#id-value').val(' 75-425165//r75');
+        $('.repeat-add').trigger('click');
+        expect($('.repeat-item').length).toBe(6);
+    })
+
+    it('does count identical normalized and non-normalized LCCNs as the same LCCN', () => {
+        $('#select-id').val('lccn');
+        $('#id-value').val(' 75-425165//r75');
+        $('.repeat-add').trigger('click');
+        $('#select-id').val('lccn');
+        $('#id-value').val('75425165');
         $('.repeat-add').trigger('click');
         expect($('.repeat-item').length).toBe(6);
     });

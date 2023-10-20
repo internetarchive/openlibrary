@@ -7,9 +7,11 @@ $ component_times = {}
 $ component_times['TotalTime'] = time()
 
 <div id="contentHead">
-    $:render_template("admin/menu")
+    $if ctx.user and ctx.user.is_admin():
+      $:render_template("admin/menu")
     <h1>Imports</h1>
-    <div><a href="/admin/imports/add">Add new books to import queue</a></div>
+    $if ctx.user and ctx.user.is_admin():
+      <div><a href="/admin/imports/add">Add new books to import queue</a></div>
 </div>
 
 <div id="contentBody">

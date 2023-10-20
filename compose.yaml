@@ -17,7 +17,7 @@ services:
         max-file: "4"
 
   solr:
-    image: solr:8.10.1
+    image: solr:9.2.1
     expose:
       - 8983
     environment:
@@ -34,7 +34,7 @@ services:
         -Dsolr.autoCommit.maxTime=120000
         -Dsolr.max.booleanClauses=30000
     volumes:
-      - solr-data:/var/solr/data
+      - solr-data:/var/solr
       - ./conf/solr:/opt/solr/server/solr/configsets/olconfig:ro
     networks:
       - webnet

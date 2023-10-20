@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2023-01-06 20:53+0000\n"
-"PO-Revision-Date: 2023-08-01 10:05+0200\n"
+"PO-Revision-Date: 2023-08-30 07:18+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es\n"
@@ -4150,7 +4150,7 @@ msgstr "Mostrar solicitudes que he revisado"
 
 #: merge_queue/merge_queue.html:47
 msgid "Open"
-msgstr "Abrir"
+msgstr "Abierto"
 
 #: merge_queue/merge_queue.html:50
 msgid "Closed"
@@ -4849,7 +4849,7 @@ msgstr "Editar esta plantilla"
 
 #: type/edition/modal_links.html:25
 msgid "Review"
-msgstr "Reseña"
+msgstr "Revisar"
 
 #: type/edition/modal_links.html:28
 msgid "Notes"

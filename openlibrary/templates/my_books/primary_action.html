@@ -1,0 +1,43 @@
+$def with(work_key, edition_key, user_key, read_status, page_url)
+
+$def reading_log_cta(work_key, edition_key, user_key, read_status):
+  <form class="reading-log primary-action" method="POST" action="$(work_key)/bookshelves.json">
+    $if read_status == 3:
+      $ message = _("Already Read")
+    $elif read_status == 2:
+      $ message = _("Currently Reading")
+    $else:
+      $ message = _("Want to Read")
+
+    $ action_value = 'remove' if read_status else 'add'
+    $ bookshelf_id_value = read_status or '1'
+    $ activated_status = 'activated' if read_status else 'unactivated'
+    $ checkmark_visibility = '' if read_status else 'hidden'
+
+    <input type="hidden" name="action" value="$(action_value)"/>
+    <input type="hidden" name="bookshelf_id" value="$(bookshelf_id_value)"/>
+    <input type="hidden" name="work_id" value="$(work_key)"/>
+    $if edition_key:
+      <input type="hidden" name="edition_id" value="$(edition_key)"/>
+    $if user_key:
+      <input type="hidden" name="user-key" value="$(user_key)" />
+
+    <button class="book-progress-btn primary-action $(activated_status)" type="submit">
+      <span class="activated-check $(checkmark_visibility)">✓</span>
+      <span class="btn-text">$(message)</span>
+    </button>
+  </form>
+
+$def list_cta(user_key, page_url):
+  $if user_key:
+    <h3 class="primary-action">$_('Add to List')</h3>
+  $else:
+    $# XXX: Check if classes are needed here
+    <a href="/account/login?redirect=$page_url" class="dropclick plain">
+      <h3>$_('Add to List')</h3>
+    </a>
+
+$if work_key:
+  $:reading_log_cta(work_key, edition_key, user_key, read_status)
+$else:
+  $:list_cta(user_key, page_url)

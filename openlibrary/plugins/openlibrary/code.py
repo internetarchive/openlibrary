@@ -75,10 +75,11 @@ infogami._install_hooks = [
     h for h in infogami._install_hooks if h.__name__ != 'movefiles'
 ]
 
-from openlibrary.plugins.openlibrary import lists, tags
+from openlibrary.plugins.openlibrary import tags, lists, bulk_tag
 
 lists.setup()
 tags.setup()
+bulk_tag.setup()
 
 logger = logging.getLogger('openlibrary')
 
@@ -222,13 +223,7 @@ class team(delegate.page):
     path = '/about/team'
 
     def GET(self):
-        with Path('/openlibrary/openlibrary/templates/about/team.json').open(
-            mode='r'
-        ) as f:
-            team_members: list[dict[str, str]] = sorted(
-                json.load(f), key=lambda member: member['name'].split()[-1]
-            )
-            return render_template("about/index.html", team_members=team_members)
+        return render_template("about/index.html")
 
 
 class addbook(delegate.page):

@@ -756,7 +756,7 @@ class User(Thing):
         # New users are now public by default for new patrons
         # As of 2020-05, OpenLibraryAccount.create will
         # explicitly set public_readlog: 'yes'.
-        # Legacy acconts w/ no public_readlog key
+        # Legacy accounts w/ no public_readlog key
         # will continue to default to 'no'
     }
 
@@ -808,6 +808,9 @@ class User(Thing):
 
     def is_printdisabled(self):
         return web.cookies().get('pd')
+
+    def is_screener_eligible(self):
+        return web.cookies().get('se')
 
     def is_admin(self):
         return self.is_usergroup_member('/usergroup/admin')

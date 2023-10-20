@@ -332,7 +332,6 @@ class Edition(models.Edition):
             if name == 'lccn':
                 value = normalize_lccn(value)
             # `None` in this field causes errors. See #7999.
-            # We should surface to the patron that an invalid LCCN is dropped. See #8092.
             if value is not None:
                 d.setdefault(name, []).append(value)
 
@@ -512,7 +511,7 @@ class Author(models.Author):
     def get_books(self, q=''):
         i = web.input(sort='editions', page=1, rows=20, mode="")
         try:
-            # safegaurd from passing zero/negative offsets to solr
+            # safeguard from passing zero/negative offsets to solr
             page = max(1, int(i.page))
         except ValueError:
             page = 1

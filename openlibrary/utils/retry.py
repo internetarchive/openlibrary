@@ -1,5 +1,4 @@
 import time
-from typing import Optional
 
 
 class MaxRetriesExceeded(Exception):
@@ -11,7 +10,7 @@ class MaxRetriesExceeded(Exception):
 
 class RetryStrategy:
     retry_count = 0
-    last_exception: Optional[Exception] = None
+    last_exception: Exception | None = None
 
     def __init__(self, exceptions: list[type[Exception]], max_retries=3, delay=1):
         self.exceptions = exceptions
