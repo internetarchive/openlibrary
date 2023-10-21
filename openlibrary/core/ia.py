@@ -373,6 +373,10 @@ def get_candidate_ocaids(
         + "   AND (curatestate IS NULL OR curatestate NOT IN ('freeze', 'dark'))"
         + "   AND scandate is NOT NULL"
         + "   AND lower(format) LIKE '%%pdf%%'"
+        + "   AND collection LIKE 'inlibrary'"
+        + "   AND isbn IS NOT NULL"
+        + "   AND volume IS NULL"
+        + "   AND openlibrary_edition IS NOT NULL"
     )
 
     if custom:
