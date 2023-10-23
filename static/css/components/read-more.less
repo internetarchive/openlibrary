@@ -12,13 +12,17 @@
   .read-more__toggle {
     cursor: pointer;
     color: @link-blue;
+
     // Reset button
     border: 0;
-    font-family: inherit;
+    font: inherit;
+
     width: 100%;
     padding: 10px;
     text-align: left;
-    background: linear-gradient(transparent 0, @white 10px);
+    // Note: we use a white with opacity=0 because Safari otherwise
+    // transitions the gradient from white through grey to transparent.
+    background: linear-gradient(rgba(255,255,255,0) 0, @white 10px);
     padding-top: 15px;
 
     @media only screen and (max-width: @width-breakpoint-desktop) {
