@@ -1,15 +1,15 @@
 /**
  * Initialize the breadcrumb select elements.
  *
- * @param {NodeList<HTMLElement>} navElements - NodeList of breadcrumb select elements.
+ * @param {NodeList<HTMLElement>} crumbs - NodeList of breadcrumb select elements.
  */
-export function initBreadcrumbSelect(navElements) {
+export function initBreadcrumbSelect(crumbs) {
     const allowedKeys = new Set(['Tab', 'Enter', ' ']);
     const preventedKeys = new Set(['ArrowUp', 'ArrowDown']);
 
     function handleNavEvents(nav) {
         let ignoreChange = false;
-        console.log("In bread crumbs!");
+
         nav.addEventListener('change', () => {
             if (ignoreChange) return;
             // It's actually changed!
@@ -25,5 +25,5 @@ export function initBreadcrumbSelect(navElements) {
         });
     }
 
-    navElements.forEach(handleNavEvents);
+    crumbs.forEach(handleNavEvents);
 }
