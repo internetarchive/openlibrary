@@ -141,7 +141,6 @@ function submitBatch() {
     })
         .then(response => {
             if (!response.ok) {
-                // XXX : Is a persistant toast message better for failure cases?
                 new FadingToast('Batch subject update failed. Please try again in a few minutes.').show()
             } else {
                 hideTaggingMenu()
