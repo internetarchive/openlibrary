@@ -19,6 +19,11 @@ WIKIDATA_CACHE_TTL_DAYS = 30
 
 @dataclass
 class APIResponse:
+    """
+    This is the model of the api response from WikiData
+    https://www.wikidata.org/wiki/Wikidata:REST_API
+    """
+
     type: str
     labels: dict
     descriptions: dict
@@ -42,7 +47,7 @@ class APIResponse:
 
 
 @dataclass
-class WikiDataEntity:
+class WikidataEntity:
     id: str
     data: APIResponse
     updated: datetime
@@ -69,7 +74,7 @@ class WikiDataEntity:
         )
 
 
-def get_wikidata_entity(QID: str, use_cache: bool = True) -> WikiDataEntity | None:
+def get_wikidata_entity(QID: str, use_cache: bool = True) -> WikidataEntity | None:
     """
     This only supports QIDs, if we want to support PIDs we need to use different endpoints
     ttl (time to live) inspired by the cachetools api https://cachetools.readthedocs.io/en/latest/#cachetools.TTLCache
@@ -82,12 +87,12 @@ def get_wikidata_entity(QID: str, use_cache: bool = True) -> WikiDataEntity | No
         return _get_from_web(QID)
 
 
-def _get_from_web(id: str) -> WikiDataEntity | None:
+def _get_from_web(id: str) -> WikidataEntity | None:
     response = requests.get(
         f'https://www.wikidata.org/w/rest.php/wikibase/v0/entities/items/{id}'
     )
     if response.status_code == 200:
-        entity = WikiDataEntity.from_web(response.json())
+        entity = WikidataEntity.from_web(response.json())
         _add_to_cache(entity)
         return entity
     else:
@@ -96,17 +101,17 @@ def _get_from_web(id: str) -> WikiDataEntity | None:
     # They're documented here https://doc.wikimedia.org/Wikibase/master/js/rest-api/
 
 
-def _get_from_cache_by_ids(ids: list[str]) -> list[WikiDataEntity]:
+def _get_from_cache_by_ids(ids: list[str]) -> list[WikidataEntity]:
     response = list(
         db.get_db().query(
             'select * from wikidata where id IN ($ids)',
             vars={'ids': ids},
         )
     )
-    return [WikiDataEntity.from_db_query(r) for r in response]
+    return [WikidataEntity.from_db_query(r) for r in response]
 
 
-def _get_from_cache(id: str) -> WikiDataEntity | None:
+def _get_from_cache(id: str) -> WikidataEntity | None:
     """
     The cache is OpenLibrary's Postgres instead of calling the Wikidata API
     """
@@ -115,7 +120,7 @@ def _get_from_cache(id: str) -> WikiDataEntity | None:
     return None
 
 
-def _add_to_cache(entity: WikiDataEntity) -> None:
+def _add_to_cache(entity: WikidataEntity) -> None:
     # TODO: when we upgrade to postgres 9.5+ we should use upsert here
     oldb = db.get_db()
     json_data = json.dumps(dataclasses.asdict(entity.data))
