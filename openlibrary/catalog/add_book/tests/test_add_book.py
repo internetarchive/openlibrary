@@ -7,21 +7,20 @@ from infogami.infobase.core import Text
 
 from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import (
-    IndependentlyPublished,
-    PublicationYearTooOld,
-    PublishedInFutureYear,
-    SourceNeedsISBN,
     build_pool,
     editions_matched,
+    IndependentlyPublished,
     isbns_from_record,
     load,
     load_data,
     normalize_import_record,
-    should_overwrite_promise_item,
-    split_subtitle,
+    PublicationYearTooOld,
+    PublishedInFutureYear,
     RequiredField,
+    should_overwrite_promise_item,
+    SourceNeedsISBN,
+    split_subtitle,
     validate_record,
-    normalize_import_record,
 )
 
 from openlibrary.catalog.marc.parse import read_edition
