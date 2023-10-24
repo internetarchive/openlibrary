@@ -2,18 +2,15 @@ import re
 import unicodedata
 import web
 
-threshold = 875
-
 # fields needed for matching:
 # title, subtitle, isbn, publish_country, lccn, publishers, publish_date, number_of_pages, authors
 
 re_amazon_title_paren = re.compile(r'^(.*) \([^)]+?\)$')
 re_brackets = re.compile(r'^(.+)\[.*?\]$')
-# re_brace = re.compile('{[^{}]+?}')
-re_normalize = re.compile('[^[:alpha:] ]', re.I)
 re_whitespace_and_punct = re.compile(r'[-\s,;:.]+')
 
-isbn_match = 85
+ISBN_MATCH = 85
+THRESHOLD = 875
 
 
 def editions_match(rec: dict, existing):
@@ -60,7 +57,7 @@ def editions_match(rec: dict, existing):
             if death := a.get('death_date'):
                 author['death_date'] = death
             rec2['authors'].append(author)
-    return threshold_match(rec, rec2, threshold)
+    return threshold_match(rec, rec2, THRESHOLD)
 
 
 def normalize(s: str) -> str:
@@ -70,15 +67,9 @@ def normalize(s: str) -> str:
     stripping extra whitespace and punctuation, and replacing ampersands.
     """
 
-    if isinstance(s, str):
-        # LATIN SMALL LETTER L WITH STROKE' (U+0142) -> 'l'
-        s = unicodedata.normalize('NFC', s.replace('\u0142', 'l'))
+    s = unicodedata.normalize('NFC', s)
     s = s.replace(' & ', ' and ')
-    # remove {mlrhring} and friends
-    # see http://www.loc.gov/marc/mnemonics.html
-    # s = re_brace.sub('', s)
-    s = re_whitespace_and_punct.sub(' ', s.lower())
-    s = re_normalize.sub('', s.strip())
+    s = re_whitespace_and_punct.sub(' ', s.lower()).strip()
     return s
 
 
@@ -109,10 +100,6 @@ def strip_articles(s: str) -> str:
     elif s.lower().startswith('a '):
         s = s[2:]
     return s
-
-
-def set_isbn_match(score):
-    isbn_match = score
 
 
 def add_db_name(rec: dict) -> None:
@@ -247,7 +234,7 @@ def compare_isbn10(e1: dict, e2: dict):
     for i in e1['isbn']:
         for j in e2['isbn']:
             if i == j:
-                return ('ISBN', 'match', isbn_match)
+                return ('ISBN', 'match', ISBN_MATCH)
     return ('ISBN', 'mismatch', -225)
 
 
