@@ -18,7 +18,7 @@ WIKIDATA_CACHE_TTL_DAYS = 30
 
 
 @dataclass
-class WikiDataAPIResponse:
+class APIResponse:
     type: str
     labels: dict
     descriptions: dict
@@ -44,7 +44,7 @@ class WikiDataAPIResponse:
 @dataclass
 class WikiDataEntity:
     id: str
-    data: WikiDataAPIResponse
+    data: APIResponse
     updated: datetime
 
     def description(self, language: str = 'en') -> str | None:
@@ -55,13 +55,13 @@ class WikiDataEntity:
     def from_db_query(cls, response: web.utils.Storage):
         return cls(
             id=response.id,
-            data=WikiDataAPIResponse.from_dict(response.data),
+            data=APIResponse.from_dict(response.data),
             updated=response.updated,
         )
 
     @classmethod
     def from_web(cls, response: dict):
-        data = WikiDataAPIResponse.from_dict(response)
+        data = APIResponse.from_dict(response)
         return cls(
             id=data.id,
             data=data,
