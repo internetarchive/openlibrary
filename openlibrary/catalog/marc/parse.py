@@ -327,9 +327,12 @@ def read_languages(rec: MarcBase, lang_008: str | None = None) -> list[str]:
 
 
 def read_pub_date(rec: MarcBase) -> str | None:
+    """
+    Read publish date from 260$c.
+    """
     def publish_date(s: str) -> str:
         date = s.strip('[]')
-        if date.lower() == 'n.d.':  # No date
+        if date.lower() in ('n.d.', 's.d.'):  # No date
             date = '[n.d.]'
         return remove_trailing_number_dot(date)
 
@@ -669,9 +672,12 @@ def read_edition(rec: MarcBase) -> dict[str, Any]:
 
         if re_date.match(publish_date) and publish_date not in ('0000', '9999'):
             edition['publish_date'] = publish_date
-        if f[6] == 't':  # Copyright date
+        if f[6] == 'r' and f[11:15] > publish_date:
+            # Incorrect reprint date order
+            update_edition(rec, edition, read_pub_date, 'publish_date')
+        elif f[6] == 't':  # Copyright date
             edition['copyright_date'] = f[11:15]
-        elif f[6] == 'r' and f[11:15] > publish_date:  # Reprint date
+        if 'publish_date' not in edition:  # Publication date fallback to 260$c
             update_edition(rec, edition, read_pub_date, 'publish_date')
         publish_country = f[15:18]
         if publish_country not in ('|||', '   ', '\x01\x01\x01', '???'):
