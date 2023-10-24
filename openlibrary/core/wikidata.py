@@ -14,6 +14,8 @@ from datetime import datetime
 import json
 from openlibrary.core import db
 
+WIKIDATA_CACHE_TTL_DAYS = 30
+
 
 @dataclass
 class WikiDataAPIResponse:
@@ -67,14 +69,14 @@ class WikiDataEntity:
         )
 
 
-def get_wikidata_entity(QID: str, ttl_days: int = 30) -> WikiDataEntity | None:
+def get_wikidata_entity(QID: str, use_cache: bool = True) -> WikiDataEntity | None:
     """
     This only supports QIDs, if we want to support PIDs we need to use different endpoints
     ttl (time to live) inspired by the cachetools api https://cachetools.readthedocs.io/en/latest/#cachetools.TTLCache
     """
 
     entity = _get_from_cache(QID)
-    if entity and days_since(entity.updated) < ttl_days:
+    if entity and use_cache and days_since(entity.updated) < WIKIDATA_CACHE_TTL_DAYS:
         return entity
     else:
         return _get_from_web(QID)
@@ -105,6 +107,9 @@ def _get_from_cache_by_ids(ids: list[str]) -> list[WikiDataEntity]:
 
 
 def _get_from_cache(id: str) -> WikiDataEntity | None:
+    """
+    The cache is OpenLibrary's Postgres instead of calling the Wikidata API
+    """
     if len(result := _get_from_cache_by_ids([id])) > 0:
         return result[0]
     return None
