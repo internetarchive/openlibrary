@@ -540,4 +540,11 @@ jQuery(function () {
         import(/* webpackChunkName: "return-form" */ './return-form')
             .then(module => module.initReturnForms(returnForms))
     }
+
+    const crumbs = document.querySelectorAll('.crumb select');
+    if (crumbs.length) {
+        import(/* webpackChunkName: "breadcrumb-select" */ './breadcrumb_select')
+            .then(module => module.initBreadcrumbSelect(crumbs));
+    }
+
 });
