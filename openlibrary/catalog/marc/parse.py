@@ -330,6 +330,7 @@ def read_pub_date(rec: MarcBase) -> str | None:
     """
     Read publish date from 260$c.
     """
+
     def publish_date(s: str) -> str:
         date = s.strip('[]')
         if date.lower() in ('n.d.', 's.d.'):  # No date
