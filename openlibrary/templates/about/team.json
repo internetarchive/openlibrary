@@ -154,11 +154,10 @@
     "title": "Core Developer",
     "roles": ["staff-active"],
     "departments": ["engineering"],
-    "projects": ["Books Page Redesign", "My Books Dropper", "Librarian Merge Queue"],
-    "photo_path": "https://avatars.githubusercontent.com/u/28732543?v=4",
-    "personal_url": "https://github.com/jimchamp",
-    "favorite_book_url": "https://openlibrary.org/books/OL24383834M/The_Way_of_Kings",
-    "ol_key": "lasseignejk"
+    "photo_path": "../../../static/images/team/Jim_Champ.png",
+    "personal_url": "",
+    "favorite_book_url": "",
+    "ol_key": "jchamp_archive"
   },
   {
     "name": "Jon Robson",

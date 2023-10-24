@@ -48,7 +48,7 @@ if __name__ == "__main__":
         pr_age_days = (
             datetime.now() - datetime.strptime(pr['created_at'], '%Y-%m-%dT%H:%M:%SZ')
         ).days
-        message += f"<{pr_url}|#{pr['number']}>: {pr['title']}\n"
+        message += f"<{pr_url}|*#{pr['number']}* | {pr['title']}>\n"
         message += ' | '.join(
             [
                 f"by {pr['user']['login']} {pr_age_days} days ago",
