@@ -671,14 +671,12 @@ def read_edition(rec: MarcBase) -> dict[str, Any]:
             edition['publish_date'] = publish_date
         if f[6] == 't':  # Copyright date
             edition['copyright_date'] = f[11:15]
-        if f[6] == 'r':  # Reprint date
-            if f[11:15] > publish_date:
-                update_edition(rec, edition, read_pub_date, 'publish_date')
+        elif f[6] == 'r' and f[11:15] > publish_date:  # Reprint date
+            update_edition(rec, edition, read_pub_date, 'publish_date')
         publish_country = f[15:18]
         if publish_country not in ('|||', '   ', '\x01\x01\x01', '???'):
-            edition["publish_country"] = publish_country.strip()
-        languages = read_languages(rec, lang_008=f[35:38].lower())
-        if languages:
+            edition['publish_country'] = publish_country.strip()
+        if languages := read_languages(rec, lang_008=f[35:38].lower()):
             edition['languages'] = languages
     elif handle_missing_008:
         update_edition(rec, edition, read_languages, 'languages')

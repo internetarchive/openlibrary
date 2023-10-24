@@ -151,6 +151,12 @@ class TestParseMARCBinary:
         with pytest.raises(NoTitle):
             read_edition(rec)
 
+    def test_reprint_date_ordering(self):
+        filepath = TEST_DATA / 'bin_input' / 'reprint_date_wrong_order.mrc'
+        rec = MarcBinary(filepath.read_bytes())
+        edition = read_edition(rec)
+        assert edition['publish_date'] == '2010'
+
 
 class TestParse:
     def test_read_author_person(self):
