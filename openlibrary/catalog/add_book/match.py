@@ -170,7 +170,7 @@ def build_titles(title: str):
     :return: An expanded set of title variations
     """
     normalized_title = normalize(title)
-    titles = [
+    titles = [  # TODO: how different and helpful are these titles variants?
         title,
         normalized_title,
         strip_articles(normalized_title)
