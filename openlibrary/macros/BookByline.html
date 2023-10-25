@@ -1,11 +1,13 @@
-$def with(author_names_and_urls, limit=None, overflow_url=None, attrs='')
+$def with(author_names_and_urls, limit=None, overflow_url=None, attrs='', include_by=True, link=True)
 
 $def render_author_link(name, url):
   $ rendered_name = cond(name, truncate(name, 40), _("Unknown author"))
-  $if url:
+  $if link and url:
     <a href="$url" $:attrs>$rendered_name</a>
-  $else:
+  $elif attrs:
     <span $:attrs>$rendered_name</span>
+  $else:
+    $rendered_name
 
 $def render_overflow_link(remaining_authors, overflow_url):
   <small><em><a href="$overflow_url" $:attrs>$ungettext('%(n)s other', '%(n)s others', remaining_authors, n=remaining_authors)</a></em></small>
@@ -21,6 +23,12 @@ $code:
     render_items.append(render_overflow_link(remaining_authors, overflow_url))
 
 $if render_items:
-  $:_("by %(name)s", name=commify_list(render_items))
+  $if include_by:
+    $:_("by %(name)s", name=commify_list(render_items))
+  $else:
+    $:commify_list(render_items)
 $else:
-  $:_("by an <em>unknown author</em>")
+  $if include_by:
+    $:_("by an <em>unknown author</em>")
+  $else:
+    $:_("<em>unknown author</em>")

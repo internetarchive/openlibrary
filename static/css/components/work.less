@@ -1,3 +1,4 @@
+@import (less) "less/mixins.less";
 @import (less) "base/dl.less";
 @import (less) "components/nav-bar.less";
 
@@ -116,14 +117,8 @@ textarea[name="work--description"] + h3 + .wmd-preview,
 }
 
 .clamp {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-  overflow: hidden;
-
-  &:hover {
-    cursor: pointer;
-  }
+  .line-clamp(1);
+  cursor: pointer;
 }
 
 .clamp::before {

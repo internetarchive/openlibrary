@@ -1015,21 +1015,23 @@ div#searchResults {
     }
   }
   .SRPCoverBlank {
+    display: block;
     position: relative;
-    width: 130px;
-    height: 200px;
-    padding: 10px;
-    margin: 0 15px 20px 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+    padding: 8%;
+
     text-align: center;
-    float: left;
     background: @lighter-grey;
     cursor: pointer;
-    display: none;
-    .innerBorder {
-      float: left;
-      width: 130px;
-      height: 200px;
+
+    &::before {
+      display: block;
+      content: "";
+      position: absolute;
       border: 1px solid @white;
+      inset: 8%;
     }
     a {
       text-decoration: none;
@@ -1426,17 +1428,15 @@ ul {
 // openlibrary/templates/covers/book_cover.html
 // openlibrary/templates/covers/book_cover_single_edition.html
 .BookTitle {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 105px;
-  margin-left: -52px;
-  height: 100px;
-  margin-top: -50px;
-  vertical-align: middle;
   color: @dark-grey;
-  font-size: .875em;
-  line-height: normal;
+  font-size: 12.5px;
+  line-height: 14px;
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 33%;
+
+  .line-clamp(4);
 }
 
 // openlibrary/macros/SRPCoverImage.html
@@ -1445,8 +1445,11 @@ ul {
 .Author {
   color: @grey;
   font-style: italic;
-  padding: 4px 4px 0;
   font-size: 11px;
+  line-height: 14px;
+  margin-top: 8%;
+
+  .line-clamp(2);
 }
 
 // openlibrary/macros/SearchResults.html
@@ -1539,6 +1542,17 @@ ul.list-books {
   > li {
     .display-flex();
   }
+
+  .bookcover.nocover {
+    max-width: 180px;
+    aspect-ratio: 2/3;
+    margin: auto;
+
+    @media only screen and (max-width: @width-breakpoint-tablet) {
+      width: 175px;
+    }
+  }
+
   // openlibrary/macros/SearchResults.html
   // openlibrary/macros/SearchResultsWork.html
   // openlibrary/templates/books/check.html
@@ -1597,9 +1611,8 @@ ul.list-books {
     border: 0;
     display: flex;
     flex-direction: column;
+    gap: 6px;
     position: relative;
-    
-    display: flex;
 
     .bookcover {
       width: 100%;

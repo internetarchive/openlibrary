@@ -39,17 +39,44 @@ $code:
   else:
     full_work_title = doc.get('title', '') + (': ' + doc.subtitle if doc.get('subtitle') else '')
 
+  authors = None
+  if doc_type == 'infogami_work':
+    authors = doc.get_authors()
+  elif doc_type == 'infogami_edition':
+    authors = edition_work.get_authors() if edition_work else doc.get_authors()
+  elif doc_type.startswith('solr_'):
+    if 'authors' in doc:
+      authors = doc['authors']
+    elif 'author_key' in doc:
+      authors = [ { 'key': '/authors/' + key, 'name': name } for key, name in zip(doc['author_key'], doc['author_name']) ]
+
+  author_names_and_urls = []
+  if authors:
+    author_names_and_urls = [
+      (
+        a.get('name') or a.get('author', {}).get('name'),
+        a.get('url') or a.get('key') or a.get('author', {}).get('url') or a.get('author', {}).get('key')
+      )
+      for a in authors
+    ]
+
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book" $:attrs>
-  $ blur_cover = "bookcover--blur" if blur else ""
-  <span class="bookcover $blur_cover">
-    $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
-    <a href="$work_edition_url"><img
-            itemprop="image"
-            src="$cover"
-            alt="$_('Cover of: %(title)s', title=full_title)"
-            title="$_('Cover of: %(title)s', title=full_title)"
-    /></a>
-  </span>
+  $ cover = get_cover_url(selected_ed)
+  $ blur_cover = "bookcover--blur" if (cover and blur) else ""
+  <a class="bookcover $cond(not cover, 'nocover') $blur_cover" href="$work_edition_url">
+    $if cover:
+      <img
+        itemprop="image"
+        src="$(cover or '/images/icons/avatar_book-sm.png')"
+        alt="$cond(cover, _('Cover of: %(title)s', title=full_title))"
+      >
+    $else:
+      <span class="SRPCoverBlank">
+        $if author_names_and_urls:
+          <span class="Author">$:macros.BookByline(author_names_and_urls, limit=2, overflow_url=work_edition_url, include_by=False, link=False)</span>
+        <span class="BookTitle">$:macros.TruncateString(full_title, 70)</span>
+      </span>
+  </a>
 
   <div class="details">
       <div class="resultTitle">
@@ -58,28 +85,10 @@ $code:
          </h3>
         </div>
       <span itemprop="author" itemscope itemtype="https://schema.org/Organization" class="bookauthor">
-        $ authors = None
-        $if doc_type == 'infogami_work':
-          $ authors = doc.get_authors()
-        $elif doc_type == 'infogami_edition':
-          $ authors = edition_work.get_authors() if edition_work else doc.get_authors()
-        $elif doc_type.startswith('solr_'):
-          $if 'authors' in doc:
-            $ authors = doc['authors']
-          $elif 'author_key' in doc:
-            $ authors = [ { 'key': '/authors/' + key, 'name': name } for key, name in zip(doc['author_key'], doc['author_name']) ]
-        $if not authors:
-          <em>$_('Unknown author')</em>
-        $else:
-          $code:
-            author_names_and_urls = [
-              (
-                a.get('name') or a.get('author', {}).get('name'),
-                a.get('url') or a.get('key') or a.get('author', {}).get('url') or a.get('author', {}).get('key')
-              )
-              for a in authors
-            ]
+        $if author_names_and_urls:
           $:macros.BookByline(author_names_and_urls, limit=max_rendered_authors, overflow_url=work_edition_url, attrs='class="results"')
+        $else:
+          <em>$_('Unknown author')</em>
       </span>
       <span class="resultPublisher">
         $if doc.get('first_publish_year'):
