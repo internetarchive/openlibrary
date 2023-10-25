@@ -242,11 +242,11 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
           $ overview_desc = edition.description
         $else:
           $ overview_desc = work.description
-        <div class="book-description">
-            <div class="book-description-content restricted-view">
+        <div class="book-description read-more">
+            <div class="read-more__content" style="max-height:58px">
                 $:sanitize(format(overview_desc))
             </div>
-            $:macros.ReadMore("book-description")
+            $:macros.ReadMore()
         </div>
       $elif edition:
         <div class="book-description">
@@ -370,9 +370,15 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
             <p>"$(edition.first_sentence)"</p>
             </div>
 
-          $ component_times['TableOfContents'] = time()
-          $:macros.TableOfContents(edition, ocaid)
-          $ component_times['TableOfContents'] = time() - component_times['TableOfContents']
+          $ table_of_contents = edition.get_table_of_contents()
+          $if table_of_contents and len(table_of_contents) > 1:
+            <div class="section read-more">
+              <h3>$_("Table of Contents")</h3>
+              $ component_times['TableOfContents'] = time()
+              $:macros.TableOfContents(table_of_contents, ocaid, cls='read-more__content', attrs='style="max-height:350px"')
+              $ component_times['TableOfContents'] = time() - component_times['TableOfContents']
+              $:macros.ReadMore()
+            </div>
 
           $if edition.notes or edition.series or edition.volume or edition.genres or edition.other_titles or edition.copyright_date or edition.translation_of or edition.translated_from:
             <div class="section">
@@ -461,11 +467,11 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
             $if work.description and work.description != overview_desc:
               <h4>$_("Work Description")</h4>
-              <div class="work-description">
-                <div class="work-description-content restricted-view">
+              <div class="work-description read-more">
+                <div class="read-more__content" style="max-height:58px">
                   $:sanitize(format(work.description))
                 </div>
-                $:macros.ReadMore('work-description')
+                $:macros.ReadMore()
               </div>
 
             $if work.original_languages:

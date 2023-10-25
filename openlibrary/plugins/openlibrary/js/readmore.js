@@ -1,38 +1,78 @@
 import { debounce } from './nonjquery_utils.js';
 import $ from 'jquery';
 
-export function resetReadMoreButtons(){
-    $('.restricted-view').each(function() {
-        const className = $(this).parent().attr('class');
-        // 58 is based on the height attribute of .restricted-height
-        if ($(this)[0].scrollHeight <= 58) {
-            $(`.${className}.read-more`).addClass('hidden');
-            $(`.${className}.read-less`).addClass('hidden');
-            $(this).removeClass('restricted-height');
-        } else {
-            $(`.${className}.read-more`).removeClass('hidden');
-            $(`.${className}.read-less`).addClass('hidden');
-            $(this).addClass('restricted-height');
+export class ReadMoreComponent {
+    /**
+     * @param {HTMLElement} container
+     */
+    constructor(container) {
+        /** @type {HTMLElement} */
+        this.$container = container;
+        this.$content = container.querySelector('.read-more__content');
+        this.$readMoreButton = container.querySelector('.read-more__toggle--more');
+        this.$readLessButton = container.querySelector('.read-more__toggle--less');
+
+        this.collapsedHeight = parseFloat(this.$content.style.maxHeight);
+        this.fullHeight = this.$content.scrollHeight;
+    }
+
+    attach() {
+        this.$readMoreButton.addEventListener('click', this.readMoreClick);
+        this.$readLessButton.addEventListener('click', this.readLessClick);
+        window.addEventListener('resize', debounce(() => this.reset()), 50);
+
+        this.reset();
+    }
+
+    readMoreClick = () => {
+        this.expand();
+        this.manuallyExpanded = true;
+    }
+
+    readLessClick = () => {
+        this.collapse();
+        this.manuallyExpanded = false;
+        // scroll top of the read-more container into view if the top is not visible
+        if (this.$container.getBoundingClientRect().top < 0) {
+            this.$container.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            });
         }
-    });
-}
+    }
 
+    expand() {
+        this.$container.classList.add('read-more--expanded');
+        this.$content.style.maxHeight = `${this.fullHeight}px`;
+    }
 
-export function initReadMoreButton() {
-    $('.read-more-button').on('click',function(){
-        const up = $(this).parent().parent();
-        $(`.${up.attr('class')}-content`).removeClass('restricted-height', 300);
-        $(`.${up.attr('class')}.read-more`).addClass('hidden');
-        $(`.${up.attr('class')}.read-less`).removeClass('hidden');
-    });
-    $('.read-less-button').on('click',function(){
-        const up = $(this).parent().parent();
-        $(`.${up.attr('class')}-content`).addClass('restricted-height', 300);
-        $(`.${up.attr('class')}.read-more`).removeClass('hidden');
-        $(`.${up.attr('class')}.read-less`).addClass('hidden');
-    });
-    resetReadMoreButtons();
-    $(window).on('resize', debounce(resetReadMoreButtons, 50));
+    collapse() {
+        this.$container.classList.remove('read-more--expanded');
+        this.$content.style.maxHeight = `${this.collapsedHeight}px`;
+    }
+
+    reset() {
+        this.fullHeight = this.$content.scrollHeight;
+        // Fudge factor to account for non-significant read/more
+        // (e.g missing a bit of padding)
+        if (this.$content.scrollHeight <= (this.collapsedHeight + 1)) {
+            this.expand();
+            this.$container.classList.add('read-more--unnecessary');
+        } else {
+            // Don't collapse if the user has manually expanded. Fixes
+            // issue where user e.g. presses ctrl-f, triggering a resize
+            if (!this.manuallyExpanded) {
+                this.collapse();
+            }
+            this.$container.classList.remove('read-more--unnecessary');
+        }
+    }
+
+    static init() {
+        for (const el of document.querySelectorAll('.read-more')) {
+            new ReadMoreComponent(el).attach();
+        }
+    }
 }
 
 export function initClampers(clampers) {
