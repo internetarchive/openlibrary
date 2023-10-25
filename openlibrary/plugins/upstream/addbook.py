@@ -15,6 +15,7 @@ from infogami.utils.view import safeint, add_flash_message
 from infogami.infobase.client import ClientException
 
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.core.helpers import uniq
 from openlibrary.i18n import gettext as _
 from openlibrary import accounts
 import logging
@@ -1015,9 +1016,12 @@ class author_edit(delegate.page):
         if 'author' in i:
             author = trim_doc(i.author)
             alternate_names = author.get('alternate_names', None) or ''
-            author.alternate_names = [
-                name.strip() for name in alternate_names.split('\n') if name.strip()
-            ]
+            author.alternate_names = uniq(
+                [author.name]
+                + [
+                    name.strip() for name in alternate_names.split('\n') if name.strip()
+                ],
+            )[1:]
             author.links = author.get('links') or []
             return author
 
