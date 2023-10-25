@@ -92,6 +92,7 @@ $def seed_attrs(seed):
 
         $if list.description:
             $:format(list.description)
+            <div class="clearfix"></div>
 
         $:render_template("search/sort_options.html", selected_sort=sort, default_sort='index', search_scheme="lists_seeds")
         <br />
