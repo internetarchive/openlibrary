@@ -3,7 +3,7 @@ $def with (table_of_contents, ocaid=None, highlighting=False, cls='', attrs='')
 $ min_level = min(chapter.level for chapter in table_of_contents)
 <div class="toc $cls" $:attrs>
   $for chapter in table_of_contents:
-    $ is_link = chapter.pagenum and ocaid
+    $ is_link = ocaid and chapter.pagenum and chapter.pagenum.isdigit()
     $ tag = 'a' if is_link else 'div'
     <$tag
       class="toc__entry"
