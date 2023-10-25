@@ -173,7 +173,7 @@ def build_titles(title: str):
     titles = [  # TODO: how different and helpful are these titles variants?
         title,
         normalized_title,
-        strip_articles(normalized_title)
+        strip_articles(normalized_title),
     ]
     if m := re_amazon_title_paren.match(normalized_title):
         titles.append(m.group(1))
@@ -228,7 +228,7 @@ def compare_date(e1: dict, e2: dict):
         return ('date', 'mismatch', -250)
 
 
-def compare_isbn10(e1: dict, e2: dict):
+def compare_isbn(e1: dict, e2: dict):
     if len(e1['isbn']) == 0 or len(e2['isbn']) == 0:
         return ('ISBN', 'missing', 0)
     for i in e1['isbn']:
@@ -256,7 +256,7 @@ def level1_match(e1: dict, e2: dict):
 
     score.append(compare_lccn(e1, e2))
     score.append(compare_date(e1, e2))
-    score.append(compare_isbn10(e1, e2))
+    score.append(compare_isbn(e1, e2))
     return score
 
 
@@ -270,7 +270,7 @@ def level2_match(e1: dict, e2: dict):
     score = []
     score.append(compare_date(e1, e2))
     score.append(compare_country(e1, e2))
-    score.append(compare_isbn10(e1, e2))
+    score.append(compare_isbn(e1, e2))
     score.append(compare_title(e1, e2))
     score.append(compare_lccn(e1, e2))
     if page_score := compare_number_of_pages(e1, e2):
