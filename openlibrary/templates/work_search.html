@@ -191,10 +191,14 @@ $ )
 
           $if num_found > 1:
             $:render_template("search/sort_options.html", sort)
+            <br />
+
+          $ layout = query_param('layout', None)
+          $:render_template("search/layout_options.html", selected_layout=layout, default_layout='details')
         </div>
         <div class="resultsContainer search-results-container">
         <div id="searchResults">
-          <ul class="list-books">
+          <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
             $ works = [get_doc(d) for d in docs]
             $ add_availability([(w.get('editions') or [None])[0] or w for w in works])
             $ username = ctx.user and ctx.user.key.split('/')[-1]

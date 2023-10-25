@@ -121,6 +121,9 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                 $if books.num_found > 1:
                     $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
 
+                <br />
+                $ layout = query_param('layout', None)
+                $:render_template("search/layout_options.html", selected_layout=layout, default_layout='details')
                 <p>
                   $if input(mode="everything").mode == "everything":
                     $:_('Showing all works by author. Would you like to see <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))
@@ -141,7 +144,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                 $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books.num_found)
 
                 <div id="searchResults">
-                    <ul class="list-books">
+                    <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
                       $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians'))
                       $for doc in books.docs:
                          $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras)

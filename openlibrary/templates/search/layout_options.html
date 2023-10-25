@@ -1,0 +1,21 @@
+$def with (selected_layout, default_layout='details')
+
+$code:
+  layout_options = [
+    { 'layout': 'details', 'name': _("Details"), 'ga_key': 'Details' },
+    { 'layout': 'grid', 'name': _("Grid"), 'ga_key': 'Grid' },
+  ]
+
+<span class="tools tools--layout">
+  $_('View as:')
+  $for layout_option in layout_options:
+    $ is_selected = layout_option['layout'] == selected_layout or (selected_layout is None and layout_option['layout'] == default_layout)
+    $if is_selected:
+      <a><strong>$layout_option['name']</strong></a>
+    $else:
+      <a href="$changequery(layout=cond(layout_option['layout'] == default_layout, None, layout_option['layout']))"
+        data-ol-link-track="SearchLayout|$layout_option['ga_key']"
+      >$layout_option['name']</a>
+    $if not loop.last:
+      |
+</span>

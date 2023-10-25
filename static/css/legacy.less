@@ -1584,6 +1584,55 @@ ul.list-books {
   }
 }
 
+.list-books--grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-gap: 30px 5px;
+  padding: 10px;
+
+  flex-wrap: wrap;
+  .searchResultItem {
+    padding: 0 5px;
+    background: transparent;
+    border: 0;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    
+    display: flex;
+
+    .bookcover {
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      margin: 0;
+    }
+
+    > .details {
+      display: none;
+    }
+
+    .searchResultItemCTA {
+      font-size: .85em;
+      padding: 0;
+      margin: 0;
+      min-width: unset;
+      width: 100%;
+    }
+
+    .cta-btn--w-icon {
+      display: none;
+    }
+
+    .cta-btn, a.cta-btn {
+      border-radius: 5px;
+      font-size: unset;
+    }
+  }
+}
+
 // openlibrary/templates/search/lists.html
 // openlibrary/templates/lists/lists.html
 div.wide {

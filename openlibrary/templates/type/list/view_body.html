@@ -94,10 +94,14 @@ $def seed_attrs(seed):
             $:format(list.description)
 
         $:render_template("search/sort_options.html", selected_sort=sort, default_sort='index', search_scheme="lists_seeds")
+        <br />
+        $ layout = query_param('layout', None)
+        $:render_template("search/layout_options.html", selected_layout=layout, default_layout='details')
+
         $:macros.Pager(page+1, len(list.seeds), page_size)
         <div class="clearfix"></div>
 
-        <ul id="listResults" class="list-books clearfix">
+        <ul id="listResults" class="list-books clearfix $cond(layout == 'grid', 'list-books--grid')">
             $ component_times['get_seeds'] = time()
             $ seeds = list.get_seeds(sort=(sort == 'last_modified'), resolve_redirects=True)[page*page_size:page*page_size+page_size]
             $ component_times['get_seeds'] = time() - component_times['get_seeds']
