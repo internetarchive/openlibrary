@@ -1,4 +1,5 @@
 import { debounce } from './nonjquery_utils';
+import { FadingToast } from './Toast'
 
 const subjectTypeColors = {
     subject: 'subject-blue',
@@ -121,6 +122,34 @@ export function initSubjectTagsSearchBox() {
         const searchTerm = this.value.trim();
         debouncedFetchSubjects(searchTerm);
     });
+
+    const submitButton = document.querySelector('.bulk-tagging-submit')
+    submitButton.addEventListener('click', (event) => {
+        event.preventDefault()
+        submitBatch()
+    })
+}
+
+function submitBatch() {
+    const bulkTaggingForm = document.querySelector('.bulk-tagging-form')
+    const url = bulkTaggingForm.action
+    const formData = new FormData(bulkTaggingForm)
+
+    fetch(url, {
+        method: 'post',
+        body: formData
+    })
+        .then(response => {
+            if (!response.ok) {
+                new FadingToast('Batch subject update failed. Please try again in a few minutes.').show()
+            } else {
+                hideTaggingMenu()
+                resetTaggingMenu()
+                new FadingToast('Subjects successfully updated.').show()
+                // Deselect search items:
+                window.ILE.reset()
+            }
+        })
 }
 
 function handleSelectSubject(name, rawSubjectType) {
@@ -172,4 +201,24 @@ function hideTaggingMenu() {
     if (form) {
         form.style.display = 'none';
     }
+}
+
+/**
+ * Clears the bulk tagger form.
+ */
+function resetTaggingMenu() {
+    const searchInput = document.querySelector('.subjects-search-input')
+    searchInput.value = ''
+
+    const resultsContainer = document.querySelector('.subjects-search-results')
+    resultsContainer.innerHTML = ''
+
+    const createSubjectContainer = document.querySelector('.create-new-subject-tag')
+    createSubjectContainer.innerHTML = ''
+
+    const selectedTagsContainer = document.querySelector('.selected-tag-subjects')
+    selectedTagsContainer.innerHTML = ''
+
+    const hiddenSubjectInput = document.querySelector('.tag-subjects')
+    hiddenSubjectInput.value = ''
 }
