@@ -3,10 +3,10 @@
 The plugins directory defines and registers all the Routers responsible for responding to requests to the Open Library website.
 
 ## Understanding Routers
-In Open Library, when a patron navigates to an openlibrary.org url in their browser, the request is typically captured by a Router class which is defined by files within the `plugins/` directory. Any Router class will be responsible for doing 4 things: 
+In Open Library, when a patron navigates to an openlibrary.org url in their browser, the request is typically captured by a Router class which is defined by files within the `plugins/` directory. Any Router class will be responsible for doing 4 things:
 
 1. Defining a `path` -- a regular expression pattern used to decide whether a patron's requests should be handled by this Router
-2. Implementing necessary class methods (e.g. GET and POST) corresponding to the patron's HTTP request type 
+2. Implementing necessary class methods (e.g. GET and POST) corresponding to the patron's HTTP request type
 3. Making calls to the right data `models`
 4. Prepare data to be returned (which could be e.g. a rendered template or json) -- this may include setting any headers or content-types necessary for this data
 
@@ -22,7 +22,7 @@ The following describes what each plugin directory does, by convention, in decre
   * `api.py` is many of our APIs are defined
   * `lists.py` defines many of the routes for the List feature
 * upstream -- handles incoming stateful data requests (wiki edits, uploads, adding a book, logins, etc)
-  * responds to actions (e.g. borrowing) and account related requests: editing, mybooks pages, account login, settings 
+  * responds to actions (e.g. borrowing) and account related requests: editing, mybooks pages, account login, settings
 * worksearch -- renders our /search/* related pages and all our search querying logic.
   * `code.py` contains most of the logic and routes for `/search`, the `/barcodescanner`, '/advancedsearch`, `/search/lists`, `/search/subjects`, etc, as well as their json returning counterparts
 * importapi -- defines our book import API endpoints
