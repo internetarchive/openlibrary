@@ -135,6 +135,10 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                     <div id="books">
                         <label for="sortOptions">$_('Sort by: ')</label>
                         $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
+
+                        $ layout = query_param('layout', None)
+                        $:render_template("search/layout_options.html", selected_layout=layout, default_layout='details')
+
                         $if input(mode="everything").mode == "everything":
                             <span>$:_('— Show <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))</span>
                         $else:
@@ -144,7 +148,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                 $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books_count)
 
                 <div id="searchResults">
-                    <ul class="list-books">
+                    <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
                       $for doc in books.docs:
                          $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper=True, seq_index=loop.index0)
                     </ul>
