@@ -245,7 +245,7 @@ class sync_ia_ol(delegate.page):
     encoding = 'json'
 
     def GET(self, ocaid):
-        self.bounce_unauthorized(s3_access_key, s3_secret_key)
+        self.bounce_unauthorized()
 
         i = web.input(old_ocaid=None)
         metadata = get_metadata(ocaid)
@@ -256,7 +256,7 @@ class sync_ia_ol(delegate.page):
             # there's an example of doing this somewher in our code
             raise web.badrequest(f'No openlibrary_edition specified in item')
 
-        edition = web.ctx.site.get(f'/books/{metadata'openlibrary_edition'})
+        edition = web.ctx.site.get(f'/books/{metadata.get("openlibrary_edition")}')
         if not edition:
             raise web.notfound()
 
@@ -266,6 +266,7 @@ class sync_ia_ol(delegate.page):
 
         if i.old_ocaid:
             # Remove old_ocaid from edition.ocaids and ensure `ocaid` _is_ in the list
+            return
 
         # XXX Update validation based on get_metadata (instead of web.data)
         if not self.validate_input(i):
@@ -287,7 +288,7 @@ class sync_ia_ol(delegate.page):
         # Authenticate request:
         s3_access_key = web.ctx.env.get('HTTP_X_S3_ACCESS', '')
         s3_secret_key = web.ctx.env.get('HTTP_X_S3_SECRET', '')
-        auth = accounts.InternetArchiveAccount.s3auth(access_key, secret_key)
+        auth = accounts.InternetArchiveAccount.s3auth(s3_access_key, s3_secret_key)
 
         if auth.get('username', ''):
             acct = accounts.OpenLibraryAccount.get(email=auth.get('username'))
