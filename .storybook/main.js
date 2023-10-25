@@ -14,7 +14,11 @@ module.exports = {
     "../stories/**/*.mdx",
     "../stories/**/*.stories.@(js|jsx|ts|tsx)"
   ],
+  "core": {
+    // Opt out of telemetry: https://storybook.js.org/docs/html/configure/telemetry
+    "disableTelemetry": true
+  },
   "addons": [
     "@storybook/addon-essentials"
-  ]
+  ],
 }
