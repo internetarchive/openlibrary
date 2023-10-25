@@ -252,36 +252,26 @@ class sync_ia_ol(delegate.page):
         if not metadata:
             raise web.badrequest(f'Failed to lookup archive.org item with ocaid {ocaid}')
         if not metadata.get('openlibrary_edition'):
-            # XXX we could lookup the edition in OL by ocaid even if no openlibrary_edition specified
-            # there's an example of doing this somewher in our code
-            raise web.badrequest(f'No openlibrary_edition specified in item')
+            edition = self.get_edition_by_ocaid(i.old_ocaid or ocaid)
+            if not edition:
+                raise web.badrequest('No openlibrary_edition specified in item')
 
-        edition = web.ctx.site.get(f'/books/{metadata.get("openlibrary_edition")}')
+        if not edition:
+            edition = web.ctx.site.get(f'/books/{metadata.get("openlibrary_edition")}')
         if not edition:
             raise web.notfound()
 
         if metadata.get('is_dark'):
-            # XXX remove `ocaid` from edition.ocaids, save
-            return
+            self.remove_ocaid(edition)
+            return delegate.RawText(json.dumps({"status": "ok"}))
 
+        # XXX : Should this occur before we fetch the metadata?  Is there a
+        # need to fetch item metadata if we're modifying the ocaid?
         if i.old_ocaid:
-            # Remove old_ocaid from edition.ocaids and ensure `ocaid` _is_ in the list
-            return
+            self.modify_ocaid(edition, i.old_ocaid)
+            return delegate.RawText(json.dumps({"status": "ok"}))
 
-        # XXX Update validation based on get_metadata (instead of web.data)
-        if not self.validate_input(i):
-            raise web.badrequest('Missing required fields')
-
-        # Update record
-        match i.get('action', ''):
-            case 'remove':
-                self.remove_ocaid(edition)
-            case 'modify':
-                self.modify_ocaid(edition, i.get('ocaid'))
-            case '_':
-                raise web.badrequest('Unknown action')
-
-        return delegate.RawText(json.dumps({"status": "ok"}))
+        return web.badrequest('ocaid was not renamed, nor was it dark')
 
     def bounce_authorized(self):
         """Returns True if account is authorized to make changes to records."""
@@ -299,24 +289,23 @@ class sync_ia_ol(delegate.page):
 
         raise web.unauthorized()
 
-    def validate_input(self, i):
-        """Returns True if the request is valid.
-        All requests must have an olid and an action.  If the action is
-        'modify', the request must also include 'ocaid'.
-        """
-        action = i.get('action', '')
-        return 'olid' in i and (
-            action == 'remove' or (action == 'modify' and 'ocaid' in i)
-        )
+    def get_edition_by_ocaid(self, ocaid):
+        ocaid = ocaid.replace('_', ' ')
+        q = {'type': '/type/edition', 'ocaid': ocaid}
+        return web.ctx.site.things(q)
 
     def remove_ocaid(self, edition):
-        """Deletes OCAID from given edition"""
+        """Deletes OCAID from given edition.  Does not affect
+        entries in `source_records` list.
+        """
         data = edition.dict()
         del data['ocaid']
         web.ctx.site.save(data, 'Remove OCAID: Item no longer available to borrow.')
 
     def modify_ocaid(self, edition, new_ocaid):
-        """Adds the given new_ocaid to an edition."""
+        """Adds the given new_ocaid to an edition.  Does not affect
+        entries in `source_records` list.
+        """
         data = edition.dict()
         data['ocaid'] = new_ocaid
         web.ctx.site.save(data, 'Update OCAID')
