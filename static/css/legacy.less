@@ -1611,16 +1611,16 @@ ul.list-books {
     border: 0;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    justify-content: flex-end;
     position: relative;
 
     .bookcover {
       width: 100%;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
       margin: 0;
+    }
+
+    .bookcover.nocover {
+      margin-bottom: 6px;
     }
 
     > .details {
@@ -1643,6 +1643,10 @@ ul.list-books {
       border-radius: 5px;
       font-size: unset;
     }
+  }
+
+  .generic-dropper__actions .generic-dropper__dropclick {
+    width: 26px;
   }
 }
 
