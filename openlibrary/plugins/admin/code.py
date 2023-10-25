@@ -250,7 +250,9 @@ class sync_ia_ol(delegate.page):
         i = web.input(old_ocaid=None)
         metadata = get_metadata(ocaid)
         if not metadata:
-            raise web.badrequest(f'Failed to lookup archive.org item with ocaid {ocaid}')
+            raise web.badrequest(
+                f'Failed to lookup archive.org item with ocaid {ocaid}'
+            )
         if not metadata.get('openlibrary_edition'):
             edition = self.get_edition_by_ocaid(i.old_ocaid or ocaid)
             if not edition:
