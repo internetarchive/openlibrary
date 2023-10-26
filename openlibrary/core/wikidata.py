@@ -125,7 +125,7 @@ def _add_to_cache(entity: WikidataEntity) -> None:
             where="id=$id",
             vars={'id': entity.id},
             data=json_data,
-            updated=datetime.now(),
+            updated=entity.updated,
         )
     else:
         # We don't provide the updated column on insert because postgres defaults to the current time
