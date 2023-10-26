@@ -164,7 +164,7 @@ export default {
     },
     computed: {
         recordsExist(){
-            return this.records && this.records.length > 1;
+            return this.records && this.records.length > 0;
         },
         selected(){
             /** @type {{[key: string]: Boolean}} */
