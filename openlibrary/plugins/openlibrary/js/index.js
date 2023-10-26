@@ -456,7 +456,7 @@ jQuery(function () {
     const ratingForms = document.querySelectorAll('.star-rating-form')
     if (ratingForms.length) {
         import(/* webpackChunkName: "star-ratings" */'./handlers')
-            .then((module) => module.initRatingHandlers(ratingForms));
+            .then((module) => ratingForms.forEach(form => new module.RatingsForm(form).attach()));
     }
 
     // Book page navbar initialization:
