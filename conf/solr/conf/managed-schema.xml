@@ -150,6 +150,7 @@
     <field name="first_edition" type="string" indexed="false"/>
     <field name="first_publisher" type="string" indexed="false"/>
     <field name="language" type="string" multiValued="true"/>
+    <field name="original_language" type="string" multiValued="true"/>
     <field name="number_of_pages_median" type="pint" />
     <field name="lccn" type="text_general" multiValued="true"/>
     <field name="ia" type="string" multiValued="true"/>

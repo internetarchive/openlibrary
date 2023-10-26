@@ -867,6 +867,18 @@ def build_data2(
     if languages:
         add_field_list(doc, 'language', uniq(languages))
 
+    if get_solr_next():
+        eds_w_lang = sorted(
+            [
+                e
+                for e in map(EditionSolrBuilder, editions)
+                if e.publish_year and e.languages
+            ],
+            key=lambda e: cast(int, e.publish_year),
+        )
+        if eds_w_lang:
+            add_field_list(doc, 'original_language', eds_w_lang[0].languages)
+
     # if lending_edition or in_library_edition:
     #    add_field(doc, "borrowed_b", is_borrowed(lending_edition or in_library_edition))
 
