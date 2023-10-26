@@ -1,6 +1,6 @@
 export function initializeSwaggerUI() {
     const ui = SwaggerUIBundle({
-        url: "../../../static/openapi.json",
+        url: '../../../static/openapi.json',
         dom_id: '#swagger-ui',
         deepLinking: true,
         presets: [
@@ -10,7 +10,7 @@ export function initializeSwaggerUI() {
         plugins: [
             SwaggerUIBundle.plugins.DownloadUrl
         ],
-        layout: "StandaloneLayout",
+        layout: 'StandaloneLayout',
     });
 
     window.ui = ui;
