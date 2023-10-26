@@ -55,9 +55,13 @@ $add_metatag(property="og:image", content=meta_photo_url)
           <strong class="lightgreen">$_("Date Added (oldest)")</strong>
       </span>
 
+    <br />
+    $ layout = get_remembered_layout()
+    $:render_template("search/layout_options.html", selected_layout=layout)
+
     $if not checkin_year:
       $:macros.Pager(current_page, doc_count, results_per_page=results_per_page)
-    <ul class="list-books">
+    <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
       $if docs:
         $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3}.get(key, None)
         $ doc_number = 1
