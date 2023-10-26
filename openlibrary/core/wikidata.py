@@ -64,14 +64,14 @@ class WikidataEntity:
 def get_wikidata_entity(QID: str, use_cache: bool = True) -> WikidataEntity | None:
     """
     This only supports QIDs, if we want to support PIDs we need to use different endpoints
-    ttl (time to live) inspired by the cachetools api https://cachetools.readthedocs.io/en/latest/#cachetools.TTLCache
     """
 
-    entity = _get_from_cache(QID)
-    if entity and use_cache and days_since(entity.updated) < WIKIDATA_CACHE_TTL_DAYS:
-        return entity
-    else:
-        return _get_from_web(QID)
+    if use_cache:
+        entity = _get_from_postgres_cache(QID)
+        if entity and days_since(entity.updated) < WIKIDATA_CACHE_TTL_DAYS:
+            return entity
+
+    return _get_from_web(QID)
 
 
 def _get_from_web(id: str) -> WikidataEntity | None:
@@ -102,7 +102,7 @@ def _get_from_cache_by_ids(ids: list[str]) -> list[WikidataEntity]:
     ]
 
 
-def _get_from_cache(id: str) -> WikidataEntity | None:
+def _get_from_postgres_cache(id: str) -> WikidataEntity | None:
     """
     The cache is OpenLibrary's Postgres instead of calling the Wikidata API
     """
@@ -116,7 +116,7 @@ def _add_to_cache(entity: WikidataEntity) -> None:
     oldb = db.get_db()
     json_data = entity.as_api_response_str()
 
-    if _get_from_cache(entity.id):
+    if _get_from_postgres_cache(entity.id):
         return oldb.update(
             "wikidata",
             where="id=$id",
