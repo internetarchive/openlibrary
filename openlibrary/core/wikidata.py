@@ -38,8 +38,7 @@ class WikidataEntity:
         return self.descriptions.get(language) or self.descriptions.get('en')
 
     @classmethod
-    def from_db_query(cls, db_response: web.utils.Storage):
-        response = db_response.data
+    def from_dict(cls, response: dict, updated: datetime):
         return cls(
             id=response['id'],
             type=response['type'],
@@ -48,20 +47,7 @@ class WikidataEntity:
             aliases=response['aliases'],
             statements=response['statements'],
             sitelinks=response['sitelinks'],
-            updated=db_response['updated'],
-        )
-
-    @classmethod
-    def from_web(cls, response: dict):
-        return cls(
-            id=response['id'],
-            type=response['type'],
-            labels=response['labels'],
-            descriptions=response['descriptions'],
-            aliases=response['aliases'],
-            statements=response['statements'],
-            sitelinks=response['sitelinks'],
-            updated=datetime.now(),
+            updated=updated,
         )
 
     def as_api_response_str(self) -> str:
@@ -93,7 +79,9 @@ def _get_from_web(id: str) -> WikidataEntity | None:
         f'https://www.wikidata.org/w/rest.php/wikibase/v0/entities/items/{id}'
     )
     if response.status_code == 200:
-        entity = WikidataEntity.from_web(response.json())
+        entity = WikidataEntity.from_dict(
+            response=response.json(), updated=datetime.now()
+        )
         _add_to_cache(entity)
         return entity
     else:
@@ -109,7 +97,9 @@ def _get_from_cache_by_ids(ids: list[str]) -> list[WikidataEntity]:
             vars={'ids': ids},
         )
     )
-    return [WikidataEntity.from_db_query(r) for r in response]
+    return [
+        WikidataEntity.from_dict(response=r.data, updated=r.updated) for r in response
+    ]
 
 
 def _get_from_cache(id: str) -> WikidataEntity | None:
