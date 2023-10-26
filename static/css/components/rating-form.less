@@ -5,30 +5,32 @@
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#ratingsform
  */
 
+.star-rating-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  scroll-margin-top: 100px;
+
+  // initial setting before clicking on anchor link
+  border: 1px solid transparent;
+  border-radius: 5px;
+
+  // smooth scrolling and highlighting area after clicking on anchor link
+  &:target {
+    animation: highlight 3s;
+  }
+}
+
 // When a page has been starred, this allows you to clear your rating
-.star-messaging {
+.clear-rating {
   color: @mid-grey;
   background: none;
   display: block;
   border: 0;
   cursor: pointer;
-  margin: 0 auto;
 }
-.review {
-  display: flex;
-  scroll-margin-top: 100px;
-  .review-btn {
-    border-left: 1px solid @lighter-grey;
-    width: 35px;
-    height: 35px;
-  }
-  // initial setting before clicking on anchor link
-  border: 1px solid transparent;
-  border-radius: 5px;
-  -webkit-transition: all 1s linear;
-  position: sticky;
-  top: 0;
-}
+
 // highlighting settings
 @keyframes highlight {
   0% {
@@ -44,83 +46,44 @@
     box-shadow: 0 0 10px transparent;
   }
 }
-// smooth scrolling and highlighting area after clicking on anchor link
-.review:target {
-  animation: highlight 3s;
-}
+
 .stars {
-  background: url(/static/images/stars.png) repeat-x 0 0;
-  width: 150px;
-  cursor: pointer;
-  margin: 0 auto 10px;
+  display: flex;
   input[type="submit"] {
     position: absolute;
     opacity: 0;
     filter: alpha(opacity=0);
+    pointer-events: none;
   }
 
-  // stylelint-disable selector-max-specificity
-  .star-5.star-selected ~ span {
-    width: 100%;
-  }
-  .star-4.star-selected ~ span {
-    width: 80%;
-  }
-  .star-3.star-selected ~ span {
-    width: 60%;
-  }
-  .star-2.star-selected ~ span {
-    width: 40%;
-  }
-  .star-1.star-selected ~ span {
-    width: 20%;
-  }
-  .star-0.star-selected ~ span {
-    width: 0%;
-  }
-  // stylelint-enable selector-max-specificity
-  label {
+  .star {
     display: block;
-    width: 30px;
+    position: relative;
+    width: 25px;
     height: 30px;
     margin: 0;
     padding: 0;
-    text-indent: -999em;
-    float: left;
-    position: relative;
-    z-index: @z-index-level-3;
-    background: transparent;
+    background: url(/static/images/stars.png);
+    background-repeat: no-repeat;
+    background-position-x: center;
     cursor: pointer;
 
-    &:hover ~ span {
-      background-position: 0 -60px;
+    &.yellow {
+      background-position-y: -60px;
     }
-
-    // stylelint-disable selector-max-specificity
-    &.star-5:hover ~ span {
-      width: 100%;
-    }
-    &.star-4:hover ~ span {
-      width: 80%;
-    }
-    &.star-3:hover ~ span {
-      width: 60%;
-    }
-    &.star-2:hover ~ span {
-      width: 40%;
-    }
-    &.star-1:hover ~ span {
-      width: 20%;
-    }
-    // stylelint-enable selector-max-specificity
   }
-  span {
-    display: block;
-    width: 0;
-    position: relative;
-    top: 0;
-    left: 0;
-    height: 30px;
-    background: url(/static/images/stars.png) repeat-x 0 -60px;
+
+  // Hack to make it so that hovering highlights all stars
+  // before/including the one you're hovering over
+
+  &:hover .star {
+    // Make *all* the stars yellow when over the stars region
+    background-position-y: -60px;
+  }
+
+  // stylelint-disable-next-line selector-max-specificity
+  .star:hover ~ .star {
+    // Make all the sibling stars after the hovered one grey
+    background-position-y: 0;
   }
 }

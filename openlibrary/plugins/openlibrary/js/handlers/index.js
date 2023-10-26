@@ -1,66 +1,85 @@
+// @ts-check
 import { FadingToast } from '../Toast.js';
 
-export function initRatingHandlers(ratingForms) {
-    for (const form of ratingForms) {
-        form.addEventListener('submit', function(e) {
-            handleRatingSubmission(e, form);
-        })
+export class RatingsForm {
+    /**
+     * @param {HTMLFormElement} form
+     */
+    constructor(form) {
+        /** @type {HTMLFormElement} */
+        this.form = form;
     }
-}
 
-function handleRatingSubmission(event, form) {
-    event.preventDefault();
-    // Continue only if selected star is different from previous rating
-    if (!event.submitter.classList.contains('star-selected')) {
+    attach() {
+        this.form.addEventListener('submit', (event) => {
+            // Have to do before the async function, otherwise
+            // it'll be too late to prevent the default action
+            event?.preventDefault();
+            this.handleSubmission(event);
+        });
+    }
 
-        // Construct form data object:
-        const formData = new FormData(form);
-        let rating;
-        if (event.submitter.value) {
-            rating = Number(event.submitter.value)
-            formData.append('rating', event.submitter.value)
+    /**
+     * @param {SubmitEvent} event
+     */
+    async handleSubmission(event) {
+        event.preventDefault();
+
+        // Ignore if already selected
+        if (event.submitter.classList.contains('star-selected')) {
+            return;
         }
-        formData.append('ajax', true);
 
-        // Make AJAX call
-        fetch(form.action, {
-            method: 'POST',
-            headers: {
-                'content-type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams(formData)
-        })
-            .then((response) => {
-                // POST handler will redirect to login page when not logged in
-                if (response.redirected) {
-                    window.location = response.url
-                }
-                if (!response.ok) {
-                    throw new Error('Ratings update failed')
-                }
-                // Repaint stars
-                form.querySelectorAll('.star-selected').forEach((elem) => {
-                    elem.classList.remove('star-selected');
-                    if (elem.hasAttribute('property')) {
-                        elem.removeAttribute('property');
-                    }
+        // Note this can be null if the clear ratings button is pressed.
+        // The is not an input element
+        const newRating = parseFloat(event.submitter.value || '0');
+
+        try {
+            const response = await fetch(this.form.action, {
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    ...(newRating ? { rating: newRating.toString() } : {}),
+                    ajax: 'true',
                 })
+            });
 
-                const clearButton = form.querySelector('.star-messaging');
-                if (rating) {
-                    clearButton.classList.remove('hidden');
-                    form.querySelectorAll(`.star-${rating}`).forEach((elem) => {
-                        elem.classList.add('star-selected');
-                        if (elem.tagName === 'LABEL') {
-                            elem.setAttribute('property', 'ratingValue')
-                        }
-                    })
-                } else {
-                    clearButton.classList.add('hidden');
+            // POST handler will redirect to login page when not logged in
+            if (response.redirected) {
+                window.location = response.url
+            }
+            if (!response.ok) {
+                throw new Error('Ratings update failed')
+            }
+
+            // Reset all stars
+            this.form.querySelectorAll('.star-selected').forEach((elem) => {
+                elem.classList.remove('star-selected');
+                if (elem.hasAttribute('property')) {
+                    elem.removeAttribute('property');
                 }
-            })
-            .catch((error) => {
-                new FadingToast(error.message).show();
-            })
+            });
+            $(this.form).find('.star.yellow').removeClass('yellow');
+
+            // Set new stars
+            this.form.querySelectorAll('.star input').forEach((inpt) => {
+                const value = parseFloat(inpt.value);
+                if (value <= newRating) {
+                    inpt.parentElement.classList.add('yellow');
+                }
+                if (value === newRating) {
+                    inpt.classList.add('star-selected');
+                    inpt.parentElement.classList.add('star-selected');
+                    inpt.parentElement.setAttribute('property', 'ratingValue');
+                }
+            });
+
+            const clearButton = this.form.querySelector('.clear-rating');
+            clearButton.classList.toggle('hidden', !newRating);
+        } catch (error) {
+            new FadingToast(error.message).show();
+        }
     }
 }
