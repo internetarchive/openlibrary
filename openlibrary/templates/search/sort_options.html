@@ -42,12 +42,11 @@ $code:
       $if exclude and sort_option['sort'] in exclude:
         $continue
       $ is_selected = sort_option.get('selected') or sort_option['sort'] == selected_sort or (selected_sort is None and sort_option['sort'] == default_sort)
-      $if is_selected:
-          <a><strong>$sort_option['name']</strong></a>
-      $else:
-          <a href="$changequery(sort=cond(sort_option['sort'] == default_sort, None, sort_option['sort']))"
-             data-ol-link-track="SearchSort|$sort_option['ga_key']"
-          >$sort_option['name']</a>
+      <a
+        $:cond(is_selected, 'class="active"')
+        href="$changequery(sort=cond(sort_option['sort'] == default_sort, None, sort_option['sort']))"
+          data-ol-link-track="SearchSort|$sort_option['ga_key']"
+      >$sort_option['name']</a>
       $if sort_option.get('sub_sorts') and is_selected:
         <select
           data-ol-link-track="SearchSort|$sort_option['ga_key']SubSort"

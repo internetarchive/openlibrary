@@ -526,4 +526,8 @@ jQuery(function () {
             .then(module => module.initBreadcrumbSelect(crumbs));
     }
 
+    if (document.querySelector('.list-books')) {
+        import(/* webpackChunkName: "list-books" */ './list_books')
+            .then(module => module.ListBooks.init());
+    }
 });

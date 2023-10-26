@@ -10,12 +10,12 @@ $code:
   $_('View as:')
   $for layout_option in layout_options:
     $ is_selected = layout_option['layout'] == selected_layout or (selected_layout is None and layout_option['layout'] == default_layout)
-    $if is_selected:
-      <a><strong>$layout_option['name']</strong></a>
-    $else:
-      <a href="$changequery(layout=cond(layout_option['layout'] == default_layout, None, layout_option['layout']))"
-        data-ol-link-track="SearchLayout|$layout_option['ga_key']"
-      >$layout_option['name']</a>
+    <a
+      $:cond(is_selected, 'class="active"')
+      data-value="$layout_option['layout']"
+      href="$changequery(layout=cond(layout_option['layout'] == default_layout, None, layout_option['layout']))"
+      data-ol-link-track="SearchLayout|$layout_option['ga_key']"
+    >$layout_option['name']</a>
     $if not loop.last:
       |
 </span>
