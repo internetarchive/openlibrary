@@ -1,0 +1,126 @@
+/**
+ * LESS for a list of books; as displayed in e.g. search results,
+ * authors pages, reading log, etc.
+ */
+@import (less) "less/colors.less";
+@import (less) "less/breakpoints.less";
+@import (less) "less/mixins.less";
+
+// openlibrary/templates/stats/readinglog.html
+// openlibrary/templates/type/author/view.html
+// openlibrary/templates/work_search.html
+// openlibrary/templates/books/check.html
+// openlibrary/templates/account/books.html
+// openlibrary/macros/SearchResults.html
+// openlibrary/macros/FulltextResults.html
+ul.list-books {
+  > li {
+    .display-flex();
+  }
+
+  .bookcover.nocover {
+    max-width: 180px;
+    aspect-ratio: 2/3;
+    margin: auto;
+
+    @media only screen and (max-width: @width-breakpoint-tablet) {
+      width: 175px;
+    }
+  }
+
+  // openlibrary/macros/SearchResults.html
+  // openlibrary/macros/SearchResultsWork.html
+  // openlibrary/templates/books/check.html
+  // openlibrary/templates/books/show.html
+  // openlibrary/templates/books/works-show.html
+  // openlibrary/templates/lists/preview.html
+  // openlibrary/templates/lists/snippet.html
+  // openlibrary/templates/type/list/embed.html
+  // openlibrary/templates/type/list/view.html
+  .resultTitle {
+    display: block;
+    margin: 0 !important;
+    font-family: @lucida_sans_serif-1;
+    color: @grey;
+  }
+
+  // `span.resultTitle .bookauthor` is used in:
+  // * openlibrary/macros/SearchResults.html
+  // * openlibrary/macros/SearchResultsWork.html
+  // `span.resultPublisher` is used in
+  // * openlibrary/macros/SearchResultsWork.htm
+  // * openlibrary/templates/books/check.html
+  // * openlibrary/templates/books/show.html
+  // * openlibrary/templates/books/works-show.html
+  .resultTitle .bookauthor,
+  span.resultPublisher {
+    font-size: .75em;
+    color: @grey;
+    font-family: @lucida_sans_serif-6;
+  }
+  // openlibrary/templates/books/works-show.html
+  // openlibrary/templates/books/show.html
+  // openlibrary/templates/books/check.html
+  // openlibrary/macros/SearchResultsWork.html
+  // openlibrary/macros/SearchResults.html
+  span.resultPublisher {
+    display: block;
+  }
+  // openlibrary/macros/SearchResults.html
+  // openlibrary/templates/books/show.html
+  span.resultType {
+    font-size: .6875em;
+  }
+}
+
+.list-books--grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-gap: 30px 5px;
+  padding: 10px;
+
+  flex-wrap: wrap;
+  .searchResultItem {
+    padding: 0 5px;
+    background: transparent;
+    border: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    position: relative;
+
+    .bookcover {
+      width: 100%;
+      margin: 0;
+    }
+
+    .bookcover.nocover {
+      margin-bottom: 6px;
+    }
+
+    > .details {
+      display: none;
+    }
+
+    .searchResultItemCTA {
+      font-size: .85em;
+      padding: 0;
+      margin: 0;
+      min-width: unset;
+      width: 100%;
+    }
+
+    .cta-btn--w-icon {
+      display: none;
+    }
+
+    .cta-btn, a.cta-btn {
+      border-radius: 5px;
+      font-size: unset;
+    }
+  }
+
+  .generic-dropper__actions .generic-dropper__dropclick {
+    width: 26px;
+  }
+}
