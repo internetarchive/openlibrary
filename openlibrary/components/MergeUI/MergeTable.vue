@@ -168,10 +168,6 @@ export default {
         },
         selected(){
             /** @type {{[key: string]: Boolean}} */
-            /*
-            Maybe this and master_key shouldn't be computed since they only matter on first one.
-            But I think that it's okay since this.records will never change.
-            */
             if (!this.recordsExist) return []
             return _.fromPairs(this.records.map(record => [record.key, record.type.key.includes('work')]));
         },
