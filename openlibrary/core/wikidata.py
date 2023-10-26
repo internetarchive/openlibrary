@@ -18,60 +18,61 @@ WIKIDATA_CACHE_TTL_DAYS = 30
 
 
 @dataclass
-class APIResponse:
+class WikidataEntity:
     """
-    This is the model of the api response from WikiData
+    This is the model of the api response from WikiData plus the updated field
     https://www.wikidata.org/wiki/Wikidata:REST_API
     """
 
+    id: str
     type: str
     labels: dict
     descriptions: dict
     aliases: dict
     statements: dict
     sitelinks: dict
-    id: str
-
-    @classmethod
-    def from_dict(cls, data: dict):
-        # use [''] instead of get so this fails if fields are missing
-        return cls(
-            type=data['type'],
-            labels=data['labels'],
-            descriptions=data['descriptions'],
-            aliases=data['aliases'],
-            statements=data['statements'],
-            sitelinks=data['sitelinks'],
-            id=data['id'],
-        )
-
-
-@dataclass
-class WikidataEntity:
-    id: str
-    data: APIResponse
-    updated: datetime
+    updated: datetime  # This is when we fetched the data, not when the entity was changed in Wikidata
 
     def description(self, language: str = 'en') -> str | None:
         """If a description isn't available in the requested language default to English"""
-        return self.data.descriptions.get(language) or self.data.descriptions.get('en')
+        return self.descriptions.get(language) or self.descriptions.get('en')
 
     @classmethod
-    def from_db_query(cls, response: web.utils.Storage):
+    def from_db_query(cls, db_response: web.utils.Storage):
+        response = db_response.data
         return cls(
-            id=response.id,
-            data=APIResponse.from_dict(response.data),
-            updated=response.updated,
+            id=response['id'],
+            type=response['type'],
+            labels=response['labels'],
+            descriptions=response['descriptions'],
+            aliases=response['aliases'],
+            statements=response['statements'],
+            sitelinks=response['sitelinks'],
+            updated=db_response['updated'],
         )
 
     @classmethod
     def from_web(cls, response: dict):
-        data = APIResponse.from_dict(response)
         return cls(
-            id=data.id,
-            data=data,
+            id=response['id'],
+            type=response['type'],
+            labels=response['labels'],
+            descriptions=response['descriptions'],
+            aliases=response['aliases'],
+            statements=response['statements'],
+            sitelinks=response['sitelinks'],
             updated=datetime.now(),
         )
+
+    def as_api_response_str(self) -> str:
+        """
+        Transforms the dataclass a JSON string like we get from the Wikidata API.
+        This is used for staring the json in the database.
+        """
+        self_dict = dataclasses.asdict(self)
+        # remove the updated field because it's not part of the API response and is stored in its own column
+        self_dict.pop('updated')
+        return json.dumps(self_dict)
 
 
 def get_wikidata_entity(QID: str, use_cache: bool = True) -> WikidataEntity | None:
@@ -121,13 +122,18 @@ def _get_from_cache(id: str) -> WikidataEntity | None:
 
 
 def _add_to_cache(entity: WikidataEntity) -> None:
-    # TODO: when we upgrade to postgres 9.5+ we should use upsert here
+    # TODO: after we upgrade to postgres 9.5+ we should use upsert here
     oldb = db.get_db()
-    json_data = json.dumps(dataclasses.asdict(entity.data))
+    json_data = entity.as_api_response_str()
 
     if _get_from_cache(entity.id):
         return oldb.update(
-            "wikidata", where="id=$id", vars={'id': entity.id}, data=json_data
+            "wikidata",
+            where="id=$id",
+            vars={'id': entity.id},
+            data=json_data,
+            updated=datetime.now(),
         )
     else:
+        # We don't provide the updated column on insert because postgres defaults to the current time
         return oldb.insert("wikidata", id=entity.id, data=json_data)
