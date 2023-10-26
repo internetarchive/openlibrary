@@ -69,22 +69,39 @@ export default {
     components: {
         MergeRow
     },
-    data() {
-        return {
-            records: [],
-            bookshelves: null,
-            editions: null,
-            lists: null,
-            ratings: null
-        };
-    },
     async created(){
         // using await in created won't block the Vue lifecycle, just the rest of this function
-        await this.getRecords();
-        this.getBookshelves();
-        this.getEditions();
-        this.getLists();
-        this.getRatings();
+        await this.fetchAndSetRecords();
+        // After fetching records, we fetch all other fields we need
+        this.fetchAndSetBookshelves();
+        this.fetchAndSetEditions();
+        this.fetchAndSetLists();
+        this.fetchAndSetRatings();
+    },
+    data() {
+        return {
+            records: {
+                type: Array,
+                default: () => [],
+            },
+            // The following are all objects with the record key as the key and response as the value
+            bookshelves: {
+                type: Object,
+                default: () => null,
+            },
+            editions: {
+                type: Object,
+                default: () => null,
+            },
+            lists: {
+                type: Object,
+                default: () => null,
+            },
+            ratings: {
+                type: Object,
+                default: () => null,
+            },
+        };
     },
     props: {
         olids: Array,
@@ -98,7 +115,7 @@ export default {
                 ? this.merge.sources[field].includes(record.key)
                 : record.key === this.master_key;
         },
-        async getRecords(){
+        async fetchAndSetRecords(){
             // gets records from api and sets them
             const olids_sorted = _.sortBy(this.olids, olid =>
                 parseInt(olid.match(/\d+/)[0])
@@ -110,8 +127,8 @@ export default {
 
             this.records = records;
         },
-        async getBookshelves() {this.bookshelves = await this.fetchData(get_bookshelves)},
-        async getEditions() {
+        async fetchAndSetBookshelves() {this.bookshelves = await this.fetchData(get_bookshelves)},
+        async fetchAndSetEditions() {
             const editionsMap = await this.fetchData(get_editions, { size: 0 });
 
             // If any of the records are editions, insert the record as its own edition list
@@ -121,11 +138,11 @@ export default {
 
             this.editions = editionsMap;
         },
-        async getLists() {
-            // TODO: we can simplify if we set default to zero...
+        async fetchAndSetLists() {
+            // TODO: we can simplify if we set the default to zero in get_lists
             this.lists = await this.fetchData((r) => get_lists(r, 0));
         },
-        async getRatings() {this.ratings = await this.fetchData(get_ratings)},
+        async fetchAndSetRatings() {this.ratings = await this.fetchData(get_ratings)},
         async fetchData(getter, defaultValue = {}){
             /*
               If recordsExist, for each work call the getter and then return a dict with
