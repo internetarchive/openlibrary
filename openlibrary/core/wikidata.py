@@ -5,7 +5,6 @@ The purpose of this file is to:
 3. Make the results easy to access from other files
 """
 import requests
-import web
 import dataclasses
 from dataclasses import dataclass
 from openlibrary.core.helpers import days_since
@@ -14,6 +13,7 @@ from datetime import datetime
 import json
 from openlibrary.core import db
 
+WIKIDATA_API_URL = 'https://www.wikidata.org/w/rest.php/wikibase/v0/entities/items/'
 WIKIDATA_CACHE_TTL_DAYS = 30
 
 
@@ -55,10 +55,16 @@ class WikidataEntity:
         Transforms the dataclass a JSON string like we get from the Wikidata API.
         This is used for staring the json in the database.
         """
-        self_dict = dataclasses.asdict(self)
-        # remove the updated field because it's not part of the API response and is stored in its own column
-        self_dict.pop('updated')
-        return json.dumps(self_dict)
+        entity_dict = {
+            'id': self.id,
+            'type': self.type,
+            'labels': self.labels,
+            'descriptions': self.descriptions,
+            'aliases': self.aliases,
+            'statements': self.statements,
+            'sitelinks': self.sitelinks,
+        }
+        return json.dumps(entity_dict)
 
 
 def get_wikidata_entity(QID: str, use_cache: bool = True) -> WikidataEntity | None:
@@ -67,7 +73,7 @@ def get_wikidata_entity(QID: str, use_cache: bool = True) -> WikidataEntity | No
     """
 
     if use_cache:
-        entity = _get_from_postgres_cache(QID)
+        entity = _get_from_cache(QID)
         if entity and days_since(entity.updated) < WIKIDATA_CACHE_TTL_DAYS:
             return entity
 
@@ -75,9 +81,7 @@ def get_wikidata_entity(QID: str, use_cache: bool = True) -> WikidataEntity | No
 
 
 def _get_from_web(id: str) -> WikidataEntity | None:
-    response = requests.get(
-        f'https://www.wikidata.org/w/rest.php/wikibase/v0/entities/items/{id}'
-    )
+    response = requests.get(f'{WIKIDATA_API_URL}{id}')
     if response.status_code == 200:
         entity = WikidataEntity.from_dict(
             response=response.json(), updated=datetime.now()
@@ -102,7 +106,7 @@ def _get_from_cache_by_ids(ids: list[str]) -> list[WikidataEntity]:
     ]
 
 
-def _get_from_postgres_cache(id: str) -> WikidataEntity | None:
+def _get_from_cache(id: str) -> WikidataEntity | None:
     """
     The cache is OpenLibrary's Postgres instead of calling the Wikidata API
     """
@@ -116,7 +120,7 @@ def _add_to_cache(entity: WikidataEntity) -> None:
     oldb = db.get_db()
     json_data = entity.as_api_response_str()
 
-    if _get_from_postgres_cache(entity.id):
+    if _get_from_cache(entity.id):
         return oldb.update(
             "wikidata",
             where="id=$id",
