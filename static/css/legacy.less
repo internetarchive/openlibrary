@@ -1042,39 +1042,6 @@ div#searchResults {
       text-decoration: none;
     }
   }
-  &.work,
-  &.work ul,
-  &.work li {
-    width: 700px !important;
-  }
-  &.narrow,
-  &.narrow ul,
-  &.narrow li {
-    width: 610px !important;
-  }
-  &.wide,
-  &.wide ul,
-  &.wide li {
-    width: 920px !important;
-  }
-  &.add,
-  &.add ul,
-  &.add li {
-    width: 860px !important;
-    margin: 0 30px !important;
-  }
-  &.narrow .resultTitle {
-    max-width: 480px !important;
-  }
-  &.wide .resultTitle {
-    max-width: 780px;
-  }
-  &.add .resultTitle {
-    max-width: 720px;
-  }
-  &.work .resultTitle {
-    max-width: 570px !important;
-  }
 }
 
 // openlibrary/templates/work_search.html
@@ -1374,15 +1341,6 @@ ul {
       }
     }
   }
-  &.wide {
-    li span.resultTitle {
-      width: 813px;
-      max-width: 813px;
-      .subjects {
-        font-size: .8em;
-      }
-    }
-  }
   // openlibrary/templates/type/user/view.html
   &.clean {
     border-top: none !important;
@@ -1652,27 +1610,6 @@ ul.list-books {
 
   .generic-dropper__actions .generic-dropper__dropclick {
     width: 26px;
-  }
-}
-
-// openlibrary/templates/search/lists.html
-// openlibrary/templates/lists/lists.html
-div.wide {
-  ul.list-books {
-    span.resultTitle {
-      max-width: 850px;
-    }
-  }
-}
-
-// openlibrary/templates/type/list/embed.html
-// openlibrary/templates/type/list/view.html
-// openlibrary/templates/type/work/editions.html
-div.narrow {
-  ul.list-books {
-    span.resultTitle {
-      max-width: 500px !important;
-    }
   }
 }
 
