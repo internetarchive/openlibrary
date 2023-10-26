@@ -36,6 +36,15 @@
     "ol_key": "bodiceaa"
   },
   {
+    "name": "Charles Horn",
+    "title": "Open Libraries Partnerships & Data Engineer",
+    "roles": ["staff"],
+    "projects": ["Imports"],
+    "departments": ["engineering"],
+    "photo_path": "http://blog.archive.org/wp-content/uploads/2023/04/NLW2023_Charles-1024x1024.png",
+    "ol_key": "hornc"
+  },
+  {
     "name": "Chris Clauss",
     "title": "Python Backend",
     "roles": ["staff-emeritus"],
@@ -307,7 +316,7 @@
   },
   {
     "name": "Scott Barnes",
-    "title": "Developer",
+    "title": "Core Developer",
     "roles": ["fellow-2022", "staff-active"],
     "departments": ["engineering"],
     "photo_path": "../../../static/images/team/Scott_Barnes.jpg",
