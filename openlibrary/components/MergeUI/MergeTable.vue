@@ -118,7 +118,7 @@ export default {
         async fetchAndSetRecords(){
             // gets records from api and sets them
             const olids_sorted = _.sortBy(this.olids, olid =>
-                parseInt(olid.match(/\d+/)[0])
+                parseFloat(olid.match(/\d+/)[0])
             );
             // Ensure orphaned editions are at the bottom of the list
             const records = _.orderBy(
