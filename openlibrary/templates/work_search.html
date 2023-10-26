@@ -193,8 +193,8 @@ $ )
             $:render_template("search/sort_options.html", sort)
             <br />
 
-          $ layout = query_param('layout', None)
-          $:render_template("search/layout_options.html", selected_layout=layout, default_layout='details')
+          $ layout = get_remembered_layout()
+          $:render_template("search/layout_options.html", selected_layout=layout)
         </div>
         <div class="resultsContainer search-results-container">
         <div id="searchResults">

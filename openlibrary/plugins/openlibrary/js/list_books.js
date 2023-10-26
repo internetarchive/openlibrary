@@ -24,6 +24,7 @@ export class ListBooks {
         layoutAnchor.classList.add('active');
         const layout = layoutAnchor.dataset.value;
         this.listBooks.classList.toggle('list-books--grid', layout === 'grid');
+        document.cookie = `LIST_BOOKS_LAYOUT=${layout}; path=/; max-age=31536000`;
     }
 
     static init() {

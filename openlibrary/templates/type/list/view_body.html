@@ -96,8 +96,8 @@ $def seed_attrs(seed):
 
         $:render_template("search/sort_options.html", selected_sort=sort, default_sort='index', search_scheme="lists_seeds")
         <br />
-        $ layout = query_param('layout', None)
-        $:render_template("search/layout_options.html", selected_layout=layout, default_layout='details')
+        $ layout = get_remembered_layout()
+        $:render_template("search/layout_options.html", selected_layout=layout)
 
         $:macros.Pager(page+1, len(list.seeds), page_size)
         <div class="clearfix"></div>

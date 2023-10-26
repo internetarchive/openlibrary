@@ -122,8 +122,8 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                     $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
 
                 <br />
-                $ layout = query_param('layout', None)
-                $:render_template("search/layout_options.html", selected_layout=layout, default_layout='details')
+                $ layout = get_remembered_layout()
+                $:render_template("search/layout_options.html", selected_layout=layout)
                 <p>
                   $if input(mode="everything").mode == "everything":
                     $:_('Showing all works by author. Would you like to see <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))

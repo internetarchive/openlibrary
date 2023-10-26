@@ -129,6 +129,24 @@ def execute_solr_query(
 public(has_solr_editions_enabled)
 
 
+@public
+def get_remembered_layout():
+    def read_query_string():
+        return web.input(layout=None).get('layout')
+
+    def read_cookie():
+        if "LIST_BOOKS_LAYOUT" in web.ctx.env.get("HTTP_COOKIE", ""):
+            return web.cookies().get('LIST_BOOKS_LAYOUT')
+
+    if (qs_value := read_query_string()) is not None:
+        return qs_value
+
+    if (cookie_value := read_cookie()) is not None:
+        return cookie_value
+
+    return 'details'
+
+
 def run_solr_query(
     scheme: SearchScheme,
     param: dict | None = None,
