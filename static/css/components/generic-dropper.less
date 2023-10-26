@@ -1,18 +1,8 @@
 .generic-dropper-wrapper {
   position: relative;
-  z-index: @z-index-level-4;
-  min-height: 50px;
-
-  &--active {
-    z-index: @z-index-level-5;
-  }
 }
 
 .generic-dropper {
-  position: absolute;
-  width: 100%;
-  z-index: @z-index-level-14;
-
   &__actions {
     display: flex;
     flex-direction: row;
@@ -83,6 +73,7 @@
     min-width: 200px;
     border-top: 1px solid @lighter-grey;
     position: absolute;
+    z-index: @z-index-level-5;
   }
 }
 .book-progress-btn {
