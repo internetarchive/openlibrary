@@ -23,8 +23,8 @@ The following describes what each plugin directory does, by convention, in decre
   * `lists.py` defines many of the routes for the List feature
 * upstream -- handles incoming stateful data requests (wiki edits, uploads, adding a book, logins, etc)
   * responds to actions (e.g. borrowing) and account related requests: editing, mybooks pages, account login, settings
-* worksearch -- renders our /search/* related pages and all our search querying logic.
-  * `code.py` contains most of the logic and routes for `/search`, the `/barcodescanner`, '/advancedsearch`, `/search/lists`, `/search/subjects`, etc, as well as their json returning counterparts
+* worksearch -- renders our `/search/*` related pages and all our search querying logic.
+  * `code.py` contains most of the logic and routes for `/search`, the `/barcodescanner`, `/advancedsearch`, `/search/lists`, `/search/subjects`, etc, as well as their json returning counterparts
 * importapi -- defines our book import API endpoints
   * `code.py` again defines most of the core logic we care about
 * admin -- our admin pages and logic
