@@ -10,18 +10,18 @@
 Are you looking to get started? [This is the guide](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md) you are looking for. You may wish to learn more about [Google Summer of Code (GSoC)?](https://github.com/internetarchive/openlibrary/wiki/Google-Summer-of-Code) or [Hacktoberfest](https://github.com/internetarchive/openlibrary/wiki/Hacktoberfest).
 
 ## Table of Contents
-   - [Overview](#overview)
-   - [Installation](#installation)
-   - [Code Organization](#code-organization)
-   - [Architecture](#architecture)
-     - [The Frontend](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide)
-     - [The Backend](#the-backend)
-     - [The Service Architecture](https://github.com/internetarchive/openlibrary/wiki/Production-Service-Architecture)
-   - [Developer's Guide](#developers-guide)
-   - [Running Tests](#running-tests)
-   - [Contributing](CONTRIBUTING.md)
-   - [Public APIs](https://openlibrary.org/developers/api)
-   - [FAQs](https://openlibrary.org/help/faq)
+- [Open Library](#open-library)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Installation](#installation)
+    - [Developer's Guide](#developers-guide)
+  - [Code Organization](#code-organization)
+  - [Architecture](#architecture)
+    - [The Backend](#the-backend)
+  - [Running tests](#running-tests)
+    - [Integration Tests](#integration-tests)
+    - [Quality](#quality)
+  - [License](#license)
 
 ## Overview
 
@@ -89,6 +89,10 @@ docker compose exec web make test
 ### Integration Tests
 
 Integration tests use the Splinter webdriver with Google Chrome. For instructions on installation requirements and running integration tests, [see Integration Tests README](tests/integration/README.md).
+
+### Quality
+
+To check your quality and format your code you must use pre-commit [see Quality code README](README_quality.md).
 
 ## License
 
