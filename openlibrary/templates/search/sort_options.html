@@ -19,6 +19,7 @@ $code:
        sort_options = [
          { 'sort': 'relevance', 'name': _("Relevance"), 'ga_key': 'Relevance' },
          { 'sort': 'editions', 'name': _("Most Editions"), 'ga_key': 'Editions' },
+         { 'sort': 'title', 'name': _("Work Title (beta: Librarian only)"), 'ga_key': 'Title', 'show': ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians'))  },
          { 'sort': 'old', 'name': _("First Published"), 'ga_key': 'Old' },
          { 'sort': 'new', 'name': _("Most Recent"), 'ga_key': 'New' },
          { 'sort': 'rating', 'name': _("Top Rated"), 'ga_key': 'Rating' },
@@ -38,6 +39,8 @@ $code:
        ]
     $for sort_option in sort_options:
       $if exclude and sort_option['sort'] in exclude:
+        $continue
+      $if sort_option['sort'] == 'title' and not sort_option['show']:
         $continue
       $ is_selected = sort_option.get('selected') or sort_option['sort'] == selected_sort or (selected_sort is None and sort_option['sort'] == default_sort)
       $if is_selected:
