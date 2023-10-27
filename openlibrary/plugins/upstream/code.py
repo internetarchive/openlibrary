@@ -74,9 +74,9 @@ class edit(core.edit):
         )
         if editable_keys_re.match(key):
             if page is None:
-                raise web.seeother(key)
+                return web.seeother(key)
             else:
-                raise web.seeother(page.url(suffix="/edit"))
+                return addbook.safe_seeother(page.url(suffix="/edit"))
         else:
             return core.edit.GET(self, key)
 
