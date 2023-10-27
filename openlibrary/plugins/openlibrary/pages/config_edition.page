@@ -414,16 +414,18 @@
             "label": "British Library"
         },
         {
-            "website": "http://ecommons.library.cornell.edu/handle/1813/11665",
-            "notes": "",
+            "website": "https://ecommons.cornell.edu/",
+            "url": "https://hdl.handle.net/1813/@@@"
+            "notes": "Cornell's Digital Repository",
             "name": "cornell_university_online_library",
-            "label": "Cornell University ecommons"
+            "label": "Cornell University eCommons"
         },
         {
-            "website": "https://newcatalog.library.cornell.edu/catalog/@@@",
-            "notes": "",
+            "website": "https://www.library.cornell.edu/",
+            "url": "https://catalog.library.cornell.edu/catalog/@@@",
+            "notes": "Cornell University Library Catalog",
             "name": "cornell_university_library",
-            "label": "Cornell University ecommons"
+            "label": "Cornell University Library Catalog"
         },
         {
             "website": "",
