@@ -1,7 +1,7 @@
 // @ts-check
-import { FadingToast } from '../Toast.js';
+import { FadingToast } from './Toast.js';
 
-export class RatingsForm {
+export class StarRatingForm {
     /**
      * @param {HTMLFormElement} form
      */

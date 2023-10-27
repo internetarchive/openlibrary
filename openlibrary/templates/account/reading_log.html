@@ -67,7 +67,7 @@ $add_metatag(property="og:image", content=meta_photo_url)
             $ dropper = None
           $else:
             $ dropper = (bookshelf_id and owners_page) and macros.ReadingLogDropper([], include_lists=False, work=doc, edition_key=doc.logged_edition, users_work_read_status=bookshelf_id)
-          $ star_rating = macros.StarRatings(doc, redir_url='/account/books/already-read', rating=ratings[idx]) if include_ratings else None
+          $ star_rating = macros.StarRatingForm(doc, redir_url='/account/books/already-read', rating=ratings[idx]) if include_ratings else None
           $:macros.SearchResultsWork(doc, reading_log=dropper, availability=doc.get('availability'), rating=star_rating, include_dropper=(use_my_books_droppers and bookshelf_id and owners_page))
     </ul>
     $if not checkin_year:

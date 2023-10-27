@@ -476,8 +476,8 @@ jQuery(function () {
     // Prevent default star rating behavior:
     const ratingForms = document.querySelectorAll('.star-rating-form')
     if (ratingForms.length) {
-        import(/* webpackChunkName: "star-ratings" */'./handlers')
-            .then((module) => ratingForms.forEach(form => new module.RatingsForm(form).attach()));
+        import(/* webpackChunkName: "star-rating-form" */'./star-rating-form.js')
+            .then((module) => ratingForms.forEach(form => new module.StarRatingForm(form).attach()));
     }
 
     // Book page navbar initialization:
