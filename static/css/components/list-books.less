@@ -112,13 +112,15 @@
       width: 100%;
     }
 
-    .cta-btn--w-icon {
-      display: none;
-    }
-
     .cta-btn {
       border-radius: 5px;
       font-size: unset;
+    }
+
+    // Hide secondary eg listen button
+    // stylelint-disable-next-line selector-max-specificity
+    .cta-btn:nth-child(2) {
+      display: none;
     }
   }
 
