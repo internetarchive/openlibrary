@@ -1,5 +1,5 @@
-Integration tests
-=================
+Integration tests and quality
+============================
 
 Browser-based integration tests via splinter
 
@@ -34,4 +34,24 @@ For now, need to manually add an Edition to a new List just once.
 ````
 $ cd tests/integration
 $ pytest
+````
+
+## Check your quality (with pre-commit)
+
+Pre-commit is used to inspect the snapshot that is about to be committed, to see if you missed anything, or to review what you need to inspect in the code. You can see the actions descriptions in the **pre-commit-config.yml** file.
+
+Install the [pre-commit](https://pre-commit.com/index.html)
+
+````
+$ pip install pre-commit
+ or
+$ brew install pre-commit (Homebrew)
+
+$ pre-commit install
+````
+
+To run the pre-commit
+
+````
+$ pre-commit run --files pre-commit-config.yml
 ````
