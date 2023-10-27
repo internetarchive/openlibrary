@@ -286,7 +286,7 @@ class WorkSearchScheme(SearchScheme):
             # field. I.e. results with more editions get boosted, upto a
             # max of 100, after which we don't see it as good signal of
             # quality.
-            bf='min(100,edition_count)',
+            bf='min(100,edition_count) min(100,readinglog_count)',
             # v: the query to process with the edismax query parser. Note
             # we are using a solr variable here; this reads the url parameter
             # arbitrarily called workQuery.
