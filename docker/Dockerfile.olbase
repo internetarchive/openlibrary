@@ -63,6 +63,9 @@ RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary && chown openlibrary:open
  && mkdir -p /solr-updater-data && chown openlibrary:openlibrary /solr-updater-data
 WORKDIR /openlibrary
 
+# Install this as root since it runs as root
+RUN python -m pip install --upgrade pip wheel yacron==0.19.0
+
 USER openlibrary
 COPY --chown=openlibrary:openlibrary requirements*.txt ./
 RUN python -m pip install --upgrade pip wheel \
