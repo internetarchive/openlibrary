@@ -25,6 +25,7 @@ import '../../../../static/css/js-all.less';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
 import { confirmDialog, initDialogs } from './dialog';
+import { initializeSwaggerUI } from './swagger-ui';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -47,6 +48,8 @@ window.uggettext = ugettext;
 window.Browser = Browser;
 window.Subject = Subject;
 window.Template = Template;
+
+window.onload = initializeSwaggerUI;
 
 // Extend existing prototypes
 String.prototype.join = join;
