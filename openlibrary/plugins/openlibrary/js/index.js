@@ -547,4 +547,9 @@ jQuery(function () {
             .then(module => module.initBreadcrumbSelect(crumbs));
     }
 
+    const thirdPartyLoginsIframe = document.getElementById('ia-third-party-logins');
+    if (thirdPartyLoginsIframe) {
+        import(/* webpackChunkName: "ia_thirdparty_logins" */ './ia_thirdparty_logins')
+            .then((module) => module.initMessageEventListener(thirdPartyLoginsIframe));
+    }
 });
