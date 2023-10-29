@@ -1,4 +1,4 @@
-$def with (list_key, title=None, sort='new', key='', limit=20, has_fulltext_only=True, url=None)
+$def with (list_key, title=None, sort='new', key='', limit=20, has_fulltext_only=True, url=None, layout='carousel')
 
 $# Takes following parameters
 $# * list_key (str) -- A list key e.g. /people/mekBot/lists/OL104041L
@@ -8,5 +8,6 @@ $# * key (str) -- unique name of the carousel in analytics
 $# * limit (int) -- initial number of books to pull
 $# * has_fulltext_only (bool) -- only include readable titles
 $# * url (str) -- whether to make title a link to url
+$# * layout (str) -- layout type, default 'carousel', currently also supports 'grid'
 
-$:macros.QueryCarousel(query=list_key, title=title, sort=sort, key=key, limit=limit, has_fulltext_only=has_fulltext_only, url=url)
+$:macros.QueryCarousel(query=list_key, title=title, sort=sort, key=key, limit=limit, has_fulltext_only=has_fulltext_only, url=url, layout=layout)

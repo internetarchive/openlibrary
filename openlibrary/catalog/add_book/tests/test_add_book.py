@@ -2,6 +2,7 @@ import os
 import pytest
 
 from copy import deepcopy
+from datetime import datetime
 from infogami.infobase.client import Nothing
 
 from infogami.infobase.core import Text
@@ -18,6 +19,7 @@ from openlibrary.catalog.add_book import (
     isbns_from_record,
     load,
     load_data,
+    normalize_import_record,
     should_overwrite_promise_item,
     split_subtitle,
     RequiredField,
@@ -1451,3 +1453,25 @@ class TestLoadDataWithARev1PromiseItem:
             'ia:newlyscannedpromiseitem',
         ]
         assert edition.works[0]['key'] == '/works/OL1W'
+
+
+class TestNormalizeImportRecord:
+    @pytest.mark.parametrize(
+        'year, expected',
+        [
+            ("2000-11-11", True),
+            (str(datetime.now().year), True),
+            (str(datetime.now().year + 1), False),
+            ("9999-01-01", False),
+        ],
+    )
+    def test_future_publication_dates_are_deleted(self, year, expected):
+        """It should be impossible to import books publish_date in a future year."""
+        rec = {
+            'title': 'test book',
+            'source_records': ['ia:blob'],
+            'publish_date': year,
+        }
+        normalize_import_record(rec=rec)
+        result = 'publish_date' in rec
+        assert result == expected

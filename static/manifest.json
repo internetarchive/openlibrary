@@ -1,7 +1,7 @@
 {
     "short_name": "Open Library",
-    "name": "Open Library: One webpage for every book ever published!",
-    "description": "An Open, Editable library catalog, building towards a web page for every book ever published.",
+    "name": "Open Library: A page for every book published",
+    "description": "An open, editable library catalog for every book published.",
     "icons": [
         {
             "src": "/static/images/openlibrary-192x192.png",
@@ -41,35 +41,43 @@
     "shortcuts": [
       {
         "name": "My Books",
-        "url": "/account/books"
-      }
+        "url": "/account/books",
+        "description": "Your loans, lists, and reading log"
+      },
       {
         "name": "Subjects",
-        "url": "/subjects"
+        "url": "/subjects",
+        "description": "Browse books by subject"
       },
       {
         "name": "Trending",
-        "url": "/trending"
+        "url": "/trending",
+        "description": "Browse books that are trending"
       },
       {
         "name": "Explore",
-        "url": "/explore"
-      },
-      {
-        "name": "Lists",
-        "url": "/lists"
+        "url": "/explore",
+        "description": "Browse books using the Library Explorer"
       },
       {
         "name": "Collections",
-        "url": "/lists"
+        "url": "/collections",
+        "description": "Browse collections curated by our community librarians"
+      },
+      {
+        "name": "Lists",
+        "url": "/lists",
+        "description": "Browse book lists created by members of the community"
       },
       {
         "name": "Random Book",
-        "url": "/random"
+        "url": "/random",
+        "description": "Teleport to a random, readable book"
       },
       {
         "name": "Advanced Search",
-        "url": "/advancedsearch"
+        "url": "/advancedsearch",
+        "description": "Search for books using specific fields like publication date"
       }
   ]
 }

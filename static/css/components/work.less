@@ -37,6 +37,7 @@
 // Center (editionAbout)
 div.editionAbout {
   margin-bottom: 20px;
+  min-width: 1%;
 
   p {
     margin: 1em 0;
@@ -130,16 +131,6 @@ textarea[name="work--description"] + h3 + .wmd-preview,
   content: attr(data-before);
 }
 
-.restricted-view{
-  display: block;
-  z-index: @z-index-level-1;
-}
-
-.restricted-height{
-  overflow: hidden;
-  height: 57px;
-}
-
 .section, .section h6 {
   font-size: .8em;
 }
@@ -168,7 +159,6 @@ h3.edition-header {
 }
 
 a.section-anchor {
-  scroll-margin-top: 70px;
   height: 20px;
   display: block;
 
@@ -330,16 +320,8 @@ div.editionTools {
   color: @link-blue;
 }
 @media only screen and (max-width: @width-breakpoint-desktop){
-  div.editionAbout {
-    /* stylelint-disable selector-max-specificity */
-    .book-description.read-more,
-    .book-description.read-less {
-      text-align: center;
-    }
-    .book-description {
-      padding-top: 1em;
-    }
-    /* stylelint-enable selector-max-specificity */
+  div.editionAbout .book-description {
+    padding-top: 1em;
   }
 }
 

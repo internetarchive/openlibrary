@@ -367,7 +367,7 @@ class SolrProcessor:
     @staticmethod
     def normalize_authors(authors) -> list[dict]:
         """
-        Need to normalize to a predictable format because of inconsitencies in data
+        Need to normalize to a predictable format because of inconsistencies in data
 
         >>> SolrProcessor.normalize_authors([
         ...     {'type': {'key': '/type/author_role'}, 'author': '/authors/OL1A'}

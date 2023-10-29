@@ -38,6 +38,15 @@ $def with (page)
           -webkit-line-clamp: unset !important;
         }
 
+        /* Don't show read-more sections collapsed */
+        .read-more__content {
+          max-height: unset !important;
+        }
+        /* Don't show read-more toggle buttons */
+        .read-more__toggle {
+          display: none !important;
+        }
+
         /* @width-breakpoint-tablet media query: */
         @media only screen and (min-width: 768px) {
           /* Sticky navbar to top of screen if compact title cannot be stickied */

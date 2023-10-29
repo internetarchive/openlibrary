@@ -756,7 +756,7 @@ class User(Thing):
         # New users are now public by default for new patrons
         # As of 2020-05, OpenLibraryAccount.create will
         # explicitly set public_readlog: 'yes'.
-        # Legacy acconts w/ no public_readlog key
+        # Legacy accounts w/ no public_readlog key
         # will continue to default to 'no'
     }
 

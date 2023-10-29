@@ -12,7 +12,7 @@ This welcome section is intended for new contributors.
     * [How we use git](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet)
     * [Finding good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Needs%3A+Help%22+label%3A%22Good+First+Issue%22)
     * [Testing your code](https://github.com/internetarchive/openlibrary/wiki/Testing)
-    * [Enabling debugging](https://github.com/internetarchive/openlibrary/wiki/Debugging)
+    * [Enabling debugging & profiling](https://github.com/internetarchive/openlibrary/wiki/Debugging-and-Performance-Profiling)
 5. **Learning the Code:**
     * [Technical Tour & System Overview (1h)](https://archive.org/details/openlibrary-tour-2020/technical_overview.mp4)
     * [Walkthrough videos](https://archive.org/details/openlibrary-tour-2020)
@@ -25,7 +25,7 @@ This welcome section is intended for new contributors.
 7. **Questions?**
     * [Wiki](https://github.com/internetarchive/openlibrary/wiki)
     * [Request a slack invite](https://openlibrary.org/volunteer)
-    * [Weekly Community calls](https://docs.google.com/document/d/1LEbzsLZ1F9_YIQOoZzO7GoZnG1z-rudhZ9HNtsameTc/edit)
+    * [Weekly Community calls](https://github.com/internetarchive/openlibrary/wiki/Community-Call)
     * [Open Library FAQs](https://openlibrary.org/help/faq)
 ## Quick Tour
 

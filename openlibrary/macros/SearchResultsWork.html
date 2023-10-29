@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, reading_log=None, show_librarian_extras=False, include_dropper=False)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, reading_log=None, show_librarian_extras=False, include_dropper=False, blur=False)
 
 $code:
   max_rendered_authors = 9
@@ -40,7 +40,8 @@ $code:
     full_work_title = doc.get('title', '') + (': ' + doc.subtitle if doc.get('subtitle') else '')
 
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book" $:attrs>
-  <span class="bookcover">
+  $ blur_cover = "bookcover--blur" if blur else ""
+  <span class="bookcover $blur_cover">
     $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
     <a href="$work_edition_url"><img
             itemprop="image"
@@ -94,7 +95,8 @@ $code:
           $if doc.get('ia'):
             &mdash; $_('%s previewable', len(doc.get('ia')))
             $if len(doc.get('ia')) > 1:
-              <span class="preview-covers">
+              $ blur_preview = "preview-covers--blur" if blur else ""
+              <span class="preview-covers $blur_preview">
                 $for x, i in enumerate(doc.get('ia')[1:10]):
                   <a href="$(book_url)?edition=ia:$(urlquote(i))">
                     <img width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="Cover of edition $i">

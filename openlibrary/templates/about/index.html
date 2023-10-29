@@ -1,50 +1,44 @@
-$def with (team_members)
-
 $var title: $_("The Open Library Team")
 $ _x = ctx.setdefault('cssfile', 'team')
-
-$ personal_url_icon = '../../../static/images/globe-solid.svg'
-$ book_url_icon = '../../../static/images/icons/icon_book-lg.png'
-$ default_profile_image = '../../../static/images/openlibrary-180x180.png'
 
 <div class="teamPage__top">
 	<h1 class="teamPageroledescription__role">The Open Library Team</h1>
 	<p class="teamPageTagLine">
-		Open Library is made possible because of a dedicated team of staff and over
-		100 volunteers from around the globe.
+		Open Library is made possible because of a dedicated team of staff and
+		over 100 volunteers from around the globe.
 		<a href="https://openlibrary.org/volunteer"> Want to join us?</a>
 	</p>
+	<div class="teamPage__selectElements">
+		<div class="selectElement">
+			<label for="roles">Role:</label>
+			<select name="roles" id="role">
+				<option value="All" selected>All</option>
+				<option value="staff">Staff</option>
+				<option value="fellow">Fellows</option>
+				<option value="volunteer">Volunteers</option>
+			</select>
+	    </div>
+		<div>
+			<label for="departments">Department:</label>
+			<select name="departments" id="department">
+				<option value="All" selected>All</option>
+				<option value="communication">Communications</option>
+				<option value="design">Design</option>
+				<option value="engineer">Engineering</option>
+				<option value="librarian">Librarianship</option>
+			</select>
+		</div>
+	</div>
 </div>
 
-<div class="cards_container">
-	$for member in team_members:
-		<div class="teamCard__container">
-			<div class="teamCard">
-				<div class="teamCard__photoContainer">
-					<img
-						class="teamCard__photo"
-						src="$(member.get('photo_path', '') or default_profile_image)"
-						alt="" />
-				</div>
-				<div class="teamCard__description">
-					<a href="$member.get('ol_user_url', '')"><h2 class="description__name">$member.get('name', '')</h2></a>
-					<h4 class="description__status">$member.get('status', '')</h4>
-					<h3 class="description__role">$member.get('role', '')</h3>
-					<p class="description__bio">$member.get('bio', '')</p>
-					<div class="description__links">
-					$if member.get('personal_url', ''):
-						<a href="$member.get('personal_url')"><img src="$personal_url_icon" alt="" class="links__site"></a>
-					$if member.get('favorite_book_url', ''):
-						<a href="$member.get('favorite_book_url')"><img src="$book_url_icon" alt="" class="links__book"></a>
-					</div>
-				</div>
-			</div>
-		</div>
-</div>
+<div class="teamCards_container"></div>
 
 <div class="teamPage__bottom">
 	<p class="teamPageTagLine">
-    If you volunteer with Open Library and would like to be listed as part of the team, then complete the
-    <a href="https://forms.gle/zPyuXGf4Bg6RzbDA7">Open Library team information form</a>.
+		If you volunteer with Open Library and would like to be listed as part
+		of the team, then complete the
+		<a href="https://forms.gle/zPyuXGf4Bg6RzbDA7"
+			>Open Library team information form</a
+		>.
 	</p>
 </div>

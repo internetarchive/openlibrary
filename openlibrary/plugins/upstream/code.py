@@ -70,13 +70,13 @@ class edit(core.edit):
     def GET(self, key):
         page = web.ctx.site.get(key)
         editable_keys_re = web.re_compile(
-            r"/(authors|books|works|people/[^/]+/lists)/OL.*"
+            r"/(authors|books|works|(people/[^/]+/)?lists)/OL.*"
         )
         if editable_keys_re.match(key):
             if page is None:
-                raise web.seeother(key)
+                return web.seeother(key)
             else:
-                raise web.seeother(page.url(suffix="/edit"))
+                return addbook.safe_seeother(page.url(suffix="/edit"))
         else:
             return core.edit.GET(self, key)
 
@@ -184,7 +184,7 @@ def static_url(path):
 
 
 class DynamicDocument:
-    """Dynamic document is created by concatinating various rawtext documents in the DB.
+    """Dynamic document is created by concatenating various rawtext documents in the DB.
     Used to generate combined js/css using multiple js/css files in the system.
     """
 

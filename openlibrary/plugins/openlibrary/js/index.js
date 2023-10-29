@@ -195,19 +195,26 @@ jQuery(function () {
             });
     }
 
+    // conditionally load for type changing input
+    const typeChanger = document.getElementById('type.key')
+    if (typeChanger) {
+        import(/* webpackChunkName: "type-changer" */ './type_changer.js')
+            .then(module => module.initTypeChanger(typeChanger));
+    }
+
     // conditionally load real time signup functionality based on class in the page
     if (document.getElementsByClassName('olform create validate').length) {
         import(/* webpackChunkName: "realtime-account-validation" */'./realtime_account_validation.js')
             .then(module => module.initRealTimeValidation());
     }
-    // conditionally load readmore button based on class in the page
-    const readMoreButtons = document.getElementsByClassName('read-more-button');
+    // conditionally load clamping components
+    const readMoreComponents = document.getElementsByClassName('read-more');
     const clampers = document.querySelectorAll('.clamp');
-    if (readMoreButtons.length || clampers.length) {
+    if (readMoreComponents.length || clampers.length) {
         import(/* webpackChunkName: "readmore" */ './readmore.js')
             .then(module => {
-                if (readMoreButtons.length) {
-                    module.initReadMoreButton();
+                if (readMoreComponents.length) {
+                    module.ReadMoreComponent.init();
                 }
                 if (clampers.length) {
                     module.initClampers(clampers);
@@ -244,9 +251,11 @@ jQuery(function () {
             .then((module) => module.init());
     }
 
-    if (window.READINGLOG_STATS_CONFIG) {
+    const readingLogCharts = document.querySelector('.readinglog-charts')
+    if (readingLogCharts) {
+        const readingLogConfig = JSON.parse(readingLogCharts.dataset.config)
         import(/* webpackChunkName: "readinglog-stats" */ './readinglog_stats')
-            .then(module => module.init(window.READINGLOG_STATS_CONFIG));
+            .then(module => module.init(readingLogConfig));
     }
 
     const pageEl = $('#page-barcodescanner');
@@ -500,6 +509,17 @@ jQuery(function () {
             })
     }
 
+    // Add functionality to the team page for filtering members:
+    const teamCards = document.querySelector('.teamCards_container')
+    if (teamCards) {
+        import('./team')
+            .then(module => {
+                if (teamCards) {
+                    module.initTeamFilter();
+                }
+            })
+    }
+
     // Add new providers in edit edition view:
     const addProviderRowLink = document.querySelector('#add-new-provider-row')
     if (addProviderRowLink) {
@@ -520,4 +540,11 @@ jQuery(function () {
         import(/* webpackChunkName: "return-form" */ './return-form')
             .then(module => module.initReturnForms(returnForms))
     }
+
+    const crumbs = document.querySelectorAll('.crumb select');
+    if (crumbs.length) {
+        import(/* webpackChunkName: "breadcrumb-select" */ './breadcrumb_select')
+            .then(module => module.initBreadcrumbSelect(crumbs));
+    }
+
 });
