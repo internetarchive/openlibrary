@@ -10,7 +10,7 @@ def load_plugin_json(plugins_str):
 
 @public
 def display_plugins_data(data):
-    plugin_type = list(data.keys())[0]
+    plugin_type = next(iter(data.keys()))
     # Split the string into key-value pairs
     parameters = data[plugin_type].split(',')
 
@@ -43,7 +43,7 @@ def get_plugin_types():
 
 @public
 def process_plugins_data(data):
-    plugin_type = list(data.keys())[0]
+    plugin_type = next(iter(data.keys()))
     # Split the string into key-value pairs
     parameters = data[plugin_type].split(',')
 
