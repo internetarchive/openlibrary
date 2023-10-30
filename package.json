@@ -91,7 +91,7 @@
     "vue-multiselect": "2.1.6",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
-    "workbox-webpack-plugin": "6.1.5"
+    "workbox-webpack-plugin": "6.6.0"
   },
   "jest": {
     "roots": [
