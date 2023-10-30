@@ -30,6 +30,7 @@
   border-bottom: 1px solid @white;
 }
 
+// stylelint-disable selector-max-specificity
 #plugins_type {
   width: 90%;
   margin: 5px;
@@ -46,6 +47,7 @@
   padding: 5px;
   text-align: start;
 }
+// stylelint-enable selector-max-specificity
 
 .delete-plugin-btn {
   color: @red;
@@ -64,7 +66,7 @@
 }
 
 .invalid-tag-plugins-error {
-  border: 1px solid red;
+  border: 1px solid @red-three;
 }
 
 .subjects-plugins-section {

@@ -26,9 +26,12 @@
       border: 1px solid @mid-grey;
       cursor: pointer;
       transition: background-color .2s;
+      // stylelint-disable max-nesting-depth
+      // stylelint-disable selector-max-specificity
       &:hover {
         background-color: @grey-e7e7e7;
       }
+      // stylelint-enable max-nesting-depth
     }
 
     a.editTagButton {
@@ -36,13 +39,14 @@
       // Need to duplicate to override base style specificity
       color: @grey;
     }
+    // stylelint-enable selector-max-specificity
   }
 }
 
+// stylelint-disable no-descending-specificity
 .subjectTagEdit {
   padding: 3px 1px 0 20px;
   float: right;
-
   .editTagButton {
     border-radius: 5px;
     background-color: @white;
@@ -64,4 +68,6 @@
     color: @grey;
   }
 }
+// stylelint-enable no-descending-specificity
+
 @import "form.olform.less";
