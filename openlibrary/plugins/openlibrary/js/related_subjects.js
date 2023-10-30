@@ -1,7 +1,3 @@
-/* global render_subjects_carousel */
-
-import { render } from 'less';
-
 export function initRelatedSubjectsCarousel() {
     const subjectCheckboxes = document.querySelectorAll('.subject-filter');
     subjectCheckboxes.forEach((checkbox) => {
