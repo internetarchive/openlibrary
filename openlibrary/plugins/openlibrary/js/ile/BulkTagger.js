@@ -14,23 +14,11 @@ const subjectTypeClasses = {
     time: 'subject-yellow'
 };
 
-// XXX : Switch to object
-function parseSubjectType(subjectType) {
-    switch (subjectType) {
-    case 'subject':
-        return 'subjects';
-    case 'person':
-        return 'subject_people';
-    case 'place':
-        return 'subject_places';
-    case 'time':
-        return 'subject_times';
-    }
-}
-
-// XXX : Why is this needed?
-function addSubjectTypeClass(element, subjectType) {
-    element.classList.add(subjectTypeClasses[subjectType]);
+const subjectTypeMapping = {
+    subject: 'subjects',
+    person: 'subject_people',
+    place: 'subject_places',
+    time: 'subject_times'
 }
 
 /**
@@ -167,8 +155,7 @@ export class BulkTagger {
             const optionElement = document.createElement('div');
             optionElement.className = 'subject-type-option';
             optionElement.textContent = option;
-            addSubjectTypeClass(optionElement, option)
-
+            optionElement.classList.add(subjectTypeClasses[option])
             optionElement.addEventListener('click', () => this.handleSelectSubject(subjectName, option));
 
             select.appendChild(optionElement);
@@ -201,7 +188,7 @@ export class BulkTagger {
         const tag = document.createElement('div');
         tag.innerText = subjectType;
         tag.className = 'search-subject-type';
-        addSubjectTypeClass(tag, subjectType)
+        tag.classList.add(subjectTypeClasses[subjectType]);
         subjectInfoDiv.appendChild(tag);
 
         const workCountDiv = document.createElement('div');
@@ -216,35 +203,32 @@ export class BulkTagger {
         div.appendChild(subjectInfoDiv);
         div.addEventListener('click', () => this.handleSelectSubject(subjectName, subjectType));
 
-        // XXX : Just attach the div to the DOM here (instead of returning)
-        return div;
+        this.resultsContainer.appendChild(div);
     }
 
     /**
-     * Adds subject to selected subject container and updates batch update form.
+     * Adds subject to selected subject container and updates the batch update form.
      *
      * @param {String} name
      * @param {String} rawSubjectType
      */
     handleSelectSubject(name, rawSubjectType) {
-        const subjectType = parseSubjectType(rawSubjectType);
+        const subjectType = subjectTypeMapping[rawSubjectType]
 
         const existingSubjects = JSON.parse(this.hiddenSubjectInput.value === '' ? '{}' : this.hiddenSubjectInput.value);
         existingSubjects[subjectType] = existingSubjects[subjectType] || [];
 
-        // XXX : Why are we checking this?
+        // The same subject can be added twice by:
+        // 1. Adding an existing subject
+        // 2. Creating a new subject using an existing subject's name
         const isTagged = existingSubjects[subjectType].includes(name);
-
-        if (!isTagged) {
+        if (!isTagged) {  // Check for duplicate subjects
             existingSubjects[subjectType].push(name);
 
             const newTag = document.createElement('div');
             newTag.innerText = name;
-            // XXX : What function does this serve?  Doesn't seem to be accessed anywhere...
-            newTag.dataset.name = `${rawSubjectType}-${name}`;
             newTag.className = 'new-selected-subject-tag';
-            addSubjectTypeClass(newTag, rawSubjectType)
-
+            newTag.classList.add(subjectTypeClasses[rawSubjectType]);
             const removeButton = document.createElement('span');
             removeButton.innerText = 'X';
             removeButton.className = 'remove-selected-subject';
