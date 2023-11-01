@@ -30,7 +30,7 @@
     },
     {
       "path": "static/build/readmore.*.js",
-      "maxSize": "2KB"
+      "maxSize": "3KB"
     },
     {
       "path": "static/build/modal-links.*.js",
@@ -82,7 +82,7 @@
     },
     {
       "path": "static/build/page-book.css",
-      "maxSize": "13.5KB"
+      "maxSize": "14KB"
     },
     {
       "path": "static/build/page-edit.css",

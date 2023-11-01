@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
-          node-version: '16' # # Should match what's in our Dockerfile
+          node-version: '20' # Should match what's in our Dockerfile
       - uses: actions/cache@v3
         id: npm-cache
         with:

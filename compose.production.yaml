@@ -127,6 +127,8 @@ services:
     user: root
     command: docker/ol-cron-start.sh
     restart: unless-stopped
+    env_file:
+      - ../olsystem/etc/cron-jobs.env
     volumes:
       - ../olsystem/etc/cron.d/openlibrary.ol_home0:/etc/cron.d/openlibrary.ol_home0:ro
       - ../olsystem:/olsystem

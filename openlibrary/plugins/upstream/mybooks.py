@@ -155,8 +155,8 @@ class readinglog_stats(delegate.page):
             for a in web.ctx.site.get_many(list(author_keys))
         ]
         return render['account/readinglog_stats'](
-            json.dumps(works_json),
-            json.dumps(authors_json),
+            works_json,
+            authors_json,
             len(works_json),
             user.key,
             user.displayname,

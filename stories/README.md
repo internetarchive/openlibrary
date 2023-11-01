@@ -2,7 +2,10 @@
 
 We are documenting our components [here](internetarchive.github.io/openlibrary).
 
-## Deployment Process
+## Running Storybook locally
 
-We use GitHub Actions to automatically build and deploy new stories.  The action is triggered when a branch containing changes to the `/stories` directory is merged into `master`.
-This process can also be manually triggered via the Actions [page](https://github.com/internetarchive/openlibrary/actions).
+In the project's root directory, run `npm run storybook` to view stories on your machine.  You can view the stories at http://localhost:6006.
+
+## Building Storybook for deployment
+
+Running `npm run build-storybook` in the project's root directory will result in a deployable instance being built in the `storybook-static` directory.

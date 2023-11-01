@@ -15,6 +15,7 @@ from infogami.utils.view import safeint, add_flash_message
 from infogami.infobase.client import ClientException
 
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.core.helpers import uniq
 from openlibrary.i18n import gettext as _
 from openlibrary import accounts
 import logging
@@ -193,11 +194,17 @@ class addbook(delegate.page):
         if not self.has_permission():
             return safe_seeother(f"/account/login?redirect={self.path}")
 
-        i = web.input(work=None)
+        i = web.input(work=None, author=None)
         work = i.work and web.ctx.site.get(i.work)
+        author = i.author and web.ctx.site.get(i.author)
+
+        # pre-filling existing author(s) if adding new edition from existing work page
         authors = (work and work.authors) or []
         if work and authors:
             authors = [a.author for a in authors]
+        # pre-filling existing author if adding new work from author page
+        if author and author not in authors:
+            authors.append(author)
 
         return render_template(
             'books/add', work=work, authors=authors, recaptcha=get_recaptcha()
@@ -1009,9 +1016,12 @@ class author_edit(delegate.page):
         if 'author' in i:
             author = trim_doc(i.author)
             alternate_names = author.get('alternate_names', None) or ''
-            author.alternate_names = [
-                name.strip() for name in alternate_names.split('\n') if name.strip()
-            ]
+            author.alternate_names = uniq(
+                [author.name]
+                + [
+                    name.strip() for name in alternate_names.split('\n') if name.strip()
+                ],
+            )[1:]
             author.links = author.get('links') or []
             return author
 
