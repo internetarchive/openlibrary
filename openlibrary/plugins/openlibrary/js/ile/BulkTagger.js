@@ -132,12 +132,11 @@ export class BulkTagger {
     }
 
     /**
-     * Creates, hydrates, and returns a new "create subject" affordance.
+     * Creates, hydrates, and attaches a new "create subject" affordance.
      *
      * @param {String} subjectName
-     * @returns {HTMLElement}
      */
-    newCreateSubjectOption(subjectName) {
+    createNewSubjectOption(subjectName) {
         const div = document.createElement('div');
         div.className = 'search-subject-row-name';
 
@@ -161,19 +160,17 @@ export class BulkTagger {
         });
         div.appendChild(select);
 
-        // XXX : Just attach the div to the DOM here (instead of returning)
-        return div
+        this.createSubjectContainer.appendChild(div)
     }
 
     /**
-     * Creates, hydrates, and returns a new search result affordance.
+     * Creates, hydrates, and attaches a new search result affordance.
      *
      * @param {String} subjectName The subject's name.
      * @param {String} subjectType The subject's type.
      * @param {Number} workCount Number of works that are tagged with this subject.
-     * @returns {HTMLElement} A new subject search result affordance.
      */
-    newSubjectRowHtml(subjectName, subjectType, workCount) {
+    createSearchResult(subjectName, subjectType, workCount) {
         const div = document.createElement('div');
         div.className = 'search-subject-row';
 
@@ -248,7 +245,6 @@ export class BulkTagger {
      * @param {HTMLElement} tagElement
      */
     handleRemoveSubject(name, subjectType, tagElement) {
-        // XXX : DRY this repeated code:
         const existingSubjects = JSON.parse(this.hiddenSubjectInput.value === '' ? '{}' : this.hiddenSubjectInput.value);
         existingSubjects[subjectType] = existingSubjects[subjectType] || [];
 
