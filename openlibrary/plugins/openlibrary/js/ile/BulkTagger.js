@@ -101,8 +101,7 @@ export class BulkTagger {
      * Hides the Bulk Tagger.
      */
     hideTaggingMenu() {
-        // XXX : Use 'hidden' class to hide elements
-        this.bulkTagger.style.display = 'none';
+        this.bulkTagger.classList.add('hidden')
     }
 
     /**
