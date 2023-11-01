@@ -124,24 +124,24 @@ export class BulkTagger {
      * @param {String} searchTerm
      */
     fetchSubjects(searchTerm) {
+        const trimmedSearchTerm = searchTerm.trim()
         this.resultsContainer.innerHTML = '';
-        fetch(`/search/subjects.json?q=${searchTerm}&limit=${maxDisplayResults}`)
-            .then((response) => response.json())
-            .then((data) => {
-                if (data['docs'].length !== 0) {
-                    data['docs']
-                        .forEach(result => {
-                            const isSelected = this.hiddenSubjectInput.value.includes(result.name);
-                            const div = this.newSubjectRowHtml(result.name, result['subject_type'], result['work_count'], isSelected);
-                            this.resultsContainer.appendChild(div);
-                        });
-                }
-                this.createSubjectContainer.innerHTML = '';
-                if (searchTerm !== '') { // create new subject option
-                    const div = this.newCreateSubjectOption(searchTerm);
-                    this.createSubjectContainer.appendChild(div);
-                }
-            });
+        if (trimmedSearchTerm !== '') {
+            fetch(`/search/subjects.json?q=${searchTerm}&limit=${maxDisplayResults}`)
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data['docs'].length !== 0) {
+                        data['docs']
+                            .forEach(result => {
+                                const isSelected = this.hiddenSubjectInput.value.includes(result.name);
+                                this.createSearchResult(result.name, result['subject_type'], result['work_count'], isSelected);
+                            });
+                    }
+                    this.createSubjectContainer.innerHTML = '';
+                    // create new subject option
+                    this.createNewSubjectOption(trimmedSearchTerm);
+                });
+        }
     }
 
     /**
