@@ -278,6 +278,11 @@ class WorkSearchScheme(SearchScheme):
         # query, but much more flexible. We wouldn't be able to do our
         # complicated parent/child queries with defType!
 
+        solr_boost = 'min(100,edition_count)'
+        if custom_solr_boost := web.input().get('_solr_boost'):
+            assert '"' not in solr_boost, "Invalid Solr Boost"
+            assert '}' not in solr_boost, "Invalid Solr Boost"
+            solr_boost = custom_solr_boost
         full_work_query = '({{!edismax q.op="AND" qf="{qf}" boost="{boost}" v={v}}})'.format(
             # qf: the fields to query un-prefixed parts of the query.
             # e.g. 'harry potter' becomes
@@ -287,7 +292,7 @@ class WorkSearchScheme(SearchScheme):
             # field. I.e. results with more editions get boosted, upto a
             # max of 100, after which we don't see it as good signal of
             # quality.
-            boost='min(100,edition_count)',
+            boost=solr_boost,
             # v: the query to process with the edismax query parser. Note
             # we are using a solr variable here; this reads the url parameter
             # arbitrarily called workQuery.
