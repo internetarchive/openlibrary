@@ -116,6 +116,7 @@ $code:
                   background: rgba(0, 124, 255, 0.2);
                   border-radius: 4px;
                   color: black;
+                  margin-bottom: 5px;
                 }
                 .srw__chapter {
                   border-radius: inherit;
@@ -131,31 +132,39 @@ $code:
                 .srw__chapter em {
                   font-weight: bold;
                 }
+                .srw__chapters .read-more__toggle {
+                  padding: 5px 10px;
+                  background: linear-gradient(rgba(255,255,255,0) 0,#f9f9f97d 10px);
+                }
               </style>
-              <div class="srw__chapters">
-                $for chapter in matching_chapters:
-                  $if not chapter.strip():
-                    $continue
-                  $ chapter_parts = chapter.split('|')
-                  $if len(chapter_parts) < 3:
-                    $ chapter_parts = ['', chapter, '']
-                  $ pagenum = None
-                  $if chapter_parts[2].strip():
-                    $ pagenum = chapter_parts[2].strip()
-                  $ tag = 'a' if pagenum else 'div'
-                  <$tag class="srw__chapter" $:cond(pagenum, 'href="https://archive.org/details/%s?admin=1#page/%s"' % (selected_ed.get('ia')[0], pagenum))>
-                    <span>
-                      $if chapter_parts[0].strip() and not chapter_parts[0].strip().endswith('.'):
-                        $ chapter_parts[0] = chapter_parts[0].strip() + '. '
-                      $# This isn't html injection, because solr returns everything
-                      $# already html escaped except for the <em> of the highlight
-                      $:chapter_parts[0]
-                      $:chapter_parts[1]
-                    </span>
-                    $if pagenum:
-                      <div style="flex:1; border-bottom: 1px dotted;"></div>
-                      Page $pagenum
-                  </$tag>
+              <div class="srw__chapters read-more">
+                <div class="read-more__content" style="max-height:80px">
+                  $for chapter in matching_chapters:
+                    $if not chapter.strip():
+                      $continue
+                    $ chapter_parts = chapter.split('|')
+                    $if len(chapter_parts) < 3:
+                      $ chapter_parts = ['', chapter, '']
+                    $ pagenum = None
+                    $if chapter_parts[2].strip():
+                      $ pagenum = chapter_parts[2].strip()
+                    $ is_link = pagenum and pagenum.isdigit() and selected_ed.get('ia')
+                    $ tag = 'a' if is_link else 'div'
+                    <$tag class="srw__chapter" $:('href="https://archive.org/details/%s?admin=1#page/%s"' % (selected_ed.get('ia')[0], pagenum) if is_link else '')>
+                      <span>
+                        $if chapter_parts[0].strip() and not chapter_parts[0].strip().endswith('.'):
+                          $ chapter_parts[0] = chapter_parts[0].strip() + '. '
+                        $# This isn't html injection, because solr returns everything
+                        $# already html escaped except for the <em> of the highlight
+                        $:chapter_parts[0]
+                        $:chapter_parts[1]
+                      </span>
+                      $if pagenum:
+                        <div style="flex:1; border-bottom: 1px dotted;"></div>
+                        Page $pagenum
+                    </$tag>
+                  </div>
+                  $:macros.ReadMore(_('Show more'), _('Show less'))
               </div>
           $if len(doc.get('ia')) > 1:
             $ blur_preview = "preview-covers--blur" if blur else ""

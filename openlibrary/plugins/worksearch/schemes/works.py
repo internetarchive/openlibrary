@@ -279,16 +279,16 @@ class WorkSearchScheme(SearchScheme):
         # query, but much more flexible. We wouldn't be able to do our
         # complicated parent/child queries with defType!
 
-        full_work_query = '({{!edismax q.op="AND" qf="{qf}" bf="{bf}" v={v}}})'.format(
+        full_work_query = '({{!edismax q.op="AND" qf="{qf}" boost="{boost}" v={v}}})'.format(
             # qf: the fields to query un-prefixed parts of the query.
             # e.g. 'harry potter' becomes
             # 'text:(harry potter) OR alternative_title:(harry potter)^20 OR ...'
-            qf='text alternative_title^20 author_name^20 chapter^35',
+            qf='text alternative_title^20 author_name^20 chapter^25',
             # bf (boost factor): boost results based on the value of this
             # field. I.e. results with more editions get boosted, upto a
             # max of 100, after which we don't see it as good signal of
             # quality.
-            bf='min(100,edition_count)',
+            boost='min(100,edition_count)',
             # v: the query to process with the edismax query parser. Note
             # we are using a solr variable here; this reads the url parameter
             # arbitrarily called workQuery.
@@ -495,7 +495,7 @@ class WorkSearchScheme(SearchScheme):
             # TODO: Need to limit to matching edition key THAT'S IMPOSSIBLE
             # Need to make a separate request with the edition keys or'd together
             new_params.append(('hl.q', str(work_q_tree)))
-            new_params.append(('hl.snippets', '3'))
+            new_params.append(('hl.snippets', '10'))
 
         return new_params
 
