@@ -404,7 +404,7 @@ class account_login(delegate.page):
         web.setcookie(
             config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
         )
-        ol_account = OpenLibraryAccount.get(email=audit.get('ol_email'))
+        ol_account = OpenLibraryAccount.get(email=audit['ol_email'])
 
         # Don't overwrite the cookie, which will contain banner display preferences
         if not web.cookies().get('se', False):
