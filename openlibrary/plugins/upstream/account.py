@@ -18,6 +18,7 @@ from infogami.utils.view import (
 )
 from infogami.infobase.client import ClientException
 import infogami.core.code as core
+from infogami.core.code import logout as infogami_logout
 
 from openlibrary import accounts
 from openlibrary.i18n import gettext as _
@@ -38,6 +39,7 @@ from openlibrary.accounts import (
     OpenLibraryAccount,
     InternetArchiveAccount,
     valid_email,
+    clear_cookies
 )
 from openlibrary.plugins.upstream import borrow, forms, utils
 from openlibrary.utils.dateutil import elapsed_time
@@ -477,6 +479,18 @@ class account_login(delegate.page):
         resp = s3_loan_api(s3_keys, action='user_borrow_history', limit=amount).json()
         return len(resp) == amount
 
+
+class account_logout(delegate.page):
+    """Account logout.
+
+    This registers a handler to the /account/logout endpoint in infogami so that additional logic, such as clearing admin cookies,
+    can be handled prior to the calling of infogami's standard logout procedure
+
+    """
+    path = "/account/login"
+    def POST(self):
+        clear_cookies()
+        infogami_logout().POST()
 
 class account_verify(delegate.page):
     """Verify user account."""
