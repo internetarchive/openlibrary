@@ -809,9 +809,6 @@ class User(Thing):
     def is_printdisabled(self):
         return web.cookies().get('pd')
 
-    def is_screener_eligible(self):
-        return web.cookies().get('se')
-
     def is_admin(self):
         return self.is_usergroup_member('/usergroup/admin')
 
