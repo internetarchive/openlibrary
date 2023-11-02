@@ -127,6 +127,10 @@ def create_link_doc(key, username, email):
         "expires_on": expires.isoformat(),
     }
 
+def clear_cookies():
+    web.setcookies('pd', "", expires=-1)
+    web.setcookies('sfw', "", expires=-1)
+
 
 class Link(web.storage):
     def get_expiration_time(self):
