@@ -1,8 +1,7 @@
 $def with(page, edition_key=None, async_load=False)
 
-$if not edition_key:
-  $ edition = page if page.key.startswith("/books/") else None
-  $ edition_key = edition and edition.key
+$ edition = page if page.key.startswith("/books/") else None
+$ edition_key = edition and edition.key
 
 $ work = page if page.key.startswith('/works/') else page.works[0] if edition and page.works else None
 $ work_key = work and work.key
