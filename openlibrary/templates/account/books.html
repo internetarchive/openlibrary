@@ -86,15 +86,6 @@ $if owners_page:
         </div>
       $ component_times['Yearly Goal Banner'] = time() - component_times['Yearly Goal Banner']
 
-      $# Start : Persona research banner
-      $if user:
-        $if user.is_screener_eligible():
-          $ banner_key = 'pr2308'
-          $ hide_banner = user.preferences().get('hidden-banner') == banner_key
-          $if not hide_banner:
-            $ announcement = _('Are you a teacher, student, or researcher? Please <a href="https://forms.gle/sR7V2hZFJbavhffy5" class="btn primary">help us improve</a>')
-            $:render_template('site/banner', announcement, banner_key)
-      $# End : Persona research banner
 
     $ component_times['Details header'] = time()
     <header>
