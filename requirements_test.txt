@@ -6,7 +6,7 @@
 debugpy>=1.6.4
 mypy==1.4.1
 pymemcache==4.0.0
-pytest==7.4.0
+pytest==7.4.3
 pytest-asyncio==0.21.1
 pytest-cov==4.1.0
 ruff==0.0.285
