@@ -487,10 +487,13 @@ class account_logout(delegate.page):
     can be handled prior to the calling of infogami's standard logout procedure
 
     """
-    path = "/account/login"
+    path = "/account/logout"
+
     def POST(self):
         clear_cookies()
+        from infogami.core.code import logout as infogami_logout
         infogami_logout().POST()
+
 
 class account_verify(delegate.page):
     """Verify user account."""
