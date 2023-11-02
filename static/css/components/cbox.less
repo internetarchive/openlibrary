@@ -15,8 +15,7 @@
 #colorbox {
   outline: none;
   box-sizing: content-box;
-
-  >* {
+  > * {
     box-sizing: content-box;
   }
 
@@ -25,7 +24,6 @@
   img {
     height: auto;
   }
-
   img,
   iframe {
     width: 100%;
@@ -41,17 +39,14 @@
     filter: alpha(opacity=50);
     background-color: @black;
   }
-
   &MiddleLeft,
   &BottomLeft {
     clear: left;
   }
-
   &Title {
     margin: 0;
     display: none !important;
   }
-
   &LoadingOverlay,
   &LoadingGraphic {
     position: absolute;
@@ -59,14 +54,12 @@
     left: 25px;
     width: 100%;
   }
-
   &Previous,
   &Next,
   &Close,
   &Slideshow {
     cursor: pointer;
   }
-
   &Content {
     box-sizing: content-box;
     position: relative;
@@ -77,22 +70,18 @@
     -webkit-box-shadow: 1px 3px 5px @darker-grey;
     box-shadow: 1px 3px 5px @darker-grey;
   }
-
   &LoadedContent {
     background: @white;
     margin: 0;
     overflow: visible !important;
-
     iframe {
       display: block;
       border: 0;
     }
   }
-
   &LoadingOverlay {
     background: transparent;
   }
-
   &Close {
     display: none !important;
     position: absolute;
@@ -103,7 +92,6 @@
     background-image: url(/images/icons/icon_close-pop.png);
     background-position: 0 0;
     background-repeat: no-repeat;
-
     &:hover {
       background-position: 0 -32px;
     }
@@ -121,10 +109,7 @@
   z-index: @z-index-level-1;
   padding: 11px 17px;
   margin: -11px -17px;
-
-  &:visited,
-  &:link,
-  &:hover {
+  &:visited, &:link, &:hover {
     text-decoration: none;
   }
 }
@@ -134,17 +119,14 @@ div.coverFloat {
   font-family: @lucida_sans_serif-1;
   background: @white;
   text-align: left;
-
   a.dialog--close {
     &:hover {
       background-position: 0 -16px;
     }
   }
-
   &Head {
     display: flex;
     font-size: 1em;
-
     h2 {
       font-weight: normal;
       color: @dark-grey;
@@ -163,11 +145,9 @@ div.floater {
   min-height: 550px;
   background: @white;
   text-align: left;
-
   &Head {
     display: flex;
     padding: 10px 5px;
-
     h2 {
       font-weight: normal;
       text-align: center;
@@ -182,11 +162,9 @@ div.floater {
       justify-content: right;
     }
   }
-
   &Body {
     padding: 20px;
     font-size: 14px;
-
     p {
       margin-bottom: 14px;
     }
@@ -202,23 +180,19 @@ div.floater {
       font-family: @lucida_sans_serif-5;
       font-weight: 700;
     }
-
     span {
       font-weight: normal;
     }
   }
-
   .dialog--close-parent {
     cursor: pointer;
   }
-
   div#covers.input {
     max-height: 132px;
     overflow: hidden;
     margin-left: -80px;
     text-align: left;
   }
-
   input[type=text],
   input[type=file] {
     font-size: 1.125em;
@@ -226,17 +200,14 @@ div.floater {
     padding: 3px;
     margin-top: 7px;
   }
-
-  input::file-selector-button {
+  input::file-selector-button{
     cursor: pointer;
   }
-
   button[type=submit] {
     font-size: 1.125em;
     width: auto !important;
     cursor: pointer;
   }
-
   a {
     cursor: pointer;
   }
@@ -252,7 +223,7 @@ div.floater {
   }
 }
 
-div.imageIntro {
+div.imageIntro{
   margin: 0 0 10px;
 }
 
@@ -262,19 +233,15 @@ div.floaterAdd {
   font-family: @lucida_sans_serif-1;
   background: @white;
   text-align: left;
-
   .formElement {
     margin: 0 20px;
   }
-
   form.floatform {
     .input {
       padding-top: 5px;
     }
-
     .label {
       padding-top: 20px;
-
       // stylelint-disable-next-line max-nesting-depth
       label {
         font-size: 1.0em;
@@ -282,12 +249,10 @@ div.floaterAdd {
         font-weight: 700;
       }
     }
-
     input[type=text],
     textarea {
       margin-left: 0;
     }
-
     textarea {
       padding: 3px;
     }
@@ -296,7 +261,6 @@ div.floaterAdd {
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
   .floatform {
-
     div#covers.input,
     .label,
     .input {
@@ -304,7 +268,7 @@ div.floaterAdd {
       padding-top: 20px;
     }
 
-    >div {
+    > div {
       margin: 0 80px;
       text-align: left;
     }
@@ -315,16 +279,14 @@ div.floaterAdd {
     }
   }
 
-  div.imageIntro {
+  div.imageIntro{
     margin: 10px;
   }
 
-  .floatform__body>div {
+  .floatform__body > div {
     margin: 0 80px;
   }
-
   div.floaterAdd {
-
     .input,
     .label,
     input[type=text],
