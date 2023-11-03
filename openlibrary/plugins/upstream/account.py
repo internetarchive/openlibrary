@@ -18,7 +18,6 @@ from infogami.utils.view import (
 )
 from infogami.infobase.client import ClientException
 import infogami.core.code as core
-from infogami.core.code import logout as infogami_logout
 
 from openlibrary import accounts
 from openlibrary.i18n import gettext as _
