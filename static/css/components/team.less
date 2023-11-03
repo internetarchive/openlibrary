@@ -3,6 +3,19 @@
 .teamPage__top {
   margin-bottom: 0;
   padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+.teamPage__selectElements {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.selectElement {
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .teamPage__bottom {
@@ -10,12 +23,42 @@
   padding-left: 2rem;
 }
 
-.cards_container {
+.teamCards_container {
   padding: 1rem;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-evenly;
-  gap: 2rem;
+  gap: 1rem;
+  min-height: 50vh;
+  padding-left: 2rem;
+}
+
+.noResults {
+  text-align: center;
+}
+
+.sectionSeparator {
+  // background-color: @mid-grey;
+  width: 100%;
+  // height: 3px;
+  margin: 0;
+  margin-top: 30px;
+  font-size: 30px;
+  font-weight: 600;
+}
+
+.subsectionSeparator {
+  // background-color: @mid-grey;
+  width: 100%;
+  // height: 3px;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: @mid-grey;
+}
+
+.hidden {
+  display: none;
 }
 
 .teamCard {
@@ -23,12 +66,11 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 375px;
   align-items: center;
   position: relative;
   border-radius: 2rem;
   &__container {
-    height: 450px;
+    height: 340px;
     width: 280px;
     display: flex;
     align-items: flex-end;
@@ -60,25 +102,33 @@
 }
 
 .description {
-  &__name {
+  &__name--length-long {
     text-decoration: underline;
-    padding-top: 90px;
+    padding-top: 80px;
+    font-size: 18px;
+    margin-bottom: 0;
+  }
+  &__name--length-short {
+    text-decoration: underline;
+    padding-top: 68px;
+    margin-bottom: 0;
   }
   &__role {
-    font-weight: 400;
-    height: 35px;
-    font-size: 18px;
-  }
-  &__status {
     padding-top: 5px;
     padding-bottom: 5px;
     height: 28px;
   }
-  &__bio {
-    padding: 15px;
-    margin: 0;
-    line-height: 130%;
-    height: 130px;
+  &__department {
+    font-weight: 400;
+    height: 40px;
+    font-size: 18px;
+  }
+  &__title {
+    font-weight: 400;
+    height: 40px;
+    font-size: 18px;
+    margin-top: 10px;
+    text-align: center;
   }
   &__links {
     display: flex;
@@ -91,7 +141,7 @@
 
 .description__role,
 .description__name,
-.description__status {
+.description__department {
   margin: 0;
   padding-left: 15px;
   padding-right: 15px;
@@ -100,9 +150,10 @@
 
 .links__site,
 .links__book {
-  height: 40px;
+  height: 35px;
 }
 
 .links__site {
-  filter: invert(32%) sepia(89%) saturate(5319%) hue-rotate(186deg) brightness(96%) contrast(97%);
+  filter: invert(32%) sepia(89%) saturate(5319%) hue-rotate(186deg)
+    brightness(96%) contrast(97%);
 }

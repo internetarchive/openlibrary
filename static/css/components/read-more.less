@@ -1,0 +1,58 @@
+@import (reference) "../less/z-index.less";
+@import (reference) "../less/colors.less";
+
+.read-more {
+  z-index: @z-index-level-1;
+
+  .read-more__content {
+    overflow: hidden;
+    transition: max-height .2s ease-in-out;
+  }
+
+  .read-more__toggle {
+    cursor: pointer;
+    color: @link-blue;
+
+    // Reset button
+    border: 0;
+    font: inherit;
+
+    width: 100%;
+    padding: 10px;
+    text-align: left;
+    // Note: we use a white with opacity=0 because Safari otherwise
+    // transitions the gradient from white through grey to transparent.
+    background: linear-gradient(rgba(255,255,255,0) 0, @white 10px);
+    padding-top: 15px;
+
+    @media only screen and (max-width: @width-breakpoint-desktop) {
+      text-align: center;
+    }
+  }
+
+  &.read-more--unnecessary .read-more__toggle {
+    display: none;
+  }
+
+  .read-more__toggle--more {
+    margin-top: -10px;
+  }
+
+  // Make the read less button easy to find after expanding
+  .read-more__toggle--less {
+    position: sticky;
+    bottom: 0;
+  }
+
+  &.read-more--expanded {
+    .read-more__toggle--more {
+      display: none;
+    }
+  }
+
+  &:not(.read-more--expanded) {
+    .read-more__toggle--less {
+      display: none;
+    }
+  }
+}
