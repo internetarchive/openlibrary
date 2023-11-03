@@ -462,10 +462,10 @@ class people_view:
 
     def POST_su(self, account):
         code = account.generate_login_code()
-        #Clear all existing admin cookies before logging in as another user
+        # Clear all existing admin cookies before logging in as another user
         clear_cookies()
         web.setcookie(config.login_cookie_name, code, expires="")
-        
+
         return web.seeother("/")
 
     def POST_anonymize_account(self, account, test):

@@ -127,6 +127,7 @@ def create_link_doc(key, username, email):
         "expires_on": expires.isoformat(),
     }
 
+
 def clear_cookies():
     web.setcookie('pd', "", expires=-1)
     web.setcookie('sfw', "", expires=-1)
