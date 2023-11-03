@@ -71,6 +71,12 @@ export class BulkTagger {
          * @member {HTMLInputElement}
          */
         this.hiddenSubjectInput = bulkTagger.querySelector('.tag-subjects')
+
+        /**
+         * Reference to hidden input which holds a comma-separated list of work OLIDs
+         * @member {HTMLInputElement}
+         */
+        this.hiddenWorksInput = bulkTagger.querySelector('.tag-work-ids')
     }
 
     /**
@@ -102,6 +108,22 @@ export class BulkTagger {
      */
     hideTaggingMenu() {
         this.bulkTagger.classList.add('hidden')
+    }
+
+    /**
+     * Displays the Bulk Tagger.
+     */
+    showTaggingMenu() {
+        this.bulkTagger.classList.remove('hidden')
+    }
+
+    /**
+     * Updates hidden work input with given work OLIDs.
+     *
+     * @param {Array<String>} workIds
+     */
+    updateWorks(workIds) {
+        this.hiddenWorksInput.value = workIds.join(',')
     }
 
     /**

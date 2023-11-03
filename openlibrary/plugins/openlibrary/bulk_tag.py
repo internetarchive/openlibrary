@@ -10,7 +10,8 @@ class tags_partials(delegate.page):
     encoding = "json"
 
     def GET(self):
-        i = web.input(key=None)
+        # `work_ids` is a comma-separated list of work OLIDs
+        i = web.input(work_ids='')
 
         works = i.work_ids
 

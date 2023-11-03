@@ -1,7 +1,6 @@
 // @ts-check
 import $ from 'jquery';
 import { move_to_work, move_to_author } from '../ol.js';
-import { renderBulkTaggingMenu } from '../subject.js';
 import './SelectionManager.less';
 
 /**
@@ -143,7 +142,7 @@ export default class SelectionManager {
                     if (action.href) {
                         this.ile.$actions.append($(`<a target="_blank" href="${action.href(this.getOlidsFromSelectionList(items))}">${action.name}</a>`));
                     } else if (action.onclick && action.name === 'Tag Works') {
-                        this.ile.$actions.append($(`<a href="javascript:;">${action.name}</a>`).on('click', () => action.onclick(this.getOlidsFromSelectionList(items))));
+                        this.ile.$actions.append($(`<a href="javascript:;">${action.name}</a>`).on('click', () => this.ile.updateAndShowBulkTagger(this.getOlidsFromSelectionList(items))));
                     }
             }
         }
@@ -397,7 +396,7 @@ SelectionManager.ACTIONS = [
         requires_type: ['work'],
         multiple_only: true,
         name: 'Tag Works',
-        onclick: olids => renderBulkTaggingMenu(olids),
+        onclick: true,
     },
     {
         applies_to_type: ['work','edition'],
