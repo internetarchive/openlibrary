@@ -173,29 +173,23 @@ class borrow(delegate.page):
             stats.increment('ol.loans.leaveWaitlist')
             raise web.redirect(edition_redirect)
 
-        # Intercept a 'borrow' action if the user has already
-        # borrowed the book and convert to a 'read' action.
-        # Added so that direct bookreader links being routed through
-        # here can use a single action of 'borrow', regardless of
-        # whether the book has been checked out or not.
-        elif user.has_borrowed(edition):
-            action = 'read'
-
-        elif action in ('borrow', 'browse'):
+        elif action in ('borrow', 'browse') and not user.has_borrowed(edition):
             borrow_access = user_can_borrow_edition(user, edition)
 
             if not (s3_keys and borrow_access):
                 stats.increment('ol.loans.outdatedAvailabilityStatus')
                 raise web.seeother(error_redirect)
 
-            lending.s3_loan_api(
-                s3_keys, ocaid=edition.ocaid, action='%s_book' % borrow_access
-            )
-            stats.increment('ol.loans.bookreader')
-            stats.increment('ol.loans.%s' % borrow_access)
-            action = 'read'
+            try:
+                lending.s3_loan_api(
+                    s3_keys, ocaid=edition.ocaid, action='%s_book' % borrow_access
+                )
+                stats.increment('ol.loans.bookreader')
+                stats.increment('ol.loans.%s' % borrow_access)
+            except lending.PatronAccessException as e:
+                stats.increment('ol.loans.blocked')
 
-        if action == 'read':
+        if action in ('borrow', 'browse', 'read'):
             bookPath = '/stream/' + edition.ocaid
             if i._autoReadAloud is not None:
                 bookPath += '?_autoReadAloud=show'
