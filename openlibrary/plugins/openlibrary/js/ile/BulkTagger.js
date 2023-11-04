@@ -77,6 +77,22 @@ export class BulkTagger {
          * @member {HTMLInputElement}
          */
         this.hiddenWorksInput = bulkTagger.querySelector('.tag-work-ids')
+
+        /**
+         * @typedef {Object} SubjectEntry
+         * @property {Array<String>} subjects
+         * @property {Array<String>} subject_people
+         * @property {Array<String>} subject_places
+         * @property {Array<String>} subject_times
+         */
+
+        /**
+         * Stores works' subjects that have been fetched.
+         *
+         * Keys to the map are work IDs.
+         * @member {Map<String, SubjectEntry>}
+         */
+        this.fetchedSubjects = new Map()
     }
 
     /**
@@ -124,6 +140,42 @@ export class BulkTagger {
      */
     updateWorks(workIds) {
         this.hiddenWorksInput.value = workIds.join(',')
+
+        this.fetchMissingSubjects(workIds)
+    }
+
+    /**
+     * Fetches and stores subject information for the given work OLIDs.
+     *
+     * If we already have fetched the data for a work ID, we do not fetch it
+     * again.
+     * @param {Array<String>} workIds
+     */
+    fetchMissingSubjects(workIds) {
+        const worksWithMissingSubjects = workIds.filter(id => !this.fetchedSubjects.has(id))
+
+        worksWithMissingSubjects.forEach(async (id) => {
+            await this.fetchWork(id)
+                .then(response => response.json())
+                .then(data => {
+                    const entry = {
+                        subjects: data.subjects || [],
+                        subject_people: data.subject_people || [],
+                        subject_places: data.subject_places || [],
+                        subject_times: data.subject_times || []
+                    }
+                    this.fetchedSubjects.set(id, entry)
+                })
+        })
+    }
+
+    /**
+     * Fetches a work from OL.
+     *
+     * @param {String} workOlid
+     */
+    async fetchWork(workOlid) {
+        return fetch(`/works/${workOlid}.json`)
     }
 
     /**
