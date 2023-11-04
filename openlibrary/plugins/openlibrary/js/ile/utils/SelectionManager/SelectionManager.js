@@ -128,12 +128,11 @@ export default class SelectionManager {
         const lastParents = $(this.lastClicked).parents();
         const clickedParents = $(clicked).parents();
         let commonParent = undefined;
-        for (let i = 0; i < lastParents.length; i++) {
+        for (let i = 0; i < 2 && i < lastParents.length; i++) {
             if (clickedParents.is(lastParents[i])) {
                 commonParent = lastParents[i];
                 break;
             }
-            if (i > 1) { break; }
         }
         if (commonParent) {
             return $(commonParent).find('.ile-selectable');
