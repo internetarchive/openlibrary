@@ -23,10 +23,10 @@ export default class SelectionManager {
         this.curpath = curpath;
         this.inited = false;
         this.selectedItems = {};
-        this.lastSelectedIndex = -1;
+        this.lastClicked = null;
 
         this.processClick = this.processClick.bind(this);
-        this.changeSelectedState = this.changeSelectedState.bind(this);
+        this.toggleSelected = this.toggleSelected.bind(this);
         this.clearSelectedItems = this.clearSelectedItems.bind(this);
         this.dragStart = this.dragStart.bind(this);
         this.dragEnd = this.dragEnd.bind(this);
@@ -91,36 +91,70 @@ export default class SelectionManager {
             $(clickEvent.target).not('.ile-select-handle').length > 0)) return;
 
         const el = clickEvent.currentTarget;
-        const elIndex = $(el).closest('li,tr')?.index();
-
-        if (clickEvent.shiftKey && this.lastSelectedIndex !== -1 && Math.abs(elIndex - this.lastSelectedIndex) > 1) {
-            // Shift-Clicking creates unwanted text selections that need to be unset
-            const selection = window.getSelection ? window.getSelection() : document.selection ? document.selection : null;
-            if (!!selection) selection.empty ? selection.empty() : selection.removeAllRanges();
-            const commonParent = $(el).closest('li,tr')?.parent();
-            const allHandles = commonParent.find('.ile-selectable');
-            let affectedHandles;
-            if (elIndex > this.lastSelectedIndex) {
-                affectedHandles = allHandles.slice(this.lastSelectedIndex + 1, elIndex + 1);
+        if (clickEvent.shiftKey && this.lastClicked)
+        {
+            this.clearTextSelection();
+            const siblingSet = this.getSiblingSet(el);
+            const lastClickedIndex = siblingSet.index(this.lastClicked);
+            const elIndex = siblingSet.index(el);
+            if (lastClickedIndex > -1 && Math.abs(elIndex - lastClickedIndex) > 1) {
+                let affectedElements;
+                if (elIndex > lastClickedIndex) {
+                    affectedElements = siblingSet.slice(lastClickedIndex + 1, elIndex + 1);
+                } else {
+                    affectedElements = siblingSet.slice(elIndex, lastClickedIndex);
+                }
+                const stateChange = el.classList.contains('ile-selected') ? false : true;
+                for (const element of affectedElements) this.toggleSelected(element, stateChange);
             } else {
-                affectedHandles = allHandles.slice(elIndex, this.lastSelectedIndex);
+                this.toggleSelected(el);
             }
-            const stateChange = el.classList.contains('ile-selected') ? 'deselect' : 'select';
-            for (const handle of affectedHandles) this.changeSelectedState(handle, stateChange);
-        } else {
-            this.changeSelectedState(el);
         }
-        this.lastSelectedIndex = elIndex;
+        else {
+            this.toggleSelected(el);
+        }
+        this.lastClicked = el;
         this.updateToolbar();
     }
 
-    changeSelectedState(el, action='toggle') {
+    /**
+     * Sets of selectable elements are sometimes HTML siblings and sometimes not. This function
+     * hides that complexity by finding the common parent between the passed element and the last
+     * clicked element and generating a set of siblings from that information
+     *
+     * @param {HTMLElement} clicked
+     */
+    getSiblingSet(clicked) {
+        const lastParents = $(this.lastClicked).parents();
+        const clickedParents = $(clicked).parents();
+        let commonParent = undefined;
+        for (let i = 0; i < lastParents.length; i++) {
+            if (clickedParents.is(lastParents[i])) {
+                commonParent = lastParents[i];
+                break;
+            }
+            if (i > 1) { break; }
+        }
+        if (commonParent) {
+            return $(commonParent).find('.ile-selectable');
+        } else {
+            return $(clicked);
+        }
+    }
+
+    /**
+     * @param {HTMLElement} el
+     * @param {boolean} [forceSelected]
+     * If included, turns the toggle into a one way-only operation. If set to false, elements will only
+     * be deselected, not selected. If set to true, elements will only be selected, but not deselected.
+     */
+    toggleSelected(el, forceSelected) {
         const isCurSelected = el.classList.contains('ile-selected');
         const provider = this.getProvider(el);
         const olid = provider.data(el);
         const img_src = this.getType(olid)?.image(olid);
 
-        if ((action === 'select' && isCurSelected) || (action === 'deselect' && !isCurSelected)) return;
+        if ((forceSelected === true && isCurSelected) || (forceSelected === false && !isCurSelected)) return;
         this.setElementSelectionAttributes(el, !isCurSelected);
         if (isCurSelected) {
             this.removeSelectedItem(olid);
@@ -131,6 +165,15 @@ export default class SelectionManager {
             this.ile.$statusImages.append(`<li><img title="${olid}" src="${img_src}"/></li>`);
         }
 
+    }
+
+    /**
+     * Cross-browser approach to clear any text selections. Needed to clear selection ranges
+     * created by shift-clicking since they're not suppressed by preventDefault().
+     */
+    clearTextSelection() {
+        const selection = window.getSelection ? window.getSelection() : document.selection ? document.selection : null;
+        if (!!selection) selection.empty ? selection.empty() : selection.removeAllRanges();
     }
 
     setElementSelectionAttributes(el, selected) {
