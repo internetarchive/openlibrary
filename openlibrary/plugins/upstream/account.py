@@ -493,7 +493,7 @@ class account_logout(delegate.page):
         clear_cookies()
         from infogami.core.code import logout as infogami_logout
 
-        infogami_logout().POST()
+        return infogami_logout().POST()
 
 
 class account_verify(delegate.page):
