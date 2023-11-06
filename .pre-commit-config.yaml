@@ -32,12 +32,12 @@ repos:
       - id: auto-walrus
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.0.292
+    rev: v0.1.4
     hooks:
       - id: ruff
 
   - repo: https://github.com/psf/black
-    rev: 23.9.1
+    rev: 23.10.1
     hooks:
       - id: black  # See pyproject.toml for args
 
@@ -54,19 +54,19 @@ repos:
     - id: cython-lint
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.5.1
+    rev: v1.6.1
     hooks:
       - id: mypy  # See pyproject.toml for args
         additional_dependencies:
           - types-all
 
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.14
+    rev: v0.15
     hooks:
       - id: validate-pyproject
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.51.0
+    rev: v8.53.0
     hooks:
       - id: eslint
         types: [file]
