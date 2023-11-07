@@ -61,11 +61,12 @@ $else:
 
         <div class="formElement bottom">
             <br/>
-            $ sitekey = classes = ''
+            $ sitekey = classes = callback = ''
             $if form.has_recaptcha:
+                $ callback = "data-callback=submitCreateAccountForm"
                 $ classes = 'g-recaptcha'
                 $ sitekey = "data-sitekey=%s" % form['recaptcha'].public_key
-            <button type="submit" name="signup" id="signup" class="larger $classes" $sitekey>$_("Sign Up")</button>
+            <button type="submit" name="signup" id="signup" class="larger $classes" $sitekey $callback>$_("Sign Up")</button>
             <a href="javascript:history.go(-1);" class="smaller attn">$_("Cancel")</a>
         </div>
     </form>
