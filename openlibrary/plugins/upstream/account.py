@@ -255,7 +255,8 @@ class account_create(delegate.page):
         if self.is_plugin_enabled('recaptcha'):
             public_key = config.plugin_invisible_recaptcha.public_key
             private_key = config.plugin_invisible_recaptcha.private_key
-            return recaptcha.Recaptcha(public_key, private_key)
+            if public_key and private_key:
+                return recaptcha.Recaptcha(public_key, private_key)
 
     def is_plugin_enabled(self, name):
         return (
