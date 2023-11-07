@@ -198,7 +198,7 @@ export default class SelectionManager {
             items: this.getOlidsFromSelectionList(items)
         };
         ev.dataTransfer.setData('text/plain', JSON.stringify(data));
-        ev.dataTransfer.setData('application/ile', JSON.stringify(data));
+        ev.dataTransfer.setData('application/x.ile+json', JSON.stringify(data));
     }
 
     dragEnd() {
@@ -211,7 +211,7 @@ export default class SelectionManager {
     onDrop(ev) {
         ev.preventDefault();
         const handler = this.getHandler();
-        const data = JSON.parse(ev.dataTransfer.getData('application/ile'));
+        const data = JSON.parse(ev.dataTransfer.getData('application/x.ile+json'));
         handler.ondrop(data);
         document.getElementById('test-body-mobile').classList.remove('ile-drag-over');
     }
@@ -220,7 +220,7 @@ export default class SelectionManager {
      * @param {DragEvent} ev
      */
     allowDrop(ev) {
-        if (!ev.dataTransfer?.types.includes('application/ile') || $('.ile-selected').length) return;
+        if (!ev.dataTransfer?.types.includes('application/x.ile+json') || $('.ile-selected').length) return;
         const handler = this.getHandler();
         if (!handler) return;
 
