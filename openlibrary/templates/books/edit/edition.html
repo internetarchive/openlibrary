@@ -416,7 +416,7 @@ $ })
                             <select name="name" id="select-id">
                             $ id_labels = dict((d.name, d.label) for d in edition_config.identifiers)
                             $ id_dict = dict((id.name, id) for id in edition_config.identifiers)
-                            $ popular = ["project_gutenberg", "librivox", "ocaid", "isbn_10", "isbn_13", "lccn", "oclc_numbers"]
+                            $ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "librivox", "project_gutenberg", "oclc_numbers"]
                             $if is_privileged_user:
                                 $ exclude = []
                             $else:
