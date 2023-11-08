@@ -123,8 +123,9 @@ npm run lint-fix
 
 ## pre-commit hooks
 
-Be confident in changing files you can check the quality (linter) with [pre-commit](https://pre-commit.com/index.html)
-Pre-commit is used to inspect the snapshot that is about to be committed, to see if there are any syntax errors, typos, or a handful of other common issues. You can see the actions descriptions in [pre-commit-config.yml](https://github.com/internetarchive/openlibrary/blob/master/.pre-commit-config.yaml).
+Be confident in changing files you can check the quality (linter) with [pre-commit](https://pre-commit.com/index.html).
+It is used to inspect the snapshot that is about to be committed, to see if there are any syntax errors, typos, or a handful of other common issues.
+You can see the actions descriptions in [pre-commit-config.yml](https://github.com/internetarchive/openlibrary/blob/master/.pre-commit-config.yaml).
 
 The pre-commit is automatically run against open PRs. Install the pre-commit locally to avoid waiting for the PR checks to run in the cloud.
 
