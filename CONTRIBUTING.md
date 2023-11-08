@@ -130,19 +130,21 @@ The pre-commit is automatically run against open PRs. Install the pre-commit loc
 
 ### Installation
 
-````
+```
 pip install pre-commit
 # or on mac you can run
 brew install pre-commit
+```
+
 After executing the last command, when you normally run `git commit`, pre-commit will also perform its checks.
 
 ### Running (manually)
 
 To run the pre-commit
 
-````
-$ pre-commit run --files pre-commit-config.yml
-````
+```
+pre-commit run --files pre-commit-config.yml
+```
 
 > **_Warning:_**  If you don't clone with **ssh** then infogami will have pre-commit issues [You can read this section to resolve it](docker/README.md#cloning-the-open-library-repository).
 
