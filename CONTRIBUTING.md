@@ -121,7 +121,34 @@ Many issues can be automatically fixed using the following command:
 npm run lint-fix
 ```
 
-## Submitting Pull Requests
+## pre-commit hooks
+
+Be confident in changing files you can check the quality (linter) with [pre-commit](https://pre-commit.com/index.html).
+It is used to inspect the snapshot that is about to be committed, to see if there are any syntax errors, typos, or a handful of other common issues.
+You can see the actions descriptions in [pre-commit-config.yml](https://github.com/internetarchive/openlibrary/blob/master/.pre-commit-config.yaml).
+
+The pre-commit is automatically run against open PRs. Install the pre-commit locally to avoid waiting for the PR checks to run in the cloud.
+
+### Installation
+
+```
+pip install pre-commit
+# or on mac you can run
+brew install pre-commit
+```
+
+After executing the last command, when you normally run `git commit`, pre-commit will also perform its checks.
+
+### Running manually
+
+```
+pre-commit run --files pre-commit-config.yml
+```
+
+> **_Warning:_**  If you don't clone with **ssh** then infogami will have pre-commit issues [You can read this section to resolve it](docker/README.md#cloning-the-open-library-repository).
+
+
+### Submitting Pull Requests
 
 Once you've finished making your changes, submit a pull request (PR). Please take the time to check whether someone has already raised the issue you are solving. Thank you for your contributions!
 
