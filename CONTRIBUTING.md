@@ -134,10 +134,6 @@ The pre-commit is automatically run against open PRs. Install the pre-commit loc
 pip install pre-commit
 # or on mac you can run
 brew install pre-commit
-
-$ pre-commit install
-````
-
 After executing the last command, when you normally run `git commit`, pre-commit will also perform its checks.
 
 ### Running (manually)
