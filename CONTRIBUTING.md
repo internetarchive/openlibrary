@@ -132,8 +132,8 @@ The pre-commit is automatically run against open PRs. Install the pre-commit loc
 
 ````
 pip install pre-commit
- or
-$ brew install pre-commit (Homebrew)
+# or on mac you can run
+brew install pre-commit
 
 $ pre-commit install
 ````
