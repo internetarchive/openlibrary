@@ -121,7 +121,7 @@ Many issues can be automatically fixed using the following command:
 npm run lint-fix
 ```
 
-## Quality code
+## pre-commit hooks
 
 Be confident in changing files you can check the quality (linter) with [pre-commit](https://pre-commit.com/index.html)
 Pre-commit is used to inspect the snapshot that is about to be committed, to see if you missed anything, or to review what you need to inspect in the code. You can see the actions descriptions in the **pre-commit-config.yml** file.
