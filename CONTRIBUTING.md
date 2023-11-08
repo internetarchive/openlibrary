@@ -138,7 +138,7 @@ brew install pre-commit
 $ pre-commit install
 ````
 
-After executing the last command, when you normally run ``git commit``, pre-commit will also perform its checks.
+After executing the last command, when you normally run `git commit`, pre-commit will also perform its checks.
 
 ### Running (manually)
 
