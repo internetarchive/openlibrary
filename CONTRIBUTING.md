@@ -138,9 +138,7 @@ brew install pre-commit
 
 After executing the last command, when you normally run `git commit`, pre-commit will also perform its checks.
 
-### Running (manually)
-
-To run the pre-commit
+### Running manually
 
 ```
 pre-commit run --files pre-commit-config.yml
