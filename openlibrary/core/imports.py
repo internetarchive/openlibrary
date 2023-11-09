@@ -64,6 +64,7 @@ class Batch(web.storage):
                 'batch_id': self.id,
                 # Partner bots set ia_id to eg "partner:978..."
                 'ia_id': item.get('ia_id'),
+                'status': item.get('status', 'pending'),
                 'data': json.dumps(item.get('data'), sort_keys=True)
                 if item.get('data')
                 else None,
