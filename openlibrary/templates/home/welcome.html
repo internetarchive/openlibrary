@@ -11,6 +11,16 @@ $def with (test=False)
       id="welcome_carousel"
       data-config="$json_encode(['#welcome_carousel', 3, 2, 2, 1, 1])"
     >
+      $ reading_goal_card = {
+      $    "card_title": _("Set a Yearly Reading Goal"),
+      $    "card_body": _("Learn how to set a yearly reading goal and track what you read"),
+      $    "img_src": "/static/images/onboarding/reading_goal.png",
+      $    "href": "https://blog.openlibrary.org/2022/12/31/reach-your-2023-reading-goals-with-open-library/",  # Update href to "/help/faq/yearly-reading-goals" once FAQ page is completed
+      $    "ol_link_track": "OnboardingCarouselClick|YearlyReadingGoals",
+      $    "attribution": 'Calendar by Oksana Latysheva from the Noun Project'
+      $ }
+      $:render_template('home/onboarding_card', reading_goal_card['card_title'], reading_goal_card['card_body'], reading_goal_card['img_src'], reading_goal_card['href'], ol_link_track=reading_goal_card['ol_link_track'], attribution=reading_goal_card['attribution'])
+
       $ read_online_card = {
       $    "card_title": _("Read Free Library Books Online"),
       $    "card_body": _("Millions of books available through Controlled Digital Lending"),
@@ -62,7 +72,7 @@ $def with (test=False)
       $    "img_src": "/static/images/onboarding/feedback.png",
       $    "href": "https://forms.gle/enM9rGoPBGB89kd4A",
       $    "ol_link_track": "OnboardingCarouselClick|Feedback",
-      $    "attribution": "Reading by Chattapat from the Noun Project"
+      $    "attribution": 'Reading by Chattapat from the Noun Project'
       $ }
       $:render_template('home/onboarding_card', feedback_card['card_title'], feedback_card['card_body'], feedback_card['img_src'], feedback_card['href'], ol_link_track=feedback_card['ol_link_track'], attribution=feedback_card['attribution'])
 
