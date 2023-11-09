@@ -10,7 +10,7 @@ def load_plugin_json(plugins_str):
 
 @public
 def display_plugins_data(data):
-    plugin_type = list(data.keys())[0]
+    plugin_type = next(iter(data.keys()))
     # Split the string into key-value pairs
     parameters = data[plugin_type].split(',')
 
@@ -39,6 +39,26 @@ def get_tag_types():
 @public
 def get_plugin_types():
     return ["RelatedSubjects", "QueryCarousel", "ListCarousel"]
+
+
+@public
+def process_plugins_data(data):
+    plugin_type = next(iter(data.keys()))
+    # Split the string into key-value pairs
+    parameters = data[plugin_type].split(',')
+
+    # Create a dictionary to store the formatted parameters
+    plugin_data = {}
+
+    # Iterate through the pairs and extract the key-value information
+    for pair in parameters:
+        key, value = pair.split('=')
+        key = key.strip()
+
+        # XXX : Is this safe? Why is `eval` used here?
+        plugin_data[key] = eval(value)
+
+    return plugin_type, plugin_data
 
 
 def setup():

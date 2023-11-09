@@ -1165,8 +1165,10 @@ class Tag(Thing):
                     'key': key,
                     'name': tag_name,
                     'tag_description': tag_description,
-                    'tag_type': tag_type or [],
-                    'tag_plugins': json.loads(tag_plugins or "[]"),
+                    'tag_type': tag_type,
+                    # XXX : tag_plugins should be a list of strings.  Ensure
+                    # that this is being passed to create().
+                    'tag_plugins': tag_plugins,
                     'type': {"key": '/type/tag'},
                 },
                 comment=comment,
