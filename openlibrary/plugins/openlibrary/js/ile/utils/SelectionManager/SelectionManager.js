@@ -143,7 +143,7 @@ export default class SelectionManager {
                     if (action.href) {
                         this.ile.$actions.append($(`<a target="_blank" href="${action.href(this.getOlidsFromSelectionList(items))}">${action.name}</a>`));
                     } else if (action.onclick && action.name === 'Tag Works') {
-                        this.ile.$actions.append($(`<a id="tag_multiple_works">${action.name}</a>`).on('click', () => action.onclick(this.getOlidsFromSelectionList(items))));
+                        this.ile.$actions.append($(`<a href="javascript:;">${action.name}</a>`).on('click', () => action.onclick(this.getOlidsFromSelectionList(items))));
                     }
             }
         }
