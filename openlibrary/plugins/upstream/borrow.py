@@ -188,6 +188,7 @@ class borrow(delegate.page):
                 stats.increment('ol.loans.%s' % borrow_access)
             except lending.PatronAccessException as e:
                 stats.increment('ol.loans.blocked')
+                raise web.seeother(f'{edition.key}?error=lending_limit')
 
         if action in ('borrow', 'browse', 'read'):
             bookPath = '/stream/' + edition.ocaid
