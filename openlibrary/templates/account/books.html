@@ -81,9 +81,13 @@ $if owners_page:
 
       $# Is date between 1 Dec and 1 Feb?
       $if not current_goal and within_date_range(12, 1, 2, 1):
-        <div class="page-banner page-banner-body page-banner-mybooks">
-          $_('Set your %(year)s Yearly Reading Goal:', year=year) <a class="btn primary set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">$:_('Set my goal')</a>
-        </div>
+        $ cta_copy = _('Set your %(year)s Yearly Reading Goal:', year=year)
+        $ btn_copy = _('Set my goal')
+        $ announcement =  '%s <a class="btn primary set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">%s</a>' % (cta_copy, btn_copy)
+
+        $ cookie_name = 'yrg'
+
+        $:render_template('site/banner', announcement, cookie_name, cookie_duration_days=65)
       $ component_times['Yearly Goal Banner'] = time() - component_times['Yearly Goal Banner']
 
 
