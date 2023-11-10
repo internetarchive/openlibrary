@@ -121,7 +121,6 @@
     "collectCoverage": true
   },
   "dependencies": {
-    "postcss-less": "^6.0.0",
-    "swagger-ui-dist": "^5.9.1"
+    "postcss-less": "^6.0.0"
   }
 }
