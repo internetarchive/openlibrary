@@ -1,17 +1,16 @@
-import SwaggerUIBundle from 'swagger-ui-dist/swagger-ui-bundle.js';
-import SwaggerUIStandalonePreset from 'swagger-ui-dist/swagger-ui-standalone-preset.js';
+import SwaggerUI from 'swagger-ui'
 
 export function initializeSwaggerUI() {
-    const ui = SwaggerUIBundle({
+    const ui = SwaggerUI({
         url: '../../../static/openapi.json',
         dom_id: '#swagger-ui',
         deepLinking: true,
         presets: [
-            SwaggerUIBundle.presets.apis,
-            SwaggerUIStandalonePreset
+            SwaggerUI.presets.apis,
+            SwaggerUI.SwaggerUIStandalonePreset
         ],
         plugins: [
-            SwaggerUIBundle.plugins.DownloadUrl
+            SwaggerUI.plugins.DownloadUrl
         ],
         layout: 'StandaloneLayout',
     });
