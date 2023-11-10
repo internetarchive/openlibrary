@@ -549,7 +549,7 @@ jQuery(function () {
 
     const swaggerUiElement = document.getElementById('swagger-ui');
     if (swaggerUiElement.length) {
-        import(/* webpackChunkName: "swagger-ui" */ './swagger-ui')
+        import(/* webpackChunkName: "swagger" */ './swagger.js')
             .then(module => module.initializeSwaggerUI());
     }
 

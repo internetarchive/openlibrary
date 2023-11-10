@@ -1,4 +1,4 @@
-import SwaggerUI from 'swagger-ui'
+import { SwaggerUI } from 'swagger-ui'
 
 export function initializeSwaggerUI() {
     const ui = SwaggerUI({
