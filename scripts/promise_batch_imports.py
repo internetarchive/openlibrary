@@ -49,11 +49,11 @@ def map_book_to_olbook(book, promise_id):
             **({'amazon': [book.get('ASIN')]} if not asin_is_isbn_10 else {}),
             **(
                 {'better_world_books': [isbn]}
-                if not (isbn and isbn[0].isdigit())
+                if not is_isbn_13(isbn)
                 else {}
             ),
         },
-        **({'isbn_13': [isbn]} if (isbn and isbn[0].isdigit()) else {}),
+        **({'isbn_13': [isbn]} if is_isbn_13(isbn) else {}),
         **({'isbn_10': [book.get('ASIN')]} if asin_is_isbn_10 else {}),
         **({'title': title} if title else {}),
         'authors': [{"name": book['ProductJSON'].get('Author') or '????'}],
@@ -71,6 +71,15 @@ def map_book_to_olbook(book, promise_id):
     return olbook
 
 
+def is_isbn_13(isbn:str):
+    """
+    Naive check for ISBN-13 identifiers.
+
+    Returns true if given isbn is in ISBN-13 format.
+    """
+    return isbn and isbn[0].isdigit()
+
+
 def get_jit_candidates(import_records:list[dict]) -> list[str]:
     id_prefixes = ['idb', 'amazon']
 
@@ -78,7 +87,7 @@ def get_jit_candidates(import_records:list[dict]) -> list[str]:
 
     for record in import_records:
         isbn = record.get('ISBN') or ' '
-        if isbn and isbn[0].isdigit():
+        if is_isbn_13(isbn):
             results += [f'{prefix}:{isbn}' for prefix in id_prefixes]
 
     return results
