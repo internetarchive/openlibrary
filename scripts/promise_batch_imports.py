@@ -21,7 +21,7 @@ import logging
 import _init_path  # Imported for its side effect of setting PYTHONPATH
 from infogami import config
 from openlibrary.config import load_config
-from openlibrary.core.imports import Batch
+from openlibrary.core.imports import Batch, ImportItem
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 
@@ -71,12 +71,28 @@ def map_book_to_olbook(book, promise_id):
     return olbook
 
 
+def get_jit_candidates(import_records:list[dict]) -> list[str]:
+    id_prefixes = ['idb', 'amazon']
+
+    results = []
+
+    for record in import_records:
+        isbn = record.get('ISBN') or ' '
+        if isbn and isbn[0].isdigit():
+            results += [f'{prefix}:{isbn}' for prefix in id_prefixes]
+
+    return results
+
+
 def batch_import(promise_id, batch_size=1000):
     url = "https://archive.org/download/"
     date = promise_id.split("_")[-1]
     books = requests.get(f"{url}{promise_id}/DailyPallets__{date}.json").json()
     batch = Batch.find(promise_id) or Batch.new(promise_id)
     olbooks = [map_book_to_olbook(book, promise_id) for book in books]
+    # Find just-in-time import candidates:
+    jit_candidates = get_jit_candidates(books)
+    ImportItem.bulk_mark_pending(jit_candidates)
     batch_items = [{'ia_id': b['local_id'][0], 'data': b} for b in olbooks]
     for i in range(0, len(batch_items), batch_size):
         batch.add_items(batch_items[i : i + batch_size])

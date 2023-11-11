@@ -227,6 +227,16 @@ class ImportItem(web.storage):
         if result:
             return ImportItem(result[0])
 
+    @staticmethod
+    def bulk_mark_pending(identifiers : list[str]):
+        query = (
+            "UPDATE import_item"
+            "SET status = 'pending'"
+            "WHERE status = 'staged'"
+            "AND ia_id IN $identifiers"
+        )
+        db.query(query, vars={'identifiers': identifiers})
+
     def set_status(self, status, error=None, ol_key=None):
         id_ = self.ia_id or f"{self.batch_id}:{self.id}"
         logger.info("set-status %s - %s %s %s", id_, status, error, ol_key)
