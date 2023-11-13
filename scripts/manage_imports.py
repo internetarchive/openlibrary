@@ -162,6 +162,7 @@ def import_all(args, **kwargs):
             if not items:
                 logger.info("No pending items found. sleeping for a minute.")
                 time.sleep(60)
+                continue
 
             logger.info("starmap START")
             pool.starmap(

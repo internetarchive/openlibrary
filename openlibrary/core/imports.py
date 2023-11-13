@@ -108,8 +108,10 @@ class Batch(web.storage):
 class ImportItem(web.storage):
     @staticmethod
     def find_pending(limit=1000):
-        result = db.where("import_item", status="pending", order="id", limit=limit)
-        return map(ImportItem, result)
+        if result := db.where("import_item", status="pending", order="id", limit=limit):
+            return map(ImportItem, result)
+
+        return None
 
     @staticmethod
     def find_by_identifier(identifier):
