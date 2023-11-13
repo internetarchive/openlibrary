@@ -79,7 +79,7 @@ def import_ocaids(*ocaids, **kwargs):
     Usage:
         $ sudo -u openlibrary \
             HOME=/home/openlibrary OPENLIBRARY_RCFILE=/olsystem/etc/olrc-importbot \
-            python scripts/manage-imports.py \
+            python scripts/manage_imports.py \
                 --config /olsystem/etc/openlibrary.yml \
                 import-all
     """
