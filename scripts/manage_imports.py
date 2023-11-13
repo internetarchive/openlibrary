@@ -7,7 +7,7 @@ import os
 import sys
 import time
 
-import _init_path  # Imported for its side effect of setting PYTHONPATH
+import scripts._init_path  # Imported for its side effect of setting PYTHONPATH
 import web
 
 from openlibrary.api import OLError, OpenLibrary

@@ -2,6 +2,9 @@
 """
 from datetime import datetime, timedelta
 import logging
+
+from scripts.manage_imports import do_import
+from openlibrary.core.imports import ImportItem
 import web
 import json
 import requests
@@ -23,6 +26,7 @@ from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
+from openlibrary.core.db import query as db_query
 
 # Seed might look unused, but removing it causes an error :/
 from openlibrary.core.lists.model import ListMixin, Seed
@@ -366,12 +370,27 @@ class Edition(Thing):
                 return f"https://archive.org/download/{self.ocaid}/{filename}"
 
     @classmethod
-    def from_isbn(cls, isbn: str, retry: bool = False):
-        """Attempts to fetch an edition by isbn, or if no edition is found,
-        attempts to import from amazon
-        :rtype: edition|None
-        :return: an open library work for this isbn
+    def from_isbn(cls, isbn: str, retry: bool = False) -> "Edition | None":  # type: ignore[return]
         """
+        Attempts to fetch an edition by ISBN, or if no edition is found, then
+        check the import_item table for a match, then as a last result, attempt
+        to import from Amazon.
+        :return: an open library edition for this ISBN or None.
+        """
+
+        def fetch_book_from_ol(isbns: list[str | None]) -> list[str] | None:
+            """
+            Attempt to fetch a matching book from OpenLibrary, based on a list
+            of ISBN strings. Returns a list of matching edition edition IDs,
+            e.g. `['/books/OL370M']`
+            """
+            for isbn in isbns:
+                if isbn:
+                    return web.ctx.site.things(
+                        {"type": "/type/edition", f'isbn_{len(isbn)}': isbn}
+                    )
+            return None
+
         isbn = canonical(isbn)
 
         if len(isbn) not in [10, 13]:
@@ -383,21 +402,27 @@ class Edition(Thing):
         isbn10 = isbn_13_to_isbn_10(isbn13)
 
         # Attempt to fetch book from OL
-        for isbn in [isbn13, isbn10]:
-            if isbn:
-                matches = web.ctx.site.things(
-                    {"type": "/type/edition", 'isbn_%s' % len(isbn): isbn}
-                )
-                if matches:
-                    return web.ctx.site.get(matches[0])
+        if matches := fetch_book_from_ol([isbn13, isbn10]):
+            return web.ctx.site.get(matches[0])
 
-        # Attempt to create from amazon, then fetch from OL
-        retries = 5 if retry else 0
-        key = (isbn10 or isbn13) and create_edition_from_amazon_metadata(
-            isbn10 or isbn13, retries=retries
+        # Attempt to fetch the book from the import_item table
+        # TODO: Is {isbn13} correct here? Does this need more identifiers?
+        query = (
+            # "SELECT id, ia_id, status, data "
+            "SELECT * "
+            "FROM import_item "
+            "WHERE status IN ('staged', 'pending') "
+            "AND ia_id IN $identifiers"
         )
-        if key:
-            return web.ctx.site.get(key)
+        identifiers = [f"{prefix}:{isbn13}" for prefix in ('amazon', 'idb')]
+        result = db_query(query, vars={'identifiers': identifiers})
+        if result:
+            do_import(item=ImportItem(result[0]))
+            if matches := fetch_book_from_ol([isbn13, isbn10]):
+                print(f"matches is: {matches}", flush=True)
+                return web.ctx.site.get(matches[0])
+
+        # TODO: Final step - call affiliate server, with retry code migrated there.
 
     def is_ia_scan(self):
         metadata = self.get_ia_meta_fields()
