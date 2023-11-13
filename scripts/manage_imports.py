@@ -3,6 +3,7 @@
 import datetime
 import json
 import logging
+import os
 import sys
 import time
 
@@ -19,8 +20,12 @@ logger = logging.getLogger("openlibrary.importer")
 
 @web.memoize
 def get_ol(servername=None):
-    ol = OpenLibrary(base_url=servername)
-    ol.autologin()
+    if os.getenv('LOCAL_DEV'):
+        ol = OpenLibrary(base_url="http://localhost:8080")
+        ol.login("admin", "admin123")
+    else:
+        ol = OpenLibrary(base_url=servername)
+        ol.autologin()
     return ol
 
 
