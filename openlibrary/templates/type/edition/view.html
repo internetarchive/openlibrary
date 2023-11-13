@@ -207,13 +207,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
     <a id="overview-mobile" name="overview-mobile" class="section-anchor section-anchor--no-height"></a>
     $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats, for_desktop=False)
     <div class="editionCover">
-      $ share_url = request.home + (edition or work).key
-
-      $ component_times['databarWork: Modal Links'] = time()
-      $ modal_links = render_template("type/edition/modal_links", work, edition, share_url)
-      $ component_times['databarWork: Modal Links'] = time() - component_times['databarWork: Modal Links']
-
-      $:macros.databarWork(edition or work, worldcat_links, affiliate_links, editions_page=True, render_times=component_times, modal_links=modal_links)
+      $:macros.databarWork(edition or work, worldcat_links, affiliate_links, editions_page=True, render_times=component_times)
     </div>
 
     <div class="editionAbout">
