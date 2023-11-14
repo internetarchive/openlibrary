@@ -42,6 +42,12 @@ DEFAULT_IA_RESULTS = 42
 MAX_IA_RESULTS = 1000
 
 
+class PatronAccessException(Exception):
+    def __init__(self, message="Access to this item is temporarily locked."):
+        self.message = message
+        super().__init__(self.message)
+
+
 config_ia_loan_api_url = None
 config_ia_xauth_api_url = None
 config_ia_availability_api_v2_url = None
@@ -207,6 +213,11 @@ def s3_loan_api(s3_keys, ocaid=None, action='browse', **kwargs):
     data = s3_keys | kwargs
 
     response = requests.post(url + params, data=data)
+    # We want this to be just `409` but first
+    # `www/common/Lending.inc#L111-114` needs to
+    # be updated on petabox
+    if response.status_code in [400, 409]:
+        raise PatronAccessException()
     response.raise_for_status()
     return response
 

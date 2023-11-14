@@ -30,9 +30,8 @@
     "lint-fix:css": "stylelint --fix ./**/*.{less,vue}",
     "test": "npm run test:js && bundlesize",
     "test:js": "jest",
-    "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook",
-    "deploy-storybook": "storybook-to-ghpages --ci --branch=storybook"
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "devDependencies": {
     "@babel/core": "^7.22.20",
@@ -41,11 +40,9 @@
     "@babel/preset-env": "^7.22.20",
     "@babel/register": "^7.22.15",
     "@ericblade/quagga2": "^1.7.4",
-    "@storybook/addon-actions": "^7.0.0",
     "@storybook/addon-essentials": "^7.0.0",
-    "@storybook/addon-links": "^7.0.0",
-    "@storybook/storybook-deployer": "^2.8.12",
-    "@storybook/vue": "^7.0.0",
+    "@storybook/cli": "^7.0.0",
+    "@storybook/html-webpack5": "^7.0.0",
     "@vue/cli": "^5.0.8",
     "@vue/cli-plugin-babel": "^5.0.8",
     "@vue/cli-plugin-eslint": "^5.0.8",
@@ -82,6 +79,7 @@
     "regenerator-runtime": "0.13.7",
     "sinon": "14.0.0",
     "slick-carousel": "1.6.0",
+    "storybook": "^7.0.0",
     "style-loader": "2.0.0",
     "stylelint": "15.10.1",
     "stylelint-declaration-strict-value": "1.9.2",

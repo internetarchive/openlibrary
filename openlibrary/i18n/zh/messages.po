@@ -270,7 +270,7 @@ msgstr "电子邮箱"
 
 #: login.html:31
 msgid "Forgot your Internet Archive email?"
-msgstr "忘记您的Internet Archive电子邮箱？"
+msgstr "忘记您的 Internet Archive 电子邮箱？"
 
 #: account/email/forgot-ia.html:33 forms.py:20 login.html:41
 msgid "Password"
@@ -451,7 +451,7 @@ msgstr "版本已出版"
 
 #: admin/imports.html:18 publishers/view.html:44 subjects.html:49
 msgid "You need to have JavaScript turned on to see the nifty chart!"
-msgstr "您需要打开JavaScript才能看到漂亮的图表!"
+msgstr "您需要打开 JavaScript 才能看到漂亮的图表!"
 
 #: publishers/view.html:46 subjects.html:51
 msgid "Year of Publication"
@@ -2181,7 +2181,7 @@ msgstr "例如"
 
 #: books/edit/edition.html:128
 msgid "Where was the book published?"
-msgstr "这本书是哪个时候出版的？"
+msgstr "这本书是在哪里出版的？"
 
 #: books/edit/edition.html:129
 msgid "City, Country please."
@@ -2254,7 +2254,7 @@ msgstr "这个版本是用什么语言写的？"
 
 #: books/edit/edition.html:291
 msgid "Is it a translation of another book?"
-msgstr "它是另外一本书的译本吗》"
+msgstr "它是另外一本书的译本吗？"
 
 #: books/edit/edition.html:309
 msgid "Yes, it's a translation"
@@ -4180,11 +4180,11 @@ msgstr "同步 Archive.org ID"
 
 #: type/edition/admin_bar.html:25
 msgid "View Book on Archive.org"
-msgstr "查看Archive.org上的书籍"
+msgstr "查看 Archive.org 上的书籍"
 
 #: type/edition/admin_bar.html:28
 msgid "Orphaned Edition"
-msgstr "孤儿版本"
+msgstr "孤立版本"
 
 #: type/edition/publisher_line.html:11
 msgid "This edition was published"
@@ -4267,7 +4267,7 @@ msgstr "由%(authorlink)s添加。"
 
 #: type/edition/view.html:311 type/work/view.html:311
 msgid "added anonymously."
-msgstr "匿名添加。"
+msgstr "由匿名用户添加。"
 
 #: type/edition/view.html:319 type/work/view.html:319
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
@@ -4978,7 +4978,7 @@ msgstr "搜索附近的图书馆"
 
 #: WorldcatLink.html:13
 msgid "Check WorldCat for an edition near you"
-msgstr "在WorldCat上搜索您附近的书籍版本"
+msgstr "在 WorldCat 上搜索您附近的书籍版本"
 
 #: daisy.html:10
 msgid "Encrypted daisy download for authorized print-disabled patrons"
@@ -5016,7 +5016,7 @@ msgstr "上一次由%(author_link)s编辑"
 
 #: databarHistory.html:18 databarView.html:24
 msgid "Last edited anonymously"
-msgstr "上一次由匿名编辑"
+msgstr "上一次由匿名用户编辑"
 
 #: databarWork.html:85
 msgid "Buy this book"
@@ -5029,7 +5029,7 @@ msgstr "%(donor)s慷慨捐赠了这本书"
 
 #: databarWork.html:106
 msgid "This book was generously donated anonymously"
-msgstr "匿名慷慨捐赠了这本书"
+msgstr "匿名用户慷慨捐赠了这本书"
 
 #: databarWork.html:111
 msgid "Learn more about Book Sponsorship"

@@ -143,7 +143,7 @@ export default class SelectionManager {
                     if (action.href) {
                         this.ile.$actions.append($(`<a target="_blank" href="${action.href(this.getOlidsFromSelectionList(items))}">${action.name}</a>`));
                     } else if (action.onclick && action.name === 'Tag Works') {
-                        this.ile.$actions.append($(`<a id="tag_multiple_works">${action.name}</a>`).on('click', () => action.onclick(this.getOlidsFromSelectionList(items))));
+                        this.ile.$actions.append($(`<a href="javascript:;">${action.name}</a>`).on('click', () => action.onclick(this.getOlidsFromSelectionList(items))));
                     }
             }
         }
@@ -197,7 +197,8 @@ export default class SelectionManager {
             from: (from ? from[0] : null),
             items: this.getOlidsFromSelectionList(items)
         };
-        ev.dataTransfer.setData('text', JSON.stringify(data));
+        ev.dataTransfer.setData('text/plain', JSON.stringify(data));
+        ev.dataTransfer.setData('application/x.ile+json', JSON.stringify(data));
     }
 
     dragEnd() {
@@ -210,16 +211,18 @@ export default class SelectionManager {
     onDrop(ev) {
         ev.preventDefault();
         const handler = this.getHandler();
-        const data = JSON.parse(ev.dataTransfer.getData('text'));
+        const data = JSON.parse(ev.dataTransfer.getData('application/x.ile+json'));
         handler.ondrop(data);
+        document.getElementById('test-body-mobile').classList.remove('ile-drag-over');
     }
 
     /**
      * @param {DragEvent} ev
      */
     allowDrop(ev) {
+        if (!ev.dataTransfer?.types.includes('application/x.ile+json') || $('.ile-selected').length) return;
         const handler = this.getHandler();
-        if ($('.ile-selected').length || !handler) return;
+        if (!handler) return;
 
         ev.preventDefault();
         this.ile.setStatusText(handler.message);

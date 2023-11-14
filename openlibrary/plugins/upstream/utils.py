@@ -288,9 +288,7 @@ def unflatten(d: Storage, separator: str = "--") -> Storage:
             k, k2 = k.split(separator, 1)
             setvalue(data.setdefault(k, {}), k2, v)
         else:
-            # Don't overwrite if the key already exists
-            if k not in data:
-                data[k] = v
+            data[k] = v
 
     def makelist(d):
         """Convert d into a list if all the keys of d are integers."""
@@ -1313,24 +1311,6 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
 
     # Fall back to making the input a list returning that and an empty location.
     return ([], [loc_pub.strip(STRIP_CHARS)])
-
-
-@cache.memoize(engine="memcache", key="edu_domains", expires=0)
-def get_edu_domains() -> list[str]:
-    """
-    This list created using this gist: https://gist.github.com/jimchamp/f67ef14c3bcf11593f393ee5288f6476 on
-    https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json.
-
-    See: https://github.com/internetarchive/openlibrary/issues/8180
-    """
-    p = Path(Path.cwd(), 'static', 'edu-domains.txt')
-
-    results = []
-    with p.open() as f:
-        for line in f:
-            results.append(line.strip())
-
-    return results
 
 
 def setup() -> None:

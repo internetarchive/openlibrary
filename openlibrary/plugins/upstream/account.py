@@ -25,8 +25,6 @@ from openlibrary.core import stats
 from openlibrary.core import helpers as h, lending
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.core.helpers import days_since
-from openlibrary.core.lending import s3_loan_api
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.recaptcha import recaptcha
@@ -255,9 +253,10 @@ class account_create(delegate.page):
 
     def get_recap(self):
         if self.is_plugin_enabled('recaptcha'):
-            public_key = config.plugin_recaptcha.public_key
-            private_key = config.plugin_recaptcha.private_key
-            return recaptcha.Recaptcha(public_key, private_key)
+            public_key = config.plugin_invisible_recaptcha.public_key
+            private_key = config.plugin_invisible_recaptcha.private_key
+            if public_key and private_key:
+                return recaptcha.Recaptcha(public_key, private_key)
 
     def is_plugin_enabled(self, name):
         return (
@@ -406,10 +405,6 @@ class account_login(delegate.page):
         )
         ol_account = OpenLibraryAccount.get(email=email)
 
-        # Don't overwrite the cookie, which will contain banner display preferences
-        if not web.cookies().get('se', False):
-            self.set_screener_cookie(ol_account)
-
         if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
             web.setcookie('sfw', 'yes', expires=expires)
         blacklist = [
@@ -437,45 +432,6 @@ class account_login(delegate.page):
             email=account.email,
         )
         return render.message(title, message)
-
-    def set_screener_cookie(self, account: OpenLibraryAccount):
-        if self.is_eligible_for_screener(account):
-            # `se` is "Survey eligible"
-            web.setcookie('se', '1', expires=(3600 * 24 * 30))  # Expires in 30 days
-
-    def is_eligible_for_screener(self, account: OpenLibraryAccount) -> bool:
-        # It is August 2023:
-        if (now := datetime.now()) and now.month != 9 and now.year != 2023:
-            return False
-
-        # Account must be at least 90 days old:
-        if days_since(account.creation_time()) < 90:
-            return False
-
-        # Account was created using a university's domain:
-        email = account.email
-        if not self.is_edu_domain(email):
-            return False
-
-        # Has borrowed at least three books:
-        if not self.has_borrowed_at_least(3, account.s3_keys):
-            return False
-
-        return True
-
-    def is_edu_domain(self, email: str) -> bool:
-        if not email or '@' not in email:
-            return False
-
-        domain = email.split('@')[-1]
-
-        sorted_edu_domains = utils.get_edu_domains()
-
-        return domain in sorted_edu_domains
-
-    def has_borrowed_at_least(self, amount: int, s3_keys) -> bool:
-        resp = s3_loan_api(s3_keys, action='user_borrow_history', limit=amount).json()
-        return len(resp) == amount
 
 
 class account_verify(delegate.page):

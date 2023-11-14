@@ -27,7 +27,7 @@ class bulk_tag_works(delegate.page):
     path = "/tags/bulk_tag_works"
 
     def POST(self):
-        i = web.input(work_ids='', tag_subjects='[]')
+        i = web.input(work_ids='', tag_subjects='{}')
         works = i.work_ids.split(',')
         incoming_subjects = json.loads(i.tag_subjects)
         docs_to_update = []
