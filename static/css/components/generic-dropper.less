@@ -8,6 +8,10 @@
   }
 }
 
+.btn-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .generic-dropper {
   position: absolute;
   width: 100%;
@@ -26,9 +30,13 @@
       color: @dark-grey;
       background-color: @lightest-grey;
     }
-
+    .generic-dropper__actions {
+      display: flex;
+    }
     .generic-dropper__primary {
       flex: 1;
+      overflow: hidden;
+      white-space: nowrap;
       margin: auto;
       height: inherit;
 
