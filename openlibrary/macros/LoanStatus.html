@@ -8,7 +8,7 @@ $# * secondary_action - whether to display elements (e.g. preview, searhc inside
 $#     on just e.g. editions page or within search results, editions table, etc
 $# * check_sponsorship - whether to check if the book is eligible for sponsorship
 $# * sponsorship_help - whether to show the sponsorship help text
-$# * check_loan_status - whether to check the user's loan status to determine read button
+$# * check_loan_stSatus - whether to check the user's loan status to determine read button
 
 $ loanstatus_start_time = time()
 
@@ -113,8 +113,11 @@ $elif ocaid and availability.get('is_previewable') and book_provider.short_name 
       $:macros.BookSearchInside(ocaid)
 
 $else:
-  $:macros.NotInLibrary(work_key)
-
+  $# We assume that we are on the Book Page if secondary_action is true  
+  $ key = doc.key if is_edition else work_key
+  $ is_rendering_hyperlink = not secondary_action
+  $:macros.NotInLibrary(key, is_rendering_hyperlink)
+  
 $:post
 
 $if query_param('debug'):
