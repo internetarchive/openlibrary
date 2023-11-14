@@ -355,17 +355,17 @@ function closeDialog(workOlid) {
 function showDateView(workOlid, year, month, day) {
     let date = year
     if (month) {
-        if(month.length<2){
+        if (month.length<2){
             month= month.padStart(2, '0')
             date+= `-${month}`
-        }else{
+        } else {
             date += `-${month}`
         }
         if (day) {
-            if(day.length<2){
+            if (day.length<2){
                 day= day.padStart(2, '0')
                 date+= `-${day}`
-            }else{
+            } else {
                 date += `-${day}`
             }
         }
