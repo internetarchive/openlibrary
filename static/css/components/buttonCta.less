@@ -45,6 +45,10 @@ a.cta-btn {
     text-decoration: none;
   }
 
+  &--no-pointer {
+    cursor:default;
+  }
+
   &--available, &--preview, &--primary {
     background-color: @primary-blue;
     color: @white;
@@ -114,10 +118,6 @@ a.cta-btn {
     border: 2px solid @link-blue;
     background-color: @link-blue;
     color: @white;
-  }
-
-  &--no-pointer {
-    cursor:default;
   }
 
   &__badge {
