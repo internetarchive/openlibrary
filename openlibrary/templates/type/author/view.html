@@ -148,7 +148,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                          $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper = use_my_books_droppers)
                     </ul>
                 </div>
-                
+
                 $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books.num_found)
         </div>
     </div>
