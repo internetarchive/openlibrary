@@ -18,7 +18,6 @@ $var title: $_('Authors')
 	    </p>
 	</form>
 	<ul class="authorList">
-
         $for doc in results.docs:
             $ name = doc['name']
             $ work_count = doc['work_count']
@@ -37,6 +36,5 @@ $var title: $_('Authors')
                 $:_('including <i>%(topwork)s</i>', topwork=doc.get('top_work', ''))
             </span>
             </li>
-            
         </ul>
 </div>
