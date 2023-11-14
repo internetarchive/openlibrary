@@ -88,10 +88,22 @@ div.editionAbout {
   }
 }
 
-.book-description{
-  font-size: .9em;
+textarea[name="edition--notes"] + h3 + .wmd-preview,
+.edition-notes,
+textarea[name="work--description"] + h3 + .wmd-preview,
+.book-description {
+  font-size: .8rem;
   margin-top: 5px;
   margin-bottom: 20px;
+
+  ul, ol {
+    padding-left: 2rem;
+
+    li {
+      list-style-type: initial;
+      font-size: .8rem;
+    }
+  }
 }
 
 .checkboxes label {

@@ -379,7 +379,9 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
                 <h3 class="edition-header">$_("Edition Notes")
                 </h3>
                 $if edition.notes:
+                    <div class="edition-notes">
                     $:format(edition.notes)
+                    </div>
                 <dl class="meta">
                     $:display_value(_("Series"), edition.series)
                     $:display_value(_("Volume"), edition.volume)
