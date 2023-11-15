@@ -1,4 +1,4 @@
 #!/bin/bash
 
 python --version
-scripts/manage_imports.py --config "$OL_CONFIG" import-all
+scripts/manage-imports.py --config "$OL_CONFIG" import-all

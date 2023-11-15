@@ -7,7 +7,7 @@ import os
 import sys
 import time
 
-import scripts._init_path  # Imported for its side effect of setting PYTHONPATH
+import _init_path  # Imported for its side effect of setting PYTHONPATH
 import web
 
 from openlibrary.api import OLError, OpenLibrary
@@ -84,7 +84,7 @@ def import_ocaids(*ocaids, **kwargs):
     Usage:
         $ sudo -u openlibrary \
             HOME=/home/openlibrary OPENLIBRARY_RCFILE=/olsystem/etc/olrc-importbot \
-            python scripts/manage_imports.py \
+            python scripts/manage-imports.py \
                 --config /olsystem/etc/openlibrary.yml \
                 import-all
     """
