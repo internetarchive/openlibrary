@@ -14,13 +14,14 @@ import web
 
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import public, render_template
+from infogami.utils.view import public, render_template, add_flash_message
 from infogami.infobase.utils import parse_datetime
 
 from openlibrary.core import stats
 from openlibrary.core import lending
 from openlibrary.core import vendors
 from openlibrary.core import waitinglist
+from openlibrary.i18n import gettext as _
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary import accounts
 from openlibrary.utils import dateutil
@@ -188,6 +189,9 @@ class borrow(delegate.page):
                 stats.increment('ol.loans.%s' % borrow_access)
             except lending.PatronAccessException as e:
                 stats.increment('ol.loans.blocked')
+
+                add_flash_message('error', _('Unable to complete borrow action. Please try again later.'))
+                raise web.seeother(key)
 
         if action in ('borrow', 'browse', 'read'):
             bookPath = '/stream/' + edition.ocaid
