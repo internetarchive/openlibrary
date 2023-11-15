@@ -370,7 +370,7 @@ class Edition(Thing):
                 return f"https://archive.org/download/{self.ocaid}/{filename}"
 
     @classmethod
-    def from_isbn(cls, isbn: str, retry: bool = False) -> "Edition | None":  # type: ignore[return]
+    def from_isbn(cls, isbn: str) -> "Edition | None":  # type: ignore[return]
         """
         Attempts to fetch an edition by ISBN, or if no edition is found, then
         check the import_item table for a match, then as a last result, attempt
@@ -408,7 +408,8 @@ class Edition(Thing):
             item: ImportItem = ImportItem(result[0])
 
             try:
-                from openlibrary.plugins.importapi.code import parse_data  # avoid circular import.
+                # Avoids a circular import issue.
+                from openlibrary.plugins.importapi.code import parse_data
 
                 edition, _ = parse_data(item.data.encode('utf-8'))
                 if edition:
