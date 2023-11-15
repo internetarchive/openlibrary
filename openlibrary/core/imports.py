@@ -1,7 +1,8 @@
 """Interface to import queue.
 """
 from collections import defaultdict
-from typing import Any
+from collections.abc import Iterable
+from typing import Any, Final
 
 import logging
 import datetime
@@ -10,6 +11,7 @@ import web
 import json
 
 from psycopg2.errors import UndefinedTable, UniqueViolation
+from web.db import ResultSet
 
 from . import db
 
@@ -17,6 +19,8 @@ import contextlib
 from openlibrary.core import cache
 
 logger = logging.getLogger("openlibrary.imports")
+
+STAGED_SOURCES: Final = ('amazon', 'idb')
 
 
 class Batch(web.storage):
@@ -112,6 +116,27 @@ class ImportItem(web.storage):
             return map(ImportItem, result)
 
         return None
+
+    @staticmethod
+    def find_staged_or_pending(identifiers: list[str], sources: Iterable[str] = STAGED_SOURCES) -> ResultSet:
+        """
+        Find staged or pending items in import_item matching the ia_id identifiers.
+
+        Given a list of ISBNs as identifiers, creates list of `ia_ids` and
+        queries the import_item table for them.
+
+        Generated `ia_ids` have the form `{source}:{identifier}` for each `source`
+        in `sources` and `identifier` in `identifiers`.
+        """
+        ia_ids = [f"{source}:{identifier}" for identifier in identifiers for source in sources]
+
+        query = (
+            "SELECT * "
+            "FROM import_item "
+            "WHERE status IN ('staged', 'pending') "
+            "AND ia_id IN $ia_ids"
+        )
+        return db.query(query, vars={'ia_ids': ia_ids})
 
     @staticmethod
     def find_by_identifier(identifier):
