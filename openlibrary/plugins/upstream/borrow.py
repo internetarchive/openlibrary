@@ -190,7 +190,10 @@ class borrow(delegate.page):
             except lending.PatronAccessException as e:
                 stats.increment('ol.loans.blocked')
 
-                add_flash_message('error', _('Unable to complete borrow action. Please try again later.'))
+                add_flash_message(
+                    'error',
+                    _('Unable to complete borrow action. Please try again later.'),
+                )
                 raise web.seeother(key)
 
         if action in ('borrow', 'browse', 'read'):
