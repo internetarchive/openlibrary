@@ -11,6 +11,15 @@ $def with (test=False)
       id="welcome_carousel"
       data-config="$json_encode(['#welcome_carousel', 3, 2, 2, 1, 1])"
     >
+      $ read_online_card = {
+      $    "card_title": _("Read Free Library Books Online"),
+      $    "card_body": _("Millions of books available through Controlled Digital Lending"),
+      $    "img_src": "/static/images/onboarding/read.png",
+      $    "href": "/help/faq/borrow",
+      $    "ol_link_track": "OnboardingCarouselClick|Read"
+      $ }
+      $:render_template('home/onboarding_card', read_online_card['card_title'], read_online_card['card_body'], read_online_card['img_src'], read_online_card['href'], ol_link_track=read_online_card['ol_link_track'])
+
       $ reading_goal_card = {
       $    "card_title": _("Set a Yearly Reading Goal"),
       $    "card_body": _("Learn how to set a yearly reading goal and track what you read"),
@@ -20,15 +29,6 @@ $def with (test=False)
       $    "attribution": 'Calendar by Oksana Latysheva from the Noun Project'
       $ }
       $:render_template('home/onboarding_card', reading_goal_card['card_title'], reading_goal_card['card_body'], reading_goal_card['img_src'], reading_goal_card['href'], ol_link_track=reading_goal_card['ol_link_track'], attribution=reading_goal_card['attribution'])
-
-      $ read_online_card = {
-      $    "card_title": _("Read Free Library Books Online"),
-      $    "card_body": _("Millions of books available through Controlled Digital Lending"),
-      $    "img_src": "/static/images/onboarding/read.png",
-      $    "href": "/help/faq/borrow",
-      $    "ol_link_track": "OnboardingCarouselClick|Read"
-      $ }
-      $:render_template('home/onboarding_card', read_online_card['card_title'], read_online_card['card_body'], read_online_card['img_src'], read_online_card['href'], ol_link_track=read_online_card['ol_link_track'])
 
       $ reading_log_card = {
       $    "card_title": _("Keep Track of your Favorite Books"),
