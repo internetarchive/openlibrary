@@ -80,19 +80,6 @@ def is_isbn_13(isbn:str):
     return isbn and isbn[0].isdigit()
 
 
-def get_jit_candidates(import_records:list[dict]) -> list[str]:
-    id_prefixes = ['idb', 'amazon']
-
-    results = []
-
-    for record in import_records:
-        isbn = record.get('ISBN') or ' '
-        if is_isbn_13(isbn):
-            results += [f'{prefix}:{isbn}' for prefix in id_prefixes]
-
-    return results
-
-
 def batch_import(promise_id, batch_size=1000):
     url = "https://archive.org/download/"
     date = promise_id.split("_")[-1]
@@ -100,7 +87,7 @@ def batch_import(promise_id, batch_size=1000):
     batch = Batch.find(promise_id) or Batch.new(promise_id)
     olbooks = [map_book_to_olbook(book, promise_id) for book in books]
     # Find just-in-time import candidates:
-    jit_candidates = get_jit_candidates(books)
+    jit_candidates = [book['isbn_13'][0] for book in olbooks if book.get('isbn_13', [])]
     ImportItem.bulk_mark_pending(jit_candidates)
     batch_items = [{'ia_id': b['local_id'][0], 'data': b} for b in olbooks]
     for i in range(0, len(batch_items), batch_size):
