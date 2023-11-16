@@ -765,11 +765,12 @@ def load_data(
 def normalize_import_record(rec: dict) -> None:
     """
     Normalize the import record by:
-        - Verifying required fields
-        - Ensuring source_records is a list
-        - Splitting subtitles out of the title field
-        - Cleaning all ISBN and LCCN fields ('bibids'), and
-        - Deduplicate authors.
+        - Verifying required fields;
+        - Ensuring source_records is a list;
+        - Splitting subtitles out of the title field;
+        - Cleaning all ISBN and LCCN fields ('bibids');
+        - Deduplicate authors; and
+        - Remove throw-away data used for validation.
 
         NOTE: This function modifies the passed-in rec in place.
     """
@@ -800,6 +801,17 @@ def normalize_import_record(rec: dict) -> None:
 
     # deduplicate authors
     rec['authors'] = uniq(rec.get('authors', []), dicthash)
+
+    # Validation by parse_data(), prior to calling load(), requires facially
+    # valid publishers, authors, and publish_date. If data are unavailable, we
+    # provide throw-away data which validates. We use ["????"] as an override,
+    # but this must be removed prior to import.
+    if rec.get('publishers') == ["????"]:
+        rec.pop('publishers')
+    if rec.get('authors') == [{"name": "????"}]:
+        rec.pop('authors')
+    if rec.get('publish_date') == "????":
+        rec.pop('publish_date')
 
 
 def validate_record(rec: dict) -> None:

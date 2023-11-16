@@ -118,7 +118,9 @@ class ImportItem(web.storage):
         return None
 
     @staticmethod
-    def find_staged_or_pending(identifiers: list[str], sources: Iterable[str] = STAGED_SOURCES) -> ResultSet:
+    def find_staged_or_pending(
+        identifiers: list[str], sources: Iterable[str] = STAGED_SOURCES
+    ) -> ResultSet:
         """
         Find staged or pending items in import_item matching the ia_id identifiers.
 
@@ -128,7 +130,9 @@ class ImportItem(web.storage):
         Generated `ia_ids` have the form `{source}:{identifier}` for each `source`
         in `sources` and `identifier` in `identifiers`.
         """
-        ia_ids = [f"{source}:{identifier}" for identifier in identifiers for source in sources]
+        ia_ids = [
+            f"{source}:{identifier}" for identifier in identifiers for source in sources
+        ]
 
         query = (
             "SELECT * "
