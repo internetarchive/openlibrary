@@ -37,7 +37,10 @@ export function renderBulkTagger() {
         </div>
         <div class="subjects-search-results"></div>
         <input name="work_ids" value="" type="hidden">
-        <input name="tag_subjects" value="" type="hidden">
+
+        <input name="tags_to_add" value="" type="hidden">
+        <input name="tags_to_remove" value="" type="hidden">
+
         <div class="create-new-subject-tag"></div>
         <div class="selected-tag-subjects"></div>
         <div class="submit-tags-section">
@@ -95,13 +98,19 @@ export class BulkTagger {
          * Reference to input which holds the subjects to be batch added.
          * @member {HTMLInputElement}
          */
-        this.hiddenSubjectInput = bulkTagger.querySelector('input[name=tag_subjects]')
+        this.addSubjectsInput = bulkTagger.querySelector('input[name=tags_to_add]')
+
+        /**
+         * Input which contains the subjects to be batch removed.
+         * @member {HTMLInputElement}
+         */
+        this.removeSubjectsInput = bulkTagger.querySelector('input[name=tags_to_remove]')
 
         /**
          * Reference to hidden input which holds a comma-separated list of work OLIDs
          * @member {HTMLInputElement}
          */
-        this.hiddenWorksInput = bulkTagger.querySelector('input[name=work_ids]')
+        this.selectedWorksInput = bulkTagger.querySelector('input[name=work_ids]')
 
         /**
          * @typedef {Object} SubjectEntry
@@ -164,7 +173,7 @@ export class BulkTagger {
      * @param {Array<String>} workIds
      */
     updateWorks(workIds) {
-        this.hiddenWorksInput.value = workIds.join(',')
+        this.selectedWorksInput.value = workIds.join(',')
 
         this.fetchMissingSubjects(workIds)
     }
@@ -219,7 +228,7 @@ export class BulkTagger {
                     if (data['docs'].length !== 0) {
                         data['docs']
                             .forEach(result => {
-                                const isSelected = this.hiddenSubjectInput.value.includes(result.name);
+                                const isSelected = this.addSubjectsInput.value.includes(result.name);
                                 this.createSearchResult(result.name, result['subject_type'], result['work_count'], isSelected);
                             });
                     }
@@ -310,7 +319,7 @@ export class BulkTagger {
     handleSelectSubject(name, rawSubjectType) {
         const subjectType = subjectTypeMapping[rawSubjectType]
 
-        const existingSubjects = JSON.parse(this.hiddenSubjectInput.value === '' ? '{}' : this.hiddenSubjectInput.value);
+        const existingSubjects = JSON.parse(this.addSubjectsInput.value === '' ? '{}' : this.addSubjectsInput.value);
         existingSubjects[subjectType] = existingSubjects[subjectType] || [];
 
         // The same subject can be added twice by:
@@ -332,7 +341,7 @@ export class BulkTagger {
 
             this.selectedTagsContainer.appendChild(newTag);
 
-            this.hiddenSubjectInput.setAttribute('value', JSON.stringify(existingSubjects));
+            this.addSubjectsInput.setAttribute('value', JSON.stringify(existingSubjects));
         }
     }
 
@@ -344,14 +353,14 @@ export class BulkTagger {
      * @param {HTMLElement} tagElement
      */
     handleRemoveSubject(name, subjectType, tagElement) {
-        const existingSubjects = JSON.parse(this.hiddenSubjectInput.value === '' ? '{}' : this.hiddenSubjectInput.value);
+        const existingSubjects = JSON.parse(this.addSubjectsInput.value === '' ? '{}' : this.addSubjectsInput.value);
         existingSubjects[subjectType] = existingSubjects[subjectType] || [];
 
         existingSubjects[subjectType] = existingSubjects[subjectType].filter((subject) => subject !== name);
 
         tagElement.remove();
 
-        this.hiddenSubjectInput.setAttribute('value', JSON.stringify(existingSubjects));
+        this.addSubjectsInput.setAttribute('value', JSON.stringify(existingSubjects));
     }
 
     /**
@@ -381,7 +390,8 @@ export class BulkTagger {
      */
     resetTaggingMenu() {
         this.searchInput.value = ''
-        this.hiddenSubjectInput.value = ''
+        this.addSubjectsInput.value = ''
+        this.removeSubjectsInput.value = ''
         this.resultsContainer.innerHTML = ''
         this.createSubjectContainer.innerHTML = ''
         this.selectedTagsContainer.innerHTML = ''
