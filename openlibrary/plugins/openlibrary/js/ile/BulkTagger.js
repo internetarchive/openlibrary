@@ -22,6 +22,31 @@ const subjectTypeMapping = {
 }
 
 /**
+ * Returns the HMTL for the Bulk Tagger component.
+ *
+ * @returns HTML for the bulk tagging form
+ */
+export function renderBulkTagger() {
+    return `<form action="/tags/bulk_tag_works" method="post" class="bulk-tagging-form">
+        <div class="form-header">
+            <p>Manage Subjects</p>
+            <div class="close-bulk-tagging-form">x</div>
+        </div>
+        <div class="search-subject-container">
+            <input type="text" class="subjects-search-input" placeholder='Filter subjects e.g. Epic'>
+        </div>
+        <div class="subjects-search-results"></div>
+        <input name="work_ids" value="" type="hidden">
+        <input name="tag_subjects" value="" type="hidden">
+        <div class="create-new-subject-tag"></div>
+        <div class="selected-tag-subjects"></div>
+        <div class="submit-tags-section">
+            <button type="submit" class="bulk-tagging-submit">Submit</button>
+        </div>
+    </form>`
+}
+
+/**
  * Represents the Bulk Tagger tool.
  *
  * The Bulk Tagger tool allows librarians to add or remove subjects in batches.
@@ -70,13 +95,13 @@ export class BulkTagger {
          * Reference to input which holds the subjects to be batch added.
          * @member {HTMLInputElement}
          */
-        this.hiddenSubjectInput = bulkTagger.querySelector('.tag-subjects')
+        this.hiddenSubjectInput = bulkTagger.querySelector('input[name=tag_subjects]')
 
         /**
          * Reference to hidden input which holds a comma-separated list of work OLIDs
          * @member {HTMLInputElement}
          */
-        this.hiddenWorksInput = bulkTagger.querySelector('.tag-work-ids')
+        this.hiddenWorksInput = bulkTagger.querySelector('input[name=work_ids]')
 
         /**
          * @typedef {Object} SubjectEntry

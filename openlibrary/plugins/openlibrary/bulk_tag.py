@@ -5,25 +5,6 @@ import web
 import json
 
 
-class tags_partials(delegate.page):
-    path = "/tags/partials"
-    encoding = "json"
-
-    def GET(self):
-        # `work_ids` is a comma-separated list of work OLIDs
-        i = web.input(work_ids='')
-
-        works = i.work_ids
-
-        tagging_menu = render_template('subjects/tagging_menu', works)
-
-        partials = {
-            'tagging_menu': str(tagging_menu),
-        }
-
-        return delegate.RawText(json.dumps(partials))
-
-
 class bulk_tag_works(delegate.page):
     path = "/tags/bulk_tag_works"
 

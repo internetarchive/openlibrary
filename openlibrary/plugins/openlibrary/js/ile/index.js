@@ -1,6 +1,6 @@
 // @ts-check
 import SelectionManager from './utils/SelectionManager/SelectionManager.js';
-import { BulkTagger } from './BulkTagger.js';
+import { BulkTagger, renderBulkTagger } from './BulkTagger.js';
 
 export function init() {
     const ile = new IntegratedLibrarianEnvironment();
@@ -37,7 +37,7 @@ export class IntegratedLibrarianEnvironment {
         // Add the ILE toolbar to bottom of screen
         $(document.body).append(this.$toolbar.hide());
         this.selectionManager.init();
-        this.bulkTagger = this.fetchBulkTagger()
+        this.createBulkTagger()
     }
 
     /** @param {string} text */
@@ -60,24 +60,16 @@ export class IntegratedLibrarianEnvironment {
     }
 
     /**
-     * Fetches bulk tagger HTML and sets this.bulkTagger.
+     * Creates a new Bulk Tagger component and attaches it to the DOM.
+     *
+     * Sets the value of `IntegratedLibrarianEnvironment.bulkTagger`
      */
-    fetchBulkTagger() {
-        $.ajax({
-            url: '/tags/partials.json',
-            type: 'GET',
-            dataType: 'json',
-            success: (response) => {
-                if (response) {
-                    const target = this.$hiddenForms[0]
-                    target.style.display = 'block';
-                    target.innerHTML += response['tagging_menu']  // Will this append an error page?
-                    const bulkTaggerElem = document.querySelector('.bulk-tagging-form');
-                    this.bulkTagger = new BulkTagger(bulkTaggerElem)
-                    this.bulkTagger.initialize()
-                }
-            }
-        });
+    createBulkTagger() {
+        const target = this.$hiddenForms[0]
+        target.innerHTML += renderBulkTagger()
+        const bulkTaggerElem = document.querySelector('.bulk-tagging-form')
+        this.bulkTagger = new BulkTagger(bulkTaggerElem)
+        this.bulkTagger.initialize()
     }
 
     /**
