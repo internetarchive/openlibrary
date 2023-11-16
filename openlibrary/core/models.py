@@ -30,7 +30,7 @@ from . import cache, waitinglist
 
 import urllib
 
-from .ia import get_metadata_direct
+from .ia import get_metadata
 from .waitinglist import WaitingLoan
 from ..accounts import OpenLibraryAccount
 from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_url
@@ -307,10 +307,9 @@ class Edition(Thing):
         return waitinglist.get_waitinglist_for_book(self.key)
 
     @property  # type: ignore[misc]
-    @cache.method_memoize
     def ia_metadata(self):
         ocaid = self.get('ocaid')
-        return get_metadata_direct(ocaid, cache=False) if ocaid else {}
+        return get_metadata(ocaid) if ocaid else {}
 
     @property  # type: ignore[misc]
     @cache.method_memoize
