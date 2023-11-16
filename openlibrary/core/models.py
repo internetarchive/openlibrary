@@ -398,30 +398,8 @@ class Edition(Thing):
                     return web.ctx.site.get(matches[0])
 
         # Attempt to fetch the book from the import_item table
-        if result := ImportItem.find_staged_or_pending(identifiers=isbns):
-            item: ImportItem = ImportItem(result[0])
-
-            try:
-                # Avoids a circular import issue.
-                from openlibrary.plugins.importapi.code import parse_data
-
-                edition, _ = parse_data(item.data.encode('utf-8'))
-                if edition:
-                    reply = add_book.load(edition)
-                    if reply.get('success') and 'edition' in reply:
-                        edition = reply['edition']
-                        item.set_status(edition['status'], ol_key=edition['key'])  # type: ignore[index]
-                        return web.ctx.site.get(edition['key'])  # type: ignore[index]
-                    else:
-                        error_code = reply.get('error_code', 'unknown-error')
-                        item.set_status("failed", error=error_code)
-
-            except ValidationError:
-                item.set_status("failed", error="invalid-value")
-                return None
-            except Exception:  # noqa: BLE001
-                item.set_status("failed", error="unknown-error")
-                return None
+        if result := ImportItem.import_first_staged(identifiers=isbns):
+            return result
 
         # TODO: Final step - call affiliate server, with retry code migrated there.
 

@@ -2,7 +2,7 @@
 """
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final
 
 import logging
 import datetime
@@ -11,16 +11,22 @@ import web
 import json
 
 from psycopg2.errors import UndefinedTable, UniqueViolation
+from pydantic import ValidationError
 from web.db import ResultSet
+from web.utils import Storage
 
 from . import db
 
 import contextlib
+from openlibrary.catalog import add_book
 from openlibrary.core import cache
 
 logger = logging.getLogger("openlibrary.imports")
 
 STAGED_SOURCES: Final = ('amazon', 'idb')
+
+if TYPE_CHECKING:
+    from openlibrary.core.models import Edition
 
 
 class Batch(web.storage):
@@ -119,7 +125,7 @@ class ImportItem(web.storage):
 
     @staticmethod
     def find_staged_or_pending(
-        identifiers: list[str], sources: Iterable[str] = STAGED_SOURCES
+        identifiers: Iterable[str], sources: Iterable[str] = STAGED_SOURCES
     ) -> ResultSet:
         """
         Find staged or pending items in import_item matching the ia_id identifiers.
@@ -141,6 +147,79 @@ class ImportItem(web.storage):
             "AND ia_id IN $ia_ids"
         )
         return db.query(query, vars={'ia_ids': ia_ids})
+
+    @staticmethod
+    def import_first_staged(
+        identifiers: list[str], sources: Iterable[str] = STAGED_SOURCES
+    ) -> "Edition | None":
+        """
+        Import the first staged item in import_item matching the ia_id identifiers.
+
+        This changes the status of matching ia_id identifiers to prevent a
+        race condition that can result in duplicate imports.
+        """
+        ia_ids = [
+            f"{source}:{identifier}" for identifier in identifiers for source in sources
+        ]
+
+        query_start_processing = (
+            "UPDATE import_item "
+            "SET status = 'processing' "
+            "WHERE status = 'staged' "
+            "AND ia_id IN $ia_ids "
+            "RETURNING *"
+        )
+
+        # TODO: Would this be better to update by the specific ID, given
+        # we have the IDs? If this approach works generally, it could work for
+        # both `staged` and `pending` by making a dictionary of the original
+        # `status` values, and restoring all the original values, based on `id`,
+        # save for the one upon which import was tested.
+        query_finish_processing = (
+            "UPDATE import_item "
+            "SET status = 'staged' "
+            "WHERE status = 'processing' "
+            "AND ia_id IN $ia_ids"
+        )
+
+        if in_process_items := db.query(
+            query_start_processing, vars={'ia_ids': ia_ids}
+        ):
+            item: ImportItem = ImportItem(in_process_items[0])
+            try:
+                return item.single_import()
+            except Exception:  # noqa: BLE001
+                return None
+            finally:
+                db.query(query_finish_processing, vars={'ia_ids': ia_ids})
+
+        return None
+
+    def single_import(self) -> "Edition | None":
+        """Import the item using load(), swallow errors, update status, and return the Edition if any."""
+        try:
+            # Avoids a circular import issue.
+            from openlibrary.plugins.importapi.code import parse_data
+
+            edition, _ = parse_data(self.data.encode('utf-8'))
+            if edition:
+                reply = add_book.load(edition)
+                if reply.get('success') and 'edition' in reply:
+                    edition = reply['edition']
+                    self.set_status(edition['status'], ol_key=edition['key'])  # type: ignore[index]
+                    return web.ctx.site.get(edition['key'])  # type: ignore[index]
+                else:
+                    error_code = reply.get('error_code', 'unknown-error')
+                    self.set_status("failed", error=error_code)
+
+        except ValidationError:
+            self.set_status("failed", error="invalid-value")
+            return None
+        except Exception:  # noqa: BLE001
+            self.set_status("failed", error="unknown-error")
+            return None
+
+        return None
 
     @staticmethod
     def find_by_identifier(identifier):
