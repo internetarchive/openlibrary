@@ -284,7 +284,7 @@ class Edition(Thing):
 
     def is_access_restricted(self):
         collections = self.get_ia_collections()
-        return (
+        return bool(collections) and (
             'printdisabled' in collections
             or 'lendinglibrary' in collections
             or self.get_ia_meta_fields().get("access-restricted") is True
