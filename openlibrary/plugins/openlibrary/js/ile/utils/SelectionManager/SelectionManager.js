@@ -130,7 +130,7 @@ export default class SelectionManager {
 
         if (statusParts.length) {
             this.ile.setStatusText(`${statusParts.join(', ')} selected`);
-            this.ile.$selectionActions.append($('<a>Clear Selections</a>').on('click', this.clearSelectedItems));
+            this.ile.$selectionActions.append($('<a>Clear Selections</a>').on('click', () => this.ile.reset()));
         } else {
             this.ile.setStatusText('');
         }
@@ -177,10 +177,12 @@ export default class SelectionManager {
         return items;
     }
 
+    /**
+     * Removes all selected items from the browser's session storage.
+     */
     clearSelectedItems() {
         for (const type in this.selectedItems) this.selectedItems[type] = [];
         sessionStorage.setItem('ile-items', JSON.stringify(this.selectedItems));
-        this.ile.reset();
     }
 
     /**

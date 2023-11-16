@@ -54,5 +54,7 @@ export class IntegratedLibrarianEnvironment {
         this.$selectionActions.empty();
         this.$statusImages.empty();
         this.$actions.empty();
+
+        this.selectionManager.clearSelectedItems()
     }
 }
