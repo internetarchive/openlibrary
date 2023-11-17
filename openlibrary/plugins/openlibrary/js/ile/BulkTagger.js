@@ -8,10 +8,10 @@ import { FadingToast } from '../Toast'
 const maxDisplayResults = 25;
 
 const subjectTypeClasses = {
-    subject: 'subject-blue',
-    person: 'subject-purple',
-    place: 'subject-red',
-    time: 'subject-yellow'
+    subject: 'subject-type-option--subject',
+    person: 'subject-type-option--person',
+    place: 'subject-type-option--place',
+    time: 'subject-type-option--time'
 };
 
 const subjectTypeMapping = {
