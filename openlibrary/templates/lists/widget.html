@@ -39,27 +39,21 @@ $def render_widget_display(lists, limit, user_key, exclude_own_lists):
                 $:render_template('lists/list_overview', list, user_key, seed_info)
                 $ count = count + 1
 
-$def render_head(seed_type, page_lists, page_url):
-    $if seed_type == "subject":
-        <div class="head">
-          <h3>Lists</h3>
-          <div class="smallest lightgreen sansserif">$_('watch for edits or export all records')</div>
-        </div>
-    $else:
-        <div>
-          <h3 class="header">
-            <span class="icon list heart-adjust"></span>
-            $if len(page_lists) > 0:
-                $ msg = ungettext("%(count)d List", "%(count)d Lists", len(page_lists), count=len(page_lists))
-                <span class="head"><a href="$page_url/lists">$(msg)</a></span>
-            $else:
-                <span class="head">$_("Lists")</span>
-          </h3>
-        </div>
+$def render_head(page_lists, page_url):
+    <div>
+      <h3 class="header">
+        <span class="icon list heart-adjust"></span>
+        $if len(page_lists) > 0:
+            $ msg = ungettext("%(count)d List", "%(count)d Lists", len(page_lists), count=len(page_lists))
+            <span class="head"><a href="$page_url/lists">$(msg)</a></span>
+        $else:
+            <span class="head">$_("Lists")</span>
+      </h3>
+    </div>
 
 $if include_header:
   <div class="lists-widget-head">
-    $:render_head(seed_info['type'], page_lists, page_url)
+    $:render_head(page_lists, page_url)
   </div>
 
 $ default_seed_key = seed_info['seed']['key'] if isinstance(seed_info['seed'], dict) else seed_info['seed']
