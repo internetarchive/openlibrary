@@ -35,12 +35,11 @@ $code:
             ]
           },
          { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random', 'selected': selected_sort and selected_sort.startswith('random') },
-         { 'sort': 'title', 'name': _("Work Title (beta: Librarian only)"), 'ga_key': 'Title', 'show': ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians'))  },
        ]
+    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians')):
+      $ sort_options.append({ 'sort': 'title', 'name': _("Work Title (beta: Librarian only)"), 'ga_key': 'Title' })
     $for sort_option in sort_options:
       $if exclude and sort_option['sort'] in exclude:
-        $continue
-      $if not sort_option.get('show', True):
         $continue
       $ is_selected = sort_option.get('selected') or sort_option['sort'] == selected_sort or (selected_sort is None and sort_option['sort'] == default_sort)
       $if is_selected:
