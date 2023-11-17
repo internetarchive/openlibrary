@@ -383,28 +383,7 @@ jQuery(function () {
             })
     }
 
-
-
-    // "Want to Read" buttons:
-    const readingLogDroppers = document.getElementsByClassName('widget-add');
-
-    if (readingLogDroppers.length) {
-        // Async lists components:
-        const wtrLoadingIndicator = document.querySelector('.list-loading-indicator')
-        const overviewLoadingIndicator = document.querySelector('.list-overview-loading-indicator')
-        import(/* webpackChunkName: "lists" */ './lists')
-            .then((module) => {
-                if (wtrLoadingIndicator || overviewLoadingIndicator) {
-                    module.initListLoading(wtrLoadingIndicator, overviewLoadingIndicator)
-                }
-                module.initReadingLogDroppers(readingLogDroppers);
-                // Removable list items:
-                const actionableListItems = document.querySelectorAll('.actionable-item')
-                module.registerListItems(actionableListItems);
-            });
-    }
-
-    // New "My Books" dropper:
+    // My Books Droppers:
     const myBooksDroppers = document.querySelectorAll('.my-books-dropper')
     if (myBooksDroppers.length) {
         const actionableListShowcases = document.querySelectorAll('.actionable-item')

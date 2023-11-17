@@ -78,10 +78,7 @@ $if include_widget:
   $if render_once('lists/widget.i18n-strings'):
     $:i18n_input()
 
-  $if 'my_books_dropper' in ctx.features:
-    $:render_template('my_books/dropper', page, async_load=async_load)
-  $else:
-    $:macros.ReadingLogDropper(user_lists, work=work, edition_key=(edition and edition.key), key=default_seed_key, users_work_read_status=users_work_read_status, page_url=page_url, async_load=async_load)
+  $:render_template('my_books/dropper', page, async_load=async_load)
 
   $if username and show_active_lists:
     <ul class="listLists already-lists">

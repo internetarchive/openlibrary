@@ -1,5 +1,0 @@
-$def with (lists, user_key, seed_info, all_active=False)
-
-$for list in lists:
-  $if all_active or list['active']:
-    $:render_template('lists/list_overview', list, user_key, seed_info)
