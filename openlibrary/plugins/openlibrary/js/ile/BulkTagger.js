@@ -273,8 +273,6 @@ export class BulkTagger {
                     this.hideTaggingMenu()
                     this.resetTaggingMenu()
                     new FadingToast('Subjects successfully updated.').show()
-                    // Deselect search items:
-                    window.ILE.reset()
                 }
             })
     }
