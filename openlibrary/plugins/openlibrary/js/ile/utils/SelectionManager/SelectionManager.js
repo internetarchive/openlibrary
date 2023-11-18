@@ -154,8 +154,7 @@ export default class SelectionManager {
         const olid = provider.data(el);
         const img_src = this.getType(olid)?.image(olid);
 
-        if ((forceSelected === true && isCurSelected) || (forceSelected === false && !isCurSelected)) return;
-        this.setElementSelectionAttributes(el, !isCurSelected);
+        this.setElementSelectionAttributes(el, forceSelected == null ? !isCurSelected : forceSelected);
         if (isCurSelected) {
             this.removeSelectedItem(olid);
             const img_el = $('#ile-drag-status .images img').toArray().find(el => el.src === img_src);
