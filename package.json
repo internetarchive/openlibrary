@@ -84,6 +84,7 @@
     "stylelint": "15.10.1",
     "stylelint-declaration-strict-value": "1.9.2",
     "svgo": "2.3.1",
+    "swagger-ui": "^5.9.3",
     "tesseract.js": "4.1.1",
     "vue": "^2.7.0",
     "vue-async-computed": "3.9.0",

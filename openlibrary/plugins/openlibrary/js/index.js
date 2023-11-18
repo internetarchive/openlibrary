@@ -547,4 +547,10 @@ jQuery(function () {
             .then(module => module.initBreadcrumbSelect(crumbs));
     }
 
+    const swaggerUiElement = document.getElementById('swagger-ui');
+    if (swaggerUiElement.length) {
+        import(/* webpackChunkName: "swagger" */ './swagger.js')
+            .then(module => module.initializeSwaggerUI());
+    }
+
 });
