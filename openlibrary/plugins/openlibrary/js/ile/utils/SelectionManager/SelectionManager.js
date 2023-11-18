@@ -93,8 +93,9 @@ export default class SelectionManager {
         const el = clickEvent.currentTarget;
         if (clickEvent.shiftKey && this.lastClicked)
         {
-            this.clearTextSelection();
-            const siblingSet = this.getSiblingSet(el);
+            // clear selection ranges created by shift-clicking since they're not suppressed by preventDefault().
+            clearTextSelection();
+            const siblingSet = this.getSelectableRange(el);
             const lastClickedIndex = siblingSet.index(this.lastClicked);
             const elIndex = siblingSet.index(el);
             if (lastClickedIndex > -1 && Math.abs(elIndex - lastClickedIndex) > 1) {
@@ -104,7 +105,7 @@ export default class SelectionManager {
                 } else {
                     affectedElements = siblingSet.slice(elIndex, lastClickedIndex);
                 }
-                const stateChange = el.classList.contains('ile-selected') ? false : true;
+                const stateChange = this.lastClicked.classList.contains('ile-selected') ? true : false;
                 for (const element of affectedElements) this.toggleSelected(element, stateChange);
             } else {
                 this.toggleSelected(el);
@@ -126,13 +127,18 @@ export default class SelectionManager {
      * @return {JQuery<HTMLElement>}
      */
     getSelectableRange(clicked) {
-        const lastParents = $(this.lastClicked).parents();
-        const clickedParents = $(clicked).parents();
         let commonParent = undefined;
-        for (let i = 0; i < 2 && i < lastParents.length; i++) {
-            if (clickedParents.is(lastParents[i])) {
-                commonParent = lastParents[i];
+        const curEls = { clicked, lastClicked: this.lastClicked };
+        // Only check up to 2 levels up in the tree
+        for (let i = 0; i < 2; i++) {
+            if (!curEls.clicked || !curEls.lastClicked) {
                 break;
+            } else if (curEls.clicked === curEls.lastClicked) {
+                commonParent = curEls.clicked;
+                break;
+            } else {
+                curEls.clicked = curEls.clicked.parentElement;
+                curEls.lastClicked = curEls.lastClicked.parentElement;
             }
         }
         if (commonParent) {
@@ -154,7 +160,8 @@ export default class SelectionManager {
         const olid = provider.data(el);
         const img_src = this.getType(olid)?.image(olid);
 
-        this.setElementSelectionAttributes(el, forceSelected == null ? !isCurSelected : forceSelected);
+        if (isCurSelected === forceSelected) return;
+        this.setElementSelectionAttributes(el, !isCurSelected);
         if (isCurSelected) {
             this.removeSelectedItem(olid);
             const img_el = $('#ile-drag-status .images img').toArray().find(el => el.src === img_src);
@@ -164,15 +171,6 @@ export default class SelectionManager {
             this.ile.$statusImages.append(`<li><img title="${olid}" src="${img_src}"/></li>`);
         }
 
-    }
-
-    /**
-     * Cross-browser approach to clear any text selections. Needed to clear selection ranges
-     * created by shift-clicking since they're not suppressed by preventDefault().
-     */
-    clearTextSelection() {
-        const selection = window.getSelection ? window.getSelection() : document.selection ? document.selection : null;
-        if (!!selection) selection.empty ? selection.empty() : selection.removeAllRanges();
     }
 
     setElementSelectionAttributes(el, selected) {
@@ -320,6 +318,13 @@ export default class SelectionManager {
     }
 }
 
+/**
+ * Cross-browser approach to clear any text selections.
+ */
+function clearTextSelection() {
+    const selection = window.getSelection ? window.getSelection() : document.selection ? document.selection : null;
+    if (!!selection) selection.empty ? selection.empty() : selection.removeAllRanges();
+}
 
 /**
  * Drop handlers define patterns for how certain drops should be handled.
