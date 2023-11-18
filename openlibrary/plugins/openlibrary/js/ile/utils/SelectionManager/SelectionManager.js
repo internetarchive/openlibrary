@@ -125,7 +125,7 @@ export default class SelectionManager {
      * @param {HTMLElement} clicked
      * @return {JQuery<HTMLElement>}
      */
-    getSiblingSet(clicked) {
+    getSelectableRange(clicked) {
         const lastParents = $(this.lastClicked).parents();
         const clickedParents = $(clicked).parents();
         let commonParent = undefined;
