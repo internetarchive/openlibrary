@@ -123,6 +123,7 @@ export default class SelectionManager {
      * clicked element and generating a set of siblings from that information
      *
      * @param {HTMLElement} clicked
+     * @return {JQuery<HTMLElement>}
      */
     getSiblingSet(clicked) {
         const lastParents = $(this.lastClicked).parents();
