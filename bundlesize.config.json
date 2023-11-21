@@ -69,10 +69,6 @@
       "maxSize": "5KB"
     },
     {
-      "path": "static/build/lists.*.js",
-      "maxSize": "8KB"
-    },
-    {
       "path": "static/build/all.js",
       "maxSize": "130KB"
     },

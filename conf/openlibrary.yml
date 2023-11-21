@@ -73,7 +73,6 @@ features:
     support: admin
     undo: enabled
     upstream: enabled
-    my_books_dropper: enabled
 
 upstream_to_www_migration: true
 default_template_root: /upstream

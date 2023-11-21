@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, reading_log=None, show_librarian_extras=False, include_dropper=False, blur=False)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, show_librarian_extras=False, include_dropper=False, blur=False)
 
 $code:
   max_rendered_authors = 9
@@ -127,9 +127,6 @@ $code:
           $ selected_ed['availability'] = selected_ed.get('availability', {}) or doc.get('availability', {}) or availability or {}
           $:macros.LoanStatus(selected_ed, work_key=doc.key)
       </div>
-
-      $if reading_log:
-        $:reading_log
 
       $if include_dropper:
         $ edition_key = None
