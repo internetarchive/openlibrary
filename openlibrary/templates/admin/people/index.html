@@ -1,4 +1,4 @@
-$def with (email=None)
+$def with (email=None, ia_id=None)
 
 $var title: [Admin Center] People
 
@@ -16,7 +16,8 @@ $var title: [Admin Center] People
 .user-search td {
     font-size: 1.0em !important;
 }
-input#email {
+input#email,
+input#ia-id {
     padding: 3px;
     width: 400px;
 }
@@ -33,6 +34,19 @@ input#email {
                 <span class="invalid" htmlfor="email" generated="true">
                     $if email:
                         No account found with this email.
+                </span>
+            </form>
+        </td>
+    </tr>
+    <tr>
+        <td>$_("IA ID:")</td>
+        <td>
+            <form method="GET" name="form-ia-id">
+                <input type="text" name="ia_id" id="ia-id" value="$ia_id">
+                <button type="submit">$_("Find")</button>
+                <span class="invalid">
+                    $if ia_id:
+                        $_("No account found with this ID.")
                 </span>
             </form>
         </td>
