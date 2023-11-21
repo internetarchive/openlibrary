@@ -15,7 +15,18 @@ feature_flagso: dict[str, Any] = {}
 
 class status(delegate.page):
     def GET(self):
-        return render_template("status", status_info, feature_flags)
+        prs = self.get_deployed_prs()
+        return render_template("status", status_info, feature_flags, staged=prs)
+
+    def get_deployed_prs(self):
+        """If we're on testing and the file exists, return staged PRs"""
+        import os
+
+        fp = '/openlibrary/_dev-merged.txt'
+        if os.path.exists(fp):
+            with open(fp) as r:
+                return r.read()
+        return ''
 
 
 @public

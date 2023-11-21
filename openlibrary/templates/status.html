@@ -1,4 +1,4 @@
-$def with (status = {}, flags = {})
+$def with (status = {}, flags = {}, staged='')
 $# Template entry point for /status page
 $var title: Open Library server status
 
@@ -39,7 +39,9 @@ $var title: Open Library server status
 	 </td>
        </tr>
   </table>
-
+  $if staged:
+      <h2> Staged </h2>
+      <pre>$:staged</pre>
 </div>
 
 
