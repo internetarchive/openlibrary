@@ -54,6 +54,7 @@ class WorkSearchScheme(SearchScheme):
         "isbn",
         "contributor",
         "publish_place",
+        "provider",
         "publisher",
         "first_sentence",
         "author_key",
@@ -310,6 +311,7 @@ class WorkSearchScheme(SearchScheme):
                 # Misc useful data
                 'language': 'language',
                 'publisher': 'publisher',
+                'provider': 'provider',
                 'publisher_facet': 'publisher_facet',
                 'publish_date': 'publish_date',
                 'publish_year': 'publish_year',

@@ -822,6 +822,17 @@ def build_data2(
     }
     add_field_list(doc, k, fs)
 
+    if get_solr_next():
+        add_field_list(
+            doc,
+            'provider',
+            {
+                provider
+                for ed in editions
+                for provider in EditionSolrBuilder(ed).provider
+            },
+        )
+
     add_field_list(
         doc,
         'publisher',

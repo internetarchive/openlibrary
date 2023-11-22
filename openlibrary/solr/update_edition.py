@@ -27,7 +27,8 @@ class EditionSolrBuilder:
     def __init__(self, edition: dict, ia_metadata: bp.IALiteMetadata | None = None):
         self.edition = edition
         self.ia_metadata = ia_metadata
-        self.provider = bp.get_book_provider(edition)
+        self._providers = list(bp.get_book_providers(edition))
+        self.best_provider = self._providers[0] if self._providers else None
 
     def get(self, key: str, default=None):
         return self.edition.get(key, default)
@@ -74,6 +75,10 @@ class EditionSolrBuilder:
             if m:
                 result.append(m.group(1))
         return uniq(result)
+
+    @property
+    def provider(self) -> list[str]:
+        return [p.short_name for p in self._providers]
 
     @property
     def publisher(self) -> list[str]:
@@ -163,12 +168,12 @@ class EditionSolrBuilder:
 
     @cached_property
     def ebook_access(self) -> bp.EbookAccess:
-        if not self.provider:
+        if not self.best_provider:
             return bp.EbookAccess.NO_EBOOK
-        elif isinstance(self.provider, bp.InternetArchiveProvider):
-            return self.provider.get_access(self.edition, self.ia_metadata)
+        elif isinstance(self.best_provider, bp.InternetArchiveProvider):
+            return self.best_provider.get_access(self.edition, self.ia_metadata)
         else:
-            return self.provider.get_access(self.edition)
+            return self.best_provider.get_access(self.edition)
 
     @property
     def has_fulltext(self) -> bool:
@@ -187,6 +192,8 @@ def build_edition_data(
     Build the solr document for the given edition to store as a nested
     document
     """
+    from openlibrary.solr.update_work import get_solr_next
+
     ed = EditionSolrBuilder(edition, ia_metadata)
     solr_doc: SolrDocument = cast(
         SolrDocument,
@@ -200,6 +207,7 @@ def build_edition_data(
             'cover_i': ed.cover_i,
             'language': ed.languages,
             # Misc useful data
+            **({'provider': ed.provider} if get_solr_next() else {}),
             'publisher': ed.publisher,
             'publish_date': [ed.publish_date] if ed.publish_date else None,
             'publish_year': [ed.publish_year] if ed.publish_year else None,
