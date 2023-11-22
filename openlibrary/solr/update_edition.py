@@ -191,6 +191,8 @@ def build_edition_data(
     Build the solr document for the given edition to store as a nested
     document
     """
+    from openlibrary.solr.update_work import get_solr_next
+
     ed = EditionSolrBuilder(edition, ia_metadata)
     solr_doc: SolrDocument = cast(
         SolrDocument,
@@ -205,7 +207,11 @@ def build_edition_data(
             'language': ed.languages,
             # Misc useful data
             'publisher': ed.publisher,
-            'format': [ed.format] if ed.format else None,
+            **(
+                {'format': [ed.format] if ed.format else None}
+                if get_solr_next()
+                else {}
+            ),
             'publish_date': [ed.publish_date] if ed.publish_date else None,
             'publish_year': [ed.publish_year] if ed.publish_year else None,
             # Identifiers
