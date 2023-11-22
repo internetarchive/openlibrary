@@ -1,4 +1,4 @@
-$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False, check_loan_status=False, user_lists=None, post='')
+$def with (doc, is_book_page=False, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False, check_loan_status=False, user_lists=None, post='')
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
 $# * listen - whether to display listen button
@@ -116,10 +116,12 @@ $else:
   $# We assume that we are on the Book Page if secondary_action is true  
   $ key = doc.key if is_edition else work_key
   $ is_rendering_hyperlink = not secondary_action
+  $if is_rendering_hyperlink and is_book_page:
+      $ is_rendering_hyperlink = False
   $if is_rendering_hyperlink:
-      $:macros.CheckOptions(key, is_rendering_hyperlink)
+      $:macros.CheckOptions(key)
   $else:
-      $:macros.NotInLibrary(key, is_rendering_hyperlink)
+      $:macros.NotInLibrary(key)
 
   
 $:post

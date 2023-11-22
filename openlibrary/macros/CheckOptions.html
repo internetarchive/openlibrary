@@ -1,9 +1,6 @@
-$def with(key, is_rendering_hyperlink)
+$def with(key)
 
 <div class="cta-button-group">
-  $if is_rendering_hyperlink:
     <a href="$key" class="cta-btn cta-btn--available"
        data-ol-link-track="CTAClick|NotInLibrary">$_('Check Options')</a>
-  $else:
-  <p class="cta-btn cta-btn--no-pointer">$_('Not in Library')</a>    
 </div>
