@@ -130,16 +130,7 @@ class importapi:
         data = web.data()
 
         try:
-            edition, format = parse_data(data)
-            # Validation requires valid publishers and authors.
-            # If data unavailable, provide throw-away data which validates
-            # We use ["????"] as an override pattern
-            if edition.get('publishers') == ["????"]:
-                edition.pop('publishers')
-            if edition.get('authors') == [{"name": "????"}]:
-                edition.pop('authors')
-            if edition.get('publish_date') == "????":
-                edition.pop('publish_date')
+            edition, _ = parse_data(data)
 
         except DataError as e:
             return self.error(str(e), 'Failed to parse import data')

@@ -29,6 +29,8 @@
 
     .generic-dropper__primary {
       flex: 1;
+      overflow: hidden;
+      white-space: nowrap;
       margin: auto;
       height: inherit;
 
@@ -81,4 +83,8 @@
     border-top: 1px solid @lighter-grey;
     position: absolute;
   }
+}
+.book-progress-btn {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

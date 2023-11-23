@@ -1475,3 +1475,38 @@ class TestNormalizeImportRecord:
         normalize_import_record(rec=rec)
         result = 'publish_date' in rec
         assert result == expected
+
+    @pytest.mark.parametrize(
+        'rec, expected',
+        [
+            (
+                {
+                    'title': 'first title',
+                    'source_records': ['ia:someid'],
+                    'publishers': ['????'],
+                    'authors': [{'name': '????'}],
+                    'publish_date': '????',
+                },
+                {'title': 'first title', 'source_records': ['ia:someid']},
+            ),
+            (
+                {
+                    'title': 'second title',
+                    'source_records': ['ia:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                    'publish_date': '2000',
+                },
+                {
+                    'title': 'second title',
+                    'source_records': ['ia:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                    'publish_date': '2000',
+                },
+            ),
+        ],
+    )
+    def test_dummy_data_to_satisfy_parse_data_is_removed(self, rec, expected):
+        normalize_import_record(rec=rec)
+        assert rec == expected

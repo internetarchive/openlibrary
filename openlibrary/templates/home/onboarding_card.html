@@ -1,0 +1,33 @@
+$def with (card_title, card_body, img_src, href, ol_link_track=None, attribution=None)
+
+$# Template for our onboarding carousel cards.
+$#
+$# card_title     : str : Short heading for the card
+$# card_body      : str : Body text for the card
+$# img_src        : str : `src` of the card's image
+$# href           : str : `href` for the card
+$# ol_link_track  : str : Event name for analytics
+$# attribution    : str : Attribution for the image used in the card
+
+$ data_ol_link_track = ''
+$if ol_link_track:
+  $ data_ol_link_track = 'data-ol-link-track=%s' % ol_link_track
+
+<div class="carousel__item tutorial__item">
+  <a
+    href="$href"
+    tabindex="0"
+    $data_ol_link_track
+  >
+    <img src="$img_src"
+      $# Could not set attribution in the same way as data_ol_link_track, because
+      $# every other string in `attribution` became an attribute for this element.
+      $if attribution:
+        data-attribution="$attribution"
+    >
+    <div class="card__text">
+      <p>$card_title</p>
+      <p class="small">$card_body</p>
+    </div>
+  </a>
+</div>
