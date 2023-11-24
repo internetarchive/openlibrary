@@ -712,7 +712,7 @@ class Work(models.Work):
         :param list[str] keys: ensure keys included in fetched editions
         """
         db_query = {"type": "/type/edition", "works": self.key}
-        db_query['limit'] = limit or 10000
+        db_query['limit'] = limit or 10000  # type: ignore[assignment]
 
         edition_keys = []
         if ebooks_only:
@@ -800,6 +800,8 @@ class SubjectPerson(Subject):
 
 
 class User(models.User):
+    displayname: str | None
+
     def get_name(self):
         return self.displayname or self.key.split('/')[-1]
 
