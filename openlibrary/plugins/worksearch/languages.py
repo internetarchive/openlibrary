@@ -120,12 +120,13 @@ class LanguageEngine(subjects.SubjectEngine):
 
 
 def setup():
-    d = web.storage(
-        name="language",
-        key="languages",
-        prefix="/languages/",
-        facet="language",
-        facet_key="language",
-        engine=LanguageEngine,
+    subjects.SUBJECTS.append(
+        subjects.SubjectMeta(
+            name="language",
+            key="languages",
+            prefix="/languages/",
+            facet="language",
+            facet_key="language",
+            engine=LanguageEngine,
+        )
     )
-    subjects.SUBJECTS.append(d)

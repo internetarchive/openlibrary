@@ -1,5 +1,6 @@
 """Subject pages.
 """
+from dataclasses import dataclass
 import web
 import json
 import datetime
@@ -14,31 +15,42 @@ from openlibrary.solr.query_utils import query_dict_to_str
 from openlibrary.utils import str_to_key, finddict
 
 
-__all__ = ["SubjectEngine", "get_subject"]
+__all__ = ["SubjectEngine", "get_subject", "SubjectMeta"]
+
+
+@dataclass
+class SubjectMeta:
+    name: str
+    key: str
+    prefix: str
+    facet: str
+    facet_key: str
+    engine: type['SubjectEngine'] | None = None
+
 
 SUBJECTS = [
-    web.storage(
+    SubjectMeta(
         name="person",
         key="people",
         prefix="/subjects/person:",
         facet="person_facet",
         facet_key="person_key",
     ),
-    web.storage(
+    SubjectMeta(
         name="place",
         key="places",
         prefix="/subjects/place:",
         facet="place_facet",
         facet_key="place_key",
     ),
-    web.storage(
+    SubjectMeta(
         name="time",
         key="times",
         prefix="/subjects/time:",
         facet="time_facet",
         facet_key="time_key",
     ),
-    web.storage(
+    SubjectMeta(
         name="subject",
         key="subjects",
         prefix="/subjects/",
@@ -218,7 +230,7 @@ def get_subject(
     def create_engine():
         for d in SUBJECTS:
             if key.startswith(d.prefix):
-                Engine = d.get("engine") or SubjectEngine
+                Engine = d.engine or SubjectEngine
                 return Engine()
         return SubjectEngine()
 
