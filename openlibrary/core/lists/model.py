@@ -15,19 +15,10 @@ from openlibrary.core.models import Image, Thing
 from openlibrary.plugins.upstream.models import Changeset
 
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.plugins.worksearch.subjects import get_subject
 import contextlib
 
 logger = logging.getLogger("openlibrary.lists.model")
-
-# this will be imported on demand to avoid circular dependency
-subjects = None
-
-
-def get_subject(key):
-    global subjects
-    if subjects is None:
-        from openlibrary.plugins.worksearch import subjects
-    return subjects.get_subject(key)
 
 
 class List(Thing):
