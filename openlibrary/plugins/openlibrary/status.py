@@ -1,4 +1,5 @@
 import datetime
+from pathlib import Path
 import socket
 import sys
 from typing import Any
@@ -15,17 +16,14 @@ feature_flagso: dict[str, Any] = {}
 
 class status(delegate.page):
     def GET(self):
-        prs = self.get_deployed_prs()
-        return render_template("status", status_info, feature_flags, staged=prs)
+        staged_prs = self.get_staged_prs()
+        return render_template("status", status_info, feature_flags, staged=staged_prs)
 
-    def get_deployed_prs(self):
+    def get_staged_prs(self):
         """If we're on testing and the file exists, return staged PRs"""
-        import os
-
-        fp = '/openlibrary/_dev-merged.txt'
-        if os.path.exists(fp):
-            with open(fp) as r:
-                return r.read()
+        fp = Path('./_dev-merged.txt')
+        if fp.exists():
+            return fp.read_text()
         return ''
 
 
