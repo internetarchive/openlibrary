@@ -127,6 +127,6 @@ def setup():
             prefix="/languages/",
             facet="language",
             facet_key="language",
-            engine=LanguageEngine,
+            Engine=LanguageEngine,
         )
     )

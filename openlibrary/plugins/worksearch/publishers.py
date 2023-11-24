@@ -110,6 +110,6 @@ def setup():
             prefix="/publishers/",
             facet="publisher_facet",
             facet_key="publisher_facet",
-            engine=PublisherEngine,
+            Engine=PublisherEngine,
         )
     )
