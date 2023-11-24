@@ -1,5 +1,8 @@
+from dataclasses import dataclass
 import datetime
+import functools
 from pathlib import Path
+import re
 import socket
 import sys
 from typing import Any
@@ -16,15 +19,73 @@ feature_flagso: dict[str, Any] = {}
 
 class status(delegate.page):
     def GET(self):
-        staged_prs = self.get_staged_prs()
-        return render_template("status", status_info, feature_flags, staged=staged_prs)
+        return render_template(
+            "status",
+            status_info,
+            feature_flags,
+            dev_merged_status=self.get_dev_merged_status(),
+        )
 
-    def get_staged_prs(self):
+    # @functools.cache
+    def get_dev_merged_status(self):
+        return DevMergedStatus.from_file()
+
+
+@dataclass
+class DevMergedStatus:
+    git_status: str
+    pr_statuses: 'list[PRStatus]'
+    footer: str
+
+    @staticmethod
+    def from_output(output: str) -> 'DevMergedStatus':
+        dev_merged_pieces = output.split('\n---\n')
+        return DevMergedStatus(
+            git_status=dev_merged_pieces[0],
+            pr_statuses=list(map(PRStatus.from_output, dev_merged_pieces[1:-1])),
+            footer=dev_merged_pieces[-1],
+        )
+
+    @staticmethod
+    def from_file() -> 'DevMergedStatus | None':
         """If we're on testing and the file exists, return staged PRs"""
-        fp = Path('./_dev-merged.txt')
-        if fp.exists():
-            return fp.read_text()
-        return ''
+        fp = Path('./_dev-merged_status.txt')
+        if fp.exists() and (contents := fp.read_text()):
+            return DevMergedStatus.from_output(contents)
+        return None
+
+
+@dataclass
+class PRStatus:
+    pull_line: str
+    status: str
+    body: str
+
+    @property
+    def name(self) -> str | None:
+        if '#' in self.pull_line:
+            return self.pull_line.split(' # ')[1]
+        else:
+            return self.pull_line
+
+    @property
+    def pull_id(self) -> int | None:
+        if m := re.match(r'^origin pull/(\d+)', self.pull_line):
+            return int(m.group(1))
+        else:
+            return None
+
+    @property
+    def link(self) -> str | None:
+        if self.pull_id is not None:
+            return f'https://github.com/internetarchive/openlibrary/pull/{self.pull_id}'
+        else:
+            return None
+
+    @staticmethod
+    def from_output(output: str) -> 'PRStatus':
+        lines = output.strip().split('\n')
+        return PRStatus(pull_line=lines[0], status=lines[-1], body='\n'.join(lines[1:]))
 
 
 @public
