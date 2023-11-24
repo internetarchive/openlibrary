@@ -188,6 +188,11 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                         $if id.name in page.remote_ids:
                             $ href = id.url.replace('@@@', page.remote_ids[id.name])
                             <li>$id.label: <a itemprop="sameAs" href="$href">$page.remote_ids[id.name]</a></li>
+                            $if id.name == 'wikidata' and 'inventaire' not in page.remote_ids:
+                              <li>Inventaire.io: <a
+                                  itemprop="sameAs"
+                                  href="https://inventaire.io/entity/wd:$page.remote_ids[id.name]"
+                              >wd:$page.remote_ids[id.name]</a></li>
             </ul>
         </div>
 
