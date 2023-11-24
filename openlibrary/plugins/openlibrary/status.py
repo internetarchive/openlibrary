@@ -23,12 +23,13 @@ class status(delegate.page):
             "status",
             status_info,
             feature_flags,
-            dev_merged_status=self.get_dev_merged_status(),
+            dev_merged_status=get_dev_merged_status(),
         )
 
-    # @functools.cache
-    def get_dev_merged_status(self):
-        return DevMergedStatus.from_file()
+
+@functools.cache
+def get_dev_merged_status():
+    return DevMergedStatus.from_file()
 
 
 @dataclass
