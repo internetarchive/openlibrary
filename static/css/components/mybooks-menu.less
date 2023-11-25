@@ -60,6 +60,9 @@
   ul li:not(.section-header) a {
     display: block;
     padding: 4px 15px;
+    white-space: nowrap;
+    overflow: hidden; 
+    text-overflow: ellipsis;
 
     @media (pointer: coarse) {
       padding: 8px 15px;
@@ -68,6 +71,9 @@
     /* stylelint-disable selector-max-specificity */
     &.selected {
       padding: 4px 11px;
+      white-space: nowrap;
+      overflow: hidden; 
+      text-overflow: ellipsis;
     }
     /* stylelint-enable selector-max-specificity */
   }
