@@ -32,7 +32,7 @@ describe('SelectionManager', () => {
         const { listItem, ctaDiv } = createTestElementsForToggleSelected();
 
         ctaDiv.addEventListener('click', () => {
-            sm.toggleSelected({ target: ctaDiv, currentTarget: listItem });
+            sm.processClick({ target: ctaDiv, currentTarget: listItem });
         });
 
         expect(listItem.classList.contains('ile-selected')).toBe(false);
@@ -49,7 +49,7 @@ describe('SelectionManager', () => {
         const { listItem } = createTestElementsForToggleSelected();
 
         listItem.addEventListener('click', () => {
-            sm.toggleSelected({ target: listItem, currentTarget: listItem });
+            sm.processClick({ target: listItem, currentTarget: listItem });
         });
 
         expect(listItem.classList.contains('ile-selected')).toBe(false);
