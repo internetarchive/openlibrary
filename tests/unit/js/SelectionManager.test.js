@@ -26,4 +26,38 @@ describe('SelectionManager', () => {
             author: [],
         });
     });
+
+    test('processClick - clicking on ctaDiv', () => {
+        const sm = setupSelectionManager();
+        const { listItem, ctaDiv } = createTestElementsForToggleSelected();
+
+        ctaDiv.addEventListener('click', () => {
+            sm.toggleSelected({ target: ctaDiv, currentTarget: listItem });
+        });
+
+        expect(listItem.classList.contains('ile-selected')).toBe(false);
+        ctaDiv.click();
+        expect(listItem.classList.contains('ile-selected')).toBe(false);
+        ctaDiv.click();
+        expect(listItem.classList.contains('ile-selected')).toBe(false);
+
+        jest.clearAllMocks();
+    });
+
+    test('processClick - clicking on listItem', () => {
+        const sm = setupSelectionManager();
+        const { listItem } = createTestElementsForToggleSelected();
+
+        listItem.addEventListener('click', () => {
+            sm.toggleSelected({ target: listItem, currentTarget: listItem });
+        });
+
+        expect(listItem.classList.contains('ile-selected')).toBe(false);
+        listItem.click();
+        expect(listItem.classList.contains('ile-selected')).toBe(true);
+        listItem.click();
+        expect(listItem.classList.contains('ile-selected')).toBe(false);
+
+        jest.clearAllMocks();
+    });
 });
