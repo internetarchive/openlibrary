@@ -50,7 +50,17 @@ export function renderBulkTagger() {
             <div class="selected-tag-subjects"></div>
             <div class="subjects-search-results"></div>
         </div>
-        <div class="create-new-subject-tag"></div>
+        <div class="create-new-subject-tag">
+            <div class="search-subject-row-name search-subject-row-name-create hidden">
+                <div class="search-subject-row-name-create-p">Create new subject <strong class="subject-name"></strong> with type:</div>
+                <div class="search-subject-row-name-create-select">
+                    <div class="subject-type-option subject-type-option--subject">subject</div>
+                    <div class="subject-type-option subject-type-option--person">person</div>
+                    <div class="subject-type-option subject-type-option--place">place</div>
+                    <div class="subject-type-option subject-type-option--time">time</div>
+                </div>
+            </div>
+        </div>
         <div class="submit-tags-section">
             <button type="submit" class="bulk-tagging-submit">Submit</button>
         </div>
@@ -91,10 +101,16 @@ export class BulkTagger {
         this.resultsContainer = bulkTagger.querySelector('.subjects-search-results')
 
         /**
-         * Reference to the container which contains the affordance that creates new subjects.
+         * Reference to the element which contains the affordance that creates new subjects.
          * @member {HTMLElement}
          */
-        this.createSubjectContainer = bulkTagger.querySelector('.create-new-subject-tag')
+        this.createSubjectElem = bulkTagger.querySelector('.search-subject-row-name')
+
+        /**
+         * Element which displays the subject name within the "create new tag" affordance.
+         * @member {HTMLElement}
+         */
+        this.subjectNameElem = this.createSubjectElem.querySelector('.subject-name')
 
         /**
          * Reference to container which holds the selected subject tags.
@@ -366,44 +382,19 @@ export class BulkTagger {
                                 this.createSearchResult(result.name, result['subject_type'], result['work_count'], isSelected);
                             });
                     }
-                    this.createSubjectContainer.innerHTML = '';
-                    // create new subject option
-                    this.createNewSubjectOption(trimmedSearchTerm);
+
+                    // Update and show create subject affordance
+                    this.updateAndShowNewSubjectAffordance(trimmedSearchTerm)
                 });
+        } else {
+            // Hide create subject affordance
+            this.createSubjectElem.classList.add('hidden')
         }
     }
 
-    // XXX : Add HTML to renderBulkTagger() and remove this function
-    /**
-     * Creates, hydrates, and attaches a new "create subject" affordance.
-     *
-     * @param {String} subjectName
-     */
-    createNewSubjectOption(subjectName) {
-        const div = document.createElement('div');
-        div.className = 'search-subject-row-name';
-
-        div.className += ' search-subject-row-name-create';
-        const p = document.createElement('div');
-        p.innerHTML = `Create new subject <strong>'${subjectName}'</strong> with type:`;
-        p.className = 'search-subject-row-name-create-p';
-        div.appendChild(p);
-
-        const subjectTypeOptions = ['subject', 'person', 'place', 'time'];
-        const select = document.createElement('div');
-        select.className = 'search-subject-row-name-create-select';
-        subjectTypeOptions.forEach((option) => {
-            const optionElement = document.createElement('div');
-            optionElement.className = 'subject-type-option';
-            optionElement.textContent = option;
-            optionElement.classList.add(`subject-type-option${classTypeSuffixes[option]}`)
-            optionElement.addEventListener('click', () => this.handleSelectSubject(subjectName, option));
-
-            select.appendChild(optionElement);
-        });
-        div.appendChild(select);
-
-        this.createSubjectContainer.appendChild(div)
+    updateAndShowNewSubjectAffordance(subjectName) {
+        this.subjectNameElem.innerText = subjectName
+        this.createSubjectElem.classList.remove('hidden')
     }
 
     /**
@@ -564,8 +555,9 @@ export class BulkTagger {
         this.addSubjectsInput.value = ''
         this.removeSubjectsInput.value = ''
         this.resultsContainer.innerHTML = ''
-        this.createSubjectContainer.innerHTML = ''
         this.selectedTagsContainer.innerHTML = ''
+
+        this.createSubjectElem.classList.add('hidden')
     }
 }
 
