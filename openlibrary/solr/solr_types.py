@@ -41,6 +41,7 @@ class SolrDocument(TypedDict):
     contributor: Optional[list[str]]
     publish_place: Optional[list[str]]
     publisher: Optional[list[str]]
+    format: Optional[list[str]]
     publisher_facet: Optional[list[str]]
     first_sentence: Optional[list[str]]
     author_key: Optional[list[str]]

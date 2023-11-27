@@ -170,6 +170,7 @@
     <field name="contributor" type="text_general" multiValued="true"/>
     <field name="publish_place" type="text_en_splitting" multiValued="true"/>
     <field name="publisher" type="text_en_splitting" multiValued="true"/>
+    <field name="format" type="text_en_splitting" multiValued="true"/>
     <field name="publisher_facet" type="string" stored="false" multiValued="true"/>
     <field name="first_sentence" type="text_en_splitting" multiValued="true"/>
     <field name="author_key" type="string" multiValued="true"/>
