@@ -228,7 +228,9 @@ class ImportItem(web.storage):
             return ImportItem(result[0])
 
     @staticmethod
-    def bulk_mark_pending(identifiers : list[str], sources : Iterable[str] = STAGED_SOURCES):
+    def bulk_mark_pending(
+        identifiers: list[str], sources: Iterable[str] = STAGED_SOURCES
+    ):
         """
         Given a list of ISBNs, creates list of `ia_ids` and queries the import_item
         table the `ia_ids`.

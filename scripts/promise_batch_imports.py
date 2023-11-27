@@ -47,11 +47,7 @@ def map_book_to_olbook(book, promise_id):
         'local_id': [f"urn:bwbsku:{sku}"],
         'identifiers': {
             **({'amazon': [book.get('ASIN')]} if not asin_is_isbn_10 else {}),
-            **(
-                {'better_world_books': [isbn]}
-                if not is_isbn_13(isbn)
-                else {}
-            ),
+            **({'better_world_books': [isbn]} if not is_isbn_13(isbn) else {}),
         },
         **({'isbn_13': [isbn]} if is_isbn_13(isbn) else {}),
         **({'isbn_10': [book.get('ASIN')]} if asin_is_isbn_10 else {}),
@@ -71,7 +67,7 @@ def map_book_to_olbook(book, promise_id):
     return olbook
 
 
-def is_isbn_13(isbn:str):
+def is_isbn_13(isbn: str):
     """
     Naive check for ISBN-13 identifiers.
 
