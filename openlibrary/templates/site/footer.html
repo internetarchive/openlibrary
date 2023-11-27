@@ -43,11 +43,6 @@ $if show_ol_shell:
 <!-- Passes total_time for analytics to ol.analytics.js -->
 <div class="analytics-stats-time-calculator" data-time="$total_time"></div>
 
-$if any([path in request.canonical_url for path in ['/account/create', '/books/add', '/edit', '/books', '/contact']]):
-    <!-- Must be loaded in Sign Up and Add new Books page -->
-    <!-- Must be loaded for all edit pages having link /books/*/*/edit -->
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-
 <!-- clear the window.q and setup the jQuery plugins -->
 <script>
 \$( function () {
