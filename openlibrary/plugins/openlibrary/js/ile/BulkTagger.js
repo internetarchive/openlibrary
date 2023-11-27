@@ -405,35 +405,19 @@ export class BulkTagger {
      * @param {Number} workCount Number of works that are tagged with this subject.
      */
     createSearchResult(subjectName, subjectType, workCount) {
-        const div = document.createElement('div');
-        div.className = 'search-subject-row';
+        const workCountString = workCount > 999 ? 'works: 999+' : `works: ${workCount}`
+        const div = document.createElement('div')
+        div.classList.add('search-subject-row')
 
-        const name = document.createElement('div');
-        name.className = 'search-subject-row-name';
-        name.innerText = subjectName;
-        div.appendChild(name);
+        const markup = `<div class="search-subject-row-name">${subjectName}</div>
+        <div class="search-subject-row-subject-info">
+            <div class="search-subject-type subject-type-option${classTypeSuffixes[subjectType]}">${subjectType}</div>
+            <div class="search-subject-work-count">${workCountString}</div>
+        </div>`
 
-        const subjectInfoDiv = document.createElement('div');
-        subjectInfoDiv.className = 'search-subject-row-subject-info';
-        const tag = document.createElement('div');
-        tag.innerText = subjectType;
-        tag.className = 'search-subject-type';
-        tag.classList.add(`subject-type-option${classTypeSuffixes[subjectType]}`);
-        subjectInfoDiv.appendChild(tag);
-
-        const workCountDiv = document.createElement('div');
-        if (workCount > 1000) {
-            workCountDiv.innerText = 'works: 1000+';
-        } else {
-            workCountDiv.innerText = `works: ${workCount}`;
-        }
-        workCountDiv.className = 'search-subject-work-count';
-        subjectInfoDiv.appendChild(workCountDiv);
-
-        div.appendChild(subjectInfoDiv);
-        div.addEventListener('click', () => this.handleSelectSubject(subjectName, subjectType));
-
-        this.resultsContainer.appendChild(div);
+        div.innerHTML = markup
+        div.addEventListener('click', () => this.handleSelectSubject(subjectName, subjectType))
+        this.resultsContainer.appendChild(div)
     }
 
     /**
