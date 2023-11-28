@@ -114,6 +114,8 @@ $elif ocaid and availability.get('is_previewable') and book_provider.short_name 
 
 $else:
   $# We assume that we are on the Book Page if secondary_action is true  
+  $# TODO: Clean up these conditional checks once I verify it works
+  $# The second 'else' after if is_edition checking to see if I can use 'is_edition' for table button logic
   $ key = doc.key if is_edition else work_key
   $ is_rendering_hyperlink = not secondary_action
   $if is_rendering_hyperlink and is_book_page:
@@ -121,7 +123,10 @@ $else:
   $if is_rendering_hyperlink:
       $:macros.CheckOptions(key)
   $else:
+    $if is_edition:
       $:macros.NotInLibrary(key)
+    $else:
+      $:macros.CheckOptions(key) 
 
   
 $:post
