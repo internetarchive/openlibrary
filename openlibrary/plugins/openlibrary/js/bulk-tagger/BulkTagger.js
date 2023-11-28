@@ -53,7 +53,7 @@ export class BulkTagger {
          * Reference to container that displays search results.
          * @member {HTMLElement}
          */
-        this.resultsContainer = bulkTagger.querySelector('.subjects-search-results')
+        this.searchResultsContainer = bulkTagger.querySelector('.subjects-search-results')
 
         /**
          * Reference to the element which contains the affordance that creates new subjects.
@@ -107,14 +107,18 @@ export class BulkTagger {
         this.fetchedSubjects = new Map()
 
         /**
-         * @typedef {Object} Tag
+         * @typedef {Object} SelectedTagEntry
          * @property {SelectedTag} selectedTag
          * @property {String} tagType
          * @property {String} tagName
          * @property {Number} taggedWorksCount Number of selected works which share this tag.
          */
         /**
-         * @member {Map<String, Array<Tag>>}
+         * Stores information about each selected tag.
+         *
+         * Tag names are used as keys to this map.
+         *
+         * @member {Map<String, Array<SelectedTagEntry>>}
          */
         this.selectedTags = new Map()
 
@@ -139,7 +143,8 @@ export class BulkTagger {
         // Add input listener to subject search box:
         this.searchInput.addEventListener('input', () => {
             const searchTerm = this.searchInput.value.trim();
-            debounce(this.fetchSubjects(searchTerm), 500)
+            // XXX : debounce is not working as expected here
+            debounce(this.onSearchInputChange(searchTerm), 500)
         });
 
         // Prevent redirect on batch subject submission:
@@ -177,7 +182,7 @@ export class BulkTagger {
         this.selectedWorks = workIds
         this.selectedWorksInput.value = workIds.join(',')
 
-        await this.fetchMissingSubjects(workIds)
+        await this.fetchSubjectsForWorks(workIds)
         this.updateSelectedTags()
     }
 
@@ -223,34 +228,41 @@ export class BulkTagger {
             for (const tag of arr) {
                 const allWorksTagged = tag.taggedWorksCount === this.selectedWorks.length
                 const selectedTag = new SelectedTag(tag.tagType, tag.tagName, allWorksTagged)
-                selectedTag.renderAndAttach()
-                selectedTag.selectedTag.addEventListener('click', () => {
-                    if (selectedTag.allWorksTagged) {  // Remove this tag from all selected works:
-                        // Add subject to `tags_to_remove`
-                        this.updateSubjectInput(tag.tagName, tag.tagType, this.addSubjectsInput, false)
-                        this.updateSubjectInput(tag.tagName, tag.tagType, this.removeSubjectsInput, true)
-
-                        // Remove from DOM
-                        selectedTag.remove()
-
-                        // Remove reference
-                        const selectedEntries = this.selectedTags.get(tag.tagName)
-                        const matchIndex = selectedEntries.findIndex((t) => t.tagType === tag.tagType)
-                        if (matchIndex > -1) {
-                            this.selectedTags.set(tag.tagName, selectedEntries.splice(matchIndex, 1))
-                        }
-                    } else {  // Add this tag to all selected works:
-                        // Add subject to `tags_to_add`
-                        this.updateSubjectInput(tag.tagName, tag.tagType, this.addSubjectsInput, true)
-
-                        // Update view
-                        selectedTag.updateAllWorksTagged(true)
-                    }
-                })
-
                 tag.selectedTag = selectedTag
+                selectedTag.renderAndAttach()
+                selectedTag.selectedTag.addEventListener('click', () => this.onSelectedTagClick(tag))
             }
         })
+    }
+
+    /**
+     * 
+     * @param {SelectedTagEntry} selectedTagEntry
+     */
+    onSelectedTagClick(selectedTagEntry) {
+        const selectedTag = selectedTagEntry.selectedTag
+
+        if (selectedTag.allWorksTagged) {  // Remove this tag from all selected works:
+            // Add subject to `tags_to_remove`
+            this.updateSubjectInput(selectedTagEntry.tagName, selectedTagEntry.tagType, this.addSubjectsInput, false)
+            this.updateSubjectInput(selectedTagEntry.tagName, selectedTagEntry.tagType, this.removeSubjectsInput, true)
+
+            // Remove from DOM
+            selectedTag.remove()
+
+            // Remove reference
+            const selectedEntries = this.selectedTags.get(selectedTagEntry.tagName)
+            const matchIndex = selectedEntries.findIndex((t) => t.tagType === selectedTagEntry.tagType)
+            if (matchIndex > -1) {
+                this.selectedTags.set(selectedTagEntry.tagName, selectedEntries.splice(matchIndex, 1))
+            }
+        } else {  // Add this tag to all selected works:
+            // Add subject to `tags_to_add`
+            this.updateSubjectInput(selectedTagEntry.tagName, selectedTagEntry.tagType, this.addSubjectsInput, true)
+
+            // Update view
+            selectedTag.updateAllWorksTagged(true)
+        }
     }
 
     /**
@@ -289,7 +301,7 @@ export class BulkTagger {
      * again.
      * @param {Array<String>} workIds
      */
-    async fetchMissingSubjects(workIds) {
+    async fetchSubjectsForWorks(workIds) {
         const worksWithMissingSubjects = workIds.filter(id => !this.fetchedSubjects.has(id))
 
         await Promise.all(worksWithMissingSubjects.map(async (id) => {
@@ -321,11 +333,14 @@ export class BulkTagger {
      * Performs a subject search for the given search term, and updates
      * the Bulk Tagger with the results.
      *
+     * If the given search term, when trimmed, is an empty string, this
+     * instead hides the "create subject" affordance.
+     *
      * @param {String} searchTerm
      */
-    fetchSubjects(searchTerm) {
+    onSearchInputChange(searchTerm) {
         const trimmedSearchTerm = searchTerm.trim()
-        this.resultsContainer.innerHTML = '';
+        this.searchResultsContainer.innerHTML = '';
         if (trimmedSearchTerm !== '') {
             fetch(`/search/subjects.json?q=${searchTerm}&limit=${maxDisplayResults}`)
                 .then((response) => response.json())
@@ -347,6 +362,12 @@ export class BulkTagger {
         }
     }
 
+    /**
+     * Updates the "create subject" affordance with the given subject name,
+     * and shows the affordance if it is hidden.
+     *
+     * @param {String} subjectName The name of the subject
+     */
     updateAndShowNewSubjectAffordance(subjectName) {
         this.subjectNameElem.innerText = subjectName
         this.createSubjectElem.classList.remove('hidden')
@@ -356,7 +377,7 @@ export class BulkTagger {
      * Creates, hydrates, and attaches a new search result affordance.
      *
      * @param {String} subjectName The subject's name.
-     * @param {String} subjectType The subject's type.
+     * @param {String} subjectType The subject's type. Will be displayed in UI.
      * @param {Number} workCount Number of works that are tagged with this subject.
      */
     createSearchResult(subjectName, subjectType, workCount) {
@@ -371,61 +392,48 @@ export class BulkTagger {
         </div>`
 
         div.innerHTML = markup
-        div.addEventListener('click', () => this.handleSelectSubject(subjectName, subjectType))
-        this.resultsContainer.appendChild(div)
+        const subjectTypeKey = subjectTypeMapping[subjectType]
+        div.addEventListener('click', () => {
+            this.onSelectTag(subjectName, subjectTypeKey)
+            div.remove()
+        })
+        this.searchResultsContainer.appendChild(div)
     }
 
     /**
-     * Adds subject to selected subject container and updates the batch update form.
      *
-     * @param {String} name
-     * @param {String} rawSubjectType
+     * @param {String} tagName
+     * @param {String} tagType Expected to be in snake_case form
      */
-    handleSelectSubject(name, rawSubjectType) {
-        const subjectType = subjectTypeMapping[rawSubjectType]
+    onSelectTag(tagName, tagType) {
+        // Ensure that this tag is not already selected:
+        const entryExists = this.selectedTags.has(tagName) && this.selectedTags.get(tagName).some((entry) => entry.tagType === tagType)
 
-        const existingSubjects = JSON.parse(this.addSubjectsInput.value === '' ? '{}' : this.addSubjectsInput.value);
-        existingSubjects[subjectType] = existingSubjects[subjectType] || [];
+        if (!entryExists) {
+            // Create new selected tag:
+            const selectedTag = new SelectedTag(tagType, tagName, true)
+            const selectedTagEntry = {
+                tagType: tagType,
+                tagName: tagName,
+                taggedWorksCount: this.selectedWorks.length,
+                selectedTag: selectedTag
+            }
+            if (!this.selectedTags.has(tagName)) {
+                this.selectedTags.set(tagName, [selectedTagEntry])
+            } else {
+                this.selectedTags.get(tagName).push(selectedTagEntry)
+            }
 
-        // The same subject can be added twice by:
-        // 1. Adding an existing subject
-        // 2. Creating a new subject using an existing subject's name
-        const isTagged = existingSubjects[subjectType].includes(name);
-        if (!isTagged) {  // Check for duplicate subjects
-            existingSubjects[subjectType].push(name);
+            // Update the UI:
+            selectedTag.renderAndAttach()
 
-            const newTag = document.createElement('div');
-            newTag.innerText = name;
-            newTag.className = 'new-selected-subject-tag';
-            newTag.classList.add(`subject-type-option${classTypeSuffixes[rawSubjectType]}`);
-            const removeButton = document.createElement('span');
-            removeButton.innerText = 'X';
-            removeButton.className = 'remove-selected-subject';
-            removeButton.addEventListener('click', () => this.handleRemoveSubject(name, subjectType, newTag));
-            newTag.appendChild(removeButton);
+            // Update the form inputs:
+            this.updateSubjectInput(tagName, tagType, this.addSubjectsInput, true)
+            this.updateSubjectInput(tagName, tagType, this.removeSubjectsInput, false)
 
-            this.selectedTagsContainer.appendChild(newTag);
-
-            this.addSubjectsInput.setAttribute('value', JSON.stringify(existingSubjects));
+            // Update the fetched subjects store:
+            this.updateFetchedSubjects()
         }
-    }
-
-    /**
-     * Updates batch update form and removes given tag element from the selected tags container.
-     *
-     * @param {String} name
-     * @param {String} subjectType
-     * @param {HTMLElement} tagElement
-     */
-    handleRemoveSubject(name, subjectType, tagElement) {
-        const existingSubjects = JSON.parse(this.addSubjectsInput.value === '' ? '{}' : this.addSubjectsInput.value);
-        existingSubjects[subjectType] = existingSubjects[subjectType] || [];
-
-        existingSubjects[subjectType] = existingSubjects[subjectType].filter((subject) => subject !== name);
-
-        tagElement.remove();
-
-        this.addSubjectsInput.setAttribute('value', JSON.stringify(existingSubjects));
     }
 
     /**
@@ -433,11 +441,10 @@ export class BulkTagger {
      */
     submitBatch() {
         const url = this.bulkTagger.action
-        const formData = new FormData(this.bulkTagger)
 
         fetch(url, {
             method: 'post',
-            body: formData
+            body: new FormData(this.bulkTagger)
         })
             .then(response => {
                 if (!response.ok) {
@@ -448,14 +455,19 @@ export class BulkTagger {
                     new FadingToast('Subjects successfully updated.').show()
 
                     // Update fetched subjects:
-                    const additions = JSON.parse(formData.get('tags_to_add') ? formData.get('tags_to_add') : '{}')
-                    const subtractions = JSON.parse(formData.get('tags_to_remove') ? formData.get('tags_to_remove') : '{}')
-                    this.updateFetchedSubjects(additions, subtractions)
+                    this.updateFetchedSubjects()
                 }
             })
     }
 
-    updateFetchedSubjects(addedTags, removedTags) {
+    /**
+     * Updates the data structure which contains the fetched works' subjects.
+     */
+    updateFetchedSubjects() {
+        const formData = new FormData(this.bulkTagger)
+        const addedTags = JSON.parse(formData.get('tags_to_add') ? formData.get('tags_to_add') : '{}')
+        const removedTags = JSON.parse(formData.get('tags_to_remove') ? formData.get('tags_to_remove') : '{}')
+
         for (const [key, arr] of Object.entries(addedTags)) {
             this.fetchedSubjects.forEach((entry) => {
                 if (!entry[key]) {
@@ -493,7 +505,7 @@ export class BulkTagger {
         this.searchInput.value = ''
         this.addSubjectsInput.value = ''
         this.removeSubjectsInput.value = ''
-        this.resultsContainer.innerHTML = ''
+        this.searchResultsContainer.innerHTML = ''
         this.selectedTagsContainer.innerHTML = ''
 
         this.createSubjectElem.classList.add('hidden')
