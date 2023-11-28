@@ -231,6 +231,18 @@ class yearly_reading_goal_json(delegate.page):
         return delegate.RawText(json.dumps({'status': 'ok'}))
 
 
+@public 
+def get_all_reading_goal_years():
+    user = get_current_user()
+    if not user:
+        return None
+    username = user['key'].split('/')[-1]
+    if not (data := YearlyReadingGoals.select_by_username(username)):
+        return []
+    else:
+        return [str(record["year"]) for record in data]
+
+
 @public
 def get_reading_goals(year=None):
     user = get_current_user()
@@ -243,7 +255,7 @@ def get_reading_goals(year=None):
 
     if not (data := YearlyReadingGoals.select_by_username_and_year(username, year)):
         return None
-
+    
     books_read = BookshelvesEvents.select_distinct_by_user_type_and_year(
         username, BookshelfEvent.FINISH, year
     )
