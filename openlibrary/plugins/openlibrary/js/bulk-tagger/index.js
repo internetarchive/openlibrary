@@ -24,10 +24,10 @@ export function renderBulkTagger() {
             <div class="search-subject-row-name search-subject-row-name-create hidden">
                 <div class="search-subject-row-name-create-p">Create new subject <strong class="subject-name"></strong> with type:</div>
                 <div class="search-subject-row-name-create-select">
-                    <div class="subject-type-option subject-type-option--subject">subject</div>
-                    <div class="subject-type-option subject-type-option--person">person</div>
-                    <div class="subject-type-option subject-type-option--place">place</div>
-                    <div class="subject-type-option subject-type-option--time">time</div>
+                    <div class="subject-type-option subject-type-option--subject" data-tag-type="subjects">subject</div>
+                    <div class="subject-type-option subject-type-option--person" data-tag-type="subject_people">person</div>
+                    <div class="subject-type-option subject-type-option--place" data-tag-type="subject_places">place</div>
+                    <div class="subject-type-option subject-type-option--time" data-tag-type="subject_times">time</div>
                 </div>
             </div>
         </div>

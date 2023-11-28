@@ -153,6 +153,12 @@ export class BulkTagger {
             event.preventDefault()
             this.submitBatch()
         })
+
+        // Add click listeners to "create subject" options:
+        const createSubjectButtons = this.bulkTagger.querySelectorAll('.subject-type-option')
+        for (const elem of createSubjectButtons) {
+            elem.addEventListener('click', () => this.onSelectTag(this.searchInput.value, elem.dataset.tagType))
+        }
     }
 
     /**
