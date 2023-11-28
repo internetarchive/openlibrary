@@ -1,6 +1,7 @@
 // @ts-check
 import SelectionManager from './utils/SelectionManager/SelectionManager.js';
-import { BulkTagger, renderBulkTagger } from './BulkTagger.js';
+import { renderBulkTagger } from '../bulk-tagger/index.js';
+import { BulkTagger } from '../bulk-tagger/BulkTagger.js';
 
 export function init() {
     const ile = new IntegratedLibrarianEnvironment();

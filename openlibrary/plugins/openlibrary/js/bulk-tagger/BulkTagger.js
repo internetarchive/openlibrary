@@ -2,6 +2,7 @@
  * Defines functionality related to the ILE's Bulk Tagger tool.
  * @module ile/BulkTagger
  */
+import { SelectedTag } from './BulkTagger/SelectedTag';
 import { debounce } from '../nonjquery_utils';
 import { FadingToast } from '../Toast'
 
@@ -14,57 +15,11 @@ const classTypeSuffixes = {
     time: '--time'
 }
 
-const classTypeSuffixes2 = {
-    subjects: '--subject',
-    subject_people: '--person',
-    subject_places: '--place',
-    subject_times: '--time'
-}
-
 const subjectTypeMapping = {
     subject: 'subjects',
     person: 'subject_people',
     place: 'subject_places',
     time: 'subject_times'
-}
-
-/**
- * Returns the HMTL for the Bulk Tagger component.
- *
- * @returns HTML for the bulk tagging form
- */
-export function renderBulkTagger() {
-    return `<form action="/tags/bulk_tag_works" method="post" class="bulk-tagging-form">
-        <div class="form-header">
-            <p>Manage Subjects</p>
-            <div class="close-bulk-tagging-form">x</div>
-        </div>
-        <div class="search-subject-container">
-            <input type="text" class="subjects-search-input" placeholder='Filter subjects e.g. Epic'>
-        </div>
-
-        <input name="work_ids" value="" type="hidden">
-        <input name="tags_to_add" value="" type="hidden">
-        <input name="tags_to_remove" value="" type="hidden">
-        <div class="selection-container">
-            <div class="selected-tag-subjects"></div>
-            <div class="subjects-search-results"></div>
-        </div>
-        <div class="create-new-subject-tag">
-            <div class="search-subject-row-name search-subject-row-name-create hidden">
-                <div class="search-subject-row-name-create-p">Create new subject <strong class="subject-name"></strong> with type:</div>
-                <div class="search-subject-row-name-create-select">
-                    <div class="subject-type-option subject-type-option--subject">subject</div>
-                    <div class="subject-type-option subject-type-option--person">person</div>
-                    <div class="subject-type-option subject-type-option--place">place</div>
-                    <div class="subject-type-option subject-type-option--time">time</div>
-                </div>
-            </div>
-        </div>
-        <div class="submit-tags-section">
-            <button type="submit" class="bulk-tagging-submit">Submit</button>
-        </div>
-    </form>`
 }
 
 /**
@@ -542,154 +497,5 @@ export class BulkTagger {
         this.selectedTagsContainer.innerHTML = ''
 
         this.createSubjectElem.classList.add('hidden')
-    }
-}
-
-/**
- * Affordance that displays a tag, and whether all selected works share the tag.
- *
- * Affordance has two states:
- *   1. Indeterminate : at least one, but not all, selected works share the given tag.
- *   2. All works tagged : All works have the given tag.
- *
- * Behavior on click:
- *   1. When the inital state is "Indeterminate", the subject is added to the `tags_to_add` form input. State changes to "All works tagged"
- *   2. When initial state is "All works tagged", the subject is added to the `tags_to_remove` form input. This row is removed from the DOM.
- *
- * To support bloom filtering, the visiblity of this affordance can be toggled.
- */
-class SelectedTag {
-
-    /**
-     * @param {String} tagType
-     * @param {String} tagName
-     * @param {boolean} allWorksTagged
-     */
-    constructor(tagType, tagName, allWorksTagged) {
-        /**
-         * Reference to the root element of this SelectedTag.
-         *
-         * @member {HTMLElement}
-         */
-        this.selectedTag
-
-        /**
-         * Type of the tag represented by this affordance.
-         *
-         * @member {String}
-         */
-        this.tagType = tagType
-
-        /**
-         * Name of the tag represented by this affordance.
-         *
-         * @member {String}
-         */
-        this.tagName = tagName
-
-        /**
-         * `true` if all selected works share the same tag.
-         *
-         * @member {boolean}
-         */
-        this.allWorksTagged = allWorksTagged
-
-        /**
-         * `true` if this component is visible on the page.
-         *
-         * @member {boolean}
-         */
-        this.isVisible = true
-
-        /**
-         * Reference to the root element of this SelectedTag.
-         *
-         * @member {HTMLElement}
-         */
-        this.selectedTag
-
-        /**
-         * Lowercase representation of the `tagName`.
-         *
-         * @readonly
-         * @member {String}
-         */
-        this.LOWERCASE_TAG_NAME = tagName.toLowerCase()
-    }
-
-    /**
-     * Renders a new SelectedTag, and attaches it to the DOM.
-     */
-    renderAndAttach() {
-        const parentElem = document.createElement('div')
-        parentElem.classList.add('selected-tag')
-        const markup = `<span class="selected-tag__status selected-tag__status--${this.allWorksTagged ? 'all-tagged' : 'some-tagged'}"></span>
-            <span class="selected-tag__type selected-tag__type${classTypeSuffixes2[this.tagType]}"></span>
-            <span class="selected-tag__name">${this.tagName}</span>`
-        parentElem.innerHTML = markup
-
-        const selectedTagsElem = document.querySelector('.selected-tag-subjects')
-        selectedTagsElem.prepend(parentElem)
-        this.selectedTag = parentElem
-    }
-
-    /**
-     * Removes this SelectedTag from the DOM.
-     */
-    remove() {
-        this.selectedTag.remove()
-    }
-
-    /**
-     * Updates value of `this.allWorksTagged` and updates the view.
-     *
-     * @param {boolean} allWorksTagged `true` if all selected works share this tag.
-     */
-    updateAllWorksTagged(allWorksTagged) {
-        this.allWorksTagged = allWorksTagged
-        const statusIndicator = this.selectedTag.querySelector('.selected-tag__status')
-        if (allWorksTagged) {
-            statusIndicator.classList.remove('selected-tag__status--some-tagged')
-            statusIndicator.classList.add('selected-tag__status--all-tagged')
-        } else {
-            statusIndicator.classList.remove('selected-tag__status--all-tagged')
-            statusIndicator.classList.add('selected-tag__status--some-tagged')
-        }
-    }
-
-    /**
-     * Hides this SelectedTag.
-     */
-    hide() {
-        this.selectedTag.classList.add('hidden')
-        this.isVisible = false
-    }
-
-    /**
-     * Shows this SelectedTag.
-     */
-    show() {
-        this.selectedTag.classList.remove('hidden')
-        this.isVisible = true
-    }
-
-    // XXX : Useful and needed?
-    /**
-     * Toggles visibility of this SelectedTag.
-     */
-    toggleVisibility() {
-        this.selectedTag.classList.toggle('hidden')
-        this.isVisible = !this.isVisible
-    }
-
-    /**
-     * Checks if the tag name begins with the given string when doing a case insensitive
-     * comparison.
-     *
-     * @param {String} searchString
-     * @returns {boolean} `true` if the tag name starts with the given string (case insensitive)
-     */
-    tagNameStartsWith(searchString) {
-        return this.LOWERCASE_TAG_NAME.startsWith(searchString.toLowerCase())
     }
 }
