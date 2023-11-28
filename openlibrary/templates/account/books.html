@@ -68,6 +68,10 @@ $if owners_page:
   $   (_("My Reviews"), url_prefix + "/books/observations"),
   $   (_("Imports and Exports"), "/account/import")
   $ ]
+$ already_read_url =( readlog_url % "already-read/year" ) + "%s"
+$ year_breadcrumb_select = [("All Time", (readlog_url % "already-read"))] + [(year, (already_read_url % year)) for year in get_all_reading_goal_years()]
+$ year = str(checkin_year) if checkin_year else "All Time"
+
 
 <div class="mybooks">
 
@@ -111,7 +115,11 @@ $if owners_page:
 	      &raquo;
 
 	    $else:
+              <div class="sansserif grey account-settings-menu" style="display:flex;gap:1rem;">
               $:render_template("books/breadcrumb_select", key=key, selected=header_title, options=options)
+              $if key=='already-read' and len(year_breadcrumb_select)>1:
+                $:render_template("books/breadcrumb_select", key=key, selected=year, options=year_breadcrumb_select)
+              </div>
         </div>
         <div>
           $if key in ['mybooks', 'list']:
