@@ -21,31 +21,36 @@ const classTypeSuffixes = {
 export class SelectedTag {
 
     /**
-     * @param {String} tagType
-     * @param {String} tagName
+     * @param {Tag} tag
      * @param {boolean} allWorksTagged
      */
-    constructor(tagType, tagName, allWorksTagged) {
+    constructor(tag, allWorksTagged) {
         /**
          * Reference to the root element of this SelectedTag.
          *
+         * This variable is set in the `renderAndAttach` method.
          * @member {HTMLElement}
          */
         this.selectedTag
+
+        /**
+         * @member {Tag}
+         */
+        this.tag = tag
 
         /**
          * Type of the tag represented by this affordance.
          *
          * @member {String}
          */
-        this.tagType = tagType
+        this.tagType = tag.tagType
 
         /**
          * Name of the tag represented by this affordance.
          *
          * @member {String}
          */
-        this.tagName = tagName
+        this.tagName = tag.tagName
 
         /**
          * `true` if all selected works share the same tag.
@@ -59,6 +64,7 @@ export class SelectedTag {
          *
          * @member {boolean}
          */
+        // XXX : Useful and needed?
         this.isVisible = true
 
         /**
@@ -74,7 +80,7 @@ export class SelectedTag {
          * @readonly
          * @member {String}
          */
-        this.LOWERCASE_TAG_NAME = tagName.toLowerCase()
+        this.LOWERCASE_TAG_NAME = this.tagName.toLowerCase()
     }
 
     /**
@@ -107,13 +113,15 @@ export class SelectedTag {
      */
     updateAllWorksTagged(allWorksTagged) {
         this.allWorksTagged = allWorksTagged
-        const statusIndicator = this.selectedTag.querySelector('.selected-tag__status')
-        if (allWorksTagged) {
-            statusIndicator.classList.remove('selected-tag__status--some-tagged')
-            statusIndicator.classList.add('selected-tag__status--all-tagged')
-        } else {
-            statusIndicator.classList.remove('selected-tag__status--all-tagged')
-            statusIndicator.classList.add('selected-tag__status--some-tagged')
+        if (this.selectedTag) {  // `selectedTag` not set until `renderAndAttach` is called
+            const statusIndicator = this.selectedTag.querySelector('.selected-tag__status')
+            if (allWorksTagged) {
+                statusIndicator.classList.remove('selected-tag__status--some-tagged')
+                statusIndicator.classList.add('selected-tag__status--all-tagged')
+            } else {
+                statusIndicator.classList.remove('selected-tag__status--all-tagged')
+                statusIndicator.classList.add('selected-tag__status--some-tagged')
+            }
         }
     }
 
