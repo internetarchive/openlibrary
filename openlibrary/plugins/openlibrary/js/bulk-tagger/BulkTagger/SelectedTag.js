@@ -60,14 +60,6 @@ export class SelectedTag {
         this.allWorksTagged = allWorksTagged
 
         /**
-         * `true` if this component is visible on the page.
-         *
-         * @member {boolean}
-         */
-        // XXX : Useful and needed?
-        this.isVisible = true
-
-        /**
          * Reference to the root element of this SelectedTag.
          *
          * @member {HTMLElement}
@@ -139,25 +131,5 @@ export class SelectedTag {
     show() {
         this.selectedTag.classList.remove('hidden')
         this.isVisible = true
-    }
-
-    // XXX : Useful and needed?
-    /**
-     * Toggles visibility of this SelectedTag.
-     */
-    toggleVisibility() {
-        this.selectedTag.classList.toggle('hidden')
-        this.isVisible = !this.isVisible
-    }
-
-    /**
-     * Checks if the tag name begins with the given string when doing a case insensitive
-     * comparison.
-     *
-     * @param {String} searchString
-     * @returns {boolean} `true` if the tag name starts with the given string (case insensitive)
-     */
-    tagNameStartsWith(searchString) {
-        return this.LOWERCASE_TAG_NAME.startsWith(searchString.toLowerCase())
     }
 }

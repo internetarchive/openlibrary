@@ -336,6 +336,19 @@ export class BulkTagger {
             // Hide create subject affordance
             this.createSubjectElem.classList.add('hidden')
         }
+
+        // Hide selected tags that do not begin with the search term (case-insensitive)
+        this.selectedTags.forEach((tagEntries, tagName) => {
+            if (tagName.toLowerCase().startsWith(trimmedSearchTerm.toLowerCase())) {
+                tagEntries.forEach((entry) => {
+                    entry.selectedTag.show()
+                })
+            } else {
+                tagEntries.forEach((entry) => {
+                    entry.selectedTag.hide()
+                })
+            }
+        })
     }
 
     /**
