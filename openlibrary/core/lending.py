@@ -505,6 +505,8 @@ def get_loans_of_user(user_key):
 
     loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
     loans = [Loan(d) for d in loandata] + (_get_ia_loans_of_user(account.itemname))
+    """The reason we unset the cache entry with `{}` is, in most cases when we want to fetch ground truth loans data it's because we're making an action on the book like return or borrow which affects one's loans. Therefore, we don't want to cache the response (which is pre-that-action) that comes back, instead, we unset so the action completes and the next time we visit a page that needs loans, we fetch loans from ground truth and cache that.
+    """
     get_cached_loans_of_user.memcache_set(
         user_key, {}, loans, time.time()
     )  # rehydrate cache
@@ -538,7 +540,7 @@ get_cached_user_waiting_loans = cache.memcache_memoize(
     get_user_waiting_loans,
     key_prefix='waitinglist.user_waiting_loans',
     timeout=10
-    * dateutil.MINUTE_SECS,  # time to live for cached waiting loans = 10 minutes
+    * dateutil.MINUTE_SECS,
 )
 
 
