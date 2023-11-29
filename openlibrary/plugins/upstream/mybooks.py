@@ -11,6 +11,7 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.lending import add_availability, get_loans_of_user
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.core.sponsorships import get_sponsored_editions
@@ -206,7 +207,7 @@ class MyBooksTemplate:
         self.readlog = ReadingLog(user=self.user)
         self.lists = self.readlog.lists
         self.counts = self.readlog.reading_log_counts
-
+        self.events = BookshelvesEvents
     def render(
         self,
         page=1,
@@ -284,6 +285,8 @@ class MyBooksTemplate:
             doc_count = logged_book_data.total_results
             ratings = logged_book_data.ratings
 
+        #accessing bookshelf events data for troubleshooting-- do not include in pull request without editing. 
+        
         if docs is not None:
             return render['account/books'](
                 docs=docs,
@@ -300,6 +303,7 @@ class MyBooksTemplate:
                 results_per_page=RESULTS_PER_PAGE,
                 ratings=ratings,
                 checkin_year=year,
+                events = set({event["event_date"] for event in self.events.select_all_by_username(self.username)})
             )
 
         raise web.seeother(self.user.key)
