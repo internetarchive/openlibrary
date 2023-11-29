@@ -240,7 +240,7 @@ def get_all_reading_goal_years():
     if not (data := YearlyReadingGoals.select_by_username(username)):
         return []
     else:
-        return [str(record["year"]) for record in data]
+        return [(str(record["year"]), str(record["target"])) for record in data]
 
 
 @public
