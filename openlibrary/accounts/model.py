@@ -46,18 +46,10 @@ def sendmail(to, msg, cc=None):
     cc = cc or []
     if config.get('dummy_sendmail'):
         message = (
-            ''
-            + 'To: '
-            + to
-            + '\n'
-            + 'From:'
-            + config.from_address
-            + '\n'
-            + 'Subject:'
-            + msg.subject
-            + '\n'
-            + '\n'
-            + web.safestr(msg)
+            f"To: {to}\n"
+            f"From:{config.from_address}\n"
+            f"Subject: {msg.subject}\n"
+            f"\n{web.safestr(msg)}"
         )
 
         print("sending email", message, file=web.debug)
@@ -183,7 +175,7 @@ class Account(web.storage):
         return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
 
     def get_recentchanges(self, limit=100, offset=0):
-        q = dict(author=self.get_user().key, limit=limit, offset=offset)
+        q = {"author": self.get_user().key, "limit": limit, "offset": offset}
         return web.ctx.site.recentchanges(q)
 
     def verify_password(self, password):
@@ -581,6 +573,13 @@ class OpenLibraryAccount(Account):
         web.ctx.site.store[self._key] = _ol_account
         self.s3_keys = s3_keys
 
+    def update_last_login(self):
+        _ol_account = web.ctx.site.store.get(self._key)
+        last_login = datetime.datetime.utcnow().isoformat()
+        _ol_account['last_login'] = last_login
+        web.ctx.site.store[self._key] = _ol_account
+        self.last_login = last_login
+
     @classmethod
     def authenticate(cls, email, password, test=False):
         ol_account = cls.get(email=email, test=test)
@@ -893,6 +892,7 @@ def audit_accounts(
     # web.ctx.site.login method (which requires OL credentials), and directly set an
     # auth_token to enable the user's session.
     web.ctx.conn.set_auth_token(ol_account.generate_login_code())
+    ol_account.update_last_login()
     return {
         'authenticated': True,
         'special_access': getattr(ia_account, 'has_disability_access', False),

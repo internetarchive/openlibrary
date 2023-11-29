@@ -37,11 +37,11 @@ class EditionSolrBuilder:
         return self.edition['key']
 
     @property
-    def title(self) -> Optional[str]:
+    def title(self) -> str | None:
         return self.get('title')
 
     @property
-    def subtitle(self) -> Optional[str]:
+    def subtitle(self) -> str | None:
         return self.get('subtitle')
 
     @property
@@ -60,7 +60,7 @@ class EditionSolrBuilder:
         return result
 
     @property
-    def cover_i(self) -> Optional[int]:
+    def cover_i(self) -> int | None:
         return next(
             (cover_id for cover_id in self.get('covers', []) if cover_id != -1), None
         )
@@ -83,11 +83,15 @@ class EditionSolrBuilder:
         )
 
     @property
-    def number_of_pages(self) -> Optional[int]:
-        if self.get('number_of_pages') and type(self.get('number_of_pages')) == int:
-            return cast(int, self.get('number_of_pages'))
-        else:
+    def number_of_pages(self) -> int | None:
+        try:
+            return int(self.get('number_of_pages')) or None
+        except (TypeError, ValueError):  # int(None) -> TypeErr, int("vii") -> ValueErr
             return None
+
+    @property
+    def format(self) -> str | None:
+        return self.get('physical_format')
 
     @property
     def isbn(self) -> list[str]:
@@ -106,11 +110,15 @@ class EditionSolrBuilder:
         return uniq(isbn for isbn in isbns if isbn)
 
     @property
-    def publish_date(self) -> Optional[str]:
+    def lccn(self) -> list[str]:
+        return uniq(lccn.strip() for lccn in self.get('lccn', []))
+
+    @property
+    def publish_date(self) -> str | None:
         return self.get('publish_date')
 
     @property
-    def publish_year(self) -> Optional[int]:
+    def publish_year(self) -> int | None:
         if self.publish_date:
             m = re_year.search(self.publish_date)
             return int(m.group(1)) if m else None
@@ -118,7 +126,7 @@ class EditionSolrBuilder:
             return None
 
     @property
-    def ia(self) -> Optional[str]:
+    def ia(self) -> str | None:
         ocaid = self.get('ocaid')
         return ocaid.strip() if ocaid else None
 
@@ -183,6 +191,8 @@ def build_edition_data(
     Build the solr document for the given edition to store as a nested
     document
     """
+    from openlibrary.solr.update_work import get_solr_next
+
     ed = EditionSolrBuilder(edition, ia_metadata)
     solr_doc: SolrDocument = cast(
         SolrDocument,
@@ -197,10 +207,16 @@ def build_edition_data(
             'language': ed.languages,
             # Misc useful data
             'publisher': ed.publisher,
+            **(
+                {'format': [ed.format] if ed.format else None}
+                if get_solr_next()
+                else {}
+            ),
             'publish_date': [ed.publish_date] if ed.publish_date else None,
             'publish_year': [ed.publish_year] if ed.publish_year else None,
             # Identifiers
             'isbn': ed.isbn,
+            'lccn': ed.lccn,
             **ed.identifiers,
             # IA
             'ia': [ed.ia] if ed.ia else None,

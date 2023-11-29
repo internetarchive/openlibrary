@@ -3,7 +3,6 @@
 
  * Used in templates:
  * - openlibrary/templates/type/about/edit.html
- * - openlibrary/templates/type/doc/edit.html
  * - openlibrary/templates/type/i18n/edit.html
  * - openlibrary/templates/type/macro/view.html
  * - openlibrary/templates/type/macro/edit.html
@@ -126,9 +125,11 @@ div#databar {
 }
 /* stylelint-enable selector-max-specificity */
 
-.formElement.pagetype,
-.formElement.pagetype select {
+.formElement.pagetype {
   width: 300px;
+  #type\.key {
+    width: 100%;
+  }
 }
 /* stylelint-disable selector-max-specificity */
 div#revertNotice,

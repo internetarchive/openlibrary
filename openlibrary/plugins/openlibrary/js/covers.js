@@ -2,6 +2,9 @@
  * Functionality for templates/covers
  */
 import 'jquery-ui/ui/widgets/sortable';
+import 'jquery-ui-touch-punch'; // this makes drag-to-reorder work on touch devices
+
+import { closePopup } from './utils';
 
 //cover/change.html
 export function initCoversChange() {
@@ -106,7 +109,7 @@ export function initCoversSaved() {
     const image = $('.imageSaved').data('imageId');
     var cover_url;
 
-    $('.formButtons button').on('click', parent.closePopup);
+    $('.formButtons button').on('click', closePopup);
 
     // Update the image for the cover
     if (['/type/edition', '/type/work', '/edit'].includes(doc_type_key)) {

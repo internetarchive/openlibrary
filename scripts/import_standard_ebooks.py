@@ -2,7 +2,7 @@
 import json
 import requests
 import time
-from typing import Any, Optional
+from typing import Any
 
 from os import path
 
@@ -11,7 +11,7 @@ import feedparser
 from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 from openlibrary.config import load_config
-from infogami import config  # noqa: F401
+from infogami import config
 
 FEED_URL = 'https://standardebooks.org/opds/all'
 LAST_UPDATED_TIME = './standard_ebooks_last_updated.txt'
@@ -50,7 +50,7 @@ def map_data(entry) -> dict[str, Any]:
     }
 
     if image_uris:
-        import_record['cover'] = f'{BASE_SE_URL}{list(image_uris)[0]["href"]}'
+        import_record['cover'] = f'{BASE_SE_URL}{next(iter(image_uris))["href"]}'
 
     return import_record
 
@@ -68,7 +68,7 @@ def create_batch(records: list[dict[str, str]]) -> None:
     batch.add_items([{'ia_id': r['source_records'][0], 'data': r} for r in records])
 
 
-def get_last_updated_time() -> Optional[str]:
+def get_last_updated_time() -> str | None:
     """Gets date of last import job.
 
     Last updated dates are read from a local file.  If no
@@ -85,7 +85,7 @@ def get_last_updated_time() -> Optional[str]:
     return None
 
 
-def find_last_updated() -> Optional[str]:
+def find_last_updated() -> str | None:
     """Fetches and returns Standard Ebooks most recent update date.
 
     Returns None if the last modified date is not included in the
@@ -95,7 +95,7 @@ def find_last_updated() -> Optional[str]:
     return r.headers['last-modified'] if r.ok else None
 
 
-def convert_date_string(date_string: Optional[str]) -> time.struct_time:
+def convert_date_string(date_string: str | None) -> time.struct_time:
     """Converts HTTP-date format string into a struct_time object.
 
     The date_string will be formatted similarly to this:

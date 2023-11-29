@@ -1,8 +1,14 @@
+import datetime
 import re
 from re import Match
 import web
 from unicodedata import normalize
+from openlibrary.catalog.merge.merge_marc import build_titles
 import openlibrary.catalog.merge.normalize as merge
+
+
+EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS = 1400
+BOOKSELLERS_WITH_ADDITIONAL_VALIDATION = ['amazon', 'bwb']
 
 
 def cmp(x, y):
@@ -92,11 +98,10 @@ def remove_trailing_number_dot(date):
 
 
 def remove_trailing_dot(s):
-    if s.endswith(" Dept."):
+    if s.endswith(' Dept.'):
         return s
-    m = re_end_dot.search(s)
-    if m:
-        s = s[:-1]
+    elif m := re_end_dot.search(s):
+        return s[:-1]
     return s
 
 
@@ -238,7 +243,7 @@ def strip_count(counts):
             (i, j)
         )
     ret = {}
-    for k, v in foo.items():
+    for v in foo.values():
         m = max(v, key=lambda x: len(x[1]))[0]
         bar = []
         for i, j in v:
@@ -284,3 +289,146 @@ def mk_norm(s: str) -> str:
     elif norm.startswith('a '):
         norm = norm[2:]
     return norm.replace(' ', '')
+
+
+def expand_record(rec: dict) -> dict[str, str | list[str]]:
+    """
+    Returns an expanded representation of an edition dict,
+    usable for accurate comparisons between existing and new
+    records.
+    Called from openlibrary.catalog.add_book.load()
+
+    :param dict rec: Import edition representation, requires 'full_title'
+    :return: An expanded version of an edition dict
+        more titles, normalized + short
+        all isbns in "isbn": []
+    """
+    expanded_rec = build_titles(rec['full_title'])
+    expanded_rec['isbn'] = []
+    for f in 'isbn', 'isbn_10', 'isbn_13':
+        expanded_rec['isbn'].extend(rec.get(f, []))
+    if 'publish_country' in rec and rec['publish_country'] not in (
+        '   ',
+        '|||',
+    ):
+        expanded_rec['publish_country'] = rec['publish_country']
+    for f in (
+        'lccn',
+        'publishers',
+        'publish_date',
+        'number_of_pages',
+        'authors',
+        'contribs',
+    ):
+        if f in rec:
+            expanded_rec[f] = rec[f]
+    return expanded_rec
+
+
+def get_publication_year(publish_date: str | int | None) -> int | None:
+    """
+    Return the publication year from a book in YYYY format by looking for four
+    consecutive digits not followed by another digit. If no match, return None.
+
+    >>> get_publication_year('1999-01')
+    1999
+    >>> get_publication_year('January 1, 1999')
+    1999
+    """
+    if publish_date is None:
+        return None
+
+    from openlibrary.catalog.utils import re_year
+
+    match = re_year.search(str(publish_date))
+
+    return int(match.group(0)) if match else None
+
+
+def published_in_future_year(publish_year: int) -> bool:
+    """
+    Return True if a book is published in a future year as compared to the
+    current year.
+
+    Some import sources have publication dates in a future year, and the
+    likelihood is high that this is bad data. So we don't want to import these.
+    """
+    return publish_year > datetime.datetime.now().year
+
+
+def publication_too_old_and_not_exempt(rec: dict) -> bool:
+    """
+    Returns True for books that are 'too old' per
+    EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS, but that only applies to
+    source records in BOOKSELLERS_WITH_ADDITIONAL_VALIDATION.
+
+    For sources not in BOOKSELLERS_WITH_ADDITIONAL_VALIDATION, return False,
+    as there is higher trust in their publication dates.
+    """
+
+    def source_requires_date_validation(rec: dict) -> bool:
+        return any(
+            record.split(":")[0] in BOOKSELLERS_WITH_ADDITIONAL_VALIDATION
+            for record in rec.get('source_records', [])
+        )
+
+    if (
+        publish_year := get_publication_year(rec.get('publish_date'))
+    ) and source_requires_date_validation(rec):
+        return publish_year < EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS
+
+    return False
+
+
+def is_independently_published(publishers: list[str]) -> bool:
+    """
+    Return True if the book is independently published.
+    """
+    return any(
+        publisher.casefold() == "independently published" for publisher in publishers
+    )
+
+
+def needs_isbn_and_lacks_one(rec: dict) -> bool:
+    """
+    Return True if the book is identified as requiring an ISBN.
+
+    If an ISBN is NOT required, return False. If an ISBN is required:
+        - return False if an ISBN is present (because the rec needs an ISBN and
+          has one); or
+        - return True if there's no ISBN.
+
+    This exists because certain sources do not have great records and requiring
+    an ISBN may help improve quality:
+        https://docs.google.com/document/d/1dlN9klj27HeidWn3G9GUYwDNZ2F5ORoEZnG4L-7PcgA/edit#heading=h.1t78b24dg68q
+
+    :param dict rec: an import dictionary record.
+    """
+
+    def needs_isbn(rec: dict) -> bool:
+        return any(
+            record.split(":")[0] in BOOKSELLERS_WITH_ADDITIONAL_VALIDATION
+            for record in rec.get('source_records', [])
+        )
+
+    def has_isbn(rec: dict) -> bool:
+        return any(rec.get('isbn_10', []) or rec.get('isbn_13', []))
+
+    return needs_isbn(rec) and not has_isbn(rec)
+
+
+def is_promise_item(rec: dict) -> bool:
+    """Returns True if the record is a promise item."""
+    return any(
+        record.startswith("promise:".lower())
+        for record in rec.get('source_records', "")
+    )
+
+
+def get_missing_fields(rec: dict) -> list[str]:
+    """Return missing fields, if any."""
+    required_fields = [
+        'title',
+        'source_records',
+    ]
+    return [field for field in required_fields if rec.get(field, None) is None]

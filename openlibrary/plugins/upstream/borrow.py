@@ -112,7 +112,12 @@ class borrow(delegate.page):
         """Called when the user wants to borrow the edition"""
 
         i = web.input(
-            action='borrow', format=None, ol_host=None, _autoReadAloud=None, q=""
+            action='borrow',
+            format=None,
+            ol_host=None,
+            _autoReadAloud=None,
+            q="",
+            redirect="",
         )
 
         ol_host = i.ol_host or 'openlibrary.org'
@@ -137,7 +142,7 @@ class borrow(delegate.page):
             raise web.seeother(archive_url)
 
         error_redirect = archive_url
-        edition_redirect = urllib.parse.quote(edition.url())
+        edition_redirect = urllib.parse.quote(i.redirect or edition.url())
         user = accounts.get_current_user()
 
         if user:
@@ -149,57 +154,51 @@ class borrow(delegate.page):
             )  # invalidate cache for user loans
         if not user or not ia_itemname or not s3_keys:
             web.setcookie(config.login_cookie_name, "", expires=-1)
-            redirect_url = "/account/login?redirect={}/borrow?action={}".format(
-                edition_redirect, action
+            redirect_url = (
+                f"/account/login?redirect={edition_redirect}/borrow?action={action}"
             )
             if i._autoReadAloud is not None:
                 redirect_url += '&_autoReadAloud=' + i._autoReadAloud
             raise web.seeother(redirect_url)
 
         if action == 'return':
-            lending.s3_loan_api(edition.ocaid, s3_keys, action='return_loan')
+            lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='return_loan')
             stats.increment('ol.loans.return')
             edition.update_loan_status()
             user.update_loan_status()
-            raise web.seeother(web.ctx.path)
+            raise web.seeother(edition_redirect)
         elif action == 'join-waitinglist':
             lending.get_cached_user_waiting_loans.memcache_delete(
                 user.key, {}
             )  # invalidate cache for user waiting loans
-            lending.s3_loan_api(edition.ocaid, s3_keys, action='join_waitlist')
+            lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='join_waitlist')            
             stats.increment('ol.loans.joinWaitlist')
             raise web.redirect(edition_redirect)
         elif action == 'leave-waitinglist':
             lending.get_cached_user_waiting_loans.memcache_delete(
                 user.key, {}
             )  # invalidate cache for user waiting loans
-            lending.s3_loan_api(edition.ocaid, s3_keys, action='leave_waitlist')
+            lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='leave_waitlist')
             stats.increment('ol.loans.leaveWaitlist')
             raise web.redirect(edition_redirect)
 
-        # Intercept a 'borrow' action if the user has already
-        # borrowed the book and convert to a 'read' action.
-        # Added so that direct bookreader links being routed through
-        # here can use a single action of 'borrow', regardless of
-        # whether the book has been checked out or not.
-        elif user.has_borrowed(edition):
-            action = 'read'
-
-        elif action in ('borrow', 'browse'):
+        elif action in ('borrow', 'browse') and not user.has_borrowed(edition):
             borrow_access = user_can_borrow_edition(user, edition)
 
             if not (s3_keys and borrow_access):
                 stats.increment('ol.loans.outdatedAvailabilityStatus')
                 raise web.seeother(error_redirect)
 
-            lending.s3_loan_api(
-                edition.ocaid, s3_keys, action='%s_book' % borrow_access
-            )
-            stats.increment('ol.loans.bookreader')
-            stats.increment('ol.loans.%s' % borrow_access)
-            action = 'read'
+            try:
+                lending.s3_loan_api(
+                    s3_keys, ocaid=edition.ocaid, action='%s_book' % borrow_access
+                )
+                stats.increment('ol.loans.bookreader')
+                stats.increment('ol.loans.%s' % borrow_access)
+            except lending.PatronAccessException as e:
+                stats.increment('ol.loans.blocked')
 
-        if action == 'read':
+        if action in ('borrow', 'browse', 'read'):
             bookPath = '/stream/' + edition.ocaid
             if i._autoReadAloud is not None:
                 bookPath += '?_autoReadAloud=show'

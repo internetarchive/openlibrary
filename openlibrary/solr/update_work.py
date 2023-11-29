@@ -48,7 +48,7 @@ re_year = re.compile(r'\b(\d{4})\b')
 data_provider = cast(DataProvider, None)
 
 solr_base_url = None
-solr_next: Optional[bool] = None
+solr_next: bool | None = None
 
 
 def get_solr_base_url():
@@ -187,11 +187,15 @@ def pick_cover_edition(editions, work_cover_id):
     )
 
 
-def pick_number_of_pages_median(editions: list[dict]) -> Optional[int]:
+def pick_number_of_pages_median(editions: list[dict]) -> int | None:
+    def to_int(x: Any) -> int | None:
+        try:
+            return int(x) or None
+        except (TypeError, ValueError):  # int(None) -> TypeErr, int("vii") -> ValueErr
+            return None
+
     number_of_pages = [
-        cast(int, e.get('number_of_pages'))
-        for e in editions
-        if e.get('number_of_pages') and type(e.get('number_of_pages')) == int
+        pages for e in editions if (pages := to_int(e.get('number_of_pages')))
     ]
 
     if number_of_pages:
@@ -325,7 +329,7 @@ class SolrProcessor:
                 if 'ia_box_id' in e and isinstance(e['ia_box_id'], str):
                     e['ia_box_id'] = [e['ia_box_id']]
                 if ia_meta_fields.get('boxid'):
-                    box_id = list(ia_meta_fields['boxid'])[0]
+                    box_id = next(iter(ia_meta_fields['boxid']))
                     e.setdefault('ia_box_id', [])
                     if box_id.lower() not in [x.lower() for x in e['ia_box_id']]:
                         e['ia_box_id'].append(box_id)
@@ -363,7 +367,7 @@ class SolrProcessor:
     @staticmethod
     def normalize_authors(authors) -> list[dict]:
         """
-        Need to normalize to a predictable format because of inconsitencies in data
+        Need to normalize to a predictable format because of inconsistencies in data
 
         >>> SolrProcessor.normalize_authors([
         ...     {'type': {'key': '/type/author_role'}, 'author': '/authors/OL1A'}
@@ -828,6 +832,13 @@ def build_data2(
         },
     )
 
+    if get_solr_next():
+        add_field_list(
+            doc,
+            'format',
+            {format for ed in editions if (format := EditionSolrBuilder(ed).format)},
+        )
+
     languages: list[str] = []
     ia_loaded_id = set()
     ia_box_id = set()
@@ -1014,7 +1025,7 @@ class AddRequest(SolrUpdateRequest):
         self.doc = doc
 
     def to_json_command(self):
-        return f'"{self.type}": {json.dumps(dict(doc=self.doc))}'
+        return f'"{self.type}": {json.dumps({"doc": self.doc})}'
 
     def tojson(self) -> str:
         return json.dumps(self.doc)
@@ -1241,7 +1252,7 @@ async def update_work(work: dict) -> list[SolrUpdateRequest]:
 
 async def update_author(
     akey, a=None, handle_redirects=True
-) -> Optional[list[SolrUpdateRequest]]:
+) -> list[SolrUpdateRequest] | None:
     """
     Get the Solr requests necessary to insert/update/delete an Author in Solr.
     :param akey: The author key, e.g. /authors/OL23A
@@ -1549,7 +1560,7 @@ def load_configs(
     c_host: str,
     c_config: str,
     c_data_provider: (
-        Union[DataProvider, Literal['default', 'legacy', 'external']]
+        DataProvider | Literal["default", "legacy", "external"]
     ) = 'default',
 ) -> DataProvider:
     host = web.lstrips(c_host, "http://").strip("/")

@@ -92,4 +92,4 @@ class TestMemcacheInvalidater:
                 }
             ],
         }
-        m.find_keys(changeset) == ["d/sandbox"]
+        assert m.find_keys(changeset) == ["d/sandbox"]

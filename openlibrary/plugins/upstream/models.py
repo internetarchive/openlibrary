@@ -79,7 +79,7 @@ class Edition(models.Edition):
             return self.get_ia_cover(self.ocaid, size)
 
     def get_ia_cover(self, itemid, size):
-        image_sizes = dict(S=(116, 58), M=(180, 360), L=(500, 500))
+        image_sizes = {"S": (116, 58), "M": (180, 360), "L": (500, 500)}
         w, h = image_sizes[size.upper()]
         return f"https://archive.org/download/{itemid}/page/cover_w{w}_h{h}.jpg"
 
@@ -331,7 +331,9 @@ class Edition(models.Edition):
             name, value = id['name'], id['value']
             if name == 'lccn':
                 value = normalize_lccn(value)
-            d.setdefault(name, []).append(value)
+            # `None` in this field causes errors. See #7999.
+            if value is not None:
+                d.setdefault(name, []).append(value)
 
         # clear existing value first
         for name in names:
@@ -463,8 +465,8 @@ class Edition(models.Edition):
             }
         )
 
-        if self.lccn:
-            citation['lccn'] = normalize_lccn(self.lccn[0])
+        if self.lccn and (lccn := normalize_lccn(self.lccn[0])):
+            citation['lccn'] = lccn
         if self.get('oclc_numbers'):
             citation['oclc'] = self.oclc_numbers[0]
         citation['ol'] = str(self.get_olid())[2:]
@@ -509,7 +511,7 @@ class Author(models.Author):
     def get_books(self, q=''):
         i = web.input(sort='editions', page=1, rows=20, mode="")
         try:
-            # safegaurd from passing zero/negative offsets to solr
+            # safeguard from passing zero/negative offsets to solr
             page = max(1, int(i.page))
         except ValueError:
             page = 1
@@ -1013,6 +1015,12 @@ class ListChangeset(Changeset):
         return models.Seed(self.get_list(), seed)
 
 
+class Tag(models.Tag):
+    """Class to represent /type/tag objects in Open Library."""
+
+    pass
+
+
 def setup():
     models.register_models()
 
@@ -1024,6 +1032,7 @@ def setup():
     client.register_thing_class('/type/place', SubjectPlace)
     client.register_thing_class('/type/person', SubjectPerson)
     client.register_thing_class('/type/user', User)
+    client.register_thing_class('/type/tag', Tag)
 
     client.register_changeset_class(None, Changeset)  # set the default class
     client.register_changeset_class('merge-authors', MergeAuthors)

@@ -253,9 +253,10 @@ class account_create(delegate.page):
 
     def get_recap(self):
         if self.is_plugin_enabled('recaptcha'):
-            public_key = config.plugin_recaptcha.public_key
-            private_key = config.plugin_recaptcha.private_key
-            return recaptcha.Recaptcha(public_key, private_key)
+            public_key = config.plugin_invisible_recaptcha.public_key
+            private_key = config.plugin_invisible_recaptcha.private_key
+            if public_key and private_key:
+                return recaptcha.Recaptcha(public_key, private_key)
 
     def is_plugin_enabled(self, name):
         return (
@@ -403,6 +404,7 @@ class account_login(delegate.page):
             config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
         )
         ol_account = OpenLibraryAccount.get(email=email)
+
         if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
             web.setcookie('sfw', 'yes', expires=expires)
         blacklist = [

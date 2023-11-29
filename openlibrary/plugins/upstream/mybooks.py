@@ -155,8 +155,8 @@ class readinglog_stats(delegate.page):
             for a in web.ctx.site.get_many(list(author_keys))
         ]
         return render['account/readinglog_stats'](
-            json.dumps(works_json),
-            json.dumps(authors_json),
+            works_json,
+            authors_json,
             len(works_json),
             user.key,
             user.displayname,
@@ -170,6 +170,15 @@ class readinglog_stats(delegate.page):
 def get_public_patron_account(username):
     user = web.ctx.site.get('/people/%s' % username)
     return ReadingLog(user=user)
+
+
+@public
+def get_patrons_work_read_status(username, work_key):
+    if not username:
+        return None
+    work_id = extract_numeric_id_from_olid(work_key)
+    status_id = Bookshelves.get_users_read_status_of_work(username, work_id)
+    return status_id
 
 
 class MyBooksTemplate:
@@ -479,7 +488,7 @@ class PatronBooknotes:
     """Manages the patron's book notes and observations"""
 
     def __init__(self, user):
-        user = user
+        self.user = user
         self.username = user.key.split('/')[-1]
 
     def get_notes(self, limit=RESULTS_PER_PAGE, page=1):

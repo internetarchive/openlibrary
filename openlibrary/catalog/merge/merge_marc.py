@@ -175,8 +175,8 @@ def compare_authors(e1, e2):
     Compares the authors of two edition representations and
     returns a evaluation and score.
 
-    :param dict e1: Edition, output of build_marc()
-    :param dict e2: Edition, output of build_marc()
+    :param dict e1: Edition, output of expand_record()
+    :param dict e2: Edition, output of expand_record()
     :rtype: tuple
     :return: str?, message, score
     """
@@ -306,41 +306,6 @@ def compare_publisher(e1, e2):
 
     if 'publishers' not in e1 or 'publishers' not in e2:
         return ('publisher', 'either missing', 0)
-
-
-def build_marc(edition):
-    """
-    Returns an expanded representation of an edition dict,
-    usable for accurate comparisons between existing and new
-    records.
-    Called from openlibrary.catalog.add_book.load()
-
-    :param dict edition: Import edition representation, requires 'full_title'
-    :rtype: dict
-    :return: An expanded version of an edition dict
-        more titles, normalized + short
-        all isbns in "isbn": []
-    """
-    marc = build_titles(edition['full_title'])
-    marc['isbn'] = []
-    for f in 'isbn', 'isbn_10', 'isbn_13':
-        marc['isbn'].extend(edition.get(f, []))
-    if 'publish_country' in edition and edition['publish_country'] not in (
-        '   ',
-        '|||',
-    ):
-        marc['publish_country'] = edition['publish_country']
-    for f in (
-        'lccn',
-        'publishers',
-        'publish_date',
-        'number_of_pages',
-        'authors',
-        'contribs',
-    ):
-        if f in edition:
-            marc[f] = edition[f]
-    return marc
 
 
 def attempt_merge(e1, e2, threshold, debug=False):

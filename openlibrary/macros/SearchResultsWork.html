@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, reading_log=None, show_librarian_extras=False)
+$def with (doc, decorations=None, cta=True, availability=None, extra=None, attrs=None, rating=None, show_librarian_extras=False, include_dropper=False, blur=False)
 
 $code:
   max_rendered_authors = 9
@@ -23,6 +23,12 @@ $code:
     else:
       work_edition_url = book_url
 
+  work_edition_all_url = work_edition_url
+  if '?' in work_edition_url:
+    work_edition_all_url += '&mode=all'
+  else:
+    work_edition_all_url += '?mode=all'
+
   edition_work = None
   if doc_type == 'infogami_edition' and 'works' in doc:
     edition_work = doc['works'][0]
@@ -34,7 +40,8 @@ $code:
     full_work_title = doc.get('title', '') + (': ' + doc.subtitle if doc.get('subtitle') else '')
 
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book" $:attrs>
-  <span class="bookcover">
+  $ blur_cover = "bookcover--blur" if blur else ""
+  <span class="bookcover $blur_cover">
     $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
     <a href="$work_edition_url"><img
             itemprop="image"
@@ -80,7 +87,7 @@ $code:
             $_('First published in %(year)s', year=doc.first_publish_year)
           </span>
         $if doc.get('edition_count'):
-          <a href="$work_edition_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count)</a>
+          <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count)</a>
           $if doc.get('languages'):
             <span class="languages">
               $:ungettext('in <a class="hoverlink" title="%(langs)s">%(count)d language</a>', 'in <a class="hoverlink" title="%(langs)s">%(count)d languages</a>', len(doc.languages), count=len(doc.languages), langs=commify_list([get_language_name('/languages/' + lang) for lang in doc.languages]))
@@ -88,7 +95,8 @@ $code:
           $if doc.get('ia'):
             &mdash; $_('%s previewable', len(doc.get('ia')))
             $if len(doc.get('ia')) > 1:
-              <span class="preview-covers">
+              $ blur_preview = "preview-covers--blur" if blur else ""
+              <span class="preview-covers $blur_preview">
                 $for x, i in enumerate(doc.get('ia')[1:10]):
                   <a href="$(book_url)?edition=ia:$(urlquote(i))">
                     <img width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="Cover of edition $i">
@@ -120,8 +128,16 @@ $code:
           $:macros.LoanStatus(selected_ed, work_key=doc.key)
       </div>
 
-      $if reading_log:
-        $:reading_log
+      $if include_dropper:
+        $ edition_key = None
+        $if doc_type == 'solr_edition':
+          $ edition_key = selected_ed.key
+        $elif doc_type == 'infogami_edition':
+          $ edition_key = doc.key
+        $elif doc_type == 'solr_work':
+          $ edition_key = doc.get('edition_key') and doc.get("edition_key")[0]
+          $ edition_key = '/books/%s' % edition_key
+        $:render_template('my_books/dropper', doc, edition_key=edition_key, async_load=True)
 
       $if rating:
         $:rating

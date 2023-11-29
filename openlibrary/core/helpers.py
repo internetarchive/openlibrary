@@ -2,7 +2,7 @@
 """
 import json
 import re
-from datetime import datetime
+from datetime import datetime, date
 from urllib.parse import urlsplit
 
 import web
@@ -112,6 +112,8 @@ class NothingEncoder(json.JSONEncoder):
         """
         if isinstance(obj, Nothing):
             return None
+        if isinstance(obj, date):
+            return obj.isoformat()
         return super().default(obj)
 
 

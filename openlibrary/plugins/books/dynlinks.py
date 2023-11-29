@@ -1,6 +1,5 @@
 import json
 import sys
-from typing import Optional
 from collections.abc import Hashable, Iterable, Mapping
 
 import web
@@ -12,7 +11,7 @@ from openlibrary.core import ia
 from infogami.utils.delegate import register_exception
 
 
-def split_key(bib_key: str) -> tuple[Optional[str], Optional[str]]:
+def split_key(bib_key: str) -> tuple[str | None, str | None]:
     """
     >>> split_key('1234567890')
     ('isbn_', '1234567890')
@@ -247,7 +246,7 @@ class DataProcessor:
                     label = r.get('label', '')
                     title = r.get('title', '')
                     pagenum = r.get('pagenum', '')
-                r = dict(level=level, label=label, title=title, pagenum=pagenum)
+                r = {'level': level, 'label': label, 'title': title, 'pagenum': pagenum}
                 return r
 
             d = [row(r) for r in toc]
@@ -293,7 +292,7 @@ class DataProcessor:
                 doc.get("table_of_contents", [])
             ),
             "links": [
-                dict(title=link.get("title"), url=link['url'])
+                {'title': link.get("title"), 'url': link['url']}
                 for link in w.get('links', '')
                 if link.get('url')
             ],

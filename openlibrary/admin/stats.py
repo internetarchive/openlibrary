@@ -112,7 +112,7 @@ def setup_ol_config(openlibrary_config_file):
     config.site = "openlibrary.org"
 
     infogami.load_config(openlibrary_config_file)
-    infogami.config.infobase_parameters = dict(type="ol")
+    infogami.config.infobase_parameters = {"type": "ol"}
 
     if config.get("infobase_config_file"):
         dir = os.path.dirname(openlibrary_config_file)

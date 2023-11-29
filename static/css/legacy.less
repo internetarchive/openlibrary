@@ -24,7 +24,6 @@
 @import (less) "less/mixins.less";
 @import (less) "less/z-index.less";
 
-@import (less) "legacy-borrowBookForm.less";
 @import (less) "legacy-header.less";
 @import (less) "legacy-tools.less";
 @import (less) "legacy-wmd.less";
@@ -37,9 +36,9 @@
 @import (less) "components/header.less";
 @import (less) "components/mybooks.less";
 @import (less) "components/readinglog-stats.less";
+@import (less) "components/tagging-menu.less";
 @import (less) "components/shareLinks.less";
-@import (less) "components/dropper.less";
-
+@import (less) "components/mybooks-dropper.less";
 @import (less) "components/subNav.less";
 @import (less) "components/book.less";
 
@@ -813,6 +812,10 @@ input.query {
   padding: 15px 0;
 }
 
+.searchPlus a{
+  margin-right: 20px;
+}
+
 /* DIALOGS */
 
 // openlibrary/macros/EditButtons.html
@@ -1290,30 +1293,6 @@ div.books {
   }
 }
 
-td {
-  // openlibrary/templates/type/edition/view.html
-  &.toc-label {
-    white-space: pre-wrap;
-  }
-  // openlibrary/templates/type/edition/view.html
-  &.toc-pagenum {
-    text-align: right;
-  }
-}
-
-tr {
-  &.toc-level-2 {
-    td.toc-label {
-      padding-left: 15px !important;
-    }
-  }
-  &.toc-level-3 {
-    td.toc-label {
-      padding-left: 30px !important;
-    }
-  }
-}
-
 #tabsAdd {
   // openlibrary/templates/books/edit.html
   &book {
@@ -1418,7 +1397,6 @@ ul {
 }
 
 // openlibrary/macros/WorkInfo.html
-// openlibrary/templates/account/borrow.html
 // openlibrary/templates/publishers/view.html
 // openlibrary/templates/search/authors.html
 // openlibrary/templates/search/publishers.html
@@ -1629,7 +1607,6 @@ div.narrow {
 
 div.pop {
   // openlibrary/templates/covers/add.html
-  // openlibrary/templates/books/edit/addfield.html
   &Alert {
     display: none;
     width: 550px;
@@ -1640,17 +1617,6 @@ div.pop {
     color: @red;
     text-align: center;
   }
-  // openlibrary/templates/books/edit/addfield.html
-  &Notify {
-    font-size: .6875em;
-    font-family: @lucida_sans_serif-1;
-    margin: 10px 20px;
-  }
-}
-
-// openlibrary/templates/books/edit/addfield.html
-div.addfield {
-  margin: 10px 20px;
 }
 
 // openlibrary/templates/type/edition/view.html
@@ -1906,7 +1872,6 @@ div#subjectLists {
     }
   }
   @import (less) "components/work--tablet.less";
-  @import (less) "components/dropper--tablet.less";
   @import (less) "components/edit-toolbar--tablet.less";
 }
 

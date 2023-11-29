@@ -1,14 +1,23 @@
 import pytest
+from datetime import datetime, timedelta
 from openlibrary.catalog.utils import (
     author_dates_match,
+    expand_record,
     flip_name,
-    pick_first_date,
-    pick_best_name,
-    pick_best_author,
+    get_missing_fields,
+    get_publication_year,
+    is_independently_published,
+    is_promise_item,
     match_with_bad_chars,
     mk_norm,
-    strip_count,
+    needs_isbn_and_lacks_one,
+    pick_best_author,
+    pick_best_name,
+    pick_first_date,
+    publication_too_old_and_not_exempt,
+    published_in_future_year,
     remove_trailing_dot,
+    strip_count,
 )
 
 
@@ -209,3 +218,227 @@ mk_norm_matches = [
 @pytest.mark.parametrize('a,b', mk_norm_matches)
 def test_mk_norm_equality(a, b):
     assert mk_norm(a) == mk_norm(b)
+
+
+valid_edition = {
+    'title': 'A test title (parens)',
+    'full_title': 'A test full title : subtitle (parens).',  # required, and set by add_book.load()
+    'source_records': ['ia:test-source'],
+}
+
+
+def test_expand_record():
+    # used in openlibrary.catalog.add_book.load()
+    # when trying to find an existing edition match
+    edition = valid_edition.copy()
+    expanded_record = expand_record(edition)
+    assert isinstance(expanded_record['titles'], list)
+    assert expanded_record['titles'] == [
+        'A test full title : subtitle (parens).',
+        'a test full title subtitle (parens)',
+        'test full title : subtitle (parens).',
+        'test full title subtitle (parens)',
+    ]
+    assert expanded_record['normalized_title'] == 'a test full title subtitle (parens)'
+    assert expanded_record['short_title'] == 'a test full title subtitl'
+
+
+def test_expand_record_publish_country():
+    # used in openlibrary.catalog.add_book.load()
+    # when trying to find an existing edition match
+    edition = valid_edition.copy()
+    expanded_record = expand_record(edition)
+    assert 'publish_country' not in expanded_record
+    for publish_country in ('   ', '|||'):
+        edition['publish_country'] = publish_country
+        assert 'publish_country' not in expand_record(edition)
+    for publish_country in ('USA', 'usa'):
+        edition['publish_country'] = publish_country
+        assert expand_record(edition)['publish_country'] == publish_country
+
+
+def test_expand_record_transfer_fields():
+    edition = valid_edition.copy()
+    expanded_record = expand_record(edition)
+    transfer_fields = (
+        'lccn',
+        'publishers',
+        'publish_date',
+        'number_of_pages',
+        'authors',
+        'contribs',
+    )
+    for field in transfer_fields:
+        assert field not in expanded_record
+    for field in transfer_fields:
+        edition[field] = field
+    expanded_record = expand_record(edition)
+    for field in transfer_fields:
+        assert field in expanded_record
+
+
+def test_expand_record_isbn():
+    edition = valid_edition.copy()
+    expanded_record = expand_record(edition)
+    assert expanded_record['isbn'] == []
+    edition.update(
+        {
+            'isbn': ['1234567890'],
+            'isbn_10': ['123', '321'],
+            'isbn_13': ['1234567890123'],
+        }
+    )
+    expanded_record = expand_record(edition)
+    assert expanded_record['isbn'] == ['1234567890', '123', '321', '1234567890123']
+
+
+@pytest.mark.parametrize(
+    'year, expected',
+    [
+        ('1999-01', 1999),
+        ('1999', 1999),
+        ('01-1999', 1999),
+        ('May 5, 1999', 1999),
+        ('May 5, 19999', None),
+        ('1999-01-01', 1999),
+        ('1999/1/1', 1999),
+        ('01-01-1999', 1999),
+        ('1/1/1999', 1999),
+        ('199', None),
+        ('19990101', None),
+        (None, None),
+        (1999, 1999),
+        (19999, None),
+    ],
+)
+def test_publication_year(year, expected) -> None:
+    assert get_publication_year(year) == expected
+
+
+@pytest.mark.parametrize(
+    'years_from_today, expected',
+    [
+        (1, True),
+        (0, False),
+        (-1, False),
+    ],
+)
+def test_published_in_future_year(years_from_today, expected) -> None:
+    """Test with last year, this year, and next year."""
+
+    def get_datetime_for_years_from_now(years: int) -> datetime:
+        """Get a datetime for now +/- x years."""
+        now = datetime.now()
+        return now + timedelta(days=365 * years)
+
+    year = get_datetime_for_years_from_now(years_from_today).year
+    assert published_in_future_year(year) == expected
+
+
+@pytest.mark.parametrize(
+    'name, rec, expected',
+    [
+        (
+            "1399 is too old for an Amazon source",
+            {'source_records': ['amazon:123'], 'publish_date': '1399'},
+            True,
+        ),
+        (
+            "1400 is acceptable for an Amazon source",
+            {'source_records': ['amazon:123'], 'publish_date': '1400'},
+            False,
+        ),
+        (
+            "1401 is acceptable for an Amazon source",
+            {'source_records': ['amazon:123'], 'publish_date': '1401'},
+            False,
+        ),
+        (
+            "1399 is acceptable for an IA source",
+            {'source_records': ['ia:123'], 'publish_date': '1399'},
+            False,
+        ),
+        (
+            "1400 is acceptable for an IA source",
+            {'source_records': ['ia:123'], 'publish_date': '1400'},
+            False,
+        ),
+        (
+            "1401 is acceptable for an IA source",
+            {'source_records': ['ia:123'], 'publish_date': '1401'},
+            False,
+        ),
+    ],
+)
+def test_publication_too_old_and_not_exempt(name, rec, expected) -> None:
+    """
+    See publication_too_old_and_not_exempt() for an explanation of which sources require
+    which publication years.
+    """
+    assert publication_too_old_and_not_exempt(rec) == expected, f"Test failed: {name}"
+
+
+@pytest.mark.parametrize(
+    'publishers, expected',
+    [
+        (['INDEPENDENTLY PUBLISHED'], True),
+        (['Another Publisher', 'independently published'], True),
+        (['Another Publisher'], False),
+    ],
+)
+def test_independently_published(publishers, expected) -> None:
+    assert is_independently_published(publishers) == expected
+
+
+@pytest.mark.parametrize(
+    'rec, expected',
+    [
+        ({'source_records': ['bwb:123'], 'isbn_10': ['1234567890']}, False),
+        ({'source_records': ['amazon:123'], 'isbn_13': ['1234567890123']}, False),
+        ({'source_records': ['bwb:123'], 'isbn_10': []}, True),
+        ({'source_records': ['bwb:123']}, True),
+        ({'source_records': ['ia:someocaid']}, False),
+        ({'source_records': ['amazon:123']}, True),
+    ],
+)
+def test_needs_isbn_and_lacks_one(rec, expected) -> None:
+    assert needs_isbn_and_lacks_one(rec) == expected
+
+
+@pytest.mark.parametrize(
+    'rec, expected',
+    [
+        ({'source_records': ['promise:123', 'ia:456']}, True),
+        ({'source_records': ['ia:456']}, False),
+        ({'source_records': []}, False),
+        ({}, False),
+    ],
+)
+def test_is_promise_item(rec, expected) -> None:
+    assert is_promise_item(rec) == expected
+
+
+@pytest.mark.parametrize(
+    'name, rec, expected',
+    [
+        (
+            "Returns an empty list if no fields are missing",
+            {'title': 'A Great Book', 'source_records': ['ia:123']},
+            [],
+        ),
+        (
+            "Catches a missing required field",
+            {'source_records': ['ia:123']},
+            ['title'],
+        ),
+        (
+            "Catches multiple missing required fields",
+            {'publish_date': '1999'},
+            ['source_records', 'title'],
+        ),
+    ],
+)
+def test_get_missing_field(name, rec, expected) -> None:
+    assert sorted(get_missing_fields(rec=rec)) == sorted(
+        expected
+    ), f"Test failed: {name}"

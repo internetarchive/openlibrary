@@ -48,8 +48,8 @@ class Test_ungettext:
     def test_ungettext(self, monkeypatch):
         self.setup_monkeypatch(monkeypatch)
 
-        i18n.ungettext("book", "books", 1) == "book"
-        i18n.ungettext("book", "books", 2) == "books"
+        assert i18n.ungettext("book", "books", 1) == "book"
+        assert i18n.ungettext("book", "books", 2) == "books"
 
         web.ctx.lang = 'fr'
         self.d.init(
@@ -60,18 +60,18 @@ class Test_ungettext:
             },
         )
 
-        i18n.ungettext("book", "books", 1) == "libre"
-        i18n.ungettext("book", "books", 2) == "libres"
+        assert i18n.ungettext("book", "books", 1) == "libre"
+        assert i18n.ungettext("book", "books", 2) == "libres"
 
         web.ctx.lang = 'te'
-        i18n.ungettext("book", "books", 1) == "book"
-        i18n.ungettext("book", "books", 2) == "books"
+        assert i18n.ungettext("book", "books", 1) == "book"
+        assert i18n.ungettext("book", "books", 2) == "books"
 
     def test_ungettext_with_args(self, monkeypatch):
         self.setup_monkeypatch(monkeypatch)
 
-        i18n.ungettext("one book", "%(n)d books", 1, n=1) == "one book"
-        i18n.ungettext("one book", "%(n)d books", 2, n=2) == "2 books"
+        assert i18n.ungettext("one book", "%(n)d books", 1, n=1) == "one book"
+        assert i18n.ungettext("one book", "%(n)d books", 2, n=2) == "2 books"
 
         web.ctx.lang = 'fr'
         self.d.init(
@@ -82,5 +82,5 @@ class Test_ungettext:
             },
         )
 
-        i18n.ungettext("one book", "%(n)d books", 1, n=1) == "un libre"
-        i18n.ungettext("one book", "%(n)d books", 2, n=2) == "2 libres"
+        assert i18n.ungettext("one book", "%(n)d books", 1, n=1) == "un libre"
+        assert i18n.ungettext("one book", "%(n)d books", 2, n=2) == "2 libres"

@@ -12,7 +12,7 @@ ports:
 tasks:
 - name: watch
   # This task watches for changes to JS/CSS files and automatically builds
-  init: gp sync-await docker-up && docker-compose run --rm home npx concurrently npm:watch npm:watch-css
+  init: gp sync-await docker-up && docker compose run --rm home npx concurrently npm:watch npm:watch-css
 - name: Start App
   before: |
     # run chown because https://github.com/gitpod-io/gitpod/issues/4851

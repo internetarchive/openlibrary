@@ -206,11 +206,11 @@ def build_query(rec):
                     east = east_in_by_statement(rec, author)
                     book['authors'].append(import_author(author, eastern=east))
             continue
-        if k == 'languages':
+        if k in ('languages', 'translated_from'):
             for language in v:
                 if web.ctx.site.get('/languages/' + language) is None:
                     raise InvalidLanguage(language)
-            book['languages'] = [{'key': '/languages/' + language} for language in v]
+            book[k] = [{'key': '/languages/' + language} for language in v]
             continue
         if k in type_map:
             t = '/type/' + type_map[k]

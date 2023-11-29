@@ -35,11 +35,11 @@ from infogami.core.db import ValidationException
 from openlibrary.core import cache
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
-from openlibrary.core.models import Edition  # noqa: E402
+from openlibrary.core.models import Edition
 from openlibrary.core.lending import get_work_availability, get_edition_availability
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
-from openlibrary.plugins.openlibrary.stats import increment_error_count  # noqa: E402
+from openlibrary.plugins.openlibrary.stats import increment_error_count
 from openlibrary.plugins.openlibrary import processors
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
@@ -58,7 +58,7 @@ infogami.config.http_ext_header_uri = 'http://openlibrary.org/dev/docs/api'  # t
 from openlibrary.plugins.openlibrary import connection
 
 client._connection_types['ol'] = connection.OLConnection  # type: ignore[assignment]
-infogami.config.infobase_parameters = dict(type='ol')
+infogami.config.infobase_parameters = {'type': 'ol'}
 
 # set up infobase schema. required when running in standalone mode.
 from openlibrary.core import schema
@@ -75,9 +75,10 @@ infogami._install_hooks = [
     h for h in infogami._install_hooks if h.__name__ != 'movefiles'
 ]
 
-from openlibrary.plugins.openlibrary import lists
+from openlibrary.plugins.openlibrary import lists, bulk_tag
 
 lists.setup()
+bulk_tag.setup()
 
 logger = logging.getLogger('openlibrary')
 
@@ -221,13 +222,7 @@ class team(delegate.page):
     path = '/about/team'
 
     def GET(self):
-        with Path('/openlibrary/openlibrary/templates/about/team.json').open(
-            mode='r'
-        ) as f:
-            team_members: list[dict[str, str]] = sorted(
-                json.load(f), key=lambda member: member['name'].split()[-1]
-            )
-            return render_template("about/index.html", team_members=team_members)
+        return render_template("about/index.html")
 
 
 class addbook(delegate.page):
@@ -285,7 +280,7 @@ class addauthor(delegate.page):
         key = web.ctx.site.new_key('/type/author')
         web.ctx.path = key
         web.ctx.site.save(
-            {'key': key, 'name': i.name, 'type': dict(key='/type/author')},
+            {'key': key, 'name': i.name, 'type': {'key': '/type/author'}},
             comment='New Author',
         )
         raise web.HTTPError('200 OK', {}, key)
@@ -321,24 +316,24 @@ class search(delegate.page):
             things = web.ctx.site.things(q)
             things = [web.ctx.site.get(key) for key in things]
             result = [
-                dict(
-                    type=[{'id': t.key, 'name': t.key}],
-                    name=web.safestr(t.name),
-                    guid=t.key,
-                    id=t.key,
-                    article=dict(id=t.key),
-                )
+                {
+                    'type': [{'id': t.key, 'name': t.key}],
+                    'name': web.safestr(t.name),
+                    'guid': t.key,
+                    'id': t.key,
+                    'article': {'id': t.key},
+                }
                 for t in things
             ]
         else:
             result = []
         callback = i.pop('callback', None)
-        d = dict(
-            status='200 OK',
-            query=dict(i, escape='html'),
-            code='/api/status/ok',
-            result=result,
-        )
+        d = {
+            'status': '200 OK',
+            'query': dict(i, escape='html'),
+            'code': '/api/status/ok',
+            'result': result,
+        }
 
         if callback:
             data = f'{callback}({json.dumps(d)})'
@@ -363,8 +358,8 @@ class blurb(delegate.page):
         if author.bio:
             body += web.safestr(author.bio)
 
-        result = dict(body=body, media_type='text/html', text_encoding='utf-8')
-        d = dict(status='200 OK', code='/api/status/ok', result=result)
+        result = {'body': body, 'media_type': 'text/html', 'text_encoding': 'utf-8'}
+        d = {'status': '200 OK', 'code': '/api/status/ok', 'result': result}
         if callback := i.pop('callback', None):
             data = f'{callback}({json.dumps(d)})'
         else:
@@ -404,7 +399,7 @@ def change_ext(filename, ext):
 
 
 def get_pages(type, processor):
-    pages = web.ctx.site.things(dict(type=type))
+    pages = web.ctx.site.things({'type': type})
     for p in pages:
         processor(web.ctx.site.get(p))
 
@@ -476,7 +471,7 @@ class isbn_lookup(delegate.page):
             ext += '?' + web.ctx.env['QUERY_STRING']
 
         try:
-            if ed := Edition.from_isbn(isbn, retry=True):
+            if ed := Edition.from_isbn(isbn):
                 return web.found(ed.key + ext)
         except Exception as e:
             logger.error(e)
@@ -639,7 +634,7 @@ class _yaml(delegate.mode):
     def get_data(self, key):
         i = web.input(v=None)
         v = safeint(i.v, None)
-        data = dict(key=key, revision=v)
+        data = {'key': key, 'revision': v}
         try:
             d = api.request('/get', data=data)
         except client.ClientException as e:

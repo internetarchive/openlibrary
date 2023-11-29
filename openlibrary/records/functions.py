@@ -137,7 +137,7 @@ def find_matches_by_identifiers(identifiers):
             q[i] = identifiers[i]
             matches_any.update(web.ctx.site.things(q))
     matches_any = list(matches_any)
-    return dict(all=matches_all, any=matches_any)
+    return {"all": matches_all, "any": matches_any}
 
 
 def find_matches_by_title_and_publishers(doc):
@@ -166,7 +166,7 @@ def massage_search_results(things, input_query=None):
         matches = things_to_matches(things)
     else:
         doc = build_create_input(input_query)
-        matches = [dict(edition=None, work=None)]
+        matches = [{"edition": None, "work": None}]
     return {'doc': doc, 'matches': matches}
 
 
@@ -276,7 +276,7 @@ def things_to_matches(things):
         if key.startswith("/works"):
             work = key
             edition = None
-        matches.append(dict(edition=edition, work=work))
+        matches.append({"edition": edition, "work": work})
     return matches
 
 

@@ -1,0 +1,54 @@
+$def with (page)
+
+$var title: $page.name
+
+$putctx("robots", "noindex,nofollow")
+
+<div id="contentHead">
+    $:macros.databarEdit(page)
+
+    <h1>$_("Edit Tag")</h1>
+</div>
+
+
+<div id="contentBody">
+
+    <form id="edittag" name="edit" method="post" action="" class="olform validate">
+        <div class="formElement">
+            <div class="label">
+                <label for="name">$_("Label")</label>*<span class="tip">$_("Required field")</span>
+            </div>
+            <div class="input">
+                <input type="text" name="name" id="tag_name" value="$page.name" />
+            </div>
+        </div>
+
+        <div class="formElement">
+            <div class="label">
+                <label for="tag_description">$_("Description")</label>
+            </div>
+            <div class="input">
+                <textarea id="tag_description" name="tag_description" class="markdown" rows="5" cols="80" style="width: 100%">$page.tag_description</textarea>
+            </div>
+        </div>
+
+        <div class="formElement">
+            <div class="label"><label for="id_value">$_("Tag type")</label></div>
+            <div class="input">
+                <select name="tag_type" id="tag_type">
+                    <option value="$page.tag_type">$page.tag_type</option>
+                    $ tag_types = get_tag_types()
+                    $for tag_type in tag_types:
+                        $if tag_type != page.tag_type:
+                            <option value="$tag_type">$tag_type</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="clearfix"></div>
+
+        <div class="formElement bottom">
+            $:macros.EditButtons(comment=page.comment_)
+        </div>
+    </form>
+</div>

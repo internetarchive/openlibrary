@@ -10,7 +10,9 @@ def generate():
     import xml.etree.ElementTree as ET
 
     # read the managed-schema xml file
-    solr_schema = ET.parse(os.path.join(root, '../../conf/solr/conf/managed-schema'))
+    solr_schema = ET.parse(
+        os.path.join(root, '../../conf/solr/conf/managed-schema.xml')
+    )
     python_fields: list[str] = []
     seen_names: set[str] = set()
     for field in solr_schema.getroot().findall('field'):

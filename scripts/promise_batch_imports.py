@@ -18,20 +18,23 @@ from __future__ import annotations
 import requests
 import logging
 
-import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
-from infogami import config  # noqa: F401
+import _init_path  # Imported for its side effect of setting PYTHONPATH
+from infogami import config
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
+
 logger = logging.getLogger("openlibrary.importer.promises")
 
 
-def format_date(date: str) -> str:
-    y = date[0:4]
-    m = date[4:6]
-    d = date[6:8]
-    return f"{y}-{m}-{d}"
+def format_date(date: str, only_year: bool) -> str:
+    """
+    Format date as "yyyy-mm-dd" or only "yyyy"
+
+    :param date: Date in "yyyymmdd" format.
+    """
+    return date[:4] if only_year else f"{date[0:4]}-{date[4:6]}-{date[6:8]}"
 
 
 def map_book_to_olbook(book, promise_id):
@@ -56,8 +59,12 @@ def map_book_to_olbook(book, promise_id):
         'authors': [{"name": book['ProductJSON'].get('Author') or '????'}],
         'publishers': [book['ProductJSON'].get('Publisher') or '????'],
         'source_records': [f"promise:{promise_id}:{sku}"],
-        # format_date adds hyphens between YYYY-MM-DD
-        'publish_date': publish_date and format_date(publish_date) or '????',
+        # format_date adds hyphens between YYYY-MM-DD, or use only YYYY if date is suspect.
+        'publish_date': format_date(
+            date=publish_date, only_year=publish_date[-4:] in ('0000', '0101')
+        )
+        if publish_date
+        else '????',
     }
     if not olbook['identifiers']:
         del olbook['identifiers']

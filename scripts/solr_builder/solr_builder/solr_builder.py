@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Literal
-from collections.abc import Awaitable, Iterator
-
-
-from configparser import ConfigParser
 import logging
 import time
 import uuid
 from collections import namedtuple
+from collections.abc import Awaitable, Iterator
+from configparser import ConfigParser
+from typing import Any, Literal, Self
 
 import aiofiles
 import psycopg2
@@ -19,7 +17,6 @@ from openlibrary.core.ratings import Ratings, WorkRatingsSummary
 from openlibrary.solr import update_work
 from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
 from openlibrary.solr.update_work import load_configs, update_keys
-
 
 logger = logging.getLogger("openlibrary.solr-builder")
 
@@ -68,10 +65,10 @@ class LocalPostgresDataProvider(DataProvider):
         self._conn: psycopg2._psycopg.connection = None
         self.cache: dict = {}
         self.cached_work_editions_ranges: list = []
-        self.cached_work_ratings: dict[str, WorkRatingsSummary] = dict()
-        self.cached_work_reading_logs: dict[str, WorkReadingLogSolrSummary] = dict()
+        self.cached_work_ratings: dict[str, WorkRatingsSummary] = {}
+        self.cached_work_reading_logs: dict[str, WorkReadingLogSolrSummary] = {}
 
-    def __enter__(self) -> LocalPostgresDataProvider:
+    def __enter__(self) -> Self:
         """
         :rtype: LocalPostgresDataProvider
         """
@@ -145,33 +142,29 @@ class LocalPostgresDataProvider(DataProvider):
         cur.close()
 
     def cache_edition_works(self, lo_key, hi_key):
-        q = """
+        q = f"""
             SELECT works."Key", works."JSON"
             FROM "test" editions
             INNER JOIN test works
                 ON editions."JSON" -> 'works' -> 0 ->> 'key' = works."Key"
             WHERE editions."Type" = '/type/edition'
-                AND '{}' <= editions."Key" AND editions."Key" <= '{}'
-        """.format(
-            lo_key, hi_key
-        )
+                AND '{lo_key}' <= editions."Key" AND editions."Key" <= '{hi_key}'
+        """
         self.query_all(q, json_cache=self.cache)
 
     def cache_work_editions(self, lo_key, hi_key):
-        q = """
+        q = f"""
             SELECT "Key", "JSON"
             FROM "test"
             WHERE "Type" = '/type/edition'
-                AND '{}' <= "JSON" -> 'works' -> 0 ->> 'key'
-                AND "JSON" -> 'works' -> 0 ->> 'key' <= '{}'
-        """.format(
-            lo_key, hi_key
-        )
+                AND '{lo_key}' <= "JSON" -> 'works' -> 0 ->> 'key'
+                AND "JSON" -> 'works' -> 0 ->> 'key' <= '{hi_key}'
+        """
         self.query_all(q, json_cache=self.cache)
         self.cached_work_editions_ranges.append((lo_key, hi_key))
 
     def cache_edition_authors(self, lo_key, hi_key):
-        q = """
+        q = f"""
             SELECT authors."Key", authors."JSON"
             FROM "test" editions
             INNER JOIN test works
@@ -180,15 +173,13 @@ class LocalPostgresDataProvider(DataProvider):
                 ON works."JSON" -> 'authors' -> 0 -> 'author' ->> 'key' = authors."Key"
             WHERE editions."Type" = '/type/edition'
                 AND editions."JSON" -> 'works' -> 0 ->> 'key' IS NULL
-                AND '{}' <= editions."Key" AND editions."Key" <= '{}'
-        """.format(
-            lo_key, hi_key
-        )
+                AND '{lo_key}' <= editions."Key" AND editions."Key" <= '{hi_key}'
+        """
         self.query_all(q, json_cache=self.cache)
 
     def cache_work_authors(self, lo_key, hi_key):
         # Cache upto first five authors
-        q = """
+        q = f"""
             SELECT authors."Key", authors."JSON"
             FROM "test" works
             INNER JOIN "test" authors ON (
@@ -199,10 +190,8 @@ class LocalPostgresDataProvider(DataProvider):
                 works."JSON" -> 'authors' -> 4 -> 'author' ->> 'key' = authors."Key"
             )
             WHERE works."Type" = '/type/work'
-            AND '{}' <= works."Key" AND works."Key" <= '{}'
-        """.format(
-            lo_key, hi_key
-        )
+            AND '{lo_key}' <= works."Key" AND works."Key" <= '{hi_key}'
+        """
         self.query_all(q, json_cache=self.cache)
 
     def cache_work_ratings(self, lo_key, hi_key):

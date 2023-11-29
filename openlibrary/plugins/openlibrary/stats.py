@@ -8,7 +8,7 @@ import sys
 import time
 import traceback
 from types import TracebackType
-from typing import Any, Optional
+from typing import Any
 
 from infogami.utils.app import find_page, find_view, find_mode
 from openlibrary.core import stats as graphite_stats
@@ -167,8 +167,8 @@ def _get_top_level_path_for_metric(full_path: str) -> str:
 
 class GraphiteRequestStats:
     def __init__(self):
-        self.start: Optional[float] = None
-        self.end: Optional[float] = None
+        self.start: float | None = None
+        self.end: float | None = None
         self.state = None  # oneof 'started', 'completed'
         self.method = 'unknown'
         self.path_page_name = 'unknown'

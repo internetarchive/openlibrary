@@ -106,7 +106,7 @@ def partition(lst: list, parts: int):
     parts = min(total_len, parts)
     size = total_len // parts
 
-    for i in range(0, parts):
+    for i in range(parts):
         start = i * size
         end = total_len if (i == parts - 1) else ((i + 1) * size)
         yield lst[start:end]
@@ -129,7 +129,7 @@ class DataProvider:
     """
 
     def __init__(self) -> None:
-        self.ia_cache: dict[str, Optional[dict]] = dict()
+        self.ia_cache: dict[str, dict | None] = {}
 
     @staticmethod
     async def _get_lite_metadata(ocaids: list[str], _recur_depth=0, _max_recur_depth=3):
@@ -285,7 +285,7 @@ class DataProvider:
         """
         raise NotImplementedError()
 
-    def get_work_ratings(self, work_key: str) -> Optional[WorkRatingsSummary]:
+    def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
         raise NotImplementedError()
 
     def get_work_reading_log(self, work_key: str) -> WorkReadingLogSolrSummary | None:
@@ -318,7 +318,7 @@ class LegacyDataProvider(DataProvider):
         logger.info("get_document %s", key)
         return self._withKey(key)
 
-    def get_work_ratings(self, work_key: str) -> Optional[WorkRatingsSummary]:
+    def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
         work_id = int(work_key[len('/works/OL') : -len('W')])
         return Ratings.get_work_ratings_summary(work_id)
 
@@ -522,18 +522,18 @@ class BetterDataProvider(LegacyDataProvider):
         # time consuming.
         key_query = (
             "select id from property where name='works'"
-            + " and type=(select id from thing where key='/type/edition')"
+            " and type=(select id from thing where key='/type/edition')"
         )
 
         q = (
             "SELECT edition.key as edition_key, work.key as work_key"
-            + " FROM thing as edition, thing as work, edition_ref"
-            + " WHERE edition_ref.thing_id=edition.id"
-            + "   AND edition_ref.value=work.id"
-            + f"   AND edition_ref.key_id=({key_query})"
-            + "   AND work.key in $keys"
+            " FROM thing as edition, thing as work, edition_ref"
+            " WHERE edition_ref.thing_id=edition.id"
+            "   AND edition_ref.value=work.id"
+            f"   AND edition_ref.key_id=({key_query})"
+            "   AND work.key in $keys"
         )
-        result = self.db.query(q, vars=dict(keys=work_keys))
+        result = self.db.query(q, vars={"keys": work_keys})
         for row in result:
             self.edition_keys_of_works_cache.setdefault(row.work_key, []).append(
                 row.edition_key

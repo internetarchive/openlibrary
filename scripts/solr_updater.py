@@ -18,7 +18,7 @@ import urllib
 from typing import Union
 from collections.abc import Iterator
 
-import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
+import _init_path  # Imported for its side effect of setting PYTHONPATH
 
 import aiofiles
 import web
@@ -111,7 +111,7 @@ class InfobaseLog:
             self.offset = d['offset']
 
 
-def find_keys(d: Union[dict, list]) -> Iterator[str]:
+def find_keys(d: dict | list) -> Iterator[str]:
     """
     Find any keys in the given dict or list.
 

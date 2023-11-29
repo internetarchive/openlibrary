@@ -244,7 +244,7 @@ class ReadProcessor:
 
         def sortfn(sortitem):
             iaid, status, date = sortitem
-            if iaid == orig_iaid and (status == 'full access' or status == 'lendable'):
+            if iaid == orig_iaid and status in {'full access', 'lendable'}:
                 isexact = '000'
             else:
                 isexact = '999'
@@ -253,7 +253,7 @@ class ReadProcessor:
                 date = 5000
             date = int(date)
             # reverse-sort modern works by date
-            if status == 'lendable' or status == 'checked out':
+            if status in {'lendable', 'checked out'}:
                 date = 10000 - date
             statusvals = {
                 'full access': 1,

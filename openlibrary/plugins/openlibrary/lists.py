@@ -1,7 +1,10 @@
 """Lists implementation.
 """
+from dataclasses import dataclass, field
 import json
+from urllib.parse import parse_qs
 import random
+from typing import TypedDict
 import web
 
 from infogami.utils import delegate
@@ -13,11 +16,85 @@ from openlibrary.core import formats, cache
 from openlibrary.core.lists.model import ListMixin
 import openlibrary.core.helpers as h
 from openlibrary.i18n import gettext as _
-from openlibrary.utils import dateutil
-from openlibrary.plugins.upstream import spamcheck
+from openlibrary.plugins.upstream.addbook import safe_seeother
+from openlibrary.utils import dateutil, olid_to_key
+from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.worksearch import subjects
 from openlibrary.coverstore.code import render_list_preview_image
+
+
+class SeedDict(TypedDict):
+    key: str
+
+
+@dataclass
+class ListRecord:
+    key: str | None = None
+    name: str = ''
+    description: str = ''
+    seeds: list[SeedDict | str] = field(default_factory=list)
+
+    @staticmethod
+    def normalize_input_seed(seed: SeedDict | str) -> SeedDict | str:
+        if isinstance(seed, str):
+            if seed.startswith('/subjects/'):
+                return seed
+            else:
+                return {'key': seed if seed.startswith('/') else olid_to_key(seed)}
+        else:
+            if seed['key'].startswith('/subjects/'):
+                return seed['key'].split('/', 2)[-1]
+            else:
+                return seed
+
+    @staticmethod
+    def from_input():
+        DEFAULTS = {
+            'key': None,
+            'name': '',
+            'description': '',
+            'seeds': [],
+        }
+        if data := web.data():
+            # If the requests has data, parse it and use it to populate the list
+            form_data = {
+                # By default all the values are lists
+                k: v[0]
+                for k, v in parse_qs(bytes.decode(data)).items()
+            }
+            i = {} | DEFAULTS | utils.unflatten(form_data)
+        else:
+            # Otherwise read from the query string
+            i = utils.unflatten(web.input(**DEFAULTS))
+
+        normalized_seeds = [
+            ListRecord.normalize_input_seed(seed)
+            for seed_list in i['seeds']
+            for seed in (
+                seed_list.split(',') if isinstance(seed_list, str) else [seed_list]
+            )
+        ]
+        normalized_seeds = [
+            seed
+            for seed in normalized_seeds
+            if seed and (isinstance(seed, str) or seed.get('key'))
+        ]
+        return ListRecord(
+            key=i['key'],
+            name=i['name'],
+            description=i['description'],
+            seeds=normalized_seeds,
+        )
+
+    def to_thing_json(self):
+        return {
+            "key": self.key,
+            "type": {"key": "/type/list"},
+            "name": self.name,
+            "description": self.description,
+            "seeds": self.seeds,
+        }
 
 
 class lists_home(delegate.page):
@@ -62,16 +139,27 @@ def get_seed_info(doc):
 
 @public
 def get_list_data(list, seed, include_cover_url=True):
+    list_items = []
+    for s in list.get_seeds():
+        list_items.append(s.key)
+
     d = web.storage(
-        {"name": list.name or "", "key": list.key, "active": list.has_seed(seed)}
+        {
+            "name": list.name or "",
+            "key": list.key,
+            "active": list.has_seed(seed) if seed else False,
+            "list_items": list_items,
+        }
     )
     if include_cover_url:
         cover = list.get_cover() or list.get_default_cover()
         d['cover_url'] = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
         if 'None' in d['cover_url']:
             d['cover_url'] = "/images/icons/avatar_book-sm.png"
-    owner = list.get_owner()
-    d['owner'] = web.storage(displayname=owner.displayname or "", key=owner.key)
+
+    d['owner'] = None
+    if owner := list.get_owner():
+        d['owner'] = web.storage(displayname=owner.displayname or "", key=owner.key)
     return d
 
 
@@ -81,7 +169,7 @@ def get_user_lists(seed_info):
     if not user:
         return []
     user_lists = user.get_lists(sort=True)
-    seed = seed_info['seed']
+    seed = seed_info['seed'] if seed_info else None
     return [get_list_data(user_list, seed) for user_list in user_lists]
 
 
@@ -92,27 +180,25 @@ class lists_partials(delegate.page):
     def GET(self):
         i = web.input(key=None)
 
-        user = get_current_user()
-        doc = self.get_doc(i.key)
-        seed_info = get_seed_info(doc)
-        user_lists = get_user_lists(seed_info)
-
-        dropper = render_template('lists/dropper_lists', user_lists)
-        active = render_template(
-            'lists/active_lists', user_lists, user['key'], seed_info
-        )
-
-        partials = {
-            'dropper': str(dropper),
-            'active': str(active),
-        }
-
+        partials = self.get_partials()
         return delegate.RawText(json.dumps(partials))
 
-    def get_doc(self, key):
-        if key.startswith("/subjects/"):
-            return subjects.get_subject(key)
-        return web.ctx.site.get(key)
+    def get_partials(self):
+        user_lists = get_user_lists(None)
+
+        dropper = render_template('lists/dropper_lists', user_lists)
+        list_data = {
+            list_data['key']: {
+                'members': list_data['list_items'],
+                'listName': list_data['name'],
+            }
+            for list_data in user_lists
+        }
+
+        return {
+            'dropper': str(dropper),
+            'listData': list_data,
+        }
 
 
 class lists(delegate.page):
@@ -152,8 +238,74 @@ class lists(delegate.page):
         return render_template("lists/lists.html", doc, lists)
 
 
+class lists_edit(delegate.page):
+    path = r"(/people/[^/]+)?(/lists/OL\d+L)/edit"
+
+    def GET(self, user_key: str | None, list_key: str):  # type: ignore[override]
+        key = (user_key or '') + list_key
+        if not web.ctx.site.can_write(key):
+            return render_template(
+                "permission_denied",
+                web.ctx.fullpath,
+                f"Permission denied to edit {key}.",
+            )
+
+        lst = web.ctx.site.get(key)
+        if lst is None:
+            raise web.notfound()
+        return render_template("type/list/edit", lst, new=False)
+
+    def POST(self, user_key: str | None, list_key: str | None = None):  # type: ignore[override]
+        key = (user_key or '') + (list_key or '')
+
+        if not web.ctx.site.can_write(key):
+            return render_template(
+                "permission_denied",
+                web.ctx.fullpath,
+                f"Permission denied to edit {key}.",
+            )
+
+        list_record = ListRecord.from_input()
+        if not list_record.name:
+            raise web.badrequest('A list name is required.')
+
+        # Creating a new list
+        if not list_key:
+            list_num = web.ctx.site.seq.next_value("list")
+            list_key = f"/lists/OL{list_num}L"
+            list_record.key = (user_key or '') + list_key
+
+        web.ctx.site.save(
+            list_record.to_thing_json(),
+            action="lists",
+            comment=web.input(_comment="")._comment or None,
+        )
+        return safe_seeother(list_record.key)
+
+
+class lists_add(delegate.page):
+    path = r"(/people/[^/]+)?/lists/add"
+
+    def GET(self, user_key: str | None):  # type: ignore[override]
+        if user_key and not web.ctx.site.can_write(user_key):
+            return render_template(
+                "permission_denied",
+                web.ctx.fullpath,
+                f"Permission denied to edit {user_key}.",
+            )
+        list_record = ListRecord.from_input()
+        # Only admins can add global lists for now
+        admin_only = not user_key
+        return render_template(
+            "type/list/edit", list_record, new=True, admin_only=admin_only
+        )
+
+    def POST(self, user_key: str | None):  # type: ignore[override]
+        return lists_edit().POST(user_key, None)
+
+
 class lists_delete(delegate.page):
-    path = r"(/people/[^/]+/lists/OL\d+L)/delete"
+    path = r"((?:/people/[^/]+)?/lists/OL\d+L)/delete"
     encoding = "json"
 
     def POST(self, key):
@@ -321,7 +473,7 @@ def get_list(key, raw=False):
 
 
 class list_view_json(delegate.page):
-    path = r"(/people/[^/]+/lists/OL\d+L)"
+    path = r"((?:/people/[^/]+)?/lists/OL\d+L)"
     encoding = "json"
     content_type = "application/json"
 
@@ -352,7 +504,7 @@ def get_list_seeds(key):
 
 
 class list_seeds(delegate.page):
-    path = r"(/people/[^/]+/lists/OL\d+L)/seeds"
+    path = r"((?:/people/[^/]+)?/lists/OL\d+L)/seeds"
     encoding = "json"
 
     content_type = "application/json"
@@ -361,7 +513,10 @@ class list_seeds(delegate.page):
         lst = get_list_seeds(key)
         if not lst:
             raise web.notfound()
-        return delegate.RawText(formats.dump(lst, self.encoding))
+
+        return delegate.RawText(
+            formats.dump(lst, self.encoding), content_type=self.content_type
+        )
 
     def POST(self, key):
         site = web.ctx.site
@@ -430,7 +585,7 @@ def get_list_editions(key, offset=0, limit=50, api=False):
 
 
 class list_editions_json(delegate.page):
-    path = r"(/people/[^/]+/lists/OL\d+L)/editions"
+    path = r"((?:/people/[^/]+)?/lists/OL\d+L)/editions"
     encoding = "json"
 
     content_type = "application/json"
@@ -476,7 +631,7 @@ def make_collection(size, entries, limit, offset, key=None):
 
 
 class list_subjects_json(delegate.page):
-    path = r"(/people/[^/]+/lists/OL\d+L)/subjects"
+    path = r"((?:/people/[^/]+)?/lists/OL\d+L)/subjects"
     encoding = "json"
     content_type = "application/json"
 
@@ -515,7 +670,7 @@ class list_subjects_yaml(list_subjects_json):
 
 
 class lists_embed(delegate.page):
-    path = r"(/people/[^/]+/lists/OL\d+L)/embed"
+    path = r"((?:/people/[^/]+)?/lists/OL\d+L)/embed"
 
     def GET(self, key):
         doc = web.ctx.site.get(key)
@@ -525,7 +680,7 @@ class lists_embed(delegate.page):
 
 
 class export(delegate.page):
-    path = r"(/people/[^/]+/lists/OL\d+L)/export"
+    path = r"((?:/people/[^/]+)?/lists/OL\d+L)/export"
 
     def GET(self, key):
         lst = web.ctx.site.get(key)
@@ -627,7 +782,7 @@ class export(delegate.page):
 
 
 class feeds(delegate.page):
-    path = r"(/people/[^/]+/lists/OL\d+L)/feeds/(updates).(atom)"
+    path = r"((?:/people/[^/]+)?/lists/OL\d+L)/feeds/(updates).(atom)"
 
     def GET(self, key, name, fmt):
         lst = web.ctx.site.get(key)
@@ -688,7 +843,8 @@ def _preload_lists(lists):
             xlist = xlist.dict()
 
         owner = xlist['key'].rsplit("/lists/", 1)[0]
-        keys.add(owner)
+        if owner:
+            keys.add(owner)
 
         for seed in xlist.get("seeds", []):
             if isinstance(seed, dict) and "key" in seed:
@@ -743,7 +899,7 @@ def get_active_lists_in_random(limit=20, preload=True):
 
 
 class lists_preview(delegate.page):
-    path = r"(/people/[^/]+/lists/OL\d+L)/preview.png"
+    path = r"((?:/people/[^/]+)?/lists/OL\d+L)/preview.png"
 
     def GET(self, lst_key):
         image_bytes = render_list_preview_image(lst_key)

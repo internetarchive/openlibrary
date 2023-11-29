@@ -55,9 +55,19 @@ $var title: $header_title
 
 $ url_prefix = "/people/" + username
 $ readlog_url = url_prefix + "/books/%s/"
-$ options = [(_("Want to Read (%(count)d)", count=shelf_counts['want-to-read']), readlog_url % "want-to-read"), (_("Currently Reading (%(count)d)", count=shelf_counts['currently-reading']), readlog_url % "currently-reading"), (_("Already Read (%(count)d)", count=shelf_counts['already-read']), readlog_url % "already-read"), (_("My Lists (%(count)d)" if owners_page else "Lists (%(count)d)", count=len(lists)) , url_prefix + "/lists")]
+$ options = [
+$   (_("Want to Read (%(count)d)", count=shelf_counts['want-to-read']), readlog_url % "want-to-read"),
+$   (_("Currently Reading (%(count)d)", count=shelf_counts['currently-reading']), readlog_url % "currently-reading"),
+$   (_("Already Read (%(count)d)", count=shelf_counts['already-read']), readlog_url % "already-read"),
+$   (_("My Lists (%(count)d)" if owners_page else "Lists (%(count)d)", count=len(lists)) , url_prefix + "/lists")
+$ ]
 $if owners_page:
-  $ options = [("My Loans", "/account/loans")] + options + [(_("My Notes"), url_prefix + "/books/notes"), (_("My Reviews"), url_prefix + "/books/observations")]
+  $ options += [
+  $   (_("My Loans"), "/account/loans"),
+  $   (_("My Notes"), url_prefix + "/books/notes"),
+  $   (_("My Reviews"), url_prefix + "/books/observations"),
+  $   (_("Imports and Exports"), "/account/import")
+  $ ]
 
 <div class="mybooks">
 
@@ -71,10 +81,16 @@ $if owners_page:
 
       $# Is date between 1 Dec and 1 Feb?
       $if not current_goal and within_date_range(12, 1, 2, 1):
-        <div class="page-banner page-banner-body page-banner-mybooks">
-          $_('Set your %(year)s Yearly Reading Goal:', year=year) <a class="btn primary set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">$:_('Set my goal')</a>
-        </div>
+        $ cta_copy = _('Set your %(year)s Yearly Reading Goal:', year=year)
+        $ btn_copy = _('Set my goal')
+        $ announcement =  '%s <a class="btn primary set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">%s</a>' % (cta_copy, btn_copy)
+
+        $ cookie_name = 'yrg'
+
+        $:render_template('site/banner', announcement, cookie_name, cookie_duration_days=65)
       $ component_times['Yearly Goal Banner'] = time() - component_times['Yearly Goal Banner']
+
+
     $ component_times['Details header'] = time()
     <header>
       <div>

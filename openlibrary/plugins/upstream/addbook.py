@@ -15,6 +15,7 @@ from infogami.utils.view import safeint, add_flash_message
 from infogami.infobase.client import ClientException
 
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.core.helpers import uniq
 from openlibrary.i18n import gettext as _
 from openlibrary import accounts
 import logging
@@ -197,8 +198,16 @@ class addbook(delegate.page):
         work = i.work and web.ctx.site.get(i.work)
         author = i.author and web.ctx.site.get(i.author)
 
+        # pre-filling existing author(s) if adding new edition from existing work page
+        authors = (work and work.authors) or []
+        if work and authors:
+            authors = [a.author for a in authors]
+        # pre-filling existing author if adding new work from author page
+        if author and author not in authors:
+            authors.append(author)
+
         return render_template(
-            'books/add', work=work, author=author, recaptcha=get_recaptcha()
+            'books/add', work=work, authors=authors, recaptcha=get_recaptcha()
         )
 
     def has_permission(self) -> bool:
@@ -252,7 +261,7 @@ class addbook(delegate.page):
         elif match and match.key.startswith('/books'):
             # work match and edition match, match is an Edition
             if i.web_book_url:
-                match.provider = [dict(url=i.web_book_url, format="web")]
+                match.provider = [{"url": i.web_book_url, "format": "web"}]
             return self.work_edition_match(match)
 
         elif match and match.key.startswith('/works'):
@@ -473,9 +482,9 @@ class addbook(delegate.page):
             publish_date=i.publish_date,
         )
         if i.get('web_book_url'):
-            edition.set_provider_data(dict(url=i.web_book_url, format="web"))
+            edition.set_provider_data({"url": i.web_book_url, "format": "web"})
         if i.get("id_name") and i.get("id_value"):
-            edition.set_identifiers([dict(name=i.id_name, value=i.id_value)])
+            edition.set_identifiers([{"name": i.id_name, "value": i.id_value}])
         return edition
 
 
@@ -778,14 +787,14 @@ class SaveBookHelper:
             return
 
         # read ocaid from form data
-        try:
-            ocaid = [
-                id['value']
-                for id in edition.get('identifiers', [])
-                if id['name'] == 'ocaid'
-            ][0]
-        except IndexError:
-            ocaid = None
+        ocaid = next(
+            (
+                id_['value']
+                for id_ in edition.get('identifiers', [])
+                if id_['name'] == 'ocaid'
+            ),
+            None,
+        )
 
         # 'self.edition' is the edition doc from the db and 'edition' is the doc from formdata
         if (
@@ -1007,11 +1016,12 @@ class author_edit(delegate.page):
         if 'author' in i:
             author = trim_doc(i.author)
             alternate_names = author.get('alternate_names', None) or ''
-            author.alternate_names = [
-                name.strip()
-                for name in alternate_names.replace("\n", ";").split(';')
-                if name.strip()
-            ]
+            author.alternate_names = uniq(
+                [author.name]
+                + [
+                    name.strip() for name in alternate_names.split('\n') if name.strip()
+                ],
+            )[1:]
             author.links = author.get('links') or []
             return author
 

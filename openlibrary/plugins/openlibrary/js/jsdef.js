@@ -141,3 +141,7 @@ export function htmlquote(text) {
     text = text.replace(/"/g, '&quot;');
     return text;
 }
+
+export function is_jsdef() {
+    return true;
+}

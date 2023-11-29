@@ -2,7 +2,7 @@ from datetime import datetime
 import logging
 import re
 import sys
-from typing import Any, Optional
+from typing import Any
 from collections.abc import Callable
 
 import luqum.tree
@@ -46,6 +46,7 @@ class WorkSearchScheme(SearchScheme):
         "ebook_access",
         "edition_count",
         "edition_key",
+        "format",
         "by_statement",
         "publish_date",
         "lccn",
@@ -135,6 +136,10 @@ class WorkSearchScheme(SearchScheme):
         'ddc_sort': 'ddc_sort asc',
         'ddc_sort asc': 'ddc_sort asc',
         'ddc_sort desc': 'ddc_sort desc',
+        # Ebook access
+        'ebook_access': 'ebook_access desc',
+        'ebook_access asc': 'ebook_access asc',
+        'ebook_access desc': 'ebook_access desc',
         # Key
         'key': 'key asc',
         'key asc': 'key asc',
@@ -304,6 +309,7 @@ class WorkSearchScheme(SearchScheme):
                 'alternative_subtitle': 'subtitle',
                 'cover_i': 'cover_i',
                 # Misc useful data
+                'format': 'format',
                 'language': 'language',
                 'publisher': 'publisher',
                 'publisher_facet': 'publisher_facet',
@@ -323,7 +329,7 @@ class WorkSearchScheme(SearchScheme):
 
             def convert_work_field_to_edition_field(
                 field: str,
-            ) -> Optional[str | Callable[[str], str]]:
+            ) -> str | Callable[[str], str] | None:
                 """
                 Convert a SearchField name (eg 'title') to the correct fieldname
                 for use in an edition query.

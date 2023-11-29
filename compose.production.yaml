@@ -127,6 +127,8 @@ services:
     user: root
     command: docker/ol-cron-start.sh
     restart: unless-stopped
+    env_file:
+      - ../olsystem/etc/cron-jobs.env
     volumes:
       - ../olsystem/etc/cron.d/openlibrary.ol_home0:/etc/cron.d/openlibrary.ol_home0:ro
       - ../olsystem:/olsystem
@@ -147,8 +149,7 @@ services:
       - INFOBASE_CONFIG=/olsystem/etc/infobase.yml
     volumes:
       - ../olsystem:/olsystem
-      - infobase-writelog:/1/var/lib/openlibrary/infobase/log
-      - infobase-errorlog:/1/var/log/openlibrary/infobase-errors
+      - /1/var/lib/openlibrary/infobase:/var/lib/openlibrary/infobase
   web_haproxy:
     profiles: ["ol-www0"]
     image: haproxy:2.3.5
@@ -310,6 +311,4 @@ secrets:
     ssl_certificate_key:
       file: /opt/.petabox/openlibrary.org.nopassword.key
 volumes:
-    infobase-writelog:
-    infobase-errorlog:
     archive-webserver-logs-data:

@@ -63,9 +63,8 @@ $add_metatag(property="og:image", content=meta_photo_url)
         $ doc_number = 1
         $# enumerate because using zip() will result in empty iterator when no ratings are passed, and ratings are only used on already-read.
         $for idx, doc in enumerate(docs):
-          $ dropper = (bookshelf_id and owners_page) and macros.ReadingLogDropper([], include_lists=False, work=doc, edition_key=doc.logged_edition, users_work_read_status=bookshelf_id)
           $ star_rating = macros.StarRatings(doc, redir_url='/account/books/already-read', id=doc_number, rating=ratings[idx]) if include_ratings else None
-          $:macros.SearchResultsWork(doc, reading_log=dropper, availability=doc.get('availability'), rating=star_rating)
+          $:macros.SearchResultsWork(doc, availability=doc.get('availability'), rating=star_rating, include_dropper=(bookshelf_id and owners_page))
           $ doc_number = doc_number + 1
     </ul>
     $if not checkin_year:

@@ -42,6 +42,12 @@ DEFAULT_IA_RESULTS = 42
 MAX_IA_RESULTS = 1000
 
 
+class PatronAccessException(Exception):
+    def __init__(self, message="Access to this item is temporarily locked."):
+        self.message = message
+        super().__init__(self.message)
+
+
 config_ia_loan_api_url = None
 config_ia_xauth_api_url = None
 config_ia_availability_api_v2_url = None
@@ -191,17 +197,27 @@ def get_groundtruth_availability(ocaid, s3_keys=None):
     return data
 
 
-def s3_loan_api(ocaid, s3_keys, action='browse'):
+def s3_loan_api(s3_keys, ocaid=None, action='browse', **kwargs):
     """Uses patrons s3 credentials to initiate or return a browse or
     borrow loan on Archive.org.
 
     :param dict s3_keys: {'access': 'xxx', 'secret': 'xxx'}
-    :param str action: 'browse_book' or 'borrow_book' or 'return_loan'
+    :param str  action : 'browse_book' or 'borrow_book' or 'return_loan'
+    :param dict kwargs   : Additional data to be sent in the POST request body (limit, offset)
 
     """
-    params = f'?action={action}&identifier={ocaid}'
+    fields = {'identifier': ocaid, 'action': action}
+    params = '?' + '&'.join([f"{k}={v}" for (k, v) in fields.items() if v])
     url = S3_LOAN_URL % config_bookreader_host
-    response = requests.post(url + params, data=s3_keys)
+
+    data = s3_keys | kwargs
+
+    response = requests.post(url + params, data=data)
+    # We want this to be just `409` but first
+    # `www/common/Lending.inc#L111-114` needs to
+    # be updated on petabox
+    if response.status_code in [400, 409]:
+        raise PatronAccessException()
     response.raise_for_status()
     return response
 
@@ -585,13 +601,13 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
         loan = get_loan(identifier)
 
     # The data of the loan without the user info.
-    loan_data = loan and dict(
-        uuid=loan['uuid'],
-        loaned_at=loan['loaned_at'],
-        resource_type=loan['resource_type'],
-        ocaid=loan['ocaid'],
-        book=loan['book'],
-    )
+    loan_data = loan and {
+        'uuid': loan['uuid'],
+        'loaned_at': loan['loaned_at'],
+        'resource_type': loan['resource_type'],
+        'ocaid': loan['ocaid'],
+        'book': loan['book'],
+    }
 
     responses = get_availability_of_ocaid(identifier)
     response = responses[identifier] if responses else {}
@@ -801,8 +817,7 @@ class Loan(dict):
 
 def resolve_identifier(identifier):
     """Returns the OL book key for given IA identifier."""
-    keys = web.ctx.site.things(dict(type='/type/edition', ocaid=identifier))
-    if keys:
+    if keys := web.ctx.site.things({'type': '/type/edition', 'ocaid': identifier}):
         return keys[0]
     else:
         return "/books/ia:" + identifier
@@ -880,7 +895,7 @@ class ACS4Item:
         try:
             return requests.get(url).json()
         except OSError:
-            logger.exception("unable to conact BSS server")
+            logger.exception("unable to connect BSS server")
 
     def has_loan(self):
         return bool(self.get_loan())
@@ -906,7 +921,7 @@ class IA_Lending_API:
     """Archive.org waiting list API."""
 
     def get_loan(self, identifier, userid=None):
-        params = dict(method="loan.query", identifier=identifier)
+        params = {'method': "loan.query", 'identifier': identifier}
         if userid:
             params['userid'] = userid
         if loans := self._post(**params).get('result', []):

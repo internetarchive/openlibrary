@@ -87,10 +87,8 @@ def admin_range__human_edits(**kargs):
     total_edits = result[0].count
     q1 = (
         "SELECT count(DISTINCT t.id) AS count FROM transaction t, version v WHERE "
-        "v.transaction_id=t.id AND t.created >= '{}' and t.created < '{}' AND "
-        "t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')".format(
-            start, end
-        )
+        f"v.transaction_id=t.id AND t.created >= '{start}' and t.created < '{end}' AND "
+        "t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"
     )
     result = db.query(q1)
     bot_edits = result[0].count
@@ -109,10 +107,8 @@ def admin_range__bot_edits(**kargs):
         raise TypeError("%s is a required argument for admin_range__bot_edits" % k)
     q1 = (
         "SELECT count(*) AS count FROM transaction t, version v WHERE "
-        "v.transaction_id=t.id AND t.created >= '{}' and t.created < '{}' AND "
-        "t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')".format(
-            start, end
-        )
+        f"v.transaction_id=t.id AND t.created >= '{start}' and t.created < '{end}' AND "
+        "t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"
     )
     result = db.query(q1)
     count = result[0].count
@@ -159,9 +155,9 @@ def admin_range__loans(**kargs):
         raise TypeError("%s is a required argument for admin_total__ebooks" % k)
     result = db.query(
         "SELECT count(*) as count FROM stats"
-        + " WHERE type='loan'"
-        + "   AND created >= $start"
-        + "   AND created < $end",
+        " WHERE type='loan'"
+        "   AND created >= $start"
+        "   AND created < $end",
         vars=locals(),
     )
     return result[0].count
@@ -227,7 +223,7 @@ def _query_count(db, table, type, property, distinct=False):
     else:
         what = 'count(thing_id) as count'
     result = db.select(
-        table, what=what, where='key_id=$key_id', vars=dict(key_id=key_id)
+        table, what=what, where='key_id=$key_id', vars={"key_id": key_id}
     )
     return result[0].count
 

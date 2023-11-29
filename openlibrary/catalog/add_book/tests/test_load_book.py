@@ -52,6 +52,7 @@ def test_build_query(add_languages):
     rec = {
         'title': 'magic',
         'languages': ['eng', 'fre'],
+        'translated_from': ['yid'],
         'authors': [{'name': 'Surname, Forename'}],
         'description': 'test',
     }
@@ -61,5 +62,6 @@ def test_build_query(add_languages):
     assert q['description'] == {'type': '/type/text', 'value': 'test'}
     assert q['type'] == {'key': '/type/edition'}
     assert q['languages'] == [{'key': '/languages/eng'}, {'key': '/languages/fre'}]
+    assert q['translated_from'] == [{'key': '/languages/yid'}]
 
     pytest.raises(InvalidLanguage, build_query, {'languages': ['wtf']})

@@ -16,9 +16,10 @@ $def render_seed_count(seed_count):
         <a href="/" title="$_('Visit Open Library')"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="$_('Open Library logo')" class="right"/></a>
 
         $ owner = list.get_owner()
-        <a href="$owner.key">$owner.displayname</a>
-        /
-        <a href="$owner.key/lists">$_('Lists')</a>
+        $if owner:
+            <a href="$owner.key">$owner.displayname</a>
+            /
+            <a href="$owner.key/lists">$_('Lists')</a>
     </div>
     <h1>
         $list.name

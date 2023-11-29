@@ -34,7 +34,6 @@ $def with (page)
           <li><a href="/developers/api" title="$_('Explore Open Library APIs')">$_('API Documentation')</a></li>
           <li><a href="/developers/dumps" title="$_('Bulk Open Library data')">$_('Bulk Data Dumps')</a></li>
           <li><a href="https://github.com/internetarchive/openlibrary/wiki/Writing-Bots" title="$_('Write a bot')">$_('Writing Bots')</a></li>
-          <li><a href="/books/add" title="$_('Add a new book to Open Library')">$_('Add a Book')</a></li>
         </ul>
       </div>
       <div>
@@ -43,13 +42,15 @@ $def with (page)
           <li><a href="/help">$_('Help Center')</a></li>
           <li><a href="/contact?$urlencode(dict(path=request.fullpath))" title="$_('Problems')">$_('Report A Problem')</a></li>
           <li><a href="/help/faq/editing" title="$_('Suggest Edits')">$_('Suggesting Edits')</a></li>
+          <li><a href="/books/add" title="$_('Add a new book to Open Library')">$_('Add a Book')</a></li>
+          <li><a href="https://github.com/internetarchive/openlibrary/releases" title="$_('Release Notes')">$_('Release Notes')</a></li>
         </ul>
         <aside id="footer-icons">
           <a class="footer-icons__twitter" href="https://twitter.com/OpenLibrary">twitter</a>
           <a class="footer-icons__github" href="https://github.com/internetarchive/openlibrary">github</a>
         </aside>
       </div>
-      <div id="footer-locale-menu">
+      <div>
         <h2>$_('Change Website Language')</h2>
         $:render_template('languages/language_list')
       </div>

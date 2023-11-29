@@ -2,8 +2,8 @@
 
 from enum import Enum
 import re
-from subprocess import run
-from typing import TypeVar, Literal, Optional
+from subprocess import CalledProcessError, run
+from typing import TypeVar, Literal
 from collections.abc import Iterable, Callable
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
@@ -92,7 +92,7 @@ def take_best(
 
 def multisort_best(
     items: list[T], specs: list[tuple[Literal["min", "max"], Callable[[T], float]]]
-) -> Optional[T]:
+) -> T | None:
     """
     Takes the best item, taking into account the multisorts
 
@@ -163,11 +163,14 @@ def olid_to_key(olid: str) -> str:
     '/authors/OL123A'
     >>> olid_to_key('OL123M')
     '/books/OL123M'
+    >>> olid_to_key("OL123L")
+    '/lists/OL123L'
     """
     typ = {
         'A': 'authors',
         'W': 'works',
         'M': 'books',
+        'L': 'lists',
     }[olid[-1]]
     if not typ:
         raise ValueError(f"Invalid olid: {olid}")
@@ -209,7 +212,10 @@ def get_software_version() -> str:
     assert get_software_version()  # Should never return a falsy value
     """
     cmd = "git rev-parse --short HEAD --".split()
-    return run(cmd, capture_output=True, text=True).stdout.strip()
+    try:
+        return run(cmd, capture_output=True, text=True, check=True).stdout.strip()
+    except CalledProcessError:
+        return "unknown"
 
 
 # See https://docs.python.org/3/library/enum.html#orderedenum

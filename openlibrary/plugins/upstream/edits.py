@@ -32,7 +32,13 @@ class community_edits_queue(delegate.page):
 
     def GET(self):
         i = web.input(
-            page=1, limit=25, mode="open", submitter=None, reviewer=None, order='desc'
+            page=1,
+            limit=25,
+            mode="open",
+            submitter=None,
+            reviewer=None,
+            order='desc',
+            status=None,
         )
         merge_requests = CommunityEditsQueue.get_requests(
             page=int(i.page),
@@ -41,6 +47,7 @@ class community_edits_queue(delegate.page):
             submitter=i.submitter,
             reviewer=i.reviewer,
             order=f'updated {i.order}',
+            status=i.status,
         ).list()
 
         total_found = {
@@ -54,9 +61,15 @@ class community_edits_queue(delegate.page):
             "reviewers": CommunityEditsQueue.get_reviewers(),
         }
 
+        librarians = {
+            'submitters': CommunityEditsQueue.get_submitters(),
+            'reviewers': CommunityEditsQueue.get_reviewers(),
+        }
+
         return render_template(
-            'merge_queue/merge_queue',
+            'merge_request_table/merge_request_table',
             total_found,
+            librarians,
             merge_requests=merge_requests,
         )
 
@@ -189,16 +202,6 @@ class community_edits_queue(delegate.page):
                 if author and author.name:
                     return author.name
         return 'Unknown record'
-
-
-class ui_partials(delegate.page):
-    path = '/merges/partials'
-
-    def GET(self):
-        i = web.input(type=None, comment='')
-        if i.type == 'comment':
-            component = render_template('merge_queue/comment', comment_str=i.comment)
-            return delegate.RawText(component)
 
 
 def setup():
