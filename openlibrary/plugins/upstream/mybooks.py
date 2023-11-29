@@ -303,7 +303,7 @@ class MyBooksTemplate:
                 results_per_page=RESULTS_PER_PAGE,
                 ratings=ratings,
                 checkin_year=year,
-                events = set({event["event_date"] for event in self.events.select_all_by_username(self.username)})
+                events = set({event["event_date"] for event in self.events.select_by_user_and_type(username = self.username, event_type=3)})
             )
 
         raise web.seeother(self.user.key)
