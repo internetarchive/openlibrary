@@ -226,7 +226,8 @@ export class BulkTagger {
 
     updateSelectedTags() {
         // Create SelectedTags for each existing tag:
-        this.selectedTags.clear()
+        this.clearSelectedTags()
+
         for (const workOlid of this.selectedWorks) {
             const existingTagsForWork = this.existingSubjects.get(workOlid)
             for (const tag of existingTagsForWork) {
@@ -264,6 +265,16 @@ export class BulkTagger {
                 entry.selectedTag.selectedTag.addEventListener('click', () => this.onSelectedTagClick(entry))
             }
         })
+    }
+
+    clearSelectedTags() {
+        this.selectedTags.forEach((arr) => {
+            for (const entry of arr) {
+                entry.selectedTag.remove()
+                entry.selectedTag = null
+            }
+        })
+        this.selectedTags.clear()
     }
 
     /**
