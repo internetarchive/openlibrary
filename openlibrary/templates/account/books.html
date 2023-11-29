@@ -1,4 +1,4 @@
-$def with (docs, key, shelf_counts, doc_count, lists=None, user=None, logged_in_user=None, public=False, sort_order='desc', owners_page=False, q="", results_per_page=25, ratings=[], checkin_year=None)
+$def with (docs, key, shelf_counts, doc_count, lists=None, user=None, logged_in_user=None, public=False, sort_order='desc', owners_page=False, q="", results_per_page=25, ratings=[], checkin_year=None, events = None)
 
 $# Displays a user's reading log
 $# :param list docs:
@@ -68,9 +68,14 @@ $if owners_page:
   $   (_("My Reviews"), url_prefix + "/books/observations"),
   $   (_("Imports and Exports"), "/account/import")
   $ ]
+
 $ already_read_url =( readlog_url % "already-read/year" ) + "%s"
-$ year_breadcrumb_select = [("All Time", (readlog_url % "already-read"))] + [(year, (already_read_url % year)) for year in get_all_reading_goal_years()]
-$ year = str(checkin_year) if checkin_year else "All Time"
+$ year_set = sorted(list(events), reverse = True)
+$ reading_goal_years = {"All Time": ("All Time", (readlog_url % "already-read"))}
+$ reading_goal_years.update({year: (year, (already_read_url % year)) for year in year_set})
+$ reading_goal_years.update({year[0]:(("%s Goal:%s" % (year[0], year[1]) ), (already_read_url % year[0])) for year in get_all_reading_goal_years()})
+
+$ read_in_year = str(checkin_year) if checkin_year else "All Time"
 
 
 <div class="mybooks">
@@ -117,8 +122,8 @@ $ year = str(checkin_year) if checkin_year else "All Time"
 	    $else:
               <div class="sansserif grey account-settings-menu" style="display:flex;gap:1rem;">
               $:render_template("books/breadcrumb_select", key=key, selected=header_title, options=options)
-              $if key=='already-read' and len(year_breadcrumb_select)>1:
-                $:render_template("books/breadcrumb_select", key=key, selected=year, options=year_breadcrumb_select)
+              $if key=='already-read' and len(reading_goal_years.values())>1 and read_in_year in reading_goal_years.keys():
+                $:render_template("books/breadcrumb_select", key=key, selected=reading_goal_years[str(read_in_year)][0], options=reading_goal_years.values())
               </div>
         </div>
         <div>
