@@ -208,6 +208,7 @@ class MyBooksTemplate:
         self.lists = self.readlog.lists
         self.counts = self.readlog.reading_log_counts
         self.events = BookshelvesEvents
+
     def render(
         self,
         page=1,
@@ -285,8 +286,8 @@ class MyBooksTemplate:
             doc_count = logged_book_data.total_results
             ratings = logged_book_data.ratings
 
-        #accessing bookshelf events data for troubleshooting-- do not include in pull request without editing. 
-        
+        # accessing bookshelf events data for troubleshooting-- do not include in pull request without editing.
+
         if docs is not None:
             return render['account/books'](
                 docs=docs,
@@ -303,7 +304,14 @@ class MyBooksTemplate:
                 results_per_page=RESULTS_PER_PAGE,
                 ratings=ratings,
                 checkin_year=year,
-                events = set({event["event_date"] for event in self.events.select_by_user_and_type(username = self.username, event_type=3)})
+                events=set(
+                    {
+                        event["event_date"]
+                        for event in self.events.select_by_user_and_type(
+                            username=self.username, event_type=3
+                        )
+                    }
+                ),
             )
 
         raise web.seeother(self.user.key)

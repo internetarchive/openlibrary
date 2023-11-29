@@ -63,7 +63,7 @@ class BookshelvesEvents(db.CommonExtras):
 
         results = list(oldb.query(query, vars=data))
         return results
-    
+
     @classmethod
     def get_latest_event_date(cls, username, work_id, event_type):
         oldb = db.get_db()
