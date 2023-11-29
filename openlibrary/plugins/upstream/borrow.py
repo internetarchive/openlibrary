@@ -171,7 +171,7 @@ class borrow(delegate.page):
             lending.get_cached_user_waiting_loans.memcache_delete(
                 user.key, {}
             )  # invalidate cache for user waiting loans
-            lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='join_waitlist')            
+            lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='join_waitlist')
             stats.increment('ol.loans.joinWaitlist')
             raise web.redirect(edition_redirect)
         elif action == 'leave-waitinglist':

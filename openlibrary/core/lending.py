@@ -555,8 +555,7 @@ def get_user_waiting_loans(user_key):
 get_cached_user_waiting_loans = cache.memcache_memoize(
     get_user_waiting_loans,
     key_prefix='waitinglist.user_waiting_loans',
-    timeout=10
-    * dateutil.MINUTE_SECS,
+    timeout=10 * dateutil.MINUTE_SECS,
 )
 
 
