@@ -7,8 +7,15 @@ import { Tag, subjectTypeMapping } from './models/Tag'
 import { debounce } from '../nonjquery_utils';
 import { FadingToast } from '../Toast'
 
+/**
+ * Maximum amount of search result to be returned by subject
+ * search calls.
+ */
 const maxDisplayResults = 25;
 
+/**
+ * Maps tag display types to BEM suffixes.
+ */
 const classTypeSuffixes = {
     subject: '--subject',
     person: '--person',
@@ -224,6 +231,10 @@ export class BulkTagger {
         }))
     }
 
+    /**
+     * Creates `SelectedTag` affordances for each existing tag that was
+     * fetched from the server.
+     */
     updateSelectedTags() {
         // Create SelectedTags for each existing tag:
         this.clearSelectedTags()
@@ -267,6 +278,10 @@ export class BulkTagger {
         })
     }
 
+    /**
+     * Removes all previously selected tags from the DOM, and empties
+     * the `selectedTags` Map.
+     */
     clearSelectedTags() {
         this.selectedTags.forEach((arr) => {
             for (const entry of arr) {
@@ -278,6 +293,14 @@ export class BulkTagger {
     }
 
     /**
+     * Click handler for `SelectedTag` affordances.
+     *
+     * If the `SelectedTag` being clicked represents a subject
+     * that all selected works has, the tag is added to the
+     * `tagsToRemove` array and the `SelectedTag` is removed from
+     * the DOM.  Otherwise, the tag is added to the `tagsToAdd` array,
+     * and the affordance is updated to show that it applies to all
+     * selected works.
      *
      * @param {SelectedTagEntry} selectedTagEntry
      */
@@ -401,6 +424,14 @@ export class BulkTagger {
     }
 
     /**
+     * Click handler for search result items and create tag buttons.
+     *
+     * If an entry for the given tag name and type does not already exist,
+     * a new SelectedTag is created, hydrated, and attached to the DOM. The
+     * new element is then stored in a `selectedTags` entry.
+     *
+     * The new tag is added to the `tagsToAdd` array, which is used to populate
+     * the form immediately before submission.
      *
      * @param {String} tagName
      * @param {String} tagType Expected to be in snake_case form

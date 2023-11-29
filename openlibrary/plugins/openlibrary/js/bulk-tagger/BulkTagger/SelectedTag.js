@@ -1,3 +1,6 @@
+/**
+ * Maps tag display types to BEM suffixes.
+ */
 const classTypeSuffixes = {
     subjects: '--subject',
     subject_people: '--person',
@@ -6,17 +9,13 @@ const classTypeSuffixes = {
 }
 
 /**
- * Affordance that displays a tag, and whether all selected works share the tag.
+ * Affordance that displays a tag, the tag's type, and whether all selected works share the tag.
  *
  * Affordance has two states:
  *   1. Indeterminate : at least one, but not all, selected works share the given tag.
- *   2. All works tagged : All works have the given tag.
+ *   2. All works tagged : All works have the given tag. If all works are tagged, `allWorksTagged` will be `true`.
  *
- * Behavior on click:
- *   1. When the inital state is "Indeterminate", the subject is added to the `tags_to_add` form input. State changes to "All works tagged"
- *   2. When initial state is "All works tagged", the subject is added to the `tags_to_remove` form input. This row is removed from the DOM.
- *
- * To support bloom filtering, the visiblity of this affordance can be toggled.
+ * To support filtering, the visibility of `SelectedTag`s can be toggled.
  */
 export class SelectedTag {
 
@@ -65,14 +64,6 @@ export class SelectedTag {
          * @member {HTMLElement}
          */
         this.selectedTag
-
-        /**
-         * Lowercase representation of the `tagName`.
-         *
-         * @readonly
-         * @member {String}
-         */
-        this.LOWERCASE_TAG_NAME = this.tagName.toLowerCase()
     }
 
     /**
