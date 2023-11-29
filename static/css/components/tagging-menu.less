@@ -80,6 +80,7 @@
   align-items: center;
   font-size: 16px;
   border-bottom: 1px solid @light-grey;
+  border-top: 1px solid @light-grey;
   padding: 7px;
   width: 100%;
   min-height: 38px;
@@ -178,10 +179,9 @@
 
 .search-subject-type {
   font-size: 11px;
-  font-weight: 400;
+  font-weight: 700;
   border-radius: 8px;
   padding: 2px 6px;
-  color: @white;
 }
 
 .new-selected-subject-tag {
@@ -206,8 +206,14 @@
   cursor: pointer;
   margin: 5px 0;
   height: 20px;
+  display: flex;
+  align-items: center;
 
   .selected-tag__status {
+    display: inline-block;
+    width: 1em;
+    text-align: center;
+
     &--some-tagged::before {
       content: "-";
     }
@@ -221,6 +227,7 @@
     width: 15px;
     border-radius: 50%;
     display: inline-block;
+    margin: 0 10px;
 
     &--place {
       background-color: @dark-red;
