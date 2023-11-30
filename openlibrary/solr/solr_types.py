@@ -24,6 +24,7 @@ class SolrDocument(TypedDict):
     first_edition: Optional[str]
     first_publisher: Optional[str]
     language: Optional[list[str]]
+    original_language: Optional[list[str]]
     number_of_pages_median: Optional[int]
     lccn: Optional[list[str]]
     ia: Optional[list[str]]
