@@ -37,10 +37,11 @@ export class IntegratedLibrarianEnvironment {
     init() {
         // Add the ILE toolbar to bottom of screen
         $(document.body).append(this.$toolbar.hide());
-        this.selectionManager.init();
 
         // Ready bulk tagger:
         this.createBulkTagger()
+
+        this.selectionManager.init();
     }
 
     /** @param {string} text */
@@ -83,8 +84,6 @@ export class IntegratedLibrarianEnvironment {
      */
     updateAndShowBulkTagger(workIds) {
         if (this.bulkTagger) {
-            const target = this.$hiddenForms[0]
-            target.style.display = 'block';
             this.bulkTagger.updateWorks(workIds)
             this.bulkTagger.showTaggingMenu()
         }

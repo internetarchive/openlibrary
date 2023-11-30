@@ -121,7 +121,7 @@ export default class SelectionManager {
         const statusParts = [];
         this.ile.$actions.empty();
         this.ile.$selectionActions.empty();
-        this.ile.$hiddenForms.css('display', 'none');
+        this.ile.bulkTagger.hideTaggingMenu()
         SelectionManager.TYPES.forEach(type => {
             const count = this.selectedItems[type.singular].length;
             if (count) statusParts.push(`${count} ${count === 1 ? type.singular : type.plural}`);
