@@ -42,7 +42,7 @@ export class BulkTagger {
          * Reference to root Bulk Tagger element.
          * @member {HTMLFormElement}
          */
-        this.bulkTagger = bulkTagger
+        this.rootElement = bulkTagger
 
         /**
          * Reference to the Bulk Tagger's subject search box.
@@ -141,7 +141,7 @@ export class BulkTagger {
      */
     initialize() {
         // Add "hide menu" functionality:
-        const closeFormButton = this.bulkTagger.querySelector('.close-bulk-tagging-form')
+        const closeFormButton = this.rootElement.querySelector('.close-bulk-tagging-form')
         closeFormButton.addEventListener('click', () => {
             this.hideTaggingMenu()
         })
@@ -154,14 +154,14 @@ export class BulkTagger {
         });
 
         // Prevent redirect on batch subject submission:
-        const submitButton = this.bulkTagger.querySelector('.bulk-tagging-submit')
+        const submitButton = this.rootElement.querySelector('.bulk-tagging-submit')
         submitButton.addEventListener('click', (event) => {
             event.preventDefault()
             this.submitBatch()
         })
 
         // Add click listeners to "create subject" options:
-        const createSubjectButtons = this.bulkTagger.querySelectorAll('.subject-type-option')
+        const createSubjectButtons = this.rootElement.querySelectorAll('.subject-type-option')
         for (const elem of createSubjectButtons) {
             elem.addEventListener('click', () => this.onSelectTag(this.searchInput.value, elem.dataset.tagType))
         }
@@ -171,14 +171,14 @@ export class BulkTagger {
      * Hides the Bulk Tagger.
      */
     hideTaggingMenu() {
-        this.bulkTagger.classList.add('hidden')
+        this.rootElement.classList.add('hidden')
     }
 
     /**
      * Displays the Bulk Tagger.
      */
     showTaggingMenu() {
-        this.bulkTagger.classList.remove('hidden')
+        this.rootElement.classList.remove('hidden')
     }
 
     /**
@@ -273,7 +273,7 @@ export class BulkTagger {
                     this.tagsToAdd.push(entry.selectedTag.tag)
                 }
                 entry.selectedTag.renderAndAttach()
-                entry.selectedTag.selectedTag.addEventListener('click', () => this.onSelectedTagClick(entry))
+                entry.selectedTag.rootElement.addEventListener('click', () => this.onSelectedTagClick(entry))
             }
         })
     }
@@ -469,12 +469,12 @@ export class BulkTagger {
      * Submits the bulk tagging form and updates the view.
      */
     submitBatch() {
-        const url = this.bulkTagger.action
+        const url = this.rootElement.action
         this.prepareFormForSubmission()
 
         fetch(url, {
             method: 'post',
-            body: new FormData(this.bulkTagger)
+            body: new FormData(this.rootElement)
         })
             .then(response => {
                 if (!response.ok) {

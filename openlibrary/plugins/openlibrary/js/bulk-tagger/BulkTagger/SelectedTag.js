@@ -27,10 +27,10 @@ export class SelectedTag {
         /**
          * Reference to the root element of this SelectedTag.
          *
-         * This variable is set in the `renderAndAttach` method.
+         * This is set by the `renderAndAttach` method.
          * @member {HTMLElement}
          */
-        this.selectedTag
+        this.rootElement
 
         /**
          * @member {Tag}
@@ -57,13 +57,6 @@ export class SelectedTag {
          * @member {boolean}
          */
         this.allWorksTagged = allWorksTagged
-
-        /**
-         * Reference to the root element of this SelectedTag.
-         *
-         * @member {HTMLElement}
-         */
-        this.selectedTag
     }
 
     /**
@@ -81,14 +74,14 @@ export class SelectedTag {
 
         const selectedTagsElem = document.querySelector('.selected-tag-subjects')
         selectedTagsElem.prepend(parentElem)
-        this.selectedTag = parentElem
+        this.rootElement = parentElem
     }
 
     /**
      * Removes this SelectedTag from the DOM.
      */
     remove() {
-        this.selectedTag.remove()
+        this.rootElement.remove()
     }
 
     /**
@@ -98,8 +91,8 @@ export class SelectedTag {
      */
     updateAllWorksTagged(allWorksTagged) {
         this.allWorksTagged = allWorksTagged
-        if (this.selectedTag) {  // `selectedTag` not set until `renderAndAttach` is called
-            const statusIndicator = this.selectedTag.querySelector('.selected-tag__status')
+        if (this.rootElement) {  // `rootElement` not set until `renderAndAttach` is called
+            const statusIndicator = this.rootElement.querySelector('.selected-tag__status')
             if (allWorksTagged) {
                 statusIndicator.classList.remove('selected-tag__status--some-tagged')
                 statusIndicator.classList.add('selected-tag__status--all-tagged')
@@ -114,7 +107,7 @@ export class SelectedTag {
      * Hides this SelectedTag.
      */
     hide() {
-        this.selectedTag.classList.add('hidden')
+        this.rootElement.classList.add('hidden')
         this.isVisible = false
     }
 
@@ -122,7 +115,7 @@ export class SelectedTag {
      * Shows this SelectedTag.
      */
     show() {
-        this.selectedTag.classList.remove('hidden')
+        this.rootElement.classList.remove('hidden')
         this.isVisible = true
     }
 }
