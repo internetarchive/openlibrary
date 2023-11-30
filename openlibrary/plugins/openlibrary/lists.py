@@ -58,12 +58,15 @@ class ListRecord:
         }
         if data := web.data():
             # If the requests has data, parse it and use it to populate the list
-            form_data = {
-                # By default all the values are lists
-                k: v[0]
-                for k, v in parse_qs(bytes.decode(data)).items()
-            }
-            i = {} | DEFAULTS | utils.unflatten(form_data)
+            if web.ctx.env.get('CONTENT_TYPE') == 'application/json':
+                i = {} | DEFAULTS | json.loads(data)
+            else:
+                form_data = {
+                    # By default all the values are lists
+                    k: v[0]
+                    for k, v in parse_qs(bytes.decode(data)).items()
+                }
+                i = {} | DEFAULTS | utils.unflatten(form_data)
         else:
             # Otherwise read from the query string
             i = utils.unflatten(web.input(**DEFAULTS))
@@ -280,7 +283,12 @@ class lists_edit(delegate.page):
             action="lists",
             comment=web.input(_comment="")._comment or None,
         )
-        return safe_seeother(list_record.key)
+
+        # If content type json, return json response
+        if web.ctx.env.get('CONTENT_TYPE') == 'application/json':
+            return delegate.RawText(json.dumps({'key': list_record.key}))
+        else:
+            return safe_seeother(list_record.key)
 
 
 class lists_add(delegate.page):

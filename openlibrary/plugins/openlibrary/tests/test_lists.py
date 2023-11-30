@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch
 
 import pytest
@@ -52,6 +53,33 @@ class TestListRecord:
             }
             assert ListRecord.from_input() == ListRecord(
                 key='/lists/OL1L',
+                name='foo data',
+                description='bar',
+                seeds=[{'key': '/books/OL1M'}, {'key': '/books/OL2M'}],
+            )
+
+    def test_from_input_with_json_data(self):
+        with (
+            patch('web.input') as mock_web_input,
+            patch('web.data') as mock_web_data,
+            patch('web.ctx') as mock_web_ctx,
+        ):
+            mock_web_ctx.env = {'CONTENT_TYPE': 'application/json'}
+            mock_web_data.return_value = json.dumps(
+                {
+                    'name': 'foo data',
+                    'description': 'bar',
+                    'seeds': [{'key': '/books/OL1M'}, {'key': '/books/OL2M'}],
+                }
+            ).encode('utf-8')
+            mock_web_input.return_value = {
+                'key': None,
+                'name': 'foo',
+                'description': 'bar',
+                'seeds': [],
+            }
+            assert ListRecord.from_input() == ListRecord(
+                key=None,
                 name='foo data',
                 description='bar',
                 seeds=[{'key': '/books/OL1M'}, {'key': '/books/OL2M'}],
