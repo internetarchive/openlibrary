@@ -73,7 +73,9 @@ export class SelectedTag {
         const parentElem = document.createElement('div')
         parentElem.classList.add('selected-tag')
         const markup = `<span class="selected-tag__status selected-tag__status--${this.allWorksTagged ? 'all-tagged' : 'some-tagged'}"></span>
-            <span class="selected-tag__type selected-tag__type${classTypeSuffixes[this.tagType]}"></span>
+            <span class="selected-tag__type-container">
+                <span class="selected-tag__type selected-tag__type${classTypeSuffixes[this.tagType]}"></span>
+            </span>
             <span class="selected-tag__name">${this.tagName}</span>`
         parentElem.innerHTML = markup
 
