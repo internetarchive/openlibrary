@@ -238,32 +238,31 @@
 
     &--place {
       background-color: @dark-red;
-
-      &::before {
-        content: "place";
-      }
     }
+    &--place::before {
+      content: "place";
+    }
+
     &--person {
       background-color: @dark-green;
-
-      &::before {
-        content: "person";
-      }    
     }
+    &--person::before {
+      content: "person";
+    }
+
     &--time {
       background-color: @dark-yellow;
       color: @black;
-
-      &::before {
-        content: "time";
-      }    
     }
+    &--time::before {
+      content: "time";
+    }
+
     &--subject {
       background-color: @primary-blue;
-
-      &::before {
-        content: "subject";
-      }    
+    }
+    &--subject::before {
+      content: "subject";
     }
   }
 }
