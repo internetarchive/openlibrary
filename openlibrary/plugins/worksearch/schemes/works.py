@@ -278,21 +278,33 @@ class WorkSearchScheme(SearchScheme):
         # query, but much more flexible. We wouldn't be able to do our
         # complicated parent/child queries with defType!
 
-        solr_boost = 'min(100,edition_count)'
+        # bf (boost factor): boost results based on the value of this
+        # field. I.e. results with more editions get boosted, upto a
+        # max of 100, after which we don't see it as good signal of
+        # quality. bf is applied _additively_.
+        # boost: boost results based on the value of this field. boost
+        # is applied _multiplicatively_.
+        solr_boost: str | None = None
         if custom_solr_boost := web.input().get('_solr_boost'):
-            assert '"' not in solr_boost, "Invalid Solr Boost"
-            assert '}' not in solr_boost, "Invalid Solr Boost"
+            assert '"' not in custom_solr_boost, "Invalid Solr Boost"
+            assert '}' not in custom_solr_boost, "Invalid Solr Boost"
             solr_boost = custom_solr_boost
-        full_work_query = '({{!edismax q.op="AND" qf="{qf}" boost="{boost}" v={v}}})'.format(
+        solr_bf: str | None = 'min(100,edition_count)' if not solr_boost else None
+        if custom_solr_bf := web.input().get('_solr_bf'):
+            assert '"' not in custom_solr_bf, "Invalid Solr Boost Factor"
+            assert '}' not in custom_solr_bf, "Invalid Solr Boost Factor"
+            solr_bf = custom_solr_bf
+        full_work_query = '({{!edismax q.op="AND" qf="{qf}" {boosting_params} v={v}}})'.format(
             # qf: the fields to query un-prefixed parts of the query.
             # e.g. 'harry potter' becomes
             # 'text:(harry potter) OR alternative_title:(harry potter)^20 OR ...'
             qf='text alternative_title^20 author_name^20',
-            # bf (boost factor): boost results based on the value of this
-            # field. I.e. results with more editions get boosted, upto a
-            # max of 100, after which we don't see it as good signal of
-            # quality.
-            boost=solr_boost,
+            boosting_params=' '.join(
+                (
+                    f' bf="{solr_bf}"' if solr_bf else '',
+                    f' boost="{solr_boost}"' if solr_boost else '',
+                )
+            ),
             # v: the query to process with the edismax query parser. Note
             # we are using a solr variable here; this reads the url parameter
             # arbitrarily called workQuery.
