@@ -192,7 +192,7 @@ class borrow(delegate.page):
 
                 add_flash_message(
                     'error',
-                    _('Unable to complete borrow action. Please try again later.'),
+                    _('Your account has hit a lending limit. Please try again later or contact info@archive.org.'),
                 )
                 raise web.seeother(key)
 
