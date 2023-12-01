@@ -350,7 +350,7 @@ class DataProcessor:
 
 
 def trim(d):
-    """Remote empty values from given dictionary.
+    """Remove empty values from given dictionary.
 
     >>> trim({"a": "x", "b": "", "c": [], "d": {}})
     {'a': 'x'}

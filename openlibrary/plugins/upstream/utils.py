@@ -46,8 +46,6 @@ from web.template import TemplateResult
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import (
-        AddBookChangeset,
-        ListChangeset,
         Work,
         Author,
         Edition,
@@ -412,7 +410,7 @@ def _get_changes_v2_raw(
 
 def get_changes_v2(
     query: dict[str, str | int], revision: int | None = None
-) -> list["Changeset | AddBookChangeset | ListChangeset"]:
+) -> list[Changeset]:
     page = web.ctx.site.get(query['key'])
 
     def first(seq, default=None):
@@ -447,7 +445,7 @@ def get_changes_v2(
 
 def get_changes(
     query: dict[str, str | int], revision: int | None = None
-) -> list["Changeset | AddBookChangeset | ListChangeset"]:
+) -> list[Changeset]:
     return get_changes_v2(query, revision=revision)
 
 

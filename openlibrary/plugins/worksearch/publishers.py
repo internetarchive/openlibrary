@@ -103,12 +103,13 @@ class PublisherEngine(subjects.SubjectEngine):
 
 
 def setup():
-    d = web.storage(
-        name="publisher",
-        key="publishers",
-        prefix="/publishers/",
-        facet="publisher_facet",
-        facet_key="publisher_facet",
-        engine=PublisherEngine,
+    subjects.SUBJECTS.append(
+        subjects.SubjectMeta(
+            name="publisher",
+            key="publishers",
+            prefix="/publishers/",
+            facet="publisher_facet",
+            facet_key="publisher_facet",
+            Engine=PublisherEngine,
+        )
     )
-    subjects.SUBJECTS.append(d)

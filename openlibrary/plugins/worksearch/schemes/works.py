@@ -46,6 +46,7 @@ class WorkSearchScheme(SearchScheme):
         "ebook_access",
         "edition_count",
         "edition_key",
+        "format",
         "by_statement",
         "publish_date",
         "lccn",
@@ -308,6 +309,7 @@ class WorkSearchScheme(SearchScheme):
                 'alternative_subtitle': 'subtitle',
                 'cover_i': 'cover_i',
                 # Misc useful data
+                'format': 'format',
                 'language': 'language',
                 'publisher': 'publisher',
                 'publisher_facet': 'publisher_facet',
