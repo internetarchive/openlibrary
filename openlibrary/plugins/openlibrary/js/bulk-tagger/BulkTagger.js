@@ -2,9 +2,10 @@
  * Defines functionality related to the ILE's Bulk Tagger tool.
  * @module ile/BulkTagger
  */
+import debounce from 'lodash/debounce'
+
 import { SelectedTag } from './BulkTagger/SelectedTag';
 import { Tag, subjectTypeMapping } from './models/Tag'
-import { debounce } from '../nonjquery_utils';
 import { FadingToast } from '../Toast'
 
 /**
@@ -147,10 +148,10 @@ export class BulkTagger {
         })
 
         // Add input listener to subject search box:
+        const debouncedInputChangeHandler = debounce(this.onSearchInputChange.bind(this), 500)
         this.searchInput.addEventListener('input', () => {
             const searchTerm = this.searchInput.value.trim();
-            // XXX : debounce is not working as expected here
-            debounce(this.onSearchInputChange(searchTerm), 500)
+            debouncedInputChangeHandler(searchTerm)
         });
 
         // Prevent redirect on batch subject submission:
