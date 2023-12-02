@@ -394,7 +394,7 @@ SelectionManager.ACTIONS = [
     {
         applies_to_type: ['work','edition'],
         requires_type: ['work'],
-        multiple_only: true,
+        multiple_only: false,
         name: 'Tag Works',
         onclick: true,
     },
