@@ -80,8 +80,13 @@ $if owners_page:
       $ current_goal = get_reading_goals(year=year)
 
       $# Is date between 1 Dec and 1 Feb?
-      $if not current_goal and within_date_range(12, 1, 2, 1):
-        $ cta_copy = _('Set your %(year)s Yearly Reading Goal:', year=year)
+      $this_year = get_reading_goals_year()
+      $next_year = year + 1
+      $current_goal = get_reading_goals(year=this_year)
+      $next_goal = get_reading_goals(year=next_year)
+      
+      $if (within_date_range(1, 1, 11, 30) and not current_goal) or (within_date_range(12, 1, 12, 31) not next_goal):
+              $ cta_copy = _('Set your %(year)s Yearly Reading Goal:', year=year)
         $ btn_copy = _('Set my goal')
         $ announcement =  '%s <a class="btn primary set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">%s</a>' % (cta_copy, btn_copy)
 
