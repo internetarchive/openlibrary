@@ -208,23 +208,30 @@
   padding: 5px 0;
   display: flex;
   align-items: center;
+  font-weight: 700;
 
   .selected-tag__status {
     display: inline-block;
     width: 1em;
     text-align: center;
+    margin-right: 5px;
 
     &--some-tagged::before {
       content: "-";
     }
     &--all-tagged::before {
-      content: "+";
+      content: "✓";
     }
+  }
+
+  .selected-tag__name {
+    overflow-wrap: anywhere;
+    max-width: 190px;
   }
 
   .selected-tag__type-container {
     width: 80px;
-    margin: 0 10px;
+    margin: 0 10px 0 auto;
   }
 
   .selected-tag__type {
@@ -233,36 +240,23 @@
     padding: 3px 6px;
     color: @white;
     font-size: 11px;
-    font-weight: 700;
     width: fit-content;
 
     &--place {
       background-color: @dark-red;
     }
-    &--place::before {
-      content: "place";
-    }
 
     &--person {
       background-color: @dark-green;
-    }
-    &--person::before {
-      content: "person";
     }
 
     &--time {
       background-color: @dark-yellow;
       color: @black;
     }
-    &--time::before {
-      content: "time";
-    }
 
     &--subject {
       background-color: @primary-blue;
-    }
-    &--subject::before {
-      content: "subject";
     }
   }
 }
