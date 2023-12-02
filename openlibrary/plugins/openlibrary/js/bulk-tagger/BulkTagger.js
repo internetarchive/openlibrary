@@ -123,14 +123,14 @@ export class BulkTagger {
         this.selectedWorks = []
 
         /**
-         * Tags queued for adding to all selected works.
+         * Tags staged for adding to all selected works.
          *
          * @member {Array<Tag>}
          */
         this.tagsToAdd = []
 
         /**
-         * Tags queued for removal from all selected works.
+         * Tags staged for removal from all selected works.
          *
          * @member {Array<Tag>}
          */
@@ -269,10 +269,7 @@ export class BulkTagger {
         this.selectedTags.forEach((arr) => {
             for (const entry of arr) {
                 const allWorksTagged = entry.taggedWorksCount === this.selectedWorks.length
-                entry.selectedTag.allWorksTagged = allWorksTagged
-                if (allWorksTagged) {
-                    this.tagsToAdd.push(entry.selectedTag.tag)
-                }
+                entry.selectedTag.updateAllWorksTagged(allWorksTagged)
                 entry.selectedTag.renderAndAttach()
                 entry.selectedTag.rootElement.addEventListener('click', () => this.onSelectedTagClick(entry))
             }
@@ -310,8 +307,12 @@ export class BulkTagger {
 
         if (selectedTag.allWorksTagged) {  // Remove this tag from all selected works:
             const tagIndex = this.tagsToAdd.findIndex((tag) => (tag.tagName === selectedTag.tagName && tag.tagType === selectedTag.tagType))
-            this.tagsToRemove.push(this.tagsToAdd[tagIndex])
-            this.tagsToAdd.splice(tagIndex, 1)
+            if (tagIndex > -1) {
+                this.tagsToRemove.push(this.tagsToAdd[tagIndex])
+                this.tagsToAdd.splice(tagIndex, 1)
+            } else {
+                this.tagsToRemove.push(selectedTag.tag)
+            }
 
             // Remove from DOM
             selectedTag.remove()
