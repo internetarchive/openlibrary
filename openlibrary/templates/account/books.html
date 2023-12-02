@@ -84,7 +84,7 @@ $if owners_page:
       $next_year = year + 1
       $current_goal = get_reading_goals(year=this_year)
       $next_goal = get_reading_goals(year=next_year)
-      
+
       $if (within_date_range(1, 1, 11, 30) and not current_goal) or (within_date_range(12, 1, 12, 31) not next_goal):
               $ cta_copy = _('Set your %(year)s Yearly Reading Goal:', year=year)
         $ btn_copy = _('Set my goal')
