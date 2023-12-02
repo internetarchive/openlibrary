@@ -4,9 +4,6 @@ function createTestElementsForProcessClick() {
     const listItem = document.createElement('li');
     listItem.classList.add('searchResultItem', 'ile-selectable');
 
-    // const ctaDiv = document.createElement('div');
-    // ctaDiv.classList.add('searchResultItemCTA');
-
     const link = document.createElement('a');
     listItem.appendChild(link);
 
@@ -17,7 +14,6 @@ function createTestElementsForProcessClick() {
     bookTitle.appendChild(bookLink);
 
     listItem.appendChild(bookTitle);
-    // listItem.appendChild(ctaDiv);
 
     return {listItem,link};
 }
@@ -56,22 +52,6 @@ describe('SelectionManager', () => {
         });
     });
 
-    // test('processClick - clicking on ctaDiv', () => {
-    //     const sm = setupSelectionManager();
-    //     const { listItem, ctaDiv } = createTestElementsForToggleSelected();
-
-    //     ctaDiv.addEventListener('click', () => {
-    //         sm.processClick({ target: ctaDiv, currentTarget: listItem });
-    //     });
-
-    //     expect(listItem.classList.contains('ile-selected')).toBe(false);
-    //     ctaDiv.click();
-    //     expect(listItem.classList.contains('ile-selected')).toBe(false);
-    //     ctaDiv.click();
-    //     expect(listItem.classList.contains('ile-selected')).toBe(false);
-
-    //     jest.clearAllMocks();
-    // });
 
     test('processClick - clicking on a link or button', () => {
         const sm = setupSelectionManager();
