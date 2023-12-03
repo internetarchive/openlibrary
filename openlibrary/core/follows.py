@@ -2,7 +2,7 @@ import logging
 import web
 from typing import cast, Any
 from openlibrary.core.bookshelves import Bookshelves
-    
+
 from . import db
 
 logger = logging.getLogger(__name__)
@@ -15,12 +15,8 @@ class PubSub(db.CommonExtras):
     @classmethod
     def subscribe(cls, subscriber, publisher):
         oldb = db.get_db()
-        return oldb.insert(
-            cls.TABLENAME,
-            subscriber=subscriber,
-            publisher=publisher
-        )
-    
+        return oldb.insert(cls.TABLENAME, subscriber=subscriber, publisher=publisher)
+
     @classmethod
     def unsubscribe(cls, subscriber, publisher):
         oldb = db.get_db()
@@ -28,7 +24,7 @@ class PubSub(db.CommonExtras):
             return oldb.delete(
                 cls.TABLENAME,
                 where='subscriber=$subscriber AND publisher=$publisher',
-                vars={'subscriber': subscriber, 'publisher': publisher}
+                vars={'subscriber': subscriber, 'publisher': publisher},
             )
         except Exception:
             return None
@@ -40,7 +36,7 @@ class PubSub(db.CommonExtras):
             cls.TABLENAME,
             where='subscriber=$subscriber AND publisher=$publisher',
             vars={'subscriber': subscriber, 'publisher': publisher},
-            limit=1  # Limiting to 1 result to check if the subscription exists
+            limit=1,  # Limiting to 1 result to check if the subscription exists
         )
         return len(subscription)
 
@@ -49,9 +45,7 @@ class PubSub(db.CommonExtras):
         """Get publishers subscribers"""
         oldb = db.get_db()
         subscribers = oldb.select(
-            cls.TABLENAME,
-            where='publisher=$publisher',
-            vars={'publisher': publisher}
+            cls.TABLENAME, where='publisher=$publisher', vars={'publisher': publisher}
         )
         return subscribers
 
@@ -62,7 +56,7 @@ class PubSub(db.CommonExtras):
         subscriptions = oldb.select(
             cls.TABLENAME,
             where='subscriber=$subscriber',
-            vars={'subscriber': subscriber}
+            vars={'subscriber': subscriber},
         )
         return [dict(s) for s in subscriptions]
 
@@ -78,9 +72,10 @@ class PubSub(db.CommonExtras):
 
         # Remove any user that are private...
         public_usernames = [
-            p.key.split('/')[2] for p in web.ctx.site.get_many([
-                f'/people/{u}/preferences' for u in usernames
-            ])
+            p.key.split('/')[2]
+            for p in web.ctx.site.get_many(
+                [f'/people/{u}/preferences' for u in usernames]
+            )
             if p.dict().get('notifications', {}).get('public_readlog') == 'yes'
         ]
 
@@ -90,9 +85,12 @@ class PubSub(db.CommonExtras):
             " ORDER BY created DESC LIMIT $limit OFFSET $offset"
         )
         # Fetch the recent books for subscribed users
-        recent_books = list(oldb.query(query, vars={
-            'usernames': public_usernames, 'limit': limit, 'offset': offset
-        }))
+        recent_books = list(
+            oldb.query(
+                query,
+                vars={'usernames': public_usernames, 'limit': limit, 'offset': offset},
+            )
+        )
 
         # Add keys
         for i, rb in enumerate(recent_books):
@@ -107,7 +105,7 @@ class PubSub(db.CommonExtras):
             cls.TABLENAME,
             what='count(*) as count',
             where='subscriber=$subscriber',
-            vars={'subscriber': subscriber}
+            vars={'subscriber': subscriber},
         )
         return cast(tuple[int], count)[0]
 
@@ -118,7 +116,7 @@ class PubSub(db.CommonExtras):
             cls.TABLENAME,
             what='count(*) as count',
             where='publisher = $publisher',
-            vars={'publisher': publisher}
+            vars={'publisher': publisher},
         )
         return cast(tuple[int], count)[0]
 
@@ -133,13 +131,13 @@ class PubSub(db.CommonExtras):
         oldb = db.get_db()
         count = oldb.query("SELECT COUNT(DISTINCT publisher) AS count FROM follows")
         return cast(tuple[int], count)[0]
-    
+
     @classmethod
     def top_publishers(cls, limit=100):
         oldb = db.get_db()
         top_publishers = oldb.query(
             "SELECT publisher, COUNT(*) AS count FROM follows GROUP BY publisher ORDER BY count DESC LIMIT $limit",
-            vars={'limit': limit}
+            vars={'limit': limit},
         )
-        #return [(publisher.publisher, publisher.count) for publisher in publishers]
-        return top_publishers  
+        # return [(publisher.publisher, publisher.count) for publisher in publishers]
+        return top_publishers

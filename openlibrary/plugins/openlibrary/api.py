@@ -33,6 +33,7 @@ from openlibrary.core.vendors import (
 )
 from openlibrary.core.helpers import NothingEncoder
 
+
 class book_availability(delegate.page):
     path = "/availability/v2"
 
@@ -517,7 +518,7 @@ class patrons_follows_json(delegate.page):
         username = user.key.split('/')[2]
         return delegate.RawText(
             json.dumps(PubSub.get_subscriptions(username), cls=NothingEncoder),
-            content_type="application/json"
+            content_type="application/json",
         )
 
     def POST(self, key):
