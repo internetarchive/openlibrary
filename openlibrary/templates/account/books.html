@@ -1,4 +1,4 @@
-$def with (docs, key, shelf_counts, doc_count, lists=None, user=None, logged_in_user=None, public=False, sort_order='desc', owners_page=False, q="", results_per_page=25, ratings=[], checkin_year=None)
+$def with (docs, key, shelf_counts, doc_count, lists=None, user=None, logged_in_user=None, public=False, sort_order='desc', owners_page=False, q="", results_per_page=25, ratings=[], checkin_year=None, is_subscribed=-1)
 
 $# Displays a user's reading log
 $# :param list docs:
@@ -48,6 +48,8 @@ $if not header_title:
     $ header_title = _("My Lists")
   $elif key == 'list':
     $ header_title = docs.get('name', 'List')
+  $elif key == 'feed':
+    $ header_title = _("My Feed")
   $else:
     $ header_title = key
 
@@ -143,6 +145,10 @@ $if owners_page:
         <div>
           $:macros.databarView(docs)
         </div>
+      $if not owners_page and is_subscribed != -1:
+	<div>
+	  $:macros.Follow(username, following=is_subscribed)
+	</div>
     </header>
     $ component_times['Details header'] = time() - component_times['Details header']
     $ component_times['Details content'] = time()
@@ -161,6 +167,8 @@ $if owners_page:
       $:render_template('lists/lists', docs, lists, show_header=False)
     $elif key == 'already-read':
       $:render_template('account/reading_log', docs, key, shelf_counts[key], doc_count, owners_page, current_page, sort_order=sort_order, user=user, include_ratings=owners_page, q=q, results_per_page=results_per_page, ratings=ratings, checkin_year=checkin_year)
+    $elif key == 'feed':
+      $:render_template('account/reading_log', docs, key, len(docs), doc_count, owners_page, current_page, sort_order=sort_order, user=user, q=q, results_per_page=results_per_page)
     $elif key in {'currently-reading', 'want-to-read', 'sponsorships'}:
       $:render_template('account/reading_log', docs, key, shelf_counts[key], doc_count, owners_page, current_page, sort_order=sort_order, user=user, q=q, results_per_page=results_per_page)
     $else:

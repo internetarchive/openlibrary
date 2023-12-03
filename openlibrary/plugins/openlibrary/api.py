@@ -25,12 +25,13 @@ from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.observations import Observations, get_observation_metrics
 from openlibrary.core.models import Booknotes, Work
 from openlibrary.core.sponsorships import qualifies_for_sponsorship
+from openlibrary.core.follows import PubSub
 from openlibrary.core.vendors import (
     create_edition_from_amazon_metadata,
     get_amazon_metadata,
     get_betterworldbooks_metadata,
 )
-
+from openlibrary.core.helpers import NothingEncoder
 
 class book_availability(delegate.page):
     path = "/availability/v2"
@@ -502,6 +503,33 @@ class price_api(delegate.page):
                     metadata['ocaid'] = ed.ocaid
 
         return json.dumps(metadata)
+
+
+class patrons_follows_json(delegate.page):
+    path = r"(/people/.*)/follows"
+    encoding = "json"
+
+    def GET(self, key):
+        user = accounts.get_current_user()
+        if not user or user.key != key:
+            raise web.seeother('/account/login')
+
+        username = user.key.split('/')[2]
+        return delegate.RawText(
+            json.dumps(PubSub.get_subscriptions(username), cls=NothingEncoder),
+            content_type="application/json"
+        )
+
+    def POST(self, key):
+        user = accounts.get_current_user()
+        if not user or user.key != key:
+            raise web.seeother('/account/login')
+
+        i = web.input(publisher='', redir_url='', state='')
+        username = user.key.split('/')[2]
+        action = PubSub.subscribe if i.state == '0' else PubSub.unsubscribe
+        response = action(username, i.publisher)
+        raise web.seeother(i.redir_url)
 
 
 class patrons_observations(delegate.page):

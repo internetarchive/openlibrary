@@ -19,6 +19,7 @@ from openlibrary import accounts
 from openlibrary.catalog import add_book
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.follows import PubSub
 from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.imports import ImportItem
 from openlibrary.core.observations import Observations
@@ -454,6 +455,10 @@ class Work(Thing):
         work_id = extract_numeric_id_from_olid(self.key)
         rating = Ratings.get_users_rating_for_work(username, work_id)
         return rating
+
+    def get_patrons_who_also_read(self):
+        key = self.key.split('/')[-1][2:-1]
+        return Bookshelves.patrons_who_also_read(key)
 
     def get_users_read_status(self, username):
         if not username:
