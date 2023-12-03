@@ -15,7 +15,7 @@ from openlibrary.core.lending import add_availability, get_loans_of_user
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.core.sponsorships import get_sponsored_editions
 from openlibrary.core.models import LoggedBooksData
-
+from openlibrary.core.follows import PubSub
 
 RESULTS_PER_PAGE: Final = 25
 
@@ -42,6 +42,11 @@ class my_books_view(delegate.page):
         if len(i.q) < 3:
             i.q = ""
         return MyBooksTemplate(username, key).render(page=i.page, sort=i.sort, q=i.q)
+
+
+def is_readinglog_public(user_key):
+    user = web.ctx.site.get(user_key)
+    return user and user.preferences().get('public_readlog', 'no') == 'yes'
 
 
 class public_my_books_json(delegate.page):
@@ -192,6 +197,7 @@ class MyBooksTemplate:
     # unioned with the public keys
     ALL_KEYS = PUBLIC_KEYS | {
         "loans",
+        "feed",
         "waitlist",
         "sponsorships",
         "notes",
@@ -249,7 +255,9 @@ class MyBooksTemplate:
                     if sponsorships
                     else None
                 )
-
+            elif self.key == 'feed':
+                docs = PubSub.get_feed(logged_in_user.key.split('/')[-1])
+                doc_count = len(docs)
             # Reading log for logged in users.
             elif self.key in self.READING_LOG_KEYS:
                 logged_book_data: LoggedBooksData = self.readlog.get_works(
@@ -285,6 +293,11 @@ class MyBooksTemplate:
             ratings = logged_book_data.ratings
 
         if docs is not None:
+            is_subscribed = -1
+            if not is_logged_in_user and is_public:
+                is_subscribed = PubSub.is_subscribed(
+                    logged_in_user.key.split('/')[-1], self.user.key.split('/')[-1]
+                )
             return render['account/books'](
                 docs=docs,
                 key=self.key,
@@ -300,6 +313,7 @@ class MyBooksTemplate:
                 results_per_page=RESULTS_PER_PAGE,
                 ratings=ratings,
                 checkin_year=year,
+                is_subscribed=is_subscribed,
             )
 
         raise web.seeother(self.user.key)

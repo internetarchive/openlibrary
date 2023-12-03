@@ -17,6 +17,9 @@ $elif key == 'already-read':
   $else:
     $ og_title = _("Books %(username)s has read", username=userDisplayName)
     $ og_description = _("%(username)s has read %(total)d books. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about.", username=userDisplayName, total=shelf_count)
+$elif key == 'feed':
+  $ og_title = _("Books in %(username)s feed", username=userDisplayName)
+  $ og_description = _("Books added by people %(username)s follows", username=userDisplayName)
 $elif key == 'sponsorships':
   $ og_title = _("Books %(userdisplayname)s is sponsoring", userdisplayname=userDisplayName)
   $ og_description = "{username} is sponsoring {total} books. Join {username} on OpenLibrary.org and share the books that you'll soon be reading!".format(username=userDisplayName, total=shelf_count)
@@ -63,6 +66,7 @@ $add_metatag(property="og:image", content=meta_photo_url)
         $ doc_number = 1
         $# enumerate because using zip() will result in empty iterator when no ratings are passed, and ratings are only used on already-read.
         $for idx, doc in enumerate(docs):
+          $ doc = doc.work if doc.get('work') else doc
           $ star_rating = macros.StarRatings(doc, redir_url='/account/books/already-read', id=doc_number, rating=ratings[idx]) if include_ratings else None
           $:macros.SearchResultsWork(doc, availability=doc.get('availability'), rating=star_rating, include_dropper=(bookshelf_id and owners_page))
           $ doc_number = doc_number + 1
