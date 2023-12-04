@@ -14,10 +14,14 @@ from openlibrary.utils.dateutil import date_n_days_ago
 
 logger = logging.getLogger('openlibrary.ia')
 
-# FIXME: We can't reference `config` in module scope like this; it will always be undefined!
-# See lending.py for an example of how to do it correctly.
-IA_BASE_URL = config.get('ia_base_url', 'https://archive.org')
+IA_BASE_URL = None
 VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
+
+def setup(config):
+    """Initializes this module from openlibrary config."""
+    global IA_BASE_URL
+
+    IA_BASE_URL = config.get('ia_base_url', 'https://archive.org')
 
 
 def get_api_response(url: str, params: dict | None = None) -> dict:
