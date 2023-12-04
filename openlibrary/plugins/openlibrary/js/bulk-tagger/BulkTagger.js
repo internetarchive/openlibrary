@@ -242,9 +242,22 @@ export class BulkTagger {
             }
         }
 
-        this.menuOptions.forEach((arr) => {
+        const orderedKeys = [...this.menuOptions.keys()].sort((a, b) => {
+            const lowerA = a.toLowerCase()
+            const lowerB = b.toLowerCase()
+            if (lowerA > lowerB) {
+                return -1
+            }
+            else if (lowerA === lowerB) {
+                return 0
+            } else {
+                return 1
+            }
+        })
+
+        orderedKeys.forEach((key) => {
+            const arr = this.menuOptions.get(key)
             for (const menuOption of arr) {
-                // XXX : Order me
                 menuOption.renderAndAttach(this.selectedTagsContainer)
                 menuOption.rootElement.addEventListener('click', () => this.onMenuOptionClick(menuOption))
             }
@@ -317,10 +330,22 @@ export class BulkTagger {
                 .then((response) => response.json())
                 .then((data) => {
                     if (data['docs'].length !== 0) {
-                        data['docs']
-                            .forEach(result => {
-                                this.createMenuOption(new Tag(result.name, null, result['subject_type']))
-                            });
+                        const sortedDocs = [...data['docs']].sort((a, b) => {
+                            const aNameLower = a.name.toLowerCase()
+                            const bNameLower = b.name.toLowerCase()
+
+                            if (aNameLower > bNameLower) {
+                                return -1
+                            }
+                            else if (aNameLower === bNameLower) {
+                                return 0
+                            } else {
+                                return 1
+                            }
+                        })
+                        sortedDocs.forEach(result => {
+                            this.createMenuOption(new Tag(result.name, null, result['subject_type']))
+                        });
                     }
 
                     // Update and show create subject affordance
