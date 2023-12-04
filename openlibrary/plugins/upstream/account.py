@@ -797,8 +797,10 @@ class import_books(delegate.page):
     def GET(self):
         user = accounts.get_current_user()
         username = user['key'].split('/')[-1]
-
-        return MyBooksTemplate(username, 'imports').render()
+        template = render['account/import']()
+        return MyBooksTemplate(username, 'imports').render(
+            header_title=_("Imports and Exports"), template=template
+        )
 
 
 class fetch_goodreads(delegate.page):
@@ -1027,17 +1029,35 @@ class export_books(delegate.page):
 
         return csv_string(Ratings.select_all_by_username(username), format_rating)
 
+class my_followers(delegate.page):
+    path = r"/people/([^/]+)/followers"
+
+    def GET(self, username):
+        mb = MyBooksTemplate(username, 'followers')
+        template = "TODO"
+        return mb.render(header_title=_("Followers"), template=template)
+
+class my_subscriptions(delegate.page):
+    path = r"/people/([^/]+)/following"
+
+    def GET(self, username):
+        mb = MyBooksTemplate(username, 'following')
+        template = "TODO"
+        return mb.render(header_title=_("Following"), template=template)
 
 class account_loans(delegate.page):
     path = "/account/loans"
 
     @require_login
     def GET(self):
+        from openlibrary.core.lending import get_loans_of_user
         user = accounts.get_current_user()
         user.update_loan_status()
         username = user['key'].split('/')[-1]
-
-        return MyBooksTemplate(username, 'loans').render()
+        mb = MyBooksTemplate(username, 'loans')
+        docs = get_loans_of_user(user.key)
+        template = render['account/loans'](user, docs)
+        return mb.render(header_title=_("Loans"), template=template)
 
 
 class account_loans_json(delegate.page):

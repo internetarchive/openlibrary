@@ -338,6 +338,13 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
       </div>
     </div>
 
+    <div>
+      <ul>
+	$for p in page.get_patrons_who_also_read():
+	  <a href="/people/$(p.key.split('/')[2])/books/already-read">$p.key.split('/')[2]</a></li>
+      </ul>
+    </div>
+
       <a id="editions-list" name="editions-list" class="section-anchor"></a>
       <div class="tab-section">
         $ component_times['EditionsTable'] = time()

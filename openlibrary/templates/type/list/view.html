@@ -1,14 +1,15 @@
-$def with (list, check_owner=True, owns_page=False)
+$def with (lst, check_owner=True, owns_page=False)
 
-$var title: $list.name
+$var title: $lst.name
 
 $ is_owner = owns_page
 $ username = ctx.user and ctx.user['key'].split('/')[-1]
 
 $if check_owner and username:
-    $ is_owner = username == list['key'].split('/')[2]
+    $ is_owner = username == lst['key'].split('/')[2]
 
 $if check_owner and is_owner:
-    $:get_mybooks_template(username, 'list', list)
+    $:get_mybooks_template(username, 'list').render_list(lst)
+
 $else:
-    $:render_template("type/list/view_body", list, is_owner)
+    $:render_template("type/list/view_body", lst, is_owner)

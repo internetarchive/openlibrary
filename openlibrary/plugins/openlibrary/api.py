@@ -506,13 +506,14 @@ class price_api(delegate.page):
 
 
 class patrons_follows_json(delegate.page):
-    path = r"(/people/.*)/follows"
+    path = r"(/people/[^/]+)/follows"
     encoding = "json"
 
     def GET(self, key):
+        i = web.input(publisher='', redir_url='', state='')
         user = accounts.get_current_user()
         if not user or user.key != key:
-            raise web.seeother('/account/login')
+            raise web.seeother(f'/account/login?redir_url={i.redir_url}')
 
         username = user.key.split('/')[2]
         return delegate.RawText(
@@ -521,11 +522,11 @@ class patrons_follows_json(delegate.page):
         )
 
     def POST(self, key):
+        i = web.input(publisher='', redir_url='', state='')
         user = accounts.get_current_user()
         if not user or user.key != key:
-            raise web.seeother('/account/login')
+            raise web.seeother(f'/account/login?redir_url={i.redir_url}')
 
-        i = web.input(publisher='', redir_url='', state='')
         username = user.key.split('/')[2]
         action = PubSub.subscribe if i.state == '0' else PubSub.unsubscribe
         response = action(username, i.publisher)
