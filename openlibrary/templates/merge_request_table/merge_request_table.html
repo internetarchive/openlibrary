@@ -58,7 +58,9 @@ $else:
       </tbody>
     </table>
   </div>
-  <div class="pager">
-    $:macros.Pager(page, total[mode], results_per_page=25)
+
+  <div class="paginate">
+    $:render_template("lib/pagination", total[mode]/25, page, "/merges?page=%(page)s")
   </div>
+  
 </div>
