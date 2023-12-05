@@ -62,12 +62,11 @@ class community_edits_queue(delegate.page):
             "reviewers": CommunityEditsQueue.get_reviewers(),
         }
 
-
         librarians = {
             'submitters': CommunityEditsQueue.get_submitters(),
             'reviewers': CommunityEditsQueue.get_reviewers(),
         }
-        
+
         return render_template(
             'merge_request_table/merge_request_table',
             total_found,
