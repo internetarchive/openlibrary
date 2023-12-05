@@ -29,17 +29,6 @@ $else:
 <div class="librarian-queue-page">
   <h1>$_('Community Edit Requests')</h1>
 
-  <div class="description">
-    $if can_merge:
-      <span class="reviewer-filter">
-        $if reviewer:
-          $_("Showing requests reviewed by %(reviewer)s only.", reviewer=reviewer) <a href="$changequery(reviewer=None, page=None)">$_("Remove reviewer filter")</a>
-        $else:
-          <a href="$changequery(reviewer=username, page=None)">$_("Show requests that I've reviewed")</a>
-      </span>
-    <span>$desc <a href="$href">$link_text</a></span>
-  </div>
-
   $ page = int(input(page=1).page)
   <div class="librarian-queue-wrapper" data-username="$username" data-i18n="$json_encode(i18n_strings)">
     $:render_template('merge_request_table/table_header', total, librarians, mode, username, submitter, reviewer, status)
