@@ -148,7 +148,7 @@ class mybooks_loan_history(delegate.page):
         mb = MyBooksTemplate(username, key='loan_history')
         if mb.is_my_page:
             loan_history_data = get_loan_history_data(page=i.page, mb=mb)
-            template = render['account/books'](
+            template = render['account/mybooks'](
                 loan_history_data['docs'],
                 mb.user,
                 loan_history_data['doc_count'],
