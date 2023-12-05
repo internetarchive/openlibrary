@@ -41,9 +41,6 @@ $else:
   </div>
 
   $ page = int(input(page=1).page)
-  <div class="pager">
-    $:macros.Pager(page, total[mode], results_per_page=25)
-  </div>
   <div class="librarian-queue-wrapper" data-username="$username" data-i18n="$json_encode(i18n_strings)">
     $:render_template('merge_request_table/table_header', total, librarians, mode, username, submitter, reviewer, status)
     <table class="mr-table">
@@ -58,9 +55,7 @@ $else:
       </tbody>
     </table>
   </div>
-
-  <div class="paginate">
-    $:render_template("lib/pagination", total[mode]/25, page, "/merges?page=%(page)s")
+  <div class="pager">
+    $:macros.Pager(page, total[mode], results_per_page=25)
   </div>
-  
 </div>
