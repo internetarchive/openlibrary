@@ -6,10 +6,12 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
       <ul class="sidebar-section">
         <li class="section-header">$username</li>
         <li>
-          <a class="li-title-desktop" href="/account/loans" data-ol-link-track="MyBooksSidebar|Loans" $('class=selected' if key == 'loans' else '')>$_('My Loans')</a>
+          <a class="li-title-desktop" href="/account/loans" data-ol-link-track="MyBooksSidebar|Loans" $('class=selected' if key == 'loans' else '')>$_('Loans')</a>
         </li>
-        <li><a class="li-title-desktop" data-ol-link-track="MyBooksSidebar|LoanHistory" href="https://archive.org/account/?tab=loans#loans-history">$_('Loan History')</a></li>
-      </ul>
+        <li>
+          <a class="li-title-desktop" data-ol-link-track="MyBooksSidebar|LoanHistory" href="/people/$username/loan-history">$_('Loan History')</a>
+        </li>
+    </ul>
     $if public or owners_page:
       <ul class="sidebar-section">
         <li class="section-header">$_('Reading Log')</li>
