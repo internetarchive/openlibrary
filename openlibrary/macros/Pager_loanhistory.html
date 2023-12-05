@@ -1,0 +1,9 @@
+$def with (page, num_found, results_per_page=25, show_next=True)
+    <div class="clearfix"></div>
+    <div class="pagination">
+    $if page != 1:
+        <a href="$changequery(page=None)" class="ChoosePage">&laquo;&nbsp;$_('First')</a>
+        <a href="$changequery(page=page-1)" class="ChoosePage">&lt;&nbsp;$_('Previous')</a>
+    $if show_next:
+        <a href="$changequery(page=page+1)" class="ChoosePage">$_('Next')&nbsp;&gt;</a>
+    </div>
