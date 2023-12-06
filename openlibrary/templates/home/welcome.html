@@ -66,6 +66,15 @@ $def with (test=False)
       $ }
       $:render_template('home/onboarding_card', volunteer_card['card_title'], volunteer_card['card_body'], volunteer_card['img_src'], volunteer_card['href'], ol_link_track=volunteer_card['ol_link_track'])
 
+      $ volunteer_action_card = {
+      $    "card_title": _("Volunteer at Open Library"),
+      $    "card_body": -("Volunteer at Open Library"),
+      $    "img_src": "",
+      $    "href": "/volunteer",
+      $    "ol_link_track": "OnboardingCarouselClick|Volunteer"
+      $ }
+      $:render_template('home/onboarding_card', volunteer_action_card['card_title'], volunteer_action_card['card_body'], volunteer_action_card['img_src'], volunteer_action_card['href'], ol_link_track=volunteer_action_card['ol_link_track'])
+
       $ feedback_card = {
       $    "card_title": _("Send us feedback"),
       $    "card_body": _("Your feedback will help us improve these cards"),
