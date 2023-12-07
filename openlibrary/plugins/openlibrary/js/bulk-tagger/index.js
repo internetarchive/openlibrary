@@ -16,7 +16,8 @@ export function renderBulkTagger() {
         <input name="work_ids" value="" type="hidden">
         <input name="tags_to_add" value="" type="hidden">
         <input name="tags_to_remove" value="" type="hidden">
-        <div class="selection-container">
+        <div class="loading-indicator"></div>
+        <div class="selection-container hidden">
             <div class="selected-tag-subjects"></div>
             <div class="subjects-search-results"></div>
         </div>
