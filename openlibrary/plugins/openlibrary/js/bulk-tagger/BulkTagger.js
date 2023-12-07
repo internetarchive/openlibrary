@@ -5,6 +5,7 @@
 import debounce from 'lodash/debounce'
 
 import { MenuOption, MenuOptionState } from './BulkTagger/MenuOption';
+import { SortedMenuOptionContainer } from './BulkTagger/SortedMenuOptionContainer';
 import { Tag } from './models/Tag'
 import { FadingToast } from '../Toast'
 
@@ -42,16 +43,19 @@ export class BulkTagger {
         this.searchInput = bulkTagger.querySelector('.subjects-search-input')
 
         /**
-         * Reference to container which holds the selected subject tags.
-         * @member {HTMLElement}
+         * Menu option container that holds options for staged tags and tags
+         * that already exist on one or more selected works.
+         *
+         * @member {SortedMenuOptionContainer}
          */
-        this.selectedTagsContainer = bulkTagger.querySelector('.selected-tag-subjects')
+        this.selectedOptionsContainer
 
         /**
-         * Reference to container that displays search results.
-         * @member {HTMLElement}
+         * Menu option container that holds options representing search results.
+         *
+         * @member {SortedMenuOptionContainer}
          */
-        this.searchResultsContainer = bulkTagger.querySelector('.subjects-search-results')
+        this.searchResultsOptionsContainer
 
         /**
          * Reference to the element which contains the affordance that creates new subjects.
@@ -84,6 +88,13 @@ export class BulkTagger {
         this.selectedWorksInput = bulkTagger.querySelector('input[name=work_ids]')
 
         /**
+         * Reference to the bulk tagger form's submit button.
+         *
+         * @member {HTMLButtonElement}
+         */
+        this.submitButton = this.rootElement.querySelector('.bulk-tagging-submit')
+
+        /**
          * Stores works' subjects that have been fetched from the server.
          *
          * Keys to the map are work IDs.
@@ -92,6 +103,12 @@ export class BulkTagger {
         this.existingSubjects = new Map()
 
         /**
+         * Stores arrays of selected menu options.
+         *
+         * Tag names are the keys to this map.  Corresponding arrays
+         * will contain menu options having the same name, but different
+         * types.
+         *
          * @member {Map<String, Array<MenuOption>}
          */
         this.menuOptions = new Map()
@@ -119,9 +136,13 @@ export class BulkTagger {
     }
 
     /**
-     * Adds event listeners to the Bulk Tagger.
+     * Initialized the menu option containers, and adds event listeners to the Bulk Tagger.
      */
     initialize() {
+        // Create sorted menu option containers:
+        this.selectedOptionsContainer = new SortedMenuOptionContainer(this.rootElement.querySelector('.selected-tag-subjects'))
+        this.searchResultsOptionsContainer = new SortedMenuOptionContainer(this.rootElement.querySelector('.subjects-search-results'))
+
         // Add "hide menu" functionality:
         const closeFormButton = this.rootElement.querySelector('.close-bulk-tagging-form')
         closeFormButton.addEventListener('click', () => {
@@ -136,8 +157,7 @@ export class BulkTagger {
         });
 
         // Prevent redirect on batch subject submission:
-        const submitButton = this.rootElement.querySelector('.bulk-tagging-submit')
-        submitButton.addEventListener('click', (event) => {
+        this.submitButton.addEventListener('click', (event) => {
             event.preventDefault()
             this.submitBatch()
         })
@@ -154,6 +174,7 @@ export class BulkTagger {
      */
     hideTaggingMenu() {
         this.rootElement.classList.add('hidden')
+        this.rootElement.dispatchEvent(new CustomEvent('option-hidden'))
     }
 
     /**
@@ -173,10 +194,34 @@ export class BulkTagger {
      * @param {Array<String>} workIds
      */
     async updateWorks(workIds) {
+        this.showLoadingIndicator()
+
         this.selectedWorks = workIds
 
         await this.fetchSubjectsForWorks(workIds)
         this.updateMenuOptions()
+
+        this.hideLoadingIndicator()
+    }
+
+    /**
+     * Hides all menu options and shows a loading indicator.
+     */
+    showLoadingIndicator() {
+        const menuOptionContainer = this.rootElement.querySelector('.selection-container')
+        menuOptionContainer.classList.add('hidden')
+        const loadingIndicator = this.rootElement.querySelector('.loading-indicator')
+        loadingIndicator.classList.remove('hidden')
+    }
+
+    /**
+     * Hides the loading indicator and shows all menu options.
+     */
+    hideLoadingIndicator() {
+        const loadingIndicator = this.rootElement.querySelector('.loading-indicator')
+        loadingIndicator.classList.add('hidden')
+        const menuOptionContainer = this.rootElement.querySelector('.selection-container')
+        menuOptionContainer.classList.remove('hidden')
     }
 
     /**
@@ -192,6 +237,7 @@ export class BulkTagger {
         await Promise.all(worksWithMissingSubjects.map(async (id) => {
             // XXX : Too many network requests --- use bulk search if/when it is available
             await this.fetchWork(id)
+                // XXX : Handle failures
                 .then(response => response.json())
                 .then(data => {
                     const entry = {
@@ -214,93 +260,107 @@ export class BulkTagger {
     }
 
     /**
-     * Creates `MenuOption` affordances for each existing tag that was
-     * fetched from the server.
+     * Creates `MenuOption` affordances for all staged tags, and each existing tag that
+     * was fetched from the server.
      */
     updateMenuOptions() {
-        this.clearMenuOptions()
-        // Create SelectedTags for each existing tag:
+        this.selectedOptionsContainer.clear()
+
+        // Add staged tags first, then add all other missing subjects.
+        // This order prevents unnecessary state mangement steps.
+
+        // Create menu options for each staged tag:
+        this.tagsToAdd.forEach((tag) => {
+            const menuOption = new MenuOption(tag, MenuOptionState.ALL_TAGGED, this.selectedWorks.length)
+            menuOption.initialize()
+            this.selectedOptionsContainer.add(menuOption)
+        })
+
+        this.tagsToRemove.forEach((tag) => {
+            const menuOption = new MenuOption(tag, MenuOptionState.NONE_TAGGED, 0)
+            menuOption.initialize()
+            this.selectedOptionsContainer.add(menuOption)
+        })
+
+        // Create menu options for each existing tag:
+        const stagedMenuOptions = []
         for (const workOlid of this.selectedWorks) {
             const existingTagsForWork = this.existingSubjects.get(workOlid)
             for (const tag of existingTagsForWork) {
-                if (!this.menuOptions.has(tag.tagName)) {
-                    const entry = new MenuOption(tag, MenuOptionState.SOME_TAGGED, 1)
-                    this.menuOptions.set(tag.tagName, [entry])
-                } else {
-                    const existingOptions = this.menuOptions.get(tag.tagName)
-                    const matchingEntry = existingOptions.find((option) => option.tag.tagType === tag.tagType)
-                    if (matchingEntry) {
-                        matchingEntry.worksTagged++
-                        if (matchingEntry.worksTagged === this.selectedWorks.length) {
-                            matchingEntry.updateWorksTagged(MenuOptionState.ALL_TAGGED)
+
+                // Does an option for this tag already exist in the container?
+                if (!this.selectedOptionsContainer.containsOptionWithTag(tag)) {
+
+                    // Have we already created and staged a menu option for this tag?
+                    const stagedOption = stagedMenuOptions.find((option) => option.tag.equals(tag))
+                    if (stagedOption) {
+                        stagedOption.taggedWorksCount++
+                        if (stagedOption.taggedWorksCount === this.selectedWorks.length) {
+                            stagedOption.updateMenuOptionState(MenuOptionState.ALL_TAGGED)
                         }
                     } else {
-                        const newEntry = new MenuOption(tag, MenuOptionState.SOME_TAGGED, 1)
-                        existingOptions.push(newEntry)
+                        const state = this.selectedWorks.length === 1 ? MenuOptionState.ALL_TAGGED : MenuOptionState.SOME_TAGGED
+                        const newOption = new MenuOption(tag, state, 1)
+                        newOption.initialize()
+                        stagedMenuOptions.push(newOption)
                     }
                 }
             }
         }
 
-        const orderedKeys = [...this.menuOptions.keys()].sort((a, b) => {
-            const lowerA = a.toLowerCase()
-            const lowerB = b.toLowerCase()
-            if (lowerA > lowerB) {
-                return -1
-            }
-            else if (lowerA === lowerB) {
-                return 0
-            } else {
-                return 1
-            }
-        })
-
-        orderedKeys.forEach((key) => {
-            const arr = this.menuOptions.get(key)
-            for (const menuOption of arr) {
-                menuOption.renderAndAttach(this.selectedTagsContainer)
-                menuOption.rootElement.addEventListener('click', () => this.onMenuOptionClick(menuOption))
-            }
-        })
-
-        // XXX : Update menu options' states based on staged tags
+        stagedMenuOptions.forEach((option) => option.rootElement.addEventListener('click', () => this.onMenuOptionClick(option)))
+        this.selectedOptionsContainer.add(...stagedMenuOptions)
     }
 
     /**
-     * Removes all previously selected tags from the DOM, and empties
-     * the `menuOptions` Map.
-     */
-    clearMenuOptions() {
-        this.menuOptions.forEach((arr) => {
-            for (const menuOption of arr) {
-                menuOption.remove()
-            }
-        })
-        this.menuOptions.clear()
-    }
-
-    // XXX : What do I do?
-    /**
-     * @param {MenuOption} menuOption
+     * Click handler for menu options.
+     *
+     * Changes the menu option's state, and stages the option's tag
+     * for addition or removal.
+     *
+     * @param {MenuOption} menuOption The clicked menu option
      */
     onMenuOptionClick(menuOption) {
+        let stagedTagIndex
         switch (menuOption.optionState) {
-        // XXX : Is something else needed here?
         case MenuOptionState.NONE_TAGGED:
+            stagedTagIndex = this.tagsToRemove.findIndex((tag) => (tag.tagName === menuOption.tag.tagname && tag.tagType === menuOption.tag.tagType))
+            if (stagedTagIndex > -1) {
+                this.tagsToRemove.splice(stagedTagIndex, 1)
+            }
+            this.tagsToAdd.push(menuOption.tag)
+            menuOption.updateMenuOptionState(MenuOptionState.ALL_TAGGED)
+            break
         case MenuOptionState.SOME_TAGGED:
             this.tagsToAdd.push(menuOption.tag)
-            menuOption.updateWorksTagged(MenuOptionState.ALL_TAGGED)
-            break;
+            menuOption.updateMenuOptionState(MenuOptionState.ALL_TAGGED)
+            break
         case MenuOptionState.ALL_TAGGED:
-            const tagIndex = this.tagsToAdd.findIndex((tag) => (tag.tagName === menuOption.tag.tagName && tag.tagType === menuOption.tag.tagType))
-            if (tagIndex > -1) {
-                this.tagsToRemove.push(this.tagsToAdd[tagIndex])
-                this.tagsToAdd.splice(tagIndex, 1)
-            } else {
-                this.tagsToRemove.push(menuOption.tag)
+            stagedTagIndex = this.tagsToAdd.findIndex((tag) => (tag.tagName === menuOption.tag.tagName && tag.tagType === menuOption.tag.tagType))
+            if (stagedTagIndex > -1) {
+                this.tagsToAdd.splice(stagedTagIndex, 1)
             }
-            menuOption.updateWorksTagged(MenuOptionState.NONE_TAGGED)
-            break;
+            this.tagsToRemove.push(menuOption.tag)
+            menuOption.updateMenuOptionState(MenuOptionState.NONE_TAGGED)
+            break
+        }
+
+        this.updateSubmitButtonState()
+    }
+
+    /**
+     * Disables or enables form submission button.
+     *
+     * Button is enabled if there are any tags staged for submission.
+     * Otherwise, the button will be disabled.
+     */
+    updateSubmitButtonState() {
+        const stagedTagCount = this.tagsToAdd.length + this.tagsToRemove.length
+
+        if (stagedTagCount > 0) {
+            this.submitButton.removeAttribute('disabled')
+        } else {
+            this.submitButton.setAttribute('disabled', 'true')
         }
     }
 
@@ -323,29 +383,35 @@ export class BulkTagger {
      * @param {String} searchTerm
      */
     onSearchInputChange(searchTerm) {
+        // Remove search results that are not selected:
+        const resultsToRemove = this.searchResultsOptionsContainer.sortedMenuOptions.filter((option) => option.optionState !== MenuOptionState.ALL_TAGGED)
+        this.searchResultsOptionsContainer.remove(...resultsToRemove)
+
+        // Hide menu options that do not begin with the search term (case-insensitive)
         const trimmedSearchTerm = searchTerm.trim()
-        this.searchResultsContainer.innerHTML = '';
-        if (trimmedSearchTerm !== '') {
+
+        const allOptions = this.selectedOptionsContainer.sortedMenuOptions.concat(this.searchResultsOptionsContainer.sortedMenuOptions)
+        allOptions.forEach((option) => {
+            if (option.tag.tagName.toLowerCase().startsWith(trimmedSearchTerm.toLowerCase())) {
+                option.show()
+            } else {
+                option.hide()
+            }
+        })
+
+        if (trimmedSearchTerm !== '') {  // Perform search:
             fetch(`/search/subjects.json?q=${searchTerm}&limit=${maxDisplayResults}`)
                 .then((response) => response.json())
                 .then((data) => {
                     if (data['docs'].length !== 0) {
-                        const sortedDocs = [...data['docs']].sort((a, b) => {
-                            const aNameLower = a.name.toLowerCase()
-                            const bNameLower = b.name.toLowerCase()
+                        for (const obj of data['docs']) {
+                            const tag = new Tag(obj.name, null, obj['subject_type'])
 
-                            if (aNameLower > bNameLower) {
-                                return -1
+                            if (!this.selectedOptionsContainer.containsOptionWithTag(tag) && !this.searchResultsOptionsContainer.containsOptionWithTag(tag)) {
+                                const menuOption = this.createSearchMenuOption(tag)
+                                this.searchResultsOptionsContainer.add(menuOption)
                             }
-                            else if (aNameLower === bNameLower) {
-                                return 0
-                            } else {
-                                return 1
-                            }
-                        })
-                        sortedDocs.forEach(result => {
-                            this.createMenuOption(new Tag(result.name, null, result['subject_type']))
-                        });
+                        }
                     }
 
                     // Update and show create subject affordance
@@ -355,19 +421,6 @@ export class BulkTagger {
             // Hide create subject affordance
             this.createSubjectElem.classList.add('hidden')
         }
-
-        // Hide menu options that do not begin with the search term (case-insensitive)
-        this.menuOptions.forEach((options, tagName) => {
-            if (tagName.toLowerCase().startsWith(trimmedSearchTerm.toLowerCase())) {
-                options.forEach((option) => {
-                    option.show()
-                })
-            } else {
-                options.forEach((option) => {
-                    option.hide()
-                })
-            }
-        })
     }
 
     /**
@@ -382,42 +435,72 @@ export class BulkTagger {
     }
 
     /**
+     * Creates, hydrates, and returns a new menu option based on a search result.
+     *
+     * In addition to the usual click listener, the newly created element will have an
+     * `option-hidden` event handler, which will move any selected menu option to the
+     * selected options container whenever the menu option is hidden.  This is done to
+     * maintain the correct menu option ordering when search results are updated.
+     *
+     * Precondition: Menu option representing the given tag is not attached to the DOM.
+     *
      * @param {Tag} tag
+     * @returns {MenuOption} A menu option representing the given tag
      */
-    createMenuOption(tag) {
-        // XXX : Check if menu option exists before creating a new one
-
-        // XXX : Find correct state and works tagged values
+    createSearchMenuOption(tag) {
         const menuOption = new MenuOption(tag, MenuOptionState.NONE_TAGGED, 0)
-        menuOption.renderAndAttach(this.searchResultsContainer)
-        // XXX : Use new handler
+        menuOption.initialize()
         menuOption.rootElement.addEventListener('click', () => this.onMenuOptionClick(menuOption))
+        menuOption.rootElement.addEventListener('option-hidden', () => {
+            // Move to selected menu options container if selected and hidden
+            if (menuOption.optionState === MenuOptionState.ALL_TAGGED) {
+                if (menuOption.rootElement.parentElement === this.searchResultsOptionsContainer.rootElement) {
+                    this.searchResultsOptionsContainer.remove(menuOption)
+                    this.selectedOptionsContainer.add(menuOption)
+                }
+            }
+        })
+
+        return menuOption
     }
 
-    // XXX : What do I do?
     /**
+     * Adds a menu option representing the given tag to the selected options container.
+     *
+     * If the container already has a menu option for the given tag, this method returns
+     * without making any changes.
+     *
+     * If a corresponding menu option is found in the search results container, that menu
+     * option is added to the selected options container.  Otherwise, a new menu option is
+     * created, hydrated, and added to the container.
+     *
      * @param {Tag} tag
      */
     onCreateTag(tag) {
-        // XXX : Check if menu option already exists
-
-        this.tagsToAdd.push(tag)
-        const menuOption = new MenuOption(tag, MenuOptionState.ALL_TAGGED, this.selectedWorks.length)
-
-        if (this.menuOptions.has(tag.tagName)) {
-            this.menuOptions.get(tag.tagName).push(menuOption)
-        } else {
-            this.menuOptions.set(tag.tagName, [menuOption])
+        // Return if menu option already exists in selected options:
+        if (this.selectedOptionsContainer.containsOptionWithTag(tag)) {
+            return
         }
 
-        // Update the UI:
-        // XXX : Render, then attach in the correct position
-        menuOption.renderAndAttach(this.selectedTagsContainer)
-        menuOption.rootElement.addEventListener('click', () => this.onMenuOptionClick(menuOption))
+        // Stage tag for addition:
+        this.tagsToAdd.push(tag)
 
-        // Update the fetched subjects store:
-        // XXX : Should this be updated now?  I don't think so...
-        // this.updateFetchedSubjects()
+        // If tag is represented by a search result object, update existing object
+        // instead of creating a new one:
+        const existingOption = this.searchResultsOptionsContainer.findByTag(tag)
+        if (existingOption) {
+            this.searchResultsOptionsContainer.remove(existingOption)
+            this.selectedOptionsContainer.add(existingOption)
+            existingOption.taggedWorksCount = this.selectedWorks.length
+            existingOption.updateMenuOptionState(MenuOptionState.ALL_TAGGED)
+        } else {
+            const menuOption = new MenuOption(tag, MenuOptionState.ALL_TAGGED, this.selectedWorks.length)
+            menuOption.initialize()
+            menuOption.rootElement.addEventListener('click', () => this.onMenuOptionClick(menuOption))
+            this.selectedOptionsContainer.add(menuOption)
+        }
+
+        this.updateSubmitButtonState()
     }
 
     /**
@@ -522,8 +605,8 @@ export class BulkTagger {
         this.searchInput.value = ''
         this.addSubjectsInput.value = ''
         this.removeSubjectsInput.value = ''
-        this.searchResultsContainer.innerHTML = ''
-        this.selectedTagsContainer.innerHTML = ''
+        this.selectedOptionsContainer.clear()
+        this.searchResultsOptionsContainer.clear()
 
         this.createSubjectElem.classList.add('hidden')
 

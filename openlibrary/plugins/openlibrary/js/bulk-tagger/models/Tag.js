@@ -21,6 +21,55 @@ export const subjectTypeMapping = {
 }
 
 /**
+ * Compare function for determining the order of two tags.
+ *
+ * Tags are ordered by case-insensitive comparisons of the
+ * tag names and, if necessary, tag types.
+ *
+ * @param {Tag} tagA
+ * @param {Tag} tagB
+ * @returns {Number}
+ * @see {Array.sort}
+ */
+export function compare(tagA, tagB) {
+    const lowerA = createComparableTag(tagA)
+    const lowerB = createComparableTag(tagB)
+
+    if (lowerA.tagName < lowerB.tagName) {
+        return -1
+    }
+    else if (lowerA.tagName > lowerB.tagName) {
+        return 1
+    } else {
+        if (lowerA.tagType < lowerB.tagType) {
+            return -1
+        }
+        else if (lowerA.tagType > lowerB.tagtype) {
+            return 1
+        }
+    }
+
+    return 0
+}
+
+/**
+ * Returns a Tag-like object that can be used for equality checks.
+ *
+ * The returned object will contain the given tag's `tagName` and `tagType`, both
+ * lowercased.
+ *
+ * @param {Tag} tag
+ * @returns {Object} Tag-like object that is suitable to use for sorting comparisons.
+ * @see {compare}
+ */
+function createComparableTag(tag) {
+    return {
+        tagName: tag.tagName.toLowerCase(),
+        tagType: tag.tagType.toLowerCase()
+    }
+}
+
+/**
  * Represents a subject that can be added to a work.
  *
  * Each `Tag` will have a tag name, a technical type, and a
@@ -78,5 +127,21 @@ export class Tag {
             throw new Error('Unrecognized `tagType` value')
         }
         return result
+    }
+
+    /**
+     * Determins if the given tag is equal to this tag.
+     *
+     * Two tags are considered equal if case-insensitive comparisons of
+     * their names and types are equivalent.
+     *
+     * @param {Tag} tag
+     * @returns `true` if the given tag is considered equivalent to this tag.
+     */
+    equals(tag) {
+        const lowerSelf = createComparableTag(this)
+        const lowerTag = createComparableTag(tag)
+
+        return lowerSelf.tagName === lowerTag.tagName && lowerSelf.tagType === lowerTag.tagType
     }
 }

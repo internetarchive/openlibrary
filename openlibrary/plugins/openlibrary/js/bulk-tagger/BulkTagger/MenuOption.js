@@ -29,45 +29,67 @@ export const MenuOptionState = {
 export class MenuOption {
 
     /**
+     * Creates a new MenuOption that represents the given tag.
+     *
+     * `rootElement` of this object is not set until `initialize` is called.
+     *
      * @param {Tag} tag
      * @param {OptionState} optionState
+     * @param {Number} taggedWorksCount Number of selected works which have the given tag
      */
-    constructor(tag, optionState, worksTagged) {
+    constructor(tag, optionState, taggedWorksCount) {
         /**
          * Reference to the root element of this MenuOption.
          *
-         * This is set by the `renderAndAttach` method.
+         * This is not set until `initialize` is called.
          * @member {HTMLElement}
+         * @see {initialize}
          */
         this.rootElement
 
         /**
+         * Copy of the tag which is represented by this menu option.
+         *
          * @member {Tag}
+         * @readonly
          */
         this.tag = tag
 
         /**
          * Represents the amount of selected works that share this tag.
          *
+         * Not meant to be updated directly.  Use `updateMenuOptionState()`,
+         * which also updates the UI, to set this value.
+         *
          * @member {OptionState}
          */
         this.optionState = optionState
 
         /**
+         * Tracks number of selected works which have this tag.
+         *
          * @member {Number}
          */
-        this.worksTagged = worksTagged
+        this.taggedWorksCount = taggedWorksCount
     }
 
     /**
-     * Renders a new MenuOption, and attaches it to the given element.
+     * Creates a new menu option.
      *
-     * The `rootElement` property will be undefined until this
-     * method is called.
-     *
-     * @param {HTMLElement} target
+     * Must be called before an event handler can be attached to
+     * this menu option
      */
-    renderAndAttach(target) {
+    initialize() {
+        this.createMenuOption()
+    }
+
+    /**
+     * Creates a new menu option affordance based on the current menu option state.
+     *
+     * Stores newly created element as `rootElement`.  The new element is not
+     * attached to the DOM, and does not yet have any attached event handlers.
+     */
+    createMenuOption() {
         const parentElem = document.createElement('div')
         parentElem.classList.add('selected-tag')
 
@@ -89,9 +111,8 @@ export class MenuOption {
             <span class="selected-tag__type-container">
                 <span class="selected-tag__type selected-tag__type${classTypeSuffixes[this.tag.tagType]}">${this.tag.displayType}</span>
             </span>`
-        parentElem.innerHTML = markup
 
-        target.prepend(parentElem)
+        parentElem.innerHTML = markup
         this.rootElement = parentElem
     }
 
@@ -107,13 +128,14 @@ export class MenuOption {
      *
      * @param {OptionState} menuOptionState
      *
-     * @throws Will throw an error if an unexpected menu option state is passed.
+     * @throws Will throw an error if an unexpected menu option state is passed, or if this
+     * `MenuOption` was not initialized prior to calling this method.
      * @see {@link MenuOptionState}
+     * @see {initialize}
      */
-    updateWorksTagged(menuOptionState) {
-        this.optionState = menuOptionState
-
-        if (this.rootElement) {  // `rootElement` not set until `renderAndAttach` is called
+    updateMenuOptionState(menuOptionState) {
+        if (this.rootElement) {  // `rootElement` not set until `initialize` is called
+            this.optionState = menuOptionState
             const statusIndicator = this.rootElement.querySelector('.selected-tag__status')
             switch (menuOptionState) {
             case MenuOptionState.NONE_TAGGED:
@@ -129,20 +151,26 @@ export class MenuOption {
                 statusIndicator.classList.add('selected-tag__status--all-tagged')
                 break;
             default:
-                throw new Error('Unexpected value passed for menu option state')
+                // XXX : `optionState` is now incorrect
+                throw new Error('Unexpected value passed for menu option state.')
             }
+        } else {
+            throw new Error('MenuOption must be initialized before state can be updated.')
         }
     }
 
     /**
-     * Hides this MenuOption.
+     * Hides this menu option.
+     *
+     * Fires an `option-hidden` event when this is called.
      */
     hide() {
         this.rootElement.classList.add('hidden')
+        this.rootElement.dispatchEvent(new CustomEvent('option-hidden'))
     }
 
     /**
-     * Shows this MenuOption.
+     * Shows this menu option.
      */
     show() {
         this.rootElement.classList.remove('hidden')
