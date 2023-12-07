@@ -1,0 +1,29 @@
+$def with (mb)
+
+$ readinglog = mb.key in ['currently-reading', 'already-read', 'want-to-read']
+
+$if mb.is_public or mb.is_my_page:
+  <div class="chip-group">
+    $# Breaks if url has year!
+    $if readinglog or mb.key == 'mybooks':
+      $ stats_key = mb.key if readinglog else "already-read"
+      $ stats_url = "/people/%s/books/%s/stats" % (mb.username, stats_key)
+      <span class="chip value-chip category-chip chip--selectable">
+	<a data-ol-link-track="MyBooksLandingPage|ReadingStats"
+	   href="$stats_url">$_('My Reading Stats')</a>
+      </span>
+      <span class="chip value-chip category-chip chip--selectable">
+	<a data-ol-link-track="MyBooksLandingPage|ImportExport"
+           href="/account/import">$_('Import & Export')</a>
+      </span>
+      $ public = "Public" if mb.is_public else "Private"
+      <span class="chip value-chip category-chip chip--selectable">
+	<a href="/account/privacy">$_('Privacy settings: %(public)s', public=public)</a>
+      </span>
+    $if mb.is_public:
+      <span class="chip value-chip category-chip chip--selectable">
+	<a onclick="prompt('Copy share link to clipboard:', window.location.protocol + '//' + window.location.hostname + '$(ctx.path)');">Share</a>
+      </span>
+</div>
+
+

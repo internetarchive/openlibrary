@@ -45,7 +45,7 @@ a.cta-btn {
     text-decoration: none;
   }
 
-  &--available, &--preview {
+  &--available, &--preview, &--primary {
     background-color: @primary-blue;
     color: @white;
     &:hover { background-color: darken(@primary-blue, 20%); }
@@ -75,24 +75,27 @@ a.cta-btn {
     border: 2px solid @link-blue;
     background: lighten(desaturate(@link-blue, 56%), 67%);
   }
-  &--vanilla {
+  &--vanilla, &--vanilla:visited, &--vanilla:link {
     padding: 5px;
     border: 2px solid @light-grey;
     background: @white;
-    color: @black;
-    border-radius: 6px;
-  }
-  &--cancel {
-    padding: 5px;
-    border: 2px solid @red;
-    background: @white;
-    color: @red;
+    color: @grey;
     border-radius: 6px;
   }
 
-  &--delete {
+  &--unstyled, &--unstyled:visited, &--unstyled:link {
+    padding: 7px;
+    background: @white;
+    color: @grey;
+    border-radius: 6px;
+  }
+
+  &--delete, &--cancel {
     background-color: @red;
 
+    &:visited {
+      color: @grey;
+    }
     &:hover {
       background-color: darken(@red, 20%);
     }

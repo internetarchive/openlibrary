@@ -214,18 +214,10 @@ class lists(delegate.page):
 
     def GET(self, path):
         # If logged in patron is viewing their lists page, use MyBooksTemplate
-        if path.startswith("/people/"):
-            user = get_current_user()
-            username = path.split('/')[-1]
-
-            if user and user.key.split('/')[-1] == username:
-                return MyBooksTemplate(username, 'lists').render()
-        doc = self.get_doc(path)
-        if not doc:
-            raise web.notfound()
-
-        lists = doc.get_lists()
-        return self.render(doc, lists)
+        username = path.split('/')[-1]
+        mb = MyBooksTemplate(username, 'lists')
+        template = self.render_template(path, show_header=False)
+        return mb.render(template=template, header_title=_("Lists"), page=mb.user)
 
     def get_doc(self, key):
         if key.startswith("/subjects/"):
@@ -237,8 +229,12 @@ class lists(delegate.page):
         else:
             return web.ctx.site.get(key)
 
-    def render(self, doc, lists):
-        return render_template("lists/lists.html", doc, lists)
+    def render_template(self, path, show_header=True):
+        doc = self.get_doc(path)
+        if not doc:
+            raise web.notfound()
+        lists = doc.get_lists()
+        return render_template("lists/lists.html", doc, lists, show_header=show_header)
 
 
 class lists_edit(delegate.page):
