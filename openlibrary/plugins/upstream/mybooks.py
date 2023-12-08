@@ -23,7 +23,7 @@ RESULTS_PER_PAGE: Final = 25
 
 
 class mybooks_home(delegate.page):
-    path = "/people/([a-zA-Z0-9_-]+)/books"
+    path = "/people/([^/]+)/books"
 
     def GET(self, username):
         """Renders the template for the my books overview page
@@ -86,7 +86,7 @@ class mybooks_home(delegate.page):
 
 
 class mybooks_notes(delegate.page):
-    path = "/people/([a-zA-Z0-9_-]+)/books/notes"
+    path = "/people/([^/]+)/books/notes"
 
     def GET(self, username):
         i = web.input(page=1)
@@ -101,7 +101,7 @@ class mybooks_notes(delegate.page):
 
 
 class mybooks_reviews(delegate.page):
-    path = "/people/([a-zA-Z0-9_-]+)/books/observations"
+    path = "/people/([^/]+)/books/observations"
 
     def GET(self, username):
         i = web.input(page=1)
@@ -116,7 +116,7 @@ class mybooks_reviews(delegate.page):
 
 
 class mybooks_sponsorships(delegate.page):
-    path = "/people/([a-zA-Z0-9_-]+)/books/sponsorships"
+    path = "/people/([^/]+)/books/sponsorships"
 
     def GET(self, username, key="sponsorships"):
         i = web.input(
@@ -157,7 +157,7 @@ class mybooks_sponsorships(delegate.page):
 
 
 class readinglog_stats(delegate.page):
-    path = "/people/([a-zA-Z0-9_-]+)/books/([a-zA-Z_-]+)/stats"
+    path = "/people/([^/]+)/books/(want-to-read|currently-reading|already-read)/stats"
 
     def GET(self, username, key='want-to-read'):
         user = web.ctx.site.get('/people/%s' % username)
@@ -206,7 +206,7 @@ class readinglog_stats(delegate.page):
 
 
 class readinglog_yearly(delegate.page):
-    path = "/people/([a-zA-Z0-9_-]+)/books/already-read/year/([0-9]+)"
+    path = "/people/([^/]+)/books/already-read/year/([0-9]+)"
 
     def GET(self, username, year=None):
         year = int(year or current_year())
@@ -220,9 +220,7 @@ class readinglog_yearly(delegate.page):
 
 
 class mybooks_readinglog(delegate.page):
-    path = (
-        r'/people/([a-zA-Z0-9_-]+)/books/(want-to-read|currently-reading|already-read)'
-    )
+    path = r'/people/([^/]+)/books/(want-to-read|currently-reading|already-read)'
 
     def GET(self, username, key='want-to-read'):
         KEYS_TITLES = {
@@ -271,9 +269,7 @@ class mybooks_readinglog(delegate.page):
 
 
 class public_my_books_json(delegate.page):
-    path = (
-        r"/people/([a-zA-Z0-9_-]+)/books/(want-to-read|currently-reading|already-read)"
-    )
+    path = r"/people/([^/]+)/books/(want-to-read|currently-reading|already-read)"
     encoding = "json"
 
     def GET(self, username, key='want-to-read'):
