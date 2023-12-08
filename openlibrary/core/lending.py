@@ -547,7 +547,7 @@ def get_user_waiting_loans(user_key):
     itemname = account.itemname
     result = WaitingLoan.query(userid=itemname)
     get_cached_user_waiting_loans.memcache_set(
-        user_key, {}, result, time.time()
+        [user_key], {}, result or {}, time.time()
     )  # rehydrate cache
     return result or []
 
