@@ -20,10 +20,6 @@ $if mb.is_public or mb.is_my_page:
       <span class="chip value-chip category-chip chip--selectable">
 	<a href="/account/privacy">$_('Privacy settings: %(public)s', public=public)</a>
       </span>
-    $if mb.is_public:
-      <span class="chip value-chip category-chip chip--selectable">
-	<a onclick="prompt('Copy share link to clipboard:', window.location.protocol + '//' + window.location.hostname + '$(ctx.path)');">Share</a>
-      </span>
 </div>
 
 

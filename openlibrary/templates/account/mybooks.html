@@ -151,12 +151,10 @@ $def empty_mobile_carousel(data):
         </li>
       </ul>
 
-      <div style="width: 100%; background: white">
-        <p style="height: 30px"></p>
-        <h1 class="details-title" style="padding: 8px; background: white">My Stats</h1>
-        <p></p>
+    $if owners_page:    
+      <div>
+        <h1 class="details-title">My Stats</h1>
       </div>
-    $if owners_page:
       <ul class="sidebar-section">
         <li>
           <div class="carousel-section-header">
