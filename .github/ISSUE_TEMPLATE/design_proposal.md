@@ -7,7 +7,7 @@ assignees: ''
 ---
 
 ## Description, Patron Story
-<!-- 
+<!--
 - What is the design change?
 - Why is this design change necessary?
 - Who is it for?
