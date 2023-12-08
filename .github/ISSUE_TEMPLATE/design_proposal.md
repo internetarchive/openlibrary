@@ -2,7 +2,7 @@
 name: Design Proposal
 about: Propose a design change and request feedback & approval
 title: ''
-labels: "Type: Design Proposal, Needs: Triage, Needs: Lead, Needs: Designs, Needs: Design Feedback"
+labels: "Type: Design Proposal, Theme: Design, Needs: Triage, Needs: Lead, Needs: Designs, Needs: Design Feedback"
 assignees: ''
 ---
 
