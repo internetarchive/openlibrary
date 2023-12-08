@@ -41,14 +41,12 @@ from openlibrary.catalog.utils import (
     get_publication_year,
     is_independently_published,
     is_promise_item,
-    mk_norm,
     needs_isbn_and_lacks_one,
     publication_too_old_and_not_exempt,
     published_in_future_year,
 )
 from openlibrary.core import lending
 from openlibrary.plugins.upstream.utils import strip_accents, safeget
-from openlibrary.catalog.utils import expand_record
 from openlibrary.utils import uniq, dicthash
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.lccn import normalize_lccn
@@ -59,7 +57,7 @@ from openlibrary.catalog.add_book.load_book import (
     import_author,
     InvalidLanguage,
 )
-from openlibrary.catalog.add_book.match import editions_match
+from openlibrary.catalog.add_book.match import editions_match, mk_norm
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Edition
@@ -212,8 +210,6 @@ def find_matching_work(e):
     :rtype: None or str
     :return: the matched work key "/works/OL..W" if found
     """
-
-    norm_title = mk_norm(get_title(e))
     seen = set()
     for a in e['authors']:
         q = {'type': '/type/work', 'authors': {'author': {'key': a['key']}}}
@@ -225,7 +221,7 @@ def find_matching_work(e):
             seen.add(wkey)
             if not w.get('title'):
                 continue
-            if mk_norm(w['title']) == norm_title:
+            if mk_norm(w['title']) == mk_norm(get_title(e)):
                 assert w.type.key == '/type/work'
                 return wkey
 
@@ -573,9 +569,6 @@ def find_enriched_match(rec, edition_pool):
     :rtype: str|None
     :return: None or the edition key '/books/OL...M' of the best edition match for enriched_rec in edition_pool
     """
-    enriched_rec = expand_record(rec)
-    add_db_name(enriched_rec)
-
     seen = set()
     for edition_keys in edition_pool.values():
         for edition_key in edition_keys:
@@ -595,27 +588,8 @@ def find_enriched_match(rec, edition_pool):
                     # which will raise an exception in editions_match()
             if not found:
                 continue
-            if editions_match(enriched_rec, thing):
+            if editions_match(rec, thing):
                 return edition_key
-
-
-def add_db_name(rec: dict) -> None:
-    """
-    db_name = Author name followed by dates.
-    adds 'db_name' in place for each author.
-    """
-    if 'authors' not in rec:
-        return
-
-    for a in rec['authors'] or []:
-        date = None
-        if 'date' in a:
-            assert 'birth_date' not in a
-            assert 'death_date' not in a
-            date = a['date']
-        elif 'birth_date' in a or 'death_date' in a:
-            date = a.get('birth_date', '') + '-' + a.get('death_date', '')
-        a['db_name'] = ' '.join([a['name'], date]) if date else a['name']
 
 
 def load_data(
@@ -847,12 +821,6 @@ def find_match(rec, edition_pool) -> str | None:
         match = find_exact_match(rec, edition_pool)
 
     if not match:
-        # Add 'full_title' to the rec by conjoining 'title' and 'subtitle'.
-        # expand_record() uses this for matching.
-        rec['full_title'] = rec['title']
-        if subtitle := rec.get('subtitle'):
-            rec['full_title'] += ' ' + subtitle
-
         match = find_enriched_match(rec, edition_pool)
 
     return match

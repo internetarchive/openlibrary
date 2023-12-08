@@ -46,8 +46,6 @@ from web.template import TemplateResult
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import (
-        AddBookChangeset,
-        ListChangeset,
         Work,
         Author,
         Edition,
@@ -177,7 +175,10 @@ def kebab_case(upper_camel_case: str) -> str:
 
 @public
 def render_component(
-    name: str, attrs: dict | None = None, json_encode: bool = True
+    name: str,
+    attrs: dict | None = None,
+    json_encode: bool = True,
+    asyncDefer=False,
 ) -> str:
     """
     :param str name: Name of the component (excluding extension)
@@ -202,7 +203,8 @@ def render_component(
 
     if name not in included:
         url = static_url('build/components/production/ol-%s.min.js' % name)
-        html += '<script src="%s"></script>' % url
+        script_attrs = '' if not asyncDefer else 'async defer'
+        html += f'<script {script_attrs} src="{url}"></script>'
         included.append(name)
 
     html += f'<ol-{kebab_case(name)} {attrs_str}></ol-{kebab_case(name)}>'
@@ -412,7 +414,7 @@ def _get_changes_v2_raw(
 
 def get_changes_v2(
     query: dict[str, str | int], revision: int | None = None
-) -> list["Changeset | AddBookChangeset | ListChangeset"]:
+) -> list[Changeset]:
     page = web.ctx.site.get(query['key'])
 
     def first(seq, default=None):
@@ -447,7 +449,7 @@ def get_changes_v2(
 
 def get_changes(
     query: dict[str, str | int], revision: int | None = None
-) -> list["Changeset | AddBookChangeset | ListChangeset"]:
+) -> list[Changeset]:
     return get_changes_v2(query, revision=revision)
 
 
