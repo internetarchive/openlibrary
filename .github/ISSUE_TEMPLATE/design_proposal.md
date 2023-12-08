@@ -2,9 +2,14 @@
 name: Design Proposal
 about: Propose a design change and request feedback & approval
 title: ''
-labels: "Type: Design Proposal, Needs: Triage, Needs: Lead, Type: Design Proposal, Needs: Design Feedback"
+labels: "Type: Design Proposal, Needs: Triage, Needs: Lead, Needs: Designs, Needs: Design Feedback"
 assignees: ''
 ---
+
+<!-- Staff triage instructions:
+- Remove "Needs Design Feedback" if there are no designs yet or new designs welcome
+- Remove "Needs: Designs" label if this section is complete
+-->
 
 ## Description, Patron Story
 <!--
@@ -15,7 +20,7 @@ assignees: ''
 -->
 
 ## Relevant Designs
-<!-- What is the design you want feedback on? Link to figma, screen shots, etc -->
+<!-- What is the design you want feedback on? Link to figma, screen shots, etc. -->
 
 ## Feedback Questions
 <!-- Provide a list of feedback questions you want answered by the community; e.g. Is the design...
