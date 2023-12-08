@@ -1,8 +1,6 @@
-$def with (work=None, authors=None, recaptcha=None, book=None)
-$var title: $_("Add a book")
+$def with (work=None, authors=None, recaptcha=None)
 
-$ edition_config = get_edition_config()
-$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
+$var title: $_("Add a book")
 
 $ i18n_strings = {
     $ "invalid_checksum": _("Invalid ISBN checksum digit"),
@@ -11,25 +9,6 @@ $ i18n_strings = {
     $ "invalid_lccn": _("Invalid LC Control Number format")
     $ }
 
-$# Render the ith work input field
-$jsdef render_work_field(i, work):
-    <div class="input ac-input">
-        <input class="ac-input__visible" name="works--$i" type="text" value="$work.key.split('/')[-1]"/>
-        <input class="ac-input__value" name="edition--works--$i--key" type="hidden" value="$work.key" />
-        <a class="mia__remove hidden" href="javascript:;" title="$_('Remove this work')">[x]</a>
-    </div>
-
-$# Import the side-effect of the jsdef function
-$:render_template('jsdef/LazyWorkPreview', None)
-
-$jsdef render_work_autocomplete_item(item):
-    $if item.key == "__new__":
-        <div class="ac_work ac_addnew">
-            <span class="action">$_('-- Move to a new work')</span>
-        </div>
-    $else:
-        $:render_lazy_work_preview(item)
-    
 <div id="contentHead">
     <div class="head">
         <h1>$_("Add a book to Open Library")</h1>
@@ -46,9 +25,12 @@ $jsdef render_work_autocomplete_item(item):
             <div class="label">
                 <label for="title">$_("Title")</label> <span class="tip">$:_("Use <b><i>Title: Subtitle</i></b> to add a subtitle.")</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
             </div>
-            $ config = {'addnew': is_privileged_user, 'new_name': _('-- Move to a new work')}
-            <div class="multi-input-autocomplete--works" id="title" data-config="$dumps(config)">
-                    $:render_work_field(0, storage(title="", key=""))
+            <div class="input">
+                $if work:
+                    <input type="text" id="title" disabled="disabled" value="$work.title"/>
+                    <input type="hidden" name="title" value="$work.title"/>
+                $else:
+                    <input type="text" name="title" id="title" class="required title" style="width:630px;" value="$(work and work.title)" $cond(work, 'readonly="readonly"')/>
             </div>
         </div>
         <div class="formElement">
@@ -121,7 +103,6 @@ $jsdef render_work_autocomplete_item(item):
                 <a href="javascript:history.go(-1);" class="attn">$_('Cancel')</a>
             </div>
         </div>
-
     </form>
 </div>
 
