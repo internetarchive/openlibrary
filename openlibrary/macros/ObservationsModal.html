@@ -27,7 +27,7 @@ $if reload_id:
           <h2>$_("My Book Review")</h2>
           <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
         </div>
-        $:render_component('ObservationForm', attrs=dict(schema=dict(get_observations()), observations=dict(work.get_users_observations(username)), work_key=work.key, username=username))
+        $:render_component('ObservationForm', asyncDefer=True, attrs=dict(schema=dict(get_observations()), observations=dict(work.get_users_observations(username)), work_key=work.key, username=username))
       </div>
     </div>
 </div>
