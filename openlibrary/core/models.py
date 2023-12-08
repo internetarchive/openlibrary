@@ -947,10 +947,10 @@ class User(Thing):
         :rtype: dict (e.g. {position: number})
         """
         all_user_waiting_loans = (
-            lending.get_cached_user_waiting_loans(self.key)
+            lending.get_cached_user_waiting_loans
             if use_cache
-            else lending.get_user_waiting_loans(self.key)
-        )
+            else lending.get_user_waiting_loans
+        )(self.key)
         if ocaid:
             return next(
                 (

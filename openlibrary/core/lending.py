@@ -524,7 +524,7 @@ def get_loans_of_user(user_key):
     # Set patron's loans in cache w/ now timestamp
     """
     get_cached_loans_of_user.memcache_set(
-        user_key, {}, loans, time.time()
+        [user_key], {}, loans or [], time.time()
     )  # rehydrate cache
     return loans
 
@@ -537,7 +537,7 @@ get_cached_loans_of_user = cache.memcache_memoize(
 
 
 def get_user_waiting_loans(user_key):
-    """Returns the waitingloans of the user.
+    """Gets the waitingloans of the patron.
 
     Returns [] if user has no waitingloans.
     """
