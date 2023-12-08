@@ -522,7 +522,6 @@ def get_loans_of_user(user_key):
     loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
     loans = [Loan(d) for d in loandata] + (_get_ia_loans_of_user(account.itemname))
     # Set patron's loans in cache w/ now timestamp
-    """
     get_cached_loans_of_user.memcache_set(
         [user_key], {}, loans or [], time.time()
     )  # rehydrate cache
