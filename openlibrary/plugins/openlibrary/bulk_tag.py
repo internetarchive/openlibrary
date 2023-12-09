@@ -35,7 +35,9 @@ class bulk_tag_works(delegate.page):
             for subject_type, remove_list in tags_to_remove.items():
                 if remove_list:
                     current_subjects[subject_type] = [
-                        item for item in current_subjects[subject_type] if item not in remove_list
+                        item
+                        for item in current_subjects[subject_type]
+                        if item not in remove_list
                     ]
                     w[subject_type] = current_subjects[subject_type]
 
