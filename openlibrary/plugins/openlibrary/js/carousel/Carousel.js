@@ -76,13 +76,13 @@ const Carousel = {
         //This loads in i18n strings from a hidden input element, generated in the books/custom_carousel.html template. 
         const i18nValues = JSON.parse($("input[name='carousel-i18n-strings']").attr("value"))
         availabilityStatuses = {
-            open: {cls: 'cta-btn--available', cta: i18n_values["open"]},
+            open: {cls: 'cta-btn--available', cta: i18n_values['open']},
             borrow_available: {cls: 'cta-btn--available', cta: i18n_values['borrow_available']},
             borrow_unavailable: {cls: 'cta-btn--unavailable', cta: i18n_values['borrow_unavailable']},
             error: {cls: 'cta-btn--missing', cta: i18n_values['error']},
             // private: {cls: 'cta-btn--available', cta: 'Preview'}
         };
-        
+
 
 
         addWork = function(work) {
@@ -111,7 +111,7 @@ const Carousel = {
                 cover.type = 'ia';
                 cover.id = ocaid;
             }
-            
+
             let bookCover;
             if (cover.id) {
                 bookCover = `<img class="bookcover" src="//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg?default='https://openlibrary.org/images/icons/avatar_book.png'">`
@@ -122,7 +122,7 @@ const Carousel = {
                         ${work.author_name ? `<div class="carousel__item__blankcover--authors">${work.author_name}</div>` : ''}
                     </div>`
             }
-            
+
             const $el = $(`
                 <div class="book carousel__item">
                     <div class="book-cover">
