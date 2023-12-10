@@ -17,6 +17,7 @@ logger = logging.getLogger('openlibrary.ia')
 IA_BASE_URL = None
 VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
 
+
 def setup(config):
     """Initializes this module from openlibrary config."""
     global IA_BASE_URL
