@@ -12,13 +12,14 @@ $def carousel_i18n_input():
   $ "open": _("Read"),
   $ "borrow_available": _("Borrow"),
   $ "borrow_unavailable": _("Join Waitlist"),
-  $ "error": _("Not in Library")
+  $ "error": _("Not in Library"),
+  $ "loading": _("Loading...")
   $ }
 
   <input type="hidden" name="carousel-i18n-strings" value="$json_encode(show_carousel_i18n_strings)">
 
 
-$if render_once('books/custom_carousel'):
+  $if render_once('books/custom_carousel.i18n-strings')::
   $:carousel_i18n_input()
 
 $def render_carousel_cover(book, lazy, layout):

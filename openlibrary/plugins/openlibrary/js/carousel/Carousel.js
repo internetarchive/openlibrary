@@ -74,7 +74,7 @@ const Carousel = {
             responsive: responsive_settings
         });
         //This loads in i18n strings from a hidden input element, generated in the books/custom_carousel.html template. 
-        const i18n_values = JSON.parse($("input[name='carousel-i18n-strings']").attr("value"))
+        const i18nValues = JSON.parse($("input[name='carousel-i18n-strings']").attr("value"))
         availabilityStatuses = {
             open: {cls: 'cta-btn--available', cta: i18n_values["open"]},
             borrow_available: {cls: 'cta-btn--available', cta: i18n_values['borrow_available']},
@@ -164,8 +164,7 @@ const Carousel = {
 
                 if (!loadMore.locked && !loadMore.allDone && isOn2ndLastPage) {
                     loadMore.locked = true; // lock for critical section
-                    slick.addSlide('<object type="image/svg+xml" data="/static/images/spinner.svg"></object>');
-
+                    slick.addSlide('<div class="carousel__item carousel__loading-end">i18nValues[loading"]</div>');
                     if (loadMore.pageMode === 'page') {
                         // for first time, we're on page 1 already so initialize as page 2
                         // otherwise advance to next page
@@ -202,7 +201,7 @@ const Carousel = {
 
                 // Remove the current slides
                 slick.removeSlide(totalSlides, true, true);
-                slick.addSlide('<div class="carousel__item carousel__loading-end">Loading...</div>');
+                slick.addSlide('<div class="carousel__item carousel__loading-end">i18nValues["loading"]</div>');
 
                 $.ajax({ url: url, type: 'GET' })
                     .then(function(results) {
