@@ -20,7 +20,6 @@ $def with (mb, selected="books")
       $ ]
     $if mb.sponsorships:
       $ options += [ (_("Sponsorships"), readlog_url % "sponsorships") ]
-    $ prefix = _("My") if mb.is_my_page else "%s's" % mb.username
     $if not options:
         $selected
     $elif len(options) == 1:
@@ -28,12 +27,12 @@ $def with (mb, selected="books")
             <span class="crumb">
                 <span class="crumbicon">
                     <div class="dropdown">
-                        <h2 class="breadcrumb-title">$prefix $selected</h2>
+                        <h2 class="breadcrumb-title">$selected</h2>
                         <img class="icon-link__image down-chevron" src="/static/images/icons/right-chevron.svg">
                     </div>
                     <select class="disguised-select">
-                        <option selected>$prefix $selected</option>
-                        <option value="$options[0][1]">$prefix $options[0][0]</option>
+                        <option selected>$selected</option>
+                        <option value="$options[0][1]">$options[0][0]</option>
                     </select>
                 </span>
             </span>
@@ -49,17 +48,17 @@ $def with (mb, selected="books")
         <span class="crumb">
             <span class="crumbicon">
                 <div class="dropdown">
-                    <h2 class="breadcrumb-title">$prefix $breadcrumb_title</h2>
+                    <h2 class="breadcrumb-title">$breadcrumb_title</h2>
                     <img class="icon-link__image down-chevron" src="/static/images/icons/right-chevron.svg">
                 </div>
                 <select class="disguised-select">
                     $for (title, url) in options:
                         $if '(' in title and title[:title.index('(')-1] == selected:
-                            <option selected>$prefix $title</option>
+                            <option selected>$title</option>
                         $elif title == selected:
-                            <option selected>$prefix $title</option>
+                            <option selected>$title</option>
                         $else:
-                            <option value=$url>$prefix $title</option>
+                            <option value=$url>$title</option>
                 </select>
             </span>
         </span>
