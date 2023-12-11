@@ -16,6 +16,11 @@
   padding-left: 10px;
 }
 
+.breadcrumb-wrapper {
+  display: flex;
+  flex: 1;
+}
+
 .breadcrumb-title {
   display: inline-block;
   margin: 0;
@@ -28,6 +33,7 @@
   inline-size: 100%;
   block-size: 100%;
   opacity: .01;
+  z-index: @z-index-level-2;
 }
 
 .dropdown {
@@ -89,10 +95,6 @@
     padding: 10px;
     margin: 0;
     width: 100%;
-
-    header {
-      flex-direction: column-reverse;
-    }
 
     .page-banner-mybooks {
       display: none;
