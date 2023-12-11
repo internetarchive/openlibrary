@@ -1,6 +1,5 @@
 from openlibrary.utils import (
     extract_numeric_id_from_olid,
-    finddict,
     str_to_key,
 )
 
@@ -11,11 +10,6 @@ def test_str_to_key():
     assert str_to_key('[X]') == 'x'
     assert str_to_key('!@<X>;:') == '!x'
     assert str_to_key('!@(X);:') == '!(x)'
-
-
-def test_finddict():
-    dicts = [{'x': 1, 'y': 2}, {'x': 3, 'y': 4}]
-    assert finddict(dicts, x=1) == {'x': 1, 'y': 2}
 
 
 def test_extract_numeric_id_from_olid():

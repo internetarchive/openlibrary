@@ -36,6 +36,8 @@ $code:
           },
          { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random', 'selected': selected_sort and selected_sort.startswith('random') },
        ]
+       if ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians')):
+         sort_options.append({ 'sort': 'title', 'name': _("Work Title (beta: Librarian only)"), 'ga_key': 'Title' })
     $for sort_option in sort_options:
       $if exclude and sort_option['sort'] in exclude:
         $continue
@@ -45,6 +47,7 @@ $code:
       $else:
           <a href="$changequery(sort=cond(sort_option['sort'] == default_sort, None, sort_option['sort']))"
              data-ol-link-track="SearchSort|$sort_option['ga_key']"
+             rel="nofollow"
           >$sort_option['name']</a>
       $if sort_option.get('sub_sorts') and is_selected:
         <select
@@ -63,5 +66,6 @@ $code:
     $if selected_sort and selected_sort.startswith('random'):
       (<a href="$changequery(sort='random_%s' % today().timestamp())"
          data-ol-link-track="SearchSort|RandomShuffle"
+         rel="nofollow"
       >$_('Shuffle')</a>)
 </span>

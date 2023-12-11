@@ -227,6 +227,10 @@ docker compose run --rm home npm run build-assets
 ```
 Note: This is only if you already have an existing docker image, this command is unnecessary the first time you build.
 
+## Debugging and Profiling the Docker Image
+
+See [Debugging and Performance Profiling](https://github.com/internetarchive/openlibrary/wiki/Debugging-and-Performance-Profiling) for more information on how to attach a debugger when running in the Docker Container.
+
 ## Other Commands
 
 https://github.com/internetarchive/openlibrary/wiki/Deployment-Guide#ol-web1

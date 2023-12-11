@@ -124,12 +124,6 @@ $jsdef renderPublishers(publishers):
         <span class="count">$ungettext("%(count)s edition", "%(count)s editions", p.count, count=commify(p.count))</span>
         <br/>
 
-$if "lists" in ctx.features and "my_books_dropper" not in ctx.features:
-    <div class="spacer"></div>
-    <div id="subjectLists" class="widget-box">
-        $:render_template("lists/widget", page, include_rating=False, exclude_own_lists=True)
-    </div>
-
 <div class="section clearfix"></div>
 
 </div>

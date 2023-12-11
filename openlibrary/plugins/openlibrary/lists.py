@@ -13,7 +13,7 @@ from infogami.infobase import client, common
 
 from openlibrary.accounts import get_current_user
 from openlibrary.core import formats, cache
-from openlibrary.core.lists.model import ListMixin
+from openlibrary.core.lists.model import List
 import openlibrary.core.helpers as h
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.addbook import safe_seeother
@@ -58,12 +58,15 @@ class ListRecord:
         }
         if data := web.data():
             # If the requests has data, parse it and use it to populate the list
-            form_data = {
-                # By default all the values are lists
-                k: v[0]
-                for k, v in parse_qs(bytes.decode(data)).items()
-            }
-            i = {} | DEFAULTS | utils.unflatten(form_data)
+            if web.ctx.env.get('CONTENT_TYPE') == 'application/json':
+                i = {} | DEFAULTS | json.loads(data)
+            else:
+                form_data = {
+                    # By default all the values are lists
+                    k: v[0]
+                    for k, v in parse_qs(bytes.decode(data)).items()
+                }
+                i = {} | DEFAULTS | utils.unflatten(form_data)
         else:
             # Otherwise read from the query string
             i = utils.unflatten(web.input(**DEFAULTS))
@@ -179,37 +182,14 @@ class lists_partials(delegate.page):
 
     def GET(self):
         i = web.input(key=None)
-        use_legacy_droppers = "my_books_dropper" not in web.ctx.features
-        user = get_current_user()
 
-        if use_legacy_droppers:
-            partials = self.legacy_get_partials(i.key, user)
-        else:
-            partials = self.get_partials()
-
+        partials = self.get_partials()
         return delegate.RawText(json.dumps(partials))
-
-    def legacy_get_partials(self, key, user):
-        doc = self.get_doc(key)
-        seed_info = get_seed_info(doc)
-        user_lists = get_user_lists(seed_info)
-
-        dropper = render_template('lists/dropper_lists', user_lists)
-        active = render_template(
-            'lists/active_lists', user_lists, user['key'], seed_info
-        )
-
-        return {
-            'dropper': str(dropper),
-            'active': str(active),
-        }
 
     def get_partials(self):
         user_lists = get_user_lists(None)
 
-        dropper = render_template(
-            'lists/dropper_lists', user_lists, legacy_rendering=False
-        )
+        dropper = render_template('lists/dropper_lists', user_lists)
         list_data = {
             list_data['key']: {
                 'members': list_data['list_items'],
@@ -222,11 +202,6 @@ class lists_partials(delegate.page):
             'dropper': str(dropper),
             'listData': list_data,
         }
-
-    def get_doc(self, key):
-        if key.startswith("/subjects/"):
-            return subjects.get_subject(key)
-        return web.ctx.site.get(key)
 
 
 class lists(delegate.page):
@@ -308,7 +283,12 @@ class lists_edit(delegate.page):
             action="lists",
             comment=web.input(_comment="")._comment or None,
         )
-        return safe_seeother(list_record.key)
+
+        # If content type json, return json response
+        if web.ctx.env.get('CONTENT_TYPE') == 'application/json':
+            return delegate.RawText(json.dumps({'key': list_record.key}))
+        else:
+            return safe_seeother(list_record.key)
 
 
 class lists_add(delegate.page):
@@ -748,7 +728,7 @@ class export(delegate.page):
         else:
             raise web.notfound()
 
-    def get_exports(self, lst: ListMixin, raw: bool = False) -> dict[str, list]:
+    def get_exports(self, lst: List, raw: bool = False) -> dict[str, list]:
         export_data = lst.get_export_list()
         if "editions" in export_data:
             export_data["editions"] = sorted(

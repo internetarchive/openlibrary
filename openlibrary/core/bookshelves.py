@@ -383,8 +383,7 @@ class Bookshelves(db.CommonExtras):
                 FROM bookshelves_books b
                 INNER JOIN bookshelves_events e
                 ON b.work_id = e.work_id AND b.username = e.username
-                WHERE b.bookshelf_id = $bookshelf_id
-                AND b.username = $username
+                WHERE b.username = $username
                 AND e.event_date LIKE $checkin_year || '%'
                 ORDER BY b.created DESC
                 """
