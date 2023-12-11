@@ -338,6 +338,7 @@ def get_patrons_work_read_status(username, work_key):
     return status_id
 
 
+@public
 class MyBooksTemplate:
     # Reading log shelves
     READING_LOG_KEYS = {"currently-reading", "want-to-read", "already-read"}
@@ -399,12 +400,6 @@ class MyBooksTemplate:
             self.component_times,
         )
 
-    def render_list(self, lst):
-        """Used from type/lists/view.html to render my books treatment"""
-        header_title = lst.get('name', 'List')
-        template = render["type/list/view_body"](lst, is_owner=self.is_my_page)
-        return self.render(template=template, header_title=header_title, page=lst)
-
     def render(self, template, header_title, page=None):
         """
         Gather the data necessary to render the My Books template, and then
@@ -413,11 +408,6 @@ class MyBooksTemplate:
         return render['account/view'](
             mb=self, template=template, header_title=header_title, page=page
         )
-
-
-@public
-def get_mybooks_template(username, key):
-    return MyBooksTemplate(username, key)
 
 
 class ReadingLog:
