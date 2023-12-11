@@ -218,6 +218,7 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
         "/type/work",
         "/type/redirect",
         "/type/list",
+        "/type/page",
     )
     files = {}
     for t in types:
