@@ -3,7 +3,7 @@
 from enum import Enum
 import re
 from subprocess import CalledProcessError, run
-from typing import TypeVar, Literal
+from typing import Optional, TypeVar, Literal
 from collections.abc import Iterable, Callable
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
@@ -24,7 +24,7 @@ def str_to_key(s: str) -> str:
 T = TypeVar('T')
 
 
-def uniq(values: Iterable[T], key=None) -> list[T]:
+def uniq(values: Iterable[T], key: Callable | None=None) -> list[T]:
     """Returns the unique entries from the given values in the original order.
 
     The value of the optional `key` parameter should be a function that takes
@@ -165,7 +165,7 @@ def olid_to_key(olid: str) -> str:
     return f"/{typ}/{olid}"
 
 
-def extract_numeric_id_from_olid(olid):
+def extract_numeric_id_from_olid(olid: str) -> str:
     """
     >>> extract_numeric_id_from_olid("OL123W")
     '123'
@@ -181,7 +181,7 @@ def extract_numeric_id_from_olid(olid):
     return olid
 
 
-def is_number(s):
+def is_number(s: str) -> bool:
     """
     >>> all(is_number(n) for n in (1234, "1234", -1234, "-1234", 123.4, -123.4))
     True
