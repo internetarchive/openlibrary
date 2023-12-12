@@ -7,6 +7,11 @@ $if layout == 'carousel':
   $if slick_font not in ctx.links:
     $ ctx.links.append(slick_font)
 
+ $def log_analytics_event(action):
+    $# Log analytics events here
+    $ analytics_event = f'{analytics_prefix}|{action}'
+    $ print(f"Logging analytics event: {analytics_event}")
+
 $def render_carousel_cover(book, lazy, layout):
   $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
   $ cover_host = '//covers.openlibrary.org'
@@ -92,6 +97,11 @@ $if test or (books and len(books) >= min_books):
           data-config="$json_encode(config)">
           $for index, book in enumerate(books or []):
               $:render_carousel_cover(book, index > 5, layout)
+              $:log_analytics_event('CoverClick')  $
+          $if secondary_action:
+            $:log_analytics_event('CTAClick')  $
         </div>
+          $:log_analytics_event('Forward')  $
+          $:log_analytics_event('Backward') $
       </div>
     </div>
