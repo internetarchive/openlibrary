@@ -36,6 +36,7 @@ from openlibrary.accounts import (
     OpenLibraryAccount,
     InternetArchiveAccount,
     valid_email,
+    clear_cookies,
 )
 from openlibrary.plugins.upstream import borrow, forms, utils
 from openlibrary.utils.dateutil import elapsed_time
@@ -432,6 +433,23 @@ class account_login(delegate.page):
             email=account.email,
         )
         return render.message(title, message)
+
+
+class account_logout(delegate.page):
+    """Account logout.
+
+    This registers a handler to the /account/logout endpoint in infogami so that additional logic, such as clearing admin cookies,
+    can be handled prior to the calling of infogami's standard logout procedure
+
+    """
+
+    path = "/account/logout"
+
+    def POST(self):
+        clear_cookies()
+        from infogami.core.code import logout as infogami_logout
+
+        return infogami_logout().POST()
 
 
 class account_verify(delegate.page):
