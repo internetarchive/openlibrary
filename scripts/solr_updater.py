@@ -26,7 +26,6 @@ import web
 from openlibrary.solr import update_work
 from openlibrary.config import load_config
 from infogami import config
-from openlibrary.solr.update_work import CommitRequest
 
 logger = logging.getLogger("openlibrary.solr-updater")
 # FIXME: Some kind of hack introduced to work around DB connectivity issue
