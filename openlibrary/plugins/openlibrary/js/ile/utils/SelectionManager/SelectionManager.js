@@ -23,7 +23,9 @@ export default class SelectionManager {
         this.curpath = curpath;
         this.inited = false;
         this.selectedItems = {};
+        this.lastClicked = null;
 
+        this.processClick = this.processClick.bind(this);
         this.toggleSelected = this.toggleSelected.bind(this);
         this.clearSelectedItems = this.clearSelectedItems.bind(this);
         this.dragStart = this.dragStart.bind(this);
@@ -44,7 +46,7 @@ export default class SelectionManager {
         const providerSelectors = providers.map(p => p.selector);
         $(providerSelectors.join(', '))
             .addClass('ile-selectable')
-            .on('click', this.toggleSelected);
+            .on('click', this.processClick);
 
         for (const provider of providers) {
             for (const el of $(provider.selector).toArray()) {
@@ -82,19 +84,84 @@ export default class SelectionManager {
     /**
      * @param {MouseEvent & { currentTarget: HTMLElement }} clickEvent
      */
-    toggleSelected(clickEvent) {
+    processClick(clickEvent) {
         // If there is text selection or the click is on a link that isn't a select handle, don't do anything
-        if (window.getSelection()?.toString() !== '' ||
-            ($(clickEvent.target).closest('a').is('a') &&
+        if ((!clickEvent.shiftKey && window.getSelection()?.toString() !== '') ||
+            ($(clickEvent.target).closest('a, button').length > 0 &&
             $(clickEvent.target).not('.ile-select-handle').length > 0)) return;
 
         const el = clickEvent.currentTarget;
+        if (clickEvent.shiftKey && this.lastClicked)
+        {
+            // clear selection ranges created by shift-clicking since they're not suppressed by preventDefault().
+            clearTextSelection();
+            const siblingSet = this.getSelectableRange(el);
+            const lastClickedIndex = siblingSet.index(this.lastClicked);
+            const elIndex = siblingSet.index(el);
+            if (lastClickedIndex > -1 && Math.abs(elIndex - lastClickedIndex) > 1) {
+                let affectedElements;
+                if (elIndex > lastClickedIndex) {
+                    affectedElements = siblingSet.slice(lastClickedIndex + 1, elIndex + 1);
+                } else {
+                    affectedElements = siblingSet.slice(elIndex, lastClickedIndex);
+                }
+                const stateChange = this.lastClicked.classList.contains('ile-selected') ? true : false;
+                for (const element of affectedElements) this.toggleSelected(element, stateChange);
+            } else {
+                this.toggleSelected(el);
+            }
+        }
+        else {
+            this.toggleSelected(el);
+        }
+        this.lastClicked = el;
+        this.updateToolbar();
+    }
+
+    /**
+     * Sets of selectable elements are sometimes HTML siblings and sometimes not. This function
+     * hides that complexity by finding the common parent between the passed element and the last
+     * clicked element and generating a set of siblings from that information
+     *
+     * @param {HTMLElement} clicked
+     * @return {JQuery<HTMLElement>}
+     */
+    getSelectableRange(clicked) {
+        let commonParent = undefined;
+        const curEls = { clicked, lastClicked: this.lastClicked };
+        // Only check up to 2 levels up in the tree
+        for (let i = 0; i < 2; i++) {
+            if (!curEls.clicked || !curEls.lastClicked) {
+                break;
+            } else if (curEls.clicked === curEls.lastClicked) {
+                commonParent = curEls.clicked;
+                break;
+            } else {
+                curEls.clicked = curEls.clicked.parentElement;
+                curEls.lastClicked = curEls.lastClicked.parentElement;
+            }
+        }
+        if (commonParent) {
+            return $(commonParent).find('.ile-selectable');
+        } else {
+            return $(clicked);
+        }
+    }
+
+    /**
+     * @param {HTMLElement} el
+     * @param {boolean} [forceSelected]
+     * If included, turns the toggle into a one way-only operation. If set to false, elements will only
+     * be deselected, not selected. If set to true, elements will only be selected, but not deselected.
+     */
+    toggleSelected(el, forceSelected) {
         const isCurSelected = el.classList.contains('ile-selected');
         const provider = this.getProvider(el);
         const olid = provider.data(el);
         const img_src = this.getType(olid)?.image(olid);
-        this.setElementSelectionAttributes(el, !isCurSelected);
 
+        if (isCurSelected === forceSelected) return;
+        this.setElementSelectionAttributes(el, !isCurSelected);
         if (isCurSelected) {
             this.removeSelectedItem(olid);
             const img_el = $('#ile-drag-status .images img').toArray().find(el => el.src === img_src);
@@ -103,7 +170,7 @@ export default class SelectionManager {
             this.addSelectedItem(olid);
             this.ile.$statusImages.append(`<li><img title="${olid}" src="${img_src}"/></li>`);
         }
-        this.updateToolbar();
+
     }
 
     setElementSelectionAttributes(el, selected) {
@@ -143,7 +210,7 @@ export default class SelectionManager {
                     if (action.href) {
                         this.ile.$actions.append($(`<a target="_blank" href="${action.href(this.getOlidsFromSelectionList(items))}">${action.name}</a>`));
                     } else if (action.onclick && action.name === 'Tag Works') {
-                        this.ile.$actions.append($(`<a id="tag_multiple_works">${action.name}</a>`).on('click', () => action.onclick(this.getOlidsFromSelectionList(items))));
+                        this.ile.$actions.append($(`<a href="javascript:;">${action.name}</a>`).on('click', () => action.onclick(this.getOlidsFromSelectionList(items))));
                     }
             }
         }
@@ -197,7 +264,8 @@ export default class SelectionManager {
             from: (from ? from[0] : null),
             items: this.getOlidsFromSelectionList(items)
         };
-        ev.dataTransfer.setData('text', JSON.stringify(data));
+        ev.dataTransfer.setData('text/plain', JSON.stringify(data));
+        ev.dataTransfer.setData('application/x.ile+json', JSON.stringify(data));
     }
 
     dragEnd() {
@@ -210,16 +278,18 @@ export default class SelectionManager {
     onDrop(ev) {
         ev.preventDefault();
         const handler = this.getHandler();
-        const data = JSON.parse(ev.dataTransfer.getData('text'));
+        const data = JSON.parse(ev.dataTransfer.getData('application/x.ile+json'));
         handler.ondrop(data);
+        document.getElementById('test-body-mobile').classList.remove('ile-drag-over');
     }
 
     /**
      * @param {DragEvent} ev
      */
     allowDrop(ev) {
+        if (!ev.dataTransfer?.types.includes('application/x.ile+json') || $('.ile-selected').length) return;
         const handler = this.getHandler();
-        if ($('.ile-selected').length || !handler) return;
+        if (!handler) return;
 
         ev.preventDefault();
         this.ile.setStatusText(handler.message);
@@ -251,6 +321,13 @@ export default class SelectionManager {
     }
 }
 
+/**
+ * Cross-browser approach to clear any text selections.
+ */
+function clearTextSelection() {
+    const selection = window.getSelection ? window.getSelection() : document.selection ? document.selection : null;
+    if (!!selection) selection.empty ? selection.empty() : selection.removeAllRanges();
+}
 
 /**
  * Drop handlers define patterns for how certain drops should be handled.

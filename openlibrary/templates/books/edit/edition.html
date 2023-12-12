@@ -416,7 +416,7 @@ $ })
                             <select name="name" id="select-id">
                             $ id_labels = dict((d.name, d.label) for d in edition_config.identifiers)
                             $ id_dict = dict((id.name, id) for id in edition_config.identifiers)
-                            $ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "oclc_numbers", "goodreads", "librarything"]
+                            $ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "librivox", "oclc_numbers", "project_gutenberg"]
                             $if is_privileged_user:
                                 $ exclude = []
                             $else:
@@ -432,8 +432,8 @@ $ })
                             $for id in set2:
                                 <option value="$id.name">$id.label</option>
 
-                                <!-- <option>---</option> -->
-                                <!-- <option value="__add__">Add a new ID type</option> -->
+                            <!-- <option>---</option> -->
+                            <!-- <option value="__add__">Add a new ID type</option> -->
                             </select>
                         </td>
                         <td>

@@ -57,7 +57,7 @@ $def list_selections(user_lists, work_key, edition_key, async_load):
           $ work_attr = 'data-work-key=%s' % work_key if work_key else ''
           <div class="list-loading-indicator" $ed_attr $work_attr>Loading<span class="loading-ellipsis">...</span></div>
       $else:
-        $:render_template('lists/dropper_lists', user_lists, legacy_rendering=False)
+        $:render_template('lists/dropper_lists', user_lists)
     </div>
     $if edition_key:
       <p class="create checkboxes">

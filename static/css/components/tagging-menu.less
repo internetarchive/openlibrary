@@ -55,11 +55,6 @@
   width: 100%;
 }
 
-.tag-work-ids,
-.tag-subjects {
-  display: none;
-}
-
 .selected-tag-subjects {
   display: flex;
   flex-wrap: wrap;
@@ -113,20 +108,28 @@
   cursor: pointer;
 }
 
-.subject-red {
-  background-color: @dark-red;
-}
+.subject-type-option {
+  font-size: 11px;
+  color: @white;
+  font-weight: 700;
+  width: fit-content;
+  padding: 3px 6px;
+  border-radius: 8px;
+  cursor: pointer;
 
-.subject-purple {
-  background-color: @purple;
-}
-
-.subject-yellow {
-  background-color: @dark-yellow;
-}
-
-.subject-blue {
-  background-color: @primary-blue;
+  &--place {
+    background-color: @dark-red;
+  }
+  &--person {
+    background-color: @dark-green;
+  }
+  &--time {
+    background-color: @dark-yellow;
+    color: @black;
+  }
+  &--subject {
+    background-color: @primary-blue;
+  }
 }
 
 .search-subject-row-name {
@@ -156,16 +159,6 @@
       display: flex;
       flex-direction: row;
       gap: 5px;
-    }
-
-    .subject-type-option {
-      font-size: 11px;
-      color: @white;
-      font-weight: 400;
-      width: fit-content;
-      padding: 3px 6px;
-      border-radius: 8px;
-      cursor: pointer;
     }
   }
 }

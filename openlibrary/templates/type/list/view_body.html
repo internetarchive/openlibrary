@@ -120,8 +120,9 @@ $def seed_attrs(seed):
                 $ cover_url = default_image
 
             $if seed.type in ['edition', 'work']:
+                $ use_my_books_droppers = 'my_books_dropper' in ctx.features
                 $ doc = solr_works.get(seed.key) or seed.document
-                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed))
+                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed), include_dropper=use_my_books_droppers)
             $else:
                 <li class="searchResultItem" $:seed_attrs(seed)>
                     <span class="bookcover">

@@ -30,7 +30,6 @@
 @import (less) "components/cover.less";
 @import (less) "components/illustration.less";
 @import (less) "components/rating-form.less";
-@import (less) "components/dropper.less";
 @import (less) "components/mybooks-dropper.less";
 @import (less) "components/listLists.less";
 
@@ -88,10 +87,22 @@ div.editionAbout {
   }
 }
 
-.book-description{
-  font-size: .9em;
+textarea[name="edition--notes"] + h3 + .wmd-preview,
+.edition-notes,
+textarea[name="work--description"] + h3 + .wmd-preview,
+.book-description {
+  font-size: .8rem;
   margin-top: 5px;
   margin-bottom: 20px;
+
+  ul, ol {
+    padding-left: 2rem;
+
+    li {
+      list-style-type: initial;
+      font-size: .8rem;
+    }
+  }
 }
 
 .checkboxes label {

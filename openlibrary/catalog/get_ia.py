@@ -22,7 +22,7 @@ def urlopen_keep_trying(url: str, headers=None, **kwargs):
             resp.raise_for_status()
             return resp
         except requests.HTTPError as error:
-            if error.response.status_code in (403, 404, 416):
+            if error.response and error.response.status_code in (403, 404, 416):
                 raise
         sleep(2)
 

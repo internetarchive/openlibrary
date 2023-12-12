@@ -355,9 +355,9 @@ function closeDialog(workOlid) {
 function showDateView(workOlid, year, month, day) {
     let date = year
     if (month) {
-        date += `-${month}`
+        date += `-${month.padStart(2, '0')}`
         if (day) {
-            date += `-${day}`
+            date += `-${day.padStart(2, '0')}`
         }
     }
     const displayElement = document.querySelector(`#check-in-display-${workOlid}`)

@@ -30,6 +30,7 @@ export function initAddBookImport () {
     invalidIsbn13 = i18nStrings.invalid_isbn13;
     invalidLccn = i18nStrings.invalid_lccn;
 
+    $('#id_value').on('change',autoCompleteIdName);
     $('#addbook').on('submit', parseAndValidateId);
     $('#id_value').on('input', clearErrors);
     $('#id_name').on('change', clearErrors);
@@ -115,4 +116,25 @@ function parseAndValidateLccn(event, idValue) {
         return displayLccnError(event, invalidLccn);
     }
     document.getElementById('id_value').value = idValue;
+}
+
+function autoCompleteIdName(){
+    const idValue = document.querySelector('input#id_value').value.trim();
+    const idValueIsbn = parseIsbn(idValue);
+
+    if (isFormatValidIsbn10(idValueIsbn) && isChecksumValidIsbn10(idValueIsbn)){
+        document.getElementById('id_name').value = 'isbn_10';
+    }
+
+    else if (isFormatValidIsbn13(idValueIsbn) && isChecksumValidIsbn13(idValueIsbn)){
+        document.getElementById('id_name').value = 'isbn_13';
+    }
+
+    else if ((isValidLccn(parseLccn(idValue)))){
+        document.getElementById('id_name').value = 'lccn';
+    }
+
+    else {
+        document.getElementById('id_name').value = '';
+    }
 }

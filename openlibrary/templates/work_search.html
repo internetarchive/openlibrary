@@ -204,15 +204,9 @@ $ )
 
             $# Subject key list will only be included in each doc if the patron has a sfw cookie
             $ subject_keys = [d.get('subject', []) for d in docs]
-            $ use_my_books_droppers = 'my_books_dropper' in ctx.features
             $for work, subjects in zip(works, subject_keys):
-                $if use_my_books_droppers:
-                    $ dropper = None
-                $else:
-                    $ read_status = work.get('readinglog', None)
-                    $ dropper = macros.ReadingLogDropper([], work=work, include_lists=False, page_url="/search", users_work_read_status=read_status)
                 $ content_warning = len([s for s in subjects if s.startswith("content_warning:")]) != 0
-                $:macros.SearchResultsWork(work, reading_log=dropper, show_librarian_extras=show_librarian_extras, include_dropper=use_my_books_droppers, blur=content_warning)
+                $:macros.SearchResultsWork(work, show_librarian_extras=show_librarian_extras, include_dropper=True, blur=content_warning)
           </ul>
           $:macros.Pager(page, num_found, rows)
         </div>

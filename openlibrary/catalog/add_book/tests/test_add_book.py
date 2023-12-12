@@ -1,28 +1,25 @@
 import os
 import pytest
 
-from copy import deepcopy
 from datetime import datetime
 from infogami.infobase.client import Nothing
-
 from infogami.infobase.core import Text
 
 from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import (
-    IndependentlyPublished,
-    PublicationYearTooOld,
-    PublishedInFutureYear,
-    SourceNeedsISBN,
-    add_db_name,
     build_pool,
     editions_matched,
+    IndependentlyPublished,
     isbns_from_record,
     load,
     load_data,
     normalize_import_record,
-    should_overwrite_promise_item,
-    split_subtitle,
+    PublicationYearTooOld,
+    PublishedInFutureYear,
     RequiredField,
+    should_overwrite_promise_item,
+    SourceNeedsISBN,
+    split_subtitle,
     validate_record,
 )
 
@@ -529,29 +526,6 @@ def test_load_multiple(mock_site):
     assert ekey1 == ekey2 == ekey4
 
 
-def test_add_db_name():
-    authors = [
-        {'name': 'Smith, John'},
-        {'name': 'Smith, John', 'date': '1950'},
-        {'name': 'Smith, John', 'birth_date': '1895', 'death_date': '1964'},
-    ]
-    orig = deepcopy(authors)
-    add_db_name({'authors': authors})
-    orig[0]['db_name'] = orig[0]['name']
-    orig[1]['db_name'] = orig[1]['name'] + ' 1950'
-    orig[2]['db_name'] = orig[2]['name'] + ' 1895-1964'
-    assert authors == orig
-
-    rec = {}
-    add_db_name(rec)
-    assert rec == {}
-
-    # Handle `None` authors values.
-    rec = {'authors': None}
-    add_db_name(rec)
-    assert rec == {'authors': None}
-
-
 def test_extra_author(mock_site, add_languages):
     mock_site.save(
         {
@@ -984,6 +958,16 @@ def test_subtitle_gets_split_from_title(mock_site) -> None:
     assert e['subtitle'] == "not yet split"
 
 
+# This documents the fact that titles DO NOT have trailing periods stripped (at this point)
+def test_title_with_trailing_period_is_stripped() -> None:
+    rec = {
+        'source_records': 'non-marc:test',
+        'title': 'Title with period.',
+    }
+    normalize_import_record(rec)
+    assert rec['title'] == 'Title with period.'
+
+
 def test_find_match_is_used_when_looking_for_edition_matches(mock_site) -> None:
     """
     This tests the case where there is an edition_pool, but `find_quick_match()`
@@ -993,9 +977,11 @@ def test_find_match_is_used_when_looking_for_edition_matches(mock_site) -> None:
     This also indirectly tests `merge_marc.editions_match()` (even though it's
     not a MARC record.
     """
+    # Unfortunately this Work level author is totally irrelevant to the matching
+    # The code apparently only checks for authors on Editions, not Works
     author = {
         'type': {'key': '/type/author'},
-        'name': 'John Smith',
+        'name': 'IRRELEVANT WORK AUTHOR',
         'key': '/authors/OL20A',
     }
     existing_work = {
@@ -1475,3 +1461,38 @@ class TestNormalizeImportRecord:
         normalize_import_record(rec=rec)
         result = 'publish_date' in rec
         assert result == expected
+
+    @pytest.mark.parametrize(
+        'rec, expected',
+        [
+            (
+                {
+                    'title': 'first title',
+                    'source_records': ['ia:someid'],
+                    'publishers': ['????'],
+                    'authors': [{'name': '????'}],
+                    'publish_date': '????',
+                },
+                {'title': 'first title', 'source_records': ['ia:someid']},
+            ),
+            (
+                {
+                    'title': 'second title',
+                    'source_records': ['ia:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                    'publish_date': '2000',
+                },
+                {
+                    'title': 'second title',
+                    'source_records': ['ia:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                    'publish_date': '2000',
+                },
+            ),
+        ],
+    )
+    def test_dummy_data_to_satisfy_parse_data_is_removed(self, rec, expected):
+        normalize_import_record(rec=rec)
+        assert rec == expected
