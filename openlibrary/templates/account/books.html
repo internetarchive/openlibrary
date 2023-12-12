@@ -71,7 +71,7 @@ $if og_title:
       <h3>
         $if public:
           $_('Your reading log is currently set to public')
-          <button onclick="prompt('Copy share link to clipboard:', window.location.protocol + '//' + window.location.hostname + '/people/$(username)/books/$(key)');">Share</button> or
+          <button onclick="prompt('Copy share link to your clipboard:', window.location.protocol + '//' + window.location.hostname + '/people/$(username)/books/$(key)');">Share</button> or
         $else:
           $_('Your reading log is currently set to private')
         &mdash;
