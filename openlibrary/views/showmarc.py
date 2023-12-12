@@ -6,7 +6,7 @@ from .. import app
 import web
 import re
 
-from six.moves import urllib
+import requests
 
 
 class old_show_marc(app.view):
@@ -15,35 +15,44 @@ class old_show_marc(app.view):
     def GET(self, param):
         raise web.seeother('/show-records/' + param)
 
+
 class show_ia(app.view):
     path = "/show-records/ia:(.*)"
 
     def GET(self, ia):
         error_404 = False
-        url = 'http://www.archive.org/download/%s/%s_meta.mrc' % (ia, ia)
+        url = f'https://archive.org/download/{ia}/{ia}_meta.mrc'
         try:
-            data = urllib.request.urlopen(url).read()
-        except urllib.error.HTTPError as e:
-            if e.code == 404:
+            response = requests.get(url)
+            response.raise_for_status()
+            data = response.content
+        except requests.HTTPError as e:
+            if e.response.status_code == 404:
                 error_404 = True
             else:
                 return "ERROR:" + str(e)
 
-        if error_404: # no MARC record
-            url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
+        if error_404:  # no MARC record
+            url = f'https://archive.org/download/{ia}/{ia}_meta.xml'
             try:
-                data = urllib.request.urlopen(url).read()
-            except urllib.error.HTTPError as e:
+                response = requests.get(url)
+                response.raise_for_status()
+                data = response.content
+            except requests.HTTPError as e:
                 return "ERROR:" + str(e)
-            raise web.seeother('http://www.archive.org/details/' + ia)
+            raise web.seeother('https://archive.org/details/' + ia)
 
-        books = web.ctx.site.things({
-            'type': '/type/edition',
-            'source_records': 'ia:' + ia,
-        }) or web.ctx.site.things({
-            'type': '/type/edition',
-            'ocaid': ia,
-        })
+        books = web.ctx.site.things(
+            {
+                'type': '/type/edition',
+                'source_records': 'ia:' + ia,
+            }
+        ) or web.ctx.site.things(
+            {
+                'type': '/type/edition',
+                'ocaid': ia,
+            }
+        )
 
         from openlibrary.catalog.marc import html
 
@@ -78,52 +87,54 @@ class show_bwb(app.view):
         return app.render_template("showbwb", isbn)
 
 
-re_bad_meta_mrc = re.compile('^([^/]+)_meta\.mrc$')
-re_lc_sanfranpl = re.compile('^sanfranpl(\d+)/sanfranpl(\d+)\.out')
+re_bad_meta_mrc = re.compile(r'^([^/]+)_meta\.mrc$')
+re_lc_sanfranpl = re.compile(r'^sanfranpl(\d+)/sanfranpl(\d+)\.out')
+
 
 class show_marc(app.view):
-    path = "/show-records/(.*):(\d+):(\d+)"
+    path = r"/show-records/(.*):(\d+):(\d+)"
 
     def GET(self, filename, offset, length):
         m = re_bad_meta_mrc.match(filename)
         if m:
             raise web.seeother('/show-records/ia:' + m.group(1))
         m = re_lc_sanfranpl.match(filename)
-        if m: # archive.org is case-sensative
-            mixed_case = 'SanFranPL%s/SanFranPL%s.out:%s:%s' % (m.group(1), m.group(2), offset, length)
+        if m:  # archive.org is case-sensitive
+            mixed_case = (
+                f'SanFranPL{m.group(1)}/SanFranPL{m.group(2)}.out:{offset}:{length}'
+            )
             raise web.seeother('/show-records/' + mixed_case)
         if filename == 'collingswoodlibrarymarcdump10-27-2008/collingswood.out':
-            loc = 'CollingswoodLibraryMarcDump10-27-2008/Collingswood.out:%s:%s' % (offset, length)
+            loc = f'CollingswoodLibraryMarcDump10-27-2008/Collingswood.out:{offset}:{length}'
             raise web.seeother('/show-records/' + loc)
 
-        loc = ':'.join(['marc', filename, offset, length])
+        loc = f"marc:{filename}:{offset}:{length}"
 
-        books = web.ctx.site.things({
-            'type': '/type/edition',
-            'source_records': loc,
-        })
+        books = web.ctx.site.things(
+            {
+                'type': '/type/edition',
+                'source_records': loc,
+            }
+        )
 
         offset = int(offset)
         length = int(length)
 
-        #print "record_locator: <code>%s</code><p/><hr>" % locator
-
-        r0, r1 = offset, offset+100000
-        url = 'http://www.archive.org/download/%s'% filename
-
-        ureq = urllib.request.Request(url,
-                               None,
-                               {'Range':'bytes=%d-%d'% (r0, r1)},
-                               )
+        r0, r1 = offset, offset + 100000
+        url = 'https://archive.org/download/%s' % filename
+        headers = {'Range': 'bytes=%d-%d' % (r0, r1)}
 
         try:
-            result = urllib.request.urlopen(ureq).read(100000)
-        except urllib.error.HTTPError as e:
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            result = response.content[:100000]
+        except requests.HTTPError as e:
             return "ERROR:" + str(e)
 
-        len_in_rec = int(result[:5])
-        if len_in_rec != length:
-            raise web.seeother('/show-records/%s:%d:%d' % (filename, offset, len_in_rec))
+        if (len_in_rec := int(result[:5])) != length:
+            raise web.seeother(
+                '/show-records/%s:%d:%d' % (filename, offset, len_in_rec)
+            )
 
         from openlibrary.catalog.marc import html
 

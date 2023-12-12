@@ -1,0 +1,23 @@
+@import (reference) "../less/colors.less";
+
+.native-dialog {
+  padding: 10px;
+  border: 1px solid @dark-beige;
+  border-radius: 12px;
+  -webkit-box-shadow: 1px 3px 5px @darker-grey;
+  box-shadow: 1px 3px 5px @darker-grey;
+
+  &--close {
+    color: @dark-grey;
+    font-size: 1.2em;
+
+    &:visited, &:link, &:hover {
+      text-decoration: none;
+    }
+  }
+}
+
+.native-dialog::backdrop {
+  opacity: .5;
+  background-color: @black;
+}

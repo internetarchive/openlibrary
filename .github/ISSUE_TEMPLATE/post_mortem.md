@@ -20,14 +20,14 @@ assignees: ''
 <!-- What fixed the problem? -->
 
 - **Followup actions:**
-<!-- Note any resulting changes or decisions --> 
+<!-- Note any resulting changes or decisions -->
 
 ### Steps to close
 <!-- For instructions, please see: https://github.com/internetarchive/openlibrary/wiki/Disaster-History-Log#how-to -->
-1. [ ] Assignment: Is someone assinged to this issue? (notetaker, responder)
+1. [ ] Assignment: Is someone assigned to this issue? (notetaker, responder)
 2. [ ] Labels: Is there an `Affects:` label applied?
 3. [ ] Diagnosis: Add a description and scope of the issue
-4. [ ] Updates: As events unfold, is noteable **provenance** documented in issue comments? (i.e. useful debug commands / steps / learnings / reference links)
+4. [ ] Updates: As events unfold, is notable **provenance** documented in issue comments? (i.e. useful debug commands / steps / learnings / reference links)
 5. [ ] "What caused it?" - please answer in summary
 6. [ ] "What fixed it?" - please answer in summary
 7. [ ] "Followup actions:" actions added to summary

@@ -1,0 +1,44 @@
+{
+  "publish_date": "2006",
+  "publish_country": "ru",
+  "languages": [
+    "rus"
+  ],
+  "authors": [
+    {
+      "name": "Petrushevskai︠a︡, Li︠u︡dmila",
+      "entity_type": "person",
+      "personal_name": "Petrushevskai︠a︡, Li︠u︡dmila"
+    }
+  ],
+  "other_titles": [
+    "Vremi︠a︡ nochʹ"
+  ],
+  "notes": "Short stories and a novel",
+  "table_of_contents": [
+    {
+      "title": "Rasskazy",
+      "type": "/type/toc_item"
+    },
+    {
+      "title": "Vremi︠a︡ nochʹ : roman",
+      "type": "/type/toc_item"
+    }
+  ],
+  "title": "Zhiznʹ ėto teatr",
+  "by_statement": "Li︠u︡dmila Petrushevskai︠a︡",
+  "publishers": [
+    "Amfora"
+  ],
+  "publish_places": [
+    "Sankt-Peterburg"
+  ],
+  "isbn_10": [
+    "536700279X"
+  ],
+  "isbn_13": [
+    "9785367002799"
+  ],
+  "pagination": "396 p.",
+  "number_of_pages": 396
+}

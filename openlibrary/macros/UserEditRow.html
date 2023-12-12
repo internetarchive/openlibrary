@@ -15,10 +15,10 @@ $else:
     $ value = value or [""]
     $for i, v in enumerate(value):
         <div class="input">
-            <span><input type="text" name="$name#$i" id="$name#$i" value="$v"/></span>
+            <input type="text" name="$name#$i" value="$v"/>
             <span>
                 $if i == len(value) - 1:
-                    <button onclick="add_row('$name')" type="button">$_('Add another')</button>
+                    <button id="add_row_button" type="button">$_('Add another')</button>
             </span>
         </div>
         $ label = ""

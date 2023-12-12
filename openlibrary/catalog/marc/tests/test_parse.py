@@ -1,116 +1,153 @@
+import json
 import pytest
 
 from openlibrary.catalog.marc.parse import (
-    read_author_person, read_edition, NoTitle, SeeAlsoAsTitle)
+    read_author_person,
+    read_edition,
+    NoTitle,
+    SeeAlsoAsTitle,
+)
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import DataField, MarcXml
 from lxml import etree
-import os
-import simplejson
-from six.moves.collections_abc import Iterable
+from pathlib import Path
+from collections.abc import Iterable
 
 collection_tag = '{http://www.loc.gov/MARC21/slim}collection'
 record_tag = '{http://www.loc.gov/MARC21/slim}record'
 
 xml_samples = [
-    '39002054008678.yale.edu', 'flatlandromanceo00abbouoft',
-    'nybc200247', 'secretcodeofsucc00stjo', 'warofrebellionco1473unit',
-    'zweibchersatir01horauoft', 'onquietcomedyint00brid', '00schlgoog',
-    '0descriptionofta1682unit', '1733mmoiresdel00vill', '13dipolarcycload00burk',
-    'bijouorannualofl1828cole', 'soilsurveyrepor00statgoog', 'diebrokeradical400poll',
+    '39002054008678_yale_edu',
+    'flatlandromanceo00abbouoft',
+    'nybc200247',
+    'secretcodeofsucc00stjo',
+    'warofrebellionco1473unit',
+    'zweibchersatir01horauoft',
+    'onquietcomedyint00brid',
+    '00schlgoog',
+    '0descriptionofta1682unit',
+    '1733mmoiresdel00vill',
+    '13dipolarcycload00burk',
+    'bijouorannualofl1828cole',
+    'soilsurveyrepor00statgoog',
     'cu31924091184469',  # MARC XML collection record
     'engineercorpsofh00sher',
-    ]
+]
 
 bin_samples = [
-    'bijouorannualofl1828cole_meta.mrc', 'onquietcomedyint00brid_meta.mrc',  # LCCN with leading characters
-    'merchantsfromcat00ben_meta.mrc', 'memoirsofjosephf00fouc_meta.mrc',  # MARC8 encoded with e-acute
+    'bijouorannualofl1828cole_meta.mrc',
+    'onquietcomedyint00brid_meta.mrc',  # LCCN with leading characters
+    'merchantsfromcat00ben_meta.mrc',
+    'memoirsofjosephf00fouc_meta.mrc',  # MARC8 encoded with e-acute
     'equalsign_title.mrc',  # Title ending in '='
-    'bpl_0486266893', 'flatlandromanceo00abbouoft_meta.mrc',
-    'histoirereligieu05cr_meta.mrc', 'ithaca_college_75002321', 'lc_0444897283',
-    'lc_1416500308', 'ocm00400866', 'secretcodeofsucc00stjo_meta.mrc',
-    'uoft_4351105_1626', 'warofrebellionco1473unit_meta.mrc', 'wrapped_lines',
-    'wwu_51323556', 'zweibchersatir01horauoft_meta.mrc', 'talis_two_authors.mrc',
-    'talis_no_title.mrc', 'talis_740.mrc', 'talis_245p.mrc', 'talis_856.mrc',
-    'talis_multi_work_tiles.mrc', 'talis_empty_245.mrc', 'ithaca_two_856u.mrc',
-    'collingswood_bad_008.mrc', 'collingswood_520aa.mrc', 'upei_broken_008.mrc',
-    'upei_short_008.mrc', 'diebrokeradical400poll_meta.mrc', 'cu31924091184469_meta.mrc',
-    'engineercorpsofh00sher_meta.mrc', 'henrywardbeecher00robauoft_meta.mrc',
-    'thewilliamsrecord_vol29b_meta.mrc', '13dipolarcycload00burk_meta.mrc' ]
+    'bpl_0486266893.mrc',
+    'flatlandromanceo00abbouoft_meta.mrc',
+    'histoirereligieu05cr_meta.mrc',
+    'ithaca_college_75002321.mrc',
+    'lc_0444897283.mrc',
+    'lc_1416500308.mrc',
+    'ocm00400866.mrc',
+    'secretcodeofsucc00stjo_meta.mrc',
+    'uoft_4351105_1626.mrc',
+    'warofrebellionco1473unit_meta.mrc',
+    'wrapped_lines.mrc',
+    'wwu_51323556.mrc',
+    'zweibchersatir01horauoft_meta.mrc',
+    'talis_two_authors.mrc',
+    'talis_no_title.mrc',
+    'talis_740.mrc',
+    'talis_245p.mrc',
+    'talis_856.mrc',
+    'talis_multi_work_tiles.mrc',
+    'talis_empty_245.mrc',
+    'ithaca_two_856u.mrc',
+    'collingswood_bad_008.mrc',
+    'collingswood_520aa.mrc',
+    'upei_broken_008.mrc',
+    'upei_short_008.mrc',
+    'diebrokeradical400poll_meta.mrc',
+    'cu31924091184469_meta.mrc',
+    'engineercorpsofh00sher_meta.mrc',
+    'henrywardbeecher00robauoft_meta.mrc',
+    'thewilliamsrecord_vol29b_meta.mrc',
+    '13dipolarcycload00burk_meta.mrc',
+    '880_alternate_script.mrc',
+    '880_table_of_contents.mrc',
+    '880_Nihon_no_chasho.mrc',
+    '880_publisher_unlinked.mrc',
+    '880_arabic_french_many_linkages.mrc',
+    'test-publish-sn-sl.mrc',
+    'test-publish-sn-sl-nd.mrc',
+]
 
-test_data = "%s/test_data" % os.path.dirname(__file__)
+TEST_DATA = Path(__file__).with_name('test_data')
 
 
 class TestParseMARCXML:
     @pytest.mark.parametrize('i', xml_samples)
     def test_xml(self, i):
-        expect_filename = "%s/xml_expect/%s_marc.xml" % (test_data, i)
-        path            = "%s/xml_input/%s_marc.xml"  % (test_data, i)
-        element = etree.parse(open(path)).getroot()
+        expect_filepath = (TEST_DATA / 'xml_expect' / i).with_suffix('.json')
+        filepath = TEST_DATA / 'xml_input' / f'{i}_marc.xml'
+        element = etree.parse(filepath).getroot()
         # Handle MARC XML collection elements in our test_data expectations:
         if element.tag == collection_tag and element[0].tag == record_tag:
             element = element[0]
         rec = MarcXml(element)
         edition_marc_xml = read_edition(rec)
         assert edition_marc_xml
-        j = simplejson.load(open(expect_filename))
-        assert j, 'Unable to open test data: %s' % expect_filename
-        assert sorted(edition_marc_xml) == sorted(j), (
-            'Processed MARCXML fields do not match expectations in %s' %
-            expect_filename
-        )
+        j = json.load(expect_filepath.open())
+        assert j, f'Unable to open test data: {expect_filepath}'
         msg = (
-            'Processed MARCXML values do not match expectations in %s' %
-            expect_filename
+            f'Processed MARCXML values do not match expectations in {expect_filepath}.'
         )
+        assert sorted(edition_marc_xml) == sorted(j), msg
+        msg += ' Key: '
         for key, value in edition_marc_xml.items():
             if isinstance(value, Iterable):  # can not sort a list of dicts
-                assert len(value) == len(j[key]), msg
-                assert all(item in value for item in j[key]), msg
+                assert len(value) == len(j[key]), msg + key
+                for item in j[key]:
+                    assert item in value, msg + key
             else:
-                assert value == j[key], msg
+                assert value == j[key], msg + key
 
 
 class TestParseMARCBinary:
     @pytest.mark.parametrize('i', bin_samples)
     def test_binary(self, i):
-        expect_filename = '%s/bin_expect/%s' % (test_data, i)
-        with open('%s/bin_input/%s' % (test_data, i), 'rb') as f:
-            rec = MarcBinary(f.read())
+        expect_filepath = (TEST_DATA / 'bin_expect' / i).with_suffix('.json')
+        filepath = TEST_DATA / 'bin_input' / i
+        rec = MarcBinary(filepath.read_bytes())
         edition_marc_bin = read_edition(rec)
         assert edition_marc_bin
-        if not os.path.exists(expect_filename):
+        if not Path(expect_filepath).is_file():
             # Missing test expectations file. Create a template from the input, but fail the current test.
-            simplejson.dump(edition_marc_bin, open(expect_filename, 'w'), indent=2)
-            assert False, 'Expectations file %s not found: template generated in %s. Please review and commit this file.' % (expect_filename, '/bin_expect')
-        j = simplejson.load(open(expect_filename))
-        assert j, 'Unable to open test data: %s' % expect_filename
-        assert sorted(edition_marc_bin) == sorted(j), (
-            'Processed binary MARC fields do not match expectations in %s' %
-            expect_filename
-        )
-        msg = (
-            'Processed binary MARC values do not match expectations in %s' %
-            expect_filename
-        )
+            data = json.dumps(edition_marc_bin, indent=2)
+            pytest.fail(
+                f'Expectations file {expect_filepath} not found: Please review and commit this JSON:\n{data}'
+            )
+        j = json.load(expect_filepath.open())
+        assert j, f'Unable to open test data: {expect_filepath}'
+        assert sorted(edition_marc_bin) == sorted(
+            j
+        ), f'Processed binary MARC fields do not match expectations in {expect_filepath}'
+        msg = f'Processed binary MARC values do not match expectations in {expect_filepath}'
         for key, value in edition_marc_bin.items():
             if isinstance(value, Iterable):  # can not sort a list of dicts
                 assert len(value) == len(j[key]), msg
-                assert all(item in value for item in j[key]), msg
+                for item in j[key]:
+                    assert item in value, f'{msg}. Key: {key}'
             else:
                 assert value == j[key], msg
 
     def test_raises_see_also(self):
-        filename = '%s/bin_input/talis_see_also.mrc' % test_data
-        with open(filename, 'rb') as f:
-            rec = MarcBinary(f.read())
+        filepath = TEST_DATA / 'bin_input' / 'talis_see_also.mrc'
+        rec = MarcBinary(filepath.read_bytes())
         with pytest.raises(SeeAlsoAsTitle):
             read_edition(rec)
 
     def test_raises_no_title(self):
-        filename = '%s/bin_input/talis_no_title2.mrc' % test_data
-        with open(filename, 'rb') as f:
-            rec = MarcBinary(f.read())
+        filepath = TEST_DATA / 'bin_input' / 'talis_no_title2.mrc'
+        rec = MarcBinary(filepath.read_bytes())
         with pytest.raises(NoTitle):
             read_edition(rec)
 
@@ -122,7 +159,7 @@ class TestParse:
           <subfield code="a">Rein, Wilhelm,</subfield>
           <subfield code="d">1809-1865</subfield>
         </datafield>"""
-        test_field = DataField(etree.fromstring(xml_author))
+        test_field = DataField(None, etree.fromstring(xml_author))
         result = read_author_person(test_field)
 
         # Name order remains unchanged from MARC order

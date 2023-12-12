@@ -11,7 +11,7 @@ export default function() {
       `<input type='hidden' name='ol_host' value='${location.host}' />\n` +
       '</form>';
         $this.after($(borrowFormString));
-        $this.next().submit();
+        $this.next().trigger('submit');
         if (window.archive_analytics) {
             window.archive_analytics.ol_send_event_ping({category: 'BorrowLink', action: 'bookreader'});
         }

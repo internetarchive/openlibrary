@@ -22,19 +22,18 @@ import datetime
 import json
 import web
 import logging
-
-import six
-from six.moves import urllib
-from six.moves.configparser import ConfigParser
+import requests
+from configparser import ConfigParser
 
 logger = logging.getLogger("openlibrary.api")
 
+
 class OLError(Exception):
-    def __init__(self, http_error):
-        self.code = http_error.code
-        self.headers = http_error.headers
-        msg = http_error.msg + ": " + http_error.read()
-        Exception.__init__(self, msg)
+    def __init__(self, e):
+        self.code = e.response.status_code
+        self.headers = e.response.headers
+        self.text = e.response.text
+        Exception.__init__(self, f"{e}. Response: {self.text}")
 
 
 class OpenLibrary:
@@ -42,18 +41,21 @@ class OpenLibrary:
         self.base_url = base_url.rstrip('/') if base_url else "https://openlibrary.org"
         self.cookie = None
 
-    def _request(self, path, method='GET', data=None, headers=None):
+    def _request(self, path, method='GET', data=None, headers=None, params=None):
         logger.info("%s %s", method, path)
         url = self.base_url + path
         headers = headers or {}
+        params = params or {}
         if self.cookie:
             headers['Cookie'] = self.cookie
 
         try:
-            req = urllib.request.Request(url, data, headers)
-            req.get_method = lambda: method
-            return urllib.request.urlopen(req)
-        except urllib.error.HTTPError as e:
+            response = requests.request(
+                method, url, data=data, headers=headers, params=params
+            )
+            response.raise_for_status()
+            return response
+        except requests.HTTPError as e:
             raise OLError(e)
 
     def autologin(self, section=None):
@@ -91,28 +93,28 @@ class OpenLibrary:
         return self.login(username, password)
 
     def login(self, username, password):
-        """Login to Open Library with given credentials.
-        """
+        """Login to Open Library with given credentials."""
         headers = {'Content-Type': 'application/json'}
         try:
             data = json.dumps(dict(username=username, password=password))
-            response = self._request('/account/login', method='POST', data=data, headers=headers)
-        except urllib.error.HTTPError as e:
+            response = self._request(
+                '/account/login', method='POST', data=data, headers=headers
+            )
+        except OLError as e:
             response = e
 
         if 'Set-Cookie' in response.headers:
             cookies = response.headers['Set-Cookie'].split(',')
-            self.cookie =  ';'.join([c.split(';')[0] for c in cookies])
+            self.cookie = ';'.join([c.split(';')[0] for c in cookies])
 
     def get(self, key, v=None):
-        data = self._request(key + '.json' + ('?v=%d' % v if v else '')).read()
-        return unmarshal(json.loads(data))
+        response = self._request(key + '.json', params={'v': v} if v else {})
+        return unmarshal(response.json())
 
     def get_many(self, keys):
-        """Get multiple documents in a single request as a dictionary.
-        """
-        if len(keys) > 500:
-            # get in chunks of 500 to avoid crossing the URL length limit.
+        """Get multiple documents in a single request as a dictionary."""
+        if len(keys) > 100:
+            # Process in batches to avoid crossing the URL length limit.
             d = {}
             for chunk in web.group(keys, 100):
                 d.update(self._get_many(chunk))
@@ -121,8 +123,8 @@ class OpenLibrary:
             return self._get_many(keys)
 
     def _get_many(self, keys):
-        response = self._request("/api/get_many?" + urllib.parse.urlencode({"keys": json.dumps(keys)}))
-        return json.loads(response.read())['result']
+        response = self._request("/api/get_many", params={"keys": json.dumps(keys)})
+        return response.json()['result']
 
     def save(self, key, data, comment=None):
         headers = {'Content-Type': 'application/json'}
@@ -131,7 +133,7 @@ class OpenLibrary:
             headers['Opt'] = '"%s/dev/docs/api"; ns=42' % self.base_url
             headers['42-comment'] = comment
         data = json.dumps(data)
-        return self._request(key, method="PUT", data=data, headers=headers).read()
+        return self._request(key, method="PUT", data=data, headers=headers).content
 
     def _call_write(self, name, query, comment, action):
         headers = {'Content-Type': 'application/json'}
@@ -145,8 +147,10 @@ class OpenLibrary:
         if action:
             headers['42-action'] = action
 
-        response = self._request('/api/' + name, method="POST", data=json.dumps(query), headers=headers)
-        return json.loads(response.read())
+        response = self._request(
+            '/api/' + name, method="POST", data=json.dumps(query), headers=headers
+        )
+        return response.json()
 
     def save_many(self, query, comment=None, action=None):
         return self._call_write('save_many', query, comment, action)
@@ -176,6 +180,7 @@ class OpenLibrary:
         q = dict(q or {})
         q.update(kw)
         q = marshal(q)
+
         def unlimited_query(q):
             q['limit'] = 1000
             q.setdefault('offset', 0)
@@ -183,52 +188,67 @@ class OpenLibrary:
 
             while True:
                 result = self.query(q)
-                for r in result:
-                    yield r
+                yield from result
                 if len(result) < 1000:
                     break
                 q['offset'] += len(result)
 
-        if 'limit' in q and q['limit'] == False:
+        if 'limit' in q and q['limit'] is False:
             return unlimited_query(q)
         else:
-            q = json.dumps(q)
-            response = self._request("/query.json?" + urllib.parse.urlencode(dict(query=q)))
-            return unmarshal(json.loads(response.read()))
+            response = self._request("/query.json", params=dict(query=json.dumps(q)))
+            return unmarshal(response.json())
+
+    def search(self, query, limit=10, offset=0, fields: list[str] | None = None):
+        return self._request(
+            '/search.json',
+            params={
+                'q': query,
+                'limit': limit,
+                'offset': offset,
+                **({'fields': ','.join(fields)} if fields else {}),
+            },
+        ).json()
 
     def import_ocaid(self, ocaid, require_marc=True):
-        data = {'identifier': ocaid, 'require_marc': 'true' if require_marc else 'false'}
-        return self._request('/api/import/ia', method='POST', data=urllib.parse.urlencode(data)).read()
+        data = {
+            'identifier': ocaid,
+            'require_marc': 'true' if require_marc else 'false',
+        }
+        return self._request('/api/import/ia', method='POST', data=data).text
+
+    def import_data(self, data):
+        return self._request('/api/import', method='POST', data=data).text
 
 
 def marshal(data):
     """Serializes the specified data in the format required by OL.::
 
-        >>> marshal(datetime.datetime(2009, 1, 2, 3, 4, 5, 6789))
-        {'type': '/type/datetime', 'value': '2009-01-02T03:04:05.006789'}
+    >>> marshal(datetime.datetime(2009, 1, 2, 3, 4, 5, 6789))
+    {'type': '/type/datetime', 'value': '2009-01-02T03:04:05.006789'}
     """
     if isinstance(data, list):
         return [marshal(d) for d in data]
     elif isinstance(data, dict):
-        return dict((k, marshal(v)) for k, v in data.items())
+        return {k: marshal(v) for k, v in data.items()}
     elif isinstance(data, datetime.datetime):
         return {"type": "/type/datetime", "value": data.isoformat()}
     elif isinstance(data, Text):
-        return {"type": "/type/text", "value": six.text_type(data)}
+        return {"type": "/type/text", "value": str(data)}
     elif isinstance(data, Reference):
-        return {"key": six.text_type(data)}
+        return {"key": str(data)}
     else:
         return data
 
 
 def unmarshal(d):
-    u"""Converts OL serialized objects to python.::
+    """Converts OL serialized objects to python.::
 
-        >>> unmarshal({"type": "/type/text",
-        ...            "value": "hello, world"})  # doctest: +ALLOW_UNICODE
-        <text: u'hello, world'>
-        >>> unmarshal({"type": "/type/datetime", "value": "2009-01-02T03:04:05.006789"})
-        datetime.datetime(2009, 1, 2, 3, 4, 5, 6789)
+    >>> unmarshal({"type": "/type/text",
+    ...            "value": "hello, world"})  # doctest: +ALLOW_UNICODE
+    <text: u'hello, world'>
+    >>> unmarshal({"type": "/type/datetime", "value": "2009-01-02T03:04:05.006789"})
+    datetime.datetime(2009, 1, 2, 3, 4, 5, 6789)
     """
     if isinstance(d, list):
         return [unmarshal(v) for v in d]
@@ -243,7 +263,7 @@ def unmarshal(d):
             else:
                 return d['value']
         else:
-            return dict([(k, unmarshal(v)) for k, v in d.items()])
+            return {k: unmarshal(v) for k, v in d.items()}
     else:
         return d
 
@@ -251,8 +271,8 @@ def unmarshal(d):
 def parse_datetime(value):
     """Parses ISO datetime formatted string.::
 
-        >>> parse_datetime("2009-01-02T03:04:05.006789")
-        datetime.datetime(2009, 1, 2, 3, 4, 5, 6789)
+    >>> parse_datetime("2009-01-02T03:04:05.006789")
+    datetime.datetime(2009, 1, 2, 3, 4, 5, 6789)
     """
     if isinstance(value, datetime.datetime):
         return value
@@ -261,11 +281,15 @@ def parse_datetime(value):
         return datetime.datetime(*map(int, tokens))
 
 
-class Text(six.text_type):
+class Text(str):
+    __slots__ = ()
+
     def __repr__(self):
-        return u"<text: %s>" % six.text_type.__repr__(self)
+        return "<text: %s>" % str.__repr__(self)
 
 
-class Reference(six.text_type):
+class Reference(str):
+    __slots__ = ()
+
     def __repr__(self):
-        return u"<ref: %s>" % six.text_type.__repr__(self)
+        return "<ref: %s>" % str.__repr__(self)

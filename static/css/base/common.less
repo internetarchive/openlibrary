@@ -4,7 +4,7 @@
 *
 * These styles are loaded as render blocking CSS on every page.
 */
-@import (less) "less/font-families.less";
+@import "../less/font-families.less";
 
 /* RESET EVERYTHING */
 body,
@@ -28,10 +28,7 @@ td {
   padding: 0;
 }
 h1 {
-  margin: 20px;
-}
-button {
-  outline: none;
+  margin: 20px 0;
 }
 body,
 p,
@@ -100,6 +97,7 @@ div.head {
   }
   ol li {
     list-style: decimal;
+    list-style-position: inside;
   }
 }
 
@@ -113,4 +111,8 @@ div.head {
   td {
     display: inline-block;
   }
+}
+
+a.nostyle {
+  color: inherit;
 }

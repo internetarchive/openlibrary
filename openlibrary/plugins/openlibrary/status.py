@@ -1,6 +1,7 @@
 import datetime
 import socket
 import sys
+from typing import Any
 
 from infogami import config
 from infogami.utils import delegate
@@ -8,22 +9,27 @@ from infogami.utils.view import render_template, public
 from openlibrary.core import stats
 from openlibrary.utils import get_software_version
 
-status_info = {}
-feature_flags = {}
+status_info: dict[str, Any] = {}
+feature_flagso: dict[str, Any] = {}
+
 
 class status(delegate.page):
     def GET(self):
         return render_template("status", status_info, feature_flags)
 
+
 @public
 def get_git_revision_short_hash():
-    return (status_info.get('Software version')
-            if status_info and isinstance(status_info, dict) 
-            else None)
+    return (
+        status_info.get('Software version')
+        if status_info and isinstance(status_info, dict)
+        else None
+    )
 
 
 def get_features_enabled():
     return config.features
+
 
 def setup():
     "Basic startup status for the server"

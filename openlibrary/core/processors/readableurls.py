@@ -7,16 +7,18 @@ import web
 from infogami.utils.view import render
 from openlibrary.core import helpers as h
 
-from six.moves import urllib
+import urllib
 
 logger = logging.getLogger("openlibrary.readableurls")
 
 try:
     from booklending_utils.openlibrary import is_exclusion
 except ImportError:
+
     def is_exclusion(obj):
         """Processor for determining whether records require exclusion"""
         return False
+
 
 class ReadableUrlProcessor:
     """Open Library code works with urls like /books/OL1M and
@@ -25,38 +27,53 @@ class ReadableUrlProcessor:
 
     The changequery function is also customized to support this.
     """
+
     patterns = [
         (r'/\w+/OL\d+M', '/type/edition', 'title', 'untitled'),
         (r'/\w+/ia:[a-zA-Z0-9_\.-]+', '/type/edition', 'title', 'untitled'),
         (r'/\w+/OL\d+A', '/type/author', 'name', 'noname'),
         (r'/\w+/OL\d+W', '/type/work', 'title', 'untitled'),
-        (r'/[/\w]+/OL\d+L', '/type/list', 'name', 'unnamed')
+        (r'/[/\w\-]+/OL\d+L', '/type/list', 'name', 'unnamed'),
     ]
 
     def __call__(self, handler):
         # temp hack to handle languages and users during upstream-to-www migration
         if web.ctx.path.startswith("/l/"):
-            raise web.seeother("/languages/" + web.ctx.path[len("/l/"):])
+            raise web.seeother("/languages/" + web.ctx.path[len("/l/") :])
 
-        if web.ctx.path.startswith("/user/"):
-            if not web.ctx.site.get(web.ctx.path):
-                raise web.seeother("/people/" + web.ctx.path[len("/user/"):])
+        if web.ctx.path.startswith("/user/") and not web.ctx.site.get(web.ctx.path):
+            raise web.seeother("/people/" + web.ctx.path[len("/user/") :])
 
-        real_path, readable_path = get_readable_path(web.ctx.site, web.ctx.path, self.patterns, encoding=web.ctx.encoding)
+        real_path, readable_path = get_readable_path(
+            web.ctx.site, web.ctx.path, self.patterns, encoding=web.ctx.encoding
+        )
 
-        #@@ web.ctx.path is either quoted or unquoted depends on whether the application is running
-        #@@ using builtin-server or lighttpd. That is probably a bug in web.py.
-        #@@ take care of that case here till that is fixed.
+        # @@ web.ctx.path is either quoted or unquoted depends on whether the application is running
+        # @@ using builtin-server. That is probably a bug in web.py.
+        # @@ take care of that case here till that is fixed.
         # @@ Also, the redirection must be done only for GET requests.
-        if readable_path != web.ctx.path and readable_path != urllib.parse.quote(web.safestr(web.ctx.path)) and web.ctx.method == "GET":
-            raise web.redirect(web.safeunicode(readable_path) + web.safeunicode(web.ctx.query))
+        if (
+            readable_path != web.ctx.path
+            and readable_path != urllib.parse.quote(web.safestr(web.ctx.path))
+            and web.ctx.method == "GET"
+        ):
+            raise web.redirect(
+                web.safeunicode(readable_path) + web.safeunicode(web.ctx.query)
+            )
 
         web.ctx.readable_path = readable_path
         web.ctx.path = real_path
         web.ctx.fullpath = web.ctx.path + web.ctx.query
         out = handler()
-        V2_TYPES = ['works', 'books', 'people', 'authors',
-                    'publishers', 'languages', 'account']
+        V2_TYPES = [
+            'works',
+            'books',
+            'people',
+            'authors',
+            'publishers',
+            'languages',
+            'account',
+        ]
 
         # Exclude noindex items
         if web.ctx.get('exclude'):
@@ -76,15 +93,15 @@ def _get_object(site, key):
     obj = site.get(key)
 
     if obj is None and key.startswith("/a/"):
-        key = "/authors/" + key[len("/a/"):]
+        key = "/authors/" + key[len("/a/") :]
         obj = key and site.get(key)
 
     if obj is None and key.startswith("/b/"):
-        key = "/books/" + key[len("/b/"):]
+        key = "/books/" + key[len("/b/") :]
         obj = key and site.get(key)
 
     if obj is None and key.startswith("/user/"):
-        key = "/people/" + key[len("/user/"):]
+        key = "/people/" + key[len("/user/") :]
         obj = key and site.get(key)
 
     basename = key.split("/")[-1]
@@ -111,11 +128,12 @@ def _get_object(site, key):
 
     # Disabled temporarily as the index is not ready the db
 
-    #if obj is None and web.re_compile(r"/.*/OL\d+[A-Z]"):
+    # if obj is None and web.re_compile(r"/.*/OL\d+[A-Z]"):
     #    olid = web.safestr(key).split("/")[-1]
     #    key = site._request("/olid_to_key", data={"olid": olid}).key
     #    obj = key and site.get(key)
     return obj
+
 
 def get_readable_path(site, path, patterns, encoding=None):
     """Returns real_path and readable_path from the given path.
@@ -147,8 +165,7 @@ def get_readable_path(site, path, patterns, encoding=None):
         path = web.safeunicode(path)
         return (path, path)
 
-    if encoding is not None \
-       or path.endswith(".json") or path.endswith(".yml") or path.endswith(".rdf"):
+    if encoding is not None or path.endswith((".json", ".rdf", ".yml")):
         key, ext = os.path.splitext(path)
 
         thing = _get_object(site, key)
@@ -168,6 +185,7 @@ def get_readable_path(site, path, patterns, encoding=None):
         try:
             # Explicitly only run for python3 to solve #4033
             from urllib.parse import quote_plus
+
             middle = '/' + quote_plus(h.urlsafe(title.strip()))
         except ImportError:
             middle = '/' + h.urlsafe(title.strip())

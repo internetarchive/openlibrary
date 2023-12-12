@@ -1,8 +1,8 @@
 $def with (type, usetable=0)
 $# Used on http://localhost:8080/about?m=edit for blank page
 $# and any generic page in the admin UI; e.g. creating a page.
-<div class="formElement pagetype collapse adminOnly" id="pageType">
-    $if ctx.user and ctx.user.is_admin():
+$if ctx.user and ctx.user.is_admin():
+    <div class="formElement pagetype collapse adminOnly" id="pageType">
         <script>
         function changeTemplate() {
             var t = document.edit['type.key'].value;
@@ -20,6 +20,8 @@ $# and any generic page in the admin UI; e.g. creating a page.
         <div class="input">
             $:thinginput(type, name="type.key", id="type.key", expected_type="/type/type", kind="regular",  onchange="changeTemplate();")
         </div>
-    $else:
+    </div>
+$else:
+    <div class="formElement pagetype collapse" id="pageType">
         <input type="hidden" name="type.key" value="$type"/>
-</div>
+    </div>

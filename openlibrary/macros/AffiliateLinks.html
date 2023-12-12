@@ -9,9 +9,8 @@ $code:
     'key': 'betterworldbooks',
     'analytics_key': 'BetterWorldBooks',
     'name': _('Better World Books'),
-    'link': 'https://www.anrdoezrs.net/links/%s/type/dlg/http://www.betterworldbooks.com/%s' % (
-      affiliate_id('betterworldbooks'),
-      ('-id-%s.aspx' % isbn) if isbn else ('search/results?q=' + page.title)
+    'link': 'https://www.betterworldbooks.com/%s' % (
+      ('product/detail/-%s' % isbn) if isbn else ('search/results?q=' + page.title.replace(' ','%20'))
     ),
     'price_note': _(' - includes shipping')
   }
@@ -40,7 +39,8 @@ $code:
       amz_metadata = get_amazon_metadata(isbn, resources='prices')
       amazon['price'] = amz_metadata and amz_metadata.get('price')
 
-  stores = [store for store in [bwb, amazon, bookshop] if store]
+  primary_stores = [store for store in [bwb, amazon] if store]
+  more_stores = [store for store in [bookshop] if store]
 
 $def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
   <li class="prices-$key">
@@ -55,6 +55,18 @@ $def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
   </li>
 
 <ul class="buy-options-table">
-    $for store in stores:
+    $for store in primary_stores:
       $:affiliate_link(store['key'], store['analytics_key'], store['name'], store['link'], store.get('price', ''), store.get('price_note', ''))
+    $if more_stores:
+      <li class="more">
+        <details>
+          <summary>$_('More')</summary>
+          <ul>
+            $for store in more_stores:
+              $:affiliate_link(store['key'], store['analytics_key'], store['name'], store['link'], store.get('price', ''), store.get('price_note', ''))
+          </ul>
+        </details>
+      </li>
+
 </ul>
+<p>When you buy books using these links the Internet Archive may earn a <a class="nostyle" href="/help/faq/about#selling">small commission</a>.</p>

@@ -1,0 +1,21 @@
+name: deploy_storybook
+on:
+  push:
+    branches: [ master ]
+    paths: [ 'stories/**' ]
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+  deploy_storybook:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '14'
+      - run: npm install
+      - run: npm run deploy-storybook
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}

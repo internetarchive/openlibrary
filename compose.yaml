@@ -1,0 +1,104 @@
+version: "3.8"
+services:
+  web:
+    image: "${OLIMAGE:-oldev:latest}"
+    environment:
+      - OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
+      - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 4 --timeout 180}
+    command: docker/ol-web-start.sh
+    ports:
+      - ${WEB_PORT:-8080}:8080
+    networks:
+      - webnet
+      - dbnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
+  solr:
+    image: solr:8.10.1
+    expose:
+      - 8983
+    environment:
+      # Soft commit frequently to make sure changes are visible in search
+      # Hard commit less frequently to avoid performance impact, but avoid
+      # having very large transaction log
+      # https://solr.apache.org/guide/solr/latest/configuration-guide/commits-transaction-logs.html
+      # Enlarge the max boolean clauses so that we can large intersections
+      # between books in reading logs and solr.
+      # Should be in sync with the value in openlibrary/core/bookshelves.py ,
+      # eg key:(/works/OL1W OR /works/OL2W OR ...)
+      - SOLR_OPTS=
+        -Dsolr.autoSoftCommit.maxTime=60000
+        -Dsolr.autoCommit.maxTime=120000
+        -Dsolr.max.booleanClauses=30000
+    volumes:
+      - solr-data:/var/solr/data
+      - ./conf/solr:/opt/solr/server/solr/configsets/olconfig:ro
+    networks:
+      - webnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+    # Create (or use if already existing) a core called "openlibrary" with our config & schema
+    command: solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig
+
+  solr-updater:
+    image: "${OLIMAGE:-oldev:latest}"
+    command: docker/ol-solr-updater-start.sh
+    hostname: "${HOSTNAME:-$HOST}"
+    environment:
+      - OL_CONFIG=conf/openlibrary.yml
+      - OL_URL=http://web:8080/
+      - STATE_FILE=solr-update.offset
+    volumes:
+      - solr-updater-data:/solr-updater-data
+    networks:
+      - webnet
+      - dbnet
+
+  memcached:
+    image: memcached
+    networks:
+      - webnet
+
+  covers:
+    image: "${OLIMAGE:-oldev:latest}"
+    environment:
+      - COVERSTORE_CONFIG=${COVERSTORE_CONFIG:-/openlibrary/conf/coverstore.yml}
+      - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 1 --max-requests 250}
+    command: docker/ol-covers-start.sh
+    expose:
+      - 7075
+    networks:
+      - webnet
+      - dbnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
+  infobase:
+    image: "${OLIMAGE:-oldev:latest}"
+    environment:
+      - INFOBASE_CONFIG=${INFOBASE_CONFIG:-/openlibrary/conf/infobase.yml}
+      - INFOBASE_OPTS=${INFOBASE_OPTS:-}
+    command: docker/ol-infobase-start.sh
+    expose:
+      - 7000
+    networks:
+      - webnet
+      - dbnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
+networks:
+  webnet:
+  dbnet:
+volumes:
+  solr-data:
+  solr-updater-data:

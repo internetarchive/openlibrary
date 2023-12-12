@@ -16,6 +16,9 @@ dummy_sendmail: True
 debug: True
 
 coverstore_url: http://covers:7075
+# URL to use inside HTML files; must be publicly accessible from
+# a client's browser
+coverstore_public_url: http://localhost:7075
 
 state_dir: var/run
 
@@ -33,7 +36,7 @@ infobase_server: infobase:7000
 infobase_config_file: infobase.yml
 coverstore_config_file: coverstore.yml
 
-loanstatus_url: http://localhost/
+loanstatus_url: http://web:8080/
 ia_access_secret: foobar
 
 memcache_servers:
@@ -45,18 +48,11 @@ plugin_modules:
     - infogami.plugins.api
 
 plugin_worksearch:
-    solr: solr:8983
+    solr_next: true
+    solr_base_url: http://solr:8983/solr/openlibrary
     spellcheck_count: 3
-    ebook_count_db_parameters:
-        db: openlibrary_ebook_count
-        host: localhost
-
-    # Temporary (2020-04-09) field to use until classifications are in production solr
-    has_classifications: false
 
 http_request_timeout: 10
-
-stats_solr: solr:8983
 
 features:
     cache_most_recent: enabled
@@ -77,9 +73,6 @@ features:
     support: admin
     undo: enabled
     upstream: enabled
-    user_metadata:
-        filter: usergroup
-        usergroup: /usergroup/beta-testers
 
 upstream_to_www_migration: true
 default_template_root: /upstream
@@ -145,7 +138,7 @@ stats: # This section is used to state what stats need to be gathered.
       pattern: /api/volumes/.*
       time: total
 
-# prefixes ignored for /books/ia:xxx URLs and new-solr-updater.py
+# prefixes ignored for /books/ia:xxx URLs and solr_updater.py
 ia_ignore_prefixes:
     - "jstor-"
     - "imslp-"
@@ -168,15 +161,15 @@ ia_ol_xauth_s3:
     s3_key: XXX
     s3_secret: XXX
 
-ia_loan_api_url: http://localhost/internal/fake/loans
-ia_xauth_api_url: http://localhost/internal/fake/xauth
+ia_loan_api_url: http://web:8080/internal/fake/loans
+ia_xauth_api_url: http://web:8080/internal/fake/xauth
 
 internal_tests_api_key: 8oPd1tx747YH374ohs48ZO5s2Nt1r9yD
 ia_availability_api_v2_url: https://archive.org/services/availability/
 ia_base_url: https://archive.org
 
 ia_civicrm_api:
-    url: http://localhost/internal/fake/civicrm
+    url: http://web:8080/internal/fake/civicrm
     api_key: XXX
     site_key: XXX
     auth: XXX
@@ -185,7 +178,14 @@ sentry:
     enabled: false
     # Dummy endpoint; where sentry logs are sent to
     dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
+    traces_sample_rate: 1.0
     environment: 'local'
 
-# The Best Book On integration
-tbbo_url: https://thebestbookon.com
+sentry_cron_jobs:
+    enabled: false
+    # Dummy endpoint; where sentry logs are sent to
+    dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
+    environment: 'local'
+
+# Observations cache settings:
+observation_cache_duration: 86400

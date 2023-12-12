@@ -26,15 +26,6 @@ $def call_template(name, change):
     $ t = get_template("recentchanges/" + change.kind + "/" + name) or get_template("recentchanges/default/" + name)
     $:t(change)
 
-
-<script type="text/javascript">
-window.q.push(function () {
-	\$('#checkall').click(function () {
-		\$("form.olform").find(':checkbox').attr('checked', this.checked);
-	});
-});
-</script>
-
 <form method="POST" name="revert" class="olform">
 <table class="changeHistory">
     <thead>
@@ -63,7 +54,7 @@ window.q.push(function () {
             <td class="time">$datestr(c.timestamp)</td>
             <td class="path">$:call_template("path", c)</td>
             $if c.author:
-                <td class="displayname"><a rel="nofollow" href="$c.author.key" title="$c.author.displayname">$c.author.displayname</a></td>
+                <td class="displayname"><a rel="nofollow" href="$c.author.key">$c.author.displayname</a></td>
             $elif c.ip and c.ip != '127.0.0.1':
                 $ klass = cond(c.ip in get_blocked_ips(), 'red', "")
                 <td class="history"><a rel="nofollow" href="$changequery()" class="$klass" title="When you see numbers here, that's the IP address of the anonymous editor">$c.ip</a></td>
@@ -99,9 +90,9 @@ window.q.push(function () {
 $if paginate:
     <div class="historyPager small sansserif gray">
         $if len(changes) == limit:
-            <a href="$:changequery(page=page + 1)" rel="nofollow">&larr; $_("Older")</a>
+            <a href="$changequery(page=page + 1)" rel="nofollow">&larr; $_("Older")</a>
         $if page > 1:
              &nbsp;|&nbsp;
-            <a href="$:changequery(page=page - 1)" rel="nofollow">$_("Newer") &rarr;</a>
+            <a href="$changequery(page=page - 1)" rel="nofollow">$_("Newer") &rarr;</a>
     </div>
 </div>

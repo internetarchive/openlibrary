@@ -4,18 +4,19 @@ import Carousel from './carousel/Carousel';
 
 export function initCarouselsPartials() {
 
-    let fetchRelatedWorks = function() {
+    const fetchRelatedWorks = function() {
         $.ajax({
-            url: '/partials',
+            url: '/partials.json',
             type: 'GET',
             data: {
-                workid: $('.RelatedWorksCarousel').attr('workId'),
+                workid: $('.RelatedWorksCarousel').data('workid'),
                 _component: 'RelatedWorkCarousel'
             },
             datatype: 'json',
             success: function (response) {
                 $('.loadingIndicator').addClass('hidden');
                 if (response){
+                    response = JSON.parse(response)
                     $('.RelatedWorksCarousel').append(response[0]);
                     const $carouselElements = $('.RelatedWorksCarousel .carousel--progressively-enhanced');
                     if ($carouselElements.length) {
@@ -33,9 +34,5 @@ export function initCarouselsPartials() {
 
     $('.loadingIndicator').removeClass('hidden');
 
-    if (document.readyState === 'complete') {
-        fetchRelatedWorks();
-    } else {
-        $(window).on('load', fetchRelatedWorks);
-    }
+    fetchRelatedWorks();
 }

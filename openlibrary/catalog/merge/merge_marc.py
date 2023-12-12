@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import re
 
 from openlibrary.catalog.merge.normalize import normalize
@@ -11,8 +9,10 @@ re_amazon_title_paren = re.compile(r'^(.*) \([^)]+?\)$')
 
 isbn_match = 85
 
+
 def set_isbn_match(score):
     isbn_match = score
+
 
 def build_titles(title):
     """
@@ -23,7 +23,7 @@ def build_titles(title):
     :return: An expanded set of title variations
     """
     normalized_title = normalize(title).lower()
-    titles = [ title, normalized_title ];
+    titles = [title, normalized_title]
     if title.find(' & ') != -1:
         t = title.replace(" & ", " and ")
         titles.append(t)
@@ -46,14 +46,16 @@ def build_titles(title):
         titles += t2
 
     return {
-        'full_title':       title,
+        'full_title': title,
         'normalized_title': normalized_title,
-        'titles':           titles,
-        'short_title':      normalized_title[:25],
+        'titles': titles,
+        'short_title': normalized_title[:25],
     }
 
+
 def within(a, b, distance):
-    return abs(a-b) <= distance
+    return abs(a - b) <= distance
+
 
 def compare_country(e1, e2):
     field = 'publish_country'
@@ -66,6 +68,7 @@ def compare_country(e1, e2):
         return (field, 'match', 40)
     return (field, 'mismatch', -205)
 
+
 def compare_lccn(e1, e2):
     field = 'lccn'
     if field not in e1 or field not in e2:
@@ -73,6 +76,7 @@ def compare_lccn(e1, e2):
     if e1[field] == e2[field]:
         return (field, 'match', 200)
     return (field, 'mismatch', -320)
+
 
 def compare_date(e1, e2):
     if 'publish_date' not in e1 or 'publish_date' not in e2:
@@ -89,6 +93,7 @@ def compare_date(e1, e2):
     except ValueError as TypeError:
         return ('date', 'mismatch', -250)
 
+
 def compare_isbn10(e1, e2):
     if len(e1['isbn']) == 0 or len(e2['isbn']) == 0:
         return ('ISBN', 'missing', 0)
@@ -98,7 +103,9 @@ def compare_isbn10(e1, e2):
                 return ('ISBN', 'match', isbn_match)
     return ('ISBN', 'mismatch', -225)
 
+
 # 450 + 200 + 85 + 200
+
 
 def level1_merge(e1, e2):
     """
@@ -117,6 +124,7 @@ def level1_merge(e1, e2):
     score.append(compare_isbn10(e1, e2))
     return score
 
+
 def level2_merge(e1, e2):
     """
     :rtype: list
@@ -128,12 +136,12 @@ def level2_merge(e1, e2):
     score.append(compare_isbn10(e1, e2))
     score.append(compare_title(e1, e2))
     score.append(compare_lccn(e1, e2))
-    page_score = compare_number_of_pages(e1, e2)
-    if page_score:
+    if page_score := compare_number_of_pages(e1, e2):
         score.append(page_score)
     score.append(compare_publisher(e1, e2))
     score.append(compare_authors(e1, e2))
     return score
+
 
 def compare_author_fields(e1_authors, e2_authors):
     for i in e1_authors:
@@ -143,6 +151,7 @@ def compare_author_fields(e1_authors, e2_authors):
             if normalize(i['name']).strip('.') == normalize(j['name']).strip('.'):
                 return True
     return False
+
 
 def compare_author_keywords(e1_authors, e2_authors):
     max_score = 0
@@ -172,21 +181,27 @@ def compare_authors(e1, e2):
     :return: str?, message, score
     """
 
-    if 'authors' in e1 and 'authors' in e2:
+    if 'authors' in e1 and 'authors' in e2:  # noqa: SIM102
         if compare_author_fields(e1['authors'], e2['authors']):
             return ('authors', 'exact match', 125)
-    if 'authors' in e1 and 'contribs' in e2 and \
-            compare_author_fields(e1['authors'], e2['contribs']):
-        return ('authors', 'exact match', 125)
-    if 'contribs' in e1 and 'authors' in e2 and \
-            compare_author_fields(e1['contribs'], e2['authors']):
-        return ('authors', 'exact match', 125)
+
+    if 'authors' in e1 and 'contribs' in e2:  # noqa: SIM102
+        if compare_author_fields(e1['authors'], e2['contribs']):
+            return ('authors', 'exact match', 125)
+
+    if 'contribs' in e1 and 'authors' in e2:  # noqa: SIM102
+        if compare_author_fields(e1['contribs'], e2['authors']):
+            return ('authors', 'exact match', 125)
+
     if 'authors' in e1 and 'authors' in e2:
         return compare_author_keywords(e1['authors'], e2['authors'])
 
     if 'authors' not in e1 and 'authors' not in e2:
-        if 'contribs' in e1 and 'contribs' in e2 and \
-                compare_author_fields(e1['contribs'], e2['contribs']):
+        if (
+            'contribs' in e1
+            and 'contribs' in e2
+            and compare_author_fields(e1['contribs'], e2['contribs'])
+        ):
             return ('authors', 'exact match', 125)
         return ('authors', 'no authors', 75)
     return ('authors', 'field missing from one record', -25)
@@ -195,11 +210,13 @@ def compare_authors(e1, e2):
 def title_replace_amp(amazon):
     return normalize(amazon['full-title'].replace(" & ", " and ")).lower()
 
+
 def substr_match(a, b):
     return a.find(b) != -1 or b.find(a) != -1
 
+
 def keyword_match(in1, in2):
-    s1, s2 = [i.split() for i in (in1, in2)]
+    s1, s2 = (i.split() for i in (in1, in2))
     s1_set = set(s1)
     s2_set = set(s2)
     match = s1_set & s2_set
@@ -207,6 +224,7 @@ def keyword_match(in1, in2):
         return 0, True
     ordered = [x for x in s1 if x in match] == [x for x in s2 if x in match]
     return float(len(match)) / max(len(s1), len(s2)), ordered
+
 
 def compare_title(amazon, marc):
     amazon_title = amazon['normalized_title'].lower()
@@ -242,6 +260,7 @@ def compare_title(amazon, marc):
     else:
         return ('full-title', 'mismatch', -600)
 
+
 def compare_number_of_pages(amazon, marc):
     if 'number_of_pages' not in amazon or 'number_of_pages' not in marc:
         return
@@ -260,15 +279,14 @@ def compare_number_of_pages(amazon, marc):
     else:
         return ('pagination', 'non-match (by more than 10)', -225)
 
+
 def short_part_publisher_match(p1, p2):
     pub1 = p1.split()
     pub2 = p2.split()
     if len(pub1) == 1 or len(pub2) == 1:
         return False
-    for i, j in zip(pub1, pub2):
-        if not substr_match(i, j):
-            return False
-    return True
+    return all(substr_match(i, j) for i, j in zip(pub1, pub2))
+
 
 def compare_publisher(e1, e2):
     if 'publishers' in e1 and 'publishers' in e2:
@@ -278,9 +296,9 @@ def compare_publisher(e1, e2):
                 e2_norm = normalize(e2_pub)
                 if e1_norm == e2_norm:
                     return ('publisher', 'match', 100)
-                elif substr_match(e1_norm, e2_norm):
-                    return ('publisher', 'occur within the other', 100)
-                elif substr_match(e1_norm.replace(' ', ''), e2_norm.replace(' ', '')):
+                elif substr_match(e1_norm, e2_norm) or substr_match(
+                    e1_norm.replace(' ', ''), e2_norm.replace(' ', '')
+                ):
                     return ('publisher', 'occur within the other', 100)
                 elif short_part_publisher_match(e1_norm, e2_norm):
                     return ('publisher', 'match', 100)
@@ -307,10 +325,19 @@ def build_marc(edition):
     marc['isbn'] = []
     for f in 'isbn', 'isbn_10', 'isbn_13':
         marc['isbn'].extend(edition.get(f, []))
-    if 'publish_country' in edition \
-            and edition['publish_country'] not in ('   ', '|||'):
+    if 'publish_country' in edition and edition['publish_country'] not in (
+        '   ',
+        '|||',
+    ):
         marc['publish_country'] = edition['publish_country']
-    for f in 'lccn', 'publishers', 'publish_date', 'number_of_pages', 'authors', 'contribs':
+    for f in (
+        'lccn',
+        'publishers',
+        'publish_date',
+        'number_of_pages',
+        'authors',
+        'contribs',
+    ):
         if f in edition:
             marc[f] = edition[f]
     return marc
@@ -335,12 +362,12 @@ def editions_match(e1, e2, threshold, debug=False):
     level1 = level1_merge(e1, e2)
     total = sum(i[2] for i in level1)
     if debug:
-        print("E1: %s\nE2: %s" % (e1, e2))
-        print("TOTAL 1 = %s : %s" % (total, level1))
+        print(f"E1: {e1}\nE2: {e2}")
+        print(f"TOTAL 1 = {total} : {level1}")
     if total >= threshold:
         return True
     level2 = level2_merge(e1, e2)
     total = sum(i[2] for i in level2)
     if debug:
-        print("TOTAL 2 = %s : %s" % (total, level2))
+        print(f"TOTAL 2 = {total} : {level2}")
     return total >= threshold

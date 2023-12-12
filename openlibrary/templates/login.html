@@ -8,6 +8,9 @@ $var title: $("Log In")
 
 <div id="contentBody">
   $if not ctx.user:
+      $:render_template("account/ia_thirdparty_logins")
+      <div class="login-big-or">$_('OR')</div>
+
       <p>$:_('Please enter your <a href="https://archive.org">Internet Archive</a> email and password to access your Open Library account.')</p>
 
   $if ctx.user:
@@ -16,6 +19,16 @@ $var title: $("Log In")
 
   $else:
       <form id="register" class="login olform" name="register" method="post">
+          $if "dev" in ctx.features:
+              <div class="flash-messages" id="autofill-dev-credentials">
+                  <div class="info">
+                      <span>
+                          This is a development instance, the default credentials are automatically filled.
+                          <br>
+                          email: openlibrary@example.com password: admin123
+                      </span>
+                  </div>
+              </div>
 
         $if form.note:
             <div class="note">$form.note</div>
@@ -55,7 +68,7 @@ $var title: $("Log In")
 
         <div class="formElement bottom">
             <br/>
-            <input value="$_('Log In')" type="submit" class="login-submit" name="login" title="$_('Log In')"/>
+            <button value="$_('Log In')" type="submit" class="login-submit larger" name="login" title="$_('Log In')">$_('Log In')</button>
         </div>
         <div class="formElement">
             <div class="label"></div>

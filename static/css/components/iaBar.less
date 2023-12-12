@@ -4,32 +4,29 @@
 
 .iaBar {
   .display-flex();
-  max-width: 960px;
+  max-width: 1060px;
   margin: 0 auto;
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  &Logo {
-    margin-left: 9px;
-  }
-  &Message {
-    -webkit-box-flex: 1;
-    -ms-flex: 1;
+  // This is to right align the donate button and language dropdown
+  .iaLogo {
     flex: 1;
-    text-align: right;
+  }
+  .ghost-btn {
+    margin-right: 20px;
   }
 }
 // Changes color of heart unicode character
 .heart {
   color: @heart-color;
-  font-size: 1.2em;
+  font-size: 1.0em;
 }
 
 /* stylelint-disable selector-max-specificity */
 #topNotice {
   font-weight: 100;
   font-size: .9em;
-  margin-bottom: 5px;
   .topNotice-container {
     margin: 0 auto;
     width: 958px;

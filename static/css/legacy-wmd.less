@@ -35,7 +35,7 @@
   border: 1px solid @lighter-grey;
   font-family: @georgia_serif-1;
   display: none;
-  margin-bottom: 10px;
+  overflow-wrap: anywhere;
 }
 
 .formElement .input .wmd-preview {
@@ -179,10 +179,6 @@ form.olform.books .formElement .input .wmd-preview {
 @media only screen and (min-width: @width-breakpoint-desktop) {
   // Styles are used on edit page
   // e.g. http://localhost:8080/works/OL61982W/Odyssey/edit
-  .formElement .input .wmd-preview {
-    width: 906px;
-    float: left;
-  }
   form.olform.books .formElement.librarian .input .wmd-preview {
     width: 798px;
   }

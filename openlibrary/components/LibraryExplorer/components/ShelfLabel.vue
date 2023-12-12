@@ -3,7 +3,7 @@
     <details class="shelf-label--classes">
       <summary>
         <RightArrowIcon class="shelf-label--right-arrow"/>
-        <div class="shelf-label--name">{{index == 'root' ? node.name : node.children[index].name}}</div>
+        <div class="shelf-label--name">{{index === 'root' ? node.name : node.children[index].name}}</div>
       </summary>
       <ShelfIndex :node="node" />
     </details>

@@ -11,6 +11,12 @@ $var title: [Admin Center] Inspect Memcache
 
     <div>
         <form name="by_key" class="olform">
+            <p>
+                Add one memcache key per line in the text area. Each key must include a '-' as the last character.
+            </p>
+            <p>
+                For example, <code>observations-</code> should be entered in the text area if the key is <code>observations</code>.
+            </p>
             Keys:<br/>
             <textarea name="keys" rows="5">$"\n".join(keys)</textarea>
             <br/>

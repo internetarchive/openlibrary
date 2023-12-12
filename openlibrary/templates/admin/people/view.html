@@ -1,6 +1,6 @@
 $def with (person, input={}, errors={})
 
-$ _x = ctx.setdefault('bodyid', 'admin')
+$ _x = ctx.setdefault('cssfile', 'admin')
 $ _x = ctx.setdefault('usergroup', 'admin')
 
 $var title: [Admin Center] $person.displayname
@@ -59,7 +59,7 @@ form.account-actions {
     display:inline;
 }
 
-#borrowTable .who {
+.borrow-table .who {
     display: none;
 }
 
@@ -95,21 +95,6 @@ a.tag.active {
 }
 </style>
 
-<script type="text/javascript">
-window.q.push(function() {
-    \$("a.tag").click(function(){
-        \$(this).toggleClass("active");
-
-        var action = \$(this).hasClass("active") ? "add_tag": "remove_tag";
-        var tag = \$(this).text();
-        \$.post(window.location.href, {
-            "action": action,
-            "tag": tag
-        });
-    });
-});
-</script>
-
 <div id="contentHead">
     $:render_template("admin/menu")
     <h1><a class="plain" href="/admin/people">People</a> / $person.username</h1>
@@ -121,12 +106,12 @@ $ has_profile = person.get_user() is not None
 <div id="contentBody">
 
     <div class="status status-$person.status">
-        <form method="POST">
+        <form method="POST" action="?debug=true">
             Status: <span class="status">$person.status</span>
 
         $if person.status in ['active', 'verified']:
-            <button type="submit" name="action" value="block_account_and_revert" style="float: right; background: #ffbbbb;">block and revert all edits</button>
-            <button type="submit" name="action" value="block_account">block this account</button>
+            <button class="do-confirm" type="submit" name="action" value="block_account_and_revert" style="float: right; background: #ffbbbb;">block and revert all edits</button>
+            <button class="do-confirm" type="submit" name="action" value="block_account">block this account</button>
             &nbsp;&nbsp;<button type="submit" name="action" value="send_password_reset_email">send password reset email</button>
             <br/>
             <br/>
@@ -135,7 +120,7 @@ $ has_profile = person.get_user() is not None
             <button type="submit" name="action" value="su" style="float: right; background: #ffbbbb;">login as this user</button>
             <div class="small">Activated on <span class="time">$datestr(person.activated_on, relative=False)</span> from <a href="/admin/ip/$v.ip">$v.ip</a>.</div>
         $if person.status == "blocked":
-	        <button type="submit" name="action" value="unblock_account">unblock this account</button>
+            <button type="submit" name="action" value="unblock_account">unblock this account</button>
         $elif person.status == "pending":
             <button type="submit" name="action" value="activate_account">activate account</button>
             <br/>
@@ -148,16 +133,15 @@ $ has_profile = person.get_user() is not None
                     <strong>Activation link expired.</strong>
 
                 <button type="submit" name="action" value="resend_link">Resend activation link</button>.
-                </div>
-            </form>
+            </div>
+        </form>
     </div>
 
   <table id="adminHistory" style="clear: both;">
     <tbody>
-    </tr>
     <tr>
         <td>$_("Name:")</td>
-        <td>$person.displayname - <a href="$homepath()$person.username" style="color: #900; text-decoration: none;">view profile</a></td>
+        <td>$person.displayname - <a href="/people/$person.username" style="color: #900; text-decoration: none;">view profile</a></td>
     </tr>
     <tr>
         <td>$_("Email Address:")</td>
@@ -229,9 +213,18 @@ $ has_profile = person.get_user() is not None
                 <a class="tag $cond(person.has_tag(t), 'active')">$t</a>
         </td>
     </tr>
+    <tr>
+        <td>$_("Anonymize Account:")</td>
+        <td>
+            <form method="POST" id="anonymize-form" action="?debug=true">
+                <input type="checkbox" id="dry-run-checkbox" name="dry_run">
+                <label for="dry-run-checkbox">Dry Run</label>
+                <button type="submit" name="action" value="anonymize_account" style="float: right;" class="account-anonymization-button" data-display-name="$person.username">$_("Anonymize Account")</button>
+            </form>
+        </td>
+    </tr>
     </tbody>
   </table>
-
 
 <h2>$_("Loans")</h2>
 <div>

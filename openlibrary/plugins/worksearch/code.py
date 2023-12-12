@@ -1,340 +1,166 @@
-import web
-import random
-import re
-import string
-from lxml.etree import XML, XMLSyntaxError
-from infogami.utils import delegate, stats
-from infogami import config
-from infogami.utils.view import render, render_template, safeint, public
-import simplejson as json
-from openlibrary.core.models import Edition  # noqa: E402
-from openlibrary.core.lending import get_availability_of_ocaids, add_availability
-from openlibrary.plugins.openlibrary.processors import urlsafe
-from openlibrary.plugins.inside.code import fulltext_search
-from openlibrary.plugins.upstream.utils import urlencode
-from openlibrary.utils import escape_bracket
-from openlibrary.utils.ddc import (
-    normalize_ddc,
-    normalize_ddc_prefix,
-    normalize_ddc_range,
-)
-from openlibrary.utils.isbn import normalize_isbn, opposite_isbn
-from openlibrary.utils.lcc import (
-    normalize_lcc_prefix,
-    normalize_lcc_range,
-    short_lcc_to_sortable_lcc,
-)
-from unicodedata import normalize
+from dataclasses import dataclass
+import copy
+import json
 import logging
+import re
+from typing import Any, Union, Optional
+from collections.abc import Iterable
+from unicodedata import normalize
+import requests
+import web
+from requests import Response
+import urllib
 
-from six.moves import urllib
+from infogami import config
+from infogami.utils import delegate, stats
+from infogami.utils.view import public, render, render_template, safeint
+from openlibrary.core import cache
+from openlibrary.core.lending import add_availability
+from openlibrary.core.models import Edition  # noqa: E402
+from openlibrary.plugins.inside.code import fulltext_search
+from openlibrary.plugins.openlibrary.processors import urlsafe
+from openlibrary.plugins.upstream.utils import (
+    get_language_name,
+    urlencode,
+)
+from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.plugins.worksearch.schemes import SearchScheme
+from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
+from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
+from openlibrary.plugins.worksearch.schemes.works import (
+    WorkSearchScheme,
+    has_solr_editions_enabled,
+)
+from openlibrary.solr.solr_types import SolrDocument
+from openlibrary.solr.query_utils import fully_escape_query
+from openlibrary.utils.isbn import normalize_isbn
+
 
 logger = logging.getLogger("openlibrary.worksearch")
 
+
+OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
+
+re_isbn_field = re.compile(r'^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
+re_olid = re.compile(r'^OL\d+([AMW])$')
+
+plurals = {f + 's': f for f in ('publisher', 'author')}
+
 if hasattr(config, 'plugin_worksearch'):
-    solr_host = config.plugin_worksearch.get('solr', 'localhost')
-    solr_select_url = "http://%s/solr/select" % solr_host
+    solr_select_url = (
+        config.plugin_worksearch.get('solr_base_url', 'localhost') + '/select'
+    )
 
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
 
 
-ALL_FIELDS = [
-    "key",
-    "redirects",
-    "title",
-    "subtitle",
-    "alternative_title",
-    "alternative_subtitle",
-    "edition_key",
-    "by_statement",
-    "publish_date",
-    "lccn",
-    "ia",
-    "oclc",
-    "isbn",
-    "contributor",
-    "publish_place",
-    "publisher",
-    "first_sentence",
-    "author_key",
-    "author_name",
-    "author_alternative_name",
-    "subject",
-    "person",
-    "place",
-    "time",
-    "has_fulltext",
-    "title_suggest",
-    "edition_count",
-    "publish_year",
-    "language",
-    "number_of_pages",
-    "ia_count",
-    "publisher_facet",
-    "author_facet",
-    "first_publish_year",
-    # Subjects
-    "subject_key",
-    "person_key",
-    "place_key",
-    "time_key",
-    # Classifications
-    "lcc",
-    "ddc",
-]
-FACET_FIELDS = [
-    "has_fulltext",
-    "author_facet",
-    "language",
-    "first_publish_year",
-    "publisher_facet",
-    "subject_facet",
-    "person_facet",
-    "place_facet",
-    "time_facet",
-    "public_scan_b",
-]
-FIELD_NAME_MAP = {
-    'author': 'author_name',
-    'authors': 'author_name',
-    'by': 'author_name',
-    'publishers': 'publisher',
-}
-OLID_URLS = {'A': 'authors', 'M': 'books', 'W': 'works'}
+@public
+def get_solr_works(work_key: Iterable[str]) -> dict[str, dict]:
+    from openlibrary.plugins.worksearch.search import get_solr
 
-re_to_esc = re.compile(r'[\[\]:]')
-re_isbn_field = re.compile(r'^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
-re_author_key = re.compile(r'(OL\d+A)')
-re_fields = re.compile(r'(-?%s):' % '|'.join(ALL_FIELDS + list(FIELD_NAME_MAP)), re.I)
-re_op = re.compile(' +(OR|AND)$')
-re_range = re.compile(r'\[(?P<start>.*) TO (?P<end>.*)\]')
-re_author_facet = re.compile(r'^(OL\d+A) (.*)$')
-re_pre = re.compile(r'<pre>(.*)</pre>', re.S)
-re_subject_types = re.compile('^(places|times|people)/(.*)')
-re_olid = re.compile(r'^OL\d+([AMW])$')
-
-plurals = dict((f + 's', f) for f in ('publisher', 'author'))
+    return {
+        doc['key']: doc
+        for doc in get_solr().get_many(
+            set(work_key), fields=WorkSearchScheme.default_fetched_fields
+        )
+    }
 
 
-def read_author_facet(af):
-    # example input: "OL26783A Leo Tolstoy"
-    return re_author_facet.match(af).groups()
+def read_author_facet(author_facet: str) -> tuple[str, str]:
+    """
+    >>> read_author_facet("OL26783A Leo Tolstoy")
+    ('OL26783A', 'Leo Tolstoy')
+    """
+    key, name = author_facet.split(' ', 1)
+    return key, name
 
 
-def get_language_name(code):
-    lang = web.ctx.site.get('/languages/' + code)
-    return lang.name if lang else "'%s' unknown" % code
-
-def read_facets(root):
-    e_facet_counts = root.find("lst[@name='facet_counts']")
-    e_facet_fields = e_facet_counts.find("lst[@name='facet_fields']")
-    facets = {}
-    for e_lst in e_facet_fields:
-        assert e_lst.tag == 'lst'
-        name = e_lst.attrib['name']
-        if name == 'author_facet':
-            name = 'author_key'
-        if name == 'has_fulltext': # boolean facets
-            e_true = e_lst.find("int[@name='true']")
-            true_count = e_true.text if e_true is not None else 0
-            e_false = e_lst.find("int[@name='false']")
-            false_count = e_false.text if e_false is not None else 0
-            facets[name] = [
-                ('true', 'yes', true_count),
-                ('false', 'no', false_count),
-            ]
-            continue
-        facets[name] = []
-        for e in e_lst:
-            if e.text == '0':
+def process_facet(
+    field: str, facets: Iterable[tuple[str, int]]
+) -> tuple[str, str, int]:
+    if field == 'has_fulltext':
+        counts = dict(facets)
+        yield ('true', 'yes', counts.get('true', 0))
+        yield ('false', 'no', counts.get('false', 0))
+    else:
+        for val, count in facets:
+            if count == 0:
                 continue
-            k = e.attrib['name']
-            if name == 'author_key':
-                k, display = read_author_facet(k)
-            elif name == 'language':
-                display = get_language_name(k)
+            if field == 'author_key':
+                key, name = read_author_facet(val)
+                yield (key, name, count)
+            elif field == 'language':
+                yield (val, get_language_name(f'/languages/{val}'), count)
             else:
-                display = k
-            facets[name].append((k, display, e.text))
-    return facets
+                yield (val, val, count)
 
 
-def lcc_transform(raw):
-    """
-    Transform the lcc search field value
-    :param str raw:
-    :rtype: str
-    """
-    # e.g. lcc:[NC1 TO NC1000] to lcc:[NC-0001.00000000 TO NC-1000.00000000]
-    # for proper range search
-    m = re_range.match(raw)
-    if m:
-        lcc_range = [m.group('start').strip(), m.group('end').strip()]
-        normed = normalize_lcc_range(*lcc_range)
-        return '[%s TO %s]' % (
-            normed[0] or lcc_range[0],
-            normed[1] or lcc_range[1])
-    elif '*' in raw and not raw.startswith('*'):
-        # Marshals human repr into solr repr
-        # lcc:A720* should become A--0720*
-        parts = raw.split('*', 1)
-        lcc_prefix = normalize_lcc_prefix(parts[0])
-        return (lcc_prefix or parts[0]) + '*' + parts[1]
-    else:
-        normed = short_lcc_to_sortable_lcc(raw.strip('"'))
-        if normed:
-            use_quotes = ' ' in normed or raw.startswith('"')
-            return ('"%s"' if use_quotes else '%s*') % normed
-
-    # If none of the transforms took
-    return raw
+def process_facet_counts(
+    facet_counts: dict[str, list]
+) -> dict[str, tuple[str, str, int]]:
+    for field, facets in facet_counts.items():
+        if field == 'author_facet':
+            field = 'author_key'
+        yield field, list(process_facet(field, web.group(facets, 2)))
 
 
-def ddc_transform(raw):
-    """
-    Transform the ddc search field value
-    :param str raw:
-    :rtype: str
-    """
-    m = re_range.match(raw)
-    if m:
-        raw = [m.group('start').strip(), m.group('end').strip()]
-        normed = normalize_ddc_range(*raw)
-        return '[%s TO %s]' % (
-            normed[0] or raw[0],
-            normed[1] or raw[1])
-    elif raw.endswith('*'):
-        return normalize_ddc_prefix(raw[:-1]) + '*'
-    else:
-        normed = normalize_ddc(raw.strip('"'))
-        if normed:
-            return normed[0]
+def execute_solr_query(
+    solr_path: str, params: Union[dict, list[tuple[str, Any]]]
+) -> Optional[Response]:
+    url = solr_path
+    if params:
+        url += '&' if '?' in url else '?'
+        url += urlencode(params)
 
-    # if none of the transforms took
-    return raw
-
-def parse_query_fields(q):
-    found = [(m.start(), m.end()) for m in re_fields.finditer(q)]
-    first = q[:found[0][0]].strip() if found else q.strip()
-    if first:
-        yield {'field': 'text', 'value': first.replace(':', r'\:')}
-    for field_num in range(len(found)):
-        op_found = None
-        f = found[field_num]
-        field_name = q[f[0]:f[1]-1].lower()
-        if field_name in FIELD_NAME_MAP:
-            field_name = FIELD_NAME_MAP[field_name]
-        if field_num == len(found)-1:
-            v = q[f[1]:].strip()
-        else:
-            v = q[f[1]:found[field_num+1][0]].strip()
-            m = re_op.search(v)
-            if m:
-                v = v[:-len(m.group(0))]
-                op_found = m.group(1)
-        if field_name == 'isbn':
-            isbn = normalize_isbn(v)
-            if isbn:
-                v = isbn
-        if field_name == 'lcc':
-            v = lcc_transform(v)
-        if field_name == 'ddc':
-            v = ddc_transform(v)
-
-        yield {'field': field_name, 'value': v.replace(':', r'\:')}
-        if op_found:
-            yield {'op': op_found }
-
-def build_q_list(param):
-    q_list = []
-    if 'q' in param:
-        q_param = param['q'].strip()
-    else:
-        q_param = None
-    use_dismax = False
-    if q_param:
-        if q_param == '*:*':
-            q_list.append(q_param)
-        elif 'NOT ' in q_param: # this is a hack
-            q_list.append(q_param.strip())
-        elif re_fields.search(q_param):
-            q_list.extend(i['op'] if 'op' in i else '%s:(%s)' % (i['field'], i['value']) for i in parse_query_fields(q_param))
-        else:
-            isbn = normalize_isbn(q_param)
-            if isbn and len(isbn) in (10, 13):
-                q_list.append('isbn:(%s)' % isbn)
-            else:
-                q_list.append(q_param.strip().replace(':', r'\:'))
-                use_dismax = True
-    else:
-        if 'author' in param:
-            v = param['author'].strip()
-            m = re_author_key.search(v)
-            if m:
-                q_list.append("author_key:(%s)" % m.group(1))
-            else:
-                v = re_to_esc.sub(r'\\\g<0>', v)
-                # Somehow v can be empty at this point,
-                #   passing the following with empty strings causes a severe error in SOLR
-                if v:
-                    q_list.append("(author_name:(%(name)s) OR author_alternative_name:(%(name)s))" % {'name': v})
-
-        check_params = ['title', 'publisher', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
-        q_list += [
-            '%s:(%s)' % (k, re_to_esc.sub(r'\\\g<0>', param[k]))
-            for k in check_params if k in param
-        ]
-        if param.get('isbn'):
-            q_list.append('isbn:(%s)' % (normalize_isbn(param['isbn']) or param['isbn']))
-    return (q_list, use_dismax)
-
-def parse_json_from_solr_query(url):
-    solr_result = execute_solr_query(url)
-    return parse_json(solr_result)
-
-def execute_solr_query(url):
     stats.begin("solr", url=url)
     try:
-        solr_result = urllib.request.urlopen(url, timeout=10)
-    except Exception as e:
+        response = get_solr().raw_request(solr_path, urlencode(params))
+        response.raise_for_status()
+    except requests.HTTPError:
         logger.exception("Failed solr query")
         return None
     finally:
         stats.end()
-    return solr_result
-
-def parse_json(raw_file):
-    if raw_file is None:
-        logger.error("Error parsing empty search engine response")
-        return None
-    try:
-        json_result = json.load(raw_file)
-    except json.JSONDecodeError as e:
-        logger.exception("Error parsing search engine response")
-        return None
-    return json_result
+    return response
 
 
-def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=None,
-                   offset=None, fields=None, facet=True):
+# Expose this publicly
+public(has_solr_editions_enabled)
+
+
+def run_solr_query(
+    scheme: SearchScheme,
+    param: Optional[dict] = None,
+    rows=100,
+    page=1,
+    sort: str | None = None,
+    spellcheck_count=None,
+    offset=None,
+    fields: Union[str, list[str]] | None = None,
+    facet: Union[bool, Iterable[str]] = True,
+    allowed_filter_params: set[str] = None,
+    extra_params: Optional[list[tuple[str, Any]]] = None,
+):
+    """
+    :param param: dict of query parameters
+    """
     param = param or {}
+
+    if not fields:
+        fields = []
+    elif isinstance(fields, str):
+        fields = fields.split(',')
 
     # use page when offset is not specified
     if offset is None:
         offset = rows * (page - 1)
 
-    (q_list, use_dismax) = build_q_list(param)
     params = [
-        ('fl', ','.join(fields or [
-            'key', 'author_name', 'author_key', 'title', 'subtitle', 'edition_count',
-            'ia', 'has_fulltext', 'first_publish_year', 'cover_i', 'cover_edition_key',
-            'public_scan_b', 'lending_edition_s', 'lending_identifier_s', 'language',
-            'ia_collection_s'])),
-        ('fq', 'type:work'),
-        ('q.op', 'AND'),
+        *(('fq', subquery) for subquery in scheme.universe),
         ('start', offset),
         ('rows', rows),
-    ]
+        ('wt', param.get('wt', 'json')),
+    ] + (extra_params or [])
 
     if spellcheck_count is None:
         spellcheck_count = default_spellcheck_count
@@ -343,205 +169,191 @@ def run_solr_query(param=None, rows=100, page=1, sort=None, spellcheck_count=Non
         params.append(('spellcheck', 'true'))
         params.append(('spellcheck.count', spellcheck_count))
 
-    if facet:
+    facet_fields = scheme.facet_fields if isinstance(facet, bool) else facet
+    if facet and facet_fields:
         params.append(('facet', 'true'))
-        for facet in FACET_FIELDS:
-            params.append(('facet.field', facet))
+        for facet in facet_fields:
+            if isinstance(facet, str):
+                params.append(('facet.field', facet))
+            elif isinstance(facet, dict):
+                params.append(('facet.field', facet['name']))
+                if 'sort' in facet:
+                    params.append((f'f.{facet["name"]}.facet.sort', facet['sort']))
+                if 'limit' in facet:
+                    params.append((f'f.{facet["name"]}.facet.limit', facet['limit']))
+            else:
+                # Should never get here
+                raise ValueError(f'Invalid facet type: {facet}')
 
-    if q_list:
-        if use_dismax:
-            params.append(('q', ' '.join(q_list)))
-            params.append(('defType', 'dismax'))
-            params.append(('qf', 'text title^5 author_name^5'))
-            params.append(('bf', 'sqrt(edition_count)^10'))
-        else:
-            params.append(('q', ' '.join(q_list + ['_val_:"sqrt(edition_count)"^10'])))
+    facet_params = (allowed_filter_params or scheme.facet_fields) & set(param)
+    for (field, value), rewrite in scheme.facet_rewrites.items():
+        if param.get(field) == value:
+            if field in facet_params:
+                facet_params.remove(field)
+            params.append(('fq', rewrite() if callable(rewrite) else rewrite))
 
-    if 'public_scan' in param:
-        v = param.pop('public_scan').lower()
-        if v in ('true', 'false'):
-            if v == 'false':
-                # also constrain on print disabled since the index may not be in sync
-                param.setdefault('print_disabled', 'false')
-            params.append(('fq', 'public_scan_b:%s' % v))
-
-    if 'print_disabled' in param:
-        v = param.pop('print_disabled').lower()
-        if v in ('true', 'false'):
-            minus = '-' if v == 'false' else ''
-            params.append(('fq', '%ssubject_key:protected_daisy' % minus))
-
-    if 'has_fulltext' in param:
-        v = param['has_fulltext'].lower()
-        if v not in ('true', 'false'):
-            del param['has_fulltext']
-        params.append(('fq', 'has_fulltext:%s' % v))
-
-    for field in FACET_FIELDS:
-        if field == 'has_fulltext':
-            continue
+    for field in facet_params:
         if field == 'author_facet':
             field = 'author_key'
-        if field not in param:
-            continue
         values = param[field]
-        params += [('fq', '%s:"%s"' % (field, val)) for val in values if val]
+        params += [('fq', f'{field}:"{val}"') for val in values if val]
+
+    # Many fields in solr use the convention of `*_facet` both
+    # as a facet key and as the explicit search query key.
+    # Examples being publisher_facet, subject_facet?
+    # `author_key` & `author_facet` is an example of a mismatch that
+    # breaks this rule. This code makes it so, if e.g. `author_facet` is used where
+    # `author_key` is intended, both will be supported (and vis versa)
+    # This "doubling up" has no real performance implication
+    # but does fix cases where the search query is different than the facet names
+    q = None
+    if param.get('q'):
+        q = scheme.process_user_query(param['q'])
+
+    if params_q := scheme.build_q_from_params(param):
+        q = f'{q} {params_q}' if q else params_q
+
+    if q:
+        solr_fields = set(fields or scheme.default_fetched_fields)
+        if 'editions' in solr_fields:
+            solr_fields.remove('editions')
+            solr_fields.add('editions:[subquery]')
+        params.append(('fl', ','.join(solr_fields)))
+        params += scheme.q_to_solr_params(q, solr_fields, params)
 
     if sort:
-        params.append(('sort', sort))
+        params.append(('sort', scheme.process_user_sort(sort)))
 
-    params.append(('wt', param.get('wt', 'standard')))
-    url = solr_select_url + '?' + urlencode(params)
+    url = f'{solr_select_url}?{urlencode(params)}'
 
-    solr_result = execute_solr_query(url)
-    if solr_result is None:
-        return (None, url, q_list)
-    reply = solr_result.read()
-    return (reply, url, q_list)
+    response = execute_solr_query(solr_select_url, params)
+    solr_result = response.json() if response else None
+    return SearchResponse.from_solr_result(solr_result, sort, url)
 
-def do_search(param, sort, page=1, rows=100, spellcheck_count=None):
-    (reply, solr_select, q_list) = run_solr_query(
-        param, rows, page, sort, spellcheck_count)
-    is_bad = False
-    if not reply or reply.startswith(b'<html'):
-        is_bad = True
-    if not is_bad:
-        try:
-            root = XML(reply)
-        except XMLSyntaxError:
-            is_bad = True
-    if is_bad:
-        m = re_pre.search(reply)
-        return web.storage(
-            facet_counts = None,
-            docs = [],
-            is_advanced = bool(param.get('q')),
-            num_found = None,
-            solr_select = solr_select,
-            q_list = q_list,
-            error = (web.htmlunquote(m.group(1)) if m else reply),
-        )
 
-    spellcheck = root.find("lst[@name='spellcheck']")
-    spell_map = {}
-    if spellcheck is not None and len(spellcheck):
-        for e in spellcheck.find("lst[@name='suggestions']"):
-            assert e.tag == 'lst'
-            a = e.attrib['name']
-            if a in spell_map or a in ('sqrt', 'edition_count'):
-                continue
-            spell_map[a] = [i.text for i in e.find("arr[@name='suggestion']")]
+@dataclass
+class SearchResponse:
+    facet_counts: dict[str, tuple[str, str, int]]
+    sort: str
+    docs: list
+    num_found: int
+    solr_select: str
+    raw_resp: dict = None
+    error: str = None
 
-    docs = root.find('result')
+    @staticmethod
+    def from_solr_result(
+        solr_result: Optional[dict],
+        sort: str,
+        solr_select: str,
+    ) -> 'SearchResponse':
+        if not solr_result or 'error' in solr_result:
+            return SearchResponse(
+                facet_counts=None,
+                sort=sort,
+                docs=[],
+                num_found=None,
+                solr_select=solr_select,
+                error=(solr_result.get('error') if solr_result else None),
+            )
+        else:
+            return SearchResponse(
+                facet_counts=(
+                    dict(
+                        process_facet_counts(
+                            solr_result['facet_counts']['facet_fields']
+                        )
+                    )
+                    if 'facet_counts' in solr_result
+                    else None
+                ),
+                sort=sort,
+                raw_resp=solr_result,
+                docs=solr_result['response']['docs'],
+                num_found=solr_result['response']['numFound'],
+                solr_select=solr_select,
+            )
+
+
+def do_search(
+    param: dict,
+    sort: Optional[str],
+    page=1,
+    rows=100,
+    spellcheck_count=None,
+):
+    """
+    :param param: dict of search url parameters
+    :param sort: csv sort ordering
+    :param spellcheck_count: Not really used; should probably drop
+    """
+    return run_solr_query(
+        WorkSearchScheme(),
+        param,
+        rows,
+        page,
+        sort,
+        spellcheck_count,
+        fields=list(WorkSearchScheme.default_fetched_fields | {'editions'}),
+    )
+
+
+def get_doc(doc: SolrDocument):
+    """
+    Coerce a solr document to look more like an Open Library edition/work. Ish.
+
+    called from work_search template
+    """
     return web.storage(
-        facet_counts = read_facets(root),
-        docs = docs,
-        is_advanced = bool(param.get('q')),
-        num_found = (int(docs.attrib['numFound']) if docs is not None else None),
-        solr_select = solr_select,
-        q_list = q_list,
-        error = None,
-        spellcheck = spell_map,
+        key=doc['key'],
+        title=doc['title'],
+        url=f"{doc['key']}/{urlsafe(doc['title'])}",
+        edition_count=doc['edition_count'],
+        ia=doc.get('ia', []),
+        collections=(
+            set(doc['ia_collection_s'].split(';'))
+            if doc.get('ia_collection_s')
+            else set()
+        ),
+        has_fulltext=doc.get('has_fulltext', False),
+        public_scan=doc.get('public_scan_b', bool(doc.get('ia'))),
+        lending_edition=doc.get('lending_edition_s', None),
+        lending_identifier=doc.get('lending_identifier_s', None),
+        authors=[
+            web.storage(
+                key=key,
+                name=name,
+                url=f"/authors/{key}/{urlsafe(name or 'noname')}",
+            )
+            for key, name in zip(doc.get('author_key', []), doc.get('author_name', []))
+        ],
+        first_publish_year=doc.get('first_publish_year', None),
+        first_edition=doc.get('first_edition', None),
+        subtitle=doc.get('subtitle', None),
+        cover_edition_key=doc.get('cover_edition_key', None),
+        languages=doc.get('language', []),
+        id_project_gutenberg=doc.get('id_project_gutenberg', []),
+        id_librivox=doc.get('id_librivox', []),
+        id_standard_ebooks=doc.get('id_standard_ebooks', []),
+        id_openstax=doc.get('id_openstax', []),
+        editions=[
+            web.storage(
+                {
+                    **ed,
+                    'title': ed.get('title', 'Untitled'),
+                    'url': f"{ed['key']}/{urlsafe(ed.get('title', 'Untitled'))}",
+                }
+            )
+            for ed in doc.get('editions', {}).get('docs', [])
+        ],
     )
-
-def get_doc(doc): # called from work_search template
-    e_ia = doc.find("arr[@name='ia']")
-    first_pub = None
-    e_first_pub = doc.find("int[@name='first_publish_year']")
-    if e_first_pub is not None:
-        first_pub = e_first_pub.text
-    e_first_edition = doc.find("str[@name='first_edition']")
-    first_edition = None
-    if e_first_edition is not None:
-        first_edition = e_first_edition.text
-
-    work_subtitle = None
-    e_subtitle = doc.find("str[@name='subtitle']")
-    if e_subtitle is not None:
-        work_subtitle = e_subtitle.text
-
-    if doc.find("arr[@name='author_key']") is None:
-        assert doc.find("arr[@name='author_name']") is None
-        authors = []
-    else:
-        ak = [e.text for e in doc.find("arr[@name='author_key']")]
-        an = [e.text for e in doc.find("arr[@name='author_name']")]
-        authors = [web.storage(key=key, name=name, url="/authors/%s/%s" % (key, (urlsafe(name) if name is not None else 'noname'))) for key, name in zip(ak, an)]
-    cover = doc.find("str[@name='cover_edition_key']")
-    languages = doc.find("arr[@name='language']")
-    e_public_scan = doc.find("bool[@name='public_scan_b']")
-    e_lending_edition = doc.find("str[@name='lending_edition_s']")
-    e_lending_identifier = doc.find("str[@name='lending_identifier_s']")
-    e_collection = doc.find("str[@name='ia_collection_s']")
-    collections = set()
-    if e_collection is not None:
-        collections = set(e_collection.text.split(';'))
-
-    doc = web.storage(
-        key = doc.find("str[@name='key']").text,
-        title = doc.find("str[@name='title']").text,
-        edition_count = int(doc.find("int[@name='edition_count']").text),
-        ia = [e.text for e in (e_ia if e_ia is not None else [])],
-        has_fulltext = (doc.find("bool[@name='has_fulltext']").text == 'true'),
-        public_scan = ((e_public_scan.text == 'true') if e_public_scan is not None else (e_ia is not None)),
-        lending_edition = (e_lending_edition.text if e_lending_edition is not None else None),
-        lending_identifier=(
-            e_lending_identifier.text if e_lending_identifier is not None else None),
-        collections = collections,
-        authors = authors,
-        first_publish_year = first_pub,
-        first_edition = first_edition,
-        subtitle = work_subtitle,
-        cover_edition_key = (cover.text if cover is not None else None),
-        languages = languages and [lang.text for lang in languages]
-    )
-
-    doc.url = doc.key + '/' + urlsafe(doc.title)
-
-    if not doc.public_scan and doc.lending_identifier:
-        store_doc = web.ctx.site.store.get("ebooks/" + doc.lending_identifier) or {}
-        doc.checked_out = store_doc.get("borrowed") == "true"
-    elif not doc.public_scan and doc.lending_edition:
-        store_doc = web.ctx.site.store.get("ebooks/books/" + doc.lending_edition) or {}
-        doc.checked_out = store_doc.get("borrowed") == "true"
-    else:
-        doc.checked_out = "false"
-    return doc
-
-def work_object(w): # called by works_by_author
-    ia = w.get('ia', [])
-    obj = dict(
-        authors = [web.storage(key='/authors/' + k, name=n) for k, n in zip(w['author_key'], w['author_name'])],
-        edition_count = w['edition_count'],
-        key = w['key'],
-        title = w['title'],
-        public_scan = w.get('public_scan_b', bool(ia)),
-        lending_edition = w.get('lending_edition_s', ''),
-        lending_identifier = w.get('lending_identifier_s', ''),
-        collections = set(w['ia_collection_s'].split(';') if 'ia_collection_s' in w else []),
-        url = w['key'] + '/' + urlsafe(w['title']),
-        cover_edition_key = w.get('cover_edition_key'),
-        first_publish_year = (w['first_publish_year'] if 'first_publish_year' in w else None),
-        ia = w.get('ia', []),
-        cover_i = w.get('cover_i')
-    )
-
-    if obj['lending_identifier']:
-        doc = web.ctx.site.store.get("ebooks/" + obj['lending_identifier']) or {}
-        obj['checked_out'] = doc.get("borrowed") == "true"
-    else:
-        obj['checked_out'] = False
-
-    for f in 'has_fulltext', 'subtitle':
-        if w.get(f):
-            obj[f] = w[f]
-    return web.storage(obj)
 
 
 class scan(delegate.page):
     """
     Experimental EAN barcode scanner page to scan and add/view books by their barcodes.
     """
+
     path = "/barcodescanner"
 
     def GET(self):
@@ -563,7 +375,7 @@ class search(delegate.page):
                 clean = [normalize('NFC', b.strip()) for b in v]
                 if clean != v:
                     need_redirect = True
-                if len(clean) == 1 and clean[0] == u'':
+                if len(clean) == 1 and clean[0] == '':
                     clean = None
             else:
                 clean = normalize('NFC', v.strip())
@@ -576,16 +388,13 @@ class search(delegate.page):
         if need_redirect:
             raise web.seeother(web.changequery(**params))
 
-
     def isbn_redirect(self, isbn_param):
         isbn = normalize_isbn(isbn_param)
         if not isbn:
             return
 
-        ed = Edition.from_isbn(isbn)
-        if ed:
+        if ed := Edition.from_isbn(isbn):
             web.seeother(ed.key)
-
 
     def GET(self):
         # Enable patrons to search for query q2 within collection q
@@ -596,11 +405,23 @@ class search(delegate.page):
             _i.pop('q2')
             raise web.seeother('/search?' + urllib.parse.urlencode(_i))
 
-        i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[], public_scan_b=[])
+        i = web.input(
+            author_key=[],
+            language=[],
+            first_publish_year=[],
+            publisher_facet=[],
+            subject_facet=[],
+            person_facet=[],
+            place_facet=[],
+            time_facet=[],
+            public_scan_b=[],
+        )
 
         # Send to full-text Search Inside if checkbox checked
         if i.get('search-fulltext'):
-            raise web.seeother('/search/inside?' + urllib.parse.urlencode({'q': i.get('q', '')}))
+            raise web.seeother(
+                '/search/inside?' + urllib.parse.urlencode({'q': i.get('q', '')})
+            )
 
         if i.get('wisbn'):
             i.isbn = i.wisbn
@@ -611,122 +432,78 @@ class search(delegate.page):
             self.isbn_redirect(i.isbn)
 
         q_list = []
-        q = i.get('q', '').strip()
-        if q:
+        if q := i.get('q', '').strip():
             m = re_olid.match(q)
             if m:
-                raise web.seeother('/%s/%s' % (OLID_URLS[m.group(1)], q))
+                raise web.seeother(f'/{OLID_URLS[m.group(1)]}/{q}')
             m = re_isbn_field.match(q)
             if m:
                 self.isbn_redirect(m.group(1))
             q_list.append(q)
         for k in ('title', 'author', 'isbn', 'subject', 'place', 'person', 'publisher'):
             if k in i:
-                v = re_to_esc.sub(r'\\\g<0>', i[k].strip())
-                q_list.append(k + ':' + v)
+                q_list.append(f'{k}:{fully_escape_query(i[k].strip())}')
         return render.work_search(
-            i, ' '.join(q_list), do_search, get_doc,
-            get_availability_of_ocaids, fulltext_search,
-            FACET_FIELDS)
-
-
-def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False, query=None):
-    # called by merge_author_works
-    q = 'author_key:' + akey
-    if query:
-        q = query
-
-    offset = rows * (page - 1)
-    params = [
-        ('fq', 'author_key:' + akey),
-        ('fq', 'type:work'),
-        ('q', q),
-        ('start', offset),
-        ('rows', rows),
-        ('fl', ','.join([
-            'key', 'author_name', 'author_key', 'title', 'subtitle', 'edition_count',
-            'ia', 'cover_edition_key', 'has_fulltext', 'language', 'first_publish_year',
-            'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
-            'ia_collection_s', 'cover_i'])),
-        ('wt', 'json'),
-        ('q.op', 'AND'),
-        ('facet', 'true'),
-        ('facet.mincount', 1),
-        ('f.author_facet.facet.sort', 'count'),
-        ('f.publish_year.facet.limit', -1),
-        ('facet.limit', 25),
-    ]
-
-    if has_fulltext:
-        params.append(('fq', 'has_fulltext:true'))
-
-    if sort == "editions":
-        params.append(('sort', 'edition_count desc'))
-    elif sort.startswith('old'):
-        params.append(('sort', 'first_publish_year asc'))
-    elif sort.startswith('new'):
-        params.append(('sort', 'first_publish_year desc'))
-    elif sort.startswith('title'):
-        params.append(('sort', 'title asc'))
-
-    facet_fields = [
-        "author_facet", "language", "publish_year", "publisher_facet",
-        "subject_facet", "person_facet", "place_facet", "time_facet"
-    ]
-    for f in facet_fields:
-        params.append(("facet.field", f))
-
-    solr_select = solr_select_url + "?" + urllib.parse.urlencode(params)
-    reply = parse_json_from_solr_query(solr_select)
-    if reply is None:
-        return web.storage(
-            num_found = 0,
-            works = [],
-            years = [],
-            get_facet = [],
-            sort = sort,
+            i,
+            ' '.join(q_list),
+            do_search,
+            get_doc,
+            fulltext_search,
+            WorkSearchScheme.facet_fields,
         )
-    # TODO: Deep JSON structure defense - for now, let it blow up so easier to detect
-    facets = reply['facet_counts']['facet_fields']
-    works = [work_object(w) for w in reply['response']['docs']]
 
-    def get_facet(f, limit=None):
-        return list(web.group(facets[f][:limit * 2] if limit else facets[f], 2))
 
-    return web.storage(
-        num_found = int(reply['response']['numFound']),
-        works = add_availability(works),
-        years = [(int(k), v) for k, v in get_facet('publish_year')],
-        get_facet = get_facet,
-        sort = sort,
+def works_by_author(
+    akey: str,
+    sort='editions',
+    page=1,
+    rows=100,
+    facet=False,
+    has_fulltext=False,
+    query: str | None = None,
+):
+    param = {'q': query or '*:*'}
+    if has_fulltext:
+        param['has_fulltext'] = 'true'
+
+    result = run_solr_query(
+        WorkSearchScheme(),
+        param=param,
+        page=page,
+        rows=rows,
+        sort=sort,
+        facet=(
+            facet
+            and [
+                "subject_facet",
+                "person_facet",
+                "place_facet",
+                "time_facet",
+            ]
+        ),
+        fields=WorkSearchScheme.default_fetched_fields | {'editions'},
+        extra_params=[
+            ('fq', f'author_key:{akey}'),
+            ('facet.limit', 25),
+        ],
     )
 
-def sorted_work_editions(wkey, json_data=None):
-    """Setting json_data to a real value simulates getting SOLR data back, i.e. for testing (but ick!)"""
-    q = 'key:' + wkey
-    if json_data:
-        reply = json.loads(json_data)
-    else:
-        solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=edition_key&qt=standard&wt=json" % q
-        reply = parse_json_from_solr_query(solr_select)
-    if reply is None or reply.get('response', {}).get('numFound', 0) == 0:
-        return []
-    # TODO: Deep JSON structure defense - for now, let it blow up so easier to detect
-    return reply["response"]['docs'][0].get('edition_key', [])
+    result.docs = [get_doc(doc) for doc in result.docs]
+    add_availability(
+        [(work.get('editions') or [None])[0] or work for work in result.docs]
+    )
+    return result
 
 
-def top_books_from_author(akey, rows=5, offset=0):
-    q = 'author_key:(' + akey + ')'
-    solr_select = solr_select_url + "?q=%s&start=%d&rows=%d&fl=key,title,edition_count,first_publish_year&wt=json&sort=edition_count+desc" % (q, offset, rows)
-    json_result = parse_json_from_solr_query(solr_select)
-    if json_result is None:
-        return {'books': [], 'total': 0}
-    # TODO: Deep JSON structure defense - for now, let it blow up so easier to detect
-    response = json_result['response']
-    return {
-        'books': [web.storage(doc) for doc in response['docs']],
-        'total': response['numFound'],
-    }
+def top_books_from_author(akey: str, rows=5) -> SearchResponse:
+    return run_solr_query(
+        WorkSearchScheme(),
+        {'q': f'author_key:{akey}'},
+        fields=['key', 'title', 'edition_count', 'first_publish_year'],
+        sort='editions',
+        rows=rows,
+        facet=False,
+    )
 
 
 class advancedsearch(delegate.page):
@@ -735,39 +512,6 @@ class advancedsearch(delegate.page):
     def GET(self):
         return render_template("search/advancedsearch.html")
 
-
-def escape_colon(q, vf):
-    if ':' not in q:
-        return q
-    parts = q.split(':')
-    result = parts.pop(0)
-    while parts:
-        if not any(result.endswith(f) for f in vf):
-            result += '\\'
-        result += ':' + parts.pop(0)
-    return result
-
-def run_solr_search(solr_select):
-    solr_result = execute_solr_query(solr_select)
-    json_data = solr_result.read() if solr_result is not None else None
-    return parse_search_response(json_data)
-
-def parse_search_response(json_data):
-    """Construct response for any input"""
-    if json_data is None:
-        return {'error': 'Error parsing empty search engine response'}
-    try:
-        return json.loads(json_data)
-    except json.JSONDecodeError:
-        logger.exception("Error parsing search engine response")
-        m = re_pre.search(json_data)
-        if m is None:
-            return {'error': 'Error parsing search engine response'}
-        error = web.htmlunquote(m.group(1))
-        solr_error = 'org.apache.lucene.queryParser.ParseException: '
-        if error.startswith(solr_error):
-            error = error[len(solr_error):]
-        return {'error': error}
 
 class list_search(delegate.page):
     path = '/search/lists'
@@ -783,14 +527,17 @@ class list_search(delegate.page):
         if 'env' not in web.ctx:
             delegate.fakeload()
 
-        keys = web.ctx.site.things({
-            "type": "/type/list",
-            "name~": q,
-            "limit": int(limit),
-            "offset": int(offset)
-        })
+        keys = web.ctx.site.things(
+            {
+                "type": "/type/list",
+                "name~": q,
+                "limit": int(limit),
+                "offset": int(offset),
+            }
+        )
 
         return web.ctx.site.get_many(keys)
+
 
 class list_search_json(list_search):
     path = '/search/lists'
@@ -804,43 +551,29 @@ class list_search_json(list_search):
 
         docs = self.get_results(i.q, offset=offset, limit=limit)
 
-        response = {
-            'start': offset,
-            'docs': [doc.preview() for doc in docs]
-        }
+        response = {'start': offset, 'docs': [doc.preview() for doc in docs]}
 
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response))
 
+
 class subject_search(delegate.page):
     path = '/search/subjects'
+
     def GET(self):
-        return render_template('search/subjects.tmpl', self.get_results)
+        return render_template('search/subjects', self.get_results)
 
     def get_results(self, q, offset=0, limit=100):
-        valid_fields = ['key', 'name', 'subject_type', 'work_count']
-        q = escape_colon(escape_bracket(q), valid_fields)
-        params = {
-            "fq": "type:subject",
-            "q.op": "AND",
-            "q": q,
-            "start": offset,
-            "rows": limit,
-            "fl": ",".join(valid_fields),
-            "qt": "standard",
-            "wt": "json",
-            "sort": "work_count desc"
-        }
+        response = run_solr_query(
+            SubjectSearchScheme(),
+            {'q': q},
+            offset=offset,
+            rows=limit,
+            sort='work_count desc',
+        )
 
-        solr_select = solr_select_url + "?" + urllib.parse.urlencode(params, 'utf-8')
-        results = run_solr_search(solr_select)
-        response = results['response']
+        return response
 
-        for doc in response['docs']:
-            doc['type'] = doc.get('subject_type', 'subject')
-            doc['count'] = doc.get('work_count', 0)
-
-        return results
 
 class subject_search_json(subject_search):
     path = '/search/subjects'
@@ -852,103 +585,136 @@ class subject_search_json(subject_search):
         limit = safeint(i.limit, 100)
         limit = min(1000, limit)  # limit limit to 1000.
 
-        response = self.get_results(i.q, offset=offset, limit=limit)['response']
+        response = self.get_results(i.q, offset=offset, limit=limit)
+
+        # Backward compatibility :/
+        raw_resp = response.raw_resp['response']
+        for doc in raw_resp['docs']:
+            doc['type'] = doc.get('subject_type', 'subject')
+            doc['count'] = doc.get('work_count', 0)
+
         web.header('Content-Type', 'application/json')
-        return delegate.RawText(json.dumps(response))
+        return delegate.RawText(json.dumps(raw_resp))
+
 
 class author_search(delegate.page):
     path = '/search/authors'
+
     def GET(self):
-        return render_template('search/authors.tmpl', self.get_results)
+        return render_template('search/authors', self.get_results)
 
-    def get_results(self, q, offset=0, limit=100):
-        valid_fields = ['key', 'name', 'alternate_names', 'birth_date', 'death_date', 'date', 'work_count']
-        q = escape_colon(escape_bracket(q), valid_fields)
+    def get_results(self, q, offset=0, limit=100, fields='*', sort=''):
+        resp = run_solr_query(
+            AuthorSearchScheme(),
+            {'q': q},
+            offset=offset,
+            rows=limit,
+            fields=fields,
+            sort=sort,
+        )
 
-        solr_select = solr_select_url + "?fq=type:author&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
-        solr_select += '&sort=work_count+desc'
-        d = run_solr_search(solr_select)
+        return resp
 
-        docs = d.get('response', {}).get('docs', [])
-        for doc in docs:
-            # replace /authors/OL1A with OL1A
-            # The template still expects the key to be in the old format
-            doc['key'] = doc['key'].split("/")[-1]
-        return d
 
 class author_search_json(author_search):
     path = '/search/authors'
     encoding = 'json'
 
     def GET(self):
-        i = web.input(q='', offset=0, limit=100)
+        i = web.input(q='', offset=0, limit=100, fields='*', sort='')
         offset = safeint(i.offset, 0)
         limit = safeint(i.limit, 100)
-        limit = min(1000, limit) # limit limit to 1000.
+        limit = min(1000, limit)  # limit limit to 1000.
 
-        response = self.get_results(i.q, offset=offset, limit=limit)['response']
+        response = self.get_results(
+            i.q, offset=offset, limit=limit, fields=i.fields, sort=i.sort
+        )
+        raw_resp = response.raw_resp['response']
+        for doc in raw_resp['docs']:
+            # SIGH the public API exposes the key like this :(
+            doc['key'] = doc['key'].split('/')[-1]
         web.header('Content-Type', 'application/json')
-        return delegate.RawText(json.dumps(response))
+        return delegate.RawText(json.dumps(raw_resp))
 
 
 @public
-def random_author_search(limit=10):
-    """
-    Returns a JSON string that contains a random list of authors.  Amount of authors
-    returned is set be the given limit.
-    """
-    letters_and_digits = string.ascii_letters + string.digits
-    seed = ''.join(random.choice(letters_and_digits) for _ in range(10))
-    rows = '&rows=%d' % (limit)
-    sort = '&sort=random_%s+desc' % (seed)
-    solr_select = solr_select_url + "?fq=type:author&q.op=AND&q=*&wt=json" + rows + sort
-
-    search_results = run_solr_search(solr_select)
-
-    docs = search_results.get('response', {}).get('docs', [])
-
-    assert docs, "random_author_search({}) returned no docs".format(limit)
-    assert len(docs) == limit, (
-        "random_author_search({}) returned {} docs".format(limit, len(docs))
+def random_author_search(limit=10) -> SearchResponse:
+    return run_solr_query(
+        AuthorSearchScheme(),
+        {'q': '*:*'},
+        rows=limit,
+        sort='random.hourly',
     )
 
-    for doc in docs:
-        # replace /authors/OL1A with OL1A
-        # The template still expects the key to be in the old format
-        doc['key'] = doc['key'].split("/")[-1]
 
-    return json.dumps(search_results['response'])
+def rewrite_list_query(q, page, offset, limit):
+    """Takes a solr query. If it doesn't contain a /lists/ key, then
+    return the query, unchanged, exactly as it entered the
+    function. If it does contain a lists key, then use the pagination
+    information to fetch the right block of keys from the
+    lists_editions and lists_works API and then feed these editions resulting work
+    keys into solr with the form key:(OL123W, OL234W). This way, we
+    can use the solr API to fetch list works and render them in
+    carousels in the right format.
+    """
+
+    def cached_get_list_book_keys(key, offset, limit):
+        # make cacheable
+        if 'env' not in web.ctx:
+            delegate.fakeload()
+        lst = web.ctx.site.get(key)
+        return lst.get_book_keys(offset=offset, limit=limit)
+
+    if '/lists/' in q:
+        # we're making an assumption that q is just a list key
+        book_keys = cache.memcache_memoize(
+            cached_get_list_book_keys, "search.list_books_query", timeout=5 * 60
+        )(q, offset, limit)
+
+        q = f"key:({' OR '.join(book_keys)})"
+
+        # We've applied the offset to fetching get_list_editions to
+        # produce the right set of discrete work IDs. We don't want
+        # it applied to paginate our resulting solr query.
+        offset = 0
+        page = 1
+    return q, page, offset, limit
 
 
 @public
-def work_search(query, sort=None, page=1, offset=0, limit=100, fields='*', facet=True,
-                spellcheck_count=None):
+def work_search(
+    query: dict,
+    sort: str | None = None,
+    page: int = 1,
+    offset: int = 0,
+    limit: int = 100,
+    fields: str = '*',
+    facet: bool = True,
+    spellcheck_count: int | None = None,
+) -> dict:
     """
-    params:
-    query: dict
-    sort: str editions|old|new|scans
+    :param sort: key of SORTS dict at the top of this file
     """
-    sorts = {
-        'editions': 'edition_count desc',
-        'old': 'first_publish_year asc',
-        'new': 'first_publish_year desc',
-        'scans': 'ia_count desc'
-    }
+    # Ensure we don't mutate the `query` passed in by reference
+    query = copy.deepcopy(query)
     query['wt'] = 'json'
 
-    try:
-        (reply, solr_select, q_list) = run_solr_query(query,
-                                                      rows=limit,
-                                                      page=page,
-                                                      sort=sorts.get(sort),
-                                                      offset=offset,
-                                                      fields=fields,
-                                                      facet=facet,
-                                                      spellcheck_count=spellcheck_count)
-        response = json.loads(reply)['response'] or ''
-    except (ValueError, IOError) as e:
-        logger.error("Error in processing search API.")
-        response = dict(start=0, numFound=0, docs=[], error=str(e))
+    # deal with special /lists/ key queries
+    query['q'], page, offset, limit = rewrite_list_query(
+        query['q'], page, offset, limit
+    )
+    resp = run_solr_query(
+        WorkSearchScheme(),
+        query,
+        rows=limit,
+        page=page,
+        sort=sort,
+        offset=offset,
+        fields=fields,
+        facet=facet,
+        spellcheck_count=spellcheck_count,
+    )
+    response = resp.raw_resp['response']
 
     # backward compatibility
     response['num_found'] = response['numFound']
@@ -962,7 +728,17 @@ class search_json(delegate.page):
     encoding = "json"
 
     def GET(self):
-        i = web.input()
+        i = web.input(
+            author_key=[],
+            subject_facet=[],
+            person_facet=[],
+            place_facet=[],
+            time_facet=[],
+            first_publish_year=[],
+            publisher_facet=[],
+            language=[],
+            public_scan_b=[],
+        )
         if 'query' in i:
             query = json.loads(i.query)
         else:
@@ -979,32 +755,45 @@ class search_json(delegate.page):
             page = safeint(query.pop("page", "1"), default=1)
 
         fields = query.pop('fields', '*').split(',')
-        facet = query.pop('_facet', 'true').lower() in ['true']
         spellcheck_count = safeint(
             query.pop("_spellcheck_count", default_spellcheck_count),
-            default=default_spellcheck_count)
+            default=default_spellcheck_count,
+        )
 
-        response = work_search(query, sort=sort, page=page, offset=offset, limit=limit,
-                               fields=fields, facet=facet,
-                               spellcheck_count=spellcheck_count)
-
+        # If the query is a /list/ key, create custom list_editions_query
+        q = query.get('q', '').strip()
+        query['q'], page, offset, limit = rewrite_list_query(q, page, offset, limit)
+        response = work_search(
+            query,
+            sort=sort,
+            page=page,
+            offset=offset,
+            limit=limit,
+            fields=fields,
+            # We do not support returning facets from /search.json,
+            # so disable it. This makes it much faster.
+            facet=False,
+            spellcheck_count=spellcheck_count,
+        )
+        response['q'] = q
+        response['offset'] = offset
+        response['docs'] = response['docs']
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response, indent=4))
 
+
 def setup():
-    from openlibrary.plugins.worksearch import subjects
+    from openlibrary.plugins.worksearch import (
+        autocomplete,
+        subjects,
+        languages,
+        publishers,
+    )
 
-    # subjects module needs read_author_facet and solr_select_url.
-    # Importing this module to access them will result in circular import.
-    # Setting them like this to avoid circular-import.
-    subjects.read_author_facet = read_author_facet
-    if hasattr(config, 'plugin_worksearch'):
-        subjects.solr_select_url = solr_select_url
-
+    autocomplete.setup()
     subjects.setup()
-
-    from openlibrary.plugins.worksearch import languages, publishers
     publishers.setup()
     languages.setup()
+
 
 setup()

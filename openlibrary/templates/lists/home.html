@@ -26,28 +26,31 @@ $var title: $_('Lists')
     <div class="head">
         <h2>$_('Active Lists')</h2>
     </div>
-    <div id="lists">
+    <div class="lists">
     <!-- FOR EACH LIST -->
     $for list in lists:
         <div class="listEntry">
-            <div class="cover">
-                $ cover = list.get_cover() or list.get_default_cover()
-                $ cover_url = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
-                <a href="$list.key"><img src="$cover_url" alt="Cover of: $list.name" title="Cover of: $list"/></a>
-            </div>
             <div class="data">
                 <div class="name">
                     $ owner = list.get_owner()
-                    <a href="$list.key" class="title results">$:_('%(listname)s </a> from <a href="%(key)s">%(owner)s</a>', key=owner.key, listname=list.name, owner=owner.displayname)
+                    <a href="$list.key" class="title results">
+                        <div class="cover">
+                            $ cover = list.get_cover() or list.get_default_cover()
+                            $ cover_url = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
+                            <img src="$cover_url" alt=""/>
+                        </div>
+                        $list.name
+                    </a>
+                    $:_('from <a href="%(key)s">%(owner)s</a>', key=owner.key, owner=owner.displayname)
                 </div>
                 <div class="meta">
-                    $ msg = ungettext("1 seed", "%(count)d seeds", len(list.seeds))
+                    $ msg = ungettext("%(count)d item", "%(count)d items", len(list.seeds))
                     $sprintf(msg, count=len(list.seeds))
                     | $_('Last modified %(date)s', date=datestr(list.last_modified))
                 </div>
                 <div class="description no-img">
                 $if list.description:
-                    $:format(list.description)
+                    <p>$:reformat_html(format(list.description), max_length=250)</p>
                 $else:
                     <p><em class="grey">$_('No description.')</em></p>
                 </div>

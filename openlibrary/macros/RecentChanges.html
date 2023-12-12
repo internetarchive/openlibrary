@@ -37,7 +37,7 @@ $def render_changes(bot, hash=""):
                     </div>
                 </td>
                 $if v.author:
-                    <td class="displayname"><a href="$homepath()$v.author.key" title="$v.author.displayname">$v.author.displayname</a></td>
+                    <td class="displayname"><a href="$homepath()$v.author.key">$v.author.displayname</a></td>
                 $elif v.ip and v.ip != '127.0.0.1':
                     <td class="history"><a href="/recentchanges?ip=$v.ip" title="When you see numbers here, that's the IP address of the anonymous editor">$v.ip</a></td>
                 $else:
@@ -51,10 +51,10 @@ $def render_changes(bot, hash=""):
     </table>
     <div class="historyPager small sansserif gray">
     $if len(changes) == limit:
-        <a href="$:changequery(page=page + 1)$hash" rel="nofollow">&larr; $_("Older")</a>
+        <a href="$changequery(page=page + 1)$hash" rel="nofollow">&larr; $_("Older")</a>
     $if page > 1:
          &nbsp;|&nbsp;
-        <a href="$:changequery(page=page - 1)$hash" rel="nofollow">$_("Newer") &rarr;</a>
+        <a href="$changequery(page=page - 1)$hash" rel="nofollow">$_("Newer") &rarr;</a>
     </div>
 
 $if ip or author:

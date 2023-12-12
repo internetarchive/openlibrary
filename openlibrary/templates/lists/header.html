@@ -30,7 +30,7 @@ $def render_work():
 
 $def render_user():
     <h1 class="collapse">$:_('<a href="%(href)s">%(name)s</a> / Lists', href=doc.key, name=doc.displayname)</h1>
-    <p class="collapse large brown sansserif">
+    <p class="collapse large brown sansserif" id="list_count">
         $ungettext("%(name)s has 1 list.", "%(name)s has %(count)s lists.", len(lists), name=doc.displayname, count=commify(len(lists)))
     </p>
 

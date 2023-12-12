@@ -12,6 +12,27 @@
     font-size: 11px;
   }
 }
+
+.desktop-only {
+  display: none !important;
+}
+
+@media only screen and (min-width: @width-breakpoint-desktop) {
+  .desktop-only {
+    display: block !important;
+  }
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+#offline-info {
+  text-align: center;
+  padding: 10px 5px;
+  display: none;
+  background-color: @grey;
+  color: @white;
+}
 .hidden--nojs {
   display: none;
   .client-js & {
@@ -31,9 +52,21 @@
 }
 
 .read-more-button, .read-less-button {
+  cursor: pointer;
   color: @link-blue;
 }
+.read-more-button::after, .read-less-button::after {
+  content: attr(data-after);
+}
+
 a.hoverlink {
   text-decoration: underline;
   text-decoration-style: dotted;
+}
+
+.local-date-time {
+  color: @dark-green;
+  font-size: 11px;
+  text-align: center;
+  padding: 5px 0 0;
 }

@@ -43,7 +43,7 @@ export function renderTag(tag, keyvals, child) {
     var key, val;
     for (key in keyvals) {
         val =  keyvals[key];
-        if (val == '') {
+        if (val === '') {
             html += `${key} `;
         } else {
             html += `${key}="${val}" `;
@@ -79,18 +79,18 @@ Subject.prototype = {
         // cache already visited pages
         //@@ Can't this be handled by HTTP caching?
         this._pages = {};
-        if (this.has_fulltext != 'true')
+        if (this.has_fulltext !== 'true')
             this._pages[0] = {works: slice(data.works, 0, this.settings.pagesize)};
 
     // TODO: initialize additional pages when there are more works.
     },
 
     bind: function(name, callback) {
-        $(this).bind(name, callback);
+        $(this).on(name, callback);
     },
 
     getPageCount: function() {
-        return this.has_fulltext == 'true'? this.epage_count : this.page_count;
+        return this.has_fulltext === 'true'? this.epage_count : this.page_count;
     },
 
     renderWork: function(work) {
@@ -177,7 +177,7 @@ Subject.prototype = {
     setFilter: function(filter, callback) {
         var k, _this;
         for (k in filter) {
-            if (filter[k] == null) {
+            if (filter[k] === null) {
                 delete filter[k];
             }
         }
@@ -191,7 +191,7 @@ Subject.prototype = {
     },
 
     setSort: function(sort_order) {
-        if (this.sort == sort_order) {
+        if (this.sort === sort_order) {
             return; // shouldn't happen
         }
         this.sort = sort_order;
@@ -199,7 +199,7 @@ Subject.prototype = {
     },
 
     setFulltext: function(has_fulltext) {
-        if (this.has_fulltext == has_fulltext) {
+        if (this.has_fulltext === has_fulltext) {
             return;
         }
         this.has_fulltext = has_fulltext;

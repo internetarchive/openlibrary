@@ -1,5 +1,6 @@
 from .. import events
 
+
 class TestMemcacheInvalidater:
     def test_seed_to_key(self):
         m = events.MemcacheInvalidater()
@@ -11,47 +12,47 @@ class TestMemcacheInvalidater:
 
     def test_find_lists(self):
         changeset = {
-            "changes": [
-                {"key": "/people/anand/lists/OL1L", "revision": 1}
-            ],
+            "changes": [{"key": "/people/anand/lists/OL1L", "revision": 1}],
             "old_docs": [None],
-            "docs": [{
-                "key": "/people/anand/lists/OL1L",
-                "type": {"key": "/type/list"},
-                "revision": 1,
-                "seeds": [
-                    {"key": "/books/OL1M"},
-                    "subject:love"
-                ]
-            }]
+            "docs": [
+                {
+                    "key": "/people/anand/lists/OL1L",
+                    "type": {"key": "/type/list"},
+                    "revision": 1,
+                    "seeds": [{"key": "/books/OL1M"}, "subject:love"],
+                }
+            ],
         }
         m = events.MemcacheInvalidater()
-        assert sorted(m.find_lists(changeset)) == ["d/books/OL1M", "d/people/anand", "d/subjects/love"]
+        assert sorted(m.find_lists(changeset)) == [
+            "d/books/OL1M",
+            "d/people/anand",
+            "d/subjects/love",
+        ]
 
     def test_find_lists2(self):
         changeset = {
-            "changes": [
-                {"key": "/people/anand/lists/OL1L", "revision": 2}
+            "changes": [{"key": "/people/anand/lists/OL1L", "revision": 2}],
+            "old_docs": [
+                {
+                    "key": "/people/anand/lists/OL1L",
+                    "type": {"key": "/type/list"},
+                    "revision": 1,
+                    "seeds": [{"key": "/books/OL1M"}, "subject:love"],
+                }
             ],
-            "old_docs": [{
-                "key": "/people/anand/lists/OL1L",
-                "type": {"key": "/type/list"},
-                "revision": 1,
-                "seeds": [
-                    {"key": "/books/OL1M"},
-                    "subject:love"
-                ]
-            }],
-            "docs": [{
-                "key": "/people/anand/lists/OL1L",
-                "type": {"key": "/type/list"},
-                "revision": 2,
-                "seeds": [
-                    {"key": "/authors/OL1A"},
-                    "subject:love",
-                    "place:san_francisco"
-                ]
-            }]
+            "docs": [
+                {
+                    "key": "/people/anand/lists/OL1L",
+                    "type": {"key": "/type/list"},
+                    "revision": 2,
+                    "seeds": [
+                        {"key": "/authors/OL1A"},
+                        "subject:love",
+                        "place:san_francisco",
+                    ],
+                }
+            ],
         }
 
         m = events.MemcacheInvalidater()
@@ -61,7 +62,7 @@ class TestMemcacheInvalidater:
             "d/books/OL1M",
             "d/people/anand",
             "d/subjects/love",
-            "d/subjects/place:san_francisco"
+            "d/subjects/place:san_francisco",
         ]
 
     def test_edition_count_for_doc(self):
@@ -72,7 +73,7 @@ class TestMemcacheInvalidater:
         doc = {
             "key": "/books/OL1M",
             "type": {"key": "/type/edition"},
-            "works": [{"key": "/works/OL1W"}]
+            "works": [{"key": "/works/OL1W"}],
         }
         assert m.find_edition_counts_for_doc(doc) == ["d/works/OL1W"]
 
@@ -80,15 +81,15 @@ class TestMemcacheInvalidater:
         m = events.MemcacheInvalidater()
 
         changeset = {
-            "changes": [
-                {"key": "/sandbox", "revision": 1}
-            ],
+            "changes": [{"key": "/sandbox", "revision": 1}],
             "old_docs": [None],
-            "docs": [{
-                "key": "/sandbox",
-                "type": {"key": "/type/page"},
-                "revision": 1,
-                "title": "Sandbox"
-            }]
+            "docs": [
+                {
+                    "key": "/sandbox",
+                    "type": {"key": "/type/page"},
+                    "revision": 1,
+                    "title": "Sandbox",
+                }
+            ],
         }
         m.find_keys(changeset) == ["d/sandbox"]

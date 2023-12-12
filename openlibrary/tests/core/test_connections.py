@@ -2,6 +2,7 @@
 from openlibrary.plugins.openlibrary import connection as connections
 import json
 
+
 class MockConnection:
     def __init__(self):
         self.docs = {}
@@ -14,9 +15,10 @@ class MockConnection:
                 return json.dumps(self.docs[key])
         if path == "/get_many":
             keys = json.loads(data['keys'])
-            return json.dumps(dict((k, self.docs[k]) for k in keys))
+            return json.dumps({k: self.docs[k] for k in keys})
         else:
             return None
+
 
 class TestMigrationMiddleware:
     def test_title_prefix(self):
@@ -29,42 +31,48 @@ class TestMigrationMiddleware:
             json_data = conn.request("openlibrary.org", "/get", data={"key": key})
             return json.loads(json_data)
 
-        add({
-            "key": "/books/OL1M",
-            "type": {"key": "/type/edition"},
-            "title_prefix": "The",
-            "title": "Book"
-        })
+        add(
+            {
+                "key": "/books/OL1M",
+                "type": {"key": "/type/edition"},
+                "title_prefix": "The",
+                "title": "Book",
+            }
+        )
 
         assert get("/books/OL1M") == {
             "key": "/books/OL1M",
             "type": {"key": "/type/edition"},
-            "title": "The Book"
+            "title": "The Book",
         }
 
-        add({
-            "key": "/books/OL2M",
-            "type": {"key": "/type/edition"},
-            "title_prefix": "The ",
-            "title": "Book"
-        })
+        add(
+            {
+                "key": "/books/OL2M",
+                "type": {"key": "/type/edition"},
+                "title_prefix": "The ",
+                "title": "Book",
+            }
+        )
 
         assert get("/books/OL2M") == {
             "key": "/books/OL2M",
             "type": {"key": "/type/edition"},
-            "title": "The Book"
+            "title": "The Book",
         }
 
-        add({
-            "key": "/books/OL3M",
-            "type": {"key": "/type/edition"},
-            "title_prefix": "The Book",
-        })
+        add(
+            {
+                "key": "/books/OL3M",
+                "type": {"key": "/type/edition"},
+                "title_prefix": "The Book",
+            }
+        )
 
         assert get("/books/OL3M") == {
             "key": "/books/OL3M",
             "type": {"key": "/type/edition"},
-            "title": "The Book"
+            "title": "The Book",
         }
 
     def test_authors(self):
@@ -82,34 +90,36 @@ class TestMigrationMiddleware:
             json_data = conn.request("openlibrary.org", "/get_many", data=data)
             return json.loads(json_data)
 
-        add({
-            "key": "/works/OL1W",
-            "type": {"key": "/type/work"},
-            "authors": [{
-                "type": {"key": "/type/author_role"}
-            }]
-        })
+        add(
+            {
+                "key": "/works/OL1W",
+                "type": {"key": "/type/work"},
+                "authors": [{"type": {"key": "/type/author_role"}}],
+            }
+        )
 
         assert get("/works/OL1W") == {
             "key": "/works/OL1W",
             "type": {"key": "/type/work"},
-            "authors": []
+            "authors": [],
         }
         assert get_many(["/works/OL1W"]) == {
             "/works/OL1W": {
                 "key": "/works/OL1W",
                 "type": {"key": "/type/work"},
-                "authors": []
+                "authors": [],
             }
         }
 
         OL2W = {
             "key": "/works/OL2W",
             "type": {"key": "/type/work"},
-            "authors": [{
-                "type": {"key": "/type/author_role"},
-                "author": {"key": "/authors/OL2A"}
-            }]
+            "authors": [
+                {
+                    "type": {"key": "/type/author_role"},
+                    "author": {"key": "/authors/OL2A"},
+                }
+            ],
         }
         add(OL2W)
 

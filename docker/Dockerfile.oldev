@@ -1,22 +1,16 @@
 FROM openlibrary/olbase:latest
-
 WORKDIR /openlibrary
 
+COPY --chown=openlibrary:openlibrary requirements*.txt ./
+RUN python -m pip install -r requirements_test.txt \
+ && python -m pip list --outdated
+
+# Link the pytest CLI binary into /usr/local/bin so that it shows up
+# on the PATH. Do this instead of trying to modify the PATH, because
+# that causes headaches with su, cron, etc.
 USER root
-# oldev runs coverstore using the same Docker image
-RUN mkdir -p /var/lib/coverstore \
-    && chown openlibrary:openlibrary /var/lib/coverstore
-
+RUN ln -s /home/openlibrary/.local/bin/pytest /usr/local/bin/pytest
 USER openlibrary
-COPY requirements*.txt ./
-RUN python2 -m pip install --disable-pip-version-check -r requirements_test.txt
-RUN python3.8 -m pip install -r requirements_test.txt
-RUN python3.9 -m pip install -r requirements_test.txt
 
-COPY package*.json ./
-RUN npm install
-
-# Expose Open Library, Infobase, Coverstore, and debugger
-EXPOSE 80 7000 7075 3000
-
-ENTRYPOINT ["./docker/docker-entrypoint.sh"] 
+COPY --chown=openlibrary:openlibrary package*.json ./
+RUN npm install --no-audit

@@ -1,6 +1,7 @@
 $def with (doc, data={}, status=None)
 
-$putctx('bodyid', 'form')
+$putctx('cssfile', 'form')
+$putctx("show_ol_shell", False)
 $putctx('robots', 'noindex,nofollow')
 
 $if doc.type.key == "/type/author":
@@ -18,44 +19,6 @@ $if status:
     $elif status.code == 2: $_("Please provide an image URL.")
     $elif status.code == 3: $_("Please provide a valid image.")
 </div>
-<script type="text/javascript">
-<!--
-window.q.push(function(){
-    // page may not be loaded via iframe
-    if ( parent && parent.closeThrobber ) {
-        parent.closeThrobber();
-    }
-    \$("#form.addcover-form").submit(function(event) {
-
-       function val(selector) {
-           return \$.trim(\$(selector).val());
-       }
-       function error(message) {
-           \$("#errors").show().html(message);
-           event.preventDefault();
-       }
-       var file = val("#coverFile");
-       var url = val("#imageUrl");
-       var coverid = val("#coverid");
-
-       if (file == "" && (url == "" || url == "http://" ) && coverid == "") {
-           return error("Please choose an image or provide a URL.");
-       }
-
-       function test_url(url) {
-           var obj = {
-               optional: function() { return false; }
-           }
-           return \$.validator.url.apply(obj, [url, null]);
-       }
-
-       if (url != "" && url != "http://" && !test_url(url)) {
-           return error("Please provide a valid URL.");
-       }
-   });
-});
-//-->
-</script>
 
 <div class="imageIntro">$intro</div>
 
@@ -72,7 +35,7 @@ window.q.push(function(){
                         <div class="carousel-section">
                             <div id="covers" class="carousel-container carousel-container-decorated carousel--minimal">
                                 <div id="popcovers" class="carousel carousel--progressively-enhanced"
-                                    data-config="$json_encode(['#popcovers'])">
+                                    data-config="$json_encode(['#popcovers', 3, 3, 3, 3, 2, 1])">
                                 $for cover in doc.get_edition_covers():
                                     <div class="book carousel__item" data-id="$cover.id">
                                         <div class="book-cover">
@@ -84,19 +47,6 @@ window.q.push(function(){
                             </div>
                         </div>
                         <input type="hidden" id="coverid" name="coverid" value=""/>
-                        <script type="text/javascript">
-                        window.q.push( function () {
-                            // Clicking a cover should set the form value to the data-id of that cover
-                            \$("#popcovers .book").click(function() {
-                                \$(this).toggleClass("selected").siblings().removeClass("selected");
-                                var coverid = "";
-                                if (\$(this).hasClass("selected")) {
-                                    coverid = \$(this).data("id");
-                                }
-                                \$("#coverid").val(coverid);
-                            } );
-                        } );
-                        </script>
                     </div>
 
             <div class="formElement">
@@ -110,14 +60,14 @@ window.q.push(function(){
 
             <div class="formElement">
                 <div class="label">
-                    <label id="imageWeb" for="imageUrl"><span class="highlight">$:_("<u>Or</u></span>, paste in the image URL if it's on the web.")</label>
+                    <label id="imageWeb" for="imageUrl">$_("Or, paste in the image URL if it's on the web.")</label>
                 </div>
                 <div class="input">
-                    <input type="text" name="url" id="imageUrl" value="$data.get('url', 'http://')" onClick="if(!this._haschanged && this.value == 'http://'){this.value=''};this._haschanged=true;"/>
+                    <input type="text" name="url" id="imageUrl" value="$data.get('url', 'https://')" onClick="if(!this._haschanged && this.value == 'https://'){this.value=''};this._haschanged=true;"/>
                 </div>
             </div>
 
-            <div class="formElement" style="margin: $('15px 0px 0px 15px;' if doc.type.key == "/type/work" else '50px 0px 0px 30px;')">
+            <div class="formElement" style="margin: $('15px 0px 0px 15px;' if doc.type.key == '/type/work' else '50px 0px 0px 30px;')">
                 <button type="submit" name="upload" id="imageUpload" value="$_('Submit')" class="largest">$_("Submit")</button>
                 <a class="dialog--close-parent red" href="javascript:;">$_("Cancel")</a>
             </div>
@@ -126,4 +76,3 @@ window.q.push(function(){
     </div>
 </form>
 <div class="imageIntro smallest"><a href="/help/faq/editing#picture" target="blank">$guideline</a></div>
-

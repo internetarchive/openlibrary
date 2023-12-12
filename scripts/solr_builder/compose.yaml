@@ -1,0 +1,121 @@
+version: '3.1'
+
+services:
+  db:
+    profiles:
+      - build
+    image: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: example
+    working_dir: "/solr_builder"
+    volumes:
+      - "postgres-data:/var/lib/postgresql/data"
+      - ".:/solr_builder"
+      - "/storage:/storage"
+    networks:
+      - db-access
+
+  adminer:
+    profiles:
+      - build
+    image: adminer
+    restart: unless-stopped
+    ports:
+      - 8087:8080
+    networks:
+      - db-access
+
+  solr:
+    profiles:
+      - build
+    image: solr:8.10.1
+    restart: on-failure
+    environment:
+      # This is optimized for bulk loading, but should be shortened for production
+      # and we should set autoSoftCommit to a value that makes sense for our query usage (5-15 sec?)
+      - SOLR_OPTS=-Dsolr.autoCommit.maxTime=3600000
+      - SOLR_JAVA_MEM=-Xms3g -Xmx3g
+    ports:
+      - 8983:8983
+    volumes:
+      - solr-data:/var/solr/data
+      - ../../conf/solr:/opt/solr/server/solr/configsets/olconfig:ro
+    networks:
+      - solr-access
+    command: solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig
+
+  # Only run these two services if we're connecting this solr to production/testing
+  # To run:
+  # docker compose down
+  # docker compose --profile production up -d
+  solr_prod:
+    profiles:
+      - production
+    restart: unless-stopped
+    image: solr:8.10.1
+    expose:
+      - 8983
+    environment:
+      - SOLR_OPTS=
+        -Dsolr.autoSoftCommit.maxTime=60000
+        -Dsolr.autoCommit.maxTime=120000
+        -Dsolr.max.booleanClauses=30000
+      # More memory for production
+      - SOLR_JAVA_MEM=-Xms10g -Xmx10g
+    volumes:
+      - solr-data:/var/solr/data
+      - ../../conf/solr:/opt/solr/server/solr/configsets/olconfig:ro
+    networks:
+      solr-access:
+        aliases:
+          - solr  # Override other solr service's hostname
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+    # Create (or use if already existing) a core called "openlibrary" with our config & schema
+    command: solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig
+
+  haproxy:
+    profiles:
+      - production
+    image: haproxy:2.3.5
+    restart: unless-stopped
+    volumes:
+      - ../../conf/solr/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - 8984:8984
+    networks:
+      - solr-access
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
+  # We need ability to use openlibrary code
+  ol:
+    profiles:
+      - never
+    image: olpython:latest
+    build:
+      context: ../..
+      dockerfile: scripts/solr_builder/Dockerfile.olpython
+    volumes:
+      # Persistent volume mount for installed git submodules
+      - ol-vendor:/openlibrary/vendor
+      # The above volume mounts are required so that the local dev bind mount below
+      # does not clobber the data generated inside the image / container
+      - "../../:/openlibrary"
+    networks:
+      - solr-access
+      - db-access
+
+volumes:
+  postgres-data:
+  solr-data:
+  ol-vendor:
+
+networks:
+  db-access:
+  solr-access:

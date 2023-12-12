@@ -4,18 +4,45 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+    paths:
+      - 'Makefile'
+      - '.github/workflows/javascript_tests.yml'
+      - 'vendor/js/**'
+      - '**.json'
+      - '**.js'
+      - '**.vue'
+      - '**.less'
+      - '**.css'
+  workflow_dispatch:
+permissions:
+  contents: read
+
 jobs:
   javascript_tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: '12' # # Should match what's in our Dockerfile
-      - run: npm install
+          node-version: '16' # # Should match what's in our Dockerfile
+      - uses: actions/cache@v3
+        id: npm-cache
+        with:
+          # Caching node_modules isn't recommended because it can break across
+          # Node versions and won't work with npm ci (See https://github.com/actions/cache/blob/main/examples.md#node---npm )
+          # But we pin the node version, and we don't update it that often anyways. And
+          # we don't use `npm ci` specifically to try to get faster CI flows. So caching
+          # `node_modules` directly.
+          path: 'node_modules'
+          # Note the version number in this string -- update it when updating Node!
+          key: ${{ runner.os }}-node16-${{ hashFiles('**/package-lock.json') }}
+      - if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm install --no-audit
       - run: npm run lint
       - run: make git
-      - run: make js
-      - run: make css
-      - run: make components
+      - run: npx concurrently --group 'make js' 'make css' 'make components'
       - run: npm run test
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

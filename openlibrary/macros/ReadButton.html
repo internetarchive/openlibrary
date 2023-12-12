@@ -1,6 +1,12 @@
-$def with(ocaid, borrow=False, listen=False, loan=None, label='')
+$def with(ocaid, borrow=False, listen=False, loan=None, label='', printdisabled=False)
 
-$if (borrow and not loan):
+$ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
+
+$if printdisabled:
+  $ action = "read"
+  $ label = _("Special Access")
+  $ title = _("Special ebook access from the Internet Archive for patrons with qualifying print disabilities")
+$elif (borrow and not loan):
   $ action = "borrow"
   $ label = label or _("Borrow")
   $ title = _("Borrow ebook from Internet Archive")
@@ -9,22 +15,22 @@ $else:
   $ label = _("Read")
   $ title = _("Read ebook from Internet Archive")
 
-$ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
-
 <div class="cta-button-group">
-  <a href="$(stream_url)" title="$title" id="$(action)_ebook"
+  <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action)"
      $if loan:
        data-userid="$(loan['userid'])"
+     $elif printdisabled:
+       data-ol-link-track="CTAClick|PrintDisabled"
      $elif borrow:
        data-ol-link-track="CTAClick|Borrow"
      $else:
        data-ol-link-track="CTAClick|Read"
-     class="cta-btn cta-btn--available">$label</a>
+    >$label</a>
   $if listen:
     <a href="$(stream_url)&_autoReadAloud=show"
        title="$title using Read Aloud"
        data-ol-link-track="CTAClick|$(action.capitalize())Listen"
-       class="cta-btn cta-btn--available">
+       class="cta-btn cta-btn--available cta-btn--w-icon">
       <span class="btn-icon read-aloud"></span>
       <span class="btn-label">$_('Listen')</span>
     </a>

@@ -1,0 +1,48 @@
+$def with (share_links, page_url, link_markup, classes='')
+$# :param list[dict] share_links:
+$# :param str page_url: absolute url excluding params
+$# :param str link_markup: Markup for element that triggers share modal
+$# :param str classes: HTML classes for this component
+
+
+$def embed_iframe(page_url):
+  <iframe frameborder="0" width="165" height="400" src="$(page_url)/-/widget"></iframe>
+
+<div class="$classes">
+  $:link_markup
+
+  <div class="hidden">
+    <div id="social-modal-content" class="floaterAdd">
+      <div class="content">
+        <div class="floaterHead right-justify">
+          <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+        </div>
+        <div class="shareLinks cta-section">
+          <ul class="shareLinks-list">
+              $for share_link in share_links:
+              $ track_tag = share_link['text'].replace(' ', '-')
+              <li>
+                <a href="$share_link['url']" class="sansserif large" target="_blank"
+                  data-ol-link-track="Share|$track_tag">
+                  <img title="Share on $(share_link['text'])" alt="$(share_link['text'])" class="share-link"
+                    src="$static_url('images/%s.svg' % share_link['text'].lower())" />
+                </a>
+                <div class="share-source">$share_link['text']</div>
+              </li>
+
+            <li>
+              $# rm special characters from url such as single quote which break js prompt/iframe
+              $ clean_url = page_url.replace("'", "\\'")
+              $ iframe_html = str(embed_iframe(clean_url)).strip()
+              <a class="embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed"
+                onclick="prompt('Copy embed code to clipboard:', '$iframe_html');">
+                <img alt="Embed icon" class="share-link" src="$static_url('images/embed.png')">
+              </a>
+              <div class="share-source">$_('Embed')</div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

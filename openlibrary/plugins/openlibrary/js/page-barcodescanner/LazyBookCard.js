@@ -4,6 +4,8 @@
  */
 import Promise from 'promise-polyfill'; // polyfill Promise support for IE11
 
+const OL_BASE = new URLSearchParams(window.location.search).get('ol_base') || '';
+
 export default class LazyBookCard {
     /**
      * @param {LazyBookCardState} state
@@ -49,24 +51,24 @@ export default class LazyBookCard {
         newState = Object.assign({}, oldState, newState);
 
         if (this.ui) {
-            if (oldState.link != newState.link) {
+            if (oldState.link !== newState.link) {
                 this.ui.attr('href', newState.link);
             }
 
-            if (oldState.coverSrc != newState.coverSrc) {
+            if (oldState.coverSrc !== newState.coverSrc) {
                 this.ui.find('.cover img').attr('src', newState.coverSrc);
             }
 
             const textFields = ['title', 'byline', 'identifier'];
-            for (let field of textFields) {
-                if (oldState[field] != newState[field]) {
+            for (const field of textFields) {
+                if (oldState[field] !== newState[field]) {
                     this.ui.find(`.${field}`).text(newState[field]);
                 }
             }
 
             const classFields = ['loading', 'errored'];
-            for (let field of classFields) {
-                if (oldState[field] != newState[field]) {
+            for (const field of classFields) {
+                if (oldState[field] !== newState[field]) {
                     this.ui.toggleClass(field, newState[field]);
                 }
             }
@@ -86,7 +88,7 @@ export default class LazyBookCard {
             link: `/isbn/${isbn}`,
         });
 
-        fetch(`/isbn/${isbn}.json`).then(r => r.json())
+        fetch(`${OL_BASE}/isbn/${isbn}.json`).then(r => r.json())
             .then(editionRecord => {
                 cardEl.updateState({
                     title: editionRecord.title,
@@ -95,19 +97,19 @@ export default class LazyBookCard {
                 });
 
                 if (editionRecord.covers) {
-                    const coverId = editionRecord.covers.find(x => x != -1);
+                    const coverId = editionRecord.covers.find(x => x !== -1);
                     if (coverId) {
                         cardEl.updateState({
-                            coverSrc: `http://covers.openlibrary.org/b/id/${coverId}-M.jpg`,
+                            coverSrc: `https://covers.openlibrary.org/b/id/${coverId}-M.jpg`,
                         });
                     }
                 }
 
-                return fetch(`${editionRecord.works[0].key}.json`).then(r => r.json())
+                return fetch(`${OL_BASE}${editionRecord.works[0].key}.json`).then(r => r.json())
             }).then(workRecord => {
                 return Promise.all(
-                    workRecord.authors.map(a => `${a.author.key}.json`)
-                        .map(link => fetch(link).then(r => r.json()))
+                    workRecord.authors
+                        .map(a => fetch(`${OL_BASE}${a.author.key}.json`).then(r => r.json()))
                 );
             }).then(authorRecords => {
                 cardEl.updateState({

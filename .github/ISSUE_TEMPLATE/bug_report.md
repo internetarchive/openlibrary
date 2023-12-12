@@ -2,7 +2,7 @@
 name: Bug report
 about: Create a report to help us improve
 title: ''
-labels: "Type: Bug, Needs: Triage"
+labels: "Type: Bug, Needs: Triage, Needs: Lead"
 assignees: ''
 ---
 
@@ -19,14 +19,14 @@ assignees: ''
 2. Do ...
 
 <!-- What actually happened after these steps? What did you expect to happen? -->
-* Actual: 
-* Expected: 
+* Actual:
+* Expected:
 
 ### Details
 
-- **Logged in (Y/N)?** 
-- **Browser type/version?** 
-- **Operating system?** 
+- **Logged in (Y/N)?**
+- **Browser type/version?**
+- **Operating system?**
 - **Environment (prod/dev/local)?** prod
 <!-- If not sure, put prod -->
 

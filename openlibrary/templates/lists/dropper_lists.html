@@ -1,0 +1,7 @@
+$def with (lists)
+
+$for list in lists:
+  $if not list['active']:
+    <p class="list">
+      <a href="$list.key" class="add-to-list dropper__close" data-list-cover-url="$list.cover_url" data-list-key="$list.key">$list.name</a>
+    </p>

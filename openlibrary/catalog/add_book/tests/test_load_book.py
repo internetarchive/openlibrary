@@ -1,10 +1,13 @@
 import pytest
 from openlibrary.catalog.add_book import load_book
 from openlibrary.catalog.add_book.load_book import (
-    import_author, build_query, InvalidLanguage)
+    import_author,
+    build_query,
+    InvalidLanguage,
+)
 
 
-@pytest.fixture
+@pytest.fixture()
 def new_import(monkeypatch):
     monkeypatch.setattr(load_book, 'find_entity', lambda a: None)
 
@@ -12,22 +15,24 @@ def new_import(monkeypatch):
 # These authors will be imported with natural name order
 # i.e. => Forename Surname
 natural_names = [
-     {'name': 'Forename Surname'},
-     {'name': 'Surname, Forename', 'personal_name': 'Surname, Forename'},
-     {'name': 'Surname, Forename'},
-     {'name': 'Surname, Forename', 'entity_type': 'person'},
-     ]
+    {'name': 'Forename Surname'},
+    {'name': 'Surname, Forename', 'personal_name': 'Surname, Forename'},
+    {'name': 'Surname, Forename'},
+    {'name': 'Surname, Forename', 'entity_type': 'person'},
+]
 
 
 # These authors will be imported with 'name' unchanged
 unchanged_names = [
-     {'name': 'Forename Surname'},
-     {'name': 'Smith, John III, King of Coats, and Bottles',
-         'personal_name': 'Smith, John'},
-     {'name': 'Smith, John III, King of Coats, and Bottles'},
-     {'name': 'Harper, John Murdoch, 1845-'},
-     {'entity_type': 'org', 'name': 'Organisation, Place'},
-     ]
+    {'name': 'Forename Surname'},
+    {
+        'name': 'Smith, John III, King of Coats, and Bottles',
+        'personal_name': 'Smith, John',
+    },
+    {'name': 'Smith, John III, King of Coats, and Bottles'},
+    {'name': 'Harper, John Murdoch, 1845-'},
+    {'entity_type': 'org', 'name': 'Organisation, Place'},
+]
 
 
 @pytest.mark.parametrize('author', natural_names)

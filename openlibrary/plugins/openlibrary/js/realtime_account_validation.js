@@ -9,7 +9,7 @@ export function initRealTimeValidation() {
 
     function validateUsername() {
         var value = $(this).val();
-        if (!value=='') {
+        if (!value === '') {
             $.ajax({
                 url: `/account/validate?username=${value}`,
                 type: 'GET',
@@ -35,7 +35,7 @@ export function initRealTimeValidation() {
 
     function validateEmail() {
         var value_email = $(this).val();
-        if (!value_email=='') {
+        if (!value_email === '') {
             $.ajax({
                 url: `/account/validate?email=${encodeURIComponent(value_email)}`,
                 type: 'GET',
@@ -63,7 +63,7 @@ export function initRealTimeValidation() {
         var value = document.getElementById('password').value;
         var value2 = document.getElementById('password2').value;
         if (value && value2) {
-            if (value2==value) {
+            if (value2 === value) {
                 $('#password2Message').removeClass().addClass('darkgreen').text('');
                 $('label[for="password2"]').removeClass();
                 $(document.getElementById('password2')).removeClass().addClass('required');
@@ -94,6 +94,6 @@ export function initRealTimeValidation() {
         validateEmail();
         validateUsername();
         validatePasswords();
-        $(this).closest('form').submit();
+        $(this).closest('form').trigger('submit');
     });
 }

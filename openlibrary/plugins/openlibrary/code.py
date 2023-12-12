@@ -1,12 +1,9 @@
 """
 Open Library Plugin.
 """
-from __future__ import absolute_import
-from __future__ import print_function
 
 import requests
 import web
-import simplejson
 import json
 import os
 import socket
@@ -14,17 +11,24 @@ import random
 import datetime
 import logging
 from time import time
-
+import math
+from pathlib import Path
 import infogami
 
 # make sure infogami.config.features is set
 if not hasattr(infogami.config, 'features'):
-    infogami.config.features = []
+    infogami.config.features = []  # type: ignore[attr-defined]
 
 from infogami.utils.app import metapage
 from infogami.utils import delegate
 from openlibrary.utils import dateutil
-from infogami.utils.view import render, render_template, public, safeint, add_flash_message
+from infogami.utils.view import (
+    render,
+    render_template,
+    public,
+    safeint,
+    add_flash_message,
+)
 from infogami.infobase import client
 from infogami.core.db import ValidationException
 
@@ -40,33 +44,39 @@ from openlibrary.plugins.openlibrary import processors
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
-delegate.app.add_processor(processors.CORSProcessor())
+delegate.app.add_processor(processors.CORSProcessor(cors_prefixes={'/api/'}))
 
 try:
     from infogami.plugins.api import code as api
 except:
-    api = None
+    api = None  # type: ignore[assignment]
 
 # http header extension for OL API
-infogami.config.http_ext_header_uri = 'http://openlibrary.org/dev/docs/api'
+infogami.config.http_ext_header_uri = 'http://openlibrary.org/dev/docs/api'  # type: ignore[attr-defined]
 
 # setup special connection with caching support
 from openlibrary.plugins.openlibrary import connection
-client._connection_types['ol'] = connection.OLConnection
+
+client._connection_types['ol'] = connection.OLConnection  # type: ignore[assignment]
 infogami.config.infobase_parameters = dict(type='ol')
 
 # set up infobase schema. required when running in standalone mode.
 from openlibrary.core import schema
+
 schema.register_schema()
 
 from openlibrary.core import models
+
 models.register_models()
 models.register_types()
 
 # Remove movefiles install hook. openlibrary manages its own files.
-infogami._install_hooks = [h for h in infogami._install_hooks if h.__name__ != 'movefiles']
+infogami._install_hooks = [
+    h for h in infogami._install_hooks if h.__name__ != 'movefiles'
+]
 
 from openlibrary.plugins.openlibrary import lists
+
 lists.setup()
 
 logger = logging.getLogger('openlibrary')
@@ -77,23 +87,33 @@ class hooks(client.hook):
         user = web.ctx.site.get_user()
         account = user and user.get_account()
         if account and account.is_blocked():
-            raise ValidationException('Your account has been suspended. You are not allowed to make any edits.')
+            raise ValidationException(
+                'Your account has been suspended. You are not allowed to make any edits.'
+            )
 
         if page.key.startswith('/a/') or page.key.startswith('/authors/'):
             if page.type.key == '/type/author':
                 return
 
             books = web.ctx.site.things({'type': '/type/edition', 'authors': page.key})
-            books = books or web.ctx.site.things({'type': '/type/work', 'authors': {'author': {'key': page.key}}})
+            books = books or web.ctx.site.things(
+                {'type': '/type/work', 'authors': {'author': {'key': page.key}}}
+            )
             if page.type.key == '/type/delete' and books:
-                raise ValidationException('This Author page cannot be deleted as %d record(s) still reference this id. Please remove or reassign before trying again. Referenced by: %s' % (len(books), books))
+                raise ValidationException(
+                    'This Author page cannot be deleted as %d record(s) still reference this id. Please remove or reassign before trying again. Referenced by: %s'
+                    % (len(books), books)
+                )
             elif page.type.key != '/type/author' and books:
-                raise ValidationException('Changing type of author pages is not allowed.')
+                raise ValidationException(
+                    'Changing type of author pages is not allowed.'
+                )
 
 
 @infogami.action
 def sampledump():
     """Creates a dump of objects from OL database for creating a sample database."""
+
     def expand_keys(keys):
         def f(k):
             if isinstance(k, dict):
@@ -102,6 +122,7 @@ def sampledump():
                 return web.ctx.site.things({'key~': k})
             else:
                 return [k]
+
         result = []
         for k in keys:
             d = f(k)
@@ -130,9 +151,7 @@ def sampledump():
             return
         elif key in visiting:
             # This is a case of circular-dependency. Add a stub object to break it.
-            print(simplejson.dumps({
-                'key': key, 'type': visiting[key]['type']
-            }))
+            print(json.dumps({'key': key, 'type': visiting[key]['type']}))
             visited.add(key)
             return
 
@@ -150,7 +169,7 @@ def sampledump():
             visit(ref)
         visited.add(key)
 
-        print(simplejson.dumps(d))
+        print(json.dumps(d))
 
     keys = [
         '/scan_record',
@@ -168,11 +187,12 @@ def sampledump():
 def sampleload(filename='sampledump.txt.gz'):
     if filename.endswith('.gz'):
         import gzip
+
         f = gzip.open(filename)
     else:
         f = open(filename)
 
-    queries = [simplejson.loads(line) for line in f]
+    queries = [json.loads(line) for line in f]
     print(web.ctx.site.save_many(queries))
 
 
@@ -180,16 +200,34 @@ class routes(delegate.page):
     path = '/developers/routes'
 
     def GET(self):
-        class ModulesToStr(simplejson.JSONEncoder):
+        class ModulesToStr(json.JSONEncoder):
             def default(self, obj):
                 if isinstance(obj, metapage):
                     return obj.__module__ + '.' + obj.__name__
-                return super(ModulesToStr, self).default(obj)
+                return super().default(obj)
 
         from openlibrary import code
-        return '<pre>%s</pre>' % simplejson.dumps(
-            code.delegate.pages, sort_keys=True, cls=ModulesToStr,
-            indent=4, separators=(',', ': '))
+
+        return '<pre>%s</pre>' % json.dumps(
+            code.delegate.pages,
+            sort_keys=True,
+            cls=ModulesToStr,
+            indent=4,
+            separators=(',', ': '),
+        )
+
+
+class team(delegate.page):
+    path = '/about/team'
+
+    def GET(self):
+        with Path('/openlibrary/openlibrary/templates/about/team.json').open(
+            mode='r'
+        ) as f:
+            team_members: list[dict[str, str]] = sorted(
+                json.load(f), key=lambda member: member['name'].split()[-1]
+            )
+            return render_template("about/index.html", team_members=team_members)
 
 
 class addbook(delegate.page):
@@ -208,6 +246,7 @@ class addbook(delegate.page):
 
     def POST(self):
         from infogami.core.code import edit
+
         key = web.ctx.site.new_key('/type/edition')
         web.ctx.path = key
         return edit().POST(key)
@@ -218,14 +257,21 @@ class widget(delegate.page):
 
     def GET(self, _type, olid=None):
         if olid:
-            getter = get_work_availability if _type == 'works' else get_edition_availability
-            item = web.ctx.site.get('/%s/%s' % (_type, olid)) or {}
+            getter = (
+                get_work_availability if _type == 'works' else get_edition_availability
+            )
+            item = web.ctx.site.get(f'/{_type}/{olid}') or {}
             item['olid'] = olid
             item['availability'] = getter(olid).get(item['olid'])
-            item['authors'] = [web.storage(key=a.key, name=a.name or None) for a in item.get_authors()]
+            item['authors'] = [
+                web.storage(key=a.key, name=a.name or None) for a in item.get_authors()
+            ]
             return delegate.RawText(
-                render_template('widget', item if _type == 'books' else format_work_data(item)),
-                content_type='text/html')
+                render_template(
+                    'widget', item if _type == 'books' else format_work_data(item)
+                ),
+                content_type='text/html',
+            )
         raise web.seeother('/')
 
 
@@ -238,21 +284,25 @@ class addauthor(delegate.page):
             return web.badrequest()
         key = web.ctx.site.new_key('/type/author')
         web.ctx.path = key
-        web.ctx.site.save({'key': key, 'name': i.name, 'type': dict(key='/type/author')}, comment='New Author')
+        web.ctx.site.save(
+            {'key': key, 'name': i.name, 'type': dict(key='/type/author')},
+            comment='New Author',
+        )
         raise web.HTTPError('200 OK', {}, key)
 
 
 class clonebook(delegate.page):
     def GET(self):
         from infogami.core.code import edit
+
         i = web.input('key')
         page = web.ctx.site.get(i.key)
         if page is None:
             raise web.seeother(i.key)
         else:
-            d =page._getdata()
+            d = page._getdata()
             for k in ['isbn_10', 'isbn_13', 'lccn', 'oclc']:
-                 d.pop(k, None)
+                d.pop(k, None)
             return render.edit(page, '/addbook', 'Clone Book')
 
 
@@ -262,31 +312,50 @@ class search(delegate.page):
     def GET(self):
         i = web.input(prefix='')
         if len(i.prefix) > 2:
-            q = {'type': '/type/author', 'name~': i.prefix + '*', 'sort': 'name', 'limit': 5}
+            q = {
+                'type': '/type/author',
+                'name~': i.prefix + '*',
+                'sort': 'name',
+                'limit': 5,
+            }
             things = web.ctx.site.things(q)
             things = [web.ctx.site.get(key) for key in things]
-            result = [dict(type=[{'id': t.key, 'name': t.key}], name=web.safestr(t.name), guid=t.key, id=t.key, article=dict(id=t.key)) for t in things]
+            result = [
+                dict(
+                    type=[{'id': t.key, 'name': t.key}],
+                    name=web.safestr(t.name),
+                    guid=t.key,
+                    id=t.key,
+                    article=dict(id=t.key),
+                )
+                for t in things
+            ]
         else:
             result = []
         callback = i.pop('callback', None)
-        d = dict(status='200 OK', query=dict(i, escape='html'), code='/api/status/ok', result=result)
+        d = dict(
+            status='200 OK',
+            query=dict(i, escape='html'),
+            code='/api/status/ok',
+            result=result,
+        )
 
         if callback:
-            data = '%s(%s)' % (callback, simplejson.dumps(d))
+            data = f'{callback}({json.dumps(d)})'
         else:
-            data = simplejson.dumps(d)
+            data = json.dumps(d)
         raise web.HTTPError('200 OK', {}, data)
 
 
 class blurb(delegate.page):
     path = '/suggest/blurb/(.*)'
+
     def GET(self, path):
         i = web.input()
-        callback = i.pop('callback', None)
-        author = web.ctx.site.get('/' +path)
+        author = web.ctx.site.get('/' + path)
         body = ''
         if author.birth_date or author.death_date:
-            body = '%s - %s' % (author.birth_date, author.death_date)
+            body = f'{author.birth_date} - {author.death_date}'
         else:
             body = '%s' % author.date
 
@@ -296,10 +365,10 @@ class blurb(delegate.page):
 
         result = dict(body=body, media_type='text/html', text_encoding='utf-8')
         d = dict(status='200 OK', code='/api/status/ok', result=result)
-        if callback:
-            data = '%s(%s)' % (callback, simplejson.dumps(d))
+        if callback := i.pop('callback', None):
+            data = f'{callback}({json.dumps(d)})'
         else:
-            data = simplejson.dumps(d)
+            data = json.dumps(d)
 
         raise web.HTTPError('200 OK', {}, data)
 
@@ -342,25 +411,60 @@ def get_pages(type, processor):
 
 class robotstxt(delegate.page):
     path = '/robots.txt'
+
     def GET(self):
         web.header('Content-Type', 'text/plain')
-        try:
-            robots_file = 'norobots.txt' if 'dev' in infogami.config.features else 'robots.txt'
-            data = open('static/' + robots_file).read()
-            raise web.HTTPError('200 OK', {}, data)
-        except IOError:
-            raise web.notfound()
+        is_dev = 'dev' in infogami.config.features or web.ctx.host != 'openlibrary.org'
+        robots_file = 'norobots.txt' if is_dev else 'robots.txt'
+        return web.ok(open(f'static/{robots_file}').read())
+
+
+@web.memoize
+def fetch_ia_js(filename: str) -> str:
+    return requests.get(f'https://archive.org/includes/{filename}').text
+
+
+class ia_js_cdn(delegate.page):
+    path = r'/cdn/archive.org/(donate\.js|analytics\.js)'
+
+    def GET(self, filename):
+        web.header('Content-Type', 'text/javascript')
+        return web.ok(fetch_ia_js(filename))
+
+
+class serviceworker(delegate.page):
+    path = '/sw.js'
+
+    def GET(self):
+        web.header('Content-Type', 'text/javascript')
+        return web.ok(open('static/build/sw.js').read())
+
+
+class assetlinks(delegate.page):
+    path = '/.well-known/assetlinks'
+
+    def GET(self):
+        web.header('Content-Type', 'application/json')
+        return web.ok(open('static/.well-known/assetlinks.json').read())
+
+
+class opensearchxml(delegate.page):
+    path = '/opensearch.xml'
+
+    def GET(self):
+        web.header('Content-Type', 'text/plain')
+        return web.ok(open('static/opensearch.xml').read())
 
 
 class health(delegate.page):
     path = '/health'
+
     def GET(self):
         web.header('Content-Type', 'text/plain')
-        raise web.HTTPError('200 OK', {}, 'OK')
+        return web.ok('OK')
 
 
 class isbn_lookup(delegate.page):
-
     path = r'/(?:isbn|ISBN)/([0-9xX-]+)'
 
     def GET(self, isbn):
@@ -372,8 +476,7 @@ class isbn_lookup(delegate.page):
             ext += '?' + web.ctx.env['QUERY_STRING']
 
         try:
-            ed = Edition.from_isbn(isbn)
-            if ed:
+            if ed := Edition.from_isbn(isbn, retry=True):
                 return web.found(ed.key + ext)
         except Exception as e:
             logger.error(e)
@@ -419,8 +522,9 @@ class bookpage(delegate.page):
         elif key == 'ocaid':
             # Try a range of ocaid alternatives:
             ocaid_alternatives = [
-                    {'type': '/type/edition', 'source_records': 'ia:' + value},
-                    {'type': '/type/volume', 'ia_id': value}]
+                {'type': '/type/edition', 'source_records': 'ia:' + value},
+                {'type': '/type/volume', 'ia_id': value},
+            ]
             for q in ocaid_alternatives:
                 result = web.ctx.site.things(q)
                 if result:
@@ -429,6 +533,7 @@ class bookpage(delegate.page):
             # Perform import, if possible
             from openlibrary.plugins.importapi.code import ia_importapi, BookImportError
             from openlibrary import accounts
+
             with accounts.RunAs('ImportBot'):
                 try:
                     ia_importapi.ia_import(value, require_marc=True)
@@ -443,6 +548,8 @@ class bookpage(delegate.page):
 
 
 delegate.media_types['application/rdf+xml'] = 'rdf'
+
+
 class rdf(delegate.mode):
     name = 'view'
     encoding = 'rdf'
@@ -453,15 +560,20 @@ class rdf(delegate.mode):
             raise web.notfound('')
         else:
             from infogami.utils import template
+
             try:
                 result = template.typetemplate('rdf')(page)
             except:
                 raise web.notfound('')
             else:
-                return delegate.RawText(result, content_type='application/rdf+xml; charset=utf-8')
+                return delegate.RawText(
+                    result, content_type='application/rdf+xml; charset=utf-8'
+                )
 
 
 delegate.media_types[' application/atom+xml;profile=opds'] = 'opds'
+
+
 class opds(delegate.mode):
     name = 'view'
     encoding = 'opds'
@@ -471,17 +583,21 @@ class opds(delegate.mode):
         if not page:
             raise web.notfound('')
         else:
-            from infogami.utils import template
             from openlibrary.plugins.openlibrary import opds
+
             try:
-                result = template.typetemplate('opds')(page, opds)
+                result = opds.OPDSEntry(page).to_string()
             except:
                 raise web.notfound('')
             else:
-                return delegate.RawText(result, content_type=' application/atom+xml;profile=opds')
+                return delegate.RawText(
+                    result, content_type=' application/atom+xml;profile=opds'
+                )
 
 
 delegate.media_types['application/marcxml+xml'] = 'marcxml'
+
+
 class marcxml(delegate.mode):
     name = 'view'
     encoding = 'marcxml'
@@ -492,15 +608,20 @@ class marcxml(delegate.mode):
             raise web.notfound('')
         else:
             from infogami.utils import template
+
             try:
                 result = template.typetemplate('marcxml')(page)
             except:
                 raise web.notfound('')
             else:
-                return delegate.RawText(result, content_type='application/marcxml+xml; charset=utf-8')
+                return delegate.RawText(
+                    result, content_type='application/marcxml+xml; charset=utf-8'
+                )
 
 
 delegate.media_types['text/x-yaml'] = 'yml'
+
+
 class _yaml(delegate.mode):
     name = 'view'
     encoding = 'yml'
@@ -523,19 +644,21 @@ class _yaml(delegate.mode):
             d = api.request('/get', data=data)
         except client.ClientException as e:
             if e.json:
-                msg = self.dump(simplejson.loads(e.json))
+                msg = self.dump(json.loads(e.json))
             else:
                 msg = str(e)
             raise web.HTTPError(e.status, data=msg)
 
-        return simplejson.loads(d)
+        return json.loads(d)
 
     def dump(self, d):
         import yaml
+
         return yaml.safe_dump(d, indent=4, allow_unicode=True, default_flow_style=False)
 
     def load(self, data):
         import yaml
+
         return yaml.safe_load(data)
 
 
@@ -545,7 +668,7 @@ class _yaml_edit(_yaml):
 
     def is_admin(self):
         u = delegate.context.user
-        return u and u.is_admin()
+        return u and (u.is_admin() or u.is_super_librarian())
 
     def GET(self, key):
         # only allow admin users to edit yaml
@@ -608,8 +731,13 @@ def can_write():
     For backward-compatability, all admin users and people in api usergroup are also allowed to write.
     """
     user_key = delegate.context.user and delegate.context.user.key
-    bots = _get_members_of_group('/usergroup/api') + _get_members_of_group('/usergroup/admin') + _get_bots()
+    bots = (
+        _get_members_of_group('/usergroup/api')
+        + _get_members_of_group('/usergroup/admin')
+        + _get_bots()
+    )
     return user_key in bots
+
 
 # overwrite the implementation of can_write in the infogami API plugin with this one.
 api.can_write = can_write
@@ -652,18 +780,24 @@ class new:
             type = query['type']
             if isinstance(type, dict):
                 if 'key' not in type:
-                    raise BadRequest('Bad Type: ' + simplejson.dumps(type))
+                    raise BadRequest('Bad Type: ' + json.dumps(type))
                 type = type['key']
 
-            if type not in ['/type/author', '/type/edition', '/type/work', '/type/series', '/type/publisher']:
-                raise BadRequest('Bad Type: ' + simplejson.dumps(type))
+            if type not in [
+                '/type/author',
+                '/type/edition',
+                '/type/work',
+                '/type/series',
+                '/type/publisher',
+            ]:
+                raise BadRequest('Bad Type: ' + json.dumps(type))
 
     def POST(self):
         if not can_write():
             raise Forbidden('Permission Denied.')
 
         try:
-            query = simplejson.loads(web.data())
+            query = json.loads(web.data())
             h = api.get_custom_headers()
             comment = h.get('comment')
             action = h.get('action')
@@ -685,9 +819,10 @@ class new:
         if user.lower().endswith('bot'):
             botname = user.replace('/people/', '', 1)
             botname = botname.replace('.', '-')
-            key = 'ol.edits.bots.'+botname
+            key = 'ol.edits.bots.' + botname
             openlibrary.core.stats.increment(key)
-        return simplejson.dumps(keys)
+        return json.dumps(keys)
+
 
 api and api.add_hook('new', new)
 
@@ -702,21 +837,22 @@ def changequery(query=None, **kw):
         else:
             query[k] = v
 
-    query = dict(
-        (k, (list(map(web.safestr, v)) if isinstance(v, list) else web.safestr(v)))
+    query = {
+        k: [web.safestr(s) for s in v] if isinstance(v, list) else web.safestr(v)
         for k, v in query.items()
-    )
+    }
     out = web.ctx.get('readable_path', web.ctx.path)
     if query:
         out += '?' + urllib.parse.urlencode(query, doseq=True)
     return out
+
 
 # Hack to limit recent changes offset.
 # Large offsets are blowing up the database.
 
 from infogami.core.db import get_recent_changes as _get_recentchanges
 
-from six.moves import urllib
+import urllib
 
 
 @public
@@ -739,30 +875,35 @@ def most_recent_change():
         return get_recent_changes(limit=1)[0]
 
 
-
 @public
 def get_cover_id(key):
     try:
         _, cat, oln = key.split('/')
         return requests.get(
-            "https://covers.openlibrary.org/%s/query?olid=%s&limit=1" % (cat, oln)
+            f"https://covers.openlibrary.org/{cat}/query?olid={oln}&limit=1"
         ).json()[0]
     except (IndexError, json.decoder.JSONDecodeError, TypeError, ValueError):
         return None
 
 
 local_ip = None
+
+
 class invalidate(delegate.page):
     path = '/system/invalidate'
+
     def POST(self):
         global local_ip
         if local_ip is None:
             local_ip = socket.gethostbyname(socket.gethostname())
 
-        if web.ctx.ip != '127.0.0.1' and web.ctx.ip.rsplit('.', 1)[0] != local_ip.rsplit('.', 1)[0]:
+        if (
+            web.ctx.ip != '127.0.0.1'
+            and web.ctx.ip.rsplit('.', 1)[0] != local_ip.rsplit('.', 1)[0]
+        ):
             raise Forbidden('Allowed only in the local network.')
 
-        data = simplejson.loads(web.data())
+        data = json.loads(web.data())
         if not isinstance(data, list):
             data = [data]
         for d in data:
@@ -773,9 +914,17 @@ class invalidate(delegate.page):
 
 def save_error():
     t = datetime.datetime.utcnow()
-    name = '%04d-%02d-%02d/%02d%02d%02d%06d' % (t.year, t.month, t.day, t.hour, t.minute, t.second, t.microsecond)
+    name = '%04d-%02d-%02d/%02d%02d%02d%06d' % (
+        t.year,
+        t.month,
+        t.day,
+        t.hour,
+        t.minute,
+        t.second,
+        t.microsecond,
+    )
 
-    path = infogami.config.get('errorlog', 'errors') + '/'+ name + '.html'
+    path = infogami.config.get('errorlog', 'errors') + '/' + name + '.html'
     dir = os.path.dirname(path)
     if not os.path.exists(dir):
         os.makedirs(dir)
@@ -788,6 +937,7 @@ def save_error():
     print('error saved to', path, file=web.debug)
     return name
 
+
 def internalerror():
     i = web.input(_method='GET', debug='false')
     name = save_error()
@@ -799,6 +949,7 @@ def internalerror():
 
     # TODO: move this to plugins\openlibrary\sentry.py
     from openlibrary.plugins.openlibrary.sentry import sentry
+
     if sentry.enabled:
         sentry.capture_exception_webpy()
 
@@ -807,6 +958,7 @@ def internalerror():
     else:
         msg = render.site(render.internalerror(name))
         raise web.internalerror(web.safestr(msg))
+
 
 delegate.app.internalerror = internalerror
 delegate.add_exception_hook(save_error)
@@ -817,8 +969,10 @@ class memory(delegate.page):
 
     def GET(self):
         import guppy
+
         h = guppy.hpy()
         return delegate.RawText(str(h.heap()))
+
 
 def _get_relatedcarousels_component(workid):
     if 'env' not in web.ctx:
@@ -827,14 +981,22 @@ def _get_relatedcarousels_component(workid):
     component = render_template('books/RelatedWorksCarousel', work)
     return {0: str(component)}
 
+
 def get_cached_relatedcarousels_component(*args, **kwargs):
     memoized_get_component_metadata = cache.memcache_memoize(
-        _get_relatedcarousels_component, "book.bookspage.component.relatedcarousels", timeout=dateutil.HALF_DAY_SECS)
-    return (memoized_get_component_metadata(*args, **kwargs) or
-            memoized_get_component_metadata.update(*args, **kwargs)[0])
+        _get_relatedcarousels_component,
+        "book.bookspage.component.relatedcarousels",
+        timeout=dateutil.HALF_DAY_SECS,
+    )
+    return (
+        memoized_get_component_metadata(*args, **kwargs)
+        or memoized_get_component_metadata.update(*args, **kwargs)[0]
+    )
+
 
 class Partials(delegate.page):
     path = '/partials'
+    encoding = 'json'
 
     def GET(self):
         i = web.input(workid=None, _component=None)
@@ -842,10 +1004,7 @@ class Partials(delegate.page):
         partial = {}
         if component == "RelatedWorkCarousel":
             partial = _get_relatedcarousels_component(i.workid)
-        return delegate.RawText(
-            simplejson.dumps(partial),
-            content_type="application/json"
-        )
+        return delegate.RawText(json.dumps(partial))
 
 
 def is_bot():
@@ -857,50 +1016,95 @@ def is_bot():
     Manually removed singleton `bot` (to avoid overly complex grep regex)
     """
     user_agent_bots = [
-        'sputnikbot', 'dotbot', 'semrushbot',
-        'googlebot', 'yandexbot', 'monsidobot', 'kazbtbot',
-        'seznambot', 'dubbotbot', '360spider', 'redditbot',
-        'yandexmobilebot', 'linkdexbot', 'musobot', 'mojeekbot',
-        'focuseekbot', 'behloolbot', 'startmebot',
-        'yandexaccessibilitybot', 'uptimerobot', 'femtosearchbot',
-        'pinterestbot', 'toutiaospider', 'yoozbot', 'parsijoobot',
-        'equellaurlbot', 'donkeybot', 'paperlibot', 'nsrbot',
-        'discordbot', 'ahrefsbot', '`googlebot', 'coccocbot',
-        'buzzbot', 'laserlikebot', 'baiduspider', 'bingbot',
-        'mj12bot', 'yoozbotadsbot'
+        'sputnikbot',
+        'dotbot',
+        'semrushbot',
+        'googlebot',
+        'yandexbot',
+        'monsidobot',
+        'kazbtbot',
+        'seznambot',
+        'dubbotbot',
+        '360spider',
+        'redditbot',
+        'yandexmobilebot',
+        'linkdexbot',
+        'musobot',
+        'mojeekbot',
+        'focuseekbot',
+        'behloolbot',
+        'startmebot',
+        'yandexaccessibilitybot',
+        'uptimerobot',
+        'femtosearchbot',
+        'pinterestbot',
+        'toutiaospider',
+        'yoozbot',
+        'parsijoobot',
+        'equellaurlbot',
+        'donkeybot',
+        'paperlibot',
+        'nsrbot',
+        'discordbot',
+        'ahrefsbot',
+        '`googlebot',
+        'coccocbot',
+        'buzzbot',
+        'laserlikebot',
+        'baiduspider',
+        'bingbot',
+        'mj12bot',
+        'yoozbotadsbot',
     ]
     if not web.ctx.env.get('HTTP_USER_AGENT'):
         return True
     user_agent = web.ctx.env['HTTP_USER_AGENT'].lower()
-    return any([bot in user_agent for bot in user_agent_bots])
+    return any(bot in user_agent for bot in user_agent_bots)
 
 
 def setup_template_globals():
-    web.template.Template.globals.update({
-        'sorted': sorted,
-        'zip': zip,
-        'tuple': tuple,
-        'urlquote': web.urlquote,
-        'isbn_13_to_isbn_10': isbn_13_to_isbn_10,
-        'isbn_10_to_isbn_13': isbn_10_to_isbn_13,
-        'NEWLINE': '\n',
-        'random': random.Random(),
+    # must be imported here, otherwise silently messes up infogami's import execution
+    # order, resulting in random errors like the the /account/login.json endpoint
+    # defined in accounts.py being ignored, and using the infogami endpoint instead.
+    from openlibrary.book_providers import (
+        get_best_edition,
+        get_book_provider,
+        get_book_provider_by_name,
+        get_cover_url,
+    )
 
-        # bad use of globals
-        'is_bot': is_bot,
-        'time': time,
-        'input': web.input,
-        'dumps': simplejson.dumps,
-    })
+    web.template.Template.globals.update(
+        {
+            'next': next,
+            'sorted': sorted,
+            'zip': zip,
+            'tuple': tuple,
+            'hash': hash,
+            'urlquote': web.urlquote,
+            'isbn_13_to_isbn_10': isbn_13_to_isbn_10,
+            'isbn_10_to_isbn_13': isbn_10_to_isbn_13,
+            'NEWLINE': '\n',
+            'random': random.Random(),
+            'choose_random_from': random.choice,
+            'get_lang': lambda: web.ctx.lang,
+            'ceil': math.ceil,
+            'get_best_edition': get_best_edition,
+            'get_book_provider': get_book_provider,
+            'get_book_provider_by_name': get_book_provider_by_name,
+            'get_cover_url': get_cover_url,
+            # bad use of globals
+            'is_bot': is_bot,
+            'time': time,
+            'input': web.input,
+            'dumps': json.dumps,
+        }
+    )
 
 
 def setup_context_defaults():
     from infogami.utils import context
-    context.defaults.update({
-        'features': [],
-        'user': None,
-        'MAX_VISIBLE_BOOKS': 5
-    })
+
+    context.defaults.update({'features': [], 'user': None, 'MAX_VISIBLE_BOOKS': 5})
 
 
 def setup():
@@ -914,6 +1118,7 @@ def setup():
         design,
         status,
         authors,
+        swagger,
     )
 
     sentry.setup()
@@ -925,15 +1130,19 @@ def setup():
     events.setup()
     status.setup()
     authors.setup()
+    swagger.setup()
 
     from openlibrary.plugins.openlibrary import api
+
     delegate.app.add_processor(web.unloadhook(stats.stats_hook))
 
     if infogami.config.get('dev_instance') is True:
         from openlibrary.plugins.openlibrary import dev_instance
+
         dev_instance.setup()
 
     setup_context_defaults()
     setup_template_globals()
+
 
 setup()

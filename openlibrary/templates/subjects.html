@@ -12,7 +12,7 @@ $ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), 
     </h1>
     <span class="heading">
         <span class="count" id="coversCount">
-            <strong><span>$ungettext("1 work", "%(count)d works", page.work_count, count=page.work_count)</span></strong>
+            <strong><span><a href="/search?$page.subject_type=$page.name.replace('&','%26')" title="$_('See all works')">$ungettext("%(count)d work", "%(count)d works", page.work_count, count=page.work_count)</a></span></strong>
         </span>
     </span>
     <a href="#search" class="shift">$_('Search for books with subject %(name)s.', name=page.name)</a>
@@ -24,13 +24,6 @@ $ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), 
     </form>
 </div>
 
-<script type="text/javascript">
-<!--
-window.q.push( function () {
-    window.page = new Subject($:json_encode(page));
-} );
-//-->
-</script>
 <div class="contentBody">
 
   $:render_template("books/custom_carousel", books=page.works, key="subjects", load_more={"url": page.key + ".json", "limit": len(page.works)})
@@ -55,7 +48,7 @@ window.q.push( function () {
     </div>
 
     <div class="clearfix"></div>
-    
+
     <div class="head" id="subjectRelated">
       <h2>$_("Related...")
         <!--
@@ -88,7 +81,7 @@ $jsdef renderAuthors(authors):
         <span class="tag">
             <a href="$a.key" title="$_('See more books by, and learn about, this author')">$a.name</a>,
         </span>
-        <span class="count">$ungettext("1 book", "%(count)d books", a.count, count=a.count)</span>
+        <span class="count">$ungettext("%(count)d book", "%(count)d books", a.count, count=a.count)</span>
         <br/>
 <div id="resultsAuthors" class="widget-box">
   <div class="head">
@@ -103,16 +96,6 @@ $jsdef renderAuthors(authors):
 
 $ publishers_feature_enabled = "publishers" in ctx.features
 
-<script type="text/javascript">
-<!--
-window.q.push( function () {
-    var page = window.page;
-    $ page_key = page.key[page.key.rindex('/')+1:]
-    var page_key = "$page_key";
-    var publishers_feature_enabled = $:json_encode(publishers_feature_enabled);
-} );
-//-->
-</script>
 $jsdef renderPublishers(publishers):
     $for p in publishers:
         <span class="tag">
@@ -121,13 +104,13 @@ $jsdef renderPublishers(publishers):
             $else:
                 <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')&amp;publisher_facet=$p.name.replace('"', '\\"').replace('&','%26')" title="$_('Get more information about this publisher')">$p.name</a>,
         </span>
-        <span class="count">$ungettext("1 edition", "%(count)s editions", p.count, count=commify(p.count))</span>
+        <span class="count">$ungettext("%(count)s edition", "%(count)s editions", p.count, count=commify(p.count))</span>
         <br/>
 
 $if "lists" in ctx.features:
     <div class="spacer"></div>
     <div id="subjectLists" class="widget-box">
-        $:render_template("lists/widget", page, include_rating=False)
+        $:render_template("lists/widget", page, include_rating=False, exclude_own_lists=True)
     </div>
 
 <div class="section clearfix"></div>

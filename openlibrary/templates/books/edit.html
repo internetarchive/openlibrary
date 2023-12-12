@@ -5,42 +5,7 @@ $ this_title = work.title + ': ' + work.subtitle if work.get('subtitle', None) e
 $var title: $this_title
 $putctx("robots", "noindex,nofollow")
 
-<script type="text/javascript">
-function limitChars(textid, limit, infodiv) {
-    var text = \$('#'+textid).val();
-    var textlength = text.length;
-    if(textlength > limit) {
-        \$('#'+infodiv).html('Maximum length is '+limit+' characters');
-        \$('#'+textid).val(text.substr(0,limit));
-        return false;
-    } else {
-        \$('#'+infodiv).html('You have '+ (limit - textlength) +' characters left');
-        return true;
-    }
-};
-window.q.push( function(){
-    \$('#excerpt').keyup(function(){limitChars('excerpt', 2000, 'charLimit');});
-    var hash = document.location.hash || "#edition";
-    var tab = hash.split("/")[0]
-    var link = "#" + "link_" + tab.substr(1);
-    var fieldname = ":input" + hash.replace('/', '-');
-
-    \$(link).click();
-
-    // input field is enabled only after the tab is selected and that takes some time after clicking the link.
-    // wait for 1 sec after clicking the link and focus the input field
-    setTimeout(function() {
-        // scroll such that top of the content is visible
-        if (\$(fieldname).length != 0) {
-            \$(fieldname).focus();
-        }
-        else {
-            \$("#tabsAddbook > div:visible :input:first").focus();
-        }
-        \$(window).scrollTop(\$("#contentHead").offset().top);
-    }, 1000);
-} );
-</script>
+$:macros.HiddenSaveButton("addWork")
 
 <div id="contentHead" class="editFormHead">
     $code:
@@ -70,22 +35,29 @@ window.q.push( function(){
             title = _("Editing...")
             note = ""
     <h2 class="editFormTitle">$:title</h2>
-    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
-        <span class="adminOnly right"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="delete">$_("Delete Record")</button></span>
+    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians')):
+        <span class="adminOnly right">
+            <form method="post" id="delete-record" name="delete">
+                <button type="submit" name="_delete" value="true" id="delete-btn">$_("Delete Record")</button>
+            </form>
+        </span>
     $if not ctx.user:
         $:render_template("lib/not_logged")
     $:note
 </div>
 
 <div id="contentBody">
-    <form method="post" id="addWork" class="olform books validate" name="edit" action="">
+    $ work_key = query_param('work_key', None)
+    $ action = '?work_key=%s' % work_key if work_key else ''
+    <form method="post" id="addWork" class="olform books validate" name="edit" action="$action">
 
         <input type="hidden" name="work--key" value="$work.key">
         $ authors = work.authors and [a.author for a in work.authors]
         <h1 class="editFormBookTitle">$this_title</h1>
         $if authors:
-            $ all_authors = u"By {},".format(" ".join(author.name for author in authors if author.name))
-            <h3 class="editFormBookAuthors">$all_authors[:-1]</h3>
+            <h3 class="editFormBookAuthors">
+                $:macros.BookByline([(author.name, author.url()) for author in authors])
+            </h3>
         <div id="tabsAddbook">
             <ul>
                 <li><a href="#about" id="link_about">$_("Work Details")</a></li>
@@ -93,7 +65,7 @@ window.q.push( function(){
                     $if edition.publishers:
                         $ edition_name = "; ".join(edition.publishers) + ' edition'
                     $else:
-                        $ edition_name = "Unknown publisher" + ' edition'
+                        $ edition_name = _('Unknown publisher edition')
 
                     $if edition.publish_date:
                         $ edition_name = truncate(edition_name, 20) + ", " + edition.publish_date
@@ -123,8 +95,8 @@ window.q.push( function(){
                                                 <p class="error">
                                                 <span>$:_('Author editing requires javascript')</span>
                                                 </p>
-                                            </noscript> 
-                                        </div>  
+                                            </noscript>
+                                        </div>
                                     </div>
                                     $:render_template("books/author-autocomplete", authors, "authors", "work--authors")
                                 </div>

@@ -11,6 +11,16 @@
     padding: 10px;
     background-color: @lightest-grey;
   }
+
+  .collapse {
+    margin: 0;
+  }
+
+  & > label {
+    display: inline-block;
+    padding: 10px 0 2px;
+  }
+
   .label {
     padding: 10px 0 2px;
 
@@ -26,6 +36,47 @@
   }
   textarea {
     width: 100%;
+  }
+
+  .multi-input-autocomplete--language {
+    hr {
+      flex-basis: 100%;
+      height: 0;
+      margin: 0;
+      border: 0;
+    }
+  }
+
+  .mia__input {
+    display: flex;
+    flex-flow: wrap;
+    flex: 1;
+
+    & + .mia__input {
+      margin-top: 3px;
+    }
+
+    .ac-input__visible {
+      flex: 1;
+      // Spacing is controlled by parent not individual input elements
+      margin: 0;
+    }
+
+    .mia__reorder {
+      cursor: move;
+      min-width: 24px;
+      text-align: center;
+    }
+
+    .mia__remove {
+      color: @red;
+      text-decoration: none;
+    }
+
+    // Weird glitch where while dragging the element is very offset
+    &.ui-sortable-helper {
+      margin-top: -20px;
+    }
   }
 
   input[type=number],
@@ -47,9 +98,10 @@
   input[type=number] {
     width: 4em;
   }
+  input[type=submit] {
+    padding: 5px;
+  }
 
-  input[type=email],
-  input[type=password],
   .required {
     padding: 8px;
   }
@@ -110,7 +162,7 @@
   .tip {
     font-size: 11px;
     color: @grey;
-    font-family: @lucida_sans_serif-1!important;
+    font-family: @lucida_sans_serif-1 !important;
   }
 }
 
@@ -132,7 +184,7 @@
     }
     .formBack:after {
       display: block;
-      content: '';
+      content: "";
       clear: both;
     }
   }
@@ -150,17 +202,15 @@
 
     .input {
       width: 100%;
+      select {
+        width: 130px;
+      }
     }
 
     .label {
       width: 90%;
     }
 
-    .input {
-      select {
-        width: 130px;
-      }
-    }
     table {
       input {
         width: 300px;

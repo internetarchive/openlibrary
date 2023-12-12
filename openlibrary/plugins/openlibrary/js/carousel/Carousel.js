@@ -14,7 +14,7 @@ const Carousel = {
      * @param {String} loadMore.pageMode of page e.g. `offset`
      */
     add: function(selector, a, b, c, d, e, f, loadMore) {
-        var responsive_settings, availabilityStatuses, addWork, url, default_limit;
+        var responsive_settings, availabilityStatuses, addWork, default_limit;
 
         a = a || 6;
         b = b || 5;
@@ -77,76 +77,92 @@ const Carousel = {
             open: {cls: 'cta-btn--available', cta: 'Read'},
             borrow_available: {cls: 'cta-btn--available', cta: 'Borrow'},
             borrow_unavailable: {cls: 'cta-btn--unavailable', cta: 'Join Waitlist'},
-            error: {cls: 'cta-btn--missing', cta: 'Not In Library'}
+            error: {cls: 'cta-btn--missing', cta: 'Not In Library'},
+            // private: {cls: 'cta-btn--available', cta: 'Preview'}
         };
 
         addWork = function(work) {
-            var availability = work.availability.status;
-            var ocaid = work.availability.identifier;
-            var cover = {
+            const availability = work.availability || {};
+            const ocaid = availability.identifier ||
+                work.lending_identifier_s ||
+                (work.ia ? work.ia[0] : undefined);
+            // Use solr data to augment availability API
+            if (!availability.status || availability.status === 'error') {
+                if (work.lending_identifier_s) {
+                    availability.status = 'borrow_available';
+                } else if (ocaid) {
+                    availability.status = 'private';
+                }
+            }
+            const cover = {
                 type: 'id',
-                id: work.covers ? work.covers[0] : work.cover_id || work.cover_i
+                id: work.covers ? work.covers[0] : (work.cover_id || work.cover_i)
             };
-            var cls = availabilityStatuses[availability].cls;
-            var url = (cls == 'cta-btn--available') ?
-                (`/borrow/ia/${ocaid}`) : (cls == 'cta-btn--unavailable') ?
-                    (`/books/${work.availability.openlibrary_edition}`) : work.key;
-            var cta = availabilityStatuses[availability].cta;
-            var isClickable = availability == 'error' ? 'disabled' : '';
+            const availabilityStatus = availabilityStatuses[availability.status] || availabilityStatuses.error;
+            const cls = availabilityStatus.cls;
+            const cta = availabilityStatus.cta;
+            const url = cls === 'cta-btn--available' ? `/borrow/ia/${ocaid}` : work.key;
 
             if (!cover.id && ocaid) {
                 cover.type = 'ia';
                 cover.id = ocaid;
             }
 
-            return `${'<div class="book carousel__item slick-slide slick-active" ' +
-                '"aria-hidden="false" role="option">' +
-                '<div class="book-cover">' +
-                  '<a href="'}${work.key}" ${isClickable}>` +
-                    `<img class="bookcover" width="130" height="200" title="${
-                        work.title}" ` +
-                      `src="//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg">` +
-                  '</a>' +
-                '</div>' +
-                '<div class="book-cta">' +
-                  `<a class="btn cta-btn ${cls}" href="${url
-                  }" data-ol-link-track="subjects" ` +
-                    `title="${cta}: ${work.title
-                    }" data-key="subjects" data-ocaid="${ocaid}">${cta
-                    }</a>` +
-                '</div>' +
-              '</div>';
+            let bookCover;
+            if (cover.id) {
+                bookCover = `<img class="bookcover" src="//covers.openlibrary.org/b/${cover.type}/${cover.id}-M.jpg?default='https://openlibrary.org/images/icons/avatar_book.png'">`
+            } else {
+                bookCover = `
+                    <div class="carousel__item__blankcover bookcover">
+                        <div class="carousel__item__blankcover--title">${work.title}</div>
+                        ${work.author_name ? `<div class="carousel__item__blankcover--authors">${work.author_name}</div>` : ''}
+                    </div>`
+            }
+
+            const $el = $(`
+                <div class="book carousel__item">
+                    <div class="book-cover">
+                        <a href="${work.key}">
+                            ${bookCover}
+                        </a>
+                    </div>
+                    <div class="book-cta">
+                        <a class="btn cta-btn ${cls}"
+                           data-ol-link-track="subjects"
+                           data-key="subjects"
+                       >${cta}</a>
+                    </div>
+                </div>`);
+            $el.find('.bookcover').attr('title', work.title);
+            $el.find('.cta-btn')
+                .attr('title', `${cta}: ${work.title}`)
+                .attr('data-ocaid', ocaid)
+                .attr('href', url);
+            return $el;
         }
 
         // if a loadMore config is provided and it has a (required) url
         if (loadMore && loadMore.url) {
-            url;
-            try {
-                // exception handling needed in case loadMore.url is relative path
-                url = new URL(loadMore.url);
-            } catch (e) {
-                url = new URL(window.location.origin + loadMore.url);
-            }
+            // handle relative path
+            const url = loadMore.url.startsWith('/') ? new URL(location.origin + loadMore.url) : new URL(loadMore.url);
+
             default_limit = 18; // 3 pages of 6 books
             url.searchParams.set('limit', loadMore.limit || default_limit);
             loadMore.pageMode = loadMore.pageMode === 'page' ? 'page' : 'offset'; // verify pagination mode
             loadMore.locked = false; // prevent additional calls when not in critical section
 
             // Bind an action listener to this carousel on resize or advance
-            $(selector).on('afterChange', function() {
-                var totalSlides = $(`${selector}.slick-slider`)
-                    .slick('getSlick').$slides.length;
-                var numActiveSlides = $(`${selector} .slick-active`).length;
-                var currentLastSlide = $(`${selector}.slick-slider`)
-                    .slick('slickCurrentSlide') + numActiveSlides;
+            $(selector).on('afterChange', function(ev, slick, curSlide) {
+                const totalSlides = slick.$slides.length;
+                const numActiveSlides = slick.$slides.filter('.slick-active').length;
                 // this allows us to pre-load before hitting last page
-                var lastSlideOn2ndLastPage = (totalSlides - numActiveSlides);
+                const isOn2ndLastPage = curSlide >= Math.max(0, totalSlides - numActiveSlides * 2);
 
-                if (!loadMore.locked && (currentLastSlide >= lastSlideOn2ndLastPage) && (currentLastSlide < totalSlides)) {
+                if (!loadMore.locked && !loadMore.allDone && isOn2ndLastPage) {
                     loadMore.locked = true; // lock for critical section
-                    document.body.style.cursor='wait'; // change mouse to spin
+                    slick.addSlide('<div class="carousel__item carousel__loading-end">Loading...</div>');
 
-                    if (loadMore.pageMode == 'page') {
+                    if (loadMore.pageMode === 'page') {
                         // for first time, we're on page 1 already so initialize as page 2
                         // otherwise advance to next page
                         loadMore.page = loadMore.page ? loadMore.page + 1 : 2;
@@ -157,25 +173,44 @@ const Carousel = {
                     // update the current page or offset within the URL
                     url.searchParams.set(loadMore.pageMode, loadMore.page);
 
-                    $.ajax({
-                        url: url,
-                        type: 'GET',
-                        success: function(subject_results) {
-                            var works = subject_results.works;
-                            if (!works) {
-                                works = subject_results.docs;
+                    $.ajax({ url: url, type: 'GET' })
+                        .then(function(results) {
+                            const works = results.works || results.docs;
+                            // Remove loading indicator
+                            slick.removeSlide(totalSlides);
+                            works.forEach(work => slick.addSlide(addWork(work)));
+                            if (!works.length) {
+                                loadMore.allDone = true;
                             }
-                            $.each(works, function(work_idx) {
-                                var work = works[work_idx];
-                                var lastSlidePos = $(`${selector}.slick-slider`)
-                                    .slick('getSlick').$slides.length - 1;
-                                $(selector).slick('slickAdd', addWork(work), lastSlidePos);
-                            });
-                            document.body.style.cursor='default'; // return cursor to ready
                             loadMore.locked = false;
-                        }
-                    });
+                        });
                 }
+            });
+
+            document.addEventListener('filter', function(ev) {
+                url.searchParams.set('published_in', `${ev.detail.yearFrom}-${ev.detail.yearTo}`);
+
+                // Reset the page count - the result set is now 'new'
+                loadMore.page = 2;
+
+                const slick = $(selector).slick('getSlick');
+                const totalSlides = slick.$slides.length;
+
+                // Remove the current slides
+                slick.removeSlide(totalSlides, true, true);
+                slick.addSlide('<div class="carousel__item carousel__loading-end">Loading...</div>');
+
+                $.ajax({ url: url, type: 'GET' })
+                    .then(function(results) {
+                        const works = results.works || results.docs;
+                        // Remove loading indicator
+                        slick.slickRemove(0);
+                        works.forEach(work => slick.addSlide(addWork(work)));
+                        if (!works.length) {
+                            loadMore.allDone = true;
+                        }
+                        loadMore.locked = false;
+                    });
             });
         }
     }

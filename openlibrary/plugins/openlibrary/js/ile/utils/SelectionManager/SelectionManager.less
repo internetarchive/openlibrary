@@ -1,0 +1,95 @@
+@selection-outline: #009fff;
+@selection-background: #c2e8ff;
+@ile-toolbar-background: #0067d5;
+@ile-toolbar-text-color: white;
+// Not sure where to put this...
+@ile-toolbar-z-index: 1;
+
+.ile-drag-over {
+  box-shadow: 0 0 10px 2px inset @selection-outline;
+}
+.ile-selectable {
+  box-shadow: 0 0 0 2px inset rgba(0,0,0,.1);
+  transition-duration: .2s;
+  transition-property: background-color, box-shadow;
+  border-radius: 4px;
+}
+.ile-selected {
+  box-shadow: 0 0 0 2px inset @selection-outline;
+  background: @selection-background;
+}
+#ile-toolbar {
+  display: flex;
+  position: sticky;
+  bottom: 12px;
+  padding: 7px;
+  margin: 0 15px;
+  border-radius: 5px;
+  background: @ile-toolbar-background;
+  color: @ile-toolbar-text-color;
+  z-index: @ile-toolbar-z-index;
+  font-size: .9em;
+}
+#ile-toolbar a {
+  padding: 4px 16px;
+  display: inline-block;
+  color: @ile-toolbar-text-color;
+  text-decoration: none;
+  border-left: 2px dotted @ile-toolbar-text-color;
+  transition: background .2s;
+  cursor: pointer;
+}
+#ile-selection-actions {
+  display: inline-block;
+}
+#ile-selections {
+  flex: 1;
+}
+#ile-drag-status {
+  display: inline-block;
+}
+#ile-drag-status .drag-image {
+  max-width: 300px;
+}
+#ile-drag-status .text {
+  border-radius: 100px;
+  background: @ile-toolbar-background;
+  padding: 4px 16px;
+}
+#ile-drag-status .images {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 8px;
+}
+#ile-drag-status ul {
+  display: flex;
+}
+#ile-drag-status .images img {
+  max-width: 100%;
+  height: 80px;
+  object-fit: cover;
+  object-position: right;
+}
+#ile-drag-status .images li:first-child {
+  flex-shrink: 0;
+}
+#ile-drag-actions a:hover { background: rgba(0,0,0,.15); }
+
+a.ile-selectable[href^="/authors/OL"] {
+  padding-right: 4px;
+  text-decoration: none;
+}
+
+.ile-select-handle {
+  padding: 0 5px;
+  text-decoration: none;
+  opacity: .2;
+  cursor: default;
+  transition: opacity .2s;
+  color: @selection-outline;
+}
+
+.ile-selected .ile-select-handle,
+.ile-select-handle:hover {
+  opacity: 1;
+}

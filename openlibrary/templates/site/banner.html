@@ -1,0 +1,11 @@
+$def with (announcement, storage_key)
+
+$# Renders a dismissable banner element containing the given announcement
+$# announcement (str) -- Rendered content that will be displayed in the banner
+$# storage_key (str) -- identifier for the banner. If the user dismisses the banner, storage_key will be added to the user's preferences to prevent the banner from showing again.
+
+<div data-storage-key="$storage_key" id="announcement-banner" class="page-banner--dismissable">
+    <span class="page-banner--dismissable-content">$:announcement</span>
+    $if ctx.user:
+        <button class="page-banner--dismissable-close" id="close-banner">X</button>
+</div>

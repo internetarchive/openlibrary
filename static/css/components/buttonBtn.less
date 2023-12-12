@@ -19,3 +19,50 @@ a {
     text-decoration: none;
   }
 }
+
+/* These should be in their own chip.less file */
+.chip {
+  padding: 4px 12px;
+  border: 1px solid @mid-grey;
+  border-radius: 16px;
+  user-select: none;
+  width: fit-content;
+}
+
+.chip a{
+  text-decoration: none;
+}
+
+.chip--selectable {
+  cursor: pointer;
+}
+
+.chip--selectable:hover {
+  background-color: @grey-e7e7e7;
+}
+
+.chip--selected {
+  border-color: @primary-blue;
+  color: @primary-blue;
+  background-color: @grey-e7e7e7;
+}
+
+.chip--selected:hover {
+  background-color: @white;
+}
+
+.chip-group {
+  display: flex;
+  flex-flow: column wrap;
+}
+
+.category-chip {
+  margin-right: 1em;
+  margin-bottom: .5em;
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .chip-group {
+    flex-direction: row;
+  }
+}

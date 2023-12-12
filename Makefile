@@ -5,8 +5,6 @@
 
 BUILD=static/build
 ACCESS_LOG_FORMAT='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"'
-GITHUB_EDITOR_WIDTH=127
-FLAKE_EXCLUDE=./.*,scripts/20*,vendor/*,node_modules/*
 COMPONENTS_DIR=openlibrary/components
 
 # Use python from local env if it exists or else default to python in the path.
@@ -17,14 +15,11 @@ PYTHON=$(if $(wildcard env),env/bin/python,python)
 all: git css js components i18n
 
 css: static/css/page-*.less
-	mkdir --parents $(BUILD)
-	for asset in $^; do \
-		echo "Compressing $$asset"; \
-	    npx lessc $$asset $(BUILD)/$$(basename $$asset .less).css --clean-css="--s1 --advanced --compatibility=ie8"; \
-	done
+	mkdir -p $(BUILD)
+	parallel --verbose -q npx lessc {} $(BUILD)/{/.}.css --clean-css="--s1 --advanced" ::: $^
 
 js:
-	mkdir --parents $(BUILD)
+	mkdir -p $(BUILD)
 	rm -f $(BUILD)/*.js $(BUILD)/*.js.map
 	npm run build-assets:webpack
 	# This adds FSF licensing for AGPLv3 to our js (for librejs)
@@ -34,24 +29,20 @@ js:
 	done
 
 components: $(COMPONENTS_DIR)/*.vue
-	mkdir --parents $(BUILD)
+	mkdir -p $(BUILD)
 	rm -rf $(BUILD)/components
-	for component in $^; do \
-		echo $$component; \
-		npx vue-cli-service build --no-clean --mode development --dest $(BUILD)/components/development --target wc --name "ol-$$(basename $$component .vue)" "$$component"; \
-		npx vue-cli-service build --no-clean --mode production --dest $(BUILD)/components/production --target wc --name "ol-$$(basename $$component .vue)" "$$component"; \
-	done
+	# Run these silly things one at a time, because they don't support parallelization :(
+	parallel --verbose -q --jobs 1 \
+		npx vue-cli-service build --no-clean --mode production --dest $(BUILD)/components/production --target wc --name "ol-{/.}" "{}" \
+	::: $^
 
 i18n:
 	$(PYTHON) ./scripts/i18n-messages compile
 
-git:	
-#Do not run these on DockerHub since it recursively clones all the repos before build initiates
-ifneq ($(DOCKER_HUB),TRUE)
+git:
 	git submodule init
 	git submodule sync
 	git submodule update
-endif
 
 clean:
 	rm -rf $(BUILD)
@@ -66,22 +57,23 @@ load_sample_data:
 	curl http://localhost:8080/_dev/process_ebooks # hack to show books in returncart
 
 reindex-solr:
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://web/ -c conf/openlibrary.yml --data-provider=legacy
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://web/ -c conf/openlibrary.yml --data-provider=legacy
-
-lint-diff:
-	git diff master -U0 | ./scripts/flake8-diff.sh
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py --ol-url http://web:8080/ --ol-config conf/openlibrary.yml --data-provider=legacy --solr-next
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py --ol-url http://web:8080/ --ol-config conf/openlibrary.yml --data-provider=legacy --solr-next
+	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py subject
+	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py person
+	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py place
+	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py time
 
 lint:
-	# stop the build if there are Python syntax errors or undefined names
-	$(PYTHON) -m flake8 . --count --exclude=$(FLAKE_EXCLUDE) --select=E9,F63,F7,F82 --show-source --statistics
-ifndef CONTINUOUS_INTEGRATION
-	# exit-zero treats all errors as warnings, only run this in local dev while fixing issue, not CI as it will never fail.
-	$(PYTHON) -m flake8 . --count --exclude=$(FLAKE_EXCLUDE) --exit-zero --max-complexity=10 --max-line-length=$(GITHUB_EDITOR_WIDTH) --statistics
-endif
+	# See the pyproject.toml file for ruff's settings
+	$(PYTHON) -m ruff --no-cache .
 
 test-py:
-	pytest . --ignore=tests/integration --ignore=scripts/2011 --ignore=infogami --ignore=vendor --ignore=node_modules
+	pytest . --ignore=tests/integration --ignore=infogami --ignore=vendor --ignore=node_modules
 
-test: 
-	make test-py && npm run test
+test-i18n:
+	# Valid locale codes should be added as arguments to validate
+	$(PYTHON) ./scripts/i18n-messages validate de es fr hr it ja zh
+
+test:
+	make test-py && npm run test && make test-i18n

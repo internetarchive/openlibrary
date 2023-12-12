@@ -23,7 +23,7 @@ msgstr ""
 #: verify.html:5 verify/activated.html:6 verify/success.html:6
 #, python-format
 msgid "Hi, %(user)s"
-msgstr "Ahoj %(user)"
+msgstr "Ahoj %(user)s"
 
 #: account.py:348 account.py:383
 #, fuzzy, python-format
@@ -643,11 +643,11 @@ msgid "Email Verification Successful"
 msgstr "Ověření emailu uspělo"
 
 #: verify/success.html:11
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "Yay! Your email address has been verified. Please <a href='%s'>log in to "
 "continue</a>."
-msgstr "Váš email úspěšně ověřen a aktualizován ve vašem účtu."
+msgstr ""
 
 #: add.html:3 check.html:3
 msgid "Add a book"
@@ -950,7 +950,7 @@ msgid "Either choose a JPG, GIF or PNG on your computer,"
 msgstr ""
 
 #: edit/addcover.html:22
-msgid "<u>Or</u></span>, paste in a URL to an image if it's on the web."
+msgid "<span class=\"highlight\"><u>Or</u></span>, paste in a URL to an image if it's on the web."
 msgstr ""
 
 #: edit/addcover.html:31
@@ -1382,7 +1382,7 @@ msgid "Choose a JPG, GIF or PNG on your computer,"
 msgstr ""
 
 #: add.html:111
-msgid "<u>Or</u></span>, paste in the image URL if it's on the web."
+msgid "Or, paste in the image URL if it's on the web."
 msgstr ""
 
 #: add.html:119
@@ -2409,12 +2409,12 @@ msgstr ""
 #~ msgid ""
 #~ "<strong>Open Library is temporarily "
 #~ "offline.</strong><br/>Please <a "
-#~ "href=\"http://blog.openlibrary.org/\">visit our blog</a>"
+#~ "href=\"https://blog.openlibrary.org/\">visit our blog</a>"
 #~ " for updates about site status."
 #~ msgstr ""
 #~ "<strong>Open Library je dočasně "
 #~ "offline.</strong><br/>Prosím <a "
-#~ "href=\"http://blog.openlibrary.org/\">navštivte náš "
+#~ "href=\"https://blog.openlibrary.org/\">navštivte náš "
 #~ "blog</a> pro informace o stavu stránek."
 
 #~ msgid "books in"

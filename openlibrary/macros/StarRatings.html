@@ -1,37 +1,50 @@
-$def with (work, edition)
+$def with (work, edition=None, redir_url=None, id='', rating=None)
 
 $ username = ctx.user and ctx.user.key.split('/')[-1]
-$ rating = work and username and work.get_users_rating(username)
+$if rating is None and work and username:
+  $ rating = work.get_users_rating(username)
 $ edition_key = edition.key if edition else ""
+$ form_id = "ratingsForm%s" % id
 
-<form id="ratingsForm" method="POST" action="$(work.key)/ratings.json"
+<form class="star-rating-form" id="$form_id" method="POST" action="$(work.key)/ratings.json"
       property="reviewRating" typeof="Rating" vocab="http://schema.org/">
   <meta property="worstRating" content="1"/>
   <meta property="bestRating" content="5"/>
   <input type="hidden" value="$edition_key" name="edition_id"/>
   <input type="hidden" value="true" name="redir"/>
-  <div class="stars">
-    $ NUM_STARS = 5
-    $for star in range(1, NUM_STARS + 1)
-      <input type="submit" value="$star" name="rating"
-        $if rating == star:
-          class="star-$star star-selected"
-        $else:
-          class="star-$star"
-        id="star-$star" />
-      <label class="star star-$star $('star-selected' if rating==star else '')"
-        $ properties = []
-        $if star == rating:
-          $ properties.append("ratingValue")
-        $if star == 1:
-          $ properties.append("worstRating")
-        $elif (star == NUM_STARS):
-          $ properties.append("bestRating")
-        $if properties:
-          property="$(' '.join(properties))"
-        for="star-$star">$star</label>
-    <span></span>
+  $if redir_url:
+    $ page = query_param('page', '0')
+    $if safeint(page) > 1:
+      <input type="hidden" value="$page" name="page"/>
+    <input type="hidden" value="$redir_url" name="redir_url"/>
+  <div class="review" id="starRatingSection">
+    <div class="stars" data-ol-link-track="StarRating|BookRated">
+      $ NUM_STARS = 5
+      $for star in range(1, NUM_STARS + 1)
+        <input type="submit" value="$star" name="rating"
+          $if rating == star:
+            class="star-$star star-selected"
+          $else:
+            class="star-$star"
+          id="star-$star$id" />
+        <label class="star star-$star $('star-selected' if rating==star else '')"
+          $ properties = []
+          $if star == rating:
+            $ properties.append("ratingValue")
+          $if star == 1:
+            $ properties.append("worstRating")
+          $elif (star == NUM_STARS):
+            $ properties.append("bestRating")
+          $if properties:
+            property="$(' '.join(properties))"
+          for="star-$star$id">$star</label>
+      $# Empty span is necessary. It displays the filled stars.
+      <span></span>
+    </div>
   </div>
-  $if rating:
-      <button type="submit" class="star-messaging">$_("Clear my rating")</button>
+  $ class_list = "star-messaging"
+  $if not rating:
+    $ class_list = "%s hidden" % (class_list)
+    <span class="star-rating__not-rated">Rate</span>
+  <button type="submit" class="$class_list">$_("Clear my rating")</button>
 </form>

@@ -1,0 +1,73 @@
+{
+  "publish_date": "2009",
+  "publish_country": "mr",
+  "languages": [
+    "ara",
+    "fre"
+  ],
+  "oclc_numbers": [
+    "672263227"
+  ],
+  "other_titles": [
+    "Intiqāl al-afkār wa-al-taqnīyāt fī al-Maghārib wa-al-ʻālam al-mutawassiṭī",
+    "Transmission des idées et des techniques au Maghreb et en Méditerranée"
+  ],
+  "edition_name": "al-Ṭabʻah 1.",
+  "series": [
+    "Silsilat nadawāt wa-munāẓarāt -- raqm 160",
+    "Manshūrāt Kullīyat al-Ādāb wa-al-ʻUlūm al-Insānīyah bi-al-Rabāṭ -- raqm 160"
+  ],
+  "notes": "Includes bibliographical references.\n\nArabic and French.",
+  "authors": [
+    {
+      "name": "El Moudden, Abderrahmane",
+      "entity_type": "person",
+      "personal_name": "El Moudden, Abderrahmane",
+      "alternate_names": [
+	"مودن، عبد الرحمن"
+      ]
+    }
+  ],
+  "contributions": [
+    "Bin-Ḥāddah, ʻAbd al-Raḥīm",
+    "Gharbi, Mohamed Lazhar",
+    "Jāmiʻat Muḥammad al-Khāmis. Kullīyat al-Ādāb wa-al-ʻUlūm al-Insānīyah"
+  ],
+  "subjects": [
+    "Political science",
+    "Congresses",
+    "History",
+    "Influence",
+    "Medicine",
+    "Islamic civilization",
+    "Intellectual life",
+    "Military History",
+    "Archives"
+  ],
+  "subject_places": [
+    "Mediterranean Region",
+    "Islamic Empire",
+    "Morocco",
+    "North Africa",
+    "Turkey"
+  ],
+  "subject_times": [
+    "18th century",
+    "20th century",
+    "1516-1830",
+    "Ottoman Empire, 1288-1918"
+  ],
+  "title": "انتقال الأفكار و التقنيات في المغارب و العالم المتوسطي",
+  "by_statement": "tansīq ʻAbd al-Raḥmān al-Mawdin, ʻAbd al-Raḥīm Binḥāddah, Muḥammad al-Azhar al-Gharbī",
+  "publishers": [
+    "Jāmiʻat Muḥammad al-Khāmis, Kullīyat al-Ādāb wa-al-ʻUlūm al-Insānīyah"
+  ],
+  "publish_places": [
+    "Al-Ribāṭ, al-Maghrib"
+  ],
+  "isbn_13": [
+    "9789981591572"
+  ],
+  "pagination": "247, 16 pages",
+  "number_of_pages": 247
+}

@@ -5,8 +5,8 @@ $ pages = list_pages(path, limit=limit, offset=page * limit)
 
 <div class="sansserif">
 $if page != 0:
-    <a href="$:changequery(page=page - 1)" rel="nofollow">&lt; $_.prev</a> <strong>&middot;</strong>
+    <a href="$changequery(page=page - 1)" rel="nofollow">&lt; $_.prev</a> <strong>&middot;</strong>
 
 $if len(pages) == limit:
-    <a href="$:changequery(page=page + 1)" rel="nofollow">$_.next &gt;</a>
+    <a href="$changequery(page=page + 1)" rel="nofollow">$_.next &gt;</a>
 </div>

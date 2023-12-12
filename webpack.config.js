@@ -1,7 +1,7 @@
 /* eslint-env node, es6 */
 // https://webpack.js.org/configuration
 const
-    webpack = require('webpack'),
+    webpack = require('webpack5'),
     path = require('path'),
     prod = process.env.NODE_ENV === 'production',
     // The output directory for all build artifacts. Only absolute paths are accepted by
@@ -29,7 +29,9 @@ module.exports = {
     // A map of ResourceLoader module / entry chunk names to JavaScript files to pack.
     entry: {
         all: './openlibrary/plugins/openlibrary/js/index.js',
+        partnerLib: './openlibrary/plugins/openlibrary/js/partner_ol_lib.js',
         vue: './openlibrary/plugins/openlibrary/js/vue.js',
+        sw: './openlibrary/plugins/openlibrary/js/service-worker.js',
     },
 
     resolve: {
@@ -39,11 +41,12 @@ module.exports = {
         new webpack.ProvidePlugin({
             $: 'jquery',
             jQuery: 'jquery'
-        })
+        }),
     ],
     module: {
-        rules: [ {
+        rules: [{
             test: /\.js$/,
+            exclude: /node_modules/,
             use: {
                 loader: 'babel-loader',
                 options: {
@@ -54,12 +57,22 @@ module.exports = {
             }
         }, {
             test: /\.less$/,
-            loader: [
-                'style-loader',
-                'css-loader',
-                'less-loader' // compiles Less to CSS
+            use: [
+                {
+                    loader: 'style-loader'
+                },
+                {
+                    loader: 'css-loader',
+                    options: {
+                        url: false
+                    }
+                },
+                {
+                    // compiles Less to CSS
+                    loader: 'less-loader'
+                }
             ]
-        } ]
+        }]
     },
     optimization: {
         splitChunks: {
@@ -72,7 +85,7 @@ module.exports = {
             }
         },
         // Don't produce production output when a build error occurs.
-        noEmitOnErrors: prod
+        emitOnErrors: !prod
     },
 
     output: {
@@ -91,7 +104,7 @@ module.exports = {
 
         // Expose the module.exports of each module entry chunk through the global
         // ol (open library)
-        library: [ 'ol' ],
+        library: ['ol'],
         libraryTarget: 'this'
     },
 
@@ -99,7 +112,7 @@ module.exports = {
     // The source map is intentionally exposed
     // to users via sourceMapFilename for prod debugging.
     devtool: 'source-map',
-    mode: prod,
+    mode: prod ? 'production' : 'development',
 
     performance: {
         maxAssetSize: 703 * 1024,

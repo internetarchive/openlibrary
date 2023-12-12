@@ -2,6 +2,7 @@ import { debounce } from './nonjquery_utils.js';
 import * as SearchUtils from './SearchUtils';
 import { PersistentValue } from './SearchUtils';
 import $ from 'jquery';
+import { websafe } from './jsdef'
 
 /** Mapping of search bar facets to search endpoints */
 const FACET_TO_ENDPOINT = {
@@ -17,6 +18,7 @@ const DEFAULT_JSON_FIELDS = [
     'key',
     'cover_i',
     'title',
+    'subtitle',
     'author_name',
     'name',
 ];
@@ -27,20 +29,19 @@ const RENDER_AUTOCOMPLETE_RESULT = {
         return `
             <li>
                 <a href="${work.key}">
-                    <img src="//covers.openlibrary.org/b/id/${work.cover_i}-S.jpg"/>
+                    <img src="//covers.openlibrary.org/b/id/${work.cover_i}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png" alt=""/>
                     <span class="book-desc">
-                        <div class="book-title">${work.title}</div> by <span class="book-author">${author_name}</span>
+                        <div class="book-title">${websafe(work.title)}</div><div class="book-subtitle">${websafe(work.subtitle)}</div> by <span class="book-author">${websafe(author_name)}</span>
                     </span>
                 </a>
             </li>`;
     },
     ['/search/authors'](author) {
-        // Todo: default author img to: https://dev.openlibrary.org/images/icons/avatar_author-lg.png
         return `
             <li>
                 <a href="/authors/${author.key}">
-                    <img src="http://covers.openlibrary.org/a/olid/${author.key}-S.jpg"/>
-                    <span class="author-desc"><div class="author-name">${author.name}</div></span>
+                    <img src="//covers.openlibrary.org/a/olid/${author.key}-S.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png" alt=""/>
+                    <span class="author-desc"><div class="author-name">${websafe(author.name)}</div></span>
                 </a>
             </li>`;
     }
@@ -79,7 +80,7 @@ export class SearchBar {
         // Bind to changes in the search state
         SearchUtils.mode.sync(this.handleSearchModeChange.bind(this));
         this.facet.sync(this.handleFacetValueChange.bind(this));
-        this.$facetSelect.change(this.handleFacetSelectChange.bind(this));
+        this.$facetSelect.on('change', this.handleFacetSelectChange.bind(this));
         this.$form.on('submit', this.submitForm.bind(this));
 
         this.initAutocompletionLogic();
@@ -99,9 +100,9 @@ export class SearchBar {
             this.facet.write(urlParams.facet);
         }
 
-        if (urlParams.q) {
+        if (urlParams.q && window.location.pathname.match(/^\/search/)) {
             let q = urlParams.q.replace(/\+/g, ' ');
-            if (this.facet.read() === 'title' && q.indexOf('title:') != -1) {
+            if (this.facet.read() === 'title' && q.indexOf('title:') !== -1) {
                 const parts = q.split('"');
                 if (parts.length === 3) {
                     q = parts[1];
@@ -123,14 +124,28 @@ export class SearchBar {
     /** Initialize event handlers that allow the form to collapse for small screens */
     initCollapsibleMode() {
         this.toggleCollapsibleModeForSmallScreens($(window).width());
-        $(window).resize(debounce(() => {
+        $(window).on('resize', debounce(() => {
             this.toggleCollapsibleModeForSmallScreens($(window).width());
         }, 50));
-        $(document).on('submit','.in-collapsible-mode', event => {
-            if (this.collapsed) {
+
+        const expandAndFocusSearch = (event) => {
+            if (this.inCollapsibleMode && this.collapsed) {
                 event.preventDefault();
                 this.toggleCollapse();
-                this.$input.focus();
+                this.$input.trigger('focus');
+            }
+        }
+        const expandSelectors = ['.search-component', 'a[href="/search"]'];
+
+        // When clicking on the search bar or a link to /search, expand search if it isn't already.
+        // If clicking elsewhere, collapse search.
+        $(document).on('submit', '.in-collapsible-mode', event => expandAndFocusSearch(event));
+        $(document).on('click', event => {
+            const shouldExpand = (item) => $(event.target).closest(item).length === 1;
+            if (expandSelectors.some(shouldExpand)) {
+                expandAndFocusSearch(event);
+            } else {
+                if (!this.collapsed) this.toggleCollapse();
             }
         });
     }
@@ -196,7 +211,7 @@ export class SearchBar {
     static composeSearchUrl(facetEndpoint, q, json=false, limit=null, fields=null) {
         let url = facetEndpoint;
         if (json) {
-            url += `.json?q=${q}&_facet=false&_spellcheck_count=0`;
+            url += `.json?q=${q}&_spellcheck_count=0`;
         } else {
             url += `?q=${q}`;
         }
@@ -213,7 +228,7 @@ export class SearchBar {
      * @return {String}
      */
     static marshalBookSearchQuery(q) {
-        if (q && q.indexOf(':') == -1 && q.indexOf('"') == -1) {
+        if (q && q.indexOf(':') === -1 && q.indexOf('"') === -1) {
             q = `title: "${q}"`;
         }
         return q;
@@ -259,7 +274,7 @@ export class SearchBar {
             const renderer = RENDER_AUTOCOMPLETE_RESULT[this.facetEndpoint];
             this.$results.css('opacity', 1);
             this.clearAutocompletionResults();
-            for (let d in data.docs) {
+            for (const d in data.docs) {
                 this.$results.append(renderer(data.docs[d]));
             }
         });
@@ -292,7 +307,7 @@ export class SearchBar {
     handleFacetSelectChange(event) {
         const newFacet = event.target.value;
         // We don't want to persist advanced becaues it behaves like a button
-        if (newFacet == 'advanced') {
+        if (newFacet === 'advanced') {
             event.preventDefault();
             this.navigateTo('/advancedsearch');
         } else {

@@ -16,7 +16,7 @@ $ loans = wlstats.get_available_waiting_loans(limit=50, offset=offset)
 $if not loans:
     <em>None found.</em>
 $else:
-    <div id="borrowTable" class="borrow collapse">
+    <div class="borrow borrow-table collapse">
     <table>
         <thead>
             <tr>
@@ -47,7 +47,6 @@ $else:
                         <a href="$book.key" class="borrowResults"><strong>$book.title</strong></a>
                     </span>
                     </div>
-                    <div><a href="$book.url(suffix='/borrow_admin')">debug_info</a></div>
                 </td>
                 <td class="user">
                     <a href="$user.key">$user.displayname</a>

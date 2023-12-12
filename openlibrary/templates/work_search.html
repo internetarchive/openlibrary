@@ -1,28 +1,44 @@
-$def with (input, q_param, do_search, get_doc, get_availability_of_ocaids, fulltext_search, facet_fields)
+$def with (input, q_param, do_search, get_doc, fulltext_search, facet_fields)
 
 $ fulltext_names = {'true': 'Ebooks', 'false': 'Exclude ebooks'}
 
-$def add_facet_url(k, v):
-    $if k != 'has_fulltext':
-        $changequery(page=None,**{k:param.get(k, []) + [v]})
-    $else:
-        $changequery(page=None,**{k:v})
+$code:
+    def add_facet_url(k, v):
+        if k != 'has_fulltext':
+            return changequery(page=None,**{k:param.get(k, []) + [v]})
+        else:
+            return changequery(page=None,**{k:v})
 
-$def del_facet_url(k, v):
-    $if k != 'has_fulltext':
-        $changequery(page=None,**{k:[i for i in param.get(k, []) if i != v]})
-    $else:
-        $changequery(page=None,**{k:None})
+    def del_facet_url(k, v):
+        if k != 'has_fulltext':
+            return changequery(page=None,**{k:[i for i in param.get(k, []) if i != v]})
+        else:
+            return changequery(page=None,**{k:None})
+
+    def add_track(key: str) -> str:
+        """
+        KeyError will be raised if key is not in the following dict.
+        """
+        facets = {
+            "has_fulltext": "Ebook",
+            "author_key": "Author",
+            "subject_facet": "Subjects",
+            "person_facet": "People",
+            "place_facet": "Places",
+            "time_facet": "Times",
+            "first_publish_year": "FirstPublished",
+            "publisher_facet": "Publisher",
+            "language": "Language",
+        }
+        return "SearchFacet|" + facets[key]
 
 $ param = {}
-$for p in ['q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor', 'publish_place', 'lccn', 'ia', 'first_sentence', 'publisher', 'author_key', 'debug', 'subject', 'place', 'person', 'time'] + facet_fields:
+$for p in {'q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor', 'publish_place', 'lccn', 'ia', 'first_sentence', 'publisher', 'author_key', 'debug', 'subject', 'place', 'person', 'time'} | facet_fields:
     $if p in input and input[p]:
         $ param[p] = input[p]
 
 $if list(param) == ['has_fulltext']:
     $ param = {}
-
-$ sorts = dict(editions='edition_count desc', old='first_publish_year asc', new='first_publish_year desc', scans='ia_count desc')
 
 $ error = None
 $if param:
@@ -30,7 +46,7 @@ $if param:
     $ sort = param.get('sort', None)
     $ rows = 20
     $ search_start = time()
-    $ results = do_search(param, sorts[sort] if sort else None, page, rows=rows, spellcheck_count=3)
+    $ results = do_search(param, sort, page, rows=rows, spellcheck_count=3)
     $ search_secs = time() - search_start
     $ docs = results.docs
     $ facet_counts = results.facet_counts
@@ -42,83 +58,27 @@ $else:
 
 $ start_facet_count = 5
 $ facet_inc = 10
-<script type="text/javascript">
-<!--
-start_facet_count = $start_facet_count
-facet_inc = $facet_inc
-
-function more(header) {
-    div_header = "div." + header
-    facetEntry = div_header + " div.facetEntry"
-    shown = \$(facetEntry + ":not(:hidden)").length
-    total = \$(facetEntry).length
-    if (shown == start_facet_count) {
-        \$("#" + header + "_less").show();
-        \$("#" + header + "_bull").show();
-    }
-    if (shown + facet_inc >= total) {
-        \$("#" + header + "_more").hide();
-        \$("#" + header + "_bull").hide();
-    }
-    \$(facetEntry +":hidden").slice(0,facet_inc).removeClass('hidden');
-}
-
-function less(header) {
-    div_header = "div." + header
-    facetEntry = div_header + " div.facetEntry"
-    shown = \$(facetEntry + ":not(:hidden)").length
-    total = \$(facetEntry).length
-    if (shown - facet_inc == start_facet_count) {
-        \$("#" + header + "_less").hide();
-        \$("#" + header + "_bull").hide();
-    }
-    if (shown == total) {
-        \$("#" + header + "_more").show();
-        \$("#" + header + "_bull").show();
-    }
-    \$(facetEntry + ":not(:hidden)").slice(shown-facet_inc,shown).addClass('hidden');
-}
-window.q.push(function(){
-    \$(".header_bull").hide();
-});
-//-->
-</script>
 
 <div>
-$if param and not error and num_found:
     <div id="contentHead">
-      $if num_found > 0:
-        <span class="darkgreen"><strong>$ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))</strong></span>
-&nbsp;
-      $if num_found > 1:
-        <span class="tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" width="9" height="11" style="margin-right:10px;"/>
-          $if sort == 'editions':
-            <a href="$changequery(sort=None)">$_("Relevance")</a> | <strong class="lightgreen">$_("Most Editions")</strong> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
-          $elif sort == 'old':
-            <a href="$changequery(sort=None)">$_("Relevance")</a> |  <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <strong class="lightgreen">$_("First Published")</strong> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
-          $elif sort == 'new':
-            <a href="$changequery(sort=None)">$_("Relevance")</a> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <strong class="lightgreen">$_("Most Recent")</strong>
-          $else:
-            <strong class="lightgreen">$_("Relevance")</strong> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
-
-          <span class="advanced-search"><a href="/advancedsearch">$_('Advanced Search')</a></span>
-        </span>
+      <h1>$_("Search Books")</h1>
     </div>
 
 $ facet_map = (
 $    ('has_fulltext', _('eBook?')),
+$    ('language', _('Language')),
 $    ('author_key', _('Author')),
 $    ('subject_facet', _('Subjects')),
+$    ('first_publish_year', _('First published')),
+$    ('publisher_facet', _('Publisher')),
 $    ('person_facet', _('People')),
 $    ('place_facet', _('Places')),
 $    ('time_facet', _('Times')),
-$    ('first_publish_year', _('First published')),
-$    ('publisher_facet', _('Publisher')),
-$    ('language', _('Language')),
 $    ('public_scan_b', _('Classic eBooks')),
 $ )
 
 <div id="contentBody">
+  $:macros.SearchNavigation()
   <div class="section">
 
     <form method="get" action="/search" class="siteSearch olform">
@@ -133,14 +93,24 @@ $ )
         <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">
         <label for="mode-search-printdisabled">$_('Print Disabled')</label>
       </span>
-        $ sticky = set(['author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b'])
+      $if ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians')):
+        <div style="display: flex; justify-content: flex-end"  title="$_('This is only visible to super librarians.')">
+            <label
+            style="padding: 4px; display: inline-block;"
+            onchange="document.cookie = `SOLR_EDITIONS=\${this.firstElementChild.checked ? 'true' : 'false'}`; location.reload()"
+            >
+                <input type="checkbox" $:cond(has_solr_editions_enabled(), 'checked="checked"')/>
+                $:_('Solr Editions <i>Beta</i>')
+            </label>
+        </div>
+      $ sticky = set(['sort', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b'])
 
-        $for k, values in param.items():
-            $if k not in sticky:
-                $continue
-            $for v in values if isinstance(values, list) else [values]:
-                <input type="hidden" name="$k" value="$v.replace('"', '&quot;')" />
-        </form>
+      $for k, values in param.items():
+        $if k not in sticky:
+          $continue
+        $for v in values if isinstance(values, list) else [values]:
+          <input type="hidden" name="$k" value="$v.replace('"', '&quot;')" />
+    </form>
 
         $if param and not error:
             $ title = []
@@ -188,7 +158,7 @@ $ )
                             <span title="$_('Published by')">$display</span>
                         $elif header == 'author_key':
                             <span title="$_('Author')">$display</span>
-                        <span style="padding-right:15px;"><a href="$:del_facet_url(header, k)" title="$_('Click to remove this facet')" class="facetRemove plain red">[x]</a></span>
+                        <span style="padding-right:15px;"><a href="$del_facet_url(header, k)" title="$_('Click to remove this facet')" class="facetRemove plain red">[x]</a></span>
                 </strong></span></p>
             $var title: $_('%(title)s - search', title=', '.join(title))
 
@@ -204,24 +174,38 @@ $ )
         $# results because of performance issues due to increased load. See
         $# this commit to revert.
         <center>
-            <span class="red">$_("No results found.")</span>
+          <div class="red">$_("No results found.")</div>
+          <hr>
+          <div>
             <a href="/search/inside?$urlencode(dict(q=query))">$_('Search for books containing the phrase "%s"?' % query)</a>
+          </div>
+          <hr>
+          <div>
+                <a href="/books/add">$_("Add a new book to Open Library?")</a>
+          </div>
         </center>
 
     $elif param and not error and len(docs):
-        <div class="shift">$ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))</div>
+        <div class="search-results-stats">
+          $ungettext('%(count)s hit', '%(count)s hits', num_found, count=commify(num_found))
+
+          $if num_found > 1:
+            $:render_template("search/sort_options.html", sort)
+        </div>
         <div class="resultsContainer search-results-container">
         <div id="searchResults">
-          <ul class="list-books" id="siteSearch">
-            $ works = add_availability([get_doc(d) for d in docs])
+          <ul class="list-books">
+            $ works = [get_doc(d) for d in docs]
+            $ add_availability([(w.get('editions') or [None])[0] or w for w in works])
+            $ username = ctx.user and ctx.user.key.split('/')[-1]
+            $if username:
+                $ works = add_read_statuses(username, works)
+            $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians'))
 
             $for work in works:
-                $ ocaid = work.ia[0] if work.ia else None
-                $ availability = (work.get('availability') or {}).get('status')
-                $# if we're explicitly showing *everything*...
-                $# or if we're showing only things with ocaids which are available...
-                $if 'has_fulltext' not in param or (ocaid and availability and availability not in ['error', 'private']):
-                    $:macros.SearchResultsWork(work)
+                $ read_status = work.get('readinglog', None)
+                $ dropper = macros.ReadingLogDropper([], work=work, include_lists=False, page_url="/search", users_work_read_status=read_status)
+                $:macros.SearchResultsWork(work, reading_log=dropper, show_librarian_extras=show_librarian_extras)
           </ul>
           $:macros.Pager(page, num_found, rows)
         </div>
@@ -233,7 +217,7 @@ $if error:
     <h3>BARF! Search engine ERROR!</h3>
     <pre>$error.decode('utf-8', 'ignore')</pre>
 $elif param and len(docs):
-    <div id="searchFacets">
+    <div id="searchFacets" data-config="$dumps({'start_facet_count': start_facet_count, 'facet_inc': facet_inc})">
         <h3 class="collapse">$_("Zoom In")</h3>
         <div class="smallest lightgreen sansserif" style="margin-bottom:20px;">$_("Focus your results using these") <a href="/search/howto">$_("filters")</a></div>
         $for header, label in facet_map:
@@ -256,52 +240,35 @@ $elif param and len(docs):
                 $if num <= start_facet_count:
                     <div class="facetEntry">
                 $else:
-                    <div class="facetEntry hidden">
+                    <div class="facetEntry ui-helper-hidden">
                 $if header == 'has_fulltext':
                     $if display == 'yes':
                        $ display = _('yes')
                     $else:
                        $ display = _('no')
-                    <span class="small"><a href="$:add_facet_url(header, k)" title="$_('Filter results for ebook availability')">$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
+                    <span class="small"><a href="$add_facet_url(header, k)" title="$_('Filter results for ebook availability')" data-ol-link-track="$add_track(header)" >$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
                 $else:
-                    <span class="small"><a href="$:add_facet_url(header, k)" title="$_('Filter results for %(facet)s', facet=display)">$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
+                    <span class="small"><a href="$add_facet_url(header, k)" title="$_('Filter results for %(facet)s', facet=display)" data-ol-link-track="$add_track(header)">$display </a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
                 </div>
             $if len(counts) > start_facet_count:
-                <div class="facetMoreLess"><span class="small" onclick="more('$header');false"><a href="javascript:;" id="${header}_more" class="orange">$_("more")</a></span> <span id="${header}_bull" class="header_bull small gray">&bull;</span> <span class="small" onclick="less('$header');false"><a href="javascript:;" id="${header}_less" class="orange hidden">$_("less")</a></span></div>
+                <div class="facetMoreLess">
+                    <span class="header_more small" data-header="$header">
+                        <a href="javascript:;" id="${header}_more" class="red">$_("more")</a>
+                    </span>
+                    <span id="${header}_bull" class="header_bull small gray">&bull;</span>
+                    <span class="header_less small" data-header="$header">
+                        <a href="javascript:;" id="${header}_less" class="red ui-helper-hidden">$_("less")</a>
+                    </span>
+                </div>
             </div>
         </div>
 <!-- /facets -->
     </div>
 
     $if param and not error and len(docs):
-        $ readapi_percent = 100
         $if ctx.user and ctx.user.is_admin():
-            <div id="adminTiming" class="small sansserif clearfix"><br/><span class="adminOnly">Searching solr took $("%.2f" % search_secs) seconds</span></div>
-            $ readapi_percent = 100
-        $ wks = '|'.join([w.key for w in works])
-        $ ol = 'openlibrary.org'
-        <script type="text/javascript">
-        <!--
-        window.q.push( function () {
-            function readapi_callback(data, textStatus, jqXHR) {
-                endtime = Date.now();
-                //document.write(data.stats.summary.toSource());
-                duration = (endtime - starttime) / 1000;
-                disp = document.getElementById("adminTiming");
-                if (disp) {
-                    disp.innerHTML += '<br/><br/><span class="adminOnly">Read API call took ' + duration + ' seconds</span>';
-                }
-            }
-            if (Math.random() * 100 < $readapi_percent) {
-                starttime = Date.now();
-                \$.ajax({
-                    url: 'https://$ol/api/volumes/brief/json/$wks?listofworks=True&no_details=True&stats=True',
-                    dataType: 'jsonp',
-                    success: readapi_callback
-                });
-            }
-        });
-        //-->
-        </script>
+            <div id="adminTiming" class="small sansserif clearfix">
+                <br/><span class="adminOnly">Searching solr took $("%.2f" % search_secs) seconds</span>
+            </div>
   </div>
 </div>

@@ -1,0 +1,76 @@
+$def with (notes, user, num_found, page=1, results_per_page=25)
+
+<div class="my-observations">
+  <div class="list-container">
+    $if notes:
+      $for i in notes:
+        $ work_id = i.work_id
+        $ work_cover_url = i.work_details['cover_url']
+        <li class="main-list-item">
+          <div class="work-section">
+            <span class="imageLg">
+              <a href="$i.work_key"><img src="$work_cover_url"></a>
+            </span>
+            <span>
+              <h3 itemprop="name" class="booktitle">
+                <a itemprop="url" href="$i.work_key" class="results">$i.work_details['title']</a>
+              </h3>
+              $if i.work_details['authors']:
+                By: $', '.join(i.work_details['authors'])
+              $else:
+                $_('Unknown author')
+            </span>
+          </div>
+          <div id="$work_id-notes">
+            <ul class="notes-list">
+              $for k in sorted(i['notes']):
+                <li class="notes-list-item">
+                  $ edition = i['editions'][k]
+                  <div class="book-info">
+                    <div class="title">
+                      $_('My notes for an edition of ')
+                      $if edition.title:
+                        <a href="$edition.url()">$edition.title</a><br>
+                      $else:
+                        <a href="$edition.url()"><em>$_('Title Missing')</em></a>
+                      <div class="published">
+                        $if edition.publishers and edition.publish_date:
+                          $edition.publish_date, $(', '.join(edition.publishers))
+                        $elif edition.publish_date:
+                          $edition.publish_date
+                        $elif edition.publishers:
+                          <em>$_('Publish date unknown')</em>, $(', '.join(edition.publishers))
+                        $else:
+                          <em>$_('Publisher unknown')</em>
+                      </div>
+                      <div>
+                        $edition.physical_format.replace('[', '').replace(']','')
+                        $if edition.languages:
+                          $_('in %(language)s', language=', '.join(l.name for l in edition.languages))
+                        $if edition.edition_name:
+                          -
+                          $edition.edition_name
+                      </div>
+                    </div>
+                  </div>
+                  <div class="book-note">
+                    $ textarea_id = str(k) + "-notes-textarea"
+                    $ button_div_id = str(k) + "-note-form-buttons"
+                    <textarea class="notes-textarea" id="$textarea_id" rows="10">$i['notes'][k]</textarea>
+                    <input type="hidden" name="workId" value="$work_id" />
+                    <div class="note-page-buttons" id="$button_div_id">
+                      <button class="delete-note-button cta-btn cta-btn--delete" type="button">$_("Delete Note")</button>
+                      <button class="update-note-link-button cta-btn cta-btn--shell">$_("Save Note")</button>
+                    </div>
+                  </div>
+                </li>
+            </ul>
+          </div>
+        </li>
+    $else:
+      $_("No notes found.")<br>
+  </div>
+  <div class="pager">
+    $:macros.Pager(page, num_found, results_per_page)
+  </div>
+</div>

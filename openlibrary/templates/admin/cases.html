@@ -56,7 +56,7 @@ $else:
   </p>
     <form method="GET" id="userfilter">
       <label for="mine">Show all cases (not just mine)</label>
-      <input type="checkbox" $checkbox_flag("all", "true") name="all" value="true" id="mine" onChange="\$('#userfilter').submit();"/>
+      <input type="checkbox" $checkbox_flag("all", "true") name="all" value="true" id="mine" onChange="\$('#userfilter').trigger('submit');"/>
     </form>
     <table class = "changeHistory" border="0" cellspacing="0" cellpadding="10">
       <tr>

@@ -1,130 +1,159 @@
-$def with (items, key, sponsorship_count=None, reading_log_counts=None, lists=None, user=None, logged_in_user=None, public=False)
+$def with (docs, key, shelf_counts, doc_count, lists=None, user=None, logged_in_user=None, public=False, sort_order='desc', owners_page=False, q="", results_per_page=25, ratings=[], checkin_year=None)
+
 $# Displays a user's reading log
-$# :param list items:
-$# :param Literal['currently-reading', 'want-to-read', 'already-read', 'sponsorships', 'loans', 'waitlist'] key:
-$# :param int? sponsorship_count: number of books the user is sponsoring
-$# :param Dict[Literal['currently-reading', 'want-to-read', 'already-read'], int] reading_log_counts:
+$# :param list docs:
+$# :param Literal['currently-reading', 'want-to-read', 'already-read', 'sponsorships', 'loans', 'notes', 'observations'] key:
+$# :param Dict[str: int] shelf_counts:
 $# :param list? lists:
 $# :param user:
 $# :param bool public:
+$# :param str q: search term.
 
-$ title = _('My Books')
-$ urlbase = ctx.path.rsplit('/', 1)[0]
+$ component_times = {}
+$ component_times['TotalTime'] = time()
+
 $ username = user.key.split('/')[-1]
-$ owners_page = logged_in_user and urlbase.startswith('/people/'+logged_in_user.key.split('/')[-1])
-$ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
 
 $ current_page = int(input(page=1).page)
-$ total_items = sponsorship_count if key == 'sponsorships' else int(reading_log_counts[key])
+$ total_docs = shelf_counts.get(key, None)
+
 $ userDisplayName = user.displayname or ctx.user.displayname
 $ userKey = user.key or ctx.user.key
 
-$ header_title = unicode(render_template('account/readinglog_shelf_name', key)).strip()
-$if key == 'currently-reading':
-  $ og_title = _("Books %(username)s is reading", username=userDisplayName)
-  $ og_description = _("%(username)s is reading %(total)d books. Join %(username)s on OpenLibrary.org and tell the world what you're reading.", username=userDisplayName, total=total_items)
+$ header_title = ""
+
+$ padding = ""
+
+$if key == 'mybooks':
+  $ header_title = _("My Books")
+  $ padding = "no-padding"
+$elif key == 'currently-reading':
+  $ header_title = _("Currently Reading")
 $elif key == 'want-to-read':
-  $ og_title = _("Books %(username)s wants to read", username=userDisplayName)
-  $ og_description = _("%(username)s wants to read %(total)d books. Join %(username)s on OpenLibrary.org and share the books that you'll soon be reading!", username=userDisplayName, total=total_items)
+  $ header_title = _("Want to Read")
 $elif key == 'already-read':
-  $ og_title = _("Books %(username)s has read", username=userDisplayName)
-  $ og_description = _("%(username)s has read %(total)d books. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about.", username=userDisplayName, total=total_items)
-$elif key == 'sponsorships':
-  $ header_title = _("Sponsorships")
-  $ og_title = _("Books %(userdisplayname)s is sponsoring", userdisplayname=userDisplayName)
-  $ og_description = "{username} is sponsoring {total} books. Join {username} on OpenLibrary.org and share the books that you'll soon be reading!".format(username=userDisplayName, total=total_items)
+  $ header_title = _("Already Read")
+$if not header_title:
+  $if key == 'sponsorships':
+    $ header_title = _("Sponsorships")
+  $elif key == 'notes':
+    $ header_title = _("My Notes")
+  $elif key == 'observations':
+    $ header_title = _("My Reviews")
+  $elif key == 'loans':
+    $ header_title = _("My Loans")
+  $elif key == 'imports':
+    $ header_title = _("Imports and Exports")
+  $elif key == 'lists':
+    $ header_title = _("My Lists")
+  $elif key == 'list':
+    $ header_title = docs.get('name', 'List')
+  $else:
+    $ header_title = key
 
+$var title: $header_title
+
+$ url_prefix = "/people/" + username
+$ readlog_url = url_prefix + "/books/%s/"
+$ options = [(_("Want to Read (%(count)d)", count=shelf_counts['want-to-read']), readlog_url % "want-to-read"), (_("Currently Reading (%(count)d)", count=shelf_counts['currently-reading']), readlog_url % "currently-reading"), (_("Already Read (%(count)d)", count=shelf_counts['already-read']), readlog_url % "already-read"), (_("My Lists (%(count)d)" if owners_page else "Lists (%(count)d)", count=len(lists)) , url_prefix + "/lists")]
 $if owners_page:
-  $var title: $header_title
-$else:
-  $var title: $userDisplayName &raquo; $header_title
+  $ options = [("My Loans", "/account/loans")] + options + [(_("My Notes"), url_prefix + "/books/notes"), (_("My Reviews"), url_prefix + "/books/observations")]
 
-$if og_title:
-  $putctx("description", og_description)
-  $add_metatag(property="og:title", content=og_title)
-  $add_metatag(property="og:url", content=request.canonical_url)
-  $add_metatag(property="og:site_name", content="Open Library")
-  $add_metatag(property="og:description", content=og_description)
-  $add_metatag(property="og:image", content=meta_photo_url)
+<div class="mybooks">
 
-<div id="contentHead">
-  <div id="mybooks">
-    <div class="small sansserif grey account-settings-menu">
-      <a href="$userKey">$userDisplayName</a> &raquo; $_("Reading Log")
-    </div>
-    <div>
+  $:render_template("account/sidebar", user, key=key, public=public, owners_page=owners_page, counts=shelf_counts, lists=lists, component_times=component_times)
 
-    </div>
-    <div>
-      <h1 style="display:inline">
-        $if not owners_page:
-          $userDisplayName &raquo; $header_title
-        $else:
-          $header_title
-      </h1>
+  <div class="mybooks-details $padding">
+    $if key == 'mybooks':
+      $ component_times['Yearly Goal Banner'] = time()
+      $ year = get_reading_goals_year()
+      $ current_goal = get_reading_goals(year=year)
 
-      $if owners_page:
-        <a href="$ctx.path/stats" title="$('View stats about this shelf')">$_('Stats')</a>
-    </div>
+      $# Is date between 1 Dec and 1 Feb?
+      $if not current_goal and within_date_range(12, 1, 2, 1):
+        <div class="page-banner page-banner-body page-banner-mybooks">
+          $_('Set your %(year)s Yearly Reading Goal:', year=year) <a class="btn primary set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">$:_('Set my goal')</a>
+        </div>
+      $ component_times['Yearly Goal Banner'] = time() - component_times['Yearly Goal Banner']
+    $ component_times['Details header'] = time()
+    <header>
+      <div>
+        <div class="sansserif grey account-settings-menu">
+	  $# Only show breadcrumbs when we're not on mybooks
+          $if key != 'mybooks':
+            $if not owners_page:
+	      <a href="$userKey">
+	        ← <span>$userDisplayName</span></a>
+            $else:
+              <a href="/account/books">
+                ← <span>$_("My Books")</span></a>
+            &raquo;
 
-    $if owners_page:
-      <h3>
-        $if public:
-          $_('Your reading log is currently set to public')
-          <button onclick="prompt('Copy share link to your clipboard please:', window.location.protocol + '//' + window.location.hostname + '/people/$(username)/books/$(key)');">Share</button> or
-        $else:
-          $_('Your reading log is currently set to private')
-        &mdash;
-        <a href="/account/privacy">$_('Manage your privacy settings')</a>
-      </h3>
+            $if key == 'list':
+	      $ list_url = "/account" if owners_page else userKey
+              <a href="$(list_url)/lists"><span>$(_("%(userDisplayName)s's Lists", userDisplayName=userDisplayName) if not owners_page else _("My Lists"))</span></a>
+	      &raquo;
 
-    <div class="mybooks">
-      <div class="mybooks-menu">
-        <ul class="preset-lists">
-          <li class="subsection">$_('Reading Log')</li>
-          <li><a href="$urlbase/currently-reading" $('class=selected' if key == 'currently-reading' else '')>$_('Currently Reading (%(count)d)', count=reading_log_counts['currently-reading'])</a></li>
-          <li><a href="$urlbase/want-to-read" $('class=selected' if key == 'want-to-read' else '')>$_('Want to Read (%(count)d)', count=reading_log_counts['want-to-read'])</a></li>
-          <li><a href="$urlbase/already-read" $('class=selected' if key == 'already-read' else '')>$_('Already Read (%(count)d)', count=reading_log_counts['already-read'])</a></li>
-        </ul>
-        $if owners_page and ctx.user and ctx.user.in_sponsorship_beta():
-          <!-- only show to owners -->
-          <ul class="preset-lists">
-            <li class="subsection">$_('Sponsorships')</li>
-            <li><a href="$urlbase/sponsorships" $('class=selected' if key == 'sponsorships' else '')>Sponsoring ($sponsorship_count)</a></li>
-          </ul>
-        $if lists:
-          <ul class="user-lists">
-            <li class="subsection">$_('Lists')</li>
-            <div class="list-overflow">
-              $for lst in lists:
-                <li><a class="list-link" href="$(lst.key)">$lst['name'] ($(len(lst.seeds)))</a></li>
-            </div>
-          </ul>
-      </div>
-      <div class="mybooks-list">
-        $:macros.Pager(current_page, total_items, results_per_page=25)
-        <ul class="list-books" id="siteSearch">
-          $if items:
-            $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3}.get(key, None)
-            $for item in items:
-              $if key == 'loans':
-                $ edition = get_document(item['book'])
-                $ work = get_document(edition.works[0]) if (edition.get('type', {}).get('key') == '/type/work' and edition.works and edition.works[0]) else None
-                $ decorations = owners_page and macros.ManageLoansButtons(item, edition) or ''
-                $:macros.SearchResultsWork(work or edition, decorations=decorations, cta=False)
-              $elif key == 'waitlists':
-                $ edition = item
-                $ decorations = owners_page and macros.ManageWaitlistButton(edition) or ''
-                $:macros.SearchResultsWork(edition, decorations=decorations, cta=False)
+	    $else:
+              $:render_template("books/breadcrumb_select", key=key, selected=header_title, options=options)
+        </div>
+        <div>
+          $if key in ['mybooks', 'list']:
+            <h1 class="details-title">
+	      $header_title
+	    </h1>
+
+          $if owners_page and (key in ['currently-reading', 'already-read', 'want-to-read'] and not checkin_year):
+            <a href="$ctx.path/stats" title="$_('View stats about this shelf')">$_('Stats')</a>
+        </div>
+
+        $if owners_page:
+          <p>
+            $if key == 'notes':
+              $_('Your book notes are private and cannot be viewed by other patrons.')
+            $elif key == 'observations':
+              $_('Your book reviews will be shared anonymously with other patrons.')
+            $elif key in ['currently-reading', 'already-read', 'want-to-read']:
+              $if public:
+                $_('Your reading log is currently set to public')
+                <button onclick="prompt('Copy share link to your clipboard please:', window.location.protocol + '//' + window.location.hostname + '/people/$(username)/books/$(key)');">Share</button> or
               $else:
-                $ work = item
-                $ decorations = (bookshelf_id and owners_page) and macros.ReadingLogButton(work, read_status=bookshelf_id)
-                $:macros.SearchResultsWork(work, decorations=decorations, cta=False)
-          $else:
-            <li>$_('No books are on this shelf')</li>
-        </ul>
-        $:macros.Pager(current_page, total_items, results_per_page=25)
+                $_('Your reading log is currently set to private')
+              &mdash;
+              <a href="/account/privacy">$_('Manage your privacy settings')</a>
+          </p>
       </div>
+      $if key == 'list':
+        <div>
+          $:macros.databarView(docs)
+        </div>
+    </header>
+    $ component_times['Details header'] = time() - component_times['Details header']
+    $ component_times['Details content'] = time()
+    <div class="details-content">
+    $if key == 'mybooks':
+      $:render_template('account/mybooks', logged_in_user, docs, key=key, public=public, owners_page=owners_page, counts=shelf_counts, lists=lists, component_times=component_times)
+    $elif key == 'loans':
+      $:render_template('account/loans', logged_in_user, docs)
+    $elif key == 'notes':
+      $:render_template('account/notes', docs, user, shelf_counts['notes'], page=current_page)
+    $elif key == 'observations':
+      $:render_template('account/observations', docs, user, shelf_counts['observations'], page=current_page)
+    $elif key == 'imports':
+      $:render_template('account/import')
+    $elif key == 'lists':
+      $:render_template('lists/lists', docs, lists, show_header=False)
+    $elif key == 'already-read':
+      $:render_template('account/reading_log', docs, key, shelf_counts[key], doc_count, owners_page, current_page, sort_order=sort_order, user=user, include_ratings=owners_page, q=q, results_per_page=results_per_page, ratings=ratings, checkin_year=checkin_year)
+    $elif key in {'currently-reading', 'want-to-read', 'sponsorships'}:
+      $:render_template('account/reading_log', docs, key, shelf_counts[key], doc_count, owners_page, current_page, sort_order=sort_order, user=user, q=q, results_per_page=results_per_page)
+    $else:
+      $:render_template('type/list/view', docs, check_owner=False, owns_page=True)
     </div>
+    $ component_times['Details content'] = time() - component_times['Details content']
   </div>
 </div>
+
+$ component_times['TotalTime'] = time() - component_times['TotalTime']
+$if query_param('debug'):
+  $:macros.Profile(component_times)

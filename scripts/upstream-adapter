@@ -1,6 +1,6 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 
-import _init_path
+import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 from openlibrary.plugins.upstream import adapter
 
 if __name__ == "__main__":

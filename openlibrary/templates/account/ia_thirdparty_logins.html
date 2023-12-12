@@ -1,0 +1,32 @@
+$def with ()
+
+$ params = {'origin': request.home.replace('http:', 'https:')}
+<iframe
+    id="ia-third-party-logins"
+    src="https://$get_ia_host(allow_dev=True)/account/login.thirdparty.php?$(urlencode(params))"
+    style="border:0; width: 100%; height: 44px"
+></iframe>
+
+<script>
+    window.addEventListener(
+        'message',
+        function(e) {
+            if (!/[\.\/]archive\.org$$/.test(e.origin)) return;
+            if (e.data.type == 'resize') {
+                var iframe = document.getElementById('ia-third-party-logins');
+                iframe.setAttribute('scrolling', 'no');
+                if (e.data.height) iframe.style.height = e.data.height + 'px';
+            }
+            else if (e.data.type == 's3-keys') {
+                fetch('/account/login.json', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: JSON.stringify(e.data.s3)
+                }).then(function() {
+                    window.location = new URLSearchParams(window.location.search).get('redirect') || '/account/loans';
+                });
+            }
+        },
+        false
+    );
+</script>

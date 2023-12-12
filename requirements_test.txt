@@ -1,13 +1,13 @@
-# requirements for running tests
+# Requirements for running tests and non-production Docker build.
 # Expects some apt packages are already installed.
-# see .travis.yml for more details.
+# see .github/workflows/python_tests.yml for more details.
 
--r requirements_common.txt
-flake8==3.8.4
-mock==3.0.5; python_version < '3.3'
-mockcache==1.0.3; python_version < '3.0'
-pymemcache==3.4.0; python_version >= '3.0'
-ptvsd==4.3.2
-pytest==4.6.9; python_version < '3.0'
-pytest==6.2.0; python_version >= '3.0'
-safety==1.9.0; python_version >= '3.5'
+-r requirements.txt
+debugpy>=1.6.4
+mypy==1.4.1
+pymemcache==4.0.0
+pytest==7.4.0
+pytest-asyncio==0.21.0
+pytest-cov==4.1.0
+ruff==0.0.277
+safety==2.3.5

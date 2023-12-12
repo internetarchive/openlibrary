@@ -27,16 +27,10 @@
         background-position: -22px 0;
       }
     }
-    div.arrow-activated {
+    div.arrow {
       background-image: url(/images/icons/icon_dropit.png);
       background-repeat: no-repeat;
       filter: grayscale(100%);
-      background-position: 0 0;
-      background-size: 45px;
-    }
-    div.arrow-unactivated {
-      background-image: url(/images/icons/icon_dropit2.png);
-      background-repeat: no-repeat;
       background-position: 0 0;
       background-size: 45px;
     }
@@ -147,7 +141,7 @@ div.Tools {
 
     &.on {
       background-color: @lightest-grey;
-      border: 1px solid @mid-grey;
+      box-shadow: 0 0 0 1px @mid-grey;
       border-radius: 4px;
       width: 100%;
     }
@@ -195,14 +189,14 @@ div.Tools {
   // And Orphaned Editions (no work)
   .widget-add.old-style-lists {
     .dropclick {
-      padding: 10px;
+      padding: 5px;
       text-decoration: none;
 
       /* stylelint-disable-next-line max-nesting-depth */
       h3 {
         font-size: .75em;
         text-align: left;
-        padding: 0px 10px;
+        padding: 0 10px;
         min-width: 150px;
       }
     }
@@ -266,9 +260,8 @@ div#listsWork {
     flex: 1;
   }
   button[type=submit] {
-    background-color: inherit;
     border: none;
-    border-radius: 3px;
+    border-radius: 4px;
     border-bottom-right-radius: 0;
     border-top-right-radius: 0;
     cursor: pointer;
@@ -276,20 +269,14 @@ div#listsWork {
     width: 100%;
     padding: 7px 0;
     margin: 0;
+    color: @dark-grey;
+    background: @lightest-grey;
+    // stylelint-disable declaration-block-no-duplicate-properties
+    border: 2px solid @grey-f3f3f3;
+    border-right: 1px solid @lighter-grey;
+    // stylelint-enable declaration-block-no-duplicate-properties
 
     /* stylelint-disable selector-max-specificity */
-    &.activated {
-      color: @dark-grey;
-      background: @lightest-grey;
-      border: 2px solid @grey-f3f3f3;
-      border-right: 1px solid @lighter-grey;
-    }
-    &.unactivated {
-      color: @white;
-      background: @green-three;
-      border: 2px solid @green-four;
-      border-right: 1px solid @green-two;
-    }
     span.activated-check {
       color: @green;
       margin-right: 2px;
@@ -300,6 +287,9 @@ div#listsWork {
 
 // The indicator that appears to the right of the dropper component
 .dropclick {
+  border-radius: 4px;
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 0;
   .display-flex();
   h3 {
     flex: 1;
@@ -314,10 +304,6 @@ div#listsWork {
 
 .dropclick-prevent {
   .display-flex();
-}
-
-.dropclick-unactivated {
-  background-color: @green-five;
 }
 
 .user-book-options {
@@ -342,12 +328,11 @@ div.tools-override {
 }
 
 a:hover > h3 {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 a.dropclick.plain {
   text-decoration: none;
 }
-
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
   div.Tools {

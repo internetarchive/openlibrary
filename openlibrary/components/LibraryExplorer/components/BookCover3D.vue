@@ -5,12 +5,13 @@
     :width="finalWidth"
     :height="finalHeight"
     :thickness="finalThickness"
+    :style="`--book-hue: ${hashHue}`"
   >
     <template #front>
-      <FlatBookCover :book="book" @load.once="updateWithImageMetadata"/>
+      <FlatBookCover :book="book" @load.once="updateWithImageMetadata" :cover="cover"/>
     </template>
     <template #left v-if="finalThickness > 15">
-      <div class="author">{{byline}}</div>
+      <div class="author" :style="`color: hsl(${hashHue + 60}, 25%, 65%)`">{{byline}}</div>
       <hr>
       <div
         class="title"
@@ -21,27 +22,9 @@
 </template>
 
 <script>
-import CONFIGS from '../configs';
 import CSSBox from './CSSBox';
 import FlatBookCover from './FlatBookCover';
-
-async function fetchBookLength(work_key) {
-    const url = `${CONFIGS.OL_BASE_SEARCH}/query.json?${new URLSearchParams({
-        type: '/type/edition',
-        works: work_key,
-        number_of_pages: '',
-        limit: 5
-    })}`;
-    const results = await fetch(url, { cache: 'force-cache' }).then(r =>
-        r.json()
-    );
-    const lengths = results
-        .filter(ed => ed.number_of_pages)
-        .map(ed => ed.number_of_pages);
-    if (lengths.length) {
-        return lengths[0];
-    }
-}
+import { hashCode } from '../utils.js';
 
 export default {
     components: { CSSBox, FlatBookCover },
@@ -58,27 +41,22 @@ export default {
             type: Number,
             default: 50
         },
-        book: Object
+        book: Object,
+        /** @type {'image' | 'text'} */
+        cover: String,
     },
 
     data() {
         return {
             finalWidth: this.width,
             finalHeight: this.height,
-            finalThickness: this.thickness
+            finalThickness: this.book.number_of_pages_median ? Math.min(50, this.book.number_of_pages_median / 10) : this.thickness,
         };
     },
     methods: {
         updateWithImageMetadata(e) {
             this.finalHeight = e.target.height;
-        }
-    },
-
-    async mounted() {
-        const length = await fetchBookLength(this.book.key);
-        if (length) {
-            this.finalThickness = Math.min(50, length / 10);
-        }
+        },
     },
 
     computed: {
@@ -91,7 +69,11 @@ export default {
                     })
                     .join(' ')
                 : '';
-        }
+        },
+
+        hashHue() {
+            return hashCode(this.book.key) % 360;
+        },
     }
 };
 </script>
@@ -145,6 +127,11 @@ export default {
 
 .left-face {
   background: linear-gradient(to right, #222 10%, #444 50%, #444 75%, #222);
+  background: linear-gradient(to right,
+    hsl(var(--book-hue), 20%, 10%) 10%,
+    hsl(var(--book-hue), 22%, 20%) 50%,
+    hsl(var(--book-hue), 22%, 20%) 75%,
+    hsl(var(--book-hue), 20%, 10%));
   padding: 0 5px;
   padding-top: 20px;
   font-size: .8em;
@@ -164,8 +151,7 @@ export default {
 .left-face .title {
   font-size: .75em;
 }
-.left-face .title,
-.front-face .title {
+.left-face .title {
   font-family: Georgia, serif;
   font-style: oblique;
 }
@@ -173,22 +159,22 @@ export default {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+  overflow: clip;
   width: 150px;
   transform-origin: 0 0;
 }
 
-.front-face .title {
-  padding: 0 10px;
-}
-
 .book-3d div.cover {
   height: 100%;
-  padding: 5px;
-  box-sizing: border-box;
-  background: linear-gradient(to right, #333, #222 5px, #333 10px);
-  color: white;
-  flex-direction: column;
-  justify-content: center;
+}
+
+.left-face hr {
+  width: 50%;
+  margin: 5px auto;
+  border: 0;
+  opacity: 0.8;
+  background: transparent;
+  border-bottom: 2px dotted white;
+  border-color: hsl(var(--book-hue), 70%, 60%);
 }
 </style>
-

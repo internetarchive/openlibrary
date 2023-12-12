@@ -1,0 +1,191 @@
+$def with(total, merge_requests=None)
+
+$# total : dict : {"open": int, "closed": int}; The total number of merge requests found for the current mode
+$# merge_requests : list : Merge requests to be displayed in the table
+
+$ username = ctx.user and ctx.user.key.split('/')[-1]
+$ can_merge = ctx.user and (ctx.user.is_usergroup_member('/usergroup/super-librarians'))
+
+$ reviewer = query_param('reviewer', None)
+$ submitter = query_param('submitter', None)
+$ mode = query_param('mode', 'open')
+$ order = query_param('order', 'desc')
+
+$if submitter:
+  $ desc = _("Showing %(username)s's requests only.", username=submitter)
+  $ link_text = _('Show all requests')
+  $ href = changequery(submitter=None, page=None)
+$else:
+  $ desc = _('Showing all requests.')
+  $ link_text = _('Show my requests') if username else ''
+  $ href = changequery(submitter=username, page=None) if username else changequery(submitter=None, page=None)
+
+<div class="librarian-queue-page">
+  <h1>$_('Community Edit Requests')</h1>
+
+  <div class="description">
+    $if can_merge:
+      <span class="reviewer-filter">
+        $if reviewer:
+          $_("Showing requests reviewed by %(reviewer)s only.", reviewer=reviewer) <a href="$changequery(reviewer=None, page=None)">$_("Remove reviewer filter")</a>
+        $else:
+          <a href="$changequery(reviewer=username, page=None)">$_("Show requests that I've reviewed")</a>
+      </span>
+    <span>$desc <a href="$href">$link_text</a></span>
+  </div>
+
+$ page = int(input(page=1).page)
+<div class="pager">
+  $:macros.Pager(page, total[mode], results_per_page=25)
+</div>
+
+  <div class="table-header">
+    <a class="$(mode=='open' and 'selected' or '') mode-open" href="$changequery(mode='open', page=None)">$total['open'] $_('Open')</a>
+    <a class="$(mode=='closed' and 'selected' or '') mode-closed" href="$changequery(mode='closed', page=None)">$total['closed'] $_('Closed')</a>
+    <div class="flex-auto"></div>
+    <div class="mr-dropdown" id="submitter-menu-button">$_('Submitter ▾')
+      <div class="mr-dropdown-menu hidden">
+        <header class="dropdown-header">
+            <span>$_('Submitter')</span>
+            <button class="dropdown-close">&times;</button>
+        </header>
+        <input type="text" class="filter" placeholder="$_('Filter submitters')" id="submitter-filter">
+        $ submitted_by_me_href = changequery(submitter=username, page=None) if submitter != username else changequery(submitter=None,page=None)
+        <a href="$submitted_by_me_href" class="dropdown-item">
+          <span class="$('' if submitter==username else 'invisible') item-checked">✓</span>
+          <span><b>$_('Submitted by me')</b></span>
+        </a>
+      $for s in total['submitters']:
+        $ submitter_name = s.get('submitter', 'default submitter')
+        $ submitter_href = changequery(submitter=submitter_name, page=None) if submitter != submitter_name else changequery(submitter=None, page=None)
+        <a href="$submitter_href" class="dropdown-item">
+          <span class="$('' if submitter==submitter_name else 'invisible') item-checked">✓</span>
+          <span>$submitter_name</span>
+        </a>
+      </div>
+    </div>
+    <div class="mr-dropdown" id="reviewer-menu-button">$_('Reviewer ▾')
+      <div class="mr-dropdown-menu hidden">
+        <header class="dropdown-header">
+          <span>$_('Reviewer')</span>
+          <button class="dropdown-close">&times;</button>
+        </header>
+        <input type="text" class="filter" placeholder="$_('Filter reviewers')" id="reviewer-filter">
+        $ no_reviewer_href = changequery(reviewer='None', page=None) if reviewer==None else changequery(reviewer=None,page=None)
+        <a href="$no_reviewer_href" class="dropdown-item">
+          <span class="$('' if reviewer=='None' else 'invisible') item-checked">✓</span>
+          <span><b>$_('Assigned to nobody')
+          </b></span>
+        </a>
+      $for r in total['reviewers']:
+        $ reviewer_name = r.get('reviewer', 'default reviewer')
+        $ reviewer_href = changequery(reviewer=reviewer_name, page=None) if reviewer != reviewer_name else changequery(reviewer=None, page=None)
+        $if reviewer_name and reviewer_name != username:
+          <a href="$reviewer_href" class="dropdown-item">
+            <span class="$('' if reviewer==reviewer_name else 'invisible') item-checked">✓</span>
+            <span>$reviewer_name</span>
+          </a>
+      </div>
+    </div>
+    <div class="mr-dropdown" id="sort-menu-button">$_('Sort ▾')
+      <div class="mr-dropdown-menu sort hidden">
+        <header class="dropdown-header">
+          <span>$_('Sort')</span>
+          <button class="dropdown-close">&times;</button>
+        </header>
+        $ desc_href = changequery(order='desc', page=None) if order!='desc' else changequery(order=None, page=None)
+        <a href="$desc_href" class="dropdown-item">
+          <span class="$('' if order=='desc' else 'invisible') item-checked">✓</span>
+          <span>$_('Newest')
+          </span>
+        </a>
+        $ asc_href = changequery(order='asc', page=None) if order!='asc' else changequery(order=None, page=None)
+        <a href="$asc_href" class="dropdown-item">
+          <span class="$('' if order=='asc' else 'invisible') item-checked">✓</span>
+          <span>$_('Oldest')</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+      <table class="mr-table">
+        <thead>
+          <tr>
+            <th class="submitter-header">$_('Submitter')</th>
+            <th class="status-header">$_('Status')</th>
+            <th class="comments-header">$_('Comments')</th>
+            <th class="reviewer-header">$_('Reviewer')</th>
+            <th class="resolve-header">$_('Resolve')</th>
+          </tr>
+        </thead>
+        <tbody>
+        $if not merge_requests:
+          <tr>
+            <td colspan="5">$_('No entries here!')</td>
+          </tr>
+        $for r in merge_requests:
+          $ work_title = r.get('title', 'an untitled work')
+          $ comments = r.get('comments', {}).get('comments', [])
+          $ status = get_status_for_view(r['status'])
+          $ is_open = r['status'] == 1
+          $ url = "%s&mrid=%s" % (r['url'], r['id'])
+          $ is_submitter = username == r['submitter']
+          $ type_str = _('Author') if r['mr_type'] == 2 else _('Work')
+          <tr id="mrid-$(r['id'])">
+            <td>$r['submitter']<br>$datestr(r['created'])</td>
+            <td id="status-cell-$(r['id'])">$status</td>
+
+            <td id="comment-cell-$(r['id'])" class="comment-cell">
+              <div class="comment-cell__summary">
+                <span>$:_('<strong>%(type)s</strong> merge request for <span class="book-title">%(title)s</span>', title=work_title, type=type_str)</span>
+                <span>$_('Comments'): $len(comments)</span>
+              </div>
+
+              $if len(comments) > 1:
+                <div class="comment-cell__description">
+                  <span>$_('Showing most recent comment only.')</span>
+                  <a href="javascript:;" class="comment-expand" data-target-id="hidden-comments-$r['id']">$_('View all')</a>
+                </div>
+              <div id="hidden-comments-$r['id']" class="comment-cell__old-comments hidden">
+                $for c in comments[:-1]:
+                  $:render_template('merge_queue/comment', comment=c)
+              </div>
+              <div class="comment-cell__newest-comment">
+                $if comments:
+                  $:render_template('merge_queue/comment', comment=comments[-1])
+                $else:
+                  <span>$_('No comments yet.')</span>
+              </div>
+              $if is_submitter or can_merge:
+                <hr>
+                <div class="comment-cell__input">
+                  <textarea rows="1" placeholder="$_('Add a comment...')"></textarea>
+                  <input class="mr-comment-btn" type="button" value="Reply" data-mrid="$r['id']" data-merge-type="$r['mr_type']">
+                </div>
+            </td>
+            <td id="reviewer-cell-$(r['id'])">
+              $if can_merge and is_open and r.get('reviewer'):
+                $r['reviewer'] <span class="mr-unassign" data-mrid="$r['id']" data-merge-type="$r['mr_type']">&times;</span>
+                <br>
+                $datestr(r['updated'])
+              $elif r.get('reviewer'):
+                $r['reviewer']
+            </td>
+            <td>
+              $if is_open:
+                $if is_submitter:
+                  <a class="mr-close-link" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="javascript:;">$_('Close')</a>
+                $elif can_merge:
+                  $ show_link = not r.get('reviewer') or r.get('reviewer') == username
+                  $ extra_classes = '' if show_link else ' hidden'
+                  <a class="mr-resolve-link$extra_classes" id="mr-resolve-link-$r['id']" data-mrid="$r['id']" data-merge-type="$r['mr_type']" href="$url" target="_blank">$_('Merge')</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+  </div>
+   <div class="pager">
+    $:macros.Pager(page, total[mode], results_per_page=25)
+  </div>
+</div>

@@ -103,10 +103,10 @@
   font-size: 1.2em;
   // Increase clickable are to the recommended size (44x44px) according to
   // https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
-  // but avoid modifing the UI
+  // but avoid modifying the UI
   display: inline-block;
   position: relative;
-  z-index: 1;
+  z-index: @z-index-level-1;
   padding: 11px 17px;
   margin: -11px -17px;
   &:visited, &:link, &:hover {
@@ -138,7 +138,6 @@ div.coverFloat {
   }
 }
 
-
 /* ADD IMAGE/COVER POP-UP */
 div.floater {
   position: relative;
@@ -157,6 +156,10 @@ div.floater {
       margin: 0;
       padding: 0;
       flex: 1;
+    }
+
+    &.right-justify {
+      justify-content: right;
     }
   }
   &Body {
@@ -181,6 +184,9 @@ div.floater {
       font-weight: normal;
     }
   }
+  .dialog--close-parent {
+    cursor: pointer;
+  }
   div#covers.input {
     max-height: 132px;
     overflow: hidden;
@@ -194,9 +200,16 @@ div.floater {
     padding: 3px;
     margin-left: 30px;
   }
+  input::file-selector-button{
+    cursor: pointer;
+  }
   button[type=submit] {
     font-size: 1.125em;
     width: auto !important;
+    cursor: pointer;
+  }
+  a {
+    cursor: pointer;
   }
 }
 
@@ -213,7 +226,6 @@ div.floater {
 div.imageIntro{
   margin: 0 0 10px;
 }
-
 
 /* ADD ROLES, ETC. */
 div.floaterAdd {

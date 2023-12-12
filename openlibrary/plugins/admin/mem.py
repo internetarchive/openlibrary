@@ -4,11 +4,10 @@ from openlibrary.plugins.admin import memory
 import web
 import gc
 
-import six
-
 
 def render_template(name, *a, **kw):
     return render[name](*a, **kw)
+
 
 class Object:
     def __init__(self, obj, name=None):
@@ -25,6 +24,7 @@ class Object:
         try:
             if isinstance(self.obj, (dict, web.threadeddict)):
                 from infogami.infobase.utils import prepr
+
                 return prepr(self.obj)
             else:
                 return repr(self.obj)
@@ -44,10 +44,10 @@ class Object:
                     if getattr(r, "__dict__", None) is o:
                         o = r
                         break
-            elif isinstance(o, dict): # other dict types
+            elif isinstance(o, dict):  # other dict types
                 name = web.dictfind(o, self.obj)
 
-            if not isinstance(name, six.string_types):
+            if not isinstance(name, str):
                 name = None
 
             d.append(Object(o, name))
@@ -66,8 +66,10 @@ class Object:
                 d.append(Object(o))
         return d
 
+
 class _memory:
     path = "/memory"
+
     def GET(self):
         i = web.input(page=1, sort="diff", prefix="")
 
@@ -80,11 +82,14 @@ class _memory:
 
         counts = [c for c in memory.get_counts() if c.type.startswith(i.prefix)]
         counts.sort(key=lambda c: c[i.sort], reverse=True)
-        return render_template("admin/memory/index", counts[begin:end], page, sort=i.sort)
+        return render_template(
+            "admin/memory/index", counts[begin:end], page, sort=i.sort
+        )
 
     def POST(self):
         memory.mark()
         raise web.seeother(web.ctx.fullpath)
+
 
 class _memory_type:
     path = "/memory/type/(.*)"
@@ -106,11 +111,13 @@ class _memory_type:
 
         return render_template("admin/memory/type", type, objects, page)
 
+
 def first(it):
     try:
         return next(it)
     except StopIteration:
         return None
+
 
 class _memory_id:
     path = "/memory/id/(.*)"

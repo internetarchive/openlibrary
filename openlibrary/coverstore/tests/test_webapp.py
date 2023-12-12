@@ -4,24 +4,28 @@ from os.path import abspath, dirname, join, pardir
 
 import pytest
 import web
-from six.moves import urllib
+import urllib
 
 from openlibrary.coverstore import archive, code, config, coverlib, schema, utils
 
 static_dir = abspath(join(dirname(__file__), pardir, pardir, pardir, 'static'))
 
+
 @pytest.fixture(scope='module')
 def setup_db():
-    """ These tests have to run as the openlibrary user."""
+    """These tests have to run as the openlibrary user."""
     system('dropdb coverstore_test')
     system('createdb coverstore_test')
-    config.db_parameters = dict(dbn='postgres', db='coverstore_test', user='openlibrary', pw='')
+    config.db_parameters = dict(
+        dbn='postgres', db='coverstore_test', user='openlibrary', pw=''
+    )
     db_schema = schema.get_schema('postgres')
     db = web.database(**config.db_parameters)
     db.query(db_schema)
     db.insert('category', name='b')
 
-@pytest.fixture
+
+@pytest.fixture()
 def image_dir(tmpdir):
     tmpdir.mkdir('localdisk')
     tmpdir.mkdir('items')
@@ -75,7 +79,9 @@ class WebTestCase:
         return join(static_dir, path)
 
 
-@pytest.mark.skip(reason="Currently needs running db and openlibrary user. TODO: Make this more flexible.")
+@pytest.mark.skip(
+    reason="Currently needs running db and openlibrary user. TODO: Make this more flexible."
+)
 class TestDB:
     def test_write(self, setup_db, image_dir):
         path = static_dir + '/logos/logo-en.png'
@@ -92,7 +98,9 @@ class TestWebapp(WebTestCase):
         assert code.app.request('/').status == "200 OK"
 
 
-@pytest.mark.skip(reason="Currently needs running db and openlibrary user. TODO: Make this more flexible.")
+@pytest.mark.skip(
+    reason="Currently needs running db and openlibrary user. TODO: Make this more flexible."
+)
 class TestWebappWithDB(WebTestCase):
     def test_touch(self):
         pytest.skip('TODO: touch is no more used. Remove or fix this test later.')
@@ -103,10 +111,16 @@ class TestWebappWithDB(WebTestCase):
         id2 = self.upload('OL1M', 'logos/logo-it.png')
 
         assert id1 < id2
-        assert b.open('/b/olid/OL1M.jpg').read() == open(static_dir + '/logos/logo-it.png').read()
+        assert (
+            b.open('/b/olid/OL1M.jpg').read()
+            == open(static_dir + '/logos/logo-it.png').read()
+        )
 
         b.open('/b/touch', urllib.parse.urlencode({'id': id1}))
-        assert b.open('/b/olid/OL1M.jpg').read() == open(static_dir + '/logos/logo-en.png').read()
+        assert (
+            b.open('/b/olid/OL1M.jpg').read()
+            == open(static_dir + '/logos/logo-en.png').read()
+        )
 
     def test_delete(self, setup_db):
         b = self.browser
@@ -137,7 +151,9 @@ class TestWebappWithDB(WebTestCase):
         mock.setup_call(source_url, _return=filedata)
         monkeypatch.setattr(code, 'download', mock)
 
-        content_type, data = utils.urlencode({'olid': 'OL1234M', 'source_url': source_url})
+        content_type, data = utils.urlencode(
+            {'olid': 'OL1234M', 'source_url': source_url}
+        )
         b.open('/b/upload2', data, {'Content-Type': content_type})
         assert b.status == 200
         id = json.loads(b.data)['id']

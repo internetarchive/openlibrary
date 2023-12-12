@@ -1,21 +1,8 @@
 $def with (key, images)
 
-$putctx("bodyid", "form")
+$putctx("cssfile", "form")
+$putctx("show_ol_shell", False)
 $putctx('robots', 'noindex,nofollow')
-
-<script type="text/javascript">
-window.q.push(function () {
-    \$(".column").sortable({
-        connectWith: '.trash'
-    });
-    \$(".trash").sortable({
-        connectWith: '.column'
-    });
-    \$(".column").disableSelection();
-    \$(".trash").disableSelection();
-    \$("#topNotice").hide();
-});
-</script>
 
 <div class="imageIntro">
     $_("You can drag and drop thumbnails to reorder, or into the trash to delete them.")
@@ -29,7 +16,7 @@ window.q.push(function () {
                 <table>
                     <tr>
                         <td>
-                            <img src="$image.url("S")" height="60" class="cover" alt=""/>
+                            <img src="$image.url('S')" height="60" class="cover" alt=""/>
                         </td>
                     </tr>
                 </table>

@@ -24,7 +24,7 @@ $var title: $page.name
        <span class="tag">$page.name</span>
     </div>
 
-    <p>Try a <a href="/search?q=language:$page.code">search for books in $page.name</a>?</p>
+    <p>$:_('Try a <a href="%(href)s">search for readable books in %(language)s</a>?', href="/search?" + urlencode(dict(q="language:" + page.code, has_fulltext="true", sort='random')), language=websafe(page.name))</p>
 
     $:render_template("lib/history", page)
 

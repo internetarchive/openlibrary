@@ -1,0 +1,229 @@
+$def with (user, mybooks, key=None, owners_page=False, public=False, counts=None, lists=None, component_times={})
+
+$def year_span(year, use_local_year=False):
+  $if use_local_year:
+    <span class="use-local-year" data-server-year="$year">$year</span>
+  $else:
+    <span>$year</span>
+
+<div class="mybooks-details-specific">
+  <div class="chip-group">
+    <span class="chip value-chip category-chip chip--selectable">
+      <a data-ol-link-track="MyBooksLandingPage|ReadingStats"
+        href="/account/books/already-read/stats">$_('My Reading Stats')</a>
+    </span>
+    <span class="chip value-chip category-chip chip--selectable">
+      <a data-ol-link-track="MyBooksLandingPage|ImportExport"
+        href="/account/import">$_('Import & Export Options')</a>
+    </span>
+  </div>
+
+  $ year = get_reading_goals_year()
+  $ current_goal = get_reading_goals(year=year)
+  $ hidden = 'hidden' if current_goal else ''
+
+  <div class="yearly-goal-section">
+    <div class="chip-group $hidden">
+      <span class="chip value-chip category-chip chip--selectable goal-chip">
+        $ year_markup = year_span(year)
+        <a class="set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">$:_('Set %(year_span)s reading goal', year_span=year_markup)</a>
+      </span>
+      $ reading_goal_form = render_template('check_ins/reading_goal_form', year=year)
+      $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title="Yearly Reading Goal")
+    </div>
+    $if current_goal:
+      <span id="reading-goal-container">
+        $:render_template('check_ins/reading_goal_progress', [current_goal])
+      </span>
+  </div>
+
+  $code:
+      def compact_carousel(data):
+          key, title, url = data
+          books = mybooks[key].docs
+          count = mybooks[key].total_results
+          return render_template("books/custom_carousel", **{
+              "books": books,
+              "title": "%s (%d)" % (title, count),
+              "url": url,
+              "key": key,
+              "min_books": 1,
+              "load_more": None,
+              "compact_mode": True,
+              "test": False
+          }) if books else None
+
+  $def empty_carousel(data):
+    $ key, title, url = data
+    <div class="carousel-section-header">
+      <h2 class="home-h2"><a name="$key" href="$url">$title</a></h2>
+    </div>
+    <p>$_('No books are on this shelf')</p>
+
+  $# Data for carousels
+  $ loans = ["loans", _('My Loans'), "/account/loans"]
+  $ currently_reading = ["currently-reading", _('Currently Reading'), "/account/books/currently-reading"]
+  $ want_to_read = ["want-to-read", _('Want to Read'), "/account/books/want-to-read"]
+  $ already_read = ["already-read", _('Already Read'), "/account/books/already-read"]
+
+  $# Render carousels
+  $:(compact_carousel(loans) or empty_carousel(loans))
+  $:(compact_carousel(currently_reading) or empty_carousel(currently_reading))
+  $:(compact_carousel(want_to_read) or empty_carousel(want_to_read))
+  $:(compact_carousel(already_read) or empty_carousel(already_read))
+</div>
+
+$ username = user.key.split('/')[-1]
+
+$code:
+    def mobile_carousel(data):
+        key, title, url = data
+        books = mybooks[key].docs
+        count = mybooks[key].total_results
+        return render_template("books/mobile_carousel", **{
+            "books": books,
+            "title": "%s (%d)" % (title, count),
+            "url": url,
+            "key": key,
+            "min_books": 1,
+            "load_more": None,
+            "compact_mode": True,
+            "test": False
+        }) if books else None
+
+$def empty_mobile_carousel(data):
+    $ key, title, url = data
+    <div class="carousel-section-header">
+      <a class="li-title-desktop" name="$key" href="$url">$title (0)<img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg"></a>
+    </div>
+
+$if not (lists and counts):
+  $ pa = get_public_patron_account(username)
+$ lists = lists or pa.lists
+$ counts = counts or pa.get_sidebar_counts
+
+  $ component_times['Sidebar'] = time()
+  <div class="mybooks-menu-mobile">
+    <ul class="sidebar-section">
+    $if owners_page:
+        <li>
+          $# Render carousel
+          $:(mobile_carousel(loans) or empty_mobile_carousel(loans))
+        </li>
+    $if public or owners_page:
+        <li>
+          $# Render carousel
+          $:(mobile_carousel(currently_reading) or empty_mobile_carousel(currently_reading))
+        </li>
+        <li>
+          $# Render carousel
+          $:(mobile_carousel(want_to_read) or empty_mobile_carousel(want_to_read))
+        </li>
+        <li>
+          $# Render carousel
+          $:(mobile_carousel(already_read) or empty_mobile_carousel(already_read))
+        </li>
+<!--
+        <div class="list-overflow">
+          $ placeholder_name = _('Untitled list')
+          $ i = 0
+          $for lst in lists:
+          $# e.g. OL1L from /people/mekBot/lists/OL1L
+            $if i >= 3:
+              $ break
+            $ list_id = lst.key.split('/')[-1]
+            $ class_list = ''
+            $ i += 1
+            $if key == 'list':
+              $# e.g. /people/openlibrary/lists/OL1L/MyList
+              $ path_id = ctx.path.split('/')[4]
+              $if list_id == path_id:
+                $ class_list = class_list + 'selected'
+            <li></li>
+            <li>
+              <div class="carousel-section-header">
+                <a class="$class_list" data-ol-link-track="MyBooksSidebar|PatronList" href="/people/$username/lists/$list_id">
+                  $(lst['name'] if lst['name'] else '[%s]' % placeholder_name)
+                  ($(len(lst.seeds)))
+                  <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
+                </a>
+              </div>
+            </li>
+        </div>
+         -->
+        <li>
+          <div class="carousel-section-header">
+            <a data-ol-link-track="MyBooksSidebar|AllLists" href="/people/$username/lists">
+              $_('View All Lists')
+              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
+            </a>
+          </div>
+        </li>
+      </ul>
+
+      <div style="width: 100%; background: white">
+        <p style="height: 30px"></p>
+        <h1 class="details-title" style="padding: 8px; background: white">My Stats</h1>
+        <p></p>
+      </div>
+    $if owners_page:
+      <ul class="sidebar-section">
+        <li>
+          <div class="carousel-section-header">
+            <a data-ol-link-track="MyBooksSidebar|ReadingStats" href="/account/books/already-read/stats">
+              $_('My Reading Stats')
+              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
+            </a>
+          </div>
+        </li>
+        <li>
+          <div class="carousel-section-header">
+            <a class="external-link" data-ol-link-track="MyBooksSidebar|LoanHistory" href="https://archive.org/account/?tab=loans#loans-history">
+              $_('Loan History')
+              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
+            </a>
+          </div>
+        </li>
+        <li>
+          <div class="carousel-section-header">
+            <a data-ol-link-track="MyBooksSidebar|MyNotes" $('class=selected' if key=='notes' else '') href="/people/$username/books/notes">
+              $_('My Notes')
+              ($counts['notes'])
+              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
+            </a>
+          </div>
+        </li>
+        <li>
+          <div class="carousel-section-header">
+            <a data-ol-link-track="MyBooksSidebar|MyReviews" $('class=selected' if key=='observations' else '') href="/people/$username/books/observations">
+              $_('My Reviews')
+              ($counts['observations'])
+              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
+            </a>
+          </div>
+        </li>
+        <li>
+          <div class="carousel-section-header">
+            <a data-ol-link-track="MyBooksSidebar|ImportExport" href="/account/import" $('class=selected' if key=='imports' else '')>
+              $_("Import & Export Options")
+              <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
+            </a>
+          </div>
+        </li>
+        $if owners_page and ctx.user and ctx.user.in_sponsorship_beta():
+          <li>
+            <div class="carousel-section-header">
+              <a href="/people/$username/books/sponsorships" data-ol-link-track="MyBooksSidebar|Sponsorships" $('class=selected' if key == 'sponsorships' else '')>
+                $_('Sponsorships')
+                $ sponsorship_count = ''
+                $if counts.get('sponsorships', None):
+                  $ sponsorship_count = "(%d)" % counts['sponsorships']
+                $sponsorship_count
+              </a>
+            </div>
+          </li>
+      </ul>
+  </div>
+  <p></p>
+  $ component_times['Sidebar'] = time() - component_times['Sidebar']
+

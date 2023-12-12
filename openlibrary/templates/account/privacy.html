@@ -9,13 +9,14 @@ $var title: $_("Your Privacy on Open Library")
       <a href="$homepath()/account">$_("Settings")</a>
       &raquo; Privacy
     </div>
-    <h1>$_("Privacy Settings")</h1>
+    <h1>$_("Privacy & Content Moderation Settings")</h1>
 </div>
 
 $def selected(value, value2):
     $if value == value2: checked="checked"
 
 $ public_readlog = d.get('public_readlog', 'no')
+$ safe_mode = d.get('safe_mode', 'no')
 
 <div id="contentBody">
     <form method="post" class="olform" action="" id="privacy">
@@ -35,6 +36,26 @@ $ public_readlog = d.get('public_readlog', 'no')
             <div class="input radio">
                 <div class="sansserif larger">
                     <input type="radio" name="public_readlog" id="r1" value="no" $selected(public_readlog, "no")/>
+                    <label for="u1">$_("No")</label>
+                    <br/><br/>
+                </div>
+            </div>
+        </div>
+        <div class="formElement">
+            <h3 class="collapse">Enable Safe Mode? Safe Mode helps you tailor your experience where possible to moderate the content you are shown.</h3>
+        </div>
+        <br/>
+        <div class="formElement">
+            <div class="input radio">
+                <div class="sansserif larger">
+                    <input type="radio" name="safe_mode" id="r2" value="yes" $selected(safe_mode, "yes")/>
+                    <label for="u0">$_("Yes")</label>
+                    <br/><br/>
+                </div>
+            </div>
+            <div class="input radio">
+                <div class="sansserif larger">
+                    <input type="radio" name="safe_mode" id="r3" value="no" $selected(safe_mode, "no")/>
                     <label for="u1">$_("No")</label>
                     <br/><br/>
                 </div>

@@ -1,7 +1,9 @@
 import web
+from openlibrary.mocks.mock_infobase import MockSite
 
 # The i18n module should be moved to core.
 from openlibrary import i18n
+
 
 class MockTranslations(dict):
     def gettext(self, message):
@@ -13,12 +15,14 @@ class MockTranslations(dict):
         else:
             return self.gettext(message2)
 
+
 class MockLoadTranslations(dict):
     def __call__(self, lang):
         return self.get(lang)
 
     def init(self, lang, translations):
         self[lang] = MockTranslations(translations)
+
 
 class Test_ungettext:
     def setup_monkeypatch(self, monkeypatch):
@@ -27,6 +31,19 @@ class Test_ungettext:
 
         monkeypatch.setattr(i18n, "load_translations", self.d)
         monkeypatch.setattr(web, "ctx", ctx)
+        monkeypatch.setattr(web.webapi, "ctx", web.ctx)
+
+        self._load_fake_context()
+        web.ctx.lang = 'en'
+        web.ctx.site = MockSite()
+
+    def _load_fake_context(self):
+        self.app = web.application()
+        self.env = {
+            "PATH_INFO": "/",
+            "HTTP_METHOD": "GET",
+        }
+        self.app.load(self.env)
 
     def test_ungettext(self, monkeypatch):
         self.setup_monkeypatch(monkeypatch)
@@ -35,10 +52,13 @@ class Test_ungettext:
         i18n.ungettext("book", "books", 2) == "books"
 
         web.ctx.lang = 'fr'
-        self.d.init('fr', {
-            'book': 'libre',
-            'books': 'libres',
-        })
+        self.d.init(
+            'fr',
+            {
+                'book': 'libre',
+                'books': 'libres',
+            },
+        )
 
         i18n.ungettext("book", "books", 1) == "libre"
         i18n.ungettext("book", "books", 2) == "libres"
@@ -54,10 +74,13 @@ class Test_ungettext:
         i18n.ungettext("one book", "%(n)d books", 2, n=2) == "2 books"
 
         web.ctx.lang = 'fr'
-        self.d.init('fr', {
-            'one book': 'un libre',
-            '%(n)d books': '%(n)d libres',
-        })
+        self.d.init(
+            'fr',
+            {
+                'one book': 'un libre',
+                '%(n)d books': '%(n)d libres',
+            },
+        )
 
         i18n.ungettext("one book", "%(n)d books", 1, n=1) == "un libre"
         i18n.ungettext("one book", "%(n)d books", 2, n=2) == "2 libres"

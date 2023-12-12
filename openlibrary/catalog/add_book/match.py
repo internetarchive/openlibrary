@@ -1,7 +1,9 @@
 import web
 from deprecated import deprecated
 from openlibrary.catalog.merge.merge_marc import (
-    build_marc, editions_match as threshold_match)
+    build_marc,
+    editions_match as threshold_match,
+)
 
 
 threshold = 875
@@ -42,7 +44,15 @@ def editions_match(candidate, existing):
     rec2['full_title'] = existing.title
     if existing.subtitle:
         rec2['full_title'] += ' ' + existing.subtitle
-    for f in 'isbn', 'isbn_10', 'isbn_13', 'lccn', 'publish_country', 'publishers', 'publish_date':
+    for f in (
+        'isbn',
+        'isbn_10',
+        'isbn_13',
+        'lccn',
+        'publish_country',
+        'publishers',
+        'publish_date',
+    ):
         if existing.get(f):
             rec2[f] = existing[f]
     if existing.authors:

@@ -2,6 +2,12 @@ $def with (work=None, author=None, recaptcha=None)
 
 $var title: $_("Add a book")
 
+$ i18n_strings = {
+    $ "invalid_checksum": _("Invalid ISBN checksum digit"),
+    $ "invalid_isbn10": _("ID must be exactly 10 characters [0-9 or X]. For example 0-19-853453-1 or 0198534531"),
+    $ "invalid_isbn13": _("ID must be exactly 13 characters [0-9]. For example 978-3-16-148410-0 or 9783161484100")
+    $ }
+
 <div id="contentHead">
     <div class="head">
         <h1>$_("Add a book to Open Library")</h1>
@@ -17,7 +23,9 @@ $var title: $_("Add a book")
 
         $ author = (work and work.authors and work.authors[0].author) or author
         <div class="formElement">
-            <div class="label"><label for="title">$_("Title")</label></div>
+            <div class="label">
+                <label for="title">$_("Title")</label> <span class="tip">$:_("Use <b><i>Title: Subtitle</i></b> to add a subtitle.")</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
+            </div>
             <div class="input">
                 $if work:
                     <input type="text" id="title" disabled="disabled" value="$work.title"/>
@@ -28,30 +36,38 @@ $var title: $_("Add a book")
         </div>
         <div class="formElement">
             <div class="label"><label for="author">$_("Author")</label> <span class="smaller lighter">$_('Like, "Agatha Christie" or "Jean-Paul Sartre." We\'ll also do a live check to see if we already know the author.')</span></div>
-            $:render_template("books/author-autocomplete", cond(author, [author], []), "author_names", "authors")
+            $:render_template("books/author-autocomplete", cond(author, [author], []), "author_names", "authors", readonly=work is not None)
         </div>
 
         <div class="formElement">
-            <div class="label"><label for="publisher">$_("Who is the publisher?")</label></div>
+            <div class="label">
+                <label for="publisher">$_("Who is the publisher?")</label> <span class="tip">$_("For example"): <em>Oxford University Press; Penguin; W.W. Norton</em></span><span class="red">*<span class="tip">$_("Required field")</span></span>
+            </div>
             <div class="input">
                 <input type="text" name="publisher" class="required" id="publisher"/>
             </div>
         </div>
 
         <div class="formElement">
-            <div class="label"><label for="publish_date">$_("When was it published?")</label> <span class="smaller lighter">$_("The year it was published is plenty.")</span></div>
+            <div class="label">
+                <label for="publish_date">$_("When was it published?")</label> <span class="tip">$_("You should be able to find this in the first few pages of the book.")</span><span class="red">*<span class="tip">$_("Required field")</span></span>
+            </div>
             <div class="input">
                 <input type="text" name="publish_date" class="required publish-date" id="publish_date"/>
             </div>
         </div>
 
+        $ admin_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
         <div class="formElement">
             <div class="label"><label for="id_value">$:_("And optionally, an ID number &#151; like an ISBN &#151; would be helpful...")</label></div>
                 <label for="id_name" class="hidden">$_("ID Type")</label>
+                <div id="id-errors" class="note hidden" data-i18n="$json_encode(i18n_strings)"></div>
+                <div id="confirm-add" class="note hidden">$_('ISBN may be invalid. Click "Add" again to submit.')</div>
             <div class="input">
                 <select name="id_name" id="id_name">
                 <option value="">$_("Select")</option>
-                <option value="ocaid">Internet Archive</option>
+                $if admin_user:
+                    <option value="ocaid">Internet Archive</option>
                 <option value="isbn_10">ISBN 10</option>
                 <option value="isbn_13">ISBN 13</option>
                 <option value="lccn">LCCN</option>
@@ -61,6 +77,16 @@ $var title: $_("Add a book")
             </div>
         </div>
 
+        $if admin_user:
+            <div class="formElement">
+                <div class="label">
+                    <label for="web_book_url">$_("Book URL")</label> <span class="tip">$_("Only fill this out if this is a web book")</span></span>
+                </div>
+                <div class="input">
+                    <input type="text" name="web_book_url" class="" id="web_book_url"/>
+                </div>
+            </div>
+
         $if recaptcha and not ctx.user:
             <div class="formElement">
                 <div class="label">$_("Since you are not logged in, please satisfy the reCAPTCHA below.")</div>
@@ -68,8 +94,11 @@ $var title: $_("Add a book")
             </div>
 
         <div class="formElement bottom">
+            <br/>
+            <div class="cclicense">
+                $:_('By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" title="This link to Creative Commons will open in a new window">CC0</a>. Yippee!')
+            </div>
             <div class="input">
-                <br/>
                 <button type="submit" name="_save" title="$_('Add this book now')" class="larger">$_('Add')</button>
                 &nbsp;
                 <a href="javascript:history.go(-1);" class="attn">$_('Cancel')</a>

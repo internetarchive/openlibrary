@@ -6,12 +6,6 @@ $else:
    $ edit_url = page.key + "?m=edit"
 
 <div id="editTools" class="edit">
-    $if not page.is_fake_record():
-        <div class="editButton">
-            <!-- FIXME: accesskey / keyboard shortcut needs i18n -->
-            <a class="linkButton larger" href="$edit_url" title="$_('Edit this template')"
-               data-ol-link-track="CTAClick|Edit" accesskey="e">$_("Edit")</a>
-        </div>
     <div id="editInfo">
         $ author = get_recent_author(page)
         $if author:
@@ -22,4 +16,10 @@ $else:
             $(page.last_modified and datestr(page.last_modified))
         </div>
     </div>
+    $if not page.is_fake_record():
+        <div class="editButton">
+            <!-- FIXME: accesskey / keyboard shortcut needs i18n -->
+            <a class="linkButton larger" href="$edit_url" title="$_('Edit this template')"
+               data-ol-link-track="CTAClick|Edit" accesskey="e">$_("Edit")</a>
+        </div>
 </div>

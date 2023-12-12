@@ -1,0 +1,54 @@
+$def with (page, work, edition, ocaid, work_title, star_ratings_stats, for_desktop=False)
+
+$def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None):
+  $ href = 'javascript:;'
+
+  $ ga_attr = 'data-ol-link-track=%s' % ga_data if ga_data else ''
+  <a href="$href" class="$link_class icon-link" $ga_attr>
+    <img class="icon-link__image" src="$img_src">
+    <div class="icon-link__text">$link_text</div>
+  </a>
+
+
+$ page_url = page.url()
+$ view_type = 'desktop' if for_desktop else 'mobile'
+<div class="work-title-and-author $view_type">
+  <span>
+    <div class="work-line">
+        $_("An edition of") <a href="$work.key?edition=$(ocaid)">$work_title$cond(work.subtitle, ': %s' % work.subtitle)</a>
+        $if work.first_publish_year:
+            <span class="first-published-date" title="$_('First published in %s', work.first_publish_year)">
+              ($work.first_publish_year)
+            </span>
+    </div>
+    $ book_title = edition.get('title', '') or (work.title if work else '')
+    <h1 class="work-title" itemprop="name">$book_title</h1>
+
+    $if edition:
+      $if edition.subtitle:
+        <h2 class="work-subtitle">
+          $edition.subtitle
+        </h2>
+      $if edition.edition_name:
+        <div class="work-line">
+          $edition.edition_name
+        </div>
+    $ authors = (work or edition).get_authors()
+    $ author_names = (work or edition).author_names
+    $if authors:
+      <h2 class="edition-byline">
+        $:macros.BookByline([(author.name, author.url()) for author in authors], attrs='itemprop="author"')
+      </h2>
+    $elif author_names:
+      <h2 class="edition-byline">
+        $:macros.BookByline([(name, None) for name in author_names], attrs='itemprop="author"')
+      </h2>
+    $:star_ratings_stats
+  </span>
+
+  $if not for_desktop:
+    $# On mobile, the 'Share' button appears next to the title and author
+    $ share_content = icon_link("share-modal-link", "/static/images/icons/share.svg", _("Share"), login_redirect=False, ga_data="ModalLinkClick|ShareIcon")
+    $ share_links = ctx.get('share_links')
+    $:macros.ShareModal(share_links, page_url, share_content)
+</div>
