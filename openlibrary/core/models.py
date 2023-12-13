@@ -16,6 +16,7 @@ from openlibrary.core.helpers import parse_datetime, safesort, urlsafe
 
 # TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
+from openlibrary.core import lending
 from openlibrary.catalog import add_book
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
@@ -24,7 +25,7 @@ from openlibrary.core.imports import ImportItem
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
-from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils import extract_numeric_id_from_olid, dateutil
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 
 from . import cache, waitinglist
@@ -914,24 +915,50 @@ class User(Thing):
         loan = self.get_loan_for(book.ocaid)
         return loan is not None
 
-    def get_loan_for(self, ocaid):
+    def get_loan_for(self, ocaid, use_cache=False):
         """Returns the loan object for given ocaid.
 
         Returns None if this user hasn't borrowed the given book.
         """
         from ..plugins.upstream import borrow
 
-        loans = borrow.get_loans(self)
+        loans = (
+            lending.get_cached_loans_of_user(self.key)
+            if use_cache
+            else lending.get_loans_of_user(self.key)
+        )
         for loan in loans:
             if ocaid == loan['ocaid']:
                 return loan
 
     def get_waiting_loan_for(self, ocaid):
         """
-        :param str or None ocaid:
+        :param str or None ocaid: edition ocaid
         :rtype: dict (e.g. {position: number})
         """
         return ocaid and WaitingLoan.find(self.key, ocaid)
+
+    def get_user_waiting_loans(self, ocaid=None, use_cache=False):
+        """
+        Similar to get_waiting_loan_for, but fetches and caches all of user's waiting loans
+        :param str or None ocaid: edition ocaid
+        :rtype: dict (e.g. {position: number})
+        """
+        all_user_waiting_loans = (
+            lending.get_cached_user_waiting_loans
+            if use_cache
+            else lending.get_user_waiting_loans
+        )(self.key)
+        if ocaid:
+            return next(
+                (
+                    loan
+                    for loan in all_user_waiting_loans
+                    if loan['identifier'] == ocaid
+                ),
+                None,
+            )
+        return all_user_waiting_loans
 
     def __repr__(self):
         return "<User: %s>" % repr(self.key)

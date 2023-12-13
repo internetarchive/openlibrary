@@ -25,6 +25,7 @@ from openlibrary.catalog.add_book import (
 import openlibrary
 
 from openlibrary import accounts
+from openlibrary.accounts.model import clear_cookies
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import admin as admin_stats, helpers as h, imports, cache
 from openlibrary.core.waitinglist import Stats as WLStats
@@ -465,7 +466,10 @@ class people_view:
 
     def POST_su(self, account):
         code = account.generate_login_code()
+        # Clear all existing admin cookies before logging in as another user
+        clear_cookies()
         web.setcookie(config.login_cookie_name, code, expires="")
+
         return web.seeother("/")
 
     def POST_anonymize_account(self, account, test):

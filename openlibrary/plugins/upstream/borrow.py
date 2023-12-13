@@ -150,6 +150,9 @@ class borrow(delegate.page):
             account = OpenLibraryAccount.get_by_email(user.email)
             ia_itemname = account.itemname if account else None
             s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
+            lending.get_cached_loans_of_user.memcache_delete(
+                user.key, {}
+            )  # invalidate cache for user loans
         if not user or not ia_itemname or not s3_keys:
             web.setcookie(config.login_cookie_name, "", expires=-1)
             redirect_url = (
@@ -166,10 +169,16 @@ class borrow(delegate.page):
             user.update_loan_status()
             raise web.seeother(edition_redirect)
         elif action == 'join-waitinglist':
+            lending.get_cached_user_waiting_loans.memcache_delete(
+                user.key, {}
+            )  # invalidate cache for user waiting loans
             lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='join_waitlist')
             stats.increment('ol.loans.joinWaitlist')
             raise web.redirect(edition_redirect)
         elif action == 'leave-waitinglist':
+            lending.get_cached_user_waiting_loans.memcache_delete(
+                user.key, {}
+            )  # invalidate cache for user waiting loans
             lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='leave_waitlist')
             stats.increment('ol.loans.leaveWaitlist')
             raise web.redirect(edition_redirect)

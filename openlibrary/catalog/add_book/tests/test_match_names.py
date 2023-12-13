@@ -1,5 +1,5 @@
 import pytest
-from openlibrary.catalog.merge import names
+from openlibrary.catalog.add_book import match_names as names
 
 samples = [
     ("John Smith", "Smith, John"),

@@ -1,15 +1,14 @@
 import pytest
+
 from datetime import datetime, timedelta
 from openlibrary.catalog.utils import (
     author_dates_match,
-    expand_record,
     flip_name,
     get_missing_fields,
     get_publication_year,
     is_independently_published,
     is_promise_item,
     match_with_bad_chars,
-    mk_norm,
     needs_isbn_and_lacks_one,
     pick_best_author,
     pick_best_name,
@@ -195,101 +194,6 @@ def test_remove_trailing_dot():
     for input, expect in data:
         output = remove_trailing_dot(input)
         assert output == expect
-
-
-mk_norm_conversions = [
-    ("Hello I'm a  title.", "helloi'matitle"),
-    ("Hello I'm a  title.", "helloi'matitle"),
-    ('Forgotten Titles: A Novel.', 'forgottentitlesanovel'),
-    ('Kitāb Yatīmat ud-Dahr', 'kitābyatīmatuddahr'),
-]
-
-
-@pytest.mark.parametrize('title,expected', mk_norm_conversions)
-def test_mk_norm(title, expected):
-    assert mk_norm(title) == expected
-
-
-mk_norm_matches = [
-    ("Your Baby's First Word Will Be DADA", "Your baby's first word will be DADA"),
-]
-
-
-@pytest.mark.parametrize('a,b', mk_norm_matches)
-def test_mk_norm_equality(a, b):
-    assert mk_norm(a) == mk_norm(b)
-
-
-valid_edition = {
-    'title': 'A test title (parens)',
-    'full_title': 'A test full title : subtitle (parens).',  # required, and set by add_book.load()
-    'source_records': ['ia:test-source'],
-}
-
-
-def test_expand_record():
-    # used in openlibrary.catalog.add_book.load()
-    # when trying to find an existing edition match
-    edition = valid_edition.copy()
-    expanded_record = expand_record(edition)
-    assert isinstance(expanded_record['titles'], list)
-    assert expanded_record['titles'] == [
-        'A test full title : subtitle (parens).',
-        'a test full title subtitle (parens)',
-        'test full title : subtitle (parens).',
-        'test full title subtitle (parens)',
-    ]
-    assert expanded_record['normalized_title'] == 'a test full title subtitle (parens)'
-    assert expanded_record['short_title'] == 'a test full title subtitl'
-
-
-def test_expand_record_publish_country():
-    # used in openlibrary.catalog.add_book.load()
-    # when trying to find an existing edition match
-    edition = valid_edition.copy()
-    expanded_record = expand_record(edition)
-    assert 'publish_country' not in expanded_record
-    for publish_country in ('   ', '|||'):
-        edition['publish_country'] = publish_country
-        assert 'publish_country' not in expand_record(edition)
-    for publish_country in ('USA', 'usa'):
-        edition['publish_country'] = publish_country
-        assert expand_record(edition)['publish_country'] == publish_country
-
-
-def test_expand_record_transfer_fields():
-    edition = valid_edition.copy()
-    expanded_record = expand_record(edition)
-    transfer_fields = (
-        'lccn',
-        'publishers',
-        'publish_date',
-        'number_of_pages',
-        'authors',
-        'contribs',
-    )
-    for field in transfer_fields:
-        assert field not in expanded_record
-    for field in transfer_fields:
-        edition[field] = field
-    expanded_record = expand_record(edition)
-    for field in transfer_fields:
-        assert field in expanded_record
-
-
-def test_expand_record_isbn():
-    edition = valid_edition.copy()
-    expanded_record = expand_record(edition)
-    assert expanded_record['isbn'] == []
-    edition.update(
-        {
-            'isbn': ['1234567890'],
-            'isbn_10': ['123', '321'],
-            'isbn_13': ['1234567890123'],
-        }
-    )
-    expanded_record = expand_record(edition)
-    assert expanded_record['isbn'] == ['1234567890', '123', '321', '1234567890123']
 
 
 @pytest.mark.parametrize(

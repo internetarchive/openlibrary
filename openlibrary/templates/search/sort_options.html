@@ -47,6 +47,7 @@ $code:
       $else:
           <a href="$changequery(sort=cond(sort_option['sort'] == default_sort, None, sort_option['sort']))"
              data-ol-link-track="SearchSort|$sort_option['ga_key']"
+             rel="nofollow"
           >$sort_option['name']</a>
       $if sort_option.get('sub_sorts') and is_selected:
         <select
@@ -65,5 +66,6 @@ $code:
     $if selected_sort and selected_sort.startswith('random'):
       (<a href="$changequery(sort='random_%s' % today().timestamp())"
          data-ol-link-track="SearchSort|RandomShuffle"
+         rel="nofollow"
       >$_('Shuffle')</a>)
 </span>

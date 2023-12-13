@@ -36,6 +36,7 @@ from openlibrary.accounts import (
     OpenLibraryAccount,
     InternetArchiveAccount,
     valid_email,
+    clear_cookies,
 )
 from openlibrary.plugins.upstream import borrow, forms, utils
 from openlibrary.utils.dateutil import elapsed_time
@@ -434,6 +435,23 @@ class account_login(delegate.page):
         return render.message(title, message)
 
 
+class account_logout(delegate.page):
+    """Account logout.
+
+    This registers a handler to the /account/logout endpoint in infogami so that additional logic, such as clearing admin cookies,
+    can be handled prior to the calling of infogami's standard logout procedure
+
+    """
+
+    path = "/account/logout"
+
+    def POST(self):
+        clear_cookies()
+        from infogami.core.code import logout as infogami_logout
+
+        return infogami_logout().POST()
+
+
 class account_verify(delegate.page):
     """Verify user account."""
 
@@ -797,8 +815,10 @@ class import_books(delegate.page):
     def GET(self):
         user = accounts.get_current_user()
         username = user['key'].split('/')[-1]
-
-        return MyBooksTemplate(username, 'imports').render()
+        template = render['account/import']()
+        return MyBooksTemplate(username, 'imports').render(
+            header_title=_("Imports and Exports"), template=template
+        )
 
 
 class fetch_goodreads(delegate.page):
@@ -1033,11 +1053,15 @@ class account_loans(delegate.page):
 
     @require_login
     def GET(self):
+        from openlibrary.core.lending import get_loans_of_user
+
         user = accounts.get_current_user()
         user.update_loan_status()
         username = user['key'].split('/')[-1]
-
-        return MyBooksTemplate(username, 'loans').render()
+        mb = MyBooksTemplate(username, 'loans')
+        docs = get_loans_of_user(user.key)
+        template = render['account/loans'](user, docs)
+        return mb.render(header_title=_("Loans"), template=template)
 
 
 class account_loans_json(delegate.page):
