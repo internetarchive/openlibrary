@@ -51,6 +51,11 @@ a.cta-btn {
     &:hover { background-color: darken(@primary-blue, 20%); }
   }
 
+  &--available:disabled, &--preview:disabled, &--primary:disabled {
+    background-color: @grey;
+    cursor: default;
+  }
+
   &--external {
     background-image: url(/static/images/icons/octicon-link-external-24.svg);
     background-repeat: no-repeat;
