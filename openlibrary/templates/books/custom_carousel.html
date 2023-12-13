@@ -19,7 +19,7 @@ $def carousel_i18n_input():
   <input type="hidden" name="carousel-i18n-strings" value="$json_encode(show_carousel_i18n_strings)">
 
 
-  $if render_once('books/custom_carousel.i18n-strings')::
+$if render_once('books/custom_carousel.i18n-strings'):
   $:carousel_i18n_input()
 
 $def render_carousel_cover(book, lazy, layout):
