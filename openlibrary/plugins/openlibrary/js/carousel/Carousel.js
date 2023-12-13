@@ -73,8 +73,8 @@ const Carousel = {
             slidesToScroll: a,
             responsive: responsive_settings
         });
-        //This loads in i18n strings from a hidden input element, generated in the books/custom_carousel.html template. 
-        const i18nValues = JSON.parse($("input[name='carousel-i18n-strings']").attr("value"))
+        //This loads in i18n strings from a hidden input element, generated in the books/custom_carousel.html template.
+        const i18nValues = JSON.parse($('input[name=\'carousel-i18n-strings\']').attr('value'))
         availabilityStatuses = {
             open: {cls: 'cta-btn--available', cta: i18nValues['open']},
             borrow_available: {cls: 'cta-btn--available', cta: i18nValues['borrow_available']},
