@@ -21,7 +21,7 @@ $jsdef render_language_field(i, language, i18n_name):
     $ lang_name = i18n_name or language.name
     <div class="input ac-input mia__input">
       <div class="mia__reorder">≡</div>
-      <input class="ac-input__visible" name="languages--$i" type="text" value="$lang_name"/>
+      <input class="ac-input__visible" name="languages--$i" type="text" value="$_(lang_name)"/>
       <input class="ac-input__value" name="edition--languages--$i--key" type="hidden" value="$language.key" />
       <a class="mia__remove" href="javascript:;" title="$_('Remove this language')">[x]</a>
     </div>
@@ -29,7 +29,7 @@ $jsdef render_language_field(i, language, i18n_name):
 $# Render the ith translated_from language input field
 $jsdef render_translated_from_language_field(i, language):
     <div class="input ac-input">
-      <input class="ac-input__visible" type="text" name="translated_from--$i" value="$language.name"/>
+      <input class="ac-input__visible" type="text" name="translated_from--$i" value="$_(language.name)"/>
       <input class="ac-input__value" type="hidden" name="edition--translated_from--$i--key" value="$language.key" />
     </div>
 
