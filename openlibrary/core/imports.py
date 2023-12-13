@@ -243,7 +243,7 @@ class ImportItem(web.storage):
             ia_ids += [f'{source}:{id}' for source in sources]
 
         query = (
-            "UPDATE import_item"
+            "UPDATE import_item "
             "SET status = 'pending' "
             "WHERE status = 'staged' "
             "AND ia_id IN $ia_ids"
