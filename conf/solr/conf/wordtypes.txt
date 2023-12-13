@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# maps character to type to control spliting behavior and avoid discarding non-alphanumeric characters 
+# maps character to type to control spliting behavior and avoid discarding non-alphanumeric characters
 # see:https://solr.apache.org/guide/solr/latest/indexing-guide/filters.html#word-delimiter-graph-filter
 
 
