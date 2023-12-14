@@ -1,10 +1,11 @@
 from functools import cached_property
 import logging
 import re
-from typing import cast, Optional
+from typing import cast
 
 import openlibrary.book_providers as bp
 from openlibrary.solr.solr_types import SolrDocument
+from openlibrary.solr.utils import get_solr_next
 from openlibrary.utils import uniq
 from openlibrary.utils.isbn import opposite_isbn
 
@@ -191,7 +192,6 @@ def build_edition_data(
     Build the solr document for the given edition to store as a nested
     document
     """
-    from openlibrary.solr.update_work import get_solr_next
 
     ed = EditionSolrBuilder(edition, ia_metadata)
     solr_doc: SolrDocument = cast(

@@ -5,7 +5,8 @@ from typing import Literal
 
 import httpx
 
-from openlibrary.solr.update_work import build_subject_doc, solr_insert_documents
+from openlibrary.solr.update_work import build_subject_doc
+from openlibrary.solr.utils import solr_insert_documents
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 from scripts.solr_builder.solr_builder.solr_builder import safeget
 

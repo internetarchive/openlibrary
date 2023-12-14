@@ -1,11 +1,10 @@
-from dataclasses import dataclass, field
 import datetime
 import itertools
 import logging
 import re
 from math import ceil
 from statistics import median
-from typing import Callable, Literal, Optional, cast, Any
+from typing import Literal, Optional, cast, Any
 from collections.abc import Iterable
 
 import aiofiles
@@ -14,15 +13,13 @@ import requests
 import sys
 import time
 
-from httpx import HTTPError, HTTPStatusError, TimeoutException
 from collections import defaultdict
 
 import json
 import web
 
-from openlibrary import config
 import openlibrary.book_providers as bp
-from openlibrary.catalog.utils.query import set_query_host, base_url as get_ol_base_url
+from openlibrary.catalog.utils.query import set_query_host
 from openlibrary.core import helpers as h
 from openlibrary.plugins.upstream.utils import safeget
 from openlibrary.solr.data_provider import (
@@ -32,10 +29,18 @@ from openlibrary.solr.data_provider import (
 )
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.update_edition import EditionSolrBuilder, build_edition_data
+from openlibrary.solr.utils import (
+    SolrUpdateState,
+    get_solr_base_url,
+    get_solr_next,
+    load_config,
+    set_solr_base_url,
+    set_solr_next,
+    solr_update,
+)
 from openlibrary.utils import uniq
 from openlibrary.utils.ddc import normalize_ddc, choose_sorting_ddc
 from openlibrary.utils.lcc import short_lcc_to_sortable_lcc, choose_sorting_lcc
-from openlibrary.utils.retry import MaxRetriesExceeded, RetryStrategy
 
 logger = logging.getLogger("openlibrary.solr")
 
@@ -47,48 +52,6 @@ re_year = re.compile(r'\b(\d{4})\b')
 
 # This will be set to a data provider; have faith, mypy!
 data_provider = cast(DataProvider, None)
-
-solr_base_url = None
-solr_next: bool | None = None
-
-
-def get_solr_base_url():
-    """
-    Get Solr host
-
-    :rtype: str
-    """
-    global solr_base_url
-
-    load_config()
-
-    if not solr_base_url:
-        solr_base_url = config.runtime_config['plugin_worksearch']['solr_base_url']
-
-    return solr_base_url
-
-
-def set_solr_base_url(solr_url: str):
-    global solr_base_url
-    solr_base_url = solr_url
-
-
-def get_solr_next() -> bool:
-    """
-    Get whether this is the next version of solr; ie new schema configs/fields, etc.
-    """
-    global solr_next
-
-    if solr_next is None:
-        load_config()
-        solr_next = config.runtime_config['plugin_worksearch'].get('solr_next', False)
-
-    return solr_next
-
-
-def set_solr_next(val: bool):
-    global solr_next
-    solr_next = val
 
 
 def extract_edition_olid(key: str) -> str:
@@ -919,30 +882,6 @@ def build_data2(
     return cast(SolrDocument, doc)
 
 
-async def solr_insert_documents(
-    documents: list[dict],
-    solr_base_url: str | None = None,
-    skip_id_check=False,
-):
-    """
-    Note: This has only been tested with Solr 8, but might work with Solr 3 as well.
-    """
-    solr_base_url = solr_base_url or get_solr_base_url()
-    params = {}
-    if skip_id_check:
-        params['overwrite'] = 'false'
-    logger.debug(f"POSTing update to {solr_base_url}/update {params}")
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(
-            f'{solr_base_url}/update',
-            timeout=30,  # seconds; the default timeout is silly short
-            params=params,
-            headers={'Content-Type': 'application/json'},
-            content=json.dumps(documents),
-        )
-    resp.raise_for_status()
-
-
 def listify(f):
     """Decorator to transform a generator function into a function
     returning list of values.
@@ -1005,73 +944,6 @@ class BaseDocBuilder:
         if isinstance(subject, str):
             key = prefix + self.re_subject.sub("_", subject.lower()).strip("_")
             return key
-
-
-def solr_update(
-    update_request: 'SolrUpdateState',
-    skip_id_check=False,
-    solr_base_url: str | None = None,
-) -> None:
-    content = update_request.to_solr_requests_json()
-
-    solr_base_url = solr_base_url or get_solr_base_url()
-    params = {
-        # Don't fail the whole batch if one bad apple
-        'update.chain': 'tolerant-chain'
-    }
-    if skip_id_check:
-        params['overwrite'] = 'false'
-
-    def make_request():
-        logger.debug(f"POSTing update to {solr_base_url}/update {params}")
-        try:
-            resp = httpx.post(
-                f'{solr_base_url}/update',
-                # Large batches especially can take a decent chunk of time
-                timeout=300,
-                params=params,
-                headers={'Content-Type': 'application/json'},
-                content=content,
-            )
-
-            if resp.status_code == 400:
-                resp_json = resp.json()
-
-                indiv_errors = resp_json.get('responseHeader', {}).get('errors', [])
-                if indiv_errors:
-                    for e in indiv_errors:
-                        logger.error(f'Individual Solr POST Error: {e}')
-
-                global_error = resp_json.get('error')
-                if global_error:
-                    logger.error(f'Global Solr POST Error: {global_error.get("msg")}')
-
-                if not (indiv_errors or global_error):
-                    # We can handle the above errors. Any other 400 status codes
-                    # are fatal and should cause a retry
-                    resp.raise_for_status()
-            else:
-                resp.raise_for_status()
-        except HTTPStatusError as e:
-            logger.error(f'HTTP Status Solr POST Error: {e}')
-            raise
-        except TimeoutException:
-            logger.error(f'Timeout Solr POST Error: {content}')
-            raise
-        except HTTPError as e:
-            logger.error(f'HTTP Solr POST Error: {e}')
-            raise
-
-    retry = RetryStrategy(
-        [HTTPStatusError, TimeoutException, HTTPError],
-        max_retries=5,
-        delay=8,
-    )
-
-    try:
-        return retry(make_request)
-    except MaxRetriesExceeded as e:
-        logger.error(f'Max retries exceeded for Solr POST: {e.last_exception}')
 
 
 def get_subject(key):
@@ -1147,7 +1019,7 @@ def build_subject_doc(
     }
 
 
-async def update_author(a: dict) -> 'SolrUpdateState':
+async def update_author(a: dict) -> SolrUpdateState:
     """
     Get the Solr requests necessary to insert/update/delete an Author in Solr.
     :param dict a: Author
@@ -1244,53 +1116,6 @@ def solr_select_work(edition_key):
     ).json()
     if docs := reply['response'].get('docs', []):
         return docs[0]['key']  # /works/ prefix is in solr
-
-
-@dataclass
-class SolrUpdateState:
-    keys: list[str] = field(default_factory=list)
-    """Keys to update"""
-
-    adds: list[SolrDocument] = field(default_factory=list)
-    """Records to be added/modified"""
-
-    deletes: list[str] = field(default_factory=list)
-    """Records to be deleted"""
-
-    commit: bool = False
-
-    # Override the + operator
-    def __add__(self, other):
-        if isinstance(other, SolrUpdateState):
-            return SolrUpdateState(
-                adds=self.adds + other.adds,
-                deletes=self.deletes + other.deletes,
-                keys=self.keys + other.keys,
-                commit=self.commit or other.commit,
-            )
-        else:
-            raise TypeError(f"Cannot add {type(self)} and {type(other)}")
-
-    def has_changes(self) -> bool:
-        return bool(self.adds or self.deletes)
-
-    def to_solr_requests_json(self, indent: str | None = None, sep=',') -> str:
-        result = '{'
-        if self.deletes:
-            result += f'"delete": {json.dumps(self.deletes, indent=indent)}' + sep
-        for doc in self.adds:
-            result += f'"add": {json.dumps({"doc": doc}, indent=indent)}' + sep
-        if self.commit:
-            result += '"commit": {}' + sep
-
-        if result.endswith(sep):
-            result = result[: -len(sep)]
-        result += '}'
-        return result
-
-    def clear_requests(self) -> None:
-        self.adds.clear()
-        self.deletes.clear()
 
 
 class AbstractSolrUpdater:
@@ -1400,8 +1225,8 @@ class AuthorSolrUpdater(AbstractSolrUpdater):
     key_prefix = '/authors/'
     thing_type = '/type/author'
 
-    def update_key(self, thing: dict) -> SolrUpdateState:
-        return update_author(thing)
+    async def update_key(self, thing: dict) -> SolrUpdateState:
+        return await update_author(thing)
 
 
 SOLR_UPDATERS: list[AbstractSolrUpdater] = [
@@ -1418,7 +1243,7 @@ async def update_keys(
     output_file=None,
     skip_id_check=False,
     update: Literal['update', 'print', 'pprint', 'quiet'] = 'update',
-) -> 'SolrUpdateState':
+) -> SolrUpdateState:
     """
     Insert/update the documents with the provided keys in Solr.
 
@@ -1430,7 +1255,7 @@ async def update_keys(
     """
     logger.debug("BEGIN update_keys")
 
-    def _solr_update(update_state: 'SolrUpdateState'):
+    def _solr_update(update_state: SolrUpdateState):
         if update == 'update':
             return solr_update(update_state, skip_id_check)
         elif update == 'pprint':
@@ -1504,12 +1329,6 @@ async def do_updates(keys):
         level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
     )
     await update_keys(keys, commit=False)
-
-
-def load_config(c_config='conf/openlibrary.yml'):
-    if not config.runtime_config:
-        config.load(c_config)
-        config.load_config(c_config)
 
 
 def load_configs(
