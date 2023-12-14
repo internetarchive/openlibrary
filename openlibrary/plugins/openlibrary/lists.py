@@ -224,7 +224,7 @@ class lists(delegate.page):
             template = render_template(
                 "lists/lists.html", mb.user, mb.user.get_lists(), show_header=False
             )
-            return mb.render(template=template, header_title=_("Lists"), page=mb.user)
+            return mb.render(template=template, header_title=_("Lists"))
         else:
             doc = self.get_doc(path)
             if not doc:
