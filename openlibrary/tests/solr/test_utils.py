@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import httpx
 from httpx import Response, ConnectError
 
-from openlibrary.solr.utils import SolrUpdateState, solr_update
+from openlibrary.solr.utils import SolrUpdateRequest, solr_update
 
 
 class TestSolrUpdate:
@@ -84,7 +84,7 @@ class TestSolrUpdate:
         monkeypatch.setattr(httpx, "post", mock_post)
 
         solr_update(
-            SolrUpdateState(commit=True),
+            SolrUpdateRequest(commit=True),
             solr_base_url="http://localhost:8983/solr/foobar",
         )
 
@@ -95,7 +95,7 @@ class TestSolrUpdate:
         monkeypatch.setattr(httpx, "post", mock_post)
 
         solr_update(
-            SolrUpdateState(commit=True),
+            SolrUpdateRequest(commit=True),
             solr_base_url="http://localhost:8983/solr/foobar",
         )
 
@@ -106,7 +106,7 @@ class TestSolrUpdate:
         monkeypatch.setattr(httpx, "post", mock_post)
 
         solr_update(
-            SolrUpdateState(commit=True),
+            SolrUpdateRequest(commit=True),
             solr_base_url="http://localhost:8983/solr/foobar",
         )
 
@@ -117,7 +117,7 @@ class TestSolrUpdate:
         monkeypatch.setattr(httpx, "post", mock_post)
 
         solr_update(
-            SolrUpdateState(commit=True),
+            SolrUpdateRequest(commit=True),
             solr_base_url="http://localhost:8983/solr/foobar",
         )
 
@@ -128,7 +128,7 @@ class TestSolrUpdate:
         monkeypatch.setattr(httpx, "post", mock_post)
 
         solr_update(
-            SolrUpdateState(commit=True),
+            SolrUpdateRequest(commit=True),
             solr_base_url="http://localhost:8983/solr/foobar",
         )
 
@@ -141,7 +141,7 @@ class TestSolrUpdate:
         monkeypatch.setattr(httpx, "post", mock_post)
 
         solr_update(
-            SolrUpdateState(commit=True),
+            SolrUpdateRequest(commit=True),
             solr_base_url="http://localhost:8983/solr/foobar",
         )
 

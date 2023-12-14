@@ -30,7 +30,7 @@ from openlibrary.solr.data_provider import (
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.update_edition import EditionSolrBuilder, build_edition_data
 from openlibrary.solr.utils import (
-    SolrUpdateState,
+    SolrUpdateRequest,
     get_solr_base_url,
     get_solr_next,
     load_config,
@@ -1019,7 +1019,7 @@ def build_subject_doc(
     }
 
 
-async def update_author(a: dict) -> SolrUpdateState:
+async def update_author(a: dict) -> SolrUpdateRequest:
     """
     Get the Solr requests necessary to insert/update/delete an Author in Solr.
     :param dict a: Author
@@ -1084,7 +1084,7 @@ async def update_author(a: dict) -> SolrUpdateState:
     d['work_count'] = work_count
     d['top_subjects'] = top_subjects
 
-    return SolrUpdateState(adds=[d])
+    return SolrUpdateRequest(adds=[d])
 
 
 re_edition_key_basename = re.compile("^[a-zA-Z0-9:.-]+$")
@@ -1128,7 +1128,7 @@ class AbstractSolrUpdater:
     async def preload_keys(self, keys: Iterable[str]):
         await data_provider.preload_documents(keys)
 
-    async def update_key(self, thing: dict) -> SolrUpdateState:
+    async def update_key(self, thing: dict) -> SolrUpdateRequest:
         raise NotImplementedError()
 
 
@@ -1136,8 +1136,8 @@ class EditionSolrUpdater(AbstractSolrUpdater):
     key_prefix = '/books/'
     thing_type = '/type/edition'
 
-    async def update_key(self, thing: dict) -> SolrUpdateState:
-        update = SolrUpdateState()
+    async def update_key(self, thing: dict) -> SolrUpdateRequest:
+        update = SolrUpdateRequest()
         if thing['type']['key'] == self.thing_type:
             if thing.get("works"):
                 update.keys.append(thing["works"][0]['key'])
@@ -1167,14 +1167,14 @@ class WorkSolrUpdater(AbstractSolrUpdater):
         await super().preload_keys(keys)
         data_provider.preload_editions_of_works(keys)
 
-    async def update_key(self, work: dict) -> SolrUpdateState:
+    async def update_key(self, work: dict) -> SolrUpdateRequest:
         """
         Get the Solr requests necessary to insert/update this work into Solr.
 
         :param dict work: Work to insert/update
         """
         wkey = work['key']
-        update = SolrUpdateState()
+        update = SolrUpdateRequest()
 
         # q = {'type': '/type/redirect', 'location': wkey}
         # redirect_keys = [r['key'][7:] for r in query_iter(q)]
@@ -1225,7 +1225,7 @@ class AuthorSolrUpdater(AbstractSolrUpdater):
     key_prefix = '/authors/'
     thing_type = '/type/author'
 
-    async def update_key(self, thing: dict) -> SolrUpdateState:
+    async def update_key(self, thing: dict) -> SolrUpdateRequest:
         return await update_author(thing)
 
 
@@ -1243,7 +1243,7 @@ async def update_keys(
     output_file=None,
     skip_id_check=False,
     update: Literal['update', 'print', 'pprint', 'quiet'] = 'update',
-) -> SolrUpdateState:
+) -> SolrUpdateRequest:
     """
     Insert/update the documents with the provided keys in Solr.
 
@@ -1255,7 +1255,7 @@ async def update_keys(
     """
     logger.debug("BEGIN update_keys")
 
-    def _solr_update(update_state: SolrUpdateState):
+    def _solr_update(update_state: SolrUpdateRequest):
         if update == 'update':
             return solr_update(update_state, skip_id_check)
         elif update == 'pprint':
@@ -1269,10 +1269,10 @@ async def update_keys(
     if data_provider is None:
         data_provider = get_data_provider('default')
 
-    net_update = SolrUpdateState(keys=keys, commit=commit)
+    net_update = SolrUpdateRequest(keys=keys, commit=commit)
 
     for updater in SOLR_UPDATERS:
-        update_state = SolrUpdateState(commit=commit)
+        update_state = SolrUpdateRequest(commit=commit)
         updater_keys = uniq(k for k in net_update.keys if updater.key_test(k))
         await updater.preload_keys(updater_keys)
         for key in updater_keys:

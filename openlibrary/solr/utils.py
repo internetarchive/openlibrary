@@ -62,7 +62,7 @@ def set_solr_next(val: bool):
 
 
 @dataclass
-class SolrUpdateState:
+class SolrUpdateRequest:
     keys: list[str] = field(default_factory=list)
     """Keys to update"""
 
@@ -76,8 +76,8 @@ class SolrUpdateState:
 
     # Override the + operator
     def __add__(self, other):
-        if isinstance(other, SolrUpdateState):
-            return SolrUpdateState(
+        if isinstance(other, SolrUpdateRequest):
+            return SolrUpdateRequest(
                 adds=self.adds + other.adds,
                 deletes=self.deletes + other.deletes,
                 keys=self.keys + other.keys,
@@ -109,7 +109,7 @@ class SolrUpdateState:
 
 
 def solr_update(
-    update_request: SolrUpdateState,
+    update_request: SolrUpdateRequest,
     skip_id_check=False,
     solr_base_url: str | None = None,
 ) -> None:
