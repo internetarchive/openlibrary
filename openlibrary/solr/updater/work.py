@@ -471,14 +471,12 @@ class WorkSolrBuilder:
 
     @property
     def publish_date(self) -> set[str]:
-        return {e['publish_date'] for e in self._editions if e.get('publish_date')}
+        return {e.publish_date for e in self._solr_editions if e.publish_date}
 
     @property
     def publish_year(self) -> set[int]:
         return {
-            year
-            for e in self._editions
-            if (year := EditionSolrBuilder(e).publish_year) is not None
+            year for e in self._solr_editions if (year := e.publish_year) is not None
         }
 
     @property
