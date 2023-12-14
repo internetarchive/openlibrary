@@ -6,7 +6,7 @@ from typing import cast
 import requests
 import openlibrary.book_providers as bp
 from openlibrary.solr.solr_types import SolrDocument
-from openlibrary.solr.updater.abstract import AbstractSolrUpdater
+from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url, get_solr_next
 from openlibrary.utils import uniq
 from openlibrary.utils.isbn import opposite_isbn
@@ -90,7 +90,7 @@ def is_sine_nomine(pub: str) -> bool:
     return re_not_az.sub('', pub).lower() == 'sn'
 
 
-class EditionSolrBuilder:
+class EditionSolrBuilder(AbstractSolrBuilder):
     def __init__(self, edition: dict, ia_metadata: bp.IALiteMetadata | None = None):
         self.edition = edition
         self.ia_metadata = ia_metadata
@@ -263,6 +263,9 @@ class EditionSolrBuilder:
         """
         Build the solr document for the given edition to store as a nested
         document
+
+        Completely override parent class method to handle some peculiar
+        fields
         """
         solr_doc: SolrDocument = cast(
             SolrDocument,

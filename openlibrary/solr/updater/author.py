@@ -1,7 +1,5 @@
-from typing import cast
 import httpx
-from openlibrary.solr.solr_types import SolrDocument
-from openlibrary.solr.updater.abstract import AbstractSolrUpdater
+from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url
 
 
@@ -30,44 +28,65 @@ class AuthorSolrUpdater(AbstractSolrUpdater):
                 + [('facet.field', '%s_facet' % field) for field in facet_fields],
             )
             reply = response.json()
-        work_count = reply['response']['numFound']
-        docs = reply['response'].get('docs', [])
-        top_work = None
+
+        doc = AuthorSolrBuilder(author, reply).build()
+
+        return SolrUpdateRequest(adds=[doc]), []
+
+
+class AuthorSolrBuilder(AbstractSolrBuilder):
+    def __init__(self, author: dict, solr_reply: dict):
+        self._author = author
+        self._solr_reply = solr_reply
+
+    @property
+    def key(self) -> str:
+        return self._author['key']
+
+    @property
+    def type(self) -> str:
+        return 'author'
+
+    @property
+    def name(self) -> str | None:
+        return self._author.get('name')
+
+    @property
+    def alternate_names(self) -> list[str]:
+        return self._author.get('alternate_names', [])
+
+    @property
+    def birth_date(self) -> str | None:
+        return self._author.get('birth_date')
+
+    @property
+    def death_date(self) -> str | None:
+        return self._author.get('death_date')
+
+    @property
+    def date(self) -> str | None:
+        """I think this is legacy?"""
+        return self._author.get('date')
+
+    @property
+    def top_work(self) -> str | None:
+        docs = self._solr_reply['response'].get('docs', [])
         if docs and docs[0].get('title', None):
             top_work = docs[0]['title']
             if docs[0].get('subtitle', None):
                 top_work += ': ' + docs[0]['subtitle']
+            return top_work
+        return None
+
+    @property
+    def work_count(self) -> int:
+        return self._solr_reply['response']['numFound']
+
+    @property
+    def top_subjects(self) -> list[str]:
         all_subjects = []
-        for f in facet_fields:
-            for s, num in reply['facet_counts']['facet_fields'][f + '_facet']:
+        for counts in self._solr_reply['facet_counts']['facet_fields'].values():
+            for s, num in counts:
                 all_subjects.append((num, s))
         all_subjects.sort(reverse=True)
-        top_subjects = [s for num, s in all_subjects[:10]]
-        d = cast(
-            SolrDocument,
-            {
-                'key': f'/authors/{author_id}',
-                'type': 'author',
-            },
-        )
-
-        if author.get('name', None):
-            d['name'] = author['name']
-
-        alternate_names = author.get('alternate_names', [])
-        if alternate_names:
-            d['alternate_names'] = alternate_names
-
-        if author.get('birth_date', None):
-            d['birth_date'] = author['birth_date']
-        if author.get('death_date', None):
-            d['death_date'] = author['death_date']
-        if author.get('date', None):
-            d['date'] = author['date']
-
-        if top_work:
-            d['top_work'] = top_work
-        d['work_count'] = work_count
-        d['top_subjects'] = top_subjects
-
-        return SolrUpdateRequest(adds=[d]), []
+        return [s for num, s in all_subjects[:10]]

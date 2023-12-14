@@ -16,7 +16,7 @@ from openlibrary.plugins.upstream.utils import safeget
 from openlibrary.plugins.worksearch.subjects import SubjectPseudoKey
 from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
 from openlibrary.solr.solr_types import SolrDocument
-from openlibrary.solr.updater.abstract import AbstractSolrUpdater
+from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.updater.edition import EditionSolrBuilder
 from openlibrary.solr.utils import SolrUpdateRequest, get_solr_next, str_to_key
 from openlibrary.utils import uniq
@@ -246,7 +246,7 @@ def subject_name_to_key(subject_type: str, name: str) -> SubjectPseudoKey:
     return prefix + re_subject.sub("_", name.lower()).strip("_")
 
 
-class WorkSolrBuilder:
+class WorkSolrBuilder(AbstractSolrBuilder):
     def __init__(
         self,
         work: dict,
@@ -266,29 +266,7 @@ class WorkSolrBuilder:
         ]
 
     def build(self) -> SolrDocument:
-        # Iterate over all non-_ properties of this instance and add them to the
-        # document.
-        # Allow @property and @cached_property though!
-        doc: dict = {}
-        for field in dir(self):
-            if field.startswith('_'):
-                continue
-            val = getattr(self, field)
-
-            if callable(val):
-                continue
-            elif val is None or (isinstance(val, Iterable) and not val):
-                # Skip if empty list/string
-                continue
-            elif isinstance(val, set):
-                doc[field] = list(val)
-            elif isinstance(val, bp.EbookAccess):
-                doc[field] = val.to_solr_str()
-            elif isinstance(val, (str, int, float, bool, list)):
-                doc[field] = val
-            else:
-                raise ValueError(f'Unknown type for {field}: {type(val)}')
-
+        doc = cast(dict, super().build())
         doc |= self.build_identifiers()
         doc |= self.build_subjects()
         doc |= self.build_legacy_ia_fields()
@@ -495,10 +473,6 @@ class WorkSolrBuilder:
         return sorted((e for e in self._solr_editions if e.ia), key=get_ia_sorting_key)
 
     # --- These should be deprecated and removed ---
-    @cached_property
-    def _best_ia_edition(self) -> EditionSolrBuilder | None:
-        return safeget(lambda: self._ia_editions[0])
-
     @property
     def lending_edition_s(self) -> str | None:
         if (
