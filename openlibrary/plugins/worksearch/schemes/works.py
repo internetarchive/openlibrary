@@ -278,16 +278,51 @@ class WorkSearchScheme(SearchScheme):
         # query, but much more flexible. We wouldn't be able to do our
         # complicated parent/child queries with defType!
 
-        full_work_query = '({{!edismax q.op="AND" qf="{qf}" bf="{bf}" v={v}}})'.format(
+        # bf (boost factor): boost results based on the value of this
+        # field. I.e. results with more editions get boosted, upto a
+        # max of 100, after which we don't see it as good signal of
+        # quality. bf is applied _additively_.
+        # boost: boost results based on the value of this field. boost
+        # is applied _multiplicatively_.
+        edismax_params = {
+            # Dismax parameters
+            # See https://solr.apache.org/guide/solr/latest/query-guide/dismax-query-parser.html
             # qf: the fields to query un-prefixed parts of the query.
             # e.g. 'harry potter' becomes
             # 'text:(harry potter) OR alternative_title:(harry potter)^20 OR ...'
-            qf='text alternative_title^20 author_name^20',
-            # bf (boost factor): boost results based on the value of this
-            # field. I.e. results with more editions get boosted, upto a
-            # max of 100, after which we don't see it as good signal of
-            # quality.
-            bf='min(100,edition_count)',
+            'qf': 'text alternative_title^10 author_name^10',
+            'mm': None,
+            'pf': 'alternative_title^10 author_name^10',
+            'ps': None,
+            'qs': None,
+            'tie': None,
+            'bq': None,
+            'bf': None,
+            # eDismax Parameters
+            # see: https://solr.apache.org/guide/solr/latest/query-guide/edismax-query-parser.html
+            'sow': None,
+            'mm.autoRelax': None,
+            'boost': None,
+            'lowercaseOperators': None,
+            'pf2': None,
+            'ps2': None,
+            'pf3': None,
+            'ps3': None,
+            'stopwords': None,
+        }
+        for field in edismax_params:
+            if (custom_value := web.input().get(f'_solr_{field}')) is not None:
+                assert '"' not in custom_value, f"Invalid solr param: {field}"
+                assert '}' not in custom_value, f"Invalid solr param: {field}"
+                edismax_params[field] = custom_value
+        if not edismax_params['boost'] and not edismax_params['bf']:
+            edismax_params[
+                'bf'
+            ] = 'min(100,edition_count) min(100,def(readinglog_count,0))'
+        full_work_query = '({{!edismax q.op="AND" {params} v={v}}})'.format(
+            params=' '.join(
+                f'{k}="{v}"' for k, v in edismax_params.items() if v is not None
+            ),
             # v: the query to process with the edismax query parser. Note
             # we are using a solr variable here; this reads the url parameter
             # arbitrarily called workQuery.
