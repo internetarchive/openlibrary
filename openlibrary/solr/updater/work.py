@@ -563,7 +563,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def language(self) -> set[str]:
-        return {lang for ed in self._solr_editions for lang in ed.languages}
+        return {lang for ed in self._solr_editions for lang in ed.language}
 
     def build_legacy_ia_fields(self) -> dict:
         ia_loaded_id = set()

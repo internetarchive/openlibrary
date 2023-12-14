@@ -92,51 +92,53 @@ def is_sine_nomine(pub: str) -> bool:
 
 class EditionSolrBuilder(AbstractSolrBuilder):
     def __init__(self, edition: dict, ia_metadata: bp.IALiteMetadata | None = None):
-        self.edition = edition
-        self.ia_metadata = ia_metadata
-        self.provider = bp.get_book_provider(edition)
-
-    def get(self, key: str, default=None):
-        return self.edition.get(key, default)
+        self._edition = edition
+        self._ia_metadata = ia_metadata
+        self._provider = bp.get_book_provider(edition)
 
     @property
     def key(self):
-        return self.edition['key']
+        return self._edition['key']
 
     @property
     def title(self) -> str | None:
-        return self.get('title')
+        return self._edition.get('title')
 
     @property
     def subtitle(self) -> str | None:
-        return self.get('subtitle')
+        return self._edition.get('subtitle')
 
     @property
     def alternative_title(self) -> set[str]:
         """Get titles from the editions as alternative titles."""
         result: set[str] = set()
-        full_title = self.get('title')
+        full_title = self._edition.get('title')
         if not full_title:
             return result
-        if self.get('subtitle'):
-            full_title += ': ' + self.get('subtitle')
+        if self._edition.get('subtitle'):
+            full_title += ': ' + cast(str, self._edition['subtitle'])
         result.add(full_title)
-        result.update(self.get('work_titles', []))
-        result.update(self.get('other_titles', []))
+        result.update(self._edition.get('work_titles', []))
+        result.update(self._edition.get('other_titles', []))
 
         return result
 
     @property
     def cover_i(self) -> int | None:
         return next(
-            (cover_id for cover_id in self.get('covers', []) if cover_id != -1), None
+            (
+                cover_id
+                for cover_id in self._edition.get('covers', [])
+                if cover_id != -1
+            ),
+            None,
         )
 
     @property
-    def languages(self) -> list[str]:
+    def language(self) -> list[str]:
         """Gets the 3 letter language codes (eg ['ger', 'fre'])"""
         result: list[str] = []
-        for lang in self.get('languages', []):
+        for lang in self._edition.get('languages', []):
             m = re_lang_key.match(lang['key'] if isinstance(lang, dict) else lang)
             if m:
                 result.append(m.group(1))
@@ -146,19 +148,19 @@ class EditionSolrBuilder(AbstractSolrBuilder):
     def publisher(self) -> list[str]:
         return uniq(
             publisher if not is_sine_nomine(publisher) else 'Sine nomine'
-            for publisher in self.get('publishers', [])
+            for publisher in self._edition.get('publishers', [])
         )
 
     @property
     def number_of_pages(self) -> int | None:
         try:
-            return int(self.get('number_of_pages')) or None
+            return int(self._edition.get('number_of_pages', None)) or None
         except (TypeError, ValueError):  # int(None) -> TypeErr, int("vii") -> ValueErr
             return None
 
     @property
     def format(self) -> str | None:
-        return self.get('physical_format')
+        return self._edition.get('physical_format')
 
     @property
     def isbn(self) -> list[str]:
@@ -168,8 +170,12 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         """
         isbns = []
 
-        isbns += [isbn.replace("_", "").strip() for isbn in self.get("isbn_13", [])]
-        isbns += [isbn.replace("_", "").strip() for isbn in self.get("isbn_10", [])]
+        isbns += [
+            isbn.replace("_", "").strip() for isbn in self._edition.get("isbn_13", [])
+        ]
+        isbns += [
+            isbn.replace("_", "").strip() for isbn in self._edition.get("isbn_10", [])
+        ]
 
         # Get the isbn13 when isbn10 is present and vice-versa.
         isbns += [opposite_isbn(v) for v in isbns]
@@ -178,11 +184,11 @@ class EditionSolrBuilder(AbstractSolrBuilder):
 
     @property
     def lccn(self) -> list[str]:
-        return uniq(lccn.strip() for lccn in self.get('lccn', []))
+        return uniq(lccn.strip() for lccn in self._edition.get('lccn', []))
 
     @property
     def publish_date(self) -> str | None:
-        return self.get('publish_date')
+        return self._edition.get('publish_date')
 
     @property
     def publish_year(self) -> int | None:
@@ -194,36 +200,36 @@ class EditionSolrBuilder(AbstractSolrBuilder):
 
     @property
     def ia(self) -> str | None:
-        ocaid = self.get('ocaid')
+        ocaid = self._edition.get('ocaid')
         return ocaid.strip() if ocaid else None
 
     @property
     def ia_collection(self) -> list[str]:
-        collections = self.ia_metadata['collection'] if self.ia_metadata else set()
+        collections = self._ia_metadata['collection'] if self._ia_metadata else set()
         # Exclude fav-* collections because they're not useful to us.
         return [c for c in collections if not c.startswith('fav-')]
 
     @property
     def ia_box_id(self) -> list[str]:
         boxids = []
-        if 'ia_box_id' in self.edition:
-            if isinstance(self.edition['ia_box_id'], str):
-                boxids = [self.edition['ia_box_id']]
-            elif isinstance(self.edition['ia_box_id'], list):
-                boxids = self.edition['ia_box_id']
+        if 'ia_box_id' in self._edition:
+            if isinstance(self._edition['ia_box_id'], str):
+                boxids = [self._edition['ia_box_id']]
+            elif isinstance(self._edition['ia_box_id'], list):
+                boxids = self._edition['ia_box_id']
             else:
                 logger.warning(
-                    f'Bad ia_box_id on {self.key}: "{self.edition["ia_box_id"]}"'
+                    f'Bad ia_box_id on {self.key}: "{self._edition["ia_box_id"]}"'
                 )
-        if self.ia_metadata:
-            boxids += list(self.ia_metadata.get('boxid') or [])
+        if self._ia_metadata:
+            boxids += list(self._ia_metadata.get('boxid') or [])
 
         return uniq(boxids, key=lambda x: x.lower())
 
     @property
     def identifiers(self) -> dict:
         identifiers = {}
-        for key, id_list in self.get('identifiers', {}).items():
+        for key, id_list in self._edition.get('identifiers', {}).items():
             solr_key = (
                 key.replace('.', '_')
                 .replace(',', '_')
@@ -244,12 +250,12 @@ class EditionSolrBuilder(AbstractSolrBuilder):
 
     @cached_property
     def ebook_access(self) -> bp.EbookAccess:
-        if not self.provider:
+        if not self._provider:
             return bp.EbookAccess.NO_EBOOK
-        elif isinstance(self.provider, bp.InternetArchiveProvider):
-            return self.provider.get_access(self.edition, self.ia_metadata)
+        elif isinstance(self._provider, bp.InternetArchiveProvider):
+            return self._provider.get_access(self._edition, self._ia_metadata)
         else:
-            return self.provider.get_access(self.edition)
+            return self._provider.get_access(self._edition)
 
     @property
     def has_fulltext(self) -> bool:
@@ -277,7 +283,7 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 'subtitle': self.subtitle,
                 'alternative_title': list(self.alternative_title),
                 'cover_i': self.cover_i,
-                'language': self.languages,
+                'language': self.language,
                 # Misc useful data
                 'publisher': self.publisher,
                 **(
