@@ -23,7 +23,6 @@ const Carousel = {
         e = e || 2;
         f = f || 1;
 
-
         responsive_settings = [
             {
                 breakpoint: 1200,
@@ -74,7 +73,7 @@ const Carousel = {
             responsive: responsive_settings
         });
         //This loads in i18n strings from a hidden input element, generated in the books/custom_carousel.html template.
-        const i18nValues = JSON.parse($('input[name=\'carousel-i18n-strings\']').attr('value'))
+        const i18nValues = JSON.parse($('input[name="carousel-i18n-strings"]').attr('value'))
         availabilityStatuses = {
             open: {cls: 'cta-btn--available', cta: i18nValues['open']},
             borrow_available: {cls: 'cta-btn--available', cta: i18nValues['borrow_available']},
