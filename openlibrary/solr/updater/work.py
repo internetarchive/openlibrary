@@ -8,7 +8,7 @@ from math import ceil
 import re
 from statistics import median
 import time
-from typing import Any, Optional, TypedDict, cast
+from typing import Optional, TypedDict, cast
 from openlibrary.core import helpers as h
 import openlibrary.book_providers as bp
 from openlibrary.core.ratings import WorkRatingsSummary
@@ -637,7 +637,9 @@ class WorkSolrBuilder:
         if not printdisabled_eds:
             return None
         else:
-            return ';'.join(cast(str, ed.ia) for ed in printdisabled_eds)
+            return ';'.join(
+                cast(str, extract_edition_olid(ed.key)) for ed in printdisabled_eds
+            )
 
     # ^^^ These should be deprecated and removed ^^^
 
