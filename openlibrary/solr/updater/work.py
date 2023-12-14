@@ -210,111 +210,11 @@ def normalize_authors(authors: list[dict]) -> list[NormalizedAuthor]:
     ]
 
 
-def get_subject_counts(w: dict) -> dict:
-    """
-    Get the counts of the work's subjects grouped by subject type.
-
-    :param dict w: Work
-    :rtype: dict[str, dict[str, int]]
-    :return: Subjects grouped by type, then by subject and count. Example:
-    `{ subject: { "some subject": 1 }, person: { "some person": 1 } }`
-    """
-    try:
-        subjects = four_types(get_work_subjects(w))
-    except:  # noqa: E722
-        logger.error('bad work: %s', w['key'])
-        raise
-
-    # FIXME THIS IS ALL DONE IN get_work_subjects! REMOVE
-    field_map = {
-        'subjects': 'subject',
-        'subject_places': 'place',
-        'subject_times': 'time',
-        'subject_people': 'person',
-    }
-
-    for db_field, solr_field in field_map.items():
-        if not w.get(db_field, None):
-            continue
-        cur = subjects.setdefault(solr_field, {})
-        for v in w[db_field]:
-            try:
-                if isinstance(v, dict):
-                    if 'value' not in v:
-                        continue
-                    v = v['value']
-                cur[v] = cur.get(v, 0) + 1
-            except:  # noqa: E722
-                logger.error("bad subject: %r", v)
-                raise
-    # FIXME END_REMOVE
-
-    return subjects
-
-
 def extract_edition_olid(key: str) -> str:
     m = re_edition_key.match(key)
     if not m:
         raise ValueError(f'Invalid key: {key}')
     return m.group(1)
-
-
-def get_work_subjects(w):
-    """
-    Gets the subjects of the work grouped by type and then by count.
-
-    :param dict w: Work
-    :rtype: dict[str, dict[str, int]]
-    :return: Subjects grouped by type, then by subject and count. Example:
-    `{ subject: { "some subject": 1 }, person: { "some person": 1 } }`
-    """
-    assert w['type']['key'] == '/type/work'
-
-    subjects = {}
-    field_map = {
-        'subjects': 'subject',
-        'subject_places': 'place',
-        'subject_times': 'time',
-        'subject_people': 'person',
-    }
-
-    for db_field, solr_field in field_map.items():
-        if not w.get(db_field, None):
-            continue
-        cur = subjects.setdefault(solr_field, {})
-        for v in w[db_field]:
-            try:
-                # TODO Is this still a valid case? Can the subject of a work be an object?
-                if isinstance(v, dict):
-                    if 'value' not in v:
-                        continue
-                    v = v['value']
-                cur[v] = cur.get(v, 0) + 1
-            except:  # noqa: E722
-                logger.error("Failed to process subject: %r", v)
-                raise
-
-    return subjects
-
-
-def four_types(i):
-    """
-    Moves any subjects not of type subject, time, place, or person into type subject.
-    TODO Remove; this is only used after get_work_subjects, which already returns dict with valid keys.
-
-    :param dict[str, dict[str, int]] i: Counts of subjects of the form `{ <subject_type>: { <subject>: <count> }}`
-    :return: dict of the same form as the input, but subject_type can only be one of subject, time, place, or person.
-    :rtype: dict[str, dict[str, int]]
-    """
-    want = {'subject', 'time', 'place', 'person'}
-    ret = {k: i[k] for k in want if k in i}
-    for j in (j for j in i if j not in want):
-        for k, v in i[j].items():
-            if 'subject' in ret:
-                ret['subject'][k] = ret['subject'].get(k, 0) + v
-            else:
-                ret['subject'] = {k: v}
-    return ret
 
 
 def datetimestr_to_int(datestr):
@@ -764,15 +664,20 @@ class WorkSolrBuilder:
 
     def build_subjects(self) -> dict:
         doc: dict = {}
-        subjects = get_subject_counts(self._work)
-        for subject_type in 'person', 'place', 'subject', 'time':
-            if subject_type not in subjects:
+        field_map = {
+            'subjects': 'subject',
+            'subject_places': 'place',
+            'subject_times': 'time',
+            'subject_people': 'person',
+        }
+        for work_field, subject_type in field_map.items():
+            if not self._work.get(work_field):
                 continue
-            subjects_k_keys = list(subjects[subject_type])
+
             doc |= {
-                subject_type: subjects_k_keys,
-                f'{subject_type}_facet': subjects_k_keys,
-                f'{subject_type}_key': [str_to_key(s) for s in subjects_k_keys],
+                subject_type: self._work[work_field],
+                f'{subject_type}_facet': self._work[work_field],
+                f'{subject_type}_key': [str_to_key(s) for s in self._work[work_field]],
             }
         return doc
 
