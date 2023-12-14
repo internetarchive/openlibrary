@@ -3,7 +3,7 @@ from openlibrary.solr.updater.work import (
     WorkSolrBuilder,
     WorkSolrUpdater,
 )
-from openlibrary.tests.solr.test_update_work import (
+from openlibrary.tests.solr.test_update import (
     FakeDataProvider,
     make_author,
     make_edition,

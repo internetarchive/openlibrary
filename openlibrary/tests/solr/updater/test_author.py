@@ -1,8 +1,7 @@
 import httpx
 import pytest
-from openlibrary.solr import update_work
 from openlibrary.solr.updater.author import AuthorSolrUpdater
-from openlibrary.tests.solr.test_update_work import FakeDataProvider, make_author
+from openlibrary.tests.solr.test_update import FakeDataProvider, make_author
 
 
 class MockResponse:
@@ -15,10 +14,6 @@ class MockResponse:
 
 
 class TestAuthorUpdater:
-    @classmethod
-    def setup_class(cls):
-        update_work.data_provider = FakeDataProvider()
-
     @pytest.mark.asyncio()
     async def test_workless_author(self, monkeypatch):
         class MockAsyncClient:

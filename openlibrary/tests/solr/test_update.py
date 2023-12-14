@@ -1,7 +1,7 @@
 import pytest
 from openlibrary.core.ratings import WorkRatingsSummary
 
-from openlibrary.solr import update_work
+from openlibrary.solr import update
 from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
 
 author_counter = 0
@@ -99,18 +99,18 @@ class FakeDataProvider(DataProvider):
 class Test_update_keys:
     @classmethod
     def setup_class(cls):
-        update_work.data_provider = FakeDataProvider()
+        update.data_provider = FakeDataProvider()
 
     @pytest.mark.asyncio()
     async def test_delete(self):
-        update_work.data_provider.add_docs(
+        update.data_provider.add_docs(
             [
                 {'key': '/works/OL23W', 'type': {'key': '/type/delete'}},
                 make_author(key='/authors/OL23A', type={'key': '/type/delete'}),
                 {'key': '/books/OL23M', 'type': {'key': '/type/delete'}},
             ]
         )
-        update_state = await update_work.update_keys(
+        update_state = await update.update_keys(
             [
                 '/works/OL23W',
                 '/authors/OL23A',
@@ -127,7 +127,7 @@ class Test_update_keys:
 
     @pytest.mark.asyncio()
     async def test_redirects(self):
-        update_work.data_provider.add_docs(
+        update.data_provider.add_docs(
             [
                 {
                     'key': '/books/OL23M',
@@ -137,6 +137,6 @@ class Test_update_keys:
                 {'key': '/books/OL24M', 'type': {'key': '/type/delete'}},
             ]
         )
-        update_state = await update_work.update_keys(['/books/OL23M'], update='quiet')
+        update_state = await update.update_keys(['/books/OL23M'], update='quiet')
         assert update_state.deletes == ['/books/OL23M', '/books/OL24M']
         assert update_state.adds == []
