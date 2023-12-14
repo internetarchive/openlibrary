@@ -2,10 +2,9 @@ import pytest
 from openlibrary.solr import update_work
 from openlibrary.solr.updater.work import (
     SolrProcessor,
+    WorkSolrBuilder,
     WorkSolrUpdater,
     build_data,
-    pick_cover_edition,
-    pick_number_of_pages_median,
 )
 from openlibrary.tests.solr.test_update_work import (
     FakeDataProvider,
@@ -451,54 +450,52 @@ class Test_build_data:
             assert 'ddc_sort' not in d
 
 
-class Test_pick_cover_edition:
+class Test_number_of_pages_median:
     def test_no_editions(self):
-        assert pick_cover_edition([], 123) is None
-        assert pick_cover_edition([], None) is None
-
-    def test_no_work_cover(self):
-        ed_w_cover = {'covers': [123]}
-        ed_wo_cover = {}
-        ed_w_neg_cover = {'covers': [-1]}
-        ed_w_posneg_cover = {'covers': [-1, 123]}
-        assert pick_cover_edition([ed_w_cover], None) == ed_w_cover
-        assert pick_cover_edition([ed_wo_cover], None) is None
-        assert pick_cover_edition([ed_w_neg_cover], None) is None
-        assert pick_cover_edition([ed_w_posneg_cover], None) == ed_w_posneg_cover
-        assert pick_cover_edition([ed_wo_cover, ed_w_cover], None) == ed_w_cover
-        assert pick_cover_edition([ed_w_neg_cover, ed_w_cover], None) == ed_w_cover
-
-    def test_prefers_work_cover(self):
-        ed_w_cover = {'covers': [123]}
-        ed_w_work_cover = {'covers': [456]}
-        assert pick_cover_edition([ed_w_cover, ed_w_work_cover], 456) == ed_w_work_cover
-
-    def test_prefers_eng_covers(self):
-        ed_no_lang = {'covers': [123]}
-        ed_eng = {'covers': [456], 'languages': [{'key': '/languages/eng'}]}
-        ed_fra = {'covers': [789], 'languages': [{'key': '/languages/fra'}]}
-        assert pick_cover_edition([ed_no_lang, ed_fra, ed_eng], 456) == ed_eng
-
-    def test_prefers_anything(self):
-        ed = {'covers': [123]}
-        assert pick_cover_edition([ed], 456) == ed
-
-
-class Test_pick_number_of_pages_median:
-    def test_no_editions(self):
-        assert pick_number_of_pages_median([]) is None
+        wsb = WorkSolrBuilder(
+            {"key": "/works/OL1W", "type": {"key": "/type/work"}},
+            [],
+            [],
+            FakeDataProvider(),
+            {},
+        )
+        assert wsb.number_of_pages_median is None
 
     def test_invalid_type(self):
-        ed = {'number_of_pages': 'spam'}
-        assert pick_number_of_pages_median([ed]) is None
-        eds = [{'number_of_pages': n} for n in [123, 122, 'spam']]
-        assert pick_number_of_pages_median(eds) == 123
+        wsb = WorkSolrBuilder(
+            {"key": "/works/OL1W", "type": {"key": "/type/work"}},
+            [{'number_of_pages': 'spam'}],
+            [],
+            FakeDataProvider(),
+            {},
+        )
+        assert wsb.number_of_pages_median is None
+        wsb = WorkSolrBuilder(
+            {"key": "/works/OL1W", "type": {"key": "/type/work"}},
+            [{'number_of_pages': n} for n in [123, 122, 'spam']],
+            [],
+            FakeDataProvider(),
+            {},
+        )
+        assert wsb.number_of_pages_median == 123
 
     def test_normal_case(self):
-        eds = [{'number_of_pages': n} for n in [123, 122, 1]]
-        assert pick_number_of_pages_median(eds) == 122
-        eds = [{}, {}] + [{'number_of_pages': n} for n in [123, 122, 1]]
-        assert pick_number_of_pages_median(eds) == 122
+        wsb = WorkSolrBuilder(
+            {"key": "/works/OL1W", "type": {"key": "/type/work"}},
+            [{'number_of_pages': n} for n in [123, 122, 1]],
+            [],
+            FakeDataProvider(),
+            {},
+        )
+        assert wsb.number_of_pages_median == 122
+        wsb = WorkSolrBuilder(
+            {"key": "/works/OL1W", "type": {"key": "/type/work"}},
+            [{}, {}] + [{'number_of_pages': n} for n in [123, 122, 1]],
+            [],
+            FakeDataProvider(),
+            {},
+        )
+        assert wsb.number_of_pages_median == 122
 
 
 class Test_Sort_Editions_Ocaids:

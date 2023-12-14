@@ -77,7 +77,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
         elif work['type']['key'] == '/type/work':
             try:
                 solr_doc = await build_data(work, self.data_provider)
-            except:
+            except:  # noqa: E722
                 logger.error("failed to update work %s", work['key'], exc_info=True)
             else:
                 if solr_doc is not None:
@@ -266,7 +266,7 @@ class SolrProcessor:
         """
         try:
             subjects = four_types(get_work_subjects(w))
-        except:
+        except:  # noqa: E722
             logger.error('bad work: %s', w['key'])
             raise
 
@@ -289,7 +289,7 @@ class SolrProcessor:
                             continue
                         v = v['value']
                     cur[v] = cur.get(v, 0) + 1
-                except:
+                except:  # noqa: E722
                     logger.error("bad subject: %r", v)
                     raise
         # FIXME END_REMOVE
@@ -302,23 +302,6 @@ def extract_edition_olid(key: str) -> str:
     if not m:
         raise ValueError(f'Invalid key: {key}')
     return m.group(1)
-
-
-def pick_number_of_pages_median(editions: list[dict]) -> int | None:
-    def to_int(x: Any) -> int | None:
-        try:
-            return int(x) or None
-        except (TypeError, ValueError):  # int(None) -> TypeErr, int("vii") -> ValueErr
-            return None
-
-    number_of_pages = [
-        pages for e in editions if (pages := to_int(e.get('number_of_pages')))
-    ]
-
-    if number_of_pages:
-        return ceil(median(number_of_pages))
-    else:
-        return None
 
 
 def get_work_subjects(w):
@@ -352,7 +335,7 @@ def get_work_subjects(w):
                         continue
                     v = v['value']
                 cur[v] = cur.get(v, 0) + 1
-            except:
+            except:  # noqa: E722
                 logger.error("Failed to process subject: %r", v)
                 raise
 
@@ -431,7 +414,7 @@ class WorkSolrBuilder:
         # Iterate over all non-_ properties of this instance and add them to the
         # document.
         # Allow @property and @cached_property though!
-        doc = {}
+        doc: dict = {}
         for field in dir(self):
             if field.startswith('_'):
                 continue
@@ -440,7 +423,7 @@ class WorkSolrBuilder:
             if callable(val):
                 # Skip if function, not property/cached_property
                 continue
-            elif val is None or ((isinstance(val, Iterable) and not val)):
+            elif val is None or (isinstance(val, Iterable) and not val):
                 # Skip if empty list/string
                 continue
             elif isinstance(val, set):
@@ -542,7 +525,16 @@ class WorkSolrBuilder:
 
     @property
     def number_of_pages_median(self) -> int | None:
-        return pick_number_of_pages_median(self._editions)
+        number_of_pages = [
+            pages
+            for e in self._solr_editions
+            if (pages := e.number_of_pages) is not None
+        ]
+
+        if number_of_pages:
+            return ceil(median(number_of_pages))
+        else:
+            return None
 
     @property
     def editions(self) -> list[SolrDocument]:
@@ -812,8 +804,8 @@ class WorkSolrBuilder:
         return [f'{key} {name}' for key, name in zip(self.author_key, self.author_name)]
 
     @property
-    def build_identifiers(self) -> dict:
-        identifiers = defaultdict(list)
+    def build_identifiers(self) -> dict[str, list[str]]:
+        identifiers: dict[str, list[str]] = defaultdict(list)
         for ed in self._solr_editions:
             for k, v in ed.identifiers.items():
                 identifiers[k] += v
@@ -821,7 +813,7 @@ class WorkSolrBuilder:
 
     @property
     def build_subjects(self) -> dict:
-        doc = {}
+        doc: dict = {}
         subjects = SolrProcessor.get_subject_counts(self._work)
         for subject_type in 'person', 'place', 'subject', 'time':
             if subject_type not in subjects:

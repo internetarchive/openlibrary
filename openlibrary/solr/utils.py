@@ -85,7 +85,7 @@ class SolrUpdateRequest:
     def has_changes(self) -> bool:
         return bool(self.adds or self.deletes)
 
-    def to_solr_requests_json(self, indent: str | None = None, sep=',') -> str:
+    def to_solr_requests_json(self, indent: int | str | None = None, sep=',') -> str:
         result = '{'
         if self.deletes:
             result += f'"delete": {json.dumps(self.deletes, indent=indent)}' + sep
