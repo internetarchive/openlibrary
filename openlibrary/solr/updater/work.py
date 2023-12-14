@@ -13,6 +13,7 @@ from openlibrary.core import helpers as h
 import openlibrary.book_providers as bp
 from openlibrary.core.ratings import WorkRatingsSummary
 from openlibrary.plugins.upstream.utils import safeget
+from openlibrary.plugins.worksearch.subjects import SubjectPseudoKey
 from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.update_edition import EditionSolrBuilder, build_edition_data
@@ -26,8 +27,7 @@ logger = logging.getLogger("openlibrary.solr")
 
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
 re_edition_key = re.compile(r"/books/([^/]+)")
-re_solr_field = re.compile(r'^[-\w]+$', re.U)
-re_year = re.compile(r'\b(\d{4})\b')
+re_subject = re.compile("[, _]+")
 
 
 class WorkSolrUpdater(AbstractSolrUpdater):
@@ -401,56 +401,11 @@ def datetimestr_to_int(datestr):
     return int(time.mktime(t.timetuple()))
 
 
-class BaseDocBuilder:
-    re_subject = re.compile("[, _]+")
-
-    def compute_seeds(self, work, editions, authors=None):
-        """
-        Compute seeds from given work, editions, and authors.
-
-        :param dict work:
-        :param list[dict] editions:
-        :param list[dict] or None authors: If not provided taken from work.
-        :rtype: list[str]
-        """
-
-        for e in editions:
-            yield e['key']
-
-        if work:
-            yield work['key']
-            yield from self.get_subject_seeds(work)
-
-            if authors is None:
-                authors = [
-                    a['author']
-                    for a in work.get("authors", [])
-                    if 'author' in a and 'key' in a['author']
-                ]
-
-        if authors:
-            for a in authors:
-                yield a['key']
-
-    def get_subject_seeds(self, work):
-        """Yields all subject seeds from the work."""
-        return (
-            self._prepare_subject_keys("/subjects/", work.get("subjects"))
-            + self._prepare_subject_keys(
-                "/subjects/person:", work.get("subject_people")
-            )
-            + self._prepare_subject_keys("/subjects/place:", work.get("subject_places"))
-            + self._prepare_subject_keys("/subjects/time:", work.get("subject_times"))
-        )
-
-    def _prepare_subject_keys(self, prefix, subject_names):
-        subject_names = subject_names or []
-        return [self.get_subject_key(prefix, s) for s in subject_names]
-
-    def get_subject_key(self, prefix, subject):
-        if isinstance(subject, str):
-            key = prefix + self.re_subject.sub("_", subject.lower()).strip("_")
-            return key
+def subject_name_to_key(subject_type: str, name: str) -> SubjectPseudoKey:
+    prefix = '/subjects/'
+    if subject_type != 'subject':
+        prefix += f'{subject_type}:'
+    return prefix + re_subject.sub("_", name.lower()).strip("_")
 
 
 class WorkSolrBuilder:
@@ -511,7 +466,18 @@ class WorkSolrBuilder:
 
     @property
     def seed(self) -> list[str]:
-        return list(BaseDocBuilder().compute_seeds(self._work, self._editions))
+        w = self._work
+        return uniq(
+            itertools.chain(
+                (e.key for e in self._solr_editions),
+                (self.key,),
+                (author['key'] for author in self._authors),
+                (subject_name_to_key("subject", s) for s in w.get("subjects", [])),
+                (subject_name_to_key("person", s) for s in w.get("subject_people", [])),
+                (subject_name_to_key("place", s) for s in w.get("subject_places", [])),
+                (subject_name_to_key("time", s) for s in w.get("subject_times", [])),
+            )
+        )
 
     @property
     def title(self) -> str | None:
