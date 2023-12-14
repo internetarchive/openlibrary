@@ -36,6 +36,8 @@ def get_data_provider(type="default"):
         return BetterDataProvider()
     elif type == "legacy":
         return LegacyDataProvider()
+    else:
+        raise ValueError("unknown data provider type: %s" % type)
 
 
 def is_valid_ocaid(ocaid: str):

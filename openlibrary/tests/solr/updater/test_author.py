@@ -44,7 +44,7 @@ class TestAuthorUpdater:
                 )
 
         monkeypatch.setattr(httpx, 'AsyncClient', MockAsyncClient)
-        req, _ = await AuthorSolrUpdater().update_key(
+        req, _ = await AuthorSolrUpdater(FakeDataProvider()).update_key(
             make_author(key='/authors/OL25A', name='Somebody')
         )
         assert req.deletes == []

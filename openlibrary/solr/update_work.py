@@ -32,14 +32,6 @@ logger = logging.getLogger("openlibrary.solr")
 data_provider = cast(DataProvider, None)
 
 
-SOLR_UPDATERS: list[AbstractSolrUpdater] = [
-    # ORDER MATTERS
-    EditionSolrUpdater(),
-    WorkSolrUpdater(),
-    AuthorSolrUpdater(),
-]
-
-
 async def update_keys(
     keys: list[str],
     commit=True,
@@ -74,7 +66,14 @@ async def update_keys(
 
     net_update = SolrUpdateRequest(commit=commit)
 
-    for updater in SOLR_UPDATERS:
+    solr_updaters: list[AbstractSolrUpdater] = [
+        # ORDER MATTERS
+        EditionSolrUpdater(data_provider),
+        WorkSolrUpdater(data_provider),
+        AuthorSolrUpdater(data_provider),
+    ]
+
+    for updater in solr_updaters:
         update_state = SolrUpdateRequest(commit=commit)
         updater_keys = uniq(k for k in keys if updater.key_test(k))
         await updater.preload_keys(updater_keys)
