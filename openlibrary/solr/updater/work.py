@@ -17,7 +17,7 @@ from openlibrary.plugins.worksearch.subjects import SubjectPseudoKey
 from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrUpdater
-from openlibrary.solr.updater.edition import EditionSolrBuilder, build_edition_data
+from openlibrary.solr.updater.edition import EditionSolrBuilder
 from openlibrary.solr.utils import SolrUpdateRequest, get_solr_next, str_to_key
 from openlibrary.utils import uniq
 from openlibrary.utils.ddc import choose_sorting_ddc, normalize_ddc
@@ -504,14 +504,11 @@ class WorkSolrBuilder:
 
     @property
     def editions(self) -> list[SolrDocument]:
-        return [
-            build_edition_data(ed, self._ia_metadata.get(ed.get('ocaid', '').strip()))
-            for ed in self._editions
-        ]
+        return [ed.build() for ed in self._solr_editions]
 
     @property
     def lccn(self) -> set[str]:
-        return {v for e in self._editions for v in e.get('lccn', [])}
+        return {lccn for ed in self._solr_editions for lccn in ed.lccn}
 
     @property
     def publish_place(self) -> set[str]:

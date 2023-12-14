@@ -259,57 +259,51 @@ class EditionSolrBuilder:
     def public_scan_b(self) -> bool:
         return self.ebook_access == bp.EbookAccess.PUBLIC
 
+    def build(self) -> SolrDocument:
+        """
+        Build the solr document for the given edition to store as a nested
+        document
+        """
+        solr_doc: SolrDocument = cast(
+            SolrDocument,
+            {
+                'key': self.key,
+                'type': 'edition',
+                # Display data
+                'title': self.title,
+                'subtitle': self.subtitle,
+                'alternative_title': list(self.alternative_title),
+                'cover_i': self.cover_i,
+                'language': self.languages,
+                # Misc useful data
+                'publisher': self.publisher,
+                **(
+                    {'format': [self.format] if self.format else None}
+                    if get_solr_next()
+                    else {}
+                ),
+                'publish_date': [self.publish_date] if self.publish_date else None,
+                'publish_year': [self.publish_year] if self.publish_year else None,
+                # Identifiers
+                'isbn': self.isbn,
+                'lccn': self.lccn,
+                **self.identifiers,
+                # IA
+                'ia': [self.ia] if self.ia else None,
+                'ia_collection': self.ia_collection,
+                'ia_box_id': self.ia_box_id,
+                # Ebook access
+                'ebook_access': self.ebook_access.to_solr_str(),
+                'has_fulltext': self.has_fulltext,
+                'public_scan_b': self.public_scan_b,
+            },
+        )
 
-def build_edition_data(
-    edition: dict,
-    ia_metadata: bp.IALiteMetadata | None = None,
-) -> SolrDocument:
-    """
-    Build the solr document for the given edition to store as a nested
-    document
-    """
-
-    ed = EditionSolrBuilder(edition, ia_metadata)
-    solr_doc: SolrDocument = cast(
-        SolrDocument,
-        {
-            'key': ed.key,
-            'type': 'edition',
-            # Display data
-            'title': ed.title,
-            'subtitle': ed.subtitle,
-            'alternative_title': list(ed.alternative_title),
-            'cover_i': ed.cover_i,
-            'language': ed.languages,
-            # Misc useful data
-            'publisher': ed.publisher,
-            **(
-                {'format': [ed.format] if ed.format else None}
-                if get_solr_next()
-                else {}
-            ),
-            'publish_date': [ed.publish_date] if ed.publish_date else None,
-            'publish_year': [ed.publish_year] if ed.publish_year else None,
-            # Identifiers
-            'isbn': ed.isbn,
-            'lccn': ed.lccn,
-            **ed.identifiers,
-            # IA
-            'ia': [ed.ia] if ed.ia else None,
-            'ia_collection': ed.ia_collection,
-            'ia_box_id': ed.ia_box_id,
-            # Ebook access
-            'ebook_access': ed.ebook_access.to_solr_str(),
-            'has_fulltext': ed.has_fulltext,
-            'public_scan_b': ed.public_scan_b,
-        },
-    )
-
-    return cast(
-        SolrDocument,
-        {
-            key: solr_doc[key]  # type: ignore
-            for key in solr_doc
-            if solr_doc[key] not in (None, [], '')  # type: ignore
-        },
-    )
+        return cast(
+            SolrDocument,
+            {
+                key: solr_doc[key]  # type: ignore
+                for key in solr_doc
+                if solr_doc[key] not in (None, [], '')  # type: ignore
+            },
+        )
