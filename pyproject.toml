@@ -176,7 +176,6 @@ max-statements = 70
 "openlibrary/plugins/upstream/models.py" = ["BLE001"]
 "openlibrary/plugins/upstream/utils.py" = ["BLE001"]
 "openlibrary/solr/solr_types.py" = ["UP007"]
-"openlibrary/solr/update_work.py" = ["C901", "E722", "PLR0912", "PLR0915"]
 "openlibrary/utils/retry.py" = ["BLE001"]
 "openlibrary/utils/schema.py" = ["PERF402"]
 "openlibrary/utils/tests/test_retry.py" = ["PT012", "PT017"]

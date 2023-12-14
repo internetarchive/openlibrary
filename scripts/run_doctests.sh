@@ -29,9 +29,6 @@ pytest --doctest-modules \
         --ignore=openlibrary/plugins/upstream/jsdef.py \
         --ignore=openlibrary/plugins/upstream/utils.py \
         --ignore=openlibrary/records/tests/test_functions.py \
-        --ignore=openlibrary/solr/db_load_authors.py \
-        --ignore=openlibrary/solr/read_dump.py \
-        --ignore=openlibrary/solr/update_work.py \
         --ignore=openlibrary/tests/catalog/test_get_ia.py \
         --ignore=openlibrary/utils/form.py \
         --ignore=openlibrary/utils/schema.py \
