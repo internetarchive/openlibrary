@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 import json
 from urllib.parse import parse_qs
 import random
-from typing import cast
+from typing import Literal, cast
 import web
 
 from infogami.utils import delegate
@@ -124,24 +124,39 @@ class lists_home(delegate.page):
         return render_template("lists/home")
 
 
+SeedType = Literal['subject', 'author', 'work', 'edition']
+
+
+def seed_key_to_seed_type(key: str) -> SeedType:
+    match key.split('/')[1]:
+        case 'subjects':
+            return 'subject'
+        case 'authors':
+            return 'author'
+        case 'works':
+            return 'work'
+        case 'books':
+            return 'edition'
+        case _:
+            raise ValueError(f'Invalid seed key: {key}')
+
+
 @public
 def get_seed_info(doc):
     """Takes a thing, determines what type it is, and returns a seed summary"""
-    if doc.key.startswith("/subjects/"):
-        seed = subject_key_to_seed(doc.key)
-        seed_type = "subject"
-        title = doc.name
-    else:
-        seed = {"key": doc.key}
-        if doc.key.startswith("/authors/"):
-            seed_type = "author"
+    seed_type = seed_key_to_seed_type(doc.key)
+    match seed_type:
+        case 'subject':
+            seed = subject_key_to_seed(doc.key)
+            title = doc.name
+        case 'work' | 'edition':
+            seed = {"key": doc.key}
+            title = doc.get("title", "untitled")
+        case 'author':
+            seed = {"key": doc.key}
             title = doc.get('name', 'name missing')
-        elif doc.key.startswith("/works"):
-            seed_type = "work"
-            title = doc.get("title", "untitled")
-        else:
-            seed_type = "edition"
-            title = doc.get("title", "untitled")
+        case _:
+            raise ValueError(f'Invalid seed type: {seed_type}')
     return {
         "seed": seed,
         "type": seed_type,
