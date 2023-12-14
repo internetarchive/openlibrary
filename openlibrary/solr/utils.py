@@ -63,9 +63,6 @@ def set_solr_next(val: bool):
 
 @dataclass
 class SolrUpdateRequest:
-    keys: list[str] = field(default_factory=list)
-    """Keys to update"""
-
     adds: list[SolrDocument] = field(default_factory=list)
     """Records to be added/modified"""
 
@@ -80,7 +77,6 @@ class SolrUpdateRequest:
             return SolrUpdateRequest(
                 adds=self.adds + other.adds,
                 deletes=self.deletes + other.deletes,
-                keys=self.keys + other.keys,
                 commit=self.commit or other.commit,
             )
         else:
