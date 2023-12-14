@@ -253,10 +253,10 @@ class TestWorkSolrBuilder:
         assert d.edition_count == 1
         assert d.ebook_count_i == 1
 
-    def test_alternate_title(self):
+    def test_alternative_title(self):
         def f(editions):
             return WorkSolrBuilder(
-                {}, editions, [], FakeDataProvider(), {}
+                {'key': '/works/OL1W'}, editions, [], FakeDataProvider(), {}
             ).alternative_title
 
         no_title = make_work()
@@ -283,8 +283,8 @@ class TestWorkSolrBuilder:
             data_provider=FakeDataProvider(),
             ia_metadata={
                 "foo00bar": {"collection": ['americana']},
-                "foo01bar": {"collection": ['inlibrary', 'printdisabled']},
-                "foo02bar": {"collection": ['printdisabled', 'americana']},
+                "foo01bar": {"collection": ['inlibrary', 'americana']},
+                "foo02bar": {"collection": ['printdisabled', 'inlibrary']},
             },
         )
         assert d.has_fulltext is True
@@ -323,23 +323,23 @@ class TestWorkSolrBuilder:
             assert d[k + '_key'] == ['a', "b_c"]
 
     def test_author_info(self):
+        authors = [
+            {
+                'key': "/authors/OL1A",
+                'name': "Author One",
+                'alternate_names': ["Author 1"],
+            },
+            {'key': "/authors/OL2A", 'name': "Author Two"},
+        ]
+
         w = make_work(
-            authors=[
-                {
-                    "author": make_author(
-                        key="/authors/OL1A",
-                        name="Author One",
-                        alternate_names=["Author 1"],
-                    )
-                },
-                {"author": make_author(key="/authors/OL2A", name="Author Two")},
-            ]
+            authors=[make_author(key='/authors/OL1A'), make_author(key='/authors/OL2A')]
         )
-        d = WorkSolrBuilder(w, [], [], FakeDataProvider(), {})
+        d = WorkSolrBuilder(w, [], authors, FakeDataProvider(), {})
         assert d.author_name == ["Author One", "Author Two"]
         assert d.author_key == ['OL1A', 'OL2A']
         assert d.author_facet == ['OL1A Author One', 'OL2A Author Two']
-        assert d.author_alternative_name == ["Author 1"]
+        assert d.author_alternative_name == {"Author 1"}
 
     # {'Test name': (doc_lccs, solr_lccs, sort_lcc_index)}
     LCC_TESTS = {
@@ -445,7 +445,7 @@ class Test_number_of_pages_median:
     def test_invalid_type(self):
         wsb = WorkSolrBuilder(
             {"key": "/works/OL1W", "type": {"key": "/type/work"}},
-            [{'number_of_pages': 'spam'}],
+            [make_edition(number_of_pages='spam')],
             [],
             FakeDataProvider(),
             {},
@@ -453,7 +453,7 @@ class Test_number_of_pages_median:
         assert wsb.number_of_pages_median is None
         wsb = WorkSolrBuilder(
             {"key": "/works/OL1W", "type": {"key": "/type/work"}},
-            [{'number_of_pages': n} for n in [123, 122, 'spam']],
+            [make_edition(number_of_pages=n) for n in [123, 122, 'spam']],
             [],
             FakeDataProvider(),
             {},
@@ -463,7 +463,7 @@ class Test_number_of_pages_median:
     def test_normal_case(self):
         wsb = WorkSolrBuilder(
             {"key": "/works/OL1W", "type": {"key": "/type/work"}},
-            [{'number_of_pages': n} for n in [123, 122, 1]],
+            [make_edition(number_of_pages=n) for n in [123, 122, 1]],
             [],
             FakeDataProvider(),
             {},
@@ -471,7 +471,8 @@ class Test_number_of_pages_median:
         assert wsb.number_of_pages_median == 122
         wsb = WorkSolrBuilder(
             {"key": "/works/OL1W", "type": {"key": "/type/work"}},
-            [{}, {}] + [{'number_of_pages': n} for n in [123, 122, 1]],
+            [make_edition(), make_edition()]
+            + [make_edition(number_of_pages=n) for n in [123, 122, 1]],
             [],
             FakeDataProvider(),
             {},
@@ -562,9 +563,7 @@ class Test_build_data:
         d = await build_data(work, FakeDataProvider([work, make_edition(work)]))
         assert d['edition_count'] == 1
 
-        update_work.data_provider = FakeDataProvider(
-            [work, make_edition(work), make_edition(work)]
+        d = await build_data(
+            work, FakeDataProvider([work, make_edition(work), make_edition(work)])
         )
-
-        d = await build_data(work, FakeDataProvider())
         assert d['edition_count'] == 2
