@@ -1,7 +1,6 @@
 import pytest
 from openlibrary.solr import update_work
 from openlibrary.solr.updater.work import (
-    SolrProcessor,
     WorkSolrBuilder,
     WorkSolrUpdater,
     build_data,
@@ -28,14 +27,14 @@ sss = sorted_split_semicolon
 class TestWorkSolrUpdater:
     @pytest.mark.asyncio()
     async def test_no_title(self):
-        req, _ = await WorkSolrUpdater().update_key(
+        req, _ = await WorkSolrUpdater(FakeDataProvider()).update_key(
             {'key': '/books/OL1M', 'type': {'key': '/type/edition'}}
         )
         assert len(req.deletes) == 0
         assert len(req.adds) == 1
         assert req.adds[0]['title'] == "__None__"
 
-        req, _ = await WorkSolrUpdater().update_key(
+        req, _ = await WorkSolrUpdater(FakeDataProvider()).update_key(
             {'key': '/works/OL23W', 'type': {'key': '/type/work'}}
         )
         assert len(req.deletes) == 0
@@ -47,78 +46,51 @@ class TestWorkSolrUpdater:
         work = {'key': '/works/OL23W', 'type': {'key': '/type/work'}}
         ed = make_edition(work)
         ed['title'] = 'Some Title!'
-        update_work.data_provider = FakeDataProvider([work, ed])
-        req, _ = await WorkSolrUpdater().update_key(work)
+        req, _ = await WorkSolrUpdater(FakeDataProvider([work, ed])).update_key(work)
         assert len(req.deletes) == 0
         assert len(req.adds) == 1
         assert req.adds[0]['title'] == "Some Title!"
 
 
-class Test_build_data:
-    @classmethod
-    def setup_class(cls):
-        update_work.data_provider = FakeDataProvider()
-
-    @pytest.mark.asyncio()
-    async def test_simple_work(self):
+class TestWorkSolrBuilder:
+    def test_simple_work(self):
         work = {"key": "/works/OL1M", "type": {"key": "/type/work"}, "title": "Foo"}
 
-        d = await build_data(work)
-        assert d["key"] == "/works/OL1M"
-        assert d["title"] == "Foo"
-        assert d["has_fulltext"] is False
-        assert d["edition_count"] == 0
+        wsb = WorkSolrBuilder(work, [], [], FakeDataProvider(), {})
+        assert wsb.key == "/works/OL1M"
+        assert wsb.title == "Foo"
+        assert wsb.has_fulltext is False
+        assert wsb.edition_count == 0
 
-    @pytest.mark.asyncio()
-    async def test_edition_count_when_editions_on_work(self):
+    def test_edition_count_when_editions_on_work(self):
         work = make_work()
 
-        d = await build_data(work)
-        assert d['edition_count'] == 0
+        wsb = WorkSolrBuilder(work, [], [], FakeDataProvider(), {})
+        assert wsb.edition_count == 0
 
-        work['editions'] = [make_edition()]
-        d = await build_data(work)
-        assert d['edition_count'] == 1
+        wsb = WorkSolrBuilder(work, [make_edition()], [], FakeDataProvider(), {})
+        assert wsb.edition_count == 1
 
-        work['editions'] = [make_edition(), make_edition()]
-        d = await build_data(work)
-        assert d['edition_count'] == 2
-
-    @pytest.mark.asyncio()
-    async def test_edition_count_when_editions_in_data_provider(self):
-        work = make_work()
-        d = await build_data(work)
-        assert d['edition_count'] == 0
-
-        update_work.data_provider = FakeDataProvider([work, make_edition(work)])
-
-        d = await build_data(work)
-        assert d['edition_count'] == 1
-
-        update_work.data_provider = FakeDataProvider(
-            [work, make_edition(work), make_edition(work)]
+        wsb = WorkSolrBuilder(
+            work, [make_edition(), make_edition()], [], FakeDataProvider(), {}
         )
+        assert wsb.edition_count == 2
 
-        d = await build_data(work)
-        assert d['edition_count'] == 2
-
-    @pytest.mark.asyncio()
-    async def test_edition_key(self):
-        work = make_work()
-        update_work.data_provider = FakeDataProvider(
-            [
-                work,
-                make_edition(work, key="/books/OL1M"),
-                make_edition(work, key="/books/OL2M"),
-                make_edition(work, key="/books/OL3M"),
-            ]
+    def test_edition_key(self):
+        wsb = WorkSolrBuilder(
+            work={},
+            editions=[
+                {'key': '/books/OL1M'},
+                {'key': '/books/OL2M'},
+                {'key': '/books/OL3M'},
+            ],
+            authors=[],
+            data_provider=FakeDataProvider(),
+            ia_metadata={},
         )
+        assert wsb.edition_key == ["OL1M", "OL2M", "OL3M"]
 
-        d = await build_data(work)
-        assert d['edition_key'] == ["OL1M", "OL2M", "OL3M"]
-
-    @pytest.mark.asyncio()
-    async def test_publish_year(self):
+    def test_publish_year(self):
         test_dates = [
             "2000",
             "Another 2000",
@@ -130,79 +102,86 @@ class Test_build_data:
             "Bad date 123412314",
         ]
         work = make_work()
-        update_work.data_provider = FakeDataProvider(
-            [work] + [make_edition(work, publish_date=date) for date in test_dates]
+        wsb = WorkSolrBuilder(
+            work=work,
+            editions=[make_edition(work, publish_date=date) for date in test_dates],
+            authors=[],
+            data_provider=FakeDataProvider(),
+            ia_metadata={},
         )
+        assert wsb.publish_year == {2000, 2001, 2002, 2003, 2004}
+        assert wsb.first_publish_year == 2000
 
-        d = await build_data(work)
-        assert sorted(d['publish_year']) == ["2000", "2001", "2002", "2003", "2004"]
-        assert d["first_publish_year"] == 2000
-
-    @pytest.mark.asyncio()
-    async def test_isbns(self):
+    def test_isbns(self):
         work = make_work()
-        update_work.data_provider = FakeDataProvider(
-            [work, make_edition(work, isbn_10=["123456789X"])]
+        wsb = WorkSolrBuilder(
+            work,
+            [make_edition(work, isbn_10=["123456789X"])],
+            [],
+            FakeDataProvider(),
+            {},
         )
-        d = await build_data(work)
-        assert sorted(d['isbn']) == ['123456789X', '9781234567897']
+        assert wsb.isbn == {'123456789X', '9781234567897'}
 
-        update_work.data_provider = FakeDataProvider(
-            [work, make_edition(work, isbn_10=["9781234567897"])]
+        wsb = WorkSolrBuilder(
+            work,
+            [make_edition(work, isbn_10=["9781234567897"])],
+            [],
+            FakeDataProvider(),
+            {},
         )
-        d = await build_data(work)
-        assert sorted(d['isbn']) == ['123456789X', '9781234567897']
+        assert wsb.isbn == {'123456789X', '9781234567897'}
 
-    @pytest.mark.asyncio()
-    async def test_other_identifiers(self):
+    def test_other_identifiers(self):
         work = make_work()
-        update_work.data_provider = FakeDataProvider(
-            [
-                work,
+        wsb = WorkSolrBuilder(
+            work,
+            editions=[
                 make_edition(work, oclc_numbers=["123"], lccn=["lccn-1", "lccn-2"]),
                 make_edition(work, oclc_numbers=["234"], lccn=["lccn-2", "lccn-3"]),
-            ]
+            ],
+            authors=[],
+            data_provider=FakeDataProvider(),
+            ia_metadata={},
         )
-        d = await build_data(work)
-        assert sorted(d['oclc']) == ['123', '234']
-        assert sorted(d['lccn']) == ['lccn-1', 'lccn-2', 'lccn-3']
+        assert wsb.oclc == {'123', '234'}
+        assert wsb.lccn == {'lccn-1', 'lccn-2', 'lccn-3'}
 
-    @pytest.mark.asyncio()
-    async def test_identifiers(self):
+    def test_identifiers(self):
         work = make_work()
-        update_work.data_provider = FakeDataProvider(
-            [
-                work,
+        d = WorkSolrBuilder(
+            work=work,
+            editions=[
                 make_edition(work, identifiers={"librarything": ["lt-1"]}),
                 make_edition(work, identifiers={"librarything": ["lt-2"]}),
-            ]
-        )
-        d = await build_data(work)
+            ],
+            authors=[],
+            data_provider=FakeDataProvider(),
+            ia_metadata={},
+        ).build()
         assert sorted(d['id_librarything']) == ['lt-1', 'lt-2']
 
-    @pytest.mark.asyncio()
-    async def test_ia_boxid(self):
+    def test_ia_boxid(self):
         w = make_work()
-        update_work.data_provider = FakeDataProvider([w, make_edition(w)])
-        d = await build_data(w)
+        d = WorkSolrBuilder(w, [make_edition(w)], [], FakeDataProvider(), {}).build()
         assert 'ia_box_id' not in d
 
         w = make_work()
-        update_work.data_provider = FakeDataProvider(
-            [w, make_edition(w, ia_box_id='foo')]
-        )
-        d = await build_data(w)
-        assert 'ia_box_id' in d
+        d = WorkSolrBuilder(
+            w, [make_edition(w, ia_box_id='foo')], [], FakeDataProvider(), {}
+        ).build()
         assert d['ia_box_id'] == ['foo']
 
-    @pytest.mark.asyncio()
-    async def test_with_one_lending_edition(self):
+    def test_with_one_lending_edition(self):
         w = make_work()
-        update_work.data_provider = FakeDataProvider(
-            [w, make_edition(w, key="/books/OL1M", ocaid='foo00bar')]
-        )
-        ia_metadata = {"foo00bar": {"collection": ['inlibrary', 'americana']}}
-        d = await build_data(w, ia_metadata)
+        d = WorkSolrBuilder(
+            work=w,
+            editions=[make_edition(w, key="/books/OL1M", ocaid='foo00bar')],
+            authors=[],
+            data_provider=FakeDataProvider(),
+            ia_metadata={"foo00bar": {"collection": ['inlibrary', 'americana']}},
+        ).build()
+
         assert d['has_fulltext'] is True
         assert d['public_scan_b'] is False
         assert 'printdisabled_s' not in d
@@ -212,21 +191,21 @@ class Test_build_data:
         assert d['edition_count'] == 1
         assert d['ebook_count_i'] == 1
 
-    @pytest.mark.asyncio()
-    async def test_with_two_lending_editions(self):
+    def test_with_two_lending_editions(self):
         w = make_work()
-        update_work.data_provider = FakeDataProvider(
-            [
-                w,
+        d = WorkSolrBuilder(
+            work=w,
+            editions=[
                 make_edition(w, key="/books/OL1M", ocaid='foo01bar'),
                 make_edition(w, key="/books/OL2M", ocaid='foo02bar'),
-            ]
-        )
-        ia_metadata = {
-            "foo01bar": {"collection": ['inlibrary', 'americana']},
-            "foo02bar": {"collection": ['inlibrary', 'internetarchivebooks']},
-        }
-        d = await build_data(w, ia_metadata)
+            ],
+            authors=[],
+            data_provider=FakeDataProvider(),
+            ia_metadata={
+                "foo01bar": {"collection": ['inlibrary', 'americana']},
+                "foo02bar": {"collection": ['inlibrary', 'internetarchivebooks']},
+            },
+        ).build()
         assert d['has_fulltext'] is True
         assert d['public_scan_b'] is False
         assert 'printdisabled_s' not in d
@@ -238,14 +217,15 @@ class Test_build_data:
         assert d['edition_count'] == 2
         assert d['ebook_count_i'] == 2
 
-    @pytest.mark.asyncio()
-    async def test_with_one_inlibrary_edition(self):
+    def test_with_one_inlibrary_edition(self):
         w = make_work()
-        update_work.data_provider = FakeDataProvider(
-            [w, make_edition(w, key="/books/OL1M", ocaid='foo00bar')]
-        )
-        ia_metadata = {"foo00bar": {"collection": ['printdisabled', 'inlibrary']}}
-        d = await build_data(w, ia_metadata)
+        d = WorkSolrBuilder(
+            work=w,
+            editions=[make_edition(w, key="/books/OL1M", ocaid='foo00bar')],
+            authors=[],
+            data_provider=FakeDataProvider(),
+            ia_metadata={"foo00bar": {"collection": ['printdisabled', 'inlibrary']}},
+        ).build()
         assert d['has_fulltext'] is True
         assert d['public_scan_b'] is False
         assert d['printdisabled_s'] == 'OL1M'
@@ -255,14 +235,15 @@ class Test_build_data:
         assert d['edition_count'] == 1
         assert d['ebook_count_i'] == 1
 
-    @pytest.mark.asyncio()
-    async def test_with_one_printdisabled_edition(self):
+    def test_with_one_printdisabled_edition(self):
         w = make_work()
-        update_work.data_provider = FakeDataProvider(
-            [w, make_edition(w, key="/books/OL1M", ocaid='foo00bar')]
-        )
-        ia_metadata = {"foo00bar": {"collection": ['printdisabled', 'americana']}}
-        d = await build_data(w, ia_metadata)
+        d = WorkSolrBuilder(
+            work=w,
+            editions=[make_edition(w, key="/books/OL1M", ocaid='foo00bar')],
+            authors=[],
+            data_provider=FakeDataProvider(),
+            ia_metadata={"foo00bar": {"collection": ['printdisabled', 'americana']}},
+        ).build()
         assert d['has_fulltext'] is True
         assert d['public_scan_b'] is False
         assert d['printdisabled_s'] == 'OL1M'
@@ -272,37 +253,42 @@ class Test_build_data:
         assert d['edition_count'] == 1
         assert d['ebook_count_i'] == 1
 
-    def test_get_alternate_titles(self):
-        f = SolrProcessor.get_alternate_titles
+    def test_alternate_title(self):
+        def f(editions):
+            return (
+                WorkSolrBuilder({}, editions, [], FakeDataProvider(), {})
+                .build()
+                .get('alternative_title')
+            )
 
         no_title = make_work()
         del no_title['title']
         only_title = make_work(title='foo')
         with_subtitle = make_work(title='foo 2', subtitle='bar')
 
-        assert f([]) == set()
-        assert f([no_title]) == set()
+        assert f([]) is None
+        assert f([no_title]) is None
         assert f([only_title, no_title]) == {'foo'}
         assert f([with_subtitle, only_title]) == {'foo 2: bar', 'foo'}
 
-    @pytest.mark.asyncio()
-    async def test_with_multiple_editions(self):
+    def test_with_multiple_editions(self):
         w = make_work()
-        update_work.data_provider = FakeDataProvider(
-            [
-                w,
+        d = WorkSolrBuilder(
+            work=w,
+            editions=[
                 make_edition(w, key="/books/OL1M"),
                 make_edition(w, key="/books/OL2M", ocaid='foo00bar'),
                 make_edition(w, key="/books/OL3M", ocaid='foo01bar'),
                 make_edition(w, key="/books/OL4M", ocaid='foo02bar'),
-            ]
-        )
-        ia_metadata = {
-            "foo00bar": {"collection": ['americana']},
-            "foo01bar": {"collection": ['inlibrary', 'americana']},
-            "foo02bar": {"collection": ['printdisabled', 'inlibrary']},
-        }
-        d = await build_data(w, ia_metadata)
+            ],
+            authors=[],
+            data_provider=FakeDataProvider(),
+            ia_metadata={
+                "foo00bar": {"collection": ['americana']},
+                "foo01bar": {"collection": ['inlibrary', 'printdisabled']},
+                "foo02bar": {"collection": ['printdisabled', 'americana']},
+            },
+        ).build()
         assert d['has_fulltext'] is True
         assert d['public_scan_b'] is True
         assert d['printdisabled_s'] == 'OL4M'
@@ -313,10 +299,9 @@ class Test_build_data:
         assert d['edition_count'] == 4
         assert d['ebook_count_i'] == 3
 
-    @pytest.mark.asyncio()
-    async def test_subjects(self):
+    def test_subjects(self):
         w = make_work(subjects=["a", "b c"])
-        d = await build_data(w)
+        d = WorkSolrBuilder(w, [], [], FakeDataProvider(), {}).build()
 
         assert d['subject'] == ['a', "b c"]
         assert d['subject_facet'] == ['a', "b c"]
@@ -332,15 +317,14 @@ class Test_build_data:
             subject_people=["a", "b c"],
             subject_times=["a", "b c"],
         )
-        d = await build_data(w)
+        d = WorkSolrBuilder(w, [], [], FakeDataProvider(), {}).build()
 
         for k in ['subject', 'person', 'place', 'time']:
             assert d[k] == ['a', "b c"]
             assert d[k + '_facet'] == ['a', "b c"]
             assert d[k + '_key'] == ['a', "b_c"]
 
-    @pytest.mark.asyncio()
-    async def test_author_info(self):
+    def test_author_info(self):
         w = make_work(
             authors=[
                 {
@@ -353,7 +337,7 @@ class Test_build_data:
                 {"author": make_author(key="/authors/OL2A", name="Author Two")},
             ]
         )
-        d = await build_data(w)
+        d = WorkSolrBuilder(w, [], [], FakeDataProvider(), {}).build()
         assert d['author_name'] == ["Author One", "Author Two"]
         assert d['author_key'] == ['OL1A', 'OL2A']
         assert d['author_facet'] == ['OL1A Author One', 'OL2A Author Two']
@@ -387,19 +371,18 @@ class Test_build_data:
         ),
     }
 
-    @pytest.mark.asyncio()
     @pytest.mark.parametrize(
         "doc_lccs,solr_lccs,sort_lcc_index", LCC_TESTS.values(), ids=LCC_TESTS.keys()
     )
-    async def test_lccs(self, doc_lccs, solr_lccs, sort_lcc_index):
+    def test_lccs(self, doc_lccs, solr_lccs, sort_lcc_index):
         work = make_work()
-        update_work.data_provider = FakeDataProvider(
-            [
-                work,
-                make_edition(work, lc_classifications=doc_lccs),
-            ]
-        )
-        d = await build_data(work)
+        d = WorkSolrBuilder(
+            work,
+            editions=[make_edition(work, lc_classifications=doc_lccs)],
+            authors=[],
+            data_provider=FakeDataProvider(),
+            ia_metadata={},
+        ).build()
         if solr_lccs:
             assert sorted(d.get('lcc')) == solr_lccs
             if sort_lcc_index is not None:
@@ -435,13 +418,13 @@ class Test_build_data:
     )
     async def test_ddcs(self, doc_ddcs, solr_ddcs, sort_ddc_index):
         work = make_work()
-        update_work.data_provider = FakeDataProvider(
-            [
-                work,
-                make_edition(work, dewey_decimal_class=doc_ddcs),
-            ]
-        )
-        d = await build_data(work)
+        d = WorkSolrBuilder(
+            work,
+            [make_edition(work, dewey_decimal_class=doc_ddcs)],
+            [],
+            FakeDataProvider(),
+            {},
+        ).build()
         if solr_ddcs:
             assert sorted(d.get('ddc')) == solr_ddcs
             assert d.get('ddc_sort') == solr_ddcs[sort_ddc_index]
@@ -500,32 +483,37 @@ class Test_number_of_pages_median:
 
 class Test_Sort_Editions_Ocaids:
     def test_sort(self):
-        editions = [
-            {"key": "/books/OL789M", "ocaid": "ocaid_restricted"},
-            {"key": "/books/OL567M", "ocaid": "ocaid_printdisabled"},
-            {"key": "/books/OL234M", "ocaid": "ocaid_borrowable"},
-            {"key": "/books/OL123M", "ocaid": "ocaid_open"},
-        ]
-        ia_md = {
-            "ocaid_restricted": {
-                "access_restricted_item": "true",
-                'collection': [],
+        wsb = WorkSolrBuilder(
+            work={},
+            editions=[
+                {"key": "/books/OL789M", "ocaid": "ocaid_restricted"},
+                {"key": "/books/OL567M", "ocaid": "ocaid_printdisabled"},
+                {"key": "/books/OL234M", "ocaid": "ocaid_borrowable"},
+                {"key": "/books/OL123M", "ocaid": "ocaid_open"},
+            ],
+            authors=[],
+            data_provider=FakeDataProvider(),
+            ia_metadata={
+                "ocaid_restricted": {
+                    "access_restricted_item": "true",
+                    'collection': {},
+                },
+                "ocaid_printdisabled": {
+                    "access_restricted_item": "true",
+                    "collection": {"printdisabled"},
+                },
+                "ocaid_borrowable": {
+                    "access_restricted_item": "true",
+                    "collection": {"inlibrary"},
+                },
+                "ocaid_open": {
+                    "access_restricted_item": "false",
+                    "collection": {"americanlibraries"},
+                },
             },
-            "ocaid_printdisabled": {
-                "access_restricted_item": "true",
-                "collection": ["printdisabled"],
-            },
-            "ocaid_borrowable": {
-                "access_restricted_item": "true",
-                "collection": ["inlibrary"],
-            },
-            "ocaid_open": {
-                "access_restricted_item": "false",
-                "collection": ["americanlibraries"],
-            },
-        }
+        )
 
-        assert SolrProcessor.get_ebook_info(editions, ia_md)['ia'] == [
+        assert wsb.ia == [
             "ocaid_open",
             "ocaid_borrowable",
             "ocaid_printdisabled",
@@ -533,25 +521,52 @@ class Test_Sort_Editions_Ocaids:
         ]
 
     def test_goog_deprioritized(self):
-        editions = [
-            {"key": "/books/OL789M", "ocaid": "foobargoog"},
-            {"key": "/books/OL789M", "ocaid": "foobarblah"},
-        ]
-        assert SolrProcessor.get_ebook_info(editions, {})['ia'] == [
+        wsb = WorkSolrBuilder(
+            work={},
+            editions=[
+                {"key": "/books/OL789M", "ocaid": "foobargoog"},
+                {"key": "/books/OL789M", "ocaid": "foobarblah"},
+            ],
+            authors=[],
+            data_provider=FakeDataProvider(),
+            ia_metadata={},
+        )
+        assert wsb.ia == [
             "foobarblah",
             "foobargoog",
         ]
 
     def test_excludes_fav_ia_collections(self):
-        doc = {}
-        editions = [
-            {"key": "/books/OL789M", "ocaid": "foobargoog"},
-            {"key": "/books/OL789M", "ocaid": "foobarblah"},
-        ]
-        ia_md = {
-            "foobargoog": {"collection": ['americanlibraries', 'fav-foobar']},
-            "foobarblah": {"collection": ['fav-bluebar', 'blah']},
-        }
+        wsb = WorkSolrBuilder(
+            work={},
+            editions=[
+                {"key": "/books/OL789M", "ocaid": "foobargoog"},
+                {"key": "/books/OL789M", "ocaid": "foobarblah"},
+            ],
+            authors=[],
+            data_provider=FakeDataProvider(),
+            ia_metadata={
+                "foobargoog": {"collection": ['americanlibraries', 'fav-foobar']},
+                "foobarblah": {"collection": ['fav-bluebar', 'blah']},
+            },
+        )
 
-        doc = SolrProcessor.get_ebook_info(editions, ia_md)
-        assert doc['ia_collection_s'] == "americanlibraries;blah"
+        assert wsb.ia_collection_s == "americanlibraries;blah"
+
+
+class Test_build_data:
+    @pytest.mark.asyncio()
+    async def test_edition_count_when_editions_in_data_provider(self):
+        work = make_work()
+        d = await build_data(work, FakeDataProvider())
+        assert d['edition_count'] == 0
+
+        d = await build_data(work, FakeDataProvider([work, make_edition(work)]))
+        assert d['edition_count'] == 1
+
+        update_work.data_provider = FakeDataProvider(
+            [work, make_edition(work), make_edition(work)]
+        )
+
+        d = await build_data(work, FakeDataProvider())
+        assert d['edition_count'] == 2

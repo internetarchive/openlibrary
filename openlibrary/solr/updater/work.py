@@ -8,7 +8,7 @@ from math import ceil
 import re
 from statistics import median
 import time
-from typing import Any, Optional, cast
+from typing import Any, Optional, TypedDict, cast
 from openlibrary.core import helpers as h
 import openlibrary.book_providers as bp
 from openlibrary.core.ratings import WorkRatingsSummary
@@ -93,7 +93,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
 
 
 async def build_data(
-    w: dict,
+    work: dict,
     data_provider: DataProvider,
     ia_metadata: dict[str, Optional['bp.IALiteMetadata']] | None = None,
 ) -> SolrDocument:
@@ -107,21 +107,30 @@ async def build_data(
     # Anand - Oct 2013
     # For /works/ia:xxx, editions are already supplied. Querying will empty response.
 
-    if "editions" in w:
-        editions = w['editions']
+    # Fetch editions
+    if "editions" in work:
+        editions = work['editions']
     else:
-        editions = data_provider.get_editions_of_work(w)
-    authors = await SolrProcessor(data_provider).extract_authors(w)
+        editions = data_provider.get_editions_of_work(work)
 
+    # Fetch authors
+    author_keys = [
+        author['author']['key'] for author in normalize_authors(work.get('authors', []))
+    ]
+    authors = [await data_provider.get_document(key) for key in author_keys]
+    if any(a['type']['key'] != '/type/author' for a in authors):
+        # we don't want to raise an exception but just write a warning on the log
+        logger.warning('Unexpected author type error: %s', work['key'])
+    authors = [a for a in authors if a['type']['key'] == '/type/author']
+
+    # Fetch ia_metadata
     if ia_metadata is None:
         iaids = [e["ocaid"] for e in editions if "ocaid" in e]
         ia_metadata = {
             iaid: get_ia_collection_and_box_id(iaid, data_provider) for iaid in iaids
         }
 
-    assert w['type']['key'] == '/type/work'
-
-    return WorkSolrBuilder(w, editions, authors, data_provider, ia_metadata).build()
+    return WorkSolrBuilder(work, editions, authors, data_provider, ia_metadata).build()
 
 
 def get_ia_collection_and_box_id(
@@ -169,132 +178,88 @@ def get_ia_collection_and_box_id(
     }
 
 
-class SolrProcessor:
-    """Processes data to into a form suitable for adding to works solr."""
+class KeyDict(TypedDict):
+    key: str
 
-    data_provider: DataProvider
 
-    def __init__(self, data_provider: DataProvider):
-        self.data_provider = data_provider
+class NormalizedAuthor(TypedDict):
+    type: KeyDict
+    author: KeyDict
 
-    @staticmethod
-    def normalize_authors(authors) -> list[dict]:
-        """
-        Need to normalize to a predictable format because of inconsistencies in data
 
-        >>> SolrProcessor.normalize_authors([
-        ...     {'type': {'key': '/type/author_role'}, 'author': '/authors/OL1A'}
-        ... ])
-        [{'type': {'key': '/type/author_role'}, 'author': {'key': '/authors/OL1A'}}]
-        >>> SolrProcessor.normalize_authors([{
-        ...     "type": {"key": "/type/author_role"},
-        ...     "author": {"key": "/authors/OL1A"}
-        ... }])
-        [{'type': {'key': '/type/author_role'}, 'author': {'key': '/authors/OL1A'}}]
-        """
-        return [
+def normalize_authors(authors: list[dict]) -> list[NormalizedAuthor]:
+    """
+    Need to normalize to a predictable format because of inconsistencies in data
+
+    >>> normalize_authors([
+    ...     {'type': {'key': '/type/author_role'}, 'author': '/authors/OL1A'}
+    ... ])
+    [{'type': {'key': '/type/author_role'}, 'author': {'key': '/authors/OL1A'}}]
+    >>> normalize_authors([{
+    ...     "type": {"key": "/type/author_role"},
+    ...     "author": {"key": "/authors/OL1A"}
+    ... }])
+    [{'type': {'key': '/type/author_role'}, 'author': {'key': '/authors/OL1A'}}]
+    """
+    return [
+        cast(
+            NormalizedAuthor,
             {
-                'type': {
-                    'key': safeget(lambda: a['type']['key']) or '/type/author_role'
-                },
+                'type': {'key': safeget(lambda: a['type']['key'], '/type/author_role')},
                 'author': (
                     a['author']
                     if isinstance(a['author'], dict)
                     else {'key': a['author']}
                 ),
-            }
-            for a in authors
-            # TODO: Remove after
-            #  https://github.com/internetarchive/openlibrary-client/issues/126
-            if 'author' in a
-        ]
+            },
+        )
+        for a in authors
+        # TODO: Remove after
+        #  https://github.com/internetarchive/openlibrary-client/issues/126
+        if 'author' in a
+    ]
 
-    async def get_author(self, a):
-        """
-        Get author dict from author entry in the work.
 
-        get_author({"author": {"key": "/authors/OL1A"}})
+def get_subject_counts(w: dict) -> dict:
+    """
+    Get the counts of the work's subjects grouped by subject type.
 
-        :param dict a: An element of work['authors']
-        :return: Full author document
-        :rtype: dict or None
-        """
-        if 'type' in a['author']:
-            # means it is already the whole object.
-            # It'll be like this when doing re-indexing of solr.
-            return a['author']
+    :param dict w: Work
+    :rtype: dict[str, dict[str, int]]
+    :return: Subjects grouped by type, then by subject and count. Example:
+    `{ subject: { "some subject": 1 }, person: { "some person": 1 } }`
+    """
+    try:
+        subjects = four_types(get_work_subjects(w))
+    except:  # noqa: E722
+        logger.error('bad work: %s', w['key'])
+        raise
 
-        key = a['author']['key']
-        m = re_author_key.match(key)
-        if not m:
-            logger.error('invalid author key: %s', key)
-            return
-        return await self.data_provider.get_document(key)
+    # FIXME THIS IS ALL DONE IN get_work_subjects! REMOVE
+    field_map = {
+        'subjects': 'subject',
+        'subject_places': 'place',
+        'subject_times': 'time',
+        'subject_people': 'person',
+    }
 
-    async def extract_authors(self, w):
-        """
-        Get the full author objects of the given work
+    for db_field, solr_field in field_map.items():
+        if not w.get(db_field, None):
+            continue
+        cur = subjects.setdefault(solr_field, {})
+        for v in w[db_field]:
+            try:
+                if isinstance(v, dict):
+                    if 'value' not in v:
+                        continue
+                    v = v['value']
+                cur[v] = cur.get(v, 0) + 1
+            except:  # noqa: E722
+                logger.error("bad subject: %r", v)
+                raise
+    # FIXME END_REMOVE
 
-        :param dict w:
-        :rtype: list[dict]
-        """
-        authors = [
-            author
-            for a in SolrProcessor.normalize_authors(w.get("authors", []))
-            if (author := await self.get_author(a))
-        ]
-
-        if any(a['type']['key'] == '/type/redirect' for a in authors):
-            # we don't want to raise an exception but just write a warning on the log
-            logger.warning('author redirect error: %s', w['key'])
-
-        # ## Consider only the valid authors instead of raising an error.
-        # assert all(a['type']['key'] == '/type/author' for a in authors)
-        authors = [a for a in authors if a['type']['key'] == '/type/author']
-
-        return authors
-
-    @staticmethod
-    def get_subject_counts(w):
-        """
-        Get the counts of the work's subjects grouped by subject type.
-
-        :param dict w: Work
-        :rtype: dict[str, dict[str, int]]
-        :return: Subjects grouped by type, then by subject and count. Example:
-        `{ subject: { "some subject": 1 }, person: { "some person": 1 } }`
-        """
-        try:
-            subjects = four_types(get_work_subjects(w))
-        except:  # noqa: E722
-            logger.error('bad work: %s', w['key'])
-            raise
-
-        # FIXME THIS IS ALL DONE IN get_work_subjects! REMOVE
-        field_map = {
-            'subjects': 'subject',
-            'subject_places': 'place',
-            'subject_times': 'time',
-            'subject_people': 'person',
-        }
-
-        for db_field, solr_field in field_map.items():
-            if not w.get(db_field, None):
-                continue
-            cur = subjects.setdefault(solr_field, {})
-            for v in w[db_field]:
-                try:
-                    if isinstance(v, dict):
-                        if 'value' not in v:
-                            continue
-                        v = v['value']
-                    cur[v] = cur.get(v, 0) + 1
-                except:  # noqa: E722
-                    logger.error("bad subject: %r", v)
-                    raise
-        # FIXME END_REMOVE
-
-        return subjects
+    return subjects
 
 
 def extract_edition_olid(key: str) -> str:
@@ -814,7 +779,7 @@ class WorkSolrBuilder:
     @property
     def build_subjects(self) -> dict:
         doc: dict = {}
-        subjects = SolrProcessor.get_subject_counts(self._work)
+        subjects = get_subject_counts(self._work)
         for subject_type in 'person', 'place', 'subject', 'time':
             if subject_type not in subjects:
                 continue
