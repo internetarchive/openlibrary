@@ -159,7 +159,7 @@ class TestWorkSolrBuilder:
             data_provider=FakeDataProvider(),
             ia_metadata={},
         ).build()
-        assert sorted(d['id_librarything']) == ['lt-1', 'lt-2']
+        assert sorted(d.get('id_librarything', [])) == ['lt-1', 'lt-2']
 
     def test_ia_boxid(self):
         w = make_work()
@@ -293,7 +293,7 @@ class TestWorkSolrBuilder:
         assert d['public_scan_b'] is True
         assert d['printdisabled_s'] == 'OL4M'
         assert d['lending_edition_s'] == 'OL2M'
-        assert sorted(d['ia']) == ['foo00bar', 'foo01bar', 'foo02bar']
+        assert sorted(d.get('ia', [])) == ['foo00bar', 'foo01bar', 'foo02bar']
         assert sss(d['ia_collection_s']) == sss("americana;inlibrary;printdisabled")
 
         assert d['edition_count'] == 4
@@ -384,7 +384,7 @@ class TestWorkSolrBuilder:
             ia_metadata={},
         ).build()
         if solr_lccs:
-            assert sorted(d.get('lcc')) == solr_lccs
+            assert sorted(d.get('lcc', [])) == solr_lccs
             if sort_lcc_index is not None:
                 assert d.get('lcc_sort') == solr_lccs[sort_lcc_index]
         else:
@@ -426,7 +426,7 @@ class TestWorkSolrBuilder:
             {},
         ).build()
         if solr_ddcs:
-            assert sorted(d.get('ddc')) == solr_ddcs
+            assert sorted(d.get('ddc', [])) == solr_ddcs
             assert d.get('ddc_sort') == solr_ddcs[sort_ddc_index]
         else:
             assert 'ddc' not in d

@@ -2,7 +2,14 @@
 import os
 
 root = os.path.dirname(__file__)
-OVERRIDES = {'type': "Literal['work', 'author', 'subject']"}
+OVERRIDES = {
+    'type': "Literal['work', 'author', 'subject']",
+    'public_scan_b': 'Optional[bool]',
+    'printdisabled_s': 'Optional[str]',
+    'lending_edition_s': 'Optional[str]',
+    'ia_collection_s': 'Optional[str]',
+    'ebook_count_i': 'Optional[int]',
+}
 
 
 def generate():
