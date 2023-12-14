@@ -235,41 +235,6 @@ ALTER SEQUENCE public.bookshelves_id_seq OWNED BY public.bookshelves.id;
 
 
 --
--- Name: bookshelves_votes; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
---
-
-CREATE TABLE public.bookshelves_votes (
-    username text NOT NULL,
-    bookshelf_id integer NOT NULL,
-    updated timestamp without time zone DEFAULT timezone('utc'::text, now()),
-    created timestamp without time zone DEFAULT timezone('utc'::text, now())
-);
-
-
-ALTER TABLE public.bookshelves_votes OWNER TO postgres;
-
---
--- Name: bookshelves_votes_bookshelf_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.bookshelves_votes_bookshelf_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.bookshelves_votes_bookshelf_id_seq OWNER TO postgres;
-
---
--- Name: bookshelves_votes_bookshelf_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.bookshelves_votes_bookshelf_id_seq OWNED BY public.bookshelves_votes.bookshelf_id;
-
-
---
 -- Name: community_edits_queue; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
 
@@ -1267,13 +1232,6 @@ ALTER TABLE ONLY public.bookshelves_events ALTER COLUMN id SET DEFAULT nextval('
 
 
 --
--- Name: bookshelf_id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.bookshelves_votes ALTER COLUMN bookshelf_id SET DEFAULT nextval('public.bookshelves_votes_bookshelf_id_seq'::regclass);
-
-
---
 -- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1635,9 +1593,9 @@ COPY public.booknotes (username, work_id, edition_id, notes, updated, created) F
 --
 
 COPY public.bookshelves (id, name, description, archived, updated, created) FROM stdin;
-1	Want to Read	A list of books I want to read	f	2023-09-01 21:33:01.32118	2023-09-01 21:33:01.32118
-2	Currently Reading	A list of books I am currently reading	f	2023-09-01 21:33:01.3226	2023-09-01 21:33:01.3226
-3	Already Read	A list of books I have finished reading	f	2023-09-01 21:33:01.323726	2023-09-01 21:33:01.323726
+1	Want to Read	A list of books I want to read	f	2023-12-12 18:51:29.303055	2023-12-12 18:51:29.303055
+2	Currently Reading	A list of books I am currently reading	f	2023-12-12 18:51:29.304327	2023-12-12 18:51:29.304327
+3	Already Read	A list of books I have finished reading	f	2023-12-12 18:51:29.305437	2023-12-12 18:51:29.305437
 \.
 
 
@@ -1669,21 +1627,6 @@ SELECT pg_catalog.setval('public.bookshelves_events_id_seq', 1, false);
 --
 
 SELECT pg_catalog.setval('public.bookshelves_id_seq', 3, true);
-
-
---
--- Data for Name: bookshelves_votes; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.bookshelves_votes (username, bookshelf_id, updated, created) FROM stdin;
-\.
-
-
---
--- Name: bookshelves_votes_bookshelf_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.bookshelves_votes_bookshelf_id_seq', 1, false);
 
 
 --
@@ -8287,14 +8230,6 @@ ALTER TABLE ONLY public.bookshelves
 
 
 --
--- Name: bookshelves_votes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
---
-
-ALTER TABLE ONLY public.bookshelves_votes
-    ADD CONSTRAINT bookshelves_votes_pkey PRIMARY KEY (username, bookshelf_id);
-
-
---
 -- Name: community_edits_queue_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
 --
 
@@ -9248,14 +9183,6 @@ ALTER TABLE ONLY public.bookshelves_books
 
 
 --
--- Name: bookshelves_votes_bookshelf_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.bookshelves_votes
-    ADD CONSTRAINT bookshelves_votes_bookshelf_id_fkey FOREIGN KEY (bookshelf_id) REFERENCES public.bookshelves(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
 -- Name: data_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
@@ -10026,16 +9953,6 @@ REVOKE ALL ON TABLE public.bookshelves_events FROM PUBLIC;
 REVOKE ALL ON TABLE public.bookshelves_events FROM postgres;
 GRANT ALL ON TABLE public.bookshelves_events TO postgres;
 GRANT SELECT ON TABLE public.bookshelves_events TO readcreateaccess;
-
-
---
--- Name: TABLE bookshelves_votes; Type: ACL; Schema: public; Owner: postgres
---
-
-REVOKE ALL ON TABLE public.bookshelves_votes FROM PUBLIC;
-REVOKE ALL ON TABLE public.bookshelves_votes FROM postgres;
-GRANT ALL ON TABLE public.bookshelves_votes TO postgres;
-GRANT SELECT ON TABLE public.bookshelves_votes TO readcreateaccess;
 
 
 --
