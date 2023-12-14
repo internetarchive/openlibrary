@@ -72,14 +72,17 @@ const Carousel = {
             slidesToScroll: a,
             responsive: responsive_settings
         });
-
+        //This loads in i18n strings from a hidden input element, generated in the books/custom_carousel.html template.
+        const i18nValues = JSON.parse($('input[name="carousel-i18n-strings"]').attr('value'))
         availabilityStatuses = {
-            open: {cls: 'cta-btn--available', cta: 'Read'},
-            borrow_available: {cls: 'cta-btn--available', cta: 'Borrow'},
-            borrow_unavailable: {cls: 'cta-btn--unavailable', cta: 'Join Waitlist'},
-            error: {cls: 'cta-btn--missing', cta: 'Not In Library'},
+            open: {cls: 'cta-btn--available', cta: i18nValues['open']},
+            borrow_available: {cls: 'cta-btn--available', cta: i18nValues['borrow_available']},
+            borrow_unavailable: {cls: 'cta-btn--unavailable', cta: i18nValues['borrow_unavailable']},
+            error: {cls: 'cta-btn--missing', cta: i18nValues['error']},
             // private: {cls: 'cta-btn--available', cta: 'Preview'}
         };
+
+
 
         addWork = function(work) {
             const availability = work.availability || {};
@@ -160,8 +163,7 @@ const Carousel = {
 
                 if (!loadMore.locked && !loadMore.allDone && isOn2ndLastPage) {
                     loadMore.locked = true; // lock for critical section
-                    slick.addSlide('<div class="carousel__item carousel__loading-end">Loading...</div>');
-
+                    slick.addSlide(`<div class="carousel__item carousel__loading-end">${i18nValues['loading']}</div>`);
                     if (loadMore.pageMode === 'page') {
                         // for first time, we're on page 1 already so initialize as page 2
                         // otherwise advance to next page
@@ -198,7 +200,7 @@ const Carousel = {
 
                 // Remove the current slides
                 slick.removeSlide(totalSlides, true, true);
-                slick.addSlide('<div class="carousel__item carousel__loading-end">Loading...</div>');
+                slick.addSlide(`<div class="carousel__item carousel__loading-end">${i18nValues['loading']}</div>`);
 
                 $.ajax({ url: url, type: 'GET' })
                     .then(function(results) {
