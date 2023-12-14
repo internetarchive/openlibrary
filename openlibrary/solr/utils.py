@@ -193,3 +193,14 @@ async def solr_insert_documents(
             content=json.dumps(documents),
         )
     resp.raise_for_status()
+
+
+def str_to_key(s):
+    """
+    Convert a string to a valid Solr field name.
+    TODO: this exists in openlibrary/utils/__init__.py str_to_key(), DRY
+    :param str s:
+    :rtype: str
+    """
+    to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
+    return ''.join(c if c != ' ' else '_' for c in s.lower() if c not in to_drop)
