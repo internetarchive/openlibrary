@@ -100,6 +100,8 @@ async def build_data(
     Construct the Solr document to insert into Solr for the given work
 
     :param w: Work to insert/update
+    :param ia_metadata: boxid/collection of each associated IA id
+        (ex: `{foobar: {boxid: {"foo"}, collection: {"lendinglibrary"}}}`)
     """
     # Anand - Oct 2013
     # For /works/ia:xxx, editions are already supplied. Querying will empty response.
@@ -114,28 +116,6 @@ async def build_data(
     if ia_metadata is None:
         iaids = [e["ocaid"] for e in editions if "ocaid" in e]
         ia_metadata = {iaid: get_ia_collection_and_box_id(iaid) for iaid in iaids}
-    return build_data2(w, editions, authors, ia_metadata)
-
-
-def build_data2(
-    w: dict,
-    editions: list[dict],
-    authors,
-    ia: dict[str, Optional['bp.IALiteMetadata']],
-) -> SolrDocument:
-    """
-    Construct the Solr document to insert into Solr for the given work
-
-    :param w: Work to get data for
-    :param editions: Editions of work
-    :param authors: Authors of work
-    :param ia: boxid/collection of each associated IA id
-        (ex: `{foobar: {boxid: {"foo"}, collection: {"lendinglibrary"}}}`)
-    :rtype: dict
-    """
-    from openlibrary.solr.update_work import data_provider
-
-    resolve_redirects = False
 
     assert w['type']['key'] == '/type/work'
     # Some works are missing a title, but have titles on their editions
@@ -152,10 +132,10 @@ def build_data2(
     if w['title'] == '__None__':
         logger.warning('Work missing title %s' % w['key'])
 
-    p = SolrProcessor(resolve_redirects)
+    p = SolrProcessor()
 
     identifiers: dict[str, list] = defaultdict(list)
-    editions = p.process_editions(w, editions, ia, identifiers)
+    editions = p.process_editions(w, editions, ia_metadata, identifiers)
 
     def add_field(doc, name, value):
         doc[name] = value
@@ -163,7 +143,7 @@ def build_data2(
     def add_field_list(doc, name, field_list):
         doc[name] = list(field_list)
 
-    doc = p.build_data(w, editions, ia)
+    doc = p.build_data(w, editions, ia_metadata)
 
     # Add ratings info
     doc.update(data_provider.get_work_ratings(w['key']) or {})
@@ -370,9 +350,6 @@ def get_ia_collection_and_box_id(ia: str) -> Optional['bp.IALiteMetadata']:
 class SolrProcessor:
     """Processes data to into a form suitable for adding to works solr."""
 
-    def __init__(self, resolve_redirects=False):
-        self.resolve_redirects = resolve_redirects
-
     def process_editions(self, w, editions, ia_metadata, identifiers):
         """
         Add extra fields to the editions dicts (ex: pub_year, public_scan, ia_collection, etc.).
@@ -510,8 +487,6 @@ class SolrProcessor:
         :param dict w:
         :rtype: list[dict]
         """
-        from openlibrary.solr.update_work import data_provider
-
         authors = [
             author
             for a in SolrProcessor.normalize_authors(w.get("authors", []))
@@ -519,19 +494,8 @@ class SolrProcessor:
         ]
 
         if any(a['type']['key'] == '/type/redirect' for a in authors):
-            if self.resolve_redirects:
-                authors = [
-                    (
-                        await data_provider.get_document(a['location'])
-                        if a['type']['key'] == '/type/redirect'
-                        else a
-                    )
-                    for a in authors
-                ]
-            else:
-                # we don't want to raise an exception but just write a warning on the log
-                # raise AuthorRedirect
-                logger.warning('author redirect error: %s', w['key'])
+            # we don't want to raise an exception but just write a warning on the log
+            logger.warning('author redirect error: %s', w['key'])
 
         # ## Consider only the valid authors instead of raising an error.
         # assert all(a['type']['key'] == '/type/author' for a in authors)
