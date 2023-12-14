@@ -386,7 +386,6 @@ class WorkSolrBuilder:
             val = getattr(self, field)
 
             if callable(val):
-                # Skip if function, not property/cached_property
                 continue
             elif val is None or (isinstance(val, Iterable) and not val):
                 # Skip if empty list/string
@@ -395,12 +394,16 @@ class WorkSolrBuilder:
                 doc[field] = list(val)
             elif isinstance(val, bp.EbookAccess):
                 doc[field] = val.to_solr_str()
-            elif isinstance(val, dict):
-                doc |= val
             elif isinstance(val, (str, int, float, bool, list)):
                 doc[field] = val
             else:
                 raise ValueError(f'Unknown type for {field}: {type(val)}')
+
+        doc |= self.build_identifiers()
+        doc |= self.build_subjects()
+        doc |= self.build_legacy_ia_fields()
+        doc |= self.build_ratings() or {}
+        doc |= self.build_reading_log() or {}
 
         return cast(SolrDocument, doc)
 
@@ -643,12 +646,10 @@ class WorkSolrBuilder:
 
     # ^^^ These should be deprecated and removed ^^^
 
-    @property
-    def ratings_dict(self) -> WorkRatingsSummary | None:
+    def build_ratings(self) -> WorkRatingsSummary | None:
         return self._data_provider.get_work_ratings(self._work['key'])
 
-    @property
-    def reading_log_dict(self) -> WorkReadingLogSolrSummary | None:
+    def build_reading_log(self) -> WorkReadingLogSolrSummary | None:
         return self._data_provider.get_work_reading_log(self._work['key'])
 
     @cached_property
@@ -703,7 +704,6 @@ class WorkSolrBuilder:
     def language(self) -> set[str]:
         return {lang for ed in self._solr_editions for lang in ed.languages}
 
-    @property
     def build_legacy_ia_fields(self) -> dict:
         ia_loaded_id = set()
         ia_box_id = set()
@@ -768,7 +768,6 @@ class WorkSolrBuilder:
     def author_facet(self) -> list[str]:
         return [f'{key} {name}' for key, name in zip(self.author_key, self.author_name)]
 
-    @property
     def build_identifiers(self) -> dict[str, list[str]]:
         identifiers: dict[str, list[str]] = defaultdict(list)
         for ed in self._solr_editions:
@@ -776,7 +775,6 @@ class WorkSolrBuilder:
                 identifiers[k] += v
         return dict(identifiers)
 
-    @property
     def build_subjects(self) -> dict:
         doc: dict = {}
         subjects = get_subject_counts(self._work)

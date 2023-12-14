@@ -158,18 +158,20 @@ class TestWorkSolrBuilder:
             authors=[],
             data_provider=FakeDataProvider(),
             ia_metadata={},
-        ).build()
+        ).build_identifiers()
         assert sorted(d.get('id_librarything', [])) == ['lt-1', 'lt-2']
 
     def test_ia_boxid(self):
         w = make_work()
-        d = WorkSolrBuilder(w, [make_edition(w)], [], FakeDataProvider(), {}).build()
+        d = WorkSolrBuilder(
+            w, [make_edition(w)], [], FakeDataProvider(), {}
+        ).build_legacy_ia_fields()
         assert 'ia_box_id' not in d
 
         w = make_work()
         d = WorkSolrBuilder(
             w, [make_edition(w, ia_box_id='foo')], [], FakeDataProvider(), {}
-        ).build()
+        ).build_legacy_ia_fields()
         assert d['ia_box_id'] == ['foo']
 
     def test_with_one_lending_edition(self):
@@ -180,16 +182,16 @@ class TestWorkSolrBuilder:
             authors=[],
             data_provider=FakeDataProvider(),
             ia_metadata={"foo00bar": {"collection": ['inlibrary', 'americana']}},
-        ).build()
+        )
 
-        assert d['has_fulltext'] is True
-        assert d['public_scan_b'] is False
-        assert 'printdisabled_s' not in d
-        assert d['lending_edition_s'] == 'OL1M'
-        assert d['ia'] == ['foo00bar']
-        assert sss(d['ia_collection_s']) == sss("americana;inlibrary")
-        assert d['edition_count'] == 1
-        assert d['ebook_count_i'] == 1
+        assert d.has_fulltext is True
+        assert d.public_scan_b is False
+        assert d.printdisabled_s is None
+        assert d.lending_edition_s == 'OL1M'
+        assert d.ia == ['foo00bar']
+        assert sss(d.ia_collection_s) == sss("americana;inlibrary")
+        assert d.edition_count == 1
+        assert d.ebook_count_i == 1
 
     def test_with_two_lending_editions(self):
         w = make_work()
@@ -205,17 +207,15 @@ class TestWorkSolrBuilder:
                 "foo01bar": {"collection": ['inlibrary', 'americana']},
                 "foo02bar": {"collection": ['inlibrary', 'internetarchivebooks']},
             },
-        ).build()
-        assert d['has_fulltext'] is True
-        assert d['public_scan_b'] is False
-        assert 'printdisabled_s' not in d
-        assert d['lending_edition_s'] == 'OL1M'
-        assert sorted(d['ia']) == ['foo01bar', 'foo02bar']
-        assert sss(d['ia_collection_s']) == sss(
-            "inlibrary;americana;internetarchivebooks"
         )
-        assert d['edition_count'] == 2
-        assert d['ebook_count_i'] == 2
+        assert d.has_fulltext is True
+        assert d.public_scan_b is False
+        assert d.printdisabled_s is None
+        assert d.lending_edition_s == 'OL1M'
+        assert sorted(d.ia) == ['foo01bar', 'foo02bar']
+        assert sss(d.ia_collection_s) == sss("inlibrary;americana;internetarchivebooks")
+        assert d.edition_count == 2
+        assert d.ebook_count_i == 2
 
     def test_with_one_inlibrary_edition(self):
         w = make_work()
@@ -225,15 +225,15 @@ class TestWorkSolrBuilder:
             authors=[],
             data_provider=FakeDataProvider(),
             ia_metadata={"foo00bar": {"collection": ['printdisabled', 'inlibrary']}},
-        ).build()
-        assert d['has_fulltext'] is True
-        assert d['public_scan_b'] is False
-        assert d['printdisabled_s'] == 'OL1M'
-        assert d['lending_edition_s'] == 'OL1M'
-        assert d['ia'] == ['foo00bar']
-        assert sss(d['ia_collection_s']) == sss("printdisabled;inlibrary")
-        assert d['edition_count'] == 1
-        assert d['ebook_count_i'] == 1
+        )
+        assert d.has_fulltext is True
+        assert d.public_scan_b is False
+        assert d.printdisabled_s == 'OL1M'
+        assert d.lending_edition_s == 'OL1M'
+        assert d.ia == ['foo00bar']
+        assert sss(d.ia_collection_s) == sss("printdisabled;inlibrary")
+        assert d.edition_count == 1
+        assert d.ebook_count_i == 1
 
     def test_with_one_printdisabled_edition(self):
         w = make_work()
@@ -243,31 +243,29 @@ class TestWorkSolrBuilder:
             authors=[],
             data_provider=FakeDataProvider(),
             ia_metadata={"foo00bar": {"collection": ['printdisabled', 'americana']}},
-        ).build()
-        assert d['has_fulltext'] is True
-        assert d['public_scan_b'] is False
-        assert d['printdisabled_s'] == 'OL1M'
-        assert 'lending_edition_s' not in d
-        assert d['ia'] == ['foo00bar']
-        assert sss(d['ia_collection_s']) == sss("printdisabled;americana")
-        assert d['edition_count'] == 1
-        assert d['ebook_count_i'] == 1
+        )
+        assert d.has_fulltext is True
+        assert d.public_scan_b is False
+        assert d.printdisabled_s == 'OL1M'
+        assert d.lending_edition_s is None
+        assert d.ia == ['foo00bar']
+        assert sss(d.ia_collection_s) == sss("printdisabled;americana")
+        assert d.edition_count == 1
+        assert d.ebook_count_i == 1
 
     def test_alternate_title(self):
         def f(editions):
-            return (
-                WorkSolrBuilder({}, editions, [], FakeDataProvider(), {})
-                .build()
-                .get('alternative_title')
-            )
+            return WorkSolrBuilder(
+                {}, editions, [], FakeDataProvider(), {}
+            ).alternative_title
 
         no_title = make_work()
         del no_title['title']
         only_title = make_work(title='foo')
         with_subtitle = make_work(title='foo 2', subtitle='bar')
 
-        assert f([]) is None
-        assert f([no_title]) is None
+        assert f([]) == set()
+        assert f([no_title]) == set()
         assert f([only_title, no_title]) == {'foo'}
         assert f([with_subtitle, only_title]) == {'foo 2: bar', 'foo'}
 
@@ -288,20 +286,20 @@ class TestWorkSolrBuilder:
                 "foo01bar": {"collection": ['inlibrary', 'printdisabled']},
                 "foo02bar": {"collection": ['printdisabled', 'americana']},
             },
-        ).build()
-        assert d['has_fulltext'] is True
-        assert d['public_scan_b'] is True
-        assert d['printdisabled_s'] == 'OL4M'
-        assert d['lending_edition_s'] == 'OL2M'
-        assert sorted(d.get('ia', [])) == ['foo00bar', 'foo01bar', 'foo02bar']
-        assert sss(d['ia_collection_s']) == sss("americana;inlibrary;printdisabled")
+        )
+        assert d.has_fulltext is True
+        assert d.public_scan_b is True
+        assert d.printdisabled_s == 'OL4M'
+        assert d.lending_edition_s == 'OL2M'
+        assert sorted(d.ia) == ['foo00bar', 'foo01bar', 'foo02bar']
+        assert sss(d.ia_collection_s) == sss("americana;inlibrary;printdisabled")
 
-        assert d['edition_count'] == 4
-        assert d['ebook_count_i'] == 3
+        assert d.edition_count == 4
+        assert d.ebook_count_i == 3
 
     def test_subjects(self):
         w = make_work(subjects=["a", "b c"])
-        d = WorkSolrBuilder(w, [], [], FakeDataProvider(), {}).build()
+        d = WorkSolrBuilder(w, [], [], FakeDataProvider(), {}).build_subjects()
 
         assert d['subject'] == ['a', "b c"]
         assert d['subject_facet'] == ['a', "b c"]
@@ -317,7 +315,7 @@ class TestWorkSolrBuilder:
             subject_people=["a", "b c"],
             subject_times=["a", "b c"],
         )
-        d = WorkSolrBuilder(w, [], [], FakeDataProvider(), {}).build()
+        d = WorkSolrBuilder(w, [], [], FakeDataProvider(), {}).build_subjects()
 
         for k in ['subject', 'person', 'place', 'time']:
             assert d[k] == ['a', "b c"]
@@ -337,11 +335,11 @@ class TestWorkSolrBuilder:
                 {"author": make_author(key="/authors/OL2A", name="Author Two")},
             ]
         )
-        d = WorkSolrBuilder(w, [], [], FakeDataProvider(), {}).build()
-        assert d['author_name'] == ["Author One", "Author Two"]
-        assert d['author_key'] == ['OL1A', 'OL2A']
-        assert d['author_facet'] == ['OL1A Author One', 'OL2A Author Two']
-        assert d['author_alternative_name'] == ["Author 1"]
+        d = WorkSolrBuilder(w, [], [], FakeDataProvider(), {})
+        assert d.author_name == ["Author One", "Author Two"]
+        assert d.author_key == ['OL1A', 'OL2A']
+        assert d.author_facet == ['OL1A Author One', 'OL2A Author Two']
+        assert d.author_alternative_name == ["Author 1"]
 
     # {'Test name': (doc_lccs, solr_lccs, sort_lcc_index)}
     LCC_TESTS = {
@@ -382,14 +380,14 @@ class TestWorkSolrBuilder:
             authors=[],
             data_provider=FakeDataProvider(),
             ia_metadata={},
-        ).build()
+        )
         if solr_lccs:
-            assert sorted(d.get('lcc', [])) == solr_lccs
+            assert d.lcc == set(solr_lccs)
             if sort_lcc_index is not None:
-                assert d.get('lcc_sort') == solr_lccs[sort_lcc_index]
+                assert d.lcc_sort == solr_lccs[sort_lcc_index]
         else:
-            assert 'lcc' not in d
-            assert 'lcc_sort' not in d
+            assert d.lcc == set()
+            assert d.lcc_sort is None
 
     DDC_TESTS = {
         'Remove dupes': (['123.5', '123.5'], ['123.5'], 0),
@@ -424,13 +422,13 @@ class TestWorkSolrBuilder:
             [],
             FakeDataProvider(),
             {},
-        ).build()
+        )
         if solr_ddcs:
-            assert sorted(d.get('ddc', [])) == solr_ddcs
-            assert d.get('ddc_sort') == solr_ddcs[sort_ddc_index]
+            assert d.ddc == set(solr_ddcs)
+            assert d.ddc_sort == solr_ddcs[sort_ddc_index]
         else:
-            assert 'ddc' not in d
-            assert 'ddc_sort' not in d
+            assert d.ddc == set()
+            assert d.ddc_sort is None
 
 
 class Test_number_of_pages_median:
