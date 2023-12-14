@@ -16,8 +16,8 @@ from openlibrary.plugins.upstream.utils import safeget
 from openlibrary.plugins.worksearch.subjects import SubjectPseudoKey
 from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
 from openlibrary.solr.solr_types import SolrDocument
-from openlibrary.solr.update_edition import EditionSolrBuilder, build_edition_data
 from openlibrary.solr.updater.abstract import AbstractSolrUpdater
+from openlibrary.solr.updater.edition import EditionSolrBuilder, build_edition_data
 from openlibrary.solr.utils import SolrUpdateRequest, get_solr_next, str_to_key
 from openlibrary.utils import uniq
 from openlibrary.utils.ddc import choose_sorting_ddc, normalize_ddc
