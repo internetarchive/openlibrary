@@ -139,10 +139,20 @@ class EditionSolrBuilder:
 
     @property
     def ia_box_id(self) -> list[str]:
+        boxids = []
+        if 'ia_box_id' in self.edition:
+            if isinstance(self.edition['ia_box_id'], str):
+                boxids = [self.edition['ia_box_id']]
+            elif isinstance(self.edition['ia_box_id'], list):
+                boxids = self.edition['ia_box_id']
+            else:
+                logger.warning(
+                    f'Bad ia_box_id on {self.key}: "{self.edition["ia_box_id"]}"'
+                )
         if self.ia_metadata:
-            return list(self.ia_metadata.get('boxid') or [])
-        else:
-            return []
+            boxids += list(self.ia_metadata.get('boxid') or [])
+
+        return uniq(boxids, key=lambda x: x.lower())
 
     @property
     def identifiers(self) -> dict:
