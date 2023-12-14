@@ -278,16 +278,19 @@ class WorkSearchScheme(SearchScheme):
         # query, but much more flexible. We wouldn't be able to do our
         # complicated parent/child queries with defType!
 
-        full_work_query = '({{!edismax q.op="AND" qf="{qf}" bf="{bf}" v={v}}})'.format(
+        full_work_query = '({{!edismax q.op="AND" qf="{qf}" pf="{pf}" bf="{bf}" v={v}}})'.format(
             # qf: the fields to query un-prefixed parts of the query.
             # e.g. 'harry potter' becomes
             # 'text:(harry potter) OR alternative_title:(harry potter)^20 OR ...'
-            qf='text alternative_title^20 author_name^20',
+            qf='text alternative_title^10 author_name^10',
+            # pf: phrase fields. This increases the score of documents that
+            # match the query terms in close proximity to each other.
+            pf='alternative_title^10 author_name^10',
             # bf (boost factor): boost results based on the value of this
             # field. I.e. results with more editions get boosted, upto a
             # max of 100, after which we don't see it as good signal of
             # quality.
-            bf='min(100,edition_count)',
+            bf='min(100,edition_count) min(100,def(readinglog_count,0))',
             # v: the query to process with the edismax query parser. Note
             # we are using a solr variable here; this reads the url parameter
             # arbitrarily called workQuery.
