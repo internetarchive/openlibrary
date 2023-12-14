@@ -1,9 +1,7 @@
 import pytest
-from openlibrary.solr import update_work
 from openlibrary.solr.updater.work import (
     WorkSolrBuilder,
     WorkSolrUpdater,
-    build_data,
 )
 from openlibrary.tests.solr.test_update_work import (
     FakeDataProvider,
@@ -50,6 +48,22 @@ class TestWorkSolrUpdater:
         assert len(req.deletes) == 0
         assert len(req.adds) == 1
         assert req.adds[0]['title'] == "Some Title!"
+
+    @pytest.mark.asyncio()
+    async def test_edition_count_when_editions_in_data_provider(self):
+        work = make_work()
+        req, _ = await WorkSolrUpdater(FakeDataProvider()).update_key(work)
+        assert req.adds[0]['edition_count'] == 0
+
+        req, _ = await WorkSolrUpdater(
+            FakeDataProvider([work, make_edition(work)])
+        ).update_key(work)
+        assert req.adds[0]['edition_count'] == 1
+
+        req, _ = await WorkSolrUpdater(
+            FakeDataProvider([work, make_edition(work), make_edition(work)])
+        ).update_key(work)
+        assert req.adds[0]['edition_count'] == 2
 
 
 class TestWorkSolrBuilder:
@@ -551,19 +565,3 @@ class Test_Sort_Editions_Ocaids:
         )
 
         assert wsb.ia_collection_s == "americanlibraries;blah"
-
-
-class Test_build_data:
-    @pytest.mark.asyncio()
-    async def test_edition_count_when_editions_in_data_provider(self):
-        work = make_work()
-        d = await build_data(work, FakeDataProvider())
-        assert d['edition_count'] == 0
-
-        d = await build_data(work, FakeDataProvider([work, make_edition(work)]))
-        assert d['edition_count'] == 1
-
-        d = await build_data(
-            work, FakeDataProvider([work, make_edition(work), make_edition(work)])
-        )
-        assert d['edition_count'] == 2

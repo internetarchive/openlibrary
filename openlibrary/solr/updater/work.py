@@ -76,7 +76,38 @@ class WorkSolrUpdater(AbstractSolrUpdater):
             return await self.update_key(fake_work)
         elif work['type']['key'] == '/type/work':
             try:
-                solr_doc = await build_data(work, self.data_provider)
+                # Anand - Oct 2013
+                # For /works/ia:xxx, editions are already supplied. Querying will empty response.
+
+                # Fetch editions
+                if "editions" in work:
+                    editions = work['editions']
+                else:
+                    editions = self.data_provider.get_editions_of_work(work)
+
+                # Fetch authors
+                author_keys = [
+                    author['author']['key']
+                    for author in normalize_authors(work.get('authors', []))
+                ]
+                authors = [
+                    await self.data_provider.get_document(key) for key in author_keys
+                ]
+                if any(a['type']['key'] != '/type/author' for a in authors):
+                    # we don't want to raise an exception but just write a warning on the log
+                    logger.warning('Unexpected author type error: %s', work['key'])
+                authors = [a for a in authors if a['type']['key'] == '/type/author']
+
+                # Fetch ia_metadata
+                iaids = [e["ocaid"] for e in editions if "ocaid" in e]
+                ia_metadata = {
+                    iaid: get_ia_collection_and_box_id(iaid, self.data_provider)
+                    for iaid in iaids
+                }
+
+                solr_doc = WorkSolrBuilder(
+                    work, editions, authors, self.data_provider, ia_metadata
+                ).build()
             except:  # noqa: E722
                 logger.error("failed to update work %s", work['key'], exc_info=True)
             else:
@@ -90,47 +121,6 @@ class WorkSolrUpdater(AbstractSolrUpdater):
             logger.error("unrecognized type while updating work %s", wkey)
 
         return update, []
-
-
-async def build_data(
-    work: dict,
-    data_provider: DataProvider,
-    ia_metadata: dict[str, Optional['bp.IALiteMetadata']] | None = None,
-) -> SolrDocument:
-    """
-    Construct the Solr document to insert into Solr for the given work
-
-    :param w: Work to insert/update
-    :param ia_metadata: boxid/collection of each associated IA id
-        (ex: `{foobar: {boxid: {"foo"}, collection: {"lendinglibrary"}}}`)
-    """
-    # Anand - Oct 2013
-    # For /works/ia:xxx, editions are already supplied. Querying will empty response.
-
-    # Fetch editions
-    if "editions" in work:
-        editions = work['editions']
-    else:
-        editions = data_provider.get_editions_of_work(work)
-
-    # Fetch authors
-    author_keys = [
-        author['author']['key'] for author in normalize_authors(work.get('authors', []))
-    ]
-    authors = [await data_provider.get_document(key) for key in author_keys]
-    if any(a['type']['key'] != '/type/author' for a in authors):
-        # we don't want to raise an exception but just write a warning on the log
-        logger.warning('Unexpected author type error: %s', work['key'])
-    authors = [a for a in authors if a['type']['key'] == '/type/author']
-
-    # Fetch ia_metadata
-    if ia_metadata is None:
-        iaids = [e["ocaid"] for e in editions if "ocaid" in e]
-        ia_metadata = {
-            iaid: get_ia_collection_and_box_id(iaid, data_provider) for iaid in iaids
-        }
-
-    return WorkSolrBuilder(work, editions, authors, data_provider, ia_metadata).build()
 
 
 def get_ia_collection_and_box_id(
