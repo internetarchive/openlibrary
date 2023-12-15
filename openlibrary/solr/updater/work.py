@@ -262,7 +262,9 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         self._ia_metadata = ia_metadata
         self._data_provider = data_provider
         self._solr_editions = [
-            EditionSolrBuilder(e, self._ia_metadata.get(e.get('ocaid', '').strip()))
+            EditionSolrBuilder(
+                e, self, self._ia_metadata.get(e.get('ocaid', '').strip())
+            )
             for e in self._editions
         ]
 
@@ -639,13 +641,13 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     def author_name(self) -> list[str]:
         return [a.get('name', '') for a in self._authors]
 
-    @property
+    @cached_property
     def author_alternative_name(self) -> set[str]:
         return {
             alt_name for a in self._authors for alt_name in a.get('alternate_names', [])
         }
 
-    @property
+    @cached_property
     def author_facet(self) -> list[str]:
         return [f'{key} {name}' for key, name in zip(self.author_key, self.author_name)]
 
