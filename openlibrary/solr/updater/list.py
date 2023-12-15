@@ -69,7 +69,7 @@ async def fetch_seeds_facets(seeds: list[str]):
 
 
 class ListSolrBuilder(AbstractSolrBuilder):
-    def __init__(self, list: dict, solr_reply: dict = None):
+    def __init__(self, list: dict, solr_reply: dict | None = None):
         self._list = list
         self._solr_reply = solr_reply
 
@@ -82,7 +82,7 @@ class ListSolrBuilder(AbstractSolrBuilder):
         if not self._solr_reply:
             return {}
 
-        doc = {}
+        doc: dict = {}
         for facet, counts in self._solr_reply['facet_counts']['facet_fields'].items():
             subject_type = cast(SubjectType, facet.split('_')[0])
             subjects = [s for s, count in counts]
