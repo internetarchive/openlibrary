@@ -444,6 +444,19 @@ class TestWorkSolrBuilder:
             assert d.ddc == set()
             assert d.ddc_sort is None
 
+    def test_contributor(self):
+        work = make_work()
+        d = WorkSolrBuilder(
+            work,
+            [make_edition(work, contributors=[{'role': 'Illustrator', 'name': 'Foo'}])],
+            [],
+            FakeDataProvider(),
+            {},
+        )
+
+        # For now it should ignore it and not error
+        assert d.contributor == set()
+
 
 class Test_number_of_pages_median:
     def test_no_editions(self):

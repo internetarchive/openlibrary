@@ -388,7 +388,19 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def contributor(self) -> set[str]:
-        return {v for e in self._editions for v in e.get('contributors', [])}
+        return {
+            v
+            for e in self._editions
+            for v in (
+                e.get('contributions', [])
+                # TODO: contributors wasn't included here in the past, but
+                # we likely want it to be edition-only if possible?
+                # Excluding for now to avoid a possible perf hit in the
+                # next full reindex which is already pretty loaded
+                # + [c.get('name') for c in e.get('contributors', [])]
+            )
+            if v
+        }
 
     @property
     def lcc(self) -> set[str]:
