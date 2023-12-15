@@ -1,7 +1,7 @@
 from functools import cached_property
 import logging
 import re
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import requests
 import openlibrary.book_providers as bp
@@ -10,6 +10,9 @@ from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrU
 from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url, get_solr_next
 from openlibrary.utils import uniq
 from openlibrary.utils.isbn import opposite_isbn
+
+if TYPE_CHECKING:
+    from openlibrary.solr.updater.work import WorkSolrBuilder
 
 logger = logging.getLogger("openlibrary.solr")
 re_edition_key_basename = re.compile("^[a-zA-Z0-9:.-]+$")
@@ -91,8 +94,14 @@ def is_sine_nomine(pub: str) -> bool:
 
 
 class EditionSolrBuilder(AbstractSolrBuilder):
-    def __init__(self, edition: dict, ia_metadata: bp.IALiteMetadata | None = None):
+    def __init__(
+        self,
+        edition: dict,
+        solr_work: 'WorkSolrBuilder | None' = None,
+        ia_metadata: bp.IALiteMetadata | None = None,
+    ):
         self._edition = edition
+        self._solr_work = solr_work
         self._ia_metadata = ia_metadata
         self._provider = bp.get_book_provider(edition)
 
@@ -288,6 +297,19 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 'alternative_title': list(self.alternative_title),
                 'cover_i': self.cover_i,
                 'language': self.language,
+                # Duplicate the author data from the work
+                **(
+                    {
+                        'author_name': self._solr_work.author_name,
+                        'author_key': self._solr_work.author_key,
+                        'author_alternative_name': list(
+                            self._solr_work.author_alternative_name
+                        ),
+                        'author_facet': self._solr_work.author_facet,
+                    }
+                    if self._solr_work
+                    else {}
+                ),
                 # Misc useful data
                 'publisher': self.publisher,
                 **(
