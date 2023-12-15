@@ -12,10 +12,10 @@ RUN pip install \
     # For real-time profiling
     cprofilev \
     # Faster python
-    Cython==3.0.0a11
+    Cython==3.0.6
 
 # Build cython files
-COPY scripts/solr_builder/build-cython.sh scripts/solr_builder/setup.py ./
+COPY . /openlibrary
 RUN ./build-cython.sh
 
 EXPOSE 4000
