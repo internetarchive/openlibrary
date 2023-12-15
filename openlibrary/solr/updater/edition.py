@@ -30,7 +30,7 @@ class EditionSolrUpdater(AbstractSolrUpdater):
             if thing.get("works"):
                 new_keys.append(thing["works"][0]['key'])
                 # Make sure we remove any fake works created from orphaned editions
-                new_keys.append(thing['key'].replace('/books/', '/works/'))
+                update.deletes.append(thing['key'].replace('/books/', '/works/'))
             else:
                 # index the edition as it does not belong to any work
                 new_keys.append(thing['key'].replace('/books/', '/works/'))
