@@ -580,14 +580,10 @@ function updateProgressComponent(elem, goal) {
  * @param {string} goalYear Year that the goal is set for.
  */
 function fetchProgressAndUpdateView(yearlyGoalElem, goalYear) {
-    fetch(`/reading-goal/partials?year=${goalYear}`)
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error('Failed to fetch progress element')
-            }
-            return response.text()
-        })
-        .then(function(html) {
+    $.ajax({
+        type: 'GET',
+        url: `/reading-goal/partials.json?year=${goalYear}`,
+        success: function(html) {
             const progress = document.createElement('SPAN')
             progress.id = 'reading-goal-container'
             progress.innerHTML = html
@@ -602,5 +598,10 @@ function fetchProgressAndUpdateView(yearlyGoalElem, goalYear) {
             addGoalEditClickListener(progressEditLink, updateModal)
             const submitButton = updateModal.querySelector('.reading-goal-submit-button')
             addGoalSubmissionListener(submitButton)
-        })
+        },
+        error: function() {
+            throw new Error('Failed to fetch progress element')
+        }
+    })
 }
+
