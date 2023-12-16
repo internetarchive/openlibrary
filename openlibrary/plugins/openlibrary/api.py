@@ -30,6 +30,7 @@ from openlibrary.core.vendors import (
     get_amazon_metadata,
     get_betterworldbooks_metadata,
 )
+from infogami.utils.delegate import RawText
 
 
 class book_availability(delegate.page):
@@ -159,7 +160,7 @@ class ratings(delegate.page):
                 }
             )
 
-    def POST(self, work_id):
+    def POST(self, work_id: str) -> RawText:
         """Registers new ratings for this work"""
         user = accounts.get_current_user()
         i = web.input(
@@ -222,7 +223,7 @@ class booknotes(delegate.page):
     path = r"/works/OL(\d+)W/notes"
     encoding = "json"
 
-    def POST(self, work_id):
+    def POST(self, work_id: str) -> RawText:
         """
         Add a note to a work (or a work and an edition)
         GET params:
@@ -277,7 +278,7 @@ class work_bookshelves(delegate.page):
 
         return json.dumps({'counts': Bookshelves.get_work_summary(work_id)})
 
-    def POST(self, work_id):
+    def POST(self, work_id: str) -> RawText:
         """
         Add a work (or a work and an edition) to a bookshelf.
 
@@ -532,7 +533,7 @@ class patrons_observations(delegate.page):
             json.dumps(patron_observations), content_type="application/json"
         )
 
-    def POST(self, work_id):
+    def POST(self, work_id: str) -> RawText:
         user = accounts.get_current_user()
 
         if not user:
