@@ -84,5 +84,10 @@ class SolrDocument(TypedDict):
     top_work: Optional[str]
     top_subjects: Optional[list[str]]
     subject_type: Optional[str]
+    public_scan_b: Optional[bool]
+    printdisabled_s: Optional[str]
+    lending_edition_s: Optional[str]
+    ia_collection_s: Optional[str]
+    ebook_count_i: Optional[int]
 
 # fmt: on

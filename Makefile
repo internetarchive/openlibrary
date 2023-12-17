@@ -57,8 +57,8 @@ load_sample_data:
 	curl http://localhost:8080/_dev/process_ebooks # hack to show books in returncart
 
 reindex-solr:
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py --ol-url http://web:8080/ --ol-config conf/openlibrary.yml --data-provider=legacy --solr-next
-	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py --ol-url http://web:8080/ --ol-config conf/openlibrary.yml --data-provider=legacy --solr-next
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --ol-config conf/openlibrary.yml --data-provider=legacy --solr-next
+	psql --host db openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update.py --ol-url http://web:8080/ --ol-config conf/openlibrary.yml --data-provider=legacy --solr-next
 	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py subject
 	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py person
 	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py place

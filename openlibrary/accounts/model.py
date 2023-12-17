@@ -128,6 +128,11 @@ def create_link_doc(key, username, email):
     }
 
 
+def clear_cookies():
+    web.setcookie('pd', "", expires=-1)
+    web.setcookie('sfw', "", expires=-1)
+
+
 class Link(web.storage):
     def get_expiration_time(self):
         d = self['expires_on'].split(".")[0]

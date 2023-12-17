@@ -1,0 +1,64 @@
+$def with (mb, template=None, header_title="", page=None)
+
+$ mb.component_times['TotalTime'] = time()
+
+$ header_title = header_title or mb.key
+
+$var title: $header_title
+
+<div class="mybooks">
+
+  $:mb.render_sidebar()
+
+  $ css = 'no-padding' if mb.key == 'mybooks' else ''
+  <div class="mybooks-details $css">
+    $if mb.key == 'mybooks' and mb.is_my_page:
+      $:render_template("account/yrg_banner", mb.component_times)
+
+    $ mb.component_times['Details header'] = time()
+    <header>
+      <div class="breadcrumb-wrapper">
+        $# Only show breadcrumbs when we're not on mybooks
+	<div class="account-breadcrumb">
+          <a href="$mb.user.key"><img src="https://archive.org/services/img/$mb.user_itemname" class="account-avatar"></a>
+	  <h2 class="account-username"><a href="$mb.user.key">$mb.username</a> &rsaquo;</h2>
+	</div>
+        $if mb.key == 'list':
+          <h1 class="details-title">$header_title</h1>
+        $else:
+          $:render_template("books/breadcrumb_select", mb, selected=header_title)
+      </div>
+
+      $if page:
+        $:macros.databarView(page)
+
+      $if mb.is_public and mb.key in mb.PUBLIC_KEYS:
+        <div>
+          <a class="cta-btn cta-btn--unstyled" onclick="prompt('Copy share link to clipboard:', window.location.protocol + '//' + window.location.hostname + '$(ctx.path)');"><img class="icon-link__image" src="/static/images/icons/share.svg" width="20"> Share</a>
+        </div>
+    </header>
+
+    $ mb.component_times['Details header'] = time() - mb.component_times['Details header']
+    $ mb.component_times['Details content'] = time()
+    <div class="details-content">
+      $if mb.is_my_page:
+        $:render_template("account/topmenu", mb)
+
+      $if mb.is_my_page and mb.key in ['notes', 'observations']:
+        <p>
+          $if mb.key == 'notes':
+            $_('Your book notes are private and cannot be viewed by other patrons.')
+          $elif mb.key == 'observations':
+            $_('Your book reviews will be shared anonymously with other patrons.')
+        </p>
+
+      $if template:
+        $:template
+    </div>
+    $ mb.component_times['Details content'] = time() - mb.component_times['Details content']
+  </div>
+</div>
+
+$ mb.component_times['TotalTime'] = time() - mb.component_times['TotalTime']
+$if query_param('debug'):
+  $:macros.Profile(mb.component_times)

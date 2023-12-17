@@ -6,6 +6,8 @@ labels: "Type: Post-Mortem, Priority: 0, GJ: Triage Exception"
 assignees: ''
 ---
 
+<!-- IMPORTANT: Before posting, be sure to redact or remove sensitive data, such as passwords, secret keys, session cookies, etc. -->
+
 ### Summary
 
 - **What is wrong?**

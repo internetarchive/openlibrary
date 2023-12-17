@@ -1,7 +1,6 @@
 // @ts-check
 import $ from 'jquery';
 import { move_to_work, move_to_author } from '../ol.js';
-import { renderBulkTaggingMenu } from '../subject.js';
 import './SelectionManager.less';
 
 /**
@@ -189,7 +188,7 @@ export default class SelectionManager {
         const statusParts = [];
         this.ile.$actions.empty();
         this.ile.$selectionActions.empty();
-        this.ile.$hiddenForms.css('display', 'none');
+        this.ile.bulkTagger.hideTaggingMenu()
         SelectionManager.TYPES.forEach(type => {
             const count = this.selectedItems[type.singular].length;
             if (count) statusParts.push(`${count} ${count === 1 ? type.singular : type.plural}`);
@@ -210,7 +209,7 @@ export default class SelectionManager {
                     if (action.href) {
                         this.ile.$actions.append($(`<a target="_blank" href="${action.href(this.getOlidsFromSelectionList(items))}">${action.name}</a>`));
                     } else if (action.onclick && action.name === 'Tag Works') {
-                        this.ile.$actions.append($(`<a href="javascript:;">${action.name}</a>`).on('click', () => action.onclick(this.getOlidsFromSelectionList(items))));
+                        this.ile.$actions.append($(`<a href="javascript:;">${action.name}</a>`).on('click', () => this.ile.updateAndShowBulkTagger(this.getOlidsFromSelectionList(items))));
                     }
             }
         }
@@ -469,9 +468,9 @@ SelectionManager.ACTIONS = [
     {
         applies_to_type: ['work','edition'],
         requires_type: ['work'],
-        multiple_only: true,
+        multiple_only: false,
         name: 'Tag Works',
-        onclick: olids => renderBulkTaggingMenu(olids),
+        onclick: true,
     },
     {
         applies_to_type: ['work','edition'],

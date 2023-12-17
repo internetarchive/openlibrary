@@ -14,9 +14,9 @@ import psycopg2
 
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings, WorkRatingsSummary
-from openlibrary.solr import update_work
+from openlibrary.solr import update
 from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
-from openlibrary.solr.update_work import load_configs, update_keys
+from openlibrary.solr.update import load_configs, update_keys
 
 logger = logging.getLogger("openlibrary.solr-builder")
 
@@ -407,7 +407,7 @@ async def main(
     )
 
     if solr:
-        update_work.set_solr_base_url(solr)
+        update.set_solr_base_url(solr)
 
     PLogEntry = namedtuple(
         'PLogEntry',
@@ -604,7 +604,7 @@ async def main(
                         cached=len(db.cache) + len(db2.cache),
                     )
                 elif job == "authors":
-                    # Nothing to cache; update_work.py queries solr directly for each
+                    # Nothing to cache; update.py queries solr directly for each
                     # other, and provides no way to cache.
                     pass
 

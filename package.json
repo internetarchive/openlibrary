@@ -1,7 +1,7 @@
 {
   "name": "openlibrary",
   "version": "1.0.0",
-  "repository": "github:internetarchive:openlibrary",
+  "repository": "github:internetarchive/openlibrary",
   "license": "AGPL-3.0",
   "watch": {
     "build-assets:css": {

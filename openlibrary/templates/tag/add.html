@@ -49,10 +49,7 @@ $var title: $_("Add a tag")
         </div>
 
         $if recaptcha and not ctx.user:
-            <div class="formElement">
-                <div class="label">$_("Since you are not logged in, please satisfy the reCAPTCHA below.")</div>
-                <div class="g-recaptcha" data-sitekey="$:recaptcha.public_key"></div>
-            </div>
+            $:render_template("recaptcha", recaptcha.public_key, error=None)
 
         <div class="formElement bottom">
             <br/>

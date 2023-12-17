@@ -1,6 +1,6 @@
 .crumb {
   display: flex;
-  margin: 15px 0;
+  margin: 0;
   align-items: center;
   vertical-align: bottom;
 }
@@ -9,11 +9,18 @@
   display: grid;
   grid: [stack] var(--crumbicon-size) / [stack] var(--crumbicon-size);
   place-items: start;
+  width: min-content;
 }
 
 .crumbicon>* {
   grid-area: stack;
   padding-left: 10px;
+}
+
+.breadcrumb-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  white-space: nowrap;
 }
 
 .breadcrumb-title {
@@ -28,6 +35,7 @@
   inline-size: 100%;
   block-size: 100%;
   opacity: .01;
+  z-index: @z-index-level-2;
 }
 
 .dropdown {
@@ -89,10 +97,6 @@
     padding: 10px;
     margin: 0;
     width: 100%;
-
-    header {
-      flex-direction: column-reverse;
-    }
 
     .page-banner-mybooks {
       display: none;

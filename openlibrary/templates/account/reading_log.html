@@ -30,7 +30,7 @@ $add_metatag(property="og:image", content=meta_photo_url)
 
 <div class="mybooks-list">
   $ yearly_goal = get_reading_goals(year=checkin_year)
-  $if yearly_goal:
+  $if yearly_goal and owners_page:
     <div class="yearly-goal-section">
       $:render_template('check_ins/reading_goal_progress', [yearly_goal])
     </div>

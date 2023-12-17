@@ -66,6 +66,7 @@ $else:
                 $ callback = "data-callback=submitCreateAccountForm"
                 $ classes = 'g-recaptcha'
                 $ sitekey = "data-sitekey=%s" % form['recaptcha'].public_key
+                $:render_template("recaptcha", form['recaptcha'].public_key, error=None, invisible=True)
             <button type="submit" name="signup" id="signup" class="larger $classes" $sitekey $callback>$_("Sign Up")</button>
             <a href="javascript:history.go(-1);" class="smaller attn">$_("Cancel")</a>
         </div>

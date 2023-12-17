@@ -227,6 +227,29 @@ class ImportItem(web.storage):
         if result:
             return ImportItem(result[0])
 
+    @staticmethod
+    def bulk_mark_pending(
+        identifiers: list[str], sources: Iterable[str] = STAGED_SOURCES
+    ):
+        """
+        Given a list of ISBNs, creates list of `ia_ids` and queries the import_item
+        table the `ia_ids`.
+
+        Generated `ia_ids` have the form `{source}:{id}` for each `source` in `sources`
+        and `id` in `identifiers`.
+        """
+        ia_ids = []
+        for id in identifiers:
+            ia_ids += [f'{source}:{id}' for source in sources]
+
+        query = (
+            "UPDATE import_item "
+            "SET status = 'pending' "
+            "WHERE status = 'staged' "
+            "AND ia_id IN $ia_ids"
+        )
+        db.query(query, vars={'ia_ids': ia_ids})
+
     def set_status(self, status, error=None, ol_key=None):
         id_ = self.ia_id or f"{self.batch_id}:{self.id}"
         logger.info("set-status %s - %s %s %s", id_, status, error, ol_key)
