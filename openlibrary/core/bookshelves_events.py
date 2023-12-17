@@ -44,7 +44,27 @@ class BookshelvesEvents(db.CommonExtras):
         oldb = db.get_db()
 
         return list(oldb.select(cls.TABLENAME, where='id=$id', vars={'id': pid}))
+    
 
+    @classmethod
+    def select_by_user_and_type(cls, username, event_type):
+        oldb = db.get_db()
+
+        data = {
+            'username': username,
+            'event_type': event_type,
+        }
+
+        query = (
+            f'SELECT id, event_date FROM {cls.TABLENAME}'
+            ' WHERE username=$username'
+            ' AND event_type=$event_type'
+            ' ORDER BY event_date DESC'
+        )
+
+        results = list(oldb.query(query, vars=data))
+        return results if results else None
+    
     @classmethod
     def get_latest_event_date(cls, username, work_id, event_type):
         oldb = db.get_db()
