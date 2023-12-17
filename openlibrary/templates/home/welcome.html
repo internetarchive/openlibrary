@@ -74,7 +74,7 @@ $def with (test=False)
       $    "ol_link_track": "OnboardingCarouselClick|Volunteer",
       $    "attribution": "Volunteer by Candy Design from the Noun Project"
       $ }
-      $:render_template('home/onboarding_card', volunteer_action_card['card_title'], volunteer_action_card['card_body'], volunteer_action_card['img_src'], volunteer_action_card['href'], ol_link_track=volunteer_action_card['ol_link_track'])
+      $:render_template('home/onboarding_card', volunteer_action_card['card_title'], volunteer_action_card['card_body'], volunteer_action_card['img_src'], volunteer_action_card['href'], ol_link_track=volunteer_action_card['ol_link_track'], attribution=volunteer_action_card['attribution'])
 
       $ feedback_card = {
       $    "card_title": _("Send us feedback"),
