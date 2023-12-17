@@ -82,7 +82,7 @@ class mybooks_home(delegate.page):
             owners_page=mb.is_my_page,
             counts=mb.counts,
             lists=mb.lists,
-            component_times=mb.component_times
+            component_times=mb.component_times,
         )
 
 
@@ -217,7 +217,7 @@ class readinglog_yearly(delegate.page):
             raise web.badrequest(message="Year must be four digits")
         mb = MyBooksTemplate(username, 'already-read')
         template = mybooks_readinglog().render_template(mb, year=year)
-        return mb.render(template=template, header_title=_("Already Read"), year = year)
+        return mb.render(template=template, header_title=_("Already Read"), year=year)
 
 
 class mybooks_readinglog(delegate.page):
@@ -266,7 +266,6 @@ class mybooks_readinglog(delegate.page):
             results_per_page=i.results_per_page,
             ratings=ratings,
             checkin_year=year,
-
         )
 
 
@@ -375,7 +374,7 @@ class MyBooksTemplate:
         self.is_my_page = self.me and self.me.key.split('/')[-1] == self.username
         self.key = key.lower()
         self.sponsorships = []
-        
+
         self.readlog = ReadingLog(user=self.user)
         self.lists = self.readlog.lists
         self.counts = (
@@ -383,12 +382,9 @@ class MyBooksTemplate:
             if (self.is_my_page or self.is_public)
             else []
         )
-        self.year_dict= (
-            self.readlog.get_year_dict
-            if (self.is_my_page or self.is_public)
-            else []
+        self.year_dict = (
+            self.readlog.get_year_dict if (self.is_my_page or self.is_public) else []
         )
-
 
         if self.me and self.is_my_page:
             self.counts.update(PatronBooknotes.get_counts(self.username))
@@ -408,13 +404,13 @@ class MyBooksTemplate:
             self.component_times,
         )
 
-    def render(self, template, header_title, page=None, year = None):
+    def render(self, template, header_title, page=None, year=None):
         """
         Gather the data necessary to render the My Books template, and then
         render the template.
         """
         return render['account/view'](
-            mb=self, template=template, header_title=header_title, page=page, year = year
+            mb=self, template=template, header_title=header_title, page=page, year=year
         )
 
 
@@ -450,21 +446,19 @@ class ReadingLog:
     @property
     def get_year_dict(self):
         read_books = (
-             BookshelvesEvents.select_by_user_and_type(
-                self.user.get_username(),
-                3 )
+            BookshelvesEvents.select_by_user_and_type(self.user.get_username(), 3)
             if self.user.get_username()
             else {}
         )
-        read_books.sort(key = lambda entry: entry.event_date, reverse = True)
-        #This initialization is solely to prevent garbage collection from  removing the variable, before it can be used by the loop.
-        year_dict = {'filler':0}
+        read_books.sort(key=lambda entry: entry.event_date, reverse=True)
+        # This initialization is solely to prevent garbage collection from  removing the variable, before it can be used by the loop.
+        year_dict = {'filler': 0}
         for entry in read_books:
             year_dict.setdefault(entry.event_date, 0)
-            year_dict[entry.event_date] +=1
+            year_dict[entry.event_date] += 1
         year_dict.pop('filler')
         return year_dict
-    
+
     @property
     def reading_log_counts(self):
         counts = (
