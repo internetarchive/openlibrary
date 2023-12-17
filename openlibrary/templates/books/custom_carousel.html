@@ -7,10 +7,10 @@ $if layout == 'carousel':
   $if slick_font not in ctx.links:
     $ ctx.links.append(slick_font)
 
- $def log_analytics_event(action):
-    $# Log analytics events here
-    $ analytics_event = f'{analytics_prefix}|{action}'
-    $ print(f"Logging analytics event: {analytics_event}")
+$def
+log_analytics_event(action): $# Log analytics events here $ analytics_event =
+f'{analytics_prefix}|{action}' $ html_element.setAttribute('data-ol-link-track',
+analytics_event)
 
 $def render_carousel_cover(book, lazy, layout):
   $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
@@ -97,11 +97,17 @@ $if test or (books and len(books) >= min_books):
           data-config="$json_encode(config)">
           $for index, book in enumerate(books or []):
               $:render_carousel_cover(book, index > 5, layout)
-              $:log_analytics_event('CoverClick')  $
-          $if secondary_action:
-            $:log_analytics_event('CTAClick')  $
+           $if secondary_action:
+        <div data-ol-link-track="bookcarousel|ctaclick">
+        $:log_analytics_event('CoverClick') $:log_analytics_event('CTAClick')
         </div>
-          $:log_analytics_event('Forward')  $
-          $:log_analytics_event('Backward') $
-      </div>
+        </div>
+
+       <div data-ol-link-track="bookcarousel|forward">
+        $:log_analytics_event('Forward')
+       </div>
+
+       <div data-ol-link-track="bookcarousel|backward">
+        $:log_analytics_event('Backward')
+       </div>
     </div>
