@@ -174,7 +174,7 @@ class readinglog_stats(delegate.page):
             {
                 # Fallback to key if it is a redirect
                 'title': w.get('title') or w.key,
-                'subtitle' : w.get('subtitle'),
+                'subtitle': w.get('subtitle'),
                 'key': w.get('key'),
                 'author_keys': ['/authors/' + key for key in w.get('author_key', [])],
                 'first_publish_year': w.get('first_publish_year') or None,
