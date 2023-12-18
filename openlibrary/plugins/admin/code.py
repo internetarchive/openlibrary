@@ -28,6 +28,7 @@ from openlibrary import accounts
 from openlibrary.accounts.model import clear_cookies
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import admin as admin_stats, helpers as h, imports, cache
+from openlibrary.core.ia import get_metadata
 from openlibrary.core.waitinglist import Stats as WLStats
 from openlibrary.core.sponsorships import summary, sync_completed_sponsored_books
 from openlibrary.core.models import Work
@@ -244,74 +245,73 @@ class sync_ol_ia:
 
 
 class sync_ia_ol(delegate.page):
-    path = '/ia/sync'
+    path = '/ia/sync/(.*)'
     encoding = 'json'
 
-    def POST(self):
-        # Authenticate request:
-        s3_access_key = web.ctx.env.get('HTTP_X_S3_ACCESS', '')
-        s3_secret_key = web.ctx.env.get('HTTP_X_S3_SECRET', '')
+    def GET(self, ocaid):
+        self.bounce_unauthorized()
 
-        if not self.is_authorized(s3_access_key, s3_secret_key):
-            raise web.unauthorized()
+        i = web.input(old_ocaid=None)
+        metadata = get_metadata(ocaid)
+        if not metadata:
+            raise web.badrequest(
+                f'Failed to lookup archive.org item with ocaid {ocaid}'
+            )
+        if not metadata.get('openlibrary_edition'):
+            edition = self.get_edition_by_ocaid(i.old_ocaid or ocaid)
+            if not edition:
+                raise web.badrequest('No openlibrary_edition specified in item')
 
-        # Validate input
-        i = json.loads(web.data())
-
-        if not self.validate_input(i):
-            raise web.badrequest('Missing required fields')
-
-        # Find record using OLID (raise 404 if not found)
-        edition_key = f'/books/{i.get("olid")}'
-        edition = web.ctx.site.get(edition_key)
-
+        if not edition:
+            edition = web.ctx.site.get(f'/books/{metadata.get("openlibrary_edition")}')
         if not edition:
             raise web.notfound()
 
-        # Update record
-        match i.get('action', ''):
-            case 'remove':
-                self.remove_ocaid(edition)
-            case 'modify':
-                self.modify_ocaid(edition, i.get('ocaid'))
-            case '_':
-                raise web.badrequest('Unknown action')
+        if metadata.get('is_dark'):
+            self.remove_ocaid(edition)
+            return delegate.RawText(json.dumps({"status": "ok"}))
 
-        return delegate.RawText(json.dumps({"status": "ok"}))
+        # XXX : Should this occur before we fetch the metadata?  Is there a
+        # need to fetch item metadata if we're modifying the ocaid?
+        if i.old_ocaid:
+            self.modify_ocaid(edition, i.old_ocaid)
+            return delegate.RawText(json.dumps({"status": "ok"}))
 
-    def is_authorized(self, access_key, secret_key):
+        return web.badrequest('ocaid was not renamed, nor was it dark')
+
+    def bounce_authorized(self):
         """Returns True if account is authorized to make changes to records."""
-        auth = accounts.InternetArchiveAccount.s3auth(access_key, secret_key)
+        # Authenticate request:
+        s3_access_key = web.ctx.env.get('HTTP_X_S3_ACCESS', '')
+        s3_secret_key = web.ctx.env.get('HTTP_X_S3_SECRET', '')
+        auth = accounts.InternetArchiveAccount.s3auth(s3_access_key, s3_secret_key)
 
-        if not auth.get('username', ''):
-            return False
+        if auth.get('username', ''):
+            acct = accounts.OpenLibraryAccount.get(email=auth.get('username'))
+            user = acct.get_user() if acct else None
 
-        acct = accounts.OpenLibraryAccount.get(email=auth.get('username'))
-        user = acct.get_user() if acct else None
+            if user and user.is_usergroup_member('/usergroup/ia'):
+                return True
 
-        if not user or (user and not user.is_usergroup_member('/usergroup/ia')):
-            return False
+        raise web.unauthorized()
 
-        return True
-
-    def validate_input(self, i):
-        """Returns True if the request is valid.
-        All requests must have an olid and an action.  If the action is
-        'modify', the request must also include 'ocaid'.
-        """
-        action = i.get('action', '')
-        return 'olid' in i and (
-            action == 'remove' or (action == 'modify' and 'ocaid' in i)
-        )
+    def get_edition_by_ocaid(self, ocaid):
+        ocaid = ocaid.replace('_', ' ')
+        q = {'type': '/type/edition', 'ocaid': ocaid}
+        return web.ctx.site.things(q)
 
     def remove_ocaid(self, edition):
-        """Deletes OCAID from given edition"""
+        """Deletes OCAID from given edition.  Does not affect
+        entries in `source_records` list.
+        """
         data = edition.dict()
         del data['ocaid']
         web.ctx.site.save(data, 'Remove OCAID: Item no longer available to borrow.')
 
     def modify_ocaid(self, edition, new_ocaid):
-        """Adds the given new_ocaid to an edition."""
+        """Adds the given new_ocaid to an edition.  Does not affect
+        entries in `source_records` list.
+        """
         data = edition.dict()
         data['ocaid'] = new_ocaid
         web.ctx.site.save(data, 'Update OCAID')
