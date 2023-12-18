@@ -426,7 +426,7 @@ def fetch_ia_js(filename: str) -> str:
 class ia_js_cdn(delegate.page):
     path = r'/cdn/archive.org/(donate\.js|analytics\.js)'
 
-    def GET(self, filename):
+    def GET(self, filename: str) -> OK:
         web.header('Content-Type', 'text/javascript')
         return web.ok(fetch_ia_js(filename))
 
@@ -434,7 +434,7 @@ class ia_js_cdn(delegate.page):
 class serviceworker(delegate.page):
     path = '/sw.js'
 
-    def GET(self):
+    def GET(self) -> OK:
         web.header('Content-Type', 'text/javascript')
         return web.ok(open('static/build/sw.js').read())
 
@@ -466,7 +466,7 @@ class health(delegate.page):
 class isbn_lookup(delegate.page):
     path = r'/(?:isbn|ISBN)/([0-9xX-]+)'
 
-    def GET(self, isbn):
+    def GET(self, isbn: str) -> Union[TemplateResult, Found]:
         # Preserve the url type (e.g. `.json`) and query params
         ext = ''
         if web.ctx.encoding and web.ctx.path.endswith('.' + web.ctx.encoding):
@@ -827,7 +827,7 @@ api and api.add_hook('new', new)
 
 
 @public
-def changequery(query=None, **kw):
+def changequery(query: None=None, **kw) -> str:
     if query is None:
         query = web.input(_method='get', _unicode=False)
     for k, v in kw.items():
@@ -852,6 +852,10 @@ def changequery(query=None, **kw):
 from infogami.core.db import get_recent_changes as _get_recentchanges
 
 import urllib
+from infogami.utils.delegate import RawText
+from typing import Dict, Union
+from web.template import TemplateResult
+from web.webapi import Found, OK
 
 
 @public
@@ -973,7 +977,7 @@ class memory(delegate.page):
         return delegate.RawText(str(h.heap()))
 
 
-def _get_relatedcarousels_component(workid):
+def _get_relatedcarousels_component(workid: str) -> Dict[int, str]:
     if 'env' not in web.ctx:
         delegate.fakeload()
     work = web.ctx.site.get('/works/%s' % workid) or {}
@@ -997,7 +1001,7 @@ class Partials(delegate.page):
     path = '/partials'
     encoding = 'json'
 
-    def GET(self):
+    def GET(self) -> RawText:
         i = web.input(workid=None, _component=None)
         component = i.pop("_component")
         partial = {}
@@ -1006,7 +1010,7 @@ class Partials(delegate.page):
         return delegate.RawText(json.dumps(partial))
 
 
-def is_bot():
+def is_bot() -> bool:
     r"""Generated on ol-www1 within /var/log/nginx with:
 
     cat access.log | grep -oh "; \w*[bB]ot" | sort --unique | awk '{print tolower($2)}'

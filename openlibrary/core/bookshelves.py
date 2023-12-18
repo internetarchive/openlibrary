@@ -8,6 +8,13 @@ from openlibrary.plugins.worksearch.search import get_solr
 
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
+from typing import (
+    Any,
+    List,
+    Literal,
+    Optional,
+)
+
 from . import db
 
 logger = logging.getLogger(__name__)
@@ -96,7 +103,7 @@ class Bookshelves(db.CommonExtras):
         cls,
         shelf_id: str = '',
         limit: int = 10,
-        since: date | None = None,
+        since: Optional[datetime.date] = None,
         page: int = 1,
         fetch: bool = False,
         sort_by_count: bool = True,
@@ -135,7 +142,7 @@ class Bookshelves(db.CommonExtras):
         return cls.fetch(logged_books) if fetch else logged_books
 
     @classmethod
-    def fetch(cls, readinglog_items):
+    def fetch(cls, readinglog_items: List[Any]) -> List[Any]:
         """Given a list of readinglog_items, such as those returned by
         Bookshelves.most_logged_books, fetch the corresponding Open Library
         book records from solr with availability
@@ -178,7 +185,7 @@ class Bookshelves(db.CommonExtras):
 
     @classmethod
     def count_total_books_logged_by_user_per_shelf(
-        cls, username: str, bookshelf_ids: list[str] | None = None
+        cls, username: str, bookshelf_ids: Optional[list[str]] = None
     ) -> dict[int, int]:
         """Returns a dict mapping the specified user's bookshelves_ids to the
         number of number of books logged per each shelf, i.e. {bookshelf_id:
@@ -210,8 +217,8 @@ class Bookshelves(db.CommonExtras):
         limit: int = 100,
         page: int = 1,  # Not zero-based counting!
         sort: Literal['created asc', 'created desc'] = 'created desc',
-        checkin_year: int | None = None,
-        q: str = "",
+        checkin_year: Optional[int] = None,
+        q: str = ...,
     ) -> Any:  # Circular imports prevent type hinting LoggedBooksData
         """
         Returns LoggedBooksData containing Reading Log database records for books that
@@ -524,7 +531,7 @@ class Bookshelves(db.CommonExtras):
 
     @classmethod
     def add(
-        cls, username: str, bookshelf_id: str, work_id: str, edition_id=None
+        cls, username: str, bookshelf_id: str, work_id: str, edition_id: Optional[int] = None
     ) -> None:
         """Adds a book with `work_id` to user's bookshelf designated by
         `bookshelf_id`"""
@@ -556,7 +563,7 @@ class Bookshelves(db.CommonExtras):
             )
 
     @classmethod
-    def remove(cls, username: str, work_id: str, bookshelf_id: str | None = None):
+    def remove(cls, username: str, work_id: str, bookshelf_id: Optional[str] = None):
         oldb = db.get_db()
         where = {'username': username, 'work_id': int(work_id)}
         if bookshelf_id:
