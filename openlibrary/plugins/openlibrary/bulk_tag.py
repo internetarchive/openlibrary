@@ -26,7 +26,7 @@ class bulk_tag_works(delegate.page):
             w = web.ctx.site.get(f"/works/{work}")
 
             current_subjects = {
-                 # XXX : Should an empty list be the default for these?
+                # XXX : Should an empty list be the default for these?
                 'subjects': uniq(w.get('subjects', '')),
                 'subject_people': uniq(w.get('subject_people', '')),
                 'subject_places': uniq(w.get('subject_places', '')),
