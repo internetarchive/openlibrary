@@ -1,4 +1,4 @@
-$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False, check_loan_status=False, user_lists=None, post='')
+$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False, check_loan_status=False, user_lists=None, post='', is_book_page=False)
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
 $# * listen - whether to display listen button
@@ -113,11 +113,14 @@ $elif ocaid and availability.get('is_previewable') and book_provider.short_name 
       $:macros.BookSearchInside(ocaid)
 
 $else:
-  $# We assume that we are on the Book Page if secondary_action is true  
+  $# Only render NotInLibrary on an edition's page, for that specific edition.
+  $# secondary_action means we're on a book page and it's the button under the cover image.
   $ key = doc.key if is_edition else work_key
-  $ is_rendering_hyperlink = not secondary_action
-  $:macros.NotInLibrary(key, is_rendering_hyperlink)
-  
+  $if (is_edition and is_book_page) or secondary_action:
+      $:macros.NotInLibrary(key)
+  $else:
+      $:macros.CheckOptions(key)
+
 $:post
 
 $if query_param('debug'):
