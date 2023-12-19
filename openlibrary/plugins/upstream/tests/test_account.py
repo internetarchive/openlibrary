@@ -198,7 +198,7 @@ class TestAccount:
         assert "Hi, foo!" in b.get_text(id="contentHead")
         assert "sent an email to foo@example.com" in b.get_text(id="contentBody")
 
-        assert ol.sentmail["from_address"] == "Open Library <noreply@openlibrary.org>"
+        assert ol.sentmail["from_address"] == "Open Library <noreply@archive.org>"
         assert ol.sentmail["to_address"] == "foo@example.com"
         assert ol.sentmail["subject"] == "Welcome to Open Library"
         link = ol.sentmail.extract_links()[0]

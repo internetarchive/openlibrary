@@ -68,7 +68,7 @@ class OL:
         return OLBrowser(delegate.app)
 
     def setup_config(self):
-        config.from_address = "Open Library <noreply@openlibrary.org>"
+        config.from_address = "Open Library <noreply@archive.org>"
 
     def _load_plugins(self, request):
         def create_site():
