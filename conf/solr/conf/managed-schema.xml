@@ -177,6 +177,8 @@
     <field name="author_name" type="text_international" multiValued="true"/>
     <field name="author_alternative_name" type="text_international" multiValued="true"/>
     <field name="author_facet" type="string" stored="false" multiValued="true"/>
+    <field name="series_key" type="string" multiValued="true"/>
+    <field name="series_name" type="text_en_splitting" multiValued="true"/>
     <field name="subject" type="text_en_splitting" multiValued="true"/>
     <field name="subject_facet" type="string" stored="false" multiValued="true"/>
     <field name="subject_key" type="string" stored="false" multiValued="true"/>
