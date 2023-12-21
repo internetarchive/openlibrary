@@ -510,39 +510,39 @@ export class BulkTagger {
 
         // Adds state
         this.isSubmitting = true;
-      
+
         // Disable button
         this.submitButton.disabled = true;
-      
+
         // Show loading spinner
-        this.submitButton.textContent = "Submitting...";
-      
+        this.submitButton.textContent = 'Submitting...';
+
         const url = this.rootElement.action
         this.prepareFormForSubmission()
-      
+
         fetch(url, {
             method: 'post',
             body: new FormData(this.rootElement)
         })
-        .then(response => {
-            if (!response.ok) {
+            .then(response => {
+                if (!response.ok) {
                 // Error handling
-                this.isSubmitting = false;
-                this.submitButton.disabled = false;
-                this.submitButton.textContent = "Submit";
-                new FadingToast('Error submitting batch').show();
-            } else {
+                    this.isSubmitting = false;
+                    this.submitButton.disabled = false;
+                    this.submitButton.textContent = 'Submit';
+                    new FadingToast('Error submitting batch').show();
+                } else {
                 // Success
-                this.isSubmitting = false;
-                this.submitButton.textContent = "Submitted!";
-                // Rest of success handling
-                this.hideTaggingMenu();
-                new FadingToast('Success!').show();
-                this.updateFetchedSubjects(); 
-                this.resetTaggingMenu();
-            }
-        })
-     }
+                    this.isSubmitting = false;
+                    this.submitButton.textContent = 'Submitted!';
+                    // Rest of success handling
+                    this.hideTaggingMenu();
+                    new FadingToast('Success!').show();
+                    this.updateFetchedSubjects();
+                    this.resetTaggingMenu();
+                }
+            })
+    }
 
     /**
      * Populates the form's hidden inputs.
