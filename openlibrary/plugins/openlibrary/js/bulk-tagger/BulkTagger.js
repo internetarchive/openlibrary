@@ -507,26 +507,42 @@ export class BulkTagger {
      * Submits the bulk tagging form and updates the view.
      */
     submitBatch() {
+
+        // Adds state
+        this.isSubmitting = true;
+      
+        // Disable button
+        this.submitButton.disabled = true;
+      
+        // Show loading spinner
+        this.submitButton.textContent = "Submitting...";
+      
         const url = this.rootElement.action
         this.prepareFormForSubmission()
-
+      
         fetch(url, {
             method: 'post',
             body: new FormData(this.rootElement)
         })
-            .then(response => {
-                if (!response.ok) {
-                    new FadingToast('Batch subject update failed. Please try again in a few minutes.').show()
-                } else {
-                    this.hideTaggingMenu()
-                    new FadingToast('Subjects successfully updated.').show()
-
-                    // Update fetched subjects:
-                    this.updateFetchedSubjects()
-                    this.resetTaggingMenu()
-                }
-            })
-    }
+        .then(response => {
+            if (!response.ok) {
+                // Error handling
+                this.isSubmitting = false;
+                this.submitButton.disabled = false;
+                this.submitButton.textContent = "Submit";
+                new FadingToast('Error submitting batch').show();
+            } else {
+                // Success
+                this.isSubmitting = false;
+                this.submitButton.textContent = "Submitted!";
+                // Rest of success handling
+                this.hideTaggingMenu();
+                new FadingToast('Success!').show();
+                this.updateFetchedSubjects(); 
+                this.resetTaggingMenu();
+            }
+        })
+     }
 
     /**
      * Populates the form's hidden inputs.
