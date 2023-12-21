@@ -274,9 +274,7 @@ class ui_partials(delegate.page):
         year = i.year or datetime.now().year
         goal = get_reading_goals(year=year)
         component = render_template('check_ins/reading_goal_progress', [goal])
-        partials = {
-            "partials": str(component)
-        }
+        partials = {"partials": str(component)}
         return delegate.RawText(json.dumps(partials))
 
 
