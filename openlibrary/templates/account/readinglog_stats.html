@@ -13,7 +13,12 @@ $var title: $_('My %(shelf_name)s Stats', shelf_name=shelf_name)
 $jsdef render_works_list(works):
     <ul class="works-list">
     $for work in works:
-        <li><a href="$work.key" style="font-style:oblique">$work.title $work.subtitle</a>
+        $if work.subtitle:
+            $ divider = ':'
+        $else:
+            $ divider = ''
+        <li>
+            <a href="$work.key" style="font-style: oblique">$work.title $divider $work.subtitle</a>
             $ first_publish_year = work.first_publish_year or '????'
             <span title="First published in $first_publish_year">($first_publish_year)</span>
             by
