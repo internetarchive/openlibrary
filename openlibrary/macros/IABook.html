@@ -1,0 +1,19 @@
+$def with (doc, ia_base_url="https://archive.org")
+  <li class="searchResultItem">
+  <span class="bookcover">
+    $ cover = "/images/icons/avatar_book-sm.png"
+      <a href="$ia_base_url/details/$doc.get('identifier')"><img
+              itemprop="image"
+              src="$cover"
+      /></a>
+   </span>
+
+    <div class="details">
+        <div class="resultTitle">
+           <h3 itemprop="name" class="booktitle">
+             <a itemprop="url" href="$ia_base_url/details/$doc.get('identifier')" class="results">Borrowed from Internet Archive: $doc.get('identifier')</a>
+           </h3>
+        </div>
+    </div>
+  </li>
+

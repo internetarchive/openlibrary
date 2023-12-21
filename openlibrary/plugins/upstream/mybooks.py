@@ -3,6 +3,7 @@ import web
 
 from typing import Final, Literal
 
+from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import public, safeint, render
 
@@ -14,13 +15,19 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.core.lending import add_availability, get_availability_of_ocaids, get_loans_of_user, s3_loan_api
+from openlibrary.core.lending import (
+    add_availability,
+    get_availability_of_ocaids,
+    get_loans_of_user,
+    s3_loan_api,
+)
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.core.sponsorships import get_sponsored_editions
 from openlibrary.core.models import LoggedBooksData
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 
 
+CONFIG_IA_DOMAIN: Final = config.get('ia_base_url', 'https://archive.org')
 RESULTS_PER_PAGE: Final = 25
 
 
@@ -87,73 +94,20 @@ class mybooks_home(delegate.page):
         )
 
 
-def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, str | int]:
-    if not (account := OpenLibraryAccount.get(username=mb.username)):
-        raise render.notfound("Account for not found for %s" % mb.username, create=False)
-    s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
-    limit = RESULTS_PER_PAGE
-    offset = page * limit - limit
-    loan_history = s3_loan_api(
-        s3_keys=s3_keys,
-        action='user_borrow_history',
-        limit=limit + 1,
-        offset=offset,
-        newest=True,
-    ).json()['history']['items']
-
-    show_next = len(loan_history) == limit + 1
-    # Drop 'extra' item (used to determine show_next) from results.
-    if show_next:
-        loan_history.pop()
-
-    ocaids = [loan_record['identifier'] for loan_record in loan_history]
-    availability = get_availability_of_ocaids(ocaids)
-    loan_history_map = {
-        loan_record['identifier']: loan_record for loan_record in loan_history
-    }
-    editions = web.ctx.site.get_many(
-        [
-            '/books/%s' % availability[ocaid].get('openlibrary_edition')
-            for ocaid in availability
-            if availability[ocaid].get('openlibrary_edition')
-        ]
-    )
-
-    # Handle case where no loaned books on this page are in OL and there are more pages.
-    if not editions and show_next:
-        return get_loan_history_data(page=page + 1, mb=mb)
-
-    for i, ed in enumerate(editions):
-        if ed.ocaid in ocaids:
-            # attach availability and loan to edition
-            editions[i].availability = availability.get(ed.ocaid)
-            editions[i].loan = loan_history_map[ed.ocaid]
-
-    result = {
-        'docs': editions,
-        'doc_count': len(loan_history_map),
-        'show_next': show_next,
-        'limit': limit,
-        'page': page,
-    }
-
-    return result
-
-
 class mybooks_loan_history(delegate.page):
     path = "/people/([^/]+)/loan-history"
 
     def GET(self, username):
         i = web.input(page=1)
+        page = int(i.page)
         mb = MyBooksTemplate(username, key='loan_history')
         if mb.is_my_page:
-            loan_history_data = get_loan_history_data(page=i.page, mb=mb)
-            template = render['account/mybooks'](
-                loan_history_data['docs'],
-                mb.user,
-                loan_history_data['doc_count'],
-                page=i.page,
+            loan_history_data = get_loan_history_data(page=page, mb=mb)
+            template = render['account/loan_history'](
+                docs=loan_history_data['docs'],
+                current_page=page,
                 show_next=loan_history_data['show_next'],
+                ia_base_url=CONFIG_IA_DOMAIN,
             )
             return mb.render(header_title=_("Loan History"), template=template)
 
@@ -680,3 +634,76 @@ class PatronBooknotes:
             'notes': Booknotes.count_works_with_notes_by_user(username),
             'observations': Observations.count_distinct_observations(username),
         }
+
+
+def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, str | int]:
+    """
+    Retrieve IA loan history data for page `page` of the patron's history.
+
+    This will use a patron's S3 keys to query the IA loan history API,
+    get the IA IDs, get the OLIDs if available, and and then convert this
+    into editions and IA-only items for display in the loan history.
+
+    This returns both editions and IA-only items because the loan history API
+    includes items that are not in Open Library, and displaying only IA
+    items creates pagination and navigation issues. For further discussion,
+    see https://github.com/internetarchive/openlibrary/pull/8375.
+    """
+    if not (account := OpenLibraryAccount.get(username=mb.username)):
+        raise render.notfound(
+            "Account for not found for %s" % mb.username, create=False
+        )
+    s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
+    limit = RESULTS_PER_PAGE
+    offset = page * limit - limit
+    loan_history = s3_loan_api(
+        s3_keys=s3_keys,
+        action='user_borrow_history',
+        limit=limit + 1,
+        offset=offset,
+        newest=True,
+    ).json()['history']['items']
+
+    # We request limit+1 to see if there is another page of history to display,
+    # and then pop the +1 off if it's present.
+    show_next = len(loan_history) == limit + 1
+    if show_next:
+        loan_history.pop()
+
+    ocaids = [loan_record['identifier'] for loan_record in loan_history]
+    availability = get_availability_of_ocaids(ocaids)
+    loan_history_map = {
+        loan_record['identifier']: loan_record for loan_record in loan_history
+    }
+    editions = web.ctx.site.get_many(
+        [
+            '/books/%s' % availability[ocaid].get('openlibrary_edition')
+            for ocaid in availability
+            if availability[ocaid].get('openlibrary_edition')
+        ]
+    )
+
+    # Attach availability and loan to editions.
+    for i, ed in enumerate(editions):
+        if ed.ocaid in ocaids:
+            editions[i].availability = availability.get(ed.ocaid)
+            editions[i].loan = loan_history_map[ed.ocaid]
+
+    # Include 'placeholder' editions for items in the Internet Archive loan
+    # history, but absent from Open Library. Also, preserve the order.
+    ia_only_loans = [
+        loan for loan in availability.values() if not loan.get('openlibrary_edition')
+    ]
+    for ia_loan in ia_only_loans:
+        ia_loan['ia_only'] = True
+    editions_and_ia_loans = editions + ia_only_loans
+    editions_and_ia_loans.sort(key=lambda ed: ed.get('updatedate', ''))
+
+    result = {
+        'docs': editions_and_ia_loans,
+        'show_next': show_next,
+        'limit': limit,
+        'page': page,
+    }
+
+    return result

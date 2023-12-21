@@ -1,31 +1,19 @@
-$def with (docs, key, shelf_count, doc_count, owners_page, current_page, sort_order='desc', user=None, include_ratings=False, q=None, results_per_page=25, ratings=[], checkin_year=None, show_next=False)
-
-$if key == 'loan_history':
-  $ og_title = _("History of books loaned")
-  $ og_description = _("loaned %(total)d books.", total=10)
-
-$putctx("description", og_description)
-$add_metatag(property="og:title", content=og_title)
-$add_metatag(property="og:url", content=request.canonical_url)
-$add_metatag(property="og:site_name", content="Open Library")
-$add_metatag(property="og:description", content=og_description)
-
+$def with (docs, current_page, include_ratings=False, ratings=[], show_next=False, ia_base_url="")
 <div class="mybooks-list">
 
   $if len(docs) > 0:
-    $:macros.Pager_loanhistory(current_page, doc_count, results_per_page=results_per_page,show_next=show_next)
+    $:macros.Pager_loanhistory(page=current_page, show_next=show_next)
     <ul class="list-books">
       $if docs:
-        $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3}.get(key, None)
-        $ doc_number = 1
         $# enumerate because using zip() will result in empty iterator when no ratings are passed, and ratings are only used on already-read.
         $for idx, doc in enumerate(docs):
-          $ dropper = (bookshelf_id and owners_page) and macros.ReadingLogDropper([], include_lists=False, work=doc, edition_key=doc.logged_edition, users_work_read_status=bookshelf_id)
-          $ star_rating = macros.StarRatings(doc, redir_url='/account/books/already-read', id=doc_number, rating=ratings[idx]) if include_ratings else None
-          $:macros.SearchResultsWork(doc, availability=doc.get('availability'), rating=star_rating)
-          $ doc_number = doc_number + 1
+          $if doc.get('ia_only'):
+            $:macros.IABook(doc=doc, ia_base_url=ia_base_url)
+          $else:
+            $ star_rating = macros.StarRatings(doc, redir_url='/account/books/already-read', id=idx+1, rating=ratings[idx]) if include_ratings else None
+            $:macros.SearchResultsWork(doc, availability=doc.get('availability'), rating=star_rating)
     </ul>
-    $:macros.Pager_loanhistory(current_page, doc_count, results_per_page=results_per_page, show_next=show_next)
+    $:macros.Pager_loanhistory(page=current_page, show_next=show_next)
   $else:
     <ul class="list-books">
         <p>$_("No loans found in your borrow history.")</p>
