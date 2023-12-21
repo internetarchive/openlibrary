@@ -117,7 +117,7 @@ $else:
   $# secondary_action means we're on a book page and it's the button under the cover image.
   $ key = doc.key if is_edition else work_key
   $if (is_edition and is_book_page) or secondary_action:
-      $:macros.NotInLibrary(key)
+      $:macros.NotInLibrary()
   $else:
       $:macros.CheckOptions(key)
 
