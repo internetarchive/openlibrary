@@ -526,4 +526,10 @@ jQuery(function () {
             .then(module => module.initBreadcrumbSelect(crumbs));
     }
 
+    // Password visibility toggle:
+    const passwordVisibilityToggle = document.querySelector('.password-visibility-toggle')
+    if (passwordVisibilityToggle) {
+        import(/* webpackChunkName: "password-visibility-toggle" */ './password-toggle')
+            .then(module => module.initPasswordToggling(passwordVisibilityToggle))
+    }
 });

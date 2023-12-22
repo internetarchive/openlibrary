@@ -28,10 +28,9 @@ $def field(input, suffix=''):
                 <span class="smaller lighter">$input.help</span>
         </div>
         <div class="input">
-            <script src="https://kit.fontawesome.com/a076d05399.js"></script>
             $:input.render()
             $if input.name == 'password':
-            $:suffix
+                <a href="javascript:;" class="password-visibility-toggle">$_("Show password")</a>
             <span class="invalid clearfix" id="$(input.id)Message">$input.note</span>
             <span class="sansserif smaller lighter">$:suffix</span>
         </div>
@@ -74,31 +73,4 @@ $else:
             <a href="javascript:history.go(-1);" class="smaller attn">$_("Cancel")</a>
         </div>
     </form>
-    <style>
-        #password-visibility-toggle {
-            font-size: 14px;
-            margin-left: 5px;
-            cursor: pointer;
-        }
-
-    </style>
-    <script>
-        window.addEventListener("load", function() {
-            var passwordInput = document.getElementById("password");
-            var passwordVisibilityToggle = document.createElement("span");
-            passwordVisibilityToggle.id = "password-visibility-toggle";
-            passwordVisibilityToggle.innerHTML = '<i class="far fa-eye"></i>';
-            passwordVisibilityToggle.addEventListener("click", function(e) {
-                e.preventDefault();
-                if (passwordInput.type === "password") {
-                    passwordInput.type = "text";
-                    passwordVisibilityToggle.innerHTML = '<i class="far fa-eye-slash"></i>';
-                } else {
-                    passwordInput.type = "password";
-                    passwordVisibilityToggle.innerHTML = '<i class="far fa-eye"></i>';
-                }
-            });
-            passwordInput.parentNode.appendChild(passwordVisibilityToggle);
-        });
-    </script>
 </div>
