@@ -30,7 +30,11 @@ $def field(input, suffix=''):
         <div class="input">
             $:input.render()
             $if input.name == 'password':
-                <a href="javascript:;" class="password-visibility-toggle">$_("Show password")</a>
+                $ i18n_strings = {
+                $    "show_password": _('Show password'),
+                $    "hide_password": _('Hide password')
+                $  }
+                <a href="javascript:;" class="password-visibility-toggle" data-i18n="$json_encode(i18n_strings)">$i18n_strings["show_password"]</a>
             <span class="invalid clearfix" id="$(input.id)Message">$input.note</span>
             <span class="sansserif smaller lighter">$:suffix</span>
         </div>
