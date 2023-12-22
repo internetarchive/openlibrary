@@ -683,21 +683,28 @@ def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, str | i
         ]
     )
 
-    # Attach availability and loan to editions.
-    for i, ed in enumerate(editions):
-        if ed.ocaid in ocaids:
-            editions[i].availability = availability.get(ed.ocaid)
-            editions[i].loan = loan_history_map[ed.ocaid]
-
-    # Include 'placeholder' editions for items in the Internet Archive loan
-    # history, but absent from Open Library. Also, preserve the order.
+    # Create 'placeholder' editions for items in the Internet Archive loan
+    # history, but absent from Open Library.
     ia_only_loans = [
         loan for loan in availability.values() if not loan.get('openlibrary_edition')
     ]
-    for ia_loan in ia_only_loans:
-        ia_loan['ia_only'] = True
+
+    # Attach availability and loan to both editions and ia-only items.
+    for ed in editions:
+        if ed.ocaid in ocaids:
+            ed.availability = availability.get(ed.ocaid)
+            ed.loan = loan_history_map[ed.ocaid]
+            ed.last_loan_date = ed.loan.get('updatedate')
+
+    for ia_only in ia_only_loans:
+        loan = loan_history_map[ia_only['identifier']]
+        ia_only['last_loan_date'] = loan.get('updatedate', '')
+        ia_only['ia_only'] = True  # Determines which macro to load.
+
     editions_and_ia_loans = editions + ia_only_loans
-    editions_and_ia_loans.sort(key=lambda ed: ed.get('updatedate', ''))
+    editions_and_ia_loans.sort(
+        key=lambda item: item.get('last_loan_date', ''), reverse=True
+    )
 
     result = {
         'docs': editions_and_ia_loans,
