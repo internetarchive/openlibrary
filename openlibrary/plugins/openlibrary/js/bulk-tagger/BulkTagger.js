@@ -527,8 +527,6 @@ export class BulkTagger {
                     this.submitButton.textContent = 'Submit';
                     new FadingToast('Batch subject update failed. Please try again in a few minutes.').show();
                 } else {
-                // Success
-                    this.isSubmitting = false;
                     this.submitButton.textContent = 'Submitted!';
                     // Rest of success handling
                     this.hideTaggingMenu();
