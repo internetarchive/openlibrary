@@ -508,8 +508,6 @@ export class BulkTagger {
      */
     submitBatch() {
 
-        // Adds state
-        this.isSubmitting = true;
 
         // Disable button
         this.submitButton.disabled = true;
