@@ -1,12 +1,12 @@
 $def with(component_times)
 
 $ component_times['Yearly Goal Banner'] = time()
-$ year = get_reading_goals_year()
+$ year = current_year()
 $ goal = get_reading_goals(year=year)
-$if not goal and not within_date_range(1, 1, 11, 30):
+$if not goal:
   $ cta_copy = _('Set your %(year)s Yearly Reading Goal:', year=year)
   $ btn_copy = _('Set my goal')
   $ announcement =  '%s <a class="btn primary set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">%s</a>' % (cta_copy, btn_copy)
-  $ cookie_name = 'yrg'
-  $:render_template('site/banner', announcement, cookie_name, cookie_duration_days=65)
+  $ cookie_name = 'yrg%d' % (year % 100)
+  $:render_template('site/banner', announcement, cookie_name, cookie_duration_days=365)
 $ component_times['Yearly Goal Banner'] = time() - component_times['Yearly Goal Banner']

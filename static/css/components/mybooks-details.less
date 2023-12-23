@@ -1,6 +1,6 @@
 .crumb {
   display: flex;
-  margin: 15px 0;
+  margin: 0;
   align-items: center;
   vertical-align: bottom;
 }
@@ -9,6 +9,7 @@
   display: grid;
   grid: [stack] var(--crumbicon-size) / [stack] var(--crumbicon-size);
   place-items: start;
+  width: min-content;
 }
 
 .crumbicon>* {
@@ -18,7 +19,8 @@
 
 .breadcrumb-wrapper {
   display: flex;
-  flex: 1;
+  flex-wrap: wrap;
+  white-space: nowrap;
 }
 
 .breadcrumb-title {

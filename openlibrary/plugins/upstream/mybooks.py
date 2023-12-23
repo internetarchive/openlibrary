@@ -382,7 +382,7 @@ class MyBooksTemplate:
             else []
         )
 
-        if self.me and self.is_my_page and self.key in self.ALL_KEYS:
+        if self.me and self.is_my_page:
             self.counts.update(PatronBooknotes.get_counts(self.username))
             self.sponsorships = get_sponsored_editions(self.user)
             self.counts['sponsorships'] = len(self.sponsorships)

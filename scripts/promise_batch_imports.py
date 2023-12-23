@@ -21,7 +21,7 @@ import logging
 import _init_path  # Imported for its side effect of setting PYTHONPATH
 from infogami import config
 from openlibrary.config import load_config
-from openlibrary.core.imports import Batch
+from openlibrary.core.imports import Batch, ImportItem
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 
@@ -47,13 +47,9 @@ def map_book_to_olbook(book, promise_id):
         'local_id': [f"urn:bwbsku:{sku}"],
         'identifiers': {
             **({'amazon': [book.get('ASIN')]} if not asin_is_isbn_10 else {}),
-            **(
-                {'better_world_books': [isbn]}
-                if not (isbn and isbn[0].isdigit())
-                else {}
-            ),
+            **({'better_world_books': [isbn]} if not is_isbn_13(isbn) else {}),
         },
-        **({'isbn_13': [isbn]} if (isbn and isbn[0].isdigit()) else {}),
+        **({'isbn_13': [isbn]} if is_isbn_13(isbn) else {}),
         **({'isbn_10': [book.get('ASIN')]} if asin_is_isbn_10 else {}),
         **({'title': title} if title else {}),
         'authors': [{"name": book['ProductJSON'].get('Author') or '????'}],
@@ -71,12 +67,24 @@ def map_book_to_olbook(book, promise_id):
     return olbook
 
 
+def is_isbn_13(isbn: str):
+    """
+    Naive check for ISBN-13 identifiers.
+
+    Returns true if given isbn is in ISBN-13 format.
+    """
+    return isbn and isbn[0].isdigit()
+
+
 def batch_import(promise_id, batch_size=1000):
     url = "https://archive.org/download/"
     date = promise_id.split("_")[-1]
     books = requests.get(f"{url}{promise_id}/DailyPallets__{date}.json").json()
     batch = Batch.find(promise_id) or Batch.new(promise_id)
     olbooks = [map_book_to_olbook(book, promise_id) for book in books]
+    # Find just-in-time import candidates:
+    jit_candidates = [book['isbn_13'][0] for book in olbooks if book.get('isbn_13', [])]
+    ImportItem.bulk_mark_pending(jit_candidates)
     batch_items = [{'ia_id': b['local_id'][0], 'data': b} for b in olbooks]
     for i in range(0, len(batch_items), batch_size):
         batch.add_items(batch_items[i : i + batch_size])
