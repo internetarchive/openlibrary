@@ -1,4 +1,4 @@
-$def with (mb, template=None, header_title="", page=None, year = None)
+$def with (mb, template=None, header_title="", page=None)
 
 $ mb.component_times['TotalTime'] = time()
 
@@ -29,11 +29,11 @@ $var title: $header_title
         $else:
         <div class="sansserif grey account-settings-menu" style="display:flex;gap:1rem;"">
           $:render_template("books/mybooks_breadcrumb_select", mb, selected=header_title)
-          $if header_title=="Already Read":
-            $ year = str(year)
+          $if header_title=="Already Read" and mb.reading_goals:
 
-            $ selected_year = _(year+" (%(count)d)", count = mb.year_dict[year]) if mb.year_dict.get(year) else _("All Time (%(count)d)", count = mb.counts['already-read'])
+            $ selected_year = mb.selected_year if mb.selected_year else _("All Time")
             $:render_template("books/year_breadcrumb_select", mb, selected= selected_year)
+
         </div>
       </div>
 
