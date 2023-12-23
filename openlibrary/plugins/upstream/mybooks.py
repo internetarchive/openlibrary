@@ -83,7 +83,7 @@ class mybooks_home(delegate.page):
             owners_page=mb.is_my_page,
             counts=mb.counts,
             lists=mb.lists,
-            component_times=mb.component_times
+            component_times=mb.component_times,
         )
 
 
@@ -272,7 +272,6 @@ class mybooks_readinglog(delegate.page):
             results_per_page=i.results_per_page,
             ratings=ratings,
             checkin_year=year,
-
         )
 
 
@@ -381,7 +380,7 @@ class MyBooksTemplate:
         self.is_my_page = self.me and self.me.key.split('/')[-1] == self.username
         self.key = key.lower()
         self.sponsorships = []
-        
+
         self.readlog = ReadingLog(user=self.user)
         self.lists = self.readlog.lists
         self.counts = (
