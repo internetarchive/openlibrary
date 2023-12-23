@@ -20,11 +20,15 @@ export default function initValidate() {
     // validate publish-date to make sure the date is not in future
     // used in templates/books/add.html
     jQuery.validator.addMethod('publish-date', function(value) {
+
+        // we allow the year dates 'xxxx', '199x', '19xx' date variants: https://github.com/internetarchive/openlibrary/issues/5254
+        var token_xxxx = /(\b[1-9|x][1-9|x][1-9|x][1-9|x]\b)/.exec(value);
+
         // if it doesn't have even three digits then it can't be a future date
         var tokens = /(\d{3,})/.exec(value);
 
         var year = new Date().getFullYear();
-        return tokens && tokens[1] && parseInt(tokens[1]) <= year + 1; // allow one year in future.
+        return token_xxxx || (tokens && tokens[1] && parseInt(tokens[1]) <= year + 1); // allow one year in future.
     },
     'Are you sure that\'s the published date?'
     );
