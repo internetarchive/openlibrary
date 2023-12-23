@@ -523,8 +523,6 @@ export class BulkTagger {
         })
             .then(response => {
                 if (!response.ok) {
-                // Error handling
-                    this.isSubmitting = false;
                     this.submitButton.disabled = false;
                     this.submitButton.textContent = 'Submit';
                     new FadingToast('Error submitting batch').show();
