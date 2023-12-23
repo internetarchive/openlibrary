@@ -225,9 +225,15 @@ class mybooks_readinglog(delegate.page):
     def GET(self, username, key='want-to-read'):
         mb = MyBooksTemplate(username, key)
         KEYS_TITLES = {
-            'currently-reading': _("Want to Read (%(count)d)", count=mb.counts['want-to-read']),
-            'want-to-read': _("Currently Reading (%(count)d)", count=mb.counts['currently-reading']),
-            'already-read': _("Already Read (%(count)d)", count=mb.counts['already-read']),
+            'currently-reading': _(
+                "Want to Read (%(count)d)", count=mb.counts['want-to-read']
+            ),
+            'want-to-read': _(
+                "Currently Reading (%(count)d)", count=mb.counts['currently-reading']
+            ),
+            'already-read': _(
+                "Already Read (%(count)d)", count=mb.counts['already-read']
+            ),
         }
         if mb.is_my_page or mb.is_public:
             template = self.render_template(mb)
