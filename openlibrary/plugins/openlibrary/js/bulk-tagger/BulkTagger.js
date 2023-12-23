@@ -512,7 +512,6 @@ export class BulkTagger {
         // Disable button
         this.submitButton.disabled = true;
 
-        // Show loading spinner
         this.submitButton.textContent = 'Submitting...';
 
         const url = this.rootElement.action
