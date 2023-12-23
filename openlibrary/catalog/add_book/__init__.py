@@ -22,6 +22,7 @@ A record is loaded by calling the load function.
     response = load(record)
 
 """
+import itertools
 import re
 from typing import TYPE_CHECKING, Any
 
@@ -912,16 +913,13 @@ def update_work_with_rec_data(
     if 'subjects' in rec:
         work_subjects: list[str] = list(work.get('subjects', []))
         rec_subjects: list[str] = rec.get('subjects', [])
-        dedup_set = {subject.casefold() for subject in work_subjects}
+        deduped_subjects = uniq(
+            itertools.chain(work_subjects, rec_subjects), lambda item: item.casefold()
+        )
 
-        for rec_subject in rec_subjects:
-            if rec_subject.casefold() not in dedup_set:
-                work_subjects.append(rec_subject)
-                dedup_set.add(rec_subject.casefold())
-                need_work_save = True
-
-        if need_work_save and work_subjects:
-            work['subjects'] = work_subjects
+        if len(work_subjects) != len(deduped_subjects):
+            work['subjects'] = deduped_subjects
+            need_work_save = True
 
     # Add cover to work, if needed
     if not work.get('covers') and edition.get_covers():
