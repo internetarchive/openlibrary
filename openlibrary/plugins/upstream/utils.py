@@ -528,7 +528,7 @@ def process_version(v: HasGetKeyRevision) -> HasGetKeyRevision:
             and v.revision == 1
             or (v.comment and v.comment.lower() in comments)  # type: ignore [attr-defined]
         ):
-            marc = thing.source_records[-1]
+            marc = thing.source_records[0]
             if marc.startswith('marc:'):
                 v.machine_comment = marc[len("marc:") :]  # type: ignore [attr-defined]
             else:
