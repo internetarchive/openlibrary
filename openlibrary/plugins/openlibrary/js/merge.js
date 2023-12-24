@@ -1,9 +1,9 @@
 import { declineRequest } from './merge-request-table/MergeRequestService';
 
 export function initAuthorMergePage() {
-    const mergeButtons = $(".merge-feedback__buttons");
-    $(document).ready(function () {
-        mergeButtons.css("display", "");
+    const mergeButtons = $('.merge-feedback__buttons');
+    $(function () {
+        mergeButtons.css('display', '');
     });
 
     $('#save').on('click', function () {
