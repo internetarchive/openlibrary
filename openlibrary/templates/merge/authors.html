@@ -102,7 +102,7 @@ $if can_merge:
 
     <div class="merge-feedback">
         <label for="merge-comment">$_('Comment:') <input type="text" id="author-merge-comment" name="comment" placeholder="$_('Comment...')"></label>
-        <div class="merge-feedback__buttons">
+        <div class="merge-feedback__buttons" style="display: none;">
             $if can_merge:
                 $ cta = _('Merge Authors')
             $else:

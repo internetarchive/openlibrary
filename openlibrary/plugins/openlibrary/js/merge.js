@@ -1,6 +1,11 @@
 import { declineRequest } from './merge-request-table/MergeRequestService';
 
 export function initAuthorMergePage() {
+    const mergeButtons = $(".merge-feedback__buttons");
+    $(document).ready(function () {
+        mergeButtons.css("display", "");
+    });
+
     $('#save').on('click', function () {
         const n = $('#mergeForm input[type=radio]:checked').length;
         const confirmMergeButton = document.querySelector('#confirmMerge')
