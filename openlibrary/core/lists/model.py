@@ -396,6 +396,29 @@ class List(Thing):
         cover_id = self._get_default_cover_id()
         return Image(self._site, 'b', cover_id)
 
+    def get_patron_showcase(self, limit = 5):
+        owner = self.get_owner().name or 'unnamed'
+        memcache_key = 'core.patron_lists.%s.%s' % (owner, self.name)
+        cached_patron_showcase = cache.memcache_memoize(
+            self._get_uncached_patron_showcase, 
+            memcache_key, 
+            timeout = 60
+        )
+        showcase = cached_patron_showcase(limit = limit)
+        cached = "okay"
+        if not showcase:
+             cached_patron_showcase.update(limit = limit)
+             cached = "Not okay"
+        return showcase
+    
+    def _get_uncached_patron_showcase(self, limit = 5):
+        title = self.name or "Unnamed List"
+        n_covers = []
+        seeds = self.get_seeds()
+        for seed in seeds[:limit]:
+            n_covers.append(seed.get_cover())
+        last_modified = self.last_update
+        return {'title': title, 'count': self.seed_count, 'covers': n_covers, 'last_mod': last_modified}
 
 class Seed:
     """Seed of a list.
