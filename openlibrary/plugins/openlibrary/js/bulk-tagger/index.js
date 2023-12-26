@@ -12,7 +12,7 @@ export function renderBulkTagger() {
         <div class="search-subject-container">
             <input type="text" class="subjects-search-input" placeholder='Filter subjects e.g. Epic'>
         </div>
-
+        <input type="hidden" name="dry_run" value="0">
         <input name="work_ids" value="" type="hidden">
         <input name="tags_to_add" value="" type="hidden">
         <input name="tags_to_remove" value="" type="hidden">
