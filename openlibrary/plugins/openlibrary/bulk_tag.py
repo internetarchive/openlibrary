@@ -1,6 +1,6 @@
 from infogami.utils import delegate
 
-from openlibrary.core import stats  
+from openlibrary.core import stats
 from openlibrary.utils import uniq
 from openlibrary.utils import get_original_subjects
 import web
@@ -17,9 +17,11 @@ class bulk_tag_works(delegate.page):
 
         if is_dry_run:
             original_subjects = get_original_subjects(works)
-            return delegate.RawText(render_template('diff.html',
-                                original=original_subjects,
-                                updated=docs_to_update))
+            return delegate.RawText(
+                render_template(
+                    'diff.html', original=original_subjects, updated=docs_to_update
+                )
+            )
         else:
             web.ctx.site.save_many(docs_to_update, comment="Bulk tagging works")
 
@@ -29,7 +31,7 @@ class bulk_tag_works(delegate.page):
 
             docs_to_update = []
             # Number of tags added per work:
-            docs_adding = 0 
+            docs_adding = 0
             # Number of tags removed per work:
             docs_removing = 0
 
@@ -46,7 +48,9 @@ class bulk_tag_works(delegate.page):
                 for subject_type, add_list in tags_to_add.items():
                     if add_list:
                         orig_len = len(current_subjects[subject_type])
-                        current_subjects[subject_type] = uniq(  # dedupe incoming subjects
+                        current_subjects[
+                            subject_type
+                        ] = uniq(  # dedupe incoming subjects
                             current_subjects[subject_type] + add_list
                         )
                         docs_adding += len(current_subjects[subject_type]) - orig_len
@@ -81,22 +85,21 @@ class bulk_tag_works(delegate.page):
 
             return response('Tagged works successfully')
 
-def get_original_subjects(works):
 
+def get_original_subjects(works):
     original = []
 
     for work_id in works:
+        work = web.ctx.site.get("/works/" + work_id)
 
-      work = web.ctx.site.get("/works/" + work_id)
+        original_subjects = {
+            "subjects": work.get("subjects"),
+            "subject_people": work.get("subject_people"),
+            "subject_places": work.get("subject_places"),
+            "subject_times": work.get("subject_times"),
+        }
 
-      original_subjects = {
-        "subjects": work.get("subjects"),
-        "subject_people": work.get("subject_people"),
-        "subject_places": work.get("subject_places"),
-        "subject_times": work.get("subject_times")
-      }
-
-      original.append(original_subjects)
+        original.append(original_subjects)
 
     return original
 
