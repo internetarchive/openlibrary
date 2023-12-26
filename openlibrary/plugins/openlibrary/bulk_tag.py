@@ -2,6 +2,7 @@ from infogami.utils import delegate
 
 from openlibrary.core import stats
 from openlibrary.utils import uniq
+from openlibrary.utils import get_original_subjects
 import web
 import json
 
@@ -11,6 +12,16 @@ class bulk_tag_works(delegate.page):
 
     def POST(self):
         i = web.input(work_ids='', tags_to_add='', tags_to_remove='')
+
+         is_dry_run = i.dry_run == '1'
+
+      if is_dry_run:
+         original_subjects = get_original_subjects(works)
+         return delegate.RawText(render_template('diff.html', 
+                                original=original_subjects,
+                                updated=docs_to_update)) 
+      else:
+        web.ctx.site.save_many(docs_to_update, comment="Bulk tagging works")
 
         works = i.work_ids.split(',')
         tags_to_add = json.loads(i.tags_to_add or '{}')
@@ -69,6 +80,25 @@ class bulk_tag_works(delegate.page):
         stats.increment('ol.tags.bulk_update.remove', n=docs_removing)
 
         return response('Tagged works successfully')
+
+        def get_original_subjects(works):
+
+          original = []
+
+          for work_id in works:
+  
+           work = web.ctx.site.get("/works/" + work_id)
+
+           original_subjects = {
+             "subjects": work.get("subjects"),
+             "subject_people": work.get("subject_people"),
+             "subject_places": work.get("subject_places"),
+             "subject_times": work.get("subject_times")
+            }
+    
+            original.append(original_subjects)
+
+          return original
 
 
 def setup():
