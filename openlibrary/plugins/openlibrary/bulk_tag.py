@@ -17,9 +17,9 @@ class bulk_tag_works(delegate.page):
 
       if is_dry_run:
          original_subjects = get_original_subjects(works)
-         return delegate.RawText(render_template('diff.html', 
+         return delegate.RawText(render_template('diff.html',
                                 original=original_subjects,
-                                updated=docs_to_update)) 
+                                updated=docs_to_update))
       else:
         web.ctx.site.save_many(docs_to_update, comment="Bulk tagging works")
 
@@ -86,7 +86,7 @@ class bulk_tag_works(delegate.page):
           original = []
 
           for work_id in works:
-  
+
            work = web.ctx.site.get("/works/" + work_id)
 
            original_subjects = {
@@ -95,7 +95,7 @@ class bulk_tag_works(delegate.page):
              "subject_places": work.get("subject_places"),
              "subject_times": work.get("subject_times")
             }
-    
+
             original.append(original_subjects)
 
           return original
