@@ -22,19 +22,25 @@ def urlopen_keep_trying(url: str, headers=None, **kwargs):
             resp.raise_for_status()
             return resp
         except requests.HTTPError as error:
-            if error.response.status_code in (403, 404, 416):
+            if error.response and error.response.status_code in (403, 404, 416):
                 raise
         sleep(2)
 
 
-def get_marc_record_from_ia(identifier: str) -> MarcBinary | MarcXml | None:
+def get_marc_record_from_ia(
+    identifier: str, ia_metadata: dict | None = None
+) -> MarcBinary | MarcXml | None:
     """
-    Takes IA identifiers and returns MARC record instance.
+    Takes IA identifiers and optional IA metadata and returns MARC record instance.
     08/2018: currently called by openlibrary/plugins/importapi/code.py
     when the /api/import/ia endpoint is POSTed to.
+
+    :param ia_metadata: The full ia metadata; e.g. https://archive.org/metadata/goody,
+                        not https://archive.org/metadata/goody/metadata
     """
-    metadata = ia.get_metadata(identifier)
-    filenames = metadata['_filenames']
+    if ia_metadata is None:
+        ia_metadata = ia.get_metadata(identifier)
+    filenames = ia_metadata['_filenames']  # type: ignore[index]
 
     marc_xml_filename = identifier + '_marc.xml'
     marc_bin_filename = identifier + '_meta.mrc'

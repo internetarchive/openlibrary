@@ -41,7 +41,7 @@ class Stats:
 
         def _convert_to_milli_timestamp(d):
             """Uses the `_id` of the document `d` to create a UNIX
-            timestamp and coverts it to milliseconds"""
+            timestamp and converts it to milliseconds"""
             t = datetime.datetime.strptime(d, "counts-%Y-%m-%d")
             return calendar.timegm(t.timetuple()) * 1000
 

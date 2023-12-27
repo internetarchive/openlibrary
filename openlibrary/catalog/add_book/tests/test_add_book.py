@@ -1,24 +1,25 @@
 import os
 import pytest
 
-from copy import deepcopy
+from datetime import datetime
 from infogami.infobase.client import Nothing
-
 from infogami.infobase.core import Text
 
 from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import (
-    IndependentlyPublished,
-    PublicationYearTooOld,
-    PublishedInFutureYear,
-    SourceNeedsISBN,
-    add_db_name,
     build_pool,
     editions_matched,
+    IndependentlyPublished,
     isbns_from_record,
     load,
-    split_subtitle,
+    load_data,
+    normalize_import_record,
+    PublicationYearTooOld,
+    PublishedInFutureYear,
     RequiredField,
+    should_overwrite_promise_item,
+    SourceNeedsISBN,
+    split_subtitle,
     validate_record,
 )
 
@@ -525,29 +526,6 @@ def test_load_multiple(mock_site):
     assert ekey1 == ekey2 == ekey4
 
 
-def test_add_db_name():
-    authors = [
-        {'name': 'Smith, John'},
-        {'name': 'Smith, John', 'date': '1950'},
-        {'name': 'Smith, John', 'birth_date': '1895', 'death_date': '1964'},
-    ]
-    orig = deepcopy(authors)
-    add_db_name({'authors': authors})
-    orig[0]['db_name'] = orig[0]['name']
-    orig[1]['db_name'] = orig[1]['name'] + ' 1950'
-    orig[2]['db_name'] = orig[2]['name'] + ' 1895-1964'
-    assert authors == orig
-
-    rec = {}
-    add_db_name(rec)
-    assert rec == {}
-
-    # Handle `None` authors values.
-    rec = {'authors': None}
-    add_db_name(rec)
-    assert rec == {'authors': None}
-
-
 def test_extra_author(mock_site, add_languages):
     mock_site.save(
         {
@@ -980,6 +958,16 @@ def test_subtitle_gets_split_from_title(mock_site) -> None:
     assert e['subtitle'] == "not yet split"
 
 
+# This documents the fact that titles DO NOT have trailing periods stripped (at this point)
+def test_title_with_trailing_period_is_stripped() -> None:
+    rec = {
+        'source_records': 'non-marc:test',
+        'title': 'Title with period.',
+    }
+    normalize_import_record(rec)
+    assert rec['title'] == 'Title with period.'
+
+
 def test_find_match_is_used_when_looking_for_edition_matches(mock_site) -> None:
     """
     This tests the case where there is an edition_pool, but `find_quick_match()`
@@ -989,9 +977,11 @@ def test_find_match_is_used_when_looking_for_edition_matches(mock_site) -> None:
     This also indirectly tests `merge_marc.editions_match()` (even though it's
     not a MARC record.
     """
+    # Unfortunately this Work level author is totally irrelevant to the matching
+    # The code apparently only checks for authors on Editions, not Works
     author = {
         'type': {'key': '/type/author'},
-        'name': 'John Smith',
+        'name': 'IRRELEVANT WORK AUTHOR',
         'key': '/authors/OL20A',
     }
     existing_work = {
@@ -1315,3 +1305,194 @@ def test_reimport_updates_edition_and_work_description(mock_site) -> None:
     work = mock_site.get(reply['work']['key'])
     assert edition.description == "A genuinely enjoyable read."
     assert work.description == "A genuinely enjoyable read."
+
+
+@pytest.mark.parametrize(
+    "name, edition, marc, expected",
+    [
+        (
+            "Overwrites revision 1 promise items with MARC data",
+            {'revision': 1, 'source_records': ['promise:bwb_daily_pallets_2022-03-17']},
+            True,
+            True,
+        ),
+        (
+            "Doesn't overwrite rev 1 promise items WITHOUT MARC data",
+            {'revision': 1, 'source_records': ['promise:bwb_daily_pallets_2022-03-17']},
+            False,
+            False,
+        ),
+        (
+            "Doesn't overwrite non-revision 1 promise items",
+            {'revision': 2, 'source_records': ['promise:bwb_daily_pallets_2022-03-17']},
+            True,
+            False,
+        ),
+        (
+            "Doesn't overwrite revision 1 NON-promise items",
+            {'revision': 1, 'source_records': ['ia:test']},
+            True,
+            False,
+        ),
+        (
+            "Can handle editions with an empty source record",
+            {'revision': 1, 'source_records': ['']},
+            True,
+            False,
+        ),
+        ("Can handle editions without a source record", {'revision': 1}, True, False),
+        (
+            "Can handle editions without a revision",
+            {'source_records': ['promise:bwb_daily_pallets_2022-03-17']},
+            True,
+            False,
+        ),
+    ],
+)
+def test_overwrite_if_rev1_promise_item(name, edition, marc, expected) -> None:
+    """
+    Specifically unit test the function that determines if a promise
+    item should be overwritten.
+    """
+    result = should_overwrite_promise_item(edition=edition, from_marc_record=marc)
+    assert (
+        result == expected
+    ), f"Test {name} failed. Expected {expected}, but got {result}"
+
+
+@pytest.fixture()
+def setup_load_data(mock_site):
+    existing_author = {
+        'key': '/authors/OL1A',
+        'name': 'John Smith',
+        'type': {'key': '/type/author'},
+    }
+
+    existing_work = {
+        'authors': [{'author': '/authors/OL1A', 'type': {'key': '/type/author_role'}}],
+        'key': '/works/OL1W',
+        'title': 'Finding Existing Works',
+        'type': {'key': '/type/work'},
+    }
+
+    existing_edition = {
+        'isbn_10': ['1234567890'],
+        'key': '/books/OL1M',
+        'publish_date': 'Jan 1st, 3000',
+        'publishers': ['BOOK BOOK BOOK'],
+        'source_records': ['promise:bwb_daily_pallets_2022-03-17'],
+        'title': 'Originally A Promise Item',
+        'type': {'key': '/type/edition'},
+        'works': [{'key': '/works/OL1W'}],
+    }
+
+    incoming_rec = {
+        'authors': [{'name': 'John Smith'}],
+        'description': 'A really fun book.',
+        'dewey_decimal_class': ['853.92'],
+        'identifiers': {'goodreads': ['1234'], 'librarything': ['5678']},
+        'isbn_10': ['1234567890'],
+        'ocaid': 'newlyscannedpromiseitem',
+        'publish_country': 'fr',
+        'publish_date': '2017',
+        'publish_places': ['Paris'],
+        'publishers': ['Gallimard'],
+        'series': ['Folio, Policier : roman noir -- 820'],
+        'source_records': ['ia:newlyscannedpromiseitem'],
+        'title': 'Originally A Promise Item',
+        'translated_from': ['yid'],
+    }
+
+    mock_site.save(existing_author)
+    mock_site.save(existing_work)
+    mock_site.save(existing_edition)
+
+    return incoming_rec
+
+
+class TestLoadDataWithARev1PromiseItem:
+    """
+    Test the process of overwriting a rev1 promise item by passing it, and
+    an incoming record with MARC data, to load_data.
+    """
+
+    def test_passing_edition_to_load_data_overwrites_edition_with_rec_data(
+        self, mock_site, add_languages, ia_writeback, setup_load_data
+    ) -> None:
+        rec: dict = setup_load_data
+        edition = mock_site.get('/books/OL1M')
+
+        reply = load_data(rec=rec, existing_edition=edition)
+        assert reply['edition']['status'] == 'modified'
+        assert reply['success'] is True
+        assert reply['work']['key'] == '/works/OL1W'
+        assert reply['work']['status'] == 'matched'
+
+        edition = mock_site.get(reply['edition']['key'])
+        assert edition.dewey_decimal_class == ['853.92']
+        assert edition.publish_date == '2017'
+        assert edition.publish_places == ['Paris']
+        assert edition.publishers == ['Gallimard']
+        assert edition.series == ['Folio, Policier : roman noir -- 820']
+        assert edition.source_records == [
+            'promise:bwb_daily_pallets_2022-03-17',
+            'ia:newlyscannedpromiseitem',
+        ]
+        assert edition.works[0]['key'] == '/works/OL1W'
+
+
+class TestNormalizeImportRecord:
+    @pytest.mark.parametrize(
+        'year, expected',
+        [
+            ("2000-11-11", True),
+            (str(datetime.now().year), True),
+            (str(datetime.now().year + 1), False),
+            ("9999-01-01", False),
+        ],
+    )
+    def test_future_publication_dates_are_deleted(self, year, expected):
+        """It should be impossible to import books publish_date in a future year."""
+        rec = {
+            'title': 'test book',
+            'source_records': ['ia:blob'],
+            'publish_date': year,
+        }
+        normalize_import_record(rec=rec)
+        result = 'publish_date' in rec
+        assert result == expected
+
+    @pytest.mark.parametrize(
+        'rec, expected',
+        [
+            (
+                {
+                    'title': 'first title',
+                    'source_records': ['ia:someid'],
+                    'publishers': ['????'],
+                    'authors': [{'name': '????'}],
+                    'publish_date': '????',
+                },
+                {'title': 'first title', 'source_records': ['ia:someid']},
+            ),
+            (
+                {
+                    'title': 'second title',
+                    'source_records': ['ia:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                    'publish_date': '2000',
+                },
+                {
+                    'title': 'second title',
+                    'source_records': ['ia:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                    'publish_date': '2000',
+                },
+            ),
+        ],
+    )
+    def test_dummy_data_to_satisfy_parse_data_is_removed(self, rec, expected):
+        normalize_import_record(rec=rec)
+        assert rec == expected

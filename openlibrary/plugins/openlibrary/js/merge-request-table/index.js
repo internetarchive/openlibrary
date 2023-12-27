@@ -1,4 +1,4 @@
-import LibrarianQueue from './LibrarianQueue';
+import MergeRequestTable from './MergeRequestTable';
 
 /**
  * Hydrates given librarian request queue.
@@ -6,6 +6,6 @@ import LibrarianQueue from './LibrarianQueue';
  * @param {HTMLElement} elem Reference to the queue's root element.
  */
 export function initLibrarianQueue(elem) {
-    const librarianQueue = new LibrarianQueue(elem)
+    const librarianQueue = new MergeRequestTable(elem)
     librarianQueue.initialize()
 }

@@ -1,5 +1,5 @@
 import re
-from typing import Any, Optional
+from typing import Any
 from collections.abc import Callable
 
 from openlibrary.catalog.marc.get_subjects import subjects_for_work
@@ -300,7 +300,7 @@ def read_original_languages(rec: MarcBase) -> list[str]:
     return [lang_map.get(v, v) for v in found if v != 'zxx']
 
 
-def read_languages(rec: MarcBase, lang_008: Optional[str] = None) -> list[str]:
+def read_languages(rec: MarcBase, lang_008: str | None = None) -> list[str]:
     """Read languages from 041, if present, and combine with language from 008:35-37"""
     found = []
     if lang_008:
@@ -327,9 +327,13 @@ def read_languages(rec: MarcBase, lang_008: Optional[str] = None) -> list[str]:
 
 
 def read_pub_date(rec: MarcBase) -> str | None:
+    """
+    Read publish date from 260$c.
+    """
+
     def publish_date(s: str) -> str:
         date = s.strip('[]')
-        if date.lower() == 'n.d.':  # No date
+        if date.lower() in ('n.d.', 's.d.'):  # No date
             date = '[n.d.]'
         return remove_trailing_number_dot(date)
 
@@ -667,15 +671,19 @@ def read_edition(rec: MarcBase) -> dict[str, Any]:
             raise BadMARC("'008' field must not be blank")
         publish_date = f[7:11]
 
-        if re_date.match(publish_date) and publish_date != '0000':
-            edition["publish_date"] = publish_date
-        if f[6] == 't':
-            edition["copyright_date"] = f[11:15]
+        if re_date.match(publish_date) and publish_date not in ('0000', '9999'):
+            edition['publish_date'] = publish_date
+        if f[6] == 'r' and f[11:15] > publish_date:
+            # Incorrect reprint date order
+            update_edition(rec, edition, read_pub_date, 'publish_date')
+        elif f[6] == 't':  # Copyright date
+            edition['copyright_date'] = f[11:15]
+        if 'publish_date' not in edition:  # Publication date fallback to 260$c
+            update_edition(rec, edition, read_pub_date, 'publish_date')
         publish_country = f[15:18]
         if publish_country not in ('|||', '   ', '\x01\x01\x01', '???'):
-            edition["publish_country"] = publish_country.strip()
-        languages = read_languages(rec, lang_008=f[35:38].lower())
-        if languages:
+            edition['publish_country'] = publish_country.strip()
+        if languages := read_languages(rec, lang_008=f[35:38].lower()):
             edition['languages'] = languages
     elif handle_missing_008:
         update_edition(rec, edition, read_languages, 'languages')

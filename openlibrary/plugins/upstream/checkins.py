@@ -5,7 +5,6 @@ import web
 
 from datetime import datetime
 from math import floor
-from typing import Optional
 
 from infogami.utils import delegate
 from infogami.utils.view import public
@@ -18,7 +17,7 @@ from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvent
 from openlibrary.utils.decorators import authorized_for
 
 
-def make_date_string(year: int, month: Optional[int], day: Optional[int]) -> str:
+def make_date_string(year: int, month: int | None, day: int | None) -> str:
     """Creates a date string in the expected format, given the year, month, and day.
 
     Event dates can take one of three forms:
@@ -34,7 +33,7 @@ def make_date_string(year: int, month: Optional[int], day: Optional[int]) -> str
     return result
 
 
-def is_valid_date(year: int, month: Optional[int], day: Optional[int]) -> bool:
+def is_valid_date(year: int, month: int | None, day: int | None) -> bool:
     """Validates dates.
 
     Dates are considered valid if there is:

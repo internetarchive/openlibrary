@@ -41,14 +41,6 @@ CREATE TABLE bookshelves_books (
     primary key (username, work_id, bookshelf_id)
 );
 CREATE INDEX bookshelves_books_work_id_idx ON bookshelves_books (work_id);
--- bookshelves_votes currently unused
-CREATE TABLE bookshelves_votes (
-    username text NOT NULL,
-    bookshelf_id serial NOT NULL REFERENCES bookshelves(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
-    created timestamp without time zone default (current_timestamp at time zone 'utc'),
-    primary key (username, bookshelf_id)
-);
 
 INSERT INTO bookshelves (name, description) VALUES ('Want to Read', 'A list of books I want to read');
 INSERT INTO bookshelves (name, description) VALUES ('Currently Reading', 'A list of books I am currently reading');

@@ -2,6 +2,7 @@
 """
 from dataclasses import dataclass, field
 import json
+from urllib.parse import parse_qs
 import random
 from typing import TypedDict
 import web
@@ -12,7 +13,7 @@ from infogami.infobase import client, common
 
 from openlibrary.accounts import get_current_user
 from openlibrary.core import formats, cache
-from openlibrary.core.lists.model import ListMixin
+from openlibrary.core.lists.model import List
 import openlibrary.core.helpers as h
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.addbook import safe_seeother
@@ -49,18 +50,30 @@ class ListRecord:
 
     @staticmethod
     def from_input():
-        i = utils.unflatten(
-            web.input(
-                key=None,
-                name='',
-                description='',
-                seeds=[],
-            )
-        )
+        DEFAULTS = {
+            'key': None,
+            'name': '',
+            'description': '',
+            'seeds': [],
+        }
+        if data := web.data():
+            # If the requests has data, parse it and use it to populate the list
+            if web.ctx.env.get('CONTENT_TYPE') == 'application/json':
+                i = {} | DEFAULTS | json.loads(data)
+            else:
+                form_data = {
+                    # By default all the values are lists
+                    k: v[0]
+                    for k, v in parse_qs(bytes.decode(data)).items()
+                }
+                i = {} | DEFAULTS | utils.unflatten(form_data)
+        else:
+            # Otherwise read from the query string
+            i = utils.unflatten(web.input(**DEFAULTS))
 
         normalized_seeds = [
             ListRecord.normalize_input_seed(seed)
-            for seed_list in i.seeds
+            for seed_list in i['seeds']
             for seed in (
                 seed_list.split(',') if isinstance(seed_list, str) else [seed_list]
             )
@@ -71,9 +84,9 @@ class ListRecord:
             if seed and (isinstance(seed, str) or seed.get('key'))
         ]
         return ListRecord(
-            key=i.key,
-            name=i.name,
-            description=i.description,
+            key=i['key'],
+            name=i['name'],
+            description=i['description'],
             seeds=normalized_seeds,
         )
 
@@ -129,8 +142,17 @@ def get_seed_info(doc):
 
 @public
 def get_list_data(list, seed, include_cover_url=True):
+    list_items = []
+    for s in list.get_seeds():
+        list_items.append(s.key)
+
     d = web.storage(
-        {"name": list.name or "", "key": list.key, "active": list.has_seed(seed)}
+        {
+            "name": list.name or "",
+            "key": list.key,
+            "active": list.has_seed(seed) if seed else False,
+            "list_items": list_items,
+        }
     )
     if include_cover_url:
         cover = list.get_cover() or list.get_default_cover()
@@ -150,7 +172,7 @@ def get_user_lists(seed_info):
     if not user:
         return []
     user_lists = user.get_lists(sort=True)
-    seed = seed_info['seed']
+    seed = seed_info['seed'] if seed_info else None
     return [get_list_data(user_list, seed) for user_list in user_lists]
 
 
@@ -161,27 +183,25 @@ class lists_partials(delegate.page):
     def GET(self):
         i = web.input(key=None)
 
-        user = get_current_user()
-        doc = self.get_doc(i.key)
-        seed_info = get_seed_info(doc)
-        user_lists = get_user_lists(seed_info)
-
-        dropper = render_template('lists/dropper_lists', user_lists)
-        active = render_template(
-            'lists/active_lists', user_lists, user['key'], seed_info
-        )
-
-        partials = {
-            'dropper': str(dropper),
-            'active': str(active),
-        }
-
+        partials = self.get_partials()
         return delegate.RawText(json.dumps(partials))
 
-    def get_doc(self, key):
-        if key.startswith("/subjects/"):
-            return subjects.get_subject(key)
-        return web.ctx.site.get(key)
+    def get_partials(self):
+        user_lists = get_user_lists(None)
+
+        dropper = render_template('lists/dropper_lists', user_lists)
+        list_data = {
+            list_data['key']: {
+                'members': list_data['list_items'],
+                'listName': list_data['name'],
+            }
+            for list_data in user_lists
+        }
+
+        return {
+            'dropper': str(dropper),
+            'listData': list_data,
+        }
 
 
 class lists(delegate.page):
@@ -195,17 +215,23 @@ class lists(delegate.page):
     def GET(self, path):
         # If logged in patron is viewing their lists page, use MyBooksTemplate
         if path.startswith("/people/"):
-            user = get_current_user()
             username = path.split('/')[-1]
 
-            if user and user.key.split('/')[-1] == username:
-                return MyBooksTemplate(username, 'lists').render()
-        doc = self.get_doc(path)
-        if not doc:
-            raise web.notfound()
+            mb = MyBooksTemplate(username, 'lists')
+            if not mb.user:
+                raise web.notfound()
 
-        lists = doc.get_lists()
-        return self.render(doc, lists)
+            template = render_template(
+                "lists/lists.html", mb.user, mb.user.get_lists(), show_header=False
+            )
+            return mb.render(template=template, header_title=_("Lists"))
+        else:
+            doc = self.get_doc(path)
+            if not doc:
+                raise web.notfound()
+
+            lists = doc.get_lists()
+            return render_template("lists/lists.html", doc, lists, show_header=True)
 
     def get_doc(self, key):
         if key.startswith("/subjects/"):
@@ -216,9 +242,6 @@ class lists(delegate.page):
                 return None
         else:
             return web.ctx.site.get(key)
-
-    def render(self, doc, lists):
-        return render_template("lists/lists.html", doc, lists)
 
 
 class lists_edit(delegate.page):
@@ -263,7 +286,12 @@ class lists_edit(delegate.page):
             action="lists",
             comment=web.input(_comment="")._comment or None,
         )
-        return safe_seeother(list_record.key)
+
+        # If content type json, return json response
+        if web.ctx.env.get('CONTENT_TYPE') == 'application/json':
+            return delegate.RawText(json.dumps({'key': list_record.key}))
+        else:
+            return safe_seeother(list_record.key)
 
 
 class lists_add(delegate.page):
@@ -496,7 +524,10 @@ class list_seeds(delegate.page):
         lst = get_list_seeds(key)
         if not lst:
             raise web.notfound()
-        return delegate.RawText(formats.dump(lst, self.encoding))
+
+        return delegate.RawText(
+            formats.dump(lst, self.encoding), content_type=self.content_type
+        )
 
     def POST(self, key):
         site = web.ctx.site
@@ -700,7 +731,7 @@ class export(delegate.page):
         else:
             raise web.notfound()
 
-    def get_exports(self, lst: ListMixin, raw: bool = False) -> dict[str, list]:
+    def get_exports(self, lst: List, raw: bool = False) -> dict[str, list]:
         export_data = lst.get_export_list()
         if "editions" in export_data:
             export_data["editions"] = sorted(

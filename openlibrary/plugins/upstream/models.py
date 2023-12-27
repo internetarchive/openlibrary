@@ -332,7 +332,6 @@ class Edition(models.Edition):
             if name == 'lccn':
                 value = normalize_lccn(value)
             # `None` in this field causes errors. See #7999.
-            # We should surface to the patron that an invalid LCCN is dropped. See #8092.
             if value is not None:
                 d.setdefault(name, []).append(value)
 
@@ -512,7 +511,7 @@ class Author(models.Author):
     def get_books(self, q=''):
         i = web.input(sort='editions', page=1, rows=20, mode="")
         try:
-            # safegaurd from passing zero/negative offsets to solr
+            # safeguard from passing zero/negative offsets to solr
             page = max(1, int(i.page))
         except ValueError:
             page = 1
@@ -995,25 +994,10 @@ class AddBookChangeset(Changeset):
                 return doc
 
 
-class ListChangeset(Changeset):
-    def get_added_seed(self):
-        added = self.data.get("add")
-        if added and len(added) == 1:
-            return self.get_seed(added[0])
+class Tag(models.Tag):
+    """Class to represent /type/tag objects in Open Library."""
 
-    def get_removed_seed(self):
-        removed = self.data.get("remove")
-        if removed and len(removed) == 1:
-            return self.get_seed(removed[0])
-
-    def get_list(self):
-        return self.get_changes()[0]
-
-    def get_seed(self, seed):
-        """Returns the seed object."""
-        if isinstance(seed, dict):
-            seed = self._site.get(seed['key'])
-        return models.Seed(self.get_list(), seed)
+    pass
 
 
 def setup():
@@ -1027,6 +1011,7 @@ def setup():
     client.register_thing_class('/type/place', SubjectPlace)
     client.register_thing_class('/type/person', SubjectPerson)
     client.register_thing_class('/type/user', User)
+    client.register_thing_class('/type/tag', Tag)
 
     client.register_changeset_class(None, Changeset)  # set the default class
     client.register_changeset_class('merge-authors', MergeAuthors)
@@ -1034,5 +1019,4 @@ def setup():
     client.register_changeset_class('undo', Undo)
 
     client.register_changeset_class('add-book', AddBookChangeset)
-    client.register_changeset_class('lists', ListChangeset)
     client.register_changeset_class('new-account', NewAccountChangeset)

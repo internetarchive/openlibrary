@@ -2,7 +2,7 @@ from datetime import datetime
 import logging
 import re
 import sys
-from typing import Any, Optional
+from typing import Any
 from collections.abc import Callable
 
 import luqum.tree
@@ -46,6 +46,7 @@ class WorkSearchScheme(SearchScheme):
         "ebook_access",
         "edition_count",
         "edition_key",
+        "format",
         "by_statement",
         "publish_date",
         "lccn",
@@ -135,6 +136,10 @@ class WorkSearchScheme(SearchScheme):
         'ddc_sort': 'ddc_sort asc',
         'ddc_sort asc': 'ddc_sort asc',
         'ddc_sort desc': 'ddc_sort desc',
+        # Ebook access
+        'ebook_access': 'ebook_access desc',
+        'ebook_access asc': 'ebook_access asc',
+        'ebook_access desc': 'ebook_access desc',
         # Key
         'key': 'key asc',
         'key asc': 'key asc',
@@ -273,16 +278,19 @@ class WorkSearchScheme(SearchScheme):
         # query, but much more flexible. We wouldn't be able to do our
         # complicated parent/child queries with defType!
 
-        full_work_query = '({{!edismax q.op="AND" qf="{qf}" bf="{bf}" v={v}}})'.format(
+        full_work_query = '({{!edismax q.op="AND" qf="{qf}" pf="{pf}" bf="{bf}" v={v}}})'.format(
             # qf: the fields to query un-prefixed parts of the query.
             # e.g. 'harry potter' becomes
             # 'text:(harry potter) OR alternative_title:(harry potter)^20 OR ...'
-            qf='text alternative_title^20 author_name^20',
+            qf='text alternative_title^10 author_name^10',
+            # pf: phrase fields. This increases the score of documents that
+            # match the query terms in close proximity to each other.
+            pf='alternative_title^10 author_name^10',
             # bf (boost factor): boost results based on the value of this
             # field. I.e. results with more editions get boosted, upto a
             # max of 100, after which we don't see it as good signal of
             # quality.
-            bf='min(100,edition_count)',
+            bf='min(100,edition_count) min(100,def(readinglog_count,0))',
             # v: the query to process with the edismax query parser. Note
             # we are using a solr variable here; this reads the url parameter
             # arbitrarily called workQuery.
@@ -304,6 +312,7 @@ class WorkSearchScheme(SearchScheme):
                 'alternative_subtitle': 'subtitle',
                 'cover_i': 'cover_i',
                 # Misc useful data
+                'format': 'format',
                 'language': 'language',
                 'publisher': 'publisher',
                 'publisher_facet': 'publisher_facet',
@@ -323,7 +332,7 @@ class WorkSearchScheme(SearchScheme):
 
             def convert_work_field_to_edition_field(
                 field: str,
-            ) -> Optional[str | Callable[[str], str]]:
+            ) -> str | Callable[[str], str] | None:
                 """
                 Convert a SearchField name (eg 'title') to the correct fieldname
                 for use in an edition query.

@@ -1,9 +1,14 @@
 $def with (ocaid)
 
+$ i18n_strings = {
+  $ "confirm_return": _("Really return this book?")
+  $ }
+
 <form
   action="/borrow/ia/$ocaid"
   method="post"
   class="return-form"
+  data-i18n="$json_encode(i18n_strings)"
 >
   <input class="cta-btn cta-btn--vanilla" type="submit" value="$_('Return book')" />
   <input type="hidden" name="action" value="return" />

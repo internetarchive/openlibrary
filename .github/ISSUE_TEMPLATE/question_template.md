@@ -6,6 +6,8 @@ labels: "Type: Question, Needs: Triage, Needs: Lead, Needs: Community Discussion
 assignees: ''
 ---
 
+<!-- IMPORTANT: Before posting, be sure to redact or remove sensitive data, such as passwords, secret keys, session cookies, etc. -->
+
 ### Question
 <!-- What question needs to be answered to close this issue? This should be one sentence. -->
 

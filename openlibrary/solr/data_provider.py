@@ -36,6 +36,8 @@ def get_data_provider(type="default"):
         return BetterDataProvider()
     elif type == "legacy":
         return LegacyDataProvider()
+    else:
+        raise ValueError("unknown data provider type: %s" % type)
 
 
 def is_valid_ocaid(ocaid: str):
@@ -106,7 +108,7 @@ def partition(lst: list, parts: int):
     parts = min(total_len, parts)
     size = total_len // parts
 
-    for i in range(0, parts):
+    for i in range(parts):
         start = i * size
         end = total_len if (i == parts - 1) else ((i + 1) * size)
         yield lst[start:end]
@@ -129,7 +131,7 @@ class DataProvider:
     """
 
     def __init__(self) -> None:
-        self.ia_cache: dict[str, Optional[dict]] = {}
+        self.ia_cache: dict[str, dict | None] = {}
 
     @staticmethod
     async def _get_lite_metadata(ocaids: list[str], _recur_depth=0, _max_recur_depth=3):
@@ -285,7 +287,7 @@ class DataProvider:
         """
         raise NotImplementedError()
 
-    def get_work_ratings(self, work_key: str) -> Optional[WorkRatingsSummary]:
+    def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
         raise NotImplementedError()
 
     def get_work_reading_log(self, work_key: str) -> WorkReadingLogSolrSummary | None:
@@ -318,7 +320,7 @@ class LegacyDataProvider(DataProvider):
         logger.info("get_document %s", key)
         return self._withKey(key)
 
-    def get_work_ratings(self, work_key: str) -> Optional[WorkRatingsSummary]:
+    def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
         work_id = int(work_key[len('/works/OL') : -len('W')])
         return Ratings.get_work_ratings_summary(work_id)
 

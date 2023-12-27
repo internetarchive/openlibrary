@@ -126,14 +126,9 @@ $:macros.HiddenSaveButton("addWork")
         </div>
 
         $if recaptcha:
-            <div class="formElement">
-                <div class="g-recaptcha" data-sitekey="$:recaptcha.public_key"></div>
-            </div>
+            $:render_template("recaptcha", recaptcha.public_key, error=None)
 
         $:macros.EditButtons(comment=work.comment_)
 
     </form>
-    $if edition:
-        $:render_template("books/edit/addfield", edition)
-
 </div>

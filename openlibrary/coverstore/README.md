@@ -1,6 +1,14 @@
+# Coverstore README
+
+## Where are covers archived?
+
+* Covers 0 - 7,139,999 are stored in `zip` files within items https://archive.org/download/olcovers1 - https://archive.org/download/olcovers713 in the https://archive.org/details/ol_exports collection
+* Covers 8,000,000 - 8,819,999 live in `tar` files within the https://archive.org/details/covers_0008 item
+* Covers 8,820,000 - 8,829,999 live in a `zip` file also in the https://archive.org/details/covers_0008 item
+
 ## Warnings
 
-As of 2022-11 there are 5,692,598 unarchived covers on ol-covers0 and archival hasn't occurred since 2014-11-29. This 5.7M number is sufficiently large that running `/openlibrary/openlibrary/coverstore/archive.py` `archive()` is still hanging after 5 minutes when trying to query for all unarchived covers.
+As of 2022-11 there were 5,692,598 unarchived covers on ol-covers0 and archival hadn't occurred since 2014-11-29. This 5.7M number is sufficiently large that running `/openlibrary/openlibrary/coverstore/archive.py` `archive()` is still hanging after 5 minutes when trying to query for all unarchived covers.
 
 As a result, it is recommended to adjust the cover query for unarchived items within archive.py to batch using some limit e.g. 1000. Also note that an initial `id` is specified (which is the last known successfully archived ID in `2014-11-29`):
 

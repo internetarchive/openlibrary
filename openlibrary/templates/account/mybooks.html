@@ -1,5 +1,7 @@
 $def with (user, mybooks, key=None, owners_page=False, public=False, counts=None, lists=None, component_times={})
 
+$ username = user.key.split('/')[-1]
+
 $def year_span(year, use_local_year=False):
   $if use_local_year:
     <span class="use-local-year" data-server-year="$year">$year</span>
@@ -7,35 +9,26 @@ $def year_span(year, use_local_year=False):
     <span>$year</span>
 
 <div class="mybooks-details-specific">
-  <div class="chip-group">
-    <span class="chip value-chip category-chip chip--selectable">
-      <a data-ol-link-track="MyBooksLandingPage|ReadingStats"
-        href="/account/books/already-read/stats">$_('My Reading Stats')</a>
-    </span>
-    <span class="chip value-chip category-chip chip--selectable">
-      <a data-ol-link-track="MyBooksLandingPage|ImportExport"
-        href="/account/import">$_('Import & Export Options')</a>
-    </span>
-  </div>
 
-  $ year = get_reading_goals_year()
-  $ current_goal = get_reading_goals(year=year)
-  $ hidden = 'hidden' if current_goal else ''
-
-  <div class="yearly-goal-section">
-    <div class="chip-group $hidden">
-      <span class="chip value-chip category-chip chip--selectable goal-chip">
-        $ year_markup = year_span(year)
-        <a class="set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">$:_('Set %(year_span)s reading goal', year_span=year_markup)</a>
-      </span>
-      $ reading_goal_form = render_template('check_ins/reading_goal_form', year=year)
-      $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title="Yearly Reading Goal")
+  $if owners_page:
+    $ year = current_year()
+    $ current_goal = get_reading_goals(year=year)
+    $ hidden = 'hidden' if current_goal else ''
+    <div class="yearly-goal-section">
+      $# Hide "Set reading goal" call to action with `hidden` class if a goal has already been set:
+      <div class="chip-group $hidden">
+        <span class="chip value-chip category-chip chip--selectable goal-chip">
+          $ year_markup = year_span(year)
+          <a class="set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">$:_('Set %(year_span)s reading goal', year_span=year_markup)</a>
+        </span>
+        $ reading_goal_form = render_template('check_ins/reading_goal_form', year=year)
+        $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title="Yearly Reading Goal")
+      </div>
+      $if current_goal:
+        <span id="reading-goal-container">
+          $:render_template('check_ins/reading_goal_progress', [current_goal])
+        </span>
     </div>
-    $if current_goal:
-      <span id="reading-goal-container">
-        $:render_template('check_ins/reading_goal_progress', [current_goal])
-      </span>
-  </div>
 
   $code:
       def compact_carousel(data):
@@ -61,19 +54,22 @@ $def year_span(year, use_local_year=False):
     <p>$_('No books are on this shelf')</p>
 
   $# Data for carousels
+  $ readlog_url = "/people/%s/books/" % username
   $ loans = ["loans", _('My Loans'), "/account/loans"]
-  $ currently_reading = ["currently-reading", _('Currently Reading'), "/account/books/currently-reading"]
-  $ want_to_read = ["want-to-read", _('Want to Read'), "/account/books/want-to-read"]
-  $ already_read = ["already-read", _('Already Read'), "/account/books/already-read"]
+  $ currently_reading = ["currently-reading", _('Currently Reading'), readlog_url + "currently-reading"]
+  $ want_to_read = ["want-to-read", _('Want to Read'), readlog_url + "want-to-read"]
+  $ already_read = ["already-read", _('Already Read'), readlog_url + "already-read"]
 
   $# Render carousels
-  $:(compact_carousel(loans) or empty_carousel(loans))
-  $:(compact_carousel(currently_reading) or empty_carousel(currently_reading))
-  $:(compact_carousel(want_to_read) or empty_carousel(want_to_read))
-  $:(compact_carousel(already_read) or empty_carousel(already_read))
+  $if owners_page:
+    $:(compact_carousel(loans) or empty_carousel(loans))
+  $if owners_page or public:
+    $:(compact_carousel(currently_reading) or empty_carousel(currently_reading))
+    $:(compact_carousel(want_to_read) or empty_carousel(want_to_read))
+    $:(compact_carousel(already_read) or empty_carousel(already_read))
+  $else:
+    <p>$_('This reader has chosen to make their Reading Log private.')</p>
 </div>
-
-$ username = user.key.split('/')[-1]
 
 $code:
     def mobile_carousel(data):
@@ -96,11 +92,6 @@ $def empty_mobile_carousel(data):
     <div class="carousel-section-header">
       <a class="li-title-desktop" name="$key" href="$url">$title (0)<img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg"></a>
     </div>
-
-$if not (lists and counts):
-  $ pa = get_public_patron_account(username)
-$ lists = lists or pa.lists
-$ counts = counts or pa.get_sidebar_counts
 
   $ component_times['Sidebar'] = time()
   <div class="mybooks-menu-mobile">
@@ -161,12 +152,10 @@ $ counts = counts or pa.get_sidebar_counts
         </li>
       </ul>
 
-      <div style="width: 100%; background: white">
-        <p style="height: 30px"></p>
-        <h1 class="details-title" style="padding: 8px; background: white">My Stats</h1>
-        <p></p>
-      </div>
     $if owners_page:
+      <div>
+        <h1 class="details-title">My Stats</h1>
+      </div>
       <ul class="sidebar-section">
         <li>
           <div class="carousel-section-header">

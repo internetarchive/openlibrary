@@ -2,8 +2,8 @@
 
 from enum import Enum
 import re
-from subprocess import run
-from typing import TypeVar, Literal, Optional
+from subprocess import CalledProcessError, run
+from typing import TypeVar, Literal
 from collections.abc import Iterable, Callable
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
@@ -19,18 +19,6 @@ def str_to_key(s: str) -> str:
     ''
     """
     return ''.join(c if c != ' ' else '_' for c in s.lower() if c not in to_drop)
-
-
-def finddict(dicts, **filters):
-    """Find a dictionary that matches given filter conditions.
-
-    >>> dicts = [{"x": 1, "y": 2}, {"x": 3, "y": 4}]
-    >>> sorted(finddict(dicts, x=1).items())
-    [('x', 1), ('y', 2)]
-    """
-    for d in dicts:
-        if all(d.get(k) == v for k, v in filters.items()):
-            return d
 
 
 T = TypeVar('T')
@@ -92,7 +80,7 @@ def take_best(
 
 def multisort_best(
     items: list[T], specs: list[tuple[Literal["min", "max"], Callable[[T], float]]]
-) -> Optional[T]:
+) -> T | None:
     """
     Takes the best item, taking into account the multisorts
 
@@ -212,7 +200,10 @@ def get_software_version() -> str:
     assert get_software_version()  # Should never return a falsy value
     """
     cmd = "git rev-parse --short HEAD --".split()
-    return run(cmd, capture_output=True, text=True, check=True).stdout.strip()
+    try:
+        return run(cmd, capture_output=True, text=True, check=True).stdout.strip()
+    except CalledProcessError:
+        return "unknown"
 
 
 # See https://docs.python.org/3/library/enum.html#orderedenum

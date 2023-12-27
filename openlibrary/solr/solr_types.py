@@ -41,6 +41,7 @@ class SolrDocument(TypedDict):
     contributor: Optional[list[str]]
     publish_place: Optional[list[str]]
     publisher: Optional[list[str]]
+    format: Optional[list[str]]
     publisher_facet: Optional[list[str]]
     first_sentence: Optional[list[str]]
     author_key: Optional[list[str]]
@@ -83,5 +84,10 @@ class SolrDocument(TypedDict):
     top_work: Optional[str]
     top_subjects: Optional[list[str]]
     subject_type: Optional[str]
+    public_scan_b: Optional[bool]
+    printdisabled_s: Optional[str]
+    lending_edition_s: Optional[str]
+    ia_collection_s: Optional[str]
+    ebook_count_i: Optional[int]
 
 # fmt: on

@@ -207,13 +207,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
     <a id="overview-mobile" name="overview-mobile" class="section-anchor section-anchor--no-height"></a>
     $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats, for_desktop=False)
     <div class="editionCover">
-      $ share_url = request.home + (edition or work).key
-
-      $ component_times['databarWork: Modal Links'] = time()
-      $ modal_links = render_template("type/edition/modal_links", work, edition, share_url)
-      $ component_times['databarWork: Modal Links'] = time() - component_times['databarWork: Modal Links']
-
-      $:macros.databarWork(edition or work, worldcat_links, affiliate_links, editions_page=True, render_times=component_times, modal_links=modal_links)
+      $:macros.databarWork(edition or work, worldcat_links, affiliate_links, editions_page=True, render_times=component_times)
     </div>
 
     <div class="editionAbout">
@@ -242,11 +236,11 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
           $ overview_desc = edition.description
         $else:
           $ overview_desc = work.description
-        <div class="book-description">
-            <div class="book-description-content restricted-view">
+        <div class="book-description read-more">
+            <div class="read-more__content" style="max-height:58px">
                 $:sanitize(format(overview_desc))
             </div>
-            $:macros.ReadMore("book-description")
+            $:macros.ReadMore()
         </div>
       $elif edition:
         <div class="book-description">
@@ -370,16 +364,24 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
             <p>"$(edition.first_sentence)"</p>
             </div>
 
-          $ component_times['TableOfContents'] = time()
-          $:macros.TableOfContents(edition, ocaid)
-          $ component_times['TableOfContents'] = time() - component_times['TableOfContents']
+          $ table_of_contents = edition.get_table_of_contents()
+          $if table_of_contents and len(table_of_contents) > 1:
+            <div class="section read-more">
+              <h3>$_("Table of Contents")</h3>
+              $ component_times['TableOfContents'] = time()
+              $:macros.TableOfContents(table_of_contents, ocaid, cls='read-more__content', attrs='style="max-height:350px"')
+              $ component_times['TableOfContents'] = time() - component_times['TableOfContents']
+              $:macros.ReadMore()
+            </div>
 
           $if edition.notes or edition.series or edition.volume or edition.genres or edition.other_titles or edition.copyright_date or edition.translation_of or edition.translated_from:
             <div class="section">
                 <h3 class="edition-header">$_("Edition Notes")
                 </h3>
                 $if edition.notes:
+                    <div class="edition-notes">
                     $:format(edition.notes)
+                    </div>
                 <dl class="meta">
                     $:display_value(_("Series"), edition.series)
                     $:display_value(_("Volume"), edition.volume)
@@ -461,11 +463,11 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
             $if work.description and work.description != overview_desc:
               <h4>$_("Work Description")</h4>
-              <div class="work-description">
-                <div class="work-description-content restricted-view">
+              <div class="work-description read-more">
+                <div class="read-more__content" style="max-height:58px">
                   $:sanitize(format(work.description))
                 </div>
-                $:macros.ReadMore('work-description')
+                $:macros.ReadMore()
               </div>
 
             $if work.original_languages:
@@ -548,7 +550,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
   <div class="RelatedWorksCarousel" data-workid="$work.key.split('/')[-1]">
     <div class="hidden loadingIndicator">
         <figure>
-        <img src="/images/ajax-loader-bar.gif" alt="Loading indicator">
+        <img src="/images/ajax-loader-bar.gif" alt="Loading indicator" loading="lazy">
         <figcaption style="
             justify-content: center;
             display: flex;

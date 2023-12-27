@@ -1,4 +1,13 @@
-export const editionIdentifiersSample = `<fieldset id="identifiers" data-config="{&quot;Please select an identifier.&quot;: &quot;Please select an identifier.&quot;, &quot;You need to give a value to ID.&quot;: &quot;You need to give a value to ID.&quot;, &quot;ID ids cannot contain whitespace.&quot;: &quot;ID ids cannot contain whitespace.&quot;, &quot;ID must be exactly 10 characters [0-9] or X.&quot;: &quot;ID must be exactly 10 characters [0-9] or X.&quot;, &quot;That ISBN already exists for this edition.&quot;: &quot;That ISBN already exists for this edition.&quot;, &quot;ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4&quot;: &quot;ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4&quot;}">
+export const editionIdentifiersSample = `
+<fieldset id="identifiers" data-config="{
+    &quot;Please select an identifier.&quot;: &quot;Please select an identifier.&quot;,
+    &quot;You need to give a value to ID.&quot;: &quot;You need to give a value to ID.&quot;,
+    &quot;ID ids cannot contain whitespace.&quot;: &quot;ID ids cannot contain whitespace.&quot;,
+    &quot;ID must be exactly 10 characters [0-9] or X.&quot;: &quot;ID must be exactly 10 characters [0-9] or X.&quot;,
+    &quot;That ID already exists for this edition.&quot;: &quot;That ID already exists for this edition.&quot;,
+    &quot;ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4&quot;: &quot;ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4&quot;,
+    &quot;Invalid ID format&quot;: &quot;Invalid ID format&quot;
+}">
 <div id="id-errors" class="note" style="display: none"></div>
 <table class="identifiers">
     <tbody><tr id="identifiers-form">
@@ -9,6 +18,7 @@ export const editionIdentifiersSample = `<fieldset id="identifiers" data-config=
                 <option value="goodreads">Goodreads</option>
                 <option value="isbn_10">ISBN 10</option>
                 <option value="isbn_13">ISBN 13</option>
+                <option value="lccn">LC Control Number</option>
             </select>
         </td>
         <td>
@@ -66,34 +76,6 @@ export const editionIdentifiersSample = `<fieldset id="identifiers" data-config=
         </tr></tbody>
 </table>
 </fieldset>`;
-
-/** Part/Simplification of the .widget-add element */
-export const listCreationForm = `
-    <form method="post" class="floatform" name="new-list" id="new-list">
-    <div class="formElement">
-        <div class="label">
-            <label for="list_label">Name:</label>
-        </div>
-        <div class="input">
-            <input type="text" name="list_label" id="list_label" class="text required" value="sample text" required="">
-        </div>
-    </div>
-    <div class="formElement">
-        <div class="label">
-            <label for="list_desc">Description:</label>
-        </div>
-        <div class="input">
-            <textarea name="list_desc" id="list_desc" rows="5" cols="30">Sample text</textarea>
-        </div>
-    </div>
-    <div class="formElement">
-        <div class="input">
-            <button id="create-list-button" type="submit" class="larger">Create new list</button>
-            &nbsp; &nbsp;
-            <a class="small dialog--close plain red" href="javascript:;">Cancel</a>
-        </div>
-    </div>
-    </form>`
 
 export const clamperSample = `
       <span class='clamp' data-before='▾  ' style='display: unset;'>
@@ -204,18 +186,6 @@ export const checkInForm = `
 </div>
 `
 
-export const readingLogDropperForm = `
-<div id="dropper">
-    <form class="readingLog">
-        <input type="hidden" name="bookshelf_id" value="1">
-        <input type="hidden" name="action" value="">
-    </form>
-    <form id="remove-from-list">
-        <input type="hidden" name="bookshelf_id">
-        <button class="hidden">Remove From Shelf</button>
-    </form>
-</div>
-`
 export const readClassification = `
 <fieldset class="major" id="classifications" data-config="{&quot;Please select a classification.&quot;: &quot;Please select a classification.&quot;, &quot;You need to give a value to CLASS.&quot;: &quot;You need to give a value to CLASS.&quot;}">
     <legend>Classifications</legend>

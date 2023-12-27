@@ -3,10 +3,23 @@ $def with (page)
 $var title: $page.name
 
 $ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), ('people', _('People'), 10), ('times', _('Times'), 10)]
+$ can_add_tag = ctx.user and (ctx.user.is_usergroup_member('/usergroup/super-librarians'))
+$ has_tag = 'tag' in page
+
 
 <div id="scrollHere"></div>
 
+<!--
+  Able to fetch Tag with the same name as the subject and use it's data to enrich the page via page.tag
+-->
+
 <div class="page-heading-search-box">
+    $if can_add_tag:
+      <div class="subjectTagEdit">
+        $ edit_tag_url = page.tag.get('id') + '/edit' if 'tag' in page else '/tag/add'
+        <a class="editTagButton" href="$edit_tag_url" title="$_('Edit Subject Tag')"
+            data-ol-link-track="CTAClick|Edit" accesskey="e">$_("Edit")</a>
+      </div>
     <h1 class="inline">
         $page.name
     </h1>
@@ -15,6 +28,10 @@ $ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), 
             <strong><span><a href="/search?$page.subject_type=$page.name.replace('&','%26')" title="$_('See all works')">$ungettext("%(count)d work", "%(count)d works", page.work_count, count=page.work_count)</a></span></strong>
         </span>
     </span>
+    $if has_tag:
+      <h3 itemprop="description">
+        $page.tag['description']
+      </h3>
     <a href="#search" class="shift">$_('Search for books with subject %(name)s.', name=page.name)</a>
 
     <form action="/search" class="olform pagesearchbox">
@@ -106,12 +123,6 @@ $jsdef renderPublishers(publishers):
         </span>
         <span class="count">$ungettext("%(count)s edition", "%(count)s editions", p.count, count=commify(p.count))</span>
         <br/>
-
-$if "lists" in ctx.features:
-    <div class="spacer"></div>
-    <div id="subjectLists" class="widget-box">
-        $:render_template("lists/widget", page, include_rating=False, exclude_own_lists=True)
-    </div>
 
 <div class="section clearfix"></div>
 

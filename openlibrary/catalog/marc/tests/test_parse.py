@@ -80,6 +80,12 @@ bin_samples = [
     'test-publish-sn-sl-nd.mrc',
 ]
 
+date_tests = [  # MARC, expected publish_date
+    ('9999_sd_dates.mrc', '[n.d.]'),
+    ('reprint_date_wrong_order.mrc', '2010'),
+    ('9999_with_correct_date_in_260.mrc', '2003'),
+]
+
 TEST_DATA = Path(__file__).with_name('test_data')
 
 
@@ -150,6 +156,13 @@ class TestParseMARCBinary:
         rec = MarcBinary(filepath.read_bytes())
         with pytest.raises(NoTitle):
             read_edition(rec)
+
+    @pytest.mark.parametrize('marcfile,expect', date_tests)
+    def test_dates(self, marcfile, expect):
+        filepath = TEST_DATA / 'bin_input' / marcfile
+        rec = MarcBinary(filepath.read_bytes())
+        edition = read_edition(rec)
+        assert edition['publish_date'] == expect
 
 
 class TestParse:

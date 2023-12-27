@@ -14,13 +14,14 @@ import web
 
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import public, render_template
+from infogami.utils.view import public, render_template, add_flash_message
 from infogami.infobase.utils import parse_datetime
 
 from openlibrary.core import stats
 from openlibrary.core import lending
 from openlibrary.core import vendors
 from openlibrary.core import waitinglist
+from openlibrary.i18n import gettext as _
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary import accounts
 from openlibrary.utils import dateutil
@@ -149,6 +150,9 @@ class borrow(delegate.page):
             account = OpenLibraryAccount.get_by_email(user.email)
             ia_itemname = account.itemname if account else None
             s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
+            lending.get_cached_loans_of_user.memcache_delete(
+                user.key, {}
+            )  # invalidate cache for user loans
         if not user or not ia_itemname or not s3_keys:
             web.setcookie(config.login_cookie_name, "", expires=-1)
             redirect_url = (
@@ -159,43 +163,51 @@ class borrow(delegate.page):
             raise web.seeother(redirect_url)
 
         if action == 'return':
-            lending.s3_loan_api(edition.ocaid, s3_keys, action='return_loan')
+            lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='return_loan')
             stats.increment('ol.loans.return')
             edition.update_loan_status()
             user.update_loan_status()
             raise web.seeother(edition_redirect)
         elif action == 'join-waitinglist':
-            lending.s3_loan_api(edition.ocaid, s3_keys, action='join_waitlist')
+            lending.get_cached_user_waiting_loans.memcache_delete(
+                user.key, {}
+            )  # invalidate cache for user waiting loans
+            lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='join_waitlist')
             stats.increment('ol.loans.joinWaitlist')
             raise web.redirect(edition_redirect)
         elif action == 'leave-waitinglist':
-            lending.s3_loan_api(edition.ocaid, s3_keys, action='leave_waitlist')
+            lending.get_cached_user_waiting_loans.memcache_delete(
+                user.key, {}
+            )  # invalidate cache for user waiting loans
+            lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='leave_waitlist')
             stats.increment('ol.loans.leaveWaitlist')
             raise web.redirect(edition_redirect)
 
-        # Intercept a 'borrow' action if the user has already
-        # borrowed the book and convert to a 'read' action.
-        # Added so that direct bookreader links being routed through
-        # here can use a single action of 'borrow', regardless of
-        # whether the book has been checked out or not.
-        elif user.has_borrowed(edition):
-            action = 'read'
-
-        elif action in ('borrow', 'browse'):
+        elif action in ('borrow', 'browse') and not user.has_borrowed(edition):
             borrow_access = user_can_borrow_edition(user, edition)
 
             if not (s3_keys and borrow_access):
                 stats.increment('ol.loans.outdatedAvailabilityStatus')
                 raise web.seeother(error_redirect)
 
-            lending.s3_loan_api(
-                edition.ocaid, s3_keys, action='%s_book' % borrow_access
-            )
-            stats.increment('ol.loans.bookreader')
-            stats.increment('ol.loans.%s' % borrow_access)
-            action = 'read'
+            try:
+                lending.s3_loan_api(
+                    s3_keys, ocaid=edition.ocaid, action='%s_book' % borrow_access
+                )
+                stats.increment('ol.loans.bookreader')
+                stats.increment('ol.loans.%s' % borrow_access)
+            except lending.PatronAccessException as e:
+                stats.increment('ol.loans.blocked')
 
-        if action == 'read':
+                add_flash_message(
+                    'error',
+                    _(
+                        'Your account has hit a lending limit. Please try again later or contact info@archive.org.'
+                    ),
+                )
+                raise web.seeother(key)
+
+        if action in ('borrow', 'browse', 'read'):
             bookPath = '/stream/' + edition.ocaid
             if i._autoReadAloud is not None:
                 bookPath += '?_autoReadAloud=show'

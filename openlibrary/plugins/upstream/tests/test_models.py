@@ -5,6 +5,7 @@ import web
 from infogami.infobase import client
 
 from openlibrary.mocks.mock_infobase import MockSite
+import openlibrary.core.lists.model as list_model
 from .. import models
 
 
@@ -21,13 +22,14 @@ class TestModels:
             '/type/place': models.SubjectPlace,
             '/type/person': models.SubjectPerson,
             '/type/user': models.User,
+            '/type/list': list_model.List,
         }
         expected_changesets = {
             None: models.Changeset,
             'merge-authors': models.MergeAuthors,
             'undo': models.Undo,
             'add-book': models.AddBookChangeset,
-            'lists': models.ListChangeset,
+            'lists': list_model.ListChangeset,
             'new-account': models.NewAccountChangeset,
         }
         models.setup()

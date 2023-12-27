@@ -36,6 +36,7 @@ from openlibrary.accounts import (
     OpenLibraryAccount,
     InternetArchiveAccount,
     valid_email,
+    clear_cookies,
 )
 from openlibrary.plugins.upstream import borrow, forms, utils
 from openlibrary.utils.dateutil import elapsed_time
@@ -253,9 +254,10 @@ class account_create(delegate.page):
 
     def get_recap(self):
         if self.is_plugin_enabled('recaptcha'):
-            public_key = config.plugin_recaptcha.public_key
-            private_key = config.plugin_recaptcha.private_key
-            return recaptcha.Recaptcha(public_key, private_key)
+            public_key = config.plugin_invisible_recaptcha.public_key
+            private_key = config.plugin_invisible_recaptcha.private_key
+            if public_key and private_key:
+                return recaptcha.Recaptcha(public_key, private_key)
 
     def is_plugin_enabled(self, name):
         return (
@@ -403,6 +405,7 @@ class account_login(delegate.page):
             config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
         )
         ol_account = OpenLibraryAccount.get(email=email)
+
         if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
             web.setcookie('sfw', 'yes', expires=expires)
         blacklist = [
@@ -430,6 +433,23 @@ class account_login(delegate.page):
             email=account.email,
         )
         return render.message(title, message)
+
+
+class account_logout(delegate.page):
+    """Account logout.
+
+    This registers a handler to the /account/logout endpoint in infogami so that additional logic, such as clearing admin cookies,
+    can be handled prior to the calling of infogami's standard logout procedure
+
+    """
+
+    path = "/account/logout"
+
+    def POST(self):
+        clear_cookies()
+        from infogami.core.code import logout as infogami_logout
+
+        return infogami_logout().POST()
 
 
 class account_verify(delegate.page):
@@ -795,8 +815,10 @@ class import_books(delegate.page):
     def GET(self):
         user = accounts.get_current_user()
         username = user['key'].split('/')[-1]
-
-        return MyBooksTemplate(username, 'imports').render()
+        template = render['account/import']()
+        return MyBooksTemplate(username, 'imports').render(
+            header_title=_("Imports and Exports"), template=template
+        )
 
 
 class fetch_goodreads(delegate.page):
@@ -1031,11 +1053,15 @@ class account_loans(delegate.page):
 
     @require_login
     def GET(self):
+        from openlibrary.core.lending import get_loans_of_user
+
         user = accounts.get_current_user()
         user.update_loan_status()
         username = user['key'].split('/')[-1]
-
-        return MyBooksTemplate(username, 'loans').render()
+        mb = MyBooksTemplate(username, 'loans')
+        docs = get_loans_of_user(user.key)
+        template = render['account/loans'](user, docs)
+        return mb.render(header_title=_("Loans"), template=template)
 
 
 class account_loans_json(delegate.page):

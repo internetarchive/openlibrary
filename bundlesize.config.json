@@ -30,11 +30,11 @@
     },
     {
       "path": "static/build/readmore.*.js",
-      "maxSize": "2KB"
+      "maxSize": "3KB"
     },
     {
       "path": "static/build/modal-links.*.js",
-      "maxSize": "5.6KB"
+      "maxSize": "6KB"
     },
     {
       "path": "static/build/user-website.*.js",
@@ -69,28 +69,24 @@
       "maxSize": "5KB"
     },
     {
-      "path": "static/build/lists.*.js",
-      "maxSize": "5KB"
-    },
-    {
       "path": "static/build/all.js",
-      "maxSize": "129KB"
+      "maxSize": "130KB"
     },
     {
       "path": "static/build/page-admin.css",
-      "maxSize": "26KB"
+      "maxSize": "27KB"
     },
     {
       "path": "static/build/page-book.css",
-      "maxSize": "13KB"
+      "maxSize": "14KB"
     },
     {
       "path": "static/build/page-edit.css",
-      "maxSize": "25KB"
+      "maxSize": "26KB"
     },
     {
       "path": "static/build/page-form.css",
-      "maxSize": "25KB"
+      "maxSize": "26KB"
     },
     {
       "path": "static/build/page-home.css",
@@ -98,7 +94,7 @@
     },
     {
       "path": "static/build/page-plain.css",
-      "maxSize": "25KB"
+      "maxSize": "26KB"
     },
     {
       "path": "static/build/page-subject.css",
@@ -106,7 +102,7 @@
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "27KB"
+      "maxSize": "30KB"
     }
   ]
 }

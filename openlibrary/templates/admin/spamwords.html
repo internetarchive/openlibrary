@@ -11,7 +11,9 @@ $var title: [Admin Center] Spam Words
     <h2>Spam Words</h2>
     <p>
         Please enter the SPAM regular expressions in the textarea below, one per line.<br>
-        Be sure to escape any meta characters that are meant to be character literals.
+        Be sure to escape any meta characters that are meant to be character literals.<br>
+        If you are adding a domain, prepend the following to the domain: <code>(\b|https://|http://)</code><br>
+        For example, if you want to prevent edits containing the domain <code>t.co</code>, add <code>(\b|https://|http://)t\.co</code> to the spamwords list.
     </p>
 
     <div>

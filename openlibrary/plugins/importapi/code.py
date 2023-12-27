@@ -1,6 +1,5 @@
 """Open Library Import API
 """
-
 from infogami.plugins.api.code import add_hook
 from infogami.infobase.client import ClientException
 
@@ -131,16 +130,7 @@ class importapi:
         data = web.data()
 
         try:
-            edition, format = parse_data(data)
-            # Validation requires valid publishers and authors.
-            # If data unavailable, provide throw-away data which validates
-            # We use ["????"] as an override pattern
-            if edition.get('publishers') == ["????"]:
-                edition.pop('publishers')
-            if edition.get('authors') == [{"name": "????"}]:
-                edition.pop('authors')
-            if edition.get('publish_date') == "????":
-                edition.pop('publish_date')
+            edition, _ = parse_data(data)
 
         except DataError as e:
             return self.error(str(e), 'Failed to parse import data')
@@ -205,6 +195,8 @@ class ia_importapi(importapi):
         :param bool force_import: force import of this record
         :returns: the data of the imported book or raises  BookImportError
         """
+        from_marc_record = False
+
         # Case 1 - Is this a valid Archive.org item?
         metadata = ia.get_metadata(identifier)
         if not metadata:
@@ -214,9 +206,12 @@ class ia_importapi(importapi):
         # The scan operators search OL before loading the book and add the
         # OL key if a match is found. We can trust them and attach the item
         # to that edition.
-        if metadata.get('mediatype') == 'texts' and metadata.get('openlibrary'):
+        edition_olid = metadata.get('openlibrary_edition') or metadata.get(
+            'openlibrary'
+        )
+        if metadata.get('mediatype') == 'texts' and edition_olid:
             edition_data = cls.get_ia_record(metadata)
-            edition_data['openlibrary'] = metadata['openlibrary']
+            edition_data['openlibrary'] = edition_olid
             edition_data = cls.populate_edition_data(edition_data, identifier)
             return cls.load_book(edition_data)
 
@@ -226,10 +221,14 @@ class ia_importapi(importapi):
             raise BookImportError(status, 'Prohibited Item %s' % identifier)
 
         # Case 4 - Does this item have a marc record?
-        marc_record = get_marc_record_from_ia(identifier)
+        marc_record = get_marc_record_from_ia(
+            identifier=identifier, ia_metadata=metadata
+        )
         if require_marc and not marc_record:
             raise BookImportError('no-marc-record')
         if marc_record:
+            from_marc_record = True
+
             if not force_import:
                 raise_non_book_marc(marc_record)
             try:
@@ -247,7 +246,7 @@ class ia_importapi(importapi):
 
         # Add IA specific fields: ocaid, source_records, and cover
         edition_data = cls.populate_edition_data(edition_data, identifier)
-        return cls.load_book(edition_data)
+        return cls.load_book(edition_data, from_marc_record)
 
     def POST(self):
         web.header('Content-Type', 'application/json')
@@ -410,15 +409,16 @@ class ia_importapi(importapi):
         return d
 
     @staticmethod
-    def load_book(edition_data: dict) -> str:
+    def load_book(edition_data: dict, from_marc_record: bool = False) -> str:
         """
         Takes a well constructed full Edition record and sends it to add_book
         to check whether it is already in the system, and to add it, and a Work
         if they do not already exist.
 
         :param dict edition_data: Edition record
+        :param bool from_marc_record: whether the record is based on a MARC record.
         """
-        result = add_book.load(edition_data)
+        result = add_book.load(edition_data, from_marc_record=from_marc_record)
         return json.dumps(result)
 
     @staticmethod

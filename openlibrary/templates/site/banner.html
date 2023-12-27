@@ -1,11 +1,17 @@
-$def with (announcement, storage_key)
+$def with (announcement, cookie_name, cookie_duration_days=30)
 
-$# Renders a dismissable banner element containing the given announcement
+$# Renders a dismissible banner element containing the given announcement.
+$# If the patron has dismissed the banner in the past, the banner will not
+$# be rendered.
+$#
 $# announcement (str) -- Rendered content that will be displayed in the banner
-$# storage_key (str) -- identifier for the banner. If the user dismisses the banner, storage_key will be added to the user's preferences to prevent the banner from showing again.
+$# cookie_name (str) -- identifier for the banner. If the user dismisses the banner, a cookie with this name is set
+$# cookie_duration_days (int) -- TTL before cookie expires in days
 
-<div data-storage-key="$storage_key" id="announcement-banner" class="page-banner--dismissable">
-    <span class="page-banner--dismissable-content">$:announcement</span>
-    $if ctx.user:
-        <button class="page-banner--dismissable-close" id="close-banner">X</button>
-</div>
+$ hide_banner = ctx.user and ctx.user.has_cookie(cookie_name)
+
+$if not hide_banner:
+    <div data-cookie-name="$cookie_name" data-cookie-duration-days="$cookie_duration_days" class="page-banner--dismissable">
+        <span class="page-banner--dismissable-content">$:announcement</span>
+        <button class="page-banner--dismissable-close">X</button>
+    </div>

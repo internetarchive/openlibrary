@@ -3,9 +3,10 @@ $def with (list, user_key, seed_info)
 $ has_owner = list.owner
 $ is_owner = (has_owner and list.owner.key == user_key)
 $ actionable = 'class=actionable-item' if is_owner else ''
-<li $actionable>
+$ data_list_key = 'data-list-key=%s' % list.key if is_owner else ''
+<li $actionable $data_list_key>
     <span class="image">
-      <a href="$list.key"><img src="$list.cover_url" alt="$_('Cover of: %(title)s', title=list.name)" title="$_('Cover of: %(title)s', title=list.name)"/></a>
+      <a href="$list.key"><img src="$list.cover_url" alt="$_('Cover of: %(title)s', title=list.name)" title="$_('Cover of: %(title)s', title=list.name)" loading="lazy"/></a>
     </span>
     <span class="data">
         <span class="label">

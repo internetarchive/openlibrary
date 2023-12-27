@@ -1,20 +1,32 @@
-$def with (edition, ocaid=None)
+$def with (table_of_contents, ocaid=None, highlighting=False, cls='', attrs='')
 
-$ table_of_contents = edition.get_table_of_contents()
-$if table_of_contents and len(table_of_contents) > 1:
-  <div class="section">
-    <h3 class="collapse">$_("Table of Contents")</h3>
-    <table class="meta sansserif" id="toc-table">
-      <tbody>
-        $for toc in table_of_contents:
-          <tr class="toc-level-$toc.level">
-            <td class="toc-label">$toc.label</td>
-              $if ocaid and toc.pagenum.isdigit():
-                <td class="toc-title"><a href="//archive.org/stream/$ocaid#page/$toc.pagenum">$toc.title</a></td>
-              $else:
-                <td class="toc-title">$toc.title</td>
-              <td class="toc-pagenum">$toc.pagenum</td>
-          </tr>
-      </tbody>
-    </table>
-  </div>
+$ min_level = min(chapter.level for chapter in table_of_contents)
+<div class="toc $cls" $:attrs>
+  $for chapter in table_of_contents:
+    $ is_link = ocaid and chapter.pagenum and chapter.pagenum.isdigit()
+    $ tag = 'a' if is_link else 'div'
+    <$tag
+      class="toc__entry"
+      $:cond(is_link, 'href="//archive.org/stream/%s#page/%s"' % (ocaid, chapter.pagenum))
+      $:cond(is_link, 'data-ol-link-track="BookPage|TOCClick"')
+      data-level="$chapter.level"
+      style="margin-left:$((chapter.level - min_level) * 2)ch"
+    >
+      <span class="toc__name">
+        $ label = chapter.label
+        $if label and not label.endswith('.'):
+          $ label = label.strip() + '. '
+        $if highlighting:
+          $# This isn't html injection, because solr returns everything
+          $# already html escaped except for the <em> of the highlight
+          $:label
+          $:chapter.title
+        $else:
+          $label
+          $chapter.title
+      </span>
+      $if chapter.pagenum:
+        <span class="toc__dots" style="flex:1; border-bottom: 1px dotted;"></span>
+        <span class="toc__pagenum">$_('Page %s', chapter.pagenum)</span>
+    </$tag>
+</div>

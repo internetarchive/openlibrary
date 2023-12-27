@@ -61,7 +61,7 @@ export class Dropper {
          *
          * @member {boolean}
          */
-        this.isDropperOpen = dropper.classList.contains('dropper-wrapper--active')
+        this.isDropperOpen = dropper.classList.contains('generic-dropper-wrapper--active')
 
         /**
          * Tracks whether this dropper is disabled.
@@ -70,7 +70,7 @@ export class Dropper {
          *
          * @member {boolean}
          */
-        this.isDropperDisabled = dropper.querySelector('.generic-dropper').classList.contains('generic-dropper--disabled')
+        this.isDropperDisabled = dropper.classList.contains('generic-dropper--disabled')
     }
 
     /**
@@ -78,30 +78,57 @@ export class Dropper {
      */
     initialize() {
         this.dropClick.addEventListener('click', () => {
-            // REVIEWER: `debounce` call was removed here.
-            // Could not get it to work --- suspect that this has something to
-            // do with `debounce` being called from an arrow function?
-            //
-            // I wonder if it's still needed? I don't think that we're doing
-            // anything computationally heavy when this is opened or closed.
-            // No calls to the server, either.
             this.toggleDropper()
         })
     }
+
+    /**
+     * Function that is called after a dropper has opened.
+     *
+     * Subclasses of `Dropper` may override this to add
+     * functionality that should occur on dropper open.
+     */
+    onOpen() {}
+
+    /**
+     * Function that is called after a dropper has closed.
+     *
+     * Subclasses of `Dropper` may override this to add
+     * functionality that should occur on dropper close.
+     */
+    onClose() {}
+
+    /**
+     * Function that is called when the drop-click affordance of
+     * a disabled dropper is clicked.
+     *
+     * Subclasses of `Dropper` may override this as needed.
+     */
+    onDisabledClick() {}
 
     /**
      * Closes dropper if opened; opens dropper if closed.
      *
      * Toggles value of `isDropperOpen`.
      *
-     * Does nothing if this dropper is disabled.
+     * Calls `onDisabledClick()` if this dropper is disabled.
+     * Calls either `onOpen()` or `onClose()` after the dropper
+     * has been toggled.
      */
     toggleDropper() {
-        if (!this.isDropperDisabled) {
+        if (this.isDropperDisabled) {
+            this.onDisabledClick();
+        } else {
             this.$dropper.find('.generic-dropper__dropdown').slideToggle(25);
             this.$dropper.find('.arrow').toggleClass('up')
-            this.$dropper.toggleClass('dropper-wrapper--active')
+            this.$dropper.toggleClass('generic-dropper-wrapper--active')
             this.isDropperOpen = !this.isDropperOpen
+
+            if (this.isDropperOpen) {
+                this.onOpen()
+            } else {
+                this.onClose()
+            }
         }
     }
 
@@ -110,14 +137,19 @@ export class Dropper {
      *
      * Sets `isDropperOpen` to `false`.
      *
-     * Does nothing if this dropper is disabled.
+     * Calls `onDisabledClick()` if this dropper is disabled.
+     * Otherwise, closes dropper and calls `onClose()`.
      */
     closeDropper() {
-        if (!this.isDropperDisabled) {
+        if (this.isDropperDisabled) {
+            this.onDisabledClick();
+        } else {
             this.$dropper.find('.generic-dropper__dropdown').slideUp(25)
             this.$dropper.find('.arrow').removeClass('up');
-            this.$dropper.removeClass('dropper-wrapper--active')
+            this.$dropper.removeClass('generic-dropper-wrapper--active')
             this.isDropperOpen = false
+
+            this.onClose()
         }
     }
 }

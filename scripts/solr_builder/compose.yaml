@@ -29,7 +29,7 @@ services:
   solr:
     profiles:
       - build
-    image: solr:8.10.1
+    image: solr:9.2.1
     restart: on-failure
     environment:
       # This is optimized for bulk loading, but should be shortened for production
@@ -39,7 +39,7 @@ services:
     ports:
       - 8983:8983
     volumes:
-      - solr-data:/var/solr/data
+      - solr-data:/var/solr
       - ../../conf/solr:/opt/solr/server/solr/configsets/olconfig:ro
     networks:
       - solr-access
@@ -53,7 +53,7 @@ services:
     profiles:
       - production
     restart: unless-stopped
-    image: solr:8.10.1
+    image: solr:9.2.1
     expose:
       - 8983
     environment:
@@ -64,7 +64,7 @@ services:
       # More memory for production
       - SOLR_JAVA_MEM=-Xms10g -Xmx10g
     volumes:
-      - solr-data:/var/solr/data
+      - solr-data:/var/solr
       - ../../conf/solr:/opt/solr/server/solr/configsets/olconfig:ro
     networks:
       solr-access:

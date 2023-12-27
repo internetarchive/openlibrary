@@ -41,10 +41,10 @@ export function initDroppers(dropperElements) {
  * @param {jQuery.Object} $container
  */
 function closeDropper($container) {
-    $container.find('.dropdown').slideUp(25);
-    $container.find('.generic-dropper__dropdown').slideUp(25)
+    $container.find('.dropdown').slideUp(25);  // Legacy droppers
+    $container.find('.generic-dropper__dropdown').slideUp(25)  // New generic droppers
     $container.find('.arrow').removeClass('up');
-    $container.removeClass('dropper-wrapper--active')
+    $container.removeClass('generic-dropper-wrapper--active')
 }
 
 /**

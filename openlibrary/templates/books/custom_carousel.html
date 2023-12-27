@@ -1,12 +1,28 @@
-$def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False, compact_mode=False, secondary_action=False)
+$def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False, compact_mode=False, secondary_action=False, layout='carousel')
 
-$ ctx.setdefault("links", [])
-$# Apparently fonts always need crossorigin for some reason
-$ slick_font = '<link rel="preload" href="/static/css/fonts/slick.woff" as="font" type="font/woff" crossorigin>'
-$if slick_font not in ctx.links:
-  $ ctx.links.append(slick_font)
+$if layout == 'carousel':
+  $ ctx.setdefault("links", [])
+  $# Apparently fonts always need crossorigin for some reason
+  $ slick_font = '<link rel="preload" href="/static/css/fonts/slick.woff" as="font" type="font/woff" crossorigin>'
+  $if slick_font not in ctx.links:
+    $ ctx.links.append(slick_font)
 
-$def render_carousel_cover(book, lazy):
+$def carousel_i18n_input():
+  $ show_carousel_i18n_strings=  {
+  $ "open": _("Read"),
+  $ "borrow_available": _("Borrow"),
+  $ "borrow_unavailable": _("Join Waitlist"),
+  $ "error": _("Not in Library"),
+  $ "loading": _("Loading...")
+  $ }
+
+  <input type="hidden" name="carousel-i18n-strings" value="$json_encode(show_carousel_i18n_strings)">
+
+
+$if render_once('books/custom_carousel.i18n-strings'):
+  $:carousel_i18n_input()
+
+$def render_carousel_cover(book, lazy, layout):
   $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
   $ cover_host = '//covers.openlibrary.org'
   $ url = book.get('key') or book.url
@@ -46,7 +62,7 @@ $def render_carousel_cover(book, lazy):
           <img class="bookcover" loading="lazy"
             title="$('%s%s'%(title,byline))"
             alt="$('%s%s'%(title,byline))"
-          $if lazy:
+          $if lazy and layout == 'carousel':
             data-lazy="$(cover_url)"
             src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
           $else:
@@ -85,10 +101,12 @@ $if test or (books and len(books) >= min_books):
         $else:
           $ config = ['.carousel-' + key, 6, 5, 4, 3, 2, 1, load_more_config ]
         $ compact = "carousel--compact" if compact_mode else ""
-        <div class="carousel $compact carousel-$key carousel--progressively-enhanced"
+        $ grid = "carousel--grid" if layout == 'grid' else ""
+        $ loadjs = "carousel--progressively-enhanced" if layout == 'carousel' else ""
+        <div class="carousel $grid $compact carousel-$key $loadjs"
           data-config="$json_encode(config)">
           $for index, book in enumerate(books or []):
-              $:render_carousel_cover(book, index > 5)
+              $:render_carousel_cover(book, index > 5, layout)
         </div>
       </div>
     </div>

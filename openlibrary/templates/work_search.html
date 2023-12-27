@@ -33,7 +33,7 @@ $code:
         return "SearchFacet|" + facets[key]
 
 $ param = {}
-$for p in {'q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor', 'publish_place', 'lccn', 'ia', 'first_sentence', 'publisher', 'author_key', 'debug', 'subject', 'place', 'person', 'time'} | facet_fields:
+$for p in {'q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor', 'publish_place', 'lccn', 'ia', 'first_sentence', 'publisher', 'author_key', 'debug', 'subject', 'place', 'person', 'time', 'editions.sort'} | facet_fields:
     $if p in input and input[p]:
         $ param[p] = input[p]
 
@@ -202,10 +202,11 @@ $ )
                 $ works = add_read_statuses(username, works)
             $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians'))
 
-            $for work in works:
-                $ read_status = work.get('readinglog', None)
-                $ dropper = macros.ReadingLogDropper([], work=work, include_lists=False, page_url="/search", users_work_read_status=read_status)
-                $:macros.SearchResultsWork(work, reading_log=dropper, show_librarian_extras=show_librarian_extras)
+            $# Subject key list will only be included in each doc if the patron has a sfw cookie
+            $ subject_keys = [d.get('subject', []) for d in docs]
+            $for work, subjects in zip(works, subject_keys):
+                $ content_warning = len([s for s in subjects if s.startswith("content_warning:")]) != 0
+                $:macros.SearchResultsWork(work, show_librarian_extras=show_librarian_extras, include_dropper=True, blur=content_warning)
           </ul>
           $:macros.Pager(page, num_found, rows)
         </div>

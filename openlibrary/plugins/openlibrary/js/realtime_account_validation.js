@@ -1,6 +1,12 @@
-import { ugettext } from './i18n';
-
 export function initRealTimeValidation() {
+    if (window.grecaptcha) {
+        // Callback that is called when grecaptcha.execute() is successful
+        function submitCreateAccountForm() {
+            const signupForm = document.querySelector('form[name=signup]')
+            signupForm.submit()
+        }
+        window.submitCreateAccountForm = submitCreateAccountForm
+    }
 
     $('#username').on('keyup', function(){
         var value = $(this).val();
@@ -87,13 +93,8 @@ export function initRealTimeValidation() {
 
     $('#signup').on('click', function(e) {
         e.preventDefault();
-        if (! (window.grecaptcha && window.grecaptcha.getResponse().length)) {
-            alert(ugettext('Please complete all fields and click the reCAPTCHA checkbox before proceeding.'));
-            return;
+        if (window.grecaptcha) {
+            window.grecaptcha.execute()
         }
-        validateEmail();
-        validateUsername();
-        validatePasswords();
-        $(this).closest('form').trigger('submit');
     });
 }

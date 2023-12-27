@@ -20,5 +20,5 @@ done
 echo "---"
 
 for SERVER in $SERVERS; do
-    ssh $SERVER "hostname | docker image ls | grep olbase | grep latest"
+    echo "$SERVER: $(ssh $SERVER 'hostname | docker image ls | grep olbase | grep latest')"
 done

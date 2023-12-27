@@ -1,7 +1,8 @@
 $def with (lists)
 
 $for list in lists:
-  $if not list['active']:
-    <p class="list">
-      <a href="$list.key" class="add-to-list dropper__close" data-list-cover-url="$list.cover_url" data-list-key="$list.key">$list.name</a>
-    </p>
+  $ list_active = "list--active" if list['active'] else ""
+  <p class="list $list_active">
+    <span class="list__status-indicator"></span>
+    <a href="$list.key" class="modify-list" data-list-cover-url="$list.cover_url" data-list-key="$list.key" data-list-items="$(json_encode(list.list_items))">$list.name</a>
+  </p>

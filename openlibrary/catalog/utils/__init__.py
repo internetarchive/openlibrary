@@ -1,10 +1,7 @@
 import datetime
 import re
-from re import Match
 import web
 from unicodedata import normalize
-from openlibrary.catalog.merge.merge_marc import build_titles
-import openlibrary.catalog.merge.normalize as merge
 
 
 EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS = 1400
@@ -34,8 +31,6 @@ re_l_in_date = re.compile(r'(l\d|\dl)')
 re_end_dot = re.compile(r'[^ .][^ .]\.$', re.UNICODE)
 re_marc_name = re.compile('^(.*?),+ (.*)$')
 re_year = re.compile(r'\b(\d{4})\b')
-
-re_brackets = re.compile(r'^(.+)\[.*?\]$')
 
 
 def key_int(rec):
@@ -77,17 +72,14 @@ def flip_name(name: str) -> str:
     :param str name: e.g. "Smith, John." or "Smith, J."
     :return: e.g. "John Smith" or "J. Smith"
     """
-
     m = re_end_dot.search(name)
     if m:
         name = name[:-1]
     if name.find(', ') == -1:
         return name
-    m = re_marc_name.match(name)
-    if isinstance(m, Match):
+    if m := re_marc_name.match(name):
         return m.group(2) + ' ' + m.group(1)
-
-    return ""
+    return ''
 
 
 def remove_trailing_number_dot(date):
@@ -98,11 +90,10 @@ def remove_trailing_number_dot(date):
 
 
 def remove_trailing_dot(s):
-    if s.endswith(" Dept."):
+    if s.endswith(' Dept.'):
         return s
-    m = re_end_dot.search(s)
-    if m:
-        s = s[:-1]
+    elif m := re_end_dot.search(s):
+        return s[:-1]
     return s
 
 
@@ -272,60 +263,6 @@ def get_title(e):
     return title
 
 
-def mk_norm(s: str) -> str:
-    """
-    Normalizes titles and strips ALL spaces and small words
-    to aid with string comparisons of two titles.
-
-    :param str s: A book title to normalize and strip.
-    :return: a lowercase string with no spaces, containing the main words of the title.
-    """
-
-    if m := re_brackets.match(s):
-        s = m.group(1)
-    norm = merge.normalize(s).strip(' ')
-    norm = norm.replace(' and ', ' ')
-    if norm.startswith('the '):
-        norm = norm[4:]
-    elif norm.startswith('a '):
-        norm = norm[2:]
-    return norm.replace(' ', '')
-
-
-def expand_record(rec: dict) -> dict[str, str | list[str]]:
-    """
-    Returns an expanded representation of an edition dict,
-    usable for accurate comparisons between existing and new
-    records.
-    Called from openlibrary.catalog.add_book.load()
-
-    :param dict rec: Import edition representation, requires 'full_title'
-    :return: An expanded version of an edition dict
-        more titles, normalized + short
-        all isbns in "isbn": []
-    """
-    expanded_rec = build_titles(rec['full_title'])
-    expanded_rec['isbn'] = []
-    for f in 'isbn', 'isbn_10', 'isbn_13':
-        expanded_rec['isbn'].extend(rec.get(f, []))
-    if 'publish_country' in rec and rec['publish_country'] not in (
-        '   ',
-        '|||',
-    ):
-        expanded_rec['publish_country'] = rec['publish_country']
-    for f in (
-        'lccn',
-        'publishers',
-        'publish_date',
-        'number_of_pages',
-        'authors',
-        'contribs',
-    ):
-        if f in rec:
-            expanded_rec[f] = rec[f]
-    return expanded_rec
-
-
 def get_publication_year(publish_date: str | int | None) -> int | None:
     """
     Return the publication year from a book in YYYY format by looking for four
@@ -338,11 +275,7 @@ def get_publication_year(publish_date: str | int | None) -> int | None:
     """
     if publish_date is None:
         return None
-
-    from openlibrary.catalog.utils import re_year
-
     match = re_year.search(str(publish_date))
-
     return int(match.group(0)) if match else None
 
 

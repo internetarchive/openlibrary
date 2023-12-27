@@ -23,10 +23,9 @@ import _init_path  # Imported for its side effect of setting PYTHONPATH
 import aiofiles
 import web
 
-from openlibrary.solr import update_work
+from openlibrary.solr import update
 from openlibrary.config import load_config
 from infogami import config
-from openlibrary.solr.update_work import CommitRequest
 
 logger = logging.getLogger("openlibrary.solr-updater")
 # FIXME: Some kind of hack introduced to work around DB connectivity issue
@@ -111,7 +110,7 @@ class InfobaseLog:
             self.offset = d['offset']
 
 
-def find_keys(d: Union[dict, list]) -> Iterator[str]:
+def find_keys(d: dict | list) -> Iterator[str]:
     """
     Find any keys in the given dict or list.
 
@@ -218,7 +217,7 @@ async def update_keys(keys):
     # FIXME: Some kind of hack introduced to work around DB connectivity issue
     global args
     logger.debug("Args: %s" % str(args))
-    update_work.load_configs(args['ol_url'], args['ol_config'], 'default')
+    update.load_configs(args['ol_url'], args['ol_config'], 'default')
 
     keys = [
         k
@@ -230,10 +229,10 @@ async def update_keys(keys):
     for chunk in web.group(keys, 100):
         chunk = list(chunk)
         count += len(chunk)
-        await update_work.do_updates(chunk)
+        await update.do_updates(chunk)
 
         # Caches should not persist between different calls to update_keys!
-        update_work.data_provider.clear_cache()
+        update.data_provider.clear_cache()
 
     if count:
         logger.info("updated %d documents", count)
@@ -280,12 +279,12 @@ async def main(
     # set OL URL when running on a dev-instance
     if ol_url:
         host = web.lstrips(ol_url, "http://").strip("/")
-        update_work.set_query_host(host)
+        update.set_query_host(host)
 
     if solr_url:
-        update_work.set_solr_base_url(solr_url)
+        update.set_solr_base_url(solr_url)
 
-    update_work.set_solr_next(solr_next)
+    update.set_solr_next(solr_next)
 
     logger.info("loading config from %s", ol_config)
     load_config(ol_config)
