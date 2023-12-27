@@ -223,12 +223,18 @@ class mybooks_readinglog(delegate.page):
     path = r'/people/([^/]+)/books/(want-to-read|currently-reading|already-read)'
 
     def GET(self, username, key='want-to-read'):
-        KEYS_TITLES = {
-            'currently-reading': _("Currently Reading"),
-            'want-to-read': _("Want to Read"),
-            'already-read': _("Already Read"),
-        }
         mb = MyBooksTemplate(username, key)
+        KEYS_TITLES = {
+            'currently-reading': _(
+                "Want to Read (%(count)d)", count=mb.counts['want-to-read']
+            ),
+            'want-to-read': _(
+                "Currently Reading (%(count)d)", count=mb.counts['currently-reading']
+            ),
+            'already-read': _(
+                "Already Read (%(count)d)", count=mb.counts['already-read']
+            ),
+        }
         if mb.is_my_page or mb.is_public:
             template = self.render_template(mb)
             return mb.render(header_title=KEYS_TITLES[key], template=template)
