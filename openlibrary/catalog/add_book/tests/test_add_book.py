@@ -1143,7 +1143,7 @@ def test_add_subjects_to_work_deduplicates(mock_site) -> None:
     existing_work = {
         'authors': [{'author': '/authors/OL1A', 'type': {'key': '/type/author_role'}}],
         'key': '/works/OL1W',
-        'subjects': ['granite', 'Straße', 'ΠΑΡΆΔΕΙΣΟΣ'],
+        'subjects': ['granite', 'GRANITE', 'Straße', 'ΠΑΡΆΔΕΙΣΟΣ'],
         'title': 'Some Title',
         'type': {'key': '/type/work'},
     }
@@ -1187,12 +1187,12 @@ def test_add_subjects_to_work_deduplicates(mock_site) -> None:
     assert reply['work']['key'] == '/works/OL1W'
     w = mock_site.get(reply['work']['key'])
 
-    def get_casefold_sort(item_list: list[str]):
-        return sorted([item.casefold() for item in item_list])
+    def get_casefold(item_list: list[str]):
+        return [item.casefold() for item in item_list]
 
     expected = ['granite', 'Straße', 'ΠΑΡΆΔΕΙΣΟΣ', 'sandstone']
     got = w.subjects
-    assert get_casefold_sort(got) == get_casefold_sort(expected)
+    assert get_casefold(got) == get_casefold(expected)
 
 
 def test_add_identifiers_to_edition(mock_site) -> None:

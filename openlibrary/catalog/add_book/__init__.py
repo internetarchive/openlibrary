@@ -917,7 +917,7 @@ def update_work_with_rec_data(
             itertools.chain(work_subjects, rec_subjects), lambda item: item.casefold()
         )
 
-        if len(work_subjects) != len(deduped_subjects):
+        if work_subjects != deduped_subjects:
             work['subjects'] = deduped_subjects
             need_work_save = True
 
