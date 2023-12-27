@@ -753,9 +753,9 @@ class SaveBookHelper:
             f = io.StringIO(subjects.replace('\r\n', ''))
             dedup = set()
             for s in next(csv.reader(f, dialect='excel', skipinitialspace=True)):
-                if s.lower() not in dedup:
+                if s.casefold() not in dedup:
                     yield s
-                    dedup.add(s.lower())
+                    dedup.add(s.casefold())
 
         work.subjects = list(read_subject(work.get('subjects', '')))
         work.subject_places = list(read_subject(work.get('subject_places', '')))
