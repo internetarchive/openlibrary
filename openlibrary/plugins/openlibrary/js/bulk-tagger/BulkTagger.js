@@ -507,6 +507,13 @@ export class BulkTagger {
      * Submits the bulk tagging form and updates the view.
      */
     submitBatch() {
+
+
+        // Disable button
+        this.submitButton.disabled = true;
+
+        this.submitButton.textContent = 'Submitting...';
+
         const url = this.rootElement.action
         this.prepareFormForSubmission()
 
@@ -516,14 +523,15 @@ export class BulkTagger {
         })
             .then(response => {
                 if (!response.ok) {
-                    new FadingToast('Batch subject update failed. Please try again in a few minutes.').show()
+                    this.submitButton.disabled = false;
+                    this.submitButton.textContent = 'Submit';
+                    new FadingToast('Batch subject update failed. Please try again in a few minutes.').show();
                 } else {
-                    this.hideTaggingMenu()
+                    this.hideTaggingMenu();
                     new FadingToast('Subjects successfully updated.').show()
-
-                    // Update fetched subjects:
-                    this.updateFetchedSubjects()
-                    this.resetTaggingMenu()
+                    this.submitButton.textContent = 'Submit';
+                    this.updateFetchedSubjects();
+                    this.resetTaggingMenu();
                 }
             })
     }
