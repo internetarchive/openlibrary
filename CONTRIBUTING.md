@@ -154,10 +154,11 @@ Once you've finished making your changes, submit a pull request (PR). Please tak
 
 Follow these rules when creating a PR:
 
-1. **Follow the pull request template**: It's easier for a maintainer to reject a PR than it is for them to fill it out for you.
-2. **Make PRs _self-contained_**: They should clearly describe what changes have taken place. A reviewer should (for the most part) be able to complete a review without having to look at other issues.
-3. **Resolve all code review (CR) comments**: Treat comments as a todo list. Most PRs will require some edits before getting merged, so don't get discouraged if you have to make some changes!
-4. **Reply when resolving CR comments**: When resolving a comment, reply with either "DONE" or "WON'T FIX because ...". A reviewer will unresolve a comment if they feel it's necessary.
+1. **Test your code before opening a PR**: Maintainers may close your PR if it has clearly not been tested.
+2. **Follow the pull request template**: It's easier for a maintainer to reject a PR than it is for them to fill it out for you.
+3. **Make PRs _self-contained_**: They should clearly describe what changes have taken place. A reviewer should (for the most part) be able to complete a review without having to look at other issues.
+4. **Resolve all code review (CR) comments**: Treat comments as a todo list. Most PRs will require some edits before getting merged, so don't get discouraged if you have to make some changes!
+5. **Reply when resolving CR comments**: When resolving a comment, reply with either "DONE" or "WON'T FIX because ...". A reviewer will unresolve a comment if they feel it's necessary.
 
 ## QA Testing
 
