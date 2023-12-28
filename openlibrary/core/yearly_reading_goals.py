@@ -14,7 +14,7 @@ class YearlyReadingGoals:
 
     # Read methods:
     @classmethod
-    def select_by_username(cls, username: str, order = 'year ASC'):
+    def select_by_username(cls, username: str, order='year ASC'):
         oldb = db.get_db()
 
         where = 'username=$username'

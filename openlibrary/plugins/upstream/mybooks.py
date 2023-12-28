@@ -251,11 +251,16 @@ class mybooks_readinglog(delegate.page):
         # Add ratings to "already-read" items.
         if include_ratings := mb.key == "already-read" and mb.is_my_page:
             logged_book_data.load_ratings()
-        
-        #Add yearly reading goals to the MyBooksTemplate
-        if mb.key ==  'already-read' and mb.is_my_page:
-            mb.reading_goals = [str(result.year) for result in YearlyReadingGoals.select_by_username(mb.username, order = 'year DESC')]
-            
+
+        # Add yearly reading goals to the MyBooksTemplate
+        if mb.key == 'already-read' and mb.is_my_page:
+            mb.reading_goals = [
+                str(result.year)
+                for result in YearlyReadingGoals.select_by_username(
+                    mb.username, order='year DESC'
+                )
+            ]
+
         ratings = logged_book_data.ratings
         return render['account/reading_log'](
             docs,
@@ -387,10 +392,9 @@ class MyBooksTemplate:
             if (self.is_my_page or self.is_public)
             else []
         )
-        
+
         self.reading_goals = []
         self.selected_year = None
-
 
         if self.me and self.is_my_page:
             self.counts.update(PatronBooknotes.get_counts(self.username))
@@ -448,7 +452,7 @@ class ReadingLog:
         counts.update(self.sponsorship_counts)
         counts.update(self.booknotes_counts)
         return counts
-    
+
     @property
     def reading_log_counts(self):
         counts = (
