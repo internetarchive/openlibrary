@@ -27,14 +27,14 @@ $var title: $header_title
         $if mb.key == 'list':
           <h1 class="details-title">$header_title</h1>
         $else:
-        <div class="sansserif grey account-settings-menu" style="display:flex;gap:1rem;"">
-          $:render_template("books/mybooks_breadcrumb_select", mb, selected=header_title)
-          $if header_title=="Already Read" and mb.reading_goals:
+          <div class="sansserif grey account-settings-menu navigation-breadcrumbs">
+            $:render_template("books/mybooks_breadcrumb_select", mb, selected=header_title)
+            $if header_title=="Already Read" and mb.reading_goals:
 
-            $ selected_year = mb.selected_year if mb.selected_year else _("All Time")
-            $:render_template("books/year_breadcrumb_select", mb, selected= selected_year)
+              $ selected_year = mb.selected_year if mb.selected_year else _("All Time")
+              $:render_template("books/year_breadcrumb_select", mb, selected= selected_year)
 
-        </div>
+          </div>
       </div>
 
       $if page:
