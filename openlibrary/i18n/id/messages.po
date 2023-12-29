@@ -4,20 +4,21 @@
 # project.
 # Irenna Lumbuun <irennanicole1@gmail.com>, 2023.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: irennanicole1@gmail.com\n"
 "POT-Creation-Date: 2023-01-06 20:53+0000\n"
-"PO-Revision-Date: 2023-07-23 15:08-0700\n"
+"PO-Revision-Date: 2023-12-28 22:53-0800\n"
 "Last-Translator: Irenna Lumbuun <irennanicole1@gmail.com>\n"
 "Language-Team: https://github.com/internetarchive/openlibrary/issues\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.9.1\n"
+"Generated-By: Babel 2.12.1\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Language: id\n"
+"X-Generator: Poedit 2.0.6\n"
 
 #: account.html:7 account.html:15 account/notifications.html:13
 #: account/privacy.html:13 lib/nav_head.html:15 type/user/view.html:27
@@ -38,8 +39,7 @@ msgstr "atau"
 
 #: account.html:21 check_ins/check_in_prompt.html:26
 #: check_ins/reading_goal_progress.html:26 databarHistory.html:27
-#: databarTemplate.html:13 databarView.html:34
-#: type/edition/compact_title.html:11
+#: databarTemplate.html:13 databarView.html:34 type/edition/compact_title.html:11
 msgid "Edit"
 msgstr "Sunting"
 
@@ -53,7 +53,7 @@ msgstr "Lihat atau Sunting bacaan Anda"
 
 #: account.html:23
 msgid "View or Edit your Lists"
-msgstr "Lihat atau Sunting "
+msgstr "Lihat atau Sunting"
 
 #: account.html:24
 msgid "Import and Export Options"
@@ -61,7 +61,7 @@ msgstr "Impor dan Expor Pengaturan"
 
 #: account.html:25
 msgid "Manage Privacy Settings"
-msgstr "Kelola Pengaturan Privasi "
+msgstr "Kelola Pengaturan Privasi"
 
 #: account.html:26
 msgid "Manage Notifications Settings"
@@ -85,7 +85,7 @@ msgstr "Nonaktifkan akun"
 
 #: account.html:32
 msgid "Please contact us if you need help with anything else."
-msgstr "Silakan hubungi kami jika Anda butuh bantuan dengan hal lain"
+msgstr "Silakan hubungi kami jika Anda butuh bantuan dengan hal lain."
 
 #: barcodescanner.html:7
 msgid "Barcode Scanner (Beta)"
@@ -100,7 +100,6 @@ msgstr "Arahkan kamera anda pada barcode! 📷"
 msgid "%(count)d Current Loan"
 msgid_plural "%(count)d Current Loans"
 msgstr[0] "%(count)d Pinjaman Saat Ini"
-msgstr[1] "%(count)d Pinjaman Saat Ini"
 
 #: account/loans.html:65 admin/loans_table.html:41 borrow_admin.html:106
 msgid "Loan Expires"
@@ -111,14 +110,12 @@ msgstr "Pinjaman sudah Berakhir"
 msgid "%d person waiting"
 msgid_plural "%d people waiting"
 msgstr[0] "%d orang menunggu"
-msgstr[1] "%d orang menunggu"
 
 #: ManageWaitlistButton.html:11 borrow_admin.html:186
 #, python-format
 msgid "Waiting for %d day"
 msgid_plural "Waiting for %d days"
 msgstr[0] "Waktu tunggu %d hari"
-msgstr[1] "Waktu tunggu %d hari"
 
 #: diff.html:7
 #, python-format
@@ -162,11 +159,11 @@ msgstr "Perbedaan"
 
 #: diff.html:168
 msgid "Both the revisions are identical."
-msgstr "Kedua revisi tidak memiliki perbedaan"
+msgstr "Kedua revisi tidak memiliki perbedaan."
 
 #: edit_yaml.html:14 lib/edit_head.html:17
 msgid "You're in edit mode."
-msgstr "Anda sedang dalam mode edit"
+msgstr "Anda sedang dalam mode edit."
 
 #: edit_yaml.html:15 lib/edit_head.html:18
 msgid "Cancel, and go back."
@@ -238,16 +235,17 @@ msgstr "Maaf. Ada masalah dengan halaman yang sedang Anda lihat."
 #: internalerror.html:15
 #, python-format
 msgid ""
-"We've noted the error %s and will look into it as soon as possible. Head "
-"for <a href=\"/\">home</a>?"
-msgstr "Kami telah menemukan error %s dan akan memeriksanya segera. Kembali ke <a href=\"/\">home</a>?"
+"We've noted the error %s and will look into it as soon as possible. Head for <a "
+"href=\"/\">home</a>?"
+msgstr ""
+"Kami telah menemukan error %s dan akan memeriksanya segera. Kembali ke <a href=\"/"
+"\">home</a>?"
 
 #: lib/nav_head.html:30 library_explorer.html:6
 msgid "Library Explorer"
 msgstr ""
 
-#: lib/header_dropdown.html:59 lib/nav_head.html:118 login.html:10
-#: login.html:75
+#: lib/header_dropdown.html:59 lib/nav_head.html:118 login.html:10 login.html:75
 msgid "Log In"
 msgstr "Masuk"
 
@@ -257,9 +255,11 @@ msgstr "ATAU"
 
 #: login.html:18
 msgid ""
-"Please enter your <a href=\"https://archive.org\">Internet Archive</a> "
-"email and password to access your Open Library account."
-msgstr "Silakan masukan email untuk <a href=\"https://archive.org\">Internet Archive</a> dan kata sandi untuk mengakses akun Open Library Anda."
+"Please enter your <a href=\"https://archive.org\">Internet Archive</a> email and "
+"password to access your Open Library account."
+msgstr ""
+"Silakan masukan email untuk <a href=\"https://archive.org\">Internet Archive</a> "
+"dan kata sandi untuk mengakses akun Open Library Anda."
 
 #: account/create.html:50 login.html:21
 #, python-format
@@ -268,12 +268,13 @@ msgstr "Anda telah masuk ke Open Library sebagai %(user)s."
 
 #: account/create.html:51 login.html:22
 msgid ""
-"If you'd like to create a new, different Open Library account, you'll "
-"need to <a href=\"javascript:;\" "
-"onclick=\"document.forms['logout'].submit()\">log out</a> and start the "
-"signup process afresh."
-msgstr "Jika Anda ingin menciptakan akun OpenLibrary baru, Anda perlu <a href=\"javascript:;\" "
-"onclick=\"document.forms['logout'].submit()\">keluar</a> dan mengulang proses pendaftaran."
+"If you'd like to create a new, different Open Library account, you'll need to <a "
+"href=\"javascript:;\" onclick=\"document.forms['logout'].submit()\">log out</a> "
+"and start the signup process afresh."
+msgstr ""
+"Jika Anda ingin menciptakan akun OpenLibrary baru, Anda perlu <a href="
+"\"javascript:;\" onclick=\"document.forms['logout'].submit()\">keluar</a> dan "
+"mengulang proses pendaftaran."
 
 #: login.html:42
 msgid "Email"
@@ -297,7 +298,9 @@ msgstr "Lupa kata sandi Anda?"
 
 #: login.html:81
 msgid "Not a member of Open Library? <a href=\"/account/create\">Sign up now</a>."
-msgstr "Belum menjadi anggota Open Library? <a href=\"/account/create\">Daftar Sekarang</a>."
+msgstr ""
+"Belum menjadi anggota Open Library? <a href=\"/account/create\">Daftar Sekarang</"
+"a>."
 
 #: messages.html:11
 msgid "Created new author record."
@@ -393,8 +396,8 @@ msgstr ""
 msgid "Places"
 msgstr ""
 
-#: SubjectTags.html:25 admin/menu.html:20 subjects.html:9
-#: type/author/view.html:178 type/list/view_body.html:281 work_search.html:78
+#: SubjectTags.html:25 admin/menu.html:20 subjects.html:9 type/author/view.html:178
+#: type/list/view_body.html:281 work_search.html:78
 msgid "People"
 msgstr ""
 
@@ -413,7 +416,6 @@ msgstr ""
 msgid "%(count)d work"
 msgid_plural "%(count)d works"
 msgstr[0] ""
-msgstr[1] ""
 
 #: subjects.html:22
 #, python-format
@@ -435,10 +437,9 @@ msgstr ""
 
 #: subjects.html:39
 msgid ""
-"This is a chart to show the publishing history of editions of works about"
-" this subject. Along the X axis is time, and on the y axis is the count "
-"of editions published. <a href=\"#subjectRelated\">Click here to skip the"
-" chart</a>."
+"This is a chart to show the publishing history of editions of works about this "
+"subject. Along the X axis is time, and on the y axis is the count of editions "
+"published. <a href=\"#subjectRelated\">Click here to skip the chart</a>."
 msgstr ""
 
 #: publishers/view.html:34 subjects.html:40
@@ -484,7 +485,6 @@ msgstr ""
 msgid "%(count)d book"
 msgid_plural "%(count)d books"
 msgstr[0] ""
-msgstr[1] ""
 
 #: subjects.html:92
 msgid "Prolific Authors"
@@ -504,7 +504,6 @@ msgstr ""
 msgid "%(count)s edition"
 msgid_plural "%(count)s editions"
 msgstr[0] ""
-msgstr[1] ""
 
 #: support.html:7 support.html:10
 msgid "How can we help?"
@@ -512,16 +511,16 @@ msgstr ""
 
 #: support.html:16
 msgid ""
-"Your question has been sent to our support team. We'll get back to you "
-"shortly. You can also <a href=\"https://twitter.com/openlibrary\">contact"
-" us on Twitter</a>."
+"Your question has been sent to our support team. We'll get back to you shortly. "
+"You can also <a href=\"https://twitter.com/openlibrary\">contact us on Twitter</"
+"a>."
 msgstr ""
 
 #: support.html:19
 msgid ""
-"Please check our <a href=\"/help/\">Help Pages</a> and <a "
-"href=\"/help/faq\">Frequently Asked Questions</a> (FAQ) to see if your "
-"question is answered there. Thank you."
+"Please check our <a href=\"/help/\">Help Pages</a> and <a href=\"/help/faq"
+"\">Frequently Asked Questions</a> (FAQ) to see if your question is answered "
+"there. Thank you."
 msgstr ""
 
 #: support.html:22
@@ -538,8 +537,8 @@ msgstr ""
 
 #: support.html:29
 msgid ""
-"If you wish to be contacted by other means, please add your contact "
-"preference and details to your question."
+"If you wish to be contacted by other means, please add your contact preference "
+"and details to your question."
 msgstr ""
 
 #: support.html:33
@@ -588,8 +587,8 @@ msgstr ""
 
 #: support.html:54
 msgid ""
-"If you encounter an error message, please include it. For questions about"
-" our books, please provide the title/author or Open Library ID."
+"If you encounter an error message, please include it. For questions about our "
+"books, please provide the title/author or Open Library ID."
 msgstr ""
 
 #: support.html:58
@@ -602,11 +601,10 @@ msgstr ""
 
 #: EditButtons.html:23 EditButtonsMacros.html:26 ReadingLogDropper.html:167
 #: account/create.html:90 account/notifications.html:59
-#: account/password/reset.html:24 account/privacy.html:56
-#: admin/imports-add.html:28 books/add.html:108 books/edit/addfield.html:87
-#: books/edit/addfield.html:133 books/edit/addfield.html:177 covers/add.html:79
-#: covers/manage.html:52 databarAuthor.html:66 databarEdit.html:13
-#: merge/authors.html:109 support.html:71
+#: account/password/reset.html:24 account/privacy.html:56 admin/imports-add.html:28
+#: books/add.html:108 books/edit/addfield.html:87 books/edit/addfield.html:133
+#: books/edit/addfield.html:177 covers/add.html:79 covers/manage.html:52
+#: databarAuthor.html:66 databarEdit.html:13 merge/authors.html:109 support.html:71
 msgid "Cancel"
 msgstr ""
 
@@ -644,9 +642,8 @@ msgstr ""
 msgid "See what readers from the community are adding to their bookshelves"
 msgstr ""
 
-#: ReadingLogDropper.html:27 ReadingLogDropper.html:66
-#: ReadingLogDropper.html:189 account/mybooks.html:75 account/sidebar.html:26
-#: trending.html:23
+#: ReadingLogDropper.html:27 ReadingLogDropper.html:66 ReadingLogDropper.html:189
+#: account/mybooks.html:75 account/sidebar.html:26 trending.html:23
 msgid "Want to Read"
 msgstr ""
 
@@ -659,9 +656,8 @@ msgstr ""
 #: LoanReadForm.html:9 ReadButton.html:19
 #: book_providers/gutenberg_read_button.html:15
 #: book_providers/openstax_read_button.html:15
-#: book_providers/standard_ebooks_read_button.html:15
-#: books/edit/edition.html:665 books/show.html:34 trending.html:23
-#: type/list/embed.html:69 widget.html:34
+#: book_providers/standard_ebooks_read_button.html:15 books/edit/edition.html:665
+#: books/show.html:34 trending.html:23 type/list/embed.html:69 widget.html:34
 msgid "Read"
 msgstr ""
 
@@ -742,8 +738,8 @@ msgstr ""
 msgid "First published"
 msgstr ""
 
-#: search/advancedsearch.html:44 type/edition/view.html:231
-#: type/work/view.html:231 work_search.html:77
+#: search/advancedsearch.html:44 type/edition/view.html:231 type/work/view.html:231
+#: work_search.html:77
 msgid "Publisher"
 msgstr ""
 
@@ -837,7 +833,6 @@ msgstr ""
 msgid "%(count)s hit"
 msgid_plural "%(count)s hits"
 msgstr[0] ""
-msgstr[1] ""
 
 #: work_search.html:225
 msgid "Zoom In"
@@ -984,8 +979,8 @@ msgstr ""
 
 #: account/create.html:77
 msgid ""
-"If you have security settings or privacy blockers installed, please "
-"disable them to see the reCAPTCHA."
+"If you have security settings or privacy blockers installed, please disable them "
+"to see the reCAPTCHA."
 msgstr ""
 
 #: account/create.html:81
@@ -994,9 +989,8 @@ msgstr ""
 
 #: account/create.html:85
 msgid ""
-"By signing up, you agree to the Internet Archive's <a "
-"href='//archive.org/about/terms.php' target='_blank'>Terms of "
-"Service</a>."
+"By signing up, you agree to the Internet Archive's <a href='//archive.org/about/"
+"terms.php' target='_blank'>Terms of Service</a>."
 msgstr ""
 
 #: account/delete.html:6 account/delete.html:10
@@ -1097,7 +1091,6 @@ msgstr ""
 msgid "There is one person waiting for this book."
 msgid_plural "There are %(n)d people waiting for this book."
 msgstr[0] ""
-msgstr[1] ""
 
 #: account/loans.html:99
 msgid "Not yet downloaded."
@@ -1125,8 +1118,7 @@ msgstr ""
 
 #: account/loans.html:130
 msgid ""
-"Are you sure you want to leave the waiting list "
-"of<br/><strong>TITLE</strong>?"
+"Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?"
 msgstr ""
 
 #: account/loans.html:149 admin/loans_table.html:43 admin/menu.html:33
@@ -1143,7 +1135,6 @@ msgstr ""
 msgid "Waiting for 1 day"
 msgid_plural "Waiting for %(count)d days"
 msgstr[0] ""
-msgstr[1] ""
 
 #: account/loans.html:179
 msgid "You are the next person to receive this book."
@@ -1154,7 +1145,6 @@ msgstr ""
 msgid "There is one person ahead of you in the waiting list."
 msgid_plural "There are %(count)d people ahead of you in the waiting list."
 msgstr[0] ""
-msgstr[1] ""
 
 #: account/loans.html:190
 msgid "You have less than an hour to borrow it."
@@ -1165,7 +1155,6 @@ msgstr ""
 msgid "You have one more hour to borrow it."
 msgid_plural "You have %(hours)d more hours to borrow it."
 msgstr[0] ""
-msgstr[1] ""
 
 #: account/loans.html:199
 msgid "Borrow Now"
@@ -1258,9 +1247,9 @@ msgstr ""
 
 #: account/notifications.html:31
 msgid ""
-"Notifications are connected to Lists at the moment. If one of the books "
-"on your list gets edited, or a new book comes into the catalog, we'll let"
-" you know, if you want."
+"Notifications are connected to Lists at the moment. If one of the books on your "
+"list gets edited, or a new book comes into the catalog, we'll let you know, if "
+"you want."
 msgstr ""
 
 #: account/notifications.html:35
@@ -1316,8 +1305,8 @@ msgstr ""
 #: account/reading_log.html:13
 #, python-format
 msgid ""
-"%(username)s is reading %(total)d books. Join %(username)s on "
-"OpenLibrary.org and tell the world what you're reading."
+"%(username)s is reading %(total)d books. Join %(username)s on OpenLibrary.org and "
+"tell the world what you're reading."
 msgstr ""
 
 #: account/reading_log.html:15
@@ -1328,8 +1317,8 @@ msgstr ""
 #: account/reading_log.html:16
 #, python-format
 msgid ""
-"%(username)s wants to read %(total)d books. Join %(username)s on "
-"OpenLibrary.org and share the books that you'll soon be reading!"
+"%(username)s wants to read %(total)d books. Join %(username)s on OpenLibrary.org "
+"and share the books that you'll soon be reading!"
 msgstr ""
 
 #: account/reading_log.html:18
@@ -1340,8 +1329,8 @@ msgstr ""
 #: account/reading_log.html:19
 #, python-format
 msgid ""
-"%(username)s has read %(total)d books. Join %(username)s on "
-"OpenLibrary.org and tell the world about the books that you care about."
+"%(username)s has read %(total)d books. Join %(username)s on OpenLibrary.org and "
+"tell the world about the books that you care about."
 msgstr ""
 
 #: account/reading_log.html:21
@@ -1371,8 +1360,8 @@ msgstr ""
 
 #: account/reading_log.html:71
 msgid ""
-"<a href=\"/search\">Search for a book</a> to add to your reading log. <a "
-"href=\"/help/faq/reading-log\">Learn more</a> about the reading log."
+"<a href=\"/search\">Search for a book</a> to add to your reading log. <a href=\"/"
+"help/faq/reading-log\">Learn more</a> about the reading log."
 msgstr ""
 
 #: account/readinglog_stats.html:8 account/readinglog_stats.html:95
@@ -1383,8 +1372,8 @@ msgstr ""
 #: account/readinglog_stats.html:97
 #, python-format
 msgid ""
-"Displaying stats about <strong>%d</strong> books. Note all charts show "
-"only the top 20 bars. Note reading log stats are private."
+"Displaying stats about <strong>%d</strong> books. Note all charts show only the "
+"top 20 bars. Note reading log stats are private."
 msgstr ""
 
 #: account/readinglog_stats.html:102
@@ -1413,9 +1402,8 @@ msgstr ""
 
 #: account/readinglog_stats.html:121
 msgid ""
-"Demographic statistics powered by <a "
-"href=\"https://www.wikidata.org/\">Wikidata</a>. Here's a <a id=\"wd-"
-"query-sample\" href=\"\">sample</a> of the query used."
+"Demographic statistics powered by <a href=\"https://www.wikidata.org/\">Wikidata</"
+"a>. Here's a <a id=\"wd-query-sample\" href=\"\">sample</a> of the query used."
 msgstr ""
 
 #: account/readinglog_stats.html:123
@@ -1463,10 +1451,9 @@ msgid "Sponsoring"
 msgstr ""
 
 #: EditionNavBar.html:30 SearchNavigation.html:28 account/sidebar.html:45
-#: lib/nav_head.html:31 lib/nav_head.html:96 lists/home.html:7
-#: lists/home.html:10 lists/widget.html:67 recentchanges/index.html:41
-#: type/list/embed.html:28 type/list/view_body.html:48 type/user/view.html:35
-#: type/user/view.html:66
+#: lib/nav_head.html:31 lib/nav_head.html:96 lists/home.html:7 lists/home.html:10
+#: lists/widget.html:67 recentchanges/index.html:41 type/list/embed.html:28
+#: type/list/view_body.html:48 type/user/view.html:35 type/user/view.html:66
 msgid "Lists"
 msgstr ""
 
@@ -1495,8 +1482,8 @@ msgstr ""
 
 #: account/email/forgot-ia.html:12
 msgid ""
-"Please enter your Open Library email and password, and we’ll retrieve "
-"your Archive.org email."
+"Please enter your Open Library email and password, and we’ll retrieve your "
+"Archive.org email."
 msgstr ""
 
 #: account/email/forgot-ia.html:17
@@ -1555,8 +1542,8 @@ msgstr ""
 
 #: account/password/reset_success.html:14
 msgid ""
-"Your password has been updated. Please <a "
-"href='/account/login?redirect=/'>log in to continue</a>."
+"Your password has been updated. Please <a href='/account/login?redirect=/'>log in "
+"to continue</a>."
 msgstr ""
 
 #: account/password/sent.html:10
@@ -1567,8 +1554,8 @@ msgstr ""
 #, python-format
 msgid ""
 "We've sent an email to %(email)s with a reminder of your username and "
-"instructions to help you reset your Open Library password. Please check "
-"your inbox for a note from us."
+"instructions to help you reset your Open Library password. Please check your "
+"inbox for a note from us."
 msgstr ""
 
 #: account/verify/activated.html:7
@@ -1588,8 +1575,8 @@ msgstr ""
 
 #: account/verify/failed.html:14
 msgid ""
-"Your email address couldn't be verified. Your verification link seems "
-"invalid or expired."
+"Your email address couldn't be verified. Your verification link seems invalid or "
+"expired."
 msgstr ""
 
 #: account/verify/failed.html:22
@@ -1646,11 +1633,10 @@ msgstr ""
 msgid "%d Current Loan"
 msgid_plural "%d Current Loans"
 msgstr[0] ""
-msgstr[1] ""
 
 #: RecentChanges.html:18 RecentChangesUsers.html:21 admin/ip/view.html:45
-#: admin/loans_table.html:45 admin/people/edits.html:42
-#: recentchanges/render.html:31 recentchanges/updated_records.html:29
+#: admin/loans_table.html:45 admin/people/edits.html:42 recentchanges/render.html:31
+#: recentchanges/updated_records.html:29
 msgid "What"
 msgstr ""
 
@@ -1767,8 +1753,7 @@ msgstr ""
 msgid "Recent Accounts"
 msgstr ""
 
-#: admin/people/index.html:58 type/author/edit.html:32
-#: type/language/view.html:27
+#: admin/people/index.html:58 type/author/edit.html:32 type/language/view.html:27
 msgid "Name"
 msgstr ""
 
@@ -1891,11 +1876,10 @@ msgstr ""
 
 #: book_providers/gutenberg_read_button.html:21
 msgid ""
-"This book is available from <a "
-"href=\"https://www.gutenberg.org/\">Project Gutenberg</a>. Project "
-"Gutenberg is a trusted book provider of classic ebooks, supporting "
-"thousands of volunteers in the creation and distribution of over 60,000 "
-"free eBooks."
+"This book is available from <a href=\"https://www.gutenberg.org/\">Project "
+"Gutenberg</a>. Project Gutenberg is a trusted book provider of classic ebooks, "
+"supporting thousands of volunteers in the creation and distribution of over "
+"60,000 free eBooks."
 msgstr ""
 
 #: book_providers/gutenberg_read_button.html:22
@@ -1910,11 +1894,10 @@ msgstr ""
 #: book_providers/gutenberg_read_button.html:24
 #: book_providers/librivox_read_button.html:27
 #: book_providers/openstax_read_button.html:24
-#: book_providers/standard_ebooks_read_button.html:24
-#: covers/author_photo.html:22 covers/book_cover.html:39
-#: covers/book_cover_single_edition.html:34 covers/book_cover_work.html:30
-#: covers/change.html:44 lib/markdown.html:12 lists/lists.html:53
-#: merge_queue/merge_queue.html:121
+#: book_providers/standard_ebooks_read_button.html:24 covers/author_photo.html:22
+#: covers/book_cover.html:39 covers/book_cover_single_edition.html:34
+#: covers/book_cover_work.html:30 covers/change.html:44 lib/markdown.html:12
+#: lists/lists.html:53 merge_queue/merge_queue.html:121
 msgid "Close"
 msgstr ""
 
@@ -1976,10 +1959,9 @@ msgstr ""
 
 #: book_providers/librivox_read_button.html:24
 msgid ""
-"This book is available from <a "
-"href=\"https://librivox.org/\">LibriVox</a>. LibriVox is a trusted book "
-"provider of public domain audiobooks, narrated by volunteers, distributed"
-" for free on the internet."
+"This book is available from <a href=\"https://librivox.org/\">LibriVox</a>. "
+"LibriVox is a trusted book provider of public domain audiobooks, narrated by "
+"volunteers, distributed for free on the internet."
 msgstr ""
 
 #: book_providers/openstax_download_options.html:13
@@ -1996,11 +1978,10 @@ msgstr ""
 
 #: book_providers/openstax_read_button.html:21
 msgid ""
-"This book is available from <a "
-"href=\"https://www.openstax.org/\">OpenStax</a>. OpenStax is a trusted "
-"book provider and a 501(c)(3) nonprofit charitable corporation dedicated "
-"to providing free high-quality, peer-reviewed, openly licensed textbooks "
-"online."
+"This book is available from <a href=\"https://www.openstax.org/\">OpenStax</a>. "
+"OpenStax is a trusted book provider and a 501(c)(3) nonprofit charitable "
+"corporation dedicated to providing free high-quality, peer-reviewed, openly "
+"licensed textbooks online."
 msgstr ""
 
 #: book_providers/standard_ebooks_download_options.html:14
@@ -2031,8 +2012,7 @@ msgstr ""
 msgid "View the source code for this Standard Ebook at GitHub"
 msgstr ""
 
-#: Subnavigation.html:13
-#: book_providers/standard_ebooks_download_options.html:18
+#: Subnavigation.html:13 book_providers/standard_ebooks_download_options.html:18
 msgid "Source Code"
 msgstr ""
 
@@ -2046,11 +2026,10 @@ msgstr ""
 
 #: book_providers/standard_ebooks_read_button.html:21
 msgid ""
-"This book is available from <a "
-"href=\"https://standardebooks.org/\">Standard Ebooks</a>. Standard Ebooks"
-" is a trusted book provider and a volunteer-driven project that produces "
-"new editions of public domain ebooks that are lovingly formatted, open "
-"source, free of copyright restrictions, and free of cost."
+"This book is available from <a href=\"https://standardebooks.org/\">Standard "
+"Ebooks</a>. Standard Ebooks is a trusted book provider and a volunteer-driven "
+"project that produces new editions of public domain ebooks that are lovingly "
+"formatted, open source, free of copyright restrictions, and free of cost."
 msgstr ""
 
 #: books/RelatedWorksCarousel.html:19
@@ -2061,7 +2040,6 @@ msgstr ""
 msgid "More by this author"
 msgid_plural "More by these authors"
 msgstr[0] ""
-msgstr[1] ""
 
 #: books/add.html:7 books/check.html:10
 msgid "Add a book"
@@ -2073,8 +2051,8 @@ msgstr ""
 
 #: books/add.html:11
 msgid ""
-"ID must be exactly 10 characters [0-9 or X]. For example 0-19-853453-1 or"
-" 0198534531"
+"ID must be exactly 10 characters [0-9 or X]. For example 0-19-853453-1 or "
+"0198534531"
 msgstr ""
 
 #: books/add.html:12
@@ -2089,8 +2067,7 @@ msgstr ""
 
 #: books/add.html:19
 msgid ""
-"We require a minimum set of fields to create a new record. These are "
-"those fields."
+"We require a minimum set of fields to create a new record. These are those fields."
 msgstr ""
 
 #: books/add.html:31 books/edit.html:86 books/edit/edition.html:96
@@ -2112,8 +2089,8 @@ msgstr ""
 
 #: books/add.html:42
 msgid ""
-"Like, \"Agatha Christie\" or \"Jean-Paul Sartre.\" We'll also do a live "
-"check to see if we already know the author."
+"Like, \"Agatha Christie\" or \"Jean-Paul Sartre.\" We'll also do a live check to "
+"see if we already know the author."
 msgstr ""
 
 #: books/add.html:48 books/edit/edition.html:119
@@ -2133,9 +2110,7 @@ msgid "You should be able to find this in the first few pages of the book."
 msgstr ""
 
 #: books/add.html:66
-msgid ""
-"And optionally, an ID number &#151; like an ISBN &#151; would be "
-"helpful..."
+msgid "And optionally, an ID number &#151; like an ISBN &#151; would be helpful..."
 msgstr ""
 
 #: books/add.html:67
@@ -2164,11 +2139,10 @@ msgstr ""
 
 #: EditButtons.html:17 EditButtonsMacros.html:20 books/add.html:103
 msgid ""
-"By saving a change to this wiki, you agree that your contribution is "
-"given freely to the world under <a "
-"href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
-"target=\"_blank\" title=\"This link to Creative Commons will open in a "
-"new window\">CC0</a>. Yippee!"
+"By saving a change to this wiki, you agree that your contribution is given freely "
+"to the world under <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
+"target=\"_blank\" title=\"This link to Creative Commons will open in a new window"
+"\">CC0</a>. Yippee!"
 msgstr ""
 
 #: books/add.html:106
@@ -2201,14 +2175,14 @@ msgstr ""
 #: books/check.html:15
 #, python-format
 msgid ""
-"One moment... It looks like we already have <em>some potential "
-"matches</em> for <b>%(title)s</b> by <b>%(author)s</b>."
+"One moment... It looks like we already have <em>some potential matches</em> for "
+"<b>%(title)s</b> by <b>%(author)s</b>."
 msgstr ""
 
 #: books/check.html:17
 msgid ""
-"Rather than creating a duplicate record, please click through the result "
-"you think best matches your book."
+"Rather than creating a duplicate record, please click through the result you "
+"think best matches your book."
 msgstr ""
 
 #: books/check.html:27 books/check.html:31
@@ -2231,23 +2205,22 @@ msgstr ""
 
 #: books/edit.html:31
 msgid ""
-"Thank you for adding that book! Any more information you could provide "
-"would be wonderful!"
+"Thank you for adding that book! Any more information you could provide would be "
+"wonderful!"
 msgstr ""
 
 #: books/edit.html:34
 #, python-format
 msgid ""
 "We already know about <b>%(work_title)s</b>, but not the <b>%(year)s "
-"%(publisher)s edition</b>. Thanks! Do you know any more about this "
-"edition?"
+"%(publisher)s edition</b>. Thanks! Do you know any more about this edition?"
 msgstr ""
 
 #: books/edit.html:37
 #, python-format
 msgid ""
-"We already know about the <b>%(year)s %(publisher)s edition</b> of "
-"<b>%(work_title)s</b>, but please, tell us more!"
+"We already know about the <b>%(year)s %(publisher)s edition</b> of <b>"
+"%(work_title)s</b>, but please, tell us more!"
 msgstr ""
 
 #: books/edit.html:39
@@ -2273,9 +2246,8 @@ msgstr ""
 
 #: books/edit.html:93
 msgid ""
-"You can search by author name (like <em>j k rowling</em>) or by Open "
-"Library ID (like <a href=\"/authors/OL23919A\" "
-"target=\"_blank\"><em>OL23919A</em></a>)."
+"You can search by author name (like <em>j k rowling</em>) or by Open Library ID "
+"(like <a href=\"/authors/OL23919A\" target=\"_blank\"><em>OL23919A</em></a>)."
 msgstr ""
 
 #: books/edit.html:98
@@ -2290,10 +2262,10 @@ msgstr ""
 msgid "Links"
 msgstr ""
 
-#: SearchResultsWork.html:45 SearchResultsWork.html:46
-#: books/edit/edition.html:66 books/edition-sort.html:39
-#: books/edition-sort.html:40 lists/list_overview.html:11 lists/preview.html:9
-#: lists/snippet.html:9 lists/widget.html:83 type/work/editions.html:27
+#: SearchResultsWork.html:45 SearchResultsWork.html:46 books/edit/edition.html:66
+#: books/edition-sort.html:39 books/edition-sort.html:40 lists/list_overview.html:11
+#: lists/preview.html:9 lists/snippet.html:9 lists/widget.html:83
+#: type/work/editions.html:27
 #, python-format
 msgid "Cover of: %(title)s"
 msgstr ""
@@ -2338,14 +2310,13 @@ msgid "Please separate with commas."
 msgstr ""
 
 #: books/edit/about.html:39 books/edit/about.html:50 books/edit/about.html:61
-#: books/edit/about.html:72 books/edit/addfield.html:77
-#: books/edit/addfield.html:104 books/edit/addfield.html:113
-#: books/edit/addfield.html:149 books/edit/edition.html:107
-#: books/edit/edition.html:130 books/edit/edition.html:163
-#: books/edit/edition.html:173 books/edit/edition.html:266
-#: books/edit/edition.html:368 books/edit/edition.html:382
-#: books/edit/edition.html:582 books/edit/excerpts.html:19
-#: books/edit/web.html:23 type/author/edit.html:113
+#: books/edit/about.html:72 books/edit/addfield.html:77 books/edit/addfield.html:104
+#: books/edit/addfield.html:113 books/edit/addfield.html:149
+#: books/edit/edition.html:107 books/edit/edition.html:130
+#: books/edit/edition.html:163 books/edit/edition.html:173
+#: books/edit/edition.html:266 books/edit/edition.html:368
+#: books/edit/edition.html:382 books/edit/edition.html:582
+#: books/edit/excerpts.html:19 books/edit/web.html:23 type/author/edit.html:113
 msgid "For example:"
 msgstr ""
 
@@ -2392,8 +2363,7 @@ msgstr ""
 
 #: books/edit/addfield.html:167
 msgid ""
-"Can you direct us to more information about this classification system "
-"online?"
+"Can you direct us to more information about this classification system online?"
 msgstr ""
 
 #: books/edit/edition.html:22
@@ -2464,8 +2434,7 @@ msgstr ""
 msgid "The name of the publisher's series."
 msgstr ""
 
-#: books/edit/edition.html:201 type/edition/view.html:417
-#: type/work/view.html:417
+#: books/edit/edition.html:201 type/edition/view.html:417 type/work/view.html:417
 msgid "Contributors"
 msgstr ""
 
@@ -2535,8 +2504,8 @@ msgstr ""
 
 #: books/edit/edition.html:353
 msgid ""
-"Use a \"*\" for an indent, a \"|\" to add a column, and line breaks for "
-"new lines. Like this:"
+"Use a \"*\" for an indent, a \"|\" to add a column, and line breaks for new "
+"lines. Like this:"
 msgstr ""
 
 #: books/edit/edition.html:367
@@ -2553,9 +2522,9 @@ msgstr ""
 
 #: books/edit/edition.html:378
 msgid ""
-"Use this field if the title is different on the cover or spine. If the "
-"edition is a collection or anthology, you may also add the individual "
-"titles of each work here."
+"Use this field if the title is different on the cover or spine. If the edition is "
+"a collection or anthology, you may also add the individual titles of each work "
+"here."
 msgstr ""
 
 #: books/edit/edition.html:382
@@ -2568,8 +2537,8 @@ msgstr ""
 
 #: books/edit/edition.html:394
 msgid ""
-"Sometimes editions can be associated with the wrong work. You can correct"
-" that here."
+"Sometimes editions can be associated with the wrong work. You can correct that "
+"here."
 msgstr ""
 
 #: books/edit/edition.html:395
@@ -2604,8 +2573,8 @@ msgstr ""
 msgid "ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4"
 msgstr ""
 
-#: books/edit/edition.html:416 type/author/view.html:188
-#: type/edition/view.html:438 type/work/view.html:438
+#: books/edit/edition.html:416 type/author/view.html:188 type/edition/view.html:438
+#: type/work/view.html:438
 msgid "ID Numbers"
 msgstr ""
 
@@ -2629,8 +2598,7 @@ msgstr ""
 msgid "You need to give a value to CLASS."
 msgstr ""
 
-#: books/edit/edition.html:494 type/edition/view.html:392
-#: type/work/view.html:392
+#: books/edit/edition.html:494 type/edition/view.html:392 type/work/view.html:392
 msgid "Classifications"
 msgstr ""
 
@@ -2650,8 +2618,7 @@ msgstr ""
 msgid "Remove this classification"
 msgstr ""
 
-#: books/edit/edition.html:552 type/edition/view.html:426
-#: type/work/view.html:426
+#: books/edit/edition.html:552 type/edition/view.html:426 type/work/view.html:426
 msgid "The Physical Object"
 msgstr ""
 
@@ -2683,8 +2650,7 @@ msgstr ""
 msgid "How much does the book weigh?"
 msgstr ""
 
-#: books/edit/edition.html:603 type/edition/view.html:431
-#: type/work/view.html:431
+#: books/edit/edition.html:603 type/edition/view.html:431 type/work/view.html:431
 msgid "Dimensions"
 msgstr ""
 
@@ -2750,8 +2716,8 @@ msgstr ""
 
 #: books/edit/excerpts.html:13
 msgid ""
-"If there are particular (short) passages you feel represent the book "
-"well, please feel free to transcribe them here."
+"If there are particular (short) passages you feel represent the book well, please "
+"feel free to transcribe them here."
 msgstr ""
 
 #: books/edit/excerpts.html:18
@@ -2796,8 +2762,8 @@ msgstr ""
 
 #: books/edit/web.html:13
 msgid ""
-"Please connect Open Library records to <u>good</u><span "
-"class=\"orange\">*</span> online resources."
+"Please connect Open Library records to <u>good</u><span class=\"orange\">*</span> "
+"online resources."
 msgstr ""
 
 #: books/edit/web.html:19
@@ -2811,8 +2777,7 @@ msgstr ""
 #: books/edit/web.html:65
 msgid ""
 "\"Good\" means no spammy links, please. Keep them relevant to the book. "
-"Irrelevant sites may be removed. Blatant spam will be deleted without "
-"remorse."
+"Irrelevant sites may be removed. Blatant spam will be deleted without remorse."
 msgstr ""
 
 #: check_ins/check_in_form.html:10
@@ -2865,8 +2830,8 @@ msgstr ""
 
 #: check_ins/check_in_form.html:38
 msgid ""
-"Add an optional check-in date.  Check-in dates are used to track yearly "
-"reading goals."
+"Add an optional check-in date.  Check-in dates are used to track yearly reading "
+"goals."
 msgstr ""
 
 #: check_ins/check_in_form.html:41
@@ -2929,9 +2894,8 @@ msgstr ""
 #: check_ins/reading_goal_progress.html:25
 #, python-format
 msgid ""
-"<span class=\"reading-goal-progress__books-"
-"read\">%(books_read)d</span>/<span class=\"reading-goal-"
-"progress__goal\">%(goal)d</span> books"
+"<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/<span "
+"class=\"reading-goal-progress__goal\">%(goal)d</span> books"
 msgstr ""
 
 #: check_ins/reading_goal_progress.html:31
@@ -3032,8 +2996,7 @@ msgstr ""
 
 #: covers/manage.html:12
 msgid ""
-"You can drag and drop thumbnails to reorder, or into the trash to delete "
-"them."
+"You can drag and drop thumbnails to reorder, or into the trash to delete them."
 msgstr ""
 
 #: covers/saved.html:17
@@ -3072,8 +3035,8 @@ msgstr ""
 
 #: home/about.html:15
 msgid ""
-"Open Library is an open, editable library catalog, building towards a web"
-" page for every book ever published."
+"Open Library is an open, editable library catalog, building towards a web page "
+"for every book ever published."
 msgstr ""
 
 #: AffiliateLinks.html:70 home/about.html:16
@@ -3082,10 +3045,10 @@ msgstr ""
 
 #: home/about.html:19
 msgid ""
-"Just like Wikipedia, you can contribute new information or corrections to"
-" the catalog. You can browse by <a href=\"/subjects\">subjects</a>, <a "
-"href=\"/authors\">authors</a> or <a href=\"/lists\">lists</a> members "
-"have created. If you love books, why not help build a library?"
+"Just like Wikipedia, you can contribute new information or corrections to the "
+"catalog. You can browse by <a href=\"/subjects\">subjects</a>, <a href=\"/authors"
+"\">authors</a> or <a href=\"/lists\">lists</a> members have created. If you love "
+"books, why not help build a library?"
 msgstr ""
 
 #: home/about.html:23
@@ -3106,7 +3069,6 @@ msgstr ""
 msgid "%(count)s Book"
 msgid_plural "%(count)s Books"
 msgstr[0] ""
-msgstr[1] ""
 
 #: home/index.html:8 home/welcome.html:9
 msgid "Welcome to Open Library"
@@ -3142,8 +3104,8 @@ msgstr ""
 
 #: home/stats.html:10
 msgid ""
-"Here's what's happened over the last 28 days. More <a "
-"href=\"/recentchanges\">recent changes</a>"
+"Here's what's happened over the last 28 days. More <a href=\"/recentchanges"
+"\">recent changes</a>"
 msgstr ""
 
 #: home/stats.html:15 home/stats.html:17
@@ -3259,7 +3221,6 @@ msgstr ""
 msgid "%s book"
 msgid_plural "%s books"
 msgstr[0] ""
-msgstr[1] ""
 
 #: languages/language_list.html:8
 msgid "Czech"
@@ -3327,8 +3288,8 @@ msgstr ""
 msgid "New!"
 msgstr ""
 
-#: databarDiff.html:9 databarEdit.html:10 databarTemplate.html:9
-#: databarView.html:26 databarView.html:28 lib/history.html:21
+#: databarDiff.html:9 databarEdit.html:10 databarTemplate.html:9 databarView.html:26
+#: databarView.html:28 lib/history.html:21
 msgid "History"
 msgstr ""
 
@@ -3342,7 +3303,6 @@ msgstr ""
 msgid "%(count)d revision"
 msgid_plural "%(count)d revisions"
 msgstr[0] ""
-msgstr[1] ""
 
 #: lib/history.html:44
 msgid "Download catalog record:"
@@ -3376,11 +3336,10 @@ msgstr ""
 
 #: lib/markdown.html:16
 msgid ""
-"We use a system called Markdown to format the text in your edits on Open "
-"Library. Some HTML formatting is also accepted. Paragraphs are "
-"automatically generated from any hard-break returns (blank lines) within "
-"your text. You can preview your work in real time below the editing "
-"field."
+"We use a system called Markdown to format the text in your edits on Open Library. "
+"Some HTML formatting is also accepted. Paragraphs are automatically generated "
+"from any hard-break returns (blank lines) within your text. You can preview your "
+"work in real time below the editing field."
 msgstr ""
 
 #: lib/markdown.html:17
@@ -3389,9 +3348,8 @@ msgstr ""
 
 #: lib/markdown.html:76
 msgid ""
-"To \"escape\" any Markdown tags (i.e. use an asterisk as an asterisk "
-"rather than emphasizing text) place a backslash \\ prior to the "
-"character."
+"To \"escape\" any Markdown tags (i.e. use an asterisk as an asterisk rather than "
+"emphasizing text) place a backslash \\ prior to the character."
 msgstr ""
 
 #: lib/nav_foot.html:13
@@ -3546,20 +3504,19 @@ msgstr ""
 
 #: lib/nav_foot.html:65
 msgid ""
-"Open Library is an initiative of the <a href=\"//archive.org/\">Internet "
-"Archive</a>, a 501(c)(3) non-profit, building a digital library of "
-"Internet sites and other cultural artifacts in  digital form. Other <a "
-"href=\"//archive.org/projects/\">projects</a> include the <a "
-"href=\"//archive.org/web/\">Wayback Machine</a>, <a "
-"href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it.org"
+"Open Library is an initiative of the <a href=\"//archive.org/\">Internet Archive</"
+"a>, a 501(c)(3) non-profit, building a digital library of Internet sites and "
+"other cultural artifacts in  digital form. Other <a href=\"//archive.org/projects/"
+"\">projects</a> include the <a href=\"//archive.org/web/\">Wayback Machine</a>, "
+"<a href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it.org"
 "\">archive-it.org</a>"
 msgstr ""
 
 #: lib/nav_foot.html:70
 #, python-format
 msgid ""
-"version <a "
-"href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
+"version <a href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</"
+"a>"
 msgstr ""
 
 #: lib/nav_head.html:13
@@ -3640,12 +3597,11 @@ msgstr ""
 
 #: lib/not_logged.html:7
 msgid ""
-"<strong>You are not <a href=\"/account/login\" title=\"Log in "
-"now\">logged in</a>.</strong> Open Library will record your IP address "
-"and include it in this page's publicly accessible edit history. If you <a"
-" href=\"/account/create\" title=\"Create an Open Library account\">create"
-" an account</a>, your IP address is concealed and you can more easily "
-"keep track of all your edits and additions."
+"<strong>You are not <a href=\"/account/login\" title=\"Log in now\">logged in</a>."
+"</strong> Open Library will record your IP address and include it in this page's "
+"publicly accessible edit history. If you <a href=\"/account/create\" title="
+"\"Create an Open Library account\">create an account</a>, your IP address is "
+"concealed and you can more easily keep track of all your edits and additions."
 msgstr ""
 
 #: Pager.html:27 lib/pagination.html:22
@@ -3663,35 +3619,30 @@ msgstr ""
 msgid "This author is on <strong>1 list</strong>."
 msgid_plural "This author is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
-msgstr[1] ""
 
 #: lists/header.html:31
 #, python-format
 msgid "This is edition is on <strong>1 list</strong>."
 msgid_plural "This edition is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
-msgstr[1] ""
 
 #: lists/header.html:40
 #, python-format
 msgid "This work is on <strong>1 list</strong>."
 msgid_plural "This work is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
-msgstr[1] ""
 
 #: lists/header.html:49
 #, python-format
 msgid "%(name)s has 1 list."
 msgid_plural "%(name)s has %(count)s lists."
 msgstr[0] ""
-msgstr[1] ""
 
 #: lists/header.html:59
 #, python-format
 msgid "This subject is on <strong>1 list</strong>."
 msgid_plural "This subject is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
-msgstr[1] ""
 
 #: lists/header.html:88
 msgid "Hm. Can't find it."
@@ -3704,9 +3655,8 @@ msgstr ""
 #: lists/home.html:17
 msgid ""
 "Once you've made a list, you can <strong>watch for updates</strong> or "
-"<strong>export</strong> all the editions in a list as HTML, BibTeX or "
-"JSON. See all your lists and any activity using the \"Lists\" link on "
-"your Account page."
+"<strong>export</strong> all the editions in a list as HTML, BibTeX or JSON. See "
+"all your lists and any activity using the \"Lists\" link on your Account page."
 msgstr ""
 
 #: lists/home.html:18
@@ -3716,8 +3666,8 @@ msgstr ""
 #: lists/home.html:20
 #, python-format
 msgid ""
-"For the top 2000+ most requested eBooks in California for the print "
-"disabled <a href=\"%(url)s\">click here</a>."
+"For the top 2000+ most requested eBooks in California for the print disabled <a "
+"href=\"%(url)s\">click here</a>."
 msgstr ""
 
 #: lists/home.html:24
@@ -3739,7 +3689,6 @@ msgstr ""
 msgid "%(count)d item"
 msgid_plural "%(count)d items"
 msgstr[0] ""
-msgstr[1] ""
 
 #: lists/home.html:53 lists/preview.html:26 lists/snippet.html:20
 #, python-format
@@ -3779,13 +3728,11 @@ msgstr ""
 msgid "Delete this list"
 msgstr ""
 
-#: lists/lists.html:38 type/list/view_body.html:111
-#: type/list/view_body.html:141
+#: lists/lists.html:38 type/list/view_body.html:111 type/list/view_body.html:141
 msgid "Yes, I'm sure"
 msgstr ""
 
-#: lists/lists.html:49 type/list/view_body.html:128
-#: type/list/view_body.html:150
+#: lists/lists.html:49 type/list/view_body.html:128 type/list/view_body.html:150
 msgid "No, cancel"
 msgstr ""
 
@@ -3831,7 +3778,6 @@ msgstr ""
 msgid "%(count)d List"
 msgid_plural "%(count)d Lists"
 msgstr[0] ""
-msgstr[1] ""
 
 #: databarAuthor.html:86 lists/widget.html:86
 msgid "from"
@@ -3995,8 +3941,8 @@ msgstr ""
 #: merge_queue/merge_queue.html:84
 #, python-format
 msgid ""
-"<strong>%(type)s</strong> merge request for <span class=\"book-"
-"title\">%(title)s</span>"
+"<strong>%(type)s</strong> merge request for <span class=\"book-title\">%(title)s</"
+"span>"
 msgstr ""
 
 #: merge_queue/merge_queue.html:90
@@ -4049,19 +3995,18 @@ msgstr ""
 msgid "%(count)s ebook"
 msgid_plural "%(count)s ebooks"
 msgstr[0] ""
-msgstr[1] ""
 
 #: publishers/view.html:33
 msgid ""
-"This is a chart to show the when this publisher published books. Along "
-"the X axis is time, and on the y axis is the count of editions published."
-" <a href=\"#subjectRelated\">Click here to skip the chart</a>."
+"This is a chart to show the when this publisher published books. Along the X axis "
+"is time, and on the y axis is the count of editions published. <a href="
+"\"#subjectRelated\">Click here to skip the chart</a>."
 msgstr ""
 
 #: publishers/view.html:35
 msgid ""
-"This graph charts editions from this publisher over time. Click to view a"
-" single year, or drag across a range."
+"This graph charts editions from this publisher over time. Click to view a single "
+"year, or drag across a range."
 msgstr ""
 
 #: publishers/view.html:52
@@ -4101,8 +4046,8 @@ msgstr ""
 msgid "By Bots"
 msgstr ""
 
-#: recentchanges/default/message.html:29
-#: recentchanges/edit-book/message.html:29 site/around_the_library.html:45
+#: recentchanges/default/message.html:29 recentchanges/edit-book/message.html:29
+#: site/around_the_library.html:45
 msgid "opened a new Open Library account!"
 msgstr ""
 
@@ -4111,14 +4056,12 @@ msgstr ""
 msgid "%(who)s merged one duplicate of %(master)s"
 msgid_plural "%(who)s merged %(count)d duplicates of %(master)s"
 msgstr[0] ""
-msgstr[1] ""
 
 #: recentchanges/merge-authors/message.html:20
 #, python-format
 msgid "one duplicate of %(master)s was merged anonymously"
 msgid_plural "%(count)d duplicates of %(master)s were merged anonymously"
 msgstr[0] ""
-msgstr[1] ""
 
 #: recentchanges/merge-authors/view.html:8
 msgid "Author Merge"
@@ -4145,14 +4088,12 @@ msgstr ""
 msgid "Merged %(count)d duplicate %(type)s record into this primary."
 msgid_plural "Merged %(count)d duplicate %(type)s records into this primary."
 msgstr[0] ""
-msgstr[1] ""
 
 #: recentchanges/merge/view.html:51
 #, python-format
 msgid "%(count)d record modified."
 msgid_plural "%(count)d records modified."
 msgstr[0] ""
-msgstr[1] ""
 
 #: recentchanges/merge-authors/view.html:53
 msgid "Updated Records"
@@ -4209,14 +4150,12 @@ msgstr ""
 msgid "About %(count)s result found"
 msgid_plural "About %(count)s results found"
 msgstr[0] ""
-msgstr[1] ""
 
 #: search/inside.html:29
 #, python-format
 msgid "in %(seconds)s second"
 msgid_plural "in %(seconds)s seconds"
 msgstr[0] ""
-msgstr[1] ""
 
 #: search/lists.html:7
 msgid "Search results for Lists"
@@ -4300,9 +4239,9 @@ msgstr ""
 
 #: site/neck.html:15
 msgid ""
-"Open Library is an open, editable library catalog, building towards a web"
-" page for every book ever published. Read, borrow, and discover more than"
-" 3M books for free."
+"Open Library is an open, editable library catalog, building towards a web page "
+"for every book ever published. Read, borrow, and discover more than 3M books for "
+"free."
 msgstr ""
 
 #: site/neck.html:17
@@ -4331,8 +4270,8 @@ msgstr ""
 
 #: stats/readinglog.html:29
 msgid ""
-"The total number of unique users who have logged at least one book using "
-"the Reading Log feature"
+"The total number of unique users who have logged at least one book using the "
+"Reading Log feature"
 msgstr ""
 
 #: stats/readinglog.html:45
@@ -4357,7 +4296,6 @@ msgstr ""
 msgid "Added %(count)d time"
 msgid_plural "Added %(count)d times"
 msgstr[0] ""
-msgstr[1] ""
 
 #: stats/readinglog.html:75
 msgid "Most Wanted Books (All Time)"
@@ -4384,16 +4322,14 @@ msgid "We couldn't find any books about"
 msgstr ""
 
 #: type/about/edit.html:9 type/i18n/edit.html:12 type/page/edit.html:9
-#: type/permission/edit.html:9 type/rawtext/edit.html:9
-#: type/template/edit.html:9 type/usergroup/edit.html:9
+#: type/permission/edit.html:9 type/rawtext/edit.html:9 type/template/edit.html:9
+#: type/usergroup/edit.html:9
 #, python-format
 msgid "Edit %(title)s"
 msgstr ""
 
 #: type/about/edit.html:20
-msgid ""
-"This only appears in the document head, and gets attached to bookmark "
-"labels"
+msgid "This only appears in the document head, and gets attached to bookmark labels"
 msgstr ""
 
 #: type/about/edit.html:29
@@ -4436,8 +4372,7 @@ msgstr ""
 
 #: type/author/edit.html:60
 msgid ""
-"If you \"borrow\" information from somewhere, please make sure to cite "
-"the source."
+"If you \"borrow\" information from somewhere, please make sure to cite the source."
 msgstr ""
 
 #: type/author/edit.html:71
@@ -4450,8 +4385,8 @@ msgstr ""
 
 #: type/author/edit.html:89
 msgid ""
-"We're not storing structured dates (yet) so a date like \"21 May 2000\" "
-"is recommended."
+"We're not storing structured dates (yet) so a date like \"21 May 2000\" is "
+"recommended."
 msgstr ""
 
 #: type/author/edit.html:98
@@ -4460,9 +4395,8 @@ msgstr ""
 
 #: type/author/edit.html:105
 msgid ""
-"This is a deprecated field. You can help improve this record by removing "
-"this date and populating the \"Date of birth\" and \"Date of death\" "
-"fields. Thanks!"
+"This is a deprecated field. You can help improve this record by removing this "
+"date and populating the \"Date of birth\" and \"Date of death\" fields. Thanks!"
 msgstr ""
 
 #: type/author/edit.html:112
@@ -4513,8 +4447,8 @@ msgstr ""
 
 #: type/author/view.html:91
 msgid ""
-"OK. The merge is in motion. <i>It will take <u>a few minutes to "
-"finish</u> the update.</i>"
+"OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> the "
+"update.</i>"
 msgstr ""
 
 #: type/author/view.html:95
@@ -4540,15 +4474,15 @@ msgstr ""
 #: type/author/view.html:130
 #, python-format
 msgid ""
-"Showing all works by author. Would you like to see <a "
-"href=\"%(url)s\">only ebooks</a>?"
+"Showing all works by author. Would you like to see <a href=\"%(url)s\">only "
+"ebooks</a>?"
 msgstr ""
 
 #: type/author/view.html:132
 #, python-format
 msgid ""
-"Showing ebooks only. Would you like to see <a "
-"href=\"%(url)s\">everything</a> by this author?"
+"Showing ebooks only. Would you like to see <a href=\"%(url)s\">everything</a> by "
+"this author?"
 msgstr ""
 
 #: type/author/view.html:179
@@ -4619,8 +4553,7 @@ msgstr ""
 msgid "Orphaned Edition"
 msgstr ""
 
-#: databarHistory.html:26 databarView.html:33
-#: type/edition/compact_title.html:10
+#: databarHistory.html:26 databarView.html:33 type/edition/compact_title.html:10
 msgid "Edit this template"
 msgstr ""
 
@@ -4670,8 +4603,8 @@ msgstr ""
 #: type/edition/view.html:329 type/work/view.html:329
 #, python-format
 msgid ""
-"This edition doesn't have a description yet. Can you <b><a "
-"href='%(url)s'>add one</a></b>?"
+"This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add "
+"one</a></b>?"
 msgstr ""
 
 #: type/edition/view.html:352 type/work/view.html:352
@@ -4682,9 +4615,8 @@ msgstr ""
 msgid "Published in"
 msgstr ""
 
-#: type/edition/view.html:364 type/edition/view.html:454
-#: type/edition/view.html:455 type/work/view.html:364 type/work/view.html:454
-#: type/work/view.html:455
+#: type/edition/view.html:364 type/edition/view.html:454 type/edition/view.html:455
+#: type/work/view.html:364 type/work/view.html:454 type/work/view.html:455
 msgid "First Sentence"
 msgstr ""
 
@@ -4809,8 +4741,8 @@ msgstr ""
 
 #: type/list/embed.html:67
 msgid ""
-"Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT "
-"formats from main book page"
+"Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats "
+"from main book page"
 msgstr ""
 
 #: type/list/embed.html:73
@@ -4859,15 +4791,14 @@ msgstr ""
 #: type/list/exports.html:48
 #, python-format
 msgid ""
-"Only lists with up to %(max)s editions can be exported. This one has "
-"%(count)s."
+"Only lists with up to %(max)s editions can be exported. This one has %(count)s."
 msgstr ""
 
 #: type/list/exports.html:50
 #, python-format
 msgid ""
-"Try removing some seeds for more focus, or look at <a href=\"%s\">bulk "
-"download</a> of the catalog."
+"Try removing some seeds for more focus, or look at <a href=\"%s\">bulk download</"
+"a> of the catalog."
 msgstr ""
 
 #: type/list/view_body.html:8
@@ -4907,8 +4838,8 @@ msgstr ""
 
 #: type/list/view_body.html:192
 msgid ""
-"You are about to remove the last item in the list. That will delete the "
-"whole list. Are you sure you want to continue?"
+"You are about to remove the last item in the list. That will delete the whole "
+"list. Are you sure you want to continue?"
 msgstr ""
 
 #: type/list/view_body.html:261
@@ -4975,10 +4906,10 @@ msgstr ""
 #: type/user/view.html:53
 #, python-format
 msgid ""
-"You are publicly sharing the books you are <a href=\"%(username)s/books"
-"/currently-reading\">currently reading</a>, <a href=\"%(username)s/books"
-"/already-read\">have already read</a>, and <a href=\"%(username)s/books"
-"/want-to-read\">want to read</a>."
+"You are publicly sharing the books you are <a href=\"%(username)s/books/currently-"
+"reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have "
+"already read</a>, and <a href=\"%(username)s/books/want-to-read\">want to read</"
+"a>."
 msgstr ""
 
 #: type/user/view.html:55
@@ -4992,10 +4923,10 @@ msgstr ""
 #: type/user/view.html:60
 #, python-format
 msgid ""
-"Here are the books %(user)s is <a href=\"%(username)s/books/currently-"
-"reading\">currently reading</a>, <a href=\"%(username)s/books/already-"
-"read\">have already read</a>, and <a href=\"%(username)s/books/want-to-"
-"read\">want to read</a>!"
+"Here are the books %(user)s is <a href=\"%(username)s/books/currently-reading"
+"\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have "
+"already read</a>, and <a href=\"%(username)s/books/want-to-read\">want to read</"
+"a>!"
 msgstr ""
 
 #: type/user/view.html:62
@@ -5029,7 +4960,6 @@ msgstr ""
 msgid "Showing %(count)d featured edition."
 msgid_plural "Showing %(count)d featured editions."
 msgstr[0] ""
-msgstr[1] ""
 
 #: type/work/editions_datatable.html:14
 #, python-format
@@ -5078,7 +5008,6 @@ msgstr ""
 msgid "%(n)s other"
 msgid_plural "%(n)s others"
 msgstr[0] ""
-msgstr[1] ""
 
 #: BookByline.html:36
 msgid "by an <em>unknown author</em>"
@@ -5109,7 +5038,6 @@ msgstr ""
 msgid "View %(count)s Edition"
 msgid_plural "View %(count)s Editions"
 msgstr[0] ""
-msgstr[1] ""
 
 #: EditionNavBar.html:19
 msgid "Details"
@@ -5120,7 +5048,6 @@ msgstr ""
 msgid "%(reviews)s Review"
 msgid_plural "%(reviews)s Reviews"
 msgstr[0] ""
-msgstr[1] ""
 
 #: EditionNavBar.html:33
 msgid "Related Books"
@@ -5190,8 +5117,8 @@ msgstr ""
 
 #: ReadButton.html:12
 msgid ""
-"Special ebook access from the Internet Archive for patrons with "
-"qualifying print disabilities"
+"Special ebook access from the Internet Archive for patrons with qualifying print "
+"disabilities"
 msgstr ""
 
 #: ReadButton.html:16
@@ -5218,8 +5145,8 @@ msgstr ""
 msgid "Use this Work"
 msgstr ""
 
-#: ReadingLogDropper.html:106 ReadingLogDropper.html:127
-#: ReadingLogDropper.html:143 databarAuthor.html:27 databarAuthor.html:34
+#: ReadingLogDropper.html:106 ReadingLogDropper.html:127 ReadingLogDropper.html:143
+#: databarAuthor.html:27 databarAuthor.html:34
 msgid "Create a new list"
 msgstr ""
 
@@ -5264,7 +5191,6 @@ msgstr ""
 msgid "in <a class=\"hoverlink\" title=\"%(langs)s\">1 language</a>"
 msgid_plural "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages</a>"
 msgstr[0] ""
-msgstr[1] ""
 
 #: SearchResultsWork.html:92
 #, python-format
@@ -5365,11 +5291,10 @@ msgstr ""
 
 #: TypeChanger.html:22
 msgid ""
-"Every piece of Open Library is defined by the type of content it "
-"displays, usually by content definition (e.g. Authors, Editions, Works) "
-"but sometimes by content use (e.g. macro, template, rawtext). Changing "
-"this for an existing page will alter its presentation and the data fields"
-" available for editing its content."
+"Every piece of Open Library is defined by the type of content it displays, "
+"usually by content definition (e.g. Authors, Editions, Works) but sometimes by "
+"content use (e.g. macro, template, rawtext). Changing this for an existing page "
+"will alter its presentation and the data fields available for editing its content."
 msgstr ""
 
 #: TypeChanger.html:22
@@ -5378,8 +5303,8 @@ msgstr ""
 
 #: TypeChanger.html:22
 msgid ""
-"(Simplest solution: If you aren't sure whether this should be changed, "
-"don't change it.)"
+"(Simplest solution: If you aren't sure whether this should be changed, don't "
+"change it.)"
 msgstr ""
 
 #: WorldcatLink.html:9
@@ -5427,11 +5352,11 @@ msgstr ""
 #: account.py:420 account.py:458
 #, python-format
 msgid ""
-"We've sent the verification email to %(email)s. You'll need to read that "
-"and click on the verification link to verify your email."
+"We've sent the verification email to %(email)s. You'll need to read that and "
+"click on the verification link to verify your email."
 msgstr ""
-"Kami telah mengirim email verifikasi ke %(email)s. Anda perlu membacanya "
-"dan mengklik link verifikasi untuk memverifikasi email Anda."
+"Kami telah mengirim email verifikasi ke %(email)s. Anda perlu membacanya dan "
+"mengklik link verifikasi untuk memverifikasi email Anda."
 
 #: account.py:486
 msgid "Username must be between 3-20 characters"
@@ -5459,20 +5384,17 @@ msgstr ""
 
 #: account.py:527
 msgid ""
-"Your email address couldn't be updated. The specified email address is "
-"already used."
-msgstr ""
-"Alamat email anda tidak dapat diperbarui. Alamat email "
-"telah digunakan."
+"Your email address couldn't be updated. The specified email address is already "
+"used."
+msgstr "Alamat email anda tidak dapat diperbarui. Alamat email telah digunakan."
 
 #: account.py:533
 msgid "Email verification successful."
-msgstr "Email verifikasi berhasil"
+msgstr "Email verifikasi berhasil."
 
 #: account.py:534
 msgid ""
-"Your email address has been successfully verified and updated in your "
-"account."
+"Your email address has been successfully verified and updated in your account."
 msgstr ""
 
 #: account.py:540
@@ -5481,8 +5403,7 @@ msgstr ""
 
 #: account.py:541
 msgid ""
-"Your email address couldn't be verified. The verification link seems "
-"invalid."
+"Your email address couldn't be verified. The verification link seems invalid."
 msgstr ""
 
 #: account.py:645 account.py:655
@@ -5547,9 +5468,8 @@ msgstr ""
 
 #: forms.py:115
 msgid ""
-"I want to receive news, announcements, and resources from the <a "
-"href=\"https://archive.org/\">Internet Archive</a>, the non-profit that "
-"runs Open Library."
+"I want to receive news, announcements, and resources from the <a href=\"https://"
+"archive.org/\">Internet Archive</a>, the non-profit that runs Open Library."
 msgstr ""
 
 #: forms.py:151
