@@ -9,16 +9,16 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: irennanicole1@gmail.com\n"
 "POT-Creation-Date: 2023-01-06 20:53+0000\n"
-"PO-Revision-Date: 2023-12-28 22:53-0800\n"
+"PO-Revision-Date: 2023-12-29 07:07-0800\n"
 "Last-Translator: Irenna Lumbuun <irennanicole1@gmail.com>\n"
 "Language-Team: https://github.com/internetarchive/openlibrary/issues\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.12.1\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
 "Language: id\n"
-"X-Generator: Poedit 2.0.6\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Generated-By: Babel 2.12.1\n"
+"X-Generator: Poedit 3.4\n"
 
 #: account.html:7 account.html:15 account/notifications.html:13
 #: account/privacy.html:13 lib/nav_head.html:15 type/user/view.html:27
@@ -272,9 +272,9 @@ msgid ""
 "href=\"javascript:;\" onclick=\"document.forms['logout'].submit()\">log out</a> "
 "and start the signup process afresh."
 msgstr ""
-"Jika Anda ingin menciptakan akun OpenLibrary baru, Anda perlu <a href="
-"\"javascript:;\" onclick=\"document.forms['logout'].submit()\">keluar</a> dan "
-"mengulang proses pendaftaran."
+"Jika Anda ingin menciptakan akun OpenLibrary baru, Anda perlu <a "
+"href=\"javascript:;\" onclick=\"document.forms['logout'].submit()\">keluar</a> "
+"dan mengulang proses pendaftaran."
 
 #: login.html:42
 msgid "Email"
@@ -518,8 +518,8 @@ msgstr ""
 
 #: support.html:19
 msgid ""
-"Please check our <a href=\"/help/\">Help Pages</a> and <a href=\"/help/faq"
-"\">Frequently Asked Questions</a> (FAQ) to see if your question is answered "
+"Please check our <a href=\"/help/\">Help Pages</a> and <a href=\"/help/"
+"faq\">Frequently Asked Questions</a> (FAQ) to see if your question is answered "
 "there. Thank you."
 msgstr ""
 
@@ -2141,8 +2141,8 @@ msgstr ""
 msgid ""
 "By saving a change to this wiki, you agree that your contribution is given freely "
 "to the world under <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
-"target=\"_blank\" title=\"This link to Creative Commons will open in a new window"
-"\">CC0</a>. Yippee!"
+"target=\"_blank\" title=\"This link to Creative Commons will open in a new "
+"window\">CC0</a>. Yippee!"
 msgstr ""
 
 #: books/add.html:106
@@ -2219,8 +2219,8 @@ msgstr ""
 #: books/edit.html:37
 #, python-format
 msgid ""
-"We already know about the <b>%(year)s %(publisher)s edition</b> of <b>"
-"%(work_title)s</b>, but please, tell us more!"
+"We already know about the <b>%(year)s %(publisher)s edition</b> of "
+"<b>%(work_title)s</b>, but please, tell us more!"
 msgstr ""
 
 #: books/edit.html:39
@@ -3046,9 +3046,9 @@ msgstr ""
 #: home/about.html:19
 msgid ""
 "Just like Wikipedia, you can contribute new information or corrections to the "
-"catalog. You can browse by <a href=\"/subjects\">subjects</a>, <a href=\"/authors"
-"\">authors</a> or <a href=\"/lists\">lists</a> members have created. If you love "
-"books, why not help build a library?"
+"catalog. You can browse by <a href=\"/subjects\">subjects</a>, <a href=\"/"
+"authors\">authors</a> or <a href=\"/lists\">lists</a> members have created. If "
+"you love books, why not help build a library?"
 msgstr ""
 
 #: home/about.html:23
@@ -3104,8 +3104,8 @@ msgstr ""
 
 #: home/stats.html:10
 msgid ""
-"Here's what's happened over the last 28 days. More <a href=\"/recentchanges"
-"\">recent changes</a>"
+"Here's what's happened over the last 28 days. More <a href=\"/"
+"recentchanges\">recent changes</a>"
 msgstr ""
 
 #: home/stats.html:15 home/stats.html:17
@@ -3508,8 +3508,8 @@ msgid ""
 "a>, a 501(c)(3) non-profit, building a digital library of Internet sites and "
 "other cultural artifacts in  digital form. Other <a href=\"//archive.org/projects/"
 "\">projects</a> include the <a href=\"//archive.org/web/\">Wayback Machine</a>, "
-"<a href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it.org"
-"\">archive-it.org</a>"
+"<a href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it."
+"org\">archive-it.org</a>"
 msgstr ""
 
 #: lib/nav_foot.html:70
@@ -3599,9 +3599,9 @@ msgstr ""
 msgid ""
 "<strong>You are not <a href=\"/account/login\" title=\"Log in now\">logged in</a>."
 "</strong> Open Library will record your IP address and include it in this page's "
-"publicly accessible edit history. If you <a href=\"/account/create\" title="
-"\"Create an Open Library account\">create an account</a>, your IP address is "
-"concealed and you can more easily keep track of all your edits and additions."
+"publicly accessible edit history. If you <a href=\"/account/create\" "
+"title=\"Create an Open Library account\">create an account</a>, your IP address "
+"is concealed and you can more easily keep track of all your edits and additions."
 msgstr ""
 
 #: Pager.html:27 lib/pagination.html:22
@@ -3999,8 +3999,8 @@ msgstr[0] ""
 #: publishers/view.html:33
 msgid ""
 "This is a chart to show the when this publisher published books. Along the X axis "
-"is time, and on the y axis is the count of editions published. <a href="
-"\"#subjectRelated\">Click here to skip the chart</a>."
+"is time, and on the y axis is the count of editions published. <a "
+"href=\"#subjectRelated\">Click here to skip the chart</a>."
 msgstr ""
 
 #: publishers/view.html:35
@@ -4923,8 +4923,8 @@ msgstr ""
 #: type/user/view.html:60
 #, python-format
 msgid ""
-"Here are the books %(user)s is <a href=\"%(username)s/books/currently-reading"
-"\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have "
+"Here are the books %(user)s is <a href=\"%(username)s/books/currently-"
+"reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have "
 "already read</a>, and <a href=\"%(username)s/books/want-to-read\">want to read</"
 "a>!"
 msgstr ""
