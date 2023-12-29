@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: irennanicole1@gmail.com\n"
 "POT-Creation-Date: 2023-01-06 20:53+0000\n"
-"PO-Revision-Date: 2023-07-23 15:08-7\n"
+"PO-Revision-Date: 2023-07-23 15:08-0700\n"
 "Last-Translator: Irenna Lumbuun <irennanicole1@gmail.com>\n"
 "Language-Team: https://github.com/internetarchive/openlibrary/issues\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
@@ -47,14 +47,14 @@ msgstr "Sunting"
 msgid "Your Profile Page"
 msgstr "Profil Anda"
 
-(* #: account.html:22
+#: account.html:22
 msgid "View or Edit your Reading Log"
-msgstr "Lihat atau Sunting bacaan Anda" *)
+msgstr "Lihat atau Sunting bacaan Anda"
 
-(* #: account.html:23
+#: account.html:23
 msgid "View or Edit your Lists"
 msgstr "Lihat atau Sunting "
- *)
+
 #: account.html:24
 msgid "Import and Export Options"
 msgstr "Impor dan Expor Pengaturan"
@@ -100,7 +100,7 @@ msgstr "Arahkan kamera anda pada barcode! 📷"
 msgid "%(count)d Current Loan"
 msgid_plural "%(count)d Current Loans"
 msgstr[0] "%(count)d Pinjaman Saat Ini"
-msgstr[1] "(count)d Pinjaman Saat Ini"
+msgstr[1] "%(count)d Pinjaman Saat Ini"
 
 #: account/loans.html:65 admin/loans_table.html:41 borrow_admin.html:106
 msgid "Loan Expires"
@@ -242,9 +242,9 @@ msgid ""
 "for <a href=\"/\">home</a>?"
 msgstr "Kami telah menemukan error %s dan akan memeriksanya segera. Kembali ke <a href=\"/\">home</a>?"
 
-(* #: lib/nav_head.html:30 library_explorer.html:6
+#: lib/nav_head.html:30 library_explorer.html:6
 msgid "Library Explorer"
-msgstr "" *)
+msgstr ""
 
 #: lib/header_dropdown.html:59 lib/nav_head.html:118 login.html:10
 #: login.html:75
@@ -264,7 +264,7 @@ msgstr "Silakan masukan email untuk <a href=\"https://archive.org\">Internet Arc
 #: account/create.html:50 login.html:21
 #, python-format
 msgid "You are already logged into Open Library as %(user)s."
-msgstr "Anda telah masuk ke Open Library sebagai %(user)"
+msgstr "Anda telah masuk ke Open Library sebagai %(user)s."
 
 #: account/create.html:51 login.html:22
 msgid ""
@@ -299,7 +299,7 @@ msgstr "Lupa kata sandi Anda?"
 msgid "Not a member of Open Library? <a href=\"/account/create\">Sign up now</a>."
 msgstr "Belum menjadi anggota Open Library? <a href=\"/account/create\">Daftar Sekarang</a>."
 
-(* #: messages.html:11
+#: messages.html:11
 msgid "Created new author record."
 msgstr ""
 
@@ -5554,4 +5554,4 @@ msgstr ""
 
 #: forms.py:151
 msgid "Invalid password"
-msgstr "" *)
+msgstr ""
