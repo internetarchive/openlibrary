@@ -1,0 +1,96 @@
+@import (less) "../less/colors.less";
+@import (less) "components/read-panel.less";
+@import (less) "components/book.less";
+
+.my-lists {
+  &-container {
+    background: none;
+    overflow-x: scroll;
+  }
+  
+  &-item {
+    background-color: green;
+    border: 1px solid @my-lists-item-border;
+    border-radius: 4px;
+    box-shadow: 2px 2px 5px @gray-a19b9e;
+    width: 130px;
+    height: 120px;
+    position: relative;
+    padding-top: 20px;
+    padding-bottom: 40px;
+    margin-right: 15px;
+    margin-bottom: 5px;
+  }
+}
+  
+  .carousel-my-lists > div > div {
+    display: flex;
+  }
+  
+  .my-list {
+    @name-tag-layer: 4;
+    &-name-tag {
+      border: 1px solid @black;
+      border-radius: 2px 2px 4px 4px;
+      box-shadow: 2px 2px 5px @gray-a19b9e;
+      background: @red-two;
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 35%;
+      padding-top: 3px;
+      padding-left: 4px;
+      z-index: @name-tag-layer;
+      &>p{
+        text-wrap: nowrap;
+      }
+    }
+    
+  
+    &-title {
+      margin: auto;
+      color: @black;
+      font-weight: bold;
+    }
+  
+    &-num-books {
+      margin: auto;
+      padding: 0;
+      color: @grey-555;
+      font-size: .7em;
+    }
+  
+    &-cover {
+      width: 33%;
+      margin-left: -5px;
+      box-shadow: 2.5px 2.5px 4px @gray-a19b9e;
+      
+    }
+  
+    &-covers {
+      display: flex;
+      justify-content: center;
+      width: 80%;
+      margin: auto;
+      position: relative;
+      
+    }
+  }
+  
+  @top-cover: 3;
+  @mid-cover: 2;
+  @bottom-cover: 1;
+  .cover-0 {
+    z-index: @top-cover;
+    margin-left: -5px;
+  }
+  
+  .cover-1 {
+    z-index: @mid-cover;
+
+  }
+  
+  .cover-2 {
+    z-index: @bottom-cover;
+
+  }
