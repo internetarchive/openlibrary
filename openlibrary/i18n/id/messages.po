@@ -239,11 +239,11 @@ msgid ""
 "href=\"/\">home</a>?"
 msgstr ""
 "Kami telah menemukan error %s dan akan memeriksanya segera. Kembali ke <a href=\"/"
-"\">home</a>?"
+"\">beranda</a>?"
 
 #: lib/nav_head.html:30 library_explorer.html:6
 msgid "Library Explorer"
-msgstr ""
+msgstr "Pencarian Pustaka"
 
 #: lib/header_dropdown.html:59 lib/nav_head.html:118 login.html:10 login.html:75
 msgid "Log In"
@@ -272,7 +272,7 @@ msgid ""
 "href=\"javascript:;\" onclick=\"document.forms['logout'].submit()\">log out</a> "
 "and start the signup process afresh."
 msgstr ""
-"Jika Anda ingin menciptakan akun OpenLibrary baru, Anda perlu <a "
+"Jika Anda ingin mendaftarkan akun OpenLibrary baru, Anda perlu <a "
 "href=\"javascript:;\" onclick=\"document.forms['logout'].submit()\">keluar</a> "
 "dan mengulang proses pendaftaran."
 
