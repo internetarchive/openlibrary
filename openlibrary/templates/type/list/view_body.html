@@ -97,6 +97,18 @@ $def seed_attrs(seed):
         $:macros.Pager(page+1, len(list.seeds), page_size)
         <div class="clearfix"></div>
 
+        <style>
+            .searchResultItem {
+                display: block !important;
+            }
+            .sri__main {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                flex: 1;
+            }
+        </style>
+
         <ul id="listResults" class="list-books clearfix">
             $ component_times['get_seeds'] = time()
             $ seeds = list.get_seeds(sort=(sort == 'last_modified'), resolve_redirects=True)[page*page_size:page*page_size+page_size]
@@ -122,7 +134,7 @@ $def seed_attrs(seed):
             $if seed.type in ['edition', 'work']:
                 $ use_my_books_droppers = 'my_books_dropper' in ctx.features
                 $ doc = solr_works.get(seed.key) or seed.document
-                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed), include_dropper=use_my_books_droppers)
+                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed), include_dropper=use_my_books_droppers, footer=seed.notes and sanitize(format(seed.notes)))
             $else:
                 <li class="searchResultItem" $:seed_attrs(seed)>
                     <span class="bookcover">

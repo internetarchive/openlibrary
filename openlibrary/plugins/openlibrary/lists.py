@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 import json
 from urllib.parse import parse_qs
 import random
-from typing import Literal, cast
+from typing import Literal, TypedDict, cast
 import web
 
 from infogami.utils import delegate
@@ -14,7 +14,7 @@ from infogami.infobase import client, common
 from openlibrary.accounts import get_current_user
 from openlibrary.core import formats, cache
 from openlibrary.core.models import ThingKey
-from openlibrary.core.lists.model import List, SeedDict, SeedSubjectString
+from openlibrary.core.lists.model import AnnotatedSeed, List, ThingReferenceDict, SeedSubjectString
 import openlibrary.core.helpers as h
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.addbook import safe_seeother
@@ -38,17 +38,30 @@ def is_seed_subject_string(seed: str) -> bool:
     return subject_type in ("subject", "place", "person", "time")
 
 
+def is_empty_annotated_seed(seed: AnnotatedSeed) -> bool:
+    """
+    An empty seed can be represented as a simple SeedDict
+    """
+    return not seed.get('notes')
+
+
+Seed = ThingReferenceDict | SeedSubjectString | AnnotatedSeed
+"""
+A seed can be either a thing reference, a subject key, or an annotated seed.
+"""
+
+
 @dataclass
 class ListRecord:
     key: str | None = None
     name: str = ''
     description: str = ''
-    seeds: list[SeedDict | SeedSubjectString] = field(default_factory=list)
+    seeds: list[Seed] = field(default_factory=list)
 
     @staticmethod
     def normalize_input_seed(
-        seed: SeedDict | subjects.SubjectPseudoKey,
-    ) -> SeedDict | SeedSubjectString:
+        seed: ThingReferenceDict | AnnotatedSeed | str
+    ) -> Seed:
         if isinstance(seed, str):
             if seed.startswith('/subjects/'):
                 return subject_key_to_seed(seed)
@@ -59,7 +72,14 @@ class ListRecord:
             else:
                 return {'key': olid_to_key(seed)}
         else:
-            if seed['key'].startswith('/subjects/'):
+            if 'thing' in seed:
+                if is_empty_annotated_seed(seed):
+                    return ListRecord.normalize_input_seed(seed['thing'])
+                elif seed['thing']['key'].startswith('/subjects/'):
+                    return subject_key_to_seed(seed['thing']['key'])
+                else:
+                    return seed
+            elif seed['key'].startswith('/subjects/'):
                 return subject_key_to_seed(seed['key'])
             else:
                 return seed
@@ -97,7 +117,7 @@ class ListRecord:
         normalized_seeds = [
             seed
             for seed in normalized_seeds
-            if seed and (isinstance(seed, str) or seed.get('key'))
+            if seed and (isinstance(seed, str) or seed.get('key') or seed.get('thing'))
         ]
         return ListRecord(
             key=i['key'],
@@ -462,8 +482,8 @@ class lists_json(delegate.page):
         return delegate.RawText(self.dumps(result))
 
     def process_seeds(
-        self, seeds: SeedDict | subjects.SubjectPseudoKey | ThingKey
-    ) -> list[SeedDict | SeedSubjectString]:
+        self, seeds: ThingReferenceDict | subjects.SubjectPseudoKey | ThingKey
+    ) -> list[ThingReferenceDict | SeedSubjectString]:
         return [ListRecord.normalize_input_seed(seed) for seed in seeds]
 
     def get_content_type(self):
