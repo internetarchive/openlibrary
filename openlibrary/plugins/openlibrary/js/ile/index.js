@@ -32,6 +32,7 @@ export class IntegratedLibrarianEnvironment {
         this.$actions = this.$toolbar.find('#ile-drag-actions');
         this.$hiddenForms = this.$toolbar.find('#ile-hidden-forms');
         this.bulkTagger = null
+        this.selectedItemsPreview = null;
     }
 
     init() {
@@ -44,10 +45,47 @@ export class IntegratedLibrarianEnvironment {
         this.selectionManager.init();
     }
 
+    toggleSelectedItemsPreview() {
+
+        if (this.selectedItemsPreview) {
+          this.selectedItemsPreview.hide();
+          this.selectedItemsPreview = null;
+          return;
+        }
+      
+        this.selectedItemsPreview = new SelectedItemsPreview(this.selectionManager.selectedItems);
+        this.$toolbar.append(this.selectedItemsPreview.$el);
+        this.selectedItemsPreview.show();
+      
+      }
+
+     class SelectedItemsPreview {
+
+        constructor(selectedItems) {
+          this.$el = $(/* html for component */); 
+          this.selectedItems = selectedItems;
+      
+          this.$el.on('click', '.preview-item', (e) => {
+          });
+      
+        }
+      
+        show() {
+          this.$el.show();
+        }
+      
+        hide() {
+          this.$el.hide();
+        }
+      
+      };  
+
     /** @param {string} text */
     setStatusText(text) {
         this.$statusText.text(text);
-        this.$toolbar.toggle(text.length > 0);
+        this.$toolbar.on('click', '#ile-selections', () => {
+            this.toggleSelectedItemsPreview(); 
+          });
     }
 
     /**
