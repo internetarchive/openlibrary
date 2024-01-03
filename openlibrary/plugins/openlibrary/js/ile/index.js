@@ -52,39 +52,39 @@ export class IntegratedLibrarianEnvironment {
           this.selectedItemsPreview = null;
           return;
         }
-      
+
         this.selectedItemsPreview = new SelectedItemsPreview(this.selectionManager.selectedItems);
         this.$toolbar.append(this.selectedItemsPreview.$el);
         this.selectedItemsPreview.show();
-      
+
       }
 
      class SelectedItemsPreview {
 
         constructor(selectedItems) {
-          this.$el = $(/* html for component */); 
+          this.$el = $(/* html for component */);
           this.selectedItems = selectedItems;
-      
+
           this.$el.on('click', '.preview-item', (e) => {
           });
-      
+
         }
-      
+
         show() {
           this.$el.show();
         }
-      
+
         hide() {
           this.$el.hide();
         }
-      
-      };  
+
+      };
 
     /** @param {string} text */
     setStatusText(text) {
         this.$statusText.text(text);
         this.$toolbar.on('click', '#ile-selections', () => {
-            this.toggleSelectedItemsPreview(); 
+            this.toggleSelectedItemsPreview();
           });
     }
 
