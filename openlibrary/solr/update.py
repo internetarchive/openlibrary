@@ -15,6 +15,7 @@ from openlibrary.solr.data_provider import (
 from openlibrary.solr.updater.abstract import AbstractSolrUpdater
 from openlibrary.solr.updater.author import AuthorSolrUpdater
 from openlibrary.solr.updater.edition import EditionSolrUpdater
+from openlibrary.solr.updater.list import ListSolrUpdater
 from openlibrary.solr.updater.work import WorkSolrUpdater
 from openlibrary.solr.utils import (
     SolrUpdateRequest,
@@ -71,6 +72,7 @@ async def update_keys(
         EditionSolrUpdater(data_provider),
         WorkSolrUpdater(data_provider),
         AuthorSolrUpdater(data_provider),
+        ListSolrUpdater(data_provider),
     ]
 
     for updater in solr_updaters:

@@ -30,7 +30,7 @@ from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 
 from . import cache, waitinglist
 
-import urllib
+from urllib.parse import urlencode
 from pydantic import ValidationError
 
 from .ia import get_metadata
@@ -41,7 +41,7 @@ from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_u
 logger = logging.getLogger("openlibrary.core")
 
 
-def _get_ol_base_url():
+def _get_ol_base_url() -> str:
     # Anand Oct 2013
     # Looks like the default value when called from script
     if "[unknown]" in web.ctx.home:
@@ -81,8 +81,13 @@ class Image:
         return "<image: %s/%d>" % (self.category, self.id)
 
 
+ThingKey = str
+
+
 class Thing(client.Thing):
     """Base class for all OL models."""
+
+    key: ThingKey
 
     @cache.method_memoize
     def get_history_preview(self):
@@ -145,26 +150,26 @@ class Thing(client.Thing):
         # preload them
         self._site.get_many(list(authors))
 
-    def _make_url(self, label, suffix, relative=True, **params):
+    def _make_url(self, label: str | None, suffix: str, relative=True, **params):
         """Make url of the form $key/$label$suffix?$params."""
         if label is not None:
             u = self.key + "/" + urlsafe(label) + suffix
         else:
             u = self.key + suffix
         if params:
-            u += '?' + urllib.parse.urlencode(params)
+            u += '?' + urlencode(params)
         if not relative:
             u = _get_ol_base_url() + u
         return u
 
-    def get_url(self, suffix="", **params):
+    def get_url(self, suffix="", **params) -> str:
         """Constructs a URL for this page with given suffix and query params.
 
         The suffix is added to the URL of the page and query params are appended after adding "?".
         """
         return self._make_url(label=self.get_url_suffix(), suffix=suffix, **params)
 
-    def get_url_suffix(self):
+    def get_url_suffix(self) -> str | None:
         """Returns the additional suffix that is added to the key to get the URL of the page.
 
         Models of Edition, Work etc. should extend this to return the suffix.
@@ -174,7 +179,7 @@ class Thing(client.Thing):
         key. If this method returns a string, it is sanitized and added to key
         after adding a "/".
         """
-        return
+        return None
 
     def _get_lists(self, limit=50, offset=0, sort=True):
         # cache the default case
@@ -1026,6 +1031,8 @@ class UserGroup(Thing):
 
 
 class Subject(web.storage):
+    key: str
+
     def get_lists(self, limit=1000, offset=0, sort=True):
         q = {
             "type": "/type/list",
@@ -1048,7 +1055,7 @@ class Subject(web.storage):
     def url(self, suffix="", relative=True, **params):
         u = self.key + suffix
         if params:
-            u += '?' + urllib.parse.urlencode(params)
+            u += '?' + urlencode(params)
         if not relative:
             u = _get_ol_base_url() + u
         return u
