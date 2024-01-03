@@ -1,7 +1,7 @@
 """Helper functions used by the List model.
 """
 from functools import cached_property
-from typing import TypedDict, cast
+from typing import Generic, Literal, TypeVar, TypedDict, cast
 
 import web
 import logging
@@ -33,22 +33,70 @@ When a subject is added to a list, it's added as a string like:
 - "person:floyd_heywood"
 """
 
-class AnnotatedSeedDict(TypedDict):
-    thing: ThingReferenceDict
+
+class ListAnnotations(TypedDict):
+    pass
+
+class UserListAnnotations(ListAnnotations):
     notes: str
+
+
+
+class SeriesAnnotations(ListAnnotations):
+    position: str
+    primary: bool
+
+
+class AnnotatedSeedDict(TypedDict):
+    """
+    This is the most common example of this, when it appears as a JSON-compatible
+    dict.
+
+    E.g:
+    ```json
+    {
+        "thing": { "key": "/works/OL1234W" },
+        "notes": "Hello"
+    }
+    ```
+    """
+    thing: ThingReferenceDict
 
 
 class AnnotatedSeed(TypedDict):
+    """
+    This is what we get back from the database. This is not JSON-compatible, since
+    it contains Thing objects.
+
+    E.g.:
+    ```
+    {
+        "thing": <Thing: /works/OL1234W>,
+        "notes": "Hello"
+    }
+    ```
+
+    Note: the `Thing` is usually lazy; so it won't fetch the thing from the db
+    unless you reference a field on it.
+    """
     thing: Thing
-    notes: str
 
 
 class AnnotatedSeedThing(Thing):
-    key: None
+    """
+    This is what we get back from the db. Infobase converts every sub-object
+    into a `Thing` instance, even if they don't have a key! So e.g. a `List`
+    from the db will have seeds that are `AnnotatedSeedThing`s, not direct
+    `dict`s.
+    """
+    key: Literal[None]  # type: ignore
     _data: AnnotatedSeed
 
 
-class List(Thing):
+TAnnotations = TypeVar("TAnnotations", bound=ListAnnotations)
+
+
+class List(Thing, Generic[TAnnotations]):
     """Class to represent /type/list objects in OL.
 
     List contains the following properties, theoretically:
@@ -90,14 +138,8 @@ class List(Thing):
         return [web.storage(name=t, url=self.key + "/tags/" + t) for t in self.tags]
 
     def add_seed(self, seed: Thing | ThingReferenceDict | SeedSubjectString):
-        """
-        Adds a new seed to this list.
+        """Adds a new seed to this list."""
 
-        seed can be:
-            - a `Thing`: author, edition or work object
-            - a key dict: {"key": "..."} for author, edition or work objects
-            - a string: for a subject
-        """
         if isinstance(seed, dict):
             seed = Thing(self._site, seed['key'], None)
 
@@ -108,7 +150,10 @@ class List(Thing):
             self.seeds.append(seed)
             return True
 
-    def remove_seed(self, seed: Thing | ThingReferenceDict | SeedSubjectString | AnnotatedSeedDict):
+    def remove_seed(
+        self,
+        seed: Thing | ThingReferenceDict | SeedSubjectString | AnnotatedSeedDict,
+    ):
         """Removes a seed for the list."""
         if isinstance(seed, dict):
             key = seed.get('key') or seed.get('thing', {}).get('key')
@@ -132,10 +177,7 @@ class List(Thing):
         return f"<List: {self.key} ({self.name!r})>"
 
     def _get_seed_strings(self) -> list[SeedSubjectString | ThingKey]:
-        return [
-            Seed(self, seed).key
-            for seed in self.seeds
-        ]
+        return [Seed(self, seed).key for seed in self.seeds]
 
     @cached_property
     def last_update(self):
@@ -458,6 +500,7 @@ class Seed:
     def from_json(list: List, seed_json: SeedSubjectString | ThingReferenceDict | AnnotatedSeedDict):
         if isinstance(seed_json, dict):
             if 'thing' in seed_json:
+                seed_json = cast(AnnotatedSeedDict, seed_json)
                 thing = Thing(list._site, seed_json['thing']['key'], None)
                 return Seed(list, {
                     'thing': thing,
@@ -591,6 +634,13 @@ class ListChangeset(Changeset):
         return Seed.from_db(self.get_list(), seed)
 
 
+class Series(List):
+    pass
+
+
 def register_models():
     client.register_thing_class('/type/list', List)
     client.register_changeset_class('lists', ListChangeset)
+
+    client.register_thing_class('/type/series', Series)
+    client.register_changeset_class('series', ListChangeset)

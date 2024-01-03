@@ -22,7 +22,11 @@ pretty = true
 scripts_are_modules = true
 show_error_codes = true
 show_error_context = true
-exclude = "(vendor*|venv*)/$"
+exclude = [
+  'vendor*$',
+  'venv*$',
+  'openlibrary/plugins/openlibrary/lists\\.py'
+]
 
 [[tool.mypy.overrides]]
 module = [

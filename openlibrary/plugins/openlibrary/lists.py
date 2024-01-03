@@ -14,7 +14,7 @@ from infogami.infobase import client, common
 from openlibrary.accounts import get_current_user
 from openlibrary.core import formats, cache
 from openlibrary.core.models import ThingKey
-from openlibrary.core.lists.model import AnnotatedSeed, List, ThingReferenceDict, SeedSubjectString
+from openlibrary.core.lists.model import AnnotatedSeed, AnnotatedSeedDict, List, ThingReferenceDict, SeedSubjectString
 import openlibrary.core.helpers as h
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.addbook import safe_seeother
@@ -38,14 +38,14 @@ def is_seed_subject_string(seed: str) -> bool:
     return subject_type in ("subject", "place", "person", "time")
 
 
-def is_empty_annotated_seed(seed: AnnotatedSeed) -> bool:
+def is_empty_annotated_seed(seed: AnnotatedSeedDict) -> bool:
     """
     An empty seed can be represented as a simple SeedDict
     """
     return not seed.get('notes')
 
 
-Seed = ThingReferenceDict | SeedSubjectString | AnnotatedSeed
+Seed = ThingReferenceDict | SeedSubjectString | AnnotatedSeedDict
 """
 A seed can be either a thing reference, a subject key, or an annotated seed.
 """
@@ -60,7 +60,7 @@ class ListRecord:
 
     @staticmethod
     def normalize_input_seed(
-        seed: ThingReferenceDict | AnnotatedSeed | str
+        seed: ThingReferenceDict | AnnotatedSeedDict | str
     ) -> Seed:
         if isinstance(seed, str):
             if seed.startswith('/subjects/'):
@@ -483,7 +483,7 @@ class lists_json(delegate.page):
 
     def process_seeds(
         self, seeds: ThingReferenceDict | subjects.SubjectPseudoKey | ThingKey
-    ) -> list[ThingReferenceDict | SeedSubjectString]:
+    ) -> list[ThingReferenceDict | AnnotatedSeedDict | SeedSubjectString]:
         return [ListRecord.normalize_input_seed(seed) for seed in seeds]
 
     def get_content_type(self):
