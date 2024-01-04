@@ -82,7 +82,8 @@ services:
     user: root
     command: docker/ol-nginx-start.sh
     environment:
-      - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs
+      - CRONTAB_FILES="/etc/cron.d/archive-webserver-logs /etc/cron.d/certbot"
+      - NGINX_DOMAIN="covers.openlibrary.org"
     restart: unless-stopped
     hostname: "$HOSTNAME"
     depends_on:
@@ -92,6 +93,9 @@ services:
       - ./docker/covers_nginx.conf:/etc/nginx/sites-enabled/covers_nginx.conf:ro
       # Needed for HTTPS, since this is a public server
       - ./docker/public_nginx.conf:/etc/nginx/sites-available/public_nginx.conf:ro
+      # letsencrypt
+      - letsencrypt-data:/etc/letsencrypt
+      - ../olsystem/etc/cron.d/certbot:/etc/cron.d/certbot
       # Needs access to openlibrary for static files
       - ../olsystem:/olsystem
       - /1/var/lib/openlibrary/sitemaps:/sitemaps
@@ -111,10 +115,6 @@ services:
       options:
         max-size: "512m"
         max-file: "4"
-    secrets:
-      # Needed by public_nginx.conf
-      - ssl_certificate
-      - ssl_certificate_key
 
   memcached:
     # The memcached cluster is currently managed manually on production
@@ -173,8 +173,12 @@ services:
     user: root
     command: docker/ol-nginx-start.sh
     environment:
-      - CRONTAB_FILES="/etc/cron.d/archive-webserver-logs /etc/cron.d/pull-sitemaps-from-ol-home0"
+      - CRONTAB_FILES="/etc/cron.d/archive-webserver-logs /etc/cron.d/pull-sitemaps-from-ol-home0 /etc/cron.d/certbot"
+      - NGINX_DOMAIN="openlibrary.org"
     volumes:
+      # letsencrypt
+      - letsencrypt-data:/etc/letsencrypt
+      - ../olsystem/etc/cron.d/certbot:/etc/cron.d/certbot
       # nginx configurations
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/web_nginx.conf:/etc/nginx/sites-enabled/openlibrary.conf:ro
@@ -200,9 +204,6 @@ services:
       options:
         max-size: "512m"
         max-file: "4"
-    secrets:
-      - ssl_certificate
-      - ssl_certificate_key
 
   infobase_nginx:
     profiles: ["ol-home0"]
@@ -305,10 +306,6 @@ secrets:
     ia_db_pw_file:
       file: /opt/.petabox/dbserver
 
-    # SSL-related secrets
-    ssl_certificate:
-      file: /opt/.petabox/openlibrary.org.combined.crt
-    ssl_certificate_key:
-      file: /opt/.petabox/openlibrary.org.nopassword.key
 volumes:
     archive-webserver-logs-data:
+    letsencrypt-data:
