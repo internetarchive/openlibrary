@@ -218,6 +218,7 @@ class addbook(delegate.page):
 
     def POST(self):
         i = web.input(
+            title="",
             book_title="",
             publisher="",
             publish_date="",
