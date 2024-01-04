@@ -105,11 +105,15 @@
 
   .navigation-breadcrumbs {
     flex-direction: column;
+    flex-shrink: 1;
     .crumb {
       margin-bottom: 10px;
     }
   }
 
+  .share-button{
+    margin-left: -50px;
+  }
   .mybooks-details {
     padding: 10px;
     margin: 0;
@@ -168,4 +172,18 @@
     height: auto;
     width: calc(20vw - 15px);
   }
+}
+
+@media only screen and (max-width: 500px) {
+  .navigation-breadcrumbs{
+    .crumb{
+      font-size:0.66rem;
+      margin-left:-10px;
+    }
+  }
+
+  .share-button{
+    margin-left: -125px;
+  }
+
 }
