@@ -14,7 +14,13 @@ from infogami.infobase import client, common
 from openlibrary.accounts import get_current_user
 from openlibrary.core import formats, cache
 from openlibrary.core.models import ThingKey
-from openlibrary.core.lists.model import AnnotatedSeed, AnnotatedSeedDict, List, ThingReferenceDict, SeedSubjectString
+from openlibrary.core.lists.model import (
+    AnnotatedSeed,
+    AnnotatedSeedDict,
+    List,
+    ThingReferenceDict,
+    SeedSubjectString,
+)
 import openlibrary.core.helpers as h
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.addbook import safe_seeother
@@ -60,7 +66,7 @@ class ListRecord:
 
     @staticmethod
     def normalize_input_seed(
-        seed: ThingReferenceDict | AnnotatedSeedDict | str
+        seed: ThingReferenceDict | AnnotatedSeedDict | str,
     ) -> Seed:
         if isinstance(seed, str):
             if seed.startswith('/subjects/'):

@@ -108,6 +108,8 @@ class ListSolrBuilder(AbstractSolrBuilder):
     @property
     def seed(self) -> list[str]:
         return [
-            (seed.get('key') or seed['thing']['key']) if isinstance(seed, dict) else seed
+            (seed.get('key') or seed['thing']['key'])
+            if isinstance(seed, dict)
+            else seed
             for seed in self._list.get('seeds', [])
         ]

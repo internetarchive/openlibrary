@@ -37,9 +37,9 @@ When a subject is added to a list, it's added as a string like:
 class ListAnnotations(TypedDict):
     pass
 
+
 class UserListAnnotations(ListAnnotations):
     notes: str
-
 
 
 class SeriesAnnotations(ListAnnotations):
@@ -60,6 +60,7 @@ class AnnotatedSeedDict(TypedDict):
     }
     ```
     """
+
     thing: ThingReferenceDict
 
 
@@ -79,6 +80,7 @@ class AnnotatedSeed(TypedDict):
     Note: the `Thing` is usually lazy; so it won't fetch the thing from the db
     unless you reference a field on it.
     """
+
     thing: Thing
 
 
@@ -89,6 +91,7 @@ class AnnotatedSeedThing(Thing):
     from the db will have seeds that are `AnnotatedSeedThing`s, not direct
     `dict`s.
     """
+
     key: Literal[None]  # type: ignore
     _data: AnnotatedSeed
 
@@ -495,17 +498,22 @@ class Seed:
             else:
                 return Seed(list, seed)
 
-
     @staticmethod
-    def from_json(list: List, seed_json: SeedSubjectString | ThingReferenceDict | AnnotatedSeedDict):
+    def from_json(
+        list: List,
+        seed_json: SeedSubjectString | ThingReferenceDict | AnnotatedSeedDict,
+    ):
         if isinstance(seed_json, dict):
             if 'thing' in seed_json:
                 seed_json = cast(AnnotatedSeedDict, seed_json)
                 thing = Thing(list._site, seed_json['thing']['key'], None)
-                return Seed(list, {
-                    'thing': thing,
-                    'notes': seed_json['notes'],
-                })
+                return Seed(
+                    list,
+                    {
+                        'thing': thing,
+                        'notes': seed_json['notes'],
+                    },
+                )
             elif 'key' in seed_json:
                 return Seed(list, seed_json['key'])
         return Seed(list, seed_json)
