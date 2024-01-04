@@ -28,9 +28,9 @@ $ i18n_strings = {
             <div class="input">
                 $if work:
                     <input type="text" id="title" disabled="disabled" value="$work.title"/>
-                    <input type="hidden" name="title" value="$work.title"/>
+                    <input type="hidden" name="book_title" value="$work.title"/>
                 $else:
-                    <input type="text" name="title" id="title" class="required title" style="width:630px;" value="$(work and work.title)" $cond(work, 'readonly="readonly"')/>
+                    <input type="text" name="book_title" id="title" class="required title" style="width:630px;" value="$(work and work.title)" $cond(work, 'readonly="readonly"')/>
             </div>
         </div>
         <div class="formElement">
