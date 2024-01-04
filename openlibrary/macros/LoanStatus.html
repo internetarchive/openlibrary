@@ -113,13 +113,13 @@ $elif ocaid and availability.get('is_previewable') and book_provider.short_name 
       $:macros.BookSearchInside(ocaid)
 
 $else:
-  $# Only render NotInLibrary on an edition's page, for that specific edition.
+  $# Only render clickable NotInLibrary when not on an edition's page, for that specific edition.
   $# secondary_action means we're on a book page and it's the button under the cover image.
   $ key = doc.key if is_edition else work_key
   $if (is_edition and is_book_page) or secondary_action:
-      $:macros.NotInLibrary()
+      $:macros.NotInLibrary(link=None)
   $else:
-      $:macros.CheckOptions(key)
+      $:macros.NotInLibrary(link=key)
 
 $:post
 
