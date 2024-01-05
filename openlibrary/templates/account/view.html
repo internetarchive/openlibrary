@@ -42,7 +42,7 @@ $var title: $header_title
 
       $if mb.is_public and mb.key in mb.PUBLIC_KEYS:
         <div>
-          <a class="cta-btn cta-btn--unstyled share-button" onclick="prompt('Copy share link to clipboard:', window.location.protocol + '//' + window.location.hostname + '$(ctx.path)');"><img class="icon-link__image" src="/static/images/icons/share.svg" width="20"> Share</a>
+          <a class="cta-btn cta-btn--unstyled" onclick="prompt('Copy share link to clipboard:', window.location.protocol + '//' + window.location.hostname + '$(ctx.path)');"><img class="icon-link__image" src="/static/images/icons/share.svg" width="20"> Share</a>
         </div>
     </header>
 
