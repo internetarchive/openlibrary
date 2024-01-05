@@ -17,6 +17,7 @@ from openlibrary.core.lending import add_availability, get_loans_of_user
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.core.sponsorships import get_sponsored_editions
 from openlibrary.core.models import LoggedBooksData
+from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 
 
 RESULTS_PER_PAGE: Final = 25
@@ -216,6 +217,7 @@ class readinglog_yearly(delegate.page):
             # ensuring that the year is at least four digits long avoids incorrect results.
             raise web.badrequest(message="Year must be four digits")
         mb = MyBooksTemplate(username, 'already-read')
+        mb.selected_year = str(year)
         template = mybooks_readinglog().render_template(mb, year=year)
         return mb.render(template=template, header_title=_("Already Read"))
 
@@ -256,6 +258,15 @@ class mybooks_readinglog(delegate.page):
         # Add ratings to "already-read" items.
         if include_ratings := mb.key == "already-read" and mb.is_my_page:
             logged_book_data.load_ratings()
+
+        # Add yearly reading goals to the MyBooksTemplate
+        if mb.key == 'already-read' and mb.is_my_page:
+            mb.reading_goals = [
+                str(result.year)
+                for result in YearlyReadingGoals.select_by_username(
+                    mb.username, order='year DESC'
+                )
+            ]
 
         ratings = logged_book_data.ratings
         return render['account/reading_log'](
@@ -388,6 +399,9 @@ class MyBooksTemplate:
             if (self.is_my_page or self.is_public)
             else []
         )
+
+        self.reading_goals = []
+        self.selected_year = None
 
         if self.me and self.is_my_page:
             self.counts.update(PatronBooknotes.get_counts(self.username))
