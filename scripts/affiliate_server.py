@@ -207,7 +207,10 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
             n=len(pending_books),
         )
         get_current_amazon_batch().add_items(
-            [{'ia_id': b['source_records'][0], 'data': b} for b in pending_books]
+            [
+                {'ia_id': b['source_records'][0], 'status': 'staged', 'data': b}
+                for b in pending_books
+            ]
         )
 
 
