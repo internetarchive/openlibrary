@@ -322,8 +322,6 @@ def _get_amazon_metadata(
     :param float sleep_sec: Delay time.sleep(sleep_sec) seconds before each retry
     :return: A single book item's metadata, or None.
     """
-    # TMP: This is causing a bunch of duplicate imports
-    return None
     if not affiliate_server_url:
         return None
 

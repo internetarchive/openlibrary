@@ -1,5 +1,8 @@
+from unittest.mock import patch
+
 import pytest
 from openlibrary.core.vendors import (
+    get_amazon_metadata,
     split_amazon_title,
     clean_amazon_metadata_for_load,
     betterworldbooks_fmt,
@@ -192,3 +195,64 @@ def test_betterworldbooks_fmt():
 
 # Test cases to add:
 # Multiple authors
+
+
+def test_get_amazon_metadata() -> None:
+    """
+    Mock a reply from the Amazon Products API so we can do a basic test for
+    get_amazon_metadata() and cached_get_amazon_metadata().
+    """
+
+    class MockRequests:
+        def get(self):
+            pass
+
+        def raise_for_status(self):
+            return True
+
+        def json(self):
+            return mock_response
+
+    mock_response = {
+        'status': 'success',
+        'hit': {
+            'url': 'https://www.amazon.com/dp/059035342X/?tag=ia',
+            'source_records': ['amazon:059035342X'],
+            'isbn_10': ['059035342X'],
+            'isbn_13': ['9780590353427'],
+            'price': '$5.10',
+            'price_amt': 509,
+            'title': "Harry Potter and the Sorcerer's Stone",
+            'cover': 'https://m.media-amazon.com/images/I/51Wbz5GypgL._SL500_.jpg',
+            'authors': [{'name': 'Rowling, J.K.'}, {'name': 'GrandPr_, Mary'}],
+            'publishers': ['Scholastic'],
+            'number_of_pages': 309,
+            'edition_num': '1',
+            'publish_date': 'Sep 02, 1998',
+            'product_group': 'Book',
+            'physical_format': 'paperback',
+        },
+    }
+    expected = {
+        'url': 'https://www.amazon.com/dp/059035342X/?tag=ia',
+        'source_records': ['amazon:059035342X'],
+        'isbn_10': ['059035342X'],
+        'isbn_13': ['9780590353427'],
+        'price': '$5.10',
+        'price_amt': 509,
+        'title': "Harry Potter and the Sorcerer's Stone",
+        'cover': 'https://m.media-amazon.com/images/I/51Wbz5GypgL._SL500_.jpg',
+        'authors': [{'name': 'Rowling, J.K.'}, {'name': 'GrandPr_, Mary'}],
+        'publishers': ['Scholastic'],
+        'number_of_pages': 309,
+        'edition_num': '1',
+        'publish_date': 'Sep 02, 1998',
+        'product_group': 'Book',
+        'physical_format': 'paperback',
+    }
+    isbn = "059035342X"
+    with patch("requests.get", return_value=MockRequests()), patch(
+        "openlibrary.core.vendors.affiliate_server_url", new=True
+    ):
+        got = get_amazon_metadata(id_=isbn, id_type="isbn", retries=1)
+        assert got == expected

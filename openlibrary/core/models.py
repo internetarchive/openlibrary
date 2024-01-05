@@ -2,6 +2,7 @@
 """
 from datetime import datetime, timedelta
 import logging
+import sys
 
 import web
 import json
@@ -21,12 +22,15 @@ from openlibrary.catalog import add_book
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.helpers import private_collection_in
-from openlibrary.core.imports import ImportItem
+from openlibrary.core.imports import Batch, ImportItem
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-from openlibrary.core.vendors import create_edition_from_amazon_metadata
+from openlibrary.core.vendors import clean_amazon_metadata_for_load, get_amazon_metadata
 from openlibrary.utils import extract_numeric_id_from_olid, dateutil
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
+
+if "pytest" not in sys.modules:
+    from scripts.affiliate_server import get_current_amazon_batch
 
 from . import cache, waitinglist
 
@@ -401,10 +405,23 @@ class Edition(Thing):
                     return web.ctx.site.get(matches[0])
 
         # Attempt to fetch the book from the import_item table
-        if result := ImportItem.import_first_staged(identifiers=isbns):
-            return result
+        if edition := ImportItem.import_first_staged(identifiers=isbns):
+            return edition
 
-        # TODO: Final step - call affiliate server, with retry code migrated there.
+        # Finally, try to fetch the book data from Amazon + import.
+        if metadata := get_amazon_metadata(
+            id_=isbn10 or isbn13, id_type="isbn", retries=3
+        ):
+            cleaned_metadata = clean_amazon_metadata_for_load(metadata)
+            import_item = {
+                'ia_id': metadata['source_records'][0],
+                'status': 'staged',
+                'data': cleaned_metadata,
+            }
+            batch = get_current_amazon_batch()
+            batch.add_items([import_item])
+            if edition := ImportItem.import_first_staged(identifiers=isbns):
+                return edition
 
     def is_ia_scan(self):
         metadata = self.get_ia_meta_fields()
