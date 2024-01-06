@@ -227,7 +227,8 @@ class addbook(delegate.page):
             web_book_url="",
             _test="false",
         )
-
+        i.title = i.book_title
+        
         if spamcheck.is_spam(i, allow_privileged_edits=True):
             return render_template(
                 "message.html", "Oops", 'Something went wrong. Please try again later.'
@@ -312,7 +313,7 @@ class addbook(delegate.page):
             return edition or work  # Case 3 or 2, from check page
 
         edition = self.try_edition_match(
-            title=i.book_title,
+            title=i.title,
             author_key=author_key,
             publisher=i.publisher,
             publish_year=i.publish_year,
@@ -326,7 +327,7 @@ class addbook(delegate.page):
         solr = get_solr()
         # Less exact solr search than try_edition_match(), search by supplied title and author only.
         result = solr.select(
-            {'title': i.book_title, 'author_key': author_key.split("/")[-1]},
+            {'title': i.title, 'author_key': author_key.split("/")[-1]},
             doc_wrapper=make_work,
             q_op="AND",
         )
@@ -459,7 +460,7 @@ class addbook(delegate.page):
         """
         # Any new author has been created and added to
         # saveutil, and author_key added to i
-        work = new_doc("/type/work", title=i.book_title, authors=i.authors)
+        work = new_doc("/type/work", title=i.title, authors=i.authors)
 
         edition = self._make_edition(work, i)
 
@@ -478,7 +479,7 @@ class addbook(delegate.page):
         edition = new_doc(
             "/type/edition",
             works=[{"key": work.key}],
-            title=i.book_title,
+            title=i.title,
             publishers=[i.publisher],
             publish_date=i.publish_date,
         )
