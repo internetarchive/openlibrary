@@ -228,7 +228,7 @@ class addbook(delegate.page):
             _test="false",
         )
         i.title = i.book_title
-        
+
         if spamcheck.is_spam(i, allow_privileged_edits=True):
             return render_template(
                 "message.html", "Oops", 'Something went wrong. Please try again later.'
