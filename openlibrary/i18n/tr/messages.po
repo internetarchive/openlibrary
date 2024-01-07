@@ -122,7 +122,7 @@ msgstr[1] "%d gündür bekliyor"
 #: diff.html:7
 #, python-format
 msgid "Diff on %s"
-msgstr ""
+msgstr "%s üzerinde fark"
 
 #: diff.html:26
 msgid "Added"
@@ -143,7 +143,7 @@ msgstr "Değiştirilmedi"
 #: diff.html:39
 #, python-format
 msgid "Revision %d"
-msgstr ""
+msgstr "%d yi gözden geçir"
 
 #: books/check.html:32 books/edit/edition.html:76 books/show.html:16
 #: covers/book_cover.html:41 covers/book_cover_single_edition.html:36
@@ -173,7 +173,7 @@ msgstr "İptal et ve geri dön."
 
 #: edit_yaml.html:22
 msgid "YAML Representation:"
-msgstr ""
+msgstr "YAML temsili"
 
 #: BookPreview.html:11 books/edit/edition.html:669 editpage.html:15
 msgid "Preview"
@@ -207,7 +207,7 @@ msgstr "Yorum"
 
 #: history.html:35
 msgid "Diff"
-msgstr ""
+msgstr "Fark"
 
 #: history.html:42 history.html:73
 msgid "Compare"
@@ -215,7 +215,7 @@ msgstr "Karşılaştır"
 
 #: history.html:42 history.html:73
 msgid "See Diff"
-msgstr ""
+msgstr "Farkı gör"
 
 #: history.html:48 lib/history.html:76
 #, python-format
@@ -369,53 +369,53 @@ msgstr "Kaydının detayları"
 
 #: showamazon.html:15 showbwb.html:15
 msgid "This record came from"
-msgstr ""
+msgstr "Bu kayıt şuradan geldi "
 
 #: showia.html:42 showmarc.html:48
 msgid "Invalid MARC record."
-msgstr ""
+msgstr "Geçersiz MARC kaydı."
 
 #: status.html:17
 msgid "Server status"
-msgstr ""
+msgstr "Sunucu statüsü"
 
 #: SearchNavigation.html:24 SubjectTags.html:23 lib/nav_foot.html:28
 #: lib/nav_head.html:28 subjects.html:9 subjects/notfound.html:11
 #: type/author/view.html:176 type/list/view_body.html:280 work_search.html:75
 msgid "Subjects"
-msgstr ""
+msgstr "Konular"
 
 #: SubjectTags.html:27 subjects.html:9 type/author/view.html:177
 #: type/list/view_body.html:282 work_search.html:79
 msgid "Places"
-msgstr ""
+msgstr "Yerler"
 
 #: SubjectTags.html:25 admin/menu.html:20 subjects.html:9
 #: type/author/view.html:178 type/list/view_body.html:281 work_search.html:78
 msgid "People"
-msgstr ""
+msgstr "Kişiler"
 
 #: SubjectTags.html:29 subjects.html:9 type/list/view_body.html:283
 #: work_search.html:80
 msgid "Times"
-msgstr ""
+msgstr "Zaman"
 
 #: subjects.html:19
 msgid "See all works"
-msgstr ""
+msgstr "Tüm çalışmaları görün"
 
 #: merge/authors.html:89 publishers/view.html:13 subjects.html:15
 #: type/author/view.html:117
 #, python-format
 msgid "%(count)d work"
 msgid_plural "%(count)d works"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d çalışma"
+msgstr[1] "%(count)d çalışma"
 
 #: subjects.html:22
 #, python-format
 msgid "Search for books with subject %(name)s."
-msgstr ""
+msgstr "%(name)s konulu kitapları ara."
 
 #: authors/index.html:21 lib/nav_head.html:102 lists/home.html:25
 #: publishers/notfound.html:19 publishers/view.html:115
@@ -424,11 +424,11 @@ msgstr ""
 #: subjects.html:27 subjects/notfound.html:19 type/local_id/view.html:42
 #: work_search.html:91
 msgid "Search"
-msgstr ""
+msgstr "Ara"
 
 #: publishers/view.html:32 subjects.html:37
 msgid "Publishing History"
-msgstr ""
+msgstr "Yayınlanma Tarihi"
 
 #: subjects.html:39
 msgid ""
@@ -440,39 +440,39 @@ msgstr ""
 
 #: publishers/view.html:34 subjects.html:40
 msgid "Reset chart"
-msgstr ""
+msgstr "Grafiği sıfırla"
 
 #: publishers/view.html:34 subjects.html:40
 msgid "or continue zooming in."
-msgstr ""
+msgstr "ya da yakınlaştırmaya devam et."
 
 #: subjects.html:41
 msgid "This graph charts editions published on this subject."
-msgstr ""
+msgstr "Bu grafik bu konuda yayınlanan baskıları gösteriyor."
 
 #: publishers/view.html:42 subjects.html:47
 msgid "Editions Published"
-msgstr ""
+msgstr "Yayınlanan Baskılar"
 
 #: admin/imports.html:18 publishers/view.html:44 subjects.html:49
 msgid "You need to have JavaScript turned on to see the nifty chart!"
-msgstr ""
+msgstr "Akıllı grafiği görebilmek içn JavaScript açık olmalı!"
 
 #: publishers/view.html:46 subjects.html:51
 msgid "Year of Publication"
-msgstr ""
+msgstr "Yayınlanma Yılı"
 
 #: subjects.html:57
 msgid "Related..."
-msgstr ""
+msgstr "... ile bağlantılı"
 
 #: publishers/view.html:64 subjects.html:71
 msgid "None found."
-msgstr ""
+msgstr "Hiçbiri bulunamadı."
 
 #: publishers/view.html:81 subjects.html:86
 msgid "See more books by, and learn about, this author"
-msgstr ""
+msgstr "Bu yazarın daha fazla kitabını görün ve onun hakkında bilgi edinin."
 
 #: account/loans.html:143 authors/index.html:24 publishers/view.html:79
 #: search/authors.html:56 search/publishers.html:29 search/subjects.html:66
@@ -480,32 +480,32 @@ msgstr ""
 #, python-format
 msgid "%(count)d book"
 msgid_plural "%(count)d books"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d kitap"
+msgstr[1] "%(count)d kitap"
 
 #: subjects.html:92
 msgid "Prolific Authors"
-msgstr ""
+msgstr "Üretken Yazarlar"
 
 #: subjects.html:93
 msgid "who have written the most books on this subject"
-msgstr ""
+msgstr "bu konuda en fazla kitap yazan kişiler"
 
 #: publishers/view.html:104 subjects.html:109
 msgid "Get more information about this publisher"
-msgstr ""
+msgstr "Bu yayıncı hakkında daha fazla bilgi edinin"
 
 #: SearchResultsWork.html:82 books/check.html:32 merge/authors.html:82
 #: publishers/view.html:102 subjects.html:107
 #, python-format
 msgid "%(count)s edition"
 msgid_plural "%(count)s editions"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)s baskı"
+msgstr[1] "%(count)s baskı"
 
 #: support.html:7 support.html:10
 msgid "How can we help?"
-msgstr ""
+msgstr "Nasıl yardımcı olabiliriz?"
 
 #: support.html:16
 msgid ""
@@ -523,15 +523,15 @@ msgstr ""
 
 #: support.html:22
 msgid "Your Name"
-msgstr ""
+msgstr "Adınız"
 
 #: support.html:27
 msgid "Your Email Address"
-msgstr ""
+msgstr "E-posta adresiniz"
 
 #: support.html:28
 msgid "We'll need this if you want a reply"
-msgstr ""
+msgstr "Cevap almak istiyorsanız, buna ihtiyacımız olacak"
 
 #: support.html:29
 msgid ""
@@ -541,47 +541,47 @@ msgstr ""
 
 #: support.html:33
 msgid "Topic"
-msgstr ""
+msgstr "Konu"
 
 #: support.html:36
 msgid "Select..."
-msgstr ""
+msgstr "Seç..."
 
 #: support.html:37
 msgid "Borrowing Help"
-msgstr ""
+msgstr "Ödünç alma Yardımı"
 
 #: support.html:38
 msgid "Developer/Code Question"
-msgstr ""
+msgstr "Yazılımcı/Kod Sorusu"
 
 #: support.html:39
 msgid "Editing Issue"
-msgstr ""
+msgstr "Baskı sorunu"
 
 #: support.html:40
 msgid "Login Trouble"
-msgstr ""
+msgstr "Oturum açma Sorunu"
 
 #: support.html:41
 msgid "Spam Report"
-msgstr ""
+msgstr "Spam Raporu"
 
 #: support.html:42
 msgid "Waiting List"
-msgstr ""
+msgstr "Bekleme Listesi"
 
 #: support.html:43
 msgid "Other Question"
-msgstr ""
+msgstr "Diğer Sorular"
 
 #: support.html:49
 msgid "Your Question"
-msgstr ""
+msgstr "Sorunuz"
 
 #: support.html:50
 msgid "Note: our staff will likely only be able respond in English."
-msgstr ""
+msgstr "Not: personelimiz muhtemelen sadece İngilizce yanıt verebilecektir."
 
 #: support.html:54
 msgid ""
@@ -591,11 +591,11 @@ msgstr ""
 
 #: support.html:58
 msgid "Which page were you looking at?"
-msgstr ""
+msgstr "Hangi sayfaya bakıyordunuz?"
 
 #: support.html:69
 msgid "Send"
-msgstr ""
+msgstr "Gönder"
 
 #: EditButtons.html:23 EditButtonsMacros.html:26 ReadingLogDropper.html:167
 #: account/create.html:90 account/notifications.html:59
@@ -605,53 +605,53 @@ msgstr ""
 #: covers/manage.html:52 databarAuthor.html:66 databarEdit.html:13
 #: merge/authors.html:109 support.html:71
 msgid "Cancel"
-msgstr ""
+msgstr "İptal et"
 
 #: trending.html:10
 msgid "Now"
-msgstr ""
+msgstr "Şimdi"
 
 #: admin/graphs.html:47 check_ins/check_in_form.html:71
 #: check_ins/check_in_prompt.html:36 trending.html:10
 msgid "Today"
-msgstr ""
+msgstr "Bugün"
 
 #: admin/graphs.html:48 trending.html:10
 msgid "This Week"
-msgstr ""
+msgstr "Bu hafta"
 
 #: stats/readinglog.html:20 stats/readinglog.html:37 stats/readinglog.html:54
 #: trending.html:10
 msgid "This Month"
-msgstr ""
+msgstr "Bu ay"
 
 #: trending.html:10
 msgid "This Year"
-msgstr ""
+msgstr "Bu yıl"
 
 #: trending.html:10
 msgid "All Time"
-msgstr ""
+msgstr "Tüm Zamanlar"
 
 #: home/index.html:27 trending.html:11
 msgid "Trending Books"
-msgstr ""
+msgstr "Trend Kitaplar"
 
 #: trending.html:12
 msgid "See what readers from the community are adding to their bookshelves"
-msgstr ""
+msgstr "Topluluktan okurların kitaplıklarına neler eklediğni görün"
 
 #: ReadingLogDropper.html:27 ReadingLogDropper.html:66
 #: ReadingLogDropper.html:189 account/mybooks.html:75 account/sidebar.html:26
 #: trending.html:23
 msgid "Want to Read"
-msgstr ""
+msgstr "Okumak istiyorum"
 
 #: ReadingLogDropper.html:25 ReadingLogDropper.html:74 account/books.html:33
 #: account/mybooks.html:74 account/readinglog_shelf_name.html:8
 #: account/sidebar.html:25 trending.html:23
 msgid "Currently Reading"
-msgstr ""
+msgstr "Şu anda okuyorum"
 
 #: LoanReadForm.html:9 ReadButton.html:19
 #: book_providers/gutenberg_read_button.html:15
@@ -660,7 +660,7 @@ msgstr ""
 #: books/edit/edition.html:665 books/show.html:34 trending.html:23
 #: type/list/embed.html:69 widget.html:34
 msgid "Read"
-msgstr ""
+msgstr "Okudum"
 
 #: trending.html:24
 #, python-format
