@@ -219,6 +219,7 @@ class addbook(delegate.page):
     def POST(self):
         i = web.input(
             title="",
+            book_title="",
             publisher="",
             publish_date="",
             id_name="",
@@ -226,6 +227,7 @@ class addbook(delegate.page):
             web_book_url="",
             _test="false",
         )
+        i.title = i.book_title
 
         if spamcheck.is_spam(i, allow_privileged_edits=True):
             return render_template(
