@@ -268,7 +268,7 @@ def json_encode(d):
     return json.dumps(d)
 
 
-def unflatten(d: Storage, separator: str = "--") -> Storage:
+def unflatten(d: dict, separator: str = "--") -> dict:
     """Convert flattened data into nested form.
 
     >>> unflatten({"a": 1, "b--x": 2, "b--y": 3, "c--0": 4, "c--1": 5})

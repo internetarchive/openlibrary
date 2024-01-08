@@ -1,5 +1,6 @@
 """Helper functions used by the List model.
 """
+from collections.abc import Iterable
 from functools import cached_property
 from typing import TypedDict, cast
 
@@ -35,17 +36,33 @@ When a subject is added to a list, it's added as a string like:
 
 
 class AnnotatedSeedDict(TypedDict):
+    """
+    The JSON friendly version of an annotated seed.
+    """
+
     thing: ThingReferenceDict
     notes: str
 
 
 class AnnotatedSeed(TypedDict):
+    """
+    The database/`Thing` friendly version of an annotated seed.
+    """
+
     thing: Thing
     notes: str
 
 
 class AnnotatedSeedThing(Thing):
-    key: None
+    """
+    Note: This isn't a real `Thing` type! This will never be constructed
+    or returned. It's just here to illustrate that when we get seeds from
+    the db, they're wrapped in this weird `Thing` object, which will have
+    a _data field that is the raw JSON data. That JSON data will conform
+    to the `AnnotatedSeedDict` type.
+    """
+
+    key: None  # type: ignore[assignment]
     _data: AnnotatedSeed
 
 
@@ -90,44 +107,33 @@ class List(Thing):
         """
         return [web.storage(name=t, url=self.key + "/tags/" + t) for t in self.tags]
 
-    def add_seed(self, seed: Thing | ThingReferenceDict | SeedSubjectString):
-        """
-        Adds a new seed to this list.
+    def add_seed(
+        self, seed: ThingReferenceDict | AnnotatedSeedDict | SeedSubjectString
+    ):
+        """Adds a new seed to this list."""
+        seed_object = Seed.from_json(self, seed)
 
-        seed can be:
-            - a `Thing`: author, edition or work object
-            - a key dict: {"key": "..."} for author, edition or work objects
-            - a string: for a subject
-        """
-        if isinstance(seed, dict):
-            seed = Thing(self._site, seed['key'], None)
-
-        if self._index_of_seed(seed) >= 0:
+        if self._index_of_seed(seed_object.key) >= 0:
             return False
         else:
             self.seeds = self.seeds or []
-            self.seeds.append(seed)
+            self.seeds.append(seed_object.to_db())
             return True
 
     def remove_seed(
-        self, seed: Thing | ThingReferenceDict | SeedSubjectString | AnnotatedSeedDict
+        self, seed: ThingReferenceDict | AnnotatedSeedDict | SeedSubjectString
     ):
         """Removes a seed for the list."""
-        if isinstance(seed, dict):
-            key = seed.get('key') or seed.get('thing', {}).get('key')
-            seed = Thing(self._site, key, None)
-
-        if (index := self._index_of_seed(seed)) >= 0:
+        seed_key = Seed.from_json(self, seed).key
+        if (index := self._index_of_seed(seed_key)) >= 0:
             self.seeds.pop(index)
             return True
         else:
             return False
 
-    def _index_of_seed(self, seed: Thing | SeedSubjectString) -> int:
-        if isinstance(seed, Thing):
-            seed = seed.key
+    def _index_of_seed(self, seed_key: str) -> int:
         for i, s in enumerate(self._get_seed_strings()):
-            if s == seed:
+            if s == seed_key:
                 return i
         return -1
 
@@ -135,7 +141,7 @@ class List(Thing):
         return f"<List: {self.key} ({self.name!r})>"
 
     def _get_seed_strings(self) -> list[SeedSubjectString | ThingKey]:
-        return [Seed(self, seed).key for seed in self.seeds]
+        return [seed.key for seed in self.get_seeds()]
 
     @cached_property
     def last_update(self):
@@ -163,79 +169,25 @@ class List(Thing):
             "last_update": self.last_update and self.last_update.isoformat() or None,
         }
 
-    def get_book_keys(self, offset=0, limit=50):
-        offset = offset or 0
-        return list(
-            {
-                (seed.works[0].key if seed.works else seed.key)
-                for seed in self.seeds
-                if seed.key.startswith(('/books', '/works'))
-            }
-        )[offset : offset + limit]
-
-    def get_editions(self, limit=50, offset=0, _raw=False):
-        """Returns the editions objects belonged to this list ordered by last_modified.
-
-        When _raw=True, the edtion dicts are returned instead of edtion objects.
+    def get_work_keys(self) -> Iterable[ThingKey]:
         """
-        edition_keys = {
-            seed.key for seed in self.seeds if seed and seed.type.key == '/type/edition'
-        }
-
-        editions = web.ctx.site.get_many(list(edition_keys))
-
-        return {
-            "count": len(editions),
-            "offset": offset,
-            "limit": limit,
-            "editions": editions,
-        }
-        # TODO
-        # We should be able to get the editions from solr and return that.
-        # Might be an issue of the total number of editions is too big, but
-        # that isn't the case for most lists.
-
-    def get_all_editions(self):
-        """Returns all the editions of this list in arbitrary order.
-
-        The return value is an iterator over all the editions. Each entry is a dictionary.
-        (Compare the difference with get_editions.)
-
-        This works even for lists with too many seeds as it doesn't try to
-        return editions in the order of last-modified.
+        Gets the keys of the works in this list, or of the works of the editions in
+        this list. May return duplicates.
         """
-        edition_keys = {
-            seed.key for seed in self.seeds if seed and seed.type.key == '/type/edition'
-        }
-
-        def get_query_term(seed):
-            if seed.type.key == "/type/work":
-                return "key:%s" % seed.key.split("/")[-1]
-            if seed.type.key == "/type/author":
-                return "author_key:%s" % seed.key.split("/")[-1]
-
-        query_terms = [get_query_term(seed) for seed in self.seeds]
-        query_terms = [q for q in query_terms if q]  # drop Nones
-        edition_keys = set(self._get_edition_keys_from_solr(query_terms))
-
-        # Add all editions
-        edition_keys.update(
-            seed.key for seed in self.seeds if seed and seed.type.key == '/type/edition'
+        return (
+            (seed.document.works[0].key if seed.document.works else seed.key)
+            for seed in self.get_seeds()
+            if seed.key.startswith(('/books/', '/works/'))
         )
 
-        return [doc.dict() for doc in web.ctx.site.get_many(list(edition_keys))]
-
-    def _get_edition_keys_from_solr(self, query_terms):
-        if not query_terms:
-            return
-        q = " OR ".join(query_terms)
-        solr = get_solr()
-        result = solr.select(q, fields=["edition_key"], rows=10000)
-        for doc in result['docs']:
-            if 'edition_key' not in doc:
-                continue
-            for k in doc['edition_key']:
-                yield "/books/" + k
+    def get_editions(self) -> Iterable[Edition]:
+        """Returns the editions objects belonging to this list."""
+        for seed in self.get_seeds():
+            if (
+                isinstance(seed.document, Thing)
+                and seed.document.type.key == "/type/edition"
+            ):
+                yield cast(Edition, seed.document)
 
     def get_export_list(self) -> dict[str, list[dict]]:
         """Returns all the editions, works and authors of this list in arbitrary order.
@@ -452,6 +404,8 @@ class Seed:
                 return Seed(list, cast(AnnotatedSeed, seed._data))
             else:
                 return Seed(list, seed)
+        else:
+            raise ValueError(f"Invalid seed: {seed!r}")
 
     @staticmethod
     def from_json(
@@ -460,17 +414,56 @@ class Seed:
     ):
         if isinstance(seed_json, dict):
             if 'thing' in seed_json:
-                thing = Thing(list._site, seed_json['thing']['key'], None)
+                annotated_seed = cast(AnnotatedSeedDict, seed_json)  # Appease mypy
+
                 return Seed(
                     list,
                     {
-                        'thing': thing,
-                        'notes': seed_json['notes'],
+                        'thing': Thing(
+                            list._site, annotated_seed['thing']['key'], None
+                        ),
+                        'notes': annotated_seed['notes'],
                     },
                 )
             elif 'key' in seed_json:
-                return Seed(list, seed_json['key'])
+                thing_ref = cast(ThingReferenceDict, seed_json)  # Appease mypy
+                return Seed(
+                    list,
+                    {
+                        'thing': Thing(list._site, thing_ref['key'], None),
+                        'notes': '',
+                    },
+                )
         return Seed(list, seed_json)
+
+    def to_db(self) -> Thing | SeedSubjectString:
+        """
+        Returns a db-compatible (I.e. Thing) representation of the seed.
+        """
+        if isinstance(self.value, str):
+            return self.value
+        if self.notes:
+            return Thing(
+                self._list._site,
+                None,
+                {
+                    'thing': self.value,
+                    'notes': self.notes,
+                },
+            )
+        else:
+            return self.value
+
+    def to_json(self) -> SeedSubjectString | ThingReferenceDict | AnnotatedSeedDict:
+        if isinstance(self.value, str):
+            return self.value
+        elif self.notes:
+            return {
+                'thing': {'key': self.key},
+                'notes': self.notes,
+            }
+        else:
+            return {'key': self.key}
 
     @cached_property
     def document(self) -> Subject | Thing:
