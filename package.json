@@ -80,7 +80,7 @@
     "sinon": "14.0.0",
     "slick-carousel": "1.6.0",
     "storybook": "^7.0.0",
-    "style-loader": "2.0.0",
+    "style-loader": "3.3.4",
     "stylelint": "15.10.1",
     "stylelint-declaration-strict-value": "1.9.2",
     "svgo": "2.3.1",
