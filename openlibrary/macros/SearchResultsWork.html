@@ -39,7 +39,7 @@ $code:
   else:
     full_work_title = doc.get('title', '') + (': ' + doc.subtitle if doc.get('subtitle') else '')
 
-<li class="searchResultItem" itemscope itemtype="https://schema.org/Book" $:attrs>
+<li class="searchResultItem sri--w-main" itemscope itemtype="https://schema.org/Book" $:attrs>
   $ blur_cover = "bookcover--blur" if blur else ""
   <div class="sri__main">
     <span class="bookcover $blur_cover">

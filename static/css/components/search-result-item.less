@@ -10,7 +10,6 @@
 }
 
 .searchResultItem {
-  .display-flex();
   list-style-type: none;
   line-height: 1.5em;
   background-color: @grey-fafafa;
@@ -18,15 +17,23 @@
   padding: 10px;
   margin-bottom: 3px;
   border-bottom: 1px solid @light-beige;
-  flex-wrap: wrap;
-  align-items: center;
+
+  &, .sri__main {
+    .display-flex();
+    align-items: center;
+    flex-direction: column;
+
+    @media (min-width: @width-breakpoint-tablet) {
+      flex-direction: row;
+    }
+  }
+
+  &.sri--w-main {
+    display: block;
+  }
 
   a[href] {
     text-decoration: none;
-  }
-  > div {
-    margin-top: 10px;
-    padding: 0 5px 0 15px;
   }
   h3 {
     display: block;
@@ -152,7 +159,6 @@
 @media only screen and (min-width: @width-breakpoint-tablet) {
   .list-books {
     .searchResultItem {
-      flex-wrap: nowrap;
       .bookcover {
         width: 175px;
         text-align: right;
@@ -165,7 +171,6 @@
   }
   .list-results {
     .searchResultItem {
-      flex-wrap: nowrap;
       .imageLg {
         width: 175px;
         text-align: right;
