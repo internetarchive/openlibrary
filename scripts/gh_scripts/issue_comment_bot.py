@@ -8,6 +8,7 @@ Writes links to each issue to Slack channel #team-abc-plus
 import argparse
 import errno
 import sys
+import time
 
 from configparser import ConfigParser
 from datetime import datetime, timedelta
@@ -74,7 +75,55 @@ def filter_issues(issues: list, since_date: str):
     return filtered_issues
 
 def publish_digest(issues: list[str], slack_channel: str, slack_token: str):
-    pass
+    parent_thread_msg = f'There are {len(issues)} issue(s) awaiting response.  More details in this thread.'
+    response = requests.post(
+        'https://slack.com/api/chat.postMessage',
+        headers={
+            'Authorization': f"Bearer {slack_token}",
+            'Content-Type': 'application/json;  charset=utf-8',
+        },
+        json={
+            'channel': slack_channel,
+            'text': parent_thread_msg,
+        },
+    )
+
+    if response.status_code != 200:
+        # XXX : Log this
+        print(f'Failed to send message to Slack.  Status code: {response.status_code}')
+        # XXX : Add retry logic
+        sys.exit(errno.ECOMM)
+
+    d = response.json()
+    # Store timestamp, which, along with the channel, uniquely identifies the parent thread
+    ts = d.get('ts')
+
+    def comment_on_thread(message: str):
+        response = requests.post(
+            'https://slack.com/api/chat.postMessage',
+            headers={
+                'Authorization': f"Bearer {slack_token}",
+                'Content-Type': 'application/json;  charset=utf-8',
+            },
+            json={
+                'channel': slack_channel,
+                'text': message,
+                'thread_ts': ts
+            },
+        )
+        if response.status_code != 200:
+            # XXX : Log this
+            print(f'Failed to POST slack message\n  Status code: {response.status_code}\n  Message: {message}')
+            # XXX : Retry logic?
+
+    for issue in issues:
+        # Slack rate limit is roughly 1 request per second
+        time.sleep(1)
+
+        issue_url = issue.get('html_url')
+        issue_title = issue.get('title')
+        message = f'<{issue_url}|*{issue_title}*>'
+        comment_on_thread(message)
 
 def create_date_string(hours):
     now = datetime.now()
@@ -86,13 +135,13 @@ def start_job(args: dict):
     """
     Starts the new comment digest job.
     """
-    print(args)
     date_string = create_date_string(args.hours)
     issues = fetch_issues(date_string)
     filtered_issues = filter_issues(issues, date_string)
     if filtered_issues:
         publish_digest(filtered_issues, args.channel, args.token)
-
+    # XXX : Log this
+    print('Digest POSTed to Slack')
 
 def _get_parser() -> argparse.ArgumentParser:
     """
