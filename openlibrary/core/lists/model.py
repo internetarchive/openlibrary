@@ -399,7 +399,7 @@ class List(Thing):
     @cache.memoize(
              "memcache",
              key = lambda self: 'core.patron_lists.%s.%s' % (self.get_owner().name.replace(' ', '_'), self.name.replace(' ', '_')),
-             expires = 60
+             expires = 60*60
              )
     def get_patron_showcase(self, limit = 3):
        return self._get_uncached_patron_showcase(limit = limit)
