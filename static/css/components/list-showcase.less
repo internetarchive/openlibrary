@@ -2,24 +2,24 @@
 @import (less) "components/read-panel.less";
 @import (less) "components/book.less";
 
+@my-lists-item-border: black;
 .my-lists {
-  &-container {
-    background: none;
-    overflow-x: scroll;
-  }
+  display:flex;
   
   &-item {
-    background-color: green;
-    border: 1px solid @my-lists-item-border;
+    background-color: @beige;
+    border: 1px solid @black;
     border-radius: 4px;
     box-shadow: 2px 2px 5px @gray-a19b9e;
-    width: 130px;
+    width: 160px;
     height: 120px;
     position: relative;
     padding-top: 20px;
     padding-bottom: 40px;
+    margin-top: 20px;
     margin-right: 15px;
-    margin-bottom: 5px;
+    margin-left:15px;
+    margin-bottom: 20px;
   }
 }
   
@@ -29,7 +29,7 @@
       border: 1px solid @black;
       border-radius: 2px 2px 4px 4px;
       box-shadow: 2px 2px 5px @gray-a19b9e;
-      background: @red-two;
+      background: @white;
       position: absolute;
       bottom: 0;
       width: 100%;
@@ -68,7 +68,7 @@
       justify-content: center;
       width: 80%;
       margin: auto;
-      position: relative;
+
       
     }
   }
