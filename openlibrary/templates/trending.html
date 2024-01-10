@@ -7,9 +7,9 @@ $ page = int(input(page=1).page)
   <h1>$_('Trending Books'): $(pages[mode])</h1>
   <p>$_("See what readers from the community are adding to their bookshelves")</p>
   <ul class="nav-bar">
-    $for p in pages:  
+    $for p in pages:
     <li class="$('selected' if p==mode else '')">
-      <a 
+      <a
          href="/trending/$(p)">$pages[p]
       </a>
     </li>
