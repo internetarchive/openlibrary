@@ -10,16 +10,88 @@ import errno
 import sys
 
 from configparser import ConfigParser
+from datetime import datetime, timedelta
 from pathlib import Path
 
+import requests
 
 config_file = 'config/bot.ini'
+
+# XXX : Configure?
+staff_usernames = ['scottbarnes', 'mekarpeles', 'jimchamp', 'cdrini']
+
+def fetch_issues(updated_since: str):
+    query = f'repo:internetarchive/openlibrary is:open is:issue comments:>1 updated:>{updated_since}'
+    response = requests.get(
+        'https://api.github.com/search/issues?per_page=100',
+        params={
+            'q': query,
+        },
+    )
+    d = response.json()
+    results = d['items']
+
+    # Pagination
+    def get_next_page(url: str):
+        """Returns list of issues and optional url for next page"""
+        resp = requests.get(url)
+        # Get issues
+        d = resp.json()
+        issues = d['items']
+        # Prepare url for next page
+        next = resp.links.get('next', {})
+        next_url = next.get('url', '')
+
+        return issues, next_url
+
+    links = response.links
+    next = links.get('next', {})
+    next_url = next.get('url', '')
+    while next_url:
+        # Make call with next link
+        issues, next_url = get_next_page(next_url)
+        results = results + issues
+
+    return results
+
+def filter_issues(issues: list, since_date: str):
+    """
+    Returns list of issues that were not last responded to by staff.
+    Requires fetching the most recent comments for the given issues.
+    """
+    filtered_issues = []
+
+    for i in issues:
+        comments_url = i.get('comments_url')
+        resp = requests.get(f'{comments_url}?since{since_date}Z')
+        comments = resp.json()
+        last_comment = comments[-1]
+        last_commenter = last_comment['user']['login']
+
+        if last_commenter not in staff_usernames:
+            filtered_issues.append(i)
+
+    return filtered_issues
+
+def publish_digest(issues: list[str], slack_channel: str, slack_token: str):
+    pass
+
+def create_date_string(hours):
+    now = datetime.now()
+    # XXX : Add a minute or two to the delta?
+    since = now - timedelta(hours=hours)
+    return since.strftime(f'%Y-%m-%dT%H:%M:%S')
 
 def start_job(args: dict):
     """
     Starts the new comment digest job.
     """
-    pass
+    print(args)
+    date_string = create_date_string(args.hours)
+    issues = fetch_issues(date_string)
+    filtered_issues = filter_issues(issues, date_string)
+    if filtered_issues:
+        publish_digest(filtered_issues, args.channel, args.token)
 
 
 def _get_parser() -> argparse.ArgumentParser:
