@@ -188,6 +188,7 @@ def publish_digest(issues: list[str], slack_channel: str, slack_token: str, hour
             },
         )
         if response.status_code != 200:
+            # XXX : Check "ok" field for errors
             # XXX : Log this
             print(f'Failed to POST slack message\n  Status code: {response.status_code}\n  Message: {message}')
             # XXX : Retry logic?
@@ -228,10 +229,16 @@ def start_job(args: dict):
     issues = fetch_issues(date_string)
     filtered_issues = filter_issues(issues, since)
 
+    # XXX : If we are only running this script daily, we can remove this condition to
+    # always post a message to Slack. If the digest is ever not published, we'll know 
+    # that something is wrong with our script runner.
     if filtered_issues:
         publish_digest(filtered_issues, args.channel, args.slack_token, args.hours)
-    # XXX : Log this
-    print('Digest posted to Slack')
+        # XXX : Log this
+        print('Digest posted to Slack.')
+    else:
+        # XXX : Log this
+        print('No issues needing attention found.')
 
 def _get_parser() -> argparse.ArgumentParser:
     """
