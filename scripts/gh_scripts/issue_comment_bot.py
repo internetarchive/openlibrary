@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Fetches Open Library GitHub issues that have been commented on 
+Fetches Open Library GitHub issues that have been commented on
 within some amount of time, in hours.
 
 Writes links to each issue to given Slack channel.
@@ -207,7 +207,7 @@ def publish_digest(issues: list[str], slack_channel: str, slack_token: str, hour
         if slack_id:
             message += f'Lead: {slack_id}\n'
         elif i['lead_label']:
-            message += f'i["lead_label"]\n'
+            message += f'{i["lead_label"]}\n'
         else:
             message += 'Lead: N/A\n'
 
@@ -219,7 +219,7 @@ def time_since(hours):
     now = datetime.now()
     # XXX : Add a minute or two to the delta (to avoid dropping issues)?
     since = now - timedelta(hours=hours)
-    return since, since.strftime(f'%Y-%m-%dT%H:%M:%S')
+    return since, since.strftime('%Y-%m-%dT%H:%M:%S')
 
 def start_job(args: dict):
     """
@@ -230,7 +230,7 @@ def start_job(args: dict):
     filtered_issues = filter_issues(issues, since)
 
     # XXX : If we are only running this script daily, we can remove this condition to
-    # always post a message to Slack. If the digest is ever not published, we'll know 
+    # always post a message to Slack. If the digest is ever not published, we'll know
     # that something is wrong with our script runner.
     if filtered_issues:
         publish_digest(filtered_issues, args.channel, args.slack_token, args.hours)
