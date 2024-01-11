@@ -14,7 +14,21 @@ from datetime import datetime, timedelta
 
 import requests
 
-staff_usernames = ['scottbarnes', 'mekarpeles', 'jimchamp', 'cdrini']
+lead_label_to_username = {
+    'Lead: @mekarpeles': 'mekarpeles',
+    'Lead: @cdrini': 'cdrini',
+    'Lead: @scottbarnes': 'scottbarnes',
+    'Lead: @seabelis': 'seabelis',
+    'Lead: @jimchamp': 'jimchamp',
+}
+
+username_to_slack_id = {
+    'mekarpeles': '<@mek>',
+    'cdrini': '<@cdrini>',
+    'scottbarnes': '<@U03MNR6T7FH>',
+    'seabelis': '<@UAHQ39ACT>',
+    'jimchamp': '<@U01ARTHG9EV>',
+}
 
 def fetch_issues(updated_since: str):
     """
@@ -100,14 +114,30 @@ def filter_issues(issues: list, since: datetime):
         if created > since:
             # Next step: Determine if the last commenter is a staff member
             last_commenter = last_comment['user']['login']
-            if last_commenter not in staff_usernames:
+            if last_commenter not in username_to_slack_id:
+                lead_label= find_lead_label(i.get('labels', []))
                 results.append({
                     'comment_url': last_comment['html_url'],
                     'commenter': last_commenter,
                     'issue_title': i['title'],
+                    'lead_label': lead_label,
                 })
 
     return results
+
+def find_lead_label(labels: list[str]) -> str:
+    """
+    Finds and returns the name of the first lead label found in the given list of GitHub labels.
+
+    Returns an empty string if no lead label is found
+    """
+    result = ''
+    for label in labels:
+        if label['name'].startswith('Lead:'):
+            result = label['name']
+            break
+
+    return result
 
 def publish_digest(issues: list[str], slack_channel: str, slack_token: str, hours_passed: int):
     """
@@ -170,6 +200,16 @@ def publish_digest(issues: list[str], slack_channel: str, slack_token: str, hour
         issue_title = i['issue_title']
         commenter = i['commenter']
         message = f'<{comment_url}|Latest comment for: *{issue_title}*>\n'
+
+        username = lead_label_to_username.get(i['lead_label'], '')
+        slack_id = username_to_slack_id.get(username, '')
+        if slack_id:
+            message += f'Lead: {slack_id}\n'
+        elif i['lead_label']:
+            message += f'i["lead_label"]\n'
+        else:
+            message += 'Lead: N/A\n'
+
         message += f'Commenter: *{commenter}*'
         comment_on_thread(message)
 
