@@ -147,7 +147,7 @@ def publish_digest(issues: list[str], slack_channel: str, slack_token: str, hour
     will include a link to the comment, as well as addiitonal information.
     """
     # Create the parent message
-    parent_thread_msg = f'At least {len(issues)} new comment(s) have been left by contributors in the past {hours_passed} hour(s)'
+    parent_thread_msg = f'{len(issues)} new GitHub comment(s) since {hours_passed} hour(s) ago'
 
     response = requests.post(
         'https://slack.com/api/chat.postMessage',
