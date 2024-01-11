@@ -11,6 +11,7 @@ import sys
 import time
 
 from datetime import datetime, timedelta
+from typing import Any
 
 import requests
 
@@ -30,6 +31,7 @@ username_to_slack_id = {
     'jimchamp': '<@U01ARTHG9EV>',
 }
 
+
 def fetch_issues(updated_since: str):
     """
     Fetches all GitHub issues that have been updated since the given date string and have at least one comment.
@@ -43,12 +45,13 @@ def fetch_issues(updated_since: str):
     """
     # Make initial query for updated issues:
     query = f'repo:internetarchive/openlibrary is:open is:issue comments:>0 updated:>{updated_since}'
+    p: dict[str, str|int] = {
+        'q': query,
+        'per_page': 100,
+    }
     response = requests.get(
         'https://api.github.com/search/issues',
-        params={
-            'q': query,
-            'per_page': 100,
-        },
+        params=p,
     )
     d = response.json()
     results = d['items']
@@ -75,6 +78,7 @@ def fetch_issues(updated_since: str):
         results = results + issues
 
     return results
+
 
 def filter_issues(issues: list, since: datetime):
     """
@@ -115,7 +119,7 @@ def filter_issues(issues: list, since: datetime):
             # Next step: Determine if the last commenter is a staff member
             last_commenter = last_comment['user']['login']
             if last_commenter not in username_to_slack_id:
-                lead_label= find_lead_label(i.get('labels', []))
+                lead_label = find_lead_label(i.get('labels', []))
                 results.append({
                     'comment_url': last_comment['html_url'],
                     'commenter': last_commenter,
@@ -125,7 +129,8 @@ def filter_issues(issues: list, since: datetime):
 
     return results
 
-def find_lead_label(labels: list[str]) -> str:
+
+def find_lead_label(labels: list[dict[str, Any]]) -> str:
     """
     Finds and returns the name of the first lead label found in the given list of GitHub labels.
 
@@ -139,12 +144,13 @@ def find_lead_label(labels: list[str]) -> str:
 
     return result
 
-def publish_digest(issues: list[str], slack_channel: str, slack_token: str, hours_passed: int):
+
+def publish_digest(issues: list[dict[str, str]], slack_channel: str, slack_token: str, hours_passed: int):
     """
     Creates a threaded Slack messaged containing a digest of recently commented GitHub issues.
 
     Parent Slack message will say how many comments were left, and the timeframe. Each reply
-    will include a link to the comment, as well as addiitonal information.
+    will include a link to the comment, as well as additional information.
     """
     # Create the parent message
     parent_thread_msg = f'{len(issues)} new GitHub comment(s) since {hours_passed} hour(s) ago'
@@ -214,6 +220,7 @@ def publish_digest(issues: list[str], slack_channel: str, slack_token: str, hour
         message += f'Commenter: *{commenter}*'
         comment_on_thread(message)
 
+
 def time_since(hours):
     """Returns datetime and string representations of the current time, minus the given hour"""
     now = datetime.now()
@@ -221,7 +228,8 @@ def time_since(hours):
     since = now - timedelta(hours=hours)
     return since, since.strftime('%Y-%m-%dT%H:%M:%S')
 
-def start_job(args: dict):
+
+def start_job(args: argparse.Namespace):
     """
     Starts the new comment digest job.
     """
@@ -239,6 +247,7 @@ def start_job(args: dict):
     else:
         # XXX : Log this
         print('No issues needing attention found.')
+
 
 def _get_parser() -> argparse.ArgumentParser:
     """
@@ -264,6 +273,7 @@ def _get_parser() -> argparse.ArgumentParser:
     )
 
     return parser
+
 
 if __name__ == '__main__':
     # Process command-line arguments and starts the notification job
