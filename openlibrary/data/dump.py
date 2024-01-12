@@ -45,6 +45,10 @@ def print_dump(json_records, filter=None):
 
         key = web.safestr(d["key"])
 
+        # Allow /type/page keys through
+        if key.startswith("/type/page"):
+            pass
+
         # skip user pages
         if key.startswith("/people/") and not re.match(
             r"^/people/[^/]+/lists/OL\d+L$", key
@@ -179,8 +183,13 @@ def generate_dump(cdump_file=None):
     def process(data):
         revision = lambda cols: int(cols[2])  # noqa: E731
         for key, rows in itertools.groupby(data, key=lambda cols: cols[1]):
-            row = max(rows, key=revision)
-            yield row
+            if cols[0] == "/type/page":
+                row = next(rows)
+                yield row
+            else:
+                revision = lambda cols: int(cols[2])
+                row = max(rows, key=revision)
+                yield row 
 
     start_time = datetime.now()
     tjoin = "\t".join
@@ -277,6 +286,9 @@ def _process_key(key):
     for old, new in mapping.items():
         if key.startswith(old):
             return new + key[len(old) :]
+    return key
+
+        if key.startswith("/type/page"):
     return key
 
 
