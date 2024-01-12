@@ -398,12 +398,12 @@ class List(Thing):
 
     @cache.memoize(
              "memcache",
-             key = lambda self: 'core.patron_lists.%s.%s' % (self.get_owner().name.replace(' ', '_'), self.name.replace(' ', '_')),
-             expires = 60*60
+             key = lambda self: 'core.patron_lists.%s' % web.safestr(self.key),
+             expires = 60*10
              )
     def get_patron_showcase(self, limit = 3):
        return self._get_uncached_patron_showcase(limit = limit)
-    
+        
     def _get_uncached_patron_showcase(self, limit = 3):
         title = self.name or "Unnamed List"
         n_covers = []
