@@ -189,7 +189,7 @@ def generate_dump(cdump_file=None):
             else:
                 revision = lambda cols: int(cols[2])
                 row = max(rows, key=revision)
-                yield row 
+                yield row
 
     start_time = datetime.now()
     tjoin = "\t".join
