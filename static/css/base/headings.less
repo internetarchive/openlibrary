@@ -1,7 +1,7 @@
 @import "../less/font-families.less";
 
 h1 {
-  font-size: 1.875em;
+  font-size: @font-size-h1 ;
   &.title {
     font-size: 1.25em;
   }
@@ -22,7 +22,7 @@ h1 {
 }
 
 h2 {
-  font-size: 1.375em;
+  font-size: @font-size-h2;
   &.author {
     color: @brown;
     font-size: 1.125em;
@@ -68,7 +68,7 @@ h2 {
 }
 
 h3 {
-  font-size: 1.0em;
+  font-size: @font-size-h3;
   &.Question {
     font-family: @georgia_serif-1;
     font-size: 1.2em;
@@ -81,7 +81,7 @@ h3 {
 }
 
 h4 {
-  font-size: .8125em;
+  font-size: @font-size-h4;
   &.publisher,
   &.observer-count {
     font-family: @lucida_sans_serif-1;
@@ -108,13 +108,13 @@ h4 {
 }
 
 h5 {
-  font-size: .875em;
+  font-size: @font-size-h5;
   font-family: @georgia_serif-1 !important;
   font-weight: normal !important;
 }
 
 h6 {
-  font-size: .6875em;
+  font-size: @font-size-h6;
 }
 
 .head {
