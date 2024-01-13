@@ -267,6 +267,10 @@ def make_index(dump_file):
 
         title = title.replace("\t", " ")
 
+        if type in ("/type/page"):
+            title = data.get("title") 
+            path = key 
+            
         if "created" in data:
             created = data["created"]["value"]
         else:
