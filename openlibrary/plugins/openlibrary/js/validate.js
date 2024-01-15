@@ -22,13 +22,17 @@ export default function initValidate() {
     jQuery.validator.addMethod('publish-date', function(value) {
 
         // we allow the year dates 'xxxx', '199x', '19xx' date variants: https://github.com/internetarchive/openlibrary/issues/5254
-        var token_xxxx = /(\b[1-9|x][1-9|x][1-9|x][1-9|x]\b)/.exec(value);
+        // The Regex: https://regex101.com/r/t1oiEv/1
+        var token_xxxx = /^([1-9][x0-9]{0,3}|[x]{4})$/.exec(value);
 
         // if it doesn't have even three digits then it can't be a future date
         var tokens = /(\d{3,})/.exec(value);
 
         var year = new Date().getFullYear();
-        return token_xxxx || (tokens && tokens[1] && parseInt(tokens[1]) <= year + 1); // allow one year in future.
+        return token_xxxx;
+
+        // The previous check that verifies if a CE date is not more than a year in the future. This is disabled due to bugs such as '199xxx'
+        //return token_xxxx || (tokens && tokens[1] && parseInt(tokens[1]) <= year + 1); // allow one year in future.
     },
     'Are you sure that\'s the published date?'
     );
