@@ -32,7 +32,7 @@ def map_data(data) -> dict[str, Any]:
 
     import_record: dict[str, Any] = {}
 
-    import_record["identifiers"] = {'open_textbook_library': str(data['id'])}
+    import_record["identifiers"] = {'open_textbook_library': [str(data['id'])]}
 
     import_record["source_records"] = ['open_textbook_library:%s' % data['id']]
 
@@ -40,10 +40,10 @@ def map_data(data) -> dict[str, Any]:
         import_record["title"] = data["title"]
 
     if data.get('ISBN10'):
-        import_record['isbn_10'] = data['ISBN10']
+        import_record['isbn_10'] = [data['ISBN10']]
 
     if data.get('ISBN13'):
-        import_record['isbn_13'] = data['ISBN13']
+        import_record['isbn_13'] = [data['ISBN13']]
 
     if data.get('language'):
         import_record['languages'] = [data['language']]
@@ -68,18 +68,17 @@ def map_data(data) -> dict[str, Any]:
 
     if data.get('contributors'):
         authors = []
-        contributions = []
+        ol_contributors = []
 
         for contributor in data["contributors"]:
             name = " ".join(
-                filter(
-                    None,
-                    [
-                        contributor.get("first_name"),
-                        contributor.get("middle_name"),
-                        contributor.get("last_name"),
-                    ],
+                name
+                for name in (
+                    contributor.get("first_name"),
+                    contributor.get("middle_name"),
+                    contributor.get("last_name"),
                 )
+                if name
             )
 
             if (
@@ -88,13 +87,18 @@ def map_data(data) -> dict[str, Any]:
             ):
                 authors.append({"name": name})
             else:
-                contributions.append(name)
+                ol_contributors.append(
+                    {
+                        "role": contributor.get("contribution"),
+                        "name": name,
+                    }
+                )
 
         if authors:
             import_record["authors"] = authors
 
-        if contributions:
-            import_record["contributions"] = contributions
+        if ol_contributors:
+            import_record["contributors"] = ol_contributors
 
     if data.get('subjects'):
         lc_classifications = [
@@ -122,25 +126,25 @@ def create_import_jobs(records: list[dict[str, str]]) -> None:
 
 
 def import_job(ol_config: str, dry_run: bool = False, limit: int = 10) -> None:
-    """Main function to fetch and process the feed."""
-    load_config(ol_config)
+    """
+    Fetch and process the feed.
 
+    :param limit: Specify -1 for no limit
+    """
     feed = get_feed()
 
     # Use islice to limit the number of items yielded by get_feed
     import_objects = map(map_data, islice(feed, limit) if limit != -1 else feed)
 
-    print(f'{len(list(import_objects))} import objects created.')
-
     if not dry_run:
-        create_import_jobs(list(import_objects))
-        print(f'{len(list(import_objects))} entries added to the batch import job.')
+        load_config(ol_config)
+        batch_items = list(import_objects)
+        create_import_jobs(batch_items)
+        print(f'{len(batch_items)} entries added to the batch import job.')
     else:
         for record in import_objects:
             print(json.dumps(record))
 
 
 if __name__ == '__main__':
-    print("Start: Open Textbooks Import job")
     FnToCLI(import_job).run()
-    print("Import job completed.")
