@@ -26,9 +26,9 @@ export default function initValidate() {
         var token_xxxx = /^([1-9][x0-9]{0,3}|[x]{4})$/.exec(value);
 
         // if it doesn't have even three digits then it can't be a future date
-        var tokens = /(\d{3,})/.exec(value);
+        //var tokens = /(\d{3,})/.exec(value);
 
-        var year = new Date().getFullYear();
+        //var year = new Date().getFullYear();
         return token_xxxx;
 
         // The previous check that verifies if a CE date is not more than a year in the future. This is disabled due to bugs such as '199xxx'
