@@ -267,13 +267,15 @@ class YearlyGoal:
 
 class ui_partials(delegate.page):
     path = '/reading-goal/partials'
+    encoding = 'json'
 
     def GET(self):
         i = web.input(year=None)
         year = i.year or datetime.now().year
         goal = get_reading_goals(year=year)
         component = render_template('check_ins/reading_goal_progress', [goal])
-        return delegate.RawText(component)
+        partials = {"partials": str(component)}
+        return delegate.RawText(json.dumps(partials))
 
 
 def setup():
