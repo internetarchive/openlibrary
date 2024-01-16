@@ -396,6 +396,9 @@ class List(Thing):
         cover_id = self._get_default_cover_id()
         return Image(self._site, 'b', cover_id)
 
+
+
+    #These functions cache and retrieve the 'my lists' section for mybooks. 
     @cache.memoize(
              "memcache",
              key = lambda self: 'core.patron_lists.%s' % web.safestr(self.key),
@@ -409,7 +412,11 @@ class List(Thing):
         n_covers = []
         seeds = self.get_seeds()
         for seed in seeds[:limit]:
-            n_covers.append(seed.get_cover())
+            if cover:= seed.get_cover():
+               n_covers.append(cover.url("s"))
+            else:
+               n_covers.append(False)
+            
         last_modified = self.last_update
         return {'title': title, 'count': self.seed_count, 'covers': n_covers, 'last_mod': last_modified.isoformat(sep = ' ', timespec="minutes")}
 
