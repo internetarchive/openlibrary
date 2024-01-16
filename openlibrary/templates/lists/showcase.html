@@ -4,6 +4,7 @@ $def with (lists = [], username = "")
 $ default_image_url = "/images/icons/avatar_book-sm.png"
 $ total_lists = lists[0:min(len(lists), 5)]
 $ all_lists_url = "/people/%s/lists" % username
+
 $def showcase(list):
     $ cached_info = list.get_patron_showcase()
     $ title = cached_info["title"] if len(cached_info["title"]) < 16 else cached_info["title"][0:16] + "..."
