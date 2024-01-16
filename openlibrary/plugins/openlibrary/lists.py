@@ -324,7 +324,7 @@ class lists_delete(delegate.page):
         if doc is None or doc.type.key != '/type/list':
             raise web.notfound()
 
-        #Deletes list preview from memcache, if it exists
+        # Deletes list preview from memcache, if it exists
         try:
             cache_key = "core.patron_lists.%s" % web.safestr(doc.key)
             cache.memcache_cache.delete(cache_key)
