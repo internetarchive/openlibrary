@@ -43,7 +43,7 @@ from ..import_open_textbook_library import map_data
                     },
                     {
                         "id": 5891,
-                        "contribution": "Author",
+                        "contribution": None,
                         "primary": False,
                         "corporate": False,
                         "title": "Dr.",
@@ -75,10 +75,10 @@ from ..import_open_textbook_library import map_data
                 ],
             },
             {
-                "identifiers": {"open_textbook_library": "1238"},
+                "identifiers": {"open_textbook_library": ["1238"]},
                 "source_records": ["open_textbook_library:1238"],
                 "title": "Healthcare in the  United States: Navigating the Basics of a Complex System",
-                "isbn_13": "9781940771915",
+                "isbn_13": ["9781940771915"],
                 "languages": ["eng"],
                 "description": "This book is a collaborative effort among three faculty members from the Darton College",
                 "subjects": ["Medicine"],
@@ -87,8 +87,8 @@ from ..import_open_textbook_library import map_data
                 "authors": [
                     {"name": "Deanna L. Howe"},
                     {"name": "Andrea L. Dozier"},
-                    {"name": "Sheree O. Dickenson"},
                 ],
+                "contributors": [{'role': None, 'name': 'Sheree O. Dickenson'}],
                 "lc_classifications": ["RA440"],
             },
         ),
@@ -159,7 +159,7 @@ from ..import_open_textbook_library import map_data
                 ],
             },
             {
-                "identifiers": {"open_textbook_library": "895"},
+                "identifiers": {"open_textbook_library": ["895"]},
                 "source_records": ["open_textbook_library:895"],
                 "title": "The ELC: An Early Childhood Learning Community at Work",
                 "languages": ["eng"],
@@ -184,7 +184,8 @@ from ..import_open_textbook_library import map_data
                 'language': None,
                 'contributors': [
                     {
-                        'first_name': None,
+                        'first_name': 'EVANS',
+                        'middle_name': None,
                         'last_name': None,
                         'contribution': None,
                         'primary': True,
@@ -199,11 +200,11 @@ from ..import_open_textbook_library import map_data
                 ],
             },
             {
-                "identifiers": {"open_textbook_library": "730"},
+                "identifiers": {"open_textbook_library": ["730"]},
                 "source_records": ["open_textbook_library:730"],
                 "title": "Mythology Unbound: An Online Textbook for Classical Mythology",
-                "authors": [{"name": ""}],
-                "contributions": ["Eve Johnson"],
+                "authors": [{"name": "EVANS"}],
+                "contributors": [{'name': 'Eve Johnson', 'role': None}],
             },
         ),
     ],
