@@ -87,7 +87,7 @@ function parseAndValidateId(event) {
     else if (fieldName === 'lccn') {
         parseAndValidateLccn(event, idValue);
     }
-    else if (!isEmptyId(event, idValue)) {
+    else if (!fieldName || !isEmptyId(event, idValue)) {
         document.getElementById('id_value').value = idValue.trim();
     }
 }
