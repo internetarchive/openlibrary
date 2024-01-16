@@ -14,7 +14,12 @@ from infogami.infobase import client, common
 from openlibrary.accounts import get_current_user
 from openlibrary.core import formats, cache
 from openlibrary.core.models import ThingKey
-from openlibrary.core.lists.model import List, SeedDict, SeedSubjectString
+from openlibrary.core.lists.model import (
+    AnnotatedSeedDict,
+    List,
+    ThingReferenceDict,
+    SeedSubjectString,
+)
 import openlibrary.core.helpers as h
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.addbook import safe_seeother
@@ -38,17 +43,31 @@ def is_seed_subject_string(seed: str) -> bool:
     return subject_type in ("subject", "place", "person", "time")
 
 
+def is_empty_annotated_seed(seed: AnnotatedSeedDict) -> bool:
+    """
+    An empty seed can be represented as a simple SeedDict
+    """
+    return not seed.get('notes')
+
+
+Seed = ThingReferenceDict | SeedSubjectString | AnnotatedSeedDict
+"""
+The JSON-friendly seed representation (as opposed to `openlibrary.core.lists.model.Seed`).
+Can either a thing reference, a subject key, or an annotated seed.
+"""
+
+
 @dataclass
 class ListRecord:
     key: str | None = None
     name: str = ''
     description: str = ''
-    seeds: list[SeedDict | SeedSubjectString] = field(default_factory=list)
+    seeds: list[Seed] = field(default_factory=list)
 
     @staticmethod
     def normalize_input_seed(
-        seed: SeedDict | subjects.SubjectPseudoKey,
-    ) -> SeedDict | SeedSubjectString:
+        seed: ThingReferenceDict | AnnotatedSeedDict | str,
+    ) -> Seed:
         if isinstance(seed, str):
             if seed.startswith('/subjects/'):
                 return subject_key_to_seed(seed)
@@ -59,8 +78,18 @@ class ListRecord:
             else:
                 return {'key': olid_to_key(seed)}
         else:
-            if seed['key'].startswith('/subjects/'):
-                return subject_key_to_seed(seed['key'])
+            if 'thing' in seed:
+                annotated_seed = cast(AnnotatedSeedDict, seed)  # Appease mypy
+
+                if is_empty_annotated_seed(annotated_seed):
+                    return ListRecord.normalize_input_seed(annotated_seed['thing'])
+                elif annotated_seed['thing']['key'].startswith('/subjects/'):
+                    return subject_key_to_seed(annotated_seed['thing']['key'])
+                else:
+                    return annotated_seed
+            elif seed['key'].startswith('/subjects/'):
+                thing_ref = cast(ThingReferenceDict, seed)  # Appease mypy
+                return subject_key_to_seed(thing_ref['key'])
             else:
                 return seed
 
@@ -97,7 +126,7 @@ class ListRecord:
         normalized_seeds = [
             seed
             for seed in normalized_seeds
-            if seed and (isinstance(seed, str) or seed.get('key'))
+            if seed and (isinstance(seed, str) or seed.get('key') or seed.get('thing'))
         ]
         return ListRecord(
             key=i['key'],
@@ -461,9 +490,10 @@ class lists_json(delegate.page):
         web.header("Content-Type", self.get_content_type())
         return delegate.RawText(self.dumps(result))
 
+    @staticmethod
     def process_seeds(
-        self, seeds: SeedDict | subjects.SubjectPseudoKey | ThingKey
-    ) -> list[SeedDict | SeedSubjectString]:
+        seeds: ThingReferenceDict | subjects.SubjectPseudoKey | ThingKey,
+    ) -> list[Seed]:
         return [ListRecord.normalize_input_seed(seed) for seed in seeds]
 
     def get_content_type(self):
@@ -566,12 +596,10 @@ class list_seeds(delegate.page):
         data.setdefault("remove", [])
 
         # support /subjects/foo and /books/OL1M along with subject:foo and {"key": "/books/OL1M"}.
-        process_seeds = lists_json().process_seeds
-
-        for seed in process_seeds(data["add"]):
+        for seed in lists_json.process_seeds(data["add"]):
             lst.add_seed(seed)
 
-        for seed in process_seeds(data["remove"]):
+        for seed in lists_json.process_seeds(data["remove"]):
             lst.remove_seed(seed)
 
         seeds = []
@@ -598,17 +626,15 @@ class list_seed_yaml(list_seeds):
     content_type = 'text/yaml; charset="utf-8"'
 
 
-@public
 def get_list_editions(key, offset=0, limit=50, api=False):
-    if lst := web.ctx.site.get(key):
+    if lst := cast(List | None, web.ctx.site.get(key)):
         offset = offset or 0  # enforce sane int defaults
-        all_editions = lst.get_editions(limit=limit, offset=offset, _raw=True)
-        editions = all_editions['editions'][offset : offset + limit]
+        all_editions = list(lst.get_editions())
+        editions = all_editions[offset : offset + limit]
         if api:
-            entries = [e.dict() for e in editions if e.pop("seeds") or e]
             return make_collection(
-                size=all_editions['count'],
-                entries=entries,
+                size=len(all_editions),
+                entries=[e.dict() for e in editions],
                 limit=limit,
                 offset=offset,
                 key=key,
@@ -794,18 +820,6 @@ class export(delegate.page):
             else:
                 export_data["authors"] = []
         return export_data
-
-    def get_editions(self, lst, raw=False):
-        editions = sorted(
-            lst.get_all_editions(),
-            key=lambda doc: doc['last_modified']['value'],
-            reverse=True,
-        )
-
-        if not raw:
-            editions = [self.make_doc(e) for e in editions]
-            lst.preload_authors(editions)
-        return editions
 
     def make_doc(self, rawdata):
         data = web.ctx.site._process_dict(common.parse_query(rawdata))

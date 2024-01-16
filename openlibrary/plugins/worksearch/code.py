@@ -1,10 +1,11 @@
 from dataclasses import dataclass
+import itertools
 import time
 import copy
 import json
 import logging
 import re
-from typing import Any
+from typing import Any, cast
 from collections.abc import Iterable
 from unicodedata import normalize
 import requests
@@ -709,13 +710,14 @@ def rewrite_list_query(q, page, offset, limit):
     can use the solr API to fetch list works and render them in
     carousels in the right format.
     """
+    from openlibrary.core.lists.model import List
 
     def cached_get_list_book_keys(key, offset, limit):
         # make cacheable
         if 'env' not in web.ctx:
             delegate.fakeload()
-        lst = web.ctx.site.get(key)
-        return lst.get_book_keys(offset=offset, limit=limit)
+        lst = cast(List, web.ctx.site.get(key))
+        return list(itertools.islice(lst.get_work_keys(), offset or 0, offset + limit))
 
     if '/lists/' in q:
         # we're making an assumption that q is just a list key

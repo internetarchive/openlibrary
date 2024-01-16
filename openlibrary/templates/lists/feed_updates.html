@@ -1,7 +1,7 @@
 $def with (lst)
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-    $ editions = lst.get_editions(limit=100)['editions']
+    $ editions = lst.get_editions()
     $lst.load_changesets(editions)
 
     <title>$lst.name</title>
