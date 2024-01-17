@@ -15,6 +15,7 @@ from typing import Any
 
 import requests
 
+# Maps lead label to GitHub username
 lead_label_to_username = {
     'Lead: @mekarpeles': 'mekarpeles',
     'Lead: @cdrini': 'cdrini',
@@ -23,12 +24,14 @@ lead_label_to_username = {
     'Lead: @jimchamp': 'jimchamp',
 }
 
+# Maps GitHub username to Slack ID
 username_to_slack_id = {
     'mekarpeles': '<@mek>',
     'cdrini': '<@cdrini>',
     'scottbarnes': '<@U03MNR6T7FH>',
     'seabelis': '<@UAHQ39ACT>',
     'jimchamp': '<@U01ARTHG9EV>',
+    'hornc': '<@U0EUS8DV0>',
 }
 
 
