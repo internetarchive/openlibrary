@@ -48,7 +48,7 @@ def fetch_issues(updated_since: str):
     """
     # Make initial query for updated issues:
     query = f'repo:internetarchive/openlibrary is:open is:issue comments:>0 updated:>{updated_since}'
-    p: dict[str, str|int] = {
+    p: dict[str, str | int] = {
         'q': query,
         'per_page': 100,
     }
@@ -93,12 +93,7 @@ def filter_issues(issues: list, since: datetime):
     for i in issues:
         # Fetch comments using URL from previous GitHub search results
         comments_url = i.get('comments_url')
-        resp = requests.get(
-            comments_url,
-            params={
-                'per_page': 100
-            }
-        )
+        resp = requests.get(comments_url, params={'per_page': 100})
 
         # Ensure that we have the last page of comments
         links = resp.links
@@ -123,12 +118,14 @@ def filter_issues(issues: list, since: datetime):
             last_commenter = last_comment['user']['login']
             if last_commenter not in username_to_slack_id:
                 lead_label = find_lead_label(i.get('labels', []))
-                results.append({
-                    'comment_url': last_comment['html_url'],
-                    'commenter': last_commenter,
-                    'issue_title': i['title'],
-                    'lead_label': lead_label,
-                })
+                results.append(
+                    {
+                        'comment_url': last_comment['html_url'],
+                        'commenter': last_commenter,
+                        'issue_title': i['title'],
+                        'lead_label': lead_label,
+                    }
+                )
 
     return results
 
@@ -148,7 +145,12 @@ def find_lead_label(labels: list[dict[str, Any]]) -> str:
     return result
 
 
-def publish_digest(issues: list[dict[str, str]], slack_channel: str, slack_token: str, hours_passed: int):
+def publish_digest(
+    issues: list[dict[str, str]],
+    slack_channel: str,
+    slack_token: str,
+    hours_passed: int,
+):
     """
     Creates a threaded Slack messaged containing a digest of recently commented GitHub issues.
 
@@ -156,7 +158,9 @@ def publish_digest(issues: list[dict[str, str]], slack_channel: str, slack_token
     will include a link to the comment, as well as additional information.
     """
     # Create the parent message
-    parent_thread_msg = f'{len(issues)} new GitHub comment(s) since {hours_passed} hour(s) ago'
+    parent_thread_msg = (
+        f'{len(issues)} new GitHub comment(s) since {hours_passed} hour(s) ago'
+    )
 
     response = requests.post(
         'https://slack.com/api/chat.postMessage',
@@ -199,7 +203,9 @@ def publish_digest(issues: list[dict[str, str]], slack_channel: str, slack_token
         if response.status_code != 200:
             # XXX : Check "ok" field for errors
             # XXX : Log this
-            print(f'Failed to POST slack message\n  Status code: {response.status_code}\n  Message: {message}')
+            print(
+                f'Failed to POST slack message\n  Status code: {response.status_code}\n  Message: {message}'
+            )
             # XXX : Retry logic?
 
     for i in issues:
@@ -238,12 +244,11 @@ def start_job(args: argparse.Namespace):
     """
     since, date_string = time_since(args.hours)
     issues = fetch_issues(date_string)
-    filtered_issues = filter_issues(issues, since)
 
     # XXX : If we are only running this script daily, we can remove this condition to
     # always post a message to Slack. If the digest is ever not published, we'll know
     # that something is wrong with our script runner.
-    if filtered_issues:
+    if filtered_issues := filter_issues(issues, since):
         publish_digest(filtered_issues, args.channel, args.slack_token, args.hours)
         # XXX : Log this
         print('Digest posted to Slack.')
