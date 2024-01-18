@@ -2,7 +2,7 @@ from datetime import datetime
 import logging
 import re
 import sys
-from typing import Any
+from typing import Any, cast
 from collections.abc import Callable
 
 import luqum.tree
@@ -298,6 +298,7 @@ class WorkSearchScheme(SearchScheme):
         )
 
         ed_q = None
+        full_ed_query = None
         editions_fq = []
         if has_solr_editions_enabled() and 'editions:[subquery]' in solr_fields:
             WORK_FIELD_TO_ED_FIELD: dict[str, str | Callable[[str], str]] = {
@@ -454,7 +455,7 @@ class WorkSearchScheme(SearchScheme):
         if ed_q or len(editions_fq) > 1:
             # The elements in _this_ edition query should cause works not to
             # match _at all_ if matching editions are not found
-            new_params.append(('edQuery', full_ed_query if ed_q else '*:*'))
+            new_params.append(('edQuery', cast(str, full_ed_query) if ed_q else '*:*'))
             q = (
                 f'+{full_work_query} '
                 # This is using the special parent query syntax to, on top of
@@ -467,6 +468,10 @@ class WorkSearchScheme(SearchScheme):
                 ')'
             )
             new_params.append(('q', q))
+        else:
+            new_params.append(('q', full_work_query))
+
+        if full_ed_query:
             edition_fields = {
                 f.split('.', 1)[1] for f in solr_fields if f.startswith('editions.')
             }
@@ -484,8 +489,6 @@ class WorkSearchScheme(SearchScheme):
             )
             new_params.append(('editions.rows', '1'))
             new_params.append(('editions.fl', ','.join(edition_fields)))
-        else:
-            new_params.append(('q', full_work_query))
 
         return new_params
 

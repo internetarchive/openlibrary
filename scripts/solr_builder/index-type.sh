@@ -7,7 +7,7 @@ source aliases.sh
 # Display each line before running it
 set -o xtrace
 
-# One of 'work' or 'author'
+# One of 'work' or 'author' or 'list'
 TYPE="$1"
 INSTANCES="$2"
 LOG_DIR="$3"
