@@ -35,7 +35,7 @@ jobs:
           # `node_modules` directly.
           path: 'node_modules'
           # Note the version number in this string -- update it when updating Node!
-          key: ${{ runner.os }}-node16-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node20-${{ hashFiles('**/package-lock.json') }}
       - if: steps.npm-cache.outputs.cache-hit != 'true'
         run: npm install --no-audit
       - run: npm run lint
