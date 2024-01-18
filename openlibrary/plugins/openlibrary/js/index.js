@@ -452,7 +452,7 @@ jQuery(function () {
     $('.hamburger-dropdown-menu a').last().on('focusout', function () {
         $('.hamburger-dropdown-menu a').first().trigger('focus');
     });
-         
+
     // Open one dropdown at a time.
     $(document).on('click', function (event) {
         const $openMenus = $('.header-dropdown details[open]').parents('.header-dropdown');
