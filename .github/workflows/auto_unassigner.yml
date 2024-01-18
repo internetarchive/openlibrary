@@ -1,0 +1,21 @@
+name: auto_unassigner
+on:
+  schedule:  # Run at 0800 AM, daily (runs before new_comment_digest workflow).
+    - cron: '0 8 * * *'
+  workflow_dispatch:  # This can be run on-demand (do we want this?)
+permissions:
+  contents: read  # Double-check perms
+  issues: write
+
+jobs:
+  auto_unassigner:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      - run: npm install @octokit/action
+      - run: node scripts/gh_scripts/auto_unassigner.mjs --repoOwner 'jimchamp'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
