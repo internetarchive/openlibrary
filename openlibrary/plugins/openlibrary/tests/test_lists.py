@@ -3,20 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from openlibrary.plugins.openlibrary import lists
 from openlibrary.plugins.openlibrary.lists import ListRecord
-
-
-def test_process_seeds():
-    process_seeds = lists.lists_json().process_seeds
-
-    def f(s):
-        return process_seeds([s])[0]
-
-    assert f("/books/OL1M") == {"key": "/books/OL1M"}
-    assert f({"key": "/books/OL1M"}) == {"key": "/books/OL1M"}
-    assert f("/subjects/love") == "subject:love"
-    assert f("subject:love") == "subject:love"
 
 
 class TestListRecord:
@@ -111,3 +98,11 @@ class TestListRecord:
                 description='bar',
                 seeds=expected,
             )
+
+    def test_normalize_input_seed(self):
+        f = ListRecord.normalize_input_seed
+
+        assert f("/books/OL1M") == {"key": "/books/OL1M"}
+        assert f({"key": "/books/OL1M"}) == {"key": "/books/OL1M"}
+        assert f("/subjects/love") == "subject:love"
+        assert f("subject:love") == "subject:love"

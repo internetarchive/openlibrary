@@ -184,10 +184,10 @@ def get_line(line: bytes) -> dict | None:
     return json_object
 
 
-def get_line_as_biblio(line: bytes) -> dict | None:
+def get_line_as_biblio(line: bytes, status: str) -> dict | None:
     if json_object := get_line(line):
         b = ISBNdb(json_object)
-        return {'ia_id': b.source_id, 'status': 'staged', 'data': b.json()}
+        return {'ia_id': b.source_id, 'status': status, 'data': b.json()}
 
     return None
 
@@ -200,7 +200,7 @@ def update_state(logfile: str, fname: str, line_num: int = 0) -> None:
 
 # TODO: It's possible `batch_import()` could be modified to take a parsing function
 # and a filter function instead of hardcoding in `csv_to_ol_json_item()` and some filters.
-def batch_import(path: str, batch: Batch, batch_size: int = 5000):
+def batch_import(path: str, batch: Batch, import_status: str, batch_size: int = 5000):
     logfile = os.path.join(path, 'import.log')
     filenames, offset = load_state(path, logfile)
 
@@ -216,7 +216,7 @@ def batch_import(path: str, batch: Batch, batch_size: int = 5000):
                     offset = 0
 
                 try:
-                    book_item = get_line_as_biblio(line)
+                    book_item = get_line_as_biblio(line=line, status=import_status)
                     assert book_item is not None
                     if not any(
                         [
@@ -241,13 +241,13 @@ def batch_import(path: str, batch: Batch, batch_size: int = 5000):
             update_state(logfile, fname, line_num)
 
 
-def main(ol_config: str, batch_path: str) -> None:
+def main(ol_config: str, batch_path: str, import_status: str = 'staged') -> None:
     load_config(ol_config)
 
     # Partner data is offset ~15 days from start of month
     batch_name = "isbndb_bulk_import"
     batch = Batch.find(batch_name) or Batch.new(batch_name)
-    batch_import(batch_path, batch)
+    batch_import(path=batch_path, batch=batch, import_status=import_status)
 
 
 if __name__ == '__main__':
