@@ -51,15 +51,10 @@ class book_availability(delegate.page):
         return delegate.RawText(json.dumps(result), content_type="application/json")
 
     def get_book_availability(self, id_type, ids):
-        return (
-            lending.get_availability_of_works(ids)
-            if id_type == "openlibrary_work"
-            else lending.get_availability_of_editions(ids)
-            if id_type == "openlibrary_edition"
-            else lending.get_availability_of_ocaids(ids)
-            if id_type == "identifier"
-            else []
-        )
+        if id_type in ["openlibrary_work", "openlibrary_edition", "identifier"]:
+            return lending.get_availability(id_type, ids)
+        else:
+            return []
 
 
 class trending_books_api(delegate.page):
