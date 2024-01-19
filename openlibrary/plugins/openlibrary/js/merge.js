@@ -96,7 +96,7 @@ export function initAuthorView() {
             $('#preMerge').fadeOut();
             $('#errorMerge').fadeIn();
         },
-        complete: function() {
+        success: function(data,  textStatus, jqXHR) {
             $('#preMerge').fadeOut();
             $('#postMerge').fadeIn();
         }
