@@ -385,11 +385,10 @@ class lists_delete(delegate.page):
             raise web.notfound()
 
         # Deletes list preview from memcache, if it exists
-        try:
-            cache_key = "core.patron_lists.%s" % web.safestr(doc.key)
-            cache.memcache_cache.delete(cache_key)
-        except:
-            pass
+
+        cache_key = "core.patron_lists.%s" % web.safestr(doc.key)
+        cache.memcache_cache.delete(cache_key)
+
         doc = {"key": key, "type": {"key": "/type/delete"}}
         try:
             result = web.ctx.site.save(doc, action="lists", comment="Deleted list.")
