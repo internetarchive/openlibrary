@@ -42,7 +42,9 @@ import queue
 import sys
 import threading
 import time
-from datetime import date
+
+from dataclasses import dataclass, field
+from datetime import date, datetime
 
 import web
 
@@ -85,7 +87,9 @@ AZ_OL_MAP = {
 batch_name = ""
 batch: Batch | None = None
 
-web.amazon_queue = queue.Queue()  # a thread-safe multi-producer, multi-consumer queue
+web.amazon_queue = (
+    queue.PriorityQueue()
+)  # a thread-safe multi-producer, multi-consumer queue
 web.amazon_lookup_thread = None
 
 
@@ -233,7 +237,7 @@ def amazon_lookup(site, stats_client, logger) -> None:
         while len(isbn_10s) < API_MAX_ITEMS_PER_CALL and seconds_remaining(start_time):
             try:  # queue.get() will block (sleep) until successful or it times out
                 isbn_10s.add(
-                    web.amazon_queue.get(timeout=seconds_remaining(start_time))
+                    web.amazon_queue.get(timeout=seconds_remaining(start_time)).isbn
                 )
             except queue.Empty:
                 pass
@@ -285,6 +289,24 @@ class Clear:
         return json.dumps({"Cleared": "True", "qsize": qsize})
 
 
+@dataclass(order=True, slots=True)
+class PrioritizedISBN:
+    """
+    Represent an ISBN's priority in the queue. Sorting is based on the `priority`
+    attribute, then the `timestamp`, with priority going to whatever
+    `min([items])` would return.
+    For more, see https://docs.python.org/3/library/queue.html#queue.PriorityQueue.
+
+    This exists so certain ISBNs can go to the front of the queue for faster
+    processing as their look-ups are time sensitive and should return look up data
+    to the caller (e.g. interactive API usage through `/isbn`).
+    """
+
+    isbn: str = field(compare=False)
+    priority: int = 1
+    timestamp: datetime = field(default_factory=datetime.now)
+
+
 class Submit:
     @classmethod
     def unpack_isbn(cls, isbn) -> tuple[str, str]:
@@ -299,8 +321,16 @@ class Submit:
 
     def GET(self, isbn: str) -> str:
         """
-        If isbn is in memcache then return the `hit`.  If not then queue the isbn to be
-        looked up and return the equivalent of a promise as `submitted`
+        If `isbn` is in memcache, then return the `hit` (which is marshaled into
+        a format appropriate for import on Open Library if `priority==0`).
+
+        If no hit, then queue the isbn for look up and either attempt to return
+        a promise as `submitted`, or if `priority==0`, return marshalled data
+        from the cache.
+
+        Zero is the highest priority and is used when the caller is waiting for
+        a response with the AMZ data, if possible. See `PrioritizedISBN` for
+        more on prioritization.
         """
         # cache could be None if reached before initialized (mypy)
         if not web.amazon_api:
@@ -312,13 +342,26 @@ class Submit:
                 {"error": "rejected_isbn", "isbn10": isbn10, "isbn13": isbn13}
             )
 
+        input = web.input(priority=1)
+        priority = int(input.priority)
+
         # Cache lookup by isbn13. If there's a hit return the product to the caller
         if product := cache.memcache_cache.get(f'amazon_product_{isbn13}'):
-            return json.dumps({"status": "success", "hit": product})
+            return (
+                json.dumps(
+                    {
+                        "status": "success",
+                        "hit": clean_amazon_metadata_for_load(product),
+                    }
+                )
+                if priority == 0
+                else json.dumps({"status": "success", "hit": product})
+            )
 
         # Cache misses will be submitted to Amazon as ASINs (isbn10)
         if isbn10 not in web.amazon_queue.queue:
-            web.amazon_queue.put_nowait(isbn10)
+            isbn10_queue_item = PrioritizedISBN(isbn=isbn10, priority=priority)
+            web.amazon_queue.put_nowait(isbn10_queue_item)
 
         # Give us a snapshot over time of how many new isbns are currently queued
         stats.put(
@@ -326,7 +369,20 @@ class Submit:
             web.amazon_queue.qsize(),
             rate=0.2,
         )
-        return json.dumps({"status": "submitted", "queue": web.amazon_queue.qsize()})
+
+        # Check the cache a few times for priority=0 ISBNS so the data can be
+        # returned to the client, or otherwise return.
+        if priority == 0:
+            for _ in range(3):
+                time.sleep(1)
+                if product := cache.memcache_cache.get(f'amazon_product_{isbn13}'):
+                    cleaned_product = clean_amazon_metadata_for_load(product)
+                    return json.dumps({"status": "success", "hit": cleaned_product})
+            return json.dumps({"status": "not found"})
+        else:
+            return json.dumps(
+                {"status": "submitted", "queue": web.amazon_queue.qsize()}
+            )
 
 
 def load_config(configfile):
