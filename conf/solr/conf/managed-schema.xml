@@ -514,8 +514,8 @@
     <fieldType name="text_title_sort" class="solr.TextField" sortMissingLast="false" omitNorms="true">
       <analyzer>
         <tokenizer name="keyword" />
-        <filter name="lowercase" />
         <filter name="trim" />
+        <filter name="icuFolding"/>
         <filter name="patternReplace"
                 pattern="^(an? |the |l[aeo]s? |l'|de la |el |il |un[ae]? |du |de[imrst]? |das |ein |eine[mnrs]? |bir )(.*)"
                 replacement="$2, $1"
