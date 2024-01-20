@@ -92,11 +92,11 @@ export function initAuthorView() {
         type: 'POST',
         data: JSON.stringify(data),
         //jqXHR: JQueryXMLHttpRequest OBject, textStatus and errorThrown are both strings.
-        error: function(jqXHR, textStatus, errorThrown) {
+        error: function() {
             $('#preMerge').fadeOut();
             $('#errorMerge').fadeIn();
         },
-        success: function(data,  textStatus, jqXHR) {
+        success: function() {
             $('#preMerge').fadeOut();
             $('#postMerge').fadeIn();
         }
