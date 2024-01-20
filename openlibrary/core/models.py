@@ -1,6 +1,6 @@
 """Models of various OL objects.
 """
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import logging
 import sys
 
@@ -25,12 +25,9 @@ from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.imports import Batch, ImportItem
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-from openlibrary.core.vendors import clean_amazon_metadata_for_load, get_amazon_metadata
 from openlibrary.utils import extract_numeric_id_from_olid, dateutil
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 
-if "pytest" not in sys.modules:
-    from scripts.affiliate_server import get_current_amazon_batch
 
 from . import cache, waitinglist
 
@@ -43,6 +40,32 @@ from ..accounts import OpenLibraryAccount
 from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_url
 
 logger = logging.getLogger("openlibrary.core")
+affiliate_server_url = None
+
+
+# TODO: Is there a better way to load this?
+def setup(config):
+    global affiliate_server_url
+    affiliate_server_url = config.get('affiliate_server')
+
+
+batch_name = ""
+batch: Batch | None = None
+
+
+# TODO: Importing this from affiliate_server.py causes `_init_path` woes. Would it be better
+# to move this function to a utility file and import it from there into affiliate_server.py
+# and here?
+def get_current_amazon_batch() -> Batch:
+    """
+    At startup or when the month changes, create a new openlibrary.core.imports.Batch()
+    """
+    global batch_name, batch
+    if batch_name != (new_batch_name := f"amz-{date.today():%Y%m}"):
+        batch_name = new_batch_name
+        batch = Batch.find(batch_name) or Batch.new(batch_name)
+    assert batch
+    return batch
 
 
 def _get_ol_base_url() -> str:
@@ -408,20 +431,30 @@ class Edition(Thing):
         if edition := ImportItem.import_first_staged(identifiers=isbns):
             return edition
 
-        # Finally, try to fetch the book data from Amazon + import.
-        if metadata := get_amazon_metadata(
-            id_=isbn10 or isbn13, id_type="isbn", retries=3
-        ):
-            cleaned_metadata = clean_amazon_metadata_for_load(metadata)
-            import_item = {
-                'ia_id': metadata['source_records'][0],
-                'status': 'staged',
-                'data': cleaned_metadata,
-            }
-            batch = get_current_amazon_batch()
-            batch.add_items([import_item])
-            if edition := ImportItem.import_first_staged(identifiers=isbns):
-                return edition
+        # Finally, try to fetch the book data from Amazon + import, using
+        # priority=0 to put the request at the front of the queue.
+        try:
+            r = requests.get(
+                f'http://{affiliate_server_url}/isbn/{isbn10 or isbn13}?priority=0'
+            )
+            r.raise_for_status()
+            if data := r.json().get('hit'):
+                import_item = {
+                    'ia_id': data['source_records'][0],
+                    'status': 'staged',
+                    'data': data,
+                }
+                batch = get_current_amazon_batch()
+                batch.add_items([import_item])
+                if edition := ImportItem.import_first_staged(identifiers=isbns):
+                    return edition
+            else:
+                return None
+        except requests.exceptions.ConnectionError:
+            logger.exception("Affiliate Server unreachable")
+        except requests.exceptions.HTTPError:
+            logger.exception(f"Affiliate Server: id {isbn10 or isbn13} not found")
+        return None
 
     def is_ia_scan(self):
         metadata = self.get_ia_meta_fields()

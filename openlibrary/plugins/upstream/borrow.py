@@ -17,6 +17,7 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render_template, add_flash_message
 from infogami.infobase.utils import parse_datetime
 
+from openlibrary.core import models
 from openlibrary.core import stats
 from openlibrary.core import lending
 from openlibrary.core import vendors
@@ -939,5 +940,6 @@ def make_bookreader_auth_link(loan_key, item_id, book_path, ol_host, ia_userid=N
     return auth_link + urllib.parse.urlencode(params)
 
 
+models.setup(config)
 lending.setup(config)
 vendors.setup(config)
