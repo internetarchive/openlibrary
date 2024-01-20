@@ -3,6 +3,8 @@
 # Then run `pre-commit install`
 
 # Learn more about this config here: https://pre-commit.com/
+# Note: After installation, you can enable this pre-commit hook by running `pre-commit install`
+
 default_language_version:
   python: python3.11
 
