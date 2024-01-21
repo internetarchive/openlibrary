@@ -427,7 +427,7 @@ def process_doc_for_viewapi(bib_key, page):
     return d
 
 
-def format_result(result, options):
+def format_result(result: dict, options: web.storage) -> str:
     """Format result as js or json.
 
     >>> format_result({'x': 1}, {})
@@ -448,7 +448,7 @@ def format_result(result, options):
             return "var _OLBookInfo = %s;" % json_data
 
 
-def dynlinks(bib_keys, options):
+def dynlinks(bib_keys: Iterable[str], options: web.storage) -> str:
     """
     Return a JSONified dictionary of bib_keys (e.g. ISBN, LCCN) and select URLs
     associated with the corresponding edition, if any.
