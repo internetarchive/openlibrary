@@ -3,6 +3,7 @@ import sys
 from collections.abc import Hashable, Iterable, Mapping
 
 import web
+from openlibrary.core.models import Edition
 
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.core import helpers as h
@@ -448,12 +449,42 @@ def format_result(result, options):
 
 
 def dynlinks(bib_keys, options):
+    """
+    Return a JSONified dictionary of bib_keys (e.g. ISBN, LCCN) and select URLs
+    associated with the corresponding edition, if any.
+
+    If a bib key is an ISBN and no edition is found, an imported is attempted.
+
+    Example return value for a bib key of the ISBN "1452303886":
+        '{"1452303886": {"bib_key": "1452303886", "info_url": '
+        '"http://localhost:8080/books/OL24630277M/Fires_of_Prophecy_The_Morcyth_Saga_Book_Two", '
+        '"preview": "restricted", "preview_url": '
+        '"https://archive.org/details/978-1-4523-0388-8"}}'
+    """
     # for backward-compatibility
     if options.get("details", "").lower() == "true":
         options["jscmd"] = "details"
 
     try:
         result = query_docs(bib_keys)
+        # Optionally attempt to import and use missed bib_keys if they're ISBNs.
+        if options.get("import_missing"):
+            missed_bibkeys = [
+                bib_key
+                for bib_key in bib_keys
+                if bib_key not in result and (len(bib_key) == 10 or len(bib_key) == 13)
+            ]
+
+            attempted_imports = {
+                bib_key: Edition.from_isbn(bib_key) for bib_key in missed_bibkeys
+            }
+
+            new_edition_dicts = {
+                bib_key: edition.dict()
+                for bib_key, edition in attempted_imports.items()
+                if edition
+            }
+            result.update(new_edition_dicts)
         result = process_result(result, options.get('jscmd'))
     except:
         print("Error in processing Books API", file=sys.stderr)
