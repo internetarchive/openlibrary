@@ -1,6 +1,7 @@
+from typing import Any
 import json
 import sys
-from collections.abc import Hashable, Iterable, Mapping
+from collections.abc import Generator, Hashable, Iterable, Mapping
 
 import web
 from openlibrary.core.models import Edition
@@ -448,6 +449,41 @@ def format_result(result: dict, options: web.storage) -> str:
             return "var _OLBookInfo = %s;" % json_data
 
 
+def is_isbn(bib_key: str) -> bool:
+    """Return True if the bib_key is ostensibly an ISBN (i.e. 10 or 13 characters)."""
+    return len(bib_key) in {10, 13}
+
+
+def get_missed_isbn_bib_keys(
+    bib_keys: Iterable[str], found_records: dict
+) -> Generator[str, None, None]:
+    """
+    Return a Generator[str, None, None] with all ISBN bib_keys not in `found_records`.
+    """
+    return (
+        bib_key
+        for bib_key in bib_keys
+        if bib_key not in found_records and is_isbn(bib_key)
+    )
+
+
+def get_editions_from_isbns(isbns: Iterable) -> dict[str, Edition | None]:
+    """
+    Attempts to import items from their ISBN, returning a dict of possibly
+    imported editions in the following form:
+        {"123456789": edition | None, ...}}
+    """
+    return {isbn: Edition.from_isbn(isbn) for isbn in isbns}
+
+
+def get_editions_as_dicts(editions: dict[str, Edition | None]) -> dict[str, Any]:
+    """
+    For each edition that exits, convert it to a dict and return it in the form:
+        {bib_key: edition_dict, ...}
+    """
+    return {bib_key: edition.dict() for bib_key, edition in editions.items() if edition}
+
+
 def dynlinks(bib_keys: Iterable[str], options: web.storage) -> str:
     """
     Return a JSONified dictionary of bib_keys (e.g. ISBN, LCCN) and select URLs
@@ -466,32 +502,20 @@ def dynlinks(bib_keys: Iterable[str], options: web.storage) -> str:
         options["jscmd"] = "details"
 
     try:
-        result = query_docs(bib_keys)
+        edition_dicts = query_docs(bib_keys)
         # Optionally attempt to import and use missed bib_keys if they're ISBNs.
-        if options.get("import_missing"):
-            missed_bibkeys = [
-                bib_key
-                for bib_key in bib_keys
-                if bib_key not in result and (len(bib_key) == 10 or len(bib_key) == 13)
-            ]
-
-            attempted_imports = {
-                bib_key: Edition.from_isbn(bib_key) for bib_key in missed_bibkeys
-            }
-
-            new_edition_dicts = {
-                bib_key: edition.dict()
-                for bib_key, edition in attempted_imports.items()
-                if edition
-            }
-            result.update(new_edition_dicts)
-        result = process_result(result, options.get('jscmd'))
+        if options.get("import_missing") and (
+            missed_isbns := get_missed_isbn_bib_keys(bib_keys, edition_dicts)
+        ):
+            editions = get_editions_from_isbns(missed_isbns)
+            edition_dicts.update(get_editions_as_dicts(editions))
+        edition_dicts = process_result(edition_dicts, options.get('jscmd'))
     except:
         print("Error in processing Books API", file=sys.stderr)
         register_exception()
 
-        result = {}
-    return format_result(result, options)
+        edition_dicts = {}
+    return format_result(edition_dicts, options)
 
 
 if __name__ == "__main__":
