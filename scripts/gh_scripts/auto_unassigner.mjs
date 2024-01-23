@@ -37,7 +37,7 @@ const issueComment = `Assignees removed automatically after ${mainOptions.daysSi
  * @type {String[]}
  * @see {excludeAssigneesFilter}
  */
-const excludeAssignees = []
+const excludeAssignees = ['mekarpeles', 'cdrini', 'scottbarnes', 'seabelis', 'hornc', 'jimchamp']
 
 /**
  * List of GitHub labels that, if on an issue, excludes the issue from automation.
