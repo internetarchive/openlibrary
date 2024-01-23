@@ -184,16 +184,15 @@ async function getTimeline(issue) {
     const repoUrl = issue.repository_url
     const splitUrl = repoUrl.split('/')
     const repoOwner = splitUrl[splitUrl.length - 2]
-    const timeline = await octokit.paginate(
-        octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}/timeline', {
+    const timeline = await octokit.paginate('GET /repos/{owner}/{repo}/issues/{issue_number}/timeline', {
             owner: repoOwner,
             repo: 'openlibrary',
             issue_number: issueNumber,
+            per_page: 100,
             headers: {
                 'X-GitHub-Api-Version': '2022-11-28'
             }
         })
-    )
 
     // Store timeline for future use:
     issueTimelines[issueNumber] = timeline
@@ -271,105 +270,132 @@ async function filterIssues(issues, filters) {
     let results = issues
 
     for (const f of filters) {
-        // Array.filter() doesn't handle filters that return promises.
-        // Wrapping this in Promise.all() ensures that the filter functions
-        // return the correct results.
-        results = await Promise.all(results.filter(f))
+        results = await f(results)
     }
     return results
 }
 
 // Filters:
 /**
- * Returns `false` if the given issue is a pull request.
+ * Iterates over given issues and filters out pull requests.
  *
  * Necessary because GitHub's REST API considers pull requests to be a
  * type of issue.
- *
- * @param issue {Record}
- * @returns {Promise<boolean>}
+ * @param issues {Array<Record>}
+ * @returns {Promise<Array<Record>>}
  */
-async function excludePullRequestsFilter(issue) {
-    return !('pull_request' in issue)
+async function excludePullRequestsFilter(issues) {
+    const results = []
+    for (const issue of issues) {
+        if (!('pull_request' in issue)) {
+            results.push(issue)
+        }
+    }
+    return results
 }
 
 /**
- * Returns `true` if the given issue has a label that is on the exclude list.
+ * Checks each given issue and returns array of issues that do not have
+ * an exclusion label.
  *
- * Label matching is case-insensitive.
- *
- * @param issue {Record}
- * @returns {Promise<boolean>}
+ * @param issues {Array<Record>}
+ * @returns {Promise<Array<Record>>}
  * @see {excludeLabels}
  */
-async function excludeLabelsFilter(issue) {
-    const labels = issue.labels
-    for (const label of labels) {
-        if (excludeLabels.includes(label.name.toLowerCase())) {
-            return false
+async function excludeLabelsFilter(issues) {
+    const results = []
+    for (const issue of issues) {
+        let hasLabel = false
+        const labels = issue.labels
+        for (const label of labels) {
+            if (excludeLabels.includes(label.name)) {
+                hasLabel = true
+            }
+        }
+        if (!hasLabel) {
+            results.push(issue)
         }
     }
-    return true
+
+    return results
 }
 
 /**
- * Returns `true` when all assignees to the given issue also appear on the exclude
- * assignee list.
+ * Checks each given issue and returns array of issues that have at least
+ * one assignee who is not on the exclusion list.
  *
- * __Important__: This function also updates the given issue. A `ol_unassign_ignore` flag
- * is added to any `assignee` that appears on the exclude list.
+ * __Important__: This function also updates the given issue. A `ol_unassign_ignore`
+ * flag is added to any `assignee` that appears on the exclude list.
  *
- * @param issue {Record}
- * @returns {Promise<boolean>}
+ * @param issues {Array<Record>}
+ * @returns {Promise<Array<Record>>}
  * @see {excludeAssignees}
  */
-async function excludeAssigneesFilter(issue) {
-    let allAssigneesExcluded = true
-    const assignees = issue.assignees
-    for (const assignee of assignees) {
-        const username = assignee.login
-        if (!excludeAssignees.includes(username)) {
-            allAssigneesExcluded = false
-        } else {
-            // Flag excluded assignees
-            assignee.ol_unassign_ignore = true
+async function excludeAssigneesFilter(issues) {
+    const results = []
+
+    for (const issue of issues) {
+        let allAssigneesExcluded = true
+        const assignees = issue.assignees
+
+        for (const assignee of assignees) {
+            const username = assignee.login
+            if (!excludeAssignees.includes(username)) {
+                allAssigneesExcluded = false
+            } else {
+                // Flag excluded assignees
+                assignee.ol_unassign_ignore = true
+            }
+        }
+
+        if (!allAssigneesExcluded) {
+            results.push(issue)
         }
     }
-    return !allAssigneesExcluded
+
+    return results
 }
 
 /**
- * Returns `true` if any assignee to the given issue has been assigned
- * longer than the `daysSince` configuration.
+ * Iterates over given issues, returning array of issues that have stale
+ * assignees.
  *
  * __Important__: This function adds the `ol_unassign_ignore` flag to
  * assignees that haven't yet been assigned for too long.
- *
- * @param issue {Record}
- * @returns {Promise<boolean>}
+ * @param issues {Array<Record>}
+ * @returns {Promise<Array<Record>>}
  */
-async function recentAssigneeFilter(issue) {
-    const timeline = await getTimeline(issue)
-    const daysSince = mainOptions.daysSince
+async function recentAssigneeFilter(issues) {
+    const results = []
 
-    const currentDate = new Date()
-    const assignees = issue.assignees
-    let result = true
+    for (const issue of issues) {
+        const timeline = await getTimeline(issue)
+        const daysSince = mainOptions.daysSince
 
-    for (const assignee of assignees) {
-        if ('ol_unassign_ignore' in assignee) {
-            continue
+        const currentDate = new Date()
+        const assignees = issue.assignees
+        let staleAssigneeFound = false
+
+        for (const assignee of assignees) {
+            if ('ol_unassign_ignore' in assignee) {
+                continue
+            }
+            const assignmentDate = getAssignmentDate(assignee, timeline)
+            const timeDelta = currentDate.getTime() - assignmentDate.getTime()
+            const daysPassed = timeDelta/(1000 * 60 * 60 * 24)
+            if (daysPassed > daysSince) {
+                staleAssigneeFound = true
+            } else {
+                assignee.ol_unassign_ignore = true
+            }
         }
-        const assignmentDate = getAssignmentDate(assignee, timeline)
-        const timeDelta = currentDate.getTime() - assignmentDate.getTime()
-        const daysPassed = timeDelta/(1000 * 60 * 60 * 24)
-        if (daysPassed > daysSince) {
-            result = false
-        } else {
-            assignee.ol_unassign_ignore = true
+
+        if (staleAssigneeFound) {
+            results.push(issue)
         }
     }
-    return result
+
+    return results
 }
 
 /**
@@ -394,29 +420,38 @@ function getAssignmentDate(assignee, issueTimeline) {
 }
 
 /**
- * Returns `true` if there is no open pull linked to the given issue's assignees.
+ * Iterates over given issues, and returns array containing issues that
+ * have no linked pull requests that are open.
  *
- * @param issue {Record}
- * @returns {Promise<boolean>}
+ * @param issues {Array<Record>}
+ * @returns {Promise<*[]>}
  */
-async function linkedPullRequestFilter(issue) {
-    const timeline = await getTimeline(issue)
-    const assignees = issue.assignees.filter((assignee) => !('ol_unassign_ignore' in assignee))
-    const crossReferences = timeline.filter((event) => event.event === 'cross-referenced')
+async function linkedPullRequestFilter(issues) {
+    const results = []
+    for (const issue of issues) {
+        const timeline = await getTimeline(issue)
+        const assignees = issue.assignees.filter((assignee) => !('ol_unassign_ignore' in assignee))
+        const crossReferences = timeline.filter((event) => event.event === 'cross-referenced')
 
-    for (const assignee of assignees) {
-        const linkedPullRequest = crossReferences.find((event) => {
-            const hasLinkedPullRequest = event.source.type === 'issue' &&
-                event.source.issue.state === 'open' &&
-                ('pull_request' in event.source.issue) &&
-                event.source.issue.user.login === assignee.login &&
-                event.source.issue.body.toLowerCase().includes(`closes #${issue.number}`)
-            if (hasLinkedPullRequest) {
-                return false
-            }
-        })
+        let noLinkedPullRequest = true
+        for (const assignee of assignees) {
+            const linkedPullRequest = crossReferences.find((event) => {
+                const hasLinkedPullRequest = event.source.type === 'issue' &&
+                    event.source.issue.state === 'open' &&
+                    ('pull_request' in event.source.issue) &&
+                    event.source.issue.user.login === assignee.login &&
+                    event.source.issue.body.toLowerCase().includes(`closes #${issue.number}`)
+                if (hasLinkedPullRequest) {
+                    noLinkedPullRequest = false
+                }
+            })
+        }
+
+        if (noLinkedPullRequest) {
+            results.push(issue)
+        }
     }
 
-    return true
+    return results
 }
 // END: Issue Filtering
