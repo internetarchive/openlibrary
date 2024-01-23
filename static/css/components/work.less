@@ -18,13 +18,13 @@
   min-height: 10px;
   padding-right: 0;
   .cover-animation {
-    transition: transform .8s, opacity .8s;
+    transition: transform 0.8s, opacity 0.8s;
     position: relative;
     z-index: @z-index-level-negative;
   }
   .cover-animation:hover {
     transform: perspective(465px) rotateX(0deg) rotateY(-10deg);
-    opacity: .8;
+    opacity: 0.8;
   }
 }
 @import (less) "components/cover.less";
@@ -56,7 +56,7 @@ div.editionAbout {
   }
 }
 
-.work-description{
+.work-description {
   pre {
     overflow: auto;
   }
@@ -91,16 +91,17 @@ textarea[name="edition--notes"] + h3 + .wmd-preview,
 .edition-notes,
 textarea[name="work--description"] + h3 + .wmd-preview,
 .book-description {
-  font-size: .8rem;
+  font-size: @font-size-label-medium;
   margin-top: 5px;
   margin-bottom: 20px;
 
-  ul, ol {
+  ul,
+  ol {
     padding-left: 2rem;
 
     li {
       list-style-type: initial;
-      font-size: .8rem;
+      font-size: 0.8rem;
     }
   }
 }
@@ -130,8 +131,9 @@ textarea[name="work--description"] + h3 + .wmd-preview,
   content: attr(data-before);
 }
 
-.section, .section h6 {
-  font-size: .8em;
+.section,
+.section h6 {
+  font-size: 0.8em;
 }
 
 h3.edition-header {
@@ -173,11 +175,12 @@ a.section-anchor {
   }
 }
 
-.meta dt, .meta dd {
+.meta dt,
+.meta dd {
   font-size: 12px;
 }
 
-.book-subtitle{
+.book-subtitle {
   margin-bottom: 0;
 }
 
@@ -233,7 +236,8 @@ div.editionTools {
   }
 }
 
-.print-disabled-download, .patron-metadata {
+.print-disabled-download,
+.patron-metadata {
   text-align: center;
   padding: 7px 0 0;
 }
@@ -255,14 +259,14 @@ div.editionTools {
     margin: 0 4px;
     border: 1px solid @lighter-grey;
     border-radius: 5px;
-    font-size: .8em;
+    font-size: 0.8em;
     word-break: break-word;
     text-align: center;
     min-width: 100px;
 
     div {
       margin-bottom: 4px;
-      font-size: .9em;
+      font-size: 0.9em;
       color: @grey;
       word-wrap: break-word;
     }
@@ -290,7 +294,6 @@ div.editionTools {
       flex-direction: column;
       justify-content: flex-start;
       align-items: center;
-
     }
   }
 }
@@ -303,7 +306,7 @@ div.editionTools {
 }
 
 .preview-languages {
-  font-size: .8em;
+  font-size: 0.8em;
   color: @grey;
 }
 
@@ -318,7 +321,7 @@ div.editionTools {
   font-weight: normal;
   color: @link-blue;
 }
-@media only screen and (max-width: @width-breakpoint-desktop){
+@media only screen and (max-width: @width-breakpoint-desktop) {
   div.editionAbout .book-description {
     padding-top: 1em;
   }
