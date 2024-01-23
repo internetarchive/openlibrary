@@ -7,7 +7,7 @@
  */
 import {Octokit} from "@octokit/action";
 
-console.log('starting...')
+console.log('Script starting...')
 
 const DEFAULT_OPTIONS = {
     daysSince: 14,
@@ -16,40 +16,21 @@ const DEFAULT_OPTIONS = {
 
 const passedArguments = parseArgs()
 
-/**
- * Parses any arguments that were passed when this script was executed, and returns
- * an object containing the arguments.
- *
- * Exits the script if an odd number of arguments are provided.  The script takes only
- * options as arguments, and we expect a space between the option flag and value:
- * `--flag value_of_flag`
- *
- * @returns {Record}
- */
-function parseArgs() {
-    const result = {}
-    // XXX : Does this check make sense?
-    if (process.argv.length % 2 !== 0) {
-        console.log('Unexpected number of arguments')
-        process.exit(1)
-    }
-    if (process.argv.length > 2) {
-        for (let i = 2, j = 3; i < process.argv.length; i+=2, j+=2) {
-            let arg = process.argv[i]
-            // Remove leading `-` characters
-            while (arg.charAt(0) === '-') {
-                arg = arg.substring(1)
-            }
-            result[arg] = process.argv[j]
-        }
-    }
-
-    return result
-}
+const mainOptions = Object.assign({}, DEFAULT_OPTIONS, passedArguments)
+// `daysSince` will be a string if passed in from the command line
+mainOptions.daysSince = Number(mainOptions.daysSince)
 
 // Octokit is authenticated with the `GITHUB_TOKEN` that is added to the
 // environment in the `auto_unassigner` workflow
 const octokit = new Octokit();
+
+// XXX : What do we want to say when we remove assignees?
+/**
+ * Comment that will be left on issue when assignee is removed.
+ *
+ * @type {string}
+ */
+const issueComment = `Assignees removed automatically after ${mainOptions.daysSince} days.`
 
 /**
  * List of GitHub usernames who, if assigned to an issue, should not be unassigned.
@@ -92,16 +73,9 @@ const filters = [
  */
 const issueTimelines = {}
 
-// XXX : What do we want to say when we remove assignees?
-const issueComment = 'Assignees removed automatically after two weeks.'
-
-const mainOptions = Object.assign({}, DEFAULT_OPTIONS, passedArguments)
-// `daysSince` will be a string if passed in from the command line
-mainOptions.daysSince = Number(mainOptions.daysSince)
-
 await main()
 
-console.log('finished....')
+console.log('Script terminated...')
 
 /**
  * Runs the auto-unassigner job.
@@ -137,6 +111,37 @@ async function main() {  // XXX : Inject octokit for easier testing
     }
 }
 
+/**
+ * Parses any arguments that were passed when this script was executed, and returns
+ * an object containing the arguments.
+ *
+ * Exits the script if an odd number of arguments are provided.  The script takes only
+ * options as arguments, and we expect a space between the option flag and value:
+ * `--flag value_of_flag`
+ *
+ * @returns {Record}
+ */
+function parseArgs() {
+    const result = {}
+    // XXX : Does this check make sense?
+    if (process.argv.length % 2 !== 0) {
+        console.log('Unexpected number of arguments')
+        process.exit(1)
+    }
+    if (process.argv.length > 2) {
+        for (let i = 2, j = 3; i < process.argv.length; i+=2, j+=2) {
+            let arg = process.argv[i]
+            // Remove leading `-` characters
+            while (arg.charAt(0) === '-') {
+                arg = arg.substring(1)
+            }
+            result[arg] = process.argv[j]
+        }
+    }
+
+    return result
+}
+
 // START: API Calls
 /**
  * Returns all GitHub issues that are open and one or more assignees.
@@ -149,7 +154,7 @@ async function main() {  // XXX : Inject octokit for easier testing
  * @see  [GitHub REST documentation]{@link https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28#list-repository-issues}
  */
 async function fetchIssues() {
-    const result = await octokit.paginate('GET /repos/{owner}/{repo}/issues', {
+    return await octokit.paginate('GET /repos/{owner}/{repo}/issues', {
             owner: mainOptions.repoOwner,
             repo: 'openlibrary',
             headers: {
@@ -159,8 +164,6 @@ async function fetchIssues() {
             state: 'open',
             per_page: 100
         })
-
-    return result
 }
 
 /**
@@ -435,7 +438,7 @@ async function linkedPullRequestFilter(issues) {
 
         let noLinkedPullRequest = true
         for (const assignee of assignees) {
-            const linkedPullRequest = crossReferences.find((event) => {
+            crossReferences.find((event) => {
                 const hasLinkedPullRequest = event.source.type === 'issue' &&
                     event.source.issue.state === 'open' &&
                     ('pull_request' in event.source.issue) &&
