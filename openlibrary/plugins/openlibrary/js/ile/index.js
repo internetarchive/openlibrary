@@ -47,6 +47,10 @@ export class IntegratedLibrarianEnvironment {
             window.open(workLink, '_blank');
         });
 
+        this.$statusText.on('click', () => {
+            this.$statusImages.toggle();
+        });
+
         this.selectionManager.init();
     }
 
