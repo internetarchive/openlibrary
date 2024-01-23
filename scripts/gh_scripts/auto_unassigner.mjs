@@ -119,6 +119,8 @@ async function main() {  // XXX : Inject octokit for easier testing
 
     const actionableIssues = await filterIssues(issues, filters)
     console.log(`Issues remaining after filtering: ${actionableIssues.length}`)
+
+    await commentOnIssue(180, 'Comment from automated workflow')
 }
 
 // START: API Calls
@@ -185,6 +187,36 @@ async function getTimeline(issue) {
     return timeline
 }
 
+/**
+ * Creates a new comment on the given issue.
+ *
+ * @param issueNumber {number}
+ * @param comment {string}
+ * @returns {Promise<boolean>} `true` if the comment was created
+ */
+async function commentOnIssue(issueNumber, comment) {
+    return await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+        owner: mainOptions.repoOwner,
+        repo: 'openlibrary',
+        issue_number: issueNumber,
+        body: comment,
+        headers: {
+            'X-GitHub-Api-Version': '2022-11-28'
+        },
+    })
+        .then(() => {
+            return true
+        })
+        .catch((error) => {
+            // Promise is rejected if the call fails
+            console.log(`Failed to comment on issue #${issueNumber}`)
+            console.log(`Response status: ${error.status}`)
+            return false
+        })
+}
+// END: API Calls
+
+// START: Issue Filtering
 /**
  * Returns the results of filtering the given issues.
  *
