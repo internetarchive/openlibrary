@@ -47,6 +47,7 @@ repos:
       - id: codespell  # See pyproject.toml for args
         additional_dependencies:
           - tomli
+        args: ["--skip", "*.mjs"]
 
   - repo: https://github.com/MarcoGorelli/cython-lint
     rev: v0.16.0
