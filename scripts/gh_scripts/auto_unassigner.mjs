@@ -120,7 +120,21 @@ async function main() {  // XXX : Inject octokit for easier testing
     const actionableIssues = await filterIssues(issues, filters)
     console.log(`Issues remaining after filtering: ${actionableIssues.length}`)
 
-    await commentOnIssue(180, 'Comment from automated workflow')
+    for (const issue of actionableIssues) {
+        const assigneesToRemove = []
+        for (const assignee of issue.assignees) {
+            if (!('ol_unassign_ignore' in assignee)) {
+                assigneesToRemove.push(assignee.login)
+            }
+        }
+
+        if (assigneesToRemove.length > 0) {
+            const wasRemoved = await unassignFromIssue(issue.number, assigneesToRemove)
+            if (wasRemoved) {
+                await commentOnIssue(issue.number, issueComment)
+            }
+        }
+    }
 }
 
 // START: API Calls
@@ -185,6 +199,33 @@ async function getTimeline(issue) {
     issueTimelines[issueNumber] = timeline
 
     return timeline
+}
+
+/**
+ * Removes the given assignees from the issue identified by the given issue number.
+ *
+ * @param issueNumber {number}
+ * @param assignees {Array<string>}
+ * @returns {Promise<boolean>} `true` if unassignment operation was successful
+ */
+async function unassignFromIssue(issueNumber, assignees) {
+    return await octokit.request('DELETE /repos/{owner}/{repo}/issues/{issue_number}/assignees', {
+        owner: mainOptions.repoOwner,
+        repo: 'openlibrary',
+        issue_number: issueNumber,
+        assignees: assignees,
+        headers: {
+            'X-GitHub-Api-Version': '2022-11-28'
+        }
+    })
+        .then(() => {
+            return true
+        })
+        .catch((error) => {
+            console.log(`Failed to remove assignees from issue #${issueNumber}`)
+            console.log(`Response status: ${error.status}`)
+            return false
+        })
 }
 
 /**
