@@ -41,6 +41,12 @@ export class IntegratedLibrarianEnvironment {
         // Ready bulk tagger:
         this.createBulkTagger()
 
+        this.$statusImages.on('click', 'img', (event) => {
+            const olid = $(event.currentTarget).attr('title');
+            const workLink = `/works/${olid}`;
+            window.open(workLink, '_blank');
+        });
+
         this.selectionManager.init();
     }
 
