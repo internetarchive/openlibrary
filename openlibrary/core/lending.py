@@ -308,7 +308,22 @@ def get_availability(key: str, ids: list[str]) -> dict:
 
     url = '{}?{}={}'.format(config_ia_availability_api_v2_url, key, ','.join(ids))
     try:
-        response = requests.get(url, timeout=config_http_request_timeout)
+        client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
+        params = {"scope": "printdisabled"}
+        headers = {
+            "x-preferred-client-id": client_ip,
+            "x-application-id": "openlibrary",
+        }
+        if config_ia_ol_metadata_write_s3:
+            headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(
+                **config_ia_ol_metadata_write_s3
+            )
+
+        # Make authenticated request to Bulk Availability API
+        response = requests.get(
+            url, params=params, headers=headers, timeout=config_http_request_timeout
+        )
+
         items = response.json().get('responses', {})
         for pkey in items:
             ocaid = pkey if key == 'identifier' else items[pkey].get('identifier')
