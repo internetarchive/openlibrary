@@ -4,7 +4,7 @@ on:
     - cron: '0 8 * * *'
   workflow_dispatch:  # This can be run on-demand (do we want this?)
 permissions:
-  contents: read  # Double-check perms
+  contents: read
   issues: write
 
 jobs:
@@ -16,6 +16,6 @@ jobs:
         with:
           node-version: '20'
       - run: npm install @octokit/action
-      - run: node scripts/gh_scripts/auto_unassigner.mjs --repoOwner 'jimchamp'
+      - run: node scripts/gh_scripts/auto_unassigner.mjs --repoOwner $GITHUB_REPOSITORY_OWNER
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
