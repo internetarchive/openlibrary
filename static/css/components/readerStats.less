@@ -5,18 +5,17 @@
 
 .readers-stats {
   color: @grey;
-  font-size: .9em;
+  font-size: @font-size-label-large;
   margin-bottom: 20px;
   li {
     list-style-type: none;
     display: inline-block;
     padding-bottom: 10px;
 
-    &:not(:first-child,:last-child):after {
+    &:not(:first-child, :last-child):after {
       content: "·";
       margin: 0 4px;
     }
-
   }
   .dot {
     list-style-type: none;
@@ -28,7 +27,7 @@
     color: @gold;
     font-size: 1.5em;
   }
-  &__star--half{
+  &__star--half {
     margin: 0 0 0 -5px;
     font-size: 1.5em;
     background: linear-gradient(90deg, @gold 50%, @light-grey 50%);
