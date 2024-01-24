@@ -638,7 +638,7 @@ msgstr "Pedir emprestado \"%(title)s\""
 
 #: ReadButton.html:15 type/list/embed.html:79 widget.html:39
 msgid "Borrow"
-msgstr "Emprestar"
+msgstr "Empréstimo"
 
 #: widget.html:45
 #, python-format
@@ -3172,7 +3172,7 @@ msgstr "Explorar o Centro de Desenvolvimento da Open Library"
 
 #: lib/nav_foot.html:37 lib/nav_head.html:25
 msgid "Developer Center"
-msgstr "Centro de Desenvolvedor"
+msgstr "Central de desenvolvedor"
 
 #: lib/nav_foot.html:38
 msgid "Explore Open Library APIs"
@@ -3204,7 +3204,7 @@ msgstr "Adicionar um novo livro à Open Library"
 
 #: lib/nav_foot.html:47
 msgid "Help Center"
-msgstr "Centro de ajuda"
+msgstr "Central de ajuda"
 
 #: lib/nav_foot.html:48
 msgid "Problems"
