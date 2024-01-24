@@ -68,7 +68,9 @@ $if status:
             </div>
 
             <div class="formElement" style="margin: $('15px 0px 0px 15px;' if doc.type.key == '/type/work' else '0px;')">
-                <button type="submit" name="upload" id="imageUpload" value="$_('Submit')" class="largest">$_("Submit")</button>
+                <button type="submit" name="upload" id="imageUpload" value="$_('Submit')" class="largest" data-loading-text='$_("Uploading...")'>
+                    $_("Submit")
+                </button>
                 <a class="dialog--close-parent red" href="javascript:;">$_("Cancel")</a>
             </div>
 
