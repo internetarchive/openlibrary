@@ -56,6 +56,13 @@ function add_iframe(selector, src) {
 // covers/manage.html and covers/add.html
 export function initCoversAddManage() {
     $('#addcover-form').on('submit', function (event) {
+        const addLoadingStyling = () => {
+          let btn = $("#imageUpload");
+          btn.prop("disabled", true).html(btn.data("loading-text"));
+        }
+  
+        addLoadingStyling();
+
         var file = val('#coverFile');
         var url = val('#imageUrl');
         var coverid = val('#coverid');
