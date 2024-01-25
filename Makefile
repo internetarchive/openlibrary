@@ -39,7 +39,7 @@ components: $(COMPONENTS_DIR)/*.vue
 
 vue:
 	mkdir -p $(BUILD)/components
-	rm -rf $(BUILD)/components/vue3
+	rm -rf $(BUILD)/components
 	npx vite build
 
 i18n:
