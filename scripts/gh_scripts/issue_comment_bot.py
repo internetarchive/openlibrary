@@ -40,6 +40,7 @@ github_headers = {
     'Accept': 'application/vnd.github+json',
 }
 
+
 def fetch_issues(updated_since: str):
     """
     Fetches all GitHub issues that have been updated since the given date string and have at least one comment.
@@ -58,9 +59,7 @@ def fetch_issues(updated_since: str):
         'per_page': 100,
     }
     response = requests.get(
-        'https://api.github.com/search/issues',
-        params=p,
-        headers=github_headers
+        'https://api.github.com/search/issues', params=p, headers=github_headers
     )
     d = response.json()
     results = d['items']
@@ -99,7 +98,9 @@ def filter_issues(issues: list, since: datetime):
     for i in issues:
         # Fetch comments using URL from previous GitHub search results
         comments_url = i.get('comments_url')
-        resp = requests.get(comments_url, params={'per_page': 100}, headers=github_headers)
+        resp = requests.get(
+            comments_url, params={'per_page': 100}, headers=github_headers
+        )
 
         # Ensure that we have the last page of comments
         links = resp.links
