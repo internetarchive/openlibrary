@@ -37,7 +37,6 @@
 <script>
 import BooksCarousel from './BooksCarousel.vue';
 import debounce from 'lodash/debounce';
-import Vue from 'vue';
 import CONFIGS from '../configs';
 // import * as Vibrant from "node-vibrant";
 
@@ -125,7 +124,7 @@ export default {
             get() { return this.node.requests[this.query]?.offset ?? 0; },
             set(newVal) {
                 if (!this.node.requests[this.query]) {
-                    Vue.set(this.node.requests, this.query, { offset: 0 });
+                    this.node.requests[this.query] = { offset: 0}
                 }
                 return this.node.requests[this.query].offset = newVal;
             },
