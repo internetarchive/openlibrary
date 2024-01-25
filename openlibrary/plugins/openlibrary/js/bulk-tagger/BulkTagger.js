@@ -413,9 +413,17 @@ export class BulkTagger {
                             }
                         }
                     }
-
                     // Update and show create subject affordance
-                    this.updateAndShowNewSubjectAffordance(trimmedSearchTerm)
+                    const selectionContainer = this.rootElement.querySelector('.selection-container')
+                    selectionContainer.addEventListener('scroll', () => {
+                        const searchResultsContainer = this.rootElement.querySelector('.subjects-search-results');
+                        if (searchResultsContainer.style.display !== 'none') {
+                            const isBottom = selectionContainer.scrollHeight - selectionContainer.scrollTop === selectionContainer.clientHeight;
+                            if (isBottom) {
+                                this.updateAndShowNewSubjectAffordance(trimmedSearchTerm)
+                            }
+                        }
+                    });
                 });
         } else {
             // Hide create subject affordance
