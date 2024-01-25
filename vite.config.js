@@ -2,15 +2,15 @@
 import vue from '@vitejs/plugin-vue'
 
 export default {
-    root: 'openlibrary/components/vue3',
+    root: 'openlibrary',
     build: {
         lib: {
-            entry: 'index.js',
+            entry: 'components/vue3/index.js',
             name: 'Components',
             fileName: 'components',
             formats: ['es']
         },
-        outDir: '../../../static/build/components/vue3',
+        outDir: '../static/build/components/vue3',
         emptyOutDir: true,
         cssCodeSplit: true,
     },
@@ -35,7 +35,7 @@ export default {
                 customElements: true,
                 compilerOptions: {
                     // treat all tags with a dash as custom elements
-                    isCustomElement: (tag) => tag.includes('-')
+                    isCustomElement: (tag) => tag.includes('ol-')
                 }
             }
         })
