@@ -496,11 +496,7 @@ class search(delegate.page):
             )
         else:
             search_response = SearchResponse(
-                facet_counts=None,
-                sort='',
-                docs=[],
-                num_found=0,
-                solr_select=''
+                facet_counts=None, sort='', docs=[], num_found=0, solr_select=''
             )
         return render.work_search(
             ' '.join(q_list),
