@@ -5,12 +5,12 @@ export default {
     root: 'openlibrary',
     build: {
         lib: {
-            entry: 'components/vue3/index.js',
+            entry: 'components/vue/index.js',
             name: 'Components',
             fileName: 'components',
             formats: ['es']
         },
-        outDir: '../static/build/components/vue3',
+        outDir: '../static/build/components',
         emptyOutDir: true,
         cssCodeSplit: true,
     },

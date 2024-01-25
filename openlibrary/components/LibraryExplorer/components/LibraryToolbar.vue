@@ -346,7 +346,7 @@ export default {
 </script>
 
 
-<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
+<style src="vue-multiselect/dist/vue-multiselect.esm.css"></style>
 <style lang="less">
 
 

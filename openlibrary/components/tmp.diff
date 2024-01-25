@@ -1,0 +1,225 @@
+diff --git a/openlibrary/components/AuthorIdentifiers.vue b/openlibrary/components/AuthorIdentifiers.vue
+index f1d9ce8d6..baea7aa11 100644
+--- a/openlibrary/components/AuthorIdentifiers.vue
++++ b/openlibrary/components/AuthorIdentifiers.vue
+@@ -29,6 +29,13 @@
+ </template>
+ 
+ <script>
++const identifierPatterns  = {
++    wikidata: /^Q[1-9]\d*$/i,
++    isni: /^[0]{4} ?[0-9]{4} ?[0-9]{4} ?[0-9]{3}[0-9X]$/i,
++    storygraph: /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i,
++    amazon: /^B[0-9A-Za-z]{9}$/,
++    youtube: /^@[A-Za-z0-9_\-.]{3,30}/,
++}
+ export default {
+     // Props are for external options; if a subelement of this is modified,
+     // the view automatically re-renders
+@@ -84,6 +91,7 @@ export default {
+             // See https://vuejs.org/v2/guide/reactivity.html#Change-Detection-Caveats
+             this.$set(this.assignedIdentifiers, this.selectedIdentifier, this.inputValue);
+             this.inputValue = '';
++            this.selectedIdentifier = '';
+         },
+         /** Removes an identifier with value from memory and it will be deleted from database on save */
+         removeIdentifier: function(identifierName){
+@@ -101,14 +109,12 @@ export default {
+             document.querySelector(this.output_selector).innerHTML = html;
+         },
+         selectIdentifierByInputValue: function() {
+-            // Selects the dropdown identifier based on the input value
+-            // Only supports wikidata and isni because the other identifiers are just numbers
+-            const wikiDatas = this.inputValue.match(/^Q[1-9]\d*$/i);
+-            const isnis = this.inputValue.match(/^\d{15}[\dX]$/i);
+-            if (wikiDatas?.length > 0){
+-                this.selectedIdentifier = 'wikidata';
+-            } else if (isnis?.length > 0){
+-                this.selectedIdentifier = 'isni';
++            // Selects the dropdown identifier based on the input value when possible
++            for (const idtype in identifierPatterns) {
++                if (this.inputValue.match(identifierPatterns[idtype])){
++                    this.selectedIdentifier = idtype;
++                    break;
++                }
+             }
+         }
+     },
+diff --git a/openlibrary/components/LibraryExplorer/components/LibraryToolbar.vue b/openlibrary/components/LibraryExplorer/components/LibraryToolbar.vue
+index c57ce0aa8..753fa8a81 100644
+--- a/openlibrary/components/LibraryExplorer/components/LibraryToolbar.vue
++++ b/openlibrary/components/LibraryExplorer/components/LibraryToolbar.vue
+@@ -130,6 +130,12 @@
+                   <label>
+                     <input type="radio" v-model="sortState.order" value="old">Oldest
+                   </label>
++                  <label>
++                    <input type="radio" v-model="sortState.order" value="rating">Top Rated
++                  </label>
++                  <label>
++                    <input type="radio" v-model="sortState.order" value="readinglog">Reading Log
++                  </label>
+                   <label title="I.e. Classification order. Note some books maybe missing when sorting by shelf order–we're working on it.">
+                     <input type="radio" v-model="sortState.order" :value="`${settingsState.selectedClassification.field}_sort asc`" >Shelf Order
+                   </label>
+diff --git a/openlibrary/components/LibraryExplorer/components/Shelf.vue b/openlibrary/components/LibraryExplorer/components/Shelf.vue
+index d0656d662..466dec233 100644
+--- a/openlibrary/components/LibraryExplorer/components/Shelf.vue
++++ b/openlibrary/components/LibraryExplorer/components/Shelf.vue
+@@ -124,7 +124,7 @@ class FetchCoordinator {
+     }
+ 
+     enqueue(fetchRequest) {
+-        // console.log(`Enqueing request #${this.requestedFetches.length + 1}: ${fetchRequest.name}`);
++        // console.log(`Enqueuing request #${this.requestedFetches.length + 1}: ${fetchRequest.name}`);
+         this.requestedFetches.push(fetchRequest);
+         this.activate();
+     }
+diff --git a/openlibrary/components/MergeUI.vue b/openlibrary/components/MergeUI.vue
+index 2e73b256a..315e0910d 100644
+--- a/openlibrary/components/MergeUI.vue
++++ b/openlibrary/components/MergeUI.vue
+@@ -11,10 +11,11 @@
+             <button class="reject-btn" v-if="showRejectButton" @click="rejectMerge">Reject Merge</button>
+         </div>
+         <div id="diffs-toggle">
+-        <label>
+-            <input type="checkbox" title="Show textual differences" v-model="show_diffs" />
+-            Show text diffs
+-        </label>
++            <label>
++                <input type="checkbox" title="Show textual differences" v-model="show_diffs" />
++                Show text diffs
++            </label>
++        </div>
+     </div>
+     <pre v-if="mergeOutput">{{mergeOutput}}</pre>
+   </div>
+@@ -105,7 +106,7 @@ export default {
+                     }
+                 } catch (e) {
+                     this.mergeOutput = e.message;
+-                    this.mergeStatus = this.isSuperLibrarian() ? DO_MERGE : REQUEST_MERGE;
++                    this.mergeStatus = this.isSuperLibrarian ? DO_MERGE : REQUEST_MERGE;
+                     throw e;
+                 }
+             } else {
+diff --git a/openlibrary/components/MergeUI/MergeRowReferencesField.vue b/openlibrary/components/MergeUI/MergeRowReferencesField.vue
+index b42db31bc..38fe99ae3 100644
+--- a/openlibrary/components/MergeUI/MergeRowReferencesField.vue
++++ b/openlibrary/components/MergeUI/MergeRowReferencesField.vue
+@@ -1,23 +1,24 @@
+ <template>
+     <div v-if="record.type.key === '/type/work' && (!merged || (merged && record != merged.record))">
+-        <div class="list-counts" v-if="lists">
+-        <a :href="`${record.key}/-/lists`">{{lists[record.key].size}} list{{lists[record.key].size == 1 ? '' : 's'}}</a>
++        <div class="list-counts">
++            <span v-if="!lists">⏳ lists</span>
++            <a v-else-if="lists[record.key].error" :href="`${record.key}/-/lists`" title="Network error: failed to load">⚠️&#xFE0E; lists</a>
++            <a v-else :href="`${record.key}/-/lists`">{{lists[record.key].size}} list{{lists[record.key].size == 1 ? '' : 's'}}</a>
+         </div>
+-        <div v-else>⏳</div>
+-        <div class="bookshelf-counts" v-if="bookshelves">
+-        RL: <span v-for="(value, name, index) in bookshelves[record.key]" :key="index" :title="name">
+-            {{value}}
+-        </span>
++        <div class="bookshelf-counts">
++            RL:
++            <span v-if="!bookshelves">⏳ / ⏳ / ⏳</span>
++            <span v-else-if="bookshelves[record.key].error" title="Network error: failed to load">⚠️&#xFE0E;</span>
++            <span v-else><span v-for="(value, name, index) in bookshelves[record.key].counts" :key="index" :title="name">{{value}}</span></span>
+         </div>
+-        <div v-else>RL: ⏳ / ⏳ / ⏳</div>
+-
+-        <div>
+-        Ratings:
+-            <span v-if="ratings">{{ratings[record.key].summary.count}}</span>
+-            <span v-else>⏳</span>
++        <div class="ratings-counts">
++            Ratings:
++            <span v-if="!ratings">⏳</span>
++            <span v-else-if="ratings[record.key].error" title="Network error: failed to load">⚠️&#xFE0E;</span>
++            <span v-else>{{ratings[record.key].summary.count}}</span>
+         </div>
+     </div>
+-    <div class="list-counts" v-else-if="merged && record == merged.record">{{merged.list_count}} list{{merged.list_count == 1 ? '' : 's'}}</div>
++    <div class="list-counts" v-else-if="merged && record == merged.record && merged.list_count != null">{{merged.list_count}} list{{merged.list_count == 1 ? '' : 's'}}</div>
+ </template>
+ 
+ <script>
+diff --git a/openlibrary/components/MergeUI/MergeTable.vue b/openlibrary/components/MergeUI/MergeTable.vue
+index c491dbeed..23ee82eed 100644
+--- a/openlibrary/components/MergeUI/MergeTable.vue
++++ b/openlibrary/components/MergeUI/MergeTable.vue
+@@ -146,7 +146,7 @@ export default {
+             );
+             const responses = promises.map(p => p.value || p);
+             return _.fromPairs(
+-                this.records.map((work, i) => [work.key, responses[i].counts])
++                this.records.map((work, i) => [work.key, responses[i]])
+             );
+         },
+ 
+@@ -163,7 +163,7 @@ export default {
+         },
+ 
+         async merge() {
+-            if (!this.master_key || !this.records || !this.editions || !this.lists || !this.bookshelves)
++            if (!this.master_key || !this.records || !this.editions)
+                 return undefined;
+ 
+             const master = this.records.find(r => r.key === this.master_key);
+@@ -181,7 +181,7 @@ export default {
+ 
+             const extras = {
+                 edition_count: _.sum(records.map(r => this.editions[r.key].size)),
+-                list_count: _.sum(records.map(r => this.lists[r.key].size))
++                list_count: (this.lists) ? _.sum(records.map(r => this.lists[r.key].size)) : null
+             };
+ 
+             const unmergeable_works = this.records
+diff --git a/openlibrary/components/MergeUI/utils.js b/openlibrary/components/MergeUI/utils.js
+index 03de684e9..afffe4fbe 100644
+--- a/openlibrary/components/MergeUI/utils.js
++++ b/openlibrary/components/MergeUI/utils.js
+@@ -136,21 +136,21 @@ export function get_editions(work_key) {
+ export function get_lists(key, limit=10) {
+     return fetch(`${key}/lists.json?${new URLSearchParams({ limit })}`).then(r => {
+         if (r.ok) return r.json();
+-        if (confirm(`Network error; failed to load list data for ${key}. Click OK to reload.`)) location.reload();
++        return {error: true};
+     });
+ }
+ 
+ export function get_bookshelves(key) {
+     return fetch(`${key}/bookshelves.json`).then(r => {
+         if (r.ok) return r.json();
+-        if (confirm(`Network error; failed to load reading log data for ${key}. Click OK to reload.`)) location.reload();
++        return {error: true};
+     });
+ }
+ 
+ export function get_ratings(key) {
+     return fetch(`${key}/ratings.json`).then(r => {
+         if (r.ok) return r.json();
+-        if (confirm(`Network error; failed to load ratings for ${key}. Click OK to reload.`)) location.reload();
++        return {error: true};
+     });
+ }
+ 
+diff --git a/openlibrary/components/dev.js b/openlibrary/components/dev.js
+index b66d844c2..181fe431d 100644
+--- a/openlibrary/components/dev.js
++++ b/openlibrary/components/dev.js
+@@ -1,8 +1,4 @@
+-import Vue from 'vue'
+-import HelloWorld from './HelloWorld.vue'
++import {createApp} from 'vue'
++import LibraryExplorer from './vue3/LibraryExplorer.ce.vue'
+ 
+-Vue.config.productionTip = false
+-
+-new Vue({
+-    render: h => h(HelloWorld),
+-}).$mount('#app')
++createApp(LibraryExplorer).mount('#app')

@@ -25,7 +25,7 @@ import '../../../../static/css/js-all.less';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
 import { confirmDialog, initDialogs } from './dialog';
-import { initComponents } from '../../../../static/build/components/vue3/components.es'
+import { initComponents } from '../../../../static/build/components/components.es'
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
