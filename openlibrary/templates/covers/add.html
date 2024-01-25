@@ -63,7 +63,7 @@ $if status:
                     <label id="imageWeb" for="imageUrl">$_("Or, paste in the image URL if it's on the web.")</label>
                 </div>
                 <div class="input">
-                    <input type="url" name="url" id="imageUrl" value="" placeholder="https://..." />
+                    <input type="url" name="url" id="imageUrl" value="$data.get('url', '')" placeholder="https://..." />
                 </div>
             </div>
 
