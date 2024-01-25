@@ -195,11 +195,8 @@ def render_component(
             val = urllib.parse.quote(val)
         attrs_str += f' {key}="{val}"'
 
-
-    html = '<ol-{name} {attrs}></ol-{name}>'.format(
-        name=kebab_case(name),
-        attrs=attrs_str,
-    )
+    tag = kebab_case(name)
+    html = f'<ol-{tag} {attrs_str}></ol-{tag}>'
 
     return html
 
