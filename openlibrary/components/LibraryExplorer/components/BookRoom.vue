@@ -67,6 +67,8 @@
           :labels="appSettings.labels"
           :filter="filter"
           :sort="sort"
+          :jumpToData="jumpToData"
+          :jumpToOffset="jumpToOffset"
         />
       </div>
       <!-- Gap --> <div style="width: 70px; height: 1px; flex-shrink: 0" />
@@ -155,6 +157,7 @@ export default {
             activeRoom: jumpToData?.room || this.classification.root,
             breadcrumbs: jumpToData?.breadcrumbs || [],
             jumpToData,
+            jumpToOffset: 0,
 
             expandingAnimation: false,
 
@@ -173,22 +176,17 @@ export default {
         if (this.jumpToData?.shelf) {
             this.$el.querySelector(`[data-short="${this.jumpToData.shelf.short}"]`).scrollIntoView({
                 inline: 'center',
-                block: 'start',
+                block: 'center',
             });
 
             // Find the offset of the predecessor of the requested item in its shelf
             const predecessor = decrementStringSolr(this.jumpToData.classification, false, this.classification.field === 'ddc');
             const shelf_query = `${this.classification.field}_sort:${this.jumpToData.shelf.query} ${this.filter}`;
             /** @type {number} */
-            const offset = await fetch(`${CONFIGS.OL_BASE_SEARCH}/search.json?${new URLSearchParams({
+            this.jumpToOffset = await fetch(`${CONFIGS.OL_BASE_SEARCH}/search.json?${new URLSearchParams({
                 q: `${shelf_query} AND ${this.classification.field}_sort:[* TO ${predecessor}]`,
                 limit: 0,
             })}`).then(r => r.json()).then(r => r.numFound);
-            const olCarousel = this.$el.querySelector(`.ol-carousel[data-short="${this.jumpToData.shelf.short}"]`);
-            const pageOffset = await olCarousel.__vue__.loadPageContainingOffset(offset + 1);
-            olCarousel.querySelector(`.book:nth-of-type(${(offset + 1) - pageOffset})`).scrollIntoView({
-                inline: 'center'
-            });
         }
     },
     destroyed() {

@@ -11,6 +11,7 @@
       :features="features"
       :filter="filter"
       :sort="sort"
+      :jumpToOffset="lvl.short == jumpToData?.shelf?.short ? jumpToOffset : 0"
     />
   </div>
 </template>
@@ -32,6 +33,11 @@ export default {
         features: Object,
         filter: String,
         sort: String,
+        jumpToData: Object,
+        jumpToOffset: {
+            type: Number,
+            default: 0
+        },
     },
 
 };

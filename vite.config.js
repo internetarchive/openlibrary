@@ -1,18 +1,20 @@
 // vite.config.js
 import vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vite'
 
-export default {
+export default defineConfig({
     root: 'openlibrary',
     build: {
         lib: {
-            entry: 'components/vue/index.js',
-            name: 'Components',
-            fileName: 'components',
-            formats: ['es']
+            entry: 'components/index.js',
+            name: 'ol-library-explorer',
+            fileName: 'ol-library-explorer',
+            formats: ['es'],
         },
         outDir: '../static/build/components',
         emptyOutDir: true,
         cssCodeSplit: true,
+        minify: true,
     },
     resolve: {
         extensions: ['.js', '.json', '.vue'],
@@ -31,13 +33,7 @@ export default {
     },
     plugins: [
         vue({
-            template: {
-                customElements: true,
-                compilerOptions: {
-                    // treat all tags with a dash as custom elements
-                    isCustomElement: (tag) => tag.includes('ol-')
-                }
-            }
+            customElement: true,
         })
     ]
-}
+})
