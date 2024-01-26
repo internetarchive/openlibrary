@@ -46,6 +46,7 @@
       "
       :sort="sort"
       :fetchCoordinator="fetchCoordinator"
+      :jumpToOffset="jumpToOffset"
     >
       <template #book-end-start>
         <div class="book-end-start">
@@ -185,6 +186,10 @@ export default {
         features: Object,
         filter: String,
         sort: String,
+        jumpToOffset: {
+            type: Number,
+            default: 0
+        },
     },
 
     data() {
