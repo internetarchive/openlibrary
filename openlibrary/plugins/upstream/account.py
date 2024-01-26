@@ -405,7 +405,6 @@ class account_login(delegate.page):
             config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
         )
         ol_account = OpenLibraryAccount.get(email=email)
-
         if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
             web.setcookie('sfw', 'yes', expires=expires)
         blacklist = [
@@ -414,6 +413,7 @@ class account_login(delegate.page):
         ]
         if i.redirect == "" or any(path in i.redirect for path in blacklist):
             i.redirect = "/account/books"
+        stats.increment('ol.account.xauth.login')
         raise web.seeother(i.redirect)
 
     def POST_resend_verification_email(self, i):
