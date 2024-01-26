@@ -413,12 +413,12 @@ export class BulkTagger {
                             }
                         }
                     }
+
                     // Update and show create subject affordance
                     const selectionContainer = this.rootElement.querySelector('.selection-container')
                     selectionContainer.addEventListener('scroll', () => {
-                        const searchResultsContainer = this.rootElement.querySelector('.subjects-search-results');
-                        if (searchResultsContainer.style.display !== 'none') {
-                            const isBottom = selectionContainer.scrollHeight - selectionContainer.scrollTop === selectionContainer.clientHeight;
+                        if (this.rootElement.querySelector('.selected-tag').classList.contains('hidden')) {
+                            const isBottom = selectionContainer.scrollHeight - Math.ceil(selectionContainer.scrollTop) <= selectionContainer.clientHeight;
                             if (isBottom) {
                                 this.updateAndShowNewSubjectAffordance(trimmedSearchTerm)
                             }
