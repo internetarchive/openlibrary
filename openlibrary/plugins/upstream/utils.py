@@ -201,7 +201,7 @@ def render_component(
     # if len(included) == 0:
     #     # Need to include Vue
     #     html += '<script src="%s"></script>' % static_url('build/vue.js')
-    
+
     if name not in included:
         url = static_url('build/components/index.js')
         html += f'<script type="module" src="{url}"></script>'
