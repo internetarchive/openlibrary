@@ -15,8 +15,7 @@ def get_total_by_olid(olid: str) -> int | None:
     Retrieves the total number of times a book with the given Open Library ID (OLID) has been assigned in syllabi
     from the Open Syllabus Project database.
 
-    Args:
-        olid (str): The Open Library ID (OLID) of the book to retrieve the total for.
+    :param olid: The Open Library ID (OLID) of the book to retrieve the total for. (eg `/works/OL123W` or `OL123W`)
 
     Raises:
         Exception: If there is an error querying the database.
