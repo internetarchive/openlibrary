@@ -34,7 +34,6 @@ from openlibrary.solr.update_edition import EditionSolrBuilder, build_edition_da
 from openlibrary.utils import uniq
 from openlibrary.utils.ddc import normalize_ddc, choose_sorting_ddc
 from openlibrary.utils.lcc import short_lcc_to_sortable_lcc, choose_sorting_lcc
-from openlibrary.utils.open_syllabus_project import get_total_by_olid
 from openlibrary.utils.retry import MaxRetriesExceeded, RetryStrategy
 
 logger = logging.getLogger("openlibrary.solr")
@@ -543,8 +542,6 @@ class SolrProcessor:
             "by_statement",
             {e["by_statement"] for e in editions if "by_statement" in e},
         )
-
-        add('osp_count_total', get_total_by_olid(w['key']))
 
         k = 'publish_date'
         pub_dates = {e[k] for e in editions if e.get(k)}
