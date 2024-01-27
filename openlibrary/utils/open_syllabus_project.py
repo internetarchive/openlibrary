@@ -81,23 +81,18 @@ def generate_osp_db(input_directory: Path) -> None:
             if str(filename).endswith(".json.gz"):
                 with gzip.open(os.path.join(input_directory, filename), "rt") as file:
                     for line in file:
-                        try:
-                            # Parse the JSON data
-                            json_data = json.loads(line)
+                        # Parse the JSON data
+                        json_data = json.loads(line)
 
-                            # Extract the 'ol_id' and 'total' fields
-                            ol_id = int(
-                                json_data["ol_id"]
-                                .replace("/works/OL", "")
-                                .replace("W", "")
-                            )
-                            total = json_data["total"]
+                        # Extract the 'ol_id' and 'total' fields
+                        ol_id = int(
+                            json_data["ol_id"].replace("/works/OL", "").replace("W", "")
+                        )
+                        total = json_data["total"]
 
-                            # Exclude lines where the 'total' is less than one
-                            if total >= 1:
-                                data.append((ol_id, total))
-                        except Exception as e:
-                            print(f"Error processing {filename}: {e}")
+                        # Exclude lines where the 'total' is less than one
+                        if total >= 1:
+                            data.append((ol_id, total))
 
         # Insert the filtered data into the SQLite database
         cursor.executemany("INSERT INTO data (olid, total) VALUES (?, ?)", data)
