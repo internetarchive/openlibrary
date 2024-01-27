@@ -2,6 +2,7 @@ import os
 import json
 import sqlite3
 import gzip
+from contextlib import closing
 
 
 # Define the SQLite database file path
@@ -59,49 +60,50 @@ def generate_osp_db(input_directory: str) -> None:
     data = []
 
     # Create an SQLite database and table
-    conn = sqlite3.connect(db_file)
-    cursor = conn.cursor()
-    # Drop the table if it exists so we only have fresh data
-    cursor.execute('DROP TABLE IF EXISTS data;')
-    cursor.execute(
+    with closing(sqlite3.connect(db_file)) as conn:
+        cursor = conn.cursor()
+        # Drop the table if it exists so we only have fresh data
+        cursor.execute('DROP TABLE IF EXISTS data;')
+        cursor.execute(
+            '''
+            CREATE TABLE IF NOT EXISTS data (
+                olid INTEGER PRIMARY KEY,
+                total INTEGER
+            )
         '''
-        CREATE TABLE IF NOT EXISTS data (
-            olid INTEGER PRIMARY KEY,
-            total INTEGER
         )
-    '''
-    )
 
-    i = 0
-    # Iterate through the files in the input directory
-    for filename in os.listdir(input_directory):
-        print(i)
-        i += 1
-        if filename.endswith(".json.gz"):
-            with gzip.open(os.path.join(input_directory, filename), "rt") as file:
-                for line in file:
-                    try:
-                        # Parse the JSON data
-                        json_data = json.loads(line)
+        i = 0
+        # Iterate through the files in the input directory
+        for filename in os.listdir(input_directory):
+            print(i)
+            i += 1
+            if filename.endswith(".json.gz"):
+                with gzip.open(os.path.join(input_directory, filename), "rt") as file:
+                    for line in file:
+                        try:
+                            # Parse the JSON data
+                            json_data = json.loads(line)
 
-                        # Extract the 'ol_id' and 'total' fields
-                        ol_id = int(
-                            json_data["ol_id"].replace("/works/OL", "").replace("W", "")
-                        )
-                        total = json_data["total"]
+                            # Extract the 'ol_id' and 'total' fields
+                            ol_id = int(
+                                json_data["ol_id"]
+                                .replace("/works/OL", "")
+                                .replace("W", "")
+                            )
+                            total = json_data["total"]
 
-                        # Exclude lines where the 'total' is less than one
-                        if total >= 1:
-                            data.append((ol_id, total))
-                    except Exception as e:
-                        print(f"Error processing {filename}: {e}")
+                            # Exclude lines where the 'total' is less than one
+                            if total >= 1:
+                                data.append((ol_id, total))
+                        except Exception as e:
+                            print(f"Error processing {filename}: {e}")
 
-    # Insert the filtered data into the SQLite database
-    cursor.executemany("INSERT INTO data (olid, total) VALUES (?, ?)", data)
+        # Insert the filtered data into the SQLite database
+        cursor.executemany("INSERT INTO data (olid, total) VALUES (?, ?)", data)
 
-    # Commit changes, sort the olid column in ascending order, and close the database connection
-    cursor.execute("CREATE INDEX IF NOT EXISTS olid_index ON data (olid)")
-    conn.commit()
-    conn.close()
+        # Commit changes, sort the olid column in ascending order, and close the database connection
+        cursor.execute("CREATE INDEX IF NOT EXISTS olid_index ON data (olid)")
+        conn.commit()
 
-    print(f'SQLite database created successfully: {db_file}')
+        print(f'SQLite database created successfully: {db_file}')
