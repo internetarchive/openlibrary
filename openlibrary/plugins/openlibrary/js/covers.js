@@ -38,7 +38,12 @@ export function initCoversChange() {
 }
 
 function val(selector) {
-    return $(selector).val().trim();
+    const val = $(selector).val();
+    if (val) {
+        return val.trim();
+    } else {
+        return val;
+    }
 }
 
 function error(message, event) {
@@ -60,9 +65,12 @@ export function initCoversAddManage() {
         var url = val('#imageUrl');
         var coverid = val('#coverid');
 
-        if (file === '' && url === '' && coverid === '') {
+        if (!file && !url && !coverid) {
             return error('Please choose an image or provide a URL.', event);
         }
+
+        const btn = $('#imageUpload');
+        btn.prop('disabled', true).html(btn.data('loading-text'));
     });
 
     // Clicking a cover should set the form value to the data-id of that cover
