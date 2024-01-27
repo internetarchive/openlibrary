@@ -1104,7 +1104,7 @@ msgstr "प्रतीक्षा सूची छोड़ें"
 
 #: account/loans.html:130
 msgid "Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?"
-msgstr "क्या आप वाकई<strong> शीर्षक</strong> की प्रतीक्षा सूची छोड़ना चाहते<br/>हैं?"
+msgstr "क्या आप वाकई <br/><strong>TITLE</strong> की प्रतीक्षा सूची छोड़ना चाहते हैं?"
 
 #: account/loans.html:149 admin/loans_table.html:43 admin/menu.html:33 merge_queue/merge_queue.html:59
 msgid "Status"
@@ -2159,8 +2159,8 @@ msgid ""
 "One moment... It looks like we already have <em>some potential matches</em> for <b>%(title)s</b> by "
 "<b>%(author)s</b>."
 msgstr ""
-"एक क्षण रुकिए... ऐसा लगता है कि हमारे पास पहले से ही <b>%(title)s</b> के लिए <b>%(author)s</b> द्वारा <em>कुछ "
-"संभावित मैच</em> हैं।"
+"एक क्षण रुकिए... ऐसा लगता है कि हमारे पास पहले से ही <em>कुछ संभावित मैच हैं</em> <b>%(title)s</b> के लिए "
+"<b>%(author)s</b> द्वारा."
 
 #: books/check.html:17
 msgid ""
