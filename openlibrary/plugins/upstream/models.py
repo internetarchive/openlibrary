@@ -712,7 +712,7 @@ class Work(models.Work):
         :param list[str] keys: ensure keys included in fetched editions
         """
         db_query = {"type": "/type/edition", "works": self.key}
-        db_query['limit'] = limit or 10000
+        db_query['limit'] = limit or 10000  # type: ignore[assignment]
 
         edition_keys = []
         if ebooks_only:
@@ -800,6 +800,8 @@ class SubjectPerson(Subject):
 
 
 class User(models.User):
+    displayname: str | None
+
     def get_name(self):
         return self.displayname or self.key.split('/')[-1]
 
@@ -994,27 +996,6 @@ class AddBookChangeset(Changeset):
                 return doc
 
 
-class ListChangeset(Changeset):
-    def get_added_seed(self):
-        added = self.data.get("add")
-        if added and len(added) == 1:
-            return self.get_seed(added[0])
-
-    def get_removed_seed(self):
-        removed = self.data.get("remove")
-        if removed and len(removed) == 1:
-            return self.get_seed(removed[0])
-
-    def get_list(self):
-        return self.get_changes()[0]
-
-    def get_seed(self, seed):
-        """Returns the seed object."""
-        if isinstance(seed, dict):
-            seed = self._site.get(seed['key'])
-        return models.Seed(self.get_list(), seed)
-
-
 class Tag(models.Tag):
     """Class to represent /type/tag objects in Open Library."""
 
@@ -1040,5 +1021,4 @@ def setup():
     client.register_changeset_class('undo', Undo)
 
     client.register_changeset_class('add-book', AddBookChangeset)
-    client.register_changeset_class('lists', ListChangeset)
     client.register_changeset_class('new-account', NewAccountChangeset)

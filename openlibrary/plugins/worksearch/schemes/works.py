@@ -2,7 +2,7 @@ from datetime import datetime
 import logging
 import re
 import sys
-from typing import Any
+from typing import Any, cast
 from collections.abc import Callable
 
 import luqum.tree
@@ -46,6 +46,7 @@ class WorkSearchScheme(SearchScheme):
         "ebook_access",
         "edition_count",
         "edition_key",
+        "format",
         "by_statement",
         "publish_date",
         "lccn",
@@ -277,16 +278,19 @@ class WorkSearchScheme(SearchScheme):
         # query, but much more flexible. We wouldn't be able to do our
         # complicated parent/child queries with defType!
 
-        full_work_query = '({{!edismax q.op="AND" qf="{qf}" bf="{bf}" v={v}}})'.format(
+        full_work_query = '({{!edismax q.op="AND" qf="{qf}" pf="{pf}" bf="{bf}" v={v}}})'.format(
             # qf: the fields to query un-prefixed parts of the query.
             # e.g. 'harry potter' becomes
             # 'text:(harry potter) OR alternative_title:(harry potter)^20 OR ...'
-            qf='text alternative_title^20 author_name^20',
+            qf='text alternative_title^10 author_name^10',
+            # pf: phrase fields. This increases the score of documents that
+            # match the query terms in close proximity to each other.
+            pf='alternative_title^10 author_name^10',
             # bf (boost factor): boost results based on the value of this
             # field. I.e. results with more editions get boosted, upto a
             # max of 100, after which we don't see it as good signal of
             # quality.
-            bf='min(100,edition_count)',
+            bf='min(100,edition_count) min(100,def(readinglog_count,0))',
             # v: the query to process with the edismax query parser. Note
             # we are using a solr variable here; this reads the url parameter
             # arbitrarily called workQuery.
@@ -294,6 +298,7 @@ class WorkSearchScheme(SearchScheme):
         )
 
         ed_q = None
+        full_ed_query = None
         editions_fq = []
         if has_solr_editions_enabled() and 'editions:[subquery]' in solr_fields:
             WORK_FIELD_TO_ED_FIELD: dict[str, str | Callable[[str], str]] = {
@@ -308,6 +313,7 @@ class WorkSearchScheme(SearchScheme):
                 'alternative_subtitle': 'subtitle',
                 'cover_i': 'cover_i',
                 # Misc useful data
+                'format': 'format',
                 'language': 'language',
                 'publisher': 'publisher',
                 'publisher_facet': 'publisher_facet',
@@ -449,7 +455,7 @@ class WorkSearchScheme(SearchScheme):
         if ed_q or len(editions_fq) > 1:
             # The elements in _this_ edition query should cause works not to
             # match _at all_ if matching editions are not found
-            new_params.append(('edQuery', full_ed_query if ed_q else '*:*'))
+            new_params.append(('edQuery', cast(str, full_ed_query) if ed_q else '*:*'))
             q = (
                 f'+{full_work_query} '
                 # This is using the special parent query syntax to, on top of
@@ -462,6 +468,10 @@ class WorkSearchScheme(SearchScheme):
                 ')'
             )
             new_params.append(('q', q))
+        else:
+            new_params.append(('q', full_work_query))
+
+        if full_ed_query:
             edition_fields = {
                 f.split('.', 1)[1] for f in solr_fields if f.startswith('editions.')
             }
@@ -479,8 +489,6 @@ class WorkSearchScheme(SearchScheme):
             )
             new_params.append(('editions.rows', '1'))
             new_params.append(('editions.fl', ','.join(edition_fields)))
-        else:
-            new_params.append(('q', full_work_query))
 
         return new_params
 

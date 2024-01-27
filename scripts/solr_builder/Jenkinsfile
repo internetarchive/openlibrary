@@ -20,6 +20,7 @@ pipeline {
     booleanParam(name: 'INDEX_ORPHANS', defaultValue: true, description: 'If true, reindexes orphans into solr')
     booleanParam(name: 'INDEX_SUBJECTS', defaultValue: true, description: 'If true, reindexes subjects into solr')
     booleanParam(name: 'INDEX_AUTHORS', defaultValue: true, description: 'If true, reindexes authors into solr')
+    booleanParam(name: 'INDEX_LISTS', defaultValue: true, description: 'If true, reindexes lists into solr')
     string(name: 'MAX_CORES', defaultValue: '18', description: 'Max number of simultaneous cores')
   }
   environment {
@@ -262,6 +263,27 @@ pipeline {
                         // Save Log Files
                         sh '''cat $(ls -tr logs/authors/*) | gzip > logs/authors-indexing.log.gz'''
                         archiveArtifacts artifacts: "logs/authors-indexing.log.gz"
+                      }
+                    }
+                  }
+                }
+                stage('Insert lists') {
+                  when { expression { return params.INDEX_LISTS } }
+                  steps {
+                    dir(env.HOST_SOLR_BUILDER_DIR) {
+                      sh "docker compose run --name ol_run_lists --rm -T ol ./index-type.sh list ${params.MAX_CORES} lists"
+                      solr_commit()
+                    }
+                  }
+                  post {
+                    always {
+                      dir(env.HOST_SOLR_BUILDER_DIR) {
+                        // Save Progress Files
+                        sh '''tail --quiet -n1 $(ls -tr progress/lists/*) | gzip > progress/lists-progress.txt.gz'''
+                        archiveArtifacts artifacts: "progress/lists-progress.txt.gz"
+                        // Save Log Files
+                        sh '''cat $(ls -tr logs/lists/*) | gzip > logs/lists-indexing.log.gz'''
+                        archiveArtifacts artifacts: "logs/lists-indexing.log.gz"
                       }
                     }
                   }

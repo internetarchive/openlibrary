@@ -42,6 +42,12 @@ DEFAULT_IA_RESULTS = 42
 MAX_IA_RESULTS = 1000
 
 
+class PatronAccessException(Exception):
+    def __init__(self, message="Access to this item is temporarily locked."):
+        self.message = message
+        super().__init__(self.message)
+
+
 config_ia_loan_api_url = None
 config_ia_xauth_api_url = None
 config_ia_availability_api_v2_url = None
@@ -207,6 +213,11 @@ def s3_loan_api(s3_keys, ocaid=None, action='browse', **kwargs):
     data = s3_keys | kwargs
 
     response = requests.post(url + params, data=data)
+    # We want this to be just `409` but first
+    # `www/common/Lending.inc#L111-114` needs to
+    # be updated on petabox
+    if response.status_code in [400, 409]:
+        raise PatronAccessException()
     response.raise_for_status()
     return response
 
@@ -297,7 +308,22 @@ def get_availability(key: str, ids: list[str]) -> dict:
 
     url = '{}?{}={}'.format(config_ia_availability_api_v2_url, key, ','.join(ids))
     try:
-        response = requests.get(url, timeout=config_http_request_timeout)
+        client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
+        params = {"scope": "printdisabled"}
+        headers = {
+            "x-preferred-client-id": client_ip,
+            "x-application-id": "openlibrary",
+        }
+        if config_ia_ol_metadata_write_s3:
+            headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(
+                **config_ia_ol_metadata_write_s3
+            )
+
+        # Make authenticated request to Bulk Availability API
+        response = requests.get(
+            url, params=params, headers=headers, timeout=config_http_request_timeout
+        )
+
         items = response.json().get('responses', {})
         for pkey in items:
             ocaid = pkey if key == 'identifier' else items[pkey].get('identifier')
@@ -500,11 +526,51 @@ def _get_ia_loan(identifier, userid):
 
 def get_loans_of_user(user_key):
     """TODO: Remove inclusion of local data; should only come from IA"""
+    if 'env' not in web.ctx:
+        """For the get_cached_user_loans to call the API if no cache is present,
+        we have to fakeload the web.ctx
+        """
+        delegate.fakeload()
+
     account = OpenLibraryAccount.get(username=user_key.split('/')[-1])
 
     loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
     loans = [Loan(d) for d in loandata] + (_get_ia_loans_of_user(account.itemname))
+    # Set patron's loans in cache w/ now timestamp
+    get_cached_loans_of_user.memcache_set(
+        [user_key], {}, loans or [], time.time()
+    )  # rehydrate cache
     return loans
+
+
+get_cached_loans_of_user = cache.memcache_memoize(
+    get_loans_of_user,
+    key_prefix='lending.cached_loans',
+    timeout=5 * dateutil.MINUTE_SECS,  # time to live for cached loans = 5 minutes
+)
+
+
+def get_user_waiting_loans(user_key):
+    """Gets the waitingloans of the patron.
+
+    Returns [] if user has no waitingloans.
+    """
+    from .waitinglist import WaitingLoan
+
+    account = OpenLibraryAccount.get(key=user_key)
+    itemname = account.itemname
+    result = WaitingLoan.query(userid=itemname)
+    get_cached_user_waiting_loans.memcache_set(
+        [user_key], {}, result or {}, time.time()
+    )  # rehydrate cache
+    return result or []
+
+
+get_cached_user_waiting_loans = cache.memcache_memoize(
+    get_user_waiting_loans,
+    key_prefix='waitinglist.user_waiting_loans',
+    timeout=10 * dateutil.MINUTE_SECS,
+)
 
 
 def _get_ia_loans_of_user(userid):

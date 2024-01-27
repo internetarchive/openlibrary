@@ -12,6 +12,7 @@ let invalidChecksum;
 let invalidIsbn10;
 let invalidIsbn13;
 let invalidLccn;
+let emptyId;
 
 export function initAddBookImport () {
     $('.list-books a').on('click', function() {
@@ -29,7 +30,9 @@ export function initAddBookImport () {
     invalidIsbn10 = i18nStrings.invalid_isbn10;
     invalidIsbn13 = i18nStrings.invalid_isbn13;
     invalidLccn = i18nStrings.invalid_lccn;
+    emptyId = i18nStrings.empty_id;
 
+    $('#id_value').on('change',autoCompleteIdName);
     $('#addbook').on('submit', parseAndValidateId);
     $('#id_value').on('input', clearErrors);
     $('#id_name').on('change', clearErrors);
@@ -84,6 +87,20 @@ function parseAndValidateId(event) {
     else if (fieldName === 'lccn') {
         parseAndValidateLccn(event, idValue);
     }
+    else if (!fieldName || !isEmptyId(event, idValue)) {
+        document.getElementById('id_value').value = idValue.trim();
+    }
+}
+
+function isEmptyId(event, idValue) {
+    if (!idValue.trim()) {
+        const errorDiv = document.getElementById('id-errors');
+        errorDiv.classList.remove('hidden');
+        errorDiv.textContent = emptyId;
+        event.preventDefault();
+        return true;
+    }
+    return false;
 }
 
 function parseAndValidateIsbn10(event, idValue) {
@@ -115,4 +132,25 @@ function parseAndValidateLccn(event, idValue) {
         return displayLccnError(event, invalidLccn);
     }
     document.getElementById('id_value').value = idValue;
+}
+
+function autoCompleteIdName(){
+    const idValue = document.querySelector('input#id_value').value.trim();
+    const idValueIsbn = parseIsbn(idValue);
+
+    if (isFormatValidIsbn10(idValueIsbn) && isChecksumValidIsbn10(idValueIsbn)){
+        document.getElementById('id_name').value = 'isbn_10';
+    }
+
+    else if (isFormatValidIsbn13(idValueIsbn) && isChecksumValidIsbn13(idValueIsbn)){
+        document.getElementById('id_name').value = 'isbn_13';
+    }
+
+    else if ((isValidLccn(parseLccn(idValue)))){
+        document.getElementById('id_name').value = 'lccn';
+    }
+
+    else {
+        document.getElementById('id_name').value = '';
+    }
 }

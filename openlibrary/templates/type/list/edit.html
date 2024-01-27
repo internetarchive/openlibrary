@@ -20,34 +20,45 @@ $if admin_only:
 
 $# Render the ith seed input field
 $jsdef render_seed_field(i, seed):
+    $# Note: Cannot use "in" because this is a jsdef function
+    $if seed['key'] or seed['key']:
+        $ seed = { 'thing': seed, 'notes': '' }
+
+    $ key = ''
+    $if seed['thing']:
+        $ key = seed['thing']['key']
+
     <li class="mia__input ac-input">
         <div class="seed--controls">
             <div class="mia__reorder mia__index">≡ #$(i + 1)</div>
-            <button class="mia__remove" href="javascript:;">Remove</button>
+            <button class="mia__remove" type="button">Remove</button>
         </div>
         <main>
-            <input class="ac-input__value" name="seeds--$i--key" type="hidden" value="$seed['key']" />
+            <input class="ac-input__value" name="seeds--$i--thing--key" type="hidden" value="$key" />
             $# Displayed
             <input
                 class="ac-input__visible"
-                value="$seed['key'].split('/')[-1]"
+                value="$key.split('/')[-1]"
                 placeholder="$_('Search for a book')"
-                $if seed['key']:
+                $if key:
                     type="hidden"
             />
+
             <div class="ac-input__preview">
                 $# Note: Cannot use "in" because this is a jsdef function
-                $if seed['key']:
-                    $ prefix = seed['key'].split('/')[1]
+                $if key:
+                    $ prefix = key.split('/')[1]
                     $if prefix == 'works' or prefix == 'books':
-                        $:lazy_thing_preview(seed['key'], 'render_lazy_work_preview')
+                        $:lazy_thing_preview(key, 'render_lazy_work_preview')
                     $elif prefix == 'authors':
-                        $:lazy_thing_preview(seed['key'], 'render_lazy_author_preview')
+                        $:lazy_thing_preview(key, 'render_lazy_author_preview')
                     $else:
-                        $seed['key']
+                        $key
                 $else:
-                    $seed['key']
+                    $key
             </div>
+
+            <textarea name="seeds--$i--notes" placeholder="$_('Notes (optional)')">$(seed['notes'] or '')</textarea>
         </main>
     </li>
 

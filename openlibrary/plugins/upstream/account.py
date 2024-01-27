@@ -25,8 +25,6 @@ from openlibrary.core import stats
 from openlibrary.core import helpers as h, lending
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.core.helpers import days_since
-from openlibrary.core.lending import s3_loan_api
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.recaptcha import recaptcha
@@ -38,6 +36,7 @@ from openlibrary.accounts import (
     OpenLibraryAccount,
     InternetArchiveAccount,
     valid_email,
+    clear_cookies,
 )
 from openlibrary.plugins.upstream import borrow, forms, utils
 from openlibrary.utils.dateutil import elapsed_time
@@ -255,9 +254,10 @@ class account_create(delegate.page):
 
     def get_recap(self):
         if self.is_plugin_enabled('recaptcha'):
-            public_key = config.plugin_recaptcha.public_key
-            private_key = config.plugin_recaptcha.private_key
-            return recaptcha.Recaptcha(public_key, private_key)
+            public_key = config.plugin_invisible_recaptcha.public_key
+            private_key = config.plugin_invisible_recaptcha.private_key
+            if public_key and private_key:
+                return recaptcha.Recaptcha(public_key, private_key)
 
     def is_plugin_enabled(self, name):
         return (
@@ -405,11 +405,6 @@ class account_login(delegate.page):
             config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
         )
         ol_account = OpenLibraryAccount.get(email=email)
-
-        # Don't overwrite the cookie, which will contain banner display preferences
-        if not web.cookies().get('se', False):
-            self.set_screener_cookie(ol_account)
-
         if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
             web.setcookie('sfw', 'yes', expires=expires)
         blacklist = [
@@ -418,6 +413,7 @@ class account_login(delegate.page):
         ]
         if i.redirect == "" or any(path in i.redirect for path in blacklist):
             i.redirect = "/account/books"
+        stats.increment('ol.account.xauth.login')
         raise web.seeother(i.redirect)
 
     def POST_resend_verification_email(self, i):
@@ -438,44 +434,22 @@ class account_login(delegate.page):
         )
         return render.message(title, message)
 
-    def set_screener_cookie(self, account: OpenLibraryAccount):
-        if self.is_eligible_for_screener(account):
-            # `se` is "Survey eligible"
-            web.setcookie('se', '1', expires=(3600 * 24 * 30))  # Expires in 30 days
 
-    def is_eligible_for_screener(self, account: OpenLibraryAccount) -> bool:
-        # It is August 2023:
-        if (now := datetime.now()) and now.month != 9 and now.year != 2023:
-            return False
+class account_logout(delegate.page):
+    """Account logout.
 
-        # Account must be at least 90 days old:
-        if days_since(account.creation_time()) < 90:
-            return False
+    This registers a handler to the /account/logout endpoint in infogami so that additional logic, such as clearing admin cookies,
+    can be handled prior to the calling of infogami's standard logout procedure
 
-        # Account was created using a university's domain:
-        email = account.email
-        if not self.is_edu_domain(email):
-            return False
+    """
 
-        # Has borrowed at least three books:
-        if not self.has_borrowed_at_least(3, account.s3_keys):
-            return False
+    path = "/account/logout"
 
-        return True
+    def POST(self):
+        clear_cookies()
+        from infogami.core.code import logout as infogami_logout
 
-    def is_edu_domain(self, email: str) -> bool:
-        if not email or '@' not in email:
-            return False
-
-        domain = email.split('@')[-1]
-
-        sorted_edu_domains = utils.get_edu_domains()
-
-        return domain in sorted_edu_domains
-
-    def has_borrowed_at_least(self, amount: int, s3_keys) -> bool:
-        resp = s3_loan_api(s3_keys, action='user_borrow_history', limit=amount).json()
-        return len(resp) == amount
+        return infogami_logout().POST()
 
 
 class account_verify(delegate.page):
@@ -841,8 +815,10 @@ class import_books(delegate.page):
     def GET(self):
         user = accounts.get_current_user()
         username = user['key'].split('/')[-1]
-
-        return MyBooksTemplate(username, 'imports').render()
+        template = render['account/import']()
+        return MyBooksTemplate(username, 'imports').render(
+            header_title=_("Imports and Exports"), template=template
+        )
 
 
 class fetch_goodreads(delegate.page):
@@ -1077,11 +1053,15 @@ class account_loans(delegate.page):
 
     @require_login
     def GET(self):
+        from openlibrary.core.lending import get_loans_of_user
+
         user = accounts.get_current_user()
         user.update_loan_status()
         username = user['key'].split('/')[-1]
-
-        return MyBooksTemplate(username, 'loans').render()
+        mb = MyBooksTemplate(username, 'loans')
+        docs = get_loans_of_user(user.key)
+        template = render['account/loans'](user, docs)
+        return mb.render(header_title=_("Loans"), template=template)
 
 
 class account_loans_json(delegate.page):

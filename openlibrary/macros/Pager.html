@@ -26,6 +26,10 @@ $if pages != 1:
             <span class="this">$p</span>
         $else:
             <a href="$changequery(page=p)" class="ChoosePage">$p</a>
+    $if last_page_in_set != pages:
+        $if last_page_in_set != pages-1:
+            <span class="ellipsis">...</span>
+        <a href="$changequery(page=pages)" class="ChoosePage">$pages</a>
     $if page < pages:
         <a href="$changequery(page=page+1)" class="ChoosePage">$_('Next')&nbsp;&gt;</a>
     </div>

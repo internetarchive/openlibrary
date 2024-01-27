@@ -46,6 +46,8 @@
 
 .generic-dropper__primary {
   .reading-log {
+    height: 100%;
+
     .activated-check {
       color: @green;
       margin-right: 2px;
@@ -115,17 +117,42 @@
         display: flex;
         margin-top: 0;
 
-        .check {
+        .list__status-indicator {
           margin-right: 8px;
-          visibility: hidden;
+          min-width: 13px;
         }
       }
 
-      .list--active .check {
-        visibility: visible;
+      .list--active .list__status-indicator::after {
+        content: "✔️";
+      }
+      .list--pending .list__status-indicator {
+        display: inline-block;
+
+        &::after {
+          content: "";
+          display: block;
+          margin-top: 4px;
+          width: 1em;
+          height: 1em;
+          border-radius: 50%;
+          border: 1px solid @black;
+          border-color: @black transparent;
+          animation: spin 1.2s linear infinite;
+        }
       }
       /* stylelint-enable max-nesting-depth */
       /* stylelint-enable selector-max-specificity */
     }
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
   }
 }

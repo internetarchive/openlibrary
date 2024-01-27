@@ -8,6 +8,7 @@ import hashlib
 import hmac
 import random
 import string
+from typing import TYPE_CHECKING
 import uuid
 import logging
 import requests
@@ -30,6 +31,9 @@ try:
     from simplejson.errors import JSONDecodeError
 except ImportError:
     from json.decoder import JSONDecodeError  # type: ignore[misc, assignment]
+
+if TYPE_CHECKING:
+    from openlibrary.plugins.upstream.models import User
 
 logger = logging.getLogger("openlibrary.account.model")
 
@@ -126,6 +130,11 @@ def create_link_doc(key, username, email):
         "created_on": now.isoformat(),
         "expires_on": expires.isoformat(),
     }
+
+
+def clear_cookies():
+    web.setcookie('pd', "", expires=-1)
+    web.setcookie('sfw', "", expires=-1)
 
 
 class Link(web.storage):
@@ -258,7 +267,7 @@ class Account(web.storage):
         t = self.get("last_login")
         return t and helpers.parse_datetime(t)
 
-    def get_user(self):
+    def get_user(self) -> 'User':
         """A user is where preferences are attached to an account. An
         "Account" is outside of infogami in a separate table and is
         used to store private user information.

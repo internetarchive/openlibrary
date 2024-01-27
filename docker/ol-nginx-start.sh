@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ -d "/etc/letsencrypt/live/$NGINX_DOMAIN" ] ; then
+    certbot certonly --webroot --webroot-path /openlibrary/static -d $NGINX_DOMAIN
+fi
+
 if [ -n "$CRONTAB_FILES" ] ; then
   cat $CRONTAB_FILES | crontab -
   service cron start

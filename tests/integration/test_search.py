@@ -14,10 +14,10 @@ class TestSearch:
 
     def test_search_inside(self, browser):
         browser.visit(self.host + '/search/inside')
-        browser.find_by_css(".searchInsideForm > input[name='q']").fill('black cat')
-        browser.find_by_css(".searchInsideForm > [type='submit']").click()
+        browser.find_by_css(".olform > input[name='q']").fill('black cat')
+        browser.find_by_css(".olform > [type='submit']").click()
         assert browser.is_text_present('Search Inside')
-        assert browser.is_element_present_by_css('.searchInsideForm')
+        assert browser.is_element_present_by_css('.olform')
 
     def test_search_inside_from_global_nav(self, browser):
         browser.visit(self.host)
@@ -25,7 +25,7 @@ class TestSearch:
         browser.find_by_css("#headerSearch input[name='search-fulltext']").check()
         browser.find_by_css("#headerSearch [type='submit']").click()
         assert browser.is_text_present('Search Inside')
-        assert browser.is_element_present_by_css('.searchInsideForm')
+        assert browser.is_element_present_by_css('.olform')
 
     def test_metadata_search(self, browser):
         browser.visit(self.host + '/search')

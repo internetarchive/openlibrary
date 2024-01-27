@@ -6,10 +6,14 @@ $ page = int(input(page=1).page)
   $ pages = {'now': _('Now'), 'daily': _('Today'), 'weekly': _('This Week'), 'monthly': _('This Month'), 'yearly': _('This Year'), 'forever': _('All Time')}
   <h1>$_('Trending Books'): $(pages[mode])</h1>
   <p>$_("See what readers from the community are adding to their bookshelves")</p>
-  <p>
+  <ul class="nav-bar">
     $for p in pages:
-      <a style="$('font-weight: bold;' if p==mode else '')" href="/trending/$(p)">$pages[p]</a>
-  </p>
+    <li class="$('selected' if p==mode else '')">
+      <a
+         href="/trending/$(p)">$pages[p]
+      </a>
+    </li>
+  </ul>
 
   <div class="mybooks-list">
     <ul class="list-books">

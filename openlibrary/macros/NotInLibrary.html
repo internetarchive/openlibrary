@@ -1,6 +1,14 @@
-$def with(work_key)
+$def with(link)
 
-<div class="cta-button-group">
-  <a href="$work_key" class="cta-btn cta-btn--missing"
-     data-ol-link-track="CTAClick|NotInLibrary">$_('Not in Library')</a>
-</div>
+$if link:
+  <div class="cta-button-group">
+    <a
+      class="cta-btn"
+      href="$link"
+      data-ol-link-track="CTAClick|NotInLibrary"
+    >$_('Not in Library')</a>
+  </div>
+$else:
+  <div class="cta-button-group">
+    <span class="cta-btn cta-btn--no-pointer">$_('Not in Library')</span>
+  </div>

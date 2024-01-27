@@ -14,9 +14,9 @@ import psycopg2
 
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings, WorkRatingsSummary
-from openlibrary.solr import update_work
+from openlibrary.solr import update
 from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
-from openlibrary.solr.update_work import load_configs, update_keys
+from openlibrary.solr.update import load_configs, update_keys
 
 logger = logging.getLogger("openlibrary.solr-builder")
 
@@ -327,7 +327,7 @@ async def simple_timeit_async(awaitable: Awaitable):
 
 
 def build_job_query(
-    job: Literal['works', 'orphans', 'authors'],
+    job: Literal['works', 'orphans', 'authors', 'lists'],
     start_at: str | None = None,
     offset: int = 0,
     last_modified: str | None = None,
@@ -340,7 +340,12 @@ def build_job_query(
     :param offset: Use `start_at` if possible.
     :param last_modified: Only import docs modified after this date.
     """
-    type = {"works": "work", "orphans": "edition", "authors": "author"}[job]
+    type = {
+        "works": "work",
+        "orphans": "edition",
+        "authors": "author",
+        "lists": "list",
+    }[job]
 
     q_select = """SELECT "Key", "JSON" FROM test"""
     q_where = """WHERE "Type" = '/type/%s'""" % type
@@ -370,7 +375,7 @@ def build_job_query(
 
 async def main(
     cmd: Literal['index', 'fetch-end'],
-    job: Literal['works', 'orphans', 'authors'],
+    job: Literal['works', 'orphans', 'authors', 'lists'],
     postgres="postgres.ini",
     ol="http://ol/",
     ol_config="../../conf/openlibrary.yml",
@@ -407,7 +412,7 @@ async def main(
     )
 
     if solr:
-        update_work.set_solr_base_url(solr)
+        update.set_solr_base_url(solr)
 
     PLogEntry = namedtuple(
         'PLogEntry',
@@ -603,8 +608,12 @@ async def main(
                         q_auth=plog.last_entry.q_auth + authors_time,
                         cached=len(db.cache) + len(db2.cache),
                     )
+                elif job == 'lists':
+                    # Nothing to cache ; just need the lists themselves and
+                    # they are already cached
+                    pass
                 elif job == "authors":
-                    # Nothing to cache; update_work.py queries solr directly for each
+                    # Nothing to cache; update.py queries solr directly for each
                     # other, and provides no way to cache.
                     pass
 

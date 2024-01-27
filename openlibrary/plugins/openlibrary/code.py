@@ -70,6 +70,10 @@ from openlibrary.core import models
 models.register_models()
 models.register_types()
 
+import openlibrary.core.lists.model as list_models
+
+list_models.register_models()
+
 # Remove movefiles install hook. openlibrary manages its own files.
 infogami._install_hooks = [
     h for h in infogami._install_hooks if h.__name__ != 'movefiles'
@@ -222,13 +226,7 @@ class team(delegate.page):
     path = '/about/team'
 
     def GET(self):
-        with Path('/openlibrary/openlibrary/templates/about/team.json').open(
-            mode='r'
-        ) as f:
-            team_members: list[dict[str, str]] = sorted(
-                json.load(f), key=lambda member: member['name'].split()[-1]
-            )
-            return render_template("about/index.html", team_members=team_members)
+        return render_template("about/index.html")
 
 
 class addbook(delegate.page):
@@ -477,7 +475,7 @@ class isbn_lookup(delegate.page):
             ext += '?' + web.ctx.env['QUERY_STRING']
 
         try:
-            if ed := Edition.from_isbn(isbn, retry=True):
+            if ed := Edition.from_isbn(isbn):
                 return web.found(ed.key + ext)
         except Exception as e:
             logger.error(e)

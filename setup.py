@@ -21,6 +21,6 @@ setup(
     scripts=list(filter(executable, glob.glob('scripts/*'))),
     # Used to make solrbuilder faster
     ext_modules=cythonize(
-        "openlibrary/solr/update_work.py", compiler_directives={'language_level': "3"}
+        "openlibrary/solr/update.py", compiler_directives={'language_level': "3"}
     ),
 )

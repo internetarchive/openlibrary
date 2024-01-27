@@ -34,7 +34,6 @@ $def with (page)
           <li><a href="/developers/api" title="$_('Explore Open Library APIs')">$_('API Documentation')</a></li>
           <li><a href="/developers/dumps" title="$_('Bulk Open Library data')">$_('Bulk Data Dumps')</a></li>
           <li><a href="https://github.com/internetarchive/openlibrary/wiki/Writing-Bots" title="$_('Write a bot')">$_('Writing Bots')</a></li>
-          <li><a href="/books/add" title="$_('Add a new book to Open Library')">$_('Add a Book')</a></li>
         </ul>
       </div>
       <div>
@@ -43,10 +42,12 @@ $def with (page)
           <li><a href="/help">$_('Help Center')</a></li>
           <li><a href="/contact?$urlencode(dict(path=request.fullpath))" title="$_('Problems')">$_('Report A Problem')</a></li>
           <li><a href="/help/faq/editing" title="$_('Suggest Edits')">$_('Suggesting Edits')</a></li>
+          <li><a href="/books/add" title="$_('Add a new book to Open Library')">$_('Add a Book')</a></li>
+          <li><a href="https://github.com/internetarchive/openlibrary/releases" title="$_('Release Notes')">$_('Release Notes')</a></li>
         </ul>
-        <aside id="footer-icons">
-          <a class="footer-icons__twitter" href="https://twitter.com/OpenLibrary">twitter</a>
-          <a class="footer-icons__github" href="https://github.com/internetarchive/openlibrary">github</a>
+        <aside>
+          <a class="footer-icon" title="Twitter" href="https://twitter.com/OpenLibrary"><img src="/static/images/tweet.svg" alt="" loading="lazy"></a>
+          <a class="footer-icon" title="GitHub" href="https://github.com/internetarchive/openlibrary"><img src="/static/images/github.svg" alt="" loading="lazy"></a>
         </aside>
       </div>
       <div>
@@ -56,7 +57,7 @@ $def with (page)
     </div>
     <hr>
     <div id="footer-details">
-      <img id="archive-logo" src="/static/images/pantheon.png" alt="$_('Open Library logo')">
+      <img id="archive-logo" src="/static/images/pantheon.png" alt="$_('Open Library logo')" loading="lazy">
       <div id="legal-details" >
         <span>$:_('Open Library is an initiative of the <a href="//archive.org/">Internet Archive</a>, a 501(c)(3) non-profit, building a digital library of Internet sites and other cultural artifacts in  digital form. Other <a href="//archive.org/projects/">projects</a> include the <a href="//archive.org/web/">Wayback Machine</a>, <a href="//archive.org/">archive.org</a> and <a href="//archive-it.org">archive-it.org</a>')</span>
       </div>

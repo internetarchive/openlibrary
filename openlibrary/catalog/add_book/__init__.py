@@ -22,6 +22,7 @@ A record is loaded by calling the load function.
     response = load(record)
 
 """
+import itertools
 import re
 from typing import TYPE_CHECKING, Any
 
@@ -41,14 +42,12 @@ from openlibrary.catalog.utils import (
     get_publication_year,
     is_independently_published,
     is_promise_item,
-    mk_norm,
     needs_isbn_and_lacks_one,
     publication_too_old_and_not_exempt,
     published_in_future_year,
 )
 from openlibrary.core import lending
 from openlibrary.plugins.upstream.utils import strip_accents, safeget
-from openlibrary.catalog.utils import expand_record
 from openlibrary.utils import uniq, dicthash
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.lccn import normalize_lccn
@@ -59,7 +58,7 @@ from openlibrary.catalog.add_book.load_book import (
     import_author,
     InvalidLanguage,
 )
-from openlibrary.catalog.add_book.match import editions_match
+from openlibrary.catalog.add_book.match import editions_match, mk_norm
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Edition
@@ -212,8 +211,6 @@ def find_matching_work(e):
     :rtype: None or str
     :return: the matched work key "/works/OL..W" if found
     """
-
-    norm_title = mk_norm(get_title(e))
     seen = set()
     for a in e['authors']:
         q = {'type': '/type/work', 'authors': {'author': {'key': a['key']}}}
@@ -225,7 +222,7 @@ def find_matching_work(e):
             seen.add(wkey)
             if not w.get('title'):
                 continue
-            if mk_norm(w['title']) == norm_title:
+            if mk_norm(w['title']) == mk_norm(get_title(e)):
                 assert w.type.key == '/type/work'
                 return wkey
 
@@ -573,9 +570,6 @@ def find_enriched_match(rec, edition_pool):
     :rtype: str|None
     :return: None or the edition key '/books/OL...M' of the best edition match for enriched_rec in edition_pool
     """
-    enriched_rec = expand_record(rec)
-    add_db_name(enriched_rec)
-
     seen = set()
     for edition_keys in edition_pool.values():
         for edition_key in edition_keys:
@@ -595,27 +589,8 @@ def find_enriched_match(rec, edition_pool):
                     # which will raise an exception in editions_match()
             if not found:
                 continue
-            if editions_match(enriched_rec, thing):
+            if editions_match(rec, thing):
                 return edition_key
-
-
-def add_db_name(rec: dict) -> None:
-    """
-    db_name = Author name followed by dates.
-    adds 'db_name' in place for each author.
-    """
-    if 'authors' not in rec:
-        return
-
-    for a in rec['authors'] or []:
-        date = None
-        if 'date' in a:
-            assert 'birth_date' not in a
-            assert 'death_date' not in a
-            date = a['date']
-        elif 'birth_date' in a or 'death_date' in a:
-            date = a.get('birth_date', '') + '-' + a.get('death_date', '')
-        a['db_name'] = ' '.join([a['name'], date]) if date else a['name']
 
 
 def load_data(
@@ -765,11 +740,12 @@ def load_data(
 def normalize_import_record(rec: dict) -> None:
     """
     Normalize the import record by:
-        - Verifying required fields
-        - Ensuring source_records is a list
-        - Splitting subtitles out of the title field
-        - Cleaning all ISBN and LCCN fields ('bibids'), and
-        - Deduplicate authors.
+        - Verifying required fields;
+        - Ensuring source_records is a list;
+        - Splitting subtitles out of the title field;
+        - Cleaning all ISBN and LCCN fields ('bibids');
+        - Deduplicate authors; and
+        - Remove throw-away data used for validation.
 
         NOTE: This function modifies the passed-in rec in place.
     """
@@ -785,6 +761,10 @@ def normalize_import_record(rec: dict) -> None:
     if not isinstance(rec['source_records'], list):
         rec['source_records'] = [rec['source_records']]
 
+    publication_year = get_publication_year(rec.get('publish_date'))
+    if publication_year and published_in_future_year(publication_year):
+        del rec['publish_date']
+
     # Split subtitle if required and not already present
     if ':' in rec.get('title', '') and not rec.get('subtitle'):
         title, subtitle = split_subtitle(rec.get('title'))
@@ -796,6 +776,17 @@ def normalize_import_record(rec: dict) -> None:
 
     # deduplicate authors
     rec['authors'] = uniq(rec.get('authors', []), dicthash)
+
+    # Validation by parse_data(), prior to calling load(), requires facially
+    # valid publishers, authors, and publish_date. If data are unavailable, we
+    # provide throw-away data which validates. We use ["????"] as an override,
+    # but this must be removed prior to import.
+    if rec.get('publishers') == ["????"]:
+        rec.pop('publishers')
+    if rec.get('authors') == [{"name": "????"}]:
+        rec.pop('authors')
+    if rec.get('publish_date') == "????":
+        rec.pop('publish_date')
 
 
 def validate_record(rec: dict) -> None:
@@ -831,12 +822,6 @@ def find_match(rec, edition_pool) -> str | None:
         match = find_exact_match(rec, edition_pool)
 
     if not match:
-        # Add 'full_title' to the rec by conjoining 'title' and 'subtitle'.
-        # expand_record() uses this for matching.
-        rec['full_title'] = rec['title']
-        if subtitle := rec.get('subtitle'):
-            rec['full_title'] += ' ' + subtitle
-
         match = find_enriched_match(rec, edition_pool)
 
     return match
@@ -865,7 +850,7 @@ def update_edition_with_rec_data(
         edition['ocaid'] = rec['ocaid']
         need_edition_save = True
 
-    # Add list fields to edition as needed
+    # Fields which have their VALUES added if absent.
     edition_list_fields = [
         'local_id',
         'lccn',
@@ -879,14 +864,16 @@ def update_edition_with_rec_data(
         # ensure values is a list
         values = rec[f] if isinstance(rec[f], list) else [rec[f]]
         if f in edition:
-            # get values from rec that are not currently on the edition
-            to_add = [v for v in values if v not in edition[f]]
+            # get values from rec field that are not currently on the edition
+            case_folded_values = {v.casefold() for v in edition[f]}
+            to_add = [v for v in values if v.casefold() not in case_folded_values]
             edition[f] += to_add
         else:
             edition[f] = to_add = values
         if to_add:
             need_edition_save = True
 
+    # Fields that are added as a whole if absent. (Individual values are not added.)
     other_edition_fields = [
         'description',
         'number_of_pages',
@@ -924,13 +911,15 @@ def update_work_with_rec_data(
     """
     # Add subjects to work, if not already present
     if 'subjects' in rec:
-        work_subjects = list(work.get('subjects', []))
-        for s in rec['subjects']:
-            if s not in work_subjects:
-                work_subjects.append(s)
-                need_work_save = True
-        if need_work_save and work_subjects:
-            work['subjects'] = work_subjects
+        work_subjects: list[str] = list(work.get('subjects', []))
+        rec_subjects: list[str] = rec.get('subjects', [])
+        deduped_subjects = uniq(
+            itertools.chain(work_subjects, rec_subjects), lambda item: item.casefold()
+        )
+
+        if work_subjects != deduped_subjects:
+            work['subjects'] = deduped_subjects
+            need_work_save = True
 
     # Add cover to work, if needed
     if not work.get('covers') and edition.get_covers():

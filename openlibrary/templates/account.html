@@ -2,8 +2,11 @@ $def with (user)
 
 $var title: $_("Settings")
 
+$ username = ctx.user.key.split('/')[-1]
+$ mb = MyBooksTemplate(username, 'Settings')
+
 <div class="mybooks">
-  $:render_template("account/sidebar", user, key="settings", owners_page=True)
+  $:mb.render_sidebar()
   <div>
     <div id="contentHead">
       <div class="small sansserif grey account-settings-menu">
@@ -21,9 +24,9 @@ $var title: $_("Settings")
       <p class="sansserif larger"><a href="/account/privacy">$_("Manage Privacy & Content Moderation Settings")</a></p>
       <p class="sansserif larger"><a href="/account/notifications">$_("Manage Notifications Settings")</a></p>
       <p class="sansserif larger"><a href="//archive.org/account/index.php?settings=1">$_("Manage Mailing List Subscriptions")</a></p>
-      <p class="sansserif larger"><a href="https://archive.org/account/index.php?settings=1">$_("Change Password")</a></p>
-      <p class="sansserif larger"><a href="https://archive.org/account/index.php?settings=1">$_("Update Email Address")</a></p>
-      <p class="sansserif larger"><a href="https://openlibrary.org/help/faq/troubleshooting#deleteaccount">$_("Deactivate Account")</a></p>
+      <p class="sansserif larger"><a href="//archive.org/account/index.php?settings=1">$_("Change Password")</a></p>
+      <p class="sansserif larger"><a href="//archive.org/account/index.php?settings=1">$_("Update Email Address")</a></p>
+      <p class="sansserif larger"><a href="//openlibrary.org/help/faq/troubleshooting#deleteaccount">$_("Deactivate Account")</a></p>
       <br/>
       <p class="sansserif larger"><a href="/contact">$_("Please contact us if you need help with anything else.")</a></p>
     </div>

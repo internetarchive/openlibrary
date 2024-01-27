@@ -63,11 +63,11 @@ $if status:
                     <label id="imageWeb" for="imageUrl">$_("Or, paste in the image URL if it's on the web.")</label>
                 </div>
                 <div class="input">
-                    <input type="text" name="url" id="imageUrl" value="$data.get('url', 'https://')" onClick="if(!this._haschanged && this.value == 'https://'){this.value=''};this._haschanged=true;"/>
+                    <input type="url" name="url" id="imageUrl" value="$data.get('url', '')" placeholder="https://..." />
                 </div>
             </div>
 
-            <div class="formElement" style="margin: $('15px 0px 0px 15px;' if doc.type.key == '/type/work' else '50px 0px 0px 30px;')">
+            <div class="formElement" style="margin: $('15px 0px 0px 15px;' if doc.type.key == '/type/work' else '0px;')">
                 <button type="submit" name="upload" id="imageUpload" value="$_('Submit')" class="largest">$_("Submit")</button>
                 <a class="dialog--close-parent red" href="javascript:;">$_("Cancel")</a>
             </div>

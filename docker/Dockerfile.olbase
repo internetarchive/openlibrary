@@ -40,7 +40,7 @@ RUN ./install_nodejs.sh && rm ./install_nodejs.sh
 
 # Install Archive.org nginx w/ IP anonymization
 USER root
-RUN apt-get update && apt-get install -y --no-install-recommends nginx curl \
+RUN apt-get update && apt-get install -y --no-install-recommends nginx curl letsencrypt \
     # nginx-plus
     apt-transport-https lsb-release ca-certificates wget \
     # log rotation service for ol-nginx

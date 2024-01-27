@@ -6,6 +6,9 @@
     display: none;
   }
 
+  & > span {
+    min-width: 1%;
+  }
   & h1 {
     line-height: normal;
     &.work-title {
@@ -13,6 +16,7 @@
       margin: 10px 0 0;
       color: @dark-grey;
       font-size: 2em;
+      overflow-wrap: break-word;
     }
   }
   & h2 {

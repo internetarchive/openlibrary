@@ -37,7 +37,7 @@ def check_digit_13(isbn):
         return str(r)
 
 
-def isbn_13_to_isbn_10(isbn_13):
+def isbn_13_to_isbn_10(isbn_13) -> str | None:
     isbn_13 = canonical(isbn_13)
     if (
         len(isbn_13) != 13
@@ -45,7 +45,7 @@ def isbn_13_to_isbn_10(isbn_13):
         or not isbn_13.startswith('978')
         or check_digit_13(isbn_13[:-1]) != isbn_13[-1]
     ):
-        return
+        return None
     return isbn_13[3:-1] + check_digit_10(isbn_13[3:-1])
 
 

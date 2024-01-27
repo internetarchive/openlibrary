@@ -239,17 +239,9 @@ class cover:
             ):
                 return read_file(config.default_image)
             elif is_valid_url(i.default):
-                raise web.seeother(i.default)
+                return web.seeother(i.default)
             else:
-                raise web.notfound("")
-
-        def redirect(id):
-            size_part = size and ("-" + size) or ""
-            url = f"/{category}/id/{id}{size_part}.jpg"
-
-            if query := web.ctx.env.get('QUERY_STRING'):
-                url += '?' + query
-            raise web.found(url)
+                return web.notfound("")
 
         if key == 'isbn':
             value = value.replace("-", "").strip()  # strip hyphens from ISBN
@@ -257,7 +249,7 @@ class cover:
         elif key == 'ia':
             url = self.get_ia_cover_url(value, size)
             if url:
-                raise web.found(url)
+                return web.found(url)
             else:
                 value = None  # notfound or redirect to default. handled later.
         elif key != 'id':
@@ -269,7 +261,7 @@ class cover:
         # redirect to archive.org cluster for large size and original images whenever possible
         if size in ("L", "") and self.is_cover_in_cluster(value):
             url = zipview_url_from_id(int(value), size)
-            raise web.found(url)
+            return web.found(url)
 
         # covers_0008 batches [_00, _82] are tar'd / zip'd in archive.org items
         if isinstance(value, int) or value.isnumeric():  # noqa: SIM102
@@ -281,7 +273,7 @@ class cover:
                 item_file = f"{pid}{'-' + size.upper() if size else ''}"
                 path = f"{item_id}/{item_tar}/{item_file}.jpg"
                 protocol = web.ctx.protocol
-                raise web.found(f"{protocol}://archive.org/download/{path}")
+                return web.found(f"{protocol}://archive.org/download/{path}")
 
         d = self.get_details(value, size.lower())
         if not d:
@@ -291,7 +283,7 @@ class cover:
         if key == 'id':
             etag = f"{d.id}-{size.lower()}"
             if not web.modified(trim_microsecond(d.created), etag=etag):
-                raise web.notmodified()
+                return web.notmodified()
 
             web.header('Cache-Control', 'public')
             # this image is not going to expire in next 100 years.
@@ -306,14 +298,14 @@ class cover:
             from openlibrary.coverstore import archive
 
             if d.id >= 8_820_000 and d.uploaded and '.zip' in d.filename:
-                raise web.found(
+                return web.found(
                     archive.Cover.get_cover_url(
                         d.id, size=size, protocol=web.ctx.protocol
                     )
                 )
             return read_image(d, size)
         except OSError:
-            raise web.notfound()
+            return web.notfound()
 
     def get_ia_cover_url(self, identifier, size="M"):
         url = "https://archive.org/metadata/%s/metadata" % identifier
@@ -595,12 +587,15 @@ def render_list_preview_image(lst_key):
     author_text = "A list on Open Library"
     if owner := lst.get_owner():
         author_text = f"A list by {owner.displayname}"
-    w, h = draw.textsize(author_text, font=font_author)
+
+    left, top, right, bottom = font_author.getbbox(author_text)
+    w, h = right - left, bottom - top
     draw.text(((W - w) / 2, current_h), author_text, font=font_author, fill=(0, 0, 0))
     current_h += h + 5
 
     for line in para:
-        w, h = draw.textsize(line, font=font_title)
+        left, top, right, bottom = font_title.getbbox(line)
+        w, h = right - left, bottom - top
         draw.text(((W - w) / 2, current_h), line, font=font_title, fill=(0, 0, 0))
         current_h += h
 

@@ -6,6 +6,7 @@ labels: "Type: Bug, Needs: Triage, Needs: Lead"
 assignees: ''
 ---
 
+<!-- IMPORTANT: Before posting, be sure to redact or remove sensitive data, such as passwords, secret keys, session cookies, etc. -->
 <!-- What problem are we solving? What does the experience look like today? What are the symptoms? -->
 
 ### Evidence / Screenshot (if possible)
