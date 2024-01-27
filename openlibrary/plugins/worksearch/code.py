@@ -19,7 +19,6 @@ from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Edition
-from openlibrary.plugins.inside.code import fulltext_search
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import (
     get_language_name,
@@ -491,10 +490,13 @@ class search(delegate.page):
         page = int(param.get('page', 1))
         sort = param.get('sort', None)
         rows = 20
-        search_response: SearchResponse | None = None
         if param:
             search_response = do_search(
                 param, sort, page, rows=rows, spellcheck_count=3
+            )
+        else:
+            search_response = SearchResponse(
+                facet_counts=None, sort='', docs=[], num_found=0, solr_select=''
             )
         return render.work_search(
             ' '.join(q_list),
