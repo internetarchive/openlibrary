@@ -22,6 +22,7 @@ from openlibrary.solr.utils import SolrUpdateRequest, get_solr_next, str_to_key
 from openlibrary.utils import uniq
 from openlibrary.utils.ddc import choose_sorting_ddc, normalize_ddc
 from openlibrary.utils.lcc import choose_sorting_lcc, short_lcc_to_sortable_lcc
+from openlibrary.utils.open_syllabus_project import get_total_by_olid
 
 logger = logging.getLogger("openlibrary.solr")
 
@@ -331,6 +332,10 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     @property
     def edition_count(self) -> int:
         return len(self._editions)
+
+    @property
+    def osp_count_total(self) -> int:
+        return get_total_by_olid(self.key)
 
     @property
     def edition_key(self) -> list[str]:
