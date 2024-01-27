@@ -3,6 +3,7 @@ import json
 import sqlite3
 import gzip
 from contextlib import closing
+from pathlib import Path
 
 
 # Define the SQLite database file path
@@ -42,7 +43,7 @@ def get_total_by_olid(olid: str) -> int | None:
     return None
 
 
-def generate_osp_db(input_directory: str) -> None:
+def generate_osp_db(input_directory: Path) -> None:
     """
     This function generates an SQLite database from a directory of .json.gz files.
     The database contains data extracted from the JSON files, including the OLID and total fields.
@@ -50,7 +51,7 @@ def generate_osp_db(input_directory: str) -> None:
     The function creates an index on the OLID column for faster querying.
 
     Args:
-        input_directory (str): The directory containing the .json.gz files.
+        input_directory (Path): The directory containing the .json.gz files.
 
     Returns:
         None
@@ -75,10 +76,11 @@ def generate_osp_db(input_directory: str) -> None:
 
         i = 0
         # Iterate through the files in the input directory
-        for filename in os.listdir(input_directory):
+        # input_directory_path = Path(input_directory)
+        for filename in input_directory.iterdir():
             print(i)
             i += 1
-            if filename.endswith(".json.gz"):
+            if str(filename).endswith(".json.gz"):
                 with gzip.open(os.path.join(input_directory, filename), "rt") as file:
                     for line in file:
                         try:

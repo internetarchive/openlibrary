@@ -17,6 +17,9 @@ The contents of the uncompressed json files look like this:
 '''  # noqa: E501
 
 from openlibrary.utils.open_syllabus_project import generate_osp_db
+from pathlib import Path
 
-input_directory = "/Users/rayberger/Downloads/drive-download-20230612T174927Z-001 (1)"
+input_directory = Path(
+    "/Users/rayberger/Downloads/drive-download-20230612T174927Z-001 (1)"
+)
 generate_osp_db(input_directory)
