@@ -74,12 +74,10 @@ def generate_osp_db(input_directory: Path) -> None:
         '''
         )
 
-        i = 0
         # Iterate through the files in the input directory
         # input_directory_path = Path(input_directory)
-        for filename in input_directory.iterdir():
+        for i, filename in enumerate(input_directory.iterdir()):
             print(i)
-            i += 1
             if str(filename).endswith(".json.gz"):
                 with gzip.open(os.path.join(input_directory, filename), "rt") as file:
                     for line in file:
