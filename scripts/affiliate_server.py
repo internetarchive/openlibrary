@@ -45,6 +45,7 @@ import time
 
 from dataclasses import dataclass, field
 from datetime import date, datetime
+from enum import Enum
 
 import web
 
@@ -289,6 +290,24 @@ class Clear:
         return json.dumps({"Cleared": "True", "qsize": qsize})
 
 
+class Priority(Enum):
+    """
+    Priority for the `PrioritizedISBN` class.
+
+    `queue.PriorityQueue` has a lowest-value-is-highest-priority system, but
+    setting `PrioritizedISBN.priority` to 0 can make it look as if priority is
+    disabled. Using an `Enum` can help with that.
+    """
+
+    HIGH = 0
+    LOW = 1
+
+    def __lt__(self, other):
+        if isinstance(other, Priority):
+            return self.value < other.value
+        return NotImplemented
+
+
 @dataclass(order=True, slots=True)
 class PrioritizedISBN:
     """
@@ -297,13 +316,16 @@ class PrioritizedISBN:
     `min([items])` would return.
     For more, see https://docs.python.org/3/library/queue.html#queue.PriorityQueue.
 
+    Therefore, priority 0, which is equivalent to `Priority.HIGH`, is the highest
+    priority.
+
     This exists so certain ISBNs can go to the front of the queue for faster
     processing as their look-ups are time sensitive and should return look up data
     to the caller (e.g. interactive API usage through `/isbn`).
     """
 
     isbn: str = field(compare=False)
-    priority: int = 1
+    priority: Priority = field(default=Priority.LOW)
     timestamp: datetime = field(default_factory=datetime.now)
 
 
@@ -322,15 +344,15 @@ class Submit:
     def GET(self, isbn: str) -> str:
         """
         If `isbn` is in memcache, then return the `hit` (which is marshaled into
-        a format appropriate for import on Open Library if `priority==0`).
+        a format appropriate for import on Open Library if `?priority=true`).
 
         If no hit, then queue the isbn for look up and either attempt to return
-        a promise as `submitted`, or if `priority==0`, return marshalled data
+        a promise as `submitted`, or if `?priority=true`, return marshalled data
         from the cache.
 
-        Zero is the highest priority and is used when the caller is waiting for
-        a response with the AMZ data, if possible. See `PrioritizedISBN` for
-        more on prioritization.
+        `Priority.HIGH` is set when `?priority=true` and is the highest priority.
+        It is used when the caller is waiting for a response with the AMZ data, if
+        available. See `PrioritizedISBN` for more on prioritization.
         """
         # cache could be None if reached before initialized (mypy)
         if not web.amazon_api:
@@ -342,8 +364,8 @@ class Submit:
                 {"error": "rejected_isbn", "isbn10": isbn10, "isbn13": isbn13}
             )
 
-        input = web.input(priority=1)
-        priority = int(input.priority)
+        input = web.input(priority=False)
+        priority = Priority.HIGH if input.get("priority") == "true" else Priority.LOW
 
         # Cache lookup by isbn13. If there's a hit return the product to the caller
         if product := cache.memcache_cache.get(f'amazon_product_{isbn13}'):
@@ -354,7 +376,7 @@ class Submit:
                         "hit": clean_amazon_metadata_for_load(product),
                     }
                 )
-                if priority == 0
+                if priority == Priority.HIGH
                 else json.dumps({"status": "success", "hit": product})
             )
 
@@ -372,7 +394,7 @@ class Submit:
 
         # Check the cache a few times for priority=0 ISBNS so the data can be
         # returned to the client, or otherwise return.
-        if priority == 0:
+        if priority == Priority.HIGH:
             for _ in range(3):
                 time.sleep(1)
                 if product := cache.memcache_cache.get(f'amazon_product_{isbn13}'):

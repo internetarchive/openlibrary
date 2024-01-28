@@ -432,10 +432,10 @@ class Edition(Thing):
             return edition
 
         # Finally, try to fetch the book data from Amazon + import, using
-        # priority=0 to put the request at the front of the queue.
+        # `?priority=true` to put the request at the front of the queue.
         try:
             r = requests.get(
-                f'http://{affiliate_server_url}/isbn/{isbn10 or isbn13}?priority=0'
+                f'http://{affiliate_server_url}/isbn/{isbn10 or isbn13}?priority=true'
             )
             r.raise_for_status()
             if data := r.json().get('hit'):
