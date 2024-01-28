@@ -84,7 +84,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                     editions = work['editions']
                 else:
                     editions = self.data_provider.get_editions_of_work(work)
-
+                
                 # Fetch authors
                 author_keys = [
                     author['author']['key']
@@ -315,11 +315,13 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def alternative_title(self) -> set[str]:
-        return {
-            title
-            for book in (EditionSolrBuilder(self._work), *self._solr_editions)
-            for title in book.alternative_title
-        }
+        alt_title_set = {}
+        for book in (EditionSolrBuilder(self._work), *self._solr_editions):
+            alt_title_set.update({title for title in book.alternative_title})
+            if 'translation_of' in book:
+                alt_title_set.add(book.translation_of)
+        return alt_title_set
+
 
     @property
     def alternative_subtitle(self) -> set[str]:
