@@ -348,8 +348,6 @@ class WorkSearchScheme(SearchScheme):
                     return WORK_FIELD_TO_ED_FIELD[field]
                 elif field.startswith('id_'):
                     return field
-                elif field.startswith("work.") and field.partition(".")[2] in self.all_fields:
-                    return field
                 elif field in self.all_fields or field in self.facet_fields:
                     return None
                 else:
