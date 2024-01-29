@@ -17,7 +17,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n==0 || n==1);\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.9.1\n"
 "X-Generator: Poedit 3.4.2\n"
 
@@ -77,7 +77,7 @@ msgstr "पासवर्ड बदलें"
 
 #: account.html:29
 msgid "Update Email Address"
-msgstr "अपना ईमेल पता अपडेट करें  "
+msgstr "अपना ईमेल पता अपडेट करें"
 
 #: account.html:30
 msgid "Deactivate Account"
@@ -131,7 +131,7 @@ msgstr "जोड़ा गया"
 
 #: diff.html:27
 msgid "Modified"
-msgstr "संशोधित "
+msgstr "संशोधित"
 
 #: diff.html:28
 msgid "Removed"
@@ -257,7 +257,7 @@ msgid ""
 "your Open Library account."
 msgstr ""
 "कृपया अपना <a href=\"https://archive.org\">इंटरनेट आर्काइव</a> ईमेल और पासवर्ड दर्ज करें "
-"ओपन लाइब्रेरी एक्सेस करने के लिए"
+"ओपन लाइब्रेरी एक्सेस करने के लिए।"
 
 #: account/create.html:50 login.html:21
 #, python-format
@@ -623,7 +623,7 @@ msgstr "इस महीने"
 
 #: trending.html:10
 msgid "This Year"
-msgstr "यह साल@ label"
+msgstr "यह साल"
 
 #: trending.html:10
 msgid "All Time"
@@ -705,7 +705,7 @@ msgstr "अधिक जानें"
 
 #: widget.html:51
 msgid "on "
-msgstr "पर"
+msgstr "पर "
 
 #: work_search.html:68
 msgid "Search Books"
@@ -1075,8 +1075,8 @@ msgstr "लोन से जुड़ी कार्रवाइयाँ"
 #, python-format
 msgid "There is one person waiting for this book."
 msgid_plural "There are %(n)d people waiting for this book."
-msgstr[0] "%(n)d लोग इस पुस्तक का इंतजार कर रहे हैं।"
-msgstr[1] "एक व्यक्ति इस किताब का इंतज़ार कर रहा है."
+msgstr[0] "एक व्यक्ति इस किताब का इंतज़ार कर रहा है।"
+msgstr[1] "%(n)d लोग इस पुस्तक का इंतजार कर रहे हैं।"
 
 #: account/loans.html:99
 msgid "Not yet downloaded."
@@ -1385,7 +1385,7 @@ msgstr "लेखक के लिंग के आधार पर काम"
 
 #: account/readinglog_stats.html:109
 msgid "Works by Author Ethnicity"
-msgstr "लेखक द्वारा काम करता है नस्ल"
+msgstr "लेखक जातीयता द्वारा कार्य"
 
 #: account/readinglog_stats.html:110
 msgid "Works by Author Country of Citizenship"
@@ -1510,7 +1510,7 @@ msgstr "यूज़रनेम/पासवर्ड रिमाइंडर"
 
 #: account/password/forgot.html:11
 msgid "Click here."
-msgstr "हिते क्लिक कयो."
+msgstr "यहाँ क्लिक करें।"
 
 #: account/password/forgot.html:23
 msgid "Send It"
@@ -2181,7 +2181,7 @@ msgstr "पहली बार %(year)d में प्रकाशित ह�
 #: books/custom_carousel.html:41
 #, python-format
 msgid " by %(name)s"
-msgstr "%(name)s द्वारा"
+msgstr " %(name)s द्वारा"
 
 #: books/edit.html:30 books/edit.html:33 books/edit.html:36
 msgid "Add a little more?"
@@ -3020,8 +3020,7 @@ msgstr "परियोजना के बारे में"
 msgid ""
 "Open Library is an open, editable library catalog, building towards a web page for every book ever "
 "published."
-msgstr ""
-"ओपन लाइब्रेरी एक खुली, संपादन योग्य लाइब्रेरी कैटलॉग है, जो प्रत्येक पुस्तक के लिए एक वेब पेज बनाती है"
+msgstr "ओपन लाइब्रेरी एक खुली, संपादन योग्य लाइब्रेरी कैटलॉग है, जो प्रत्येक पुस्तक के लिए एक वेब पेज बनाती है।"
 
 #: AffiliateLinks.html:70 home/about.html:16
 msgid "More"
@@ -3256,7 +3255,7 @@ msgstr "%s नहीं मिला"
 #: languages/notfound.html:14
 #, python-format
 msgid "%s does not exist."
-msgstr "%s उपस्थित नहीं है"
+msgstr "%s उपस्थित नहीं है।"
 
 #: lib/edit_head.html:22 lib/view_head.html:14
 msgid "This doc was last edited by"
@@ -3630,14 +3629,14 @@ msgstr[1] "यह कार्य <strong>%(count)s सूचियों</stron
 #, python-format
 msgid "%(name)s has 1 list."
 msgid_plural "%(name)s has %(count)s lists."
-msgstr[0] "%(name)s में 1 सूची है."
+msgstr[0] "%(name)s में 1 सूची है।"
 msgstr[1] "%(name)s में %(count)s सूचियाँ हैं।"
 
 #: lists/header.html:59
 #, python-format
 msgid "This subject is on <strong>1 list</strong>."
 msgid_plural "This subject is on <strong>%(count)s lists</strong>."
-msgstr[0] "यह विषय <strong>1 सूची</strong> में है."
+msgstr[0] "यह विषय <strong>1 सूची</strong> में है।"
 msgstr[1] "यह विषय <strong>%(count)s सूची</strong> पर है।"
 
 #: lists/header.html:88
@@ -3926,11 +3925,11 @@ msgstr "टिप्पणियाँ"
 
 #: merge_queue/merge_queue.html:61
 msgid "Reviewer"
-msgstr "समीक्षक  "
+msgstr "समीक्षक"
 
 #: merge_queue/merge_queue.html:62
 msgid "Resolve"
-msgstr "निराकरण... (l)"
+msgstr "निराकरण"
 
 #: merge_queue/merge_queue.html:68
 msgid "No entries here!"
@@ -4184,7 +4183,7 @@ msgstr "से छांटें"
 
 #: search/sort_options.html:12
 msgid "Relevance"
-msgstr "प्रासंगिकता   "
+msgstr "प्रासंगिकता"
 
 #: search/sort_options.html:13
 msgid "Most Editions"
@@ -4353,7 +4352,7 @@ msgstr "यह दूसरे कॉलम में सबसे ऊपर द
 
 #: type/about/edit.html:49
 msgid "Mailing List"
-msgstr "डाक- सूची को जवाब भेजें... (L)"
+msgstr "डाक- सूची को जवाब भेजें"
 
 #: type/about/edit.html:50
 msgid "This appears below the links list."
@@ -4561,7 +4560,7 @@ msgstr "Edit this template"
 
 #: type/edition/modal_links.html:25
 msgid "Review"
-msgstr "समीक्षा  "
+msgstr "समीक्षा"
 
 #: type/edition/modal_links.html:28
 msgid "Notes"
@@ -4569,7 +4568,7 @@ msgstr "टीप"
 
 #: type/edition/modal_links.html:32
 msgid "Share"
-msgstr "शेयर  "
+msgstr "शेयर"
 
 #: type/edition/title_summary.html:8
 msgid "An edition of"
@@ -4704,7 +4703,7 @@ msgstr "<span class=\"gray small sansserif\">ओपन लाइब्रेर�
 
 #: type/edition/view.html:503 type/work/view.html:503
 msgid "Wikipedia"
-msgstr "Name"
+msgstr ""
 
 #: type/edition/view.html:519 type/work/view.html:519
 msgid "Lists containing this Book"
@@ -4950,7 +4949,7 @@ msgstr "%(work)s का एक और संस्करण जोड़ें"
 
 #: UserEditRow.html:25 type/work/editions.html:14
 msgid "Add another"
-msgstr "एक और जोड़ें?"
+msgstr "एक और जोड़ें"
 
 #: type/work/editions.html:43
 msgid "Title missing"
@@ -5030,7 +5029,7 @@ msgstr "(वैकल्पिक, लेकिन बहुत उपयोग�
 
 #: EditButtonsMacros.html:27
 msgid "Delete this record"
-msgstr "इस रेकॉर्ड को मिटाएँ? QSql"
+msgstr "इस रेकॉर्ड को मिटाएँ"
 
 #: EditionNavBar.html:11
 msgid "Overview"
@@ -5045,7 +5044,7 @@ msgstr[1] ""
 
 #: EditionNavBar.html:19
 msgid "Details"
-msgstr "विवरण  "
+msgstr "विवरण"
 
 #: EditionNavBar.html:24
 #, python-format
@@ -5183,7 +5182,7 @@ msgstr "एडिट करें"
 
 #: RecentChangesAdmin.html:43
 msgid "diff"
-msgstr "के- डिफ3"
+msgstr "डिफ"
 
 #: ReturnForm.html:8
 msgid "Return book"
@@ -5223,7 +5222,7 @@ msgstr "मेरी रेटिंग साफ़ करें"
 
 #: StarRatingsStats.html:22
 msgid "Ratings"
-msgstr "दरजा"
+msgstr "रेटिंग"
 
 #: StarRatingsStats.html:24
 msgid "Want to read"
