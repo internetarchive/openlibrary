@@ -108,9 +108,9 @@ class mybooks_reviews(delegate.page):
         i = web.input(page=1)
         mb = MyBooksTemplate(username, key='observations')
         if mb.is_my_page:
-            docs = PatronBooknotes(mb.user).get_observations(page=i.page)
+            docs = PatronBooknotes(mb.user).get_observations(page=int(i.page))
             template = render['account/observations'](
-                docs, mb.user, mb.counts['observations'], page=i.page
+                docs, mb.user, mb.counts['observations'], page=int(i.page)
             )
             return mb.render(header_title=_("Reviews"), template=template)
         raise web.seeother(mb.user.key)
