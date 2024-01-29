@@ -191,7 +191,7 @@ class WorkSearchScheme(SearchScheme):
     }
 
     def is_search_field(self, field: str):
-        #New variable introduced to prevent rewriting the input.
+        # New variable introduced to prevent rewriting the input.
         _field = field
         if _field.startswith("work."):
             _field = _field.partition(".")[2]
@@ -300,7 +300,7 @@ class WorkSearchScheme(SearchScheme):
             # arbitrarily called workQuery.
             v='$workQuery',
         )
-        #[TODO: Remove]
+        # [TODO: Remove]
         logger.warning(f'THE FULL QUERY ${str(work_q_tree)}')
         ed_q = None
         full_ed_query = None
@@ -360,7 +360,7 @@ class WorkSearchScheme(SearchScheme):
                 invalid fields, or renaming fields as necessary.
                 """
                 q_tree = luqum_parser(work_query)
-                #[TODO: Remove]
+                # [TODO: Remove]
                 logger.warning(f'Work Query: {work_query}')
                 for node, parents in luqum_traverse(q_tree):
                     if isinstance(node, luqum.tree.SearchField) and node.name != '*':
