@@ -312,8 +312,8 @@ class Priority(Enum):
 class PrioritizedISBN:
     """
     Represent an ISBN's priority in the queue. Sorting is based on the `priority`
-    attribute, then the `timestamp`, with priority going to whatever
-    `min([items])` would return.
+    attribute, then the `timestamp` to solve tie breaks within a specific priority,
+    with priority going to whatever `min([items])` would return.
     For more, see https://docs.python.org/3/library/queue.html#queue.PriorityQueue.
 
     Therefore, priority 0, which is equivalent to `Priority.HIGH`, is the highest
@@ -344,13 +344,13 @@ class Submit:
     def GET(self, isbn: str) -> str:
         """
         If `isbn` is in memcache, then return the `hit` (which is marshaled into
-        a format appropriate for import on Open Library if `?priority=true`).
+        a format appropriate for import on Open Library if `?high_priority=true`).
 
         If no hit, then queue the isbn for look up and either attempt to return
-        a promise as `submitted`, or if `?priority=true`, return marshalled data
+        a promise as `submitted`, or if `?high_priority=true`, return marshalled data
         from the cache.
 
-        `Priority.HIGH` is set when `?priority=true` and is the highest priority.
+        `Priority.HIGH` is set when `?high_priority=true` and is the highest priority.
         It is used when the caller is waiting for a response with the AMZ data, if
         available. See `PrioritizedISBN` for more on prioritization.
         """
@@ -365,19 +365,17 @@ class Submit:
             )
 
         input = web.input(priority=False)
-        priority = Priority.HIGH if input.get("priority") == "true" else Priority.LOW
+        priority = (
+            Priority.HIGH if input.get("high_priority") == "true" else Priority.LOW
+        )
 
         # Cache lookup by isbn13. If there's a hit return the product to the caller
         if product := cache.memcache_cache.get(f'amazon_product_{isbn13}'):
-            return (
-                json.dumps(
-                    {
-                        "status": "success",
-                        "hit": clean_amazon_metadata_for_load(product),
-                    }
-                )
-                if priority == Priority.HIGH
-                else json.dumps({"status": "success", "hit": product})
+            return json.dumps(
+                {
+                    "status": "success",
+                    "hit": product,
+                }
             )
 
         # Cache misses will be submitted to Amazon as ASINs (isbn10)
@@ -392,19 +390,14 @@ class Submit:
             rate=0.2,
         )
 
-        # Check the cache a few times for priority=0 ISBNS so the data can be
-        # returned to the client, or otherwise return.
-        if priority == Priority.HIGH:
-            for _ in range(3):
-                time.sleep(1)
-                if product := cache.memcache_cache.get(f'amazon_product_{isbn13}'):
-                    cleaned_product = clean_amazon_metadata_for_load(product)
-                    return json.dumps({"status": "success", "hit": cleaned_product})
-            return json.dumps({"status": "not found"})
-        else:
-            return json.dumps(
-                {"status": "submitted", "queue": web.amazon_queue.qsize()}
-            )
+        # Check the cache a few times for product data to return to the client,
+        # or otherwise return.
+        for _ in range(3):
+            time.sleep(1)
+            if product := cache.memcache_cache.get(f'amazon_product_{isbn13}'):
+                return json.dumps({"status": "success", "hit": product})
+
+        return json.dumps({"status": "not found"})
 
 
 def load_config(configfile):

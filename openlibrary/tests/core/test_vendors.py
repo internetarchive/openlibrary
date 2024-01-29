@@ -216,7 +216,7 @@ def test_get_amazon_metadata() -> None:
     mock_response = {
         'status': 'success',
         'hit': {
-            'url': 'https://www.amazon.com/dp/059035342X/?tag=ia',
+            'url': 'https://www.amazon.com/dp/059035342X/?tag=internetarchi-20',
             'source_records': ['amazon:059035342X'],
             'isbn_10': ['059035342X'],
             'isbn_13': ['9780590353427'],
@@ -234,7 +234,7 @@ def test_get_amazon_metadata() -> None:
         },
     }
     expected = {
-        'url': 'https://www.amazon.com/dp/059035342X/?tag=ia',
+        'url': 'https://www.amazon.com/dp/059035342X/?tag=internetarchi-20',
         'source_records': ['amazon:059035342X'],
         'isbn_10': ['059035342X'],
         'isbn_13': ['9780590353427'],
@@ -254,5 +254,5 @@ def test_get_amazon_metadata() -> None:
     with patch("requests.get", return_value=MockRequests()), patch(
         "openlibrary.core.vendors.affiliate_server_url", new=True
     ):
-        got = get_amazon_metadata(id_=isbn, id_type="isbn", retries=1)
+        got = get_amazon_metadata(id_=isbn, id_type="isbn")
         assert got == expected

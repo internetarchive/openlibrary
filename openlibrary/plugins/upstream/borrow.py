@@ -940,6 +940,5 @@ def make_bookreader_auth_link(loan_key, item_id, book_path, ol_host, ia_userid=N
     return auth_link + urllib.parse.urlencode(params)
 
 
-models.setup(config)
 lending.setup(config)
 vendors.setup(config)

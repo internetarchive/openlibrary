@@ -3,6 +3,7 @@
 from datetime import date, datetime, timedelta
 import logging
 import sys
+from openlibrary.core.vendors import clean_amazon_metadata_for_load, get_amazon_metadata
 
 import web
 import json
@@ -40,13 +41,6 @@ from ..accounts import OpenLibraryAccount
 from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_url
 
 logger = logging.getLogger("openlibrary.core")
-affiliate_server_url = None
-
-
-# TODO: Is there a better way to load this?
-def setup(config):
-    global affiliate_server_url
-    affiliate_server_url = config.get('affiliate_server')
 
 
 batch_name = ""
@@ -431,18 +425,16 @@ class Edition(Thing):
         if edition := ImportItem.import_first_staged(identifiers=isbns):
             return edition
 
-        # Finally, try to fetch the book data from Amazon + import, using
-        # `?priority=true` to put the request at the front of the queue.
+        # Finally, try to fetch the book data from Amazon + import.
         try:
-            r = requests.get(
-                f'http://{affiliate_server_url}/isbn/{isbn10 or isbn13}?priority=true'
-            )
-            r.raise_for_status()
-            if data := r.json().get('hit'):
+            if metadata := get_amazon_metadata(
+                id_=isbn10 or isbn13, id_type="isbn", high_priority=True
+            ):
+                cleaned_metadata = clean_amazon_metadata_for_load(metadata)
                 import_item = {
-                    'ia_id': data['source_records'][0],
+                    'ia_id': cleaned_metadata['source_records'][0],
                     'status': 'staged',
-                    'data': data,
+                    'data': cleaned_metadata,
                 }
                 batch = get_current_amazon_batch()
                 batch.add_items([import_item])

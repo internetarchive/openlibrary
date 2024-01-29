@@ -40,10 +40,14 @@ class books_json(delegate.page):
 
     @jsonapi
     def GET(self):
-        i = web.input(bibkeys='', callback=None, details="false", import_missing=0)
+        i = web.input(
+            bibkeys='', callback=None, details="false", import_missing="false"
+        )
         if web.ctx.path.endswith('.json'):
             i.format = 'json'
-            i.import_missing = int(i.import_missing)
+            i.import_missing = (
+                True if i.get("import_missing") == "true" else False  # noqa: SIM210
+            )
         return dynlinks.dynlinks(i.bibkeys.split(","), i)
 
 
