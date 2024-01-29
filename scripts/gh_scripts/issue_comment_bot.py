@@ -245,16 +245,9 @@ def start_job(args: argparse.Namespace):
     since, date_string = time_since(args.hours)
     issues = fetch_issues(date_string)
 
-    # XXX : If we are only running this script daily, we can remove this condition to
-    # always post a message to Slack. If the digest is ever not published, we'll know
-    # that something is wrong with our script runner.
-    if filtered_issues := filter_issues(issues, since):
-        publish_digest(filtered_issues, args.channel, args.slack_token, args.hours)
-        # XXX : Log this
-        print('Digest posted to Slack.')
-    else:
-        # XXX : Log this
-        print('No issues needing attention found.')
+    filtered_issues = filter_issues(issues, since)
+    publish_digest(filtered_issues, args.channel, args.slack_token, args.hours)
+    print('Digest posted to Slack.')
 
 
 def _get_parser() -> argparse.ArgumentParser:
