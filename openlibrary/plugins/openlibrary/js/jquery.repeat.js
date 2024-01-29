@@ -39,25 +39,19 @@ export default function($){
         /**
          * Search elems.form for input fields and create an
          * object representing.
-         * This function has side effects and will reset any
-         * input[type=text] fields it has found in the process
          * @return {object} data mapping names to values
          */
         function formdata() {
             var data = {};
             $(':input', elems.form).each(function() {
                 var $e = $(this),
-                    type = $e.attr('type'),
                     name = $e.attr('name');
 
                 data[name] = $e.val().trim();
-                // reset the values we are copying across
-                if (type === 'text') {
-                    $e.val('');
-                }
             });
             return data;
         }
+
         /**
          * triggered when "add link" button is clicked on author edit field.
          * Creates a removable `repeat-item`.
