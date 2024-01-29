@@ -193,7 +193,7 @@ class WorkSearchScheme(SearchScheme):
     def is_search_field(self, field: str):
         #New variable introduced to prevent rewriting the input.
         _field = field
-        if _field.startwith("work."):
+        if _field.startswith("work."):
             _field = _field.partition(".")[2]
         return super().is_search_field(_field) or _field.startswith('id_')
 
