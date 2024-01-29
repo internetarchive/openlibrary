@@ -191,7 +191,11 @@ class WorkSearchScheme(SearchScheme):
     }
 
     def is_search_field(self, field: str):
-        return super().is_search_field(field) or field.startswith('id_')
+        #New variable introduced to prevent rewriting the input.
+        _field = field
+        if _field.startwith("work."):
+            _field = _field.partition(".")[2]
+        return super().is_search_field(_field) or _field.startswith('id_')
 
     def transform_user_query(
         self, user_query: str, q_tree: luqum.tree.Item
@@ -296,7 +300,7 @@ class WorkSearchScheme(SearchScheme):
             # arbitrarily called workQuery.
             v='$workQuery',
         )
-
+        logger.warning(f'THE FULL QUERY ${str(work_q_tree)}')
         ed_q = None
         full_ed_query = None
         editions_fq = []
@@ -355,7 +359,7 @@ class WorkSearchScheme(SearchScheme):
                 invalid fields, or renaming fields as necessary.
                 """
                 q_tree = luqum_parser(work_query)
-
+                logger.warning(f'Work Query: {work_query}')
                 for node, parents in luqum_traverse(q_tree):
                     if isinstance(node, luqum.tree.SearchField) and node.name != '*':
                         new_name = convert_work_field_to_edition_field(node.name)
@@ -413,7 +417,6 @@ class WorkSearchScheme(SearchScheme):
                         else:
                             # Shouldn't happen
                             raise ValueError(f'Invalid new_name: {new_name}')
-
                 return str(q_tree)
 
             # Move over all fq parameters that can be applied to editions.
