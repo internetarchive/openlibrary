@@ -93,7 +93,7 @@ class mybooks_notes(delegate.page):
         i = web.input(page=1)
         mb = MyBooksTemplate(username, key='notes')
         if mb.is_my_page:
-            docs = PatronBooknotes(mb.user).get_notes(page=i.page)
+            docs = PatronBooknotes(mb.user).get_notes(page=int(i.page))
             template = render['account/notes'](
                 docs, mb.user, mb.counts['notes'], page=i.page
             )
