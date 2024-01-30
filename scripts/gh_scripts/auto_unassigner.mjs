@@ -205,7 +205,6 @@ async function postSlackDigest(issues) {
     }
 
     const parentThreadMessage = `${issues.length} issue(s) have stale assignees.`
-    console.log(`slackChannel: ${slackChannel}`)
     
     fetch('https://slack.com.api/chat.postMessage', {
         method: 'POST',
