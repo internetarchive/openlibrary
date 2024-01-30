@@ -191,7 +191,7 @@ class WorkSearchScheme(SearchScheme):
     }
 
     def is_search_field(self, field: str):
-        #New variable introduced to prevent rewriting the input.
+        # New variable introduced to prevent rewriting the input.
         a_field = field
         if a_field.startswith("work."):
             a_field = a_field.partition(".")[2]
@@ -347,7 +347,11 @@ class WorkSearchScheme(SearchScheme):
                     return WORK_FIELD_TO_ED_FIELD[field]
                 elif field.startswith('id_'):
                     return field
-                elif self.is_search_field(field) or field in self.all_fields or field in self.facet_fields:
+                elif (
+                    self.is_search_field(field)
+                    or field in self.all_fields
+                    or field in self.facet_fields
+                ):
                     return None
                 else:
                     raise ValueError(f'Unknown field: {field}')
@@ -594,7 +598,8 @@ def has_solr_editions_enabled():
 
     return True
 
-#Used to decouple the 'work.' prefix from params, prior to sending the params to Solr 
+
+# Used to decouple the 'work.' prefix from params, prior to sending the params to Solr
 def remove_work_prefix_from_query(solr_params, field_name_map):
     for i in range(len(solr_params)):
         if solr_params[i][1].startswith("work."):
@@ -603,6 +608,7 @@ def remove_work_prefix_from_query(solr_params, field_name_map):
             if edited_param[0] in field_name_map:
                 edited_param[0] = field_name_map(edited_param[0])
             solr_params[i] = solr_params[i][0], "".join(list(edited_param))
+
 
 def get_fulltext_min():
     is_printdisabled = web.cookies().get('pd', False)
