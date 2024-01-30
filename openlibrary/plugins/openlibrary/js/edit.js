@@ -100,7 +100,6 @@ export function isbnConfirmAdd(data) {
     const noButtonSelector = '#do-not-add-isbn'
     const onYes = () => {
         $('#id-errors').hide();
-        $('#select-id, #id-value').val('');
     };
     const onNo = () => {
         $('#id-errors').hide();
@@ -175,6 +174,7 @@ function validateLccn(data, dataConfig, label) {
     data.value = parseLccn(data.value);
 
     if (isValidLccn(data.value) === false) {
+        $('#id-value').val(data.value);
         return error('#id-errors', '#id-value', dataConfig['Invalid ID format'].replace(/ID/, label));
     }
     return true;
@@ -191,6 +191,7 @@ export function validateIdentifiers(data) {
     const dataConfig = JSON.parse(document.querySelector('#identifiers').dataset.config);
 
     if (data.name === '' || data.name === '---') {
+        $('#id-value').val(data.value);
         return error('#id-errors', '#select-id', dataConfig['Please select an identifier.'])
     }
     const label = $('#select-id').find(`option[value='${data.name}']`).html();
@@ -222,9 +223,7 @@ export function validateIdentifiers(data) {
     }
 
     if (validId === false) return false;
-
     $('#id-errors').hide();
-    $('#select-id, #id-value').val('');
     return true;
 }
 
