@@ -199,10 +199,7 @@ async function getTimeline(issue) {
  * @returns {Promise<boolean>}
  */
 async function postSlackDigest(issues) {
-    const slackToken = process.env.SLACK_TOKEN
-    const slackChannel = process.env.SLACK_CHANNEL
-
-    if (!(slackToken && slackChannel)) {
+    if (!(process.env.SLACK_CHANNEL && process.env.SLACK_TOKEN)) {
         console.log('Digest could not be published to Slack.')
         return false
     }
@@ -214,10 +211,10 @@ async function postSlackDigest(issues) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json; charset=utf-8',
-            'Authorization': `Bearer ${slackToken}`
+            'Authorization': `Bearer ${process.env.SLACK_TOKEN}`
         },
         body: JSON.stringify({
-            channel: slackChannel,
+            channel: process.env.SLACK_CHANNEL,
             text: parentThreadMessage
         })
     })
@@ -257,14 +254,14 @@ async function postSlackDigest(issues) {
         const body = {
             text: message,
             thread_ts: ts,
-            channel: slackChannel
+            channel: process.env.SLACK_CHANNEL
 
         }
         await fetch('https://slack.com.api/chat.postMessage', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json; charset=utf-8',
-                'Authorization': `Bearer ${slackToken}`
+                'Authorization': `Bearer ${process.env.SLACK_TOKEN}`
             },
             body: JSON.stringify(body)
         })
