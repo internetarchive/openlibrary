@@ -205,7 +205,7 @@ async function postSlackDigest(issues) {
     }
 
     const parentThreadMessage = `${issues.length} issue(s) have stale assignees.`
-    fetch('https://slack.com/api/chat.postMessage', {
+    return fetch('https://slack.com/api/chat.postMessage', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json; charset=utf-8',
@@ -233,9 +233,12 @@ async function postSlackDigest(issues) {
                 // ...then POST again
                 await commentOnThread(message, ts)
             }
+
+            return true
         })
-        .catch(() => false)
-        .finally(() => true)
+        .catch((err) => {
+            return false
+        })
 
     /**
      * Publishes given `message` int the thread identified by the Slack channel
@@ -485,7 +488,7 @@ async function linkedPullRequestFilter(issues) {
  * Iterates over the given issues, returning an array of issues that have
  * at least one assignee that was not marked for exclusion.
  *
- * @param {Array<Record>} issues 
+ * @param {Array<Record>} issues
  * @returns {Promise<Array<Record>>}
  */
 async function removeExclusionsFilter(issues) {
