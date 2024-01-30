@@ -494,7 +494,7 @@ class WorkSearchScheme(SearchScheme):
             )
             new_params.append(('editions.rows', '1'))
             new_params.append(('editions.fl', ','.join(edition_fields)))
-        remove_work_prefix_from_query(new_params)
+        remove_work_prefix_from_query(new_params, self.field_name_map)
         logger.warning(f'FULL PARAMS: {str(new_params)}')
         return new_params
 
@@ -600,9 +600,15 @@ def has_solr_editions_enabled():
     return True
 
 #Used to decouple the 'work.' prefix from params, prior to sending the params to Solr 
-def remove_work_prefix_from_query(solr_params):
-    if solr_params[0][1].startswith("work."):
-        solr_params[0] = (solr_params[0][0], solr_params[0][1].partition(".")[2])
+def remove_work_prefix_from_query(solr_params, field_name_map):
+    for i in range(len(solr_params)):
+        if solr_params[i][1].startswith("work."):
+            edited_param = solr_params[i][1].partition(".")[2]
+            edited_param = edited_param.partition(":")
+            if edited_param[0] in field_name_map:
+                edited_param[0] = field_name_map(edited_param[0])
+            solr_params[i] = solr_params[i][0], "".join(list(edited_param))
+        logger.warning(f'PARAM TO TEST IS {solr_params[i]}')
 
 def get_fulltext_min():
     is_printdisabled = web.cookies().get('pd', False)
