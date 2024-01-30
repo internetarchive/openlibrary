@@ -45,9 +45,15 @@ export default function($){
             var data = {};
             $(':input', elems.form).each(function() {
                 var $e = $(this),
-                    name = $e.attr('name');
+                    name = $e.attr('name'),
+                    type = $e.attr('type'),
+                    id = $e.attr('id');
 
                 data[name] = $e.val().trim();
+
+                if (type === 'text' && id === 'id-value') {
+                    $e.val('');
+                }
             });
             return data;
         }
