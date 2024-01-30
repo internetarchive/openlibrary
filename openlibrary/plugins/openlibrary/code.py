@@ -36,7 +36,7 @@ from openlibrary.core import cache
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
 from openlibrary.core.models import Edition
-from openlibrary.core.lending import get_work_availability, get_edition_availability
+from openlibrary.core.lending import get_availability
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count
@@ -252,26 +252,24 @@ class addbook(delegate.page):
 
 
 class widget(delegate.page):
-    path = r'/(works|books)/(OL\d+[W|M])/widget'
+    path = r'(/works/OL\d+W|/books/OL\d+M)/widget'
 
-    def GET(self, _type, olid=None):
-        if olid:
-            getter = (
-                get_work_availability if _type == 'works' else get_edition_availability
-            )
-            item = web.ctx.site.get(f'/{_type}/{olid}') or {}
-            item['olid'] = olid
-            item['availability'] = getter(olid).get(item['olid'])
-            item['authors'] = [
-                web.storage(key=a.key, name=a.name or None) for a in item.get_authors()
-            ]
-            return delegate.RawText(
-                render_template(
-                    'widget', item if _type == 'books' else format_work_data(item)
-                ),
-                content_type='text/html',
-            )
-        raise web.seeother('/')
+    def GET(self, key: str):  # type: ignore[override]
+        olid = key.split('/')[-1]
+        item = web.ctx.site.get(key)
+        is_work = key.startswith('/works/')
+        item['olid'] = olid
+        item['availability'] = get_availability(
+            'openlibrary_work' if is_work else 'openlibrary_edition',
+            [olid],
+        ).get(olid)
+        item['authors'] = [
+            web.storage(key=a.key, name=a.name or None) for a in item.get_authors()
+        ]
+        return delegate.RawText(
+            render_template('widget', format_work_data(item) if is_work else item),
+            content_type='text/html',
+        )
 
 
 class addauthor(delegate.page):

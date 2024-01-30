@@ -785,7 +785,7 @@ class inspect:
         i = web.input(action="read")
         i.setdefault("keys", "")
 
-        mc = cache.get_memcache()
+        mc = cache.get_memcache().memcache
 
         keys = [k.strip() for k in i["keys"].split() if k.strip()]
         if i.action == "delete":
