@@ -208,13 +208,17 @@ async function postSlackDigest(issues) {
     }
 
     const parentThreadMessage = `${issues.length} issue(s) have stale assignees.`
+    
     fetch('https://slack.com.api/chat.postMessage', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json; charset=utf-8',
             'Authorization': `Bearer ${slackToken}`
         },
-        body: JSON.stringify(parentThreadMessage)
+        body: JSON.stringify({
+            channel: slackChannel,
+            text: parentThreadMessage
+        })
     })
         .then((resp) => {
             if (!resp.ok) {
@@ -228,6 +232,7 @@ async function postSlackDigest(issues) {
 
             for (const issue of issues) {
                 const message = `<${issue.comment_url}|${issue_title}>`
+                console.log(message)
                 // Wait for one second...
                 await wait(1000)
                 // ...then POST again
