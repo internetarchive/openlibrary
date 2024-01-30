@@ -416,14 +416,19 @@ export class BulkTagger {
 
                     // Update and show create subject affordance
                     const selectionContainer = this.rootElement.querySelector('.selection-container')
-                    selectionContainer.addEventListener('scroll', () => {
-                        if (this.rootElement.querySelector('.selected-tag').classList.contains('hidden')) {
-                            const isBottom = selectionContainer.scrollHeight - Math.ceil(selectionContainer.scrollTop) <= selectionContainer.clientHeight;
-                            if (isBottom) {
-                                this.updateAndShowNewSubjectAffordance(trimmedSearchTerm)
+                    if ((selectionContainer.scrollHeight >= selectionContainer.clientHeight) && data['docs'].length === 0){
+                        this.updateAndShowNewSubjectAffordance(trimmedSearchTerm)
+                    }
+                    else {
+                        this.createSubjectElem.classList.add('hidden');
+                        selectionContainer.addEventListener('scroll', () => {
+                            if (this.rootElement.querySelector('.selected-tag').classList.contains('hidden')) {
+                                const isBottom = selectionContainer.scrollHeight - selectionContainer.scrollTop <= selectionContainer.clientHeight;
+                                if (isBottom) {
+                                    this.updateAndShowNewSubjectAffordance(trimmedSearchTerm)
+                                }
                             }
-                        }
-                    });
+                        })}
                 });
         } else {
             // Hide create subject affordance
