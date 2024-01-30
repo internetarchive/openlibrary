@@ -59,7 +59,8 @@ const filters = [
     excludeLabelsFilter,
     excludeAssigneesFilter,
     recentAssigneeFilter,
-    linkedPullRequestFilter
+    linkedPullRequestFilter,
+    removeExclusionsFilter
 ]
 
 /**
@@ -477,6 +478,31 @@ async function linkedPullRequestFilter(issues) {
         }
     }
 
+    return results
+}
+
+/**
+ * Iterates over the given issues, returning an array of issues that have
+ * at least one assignee that was not marked for exclusion.
+ *
+ * @param {Array<Record>} issues 
+ * @returns {Promise<Array<Record>>}
+ */
+async function removeExclusionsFilter(issues) {
+    const results = []
+
+    for (const issue of issues) {
+        const assigneesToRemove = []
+        for (const assignee of issue.assignees) {
+            if (!('ol_unassign_ignore' in assignee)) {
+                assigneesToRemove.push(assignee.login)
+            }
+        }
+
+        if (assigneesToRemove.length > 0) {
+            results.push(issue)
+        }
+    }
     return results
 }
 // END: Issue Filtering
