@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import OLChip from './OLChip.vue'
+import OLChip from './OLChip.ce'
 
 export default {
     name: 'CategorySelector',

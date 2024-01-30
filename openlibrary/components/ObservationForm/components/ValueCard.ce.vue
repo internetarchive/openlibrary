@@ -16,8 +16,8 @@
 </template>
 
 <script>
-import CardBody from './CardBody'
-import CardHeader from './CardHeader';
+import CardBody from './CardBody.ce'
+import CardHeader from './CardHeader.ce';
 
 export default {
     name: 'ValueCard',
@@ -97,7 +97,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .value-card {
   border: 1px solid #999999;
   border-radius: 4px;

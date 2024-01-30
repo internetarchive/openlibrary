@@ -19,7 +19,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .card-header {
   border-bottom: 1px solid #999;
   margin: 1em;

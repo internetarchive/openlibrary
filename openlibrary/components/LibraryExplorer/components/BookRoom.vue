@@ -67,6 +67,8 @@
           :labels="appSettings.labels"
           :filter="filter"
           :sort="sort"
+          :jumpToData="jumpToData"
+          :jumpToOffset="jumpToOffset"
         />
       </div>
       <!-- Gap --> <div style="width: 70px; height: 1px; flex-shrink: 0" />
@@ -79,7 +81,7 @@ import Bookshelf from './Bookshelf.vue';
 import RightArrowIcon from './icons/RightArrowIcon.vue';
 import ExpandIcon from './icons/ExpandIcon.vue';
 import debounce from 'lodash/debounce';
-import Vue from 'vue';
+import { nextTick } from 'vue';
 import { decrementStringSolr, hierarchyFind, testLuceneSyntax } from '../utils.js';
 import CONFIGS from '../configs';
 /** @typedef {import('../utils.js').ClassificationNode} ClassificationNode */
@@ -143,7 +145,7 @@ export default {
         async classification(newVal) {
             this.activeRoom = newVal.root;
             this.breadcrumbs = [];
-            await Vue.nextTick();
+            await nextTick();
             this.updateWidths();
             this.updateActiveShelfOnScroll();
         }
@@ -155,6 +157,7 @@ export default {
             activeRoom: jumpToData?.room || this.classification.root,
             breadcrumbs: jumpToData?.breadcrumbs || [],
             jumpToData,
+            jumpToOffset: 0,
 
             expandingAnimation: false,
 
@@ -173,22 +176,17 @@ export default {
         if (this.jumpToData?.shelf) {
             this.$el.querySelector(`[data-short="${this.jumpToData.shelf.short}"]`).scrollIntoView({
                 inline: 'center',
-                block: 'start',
+                block: 'center',
             });
 
             // Find the offset of the predecessor of the requested item in its shelf
             const predecessor = decrementStringSolr(this.jumpToData.classification, false, this.classification.field === 'ddc');
             const shelf_query = `${this.classification.field}_sort:${this.jumpToData.shelf.query} ${this.filter}`;
             /** @type {number} */
-            const offset = await fetch(`${CONFIGS.OL_BASE_SEARCH}/search.json?${new URLSearchParams({
+            this.jumpToOffset = await fetch(`${CONFIGS.OL_BASE_SEARCH}/search.json?${new URLSearchParams({
                 q: `${shelf_query} AND ${this.classification.field}_sort:[* TO ${predecessor}]`,
                 limit: 0,
             })}`).then(r => r.json()).then(r => r.numFound);
-            const olCarousel = this.$el.querySelector(`.ol-carousel[data-short="${this.jumpToData.shelf.short}"]`);
-            const pageOffset = await olCarousel.__vue__.loadPageContainingOffset(offset + 1);
-            olCarousel.querySelector(`.book:nth-of-type(${(offset + 1) - pageOffset})`).scrollIntoView({
-                inline: 'center'
-            });
         }
     },
     destroyed() {
@@ -222,7 +220,7 @@ export default {
             const nodeToScrollTo = shelf?.position === 'root' ? shelf :
                 shelf?.children && shelf?.position ? shelf.children[shelf.position]
                     : (shelf || bookshelf);
-            await Vue.nextTick();
+            await nextTick();
             this.$el.querySelector(`[data-short="${nodeToScrollTo.short}"]`).scrollIntoView();
         },
 
@@ -230,7 +228,7 @@ export default {
             const nodeToScrollTo = this.activeRoom;
             this.activeRoom = this.breadcrumbs[index];
             this.breadcrumbs.splice(index, this.breadcrumbs.length - index);
-            await Vue.nextTick();
+            await nextTick();
             this.$el.querySelector(`[data-short="${nodeToScrollTo.short}"]`).scrollIntoView();
         },
 

@@ -41,7 +41,8 @@ jobs:
         run: npm install --no-audit
       - run: npm run lint
       - run: make git
-      - run: npx concurrently --group 'make js' 'make css' 'make components'
+      - run: npx concurrently --group 'make css' 'make vue'
+      - run: make js
       - run: npm run test
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3

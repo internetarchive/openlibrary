@@ -1,5 +1,5 @@
 import functools
-from typing import Any, Protocol, TYPE_CHECKING, TypeVar
+from typing import Any, Protocol, TYPE_CHECKING, TypeVar, cast
 from collections.abc import Callable, Iterable, Iterator
 import unicodedata
 
@@ -194,17 +194,17 @@ def render_component(
             # On the Vue side use decodeURIComponent to decode
             val = urllib.parse.quote(val)
         attrs_str += f' {key}="{val}"'
-    html = ''
-    included = web.ctx.setdefault("included-components", [])
 
-    if len(included) == 0:
-        # Need to include Vue
-        html += '<script src="%s"></script>' % static_url('build/vue.js')
+    html = ''
+    included = cast(list, web.ctx.setdefault("included-components", []))
+
+    # if len(included) == 0:
+    #     # Need to include Vue
+    #     html += '<script src="%s"></script>' % static_url('build/vue.js')
 
     if name not in included:
-        url = static_url('build/components/production/ol-%s.min.js' % name)
-        script_attrs = '' if not asyncDefer else 'async defer'
-        html += f'<script {script_attrs} src="{url}"></script>'
+        url = static_url('build/components/index.js')
+        html += f'<script type="module" src="{url}"></script>'
         included.append(name)
 
     html += f'<ol-{kebab_case(name)} {attrs_str}></ol-{kebab_case(name)}>'

@@ -37,8 +37,8 @@
 <script>
 import BooksCarousel from './BooksCarousel.vue';
 import debounce from 'lodash/debounce';
-import Vue from 'vue';
 import CONFIGS from '../configs';
+import {nextTick} from 'vue';
 // import * as Vibrant from "node-vibrant";
 
 // window.Vibrant = Vibrant;
@@ -92,7 +92,11 @@ export default {
         limit: {
             type: Number,
             default: screen.width > 450 ? 20 : 8,
-        }
+        },
+        jumpToOffset: {
+            type: Number,
+            default: 0,
+        },
     },
     data() {
         return {
@@ -125,7 +129,7 @@ export default {
             get() { return this.node.requests[this.query]?.offset ?? 0; },
             set(newVal) {
                 if (!this.node.requests[this.query]) {
-                    Vue.set(this.node.requests, this.query, { offset: 0 });
+                    this.node.requests[this.query] = { offset: 0}
                 }
                 return this.node.requests[this.query].offset = newVal;
             },
@@ -149,6 +153,14 @@ export default {
             } else {
                 carouselCoordinator.registerRenderedOffscreenCarousel(this);
             }
+        },
+        async jumpToOffset(offset) {
+            const pageOffset = await this.loadPageContainingOffset(offset + 1);
+            await nextTick();
+            this.$el.querySelector(`.book:nth-of-type(${(offset + 1) - pageOffset})`).scrollIntoView({
+                inline: 'center',
+                block: 'center',
+            });
         }
     },
 

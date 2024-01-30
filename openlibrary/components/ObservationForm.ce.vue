@@ -27,9 +27,9 @@
 </template>
 
 <script>
-import CategorySelector from './ObservationForm/components/CategorySelector'
-import SavedTags from './ObservationForm/components/SavedTags'
-import ValueCard from './ObservationForm/components/ValueCard'
+import CategorySelector from './ObservationForm/components/CategorySelector.ce'
+import SavedTags from './ObservationForm/components/SavedTags.ce'
+import ValueCard from './ObservationForm/components/ValueCard.ce'
 
 import { decodeAndParseJSON, resizeColorbox } from './ObservationForm/Utils'
 
@@ -162,7 +162,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .observation-form {
   padding: .5em;
 }

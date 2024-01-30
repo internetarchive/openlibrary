@@ -86,11 +86,12 @@ export default {
 };
 </script>
 
-<style scoped lang="less">
-.arrow-icon {
-  margin-bottom: -2px;
-}
+<style lang="less">
 .class-slider {
+  .arrow-icon {
+    margin-bottom: -2px;
+  }
+
   position: relative;
   border: 2px solid black;
   border-radius: 4px;
@@ -99,79 +100,77 @@ export default {
   min-height: 3em;
   box-sizing: border-box;
   align-items: center;;
-}
 
-.class-slider main {
-  @media (min-width: 450px) {
-    position: relative;
+  main {
+    @media (min-width: 450px) {
+      position: relative;
+    }
+    overflow: hidden;
+    overflow: clip;
+    flex: 1;
+    align-self: stretch;
+    display: flex;
+    justify-content: center;
   }
-  overflow: hidden;
-  overflow: clip;
-  flex: 1;
-  align-self: stretch;
-  display: flex;
-  justify-content: center;
-}
 
-button {
-  border: 0;
-  background: 0;
-  padding: 6px 8px;
-  font: inherit;
-  color: inherit;
-}
+  button {
+    border: 0;
+    background: 0;
+    padding: 6px 8px;
+    font: inherit;
+    color: inherit;
+    &:first-child {
+      border-right: 2px solid rgb(161, 157, 157);
+    }
+    &:last-child {
+      border-left: 2px solid #000;
+    }
+  }
 
-button:first-child {
-  border-right: 2px solid rgb(161, 157, 157);
-}
-button:last-child {
-  border-left: 2px solid #000;
-}
+  .label {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    line-height: 1em;
+    padding-bottom: 6px;
+  }
 
-.label {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  line-height: 1em;
-  padding-bottom: 6px;
-}
+  .sections {
+    position: absolute;
+    display: flex;
+    left: 0;
+    right: 0;
+  }
 
-.sections {
-  position: absolute;
-  display: flex;
-  left: 0;
-  right: 0;
-}
+  .lr-buttons {
+    display: flex;
+    align-items: center;
+  }
 
-.lr-buttons {
-  display: flex;
-  align-items: center;
-}
+  .classification-short {
+    padding: 0 2px;
+    &:first-child {
+      padding-left: 15px;
+    }
+    &:last-child {
+      padding-right: 15px;
+    }
+  }
 
-.classification-short {
-  padding: 0 2px;
-}
+  @keyframes slide-right {
+    from { transform: translateX(20px) }
+  }
 
-.classification-short:first-child {
-  padding-left: 15px;
-}
-.classification-short:last-child {
-  padding-right: 15px;
-}
+  @keyframes slide-left {
+    from { transform: translateX(-20px) }
+  }
 
-@keyframes slide-right {
-  from { transform: translateX(20px) }
-}
-
-@keyframes slide-left {
-  from { transform: translateX(-20px) }
-}
-
-.slide-right {
-  animation: slide-right 0.2s ease;
-}
-.slide-left {
-  animation: slide-left 0.2s ease;
+  .slide-right {
+    animation: slide-right 0.2s ease;
+  }
+  .slide-left {
+    animation: slide-left 0.2s ease;
+  }
 }
 </style>
