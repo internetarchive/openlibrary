@@ -208,6 +208,7 @@ async function postSlackDigest(issues) {
     }
 
     const parentThreadMessage = `${issues.length} issue(s) have stale assignees.`
+    console.log(`slackChannel: ${slackChannel}`)
     
     fetch('https://slack.com.api/chat.postMessage', {
         method: 'POST',
@@ -221,6 +222,8 @@ async function postSlackDigest(issues) {
         })
     })
         .then((resp) => {
+            console.log('initial response:')
+            console.log(resp)
             if (!resp.ok) {
                 console.log('Failed to publish parent thread to Slack')
                 throw new Error()
