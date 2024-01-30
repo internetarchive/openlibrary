@@ -92,7 +92,7 @@ async function main() {  // XXX : Inject octokit for easier testing
     const actionableIssues = await filterIssues(issues, filters)
     console.log(`Issues remaining after filtering: ${actionableIssues.length}`)
 
-    const digestPublished = await postSlackDigest(issues)
+    const digestPublished = await postSlackDigest(actionableIssues)
 
     if (!digestPublished) {
         console.log('Something went wrong while publishing the digest to Slack...')
@@ -203,18 +203,21 @@ async function postSlackDigest(issues) {
     const slackChannel = process.env.SLACK_CHANNEL
 
     if (!(slackToken && slackChannel)) {
-        console.log('Digest could not be published to Slack.')
+        console.log('Digest could not be published to Slack due to missing environment variables.')
         return false
     }
 
     const parentThreadMessage = `${issues.length} issue(s) have stale assignees.`
-    fetch('https://slack.com.api/chat.postMessage', {
+    fetch('https://slack.com/api/chat.postMessage', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json; charset=utf-8',
             'Authorization': `Bearer ${slackToken}`
         },
-        body: JSON.stringify(parentThreadMessage)
+        body: JSON.stringify({
+            text: parentThreadMessage,
+            channel: process.env.SLACK_CHANNEL
+        })
     })
         .then((resp) => {
             if (!resp.ok) {
@@ -227,7 +230,7 @@ async function postSlackDigest(issues) {
             const ts = data['ts']
 
             for (const issue of issues) {
-                const message = `<${issue.comment_url}|${issue_title}>`
+                const message = `<${issue.html_url}|${issue.title}>`
                 // Wait for one second...
                 await wait(1000)
                 // ...then POST again
@@ -252,7 +255,7 @@ async function postSlackDigest(issues) {
             channel: slackChannel
 
         }
-        await fetch('https://slack.com.api/chat.postMessage', {
+        await fetch('https://slack.com/api/chat.postMessage', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json; charset=utf-8',
