@@ -192,10 +192,10 @@ class WorkSearchScheme(SearchScheme):
 
     def is_search_field(self, field: str):
         #New variable introduced to prevent rewriting the input.
-        _field = field
-        if _field.startswith("work."):
-            _field = _field.partition(".")[2]
-        return super().is_search_field(_field) or _field.startswith('id_')
+        a_field = field
+        if a_field.startswith("work."):
+            a_field = a_field.partition(".")[2]
+        return super().is_search_field(a_field) or a_field.startswith('id_')
 
     def transform_user_query(
         self, user_query: str, q_tree: luqum.tree.Item
@@ -349,7 +349,7 @@ class WorkSearchScheme(SearchScheme):
                     return WORK_FIELD_TO_ED_FIELD[field]
                 elif field.startswith('id_'):
                     return field
-                elif field in self.all_fields or field in self.facet_fields:
+                elif self.is_search_field(field) or field in self.all_fields or field in self.facet_fields:
                     return None
                 else:
                     raise ValueError(f'Unknown field: {field}')
@@ -494,7 +494,8 @@ class WorkSearchScheme(SearchScheme):
             )
             new_params.append(('editions.rows', '1'))
             new_params.append(('editions.fl', ','.join(edition_fields)))
-
+        remove_work_prefix_from_query(new_params)
+        logger.warning(f'FULL PARAMS: {str(new_params)}')
         return new_params
 
 
@@ -598,6 +599,10 @@ def has_solr_editions_enabled():
 
     return True
 
+#Used to decouple the 'work.' prefix from params, prior to sending the params to Solr 
+def remove_work_prefix_from_query(solr_params):
+    if solr_params[0][1].startswith("work."):
+        solr_params[0] = (solr_params[0][0], solr_params[0][1].partition(".")[2])
 
 def get_fulltext_min():
     is_printdisabled = web.cookies().get('pd', False)
