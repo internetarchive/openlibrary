@@ -238,7 +238,10 @@ async function postSlackDigest(issues) {
                 await commentOnThread(message, ts)
             }
         })
-        .catch(() => false)
+        .catch((err) => {
+            console.log(err)
+            return false
+        })
         .finally(() => true)
 
     /**
