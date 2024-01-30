@@ -300,8 +300,6 @@ class WorkSearchScheme(SearchScheme):
             # arbitrarily called workQuery.
             v='$workQuery',
         )
-        #[TODO: Remove]
-        logger.warning(f'THE FULL QUERY ${str(work_q_tree)}')
         ed_q = None
         full_ed_query = None
         editions_fq = []
@@ -360,8 +358,6 @@ class WorkSearchScheme(SearchScheme):
                 invalid fields, or renaming fields as necessary.
                 """
                 q_tree = luqum_parser(work_query)
-                #[TODO: Remove]
-                logger.warning(f'Work Query: {work_query}')
                 for node, parents in luqum_traverse(q_tree):
                     if isinstance(node, luqum.tree.SearchField) and node.name != '*':
                         new_name = convert_work_field_to_edition_field(node.name)
@@ -495,7 +491,6 @@ class WorkSearchScheme(SearchScheme):
             new_params.append(('editions.rows', '1'))
             new_params.append(('editions.fl', ','.join(edition_fields)))
         remove_work_prefix_from_query(new_params, self.field_name_map)
-        logger.warning(f'FULL PARAMS: {str(new_params)}')
         return new_params
 
 
@@ -608,7 +603,6 @@ def remove_work_prefix_from_query(solr_params, field_name_map):
             if edited_param[0] in field_name_map:
                 edited_param[0] = field_name_map(edited_param[0])
             solr_params[i] = solr_params[i][0], "".join(list(edited_param))
-        logger.warning(f'PARAM TO TEST IS {solr_params[i]}')
 
 def get_fulltext_min():
     is_printdisabled = web.cookies().get('pd', False)
