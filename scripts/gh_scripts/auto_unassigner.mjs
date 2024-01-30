@@ -206,7 +206,7 @@ async function postSlackDigest(issues) {
 
     const parentThreadMessage = `${issues.length} issue(s) have stale assignees.`
     
-    fetch('https://slack.com.api/chat.postMessage', {
+    fetch('https://slack.com/api/chat.postMessage', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json; charset=utf-8',
@@ -259,7 +259,7 @@ async function postSlackDigest(issues) {
             channel: process.env.SLACK_CHANNEL
 
         }
-        await fetch('https://slack.com.api/chat.postMessage', {
+        await fetch('https://slack.com/api/chat.postMessage', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json; charset=utf-8',
