@@ -236,12 +236,13 @@ async function postSlackDigest(issues) {
                 // ...then POST again
                 await commentOnThread(message, ts)
             }
+
+            return true
         })
         .catch((err) => {
             console.log(err)
             return false
         })
-        .finally(() => true)
 
     /**
      * Publishes given `message` int the thread identified by the Slack channel
