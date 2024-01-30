@@ -92,7 +92,7 @@ async function main() {  // XXX : Inject octokit for easier testing
     const actionableIssues = await filterIssues(issues, filters)
     console.log(`Issues remaining after filtering: ${actionableIssues.length}`)
 
-    const digestPublished = await postSlackDigest(issues)
+    const digestPublished = await postSlackDigest(actionableIssues)
 
     if (!digestPublished) {
         console.log('Something went wrong while publishing the digest to Slack...')
@@ -199,22 +199,21 @@ async function getTimeline(issue) {
  * @returns {Promise<boolean>}
  */
 async function postSlackDigest(issues) {
-    if (!(process.env.SLACK_CHANNEL && process.env.SLACK_TOKEN)) {
-        console.log('Digest could not be published to Slack.')
+    if (!(process.env.SLACK_TOKEN && process.env.SLACK_CHANNEL)) {
+        console.log('Digest could not be published to Slack due to missing environment variables.')
         return false
     }
 
     const parentThreadMessage = `${issues.length} issue(s) have stale assignees.`
-    console.log('sanity')
-    await fetch('https://slack.com/api/chat.postMessage', {
+    fetch('https://slack.com/api/chat.postMessage', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json; charset=utf-8',
             'Authorization': `Bearer ${process.env.SLACK_TOKEN}`
         },
         body: JSON.stringify({
-            channel: process.env.SLACK_CHANNEL,
-            text: parentThreadMessage
+            text: parentThreadMessage,
+            channel: process.env.SLACK_CHANNEL
         })
     })
         .then((resp) => {
@@ -230,8 +229,8 @@ async function postSlackDigest(issues) {
             const ts = data['ts']
 
             for (const issue of issues) {
-                const message = `<${issue.comment_url}|${issue_title}>`
-                console.log(message)
+                const message = `<${issue.html_url}|${issue.title}>`
+
                 // Wait for one second...
                 await wait(1000)
                 // ...then POST again
