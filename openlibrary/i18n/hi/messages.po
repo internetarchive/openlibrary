@@ -18,6 +18,9 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+# Note: The Unicode Consortium guidelines were considered, and this specific
+# pluralization rule was chosen to align with common usage and linguistic
+# characteristics in Hindi.
 "Generated-By: Babel 2.9.1\n"
 "X-Generator: Poedit 3.4.2\n"
 
@@ -117,8 +120,8 @@ msgstr[1] "%d व्यक्ति प्रतीक्षा कर रहा
 #, python-format
 msgid "Waiting for %d day"
 msgid_plural "Waiting for %d days"
-msgstr[0] "%d दिन का इंतजार है"
-msgstr[1] "%d दिन का इंतजार है"
+msgstr[0] "%d दिन की प्रतीक्षा"
+msgstr[1] "%d दिनों की प्रतीक्षा"
 
 #: diff.html:7
 #, python-format
@@ -237,7 +240,7 @@ msgstr "माफ़ करें। लगता है कि आप जो �
 #, python-format
 msgid ""
 "We've noted the error %s and will look into it as soon as possible. Head for <a href=\"/\">home</a>?"
-msgstr "हमने %s की गड़बड़ी नोट कर ली है और हम जल्द - से - जल्द इसकी जाँच करेंगे। <a href=\"/\">home</a>"
+msgstr "हमने %s की गड़बड़ी नोट कर ली है और हम जल्द - से - जल्द इसकी जाँच करेंगे। <a href=\"/\">home</a>?"
 
 #: lib/nav_head.html:30 library_explorer.html:6
 msgid "Library Explorer"
@@ -298,15 +301,15 @@ msgstr "ओपन लाइब्रेरी का सदस्य नही�
 
 #: messages.html:11
 msgid "Created new author record."
-msgstr "नया लेखक रिकॉर्ड बनाया।"
+msgstr "नया लेखक रिकॉर्ड बनाया गया।"
 
 #: messages.html:12
 msgid "Created new edition record."
-msgstr "नया संस्करण रिकॉर्ड बनाया।"
+msgstr "नया संस्करण रिकॉर्ड बनाया गया।"
 
 #: messages.html:13
 msgid "Created new work record."
-msgstr "नया कार्य रिकॉर्ड बनाया।"
+msgstr "नया कार्य रिकॉर्ड बनाया गया।"
 
 #: messages.html:14
 msgid "Added new book."
@@ -713,7 +716,7 @@ msgstr "किताबों के लिए खोज करें"
 
 #: work_search.html:72
 msgid "eBook?"
-msgstr "Ebook?"
+msgstr "ई - बुक?"
 
 #: type/edition/view.html:246 type/work/view.html:246 work_search.html:73
 msgid "Language"
@@ -746,7 +749,7 @@ msgstr "सभी"
 
 #: work_search.html:96
 msgid "Ebooks"
-msgstr "ई-पुस्तक"
+msgstr "ई - बुक्स"
 
 #: work_search.html:98
 msgid "Print Disabled"
@@ -1140,8 +1143,8 @@ msgstr "आपके पास इसे उधार लेने के लि
 #, python-format
 msgid "You have one more hour to borrow it."
 msgid_plural "You have %(hours)d more hours to borrow it."
-msgstr[0] "इसे उधार लेने के लिए आपके पास एक घंटा और है"
-msgstr[1] "इसे उधार लेने के लिए आपके पास %(count)d अधिक घंटे हैं।"
+msgstr[0] "इसे उधार लेने के लिए आपके पास एक घंटा और है।"
+msgstr[1] "इसे उधार लेने के लिए आपके पास %(hours)d अधिक घंटे हैं।"
 
 #: account/loans.html:199
 msgid "Borrow Now"
@@ -1247,7 +1250,7 @@ msgstr "नहीं, धन्यवाद"
 
 #: account/notifications.html:49
 msgid "Yes! Please!"
-msgstr "हाँ, ज़रूर।"
+msgstr "हाँ! ज़रूर!"
 
 #: EditButtons.html:21 EditButtonsMacros.html:24 account/notifications.html:57 account/privacy.html:54
 #: covers/manage.html:51
