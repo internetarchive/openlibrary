@@ -676,10 +676,29 @@ class Work(Thing):
         return summary
 
     @classmethod
+    def get_redirects(cls, day, batch_size=1000, batch=0):
+        tomorrow = day + timedelta(days=1)
+
+        work_redirect_ids = web.ctx.site.things({
+            "type": "/type/redirect",
+            "key~": "/works/*",
+            "limit": batch_size,
+            "offset": (batch * batch_size),
+            "sort": "-last_modified",
+            "last_modified>": day.strftime('%Y-%m-%d'),
+            "last_modified<": tomorrow.strftime('%Y-%m-%d'),
+        })
+        more = len(work_redirect_ids) == batch_size
+        logger.info(
+            f"[update-redirects] batch: {batch}, size {batch_size}, offset {batch * batch_size}, more {more}, len {len(work_redirect_ids)}"
+        )
+        return work_redirect_ids, more
+
+    @classmethod
     def resolve_redirects_bulk(
         cls,
+        days: int = 1,
         batch_size: int = 1000,
-        start_offset: int = 0,
         grace_period_days: int = 7,
         cutoff_date: datetime = datetime(year=2017, month=1, day=1),
         test: bool = False,
@@ -692,52 +711,37 @@ class Work(Thing):
         test - don't resolve stale redirects, just identify them
         """
         fixed = 0
-        batch = 0
-        pos = start_offset
-        grace_date = datetime.today() - timedelta(days=grace_period_days)
+        total = 0
+        current_date = datetime.today() - timedelta(days=grace_period_days)
+        cutoff_date = (current_date - timedelta(days)) if days else cutoff_date
 
-        go = True
-        while go:
-            logger.info(
-                f"[update-redirects] Batch {batch+1}: #{pos}",
-            )
-            work_redirect_ids = web.ctx.site.things(
-                {
-                    "type": "/type/redirect",
-                    "key~": "/works/*",
-                    "limit": batch_size,
-                    "offset": start_offset + (batch * batch_size),
-                    "sort": "-last_modified",
-                }
-            )
-            if not work_redirect_ids:
-                logger.info(f"[update-redirects] Stop: #{pos} No more records.")
-                break
-            work_redirect_batch = web.ctx.site.get_many(work_redirect_ids)
-            for work in work_redirect_batch:
-                pos += 1
-                if work.last_modified < cutoff_date:
-                    logger.info(
-                        f"[update-redirects] Stop: #{pos} <{work.key}> {work.last_modified} < {cutoff_date}"
-                    )
-                    go = False
-                    break
-                if work.last_modified > grace_date:
-                    logger.info(f"[update-redirects] Skip: #{pos} <{work.key}> grace")
-                else:
+        while current_date > cutoff_date:
+            has_more = True
+            batch = 0
+            while has_more:
+                logger.info(
+                    f"[update-redirects] {current_date}, batch {batch+1}: #{total}",
+                )
+                work_redirect_ids, has_more = cls.get_redirects(
+                    current_date, batch_size=batch_size, batch=batch
+                )
+                work_redirect_batch = web.ctx.site.get_many(work_redirect_ids)
+                for work in work_redirect_batch:
+                    total += 1
                     chain = Work.resolve_redirect_chain(work.key, test=test)
                     if chain['modified']:
                         fixed += 1
                         logger.info(
-                            f"[update-redirects] Update: #{pos} fix#{fixed} <{work.key}> {chain}"
+                            f"[update-redirects] {current_date}, Update: #{total} fix#{fixed} batch#{batch} <{work.key}> {chain}"
                         )
                     else:
                         logger.info(
-                            f"[update-redirects] No Update Required: #{pos} <{work.key}>"
+                            f"[update-redirects] No Update Required: #{total} <{work.key}>"
                         )
-            batch += 1
+                batch += 1
+            current_date = current_date - timedelta(days=1)
 
-        logger.info(f"[update-redirects] Done, processed {pos}, fixed {fixed}")
+        logger.info(f"[update-redirects] Done, processed {total}, fixed {fixed}")
 
 
 class Author(Thing):
