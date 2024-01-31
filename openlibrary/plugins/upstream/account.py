@@ -1084,38 +1084,39 @@ class account_loans_json(delegate.page):
 
 
 class account_loan_history(delegate.page):
-    path = "/people/([^/]+)/loan-history"
+    path = "/account/loan-history"
 
     @require_login
-    def GET(self, username):
+    def GET(self):
         i = web.input(page=1)
         page = int(i.page)
+        user = accounts.get_current_user()
+        username = user['key'].split('/')[-1]
         mb = MyBooksTemplate(username, key='loan_history')
-        if mb.is_my_page:
-            loan_history_data = get_loan_history_data(page=page, mb=mb)
-            template = render['account/loan_history'](
-                docs=loan_history_data['docs'],
-                current_page=page,
-                show_next=loan_history_data['show_next'],
-                ia_base_url=CONFIG_IA_DOMAIN,
-            )
-            return mb.render(header_title=_("Loan History"), template=template)
-        raise web.seeother(mb.user.key)
+        loan_history_data = get_loan_history_data(page=page, mb=mb)
+        template = render['account/loan_history'](
+            docs=loan_history_data['docs'],
+            current_page=page,
+            show_next=loan_history_data['show_next'],
+            ia_base_url=CONFIG_IA_DOMAIN,
+        )
+        return mb.render(header_title=_("Loan History"), template=template)
 
 
 class account_loan_history_json(delegate.page):
     encoding = "json"
-    path = "/people/([^/]+)/loan-history"
+    path = "/account/loan-history"
 
     @require_login
-    def GET(self, username):
+    def GET(self):
         i = web.input(page=1)
         page = int(i.page)
+        user = accounts.get_current_user()
+        username = user['key'].split('/')[-1]
         mb = MyBooksTemplate(username, key='loan_history')
-        if mb.is_my_page:
-            loan_history_data = get_loan_history_data(page=page, mb=mb)
-            web.header('Content-Type', 'application/json')
-            return delegate.RawText(json.dumps({"loans_history": loan_history_data}))
+        loan_history_data = get_loan_history_data(page=page, mb=mb)
+        web.header('Content-Type', 'application/json')
+        return delegate.RawText(json.dumps({"loans_history": loan_history_data}))
 
 
 class account_waitlist(delegate.page):
