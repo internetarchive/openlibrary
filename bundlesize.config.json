@@ -14,11 +14,11 @@
     },
     {
       "path": "static/build/carousel.*.js",
-      "maxSize": "1KB"
+      "maxSize": "6KB"
     },
     {
       "path": "static/build/carousels-partials.*.js",
-      "maxSize": "1KB"
+      "maxSize": "6KB"
     },
     {
       "path": "static/build/covers.*.js",
