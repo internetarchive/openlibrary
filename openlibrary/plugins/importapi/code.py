@@ -207,7 +207,7 @@ class ia_importapi(importapi):
         if status != 'ok' and not force_import:
             raise BookImportError(status, 'Prohibited Item %s' % identifier)
 
-        # Check 3 - Does this item have a marc record?
+        # Check 3 - Does this item have a MARC record?
         marc_record = get_marc_record_from_ia(
             identifier=identifier, ia_metadata=metadata
         )
