@@ -467,13 +467,18 @@ def get_missed_isbn_bib_keys(
     )
 
 
-def get_editions_from_isbns(isbns: Iterable) -> dict[str, Edition | None]:
+def get_editions_from_isbns(
+    isbns: Iterable, high_priority: bool = False
+) -> dict[str, Edition | None]:
     """
     Attempts to import items from their ISBN, returning a dict of possibly
     imported editions in the following form:
         {"123456789": edition | None, ...}}
     """
-    return {isbn: Edition.from_isbn(isbn) for isbn in isbns}
+    return {
+        isbn: Edition.from_isbn(isbn=isbn, high_priority=high_priority)
+        for isbn in isbns
+    }
 
 
 def get_editions_as_dicts(editions: dict[str, Edition | None]) -> dict[str, Any]:
@@ -489,7 +494,8 @@ def dynlinks(bib_keys: Iterable[str], options: web.storage) -> str:
     Return a JSONified dictionary of bib_keys (e.g. ISBN, LCCN) and select URLs
     associated with the corresponding edition, if any.
 
-    If a bib key is an ISBN and no edition is found, an imported is attempted.
+    If a bib key is an ISBN, options.import_missing=True, and no edition is found,
+    an import is attempted with high priority.
 
     Example return value for a bib key of the ISBN "1452303886":
         '{"1452303886": {"bib_key": "1452303886", "info_url": '
@@ -507,7 +513,7 @@ def dynlinks(bib_keys: Iterable[str], options: web.storage) -> str:
         if options.get("import_missing") and (
             missed_isbns := get_missed_isbn_bib_keys(bib_keys, edition_dicts)
         ):
-            editions = get_editions_from_isbns(missed_isbns)
+            editions = get_editions_from_isbns(missed_isbns, high_priority=True)
             edition_dicts.update(get_editions_as_dicts(editions))
         edition_dicts = process_result(edition_dicts, options.get('jscmd'))
     except:

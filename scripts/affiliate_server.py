@@ -33,7 +33,6 @@ web.amazon_api = AmazonAPI(*params, throttling=0.9)
 products = web.amazon_api.get_products(["195302114X", "0312368615"], serialize=True)
 ```
 """
-
 import itertools
 import json
 import logging
@@ -46,6 +45,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from enum import Enum
+from typing import Final
 
 import web
 
@@ -84,6 +84,7 @@ AZ_OL_MAP = {
     'publish_date': 'publish_date',
     'number_of_pages': 'number_of_pages',
 }
+RETRIES: Final = 5
 
 batch_name = ""
 batch: Batch | None = None
@@ -206,15 +207,16 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
         return
 
     books = [clean_amazon_metadata_for_load(product) for product in products]
-    if books and (pending_books := get_pending_books(books)):
+
+    if books:
         stats.increment(
             "ol.affiliate.amazon.total_items_batched_for_import",
-            n=len(pending_books),
+            n=len(books),
         )
         get_current_amazon_batch().add_items(
             [
                 {'ia_id': b['source_records'][0], 'status': 'staged', 'data': b}
-                for b in pending_books
+                for b in books
             ]
         )
 
@@ -364,7 +366,7 @@ class Submit:
                 {"error": "rejected_isbn", "isbn10": isbn10, "isbn13": isbn13}
             )
 
-        input = web.input(priority=False)
+        input = web.input(high_priority=False)
         priority = (
             Priority.HIGH if input.get("high_priority") == "true" else Priority.LOW
         )
@@ -378,7 +380,8 @@ class Submit:
                 }
             )
 
-        # Cache misses will be submitted to Amazon as ASINs (isbn10)
+        # Cache misses will be submitted to Amazon as ASINs (isbn10) and the response
+        # will be `staged` for import.
         if isbn10 not in web.amazon_queue.queue:
             isbn10_queue_item = PrioritizedISBN(isbn=isbn10, priority=priority)
             web.amazon_queue.put_nowait(isbn10_queue_item)
@@ -392,12 +395,19 @@ class Submit:
 
         # Check the cache a few times for product data to return to the client,
         # or otherwise return.
-        for _ in range(3):
-            time.sleep(1)
-            if product := cache.memcache_cache.get(f'amazon_product_{isbn13}'):
-                return json.dumps({"status": "success", "hit": product})
+        if priority == Priority.HIGH:
+            for _ in range(RETRIES):
+                time.sleep(1)
+                if product := cache.memcache_cache.get(f'amazon_product_{isbn13}'):
+                    return json.dumps({"status": "success", "hit": product})
 
-        return json.dumps({"status": "not found"})
+            stats.increment("ol.affiliate.amazon.total_items_not_found")
+            return json.dumps({"status": "not found"})
+
+        else:
+            return json.dumps(
+                {"status": "submitted", "queue": web.amazon_queue.qsize()}
+            )
 
 
 def load_config(configfile):

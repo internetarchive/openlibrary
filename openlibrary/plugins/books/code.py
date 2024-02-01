@@ -45,9 +45,7 @@ class books_json(delegate.page):
         )
         if web.ctx.path.endswith('.json'):
             i.format = 'json'
-            i.import_missing = (
-                True if i.get("import_missing") == "true" else False  # noqa: SIM210
-            )
+            i.import_missing = i.get("import_missing") == "true"
         return dynlinks.dynlinks(i.bibkeys.split(","), i)
 
 

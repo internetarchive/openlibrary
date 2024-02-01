@@ -29,7 +29,6 @@ from openlibrary.core.ratings import Ratings
 from openlibrary.utils import extract_numeric_id_from_olid, dateutil
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 
-
 from . import cache, waitinglist
 
 from urllib.parse import urlencode
@@ -394,11 +393,16 @@ class Edition(Thing):
                 return f"https://archive.org/download/{self.ocaid}/{filename}"
 
     @classmethod
-    def from_isbn(cls, isbn: str) -> "Edition | None":  # type: ignore[return]
+    def from_isbn(cls, isbn: str, high_priority: bool = False) -> "Edition | None":  # type: ignore[return]
         """
         Attempts to fetch an edition by ISBN, or if no edition is found, then
         check the import_item table for a match, then as a last result, attempt
         to import from Amazon.
+        :param bool high_priority: If `True`, (1) any AMZ import requests will block
+                until AMZ has fetched data, and (2) the AMZ request will go to
+                the front of the queue. If `False`, the import will simply be
+                queued up if the item is not in the AMZ cache, and the affiliate
+                server will return a promise.
         :return: an open library edition for this ISBN or None.
         """
         isbn = canonical(isbn)
@@ -428,18 +432,25 @@ class Edition(Thing):
         # Finally, try to fetch the book data from Amazon + import.
         try:
             if metadata := get_amazon_metadata(
-                id_=isbn10 or isbn13, id_type="isbn", high_priority=True
+                id_=isbn10 or isbn13, id_type="isbn", high_priority=high_priority
             ):
-                cleaned_metadata = clean_amazon_metadata_for_load(metadata)
-                import_item = {
-                    'ia_id': cleaned_metadata['source_records'][0],
-                    'status': 'staged',
-                    'data': cleaned_metadata,
-                }
-                batch = get_current_amazon_batch()
-                batch.add_items([import_item])
                 if edition := ImportItem.import_first_staged(identifiers=isbns):
                     return edition
+                else:
+                    # This is almost certainly duplicative; the affiliate-server
+                    # will queue for import as `staged` any Product API responses
+                    # that are put into the cache before returning metedata to
+                    # get_amazon_metadata(). But perhaps the DB is slow.
+                    cleaned_metadata = clean_amazon_metadata_for_load(metadata)
+                    import_item = {
+                        'ia_id': cleaned_metadata['source_records'][0],
+                        'status': 'staged',
+                        'data': cleaned_metadata,
+                    }
+                    batch = get_current_amazon_batch()
+                    batch.add_items([import_item])
+                    if edition := ImportItem.import_first_staged(identifiers=isbns):
+                        return edition
             else:
                 return None
         except requests.exceptions.ConnectionError:

@@ -2,6 +2,7 @@
 Open Library Plugin.
 """
 
+from urllib.parse import parse_qs, urlparse, urlencode, urlunparse
 import requests
 import web
 import json
@@ -463,10 +464,33 @@ class health(delegate.page):
         return web.ok('OK')
 
 
+def remove_high_priority(query: str) -> str:
+    """
+    Remove `high_priority=true` and `high_priority=false` from query parameters,
+    as the API expects to pass URL parameters through to another query, and
+    these may interfere with that query.
+
+    >>> remove_high_priority('high_priority=true&v=1')
+    'v=1'
+    """
+    query_params = parse_qs(query)
+    query_params.pop("high_priority", None)
+    new_query = urlencode(query_params, doseq=True)
+    return new_query
+
+
 class isbn_lookup(delegate.page):
     path = r'/(?:isbn|ISBN)/([0-9xX-]+)'
 
     def GET(self, isbn):
+        input = web.input(high_priority=False)
+
+        high_priority = input.get("high_priority") == "true"
+        if "high_priority" in web.ctx.env.get('QUERY_STRING'):
+            web.ctx.env['QUERY_STRING'] = remove_high_priority(
+                web.ctx.env.get('QUERY_STRING')
+            )
+
         # Preserve the url type (e.g. `.json`) and query params
         ext = ''
         if web.ctx.encoding and web.ctx.path.endswith('.' + web.ctx.encoding):
@@ -475,7 +499,7 @@ class isbn_lookup(delegate.page):
             ext += '?' + web.ctx.env['QUERY_STRING']
 
         try:
-            if ed := Edition.from_isbn(isbn):
+            if ed := Edition.from_isbn(isbn=isbn, high_priority=high_priority):
                 return web.found(ed.key + ext)
         except Exception as e:
             logger.error(e)
