@@ -1,6 +1,4 @@
-import 'slick-carousel';
-import '../../../../static/css/components/carousel--js.less';
-import Carousel from './carousel/Carousel';
+import {Carousel} from './carousel/Carousel';
 
 export function initCarouselsPartials() {
 
@@ -18,15 +16,8 @@ export function initCarouselsPartials() {
                 if (response){
                     response = JSON.parse(response)
                     $('.RelatedWorksCarousel').append(response[0]);
-                    const $carouselElements = $('.RelatedWorksCarousel .carousel--progressively-enhanced');
-                    if ($carouselElements.length) {
-                        $carouselElements.each(function (_i, carouselElement) {
-                            Carousel.add.apply(
-                                Carousel,
-                                JSON.parse(carouselElement.dataset.config)
-                            );
-                        });
-                    }
+                    $('.RelatedWorksCarousel .carousel--progressively-enhanced')
+                        .each((_i, el) => new Carousel($(el)));
                 }
             }
         });

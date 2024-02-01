@@ -1,76 +1,42 @@
+// Slick#1.6.0 is not on npm
+import 'slick-carousel';
+import '../../../../../static/css/components/carousel--js.less';
+
+/**
+ * @typedef {Object} CarouselConfig
+ * @property {[number, number, number, number, number, number]} booksPerBreakpoint
+ *      number of books to show at: [default, >1200px, >1024px, >600px, >480px, >360px]
+ * @property {Object} [loadMore] configuration for loading more items
+ * @property {String} loadMore.url to use to load more items
+ * @property {Number} loadMore.limit of new items to receive
+ * @property {String} loadMore.pageMode of page e.g. `offset`
+ */
+
 // used in templates/covers/add.html
-const Carousel = {
+export class Carousel {
     /**
-     * @param {String} selector (CSS) referring to the node to be enhanced
-     * @param {Number} [a] number of books to show (default)
-     * @param {Number} [b] number of books to show @1200px or more
-     * @param {Number} [c] number of books to show @1024px or more
-     * @param {Number} [d] number of books to show @600px or more
-     * @param {Number} [e] number of books to show @480px or more
-     * @param {Number} [f] number of books to show @360px or more
-     * @param {Object} [loadMore] configuration
-     * @param {String} loadMore.url to use to load more items
-     * @param {Number} loadMore.limit of new items to receive
-     * @param {String} loadMore.pageMode of page e.g. `offset`
+     * @param {jQuery} $container
      */
-    add: function(selector, a, b, c, d, e, f, loadMore) {
-        var responsive_settings, availabilityStatuses, addWork, default_limit;
+    constructor($container) {
+        var availabilityStatuses, addWork, default_limit;
 
-        a = a || 6;
-        b = b || 5;
-        c = c || 4;
-        d = d || 3;
-        e = e || 2;
-        f = f || 1;
+        /** @type {CarouselConfig} */
+        const config = JSON.parse($container.attr('data-config'));
 
-        responsive_settings = [
-            {
-                breakpoint: 1200,
-                settings: {
-                    slidesToShow: b,
-                    slidesToScroll: b,
-                    infinite: false,
-                }
-            },
-            {
-                breakpoint: 1024,
-                settings: {
-                    slidesToShow: c,
-                    slidesToScroll: c,
-                    infinite: false,
-                }
-            },
-            {
-                breakpoint: 600,
-                settings: {
-                    slidesToShow: d,
-                    slidesToScroll: d
-                }
-            },
-            {
-                breakpoint: 480,
-                settings: {
-                    slidesToShow: e,
-                    slidesToScroll: e
-                }
-            }
-        ];
-        if (f) {
-            responsive_settings.push({
-                breakpoint: 360,
-                settings: {
-                    slidesToShow: f,
-                    slidesToScroll: f
-                }
-            });
-        }
-
-        $(selector).slick({
+        $container.slick({
             infinite: false,
             speed: 300,
-            slidesToShow: a,
-            slidesToScroll: a,
-            responsive: responsive_settings
+            slidesToShow: config.booksPerBreakpoint[0],
+            slidesToScroll: config.booksPerBreakpoint[0],
+            responsive: [1200, 1024, 600, 480, 360]
+                .map((breakpoint, i) => ({
+                    breakpoint: breakpoint,
+                    settings: {
+                        slidesToShow: config.booksPerBreakpoint[i + 1],
+                        slidesToScroll: config.booksPerBreakpoint[i + 1],
+                        infinite: false,
+                    }
+                }))
         });
         //This loads in i18n strings from a hidden input element, generated in the books/custom_carousel.html template.
         const i18nValues = JSON.parse($('input[name="carousel-i18n-strings"]').attr('value'))
@@ -81,8 +47,6 @@ const Carousel = {
             error: {cls: 'cta-btn--missing', cta: i18nValues['error']},
             // private: {cls: 'cta-btn--available', cta: 'Preview'}
         };
-
-
 
         addWork = function(work) {
             const availability = work.availability || {};
@@ -145,6 +109,7 @@ const Carousel = {
         }
 
         // if a loadMore config is provided and it has a (required) url
+        const loadMore = config.loadMore;
         if (loadMore && loadMore.url) {
             // handle relative path
             const url = loadMore.url.startsWith('/') ? new URL(location.origin + loadMore.url) : new URL(loadMore.url);
@@ -155,7 +120,7 @@ const Carousel = {
             loadMore.locked = false; // prevent additional calls when not in critical section
 
             // Bind an action listener to this carousel on resize or advance
-            $(selector).on('afterChange', function(ev, slick, curSlide) {
+            $container.on('afterChange', function(ev, slick, curSlide) {
                 const totalSlides = slick.$slides.length;
                 const numActiveSlides = slick.$slides.filter('.slick-active').length;
                 // this allows us to pre-load before hitting last page
@@ -195,7 +160,7 @@ const Carousel = {
                 // Reset the page count - the result set is now 'new'
                 loadMore.page = 2;
 
-                const slick = $(selector).slick('getSlick');
+                const slick = $container.slick('getSlick');
                 const totalSlides = slick.$slides.length;
 
                 // Remove the current slides
@@ -216,6 +181,4 @@ const Carousel = {
             });
         }
     }
-};
-
-export default Carousel;
+}
