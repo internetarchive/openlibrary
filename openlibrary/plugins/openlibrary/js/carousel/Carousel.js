@@ -100,7 +100,11 @@ export class Carousel {
                 loadMore.extraParams = {published_in: `${ev.detail.yearFrom}-${ev.detail.yearTo}`};
 
                 // Reset the page count - the result set is now 'new'
-                loadMore.page = 1;
+                if (loadMore.pageMode === 'page') {
+                    loadMore.page = 1;
+                } else {
+                    loadMore.page = 0;
+                }
                 loadMore.allDone = false;
 
                 this.clearCarousel();
