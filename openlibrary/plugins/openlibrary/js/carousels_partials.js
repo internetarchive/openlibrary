@@ -17,7 +17,7 @@ export function initCarouselsPartials() {
                     response = JSON.parse(response)
                     $('.RelatedWorksCarousel').append(response[0]);
                     $('.RelatedWorksCarousel .carousel--progressively-enhanced')
-                        .each((_i, el) => new Carousel($(el)));
+                        .each((_i, el) => new Carousel($(el)).init());
                 }
             }
         });
