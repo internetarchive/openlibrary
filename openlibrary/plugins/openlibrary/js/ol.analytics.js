@@ -16,7 +16,7 @@ export default function initAnalytics() {
                 kind: 'event',
                 ec: values['category'],
                 ea: values['action'],
-                el: location.pathname,
+                el: values['label'] || location.pathname,
                 ev: 1,
                 loadtime: (endTime.getTime() - startTime.getTime()),
                 cache_bust: Math.random()
@@ -37,7 +37,11 @@ export default function initAnalytics() {
             var category_action = $(this).attr('data-ol-link-track').split('|');
             // for testing,
             // console.log(category_action[0], category_action[1]);
-            window.archive_analytics.ol_send_event_ping({category: category_action[0], action: category_action[1]});
+            window.archive_analytics.ol_send_event_ping({
+                category: category_action[0],
+                action: category_action[1],
+                label: category_action[2],
+            });
         });
     }
     window.vs = vs;

@@ -1,11 +1,11 @@
-$def with(link)
+$def with(link, analytics_override=None)
 
 $if link:
   <div class="cta-button-group">
     <a
       class="cta-btn"
       href="$link"
-      data-ol-link-track="CTAClick|NotInLibrary"
+      data-ol-link-track="$(analytics_override or 'CTAClick|NotInLibrary')"
     >$_('Not in Library')</a>
   </div>
 $else:

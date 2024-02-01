@@ -8,7 +8,7 @@ $if subjects:
     </div>
     <div class="carousel-container">
       <div class="carousel carousel--progressively-enhanced"
-        data-config="$json_encode({'booksPerBreakpoint': [6, 5, 4, 3, 2, 2]})">
+        data-config="$json_encode({'carouselKey': 'categories', 'booksPerBreakpoint': [6, 5, 4, 3, 2, 2]})">
         $for subject in subjects:
           $ presentable_subject_name = subject['presentable_name']
           $ icon = subject['key'].split('/')[-1]
