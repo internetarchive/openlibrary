@@ -197,30 +197,17 @@ class ia_importapi(importapi):
         """
         from_marc_record = False
 
-        # Case 1 - Is this a valid Archive.org item?
+        # Check 1 - Is this a valid Archive.org item?
         metadata = ia.get_metadata(identifier)
         if not metadata:
             raise BookImportError('invalid-ia-identifier', '%s not found' % identifier)
 
-        # Case 2 - Does the item have an openlibrary field specified?
-        # The scan operators search OL before loading the book and add the
-        # OL key if a match is found. We can trust them and attach the item
-        # to that edition.
-        edition_olid = metadata.get('openlibrary_edition') or metadata.get(
-            'openlibrary'
-        )
-        if metadata.get('mediatype') == 'texts' and edition_olid:
-            edition_data = cls.get_ia_record(metadata)
-            edition_data['openlibrary'] = edition_olid
-            edition_data = cls.populate_edition_data(edition_data, identifier)
-            return cls.load_book(edition_data)
-
-        # Case 3 - Can the item be loaded into Open Library?
+        # Check 2 - Can the item be loaded into Open Library?
         status = ia.get_item_status(identifier, metadata)
         if status != 'ok' and not force_import:
             raise BookImportError(status, 'Prohibited Item %s' % identifier)
 
-        # Case 4 - Does this item have a marc record?
+        # Check 3 - Does this item have a marc record?
         marc_record = get_marc_record_from_ia(
             identifier=identifier, ia_metadata=metadata
         )
