@@ -200,12 +200,12 @@ class ia_importapi(importapi):
         # Check 1 - Is this a valid Archive.org item?
         metadata = ia.get_metadata(identifier)
         if not metadata:
-            raise BookImportError('invalid-ia-identifier', '%s not found' % identifier)
+            raise BookImportError('invalid-ia-identifier', f'{identifier} not found')
 
         # Check 2 - Can the item be loaded into Open Library?
         status = ia.get_item_status(identifier, metadata)
         if status != 'ok' and not force_import:
-            raise BookImportError(status, 'Prohibited Item %s' % identifier)
+            raise BookImportError(status, f'Prohibited Item {identifier}')
 
         # Check 3 - Does this item have a MARC record?
         marc_record = get_marc_record_from_ia(
@@ -222,7 +222,7 @@ class ia_importapi(importapi):
                 edition_data = read_edition(marc_record)
             except MarcException as e:
                 logger.error(
-                    'failed to read from MARC record %s: %s', identifier, str(e)
+                    f'failed to read from MARC record {identifier}: {str(e)}'
                 )
                 raise BookImportError('invalid-marc-record')
         else:
@@ -267,8 +267,8 @@ class ia_importapi(importapi):
                 rec = MarcBinary(data)
                 edition = read_edition(rec)
             except MarcException as e:
-                details = f"{identifier}: {e}"
-                logger.error("failed to read from bulk MARC record %s", details)
+                details = f'{identifier}: {e}'
+                logger.error(f'failed to read from bulk MARC record {details}')
                 return self.error('invalid-marc-record', details, **next_data)
 
             actual_length = int(rec.leader()[:MARC_LENGTH_POS])
