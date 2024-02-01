@@ -221,9 +221,7 @@ class ia_importapi(importapi):
             try:
                 edition_data = read_edition(marc_record)
             except MarcException as e:
-                logger.error(
-                    f'failed to read from MARC record {identifier}: {str(e)}'
-                )
+                logger.error(f'failed to read from MARC record {identifier}: {e}')
                 raise BookImportError('invalid-marc-record')
         else:
             try:
