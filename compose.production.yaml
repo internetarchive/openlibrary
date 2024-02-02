@@ -174,7 +174,7 @@ services:
     command: docker/ol-nginx-start.sh
     environment:
       - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs /etc/cron.d/pull-sitemaps-from-ol-home0 /etc/cron.d/certbot
-      - NGINX_DOMAIN=openlibrary.org
+      - NGINX_DOMAIN=openlibrary.org www.openlibrary.org
     volumes:
       # letsencrypt
       - letsencrypt-data:/etc/letsencrypt
