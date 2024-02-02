@@ -158,6 +158,13 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         except (TypeError, ValueError):  # int(None) -> TypeErr, int("vii") -> ValueErr
             return None
 
+    @property 
+    def translation_of(self) -> str | None:
+        try: 
+            return self._edition.get("translation_of", None) or None
+        except (TypeError, ValueError): 
+            return None
+        
     @property
     def format(self) -> str | None:
         return self._edition.get('physical_format')
