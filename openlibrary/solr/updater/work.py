@@ -318,7 +318,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         alt_title_set = {}
         for book in (EditionSolrBuilder(self._work), *self._solr_editions):
             alt_title_set.update(set(book.alternative_title))
-            if 'translation_of' in book:
+            if book.translation_of:
                 alt_title_set.add(book.translation_of)
         return alt_title_set
 
