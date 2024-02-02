@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   auto_unassigner:
-    if: ${{ github.repository == "internetarchive/openlibrary"}}
+    if: ${{ github.repository == 'internetarchive/openlibrary'}}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
