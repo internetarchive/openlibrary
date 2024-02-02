@@ -217,6 +217,8 @@ async function postSlackDigest(issues) {
         })
     })
         .then((resp) => {
+            console.log('initial response:')
+            console.log(resp)
             if (!resp.ok) {
                 console.log('Failed to publish parent thread to Slack')
                 throw new Error()
@@ -228,6 +230,7 @@ async function postSlackDigest(issues) {
 
             for (const issue of issues) {
                 const message = `<${issue.html_url}|${issue.title}>`
+
                 // Wait for one second...
                 await wait(1000)
                 // ...then POST again

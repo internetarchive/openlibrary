@@ -7,6 +7,7 @@ Writes links to each issue to given Slack channel.
 """
 import argparse
 import errno
+import os
 import sys
 import time
 
@@ -34,6 +35,11 @@ username_to_slack_id = {
     'hornc': '<@U0EUS8DV0>',
 }
 
+github_headers = {
+    'X-GitHub-Api-Version': '2022-11-28',
+    'Accept': 'application/vnd.github+json',
+}
+
 
 def fetch_issues(updated_since: str):
     """
@@ -53,8 +59,7 @@ def fetch_issues(updated_since: str):
         'per_page': 100,
     }
     response = requests.get(
-        'https://api.github.com/search/issues',
-        params=p,
+        'https://api.github.com/search/issues', params=p, headers=github_headers
     )
     d = response.json()
     results = d['items']
@@ -62,7 +67,7 @@ def fetch_issues(updated_since: str):
     # Fetch additional updated issues, if any exist
     def get_next_page(url: str):
         """Returns list of issues and optional url for next page"""
-        resp = requests.get(url)
+        resp = requests.get(url, headers=github_headers)
         # Get issues
         d = resp.json()
         issues = d['items']
@@ -93,7 +98,9 @@ def filter_issues(issues: list, since: datetime):
     for i in issues:
         # Fetch comments using URL from previous GitHub search results
         comments_url = i.get('comments_url')
-        resp = requests.get(comments_url, params={'per_page': 100})
+        resp = requests.get(
+            comments_url, params={'per_page': 100}, headers=github_headers
+        )
 
         # Ensure that we have the last page of comments
         links = resp.links
@@ -101,7 +108,7 @@ def filter_issues(issues: list, since: datetime):
         last_url = last.get('url', '')
 
         if last_url:
-            resp = requests.get(last_url)
+            resp = requests.get(last_url, headers=github_headers)
 
         # Get last comment
         comments = resp.json()
@@ -245,16 +252,9 @@ def start_job(args: argparse.Namespace):
     since, date_string = time_since(args.hours)
     issues = fetch_issues(date_string)
 
-    # XXX : If we are only running this script daily, we can remove this condition to
-    # always post a message to Slack. If the digest is ever not published, we'll know
-    # that something is wrong with our script runner.
-    if filtered_issues := filter_issues(issues, since):
-        publish_digest(filtered_issues, args.channel, args.slack_token, args.hours)
-        # XXX : Log this
-        print('Digest posted to Slack.')
-    else:
-        # XXX : Log this
-        print('No issues needing attention found.')
+    filtered_issues = filter_issues(issues, since)
+    publish_digest(filtered_issues, args.channel, args.slack_token, args.hours)
+    print('Digest posted to Slack.')
 
 
 def _get_parser() -> argparse.ArgumentParser:
@@ -287,4 +287,9 @@ if __name__ == '__main__':
     # Process command-line arguments and starts the notification job
     parser = _get_parser()
     args = parser.parse_args()
+
+    # If found, add token to GitHub request headers:
+    github_token = os.environ.get('GITHUB_TOKEN', '')
+    if github_token:
+        github_headers['Authorization'] = f'Bearer {github_token}'
     start_job(args)

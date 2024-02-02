@@ -17,5 +17,6 @@ jobs:
       - run: pip install requests
       - run: scripts/gh_scripts/issue_comment_bot.py 24 "$SLACK_CHANNEL" "$SLACK_TOKEN"
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ABC_TEAM_PLUS }}
