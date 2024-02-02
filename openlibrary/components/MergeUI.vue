@@ -78,8 +78,8 @@ export default {
         const readyCta = this.isSuperLibrarian ? DO_MERGE : REQUEST_MERGE
         this.$watch(
             '$refs.mergeTable.merge',
-            (new_value, old_value) => {
-                if (new_value && new_value !== old_value) this.mergeStatus = readyCta;
+            (new_value) => {
+                if (new_value !== undefined && this.mergeStatus !== 'Done') this.mergeStatus = readyCta;
             }
         );
     },
