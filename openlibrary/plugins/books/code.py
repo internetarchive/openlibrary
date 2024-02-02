@@ -18,11 +18,13 @@ class books_json(delegate.page):
     with Open Library editions, such as the thumbnail URL.
 
     - `bibkeys` is expected a comma separated string of ISBNs, LCCNs, etc.
-    - `import_missing=1` will attempt to import an edition from a supplied ISBN
-      if no matching edition is found.
+    - `'high_priority=true'` will attempt to import an edition from a supplied ISBN
+      if no matching edition is found. If not `high_priority`, then missed bib_keys
+      are queued for lookup on the affiliate-server, and any responses are `staged`
+      in `import_item`.
 
     Example call:
-        http://localhost:8080/api/books.json?bibkeys=059035342X,0312368615&import_missing=1
+        http://localhost:8080/api/books.json?bibkeys=059035342X,0312368615&high_priority=true
 
     Returns a JSONified dictionary of the form:
         {"059035342X": {
@@ -40,13 +42,11 @@ class books_json(delegate.page):
 
     @jsonapi
     def GET(self):
-        i = web.input(
-            bibkeys='', callback=None, details="false", import_missing="false"
-        )
+        i = web.input(bibkeys='', callback=None, details="false", high_priority="false")
         if web.ctx.path.endswith('.json'):
             i.format = 'json'
-            i.import_missing = i.get("import_missing") == "true"
-        return dynlinks.dynlinks(i.bibkeys.split(","), i)
+            i.high_priority = i.get("high_priority") == "true"
+        return dynlinks.dynlinks(bib_keys=i.bibkeys.split(","), options=i)
 
 
 class read_singleget(delegate.page):

@@ -467,26 +467,24 @@ def get_missed_isbn_bib_keys(
     )
 
 
-def get_editions_from_isbns(
+def get_isbn_editiondict_map(
     isbns: Iterable, high_priority: bool = False
-) -> dict[str, Edition | None]:
+) -> dict[str, Any]:
     """
-    Attempts to import items from their ISBN, returning a dict of possibly
-    imported editions in the following form:
-        {"123456789": edition | None, ...}}
+    Attempts to import items from their ISBN, returning a mapping of possibly
+    imported edition_dicts in the following form:
+        {isbn_string: edition_dict...}}
     """
-    return {
+    # Get a mapping of ISBNs to new Editions (or `None`)
+    isbn_edition_map = {
         isbn: Edition.from_isbn(isbn=isbn, high_priority=high_priority)
         for isbn in isbns
     }
 
-
-def get_editions_as_dicts(editions: dict[str, Edition | None]) -> dict[str, Any]:
-    """
-    For each edition that exits, convert it to a dict and return it in the form:
-        {bib_key: edition_dict, ...}
-    """
-    return {bib_key: edition.dict() for bib_key, edition in editions.items() if edition}
+    # Convert edictions to dicts, dropping ISBNs for which no edition was created.
+    return {
+        isbn: edition.dict() for isbn, edition in isbn_edition_map.items() if edition
+    }
 
 
 def dynlinks(bib_keys: Iterable[str], options: web.storage) -> str:
@@ -494,8 +492,9 @@ def dynlinks(bib_keys: Iterable[str], options: web.storage) -> str:
     Return a JSONified dictionary of bib_keys (e.g. ISBN, LCCN) and select URLs
     associated with the corresponding edition, if any.
 
-    If a bib key is an ISBN, options.import_missing=True, and no edition is found,
-    an import is attempted with high priority.
+    If a bib key is an ISBN, options.high_priority=True, and no edition is found,
+    an import is attempted with high priority; otherwise missed bib_keys are queued
+    for lookup via the affiliate-server and responses are `staged` in `import_item`.
 
     Example return value for a bib key of the ISBN "1452303886":
         '{"1452303886": {"bib_key": "1452303886", "info_url": '
@@ -509,12 +508,14 @@ def dynlinks(bib_keys: Iterable[str], options: web.storage) -> str:
 
     try:
         edition_dicts = query_docs(bib_keys)
-        # Optionally attempt to import and use missed bib_keys if they're ISBNs.
-        if options.get("import_missing") and (
-            missed_isbns := get_missed_isbn_bib_keys(bib_keys, edition_dicts)
-        ):
-            editions = get_editions_from_isbns(missed_isbns, high_priority=True)
-            edition_dicts.update(get_editions_as_dicts(editions))
+        # For any ISBN bib_keys without hits, attempt to import+use immediately if
+        # `high_priority`. Otherwise, queue them for lookup via the AMZ Products
+        # API and process whatever editions were found in existing data.
+        if missed_isbns := get_missed_isbn_bib_keys(bib_keys, edition_dicts):
+            new_editions = get_isbn_editiondict_map(
+                isbns=missed_isbns, high_priority=options.get("high_priority")
+            )
+            edition_dicts.update(new_editions)
         edition_dicts = process_result(edition_dicts, options.get('jscmd'))
     except:
         print("Error in processing Books API", file=sys.stderr)
