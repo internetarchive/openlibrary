@@ -177,7 +177,7 @@ msgstr "कैंसिल करें और वापस जाएँ।"
 
 #: edit_yaml.html:22
 msgid "YAML Representation:"
-msgstr ""
+msgstr "YAML Representation:"
 
 #: BookPreview.html:11 books/edit/edition.html:669 editpage.html:15
 msgid "Preview"
@@ -330,7 +330,7 @@ msgstr "%(path)s नहीं मिला"
 
 #: languages/notfound.html:10 notfound.html:14
 msgid "404 - Page Not Found"
-msgstr ""
+msgstr "404 - Page Not Found"
 
 #: notfound.html:18
 #, python-format
@@ -355,11 +355,11 @@ msgstr "अनुमति"
 
 #: permission.html:28
 msgid "Child Permission"
-msgstr ""
+msgstr "Child Permission"
 
 #: permission_denied.html:10
 msgid "Permission denied."
-msgstr "अनुमति अस्वीकृत."
+msgstr "अनुमति अस्वीकृत।"
 
 #: permission_denied.html:30
 #, python-format
@@ -753,7 +753,7 @@ msgstr "ई - बुक्स"
 
 #: work_search.html:98
 msgid "Print Disabled"
-msgstr ""
+msgstr "Print Disabled"
 
 #: work_search.html:101
 msgid "This is only visible to super librarians."
@@ -1569,16 +1569,15 @@ msgstr "ईमेल वेरिफ़िकेशन विफल रहा"
 
 #: account/verify/failed.html:14
 msgid "Your email address couldn't be verified. Your verification link seems invalid or expired."
-msgstr ""
-"आपके ईमेल पते की पुष्टि नहीं की जा सकी। ऐसा लगता है कि आपका वेरिफ़िकेशन लिंक अमान्य है या उसकी समय - सीमा खत्म हो गई."
+msgstr "आपके ईमेल की पुष्टि नहीं की जा सकी। ऐसा लगता है कि आपका वेरिफ़िकेशन लिंक अमान्य है या उसकी समय - सीमा खत्म हो गई."
 
 #: account/verify/failed.html:22
 msgid "Enter your email address here"
-msgstr "अपना ईमेल पता यहां पर डालें"
+msgstr "अपना ईमेल यहां पर डालें"
 
 #: account/verify/failed.html:25
 msgid "No user registered with this email address."
-msgstr "इस ईमेल पते के साथ कोई उपयोगकर्ता पंजीकृत नहीं है।"
+msgstr "इस ईमेल के साथ कोई उपयोगकर्ता पंजीकृत नहीं है।"
 
 #: account/verify/success.html:7
 msgid "Email Verification Successful"
@@ -1587,7 +1586,7 @@ msgstr "ईमेल वेरिफ़िकेशन सफल रहा"
 #: account/verify/success.html:15
 #, python-format
 msgid "Yay! Your email address has been verified. Please <a href='%s'>log in to continue</a>."
-msgstr "हाँ! आपका ईमेल पता सत्यापित कर दिया गया है। <a href='%s'>जारी रखने के लिए कृपया लॉग इन</a> करें।"
+msgstr "हाँ! आपका ईमेल सत्यापित कर दिया गया है। <a href='%s'>जारी रखने के लिए कृपया लॉग इन</a> करें।"
 
 #: admin/attach_debugger.html:22
 msgid "Waiting for debugger to attach..."
@@ -1621,8 +1620,8 @@ msgstr "ePub"
 #, python-format
 msgid "%d Current Loan"
 msgid_plural "%d Current Loans"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d वर्तमान ऋण"
+msgstr[1] "%d वर्तमान ऋण"
 
 #: RecentChanges.html:18 RecentChangesUsers.html:21 admin/ip/view.html:45 admin/loans_table.html:45
 #: admin/people/edits.html:42 recentchanges/render.html:31 recentchanges/updated_records.html:29
@@ -1828,7 +1827,7 @@ msgstr "प्रोजेक्ट गुटेनबर्ग से एक HT
 #: book_providers/gutenberg_download_options.html:15
 #: book_providers/standard_ebooks_download_options.html:14
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #: book_providers/gutenberg_download_options.html:16
 msgid "Download a text version from Project Gutenberg"
@@ -1990,7 +1989,7 @@ msgstr "स्टैंडर्ड ई - बुक्स से कोबो �
 
 #: book_providers/standard_ebooks_download_options.html:17
 msgid "Kobo (kepub)"
-msgstr ""
+msgstr "Kobo (kepub)"
 
 #: book_providers/standard_ebooks_download_options.html:18
 msgid "View the source code for this Standard Ebook at GitHub"
@@ -2592,7 +2591,7 @@ msgstr "क्या आप इस संस्करण के किसी व
 
 #: books/edit/edition.html:501
 msgid "Like, Dewey Decimal?"
-msgstr ""
+msgstr "Like, Dewey Decimal?"
 
 #: books/edit/edition.html:514
 msgid "Add a new classification type"
@@ -2747,8 +2746,7 @@ msgid "From page"
 msgstr "पृष्ठ से"
 
 #: books/edit/web.html:13
-msgid ""
-"Please connect Open Library records to <u>good</u><span class=\"orange\">*</span> online resources."
+msgid "Please connect Open Library records to <u>good</u><span class=\"orange\">*</span> online resources."
 msgstr "कृपया ओपन लाइब्रेरी रिकॉर्ड को <u>अच्छे</u><span class=\"orange\">*</span> ऑनलाइन संसाधनों से कनेक्ट करें।"
 
 #: books/edit/web.html:19
@@ -2817,9 +2815,7 @@ msgstr "दिसंबर"
 
 #: check_ins/check_in_form.html:38
 msgid "Add an optional check-in date.  Check-in dates are used to track yearly reading goals."
-msgstr ""
-"चेक इन की एक वैकल्पिक तारीख जोड़ें।  चेक इन की तारीखों का इस्तेमाल सालाना पढ़ने के लक्ष्यों को ट्रैक करने के लिए किया जाता "
-"है।"
+msgstr "चेक इन की एक वैकल्पिक तारीख जोड़ें।  चेक इन की तारीखों का इस्तेमाल सालाना पढ़ने के लक्ष्यों को ट्रैक करने के लिए किया जाता है।"
 
 #: check_ins/check_in_form.html:41
 msgid "End Date:"
@@ -3502,7 +3498,11 @@ msgid ""
 "\">Wayback Machine</a>, <a href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it."
 "org\">archive-it.org</a>"
 msgstr ""
-
+"ओपन लाइब्रेरी <a href=\"//archive.org/\">इंटरनेट आर्काइव</a> की एक पहल है, a 501(c)(3) गैर-"
+"लाभ, डिजिटल रूप में इंटरनेट साइटों और अन्य सांस्कृतिक कलाकृतियों की एक डिजिटल लाइब्रेरी। "
+"अन्य <a href=\"//archive.org/projects/\">प्रोजेक्ट</a> में <a href=\"//archive.org/web/"
+"\">वेबैक मशीन</a>, <a href=\"//archive.org/\">archive.org</a> और <a href=\"//archive-it।"
+"org\">archive-it.org</a> शामिल हैं"
 
 #: lib/nav_foot.html:70
 #, python-format
@@ -3691,8 +3691,8 @@ msgstr "<a href=\"%(key)s\">%(owner)s</a> से"
 #, python-format
 msgid "%(count)d item"
 msgid_plural "%(count)d items"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d आइटम"
+msgstr[1] "%(count)d आइटम"
 
 #: lists/home.html:53 lists/preview.html:26 lists/snippet.html:20
 #, python-format
@@ -3781,8 +3781,8 @@ msgstr "संपादन के लिए देखें या सभी र
 #, python-format
 msgid "%(count)d List"
 msgid_plural "%(count)d Lists"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d लिस्ट"
+msgstr[1] "%(count)d लिस्ट"
 
 #: databarAuthor.html:86 lists/widget.html:86
 msgid "from"
@@ -3965,7 +3965,7 @@ msgstr "टिप्पणी जोड़े..."
 
 #: observations/review_component.html:16
 msgid "Community Reviews"
-msgstr ""
+msgstr "Community Reviews"
 
 #: observations/review_component.html:39
 msgid "No community reviews have been submitted for this work."
@@ -3996,8 +3996,8 @@ msgstr "कुछ और आज़माएँ?"
 #, python-format
 msgid "%(count)s ebook"
 msgid_plural "%(count)s ebooks"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)s ई - बुक्स"
+msgstr[1] "%(count)s ई - बुक्स"
 
 #: publishers/view.html:33
 msgid ""
@@ -4054,21 +4054,21 @@ msgstr "बॉट द्वारा"
 #: recentchanges/default/message.html:29 recentchanges/edit-book/message.html:29
 #: site/around_the_library.html:45
 msgid "opened a new Open Library account!"
-msgstr ""
+msgstr "एक नया ओपन लाइब्रेरी खाता खोला!"
 
 #: recentchanges/merge-authors/message.html:13
 #, python-format
 msgid "%(who)s merged one duplicate of %(master)s"
 msgid_plural "%(who)s merged %(count)d duplicates of %(master)s"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(who)s ने %(master)s की एक डुप्लिकेट को मर्ज किया है"
+msgstr[1] "%(who)s ने %(master)s के %(count)d डुप्लिकेट को मर्ज कर दिया है"
 
 #: recentchanges/merge-authors/message.html:20
 #, python-format
 msgid "one duplicate of %(master)s was merged anonymously"
 msgid_plural "%(count)d duplicates of %(master)s were merged anonymously"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(master)s की एक डुप्लिकेट गुमनाम व्यक्ति द्वारा मर्ज किया गया था"
+msgstr[1] "%(count)d %(master)s के डुप्लिकेट को गुमनाम व्यक्ति द्वारा मर्ज किया गया था"
 
 #: recentchanges/merge-authors/view.html:8
 msgid "Author Merge"
@@ -4094,15 +4094,15 @@ msgstr "डुप्लीकेट"
 #, python-format
 msgid "Merged %(count)d duplicate %(type)s record into this primary."
 msgid_plural "Merged %(count)d duplicate %(type)s records into this primary."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "इस प्राथमिक में %(count)d डुप्लिकेट %(type)s रिकॉर्ड को मर्ज किया गया।"
+msgstr[1] "इस प्राथमिक में %(count)d डुप्लिकेट %(type)s रिकॉर्ड को मर्ज किया गया।"
 
 #: recentchanges/merge/view.html:51
 #, python-format
 msgid "%(count)d record modified."
 msgid_plural "%(count)d records modified."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d रिकॉर्ड संशोधित।"
+msgstr[1] "%(count)d रिकॉर्ड संशोधित।"
 
 #: recentchanges/merge-authors/view.html:53
 msgid "Updated Records"
@@ -4304,8 +4304,8 @@ msgstr "मोस्ट वांटेड बुक्स (इस महीन�
 #, python-format
 msgid "Added %(count)d time"
 msgid_plural "Added %(count)d times"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d बार जोड़ा गया"
+msgstr[1] "%(count)d बार जोड़ा गया"
 
 #: stats/readinglog.html:75
 msgid "Most Wanted Books (All Time)"
@@ -4706,7 +4706,7 @@ msgstr "<span class=\"gray small sansserif\">ओपन लाइब्रेर�
 
 #: type/edition/view.html:503 type/work/view.html:503
 msgid "Wikipedia"
-msgstr ""
+msgstr "विकिपीडिया"
 
 #: type/edition/view.html:519 type/work/view.html:519
 msgid "Lists containing this Book"
@@ -4962,8 +4962,8 @@ msgstr "शीर्षक मौजूद नहीं है"
 #, python-format
 msgid "Showing %(count)d featured edition."
 msgid_plural "Showing %(count)d featured editions."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d फीचर्ड संस्करण दिखाया जा रहा है।"
+msgstr[1] "%(count)d फीचर्ड संस्करण दिखाए जा रहे हैं।"
 
 #: type/work/editions_datatable.html:14
 #, python-format
@@ -4996,7 +4996,7 @@ msgstr " - इसमें शिपिंग भी शामिल है"
 
 #: AffiliateLinks.html:25
 msgid "Amazon"
-msgstr ""
+msgstr "Amazon"
 
 #: AffiliateLinks.html:32
 msgid "Bookshop.org"
@@ -5011,8 +5011,8 @@ msgstr "%(store)s पर बिक्री के लिए इस संस्
 #, python-format
 msgid "%(n)s other"
 msgid_plural "%(n)s others"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(n)s अन्य"
+msgstr[1] "%(n)s अन्य"
 
 #: BookByline.html:36
 msgid "by an <em>unknown author</em>"
@@ -5042,8 +5042,8 @@ msgstr "समीक्षा"
 #, python-format
 msgid "View %(count)s Edition"
 msgid_plural "View %(count)s Editions"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)s संस्करण देखें"
+msgstr[1] "%(count)s संस्करण देखें"
 
 #: EditionNavBar.html:19
 msgid "Details"
@@ -5053,8 +5053,8 @@ msgstr "विवरण"
 #, python-format
 msgid "%(reviews)s Review"
 msgid_plural "%(reviews)s Reviews"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(reviews)s समीक्षा"
+msgstr[1] "%(reviews)s समीक्षाएँ"
 
 #: EditionNavBar.html:33
 msgid "Related Books"
@@ -5195,8 +5195,8 @@ msgstr "रिटर्न बुक"
 #, python-format
 msgid "in <a class=\"hoverlink\" title=\"%(langs)s\">1 language</a>"
 msgid_plural "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages</a>"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "<a class=\"hoverlink\" title=\"%(langs)s\">1 भाषा</a> में"
+msgstr[1] "<a class=\"hoverlink\" title=\"%(langs)s\">%(count)d भाषाओं</a> में"
 
 #: SearchResultsWork.html:92
 #, python-format
@@ -5249,7 +5249,7 @@ msgstr "वेब एपीआई"
 
 #: Subnavigation.html:11
 msgid "Client Library"
-msgstr ""
+msgstr "Client Library"
 
 #: Subnavigation.html:12
 msgid "Data Dumps"
