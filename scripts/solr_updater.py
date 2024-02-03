@@ -242,11 +242,11 @@ async def update_keys(keys):
 
 async def main(
     ol_config: str,
+    osp_dump: str,
     debugger: bool = False,
     state_file: str = 'solr-update.state',
     exclude_edits_containing: str | None = None,
     ol_url='http://openlibrary.org/',
-    osp_dump: str | None = None,
     solr_url: str | None = None,
     solr_next: bool = False,
     socket_timeout: int = 10,

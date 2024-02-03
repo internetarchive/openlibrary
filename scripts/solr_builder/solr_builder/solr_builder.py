@@ -376,11 +376,11 @@ def build_job_query(
 async def main(
     cmd: Literal['index', 'fetch-end'],
     job: Literal['works', 'orphans', 'authors', 'lists'],
+    osp_dump: str,
     postgres="postgres.ini",
     ol="http://ol/",
     ol_config="../../conf/openlibrary.yml",
     solr: str | None = None,
-    osp_dump: str | None = None,
     skip_solr_id_check: bool = True,
     start_at: str | None = None,
     offset=0,

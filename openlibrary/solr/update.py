@@ -154,9 +154,9 @@ def load_configs(
 
 async def main(
     keys: list[str],
+    osp_dump: str,
     ol_url="http://openlibrary.org",
     ol_config="openlibrary.yml",
-    osp_dump: str | None = None,
     output_file: str | None = None,
     commit=True,
     data_provider: Literal['default', 'legacy', 'external'] = "default",
