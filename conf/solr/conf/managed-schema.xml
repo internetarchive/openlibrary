@@ -207,7 +207,7 @@
     <field name="already_read_count" type="pint"/>
 
     <!-- Open Syllabus Project -->
-    <field name="osp_count_total" type="pint"/>
+    <field name="osp_count" type="pint"/>
 
     <field name="text" type="text_en_splitting" stored="false" multiValued="true"/>
 
