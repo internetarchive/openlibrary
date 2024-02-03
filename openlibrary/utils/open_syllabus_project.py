@@ -5,10 +5,7 @@ import gzip
 from contextlib import closing
 from pathlib import Path
 
-
-# Define the SQLite database file path
-# Usually placed in root OL directory
-db_file = 'osp_totals.db'
+from openlibrary.solr.utils import get_osp_dump_location
 
 
 # Function to get the total based on OLID
@@ -25,6 +22,7 @@ def get_total_by_olid(olid: str) -> int | None:
 
     olid_int = olid.replace("/works/", "").replace("OL", "").replace("W", "")
     try:
+        db_file = get_osp_dump_location()
         # Connect to the SQLite database
         conn = sqlite3.connect(db_file)
         cursor = conn.cursor()
@@ -43,7 +41,7 @@ def get_total_by_olid(olid: str) -> int | None:
     return None
 
 
-def generate_osp_db(input_directory: Path) -> None:
+def generate_osp_db(input_directory: Path, output_file: str) -> None:
     """
     This function generates an SQLite database from a directory of .json.gz files.
     The database contains data extracted from the JSON files, including the OLID and total fields.
@@ -61,7 +59,7 @@ def generate_osp_db(input_directory: Path) -> None:
     data = []
 
     # Create an SQLite database and table
-    with closing(sqlite3.connect(db_file)) as conn:
+    with closing(sqlite3.connect(output_file)) as conn:
         cursor = conn.cursor()
         # Drop the table if it exists so we only have fresh data
         cursor.execute('DROP TABLE IF EXISTS data;')
@@ -101,4 +99,4 @@ def generate_osp_db(input_directory: Path) -> None:
         cursor.execute("CREATE INDEX IF NOT EXISTS olid_index ON data (olid)")
         conn.commit()
 
-        print(f'SQLite database created successfully: {db_file}')
+        print(f'SQLite database created successfully: {output_file}')

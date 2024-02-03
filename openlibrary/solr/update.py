@@ -22,6 +22,7 @@ from openlibrary.solr.utils import (
     load_config,
     set_solr_base_url,
     set_solr_next,
+    set_osp_dump_location,
     solr_update,
 )
 from openlibrary.utils import uniq
@@ -155,6 +156,7 @@ async def main(
     keys: list[str],
     ol_url="http://openlibrary.org",
     ol_config="openlibrary.yml",
+    osp_dump: str | None = None,
     output_file: str | None = None,
     commit=True,
     data_provider: Literal['default', 'legacy', 'external'] = "default",
@@ -188,6 +190,7 @@ async def main(
         set_solr_base_url(solr_base)
 
     set_solr_next(solr_next)
+    set_osp_dump_location(osp_dump)
 
     await update_keys(keys, commit=commit, output_file=output_file, update=update)
 

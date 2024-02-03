@@ -22,4 +22,4 @@ from pathlib import Path
 input_directory = Path(
     "/Users/rayberger/Downloads/drive-download-20230612T174927Z-001 (1)"
 )
-generate_osp_db(input_directory)
+generate_osp_db(input_directory, output_file="osp_totals.db")

@@ -246,6 +246,7 @@ async def main(
     state_file: str = 'solr-update.state',
     exclude_edits_containing: str | None = None,
     ol_url='http://openlibrary.org/',
+    osp_dump: str | None = None,
     solr_url: str | None = None,
     solr_next: bool = False,
     socket_timeout: int = 10,
@@ -285,6 +286,7 @@ async def main(
         update.set_solr_base_url(solr_url)
 
     update.set_solr_next(solr_next)
+    update.set_osp_dump_location(osp_dump)
 
     logger.info("loading config from %s", ol_config)
     load_config(ol_config)

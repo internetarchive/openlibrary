@@ -14,6 +14,7 @@ logger = logging.getLogger("openlibrary.solr")
 
 solr_base_url = None
 solr_next: bool | None = None
+osp_dump_location = None
 
 
 def load_config(c_config='conf/openlibrary.yml'):
@@ -59,6 +60,23 @@ def get_solr_next() -> bool:
 def set_solr_next(val: bool):
     global solr_next
     solr_next = val
+
+
+def get_osp_dump_location() -> str:
+    """
+    Get whether this is the next version of solr; ie new schema configs/fields, etc.
+    """
+    global osp_dump_location
+
+    if osp_dump_location is None:
+        raise Exception("OSP dump location not set")
+
+    return osp_dump_location
+
+
+def set_osp_dump_location(val: str):
+    global osp_dump_location
+    osp_dump_location = val
 
 
 @dataclass
