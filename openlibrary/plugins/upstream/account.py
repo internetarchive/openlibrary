@@ -26,7 +26,7 @@ from openlibrary.core import helpers as h, lending
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.lending import (
-    get_availability_of_ocaids,
+    get_items_and_add_availability,
     s3_loan_api,
 )
 from openlibrary.core.observations import Observations
@@ -44,6 +44,7 @@ from openlibrary.accounts import (
 )
 from openlibrary.plugins.upstream import borrow, forms, utils
 from openlibrary.utils.dateutil import elapsed_time
+
 
 logger = logging.getLogger("openlibrary.account")
 
@@ -1115,7 +1116,13 @@ class account_loan_history_json(delegate.page):
         username = user['key'].split('/')[-1]
         mb = MyBooksTemplate(username, key='loan_history')
         loan_history_data = get_loan_history_data(page=page, mb=mb)
+        # Ensure all `docs` are `dicts`, as some are `Edition`s.
+        loan_history_data['docs'] = [
+            loan.dict() if not isinstance(loan, dict) else loan
+            for loan in loan_history_data['docs']
+        ]
         web.header('Content-Type', 'application/json')
+
         return delegate.RawText(json.dumps({"loans_history": loan_history_data}))
 
 
@@ -1184,7 +1191,7 @@ def process_goodreads_csv(i):
     return books, books_wo_isbns
 
 
-def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, str | int]:
+def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, Any]:
     """
     Retrieve IA loan history data for page `page` of the patron's history.
 
@@ -1219,52 +1226,38 @@ def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, str | i
         loan_history.pop()
 
     ocaids = [loan_record['identifier'] for loan_record in loan_history]
-    ocaid_availability = get_availability_of_ocaids(ocaids)
     loan_history_map = {
         loan_record['identifier']: loan_record for loan_record in loan_history
     }
-    editions = web.ctx.site.get_many(
-        [
-            f"/books/{item.get('openlibrary_edition')}"
-            for item in ocaid_availability.values()
-            if item.get('openlibrary_edition')
-        ]
-    )
 
-    # Create 'placeholder' editions for items in the Internet Archive loan
-    # history, but absent from Open Library.
-    ia_only_loans = [
-        loan
-        for loan in ocaid_availability.values()
-        if not loan.get('openlibrary_edition')
-    ]
+    # Get editions and attach their loan history.
+    editions_map = get_items_and_add_availability(ocaids=ocaids)
+    for edition in editions_map.values():
+        edition_loan_history = loan_history_map.get(edition.get('ocaid'))
+        edition['last_loan_date'] = (
+            edition_loan_history.get('updatedate') if edition_loan_history else ''
+        )
 
-    # Attach availability and loan history info (for sorting) to both editions and
-    # ia-only items.
-    for ed in editions:
-        if ed.ocaid in ocaids:
-            ed.availability = ocaid_availability.get(ed.ocaid)
-            ed.last_loan_date = loan_history_map[ed.ocaid].get('updatedate')
-
-    for ia_only in ia_only_loans:
-        # ia_only['loan'] isn't set because `LoanStatus.html` reads it as a
-        # current loan. No apparenty way to distinguish between current and
-        # past loans from this API call.
-        loan = loan_history_map[ia_only['identifier']]
-        ia_only['last_loan_date'] = loan.get('updatedate', '')
+    # Create 'placeholders' dicts for items in the Internet Archive loan history,
+    # but absent from Open Library, and then add loan history.
+    # ia_only['loan'] isn't set because `LoanStatus.html` reads it as a current
+    # loan. No apparenty way to distinguish between current and past loans with
+    # this API call.
+    ia_only_loans = [{'ocaid': ocaid} for ocaid in ocaids if ocaid not in editions_map]
+    for ia_only_loan in ia_only_loans:
+        loan_data = loan_history_map[ia_only_loan['ocaid']]
+        ia_only_loan['last_loan_date'] = loan_data.get('updatedate', '')
         # Determine the macro to load for loan-history items only.
-        ia_only['ia_only'] = True  # type: ignore[typeddict-unknown-key]
+        ia_only_loan['ia_only'] = True  # type: ignore[typeddict-unknown-key]
 
-    editions_and_ia_loans = editions + ia_only_loans
+    editions_and_ia_loans = list(editions_map.values()) + ia_only_loans
     editions_and_ia_loans.sort(
         key=lambda item: item.get('last_loan_date', ''), reverse=True
     )
 
-    result = {
+    return {
         'docs': editions_and_ia_loans,
         'show_next': show_next,
         'limit': limit,
         'page': page,
     }
-
-    return result

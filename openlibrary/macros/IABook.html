@@ -1,5 +1,5 @@
 $def with (doc, ia_base_url="https://archive.org")
-  $ ocaid = doc.get('identifier')
+  $ ocaid = doc.get('ocaid')
   <li class="searchResultItem">
     <span class="bookcover">
       $ cover = "%s/services/img/%s" % (ia_base_url, ocaid)
@@ -15,7 +15,7 @@ $def with (doc, ia_base_url="https://archive.org")
     <div class="details">
         <div class="resultTitle">
            <h3 itemprop="name" class="booktitle">
-             <a itemprop="url" href="$ia_base_url/details/$ocaid" class="results">Borrowed from Internet Archive: $doc.get('identifier')</a>
+             <a itemprop="url" href="$ia_base_url/details/$ocaid" class="results">Borrowed from Internet Archive: $ocaid</a>
            </h3>
         </div>
     </div>
