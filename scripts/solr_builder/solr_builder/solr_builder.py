@@ -380,6 +380,7 @@ async def main(
     ol="http://ol/",
     ol_config="../../conf/openlibrary.yml",
     solr: str | None = None,
+    osp_dump: str | None = None,
     skip_solr_id_check: bool = True,
     start_at: str | None = None,
     offset=0,
@@ -413,6 +414,8 @@ async def main(
 
     if solr:
         update.set_solr_base_url(solr)
+
+    update.set_osp_dump_location(osp_dump)
 
     PLogEntry = namedtuple(
         'PLogEntry',
