@@ -21,10 +21,9 @@ def get_total_by_olid(olid: str) -> int | None:
     """
 
     olid_int = olid.replace("/works/", "").replace("OL", "").replace("W", "")
-    try:
-        db_file = get_osp_dump_location()
-        # Connect to the SQLite database
-        conn = sqlite3.connect(db_file)
+
+    db_file = get_osp_dump_location()
+    with closing(sqlite3.connect(db_file)) as conn:
         cursor = conn.cursor()
 
         # Query the database for the total based on OLID
@@ -33,12 +32,7 @@ def get_total_by_olid(olid: str) -> int | None:
 
         if result:
             return result[0]
-
-    except Exception as e:
-        print(f"Error querying the database: {e}")
-    finally:
-        conn.close()
-    return None
+        return None
 
 
 def generate_osp_db(input_directory: Path, output_file: str) -> None:
