@@ -1219,35 +1219,41 @@ def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, str | i
         loan_history.pop()
 
     ocaids = [loan_record['identifier'] for loan_record in loan_history]
-    availability = get_availability_of_ocaids(ocaids)
+    ocaid_availability = get_availability_of_ocaids(ocaids)
     loan_history_map = {
         loan_record['identifier']: loan_record for loan_record in loan_history
     }
     editions = web.ctx.site.get_many(
         [
-            '/books/%s' % availability[ocaid].get('openlibrary_edition')
-            for ocaid in availability
-            if availability[ocaid].get('openlibrary_edition')
+            f"/books/{item.get('openlibrary_edition')}"
+            for item in ocaid_availability.values()
+            if item.get('openlibrary_edition')
         ]
     )
 
     # Create 'placeholder' editions for items in the Internet Archive loan
     # history, but absent from Open Library.
     ia_only_loans = [
-        loan for loan in availability.values() if not loan.get('openlibrary_edition')
+        loan
+        for loan in ocaid_availability.values()
+        if not loan.get('openlibrary_edition')
     ]
 
-    # Attach availability and loan to both editions and ia-only items.
+    # Attach availability and loan history info (for sorting) to both editions and
+    # ia-only items.
     for ed in editions:
         if ed.ocaid in ocaids:
-            ed.availability = availability.get(ed.ocaid)
-            ed.loan = loan_history_map[ed.ocaid]
-            ed.last_loan_date = ed.loan.get('updatedate')
+            ed.availability = ocaid_availability.get(ed.ocaid)
+            ed.last_loan_date = loan_history_map[ed.ocaid].get('updatedate')
 
     for ia_only in ia_only_loans:
+        # ia_only['loan'] isn't set because `LoanStatus.html` reads it as a
+        # current loan. No apparenty way to distinguish between current and
+        # past loans from this API call.
         loan = loan_history_map[ia_only['identifier']]
         ia_only['last_loan_date'] = loan.get('updatedate', '')
-        ia_only['ia_only'] = True  # Determines which macro to load.
+        # Determine the macro to load for loan-history items only.
+        ia_only['ia_only'] = True  # type: ignore[typeddict-unknown-key]
 
     editions_and_ia_loans = editions + ia_only_loans
     editions_and_ia_loans.sort(
