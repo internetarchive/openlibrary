@@ -5,42 +5,56 @@ body:
   - type: markdown
     attributes:
       value: |
-        **IMPORTANT: Before posting, be sure to redact or remove sensitive data, such as passwords, secret keys, session cookies, etc.**
-        Found a bug? Please fill out the sections below. 👍
-        Thanks for taking the time to fill out this bug report!
+        **IMPORTANT: Before posting remove sensitive data, such as passwords, secret keys, session cookies, etc.**
+
+        Thanks for taking the time to fill out this bug report! 👍
   - type: textarea
     attributes:
       label: Problem
-      description: What problem are we solving? What does the experience look like today? What are the symptoms?
+      description: A short description of the issue you're facing.
+      value: |
+        #### Describe the bug
+
+        #### Evidence / Screenshot
+
+        #### Relevant URL
+
+  # - type: textarea
+  #   attributes:
+  #     label: Evidence / Screenshot
+  # - type: input
+  #   attributes:
+  #     label: Relevant URL
+  #     description: Please provide the relevant URL.
+  #     placeholder: "https://openlibrary.org/..."
   - type: textarea
     attributes:
-      label: Evidence / Screenshot
-  - type: input
-    attributes:
-      label: Relevant URL
-      description: Please provide the relevant URL.
-      placeholder: "https://openlibrary.org/..."
-  - type: textarea
-    attributes:
-      label: Steps to Reproduce
+      label: Reproducing the bug
       description: What steps caused you to find the bug?
       placeholder: |
+      value: |
+        #### Steps to reproduce
         1. Go to ...
         2. Do ...
+
+        #### Expected behavior
+
+        #### Actual behavior
+
     validations:
       required: true
-  - type: textarea
-    attributes:
-      label: Actual
-      description: What actually happened after these steps?
-    validations:
-      required: true
-  - type: textarea
-    attributes:
-      label: Expected
-      description: What did you expect to happen?
-    validations:
-      required: true
+  # - type: textarea
+  #   attributes:
+  #     label: Actual vs expected
+  #     description: What actually happened after these steps?
+  #   validations:
+  #     required: true
+  # - type: textarea
+  #   attributes:
+  #     label: Expected
+  #     description: What did you expect to happen?
+  #   validations:
+  #     required: true
   # - type: markdown
   #   attributes:
   #     value: |
@@ -110,11 +124,11 @@ body:
         * Files related to this issue; this is useful for new contributors who might want to help!
         * @ tag stakeholders of this bug
       value: |
-        ## Proposal & constraints
+        #### Proposal & constraints
 
-        ## Related files
+        #### Related files
 
-        ## Stakeholders
+        #### Stakeholders
 
   # - type: textarea
   #   attributes:
