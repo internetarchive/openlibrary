@@ -95,19 +95,30 @@ body:
         - OS (Windows, Mac, etc):
         - Logged in (Y/N): Y
         - Environment (prod, dev, local): prod
-  - type: markdown
+  # - type: markdown
+  #   attributes:
+  #     value: |
+  #       # Experienced Contributors Only
+  - type: textarea
     attributes:
+      label: Experienced contributors only
+      description: |
+        Another community member can fill this out as needed.
+        * What is the proposed solution / implementation? Is there a precedent of this approach succeeding elsewhere?
+        * Files related to this issue; this is useful for new contributors who might want to help!
+        * @ tag stakeholders of this bug
       value: |
-        # Next Steps
-  - type: textarea
-    attributes:
-      label: Proposal & Constraints
-      description: What is the proposed solution / implementation? Is there a precedent of this approach succeeding elsewhere?
-  - type: textarea
-    attributes:
-      label: Related files
-      description: Files related to this issue; this is useful for new contributors who might want to help! If you're not sure, leave this blank; a maintainer will add them.
-  - type: textarea # must be a textarea for tagging to work
-    attributes:
-      label: Stakeholders
-      description: "@ tag stakeholders of this bug"
+        ## Proposal & constraints
+
+        ## Related files
+
+        ## Stakeholders
+
+  # - type: textarea
+  #   attributes:
+  #     label: Related files
+  #     description: Files related to this issue; this is useful for new contributors who might want to help! If you're not sure, leave this blank; a maintainer will add them.
+  # - type: textarea # must be a textarea for tagging to work
+  #   attributes:
+  #     label: Stakeholders
+  #     description: "@ tag stakeholders of this bug"
