@@ -19,14 +19,6 @@ body:
 
         #### Relevant URL
 
-  # - type: textarea
-  #   attributes:
-  #     label: Evidence / Screenshot
-  # - type: input
-  #   attributes:
-  #     label: Relevant URL
-  #     description: Please provide the relevant URL.
-  #     placeholder: "https://openlibrary.org/..."
   - type: textarea
     attributes:
       label: Reproducing the bug
@@ -40,66 +32,6 @@ body:
 
         #### Actual behavior
 
-    validations:
-      required: true
-  # - type: textarea
-  #   attributes:
-  #     label: Actual vs expected
-  #     description: What actually happened after these steps?
-  #   validations:
-  #     required: true
-  # - type: textarea
-  #   attributes:
-  #     label: Expected
-  #     description: What did you expect to happen?
-  #   validations:
-  #     required: true
-  # - type: markdown
-  #   attributes:
-  #     value: |
-  #       # Debugging Information
-  # - type: dropdown
-  #   attributes:
-  #     label: Logged in?
-  #     options:
-  #       - "Yes"
-  #       - "No"
-  #   validations:
-  #     required: true
-  # - type: dropdown
-  #   attributes:
-  #     label: Browser?
-  #     options:
-  #       - "-"
-  #       - Chrome
-  #       - Firefox
-  #       - Safari
-  #       - Edge
-  #       - Other
-  #   validations:
-  #     required: true
-  # - type: dropdown
-  #   attributes:
-  #     label: Operating system?
-  #     options:
-  #       - "-"
-  #       - Windows
-  #       - macOS
-  #       - Linux
-  #       - iOS
-  #       - Android
-  #       - Other
-  #   validations:
-  #     required: true
-  # - type: dropdown
-  #   attributes:
-  #     label: Environment?
-  #     options:
-  #       - prod
-  #       - dev
-  #       - local
-  #   validations:
-  #     required: true
   - type: textarea
     attributes:
       label: Context
@@ -109,16 +41,11 @@ body:
         - OS (Windows, Mac, etc):
         - Logged in (Y/N): Y
         - Environment (prod, dev, local): prod
-  # - type: markdown
-  #   attributes:
-  #     value: |
-  #       # Experienced Contributors Only
   - type: textarea
     attributes:
       label: Next Steps
       description: |
         # Experienced contributors only
-        Another community member can fill this out as needed.
         * What is the proposed solution / implementation? Is there a precedent of this approach succeeding elsewhere?
         * Files related to this issue; this is useful for new contributors who might want to help!
         * @ tag stakeholders of this bug
@@ -128,12 +55,3 @@ body:
         #### Related files
 
         #### Stakeholders
-
-  # - type: textarea
-  #   attributes:
-  #     label: Related files
-  #     description: Files related to this issue; this is useful for new contributors who might want to help! If you're not sure, leave this blank; a maintainer will add them.
-  # - type: textarea # must be a textarea for tagging to work
-  #   attributes:
-  #     label: Stakeholders
-  #     description: "@ tag stakeholders of this bug"
