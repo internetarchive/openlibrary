@@ -41,52 +41,60 @@ body:
       description: What did you expect to happen?
     validations:
       required: true
-  - type: markdown
+  # - type: markdown
+  #   attributes:
+  #     value: |
+  #       # Debugging Information
+  # - type: dropdown
+  #   attributes:
+  #     label: Logged in?
+  #     options:
+  #       - "Yes"
+  #       - "No"
+  #   validations:
+  #     required: true
+  # - type: dropdown
+  #   attributes:
+  #     label: Browser?
+  #     options:
+  #       - "-"
+  #       - Chrome
+  #       - Firefox
+  #       - Safari
+  #       - Edge
+  #       - Other
+  #   validations:
+  #     required: true
+  # - type: dropdown
+  #   attributes:
+  #     label: Operating system?
+  #     options:
+  #       - "-"
+  #       - Windows
+  #       - macOS
+  #       - Linux
+  #       - iOS
+  #       - Android
+  #       - Other
+  #   validations:
+  #     required: true
+  # - type: dropdown
+  #   attributes:
+  #     label: Environment?
+  #     options:
+  #       - prod
+  #       - dev
+  #       - local
+  #   validations:
+  #     required: true
+  - type: textarea
     attributes:
-      value: |
-        # Debugging Information
-  - type: dropdown
-    attributes:
-      label: Logged in?
-      options:
-        - "Yes"
-        - "No"
-    validations:
-      required: true
-  - type: dropdown
-    attributes:
-      label: Browser?
-      options:
-        - "-"
-        - Chrome
-        - Firefox
-        - Safari
-        - Edge
-        - Other
-    validations:
-      required: true
-  - type: dropdown
-    attributes:
-      label: Operating system?
-      options:
-        - "-"
-        - Windows
-        - macOS
-        - Linux
-        - iOS
-        - Android
-        - Other
-    validations:
-      required: true
-  - type: dropdown
-    attributes:
-      label: Environment?
-      options:
-        - prod
-        - dev
-        - local
-    validations:
-      required: true
+      label: Context
+      render: |
+        - Browser (Chrome, Safari, Firefox, etc):
+        - OS (Windows, Mac, etc):
+        - Logged in (Y/N): Y
+        - Environment (prod, dev, local): prod
   - type: markdown
     attributes:
       value: |
