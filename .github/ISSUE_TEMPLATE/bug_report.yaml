@@ -90,7 +90,7 @@ body:
   - type: textarea
     attributes:
       label: Context
-      render: |
+      value: |
         - Browser (Chrome, Safari, Firefox, etc):
         - OS (Windows, Mac, etc):
         - Logged in (Y/N): Y
