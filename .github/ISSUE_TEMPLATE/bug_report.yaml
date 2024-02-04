@@ -90,6 +90,7 @@ body:
   - type: textarea
     attributes:
       label: Context
+      description: Additional information to help with debugging.
       value: |
         - Browser (Chrome, Safari, Firefox, etc):
         - OS (Windows, Mac, etc):
@@ -101,8 +102,9 @@ body:
   #       # Experienced Contributors Only
   - type: textarea
     attributes:
-      label: Experienced contributors only
+      label: Next Steps
       description: |
+        # Experienced contributors only
         Another community member can fill this out as needed.
         * What is the proposed solution / implementation? Is there a precedent of this approach succeeding elsewhere?
         * Files related to this issue; this is useful for new contributors who might want to help!
