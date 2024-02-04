@@ -31,7 +31,6 @@ body:
     attributes:
       label: Reproducing the bug
       description: What steps caused you to find the bug?
-      placeholder: |
       value: |
         #### Steps to reproduce
         1. Go to ...
