@@ -113,7 +113,7 @@ Note: please update this README with the exact wording of the error if you run i
 
 The following should populate the target of the `infogami` symbolic link (i.e. `vendor/infogami/`):
 ```
-cd local-openlibrary-dev-directory
+cd path/to/your/cloned/openlibrary
 git submodule init; git submodule sync; git submodule update
 ```
 
@@ -126,7 +126,7 @@ Ensure you're running `docker compose` commands from within the `local-openlibra
 ## Teardown commands
 
 ```sh
-cd local-openlibrary-dev-directory
+cd path/to/your/cloned/openlibrary
 # stop the app (if started in detached mode)
 docker compose down
 
