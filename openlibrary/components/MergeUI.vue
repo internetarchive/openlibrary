@@ -27,6 +27,8 @@ import { do_merge, update_merge_request, createMergeRequest, DEFAULT_EDITION_LIM
 
 const DO_MERGE = 'Do Merge'
 const REQUEST_MERGE = 'Request Merge'
+const LOADING = 'Loading...'
+const SAVING = 'Saving...'
 
 export default {
     name: 'app',
@@ -51,7 +53,7 @@ export default {
     data() {
         return {
             url: new URL(location.toString()),
-            mergeStatus: 'Loading...',
+            mergeStatus: LOADING,
             mergeOutput: null,
             show_diffs: false,
             comment: ''
@@ -78,8 +80,8 @@ export default {
         const readyCta = this.isSuperLibrarian ? DO_MERGE : REQUEST_MERGE
         this.$watch(
             '$refs.mergeTable.merge',
-            (new_value, old_value) => {
-                if (new_value && new_value !== old_value) this.mergeStatus = readyCta;
+            (new_value) => {
+                if (new_value !== undefined && this.mergeStatus === LOADING) this.mergeStatus = readyCta;
             }
         );
     },
@@ -88,7 +90,7 @@ export default {
             if (!this.$refs.mergeTable.merge) return;
             const { record: master, dupes, editions_to_move, unmergeable_works } = this.$refs.mergeTable.merge;
 
-            this.mergeStatus = 'Saving...';
+            this.mergeStatus = SAVING;
             if (this.isSuperLibrarian) {
                 // Perform the merge and create new/update existing merge request
                 try {
