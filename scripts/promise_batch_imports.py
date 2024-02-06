@@ -15,6 +15,8 @@ The imports can be monitored for their statuses and rolled up / counted using th
 """
 
 from __future__ import annotations
+import json
+import ijson
 from urllib.parse import urlencode
 import requests
 import logging
@@ -77,12 +79,21 @@ def is_isbn_13(isbn: str):
     return isbn and isbn[0].isdigit()
 
 
-def batch_import(promise_id, batch_size=1000):
+def batch_import(promise_id, batch_size=1000, dry_run=False):
     url = "https://archive.org/download/"
     date = promise_id.split("_")[-1]
-    books = requests.get(f"{url}{promise_id}/DailyPallets__{date}.json").json()
+    resp = requests.get(f"{url}{promise_id}/DailyPallets__{date}.json", stream=True)
+    olbooks_gen = (
+        map_book_to_olbook(book, promise_id) for book in ijson.items(resp.raw, 'item')
+    )
+
+    if dry_run:
+        for book in olbooks_gen:
+            print(json.dumps(book), flush=True)
+        return
+
+    olbooks = list(olbooks_gen)
     batch = Batch.find(promise_id) or Batch.new(promise_id)
-    olbooks = [map_book_to_olbook(book, promise_id) for book in books]
     # Find just-in-time import candidates:
     jit_candidates = [book['isbn_13'][0] for book in olbooks if book.get('isbn_13', [])]
     ImportItem.bulk_mark_pending(jit_candidates)
@@ -119,15 +130,13 @@ def get_promise_items_url(start_date: str, end_date: str):
     )
 
 
-def main(ol_config: str, dates: str):
+def main(ol_config: str, dates: str, dry_run: bool = False):
     """
     :param ol_config: Path to openlibrary.yml
     :param dates: Get all promise items for this date or date range.
         E.g. "yyyy-mm-dd:yyyy-mm-dd" or just "yyyy-mm-dd" for a single date.
         "yyyy-mm-dd:*" for all dates after a certain date.
     """
-    load_config(ol_config)
-
     if ':' in dates:
         start_date, end_date = dates.split(':')
     else:
@@ -141,8 +150,13 @@ def main(ol_config: str, dates: str):
         logger.info("No promise items found for date(s) %s", dates)
         return
 
+    if not dry_run:
+        load_config(ol_config)
+
     for promise_id in identifiers:
-        batch_import(promise_id)
+        if dry_run:
+            print([promise_id, dry_run], flush=True)
+        batch_import(promise_id, dry_run=dry_run)
 
 
 if __name__ == '__main__':
