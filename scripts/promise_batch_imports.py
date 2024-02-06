@@ -38,9 +38,15 @@ def format_date(date: str, only_year: bool) -> str:
 
 
 def map_book_to_olbook(book, promise_id):
+    def clean_null(val: str | None) -> str | None:
+        if val in ('', 'null', 'null--'):
+            return None
+        return val
+
     asin_is_isbn_10 = book.get('ASIN') and book.get('ASIN')[0].isdigit()
-    publish_date = book['ProductJSON'].get('PublicationDate')
-    title = book['ProductJSON'].get('Title')
+    product_json = book.get('ProductJSON', {})
+    publish_date = clean_null(product_json.get('PublicationDate'))
+    title = product_json.get('Title')
     isbn = book.get('ISBN') or ' '
     sku = book['BookSKUB'] or book['BookSKU'] or book['BookBarcode']
     olbook = {
@@ -52,8 +58,8 @@ def map_book_to_olbook(book, promise_id):
         **({'isbn_13': [isbn]} if is_isbn_13(isbn) else {}),
         **({'isbn_10': [book.get('ASIN')]} if asin_is_isbn_10 else {}),
         **({'title': title} if title else {}),
-        'authors': [{"name": book['ProductJSON'].get('Author') or '????'}],
-        'publishers': [book['ProductJSON'].get('Publisher') or '????'],
+        'authors': [{"name": clean_null(product_json.get('Author')) or '????'}],
+        'publishers': [clean_null(product_json.get('Publisher')) or '????'],
         'source_records': [f"promise:{promise_id}:{sku}"],
         # format_date adds hyphens between YYYY-MM-DD, or use only YYYY if date is suspect.
         'publish_date': format_date(
