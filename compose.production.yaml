@@ -84,6 +84,7 @@ services:
     environment:
       - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs /etc/cron.d/certbot
       - NGINX_DOMAIN=covers.openlibrary.org
+      - NGINX_STATS_BUCKET=stats.ol-covers
     restart: unless-stopped
     hostname: "$HOSTNAME"
     depends_on:
@@ -175,6 +176,7 @@ services:
     environment:
       - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs /etc/cron.d/pull-sitemaps-from-ol-home0 /etc/cron.d/certbot
       - NGINX_DOMAIN=openlibrary.org www.openlibrary.org
+      - NGINX_STATS_BUCKET=stats.ol
     volumes:
       # letsencrypt
       - letsencrypt-data:/etc/letsencrypt
@@ -212,6 +214,8 @@ services:
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     user: root
     command: docker/ol-nginx-start.sh
+    environment:
+      - NGINX_STATS_BUCKET=stats.ol-infobase
     restart: unless-stopped
     depends_on:
       - infobase
