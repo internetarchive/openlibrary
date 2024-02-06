@@ -229,10 +229,10 @@ class mybooks_readinglog(delegate.page):
         mb = MyBooksTemplate(username, key)
         KEYS_TITLES = {
             'currently-reading': _(
-                "Want to Read (%(count)d)", count=mb.counts['want-to-read']
+                "Currently Reading (%(count)d)", count=mb.counts['currently-reading']
             ),
             'want-to-read': _(
-                "Currently Reading (%(count)d)", count=mb.counts['currently-reading']
+                "Want to Read (%(count)d)", count=mb.counts['want-to-read']
             ),
             'already-read': _(
                 "Already Read (%(count)d)", count=mb.counts['already-read']
