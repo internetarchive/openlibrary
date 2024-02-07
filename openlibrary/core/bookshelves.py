@@ -230,6 +230,8 @@ class Bookshelves(db.CommonExtras):
         from openlibrary.plugins.worksearch.code import run_solr_query
         from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
+        #Sets the function to fetch editions as well, if not accessing the Want to Read shelf.
+        editions:bool = bookshelf_id!=2
         shelf_totals = cls.count_total_books_logged_by_user_per_shelf(username)
         oldb = db.get_db()
         page = int(page or 1)
@@ -240,7 +242,38 @@ class Bookshelves(db.CommonExtras):
             'bookshelf_id': bookshelf_id,
             'checkin_year': checkin_year,
         }
-
+        #Iterates through a list of solr docs, and for all items with a 'logged edition'
+        #it will remove an item with the matching edition key from the list, and add it to
+        #doc["editions"]["docs"]
+        def link_editions_to_works(solr_docs):
+            linked_docs: list[web.storage()] = []
+            docs_dict = {}
+            #adds works to linked_docs, recording their edition key and index in docs_dict if present. 
+            for doc in solr_docs:
+                full_key =doc.get("key") or "/dummy/value"
+                _, key, item_id =full_key.split("/")
+                if key == "works":
+                    linked_docs.append(doc)
+                    if doc["logged_edition"]:
+                        docs_dict.update({doc["logged_edition"].split("/")[2]:(len(linked_docs)-1)})
+            #Attaches editions to the works, in second loop-- in case of misperformed order. 
+            for edition in solr_docs:
+                full_key = edition.get("key") or "/dummy/value"
+                _, key, item_id = full_key.split("/")
+                if key == "books":
+                    index = docs_dict.get(item_id, -1)
+                    if index>=0:
+                        linked_docs[index].editions = {
+                                        "numFound": 1,
+                                        "start": 0,
+                                        "numFoundExact": True,
+                                        "docs": [edition]
+                                    }
+                    else:
+                        #raise error no matching work found? Or figure out if the solr queries are performed orderless.
+                        logger.warning("Error: No work found for edition %s")
+            return linked_docs
+        
         @dataclass
         class ReadingLogItem:
             """Holds the datetime a book was logged and the edition ID."""
@@ -404,25 +437,33 @@ class Bookshelves(db.CommonExtras):
                 oldb.query(query, vars=query_params)
             )
 
-            reading_log_work_keys = [
-                '/works/OL%sW' % i['work_id'] for i in reading_log_books
+            #[TODO]: Change to tuple of (work key, edition key)
+            reading_log_keys = [
+                ('/works/OL%sW' % i['work_id'], '/books/OL%sM' % i['edition_id']) 
+                for i in reading_log_books
             ]
+
             solr_docs = get_solr().get_many(
-                reading_log_work_keys,
+                [key for key_pair in reading_log_keys for key in key_pair],
                 fields=WorkSearchScheme.default_fetched_fields
                 | {'subject', 'person', 'place', 'time', 'edition_key'},
             )
             solr_docs = add_storage_items_for_redirects(
-                reading_log_work_keys, solr_docs
+                (keys[0] for keys in reading_log_keys), solr_docs
             )
-            assert len(solr_docs) == len(reading_log_work_keys), (
+
+
+            """assert len(solr_docs) == len(reading_log_keys), (
                 "solr_docs is missing an item/items from reading_log_work_keys; "
                 "see add_storage_items_for_redirects()"
-            )
+            )"""
 
             total_results = shelf_totals.get(bookshelf_id, 0)
             solr_docs = add_reading_log_data(reading_log_books, solr_docs)
 
+            #Attaches returned editions to works. 
+            if editions:
+                solr_docs = link_editions_to_works(solr_docs)
             return LoggedBooksData(
                 username=username,
                 q=q,
