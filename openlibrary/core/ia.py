@@ -3,7 +3,6 @@
 
 import datetime
 import logging
-import os
 from urllib.parse import urlencode
 import requests
 import web
@@ -277,33 +276,6 @@ class ItemEdition(dict):
             self["isbn_10"] = isbn_10
         if isbn_13:
             self["isbn_13"] = isbn_13
-
-
-_ia_db = None
-
-
-def get_ia_db(configfile=None):
-    """Metadata API is slow.
-
-    Talk to archive.org database directly if it is specified in the
-    global configuration or if a configfile is provided.
-    """
-    if configfile:
-        from openlibrary.config import load_config
-
-        load_config(configfile)
-
-    if not config.get("ia_db"):
-        return None
-    global _ia_db
-    if not _ia_db:
-        settings = config.ia_db
-        host = settings['host']
-        db = settings['db']
-        user = settings['user']
-        pw = os.popen(settings['pw_file']).read().strip()
-        _ia_db = web.database(dbn="postgres", host=host, db=db, user=user, pw=pw)
-    return _ia_db
 
 
 def get_candidates_url(

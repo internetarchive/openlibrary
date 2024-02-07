@@ -136,8 +136,6 @@ services:
     networks:
       - webnet
       - dbnet
-    secrets:
-      - ia_db_pw_file
 
   infobase:
     profiles: ["ol-home0"]
@@ -301,12 +299,6 @@ services:
     networks:
       - webnet
       - dbnet
-
-# secrets mounted to /run/secrets/
-# e.g. /run/secrets/ia_db_pw_file
-secrets:
-    ia_db_pw_file:
-      file: /opt/.petabox/dbserver
 
 volumes:
     archive-webserver-logs-data:
