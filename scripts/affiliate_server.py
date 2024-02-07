@@ -86,7 +86,6 @@ AZ_OL_MAP = {
 }
 RETRIES: Final = 5
 
-batch_name = ""
 batch: Batch | None = None
 
 web.amazon_queue = (
@@ -99,10 +98,9 @@ def get_current_amazon_batch() -> Batch:
     """
     At startup or when the month changes, create a new openlibrary.core.imports.Batch()
     """
-    global batch_name, batch
-    if batch_name != (new_batch_name := f"amz-{date.today():%Y%m}"):
-        batch_name = new_batch_name
-        batch = Batch.find(batch_name) or Batch.new(batch_name)
+    global batch
+    if not batch:
+        batch = Batch.find("amz") or Batch.new("amz")
     assert batch
     return batch
 
