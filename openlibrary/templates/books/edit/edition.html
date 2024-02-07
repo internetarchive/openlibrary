@@ -89,6 +89,7 @@ $jsdef render_work_autocomplete_item(item):
                 <input type="text" name="edition--subtitle" id="edition-subtitle" value="$book.subtitle"/>
             </div>
         </div>
+    
         <fieldset class="major">
             <legend>$_("Publishing Info")</legend>
 
@@ -124,8 +125,6 @@ $jsdef render_work_autocomplete_item(item):
                 </div>
 
 
-
-
                 <div class="formElement">
                     <div class="label">
                         <label for="edition-copyright_date">$_("What is the copyright date?")</label>
@@ -155,28 +154,142 @@ $jsdef render_work_autocomplete_item(item):
                         <input type="text" name="edition--series--0" id="edition-series" value="$(book.series and book.series[0] or '')"/>
                     </div>
                 </div>
+
+                <div class="formElement">
+                    <div class="label">
+                        <label for="edition-description">$_("Description of this edition")</label>
+                        <span class="tip">$_("Only if it's different from the work's description")</span>
+                    </div>
+                    <div class="input">
+                        <textarea name="edition--description" id="edition-description" rows="3" cols="50">$book.description</textarea>
+                    </div>
+                </div>
+        
+                <div class="formElement">
+                    <div class="label">
+                        <label for="edition-toc">$_('Table of Contents')</label>
+                        <span class="tip">$:_('Use a "*" for an indent, a "|" to add a column, and line breaks for new lines. Like this:')</span><br/><br/>
+                <pre class="smaller gray"> * Part 1 | THIS WORLD | 1
+                ** Chapter 1 | Of the Nature of Flatland | 3
+                ** Chapter 2 | Of the Climate and Houses in Flatland | 5
+                * Part 2 | OTHER WORLDS | 42</pre>
+                <br/>
+                    </div>
+                    <div class="input">
+                        <textarea name="edition--table_of_contents" id="edition-toc" rows="5" cols="50">$book.get_toc_text()</textarea>
+                    </div>
+                </div>
+        
+                <div class="formElement">
+                    <div class="label">
+                        <label for="edition-notes">$_("Any notes about this specific edition?")</label>
+                    <span class="tip">$_("Anything about the book that may be of interest.") $_("For example:") <i>A Plume Book</i>.</span>
+                    </div>
+                    <div class="input">
+                        <textarea name="edition--notes" class="markdown" id="edition-notes" rows="3" cols="50">$book.notes</textarea>
+                    </div>
+                </div>
+        
+                <div class="formElement">
+                    <div class="label">
+                        <label for="edition-title_other">$_("Is it known by any other titles?")</label>
+                        <span class="tip">$_("Use this field if the title is different on the cover or spine. If the edition is a collection or anthology, you may also add the individual titles of each work here.")</span>
+                    </div>
+                    <div class="input">
+                        <input type="text" name="edition--other_titles--0" id="edition-title_other" value="$(book.other_titles and book.other_titles[0])"/>
+                        <div class="tip">$_("For example:") <i>Eaters of the Dead</i> $_("is an alternate title for") <i><a href="/books/OL24923038M">The 13th Warrior</a></i>.</div>
+                    </div>
+                    $if book.other_titles and len(book.other_titles) > 1:
+                        $for i, t in enumerate(book.other_titles):
+                            $if i > 0:
+                                <input type="hidden" name="edition--other_titles--$i" value="$book.other_titles[i]"/>
+                </div>
+        
+                <div class="formElement formBackLeft">
+                    <div class="label">
+                        <label for="edition--works--$0">$_("What work is this an edition of?")</label>
+                        <span class="tip">
+                            $_("Sometimes editions can be associated with the wrong work. You can correct that here.")
+                            $_("You can search by title or by Open Library ID (like")
+                            <a href="/works/OL262757W" target="_blank"><em>OL262757W</em></a>).
+                            <br/>
+                            $_("WARNING: Any edits made to the work from this page will be ignored.")
+                        </span>
+                    </div>
+                    $ config = {'addnew': is_privileged_user, 'new_name': _('-- Move to a new work')}
+                    <div class="multi-input-autocomplete--works" data-config="$dumps(config)">
+                        $if book.works:
+                            $for i, work in enumerate(book.works):
+                                $:render_work_field(i, work)
+                        $else:
+                            $:render_work_field(0, storage(title="", key=""))
+                    </div>
+                </div>        
         </fieldset>
 
+        <fieldset class="major">
+            <legend>$_("Languages")</legend>
+
+            <div class="formElement multi-input-autocomplete--language">
+                <div class="label">
+                    <label for="edition-language">$_("What language is this edition written in?")</label>
+                    <span class="tip"></span>
+                </div>
+                $if book.languages:
+                    $for i, lang in enumerate(book.languages):
+                        $:render_language_field(i, lang, get_language_name(lang))
+                $else:
+                    $:render_language_field(0, storage(name="", key=""), None)
+                <a href="javascript:;" class="mia__add small">$_('Add another language?')</a>
+            </div>
+
+            <div class="formElement" id="translated-from">
+                <div class="label">
+                    <label for="is-translation">$_("Is it a translation of another book?")</label>
+                    <span class="tip"></span>
+                </div>
+                $ translation = book.translation_of or book.translated_from
+                $ checked_yes = cond(translation, 'checked="checked"', '')
+                $ checked_no = cond(not translation, 'checked="checked"', '')
+                $if translation:
+                    $ style_hidden = ""
+                $else:
+                    $ style_hidden = "display: none;"
+
+                <div class="input">
+                    <br/>
+                    <input type="radio" name="edition--translation" id="is-translation" value="no" $checked_no  onclick="\$('.transYes').fadeOut();"/>
+                    <label for="is-translation">$_("No")</label>
+                </div>
+                <div class="input">
+                    <input type="radio" name="edition--translation" id="is-translation2" value="yes" $checked_yes onclick="\$('.transYes').fadeIn();"/>
+                    <label for="is-translation2">$_("Yes, it's a translation")</label>
+                </div>
+
+                <div class="transYes" style="$style_hidden">
+                    <div class="label">
+                        <span class="tip">$_("What's the original book?")</span>
+                    </div>
+                    <div class="input">
+                        <input name="edition--translation_of" type="text" id="translation-of" value="$book.translation_of"/>
+                    </div>
+                </div>
+
+                <div class="transYes multi-input-autocomplete--language" style="$style_hidden">
+                    <div class="label">
+                        <label for="edition-translated_from"><span class="tip">$_("What language was the original written in?")</span></label>
+                    </div>
+                    $if book.translated_from:
+                        $for i, lang in enumerate(book.translated_from):
+                            $:render_translated_from_language_field(i, lang, get_language_name(lang))
+                    $else:
+                        $:render_translated_from_language_field(0, storage(name="", key=""), None)
+                </div>
+            </div>
+        </fieldset>     
 
 
-
-
-    </div>
-
-    <div class="formBackRight">
-        <div class="illustration">
-            $:render_template("covers/book_cover", book)
-            $:render_template("covers/change", book)
-        </div>
-    </div>
-
-    <div class="clearfix"></div>
-
-
-
-        <div class="clearfix"></div>
-
-        <fieldset class="minor formBackLeft">
+        <fieldset class="major">
             <legend>$_("Contributors")</legend>
 
             <div class="formElement" id="roles" data-config="$dumps({'Please select a role.': _('Please select a role.'), 'You need to give this ROLE a name.': _('You need to give this ROLE a name.')})">
@@ -249,148 +362,110 @@ $jsdef render_work_autocomplete_item(item):
                 </div>
             </div>
         </fieldset>
+    </div>
 
-        <fieldset class="minor formBackRight">
-
-            <legend>$_('Languages')</legend>
-
-            <div class="formElement multi-input-autocomplete--language">
-                <div class="label">
-                    <label for="edition-language">$_("What language is this edition written in?")</label>
-                    <span class="tip"></span>
-                </div>
-                $if book.languages:
-                    $for i, lang in enumerate(book.languages):
-                        $:render_language_field(i, lang, get_language_name(lang))
-                $else:
-                    $:render_language_field(0, storage(name="", key=""), None)
-                <a href="javascript:;" class="mia__add small">$_('Add another language?')</a>
-            </div>
-
-            <div class="formElement" id="translated-from">
-                <div class="label">
-                    <label for="is-translation">$_("Is it a translation of another book?")</label>
-                    <span class="tip"></span>
-                </div>
-                $ translation = book.translation_of or book.translated_from
-                $ checked_yes = cond(translation, 'checked="checked"', '')
-                $ checked_no = cond(not translation, 'checked="checked"', '')
-                $if translation:
-                    $ style_hidden = ""
-                $else:
-                    $ style_hidden = "display: none;"
-
-                <div class="input">
-                    <br/>
-                    <input type="radio" name="edition--translation" id="is-translation" value="no" $checked_no  onclick="\$('.transYes').fadeOut();"/>
-                    <label for="is-translation">$_("No")</label>
-                </div>
-                <div class="input">
-                    <input type="radio" name="edition--translation" id="is-translation2" value="yes" $checked_yes onclick="\$('.transYes').fadeIn();"/>
-                    <label for="is-translation2">$_("Yes, it's a translation")</label>
-                </div>
-
-                <div class="transYes" style="$style_hidden">
-                    <div class="label">
-                        <span class="tip">$_("What's the original book?")</span>
-                    </div>
-                    <div class="input">
-                        <input name="edition--translation_of" type="text" id="translation-of" value="$book.translation_of"/>
-                    </div>
-                </div>
-
-                <div class="transYes multi-input-autocomplete--language" style="$style_hidden">
-                    <div class="label">
-                        <label for="edition-translated_from"><span class="tip">$_("What language was the original written in?")</span></label>
-                    </div>
-                    $if book.translated_from:
-                        $for i, lang in enumerate(book.translated_from):
-                            $:render_translated_from_language_field(i, lang, get_language_name(lang))
-                    $else:
-                        $:render_translated_from_language_field(0, storage(name="", key=""), None)
-                </div>
-
-            </div>
-
-
-        </fieldset>
-
-        <div class="clearfix"></div>
-
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-description">$_("Description of this edition")</label>
-                <span class="tip">$_("Only if it's different from the work's description")</span>
-            </div>
-            <div class="input">
-                <textarea name="edition--description" id="edition-description" rows="3" cols="50">$book.description</textarea>
-            </div>
+    <div class="formBackRight">
+        <div class="illustration">
+            $:render_template("covers/book_cover", book)
+            $:render_template("covers/change", book)
         </div>
+    </div>
 
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-toc">$_('Table of Contents')</label>
-                <span class="tip">$:_('Use a "*" for an indent, a "|" to add a column, and line breaks for new lines. Like this:')</span><br/><br/>
-        <pre class="smaller gray"> * Part 1 | THIS WORLD | 1
-        ** Chapter 1 | Of the Nature of Flatland | 3
-        ** Chapter 2 | Of the Climate and Houses in Flatland | 5
-        * Part 2 | OTHER WORLDS | 42</pre>
-        <br/>
-            </div>
-            <div class="input">
-                <textarea name="edition--table_of_contents" id="edition-toc" rows="5" cols="50">$book.get_toc_text()</textarea>
-            </div>
-        </div>
 
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-notes">$_("Any notes about this specific edition?")</label>
-            <span class="tip">$_("Anything about the book that may be of interest.") $_("For example:") <i>A Plume Book</i>.</span>
-            </div>
-            <div class="input">
-                <textarea name="edition--notes" class="markdown" id="edition-notes" rows="3" cols="50">$book.notes</textarea>
-            </div>
-        </div>
 
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-title_other">$_("Is it known by any other titles?")</label>
-                <span class="tip">$_("Use this field if the title is different on the cover or spine. If the edition is a collection or anthology, you may also add the individual titles of each work here.")</span>
-            </div>
-            <div class="input">
-                <input type="text" name="edition--other_titles--0" id="edition-title_other" value="$(book.other_titles and book.other_titles[0])"/>
-                <div class="tip">$_("For example:") <i>Eaters of the Dead</i> $_("is an alternate title for") <i><a href="/books/OL24923038M">The 13th Warrior</a></i>.</div>
-            </div>
-            $if book.other_titles and len(book.other_titles) > 1:
-                $for i, t in enumerate(book.other_titles):
-                    $if i > 0:
-                        <input type="hidden" name="edition--other_titles--$i" value="$book.other_titles[i]"/>
-        </div>
-
-        <div class="formElement formBackLeft">
-            <div class="label">
-                <label for="edition--works--$0">$_("What work is this an edition of?")</label>
-                <span class="tip">
-                    $_("Sometimes editions can be associated with the wrong work. You can correct that here.")
-                    $_("You can search by title or by Open Library ID (like")
-                    <a href="/works/OL262757W" target="_blank"><em>OL262757W</em></a>).
-                    <br/>
-                    $_("WARNING: Any edits made to the work from this page will be ignored.")
-                </span>
-            </div>
-            $ config = {'addnew': is_privileged_user, 'new_name': _('-- Move to a new work')}
-            <div class="multi-input-autocomplete--works" data-config="$dumps(config)">
-                $if book.works:
-                    $for i, work in enumerate(book.works):
-                        $:render_work_field(i, work)
-                $else:
-                    $:render_work_field(0, storage(title="", key=""))
-            </div>
-        </div>
 
     </div>
 
 </fieldset>
+
+<fieldset class="major" style="padding:0;">
+    <legend>$_("The Physical Object")</legend>
+    <div class="formBack">
+
+        <fieldset class="minor formBackLeft">
+            <div class="formElement">
+                <div class="label">
+                    <label for="edition--physical_format">$_("What sort of book is it?")</label>
+                    <span class="tip">$_("Paperback; Hardcover, etc.")</span>
+                </div>
+                <div class="input">
+                    <input name="edition--physical_format" type="text" id="edition--physical_format" value="$book.physical_format"/>
+                </div>
+            </div>
+            <div class="formElement">
+                <div class="label">
+                    <label for="edition--number_of_pages">$_("How many pages?")</label>
+                    <span class="tip"></span>
+                </div>
+                <div class="input">
+                    <input name="edition--number_of_pages" type="number"
+                        step="1" id="edition--number_of_pages" value="$book.number_of_pages"/>
+                </div>
+            </div>
+            <div class="formElement">
+                <div class="label">
+                    <label for="edition--pagination">$_("Pagination?")</label>
+                    <span class="tip">$_("Note the highest number in each pagination pattern.") <a href="/help/faq/editing#physical-object" target="_blank">$_("Help")</a></span>
+                </div>
+                <div class="input">
+                    <input name="edition--pagination" type="text" id="edition--pagination" value="$book.pagination"/>
+                    <div class="tip">$_("For example:") <em>xii, 346p.</em></div>
+                </div>
+            </div>
+
+            <div class="formElement">
+                <div class="label">
+                    <label for="edition--weight--value">$_("How much does the book weigh?")</label>
+                    <span class="tip"></span>
+                </div>
+                <div class="input">
+                    $ weight = book.get_weight() or storage(value="", units="grams")
+                    <input name="edition--weight--value" type="number" step="any"
+                           id="edition--weight--value" size="6" value="$weight.value"/>
+                    <span class="tip">
+                        $:radiobuttons("edition--weight--units", ["grams", "kilos", "ounces", "pounds"], weight.units)
+                    </span>
+                </div>
+            </div>
+        </fieldset>
+
+            <fieldset class="minor formBackRight">
+                <legend>$_("Dimensions")</legend>
+                $ dimensions = book.get_physical_dimensions() or storage(height="", width="", depth="", units="inches")
+                  <span class="tip">
+                    $:radiobuttons("edition--physical_dimensions--units", ["centimeters", "inches"], dimensions.units)
+                  </span>
+
+                <div class="formElement">
+                    <div class="input">
+                        <table cellpadding="1">
+                        <tbody>
+                            <tr>
+                                <td rowspan="3"><img src="/images/dimensions.png" alt="dimensions" width="107" height="69" align="left"/></td>
+                                <td><span class="tip"><label for="dimensions-height">$_("Height:")</label> </span></td>
+                                <td><input name="edition--physical_dimensions--height" type="number" step="any"
+                                           id="dimensions-height" size="6" value="$dimensions.height"/></td>
+                            </tr>
+                            <tr>
+                                <td><span class="tip"><label for="dimensions-width">$_("Width:")</label> </span></td>
+                                <td><input name="edition--physical_dimensions--width" type="number" step="any"
+                                           id="dimensions-width" size="6" value="$dimensions.width"/></td>
+                            </tr>
+                            <tr>
+                                <td><span class="tip"><label for="dimensions-depth">$_("Depth:")</label> </span></td>
+                                <td><input name="edition--physical_dimensions--depth" type="number" step="any"
+                                           id="dimensions-depth" size="6" value="$dimensions.depth"/></td>
+                            </tr>
+                        </tbody>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+    </div>
+
+</fieldset>
+
+
 $ config = ({
     $ 'Please select an identifier.': _('Please select an identifier.'),
     $ 'You need to give a value to ID.': _('You need to give a value to ID.'),
@@ -534,94 +609,6 @@ $ })
     </div>
 </fieldset>
 
-
-
-<fieldset class="major" style="padding:0;">
-    <legend>$_("The Physical Object")</legend>
-    <div class="formBack">
-
-        <fieldset class="minor formBackLeft">
-            <div class="formElement">
-                <div class="label">
-                    <label for="edition--physical_format">$_("What sort of book is it?")</label>
-                    <span class="tip">$_("Paperback; Hardcover, etc.")</span>
-                </div>
-                <div class="input">
-                    <input name="edition--physical_format" type="text" id="edition--physical_format" value="$book.physical_format"/>
-                </div>
-            </div>
-            <div class="formElement">
-                <div class="label">
-                    <label for="edition--number_of_pages">$_("How many pages?")</label>
-                    <span class="tip"></span>
-                </div>
-                <div class="input">
-                    <input name="edition--number_of_pages" type="number"
-                        step="1" id="edition--number_of_pages" value="$book.number_of_pages"/>
-                </div>
-            </div>
-            <div class="formElement">
-                <div class="label">
-                    <label for="edition--pagination">$_("Pagination?")</label>
-                    <span class="tip">$_("Note the highest number in each pagination pattern.") <a href="/help/faq/editing#physical-object" target="_blank">$_("Help")</a></span>
-                </div>
-                <div class="input">
-                    <input name="edition--pagination" type="text" id="edition--pagination" value="$book.pagination"/>
-                    <div class="tip">$_("For example:") <em>xii, 346p.</em></div>
-                </div>
-            </div>
-
-            <div class="formElement">
-                <div class="label">
-                    <label for="edition--weight--value">$_("How much does the book weigh?")</label>
-                    <span class="tip"></span>
-                </div>
-                <div class="input">
-                    $ weight = book.get_weight() or storage(value="", units="grams")
-                    <input name="edition--weight--value" type="number" step="any"
-                           id="edition--weight--value" size="6" value="$weight.value"/>
-                    <span class="tip">
-                        $:radiobuttons("edition--weight--units", ["grams", "kilos", "ounces", "pounds"], weight.units)
-                    </span>
-                </div>
-            </div>
-        </fieldset>
-
-            <fieldset class="minor formBackRight">
-                <legend>$_("Dimensions")</legend>
-                $ dimensions = book.get_physical_dimensions() or storage(height="", width="", depth="", units="inches")
-                  <span class="tip">
-                    $:radiobuttons("edition--physical_dimensions--units", ["centimeters", "inches"], dimensions.units)
-                  </span>
-
-                <div class="formElement">
-                    <div class="input">
-                        <table cellpadding="1">
-                        <tbody>
-                            <tr>
-                                <td rowspan="3"><img src="/images/dimensions.png" alt="dimensions" width="107" height="69" align="left"/></td>
-                                <td><span class="tip"><label for="dimensions-height">$_("Height:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--height" type="number" step="any"
-                                           id="dimensions-height" size="6" value="$dimensions.height"/></td>
-                            </tr>
-                            <tr>
-                                <td><span class="tip"><label for="dimensions-width">$_("Width:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--width" type="number" step="any"
-                                           id="dimensions-width" size="6" value="$dimensions.width"/></td>
-                            </tr>
-                            <tr>
-                                <td><span class="tip"><label for="dimensions-depth">$_("Depth:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--depth" type="number" step="any"
-                                           id="dimensions-depth" size="6" value="$dimensions.depth"/></td>
-                            </tr>
-                        </tbody>
-                        </table>
-                    </div>
-                </div>
-            </fieldset>
-    </div>
-
-</fieldset>
 
 $code:
     def is_selected(actual, selected):
