@@ -26,7 +26,7 @@ $ url_map = { 'person': 'person:', 'place': 'place:', 'time': 'time:' }
     </div>
 
 $if q:
-    $ response = get_results(q, offset=offset, limit=results_per_page)
+    $ response = get_results(q='', offset=offset, limit=results_per_page)
     $if not response.error:
         <p class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', response.num_found, count=commify(response.num_found))</p>
 
