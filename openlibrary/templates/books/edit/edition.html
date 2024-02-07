@@ -89,7 +89,7 @@ $jsdef render_work_autocomplete_item(item):
                 <input type="text" name="edition--subtitle" id="edition-subtitle" value="$book.subtitle"/>
             </div>
         </div>
-    
+
         <fieldset class="major">
             <legend>$_("Publishing Info")</legend>
 
@@ -164,7 +164,7 @@ $jsdef render_work_autocomplete_item(item):
                         <textarea name="edition--description" id="edition-description" rows="3" cols="50">$book.description</textarea>
                     </div>
                 </div>
-        
+
                 <div class="formElement">
                     <div class="label">
                         <label for="edition-toc">$_('Table of Contents')</label>
@@ -179,7 +179,7 @@ $jsdef render_work_autocomplete_item(item):
                         <textarea name="edition--table_of_contents" id="edition-toc" rows="5" cols="50">$book.get_toc_text()</textarea>
                     </div>
                 </div>
-        
+
                 <div class="formElement">
                     <div class="label">
                         <label for="edition-notes">$_("Any notes about this specific edition?")</label>
@@ -189,7 +189,7 @@ $jsdef render_work_autocomplete_item(item):
                         <textarea name="edition--notes" class="markdown" id="edition-notes" rows="3" cols="50">$book.notes</textarea>
                     </div>
                 </div>
-        
+
                 <div class="formElement">
                     <div class="label">
                         <label for="edition-title_other">$_("Is it known by any other titles?")</label>
@@ -204,7 +204,7 @@ $jsdef render_work_autocomplete_item(item):
                             $if i > 0:
                                 <input type="hidden" name="edition--other_titles--$i" value="$book.other_titles[i]"/>
                 </div>
-        
+
                 <div class="formElement formBackLeft">
                     <div class="label">
                         <label for="edition--works--$0">$_("What work is this an edition of?")</label>
@@ -224,7 +224,7 @@ $jsdef render_work_autocomplete_item(item):
                         $else:
                             $:render_work_field(0, storage(title="", key=""))
                     </div>
-                </div>        
+                </div>
         </fieldset>
 
         <fieldset class="major">
@@ -286,7 +286,7 @@ $jsdef render_work_autocomplete_item(item):
                         $:render_translated_from_language_field(0, storage(name="", key=""), None)
                 </div>
             </div>
-        </fieldset>     
+        </fieldset>
 
 
         <fieldset class="major">
