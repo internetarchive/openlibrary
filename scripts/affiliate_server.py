@@ -55,7 +55,7 @@ import infogami
 from infogami import config
 from openlibrary.config import load_config as openlibrary_load_config
 from openlibrary.core import cache, stats
-from openlibrary.core.imports import Batch
+from openlibrary.core.imports import Batch, ImportItem
 from openlibrary.core.vendors import AmazonAPI, clean_amazon_metadata_for_load
 from openlibrary.utils.dateutil import WEEK_SECS
 from openlibrary.utils.isbn import (
@@ -103,6 +103,9 @@ def get_current_amazon_batch() -> Batch:
         batch = Batch.find("amz") or Batch.new("amz")
     assert batch
     return batch
+
+
+def is_amz_entry_staged() -> bool:
 
 
 def get_isbns_from_book(book: dict) -> list[str]:  # Singular: book
@@ -397,7 +400,10 @@ class Submit:
             for _ in range(RETRIES):
                 time.sleep(1)
                 if product := cache.memcache_cache.get(f'amazon_product_{isbn13}'):
-                    return json.dumps({"status": "success", "hit": product})
+                    cleaned_metadata = clean_amazon_metadata_for_load(product)
+                    source, pid = cleaned_metadata['source_records'][0].split(":")
+                    if ImportItem.find_staged_or_pending(identifiers=[pid], sources=[source]):
+                        return json.dumps({"status": "success", "hit": product})
 
             stats.increment("ol.affiliate.amazon.total_items_not_found")
             return json.dumps({"status": "not found"})

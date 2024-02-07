@@ -23,7 +23,7 @@ from openlibrary.catalog import add_book
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.helpers import private_collection_in
-from openlibrary.core.imports import Batch, ImportItem
+from openlibrary.core.imports import ImportItem
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.utils import extract_numeric_id_from_olid, dateutil
@@ -40,25 +40,6 @@ from ..accounts import OpenLibraryAccount
 from ..plugins.upstream.utils import get_coverstore_url, get_coverstore_public_url
 
 logger = logging.getLogger("openlibrary.core")
-
-
-batch_name = ""
-batch: Batch | None = None
-
-
-# TODO: Importing this from affiliate_server.py causes `_init_path` woes. Would it be better
-# to move this function to a utility file and import it from there into affiliate_server.py
-# and here?
-def get_current_amazon_batch() -> Batch:
-    """
-    At startup or when the month changes, create a new openlibrary.core.imports.Batch()
-    """
-    global batch_name, batch
-    if batch_name != (new_batch_name := f"amz-{date.today():%Y%m}"):
-        batch_name = new_batch_name
-        batch = Batch.find(batch_name) or Batch.new(batch_name)
-    assert batch
-    return batch
 
 
 def _get_ol_base_url() -> str:
@@ -434,23 +415,7 @@ class Edition(Thing):
             if metadata := get_amazon_metadata(
                 id_=isbn10 or isbn13, id_type="isbn", high_priority=high_priority
             ):
-                if edition := ImportItem.import_first_staged(identifiers=isbns):
-                    return edition
-                else:
-                    # This is almost certainly duplicative; the affiliate-server
-                    # will queue for import as `staged` any Product API responses
-                    # that are put into the cache before returning metedata to
-                    # get_amazon_metadata(). But perhaps the DB is slow.
-                    cleaned_metadata = clean_amazon_metadata_for_load(metadata)
-                    import_item = {
-                        'ia_id': cleaned_metadata['source_records'][0],
-                        'status': 'staged',
-                        'data': cleaned_metadata,
-                    }
-                    batch = get_current_amazon_batch()
-                    batch.add_items([import_item])
-                    if edition := ImportItem.import_first_staged(identifiers=isbns):
-                        return edition
+                return ImportItem.import_first_staged(identifiers=isbns)
             else:
                 return None
         except requests.exceptions.ConnectionError:
