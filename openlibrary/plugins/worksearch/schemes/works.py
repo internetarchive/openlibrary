@@ -197,7 +197,7 @@ class WorkSearchScheme(SearchScheme):
         if field.startswith("work."):
             return self.is_search_field(field.partition(".")[2])
         return super().is_search_field(field) or field.startswith('id_')
-    
+
     def transform_user_query(
         self, user_query: str, q_tree: luqum.tree.Item
     ) -> luqum.tree.Item:
