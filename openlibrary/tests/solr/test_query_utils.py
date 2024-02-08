@@ -94,4 +94,3 @@ def test_luqum_parser():
         assert fn('work.title: Bob title: Joe') == "title:Bob AND alternative_title:Joe"
         assert fn('work.title:Bob') == "title:Bob"
         assert fn('title:Joe') == "alternative_title:Joe"
-        
