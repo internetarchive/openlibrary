@@ -17,7 +17,7 @@ from openlibrary.solr.query_utils import (
     luqum_remove_child,
     luqum_replace_child,
     luqum_traverse,
-    luqum_replace_field
+    luqum_replace_field,
 )
 from openlibrary.utils.ddc import (
     normalize_ddc,
@@ -275,12 +275,17 @@ class WorkSearchScheme(SearchScheme):
         # See luqum_parser for details.
         work_q_tree = luqum_parser(q)
 
-        #Removes the work prefix from fields; used as the callable argument for 'luqum_replace_field'
-        def remove_work_prefix(field:str) -> str: 
-            return field.partition('.')[2] if field.startswith('work.') else field 
-        
-        #Removes the indicator prefix from queries with the 'work field' before appending them to parameters. 
-        new_params.append(('workQuery', str(luqum_replace_field(deepcopy(work_q_tree),remove_work_prefix))))
+        # Removes the work prefix from fields; used as the callable argument for 'luqum_replace_field'
+        def remove_work_prefix(field: str) -> str:
+            return field.partition('.')[2] if field.startswith('work.') else field
+
+        # Removes the indicator prefix from queries with the 'work field' before appending them to parameters.
+        new_params.append(
+            (
+                'workQuery',
+                str(luqum_replace_field(deepcopy(work_q_tree), remove_work_prefix)),
+            )
+        )
 
         # This full work query uses solr-specific syntax to add extra parameters
         # to the way the search is processed. We are using the edismax parser.
@@ -599,6 +604,7 @@ def has_solr_editions_enabled():
         return cookie_value == 'true'
 
     return True
+
 
 def get_fulltext_min():
     is_printdisabled = web.cookies().get('pd', False)
