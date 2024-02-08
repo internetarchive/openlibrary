@@ -437,7 +437,6 @@ class Bookshelves(db.CommonExtras):
                 oldb.query(query, vars=query_params)
             )
 
-            #[TODO]: Change to tuple of (work key, edition key)
             reading_log_keys = [
                 ('/works/OL%sW' % i['work_id'], '/books/OL%sM' % i['edition_id']) 
                 for i in reading_log_books
