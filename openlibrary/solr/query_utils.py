@@ -268,8 +268,7 @@ def query_dict_to_str(
     return result
 
 
-
-def luqum_replace_field( query, replacer: Callable[[str], str]) -> str:
+def luqum_replace_field(query, replacer: Callable[[str], str]) -> str:
     """
     Replaces portions of a field, as indicated by the replacement function.
 

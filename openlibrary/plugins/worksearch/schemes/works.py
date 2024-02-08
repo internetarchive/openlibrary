@@ -17,7 +17,7 @@ from openlibrary.solr.query_utils import (
     luqum_remove_child,
     luqum_replace_child,
     luqum_traverse,
-    luqum_replace_field
+    luqum_replace_field,
 )
 from openlibrary.utils.ddc import (
     normalize_ddc,
@@ -598,6 +598,7 @@ def has_solr_editions_enabled():
         return cookie_value == 'true'
 
     return True
+
 
 def get_fulltext_min():
     is_printdisabled = web.cookies().get('pd', False)
