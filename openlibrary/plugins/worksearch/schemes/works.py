@@ -1,3 +1,4 @@
+from copy import deepcopy
 from datetime import datetime
 import logging
 import re
@@ -16,6 +17,7 @@ from openlibrary.solr.query_utils import (
     luqum_remove_child,
     luqum_replace_child,
     luqum_traverse,
+    luqum_replace_field
 )
 from openlibrary.utils.ddc import (
     normalize_ddc,
@@ -272,7 +274,13 @@ class WorkSearchScheme(SearchScheme):
         # special OL query parsing rules (different from default solr!)
         # See luqum_parser for details.
         work_q_tree = luqum_parser(q)
-        new_params.append(('workQuery', str(work_q_tree)))
+
+        #Removes the work prefix from fields; used as the callable argument for 'luqum_replace_field'
+        def remove_work_prefix(field:str) -> str: 
+            return field.partition('.')[2] if field.startswith('work.') else field 
+        
+        #Removes the indicator prefix from queries with the 'work field' before appending them to parameters. 
+        new_params.append(('workQuery', str(luqum_replace_field(deepcopy(work_q_tree),remove_work_prefix))))
 
         # This full work query uses solr-specific syntax to add extra parameters
         # to the way the search is processed. We are using the edismax parser.
@@ -489,7 +497,6 @@ class WorkSearchScheme(SearchScheme):
             )
             new_params.append(('editions.rows', '1'))
             new_params.append(('editions.fl', ','.join(edition_fields)))
-        remove_work_prefix_from_query(new_params, self.field_name_map)
         return new_params
 
 
@@ -592,18 +599,6 @@ def has_solr_editions_enabled():
         return cookie_value == 'true'
 
     return True
-
-
-# Used to decouple the 'work.' prefix from params, prior to sending the params to Solr
-def remove_work_prefix_from_query(solr_params, field_name_map):
-    for i in range(len(solr_params)):
-        if solr_params[i][1].startswith("work."):
-            edited_param = solr_params[i][1].partition(".")[2]
-            edited_param = edited_param.partition(":")
-            if edited_param[0] in field_name_map:
-                edited_param[0] = field_name_map(edited_param[0])
-            solr_params[i] = solr_params[i][0], "".join(list(edited_param))
-
 
 def get_fulltext_min():
     is_printdisabled = web.cookies().get('pd', False)
