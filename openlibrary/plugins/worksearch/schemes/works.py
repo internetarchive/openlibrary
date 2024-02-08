@@ -192,11 +192,10 @@ class WorkSearchScheme(SearchScheme):
 
     def is_search_field(self, field: str):
         # New variable introduced to prevent rewriting the input.
-        a_field = field
-        if a_field.startswith("work."):
-            a_field = a_field.partition(".")[2]
-        return super().is_search_field(a_field) or a_field.startswith('id_')
-
+        if field.startswith("work."):
+            return self.is_search_field(field.partition(".")[2])
+        return super().is_search_field(field) or field.startswith('id_')
+    
     def transform_user_query(
         self, user_query: str, q_tree: luqum.tree.Item
     ) -> luqum.tree.Item:
@@ -347,11 +346,7 @@ class WorkSearchScheme(SearchScheme):
                     return WORK_FIELD_TO_ED_FIELD[field]
                 elif field.startswith('id_'):
                     return field
-                elif (
-                    self.is_search_field(field)
-                    or field in self.all_fields
-                    or field in self.facet_fields
-                ):
+                elif self.is_search_field(field) or field in self.facet_fields:
                     return None
                 else:
                     raise ValueError(f'Unknown field: {field}')
