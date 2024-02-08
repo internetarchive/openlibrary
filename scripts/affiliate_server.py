@@ -43,7 +43,7 @@ import threading
 import time
 
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import datetime
 from enum import Enum
 from typing import Final
 
@@ -96,16 +96,13 @@ web.amazon_lookup_thread = None
 
 def get_current_amazon_batch() -> Batch:
     """
-    At startup or when the month changes, create a new openlibrary.core.imports.Batch()
+    At startup, get the Amazon openlibrary.core.imports.Batch() for global use.
     """
     global batch
     if not batch:
         batch = Batch.find("amz") or Batch.new("amz")
     assert batch
     return batch
-
-
-def is_amz_entry_staged() -> bool:
 
 
 def get_isbns_from_book(book: dict) -> list[str]:  # Singular: book
@@ -402,7 +399,9 @@ class Submit:
                 if product := cache.memcache_cache.get(f'amazon_product_{isbn13}'):
                     cleaned_metadata = clean_amazon_metadata_for_load(product)
                     source, pid = cleaned_metadata['source_records'][0].split(":")
-                    if ImportItem.find_staged_or_pending(identifiers=[pid], sources=[source]):
+                    if ImportItem.find_staged_or_pending(
+                        identifiers=[pid], sources=[source]
+                    ):
                         return json.dumps({"status": "success", "hit": product})
 
             stats.increment("ol.affiliate.amazon.total_items_not_found")

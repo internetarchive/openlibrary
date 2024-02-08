@@ -1,9 +1,8 @@
 """Models of various OL objects.
 """
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 import logging
-import sys
-from openlibrary.core.vendors import clean_amazon_metadata_for_load, get_amazon_metadata
+from openlibrary.core.vendors import get_amazon_metadata
 
 import web
 import json
@@ -374,7 +373,7 @@ class Edition(Thing):
                 return f"https://archive.org/download/{self.ocaid}/{filename}"
 
     @classmethod
-    def from_isbn(cls, isbn: str, high_priority: bool = False) -> "Edition | None":  # type: ignore[return]
+    def from_isbn(cls, isbn: str, high_priority: bool = False) -> "Edition | None":
         """
         Attempts to fetch an edition by ISBN, or if no edition is found, then
         check the import_item table for a match, then as a last result, attempt
@@ -411,13 +410,14 @@ class Edition(Thing):
             return edition
 
         # Finally, try to fetch the book data from Amazon + import.
+        # If `high_priority=True`, then the affiliate-server, which `get_amazon_metadata()`
+        # uses, will block + wait until the Product API responds and the result, if any,
+        # is staged in `import_item`.
         try:
-            if metadata := get_amazon_metadata(
+            get_amazon_metadata(
                 id_=isbn10 or isbn13, id_type="isbn", high_priority=high_priority
-            ):
-                return ImportItem.import_first_staged(identifiers=isbns)
-            else:
-                return None
+            )
+            return ImportItem.import_first_staged(identifiers=isbns)
         except requests.exceptions.ConnectionError:
             logger.exception("Affiliate Server unreachable")
         except requests.exceptions.HTTPError:
