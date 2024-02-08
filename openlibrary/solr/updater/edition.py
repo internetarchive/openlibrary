@@ -160,10 +160,7 @@ class EditionSolrBuilder(AbstractSolrBuilder):
 
     @property
     def translation_of(self) -> str | None:
-        try:
-            return self._edition.get("translation_of", None) or None
-        except (TypeError, ValueError):
-            return None
+        return self._edition.get("translation_of")
 
     @property
     def format(self) -> str | None:
