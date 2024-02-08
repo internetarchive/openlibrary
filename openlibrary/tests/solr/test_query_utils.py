@@ -5,7 +5,7 @@ from openlibrary.solr.query_utils import (
     luqum_remove_child,
     luqum_replace_child,
     luqum_traverse,
-    luqum_replace_field
+    luqum_replace_field,
 )
 
 REMOVE_TESTS = {
@@ -87,11 +87,11 @@ def test_luqum_parser():
     # This is non-ideal
     assert fn('NOT title:foo bar') == 'NOT title:foo bar'
 
-    def test_luqum_replace_fields(self): 
-        def fn(query:str)-> str:
+    def test_luqum_replace_fields(self):
+        def fn(query: str) -> str:
             return luqum_replace_field(luqum_parser(query))
-        
-        assert fn('work.title: Bob title: Joe')== "title:Bob AND alternative_title:Joe"
+
+        assert fn('work.title: Bob title: Joe') == "title:Bob AND alternative_title:Joe"
         assert fn('work.title:Bob') == "title:Bob"
         assert fn('title:Joe') == "alternative_title:Joe"
         
