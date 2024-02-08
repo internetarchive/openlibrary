@@ -49,6 +49,20 @@ $def embed_iframe(page_url):
               </a>
               <div class="share-source">$_('Embed')</div>
             </li>
+
+            <li>
+              <a class="copy-url-btn" title="$_('Copy url to clipboard')" data-ol-link-track="Share|CopyURL"
+                  onclick="navigator.clipboard.writeText('openlibrary.org'+'$page_url');">
+                  <img
+                      alt="CopyURL icon"
+                      class="share-link"
+                      src="$static_url('images/copy_url.png')"
+                      loading="lazy"
+                  >
+              </a>
+              <div class="share-source">$_('Copy URL')</div>
+            </li>
+
           </ul>
         </div>
       </div>
