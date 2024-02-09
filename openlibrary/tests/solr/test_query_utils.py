@@ -90,9 +90,9 @@ def test_luqum_parser():
 def test_luqum_replace_fields():
     def replace_work_prefix(string: str):
         return string.partition(".")[2] if string.startswith("work.") else string
+
     def fn(query: str) -> str:
         return luqum_replace_field(luqum_parser(query), replace_work_prefix)
 
     assert fn('work.title:Bob') == 'title:Bob'
     assert fn('title:Joe') == 'title:Joe'
-        
