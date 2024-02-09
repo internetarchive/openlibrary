@@ -87,11 +87,11 @@ def test_luqum_parser():
     # This is non-ideal
     assert fn('NOT title:foo bar') == 'NOT title:foo bar'
 
-def test_luqum_replace_fields():
-    def remove_work_prefix(string: str):
+def test_luqum_replace_fields(self):
+    def replace_work_prefix(string: str):
         return string.partition(".")[2] if string.startswith("work.") else string
     def fn(query: str) -> str:
-        return luqum_replace_field(luqum_parser(query), remove_work_prefix)
+        return luqum_replace_field(luqum_parser(query), replace_work_prefix)
 
     assert fn('work.title:Bob') == 'title:Bob'
     assert fn('title:Joe') == 'title:Joe'
