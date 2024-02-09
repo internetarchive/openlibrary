@@ -365,12 +365,15 @@ class Bookshelves(db.CommonExtras):
             reading_log_books: list[web.storage] = list(
                 oldb.query(query, vars=query_params)
             )
+            logger.info("READING_LOG_BOOKS : %s " % reading_log_books)
             assert len(reading_log_books) <= filter_book_limit
 
             # Wrap in quotes to avoid treating as regex. Only need this for fq
             reading_log_work_keys = (
                 '"/works/OL%sW"' % i['work_id'] for i in reading_log_books
             )
+
+
             solr_resp = run_solr_query(
                 scheme=WorkSearchScheme(),
                 param={'q': q},
@@ -452,10 +455,6 @@ class Bookshelves(db.CommonExtras):
             )
 
 
-            """assert len(solr_docs) == len(reading_log_keys), (
-                "solr_docs is missing an item/items from reading_log_work_keys; "
-                "see add_storage_items_for_redirects()"
-            )"""
 
             total_results = shelf_totals.get(bookshelf_id, 0)
             solr_docs = add_reading_log_data(reading_log_books, solr_docs)
@@ -463,6 +462,13 @@ class Bookshelves(db.CommonExtras):
             #Attaches returned editions to works. 
             if editions:
                 solr_docs = link_editions_to_works(solr_docs)
+
+            
+            assert len(solr_docs) == len(reading_log_keys), (
+                "solr_docs is missing an item/items from reading_log_work_keys; "
+                "see add_storage_items_for_redirects()"
+            )
+
             return LoggedBooksData(
                 username=username,
                 q=q,
