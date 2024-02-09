@@ -263,12 +263,7 @@ class Bookshelves(db.CommonExtras):
                 if key == "books":
                     index = docs_dict.get(item_id, -1)
                     if index>=0:
-                        linked_docs[index].editions = {
-                                        "numFound": 1,
-                                        "start": 0,
-                                        "numFoundExact": True,
-                                        "docs": [edition]
-                                    }
+                        linked_docs[index].editions = [edition]
                     else:
                         #raise error no matching work found? Or figure out if the solr queries are performed orderless.
                         logger.warning("Error: No work found for edition %s")
