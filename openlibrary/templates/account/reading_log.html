@@ -71,7 +71,21 @@ $add_metatag(property="og:image", content=meta_photo_url)
       $:macros.Pager(int(current_page), doc_count, results_per_page=results_per_page)
   $else:
     <ul class="list-books">
-      $if checkin_year:
+      $if q:
+        <form method="GET" class="olform pagesearchbox">
+          <input type="text" minlength="3" placeholder="$_('Search your reading log')" name="q" value="$(query_param('q', ''))"/>
+          <input type="submit"/>
+        </form>
+        $ query = query_param('q') 
+        <center> 
+          <hr>
+          <div class="red">$_("No results found in %s" %key) </div> 
+          <hr> 
+          <div> 
+            <a href="/search/inside?$urlencode(dict(q=query))">$_('Search all of Open Library for "%s"?' % query)</a> 
+          </div> 
+        </center> 
+      $elif checkin_year:
         <p>$_("You haven't marked any books as read for this year.")</p>
       $else:
         <p>$_("You haven't added any books to this shelf yet.")</p>
