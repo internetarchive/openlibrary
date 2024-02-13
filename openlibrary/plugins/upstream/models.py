@@ -697,28 +697,22 @@ class Work(models.Work):
     ) -> list[Edition]:
 
         def get_solr_editions():
-            work_result = run_solr_query(
-                WorkSearchScheme(),
-                {'q': f'key:"{self.key}"'},
-                rows=limit,
-                fields=['key', 'edition_key', 'cover_i'],
-                facet=False
-            )
-            work = work_result.docs[0] if work_result.docs else {}
+            work = self._solr_data
             edition_keys = work.get('edition_key') or []
+            edition_queries = [f'key:"/books/{key}"' for key in edition_keys]
+
+            ed_results = run_solr_query(
+                EditionSearchScheme(),
+                {'q': ' OR '.join(edition_queries)},
+                rows=limit,
+                fields=['ia', 'key', 'title', 'subtitle', 'language', 'isbn', 'publish_date', 'publisher'],
+                user_query=False,
+            )
 
             _editions = []
-            for key in edition_keys:
-                full_key = f'/books/{key}'
-                ed_result = run_solr_query(
-                    EditionSearchScheme(),
-                    {'q': f'key:"{full_key}"'},
-                    rows=limit,
-                    fields=['ia', 'key', 'title', 'subtitle', 'language', 'isbn', 'publish_date', 'publisher'],
-                    user_query=False,
-                )
-                if ed_result.docs:
-                    ed = web.storify(ed_result.docs[0])
+            if ed_results.docs:
+                for solr_edition in ed_results.docs:
+                    ed = web.storify(solr_edition)
                     if ed.get('ia', []):
                         ed.ocaid = ed.ia[0]
                     else:
@@ -746,7 +740,7 @@ class Work(models.Work):
                         ed.publish_date = 'default publish_date'
                     ed.physical_format = 'placeholder physical format'
                     ed.edition_name = 'placeholder edition name'
-                    # XXX : Use cover_i in work_result to set cover...
+                    # XXX : Use cover_i from solr edition to set cover...
                     ed.type = 'solr_edition'
 
                     _editions.append(ed)
