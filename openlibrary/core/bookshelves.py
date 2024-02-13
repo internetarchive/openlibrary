@@ -230,8 +230,9 @@ class Bookshelves(db.CommonExtras):
         from openlibrary.plugins.worksearch.code import run_solr_query
         from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
+        logger.info("BOOKSHELF: %s" % bookshelf_id)
         #Sets the function to fetch editions as well, if not accessing the Want to Read shelf.
-        editions:bool = bookshelf_id!=2
+        editions:bool = bookshelf_id!=1
         shelf_totals = cls.count_total_books_logged_by_user_per_shelf(username)
         oldb = db.get_db()
         page = int(page or 1)
@@ -246,7 +247,7 @@ class Bookshelves(db.CommonExtras):
         #it will remove an item with the matching edition key from the list, and add it to
         #doc["editions"]["docs"]
         def link_editions_to_works(solr_docs):
-            linked_docs: list[web.storage()] = []
+            linked_docs: list[web.storage] = []
             docs_dict = {}
             #adds works to linked_docs, recording their edition key and index in docs_dict if present. 
             for doc in solr_docs:
@@ -254,7 +255,7 @@ class Bookshelves(db.CommonExtras):
                 _, key, item_id =full_key.split("/")
                 if key == "works":
                     linked_docs.append(doc)
-                    if doc["logged_edition"]:
+                    if doc.get("logged_edition"):
                         docs_dict.update({doc["logged_edition"].split("/")[2]:(len(linked_docs)-1)})
             #Attaches editions to the works, in second loop-- in case of misperformed order. 
             for edition in solr_docs:
@@ -360,14 +361,25 @@ class Bookshelves(db.CommonExtras):
             reading_log_books: list[web.storage] = list(
                 oldb.query(query, vars=query_params)
             )
-            logger.info("READING_LOG_BOOKS : %s " % reading_log_books)
+
             assert len(reading_log_books) <= filter_book_limit
 
             # Wrap in quotes to avoid treating as regex. Only need this for fq
-            reading_log_work_keys = (
+            reading_log_work_keys = [
                 '"/works/OL%sW"' % i['work_id'] for i in reading_log_books
-            )
+            ]
+            reading_log_edition_keys = [
+                '"OL%sM"' % i['edition_id'] for i in reading_log_books
+            ]
+            logged_work_edition_dict = { 
+                 '/works/OL%sW' % i['work_id']: '/books/OL%sM' % i['edition_id'] for i in reading_log_books
+                }
+            logged_work_edition_dict.update({
+                 '/books/OL%sM' % i['edition_id']: '/works/OL%sW' % i['work_id'] for i in reading_log_books
+            })
 
+            #Separating out the filter query from the call allows us to cleanly edit it, if editions are required. 
+            filter_query = f'key:({" OR ".join(reading_log_work_keys)}) OR edition_key:({" OR ".join(reading_log_edition_keys)})' if editions else f'key:({" OR ".join(reading_log_work_keys)})'
 
             solr_resp = run_solr_query(
                 scheme=WorkSearchScheme(),
@@ -377,13 +389,29 @@ class Bookshelves(db.CommonExtras):
                 facet=False,
                 # Putting these in fq allows them to avoid user-query processing, which
                 # can be (surprisingly) slow if we have ~20k OR clauses.
-                extra_params=[('fq', f'key:({" OR ".join(reading_log_work_keys)})')],
+                extra_params=[('fq', filter_query)],
             )
+
             total_results = solr_resp.num_found
+            solr_docs = solr_resp.docs
+
+
+            if editions:
+                matching_editions = [logged_work_edition_dict.get(work["key"]) for work in solr_docs if logged_work_edition_dict.get(work["key"])]
+
+                edition_data = get_solr().get_many(
+                [f'{key}' for key in matching_editions],
+                fields=WorkSearchScheme.default_fetched_fields
+               | {'subject', 'person', 'place', 'time', 'edition_key'},
+                )
+                solr_docs.extend(edition_data)
 
             # Downstream many things expect a list of web.storage docs.
             solr_docs = [web.storage(doc) for doc in solr_resp.docs]
             solr_docs = add_reading_log_data(reading_log_books, solr_docs)
+            #This function is only necessary if edition data was fetched.
+            if editions:
+                solr_docs = link_editions_to_works(solr_docs)
 
             return LoggedBooksData(
                 username=username,
