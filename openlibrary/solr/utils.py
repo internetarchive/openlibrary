@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 import json
 import logging
-from pathlib import Path
 
 import httpx
 from httpx import HTTPError, HTTPStatusError, TimeoutException
@@ -15,7 +14,6 @@ logger = logging.getLogger("openlibrary.solr")
 
 solr_base_url = None
 solr_next: bool | None = None
-osp_dump_location: Path | None = None
 
 
 def load_config(c_config='conf/openlibrary.yml'):
@@ -61,19 +59,6 @@ def get_solr_next() -> bool:
 def set_solr_next(val: bool):
     global solr_next
     solr_next = val
-
-
-def get_osp_dump_location() -> Path | None:
-    """
-    Get whether the location of the Open Syllabus project counts dump
-    """
-    global osp_dump_location
-    return osp_dump_location
-
-
-def set_osp_dump_location(val: Path):
-    global osp_dump_location
-    osp_dump_location = val
 
 
 @dataclass

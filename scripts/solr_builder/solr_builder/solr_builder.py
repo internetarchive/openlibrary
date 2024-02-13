@@ -18,6 +18,7 @@ from openlibrary.core.ratings import Ratings, WorkRatingsSummary
 from openlibrary.solr import update
 from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
 from openlibrary.solr.update import load_configs, update_keys
+from openlibrary.utils.open_syllabus_project import set_osp_dump_location
 
 logger = logging.getLogger("openlibrary.solr-builder")
 
@@ -416,7 +417,7 @@ async def main(
     if solr:
         update.set_solr_base_url(solr)
 
-    update.set_osp_dump_location(osp_dump)
+    set_osp_dump_location(osp_dump)
 
     PLogEntry = namedtuple(
         'PLogEntry',

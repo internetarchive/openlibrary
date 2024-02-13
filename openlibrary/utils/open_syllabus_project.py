@@ -6,9 +6,21 @@ import gzip
 from contextlib import closing
 from pathlib import Path
 
-from openlibrary.solr.utils import get_osp_dump_location
-
+osp_dump_location: Path | None = None
 logger = logging.getLogger("openlibrary.open_syllabus_project")
+
+
+def get_osp_dump_location() -> Path | None:
+    """
+    Get whether the location of the Open Syllabus project counts dump
+    """
+    global osp_dump_location
+    return osp_dump_location
+
+
+def set_osp_dump_location(val: Path):
+    global osp_dump_location
+    osp_dump_location = val
 
 
 # Function to get the total based on OLID

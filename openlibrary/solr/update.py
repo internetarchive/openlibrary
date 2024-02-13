@@ -23,10 +23,10 @@ from openlibrary.solr.utils import (
     load_config,
     set_solr_base_url,
     set_solr_next,
-    set_osp_dump_location,
     solr_update,
 )
 from openlibrary.utils import uniq
+from openlibrary.utils.open_syllabus_project import set_osp_dump_location
 
 logger = logging.getLogger("openlibrary.solr")
 

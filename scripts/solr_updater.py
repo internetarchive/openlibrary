@@ -27,6 +27,7 @@ import web
 from openlibrary.solr import update
 from openlibrary.config import load_config
 from infogami import config
+from openlibrary.utils.open_syllabus_project import set_osp_dump_location
 
 logger = logging.getLogger("openlibrary.solr-updater")
 # FIXME: Some kind of hack introduced to work around DB connectivity issue
@@ -287,7 +288,7 @@ async def main(
         update.set_solr_base_url(solr_url)
 
     update.set_solr_next(solr_next)
-    update.set_osp_dump_location(osp_dump)
+    set_osp_dump_location(osp_dump)
 
     logger.info("loading config from %s", ol_config)
     load_config(ol_config)
