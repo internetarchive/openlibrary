@@ -109,9 +109,9 @@ All source code published here is available under the terms of the [GNU Affero G
 
 ## Badges
 
-![GitHub contributors](https://img.shields.io/github/contributors/OpenLibraryProject/OpenLibrary)
-![GitHub issues](https://img.shields.io/github/issues/OpenLibraryProject/OpenLibrary)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/OpenLibraryProject/OpenLibrary)
-![GitHub forks](https://img.shields.io/github/forks/OpenLibraryProject/OpenLibrary?style=social)
-![GitHub stars](https://img.shields.io/github/stars/OpenLibraryProject/OpenLibrary?style=social)
-![License](https://img.shields.io/github/license/OpenLibraryProject/OpenLibrary)
+![GitHub contributors](https://img.shields.io/github/contributors/OpenLibrary/OpenLibrary)
+![GitHub issues](https://img.shields.io/github/issues/OpenLibrary/OpenLibrary)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/OpenLibrary/OpenLibrary)
+![GitHub forks](https://img.shields.io/github/forks/OpenLibrary/OpenLibrary?style=social)
+![GitHub stars](https://img.shields.io/github/stars/OpenLibrary/OpenLibrary?style=social)
+![License](https://img.shields.io/github/license/OpenLibrary/OpenLibrary)
