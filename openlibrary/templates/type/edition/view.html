@@ -61,7 +61,7 @@ $if ebooks_only:
 $if not editions:
   $# use ebooks_only to determine whether to lazyload editions table
   $ ebooks_only = False
-  $ editions = work.get_sorted_editions(limit=editions_limit, keys=keys)
+  $ editions = work.get_sorted_editions(limit=editions_limit, keys=keys, use_solr=True)
 $ availabilities = {e.availability.get('identifier'): e.availability for e in editions}
 $ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
 
@@ -325,7 +325,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
         <p class="preview-languages">
           Previews available in:
           $for e in previews:
-            $if e.languages[0].name not in seen:
+            $if e.languages and e.languages[0].name not in seen:
               $ seen.add(e.languages[0].name)
               <a href="$work.key?edition=$(e.ocaid)">$get_language_name(e.languages[0].key)</a>
         </p>

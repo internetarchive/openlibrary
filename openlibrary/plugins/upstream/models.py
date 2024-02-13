@@ -17,10 +17,12 @@ from openlibrary.core import models, ia
 from openlibrary.core.models import Image
 from openlibrary.core import lending
 
-from openlibrary.plugins.upstream.utils import MultiDict, parse_toc, get_edition_config
+from openlibrary.plugins.upstream.utils import MultiDict, get_language, parse_toc, get_edition_config
 from openlibrary.plugins.upstream import account
 from openlibrary.plugins.upstream import borrow
-from openlibrary.plugins.worksearch.code import works_by_author
+from openlibrary.plugins.worksearch.code import run_solr_query, works_by_author
+from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
+from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
 
 from openlibrary.utils import dateutil
@@ -691,48 +693,112 @@ class Work(models.Work):
         ebooks_only: bool = False,
         limit: int | None = None,
         keys: list[str] | None = None,
+        use_solr: bool = False
     ) -> list[Edition]:
-        """
-        Get this work's editions sorted by publication year
-        :param list[str] keys: ensure keys included in fetched editions
-        """
-        db_query = {"type": "/type/edition", "works": self.key}
-        db_query['limit'] = limit or 10000  # type: ignore[assignment]
 
-        edition_keys = []
-        if ebooks_only:
-            if self._solr_data:
-                from openlibrary.book_providers import get_book_providers
-
-                # Always use solr data whether it's up to date or not
-                # to determine which providers this book has
-                # We only make additional queries when a
-                # trusted book provider identifier is present
-                for provider in get_book_providers(self._solr_data):
-                    query = {**db_query, **provider.editions_query}
-                    edition_keys += web.ctx.site.things(query)
-            else:
-                db_query["ocaid~"] = "*"
-
-        if not edition_keys:
-            solr_is_up_to_date = (
-                self._solr_data
-                and self._solr_data.get('edition_key')
-                and len(self._solr_data.get('edition_key')) == self.edition_count
+        def get_solr_editions():
+            work_result = run_solr_query(
+                WorkSearchScheme(),
+                {'q': f'key:"{self.key}"'},
+                rows=limit,
+                fields=['key', 'edition_key', 'cover_i'],
+                facet=False
             )
-            if solr_is_up_to_date:
-                edition_keys += [
-                    "/books/" + olid for olid in self._solr_data.get('edition_key')
-                ]
-            else:
-                # given librarians are probably doing this, show all editions
-                edition_keys += web.ctx.site.things(db_query)
+            work = work_result.docs[0] if work_result.docs else {}
+            edition_keys = work.get('edition_key') or []
 
-        edition_keys.extend(keys or [])
-        editions = web.ctx.site.get_many(list(set(edition_keys)))
-        editions.sort(
-            key=lambda ed: ed.get_publish_year() or -sys.maxsize, reverse=True
-        )
+            _editions = []
+            for key in edition_keys:
+                full_key = f'/books/{key}'
+                ed_result = run_solr_query(
+                    EditionSearchScheme(),
+                    {'q': f'key:"{full_key}"'},
+                    rows=limit,
+                    fields=['ia', 'key', 'title', 'subtitle', 'language', 'isbn', 'publish_date', 'publisher'],
+                    user_query=False,
+                )
+                if ed_result.docs:
+                    ed = web.storify(ed_result.docs[0])
+                    if ed.get('ia', []):
+                        ed.ocaid = ed.ia[0]
+                    else:
+                        ed.ocaid = ''
+
+                    ed.languages = [get_language(f'/languages/{ed.language}')] if 'language' in ed else []
+                    # XXX : Actually set these, if possible:
+                    ed.oclc_numbers = None
+                    if ed.get('isbn', ''):
+                        # XXX : use `isbn.get_isbn_10_and_13` to assist setting isbns
+                        if len(ed.isbn) == 10:
+                            ed.isbn_10 = [ed.isbn]
+                            ed.isbn_13 = [isbn_10_to_isbn_13(ed.isbn)]
+                        else:
+                            # XXX : Assumption: any ISBN will be an ISBN 10 or ISBN 13
+                            ed.isbn_13 = [ed.isbn]
+                            ed.isbn_10 = [isbn_13_to_isbn_10(ed.isbn)]
+
+                    ed.isbn_10 = ed.isbn_10 if 'isbn_10' in ed else []
+                    ed.isbn_13 = ed.isbn_13 if 'isbn_13' in ed else []
+                    if 'subtitle' not in ed:
+                        ed.subtitle = 'default subtitle'
+                    ed.publishers = [ed.publisher] if ed.publisher else []
+                    if 'publish_date' not in ed:
+                        ed.publish_date = 'default publish_date'
+                    ed.physical_format = 'placeholder physical format'
+                    ed.edition_name = 'placeholder edition name'
+                    # XXX : Use cover_i in work_result to set cover...
+                    ed.type = 'solr_edition'
+
+                    _editions.append(ed)
+            return _editions
+
+        def get_infobase_editions():
+            """
+            Get this work's editions sorted by publication year
+            :param list[str] keys: ensure keys included in fetched editions
+            """
+            db_query = {"type": "/type/edition", "works": self.key}
+            db_query['limit'] = limit or 10000  # type: ignore[assignment]
+
+            edition_keys = []
+            if ebooks_only:
+                if self._solr_data:
+                    from openlibrary.book_providers import get_book_providers
+
+                    # Always use solr data whether it's up to date or not
+                    # to determine which providers this book has
+                    # We only make additional queries when a
+                    # trusted book provider identifier is present
+                    for provider in get_book_providers(self._solr_data):
+                        query = {**db_query, **provider.editions_query}
+                        edition_keys += web.ctx.site.things(query)
+                else:
+                    db_query["ocaid~"] = "*"
+
+            if not edition_keys:
+                solr_is_up_to_date = (
+                    self._solr_data
+                    and self._solr_data.get('edition_key')
+                    and len(self._solr_data.get('edition_key')) == self.edition_count
+                )
+                if solr_is_up_to_date:
+                    edition_keys += [
+                        "/books/" + olid for olid in self._solr_data.get('edition_key')
+                    ]
+                else:
+                    # given librarians are probably doing this, show all editions
+                    edition_keys += web.ctx.site.things(db_query)
+
+            edition_keys.extend(keys or [])
+            _editions = web.ctx.site.get_many(list(set(edition_keys)))
+            _editions.sort(
+                key=lambda ed: ed.get_publish_year() or -sys.maxsize, reverse=True
+            )
+
+            return _editions
+
+        editions = get_solr_editions() if use_solr else get_infobase_editions()
+        # Decorate w/ availability:
 
         # 2022-03 Once we know the availability-type of editions (e.g. open)
         # via editions-search, we can sidestep get_availability to only

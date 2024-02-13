@@ -142,6 +142,7 @@ def run_solr_query(
     facet: bool | Iterable[str] = True,
     allowed_filter_params: set[str] | None = None,
     extra_params: list[tuple[str, Any]] | None = None,
+    user_query: bool = True
 ):
     """
     :param param: dict of query parameters
@@ -210,7 +211,10 @@ def run_solr_query(
     # but does fix cases where the search query is different than the facet names
     q = None
     if param.get('q'):
-        q = scheme.process_user_query(param['q'])
+        if user_query:
+            q = scheme.process_user_query(param['q'])
+        else:
+            q = param['q']
 
     if params_q := scheme.build_q_from_params(param):
         q = f'{q} {params_q}' if q else params_q

@@ -20,17 +20,28 @@ $ djvutxt = "//archive.org/download/XXX/XXX_djvu.txt"
 $ seeall = "//archive.org/download/XXX"
 
 $ oclc_numbers = (book.oclc_numbers and book.oclc_numbers[0]) or ""
-$ isbn_13 = book.get_isbn13()
-$ isbn_10 = (isbn_13 and isbn_13_to_isbn_10(isbn_13)) or book.get_isbn10()
+$if book.type == 'solr_edition':
+  $ isbn_13 = (book.isbn_13 and book.isbn_13[0]) or None
+  $ isbn_10 = (book.isbn_10 and book.isbn_10[0])
+$else:
+  $ isbn_13 = book.get_isbn13()
+  $ isbn_10 = (isbn_13 and isbn_13_to_isbn_10(isbn_13)) or book.get_isbn10()
 $ isbn = isbn_10 or isbn_13
 $ asin = isbn_10 or None
 
-$ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
+$if book.type == 'solr_edition':
+  $# XXX : Derive from work search results in `get_sorted_editions`
+  $ url = ''
+$else:
+  $ url = book.get_cover_url("S")
+
+$ url = url or "/images/icons/avatar_book-sm.png"
+$ book_url = book.key if book.type == 'solr_edition' else book.url()
 
     <td class="book">
       <span class="hidden sort-key">$edition_sort_key</span>
       <div class="cover">
-          <a href="$book.url()"><img
+          <a href="$book_url"><img
             src="$url"
             alt="$_('Cover of: %(title)s', title=book.title)"
             title="$_('Cover of: %(title)s', title=book.title)"
@@ -40,7 +51,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
 
       <div class="title">
         $if book.title:
-          <a href="$book.url()">
+          <a href="$book_url">
             $if book.subtitle:
               $_('%(title)s: %(subtitle)s', title=book.title, subtitle=book.subtitle)
             $else:
