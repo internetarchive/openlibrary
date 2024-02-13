@@ -59,9 +59,12 @@ $ keys = (edition and [edition.key]) or (provider and provider.get_olids(selecte
 $if ebooks_only:
   $ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=keys)
 $if not editions:
+  $# Default to Solr if data source query param not equal to 'db'
+  $ use_solr = False if query_param('ds', '') == 'db' else True
+
   $# use ebooks_only to determine whether to lazyload editions table
   $ ebooks_only = False
-  $ editions = work.get_sorted_editions(limit=editions_limit, keys=keys, use_solr=True)
+  $ editions = work.get_sorted_editions(limit=editions_limit, keys=keys, use_solr=use_solr)
 $ availabilities = {e.availability.get('identifier'): e.availability for e in editions}
 $ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
 
