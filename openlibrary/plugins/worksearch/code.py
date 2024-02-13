@@ -142,7 +142,7 @@ def run_solr_query(
     facet: bool | Iterable[str] = True,
     allowed_filter_params: set[str] | None = None,
     extra_params: list[tuple[str, Any]] | None = None,
-    user_query: bool = True
+    user_query: bool = True,
 ):
     """
     :param param: dict of query parameters

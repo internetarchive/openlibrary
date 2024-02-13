@@ -17,7 +17,12 @@ from openlibrary.core import models, ia
 from openlibrary.core.models import Image
 from openlibrary.core import lending
 
-from openlibrary.plugins.upstream.utils import MultiDict, get_language, parse_toc, get_edition_config
+from openlibrary.plugins.upstream.utils import (
+    MultiDict,
+    get_language,
+    parse_toc,
+    get_edition_config,
+)
 from openlibrary.plugins.upstream import account
 from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.worksearch.code import run_solr_query, works_by_author
@@ -693,9 +698,8 @@ class Work(models.Work):
         ebooks_only: bool = False,
         limit: int | None = None,
         keys: list[str] | None = None,
-        use_solr: bool = False
+        use_solr: bool = False,
     ) -> list[Edition]:
-
         def get_solr_editions():
             work = self._solr_data
             edition_keys = work.get('edition_key') or []
@@ -705,7 +709,16 @@ class Work(models.Work):
                 EditionSearchScheme(),
                 {'q': ' OR '.join(edition_queries)},
                 rows=limit,
-                fields=['ia', 'key', 'title', 'subtitle', 'language', 'isbn', 'publish_date', 'publisher'],
+                fields=[
+                    'ia',
+                    'key',
+                    'title',
+                    'subtitle',
+                    'language',
+                    'isbn',
+                    'publish_date',
+                    'publisher',
+                ],
                 user_query=False,
             )
 
@@ -718,7 +731,11 @@ class Work(models.Work):
                     else:
                         ed.ocaid = ''
 
-                    ed.languages = [get_language(f'/languages/{ed.language}')] if 'language' in ed else []
+                    ed.languages = (
+                        [get_language(f'/languages/{ed.language}')]
+                        if 'language' in ed
+                        else []
+                    )
                     # XXX : Actually set these, if possible:
                     ed.oclc_numbers = None
                     if ed.get('isbn', ''):
