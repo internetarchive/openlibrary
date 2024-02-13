@@ -16,6 +16,7 @@ from openlibrary.catalog.utils import (
     publication_too_old_and_not_exempt,
     published_in_future_year,
     remove_trailing_dot,
+    remove_trailing_number_dot,
     strip_count,
 )
 
@@ -346,3 +347,32 @@ def test_get_missing_field(name, rec, expected) -> None:
     assert sorted(get_missing_fields(rec=rec)) == sorted(
         expected
     ), f"Test failed: {name}"
+
+
+@pytest.mark.parametrize(
+    ("date, expected"),
+    [
+        ("", ""),
+        ("1865", "1865"),  # No period to remove
+        ("1865.5", "1865.5"),  # Period not at the end
+        ("1865,", "1865,"),  # Comma instead of period
+        ("18.", "18"),  # Minimum digits
+        ("1.", "1."),  # Fewer than minimum digits with period
+        ("18651.", "18651"),  # More than minimum digits
+        ("123blap.", "123blap."),  # Non-digit before period
+        ("123...", "123"),  # Multiple periods at the end
+        ("123 -..", "123 -"),  # Spaces and hyphens before multiple periods
+        ("123-.", "123-"),  # Hyphen directly before single period
+        (" 123 .", " 123 "),  # Spaces around digits and single period
+        ("123 - .", "123 - "),  # Space between hyphen and single period
+        ("abc123...", "abc123"),  # Leading characters
+        ("123...xyz", "123...xyz"),  # Trailing characters after periods
+        ("12 34..", "12 34"),  # Spaces within digits before periods
+        ("123", "123"),  # Spaces between periods
+        ("12-34.", "12-34"),  # Hyphens within digits
+        ("100-200.", "100-200"),  # Hyphens within digits, ending with period
+    ],
+)
+def test_remove_trailing_number_dot(date: str, expected: str) -> None:
+    got = remove_trailing_number_dot(date)
+    assert got == expected
