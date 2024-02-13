@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+from pathlib import Path
 import time
 import uuid
 from collections import namedtuple
@@ -376,7 +377,7 @@ def build_job_query(
 async def main(
     cmd: Literal['index', 'fetch-end'],
     job: Literal['works', 'orphans', 'authors', 'lists'],
-    osp_dump: str,
+    osp_dump: Path,
     postgres="postgres.ini",
     ol="http://ol/",
     ol_config="../../conf/openlibrary.yml",

@@ -2,7 +2,7 @@
 
 python --version
 OSP_DUMP_LOCATION="/solr-updater-data/osp_totals.db"
-# if the osp dump file does not exist, download it
+# if the osp dump file does not exist, download it. Takes ~30s
 # When we update the python image we can use the --no-clobber option to avoid downloading the file again
 # https://github.com/internetarchive/openlibrary/pull/8790
 if [ ! -f "$OSP_DUMP_LOCATION" ]; then

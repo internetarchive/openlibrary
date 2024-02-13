@@ -10,6 +10,7 @@ import asyncio
 import datetime
 import json
 import logging
+from pathlib import Path
 import re
 import socket
 import sys
@@ -242,7 +243,7 @@ async def update_keys(keys):
 
 async def main(
     ol_config: str,
-    osp_dump: str,
+    osp_dump: Path,
     debugger: bool = False,
     state_file: str = 'solr-update.state',
     exclude_edits_containing: str | None = None,

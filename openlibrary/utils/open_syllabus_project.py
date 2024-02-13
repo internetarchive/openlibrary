@@ -1,3 +1,4 @@
+import logging
 import os
 import json
 import sqlite3
@@ -6,6 +7,8 @@ from contextlib import closing
 from pathlib import Path
 
 from openlibrary.solr.utils import get_osp_dump_location
+
+logger = logging.getLogger("openlibrary.open_syllabus_project")
 
 
 # Function to get the total based on OLID
@@ -23,6 +26,11 @@ def get_total_by_olid(olid: str) -> int | None:
     olid_int = olid.replace("/works/", "").replace("OL", "").replace("W", "")
 
     db_file = get_osp_dump_location()
+
+    if not db_file:
+        logger.warning("Open Syllabus Project database not found.")
+        return None
+
     with closing(sqlite3.connect(db_file)) as conn:
         cursor = conn.cursor()
 
