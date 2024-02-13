@@ -237,8 +237,7 @@ class ItemEdition(dict):
         metadata = self.metadata
 
         key2 = key2 or key
-        if key in metadata and metadata[key]:
-            value = metadata[key]
+        if value := metadata.get('key'):
             if isinstance(value, list):
                 value = [v for v in value if v != {}]
                 if value:
@@ -256,8 +255,7 @@ class ItemEdition(dict):
         metadata = self.metadata
 
         key2 = key2 or key
-        if key in metadata and metadata[key]:
-            value = metadata[key]
+        if value := metadata.get('key'):
             if not isinstance(value, list):
                 value = [value]
             self[key2] = value
