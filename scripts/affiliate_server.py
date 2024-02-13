@@ -33,7 +33,6 @@ web.amazon_api = AmazonAPI(*params, throttling=0.9)
 products = web.amazon_api.get_products(["195302114X", "0312368615"], serialize=True)
 ```
 """
-
 import itertools
 import json
 import logging
@@ -42,7 +41,11 @@ import queue
 import sys
 import threading
 import time
-from datetime import date
+
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Final
 
 import web
 
@@ -52,7 +55,7 @@ import infogami
 from infogami import config
 from openlibrary.config import load_config as openlibrary_load_config
 from openlibrary.core import cache, stats
-from openlibrary.core.imports import Batch
+from openlibrary.core.imports import Batch, ImportItem
 from openlibrary.core.vendors import AmazonAPI, clean_amazon_metadata_for_load
 from openlibrary.utils.dateutil import WEEK_SECS
 from openlibrary.utils.isbn import (
@@ -81,22 +84,23 @@ AZ_OL_MAP = {
     'publish_date': 'publish_date',
     'number_of_pages': 'number_of_pages',
 }
+RETRIES: Final = 5
 
-batch_name = ""
 batch: Batch | None = None
 
-web.amazon_queue = queue.Queue()  # a thread-safe multi-producer, multi-consumer queue
+web.amazon_queue = (
+    queue.PriorityQueue()
+)  # a thread-safe multi-producer, multi-consumer queue
 web.amazon_lookup_thread = None
 
 
 def get_current_amazon_batch() -> Batch:
     """
-    At startup or when the month changes, create a new openlibrary.core.imports.Batch()
+    At startup, get the Amazon openlibrary.core.imports.Batch() for global use.
     """
-    global batch_name, batch
-    if batch_name != (new_batch_name := f"amz-{date.today():%Y%m}"):
-        batch_name = new_batch_name
-        batch = Batch.find(batch_name) or Batch.new(batch_name)
+    global batch
+    if not batch:
+        batch = Batch.find("amz") or Batch.new("amz")
     assert batch
     return batch
 
@@ -201,13 +205,17 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
         return
 
     books = [clean_amazon_metadata_for_load(product) for product in products]
-    if books and (pending_books := get_pending_books(books)):
+
+    if books:
         stats.increment(
             "ol.affiliate.amazon.total_items_batched_for_import",
-            n=len(pending_books),
+            n=len(books),
         )
         get_current_amazon_batch().add_items(
-            [{'ia_id': b['source_records'][0], 'data': b} for b in pending_books]
+            [
+                {'ia_id': b['source_records'][0], 'status': 'staged', 'data': b}
+                for b in books
+            ]
         )
 
 
@@ -230,7 +238,7 @@ def amazon_lookup(site, stats_client, logger) -> None:
         while len(isbn_10s) < API_MAX_ITEMS_PER_CALL and seconds_remaining(start_time):
             try:  # queue.get() will block (sleep) until successful or it times out
                 isbn_10s.add(
-                    web.amazon_queue.get(timeout=seconds_remaining(start_time))
+                    web.amazon_queue.get(timeout=seconds_remaining(start_time)).isbn
                 )
             except queue.Empty:
                 pass
@@ -282,6 +290,45 @@ class Clear:
         return json.dumps({"Cleared": "True", "qsize": qsize})
 
 
+class Priority(Enum):
+    """
+    Priority for the `PrioritizedISBN` class.
+
+    `queue.PriorityQueue` has a lowest-value-is-highest-priority system, but
+    setting `PrioritizedISBN.priority` to 0 can make it look as if priority is
+    disabled. Using an `Enum` can help with that.
+    """
+
+    HIGH = 0
+    LOW = 1
+
+    def __lt__(self, other):
+        if isinstance(other, Priority):
+            return self.value < other.value
+        return NotImplemented
+
+
+@dataclass(order=True, slots=True)
+class PrioritizedISBN:
+    """
+    Represent an ISBN's priority in the queue. Sorting is based on the `priority`
+    attribute, then the `timestamp` to solve tie breaks within a specific priority,
+    with priority going to whatever `min([items])` would return.
+    For more, see https://docs.python.org/3/library/queue.html#queue.PriorityQueue.
+
+    Therefore, priority 0, which is equivalent to `Priority.HIGH`, is the highest
+    priority.
+
+    This exists so certain ISBNs can go to the front of the queue for faster
+    processing as their look-ups are time sensitive and should return look up data
+    to the caller (e.g. interactive API usage through `/isbn`).
+    """
+
+    isbn: str = field(compare=False)
+    priority: Priority = field(default=Priority.LOW)
+    timestamp: datetime = field(default_factory=datetime.now)
+
+
 class Submit:
     @classmethod
     def unpack_isbn(cls, isbn) -> tuple[str, str]:
@@ -296,8 +343,16 @@ class Submit:
 
     def GET(self, isbn: str) -> str:
         """
-        If isbn is in memcache then return the `hit`.  If not then queue the isbn to be
-        looked up and return the equivalent of a promise as `submitted`
+        If `isbn` is in memcache, then return the `hit` (which is marshaled into
+        a format appropriate for import on Open Library if `?high_priority=true`).
+
+        If no hit, then queue the isbn for look up and either attempt to return
+        a promise as `submitted`, or if `?high_priority=true`, return marshalled data
+        from the cache.
+
+        `Priority.HIGH` is set when `?high_priority=true` and is the highest priority.
+        It is used when the caller is waiting for a response with the AMZ data, if
+        available. See `PrioritizedISBN` for more on prioritization.
         """
         # cache could be None if reached before initialized (mypy)
         if not web.amazon_api:
@@ -309,13 +364,25 @@ class Submit:
                 {"error": "rejected_isbn", "isbn10": isbn10, "isbn13": isbn13}
             )
 
+        input = web.input(high_priority=False)
+        priority = (
+            Priority.HIGH if input.get("high_priority") == "true" else Priority.LOW
+        )
+
         # Cache lookup by isbn13. If there's a hit return the product to the caller
         if product := cache.memcache_cache.get(f'amazon_product_{isbn13}'):
-            return json.dumps({"status": "success", "hit": product})
+            return json.dumps(
+                {
+                    "status": "success",
+                    "hit": product,
+                }
+            )
 
-        # Cache misses will be submitted to Amazon as ASINs (isbn10)
+        # Cache misses will be submitted to Amazon as ASINs (isbn10) and the response
+        # will be `staged` for import.
         if isbn10 not in web.amazon_queue.queue:
-            web.amazon_queue.put_nowait(isbn10)
+            isbn10_queue_item = PrioritizedISBN(isbn=isbn10, priority=priority)
+            web.amazon_queue.put_nowait(isbn10_queue_item)
 
         # Give us a snapshot over time of how many new isbns are currently queued
         stats.put(
@@ -323,7 +390,27 @@ class Submit:
             web.amazon_queue.qsize(),
             rate=0.2,
         )
-        return json.dumps({"status": "submitted", "queue": web.amazon_queue.qsize()})
+
+        # Check the cache a few times for product data to return to the client,
+        # or otherwise return.
+        if priority == Priority.HIGH:
+            for _ in range(RETRIES):
+                time.sleep(1)
+                if product := cache.memcache_cache.get(f'amazon_product_{isbn13}'):
+                    cleaned_metadata = clean_amazon_metadata_for_load(product)
+                    source, pid = cleaned_metadata['source_records'][0].split(":")
+                    if ImportItem.find_staged_or_pending(
+                        identifiers=[pid], sources=[source]
+                    ):
+                        return json.dumps({"status": "success", "hit": product})
+
+            stats.increment("ol.affiliate.amazon.total_items_not_found")
+            return json.dumps({"status": "not found"})
+
+        else:
+            return json.dumps(
+                {"status": "submitted", "queue": web.amazon_queue.qsize()}
+            )
 
 
 def load_config(configfile):
