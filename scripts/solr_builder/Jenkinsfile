@@ -39,10 +39,8 @@ pipeline {
         OL_DUMP_LINK = 'https://openlibrary.org/data/ol_dump_latest.txt.gz'
         OL_RATINGS_LINK = 'https://openlibrary.org/data/ol_dump_ratings_latest.txt.gz'
         OL_READING_LOG_LINK = 'https://openlibrary.org/data/ol_dump_reading-log_latest.txt.gz'
-        OL_READING_LOG_LINK = 'https://openlibrary.org/data/ol_dump_reading-log_latest.txt.gz'
         // Keep link in sync with ol-solr-updater-start and Makefile
         OSP_DUMP_LINK = 'https://archive.org/download/2023_openlibrary_osp_counts/osp_totals.db'
-        OSP_DUMP_FILE = '/solr-updater-data/osp_totals.db'
         // Get the date-suffixed name of the latest dump
         // eg ol_dump_2021-09-13.txt.gz
         OL_DUMP_FILE = sh(script: "curl '${env.OL_DUMP_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
@@ -89,7 +87,8 @@ pipeline {
                       sh "wget --progress=dot:giga --trust-server-names --no-clobber ${env.OL_DUMP_LINK}"
                       sh "wget --progress=dot:giga --trust-server-names --no-clobber ${env.OL_RATINGS_LINK}"
                       sh "wget --progress=dot:giga --trust-server-names --no-clobber ${env.OL_READING_LOG_LINK}"
-                      sh "wget --progress=dot:giga --trust-server-names ${env.OSP_DUMP_LINK} -O ${env.OSP_DUMP_FILE}"
+                      // This file is small, so we don't need to check if it's already downloaded
+                      sh "wget --progress=dot:giga --trust-server-names ${env.OSP_DUMP_LINK}"
                     }
                   }
                 }

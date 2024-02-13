@@ -32,7 +32,7 @@ while [ $done != "true" ]; do
     (&>"logs/$LOG_DIR/$RUN_SIG.txt" python solr_builder/solr_builder.py index "${TYPE}s" \
       --start-at "/$next_start" \
       --limit $CHUNK_SIZE \
-      --osp-dump $OSP_DUMP_FILE \ # TODO: unsure if this works or we need to pass the file path
+      --osp-dump /storage/openlibrary/osp_totals.db \
       --progress "progress/$LOG_DIR/$RUN_SIG.txt" \
     &)
 
