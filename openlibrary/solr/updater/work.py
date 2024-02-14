@@ -335,6 +335,8 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def osp_count(self) -> int | None:
+        if not get_solr_next():
+            return None
         return get_total_by_olid(self.key)
 
     @property
