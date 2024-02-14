@@ -13,6 +13,7 @@ $ options += [(_("Lists (%(count)d)", count=len(mb.lists)) , url_prefix + "/list
 $if mb.is_my_page:
   $ options += [
   $   (_("Loans"), "/account/loans"),
+  $   (_("Loan History"), "/account/loan-history"),
   $   (_("Notes"), url_prefix + "/books/notes"),
   $   (_("Reviews"), url_prefix + "/books/observations"),
   $   (_("Imports and Exports"), "/account/import")
