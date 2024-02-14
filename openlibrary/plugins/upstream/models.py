@@ -726,8 +726,8 @@ class Work(models.Work):
             if ed_results.docs:
                 for solr_edition in ed_results.docs:
                     ed = web.storify(solr_edition)
-                    if ed.get('ia', []):
-                        ed.ocaid = ed.ia[0]
+                    if ed.get('ia', ''):
+                        ed.ocaid = ed.ia
                     else:
                         ed.ocaid = ''
 
