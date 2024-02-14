@@ -2,6 +2,7 @@
 Open Library Plugin.
 """
 
+from urllib.parse import parse_qs, urlparse, urlencode, urlunparse
 import requests
 import web
 import json
@@ -36,7 +37,7 @@ from openlibrary.core import cache
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
 from openlibrary.core.models import Edition
-from openlibrary.core.lending import get_work_availability, get_edition_availability
+from openlibrary.core.lending import get_availability
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count
@@ -252,26 +253,24 @@ class addbook(delegate.page):
 
 
 class widget(delegate.page):
-    path = r'/(works|books)/(OL\d+[W|M])/widget'
+    path = r'(/works/OL\d+W|/books/OL\d+M)/widget'
 
-    def GET(self, _type, olid=None):
-        if olid:
-            getter = (
-                get_work_availability if _type == 'works' else get_edition_availability
-            )
-            item = web.ctx.site.get(f'/{_type}/{olid}') or {}
-            item['olid'] = olid
-            item['availability'] = getter(olid).get(item['olid'])
-            item['authors'] = [
-                web.storage(key=a.key, name=a.name or None) for a in item.get_authors()
-            ]
-            return delegate.RawText(
-                render_template(
-                    'widget', item if _type == 'books' else format_work_data(item)
-                ),
-                content_type='text/html',
-            )
-        raise web.seeother('/')
+    def GET(self, key: str):  # type: ignore[override]
+        olid = key.split('/')[-1]
+        item = web.ctx.site.get(key)
+        is_work = key.startswith('/works/')
+        item['olid'] = olid
+        item['availability'] = get_availability(
+            'openlibrary_work' if is_work else 'openlibrary_edition',
+            [olid],
+        ).get(olid)
+        item['authors'] = [
+            web.storage(key=a.key, name=a.name or None) for a in item.get_authors()
+        ]
+        return delegate.RawText(
+            render_template('widget', format_work_data(item) if is_work else item),
+            content_type='text/html',
+        )
 
 
 class addauthor(delegate.page):
@@ -463,10 +462,33 @@ class health(delegate.page):
         return web.ok('OK')
 
 
+def remove_high_priority(query: str) -> str:
+    """
+    Remove `high_priority=true` and `high_priority=false` from query parameters,
+    as the API expects to pass URL parameters through to another query, and
+    these may interfere with that query.
+
+    >>> remove_high_priority('high_priority=true&v=1')
+    'v=1'
+    """
+    query_params = parse_qs(query)
+    query_params.pop("high_priority", None)
+    new_query = urlencode(query_params, doseq=True)
+    return new_query
+
+
 class isbn_lookup(delegate.page):
     path = r'/(?:isbn|ISBN)/([0-9xX-]+)'
 
     def GET(self, isbn):
+        input = web.input(high_priority=False)
+
+        high_priority = input.get("high_priority") == "true"
+        if "high_priority" in web.ctx.env.get('QUERY_STRING'):
+            web.ctx.env['QUERY_STRING'] = remove_high_priority(
+                web.ctx.env.get('QUERY_STRING')
+            )
+
         # Preserve the url type (e.g. `.json`) and query params
         ext = ''
         if web.ctx.encoding and web.ctx.path.endswith('.' + web.ctx.encoding):
@@ -475,7 +497,7 @@ class isbn_lookup(delegate.page):
             ext += '?' + web.ctx.env['QUERY_STRING']
 
         try:
-            if ed := Edition.from_isbn(isbn):
+            if ed := Edition.from_isbn(isbn=isbn, high_priority=high_priority):
                 return web.found(ed.key + ext)
         except Exception as e:
             logger.error(e)

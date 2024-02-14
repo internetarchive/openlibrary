@@ -93,7 +93,7 @@ class mybooks_notes(delegate.page):
         i = web.input(page=1)
         mb = MyBooksTemplate(username, key='notes')
         if mb.is_my_page:
-            docs = PatronBooknotes(mb.user).get_notes(page=i.page)
+            docs = PatronBooknotes(mb.user).get_notes(page=int(i.page))
             template = render['account/notes'](
                 docs, mb.user, mb.counts['notes'], page=i.page
             )
@@ -108,9 +108,9 @@ class mybooks_reviews(delegate.page):
         i = web.input(page=1)
         mb = MyBooksTemplate(username, key='observations')
         if mb.is_my_page:
-            docs = PatronBooknotes(mb.user).get_observations(page=i.page)
+            docs = PatronBooknotes(mb.user).get_observations(page=int(i.page))
             template = render['account/observations'](
-                docs, mb.user, mb.counts['observations'], page=i.page
+                docs, mb.user, mb.counts['observations'], page=int(i.page)
             )
             return mb.render(header_title=_("Reviews"), template=template)
         raise web.seeother(mb.user.key)
@@ -229,10 +229,10 @@ class mybooks_readinglog(delegate.page):
         mb = MyBooksTemplate(username, key)
         KEYS_TITLES = {
             'currently-reading': _(
-                "Want to Read (%(count)d)", count=mb.counts['want-to-read']
+                "Currently Reading (%(count)d)", count=mb.counts['currently-reading']
             ),
             'want-to-read': _(
-                "Currently Reading (%(count)d)", count=mb.counts['currently-reading']
+                "Want to Read (%(count)d)", count=mb.counts['want-to-read']
             ),
             'already-read': _(
                 "Already Read (%(count)d)", count=mb.counts['already-read']
