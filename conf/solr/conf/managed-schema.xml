@@ -206,6 +206,9 @@
     <field name="currently_reading_count" type="pint"/>
     <field name="already_read_count" type="pint"/>
 
+    <!-- Open Syllabus Project -->
+    <field name="osp_count" type="pint"/>
+
     <field name="text" type="text_en_splitting" stored="false" multiValued="true"/>
 
     <field name="seed" type="string" multiValued="true"/>

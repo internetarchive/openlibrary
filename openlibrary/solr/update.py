@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from typing import Literal, cast
 
 import aiofiles
@@ -25,6 +26,7 @@ from openlibrary.solr.utils import (
     solr_update,
 )
 from openlibrary.utils import uniq
+from openlibrary.utils.open_syllabus_project import set_osp_dump_location
 
 logger = logging.getLogger("openlibrary.solr")
 
@@ -153,6 +155,7 @@ def load_configs(
 
 async def main(
     keys: list[str],
+    osp_dump: Path,
     ol_url="http://openlibrary.org",
     ol_config="openlibrary.yml",
     output_file: str | None = None,
@@ -188,6 +191,7 @@ async def main(
         set_solr_base_url(solr_base)
 
     set_solr_next(solr_next)
+    set_osp_dump_location(osp_dump)
 
     await update_keys(keys, commit=commit, output_file=output_file, update=update)
 
