@@ -231,8 +231,8 @@ class Bookshelves(db.CommonExtras):
         from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
         logger.info("BOOKSHELF: %s" % bookshelf_id)
-        #Sets the function to fetch editions as well, if not accessing the Want to Read shelf.
-        editions:bool = bookshelf_id!=1
+        # Sets the function to fetch editions as well, if not accessing the Want to Read shelf.
+        editions: bool = bookshelf_id != 1
         shelf_totals = cls.count_total_books_logged_by_user_per_shelf(username)
         oldb = db.get_db()
         page = int(page or 1)
@@ -243,33 +243,40 @@ class Bookshelves(db.CommonExtras):
             'bookshelf_id': bookshelf_id,
             'checkin_year': checkin_year,
         }
-        #Iterates through a list of solr docs, and for all items with a 'logged edition'
-        #it will remove an item with the matching edition key from the list, and add it to
-        #doc["editions"]["docs"]
+
+        # Iterates through a list of solr docs, and for all items with a 'logged edition'
+        # it will remove an item with the matching edition key from the list, and add it to
+        # doc["editions"]["docs"]
         def link_editions_to_works(solr_docs):
             linked_docs: list[web.storage] = []
             docs_dict = {}
-            #adds works to linked_docs, recording their edition key and index in docs_dict if present. 
+            # adds works to linked_docs, recording their edition key and index in docs_dict if present.
             for doc in solr_docs:
-                full_key =doc.get("key") or "/dummy/value"
-                _, key, item_id =full_key.split("/")
+                full_key = doc.get("key") or "/dummy/value"
+                _, key, item_id = full_key.split("/")
                 if key == "works":
                     linked_docs.append(doc)
                     if doc.get("logged_edition"):
-                        docs_dict.update({doc["logged_edition"].split("/")[2]:(len(linked_docs)-1)})
-            #Attaches editions to the works, in second loop-- in case of misperformed order. 
+                        docs_dict.update(
+                            {
+                                doc["logged_edition"].split("/")[2]: (
+                                    len(linked_docs) - 1
+                                )
+                            }
+                        )
+            # Attaches editions to the works, in second loop-- in case of misperformed order.
             for edition in solr_docs:
                 full_key = edition.get("key") or "/dummy/value"
                 _, key, item_id = full_key.split("/")
                 if key == "books":
                     index = docs_dict.get(item_id, -1)
-                    if index>=0:
+                    if index >= 0:
                         linked_docs[index].editions = [edition]
                     else:
-                        #raise error no matching work found? Or figure out if the solr queries are performed orderless.
+                        # raise error no matching work found? Or figure out if the solr queries are performed orderless.
                         logger.warning("Error: No work found for edition %s")
             return linked_docs
-        
+
         @dataclass
         class ReadingLogItem:
             """Holds the datetime a book was logged and the edition ID."""
@@ -371,15 +378,23 @@ class Bookshelves(db.CommonExtras):
             reading_log_edition_keys = [
                 '"OL%sM"' % i['edition_id'] for i in reading_log_books
             ]
-            logged_work_edition_dict = { 
-                 '/works/OL%sW' % i['work_id']: '/books/OL%sM' % i['edition_id'] for i in reading_log_books
+            logged_work_edition_dict = {
+                '/works/OL%sW' % i['work_id']: '/books/OL%sM' % i['edition_id']
+                for i in reading_log_books
+            }
+            logged_work_edition_dict.update(
+                {
+                    '/books/OL%sM' % i['edition_id']: '/works/OL%sW' % i['work_id']
+                    for i in reading_log_books
                 }
-            logged_work_edition_dict.update({
-                 '/books/OL%sM' % i['edition_id']: '/works/OL%sW' % i['work_id'] for i in reading_log_books
-            })
+            )
 
-            #Separating out the filter query from the call allows us to cleanly edit it, if editions are required. 
-            filter_query = f'key:({" OR ".join(reading_log_work_keys)}) OR edition_key:({" OR ".join(reading_log_edition_keys)})' if editions else f'key:({" OR ".join(reading_log_work_keys)})'
+            # Separating out the filter query from the call allows us to cleanly edit it, if editions are required.
+            filter_query = (
+                f'key:({" OR ".join(reading_log_work_keys)}) OR edition_key:({" OR ".join(reading_log_edition_keys)})'
+                if editions
+                else f'key:({" OR ".join(reading_log_work_keys)})'
+            )
 
             solr_resp = run_solr_query(
                 scheme=WorkSearchScheme(),
@@ -395,21 +410,24 @@ class Bookshelves(db.CommonExtras):
             total_results = solr_resp.num_found
             solr_docs = solr_resp.docs
 
-
             if editions:
-                matching_editions = [logged_work_edition_dict.get(work["key"]) for work in solr_docs if logged_work_edition_dict.get(work["key"])]
+                matching_editions = [
+                    logged_work_edition_dict.get(work["key"])
+                    for work in solr_docs
+                    if logged_work_edition_dict.get(work["key"])
+                ]
 
                 edition_data = get_solr().get_many(
-                [f'{key}' for key in matching_editions],
-                fields=WorkSearchScheme.default_fetched_fields
-               | {'subject', 'person', 'place', 'time', 'edition_key'},
+                    [f'{key}' for key in matching_editions],
+                    fields=WorkSearchScheme.default_fetched_fields
+                    | {'subject', 'person', 'place', 'time', 'edition_key'},
                 )
                 solr_docs.extend(edition_data)
 
             # Downstream many things expect a list of web.storage docs.
             solr_docs = [web.storage(doc) for doc in solr_resp.docs]
             solr_docs = add_reading_log_data(reading_log_books, solr_docs)
-            #This function is only necessary if edition data was fetched.
+            # This function is only necessary if edition data was fetched.
             if editions:
                 solr_docs = link_editions_to_works(solr_docs)
 
@@ -464,7 +482,7 @@ class Bookshelves(db.CommonExtras):
             )
 
             reading_log_keys = [
-                ('/works/OL%sW' % i['work_id'], '/books/OL%sM' % i['edition_id']) 
+                ('/works/OL%sW' % i['work_id'], '/books/OL%sM' % i['edition_id'])
                 for i in reading_log_books
             ]
 
@@ -477,16 +495,13 @@ class Bookshelves(db.CommonExtras):
                 (keys[0] for keys in reading_log_keys), solr_docs
             )
 
-
-
             total_results = shelf_totals.get(bookshelf_id, 0)
             solr_docs = add_reading_log_data(reading_log_books, solr_docs)
 
-            #Attaches returned editions to works. 
+            # Attaches returned editions to works.
             if editions:
                 solr_docs = link_editions_to_works(solr_docs)
 
-            
             assert len(solr_docs) == len(reading_log_keys), (
                 "solr_docs is missing an item/items from reading_log_work_keys; "
                 "see add_storage_items_for_redirects()"
