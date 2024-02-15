@@ -238,8 +238,6 @@ class lists_partials(delegate.page):
     encoding = "json"
 
     def GET(self):
-        i = web.input(key=None)
-
         partials = self.get_partials()
         return delegate.RawText(json.dumps(partials))
 
