@@ -202,6 +202,35 @@ class Bookshelves(db.CommonExtras):
         result = oldb.query(query, vars=data)
         return {i['bookshelf_id']: i['count'] for i in result} if result else {}
 
+    # Iterates through a list of solr docs, and for all items with a 'logged edition'
+    # it will remove an item with the matching edition key from the list, and add it to
+    # doc["editions"]["docs"]
+    def link_editions_to_works(solr_docs):
+        linked_docs: list[web.storage] = []
+        docs_dict = {}
+        # adds works to linked_docs, recording their edition key and index in docs_dict if present.
+        for doc in solr_docs:
+            full_key = doc.get("key") or "/dummy/value"
+            _, key, item_id = full_key.split("/")
+            if key == "works":
+                linked_docs.append(doc)
+                if doc.get("logged_edition"):
+                    docs_dict.update(
+                        {doc["logged_edition"].split("/")[2]: (len(linked_docs) - 1)}
+                    )
+        # Attaches editions to the works, in second loop-- in case of misperformed order.
+        for edition in solr_docs:
+            full_key = edition.get("key") or "/dummy/value"
+            _, key, item_id = full_key.split("/")
+            if key == "books":
+                index = docs_dict.get(item_id, -1)
+                if index >= 0:
+                    linked_docs[index].editions = [edition]
+                else:
+                    # raise error no matching work found? Or figure out if the solr queries are performedorderless.
+                    logger.warning("Error: No work found for edition %s")
+        return linked_docs
+
     @classmethod
     def get_users_logged_books(
         cls,
@@ -243,39 +272,6 @@ class Bookshelves(db.CommonExtras):
             'bookshelf_id': bookshelf_id,
             'checkin_year': checkin_year,
         }
-
-        # Iterates through a list of solr docs, and for all items with a 'logged edition'
-        # it will remove an item with the matching edition key from the list, and add it to
-        # doc["editions"]["docs"]
-        def link_editions_to_works(solr_docs):
-            linked_docs: list[web.storage] = []
-            docs_dict = {}
-            # adds works to linked_docs, recording their edition key and index in docs_dict if present.
-            for doc in solr_docs:
-                full_key = doc.get("key") or "/dummy/value"
-                _, key, item_id = full_key.split("/")
-                if key == "works":
-                    linked_docs.append(doc)
-                    if doc.get("logged_edition"):
-                        docs_dict.update(
-                            {
-                                doc["logged_edition"].split("/")[2]: (
-                                    len(linked_docs) - 1
-                                )
-                            }
-                        )
-            # Attaches editions to the works, in second loop-- in case of misperformed order.
-            for edition in solr_docs:
-                full_key = edition.get("key") or "/dummy/value"
-                _, key, item_id = full_key.split("/")
-                if key == "books":
-                    index = docs_dict.get(item_id, -1)
-                    if index >= 0:
-                        linked_docs[index].editions = [edition]
-                    else:
-                        # raise error no matching work found? Or figure out if the solr queries are performed orderless.
-                        logger.warning("Error: No work found for edition %s")
-            return linked_docs
 
         @dataclass
         class ReadingLogItem:
@@ -429,7 +425,7 @@ class Bookshelves(db.CommonExtras):
             solr_docs = add_reading_log_data(reading_log_books, solr_docs)
             # This function is only necessary if edition data was fetched.
             if editions:
-                solr_docs = link_editions_to_works(solr_docs)
+                solr_docs = cls.link_editions_to_works(solr_docs)
 
             return LoggedBooksData(
                 username=username,
@@ -492,7 +488,7 @@ class Bookshelves(db.CommonExtras):
                 | {'subject', 'person', 'place', 'time', 'edition_key'},
             )
             solr_docs = add_storage_items_for_redirects(
-                (keys[0] for keys in reading_log_keys), solr_docs
+                [keys[0] for keys in reading_log_keys], solr_docs
             )
 
             total_results = shelf_totals.get(bookshelf_id, 0)
@@ -500,7 +496,7 @@ class Bookshelves(db.CommonExtras):
 
             # Attaches returned editions to works.
             if editions:
-                solr_docs = link_editions_to_works(solr_docs)
+                solr_docs = cls.link_editions_to_works(solr_docs)
 
             assert len(solr_docs) == len(reading_log_keys), (
                 "solr_docs is missing an item/items from reading_log_work_keys; "
