@@ -488,7 +488,7 @@ class Bookshelves(db.CommonExtras):
                 | {'subject', 'person', 'place', 'time', 'edition_key'},
             )
             solr_docs = add_storage_items_for_redirects(
-                [keys[0] for keys in reading_log_keys], solr_docs
+                [keys[0] for keys in reading_log_keys if keys[0]], solr_docs
             )
 
             total_results = shelf_totals.get(bookshelf_id, 0)
