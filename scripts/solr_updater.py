@@ -244,7 +244,7 @@ async def update_keys(keys):
 
 async def main(
     ol_config: str,
-    osp_dump: Path,
+    osp_dump: Path | None = None,
     debugger: bool = False,
     state_file: str = 'solr-update.state',
     exclude_edits_containing: str | None = None,

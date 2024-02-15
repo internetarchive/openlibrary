@@ -18,7 +18,7 @@ def get_osp_dump_location() -> Path | None:
     return osp_dump_location
 
 
-def set_osp_dump_location(val: Path):
+def set_osp_dump_location(val: Path | None):
     global osp_dump_location
     osp_dump_location = val
 
