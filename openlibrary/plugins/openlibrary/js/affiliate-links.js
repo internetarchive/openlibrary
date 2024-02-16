@@ -7,7 +7,8 @@
  * @param {NodeList<HTMLElement>} affiliateLinksSections
  */
 export function initAffiliateLinks(affiliateLinksSections) {
-    if (Array.from(affiliateLinksSections).some((section) => hasLoadingIndicator(section))) {
+    const isLoading = showLoadingIndicators(affiliateLinksSections)
+    if (isLoading) {
         // Replace loading indicators with fetched partials
 
         const title = affiliateLinksSections[0].dataset.title
@@ -37,6 +38,25 @@ export function initAffiliateLinks(affiliateLinksSections) {
 }
 
 /**
+ * Removes `hidden` class from any loading indicators nested within the given
+ * elements.
+ *
+ * @param {NodeList<HTMLElement>} linkSections
+ * @returns {boolean} `true` if a loading indicator is displayed on the screen
+ */
+function showLoadingIndicators(linkSections) {
+    let isLoading = false
+    for (const section of linkSections) {
+        const loadingIndicator = section.querySelector('.loadingIndicator')
+        if (loadingIndicator) {
+            isLoading = true
+            loadingIndicator.classList.remove('hidden')
+        }
+    }
+    return isLoading
+}
+
+/**
  * Fetches rendered affiliate links template using the given arguments.
  *
  * @param {object} data Contains array of positional arguments for the template
@@ -47,16 +67,4 @@ async function getPartials(data) {
     const dataQueryParam = encodeURIComponent(dataString)
 
     return fetch(`/partials.json?_component=AffiliateLinks&data=${dataQueryParam}`)
-}
-
-/**
- * Returns `true` if the given element contains a loading indicator.
- *
- * If a loading indicator is present, `data-async-load` will equal `true`.
- * @param {HTMLElement} affiliateLinkSection
- * @returns {boolean} `true` if a loading indicator is present in the section
- */
-function hasLoadingIndicator(affiliateLinkSection) {
-    const asyncLoad = affiliateLinkSection.dataset.asyncLoad
-    return asyncLoad === 'true'
 }

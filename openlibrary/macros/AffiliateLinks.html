@@ -12,9 +12,9 @@ $def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
         <span name="price">$price$price_note</span>
   </li>
 
-<span class="affiliate-links-section" data-title="$title" data-opts="$json_encode(opts)" data-async-load="$('true' if async_load else 'false')">
+<span class="affiliate-links-section" data-title="$title" data-opts="$json_encode(opts)">
   $if async_load:
-    $:macros.LoadingIndicator(_("Fetching prices"), additional_classes="affiliate-links-loading", render_hidden=False)
+    $:macros.LoadingIndicator(_("Fetching prices"), additional_classes="affiliate-links-loading")
   $else:
     $code:
       prices = opts.get('prices')
