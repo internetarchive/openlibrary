@@ -97,3 +97,5 @@ def test_luqum_replace_fields():
 
     assert fn('work.title:Bob') == 'title:Bob'
     assert fn('title:Joe') == 'title:Joe'
+    assert fn('work.title:Bob work.title:OL5M') == 'title:Bob title:OL5M'
+    assert fn('edition_key:Joe OR work.title:Bob') == 'edition_key:Joe OR title:Bob'
