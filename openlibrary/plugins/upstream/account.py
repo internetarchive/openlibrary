@@ -31,6 +31,7 @@ from openlibrary.core.lending import (
 )
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
+from openlibrary.core.follows import PubSub
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins import openlibrary as olib
@@ -766,7 +767,10 @@ class account_privacy(delegate.page):
         user = accounts.get_current_user()
         if user.get_safe_mode() != 'yes' and i.safe_mode == 'yes':
             stats.increment('ol.account.safe_mode')
+
         user.save_preferences(i)
+        username = user.key.split('/')[-1]
+        PubSub.toggle_privacy(username, private=i.public_readlog=='no')
         web.setcookie(
             'sfw', i.safe_mode, expires="" if i.safe_mode.lower() == 'yes' else -1
         )
@@ -1087,6 +1091,21 @@ class export_books(delegate.page):
             }
 
         return csv_string(Ratings.select_all_by_username(username), format_rating)
+
+
+class my_follows(delegate.page):
+    path = r"/people/([^/]+)/(followers|following)"
+
+    def GET(self, username, key=""):
+        mb = MyBooksTemplate(username, 'following')
+        follows = (
+            PubSub.get_followers(username)
+            if key == 'followers'
+            else PubSub.get_following(username)
+        )
+        manage = key == 'following' and mb.is_my_page
+        template = render['account/follows'](mb.user, follows, manage=manage)
+        return mb.render(header_title=_(key.capitalize()), template=template)
 
 
 class account_loans(delegate.page):
