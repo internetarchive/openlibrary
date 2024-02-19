@@ -1,5 +1,6 @@
 """Plugin to provide admin interface.
 """
+
 import os
 import requests
 import sys

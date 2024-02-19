@@ -1,4 +1,5 @@
 """Cover management."""
+
 import datetime
 from logging import getLogger
 import os

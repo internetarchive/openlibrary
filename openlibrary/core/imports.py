@@ -1,5 +1,6 @@
 """Interface to import queue.
 """
+
 from collections import defaultdict
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Final
@@ -68,17 +69,21 @@ class Batch(web.storage):
 
     def normalize_items(self, items):
         return [
-            {'batch_id': self.id, 'ia_id': item}
-            if isinstance(item, str)
-            else {
-                'batch_id': self.id,
-                # Partner bots set ia_id to eg "partner:978..."
-                'ia_id': item.get('ia_id'),
-                'status': item.get('status', 'pending'),
-                'data': json.dumps(item.get('data'), sort_keys=True)
-                if item.get('data')
-                else None,
-            }
+            (
+                {'batch_id': self.id, 'ia_id': item}
+                if isinstance(item, str)
+                else {
+                    'batch_id': self.id,
+                    # Partner bots set ia_id to eg "partner:978..."
+                    'ia_id': item.get('ia_id'),
+                    'status': item.get('status', 'pending'),
+                    'data': (
+                        json.dumps(item.get('data'), sort_keys=True)
+                        if item.get('data')
+                        else None
+                    ),
+                }
+            )
             for item in items
         ]
 

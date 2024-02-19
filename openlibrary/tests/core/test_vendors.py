@@ -251,8 +251,9 @@ def test_get_amazon_metadata() -> None:
         'physical_format': 'paperback',
     }
     isbn = "059035342X"
-    with patch("requests.get", return_value=MockRequests()), patch(
-        "openlibrary.core.vendors.affiliate_server_url", new=True
+    with (
+        patch("requests.get", return_value=MockRequests()),
+        patch("openlibrary.core.vendors.affiliate_server_url", new=True),
     ):
         got = get_amazon_metadata(id_=isbn, id_type="isbn")
         assert got == expected

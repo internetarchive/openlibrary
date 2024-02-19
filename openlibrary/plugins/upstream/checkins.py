@@ -1,5 +1,6 @@
 """Reading log check-ins handler and services.
 """
+
 import json
 import web
 

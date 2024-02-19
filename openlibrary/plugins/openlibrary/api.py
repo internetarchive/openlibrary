@@ -168,9 +168,7 @@ class ratings(delegate.page):
         key = (
             i.redir_url
             if i.redir_url
-            else i.edition_id
-            if i.edition_id
-            else ('/works/OL%sW' % work_id)
+            else i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
         )
         edition_id = (
             int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
@@ -460,9 +458,11 @@ class price_api(delegate.page):
 
         metadata = {
             'amazon': get_amazon_metadata(id_, id_type=id_type[:4]) or {},
-            'betterworldbooks': get_betterworldbooks_metadata(id_)
-            if id_type.startswith('isbn_')
-            else {},
+            'betterworldbooks': (
+                get_betterworldbooks_metadata(id_)
+                if id_type.startswith('isbn_')
+                else {}
+            ),
         }
         # if user supplied isbn_{n} fails for amazon, we may want to check the alternate isbn
 

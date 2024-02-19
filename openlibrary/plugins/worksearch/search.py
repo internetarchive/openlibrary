@@ -1,5 +1,6 @@
 """Search utilities.
 """
+
 from openlibrary.utils.solr import Solr
 from infogami import config
 

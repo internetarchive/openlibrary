@@ -1,5 +1,6 @@
 """Models of various OL objects.
 """
+
 from datetime import datetime, timedelta
 import logging
 from openlibrary.core.vendors import get_amazon_metadata
@@ -333,9 +334,9 @@ class Edition(Thing):
         return web.storage(
             {
                 'donor': donor,
-                'donor_account': OpenLibraryAccount.get_by_link(donor)
-                if donor
-                else None,
+                'donor_account': (
+                    OpenLibraryAccount.get_by_link(donor) if donor else None
+                ),
                 'donor_msg': self.ia_metadata.get('donor_msg'),
             }
         )
@@ -783,7 +784,7 @@ class Author(Thing):
 class User(Thing):
     DEFAULT_PREFERENCES = {
         'updates': 'no',
-        'public_readlog': 'no'
+        'public_readlog': 'no',
         # New users are now public by default for new patrons
         # As of 2020-05, OpenLibraryAccount.create will
         # explicitly set public_readlog: 'yes'.

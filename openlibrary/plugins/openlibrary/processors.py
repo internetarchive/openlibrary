@@ -1,5 +1,6 @@
 """web.py application processors for Open Library.
 """
+
 import web
 
 from openlibrary.core.processors import ReadableUrlProcessor

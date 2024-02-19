@@ -1,5 +1,6 @@
 """Module for providing core functionality of lending on Open Library.
 """
+
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
 
 import web

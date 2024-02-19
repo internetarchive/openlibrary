@@ -1,5 +1,6 @@
 """Code for handling /data/*.txt.gz URLs.
 """
+
 import web
 from infogami import config
 from infogami.utils import delegate

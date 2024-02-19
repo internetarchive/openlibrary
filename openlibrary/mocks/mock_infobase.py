@@ -1,5 +1,6 @@
 """Simple implementation of mock infogami site to use in testing.
 """
+
 import datetime
 import glob
 import json

@@ -509,8 +509,7 @@ class HasGetKeyRevision(Protocol):
     key: str
     revision: int
 
-    def get(self, item) -> Any:
-        ...
+    def get(self, item) -> Any: ...
 
 
 @public
