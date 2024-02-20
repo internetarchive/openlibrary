@@ -8,12 +8,11 @@ $def render_snippet(query, doc):
 $if results and results.get('hits'):
   $ hits = results['hits'].get('hits', [])
   $ num_found = results['hits'].get('total', 0)
-  $ use_my_books_droppers = 'my_books_dropper' in ctx.features
   <div id="searchResults">
     <ul class="list-books">
       $for doc in hits:
         $if doc.get('edition'):
-          $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], extra=render_snippet(query, doc), include_dropper = use_my_books_droppers)
+          $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], extra=render_snippet(query, doc), include_dropper=True)
     </ul>
     $:macros.Pager(page, num_found)
   </div>
