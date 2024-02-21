@@ -100,7 +100,7 @@ class mybooks_notes(delegate.page):
         if mb.is_my_page:
             docs = PatronBooknotes(mb.user).get_notes(page=int(i.page))
             template = render['account/notes'](
-                docs, mb.user, mb.counts['notes'], page=i.page
+                docs, mb.user, mb.counts['notes'], page=int(i.page)
             )
             return mb.render(header_title=_("Notes"), template=template)
         raise web.seeother(mb.user.key)
