@@ -345,7 +345,7 @@ export class BulkTagger {
             break
         }
 
-        this.highlightMenuOption(menuOption);
+        menuOption.stage()
         this.updateSubmitButtonState()
     }
 
@@ -621,33 +621,5 @@ export class BulkTagger {
 
         this.tagsToAdd = []
         this.tagsToRemove = []
-    }
-
-    highlightMenuOption(menuOption) {
-        const menuOptionElement = menuOption.rootElement;
-
-        switch (menuOption.optionState) {
-        case MenuOptionState.NONE_TAGGED:
-            menuOptionElement.classList.remove(
-                'highlight-some-tagged',
-                'highlight-all-tagged'
-            );
-            menuOptionElement.classList.add('highlight-none-tagged');
-            break;
-        case MenuOptionState.SOME_TAGGED:
-            menuOptionElement.classList.remove(
-                'highlight-none-tagged',
-                'highlight-all-tagged'
-            );
-            menuOptionElement.classList.add('highlight-some-tagged');
-            break;
-        case MenuOptionState.ALL_TAGGED:
-            menuOptionElement.classList.remove(
-                'highlight-none-tagged',
-                'highlight-some-tagged'
-            );
-            menuOptionElement.classList.add('highlight-all-tagged');
-            break;
-        }
     }
 }

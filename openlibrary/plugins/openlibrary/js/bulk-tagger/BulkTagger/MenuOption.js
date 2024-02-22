@@ -175,4 +175,11 @@ export class MenuOption {
     show() {
         this.rootElement.classList.remove('hidden')
     }
+
+    /**
+     * Stages the selected menu option.
+     */
+    stage() {
+        this.rootElement.classList.add('selected-tag--staged');
+    }
 }
