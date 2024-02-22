@@ -47,11 +47,11 @@ export default function($){
                 var $e = $(this),
                     name = $e.attr('name'),
                     type = $e.attr('type'),
-                    id = $e.attr('id');
+                    _id = $e.attr('id');
 
                 data[name] = $e.val().trim();
 
-                if (type === 'text' && id === 'id-value') {
+                if (type === 'text' && _id === 'id-value') {
                     $e.val('');
                 }
             });
