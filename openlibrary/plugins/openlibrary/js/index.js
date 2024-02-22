@@ -86,8 +86,6 @@ jQuery(function () {
     }
 
     const $markdownTextAreas = $('textarea.markdown');
-    // Live NodeList is cast to static array to avoid infinite loops
-    const $carouselElements = $('.carousel--progressively-enhanced');
     const $tabs = $('#tabsAddbook,#tabsAddauthor,.tabs:not(.ui-tabs)');
 
     initDialogs();
@@ -233,10 +231,13 @@ jQuery(function () {
     if (document.getElementById('listResults')) {
         import(/* webpackChunkName: "ListViewBody" */'./lists/ListViewBody.js');
     }
+
     // Enable any carousels in the page
+    const $carouselElements = $('.carousel--progressively-enhanced');
     if ($carouselElements.length) {
-        import(/* webpackChunkName: "carousel" */ './carousel')
-            .then((module) => { module.init($carouselElements);
+        import(/* webpackChunkName: "carousel" */ './carousel/Carousel.js')
+            .then((module) => {
+                $carouselElements.each((_i, el) => new module.Carousel($(el)).init());
                 $('.slick-slide').each(function () {
                     if ($(this).attr('aria-describedby') !== undefined) {
                         $(this).attr('id',$(this).attr('aria-describedby'));
