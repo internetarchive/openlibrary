@@ -885,7 +885,7 @@ msgstr "brakuje imienia"
 #: editions.html:47
 #, fuzzy, python-format
 msgid "in %(language)s"
-msgstr "opublikoane w językach %(languagelist)s"
+msgstr "opublikowane w językach %(languagelist)s"
 
 #: authors.html:110 check.html:36 editions_datatable.html:8
 #: openlibrary/macros/SearchResultsWork.html:42
@@ -1810,7 +1810,7 @@ msgstr "Data publikacji nieznana, %s"
 #: edition-sort.html:66
 #, python-format
 msgid "in %(languagelist)s"
-msgstr "opublikoane w językach %(languagelist)s"
+msgstr "opublikowane w językach %(languagelist)s"
 
 #: edition-sort.html:93 openlibrary/macros/AvailabilityButton.html:73
 #: openlibrary/macros/LoanStatus.html:95
