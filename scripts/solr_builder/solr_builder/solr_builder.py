@@ -378,7 +378,7 @@ def build_job_query(
 async def main(
     cmd: Literal['index', 'fetch-end'],
     job: Literal['works', 'orphans', 'authors', 'lists'],
-    osp_dump: Path,
+    osp_dump: Path | None = None,
     postgres="postgres.ini",
     ol="http://ol/",
     ol_config="../../conf/openlibrary.yml",
