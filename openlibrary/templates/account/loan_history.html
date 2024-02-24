@@ -1,0 +1,21 @@
+$def with (docs, current_page, include_ratings=False, ratings=[], show_next=False, ia_base_url="")
+<div class="mybooks-list">
+
+  $if len(docs) > 0:
+    $:macros.Pager_loanhistory(page=current_page, show_next=show_next)
+    <ul class="list-books">
+      $if docs:
+        $# enumerate because using zip() will result in empty iterator when no ratings are passed, and ratings are only used on already-read.
+        $for idx, doc in enumerate(docs):
+          $if doc.get('ia_only'):
+            $:macros.IABook(doc=doc, ia_base_url=ia_base_url)
+          $else:
+            $ star_rating = macros.StarRatings(doc, redir_url='/account/books/already-read', id=idx+1, rating=ratings[idx]) if include_ratings else None
+            $:macros.SearchResultsWork(doc, availability=doc.get('availability'), rating=star_rating)
+    </ul>
+    $:macros.Pager_loanhistory(page=current_page, show_next=show_next)
+  $else:
+    <ul class="list-books">
+        <p>$_("No loans found in your borrow history.")</p>
+        <p>$:_('<a href="/search">Search for a book</a> to borrow.')</p>
+    </ul>

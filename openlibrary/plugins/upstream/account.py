@@ -2,7 +2,7 @@ from datetime import datetime
 import json
 import logging
 import re
-from typing import Any
+from typing import Any, Final
 from collections.abc import Callable
 from collections.abc import Iterable, Mapping
 
@@ -25,6 +25,10 @@ from openlibrary.core import stats
 from openlibrary.core import helpers as h, lending
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.lending import (
+    get_items_and_add_availability,
+    s3_loan_api,
+)
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.recaptcha import recaptcha
@@ -41,9 +45,12 @@ from openlibrary.accounts import (
 from openlibrary.plugins.upstream import borrow, forms, utils
 from openlibrary.utils.dateutil import elapsed_time
 
+
 logger = logging.getLogger("openlibrary.account")
 
+CONFIG_IA_DOMAIN: Final = config.get('ia_base_url', 'https://archive.org')
 USERNAME_RETRIES = 3
+RESULTS_PER_PAGE: Final = 25
 
 # XXX: These need to be cleaned up
 send_verification_email = accounts.send_verification_email
@@ -1077,6 +1084,48 @@ class account_loans_json(delegate.page):
         return delegate.RawText(json.dumps({"loans": loans}))
 
 
+class account_loan_history(delegate.page):
+    path = "/account/loan-history"
+
+    @require_login
+    def GET(self):
+        i = web.input(page=1)
+        page = int(i.page)
+        user = accounts.get_current_user()
+        username = user['key'].split('/')[-1]
+        mb = MyBooksTemplate(username, key='loan_history')
+        loan_history_data = get_loan_history_data(page=page, mb=mb)
+        template = render['account/loan_history'](
+            docs=loan_history_data['docs'],
+            current_page=page,
+            show_next=loan_history_data['show_next'],
+            ia_base_url=CONFIG_IA_DOMAIN,
+        )
+        return mb.render(header_title=_("Loan History"), template=template)
+
+
+class account_loan_history_json(delegate.page):
+    encoding = "json"
+    path = "/account/loan-history"
+
+    @require_login
+    def GET(self):
+        i = web.input(page=1)
+        page = int(i.page)
+        user = accounts.get_current_user()
+        username = user['key'].split('/')[-1]
+        mb = MyBooksTemplate(username, key='loan_history')
+        loan_history_data = get_loan_history_data(page=page, mb=mb)
+        # Ensure all `docs` are `dicts`, as some are `Edition`s.
+        loan_history_data['docs'] = [
+            loan.dict() if not isinstance(loan, dict) else loan
+            for loan in loan_history_data['docs']
+        ]
+        web.header('Content-Type', 'application/json')
+
+        return delegate.RawText(json.dumps({"loans_history": loan_history_data}))
+
+
 class account_waitlist(delegate.page):
     path = "/account/waitlist"
 
@@ -1140,3 +1189,75 @@ def process_goodreads_csv(i):
         else:
             books_wo_isbns[_book['Book Id']] = _book
     return books, books_wo_isbns
+
+
+def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, Any]:
+    """
+    Retrieve IA loan history data for page `page` of the patron's history.
+
+    This will use a patron's S3 keys to query the IA loan history API,
+    get the IA IDs, get the OLIDs if available, and and then convert this
+    into editions and IA-only items for display in the loan history.
+
+    This returns both editions and IA-only items because the loan history API
+    includes items that are not in Open Library, and displaying only IA
+    items creates pagination and navigation issues. For further discussion,
+    see https://github.com/internetarchive/openlibrary/pull/8375.
+    """
+    if not (account := OpenLibraryAccount.get(username=mb.username)):
+        raise render.notfound(
+            "Account for not found for %s" % mb.username, create=False
+        )
+    s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
+    limit = RESULTS_PER_PAGE
+    offset = page * limit - limit
+    loan_history = s3_loan_api(
+        s3_keys=s3_keys,
+        action='user_borrow_history',
+        limit=limit + 1,
+        offset=offset,
+        newest=True,
+    ).json()['history']['items']
+
+    # We request limit+1 to see if there is another page of history to display,
+    # and then pop the +1 off if it's present.
+    show_next = len(loan_history) == limit + 1
+    if show_next:
+        loan_history.pop()
+
+    ocaids = [loan_record['identifier'] for loan_record in loan_history]
+    loan_history_map = {
+        loan_record['identifier']: loan_record for loan_record in loan_history
+    }
+
+    # Get editions and attach their loan history.
+    editions_map = get_items_and_add_availability(ocaids=ocaids)
+    for edition in editions_map.values():
+        edition_loan_history = loan_history_map.get(edition.get('ocaid'))
+        edition['last_loan_date'] = (
+            edition_loan_history.get('updatedate') if edition_loan_history else ''
+        )
+
+    # Create 'placeholders' dicts for items in the Internet Archive loan history,
+    # but absent from Open Library, and then add loan history.
+    # ia_only['loan'] isn't set because `LoanStatus.html` reads it as a current
+    # loan. No apparenty way to distinguish between current and past loans with
+    # this API call.
+    ia_only_loans = [{'ocaid': ocaid} for ocaid in ocaids if ocaid not in editions_map]
+    for ia_only_loan in ia_only_loans:
+        loan_data = loan_history_map[ia_only_loan['ocaid']]
+        ia_only_loan['last_loan_date'] = loan_data.get('updatedate', '')
+        # Determine the macro to load for loan-history items only.
+        ia_only_loan['ia_only'] = True  # type: ignore[typeddict-unknown-key]
+
+    editions_and_ia_loans = list(editions_map.values()) + ia_only_loans
+    editions_and_ia_loans.sort(
+        key=lambda item: item.get('last_loan_date', ''), reverse=True
+    )
+
+    return {
+        'docs': editions_and_ia_loans,
+        'show_next': show_next,
+        'limit': limit,
+        'page': page,
+    }

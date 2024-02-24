@@ -2,6 +2,7 @@
 """
 from datetime import datetime, timedelta
 import logging
+from openlibrary.core.vendors import get_amazon_metadata
 
 import web
 import json
@@ -24,7 +25,6 @@ from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.imports import ImportItem
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils import extract_numeric_id_from_olid, dateutil
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 
@@ -373,11 +373,16 @@ class Edition(Thing):
                 return f"https://archive.org/download/{self.ocaid}/{filename}"
 
     @classmethod
-    def from_isbn(cls, isbn: str) -> "Edition | None":  # type: ignore[return]
+    def from_isbn(cls, isbn: str, high_priority: bool = False) -> "Edition | None":
         """
         Attempts to fetch an edition by ISBN, or if no edition is found, then
         check the import_item table for a match, then as a last result, attempt
         to import from Amazon.
+        :param bool high_priority: If `True`, (1) any AMZ import requests will block
+                until AMZ has fetched data, and (2) the AMZ request will go to
+                the front of the queue. If `False`, the import will simply be
+                queued up if the item is not in the AMZ cache, and the affiliate
+                server will return a promise.
         :return: an open library edition for this ISBN or None.
         """
         isbn = canonical(isbn)
@@ -401,10 +406,23 @@ class Edition(Thing):
                     return web.ctx.site.get(matches[0])
 
         # Attempt to fetch the book from the import_item table
-        if result := ImportItem.import_first_staged(identifiers=isbns):
-            return result
+        if edition := ImportItem.import_first_staged(identifiers=isbns):
+            return edition
 
-        # TODO: Final step - call affiliate server, with retry code migrated there.
+        # Finally, try to fetch the book data from Amazon + import.
+        # If `high_priority=True`, then the affiliate-server, which `get_amazon_metadata()`
+        # uses, will block + wait until the Product API responds and the result, if any,
+        # is staged in `import_item`.
+        try:
+            get_amazon_metadata(
+                id_=isbn10 or isbn13, id_type="isbn", high_priority=high_priority
+            )
+            return ImportItem.import_first_staged(identifiers=isbns)
+        except requests.exceptions.ConnectionError:
+            logger.exception("Affiliate Server unreachable")
+        except requests.exceptions.HTTPError:
+            logger.exception(f"Affiliate Server: id {isbn10 or isbn13} not found")
+        return None
 
     def is_ia_scan(self):
         metadata = self.get_ia_meta_fields()

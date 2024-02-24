@@ -159,6 +159,10 @@ class EditionSolrBuilder(AbstractSolrBuilder):
             return None
 
     @property
+    def translation_of(self) -> str | None:
+        return self._edition.get("translation_of")
+
+    @property
     def format(self) -> str | None:
         return self._edition.get('physical_format')
 
