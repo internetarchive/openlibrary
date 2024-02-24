@@ -36,11 +36,12 @@ $add_metatag(property="og:image", content=meta_photo_url)
     </div>
 
   $# The reading log search is only displayed on non-empty shelves because some patrons were confused and searching empty reading lists, perhaps thinking they could add books that way. See #7143.
-  $if len(docs) > 0:
+  $if q or len(docs) > 0:
     <form method="GET" class="olform pagesearchbox">
       <input type="text" minlength="3" placeholder="$_('Search your reading log')" name="q" value="$(query_param('q', ''))"/>
       <input type="submit"/>
     </form>
+  $if len(docs) > 0:
     $if q:
       <span class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', doc_count, count=commify(doc_count))</span>
     $else:
@@ -72,19 +73,15 @@ $add_metatag(property="og:image", content=meta_photo_url)
   $else:
     <ul class="list-books">
       $if q:
-        <form method="GET" class="olform pagesearchbox">
-          <input type="text" minlength="3" placeholder="$_('Search your reading log')" name="q" value="$(query_param('q', ''))"/>
-          <input type="submit"/>
-        </form>
-        $ query = query_param('q')
-        <center>
+        $ query = query_param('q') 
+        <div class="centre"> 
           <hr>
-          <div class="red">$_("No results found in %s" %key) </div>
-          <hr>
-          <div>
-            <a href="/search/inside?$urlencode(dict(q=query))">$_('Search all of Open Library for "%s"?' % query)</a>
-          </div>
-        </center>
+          <div class="red">$_("No results found in this shelf") </div> 
+          <hr> 
+          <div> 
+            <a href="/search?$urlencode(dict(q=query))">$_('Search all of Open Library for "%s"?' % query)</a> 
+          </div> 
+        </div> 
       $elif checkin_year:
         <p>$_("You haven't marked any books as read for this year.")</p>
       $else:
