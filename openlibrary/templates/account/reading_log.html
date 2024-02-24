@@ -73,15 +73,15 @@ $add_metatag(property="og:image", content=meta_photo_url)
   $else:
     <ul class="list-books">
       $if q:
-        $ query = query_param('q') 
-        <div class="centre"> 
+        $ query = query_param('q')
+        <div class="centre">
           <hr>
-          <div class="red">$_("No results found in this shelf") </div> 
-          <hr> 
-          <div> 
-            <a href="/search?$urlencode(dict(q=query))">$_('Search all of Open Library for "%s"?' % query)</a> 
-          </div> 
-        </div> 
+          <div class="red">$_("No results found in this shelf") </div>
+          <hr>
+          <div>
+            <a href="/search?$urlencode(dict(q=query))">$_('Search all of Open Library for "%s"?' % query)</a>
+          </div>
+        </div>
       $elif checkin_year:
         <p>$_("You haven't marked any books as read for this year.")</p>
       $else:
