@@ -1032,9 +1032,11 @@ class Partials(delegate.page):
             data = json.loads(i.data)
             args = data.get('args', [])
             # XXX : Throw error if args length is less than 2
-            macro = web.template.Template.globals['macros'].AffiliateLinks(args[0], args[1])
+            macro = web.template.Template.globals['macros'].AffiliateLinks(
+                args[0], args[1]
+            )
             partial = {"partials": str(macro)}
-            
+
         return delegate.RawText(json.dumps(partial))
 
 
