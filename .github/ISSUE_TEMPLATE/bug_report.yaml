@@ -41,8 +41,8 @@ body:
         - Environment (prod, dev, local): prod
   - type: textarea
     attributes:
+      label: ⚠️ Experienced contributors only
       description: |
-        ## Experienced contributors only
         Please leave these sections blank for maintainers if you are unsure what to enter!
       value: |
         ### Proposal & constraints
