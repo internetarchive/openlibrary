@@ -13,7 +13,7 @@ body:
       label: Problem
       description: A short description of the issue you're facing.
       value: |
-        
+
 
         #### Evidence / Screenshot
 
@@ -27,8 +27,8 @@ body:
         1. Go to ...
         2. Do ...
 
-        * Expected behavior: 
-        * Actual behavior: 
+        * Expected behavior:
+        * Actual behavior:
 
   - type: textarea
     attributes:
