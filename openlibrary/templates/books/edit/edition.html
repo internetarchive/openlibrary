@@ -589,7 +589,7 @@ $ })
 
             <fieldset class="minor formBackRight">
                 <legend>$_("Dimensions")</legend>
-                $ dimensions = book.get_physical_dimensions() or storage(height="", width="", depth="", units="inches")
+                $ dimensions = book.get_physical_dimensions() or storage(height="", width="", depth="", units="centimeters")
                   <span class="tip">
                     $:radiobuttons("edition--physical_dimensions--units", ["centimeters", "inches"], dimensions.units)
                   </span>
