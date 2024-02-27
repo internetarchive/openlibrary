@@ -24,7 +24,6 @@ body:
       label: Reproducing the bug
       description: What steps caused you to find the bug?
       value: |
-        #### Steps to reproduce
         1. Go to ...
         2. Do ...
 
