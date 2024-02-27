@@ -13,7 +13,7 @@ body:
       label: Problem
       description: A short description of the issue you're facing.
       value: |
-        #### Describe the bug
+        
 
         #### Evidence / Screenshot
 
