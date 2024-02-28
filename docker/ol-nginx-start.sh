@@ -1,18 +1,14 @@
 #!/bin/bash
 
 # Create certs for domains missing them
-RUN_CERTBOT=0
 CERTBOT_OPTIONS=""
 for domain in $NGINX_DOMAIN; do
   CERTBOT_OPTIONS+=" -d $domain"
-  if [ ! -d "/etc/letsencrypt/live/$domain" ]; then
-    RUN_CERTBOT=1
-  fi
 done
-
-if [ "$RUN_CERTBOT" -eq 1 ]; then
-  certbot certonly --webroot --webroot-path /openlibrary/static $CERTBOT_OPTIONS
-fi
+certbot certonly \
+  --noninteractive --agree-tos \
+  -m openlibrary@archive.org \
+  --webroot --webroot-path /openlibrary/static $CERTBOT_OPTIONS
 
 # Run crontab if there are files
 if [ -n "$CRONTAB_FILES" ] ; then
