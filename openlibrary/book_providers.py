@@ -139,7 +139,7 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
         return True
 
     def render_download_options(self, edition: Edition, extra_args: list | None = None):
-        if edition.is_access_restricted() or not edition.ia_metadata:
+        if edition.is_access_restricted():
             return ''
 
         formats = {

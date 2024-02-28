@@ -355,9 +355,9 @@ function closeDialog(workOlid) {
 function showDateView(workOlid, year, month, day) {
     let date = year
     if (month) {
-        date += `-${month}`
+        date += `-${month.padStart(2, '0')}`
         if (day) {
-            date += `-${day}`
+            date += `-${day.padStart(2, '0')}`
         }
     }
     const displayElement = document.querySelector(`#check-in-display-${workOlid}`)
@@ -580,14 +580,15 @@ function updateProgressComponent(elem, goal) {
  * @param {string} goalYear Year that the goal is set for.
  */
 function fetchProgressAndUpdateView(yearlyGoalElem, goalYear) {
-    fetch(`/reading-goal/partials?year=${goalYear}`)
+    fetch(`/reading-goal/partials.json?year=${goalYear}`)
         .then((response) => {
             if (!response.ok) {
                 throw new Error('Failed to fetch progress element')
             }
-            return response.text()
+            return response.json()
         })
-        .then(function(html) {
+        .then(function(data) {
+            const html = data['partials']
             const progress = document.createElement('SPAN')
             progress.id = 'reading-goal-container'
             progress.innerHTML = html

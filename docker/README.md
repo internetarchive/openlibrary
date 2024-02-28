@@ -113,7 +113,7 @@ Note: please update this README with the exact wording of the error if you run i
 
 The following should populate the target of the `infogami` symbolic link (i.e. `vendor/infogami/`):
 ```
-cd local-openlibrary-dev-directory
+cd path/to/your/cloned/openlibrary
 git submodule init; git submodule sync; git submodule update
 ```
 
@@ -126,7 +126,7 @@ Ensure you're running `docker compose` commands from within the `local-openlibra
 ## Teardown commands
 
 ```sh
-cd local-openlibrary-dev-directory
+cd path/to/your/cloned/openlibrary
 # stop the app (if started in detached mode)
 docker compose down
 
@@ -226,6 +226,10 @@ When pulling down new changes you will need to rebuild the JS/CSS assets:
 docker compose run --rm home npm run build-assets
 ```
 Note: This is only if you already have an existing docker image, this command is unnecessary the first time you build.
+
+## Debugging and Profiling the Docker Image
+
+See [Debugging and Performance Profiling](https://github.com/internetarchive/openlibrary/wiki/Debugging-and-Performance-Profiling) for more information on how to attach a debugger when running in the Docker Container.
 
 ## Other Commands
 

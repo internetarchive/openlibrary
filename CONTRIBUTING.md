@@ -10,7 +10,7 @@ This welcome section is intended for new contributors.
     * [Installation README](https://github.com/internetarchive/openlibrary/tree/master/docker) + [Docker Setup Walk-through (video)](https://archive.org/embed/openlibrary-developer-docs/zoom_0.mp4?autoplay=1&start=2)
 4. **Contributing:**
     * [How we use git](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet)
-    * [Finding good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Needs%3A+Help%22+label%3A%22Good+First+Issue%22)
+    * [Finding good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee)
     * [Testing your code](https://github.com/internetarchive/openlibrary/wiki/Testing)
     * [Enabling debugging & profiling](https://github.com/internetarchive/openlibrary/wiki/Debugging-and-Performance-Profiling)
 5. **Learning the Code:**
@@ -36,7 +36,7 @@ A quick public tour of Open Library to get you familiar with the service and its
 ## Onboarding
 
 A comprehensive volunteer orientation video to learn what it means to work on Open Library (1.5h). This video is a companion to our [Orientation Guide](https://docs.google.com/document/d/1fkTDqYFx2asuMWwSIDQRHJlnu-AGWpMrDDd9o5z8Cik/edit#).
-If you're looking for a good first issue, check out [Good First Issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Good+First+Issue%22+label%3A%22Needs%3A+Help%22+-label%3A%22Needs%3A+Triage%22+-label%3A%22Needs%3A+Lead%22).
+If you're looking for a good first issue, check out [Good First Issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee).
 
 [![archive org_details_openlibrary-orientation-2020_start=80](https://user-images.githubusercontent.com/978325/91350387-78272580-e79b-11ea-9e26-85cfd1d38fe1.png)](https://archive.org/details/openlibrary-orientation-2020?start=80)
 
@@ -90,7 +90,7 @@ Our login process on Open Library's dev instance is a bit funky. You need to cor
 
 ## Picking Good First Issues
 
-[Here's a list of good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Good+First+Issue%22+label%3A%22Needs%3A+Help%22+-label%3A%22Needs%3A+Triage%22+-label%3A%22Needs%3A+Lead%22) to help you get started. If you have questions, please ask the [Lead](https://github.com/internetarchive/openlibrary/wiki/Using-Managed-Labels-to-Track-Issues#triage) designated by the `Lead: @person` label on the issue.
+[Here's a list of good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) to help you get started. If you have questions, please ask the [Lead](https://github.com/internetarchive/openlibrary/wiki/Using-Managed-Labels-to-Track-Issues#triage) designated by the `Lead: @person` label on the issue.
 
 ### Our Roadmap(s)
 You can see this year (and previous year's) roadmap(s) [here](https://docs.google.com/document/d/1KJr3A81Gew7nfuyo9PnCLCjNBDs5c7iR4loOGm1Pafs/edit).
@@ -121,16 +121,44 @@ Many issues can be automatically fixed using the following command:
 npm run lint-fix
 ```
 
-## Submitting Pull Requests
+## pre-commit hooks
+
+Be confident in changing files you can check the quality (linter) with [pre-commit](https://pre-commit.com/index.html).
+It is used to inspect the snapshot that is about to be committed, to see if there are any syntax errors, typos, or a handful of other common issues.
+You can see the actions descriptions in [pre-commit-config.yml](https://github.com/internetarchive/openlibrary/blob/master/.pre-commit-config.yaml).
+
+The pre-commit is automatically run against open PRs. Install the pre-commit locally to avoid waiting for the PR checks to run in the cloud.
+
+### Installation
+
+```
+pip install pre-commit
+# or on mac you can run
+brew install pre-commit
+```
+
+After executing the last command, when you normally run `git commit`, pre-commit will also perform its checks.
+
+### Running manually
+
+```
+pre-commit run --files pre-commit-config.yml
+```
+
+> **_Warning:_**  If you don't clone with **ssh** then infogami will have pre-commit issues [You can read this section to resolve it](docker/README.md#cloning-the-open-library-repository).
+
+
+### Submitting Pull Requests
 
 Once you've finished making your changes, submit a pull request (PR). Please take the time to check whether someone has already raised the issue you are solving. Thank you for your contributions!
 
 Follow these rules when creating a PR:
 
-1. **Follow the pull request template**: It's easier for a maintainer to reject a PR than it is for them to fill it out for you.
-2. **Make PRs _self-contained_**: They should clearly describe what changes have taken place. A reviewer should (for the most part) be able to complete a review without having to look at other issues.
-3. **Resolve all code review (CR) comments**: Treat comments as a todo list. Most PRs will require some edits before getting merged, so don't get discouraged if you have to make some changes!
-4. **Reply when resolving CR comments**: When resolving a comment, reply with either "DONE" or "WON'T FIX because ...". A reviewer will unresolve a comment if they feel it's necessary.
+1. **Test your code before opening a PR**: Maintainers may close your PR if it has clearly not been tested.
+2. **Follow the pull request template**: It's easier for a maintainer to reject a PR than it is for them to fill it out for you.
+3. **Make PRs _self-contained_**: They should clearly describe what changes have taken place. A reviewer should (for the most part) be able to complete a review without having to look at other issues.
+4. **Resolve all code review (CR) comments**: Treat comments as a todo list. Most PRs will require some edits before getting merged, so don't get discouraged if you have to make some changes!
+5. **Reply when resolving CR comments**: When resolving a comment, reply with either "DONE" or "WON'T FIX because ...". A reviewer will unresolve a comment if they feel it's necessary.
 
 ## QA Testing
 

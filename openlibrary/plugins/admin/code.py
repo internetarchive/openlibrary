@@ -25,7 +25,8 @@ from openlibrary.catalog.add_book import (
 import openlibrary
 
 from openlibrary import accounts
-
+from openlibrary.accounts.model import clear_cookies
+from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import admin as admin_stats, helpers as h, imports, cache
 from openlibrary.core.waitinglist import Stats as WLStats
 from openlibrary.core.sponsorships import summary, sync_completed_sponsored_books
@@ -174,13 +175,16 @@ class any:
 
 class people:
     def GET(self):
-        i = web.input(email=None)
+        i = web.input(email=None, ia_id=None)
 
+        account = None
         if i.email:
             account = accounts.find(email=i.email)
-            if account:
-                raise web.seeother("/admin/people/" + account.username)
-        return render_template("admin/people/index", email=i.email)
+        if i.ia_id:
+            account = OpenLibraryAccount.get_by_link(i.ia_id)
+        if account:
+            raise web.seeother(f"/admin/people/{account.username}")
+        return render_template("admin/people/index", email=i.email, ia_id=i.ia_id)
 
 
 class add_work_to_staff_picks:
@@ -462,7 +466,10 @@ class people_view:
 
     def POST_su(self, account):
         code = account.generate_login_code()
+        # Clear all existing admin cookies before logging in as another user
+        clear_cookies()
         web.setcookie(config.login_cookie_name, code, expires="")
+
         return web.seeother("/")
 
     def POST_anonymize_account(self, account, test):
@@ -778,7 +785,7 @@ class inspect:
         i = web.input(action="read")
         i.setdefault("keys", "")
 
-        mc = cache.get_memcache()
+        mc = cache.get_memcache().memcache
 
         keys = [k.strip() for k in i["keys"].split() if k.strip()]
         if i.action == "delete":

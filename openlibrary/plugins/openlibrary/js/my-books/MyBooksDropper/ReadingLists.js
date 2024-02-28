@@ -6,6 +6,7 @@ import myBooksStore from '../store'
 
 import { addItem, removeItem } from '../../lists/ListService'
 import { attachNewActiveShowcaseItem, toggleActiveShowcaseItems } from '../../lists/ShowcaseItem'
+import { FadingToast } from '../../Toast'
 
 const DEFAULT_COVER_URL = '/images/icons/avatar_book-sm.png'
 
@@ -218,9 +219,16 @@ export class ReadingLists {
         }
 
         const makeChange = isAddingItem ? addItem : removeItem
+        this.patronLists[listKey].dropperListAffordance.classList.remove('list--active')
+        this.patronLists[listKey].dropperListAffordance.classList.add('list--pending')
 
         await makeChange(listKey, seed)
-            .then(response => response.json())
+            .then((response) => {
+                if (response.status >= 400) {
+                    throw new Error('List update failed')
+                }
+                response.json()
+            })
             .then(() => {
                 this.updateViewAfterModifyingList(listKey, isWork, isAddingItem)
 
@@ -238,6 +246,14 @@ export class ReadingLists {
                     }
                 }
             })
+            .catch(() => {
+                if (!isAddingItem) {
+                    // Replace check mark if patron was removing an item from a list
+                    this.patronLists[listKey].dropperListAffordance.classList.add('list--active')
+                }
+                new FadingToast('Could not update list.  Please try again later.').show()
+            })
+            .finally(() => this.patronLists[listKey].dropperListAffordance.classList.remove('list--pending'))
     }
 
     /**
@@ -317,7 +333,7 @@ export class ReadingLists {
      * @returns {HTMLElement} Reference to the newly created element
      */
     createDropdownListAffordance(listKey, listTitle, isActive) {
-        const itemMarkUp = `<span class="check">✔️</span>
+        const itemMarkUp = `<span class="list__status-indicator"></span>
         <a href="${listKey}" class="modify-list dropper__close" data-list-cover-url="${listKey}" data-list-key="${listKey}">${listTitle}</a>
         `
         const p = document.createElement('p')

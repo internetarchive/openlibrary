@@ -56,9 +56,7 @@ $var title: $_('How can we help?')
 <!-- </div> -->
 
  $if recaptcha:
-   <div class="formElement">
-     <div class="g-recaptcha" data-sitekey="$:recaptcha.public_key"></div>
-   </div>
+    $:render_template("recaptcha", recaptcha.public_key, error=None)
 
  <div class="formElement bottom">
  <div class="input">

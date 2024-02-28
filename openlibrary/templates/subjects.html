@@ -17,8 +17,14 @@ $ has_tag = 'tag' in page
     $if can_add_tag:
       <div class="subjectTagEdit">
         $ edit_tag_url = page.tag.get('id') + '/edit' if 'tag' in page else '/tag/add'
-        <a class="editTagButton" href="$edit_tag_url" title="$_('Edit Subject Tag')"
-            data-ol-link-track="CTAClick|Edit" accesskey="e">$_("Edit")</a>
+        <a
+          class="editTagButton"
+          href="$edit_tag_url"
+          title="$_('Edit Subject Tag')"
+          data-ol-link-track="CTAClick|Edit"
+          accesskey="e"
+          rel="nofollow"
+        >$_("Edit")</a>
       </div>
     <h1 class="inline">
         $page.name
@@ -123,12 +129,6 @@ $jsdef renderPublishers(publishers):
         </span>
         <span class="count">$ungettext("%(count)s edition", "%(count)s editions", p.count, count=commify(p.count))</span>
         <br/>
-
-$if "lists" in ctx.features and "my_books_dropper" not in ctx.features:
-    <div class="spacer"></div>
-    <div id="subjectLists" class="widget-box">
-        $:render_template("lists/widget", page, include_rating=False, exclude_own_lists=True)
-    </div>
 
 <div class="section clearfix"></div>
 

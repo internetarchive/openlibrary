@@ -4,7 +4,6 @@ from collections import defaultdict, namedtuple
 
 from infogami import config
 from infogami.utils.view import public
-from openlibrary import accounts
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 

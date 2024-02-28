@@ -14,11 +14,11 @@
     },
     {
       "path": "static/build/carousel.*.js",
-      "maxSize": "1KB"
+      "maxSize": "6KB"
     },
     {
       "path": "static/build/carousels-partials.*.js",
-      "maxSize": "1KB"
+      "maxSize": "6KB"
     },
     {
       "path": "static/build/covers.*.js",
@@ -67,10 +67,6 @@
     {
       "path": "static/build/tabs.*.js",
       "maxSize": "5KB"
-    },
-    {
-      "path": "static/build/lists.*.js",
-      "maxSize": "8KB"
     },
     {
       "path": "static/build/all.js",

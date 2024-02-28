@@ -8,8 +8,8 @@ $var title: $_('Search results for Lists')
 
 <div id="contentBody">
   $:macros.SearchNavigation()
-  <form class="siteSearch searchInsideForm" action="/search/lists">
-    <input type="text" class="larger" name="q" value="$q"/>
+  <form class="siteSearch olform" action="/search/lists">
+    <input type="text" class="larger" name="q" size="100" value="$q"/>
     <input type="submit" class="larger" value="$_('Search')">
   </form>
 

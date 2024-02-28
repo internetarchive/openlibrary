@@ -21,18 +21,6 @@ def str_to_key(s: str) -> str:
     return ''.join(c if c != ' ' else '_' for c in s.lower() if c not in to_drop)
 
 
-def finddict(dicts, **filters):
-    """Find a dictionary that matches given filter conditions.
-
-    >>> dicts = [{"x": 1, "y": 2}, {"x": 3, "y": 4}]
-    >>> sorted(finddict(dicts, x=1).items())
-    [('x', 1), ('y', 2)]
-    """
-    for d in dicts:
-        if all(d.get(k) == v for k, v in filters.items()):
-            return d
-
-
 T = TypeVar('T')
 
 

@@ -27,9 +27,10 @@ $jsdef render_language_field(i, language, i18n_name):
     </div>
 
 $# Render the ith translated_from language input field
-$jsdef render_translated_from_language_field(i, language):
+$jsdef render_translated_from_language_field(i, language, i18n_name):
+    $ lang_name = i18n_name or language.name
     <div class="input ac-input">
-      <input class="ac-input__visible" type="text" name="translated_from--$i" value="$language.name"/>
+      <input class="ac-input__visible" type="text" name="translated_from--$i" value="$lang_name"/>
       <input class="ac-input__value" type="hidden" name="edition--translated_from--$i--key" value="$language.key" />
     </div>
 
@@ -304,9 +305,9 @@ $jsdef render_work_autocomplete_item(item):
                     </div>
                     $if book.translated_from:
                         $for i, lang in enumerate(book.translated_from):
-                            $:render_translated_from_language_field(i, lang)
+                            $:render_translated_from_language_field(i, lang, get_language_name(lang))
                     $else:
-                        $:render_translated_from_language_field(0, storage(name="", key=""))
+                        $:render_translated_from_language_field(0, storage(name="", key=""), None)
                 </div>
 
             </div>
@@ -416,7 +417,7 @@ $ })
                             <select name="name" id="select-id">
                             $ id_labels = dict((d.name, d.label) for d in edition_config.identifiers)
                             $ id_dict = dict((id.name, id) for id in edition_config.identifiers)
-                            $ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "oclc_numbers", "goodreads", "librarything"]
+                            $ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "librivox", "oclc_numbers", "project_gutenberg"]
                             $if is_privileged_user:
                                 $ exclude = []
                             $else:
@@ -432,8 +433,8 @@ $ })
                             $for id in set2:
                                 <option value="$id.name">$id.label</option>
 
-                                <!-- <option>---</option> -->
-                                <!-- <option value="__add__">Add a new ID type</option> -->
+                            <!-- <option>---</option> -->
+                            <!-- <option value="__add__">Add a new ID type</option> -->
                             </select>
                         </td>
                         <td>
@@ -588,7 +589,7 @@ $ })
 
             <fieldset class="minor formBackRight">
                 <legend>$_("Dimensions")</legend>
-                $ dimensions = book.get_physical_dimensions() or storage(height="", width="", depth="", units="inches")
+                $ dimensions = book.get_physical_dimensions() or storage(height="", width="", depth="", units="centimeters")
                   <span class="tip">
                     $:radiobuttons("edition--physical_dimensions--units", ["centimeters", "inches"], dimensions.units)
                   </span>

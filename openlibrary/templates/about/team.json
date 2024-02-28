@@ -51,7 +51,7 @@
   {
     "name": "Debbie",
     "title": "Developer",
-    "roles": ["volunteer-active"],
+    "roles": ["fellow-2023"],
     "projects": ["My Book Dropper", "Team Page"],
     "departments": ["engineering"],
     "photo_path": "../../../static/images/team/Debbie.jpg",
@@ -141,7 +141,7 @@
   {
     "name": "Jaye Rasmussen",
     "title": "Developer",
-    "roles": ["volunteer-active"],
+    "roles": ["fellow-2023"],
     "departments": ["engineering"],
     "projects": ["Team Page"],
     "photo_path": "../../../static/images/team/Jaye_Rasmussen.jpg",

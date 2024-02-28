@@ -194,11 +194,11 @@ div.floater {
     text-align: center;
   }
   input[type=text],
+  input[type=url],
   input[type=file] {
     font-size: 1.125em;
     font-family: @lucida_sans_serif-1;
     padding: 3px;
-    margin-left: 30px;
   }
   input::file-selector-button{
     cursor: pointer;
@@ -214,7 +214,6 @@ div.floater {
 }
 
 .floatform__body {
-  text-align: center;
   width: 100%;
   position: relative;
 
@@ -255,6 +254,7 @@ div.floaterAdd {
     }
     textarea {
       padding: 3px;
+      resize: none;
     }
   }
 }
@@ -274,6 +274,7 @@ div.floaterAdd {
     }
 
     input[type=text],
+    input[type=url],
     input[type=file] {
       width: 350px;
     }
@@ -290,8 +291,10 @@ div.floaterAdd {
     .input,
     .label,
     input[type=text],
+    input[type=url],
     textarea {
       width: 560px;
+      resize: none;
     }
   }
 }

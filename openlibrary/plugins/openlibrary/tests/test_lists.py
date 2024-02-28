@@ -1,21 +1,9 @@
+import json
 from unittest.mock import patch
 
 import pytest
 
-from openlibrary.plugins.openlibrary import lists
 from openlibrary.plugins.openlibrary.lists import ListRecord
-
-
-def test_process_seeds():
-    process_seeds = lists.lists_json().process_seeds
-
-    def f(s):
-        return process_seeds([s])[0]
-
-    assert f("/books/OL1M") == {"key": "/books/OL1M"}
-    assert f({"key": "/books/OL1M"}) == {"key": "/books/OL1M"}
-    assert f("/subjects/love") == "subject:love"
-    assert f("subject:love") == "subject:love"
 
 
 class TestListRecord:
@@ -57,6 +45,33 @@ class TestListRecord:
                 seeds=[{'key': '/books/OL1M'}, {'key': '/books/OL2M'}],
             )
 
+    def test_from_input_with_json_data(self):
+        with (
+            patch('web.input') as mock_web_input,
+            patch('web.data') as mock_web_data,
+            patch('web.ctx') as mock_web_ctx,
+        ):
+            mock_web_ctx.env = {'CONTENT_TYPE': 'application/json'}
+            mock_web_data.return_value = json.dumps(
+                {
+                    'name': 'foo data',
+                    'description': 'bar',
+                    'seeds': [{'key': '/books/OL1M'}, {'key': '/books/OL2M'}],
+                }
+            ).encode('utf-8')
+            mock_web_input.return_value = {
+                'key': None,
+                'name': 'foo',
+                'description': 'bar',
+                'seeds': [],
+            }
+            assert ListRecord.from_input() == ListRecord(
+                key=None,
+                name='foo data',
+                description='bar',
+                seeds=[{'key': '/books/OL1M'}, {'key': '/books/OL2M'}],
+            )
+
     SEED_TESTS = [
         ([], []),
         (['OL1M'], [{'key': '/books/OL1M'}]),
@@ -83,3 +98,11 @@ class TestListRecord:
                 description='bar',
                 seeds=expected,
             )
+
+    def test_normalize_input_seed(self):
+        f = ListRecord.normalize_input_seed
+
+        assert f("/books/OL1M") == {"key": "/books/OL1M"}
+        assert f({"key": "/books/OL1M"}) == {"key": "/books/OL1M"}
+        assert f("/subjects/love") == "subject:love"
+        assert f("subject:love") == "subject:love"

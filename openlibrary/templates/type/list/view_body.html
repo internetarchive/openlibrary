@@ -121,25 +121,30 @@ $def seed_attrs(seed):
 
             $if seed.type in ['edition', 'work']:
                 $ doc = solr_works.get(seed.key) or seed.document
-                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed))
+                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed), include_dropper=True, footer=seed.notes and sanitize(format(seed.notes)))
             $else:
-                <li class="searchResultItem" $:seed_attrs(seed)>
-                    <span class="bookcover">
-                        <a href="$seed.url">
-                        <img src="$cover_url" alt="$seed.title"/>
-                        </a>
-                    </span>
-                    <div class="details">
-                        <div class="resultTitle">
-                            <h3 class="booktitle">
-                                <a href="$seed.url" class="results">$seed.title</a>
-                            </h3>
-                            $:seed_meta_line(seed)
+                <li class="searchResultItem sri--w-main" $:seed_attrs(seed)>
+                    <div class="sri__main">
+                        <span class="bookcover">
+                            <a href="$seed.url">
+                            <img src="$cover_url" alt="$seed.title"/>
+                            </a>
+                        </span>
+                        <div class="details">
+                            <div class="resultTitle">
+                                <h3 class="booktitle">
+                                    <a href="$seed.url" class="results">$seed.title</a>
+                                </h3>
+                                $:seed_meta_line(seed)
+                            </div>
                         </div>
+                        <span class="searchResultItemCTA">
+                            $:remove_item_link()
+                        </span>
                     </div>
-                    <span class="searchResultItemCTA">
-                        $:remove_item_link()
-                    </span>
+                    $if seed.notes:
+                        <hr>
+                        $:sanitize(format(seed.notes))
                 </li>
         </ul>
     </div>

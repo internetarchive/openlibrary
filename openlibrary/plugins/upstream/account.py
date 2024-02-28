@@ -2,7 +2,7 @@ from datetime import datetime
 import json
 import logging
 import re
-from typing import Any
+from typing import Any, Final
 from collections.abc import Callable
 from collections.abc import Iterable, Mapping
 
@@ -25,8 +25,10 @@ from openlibrary.core import stats
 from openlibrary.core import helpers as h, lending
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.core.helpers import days_since
-from openlibrary.core.lending import s3_loan_api
+from openlibrary.core.lending import (
+    get_items_and_add_availability,
+    s3_loan_api,
+)
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.recaptcha import recaptcha
@@ -38,13 +40,17 @@ from openlibrary.accounts import (
     OpenLibraryAccount,
     InternetArchiveAccount,
     valid_email,
+    clear_cookies,
 )
 from openlibrary.plugins.upstream import borrow, forms, utils
 from openlibrary.utils.dateutil import elapsed_time
 
+
 logger = logging.getLogger("openlibrary.account")
 
+CONFIG_IA_DOMAIN: Final = config.get('ia_base_url', 'https://archive.org')
 USERNAME_RETRIES = 3
+RESULTS_PER_PAGE: Final = 25
 
 # XXX: These need to be cleaned up
 send_verification_email = accounts.send_verification_email
@@ -255,9 +261,10 @@ class account_create(delegate.page):
 
     def get_recap(self):
         if self.is_plugin_enabled('recaptcha'):
-            public_key = config.plugin_recaptcha.public_key
-            private_key = config.plugin_recaptcha.private_key
-            return recaptcha.Recaptcha(public_key, private_key)
+            public_key = config.plugin_invisible_recaptcha.public_key
+            private_key = config.plugin_invisible_recaptcha.private_key
+            if public_key and private_key:
+                return recaptcha.Recaptcha(public_key, private_key)
 
     def is_plugin_enabled(self, name):
         return (
@@ -405,11 +412,6 @@ class account_login(delegate.page):
             config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires
         )
         ol_account = OpenLibraryAccount.get(email=email)
-
-        # Don't overwrite the cookie, which will contain banner display preferences
-        if not web.cookies().get('se', False):
-            self.set_screener_cookie(ol_account)
-
         if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
             web.setcookie('sfw', 'yes', expires=expires)
         blacklist = [
@@ -418,6 +420,7 @@ class account_login(delegate.page):
         ]
         if i.redirect == "" or any(path in i.redirect for path in blacklist):
             i.redirect = "/account/books"
+        stats.increment('ol.account.xauth.login')
         raise web.seeother(i.redirect)
 
     def POST_resend_verification_email(self, i):
@@ -438,44 +441,22 @@ class account_login(delegate.page):
         )
         return render.message(title, message)
 
-    def set_screener_cookie(self, account: OpenLibraryAccount):
-        if self.is_eligible_for_screener(account):
-            # `se` is "Survey eligible"
-            web.setcookie('se', '1', expires=(3600 * 24 * 30))  # Expires in 30 days
 
-    def is_eligible_for_screener(self, account: OpenLibraryAccount) -> bool:
-        # It is August 2023:
-        if (now := datetime.now()) and now.month != 9 and now.year != 2023:
-            return False
+class account_logout(delegate.page):
+    """Account logout.
 
-        # Account must be at least 90 days old:
-        if days_since(account.creation_time()) < 90:
-            return False
+    This registers a handler to the /account/logout endpoint in infogami so that additional logic, such as clearing admin cookies,
+    can be handled prior to the calling of infogami's standard logout procedure
 
-        # Account was created using a university's domain:
-        email = account.email
-        if not self.is_edu_domain(email):
-            return False
+    """
 
-        # Has borrowed at least three books:
-        if not self.has_borrowed_at_least(3, account.s3_keys):
-            return False
+    path = "/account/logout"
 
-        return True
+    def POST(self):
+        clear_cookies()
+        from infogami.core.code import logout as infogami_logout
 
-    def is_edu_domain(self, email: str) -> bool:
-        if not email or '@' not in email:
-            return False
-
-        domain = email.split('@')[-1]
-
-        sorted_edu_domains = utils.get_edu_domains()
-
-        return domain in sorted_edu_domains
-
-    def has_borrowed_at_least(self, amount: int, s3_keys) -> bool:
-        resp = s3_loan_api(s3_keys, action='user_borrow_history', limit=amount).json()
-        return len(resp) == amount
+        return infogami_logout().POST()
 
 
 class account_verify(delegate.page):
@@ -841,8 +822,10 @@ class import_books(delegate.page):
     def GET(self):
         user = accounts.get_current_user()
         username = user['key'].split('/')[-1]
-
-        return MyBooksTemplate(username, 'imports').render()
+        template = render['account/import']()
+        return MyBooksTemplate(username, 'imports').render(
+            header_title=_("Imports and Exports"), template=template
+        )
 
 
 class fetch_goodreads(delegate.page):
@@ -1077,11 +1060,15 @@ class account_loans(delegate.page):
 
     @require_login
     def GET(self):
+        from openlibrary.core.lending import get_loans_of_user
+
         user = accounts.get_current_user()
         user.update_loan_status()
         username = user['key'].split('/')[-1]
-
-        return MyBooksTemplate(username, 'loans').render()
+        mb = MyBooksTemplate(username, 'loans')
+        docs = get_loans_of_user(user.key)
+        template = render['account/loans'](user, docs)
+        return mb.render(header_title=_("Loans"), template=template)
 
 
 class account_loans_json(delegate.page):
@@ -1095,6 +1082,48 @@ class account_loans_json(delegate.page):
         loans = borrow.get_loans(user)
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps({"loans": loans}))
+
+
+class account_loan_history(delegate.page):
+    path = "/account/loan-history"
+
+    @require_login
+    def GET(self):
+        i = web.input(page=1)
+        page = int(i.page)
+        user = accounts.get_current_user()
+        username = user['key'].split('/')[-1]
+        mb = MyBooksTemplate(username, key='loan_history')
+        loan_history_data = get_loan_history_data(page=page, mb=mb)
+        template = render['account/loan_history'](
+            docs=loan_history_data['docs'],
+            current_page=page,
+            show_next=loan_history_data['show_next'],
+            ia_base_url=CONFIG_IA_DOMAIN,
+        )
+        return mb.render(header_title=_("Loan History"), template=template)
+
+
+class account_loan_history_json(delegate.page):
+    encoding = "json"
+    path = "/account/loan-history"
+
+    @require_login
+    def GET(self):
+        i = web.input(page=1)
+        page = int(i.page)
+        user = accounts.get_current_user()
+        username = user['key'].split('/')[-1]
+        mb = MyBooksTemplate(username, key='loan_history')
+        loan_history_data = get_loan_history_data(page=page, mb=mb)
+        # Ensure all `docs` are `dicts`, as some are `Edition`s.
+        loan_history_data['docs'] = [
+            loan.dict() if not isinstance(loan, dict) else loan
+            for loan in loan_history_data['docs']
+        ]
+        web.header('Content-Type', 'application/json')
+
+        return delegate.RawText(json.dumps({"loans_history": loan_history_data}))
 
 
 class account_waitlist(delegate.page):
@@ -1160,3 +1189,75 @@ def process_goodreads_csv(i):
         else:
             books_wo_isbns[_book['Book Id']] = _book
     return books, books_wo_isbns
+
+
+def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, Any]:
+    """
+    Retrieve IA loan history data for page `page` of the patron's history.
+
+    This will use a patron's S3 keys to query the IA loan history API,
+    get the IA IDs, get the OLIDs if available, and and then convert this
+    into editions and IA-only items for display in the loan history.
+
+    This returns both editions and IA-only items because the loan history API
+    includes items that are not in Open Library, and displaying only IA
+    items creates pagination and navigation issues. For further discussion,
+    see https://github.com/internetarchive/openlibrary/pull/8375.
+    """
+    if not (account := OpenLibraryAccount.get(username=mb.username)):
+        raise render.notfound(
+            "Account for not found for %s" % mb.username, create=False
+        )
+    s3_keys = web.ctx.site.store.get(account._key).get('s3_keys')
+    limit = RESULTS_PER_PAGE
+    offset = page * limit - limit
+    loan_history = s3_loan_api(
+        s3_keys=s3_keys,
+        action='user_borrow_history',
+        limit=limit + 1,
+        offset=offset,
+        newest=True,
+    ).json()['history']['items']
+
+    # We request limit+1 to see if there is another page of history to display,
+    # and then pop the +1 off if it's present.
+    show_next = len(loan_history) == limit + 1
+    if show_next:
+        loan_history.pop()
+
+    ocaids = [loan_record['identifier'] for loan_record in loan_history]
+    loan_history_map = {
+        loan_record['identifier']: loan_record for loan_record in loan_history
+    }
+
+    # Get editions and attach their loan history.
+    editions_map = get_items_and_add_availability(ocaids=ocaids)
+    for edition in editions_map.values():
+        edition_loan_history = loan_history_map.get(edition.get('ocaid'))
+        edition['last_loan_date'] = (
+            edition_loan_history.get('updatedate') if edition_loan_history else ''
+        )
+
+    # Create 'placeholders' dicts for items in the Internet Archive loan history,
+    # but absent from Open Library, and then add loan history.
+    # ia_only['loan'] isn't set because `LoanStatus.html` reads it as a current
+    # loan. No apparenty way to distinguish between current and past loans with
+    # this API call.
+    ia_only_loans = [{'ocaid': ocaid} for ocaid in ocaids if ocaid not in editions_map]
+    for ia_only_loan in ia_only_loans:
+        loan_data = loan_history_map[ia_only_loan['ocaid']]
+        ia_only_loan['last_loan_date'] = loan_data.get('updatedate', '')
+        # Determine the macro to load for loan-history items only.
+        ia_only_loan['ia_only'] = True  # type: ignore[typeddict-unknown-key]
+
+    editions_and_ia_loans = list(editions_map.values()) + ia_only_loans
+    editions_and_ia_loans.sort(
+        key=lambda item: item.get('last_loan_date', ''), reverse=True
+    )
+
+    return {
+        'docs': editions_and_ia_loans,
+        'show_next': show_next,
+        'limit': limit,
+        'page': page,
+    }

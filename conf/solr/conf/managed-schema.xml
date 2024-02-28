@@ -170,6 +170,7 @@
     <field name="contributor" type="text_general" multiValued="true"/>
     <field name="publish_place" type="text_en_splitting" multiValued="true"/>
     <field name="publisher" type="text_en_splitting" multiValued="true"/>
+    <field name="format" type="text_en_splitting" multiValued="true"/>
     <field name="publisher_facet" type="string" stored="false" multiValued="true"/>
     <field name="first_sentence" type="text_en_splitting" multiValued="true"/>
     <field name="author_key" type="string" multiValued="true"/>
@@ -204,6 +205,9 @@
     <field name="want_to_read_count" type="pint"/>
     <field name="currently_reading_count" type="pint"/>
     <field name="already_read_count" type="pint"/>
+
+    <!-- Open Syllabus Project -->
+    <field name="osp_count" type="pint"/>
 
     <field name="text" type="text_en_splitting" stored="false" multiValued="true"/>
 
@@ -513,8 +517,8 @@
     <fieldType name="text_title_sort" class="solr.TextField" sortMissingLast="false" omitNorms="true">
       <analyzer>
         <tokenizer name="keyword" />
-        <filter name="lowercase" />
         <filter name="trim" />
+        <filter name="icuFolding"/>
         <filter name="patternReplace"
                 pattern="^(an? |the |l[aeo]s? |l'|de la |el |il |un[ae]? |du |de[imrst]? |das |ein |eine[mnrs]? |bir )(.*)"
                 replacement="$2, $1"
@@ -589,7 +593,7 @@
                 words="lang/stopwords_en.txt"
         /> -->
         <filter name="icuFolding"/>
-        <filter name="wordDelimiterGraph" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
+        <filter name="wordDelimiterGraph" types="wordtypes.txt" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
         <filter name="lowercase"/>
         <filter name="keywordMarker" protected="protwords.txt"/>
         <filter name="porterStem"/>
@@ -604,7 +608,7 @@
                 words="lang/stopwords_en.txt"
         /> -->
         <filter name="icuFolding"/>
-        <filter name="wordDelimiterGraph" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0" splitOnCaseChange="1"/>
+        <filter name="wordDelimiterGraph" types="wordtypes.txt" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0" splitOnCaseChange="1"/>
         <filter name="lowercase"/>
         <filter name="keywordMarker" protected="protwords.txt"/>
         <filter name="porterStem"/>

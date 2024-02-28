@@ -29,10 +29,17 @@ $def field(input, suffix=''):
         </div>
         <div class="input">
             $:input.render()
+            $if input.name == 'password':
+                $ i18n_strings = {
+                $    "show_password": _('Show password'),
+                $    "hide_password": _('Hide password')
+                $  }
+                <a href="javascript:;" class="password-visibility-toggle" data-i18n="$json_encode(i18n_strings)">$i18n_strings["show_password"]</a>
             <span class="invalid clearfix" id="$(input.id)Message">$input.note</span>
             <span class="sansserif smaller lighter">$:suffix</span>
         </div>
     </div>
+
 
 $if ctx.user:
     $def user_link(): <a href="$ctx.user.key">$ctx.user.displayname</a>
@@ -48,32 +55,25 @@ $else:
         $:field(form.email)
         $:field(form.username, suffix=str(screenname_url()))
         $:field(form.password)
-        $:field(form.password2)
 
-        <br/>
         <label>
             $:form.ia_newsletter.render() $:form.ia_newsletter.description
         </label>
 
         <hr/>
 
-        $if form.has_recaptcha:
-            <div class="formElement">
-                <div class="label smaller lighter">$_("If you have security settings or privacy blockers installed, please disable them to see the reCAPTCHA.")</div>
-                <div class="g-recaptcha" data-sitekey="$form['recaptcha'].public_key"></div>
-                <div class="input">
-                    $if form['recaptcha'].error:
-                        <span class="invalid clearfix">$_('Incorrect. Please try again.')</span>
-                </div>
-            </div>
-
         <small>$:_("By signing up, you agree to the Internet Archive's <a href='//archive.org/about/terms.php' target='_blank'>Terms of Service</a>.")</small>
 
         <div class="formElement bottom">
             <br/>
-            <button type="submit" name="signup" id="signup" class="larger">$_("Sign Up")</button>
+            $ sitekey = classes = callback = ''
+            $if form.has_recaptcha:
+                $ callback = "data-callback=submitCreateAccountForm"
+                $ classes = 'g-recaptcha'
+                $ sitekey = "data-sitekey=%s" % form['recaptcha'].public_key
+                $:render_template("recaptcha", form['recaptcha'].public_key, error=None, invisible=True)
+            <button type="submit" name="signup" id="signup" class="larger $classes" $sitekey $callback>$_("Sign Up")</button>
             <a href="javascript:history.go(-1);" class="smaller attn">$_("Cancel")</a>
         </div>
     </form>
-
 </div>
