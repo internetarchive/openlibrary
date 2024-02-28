@@ -68,7 +68,9 @@ class contact(delegate.page):
         message = SUPPORT_EMAIL_TEMPLATE % locals()
         sendmail(email, assignee, subject, message)
 
-        get_memcache().set('contact-POST-%s' % hashed_ip, "true", time=15 * MINUTE_SECS)
+        get_memcache().set(
+            'contact-POST-%s' % hashed_ip, "true", expires=15 * MINUTE_SECS
+        )
         return render_template("email/case_created", assignee)
 
 

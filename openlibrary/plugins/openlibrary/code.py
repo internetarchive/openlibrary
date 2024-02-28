@@ -1020,11 +1020,23 @@ class Partials(delegate.page):
     encoding = 'json'
 
     def GET(self):
-        i = web.input(workid=None, _component=None)
+        # `data` is meant to be a dict with two keys: `args` and `kwargs`.
+        # `data['args']` is meant to be a list of a template's positional arguments, in order.
+        # `data['kwargs']` is meant to be a dict containing a template's keyword arguments.
+        i = web.input(workid=None, _component=None, data=None)
         component = i.pop("_component")
         partial = {}
         if component == "RelatedWorkCarousel":
             partial = _get_relatedcarousels_component(i.workid)
+        elif component == "AffiliateLinks":
+            data = json.loads(i.data)
+            args = data.get('args', [])
+            # XXX : Throw error if args length is less than 2
+            macro = web.template.Template.globals['macros'].AffiliateLinks(
+                args[0], args[1]
+            )
+            partial = {"partials": str(macro)}
+
         return delegate.RawText(json.dumps(partial))
 
 

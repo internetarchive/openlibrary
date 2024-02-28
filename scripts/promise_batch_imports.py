@@ -15,6 +15,9 @@ The imports can be monitored for their statuses and rolled up / counted using th
 """
 
 from __future__ import annotations
+import json
+import ijson
+from urllib.parse import urlencode
 import requests
 import logging
 
@@ -82,12 +85,21 @@ def is_isbn_13(isbn: str):
     return isbn and isbn[0].isdigit()
 
 
-def batch_import(promise_id, batch_size=1000):
+def batch_import(promise_id, batch_size=1000, dry_run=False):
     url = "https://archive.org/download/"
     date = promise_id.split("_")[-1]
-    books = requests.get(f"{url}{promise_id}/DailyPallets__{date}.json").json()
+    resp = requests.get(f"{url}{promise_id}/DailyPallets__{date}.json", stream=True)
+    olbooks_gen = (
+        map_book_to_olbook(book, promise_id) for book in ijson.items(resp.raw, 'item')
+    )
+
+    if dry_run:
+        for book in olbooks_gen:
+            print(json.dumps(book), flush=True)
+        return
+
+    olbooks = list(olbooks_gen)
     batch = Batch.find(promise_id) or Batch.new(promise_id)
-    olbooks = [map_book_to_olbook(book, promise_id) for book in books]
     # Find just-in-time import candidates:
     jit_candidates = [book['isbn_13'][0] for book in olbooks if book.get('isbn_13', [])]
     ImportItem.bulk_mark_pending(jit_candidates)
@@ -96,53 +108,61 @@ def batch_import(promise_id, batch_size=1000):
         batch.add_items(batch_items[i : i + batch_size])
 
 
-def get_promise_items(**kwargs):
-    url = get_promise_items_url(**kwargs)
+def get_promise_items_url(start_date: str, end_date: str):
+    """
+    >>> get_promise_items_url('2022-12-01', '2022-12-31')
+    'https://archive.org/advancedsearch.php?q=collection:bookdonationsfrombetterworldbooks+identifier:bwb_daily_pallets_*+publicdate:[2022-12-01+TO+2022-12-31]&sort=addeddate+desc&fl=identifier&rows=5000&output=json'
+
+    >>> get_promise_items_url('2022-12-01', '2022-12-01')
+    'https://archive.org/advancedsearch.php?q=collection:bookdonationsfrombetterworldbooks+identifier:bwb_daily_pallets_*&sort=addeddate+desc&fl=identifier&rows=5000&output=json'
+
+    >>> get_promise_items_url('2022-12-01', '*')
+    'https://archive.org/advancedsearch.php?q=collection:bookdonationsfrombetterworldbooks+identifier:bwb_daily_pallets_*+publicdate:[2022-12-01+TO+*]&sort=addeddate+desc&fl=identifier&rows=5000&output=json'
+    """
+    is_exact_date = start_date == end_date
+    selector = start_date if is_exact_date else '*'
+    q = f"collection:bookdonationsfrombetterworldbooks identifier:bwb_daily_pallets_{selector}"
+    if not is_exact_date:
+        q += f' publicdate:[{start_date} TO {end_date}]'
+
+    return "https://archive.org/advancedsearch.php?" + urlencode(
+        {
+            'q': q,
+            'sort': 'addeddate desc',
+            'fl': 'identifier',
+            'rows': '5000',
+            'output': 'json',
+        }
+    )
+
+
+def main(ol_config: str, dates: str, dry_run: bool = False):
+    """
+    :param ol_config: Path to openlibrary.yml
+    :param dates: Get all promise items for this date or date range.
+        E.g. "yyyy-mm-dd:yyyy-mm-dd" or just "yyyy-mm-dd" for a single date.
+        "yyyy-mm-dd:*" for all dates after a certain date.
+    """
+    if ':' in dates:
+        start_date, end_date = dates.split(':')
+    else:
+        start_date = end_date = dates
+
+    url = get_promise_items_url(start_date, end_date)
     r = requests.get(url)
-    return [d['identifier'] for d in r.json()['response']['docs']]
+    identifiers = [d['identifier'] for d in r.json()['response']['docs']]
 
+    if not identifiers:
+        logger.info("No promise items found for date(s) %s", dates)
+        return
 
-def get_promise_items_url(
-    start_date='1996-01-01', end_date="9999-01-01", exact_date=None
-):
-    base = "https://archive.org/advancedsearch.php"
-    selector = exact_date or '*'
-    q = f"collection:bookdonationsfrombetterworldbooks+identifier:bwb_daily_pallets_{selector}"
-    if not exact_date:
-        q += f'+publicdate:[{start_date or "1996-01-01"} TO {end_date}]'
-    sorts = "sort%5B%5D=addeddate+desc&sort%5B%5D=&sort%5B%5D="
-    fields = "fl%5B%5D=identifier"
-    rows = 5000
-    url = f"{base}?q={q}&{fields}&{sorts}&rows={rows}&page=1&output=json"
-    return url
+    if not dry_run:
+        load_config(ol_config)
 
-
-def parse_date(date: str = ''):
-    params = {}
-    if ':' in date:
-        if date.endswith(':'):
-            params['exact_date'] = date[1:-1]
-        elif date.startswith(":"):
-            params['end_date'] = date[1:]
-        else:
-            params['start_date'], params['end_date'] = date.split(':')
-    elif date:
-        params['start_date'] = date
-    return params
-
-
-def main(ol_config: str, date: str):
-    """
-    start_date
-    :end_date
-    start_date:end_date
-    :exact_date:
-    """
-    load_config(ol_config)
-    params = parse_date(date)
-    promise_ids = get_promise_items(**params)
-    for i, promise_id in enumerate(promise_ids):
-        batch_import(promise_id)
+    for promise_id in identifiers:
+        if dry_run:
+            print([promise_id, dry_run], flush=True)
+        batch_import(promise_id, dry_run=dry_run)
 
 
 if __name__ == '__main__':

@@ -35,7 +35,7 @@ $if status:
                         <div class="carousel-section">
                             <div id="covers" class="carousel-container carousel-container-decorated carousel--minimal">
                                 <div id="popcovers" class="carousel carousel--progressively-enhanced"
-                                    data-config="$json_encode(['#popcovers', 3, 3, 3, 3, 2, 1])">
+                                    data-config="$json_encode({'booksPerBreakpoint': [3, 3, 3, 3, 2, 1]})">
                                 $for cover in doc.get_edition_covers():
                                     <div class="book carousel__item" data-id="$cover.id">
                                         <div class="book-cover">

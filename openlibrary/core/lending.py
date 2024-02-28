@@ -1,6 +1,6 @@
 """Module for providing core functionality of lending on Open Library.
 """
-from typing import Literal, TypedDict, cast
+from typing import TYPE_CHECKING, Literal, TypedDict, cast
 
 import web
 import datetime
@@ -20,6 +20,11 @@ from openlibrary.utils import dateutil, uniq
 
 from . import ia
 from . import helpers as h
+
+
+if TYPE_CHECKING:
+    from openlibrary.plugins.upstream.models import Edition
+
 
 logger = logging.getLogger(__name__)
 
@@ -504,11 +509,34 @@ def get_availability_of_ocaid(ocaid):
     return get_availability('identifier', [ocaid])
 
 
-def get_availability_of_ocaids(ocaids: list[str]) -> dict:
+def get_availability_of_ocaids(ocaids: list[str]) -> dict[str, AvailabilityStatusV2]:
     """
     Retrieves availability based on ocaids/archive.org identifiers
     """
     return get_availability('identifier', ocaids)
+
+
+def get_items_and_add_availability(ocaids: list[str]) -> dict[str, "Edition"]:
+    """
+    Get Editions from OCAIDs and attach their availabiliity.
+
+    Returns a dict of the form: `{"ocaid1": edition1, "ocaid2": edition2, ...}`
+    """
+    ocaid_availability = get_availability_of_ocaids(ocaids=ocaids)
+    editions = web.ctx.site.get_many(
+        [
+            f"/books/{item.get('openlibrary_edition')}"
+            for item in ocaid_availability.values()
+            if item.get('openlibrary_edition')
+        ]
+    )
+
+    # Attach availability
+    for edition in editions:
+        if edition.ocaid in ocaids:
+            edition.availability = ocaid_availability.get(edition.ocaid)
+
+    return {edition.ocaid: edition for edition in editions if edition.ocaid}
 
 
 def is_loaned_out(identifier):

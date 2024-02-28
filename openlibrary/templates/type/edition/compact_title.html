@@ -3,7 +3,12 @@ $def with (book_title, edit_url)
 <div class="compact-title hidden">
   <span class="compact-title__heading">$book_title</span>
   <div class="compact-title__edit-btn">
-    <a class="linkButton linkButton--large" href="$edit_url" title="$_('Edit this template')"
-      data-ol-link-track="CTAClick|StickyEdit">$_("Edit")</a>
+    <a
+      class="linkButton linkButton--large"
+      href="$edit_url"
+      title="$_('Edit this template')"
+      data-ol-link-track="CTAClick|StickyEdit"
+      rel="nofollow"
+    >$_("Edit")</a>
   </div>
 </div>

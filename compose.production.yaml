@@ -91,8 +91,6 @@ services:
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/covers_nginx.conf:/etc/nginx/sites-enabled/covers_nginx.conf:ro
-      # Needed for HTTPS, since this is a public server
-      - ./docker/public_nginx.conf:/etc/nginx/sites-available/public_nginx.conf:ro
       # letsencrypt
       - letsencrypt-data:/etc/letsencrypt
       - ../olsystem/etc/cron.d/certbot:/etc/cron.d/certbot
@@ -182,8 +180,6 @@ services:
       # nginx configurations
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/web_nginx.conf:/etc/nginx/sites-enabled/openlibrary.conf:ro
-      # Needed for HTTPS, since this is a public server
-      - ./docker/public_nginx.conf:/etc/nginx/sites-available/public_nginx.conf:ro
       # archive web log uploads
       - ../olsystem:/olsystem
       # web log rotation

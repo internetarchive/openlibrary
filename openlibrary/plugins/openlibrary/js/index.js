@@ -15,8 +15,7 @@ import { enumerate, htmlquote, websafe, foreach, join, len, range } from './jsde
 import initAnalytics from './ol.analytics';
 import init from './ol.js';
 import * as Browser from './Browser';
-import { commify } from './python';
-import { Subject, urlencode, slice } from './subjects';
+import { commify, urlencode, slice } from './python';
 import Template from './template.js';
 // Add $.fn.focusNextInputField
 import { truncate, cond } from './utils';
@@ -45,7 +44,6 @@ window.ungettext = ungettext;
 window.uggettext = ugettext;
 
 window.Browser = Browser;
-window.Subject = Subject;
 window.Template = Template;
 
 // Extend existing prototypes
@@ -88,8 +86,6 @@ jQuery(function () {
     }
 
     const $markdownTextAreas = $('textarea.markdown');
-    // Live NodeList is cast to static array to avoid infinite loops
-    const $carouselElements = $('.carousel--progressively-enhanced');
     const $tabs = $('#tabsAddbook,#tabsAddauthor,.tabs:not(.ui-tabs)');
 
     initDialogs();
@@ -235,10 +231,13 @@ jQuery(function () {
     if (document.getElementById('listResults')) {
         import(/* webpackChunkName: "ListViewBody" */'./lists/ListViewBody.js');
     }
+
     // Enable any carousels in the page
+    const $carouselElements = $('.carousel--progressively-enhanced');
     if ($carouselElements.length) {
-        import(/* webpackChunkName: "carousel" */ './carousel')
-            .then((module) => { module.init($carouselElements);
+        import(/* webpackChunkName: "carousel" */ './carousel/Carousel.js')
+            .then((module) => {
+                $carouselElements.each((_i, el) => new module.Carousel($(el)).init());
                 $('.slick-slide').each(function () {
                     if ($(this).attr('aria-describedby') !== undefined) {
                         $(this).attr('id',$(this).attr('aria-describedby'));
@@ -531,5 +530,12 @@ jQuery(function () {
     if (passwordVisibilityToggle) {
         import(/* webpackChunkName: "password-visibility-toggle" */ './password-toggle')
             .then(module => module.initPasswordToggling(passwordVisibilityToggle))
+    }
+
+    // Affiliate links:
+    const affiliateLinksSection = document.querySelectorAll('.affiliate-links-section')
+    if (affiliateLinksSection.length) {
+        import(/* webpackChunkName: "affiliate-links" */ './affiliate-links')
+            .then(module => module.initAffiliateLinks(affiliateLinksSection))
     }
 });

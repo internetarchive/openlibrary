@@ -345,6 +345,7 @@ export class BulkTagger {
             break
         }
 
+        menuOption.stage()
         this.updateSubmitButtonState()
     }
 
