@@ -202,9 +202,12 @@ class add_work_to_staff_picks:
             ocaids = [edition.ocaid for edition in editions if edition.ocaid]
             results[work_id] = {}
             for ocaid in ocaids:
-                results[work_id][ocaid] = create_ol_subjects_for_ocaid(
-                    ocaid, subjects=subjects
-                )
+                try:
+                    results[work_id][ocaid] = create_ol_subjects_for_ocaid(
+                        ocaid, subjects=subjects
+                    )
+                except Exception as err:
+                    results[work_id][ocaid] = f'Failed to add to staff picks. Error message: {err}'
 
         return delegate.RawText(json.dumps(results), content_type="application/json")
 
