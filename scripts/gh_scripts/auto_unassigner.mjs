@@ -9,6 +9,11 @@ import {Octokit} from "@octokit/action";
 
 console.log('Script starting...')
 
+/**
+ * Default arguments that are used if no command-line options are passed.
+ *
+ * @type { Record }
+ */
 const DEFAULT_OPTIONS = {
     daysSince: 14,
     repoOwner: 'internetarchive'
@@ -23,14 +28,6 @@ mainOptions.daysSince = Number(mainOptions.daysSince)
 // Octokit is authenticated with the `GITHUB_TOKEN` that is added to the
 // environment in the `auto_unassigner` workflow
 const octokit = new Octokit();
-
-// XXX : What do we want to say when we remove assignees?
-/**
- * Comment that will be left on issue when assignee is removed.
- *
- * @type {string}
- */
-const issueComment = `Assignees removed automatically after ${mainOptions.daysSince} days.`
 
 /**
  * List of GitHub usernames who, if assigned to an issue, should not be unassigned.
@@ -62,7 +59,8 @@ const filters = [
     excludeLabelsFilter,
     excludeAssigneesFilter,
     recentAssigneeFilter,
-    linkedPullRequestFilter
+    linkedPullRequestFilter,
+    removeExclusionsFilter
 ]
 
 /**
@@ -94,20 +92,11 @@ async function main() {  // XXX : Inject octokit for easier testing
     const actionableIssues = await filterIssues(issues, filters)
     console.log(`Issues remaining after filtering: ${actionableIssues.length}`)
 
-    for (const issue of actionableIssues) {
-        const assigneesToRemove = []
-        for (const assignee of issue.assignees) {
-            if (!('ol_unassign_ignore' in assignee)) {
-                assigneesToRemove.push(assignee.login)
-            }
-        }
+    const digestPublished = await postSlackDigest(actionableIssues)
 
-        if (assigneesToRemove.length > 0) {
-            const wasRemoved = await unassignFromIssue(issue.number, assigneesToRemove)
-            if (wasRemoved) {
-                await commentOnIssue(issue.number, issueComment)
-            }
-        }
+    if (!digestPublished) {
+        console.log('Something went wrong while publishing the digest to Slack...')
+        process.exit(1)
     }
 }
 
@@ -204,58 +193,98 @@ async function getTimeline(issue) {
 }
 
 /**
- * Removes the given assignees from the issue identified by the given issue number.
+ * Publishes digest of stale issues to Slack.
  *
- * @param issueNumber {number}
- * @param assignees {Array<string>}
- * @returns {Promise<boolean>} `true` if unassignment operation was successful
+ * @param issues {Array<Record>}
+ * @returns {Promise<boolean>}
  */
-async function unassignFromIssue(issueNumber, assignees) {
-    return await octokit.request('DELETE /repos/{owner}/{repo}/issues/{issue_number}/assignees', {
-        owner: mainOptions.repoOwner,
-        repo: 'openlibrary',
-        issue_number: issueNumber,
-        assignees: assignees,
-        headers: {
-            'X-GitHub-Api-Version': '2022-11-28'
-        }
-    })
-        .then(() => {
-            return true
-        })
-        .catch((error) => {
-            console.log(`Failed to remove assignees from issue #${issueNumber}`)
-            console.log(`Response status: ${error.status}`)
-            return false
-        })
-}
+async function postSlackDigest(issues) {
+    if (!(process.env.SLACK_TOKEN && process.env.SLACK_CHANNEL)) {
+        console.log('Digest could not be published to Slack due to missing environment variables.')
+        return false
+    }
 
-/**
- * Creates a new comment on the given issue.
- *
- * @param issueNumber {number}
- * @param comment {string}
- * @returns {Promise<boolean>} `true` if the comment was created
- */
-async function commentOnIssue(issueNumber, comment) {
-    return await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
-        owner: mainOptions.repoOwner,
-        repo: 'openlibrary',
-        issue_number: issueNumber,
-        body: comment,
+    const parentThreadMessage = `${issues.length} issue(s) have stale assignees.`
+    return fetch('https://slack.com/api/chat.postMessage', {
+        method: 'POST',
         headers: {
-            'X-GitHub-Api-Version': '2022-11-28'
+            'Content-Type': 'application/json; charset=utf-8',
+            'Authorization': `Bearer ${process.env.SLACK_TOKEN}`
         },
+        body: JSON.stringify({
+            text: parentThreadMessage,
+            channel: process.env.SLACK_CHANNEL
+        })
     })
-        .then(() => {
+        .then((resp) => {
+            console.log('initial response:')
+            console.log(resp)
+            if (!resp.ok) {
+                console.log('Failed to publish parent thread to Slack')
+                throw new Error()
+            }
+            return resp.json()
+        })
+        .then(async (data) => {
+            const ts = data['ts']
+
+            for (const issue of issues) {
+                const message = `<${issue.html_url}|${issue.title}>`
+
+                // Wait for one second...
+                await wait(1000)
+                // ...then POST again
+                await commentOnThread(message, ts)
+            }
+
             return true
         })
-        .catch((error) => {
-            // Promise is rejected if the call fails
-            console.log(`Failed to comment on issue #${issueNumber}`)
-            console.log(`Response status: ${error.status}`)
+        .catch((err) => {
             return false
         })
+
+    /**
+     * Publishes given `message` int the thread identified by the Slack channel
+     * (found in the environment) and the given timestamp ID `ts`.
+     *
+     * @param message { string }
+     * @param ts { string }
+     * @returns {Promise<void>}
+     */
+    async function commentOnThread(message, ts) {
+        const body = {
+            text: message,
+            thread_ts: ts,
+            channel: process.env.SLACK_CHANNEL
+
+        }
+        await fetch('https://slack.com/api/chat.postMessage', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Authorization': `Bearer ${process.env.SLACK_TOKEN}`
+            },
+            body: JSON.stringify(body)
+        })
+            .then((resp) => {
+                if (!resp.ok) {
+                    console.log('Comment on Slack post failed.')
+                    throw new Error()
+                }
+            })
+    }
+
+    /**
+     * Waits for the given number of milliseconds, then resolves.
+     *
+     * @param ms {number}
+     * @returns {Promise}
+     */
+    function wait(ms) {
+        return new Promise(resolve => {
+            setTimeout(resolve, ms)
+        })
+    }
 }
 // END: API Calls
 
@@ -455,6 +484,31 @@ async function linkedPullRequestFilter(issues) {
         }
     }
 
+    return results
+}
+
+/**
+ * Iterates over the given issues, returning an array of issues that have
+ * at least one assignee that was not marked for exclusion.
+ *
+ * @param {Array<Record>} issues
+ * @returns {Promise<Array<Record>>}
+ */
+async function removeExclusionsFilter(issues) {
+    const results = []
+
+    for (const issue of issues) {
+        const assigneesToRemove = []
+        for (const assignee of issue.assignees) {
+            if (!('ol_unassign_ignore' in assignee)) {
+                assigneesToRemove.push(assignee.login)
+            }
+        }
+
+        if (assigneesToRemove.length > 0) {
+            results.push(issue)
+        }
+    }
     return results
 }
 // END: Issue Filtering

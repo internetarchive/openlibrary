@@ -1,14 +1,14 @@
 name: auto_unassigner
 on:
-  schedule:  # Run at 0800 AM, daily (runs before new_comment_digest workflow).
-    - cron: '0 8 * * *'
-  workflow_dispatch:  # This can be run on-demand (do we want this?)
+  schedule:
+    - cron: '0 16 * * 1'
+  workflow_dispatch:
 permissions:
   contents: read
-  issues: write
 
 jobs:
   auto_unassigner:
+    if: ${{ github.repository == 'internetarchive/openlibrary'}}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,6 +16,8 @@ jobs:
         with:
           node-version: '20'
       - run: npm install @octokit/action
-      - run: node scripts/gh_scripts/auto_unassigner.mjs --repoOwner $GITHUB_REPOSITORY_OWNER
+      - run: node scripts/gh_scripts/auto_unassigner.mjs --repoOwner "internetarchive" --daysSince 1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ABC_TEAM_PLUS}}
