@@ -12,7 +12,7 @@ export function initCarouselsPartials() {
             },
             datatype: 'json',
             success: function (response) {
-                $('.loadingIndicator').addClass('hidden');
+                $('.loadingIndicator.carousel-loading').addClass('hidden');
                 if (response){
                     response = JSON.parse(response)
                     $('.RelatedWorksCarousel').append(response[0]);
@@ -23,7 +23,7 @@ export function initCarouselsPartials() {
         });
     };
 
-    $('.loadingIndicator').removeClass('hidden');
+    $('.loadingIndicator.carousel-loading').removeClass('hidden');
 
     fetchRelatedWorks();
 }

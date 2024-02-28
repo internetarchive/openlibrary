@@ -531,4 +531,11 @@ jQuery(function () {
         import(/* webpackChunkName: "password-visibility-toggle" */ './password-toggle')
             .then(module => module.initPasswordToggling(passwordVisibilityToggle))
     }
+
+    // Affiliate links:
+    const affiliateLinksSection = document.querySelectorAll('.affiliate-links-section')
+    if (affiliateLinksSection.length) {
+        import(/* webpackChunkName: "affiliate-links" */ './affiliate-links')
+            .then(module => module.initAffiliateLinks(affiliateLinksSection))
+    }
 });
