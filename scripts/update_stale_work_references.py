@@ -11,13 +11,11 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 import datetime
 
 
-def main(ol_config: str, start_offset=0, days=31):
+def main(ol_config: str, days=1, skip=7):
     load_config(ol_config)
     infogami._setup()
-    cutoff_date = datetime.datetime.today() - datetime.timedelta(days=days)
     Work.resolve_redirects_bulk(
-        start_offset=start_offset,
-        cutoff_date=cutoff_date,
+        batch_size=1000, days=days, grace_period_days=skip, test=False
     )
 
 
