@@ -209,7 +209,9 @@ class add_work_to_staff_picks:
                         ocaid, subjects=subjects
                     )
                 except ItemLocateError as err:
-                    results[work_id][ocaid] = f'Failed to add to staff picks. Error message: {err}'
+                    results[work_id][
+                        ocaid
+                    ] = f'Failed to add to staff picks. Error message: {err}'
 
         return delegate.RawText(json.dumps(results), content_type="application/json")
 
