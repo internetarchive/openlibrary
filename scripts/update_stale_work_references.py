@@ -15,10 +15,7 @@ def main(ol_config: str, days=1, skip=7):
     load_config(ol_config)
     infogami._setup()
     Work.resolve_redirects_bulk(
-        batch_size=1000,
-        days=days,
-        grace_period_days=skip,
-        test=False
+        batch_size=1000, days=days, grace_period_days=skip, test=False
     )
 
 

@@ -679,15 +679,17 @@ class Work(Thing):
     def get_redirects(cls, day, batch_size=1000, batch=0):
         tomorrow = day + timedelta(days=1)
 
-        work_redirect_ids = web.ctx.site.things({
-            "type": "/type/redirect",
-            "key~": "/works/*",
-            "limit": batch_size,
-            "offset": (batch * batch_size),
-            "sort": "-last_modified",
-            "last_modified>": day.strftime('%Y-%m-%d'),
-            "last_modified<": tomorrow.strftime('%Y-%m-%d'),
-        })
+        work_redirect_ids = web.ctx.site.things(
+            {
+                "type": "/type/redirect",
+                "key~": "/works/*",
+                "limit": batch_size,
+                "offset": (batch * batch_size),
+                "sort": "-last_modified",
+                "last_modified>": day.strftime('%Y-%m-%d'),
+                "last_modified<": tomorrow.strftime('%Y-%m-%d'),
+            }
+        )
         more = len(work_redirect_ids) == batch_size
         logger.info(
             f"[update-redirects] batch: {batch}, size {batch_size}, offset {batch * batch_size}, more {more}, len {len(work_redirect_ids)}"
