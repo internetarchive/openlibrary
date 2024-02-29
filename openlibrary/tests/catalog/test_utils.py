@@ -353,6 +353,7 @@ def test_get_missing_field(name, rec, expected) -> None:
     ("date, expected"),
     [
         ("", ""),
+        ("1865.", "1865"),
         ("1865", "1865"),  # No period to remove
         ("1865.5", "1865.5"),  # Period not at the end
         ("1865,", "1865,"),  # Comma instead of period
