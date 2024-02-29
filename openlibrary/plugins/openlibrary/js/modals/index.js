@@ -12,7 +12,6 @@ export function initShareModal($modalLinks) {
         const shareLinks = modalContent.querySelectorAll('.share-link')
         addShareLinkHandlers(shareLinks)
     }
-    addShareModalButtonListeners();
 }
 
 /**
@@ -26,18 +25,6 @@ function addShareLinkHandlers(links) {
     for (const link of links) {
         link.addEventListener('click', () => $.colorbox.close())
     }
-}
-
-/**
- * Adds click listener which copies the current page's URL to the clipboard.
- */
-function addShareModalButtonListeners (){
-    $('#social-modal-content .copy-url-btn').on('click', function(event){
-        event.preventDefault();
-        navigator.clipboard.writeText(window.location.href);
-        showToast('URL copied to clipboard')
-        $.colorbox.close()
-    })
 }
 
 /**

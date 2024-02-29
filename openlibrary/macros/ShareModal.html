@@ -39,8 +39,8 @@ $def embed_iframe(page_url):
                 $# rm special characters from url such as single quote which break js prompt/iframe
                 $ clean_url = page_url.replace("'", "\\'")
                 $ iframe_html = str(embed_iframe(clean_url)).strip()
-                <a class="embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed"
-                  onclick="prompt('Copy embed code to clipboard:', '$iframe_html');">
+                <a class="embed-work-btn copy-to-clipboard" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed"
+                  data-string-to-copy="$iframe_html" data-i18n="$json_encode({'toast': _('Embed code copied to clipboard')})">
                   <img
                     alt="Embed icon"
                     class="share-link"
@@ -52,7 +52,9 @@ $def embed_iframe(page_url):
               </li>
 
             <li>
-              <a class="copy-url-btn" title="$_('Copy url to clipboard')" data-ol-link-track="Share|CopyURL">
+              $ full_url = 'https://' + ctx.site + changequery()
+              <a class="copy-url-btn copy-to-clipboard" title="$_('Copy url to clipboard')" data-ol-link-track="Share|CopyURL"
+                data-string-to-copy="$full_url" data-i18n="$json_encode({'toast': _('URL copied to clipboard')})">
                   <img
                       alt="$_('Copy URL icon')"
                       class="share-link"
