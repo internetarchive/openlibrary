@@ -2,8 +2,23 @@ import { FadingToast } from '../Toast.js';
 import '../../../../../static/css/components/metadata-form.less';
 
 
+/**
+ * Initializes share modal.
+ */
 export function initShareModal($modalLinks) {
     addClickListeners($modalLinks, '400px');
+    addShareModalButtonListeners();
+}
+/**
+ * Adds click listeners to buttons in all notes modals on a page.
+ */
+function addShareModalButtonListeners (){
+    $('#social-modal-content .copy-url-btn').on('click', function(event){
+        event.preventDefault();
+        navigator.clipboard.writeText(window.location.href);
+        showToast('URL copied to clipboard')
+        $.colorbox.close()
+    })
 }
 
 /**
