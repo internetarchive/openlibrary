@@ -536,7 +536,7 @@ msgid ""
 "faq\">Frequently Asked Questions</a> (FAQ) to see if your question is answered "
 "there. Thank you."
 msgstr ""
-"Pro praghere abbista·ti sas <a href=\"/help/\">Pàginas de agiudu/a> e sas <a "
+"Pro praghere abbista·ti sas <a href=\"/help/\">Pàginas de agiudu</a> e sas <a "
 "href=\"/help/faq\">Preguntas fitianas</a> (PF/FAQ) nostras pro bìdere si sa "
 "dimanda tua tenet giai una risposta in cue. Gràtzias."
 
