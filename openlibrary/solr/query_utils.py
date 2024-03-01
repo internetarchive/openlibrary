@@ -1,7 +1,7 @@
 from typing import Literal, Optional
 from collections.abc import Callable
 from luqum.parser import parser
-from luqum.tree import Item, SearchField, BaseOperation, Group, Word, Unary
+from luqum.tree import Item, SearchField, BaseOperation, Group, Word, Unary, Fuzzy
 import re
 
 
@@ -227,7 +227,6 @@ def luqum_parser(query: str) -> Item:
     for node, parents in luqum_traverse(tree):
         if isinstance(node, SearchField):
             node.expr.head = ''
-
     return tree
 
 
@@ -279,3 +278,30 @@ def luqum_replace_field(query, replacer: Callable[[str], str]) -> str:
         if isinstance(sf, SearchField):
             sf.name = replacer(sf.name)
     return str(query)
+
+
+def luqum_make_fuzzy(tree: Item, search_fields: set[str]):
+    """:param query: Passed in the form of a luqum tree
+    :param search_fields: A list of search fields to be fuzzied out."""
+
+    def encase_fuzzy(word: Word):
+        fuzzy = Fuzzy(word)
+        fuzzy.head, fuzzy.tail = word.head, word.tail
+        word.tail, word.head = "", ""
+        return fuzzy
+
+    if isinstance(tree, Word):
+        return Fuzzy(tree)
+
+    for sf, _ in luqum_traverse(tree):
+        if isinstance(sf, SearchField) and sf.name.lower() in search_fields:
+            for node, _ in luqum_traverse(sf):
+                if isinstance(node, Fuzzy):
+                    continue
+                for item in node.children:
+                    if isinstance(item, Word):
+                        node.children = tuple(
+                            child if child is not item else encase_fuzzy(item)
+                            for child in node.children
+                        )
+    return tree
