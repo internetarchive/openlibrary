@@ -181,8 +181,8 @@ $ component_times['affiliate_links component'] = time()
 $ prices = edition.key.startswith('/books/')
 
 $ oclc_numbers = (edition.oclc_numbers and edition.oclc_numbers[0]) or ""
-$ isbn_13 = edition.get_isbn13()
-$ isbn_10 = edition.get_isbn10()
+$ isbn_13 = edition.get_isbn13() or None
+$ isbn_10 = edition.get_isbn10() or None
 
 $ asin = None
 $if edition.get('identifiers'):
