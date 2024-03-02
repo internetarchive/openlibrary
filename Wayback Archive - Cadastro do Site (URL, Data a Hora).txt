@@ -1,0 +1,16 @@
+Para cadastrar um site no Wayback Machine:
+
+1. Acesse o site: [https://web.archive.org web.archive.org]
+
+2. Insira a URL do site que você deseja cadastrar:
+* Na barra de pesquisa, digite a URL completa do site, incluindo o "http://" ou "https://".
+* Certifique-se de que a URL esteja correta antes de clicar em "Salvar".
+3. Selecione a data e hora:
+* Utilize o calendário e o relógio para escolher a data e hora específica em que você deseja que o site seja arquivado.
+* Se você não tiver certeza da data e hora, pode deixar os campos em branco para que o Wayback Machine capture a versão mais recente do site.
+4. Clique em "Salvar":
+* O Wayback Machine irá verificar se o site pode ser arquivado.
+* Se o site for arquivado com sucesso, você receberá uma mensagem de confirmação.
+5. Acesse o site arquivado:
+* Na página de confirmação, clique no link para o site arquivado.
+* Você poderá navegar pelo site como se estivesse na data e hora selecionadas.
