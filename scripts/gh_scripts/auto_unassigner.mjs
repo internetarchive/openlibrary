@@ -1,8 +1,8 @@
 /**
- * Runs the auto-unassigner script.
+ * Runs the stale-assignee script.
  *
  * Optional parameters:
- * --daysSince : Number : Issues that have had the same assignee for at least this many days are candidates for unassignment
+ * --daysSince : Number : Issues are considered stale after an assignee has been assigned for this many days
  * --repoOwner : String : Pass to run on a specific OpenLibrary fork
  */
 import {Octokit} from "@octokit/action";
