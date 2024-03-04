@@ -1,4 +1,4 @@
-name: auto_unassigner
+name: stale_assignee_digest
 on:
   schedule:
     - cron: '0 16 * * 1'
@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  auto_unassigner:
+  stale_assignee_digest:
     if: ${{ github.repository == 'internetarchive/openlibrary'}}
     runs-on: ubuntu-latest
     steps:
