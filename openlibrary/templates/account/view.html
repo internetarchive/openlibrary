@@ -1,10 +1,26 @@
 $def with (mb, template=None, header_title="", page=None)
 
+$def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None):
+  $ href = 'javascript:;'
+  $if not ctx.user and login_redirect:
+    $# Change classname to avoid adding click listeners and redirect to login page:
+    $ href = '/account/login?redirect=%s' % ctx.path
+    $ link_class = '%s--redirect' % link_class
+
+  $ ga_attr = 'data-ol-link-track=%s' % ga_data if ga_data else ''
+  <a href="$href" class="$link_class icon-link" $ga_attr>
+    <img class="icon-link__image" src="$img_src">
+    <div class="icon-link__text">$link_text</div>
+  </a>
+  
 $ mb.component_times['TotalTime'] = time()
 
 $ header_title = header_title or mb.key
 
 $var title: $header_title
+
+$# Setting the share links using util functions
+$set_share_links(url=request.canonical_url, title=header_title, view_context=ctx)
 
 
 <div class="mybooks">
@@ -40,10 +56,11 @@ $var title: $header_title
       $if page:
         $:macros.databarView(page)
 
-      $if mb.is_public and mb.key in mb.PUBLIC_KEYS:
-        <div>
-          <a class="cta-btn cta-btn--unstyled" onclick="prompt('Copy share link to clipboard:', window.location.protocol + '//' + window.location.hostname + '$(ctx.path)');"><img class="icon-link__image" src="/static/images/icons/share.svg" width="20"> Share</a>
-        </div>
+      $if mb.is_public and ctx.get('share_links') and mb.key in mb.PUBLIC_KEYS:
+        $ share_content = icon_link("share-modal-link", "/static/images/icons/share.svg", _("Share"), login_redirect=False, ga_data="ModalLinkClick|ShareIcon")
+        $ page_url = request.home
+        $ share_links = ctx.get('share_links')
+        $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper")
     </header>
 
     $ mb.component_times['Details header'] = time() - mb.component_times['Details header']
