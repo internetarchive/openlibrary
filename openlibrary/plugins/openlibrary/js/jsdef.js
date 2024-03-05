@@ -145,3 +145,17 @@ export function htmlquote(text) {
 export function is_jsdef() {
     return true;
 }
+
+
+/**
+ * foo.get(KEY, default) isn't defined in js, so we can't use that construct
+ * in our jsdef methods. This helper function provides a workaround, and works
+ * in both environments.
+ *
+ * @param {object} obj - the object to get the key from
+ * @param {string} key - the key to get from the object
+ * @param {any} def - the default value to return if the key isn't found
+ */
+export function jsdef_get(obj, key, def=null) {
+    return (key in obj) ? obj[key] : def;
+}
