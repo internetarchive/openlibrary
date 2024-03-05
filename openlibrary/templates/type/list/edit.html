@@ -20,8 +20,9 @@ $if admin_only:
 
 $# Render the ith seed input field
 $jsdef render_seed_field(i, seed):
-    $# Note: Cannot use "in" because this is a jsdef function
-    $if seed['key'] or seed['key']:
+    $# seed['key'] errors in python; seed.get('key') errors in js. So need
+    $# to run different code on the server and client.
+    $if jsdef_get(seed, 'key') != None:
         $ seed = { 'thing': seed, 'notes': '' }
 
     $ key = ''
