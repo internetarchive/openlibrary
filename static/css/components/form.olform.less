@@ -84,6 +84,29 @@
     }
   }
 
+  .links-form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    padding-bottom: 20px;
+
+    .links-form__inputs {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 5px;
+      width: 100%;
+
+      .links-form__label, .links-form__url {
+        flex-grow: 1;
+        flex-shrink: 1;
+        flex-basis: 0;
+        min-width: 250px;
+      }
+    }
+  }
+ 
   input[type=number],
   input[type=text],
   input[type=password],
