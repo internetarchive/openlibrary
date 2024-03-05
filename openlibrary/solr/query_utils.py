@@ -277,7 +277,7 @@ def luqum_replace_field(query, replacer: Callable[[str], str]) -> str:
     for sf, _ in luqum_traverse(query):
         if isinstance(sf, SearchField):
             sf.name = replacer(sf.name)
-    return str(query)
+    return query
 
 
 def luqum_field_traverse(item: Item, _parents: list[Item] | None = None):
@@ -299,15 +299,21 @@ def luqum_field_traverse(item: Item, _parents: list[Item] | None = None):
             yield from luqum_field_traverse(child, new_parents)
 
 
-def luqum_make_fuzzy(tree: Item, search_fields: set[str]):
+def luqum_make_fuzzy(tree: Item, search_fields: set[str] | None = None):
     """:param query: Passed in the form of a luqum tree
     :param search_fields: A list of search fields to be fuzzied out."""
+
+    if not search_fields:
+        search_fields = set({})
 
     def encase_fuzzy(word: Word):
         fuzzy = Fuzzy(word)
         fuzzy.head, fuzzy.tail = word.head, word.tail
         word.tail, word.head = "", ""
         return fuzzy
+
+    if isinstance(tree, Word):
+        return encase_fuzzy(tree)
 
     for sf, _ in luqum_field_traverse(tree):
         if isinstance(sf, SearchField) and sf.name.lower() not in search_fields:

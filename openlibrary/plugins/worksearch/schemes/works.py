@@ -18,6 +18,7 @@ from openlibrary.solr.query_utils import (
     luqum_replace_child,
     luqum_traverse,
     luqum_replace_field,
+    luqum_make_fuzzy,
 )
 from openlibrary.utils.ddc import (
     normalize_ddc,
@@ -91,6 +92,7 @@ class WorkSearchScheme(SearchScheme):
         "lcc_sort",
         "ddc_sort",
     }
+    FUZZY_FIELDS: set[str] = {'title', 'author_name', 'alternative_title', 'text'}
     facet_fields = {
         "has_fulltext",
         "author_facet",
@@ -177,6 +179,7 @@ class WorkSearchScheme(SearchScheme):
         'id_standard_ebooks',
         'id_openstax',
     }
+
     facet_rewrites = {
         ('public_scan', 'true'): 'ebook_access:public',
         ('public_scan', 'false'): '-ebook_access:public',
@@ -222,7 +225,7 @@ class WorkSearchScheme(SearchScheme):
             if isbn and len(isbn) in (10, 13):
                 q_tree = luqum_parser(f'isbn:({isbn})')
 
-        return q_tree
+        return luqum_make_fuzzy(q_tree, self.FUZZY_FIELDS)
 
     def build_q_from_params(self, params: dict[str, Any]) -> str:
         q_list = []
