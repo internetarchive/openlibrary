@@ -11,7 +11,7 @@ import automaticInit from './automatic';
 import bookReaderInit from './bookreader_direct';
 import { ungettext, ugettext,  sprintf } from './i18n';
 import jQueryRepeat from './jquery.repeat';
-import { enumerate, htmlquote, websafe, foreach, join, len, range } from './jsdef';
+import { enumerate, htmlquote, websafe, foreach, join, len, range, jsdef_get } from './jsdef';
 import initAnalytics from './ol.analytics';
 import init from './ol.js';
 import * as Browser from './Browser';
@@ -32,6 +32,7 @@ window.cond = cond;
 window.enumerate = enumerate;
 window.foreach = foreach;
 window.htmlquote = htmlquote;
+window.jsdef_get = jsdef_get;
 window.len = len;
 window.range = range;
 window.slice = slice;
@@ -523,6 +524,12 @@ jQuery(function () {
     if (crumbs.length) {
         import(/* webpackChunkName: "breadcrumb-select" */ './breadcrumb_select')
             .then(module => module.initBreadcrumbSelect(crumbs));
+    }
+
+    const thirdPartyLoginsIframe = document.getElementById('ia-third-party-logins');
+    if (thirdPartyLoginsIframe) {
+        import(/* webpackChunkName: "ia_thirdparty_logins" */ './ia_thirdparty_logins')
+            .then((module) => module.initMessageEventListener(thirdPartyLoginsIframe));
     }
 
     // Password visibility toggle:
