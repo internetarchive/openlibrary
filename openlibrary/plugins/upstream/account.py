@@ -414,6 +414,8 @@ class account_login(delegate.page):
         ol_account = OpenLibraryAccount.get(email=email)
         if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
             web.setcookie('sfw', 'yes', expires=expires)
+        if ol_account and 'yrg_banner_pref' in ol_account.get_user().preferences():
+            web.setcookie('yrg24', '1', expires=(3600 * 24 * 30))
         blacklist = [
             "/account/login",
             "/account/create",
