@@ -1517,6 +1517,10 @@ msgstr "Mis notas"
 msgid "My Reviews"
 msgstr "Mis reseñas"
 
+#: account/sidebar.html:47
+msgid "Create a list"
+msgstr "Crear una lista"
+
 #: account/sidebar.html:42
 msgid "Sponsoring"
 msgstr "Patrocinio"
