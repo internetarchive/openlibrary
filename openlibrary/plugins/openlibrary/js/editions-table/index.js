@@ -69,3 +69,34 @@ export function initEditionsTable() {
         });
     }
 }
+
+/**
+ * Fetches rendered HTML for the editions table, attaches the table to the DOM, and
+ * hydrates the table.
+ *
+ * The given `loadingIndicator` will be replaced by the HTML returned by the server.
+ *
+ * @param {HTMLElement} loadingIndicator Reference to placeholder loading indicator
+ */
+export function fetchEditionsTable(loadingIndicator) {
+    // Fetch table partials
+    fetch('/partials.json?_component=EditionsTable')
+        .then((resp) => {
+            if (resp.status !== 200) {
+                throw new Error('Failed to fetch editions table')
+            }
+            return resp.json()
+        })
+        .then((data) => {
+            // Replace loading indicator with partially rendered table
+            const span = document.createElement('span')
+            span.innerHTML = data['partials']
+            loadingIndicator.replaceWith(span)
+
+            // Hydrate table
+            initEditionsTable()
+        })
+        .catch(() => {
+            // handler error cases
+        })
+}

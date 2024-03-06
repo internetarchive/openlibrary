@@ -56,12 +56,16 @@ $# Tradeoff: limits our ability to select best edition
 $ editions_limit = None if query_param('mode') in ['all', 'ebooks'] else 10
 $# key ensures the current edition we're on or requested edition are fetched by get_sorted_editions
 $ keys = (edition and [edition.key]) or (provider and provider.get_olids(selected_id))
-$if ebooks_only:
-  $ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=keys)
-$if not editions:
-  $# use ebooks_only to determine whether to lazyload editions table
-  $ ebooks_only = False
-  $ editions = work.get_sorted_editions(limit=editions_limit, keys=keys)
+
+$ block_for_table = True if query_param('et') == 'sync' else False
+
+$if block_for_table:
+  $if ebooks_only:
+    $ editions = work.get_sorted_editions(ebooks_only=ebooks_only, limit=editions_limit, keys=keys)
+  $if not editions:
+    $# use ebooks_only to determine whether to lazyload editions table
+    $ ebooks_only = False
+    $ editions = work.get_sorted_editions(limit=editions_limit, keys=keys)
 $ availabilities = {e.availability.get('identifier'): e.availability for e in editions}
 $ component_times['get_sorted_editions'] = time() - component_times['get_sorted_editions']
 
@@ -341,7 +345,11 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
       <a id="editions-list" name="editions-list" class="section-anchor"></a>
       <div class="tab-section">
         $ component_times['EditionsTable'] = time()
-        $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition, editions_limit=editions_limit)
+        
+        $if block_for_table:
+          $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition, editions_limit=editions_limit)
+        $else:
+          $:macros.LoadingIndicator(_('Fetching editions table'), additional_classes='editions-table-loading-indicator')
         $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
       </div>
 
