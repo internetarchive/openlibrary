@@ -35,7 +35,7 @@ QUERY_PARSER_TESTS = {
     ),
     'Leading text': (
         'query here title:food rules author:pollan',
-        'query~ here~ alternative_title:(food rules) author_name:pollan',
+        'query~ here~ alternative_title:(food~ rules~) author_name:pollan~',
     ),
     'Colons in query': (
         'flatland:a romance of many dimensions',
