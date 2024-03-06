@@ -277,7 +277,7 @@ def luqum_replace_field(query, replacer: Callable[[str], str]) -> str:
     for sf, _ in luqum_traverse(query):
         if isinstance(sf, SearchField):
             sf.name = replacer(sf.name)
-    return query
+    return str(query)
 
 
 def luqum_field_traverse(item: Item, _parents: list[Item] | None = None):
