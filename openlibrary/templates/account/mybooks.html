@@ -67,6 +67,7 @@ $def year_span(year, use_local_year=False):
     $:(compact_carousel(currently_reading) or empty_carousel(currently_reading))
     $:(compact_carousel(want_to_read) or empty_carousel(want_to_read))
     $:(compact_carousel(already_read) or empty_carousel(already_read))
+    $:render_template("lists/showcase", lists, username)
   $else:
     <p>$_('This reader has chosen to make their Reading Log private.')</p>
 </div>
