@@ -392,11 +392,13 @@ export function initEditExcerpts() {
             prefix: 'work--excerpts',
         },
         validate: function(data) {
+            const i18nStrings = JSON.parse(document.querySelector('#excerpts-errors').dataset.i18n);
+
             if (!data.excerpt) {
-                return error('#excerpts-errors', '#excerpts-excerpt', 'Please provide an excerpt.');
+                return error('#excerpts-errors', '#excerpts-excerpt', i18nStrings['empty_excerpt']);
             }
             if (data.excerpt.length > 2000) {
-                return error('#excerpts-errors', '#excerpts-excerpt', 'That excerpt is too long.')
+                return error('#excerpts-errors', '#excerpts-excerpt', i18nStrings['over_wordcount']);
             }
             $('#excerpts-errors').hide();
             $('#excerpts-excerpt').val('');
@@ -436,14 +438,16 @@ export function initEditLinks() {
             prefix: $('#links').data('prefix')
         },
         validate: function(data) {
+            const i18nStrings = JSON.parse(document.querySelector('#link-errors').dataset.i18n);
+
             if (data.url.trim() === '' || data.url.trim() === 'https://') {
-                $('#link-errors').html('Please provide a URL.');
+                $('#link-errors').html(i18nStrings['empty_url']);
                 $('#link-errors').removeClass('hidden');
                 $('#link-url').trigger('focus');
                 return false;
             }
             if (data.title.trim() === '') {
-                $('#link-errors').html('Please provide a label.');
+                $('#link-errors').html(i18nStrings['empty_label']);
                 $('#link-errors').removeClass('hidden');
                 $('#link-label').trigger('focus');
                 return false;
