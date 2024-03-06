@@ -9,7 +9,6 @@ usr/
 static/build/
 static/css/page-dev.less
 build/
-dist/
 *.tgz
 *.tar.gz
 *.org
