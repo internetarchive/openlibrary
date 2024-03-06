@@ -57,7 +57,7 @@ class mybooks_home(delegate.page):
                 loans.docs.append(book)
 
         if mb.me or mb.is_public:
-            params = {'sort': 'created', 'limit': 6, 'sort_order': 'asc', 'page': 1}
+            params = {'sort': 'created', 'limit': 6, 'sort_order': 'desc', 'page': 1}
             want_to_read = mb.readlog.get_works(key='want-to-read', **params)
             currently_reading = mb.readlog.get_works(key='currently-reading', **params)
             already_read = mb.readlog.get_works(key='already-read', **params)
