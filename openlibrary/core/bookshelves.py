@@ -479,6 +479,8 @@ class Bookshelves(db.CommonExtras):
 
             reading_log_keys = [
                 ('/works/OL%sW' % i['work_id'], '/books/OL%sM' % i['edition_id'])
+                if editions
+                else ('/works/OL%sW' % i['work_id'], None)
                 for i in reading_log_books
             ]
 
@@ -499,7 +501,7 @@ class Bookshelves(db.CommonExtras):
                 solr_docs = cls.link_editions_to_works(solr_docs)
 
             assert len(solr_docs) == len(reading_log_keys), (
-                "solr_docs is missing an item/items from reading_log_work_keys; "
+                "solr_docs is missing an item/items from reading_log_keys; "
                 "see add_storage_items_for_redirects()"
             )
 
