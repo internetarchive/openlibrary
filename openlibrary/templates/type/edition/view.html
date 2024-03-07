@@ -345,7 +345,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
       <a id="editions-list" name="editions-list" class="section-anchor"></a>
       <div class="tab-section">
         $ component_times['EditionsTable'] = time()
-        
+
         $if block_for_table:
           $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition, editions_limit=editions_limit)
         $else:

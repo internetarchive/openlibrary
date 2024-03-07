@@ -1041,7 +1041,12 @@ class Partials(delegate.page):
 
             work = web.ctx.site.get(work_key)
             edition = web.ctx.site.get(edition_key)
-            ed_table = render_template('type/work/editions_datatable', work, editions=work.get_sorted_editions(keys=[edition_key], limit=10), edition=edition)
+            ed_table = render_template(
+                'type/work/editions_datatable',
+                work,
+                editions=work.get_sorted_editions(keys=[edition_key], limit=10),
+                edition=edition,
+            )
             partial = {"partials": str(ed_table)}
 
         return delegate.RawText(json.dumps(partial))
