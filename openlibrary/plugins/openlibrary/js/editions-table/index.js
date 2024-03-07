@@ -79,8 +79,13 @@ export function initEditionsTable() {
  * @param {HTMLElement} loadingIndicator Reference to placeholder loading indicator
  */
 export function fetchEditionsTable(loadingIndicator) {
+    // Show loading indicator:
+    loadingIndicator.classList.remove('hidden')
+
     // Fetch table partials
-    fetch('/partials.json?_component=EditionsTable')
+    const dataQueryParam = encodeURIComponent(loadingIndicator.dataset.additionalData)
+
+    fetch(`/partials.json?_component=EditionsTable&data=${dataQueryParam}`)
         .then((resp) => {
             if (resp.status !== 200) {
                 throw new Error('Failed to fetch editions table')

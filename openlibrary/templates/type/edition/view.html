@@ -349,7 +349,11 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
         $if block_for_table:
           $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition, editions_limit=editions_limit)
         $else:
-          $:macros.LoadingIndicator(_('Fetching editions table'), additional_classes='editions-table-loading-indicator')
+          $ data_attrs = {
+          $ "edition_key": edition.key,
+          $ "work_key": work.key
+          $ }
+          $:macros.LoadingIndicator(_('Fetching editions table'), additional_classes='editions-table-loading-indicator', data_attrs=data_attrs)
         $ component_times['EditionsTable'] = time() - component_times['EditionsTable']
       </div>
 
