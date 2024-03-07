@@ -349,6 +349,10 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
         $if block_for_table:
           $:render_template("type/work/editions_datatable", work, editions=editions, edition=edition, editions_limit=editions_limit)
         $else:
+          $# Provide link to load editions table for no-js patrons
+          <noscript>
+            <span>Click <a href="$changequery(et='sync')">here</a> to load the editions table</span>
+          </noscript>
           $ data_attrs = {
           $ "edition_key": edition.key,
           $ "work_key": work.key
