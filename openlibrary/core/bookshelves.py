@@ -485,7 +485,7 @@ class Bookshelves(db.CommonExtras):
             ]
 
             solr_docs = get_solr().get_many(
-                [key for key_pair in reading_log_keys for key in key_pair],
+                [key for key_pair in reading_log_keys for key in key_pair if key],
                 fields=WorkSearchScheme.default_fetched_fields
                 | {'subject', 'person', 'place', 'time', 'edition_key'},
             )
