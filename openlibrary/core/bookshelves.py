@@ -228,8 +228,70 @@ class Bookshelves(db.CommonExtras):
                     linked_docs[index].editions = [edition]
                 else:
                     # raise error no matching work found? Or figure out if the solr queries are performedorderless.
-                    logger.warning("Error: No work found for edition %s")
+                    logger.warning("Error: No work found for edition %s" % full_key)
+        logger.info("LOGGERDICT IS %s" % docs_dict)
         return linked_docs
+
+    @classmethod
+    def add_storage_items_for_redirects(
+        cls,
+        reading_log_work_keys,
+        solr_docs: list[web.Storage],
+        query_params,
+        limit,
+    ) -> list[web.storage]:
+        """
+        Use reading_log_work_keys to fill in missing redirected items in the
+        the solr_docs query results.
+
+        Solr won't return matches for work keys that have been redirected. Because
+        we use Solr to build the lists of storage items that ultimately gets passed
+        to the templates, redirected items returned from the reading log DB will
+        'disappear' when not returned by Solr. This remedies that by filling in
+        dummy works, albeit with the correct work_id.
+        """
+
+        from openlibrary.plugins.worksearch.code import run_solr_query
+        from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+
+        work_edition_dict = {
+            work_key: edition_key.split("/")[2] if edition_key else None
+            for (work_key, edition_key) in reading_log_work_keys
+        }
+        reading_log_work_keys = [keys[0] for keys in reading_log_work_keys if keys[0]]
+        for idx, work_key in enumerate(reading_log_work_keys):
+            corresponding_solr_doc = next(
+                (doc for doc in solr_docs if doc.key == work_key), None
+            )
+
+            if not corresponding_solr_doc:
+                logger.info("failed key: %s" % work_key)
+                edition_key = work_edition_dict.get(work_key)
+                solr_resp = (
+                    run_solr_query(
+                        scheme=WorkSearchScheme(),
+                        param={'q': '*:*'},
+                        offset=query_params["offset"],
+                        rows=limit,
+                        fields=list(
+                            WorkSearchScheme.default_fetched_fields
+                            | {'subject', 'person', 'place', 'time', 'edition_key'}
+                        ),
+                        facet=False,
+                        extra_params=[("fq", "edition_key:%s" % edition_key)],
+                    ).docs[0]
+                    if edition_key
+                    else {"key": work_key}
+                )
+
+                solr_resp.update({"logged_edition": "/books/OL%sM" % edition_key})
+
+                solr_docs.insert(
+                    idx,
+                    web.storage(solr_resp),
+                )
+
+        return solr_docs
 
     @classmethod
     def get_users_logged_books(
@@ -279,43 +341,6 @@ class Bookshelves(db.CommonExtras):
 
             logged_date: datetime
             edition_id: str
-
-        def add_storage_items_for_redirects(
-            reading_log_work_keys: list[str],
-            solr_docs: list[web.Storage],
-            log_edition_dict=None,
-        ) -> list[web.storage]:
-            """
-            Use reading_log_work_keys to fill in missing redirected items in the
-            the solr_docs query results.
-
-            Solr won't return matches for work keys that have been redirected. Because
-            we use Solr to build the lists of storage items that ultimately gets passed
-            to the templates, redirected items returned from the reading log DB will
-            'disappear' when not returned by Solr. This remedies that by filling in
-            dummy works, albeit with the correct work_id.
-            """
-
-            if not log_edition_dict:
-                log_edition_dict = {}
-
-            for idx, work_key in enumerate(reading_log_work_keys):
-                corresponding_solr_doc = next(
-                    (doc for doc in solr_docs if doc.key == work_key), None
-                )
-
-                if not corresponding_solr_doc:
-                    solr_docs.insert(
-                        idx,
-                        web.storage(
-                            {
-                                "key": work_key,
-                                "logged_edition": log_edition_dict.get(work_key),
-                            }
-                        ),
-                    )
-
-            return solr_docs
 
         def add_reading_log_data(
             reading_log_books: list[web.storage], solr_docs: list[web.storage]
@@ -486,21 +511,19 @@ class Bookshelves(db.CommonExtras):
 
             reading_log_keys = [
                 ('/works/OL%sW' % i['work_id'], '/books/OL%sM' % i['edition_id'])
-                if editions
+                if editions and i['edition_id']
                 else ('/works/OL%sW' % i['work_id'], None)
                 for i in reading_log_books
             ]
-            work_to_edition_dict = dict(reading_log_keys)
+
             solr_docs = get_solr().get_many(
                 [key for key_pair in reading_log_keys for key in key_pair if key],
                 fields=WorkSearchScheme.default_fetched_fields
                 | {'subject', 'person', 'place', 'time', 'edition_key'},
             )
 
-            solr_docs = add_storage_items_for_redirects(
-                [keys[0] for keys in reading_log_keys if keys[0]],
-                solr_docs,
-                work_to_edition_dict,
+            solr_docs = cls.add_storage_items_for_redirects(
+                reading_log_keys, solr_docs, query_params, limit
             )
 
             total_results = shelf_totals.get(bookshelf_id, 0)
