@@ -107,6 +107,7 @@ services:
       # The above volume mounts are required so that the local dev bind mount below
       # does not clobber the data generated inside the image / container
       - "../../:/openlibrary"
+      - "/storage:/storage"
     networks:
       - solr-access
       - db-access
