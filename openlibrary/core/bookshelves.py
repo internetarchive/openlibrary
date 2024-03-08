@@ -281,7 +281,9 @@ class Bookshelves(db.CommonExtras):
             edition_id: str
 
         def add_storage_items_for_redirects(
-            reading_log_work_keys: list[str], solr_docs: list[web.Storage]
+            reading_log_work_keys: list[str],
+            solr_docs: list[web.Storage],
+            log_edition_dict=None,
         ) -> list[web.storage]:
             """
             Use reading_log_work_keys to fill in missing redirected items in the
@@ -293,6 +295,10 @@ class Bookshelves(db.CommonExtras):
             'disappear' when not returned by Solr. This remedies that by filling in
             dummy works, albeit with the correct work_id.
             """
+
+            if not log_edition_dict:
+                log_edition_dict = {}
+
             for idx, work_key in enumerate(reading_log_work_keys):
                 corresponding_solr_doc = next(
                     (doc for doc in solr_docs if doc.key == work_key), None
@@ -304,6 +310,7 @@ class Bookshelves(db.CommonExtras):
                         web.storage(
                             {
                                 "key": work_key,
+                                "logged_edition": log_edition_dict.get(work_key),
                             }
                         ),
                     )
@@ -483,14 +490,17 @@ class Bookshelves(db.CommonExtras):
                 else ('/works/OL%sW' % i['work_id'], None)
                 for i in reading_log_books
             ]
-
+            work_to_edition_dict = dict(reading_log_keys)
             solr_docs = get_solr().get_many(
                 [key for key_pair in reading_log_keys for key in key_pair if key],
                 fields=WorkSearchScheme.default_fetched_fields
                 | {'subject', 'person', 'place', 'time', 'edition_key'},
             )
+
             solr_docs = add_storage_items_for_redirects(
-                [keys[0] for keys in reading_log_keys if keys[0]], solr_docs
+                [keys[0] for keys in reading_log_keys if keys[0]],
+                solr_docs,
+                work_to_edition_dict,
             )
 
             total_results = shelf_totals.get(bookshelf_id, 0)
