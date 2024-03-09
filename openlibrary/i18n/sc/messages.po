@@ -313,7 +313,7 @@ msgstr "Libru nou annantu."
 
 #: messages.html:16
 msgid "Thank you very much for adding that new book!"
-msgstr "Gràtzias medas pro àere annantu cussu libu nou!"
+msgstr "Gràtzias medas pro àere annantu cussu libru nou!"
 
 #: messages.html:17 messages.html:18
 msgid "Thank you very much for improving that record!"
@@ -453,7 +453,7 @@ msgid ""
 msgstr ""
 "Custu est unu gràficu pro mustrare sa cronologia de publicatzione de editziones "
 "de traballos subra de custu argumentu. In s'asse x b'at su tempus, ee in s'asse y "
-"b'at su nùmeru de esitziones publicadas. <a href=\"#subjectRelated\">Incarca "
+"b'at su nùmeru de editziones publicadas. <a href=\"#subjectRelated\">Incarca "
 "inoghe pro brincare su gràficu</a>."
 
 #: publishers/view.html:34 subjects.html:57
@@ -575,11 +575,11 @@ msgstr "Seletziona..."
 
 #: support.html:37
 msgid "Borrowing Help"
-msgstr "Agiudu subra de sos imprèstidos"
+msgstr "Agiudu subra de sos prèstidos"
 
 #: support.html:38
 msgid "Developer/Code Question"
-msgstr "Dimanda subra des'isvilupu/su còdighe"
+msgstr "Dimanda subra de s'isvilupu/su còdighe"
 
 #: support.html:39
 msgid "Editing Issue"
@@ -669,7 +669,7 @@ msgstr "Libros de tendèntzia"
 #: trending.html:12
 msgid "See what readers from the community are adding to their bookshelves"
 msgstr ""
-"Abbista ite sos letores de sa comunidade sunt annanghende a sos parastàgios issoro"
+"Abbista ite sos letores de sa comunidade sunt annanghende a sos iscafales issoro"
 
 #: account/mybooks.html:70 account/sidebar.html:24 my_books/dropdown_content.html:32
 #: my_books/primary_action.html:16 search/sort_options.html:36 trending.html:27
@@ -689,7 +689,7 @@ msgstr "So leghende"
 #: books/edit/edition.html:660 books/show.html:34 trending.html:27
 #: type/list/embed.html:70 widget.html:34
 msgid "Read"
-msgstr "Lèghidu"
+msgstr "Leghe"
 
 #: trending.html:28
 #, python-format
@@ -926,7 +926,7 @@ msgstr "Registra·ti"
 #: account/create.html:21
 msgid "Complete the form below to create a new Internet Archive account."
 msgstr ""
-"Cumpila su mòdulu inoghe in suta pro creare unu contu nou pro s'Internet Archive."
+"Compila su mòdulu inoghe in suta pro creare unu contu nou pro s'Internet Archive."
 
 #: account/create.html:22
 msgid "Each field is required"
@@ -1703,7 +1703,7 @@ msgstr "Perunu utente registradu cun custu indiritzu de posta."
 
 #: account/verify/success.html:7
 msgid "Email Verification Successful"
-msgstr "Verifica de s'indiritzu de posta fata cun sutzessu"
+msgstr "Verìfica de s'indiritzu de posta fata cun sutzessu"
 
 #: account/verify/success.html:15
 #, python-format
@@ -1753,7 +1753,7 @@ msgstr "ePub"
 msgid "%d Current Loan"
 msgid_plural "%d Current Loans"
 msgstr[0] "%d prèstidu atuale"
-msgstr[1] "%d imprèstidos atuales"
+msgstr[1] "%d prèstidos atuales"
 
 #: RecentChanges.html:18 RecentChangesUsers.html:21 admin/ip/view.html:45
 #: admin/loans_table.html:45 admin/people/edits.html:42 recentchanges/render.html:32
@@ -2241,7 +2241,7 @@ msgid ""
 "We require a minimum set of fields to create a new record. These are those fields."
 msgstr ""
 "Tenimus bisòngiu de un'annantu mìnimu de campos pro creare unu registru nou. "
-"Custos unt cussos campos."
+"Custos sunt cussos campos."
 
 #: books/add.html:31 books/edit.html:88 books/edit/edition.html:75
 #: lib/nav_head.html:93 search/advancedsearch.html:20 type/about/edit.html:19
@@ -2295,7 +2295,7 @@ msgstr "Casta de ID"
 #: books/add.html:69
 msgid "ISBN may be invalid. Click \"Add\" again to submit."
 msgstr ""
-"S'ISBN diat pòdere èssere invàlidu. Torra a incarcare \"Annaghe\" pro imbiare."
+"S'ISBN diat pòdere èssere invàlidu. Torra a incarcare \"Annanghe\" pro imbiare."
 
 #: books/add.html:72 tag/add.html:47
 msgid "Select"
@@ -2384,7 +2384,7 @@ msgstr "Carrighende..."
 #: books/custom_carousel.html:60 books/mobile_carousel.html:41
 #, python-format
 msgid " by %(name)s"
-msgstr " dae %(name)s"
+msgstr " de %(name)s"
 
 #: books/edit.html:30 books/edit.html:33 books/edit.html:36
 msgid "Add a little more?"
@@ -2526,7 +2526,7 @@ msgstr "Seletziona custu argumentu"
 
 #: books/edit/about.html:27
 msgid "How would you describe this book?"
-msgstr "Comente dias bòlere descrìvere custu libru?"
+msgstr "Comente dias bòlere descrìere custu libru?"
 
 #: books/edit/about.html:28 tag/add.html:35
 msgid "There's no wrong answer here."
@@ -2603,7 +2603,7 @@ msgstr "In ue l'ant publicadu su libru?"
 
 #: books/edit/edition.html:116
 msgid "City, Country please."
-msgstr "Tzitade, Paisu pro preghere."
+msgstr "Tzitade, Paisu pro praghere."
 
 #: books/edit/edition.html:138
 msgid "What is the copyright date?"
@@ -3205,7 +3205,7 @@ msgstr "Manìgia sas fotografias de s'autore"
 
 #: covers/change.html:20
 msgid "Add Author Photo"
-msgstr "Annaghe una fotografia de s'autore"
+msgstr "Annanghe una fotografia de s'autore"
 
 #: covers/change.html:25
 msgid "Book Covers"
@@ -3217,7 +3217,7 @@ msgstr "Manìgia sas coberteddas"
 
 #: covers/change.html:31
 msgid "Add Cover Image"
-msgstr "Annnaghe un'immàgine de cobertedda"
+msgstr "Annanghe un'immàgine de cobertedda"
 
 #: covers/change.html:50
 msgid "Manage"
@@ -3634,7 +3634,7 @@ msgid ""
 msgstr ""
 "Pro ti nche \"fuire\" dae cale si siat eticheta de Markdown (est a nàrrere, "
 "impreare un'asteriscu comente asteriscu in càmbiu de dare ènfasi a su testu) pone "
-"un'istanga inversa \\ in antis de su caràtere."
+"un'istanga a s'imbesse \\ in antis de su caràtere."
 
 #: lib/nav_foot.html:13
 msgid "Vision"
@@ -3646,7 +3646,7 @@ msgstr "Faghe voluntariadu"
 
 #: lib/nav_foot.html:15
 msgid "Partner With Us"
-msgstr "Assotzia·ti cun nois"
+msgstr "Assòtzia·ti cun nois"
 
 #: lib/nav_foot.html:16
 msgid "Jobs"
@@ -3740,7 +3740,7 @@ msgstr "Datos de s'Open Library in massa"
 
 #: lib/nav_foot.html:39
 msgid "Bulk Data Dumps"
-msgstr "Iscarrigamentos de datos in massa"
+msgstr "Archìvios de datos in massa"
 
 #: lib/nav_foot.html:40
 msgid "Write a bot"
@@ -3795,7 +3795,7 @@ msgid ""
 "<a href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it."
 "org\">archive-it.org</a>"
 msgstr ""
-"S'Open Library est un'initziative de s'<a href=\"//archive.org/\">Internet "
+"S'Open Library est un'initziativa de s'<a href=\"//archive.org/\">Internet "
 "Archive</a>, un'organizatzione chene punna de lucru 501(c)(3) chi est fraighende "
 "una biblioteca digitale de sitos ìnternet e àteros artefatos in forma digitale. "
 "Àteros <a href=\"//archive.org/projects/\">progetos</a> incluint sa <a href=\"//"
@@ -3837,7 +3837,7 @@ msgstr "De tendèntzia"
 
 #: lib/nav_head.html:33
 msgid "K-12 Student Library"
-msgstr "Bibioteca pro istudentes iscolàsticos (K-12)"
+msgstr "Biblioteca pro dischentes iscolàsticos (K-12)"
 
 #: lib/nav_head.html:34
 msgid "Book Talks"
@@ -3905,7 +3905,7 @@ msgid ""
 msgstr ""
 "<strong>Non ses <a href=\"/account/login\" title=\"Log in now\">intradu</a>.</"
 "strong> S'Open Library at a registrare s'indiritzu IP tuo e l'at a inclùdere in "
-"sa cronologia  aatzessu pùblicu de sas modìficas a custa pàgina. Si <a href=\"/"
+"sa cronologia a atzessu pùblicu de sas modìficas a custa pàgina. Si <a href=\"/"
 "account/create\" title=\"Create an Open Library account\">creas unu contu</a>, "
 "s'indiritzu IP tuo est cuadu e podes sighire in manera prus fàtzile totu sas "
 "modìficas e sas agiuntas tuas."
@@ -4415,7 +4415,7 @@ msgid ""
 "year, or drag across a range."
 msgstr ""
 "Custu gràficu mapat sas editziones de custu editore in su tempus. Incarca pro "
-"bìdere un'annu sìngulu, o trìsina in un intervallu."
+"bìdere un'annu sìngulu, o trìsina in un'intervallu."
 
 #: publishers/view.html:52
 msgid "Common Subjects"
@@ -4589,7 +4589,7 @@ msgstr "Ordinadu pro"
 
 #: search/sort_options.html:13 search/sort_options.html:24
 msgid "Relevance"
-msgstr "Relevàntzia"
+msgstr "Rilevàntzia"
 
 #: search/sort_options.html:14
 msgid "Work Count"
@@ -4726,11 +4726,11 @@ msgstr "# Libros isteddados"
 
 #: stats/readinglog.html:46
 msgid "The total number of books which have been starred"
-msgstr "Su numeru totale de libros chi ant retzidu un'isteddu"
+msgstr "Su nùmeru totale de libros chi ant retzidu un'isteddu"
 
 #: stats/readinglog.html:58
 msgid "Total # Unique Raters (all time)"
-msgstr "Nùmeru totale de votadores ùnicos (de semper)"
+msgstr "Nùmeru totale de votantes ùnicos (de semper)"
 
 #: stats/readinglog.html:67
 msgid "Most Wanted Books (This Month)"
@@ -4774,11 +4774,11 @@ msgstr "OpenAPI"
 
 #: tag/add.html:7
 msgid "Add a tag"
-msgstr "Annnaghe un'eticheta"
+msgstr "Annanghe un'eticheta"
 
 #: tag/add.html:11
 msgid "Add a tag to Open Library"
-msgstr "Annnaghe un'eticheta a s'Open Library"
+msgstr "Annanghe un'eticheta a s'Open Library"
 
 #: tag/add.html:24
 msgid "Name of Tag"
@@ -4881,7 +4881,7 @@ msgid ""
 "date and populating the \"Date of birth\" and \"Date of death\" fields. Thanks!"
 msgstr ""
 "Custu est unu campu disusadu. Podes agiudare a megiorare custu registru "
-"boghende·li custa data e cumpilende sos campos \"Data de nàschida\" e \"Data de "
+"boghende·li custa data e compilende sos campos \"Data de nàschida\" e \"Data de "
 "morte\". Gràtzias!"
 
 #: type/author/edit.html:112
@@ -5237,7 +5237,7 @@ msgstr "Descritzione (optzionale)"
 
 #: type/list/edit.html:138
 msgid "Add another book"
-msgstr "Annaghe un'àteru libru"
+msgstr "Annanghe un'àteru libru"
 
 #: type/list/embed.html:23
 msgid "Visit Open Library"
@@ -5451,7 +5451,7 @@ msgstr "Nùmene visualizadu"
 #: type/user/view.html:24
 #, python-format
 msgid "Joined %(date)s"
-msgstr "Mambru dae su %(date)s"
+msgstr "Membru dae su %(date)s"
 
 #: type/user/view.html:32
 msgid "admin page"
@@ -5905,16 +5905,16 @@ msgstr "Ùrtima modìfica de %(author_link)s"
 
 #: databarHistory.html:18 databarView.html:25
 msgid "Last edited anonymously"
-msgstr "Ultima modìfica anònima"
+msgstr "Ùrtima modìfica anònima"
 
 #: databarWork.html:96
 #, python-format
 msgid "This book was generously donated by %(donor)s"
-msgstr "Custu libru l'at donadu in manera generosa %(donor)s"
+msgstr "Custu libru l'at donadu cun generosidade %(donor)s"
 
 #: databarWork.html:98
 msgid "This book was generously donated anonymously"
-msgstr "Custu libru l'ant donadu in manera generosa e anònima"
+msgstr "Custu libru l'ant donadu cun generosidade e in anònimu"
 
 #: databarWork.html:103
 msgid "Learn more about Book Sponsorship"
@@ -5964,7 +5964,7 @@ msgstr ""
 
 #: account.py:560
 msgid "Email verification successful."
-msgstr "Verifica de s'indiritzu de posta fata cun sutzessu."
+msgstr "Verìfica de s'indiritzu de posta fata cun sutzessu."
 
 #: account.py:561
 msgid ""
@@ -5975,7 +5975,7 @@ msgstr ""
 
 #: account.py:567
 msgid "Email address couldn't be verified."
-msgstr "S' indiritzu e-mail non si podiat averguare."
+msgstr "S' indiritzu de posta non si podiat averguare."
 
 #: account.py:568
 msgid ""
