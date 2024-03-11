@@ -13,11 +13,13 @@ body:
       label: Problem
       description: A short description of the issue you're facing.
       value: |
+        ### Problem
 
+        ### Related Issue(s)
 
         #### Evidence / Screenshot
 
-        #### Relevant URL
+        #### Relevant URL(s)
 
   - type: textarea
     attributes:
@@ -41,9 +43,9 @@ body:
         - Environment (prod, dev, local): prod
   - type: textarea
     attributes:
-      label: ⚠️ Experienced contributors only
+      label: Notes from this Issue's Lead
       description: |
-        Please leave these sections blank for maintainers if you are unsure what to enter!
+        Please leave these sections blank for maintainers if you are unsure what to enter
       value: |
         ### Proposal & constraints
         <!-- What is the proposed solution / implementation? Is there a precedent of this approach succeeding elsewhere? -->
