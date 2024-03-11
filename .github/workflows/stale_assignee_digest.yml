@@ -1,4 +1,4 @@
-name: auto_unassigner
+name: stale_assignee_digest
 on:
   schedule:
     - cron: '0 16 * * 1'
@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  auto_unassigner:
+  stale_assignee_digest:
     if: ${{ github.repository == 'internetarchive/openlibrary'}}
     runs-on: ubuntu-latest
     steps:
@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: '20'
       - run: npm install @octokit/action
-      - run: node scripts/gh_scripts/auto_unassigner.mjs --repoOwner "internetarchive" --daysSince 1
+      - run: node scripts/gh_scripts/stale_assignee_digest.mjs --repoOwner "internetarchive" --daysSince 14
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
