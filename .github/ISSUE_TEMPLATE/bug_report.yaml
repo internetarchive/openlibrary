@@ -13,9 +13,6 @@ body:
       label: Problem
       description: A short description of the issue you're facing.
       value: |
-        ### Problem
-
-        ### Related Issue(s)
 
         #### Evidence / Screenshot
 
