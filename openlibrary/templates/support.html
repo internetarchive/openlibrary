@@ -41,10 +41,7 @@ $var title: $_('How can we help?')
    <p>$_('If you encounter an error message, please include it. For questions about our books, please provide the title/author or Open Library ID.')</p>
  </div>
 
- <!-- <div class="formElement"> -->
- <!-- <div class="label"><label for="url">$_("Which page were you looking at?")</label></div> -->
  <div class="input"><input type="hidden" name="url" id="url" value="$url"/></div>
-<!-- </div> -->
 
  $if recaptcha:
     $:render_template("recaptcha", recaptcha.public_key, error=None)
