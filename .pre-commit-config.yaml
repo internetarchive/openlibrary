@@ -91,3 +91,16 @@ repos:
         - stylelint-declaration-strict-value@1.9.2
         - postcss-less@3.1.4
       args: [--fix]
+
+  - repo: local
+    hooks:
+    - id: generate-pot
+      name: Generate POT
+      description: This hook generates the .pot file for internationalization.
+      entry: python ./scripts/i18n-messages extract
+      language: python
+      files: '\.(html|py)$'
+      additional_dependencies:
+        - Babel==2.12.1
+        - multipart==0.2.4
+        - "git+https://github.com/webpy/webpy.git@ed3e92cceb6ed870b224107ea653f48fa7fc2d0a#egg=web-py"
