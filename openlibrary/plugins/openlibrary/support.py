@@ -79,7 +79,7 @@ class contact(delegate.page):
             return '[no subject]'
         if len(subject) <= max_length:
             return subject
-        
+
         return subject[:max_length]
 
 
