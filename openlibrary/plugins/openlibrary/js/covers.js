@@ -61,12 +61,13 @@ function add_iframe(selector, src) {
 // covers/manage.html and covers/add.html
 export function initCoversAddManage() {
     $('#addcover-form').on('submit', function (event) {
+        const i18nStrings = JSON.parse(document.querySelector('#errors').dataset.i18n);
         var file = val('#coverFile');
         var url = val('#imageUrl');
         var coverid = val('#coverid');
 
         if (!file && !url && !coverid) {
-            return error('Please choose an image or provide a URL.', event);
+            return error(i18nStrings['empty_cover_inputs'], event);
         }
 
         const btn = $('#imageUpload');
