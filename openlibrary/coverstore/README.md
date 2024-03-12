@@ -81,3 +81,40 @@ The item name itself (e.g. `coverd_0007`) is a combination of the prefix `covers
   * `rm /1/var/lib/openlibrary/coverstore/items/s_cover_0008/s_covers_0008_00.*`
   * `rm /1/var/lib/openlibrary/coverstore/items/m_cover_0008/m_covers_0008_00.*`
   * `rm /1/var/lib/openlibrary/coverstore/items/l_cover_0008/l_covers_0008_00.*`
+
+## 2024 Audit
+
+Cover Service Audit
+The following all contain blocks of 1M covers (100 blocks of 10k items)
+
+Legacy WARC backups:
+https://archive.org/download/warc_covers_0000 - WARCs
+https://archive.org/download/warc_covers_0001 - WARCs
+https://archive.org/download/warc_covers_0002- WARCs
+https://archive.org/download/warc_covers_0003 - WARCs
+https://archive.org/download/warc_covers_0004 - WARCs
+https://archive.org/download/warc_covers_0005 - WARCs
+
+Legacy backups (not served from archive.org -- still served off disk
+https://archive.org/download/covers_0000 - tar
+https://archive.org/download/covers_0001 - tar
+https://archive.org/download/covers_0002 - tar
+https://archive.org/download/covers_0002 - tar
+https://archive.org/download/covers_0003 - tar
+https://archive.org/download/covers_0004 - tar
+https://archive.org/download/covers_0005 - tar
+0006 - L/M/S tar, still served on disk
+0007 - O/L/M/S tar, still served on disk
+
+The following covers are served from archive.org:
+https://archive.org/download/covers_0008 - tar
+https://archive.org/download/covers_0009 - zip
+https://archive.org/download/covers_0010 - zip
+https://archive.org/download/covers_0011 - zip
+https://archive.org/download/covers_0012 - zip
+https://archive.org/download/covers_0013 - zip
+https://archive.org/download/covers_0014 - zip
+
+You can test where a cover is coming from via...
+* < https://covers.openlibrary.org/b/id/07999999-M.jpg -> OL
+* > https://covers.openlibrary.org/b/id/08000000-M.jpg -> IA
