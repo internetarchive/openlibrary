@@ -99,7 +99,7 @@ repos:
       description: This hook generates the .pot file for internationalization.
       entry: python ./scripts/i18n-messages extract
       language: python
-      files: '\.(html|py)$'
+      pass_filenames: false
       additional_dependencies:
         - Babel==2.12.1
         - multipart==0.2.4
