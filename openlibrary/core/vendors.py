@@ -46,6 +46,20 @@ def setup(config):
     affiliate_server_url = config.get('affiliate_server')
 
 
+def get_lexile(isbn):
+    try:
+        url = 'https://atlas-fab.lexile.com/free/books/' + str(isbn)
+        headers = {'accept': 'application/json; version=1.0'}
+        lexile = requests.get(url, headers=headers)
+        lexile.raise_for_status()  # this will raise an error for us if the http status returned is not 200 OK
+        data = lexile.json()
+        return data, data.get("error_msg")
+    except Exception as e:  # noqa: BLE001
+        if e.response.status_code not in [200, 404]:
+            raise Exception(f"Got bad response back from server: {e}")
+        return {}, e
+
+
 class AmazonAPI:
     """
     Amazon Product Advertising API 5.0 wrapper for Python
