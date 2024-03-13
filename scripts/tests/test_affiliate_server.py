@@ -7,7 +7,10 @@ for access to the mocker fixture.
 
 import json
 import sys
+from typing import Any
 from unittest.mock import MagicMock
+
+import pytest
 
 # TODO: Can we remove _init_path someday :(
 sys.modules['_init_path'] = MagicMock()
@@ -16,10 +19,12 @@ from openlibrary.mocks.mock_infobase import mock_site  # noqa: F401
 from scripts.affiliate_server import (  # noqa: E402
     PrioritizedISBN,
     Priority,
+    Submit,
     get_isbns_from_book,
     get_isbns_from_books,
     get_editions_for_books,
     get_pending_books,
+    make_cache_key,
 )
 
 ol_editions = {
@@ -135,3 +140,39 @@ def test_prioritized_isbn_can_serialize_to_json() -> None:
 
     assert dict_isbn["priority"] == "HIGH"
     assert isinstance(dict_isbn["timestamp"], str)
+
+
+@pytest.mark.parametrize(
+    ["isbn_or_asin", "expected_key"],
+    [
+        ({"isbn_10": [], "isbn_13": ["9780747532699"]}, "9780747532699"),  # Use 13.
+        (
+            {"isbn_10": ["0747532699"], "source_records": ["amazon:B06XYHVXVJ"]},
+            "9780747532699",
+        ),  # 10 -> 13.
+        (
+            {"isbn_10": [], "isbn_13": [], "source_records": ["amazon:B06XYHVXVJ"]},
+            "B06XYHVXVJ",
+        ),  # Get non-ISBN 10 ASIN from `source_records` if necessary.
+        ({"isbn_10": [], "isbn_13": [], "source_records": []}, ""),  # Nothing to use.
+        ({}, ""),  # Nothing to use.
+    ],
+)
+def test_make_cache_key(isbn_or_asin: dict[str, Any], expected_key: str) -> None:
+    got = make_cache_key(isbn_or_asin)
+    assert got == expected_key
+
+
+@pytest.mark.parametrize(
+    ["isbn_or_asin", "expected"],
+    [
+        ("0123456789", ("0123456789", "9780123456786")),
+        ("0-.123456789", ("0123456789", "9780123456786")),
+        ("9780123456786", ("0123456789", "9780123456786")),
+        ("9-.780123456786", ("0123456789", "9780123456786")),
+        ("B012346789", ("B012346789", "")),
+    ],
+)
+def test_unpack_isbn(isbn_or_asin, expected) -> None:
+    got = Submit.unpack_isbn(isbn_or_asin)
+    assert got == expected

@@ -482,9 +482,9 @@ def remove_high_priority(query: str) -> str:
 class isbn_lookup(delegate.page):
     path = r'/(?:isbn|ISBN)/(.{10,})'
 
-    def GET(self, isbn):
+    def GET(self, isbn: str):
         input = web.input(high_priority=False)
-        isbn = canonical(isbn)
+        isbn = isbn if isbn.upper().startswith("B") else canonical(isbn)
         high_priority = input.get("high_priority") == "true"
         if "high_priority" in web.ctx.env.get('QUERY_STRING'):
             web.ctx.env['QUERY_STRING'] = remove_high_priority(

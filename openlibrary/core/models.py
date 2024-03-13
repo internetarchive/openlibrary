@@ -386,28 +386,43 @@ class Edition(Thing):
                 server will return a promise.
         :return: an open library edition for this ISBN or None.
         """
+        asin = isbn if isbn.startswith("B") else ""
         isbn = canonical(isbn)
 
-        if len(isbn) not in [10, 13]:
+        if len(isbn) not in [10, 13] and len(asin) not in [10, 13]:
             return None  # consider raising ValueError
 
         isbn13 = to_isbn_13(isbn)
-        if isbn13 is None:
+        if isbn13 is None and not isbn:
             return None  # consider raising ValueError
+
         isbn10 = isbn_13_to_isbn_10(isbn13)
-        isbns = [isbn13, isbn10] if isbn10 is not None else [isbn13]
+        book_ids: list[str] = []
+        if isbn10 is not None:
+            book_ids.extend(
+                [isbn10, isbn13]
+            ) if isbn13 is not None else book_ids.append(isbn10)
+        elif asin is not None:
+            book_ids.append(asin)
+        else:
+            book_ids.append(isbn13)
 
         # Attempt to fetch book from OL
-        for isbn in isbns:
-            if isbn:
-                matches = web.ctx.site.things(
-                    {"type": "/type/edition", 'isbn_%s' % len(isbn): isbn}
-                )
-                if matches:
+        for book_id in book_ids:
+            if book_id == asin:
+                if matches := web.ctx.site.things(
+                    {"type": "/type/edition", 'identifiers': {'amazon': asin}}
+                ):
                     return web.ctx.site.get(matches[0])
+            elif book_id and (
+                matches := web.ctx.site.things(
+                    {"type": "/type/edition", 'isbn_%s' % len(book_id): book_id}
+                )
+            ):
+                return web.ctx.site.get(matches[0])
 
         # Attempt to fetch the book from the import_item table
-        if edition := ImportItem.import_first_staged(identifiers=isbns):
+        if edition := ImportItem.import_first_staged(identifiers=book_ids):
             return edition
 
         # Finally, try to fetch the book data from Amazon + import.
@@ -415,10 +430,15 @@ class Edition(Thing):
         # uses, will block + wait until the Product API responds and the result, if any,
         # is staged in `import_item`.
         try:
-            get_amazon_metadata(
-                id_=isbn10 or isbn13, id_type="isbn", high_priority=high_priority
-            )
-            return ImportItem.import_first_staged(identifiers=isbns)
+            if asin:
+                get_amazon_metadata(
+                    id_=asin, id_type="asin", high_priority=high_priority
+                )
+            else:
+                get_amazon_metadata(
+                    id_=isbn10 or isbn13, id_type="isbn", high_priority=high_priority
+                )
+            return ImportItem.import_first_staged(identifiers=book_ids)
         except requests.exceptions.ConnectionError:
             logger.exception("Affiliate Server unreachable")
         except requests.exceptions.HTTPError:
