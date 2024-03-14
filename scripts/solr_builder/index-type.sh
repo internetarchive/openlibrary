@@ -7,7 +7,7 @@ source aliases.sh
 # Display each line before running it
 set -o xtrace
 
-# One of 'work' or 'author'
+# One of 'work' or 'author' or 'list'
 TYPE="$1"
 INSTANCES="$2"
 LOG_DIR="$3"
@@ -20,19 +20,23 @@ next_start="//"
 runner_id=0
 
 while [ $done != "true" ]; do
-  runners=$(docker container ls -q -f "name=ol_run" | wc -l)
+  # Need to also exclude the grep command; that's what the -v is for.
+  runners=$(ps aux | grep -F 'solr_builder.py index' | grep -v grep | wc -l)
   while [ $((runners < INSTANCES)) = "1" ] && [ $done != "true" ]; do
     # Actually start the job
     RUN_SIG="ol_run_${TYPE}s_${runner_id}"
     ((runner_id++))
     mkdir -p {logs,progress}/$LOG_DIR
     touch {logs,progress}/$LOG_DIR/$RUN_SIG.txt
-    DOCKER_IMAGE_NAME=$RUN_SIG docker_solr_builder index "${TYPE}s" \
+    # Run in parallel in a subshell
+    (&>"logs/$LOG_DIR/$RUN_SIG.txt" python solr_builder/solr_builder.py index "${TYPE}s" \
       --start-at "/$next_start" \
       --limit $CHUNK_SIZE \
-      -p "progress/$LOG_DIR/$RUN_SIG.txt"
+      --osp-dump /storage/openlibrary/osp_totals.db \
+      --progress "progress/$LOG_DIR/$RUN_SIG.txt" \
+    &)
 
-    next_start=$(docker-compose run --rm ol python solr_builder/solr_builder.py fetch-end "${TYPE}s" --start-at "/$next_start" --limit $CHUNK_SIZE)
+    next_start=$(python solr_builder/solr_builder.py fetch-end "${TYPE}s" --start-at "/$next_start" --limit $CHUNK_SIZE)
     if [ "$next_start" = "" ]; then done="true"; fi
 
     # Stagger starting of the runners so they don't all request a lot of
@@ -42,15 +46,15 @@ while [ $done != "true" ]; do
     # number of desired instances. Otherwise we'll have fewer running.
     if [ $done != "true" ]; then sleep $((CHUNK_ETA / INSTANCES)); fi
 
-    runners=$(docker container ls -q -f "name=ol_run" | wc -l)
+    runners=$(ps aux | grep -F 'solr_builder.py index' | grep -v grep | wc -l)
   done;
 
   if [ $done != "true" ]; then sleep 30; fi
 done
 
 # Now that we're done, wait for any trailing runners to finish up.
-runners=$(docker container ls -q -f "name=ol_run" | wc -l)
+runners=$(ps aux | grep -F 'solr_builder.py index' | grep -v grep | wc -l)
 while [ $((runners > 0)) = "1" ]; do
   sleep 30
-  runners=$(docker container ls -q -f "name=ol_run" | wc -l)
+  runners=$(ps aux | grep -F 'solr_builder.py index' | grep -v grep | wc -l)
 done

@@ -6,7 +6,7 @@ import web
 from infogami import config
 from openlibrary.core.lending import get_availability_of_ocaids
 from openlibrary.plugins.openlibrary.home import format_book_data
-from six.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 
 logger = logging.getLogger("openlibrary.inside")
 
@@ -28,12 +28,16 @@ def fulltext_search_api(params):
         return {'error': 'Error converting search engine data to JSON'}
 
 
-def fulltext_search(q, page=1, limit=100, js=False):
+def fulltext_search(q, page=1, limit=100, js=False, facets=False):
     offset = (page - 1) * limit
-    ia_results = fulltext_search_api({
-        'q': q, 'from': offset,
-        'size': limit, 'olonly': 'true'
-    })
+    params = {
+        'q': q,
+        'from': offset,
+        'size': limit,
+        **({'nofacets': 'true'} if not facets else {}),
+        'olonly': 'true',
+    }
+    ia_results = fulltext_search_api(params)
 
     if 'error' not in ia_results and ia_results['hits']:
         hits = ia_results['hits'].get('hits', [])
@@ -41,15 +45,18 @@ def fulltext_search(q, page=1, limit=100, js=False):
         availability = get_availability_of_ocaids(ocaids)
         if 'error' in availability:
             return []
-        editions = web.ctx.site.get_many([
-            '/books/%s' % availability[ocaid].get('openlibrary_edition')
-            for ocaid in availability
-            if availability[ocaid].get('openlibrary_edition')])
+        editions = web.ctx.site.get_many(
+            [
+                '/books/%s' % availability[ocaid].get('openlibrary_edition')
+                for ocaid in availability
+                if availability[ocaid].get('openlibrary_edition')
+            ]
+        )
         for ed in editions:
             if ed.ocaid in ocaids:
                 idx = ocaids.index(ed.ocaid)
                 ia_results['hits']['hits'][idx]['edition'] = (
-                    format_book_data(ed) if js else ed
+                    format_book_data(ed, fetch_availability=False) if js else ed
                 )
                 ia_results['hits']['hits'][idx]['availability'] = availability[ed.ocaid]
     return ia_results

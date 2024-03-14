@@ -16,6 +16,9 @@ dummy_sendmail: True
 debug: True
 
 coverstore_url: http://covers:7075
+# URL to use inside HTML files; must be publicly accessible from
+# a client's browser
+coverstore_public_url: http://localhost:7075
 
 state_dir: var/run
 
@@ -45,15 +48,11 @@ plugin_modules:
     - infogami.plugins.api
 
 plugin_worksearch:
-    solr_base_url: http://solr:8983/solr
+    solr_next: true
+    solr_base_url: http://solr:8983/solr/openlibrary
     spellcheck_count: 3
-    ebook_count_db_parameters:
-        db: openlibrary_ebook_count
-        host: localhost
 
 http_request_timeout: 10
-
-stats_solr: solr:8983
 
 features:
     cache_most_recent: enabled
@@ -74,9 +73,6 @@ features:
     support: admin
     undo: enabled
     upstream: enabled
-    user_metadata:
-        filter: usergroup
-        usergroup: /usergroup/beta-testers
 
 upstream_to_www_migration: true
 default_template_root: /upstream
@@ -142,7 +138,7 @@ stats: # This section is used to state what stats need to be gathered.
       pattern: /api/volumes/.*
       time: total
 
-# prefixes ignored for /books/ia:xxx URLs and new-solr-updater.py
+# prefixes ignored for /books/ia:xxx URLs and solr_updater.py
 ia_ignore_prefixes:
     - "jstor-"
     - "imslp-"
@@ -150,6 +146,10 @@ ia_ignore_prefixes:
     - "gov.uscourts."
 
 plugin_recaptcha:
+    public_key: ''
+    private_key: ''
+
+plugin_invisible_recaptcha:
     public_key: ''
     private_key: ''
 
@@ -182,7 +182,14 @@ sentry:
     enabled: false
     # Dummy endpoint; where sentry logs are sent to
     dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
+    traces_sample_rate: 1.0
     environment: 'local'
 
-# The Best Book On integration
+sentry_cron_jobs:
+    enabled: false
+    # Dummy endpoint; where sentry logs are sent to
+    dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
+    environment: 'local'
+
+# Observations cache settings:
 observation_cache_duration: 86400

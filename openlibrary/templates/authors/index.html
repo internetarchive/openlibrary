@@ -1,5 +1,7 @@
 $def with ()
 
+$ q = query_param('q', '')
+$ results = random_author_search()
 $var title: $_('Authors')
 
 <div id="contentHead">
@@ -11,40 +13,28 @@ $var title: $_('Authors')
 	<form action="/search/authors" class="olform">
 	    <h2 class="collapse"><label for="searchAuthor">$_('Search for an Author')</label></h2>
 	    <p>
-	        <input type="text" name="q" id="searchAuthor" size="100" class="larger" value=""/>
+	        <input type="text" name="q" id="searchAuthor" size="100" class="larger" value="$q"/>
 	        <input type="submit" value="$_('Search')" class="large"/>
 	    </p>
 	</form>
-
-	<h2>$_('Tips for Reconciling Author Records')</h2>
-	<h3>Merging Authors</h3>
-	<p>Open Library holds catalog records from many different libraries around the world, each of which has similar, yet different, cataloging practices. Some libraries will enter an author name like <em>Lastname, Firstname</em> whereas others will enter them <em>Firstname Lastname</em>. Formal titles (such as Sir, Queen etc.) can inhibit Open Library's ability to spot two variations of an author's name as the same author. When adding authors include as little information as possible that identify the author while keeping them distinguishable from other authors.
-	</p>
-	<p>Admins have the ability to join these duplicates together. There's <a href="http://blog.openlibrary.org/2010/08/16/duplicate-authors-wave-your-magic-wand/" rel="nofollow">more info on the Open Library blog</a> about merging authors, and you can explore <a href="/recentchanges/merge-authors" rel="nofollow">recent author merges</a> too. <a href="https://openlibrary.org/contact">Send us an email</a> if you see an author merge that needs doing.
-	</p>
-
-	<h3>Splitting Authors</h3>
-	<p>Sometimes, Open Library thinks that a certain author has written a book or two that was actually written by another author with a similar or identical name. In this case, the books in question need to be split apart. It's a bit fiddly to do this, but it's really useful.
-	</p>
-	<p>Here's how to split an author:
-	</p>
-	<ol>
-	 <li>
-	     <a href="/search/authors" rel="nofollow">Find</a> the author that needs to be split. Click the EDIT button. <br/>
-	 </li>
-	 <li>
-	     Add some more information to that author record that will help you identify it later, like a middle initial or a birth/death date. Leave a note about what you've changed and hit SAVE.<br/>
-	 </li>
-	 <li>
-	     Then, from the author's page, pick the book(s) that need to be split off.<br/>
-	 </li>
-	 <li>
-	     Now comes the tricky part. On the book page(s) you've just opened, you'll need to edit the works to point to the other author. Hit EDIT on those work pages.<br/>
-	 </li>
-	 <li>
-	     Find the Author field. Clear the name in it, and re-enter the author you'd like to connect this book to. There's a chance there'll only be one entry for the author (hence the join you're trying to split), so you may need to choose "Create a New Author Record for..." That will create a new author stub, and you can attach the books to that stub.
-	 </li>
-	</ol>
-	<p>We know this is a bit complicated, but once you've done it a few times, it's not too bad. The key is to make sure there's some distinct metadata between the two author records so you can tell them apart. Good luck!
-	</p>
+	<ul class="authorList">
+        $for doc in results.docs:
+            $ name = doc['name']
+            $ work_count = doc['work_count']
+            $ work_count_str = ungettext("%(count)d book", "%(count)d books", work_count, count=work_count)
+            $ date = ''
+            $if 'birth_date' in doc or 'death_date' in doc:
+                $ date = doc.get('birth_date', '') + ' - ' + doc.get('death_date', '')
+            $elif 'date' in doc:
+                $ date = doc['date']
+            <li class="sansserif">
+            <a href="$doc['key']" class="larger">$name</a>&nbsp;<span class="brown small">$date</span><br />
+            <span class="small grey"><b>$work_count_str</b>
+            $if work_count:
+                $if 'top_subjects' in doc:
+                    $_('about %(subjects)s', subjects=', '.join(doc['top_subjects'])),
+                $:_('including <i>%(topwork)s</i>', topwork=doc.get('top_work', ''))
+            </span>
+            </li>
+        </ul>
 </div>

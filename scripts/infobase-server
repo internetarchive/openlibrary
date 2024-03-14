@@ -1,23 +1,22 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 """Script to run infobase.
 
 USAGE:
 
 * Run Infobase http server at port 7070.
 
-    $ python ./scripts/infobase-server infobase.yaml 7070
+    $ python ./scripts/infobase-server infobase.yml 7070
 
 * Run Infobase as fastcgi server at port 7070
 
-    $ python ./scripts/infobase-server infobase.yaml fastcgi 7070
+    $ python ./scripts/infobase-server infobase.yml fastcgi 7070
 """
-from __future__ import print_function
 
 import logging
 import os
 import sys
 
-import _init_path
+import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
 import web
 
 from openlibrary.utils.sentry import Sentry
@@ -32,6 +31,7 @@ def setup_env():
     # required when run as fastcgi
     os.environ['REAL_SCRIPT_NAME'] = ""
 
+
 def main(args):
     if len(args) < 1 or args[0] in ['-h', '--help']:
         print("USAGE: %s configfile [port]" % (sys.argv[0]), file=sys.stderr)
@@ -39,8 +39,10 @@ def main(args):
 
     start(*args)
 
+
 def start(config_file, *args):
     from infogami.infobase import server
+
     server.load_config(config_file)
 
     sentry = Sentry(getattr(server.config, 'sentry', {}))
@@ -52,7 +54,7 @@ def start(config_file, *args):
     sys.argv = [sys.argv[0]] + list(args)
 
     # The web.py runfcgi is using multiplexed=True option for fastcgi server
-    # and that seem to cause some memory leaks. Using a varient of runfcgi
+    # and that seem to cause some memory leaks. Using a variant of runfcgi
     # that sets multiplexed=False.
     if 'fastcgi' in sys.argv:
         sys.argv.remove('fastcgi')
@@ -60,23 +62,27 @@ def start(config_file, *args):
 
         wsgifunc = server.app.wsgifunc()
         if args:
-          return runfcgi(wsgifunc, web.validaddr(args[0]))
+            return runfcgi(wsgifunc, web.validaddr(args[0]))
         else:
-          return runfcgi(wsgifunc, None)
+            return runfcgi(wsgifunc, None)
     else:
         server.run()
+
 
 def runfcgi(func, addr=('localhost', 8000)):
     """Runs a WSGI function as a FastCGI server."""
     import flup.server.fcgi as flups
+
     # Start fcgi server with multiplexed=False
     # Noticed memory leaks when running with multiplexed=True.
-    logger.info("flups.WSGIServer({}, bindAddress={})".format(func, addr))
-    return flups.WSGIServer(func, multiplexed=False, bindAddress=addr, debug=False).run()
+    logger.info(f"flups.WSGIServer({func}, bindAddress={addr})")
+    return flups.WSGIServer(
+        func, multiplexed=False, bindAddress=addr, debug=False
+    ).run()
+
 
 def start_gunicorn_server():
-    """Starts the infobase server using gunicorn server.
-    """
+    """Starts the infobase server using gunicorn server."""
     from gunicorn.app.base import Application
 
     configfile = sys.argv.pop(1)
@@ -87,15 +93,16 @@ def start_gunicorn_server():
 
         def load(self):
             from infogami.infobase import server
+
             server.load_config(configfile)
             return server.app.wsgifunc()
 
     WSGIServer("%prog infobase.yml --gunicorn [options]").run()
-    
+
 
 if __name__ == "__main__":
     setup_env()
-    
+
     if "--gunicorn" in sys.argv:
         sys.argv.pop(sys.argv.index("--gunicorn"))
         start_gunicorn_server()

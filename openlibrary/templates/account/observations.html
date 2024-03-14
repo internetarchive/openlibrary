@@ -1,0 +1,53 @@
+$def with (observations, user, num_found, page=1, results_per_page=25)
+
+<div class="my-observations">
+  <div class="list-container">
+    $if observations:
+      <ul>
+        $for i in observations:
+          $ work_id = i.work_id
+          $ work_cover_url = i.work_details['cover_url']
+          <li class="main-list-item">
+            <div class="work-section">
+              <span class="imageLg">
+                <a href="$i.work_key"><img src="$work_cover_url"></a>
+              </span>
+              <span>
+                <h3 itemprop="name" class="booktitle">
+                  <a itemprop="url" href="$i.work_key" class="results">$i.work_details['title']</a>
+                </h3>
+                $if i.work_details['authors']:
+                  By: $', '.join(i.work_details['authors'])
+                $else:
+                  $_('Unknown author')
+              </span>
+            </div>
+            <div class="observation-view" id="$work_id-observations">
+              $ modal_id = str(work_id) + "-observations-modal"
+              $ list_id = str(work_id) + "-observations-list"
+
+              <h3 class="observations-header">$_('Reviews')</h3>
+              <ul class="observations-list" id="$list_id">
+                $for k in sorted(i['observations']):
+                  $ category = k.capitalize()
+                  $ formatted_observations = ', '.join(i['observations'][k]).capitalize()
+                  <li>
+                    <span class="observation-category">$category:</span> $formatted_observations
+                  </li>
+              </ul>
+              <div class="observation-buttons">
+                <button class="delete-observations-button cta-btn" id="$work_id-observation-delete">$_('Delete')</button>
+                $ link_text = _('Update Reviews')
+                $ link_markup = '<a href="javascript:;" class="observations-modal-link">%s</a>' % link_text
+                $:macros.ObservationsModal(i.work, link_markup, modal_id, classes="observations-update-link", reload_id=list_id)
+              </div>
+            </div>
+          </li>
+      </ul>
+    $else:
+      $_("No observations found.")<br>
+  </div>
+  <div class="pager">
+    $:macros.Pager(page, num_found, results_per_page)
+  </div>
+</div>

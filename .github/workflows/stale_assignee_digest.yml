@@ -1,0 +1,23 @@
+name: stale_assignee_digest
+on:
+  schedule:
+    - cron: '0 16 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+  stale_assignee_digest:
+    if: ${{ github.repository == 'internetarchive/openlibrary'}}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install @octokit/action
+      - run: node scripts/gh_scripts/stale_assignee_digest.mjs --repoOwner "internetarchive" --daysSince 14
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ABC_TEAM_PLUS}}

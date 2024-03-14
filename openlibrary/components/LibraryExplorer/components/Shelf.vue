@@ -4,12 +4,12 @@
       class="shelf-label"
       :node="node"
       :key="node.short"
-      :is="features.shelfLabel == 'slider' ? 'ClassSlider' : 'ShelfLabel'"
+      :is="features.shelfLabel === 'slider' ? 'ClassSlider' : 'ShelfLabel'"
     >
       <template #extra-actions>
         <button
           :title="`See a list of the subsections of ${node.short}: ${node.name}`"
-          v-if="features.shelfLabel == 'slider' && node.children"
+          v-if="features.shelfLabel === 'slider' && node.children"
           :class="{selected: showShelfIndex}"
           @click="showShelfIndex = !showShelfIndex"
         >
@@ -25,15 +25,16 @@
       </template>
     </component>
 
+    <ShelfIndex class="shelf-index" :node="node" v-if="showShelfIndex" />
+
     <OLCarousel
       class="shelf-carousel"
-      ref="olCarousel"
       :data-short="
         node.children && node.position != 'root'
           ? node.children[node.position].short
           : node.short
       "
-      :query="`${
+      :query="`${sort.includes('_sort') ? classification.field + '_sort' : classification.field}:${
         node.children && node.position != 'root'
           ? node.children[node.position].query
           : node.query
@@ -62,8 +63,6 @@
         <BookCover3D
             v-if="features.book3d"
             :width="150" :height="200" :thickness="50" :book="book"
-            :fetchCoordinator="fetchCoordinator"
-            :containerIntersectionRatio="$refs.olCarousel.intersectionRatio"
             :cover="features.cover"
         />
         <FlatBookCover v-else :book="book" :cover="features.cover" />
@@ -85,7 +84,6 @@
       </template>
     </OLCarousel>
 
-    <ShelfIndex class="shelf-index" :node="node" v-if="showShelfIndex" />
   </div>
 </template>
 
@@ -126,7 +124,7 @@ class FetchCoordinator {
     }
 
     enqueue(fetchRequest) {
-        // console.log(`Enqueing request #${this.requestedFetches.length + 1}: ${fetchRequest.name}`);
+        // console.log(`Enqueuing request #${this.requestedFetches.length + 1}: ${fetchRequest.name}`);
         this.requestedFetches.push(fetchRequest);
         this.activate();
     }
@@ -176,10 +174,12 @@ export default {
         IndexIcon,
     },
     props: {
+        /** @type {import('../utils').ClassificationNode} */
         node: Object,
         parent: Object,
 
         labels: Array,
+        /** @type {import('../utils').ClassificationTree} */
         classification: Object,
         expandBookshelf: Function,
         features: Object,
@@ -203,6 +203,7 @@ export default {
   border-radius: 4px;
   height: 285px;
   background: #EEE;
+  contain: strict;
 }
 
 .shelf >>> .book {

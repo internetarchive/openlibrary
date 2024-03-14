@@ -1,6 +1,6 @@
 """Infobase hook for openlibrary.
 
-    * Log all modified book pages as required for the search engine.
+* Log all modified book pages as required for the search engine.
 """
 
 from infogami.infobase import config
@@ -11,6 +11,7 @@ import datetime
 root = getattr(config, 'booklogroot', 'booklog')
 
 _logger = Logger(root)
+
 
 def hook(object):
     """
@@ -24,5 +25,4 @@ def hook(object):
         d['type'] = {'key': '/type/edition'}
         _logger.write('book', site.name, timestamp, d)
 
-    #TODO: take care of author modifications
-
+    # TODO: take care of author modifications

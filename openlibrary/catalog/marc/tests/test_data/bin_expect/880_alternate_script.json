@@ -1,0 +1,56 @@
+{
+  "publish_date": "2010",
+  "publish_country": "cc",
+  "languages": [
+    "chi"
+  ],
+  "authors": [
+    {
+      "birth_date": "1960",
+      "name": "Lyons, Daniel",
+      "entity_type": "person",
+      "personal_name": "Lyons, Daniel"
+    }
+  ],
+  "oclc_numbers": [
+    "613515810"
+  ],
+  "work_titles": [
+    "Option$"
+  ],
+  "edition_name": "Di 1 ban.",
+  "translated_from": [
+    "eng"
+  ],
+  "contributions": [
+    "Liu, Ning"
+  ],
+  "subject_places": [
+    "Santa Clara Valley (Santa Clara County, Calif.)"
+  ],
+  "subjects": [
+    "Fiction",
+    "Executives",
+    "Inc Apple Computer"
+  ],
+  "subject_people": [
+    "Steve Jobs (1955-2011)"
+  ],
+  "title": "乔布斯的秘密日记",
+  "other_titles": ["Qiaobusi de mi mi ri ji"],
+  "by_statement": "Danni'er Lai'angsi zhu ; Liu Ning yi",
+  "publishers": [
+    "Zhong xin chu ban she"
+  ],
+  "publish_places": [
+    "Beijing Shi"
+  ],
+  "isbn_13": [
+    "9787508617725"
+  ],
+  "isbn_10": [
+    "750861772X"
+  ],
+  "pagination": "xi, 274 p.",
+  "number_of_pages": 274
+}

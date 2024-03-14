@@ -6,19 +6,20 @@
 @import "less/breakpoints.less";
 
 .page-banner {
-  display: none;
+  display: block;
   color: @white;
   font-family: @lucida_sans_serif-1;
-  background: @black;
+  background: @dark-grey;
   padding: 15px;
-  border-top-right-radius: 3px;
-  border-top-left-radius: 3px;
   border-bottom: 1px solid @beige;
+  z-index: @z-index-level-2;
 
-  @media screen and (min-width: @width-breakpoint-tablet) {
-    display: block;
+  &-mybooks {
+    color: @black;
+    background: @grey-blue;
+    border: 1px solid @blue-b0bed9;
+    font-weight: 500;
   }
-
   &-black {
     background-color: @dark-grey;
     padding: 5px;
@@ -38,7 +39,6 @@
     cursor: pointer;
     display: inline;
     border: 1px solid @mid-blue;
-    color: @light-olive; // this is the only place this color is used. refactor?
   }
   /* stylelint-disable selector-max-specificity */
   /* FIXME: Is this actually used anywhere? I think this block can be removed. */
@@ -56,11 +56,39 @@
     display: block;
     max-width: 200px;
     margin: auto;
+    border: 1px solid @button-hover-blue;
+    font-weight: bold;
   }
   &-body {
-    font-size: .85em;
+    font-size: .9em;
     padding: 10px;
     line-height: 25px;
     text-align: center;
   }
+
+  &--dismissable {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: @white;
+    font-family: @lucida_sans_serif-1;
+    background: @dark-grey;
+    padding: 15px;
+    border-bottom: 1px solid @beige;
+
+    &-content {
+      flex: 1;
+      text-align: center;
+    }
+
+    &-close {
+      height: 100%;
+      margin-left: auto;
+      color: @white;
+      border: none;
+      background-color: transparent;
+      cursor: pointer;
+    }
+  }
+
 }

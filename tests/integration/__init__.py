@@ -1,5 +1,3 @@
-#-*- coding: utf-8 -*-
-
 import time
 import yaml
 import atexit
@@ -10,9 +8,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 
 
-class OLSession(object):
+class OLSession:
     def __init__(self, timeout=10, domain="https://dev.openlibrary.org"):
-        with open('auth.yaml', 'r') as f:
+        with open('auth.yaml') as f:
             self.config = yaml.load(f)
         try:
             self.driver = webdriver.Chrome()
@@ -30,22 +28,22 @@ class OLSession(object):
         return By
 
     def url(self, uri=""):
-        return "%s/%s" % (self._url, uri)
+        return f"{self._url}/{uri}"
 
     def goto(self, uri=""):
         self.driver.get(self.url(uri))
 
-    def ia_login(self, email, password, test=None,
-                 domain="https://archive.org", **kwargs):
+    def ia_login(
+        self, email, password, test=None, domain="https://archive.org", **kwargs
+    ):
         self.driver.get('%s/account/login.php' % domain)
         self.driver.find_element_by_id('username').send_keys(email)
         self.driver.find_element_by_id('password').send_keys(password)
         self.driver.find_element_by_name('submit').click()
         if test:
-            test.assertTrue(
-                self.ia_is_logged_in(),
-                "IA Login failed w/ username: %s and password: %s" %
-                (email, password))
+            assert (
+                self.ia_is_logged_in()
+            ), f"IA Login failed w/ username: {email} and password: {password}"
 
     def ia_is_logged_in(self, domain="https://archive.org"):
         time.sleep(2)
@@ -59,8 +57,7 @@ class OLSession(object):
     def ia_logout(self, test=None, domain="https://archive.org"):
         self.driver.get('%s/account/logout.php' % domain)
         if test:
-            test.assertTrue(not self.ia_is_logged_in(),
-                            "Failed to logout of IA")
+            assert not self.ia_is_logged_in(), "Failed to logout of IA"
 
     def login(self, email, password, test=None, **kwargs):
         self.driver.get(self.url('/account/login'))
@@ -68,9 +65,9 @@ class OLSession(object):
         self.driver.find_element_by_id("password").send_keys(password)
         self.driver.find_element_by_name('login').click()
         if test:
-            test.assertTrue(self.is_logged_in(),
-                "OL Login failed w/ username: %s and password: %s" %
-                (email, password))
+            assert (
+                self.is_logged_in()
+            ), f"OL Login failed w/ username: {email} and password: {password}"
 
     def is_logged_in(self):
         time.sleep(2)
@@ -84,11 +81,11 @@ class OLSession(object):
         time.sleep(2)
         self.wait.until(EC.element_to_be_clickable((By.ID, 'userToggle'))).click()
         self.driver.find_element_by_css_selector(
-            '#headerUserOpen > a:nth-child(5)').click()
+            '#headerUserOpen > a:nth-child(5)'
+        ).click()
         self.driver.get(self.url('/account/login'))
         if test:
-            test.assertTrue(not self.is_logged_in(),
-                            "Failed to logout of OL")
+            assert not self.is_logged_in(), "Failed to logout of OL"
 
     def connect(self, email, password):
         self.wait_for_clickable('linkAccounts')
@@ -100,8 +97,10 @@ class OLSession(object):
 
     def create(self, username=None):
         self.driver.execute_script(
-            "document.getElementById('debug_token').value='" +
-            self.config['internal_tests_api_key'] + "'");
+            "document.getElementById('debug_token').value='"
+            + self.config['internal_tests_api_key']
+            + "'"
+        )
         time.sleep(1)
         self.wait_for_clickable('createAccount')
         self.driver.find_element_by_id('createAccount').click()
@@ -109,9 +108,14 @@ class OLSession(object):
 
     def unlink(self, email):
         import requests
+
         email = email.replace('+', '%2b')
-        r = requests.get(self.url('/internal/account/audit?key=%s&email=%s&unlink=true'
-               % (self.config['internal_tests_api_key'], email)))
+        r = requests.get(
+            self.url(
+                '/internal/account/audit?key=%s&email=%s&unlink=true'
+                % (self.config['internal_tests_api_key'], email)
+            )
+        )
 
     def wait_for_clickable(self, css_id, by=By.ID):
         self.wait.until(EC.element_to_be_clickable((by, css_id)))

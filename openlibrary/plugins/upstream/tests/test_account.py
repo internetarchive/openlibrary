@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from .. import account
 import web
 import os
@@ -9,8 +7,7 @@ import sys
 
 
 def open_test_data(filename):
-    """Returns a file handle to file with specified filename inside test_data directory.
-    """
+    """Returns a file handle to file with specified filename inside test_data directory."""
     root = os.path.dirname(__file__)
     fullpath = os.path.join(root, 'test_data', filename)
     return open(fullpath, mode='rb')
@@ -31,7 +28,7 @@ def test_create_list_doc(wildcard):
         "email": email,
         "code": wildcard,
         "created_on": wildcard,
-        "expires_on": wildcard
+        "expires_on": wildcard,
     }
 
 
@@ -72,7 +69,7 @@ class TestGoodReadsImport:
                 "Recommended For": "",
                 "Spoiler": "",
                 "Title": "Pippi Longstocking (Pippi Långstrump, #1)",
-                "Year Published": "2005"
+                "Year Published": "2005",
             },
             "0735214484": {
                 "Additional Authors": "",
@@ -105,8 +102,8 @@ class TestGoodReadsImport:
                 "Recommended For": "",
                 "Spoiler": "",
                 "Title": "Range: Why Generalists Triumph in a Specialized World",
-                "Year Published": "2019"
-            }
+                "Year Published": "2019",
+            },
         }
 
         self.expected_books_wo_isbns = {
@@ -141,15 +138,17 @@ class TestGoodReadsImport:
                 "Recommended For": "",
                 "Spoiler": "",
                 "Title": "Test Book Title With No ISBN",
-                "Year Published": "2019"
+                "Year Published": "2019",
             }
         }
 
-    @pytest.mark.skipif(sys.version_info < (3, 0),
-                        reason="Python2's csv module doesn't support Unicode")
+    @pytest.mark.skipif(
+        sys.version_info < (3, 0), reason="Python2's csv module doesn't support Unicode"
+    )
     def test_process_goodreads_csv_with_utf8(self):
         books, books_wo_isbns = account.process_goodreads_csv(
-            web.storage({'csv': self.csv_data.decode('utf-8')}))
+            web.storage({'csv': self.csv_data.decode('utf-8')})
+        )
         assert books == self.expected_books
         assert books_wo_isbns == self.expected_books_wo_isbns
 
@@ -157,12 +156,13 @@ class TestGoodReadsImport:
         # Note: In Python2, reading data as bytes returns a string, which should
         # also be supported by account.process_goodreads_csv()
         books, books_wo_isbns = account.process_goodreads_csv(
-            web.storage({'csv': self.csv_data}))
+            web.storage({'csv': self.csv_data})
+        )
         assert books == self.expected_books
         assert books_wo_isbns == self.expected_books_wo_isbns
 
 
-@pytest.mark.xfail
+@pytest.mark.xfail()
 class TestAccount:
     def signup(self, b, displayname, username, password, email):
         b.open("/account/create")
@@ -176,10 +176,9 @@ class TestAccount:
         b.submit()
 
     def login(self, b, username, password):
-        """Attempt login and return True if successful.
-        """
+        """Attempt login and return True if successful."""
         b.open("/account/login")
-        b.select_form(name="register") # wrong name
+        b.select_form(name="register")  # wrong name
         b["username"] = username
         b["password"] = password
         b.submit()
@@ -188,7 +187,13 @@ class TestAccount:
 
     def test_create(self, ol):
         b = ol.browser()
-        self.signup(b, displayname="Foo", username="foo", password="blackgoat", email="foo@example.com")
+        self.signup(
+            b,
+            displayname="Foo",
+            username="foo",
+            password="blackgoat",
+            email="foo@example.com",
+        )
 
         assert "Hi, foo!" in b.get_text(id="contentHead")
         assert "sent an email to foo@example.com" in b.get_text(id="contentBody")
@@ -203,12 +208,20 @@ class TestAccount:
     def test_activate(self, ol):
         b = ol.browser()
 
-        self.signup(b, displayname="Foo", username="foo", password="secret", email="foo@example.com")
+        self.signup(
+            b,
+            displayname="Foo",
+            username="foo",
+            password="secret",
+            email="foo@example.com",
+        )
         link = ol.sentmail.extract_links()[0]
         b.open(link)
 
         assert "Hi, Foo!" in b.get_text(id="contentHead")
-        assert "Yay! Your email address has been verified." in b.get_text(id="contentBody")
+        assert "Yay! Your email address has been verified." in b.get_text(
+            id="contentBody"
+        )
 
         self.login(b, "foo", "secret")
 
@@ -218,24 +231,37 @@ class TestAccount:
     def test_forgot_password(self, ol):
         b = ol.browser()
 
-        self.signup(b, displayname="Foo", username="foo", password="secret", email="foo@example.com")
+        self.signup(
+            b,
+            displayname="Foo",
+            username="foo",
+            password="secret",
+            email="foo@example.com",
+        )
         link = ol.sentmail.extract_links()[0]
         b.open(link)
 
         b.open("/account/password/forgot")
-        b.select_form(name="register") # why is the form called register?
+        b.select_form(name="register")  # why is the form called register?
         b['email'] = "foo@example.com"
         b.submit()
 
         assert "Thanks" in b.get_text(id="contentHead")
-        assert "We've sent an email to foo@example.com with instructions" in b.get_text(id="contentBody")
+        assert "We've sent an email to foo@example.com with instructions" in b.get_text(
+            id="contentBody"
+        )
 
         link = ol.sentmail.extract_links()[0]
-        assert re.match("^http://0.0.0.0:8080/account/password/reset/[0-9a-f]{32}$", link)
+        assert re.match(
+            "^http://0.0.0.0:8080/account/password/reset/[0-9a-f]{32}$", link
+        )
 
         b.open(link)
         assert "Reset Password" in b.get_text(id="contentHead")
-        assert "Please enter a new password for your Open Library account" in b.get_text(id="contentBody")
+        assert (
+            "Please enter a new password for your Open Library account"
+            in b.get_text(id="contentBody")
+        )
         b.select_form(name="reset")
         b['password'] = "secret2"
         b.submit()
@@ -251,7 +277,13 @@ class TestAccount:
 
     def test_change_password(self, ol):
         b = ol.browser()
-        self.signup(b, displayname="Foo", username="foo", password="secret", email="foo@example.com")
+        self.signup(
+            b,
+            displayname="Foo",
+            username="foo",
+            password="secret",
+            email="foo@example.com",
+        )
         link = ol.sentmail.extract_links()[0]
         b.open(link)
         self.login(b, "foo", "secret")
@@ -265,11 +297,17 @@ class TestAccount:
         assert b.path == "/account"
 
         b.reset()
-        assert self.login(b, "foo", "more_secret") == True
+        assert self.login(b, "foo", "more_secret") is True
 
     def test_change_email(self, ol):
         b = ol.browser()
-        self.signup(b, displayname="Foo", username="foo", password="secret", email="foo@example.com")
+        self.signup(
+            b,
+            displayname="Foo",
+            username="foo",
+            password="secret",
+            email="foo@example.com",
+        )
 
         link = ol.sentmail.extract_links()[0]
         b.open(link)
@@ -285,7 +323,9 @@ class TestAccount:
         b.submit()
 
         assert "Hi Foo" in b.get_text(id="contentHead")
-        assert "We've sent an email to foobar@example.com" in b.get_text(id="contentBody")
+        assert "We've sent an email to foobar@example.com" in b.get_text(
+            id="contentBody"
+        )
 
         link = ol.sentmail.extract_links()[0]
         b.open(link)

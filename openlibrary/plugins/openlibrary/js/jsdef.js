@@ -20,7 +20,7 @@
 export function range(begin, end, step) {
     var r, i;
     step = step || 1;
-    if (end == undefined) {
+    if (end === undefined) {
         end = begin;
         begin = 0;
     }
@@ -75,11 +75,11 @@ ForLoop.prototype.next = function() {
     this.index0 = i;
     this.index = i+1;
 
-    this.first = (i == 0);
-    this.last = (i == this.length-1);
+    this.first = (i === 0);
+    this.last = (i === this.length-1);
 
-    this.odd = (this.index % 2 == 1);
-    this.even = (this.index % 2 == 0);
+    this.odd = (this.index % 2 === 1);
+    this.even = (this.index % 2 === 0);
     this.parity = ['even', 'odd'][this.index % 2];
 
     this.revindex0 = this.length - i;
@@ -114,7 +114,7 @@ export function websafe(value) {
     // Safari 6 is failing with weird javascript error in this function.
     // Added try-catch to avoid it.
     try {
-        if (value == null || value == undefined) {
+        if (value === null || value === undefined) {
             return '';
         }
         else {
@@ -140,4 +140,22 @@ export function htmlquote(text) {
     text = text.replace(/'/g, '&#39;');
     text = text.replace(/"/g, '&quot;');
     return text;
+}
+
+export function is_jsdef() {
+    return true;
+}
+
+
+/**
+ * foo.get(KEY, default) isn't defined in js, so we can't use that construct
+ * in our jsdef methods. This helper function provides a workaround, and works
+ * in both environments.
+ *
+ * @param {object} obj - the object to get the key from
+ * @param {string} key - the key to get from the object
+ * @param {any} def - the default value to return if the key isn't found
+ */
+export function jsdef_get(obj, key, def=null) {
+    return (key in obj) ? obj[key] : def;
 }

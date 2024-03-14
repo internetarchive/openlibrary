@@ -49,9 +49,9 @@ $ show_users = (query_param('show_users', 'false').lower() == 'true')
 
     <div class="historyPager small sansserif gray" style="width:100%;">
     $if len(changes) == limit:
-        <a href="$:changequery(page=page + 1)" rel="nofollow">&larr; $_("Older")</a> &nbsp;|&nbsp;
+        <a href="$changequery(page=page + 1)" rel="nofollow">&larr; $_("Older")</a> &nbsp;|&nbsp;
     $if page != 0:
-        <a href="$:changequery(page=page - 1)" rel="nofollow">$_("Newer") &rarr;</a>
+        <a href="$changequery(page=page - 1)" rel="nofollow">$_("Newer") &rarr;</a>
     $else:
         $_("Newer") &rarr;
     </div>

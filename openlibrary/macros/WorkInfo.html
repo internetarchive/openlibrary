@@ -20,7 +20,7 @@ $for name in s:
                 <td><span class="object">
                 $for name in subjects:
                     $for subject in page[name]:
-                        <a href="/search?ftokens=$:utf8(facet_token('subjects', subject.strip()))">$:utf8(thingrepr(subject)).replace(' -- ', '/')</a>,
+                        <a href="/search?ftokens=$utf8(facet_token('subjects', subject.strip()))">$:utf8(thingrepr(subject)).replace(' -- ', '/')</a>,
                 </span></td></tr>
             $else:
                 <td><span class="object">$:thingrepr(page[name])</span></td></tr>

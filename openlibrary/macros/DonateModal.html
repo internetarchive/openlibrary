@@ -1,9 +1,9 @@
-$def with(book, size="M", ids={})
+$def with(book, id, ids={})
 
 $ title = book.title
 
 <div class="hidden">
-  <div class="coverFloat" id="seeDonate">
+  <div class="coverFloat" id=$id>
     <div class="coverFloatHead">
       <h2 class="donation__override">
         Donate this book to the <a href="https://archive.org">Internet Archive</a> library.
@@ -26,7 +26,7 @@ Open Library Book Donations
 300 Funston Avenue
 San Francisco, CA 94118
       </pre>
-      $:macros.AffiliateLinks(book, ids)
+      $:macros.AffiliateLinks(book.title, ids)
       </div>
 
       <h2>Benefits of donating</h2>

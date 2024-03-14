@@ -1,6 +1,6 @@
 $def with (page=None)
 
-$ cssfile = ctx.get('cssfile', 'user')
+$ show_ol_shell = ctx.get('show_ol_shell', True)
 
 <!--For analytics-->
 $ stats = stats_summary()
@@ -10,44 +10,52 @@ $if raw_time is not None:
 $else:
   $ total_time = 0
 
-<div class="clearfix"></div>
+$if show_ol_shell:
+  <div class="clearfix"></div>
 
-$if cssfile == 'user' or 'admin':
-    $if ("stats" in ctx.features) and query_param('debug'):
-        $:render_template("site/stats")
-    $:render_template("lib/nav_foot", page)
+$if ("stats" in ctx.features) and query_param('debug'):
+    $:render_template("site/stats")
 
-    <script src="$static_url('build/all.js')" type="text/javascript"></script>
-    <!-- Must be loaded after jquery -->
-    <script src="//archive.org/includes/analytics.js?v=0c15bbe" type="text/javascript"></script>
-    <!-- Passes total_time for analytics to ol.analytics.js -->
-    <div class="analytics-stats-time-calculator" data-time="$total_time"></div>
+$if show_ol_shell:
+  $:render_template("lib/nav_foot", page)
 
-    <script>
-    //anonymized analytics
-    window.addEventListener('DOMContentLoaded', function send_analytics_pageview() {
-        archive_analytics.send_pageview({});
+<!--Will be moved inside index.js-->
+<script type="text/javascript">
+  if ("serviceWorker" in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register("/sw.js").then(registration => {
+
+      }).catch(error => {
+        console.log("ServiceWorker registration failed");
+      });
     });
-    </script>
+  }
 
-    $if any([path in request.canonical_url for path in ['/account/create', '/books/add', '/edit', '/books', '/contact']]):
-        <!-- Must be loaded in Sign Up and Add new Books page -->
-        <!-- Must be loaded for all edit pages having link /books/*/*/edit -->
-        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  window.addEventListener('beforeinstallprompt', (e) => {
+    // Prevent the mini-infobar from appearing on mobile
+    e.preventDefault();
+  });
+</script>
 
-    <!-- clear the window.q and setup the jQuery plugins -->
-    <script>
-    \$( function () {
-        var i;
-        for ( i = 0; i < window.q.length; i++ ) {
-            \$( window.q[i] );
-        }
-        window.q = [];
-    } );
+<!-- Must be loaded after jquery -->
+<script src="/cdn/archive.org/analytics.js" type="text/javascript"></script>
+<script src="$static_url('build/all.js')" type="text/javascript"></script>
+<!-- Passes total_time for analytics to ol.analytics.js -->
+<div class="analytics-stats-time-calculator" data-time="$total_time"></div>
 
-    if (typeof archive_analytics !== 'undefined') {
-      archive_analytics.set_up_event_tracking();
+<!-- clear the window.q and setup the jQuery plugins -->
+<script>
+\$( function () {
+    var i;
+    for ( i = 0; i < window.q.length; i++ ) {
+        \$( window.q[i] );
     }
-    </script>
+    window.q = [];
+} );
+
+if (typeof archive_analytics !== 'undefined') {
+  archive_analytics.set_up_event_tracking();
+}
+</script>
 </body>
 </html>

@@ -28,6 +28,11 @@
   iframe {
     width: 100%;
   }
+
+  img.cover {
+    border-radius: 5px;
+    box-shadow: 1px 1px 2px 0 @book-cover-shadow-color;
+  }
 }
 
 #cbox {
@@ -103,7 +108,7 @@
   font-size: 1.2em;
   // Increase clickable are to the recommended size (44x44px) according to
   // https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
-  // but avoid modifing the UI
+  // but avoid modifying the UI
   display: inline-block;
   position: relative;
   z-index: @z-index-level-1;
@@ -157,6 +162,10 @@ div.floater {
       padding: 0;
       flex: 1;
     }
+
+    &.right-justify {
+      justify-content: right;
+    }
   }
   &Body {
     padding: 20px;
@@ -180,6 +189,9 @@ div.floater {
       font-weight: normal;
     }
   }
+  .dialog--close-parent {
+    cursor: pointer;
+  }
   div#covers.input {
     max-height: 132px;
     overflow: hidden;
@@ -187,20 +199,26 @@ div.floater {
     text-align: center;
   }
   input[type=text],
+  input[type=url],
   input[type=file] {
     font-size: 1.125em;
     font-family: @lucida_sans_serif-1;
     padding: 3px;
-    margin-left: 30px;
+  }
+  input::file-selector-button{
+    cursor: pointer;
   }
   button[type=submit] {
     font-size: 1.125em;
     width: auto !important;
+    cursor: pointer;
+  }
+  a {
+    cursor: pointer;
   }
 }
 
 .floatform__body {
-  text-align: center;
   width: 100%;
   position: relative;
 
@@ -241,6 +259,7 @@ div.floaterAdd {
     }
     textarea {
       padding: 3px;
+      resize: none;
     }
   }
 }
@@ -260,6 +279,7 @@ div.floaterAdd {
     }
 
     input[type=text],
+    input[type=url],
     input[type=file] {
       width: 350px;
     }
@@ -276,8 +296,10 @@ div.floaterAdd {
     .input,
     .label,
     input[type=text],
+    input[type=url],
     textarea {
       width: 560px;
+      resize: none;
     }
   }
 }

@@ -2,7 +2,7 @@
 """
 import json
 import re
-from datetime import datetime
+from datetime import datetime, date
 from urllib.parse import urlsplit
 
 import web
@@ -25,27 +25,36 @@ except ImportError:
 
 from infogami import config
 from infogami.infobase.client import Nothing
+
 # handy utility to parse ISO date strings
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
-
-# TODO: i18n should be moved to core or infogami
-from openlibrary.i18n import gettext as _  # noqa: F401
 
 __all__ = [
     "sanitize",
     "json_encode",
     "safesort",
-    "days_since", "datestr", "format_date",
-    "sprintf", "cond", "commify", "truncate", "datetimestr_utc",
-    "urlsafe", "texsafe",
-    "percentage", "affiliate_id", "bookreader_host",
-    "private_collections", "private_collection_in",
-
+    "days_since",
+    "datestr",
+    "format_date",
+    "sprintf",
+    "cond",
+    "commify",
+    "truncate",
+    "datetimestr_utc",
+    "urlsafe",
+    "texsafe",
+    "percentage",
+    "affiliate_id",
+    "bookreader_host",
+    "private_collections",
+    "private_collection_in",
     # functions imported from elsewhere
-    "parse_datetime", "safeint"
+    "parse_datetime",
+    "safeint",
 ]
 __docformat__ = "restructuredtext en"
+
 
 def sanitize(html, encoding='utf8'):
     """Removes unsafe tags and attributes from html and adds
@@ -61,9 +70,8 @@ def sanitize(html, encoding='utf8'):
 
     def get_nofollow(name, event):
         attrs = event[1][1]
-        href = attrs.get('href', '')
 
-        if href:
+        if href := attrs.get('href', ''):
             # add rel=nofollow to all absolute links
             _, host, _, _, _ = urlsplit(href)
             if host:
@@ -87,14 +95,33 @@ def sanitize(html, encoding='utf8'):
         else:
             raise
 
-    stream = html \
-        | genshi.filters.HTMLSanitizer() \
+    stream = (
+        html
+        | genshi.filters.HTMLSanitizer()
         | genshi.filters.Transformer("//a").attr("rel", get_nofollow)
+    )
     return stream.render()
 
 
+class NothingEncoder(json.JSONEncoder):
+    def default(self, obj):
+        """Custom JSON encoder for handling Nothing values.
+
+        Returns None if a value is a Nothing object. Otherwise,
+        encode values using the default JSON encoder.
+        """
+        if isinstance(obj, Nothing):
+            return None
+        if isinstance(obj, date):
+            return obj.isoformat()
+        return super().default(obj)
+
+
 def json_encode(d, **kw):
-    """Same as json.dumps.
+    """Calls json.dumps on the given data d.
+    If d is a Nothing object, passes an empty list to json.dumps.
+
+    Returns the json.dumps results.
     """
     return json.dumps([] if isinstance(d, Nothing) else d, **kw)
 
@@ -107,9 +134,11 @@ def safesort(iterable, key=None, reverse=False):
     care to make that work.
     """
     key = key or (lambda x: x)
+
     def safekey(x):
         k = key(x)
         return (k.__class__.__name__, k)
+
     return sorted(iterable, key=safekey, reverse=reverse)
 
 
@@ -135,10 +164,12 @@ def datestr(then, now=None, lang=None, relative=True):
 def datetimestr_utc(then):
     return then.strftime("%Y-%m-%dT%H:%M:%SZ")
 
+
 def format_date(date, lang=None):
     lang = lang or web.ctx.lang
     locale = _get_babel_locale(lang)
     return babel.dates.format_date(date, format="long", locale=locale)
+
 
 def _get_babel_locale(lang):
     try:
@@ -150,13 +181,12 @@ def _get_babel_locale(lang):
 def sprintf(s, *a, **kw):
     """Handy utility for string replacements.
 
-        >>> sprintf('hello %s', 'python')
-        'hello python'
-        >>> sprintf('hello %(name)s', name='python')
-        'hello python'
+    >>> sprintf('hello %s', 'python')
+    'hello python'
+    >>> sprintf('hello %(name)s', name='python')
+    'hello python'
     """
-    args = kw or a
-    if args:
+    if args := kw or a:
         return s % args
     else:
         return s
@@ -167,18 +197,15 @@ def cond(pred, true_value, false_value=""):
 
     Hanly to use instead of if-else expression.
     """
-    if pred:
-        return true_value
-    else:
-        return false_value
+    return true_value if pred else false_value
 
 
 def commify(number, lang=None):
     """localized version of web.commify"""
     try:
         lang = lang or web.ctx.get("lang") or "en"
-        return babel.numbers.format_number(int(number), lang)
-    except:
+        return babel.numbers.format_decimal(int(number), locale=lang)
+    except Exception:
         return str(number)
 
 
@@ -191,10 +218,10 @@ def truncate(text, limit):
     return text[:limit] + "..."
 
 
-def urlsafe(path):
-    """Replaces the unsafe chars from path with underscores.
-    """
+def urlsafe(path: str) -> str:
+    """Replaces the unsafe chars from path with underscores."""
     return _get_safepath_re().sub('_', path).strip('_')[:100]
+
 
 @web.memoize
 def _get_safepath_re():
@@ -208,11 +235,6 @@ def _get_safepath_re():
     unsafe = reserved + delims + unwise + space
     pattern = '[%s]+' % "".join(re.escape(c) for c in unsafe)
     return re.compile(pattern)
-
-
-def get_coverstore_url():
-    """Returns the base url of coverstore by looking at the config."""
-    return config.get('coverstore_url', 'https://covers.openlibrary.org').rstrip('/')
 
 
 _texsafe_map = {
@@ -234,6 +256,7 @@ _texsafe_map = {
 
 _texsafe_re = None
 
+
 def texsafe(text):
     """Escapes the special characters in the given text for using it in tex type setting.
 
@@ -253,15 +276,17 @@ def texsafe(text):
 
     return _texsafe_re.sub(lambda m: _texsafe_map[m.group(0)], text)
 
+
 def percentage(value, total):
     """Computes percentage.
 
-        >>> percentage(1, 10)
-        10.0
-        >>> percentage(0, 0)
-        0.0
+    >>> percentage(1, 10)
+    10.0
+    >>> percentage(0, 0)
+    0.0
     """
     return (value * 100.0) / total if total else 0.0
+
 
 def uniq(values, key=None):
     """Returns the unique entries from the given values in the original order.
@@ -279,19 +304,24 @@ def uniq(values, key=None):
             result.append(v)
     return result
 
+
 def affiliate_id(affiliate):
     return config.get('affiliate_ids', {}).get(affiliate, '')
 
+
 def bookreader_host():
     return config.get('bookreader_host', '')
+
 
 def private_collections():
     """Collections which are lendable but should not be linked from OL
     TODO: Remove when we can handle institutional books"""
     return ['georgetown-university-law-library-rr']
 
+
 def private_collection_in(collections):
     return any(x in private_collections() for x in collections)
+
 
 def _get_helpers():
     _globals = globals()

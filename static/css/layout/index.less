@@ -1,5 +1,7 @@
 @import (less) "v2.less";
 
+@contentBody-padding: 20px;
+
 #contentHead {
   padding: 10px;
   // Reset h1 margin set in common.less
@@ -9,9 +11,15 @@
 }
 div.contentBody,
 div#contentBody {
-  padding: 0 20px 20px;
+  padding: 0 @contentBody-padding @contentBody-padding;
   img {
     max-width: 100%;
+  }
+  pre {
+    overflow-x: auto;
+  }
+  p a {
+    word-wrap: break-word;
   }
 }
 .section,

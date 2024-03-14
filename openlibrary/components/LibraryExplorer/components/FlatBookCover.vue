@@ -1,6 +1,6 @@
 <template>
   <img
-    v-if="cover == 'image' && coverMultiresUrl"
+    v-if="cover === 'image' && coverMultiresUrl"
     class="cover"
     loading="lazy"
     @load="$emit('load', $event)"
@@ -37,7 +37,7 @@ export default {
         coverMultiresUrl() {
             const { cover_i, lending_edition_s } = this.book;
             const fullUrl = lending_edition_s ? this.olCoverUrl(lending_edition_s, 'olid') :
-                cover_i && cover_i != -1 ? this.olCoverUrl(cover_i) :
+                cover_i && cover_i !== -1 ? this.olCoverUrl(cover_i) :
                     null;
 
             if (fullUrl) {

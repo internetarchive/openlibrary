@@ -2,7 +2,7 @@
 
 /* stylelint-disable selector-max-specificity */
 div#footer-content {
-  max-width: 960px;
+  max-width: 1060px;
   margin: 5px auto;
   padding: 20px;
 }
@@ -54,34 +54,16 @@ footer {
   }
 }
 
-#footer-icons {
-  a {
-    display: inline-block;
-    width: 35px;
-    height: 35px;
-    cursor: pointer;
-    background-color: @grey;
-    border-radius: 3px;
-    font-size: 20px;
-    color: @white;
-    text-align: center;
-    line-height: 35px;
-    margin-top: 10px;
-    margin-right: 3px;
-    margin-bottom: 5px;
-    text-indent: -999px;
-    overflow: hidden;
-    background-position: center center;
-    background-size: 18px auto;
-    background-repeat: no-repeat;
-  }
-}
-.footer-icons {
-  &__github {
-    background-image: url(/static/images/github.svg);
-  }
-  &__twitter {
-    background-image: url(/static/images/tweet.svg);
+.footer-icon {
+  display: inline-flex;
+  width: 35px;
+  height: 35px;
+  cursor: pointer;
+  background-color: @dark-grey;
+  border-radius: 3px;
+
+  img {
+    padding: 8px;
   }
 }
 

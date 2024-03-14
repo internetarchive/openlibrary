@@ -2,9 +2,11 @@
 name: Feature request
 about: Suggest an idea for this project
 title: ''
-labels: "Type: Feature, Needs: Triage, Needs: Lead"
+labels: "Type: Feature Request, Needs: Triage, Needs: Lead"
 assignees: ''
 ---
+
+<!-- IMPORTANT: Before posting, be sure to redact or remove sensitive data, such as passwords, secret keys, session cookies, etc. -->
 
 <!-- A clear and concise description of what the problem is. Ex. I'm always frustrated when [...] -->
 

@@ -1,0 +1,82 @@
+$def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False, compact_mode=False)
+
+$ ctx.setdefault("links", [])
+$# Apparently fonts always need crossorigin for some reason
+$ slick_font = '<link rel="preload" href="/static/css/fonts/slick.woff" as="font" type="font/woff" crossorigin>'
+$if slick_font not in ctx.links:
+  $ ctx.links.append(slick_font)
+
+$def render_carousel_cover(book, lazy, index):
+  $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
+  $ cover_host = '//covers.openlibrary.org'
+  $ url = book.get('key') or book.url
+  $ title = book.title
+
+  $ cover_id = book.get('cover_id') or book.get('cover_i') or book.get('covers') and book['covers'][0]
+  $if book.get('cover_url'):
+    $ cover_url = book.get('cover_url')
+  $elif cover_id and cover_id != -1:
+    $ cover_url = '%s/b/id/%s-M.jpg'%(cover_host, cover_id)
+  $elif book.get('ia'):
+    $ cover_url = 'https://archive.org/download/%s/page/cover_w180_h360.jpg'% book.get('ia')[0]
+  $elif book.get('cover_edition_key'):
+    $ cover_url = '%s/b/olid/%s-M.jpg'%(cover_host, book.get('cover_edition_key'))
+  $else:
+    $ cover_url = fallback_cover
+
+  $if book.get('authors'):
+    $ author_names = [author.name for author in book.authors]
+  $elif book.get('author_name'):
+    $ author_names = book.get('author_name', [])
+  $else:
+    $ author_names = []
+
+  $if author_names:
+    $ byline = _(' by %(name)s', name=', '.join(author_names))
+  $else:
+    $ byline = ''
+
+  $ modifier = ''
+  $ work_key = book.key if book.key.startswith('/work') else book.get('work_key')
+
+  $ last_book = ''
+  $if index==4:
+    $ last_book = 'last-book'
+
+
+  <div class="book showcase__item">
+    <div class="book-cover mobile">
+      <a class="mybooks mobile nopadding" href="$(url)">
+        $if cover_url:
+          <img class="bookcover mobile $(last_book)" loading="lazy"
+            title="$('%s%s'%(title,byline))"
+            alt="$('%s%s'%(title,byline))"
+          $if lazy:
+            data-lazy="$(cover_url)"
+            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
+          $else:
+            src="$(cover_url)"/>
+        $else:
+          <div class="carousel__item__blankcover"  title="$(title)">
+            <div class="carousel__item__blankcover--title">$:macros.TruncateString(title, 70)</div>
+            $if author_names:
+              <div class="carousel__item__blankcover--authors">$:macros.TruncateString(', '.join(author_names), 30)</div>
+          </div>
+      </a>
+    </div>
+  </div>
+
+
+$if test or (books and len(books) >= min_books):
+    <div class="carousel-section" style="overflow: hidden">
+      $if title and url:
+        <div class="carousel-section-header">
+          <a name="$key" href="$url">$title<img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg"></a>
+        </div>
+      <div class="mybooks-mobile">
+        <div class="showcase showcase--$key">
+          $for index, book in enumerate(books or []):
+              $:render_carousel_cover(book, index > 4, index)
+        </div>
+      </div>
+    </div>

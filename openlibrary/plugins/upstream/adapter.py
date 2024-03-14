@@ -11,30 +11,40 @@ This adapter module is a filter that sits above an Infobase server and fakes the
 import json
 import web
 
-import six
-from six.moves import urllib
+import urllib
 
 
 urls = (
-    '/([^/]*)/get', 'get',
-    '/([^/]*)/get_many', 'get_many',
-    '/([^/]*)/things', 'things',
-    '/([^/]*)/versions', 'versions',
-    '/([^/]*)/new_key', 'new_key',
-    '/([^/]*)/save(/.*)', 'save',
-    '/([^/]*)/save_many', 'save_many',
-    '/([^/]*)/reindex', 'reindex',
-    '/([^/]*)/account/(.*)', 'account',
-    '/([^/]*)/count_edits_by_user', 'count_edits_by_user',
-    '/.*', 'proxy'
+    '/([^/]*)/get',
+    'get',
+    '/([^/]*)/get_many',
+    'get_many',
+    '/([^/]*)/things',
+    'things',
+    '/([^/]*)/versions',
+    'versions',
+    '/([^/]*)/new_key',
+    'new_key',
+    '/([^/]*)/save(/.*)',
+    'save',
+    '/([^/]*)/save_many',
+    'save_many',
+    '/([^/]*)/reindex',
+    'reindex',
+    '/([^/]*)/account/(.*)',
+    'account',
+    '/([^/]*)/count_edits_by_user',
+    'count_edits_by_user',
+    '/.*',
+    'proxy',
 )
 app = web.application(urls, globals())
 
-convertions = {
-#    '/people/': '/user/',
-#    '/books/': '/b/',
-#    '/authors/': '/a/',
-#    '/languages/': '/l/',
+conversions = {
+    #    '/people/': '/user/',
+    #    '/books/': '/b/',
+    #    '/authors/': '/a/',
+    #    '/languages/': '/l/',
     '/templates/': '/upstream/templates/',
     '/macros/': '/upstream/macros/',
     '/js/': '/upstream/js/',
@@ -45,8 +55,9 @@ convertions = {
     '/old/css/': '/css/',
 }
 
-# inverse of convertions
-iconversions = dict((v, k) for k, v in convertions.items())
+# inverse of conversions
+iconversions = {v: k for k, v in conversions.items()}
+
 
 class proxy:
     def delegate(self, *args):
@@ -59,12 +70,19 @@ class proxy:
         else:
             self.data = None
 
-        headers = dict((k[len('HTTP_'):].replace('-', '_').lower(), v) for k, v in web.ctx.environ.items())
+        headers = {
+            k[len('HTTP_') :].replace('-', '_').lower(): v
+            for k, v in web.ctx.environ.items()
+        }
 
         self.before_request()
         try:
             server = web.config.infobase_server
-            req = urllib.request.Request(server + self.path + '?' + urllib.parse.urlencode(self.input), self.data, headers=headers)
+            req = urllib.request.Request(
+                server + self.path + '?' + urllib.parse.urlencode(self.input),
+                self.data,
+                headers=headers,
+            )
             req.get_method = lambda: web.ctx.method
             response = urllib.request.urlopen(req)
         except urllib.error.HTTPError as e:
@@ -82,7 +100,7 @@ class proxy:
         else:
             self.process_error()
 
-        web.ctx.status = "%s %s" % (self.status_code, self.status_msg)
+        web.ctx.status = f"{self.status_code} {self.status_msg}"
         web.ctx.headers = self.headers.items()
         return self.output
 
@@ -108,10 +126,10 @@ class proxy:
 
 def convert_key(key, mapping=None):
     """
-        >>> convert_key("/authors/OL1A", {'/authors/': '/a/'})
-        '/a/OL1A'
+    >>> convert_key("/authors/OL1A", {'/authors/': '/a/'})
+    '/a/OL1A'
     """
-    mapping = mapping or convertions
+    mapping = mapping or conversions
     if key is None:
         return None
     elif key == '/':
@@ -119,17 +137,17 @@ def convert_key(key, mapping=None):
 
     for new, old in mapping.items():
         if key.startswith(new):
-            key2 = old + key[len(new):]
+            key2 = old + key[len(new) :]
             return key2
     return key
 
 
 def convert_dict(d, mapping=None):
     """
-        >>> convert_dict({'author': {'key': '/authors/OL1A'}}, {'/authors/': '/a/'})
-        {'author': {'key': '/a/OL1A'}}
+    >>> convert_dict({'author': {'key': '/authors/OL1A'}}, {'/authors/': '/a/'})
+    {'author': {'key': '/a/OL1A'}}
     """
-    mapping = mapping or convertions
+    mapping = mapping or conversions
     if isinstance(d, dict):
         if 'key' in d:
             d['key'] = convert_key(d['key'], mapping)
@@ -141,19 +159,22 @@ def convert_dict(d, mapping=None):
     else:
         return d
 
+
 def unconvert_key(key):
     if key == '/upstream':
         return '/'
     return convert_key(key, iconversions)
 
+
 def unconvert_dict(d):
     return convert_dict(d, iconversions)
 
+
 class get(proxy):
     def before_request(self):
-        i = self.input
-        if 'key' in i:
+        if 'key' in (i := self.input):
             i.key = convert_key(i.key)
+
 
 class get_many(proxy):
     def before_request(self):
@@ -165,8 +186,9 @@ class get_many(proxy):
 
     def after_request(self):
         d = json.loads(self.output)
-        d = dict((unconvert_key(k), unconvert_dict(v)) for k, v in d.items())
+        d = {unconvert_key(k): unconvert_dict(v) for k, v in d.items()}
         self.output = json.dumps(d)
+
 
 class things(proxy):
     def before_request(self):
@@ -176,13 +198,14 @@ class things(proxy):
 
             def convert_keys(q):
                 if isinstance(q, dict):
-                    return dict((k, convert_keys(v)) for k, v in q.items())
+                    return {k: convert_keys(v) for k, v in q.items()}
                 elif isinstance(q, list):
                     return [convert_keys(x) for x in q]
-                elif isinstance(q, six.string_types):
+                elif isinstance(q, str):
                     return convert_key(q)
                 else:
                     return q
+
             self.input.query = json.dumps(convert_keys(q))
 
     def after_request(self):
@@ -195,6 +218,7 @@ class things(proxy):
                 d = [unconvert_key(key) for key in d]
 
             self.output = json.dumps(d)
+
 
 class versions(proxy):
     def before_request(self):
@@ -215,6 +239,7 @@ class versions(proxy):
                 v['key'] = unconvert_key(v['key'])
             self.output = json.dumps(d)
 
+
 class new_key(proxy):
     def after_request(self):
         if self.output:
@@ -222,12 +247,14 @@ class new_key(proxy):
             d = unconvert_key(d)
             self.output = json.dumps(d)
 
+
 class save(proxy):
     def before_request(self):
-        self.path = '/%s/save%s' % (self.args[0], convert_key(self.args[1]))
+        self.path = f'/{self.args[0]}/save{convert_key(self.args[1])}'
         d = json.loads(self.data)
         d = convert_dict(d)
         self.data = json.dumps(d)
+
 
 class save_many(proxy):
     def before_request(self):
@@ -238,6 +265,7 @@ class save_many(proxy):
             i['query'] = json.dumps(q)
             self.data = urllib.parse.urlencode(i)
 
+
 class reindex(proxy):
     def before_request(self):
         i = web.input(_method="POST")
@@ -246,20 +274,24 @@ class reindex(proxy):
             i['keys'] = json.dumps(keys)
             self.data = urllib.parse.urlencode(i)
 
+
 class account(proxy):
     def before_request(self):
         i = self.input
         if 'username' in i and i.username.startswith('/'):
             i.username = convert_key(i.username)
 
+
 def main():
     import sys
     import os
+
     web.config.infobase_server = sys.argv[1].rstrip('/')
     os.environ['REAL_SCRIPT_NAME'] = ''
 
     sys.argv[1:] = sys.argv[2:]
     app.run()
+
 
 if __name__ == '__main__':
     main()

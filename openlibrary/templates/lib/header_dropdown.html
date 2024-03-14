@@ -1,0 +1,82 @@
+$def with (props, track_prefix=None)
+$# @typedef {Object} DropdownLink
+$# @property {string} text of link
+$# @property {string|null} href of link for HTTP get request
+$# @property {string|null} post when set will be used instead of href and should use HTTP POST request.
+$# @property {string|null} `track` event label for google analytics
+$# @property {string|null} subheading that will appear below the link text
+$#
+$# @param {Object} props template properties
+$# @param {string} props.name unique identifying name for dropdown and distinguishing it from other dropdowns
+$# @param {string} props.label for menu, also used as alt text for dropdown icon when props.image is set
+$# @param {string|null} props.image URL for image (optional)
+$# @param {DropdownLink[]} props.links
+$ singleton = len(props.get('links', [])) == 1
+$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
+
+<div class="$(props['name'])-component header-dropdown">
+  $if singleton:
+    $ link = props['links'][0]
+    $ tracker = 'data-ol-link-track=%s|%s' % (track_prefix, link['track']) if (track_prefix and link.get('track')) else ''
+    <a href="$link['href']" $tracker>$(props['label'])</a>
+  $else:
+    <details>
+      <summary $:cond(props['name'] == 'hamburger', 'data-ol-link-track="HeaderBar|Hamburger"')>
+        $if props['name'] == 'hamburger' and ctx.user:
+            <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="$('My account')" title="$(ctx.user.key.split('/')[-1])&#10;$_('Joined %(date)s', date=datestr(ctx.user.created))">
+            $if is_privileged_user and cached_get_counts_by_mode(mode='open') > 0:
+              <span class="mr-notifications">$(cached_get_counts_by_mode(mode='open'))</span>
+            <img class="$(props['image-class']) logged" src="$(props['image'])" alt="$(props['label'])"/>
+        $elif 'image' in props:
+            <img class="$(props['image-class'])" src="$(props['image'])" alt="$(props['label'])"/>
+        $elif 'label' in props:
+            $(props['label'])
+            <span class="shift">$_('Menu')</span>
+
+        <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation" width="7" height="4">
+      </summary>
+      $if 'show_mask' in props:
+        <div class="mask-menu"></div>
+      <div
+      $if props['name'] == 'hamburger':
+        class="app-drawer"
+      $elif not singleton:
+        class="$(props['name'])-dropdown-component navigation-dropdown-component"
+      >
+        <ul class="dropdown-menu $(props['name'])-dropdown-menu">
+          $for link in props['links']:
+            $ tracker = 'data-ol-link-track=%s|%s' % (track_prefix, link['track']) if (track_prefix and link.get('track')) else ''
+            $if 'subsection' in link:
+              <li class="subsection">
+                $(link['subsection'])
+              </li>
+            $elif 'loginClass' in link:
+              <li class="$(link['loginClass'])">
+                <a class="login-links__secondary" href="/account/login">$_('Log In')</a>
+                <a class="login-links__primary" href="/account/create">$_('Sign Up')</a>
+              </li>
+            $else:
+              <li>
+              $if 'post' in link:
+                $ name = 'name=%s' % link['name'] if 'name' in link else ''
+                <form $name action="$(link['post'])" method="post">
+                  <button $(tracker)>$(link["text"])</button>
+                </form>
+              $else:
+                $if is_privileged_user:
+                  $if 'badge' in link and cached_get_counts_by_mode(mode='open') > 0:
+                    <div class="app-drawer__badge">$(cached_get_counts_by_mode(mode='open'))</div>
+                <a href="$(link['href'])" $(tracker)>
+                  $if 'new' in link and props['name'] == 'hamburger':
+                    <span>$(link['text'])</span><span class="app-drawer__badge">$_('New!')</span>
+                  $else:
+                    $(link['text'])
+                    $if 'subheading' in link:
+                      <br>
+                      <i class="subheading">$(link['subheading'])</i>
+                </a>
+              </li>
+        </ul>
+      </div>
+    </details>
+</div>

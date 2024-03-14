@@ -1,7 +1,7 @@
 $def with (work, book)
 
 $ edition_config = get_edition_config()
-$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
+$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
 
 $def radiobuttons(name, options, value):
     $for v in options:
@@ -17,34 +17,34 @@ $jsdef render_language_autocomplete_item(item):
     </div>
 
 $# Render the ith language input field
-$jsdef render_language_field(i, language):
-    <div class="input">
-      <input name="languages--$i" class="language language-autocomplete" type="text" id="language-$i" value="$language.name"/>
-      <input name="edition--languages--$i--key" type="hidden" id="language-$i-key" value="$language.key" />
-      <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this language')">[x]</a>
-      <br/><a href="javascript:;" class="add small">Add another language?</a>
+$jsdef render_language_field(i, language, i18n_name):
+    $ lang_name = i18n_name or language.name
+    <div class="input ac-input mia__input">
+      <div class="mia__reorder">≡</div>
+      <input class="ac-input__visible" name="languages--$i" type="text" value="$lang_name"/>
+      <input class="ac-input__value" name="edition--languages--$i--key" type="hidden" value="$language.key" />
+      <a class="mia__remove" href="javascript:;" title="$_('Remove this language')">[x]</a>
     </div>
 
 $# Render the ith translated_from language input field
-$jsdef render_translated_from_language_field(i, language):
-    <div class="input">
-      <input type="text" name="translated_from--$i" class="language language-autocomplete" id="edition-translated_from-$i" value="$language.name"/>
-      <input type="hidden" name="edition--translated_from--$i--key"  id="edition-translated_from-$i-key" value="$language.key" />
-      <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this language')">[x]</a>
-      $# Limit to only 1
-      $# <br/><a href="javascript:;" class="add small">Add another language?</a>
+$jsdef render_translated_from_language_field(i, language, i18n_name):
+    $ lang_name = i18n_name or language.name
+    <div class="input ac-input">
+      <input class="ac-input__visible" type="text" name="translated_from--$i" value="$lang_name"/>
+      <input class="ac-input__value" type="hidden" name="edition--translated_from--$i--key" value="$language.key" />
     </div>
 
 
 $# Render the ith work input field
 $jsdef render_work_field(i, work):
-    <div class="input">
-        <input name="works--$i" class="work work-autocomplete" type="text" id="work-$i" value="$work.key.split('/')[-1]"/>
-        <input name="edition--works--$i--key" type="hidden" id="work-$i-key" value="$work.key" />
-        <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this work')">[x]</a>
-        $# Limit to only 1
-        $# <a href="javascript:;" class="add hidden">Add another work?</a>
+    <div class="input ac-input">
+        <input class="ac-input__visible" name="works--$i" type="text" value="$work.key.split('/')[-1]"/>
+        <input class="ac-input__value" name="edition--works--$i--key" type="hidden" value="$work.key" />
+        <a class="mia__remove hidden" href="javascript:;" title="$_('Remove this work')">[x]</a>
     </div>
+
+$# Import the side-effect of the jsdef function
+$:render_template('jsdef/LazyWorkPreview', None)
 
 $jsdef render_work_autocomplete_item(item):
     $if item.key == "__new__":
@@ -52,81 +52,31 @@ $jsdef render_work_autocomplete_item(item):
             <span class="action">$_('-- Move to a new work')</span>
         </div>
     $else:
-        <div class="ac_work" title="Select this work">
-            <div class="cover">
-                $if item.cover_i:
-                    <img src="https://covers.openlibrary.org/b/id/$(item.cover_i)-M.jpg" alt="Cover of $item.title">
-            </div>
-            <span class="olid">$item.key.split('/')[2]</span>
-            <span class="name">
-                <span class="title">$item.full_title</span>
-                $if item.first_publish_year:
-                <span class="first_publish_year">($item.first_publish_year)</span>
-            </span>
-            <span class="byline">
-                $if item.author_name:
-                    by <span class="authors">${', '.join(item.author_name)}</span>
-            </span>
-            &bull;
-            $if item.edition_count == 1:
-                <span class="edition_count">$item.edition_count edition</span>
-            $else:
-                <span class="edition_count">$item.edition_count editions</span>
-        </div>
+        $:render_lazy_work_preview(item)
 
-<script type="text/javascript">
-window.q.push(function() {
-    \$("#languages").setup_multi_input_autocomplete(
-        "input.language-autocomplete",
-        render_language_field,
-        { endpoint: "/languages/_autocomplete" },
-        {
-            max: 6,
-            formatItem: render_language_autocomplete_item
-        });
-
-    \$("#translated_from_languages").setup_multi_input_autocomplete(
-        "input.language-autocomplete",
-        render_translated_from_language_field,
-        { endpoint: "/languages/_autocomplete" },
-        {
-            max: 6,
-            formatItem: render_language_autocomplete_item
-        });
-
-    \$("#works").setup_multi_input_autocomplete(
-        "input.work-autocomplete",
-        render_work_field,
-        {
-            endpoint: "/works/_autocomplete",
-            addnew: $cond(is_privileged_user, 'true', 'false'),
-            new_name: '$_('-- Move to a new work')',
-        },
-        {
-            minChars: 2,
-            max: 11,
-            matchSubset: false,
-            autoFill: false,
-            formatItem: render_work_autocomplete_item
-        });
-});
-</script>
 
 <fieldset class="major">
     <legend>$_("This Edition")</legend>
 
     <div class="formBack">
 
-       
+
 
     <div class="formBackLeft">
         <div class="formElement">
             <div class="label">
-                <label for="edition-title">Title</label>
+                <label for="edition-title">$_('Title')</label>
                 <span class="tip">$_("Enter the title of this specific edition.")</span>
             </div>
             <div class="input">
-                <input type="text" name="edition--title" id="edition-title" value="$book.title"/>
+                <input
+                    type="text"
+                    name="edition--title"
+                    id="edition-title"
+                    value="$book.title"
+                    $# Prevent erasure of edition title
+                    $cond(book.title, 'required', '')
+                />
                 <input type="hidden" name="edition--title_prefix" value=""/>
             </div>
         </div>
@@ -141,8 +91,8 @@ window.q.push(function() {
         </div>
         <fieldset class="major">
             <legend>$_("Publishing Info")</legend>
-        
-        
+
+
                 <div class="formElement">
                     <div class="label">
                         <label for="edition-publishers">$_("Who is the publisher?")</label>
@@ -162,7 +112,7 @@ window.q.push(function() {
                         <input type="text" name="edition--publish_places" id="edition-publish_places" value="$'; '.join(book.publish_places)"/>
                     </div>
                 </div>
-        
+
                 <div class="formElement">
                     <div class="label">
                         <label for="edition-publish_date">$_("When was it published?")</label>
@@ -172,10 +122,10 @@ window.q.push(function() {
                         <input type="text" name="edition--publish_date" id="edition-publish_date" value="$book.publish_date"/>
                     </div>
                 </div>
-        
-               
-        
-        
+
+
+
+
                 <div class="formElement">
                     <div class="label">
                         <label for="edition-copyright_date">$_("What is the copyright date?")</label>
@@ -195,7 +145,7 @@ window.q.push(function() {
                         <input type="text" name="edition--edition_name" id="edition-edition_name" value="$book.edition_name"/>
                     </div>
                 </div>
-        
+
                 <div class="formElement">
                     <div class="label">
                         <label for="edition-series">$_("Series Name (if applicable)")</label>
@@ -207,9 +157,9 @@ window.q.push(function() {
                 </div>
         </fieldset>
 
-        
 
-        
+
+
 
     </div>
 
@@ -222,20 +172,20 @@ window.q.push(function() {
 
     <div class="clearfix"></div>
 
-       
+
 
         <div class="clearfix"></div>
 
         <fieldset class="minor formBackLeft">
             <legend>$_("Contributors")</legend>
 
-            <div class="formElement" id="roles">
+            <div class="formElement" id="roles" data-config="$dumps({'Please select a role.': _('Please select a role.'), 'You need to give this ROLE a name.': _('You need to give this ROLE a name.')})">
                 <div class="label">
                     <label for="select-role">$_("List the people involved")</label>
                     <span class="tip"></span>
                 </div>
                 <div class="input">
-                    <div id="role-errors" class="note hidden"></div>
+                    <div id="role-errors" class="note" style="display: none"></div>
                     <table class="identifiers">
                     <tbody>
                         <tr id="roles-form">
@@ -271,7 +221,7 @@ window.q.push(function() {
                             $ work = book.works[0]
                             $for i, a in enumerate(work.get_authors()):
                                 <tr class="repeat-item">
-                                    <td align="right"><strong>Author</strong></td>
+                                    <td align="right"><strong>$_('Author')</strong></td>
                                     <td>$a.name</td>
                                     <td></td>
                                 </tr>
@@ -302,18 +252,19 @@ window.q.push(function() {
 
         <fieldset class="minor formBackRight">
 
-            <legend>Languages</legend>
+            <legend>$_('Languages')</legend>
 
-            <div class="formElement" id="languages">
+            <div class="formElement multi-input-autocomplete--language">
                 <div class="label">
                     <label for="edition-language">$_("What language is this edition written in?")</label>
                     <span class="tip"></span>
                 </div>
                 $if book.languages:
                     $for i, lang in enumerate(book.languages):
-                        $:render_language_field(i, lang)
+                        $:render_language_field(i, lang, get_language_name(lang))
                 $else:
-                    $:render_language_field(0, storage(name="", key=""))
+                    $:render_language_field(0, storage(name="", key=""), None)
+                <a href="javascript:;" class="mia__add small">$_('Add another language?')</a>
             </div>
 
             <div class="formElement" id="translated-from">
@@ -331,11 +282,11 @@ window.q.push(function() {
 
                 <div class="input">
                     <br/>
-                    <input type="radio" name="edition--translation" id="is-translation" value="no" $checked_no  onclick="\$('.transYes').customFadeOut();"/>
+                    <input type="radio" name="edition--translation" id="is-translation" value="no" $checked_no  onclick="\$('.transYes').fadeOut();"/>
                     <label for="is-translation">$_("No")</label>
                 </div>
                 <div class="input">
-                    <input type="radio" name="edition--translation" id="is-translation2" value="yes" $checked_yes onclick="\$('.transYes').customFadeIn();"/>
+                    <input type="radio" name="edition--translation" id="is-translation2" value="yes" $checked_yes onclick="\$('.transYes').fadeIn();"/>
                     <label for="is-translation2">$_("Yes, it's a translation")</label>
                 </div>
 
@@ -348,15 +299,15 @@ window.q.push(function() {
                     </div>
                 </div>
 
-                <div class="transYes" id="translated_from_languages" style="$style_hidden">
+                <div class="transYes multi-input-autocomplete--language" style="$style_hidden">
                     <div class="label">
                         <label for="edition-translated_from"><span class="tip">$_("What language was the original written in?")</span></label>
                     </div>
                     $if book.translated_from:
                         $for i, lang in enumerate(book.translated_from):
-                            $:render_translated_from_language_field(i, lang)
+                            $:render_translated_from_language_field(i, lang, get_language_name(lang))
                     $else:
-                        $:render_translated_from_language_field(0, storage(name="", key=""))
+                        $:render_translated_from_language_field(0, storage(name="", key=""), None)
                 </div>
 
             </div>
@@ -372,13 +323,13 @@ window.q.push(function() {
                 <span class="tip">$_("Only if it's different from the work's description")</span>
             </div>
             <div class="input">
-                <textarea name="edition--description" id="edition-description" rows="3" cols="50">$book.description</textarea>
+                <textarea name="edition--description" class="markdown" id="edition-description" rows="3" cols="50">$book.description</textarea>
             </div>
         </div>
 
         <div class="formElement">
             <div class="label">
-                <label for="edition-toc">Table of Contents</label>
+                <label for="edition-toc">$_('Table of Contents')</label>
                 <span class="tip">$:_('Use a "*" for an indent, a "|" to add a column, and line breaks for new lines. Like this:')</span><br/><br/>
         <pre class="smaller gray"> * Part 1 | THIS WORLD | 1
         ** Chapter 1 | Of the Nature of Flatland | 3
@@ -427,7 +378,8 @@ window.q.push(function() {
                     $_("WARNING: Any edits made to the work from this page will be ignored.")
                 </span>
             </div>
-            <div id="works">
+            $ config = {'addnew': is_privileged_user, 'new_name': _('-- Move to a new work')}
+            <div class="multi-input-autocomplete--works" data-config="$dumps(config)">
                 $if book.works:
                     $for i, work in enumerate(book.works):
                         $:render_work_field(i, work)
@@ -439,8 +391,16 @@ window.q.push(function() {
     </div>
 
 </fieldset>
-
-<fieldset class="major" id="identifiers">
+$ config = ({
+    $ 'Please select an identifier.': _('Please select an identifier.'),
+    $ 'You need to give a value to ID.': _('You need to give a value to ID.'),
+    $ 'ID ids cannot contain whitespace.': _('ID ids cannot contain whitespace.'),
+    $ 'ID must be exactly 10 characters [0-9] or X.': _('ID must be exactly 10 characters [0-9] or X.'),
+    $ 'That ID already exists for this edition.': _('That ID already exists for this edition.'),
+    $ 'ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4': _('ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4'),
+    $ 'Invalid ID format': _('Invalid ID format')
+$ })
+<fieldset class="major" id="identifiers" data-config="$dumps(config)">
     <legend>$_("ID Numbers")</legend>
     <div class="formBack">
 
@@ -457,19 +417,24 @@ window.q.push(function() {
                             <select name="name" id="select-id">
                             $ id_labels = dict((d.name, d.label) for d in edition_config.identifiers)
                             $ id_dict = dict((id.name, id) for id in edition_config.identifiers)
- 							$ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "oclc_numbers", "goodreads", "librarything"]
-							$ set1 = [id_dict[name] for name in popular if name in id_dict]
-                            $ set2 = sorted([id for id in edition_config.identifiers if id.name not in popular], key=lambda id:id.label)
+                            $ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "librivox", "oclc_numbers", "project_gutenberg"]
+                            $if is_privileged_user:
+                                $ exclude = []
+                            $else:
+                                $ exclude = ["ocaid"]
 
-                                <option value="">Select one of many...</option>
-                                $for id in set1:
-                                    <option value="$id.name">$id.label</option>
-                                <optgroup label="----------"></optgroup>
-                                $for id in set2:
-                                    <option value="$id.name">$id.label</option>
+                            $ set1 = [id_dict[name] for name in popular if name in id_dict and name not in exclude]
+                            $ set2 = sorted([id for id in edition_config.identifiers if id.name not in popular and id.name not in exclude], key=lambda id:id.label)
 
-                                <!-- <option>---</option> -->
-                                <!-- <option value="__add__">Add a new ID type</option> -->
+                            <option value="">$_('Select one of many...')</option>
+                            $for id in set1:
+                                <option value="$id.name">$id.label</option>
+                            <optgroup label="----------"></optgroup>
+                            $for id in set2:
+                                <option value="$id.name">$id.label</option>
+
+                            <!-- <option>---</option> -->
+                            <!-- <option value="__add__">Add a new ID type</option> -->
                             </select>
                         </td>
                         <td>
@@ -481,10 +446,10 @@ window.q.push(function() {
                     </tr>
                     <tbody id="identifiers-display">
                         <tr id="identifiers-template" style="display: none;" class="repeat-item">
-                            <td align="right"><strong>{{\$("#select-id").find("option[value=" + name + "]").html()}}</strong></td>
-                            <td width="380">{{value}}
+                            <td align="right"><strong>{{\$("#select-id").find("option[value='" + name + "']").html()}}</strong></td>
+                            <td>{{value}}
                                 <input type="hidden" name="{{prefix}}identifiers--{{index}}--name" value="{{name}}"/>
-                                <input type="hidden" name="{{prefix}}identifiers--{{index}}--value" value="{{value}}"/>
+                                <input type="hidden" name="{{prefix}}identifiers--{{index}}--value" value="{{value}}" class="{{name}}"/>
                             </td>
                             <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
                         </tr>
@@ -498,11 +463,10 @@ window.q.push(function() {
                             <td align="right"><strong>$id_labels.get(id.name, id.name)</strong></td>
                             <td>$id.value
                                 <input type="hidden" name="edition--identifiers--${i}--name" value="$id.name"/>
-                                <input type="hidden" name="edition--identifiers--${i}--value" value="$id.value"/>
+                                <input type="hidden" name="edition--identifiers--${i}--value" value="$id.value" class="$id.name"/>
                             </td>
                             $# Disable removing ocaid for regular users.
-                            $ admin_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
-                            $if id.name == "ocaid" and not admin_user:
+                            $if id.name == "ocaid" and not is_privileged_user:
                                 <td></td>
                             $else:
                                 <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
@@ -514,11 +478,11 @@ window.q.push(function() {
     </div>
 </fieldset>
 
-<fieldset class="major" id="classifications">
+<fieldset class="major" id="classifications" data-config="$dumps({'Please select a classification.': _('Please select a classification.'), 'You need to give a value to CLASS.': _('You need to give a value to CLASS.')})">
     <legend>$_("Classifications")</legend>
     <div class="formBack">
 
-        <div id="classification-errors" class="note hidden"></div>
+        <div id="classification-errors" class="note" style="display: none"></div>
         <div class="formElement">
             <div class="label">
                 <label for="select-classification">$_("Do you know any classifications of this edition?")</label>
@@ -547,8 +511,8 @@ window.q.push(function() {
                     </tr>
                     <tbody id="classifications-display">
                         <tr id="classifications-template" style="display: none;" class="repeat-item">
-                            <td align="right"><strong>{{\$("#select-classification").find("option[value=" + name + "]").html()}}</strong></td>
-                            <td width="380">{{value}}
+                            <td align="right"><strong>{{\$("#select-classification").find("option[value='" + name + "']").html()}}</strong></td>
+                            <td>{{value}}
                                 <input type="hidden" name="{{prefix}}classifications--{{index}}--name" value="{{name}}"/>
                                 <input type="hidden" name="{{prefix}}classifications--{{index}}--value" value="{{value}}"/>
                             </td>
@@ -625,7 +589,7 @@ window.q.push(function() {
 
             <fieldset class="minor formBackRight">
                 <legend>$_("Dimensions")</legend>
-                $ dimensions = book.get_physical_dimensions() or storage(height="", width="", depth="", units="inches")
+                $ dimensions = book.get_physical_dimensions() or storage(height="", width="", depth="", units="centimeters")
                   <span class="tip">
                     $:radiobuttons("edition--physical_dimensions--units", ["centimeters", "inches"], dimensions.units)
                   </span>
@@ -659,18 +623,54 @@ window.q.push(function() {
 
 </fieldset>
 
-$if ctx.user and ctx.user.is_admin():
-    <fieldset class="major adminOnly">
-        <legend>$_("Admin Only")</legend>
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-first_sentence">$_("Additional Metadata")</label>
-                <span class="tip">This field can accept arbitrary key:value pairs</span>
-            </div>
-            <div class="input">
-                <textarea name="additional_metadata" id="additional_metadata" rows="15" cols="50">foo:bar</textarea>
-            </div>
-        </div>
+$code:
+    def is_selected(actual, selected):
+        if actual == selected:
+            return True
+        return False
+
+$if is_privileged_user:
+    $ extra_class = ' hidden' if len(book.providers) == 0 else ''
+    $ provider_index = 0
+    <fieldset class="major">
+        <legend>$_('Web Book Providers')</legend>
+        <table class="provider-table $extra_class" id="provider-table">
+            <thead>
+                <tr>
+                    <th>$_("Book URL")</th>
+                    <th>$_("Access Type")</th>
+                    <th>$_("File Format")</th>
+                    <th>$_("Provider Name")</th>
+                </tr>
+            </thead>
+            <tbody id="provider-table-body">
+                $for i, d in enumerate(book.providers):
+                    <tr>
+                        <td><input name="edition--providers--${i}--url" id="edition--providers--${i}--url" type="url" value="$d.url"></td>
+                        <td>
+                            <select name="edition--providers--${i}--access" id="edition--providers--${i}--access" autocomplete="off">
+                                <option value=""></option>
+                                <option value="read" $cond(is_selected(d.access, 'read'), 'selected')>$_("Read")</option>
+                                <option value="listen" $cond(is_selected(d.access, 'listen'), 'selected')>$_("Listen")</option>
+                                <option value="buy" $cond(is_selected(d.access, 'buy'), 'selected')>$_("Buy")</option>
+                                <option value="borrow" $cond(is_selected(d.access, 'borrow'), 'selected')>$_("Borrow")</option>
+                                <option value="preview" $cond(is_selected(d.access, 'preview'), 'selected')>$_("Preview")</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select name="edition--providers--${i}--format" id="edition--providers--${i}--format" autocomplete="off">
+                                <option value=""></option>
+                                <option value="web" $cond(is_selected(d.format, 'web'), 'selected')>$_("Web")</option>
+                                <option value="epub" $cond(is_selected(d.format, 'epub'), 'selected')>$_("ePub")</option>
+                                <option value="pdf" $cond(is_selected(d.format, 'pdf'), 'selected')>$_("PDF")</option>
+                            </select>
+                        </td>
+                        <td><input name="edition--providers--${i}--provider_name" id="edition--providers--${i}--provider_name" value="$d.provider_name"></td>
+                    </tr>
+                    $ provider_index = provider_index + 1
+            </tbody>
+        </table>
+        <a href="javascript:;" id="add-new-provider-row" data-index="$provider_index">$_("Add a provider")</a>
     </fieldset>
 
 $if ctx.user:
@@ -678,7 +678,7 @@ $if ctx.user:
         <div class="formElement">
             <div class="label">
                 <label for="edition-first_sentence">$_("First sentence")</label>
-                <span class="tip"></span>
+                <span class="tip">$_('The opening line that starts the lead paragraph')</span>
             </div>
             <div class="input">
                 <textarea name="edition--first_sentence" id="edition-first_sentence" rows="3" cols="50">$book.first_sentence</textarea>
@@ -686,77 +686,16 @@ $if ctx.user:
         </div>
     </fieldset>
 
-<script type="text/javascript">
-<!--
-    window.q.push(function() {
-        // FIXME: Error code duplicated in various templates.
-        // Should be pushed into a macro.
-        function error(errordiv, input, message) {
-            \$(errordiv).show().html(message);
-            \$(input).focus();
-            return false;
-        }
-
-        \$("#roles").repeat({
-            vars: {
-                "prefix": "edition--"
-            },
-            validate: function(data) {
-                if (data.role == "" || data.role == "---") {
-                    return error("#role-errors", "#select-role", "$_('Please select a role.')");
-                }
-
-                if (data.name == "") {
-                    return error("#role-errors", "#role-name", "$_('You need to give this ROLE a name.')".replace(/ROLE/, data.role));
-                }
-
-                \$("#role-errors").hide();
-                return true;
-            }
-        });
-        \$("#identifiers").repeat({
-            vars: {
-                "prefix": "edition--"
-            },
-            validate: function(data) {
-                if (data.name == "" || data.name == "---") {
-                    return error("#id-errors", "select-id", "$_('Please select an identifier.')")
-                }
-                var label = \$("#select-id").find("option[value=" + data.name + "]").html();
-                if (data.value == "") {
-                    return error("#id-errors", "id-value", "$_('You need to give a value to ID.')".replace(/ID/, label));
-                }
-                if (['ocaid'].includes(data.name) && /\s/g.test(data.value)) {
-                    return error("#id-errors", "id-value", "$_('ID ids cannot contain whitespace.')".replace(/ID/, label));
-                }
-                if (data.name == "isbn_10" && data.value.length != 10) {
-                    return error("#id-errors", "id-value", "$_('ID must be exactly 10 characters [0-9] or X.')".replace(/ID/, label));
-                }
-                if (data.name == "isbn_13" && data.value.replace(/-/g,'').length != 13) {
-                    return error("#id-errors", "id-value", "$_('ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4')".replace(/ID/, label));
-                }
-                \$("id-errors").hide();
-                return true;
-            }
-        });
-        \$("#classifications").repeat({
-            vars: {
-                "prefix": "edition--"
-            },
-            validate: function(data) {
-                if (data.name == "" || data.name == "---") {
-                    return error("#classification-errors", "#select-classification", "$_('Please select a classification.')");
-                }
-
-                if (data.value == "") {
-                    var label = \$("#select-classification").find("option[value=" + data.name + "]").html();
-                    return error("#classification-errors", "#classification-value", "$_('You need to give a value to CLASS.')".replace(/CLASS/, label));
-                }
-
-                \$("#classification-errors").hide();
-                return true;
-            }
-        });
-    });
-//-->
-</script>
+$if ctx.user and ctx.user.is_admin():
+    <fieldset class="major adminOnly">
+        <legend>$_("Admin Only")</legend>
+        <div class="formElement">
+            <div class="label">
+                <label for="additional_metadata">$_("Additional Metadata")</label>
+                <span class="tip">$_('This field can accept arbitrary key:value pairs')</span>
+            </div>
+            <div class="input">
+                <textarea name="additional_metadata" id="additional_metadata" rows="4" placeholder="foo:bar"></textarea>
+            </div>
+        </div>
+    </fieldset>

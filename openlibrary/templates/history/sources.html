@@ -1,7 +1,9 @@
 $code:
     names = {
+        "marc_dnb_202006": "Deutsche Nationalbibliothek",
         "marc_loc_updates": "Library of Congress",
         "marc_loc_2016": "Library of Congress",
+        "marc_loc_2019": "Library of Congress",
         "marc_records_scriblio_net": "Scriblio",
         "talis_openlibrary_contribution": "Talis",
         "unc_catalog_marc": "University of North Carolina",
@@ -31,12 +33,18 @@ $code:
         if item.startswith("ia:"):
             source_name = "Internet Archive"
             source_url = "//archive.org/details/" + item[3:]
+        elif item.startswith("promise:"):
+            source_name = "Promise Item"
+            source_url = "https://archive.org/details/" + item[8:]
         elif item.startswith("amazon:"):
             source_name = "amazon.com"
             source_url = "https://www.amazon.com/?tag=" + affiliate_id('amazon')
         elif item.startswith("bwb:"):
             source_name = "Better World Books"
             source_url = "https://www.betterworldbooks.com/"
+        elif item.startswith("idb:"):
+            source_name = "ISBNdb"
+            source_url = "https://isbndb.com/"
         else:
             source_name = names.get(item, item)
             source_url = "//archive.org/details/" + item

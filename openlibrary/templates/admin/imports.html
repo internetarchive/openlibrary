@@ -1,10 +1,17 @@
 $def with (stats)
 $var title: Imports
 
+$ recache = query_param('recache', False)
+
+$ component_times = {}
+$ component_times['TotalTime'] = time()
+
 <div id="contentHead">
-    $:render_template("admin/menu")
+    $if ctx.user and ctx.user.is_admin():
+      $:render_template("admin/menu")
     <h1>Imports</h1>
-    <div><a href="/admin/imports/add">Add new books to import queue</a></div>
+    $if ctx.user and ctx.user.is_admin():
+      <div><a href="/admin/imports/add">Add new books to import queue</a></div>
 </div>
 
 <div id="contentBody">
@@ -17,11 +24,15 @@ $var title: Imports
 
     <h2>Summary</h2>
     <p>
-        $ pending_count = stats.get_count(status='pending')
+        $ component_times['stats.get_count'] = time()
+        $ pending_count = stats.get_count(status='pending', use_cache=not recache)
+        $ component_times['stats.get_count'] = time() - component_times['stats.get_count']
         <strong>Pending Items:</strong> $pending_count
     </p>
     <p>
+        $ component_times['stats.get_imports_per_hour'] = time()
         $ rate = stats.get_imports_per_hour()
+        $ component_times['stats.get_imports_per_hour'] = time() - component_times['stats.get_imports_per_hour']
         <strong>Current Import Rate:</strong> $rate imports/hour.
     </p>
     <p>
@@ -42,7 +53,10 @@ $var title: Imports
             <th>#books failed to import</th>
             <th>#books pending</th>
         </tr>
-        $for date, counts in stats.get_count_by_date_status():
+	$ component_times['stats.get_count_by_date_status'] = time()
+	$ status_counts = stats.get_count_by_date_status(use_cache=not recache)
+	$ component_times['stats.get_count_by_date_status'] = time() - component_times['stats.get_count_by_date_status']
+        $for date, counts in status_counts:
             <tr>
                 <td><a href="/admin/imports/$date">$date</a></td>
                 <td>$sum(counts.values())</td>
@@ -64,7 +78,10 @@ $var title: Imports
             <th>Added Time</th>
             <th>Imported Time</th>
         </tr>
-        $for row in stats.get_items(order="import_time desc", limit=20):
+        $ component_times['stats.get_items'] = time()
+	$ import_items = stats.get_items(order="import_time desc", limit=20)
+        $ component_times['stats.get_items'] = time() - component_times['stats.get_items']
+        $for row in import_items:
             <tr>
                 <td>$loop.index</td>
                 <td><a href="//archive.org/details/$row.ia_id">$truncate(row.ia_id, 40)</a></td>
@@ -81,7 +98,10 @@ $var title: Imports
             </tr>
     </table>
 </div>
-<script type="text/json+graph" id="json-books-imported-daily">$:json_encode(stats.get_books_imported_per_day())</script>
+
+$ component_times['stats.get_books_imported_per_day'] = time()
+<script type="text/json+graph" id="graph-json-books-added-per-day">$:json_encode(stats.get_books_imported_per_day(use_cache=not recache))</script>
+$ component_times['stats.get_books_imported_per_day'] = time() - component_times['stats.get_books_imported_per_day']
 
 <style type="text/css">
 div.graph, div.chart{
@@ -100,3 +120,7 @@ div.pie {
     left:-85px;
 }
 </style>
+
+$ component_times['TotalTime'] = time() - component_times['TotalTime']
+$if query_param('debug'):
+  $:macros.Profile(component_times)

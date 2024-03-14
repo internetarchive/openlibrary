@@ -1,4 +1,5 @@
 import Template from './template'
+import { isbnOverride } from '../../openlibrary/js/isbnOverride'
 
 /**
  * jquery repeat: jquery plugin to handle repetitive inputs in a form.
@@ -38,25 +39,25 @@ export default function($){
         /**
          * Search elems.form for input fields and create an
          * object representing.
-         * This function has side effects and will reset any
-         * input[type=text] fields it has found in the process
          * @return {object} data mapping names to values
          */
         function formdata() {
             var data = {};
             $(':input', elems.form).each(function() {
                 var $e = $(this),
+                    name = $e.attr('name'),
                     type = $e.attr('type'),
-                    name = $e.attr('name');
+                    _id = $e.attr('id');
 
                 data[name] = $e.val().trim();
-                // reset the values we are copying across
-                if (type === 'text') {
+
+                if (type === 'text' && _id === 'id-value') {
                     $e.val('');
                 }
             });
             return data;
         }
+
         /**
          * triggered when "add link" button is clicked on author edit field.
          * Creates a removable `repeat-item`.
@@ -64,17 +65,27 @@ export default function($){
          */
         function onAdd(event) {
             var data, newid;
+            const isbnOverrideData = isbnOverride.get();
             event.preventDefault();
 
             // if no index, set it to the number of children
             if (!nextRowId) {
                 nextRowId = elems.display.children().length;
             }
-            data = formdata();
-            data.index = nextRowId;
 
-            if (options.validate && options.validate(data) == false) {
-                return;
+            // If a user confirms adding an ISBN with a failed checksum in
+            // js/edit.js, the {data} object is filled from the
+            // isbnOverrideData object rather than the input form.
+            if (isbnOverrideData) {
+                data = isbnOverrideData;
+                isbnOverride.clear();
+            } else {
+                data = formdata();
+                data.index = nextRowId;
+
+                if (options.validate && options.validate(data) === false) {
+                    return;
+                }
             }
 
             $.extend(data, options.vars || {});
@@ -94,7 +105,7 @@ export default function($){
         }
         function onRemove(event) {
             event.preventDefault();
-            $(this).parents('.repeat-item:eq(0)').remove();
+            $(this).parents('.repeat-item').eq(0).remove();
             elems._this.trigger('repeat-remove');
         }
         addSelector = `${id} .repeat-add`;

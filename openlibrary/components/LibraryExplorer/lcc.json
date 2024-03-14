@@ -2,66 +2,66 @@
   {
     "name": "General Works",
     "short": "A",
-    "query": "lcc:A*",
+    "query": "A*",
     "children": [
       {
         "name": "Collections. Series. Collected works",
         "short": "AC",
-        "query": "lcc:AC*",
+        "query": "AC*",
         "count": 21960
       },
       {
         "name": "Encyclopedias",
         "short": "AE",
-        "query": "lcc:AE*",
+        "query": "AE*",
         "count": 2260
       },
       {
         "name": "Dictionaries and other general reference works",
         "short": "AG",
-        "query": "lcc:AG*",
+        "query": "AG*",
         "count": 3721
       },
       {
         "name": "Indexes",
         "short": "AI",
-        "query": "lcc:AI*",
+        "query": "AI*",
         "count": 332
       },
       {
         "name": "Museums. Collectors and collecting",
         "short": "AM",
-        "query": "lcc:AM*",
+        "query": "AM*",
         "count": 4862
       },
       {
         "name": "Newspapers",
         "short": "AN",
-        "query": "lcc:AN*",
+        "query": "AN*",
         "count": 25
       },
       {
         "name": "Periodicals",
         "short": "AP",
-        "query": "lcc:AP*",
+        "query": "AP*",
         "count": 4180
       },
       {
         "name": "Academies and learned societies",
         "short": "AS",
-        "query": "lcc:AS*",
+        "query": "AS*",
         "count": 17666
       },
       {
         "name": "Yearbooks. Almanacs. Directories",
         "short": "AY",
-        "query": "lcc:AY*",
+        "query": "AY*",
         "count": 646
       },
       {
         "name": "History of scholarship and learning. The humanities",
         "short": "AZ",
-        "query": "lcc:AZ*",
+        "query": "AZ*",
         "count": 1660
       }
     ],
@@ -70,96 +70,96 @@
   {
     "name": "Philosophy. Psychology. Religion",
     "short": "B",
-    "query": "lcc:B*",
+    "query": "B*",
     "children": [
       {
         "name": "Philosophy (General)",
         "short": "B",
-        "query": "lcc:B--*",
+        "query": "B--*",
         "count": 88382
       },
       {
         "name": "Logic",
         "short": "BC",
-        "query": "lcc:BC*",
+        "query": "BC*",
         "count": 4484
       },
       {
         "name": "Speculative philosophy",
         "short": "BD",
-        "query": "lcc:BD*",
+        "query": "BD*",
         "count": 17392
       },
       {
         "name": "Psychology",
         "short": "BF",
-        "query": "lcc:BF*",
+        "query": "BF*",
         "count": 81830
       },
       {
         "name": "Aesthetics",
         "short": "BH",
-        "query": "lcc:BH*",
+        "query": "BH*",
         "count": 5223
       },
       {
         "name": "Ethics",
         "short": "BJ",
-        "query": "lcc:BJ*",
+        "query": "BJ*",
         "count": 23833
       },
       {
         "name": "Religions. Mythology. Rationalism",
         "short": "BL",
-        "query": "lcc:BL*",
+        "query": "BL*",
         "count": 68643
       },
       {
         "name": "Judaism",
         "short": "BM",
-        "query": "lcc:BM*",
+        "query": "BM*",
         "count": 48730
       },
       {
         "name": "Islam. Bahaism. Theosophy, etc.",
         "short": "BP",
-        "query": "lcc:BP*",
+        "query": "BP*",
         "count": 51753
       },
       {
         "name": "Buddhism",
         "short": "BQ",
-        "query": "lcc:BQ*",
+        "query": "BQ*",
         "count": 24951
       },
       {
         "name": "Christianity",
         "short": "BR",
-        "query": "lcc:BR*",
+        "query": "BR*",
         "count": 44414
       },
       {
         "name": "The Bible",
         "short": "BS",
-        "query": "lcc:BS*",
+        "query": "BS*",
         "count": 65522
       },
       {
         "name": "Doctrinal theology",
         "short": "BT",
-        "query": "lcc:BT*",
+        "query": "BT*",
         "count": 43865
       },
       {
         "name": "Practical Theology",
         "short": "BV",
-        "query": "lcc:BV*",
+        "query": "BV*",
         "count": 75533
       },
       {
         "name": "Christian Denominations",
         "short": "BX",
-        "query": "lcc:BX*",
+        "query": "BX*",
         "count": 139720
       }
     ],
@@ -168,66 +168,66 @@
   {
     "name": "Auxiliary Sciences of History",
     "short": "C",
-    "query": "lcc:C*",
+    "query": "C*",
     "children": [
       {
         "name": "Auxiliary Sciences of History",
         "short": "C",
-        "query": "lcc:C--*",
+        "query": "C--*",
         "count": 114
       },
       {
         "name": "History of Civilization",
         "short": "CB",
-        "query": "lcc:CB*",
+        "query": "CB*",
         "count": 11227
       },
       {
         "name": "Archaeology",
         "short": "CC",
-        "query": "lcc:CC*",
+        "query": "CC*",
         "count": 4745
       },
       {
         "name": "Diplomatics. Archives. Seals",
         "short": "CD",
-        "query": "lcc:CD*",
+        "query": "CD*",
         "count": 11162
       },
       {
         "name": "Technical Chronology. Calendar",
         "short": "CE",
-        "query": "lcc:CE*",
+        "query": "CE*",
         "count": 1163
       },
       {
         "name": "Numismatics",
         "short": "CJ",
-        "query": "lcc:CJ*",
+        "query": "CJ*",
         "count": 7459
       },
       {
         "name": "Inscriptions. Epigraphy",
         "short": "CN",
-        "query": "lcc:CN*",
+        "query": "CN*",
         "count": 2043
       },
       {
         "name": "Heraldry",
         "short": "CR",
-        "query": "lcc:CR*",
+        "query": "CR*",
         "count": 5230
       },
       {
         "name": "Genealogy",
         "short": "CS",
-        "query": "lcc:CS*",
+        "query": "CS*",
         "count": 56240
       },
       {
         "name": "Biography",
         "short": "CT",
-        "query": "lcc:CT*",
+        "query": "CT*",
         "count": 27161
       }
     ],
@@ -236,132 +236,132 @@
   {
     "name": "World History and History of Europe, Asia, Africa, Australia, New Zealand, etc.",
     "short": "D",
-    "query": "lcc:D*",
+    "query": "D*",
     "children": [
       {
         "name": "History (General)",
         "short": "D",
-        "query": "lcc:D--*",
+        "query": "D--*",
         "count": 120740
       },
       {
         "name": "Great Britain",
         "short": "DA",
-        "query": "lcc:DA*",
+        "query": "DA*",
         "count": 66849
       },
       {
         "name": "Central Europe",
         "short": "DAW",
-        "query": "lcc:DAW*",
+        "query": "DAW*",
         "count": 287
       },
       {
         "name": "Austria – Liechtenstein – Hungary – Czechoslovakia",
         "short": "DB",
-        "query": "lcc:DB*",
+        "query": "DB*",
         "count": 26333
       },
       {
         "name": "France – Andorra – Monaco",
         "short": "DC",
-        "query": "lcc:DC*",
+        "query": "DC*",
         "count": 52275
       },
       {
         "name": "Germany",
         "short": "DD",
-        "query": "lcc:DD*",
+        "query": "DD*",
         "count": 49421
       },
       {
         "name": "Greco-Roman World",
         "short": "DE",
-        "query": "lcc:DE*",
+        "query": "DE*",
         "count": 1969
       },
       {
         "name": "Greece",
         "short": "DF",
-        "query": "lcc:DF*",
+        "query": "DF*",
         "count": 12548
       },
       {
         "name": "Italy – Malta",
         "short": "DG",
-        "query": "lcc:DG*",
+        "query": "DG*",
         "count": 43272
       },
       {
         "name": "Low Countries – Benelux Countries",
         "short": "DH",
-        "query": "lcc:DH*",
+        "query": "DH*",
         "count": 4933
       },
       {
         "name": "Netherlands (Holland)",
         "short": "DJ",
-        "query": "lcc:DJ*",
+        "query": "DJ*",
         "count": 7544
       },
       {
         "name": "Eastern Europe (General)",
         "short": "DJK",
-        "query": "lcc:DJK*",
+        "query": "DJK*",
         "count": 2506
       },
       {
         "name": "Russia. Soviet Union. Former Soviet Republics – Poland",
         "short": "DK",
-        "query": "lcc:DK*",
+        "query": "DK*",
         "count": 91135
       },
       {
         "name": "Northern Europe. Scandinavia",
         "short": "DL",
-        "query": "lcc:DL*",
+        "query": "DL*",
         "count": 15540
       },
       {
         "name": "Spain – Portugal",
         "short": "DP",
-        "query": "lcc:DP*",
+        "query": "DP*",
         "count": 37978
       },
       {
         "name": "Switzerland",
         "short": "DQ",
-        "query": "lcc:DQ*",
+        "query": "DQ*",
         "count": 5944
       },
       {
         "name": "Balkan Peninsula",
         "short": "DR",
-        "query": "lcc:DR*",
+        "query": "DR*",
         "count": 40157
       },
       {
         "name": "Asia",
         "short": "DS",
-        "query": "lcc:DS*",
+        "query": "DS*",
         "count": 273326
       },
       {
         "name": "Africa",
         "short": "DT",
-        "query": "lcc:DT*",
+        "query": "DT*",
         "count": 61190
       },
       {
         "name": "Oceania (South Seas)",
         "short": "DU",
-        "query": "lcc:DU*",
+        "query": "DU*",
         "count": 15877
       },
       {
         "name": "Romanies",
         "short": "DX",
-        "query": "lcc:DX*",
+        "query": "DX*",
         "count": 1117
       }
     ],
@@ -370,12 +370,12 @@
   {
     "name": "History of America",
     "short": "E",
-    "query": "lcc:E*",
+    "query": "E*",
     "children": [
       {
         "name": "E does not have any subclasses",
         "short": "E",
-        "query": "lcc:E--*",
+        "query": "E--*",
         "count": 138490
       }
     ],
@@ -384,18 +384,18 @@
   {
     "name": "Local History of the Americas",
     "short": "F",
-    "query": "lcc:F*",
+    "query": "F*",
     "children": [
       {
         "name": "F does not have any official subclasses",
         "short": "F",
-        "query": "lcc:F--*",
+        "query": "F--*",
         "count": 260680
       },
       {
         "name": "Canadian History (Unofficial)",
         "short": "FC",
-        "query": "lcc:FC*",
+        "query": "FC*",
         "count": 2980
       }
     ],
@@ -404,66 +404,66 @@
   {
     "name": "Geography, Anthropology, Recreation",
     "short": "G",
-    "query": "lcc:G*",
+    "query": "G*",
     "children": [
       {
         "name": "Geography (General). Atlases. Maps",
         "short": "G",
-        "query": "lcc:G--*",
+        "query": "G--*",
         "count": 35451
       },
       {
         "name": "Mathematical geography. Cartography",
         "short": "GA",
-        "query": "lcc:GA*",
+        "query": "GA*",
         "count": 4406
       },
       {
         "name": "Physical geography",
         "short": "GB",
-        "query": "lcc:GB*",
+        "query": "GB*",
         "count": 21008
       },
       {
         "name": "Oceanography",
         "short": "GC",
-        "query": "lcc:GC*",
+        "query": "GC*",
         "count": 7433
       },
       {
         "name": "Environmental Sciences",
         "short": "GE",
-        "query": "lcc:GE*",
+        "query": "GE*",
         "count": 6211
       },
       {
         "name": "Human ecology. Anthropogeography",
         "short": "GF",
-        "query": "lcc:GF*",
+        "query": "GF*",
         "count": 5234
       },
       {
         "name": "Anthropology",
         "short": "GN",
-        "query": "lcc:GN*",
+        "query": "GN*",
         "count": 34826
       },
       {
         "name": "Folklore",
         "short": "GR",
-        "query": "lcc:GR*",
+        "query": "GR*",
         "count": 22085
       },
       {
         "name": "Manners and customs (General)",
         "short": "GT",
-        "query": "lcc:GT*",
+        "query": "GT*",
         "count": 17784
       },
       {
         "name": "Recreation. Leisure",
         "short": "GV",
-        "query": "lcc:GV*",
+        "query": "GV*",
         "count": 99104
       }
     ],
@@ -472,102 +472,102 @@
   {
     "name": "Social Sciences",
     "short": "H",
-    "query": "lcc:H*",
+    "query": "H*",
     "children": [
       {
         "name": "Social sciences (General)",
         "short": "H",
-        "query": "lcc:H--*",
+        "query": "H--*",
         "count": 12346
       },
       {
         "name": "Statistics",
         "short": "HA",
-        "query": "lcc:HA*",
+        "query": "HA*",
         "count": 14651
       },
       {
         "name": "Economic theory. Demography",
         "short": "HB",
-        "query": "lcc:HB*",
+        "query": "HB*",
         "count": 62244
       },
       {
         "name": "Economic history and conditions",
         "short": "HC",
-        "query": "lcc:HC*",
+        "query": "HC*",
         "count": 150607
       },
       {
         "name": "Industries. Land use. Labor",
         "short": "HD",
-        "query": "lcc:HD*",
+        "query": "HD*",
         "count": 311800
       },
       {
         "name": "Transportation and communications",
         "short": "HE",
-        "query": "lcc:HE*",
+        "query": "HE*",
         "count": 49179
       },
       {
         "name": "Commerce",
         "short": "HF",
-        "query": "lcc:HF*",
+        "query": "HF*",
         "count": 109831
       },
       {
         "name": "Finance",
         "short": "HG",
-        "query": "lcc:HG*",
+        "query": "HG*",
         "count": 79832
       },
       {
         "name": "Public finance",
         "short": "HJ",
-        "query": "lcc:HJ*",
+        "query": "HJ*",
         "count": 29813
       },
       {
         "name": "Sociology (General)",
         "short": "HM",
-        "query": "lcc:HM*",
+        "query": "HM*",
         "count": 34366
       },
       {
         "name": "Social history and conditions. Social problems. Social reform",
         "short": "HN",
-        "query": "lcc:HN*",
+        "query": "HN*",
         "count": 51201
       },
       {
         "name": "The family. Marriage, Women and Sexuality",
         "short": "HQ",
-        "query": "lcc:HQ*",
+        "query": "HQ*",
         "count": 102076
       },
       {
         "name": "Societies: secret, benevolent, etc.",
         "short": "HS",
-        "query": "lcc:HS*",
+        "query": "HS*",
         "count": 6531
       },
       {
         "name": "Communities. Classes. Races",
         "short": "HT",
-        "query": "lcc:HT*",
+        "query": "HT*",
         "count": 38993
       },
       {
         "name": "Social pathology. Social and public welfare. Criminology",
         "short": "HV",
-        "query": "lcc:HV*",
+        "query": "HV*",
         "count": 126438
       },
       {
         "name": "Socialism. Communism. Anarchism",
         "short": "HX",
-        "query": "lcc:HX*",
+        "query": "HX*",
         "count": 35010
       }
     ],
@@ -576,84 +576,84 @@
   {
     "name": "Political Science",
     "short": "J",
-    "query": "lcc:J*",
+    "query": "J*",
     "children": [
       {
         "name": "General legislative and executive papers",
         "short": "J",
-        "query": "lcc:J--*",
+        "query": "J--*",
         "count": 6260
       },
       {
         "name": "Political science (General)",
         "short": "JA",
-        "query": "lcc:JA*",
+        "query": "JA*",
         "count": 10626
       },
       {
         "name": "Political theory",
         "short": "JC",
-        "query": "lcc:JC*",
+        "query": "JC*",
         "count": 29771
       },
       {
         "name": "Political institutions and public administration",
         "short": "JF",
-        "query": "lcc:JF*",
+        "query": "JF*",
         "count": 9046
       },
       {
         "name": "Political institutions and public administration (North America)",
         "short": "JJ",
-        "query": "lcc:JJ*",
+        "query": "JJ*",
         "count": 13
       },
       {
         "name": "Political institutions and public administration (United States)",
         "short": "JK",
-        "query": "lcc:JK*",
+        "query": "JK*",
         "count": 24459
       },
       {
         "name": "Political institutions and public administration (Canada, Latin America, etc.)",
         "short": "JL",
-        "query": "lcc:JL*",
+        "query": "JL*",
         "count": 13814
       },
       {
         "name": "Political institutions and public administration (Europe)",
         "short": "JN",
-        "query": "lcc:JN*",
+        "query": "JN*",
         "count": 42253
       },
       {
         "name": "Political institutions and public administration (Asia, Africa, Australia, Pacific Area, etc.)",
         "short": "JQ",
-        "query": "lcc:JQ*",
+        "query": "JQ*",
         "count": 27999
       },
       {
         "name": "Local government. Municipal government",
         "short": "JS",
-        "query": "lcc:JS*",
+        "query": "JS*",
         "count": 16161
       },
       {
         "name": "Colonies and colonization. Emigration and immigration. International migration",
         "short": "JV",
-        "query": "lcc:JV*",
+        "query": "JV*",
         "count": 9720
       },
       {
         "name": "International law, see JZ and KZ (obsolete)",
         "short": "JX",
-        "query": "lcc:JX*",
+        "query": "JX*",
         "count": 32673
       },
       {
         "name": "International relations",
         "short": "JZ",
-        "query": "lcc:JZ*",
+        "query": "JZ*",
         "count": 8440
       }
     ],
@@ -662,114 +662,114 @@
   {
     "name": "Law",
     "short": "K",
-    "query": "lcc:K*",
+    "query": "K*",
     "children": [
       {
         "name": "Law in general. Comparative and uniform law. Jurisprudence",
         "short": "K",
-        "query": "lcc:K--*",
+        "query": "K--*",
         "count": 37742
       },
       {
         "name": "Religious law in general. Comparative religious law. Jurisprudence",
         "short": "KB",
-        "query": "lcc:KB*",
+        "query": "KB*",
         "count": 4441
       },
       {
         "name": "Jewish law",
         "short": "KBM",
-        "query": "lcc:KBM*",
+        "query": "KBM*",
         "count": 565
       },
       {
         "name": "Islamic law",
         "short": "KBP",
-        "query": "lcc:KBP*",
+        "query": "KBP*",
         "count": 2357
       },
       {
         "name": "History of canon law",
         "short": "KBR",
-        "query": "lcc:KBR*",
+        "query": "KBR*",
         "count": 770
       },
       {
         "name": "Canon law of Eastern churches",
         "short": "KBS",
-        "query": "lcc:KBS*",
+        "query": "KBS*",
         "count": 13
       },
       {
         "name": "Canon law of Eastern Rite Churches in Communion with the Holy See of Rome",
         "short": "KBT",
-        "query": "lcc:KBT*",
+        "query": "KBT*",
         "count": 8
       },
       {
         "name": "Law of the Roman Catholic Church. The Holy See",
         "short": "KBU",
-        "query": "lcc:KBU*",
+        "query": "KBU*",
         "count": 500
       },
       {
         "name": "KD/KDK - United Kingdom and Ireland",
         "short": "KD/KDK",
-        "query": "lcc:[KD TO KDK]",
+        "query": "[KD TO KDK]",
         "count": 14892
       },
       {
         "name": "America. North America",
         "short": "KDZ",
-        "query": "lcc:KDZ*",
+        "query": "KDZ*",
         "count": 533
       },
       {
         "name": "Canada",
         "short": "KE",
-        "query": "lcc:KE*",
+        "query": "KE*",
         "count": 6838
       },
       {
         "name": "United States",
         "short": "KF",
-        "query": "lcc:KF*",
+        "query": "KF*",
         "count": 159421
       },
       {
         "name": "Latin America – Mexico and Central America – West Indies. Caribbean area",
         "short": "KG",
-        "query": "lcc:KG*",
+        "query": "KG*",
         "count": 9997
       },
       {
         "name": "South America",
         "short": "KH",
-        "query": "lcc:KH*",
+        "query": "KH*",
         "count": 25843
       },
       {
         "name": "KJ-KKZ – Europe",
         "short": "KJ-KKZ",
-        "query": "lcc:[KJ TO KKZ]",
+        "query": "[KJ TO KKZ]",
         "count": 86686
       },
       {
         "name": "KL-KWX – Asia and Eurasia, Africa, Pacific Area, and Antarctica",
         "short": "KL-KWX",
-        "query": "lcc:[KL TO KWX]",
+        "query": "[KL TO KWX]",
         "count": 53117
       },
       {
         "name": "KU/KUQ – Law of Australia and New Zealand",
         "short": "KU/KUQ",
-        "query": "lcc:[KU TO KUQ]",
+        "query": "[KU TO KUQ]",
         "count": 1879
       },
       {
         "name": "Law of nations",
         "short": "KZ",
-        "query": "lcc:KZ*",
+        "query": "KZ*",
         "count": 4700
       }
     ],
@@ -778,72 +778,72 @@
   {
     "name": "Education",
     "short": "L",
-    "query": "lcc:L*",
+    "query": "L*",
     "children": [
       {
         "name": "Education (General)",
         "short": "L",
-        "query": "lcc:L--*",
+        "query": "L--*",
         "count": 5814
       },
       {
         "name": "History of education",
         "short": "LA",
-        "query": "lcc:LA*",
+        "query": "LA*",
         "count": 151676
       },
       {
         "name": "Theory and practice of education",
         "short": "LB",
-        "query": "lcc:LB*",
+        "query": "LB*",
         "count": 101949
       },
       {
         "name": "Special aspects of education",
         "short": "LC",
-        "query": "lcc:LC*",
+        "query": "LC*",
         "count": 49480
       },
       {
         "name": "Individual institutions – United States",
         "short": "LD",
-        "query": "lcc:LD*",
+        "query": "LD*",
         "count": 7100
       },
       {
         "name": "Individual institutions – America (except United States)",
         "short": "LE",
-        "query": "lcc:LE*",
+        "query": "LE*",
         "count": 4789
       },
       {
         "name": "Individual institutions – Europe",
         "short": "LF",
-        "query": "lcc:LF*",
+        "query": "LF*",
         "count": 6758
       },
       {
         "name": "Individual institutions – Asia, Africa, Indian Ocean islands, Australia, New Zealand, Pacific islands",
         "short": "LG",
-        "query": "lcc:LG*",
+        "query": "LG*",
         "count": 2860
       },
       {
         "name": "College and school magazines and papers",
         "short": "LH",
-        "query": "lcc:LH*",
+        "query": "LH*",
         "count": 86
       },
       {
         "name": "Student fraternities and societies, United States",
         "short": "LJ",
-        "query": "lcc:LJ*",
+        "query": "LJ*",
         "count": 405
       },
       {
         "name": "Textbooks",
         "short": "LT",
-        "query": "lcc:LT*",
+        "query": "LT*",
         "count": 185
       }
     ],
@@ -852,24 +852,24 @@
   {
     "name": "Music",
     "short": "M",
-    "query": "lcc:M*",
+    "query": "M*",
     "children": [
       {
         "name": "Music",
         "short": "M",
-        "query": "lcc:M--*",
+        "query": "M--*",
         "count": 39644
       },
       {
         "name": "Literature on music",
         "short": "ML",
-        "query": "lcc:ML*",
+        "query": "ML*",
         "count": 121513
       },
       {
         "name": "Instruction and study",
         "short": "MT",
-        "query": "lcc:MT*",
+        "query": "MT*",
         "count": 17726
       }
     ],
@@ -878,54 +878,54 @@
   {
     "name": "Fine Arts",
     "short": "N",
-    "query": "lcc:N*",
+    "query": "N*",
     "children": [
       {
         "name": "Visual arts",
         "short": "N",
-        "query": "lcc:N--*",
+        "query": "N--*",
         "count": 108512
       },
       {
         "name": "Architecture",
         "short": "NA",
-        "query": "lcc:NA*",
+        "query": "NA*",
         "count": 73600
       },
       {
         "name": "Sculpture",
         "short": "NB",
-        "query": "lcc:NB*",
+        "query": "NB*",
         "count": 20228
       },
       {
         "name": "Drawing. Design. Illustration",
         "short": "NC",
-        "query": "lcc:NC*",
+        "query": "NC*",
         "count": 26757
       },
       {
         "name": "Painting",
         "short": "ND",
-        "query": "lcc:ND*",
+        "query": "ND*",
         "count": 78825
       },
       {
         "name": "Print media",
         "short": "NE",
-        "query": "lcc:NE*",
+        "query": "NE*",
         "count": 13792
       },
       {
         "name": "Decorative arts",
         "short": "NK",
-        "query": "lcc:NK*",
+        "query": "NK*",
         "count": 50545
       },
       {
         "name": "Arts in general",
         "short": "NX",
-        "query": "lcc:NX*",
+        "query": "NX*",
         "count": 13103
       }
     ],
@@ -934,121 +934,121 @@
   {
     "name": "Language and Literature",
     "short": "P",
-    "query": "lcc:P*",
+    "query": "P*",
     "count": 2180107,
     "children": [
       {
         "name": "Philology. Linguistics",
         "short": "P",
-        "query": "lcc:P--*",
+        "query": "P--*",
         "count": 50100
       },
       {
         "name": "Greek language and literature. Latin language and literature",
         "short": "PA",
-        "query": "lcc:PA*",
+        "query": "PA*",
         "count": 43509
       },
       {
         "name": "Modern languages. Celtic languages and literature",
         "short": "PB",
-        "query": "lcc:PB*",
+        "query": "PB*",
         "count": 7256
       },
       {
         "name": "Romanic languages",
         "short": "PC",
-        "query": "lcc:PC*",
+        "query": "PC*",
         "count": 52499
       },
       {
         "name": "Germanic languages. Scandinavian languages",
         "short": "PD",
-        "query": "lcc:PD*",
+        "query": "PD*",
         "count": 4446
       },
       {
         "name": "English language",
         "short": "PE",
-        "query": "lcc:PE*",
+        "query": "PE*",
         "count": 37083
       },
       {
         "name": "West Germanic languages",
         "short": "PF",
-        "query": "lcc:PF*",
+        "query": "PF*",
         "count": 12245
       },
       {
         "name": "Slavic languages and literatures. Baltic languages. Albanian language",
         "short": "PG",
-        "query": "lcc:PG*",
+        "query": "PG*",
         "count": 168251
       },
       {
         "name": "Uralic languages. Basque language",
         "short": "PH",
-        "query": "lcc:PH*",
+        "query": "PH*",
         "count": 20681
       },
       {
         "name": "Oriental languages and literatures",
         "short": "PJ",
-        "query": "lcc:PJ*",
+        "query": "PJ*",
         "count": 63584
       },
       {
         "name": "Indo-Iranian languages and literatures",
         "short": "PK",
-        "query": "lcc:PK*",
+        "query": "PK*",
         "count": 130947
       },
       {
         "name": "Languages and literatures of Eastern Asia, Africa, Oceania",
         "short": "PL",
-        "query": "lcc:PL*",
+        "query": "PL*",
         "count": 186764
       },
       {
         "name": "Hyperborean, Native American, and artificial languages",
         "short": "PM",
-        "query": "lcc:PM*",
+        "query": "PM*",
         "count": 6445
       },
       {
         "name": "Literature (General)",
         "short": "PN",
-        "query": "lcc:PN*",
+        "query": "PN*",
         "count": 223075
       },
       {
         "name": "French literature – Italian literature – Spanish literature – Portuguese literature",
         "short": "PQ",
-        "query": "lcc:PQ*",
+        "query": "PQ*",
         "count": 338153
       },
       {
         "name": "English literature",
         "short": "PR",
-        "query": "lcc:PR*",
+        "query": "PR*",
         "count": 216081
       },
       {
         "name": "American literature",
         "short": "PS",
-        "query": "lcc:PS*",
+        "query": "PS*",
         "count": 289364
       },
       {
         "name": "German literature – Dutch literature – Flemish literature since 1830 – Afrikaans literature -Scandinavian literature – Old Norse literature: Old Icelandic and Old Norwegian – Modern Icelandic literature – Faroese literature – Danish literature – Norwegian literature – Swedish literature",
         "short": "PT",
-        "query": "lcc:PT*",
+        "query": "PT*",
         "count": 129018
       },
       {
         "name": "Fiction and juvenile belles lettres",
         "short": "PZ",
-        "query": "lcc:PZ*",
+        "query": "PZ*",
         "count": 286328
       }
     ]
@@ -1056,78 +1056,78 @@
   {
     "name": "Science",
     "short": "Q",
-    "query": "lcc:Q*",
+    "query": "Q*",
     "children": [
       {
         "name": "Science (General)",
         "short": "Q",
-        "query": "lcc:Q--*",
+        "query": "Q--*",
         "count": 46944
       },
       {
         "name": "Mathematics",
         "short": "QA",
-        "query": "lcc:QA*",
+        "query": "QA*",
         "count": 129662
       },
       {
         "name": "Astronomy",
         "short": "QB",
-        "query": "lcc:QB*",
+        "query": "QB*",
         "count": 23893
       },
       {
         "name": "Physics",
         "short": "QC",
-        "query": "lcc:QC*",
+        "query": "QC*",
         "count": 71446
       },
       {
         "name": "Chemistry",
         "short": "QD",
-        "query": "lcc:QD*",
+        "query": "QD*",
         "count": 36150
       },
       {
         "name": "Geology",
         "short": "QE",
-        "query": "lcc:QE*",
+        "query": "QE*",
         "count": 65227
       },
       {
         "name": "Natural history – Biology",
         "short": "QH",
-        "query": "lcc:QH*",
+        "query": "QH*",
         "count": 52515
       },
       {
         "name": "Botany",
         "short": "QK",
-        "query": "lcc:QK*",
+        "query": "QK*",
         "count": 32111
       },
       {
         "name": "Zoology",
         "short": "QL",
-        "query": "lcc:QL*",
+        "query": "QL*",
         "count": 70708
       },
       {
         "name": "Human anatomy",
         "short": "QM",
-        "query": "lcc:QM*",
+        "query": "QM*",
         "count": 4751
       },
       {
         "name": "Physiology",
         "short": "QP",
-        "query": "lcc:QP*",
+        "query": "QP*",
         "count": 34663
       },
       {
         "name": "Microbiology",
         "short": "QR",
-        "query": "lcc:QR*",
+        "query": "QR*",
         "count": 9638
       }
     ],
@@ -1136,108 +1136,108 @@
   {
     "name": "Medicine",
     "short": "R",
-    "query": "lcc:R*",
+    "query": "R*",
     "children": [
       {
         "name": "Medicine (General)",
         "short": "R",
-        "query": "lcc:R--*",
+        "query": "R--*",
         "count": 33272
       },
       {
         "name": "Public aspects of medicine",
         "short": "RA",
-        "query": "lcc:RA*",
+        "query": "RA*",
         "count": 61473
       },
       {
         "name": "Pathology",
         "short": "RB",
-        "query": "lcc:RB*",
+        "query": "RB*",
         "count": 6867
       },
       {
         "name": "Internal medicine",
         "short": "RC",
-        "query": "lcc:RC*",
+        "query": "RC*",
         "count": 100729
       },
       {
         "name": "Surgery",
         "short": "RD",
-        "query": "lcc:RD*",
+        "query": "RD*",
         "count": 17509
       },
       {
         "name": "Ophthalmology",
         "short": "RE",
-        "query": "lcc:RE*",
+        "query": "RE*",
         "count": 4763
       },
       {
         "name": "Otorhinolaryngology",
         "short": "RF",
-        "query": "lcc:RF*",
+        "query": "RF*",
         "count": 2599
       },
       {
         "name": "Gynecology and Obstetrics",
         "short": "RG",
-        "query": "lcc:RG*",
+        "query": "RG*",
         "count": 12204
       },
       {
         "name": "Pediatrics",
         "short": "RJ",
-        "query": "lcc:RJ*",
+        "query": "RJ*",
         "count": 18034
       },
       {
         "name": "Dentistry",
         "short": "RK",
-        "query": "lcc:RK*",
+        "query": "RK*",
         "count": 5000
       },
       {
         "name": "Dermatology",
         "short": "RL",
-        "query": "lcc:RL*",
+        "query": "RL*",
         "count": 2265
       },
       {
         "name": "Therapeutics. Pharmacology",
         "short": "RM",
-        "query": "lcc:RM*",
+        "query": "RM*",
         "count": 19465
       },
       {
         "name": "Pharmacy and materia medica",
         "short": "RS",
-        "query": "lcc:RS*",
+        "query": "RS*",
         "count": 7039
       },
       {
         "name": "Nursing",
         "short": "RT",
-        "query": "lcc:RT*",
+        "query": "RT*",
         "count": 9012
       },
       {
         "name": "Botanic, Thomsonian, and Eclectic medicine",
         "short": "RV",
-        "query": "lcc:RV*",
+        "query": "RV*",
         "count": 101
       },
       {
         "name": "Homeopathy",
         "short": "RX",
-        "query": "lcc:RX*",
+        "query": "RX*",
         "count": 843
       },
       {
         "name": "Other systems of medicine",
         "short": "RZ",
-        "query": "lcc:RZ*",
+        "query": "RZ*",
         "count": 2245
       }
     ],
@@ -1246,42 +1246,42 @@
   {
     "name": "Agriculture",
     "short": "S",
-    "query": "lcc:S*",
+    "query": "S*",
     "children": [
       {
         "name": "Agriculture (General)",
         "short": "S",
-        "query": "lcc:S--*",
+        "query": "S--*",
         "count": 35260
       },
       {
         "name": "Horticulture. Plant propagation. Plant breeding",
         "short": "SB",
-        "query": "lcc:SB*",
+        "query": "SB*",
         "count": 41678
       },
       {
         "name": "Forestry. Arboriculture. Silviculture",
         "short": "SD",
-        "query": "lcc:SD*",
+        "query": "SD*",
         "count": 15361
       },
       {
         "name": "Animal husbandry. Animal science",
         "short": "SF",
-        "query": "lcc:SF*",
+        "query": "SF*",
         "count": 31911
       },
       {
         "name": "Aquaculture. Fisheries. Angling",
         "short": "SH",
-        "query": "lcc:SH*",
+        "query": "SH*",
         "count": 15066
       },
       {
         "name": "Hunting",
         "short": "SK",
-        "query": "lcc:SK*",
+        "query": "SK*",
         "count": 6909
       }
     ],
@@ -1290,108 +1290,108 @@
   {
     "name": "Technology",
     "short": "T",
-    "query": "lcc:T*",
+    "query": "T*",
     "children": [
       {
         "name": "Technology (General)",
         "short": "T",
-        "query": "lcc:T--*",
+        "query": "T--*",
         "count": 30761
       },
       {
         "name": "Engineering Civil engineering (General).",
         "short": "TA",
-        "query": "lcc:TA*",
+        "query": "TA*",
         "count": 50901
       },
       {
         "name": "Hydraulic engineering. Ocean engineering",
         "short": "TC",
-        "query": "lcc:TC*",
+        "query": "TC*",
         "count": 11968
       },
       {
         "name": "Environmental technology. Sanitary engineering",
         "short": "TD",
-        "query": "lcc:TD*",
+        "query": "TD*",
         "count": 38265
       },
       {
         "name": "Highway engineering. Roads and pavements",
         "short": "TE",
-        "query": "lcc:TE*",
+        "query": "TE*",
         "count": 6151
       },
       {
         "name": "Railroad engineering and operation",
         "short": "TF",
-        "query": "lcc:TF*",
+        "query": "TF*",
         "count": 8643
       },
       {
         "name": "Bridges",
         "short": "TG",
-        "query": "lcc:TG*",
+        "query": "TG*",
         "count": 3036
       },
       {
         "name": "Building construction",
         "short": "TH",
-        "query": "lcc:TH*",
+        "query": "TH*",
         "count": 20578
       },
       {
         "name": "Mechanical engineering and machinery",
         "short": "TJ",
-        "query": "lcc:TJ*",
+        "query": "TJ*",
         "count": 30395
       },
       {
         "name": "Electrical engineering. Electronics. Nuclear engineering",
         "short": "TK",
-        "query": "lcc:TK*",
+        "query": "TK*",
         "count": 62138
       },
       {
         "name": "Motor vehicles. Aeronautics. Astronautics",
         "short": "TL",
-        "query": "lcc:TL*",
+        "query": "TL*",
         "count": 44566
       },
       {
         "name": "Mining engineering. Metallurgy",
         "short": "TN",
-        "query": "lcc:TN*",
+        "query": "TN*",
         "count": 34961
       },
       {
         "name": "Chemical technology",
         "short": "TP",
-        "query": "lcc:TP*",
+        "query": "TP*",
         "count": 29893
       },
       {
         "name": "Photography",
         "short": "TR",
-        "query": "lcc:TR*",
+        "query": "TR*",
         "count": 26186
       },
       {
         "name": "Manufacturing engineering. Mass production",
         "short": "TS",
-        "query": "lcc:TS*",
+        "query": "TS*",
         "count": 28813
       },
       {
         "name": "Handicrafts. Arts and crafts",
         "short": "TT",
-        "query": "lcc:TT*",
+        "query": "TT*",
         "count": 28276
       },
       {
         "name": "Home economics",
         "short": "TX",
-        "query": "lcc:TX*",
+        "query": "TX*",
         "count": 64812
       }
     ],
@@ -1400,60 +1400,60 @@
   {
     "name": "Military Science",
     "short": "U",
-    "query": "lcc:U*",
+    "query": "U*",
     "children": [
       {
         "name": "Military science (General)",
         "short": "U",
-        "query": "lcc:U--*",
+        "query": "U--*",
         "count": 15015
       },
       {
         "name": "Armies: Organization, distribution, military situation",
         "short": "UA",
-        "query": "lcc:UA*",
+        "query": "UA*",
         "count": 20466
       },
       {
         "name": "Military administration",
         "short": "UB",
-        "query": "lcc:UB*",
+        "query": "UB*",
         "count": 6879
       },
       {
         "name": "Military maintenance and transportation",
         "short": "UC",
-        "query": "lcc:UC*",
+        "query": "UC*",
         "count": 2535
       },
       {
         "name": "Infantry",
         "short": "UD",
-        "query": "lcc:UD*",
+        "query": "UD*",
         "count": 1056
       },
       {
         "name": "Cavalry. Armor",
         "short": "UE",
-        "query": "lcc:UE*",
+        "query": "UE*",
         "count": 324
       },
       {
         "name": "Artillery",
         "short": "UF",
-        "query": "lcc:UF*",
+        "query": "UF*",
         "count": 2107
       },
       {
         "name": "Military engineering. Air forces",
         "short": "UG",
-        "query": "lcc:UG*",
+        "query": "UG*",
         "count": 11271
       },
       {
         "name": "Other military services",
         "short": "UH",
-        "query": "lcc:UH*",
+        "query": "UH*",
         "count": 1303
       }
     ],
@@ -1462,66 +1462,66 @@
   {
     "name": "Naval Science",
     "short": "V",
-    "query": "lcc:V*",
+    "query": "V*",
     "children": [
       {
         "name": "Naval science (General)",
         "short": "V",
-        "query": "lcc:V--*",
+        "query": "V--*",
         "count": 4018
       },
       {
         "name": "Navies: Organization, distribution, naval situation",
         "short": "VA",
-        "query": "lcc:VA*",
+        "query": "VA*",
         "count": 3131
       },
       {
         "name": "Naval administration",
         "short": "VB",
-        "query": "lcc:VB*",
+        "query": "VB*",
         "count": 459
       },
       {
         "name": "Naval maintenance",
         "short": "VC",
-        "query": "lcc:VC*",
+        "query": "VC*",
         "count": 248
       },
       {
         "name": "Naval seamen",
         "short": "VD",
-        "query": "lcc:VD*",
+        "query": "VD*",
         "count": 35
       },
       {
         "name": "Marines",
         "short": "VE",
-        "query": "lcc:VE*",
+        "query": "VE*",
         "count": 510
       },
       {
         "name": "Naval ordnance",
         "short": "VF",
-        "query": "lcc:VF*",
+        "query": "VF*",
         "count": 182
       },
       {
         "name": "Minor services of navies",
         "short": "VG",
-        "query": "lcc:VG*",
+        "query": "VG*",
         "count": 922
       },
       {
         "name": "Navigation. Merchant marine",
         "short": "VK",
-        "query": "lcc:VK*",
+        "query": "VK*",
         "count": 5832
       },
       {
         "name": "Naval architecture. Shipbuilding. Marine engineering",
         "short": "VM",
-        "query": "lcc:VM*",
+        "query": "VM*",
         "count": 7783
       }
     ],
@@ -1530,18 +1530,18 @@
   {
     "name": "Bibliography, Library Science",
     "short": "Z",
-    "query": "lcc:Z*",
+    "query": "Z*",
     "children": [
       {
         "name": "Books (General). Writing. Paleography. Book industries and trade. Libraries. Bibliography",
         "short": "Z",
-        "query": "lcc:Z--*",
+        "query": "Z--*",
         "count": 176479
       },
       {
         "name": "Information resources/materials",
         "short": "ZA",
-        "query": "lcc:ZA*",
+        "query": "ZA*",
         "count": 1146
       }
     ],

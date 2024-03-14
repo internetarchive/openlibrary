@@ -7,6 +7,8 @@
  * - /about/vision
  * - /account
  * - /account/books/want-to-read
+ * - /account/books/notes
+ * - /account/books/observations
  * - /account/email/forgot-ia
  * - /account/login
  * - /account/loans
@@ -24,6 +26,7 @@
  * - /data
  * - /help
  * - /lists
+ * - /merges
  * - /people/admin
  * - /people/openlibrary9157/lists
  * - /read
@@ -39,6 +42,7 @@
 @import (less) "less/font-families.less";
 @import (less) "components/flash-messages.less";
 @import (less) "less/z-index.less";
+@import (less) "components/provider-table.less";
 
 body {
   background-color: @beige;
@@ -109,12 +113,9 @@ div.lists{
   flex-wrap: wrap;
 }
 
-#authors{
-  div{
+.multi-input-autocomplete--author{
+  .mia__input {
     display: flex;
-  }
-  input.author.author-autocomplete{
-    flex: 1;
   }
 }
 
@@ -152,11 +153,14 @@ th.toggle-all {
     }
   }
 }
-
+.my-imports {
+  width: 100%;
+}
 .import-export {
   display: flex;
-  .import {
-    flex: 1;
+  flex-direction: column;
+  &__section {
+    padding: 0 10px;
   }
 }
 
@@ -199,14 +203,35 @@ tr.table-row.selected{
 }
 
 .olform--decoration {
-  width: 350px;
   margin: 20px 0;
   border: 2px solid @lightest-grey;
   padding: 20px;
   border-radius: 5px;
 }
 
+.login-big-or {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  max-width: 600px;
+}
+
+.login-big-or::before, .login-big-or::after {
+  content: "";
+  display: block;
+  flex: 1;
+  border-bottom: 1px solid currentColor;
+  transform: translateY(-50%);
+}
+
 // Import all common components
 @import (less) "legacy.less";
 // Import styles specific to the BorrowTable for user pages
 @import (less) "legacy-borrowTable-adminUser.less";
+// Import styles for notes and observations views
+@import (less) "components/notes-view.less";
+// Import styles for community merge request views
+@import (less) "components/merge-request-table.less";
+// Import styles for want-to-read buttons
+@import (less) "legacy-tools.less";
+@import (less) "components/mybooks-dropper.less";

@@ -18,10 +18,10 @@ $var title: $_('How can we help?')
  <div class="label"><label for="name">$_("Your Name")</label></div>
  <div class="input"><input type="text" class="input" name="name" id="name"/></div>
  </div>
- 
+
  <div class="formElement">
  <div class="label"><label for="email">$_("Your Email Address")</label></div>
- <div class="input"><input type="text" class="email" name="email" id="email" value="$email"/> ($_('We\'ll need this if you want a reply'))</div>
+ <div class="input"><input type="email" class="email required" name="email" id="email" value="$email"/> ($_('We\'ll need this if you want a reply'))</div>
  <p>$_('If you wish to be contacted by other means, please add your contact preference and details to your question.')</p>
  </div>
 
@@ -56,9 +56,7 @@ $var title: $_('How can we help?')
 <!-- </div> -->
 
  $if recaptcha:
-   <div class="formElement">
-     <div class="g-recaptcha" data-sitekey="$:recaptcha.public_key"></div>
-   </div>
+    $:render_template("recaptcha", recaptcha.public_key, error=None)
 
  <div class="formElement bottom">
  <div class="input">

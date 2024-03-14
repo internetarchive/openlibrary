@@ -1,20 +1,26 @@
 $def with (page)
 
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="$get_lang()">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="title" content="" />
-    <meta name = "keywords" content = "free books, books to read, free ebooks,audio books,read books for free, read books online, online library">
+    <meta name="keywords" content="free books, books to read, free ebooks, audio books, read books for free, read books online, online library">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="OpenLibrary.org" />
     <meta name="creator" content="OpenLibrary.org" />
     <meta name="copyright" content="Original content copyright; 2007-2015" />
     <meta name="distribution" content="Global" />
+    $if request.domain != 'openlibrary.org':
+        <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#e2dcc5">
+
 
     <link rel="canonical" href="$request.canonical_url" />
-
     <link rel="preconnect" href="https://analytics.archive.org">
+
+    <link rel="search" type="application/opensearchdescription+xml" title="Open Library" href="/static/opensearch.xml">
+    <link rel="manifest" href="/static/manifest.json">
 
     <link href="/static/images/openlibrary-128x128.png" rel="apple-touch-icon" />
     <link href="/static/images/openlibrary-152x152.png" rel="apple-touch-icon" sizes="152x152" />
@@ -25,7 +31,31 @@ $def with (page)
     $ style = 'build/page-%s.css'%ctx.get('cssfile', 'user')
     <link href="$static_url(style)" rel="stylesheet" type="text/css" />
 
+    <noscript>
+      <style>
+        /* Don't hide content with clamp if no js to show more/less */
+        .clamp {
+          -webkit-line-clamp: unset !important;
+        }
 
+        /* Don't show read-more sections collapsed */
+        .read-more__content {
+          max-height: unset !important;
+        }
+        /* Don't show read-more toggle buttons */
+        .read-more__toggle {
+          display: none !important;
+        }
+
+        /* @width-breakpoint-tablet media query: */
+        @media only screen and (min-width: 768px) {
+          /* Sticky navbar to top of screen if compact title cannot be stickied */
+          .work-menu {
+            top: 0 !important;
+          }
+        }
+      </style>
+    </noscript>
  <script>
 
 /* @licstart  The following is the entire license notice for the
@@ -57,13 +87,7 @@ $def with (page)
 
     <meta name="google-site-verification" content="KrqcZD4l5BLNVyjzSi2sjZBiwgmkJ1W7n6w7ThD7A74" />
     <meta name="google-site-verification" content="vtXGm8q3UgP-f6qXTvQBo85uh3nmIYIotVqqdJDpyz4" />
-    <meta name="alexaVerifyID" content="wJKlTRj1Z1OI4G-J0w9R-cWhJjw" /> <!-- Necessary for Alexa -->
     <!-- Drini, Google Search Console -->
     <meta name="google-site-verification" content="XYOJ9Uj0MBr6wk7kj1IkttXrqY-bbRstFMADTfEt354" />
-
-    $if any([path in request.canonical_url for path in ['/account/create', '/books/add', '/edit', '/books', '/contact']]):
-        <!-- Must be loaded in Sign Up and Add new Books page -->
-        <!-- Must be loaded for all edit pages having link /books/*/*/edit -->
-        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
 $putctx("sent_head", True)

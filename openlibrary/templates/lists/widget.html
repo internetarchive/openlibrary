@@ -1,663 +1,92 @@
-$def with (page, include_rating=True, include_header=True, include_widget=True, include_showcase=True, user_lists_only=False, readinglog_only=False, read_status=None, rating=None, _user_lists=None)
+$def with (page, include_rating=True, include_header=True, include_widget=True, include_showcase=True, read_status=None, exclude_own_lists=False, async_load=False, show_active_lists=False)
 
 $ edition = page if page.key.startswith("/books/") else None
 $ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
-$ work_key = work and work.key
-$ edition_key = edition and edition.key
 $ username = ctx.user and ctx.user.key.split('/')[-1]
 $ users_work_read_status = read_status or work.get_users_read_status(username) if work and username else None
-$ users_work_rating = rating or work.get_users_rating(username) if work and username else None
-$ uid = str(random.randint(1000, 9999))
-$ container_id = 'widget-lists-wrapper-%s' % str(uid)
 
-<div id="$container_id" class="lists-widget-container">
+<div class="lists-widget-container">
 $if "lists" not in ctx.features:
     $return
 
 $code:
-    _user_lists = _user_lists or (ctx.user and ctx.user.get_lists(sort=True) or [])
-
-    def get_seed_info(page):
-        """Takes a thing, determines what type it is, and returns a seed summary"""
-        if page.key.startswith("/subjects/"):
-            seed = page.key.split("/")[-1]
-            if seed.split(":")[0] not in ["place", "person", "time"]:
-                seed = "subject:" + seed
-            seed = seed.replace(",", "_").replace("__", "_")
-            seed_type = "subject"
-            title = page.name
-        else:
-            seed = {"key": page.key}
-            if page.key.startswith("/authors/"):
-                seed_type = "author"
-                title = page.get('name', 'name missing')
-            elif page.key.startswith("/works"):
-                seed_type = "work"
-                title = page.get("title", "untitled")
-            else:
-                seed_type = "edition"
-                title = page.get("title", "untitled")
-        return {
-            "seed": seed,
-            "type": seed_type,
-            "title": title,
-            "remove_dialog_html": _('Are you sure you want to remove <strong>%(title)s</strong> from your list?', title=title)
-        }
-
-    def get_list_data(list, seed, include_cover_url=True):
-        d = storage({
-            "name": list.name or "",
-            "key": list.key,
-            "active": list.has_seed(seed),
-        })
-        if include_cover_url:
-            cover = list.get_cover() or list.get_default_cover()
-            d['cover_url'] = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
-            if 'None' in d['cover_url']:
-                d['cover_url'] = "/images/icons/avatar_book-sm.png"
-        owner = list.get_owner()
-        d['owner'] = storage(displayname=owner.displayname or "", key=owner.key)
-        return d
-
-    def get_user_lists(seed_info):
-        return [get_list_data(list, seed_info['seed'], include_cover_url=True) for list in _user_lists]
-
     def get_page_lists(page, seed_info):
-        user_key = ctx.user and ctx.user.key
         return [get_list_data(list, seed_info['seed']) for list in page.get_lists(sort=False)]
 
 $ seed_info = get_seed_info(page)
-$ work_seed_info= edition and work and get_seed_info(work)
-$ user_lists = get_user_lists(seed_info)
-$if user_lists_only:
-    $ page_lists = [list for list in user_lists if list.active]
-$else:
-    $ page_lists = get_page_lists(page, seed_info)
+$ user_lists = [] if async_load or not ctx.user else get_user_lists(seed_info)
+$ page_lists = get_page_lists(page, seed_info)
 $ user_key = ctx.user and ctx.user.key
 $ page_url = page.url()
 
 $var page_lists = page_lists
 
-$jsdef show_list(list, user_key):
-    $ remove = (list.owner.key == user_key)
-    <li>
-        <span class="image">
-          $ title = _('Cover of: %(listname)s', listname=list.name)
-          <a href="$list.key"><img src="$list.cover_url" alt="$title" title="$title"/></a>
-        </span>
-        <span class="data">
-            <span class="label">
-                <a href="$list.key" title="$_('See this list')">$list.name</a>
-                $if remove:
-                    <a href="$list.key" class="remove-from-list red smaller arial plain" data-list-key="$list.key" title="$_('Remove from your list?')">[X]</a>
-            </span>
-            $if remove:
-                <span class="owner">from <a href="$list.owner.key">$_('You')</a></span>
-            $else:
-                <span class="owner">from <a href="$list.owner.key">$list.owner.displayname</a></span>
-        </span>
-    </li>
-
-$jsdef render_my_lists(lists, property='active'):
+$def render_already_lists(lists, user_key):
     $for list in lists:
-        $if list[property]:
-            <p class="list">
-                <a href="$list.key" class="add-to-list" data-list-key="$list.key">$list.name</a>
-            </p>
+        $if list['active']:
+            $:render_template('lists/list_overview', list, user_key, seed_info)
 
-$jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, username, pageurl, readinglogonly, use_work):
-    <div class="dropit">
-          $if edition_key and not work_key:
-            <div class="dropper on edition-page-lists-dropdown">
-          $else:
-            <div class="dropper on">
-          $if work_key:
-            <div class="log-work">
-              <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json">
-                $if users_work_read_status == 3:
-                    $ message = _("Already Read")
-                $elif users_work_read_status == 2:
-                    $ message = _("Currently Reading")
-                $else:
-                    $ message = _("Want to Read")
-                $if users_work_read_status:
-                  <input type="hidden" name="action" value="remove"/>
-                  <input type="hidden" name="redir" value="true"/>
-                  <input type="hidden" name="bookshelf_id" value="$(users_work_read_status)"/>
-                  <button class="book-progress-btn want-to-read activated"
-                          type="submit">
-                    <span class="activated-check">✓</span> $(message)
-                  </button>
-                $else:
-                  <input type="hidden" name="action" value="add"/>
-                  <input type="hidden" name="redir" value="true"/>
-                  <input type="hidden" name="bookshelf_id" value="1"/>
-                  <button class="book-progress-btn want-to-read unactivated"
-                          type="submit">
-                    $(message)
-                  </button>
-
-                $if edition_key:
-                  <input type="hidden" id="edition_id" name="edition_id" value="$(edition_key)"/>
-              </form>
-
-              $if users_work_read_status:
-                <a href="javascript:;" class="dropclick dropclick-activated">
-                  <div class="arrow arrow-activated"></div>
-                </a>
-              $else:
-                <a href="javascript:;" class="dropclick dropclick-unactivated">
-                  <div class="arrow arrow-unactivated"></div>
-                </a>
-            </div>
-            <div class="dropdown">
-              <div class="read-statuses">
-                $if users_work_read_status == 2 or users_work_read_status == 3:
-                  <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
-                    <input type="hidden" name="action" value="add"/>
-                    <input type="hidden" name="redir" value="true"/>
-                    <input type="hidden" name="bookshelf_id" value="1"/>
-                    $if edition_key:
-                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
-                    <button class="nostyle-btn" type="submit">$_('Want to Read')</button>
-                  </form>
-
-                $if users_work_read_status != 2:
-                  <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
-                    <input type="hidden" name="action" value="add"/>
-                    <input type="hidden" name="redir" value="true"/>
-                    <input type="hidden" name="bookshelf_id" value="2"/>
-                    $if edition_key:
-                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
-                    <button class="nostyle-btn" type="submit">$('Currently Reading')</button>
-                  </form>
-
-                $if users_work_read_status != 3:
-                  <form class="readingLog" method="POST" action="$(work_key)/bookshelves.json?debug=true">
-                    <input type="hidden" name="action" value="add"/>
-                    <input type="hidden" name="redir" value="true"/>
-                    <input type="hidden" name="bookshelf_id" value="3"/>
-                    $if edition_key:
-                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
-                    <button class="nostyle-btn" type="submit">$_('Already Read')</button>
-                  </form>
-              </div>
-
-              $if not readinglogonly:
-                <div class="reading-lists">
-                  <p class="reading-list-title">$_('My Reading Lists:')</p>
-                  <div class="my-lists">
-                    $:render_my_lists(lists)
-                  </div>
-                  $if edition_key:
-                      <p class="create checkboxes">
-                        <label>
-                           <input type="checkbox" class="work-checkbox"
-                              $if use_work:
-                                checked
-                           /> <span>$_('Use this Work')</span>
-                        </label>
-                      </p>
-                  <p class="create"><a href="javascript:;" class="create-new-list">$_('Create a new list')</a>
-                    <a aria-controls="addList"
-                      class="hidden listClick dialog--open"></a>
-                  </p>
-                </div>
-            </div>
-          $else:
-              $if username:
-                <div class="reading-lists">
-                  <a href="javascript:;" class="dropclick">
-                    <h3>$_('Add to List')</h3>
-                    <div class="arrow arrow-activated"></div>
-                  </a>
-                  <div class="dropdown">
-                    <div class="my-lists">
-                        $:render_my_lists(lists, 'active')
-                    </div>
-                    <p class="create"><a href="javascript:;" class="create-new-list">$_('Create a new list')</a>
-                    </p>
-                  </div>
-                </div>
-
-              $else:
-                <a href="/account/login?redir=$pageurl" class="dropclick plain">
-                  <h3>$('Add to List')</h3>
-                  <div class="arrow"></div>
-                </a>
-      </div>
-    </div>
-
-$jsdef render_widget_display(lists, limit, user_key):
+$def render_widget_display(lists, limit, user_key, exclude_own_lists):
+    $ count = 0
     $for i, list in enumerate(lists):
-        $if i < limit:
-            $:show_list(list, user_key)
-
-$jsdef render_head(seed_type, page_lists, page_url):
-    $if seed_type == "subject":
-        <div class="head">
-          <h3>Lists</h3>
-          <div class="smallest lightgreen sansserif">$_('watch for edits or export all records')</div>
-        </div>
-    $else:
-        <div>
-          <h3 class="header">
-            <span class="icon list heart-adjust"></span>
-            $if len(page_lists) > 0:
-                $ msg = ungettext("%(count)d List", "%(count)d Lists", len(page_lists), count=len(page_lists))
-                <span class="head"><a href="$page_url/lists">$(msg)</a></span>
+        $if count < limit:
+            $if exclude_own_lists:
+                $ own_list = list.owner and list.owner.key == user_key
+                $if not own_list:
+                    $:render_template('lists/list_overview', list, user_key, seed_info)
+                    $ count = count + 1
             $else:
-                <span class="head">$_("Lists")</span>
-          </h3>
-        </div>
+                $:render_template('lists/list_overview', list, user_key, seed_info)
+                $ count = count + 1
+
+$def render_head(page_lists, page_url):
+    <div>
+      <h3 class="header">
+        <span class="icon list heart-adjust"></span>
+        $if len(page_lists) > 0:
+            $ msg = ungettext("%(count)d List", "%(count)d Lists", len(page_lists), count=len(page_lists))
+            <span class="head"><a href="$page_url/lists">$(msg)</a></span>
+        $else:
+            <span class="head">$_("Lists")</span>
+      </h3>
+    </div>
 
 $if include_header:
   <div class="lists-widget-head">
-    $:render_head(seed_info['type'], page_lists, page_url)
+    $:render_head(page_lists, page_url)
   </div>
-
-$if include_widget:
-  $if ctx.user or not work_key:
-    <div class="widget-add $:(not work_key and 'old-style-lists')">
-      $:render_widget_add(user_lists, work_key, edition_key, users_work_read_status, ctx.user, page.url(), readinglog_only, False)
-    </div>
-  $else:
-    <div class="dropit">
-        <div class="dropper on">
-          $if work:
-            <div class="log-work">
-              <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
-                <input type="hidden" name="action" value="add"/>
-                  $if edition_key:
-                    <input type="hidden" name="edition_id" value="$(edition_key)"/>
-
-                  <button class="unactivated" type="submit">$_('Want to Read')</button>
-                </form>
-                <a href="/account/login?redir=$(page_url)" class="dropclick-prevent dropclick-unactivated">
-                  <div class="arrow arrow-unactivated"></div>
-                </a>
-            </div>
-        </div>
-    </div>
-  $if work:
-    $if include_rating:
-      $:macros.StarRatings(work, edition)
-
-    $if ctx.user and ctx.user.is_beta_tester():
-      $:macros.UserMetadata(work, edition)
-
-
-$if include_showcase:
-  <ul class="listLists">
-    $:render_widget_display(page_lists, 3, user_key)
-  </ul>
-
-$if render_once('lists/widget.remove-dialog'):
-    <div id="remove-dialog" class="hidden" title="$_('Remove')"></div>
-
-$if ctx.user and render_once('lists/widget.addList'):
-    <div class="hidden">
-        <div class="floaterAdd" id="addList">
-            <div class="floaterHead">
-                <h2>$_('Create a new list')</h2>
-                <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
-            </div>
-            <form method="post" class="floatform" name="new-list" id="new-list">
-            <div class="formElement">
-                <div class="label">
-                    <label for="list_label">$_('Name:')</label>
-                </div>
-                <div class="input">
-                    <input type="text" name="list_label" id="list_label" class="text required" value=""/>
-                </div>
-            </div>
-            <div class="formElement">
-                <div class="label">
-                    <label for="list_desc">$_('Description:')</label>
-                </div>
-                <div class="input">
-                    <textarea name="list_desc" id="list_desc" rows="5" cols="30"></textarea>
-                </div>
-            </div>
-            <div class="formElement">
-                <div class="input">
-                    <button type="submit" class="larger">$_('Create new list')</button>
-                    &nbsp; &nbsp;
-                    <a class="small dialog--close plain red">$_('Cancel')</a>
-                </div>
-                <div class="label"></div>
-            </div>
-            </form>
-        </div>
-    </div>
-
-$if render_once('lists-api-js'):
-    <script type="text/javascript">
-    window.Lists = {
-        create: function(user_key, data, success, complete) {
-            this.ajax({
-                url: user_key + "/lists.json",
-                data: data,
-                success: function(resp) {
-                    var list = {
-                        key: resp.key,
-                        name: data.name,
-                        active: true,
-                        owner: {key: user_key},
-                        cover_url: "/images/icons/avatar_book-sm.png",
-
-                        edition_count: 1,
-                        description: websafe(data.description)
-                    };
-                    Lists.user_lists.push(list);
-                    Lists.user_lists_by_key[list.key] = list;
-                    for (var i = 0; i < data.seeds.length; i++) {
-                        var seed = data.seeds[i];
-                        Lists.user_lists_by_key[list.key][seed.key || seed] = true;
-                    }
-                    success && success(resp);
-                },
-                complete: complete
-            });
-        },
-        add: function(list_key, seed, success, complete) {
-            this.ajax({
-                url: list_key + "/seeds.json",
-                data: { add: [seed] },
-                success: function(resp) {
-                    Lists.lists_things_matrix[list_key] = Lists.lists_things_matrix[list_key] || {};
-                    Lists.lists_things_matrix[list_key][seed.key || seed] = true;
-                    success && success(resp);
-                },
-                complete: complete
-            });
-        },
-        remove: function(list_key, seed, success, complete) {
-            this.ajax({
-                url: list_key + "/seeds.json",
-                data: { remove: [seed] },
-                success: function(resp) {
-                    delete Lists.lists_things_matrix[list_key][seed.key || seed];
-                    success && success(resp);
-                },
-                complete: complete
-            });
-        },
-        ajax: function(d) {
-            \$.ajax({
-                type: "POST",
-                url: d.url,
-                contentType: "application/json",
-                data: JSON.stringify(d.data),
-                dataType: "json",
-
-                beforeSend: function(xhr) {
-                    xhr.setRequestHeader("Content-Type", "application/json");
-                    xhr.setRequestHeader("Accept", "application/json");
-                },
-                success: d.success,
-                complete: d.complete
-            });
-        },
-        seed_lists: {}, // seed key -> containing list key
-        widgets: [],
-
-        set_user_lists: function(lists) {
-            if (this.user_lists) throw Error("Can only set user lists once!");
-
-            this.user_lists = lists;
-            this.user_lists_by_key = {};
-
-            for (var i = 0; i < this.user_lists.length; i++) {
-                var list = this.user_lists[i];
-                this.user_lists_by_key[list.key] = list;
-            }
-        },
-
-        lists_things_matrix: {},
-        add_to_list_things_matrix: function(to_add) {
-            for (var list_key in to_add) {
-                for (var thing_key in to_add[list_key]) {
-                    this.lists_things_matrix[list_key] = this.lists_things_matrix[list_key] || {};
-                    this.lists_things_matrix[list_key][thing_key] = to_add[list_key][thing_key];
-                }
-            }
-        },
-
-        has_seed: function(list_key, seed) {
-            return list_key in this.lists_things_matrix && this.lists_things_matrix[list_key][seed.key || seed];
-        }
-    };
-
-    Lists.set_user_lists($:json_encode(user_lists));
-    </script>
-
-$code:
-    def build_contains_dict(user_list, seeds):
-        result = {}
-        for list in user_list:
-            result[list.key] = {}
-            for seed in seeds:
-                if seed and list.has_seed(seed):
-                    seed_key = seed['key'] if isinstance(seed_info['seed'], dict) else seed
-                    result[list.key][seed_key] = True;
-        return result
 
 $ default_seed_key = seed_info['seed']['key'] if isinstance(seed_info['seed'], dict) else seed_info['seed']
 
-<script type="text/javascript">
-window.q.push(function() {
-    var \$container = \$("#$container_id");
+$def i18n_input():
+  $ show_list_i18n_strings = {
+    $ "cover_of": _('Cover of: %(title)s', title=''),
+    $ "see_this_list": _('See this list'),
+    $ "remove_from_list": _('Remove from your list?'),
+    $ "from": _('from'),
+    $ "you": _('You')
+    $ }
+  <input type="hidden" name="list-i18n-strings" value="$json_encode(show_list_i18n_strings)">
 
-    Lists.seed_lists[$:json_encode(default_seed_key)] = $:json_encode(page_lists);
-    Lists.add_to_list_things_matrix($:json_encode(build_contains_dict(_user_lists, [seed_info['seed'], work_seed_info and work_seed_info['seed']])));
+$if include_widget:
+  $if render_once('lists/widget.i18n-strings'):
+    $:i18n_input()
 
-    var default_seed_info = $:json_encode(seed_info);
-    default_seed_info.lists = Lists.seed_lists[$:json_encode(default_seed_key)];
-    var work_seed_info = null;
+  $:render_template('my_books/dropper', page, async_load=async_load)
 
-    $if work_seed_info:
-        Lists.seed_lists[$:json_encode(work.key)] = $:json_encode(get_page_lists(work, work_seed_info));
-        work_seed_info = $:json_encode(work_seed_info);
-        work_seed_info.lists = Lists.seed_lists[$:json_encode(work.key)];
+  $if username and show_active_lists:
+    <ul class="listLists already-lists">
+        $if async_load:
+          <div class="list-overview-loading-indicator">Loading<span class="loading-ellipsis">...</span></div>
+        $else:
+          $:render_already_lists(user_lists, user_key)
+    </ul>
+  $if work and include_rating:
+    $:macros.StarRatings(work, edition)
 
-    var user_key = $:json_encode(user_key);
-    var page_url = $:json_encode(page_url);
+$if include_showcase:
+  <ul id="list-lists" class="listLists">
+    $:render_widget_display(page_lists, 3, user_key, exclude_own_lists)
+  </ul>
 
-    var users_work_read_status = $(users_work_read_status or 'null');
-    var work_key = '$(work_key)';
-    var edition_key = '$(edition_key)';
-    var username = '$(username or "")';
-    var listWidgetIndex = Lists.widgets.length;
-
-    /** Whether to use the default thing or work (if work v. edition) */
-    function get_active_seed_info() {
-        var checkbox = \$container.find(".work-checkbox")[0];
-        return checkbox && checkbox.checked && work_seed_info ? work_seed_info : default_seed_info;
-    }
-
-    function reload_widget() {
-        var seed_info = get_active_seed_info();
-        \$container.find(".lists-widget-head").html(render_head(seed_info.type, seed_info.lists, page_url));
-        \$container.find(".widget-add").html(render_widget_add(
-            Lists.user_lists,
-            work_key,
-            edition_key,
-            users_work_read_status,
-            username,
-            page_url,
-            false,
-            work_seed_info && seed_info.type == 'work' ));
-
-        update_my_lists();
-        setup_events();
-
-        // We've added new .dropclick element. Need to setup listeners again.
-        \$container.find('.dropclick').click(function(){
-            \$(this).closest('.dropdown').slideToggle();
-            \$(this).closest('.arrow').toggleClass("up");
-        });
-    }
-
-    // the active lists of this seed
-    function remove_page_list(lists, list) {
-        for (var i=0; i<lists.length; i++) {
-            var pagelist = lists[i];
-            if (lists[i].key == list.key) {
-                lists.splice(i, 1);
-                break;
-            }
-        }
-    }
-
-    function create_new_list_submit_handler(form) {
-        // disable form while waiting for response
-        \$("#addList").find("#new-list button").attr("disabled", true);
-
-        var seed_info = get_active_seed_info();
-        var data = {
-            name: \$("#addList").find("#list_label").val(),
-            description: \$("#addList").find("#list_desc").val(),
-            seeds: [seed_info.seed]
-        };
-
-        Lists.create(user_key, data, function() {
-            \$.fn.colorbox.close();
-        }, function(){
-            // re-enable form now that the request is finished
-            reload_widget();
-            \$("#addList").find("#new-list button").attr("disabled", false);
-        });
-        return false;
-    }
-
-    /** Prunes lists off my_lists if seed is on list */
-    function update_my_lists() {
-        var listsThatDontContainIt = [];
-        var listsThatContainIt = [];
-        var seed_info = get_active_seed_info();
-        for (var i = 0; i < Lists.user_lists.length; i++) {
-            var list = Lists.user_lists[i];
-            if (Lists.has_seed(list.key, seed_info.seed)) {
-                listsThatContainIt.push(list);
-            } else {
-                listsThatDontContainIt.push(list);
-            }
-        }
-        \$container.find(".my-lists").html(render_my_lists(listsThatDontContainIt, 'key'));
-        var filteredShowcaseLists = seed_info.lists;
-        if (Lists.user_lists.length) {
-            filteredShowcaseLists = filteredShowcaseLists.filter(function(list) {
-                return list.owner.key != Lists.user_lists[0].owner.key;
-            });
-        }
-        \$container.find(".listLists").html(render_widget_display(listsThatContainIt.concat(filteredShowcaseLists), 3, user_key));
-        setup_widget_display_events();
-    }
-
-    function setup_widget_display_events() {
-        \$container.find("a.add-to-list").click(function(event) {
-            event.preventDefault();
-            close_popup();
-
-            \$(this).unbind("click");   // ignore clicks while waiting for response
-
-            var list = Lists.user_lists_by_key[\$(this).data('list-key')];
-
-            var seed_info = get_active_seed_info();
-            Lists.add(list.key, seed_info.seed, function() {
-                list.active = true;
-            }, function(data){
-                reload_widget();    // reload widget regardless of success or failure
-            });
-            return false;
-        });
-
-        \$container.find("a.remove-from-list").click(function(event) {
-            event.preventDefault();
-            setup_dialog();
-
-            \$("#remove-dialog")
-                .html(get_active_seed_info().remove_dialog_html)
-                .data("list-key", \$(this).data("list-key"))
-                .dialog("open");
-            return false;
-        });
-    }
-
-    function setup_events() {
-        \$container.find(".work-checkbox").click(update_my_lists);
-        \$container.find(".create-new-list").click(function() {
-           window.activeListWidgetIndex = listWidgetIndex;
-           close_popup();
-           \$.colorbox({
-             inline: true,
-             opacity: "0.5",
-             href: "#addList",
-             onOpen: function() {
-                \$('#addList').find("#new-list").ol_validate({
-                    // list widget index of the "active"
-                    submitHandler: function(form) {
-                        Lists.widgets[window.activeListWidgetIndex].create_new_list_submit_handler(form);
-                    }
-                });
-            }
-           });
-        });
-    }
-
-    function close_popup() {
-        \$(this).next('.dropdown').slideToggle();
-        \$(this).parent().find('.arrow').toggleClass("down");
-    }
-
-    function setup_dialog() {
-        \$("#remove-dialog").ol_confirm_dialog(function() {
-            var list = Lists.user_lists_by_key[\$(this).data("list-key")];
-            var _this = this;
-
-            var seed_info = get_active_seed_info();
-            Lists.remove(list.key, seed_info.seed, function() {
-                list.active = false;
-                remove_page_list(seed_info.lists, list);
-                reload_widget();
-                \$(_this).dialog("close");
-            });
-        });
-    }
-
-    Lists.widgets.push({
-        create_new_list_submit_handler: create_new_list_submit_handler,
-        reload_widget: reload_widget,
-        \$container: \$container,
-        default_seed_info: default_seed_info,
-        work_seed_info: work_seed_info,
-        user_key: user_key,
-        page_url: page_url,
-        users_work_read_status: users_work_read_status,
-        edition_key: edition_key,
-        username: username,
-        update_my_lists: update_my_lists,
-        listWidgetIndex: listWidgetIndex
-    });
-
-    setup_events();
-    update_my_lists(); // update set of eligible lists for this seed
-
-    var mylist = \$container.find('.dropdown');
-    var listitems = mylist.children('p.list').get();
-    var listcreate = \$container.find('.dropdown p.create');
-    listitems.sort(function(a, b) {
-       var compA = \$(a).text().toUpperCase();
-       var compB = \$(b).text().toUpperCase();
-       return (compA < compB) ? -1 : (compA > compB) ? 1 : 0;
-    })
-    \$.each(listitems, function(idx, itm) { mylist.append(itm); });
-    \$container.find('.dropdown').append(listcreate);
-
-    \$(document).on( 'click', '.book-progress-btn, .nostyle-btn', function(e) {
-       \$('.book-progress-btn').text("$_('saving...')");
-    });
-});
-</script>
 </div>

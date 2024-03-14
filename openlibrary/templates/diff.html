@@ -32,10 +32,13 @@ $def display_revision(page):
     <div class="small sansserif">
         <a href="$changequery({}, v=page.revision)"><span class="uppercase"><strong>$_("Revision %d", page.revision)</strong></span></a>
         $ v = get_version(page.key, page.revision)
-        $if v.author:
-            <span class="brown">$_('by') <a href="$v.author.key">$v.author.displayname</a> $datestr(v.created)</span>
+        $if v:
+            $if v.author:
+                <span class="brown">$_('by') <a href="$v.author.key">$v.author.displayname</a> $datestr(v.created)</span>
+            $else:
+                <span class="brown">$_('by Anonymous') $datestr(v.created)</span>
         $else:
-            <span class="brown">$_('by Anonymous') $datestr(v.created)</span>
+            <span class="brown">$_('by Anonymous')</span>
     </div>
 
 $def diff_covers(p, a, b):
@@ -44,11 +47,11 @@ $def diff_covers(p, a, b):
             <td class="diff-header-side">$p</td>
             <td class="diff-body">
                 $for img in a[p]:
-                    <img src="$get_coverstore_url()/b/id/$img-M.jpg"/>
+                    <img src="$get_coverstore_public_url()/b/id/$img-M.jpg"/>
             </td>
             <td class="diff-body">
                 $for img in b[p]:
-                    <img src="$get_coverstore_url()/b/id/$img-M.jpg"/>
+                    <img src="$get_coverstore_public_url()/b/id/$img-M.jpg"/>
             </td>
         </tr>
 
@@ -113,11 +116,11 @@ $def diff_display(name, value):
                     return thingdiff("/type/text", "table_of_contents", a.get_toc_text(), b.get_toc_text())
                 elif p == "title_prefix":
                     return thingdiff("/type/string", "title_prefix", a[p].strip(), b[p].strip())
-                elif p == "authors":
+                elif p == "authors" and a.type.key == "/type/work":
                     label = "authors"
                     t = "/type/author"
-                    ap = a.get_authors()
-                    bp = b.get_authors()
+                    ap = [val.author for val in a.authors]
+                    bp = [val.author for val in b.authors]
                 else:
                     ap = a[p]
                     bp = b[p]

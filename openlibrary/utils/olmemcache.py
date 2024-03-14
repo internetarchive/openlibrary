@@ -4,10 +4,12 @@ import memcache
 from openlibrary.utils.olcompress import OLCompressor
 import web
 
+
 class Client:
     """Wrapper to memcache Client to enable OL specific compression and unicode keys.
     Compatible with memcache Client API.
     """
+
     def __init__(self, servers):
         self._client = memcache.Client(servers)
         compressor = OLCompressor()
@@ -25,13 +27,13 @@ class Client:
     def get_multi(self, keys):
         keys = [web.safestr(k) for k in keys]
         d = self._client.get_multi(keys)
-        return dict((web.safeunicode(k), self.decompress(v)) for k, v in d.items())
+        return {web.safeunicode(k): self.decompress(v) for k, v in d.items()}
 
     def set(self, key, val, time=0):
         return self._client.set(web.safestr(key), self.compress(val), time=time)
 
     def set_multi(self, mapping, time=0):
-        mapping = dict((web.safestr(k), self.compress(v)) for k, v in mapping.items())
+        mapping = {web.safestr(k): self.compress(v) for k, v in mapping.items()}
         return self._client.set_multi(mapping, time=time)
 
     def add(self, key, val, time=0):

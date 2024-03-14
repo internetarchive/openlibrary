@@ -26,12 +26,23 @@
   overflow-x: scroll;
   padding: 10px 20px;
 
+  &.carousel--grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-gap: 30px 20px;
+    padding: 10px;
+
+    // Fallback for non-grid browsers
+    flex-wrap: wrap;
+  }
+
   a,
   a:link {
     text-decoration: none;
   }
 
   &__item {
+    padding: 2px;
     float: left;
     height: 100%;
     margin: 0 10px;
@@ -47,6 +58,10 @@
       border: 5px solid @orange;
       outline: 0;
     }
+  }
+
+  &.carousel--grid .carousel__item {
+    margin: 0;  // Handled by grid gap
   }
 
   // Modifiers
@@ -146,10 +161,12 @@
     display: block;
     position: absolute;
     border: 2px solid fade(@white, 50%);
+    // stylelint-disable declaration-block-no-redundant-longhand-properties
     left: 0;
     right: 0;
     top: 0;
     bottom: 0;
+    // stylelint-enable declaration-block-no-redundant-longhand-properties
     margin: 10px;
   }
 
@@ -160,10 +177,25 @@
 
   &--authors {
     position: relative;
-    color: @grey;
+    color: @dark-grey-two;
     padding: 4px 4px 0;
     font-size: .6875em;
     font-style: oblique;
+  }
+}
+@height-cover-compact: 125px;
+.carousel--compact {
+  .book .book-cover {
+    height: @height-cover-compact;
+  }
+  .book .bookcover {
+    height: @height-cover-compact;
+  }
+
+  .carousel__item__blankcover {
+    height: @height-cover-compact;
+    padding: 20% 10px 10px;
+    margin: 0 auto;
   }
 }
 

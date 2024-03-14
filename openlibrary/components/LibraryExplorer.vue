@@ -7,6 +7,7 @@
       :class="bookRoomClass"
       :features="bookRoomFeatures"
       :appSettings="settingsState"
+      :jumpTo="jumpTo"
     />
 
     <LibraryToolbar :filterState="filterState" :settingsState="settingsState" :sortState="sortState" />
@@ -19,6 +20,7 @@ import LibraryToolbar from './LibraryExplorer/components/LibraryToolbar';
 import DDC from './LibraryExplorer/ddc.json';
 import LCC from './LibraryExplorer/lcc.json';
 import { recurForEach } from './LibraryExplorer/utils.js';
+import { sortable_lcc_to_short_lcc, short_lcc_to_sortable_lcc } from './LibraryExplorer/utils/lcc.js';
 import maxBy from 'lodash/maxBy';
 
 class FilterState {
@@ -62,14 +64,16 @@ export default {
         LibraryToolbar,
     },
     data() {
+        /** @type {import('./LibraryExplorer/utils').ClassificationTree[]} */
         const classifications = [
             {
                 name: 'DDC',
                 longName: 'Dewey Decimal Classification',
                 field: 'ddc',
                 fieldTransform: ddc => ddc,
+                toQueryFormat: ddc => ddc,
                 chooseBest: ddcs => maxBy(ddcs, ddc => ddc.replace(/[\d.]/g, '') ? ddc.length : 100 + ddc.length),
-                root: recurForEach({ children: DDC }, n => {
+                root: recurForEach({ children: DDC, query: '*' }, n => {
                     n.position = 'root';
                     n.offset = 0;
                     n.requests = {};
@@ -79,30 +83,39 @@ export default {
                 name: 'LCC',
                 longName: 'Library of Congress Classification',
                 field: 'lcc',
-                fieldTransform: lcc =>
-                    lcc
-                        .replace(/-+0+/, '')
-                        .replace(/\.0+\./, '.')
-                        .replace(/\.0+$/, ' ')
-                        .replace(/-+/, '')
-                        .replace(/0+(\.\D)/, ($0, $1) => $1),
+                fieldTransform: sortable_lcc_to_short_lcc,
+                toQueryFormat: lcc => {
+                    const normalized = short_lcc_to_sortable_lcc(lcc);
+                    return normalized ? normalized.split(' ')[0] : lcc;
+                },
                 chooseBest: lccs => maxBy(lccs, lcc => lcc.length),
-                root: recurForEach({ children: LCC }, n => {
+                root: recurForEach({ children: LCC, query: '*' }, n => {
                     n.position = 'root';
                     n.offset = 0;
                     n.requests = {};
                 })
             }
         ];
+
+        const urlParams = new URLSearchParams(location.search);
+        let selectedClassification = classifications[0];
+        let jumpTo = null;
+        if (urlParams.has('jumpTo')) {
+            const [classificationName, classificationString] = urlParams.get('jumpTo').split(':');
+            selectedClassification = classifications.find(c => c.field === classificationName);
+            jumpTo = selectedClassification.toQueryFormat(classificationString);
+        }
         return {
             filterState: new FilterState(),
 
             sortState: {
-                order: 'editions',
+                order: jumpTo ? `${selectedClassification.field}_sort asc` : `random_${new Date().toISOString().split(':')[0]}`,
             },
 
+            jumpTo,
+
             settingsState: {
-                selectedClassification: classifications[0],
+                selectedClassification,
                 classifications,
 
                 labels: ['classification'],
@@ -125,12 +138,6 @@ export default {
                             'text'
                         ],
                         selected: 'image'
-                    },
-
-                    shelf: {
-                        debugModeOnly: true,
-                        options: ['default', 'visual'],
-                        selected: 'default'
                     },
 
                     shelfLabel: {
@@ -241,8 +248,8 @@ hr {
     width: 40px;
     margin: 0;
     overflow: hidden;
+    overflow: clip;
     flex-shrink: 0;
-    overflow: hidden;
     margin-left: 1px;
   }
 
@@ -259,161 +266,6 @@ hr {
   }
   .book:hover {
     width: 150px;
-  }
-}
-
-.book-room.style--shelf--visual {
-  .book-end-start {
-    display: block;
-  }
-
-  .shelf-carousel[data-short="000"] {
-    background: url("https://images.unsplash.com/photo-1515524738708-327f6b0037a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=60")
-      rgba(0, 0, 0, .5) !important;
-    background-blend-mode: multiply;
-  }
-  .shelf-carousel[data-short="000"] .book-end-start {
-    background: url("https://images.unsplash.com/photo-1515524738708-327f6b0037a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=60");
-    background-position: center !Important;
-  }
-  .shelf-carousel[data-short="001"],
-  .shelf-carousel[data-short="001"] .book-end-start {
-    background: url("https://images.unsplash.com/photo-1472289065668-ce650ac443d2?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=60");
-    background-position: 0 center !Important;
-  }
-
-  .shelf-carousel[data-short="002"],
-  .shelf-carousel[data-short="002"] .book-end-start {
-    background: url("https://images.unsplash.com/photo-1457369804613-52c61a468e7d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=60")
-      rgba(0, 0, 0, .5);
-    background-blend-mode: multiply;
-  }
-  .shelf-carousel[data-short="002"] .book-end-start {
-    background: url("https://images.unsplash.com/photo-1457369804613-52c61a468e7d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=60");
-  }
-  .shelf-carousel[data-short="003"] {
-    background: url("https://images.unsplash.com/photo-1569766670290-f5581d3bb53f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1379&q=60")
-      rgba(0, 0, 0, .5);
-    background-blend-mode: multiply;
-  }
-  .shelf-carousel[data-short="003"] .book-end-start {
-    background: url("https://images.unsplash.com/photo-1569766670290-f5581d3bb53f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1379&q=60");
-  }
-  .shelf-carousel[data-short="010"],
-  .shelf-carousel[data-short="010"] .book-end-start {
-    background: url("https://images.unsplash.com/photo-1472173148041-00294f0814a2?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=60");
-  }
-  .shelf-carousel[data-short="020"] {
-    background: url("https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1453&q=60")
-      rgba(0, 0, 0, .5);
-    background-blend-mode: multiply;
-  }
-  .shelf-carousel[data-short="020"] .book-end-start {
-    background: url("https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1453&q=60");
-  }
-  .shelf-carousel[data-short="030"] {
-    background: url("https://images.unsplash.com/photo-1524402822060-94f4fb30f6ff?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1267&q=60")
-      rgba(0, 0, 0, .5);
-    background-blend-mode: multiply;
-  }
-  .shelf-carousel[data-short="030"] .book-end-start {
-    background: url("https://images.unsplash.com/photo-1524402822060-94f4fb30f6ff?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1267&q=60");
-  }
-  .shelf-carousel[data-short="100"] {
-    background: url("https://images.unsplash.com/photo-1593240637899-5fc06c754c2b?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=640&q=60")
-      rgba(0, 0, 0, .5);
-    background-blend-mode: multiply;
-  }
-  .shelf-carousel[data-short="100"] .book-end-start {
-    background: url("https://images.unsplash.com/photo-1593240637899-5fc06c754c2b?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=640&q=60");
-  }
-  .shelf-carousel[data-short="110"] {
-    background: url("https://images.unsplash.com/photo-1548691905-57c36cc8d935?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1349&q=60")
-      rgba(0, 0, 0, .5);
-    background-blend-mode: multiply;
-  }
-  .shelf-carousel[data-short="110"] .book-end-start {
-    background: url("https://images.unsplash.com/photo-1548691905-57c36cc8d935?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1349&q=60");
-  }
-  .shelf-carousel[data-short="120"] {
-    background: url("https://images.unsplash.com/photo-1527066579998-dbbae57f45ce?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=632&q=60")
-      rgba(0, 0, 0, .5);
-    background-blend-mode: multiply;
-  }
-  .shelf-carousel[data-short="120"] .book-end-start {
-    background: url("https://images.unsplash.com/photo-1527066579998-dbbae57f45ce?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=632&q=60");
-  }
-  .shelf-carousel[data-short="130"] {
-    background: url("https://images.unsplash.com/photo-1565492206137-0797f1ca6dc6?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=60")
-      rgba(0, 0, 0, .5);
-    background-blend-mode: multiply;
-  }
-  .shelf-carousel[data-short="130"] .book-end-start {
-    background: url("https://images.unsplash.com/photo-1565492206137-0797f1ca6dc6?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=60");
-  }
-  .shelf-carousel[data-short="140"] {
-    background: url("https://upload.wikimedia.org/wikipedia/commons/8/88/Narrenschiff_%281549%29.jpg")
-      rgba(0, 0, 0, .5);
-    background-blend-mode: multiply;
-  }
-  .shelf-carousel[data-short="140"] .book-end-start {
-    background: url("https://upload.wikimedia.org/wikipedia/commons/8/88/Narrenschiff_%281549%29.jpg");
-  }
-  .shelf-carousel[data-short="150"] {
-    background: url("https://images.unsplash.com/photo-1582390644226-33bf6dd99cfc?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=60")
-      rgba(0, 0, 0, .5);
-    background-blend-mode: multiply;
-  }
-  .shelf-carousel[data-short="150"] .book-end-start {
-    background: url("https://images.unsplash.com/photo-1582390644226-33bf6dd99cfc?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=60");
-  }
-
-  .shelf-carousel[data-short="001"] .book-end-start {
-    width: 300px;
-    -webkit-mask-image: linear-gradient(137deg, black 55%, transparent 60%);
-    mask-image: linear-gradient(137deg, black 55%, transparent 60%);
-    position: sticky;
-    top: 0;
-    left: 0;
-    bottom: 0;
-  }
-  .shelf-carousel[data-short] .book-end-start {
-    background-position: 0 0;
-  }
-  .shelf-carousel[data-short] {
-    background-position: 0 0;
-  }
-
-  @media (max-width: 450px) {
-    .book-end-start {
-      position: static !Important;
-    }
-  }
-
-  .shelf-carousel {
-    background-size: cover;
-  }
-  .book-end-start {
-    width: 200px;
-    height: 100%;
-    flex-shrink: 0;
-
-    margin-right: -40px;
-    z-index: 2;
-    -webkit-mask-image: linear-gradient(to right, black 90%, transparent);
-    mask-image: linear-gradient(to right, black 90%, transparent);
-  }
-
-  .book-end-start h3 {
-    background: rgba(0, 0, 0, .3);
-    color: white;
-    font-family: Roboto;
-    font-weight: 300;
-    line-height: 1em;
-    font-size: 1.6em;
-    text-align: center;
-    padding: 10px;
-    text-shadow: 0 0 5px black;
   }
 }
 
@@ -535,13 +387,7 @@ hr {
   }
 
   .shelf {
-    display: flex;
-    flex-direction: column;
     margin-bottom: 35px;
-
-    .shelf-label { order: 1; }
-    .shelf-index { order: 2; }
-    .shelf-carousel { order: 3; }
 
     .shelf-index {
       padding: 4px 8px;
@@ -593,10 +439,6 @@ hr {
 
   .shelf-label {
     background: none;
-  }
-
-  .class-slider.shelf-label small {
-    display: none;
   }
 
   .shelf-label button {

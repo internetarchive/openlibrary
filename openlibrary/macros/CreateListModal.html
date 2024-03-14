@@ -1,0 +1,35 @@
+$if render_once('CreateListModal'):
+    <div class="hidden">
+        <div class="floaterAdd" id="addList">
+            <div class="floaterHead">
+                <h2>$_('Create a new list')</h2>
+                <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+            </div>
+            <form method="post" class="floatform" name="new-list" id="new-list">
+                <div class="formElement">
+                    <div class="label">
+                        <label for="list_label">$_('Name:')</label>
+                    </div>
+                    <div class="input">
+                        <input type="text" name="list_label" id="list_label" class="text required" value="" required/>
+                    </div>
+                </div>
+                <div class="formElement">
+                    <div class="label">
+                        <label for="list_desc">$_('Description:')</label>
+                    </div>
+                    <div class="input">
+                        <textarea name="list_desc" id="list_desc" rows="5" cols="30"></textarea>
+                    </div>
+                </div>
+                <div class="formElement">
+                    <div class="input">
+                        <button id="create-list-button" type="submit" class="larger">$_('Create new list')</button>
+                        &nbsp; &nbsp;
+                        <a class="small dialog--close plain red">$_('Cancel')</a>
+                    </div>
+                    <div class="label"></div>
+                </div>
+            </form>
+        </div>
+    </div>

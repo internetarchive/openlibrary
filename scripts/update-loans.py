@@ -1,10 +1,9 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 """Script to update loans and waiting loans on regular intervals.
 
 Tasks done:
 * delete all waiting-loans that are expired
 """
-from __future__ import print_function
 import sys
 import web
 from openlibrary.core import waitinglist
@@ -12,8 +11,12 @@ from openlibrary.plugins.upstream import borrow
 
 web.config.debug = False
 
+
 def usage():
-    print("python scripts/openlibrary-server openlibrary.yml runscript scripts/update-loans.py [update-loans | update-waitinglists]")
+    print(
+        "python scripts/openlibrary-server openlibrary.yml runscript scripts/update-loans.py [update-loans | update-waitinglists]"
+    )
+
 
 def main():
     try:
@@ -31,6 +34,6 @@ def main():
     else:
         usage()
 
+
 if __name__ == "__main__":
     main()
-

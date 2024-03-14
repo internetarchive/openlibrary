@@ -50,7 +50,7 @@ $.fn.ajaxSubmit = function(options) {
 		return this;
 	}
 
-	if (typeof options == 'function')
+	if (typeof options === 'function')
 		options = { success: options };
 
 	var url = $.trim(this.attr('action'));
@@ -109,7 +109,7 @@ $.fn.ajaxSubmit = function(options) {
 
 	var q = $.param(a);
 
-	if (options.type.toUpperCase() == 'GET') {
+	if (options.type.toUpperCase() === 'GET') {
 		options.url += (options.url.indexOf('?') >= 0 ? '&' : '?') + q;
 		options.data = null;  // data is null for 'get'
 	}
@@ -144,7 +144,7 @@ $.fn.ajaxSubmit = function(options) {
 
 	var multipart = false;
 //	var mp = 'multipart/form-data';
-//	multipart = ($form.attr('enctype') == mp || $form.attr('encoding') == mp);
+//	multipart = ($form.attr('enctype') === mp || $form.attr('encoding') === mp);
 
 	// options.iframe allows user to force iframe mode
 	// 06-NOV-09: now defaulting to iframe mode if file input is detected
@@ -219,7 +219,7 @@ $.fn.ajaxSubmit = function(options) {
 			if (n && !sub.disabled) {
 				options.extraData = options.extraData || {};
 				options.extraData[n] = sub.value;
-				if (sub.type == "image") {
+				if (sub.type === "image") {
 					options.extraData[name+'.x'] = form.clk_x;
 					options.extraData[name+'.y'] = form.clk_y;
 				}
@@ -233,9 +233,9 @@ $.fn.ajaxSubmit = function(options) {
 
 			// update form attrs in IE friendly way
 			form.setAttribute('target',id);
-			if (form.getAttribute('method') != 'POST')
+			if (form.getAttribute('method') !== 'POST')
 				form.setAttribute('method', 'POST');
-			if (form.getAttribute('action') != opts.url)
+			if (form.getAttribute('action') !== opts.url)
 				form.setAttribute('action', opts.url);
 
 			// ie borks in some cases when setting encoding
@@ -262,7 +262,7 @@ $.fn.ajaxSubmit = function(options) {
 				// add iframe to doc and submit the form
 				$io.appendTo('body');
 				io.attachEvent ? io.attachEvent('onload', cb) : io.addEventListener('load', cb, false);
-				form.submit();
+				form.trigger('submit');
 			}
 			finally {
 				// reset attrs and remove "extra" input elements
@@ -286,10 +286,10 @@ $.fn.ajaxSubmit = function(options) {
 				var data, doc;
 
 				doc = io.contentWindow ? io.contentWindow.document : io.contentDocument ? io.contentDocument : io.document;
-				
-				var isXml = opts.dataType == 'xml' || doc.XMLDocument || $.isXMLDoc(doc);
+
+				var isXml = opts.dataType === 'xml' || doc.XMLDocument || $.isXMLDoc(doc);
 				log('isXml='+isXml);
-				if (!isXml && (doc.body == null || doc.body.innerHTML == '')) {
+				if (!isXml && (doc.body === null || doc.body.innerHTML === '')) {
 				 	if (--domCheckCount) {
 						// in some browsers (Opera) the iframe DOM is not always traversable when
 						// the onload callback fires, so we loop a bit to accommodate
@@ -308,7 +308,7 @@ $.fn.ajaxSubmit = function(options) {
 					return headers[header];
 				};
 
-				if (opts.dataType == 'json' || opts.dataType == 'script') {
+				if (opts.dataType === 'json' || opts.dataType === 'script') {
 					// see if user embedded response in textarea
 					var ta = doc.getElementsByTagName('textarea')[0];
 					if (ta)
@@ -318,9 +318,9 @@ $.fn.ajaxSubmit = function(options) {
 						var pre = doc.getElementsByTagName('pre')[0];
 						if (pre)
 							xhr.responseText = pre.innerHTML;
-					}			  
+					}
 				}
-				else if (opts.dataType == 'xml' && !xhr.responseXML && xhr.responseText != null) {
+				else if (opts.dataType === 'xml' && !xhr.responseXML && xhr.responseText !== null) {
 					xhr.responseXML = toXml(xhr.responseText);
 				}
 				data = $.httpData(xhr, opts.dataType);
@@ -354,7 +354,7 @@ $.fn.ajaxSubmit = function(options) {
 			}
 			else
 				doc = (new DOMParser()).parseFromString(s, 'text/xml');
-			return (doc && doc.documentElement && doc.documentElement.tagName != 'parsererror') ? doc : null;
+			return (doc && doc.documentElement && doc.documentElement.tagName !== 'parsererror') ? doc : null;
 		};
 	};
 };
@@ -384,17 +384,17 @@ $.fn.ajaxForm = function(options) {
 		if (!($el.is(":submit,input:image"))) {
 			// is this a child element of the submit el?  (ex: a span within a button)
 			var t = $el.closest(':submit');
-			if (t.length == 0)
+			if (t.length === 0)
 				return;
 			target = t[0];
 		}
 		var form = this;
 		form.clk = target;
-		if (target.type == 'image') {
-			if (e.offsetX != undefined) {
+		if (target.type === 'image') {
+			if (e.offsetX !== undefined) {
 				form.clk_x = e.offsetX;
 				form.clk_y = e.offsetY;
-			} else if (typeof $.fn.offset == 'function') { // try to use dimensions plugin
+			} else if (typeof $.fn.offset === 'function') { // try to use dimensions plugin
 				var offset = $el.offset();
 				form.clk_x = e.pageX - offset.left;
 				form.clk_y = e.pageY - offset.top;
@@ -426,7 +426,7 @@ $.fn.ajaxFormUnbind = function() {
  */
 $.fn.formToArray = function(semantic) {
 	var a = [];
-	if (this.length == 0) return a;
+	if (this.length === 0) return a;
 
 	var form = this[0];
 	var els = semantic ? form.getElementsByTagName('*') : form.elements;
@@ -436,9 +436,9 @@ $.fn.formToArray = function(semantic) {
 		var n = el.name;
 		if (!n) continue;
 
-		if (semantic && form.clk && el.type == "image") {
-			// handle image inputs on the fly when semantic == true
-			if(!el.disabled && form.clk == el) {
+		if (semantic && form.clk && el.type === "image") {
+			// handle image inputs on the fly when semantic === true
+			if(!el.disabled && form.clk === el) {
 				a.push({name: n, value: $(el).val()});
 				a.push({name: n+'.x', value: form.clk_x}, {name: n+'.y', value: form.clk_y});
 			}
@@ -446,18 +446,18 @@ $.fn.formToArray = function(semantic) {
 		}
 
 		var v = $.fieldValue(el, true);
-		if (v && v.constructor == Array) {
+		if (v && v.constructor === Array) {
 			for(var j=0, jmax=v.length; j < jmax; j++)
 				a.push({name: n, value: v[j]});
 		}
-		else if (v !== null && typeof v != 'undefined')
+		else if (v !== null && typeof v !== 'undefined')
 			a.push({name: n, value: v});
 	}
 
 	if (!semantic && form.clk) {
 		// input type=='image' are not found in elements array! handle it here
 		var $input = $(form.clk), input = $input[0], n = input.name;
-		if (n && !input.disabled && input.type == 'image') {
+		if (n && !input.disabled && input.type === 'image') {
 			a.push({name: n, value: $input.val()});
 			a.push({name: n+'.x', value: form.clk_x}, {name: n+'.y', value: form.clk_y});
 		}
@@ -484,11 +484,11 @@ $.fn.fieldSerialize = function(successful) {
 		var n = this.name;
 		if (!n) return;
 		var v = $.fieldValue(this, successful);
-		if (v && v.constructor == Array) {
+		if (v && v.constructor === Array) {
 			for (var i=0,max=v.length; i < max; i++)
 				a.push({name: n, value: v[i]});
 		}
-		else if (v !== null && typeof v != 'undefined')
+		else if (v !== null && typeof v !== 'undefined')
 			a.push({name: this.name, value: v});
 	});
 	//hand off to jQuery.param for proper encoding
@@ -509,21 +509,21 @@ $.fn.fieldSerialize = function(successful) {
  *
  *  var v = $(':text').fieldValue();
  *  // if no values are entered into the text inputs
- *  v == ['','']
+ *  v === ['','']
  *  // if values entered into the text inputs are 'foo' and 'bar'
- *  v == ['foo','bar']
+ *  v === ['foo','bar']
  *
  *  var v = $(':checkbox').fieldValue();
  *  // if neither checkbox is checked
  *  v === undefined
  *  // if both checkboxes are checked
- *  v == ['B1', 'B2']
+ *  v === ['B1', 'B2']
  *
  *  var v = $(':radio').fieldValue();
  *  // if neither radio is checked
  *  v === undefined
  *  // if first radio is checked
- *  v == ['C1']
+ *  v === ['C1']
  *
  * The successful argument controls whether or not the field element must be 'successful'
  * (per http://www.w3.org/TR/html4/interact/forms.html#successful-controls).
@@ -537,9 +537,9 @@ $.fn.fieldValue = function(successful) {
 	for (var val=[], i=0, max=this.length; i < max; i++) {
 		var el = this[i];
 		var v = $.fieldValue(el, successful);
-		if (v === null || typeof v == 'undefined' || (v.constructor == Array && !v.length))
+		if (v === null || typeof v === 'undefined' || (v.constructor === Array && !v.length))
 			continue;
-		v.constructor == Array ? $.merge(val, v) : val.push(v);
+		v.constructor === Array ? $.merge(val, v) : val.push(v);
 	}
 	return val;
 };
@@ -549,19 +549,19 @@ $.fn.fieldValue = function(successful) {
  */
 $.fieldValue = function(el, successful) {
 	var n = el.name, t = el.type, tag = el.tagName.toLowerCase();
-	if (typeof successful == 'undefined') successful = true;
+	if (typeof successful === 'undefined') successful = true;
 
-	if (successful && (!n || el.disabled || t == 'reset' || t == 'button' ||
-		(t == 'checkbox' || t == 'radio') && !el.checked ||
-		(t == 'submit' || t == 'image') && el.form && el.form.clk != el ||
-		tag == 'select' && el.selectedIndex == -1))
+	if (successful && (!n || el.disabled || t === 'reset' || t === 'button' ||
+		(t === 'checkbox' || t === 'radio') && !el.checked ||
+		(t === 'submit' || t === 'image') && el.form && el.form.clk !== el ||
+		tag === 'select' && el.selectedIndex === -1))
 			return null;
 
-	if (tag == 'select') {
+	if (tag === 'select') {
 		var index = el.selectedIndex;
 		if (index < 0) return null;
 		var a = [], ops = el.options;
-		var one = (t == 'select-one');
+		var one = (t === 'select-one');
 		var max = (one ? index+1 : ops.length);
 		for(var i=(one ? index : 0); i < max; i++) {
 			var op = ops[i];
@@ -598,11 +598,11 @@ $.fn.clearForm = function() {
 $.fn.clearFields = $.fn.clearInputs = function() {
 	return this.each(function() {
 		var t = this.type, tag = this.tagName.toLowerCase();
-		if (t == 'text' || t == 'password' || tag == 'textarea')
+		if (t === 'text' || t === 'password' || tag === 'textarea')
 			this.value = '';
-		else if (t == 'checkbox' || t == 'radio')
+		else if (t === 'checkbox' || t === 'radio')
 			this.checked = false;
-		else if (tag == 'select')
+		else if (tag === 'select')
 			this.selectedIndex = -1;
 	});
 };
@@ -614,7 +614,7 @@ $.fn.resetForm = function() {
 	return this.each(function() {
 		// guard against an input with the name of 'reset'
 		// note that IE reports the reset function as an 'object'
-		if (typeof this.reset == 'function' || (typeof this.reset == 'object' && !this.reset.nodeType))
+		if (typeof this.reset === 'function' || (typeof this.reset === 'object' && !this.reset.nodeType))
 			this.reset();
 	});
 };
@@ -623,7 +623,7 @@ $.fn.resetForm = function() {
  * Enables or disables any matching elements.
  */
 $.fn.enable = function(b) {
-	if (b == undefined) b = true;
+	if (b === undefined) b = true;
 	return this.each(function() {
 		this.disabled = !b;
 	});
@@ -634,14 +634,14 @@ $.fn.enable = function(b) {
  * selects/deselects and matching option elements.
  */
 $.fn.selected = function(select) {
-	if (select == undefined) select = true;
+	if (select === undefined) select = true;
 	return this.each(function() {
 		var t = this.type;
-		if (t == 'checkbox' || t == 'radio')
+		if (t === 'checkbox' || t === 'radio')
 			this.checked = select;
-		else if (this.tagName.toLowerCase() == 'option') {
+		else if (this.tagName.toLowerCase() === 'option') {
 			var $sel = $(this).parent('select');
-			if (select && $sel[0] && $sel[0].type == 'select-one') {
+			if (select && $sel[0] && $sel[0].type === 'select-one') {
 				// deselect all other options
 				$sel.find('option').selected(false);
 			}

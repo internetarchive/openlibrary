@@ -112,19 +112,34 @@ export function init(config) {
         $(window.render_excluded_works_list(excluded, config.works.length)).appendTo(container);
     }
 
+    const defaultFieldRender = field => `OPTIONAL { ?x ${field.relation} ?${field.name}. }`;
+
     const SPARQL_FIELDS = [
-        { name: 'ethnic_group', type: 'uri', relation: 'wdt:P172' },
         { name: 'sex', type: 'uri', relation: 'wdt:P21' },
         { name: 'dob', type: 'literal', relation: 'wdt:P569' },
         { name: 'country_of_citizenship', type: 'uri', relation: 'wdt:P27' },
-        { name: 'country_of_birth', type: 'uri', relation: 'wdt:P19/wdt:P131*/wdt:P17' },
+        {
+            name: 'country_of_birth',
+            type: 'uri',
+            relation: 'wdt:P19/wdt:P131*/wdt:P17',
+            render: field => `
+                OPTIONAL {
+                    ?x ${field.relation} ?${field.name}.
+                    OPTIONAL { ?country_of_birth wdt:P571 ?country_inception. }
+                    OPTIONAL { ?country_of_birth wdt:P576 ?country_dissolution. }
+                }
+                # Limit to modern-day countries or the country that existed at the time
+                # of the author's birth
+                FILTER(!BOUND(?country_dissolution) || !BOUND(?dob) || (?dob >= ?country_inception && ?dob <= ?country_dissolution) ).
+            `
+        },
     ];
 
     function buildSparql(authors) {
         return `
             SELECT DISTINCT ?x ?xLabel ?olid
                 ${
-    SPARQL_FIELDS.map(f => `?${f.name} ${f.type == 'uri' ? `?${f.name}Label ` : ''}`).join('')
+    SPARQL_FIELDS.map(f => `?${f.name} ${f.type === 'uri' ? `?${f.name}Label ` : ''}`).join('')
 }
             WHERE {
               VALUES ?olids { ${authors.map(a => `"${a.key.split('/')[2]}"`).join(' ')} }
@@ -132,7 +147,7 @@ export function init(config) {
                  wdt:P648 ?olid.
 
               ${
-    SPARQL_FIELDS.map(f => `OPTIONAL { ?x ${f.relation} ?${f.name}. }`)
+    SPARQL_FIELDS.map(f => (f.render || defaultFieldRender)(f))
         .join('\n')
 }
 
@@ -155,7 +170,7 @@ export function init(config) {
                 const record = { qid, olids: uniq(bindings.map(x => x.olid.value)) };
                 // { qid: Q123, olids: [ { value: }, {value: }], blah: [ {value:}, {value:} ], blahLabel: [{value:}, {value:},
                 for (const {name, type} of SPARQL_FIELDS) {
-                    if (type == 'uri') {
+                    if (type === 'uri') {
                     // need to dedupe whilst keeping labels in mind
                         const deduped = uniqBy(
                             bindings
@@ -190,9 +205,9 @@ export function init(config) {
         const canvas = document.createElement('canvas');
         container.append(canvas);
 
-        if (chartConfig.type == 'work-chart') {
+        if (chartConfig.type === 'work-chart') {
             createWorkChart(config, chartConfig, container, canvas);
-        } else if (chartConfig.type == 'wd-chart') {
+        } else if (chartConfig.type === 'wd-chart') {
             wdPromise.then(() => createWorkChart(config, chartConfig, container, canvas));
         }
     }
@@ -210,7 +225,7 @@ function getPath(obj, key) {
      * @return {any}
      */
     function main(obj, [head, ...rest]) {
-        if (typeof(obj) == 'undefined') return undefined;
+        if (typeof(obj) === 'undefined') return undefined;
         if (!head) return obj;
         if (head.endsWith('[]')) return obj[head.slice(0, -2)].flatMap(x => main(x, rest));
         else return main(obj[head], rest);

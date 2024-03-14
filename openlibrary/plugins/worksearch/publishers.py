@@ -8,10 +8,8 @@ import logging
 from . import subjects
 from . import search
 
-from six.moves import urllib
-
-
 logger = logging.getLogger("openlibrary.worksearch")
+
 
 class publishers(subjects.subjects):
     path = '(/publishers/[^/]+)'
@@ -29,6 +27,7 @@ class publishers(subjects.subjects):
     def is_enabled(self):
         return "publishers" in web.ctx.features
 
+
 class publishers_json(subjects.subjects_json):
     path = '(/publishers/[^/]+)'
     encoding = "json"
@@ -42,6 +41,7 @@ class publishers_json(subjects.subjects_json):
     def process_key(self, key):
         return key.replace("_", " ")
 
+
 class index(delegate.page):
     path = "/publishers"
 
@@ -51,29 +51,35 @@ class index(delegate.page):
     def is_enabled(self):
         return "publishers" in web.ctx.features
 
+
 class publisher_search(delegate.page):
     path = '/search/publishers'
 
     def GET(self):
         i = web.input(q="")
-        solr = search.get_solr()
-        q = {"publisher": i.q}
-
-        result = solr.select(q, facets=["publisher_facet"], fields=["publisher", "publisher_facet"], rows=0)
+        result = search.get_solr().select(
+            {"publisher": i.q, "type": "work"},
+            facets=["publisher_facet"],
+            facet_mincount=1,
+            facet_limit=25,
+            facet_contains=i.q,
+            facet_contains_ignoreCase='true',
+            rows=0,
+        )
         result = self.process_result(result)
         return render_template('search/publishers', i.q, result)
 
     def process_result(self, result):
-        solr = search.get_solr()
-
-        def process(p):
-            return web.storage(
+        publisher_facets = result['facets']['publisher_facet']
+        return [
+            web.storage(
                 name=p.value,
                 key="/publishers/" + p.value.replace(" ", "_"),
-                count=solr.select({"publisher_facet": p.value}, rows=0)['num_found']
+                count=p.count,
             )
-        publisher_facets = result['facets']['publisher_facet'][:25]
-        return [process(p) for p in publisher_facets]
+            for p in publisher_facets
+        ]
+
 
 class PublisherEngine(subjects.SubjectEngine):
     def normalize_key(self, key):
@@ -82,19 +88,26 @@ class PublisherEngine(subjects.SubjectEngine):
     def get_ebook_count(self, name, value, publish_year):
         # Query solr for this publish_year and publish_year combination and read the has_fulltext=true facet
         solr = search.get_solr()
-        q = {
-            "publisher_facet": value
-        }
+        q = {"publisher_facet": value}
 
         if isinstance(publish_year, list):
-            q['publish_year'] = tuple(publish_year) # range
+            q['publish_year'] = tuple(publish_year)  # range
         elif publish_year:
             q['publish_year'] = publish_year
 
         result = solr.select(q, facets=["has_fulltext"], rows=0)
-        counts = dict((v.value, v.count) for v in result["facets"]["has_fulltext"])
+        counts = {v.value: v.count for v in result["facets"]["has_fulltext"]}
         return counts.get('true')
 
+
 def setup():
-    d = web.storage(name="publisher", key="publishers", prefix="/publishers/", facet="publisher_facet", facet_key="publisher_facet", engine=PublisherEngine)
-    subjects.SUBJECTS.append(d)
+    subjects.SUBJECTS.append(
+        subjects.SubjectMeta(
+            name="publisher",
+            key="publishers",
+            prefix="/publishers/",
+            facet="publisher_facet",
+            facet_key="publisher_facet",
+            Engine=PublisherEngine,
+        )
+    )

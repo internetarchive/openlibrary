@@ -4,12 +4,9 @@
 import collections
 import re
 
-import six
-
 
 def reduce_seeds(values):
-    """Function to reduce the seed values got from works db.
-    """
+    """Function to reduce the seed values got from works db."""
     d = {
         "works": 0,
         "editions": 0,
@@ -28,15 +25,18 @@ def reduce_seeds(values):
     d['subjects'] = subject_processor.top_subjects()
     return d
 
+
 RE_SUBJECT = re.compile("[, _]+")
+
 
 def get_seeds(work):
     """Returns all seeds of given work."""
+
     def get_authors(work):
         return [a['author'] for a in work.get('authors', []) if 'author' in a]
 
     def _get_subject(subject, prefix):
-        if isinstance(subject, six.string_types):
+        if isinstance(subject, str):
             key = prefix + RE_SUBJECT.sub("_", subject.lower()).strip("_")
             return {"key": key, "name": subject}
 
@@ -45,7 +45,7 @@ def get_seeds(work):
         places = [_get_subject(s, "place:") for s in work.get("subject_places", [])]
         people = [_get_subject(s, "person:") for s in work.get("subject_people", [])]
         times = [_get_subject(s, "time:") for s in work.get("subject_times", [])]
-        d = dict((s['key'], s) for s in subjects + places + people + times if s is not None)
+        d = {s['key']: s for s in subjects + places + people + times if s is not None}
         return d.values()
 
     def get(work):
@@ -61,9 +61,10 @@ def get_seeds(work):
 
     return list(get(work))
 
+
 class SubjectProcessor:
-    """Processor to take a dict of subjects, places, people and times and build a list of ranked subjects.
-    """
+    """Processor to take a dict of subjects, places, people and times and build a list of ranked subjects."""
+
     def __init__(self):
         self.subjects = collections.defaultdict(list)
 
@@ -81,12 +82,11 @@ class SubjectProcessor:
             self._add_subject('time:', s)
 
     def _add_subject(self, prefix, name):
-        s = self._get_subject(prefix, name)
-        if s:
+        if s := self._get_subject(prefix, name):
             self.subjects[s['key']].append(s['name'])
 
     def _get_subject(self, prefix, subject_name):
-        if isinstance(subject_name, six.string_types):
+        if isinstance(subject_name, str):
             key = prefix + RE_SUBJECT.sub("_", subject_name.lower()).strip("_")
             return {"key": key, "name": subject_name}
 
@@ -98,6 +98,9 @@ class SubjectProcessor:
         return sorted(d, key=lambda k: d[k], reverse=True)[0]
 
     def top_subjects(self, limit=100):
-        subjects = [{"key": key, "name": self._most_used(names), "count": len(names)} for key, names in self.subjects.items()]
+        subjects = [
+            {"key": key, "name": self._most_used(names), "count": len(names)}
+            for key, names in self.subjects.items()
+        ]
         subjects.sort(key=lambda s: s['count'], reverse=True)
         return subjects[:limit]

@@ -5,6 +5,8 @@ import string
 import time
 import threading
 import functools
+from typing import Any, Literal, cast
+from collections.abc import Callable
 
 import memcache
 import json
@@ -12,17 +14,22 @@ import web
 
 from infogami import config
 from infogami.utils import stats
+from infogami.infobase.client import Nothing
 
 from openlibrary.utils import olmemcache
 from openlibrary.utils.dateutil import MINUTE_SECS
-
-import six
+from openlibrary.core.helpers import NothingEncoder
 
 
 __all__ = [
     "cached_property",
-    "Cache", "MemoryCache", "MemcacheCache", "RequestCache",
-    "memoize", "memcache_memoize", "get_memcache"
+    "Cache",
+    "MemoryCache",
+    "MemcacheCache",
+    "RequestCache",
+    "memoize",
+    "memcache_memoize",
+    "get_memcache",
 ]
 
 DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
@@ -44,22 +51,23 @@ class memcache_memoize:
     :param timeout: timeout in seconds after which the return value must be updated
     :param prethread: Function to call on the new thread to set it up
     """
-    def __init__(self, f, key_prefix=None, timeout=MINUTE_SECS, prethread=None):
-        """Creates a new memoized function for ``f``.
-        """
+
+    def __init__(
+        self,
+        f: Callable,
+        key_prefix: str | None = None,
+        timeout: int = MINUTE_SECS,
+        prethread: Callable | None = None,
+    ):
+        """Creates a new memoized function for ``f``."""
         self.f = f
         self.key_prefix = key_prefix or self._generate_key_prefix()
         self.timeout = timeout
 
         self._memcache = None
 
-        self.stats = web.storage(
-            calls=0,
-            hits=0,
-            updates=0,
-            async_updates=0
-        )
-        self.active_threads = {}
+        self.stats = web.storage(calls=0, hits=0, updates=0, async_updates=0)
+        self.active_threads: dict = {}
         self.prethread = prethread
 
     def _get_memcache(self):
@@ -68,12 +76,16 @@ class memcache_memoize:
             if servers:
                 self._memcache = memcache.Client(servers)
             else:
-                web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
+                web.debug(
+                    "Could not find memcache_servers in the configuration. Used dummy memcache."
+                )
                 try:
                     import mockcache  # Only supports legacy Python
+
                     self._memcache = mockcache.Client()
                 except ImportError:  # Python 3
                     from pymemcache.test.utils import MockMemcacheClient
+
                     self._memcache = MockMemcacheClient()
 
         return self._memcache
@@ -121,10 +133,9 @@ class memcache_memoize:
         return value
 
     def update_async(self, *args, **kw):
-        """Starts the update process asynchronously.
-        """
+        """Starts the update process asynchronously."""
         t = threading.Thread(target=self._update_async_worker, args=args, kwargs=kw)
-        self.active_threads[t.getName()] = t
+        self.active_threads[t.name] = t
         t.start()
 
     def _update_async_worker(self, *args, **kw):
@@ -140,7 +151,7 @@ class memcache_memoize:
             self.update(*args, **kw)
         finally:
             # Remove current thread from active threads
-            self.active_threads.pop(threading.currentThread().getName(), None)
+            self.active_threads.pop(threading.current_thread().name, None)
 
             # remove the flag
             self.memcache.delete(key)
@@ -177,21 +188,25 @@ class memcache_memoize:
             return a
 
     def compute_key(self, args, kw):
-        """Computes memcache key for storing result of function call with given arguments.
-        """
+        """Computes memcache key for storing result of function call with given arguments."""
         key = self.key_prefix + "-" + self.encode_args(args, kw)
-        return key.replace(" ", "_")  # XXX: temporary fix to handle spaces in the arguments
+        return key.replace(
+            " ", "_"
+        )  # XXX: temporary fix to handle spaces in the arguments
 
     def json_encode(self, value):
         """json.dumps without extra spaces.
 
         memcache doesn't like spaces in the key.
         """
-        return json.dumps(value, separators=(",", ":"))
+        return json.dumps(
+            [] if isinstance(value, Nothing) else value,
+            separators=(",", ":"),
+            cls=NothingEncoder,
+        )
 
     def memcache_set(self, args, kw, value, time):
-        """Adds value and time to memcache. Key is computed from the arguments.
-        """
+        """Adds value and time to memcache. Key is computed from the arguments."""
         key = self.compute_key(args, kw)
         json_data = self.json_encode([value, time])
 
@@ -217,6 +232,7 @@ class memcache_memoize:
 
         return json_str and json.loads(json_str)
 
+
 ####
 
 
@@ -238,14 +254,15 @@ def cached_property(getter):
         value = getter(self)
         self.__dict__[name] = value
         return value
+
     return property(g)
 
 
-class Cache(object):
+class Cache:
     """Cache interface."""
+
     def get(self, key):
-        """Returns the value for given key. Returns None if that key is not present in the cache.
-        """
+        """Returns the value for given key. Returns None if that key is not present in the cache."""
         raise NotImplementedError()
 
     def set(self, key, value, expires=0):
@@ -271,8 +288,8 @@ class Cache(object):
 
 
 class MemoryCache(Cache):
-    """Cache implementation in memory.
-    """
+    """Cache implementation in memory."""
+
     def __init__(self):
         self.d = {}
 
@@ -299,29 +316,50 @@ class MemcacheCache(Cache):
 
     Expects that the memcache servers are specified in web.config.memcache_servers.
     """
+
     @cached_property
     def memcache(self):
-        servers = config.get("memcache_servers", None)
-        if servers:
+        if servers := config.get("memcache_servers", None):
             return olmemcache.Client(servers)
         else:
-            web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
+            web.debug(
+                "Could not find memcache_servers in the configuration. Used dummy memcache."
+            )
             try:
                 import mockcache
+
                 return mockcache.Client()
             except ImportError:
                 from pymemcache.test.utils import MockMemcacheClient
+
                 return MockMemcacheClient()
 
-    def get(self, key):
-        key = web.safestr(key)
+    def _encode_key(self, key: str) -> str:
+        return cast(str, web.safestr(key))
+
+    def get(self, key: str) -> Any:
+        key = self._encode_key(key)
         stats.begin("memcache.get", key=key)
         value = self.memcache.get(key)
         stats.end(hit=value is not None)
         return value and json.loads(value)
 
-    def set(self, key, value, expires=0):
-        key = web.safestr(key)
+    def get_multi(self, keys: list[str]) -> dict[str, Any]:
+        keys = [self._encode_key(k) for k in keys]
+        stats.begin("memcache.get_multi")
+        d = self.memcache.get_multi(keys)
+        stats.end(hit=bool(d))
+        return {k: json.loads(v) for k, v in d.items()}
+
+    def set_multi(self, mapping: dict[str, Any], expires=0):
+        mapping = {self._encode_key(k): json.dumps(v) for k, v in mapping.items()}
+        stats.begin("memcache.set_multi")
+        d = self.memcache.set_multi(mapping, expires)
+        stats.end()
+        return d
+
+    def set(self, key: str, value: Any, expires=0):
+        key = cast(str, web.safestr(key))
         value = json.dumps(value)
         stats.begin("memcache.set", key=key)
         value = self.memcache.set(key, value, expires)
@@ -349,6 +387,7 @@ class RequestCache(Cache):
 
     The values are cached only in the context of the current request.
     """
+
     @property
     def d(self):
         return web.ctx.setdefault("request-local-cache", {})
@@ -372,7 +411,7 @@ request_cache = RequestCache()
 
 
 def get_memcache():
-    return memcache_cache.memcache
+    return memcache_cache
 
 
 def _get_cache(engine):
@@ -380,7 +419,7 @@ def _get_cache(engine):
         "memory": memory_cache,
         "memcache": memcache_cache,
         "memcache+memory": memcache_cache,
-        "request": request_cache
+        "request": request_cache,
     }
     return d.get(engine)
 
@@ -439,21 +478,25 @@ class memoize:
         def get_page(key):
             pass
     """
-    def __init__(self, engine="memory", key=None, expires=0, background=False, cacheable=None):
+
+    def __init__(
+        self,
+        engine: Literal["memory", "memcache", "request"],
+        key: str | Callable[..., str | tuple],
+        expires: int = 0,
+        background: bool = False,
+        cacheable: Callable | None = None,
+    ):
         self.cache = _get_cache(engine)
-        self.keyfunc = self._make_key_func(key)
+        self.keyfunc = (
+            key if callable(key) else functools.partial(build_memcache_key, key)
+        )
         self.cacheable = cacheable
         self.expires = expires
 
-    def _make_key_func(self, key):
-        if isinstance(key, six.string_types):
-            return PrefixKeyFunc(key)
-        else:
-            return key
-
     def __call__(self, f):
-        """Returns the memoized version of f.
-        """
+        """Returns the memoized version of f."""
+
         @functools.wraps(f)
         def func(*args, **kwargs):
             """The memoized function.
@@ -467,9 +510,10 @@ class memoize:
                 value = f(*args, **kwargs)
                 self.cache_set(key, value)
             return value
+
         return func
 
-    def cache_get(self, key):
+    def cache_get(self, key: str | tuple):
         """Reads value of a key from the cache.
 
         When key is a string, this is equvivalant to::
@@ -488,7 +532,7 @@ class memoize:
         else:
             return self.cache.get(key)
 
-    def cache_set(self, key, value):
+    def cache_set(self, key: str | tuple, value):
         """Sets a key to a given value in the cache.
 
         When key is a string, this is equvivalant to::
@@ -513,33 +557,15 @@ class memoize:
             return self.cache.set(key, value, expires=self.expires)
 
 
-class PrefixKeyFunc:
-    """A function to generate cache keys using a prefix and arguments.
-    """
-    def __init__(self, prefix):
-        self.prefix = prefix
+def build_memcache_key(prefix: str, *args, **kw) -> str:
+    key = prefix
 
-    def __call__(self, *a, **kw):
-        return self.prefix + "-" + self.encode_args(a, kw)
+    if args:
+        key += "-" + json.dumps(args, separators=(",", ":"), sort_keys=True)[1:-1]
+    if kw:
+        key += "-" + json.dumps(kw, separators=(",", ":"), sort_keys=True)
 
-    def encode_args(self, args, kw=None):
-        kw = kw or {}
-        """Encodes arguments to construct the memcache key.
-        """
-        # strip [ and ] from key
-        a = self.json_encode(list(args))[1:-1]
-
-        if kw:
-            return a + "-" + self.json_encode(kw)
-        else:
-            return a
-
-    def json_encode(self, value):
-        """json.dumps without extra spaces and consistent ordering of dictionary keys.
-
-        memcache doesn't like spaces in the key.
-        """
-        return json.dumps(value, separators=(",", ":"), sort_keys=True)
+    return key
 
 
 def method_memoize(f):
@@ -547,16 +573,21 @@ def method_memoize(f):
     object-local memoize.
     Works only for functions with simple arguments; i.e. JSON serializeable
     """
+
     @functools.wraps(f)
     def g(self, *args, **kwargs):
         cache = self.__dict__.setdefault('_memoize_cache', {})
-        key = json.dumps({
-            'function': f.__name__,
-            'args': args,
-            'kwargs': kwargs,
-        }, sort_keys=True)
+        key = json.dumps(
+            {
+                'function': f.__name__,
+                'args': args,
+                'kwargs': kwargs,
+            },
+            sort_keys=True,
+        )
 
         if key not in cache:
             cache[key] = f(self, *args, **kwargs)
         return cache[key]
+
     return g

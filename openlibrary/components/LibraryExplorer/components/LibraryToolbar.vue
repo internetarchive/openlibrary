@@ -2,15 +2,15 @@
     <div class="floating-controls-wrapper">
       <div class="floating-controls" :class="{open: openTabs.length > 0}">
         <div class="tab-bar">
-          <div class="chunky-icon" v-if="openTabs.length" @click="openTabs.splice(0, openTabs.length)">
+          <button class="chunky-icon tab-bar--tab" v-if="openTabs.length" @click="openTabs.splice(0, openTabs.length)">
             <div class="chunky-icon--icon" style="font-size: 32px; font-weight: 100; line-height: 28px;">
               &times;
             </div>
             <div class="chunky-icon--label">
               Close
             </div>
-          </div>
-          <div class="chunky-icon" :class="{active: openTabs.includes('filter')}" @click="toggleTab('filter')">
+          </button>
+          <button class="chunky-icon tab-bar--tab" :class="{active: openTabs.includes('filter')}" @click="toggleTab('filter')">
             <div class="chunky-icon--icon">
               <FilterIcon/>
             </div>
@@ -18,25 +18,25 @@
               Filter
               <span style="opacity: .55" v-if="activeFiltersCount">({{activeFiltersCount}})</span>
             </div>
-          </div>
-          <div class="chunky-icon" :class="{active: openTabs.includes('sort')}" @click="toggleTab('sort')">
+          </button>
+          <button class="chunky-icon tab-bar--tab" :class="{active: openTabs.includes('sort')}" @click="toggleTab('sort')">
             <div class="chunky-icon--icon">
               <SortIcon/>
             </div>
             <div class="chunky-icon--label">Sort</div>
-          </div>
-          <div class="chunky-icon" :class="{active: openTabs.includes('settings')}" @click="toggleTab('settings')">
+          </button>
+          <button class="chunky-icon tab-bar--tab" :class="{active: openTabs.includes('settings')}" @click="toggleTab('settings')">
             <div class="chunky-icon--icon">
               <SettingsIcon/>
             </div>
             <div class="chunky-icon--label">Settings</div>
-          </div>
-          <div class="chunky-icon" :class="{active: openTabs.includes('feedback')}" @click="toggleTab('feedback')">
+          </button>
+          <button class="chunky-icon tab-bar--tab" :class="{active: openTabs.includes('feedback')}" @click="toggleTab('feedback')">
             <div class="chunky-icon--icon">
               <FeedbackIcon/>
             </div>
             <div class="chunky-icon--label">Feedback</div>
-          </div>
+          </button>
         </div>
         <div class="tabs-contents">
           <main v-if="openTabs.includes('filter')">
@@ -131,7 +131,13 @@
                     <input type="radio" v-model="sortState.order" value="old">Oldest
                   </label>
                   <label>
-                    <input type="radio" v-model="sortState.order" :value="`${settingsState.selectedClassification.field}_sort asc`">Shelf Order
+                    <input type="radio" v-model="sortState.order" value="rating">Top Rated
+                  </label>
+                  <label>
+                    <input type="radio" v-model="sortState.order" value="readinglog">Reading Log
+                  </label>
+                  <label title="I.e. Classification order. Note some books maybe missing when sorting by shelf order–we're working on it.">
+                    <input type="radio" v-model="sortState.order" :value="`${settingsState.selectedClassification.field}_sort asc`" >Shelf Order
                   </label>
                   <label>
                     <input type="radio" v-model="sortState.order" :value="randomWithSeed">Random
@@ -233,9 +239,9 @@ export default {
             quickLanguageSelect: '',
             fullLanguageSelect: [],
             langLoading: false,
-            // By default we just send sort=random to the OL API, but when shuffle
-            // is clicked, we add a seed to the end (e.g. random_1235)
-            randomWithSeed: 'random',
+            // By default, random is set to the "hourly" random, so that the books stick
+            // around for a while
+            randomWithSeed: `random_${new Date().toISOString().split(':')[0]}`,
 
             openTabs: [],
             maxTabs: screen.width > 600 ? 5 : 1,
@@ -243,14 +249,15 @@ export default {
     },
 
     async created() {
-        this.topLanguages = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages.json`).then(r => r.json());
+        const params = CONFIGS.LANG ? `?lang=${CONFIGS.LANG}` : '';
+        this.topLanguages = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages.json${params}`).then(r => r.json());
         this.langOpts = this.topLanguages;
     },
 
     watch: {
         quickLanguageSelect(newVal) {
-            if (newVal == '') this.filterState.languages = [];
-            else if (newVal == 'custom') this.filterState.languages = this.fullLanguageSelect;
+            if (newVal === '') this.filterState.languages = [];
+            else if (newVal === 'custom') this.filterState.languages = this.fullLanguageSelect;
             else this.filterState.languages = [newVal];
         },
 
@@ -282,7 +289,7 @@ export default {
 
         computedFilters() {
             const parts = this.filterState.solrQueryParts();
-            const computedParts = parts[0] == this.filterState.filter ? parts.slice(1) : parts;
+            const computedParts = parts[0] === this.filterState.filter ? parts.slice(1) : parts;
             return computedParts.length ? ` AND ${computedParts.join(' AND ')}` : '';
         },
 
@@ -295,7 +302,7 @@ export default {
         },
 
         inDebugMode() {
-            return new URLSearchParams(location.search).get('debug') == 'true';
+            return new URLSearchParams(location.search).get('debug') === 'true';
         },
 
         styles() {
@@ -311,11 +318,13 @@ export default {
                 // fetch top languages
                 this.langOpts = this.topLanguages;
             } else {
+                const params = new URLSearchParams({q: query, limit: 15});
+                if (CONFIGS.LANG) {
+                    params.set('lang', CONFIGS.LANG);
+                }
                 // Actually search
-                this.langOpts = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages/_autocomplete.json?${new URLSearchParams({
-                    q: query,
-                    limit: 15,
-                })}`).then(r => r.json());
+                this.langOpts = await fetch(`${CONFIGS.OL_BASE_LANGS}/languages/_autocomplete.json?${params}`)
+                    .then(r => r.json());
             }
 
             this.langLoading = false;
@@ -323,7 +332,7 @@ export default {
 
         toggleTab(tabName) {
             const index = this.openTabs.indexOf(tabName);
-            if (index == -1) {
+            if (index === -1) {
                 this.openTabs.push(tabName);
                 if (this.openTabs.length > this.maxTabs) {
                     this.openTabs.shift();
@@ -455,9 +464,7 @@ export default {
 
     .multiselect__content {
       display: flex !important;
-      // Since this control is always at the bottom for us, have the results in
-      // reverse order, so that the likeliest match is closest to the input field.
-      flex-direction: column-reverse;
+      flex-direction: column;
     }
   }
 
@@ -484,7 +491,6 @@ export default {
     display: flex;
     flex-direction: column-reverse;
     border-radius: 4px 4px 0 0;
-    overflow: hidden;
     box-shadow: 0 0 5px rgba(0, 0, 0, .2);
     background: linear-gradient(to bottom, #fff, #ebdfc5 150%);
     max-width: 100%;
@@ -499,7 +505,12 @@ export default {
 
       background: linear-gradient(to bottom, #fff, #ebdfc5 150%);
     }
-    .tab-bar > div {
+    .tab-bar--tab {
+      box-sizing: content-box;
+      border: none;
+      font-size: 100%;
+      color: inherit;
+      background-color: inherit;
       border-right: 1px solid rgba(0, 0, 0, .2);
       margin: 0;
       padding: 8px;
@@ -521,7 +532,7 @@ export default {
     }
 
     &.open {
-      .tab-bar > div {
+      .tab-bar--tab {
         &:first-child {
           border-left: 1px solid rgba(0, 0, 0, .2);
         }

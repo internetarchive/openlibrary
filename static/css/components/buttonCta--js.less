@@ -3,6 +3,7 @@
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#ctabtn
  * This stylesheet will only apply if JS is present on the page.
  */
+@import "../less/index.less";
 
 // `a` specificity is needed to override default anchor styles
 .cta-btn,
@@ -17,7 +18,7 @@ a.cta-btn {
   &--unavailable {
     &--load {
       background: url(/static/images/indicator.gif) center center no-repeat;
-      background-color: @orange !important;
+      background-color: @primary-blue !important;
       opacity: .6;
     }
   }

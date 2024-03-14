@@ -1,0 +1,44 @@
+$def with(work, reader_observations, key)
+
+$if reader_observations['total_respondents']:
+  $ total_reviews = reader_observations['total_respondents']
+$else:
+  $ total_reviews = 0
+
+<a id="reader-observations" name="reader-observations" class="section-anchor"></a>
+
+<div class="tab-section review-component">
+  <div class="reviews-header">
+    <h2 class="observation-title">$_('Community Reviews') ($total_reviews)</h2>
+    <a class="observations-feedback" href="https://forms.gle/wEr1dw3tLQYrC7Rr6">Feedback?</a>
+  </div>
+  $if total_reviews > 0:
+    <div class="reviews">
+    $for o in reader_observations['observations']:
+      <span class="review__category">
+      $ total_respondents = o['total_respondents_for_type']
+        <span class="reviews__label" title="$o['description']">$o['label'] <span class="reviews__count">$total_respondents</span></span>
+        $ total_responses = o['total_responses']
+        $for v in o['values']:
+          $ percentage = (v['count'] / total_responses) * 100
+          <span class="reviews__pill">
+            <span class="reviews__value">
+              $v['value']
+            </span>
+            <span class="percentage">
+              $int(percentage)%
+            </span>
+          </span>
+      </span>
+    </div>
+  $else:
+    <div class="no-stats-message">$_('No community reviews have been submitted for this work.')</div>
+  <div class="review-cta">
+    $if ctx.user:
+      $ link_text = _('+ Add your community review')
+      $ link_markup = '<a href="javascript:;" class="observations-modal-link">%s</a>' % link_text
+      $:macros.ObservationsModal(work, link_markup, 'stats', 'stats-link')
+    $else:
+      <a class="login-link" href="/account/login?redirect=$(key)#reader-observations">$_('+ Log in to add your community review')</a>
+  </div>
+</div>

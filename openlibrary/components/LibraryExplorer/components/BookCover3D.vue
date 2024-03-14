@@ -22,7 +22,6 @@
 </template>
 
 <script>
-import CONFIGS from '../configs';
 import CSSBox from './CSSBox';
 import FlatBookCover from './FlatBookCover';
 import { hashCode } from '../utils.js';
@@ -43,8 +42,6 @@ export default {
             default: 50
         },
         book: Object,
-        fetchCoordinator: Object,
-        containerIntersectionRatio: Number,
         /** @type {'image' | 'text'} */
         cover: String,
     },
@@ -53,40 +50,13 @@ export default {
         return {
             finalWidth: this.width,
             finalHeight: this.height,
-            finalThickness: this.thickness
+            finalThickness: this.book.number_of_pages_median ? Math.min(50, this.book.number_of_pages_median / 10) : this.thickness,
         };
     },
     methods: {
         updateWithImageMetadata(e) {
             this.finalHeight = e.target.height;
         },
-        async fetchBookLength(work_key) {
-            const url = `${CONFIGS.OL_BASE_SEARCH}/query.json?${new URLSearchParams({
-                type: '/type/edition',
-                works: work_key,
-                number_of_pages: '',
-                limit: 5
-            })}`;
-            const fetch = this.fetchCoordinator ?
-                this.fetchCoordinator.fetch.bind(this.fetchCoordinator, {priority: () => this.containerIntersectionRatio, name: `cover ${work_key}`}) :
-                fetch;
-            const results = await fetch(url, { cache: 'force-cache' }).then(r =>
-                r.json()
-            );
-            const lengths = results
-                .filter(ed => ed.number_of_pages)
-                .map(ed => ed.number_of_pages);
-            if (lengths.length) {
-                return lengths[0];
-            }
-        }
-    },
-
-    async mounted() {
-        const length = await this.fetchBookLength(this.book.key);
-        if (length) {
-            this.finalThickness = Math.min(50, length / 10);
-        }
     },
 
     computed: {
@@ -189,6 +159,7 @@ export default {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+  overflow: clip;
   width: 150px;
   transform-origin: 0 0;
 }

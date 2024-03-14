@@ -50,7 +50,7 @@ export class PersistentValue {
         this.options = Object.assign({}, PersistentValue.DEFAULT_OPTIONS, options);
         this._listeners = [];
 
-        const noValue = this.read() == null;
+        const noValue = this.read() === null;
         const isValid = () => !this.options.initValidation || this.options.initValidation(this.read());
         if (noValue || !isValid()) {
             this.write(this.options.default);
@@ -76,13 +76,13 @@ export class PersistentValue {
             toWrite = this.options.writeTransformation(newValue, oldValue);
         }
 
-        if (toWrite == null) {
+        if (toWrite === null) {
             localStorage.removeItem(this.key);
         } else {
             localStorage.setItem(this.key, toWrite);
         }
 
-        if (oldValue != toWrite) {
+        if (oldValue !== toWrite) {
             this._emit(toWrite);
         }
     }
@@ -120,10 +120,10 @@ const DEFAULT_MODE = 'everything';
 /** Search mode; {@see MODES} */
 export const mode = new PersistentValue('mode', {
     default: DEFAULT_MODE,
-    initValidation: mode => MODES.indexOf(mode) != -1,
+    initValidation: mode => MODES.indexOf(mode) !== -1,
     writeTransformation(newValue, oldValue) {
         const mode = (newValue && newValue.toLowerCase()) || oldValue;
-        const isValidMode = MODES.indexOf(mode) != -1;
+        const isValidMode = MODES.indexOf(mode) !== -1;
         return isValidMode ? mode : DEFAULT_MODE;
     }
 });
@@ -143,6 +143,6 @@ export class SearchModeSelector {
      * @param {Function} handler
      */
     change(handler) {
-        this.$radioButtons.change(event => handler($(event.target).val()));
+        this.$radioButtons.on('change', event => handler($(event.target).val()));
     }
 }

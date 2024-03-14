@@ -29,7 +29,9 @@ module.exports = {
     // A map of ResourceLoader module / entry chunk names to JavaScript files to pack.
     entry: {
         all: './openlibrary/plugins/openlibrary/js/index.js',
+        partnerLib: './openlibrary/plugins/openlibrary/js/partner_ol_lib.js',
         vue: './openlibrary/plugins/openlibrary/js/vue.js',
+        sw: './openlibrary/plugins/openlibrary/js/service-worker.js',
     },
 
     resolve: {
@@ -39,11 +41,12 @@ module.exports = {
         new webpack.ProvidePlugin({
             $: 'jquery',
             jQuery: 'jquery'
-        })
+        }),
     ],
     module: {
         rules: [{
             test: /\.js$/,
+            exclude: /node_modules/,
             use: {
                 loader: 'babel-loader',
                 options: {
@@ -82,7 +85,7 @@ module.exports = {
             }
         },
         // Don't produce production output when a build error occurs.
-        noEmitOnErrors: prod
+        emitOnErrors: !prod
     },
 
     output: {
@@ -109,7 +112,7 @@ module.exports = {
     // The source map is intentionally exposed
     // to users via sourceMapFilename for prod debugging.
     devtool: 'source-map',
-    mode: prod,
+    mode: prod ? 'production' : 'development',
 
     performance: {
         maxAssetSize: 703 * 1024,

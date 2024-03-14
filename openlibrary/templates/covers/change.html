@@ -8,28 +8,28 @@ $if not ctx.user:
 $if doc.type.key == '/type/author':
     $ add_url = doc.url('/add-photo')
     $ manage_url = doc.url('/manage-photos')
-    $ title = "Author Photos"
+    $ title = _('Author Photos')
     $if doc.get_photo():
-        $ change = "Manage Author Photos"
+        $ change = _('Manage Author Photos')
         $ size = "smaller"
     $else:
-        $ change = "Add Author Photo"
+        $ change = _('Add Author Photo')
         $ size = "smallest"
 $else:
     $ add_url = doc.url('/add-cover')
     $ manage_url = doc.url('/manage-covers')
-    $ title = "Book Covers"
+    $ title = _('Book Covers')
 
     $if doc.get_cover():
-        $ change = "Manage Covers"
+        $ change = _('Manage Covers')
         $ size = "smaller"
     $else:
-        $ change = "Add Cover Image"
+        $ change = _('Add Cover Image')
         $ size = "smallest"
 
 <div class="$size sansserif manageCoversContainer hidden--nojs">
   <a aria-controls="addImage" class="coverPop dialog--open">
-    <div class="manageCovers" data-config="$dumps({'key': doc.type.key, 'url': get_coverstore_url(), 'selector': cover_selector, 'add_url': add_url, 'manage_url': manage_url})">$change</div>
+    <div class="manageCovers" data-config="$dumps({'key': doc.type.key, 'url': get_coverstore_public_url(), 'selector': cover_selector, 'add_url': add_url, 'manage_url': manage_url})">$change</div>
   </a>
 </div>
 
@@ -42,8 +42,8 @@ $else:
 
         <div id="tabsImages" class="tabs tabsPop">
             <ul>
-                <li><a href="#imagesAdd">Add</a></li>
-                <li><a href="#imagesManage">Manage</a></li>
+                <li><a href="#imagesAdd">$_('Add')</a></li>
+                <li><a href="#imagesManage">$_('Manage')</a></li>
             </ul>
 
             <div id="imagesAdd">

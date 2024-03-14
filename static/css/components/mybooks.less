@@ -7,13 +7,50 @@
 
 // Layout
 .mybooks {
-  border-top: 1px solid @lightest-grey;
-  margin-top: 10px;
+  display: flex;
+  flex-direction: row;
+  border-top: 0;
+  margin-top: 0;
+  font-size: .9em;
 }
-@media only screen and (min-width: @width-breakpoint-tablet) {
+@media only screen and (max-width: @width-breakpoint-tablet) {
   .mybooks {
-    .display-flex();
+    flex-direction: column;
   }
 }
 @import (less) "components/mybooks-list.less";
 @import (less) "components/mybooks-menu.less";
+@import (less) "components/mybooks-details.less";
+
+.icon-link__image{
+  position: relative;
+  top: 3px;
+  width: 18px;
+}
+
+.account-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+img.account-avatar {
+  border-radius: 100px;
+  width: 40px;
+  height: 40px;
+  margin-top: 10px;
+  margin-right: 5px;
+}
+
+h2.account-username {
+  margin: 20px 10px 20px 5px;
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+@media only screen and (min-width: (@width-breakpoint-tablet + 1)) {
+  .crumb {
+    margin: 15px 0;
+  }
+}

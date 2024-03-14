@@ -4,8 +4,14 @@ $var title: $page.name
 
 $putctx("robots", "noindex,nofollow")
 
+$:macros.HiddenSaveButton("addAuthor")
+
 <div id="contentHead">
     $:macros.databarEdit(page)
+    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians')):
+        <span class="adminOnly right">
+            <button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="delete" form="addAuthor">$_("Delete Record")</button>
+        </span>
     <h1>$_("Edit Author")</h1>
     $if not ctx.user:
         $:render_template("lib/not_logged")
@@ -54,7 +60,7 @@ $putctx("robots", "noindex,nofollow")
                                     class="markdown olform__input--large" id="wmd-input" rows="6">$page.bio</textarea>
                             </div>
                         </div>
-                        
+
 
                         <div class="formElement contentQuarter" id="birthDate">
                             <div class="label birthLabelAcc">
@@ -82,7 +88,7 @@ $putctx("robots", "noindex,nofollow")
 
                         <div class="clearfix"></div>
 
-                        $if page.date:                                            
+                        $if page.date:
                             <div class="formElement contentQuarter" id="date">
                                     <div class="label dateLabelAcc">
                                         <label for="date">$_("Date")</label>
@@ -103,21 +109,14 @@ $putctx("robots", "noindex,nofollow")
                                 <span class="tip">$_("For example:") Lev Nikolayevich Tolstoy; Yasnaya Polyana</span>
                             </div>
                             <div class="input">
-                                <textarea name="author--alternate_names" id="alternate_names" rows="6">$"; ".join(page.alternate_names)</textarea>
+                                <textarea name="author--alternate_names" id="alternate_names" rows="6">$"\n".join(page.alternate_names)</textarea>
                             </div>
                         </div>
-
-                        $if page.website:
-                            $if ctx.user and ctx.user.is_admin():
-                                <div class="formElement adminOnly">
-                                    <div class="label">
-                                        <label for="uris">$_("Websites")</label>
-                                        <span class="tip">$_("Deprecated")</span>
-                                    </div>
-                                    <div class="input">
-                                        <input type="text" name="author--website" id="website" value="$page.website"/>
-                                    </div>
-                                </div>
+                        <div class="label">Identifiers <a href="/help/faq/editing.en#author-identifiers-purpose"><img src="/images/icons/icon_help.png" alt="$_('Author Identifiers Purpose')"/></a> </div>
+                        <div id="hiddenIdentifierInputs"></div>
+                        <div id="identifiers-display">
+                            $:render_component('AuthorIdentifiers', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenIdentifierInputs',author_config_string=dict(get_author_config())))
+                        </div>
 
 
                 </div>
@@ -139,6 +138,5 @@ $putctx("robots", "noindex,nofollow")
             <div class="formElement bottom">
                 $:macros.EditButtons(comment=page.comment_)
             </div>
-
     </form>
 </div>

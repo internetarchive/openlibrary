@@ -170,16 +170,67 @@ $ stats = get_admin_stats()
       <td></td>
       <td class="amount">$commify(counts.reading_log['total_users_logged']['total']['count'])</td>
     </tr>
+    <tr class="major even">
+      <td>Books Review Tags</td>
+      <td class="amount">$commify(counts.reading_log['total_reviews']['week'])</td>
+      <td class="amount">$commify(counts.reading_log['total_reviews']['month'])</td>
+      <td></td>
+      <td class="amount">$commify(counts.reading_log['total_reviews']['total'])</td>
+    </tr>
+    <tr class="major even">
+      <td>Books Reviewed</td>
+      <td class="amount">$commify(counts.reading_log['total_books_reviewed']['week'])</td>
+      <td class="amount">$commify(counts.reading_log['total_books_reviewed']['month'])</td>
+      <td></td>
+      <td class="amount">$commify(counts.reading_log['total_books_reviewed']['total'])</td>
+    </tr>
+    <tr class="major even">
+      <td>Users Reviewing</td>
+      <td class="amount">$commify(counts.reading_log['total_reviewers']['week'])</td>
+      <td class="amount">$commify(counts.reading_log['total_reviewers']['month'])</td>
+      <td></td>
+      <td class="amount">$commify(counts.reading_log['total_reviewers']['total'])</td>
+    </tr>
+
+    <tr class="major">
+      <td>Notes Created</td>
+      <td class="amount">$commify(counts.reading_log['total_notes_created']['week'])</td>
+      <td class="amount">$commify(counts.reading_log['total_notes_created']['month'])</td>
+      <td></td>
+      <td class="amount">$commify(counts.reading_log['total_notes_created']['total'])</td>
+    </tr>
+    <tr class="major">
+      <td>Patrons Creating Notes</td>
+      <td class="amount">$commify(counts.reading_log['total_note_takers']['week'])</td>
+      <td class="amount">$commify(counts.reading_log['total_note_takers']['month'])</td>
+      <td></td>
+      <td class="amount">$commify(counts.reading_log['total_note_takers']['total'])</td>
+    </tr>
+
+    <tr class="major">
+      <td>Books Starred</td>
+      <td class="amount">$commify(counts.reading_log['total_books_starred']['week'])</td>
+      <td class="amount">$commify(counts.reading_log['total_books_starred']['month'])</td>
+      <td></td>
+      <td class="amount">$commify(counts.reading_log['total_books_starred']['total'])</td>
+    </tr>
+    <tr class="major">
+      <td>Star Rating Patrons</td>
+      <td class="amount">$commify(counts.reading_log['total_star_raters']['week'])</td>
+      <td class="amount">$commify(counts.reading_log['total_star_raters']['month'])</td>
+      <td></td>
+      <td class="amount">$commify(counts.reading_log['total_star_raters']['total'])</td>
+    </tr>
   </table>
 
   <div class="clearfix"></div>
 
   <h2>Unique Visitors</h2>
-  <img alt="Unique visitors IPs per day graph" src="http://graphite.us.archive.org/render/?min=0&template=plain&lineMode=staircase&areaMode=stacked&areaAlpha=0.5&yAxisSide=right&title=openlibrary+++Unique+IPs+per+day+++(uip_openlibrary)&hideLegend=true&target=cactiStyle(alias(summarize(sumSeries(group(stats.uniqueips.openlibrary)),%221day%22),%22openlibrary+++Unique+IPs+per+day+++(uip_openlibrary)%22))&colorList=00ff00&height=200&width=900&from=-60days"/>
+  <img alt="Unique visitors IPs per day graph" src="https://graphite.us.archive.org/render/?min=0&template=plain&lineMode=staircase&areaMode=stacked&areaAlpha=0.5&yAxisSide=right&title=openlibrary+++Unique+IPs+per+day+++(uip_openlibrary)&hideLegend=true&target=cactiStyle(alias(summarize(sumSeries(group(stats.uniqueips.openlibrary)),%221day%22),%22openlibrary+++Unique+IPs+per+day+++(uip_openlibrary)%22))&colorList=00ff00&height=200&width=900&from=-60days"/>
 
   <h2>Borrows</h2>
-  <img alt="Borrows, last 3 months graph" src="http://graphite.us.archive.org/render?target=hitcount(stats.ol.loans.bookreader,%221d%22)&from=-3months&tz=UTC&width=900"/>
-  <img alt="Borrows, last 2 years graph" src="http://graphite.us.archive.org/render?target=hitcount(stats.ol.loans.bookreader,%221d%22)&from=-24months&tz=UTC&width=900"/>
+  <img alt="Borrows, last 3 months graph" src="https://graphite.us.archive.org/render?target=hitcount(stats.ol.loans.bookreader,%221d%22)&from=-3months&tz=UTC&width=900"/>
+  <img alt="Borrows, last 2 years graph" src="https://graphite.us.archive.org/render?target=hitcount(stats.ol.loans.bookreader,%221d%22)&from=-24months&tz=UTC&width=900"/>
 
   <div class="contentSpacer"></div>
 

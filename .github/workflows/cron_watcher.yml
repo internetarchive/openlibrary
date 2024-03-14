@@ -1,0 +1,40 @@
+# A GitHub Action to verify that certain Open Library cron jobs have completed successfully.
+# Data dumps happen on the 1st day of the month so check on them on the 2nd day of the month.
+# Partner dumps happen on the 17th day of the month so check on them on the 18th day of the month.
+# Always check again two days later in case they needed to be re-run.
+# https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule
+
+name: cron_watcher
+on:
+  schedule:  # At 3:45am on the 2nd, 4th, 18th, and 20th day of the month.
+    - cron: '45 3 2,4,18,20 * *'  # https://cron.help
+  workflow_dispatch:  # This job can also be run on-demand.
+permissions:
+  contents: read
+
+jobs:
+  cron_watcher:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+      - run: pip install internetarchive slack-sdk
+      - run: scripts/cron_watcher.py
+        continue-on-error: true
+        id: cron_watcher_step
+      - if: steps.cron_watcher_step.outcome != 'success'
+        shell: python
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_CHANNEL_ABC_TEAM: ${{ secrets.SLACK_CHANNEL_ABC_TEAM }}
+        run: |
+          import os, sys, slack_sdk
+          token = os.getenv("SLACK_TOKEN")
+          channel = os.getenv("SLACK_CHANNEL_ABC_TEAM")
+          if token and channel:
+            slack_sdk.WebClient(token=token).chat_postMessage(channel=channel,
+              text="[cron_watcher](https://github.com/internetarchive/openlibrary/actions/workflows/cron_watcher.yml) has failed.",
+            )
+          sys.exit(1)

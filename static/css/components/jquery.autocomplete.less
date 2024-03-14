@@ -47,7 +47,7 @@
   color: @black;
 }
 
-.ac_results .ac_author {
+.ac_author {
   .action {
     font-size: 9px;
     color: @olive;
@@ -84,7 +84,7 @@
   }
 }
 
-.ac_results .ac_work {
+.ac_work {
   .cover {
     float: left;
     margin-right: 5px;
@@ -92,7 +92,7 @@
     height: 5em;
     overflow: hidden;
     border-radius: 2px;
-    mask-image: linear-gradient(to top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0) 15%);
+    mask-image: linear-gradient(to top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1) 15%);
 
     // stylelint-disable-next-line selector-max-specificity
     img {
@@ -113,6 +113,7 @@
 
   .name {
     display: block;
+    line-height: 1.1em;
   }
 
   .title {

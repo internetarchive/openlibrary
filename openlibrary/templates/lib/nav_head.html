@@ -1,27 +1,56 @@
 $def with (page)
+$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
 
 <header id="header-bar" class="header-bar">
-  <div class="hamburger-component checkbox-menu">
 
-    <label for="toggle-hamburger" class="hamburger-button">
-      <img src="/static/images/menu.png" alt="additional options menu"/>
-    </label>
 
-    <input role="button" type="checkbox" class="hamburger-component__checkbox" id="toggle-hamburger">
-    <div class="hamburger-dropdown-component navigation-dropdown-component">
-      <ul class="dropdown-menu hamburger-dropdown-menu">
-        $if not ctx.user:
-          <li><a href="/account/login">$_("Log in")</a></li>
-          <li><a href="/account/create">$_("Sign up")</a></li>
-
-        <li><a href="/books/add">$_("Add a Book")</a></li>
-        <li><a href="/sponsorship">$_("Sponsor a Book")</a></li>
-        <li><a href="/recentchanges">$_("Recent Community Edits")</a></li>
-        <li><a href="/developers">$_("Developer Center")</a></li>
-        <li><a href="/help">$_("Help & Support")</a></li>
-      </ul>
-    </div>
-  </div>
+  $if ctx.user:
+    $ loginLinks = [
+    $     { "href": "/account/books", "text": _("My Books"), "track": "MyBooks", "subheading": _("Loans, Reading Log, Lists, Stats") },
+    $     { "href": ctx.user.key, "text": _("My Profile"), "track": "MyProfile" },
+    $     { "href": homepath() + "/account", "text": _("Settings"), "track": "MySettings" },
+    $     { "post": "/account/logout", "text": _("Log out"), "track": "Logout", "name":"hamburger-logout" },
+    $ ]
+      $if is_privileged_user:
+        $ loginLinks.insert(2, { "href": homepath() + "/merges", "text": _("Pending Merge Requests"),"track": "MyRequests", "badge": True })
+  $else:
+    $ loginLinks = [
+    $     { "loginClass": "login-links" }
+    $ ]
+  $ myBooksLinks = [
+  $     { "href": homepath() + "/account/books", "text": _("My Books"), "track": "MyBooks" },
+  $ ]
+  $ browseLinks = [
+  $     { "href": "/subjects", "text": _("Subjects"), "track": "Subjects" },
+  $     { "href": "/trending", "text": _("Trending"), "track": "Trending" },
+  $     { "href": "/explore", "text": _("Library Explorer"), "track": "Explore" },
+  $     { "href": "/lists", "text": _("Lists"), "track": "Lists" },
+  $     { "href": "/collections", "text": _("Collections"), "track": "Collections" },
+  $     { "href": "/k-12", "text": _("K-12 Student Library"), "track": "K12Library" },
+  $     { "href": "/booktalks", "text": _("Book Talks"), "track": "BookTalks" },
+  $     { "href": "/random", "text": _("Random Book"), "track": "RandomBook" },
+  $     { "href": "/advancedsearch", "text": _("Advanced Search"), "track": "AdvancedSearch" }
+  $ ]
+  $ contributeLinks = [
+  $     { "href": "/books/add", "text": _("Add a Book"), "track": "AddBook" },
+  $     { "href": "/recentchanges", "text": _("Recent Community Edits"), "track": "RecentEdits" }
+  $ ]
+  $ resourceLinks = [
+  $     { "href": "/help", "text": _("Help & Support"), "track": "Help" },
+  $     { "href": "/developers", "text": _("Developer Center"), "track": "DevelopersHelp" },
+  $     { "href": "/librarians", "text": _("Librarians Portal"), "track": "LibrariansHelp" }
+  $ ]
+  $ hamburgerProps = {
+  $  'name': 'hamburger',
+  $  'links': [ { "subsection": _("My Open Library") } ] + loginLinks +
+  $     [ { "subsection": _("Browse") } ] + browseLinks +
+  $     [ { "subsection": _("Contribute") } ] + contributeLinks +
+  $     [ { "subsection": _("Resources") } ] + resourceLinks,
+  $  'image': '/static/images/hamburger-icon.svg',
+  $  'image-class': 'hamburger__icon',
+  $  'label': 'additional options menu',
+  $  'show_mask': True
+  $ }
 
   <div class="logo-component">
     <a href="/" title="$_('The Internet Archive\'s Open Library: One page for every book')">
@@ -32,6 +61,22 @@ $def with (page)
       </div>
     </a>
   </div>
+
+  $ browseProps = {
+  $   'name': 'browse',
+  $   'label': _('Browse'),
+  $   'links': browseLinks
+  $ }
+
+  $ myBooksProps = {
+  $   'name': 'mybooks',
+  $   'label': _('My Books'),
+  $   'links': myBooksLinks
+  $ }
+  <ul class="navigation-component">
+    <li>$:render_template("lib/header_dropdown", myBooksProps, track_prefix="MainNav")</li>
+    <li>$:render_template("lib/header_dropdown", browseProps, track_prefix="MainNav")</li>
+  </ul>
 
   <div class="search-component">
     <div class="search-bar-component">
@@ -54,6 +99,15 @@ $def with (page)
           <input type="text" name="q" placeholder="$_('Search')" aria-label="Search" autocomplete="off">
           <input name="mode" type="checkbox" aria-hidden="true" aria-label="Search checkbox" checked="checked" value="" id="ftokenstop" class="hidden instantsearch-mode">
           <input type="submit" value="" class="search-bar-submit" aria-label="Search submit">
+          <div class="vertical-separator"></div>
+          <a
+            id="barcode_scanner_link"
+            class="search-by-barcode-submit"
+            aria-label="$_('Search by barcode')"
+            title="$_('Search by barcode')"
+            href="/barcodescanner?returnTo=/isbn/$$$$$$"
+          >
+          </a>
         </form>
       </div>
       <div class="search-dropdown">
@@ -63,41 +117,6 @@ $def with (page)
     </div>
   </div>
 
-  <ul class="navigation-component">
-    <li class="browse-menu checkbox-menu">
-      <label for="toggle-browse-menu" class="browse-menu-button">$_('Browse') 
-        <img class="down-arrow" width="7" height="4" aria-hidden="true" src="/static/images/down-arrow.png" alt="" role="presentation"/>
-      </label>
-
-      <input role="button" type="checkbox" class="navigation-component__checkbox" id="toggle-browse-menu">
-      <div class="navigation-dropdown-component">
-        <ul class="dropdown-menu browse-menu-options">
-          <li><a href="/subjects">$_("Subjects")</a></li>
-          <li><a href="/lists">$_("Lists")</a></li>
-          <li><a href="/k-12">$_("K-12 Student Library")</a></li>
-          <li><a href="/random">$_("Random Book")</a></li>
-          <li><a href="/advancedsearch">$_("Advanced Search")</a></li>
-        </ul>
-      </div>
-    </li>
-    <li class="more-menu checkbox-menu">
-      <label for="toggle-more-menu" class="more-menu-button">$_('More') 
-        <img class="down-arrow" width="7" height="4" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/>
-      </label>
-
-      <input role="button" type="checkbox" class="navigation-component__checkbox" id="toggle-more-menu">
-      <div class="navigation-dropdown-component">
-        <ul class="dropdown-menu more-menu-options">
-          <li><a href="/books/add">$_("Add a Book")</a></li>
-          <li><a href="/sponsorship">$_("Sponsor a Book")</a></li>
-          <li><a href="/recentchanges">$_("Recent Community Edits")</a></li>
-          <li><a href="/developers">$_("Developer Center")</a></li>
-          <li><a href="/help">$_("Help & Support")</a></li>
-        </ul>
-      </div>
-    </li>
-  </ul>
-
   $if not ctx.user:
     <ul class="auth-component">
       <li class="hide-me">
@@ -106,32 +125,12 @@ $def with (page)
       <li><a class="btn primary" href="/account/create">$_("Sign Up")</a></li>
     </ul>
 
-  $if ctx.user:
-    <div class="account-component checkbox-menu">
-      <div class="dropdown-avatar">        
-        <label for="toggle-account" id="userToggle" class="avatar account-button" aria-label="My account" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');">
-        </label>
+  $:render_template("lib/header_dropdown", hamburgerProps, track_prefix="Hamburger")
 
-        <label for="toggle-account" class="account-button">
-          <img class="down-arrow" aria-hidden="true" src="/static/images/down-arrow.png" role="presentation" alt=""/>
-        </label>
-      </div>
-
-      <input role="button" type="checkbox" class="account-component__checkbox" id="toggle-account">
-      <div class="account-dropdown navigation-dropdown-component" id="main-account-dropdown">
-        <ul class="dropdown-menu">
-          <li><a href="$ctx.user.key">$_("My Profile")</a></li>
-          <li><a href="$homepath()/account/loans">$_("My Loans")</a></li>
-          <li><a href="$ctx.user.key/lists">$_("My Lists")</a></li>
-          <li><a href="/account/books">$_("My Reading Log")</a></li>
-          <li><a href="/account/books/already-read/stats">$_("My Reading Stats")</a></li>
-          <li><a href="$homepath()/account">$_("Settings")</a></li>
-          <li>
-            <form name="logout" action="/account/logout" method="post">
-              <a href="#" onclick="document.forms['logout'].submit()">$_("Log out")</a>
-            </form>
-          </li>
-        </ul>
-      </div>
-    </div>
+</header>
+<header class="header-bar mobile">
+  <ul class="navigation-component mobile">
+    <li>$:render_template("lib/header_dropdown", myBooksProps, track_prefix="MainNav")</li>
+    <li>$:render_template("lib/header_dropdown", browseProps, track_prefix="MainNav")</li>
+  </ul>
 </header>

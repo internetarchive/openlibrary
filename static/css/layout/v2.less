@@ -1,6 +1,6 @@
 #test-body-mobile {
   box-sizing: border-box;
-  max-width: 960px;
+  max-width: 1060px;
   width: 100%;
   margin: 0 auto;
   background-color: @white;
@@ -8,13 +8,6 @@
   border: 1px solid @dark-beige;
   z-index: @z-index-level-1;
   position: relative;
-}
-
-// For pages without a header we don't want a margin.
-// This might be better placed in the header component in future
-// but is kept here for backwards compatibility with v1 pages
-header + #test-body-mobile {
-  margin-top: 20px;
 }
 
 // stylelint-disable-next-line no-descending-specificity
@@ -35,7 +28,7 @@ body.full-width #test-body-mobile {
   .content {
     &Quarter {
       float: left;
-      width: 215px;
+      width: 240px;
     }
   }
 }

@@ -11,7 +11,7 @@
 @import (less) "less/z-index.less";
 
 .header-bar {
-  max-width: 960px;
+  max-width: 1060px;
   min-width: 300px;
   margin: 0 auto;
   .display-flex();
@@ -25,52 +25,13 @@
   z-index: @z-index-level-2;
   position: relative;
 
-  .account-component {
-    -webkit-box-flex: 0;
-    -ms-flex: none;
-    flex: none;
-    padding-left: 5px;
-    padding-right: 5px;
-    font-size: 1em;
-    -webkit-box-ordinal-group: 4;
-    -ms-flex-order: 3;
-    order: 3;
-
-    a {
-      color: @white;
-      text-decoration: none;
-      display: block;
-    }
-
-    .down-arrow {
-      margin-top: 1px;
-    }
-
-    .account-dropdown {
-      position: absolute;
-      text-align: right;
-      // Note, it must be padding so that the gap between the icon and
-      // the dropdown menu is included in the hover-trigger area (#1575)
-      padding-top: 5px;
-      right: 11px;
-
-      // stylelint-disable-next-line max-nesting-depth, selector-max-specificity
-      ul a li {
-        width: 150px;
-        text-decoration: none;
-        text-align: left;
-        padding: 5px;
-      }
-    }
-  }
-
   .auth-component {
     display: none;
     padding: 5px;
     padding-right: 0;
-    -webkit-box-ordinal-group: 5;
-    -ms-flex-order: 4;
-    order: 4;
+    -webkit-box-ordinal-group: 4;
+    -ms-flex-order: 3;
+    order: 3;
 
     li {
       text-align: left;
@@ -81,6 +42,7 @@
       // stylelint-enable declaration-block-no-duplicate-properties
 
       // stylelint-disable-next-line max-nesting-depth
+      button,
       a {
         color: @dark-grey;
       }
@@ -96,12 +58,9 @@
     background-color: @light-beige;
     border: 1px solid @dark-beige;
     border-radius: 3px;
-    cursor: pointer;
 
     li {
-      padding: 10px;
       border-bottom: 1px solid @beige-two;
-      padding-right: 20px;
 
       // stylelint-disable max-nesting-depth, selector-max-specificity
       &:last-child {
@@ -112,6 +71,7 @@
         background-color: @white;
       }
 
+      button,
       a {
         text-decoration: none;
         color: @dark-grey;
@@ -120,29 +80,233 @@
         padding: 10px;
         display: block;
       }
+
+      button {
+        cursor: pointer;
+        text-align: start;
+        width: 100%;
+      }
       // stylelint-enable max-nesting-depth, selector-max-specificity
     }
   }
 
-  .hamburger-dropdown-component {
-    position: absolute;
+  .app-drawer {
+    @topHeight: 50px;
+    position: fixed;
+    width: 300px;
+    max-width: 100vw;
+    right: 0;
+    top: @topHeight;
+    height: calc(100% - @topHeight - 25px);
+    z-index: @z-index-level-2;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    font-family: @bahnschrift;
+    background-color: @light-beige;
+    box-shadow: -10px 0 10px -6px rgb(0 0 0 / 25%);
+
+    ul {
+      border: none;
+    }
+
+    .app-drawer__badge {
+      color: @white;
+      background-color: @primary-blue;
+      font-size: .9em;
+      padding: 2px 6px 1px;
+      border-radius: 4px;
+      float: right;
+      text-transform: uppercase;
+    }
+
+    // stylelint-disable max-nesting-depth, selector-max-specificity
+    .subsection {
+      font-weight: bold;
+      border-bottom: 2px solid hsl(32.7,14.7%,70.6%);
+      padding: 16px 16px 3px;
+      &:hover {
+        background-color: transparent;
+      }
+    }
+
+    li {
+      border-bottom: 1px solid hsla(33.6, 10%, 49.2%, .25);
+    }
+
+    li:not(.subsection) {
+      margin: 0 8px;
+    }
+
+    li a, li button, .login-links {
+      padding: 10px 8px;
+    }
+
+    li button {
+      width: 100%;
+      font-family: @bahnschrift;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .subsection:first-child {
+      border-top: 1px solid @dark-beige;
+    }
+
+    .login-links {
+      display: flex;
+      border-bottom: none;
+      justify-content: space-evenly;
+      column-gap: 16px;
+      &:hover {
+        background-color: transparent;
+      }
+    }
+
+    .login-links a {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 6px;
+      padding: 6px;
+      transition: .3s;
+    }
+
+    .login-links .login-links__primary {
+      background: @primary-blue;
+      color: @white;
+      &:hover {
+        background-color: @link-blue;
+      }
+    }
+
+    .login-links .login-links__secondary {
+      color: @primary-blue;
+      border: 2px solid @primary-blue;
+      &:hover {
+        background-color: @white;
+      }
+    }
+    // stylelint-enable max-nesting-depth, selector-max-specificity
   }
 
   .hamburger-component {
-    -webkit-box-ordinal-group: 1;
-    -ms-flex-order: 0;
-    order: 0;
+    -webkit-box-ordinal-group: 5;
+    -ms-flex-order: 4;
+    order: 4;
     margin-right: 5px;
+
+    // stylelint-disable max-nesting-depth, selector-max-specificity
+    details[open] {
+      .mask-menu{
+        visibility: visible;
+        opacity: .6;
+        animation: fadeIn .2s ease-in-out;
+      }
+      summary ~ * {
+        animation: sweep .2s ease-in-out;
+      }
+      .hamburger__icon {
+        background-color: @account-icon-background;
+      }
+    }
+
+    .hamburger__icon {
+      width: 22px;
+      padding: 0 10px;
+      border-radius: 3px;
+      box-sizing: content-box;
+    }
+
+    @keyframes sweep {
+      0%    {opacity: 0; transform: translateX(50px)}
+      100%  {opacity: 1; transform: translateX(0)}
+    }
+
+    @keyframes fadeIn {
+      0% {opacity: 0;}
+      100% {opacity: .6;}
+    }
+    // stylelint-enable max-nesting-depth, selector-max-specificity
+
+    summary::marker {
+      content: "";
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
 
     label {
       background: transparent;
       border: none;
     }
 
-    img {
-      width: 44px;
-      height: 44px;
-      padding: 0 3px;
+    /*  Technical/design debt: For unknown historic reasons the hamburger button does not have an
+    arrow to the right of the icon, but the profile icon does. This is likely an accessibility
+    or UX problem.
+
+    There's an argument to be made that this should be visible for consistency with other dropdown
+    menus and to better meet user expectations which might expect the hamburger to load a menu
+    overlaying the screen as is consistent with other designs.
+
+    When OpenLibrary has a design lead, this should be understood and either reviewed or better
+    documented. */
+    .down-arrow {
+      display: none;
+    }
+  }
+
+  .mask-menu {
+    position: fixed;
+    top: 75px;
+    // stylelint-disable declaration-block-no-redundant-longhand-properties
+    left: 0;
+    right: 0;
+    opacity: 0;
+    bottom: 0;
+    // stylelint-enable declaration-block-no-redundant-longhand-properties
+    background: linear-gradient(to bottom, transparent 0, @black);
+    z-index: @z-index-level-1;
+    visibility: hidden;
+  }
+
+  .header-dropdown {
+    // For the <details> polyfill used for IE11
+    summary::before {
+      content: "" !important;
+    }
+
+    .header-dropdown__icon {
+      width: 40px;
+      height: 40px;
+    }
+
+    .account__icon {
+      border: 2px solid @account-icon-border;
+      border-radius: 4px;
+      width: 30px;
+      height: 30px;
+    }
+
+    .mr-notifications {
+      position: absolute;
+      background: @primary-blue;
+      color: @white;
+      border-radius: 8px;
+      padding: 3px 7px;
+      font-size: 12px;
+      margin-top: 25px;
+      font-weight: bold;
+    }
+
+    button,
+    a {
+      color: @white;
+      text-decoration: none;
+      display: block;
+      border: 0;
+      background: none;
     }
   }
 
@@ -158,34 +322,37 @@
     .logo-icon {
       position: relative;
       top: -1px;
-      height: 30px;
+      height: 32px;
       width: auto;
-      margin-right: 5px;
-      padding-right: 5px;
+      margin-left: 5px;
       -ms-flex-item-align: center;
       align-self: center;
     }
   }
 
-  .navigation-component {
+  .navigation-component.mobile {
     .display-flex();
+  }
+
+  .navigation-component {
+    display: none;
     -ms-flex-preferred-size: 100%;
     flex-basis: 100%;
     -webkit-box-ordinal-group: 6;
     -ms-flex-order: 5;
     order: 5;
-    // Despite occuring later in the DOM, this header should be overlayed underneath the items above
-    // e.g. search and account dropdowns.
-    z-index: @z-index-level-negative;
+    // Despite occurring later in the DOM, this header should be overlaid underneath the items
+    // above. E.g. search and account dropdowns.
+    z-index: @z-index-level-1;
 
     li {
       -ms-flex-preferred-size: 100%;
       flex-basis: 100%;
-      cursor: pointer;
       padding: 5px 0;
       font-size: 1em;
 
       // stylelint-disable max-nesting-depth, selector-max-specificity
+      button,
       a {
         color: @dark-grey;
         text-decoration: none;
@@ -221,25 +388,25 @@
     -ms-flex-order: 2;
     order: 2;
     height: 47px;
-    margin-right: 5px;
+    margin-right: -5px;
     text-align: right;
     -webkit-box-flex: 1;
     -ms-flex: 1;
     flex: 1;
-
     // stylelint-disable selector-max-specificity
     // stylelint-disable max-nesting-depth
     &.expanded {
       -webkit-box-flex: 1;
       -ms-flex: 1;
       flex: 1;
-      margin-top: 8px;
+      margin-left: 5px;
       -ms-flex-item-align: center;
       align-self: center;
-      height: 54px;
 
       .search-bar-component {
-        width: 100%;
+        width: 95%;
+        background-color: @grey-fafafa;
+        border: 1px solid @dark-beige;
       }
 
       .search-bar {
@@ -256,8 +423,15 @@
       }
 
       .search-bar-submit {
-        margin-right: 5px;
         cursor: pointer;
+      }
+
+      .vertical-separator {
+        display: block;
+      }
+
+      .search-by-barcode-submit {
+        display: block;
       }
 
       .search-facet-selector {
@@ -274,18 +448,29 @@
     }
 
     .search-bar-submit {
-      background: url(/static/images/search-lens.png) center no-repeat;
-      width: 45px;
+      background: url(/static/images/search-icon.svg) center no-repeat;
+      width: 35px;
       height: 45px;
       border-top-left-radius: .3em;
       border-bottom-left-radius: .3em;
     }
 
+    .vertical-separator {
+      border-left: 1px solid @light-grey;
+      height: 34px;
+      margin: auto 5px auto 0
+    }
+
+    .search-by-barcode-submit {
+      background: url(/static/images/icons/barcode_scanner.svg) center no-repeat;
+      background-size: 26px;
+      width: 28px;
+      margin-right: 8px;
+    }
+
     .search-bar-component {
       display: inline-block;
-      border: 1px solid @dark-beige;
       border-radius: .3em;
-      background-color: @grey-fafafa;
       position: relative;
     }
 
@@ -330,6 +515,7 @@
               min-height: 60px;
               background-color: @lightest-grey;
               margin-right: 10px;
+              object-fit: cover;
             }
 
             .book-desc {
@@ -337,7 +523,7 @@
               text-decoration: none;
 
               .book-title {
-                font-weight: 500;
+                font-weight: bold;
               }
 
               .book-author {
@@ -404,68 +590,22 @@
   }
 }
 
-.checkbox-menu, .checkbox-menu label {
-  cursor: pointer;
+div.search-facet:focus-within {
+  outline: 2px solid;
 }
 
-.account-component__checkbox {
-  display: none;
-
-  & ~ .navigation-dropdown-component ul {
-    display: none;
-  }
-
-  // stylelint-disable-next-line selector-max-specificity
-  &:checked ~ .navigation-dropdown-component ul {
-    display: block;
-  }
-}
-
-.hamburger-component__checkbox {
-  opacity: 0;
-
-  & ~ .hamburger-dropdown-component ul {
-    display: none;
-  }
-
-  // stylelint-disable-next-line selector-max-specificity
-  &:checked ~ .hamburger-dropdown-component ul {
-    display: block;
-  }
-}
-
-.navigation-component__checkbox {
-  opacity: 0;
-
-  & ~ .navigation-dropdown-component ul {
-    display: none;
-  }
-
-  // stylelint-disable-next-line selector-max-specificity
-  &:checked ~ .navigation-dropdown-component ul {
-    display: block;
-  }
-}
-
-.account-component {
-  -webkit-box-flex: 1;
-  -ms-flex: 1;
-  flex: 1;
-  position: relative;
-  .dropdown-avatar {
+.hamburger-component {
+  summary {
     .display-flex();
     -webkit-box-align: center;
     -ms-flex-align: center;
     align-items: center;
-    .avatar {
+    cursor: pointer;
+    .header-dropdown__icon {
       border: none;
       margin-right: 5px;
-      background-size: cover;
-      background-position: center;
-      width: 45px;
-      height: 45px;
-      background-color: @mid-grey;
       border-radius: 3px;
+      box-sizing: content-box;
     }
   }
 }
@@ -473,6 +613,19 @@
 .navigation-component {
   text-align: center;
   position: relative;
+
+  summary::marker {
+    content: "";
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary {
+    cursor: pointer;
+  }
+
   .down-arrow {
     position: relative;
     top: -2px;
@@ -480,7 +633,7 @@
 }
 
 .logo-component {
-  margin: 0 0 5px;
+  margin-left: 5px;
 
   a {
     color: @black;
@@ -512,7 +665,6 @@
     -webkit-transition: all .2s;
     -o-transition: all .2s;
     transition: all .2s;
-    background: @grey-fafafa;
     border-radius: .3em;
     -webkit-box-flex: 1;
     -ms-flex: 1 0 0%;
@@ -545,26 +697,35 @@
     }
     input[type=submit] {
       border: none;
+      cursor: pointer;
       -webkit-appearance: none;
       -moz-appearance: none;
       appearance: none;
     }
+
+    .vertical-separator {
+      display: none
+    }
+
+    .search-by-barcode-submit {
+      display: none;
+    }
     /* stylelint-enable selector-max-specificity */
+  }
+}
+
+@media only screen and (max-width: 25em) {
+  .search-bar-component{
+    margin-right: 15px;
   }
 }
 
 // We should review this media query to determine if it is in fact needed.
 @media only screen and (min-width: 25em) {
   .header-bar {
-    .logo-component {
-      // The width and height attributes of logo-icon should be equal to
-      // dimensions of /static/images/openlibrary-logo-tighter.svg
-      .logo-icon {
-        height: 47px;
-        width: 189px;
-      }
+    .search-bar-component{
+      margin-right: 15px;
     }
-
     .navigation-component {
       .dropdown-menu {
         border-top: none;
@@ -578,12 +739,6 @@
 @media only screen and (min-width: 30em) {
   .header-bar {
     margin: 0 auto;
-
-    .account-component {
-      -webkit-box-flex: 0;
-      -ms-flex: none;
-      flex: none;
-    }
 
     .auth-component {
       margin-right: 5px;
@@ -609,6 +764,10 @@
     .search-component {
       margin-right: 0;
     }
+
+    .hamburger-component summary {
+      margin-left: 10px;
+    }
   }
 }
 
@@ -628,15 +787,6 @@
 // We should review this media query to determine if it is in fact needed.
 @media only screen and (min-width: 35.5em) {
   .header-bar {
-    .account-component {
-      -webkit-box-flex: 0;
-      -ms-flex: none;
-      flex: none;
-      -webkit-box-ordinal-group: 4;
-      -ms-flex-order: 3;
-      order: 3;
-    }
-
     .logo-component {
       -webkit-box-flex: 0;
       -ms-flex: none;
@@ -644,7 +794,6 @@
     }
 
     .navigation-component {
-      .display-flex();
       -webkit-box-ordinal-group: 7;
       -ms-flex-order: 6;
       order: 6;
@@ -671,6 +820,8 @@
         display: block;
       }
       .search-bar-component {
+        background-color: @grey-fafafa;
+        border: 1px solid @dark-beige;
         width: 207px;
       }
       .search-bar-input {
@@ -680,10 +831,15 @@
         input[type=text] {
           display: block;
         }
+
+        .vertical-separator {
+          display: block;
+        }
+
+        .search-by-barcode-submit {
+          display: block;
+        }
         /* stylelint-enable selector-max-specificity */
-      }
-      .search-bar-submit {
-        margin-right: 5px;
       }
       .search-facet {
         display: block;
@@ -691,6 +847,37 @@
       .search-facet-selector {
         display: block;
       }
+    }
+  }
+}
+
+@media only screen and (max-width: @width-breakpoint-desktop) {
+  // stylelint-disable-next-line selector-max-specificity
+  #header-bar {
+    position: sticky;
+    top: 0;
+    background: linear-gradient(to bottom, @header-bar-gradient-start, @header-bar-gradient-end);
+    padding: 3px 0;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 15%);
+    z-index: @z-index-level-3;
+  }
+
+  .header-bar {
+    .logo-component .logo-icon {
+      margin-top: 5px;
+      margin-left: 8px;
+    }
+    .search-component {
+      height: 44px;
+      .search-bar-submit {
+        height: 42px;
+      }
+      .search-facet-selector {
+        margin-top: 1px;
+      }
+    }
+    &.mobile {
+      padding: 10px 0;
     }
   }
 }

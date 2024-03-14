@@ -23,7 +23,6 @@ body {
 /* stylelint-disable selector-max-specificity */
 div#revertNotice,
 div#revertLink,
-footer,
 #bottom {
   display: none;
 }
@@ -34,6 +33,7 @@ footer,
   bottom: 0;
   left: 0;
   text-align: center;
+  cursor: pointer;
 }
 .column {
   min-height: 90px;
@@ -50,6 +50,7 @@ footer,
   background-image: url(/images/back_sort-trash.png);
   background-repeat: no-repeat;
   background-position: 0 0;
+  cursor: pointer;
 }
 .trashPosition {
   position: relative;
@@ -90,12 +91,10 @@ footer,
   padding: .4em;
 }
 .imagePost {
-  float: left;
   width: 300px;
   text-align: center;
 }
 .imageSaved {
-  float: left;
   width: 300px;
   font-size: .75em;
   color: @grey;
@@ -108,6 +107,9 @@ footer,
   padding: 6px 0 0 40px;
   min-height: 30px;
   margin: 25px 0 15px;
+}
+.saved-image-container {
+  display: flex;
 }
 
 @media all and ( min-width: @width-breakpoint-desktop ) {

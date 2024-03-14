@@ -21,7 +21,7 @@ $ seeall = "//archive.org/download/XXX"
 
 $ oclc_numbers = (book.oclc_numbers and book.oclc_numbers[0]) or ""
 $ isbn_13 = book.get_isbn13()
-$ isbn_10 = isbn_13 and isbn_13_to_isbn_10(isbn_13)
+$ isbn_10 = (isbn_13 and isbn_13_to_isbn_10(isbn_13)) or book.get_isbn10()
 $ isbn = isbn_10 or isbn_13
 $ asin = isbn_10 or None
 
@@ -30,7 +30,12 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
     <td class="book">
       <span class="hidden sort-key">$edition_sort_key</span>
       <div class="cover">
-          <a href="$book.url()"><img src="$url" alt="Cover of: $book.title" title="Cover of: $book.title"/></a>
+          <a href="$book.url()"><img
+            src="$url"
+            alt="$_('Cover of: %(title)s', title=book.title)"
+            title="$_('Cover of: %(title)s', title=book.title)"
+            loading="lazy"
+          /></a>
       </div>
 
       <div class="title">
@@ -59,7 +64,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
           <!-- Formats are store as a raw string -->
           $book.physical_format.replace('[', '').replace(']','')
           $if book.languages:
-            $_('in %(languagelist)s', languagelist=', '.join(l.name for l in book.languages))
+            $:_('in %(languagelist)s', languagelist=commify_list(thingrepr(l) for l in book.languages))
           $if book.edition_name:
             - $book.edition_name
         </div>
@@ -83,7 +88,8 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
       <div class="hidden">$availability_class</div>
       <div class="links">
         <ul class="read">
-          <li class="read-option">$:macros.LoanStatus(book)</li>
+          $# render_first is only true on the book page for an edition.
+          <li class="read-option">$:macros.LoanStatus(book, is_book_page=render_first)</li>
         </ul>
         $if oclc_numbers or isbn:
           <div class="editions-table__links">

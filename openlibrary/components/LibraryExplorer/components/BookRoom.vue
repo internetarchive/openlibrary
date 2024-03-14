@@ -2,7 +2,7 @@
   <div class="book-room" :class="{'expanding-animation': expandingAnimation}">
     <!-- <div class="room-breadcrumbs">
       <span v-for="(node, i) of breadcrumbs" :key="i">
-        <button @click="goUpTo(i)">{{i == 0 ? 'Home' : node.name}}</button>
+        <button @click="goUpTo(i)">{{i === 0 ? 'Home' : node.name}}</button>
         &gt;
       </span>
       <span v-if="breadcrumbs.length">{{activeRoom.name}}</span>
@@ -80,6 +80,38 @@ import RightArrowIcon from './icons/RightArrowIcon.vue';
 import ExpandIcon from './icons/ExpandIcon.vue';
 import debounce from 'lodash/debounce';
 import Vue from 'vue';
+import { decrementStringSolr, hierarchyFind, testLuceneSyntax } from '../utils.js';
+import CONFIGS from '../configs';
+/** @typedef {import('../utils.js').ClassificationNode} ClassificationNode */
+
+/**
+ * Given a starting classification node, find the data needed to render the node containing
+ * the provided classification string.
+ * @param {ClassificationNode} classificationNode
+ * @param {string} classification (e.g. 658.91500202854)
+ */
+function findClassification(classificationNode, classification) {
+    // First we find the closest matching node in the current classification tree
+    const path = hierarchyFind(
+        classificationNode,
+        node => testLuceneSyntax(node.query, classification));
+    if (!path.length) return;
+
+    // pad until length is at least 3, so that we can destructure into [shelf, bookcase, room]
+    while (path.length < 3) path.push(null);
+
+    // Jump as deep into it as we can. I.e. the last node is the shelf, the second last the bookcase, and the 3rd last is the room.
+    // e.g. [658, 65X, 6XX]
+    const [shelf, bookcase, room] = path.reverse();
+    path.reverse();
+    return {
+        classification,
+        room,
+        bookcase,
+        shelf,
+        breadcrumbs: path.slice(0, -3),
+    };
+}
 
 export default {
     components: {
@@ -88,9 +120,12 @@ export default {
         ExpandIcon,
     },
     props: {
+        /** @type {import('../utils.js').ClassificationTree} */
         classification: Object,
         appSettings: Object,
 
+        /** The classification to jump to @example 658.91500202854 */
+        jumpTo: String,
         sort: String,
         filter: {
             default: '',
@@ -114,9 +149,12 @@ export default {
         }
     },
     data() {
+        const jumpToData = this.jumpTo && findClassification(this.classification.root, this.jumpTo);
+
         return {
-            activeRoom: this.classification.root,
-            breadcrumbs: [],
+            activeRoom: jumpToData?.room || this.classification.root,
+            breadcrumbs: jumpToData?.breadcrumbs || [],
+            jumpToData,
 
             expandingAnimation: false,
 
@@ -126,12 +164,32 @@ export default {
         };
     },
 
-    created() {
+    async created() {
         this.debouncedUpdateWidths = debounce(this.updateWidths);
         window.addEventListener('resize', this.debouncedUpdateWidths, { passive: true });
     },
-    mounted() {
+    async mounted() {
         this.updateWidths();
+        if (this.jumpToData?.shelf) {
+            this.$el.querySelector(`[data-short="${this.jumpToData.shelf.short}"]`).scrollIntoView({
+                inline: 'center',
+                block: 'start',
+            });
+
+            // Find the offset of the predecessor of the requested item in its shelf
+            const predecessor = decrementStringSolr(this.jumpToData.classification, false, this.classification.field === 'ddc');
+            const shelf_query = `${this.classification.field}_sort:${this.jumpToData.shelf.query} ${this.filter}`;
+            /** @type {number} */
+            const offset = await fetch(`${CONFIGS.OL_BASE_SEARCH}/search.json?${new URLSearchParams({
+                q: `${shelf_query} AND ${this.classification.field}_sort:[* TO ${predecessor}]`,
+                limit: 0,
+            })}`).then(r => r.json()).then(r => r.numFound);
+            const olCarousel = this.$el.querySelector(`.ol-carousel[data-short="${this.jumpToData.shelf.short}"]`);
+            const pageOffset = await olCarousel.__vue__.loadPageContainingOffset(offset + 1);
+            olCarousel.querySelector(`.book:nth-of-type(${(offset + 1) - pageOffset})`).scrollIntoView({
+                inline: 'center'
+            });
+        }
     },
     destroyed() {
         window.removeEventListener('resize', this.debouncedUpdateWidths);
@@ -151,13 +209,17 @@ export default {
         }
     },
     methods: {
+        /**
+         * @param {ClassificationNode} bookshelf something that is currently a bookcase, that will be the new room
+         * @param {ClassificationNode} [shelf] the shelf (child of bookshelf)
+         */
         async expandBookshelf(bookshelf, shelf=null) {
             this.expandingAnimation = true;
             await new Promise(r => setTimeout(r, 200));
             this.expandingAnimation = false;
             this.breadcrumbs.push(this.activeRoom);
             this.activeRoom = bookshelf;
-            const nodeToScrollTo = shelf?.position == 'root' ? shelf :
+            const nodeToScrollTo = shelf?.position === 'root' ? shelf :
                 shelf?.children && shelf?.position ? shelf.children[shelf.position]
                     : (shelf || bookshelf);
             await Vue.nextTick();
@@ -178,7 +240,7 @@ export default {
             this.roomWidth = max(1, this.$el.querySelector('.book-room-shelves').scrollWidth);
             this.viewportWidth = max(1, this.$el.getBoundingClientRect().width);
 
-            if (this.roomWidth == 1 || this.viewportWidth == 1) {
+            if (this.roomWidth === 1 || this.viewportWidth === 1) {
                 setTimeout(this.updateWidths, 100);
             }
         },
@@ -233,6 +295,7 @@ button {
     box-sizing: border-box;
     border-radius: 4px;
     overflow: hidden;
+    overflow: clip;
 
     .sign-classification {
       opacity: .5;
@@ -276,6 +339,7 @@ button {
     .sign-label {
       text-overflow: ellipsis;
       overflow: hidden;
+      overflow: clip;
       white-space: nowrap;
     }
 

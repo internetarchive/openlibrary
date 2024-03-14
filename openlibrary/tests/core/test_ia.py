@@ -1,11 +1,12 @@
 from openlibrary.core import ia
 
+
 def test_get_metadata(monkeypatch, mock_memcache):
     metadata = {
         "metadata": {
             "title": "Foo",
             "identifier": "foo00bar",
-            "collection": ["printdisabled", "inlibrary"]
+            "collection": ["printdisabled", "inlibrary"],
         }
     }
 
@@ -15,8 +16,9 @@ def test_get_metadata(monkeypatch, mock_memcache):
         "identifier": "foo00bar",
         "collection": ["printdisabled", "inlibrary"],
         "access-restricted": False,
-        "_filenames": []
+        "_filenames": [],
     }
+
 
 def test_get_metadata_empty(monkeypatch, mock_memcache):
     monkeypatch.setattr(ia, 'get_api_response', lambda *args: {})

@@ -2,85 +2,62 @@
 
 set -o xtrace
 
-# https://github.com/internetarchive/openlibrary/wiki/Deployment-Scratchpad
+# See https://github.com/internetarchive/openlibrary/wiki/Deployment-Scratchpad
+SERVERS="ol-home0 ol-covers0 ol-web1 ol-web2 ol-www0 ol-solr0"
+COMPOSE_FILE="compose.yaml:compose.production.yaml"
 
 # This script must be run on ol-home0 to start a new deployment.
-
-echo "Starting production deployment at $(date)"
-export HOSTNAME="${HOSTNAME:-$HOST}"
+HOSTNAME="${HOSTNAME:-$HOST}"
 if [[ $HOSTNAME != ol-home0.* ]]; then
     echo "FATAL: Must only be run on ol-home0" ;
     exit 1 ;
 fi
 
+# Install GNU parallel if not there
+# Check is GNU-specific because some hosts had something else called parallel installed
+[[ $(parallel --version 2>/dev/null) = GNU* ]] || sudo apt-get -y --no-install-recommends install parallel
+
+echo "Starting production deployment at $(date)"
+
 # `sudo git pull origin master` the core Open Library repos:
-# 1. https://github.com/internetarchive/olsystem
-# 2. https://git.archive.org/jake/booklending_utils
-# 3. https://github.com/internetarchive/openlibrary
-# 4. https://github.com/internetarchive/infogami
+parallel --quote ssh {1} "echo -e '\n\n{}'; cd {2} && sudo git pull origin master" ::: $SERVERS ::: /opt/olsystem /opt/openlibrary
 
-### Needed to log into BOOKLENDING_UTILS
+# Get all Docker images and sort them by creation date
+images=($(docker image ls --format '{{.ID}} {{.CreatedAt}} {{.Repository}}' | grep 'openlibrary/olbase' | sort -k 2 -r | awk '{print $1}'))
 
-REPO_DIRS="/opt/olsystem /opt/openlibrary /opt/openlibrary/vendor/infogami /opt/booklending_utils"
-for REPO_DIR in $REPO_DIRS; do
-    cd $REPO_DIR
-    sudo git pull origin master
+# Keep the first three images and remove the rest to save disk space
+for image in "${images[@]:3}"
+do
+    docker rmi $image
 done
 
-# These commands were run once and probably do not need to be repeated
-sudo mkdir -p /opt/olimages
-sudo chown root:staff /opt/olimages
-sudo chmod g+w /opt/olimages
-sudo chmod g+s /opt/olimages
-docker image prune -f
-
-# Build the oldev Docker production image
+# Rebuild & upload docker image for olbase
 cd /opt/openlibrary
-d=`date +%Y-%m-%d`
-sudo git tag deploy-$d
-sudo git push origin deploy-$d
-export COMPOSE_FILE="docker-compose.yml:docker-compose.production.yml"
-# ~4 min
-time docker-compose build --pull web
+sudo make git
+set -e
+docker build -t openlibrary/olbase:latest -t "openlibrary/olbase:deploy-$(date '+%Y-%m-%d')" -f docker/Dockerfile.olbase .
+docker login
+docker push openlibrary/olbase:latest
+set +e
+
+# Clone booklending utils
+parallel --quote ssh {1} "echo -e '\n\n{}'; if [ -d /opt/booklending_utils ]; then cd {2} && sudo git pull git@git.archive.org:jake/booklending_utils.git master; fi" ::: $SERVERS ::: /opt/booklending_utils
+
+# Prune old images now ; this should remove any unused images
+parallel --quote ssh {} "echo -e '\n\n{}'; docker image prune -f" ::: $SERVERS
+
+# Pull the latest docker images
+parallel --quote ssh {} "echo -e '\n\n{}'; cd /opt/openlibrary && COMPOSE_FILE=\"$COMPOSE_FILE\" docker compose --profile {} pull --quiet" ::: $SERVERS
 
 # Add a git SHA tag to the Docker image to facilitate rapid rollback
-echo "FROM oldev:latest" | docker build -t "oldev:$(git rev-parse HEAD)" -
-docker image ls
+cd /opt/openlibrary
+CUR_SHA=$(sudo git rev-parse HEAD | head -c7)
+parallel --quote ssh {} "echo -e '\n\n{}'; echo 'FROM openlibrary/olbase:latest' | docker build -t 'openlibrary/olbase:$CUR_SHA' -" ::: $SERVERS
 
-# Compress the image in a .tar.gz file for transfer to other hosts
-cd /opt/olimages
-# ~4 min
-time docker save oldev:latest | gzip > oldev_latest.tar.gz
-
-# Transfer the .tar.gz image and four repo dirs to other hosts
-SERVERS="ol-covers0 ol-web1 ol-web2"
-for SERVER in $SERVERS; do
-    echo "Starting rsync of oldev_latest.tar.gz to $SERVER..."
-    # ~4 min
-    time rsync -a --no-owner --group --verbose oldev_latest.tar.gz "$SERVER:/opt/olimages/"
-    REPO_DIRS="/opt/olsystem /opt/openlibrary /opt/openlibrary/vendor/infogami"
-    if [[ $SERVER == ol-web* ]]; then
-        REPO_DIRS="$REPO_DIRS /opt/booklending_utils"
-    fi
-    for REPO_DIR in $REPO_DIRS; do
-        echo "Starting rsync of $REPO_DIR to $SERVER..."
-        time rsync -a -r --no-owner --group --verbose $REPO_DIR "$SERVER:$REPO_DIR"
-    done
-    echo -e "Finished rsync to $SERVER...\n"
-done
-
-for SERVER in $SERVERS; do
-    # ~2 - 4 min
-    time ssh $SERVER docker image prune -f
-    # Decompress the .tar.gz image that was transfered from ol-home0
-    # ~4 min
-    time ssh $SERVER 'docker load < /opt/olimages/oldev_latest.tar.gz'
-
-    # Add a git SHA tag to the Docker image to facilitate rapid rollback
-    # Watch the quotes... Three strings concatinated
-    ssh $SERVER 'cd /opt/openlibrary && echo "FROM oldev:latest" | docker build -t "oldev:'$(git rev-parse HEAD)'" -'
-    ssh $SERVER docker image ls
-done
+# And tag the deploy!
+DEPLOY_TAG="deploy-$(date +%Y-%m-%d)"
+sudo git tag $DEPLOY_TAG
+sudo git push git@github.com:internetarchive/openlibrary.git $DEPLOY_TAG
 
 echo "Finished production deployment at $(date)"
 echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"

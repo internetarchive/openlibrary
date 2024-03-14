@@ -287,7 +287,7 @@
     ],
     "identifiers": [
         {
-            "url": "https://alkindi.ideo-cairo.org/controller.php?action=SearchNotice&noticeId=@@@",
+            "url": "https://alkindi.ideo-cairo.org/manifestation/@@@",
             "website": "https://www.ideo-cairo.org/",
             "notes": "",
             "name": "dominican_institute_for_oriental_studies_library",
@@ -401,7 +401,7 @@
             "label": "Books For You"
         },
         {
-            "url": "https://bostonpl.bibliocommons.com/item/show/@@@",
+            "url": "https://bostonpl.bibliocommons.com/v2/record/@@@",
             "website": " https://bostonpl.bibliocommons.com",
             "notes": "",
             "name": "boston_public_library",
@@ -414,16 +414,18 @@
             "label": "British Library"
         },
         {
-            "website": "http://ecommons.library.cornell.edu/handle/1813/11665",
-            "notes": "",
+            "website": "https://ecommons.cornell.edu/",
+            "url": "https://hdl.handle.net/1813/@@@"
+            "notes": "Cornell's Digital Repository",
             "name": "cornell_university_online_library",
-            "label": "Cornell University ecommons"
+            "label": "Cornell University eCommons"
         },
         {
-            "website": "https://newcatalog.library.cornell.edu/catalog/@@@",
-            "notes": "",
+            "website": "https://www.library.cornell.edu/",
+            "url": "https://catalog.library.cornell.edu/catalog/@@@",
+            "notes": "Cornell University Library Catalog",
             "name": "cornell_university_library",
-            "label": "Cornell University ecommons"
+            "label": "Cornell University Library Catalog"
         },
         {
             "website": "",
@@ -483,7 +485,7 @@
             "label": "Hathi Trust"
         },
         {
-            "url": "https://hollis.harvard.edu/primo_library/libweb/action/display.do?doc=HVD_ALEPH@@@",
+            "url": "https://id.lib.harvard.edu/alma/@@@/catalog",
             "website": "https://library.harvard.edu",
             "name": "harvard",
             "label": "Harvard University Library"
@@ -530,7 +532,7 @@
             "label": "LC Control Number"
         },
         {
-            "url": "https://learnawesome.org/items/@@@",
+            "url": "https://learnawesome.org/#/item/@@@",
             "website": "https://learnawesome.org",
             "name": "learnawesome",
             "label": "LearnAwesome.org"

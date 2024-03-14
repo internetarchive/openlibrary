@@ -1,0 +1,99 @@
+$def with (totals, librarians, mode, username, submitter, reviewer, status)
+$# totals : dict : {"open": int, "closed": int} : The total number of merge requests found for each mode
+$# librarians : dict : {"submitters": list[str], "reviewers": list[str]} : Collection of reviewer and submitter usernames
+$# mode : str : "open" | "closed" : Type of requests that are currently being viewed.
+$# username : str | None : Username of authenticated patron, or `None` if patron is unauthenticated.
+$# submitter : str | None : Submitter's username.  Only passed if we are filtering requests by `submitter`.
+$# reviewer : str | None : Reviewer's username. Only passed if we are filtering requests by `reviewer`.
+$# status : str | None : "0" | "1" | "2" : Represents a request's status.  Only passed if we are filtering by `status`
+
+$ order = query_param('order', 'desc')
+
+<div class="table-header">
+    <a class="$(mode=='open' and 'selected' or '') mode-open" href="$changequery(mode='open', status=None, page=None)">$totals['open'] $_('Open')</a>
+    <a class="$(mode=='closed' and 'selected' or '') mode-closed" href="$changequery(mode='closed', status=None, page=None)">$totals['closed'] $_('Closed')</a>
+    <div class="flex-auto"></div>
+    $if mode != 'open':
+      $# Add filter for request status
+      <div class="mr-dropdown">$_('Status ▾')
+        <div class="mr-dropdown-menu sort hidden">
+          <header class="dropdown-header">
+            <span>$_('Request Status')</span>
+            <button class="dropdown-close">&times;</button>
+          </header>
+          $ merged_href = changequery(status='2', page=None) if status!='2' else changequery(status=None, page=None)
+          <a href="$merged_href" class="dropdown-item">
+            <span class="$('' if status=='2' else 'invisible') item-checked">✓</span>
+            <span>$_('Merged')</span>
+          </a>
+          $ declined_href = changequery(status='0', page=None) if status!='0' else changequery(status=None, page=None)
+          <a href="$declined_href" class="dropdown-item">
+            <span class="$('' if status=='0' else 'invisible') item-checked">✓</span>
+            <span>$_('Declined')</span>
+          </a>
+        </div>
+      </div>
+    <div class="mr-dropdown" id="submitter-menu-button">$_('Submitter ▾')
+      <div class="mr-dropdown-menu hidden">
+        <header class="dropdown-header">
+            <span>$_('Submitter')</span>
+            <button class="dropdown-close">&times;</button>
+        </header>
+        <input type="text" class="filter" placeholder="$_('Filter submitters')" id="submitter-filter">
+        $ submitted_by_me_href = changequery(submitter=username, page=None) if submitter != username else changequery(submitter=None,page=None)
+        <a href="$submitted_by_me_href" class="dropdown-item">
+          <span class="$('' if username and submitter==username else 'invisible') item-checked">✓</span>
+          <span><b>$_('Submitted by me')</b></span>
+        </a>
+      $for s in librarians['submitters']:
+        $ submitter_name = s.get('submitter', 'default submitter')
+        $ submitter_href = changequery(submitter=submitter_name, page=None) if submitter != submitter_name else changequery(submitter=None, page=None)
+        <a href="$submitter_href" class="dropdown-item">
+          <span class="$('' if submitter==submitter_name else 'invisible') item-checked">✓</span>
+          <span>$submitter_name</span>
+        </a>
+      </div>
+    </div>
+    <div class="mr-dropdown" id="reviewer-menu-button">$_('Reviewer ▾')
+      <div class="mr-dropdown-menu hidden">
+        <header class="dropdown-header">
+          <span>$_('Reviewer')</span>
+          <button class="dropdown-close">&times;</button>
+        </header>
+        <input type="text" class="filter" placeholder="$_('Filter reviewers')" id="reviewer-filter">
+        $ no_reviewer_href = changequery(reviewer='None', page=None) if reviewer==None else changequery(reviewer=None,page=None)
+        <a href="$no_reviewer_href" class="dropdown-item">
+          <span class="$('' if reviewer=='None' else 'invisible') item-checked">✓</span>
+          <span>
+            <b>$_('Assigned to nobody')</b>
+          </span>
+        </a>
+      $for r in librarians['reviewers']:
+        $ reviewer_name = r.get('reviewer', 'default reviewer')
+        $ reviewer_href = changequery(reviewer=reviewer_name, page=None) if reviewer != reviewer_name else changequery(reviewer=None, page=None)
+        <a href="$reviewer_href" class="dropdown-item">
+          <span class="$('' if reviewer==reviewer_name else 'invisible') item-checked">✓</span>
+          <span>$reviewer_name</span>
+        </a>
+      </div>
+    </div>
+    <div class="mr-dropdown" id="sort-menu-button">$_('Sort ▾')
+      <div class="mr-dropdown-menu sort hidden">
+        <header class="dropdown-header">
+          <span>$_('Sort')</span>
+          <button class="dropdown-close">&times;</button>
+        </header>
+        $ desc_href = changequery(order='desc', page=None) if order!='desc' else changequery(order=None, page=None)
+        <a href="$desc_href" class="dropdown-item">
+          <span class="$('' if order=='desc' else 'invisible') item-checked">✓</span>
+          <span>$_('Newest')</span>
+        </a>
+        $ asc_href = changequery(order='asc', page=None) if order!='asc' else changequery(order=None, page=None)
+        <a href="$asc_href" class="dropdown-item">
+          <span class="$('' if order=='asc' else 'invisible') item-checked">✓</span>
+          <span>$_('Oldest')</span>
+        </a>
+      </div>
+    </div>
+</div>
+

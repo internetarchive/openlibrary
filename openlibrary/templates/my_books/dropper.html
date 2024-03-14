@@ -1,0 +1,34 @@
+$def with(page, edition_key=None, async_load=False)
+
+$ edition = page if page.key.startswith("/books/") else None
+$ edition_key = edition and edition.key
+
+$ work = page if page.key.startswith('/works/') else page.works[0] if edition and page.works else None
+$ work_key = work and work.key
+
+$ username = ctx.user and ctx.user.key.split('/')[-1]
+$ users_work_read_status = get_patrons_work_read_status(username, work_key) if work and username else None
+
+$ seed_info = get_seed_info(page)
+$ user_lists = [] if async_load or not ctx.user else get_user_lists(seed_info)
+$ page_url = ctx.path
+
+$ seed_key = seed_info['seed']['key']
+$if seed_key.startswith('/works/') and edition_key:
+  $ seed_key = edition_key
+
+$ additional_classes = 'my-books-dropper'
+$if not work_key:
+  $ additional_classes += ' old-style-lists'
+$if not ctx.user:
+  $ additional_classes += ' generic-dropper--disabled'
+
+$ primary_action = render_template('my_books/primary_action', work_key, edition_key, (ctx.user and ctx.user.key), users_work_read_status, page_url)
+$ dropdown_content = render_template('my_books/dropdown_content', user_lists, seed_key, work_key, edition_key, users_work_read_status, async_load=async_load)
+$:render_template('lib/dropper', primary_action, dropdown_content, classes=additional_classes)
+
+$if work_key:
+    $ last_read_date = get_latest_read_date(work_key)
+    $ date = last_read_date['event_date'] if last_read_date else None
+    $ event_id = last_read_date['id'] if last_read_date else None
+    $:render_template('check_ins/check_in_prompt', work_key, users_work_read_status, edition_key=edition_key, last_read_date=date, event_id=event_id)

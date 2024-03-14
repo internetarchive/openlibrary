@@ -83,6 +83,7 @@ def find_author(name):
     :rtype: list
     :return: A list of OL author representations than match name
     """
+
     def walk_redirects(obj, seen):
         seen.add(obj['key'])
         while obj['type']['key'] == '/type/redirect':
@@ -152,11 +153,10 @@ def import_author(author, eastern=False):
     :param dict author: Author import record {"name": "Some One"}
     :param bool eastern: Eastern name order
     :rtype: dict
-    :return: Open Library style Author representation, either exisiting with "key",
+    :return: Open Library style Author representation, either existing with "key",
              or new candidate without "key".
     """
-    existing = find_entity(author)
-    if existing:
+    if existing := find_entity(author):
         assert existing.type.key == '/type/author'
         for k in 'last_modified', 'id', 'revision', 'created':
             if existing.k:
@@ -177,11 +177,12 @@ def import_author(author, eastern=False):
 class InvalidLanguage(Exception):
     def __init__(self, code):
         self.code = code
+
     def __str__(self):
         return "invalid language code: '%s'" % self.code
 
 
-type_map = { 'description': 'text', 'notes': 'text', 'number_of_pages': 'int' }
+type_map = {'description': 'text', 'notes': 'text', 'number_of_pages': 'int'}
 
 
 def build_query(rec):
@@ -194,7 +195,7 @@ def build_query(rec):
     :return: Open Library style edition representation
     """
     book = {
-        'type': { 'key': '/type/edition'},
+        'type': {'key': '/type/edition'},
     }
 
     for k, v in rec.items():
@@ -205,12 +206,11 @@ def build_query(rec):
                     east = east_in_by_statement(rec, author)
                     book['authors'].append(import_author(author, eastern=east))
             continue
-        if k == 'languages':
-            langs = []
-            for l in v:
-                if web.ctx.site.get('/languages/' + l) is None:
-                    raise InvalidLanguage(l)
-            book['languages'] = [{'key': '/languages/' + l} for l in v]
+        if k in ('languages', 'translated_from'):
+            for language in v:
+                if web.ctx.site.get('/languages/' + language) is None:
+                    raise InvalidLanguage(language)
+            book[k] = [{'key': '/languages/' + language} for language in v]
             continue
         if k in type_map:
             t = '/type/' + type_map[k]

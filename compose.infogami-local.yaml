@@ -1,0 +1,22 @@
+##
+## Helper docker compose file for doing local infogami dev. You probably want to run something like:
+## docker compose -f compose.yaml -f compose.override.yaml -f compose.infogami-local.yaml up -d
+##
+
+version: "3.8"
+services:
+  web:
+    volumes:
+      - ./vendor/infogami:/openlibrary/vendor/infogami
+  covers:
+    volumes:
+      - ./vendor/infogami:/openlibrary/vendor/infogami
+  infobase:
+    volumes:
+      - ./vendor/infogami:/openlibrary/vendor/infogami
+  home:
+    volumes:
+      - ./vendor/infogami:/openlibrary/vendor/infogami
+  solr-updater:
+    volumes:
+      - ./vendor/infogami:/openlibrary/vendor/infogami

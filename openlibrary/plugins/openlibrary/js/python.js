@@ -17,3 +17,22 @@ export function commify(n) {
 
     return text;
 }
+
+// Implementation of Python urllib.urlencode in Javascript.
+export function urlencode(query) {
+    var parts = [];
+    var k;
+    for (k in query) {
+        parts.push(`${k}=${query[k]}`);
+    }
+    return parts.join('&');
+}
+
+export function slice(array, begin, end) {
+    var a = [];
+    var i;
+    for (i=begin; i < Math.min(array.length, end); i++) {
+        a.push(array[i]);
+    }
+    return a;
+}

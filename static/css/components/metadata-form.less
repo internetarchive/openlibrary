@@ -2,121 +2,13 @@
 @import (reference) "../less/colors.less";
 @import (reference) "./buttonBtn.less";
 
-.failure-indicator {
-  color: @red;
-}
-
-.success-indicator {
-  color: @green;
-}
-
-.pending-indicator{
-  display: inline-block;
-  width: 1em;
-  height: 1em;
-}
-
-.pending-indicator:after {
-  content: " ";
-  display: block;
-  width: 1em;
-  height: 1em;
-  border-radius: 50%;
-  border: 1px solid @black;
-  border-color: @black transparent;
-  animation: pending-indicator 1.2s linear infinite;
-}
-
-@keyframes pending-indicator {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.single-choice {
-  display: flex;
-  margin-bottom: .5em;
-
-  &-label {
-    display: inline-block;
-    width: 16%;
-    text-align: center;
-    text-transform: capitalize;
-
-    input {
-      display: block;
-      margin: 0 auto 5px;
-    }
-  }
-}
-
-.multi-choice {
-  display: flex;
-  flex-wrap: wrap;
-  margin-bottom: .5em;
-
-  &-label {
-    flex: 0 0 25%;
-    margin: .5em 0;
-    text-transform: capitalize;
-  }
-
-  input[type="checkbox"] {
-    margin-right: .3em;
-  }
-}
-
-.form-buttons {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-
-  .submit-btn {
-    font-size: 1.2em;
-    width: auto;
-    background-color: @green;
-    margin-top: unset;
-    margin-left: 1.5em;
-    display: unset;
-  }
-}
-
-.aspect-section {
-  summary {
-    cursor: pointer;
-    text-transform: capitalize;
-    font-size: 1em;
-    font-weight: 600;
-    color: @grey;
-    margin: .5em 0;
-    padding: .5em;
-  }
-
-  &[open] summary {
-    background-color: @blue-204764;
-  }
-
-  summary:hover {
-    background-color: @blue-204764;
-  }
-
-  div {
-    padding-left: .5em;
-    padding-bottom: .5em;
-  }
-
-  h3 {
-    display: inline-block;
-    margin-right: .5em;
-  }
-}
-
 .book-notes-form {
-  width: 75%;
   margin: 1em auto;
+  padding: 0 20px;
+
+  p {
+    font-size: 16px;
+  }
 
   div {
     width: 100%;
@@ -124,14 +16,27 @@
 
     textarea {
       width: 100%;
+      padding: .25em;
+      font-size: 16px;
+      resize: none;
     }
   }
+}
+
+.note-form-buttons {
+  display: flex;
+  justify-content: space-between;
 
   button {
     font-size: 1.2em;
-    background-color: @green;
     width: unset;
+  }
+
+  .update-note-button {
     margin-left: auto;
+    margin-top: 5px;
+    font-size: 1.2em;
+    padding: 7px;
   }
 }
 
@@ -140,54 +45,17 @@
 }
 
 @media screen and (max-width: @width-breakpoint-tablet) {
-  .single-choice {
-    display: inline-block;
+  .note-form-buttons {
+    flex-direction: column-reverse;
 
-    &-label {
-      display: flex;
-      width: 100%;
-      margin: 1em 0;
-      text-align: left;
-
-      input {
-        margin: auto 1em auto 0;
-      }
+    .update-note-button {
+      margin-bottom: 1em;
     }
   }
-
-  .multi-choice-label {
-    flex: 0 0 50%;
-  }
-
   .book-notes-form {
     button {
       width: 100%;
+      line-height: 1.5em;
     }
-  }
-
-  .form-buttons {
-    flex-direction: column;
-
-    .submit-btn {
-      order: -1;
-      width: 100%;
-      margin-left: unset;
-      margin-bottom: 1.5em;
-      margin-top: .5em;
-    }
-  }
-
-  .aspect-section {
-    h3 {
-      margin-right: unset;
-      display: block;
-    }
-  }
-
-  .pending-indicator,
-  .success-indicator,
-  .failure-indicator {
-    display: block;
-    height: 1em;
   }
 }

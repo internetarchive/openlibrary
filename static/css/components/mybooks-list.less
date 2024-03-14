@@ -38,7 +38,11 @@
     text-align: center;
   }
 
-  overflow-wrap: break-word;
+  .yearly-goal-section {
+    margin-bottom: 28px;
+  }
+
+  overflow-wrap: anywhere;
 }
 
 .mybooks-list--clean {
@@ -57,7 +61,7 @@
     margin-bottom: 0;
   }
   li {
-    width: 270px;
+    width: 310px;
     margin-right: 10px;
   }
   span.imageLg {
@@ -73,10 +77,10 @@
       height: auto;
     }
   }
-  span.details {
+  div.details {
     display: block;
     float: left;
-    width: 236px;
+    width: 260px;
   }
   span.editions {
     margin-top: 0;
@@ -90,6 +94,5 @@
 @media only screen and (min-width: @width-breakpoint-tablet) {
   .mybooks-list {
     flex: 1;
-    padding: 10px;
   }
 }
