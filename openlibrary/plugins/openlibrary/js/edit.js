@@ -439,17 +439,33 @@ export function initEditLinks() {
         },
         validate: function(data) {
             const i18nStrings = JSON.parse(document.querySelector('#link-errors').dataset.i18n);
+            const url = data.url.trim();
 
-            if (data.url.trim() === '' || data.url.trim() === 'https://') {
+            const isValidURL = (url) => {
+                try {
+                    new URL(url);
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            if (data.title.trim() === '') {
+                $('#link-errors').html(i18nStrings['empty_label']);
+                $('#link-errors').removeClass('hidden');
+                $('#link-label').trigger('focus');
+                return false;
+            }
+            if (url === '') {
                 $('#link-errors').html(i18nStrings['empty_url']);
                 $('#link-errors').removeClass('hidden');
                 $('#link-url').trigger('focus');
                 return false;
             }
-            if (data.title.trim() === '') {
-                $('#link-errors').html(i18nStrings['empty_label']);
+            if (!isValidURL(url)) {
+                $('#link-errors').html(i18nStrings['empty_valid URL']);
                 $('#link-errors').removeClass('hidden');
-                $('#link-label').trigger('focus');
+                $('#link-url').trigger('focus');
                 return false;
             }
             $('#link-errors').addClass('hidden');
