@@ -1,5 +1,9 @@
 $def with (doc, data={}, status=None)
 
+$ i18n_strings = {
+    $ "empty_cover_inputs": _("Please choose an image or provide a URL.")
+    $ }
+
 $putctx('cssfile', 'form')
 $putctx("show_ol_shell", False)
 $putctx('robots', 'noindex,nofollow')
@@ -13,7 +17,7 @@ $else:
     $ action = doc.url('/add-cover')
     $ guideline = _("Cover Guidelines")
 
-<div class="popAlert" id="errors" style="display: $('block' if status else 'none')">
+<div class="popAlert" id="errors" style="display: $('block' if status else 'none')" data-i18n="$json_encode(i18n_strings)">
 $if status:
     $if status.code == 1: $_("Please provide a valid image.")
     $elif status.code == 2: $_("Please provide an image URL.")

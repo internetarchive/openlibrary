@@ -17,7 +17,7 @@ body:
 
         #### Evidence / Screenshot
 
-        #### Relevant URL
+        #### Relevant URL(s)
 
   - type: textarea
     attributes:
@@ -41,15 +41,15 @@ body:
         - Environment (prod, dev, local): prod
   - type: textarea
     attributes:
-      label: ⚠️ Experienced contributors only
+      label: Notes from this Issue's Lead
       description: |
-        Please leave these sections blank for maintainers if you are unsure what to enter!
+        Please leave these sections blank for maintainers if you are unsure what to enter
       value: |
-        ### Proposal & constraints
+        #### Proposal & constraints
         <!-- What is the proposed solution / implementation? Is there a precedent of this approach succeeding elsewhere? -->
 
-        ### Related files
+        #### Related files
         <!-- Files related to this issue; this is super useful for new contributors who might want to help! If you're not sure, leave this blank; a maintainer will add them. -->
 
-        ### Stakeholders
+        #### Stakeholders
         <!-- @ tag stakeholders of this bug -->

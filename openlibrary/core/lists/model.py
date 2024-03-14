@@ -399,7 +399,9 @@ class Seed:
     def from_db(list: List, seed: Thing | SeedSubjectString) -> 'Seed':
         if isinstance(seed, str):
             return Seed(list, seed)
-        elif isinstance(seed, Thing):
+        # If there is a cache miss, `seed` is a client.Thing.
+        # See https://github.com/internetarchive/openlibrary/issues/8882#issuecomment-1983844076
+        elif isinstance(seed, Thing | client.Thing):
             if seed.key is None:
                 return Seed(list, cast(AnnotatedSeed, seed._data))
             else:
