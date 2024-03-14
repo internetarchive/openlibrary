@@ -463,7 +463,7 @@ export function initEditLinks() {
                 return false;
             }
             if (!isValidURL(url)) {
-                $('#link-errors').html(i18nStrings['empty_valid URL']);
+                $('#link-errors').html(i18nStrings['invalid_url']);
                 $('#link-errors').removeClass('hidden');
                 $('#link-url').trigger('focus');
                 return false;
