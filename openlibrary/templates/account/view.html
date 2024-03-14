@@ -50,13 +50,13 @@ $var title: $header_title
         $:macros.databarView(page)
 
       $if mb.is_public and mb.key in mb.PUBLIC_KEYS:
-      $set_share_links(url=request.canonical_url, title=header_title, view_context=ctx)
-      $if ctx.get('share_links'):
-        $ share_str = _('Share')
-        $ share_content = '<a class="cta-btn cta-btn--unstyled share-modal-link icon-link" href="javascript:;" data-ol-link-track="MyBooksModalLinkClick|ShareIcon"><img class="icon-link__image" src="/static/images/icons/share.svg" width="20"> %s</a>' % share_str
-        $ page_url = request.home
-        $ share_links = ctx.get('share_links')
-        $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper", show_embed=False)
+        $set_share_links(url=request.canonical_url, title=header_title, view_context=ctx)
+        $if ctx.get('share_links'):
+          $ share_str = _('Share')
+          $ share_content = '<a class="cta-btn cta-btn--unstyled share-modal-link icon-link" href="javascript:;" data-ol-link-track="MyBooksModalLinkClick|ShareIcon"><img class="icon-link__image" src="/static/images/icons/share.svg" width="20"> %s</a>' % share_str
+          $ page_url = request.home
+          $ share_links = ctx.get('share_links')
+          $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper", show_embed=False)
     </header>
 
     $ mb.component_times['Details header'] = time() - mb.component_times['Details header']
