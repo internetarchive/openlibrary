@@ -441,7 +441,7 @@ export function initEditLinks() {
             const i18nStrings = JSON.parse(document.querySelector('#link-errors').dataset.i18n);
             const url = data.url.trim();
 
-            const isValidURL = (url) => {
+            function isValidURL(url) {
                 try {
                     new URL(url);
                     return true;
