@@ -1,0 +1,27 @@
+$def with (props)
+<details
+$if 'detailsID' in props:
+    id="$(props['detailsID'])"
+>
+    <summary>
+    $if 'label' in props:
+        $(props['label'])
+    </summary>
+    <ul
+    $if 'localID' in props:
+        id="$(props['localID'])"
+    >
+        $for link in props['links']:
+        <li>
+            $if 'lang' in link:
+                <a href="$(link['href'])" lang="$(link['lang'])" data-lang-id="$(link['data-lang-id'])" title="$(link['title'])">$(link['text'])</a>
+            $else:
+                <a href="$(link['href'])" title="$(link['title'])">$(link['text'])</a>
+        </li>
+    </ul>
+    $if props['label'] == 'Help' :
+            <aside id="footer-icons">
+                <a class="footer-icons__twitter" href="https://twitter.com/OpenLibrary">twitter</a>
+                <a class="footer-icons__github" href="https://github.com/internetarchive/openlibrary">github</a>
+            </aside>
+</details>
