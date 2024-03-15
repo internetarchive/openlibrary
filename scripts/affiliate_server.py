@@ -272,7 +272,7 @@ class Status:
                     web.amazon_lookup_thread and web.amazon_lookup_thread.is_alive()
                 ),
                 "queue_size": web.amazon_queue.qsize(),
-                "queue": list(web.amazon_queue.queue),
+                "queue": [isbn.to_dict() for isbn in web.amazon_queue.queue],
             }
         )
 
@@ -327,6 +327,17 @@ class PrioritizedISBN:
     isbn: str = field(compare=False)
     priority: Priority = field(default=Priority.LOW)
     timestamp: datetime = field(default_factory=datetime.now)
+
+    def to_dict(self):
+        """
+        Convert the PrioritizedISBN object to a dictionary representation suitable
+        for JSON serialization.
+        """
+        return {
+            "isbn": self.isbn,
+            "priority": self.priority.name,
+            "timestamp": self.timestamp.isoformat(),
+        }
 
 
 class Submit:

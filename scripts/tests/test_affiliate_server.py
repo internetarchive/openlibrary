@@ -4,6 +4,7 @@ for access to the mocker fixture.
 
 # docker compose run --rm home pytest scripts/tests/test_affiliate_server.py
 """
+import json
 import sys
 from unittest.mock import MagicMock
 
@@ -12,6 +13,8 @@ sys.modules['_init_path'] = MagicMock()
 
 from openlibrary.mocks.mock_infobase import mock_site  # noqa: F401
 from scripts.affiliate_server import (  # noqa: E402
+    PrioritizedISBN,
+    Priority,
     get_isbns_from_book,
     get_isbns_from_books,
     get_editions_for_books,
@@ -118,3 +121,16 @@ def test_get_isbns_from_books():
         '1234567890124',
         '1234567891',
     ]
+
+
+def test_prioritized_isbn_can_serialize_to_json() -> None:
+    """
+    `PrioritizedISBN` needs to be be serializable to JSON because it is sometimes
+    called in, e.g. `json.dumps()`.
+    """
+    p_isbn = PrioritizedISBN(isbn="1111111111", priority=Priority.HIGH)
+    dumped_isbn = json.dumps(p_isbn.to_dict())
+    dict_isbn = json.loads(dumped_isbn)
+
+    assert dict_isbn["priority"] == "HIGH"
+    assert isinstance(dict_isbn["timestamp"], str)
