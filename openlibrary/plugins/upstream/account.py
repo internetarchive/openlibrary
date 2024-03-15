@@ -355,7 +355,7 @@ class account_login_json(delegate.page):
                     web.setcookie(
                         ol_account.get_user().preferences()['yrg_banner_pref'],
                         '1',
-                        expires=(3600 * 24 * 30),
+                        expires=(3600 * 24 * 365),
                     )
         # Fallback to infogami user/pass
         else:
@@ -427,7 +427,7 @@ class account_login(delegate.page):
             web.setcookie(
                 ol_account.get_user().preferences()['yrg_banner_pref'],
                 '1',
-                expires=(3600 * 24 * 30),
+                expires=(3600 * 24 * 365),
             )
         blacklist = [
             "/account/login",

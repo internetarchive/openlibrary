@@ -659,7 +659,7 @@ class hide_banner(delegate.page):
         DAY_SECONDS = 60 * 60 * 24
         cookie_duration_days = int(data.get('cookie-duration-days', 30))
 
-        if data['cookie-name'].startswith('yrg'):
+        if user and data['cookie-name'].startswith('yrg'):
             user.save_preferences({'yrg_banner_pref': data['cookie-name']})
 
         web.setcookie(
