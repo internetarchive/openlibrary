@@ -1,0 +1,36 @@
+{
+    'key': '/type/property',
+    'kind': 'embeddable',
+    'name': 'Property',
+    'properties': [{
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'name',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/type'
+        },
+        'name': 'expected_type',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/boolean'
+        },
+        'name': 'unique',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

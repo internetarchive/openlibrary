@@ -1,0 +1,32 @@
+# infobase configuration
+
+db_parameters:
+    engine: postgres
+    database: openlibrary
+    host: db
+
+account_bot: /people/AccountBot
+user_root: /people/
+verify_user_email: true
+logging_config_file: conf/logging.ini
+
+secret_key: xxx
+
+plugins:
+    - openlibrary.olbase
+
+cache:
+    type: memcache
+    servers:
+        - "memcached:11211"
+
+errorlog: /var/log/openlibrary/infobase/errorlog
+writelog: /var/lib/openlibrary/infobase/writelog
+
+sentry:
+    enabled: false
+    # Dummy endpoint; where sentry logs are sent
+    # `dns` field is placeholder & needs to be changed to a real url
+    # when/if `enabled: true`
+    dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
+    environment: 'local'

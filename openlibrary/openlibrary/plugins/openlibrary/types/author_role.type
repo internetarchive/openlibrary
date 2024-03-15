@@ -1,0 +1,35 @@
+{
+    'key': '/type/author_role',
+    'kind': 'embeddable',
+    'properties': [{
+        'expected_type': {
+            'key': '/type/author'
+        },
+        'name': 'author',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'role',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'as',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

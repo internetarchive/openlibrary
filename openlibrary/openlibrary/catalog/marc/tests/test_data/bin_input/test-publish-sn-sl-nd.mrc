@@ -1,0 +1,1 @@
+00315cam a2200109 a 4500001000800000005001700008008004100025245008500066260002700151700001900178852000800197527654020050406103838.0050406m        is       b    000 0 heb d10aSefer taharat Yosefbal hakalhot taharat ha-mish pahah: Rabi ʻOvadyah Yosef ...  a[s.l]:b[s.n],c[n.d.]1 aYosef, Ovadia.0 bglx

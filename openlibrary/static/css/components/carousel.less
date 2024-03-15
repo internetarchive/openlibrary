@@ -1,0 +1,214 @@
+/**
+ * Carousel
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#carousel
+ */
+
+@import (less) "components/read-panel.less";
+@import (less) "components/book.less";
+
+// Badly named. Should be renamed "carousel-heading" or similar.
+.home-h2 {
+  font-size: 1.2em;
+  font-weight: normal;
+  color: @link-blue;
+  margin-bottom: .5em;
+  margin-top: 1.75em;
+}
+
+.carousel-container {
+  margin: 0 -20px;
+  padding: 3px 15px;
+}
+
+.carousel {
+  .display-flex();
+  margin-bottom: 15px;
+  overflow-x: scroll;
+  padding: 10px 20px;
+
+  &.carousel--grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-gap: 30px 20px;
+    padding: 10px;
+
+    // Fallback for non-grid browsers
+    flex-wrap: wrap;
+  }
+
+  a,
+  a:link {
+    text-decoration: none;
+  }
+
+  &__item {
+    padding: 2px;
+    float: left;
+    height: 100%;
+    margin: 0 10px;
+    min-height: 1px;
+    overflow: hidden;
+    box-sizing: border-box;
+
+    // :focus state for when selected
+    // e.g. "pick one of existing covers" on change cover.
+    // Is .selected redundant?
+    &:focus,
+    &.selected {
+      border: 5px solid @orange;
+      outline: 0;
+    }
+  }
+
+  &.carousel--grid .carousel__item {
+    margin: 0;  // Handled by grid gap
+  }
+
+  // Modifiers
+  // A smaller carousel.
+  &--minimal {
+    img {
+      max-height: 100px;
+      width: auto;
+    }
+  }
+
+  > div {
+    min-width: 130px;
+  }
+
+  // JavaScript only block,but needed to avoid reflows
+  // Without, on slower connections, there will be a flash when buttons
+  // are added.
+  button {
+    border: 0;
+    position: absolute;
+    color: transparent;
+  }
+
+  .book {
+
+    &:last-child {
+      margin-right: 0;
+    }
+
+    .book-metadata {
+      width: 130px;
+      margin: 0 auto;
+    }
+
+    /*h2*/.book-title {
+      font-size: .8em;
+      margin: 5px 0;
+      color: @dark-grey;
+      font-weight: normal;
+
+      // stylelint-disable-next-line selector-max-specificity, max-nesting-depth
+      a {
+        color: @link-blue;
+        text-decoration: none;
+      }
+    }
+  }
+}
+
+.carousel__item .slick-loading {
+  opacity: 0;
+}
+
+/**
+ * Carousel (decorated)
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#decorated-carousel
+ */
+
+.carousel-container-decorated {
+  background: @book-cover-carousel-background;
+  border-bottom: 1px solid @book-cover-carousel-border-bottom;
+  border-top: 1px solid @book-cover-carousel-border-top;
+}
+
+// TODO: Document where this is used. This is unlikely to need to be so specific.
+.carousel-section {
+  .SRPCover {
+    img {
+      box-shadow: 1px 2px 5px 0 @book-cover-shadow-color;
+    }
+  }
+}
+
+// Hide horizontal scroll bar if JS is going to be loaded
+.client-js {
+  .carousel {
+    margin-bottom: 0;
+    // hide the overlay until carousel--js has loaded
+    overflow: hidden;
+  }
+}
+
+@height-blank-cover: 200px;
+.carousel__item__blankcover {
+  position: relative;
+  padding: 33% 10px 10px;
+  text-align: center;
+  background: @lighter-grey;
+  font-size: 1em;
+  color: @black;
+  height: @height-blank-cover;
+
+  // White border
+  &::before {
+    content: "";
+    display: block;
+    position: absolute;
+    border: 2px solid fade(@white, 50%);
+    // stylelint-disable declaration-block-no-redundant-longhand-properties
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    // stylelint-enable declaration-block-no-redundant-longhand-properties
+    margin: 10px;
+  }
+
+  &--title {
+    position: relative;
+    font-size: .9em;
+  }
+
+  &--authors {
+    position: relative;
+    color: @dark-grey-two;
+    padding: 4px 4px 0;
+    font-size: .6875em;
+    font-style: oblique;
+  }
+}
+@height-cover-compact: 125px;
+.carousel--compact {
+  .book .book-cover {
+    height: @height-cover-compact;
+  }
+  .book .bookcover {
+    height: @height-cover-compact;
+  }
+
+  .carousel__item__blankcover {
+    height: @height-cover-compact;
+    padding: 20% 10px 10px;
+    margin: 0 auto;
+  }
+}
+
+.slick {
+  // This is a fix for firefox + Librejs
+  // because the slick css passed through js
+  // and librejs is breaking on utf8 chars
+  &-next::before {
+    content: "→" !important;
+  }
+  &-prev::before {
+    content: "←" !important;
+  }
+}
+
+@import (less) "category-item.less";

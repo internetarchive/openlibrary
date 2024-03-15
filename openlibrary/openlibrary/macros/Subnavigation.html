@@ -1,0 +1,33 @@
+$def with (page)
+
+$ dev_pages = ["/developers", "/data", "/developers/api", "/developers/licensing"]
+$ dev_nav = [
+$     ("/developers", _("Developer Center (Home)")),
+$     ("/developers/api", _("Web API")),
+$     ("https://github.com/internetarchive/openlibrary-client", _("Client Library")),
+$     ("/data", _("Data Dumps")),
+$     ("https://github.com/internetarchive/openlibrary", _("Source Code")),
+$     ("https://github.com/internetarchive/openlibrary/issues", _("Report an Issue")),
+$     ("/developers/licensing", _("Licensing")),
+$ ]
+
+$ tour_nav = [
+$     ("/tour", _("Welcome")),
+$     ("/search/howto", _("Searching Open Library")),
+$     ("/tour/reading", _("Reading Books")),
+$     ("/tour/books", _("Adding & Editing Books")),
+$     ("/tour/subjects", _("Using Subjects")),
+$     ("/help/faq", _("Open Library F.A.Q.")),
+$ ]
+
+$if page.key in dev_pages:
+    <div class="subNav sansserif">
+        $:render_template("lib/subnavigation", dev_nav)
+    </div>
+    <br style="clear: both;"/>
+
+$if page.key.startswith("/tour"):
+    <div class="subNav sansserif">
+        $:render_template("lib/subnavigation", tour_nav)
+    </div>
+    <br style="clear: both;"/>

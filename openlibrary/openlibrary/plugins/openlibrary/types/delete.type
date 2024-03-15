@@ -1,0 +1,12 @@
+{
+    'description': {
+        'type': '/type/text',
+        'value': 'Type to mark page as deleted.'
+    },
+    'key': '/type/delete',
+    'kind': 'regular',
+    'name': 'Delete Type',
+    'type': {
+        'key': '/type/type'
+    }
+}

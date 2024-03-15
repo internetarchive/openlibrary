@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record xmlns="http://www.loc.gov/MARC21/slim">
+  <leader>00981cas a2200325 a 4500</leader>
+  <controlfield tag="001">2041472</controlfield>
+  <controlfield tag="005">20030331220900.0</controlfield>
+  <controlfield tag="008">00                                 eng  </controlfield>
+  <controlfield tag="008">750810d18281828enkar         0   a0eng d</controlfield>
+  <datafield tag="010" ind1=" " ind2=" ">
+    <subfield code="a">sc 83-3257</subfield>
+  </datafield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">1532939</subfield>
+  </datafield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">.b10592623</subfield>
+    <subfield code="b">multi</subfield>
+  </datafield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">0110946</subfield>
+    <subfield code="b">MULS</subfield>
+  </datafield>
+  <datafield tag="040" ind1=" " ind2=" ">
+    <subfield code="a">MUL</subfield>
+    <subfield code="c">MUL</subfield>
+    <subfield code="d">NYG</subfield>
+    <subfield code="d">DLC</subfield>
+    <subfield code="d">NST</subfield>
+    <subfield code="d">WEL</subfield>
+  </datafield>
+  <datafield tag="042" ind1=" " ind2=" ">
+    <subfield code="a">lc</subfield>
+  </datafield>
+  <datafield tag="049" ind1=" " ind2=" ">
+    <subfield code="a">[English Poetry]WELB</subfield>
+  </datafield>
+  <datafield tag="245" ind1="0" ind2="4">
+    <subfield code="a">The Bijou, or Annual of literature and the arts.</subfield>
+  </datafield>
+  <datafield tag="246" ind1="0" ind2="0">
+    <subfield code="a">Bijou</subfield>
+  </datafield>
+  <datafield tag="246" ind1="1" ind2="0">
+    <subfield code="a">Annual of literature and the arts</subfield>
+  </datafield>
+  <datafield tag="260" ind1=" " ind2=" ">
+    <subfield code="a">London :</subfield>
+    <subfield code="b">William Pickering,</subfield>
+    <subfield code="c">1828.</subfield>
+  </datafield>
+  <datafield tag="300" ind1=" " ind2=" ">
+    <subfield code="a">1 v. :</subfield>
+    <subfield code="b">ill. ;</subfield>
+    <subfield code="c">15 cm.</subfield>
+  </datafield>
+  <datafield tag="310" ind1=" " ind2=" ">
+    <subfield code="a">Annual.</subfield>
+  </datafield>
+  <datafield tag="362" ind1="1" ind2=" ">
+    <subfield code="a">Began publication with 1828 issue?</subfield>
+  </datafield>
+  <datafield tag="515" ind1=" " ind2=" ">
+    <subfield code="a">No more published?</subfield>
+  </datafield>
+  <datafield tag="700" ind1="1" ind2="2">
+    <subfield code="a">Coleridge, Samuel Taylor,</subfield>
+    <subfield code="d">1772-1834.</subfield>
+    <subfield code="t">Poems.</subfield>
+    <subfield code="k">Selections.</subfield>
+  </datafield>
+  <datafield tag="700" ind1="1" ind2="2">
+    <subfield code="a">Lamb, Charles,</subfield>
+    <subfield code="d">1775-1834.</subfield>
+    <subfield code="t">Verses for an Album.</subfield>
+  </datafield>
+  <datafield tag="866" ind1="3" ind2="0">
+    <subfield code="a">1828//</subfield>
+  </datafield>
+  <datafield tag="902" ind1=" " ind2=" ">
+    <subfield code="a">001006</subfield>
+  </datafield>
+  <datafield tag="994" ind1=" " ind2=" ">
+    <subfield code="a">bp</subfield>
+    <subfield code="a">j</subfield>
+    <subfield code="a">w</subfield>
+  </datafield>
+  <datafield tag="999" ind1=" " ind2=" ">
+    <subfield code="b">3</subfield>
+    <subfield code="c">970520</subfield>
+    <subfield code="d">s</subfield>
+    <subfield code="e">a</subfield>
+    <subfield code="g">4</subfield>
+  </datafield>
+</record>

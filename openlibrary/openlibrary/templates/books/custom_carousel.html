@@ -1,0 +1,108 @@
+$def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False, compact_mode=False, secondary_action=False, layout='carousel')
+
+$if layout == 'carousel':
+  $ ctx.setdefault("links", [])
+  $# Apparently fonts always need crossorigin for some reason
+  $ slick_font = '<link rel="preload" href="/static/css/fonts/slick.woff" as="font" type="font/woff" crossorigin>'
+  $if slick_font not in ctx.links:
+    $ ctx.links.append(slick_font)
+
+$def carousel_i18n_input():
+  $ show_carousel_i18n_strings=  {
+  $ "open": _("Read"),
+  $ "borrow_available": _("Borrow"),
+  $ "borrow_unavailable": _("Join Waitlist"),
+  $ "error": _("Not in Library"),
+  $ "loading": _("Loading...")
+  $ }
+
+  <input type="hidden" name="carousel-i18n-strings" value="$json_encode(show_carousel_i18n_strings)">
+
+
+$if render_once('books/custom_carousel.i18n-strings'):
+  $:carousel_i18n_input()
+
+$def render_carousel_cover(book, lazy, layout):
+  $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
+  $ cover_host = '//covers.openlibrary.org'
+  $ url = book.get('key') or book.url
+  $ title = book.title
+
+  $ cover_id = book.get('cover_id') or book.get('cover_i') or book.get('covers') and book['covers'][0]
+  $if book.get('cover_url'):
+    $ cover_url = book.get('cover_url')
+  $elif cover_id and cover_id != -1:
+    $ cover_url = '%s/b/id/%s-M.jpg'%(cover_host, cover_id)
+  $elif book.get('ia'):
+    $ cover_url = '%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ia')[0], fallback_cover)
+  $elif book.get('cover_edition_key'):
+    $ cover_url = '%s/b/olid/%s-M.jpg'%(cover_host, book.get('cover_edition_key'))
+  $else:
+    $ cover_url = False
+
+  $if book.get('authors'):
+    $ author_names = [author.name for author in book.authors]
+  $elif book.get('author_name'):
+    $ author_names = book.get('author_name', [])
+  $else:
+    $ author_names = []
+
+  $if author_names:
+    $ byline = _(' by %(name)s', name=', '.join(author_names))
+  $else:
+    $ byline = ''
+
+  $ modifier = ''
+  $ work_key = book.key if book.key.startswith('/work') else book.get('work_key')
+
+  <div class="book carousel__item">
+    <div class="book-cover">
+      <a href="$(url)">
+        $if cover_url:
+          <img class="bookcover" loading="lazy"
+            title="$('%s%s'%(title,byline))"
+            alt="$('%s%s'%(title,byline))"
+          $if lazy and layout == 'carousel':
+            data-lazy="$(cover_url)"
+            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
+          $else:
+            src="$(cover_url)"/>
+        $else:
+          <div class="carousel__item__blankcover"  title="$(title)">
+            <div class="carousel__item__blankcover--title">$:macros.TruncateString(title, 70)</div>
+            $if author_names:
+              <div class="carousel__item__blankcover--authors">$:macros.TruncateString(', '.join(author_names), 30)</div>
+          </div>
+      </a>
+    </div>
+    <div class="book-cta">
+      $:macros.LoanStatus(book, work_key=work_key, listen=False, secondary_action=secondary_action)
+    </div>
+  </div>
+
+$if test or (books and len(books) >= min_books):
+    <div class="carousel-section">
+      $if title and url:
+        <div class="carousel-section-header">
+          <h2 class="home-h2"><a name="$key" href="$url">$title</a></h2>
+        </div>
+      <div class="carousel-container carousel-container-decorated">
+        $code:
+          config = {
+            'booksPerBreakpoint': [4, 4, 4, 3, 2, 1] if compact_mode else [6, 5, 4, 3, 2, 1],
+            'loadMore': {
+              "url": load_more["url"].replace("&amp;", "&"),
+              "pageMode": load_more.get("mode", "offset"),
+              "limit": load_more.get("limit", 18)
+            } if load_more else None
+          }
+        $ compact = "carousel--compact" if compact_mode else ""
+        $ grid = "carousel--grid" if layout == 'grid' else ""
+        $ loadjs = "carousel--progressively-enhanced" if layout == 'carousel' else ""
+        <div class="carousel $grid $compact carousel-$key $loadjs"
+          data-config="$json_encode(config)">
+          $for index, book in enumerate(books or []):
+              $:render_carousel_cover(book, index > 5, layout)
+        </div>
+      </div>
+    </div>

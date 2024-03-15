@@ -1,0 +1,46 @@
+{
+  "root": true,
+  "plugins": [
+    "eslint-plugin-no-jquery"
+  ],
+  "extends": [
+    "plugin:vue/essential",
+    "plugin:no-jquery/deprecated"
+  ],
+  "env": {
+    "browser": true,
+    "jquery": true
+  },
+  "parserOptions": {
+    "parser": "@babel/eslint-parser",
+    "sourceType": "module",
+    "ecmaVersion": 6
+  },
+  "globals": {},
+  "rules": {
+    "prefer-template": "error",
+    "eqeqeq": ["error", "always"],
+    "quotes": ["error", "single"],
+    "eol-last": ["error", "always"],
+    "indent": 2,
+    "no-console": "error",
+    "no-extra-semi": "error",
+    "no-mixed-spaces-and-tabs": "error",
+    "no-redeclare": "error",
+    "no-trailing-spaces": "error",
+    "no-undef": "error",
+    "no-unused-vars": "error",
+    "no-useless-escape": "error",
+    "space-in-parens": "error",
+    "vars-on-top": "error",
+    "prefer-const": "error",
+    "template-curly-spacing": "error",
+    "quote-props": ["error", "as-needed"],
+    "keyword-spacing": ["error", { "before": true, "after": true } ],
+    "key-spacing": ["error", { "mode": "strict" }],
+    "vue/no-mutating-props": "off",
+    "vue/multi-word-component-names": ["error", {
+      "ignores": ["Bookshelf", "Shelf"]
+    }]
+  }
+}

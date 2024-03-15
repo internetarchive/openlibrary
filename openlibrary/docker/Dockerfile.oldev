@@ -1,0 +1,18 @@
+FROM openlibrary/olbase:latest
+WORKDIR /openlibrary
+
+COPY --chown=openlibrary:openlibrary requirements*.txt ./
+RUN python -m pip install -r requirements_test.txt \
+ && python -m pip list --outdated
+
+# Link the pytest CLI binary into /usr/local/bin so that it shows up
+# on the PATH. Do this instead of trying to modify the PATH, because
+# that causes headaches with su, cron, etc.
+USER root
+RUN ln -s /home/openlibrary/.local/bin/pytest /usr/local/bin/pytest
+# For i18n scripts, which run as root (to modify the host filesystem) and need these packages.
+RUN pip install $(grep -E 'web\.py==|Babel==' requirements.txt)
+USER openlibrary
+
+COPY --chown=openlibrary:openlibrary package*.json ./
+RUN npm install --no-audit

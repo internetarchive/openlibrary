@@ -1,0 +1,56 @@
+name: python_tests
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+    paths-ignore:
+      - '.github/workflows/javascript_tests.yml'
+      - 'vendor/js/**'
+      - 'package*.json'
+      - '**.js'
+      - '**.vue'
+      - '**.less'
+      - '**.css'
+permissions:
+  contents: read
+
+jobs:
+  python_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/setup-python@v4
+        with:
+          python-version-file: pyproject.toml
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ runner.os }}-venv-${{ env.pythonLocation }}-${{ hashFiles('requirements*.txt') }}
+      - if: "contains(matrix.python-version, '-dev')"
+        run: |
+          sudo apt-get update
+          # https://lxml.de/installation.html#requirements
+          sudo apt-get install -y libxml2 libxslt-dev
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip setuptools wheel
+          pip install -r requirements_test.txt
+          pip list --outdated
+      - run: make git
+      - name: Run make i18n
+        run: |
+          make i18n
+          make test-i18n
+      - name: Run tests
+        run: |
+          git fetch --no-tags --prune --depth=1 origin master
+          make test-py
+          source scripts/run_doctests.sh
+          mypy --install-types --non-interactive .
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

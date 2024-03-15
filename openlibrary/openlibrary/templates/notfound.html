@@ -1,0 +1,25 @@
+$def with (path, create=None)
+
+$var title: $_("%(path)s is not found", path=path)
+
+$if create is None:
+    $ prefixes = ["/authors/", "/books/", "/works/", "/show-marc", "/account/"]
+    $ create = not any(path.startswith(prefix) for prefix in prefixes)
+
+<div id="contentHead">
+    <h1>$_("404 - Page Not Found")</h1>
+</div>
+
+<div id="contentBody">
+    <p>$_("%(path)s does not exist.", path=path)</p>
+
+    $# Show create link only to admins
+    $if ctx.user and ctx.user.is_admin() and create:
+        <p><a class="adminOnly" href="$changequery(m='edit')">$_("Create it?")</a></p>
+
+    <div>
+    $if "/templates" in path or "/macros" in path:
+        <h3>$_("Looking for a template/macro?")</h3>
+        $:macros.PageList(path)
+    </div>
+</div>

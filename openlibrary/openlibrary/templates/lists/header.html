@@ -1,0 +1,69 @@
+$def with (doc, lists)
+
+$def render_author():
+    $#<!-- Need to insert author photo $:render_template('covers/book_cover_small', doc.works[0]) -->
+    <h1>$:_('<a href="%(href)s">%(name)s</a> / Lists', href=doc.key, name=doc.name)</h1>
+    <p class="collapse large brown sansserif">
+    <!-- Include number of works: ### works -->
+    </p>
+    <p class="sansserif lightgreen large">
+        $:ungettext("This author is on <strong>1 list</strong>.", "This author is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
+    </p>
+
+$def render_edition():
+    $#<!-- Need to insert book cover $:render_template('covers/book_cover_small', doc.works[0]) -->
+    <h1 class="collapse">$:_('<a href="%(href)s">%(name)s</a> / Lists', href=doc.key, name=doc.title)</h1>
+    <p class="collapse large brown sansserif">
+    <!-- IF YEAR: doc.publish_date, (Need to pull in Edition info for header) -->
+    <!-- IF PUBLISHER: doc.publishers -->
+    </p>
+
+    <p class="sansserif lightgreen large">
+        $:ungettext("This is edition is on <strong>1 list</strong>.", "This edition is on <strong>%(count)s lists</strong>.", len(lists),  count=commify(len(lists)))
+    </p>
+
+$def render_work():
+    <h1>$:_('<a href="%(href)s">%(name)s</a> / Lists', href=doc.key, name=doc.title)</h1>
+    <p class="sansserif lightgreen large">
+        $:ungettext("This work is on <strong>1 list</strong>.", "This work is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
+    </p>
+
+$def render_user():
+    <h1 class="collapse">$:_('<a href="%(href)s">%(name)s</a> / Lists', href=doc.key, name=doc.displayname)</h1>
+    <p class="collapse large brown sansserif" id="list_count">
+        $ungettext("%(name)s has 1 list.", "%(name)s has %(count)s lists.", len(lists), name=doc.displayname, count=commify(len(lists)))
+    </p>
+
+$def render_subject():
+    <h1>$:_('<a href="%(href)s">%(name)s</a> / Lists', href=doc.key, name=doc.name)</h1>
+
+    <p class="sansserif lightgreen large">
+        $:ungettext("This subject is on <strong>1 list</strong>.", "This subject is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
+    </p>
+
+$ type = doc.get("type") and doc.type.key
+
+$if doc.key.startswith("/subjects/"):
+    $var title: $doc.name
+    $:render_subject()
+
+$elif type == "/type/author":
+    $var title: $doc.name
+    $:render_author()
+
+$elif type == "/type/edition":
+    $var title: $doc.title
+    $:render_edition()
+
+$elif type == "/type/work":
+    $var title: $doc.title
+    $:render_work()
+
+$elif type == "/type/user":
+    $var title: $doc.displayname
+    $if days_since(doc.created) < 30:
+       $ putctx('robots', 'noindex')
+    $:render_user()
+
+$else:
+    $var title: $_("Hm. Can't find it.")

@@ -1,0 +1,883 @@
+/* stylelint-disable no-descending-specificity */
+
+/**
+ * HeaderBar
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#headerbar
+ * Defined in:
+ *  - openlibrary/templates/lib/nav_head.html
+ *  - openlibrary/plugins/openlibrary/js/ol.js
+ */
+
+@import (less) "less/z-index.less";
+
+.header-bar {
+  max-width: 1060px;
+  min-width: 300px;
+  margin: 0 auto;
+  .display-flex();
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-flow: row wrap;
+  flex-flow: row wrap;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  z-index: @z-index-level-2;
+  position: relative;
+
+  .auth-component {
+    display: none;
+    padding: 5px;
+    padding-right: 0;
+    -webkit-box-ordinal-group: 4;
+    -ms-flex-order: 3;
+    order: 3;
+
+    li {
+      text-align: left;
+      // stylelint-disable declaration-block-no-duplicate-properties
+      display: -webkit-inline-box;
+      display: -ms-inline-flexbox;
+      display: inline-flex;
+      // stylelint-enable declaration-block-no-duplicate-properties
+
+      // stylelint-disable-next-line max-nesting-depth
+      button,
+      a {
+        color: @dark-grey;
+      }
+    }
+
+    .hide-me {
+      display: none;
+    }
+  }
+
+  .dropdown-menu {
+    text-align: left;
+    background-color: @light-beige;
+    border: 1px solid @dark-beige;
+    border-radius: 3px;
+
+    li {
+      border-bottom: 1px solid @beige-two;
+
+      // stylelint-disable max-nesting-depth, selector-max-specificity
+      &:last-child {
+        border: none;
+      }
+
+      &:hover {
+        background-color: @white;
+      }
+
+      button,
+      a {
+        text-decoration: none;
+        color: @dark-grey;
+        white-space: nowrap;
+        font-size: .9em;
+        padding: 10px;
+        display: block;
+      }
+
+      button {
+        cursor: pointer;
+        text-align: start;
+        width: 100%;
+      }
+      // stylelint-enable max-nesting-depth, selector-max-specificity
+    }
+  }
+
+  .app-drawer {
+    @topHeight: 50px;
+    position: fixed;
+    width: 300px;
+    max-width: 100vw;
+    right: 0;
+    top: @topHeight;
+    height: calc(100% - @topHeight - 25px);
+    z-index: @z-index-level-2;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    font-family: @bahnschrift;
+    background-color: @light-beige;
+    box-shadow: -10px 0 10px -6px rgb(0 0 0 / 25%);
+
+    ul {
+      border: none;
+    }
+
+    .app-drawer__badge {
+      color: @white;
+      background-color: @primary-blue;
+      font-size: .9em;
+      padding: 2px 6px 1px;
+      border-radius: 4px;
+      float: right;
+      text-transform: uppercase;
+    }
+
+    // stylelint-disable max-nesting-depth, selector-max-specificity
+    .subsection {
+      font-weight: bold;
+      border-bottom: 2px solid hsl(32.7,14.7%,70.6%);
+      padding: 16px 16px 3px;
+      &:hover {
+        background-color: transparent;
+      }
+    }
+
+    li {
+      border-bottom: 1px solid hsla(33.6, 10%, 49.2%, .25);
+    }
+
+    li:not(.subsection) {
+      margin: 0 8px;
+    }
+
+    li a, li button, .login-links {
+      padding: 10px 8px;
+    }
+
+    li button {
+      width: 100%;
+      font-family: @bahnschrift;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .subsection:first-child {
+      border-top: 1px solid @dark-beige;
+    }
+
+    .login-links {
+      display: flex;
+      border-bottom: none;
+      justify-content: space-evenly;
+      column-gap: 16px;
+      &:hover {
+        background-color: transparent;
+      }
+    }
+
+    .login-links a {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 6px;
+      padding: 6px;
+      transition: .3s;
+    }
+
+    .login-links .login-links__primary {
+      background: @primary-blue;
+      color: @white;
+      &:hover {
+        background-color: @link-blue;
+      }
+    }
+
+    .login-links .login-links__secondary {
+      color: @primary-blue;
+      border: 2px solid @primary-blue;
+      &:hover {
+        background-color: @white;
+      }
+    }
+    // stylelint-enable max-nesting-depth, selector-max-specificity
+  }
+
+  .hamburger-component {
+    -webkit-box-ordinal-group: 5;
+    -ms-flex-order: 4;
+    order: 4;
+    margin-right: 5px;
+
+    // stylelint-disable max-nesting-depth, selector-max-specificity
+    details[open] {
+      .mask-menu{
+        visibility: visible;
+        opacity: .6;
+        animation: fadeIn .2s ease-in-out;
+      }
+      summary ~ * {
+        animation: sweep .2s ease-in-out;
+      }
+      .hamburger__icon {
+        background-color: @account-icon-background;
+      }
+    }
+
+    .hamburger__icon {
+      width: 22px;
+      padding: 0 10px;
+      border-radius: 3px;
+      box-sizing: content-box;
+    }
+
+    @keyframes sweep {
+      0%    {opacity: 0; transform: translateX(50px)}
+      100%  {opacity: 1; transform: translateX(0)}
+    }
+
+    @keyframes fadeIn {
+      0% {opacity: 0;}
+      100% {opacity: .6;}
+    }
+    // stylelint-enable max-nesting-depth, selector-max-specificity
+
+    summary::marker {
+      content: "";
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    label {
+      background: transparent;
+      border: none;
+    }
+
+    /*  Technical/design debt: For unknown historic reasons the hamburger button does not have an
+    arrow to the right of the icon, but the profile icon does. This is likely an accessibility
+    or UX problem.
+
+    There's an argument to be made that this should be visible for consistency with other dropdown
+    menus and to better meet user expectations which might expect the hamburger to load a menu
+    overlaying the screen as is consistent with other designs.
+
+    When OpenLibrary has a design lead, this should be understood and either reviewed or better
+    documented. */
+    .down-arrow {
+      display: none;
+    }
+  }
+
+  .mask-menu {
+    position: fixed;
+    top: 75px;
+    // stylelint-disable declaration-block-no-redundant-longhand-properties
+    left: 0;
+    right: 0;
+    opacity: 0;
+    bottom: 0;
+    // stylelint-enable declaration-block-no-redundant-longhand-properties
+    background: linear-gradient(to bottom, transparent 0, @black);
+    z-index: @z-index-level-1;
+    visibility: hidden;
+  }
+
+  .header-dropdown {
+    // For the <details> polyfill used for IE11
+    summary::before {
+      content: "" !important;
+    }
+
+    .header-dropdown__icon {
+      width: 40px;
+      height: 40px;
+    }
+
+    .account__icon {
+      border: 2px solid @account-icon-border;
+      border-radius: 4px;
+      width: 30px;
+      height: 30px;
+    }
+
+    .mr-notifications {
+      position: absolute;
+      background: @primary-blue;
+      color: @white;
+      border-radius: 8px;
+      padding: 3px 7px;
+      font-size: 12px;
+      margin-top: 25px;
+      font-weight: bold;
+    }
+
+    button,
+    a {
+      color: @white;
+      text-decoration: none;
+      display: block;
+      border: 0;
+      background: none;
+    }
+  }
+
+  .logo-component {
+    -webkit-box-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+    -webkit-box-ordinal-group: 2;
+    -ms-flex-order: 1;
+    order: 1;
+    z-index: @z-index-level-negative;
+
+    .logo-icon {
+      position: relative;
+      top: -1px;
+      height: 32px;
+      width: auto;
+      margin-left: 5px;
+      -ms-flex-item-align: center;
+      align-self: center;
+    }
+  }
+
+  .navigation-component.mobile {
+    .display-flex();
+  }
+
+  .navigation-component {
+    display: none;
+    -ms-flex-preferred-size: 100%;
+    flex-basis: 100%;
+    -webkit-box-ordinal-group: 6;
+    -ms-flex-order: 5;
+    order: 5;
+    // Despite occurring later in the DOM, this header should be overlaid underneath the items
+    // above. E.g. search and account dropdowns.
+    z-index: @z-index-level-1;
+
+    li {
+      -ms-flex-preferred-size: 100%;
+      flex-basis: 100%;
+      padding: 5px 0;
+      font-size: 1em;
+
+      // stylelint-disable max-nesting-depth, selector-max-specificity
+      button,
+      a {
+        color: @dark-grey;
+        text-decoration: none;
+        display: block;
+
+        &:visited {
+          color: @dark-grey;
+          text-decoration: none;
+        }
+      }
+
+      .dropdown-menu {
+        position: absolute;
+        text-align: left;
+        width: 100%;
+        top: 4px;
+
+        li a {
+          color: @darker-grey;
+        }
+      }
+
+      .navigation-dropdown-component {
+        position: relative;
+      }
+    }
+    // stylelint-enable max-nesting-depth, selector-max-specificity
+  }
+
+  .search-component {
+    width: 45px;
+    -webkit-box-ordinal-group: 3;
+    -ms-flex-order: 2;
+    order: 2;
+    height: 47px;
+    margin-right: -5px;
+    text-align: right;
+    -webkit-box-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+    // stylelint-disable selector-max-specificity
+    // stylelint-disable max-nesting-depth
+    &.expanded {
+      -webkit-box-flex: 1;
+      -ms-flex: 1;
+      flex: 1;
+      margin-left: 5px;
+      -ms-flex-item-align: center;
+      align-self: center;
+
+      .search-bar-component {
+        width: 95%;
+        background-color: @grey-fafafa;
+        border: 1px solid @dark-beige;
+      }
+
+      .search-bar {
+        width: auto;
+
+        .search-bar-input {
+          .display-flex();
+        }
+      }
+
+      .search-bar-input input[type=text] {
+        display: block;
+        width: 100%;
+      }
+
+      .search-bar-submit {
+        cursor: pointer;
+      }
+
+      .vertical-separator {
+        display: block;
+      }
+
+      .search-by-barcode-submit {
+        display: block;
+      }
+
+      .search-facet-selector {
+        display: block;
+      }
+
+      .search-facet {
+        display: block;
+      }
+    }
+
+    .search-bar {
+      width: 45px;
+    }
+
+    .search-bar-submit {
+      background: url(/static/images/search-icon.svg) center no-repeat;
+      width: 35px;
+      height: 45px;
+      border-top-left-radius: .3em;
+      border-bottom-left-radius: .3em;
+    }
+
+    .vertical-separator {
+      border-left: 1px solid @light-grey;
+      height: 34px;
+      margin: auto 5px auto 0
+    }
+
+    .search-by-barcode-submit {
+      background: url(/static/images/icons/barcode_scanner.svg) center no-repeat;
+      background-size: 26px;
+      width: 28px;
+      margin-right: 8px;
+    }
+
+    .search-bar-component {
+      display: inline-block;
+      border-radius: .3em;
+      position: relative;
+    }
+
+    .search-bar-advanced-btn {
+      text-align: center;
+    }
+
+    .search-bar-input {
+      input[type=text] {
+        max-width: 100%;
+      }
+    }
+    /* stylelint-enable selector-max-specificity */
+
+    .search-dropdown {
+      position: relative;
+
+      /* stylelint-disable selector-max-specificity */
+      .search-results {
+        background: @white;
+        border-top-left-radius: .3em;
+        border-top-right-radius: .3em;
+
+        li {
+          text-align: left;
+          padding: 7px;
+          border-top: 1px solid @lighter-grey;
+          font-size: .9rem;
+          &:hover {
+            background-color: @white;
+          }
+
+          a {
+            .display-flex();
+            text-decoration: none;
+            color: @dark-grey;
+
+            img {
+              width: 40px;
+              min-width: 40px;
+              height: 60px;
+              min-height: 60px;
+              background-color: @lightest-grey;
+              margin-right: 10px;
+              object-fit: cover;
+            }
+
+            .book-desc {
+              font-weight: 300;
+              text-decoration: none;
+
+              .book-title {
+                font-weight: bold;
+              }
+
+              .book-author {
+                color: @dark-blue;
+              }
+            }
+          }
+        }
+      }
+      /* stylelint-enable selector-max-specificity */
+    }
+
+    .search-facet-selector {
+      display: none;
+      margin-top: 3px;
+      padding: 13px 10px 0;
+      font-size: 14px;
+    }
+
+    .search-facet {
+      display: none;
+      position: relative;
+      border-radius: 3px 0 0 3px;
+      background-color: fade(@beige, 32);
+      border: none;
+      border-right: 1px solid @lighter-grey;
+      font-weight: 500;
+      color: @grey;
+
+      // stylelint-disable-next-line selector-max-specificity
+      select {
+        font-size: inherit;
+        font-family: inherit;
+        font-weight: inherit;
+        color: inherit;
+        background: none;
+        border: none;
+        cursor: pointer;
+        max-width: 100%;
+        -moz-appearance: none;
+        appearance: none;
+        -webkit-appearance: none;
+      }
+    }
+
+    .search-facet-value {
+      display: block;
+      min-width: 20px;
+
+      padding-right: 10px;
+      // stylelint-disable-next-line selector-max-specificity
+      &::after {
+        position: absolute;
+        top: 50%;
+        right: 4px;
+        content: "";
+        width: 0;
+        height: 0;
+        border-left: 4px solid transparent;
+        border-right: 4px solid transparent;
+        border-top: 4px solid currentColor;
+      }
+    }
+  }
+}
+
+div.search-facet:focus-within {
+  outline: 2px solid;
+}
+
+.hamburger-component {
+  summary {
+    .display-flex();
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    cursor: pointer;
+    .header-dropdown__icon {
+      border: none;
+      margin-right: 5px;
+      border-radius: 3px;
+      box-sizing: content-box;
+    }
+  }
+}
+
+.navigation-component {
+  text-align: center;
+  position: relative;
+
+  summary::marker {
+    content: "";
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary {
+    cursor: pointer;
+  }
+
+  .down-arrow {
+    position: relative;
+    top: -2px;
+  }
+}
+
+.logo-component {
+  margin-left: 5px;
+
+  a {
+    color: @black;
+    text-decoration: none !important;
+  }
+  .logo-org {
+    text-align: left;
+    font-weight: 300;
+    font-size: .9em;
+    color: @grey;
+    margin: 3px;
+    padding: 0;
+    line-height: 0;
+  }
+}
+
+.search-component {
+  .search-bar-advanced-btn {
+    margin: 10px;
+    border: 0 none;
+    width: 40px;
+    padding: 0;
+    cursor: pointer;
+    display: none;
+  }
+  .search-bar {
+    max-width: none;
+    min-width: none;
+    -webkit-transition: all .2s;
+    -o-transition: all .2s;
+    transition: all .2s;
+    border-radius: .3em;
+    -webkit-box-flex: 1;
+    -ms-flex: 1 0 0%;
+    flex: 1;
+    .display-flex();
+  }
+  .search-bar-input {
+    min-width: 50px;
+    width: 100%;
+    .display-flex();
+
+    /* stylelint-disable selector-max-specificity */
+    input[type=text] {
+      min-width: 0;
+      margin: 3px;
+      -webkit-box-flex: 1;
+      -ms-flex: 1;
+      flex: 1;
+      padding: 5px 0 2px 3px;
+      font-size: 1em;
+      font-weight: 500;
+      border: 0 none;
+      outline: none;
+      background: @grey-fafafa;
+      color: @grey;
+      -webkit-transition: all .5s;
+      -o-transition: all .5s;
+      transition: all .5s;
+      display: none;
+    }
+    input[type=submit] {
+      border: none;
+      cursor: pointer;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+
+    .vertical-separator {
+      display: none
+    }
+
+    .search-by-barcode-submit {
+      display: none;
+    }
+    /* stylelint-enable selector-max-specificity */
+  }
+}
+
+@media only screen and (max-width: 25em) {
+  .search-bar-component{
+    margin-right: 15px;
+  }
+}
+
+// We should review this media query to determine if it is in fact needed.
+@media only screen and (min-width: 25em) {
+  .header-bar {
+    .search-bar-component{
+      margin-right: 15px;
+    }
+    .navigation-component {
+      .dropdown-menu {
+        border-top: none;
+        border-top-right-radius: 0;
+        border-top-left-radius: 0;
+      }
+    }
+  }
+}
+
+@media only screen and (min-width: 30em) {
+  .header-bar {
+    margin: 0 auto;
+
+    .auth-component {
+      margin-right: 5px;
+      display: block;
+    }
+
+    .logo-component {
+      -webkit-box-flex: 1;
+      -ms-flex: 1;
+      flex: 1;
+      border-right: none;
+      padding: 0 5px;
+    }
+
+    .navigation-component {
+      .dropdown-menu {
+        border-top: none;
+        border-top-right-radius: 0;
+        border-top-left-radius: 0;
+      }
+    }
+
+    .search-component {
+      margin-right: 0;
+    }
+
+    .hamburger-component summary {
+      margin-left: 10px;
+    }
+  }
+}
+
+// If JS is enabled, we are going to inject a new
+// element but use the option control to toggle it.
+// to prepare for this change and ensure the search-facet
+// is the right size hide the select element
+.client-js {
+  .search-facet {
+    select {
+      opacity: 0;
+      position: absolute;
+    }
+  }
+}
+
+// We should review this media query to determine if it is in fact needed.
+@media only screen and (min-width: 35.5em) {
+  .header-bar {
+    .logo-component {
+      -webkit-box-flex: 0;
+      -ms-flex: none;
+      flex: none;
+    }
+
+    .navigation-component {
+      -webkit-box-ordinal-group: 7;
+      -ms-flex-order: 6;
+      order: 6;
+
+      .dropdown-menu {
+        border-top: none;
+        border-top-right-radius: 0;
+        border-top-left-radius: 0;
+      }
+    }
+
+    .search-bar-input {
+      input {
+        width: 100%;
+      }
+    }
+
+    .search-component {
+      .search-bar {
+        width: auto;
+        max-width: 205px;
+      }
+      .search-bar-advanced-btn {
+        display: block;
+      }
+      .search-bar-component {
+        background-color: @grey-fafafa;
+        border: 1px solid @dark-beige;
+        width: 207px;
+      }
+      .search-bar-input {
+        .display-flex();
+
+        /* stylelint-disable selector-max-specificity */
+        input[type=text] {
+          display: block;
+        }
+
+        .vertical-separator {
+          display: block;
+        }
+
+        .search-by-barcode-submit {
+          display: block;
+        }
+        /* stylelint-enable selector-max-specificity */
+      }
+      .search-facet {
+        display: block;
+      }
+      .search-facet-selector {
+        display: block;
+      }
+    }
+  }
+}
+
+@media only screen and (max-width: @width-breakpoint-desktop) {
+  // stylelint-disable-next-line selector-max-specificity
+  #header-bar {
+    position: sticky;
+    top: 0;
+    background: linear-gradient(to bottom, @header-bar-gradient-start, @header-bar-gradient-end);
+    padding: 3px 0;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 15%);
+    z-index: @z-index-level-3;
+  }
+
+  .header-bar {
+    .logo-component .logo-icon {
+      margin-top: 5px;
+      margin-left: 8px;
+    }
+    .search-component {
+      height: 44px;
+      .search-bar-submit {
+        height: 42px;
+      }
+      .search-facet-selector {
+        margin-top: 1px;
+      }
+    }
+    &.mobile {
+      padding: 10px 0;
+    }
+  }
+}

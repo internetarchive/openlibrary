@@ -1,0 +1,50 @@
+$def with (page)
+
+$ _x = ctx.setdefault('cssfile', 'edit')
+
+$var title: $_("Edit %(title)s", title=page.key)
+
+$:render_template("lib/edit_head", page)
+
+<div id="contentBody">
+    <form name="edit" method="post" action="" autocomplete="off">
+
+        <div class="formElement title">
+            <div class="label">
+                <label for="title">$_("Title")</label>
+            </div>
+            <div class="input">
+                <input type="text" name="title" id="title" value="$page.title"/>
+            </div>
+        </div>
+
+        $:macros.TypeChanger(page.type)
+
+        <div class="clearfix"></div>
+
+        <div class="formElement title">
+            <div class="label"><label for="plugin">Plugin</label></div>
+            <div class="input">
+                $ plugins = ["admin", "openlibrary", "search", "upstream", "worksearch"]
+                $:Dropdown("plugin", args=plugins, value=page.get("plugin", "upstream")).render()
+            </div>
+        </div>
+
+        <div class="clearfix"></div>
+
+        <div class="formElement">
+            <div class="label">
+                <label for="body">$_("Document Body")</label>
+            </div>
+            <div class="input">
+                <textarea name="body" id="body" rows="40" cols="80">$page.body</textarea>
+            </div>
+        </div>
+
+        $:macros.EditButtons(comment=page.comment_)
+
+        $if ctx.user and ctx.user.is_admin():
+            <div class="adminOnly" style="position:absolute;top:230px;right:20px;"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete this template?')" id="deleteTop">$_("Delete Record")</button></div>
+
+    </form>
+</div>

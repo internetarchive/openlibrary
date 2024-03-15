@@ -1,0 +1,7 @@
+{
+    "extends": "../../../.stylelintrc.json",
+    "rules": {
+      "max-nesting-depth": 2,
+      "selector-max-specificity": "0,3,0"
+    }
+}

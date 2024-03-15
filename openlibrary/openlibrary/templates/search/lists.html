@@ -1,0 +1,29 @@
+$def with (q, lists)
+
+$var title: $_('Search results for Lists')
+
+<div id="contentHead">
+  <h1>$_("Search Lists")</h1>
+</div>
+
+<div id="contentBody">
+  $:macros.SearchNavigation()
+  <form class="siteSearch olform" action="/search/lists">
+    <input type="text" class="larger" name="q" size="100" value="$q"/>
+    <input type="submit" class="larger" value="$_('Search')">
+  </form>
+
+  $if lists:
+    <div class="mybooks-list">
+      <ul id="listResults" class="list-books">
+      $for list in lists:
+        <li class="searchResultItem" id="list-$loop.index">$:render_template("lists/preview", list)</li>
+      </ul>
+    </div>
+  $elif q:
+    <div>
+      <span class="red">$_("No results found.")</span>
+      <a href="/search/inside?$urlencode(dict(q=q))">$_('Search for books containing the phrase "%s"?', q)</a>
+    </div>
+
+</div>

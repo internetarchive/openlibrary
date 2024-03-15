@@ -1,0 +1,358 @@
+/* stylelint-disable no-descending-specificity */
+
+/**
+ * Tools
+ * These styles appears to predominately be about layout.
+ * They are used on works and authors pages.
+ * The file should be refactored and its layout rules generalised.
+ * Many of these styles may be needed in existing components.
+ * It will be refactored at the earliest opportunity but for now
+ * lives inside the legacy stylesheet.
+ * DO NOT ADD NEW CSS here
+ * Unless... you are removing an inline style and moving it into here.
+ *
+ * We are currently in the process of:
+ * - moving styles from this file into the components
+ * - removing dead code
+ * - removing redundant CSS in favor of common reusable styles
+ *
+ * DO NOT ADD NEW CSS HERE
+ */
+@import (less) "less/font-families.less";
+
+.Tools {
+  position: relative;
+
+  .btn-notice {
+
+    a.worldcat-link {
+      text-decoration: underline;
+    }
+    span.worldcat-attribution {
+      font-size: .8em;
+      display: block;
+    }
+    input {
+      display: block;
+      width: 100%;
+    }
+    p {
+      padding-left: 0 !important;
+      font-size: 1em;
+
+      a.wait-btn,
+      a.borrow-btn {
+        display: block;
+        text-align: center;
+        margin: 0 auto;
+        color: @white;
+      }
+      &.primary-cta {
+        text-align: center;
+        a {
+          display: block;
+        }
+      }
+    }
+  }
+
+  .check-availability {
+    padding: 10px;
+    border-top: 1px solid @lightest-grey;
+    border-radius: 3px;
+
+    p {
+      padding-top: 7px;
+
+      &.check-other-editions {
+        text-align: center;
+
+        a {
+          font-size: 1em;
+          text-decoration: underline;
+        }
+      }
+    }
+
+    a {
+      font-size: 1.3em;
+      color: @dark-blue;
+    }
+  }
+
+  .cta-section {
+    padding: 5px 5px 0;
+    margin: 0;
+
+    ul li {
+      padding-left: 0;
+    }
+  }
+
+  div.panel .cta-section p {
+    margin: 0;
+  }
+
+  .hidetool {
+    display: none;
+  }
+  span.owner {
+    font-size: 10px;
+  }
+
+  &.borrow {
+    position: relative;
+
+    div.icon.list {
+      background-image: none;
+    }
+    .lists-widget-head {
+      display: none;
+    }
+  }
+
+  ul {
+    &.book-locate-options  {
+      ul {
+        margin-left: 17px;
+      }
+      li {
+        padding-left: 0;
+        margin: 5px 10px 0;
+      }
+    }
+    &.ebook-download-options li {
+      padding-left: 0;
+      margin: 5px 10px 0;
+    }
+  }
+
+  li {
+    font-size: .6875em;
+    font-family: @lucida_sans_serif-1;
+    padding-left: 42px;
+    margin-bottom: 5px;
+  }
+
+  table {
+    width: 250px;
+    td {
+      font-size: .6875em;
+      font-family: @lucida_sans_serif-1;
+      &.price {
+        padding: 3px 0 0;
+      }
+      &.vendor {
+        padding: 3px 10px 0 42px;
+      }
+    }
+  }
+
+  h3 {
+    font-size: 100%;
+    min-height: 32px;
+    width: 250px;
+    font-family: @lucida_sans_serif-1 !important;
+    font-weight: normal;
+    outline: 0;
+    position: relative;
+    margin: 0;
+    padding: 0;
+    zoom: 1;
+
+    span.icon {
+      display: block;
+      width: 32px;
+      height: 32px;
+      float: left;
+      background-image: url(/images/icons/icons_sprite.png);
+      background-repeat: no-repeat;
+
+      &.read {
+        background-position: -96px 0;
+      }
+      &.readinact {
+        background-position: -160px 0;
+      }
+      &.download {
+        background-position: -192px 0;
+      }
+      &.downloadinact {
+        background-position: -256px 0;
+      }
+      &.buy {
+        background-position: -288px 0;
+      }
+      &.buyinact {
+        background-position: -352px 0;
+      }
+      &.borrow {
+        background-position: -384px 0;
+      }
+      &.borrowinact {
+        background-position: -448px 0;
+      }
+      &.browse {
+        background-position: -512px 0;
+      }
+    }
+    span {
+      &.head {
+        padding-left: 10px;
+        font-size: 1.125em;
+        font-weight: 700;
+        color: @black;
+      }
+      &.subhead {
+        padding-left: 10px;
+        font-size: .6875em;
+        color: @light-grey;
+      }
+    }
+    &.closed {
+      span.head {
+        color: @grey;
+      }
+    }
+  }
+
+  h4 {
+    font-size: 1em;
+    font-family: @lucida_sans_serif-1;
+    color: @teal;
+    font-weight: 600;
+    margin: 0 0 10px;
+    padding: 0;
+    zoom: 1;
+  }
+
+  .panel {
+    margin-bottom: 10px;
+
+    ul {
+      list-style-type: none;
+      margin-left: 0;
+
+      &.booklinks {
+        li {
+          list-style: none;
+          padding-left: 20px;
+          font-size: .7em;
+        }
+      }
+    }
+
+    li {
+      list-style-type: none;
+      font-size: .75em;
+      margin-top: 0;
+      color: @grey;
+    }
+    p {
+      font-size: .75em;
+      margin-top: 0;
+      color: @grey;
+    }
+  }
+  div.icon {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 32px;
+    height: 32px;
+    background-image: url(/images/icons/icons_sprite.png);
+    background-repeat: no-repeat;
+    &.list {
+      background-position: 0 0;
+    }
+    &.listed {
+      background-position: -32px 0;
+    }
+  }
+
+  p {
+    font-size: .6875em;
+    font-family: @lucida_sans_serif-1;
+    padding-left: 42px;
+    margin-bottom: 5px;
+  }
+  #readBooks p {
+    font-size: .75em !important;
+  }
+  .widget-add.old-style-lists {
+    div.edition-page-lists-dropdown {
+      margin: 0;
+      left: 0;
+      width: 157px;
+      top: 0;
+      padding: 0 10px;
+
+      /* stylelint-disable selector-max-specificity */
+      .arrow-unactivated {
+        background-position: 6px -7px;
+      }
+      /* stylelint-enable selector-max-specificity */
+
+      /* stylelint-disable selector-max-specificity */
+      .arrow.up {
+        background-position: -22px -7px;
+      }
+      /* stylelint-enable selector-max-specificity */
+    }
+  }
+}
+
+.user-book-options {
+  .Tools {
+    margin: 0 auto;
+  }
+}
+
+div.tools-override {
+  min-height: 45px;
+  margin: 0 auto;
+  padding: 0;
+
+  .Tools {
+    .btn-notice {
+      margin: auto;
+      font-size: .9em;
+    }
+  }
+
+  .listLists {
+    margin: 0;
+    clear: both;
+
+    li {
+      padding-left: 0;
+    }
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .Tools {
+
+    .btn-notice {
+      margin-left: 35px;
+    }
+  }
+
+  // FIXME: Workaround for users of the "works" component.
+  .workDetails .btn-notice {
+    margin-left: 0 !important;
+  }
+
+  div.tools-override {
+    width: 180px;
+    &.editionTools {
+      float: left;
+    }
+    .Tools {
+      .btn-notice {
+        width: 180px;
+        margin-left: 45px;
+      }
+    }
+  }
+}

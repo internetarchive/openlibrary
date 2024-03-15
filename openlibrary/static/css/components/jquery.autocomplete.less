@@ -1,0 +1,140 @@
+@import (less) "../less/z-index.less";
+
+/* stylelint-disable no-descending-specificity */
+.ac_results {
+  padding: 0;
+  margin: 0;
+  overflow: auto;
+  z-index: @z-index-level-16;
+  position: absolute;
+  display: none;
+  top: -5px;
+  max-height: 290px;
+  max-width: 600px;
+  background-color: @white;
+  border: 1px solid @light-grey;
+  opacity: .95;
+  text-align: left;
+  list-style: none;
+
+  li {
+    margin: 0;
+    padding: 5px;
+    display: block;
+    font-family: @lucida_sans_serif-2;
+    font-size: 12px;
+    cursor: pointer;
+    color: @dark-grey;
+    /*
+    it is very important, if line-height not set or set
+    in relative units scroll will be broken in firefox
+    */
+    line-height: 16px;
+    overflow: hidden;
+    border-bottom: 1px solid @light-grey;
+    &:last-child {
+      border-bottom: 0;
+    }
+
+    &.ac_over {
+      background-color: @light-yellow;
+    }
+  }
+}
+
+.ac_results .ac_language {
+  font-size: 16px;
+  color: @black;
+}
+
+.ac_author {
+  .action {
+    font-size: 9px;
+    color: @olive;
+  }
+
+  .books {
+    font-size: 12px;
+    color: @dark-green;
+    font-weight: 700;
+    padding: 0;
+  }
+
+  .subject {
+    font-size: 11px;
+  }
+
+  .olid {
+    font-family: @monospace;
+  }
+
+  .name {
+    font-size: 16px;
+    display: block;
+    color: @black;
+  }
+
+  .work {
+    font-size: 11px;
+
+    // stylelint-disable-next-line selector-max-specificity
+    i {
+      color: @brown;
+    }
+  }
+}
+
+.ac_work {
+  .cover {
+    float: left;
+    margin-right: 5px;
+    width: 5em;
+    height: 5em;
+    overflow: hidden;
+    border-radius: 2px;
+    mask-image: linear-gradient(to top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1) 15%);
+
+    // stylelint-disable-next-line selector-max-specificity
+    img {
+      width: 100%;
+    }
+  }
+
+  .edition_count {
+    font-size: 12px;
+    color: @dark-green;
+    font-weight: 700;
+    padding: 0;
+  }
+
+  .olid {
+    font-family: @monospace;
+  }
+
+  .name {
+    display: block;
+    line-height: 1.1em;
+  }
+
+  .title {
+    font-size: 16px;
+    color: @black;
+  }
+
+  .first_publish_year {
+    font-size: 12px;
+  }
+}
+
+.ac_loading {
+  background: @white url(/images/indicator.gif) right center no-repeat;
+}
+
+.ac_odd {
+  background-color: @lightest-grey;
+}
+
+.ac_even,
+.ac_odd {
+  background-color: inherit;
+}

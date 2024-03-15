@@ -1,0 +1,97 @@
+$def with (stats)
+
+<div id="contentBody">
+  <h1>$_('Reading Log Stats')</h1>
+
+  <div class="admin-section">
+    <h2>$_('# Books Logged')</h2>
+    <p>$_('The total number of books logged using the Reading Log feature')</p>
+    <table class="readinglog-stats">
+      <tbody>
+        <tr>
+          <th>$_('All time')</th>
+          <td>$stats['total_books_logged']['total']['count']</td>
+        </tr>
+        <tr>
+          <th>$_('This Month')</th>
+          <td>$stats['total_books_logged']['month']['count']</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="admin-section">
+    <h2>$_('# Unique Users Logging Books')</h2>
+    <p>$_('The total number of unique users who have logged at least one book using the Reading Log feature')</p>
+    <table class="readinglog-stats">
+      <tbody>
+        <tr>
+          <th>$_('All time')</th>
+          <td>$stats['total_users_logged']['total']['count']</td>
+        </tr>
+        <tr>
+          <th>$_('This Month')</th>
+          <td>$stats['total_users_logged']['month']['count']</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="admin-section">
+    <h2>$_('# Books Starred')</h2>
+    <p>$_('The total number of books which have been starred')</p>
+    <table class="readinglog-stats">
+      <tbody>
+        <tr>
+          <th>$_('All time')</th>
+          <td>$stats['total_books_starred']['total']</td>
+        </tr>
+        <tr>
+          <th>$_('This Month')</th>
+          <td>$stats['total_books_starred']['month']</td>
+        </tr>
+        <tr>
+          <th>$_('Total # Unique Raters (all time)')</th>
+          <td>$stats['total_star_raters']['total']</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="admin-section">
+
+    <h3>$_('Most Wanted Books (This Month)')</h3>
+    <div class="mybooks-list">
+     <ul class="list-books">
+        $for book in stats['leaderboard']['most_wanted_month']:
+            $:macros.SearchResultsWork(book['work'], decorations=ungettext("Added %(count)d time", "Added %(count)d times", book['cnt'], count=book['cnt']), availability=book.get('availability'))
+      </ul>
+    </div>
+
+    <h3>$_('Most Wanted Books (All Time)')</h3>
+    <div class="mybooks-list">
+      <ul class="list-books">
+        $for book in stats['leaderboard']['most_wanted_all']:
+            $:macros.SearchResultsWork(book['work'], decorations=ungettext("Added %(count)d time", "Added %(count)d times", book['cnt'], count=book['cnt']), availability=book.get('availability'))
+      </ul>
+    </div>
+
+    <h2>$_('Most Logged Books')</h2>
+    <h3>$_('Most Read Books (All Time)')</h3>
+    <div class="mybooks-list">
+      <ul class="list-books">
+        $for book in stats['leaderboard']['most_read']:
+            $:macros.SearchResultsWork(book['work'], decorations=ungettext("Added %(count)d time", "Added %(count)d times", book['cnt'], count=book['cnt']), availability=book.get('availability'))
+      </ul>
+    </div>
+
+    <h2>$_('Most Rated Books')</h2>
+    <h3>$_('Most Rated Books (All Time)')</h3>
+    <div class="mybooks-list">
+      <ul class="list-books">
+        $for book in stats['leaderboard']['most_rated_all']:
+            $:macros.SearchResultsWork(book['work'], decorations=ungettext("Added %(count)d time", "Added %(count)d times", book['cnt'], count=book['cnt']), availability=book.get('availability'))
+      </ul>
+    </div>
+  </div>
+</div>

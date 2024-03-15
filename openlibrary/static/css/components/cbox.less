@@ -1,0 +1,305 @@
+// stylelint-disable selector-max-specificity
+@import (less) "../less/font-families.less";
+@import (less) "../less/z-index.less";
+
+/* COLORBOX POP-UP */
+#colorbox,
+#cboxOverlay,
+#cboxWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: @z-index-level-17;
+}
+
+#colorbox {
+  outline: none;
+  box-sizing: content-box;
+  > * {
+    box-sizing: content-box;
+  }
+
+  // In lightboxes for displaying current cover, important the image
+  // is not larger than available space.
+  img {
+    height: auto;
+  }
+  img,
+  iframe {
+    width: 100%;
+  }
+
+  img.cover {
+    border-radius: 5px;
+    box-shadow: 1px 1px 2px 0 @book-cover-shadow-color;
+  }
+}
+
+#cbox {
+  &Overlay {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    opacity: .5;
+    filter: alpha(opacity=50);
+    background-color: @black;
+  }
+  &MiddleLeft,
+  &BottomLeft {
+    clear: left;
+  }
+  &Title {
+    margin: 0;
+    display: none !important;
+  }
+  &LoadingOverlay,
+  &LoadingGraphic {
+    position: absolute;
+    top: 25px;
+    left: 25px;
+    width: 100%;
+  }
+  &Previous,
+  &Next,
+  &Close,
+  &Slideshow {
+    cursor: pointer;
+  }
+  &Content {
+    box-sizing: content-box;
+    position: relative;
+    background: @white;
+    padding: 10px;
+    border: 1px solid @dark-beige;
+    border-radius: 12px;
+    -webkit-box-shadow: 1px 3px 5px @darker-grey;
+    box-shadow: 1px 3px 5px @darker-grey;
+  }
+  &LoadedContent {
+    background: @white;
+    margin: 0;
+    overflow: visible !important;
+    iframe {
+      display: block;
+      border: 0;
+    }
+  }
+  &LoadingOverlay {
+    background: transparent;
+  }
+  &Close {
+    display: none !important;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 32px;
+    height: 32px;
+    background-image: url(/images/icons/icon_close-pop.png);
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    &:hover {
+      background-position: 0 -32px;
+    }
+  }
+}
+
+.dialog--close {
+  color: @dark-grey;
+  font-size: 1.2em;
+  // Increase clickable are to the recommended size (44x44px) according to
+  // https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+  // but avoid modifying the UI
+  display: inline-block;
+  position: relative;
+  z-index: @z-index-level-1;
+  padding: 11px 17px;
+  margin: -11px -17px;
+  &:visited, &:link, &:hover {
+    text-decoration: none;
+  }
+}
+
+/* VIEW LARGER COVER POP-UP */
+div.coverFloat {
+  font-family: @lucida_sans_serif-1;
+  background: @white;
+  text-align: left;
+  a.dialog--close {
+    &:hover {
+      background-position: 0 -16px;
+    }
+  }
+  &Head {
+    display: flex;
+    font-size: 1em;
+    h2 {
+      font-weight: normal;
+      color: @dark-grey;
+      font-size: 1em;
+      margin: 0;
+      padding: 0;
+      flex: 1;
+    }
+  }
+}
+
+/* ADD IMAGE/COVER POP-UP */
+div.floater {
+  position: relative;
+  font-family: @lucida_sans_serif-1;
+  min-height: 550px;
+  background: @white;
+  text-align: left;
+  &Head {
+    display: flex;
+    padding: 10px 5px;
+    h2 {
+      font-weight: normal;
+      text-align: center;
+      color: @dark-grey;
+      font-size: 1.25em;
+      margin: 0;
+      padding: 0;
+      flex: 1;
+    }
+
+    &.right-justify {
+      justify-content: right;
+    }
+  }
+  &Body {
+    padding: 20px;
+    font-size: 14px;
+    p {
+      margin-bottom: 14px;
+    }
+  }
+}
+
+.floatform {
+  font-family: @lucida_sans_serif-2;
+
+  .label {
+    label {
+      font-size: 1.0em;
+      font-family: @lucida_sans_serif-5;
+      font-weight: 700;
+    }
+    span {
+      font-weight: normal;
+    }
+  }
+  .dialog--close-parent {
+    cursor: pointer;
+  }
+  div#covers.input {
+    max-height: 132px;
+    overflow: hidden;
+    margin-left: -80px;
+    text-align: center;
+  }
+  input[type=text],
+  input[type=url],
+  input[type=file] {
+    font-size: 1.125em;
+    font-family: @lucida_sans_serif-1;
+    padding: 3px;
+  }
+  input::file-selector-button{
+    cursor: pointer;
+  }
+  button[type=submit] {
+    font-size: 1.125em;
+    width: auto !important;
+    cursor: pointer;
+  }
+  a {
+    cursor: pointer;
+  }
+}
+
+.floatform__body {
+  width: 100%;
+  position: relative;
+
+  .carousel-section {
+    padding: 0 20px;
+  }
+}
+
+div.imageIntro{
+  margin: 0 0 10px;
+}
+
+/* ADD ROLES, ETC. */
+div.floaterAdd {
+  position: relative;
+  font-family: @lucida_sans_serif-1;
+  background: @white;
+  text-align: left;
+  .formElement {
+    margin: 0 20px;
+  }
+  form.floatform {
+    .input {
+      padding-top: 5px;
+    }
+    .label {
+      padding-top: 20px;
+      // stylelint-disable-next-line max-nesting-depth
+      label {
+        font-size: 1.0em;
+        font-family: @lucida_sans_serif-5;
+        font-weight: 700;
+      }
+    }
+    input[type=text],
+    textarea {
+      margin-left: 0;
+    }
+    textarea {
+      padding: 3px;
+      resize: none;
+    }
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .floatform {
+    div#covers.input,
+    .label,
+    .input {
+      width: 560px;
+      padding-top: 20px;
+    }
+
+    > div {
+      margin: 0 80px;
+      text-align: left;
+    }
+
+    input[type=text],
+    input[type=url],
+    input[type=file] {
+      width: 350px;
+    }
+  }
+
+  div.imageIntro{
+    margin: 10px;
+  }
+
+  .floatform__body > div {
+    margin: 0 80px;
+  }
+  div.floaterAdd {
+    .input,
+    .label,
+    input[type=text],
+    input[type=url],
+    textarea {
+      width: 560px;
+      resize: none;
+    }
+  }
+}

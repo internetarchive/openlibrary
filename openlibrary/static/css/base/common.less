@@ -1,0 +1,118 @@
+/**
+* This file provides a sensible and minimal
+* set of default styles for all entry points
+*
+* These styles are loaded as render blocking CSS on every page.
+*/
+@import "../less/font-families.less";
+
+/* RESET EVERYTHING */
+body,
+div,
+dl,
+dt,
+dd,
+ul,
+ol,
+li,
+pre,
+code,
+form,
+fieldset,
+legend,
+input,
+textarea,
+th,
+td {
+  margin: 0;
+  padding: 0;
+}
+h1 {
+  margin: 20px 0;
+}
+body,
+p,
+li {
+  color: @dark-grey;
+}
+body {
+  font-size: 100%;
+  line-height: normal;
+  background-color: @beige;
+  font-family: @lucida_sans_serif-1;
+}
+fieldset {
+  width: 100%;
+}
+p {
+  font-size: .875em;
+  line-height: 1.5em;
+}
+hr {
+  height: 1px;
+  border: none;
+  background: fade(@beige, 66);
+}
+li {
+  list-style: none;
+  color: @dark-grey;
+}
+a {
+  &:link {
+    color: @link-blue;
+    text-decoration: underline;
+  }
+  &:hover {
+    color: @dark-blue;
+    text-decoration: underline;
+  }
+  &:visited {
+    color: @dark-blue;
+    text-decoration: underline;
+  }
+}
+// Note more heading styles can be found in components/headings.less
+// This provides the minimum possible
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: @lucida_sans_serif-1;
+  color: @grey;
+  font-weight: 600;
+}
+div.head {
+  margin-bottom: 10px;
+  margin-top: 20px;
+  span {
+    font-size: 12px;
+  }
+}
+
+#contentBody {
+  li {
+    line-height: 1.5em;
+  }
+  ol li {
+    list-style: decimal;
+    list-style-position: inside;
+  }
+}
+
+@media only screen and (max-width: @width-breakpoint-tablet) {
+  tr,
+  tbody,
+  table {
+    overflow: auto;
+    display: block;
+  }
+  td {
+    display: inline-block;
+  }
+}
+
+a.nostyle {
+  color: inherit;
+}

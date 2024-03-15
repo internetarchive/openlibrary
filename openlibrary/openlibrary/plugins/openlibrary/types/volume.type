@@ -1,0 +1,26 @@
+{
+    'key': '/type/volume',
+    'kind': 'embeddable',
+    'properties': [{
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'ia_id',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/int'
+        },
+        'name': 'volume_number',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

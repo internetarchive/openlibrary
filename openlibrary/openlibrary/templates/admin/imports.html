@@ -1,0 +1,126 @@
+$def with (stats)
+$var title: Imports
+
+$ recache = query_param('recache', False)
+
+$ component_times = {}
+$ component_times['TotalTime'] = time()
+
+<div id="contentHead">
+    $if ctx.user and ctx.user.is_admin():
+      $:render_template("admin/menu")
+    <h1>Imports</h1>
+    $if ctx.user and ctx.user.is_admin():
+      <div><a href="/admin/imports/add">Add new books to import queue</a></div>
+</div>
+
+<div id="contentBody">
+    <h2>New Books Imported Per Day</h2>
+    <div class="chart">
+        <div id="books-added-per-day" class="graph">
+            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
+        </div>
+    </div>
+
+    <h2>Summary</h2>
+    <p>
+        $ component_times['stats.get_count'] = time()
+        $ pending_count = stats.get_count(status='pending', use_cache=not recache)
+        $ component_times['stats.get_count'] = time() - component_times['stats.get_count']
+        <strong>Pending Items:</strong> $pending_count
+    </p>
+    <p>
+        $ component_times['stats.get_imports_per_hour'] = time()
+        $ rate = stats.get_imports_per_hour()
+        $ component_times['stats.get_imports_per_hour'] = time() - component_times['stats.get_imports_per_hour']
+        <strong>Current Import Rate:</strong> $rate imports/hour.
+    </p>
+    <p>
+        <strong>ETA:</strong>
+        $if rate:
+            $ eta = pending_count*1.0 / rate
+            ${"%.2f" % eta} hours
+        $else: -
+    </p>
+
+    <h2>Summary By Date</h2>
+    <table class="changeHistory">
+        <tr>
+            <th>Date</th>
+            <th>total</th>
+            <th>#books created</th>
+            <th>#books already found</th>
+            <th>#books failed to import</th>
+            <th>#books pending</th>
+        </tr>
+	$ component_times['stats.get_count_by_date_status'] = time()
+	$ status_counts = stats.get_count_by_date_status(use_cache=not recache)
+	$ component_times['stats.get_count_by_date_status'] = time() - component_times['stats.get_count_by_date_status']
+        $for date, counts in status_counts:
+            <tr>
+                <td><a href="/admin/imports/$date">$date</a></td>
+                <td>$sum(counts.values())</td>
+                <td>$counts.get('created', 0)</td>
+                <td>${counts.get('found', 0) + counts.get('modified', 0)}</td>
+                <td>$counts.get('failed', 0)</td>
+                <td>$counts.get('pending', 0)</td>
+            </tr>
+    </table>
+
+    <h2>Recent Imports</h2>
+    <table class="changeHistory">
+        <tr>
+            <th>#</th>
+            <th>Identifier</th>
+            <th>OL Key</th>
+            <th>Status</th>
+            <th>Error</th>
+            <th>Added Time</th>
+            <th>Imported Time</th>
+        </tr>
+        $ component_times['stats.get_items'] = time()
+	$ import_items = stats.get_items(order="import_time desc", limit=20)
+        $ component_times['stats.get_items'] = time() - component_times['stats.get_items']
+        $for row in import_items:
+            <tr>
+                <td>$loop.index</td>
+                <td><a href="//archive.org/details/$row.ia_id">$truncate(row.ia_id, 40)</a></td>
+                <td>
+                    $if row.ol_key:
+                        <a href="$row.ol_key">$row.ol_key.split("/")[-1]</a>
+                    $else:
+                        -
+                </td>
+                <td>$row.status</td>
+                <td>${row.error or '-'}</td>
+                <td>$datestr(row.added_time)</td>
+                <td>$datestr(row.import_time)</td>
+            </tr>
+    </table>
+</div>
+
+$ component_times['stats.get_books_imported_per_day'] = time()
+<script type="text/json+graph" id="graph-json-books-added-per-day">$:json_encode(stats.get_books_imported_per_day(use_cache=not recache))</script>
+$ component_times['stats.get_books_imported_per_day'] = time() - component_times['stats.get_books_imported_per_day']
+
+<style type="text/css">
+div.graph, div.chart{
+    width:838px;
+    height:180px;
+    float:none;
+    background-image:none;
+}
+div.pie {
+    width: 420px;
+    height: 250px;
+}
+.chartYaxis{
+    width:180px;
+    top:85px;
+    left:-85px;
+}
+</style>
+
+$ component_times['TotalTime'] = time() - component_times['TotalTime']
+$if query_param('debug'):
+  $:macros.Profile(component_times)

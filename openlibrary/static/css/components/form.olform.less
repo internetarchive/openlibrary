@@ -1,0 +1,241 @@
+/**
+ * Open Library Form
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#olform
+ */
+@import (less) "less/font-families.less";
+
+.olform {
+  font-family: @lucida_sans_serif-4;
+
+  .formBack {
+    padding: 10px;
+    background-color: @lightest-grey;
+  }
+
+  .collapse {
+    margin: 0;
+  }
+
+  & > label {
+    display: inline-block;
+    padding: 10px 0 2px;
+  }
+
+  .label {
+    padding: 10px 0 2px;
+
+    label {
+      font-size: 1.0em;
+      font-family: @lucida_sans_serif-5;
+      font-weight: 700;
+    }
+
+    span {
+      font-weight: normal;
+    }
+  }
+  textarea {
+    width: 100%;
+    resize: vertical;
+  }
+
+  .multi-input-autocomplete--language {
+    hr {
+      flex-basis: 100%;
+      height: 0;
+      margin: 0;
+      border: 0;
+    }
+  }
+
+  .mia__input {
+    display: flex;
+    flex-flow: wrap;
+    flex: 1;
+
+    & + .mia__input {
+      margin-top: 3px;
+    }
+
+    .ac-input__visible {
+      flex: 1;
+      // Spacing is controlled by parent not individual input elements
+      margin: 0;
+    }
+
+    .mia__reorder {
+      cursor: move;
+      min-width: 24px;
+      text-align: center;
+    }
+
+    .mia__remove {
+      color: @red;
+      text-decoration: none;
+    }
+
+    .mia__preview {
+      flex: 1;
+    }
+
+    // Weird glitch where while dragging the element is very offset
+    &.ui-sortable-helper {
+      margin-top: -20px;
+    }
+  }
+
+  input[type=number],
+  input[type=text],
+  input[type=password] {
+    margin: 0 10px 5px 0;
+  }
+
+  input[type=number],
+  input[type=text],
+  input[type=email],
+  input[type=password],
+  textarea {
+    font-size: 1.0em;
+    font-family: @lucida_sans_serif-5;
+    padding: 3px;
+    max-width: 100%;
+    resize: vertical;
+  }
+
+  input[type=number] {
+    width: 4em;
+  }
+  input[type=submit] {
+    padding: 5px;
+  }
+
+  .required {
+    padding: 8px;
+  }
+
+  select {
+    font-family: @lucida_sans_serif-1;
+    padding: 3px;
+  }
+
+  .minor {
+    input {
+      max-width: 300px;
+    }
+  }
+  &.books {
+    /* stylelint-disable selector-max-specificity */
+    .major {
+      // stylelint-disable-next-line max-nesting-depth
+      input[type=text],
+      input[type=email],
+      input[type=password],
+      textarea {
+        font-size: .875em;
+        width: 100%;
+        resize: vertical;
+      }
+    }
+    /* stylelint-enable selector-max-specificity */
+
+    .input,
+    .label {
+      width: auto !important;
+    }
+
+    .TitleAuthor {
+      margin-bottom: 20px;
+
+      /* stylelint-disable selector-max-specificity */
+      // stylelint-disable-next-line max-nesting-depth
+      input#work-title {
+        font-size: 1.875em !important;
+        margin: 0;
+        width: 100%;
+      }
+
+      // stylelint-disable-next-line max-nesting-depth
+      input#author {
+        font-size: 1em !important;
+        width: 100%;
+      }
+      /* stylelint-enable selector-max-specificity */
+    }
+  }
+  // Form elements can be accompanied by tips
+  // e.g. on the book edit page. /books/OL9737752M/The_Odyssey/edit
+  // "You can search by author name (like j k rowling) or by Open Library ID (like OL23919A)."
+  .tip {
+    font-size: 11px;
+    color: @grey;
+    font-family: @lucida_sans_serif-1 !important;
+  }
+}
+
+.olform__input--large {
+  height: 265px;
+}
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  .olform {
+    // formBackLeft and formBackRight are presently only used in
+    // openlibrary/templates/books/edit/edition.html (edit form)
+    .formBackLeft {
+      float: left;
+      width: 670px;
+    }
+    .formBackRight {
+      float: left;
+      width: 220px;
+    }
+    .formBack:after {
+      display: block;
+      content: "";
+      clear: both;
+    }
+  }
+}
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  /* stylelint-disable selector-max-specificity */
+  .olform {
+    input[type=text],
+    input[type=email],
+    input[type=password],
+    textarea {
+      width: 475px;
+      resize: vertical;
+    }
+
+    .input {
+      width: 100%;
+      select {
+        width: 130px;
+      }
+    }
+
+    .label {
+      width: 90%;
+    }
+
+    table {
+      input {
+        width: 300px;
+      }
+    }
+    &.books {
+      .TitleAuthor {
+        // stylelint-disable-next-line max-nesting-depth
+        input#work-title {
+          width: 900px !important;
+        }
+
+        // stylelint-disable-next-line max-nesting-depth
+        input#author {
+          width: 550px !important;
+        }
+      }
+    }
+  }
+  /* stylelint-enable selector-max-specificity */
+}

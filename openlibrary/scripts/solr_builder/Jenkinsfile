@@ -1,0 +1,338 @@
+pipeline {
+  agent {
+    dockerfile {
+      filename 'Dockerfile'
+      dir 'scripts/solr_builder'
+      // Needed to make docker-in-docker work
+      args '-v /var/run/docker.sock:/var/run/docker.sock'
+      args '-v /var/lib/docker/volumes/jenkins-data:/var/lib/docker/volumes/jenkins-data'
+      // Where to store dumps
+      args '-v /storage:/storage'
+    }
+  }
+  parameters {
+    booleanParam(name: 'WIPE_OLD_POSTGRES', defaultValue: false, description: 'If true, removes the current postgres')
+    booleanParam(name: 'REUSE_POSTGRES', defaultValue: false, description: 'If true, assumes a functioning postgres is running/correct')
+
+    booleanParam(name: 'WIPE_OLD_SOLR', defaultValue: false, description: 'If true, removes the current solr')
+    booleanParam(name: 'INTO_SOLR_FROM_DUMP', defaultValue: true, description: 'If true, reindexes dump into solr')
+    booleanParam(name: 'INDEX_WORKS', defaultValue: true, description: 'If true, reindexes works into solr')
+    booleanParam(name: 'INDEX_ORPHANS', defaultValue: true, description: 'If true, reindexes orphans into solr')
+    booleanParam(name: 'INDEX_SUBJECTS', defaultValue: true, description: 'If true, reindexes subjects into solr')
+    booleanParam(name: 'INDEX_AUTHORS', defaultValue: true, description: 'If true, reindexes authors into solr')
+    booleanParam(name: 'INDEX_LISTS', defaultValue: true, description: 'If true, reindexes lists into solr')
+    string(name: 'MAX_CORES', defaultValue: '18', description: 'Max number of simultaneous cores')
+  }
+  environment {
+    // The *host* location of Jenkins directory
+    JENKINS_HOME_DIR = sh(script: "docker volume inspect --format='{{.Mountpoint}}' jenkins-data", returnStdout: true).trim()
+    // Where to save dumps
+    DUMP_DIR = '/storage/openlibrary'
+    // The location of the repo on the host machine; needed for docker-in-docker images
+    HOST_SOLR_BUILDER_DIR = "${env.WORKSPACE}/scripts/solr_builder".replaceFirst('/var/jenkins_home', env.JENKINS_HOME_DIR)
+  }
+  stages {
+    stage('1: Create a local postgres copy of the database') {
+      when { expression { return !params.REUSE_POSTGRES } }
+      environment {
+        // Where to download the ol full dump from
+        OL_DUMP_LINK = 'https://openlibrary.org/data/ol_dump_latest.txt.gz'
+        OL_RATINGS_LINK = 'https://openlibrary.org/data/ol_dump_ratings_latest.txt.gz'
+        OL_READING_LOG_LINK = 'https://openlibrary.org/data/ol_dump_reading-log_latest.txt.gz'
+        // Keep link in sync with ol-solr-updater-start and Makefile
+        OSP_DUMP_LINK = 'https://archive.org/download/2023_openlibrary_osp_counts/osp_totals.db'
+        // Get the date-suffixed name of the latest dump
+        // eg ol_dump_2021-09-13.txt.gz
+        OL_DUMP_FILE = sh(script: "curl '${env.OL_DUMP_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
+        OL_RATINGS_FILE = sh(script: "curl '${env.OL_RATINGS_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
+        OL_READING_LOG_FILE = sh(script: "curl '${env.OL_READING_LOG_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
+      }
+      stages {
+        stage('Wipe old postgres') {
+          when { expression { return params.WIPE_OLD_POSTGRES } }
+          steps {
+            dir(env.HOST_SOLR_BUILDER_DIR) {
+              sh(label: 'Stop running db',
+                script: 'docker rm -f -v solr_builder-db-1 solr_builder-adminer-1 || true')
+
+              sh(label: 'Remove db volume',
+                script: 'docker volume rm solr_builder_postgres-data || true')
+            }
+          }
+        }
+        stage('Setup') {
+          parallel {
+            stage('Launch postgres containers') {
+              steps {
+                dir(env.HOST_SOLR_BUILDER_DIR) {
+                  sh(label: 'Launch the database container',
+                    script: 'docker compose up -d --no-deps db')
+
+                  sh(label: 'optional; GUI for the database at port 8087',
+                    script: 'docker compose up -d --no-deps adminer')
+
+                  // Wait for postgres
+                  sleep 10
+
+                  sh(label: 'Create the table to store the dump',
+                    script: 'docker compose exec -T -u postgres db psql -d postgres -f sql/create-dump-table.sql')
+                }
+              }
+            }
+            stage('Setup dump file') {
+              stages {
+                stage('Download dump file') {
+                  steps {
+                    dir(env.DUMP_DIR) {
+                      sh "wget --progress=dot:giga --trust-server-names --no-clobber ${env.OL_DUMP_LINK}"
+                      sh "wget --progress=dot:giga --trust-server-names --no-clobber ${env.OL_RATINGS_LINK}"
+                      sh "wget --progress=dot:giga --trust-server-names --no-clobber ${env.OL_READING_LOG_LINK}"
+                      // This file is small, so we don't need to check if it's already downloaded
+                      sh "wget --progress=dot:giga --trust-server-names ${env.OSP_DUMP_LINK}"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('Populate postgres') {
+          stages {
+            stage('Import dump into postgres') {
+              steps {
+                dir(env.HOST_SOLR_BUILDER_DIR) {
+                  sh(label: 'Import dump into postgres',
+                    script: "docker compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_DUMP_FILE} test")
+                  sh(label: 'Import ratings',
+                    script: "docker compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_RATINGS_FILE} ratings")
+                  sh(label: 'Import reading log',
+                    script: "docker compose exec -T db ./psql-import-simple.sh ${env.DUMP_DIR}/${env.OL_READING_LOG_FILE} reading_log")
+                }
+              }
+            }
+            stage('Test import successful') {
+              steps {
+                dir(env.HOST_SOLR_BUILDER_DIR) {
+                  script {
+                    def lines_in_dump = sh(script: "cd ${env.DUMP_DIR}; zcat ${env.OL_DUMP_FILE} | wc -l", returnStdout: true).trim()
+                    echo lines_in_dump
+                    def rows_in_db = sh(script: 'source ./aliases.sh; psql -q -f sql/count-all-rows.sql', returnStdout: true).trim()
+                    echo rows_in_db
+                    echo "Assert db has same number of rows as ol dump file"
+                    assert lines_in_dump == rows_in_db
+                  }
+                }
+              }
+            }
+            stage('Create postgres indices') {
+              steps {
+                dir(env.HOST_SOLR_BUILDER_DIR) {
+                  sh "docker compose exec -T -u postgres db psql postgres -f sql/create-indices.sql | ts '[%Y-%m-%d %H:%M:%S]'"
+                }
+              }
+            }
+          }
+        }
+      }
+      post {
+        unsuccessful {
+          dir(env.HOST_SOLR_BUILDER_DIR) {
+            sh (label: 'Cleanup postgres',
+              script:'docker compose stop db adminer; docker compose rm -f db adminer; docker volume rm solr_builder_postgres-data')
+          }
+        }
+      }
+    }
+    stage('2: Populate solr') {
+      stages {
+        stage('Restart Postgres') {
+          // Have to restart to because the previous workspace was destroyed on cleanup
+          when { expression { return params.REUSE_POSTGRES } }
+          steps {
+            dir(env.HOST_SOLR_BUILDER_DIR) {
+              sh(label: 'Stop the db containers',
+                script: 'docker compose stop db adminer')
+
+              sh(label: 'Start the db containers',
+                script: 'docker compose up -d --no-deps db adminer')
+            }
+          }
+        }
+        stage('Wipe old solr') {
+          when { expression { return params.WIPE_OLD_SOLR } }
+          steps {
+            dir(env.HOST_SOLR_BUILDER_DIR) {
+              sh(label: 'Stop solr if running',
+                script: 'docker rm -f -v solr_builder-solr-1 || true')
+
+              sh(label: 'Remove solr volume',
+                script: 'docker volume rm solr_builder_solr-data || true')
+            }
+          }
+        }
+        stage('Setup') {
+          steps {
+            dir(env.HOST_SOLR_BUILDER_DIR) {
+              sh(label: 'Launch solr',
+                script: 'docker compose up --no-deps -d solr')
+
+              sh(label: 'Build "lite" ol environment',
+                script: 'docker compose build --pull ol')
+
+              sh(label: 'Build the cython files',
+                script: 'docker compose run --rm ol ./build-cython.sh')
+            }
+          }
+        }
+        stage('Reindexing') {
+          parallel {
+            stage('Reindex from ol dump') {
+              when { expression { return params.INTO_SOLR_FROM_DUMP } }
+              stages {
+                stage('Insert works') {
+                  when { expression { return params.INDEX_WORKS } }
+                  steps {
+                    dir(env.HOST_SOLR_BUILDER_DIR) {
+                      sh "CHUNK_ETA=70 docker compose run --name ol_run_works --rm -T ol ./index-type.sh work ${params.MAX_CORES} works"
+                      solr_commit()
+                    }
+                  }
+                  post {
+                    always {
+                      dir(env.HOST_SOLR_BUILDER_DIR) {
+                        // Save Progress Files
+                        sh '''tail --quiet -n1 $(ls -tr progress/works/*) | gzip > progress/works-progress.txt.gz'''
+                        archiveArtifacts artifacts: "progress/works-progress.txt.gz"
+                        // Save Log Files
+                        sh '''cat $(ls -tr logs/works/*) | gzip > logs/works-indexing.log.gz'''
+                        archiveArtifacts artifacts: "logs/works-indexing.log.gz"
+                      }
+                    }
+                  }
+                }
+                stage('Insert orphans') {
+                  when { expression { return params.INDEX_ORPHANS } }
+                  steps {
+                    dir(env.HOST_SOLR_BUILDER_DIR) {
+                      sh "CHUNK_ETA=35 docker compose run --name ol_run_orphans --rm -T ol ./index-type.sh orphan ${params.MAX_CORES} orphans"
+                      solr_commit()
+                    }
+                  }
+                  post {
+                    always {
+                      dir(env.HOST_SOLR_BUILDER_DIR) {
+                        // Save Progress Files
+                        sh '''tail --quiet -n1 $(ls -tr progress/orphans/*) | gzip > progress/orphans-progress.txt.gz'''
+                        archiveArtifacts artifacts: "progress/orphans-progress.txt.gz"
+                        // Save Log Files
+                        sh '''cat $(ls -tr logs/orphans/*) | gzip > logs/orphans-indexing.log.gz'''
+                        archiveArtifacts artifacts: "logs/orphans-indexing.log.gz"
+                      }
+                    }
+                  }
+                }
+                stage('Insert subjects') {
+                  when { expression { return params.INDEX_SUBJECTS } }
+                  steps {
+                    dir(env.HOST_SOLR_BUILDER_DIR) {
+                      sh """
+                      for subject_type in subject person place time; do
+                        docker compose run --name ol_run_subjects_\$subject_type --rm -T ol \
+                          python ./solr_builder/index_subjects.py \
+                            \$subject_type \
+                            --chunk-size 10000 \
+                            --instances ${params.MAX_CORES} \
+                            --solr-base-url 'http://solr:8983/solr/openlibrary' \
+                            --skip-id-check
+                      done
+                      """
+                      solr_commit()
+                    }
+                  }
+                }
+                stage('Insert authors') {
+                  when { expression { return params.INDEX_AUTHORS } }
+                  steps {
+                    dir(env.HOST_SOLR_BUILDER_DIR) {
+                      sh "docker compose run --name ol_run_authors --rm -T ol ./index-type.sh author ${params.MAX_CORES} authors"
+                      solr_commit()
+                    }
+                  }
+                  post {
+                    always {
+                      dir(env.HOST_SOLR_BUILDER_DIR) {
+                        // Save Progress Files
+                        sh '''tail --quiet -n1 $(ls -tr progress/authors/*) | gzip > progress/authors-progress.txt.gz'''
+                        archiveArtifacts artifacts: "progress/authors-progress.txt.gz"
+                        // Save Log Files
+                        sh '''cat $(ls -tr logs/authors/*) | gzip > logs/authors-indexing.log.gz'''
+                        archiveArtifacts artifacts: "logs/authors-indexing.log.gz"
+                      }
+                    }
+                  }
+                }
+                stage('Insert lists') {
+                  when { expression { return params.INDEX_LISTS } }
+                  steps {
+                    dir(env.HOST_SOLR_BUILDER_DIR) {
+                      sh "docker compose run --name ol_run_lists --rm -T ol ./index-type.sh list ${params.MAX_CORES} lists"
+                      solr_commit()
+                    }
+                  }
+                  post {
+                    always {
+                      dir(env.HOST_SOLR_BUILDER_DIR) {
+                        // Save Progress Files
+                        sh '''tail --quiet -n1 $(ls -tr progress/lists/*) | gzip > progress/lists-progress.txt.gz'''
+                        archiveArtifacts artifacts: "progress/lists-progress.txt.gz"
+                        // Save Log Files
+                        sh '''cat $(ls -tr logs/lists/*) | gzip > logs/lists-indexing.log.gz'''
+                        archiveArtifacts artifacts: "logs/lists-indexing.log.gz"
+                      }
+                    }
+                  }
+                }
+              }
+              post {
+                always {
+                  dir(env.HOST_SOLR_BUILDER_DIR) {
+                    sh(label: 'Stop/rm running indexers',
+                      script: '''
+                      docker stop $(docker container ls -f "name=ol_run" -q) || true
+                      docker rm $(docker container ls -f "name=ol_run" -aq) || true
+                      ''')
+                  }
+                }
+//                 unsuccessful {
+//                   dir(env.HOST_SOLR_BUILDER_DIR) {
+//                     sh(label: 'Remove solr service',
+//                       script:'docker compose stop solr; docker compose rm -f solr; docker volume rm solr_builder_solr-data')
+//                   }
+//                 }
+              }
+            }
+          }
+        }
+        stage('Optimize indices') {
+          // This is kind of like a disk defrag, but it's ESSENTIAL after a big import. Shouldn't
+          // really be needed after that.
+          steps {
+            dir(env.HOST_SOLR_BUILDER_DIR) {
+              sh "docker compose exec -T solr curl -s 'http://localhost:8983/solr/openlibrary/update?optimize=true&maxSegments=1'"
+            }
+          }
+        }
+      }
+    }
+  }
+  post {
+    always {
+      deleteDir() // Delete the workspace
+    }
+  }
+}
+
+void solr_commit() {
+  sh(label: 'Solr commit the changes',
+    script: "docker compose exec -T solr curl http://localhost:8983/solr/openlibrary/update?commit=true")
+}

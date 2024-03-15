@@ -1,0 +1,22 @@
+@import (less) "components/header-bar.less";
+@import (less) "components/iaBar.less";
+@import (less) "components/page-banner.less";
+
+// Mobile
+html {
+  // Take into account sticky header bar
+  scroll-padding-top: 60px;
+}
+
+// Tablet
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  @import (less) "components/header-bar--tablet.less";
+  @import (less) "components/page-banner--tablet.less";
+  html { scroll-padding-top: 70px; }
+}
+
+// Desktop
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  @import (less) "components/header-bar--desktop.less";
+  html { scroll-padding-top: 0; }
+}

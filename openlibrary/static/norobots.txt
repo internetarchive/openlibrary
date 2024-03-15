@@ -1,0 +1,5 @@
+# robots.txt for dev.openlibrary.org
+
+User-agent: *
+Disallow: /
+

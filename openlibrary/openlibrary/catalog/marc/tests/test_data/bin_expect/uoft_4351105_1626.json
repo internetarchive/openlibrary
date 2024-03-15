@@ -1,0 +1,53 @@
+{
+  "other_titles": [
+    "Pami\ufe20a\ufe21tniki mirovo\u012d \u0117stetichesko\u012d mysli."
+  ],
+  "publishers": [
+    "Izd-vo akademii khudozhestv SSSR"
+  ],
+  "pagination": "5 v.",
+  "table_of_contents": [
+    {
+      "type": "/type/toc_item",
+      "title": "T. 1."
+    },
+    {
+      "type": "/type/toc_item",
+      "title": "Antichnost\u02b9 ; Srednie veka ; Vozrozhdenie -- -- t. 2."
+    },
+    {
+      "type": "/type/toc_item",
+      "title": "\u0116steticheskie uchenii\ufe20a\ufe21 XVII-XVIII vekov -- -- t. 3."
+    },
+    {
+      "type": "/type/toc_item",
+      "title": "\u0116steticheskie uchenii\ufe20a\ufe21 zapadno\u012d Evropy i SSHA (1789-1871)."
+    }
+  ],
+  "subtitle": "pami\ufe20a\ufe21tniki mirovo\u012d \u0117stetichesko\u012d mysli",
+  "title": "Istorii\ufe20a\ufe21 \u0117stetiki",
+  "notes": "Includes bibliographical references.",
+  "languages": ["rus"],
+  "lc_classifications": [
+    "BH81 .A55 1962"
+  ],
+  "publish_date": "1962",
+  "publish_country": "ru",
+  "authors": [
+    {
+      "personal_name": "Ovsi\ufe20a\ufe21nnikov, Mikhail Fedotovich",
+      "name": "Ovsi\ufe20a\ufe21nnikov, Mikhail Fedotovich",
+      "entity_type": "person"
+    }
+  ],
+  "by_statement": "Nauchno-issledovatel\u02b9ski\u012d institut teorii i istorii izobrazitel'nykh iskusstv",
+  "publish_places": [
+    "Moskva"
+  ],
+  "contributions": [
+    "Akademii\ufe20a\ufe21 khudozhestv SSSR",
+    "Institut teorii i istorii izobrazitel\u02b9nykh iskusstv (Akademii\ufe20a\ufe21 khudozhestv SSSR)",
+    "Nauchno-issledovatel\u02b9ski\u012d institut teorii i istorii izobrazitel\u02b9nykh iskusstv (Rossi\u012dskai\ufe20a\ufe21 akademii\ufe20a\ufe21 khudozhestv)"
+  ],
+  "subjects": ["Aesthetics", "History and criticism"]
+}

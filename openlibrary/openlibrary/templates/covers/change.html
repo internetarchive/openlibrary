@@ -1,0 +1,59 @@
+$def with (doc, cover_selector=".bookCover img")
+
+$# If user is not logged-in don't show add/manage link.
+$if not ctx.user:
+    $return
+
+
+$if doc.type.key == '/type/author':
+    $ add_url = doc.url('/add-photo')
+    $ manage_url = doc.url('/manage-photos')
+    $ title = _('Author Photos')
+    $if doc.get_photo():
+        $ change = _('Manage Author Photos')
+        $ size = "smaller"
+    $else:
+        $ change = _('Add Author Photo')
+        $ size = "smallest"
+$else:
+    $ add_url = doc.url('/add-cover')
+    $ manage_url = doc.url('/manage-covers')
+    $ title = _('Book Covers')
+
+    $if doc.get_cover():
+        $ change = _('Manage Covers')
+        $ size = "smaller"
+    $else:
+        $ change = _('Add Cover Image')
+        $ size = "smallest"
+
+<div class="$size sansserif manageCoversContainer hidden--nojs">
+  <a aria-controls="addImage" class="coverPop dialog--open">
+    <div class="manageCovers" data-config="$dumps({'key': doc.type.key, 'url': get_coverstore_public_url(), 'selector': cover_selector, 'add_url': add_url, 'manage_url': manage_url})">$change</div>
+  </a>
+</div>
+
+<div class="hidden">
+    <div class="floater" id="addImage">
+        <div class="floaterHead">
+            <h2>$title</h2>
+            <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+        </div>
+
+        <div id="tabsImages" class="tabs tabsPop">
+            <ul>
+                <li><a href="#imagesAdd">$_('Add')</a></li>
+                <li><a href="#imagesManage">$_('Manage')</a></li>
+            </ul>
+
+            <div id="imagesAdd">
+                $# add image iframe is added here when the popup is loaded
+            </div>
+
+            <div id="imagesManage">
+                $# manage images iframe is added here when the popup is loaded
+            </div>
+        </div>
+    </div>
+</div>
+

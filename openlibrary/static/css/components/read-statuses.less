@@ -1,0 +1,42 @@
+/**
+ * ReadStatuses
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#readstatuses
+ */
+.read-statuses {
+  border-bottom: 1px solid @lightest-grey;
+  button {
+    &.remove-from-list {
+      color: @red;
+      /* stylelint-disable selector-max-specificity */
+      /* stylelint-disable max-nesting-depth */
+      &:hover {
+        color: @red;
+      }
+      /* stylelint-enable max-nesting-depth */
+      /* stylelint-enable selector-max-specificity */
+    }
+
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: @dark-grey;
+    font-weight: bold;
+    width: 100%;
+    text-align: left;
+    font-size: .8em;
+    padding: 10px;
+    border-bottom: 1px solid @lightest-grey;
+    &:hover {
+      color: @black;
+      background-color: @white;
+    }
+  }
+
+  /* stylelint-disable selector-max-specificity */
+  form:last-child {
+    button.nostyle-btn {
+      border: none;
+    }
+  }
+  /* stylelint-enable selector-max-specificity */
+}

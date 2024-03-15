@@ -1,0 +1,145 @@
+@import "../less/font-families.less";
+
+// mobile first
+.work-title-and-author {
+  &.desktop {
+    display: none;
+  }
+
+  & > span {
+    min-width: 1%;
+  }
+  & h1 {
+    line-height: normal;
+    &.work-title {
+      font-family: @georgia_serif-1;
+      margin: 10px 0 0;
+      color: @dark-grey;
+      font-size: 2em;
+      overflow-wrap: break-word;
+    }
+  }
+  & h2 {
+    &.work-subtitle {
+      font-family: @georgia_serif-1;
+      margin: 0;
+      color: @grey;
+      font-size: 1.3em;
+      font-weight: normal;
+      font-style: italic;
+    }
+    &.edition-byline {
+      font-size: 1em;
+      font-weight: normal;
+      color: @dark-grey;
+      margin: 10px 0 20px;
+    }
+  }
+
+  .work-line {
+    font-style: oblique;
+    color: @grey;
+    a {
+      color: @grey;
+    }
+  }
+
+  .first-published-date {
+    color: @grey;
+    font-size: .8em;
+  }
+}
+
+// desktop
+@media only screen and (min-width: @width-breakpoint-desktop) {
+  .work-title-and-author {
+    &.mobile {
+      display: none
+    }
+    &.desktop{
+      display: inline;
+    }
+
+    .share-modal-link {
+      display: none;
+    }
+  }
+}
+
+// mobile
+@media only screen and (max-width: @width-breakpoint-desktop) {
+  .work-title-and-author {
+    display: flex;
+    justify-content: space-between;
+
+    .work-line {
+      display: none;
+    }
+
+    h1.work-title {
+      font-size: 1.375em;
+    }
+
+    h2.work-subtitle {
+      font-size: 1em;
+    }
+
+    h2.edition-byline {
+      font-size: .875em;
+      margin-bottom: 10px;
+
+      &> a {
+        text-decoration: none;
+      }
+    }
+
+    .share-modal-link {
+      display: block;
+      margin: 8px 0 0 16px;
+      text-align: center;
+      text-decoration: none;
+      width: 40px;
+
+      .icon-link__text {
+        color: @dark-grey;
+        font-size: .675em;
+      }
+    }
+
+    .readers-stats {
+      // When there are no reviews, hide the review count text
+      &__review-count--none {
+        height: 0;
+        margin: 0;
+        /* stylelint-disable selector-max-specificity */
+        /* stylelint-disable max-nesting-depth */
+        li.readers-stats__review-count {
+          display: none;
+        }
+        /* stylelint-enable max-nesting-depth */
+      }
+
+      li.avg-ratings .dot,
+      li:not(.avg-ratings):not(.readers-stats__review-count) {
+        display: none;
+      }
+
+      li.avg-ratings,
+      li.readers-stats__review-count {
+        font-size: .85em;
+
+      }
+
+      // On mobile only, the rating count text has parentheses around it
+      li.readers-stats__review-count::before {
+        content: "(";
+        margin-right: -2px;
+      }
+      li.readers-stats__review-count::after {
+        content: ")";
+        margin: 0 0 0 -1px;
+      }
+      /* stylelint-enable selector-max-specificity */
+    }
+  }
+}

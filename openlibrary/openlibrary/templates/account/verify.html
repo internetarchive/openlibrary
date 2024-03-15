@@ -1,0 +1,17 @@
+$def with (username, email)
+
+$var title: $_("Verification email sent")
+<div id="contentHead">
+    <h1>$_("Hi, %(user)s", user=username)!</h1>
+</div>
+
+<div id="contentBody">
+  <p>
+    We’ve sent an email to $(email) containing a link to verify your account. Click/tap on the link to finish creating your Internet Archive account.
+  </p>
+
+  <p>
+    Then, come back to Open Library and find some great books!
+  </p>
+
+</div>

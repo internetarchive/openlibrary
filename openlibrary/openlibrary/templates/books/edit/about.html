@@ -1,0 +1,75 @@
+$def with (work)
+
+$# Render the subject input field
+$jsdef render_subject_field(name, data):
+    <div class="input">
+        $code:
+            subjects = []
+            for s in data:
+                subjects.append('"' + s + '"' if ',' in s else s)
+            subject_str = ', '.join(subjects)
+            rows = len(subject_str) // 95 + 1
+        <textarea id="about-$name" name="work--$name" rows="$rows" wrap="soft" tabindex="0">$subject_str</textarea>
+    </div>
+
+$jsdef render_subject_autocomplete_item(item):
+    <div class="ac_subject" title="$_('Select this subject')">
+        <span class="name">$item.name</span>
+    </div>
+
+<fieldset class="major">
+    <div class="formElement">
+        <div class="label">
+            <label for="about-about">$_("How would you describe this book?")</label>
+            <span class="tip">$_("There's no wrong answer here.")</span>
+        </div>
+        <div class="input">
+            <textarea name="work--description" id="about-about" class="markdown" cols="55" rows="5" tabindex="0">$work.description</textarea>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="about-subjects">$_("Subject keywords?")</label>
+            <span class="tip"><span class="highlight">$_("Please separate with commas.")</span> $_("For example:") <i><a href="/subjects/cheese">cheese</a>, <a href="/subjects/roman_empire">Roman Empire</a>, <a href="/subjects/psychology">psychology</a></i></span>
+        </div>
+        $ config = {'name': 'subjects', 'facet': 'subject', 'data': work.get_subjects() if len(work.get_subjects()) else []}
+        <div class="csv-autocomplete--subjects" data-config="$dumps(config)">
+            $:render_subject_field(config['name'], config['data'])
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="about-subject_people">$_("A person? Or, people?")</label>
+            <span class="tip">$_("For example:") <i><a href="/subjects/person:Theodore_Roosevelt">Theodore Roosevelt</a>, <a href="/subjects/person:Julian_of_Norwich">Julian of Norwich</a>, <a href="/subjects/person:Tintin">Tintin</a></i></span>
+        </div>
+        $ config = {'name': 'subject_people', 'facet': 'person', 'data': work.subject_people if len(work.subject_people) else []}
+        <div class="csv-autocomplete--subjects" data-config="$dumps(config)">
+            $:render_subject_field(config['name'], config['data'])
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label">
+            <label for="about-subject_places">$_("Note any places mentioned?")</label>
+            <span class="tip">$_("For example:") <i><a href="/subjects/place:London">London</a>, <a href="/subjects/place:Atlantis">Atlantis</a>, <a href="/subjects/place:Omaha">Omaha</a></i></span>
+        </div>
+        $ config = {'name': 'subject_places', 'facet': 'place', 'data': work.subject_places if len(work.subject_places) else []}
+        <div class="csv-autocomplete--subjects" data-config="$dumps(config)">
+            $:render_subject_field(config['name'], config['data'])
+        </div>
+    </div>
+
+    <div class="formElement bottom">
+        <div class="label">
+            <label for="about-subject_times">$_("When is it set or about?")</label>
+            <span class="tip">$_("For example:") <i><a href="/subjects/time:1984">1984</a>, <a href="/subjects/time:the_middle_ages">The Middle Ages</a>, <a href="/subjects/time:1810-1890">1810-1890</a></i></span>
+        </div>
+        $ config = {'name': 'subject_times', 'facet': 'time', 'data': work.subject_times if len(work.subject_times) else []}
+        <div class="csv-autocomplete--subjects" data-config="$dumps(config)">
+            $:render_subject_field(config['name'], config['data'])
+        </div>
+    </div>
+
+</fieldset>

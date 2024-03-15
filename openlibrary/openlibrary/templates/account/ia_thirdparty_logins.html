@@ -1,0 +1,8 @@
+$def with ()
+
+$ params = {'origin': request.home.replace('http:', 'https:')}
+<iframe
+    id="ia-third-party-logins"
+    src="https://$get_ia_host(allow_dev=True)/account/login.thirdparty.php?$(urlencode(params))"
+    style="border:0; width: 100%; height: 44px"
+></iframe>

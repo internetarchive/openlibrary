@@ -1,0 +1,134 @@
+$def with (work, edition=None, recaptcha=None)
+
+$ this_title = work.title + ': ' + work.subtitle if work.get('subtitle', None) else work.title
+
+$var title: $this_title
+$putctx("robots", "noindex,nofollow")
+
+$:macros.HiddenSaveButton("addWork")
+
+<div id="contentHead" class="editFormHead">
+    $code:
+        def find_mode():
+            mode = query_param("mode")
+            if not edition or not work.key:
+                return "other"
+            if mode == "found":
+                return "existing_record"
+            if mode == "add-work" and work.revision == 1 and work.edition_count == 1 and edition.revision == 1:
+                return "new_work"
+            if mode == "add-book" and edition.revision == 1:
+                return "new_edition"
+            return "other"
+
+        mode = find_mode()
+        if mode == "new_work":
+            title = _("Add a little more?")
+            note = '<p class="alert thanks">' + _("Thank you for adding that book! Any more information you could provide would be wonderful!") + "</p>"
+        elif mode == "new_edition":
+            title = _("Add a little more?")
+            note = '<p class="alert thanks">' + _("We already know about <b>%(work_title)s</b>, but not the <b>%(year)s %(publisher)s edition</b>. Thanks! Do you know any more about this edition?", work_title=work.title, year=edition.publish_date, publisher="; ".join(edition.publishers)) + "</p>"
+        elif mode == "existing_record":
+            title = _("Add a little more?")
+            note = '<p class="alert info">' + _("We already know about the <b>%(year)s %(publisher)s edition</b> of <b>%(work_title)s</b>, but please, tell us more!", year=edition.publish_date, publisher="; ".join(edition.publishers), work_title=work.title) + "</p>"
+        else:
+            title = _("Editing...")
+            note = ""
+    <h2 class="editFormTitle">$:title</h2>
+    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians')):
+        <span class="adminOnly right">
+            <form method="post" id="delete-record" name="delete">
+                <button type="submit" name="_delete" value="true" id="delete-btn">$_("Delete Record")</button>
+            </form>
+        </span>
+    $if not ctx.user:
+        $:render_template("lib/not_logged")
+    $:note
+</div>
+
+<div id="contentBody">
+    $ work_key = query_param('work_key', None)
+    $ action = '?work_key=%s' % work_key if work_key else ''
+    <form method="post" id="addWork" class="olform books validate" name="edit" action="$action">
+
+        <input type="hidden" name="work--key" value="$work.key">
+        $ authors = work.authors and [a.author for a in work.authors]
+        <h1 class="editFormBookTitle">$this_title</h1>
+        $if authors:
+            <h3 class="editFormBookAuthors">
+                $:macros.BookByline([(author.name, author.url()) for author in authors])
+            </h3>
+        <div id="tabsAddbook">
+            <ul>
+                <li><a href="#about" id="link_about">$_("Work Details")</a></li>
+                $if edition:
+                    $if edition.publishers:
+                        $ edition_name = "; ".join(edition.publishers) + ' edition'
+                    $else:
+                        $ edition_name = _('Unknown publisher edition')
+
+                    $if edition.publish_date:
+                        $ edition_name = truncate(edition_name, 20) + ", " + edition.publish_date
+
+                    <li><a href="#edition" id="link_edition">$edition_name</a></li>
+            </ul>
+
+            <div id="about">
+                <fieldset class="major">
+                    <legend>$_("This Work")</legend>
+                    <div class="formBack">
+                        <div class="formElement formBackLeft">
+                            <div class="formElement title">
+                                <div class="TitleAuthor sansserif">
+                                    <div class="label">
+                                        <label for="work-title">$_('Title')</label> <span class="tip">$:_("Use <b><i>Title: Subtitle</i></b> to add a subtitle.")</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
+                                    </div>
+                                    <div class="input">
+                                        <input name="work--title" type="text" id="work-title" class="required" value="$this_title"/>
+                                    </div>
+                                    <div class="label">
+                                        <label for="author-$0">$_('Author')</label>
+                                        <span class="tip">$:_('You can search by author name (like <em>j k rowling</em>) or by Open Library ID (like <a href="/authors/OL23919A" target="_blank"><em>OL23919A</em></a>).')</span>
+                                        <br/>
+                                        <div class="flash-messages">
+                                            <noscript>
+                                                <p class="error">
+                                                <span>$:_('Author editing requires javascript')</span>
+                                                </p>
+                                            </noscript>
+                                        </div>
+                                    </div>
+                                    $:render_template("books/author-autocomplete", authors, "authors", "work--authors")
+                                </div>
+                            </div>
+                            $:render_template("books/edit/about", work)
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset class="major">
+                    <legend>$_("Add Excerpts")</legend>
+                    <div class="formBack" id="excerpts">
+                        $:render_template("books/edit/excerpts", work)
+                    </div>
+                </fieldset>
+                <fieldset class="major">
+                    <legend>$_("Links")</legend>
+                    <div class="formBack">
+                        $:render_template("books/edit/web", work, prefix="work--")
+                    </div>
+                </fieldset>
+            </div>
+
+            $if edition:
+                <div id="edition">
+                    $:render_template("books/edit/edition", work, edition)
+                </div>
+        </div>
+
+        $if recaptcha:
+            $:render_template("recaptcha", recaptcha.public_key, error=None)
+
+        $:macros.EditButtons(comment=work.comment_)
+
+    </form>
+</div>

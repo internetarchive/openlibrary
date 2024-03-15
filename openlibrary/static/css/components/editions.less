@@ -1,0 +1,240 @@
+/**
+ * EditionsTable
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#editionstable
+ */
+@import (less) "less/font-families.less";
+
+/* stylelint-disable selector-max-specificity, no-descending-specificity */
+table#editions,
+.editions-table {
+  width: 100%;
+  margin-top: 15px;
+  border-collapse: collapse;
+  clear: both;
+  font-family: @lucida_sans_serif-1;
+
+  .cta-button-group {
+    width: 185px;
+    margin: 0 auto;
+  }
+
+  thead {
+    border: 1px solid @light-grey;
+
+    tr {
+      background: linear-gradient(0deg, @lightest-grey, transparent);
+    }
+  }
+
+  th {
+    font-family: @news_gothic_sans_serif-2;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    line-height: normal;
+    text-align: left;
+    padding: 10px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  td.book {
+    vertical-align: top;
+    display: inline-flex;
+  }
+
+  div.cover {
+    text-align: center;
+    padding: 10px 10px 10px 0;
+    width: 70px;
+    overflow: hidden;
+
+    img {
+      max-width: 70px;
+      max-height: 60px;
+    }
+  }
+
+  div.title {
+    font-size: 1.0em;
+    padding: 10px 0;
+    min-width: 1%;
+    overflow-wrap: break-word;
+  }
+
+  div.links {
+    font-size: 12px;
+    color: @dark-grey;
+    line-height: 1.5em;
+  }
+  .btn-notice {
+    padding: 0;
+    // stylelint-disable-next-line sh-waqar/declaration-use-variable
+    background-color: none !important;
+  }
+
+  .links {
+    li,
+    ul {
+      list-style-type: none;
+    }
+  }
+
+  td.icon {
+    text-align: left;
+    vertical-align: top;
+    padding: 15px;
+
+    ul {
+      margin-bottom: 0;
+    }
+  }
+
+  .highlight {
+    box-shadow: inset 0 0 0 2px @beige;
+    background: mix(@beige, @white, 75%);
+  }
+}
+
+.lists {
+  table#editions {
+    h3 {
+      font-family: @lucida_sans_serif-1 !important;
+      font-size: .75em;
+      display: inline;
+    }
+    th {
+      font-family: @lucida_sans_serif-1 !important;
+      background-color: transparent;
+      text-align: left;
+      font-weight: normal;
+      font-size: .6875em;
+      color: @brown;
+      padding: 0 0 10px;
+      border-left: none;
+      border-right: none;
+    }
+    td {
+      color: @dark-grey;
+      vertical-align: top;
+
+      // stylelint-disable max-nesting-depth
+      &.what {
+        min-width: 410px;
+      }
+      &.when,
+      &.who,
+      &.que {
+        font-size: .75em;
+        padding: 10px 15px 10px 0;
+      }
+      .cover {
+        width: 40px;
+        padding-right: 10px;
+
+        img {
+          max-height: 35px;
+          max-width: 40px;
+        }
+      }
+      // stylelintenable max-nesting-depth
+    }
+  }
+}
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  table#editions {
+    float: left;
+    width: 100%;
+
+    div.title {
+      float: left;
+      width: 350px;
+    }
+
+    div.cover {
+      float: left;
+    }
+
+  }
+}
+
+@media only screen and (max-width: @width-breakpoint-tablet) {
+  table#editions {
+    width: 100%;
+    thead {
+      display: none;
+    }
+    tr {
+      display: flex;
+      flex-direction: column;
+      border-bottom: 1px solid @lighter-grey;
+      padding-bottom: 10px;
+    }
+    hr {
+      visibility: hidden;
+    }
+    form {
+      padding: 10px;
+    }
+    ul.links ul,li {
+      display: inline;
+    }
+    td.book {
+      width: 100%;
+      display: inline-flex;
+    }
+    div.title {
+      width: 100%;
+    }
+    .links a {
+      font-size: 120%;
+    }
+    .editions-table__links {
+      display: none;
+    }
+
+    td.icon {
+      width: 100%;
+      padding: 0;
+    }
+
+    td.icon.read {
+      order: 3;
+      .read {
+        display: flex;
+        flex-direction: column;
+        ul {
+          order: -1;
+          padding: 10px 0;
+        }
+      }
+    }
+
+    td.icon.locate {
+      .links {
+        display: flex;
+      }
+      padding: 0 10px;
+    }
+
+    .cta-button-group {
+      width: unset;
+    }
+  }
+}
+
+tbody {
+  font-size: .9em;
+  tr {
+    background: mix(@beige, @white, 30%);
+  }
+}
+
+.edition-adder {
+  text-align: right;
+}
+
+.editions-table__links {
+  text-align: center;
+}

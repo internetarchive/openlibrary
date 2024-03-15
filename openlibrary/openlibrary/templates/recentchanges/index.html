@@ -1,0 +1,57 @@
+$def with (query)
+
+$var title: $_("Recent Changes")
+
+$def breadcrumbs():
+    $ path = request.path[1:]
+    $ d = dict(recentchanges=_("Recent Changes"))
+    $ p = ""
+    $for k in path.split("/"):
+        $ label = d.get(k, k)
+        $if loop.last:
+            $label
+        $else:
+            $ p = p + "/" + k
+            <a href="$p">$label</a> /
+
+$def subnav():
+    $ path = request.path
+
+    $# take out the "kind" from path
+    $if path != "/recentchanges" and path[-1] not in "0123456789":
+        $ path = path.rsplit("/", 1)[0]
+
+    $ nav_items = [
+    $     (path + "/edit-book", _("Books Edited")),
+    $     (path + "/merge-authors", _("Author Merges")),
+    $     (path + "/merge-works", _("Work Merges")),
+    $     (path + "/add-book", _("Books Added")),
+    $     (path + "/add-cover", _("Covers Added")),
+    $ ]
+
+    $if "lists" in ctx.features:
+        $nav_items.append((path + "/lists", _("Lists")))
+
+    $:render_template("lib/subnavigation", nav_items)
+
+<div id="contentHead">
+    <h1>$:breadcrumbs()</h1>
+    <div class="subNav">$:subnav()</div>
+</div>
+
+<div id="contentBody">
+    $ ip = query_param('ip', None)
+    $if ip:
+        $:render_template("recentchanges/render", limit=50, ip=ip, **query)</div>
+    $else:
+        <div id="tabsHistory" class="tabs autohash">
+            <ul>
+                <li><a href="#humans">$_('By Humans')</a></li>
+                <li><a href="#bots">$_('By Bots')</a></li>
+                <li><a href="#all">$_('Everything')</a></li>
+            </ul>
+            <div id="humans">$:render_template("recentchanges/render", limit=50, bot=False, hash="#humans", **query)</div>
+            <div id="bots">$:render_template("recentchanges/render", limit=50, bot=True, hash="#bots", **query)</div>
+            <div id="all">$:render_template("recentchanges/render", limit=50, bot=None, hash="#all", **query)</div>
+        </div>
+</div>

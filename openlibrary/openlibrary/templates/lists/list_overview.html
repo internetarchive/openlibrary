@@ -1,0 +1,28 @@
+$def with (list, user_key, seed_info)
+
+$ has_owner = list.owner
+$ is_owner = (has_owner and list.owner.key == user_key)
+$ actionable = 'class=actionable-item' if is_owner else ''
+$ data_list_key = 'data-list-key=%s' % list.key if is_owner else ''
+<li $actionable $data_list_key>
+    <span class="image">
+      <a href="$list.key"><img src="$list.cover_url" alt="$_('Cover of: %(title)s', title=list.name)" title="$_('Cover of: %(title)s', title=list.name)" loading="lazy"/></a>
+    </span>
+    <span class="data">
+        <span class="label">
+            <a href="$list.key" data-list-title="$(list.name)" title="$_('See this list')">$list.name</a>
+            $if is_owner:
+                $if seed_info['type'] == 'subject':
+                    $ seed_key = seed_info['seed']
+                $else:
+                    $ seed_key = seed_info['seed']['key']
+                <input type="hidden" name="seed-title" value="$(seed_info['title'])"/>
+                <input type="hidden" name="seed-key" value="$seed_key"/>
+                <input type="hidden" name="seed-type" value="$(seed_info['type'])"/>
+
+                <a href="$list.key" class="remove-from-list red smaller arial plain" data-list-key="$list.key" title="$_('Remove from your list?')">[X]</a>
+        </span>
+        $if has_owner:
+            <span class="owner">from <a href="$list.owner.key">$(_('You') if is_owner else list.owner.displayname)</a></span>
+    </span>
+</li>

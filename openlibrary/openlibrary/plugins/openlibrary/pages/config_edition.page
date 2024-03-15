@@ -1,0 +1,709 @@
+{
+    "classifications": [
+        {
+            "name": "dewey_decimal_class",
+            "label": "Dewey Decimal Class"
+        },
+        {
+            "name": "lc_classifications",
+            "label": "Library of Congress"
+        },
+        {
+            "website": "http://www.collectionscanada.gc.ca/cip/index-e.html",
+            "notes": "",
+            "name": "library_and_archives_canada_cataloguing_in_publication",
+            "label": "Library and Archives Canada Cataloguing in Publication"
+        },
+        {
+            "website": "https://rvk.uni-regensburg.de/",
+            "notes": "",
+            "name": "rvk",
+            "label": "Regensburger Verbundklassifikation"
+        },
+        {
+            "website": "http://www.bne.es/es/LaBNE/Adquisiciones/DepositoLegal/",
+            "notes": "",
+            "name": "dep\u00f3sito_legal_n.a.",
+            "label": "Dep\u00f3sito Legal N.A."
+        },
+        {
+            "website": "http://ykl.kirjastot.fi/en-GB/?PrevLang=fi",
+            "notes": "",
+            "name": "finnish_public_libraries_classification_system",
+            "label": "Finnish Public Libraries"
+        },
+        {
+            "website": "http://www.udcc.org/",
+            "notes": "",
+            "name": "udc",
+            "label": "Universal Decimal Classification"
+        },
+        {
+            "website": "http://www.shl.lon.ac.uk/library/servicesandfacilities/information/classmarks.shtml",
+            "notes": "",
+            "name": "ulrls_classmark",
+            "label": "ULRLS Classmark"
+        },
+        {
+            "website": "http://www.ub.uni-frankfurt.de/en/english.html",
+            "notes": "",
+            "name": "goethe_university_library,_frankfurt",
+            "label": "Goethe University Library, Frankfurt"
+        },
+        {
+            "website": "http://www.leren.nl/artikelen/2004/siso.html",
+            "notes": "",
+            "name": "siso",
+            "label": "SISO"
+        },
+        {
+            "website": "https://nl.wikipedia.org/wiki/Nederlandstalige_Uniforme_Rubrieksindeling",
+            "notes": "",
+            "name": "nur",
+            "label": "NUR"
+        },
+        {
+            "website": "http://www.iccu.sbn.it/opencms/opencms/it/main/sbn/ (in italian)",
+            "notes": "",
+            "name": "identificativo_sbn",
+            "label": "Identificativo SBN"
+        }
+    ],
+    "roles": [
+        "Author",
+        "Adaptation",
+        "Afterword",
+        "Book Designer",
+        "Contributor",
+        "Colorist",
+        "Copy Editor",
+        "Cover Design",
+        "Curator",
+        "Decorator",
+        "Designer",
+        "Editor",
+        "Epilogue",
+        "Foreword",
+        "Graphic Design",
+        "Illustrator",
+        "Indexer",
+        "Introduction",
+        "Narrator",
+        "Photographer",
+        "Printmaker",
+        "Prologue",
+        "Proofreader",
+        "Screenplay",
+        "Translator",
+        "Technical Reviewer",
+        "Text Design",
+        "Typesetter",
+        "---",
+        "Accountability",
+        "Acquisition Editor",
+        "Additional Research",
+        "Advisory Editor",
+        "Agent",
+        "Also known as",
+        "Appendix",
+        "Archival photos",
+        "Art Director",
+        "Arte final",
+        "As told to",
+        "Asesoria metodologica",
+        "Assistant Editor",
+        "Assisted by",
+        "Associate Editor",
+        "Associated book",
+        "Author Photographer",
+        "Bookbinder's label",
+        "Botanical Illustrator",
+        "Capa",
+        "Cartographer",
+        "Chapter Author",
+        "Chef",
+        "Chief editor",
+        "Co-Author",
+        "Collected by",
+        "Collection dirig\u00e9e par",
+        "Colour Separations",
+        "Commentary",
+        "Commissioning Editor",
+        "Compiler",
+        "Composition",
+        "Conductor",
+        "Consulting Editor",
+        "Consultant",
+        "Contributeur",
+        "Contributing artist",
+        "Contributing Editor",
+        "Coordena\u00e7\u00e3o editorial",
+        "Coordinating author",
+        "Copyright",
+        "Correcci\u00f3n de estilo",
+        "Cover and Text Design",
+        "Cover Art",
+        "Cover Art and Illustrations",
+        "Cover Photographs",
+        "Cover Printer",
+        "Creator",
+        "Cr\u00edtico de Arte",
+        "Dedicated to",
+        "Development Editor",
+        "Distributors",
+        "Diagramaci\u00f3n",
+        "Diffuseur",
+        "Director",
+        "Direttore dello scavo",
+        "Direzione scientifica",
+        "Disc\u00edpulo del autor",
+        "Drawings",
+        "Editor",
+        "Editor-in-Chief",
+        "Editorial",
+        "Editorial Assistant",
+        "Editorial Director",
+        "Editorial Intern",
+        "Editorial Team Leader",
+        "Einbandentwurf",
+        "Engineering Practice",
+        "Engraver",
+        "Explanatory notes",
+        "Export Assistant",
+        "Food Photographer",
+        "Food Stylist",
+        "From the Library of",
+        "Frontispiece",
+        "General Editor",
+        "Glossary",
+        "Graphic Layout",
+        "Hersteller",
+        "Home Economist",
+        "Imprimatur",
+        "Information Director",
+        "Information Officer",
+        "Interior Design",
+        "Interior Photos",
+        "Inspirador",
+        "Interviewer",
+        "Jacket Design",
+        "Jacket Photo",
+        "Jacket Printer",
+        "Korrektor",
+        "Language activities",
+        "Lettering",
+        "Librorum Censor",
+        "Logo Designer",
+        "Lyricist",
+        "Map and Artwork",
+        "Map Design and Cartography",
+        "Meterological tables",
+        "Musical Director",
+        "Notes by",
+        "Obra de arte de la portada",
+        "Orchestra",
+        "Owner",
+        "Pagination",
+        "Photograph",
+        "Photo Editor",
+        "Photo Scanning Specialist",
+        "Photo Research",
+        "Photo Library",
+        "Poet",
+        "Portrait",
+        "Posf\u00e1cio",
+        "Preface",
+        "Prepara\u00e7\u00e3o",
+        "Printer",
+        "Producer",
+        "Production Assistant",
+        "Production Controller",
+        "Production Coordinator",
+        "Production Editor",
+        "Project Coordinator",
+        "Project Editor",
+        "Project Team Leader",
+        "Reading Director",
+        "Recenzent",
+        "Recipe Tester",
+        "Recording Producer",
+        "Recording Studio",
+        "Redactor",
+        "Redakteur",
+        "Researcher",
+        "Research Director",
+        "Reviewer",
+        "Revis\u00e3o",
+        "Revised by",
+        "Script",
+        "Secretaria editorial",
+        "Selected by",
+        "Senior Editor",
+        "Soloist",
+        "Sponsor",
+        "Stylist",
+        "Technical draftsman",
+        "Technical Editor",
+        "Tests and evaluations",
+        "Thanks",
+        "Titelillustration",
+        "Translated for",
+        "Typography",
+        "Umschlagentwurf",
+        "Vorauskorrektor",
+        "Vorwort",
+        "Web Programming & Design",
+        "Woodcuts",
+        "Writer",
+        "Brand Manager",
+        "Editorial Manager",
+        "Inspirador",
+        "Songs translated by",
+        "Book Design",
+        "Essayist",
+        "Publishing Director",
+        "Science Editor",
+        "Lithography",
+        "Series General Editor",
+        "Editorial Board Member",
+        "Publisher",
+        "Board of Consultants",
+        "Marketing Manager",
+        "Managing Editor",
+        "Scientific advisor",
+        "Retold by",
+        "interviewee",
+        "Cover photograph",
+        "Image editor",
+        "Lektor",
+        "Acquisitions Coordinator",
+        "Computer Designer",
+        "Series Design",
+        "Map",
+        "Typografische Gestaltung",
+        "Premessa",
+        "Epigraph",
+        "Reviewers"
+    ],
+    "identifiers": [
+        {
+            "url": "https://alkindi.ideo-cairo.org/manifestation/@@@",
+            "website": "https://www.ideo-cairo.org/",
+            "notes": "",
+            "name": "dominican_institute_for_oriental_studies_library",
+            "label": "Al Kindi"
+        },
+        {
+            "url": "https://www.alibris.com/booksearch?qwork=@@@",
+            "notes": "",
+            "name": "alibris_id",
+            "label": "Alibris ID"
+        },
+        {
+            "url": "https://www.amazon.com/gp/product/@@@",
+            "notes": "ASIN",
+            "name": "amazon",
+            "label": "Amazon.com"
+        },
+        {
+            "url": "https://www.amazon.ca/gp/product/@@@/",
+            "notes": "",
+            "name": "amazon.ca_asin",
+            "label": "Amazon.ca"
+        },
+        {
+            "url": "https://www.amazon.de/gp/product/@@@/",
+            "notes": "",
+            "name": "amazon.de_asin",
+            "label": "Amazon.de"
+        },
+        {
+            "url": "https://www.amazon.it/gp/product/@@@/",
+            "notes": "",
+            "name": "amazon.it_asin",
+            "label": "Amazon.it"
+        },
+        {
+            "url": "https://www.amazon.co.uk/gp/product/@@@/",
+            "notes": "",
+            "name": "amazon.co.uk_asin",
+            "label": "Amazon UK"
+        },
+        {
+            "website": "http://www.guidedogswa.org/library/openbiblio/shared/biblio_view.php?bibid=@@@&tab=opac",
+            "notes": "",
+            "name": "abwa_bibliographic_number",
+            "label": "Association for the Blind of Western Australia"
+        },
+        {
+            "website": "http://www.bne.es/en/Catalogos/index.html",
+            "notes": "",
+            "name": "dep\u00f3sito_legal",
+            "label": "Biblioteca Nacional de Espa\u00f1a Dep\u00f3sito Legal"
+        },
+        {
+            "website": "http://catalogue.bnf.fr/",
+            "notes": "",
+            "name": "biblioth\u00e8que_nationale_de_france",
+            "label": "Biblioth\u00e8que Nationale de France"
+        },
+        {
+            "url": "https://bibsys-almaprimo.hosted.exlibrisgroup.com/primo_library/libweb/action/dlDisplay.do?vid=BIBSYS&docId=BIBSYS_ILS@@@",
+            "website": "https://bibsys-almaprimo.hosted.exlibrisgroup.com/",
+            "notes": "",
+            "name": "bibsys",
+            "label": "Bibsys ID"
+        },
+        {
+            "url": "https://www.biodiversitylibrary.org/bibliography/@@@",
+            "website": "https://www.biodiversitylibrary.org",
+            "notes": "",
+            "name": "bhl",
+            "label": "Biodiversity Heritage Library"
+        },
+        {
+            "url": "http://solo.bodleian.ox.ac.uk/OXVU1:LSCOP_OX:oxfaleph@@@",
+            "website": "https://www.bodleian.ox.ac.uk/",
+            "notes": "",
+            "name": "bodleian,_oxford_university",
+            "label": "Oxford University Bodleian Library Aleph System Number"
+        },
+        {
+            "url": "https://www.bookcrossing.com/journal/@@@",
+            "website": "https://www.bookcrossing.com",
+            "notes": "",
+            "name": "bcid",
+            "label": "Book Crossing ID (BCID)"
+        },
+        {
+            "url": "http://booklocker.com/books/@@@.html",
+            "website": "http://booklocker.com/",
+            "notes": "",
+            "name": "booklocker.com",
+            "label": "BookLocker.com"
+        },
+        {
+            "url": "http://www.bookmooch.com/detail/@@@",
+            "name": "bookmooch",
+            "label": "Book Mooch"
+        },
+        {
+            "website": "http://www.bookwire.com/",
+            "notes": "",
+            "name": "bookwire",
+            "label": "Bowker BookWire"
+        },
+        {
+            "url": "http://www.booksforyou.co.in/@@@",
+            "website": "http://www.booksforyou.co.in",
+            "notes": "",
+            "name": "booksforyou",
+            "label": "Books For You"
+        },
+        {
+            "url": "https://bostonpl.bibliocommons.com/v2/record/@@@",
+            "website": " https://bostonpl.bibliocommons.com",
+            "notes": "",
+            "name": "boston_public_library",
+            "label": "Boston Public Library"
+        },
+        {
+            "website": "https://www.bl.uk/",
+            "notes": "",
+            "name": "british_library",
+            "label": "British Library"
+        },
+        {
+            "website": "https://ecommons.cornell.edu/",
+            "url": "https://hdl.handle.net/1813/@@@"
+            "notes": "Cornell's Digital Repository",
+            "name": "cornell_university_online_library",
+            "label": "Cornell University eCommons"
+        },
+        {
+            "website": "https://www.library.cornell.edu/",
+            "url": "https://catalog.library.cornell.edu/catalog/@@@",
+            "notes": "Cornell University Library Catalog",
+            "name": "cornell_university_library",
+            "label": "Cornell University Library Catalog"
+        },
+        {
+            "website": "",
+            "notes": "Session-based IDs",
+            "name": "canadian_national_library_archive",
+            "label": "Canadian National Library Archive"
+        },
+        {
+            "url": "http://www.choosebooks.com/displayBookDetails.do?itemId=@@@",
+            "website": "http://www.choosebooks.com/",
+            "notes": "",
+            "name": "choosebooks",
+            "label": "Choosebooks"
+        },
+        {
+            "url": "http://d-nb.info/@@@",
+            "website": "http://www.d-nb.de/eng/index.htm",
+            "notes": "",
+            "name": "dnb",
+            "label": "Deutsche National Bibliothek"
+        },
+        {
+            "url": "http://zbc.ksiaznica.szczecin.pl/dlibra/docmetadata?id=@@@",
+            "website": "http://zbc.ksiaznica.szczecin.pl",
+            "notes": "",
+            "name": "digital_library_pomerania",
+            "label": "Digital Library of Pomerania"
+        },
+        {
+            "url": "http://www.discovereads.com/books/@@@",
+            "website": "http://www.discovereads.com",
+            "notes": "",
+            "name": "discovereads",
+            "label": "Discovereads"
+        },
+        {
+            "url": "http://www.freebase.com/view/en/@@@",
+            "website": "http://freebase.com/",
+            "notes": "retired",
+            "name": "freebase",
+            "label": "Freebase"
+        },
+        {
+            "url": "https://www.goodreads.com/book/show/@@@",
+            "name": "goodreads",
+            "label": "Goodreads"
+        },
+        {
+            "url": "https://books.google.com/books?id=@@@",
+            "name": "google",
+            "label": "Google"
+        },
+        {
+            "url": "https://catalog.hathitrust.org/Record/@@@",
+            "website": "https://hathitrust.org/",
+            "name": "hathi_trust",
+            "label": "Hathi Trust"
+        },
+        {
+            "url": "https://id.lib.harvard.edu/alma/@@@/catalog",
+            "website": "https://library.harvard.edu",
+            "name": "harvard",
+            "label": "Harvard University Library"
+        },
+        {
+            "url": "https://ilmiolibro.kataweb.it/schedalibro.asp?id=@@@",
+            "website": "https://ilmiolibro.kataweb.it",
+            "notes": "",
+            "name": "ilmiolibro",
+            "label": "Ilmiolibro"
+        },
+        {
+            "url": "https://archive.org/details/@@@",
+            "name": "ocaid",
+            "label": "Internet Archive"
+        },
+        {
+            "url": "http://www.isfdb.org/cgi-bin/pl.cgi?@@@",
+            "website": "http://www.isfdb.org",
+            "name": "isfdb",
+            "label": "Internet Speculative Fiction Database"
+        },
+        {
+            "url": "http://estc.bl.uk/@@@",
+            "name": "etsc",
+            "label": "English Title Short Catalogue Citation Number"
+        },
+        {
+            "name": "isbn_10",
+            "label": "ISBN 10"
+        },
+        {
+            "name": "isbn_13",
+            "label": "ISBN 13"
+        },
+        {
+            "website": "http://www.issn.org/",
+            "name": "issn",
+            "label": "ISSN"
+        },
+        {
+            "url": "https://lccn.loc.gov/@@@",
+            "name": "lccn",
+            "label": "LC Control Number"
+        },
+        {
+            "url": "https://learnawesome.org/#/item/@@@",
+            "website": "https://learnawesome.org",
+            "name": "learnawesome",
+            "label": "LearnAwesome.org"
+        },
+        {
+            "url": "https://www.librarything.com/work/@@@",
+            "name": "librarything",
+            "label": "Library Thing"
+        },
+        {
+            "url": "https://www.lulu.com/product/@@@",
+            "website": "https://www.lulu.com",
+            "name": "lulu",
+            "label": "Lulu"
+        },
+        {
+            "url": "http://www.magcloud.com/browse/Issue/@@@",
+            "website": "http://www.magcloud.com",
+            "notes": "",
+            "name": "magcloud",
+            "label": "Magcloud"
+        },
+        {
+            "url": "https://id.ndl.go.jp/bib/@@@",
+            "website": "https://www.ndl.go.jp/en/",
+            "notes": "",
+            "name": "national_diet_library,_japan",
+            "label": "National Diet Library, Japan"
+        },
+        {
+            "url": "https://catalogue.nla.gov.au/Record/@@@",
+            "website": "https://www.nla.gov.au/",
+            "name": "nla",
+            "label": "National Library of Australia"
+        },
+        {
+            "url": "https://libris.kb.se/bib/@@@",
+            "website": "https://libris.kb.se",
+            "notes": "",
+            "name": "libris",
+            "label": "National Library of Sweden (Libris)"
+        },
+        {
+            "url": "https://www.worldcat.org/oclc/@@@?tab=details",
+            "website": "https://www.worldcat.org",
+            "name": "oclc_numbers",
+            "label": "OCLC/WorldCat"
+        },
+        {
+            "url": "https://www.overdrive.com/media/@@@",
+            "website": "https://www.overdrive.com",
+            "name": "overdrive",
+            "label": "OverDrive"
+        },
+        {
+            "url": "http://www.paperbackswap.com/book/details/@@@",
+            "website": "http://www.paperbackswap.com",
+            "name": "paperback_swap",
+            "label": "Paperback Swap"
+        },
+        {
+            "url": "https://www.gutenberg.org/etext/@@@",
+            "website": "https://www.gutenberg.org",
+            "name": "project_gutenberg",
+            "label": "Project Gutenberg"
+        },
+        {
+            "url": "https://www.scribd.com/doc/@@@/",
+            "website": "https://www.scribd.com/",
+            "name": "scribd",
+            "label": "Scribd"
+        },
+        {
+            "url": "http://www.shelfari.com/books/@@@/",
+            "website": "http://www.shelfari.com/",
+            "notes": "merged with goodreads.com",
+            "name": "shelfari",
+            "label": "Shelfari"
+        },
+        {
+            "url": "https://www.smashwords.com/books/view/@@@",
+            "website": "https://www.smashwords.com",
+            "notes": "Commission self-publishing platform",
+            "name": "smashwords_book_download",
+            "label": "Smashwords Book Download"
+        },
+        {
+            "url": "https://catalogue.libraries.london.ac.uk/record=@@@",
+            "website": "https://catalogue.libraries.london.ac.uk/",
+            "notes": "",
+            "name": "ulrls",
+            "label": "ULRLS"
+        },
+        {
+            "url": "http://books.wwnorton.com/books/detail.aspx?ID=@@@",
+            "website": "http://wwnorton.com",
+            "notes": "",
+            "name": "w._w._norton",
+            "label": "W. W. Norton"
+        },
+        {
+            "url": "http://zdb-katalog.de/title.xhtml?ZDB-ID=@@@",
+            "website": "http://zdb-katalog.de",
+            "notes": "The ZDB is the world\u2019s largest specialized database for serial titles (journals, annuals, newspapers etc., incl. e-journals). ",
+            "name": "zdb-id",
+            "label": "ZDB-ID"
+        },
+        {
+            "url": "https://kansalliskirjasto.finna.fi/Record/vaari.@@@",
+            "website": "https://www.kansalliskirjasto.fi/",
+            "notes": "The National Library of Finland",
+            "name": "fennica",
+            "label": "Fennica"
+        },
+        {
+            "url": "https://opacplus.bsb-muenchen.de/metaopac/search?id=@@@",
+            "website": "http://www.bsb-muenchen.de",
+            "notes": "",
+            "name": "bayerische_staatsbibliothek",
+            "label": "Bayerische Staatsbibliothek BSB-ID"
+        },
+        {
+            "url": "https://www.abebooks.de/servlet/BookDetailsPL?bi=@@@",
+            "website": "https://www.abebooks.de",
+            "notes": "",
+            "name": "abebooks.de",
+            "label": "Abebooks.de"
+        },
+        {
+            "url": "http://catalogo.bne.es/uhtbin/cgisirsi/x/0/0/57/5/3?searchdata1=@@@{CKEY}&user_id=WEBSERVER",
+            "website": "http://www.bne.es/en/Inicio/index.html",
+            "notes": "",
+            "name": "dep\u00f3sito_legal",
+            "label": "Dep\u00f3sito Legal. Biblioteca Nacional de España"
+        },
+        {
+            "website": "http://www.dcbooks.com/home",
+            "notes": "",
+            "name": "dc_books",
+            "label": "DC Books"
+        },
+        {
+            "website": "http://www.publishamerica.com/",
+            "notes": "",
+            "name": "publishamerica",
+            "label": "PublishAmerica"
+        },
+        {
+            "url": "http://search.bl.uk/primo_library/libweb/action/display.do?doc=BLL01@@@",
+            "website": "http://www.bl.uk/bibliographic/natbib.html",
+            "notes": "",
+            "name": "british_national_bibliography",
+            "label": "British National Bibliography"
+        },
+        {
+            "url": "http://catalogue.bnf.fr/rechercher.do?motRecherche=@@@",
+            "website": "http://www.bnf.fr",
+            "notes": "",
+            "name": "biblioth\u00e8que_nationale_de_france_(bnf)",
+            "label": "Biblioth\u00e8que nationale de France (BnF)"
+        },
+        {
+            "url": "https://www.wikidata.org/wiki/@@@",
+            "website": "https://wikidata.org",
+            "notes": "",
+            "name": "wikidata",
+            "label": "Wikidata"
+        }
+    ],
+    "key": "/config/edition",
+    "type": {
+        "key": "/type/object"
+    }
+}

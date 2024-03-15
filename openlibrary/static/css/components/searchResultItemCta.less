@@ -1,0 +1,39 @@
+/**
+ * SearchResultItemCta
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#searchresultitemcta
+ *
+ * http://localhost:8080/account/books/want-to-read
+ */
+
+.searchResultItemCTA {
+  width: 100%;
+
+  &-lending {
+    width: 100%;
+    color: @white;
+    cursor: pointer;
+    text-align: center;
+    font-family: @lucida_sans_serif-1;
+  }
+}
+
+// For compatibility with SearchResultItem
+.searchResultItem > .searchResultItemCTA {
+  // Override .searchResultItem>div rule
+  padding: 0;
+}
+
+.searchResultItemCTA .dropit,
+.searchResultItemCTA .generic-dropper-wrapper {
+  margin-top: 5px;
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .searchResultItem {
+    .searchResultItemCTA {
+      width: 200px;
+      min-width: 200px;
+      padding: 0 5px;
+    }
+  }
+}

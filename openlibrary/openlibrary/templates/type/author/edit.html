@@ -1,0 +1,142 @@
+$def with (page)
+
+$var title: $page.name
+
+$putctx("robots", "noindex,nofollow")
+
+$:macros.HiddenSaveButton("addAuthor")
+
+<div id="contentHead">
+    $:macros.databarEdit(page)
+    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians')):
+        <span class="adminOnly right">
+            <button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="delete" form="addAuthor">$_("Delete Record")</button>
+        </span>
+    <h1>$_("Edit Author")</h1>
+    $if not ctx.user:
+        $:render_template("lib/not_logged")
+</div>
+
+<div id="contentBody">
+
+    <form id="addAuthor" name="edit" method="post" action="" class="olform books validate">
+
+
+    <div class="formElement title">
+        <div class="formElement">
+            <div class="label">
+                <label for="name">$_("Name")</label>
+                <span class="tip">
+                    $:_('Please use natural order. For example: <strong>Leo Tolstoy</strong> not <strong>Tolstoy, Leo</strong>.')
+                    <span class="attn"><em>* $_('Required field').</em></span>
+                </span>
+            </div>
+            <div class="input">
+                <input type="text" name="author--name" id="name" value="$page.name" class="required"/>
+            </div>
+        </div>
+    </div>
+
+        <div>
+
+            <div id="tabsAddauthor">
+
+                <ul>
+                    <li><a href="#about">$_("About")</a></li>
+                    <li><a href="#web">$_("Links")</a></li>
+                </ul>
+
+                <div id="about">
+
+                    <fieldset class="major collapse">
+
+                        <div class="formElement">
+                            <div class="label">
+                                <label for="wmd-input">$_("A short bio?")</label>
+                                <span class="tip">$_('If you "borrow" information from somewhere, please make sure to cite the source.')</span>
+                            </div>
+                            <div class="input">
+                                <textarea name="author--bio"
+                                    class="markdown olform__input--large" id="wmd-input" rows="6">$page.bio</textarea>
+                            </div>
+                        </div>
+
+
+                        <div class="formElement contentQuarter" id="birthDate">
+                            <div class="label birthLabelAcc">
+                                <label for="birth_date">$_("Date of birth")</label>
+                            </div>
+                            <div class="input birthInputAcc">
+                                <input type="text" name="author--birth_date" id="birth_date" value="$page.birth_date"/>
+                            </div>
+                        </div>
+
+                        <div class="formElement contentQuarter" id="deathDate">
+                            <div class="label deathLabelAcc">
+                                <label for="death_date">$_("Date of death")</label>
+                            </div>
+                            <div class="input deathInputAcc">
+                                <input type="text" name="author--death_date" id="death_date" value="$page.death_date"/>
+                            </div>
+                        </div>
+
+                        <div class="formElement contentQuarter">
+                            <div class="label tipAcc">
+                                <span class="tip">$_('We\'re not storing structured dates (yet) so a date like "21 May 2000" is recommended.')</span>
+                            </div>
+                        </div>
+
+                        <div class="clearfix"></div>
+
+                        $if page.date:
+                            <div class="formElement contentQuarter" id="date">
+                                    <div class="label dateLabelAcc">
+                                        <label for="date">$_("Date")</label>
+                                    </div>
+                                    <div class="input deathInputAcc">
+                                        <input type="text" name="author--date" id="date" value="$page.date"/>
+                                    </div>
+                            </div>
+                            <div class="formElement contentQuarter">
+                                <span class="tip">$_('This is a deprecated field. You can help improve this record by removing this date and populating the "Date of birth" and "Date of death" fields. Thanks!')</span>
+                            </div>
+
+                        <div class="clearfix"></div>
+
+                        <div class="formElement">
+                            <div class="label">
+                                <label for="alternate_names">$_("Does this author go by any other names?")</label>
+                                <span class="tip">$_("For example:") Lev Nikolayevich Tolstoy; Yasnaya Polyana</span>
+                            </div>
+                            <div class="input">
+                                <textarea name="author--alternate_names" id="alternate_names" rows="6">$"\n".join(page.alternate_names)</textarea>
+                            </div>
+                        </div>
+                        <div class="label">Identifiers <a href="/help/faq/editing.en#author-identifiers-purpose"><img src="/images/icons/icon_help.png" alt="$_('Author Identifiers Purpose')"/></a> </div>
+                        <div id="hiddenIdentifierInputs"></div>
+                        <div id="identifiers-display">
+                            $:render_component('AuthorIdentifiers', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenIdentifierInputs',author_config_string=dict(get_author_config())))
+                        </div>
+
+
+                </div>
+<!-- /ABOUT -->
+                <div id="web">
+                    $:render_template("books/edit/web", page, prefix="author--")
+                </div>
+            </div>
+
+        </div>
+
+        <div class="illustration">
+            $:render_template("covers/author_photo", page)
+            $:render_template("covers/change", page)
+        </div>
+
+            <div class="clearfix"></div>
+
+            <div class="formElement bottom">
+                $:macros.EditButtons(comment=page.comment_)
+            </div>
+    </form>
+</div>

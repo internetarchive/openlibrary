@@ -1,0 +1,34 @@
+{
+  "publishers": [
+    "Jose"
+  ],
+  "pagination": "[viii], 371 p.",
+  "subtitle": "o\u00f9 l'on verra les minist\u00e8res de Dom Juan [et] du Duc de Medina Celi, et diverses choses oncernant la monarchie Espaagnole",
+  "title": "M\u00e9moires de la cour d'Espagne, dupuis l'ann\u00e9e 1679, jusqu'en 1681",
+  "number_of_pages": 371,
+  "languages": [
+    "fre"
+  ],
+  "subject_places": [
+    "Spain"
+  ],
+  "subjects": [
+    "Courts and court life",
+    "History"
+  ],
+  "publish_date": "1733",
+  "publish_country": "fr",
+  "authors": [
+    {
+      "death_date": "1698",
+      "name": "Villars, Pierre marquis de",
+      "title": "marquis de",
+      "personal_name": "Villars, Pierre",
+      "birth_date": "1623",
+      "entity_type": "person"
+    }
+  ],
+  "publish_places": [
+    "Paris"
+  ]
+}

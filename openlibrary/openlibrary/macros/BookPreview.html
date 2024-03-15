@@ -1,0 +1,29 @@
+$def with (ocaid)
+$# :param str ocaid:
+
+  <div class="cta-button-group">
+    <a class="cta-btn cta-btn--preview"
+      data-iframe-src="https://archive.org/details/$ocaid?view=theater&wrapper=false"
+      data-iframe-link="https://archive.org/details/$ocaid"
+      data-ol-link-track="CTAClick|Preview" href="#bookPreview">$_('Preview') <span>$_('Only')</span></a>
+  </div>
+
+$if render_once('book-preview-floater'):
+  <div class="hidden">
+    <div class="floater" id="bookPreview">
+      <div class="book-preview">
+        <div class="floaterHead">
+          <h2>$_('Preview Book')</h2>
+          <a class="dialog--close" data-key="book_preview">&times;<span class="shift">$_("Close")</span></a>
+        </div>
+        <div class="iframe-container">
+          <iframe style="width:100%; height:515px"></iframe>
+          <p class="learn-more">
+            <a data-key="book_preview_learn_more"
+             data-ol-link-track="book_preview_learn_more">
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>

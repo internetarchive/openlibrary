@@ -1,0 +1,49 @@
+$def with (work, editions=None, edition=None, editions_limit=None)
+
+$ book_keys = []
+$ edition_list_start = time()
+
+$if editions_limit or (len(editions) < work.edition_count):
+  <p class="small sansserif featured-count">
+
+    $ungettext('Showing %(count)d featured edition.', 'Showing %(count)d featured editions.', len(editions), count=len(editions))
+    <a href="?mode=all">$_("View all %(count)d editions?", count=work.edition_count)</a>
+  </p>
+$if editions and len(editions):
+  <table id="editions" class="editions-table editions-table--progressively-enhanced">
+      <thead>
+      <tr>
+          <th class="title" title=""><a href="javascript:;">$_('Edition')<span></span></a></th>
+          <th class="read" title=""><a href="javascript:;">$_('Availability')<span></span></a></th>
+      </tr>
+      </thead>
+      <tbody>
+          $ editions = editions or work.get_sorted_editions()
+          $ index_padding = len(str(len(editions)))
+          $for book in editions:
+              $ book_keys.append(book['key'].replace('/books/', ''))
+              $ edition_sort_key = str(loop.index0+1).zfill(index_padding)
+              $if book.key == edition.key:
+                <tr class="highlight">
+                  $# This enables us to always render a select edition first in the table (default)
+                  $:render_template("books/edition-sort", book, edition_sort_key, render_first=True)
+                </tr>
+              $else:
+                <tr>
+                  $:render_template("books/edition-sort", book, edition_sort_key)
+                </tr>
+      </tbody>
+  </table>
+$else:
+  <p>$_('No editions available')</p>
+
+$ edition_list_secs = time() - edition_list_start
+
+<p class="small sansserif edition-adder">
+  <a href="/books/add?work=$work.key" title="$_('Add another edition of %(work)s', work=work.title)">$_("Add another edition?")</a>
+</p>
+
+<!-- Admin only text doesn't need to be translated -->
+$if ctx.user and ctx.user.is_admin() and query_param('debug'):
+    <div class="clearfix"></div>
+    <div class="small sansserif"><span class="adminOnly">Getting list of editions took $("%.2f" % edition_list_secs) seconds</span></div>

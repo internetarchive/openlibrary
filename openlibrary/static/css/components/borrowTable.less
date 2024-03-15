@@ -1,0 +1,61 @@
+/**
+ * borrow-table
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#borrowtable
+ * Used in the following templates:
+ * - openlibrary/templates/account/loans.html
+ * - openlibrary/templates/account/waitlist.html
+ * - openlibrary/templates/admin/loans_table.html
+ * - openlibrary/templates/admin/people/view.html
+ * - openlibrary/templates/admin/people/view.html
+ */
+
+// stylelint-disable selector-max-specificity
+.borrow-table {
+  .LoanReadForm {
+    margin: 10px 0;
+  }
+  table {
+    td {
+      margin-top: 30px;
+      border-bottom: 1px solid @beige-three;
+      vertical-align: top;
+
+      // stylelint-disable max-nesting-depth
+      &.actions {
+        padding: 15px 0;
+        font-size: .75em;
+        text-align: center;
+      }
+      &.cover {
+        padding: 10px 0 10px 10px;
+      }
+      &.titles {
+        padding: 15px;
+      }
+      &.expires {
+        text-align: center;
+        padding: 15px;
+        white-space: nowrap;
+      }
+      &.returns {
+        background-color: @lightest-grey;
+        font-size: .8125em;
+        color: @dark-grey;
+        text-align: center;
+        padding: 20px 15px;
+      }
+      &.user,
+      &.what,
+      &.action {
+        text-align: center;
+        font-size: .75em;
+        padding: 15px;
+      }
+      // stylelint-enable max-nesting-depth
+    }
+    div.date {
+      font-size: .75em;
+      color: @grey;
+    }
+  }
+}

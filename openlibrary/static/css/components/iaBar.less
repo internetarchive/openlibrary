@@ -1,0 +1,53 @@
+/* GLOBAL TOP NOTICE */
+// (Internet Archive Bar)
+@import "components/buttonGhost.less";
+
+.iaBar {
+  .display-flex();
+  max-width: 1060px;
+  margin: 0 auto;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  // This is to right align the donate button and language dropdown
+  .iaLogo {
+    flex: 1;
+  }
+  .ghost-btn {
+    margin-right: 20px;
+  }
+}
+// Changes color of heart unicode character
+.heart {
+  color: @heart-color;
+  font-size: 1.0em;
+}
+
+/* stylelint-disable selector-max-specificity */
+#topNotice {
+  font-weight: 100;
+  font-size: .9em;
+  .topNotice-container {
+    margin: 0 auto;
+    width: 958px;
+  }
+  .topNotice-left {
+    float: left;
+    display: table;
+    a {
+      display: table-cell;
+      vertical-align: middle;
+      height: 30px;
+      padding-right: 8px;
+      text-decoration: none;
+      color: @white;
+      // stylelint-disable-next-line max-nesting-depth
+      &:hover {
+        color: @white;
+      }
+    }
+  }
+  .topNotice-logo {
+    font-size: 24px;
+  }
+}

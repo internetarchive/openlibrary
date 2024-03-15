@@ -1,0 +1,94 @@
+/**
+ * PageBanner
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#pagebanner
+ */
+@import "components/buttonBtn.less";
+@import "less/breakpoints.less";
+
+.page-banner {
+  display: block;
+  color: @white;
+  font-family: @lucida_sans_serif-1;
+  background: @dark-grey;
+  padding: 15px;
+  border-bottom: 1px solid @beige;
+  z-index: @z-index-level-2;
+
+  &-mybooks {
+    color: @black;
+    background: @grey-blue;
+    border: 1px solid @blue-b0bed9;
+    font-weight: 500;
+  }
+  &-black {
+    background-color: @dark-grey;
+    padding: 5px;
+    .cta {
+      padding: 4px 8px;
+      border-radius: 5px;
+      border: 1px solid @grey-555;
+      font-weight: 500;
+      text-decoration: none;
+      background: @grey-464646;
+      margin: 0 5px;
+    }
+  }
+  .button {
+    border-radius: 5px;
+    padding: 8px 10px;
+    cursor: pointer;
+    display: inline;
+    border: 1px solid @mid-blue;
+  }
+  /* stylelint-disable selector-max-specificity */
+  /* FIXME: Is this actually used anywhere? I think this block can be removed. */
+  a.button {
+    text-decoration: none;
+    background: @mid-blue;
+    color: @white;
+    &:hover {
+      background: @button-hover-blue;
+      color: @white;
+    }
+  }
+  /* stylelint-enable selector-max-specificity */
+  .btn {
+    display: block;
+    max-width: 200px;
+    margin: auto;
+    border: 1px solid @button-hover-blue;
+    font-weight: bold;
+  }
+  &-body {
+    font-size: .9em;
+    padding: 10px;
+    line-height: 25px;
+    text-align: center;
+  }
+
+  &--dismissable {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: @white;
+    font-family: @lucida_sans_serif-1;
+    background: @dark-grey;
+    padding: 15px;
+    border-bottom: 1px solid @beige;
+
+    &-content {
+      flex: 1;
+      text-align: center;
+    }
+
+    &-close {
+      height: 100%;
+      margin-left: auto;
+      color: @white;
+      border: none;
+      background-color: transparent;
+      cursor: pointer;
+    }
+  }
+
+}

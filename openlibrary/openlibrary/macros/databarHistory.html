@@ -1,0 +1,31 @@
+$def with (page)
+
+$if page.type.key in ["/type/work", "/type/edition"]:
+   $ edit_url = page.url(suffix="/edit")
+$else:
+   $ edit_url = page.key + "?m=edit"
+
+<div id="editTools" class="edit">
+    <div id="editInfo">
+        $ author = get_recent_author(page)
+        $if author:
+            <div class="brown smaller sansserif">$:_('Last edited by %(author_link)s', author_link=author.render_link())</div>
+        $else:
+            <div class="brown smaller sansserif">$_("Last edited anonymously")</div>
+        <div class="smallest gray sansserif">
+            $(page.last_modified and datestr(page.last_modified))
+        </div>
+    </div>
+    $if not page.is_fake_record():
+        <div class="editButton">
+            <!-- FIXME: accesskey / keyboard shortcut needs i18n -->
+            <a
+                class="linkButton larger"
+                href="$edit_url"
+                title="$_('Edit this template')"
+                data-ol-link-track="CTAClick|Edit"
+                accesskey="e"
+                rel="nofollow"
+            >$_("Edit")</a>
+        </div>
+</div>

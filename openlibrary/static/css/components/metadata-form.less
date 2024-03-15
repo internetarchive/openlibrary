@@ -1,0 +1,61 @@
+@import (less) "../less/breakpoints.less";
+@import (reference) "../less/colors.less";
+@import (reference) "./buttonBtn.less";
+
+.book-notes-form {
+  margin: 1em auto;
+  padding: 0 20px;
+
+  p {
+    font-size: 16px;
+  }
+
+  div {
+    width: 100%;
+    margin-bottom: 1em;
+
+    textarea {
+      width: 100%;
+      padding: .25em;
+      font-size: 16px;
+      resize: none;
+    }
+  }
+}
+
+.note-form-buttons {
+  display: flex;
+  justify-content: space-between;
+
+  button {
+    font-size: 1.2em;
+    width: unset;
+  }
+
+  .update-note-button {
+    margin-left: auto;
+    margin-top: 5px;
+    font-size: 1.2em;
+    padding: 7px;
+  }
+}
+
+.observation-instructions {
+  margin: 1em 2em;
+}
+
+@media screen and (max-width: @width-breakpoint-tablet) {
+  .note-form-buttons {
+    flex-direction: column-reverse;
+
+    .update-note-button {
+      margin-bottom: 1em;
+    }
+  }
+  .book-notes-form {
+    button {
+      width: 100%;
+      line-height: 1.5em;
+    }
+  }
+}

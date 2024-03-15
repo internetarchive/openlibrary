@@ -1,0 +1,68 @@
+<collection xmlns="http://www.loc.gov/MARC21/slim">
+<record>
+  <leader>008476am^a2200265K?^4500</leader>
+  <controlfield tag="001">006002498</controlfield>
+  <controlfield tag="005">20080815141804.0</controlfield>
+  <controlfield tag="006">m^^^^^^^^d^^^^^^^^</controlfield>
+  <controlfield tag="007">cr^bn^---auaua</controlfield>
+  <controlfield tag="008">000208?1907?????????????????????^??????d</controlfield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">(OCoLC)ocm25722021</subfield>
+  </datafield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">sdr-inu4660995</subfield>
+  </datafield>
+  <datafield tag="245" ind1="0" ind2="0">
+    <subfield code="a">Livro des termos, homenagens e assentos. Termos de junta, 1734-1778. Cartas sobre a independencia, 1822-1823.</subfield>
+  </datafield>
+  <datafield tag="260" ind1=" " ind2=" ">
+    <subfield code="a">Rio de Janeiro :</subfield>
+    <subfield code="b">Archivo Publico Nacional,</subfield>
+    <subfield code="c">1907.</subfield>
+  </datafield>
+  <datafield tag="490" ind1=" " ind2="0">
+    <subfield code="a">Publicações do Archivo Publico Nacional ;</subfield>
+    <subfield code="v">7</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+    <subfield code="a">359, x p.</subfield>
+  </datafield>
+  <datafield tag="538" ind1=" " ind2=" ">
+    <subfield code="a">Mode of access: Internet.</subfield>
+  </datafield>
+  <datafield tag="852" ind1=" " ind2=" ">
+    <subfield code="a">inu</subfield>
+    <subfield code="b">SDR</subfield>
+    <subfield code="c">INU</subfield>
+  </datafield>
+  <datafield tag="970" ind1=" " ind2=" ">
+    <subfield code="a">BK</subfield>
+    <subfield code="b">Book</subfield>
+  </datafield>
+  <datafield tag="970" ind1=" " ind2=" ">
+    <subfield code="a">CE</subfield>
+    <subfield code="b">Electronic Resource</subfield>
+  </datafield>
+  <datafield tag="971" ind1=" " ind2=" ">
+    <subfield code="a">MiU</subfield>
+  </datafield>
+  <datafield tag="973" ind1=" " ind2=" ">
+    <subfield code="a">HT</subfield>
+    <subfield code="b">avail_ht</subfield>
+  </datafield>
+  <datafield tag="973" ind1=" " ind2=" ">
+    <subfield code="a">HA</subfield>
+    <subfield code="b">avail_ht_fulltext</subfield>
+  </datafield>
+  <datafield tag="973" ind1=" " ind2=" ">
+    <subfield code="a">AO</subfield>
+    <subfield code="b">avail_online</subfield>
+  </datafield>
+  <datafield tag="974" ind1=" " ind2=" ">
+    <subfield code="z">v.7</subfield>
+    <subfield code="u">inu.30000048849008</subfield>
+    <subfield code="r">pd</subfield>
+    <subfield code="d">20091108</subfield>
+  </datafield>
+</record>
+</collection>

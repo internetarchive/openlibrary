@@ -1,0 +1,93 @@
+$def with (page)
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="$get_lang()">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="title" content="" />
+    <meta name="keywords" content="free books, books to read, free ebooks, audio books, read books for free, read books online, online library">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="OpenLibrary.org" />
+    <meta name="creator" content="OpenLibrary.org" />
+    <meta name="copyright" content="Original content copyright; 2007-2015" />
+    <meta name="distribution" content="Global" />
+    $if request.domain != 'openlibrary.org':
+        <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#e2dcc5">
+
+
+    <link rel="canonical" href="$request.canonical_url" />
+    <link rel="preconnect" href="https://analytics.archive.org">
+
+    <link rel="search" type="application/opensearchdescription+xml" title="Open Library" href="/static/opensearch.xml">
+    <link rel="manifest" href="/static/manifest.json">
+
+    <link href="/static/images/openlibrary-128x128.png" rel="apple-touch-icon" />
+    <link href="/static/images/openlibrary-152x152.png" rel="apple-touch-icon" sizes="152x152" />
+    <link href="/static/images/openlibrary-167x167.png" rel="apple-touch-icon" sizes="167x167" />
+    <link href="/static/images/openlibrary-180x180.png" rel="apple-touch-icon" sizes="180x180" />
+    <link href="/static/images/openlibrary-192x192.png" rel="icon" sizes="192x192" />
+    <link href="/static/images/openlibrary-128x128.png" rel="icon" sizes="128x128" />
+    $ style = 'build/page-%s.css'%ctx.get('cssfile', 'user')
+    <link href="$static_url(style)" rel="stylesheet" type="text/css" />
+
+    <noscript>
+      <style>
+        /* Don't hide content with clamp if no js to show more/less */
+        .clamp {
+          -webkit-line-clamp: unset !important;
+        }
+
+        /* Don't show read-more sections collapsed */
+        .read-more__content {
+          max-height: unset !important;
+        }
+        /* Don't show read-more toggle buttons */
+        .read-more__toggle {
+          display: none !important;
+        }
+
+        /* @width-breakpoint-tablet media query: */
+        @media only screen and (min-width: 768px) {
+          /* Sticky navbar to top of screen if compact title cannot be stickied */
+          .work-menu {
+            top: 0 !important;
+          }
+        }
+      </style>
+    </noscript>
+ <script>
+
+/* @licstart  The following is the entire license notice for the
+ * JavaScript code in this page.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in this page.
+ */
+
+  </script>
+
+    <!-- JavaScript execution queue that will be emptied at the bottom of the page -->
+    <script type="text/javascript">window.q = [];</script>
+    $if "dev" in ctx.features:
+        <link href="$static_url('build/page-dev.css')" rel="stylesheet" type="text/css"/>
+
+    <meta name="google-site-verification" content="KrqcZD4l5BLNVyjzSi2sjZBiwgmkJ1W7n6w7ThD7A74" />
+    <meta name="google-site-verification" content="vtXGm8q3UgP-f6qXTvQBo85uh3nmIYIotVqqdJDpyz4" />
+    <!-- Drini, Google Search Console -->
+    <meta name="google-site-verification" content="XYOJ9Uj0MBr6wk7kj1IkttXrqY-bbRstFMADTfEt354" />
+
+$putctx("sent_head", True)

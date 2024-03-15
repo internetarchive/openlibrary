@@ -1,0 +1,27 @@
+{
+    'key': '/type/link',
+    'kind': 'embeddable',
+    'name': 'Link',
+    'properties': [{
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'title',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'url',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

@@ -1,0 +1,41 @@
+/**
+ * Page heading search box
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#pageheadingsearchbox
+ */
+.page-heading-search-box {
+  padding: 20px;
+
+  form {
+    margin-top: 15px;
+  }
+  button {
+    font-size: 18px;
+  }
+}
+
+.subjectTagEdit {
+  padding: 3px 1px 0 20px;
+  float: right;
+
+  .editTagButton {
+    border-radius: 5px;
+    background-color: @white;
+    padding: 10px;
+    display: inline-block;
+    font-family: @lucida_sans_serif-1;
+    color: @grey;
+    border: 1px solid @mid-grey;
+    cursor: pointer;
+    transition: background-color .2s;
+    &:hover {
+      background-color: @grey-e7e7e7;
+    }
+  }
+
+  a.editTagButton {
+    text-decoration: none;
+    // Need to duplicate to override base style specificity
+    color: @grey;
+  }
+}
+@import "form.olform.less";

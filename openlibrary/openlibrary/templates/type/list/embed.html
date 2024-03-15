@@ -1,0 +1,103 @@
+$def with (list)
+
+$var title: $list.name
+
+$putctx('cssfile', 'form')
+$putctx("show_ol_shell", False)
+
+$ page = safeint(query_param('page'), 1) - 1
+$ page_size = 10
+
+$def render_seed_count(seed_count):
+    $ungettext("%(count)d item", "%(count)d items", seed_count, count=seed_count)
+
+<div id="contentHead" style="margin-bottom:0;">
+    <div class="superNav">
+        <a href="/" title="$_('Visit Open Library')"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="$_('Open Library logo')" class="right"/></a>
+
+        $ owner = list.get_owner()
+        $if owner:
+            <a href="$owner.key">$owner.displayname</a>
+            /
+            <a href="$owner.key/lists">$_('Lists')</a>
+    </div>
+    <h1>
+        $list.name
+    </h1>
+    <p class="collapse sansserif">
+        <span class="darkgreen"><strong>$:render_seed_count(len(list.seeds))</strong></span>
+    </p>
+</div>
+<div id="contentBody">
+    $def render_authors(authors):
+        $if not authors:
+            <em>$_('Unknown authors')</em>
+        $else:
+            $for a in authors:
+                <a href="$a.url()" class="results">$a.name</a>$cond(loop.last, "", ", ")
+
+    $if list.description:
+        $:format(list.description)
+
+    <div class="mybooks-list"><ul id="listResults" class="list-books">
+    $for seed in list.get_seeds(sort=True)[page*page_size:page*page_size+page_size]:
+        <li id="seed-$loop.index" class="searchResultItem">
+            $ cover = seed.get_cover()
+            $ cover_url = cover and cover.url("M") or "/images/icons/avatar_book-sm.png"
+            <span class="image">
+                <a href="$seed.url"><img src="$cover_url" height="70"/></a>
+            </span>
+            <div class="details">
+                <div class="resultTitle">
+                    $if seed.type in ['edition', 'work']:
+                        $ ebook = seed.document.get_ebook_info()
+                        $ doc = seed.document
+                        <!-- $:json_encode(ebook) -->
+                        <span class="actions" style="float: right;">
+                            $if 'read_url' in ebook:
+                                <a href="$ebook['read_url']" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
+                                    <span class="image read"></span>
+                                    <span class="label">$_('Read')</span>
+                                </a>
+                            $elif 'borrow_url' in ebook:
+                                $if ebook.get('borrowed'):
+                                    <a href="$ebook['borrow_url']" title="$_('This book is checked out')">
+                                        <span class="image checked-out"></span>
+                                        <span class="label">$_('Checked out')</span>
+                                    </a>
+                                $else:
+                                    <a href="$ebook['borrow_url']" title="$_('Borrow book')">
+                                        <span class="image borrow"></span>
+                                        <span class="label">$_('Borrow')</span>
+                                    </a>
+                            $elif 'daisy_url' in ebook:
+                                <a href="$ebook['daisy_url']" title="$_('Protected DAISY')">
+                                    <span class="image daisy"></span>
+                                    <span class="label">$_('DAISY')</span>
+                                </a>
+                        </span>
+
+                    <h3>
+                        <a href="$seed.url" class="results">$seed.title</a>
+                    </h3>
+                    $if seed.type == "work" or seed.type == "edition":
+                        $if seed.type == "work":
+                            $ authors = seed.document.get_authors()
+                        $else:
+                            $if seed.document.works:
+                                $ authors = seed.document.works[0].get_authors()
+                            $else:
+                                $ authors = seed.document.get_authors()
+                        <span class="small">$:_('by %(name)s', name=render_authors(authors))</span>
+                    <span class="meta">
+                        <span class="type $seed.type small">$seed.type</span>
+                    </span>
+                </div>
+            </div>
+        </li>
+    </ul></div>
+
+    <div class="clearfix"></div>
+    $:macros.Pager(page+1, len(list.seeds), page_size)
+</div>
+

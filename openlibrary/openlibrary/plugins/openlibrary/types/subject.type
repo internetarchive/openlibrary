@@ -1,0 +1,27 @@
+{
+    'backreferences': [{
+        'expected_type': {
+            'key': '/type/work'
+        },
+        'name': 'works',
+        'property_name': 'subjects',
+        'type': {
+            'key': '/type/backreference'
+        }
+    }],
+    'key': '/type/subject',
+    'kind': 'regular',
+    'properties': [{
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'name',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

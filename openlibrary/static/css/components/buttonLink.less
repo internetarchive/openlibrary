@@ -1,0 +1,24 @@
+/**
+ * ButtonLink
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#buttonlink
+ */
+.linkButton {
+  border-radius: 5px;
+  background-color: @white;
+  padding: 10px;
+  display: inline-block;
+  font-family: @lucida_sans_serif-1;
+  color: @grey;
+  border: 1px solid @mid-grey;
+  cursor: pointer;
+  transition: background-color .2s;
+  &:hover {
+    background-color: @grey-e7e7e7;
+  }
+}
+
+a.linkButton {
+  text-decoration: none;
+  // Need to duplicate to override base style specificity
+  color: @grey;
+}

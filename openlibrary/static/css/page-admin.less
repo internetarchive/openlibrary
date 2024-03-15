@@ -1,0 +1,218 @@
+/**
+ * Stylesheet entry point for pages with body-admin
+ * See
+ * - openlibrary/templates/admin/people/view.html
+ * - openlibrary/templates/admin/ip/index.html
+ * - openlibrary/templates/admin/index.html
+ * Pages:
+ * - /admin
+ */
+@import (less) "less/colors.less";
+@import (less) "less/breakpoints.less";
+@import (less) "less/mixins.less";
+@import (less) "less/font-families.less";
+
+@import (less) "components/admin-table.less";
+
+.status {
+  &--0 { color: @red; }
+  &--1 { color: @orange; }
+  &--2 { color: @blue; }
+  &--3 { color: @green; }
+}
+.earnings {
+  &--profit { color: @green; }
+  &--loss { color: @red; }
+}
+
+.sponsor th {
+  background-color: @grey-fafafa;
+  padding: 5px;
+  border-bottom: 1px solid @light-mid-grey;
+  text-transform: uppercase;
+  font-size: .65em;
+  font-weight: bold;
+}
+
+// graphite graphs may be bigger than viewport...
+img {
+  max-width: 100%;
+}
+
+// openlibrary/templates/admin/services.html
+table.services {
+  th {
+    font-family: @lucida_sans_serif-1;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: @dark-grey;
+  }
+  td {
+    padding: 5px;
+    border-right: 1px solid @white;
+    border-bottom: 1px solid @white;
+  }
+  td.node {
+    vertical-align: top;
+  }
+}
+
+// openlibrary/templates/admin/ip/index.html
+// openlibrary/templates/admin/people/view.html
+#adminHistory {
+  border-top: 1px solid @admin-table-border;
+  font-family: @lucida_sans_serif-6;
+  margin: 0 0 20px;
+  th {
+    background-color: @lightest-grey;
+    border-bottom: 1px solid @admin-table-border;
+    color: @grey;
+    font-size: .8675em;
+    font-weight: 700;
+    padding: 10px;
+  }
+  td {
+    border-bottom: 1px solid @admin-table-border;
+    padding: 10px;
+    font-size: .75em;
+    &.number {
+      text-align: right;
+    }
+  }
+}
+
+// openlibrary/templates/admin/index.html
+.stats-spacer {
+  width: 250px;
+  height: 35px;
+  margin-left: 50px;
+}
+
+// openlibrary/admin/templates/admin/index.html
+div#prolific {
+  span {
+    font-family: @lucida_sans_serif-1;
+    font-size: .6875em;
+  }
+}
+
+// openlibrary/admin/templates/admin/index.html
+// openlibrary/templates/admin/index.html
+.caption {
+  position: absolute;
+  right: 0;
+  bottom: 2px;
+  font-size: .5625em;
+  font-family: @lucida_sans_serif-1;
+  font-weight: normal;
+  color: @grey;
+  text-transform: uppercase;
+}
+
+// openlibrary/admin/templates/admin/index.html
+div.measurements {
+  .caption {
+    padding-top: 20px;
+  }
+  .measure {
+    font-size: .875em;
+  }
+  .large {
+    font-size: 1.125em !important;
+  }
+}
+
+body {
+  background-color: desaturate(@admin-table-border, 100);
+}
+/* stylelint-disable selector-max-specificity */
+div#background {
+  width: 100%;
+  background-color: desaturate(@beige, 100);
+  padding-bottom: 15px;
+}
+/* stylelint-enable selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+div#content {
+  font-family: @lucida_sans_serif-1;
+}
+/* stylelint-enable selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+div#bottom {
+  background-color: transparent;
+}
+/* stylelint-enable selector-max-specificity */
+div.siteSearch.darker {
+  background-color: @mid-grey;
+}
+/* stylelint-disable selector-max-specificity */
+div#headerNav ul.links li {
+  border-top: 1px solid @mid-grey;
+}
+/* stylelint-enable selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+div#contentHead {
+  padding-bottom: 30px;
+}
+/* stylelint-enable selector-max-specificity */
+
+// openlibrary/templates/admin/index.html
+.canvas-graph {
+  width: 100%;
+  height: 50px;
+}
+
+// openlibrary/templates/admin/index.html
+div.sparkDisplay {
+  border-bottom: 1px solid @black;
+  margin-right: 0 !important;
+}
+
+// Import all common components
+@import (less) "legacy.less";
+// Import styles specific to the BorrowTable for user pages
+@import (less) "legacy-borrowTable-adminUser.less";
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+
+  // openlibrary/admin/templates/admin/index.html
+  div#uniqueIps {
+    float: left;
+    width: 918px;
+    margin: 20px 0 30px;
+  }
+
+  // openlibrary/admin/templates/admin/index.html
+  div.measurements,
+  div.measurements div {
+    float: left;
+    width: 180px;
+  }
+
+  // openlibrary/templates/admin/index.html
+  // openlibrary/admin/templates/admin/index.html
+  div.contentLeft {
+    float: left;
+    clear: left;
+    width: 439px;
+    min-height: 100px;
+    padding-right: 20px;
+  }
+  div.contentRight {
+    float: left;
+    clear: right;
+    width: 439px;
+    min-height: 100px;
+    padding-left: 20px;
+  }
+}
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  // Graph shown on /stats
+  // openlibrary/templates/admin/index.html
+  .canvas-graph {
+    width: 430px;
+    height: 50px;
+  }
+}

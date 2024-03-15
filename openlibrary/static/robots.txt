@@ -1,0 +1,12 @@
+
+User-agent: *
+Disallow: /api
+Disallow: /edit
+Disallow: /search
+Disallow: /search/inside
+
+Sitemap: https://openlibrary.org/static/sitemaps/siteindex.xml.gz
+
+User-agent: Baiduspider
+Crawl-delay: 0.5
+

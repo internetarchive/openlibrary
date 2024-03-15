@@ -1,0 +1,40 @@
+name: codegen_api_docs
+on: workflow_dispatch
+permissions:
+  contents: read
+
+jobs:
+  codegen_api_docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          # https://lxml.de/installation.html#requirements
+          sudo apt-get install libxml2-dev libxslt-dev
+          pip install --upgrade pip setuptools wheel
+          pip install -r requirements_test.txt
+          pip list --outdated
+      - run: make git
+      - shell: python
+        run: |
+          import inspect
+          import platform
+
+          for name, value in inspect.getmembers(platform):
+              if name[0] != "_" and callable(value):
+                  try:
+                      value = value()
+                  except (IndexError, TypeError):
+                      continue
+                  if str(value).strip("(),' "):
+                      print("{:>21}() = {}".format(name, value))
+
+          import sys
+          print(sys.platform, sys.version)

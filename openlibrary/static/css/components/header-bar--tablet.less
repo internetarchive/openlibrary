@@ -1,0 +1,50 @@
+.header-bar {
+  padding-top: 5px;
+
+  .logo-component {
+    // The width and height attributes of logo-icon should be equal to
+    // dimensions of /static/images/openlibrary-logo-tighter.svg
+    .logo-icon {
+      height: 47px;
+      width: 189px;
+    }
+  }
+
+  .auth-component {
+    .hide-me {
+      display: inline;
+    }
+  }
+
+  .navigation-component {
+    .dropdown-menu {
+      border-top: none;
+      border-top-right-radius: 0;
+      border-top-left-radius: 0;
+    }
+  }
+
+  .search-component {
+    -webkit-box-ordinal-group: 4;
+    -ms-flex-order: 3;
+    order: 3;
+
+    .search-bar-component {
+      width: 300px;
+    }
+    .search-justify-right {
+      min-width: 210px;
+    }
+    .search-bar {
+      width: auto;
+      max-width: 310px;
+    }
+  }
+
+  .header-dropdown {
+    .account__icon {
+      width: 45px;
+      height: 45px;
+    }
+  }
+}

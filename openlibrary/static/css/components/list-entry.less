@@ -1,0 +1,53 @@
+/**
+ * ListEntry
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#listentry
+ */
+.listEntry {
+  width: 100%;
+  margin: 20px auto;
+
+  .cover {
+    width: 35px;
+    float: left;
+    img {
+      width: 25px;
+      max-width: 25px;
+    }
+  }
+
+  .data {
+    width: 100%;
+    font-family: @lucida_sans_serif-1;
+  }
+
+  .name {
+    font-size: .6875em;
+    color: @grey;
+    .title {
+      font-weight: bold;
+      font-size: 1.375em;
+    }
+  }
+
+  .description {
+    p,
+    li {
+      font-size: .8125em;
+      color: @dark-grey;
+      margin: 0 !important;
+    }
+  }
+
+  .meta {
+    font-size: .6875em;
+    color: @grey;
+    line-height: 1.5em;
+    margin: 3px 0;
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .listEntry {
+    width: 30%;
+  }
+}

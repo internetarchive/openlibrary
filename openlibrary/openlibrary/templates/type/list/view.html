@@ -1,0 +1,20 @@
+$def with (lst, check_owner=True, owns_page=False)
+
+$var title: $lst.name
+
+$ is_owner = owns_page
+$ username = ctx.user and ctx.user['key'].split('/')[-1]
+
+$if check_owner and username:
+    $ is_owner = username == lst['key'].split('/')[2]
+
+$if check_owner and is_owner:
+    $ template = MyBooksTemplate(username, 'list').render(
+    $     header_title=lst.get('name', 'List'),
+    $     template=render_template("type/list/view_body", lst, is_owner=True),
+    $     page=lst,
+    $ )
+    $:template
+
+$else:
+    $:render_template("type/list/view_body", lst, is_owner)

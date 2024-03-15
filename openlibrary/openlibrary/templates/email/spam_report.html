@@ -1,0 +1,14 @@
+$def with (msg)
+
+$var subject: Open Library - website problem
+
+E-mail: $msg.email
+
+Page: $msg.irl
+
+Comment: $msg.comment
+
+Sent: $msg.sent
+
+$if 'browser' in msg:
+    Browser: $msg.browser

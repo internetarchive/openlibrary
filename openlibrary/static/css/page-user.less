@@ -1,0 +1,237 @@
+/**
+ * Stylesheet entry point for pages with body-user
+ * See:
+ * - openlibrary/templates/history_framepage.html
+ * - openlibrary/templates/history_framenav.html
+ * Runs on pages
+ * - /about/vision
+ * - /account
+ * - /account/books/want-to-read
+ * - /account/books/notes
+ * - /account/books/observations
+ * - /account/email/forgot-ia
+ * - /account/login
+ * - /account/loans
+ * - /account/privacy
+ * - /account/import
+ * - /advancedsearch
+ * - /authors/OL22098A/Lewis_Carroll
+ * - /authors/OL22098A/Lewis_Carroll/edit
+ * - /authors/OL22098A/Lewis_Carroll?m=history
+ * - /books/add
+ * - /books/OL24197475M/The_complete_works_of_Mark_Twain.
+ * - /books/OL13517105M/Alice_im_Spiegelland/edit
+ * - /borrow
+ * - /contact
+ * - /data
+ * - /help
+ * - /lists
+ * - /merges
+ * - /people/admin
+ * - /people/openlibrary9157/lists
+ * - /read
+ * - /recentchanges
+ * - /search/authors
+ * - /subjects
+ * - /works/OL53924W/The_complete_works_of_Mark_Twain
+ * - /works/OL1930026W/No_easy_walk?m=diff&b=5
+ */
+@import (less) "less/colors.less";
+@import (less) "less/breakpoints.less";
+@import (less) "less/mixins.less";
+@import (less) "less/font-families.less";
+@import (less) "components/flash-messages.less";
+@import (less) "less/z-index.less";
+@import (less) "components/provider-table.less";
+
+body {
+  background-color: @beige;
+}
+/* stylelint-disable selector-max-specificity */
+div#headerNav {
+  background-color: @beige;
+}
+/* stylelint-enable selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+div#headerNav ul.links li {
+  border-top: 1px solid @beige-two;
+}
+/* stylelint-enable selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+div#headerLogo {
+  background-color: @beige;
+}
+/* stylelint-enable selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+div#background {
+  width: 100%;
+  background-color: @beige;
+}
+/* stylelint-enable selector-max-specificity */
+div.message {
+  float: left;
+  clear: both;
+  width: 100%;
+  margin-bottom: 15px;
+  background: @light-yellow;
+  p {
+    font-family: @lucida_sans_serif-7;
+  }
+}
+div.siteSearch {
+  -webkit-box-ordinal-group: 4;
+  -ms-flex-order: 3;
+  order: 3;
+}
+div.siteSearch.darker {
+  background-color: @grey-f3f3f3;
+  padding-right: 22px;
+}
+/* stylelint-disable selector-max-specificity */
+div#revertLink,
+div#editHistory {
+  display: none;
+}
+/* stylelint-enable selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+div#headerPlace {
+  background-color: @beige;
+}
+
+div#subjectsPage{
+  columns: 2;
+  @media only screen and (min-width: @width-breakpoint-tablet) {
+    columns: 4;
+  }
+  ul {
+    display: inline-block;
+  }
+}
+
+div.lists{
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.multi-input-autocomplete--author{
+  .mia__input {
+    display: flex;
+  }
+}
+
+th.toggle-all {
+  background: @primary-blue;
+}
+
+.div-class {
+  margin-top: 20px;
+  display: inline-block;
+  height: 360px;
+  overflow: auto;
+  width: 100%;
+}
+
+.import-table{
+  border: 2px;
+  th {
+    padding: 5px 10px;
+  }
+  td {
+    padding: 5px 10px;
+  }
+  thead {
+    th {
+      position: sticky;
+      top: 0;
+      background-color: @white;
+    }
+  }
+  tbody{
+    width: 100%;
+    tr {
+      background-color: @white;
+    }
+  }
+}
+.my-imports {
+  width: 100%;
+}
+.import-export {
+  display: flex;
+  flex-direction: column;
+  &__section {
+    padding: 0 10px;
+  }
+}
+
+#myProgress {
+  margin-top: 5px;
+  border-radius: 10px;
+  width: 100%;
+  background-color: @lightest-grey;
+}
+
+#myBar {
+  width: 0%;
+  border-radius: 10px;
+  padding: 4px;
+  background-color: @green;
+  text-align: center;
+  color: @white;
+}
+
+.import-buttons{
+  display: flex;
+}
+
+.import-table tbody tr:nth-child(odd){
+  background-color: @lightest-grey;
+}
+
+.error-imported {
+  font-weight: bold;
+  color: @red;
+}
+
+.success-imported {
+  color: @green;
+  font-weight: bold;
+}
+
+tr.table-row.selected{
+  border: 2px solid @green;
+}
+
+.olform--decoration {
+  margin: 20px 0;
+  border: 2px solid @lightest-grey;
+  padding: 20px;
+  border-radius: 5px;
+}
+
+.login-big-or {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  max-width: 600px;
+}
+
+.login-big-or::before, .login-big-or::after {
+  content: "";
+  display: block;
+  flex: 1;
+  border-bottom: 1px solid currentColor;
+  transform: translateY(-50%);
+}
+
+// Import all common components
+@import (less) "legacy.less";
+// Import styles specific to the BorrowTable for user pages
+@import (less) "legacy-borrowTable-adminUser.less";
+// Import styles for notes and observations views
+@import (less) "components/notes-view.less";
+// Import styles for community merge request views
+@import (less) "components/merge-request-table.less";
+// Import styles for want-to-read buttons
+@import (less) "legacy-tools.less";
+@import (less) "components/mybooks-dropper.less";

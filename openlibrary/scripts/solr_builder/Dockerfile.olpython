@@ -1,0 +1,21 @@
+FROM openlibrary/olbase:latest
+
+ENV PYTHONPATH=/openlibrary:/openlibrary/vendor/infogami
+
+USER root
+COPY requirements*.txt ./
+RUN pip install -r requirements_test.txt
+
+WORKDIR /openlibrary/scripts/solr_builder
+
+RUN pip install \
+    # For real-time profiling
+    cprofilev \
+    # Faster python
+    Cython==3.0.0a11
+
+# Build cython files
+COPY scripts/solr_builder/build-cython.sh scripts/solr_builder/setup.py ./
+RUN ./build-cython.sh
+
+EXPOSE 4000

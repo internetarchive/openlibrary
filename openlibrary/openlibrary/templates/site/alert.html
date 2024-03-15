@@ -1,0 +1,21 @@
+$if not is_bot():
+  $:get_donation_include()
+
+<div id="topNotice">
+  <div class="page-banner page-banner-black page-banner-center">
+    <div class="iaBar">
+        <a class="iaLogo" href="https://archive.org"><img alt="Internet Archive logo" src="/static/images/ia-logo.svg" width="160"></a>
+        <a class="ghost-btn" href="https://archive.org/donate/?platform=ol&origin=olwww-TopNavDonateButton" data-ol-link-track="IABar|DonateButton">$_('Donate') <span class="heart" aria-hidden="true">♥</span></a>
+      <div class="language-component header-dropdown">
+        <details>
+          <summary>
+            <img class="translate-icon" src="/static/images/language-icon.svg" title="Change Website Language" alt="Change Website Language"/>
+          </summary>
+          <div class="language-dropdown-component">
+            $:render_template('languages/language_list', classes="dropdown-menu")
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+</div>

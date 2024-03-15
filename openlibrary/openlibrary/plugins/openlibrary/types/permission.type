@@ -1,0 +1,81 @@
+{
+    'backreferences': [],
+    'key': '/type/permission',
+    'kind': 'regular',
+    'properties': [{
+        'expected_type': {
+            'key': '/type/text'
+        },
+        'name': 'description',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/text'
+        },
+        'name': 'description',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/usergroup'
+        },
+        'name': 'readers',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/usergroup'
+        },
+        'name': 'readers',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/usergroup'
+        },
+        'name': 'writers',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/usergroup'
+        },
+        'name': 'writers',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/usergroup'
+        },
+        'name': 'admins',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/usergroup'
+        },
+        'name': 'admins',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}

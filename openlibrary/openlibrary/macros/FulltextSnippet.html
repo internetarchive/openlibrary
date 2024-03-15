@@ -1,0 +1,24 @@
+$def with (q, doc=None)
+
+$ ia = doc.get('fields', {}).get('identifier', [''])[0]
+$ availability = doc.get('availability', {})
+$ snippets = doc.get('highlight', {}).get('text', [''])
+$ page_nums = doc.get('fields', {}).get('page_num', [])
+$ page = ', '.join([str(num) for num in page_nums])
+
+$if snippets:
+  <section class="fulltext-excerpts" aria-label="search results from: $doc['edition']['title']">
+    <ul>
+      $for snippet in snippets:
+        $if snippet:
+          <li class="fulltext-excerpt">
+            &hellip;$:(snippet.replace("<", "&laquo;").replace(">", "&raquo;").replace("{{{", "<mark class='highlight'><strong>").replace("}}}", "</strong></mark>"))&hellip;
+          </li>
+    </ul>
+  </section>
+
+$if availability.get('status') == 'open':
+  <p class="center"><a href="https://archive.org/stream/$(ia)?ref=ol&access=1#search/$(q)">See All Results</a></p>
+
+$if availability.get('status') == 'borrow_available':
+  <p class="center">Borrow &amp; <a href="https://archive.org/stream/$(ia)?ref=ol&access=1#search/$(q)">See All Results</a></p>

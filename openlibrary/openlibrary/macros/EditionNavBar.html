@@ -1,0 +1,38 @@
+$def with (reader_observations, edition_count=1, show_observations=False, desktop_only=False)
+
+$ total_reviews = reader_observations.get('total_respondents', 0)
+
+$ display_for = 'desktop-only' if desktop_only else 'mobile-only'
+<span class="nav-bar-wrapper sticky $display_for">
+  <ul class="nav-bar work-menu">
+    <li class="selected">
+      <a href="#overview$('-mobile' if not desktop_only else '')" data-ol-link-track="BookPageNav|Overview">$_("Overview")</a>
+    </li>
+    <li>
+      <a href="#editions-list" data-ol-link-track="BookPageNav|EditionTable">
+        $ungettext('View %(count)s Edition', 'View %(count)s Editions', edition_count, count=edition_count)
+      </a>
+    </li>
+    <li>
+      <a href="#details" data-ol-link-track="BookPageNav|Details">$_("Details")</a>
+    </li>
+    <li>
+      <a href="#reader-observations" data-ol-link-track="BookPageNav|Reviews">
+        $if total_reviews > 0:
+          $ungettext('%(reviews)s Review', '%(reviews)s Reviews', total_reviews, reviews=total_reviews)
+        $else:
+          $_('Reviews')
+      </a>
+    </li>
+    <li>
+      <a href="#lists-section" data-ol-link-track="BookPageNav|Lists">$_("Lists")</a>
+    </li>
+    <li>
+      <a href="#related-work-carousel" data-ol-link-track="BookPageNav|RelatedBooks">$_("Related Books")</a>
+    </li>
+  </ul>
+  $if not desktop_only:
+    <span class="nav-arrow">
+      <img src="/static/images/nav-arrow.svg" role="img">
+    </span>
+</span>

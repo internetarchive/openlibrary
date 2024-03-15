@@ -1,0 +1,147 @@
+$def with (lst, new=False, admin_only=False)
+$putctx('cssfile', 'list-edit')
+$var title: $(_("Create a list") if new else _("Editing list: %(list_name)s", list_name=lst.name))
+
+$putctx("robots", "noindex,nofollow")
+
+$ can_save = True
+$if admin_only:
+    $ can_save = (ctx.user and ctx.user.is_admin())
+
+<div id="contentHead">
+    $:macros.databarEdit(lst)
+    <h1>$(_("Create a list") if new else _("Edit List"))</h1>
+
+    $if admin_only:
+        <b class="warning">
+            $_("⚠️ Saving global lists is admin-only while the feature is under development.")
+        </b>
+</div>
+
+$# Render the ith seed input field
+$jsdef render_seed_field(i, seed):
+    $# seed['key'] errors in python; seed.get('key') errors in js. So need
+    $# to run different code on the server and client.
+    $if jsdef_get(seed, 'key') != None:
+        $ seed = { 'thing': seed, 'notes': '' }
+
+    $ key = ''
+    $if seed['thing']:
+        $ key = seed['thing']['key']
+
+    <li class="mia__input ac-input">
+        <div class="seed--controls">
+            <div class="mia__reorder mia__index">≡ #$(i + 1)</div>
+            <button class="mia__remove" type="button">Remove</button>
+        </div>
+        <main>
+            <input class="ac-input__value" name="seeds--$i--thing--key" type="hidden" value="$key" />
+            $# Displayed
+            <input
+                class="ac-input__visible"
+                value="$key.split('/')[-1]"
+                placeholder="$_('Search for a book')"
+                $if key:
+                    type="hidden"
+            />
+
+            <div class="ac-input__preview">
+                $# Note: Cannot use "in" because this is a jsdef function
+                $if key:
+                    $ prefix = key.split('/')[1]
+                    $if prefix == 'works' or prefix == 'books':
+                        $:lazy_thing_preview(key, 'render_lazy_work_preview')
+                    $elif prefix == 'authors':
+                        $:lazy_thing_preview(key, 'render_lazy_author_preview')
+                    $else:
+                        $key
+                $else:
+                    $key
+            </div>
+
+            <textarea name="seeds--$i--notes" placeholder="$_('Notes (optional)')">$(seed['notes'] or '')</textarea>
+        </main>
+    </li>
+
+$# import the side-effect of the jsdef function
+$:render_template('jsdef/LazyWorkPreview', None)
+$:render_template('jsdef/LazyAuthorPreview', None)
+
+$jsdef lazy_thing_preview(key, render_fn_name):
+    <div class="lazy-thing-preview" data-key="$key" data-render-fn="$render_fn_name">
+        $if not is_jsdef():
+            $ prefix = key.split('/')[1]
+            $if prefix == 'works' or prefix == 'books':
+                $code:
+                    fake_book = {
+                        'key': key,
+                        'title': '...',
+                        'full_title': '...',
+                        'author_name': ['...'],
+                        'edition_count': '_',
+                        'cover_i': None,
+                    }
+                $:render_template('jsdef/LazyWorkPreview', fake_book)
+            $elif prefix == 'authors':
+                $code:
+                    fake_author = {
+                        'key': key,
+                        'name': '...',
+                        'birth_date': None,
+                        'death_date': None,
+                        'work_count': '_',
+                        'top_work': ['...'],
+                        'subjects': ['...'],
+                    }
+                $:render_template('jsdef/LazyAuthorPreview', fake_author)
+    </div>
+
+<div id="contentBody">
+    <form method="post" id="list-edit" class="olform" $:cond(query_param('debug'), 'action="?debug=true"')>
+        $if not new:
+            <input
+                required
+                type="hidden"
+                name="key"
+                value="$lst.key"
+            />
+
+        <input
+            required
+            placeholder="$_('List Name')"
+            name="name"
+            value="$lst.name"
+        />
+
+        <div>
+            <textarea
+                placeholder="$_('Description (optional)')"
+                class="markdown"
+                name="description"
+                rows="3" cols="30"
+            >$lst.description</textarea>
+        </div>
+
+        <hr />
+
+        <ol class="list-edit__items multi-input-autocomplete--seeds">
+            $if lst.seeds:
+                $for i, seed in enumerate(lst.seeds):
+                    $if isinstance(seed, str):
+                        $ seed = {'key': '/subjects/' + seed}
+                    $:render_seed_field(i, seed)
+            $else:
+                $:render_seed_field(0, {'key': ''})
+            <a href="javascript:;" class="mia__add">$_('Add another book')</a>
+        </ol>
+
+        <hr />
+
+        <div class="formElement bottom">
+            $if new:
+                <button type="submit" class="larger" $cond(not can_save, 'disabled')>$_('Create new list')</button>
+            $else:
+                $:macros.EditButtons(comment=lst.comment_)
+        </div>
+    </form>
+</div>

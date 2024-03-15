@@ -1,0 +1,93 @@
+# To enable this pre-commit hook run:
+# `pip install pre-commit` or `brew install pre-commit`
+# Then run `pre-commit install`
+
+# Learn more about this config here: https://pre-commit.com/
+default_language_version:
+  python: python3.12
+
+ci:
+  submodules: true
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-toml
+      - id: check-yaml
+      - id: detect-private-key
+      - id: end-of-file-fixer
+        types_or: [python]
+      - id: mixed-line-ending
+        args:
+          - --fix=lf
+      - id: requirements-txt-fixer
+      - id: trailing-whitespace
+        args:
+          - --markdown-linebreak-ext=md
+
+  - repo: https://github.com/MarcoGorelli/auto-walrus
+    rev: v0.2.2
+    hooks:
+      - id: auto-walrus
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.14
+    hooks:
+      - id: ruff
+
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black  # See pyproject.toml for args
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.6
+    hooks:
+      - id: codespell  # See pyproject.toml for args
+        additional_dependencies:
+          - tomli
+        args: ["--skip", "*.mjs"]
+
+  - repo: https://github.com/MarcoGorelli/cython-lint
+    rev: v0.16.0
+    hooks:
+    - id: cython-lint
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy  # See pyproject.toml for args
+        additional_dependencies:
+          - types-all
+
+  - repo: https://github.com/abravalheri/validate-pyproject
+    rev: v0.15
+    hooks:
+      - id: validate-pyproject
+
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v9.0.0-alpha.1
+    hooks:
+      - id: eslint
+        types: [file]
+        types_or: [javascript, vue]
+        additional_dependencies:
+          - eslint@8.49.0
+          - eslint-plugin-no-jquery@2.6.0
+          - eslint-plugin-vue@9.17.0
+          - "@babel/eslint-parser@7.22.15"
+          - "@babel/plugin-syntax-dynamic-import@7.8.3"
+          - "@babel/preset-env@7.22.20"
+        args: [--fix]
+
+  - repo: https://github.com/awebdeveloper/pre-commit-stylelint
+    rev: 0.0.2
+    hooks:
+    - id: stylelint
+      files: \.(css|less)$
+      additional_dependencies:
+        - stylelint@15.10.1
+        - stylelint-declaration-strict-value@1.9.2
+        - postcss-less@3.1.4
+      args: [--fix]

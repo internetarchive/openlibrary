@@ -1,0 +1,81 @@
+<record xmlns="http://www.loc.gov/MARC21/slim">
+  <leader>00960nas a2200277u| 4500</leader>
+  <controlfield tag="001">9242816</controlfield>
+  <controlfield tag="005">00000000000000.0</controlfield>
+  <controlfield tag="008">830505n        iau||||||||||||   ||eng| </controlfield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="9">(DLC)   37038470</subfield>
+  </datafield>
+  <datafield tag="906" ind1=" " ind2=" ">
+    <subfield code="a">0</subfield>
+    <subfield code="b">cbc</subfield>
+    <subfield code="c">serprem</subfield>
+    <subfield code="d">u</subfield>
+    <subfield code="e">ncip</subfield>
+    <subfield code="f">19</subfield>
+    <subfield code="g">y-gencatlg</subfield>
+  </datafield>
+  <datafield tag="010" ind1=" " ind2=" ">
+    <subfield code="a">   37038470 </subfield>
+  </datafield>
+  <datafield tag="040" ind1=" " ind2=" ">
+    <subfield code="a">DLC</subfield>
+    <subfield code="c">CarP</subfield>
+    <subfield code="d">DLC</subfield>
+  </datafield>
+  <datafield tag="043" ind1=" " ind2=" ">
+    <subfield code="a">n-us-ia</subfield>
+  </datafield>
+  <datafield tag="050" ind1="0" ind2="0">
+    <subfield code="a">S599.I7</subfield>
+    <subfield code="b">A3</subfield>
+  </datafield>
+  <datafield tag="110" ind1="1" ind2=" ">
+    <subfield code="a">Iowa.</subfield>
+    <subfield code="b">Agricultural and Home Economics Experiment Station, Ames. [from old catalog]</subfield>
+  </datafield>
+  <datafield tag="245" ind1="0" ind2="0">
+    <subfield code="a">Soil survey report. </subfield>
+  </datafield>
+  <datafield tag="260" ind1=" " ind2=" ">
+    <subfield code="a">Ames</subfield>
+    <subfield code="c">[n.d.]</subfield>
+  </datafield>
+  <datafield tag="300" ind1=" " ind2=" ">
+    <subfield code="a">no. in v.</subfield>
+    <subfield code="b">illus., maps (part fold., part col.) diagrs.</subfield>
+    <subfield code="c">26 cm.</subfield>
+  </datafield>
+  <datafield tag="310" ind1=" " ind2=" ">
+    <subfield code="a">Unknown</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+    <subfield code="a">Serial.</subfield>
+  </datafield>
+  <datafield tag="590" ind1=" " ind2=" ">
+    <subfield code="a">PREMARC/SERLOC merged record</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Soil surveys</subfield>
+    <subfield code="z">Iowa. [from old catalog]</subfield>
+  </datafield>
+  <datafield tag="890" ind1=" " ind2=" ">
+    <subfield code="a">Iowa. Agricultural and Home Economics experiment station, Ames.  Soil survey report, no. 1-  .</subfield>
+    <subfield code="i">37-38470</subfield>
+  </datafield>
+  <datafield tag="920" ind1=" " ind2=" ">
+    <subfield code="a">Keep 1</subfield>
+  </datafield>
+  <datafield tag="991" ind1=" " ind2=" ">
+    <subfield code="b">c-GenColl</subfield>
+    <subfield code="h">S599.I7</subfield>
+    <subfield code="i">A3</subfield>
+    <subfield code="t">Copy 1</subfield>
+    <subfield code="w">PREM</subfield>
+  </datafield>
+  <datafield tag="992" ind1=" " ind2=" ">
+    <subfield code="b">Unk</subfield>
+    <subfield code="h">S599.I7A3</subfield>
+    <subfield code="w">SERLOC</subfield>
+  </datafield>
+</record>

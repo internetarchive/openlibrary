@@ -1,0 +1,36 @@
+$def with (page)
+
+$var title: $page.title2
+
+$ text = format(page.body)
+$ text = format(page.title)
+
+<div id="contentHead">
+    $:macros.databarView(page)
+    <h1>$page.title</h1>
+</div>
+
+<div id="contentBody">
+
+    <div class="contentHalf">
+        $:format(page.intro)
+    </div>
+
+    <div class="contentSpacer"></div>
+
+    <div class="contentHalf">
+        <h3>For more information</h3>
+            <div class="small sansserif">
+                $:page.links
+            </div>
+        <h3>Join our mailing lists</h3>
+            <div class="small sansserif">
+                $:page.mailing
+            </div>
+    </div>
+
+    <div class="contentSpacer"></div>
+
+    $:render_template("lib/history", page)
+
+</div>

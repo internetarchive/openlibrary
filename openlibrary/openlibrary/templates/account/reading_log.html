@@ -1,0 +1,91 @@
+$def with (docs, key, shelf_count, doc_count, owners_page, current_page, sort_order='desc', user=None, include_ratings=False, q=None, results_per_page=25, ratings=[], checkin_year=None)
+
+$ username = user.key.split('/')[-1]
+$ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
+$ userDisplayName = user.displayname or ctx.user.displayname
+
+$if key == 'currently-reading':
+  $ og_title = _("Books %(username)s is reading", username=userDisplayName)
+  $ og_description = _("%(username)s is reading %(total)d books. Join %(username)s on OpenLibrary.org and tell the world what you're reading.", username=userDisplayName, total=shelf_count)
+$elif key == 'want-to-read':
+  $ og_title = _("Books %(username)s wants to read", username=userDisplayName)
+  $ og_description = _("%(username)s wants to read %(total)d books. Join %(username)s on OpenLibrary.org and share the books that you'll soon be reading!", username=userDisplayName, total=shelf_count)
+$elif key == 'already-read':
+  $if checkin_year:
+    $ og_title = _("Books %(username)s has read in %(year)d", username=userDisplayName, year=checkin_year)
+    $ og_description = _("%(username)s has read %(total)d books in %(year)d. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about.", username=userDisplayName, total=len(docs), year=checkin_year)
+  $else:
+    $ og_title = _("Books %(username)s has read", username=userDisplayName)
+    $ og_description = _("%(username)s has read %(total)d books. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about.", username=userDisplayName, total=shelf_count)
+$elif key == 'sponsorships':
+  $ og_title = _("Books %(userdisplayname)s is sponsoring", userdisplayname=userDisplayName)
+  $ og_description = "{username} is sponsoring {total} books. Join {username} on OpenLibrary.org and share the books that you'll soon be reading!".format(username=userDisplayName, total=shelf_count)
+
+$putctx("description", og_description)
+$add_metatag(property="og:title", content=og_title)
+$add_metatag(property="og:url", content=request.canonical_url)
+$add_metatag(property="og:site_name", content="Open Library")
+$add_metatag(property="og:description", content=og_description)
+$add_metatag(property="og:image", content=meta_photo_url)
+
+<div class="mybooks-list">
+  $ yearly_goal = get_reading_goals(year=checkin_year)
+  $if yearly_goal and owners_page:
+    <div class="yearly-goal-section">
+      $:render_template('check_ins/reading_goal_progress', [yearly_goal])
+    </div>
+
+  $# The reading log search is only displayed on non-empty shelves because some patrons were confused and searching empty reading lists, perhaps thinking they could add books that way. See #7143.
+  $if q or len(docs) > 0:
+    <form method="GET" class="olform pagesearchbox">
+      <input type="text" minlength="3" placeholder="$_('Search your reading log')" name="q" value="$(query_param('q', ''))"/>
+      <input type="submit"/>
+    </form>
+  $if len(docs) > 0:
+    $if q:
+      <span class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', doc_count, count=commify(doc_count))</span>
+    $else:
+      <span class="mybooks-tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" style="margin-right:10px;" width="9" height="11">
+        $if sort_order == 'desc':
+          <strong class="lightgreen">$_("Date Added (newest)")</strong>
+          |
+          <a href="$changequery(sort='asc')">$_("Date Added (oldest)")</a>
+        $else:
+          <a href="$changequery(sort='desc')">$_("Date Added (newest)")</a>
+          |
+          <strong class="lightgreen">$_("Date Added (oldest)")</strong>
+      </span>
+
+    $if not checkin_year:
+      $:macros.Pager(int(current_page), doc_count, results_per_page=results_per_page)
+    <ul class="list-books">
+      $if docs:
+        $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3}.get(key, None)
+        $ doc_number = 1
+        $# enumerate because using zip() will result in empty iterator when no ratings are passed, and ratings are only used on already-read.
+        $for idx, doc in enumerate(docs):
+          $ star_rating = macros.StarRatings(doc, redir_url='/account/books/already-read', id=doc_number, rating=ratings[idx]) if include_ratings else None
+          $:macros.SearchResultsWork(doc, availability=doc.get('availability'), rating=star_rating, include_dropper=(bookshelf_id and owners_page))
+          $ doc_number = doc_number + 1
+    </ul>
+    $if not checkin_year:
+      $:macros.Pager(int(current_page), doc_count, results_per_page=results_per_page)
+  $else:
+    <ul class="list-books">
+      $if q:
+        $ query = query_param('q')
+        <div class="center">
+          <hr>
+          <div class="red">$_("No results found in this shelf") </div>
+          <hr>
+          <div>
+            <a href="/search?$urlencode(dict(q=query))">$_('Search all of Open Library for "%s"?' % query)</a>
+          </div>
+        </div>
+      $elif checkin_year:
+        <p>$_("You haven't marked any books as read for this year.")</p>
+      $else:
+        <p>$_("You haven't added any books to this shelf yet.")</p>
+        <p>$:_('<a href="/search">Search for a book</a> to add to your reading log. <a href="/help/faq/reading-log">Learn more</a> about the reading log.')</p>
+    </ul>
+  </div>

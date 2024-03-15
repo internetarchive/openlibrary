@@ -1,0 +1,107 @@
+@import (less) "less/font-families.less";
+
+/* stylelint-disable selector-max-specificity */
+div#footer-content {
+  max-width: 1060px;
+  margin: 5px auto;
+  padding: 20px;
+}
+
+div#footer-links {
+  .display-flex();
+  margin-left: 10px;
+  line-height: 1.5em;
+}
+
+#footer-content {
+  div {
+    flex: 1;
+    flex-wrap: wrap;
+    font-family: @lucida_sans_serif-1;
+    min-width: 150px;
+  }
+}
+
+footer {
+  .display-flex();
+  width: 100%;
+  bottom: 0;
+  font-size: .8em;
+  #footer-details {
+    color: @dark-grey;
+    .display-flex();
+    width: 100%;
+  }
+  h2 {
+    color: @dark-grey;
+    font-size: 1em;
+    margin: 0;
+  }
+  hr {
+    border: 0;
+    border-top: 1px solid @dark-beige;
+    margin: 20px 0;
+  }
+  ul {
+    padding: 0;
+    margin: 0;
+    li {
+      font-size: 1em;
+      list-style-type: none;
+      white-space: nowrap;
+      margin: 5px 0;
+    }
+  }
+}
+
+.footer-icon {
+  display: inline-flex;
+  width: 35px;
+  height: 35px;
+  cursor: pointer;
+  background-color: @dark-grey;
+  border-radius: 3px;
+
+  img {
+    padding: 8px;
+  }
+}
+
+#footer-links {
+  ul li a {
+    color: @dark-blue;
+  }
+  div {
+    margin: 20px 0;
+    padding: 0;
+  }
+}
+
+// Logo in far left of footer
+img#archive-logo {
+  margin-right: 10px;
+  padding: 0;
+  height: 27.5px;
+  opacity: .7;
+}
+
+// Legal information
+div#legal-details {
+  flex: .9;
+  margin-bottom: 8px;
+}
+
+// Github version shown in bottom right corner of footer
+div#version-details {
+  text-align: right;
+  flex: .1;
+  margin-top: 8px;
+}
+
+// FIXME: merge with above CSS rule?
+.version {
+  color: @dark-grey;
+  border: 1px solid @dark-beige;
+  border-radius: 3px;
+  padding: 8px 10px;
+}

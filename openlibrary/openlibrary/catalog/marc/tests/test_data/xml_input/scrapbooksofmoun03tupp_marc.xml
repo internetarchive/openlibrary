@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<record xmlns="http://www.loc.gov/MARC21/slim">
+  <leader>03295nam a2200325Ia 4500</leader>
+  <controlfield tag="001">3539929</controlfield>
+  <controlfield tag="005">20100506160800.0</controlfield>
+  <controlfield tag="008">080411m18911894nyuacf        000 0 eng d</controlfield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">(OCoLC)317738727</subfield>
+  </datafield>
+  <datafield tag="035" ind1=" " ind2=" ">
+    <subfield code="a">ocn317738727</subfield>
+  </datafield>
+  <datafield tag="040" ind1=" " ind2=" ">
+    <subfield code="a">BRL</subfield>
+    <subfield code="c">BRL</subfield>
+    <subfield code="d">BRL</subfield>
+  </datafield>
+  <datafield tag="049" ind1=" " ind2=" ">
+    <subfield code="a">BRLL</subfield>
+  </datafield>
+  <datafield tag="099" ind1=" " ind2=" ">
+    <subfield code="a">4098B.104 FOLIO</subfield>
+  </datafield>
+  <datafield tag="100" ind1="1" ind2=" ">
+    <subfield code="a">Tupper, William Vaughn,</subfield>
+    <subfield code="d">1835-1898.</subfield>
+  </datafield>
+  <datafield tag="245" ind1="1" ind2="0">
+    <subfield code="k">Scrapbooks of mounted views, portraits, etc., relating to Europe and Egypt,</subfield>
+    <subfield code="f">1891-1894.</subfield>
+  </datafield>
+  <datafield tag="246" ind1="1" ind2=" ">
+    <subfield code="i">Also known as:</subfield>
+    <subfield code="a">Tupper scrapbooks</subfield>
+  </datafield>
+  <datafield tag="300" ind1=" " ind2=" ">
+    <subfield code="a">46 v., plates :</subfield>
+    <subfield code="b">ill. (some col.), plates, ports. ;</subfield>
+    <subfield code="c">33 x 38 cm.</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+    <subfield code="a">Contents of each volume is listed in manuscript on the cover.</subfield>
+  </datafield>
+  <datafield tag="500" ind1=" " ind2=" ">
+    <subfield code="a">Includes detailed descriptive narrative and quotations in manuscript.</subfield>
+  </datafield>
+  <datafield tag="505" ind1="0" ind2=" ">
+    <subfield code="a">[v. 1]. Algeria -- [v. 2]. Amsterdam. Marken -- [v. 3]. Athens -- [v. 4]. Austria: Schonbrunn-Prague. Trieste -- [v. 5]. Belgium: Brussels. Bruges. Ostende -- [v. 6]. Belgium: Ghent. Antwerp -- [v. 7]. Berlin. Potsdam -- [v. 8]. Berne. Cantonland -- [v. 9]. Cairo: Mosques &amp; schools -- [v. 10]. Cairo: Streets &amp; people -- [v. 11]. Canterbury. Salisbury. Stonehenge. Winchester. Oxford -- [v. 12]. Capri -- [v. 13]. Chester. Stratford-on-Avon. Warwick. York -- [v. 14]. Corfou -- [v. 15]. Dresden. Munich -- [v. 16]. Florence. Fiesole. Certosa -- [v. 17]. France: Marseilles. Avignon. Bordeaux. Tours. Dijon -- [v. 18]. France: The Pyrenees. Biarritz. Pau. Lourdes. St. Sauveur. Gavarnie -- [v. 19]. Genoa and Southern Italy. Genoa. Sorrento. Castellammare. Pompei. Amalfi Atrani. Salerno, Vietro. Pesto -- [v. 20]. Gibraltar. Ronda. Granada -- [v. 21]. Greece: Eleusis. Marathon. Naupha. Epidaurus. Tyrins. Mycenæ. Olympia. Sparta -- [v. 22]. Holland: Rotterdam. Hague. Haarlem -- [v. 23]. Isle of Wight. Southampton -- [v. 24]. London, City and Westminster -- [v. 25]. London, West and environs: Windsor. Stoke Pogis. Eton. Kew Gardens. Hampton Court -- [v. 26]. Lower Egypt. Pyramids -- [v. 27]. Luxor. Karnak, etc. -- [v. 28]. Madrid. Escorial. Avila. Burgos. San Sebastian -- [v. 29]. Naples -- [v. 30]. Northern Italy: Como. Milan. Bologna. Pisa -- [v. 31]. On the Nile: Cairo to Luxor -- [v. 32]. On the Nile: Luxor to Philae -- [v. 33]. Paris -- [v. 34]. Paris: The Louvre -- [v. 35]. Paris and environs: Parks. St. Cloud. St. Denis. Versailles. Fontainebleau -- [v. 36]. The Rhine. Heidelberg. Nuremberg -- [v. 37]. Rome, pt. 1. -- [v. 38]. Rome, pt. 2. Ancient Rome. Capitoline Hill. Environs -- [v. 39]. Scotland -- [v. 40]. Seville. Cordova. Toledo -- [v. 41]. Sicily. Messina. Taormina. Catania. Siracusa. Girgenti. Palermo -- [v. 42]. Siena. Orvieto -- [v. 43]. Switzerland: Lake country -- [v. 44]. Venice -- [v. 45]. Vienna -- [v. 46]. Zermatt. Chamonix (Switzerland).</subfield>
+  </datafield>
+  <datafield tag="561" ind1=" " ind2=" ">
+    <subfield code="a">Donated to the Boston Public Library by the daughter of the collector, Mrs. T. (Alice) Stevens in 1948.</subfield>
+  </datafield>
+  <datafield tag="600" ind1="1" ind2="0">
+    <subfield code="a">Tupper, William Vaughn,</subfield>
+    <subfield code="d">1835-1898</subfield>
+    <subfield code="x">Travel</subfield>
+    <subfield code="z">Europe.</subfield>
+  </datafield>
+  <datafield tag="650" ind1=" " ind2="0">
+    <subfield code="a">Travel photography</subfield>
+    <subfield code="x">History</subfield>
+    <subfield code="y">19th century</subfield>
+    <subfield code="v">Sources.</subfield>
+  </datafield>
+  <datafield tag="651" ind1=" " ind2="0">
+    <subfield code="a">Europe</subfield>
+    <subfield code="v">Photographs.</subfield>
+  </datafield>
+  <datafield tag="651" ind1=" " ind2="0">
+    <subfield code="a">Europe</subfield>
+    <subfield code="x">Description and travel</subfield>
+    <subfield code="v">Photographs.</subfield>
+  </datafield>
+  <datafield tag="651" ind1=" " ind2="0">
+    <subfield code="a">Egypt</subfield>
+    <subfield code="v">Photographs.</subfield>
+  </datafield>
+  <datafield tag="651" ind1=" " ind2="0">
+    <subfield code="a">Egypt</subfield>
+    <subfield code="x">Description and travel</subfield>
+    <subfield code="v">Photographs.</subfield>
+  </datafield>
+  <datafield tag="655" ind1=" " ind2="0">
+    <subfield code="a">Scrapbooks.</subfield>
+  </datafield>
+  <datafield tag="710" ind1="2" ind2=" ">
+    <subfield code="a">Tupper Scrapbooks Collection (Boston Public Library)</subfield>
+  </datafield>
+  <datafield tag="994" ind1=" " ind2=" ">
+    <subfield code="a">C0</subfield>
+    <subfield code="b">BRL</subfield>
+  </datafield>
+</record>

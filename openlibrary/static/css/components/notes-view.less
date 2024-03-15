@@ -1,0 +1,148 @@
+@import (reference) "../less/colors.less";
+
+/* Common styling */
+.my-observations,
+.my-notes {
+  flex: 1;
+  padding: 10px;
+}
+
+.list-container {
+  margin-top: 1em;
+}
+
+.main-list-item {
+  border-bottom: 1px solid @cream;
+  margin-bottom: 1em;
+  background-color: @grey-fafafa;
+}
+
+.work-section {
+  display: flex;
+  padding: 1em;
+
+  .imageLg {
+    padding-right: 1em;
+  }
+}
+
+.no-content {
+  padding: 1em;
+  text-align: center;
+}
+
+.pager {
+  .pagination {
+    justify-content: center;
+  }
+}
+
+/* Notes view */
+.notes-list {
+  .notes-list-item {
+    border-top: 2px solid @lightest-grey;
+  }
+}
+
+.book-info {
+  padding: 1em;
+}
+
+.book-note {
+  padding: 1em;
+
+  textarea {
+    width: 100%;
+    resize: none;
+    padding: .25em;
+    font-size: 16px;
+  }
+
+  .notes-view-modal-link {
+    margin-top: 1em;
+    text-align: center;
+  }
+}
+
+.note-page-buttons {
+  display: flex;
+  justify-content: space-between;
+
+  button {
+    font-size: 1.2em;
+    width: unset;
+  }
+
+  .update-note-link-button {
+    margin-left: auto;
+    margin-top: 5px;
+    font-size: 1.2em;
+    padding: 7px;
+  }
+}
+
+/* Observations view */
+.observations-header {
+  color: @dark-grey;
+  padding: 1em 1em 0;
+  text-decoration: underline;
+}
+
+.observations-list {
+  padding: 0 1em;
+}
+
+.observations-modal-link {
+  margin-top: 1em;
+  font-size: 1.2em;
+}
+
+.observation-category {
+  font-weight: bold;
+}
+
+.observation-buttons {
+  display: flex;
+  justify-content: space-between;
+  padding: 1em;
+
+  .delete-observations-button {
+    background-color: @red;
+    width: unset;
+    font-size: 1.2em;
+
+    &:hover {
+      background-color: darken(@red, 20%);
+    }
+  }
+}
+
+.throbber-li {
+  .throbber {
+    position: relative;
+    top: unset;
+    left: unset;
+    height: unset;
+    margin: 1em auto;
+
+    h3 {
+      padding-top: 1.5em;
+      margin-top: unset;
+    }
+  }
+}
+
+@media screen and (max-width: @width-breakpoint-tablet) {
+  .observation-buttons {
+    flex-direction: column-reverse;
+    text-align: center;
+
+    .delete-observations-button {
+      margin-top: 1em;
+    }
+  }
+
+  .update-note-link-button {
+    line-height: 1.5em;
+  }
+}

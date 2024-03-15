@@ -1,0 +1,75 @@
+.header-bar {
+  margin: 20px auto;
+  padding-top: 0;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: row;
+  flex-direction: row;
+
+  .auth-component {
+    -webkit-box-ordinal-group: 7;
+    -ms-flex-order: 6;
+    order: 6;
+  }
+
+  .logo-component {
+    /* border-right: 1px solid @dark-beige; */
+    padding-right: 15px;
+  }
+
+  .navigation-component {
+    .display-flex();
+    -webkit-box-ordinal-group: 3;
+    -ms-flex-order: 2;
+    order: 2;
+    -webkit-box-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+    .dropdown-menu {
+      border-radius: 3px;
+      border: 1px solid @dark-beige;
+    }
+    li {
+      // stylelint-disable-next-line max-nesting-depth, selector-max-specificity
+      .dropdown-menu {
+        width: auto;
+        white-space: nowrap;
+      }
+    }
+  }
+
+  .search-component {
+    .search-bar-component {
+      width: 100%;
+    }
+    .search-bar {
+      max-width: 100%;
+    }
+  }
+
+  .hamburger-component {
+    -webkit-box-ordinal-group: 5;
+    -ms-flex-order: 6;
+    order: 6;
+  }
+
+  .app-drawer {
+    top: 0;
+    height: 100%;
+  }
+
+  .mask-menu {
+    top: 0;
+  }
+
+  .header-dropdown {
+    .account__icon {
+      width: 45px;
+      height: 45px;
+    }
+  }
+
+  &.mobile {
+    display: none;
+  }
+}

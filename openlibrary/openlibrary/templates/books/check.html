@@ -1,0 +1,56 @@
+$def with (d, matches)
+
+$# :param web.Storage d: form data
+$# :param list matches:
+
+$var title: $_("Add a book")
+
+<div id="contentHead">
+    <h1>$_("Add a Book")</h1>
+    <p class="instruct">
+        $:_("One moment... It looks like we already have <em>some potential matches</em> for <b>%(title)s</b> by <b>%(author)s</b>.", title=d.title, author=d.author_names[0])
+        <br/><br/>
+        $_("Rather than creating a duplicate record, please click through the result you think best matches your book.")
+    </p>
+</div>
+
+<div id="contentBody">
+    <div id="searchResults">
+        <ul class="list-books">
+        $for work in matches:
+            <li class="workResult" id="$work.key.split('/')[-1]">
+                <span class="bookcover">
+                    <a href="javascript:;" title="$_('Select this book')"><img src="$work.cover_url" height="70"/></a>
+                </span>
+                <span class="details">
+                    <span class="resultTitle">
+                        <h3 class="booktitle"><a href="javascript:;" title="$_('Select this book')">$work.title</a></h3>
+                        <span class="bookauthor">$_('by')
+                            $for a in work.authors:
+                                $a.name$cond(not loop.last, ',')
+                        </span>
+                        <span class="resultPublisher">$ungettext('%(count)s edition', '%(count)s editions', work.edition_count, count=commify(work.edition_count))
+                        $if work.first_publish_year:
+                            <span class="smallest">&bull;</span> $_('First published in %(year)d', year=work.first_publish_year)
+                        </span>
+                    </span>
+                </span>
+            </li>
+        </ul>
+    </div>
+
+    <p class="small sansserif clearfix">None of these match the book I want to add. <a href="javascript:;" id="bookAddCont">Continue</a>.</p>
+
+    <form method="POST" id="addbook" class="olform addbook1 hidden" name="edit">
+        <input type="hidden" id="work" name="work" value="none-of-these"/>
+        <input type="hidden" name="title" value="$d.title"/>
+        <input type="hidden" name="publisher" value="$d.publisher"/>
+        <input type="hidden" name="publish_date" value="$d.publish_date"/>
+        <input type="hidden" name="id_name" value="$d.id_name"/>
+        <input type="hidden" name="id_value" value="$d.id_value"/>
+        $for author in d.authors:
+            <input type="hidden" name="authors--$loop.index0--author--key" value="$author['author']['key']"/>
+        $for name in d.author_names:
+            <input type="hidden" name="author_names--$loop.index0" value="$name"/>
+    </form>
+</div>

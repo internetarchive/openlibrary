@@ -1,0 +1,426 @@
+/**
+ * JS only module.
+ * Defined in:
+ * - vendor/js/jquery-datatables/jquery.dataTables.min.js
+ * It will be refactored at the earliest opportunity.
+ * DO NOT ADD NEW CSS here
+ * Unless... you are removing an inline style and moving it into here.
+ *
+ * We are currently in the process of:
+ * - moving styles from this file into the components
+ * - removing dead code
+ * - removing redundant CSS in favor of common reusable styles
+ *
+ * DO NOT ADD NEW CSS HERE
+ */
+@import (less) "less/index.less";
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * DataTables features
+ */
+
+.dataTables_wrapper {
+  font-family: @lucida_sans_serif-1;
+  position: relative;
+  z-index: @z-index-level-1;
+  clear: both;
+  zoom: 1; /* Feeling sorry for IE */
+}
+
+.dataTables_processing {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 250px;
+  height: 30px;
+  margin-left: -125px;
+  margin-top: -15px;
+  padding: 14px 0 5px;
+  border: 1px solid @lighter-grey;
+  text-align: center;
+  color: @light-grey;
+  font-size: 14px;
+}
+
+.dataTables_length {
+  font-size: 12px;
+  color: @grey;
+  display: inline-block;
+}
+
+.dataTables_info {
+  width: 100%;
+  font-size: 12px;
+  color: @grey;
+  margin-top: 20px;
+}
+
+.dataTables_paginate {
+  // stylelint-disable declaration-block-no-duplicate-properties
+  width: 44px;
+  *width: 50px;
+  // stylelint-enable declaration-block-no-duplicate-properties
+  text-align: right;
+  font-size: 12px;
+  color: @grey;
+}
+
+/* Pagination nested */
+.paginate_disabled_previous,
+.paginate_enabled_previous,
+.paginate_disabled_next,
+.paginate_enabled_next {
+  height: 19px;
+  width: 19px;
+  margin-left: 3px;
+  float: left;
+}
+
+.paginate_disabled_previous {
+  background-image: url(/images/back_disabled.png);
+}
+
+.paginate_enabled_previous {
+  background-image: url(/images/back_enabled.png);
+}
+
+.paginate_disabled_next {
+  background-image: url(/images/forward_disabled.png);
+}
+
+.paginate_enabled_next {
+  background-image: url(/images/forward_enabled.png);
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * DataTables display
+ */
+table.display {
+  float: left;
+  margin: 0 auto;
+  width: 918px;
+  clear: both;
+}
+
+table.display thead th {
+  // stylelint-disable declaration-block-no-duplicate-properties
+  cursor: pointer;
+  *cursor: hand;
+  // stylelint-enable declaration-block-no-duplicate-properties
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * DataTables sorting
+ */
+
+.sorting_asc {
+  background-image: url(/images/sort_asc.png);
+  background-repeat: no-repeat;
+  background-position: 90% 10px;
+}
+
+.sorting_desc {
+  background-image: url(/images/sort_desc.png);
+  background-repeat: no-repeat;
+  background-position: 90% 10px;
+}
+
+.sorting {
+  background-image: url(/images/sort_both.png);
+  background-repeat: no-repeat;
+  background-position: 90% 10px;
+}
+
+.sorting_asc_disabled {
+  background-image: url(/images/sort_asc_disabled.png);
+  background-repeat: no-repeat;
+  background-position: 90% 10px;
+}
+
+.sorting_desc_disabled {
+  background-image: url(/images/sort_desc_disabled.png);
+  background-repeat: no-repeat;
+  background-position: 90% 10px;
+}
+
+.sorting:hover {
+  text-decoration: none;
+}
+
+tr.even,
+tr.odd {
+  border-bottom: 1px solid @light-grey;
+}
+
+/*
+ * KeyTable
+ */
+table.KeyTable td {
+  border: 3px solid transparent;
+}
+
+table.KeyTable td.focus {
+  border: 3px solid @blue-3366ff;
+}
+
+table.display tr.gradeA {
+  background-color: @baby-green;
+}
+
+table.display tr.gradeC {
+  background-color: @baby-blue;
+}
+
+table.display tr.gradeX {
+  background-color: @baby-pink;
+}
+
+table.display tr.gradeU {
+  background-color: @lighter-grey;
+}
+
+div.box {
+  height: 100px;
+  padding: 10px;
+  overflow: auto;
+  border: 1px solid @dark-baby-blue;
+  background-color: @baby-blue;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Misc
+ */
+.dataTable_wrapper .top,
+.dataTable_wrapper .bottom {
+  padding: 15px;
+  background-color: transparent;
+  border: none;
+}
+
+.top .dataTables_info {
+  float: none;
+}
+
+.dataTables_empty {
+  text-align: center;
+  font-size: 14px;
+  font-weight: normal;
+  padding: 15px 0;
+  color: @red;
+}
+
+tfoot input {
+  margin: .5em 0;
+  width: 100%;
+  color: @darker-grey;
+}
+
+tfoot input.search_init {
+  color: @grey;
+}
+
+td.group {
+  background-color: @gray-d1cfd0;
+  border-bottom: 2px solid @gray-a19b9e;
+  border-top: 2px solid @gray-a19b9e;
+}
+
+td.details {
+  background-color: @gray-d1cfd0;
+  border: 2px solid @gray-a19b9e;
+}
+
+div.dataTables_filter {
+  float: right;
+  text-align: right;
+  font-size: 12px;
+  margin: 0;
+  color: @grey;
+}
+
+.dataTables_filter input {
+  margin: 0 0 0 5px;
+  border-radius: 5px;
+  padding: 3px;
+  border: 1px solid @grey;
+}
+
+.example_alt_pagination div.dataTables_info {
+  width: 60%;
+}
+
+.paging_full_numbers {
+  width: 100%;
+  margin-top: 15px;
+  line-height: 20px;
+}
+
+.paging_full_numbers .paginate_button,
+.paging_full_numbers .paginate_active {
+  font-family: @lucida_sans_serif-1;
+  font-size: 11px;
+  border: 1px solid @lighter-grey;
+  padding: 7px;
+  margin: 0 5px;
+  color: @link-blue;
+  cursor: pointer;
+  // Undocumented IE fix (?) - may not be necessary any more
+  // stylelint-disable-next-line declaration-block-no-duplicate-properties
+  *cursor: hand;
+}
+
+.paging_full_numbers .paginate_button:hover {
+  background: @link-blue;
+  color: @white;
+  text-decoration: none;
+}
+
+.paging_full_numbers span.paginate_active {
+  color: @black;
+  background-color: @grey-f3f3f3;
+}
+
+table.display tr.even.row_selected td {
+  background-color: @blue-b0bed9;
+}
+
+table.display tr.odd.row_selected td {
+  background-color: @blue-9fafd1;
+}
+
+/* For the Conditional-CSS grading rows */
+/*
+ 	Colour calculations (based off the main row colours)
+  Level 1:
+		dd > c4
+		ee > d5
+	Level 2:
+	  dd > d1
+	  ee > e2
+ */
+tr.odd.gradeA td.sorting_1 {
+  background-color: @mid-baby-green;
+}
+
+tr.odd.gradeA td.sorting_2 {
+  background-color: @baby-green;
+}
+
+tr.odd.gradeA td.sorting_3 {
+  background-color: @baby-green;
+}
+
+tr.even.gradeA td.sorting_1 {
+  background-color: @baby-green;
+}
+
+tr.even.gradeA td.sorting_2 {
+  background-color: @baby-green;
+}
+
+tr.even.gradeA td.sorting_3 {
+  background-color: @baby-green;
+}
+
+tr.odd.gradeC td.sorting_1 {
+  background-color: @mid-baby-blue;
+}
+
+tr.odd.gradeC td.sorting_2 {
+  background-color: @baby-blue;
+}
+
+tr.odd.gradeC td.sorting_3 {
+  background-color: @baby-blue;
+}
+
+tr.even.gradeC td.sorting_1 {
+  background-color: @baby-blue;
+}
+
+tr.even.gradeC td.sorting_2 {
+  background-color: @baby-blue;
+}
+
+tr.even.gradeC td.sorting_3 {
+  background-color: @baby-blue;
+}
+
+tr.odd.gradeX td.sorting_1 {
+  background-color: @mid-baby-pink;
+}
+
+tr.odd.gradeX td.sorting_2 {
+  background-color: @baby-pink;
+}
+
+tr.odd.gradeX td.sorting_3 {
+  background-color: @baby-pink;
+}
+
+tr.even.gradeX td.sorting_1 {
+  background-color: @baby-pink;
+}
+
+tr.even.gradeX td.sorting_2 {
+  background-color: @baby-pink;
+}
+
+tr.even.gradeX td.sorting_3 {
+  background-color: @baby-pink;
+}
+
+tr.odd.gradeU td.sorting_1 {
+  background-color: @mid-grey;
+}
+
+tr.odd.gradeU td.sorting_2 {
+  background-color: @mid-grey;
+}
+
+tr.odd.gradeU td.sorting_3 {
+  background-color: @mid-grey;
+}
+
+tr.even.gradeU td.sorting_1 {
+  background-color: @lighter-grey;
+}
+
+tr.even.gradeU td.sorting_2 {
+  background-color: @lighter-grey;
+}
+
+tr.even.gradeU td.sorting_3 {
+  background-color: @lighter-grey;
+}
+
+/*
+ * Row highlighting example
+ */
+.ex_highlight #example tbody tr.even:hover,
+#example tbody tr.even td.highlighted {
+  background-color: @lime-green;
+}
+
+.ex_highlight #example tbody tr.odd:hover,
+#example tbody tr.odd td.highlighted {
+  background-color: @lime-green;
+}
+
+@media only screen and (max-width: @width-breakpoint-tablet) {
+  .dataTables_paginate.paging_full_numbers {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  div.dataTables_filter {
+    float: none;
+    text-align: left;
+    margin: 5px 0 0;
+  }
+  span.number {
+    order: 4;
+    margin: 10px;
+  }
+}

@@ -1,0 +1,44 @@
+{
+    'key': '/type/user',
+    'kind': 'regular',
+    'properties': [{
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'displayname',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/string'
+        },
+        'name': 'website',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': False
+    }, {
+        'expected_type': {
+            'key': '/type/text'
+        },
+        'name': 'description',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }, {
+        'expected_type': {
+            'key': '/type/boolean'
+        },
+        'name': 'bot',
+        'type': {
+            'key': '/type/property'
+        },
+        'unique': True
+    }],
+    'type': {
+        'key': '/type/type'
+    }
+}
