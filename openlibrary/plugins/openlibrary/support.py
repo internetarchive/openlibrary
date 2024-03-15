@@ -32,11 +32,12 @@ class contact(delegate.page):
         patron_name = form.get("name", "")
         email = form.get("email", "")
         topic = form.get("topic", "")
+        subject_line = form.get('subject', '')
         description = form.get("question", "")
         url = form.get("url", "")
         user = accounts.get_current_user()
         useragent = web.ctx.env.get("HTTP_USER_AGENT", "")
-        if not all([email, topic, description]):
+        if not all([email, description]):
             return ""
 
         hashed_ip = hashlib.md5(web.ctx.ip.encode('utf-8')).hexdigest()
@@ -59,7 +60,7 @@ class contact(delegate.page):
         else:
             assignee = default_assignees.get("default", "openlibrary@archive.org")
         stats.increment("ol.support.all")
-        subject = "Support case *%s*" % topic
+        subject = "Support case *%s*" % self.prepare_subject_line(subject_line)
 
         url = web.ctx.home + url
         displayname = user and user.get_name() or ""
@@ -72,6 +73,14 @@ class contact(delegate.page):
             'contact-POST-%s' % hashed_ip, "true", expires=15 * MINUTE_SECS
         )
         return render_template("email/case_created", assignee)
+
+    def prepare_subject_line(self, subject, max_length=60):
+        if not subject:
+            return '[no subject]'
+        if len(subject) <= max_length:
+            return subject
+
+        return subject[:max_length]
 
 
 def sendmail(from_address, to_address, subject, message):
@@ -95,7 +104,7 @@ Description:\n
 
 A new support case has been filed by %(displayname)s <%(email)s>.
 
-Topic: %(topic)s
+Subject: %(subject_line)s
 URL: %(url)s
 User-Agent: %(useragent)s
 OL-username: %(username)s
