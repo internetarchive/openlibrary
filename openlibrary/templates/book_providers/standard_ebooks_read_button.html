@@ -4,11 +4,14 @@ $def with(standard_ebooks_id)
   <a
       href="https://standardebooks.org/ebooks/$standard_ebooks_id/text/single-page"
       title="$_('Read eBook from Standard eBooks')"
-      class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--standard-ebooks"
+      class="cta-btn cta-btn--available cta-btn--read cta-btn--standard-ebooks"
       target="_blank"
       aria-haspopup="true"
       aria-controls="standard-ebooks-toast"
-  >$_('Read')</a>
+  >
+    <span class="btn-label">$_('Read')</span>
+    <span class="btn-icon external-link-icon"></span>  
+  </a>
 </div>
 
 $if render_once('standard-ebooks-toast'):

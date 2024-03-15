@@ -4,11 +4,14 @@ $def with(openstax_id)
   <a
       href="https://openstax.org/details/books/$openstax_id"
       title="$_('Read eBook from OpenStax')"
-      class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--openstax"
+      class="cta-btn cta-btn--available cta-btn--read cta-btn--openstax"
       target="_blank"
        aria-haspopup="true"
        aria-controls="openstax-toast"
-  >$_('Read')</a>
+  >
+    <span class="btn-label">$_('Read')</span>
+    <span class="btn-icon external-link-icon"></span>  
+  </a>
 </div>
 
 $if render_once('openstax-toast'):
