@@ -477,7 +477,7 @@ def get_isbn_editiondict_map(
     """
     # Get a mapping of ISBNs to new Editions (or `None`)
     isbn_edition_map = {
-        isbn: Edition.from_isbn(isbn=isbn, high_priority=high_priority)
+        isbn: Edition.from_isbn(isbn_or_asin=isbn, high_priority=high_priority)
         for isbn in isbns
     }
 
