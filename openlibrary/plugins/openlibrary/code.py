@@ -478,7 +478,7 @@ def remove_high_priority(query: str) -> str:
 
 
 class isbn_lookup(delegate.page):
-    path = r'/(?:isbn|ISBN)/([0-9xX-]+)'
+    path = r'/(?:isbn|ISBN)/([bB]?[0-9a-zA-Z-]+)'
 
     def GET(self, isbn):
         input = web.input(high_priority=False)

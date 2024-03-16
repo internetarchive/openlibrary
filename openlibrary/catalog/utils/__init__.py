@@ -340,6 +340,15 @@ def needs_isbn_and_lacks_one(rec: dict) -> bool:
     """
 
     def needs_isbn(rec: dict) -> bool:
+        # Exception for Amazon-specific ASINs, which often accompany ebooks
+        if any(
+            name == "amazon" and identifier.startswith("B")
+            for record in rec.get("source_records", [])
+            if record and ":" in record
+            for name, identifier in [record.split(":", 1)]
+        ):
+            return False
+
         return any(
             record.split(":")[0] in BOOKSELLERS_WITH_ADDITIONAL_VALIDATION
             for record in rec.get('source_records', [])

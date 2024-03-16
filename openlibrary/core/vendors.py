@@ -242,13 +242,16 @@ class AmazonAPI:
             logger.exception(f"serialize({product})")
             publish_date = None
 
+        asin_is_isbn10 = not product.asin.startswith("B")
+        isbn_13 = isbn_10_to_isbn_13(product.asin) if asin_is_isbn10 else None
+
         book = {
             'url': "https://www.amazon.com/dp/{}/?tag={}".format(
                 product.asin, h.affiliate_id('amazon')
             ),
             'source_records': ['amazon:%s' % product.asin],
-            'isbn_10': [product.asin],
-            'isbn_13': [isbn_10_to_isbn_13(product.asin)],
+            'isbn_10': [product.asin] if asin_is_isbn10 else [],
+            'isbn_13': [isbn_13] if isbn_13 else [],
             'price': price and price.display_amount,
             'price_amt': price and price.amount and int(100 * price.amount),
             'title': (
