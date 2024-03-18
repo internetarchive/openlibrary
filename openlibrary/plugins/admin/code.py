@@ -1,5 +1,6 @@
 """Plugin to provide admin interface.
 """
+
 import os
 import requests
 import sys
@@ -394,7 +395,9 @@ class people_view:
             added_records: list[list[dict]] = [
                 c.changes for c in changes if c.kind == 'add-book'
             ]
-            flattened_records: list[dict] = sum(added_records, [])
+            flattened_records: list[dict] = [
+                subitem for sublist in added_records for subitem in sublist
+            ]
             keys_to_delete |= {r['key'] for r in flattened_records}
             changeset_ids = [c.id for c in changes]
             _, len_docs = ipaddress_view().revert(changeset_ids, "Reverted Spam")

@@ -1,5 +1,6 @@
 """pytest configuration for openlibrary
 """
+
 import pytest
 import web
 

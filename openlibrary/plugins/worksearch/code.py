@@ -482,7 +482,7 @@ class search(delegate.page):
             'time',
             'editions.sort',
         } | WorkSearchScheme.facet_fields:
-            if p in web_input and web_input[p]:
+            if web_input.get(p):
                 param[p] = web_input[p]
         if list(param) == ['has_fulltext']:
             param = {}

@@ -8,6 +8,7 @@ Upstream requires:
 
 This adapter module is a filter that sits above an Infobase server and fakes the new URL structure.
 """
+
 import json
 import web
 

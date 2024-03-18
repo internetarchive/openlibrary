@@ -65,11 +65,13 @@ def map_book_to_olbook(book, promise_id):
         'publishers': [clean_null(product_json.get('Publisher')) or '????'],
         'source_records': [f"promise:{promise_id}:{sku}"],
         # format_date adds hyphens between YYYY-MM-DD, or use only YYYY if date is suspect.
-        'publish_date': format_date(
-            date=publish_date, only_year=publish_date[-4:] in ('0000', '0101')
-        )
-        if publish_date
-        else '????',
+        'publish_date': (
+            format_date(
+                date=publish_date, only_year=publish_date[-4:] in ('0000', '0101')
+            )
+            if publish_date
+            else '????'
+        ),
     }
     if not olbook['identifiers']:
         del olbook['identifiers']

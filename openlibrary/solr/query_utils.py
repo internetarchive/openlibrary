@@ -256,9 +256,11 @@ def query_dict_to_str(
     result = ''
     if escaped:
         result += f' {op} '.join(
-            f'{k}:"{fully_escape_query(v)}"'
-            if phrase
-            else f'{k}:({fully_escape_query(v)})'
+            (
+                f'{k}:"{fully_escape_query(v)}"'
+                if phrase
+                else f'{k}:({fully_escape_query(v)})'
+            )
             for k, v in escaped.items()
         )
     if unescaped:
