@@ -92,7 +92,7 @@ class PreferenceProcessor:
     """Processor to handle unauthorized patron preferece reads"""
 
     def __init__(self):
-        self.pref_pattern = re.compile('^\/people\/([^/]+)\/preferences(.json|.yml)?$')
+        self.pref_pattern = re.compile(r'^\/people\/([^/]+)\/preferences(.json|.yml)?$')
 
     def __call__(self, handler):
         if self.pref_pattern.match(web.ctx.path):
