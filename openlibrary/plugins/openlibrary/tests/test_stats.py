@@ -1,6 +1,7 @@
 """
 Tests the stats gathering systems.
 """
+
 import calendar
 import datetime
 

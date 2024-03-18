@@ -1,5 +1,6 @@
 """Helper functions used by the List model.
 """
+
 from collections.abc import Iterable
 from functools import cached_property
 from typing import TypedDict, cast

@@ -1,5 +1,6 @@
 """Subject pages.
 """
+
 from dataclasses import dataclass
 from typing import Literal
 import web

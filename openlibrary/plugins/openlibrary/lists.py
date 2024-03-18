@@ -1,5 +1,6 @@
 """Lists implementation.
 """
+
 from dataclasses import dataclass, field
 import json
 from urllib.parse import parse_qs

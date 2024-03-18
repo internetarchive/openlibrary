@@ -84,6 +84,7 @@ But it works for subject-related range queries, so we consider it sufficient.
 [1]: https://www.terkko.helsinki.fi/files/9666/classify_trnee_manual.pdf
 [2]: https://ejournals.bc.edu/index.php/ital/article/download/11585/9839/
 """
+
 from __future__ import annotations
 import re
 from collections.abc import Iterable

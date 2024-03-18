@@ -1,5 +1,6 @@
 """Utilities to build the app.
 """
+
 from infogami.utils import app as _app
 from infogami.utils.view import render, public
 from infogami.utils.macro import macro

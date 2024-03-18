@@ -150,7 +150,7 @@ def test_subjects_for_work():
                 'subject_places': ['Great Britain'],
                 'subjects': ['British West Indies', 'Relations'],
             },
-        )
+        ),
         # 'West Indies, British -- Relations -- Great Britain.')
     ]
     for value, expect in data:

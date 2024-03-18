@@ -241,9 +241,7 @@ def check_status(locales: list[str]):
             percent_color = (
                 success_color_fn
                 if percent_complete == 100
-                else warning_color_fn
-                if percent_complete > 25
-                else error_color_fn
+                else warning_color_fn if percent_complete > 25 else error_color_fn
             )
             print(
                 total_color(

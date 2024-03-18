@@ -577,7 +577,7 @@ def _get_deleted_types_and_values():
     results = {'types': [], 'values': defaultdict(list)}
 
     for o in OBSERVATIONS['observations']:
-        if 'deleted' in o and o['deleted']:
+        if o.get('deleted'):
             results['types'].append(o['id'])
         else:
             for v in o['values']:

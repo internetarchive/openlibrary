@@ -455,9 +455,9 @@ class Edition(models.Edition):
                 'date': self.get('publish_date'),
                 'orig-date': self.works[0].get('first_publish_date'),
                 'title': self.title.replace("[", "&#91").replace("]", "&#93"),
-                'url': f'https://archive.org/details/{self.ocaid}'
-                if self.ocaid
-                else None,
+                'url': (
+                    f'https://archive.org/details/{self.ocaid}' if self.ocaid else None
+                ),
                 'publication-place': self.get('publish_places', [None])[0],
                 'publisher': self.get('publishers', [None])[0],
                 'isbn': self.get_isbnmask(),

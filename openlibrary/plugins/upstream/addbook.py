@@ -97,18 +97,15 @@ def make_work(doc: dict[str, str | list]) -> web.Storage:
 
 
 @overload
-def new_doc(type_: Literal["/type/author"], **data) -> Author:
-    ...
+def new_doc(type_: Literal["/type/author"], **data) -> Author: ...
 
 
 @overload
-def new_doc(type_: Literal["/type/edition"], **data) -> Edition:
-    ...
+def new_doc(type_: Literal["/type/edition"], **data) -> Edition: ...
 
 
 @overload
-def new_doc(type_: Literal["/type/work"], **data) -> Work:
-    ...
+def new_doc(type_: Literal["/type/work"], **data) -> Work: ...
 
 
 def new_doc(type_: str, **data) -> Author | Edition | Work:
