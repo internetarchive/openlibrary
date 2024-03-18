@@ -4,6 +4,7 @@ for access to the mocker fixture.
 
 # docker compose run --rm home pytest scripts/tests/test_affiliate_server.py
 """
+
 import json
 import sys
 from unittest.mock import MagicMock
