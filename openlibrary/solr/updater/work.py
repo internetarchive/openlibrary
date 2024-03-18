@@ -22,6 +22,7 @@ from openlibrary.solr.utils import SolrUpdateRequest, get_solr_next, str_to_key
 from openlibrary.utils import uniq
 from openlibrary.utils.ddc import choose_sorting_ddc, normalize_ddc
 from openlibrary.utils.lcc import choose_sorting_lcc, short_lcc_to_sortable_lcc
+from openlibrary.utils.open_syllabus_project import get_total_by_olid
 
 logger = logging.getLogger("openlibrary.solr")
 
@@ -315,11 +316,12 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def alternative_title(self) -> set[str]:
-        return {
-            title
-            for book in (EditionSolrBuilder(self._work), *self._solr_editions)
-            for title in book.alternative_title
-        }
+        alt_title_set = set()
+        for book in (EditionSolrBuilder(self._work), *self._solr_editions):
+            alt_title_set.update(book.alternative_title)
+            if book.translation_of:
+                alt_title_set.add(book.translation_of)
+        return alt_title_set
 
     @property
     def alternative_subtitle(self) -> set[str]:
@@ -331,6 +333,12 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     @property
     def edition_count(self) -> int:
         return len(self._editions)
+
+    @property
+    def osp_count(self) -> int | None:
+        if not get_solr_next():
+            return None
+        return get_total_by_olid(self.key)
 
     @property
     def edition_key(self) -> list[str]:

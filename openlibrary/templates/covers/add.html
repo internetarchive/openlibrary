@@ -1,5 +1,9 @@
 $def with (doc, data={}, status=None)
 
+$ i18n_strings = {
+    $ "empty_cover_inputs": _("Please choose an image or provide a URL.")
+    $ }
+
 $putctx('cssfile', 'form')
 $putctx("show_ol_shell", False)
 $putctx('robots', 'noindex,nofollow')
@@ -13,7 +17,7 @@ $else:
     $ action = doc.url('/add-cover')
     $ guideline = _("Cover Guidelines")
 
-<div class="popAlert" id="errors" style="display: $('block' if status else 'none')">
+<div class="popAlert" id="errors" style="display: $('block' if status else 'none')" data-i18n="$json_encode(i18n_strings)">
 $if status:
     $if status.code == 1: $_("Please provide a valid image.")
     $elif status.code == 2: $_("Please provide an image URL.")
@@ -35,7 +39,7 @@ $if status:
                         <div class="carousel-section">
                             <div id="covers" class="carousel-container carousel-container-decorated carousel--minimal">
                                 <div id="popcovers" class="carousel carousel--progressively-enhanced"
-                                    data-config="$json_encode(['#popcovers', 3, 3, 3, 3, 2, 1])">
+                                    data-config="$json_encode({'booksPerBreakpoint': [3, 3, 3, 3, 2, 1]})">
                                 $for cover in doc.get_edition_covers():
                                     <div class="book carousel__item" data-id="$cover.id">
                                         <div class="book-cover">
@@ -54,7 +58,7 @@ $if status:
                     <label id="imageBrowse" for="coverFile">$_("Choose a JPG, GIF or PNG on your computer,")</label>
                 </div>
                 <div class="input">
-                    <input type="file" name="file" id="coverFile" value=""/>
+                    <input type="file" name="file" id="coverFile" value="" accept=".jpg, .jpeg, .gif, .png"/>
                 </div>
             </div>
 
@@ -63,12 +67,14 @@ $if status:
                     <label id="imageWeb" for="imageUrl">$_("Or, paste in the image URL if it's on the web.")</label>
                 </div>
                 <div class="input">
-                    <input type="text" name="url" id="imageUrl" value="$data.get('url', 'https://')" onClick="if(!this._haschanged && this.value == 'https://'){this.value=''};this._haschanged=true;"/>
+                    <input type="url" name="url" id="imageUrl" value="$data.get('url', '')" placeholder="https://..." />
                 </div>
             </div>
 
             <div class="formElement" style="margin: $('15px 0px 0px 15px;' if doc.type.key == '/type/work' else '0px;')">
-                <button type="submit" name="upload" id="imageUpload" value="$_('Submit')" class="largest">$_("Submit")</button>
+                <button type="submit" name="upload" id="imageUpload" value="$_('Submit')" class="largest" data-loading-text='$_("Uploading...")'>
+                    $_("Submit")
+                </button>
                 <a class="dialog--close-parent red" href="javascript:;">$_("Cancel")</a>
             </div>
 

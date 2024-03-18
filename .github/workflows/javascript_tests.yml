@@ -22,10 +22,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20' # Should match what's in our Dockerfile
-      - uses: actions/cache@v3
+          # Should match what's in our Dockerfile
+          node-version: '20' # Also update the `key` in the `with` map, below
+      - uses: actions/cache@v4
         id: npm-cache
         with:
           # Caching node_modules isn't recommended because it can break across
@@ -35,7 +36,7 @@ jobs:
           # `node_modules` directly.
           path: 'node_modules'
           # Note the version number in this string -- update it when updating Node!
-          key: ${{ runner.os }}-node16-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node20-${{ hashFiles('**/package-lock.json') }}
       - if: steps.npm-cache.outputs.cache-hit != 'true'
         run: npm install --no-audit
       - run: npm run lint

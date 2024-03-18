@@ -71,7 +71,7 @@ class ISBNdb:
         self.languages = self._get_languages(data)
         self.source_records = [self.source_id]
         self.subjects = [
-            subject.capitalize() for subject in data.get('subjects', '') if subject
+            subject.capitalize() for subject in (data.get('subjects') or []) if subject
         ]
         self.binding = data.get('binding', '')
 

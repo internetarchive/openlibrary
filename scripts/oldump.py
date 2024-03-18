@@ -25,7 +25,7 @@ if __name__ == "__main__":
     from openlibrary.data import dump
     from openlibrary.utils.sentry import Sentry
 
-    log("{} on Python {}.{}.{}".format(sys.argv, *sys.version_info))  # Python 3.11.1
+    log("{} on Python {}.{}.{}".format(sys.argv, *sys.version_info))  # Python 3.12.2
 
     ol_config = os.getenv("OL_CONFIG")
     if ol_config:

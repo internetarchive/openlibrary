@@ -28,6 +28,11 @@
   iframe {
     width: 100%;
   }
+
+  img.cover {
+    border-radius: 5px;
+    box-shadow: 1px 1px 2px 0 @book-cover-shadow-color;
+  }
 }
 
 #cbox {
@@ -194,6 +199,7 @@ div.floater {
     text-align: center;
   }
   input[type=text],
+  input[type=url],
   input[type=file] {
     font-size: 1.125em;
     font-family: @lucida_sans_serif-1;
@@ -273,6 +279,7 @@ div.floaterAdd {
     }
 
     input[type=text],
+    input[type=url],
     input[type=file] {
       width: 350px;
     }
@@ -289,6 +296,7 @@ div.floaterAdd {
     .input,
     .label,
     input[type=text],
+    input[type=url],
     textarea {
       width: 560px;
       resize: none;

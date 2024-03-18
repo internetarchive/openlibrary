@@ -3,20 +3,26 @@ import web
 
 from typing import Final, Literal
 
+from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import public, safeint, render
 
 from openlibrary.i18n import gettext as _
 
 from openlibrary import accounts
+from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.core.lending import add_availability, get_loans_of_user
+from openlibrary.core.lending import (
+    add_availability,
+    get_loans_of_user,
+)
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.core.sponsorships import get_sponsored_editions
 from openlibrary.core.models import LoggedBooksData
+from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 
 
 RESULTS_PER_PAGE: Final = 25
@@ -51,7 +57,7 @@ class mybooks_home(delegate.page):
                 loans.docs.append(book)
 
         if mb.me or mb.is_public:
-            params = {'sort': 'created', 'limit': 6, 'sort_order': 'asc', 'page': 1}
+            params = {'sort': 'created', 'limit': 6, 'sort_order': 'desc', 'page': 1}
             want_to_read = mb.readlog.get_works(key='want-to-read', **params)
             currently_reading = mb.readlog.get_works(key='currently-reading', **params)
             already_read = mb.readlog.get_works(key='already-read', **params)
@@ -92,9 +98,9 @@ class mybooks_notes(delegate.page):
         i = web.input(page=1)
         mb = MyBooksTemplate(username, key='notes')
         if mb.is_my_page:
-            docs = PatronBooknotes(mb.user).get_notes(page=i.page)
+            docs = PatronBooknotes(mb.user).get_notes(page=int(i.page))
             template = render['account/notes'](
-                docs, mb.user, mb.counts['notes'], page=i.page
+                docs, mb.user, mb.counts['notes'], page=int(i.page)
             )
             return mb.render(header_title=_("Notes"), template=template)
         raise web.seeother(mb.user.key)
@@ -107,9 +113,9 @@ class mybooks_reviews(delegate.page):
         i = web.input(page=1)
         mb = MyBooksTemplate(username, key='observations')
         if mb.is_my_page:
-            docs = PatronBooknotes(mb.user).get_observations(page=i.page)
+            docs = PatronBooknotes(mb.user).get_observations(page=int(i.page))
             template = render['account/observations'](
-                docs, mb.user, mb.counts['observations'], page=i.page
+                docs, mb.user, mb.counts['observations'], page=int(i.page)
             )
             return mb.render(header_title=_("Reviews"), template=template)
         raise web.seeother(mb.user.key)
@@ -174,6 +180,7 @@ class readinglog_stats(delegate.page):
             {
                 # Fallback to key if it is a redirect
                 'title': w.get('title') or w.key,
+                'subtitle': w.get('subtitle'),
                 'key': w.get('key'),
                 'author_keys': ['/authors/' + key for key in w.get('author_key', [])],
                 'first_publish_year': w.get('first_publish_year') or None,
@@ -215,6 +222,7 @@ class readinglog_yearly(delegate.page):
             # ensuring that the year is at least four digits long avoids incorrect results.
             raise web.badrequest(message="Year must be four digits")
         mb = MyBooksTemplate(username, 'already-read')
+        mb.selected_year = str(year)
         template = mybooks_readinglog().render_template(mb, year=year)
         return mb.render(template=template, header_title=_("Already Read"))
 
@@ -223,12 +231,18 @@ class mybooks_readinglog(delegate.page):
     path = r'/people/([^/]+)/books/(want-to-read|currently-reading|already-read)'
 
     def GET(self, username, key='want-to-read'):
-        KEYS_TITLES = {
-            'currently-reading': _("Currently Reading"),
-            'want-to-read': _("Want to Read"),
-            'already-read': _("Already Read"),
-        }
         mb = MyBooksTemplate(username, key)
+        KEYS_TITLES = {
+            'currently-reading': _(
+                "Currently Reading (%(count)d)", count=mb.counts['currently-reading']
+            ),
+            'want-to-read': _(
+                "Want to Read (%(count)d)", count=mb.counts['want-to-read']
+            ),
+            'already-read': _(
+                "Already Read (%(count)d)", count=mb.counts['already-read']
+            ),
+        }
         if mb.is_my_page or mb.is_public:
             template = self.render_template(mb)
             return mb.render(header_title=KEYS_TITLES[key], template=template)
@@ -249,6 +263,15 @@ class mybooks_readinglog(delegate.page):
         # Add ratings to "already-read" items.
         if include_ratings := mb.key == "already-read" and mb.is_my_page:
             logged_book_data.load_ratings()
+
+        # Add yearly reading goals to the MyBooksTemplate
+        if mb.key == 'already-read' and mb.is_my_page:
+            mb.reading_goals = [
+                str(result.year)
+                for result in YearlyReadingGoals.select_by_username(
+                    mb.username, order='year DESC'
+                )
+            ]
 
         ratings = logged_book_data.ratings
         return render['account/reading_log'](
@@ -381,6 +404,9 @@ class MyBooksTemplate:
             if (self.is_my_page or self.is_public)
             else []
         )
+
+        self.reading_goals = []
+        self.selected_year = None
 
         if self.me and self.is_my_page:
             self.counts.update(PatronBooknotes.get_counts(self.username))

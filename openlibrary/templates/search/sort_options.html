@@ -45,7 +45,7 @@ $code:
       $if is_selected:
           <a><strong>$sort_option['name']</strong></a>
       $else:
-          <a href="$changequery(sort=cond(sort_option['sort'] == default_sort, None, sort_option['sort']))"
+          <a href="$changequery(page=None, sort=cond(sort_option['sort'] == default_sort, None, sort_option['sort']))"
              data-ol-link-track="SearchSort|$sort_option['ga_key']"
              rel="nofollow"
           >$sort_option['name']</a>
@@ -57,14 +57,14 @@ $code:
           $for sub_sort in sort_option['sub_sorts']:
             $ is_selected = sub_sort['sort'] == selected_sort
             <option
-              value="$changequery(sort=cond(sub_sort['sort'] == default_sort, None, sub_sort['sort']))"
+              value="$changequery(page=None, sort=cond(sub_sort['sort'] == default_sort, None, sub_sort['sort']))"
               $cond(is_selected, 'selected')
             >$sub_sort['name']</option>
         </select>
       $if not loop.last:
         |
     $if selected_sort and selected_sort.startswith('random'):
-      (<a href="$changequery(sort='random_%s' % today().timestamp())"
+      (<a href="$changequery(page=None, sort='random_%s' % today().timestamp())"
          data-ol-link-track="SearchSort|RandomShuffle"
          rel="nofollow"
       >$_('Shuffle')</a>)

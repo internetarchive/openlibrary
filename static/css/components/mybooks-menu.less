@@ -284,4 +284,13 @@
   .mybooks-menu-mobile {
     display: none;
   }
+  .mybooks-menu {
+    width: 200px;  // 250px width + 75% width in `.mybooks-details {}` causes overflow.
+  }
+}
+
+@media only screen and (min-width: (@width-breakpoint-desktop + 1)) {
+  .mybooks-menu {
+    width: 250px;  // Desktops are fine with the wider menu.
+  }
 }

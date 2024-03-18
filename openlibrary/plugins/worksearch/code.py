@@ -1,9 +1,11 @@
 from dataclasses import dataclass
+import itertools
+import time
 import copy
 import json
 import logging
 import re
-from typing import Any
+from typing import Any, cast
 from collections.abc import Iterable
 from unicodedata import normalize
 import requests
@@ -17,7 +19,6 @@ from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Edition
-from openlibrary.plugins.inside.code import fulltext_search
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import (
     get_language_name,
@@ -230,10 +231,12 @@ def run_solr_query(
         params.append(('sort', scheme.process_user_sort(sort)))
 
     url = f'{solr_select_url}?{urlencode(params)}'
-
+    start_time = time.time()
     response = execute_solr_query(solr_select_url, params)
     solr_result = response.json() if response else None
-    return SearchResponse.from_solr_result(solr_result, sort, url)
+    end_time = time.time()
+    duration = end_time - start_time
+    return SearchResponse.from_solr_result(solr_result, sort, url, time=duration)
 
 
 @dataclass
@@ -245,12 +248,15 @@ class SearchResponse:
     solr_select: str
     raw_resp: dict = None
     error: str = None
+    time: float = None
+    """Seconds to execute the query"""
 
     @staticmethod
     def from_solr_result(
         solr_result: dict | None,
         sort: str,
         solr_select: str,
+        time: float,
     ) -> 'SearchResponse':
         if not solr_result or 'error' in solr_result:
             return SearchResponse(
@@ -260,6 +266,7 @@ class SearchResponse:
                 num_found=None,
                 solr_select=solr_select,
                 error=(solr_result.get('error') if solr_result else None),
+                time=time,
             )
         else:
             return SearchResponse(
@@ -277,6 +284,7 @@ class SearchResponse:
                 docs=solr_result['response']['docs'],
                 num_found=solr_result['response']['numFound'],
                 solr_select=solr_select,
+                time=time,
             )
 
 
@@ -449,13 +457,54 @@ class search(delegate.page):
         for k in ('title', 'author', 'isbn', 'subject', 'place', 'person', 'publisher'):
             if k in i:
                 q_list.append(f'{k}:{fully_escape_query(i[k].strip())}')
+
+        web_input = i
+        param = {}
+        for p in {
+            'q',
+            'title',
+            'author',
+            'page',
+            'sort',
+            'isbn',
+            'oclc',
+            'contributor',
+            'publish_place',
+            'lccn',
+            'ia',
+            'first_sentence',
+            'publisher',
+            'author_key',
+            'debug',
+            'subject',
+            'place',
+            'person',
+            'time',
+            'editions.sort',
+        } | WorkSearchScheme.facet_fields:
+            if p in web_input and web_input[p]:
+                param[p] = web_input[p]
+        if list(param) == ['has_fulltext']:
+            param = {}
+
+        page = int(param.get('page', 1))
+        sort = param.get('sort', None)
+        rows = 20
+        if param:
+            search_response = do_search(
+                param, sort, page, rows=rows, spellcheck_count=3
+            )
+        else:
+            search_response = SearchResponse(
+                facet_counts=None, sort='', docs=[], num_found=0, solr_select=''
+            )
         return render.work_search(
-            i,
             ' '.join(q_list),
-            do_search,
+            search_response,
             get_doc,
-            fulltext_search,
-            WorkSearchScheme.facet_fields,
+            param,
+            page,
+            rows,
         )
 
 
@@ -663,13 +712,14 @@ def rewrite_list_query(q, page, offset, limit):
     can use the solr API to fetch list works and render them in
     carousels in the right format.
     """
+    from openlibrary.core.lists.model import List
 
     def cached_get_list_book_keys(key, offset, limit):
         # make cacheable
         if 'env' not in web.ctx:
             delegate.fakeload()
-        lst = web.ctx.site.get(key)
-        return lst.get_book_keys(offset=offset, limit=limit)
+        lst = cast(List, web.ctx.site.get(key))
+        return list(itertools.islice(lst.get_work_keys(), offset or 0, offset + limit))
 
     if '/lists/' in q:
         # we're making an assumption that q is just a list key

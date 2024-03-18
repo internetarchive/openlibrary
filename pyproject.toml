@@ -6,7 +6,7 @@
 [project]
 name = "openlibrary"
 version = "1.0.0"
-requires-python = ">=3.11.1,<3.11.2"
+requires-python = ">=3.12.2,<3.12.3"
 
 [tool.black]
 skip-string-normalization = true
@@ -177,6 +177,7 @@ max-statements = 70
 "openlibrary/plugins/upstream/utils.py" = ["BLE001"]
 "openlibrary/solr/solr_types.py" = ["UP007"]
 "openlibrary/utils/retry.py" = ["BLE001"]
+"openlibrary/utils/open_syllabus_project.py" = ["BLE001"]
 "openlibrary/utils/schema.py" = ["PERF402"]
 "openlibrary/utils/tests/test_retry.py" = ["PT012", "PT017"]
 "scripts/affiliate_server*.py" = ["SIM105"]
@@ -186,7 +187,7 @@ max-statements = 70
 "scripts/lc_marc_update.py" = ["E722"]
 "scripts/manage-imports.py" = ["BLE001"]
 "scripts/sitemaps/sitemap.py" = ["BLE001"]
-"scripts/solr_builder/solr_builder/solr_builder.py" = ["PYI024"]
+"scripts/solr_builder/solr_builder/solr_builder.py" = ["PYI024", "PLR0913"]
 "tests/*" = ["S101"]
 "tests/integration/__init__.py" = ["E722"]
 "tests/integration/test_loans.py" = ["E722"]

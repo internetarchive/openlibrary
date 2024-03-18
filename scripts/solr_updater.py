@@ -10,6 +10,7 @@ import asyncio
 import datetime
 import json
 import logging
+from pathlib import Path
 import re
 import socket
 import sys
@@ -26,6 +27,7 @@ import web
 from openlibrary.solr import update
 from openlibrary.config import load_config
 from infogami import config
+from openlibrary.utils.open_syllabus_project import set_osp_dump_location
 
 logger = logging.getLogger("openlibrary.solr-updater")
 # FIXME: Some kind of hack introduced to work around DB connectivity issue
@@ -242,6 +244,7 @@ async def update_keys(keys):
 
 async def main(
     ol_config: str,
+    osp_dump: Path | None = None,
     debugger: bool = False,
     state_file: str = 'solr-update.state',
     exclude_edits_containing: str | None = None,
@@ -285,6 +288,7 @@ async def main(
         update.set_solr_base_url(solr_url)
 
     update.set_solr_next(solr_next)
+    set_osp_dump_location(osp_dump)
 
     logger.info("loading config from %s", ol_config)
     load_config(ol_config)

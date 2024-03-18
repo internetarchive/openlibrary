@@ -22,6 +22,7 @@ A record is loaded by calling the load function.
     response = load(record)
 
 """
+import itertools
 import re
 from typing import TYPE_CHECKING, Any
 
@@ -849,7 +850,7 @@ def update_edition_with_rec_data(
         edition['ocaid'] = rec['ocaid']
         need_edition_save = True
 
-    # Add list fields to edition as needed
+    # Fields which have their VALUES added if absent.
     edition_list_fields = [
         'local_id',
         'lccn',
@@ -863,14 +864,16 @@ def update_edition_with_rec_data(
         # ensure values is a list
         values = rec[f] if isinstance(rec[f], list) else [rec[f]]
         if f in edition:
-            # get values from rec that are not currently on the edition
-            to_add = [v for v in values if v not in edition[f]]
+            # get values from rec field that are not currently on the edition
+            case_folded_values = {v.casefold() for v in edition[f]}
+            to_add = [v for v in values if v.casefold() not in case_folded_values]
             edition[f] += to_add
         else:
             edition[f] = to_add = values
         if to_add:
             need_edition_save = True
 
+    # Fields that are added as a whole if absent. (Individual values are not added.)
     other_edition_fields = [
         'description',
         'number_of_pages',
@@ -908,13 +911,15 @@ def update_work_with_rec_data(
     """
     # Add subjects to work, if not already present
     if 'subjects' in rec:
-        work_subjects = list(work.get('subjects', []))
-        for s in rec['subjects']:
-            if s not in work_subjects:
-                work_subjects.append(s)
-                need_work_save = True
-        if need_work_save and work_subjects:
-            work['subjects'] = work_subjects
+        work_subjects: list[str] = list(work.get('subjects', []))
+        rec_subjects: list[str] = rec.get('subjects', [])
+        deduped_subjects = uniq(
+            itertools.chain(work_subjects, rec_subjects), lambda item: item.casefold()
+        )
+
+        if work_subjects != deduped_subjects:
+            work['subjects'] = deduped_subjects
+            need_work_save = True
 
     # Add cover to work, if needed
     if not work.get('covers') and edition.get_covers():
