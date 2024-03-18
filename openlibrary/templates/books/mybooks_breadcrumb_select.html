@@ -7,9 +7,14 @@ $if mb.is_my_page or mb.is_public:
   $ options += [
   $   (_("Want to Read (%(count)d)", count=mb.counts['want-to-read']), readlog_url % "want-to-read"),
   $   (_("Currently Reading (%(count)d)", count=mb.counts['currently-reading']), readlog_url % "currently-reading"),
-  $   (_("Already Read (%(count)d)", count=mb.counts['already-read']), readlog_url % "already-read")
-  $ ]
-$ options += [(_("Lists (%(count)d)", count=len(mb.lists)) , url_prefix + "/lists")]
+  $   (_("Already Read (%(count)d)", count=mb.counts['already-read']), readlog_url % "already-read"),
+  $   (_("My Feed"), readlog_url % "feed"),
+$ ]
+$ options += [
+  $   (_("Lists (%(count)d)", count=len(mb.lists)) , url_prefix + "/lists"),
+  $   (_("Followers"), url_prefix + "/followers"),
+  $   (_("Following"), url_prefix + "/following"),
+$ ]
 $if mb.is_my_page:
   $ options += [
   $   (_("Loans"), "/account/loans"),
