@@ -84,9 +84,30 @@
     }
   }
 
+  .links-form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    padding-bottom: 20px;
+
+    .links-form__inputs {
+      display: flex;
+      flex-flow: row wrap;
+      gap: 5px;
+      width: 100%;
+    }
+
+    .links-form__label, .links-form__url {
+      flex: 1 1 0;
+      min-width: 250px;
+    }
+  }
+
   input[type=number],
   input[type=text],
-  input[type=password] {
+  input[type=password],
+  input[type=url] {
     margin: 0 10px 5px 0;
   }
 
@@ -94,6 +115,7 @@
   input[type=text],
   input[type=email],
   input[type=password],
+  input[type=url],
   textarea {
     font-size: 1.0em;
     font-family: @lucida_sans_serif-5;
@@ -130,6 +152,7 @@
       input[type=text],
       input[type=email],
       input[type=password],
+      input[type=url],
       textarea {
         font-size: .875em;
         width: 100%;
@@ -202,6 +225,7 @@
     input[type=text],
     input[type=email],
     input[type=password],
+    input[type=url],
     textarea {
       width: 475px;
       resize: vertical;
