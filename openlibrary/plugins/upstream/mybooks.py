@@ -235,7 +235,8 @@ class mybooks_readinglog(delegate.page):
         if mb.is_my_page or mb.is_public:
             KEYS_TITLES = {
                 'currently-reading': _(
-                    "Currently Reading (%(count)d)", count=mb.counts['currently-reading']
+                    "Currently Reading (%(count)d)",
+                    count=mb.counts['currently-reading'],
                 ),
                 'want-to-read': _(
                     "Want to Read (%(count)d)", count=mb.counts['want-to-read']
