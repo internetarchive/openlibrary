@@ -402,7 +402,7 @@ class MyBooksTemplate:
         self.counts = (
             self.readlog.reading_log_counts
             if (self.is_my_page or self.is_public)
-            else []
+            else {}
         )
 
         self.reading_goals = []
