@@ -232,18 +232,18 @@ class mybooks_readinglog(delegate.page):
 
     def GET(self, username, key='want-to-read'):
         mb = MyBooksTemplate(username, key)
-        KEYS_TITLES = {
-            'currently-reading': _(
-                "Currently Reading (%(count)d)", count=mb.counts['currently-reading']
-            ),
-            'want-to-read': _(
-                "Want to Read (%(count)d)", count=mb.counts['want-to-read']
-            ),
-            'already-read': _(
-                "Already Read (%(count)d)", count=mb.counts['already-read']
-            ),
-        }
         if mb.is_my_page or mb.is_public:
+            KEYS_TITLES = {
+                'currently-reading': _(
+                    "Currently Reading (%(count)d)", count=mb.counts['currently-reading']
+                ),
+                'want-to-read': _(
+                    "Want to Read (%(count)d)", count=mb.counts['want-to-read']
+                ),
+                'already-read': _(
+                    "Already Read (%(count)d)", count=mb.counts['already-read']
+                ),
+            }
             template = self.render_template(mb)
             return mb.render(header_title=KEYS_TITLES[key], template=template)
         raise web.seeother(mb.user.key)
