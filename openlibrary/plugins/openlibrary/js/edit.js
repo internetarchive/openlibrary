@@ -441,15 +441,6 @@ export function initEditLinks() {
             const i18nStrings = JSON.parse(document.querySelector('#link-errors').dataset.i18n);
             const url = data.url.trim();
 
-            function isValidURL(url) {
-                try {
-                    new URL(url);
-                    return true;
-                } catch (e) {
-                    return false;
-                }
-            }
-
             if (data.title.trim() === '') {
                 $('#link-errors').html(i18nStrings['empty_label']);
                 $('#link-errors').removeClass('hidden');
@@ -499,5 +490,18 @@ export function initEdit() {
             $(fieldname).trigger('focus');
             $(window).scrollTop($('#contentHead').offset().top);
         }, 1000);
+    }
+}
+
+/**
+ * Assesses URL validity using built-in URL object.
+ * @param string url
+ */
+function isValidURL(url) {
+    try {
+        new URL(url);
+        return true;
+    } catch (e) {
+        return false;
     }
 }
