@@ -11,8 +11,8 @@ body:
 
   - type: textarea
     attributes:
-      label: Problem Description
-      description: Describe the problem that this feature will address
+      label: Problem
+      description: Describe the problem that this feature will address.
       value: |
         ### A clear and concise description of what you want to happen
 
@@ -32,9 +32,6 @@ body:
 
         ### Which suggestions or requirements should be considered for how feature needs to appear or be implemented?
 
-    validations:
-      required: true
-
   - type: textarea
     attributes:
       label: Additional Context
@@ -47,15 +44,3 @@ body:
       label: Stakeholders
       description: Tag stakeholders of this feqture request if any
       placeholder: "@ tag stakeholders related to this feature request"
-
-  - type: dropdown
-    attributes:
-      label: Priority
-      description: Describe the priority on which this feature should be implemented
-      options:
-        - 1
-        - 2
-        - 3
-        - 4
-        - 5
-      default: 2
