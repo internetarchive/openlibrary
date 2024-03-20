@@ -39,8 +39,4 @@ body:
       value: |
         ### Other context or screenshots about the feature request
 
-  - type: textarea
-    attributes:
-      label: Stakeholders
-      description: Tag stakeholders of this feqture request if any
-      placeholder: "@ tag stakeholders related to this feature request"
+        ### Tag stakeholders of this feature request if any
