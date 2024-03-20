@@ -1,13 +1,18 @@
 ports:
-- port: 8080
+- name: Web App
+  port: 8080
 # ignore these ports by default to avoid extra notifications
-- port: 8983
+- name: Solr
+  port: 8983
   onOpen: ignore
-- port: 7075
+- name: Covers
+  port: 7075
   onOpen: ignore
-- port: 7000
+- name: Infobase
+  port: 7000
   onOpen: ignore
-- port: 3000
+- name: Debugger
+  port: 3000
   onOpen: ignore
 tasks:
 - name: watch
