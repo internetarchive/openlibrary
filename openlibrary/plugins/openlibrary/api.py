@@ -652,11 +652,16 @@ class hide_banner(delegate.page):
     path = '/hide_banner'
 
     def POST(self):
+        user = accounts.get_current_user()
         data = json.loads(web.data())
 
         # Set truthy cookie that expires in 30 days:
         DAY_SECONDS = 60 * 60 * 24
         cookie_duration_days = int(data.get('cookie-duration-days', 30))
+
+        if user and data['cookie-name'].startswith('yrg'):
+            user.save_preferences({'yrg_banner_pref': data['cookie-name']})
+
         web.setcookie(
             data['cookie-name'], '1', expires=(cookie_duration_days * DAY_SECONDS)
         )

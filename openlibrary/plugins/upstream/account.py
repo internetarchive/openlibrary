@@ -348,6 +348,15 @@ class account_login_json(delegate.page):
                 ol_account = OpenLibraryAccount.get(email=audit['ia_email'])
                 if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
                     web.setcookie('sfw', 'yes', expires=expires)
+                if (
+                    ol_account
+                    and 'yrg_banner_pref' in ol_account.get_user().preferences()
+                ):
+                    web.setcookie(
+                        ol_account.get_user().preferences()['yrg_banner_pref'],
+                        '1',
+                        expires=(3600 * 24 * 365),
+                    )
         # Fallback to infogami user/pass
         else:
             from infogami.plugins.api.code import login as infogami_login
@@ -414,6 +423,12 @@ class account_login(delegate.page):
         ol_account = OpenLibraryAccount.get(email=email)
         if ol_account and ol_account.get_user().get_safe_mode() == 'yes':
             web.setcookie('sfw', 'yes', expires=expires)
+        if ol_account and 'yrg_banner_pref' in ol_account.get_user().preferences():
+            web.setcookie(
+                ol_account.get_user().preferences()['yrg_banner_pref'],
+                '1',
+                expires=(3600 * 24 * 365),
+            )
         blacklist = [
             "/account/login",
             "/account/create",
