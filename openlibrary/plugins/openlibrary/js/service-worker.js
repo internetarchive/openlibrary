@@ -48,11 +48,11 @@ registerRoute(
 // covers png cache
 registerRoute(
     new RegExp('https://covers.openlibrary.org/b/.+'),
-    new NetworkFirst({
+    new CacheFirst({
         cacheName: 'covers-cache',
         plugins: [
             new ExpirationPlugin({
-                maxEntries: 15,
+                maxEntries: 150,
             }),
             new CacheableResponsePlugin({
                 statuses: [0, 200],
