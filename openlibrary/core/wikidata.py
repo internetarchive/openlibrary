@@ -4,6 +4,7 @@ The purpose of this file is to:
 2. Store the results
 3. Make the results easy to access from other files
 """
+
 import requests
 from dataclasses import dataclass
 from openlibrary.core.helpers import days_since
