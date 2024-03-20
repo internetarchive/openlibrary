@@ -1,4 +1,4 @@
-FROM python:3.11.1-slim
+FROM python:3.12.2-slim-bookworm
 
 ENV LANG en_US.UTF-8
 

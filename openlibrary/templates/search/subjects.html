@@ -1,6 +1,6 @@
 $def with (get_results)
 
-$ q = query_param('q')
+$ q = query_param('q', '').strip()
 $ results_per_page = 100
 $ page = query_param('page')
 $if page:

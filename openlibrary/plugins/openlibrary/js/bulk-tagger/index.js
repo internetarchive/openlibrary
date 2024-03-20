@@ -20,8 +20,7 @@ export function renderBulkTagger() {
         <div class="selection-container hidden">
             <div class="selected-tag-subjects"></div>
             <div class="subjects-search-results"></div>
-        </div>
-        <div class="create-new-subject-tag">
+            <div class="create-new-subject-tag">
             <div class="search-subject-row-name search-subject-row-name-create hidden">
                 <div class="search-subject-row-name-create-p">Create new subject <strong class="subject-name"></strong> with type:</div>
                 <div class="search-subject-row-name-create-select">
@@ -31,6 +30,7 @@ export function renderBulkTagger() {
                     <div class="subject-type-option subject-type-option--time" data-tag-type="subject_times">time</div>
                 </div>
             </div>
+        </div>
         </div>
         <div class="submit-tags-section">
             <button type="submit" class="bulk-tagging-submit cta-btn cta-btn--primary" disabled>Submit</button>

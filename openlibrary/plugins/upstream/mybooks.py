@@ -3,17 +3,22 @@ import web
 
 from typing import Final, Literal
 
+from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import public, safeint, render
 
 from openlibrary.i18n import gettext as _
 
 from openlibrary import accounts
+from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.core.lending import add_availability, get_loans_of_user
+from openlibrary.core.lending import (
+    add_availability,
+    get_loans_of_user,
+)
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.core.sponsorships import get_sponsored_editions
 from openlibrary.core.models import LoggedBooksData
@@ -52,7 +57,7 @@ class mybooks_home(delegate.page):
                 loans.docs.append(book)
 
         if mb.me or mb.is_public:
-            params = {'sort': 'created', 'limit': 6, 'sort_order': 'asc', 'page': 1}
+            params = {'sort': 'created', 'limit': 6, 'sort_order': 'desc', 'page': 1}
             want_to_read = mb.readlog.get_works(key='want-to-read', **params)
             currently_reading = mb.readlog.get_works(key='currently-reading', **params)
             already_read = mb.readlog.get_works(key='already-read', **params)
@@ -93,9 +98,9 @@ class mybooks_notes(delegate.page):
         i = web.input(page=1)
         mb = MyBooksTemplate(username, key='notes')
         if mb.is_my_page:
-            docs = PatronBooknotes(mb.user).get_notes(page=i.page)
+            docs = PatronBooknotes(mb.user).get_notes(page=int(i.page))
             template = render['account/notes'](
-                docs, mb.user, mb.counts['notes'], page=i.page
+                docs, mb.user, mb.counts['notes'], page=int(i.page)
             )
             return mb.render(header_title=_("Notes"), template=template)
         raise web.seeother(mb.user.key)
@@ -108,9 +113,9 @@ class mybooks_reviews(delegate.page):
         i = web.input(page=1)
         mb = MyBooksTemplate(username, key='observations')
         if mb.is_my_page:
-            docs = PatronBooknotes(mb.user).get_observations(page=i.page)
+            docs = PatronBooknotes(mb.user).get_observations(page=int(i.page))
             template = render['account/observations'](
-                docs, mb.user, mb.counts['observations'], page=i.page
+                docs, mb.user, mb.counts['observations'], page=int(i.page)
             )
             return mb.render(header_title=_("Reviews"), template=template)
         raise web.seeother(mb.user.key)
@@ -229,10 +234,10 @@ class mybooks_readinglog(delegate.page):
         mb = MyBooksTemplate(username, key)
         KEYS_TITLES = {
             'currently-reading': _(
-                "Want to Read (%(count)d)", count=mb.counts['want-to-read']
+                "Currently Reading (%(count)d)", count=mb.counts['currently-reading']
             ),
             'want-to-read': _(
-                "Currently Reading (%(count)d)", count=mb.counts['currently-reading']
+                "Want to Read (%(count)d)", count=mb.counts['want-to-read']
             ),
             'already-read': _(
                 "Already Read (%(count)d)", count=mb.counts['already-read']
@@ -543,7 +548,7 @@ def add_read_statuses(username, works):
         results_map[f"OL{result['work_id']}W"] = result['bookshelf_id']
     for work in works:
         work_olid = work.key.split('/')[-1]
-        work['readinglog'] = results_map.get(work_olid, None)
+        work['readinglog'] = results_map.get(work_olid)
     return works
 
 

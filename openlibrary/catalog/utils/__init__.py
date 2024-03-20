@@ -365,4 +365,4 @@ def get_missing_fields(rec: dict) -> list[str]:
         'title',
         'source_records',
     ]
-    return [field for field in required_fields if rec.get(field, None) is None]
+    return [field for field in required_fields if rec.get(field) is None]

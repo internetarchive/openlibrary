@@ -2,6 +2,7 @@
 
 This should go into infogami.
 """
+
 import web
 import json
 import yaml

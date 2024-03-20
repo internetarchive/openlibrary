@@ -12,6 +12,7 @@ This works as follows:
   reduce function is applied for each key and its values.
 * The reduced key, value pairs are returned as an iterator.
 """
+
 import sys
 import itertools
 import os

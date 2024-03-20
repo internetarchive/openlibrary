@@ -27,7 +27,6 @@ re_oclc = re.compile(r'^\(OCoLC\).*?0*(\d+)')
 re_ocolc = re.compile('^ocolc *$', re.I)
 re_ocn_or_ocm = re.compile(r'^oc[nm]0*(\d+) *$')
 re_int = re.compile(r'\d{2,}')
-re_number_dot = re.compile(r'\d{3,}\.$')
 re_bracket_field = re.compile(r'^\s*(\[.*\])\.?\s*$')
 
 
@@ -399,10 +398,6 @@ def read_author_person(field: MarcFieldBase, tag: str = '100') -> dict | None:
         return None
     if 'd' in contents:
         author = pick_first_date(strip_foc(d).strip(',[]') for d in contents['d'])
-        if 'death_date' in author and author['death_date']:
-            death_date = author['death_date']
-            if re_number_dot.search(death_date):
-                author['death_date'] = death_date[:-1]
     author['name'] = name_from_list(field.get_subfield_values('abc'))
     author['entity_type'] = 'person'
     subfields = [

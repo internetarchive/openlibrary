@@ -256,9 +256,11 @@ def query_dict_to_str(
     result = ''
     if escaped:
         result += f' {op} '.join(
-            f'{k}:"{fully_escape_query(v)}"'
-            if phrase
-            else f'{k}:({fully_escape_query(v)})'
+            (
+                f'{k}:"{fully_escape_query(v)}"'
+                if phrase
+                else f'{k}:({fully_escape_query(v)})'
+            )
             for k, v in escaped.items()
         )
     if unescaped:
@@ -266,3 +268,16 @@ def query_dict_to_str(
             result += f' {op} '
         result += f' {op} '.join(f'{k}:{v}' for k, v in unescaped.items())
     return result
+
+
+def luqum_replace_field(query, replacer: Callable[[str], str]) -> str:
+    """
+    Replaces portions of a field, as indicated by the replacement function.
+
+    :param query: Passed in the form of a luqum tree
+    :param replacer: function called on each query.
+    """
+    for sf, _ in luqum_traverse(query):
+        if isinstance(sf, SearchField):
+            sf.name = replacer(sf.name)
+    return str(query)

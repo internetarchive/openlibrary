@@ -1,5 +1,6 @@
 """Plugin to provide admin interface.
 """
+
 import os
 import requests
 import sys
@@ -9,6 +10,8 @@ import datetime
 import traceback
 import logging
 import json
+
+from internetarchive.exceptions import ItemLocateError
 
 from infogami import config
 from infogami.utils import delegate
@@ -202,9 +205,14 @@ class add_work_to_staff_picks:
             ocaids = [edition.ocaid for edition in editions if edition.ocaid]
             results[work_id] = {}
             for ocaid in ocaids:
-                results[work_id][ocaid] = create_ol_subjects_for_ocaid(
-                    ocaid, subjects=subjects
-                )
+                try:
+                    results[work_id][ocaid] = create_ol_subjects_for_ocaid(
+                        ocaid, subjects=subjects
+                    )
+                except ItemLocateError as err:
+                    results[work_id][
+                        ocaid
+                    ] = f'Failed to add to staff picks. Error message: {err}'
 
         return delegate.RawText(json.dumps(results), content_type="application/json")
 
@@ -387,7 +395,9 @@ class people_view:
             added_records: list[list[dict]] = [
                 c.changes for c in changes if c.kind == 'add-book'
             ]
-            flattened_records: list[dict] = sum(added_records, [])
+            flattened_records: list[dict] = [
+                subitem for sublist in added_records for subitem in sublist
+            ]
             keys_to_delete |= {r['key'] for r in flattened_records}
             changeset_ids = [c.id for c in changes]
             _, len_docs = ipaddress_view().revert(changeset_ids, "Reverted Spam")
@@ -785,7 +795,7 @@ class inspect:
         i = web.input(action="read")
         i.setdefault("keys", "")
 
-        mc = cache.get_memcache()
+        mc = cache.get_memcache().memcache
 
         keys = [k.strip() for k in i["keys"].split() if k.strip()]
         if i.action == "delete":

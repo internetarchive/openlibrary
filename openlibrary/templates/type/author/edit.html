@@ -118,18 +118,6 @@ $:macros.HiddenSaveButton("addAuthor")
                             $:render_component('AuthorIdentifiers', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenIdentifierInputs',author_config_string=dict(get_author_config())))
                         </div>
 
-                        $if page.website:
-                            $if ctx.user and ctx.user.is_admin():
-                                <div class="formElement adminOnly">
-                                    <div class="label">
-                                        <label for="uris">$_("Websites")</label>
-                                        <span class="tip">$_("Deprecated")</span>
-                                    </div>
-                                    <div class="input">
-                                        <input type="text" name="author--website" id="website" value="$page.website"/>
-                                    </div>
-                                </div>
-
 
                 </div>
 <!-- /ABOUT -->

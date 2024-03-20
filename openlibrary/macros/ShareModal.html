@@ -6,7 +6,7 @@ $# :param str classes: HTML classes for this component
 
 
 $def embed_iframe(page_url):
-  <iframe frameborder="0" width="165" height="400" src="$(page_url)/-/widget"></iframe>
+  <iframe frameborder="0" width="165" height="400" src="//$request.domain$page_url/widget"></iframe>
 
 <div class="$classes">
   $:link_markup
@@ -49,6 +49,19 @@ $def embed_iframe(page_url):
               </a>
               <div class="share-source">$_('Embed')</div>
             </li>
+
+            <li>
+              <a class="copy-url-btn" title="$_('Copy url to clipboard')" data-ol-link-track="Share|CopyURL">
+                  <img
+                      alt="$_('Copy URL icon')"
+                      class="share-link"
+                      src="$static_url('images/copy_url.png')"
+                      loading="lazy"
+                  >
+              </a>
+              <div class="share-source">$_('Copy URL')</div>
+            </li>
+
           </ul>
         </div>
       </div>

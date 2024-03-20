@@ -82,8 +82,8 @@ services:
     user: root
     command: docker/ol-nginx-start.sh
     environment:
-      - CRONTAB_FILES="/etc/cron.d/archive-webserver-logs /etc/cron.d/certbot"
-      - NGINX_DOMAIN="covers.openlibrary.org"
+      - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs /etc/cron.d/certbot
+      - NGINX_DOMAIN=covers.openlibrary.org
     restart: unless-stopped
     hostname: "$HOSTNAME"
     depends_on:
@@ -91,8 +91,6 @@ services:
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/covers_nginx.conf:/etc/nginx/sites-enabled/covers_nginx.conf:ro
-      # Needed for HTTPS, since this is a public server
-      - ./docker/public_nginx.conf:/etc/nginx/sites-available/public_nginx.conf:ro
       # letsencrypt
       - letsencrypt-data:/etc/letsencrypt
       - ../olsystem/etc/cron.d/certbot:/etc/cron.d/certbot
@@ -136,8 +134,6 @@ services:
     networks:
       - webnet
       - dbnet
-    secrets:
-      - ia_db_pw_file
 
   infobase:
     profiles: ["ol-home0"]
@@ -173,8 +169,8 @@ services:
     user: root
     command: docker/ol-nginx-start.sh
     environment:
-      - CRONTAB_FILES="/etc/cron.d/archive-webserver-logs /etc/cron.d/pull-sitemaps-from-ol-home0 /etc/cron.d/certbot"
-      - NGINX_DOMAIN="openlibrary.org"
+      - CRONTAB_FILES=/etc/cron.d/archive-webserver-logs /etc/cron.d/pull-sitemaps-from-ol-home0 /etc/cron.d/certbot
+      - NGINX_DOMAIN=openlibrary.org www.openlibrary.org
     volumes:
       # letsencrypt
       - letsencrypt-data:/etc/letsencrypt
@@ -182,8 +178,6 @@ services:
       # nginx configurations
       - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/web_nginx.conf:/etc/nginx/sites-enabled/openlibrary.conf:ro
-      # Needed for HTTPS, since this is a public server
-      - ./docker/public_nginx.conf:/etc/nginx/sites-available/public_nginx.conf:ro
       # archive web log uploads
       - ../olsystem:/olsystem
       # web log rotation
@@ -195,6 +189,8 @@ services:
       # Archive nginx logs regularly
       - ../olsystem/etc/cron.d/archive-webserver-logs:/etc/cron.d/archive-webserver-logs
       - archive-webserver-logs-data:/archive-webserver-logs-data
+      # Sitemaps
+      - ../olsystem/etc/cron.d/pull-sitemaps-from-ol-home0:/etc/cron.d/pull-sitemaps-from-ol-home0
     ports:
       - 80:80
       - 443:443
@@ -299,12 +295,6 @@ services:
     networks:
       - webnet
       - dbnet
-
-# secrets mounted to /run/secrets/
-# e.g. /run/secrets/ia_db_pw_file
-secrets:
-    ia_db_pw_file:
-      file: /opt/.petabox/dbserver
 
 volumes:
     archive-webserver-logs-data:

@@ -509,8 +509,7 @@ class HasGetKeyRevision(Protocol):
     key: str
     revision: int
 
-    def get(self, item) -> Any:
-        ...
+    def get(self, item) -> Any: ...
 
 
 @public
@@ -1435,6 +1434,16 @@ _get_blog_feeds = cache.memcache_memoize(
 @public
 def is_jsdef():
     return False
+
+
+@public
+def jsdef_get(obj, key, default=None):
+    """
+    foo.get(KEY, default) isn't defined in js, so we can't use that construct
+    in our jsdef methods. This helper function provides a workaround, and works
+    in both environments.
+    """
+    return obj.get(key, default)
 
 
 @public

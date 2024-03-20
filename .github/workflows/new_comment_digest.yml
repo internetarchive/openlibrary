@@ -1,0 +1,22 @@
+name: new_comment_digest
+on:
+  schedule:  # 08:30 daily
+    - cron: '30 8 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+  new_comment_digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+      - run: pip install requests
+      - run: scripts/gh_scripts/issue_comment_bot.py 24 "$SLACK_CHANNEL" "$SLACK_TOKEN"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ABC_TEAM_PLUS }}

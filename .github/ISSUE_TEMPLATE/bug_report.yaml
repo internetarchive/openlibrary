@@ -1,0 +1,55 @@
+name: Bug Report
+description:  Create a report to help us improve
+labels: ["Type: Bug", "Needs: Triage", "Needs: Lead"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **IMPORTANT: Before posting, remove sensitive data, such as passwords, secret keys, session cookies, etc.**
+
+        Thanks for taking the time to fill out this bug report! 👍
+  - type: textarea
+    attributes:
+      label: Problem
+      description: A short description of the issue you're facing.
+      value: |
+
+
+        #### Evidence / Screenshot
+
+        #### Relevant URL(s)
+
+  - type: textarea
+    attributes:
+      label: Reproducing the bug
+      description: What steps caused you to find the bug?
+      value: |
+        1. Go to ...
+        2. Do ...
+
+        * Expected behavior:
+        * Actual behavior:
+
+  - type: textarea
+    attributes:
+      label: Context
+      description: Additional information to help with debugging.
+      value: |
+        - Browser (Chrome, Safari, Firefox, etc):
+        - OS (Windows, Mac, etc):
+        - Logged in (Y/N): Y
+        - Environment (prod, dev, local): prod
+  - type: textarea
+    attributes:
+      label: Notes from this Issue's Lead
+      description: |
+        Please leave these sections blank for maintainers if you are unsure what to enter
+      value: |
+        #### Proposal & constraints
+        <!-- What is the proposed solution / implementation? Is there a precedent of this approach succeeding elsewhere? -->
+
+        #### Related files
+        <!-- Files related to this issue; this is super useful for new contributors who might want to help! If you're not sure, leave this blank; a maintainer will add them. -->
+
+        #### Stakeholders
+        <!-- @ tag stakeholders of this bug -->

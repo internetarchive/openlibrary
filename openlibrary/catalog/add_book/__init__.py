@@ -22,6 +22,7 @@ A record is loaded by calling the load function.
     response = load(record)
 
 """
+
 import itertools
 import re
 from typing import TYPE_CHECKING, Any

@@ -289,9 +289,11 @@ class Bookshelves(db.CommonExtras):
             reading_log_store: dict[str, ReadingLogItem] = {
                 f"/works/OL{book.work_id}W": ReadingLogItem(
                     logged_date=book.created,
-                    edition_id=f"/books/OL{book.edition_id}M"
-                    if book.edition_id is not None
-                    else "",
+                    edition_id=(
+                        f"/books/OL{book.edition_id}M"
+                        if book.edition_id is not None
+                        else ""
+                    ),
                 )
                 for book in reading_log_books
             }

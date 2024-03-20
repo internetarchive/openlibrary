@@ -1,7 +1,9 @@
 """Models of various OL objects.
 """
+
 from datetime import datetime, timedelta
 import logging
+from openlibrary.core.vendors import get_amazon_metadata
 
 import web
 import json
@@ -24,7 +26,6 @@ from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.imports import ImportItem
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils import extract_numeric_id_from_olid, dateutil
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
 
@@ -333,9 +334,9 @@ class Edition(Thing):
         return web.storage(
             {
                 'donor': donor,
-                'donor_account': OpenLibraryAccount.get_by_link(donor)
-                if donor
-                else None,
+                'donor_account': (
+                    OpenLibraryAccount.get_by_link(donor) if donor else None
+                ),
                 'donor_msg': self.ia_metadata.get('donor_msg'),
             }
         )
@@ -373,11 +374,16 @@ class Edition(Thing):
                 return f"https://archive.org/download/{self.ocaid}/{filename}"
 
     @classmethod
-    def from_isbn(cls, isbn: str) -> "Edition | None":  # type: ignore[return]
+    def from_isbn(cls, isbn: str, high_priority: bool = False) -> "Edition | None":
         """
         Attempts to fetch an edition by ISBN, or if no edition is found, then
         check the import_item table for a match, then as a last result, attempt
         to import from Amazon.
+        :param bool high_priority: If `True`, (1) any AMZ import requests will block
+                until AMZ has fetched data, and (2) the AMZ request will go to
+                the front of the queue. If `False`, the import will simply be
+                queued up if the item is not in the AMZ cache, and the affiliate
+                server will return a promise.
         :return: an open library edition for this ISBN or None.
         """
         isbn = canonical(isbn)
@@ -401,10 +407,23 @@ class Edition(Thing):
                     return web.ctx.site.get(matches[0])
 
         # Attempt to fetch the book from the import_item table
-        if result := ImportItem.import_first_staged(identifiers=isbns):
-            return result
+        if edition := ImportItem.import_first_staged(identifiers=isbns):
+            return edition
 
-        # TODO: Final step - call affiliate server, with retry code migrated there.
+        # Finally, try to fetch the book data from Amazon + import.
+        # If `high_priority=True`, then the affiliate-server, which `get_amazon_metadata()`
+        # uses, will block + wait until the Product API responds and the result, if any,
+        # is staged in `import_item`.
+        try:
+            get_amazon_metadata(
+                id_=isbn10 or isbn13, id_type="isbn", high_priority=high_priority
+            )
+            return ImportItem.import_first_staged(identifiers=isbns)
+        except requests.exceptions.ConnectionError:
+            logger.exception("Affiliate Server unreachable")
+        except requests.exceptions.HTTPError:
+            logger.exception(f"Affiliate Server: id {isbn10 or isbn13} not found")
+        return None
 
     def is_ia_scan(self):
         metadata = self.get_ia_meta_fields()
@@ -658,10 +677,31 @@ class Work(Thing):
         return summary
 
     @classmethod
+    def get_redirects(cls, day, batch_size=1000, batch=0):
+        tomorrow = day + timedelta(days=1)
+
+        work_redirect_ids = web.ctx.site.things(
+            {
+                "type": "/type/redirect",
+                "key~": "/works/*",
+                "limit": batch_size,
+                "offset": (batch * batch_size),
+                "sort": "-last_modified",
+                "last_modified>": day.strftime('%Y-%m-%d'),
+                "last_modified<": tomorrow.strftime('%Y-%m-%d'),
+            }
+        )
+        more = len(work_redirect_ids) == batch_size
+        logger.info(
+            f"[update-redirects] batch: {batch}, size {batch_size}, offset {batch * batch_size}, more {more}, len {len(work_redirect_ids)}"
+        )
+        return work_redirect_ids, more
+
+    @classmethod
     def resolve_redirects_bulk(
         cls,
+        days: int = 1,
         batch_size: int = 1000,
-        start_offset: int = 0,
         grace_period_days: int = 7,
         cutoff_date: datetime = datetime(year=2017, month=1, day=1),
         test: bool = False,
@@ -674,52 +714,37 @@ class Work(Thing):
         test - don't resolve stale redirects, just identify them
         """
         fixed = 0
-        batch = 0
-        pos = start_offset
-        grace_date = datetime.today() - timedelta(days=grace_period_days)
+        total = 0
+        current_date = datetime.today() - timedelta(days=grace_period_days)
+        cutoff_date = (current_date - timedelta(days)) if days else cutoff_date
 
-        go = True
-        while go:
-            logger.info(
-                f"[update-redirects] Batch {batch+1}: #{pos}",
-            )
-            work_redirect_ids = web.ctx.site.things(
-                {
-                    "type": "/type/redirect",
-                    "key~": "/works/*",
-                    "limit": batch_size,
-                    "offset": start_offset + (batch * batch_size),
-                    "sort": "-last_modified",
-                }
-            )
-            if not work_redirect_ids:
-                logger.info(f"[update-redirects] Stop: #{pos} No more records.")
-                break
-            work_redirect_batch = web.ctx.site.get_many(work_redirect_ids)
-            for work in work_redirect_batch:
-                pos += 1
-                if work.last_modified < cutoff_date:
-                    logger.info(
-                        f"[update-redirects] Stop: #{pos} <{work.key}> {work.last_modified} < {cutoff_date}"
-                    )
-                    go = False
-                    break
-                if work.last_modified > grace_date:
-                    logger.info(f"[update-redirects] Skip: #{pos} <{work.key}> grace")
-                else:
+        while current_date > cutoff_date:
+            has_more = True
+            batch = 0
+            while has_more:
+                logger.info(
+                    f"[update-redirects] {current_date}, batch {batch+1}: #{total}",
+                )
+                work_redirect_ids, has_more = cls.get_redirects(
+                    current_date, batch_size=batch_size, batch=batch
+                )
+                work_redirect_batch = web.ctx.site.get_many(work_redirect_ids)
+                for work in work_redirect_batch:
+                    total += 1
                     chain = Work.resolve_redirect_chain(work.key, test=test)
                     if chain['modified']:
                         fixed += 1
                         logger.info(
-                            f"[update-redirects] Update: #{pos} fix#{fixed} <{work.key}> {chain}"
+                            f"[update-redirects] {current_date}, Update: #{total} fix#{fixed} batch#{batch} <{work.key}> {chain}"
                         )
                     else:
                         logger.info(
-                            f"[update-redirects] No Update Required: #{pos} <{work.key}>"
+                            f"[update-redirects] No Update Required: #{total} <{work.key}>"
                         )
-            batch += 1
+                batch += 1
+            current_date = current_date - timedelta(days=1)
 
-        logger.info(f"[update-redirects] Done, processed {pos}, fixed {fixed}")
+        logger.info(f"[update-redirects] Done, processed {total}, fixed {fixed}")
 
 
 class Author(Thing):
@@ -759,7 +784,7 @@ class Author(Thing):
 class User(Thing):
     DEFAULT_PREFERENCES = {
         'updates': 'no',
-        'public_readlog': 'no'
+        'public_readlog': 'no',
         # New users are now public by default for new patrons
         # As of 2020-05, OpenLibraryAccount.create will
         # explicitly set public_readlog: 'yes'.
