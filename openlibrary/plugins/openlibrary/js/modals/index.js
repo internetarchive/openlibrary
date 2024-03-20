@@ -1,24 +1,30 @@
 import { FadingToast } from '../Toast.js';
 import '../../../../../static/css/components/metadata-form.less';
 
-
 /**
  * Initializes share modal.
  */
 export function initShareModal($modalLinks) {
     addClickListeners($modalLinks, '400px');
-    addShareModalButtonListeners();
+    for (const link of $modalLinks) {
+        const modalContent = getModalContent($(link))
+
+        const shareLinks = modalContent.querySelectorAll('.share-link')
+        addShareLinkHandlers(shareLinks)
+    }
 }
+
 /**
- * Adds click listeners to buttons in all notes modals on a page.
+ * Adds click listeners to each given link.
+ *
+ * On click, the share modal will close.
+ *
+ * @param {NodeList<HTMLElement>} links Collection of clickable links in the social share modal.
  */
-function addShareModalButtonListeners (){
-    $('#social-modal-content .copy-url-btn').on('click', function(event){
-        event.preventDefault();
-        navigator.clipboard.writeText(window.location.href);
-        showToast('URL copied to clipboard')
-        $.colorbox.close()
-    })
+function addShareLinkHandlers(links) {
+    for (const link of links) {
+        link.addEventListener('click', () => $.colorbox.close())
+    }
 }
 
 /**
