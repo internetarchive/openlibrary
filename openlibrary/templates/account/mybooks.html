@@ -22,7 +22,7 @@ $def year_span(year, use_local_year=False):
           <a class="set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">$:_('Set %(year_span)s reading goal', year_span=year_markup)</a>
         </span>
         $ reading_goal_form = render_template('check_ins/reading_goal_form', year=year)
-        $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title="Yearly Reading Goal")
+        $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title=_('Yearly Reading Goal')
       </div>
       $if current_goal:
         <span id="reading-goal-container">

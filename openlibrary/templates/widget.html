@@ -27,12 +27,12 @@ $ book_title = item.get('title', '')
       $if book_status == "open" :
         $ public_url = canonical_url("/books/" + item["availability"]["openlibrary_edition"] + "/x/borrow")
         <div class="cta open" type="submit">
-          <a data-ol-link-track="Embed|Read"  target="_blank" href="$public_url" title="$_('Read \"%(title)s\"', title=book_title)">$_('Read')</a>
+          <a data-ol-link-track="Embed|Read"  target="_blank" href="$public_url" title="$_('Read &quot;%(title)s&quot;', title=book_title)">$_('Read')</a>
 	</div>
       $elif book_status == "borrow_available" :
         $ borrow_url = canonical_url("/borrow/ia/" + item["availability"]["identifier"])
         <div class="cta available" type="submit">
-          <a data-ol-link-track="Embed|Borrow" target="_blank" href="$borrow_url" title="$_('Borrow \"%(title)s\"', title=book_title)">$_('Borrow')</a>
+          <a data-ol-link-track="Embed|Borrow" target="_blank" href="$borrow_url" title="$_('Borrow &quot;%(title)s&quot;', title=book_title)">$_('Borrow')</a>
 	</div>
       $elif book_status == "borrow_unavailable":
         $ waitlist_url = canonical_url("/borrow/ia/" + item["availability"]["identifier"] + "?action=join-waitinglist")

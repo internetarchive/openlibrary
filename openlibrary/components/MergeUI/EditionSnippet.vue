@@ -12,7 +12,7 @@
         v-if="edition.oclc_numbers"
         :href="`https://www.worldcat.org/oclc/${edition.oclc_numbers[0]}?tab=details`"
         target="_blank"
-      >WC<span v-if="edition.oclc_numbers.length > 1" title="This edition has multiple OCLCs">*</span></a>
+      >WC<span v-if="edition.oclc_numbers.length > 1" title="$_('This edition has multiple OCLCs')">*</span></a>
       <a
         v-if="asins.length"
         :href="`https://www.amazon.com/dp/${asins[0]}`"
