@@ -75,7 +75,7 @@ $if ctx.user:
         <li>
             <span class="image">
             $ cover = "//covers.openlibrary.org/b/olid/%s-M.jpg" % page.cover_edition_key if page.cover_edition_key else "https://openlibrary.org/images/icons/avatar_book-sm.png"
-            <a href="$page.url"><img src="$cover" width="32" alt="Cover of: $page.title$(': ' + page.subtitle if page.get('subtitle', None) else '')" title="Cover of: $page.title$(': ' + page.subtitle if page.get('subtitle', None) else '')"/></a>
+            <a href="$page.url"><img src="$cover" width="32" alt="$_('Cover of: %(title)s', title=f'{page.title}:{page.subtitle} if page.get('subtitle', None) else page.title)" title="$_('Cover of: %(title)s', title=f'{page.title}:{page.subtitle} if page.get('subtitle', None) else page.title)"/></a>
             </span>
             <span class="data">
                 <span class="label"><a href="LIST LINK">List Title</a></span>

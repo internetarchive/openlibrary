@@ -19,7 +19,7 @@ $jsdef render_works_list(works):
         <li>
             <a href="$work.key" style="font-style: oblique">$full_title</a>
             $ first_publish_year = work.first_publish_year or '????'
-            <span title="First published in $first_publish_year">($first_publish_year)</span>
+            <span title="$_('First published in %(first_publish_year)')">($first_publish_year)</span>
             by
             $for author in work.authors:
                 <a href="$author.key">$author.name</a>$cond(not loop.last, ', ', '')
