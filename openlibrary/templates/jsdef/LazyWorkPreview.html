@@ -1,7 +1,7 @@
 $def with (work)
 
 $jsdef render_lazy_work_preview(work):
-    <div class="ac_work" title="Select this work">
+    <div class="ac_work" title="$_('Select this work')">
         <div class="cover">
             $if work['cover_i']:
                 <img
@@ -22,9 +22,9 @@ $jsdef render_lazy_work_preview(work):
         </span>
         &bull;
         $if work['edition_count'] == 1:
-            <span class="edition_count">$work['edition_count'] edition</span>
+            <span class="edition_count">$_('%(count)d edition', count=$work['edition_count'])</span>
         $else:
-            <span class="edition_count">$work['edition_count'] editions</span>
+            <span class="edition_count">$_('%(count)d editions', count=$work['edition_count'])</span>
         <div class="clear"></div>
     </div>
 

@@ -25,7 +25,7 @@ $def embed_iframe(page_url):
                 <a href="$share_link['url']" class="sansserif large" target="_blank"
                   data-ol-link-track="Share|$track_tag">
                   <img
-                    title="Share on $(share_link['text'])"
+                    title="$_('Share on %(share_link['text'])')"
                     alt="$(share_link['text'])" class="share-link"
                     src="$static_url('images/%s.svg' % share_link['text'].lower())"
                     loading="lazy"
@@ -42,7 +42,7 @@ $def embed_iframe(page_url):
                 <a class="embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed"
                   onclick="prompt('Copy embed code to clipboard:', '$iframe_html');">
                   <img
-                    alt="Embed icon"
+                    alt="$_('Embed icon')"
                     class="share-link"
                     src="$static_url('images/embed.png')"
                     loading="lazy"

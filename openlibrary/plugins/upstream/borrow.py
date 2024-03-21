@@ -842,9 +842,9 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
                 error_message = "Lending Library Book"
                 resolution_message = (
                     'This book is part of the <a href="%(base_url)s/subjects/Lending_'
-                    'library" title="Open Library Lending Library">lending library</a>. '
-                    'Please <a href="%(base_url)s/ia/%(item_id)s/borrow" title="Borrow '
-                    'book page on Open Library">visit this book\'s page on Open Library'
+                    'library" title=_("Open Library Lending Library")>lending library</a>. '
+                    'Please <a href="%(base_url)s/ia/%(item_id)s/borrow" title=_("Borrow '
+                    'book page on Open Library")>visit this book\'s page on Open Library'
                     '</a> to access the book.  You must have cookies enabled for '
                     'archive.org and openlibrary.org to access borrowed books.'
                     % resolution_dict
