@@ -1,6 +1,6 @@
 # Storybook
 
-We are documenting our components [here](internetarchive.github.io/openlibrary).
+We are documenting our components [here](https://internetarchive.github.io/openlibrary/).
 
 ## Running Storybook locally
 
