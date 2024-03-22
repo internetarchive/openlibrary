@@ -1457,7 +1457,7 @@ def get_donation_include() -> str:
     html = (
         """
     <div id="donato"></div>
-    <script src="%s" data-platform="ol" defer></script>
+    <script src="%s" data-platform="ol"></script>
     """
         % script_src
     )
