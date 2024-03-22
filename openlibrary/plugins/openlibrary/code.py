@@ -427,6 +427,7 @@ class ia_js_cdn(delegate.page):
 
     def GET(self, filename):
         web.header('Content-Type', 'text/javascript')
+        web.header("Cache-Control", "max-age=%d" % (365 * 24 * 3600))
         return web.ok(fetch_ia_js(filename))
 
 
