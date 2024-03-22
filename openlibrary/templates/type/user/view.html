@@ -71,13 +71,17 @@ $else:
         </div>
         <div class="clearfix"></div>
 
-    $if "recentchanges_v2" in ctx.features:
-        $ changes = render_template("recentchanges/render", author=page.key, limit=25)
-        $if changes.length > 1:
-            <h2>$_('Recent Activity')</h2>
-            $:changes
+    $ is_admin = ctx.user and ctx.user.is_admin()
+    $ is_librarian = ctx.user and (ctx.user.is_librarian() or ctx.user.is_super_librarian())
+
+    $if owners_page or is_admin or is_librarian:
+        $if "recentchanges_v2" in ctx.features:
+            $ changes = render_template("recentchanges/render", author=page.key, limit=25)
+            $if changes.length > 1:
+                <h2>$_('Recent Activity')</h2>
+                $:changes
+            $else:
+                <p>$_("No edits. Yet.")</p>
         $else:
-            <p>$_("No edits. Yet.")</p>
-    $else:
-        $:macros.RecentChangesUsers(author=page, limit=25)
+            $:macros.RecentChangesUsers(author=page, limit=25)
 </div>
