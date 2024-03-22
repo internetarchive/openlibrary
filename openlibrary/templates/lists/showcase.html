@@ -1,0 +1,46 @@
+$def with (lists = [], username = "")
+
+
+$ default_image_url = "/images/icons/avatar_book-sm.png"
+$ total_lists = lists[0:min(len(lists), 5)]
+$ all_lists_url = "/people/%s/lists" % username
+
+$def showcase(list):
+    $ cached_info = list.get_patron_showcase()
+    $ title = cached_info["title"] if len(cached_info["title"]) < 16 else cached_info["title"][0:16] + "..."
+    $ count = cached_info["count"]
+    $ list_url = list.get_url()
+    $ cover_urls = [cover_url if cover_url else default_image_url for cover_url in cached_info["covers"]]
+    <div class="my-list">
+        <a href = $list_url>
+            <div class = "my-lists-item">
+                <div class="my-list-name-tag">
+                    <p class = "my-list-title">$title</p>
+                    $if count == 1:
+                        <p class = "my-list-num-books"> $count book</p>
+                    $else:
+                        <p class = "my-list-num-books"> $count books</p>
+                </div>
+                <div class = "my-list-covers">
+                    $ cover = 0
+                    $for img_url in cover_urls:
+                        <img src = "$img_url" class ="book-cover my-list-cover cover-$cover" loading="lazy">
+                        $ cover +=1
+                </div>
+            </div>
+        </a>
+    </div>
+<div class = "carousel-section">
+    <div class="carousel-section-header">
+        <h2 class = "home-h2">
+                <a href = $all_lists_url> My Lists ($len(lists))</a>
+        </h2>
+    </div>
+    <div class="my-lists showcase ">
+        $if lists and len(total_lists)>0:
+            $for list in total_lists:
+                $:showcase(list)
+        $else:
+            <p>You have no lists.</p>
+    </div>
+</div>
