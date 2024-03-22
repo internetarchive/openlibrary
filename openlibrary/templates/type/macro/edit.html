@@ -44,7 +44,7 @@ $:render_template("lib/edit_head", page)
     $:macros.EditButtonsMacros()
 
     $if ctx.user and ctx.user.is_admin():
-        <div class="adminOnly" style="position:absolute;top:230px;right:20px;"><button type="submit" value="Delete Record" name="_delete" title="Delete this macro?" id="deleteTop">Delete Record</button></div>
+        <div class="adminOnly" style="position:absolute;top:230px;right:20px;"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete this macro?')" id="deleteTop">Delete Record</button></div>
 
 </div>
 
