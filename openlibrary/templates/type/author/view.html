@@ -45,13 +45,6 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
     $:macros.databarView(page)
 
     <h1 itemprop="name">$title</h1>
-    <h2 class="author collapse">
-    $if page.birth_date or page.death_date:
-        <span itemprop="birthDate">$page.birth_date</span> - <span itemprop="deathDate">$page.death_date</span>
-    $else:
-        $if page.date:
-            $page.date
-    </h2>
 
 </div>
 
@@ -149,9 +142,54 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
         </div>
     </div>
     <div class="contentOnethird">
-        <div class="illustration">
-            $:render_template("covers/author_photo", page)
-            $:render_template("covers/change", page, ".bookCover img")
+        <style>
+            /* TODO: This should be moved to a .less file once we decide on a design. But for now it is easier editing here. */
+            .infobox {
+                border: 1px solid #a2a9b1;
+                border-spacing: 3px;
+                background-color: #f8f9fa;
+                color: black;
+                padding: 0.2em;
+                line-height: 1.5em;
+                width: 100%;
+            }
+            .infobox tr {
+                /* This is only needed because without it page-user.css makes the background beige */
+                background-color: transparent;
+            }
+            .infobox table {
+                /* This is only needed because without it page-user.css makes the background beige */
+                border-collapse: unset;
+                border-spacing: 3px;
+            }
+            .infobox tr td:first-child {
+                padding-right: 5px;
+            }
+            .infobox_name {
+                text-align: center;
+            }
+        </style>
+
+        $def render_infobox_row(label, itemprop, value):
+            $if value:
+                <tr>
+                    <td><strong>$label</strong></td>
+                    <td><span itemprop="$itemprop">$value</span></td>
+                </tr>
+
+        <div class="infobox">
+            <div class="infobox_name"><strong>$title</strong></div>
+            <div class="illustration">
+                $:render_template("covers/author_photo", page)
+                $:render_template("covers/change", page, ".bookCover img")
+            </div>
+            <table>
+                $if page.birth_date or page.death_date:
+                    $:render_infobox_row(_("Born"), 'birthDate', page.birth_date)
+                    $:render_infobox_row(_("Died"), 'deathDate', page.death_date)
+                $elif page.date:
+                        $:render_infobox_row(_("Date"), '', page.date)
+            </table>
         </div>
 
         $def render_subjects(label, subjects, prefix):
