@@ -173,7 +173,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
         $def render_infobox_row(label, itemprop, value):
             $if value:
                 <tr>
-                    <td><strong>$label</strong></td>
+                    <td><strong>$_(label)</strong></td>
                     <td><span itemprop="$itemprop">$value</span></td>
                 </tr>
 
@@ -185,10 +185,10 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             </div>
             <table>
                 $if page.birth_date or page.death_date:
-                    $:render_infobox_row(_("Born"), 'birthDate', page.birth_date)
-                    $:render_infobox_row(_("Died"), 'deathDate', page.death_date)
+                    $:render_infobox_row("Born", 'birthDate', page.birth_date)
+                    $:render_infobox_row("Died", 'deathDate', page.death_date)
                 $elif page.date:
-                        $:render_infobox_row(_("Date"), '', page.date)
+                        $:render_infobox_row("Date", '', page.date)
             </table>
         </div>
 
