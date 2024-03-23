@@ -207,29 +207,23 @@ class Bookshelves(db.CommonExtras):
     # doc["editions"]["docs"]
     def link_editions_to_works(solr_docs):
         linked_docs: list[web.storage] = []
-        docs_dict = {}
+        editions_to_work_doc = {}
         # adds works to linked_docs, recording their edition key and index in docs_dict if present.
         for doc in solr_docs:
-            full_key = doc.get("key") or "/dummy/value"
-            _, key, item_id = full_key.split("/")
-            if key == "works":
+            if doc["key"].startswith("/works"):
                 linked_docs.append(doc)
                 if doc.get("logged_edition"):
-                    docs_dict.update(
-                        {doc["logged_edition"].split("/")[2]: (len(linked_docs) - 1)}
-                    )
+                    editions_to_work_doc.update({doc["logged_edition"]: doc})
         # Attaches editions to the works, in second loop-- in case of misperformed order.
         for edition in solr_docs:
-            full_key = edition.get("key") or "/dummy/value"
-            _, key, item_id = full_key.split("/")
-            if key == "books":
-                index = docs_dict.get(item_id, -1)
-                if index >= 0:
-                    linked_docs[index].editions = [edition]
+            if edition["key"].startswith("/books/"):
+                if work_doc := editions_to_work_doc.get(edition["key"]):
+                    work_doc.editions = [edition]
                 else:
                     # raise error no matching work found? Or figure out if the solr queries are performedorderless.
-                    logger.warning("Error: No work found for edition %s" % full_key)
-        logger.info("LOGGERDICT IS %s" % docs_dict)
+                    logger.warning(
+                        "Error: No work found for edition %s" % edition["key"]
+                    )
         return linked_docs
 
     @classmethod
