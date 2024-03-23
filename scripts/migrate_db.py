@@ -57,15 +57,23 @@ class Upgrader:
         db.query("ALTER TABLE transaction ADD COLUMN data text")
 
     def upgrade_013(self, db):
-        """Add changes column to transaction table."""
+        """Add changes column to transaction table and populate it."""
         db.query("ALTER TABLE transaction ADD COLUMN changes text")
 
-        # populate changes
+        # populate changes  
         rows = db.query(
-            "SELECT thing.key, version.revision, version.transaction_id"
-            " FROM  thing, version"
-            " WHERE thing.id=version.thing_id"
-            " ORDER BY version.transaction_id"
+            """
+        UPDATE transaction
+        SET changes = subquery.changes
+        FROM (
+            SELECT version.transaction_id AS tx_id,
+                   json_agg(json_build_object('key', thing.key, 'revision', version.revision)) AS changes
+            FROM thing
+            JOIN version ON thing.id = version.thing_id
+            GROUP BY version.transaction_id
+        ) AS subquery
+        WHERE transaction.id = subquery.tx_id
+        """
         )
 
         for tx_id, changes in itertools.groupby(rows, lambda row: row.transaction_id):
@@ -89,6 +97,7 @@ class Upgrader:
         create index transaction_index_key_value_idx ON transaction_index(key, value);
         create index transaction_index_tx_id_idx ON transaction_index(tx_id);
         """
+        
         db.query(q)
 
     def get_database_version(self, db):
@@ -105,18 +114,27 @@ class Upgrader:
         else:
             return LATEST_VERSION
 
-    def read_schema(self, db):
-        rows = db.query(
-            "SELECT table_name, column_name,  data_type "
-            " FROM information_schema.columns"
-            " WHERE table_schema = 'public'"
-        )
+def read_schema(self, db):
+    query = """
+        SELECT table_name, column_name, data_type 
+        FROM information_schema.columns 
+        WHERE table_schema = 'public'
+    """
+    rows = db.query(query)
 
-        schema = web.storage()
-        for row in rows:
-            t = schema.setdefault(row.table_name, web.storage())
-            t[row.column_name] = row
-        return schema
+    schema = web.storage()
+    for row in rows:
+        table_name = row.table_name
+        column_name = row.column_name
+        data_type = row.data_type
+
+        if table_name not in schema:
+            schema[table_name] = web.storage()
+
+        schema[table_name][column_name] = data_type
+
+    return schema
+
 
 
 def usage():
