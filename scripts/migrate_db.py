@@ -60,7 +60,7 @@ class Upgrader:
         """Add changes column to transaction table and populate it."""
         db.query("ALTER TABLE transaction ADD COLUMN changes text")
 
-        # populate changes  
+        # populate changes
         rows = db.query(
             """
         UPDATE transaction
@@ -97,7 +97,7 @@ class Upgrader:
         create index transaction_index_key_value_idx ON transaction_index(key, value);
         create index transaction_index_tx_id_idx ON transaction_index(tx_id);
         """
-        
+
         db.query(q)
 
     def get_database_version(self, db):
@@ -114,10 +114,11 @@ class Upgrader:
         else:
             return LATEST_VERSION
 
+
 def read_schema(self, db):
     query = """
-        SELECT table_name, column_name, data_type 
-        FROM information_schema.columns 
+        SELECT table_name, column_name, data_type
+        FROM information_schema.columns
         WHERE table_schema = 'public'
     """
     rows = db.query(query)
@@ -134,7 +135,6 @@ def read_schema(self, db):
         schema[table_name][column_name] = data_type
 
     return schema
-
 
 
 def usage():
