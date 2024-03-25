@@ -735,7 +735,7 @@ def _get_user_root():
 
 
 def _get_bots():
-    bots = web.ctx.site.store.values(type='account', name='bot', value='true'
+    bots = web.ctx.site.store.values(type='account', name='bot', value='true')
     user_root = _get_user_root()
     return [user_root + '/' + account['username'] for account in bots]
 
