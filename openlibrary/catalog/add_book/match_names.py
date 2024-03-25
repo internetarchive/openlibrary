@@ -32,14 +32,14 @@ titles = frozenset(
 )
 
 
-def flip_name(name):
+def flip_name(name: str) -> str | None:
     m = re_marc_name.match(name)
     if not m:
         return None
     return m.group(2) + ' ' + m.group(1)
 
 
-def match_seq(parts1, parts2):
+def match_seq(parts1: list[str], parts2: list[str]) -> bool:
     if len(parts1) == len(parts2):
         return False
     if len(parts1) > len(parts2):
@@ -56,19 +56,19 @@ def match_seq(parts1, parts2):
     return True
 
 
-def compare_part(p1, p2):
+def compare_part(p1: str, p2: str) -> bool:
     p1 = normalize(p1)
     p2 = normalize(p2)
     return p1.startswith(p2) or p2.startswith(p1)
 
 
-def compare_parts(parts1, parts2):
+def compare_parts(parts1: list[str], parts2: list[str]) -> bool:
     if len(parts1) != len(parts2):
         return False
     return all(compare_part(i, j) for i, j in zip(parts1, parts2))
 
 
-def split_parts(s):
+def split_parts(s: str) -> list[str]:
     parts = []
     m = re_split_parts.match(s)
     if not m:
@@ -82,7 +82,7 @@ def split_parts(s):
     return parts
 
 
-def amazon_title(amazon_first_parts, marc_first_parts):
+def amazon_title(amazon_first_parts: list[str], marc_first_parts: list[str]) -> bool:
     if normalize(amazon_first_parts[0]) not in titles:
         return False
     if compare_parts(marc_first_parts, amazon_first_parts[1:]):
@@ -96,8 +96,7 @@ def amazon_title(amazon_first_parts, marc_first_parts):
     return False
 
 
-def marc_title(amazon_first_parts, marc_first_parts):
-    #            print 'title found: ', marc_first_parts[-1]
+def marc_title(amazon_first_parts: list[str], marc_first_parts: list[str]) -> bool:
     if normalize(marc_first_parts[-1]) not in titles:
         return False
     if compare_parts(marc_first_parts[:-1], amazon_first_parts):
@@ -125,14 +124,14 @@ def marc_title(amazon_first_parts, marc_first_parts):
 # use for person, org and event because the LC data says "Berkovitch, Israel." is an org
 
 
-def remove_trailing_dot(s):
+def remove_trailing_dot(s: str) -> str:
     s = s.strip()
     if len(s) < 3 or not s.endswith('.') or s[-3] == ' ' or s[-3] == '.':
         return s
     return s[:-1]
 
 
-def flip_marc_name(marc):
+def flip_marc_name(marc: str) -> str:
     m = re_marc_name.match(marc)
     if not m:
         return remove_trailing_dot(marc)
@@ -145,7 +144,7 @@ def flip_marc_name(marc):
     return ' '.join(first_parts[:-1] + [m.group(1)])
 
 
-def match_marc_name(marc1, marc2, last_name_only_ok):
+def match_marc_name(marc1: str, marc2: str, last_name_only_ok: bool) -> bool:
     m1_normalized = normalize(marc1)
     m2_normalized = normalize(marc2)
     if m1_normalized == m2_normalized:
@@ -189,7 +188,7 @@ def match_marc_name(marc1, marc2, last_name_only_ok):
 
 
 # try different combinations looking for a match
-def match_name2(name1, name2):
+def match_name2(name1: str, name2: str) -> bool:
     if name1 == name2:
         return True
     n1_normalized = normalize(name1)
@@ -213,7 +212,7 @@ def match_name2(name1, name2):
     return False
 
 
-def match_surname(surname, name):
+def match_surname(surname: str, name: str) -> bool:
     if name.endswith((' ' + surname, '.' + surname)):
         return True
     surname = surname.replace(' ', '')
@@ -222,7 +221,7 @@ def match_surname(surname, name):
     return False
 
 
-def amazon_spaced_name(amazon, marc):
+def amazon_spaced_name(amazon: str, marc: str) -> bool:
     if len(amazon) not in {30, 31}:
         return False
     m = re_amazon_space_name.search(amazon)
@@ -247,7 +246,7 @@ def amazon_spaced_name(amazon, marc):
     return False
 
 
-def match_name(amazon, marc, last_name_only_ok=True):
+def match_name(amazon: str, marc: str, last_name_only_ok: bool = True) -> bool:
     if amazon_spaced_name(amazon, marc):
         return True
     amazon_normalized = normalize(amazon)
@@ -305,5 +304,5 @@ def match_name(amazon, marc, last_name_only_ok=True):
     return False
 
 
-def match_not_just_surname(amazon, marc):
+def match_not_just_surname(amazon: str, marc: str) -> bool:
     return match_name(amazon, marc, last_name_only_ok=False)
