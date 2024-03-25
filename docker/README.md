@@ -135,14 +135,14 @@ First, verify the `solr` container is running (e.g. `docker ps | grep solr`, and
 
 If the `solr` container is running and the error persists, one cause seems to be that the containers become disconnected from `openlibrary_webnet` (though conceivably this could happen with `openlibrary_dbnet` too). `openlibrary-web-1`/`web` should be connected to both `openlibrary_webnet` and `openlibrary_dbnet`, but instead only one is connected. E.g.:
 ```sh
-❯ docker container inspect --format '{{.NetworkSettings.Networks}}' openlibrary-web-1
-map[openlibrary_dbnet:0xc00037c1c0]
+docker container inspect --format '{{.NetworkSettings.Networks}}' openlibrary-web-1
+# output: map[openlibrary_dbnet:0xc00037c1c0]
 ```
 A fix seems to be:
 ```
-❯ docker network connect openlibrary_webnet openlibrary-web-1
-❯ docker container inspect --format '{{.NetworkSettings.Networks}}' openlibrary-web-1
-map[openlibrary_dbnet:0xc00016c460 openlibrary_webnet:0xc00016c540]
+docker network connect openlibrary_webnet openlibrary-web-1
+docker container inspect --format '{{.NetworkSettings.Networks}}' openlibrary-web-1
+# output: map[openlibrary_dbnet:0xc00016c460 openlibrary_webnet:0xc00016c540]
 ```
 No restart is required. If `webnet` no longer exists, recreating it _may_ fix things: `docker network create openlibrary_webnet`. This is, however, speculation.
 
