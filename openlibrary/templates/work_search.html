@@ -99,7 +99,7 @@ $ )
                 $title.append(_('Classic eBook'))
 
             $if any(header in param for header, label in facet_map):
-                <p class="collapse darkgray"><span class="tools"><img src="/images/icons/icon_search-facet.png" alt="Search facets" width="11" height="10" style="margin-right:5px;"/><strong>
+                <p class="collapse darkgray"><span class="tools"><img src="/images/icons/icon_search-facet.png" alt="$_('Search facets')" width="11" height="10" style="margin-right:5px;"/><strong>
                 $for header, label in facet_map:
                     $ counts = search_response.facet_counts[header]
                     $for k, display, count in counts:

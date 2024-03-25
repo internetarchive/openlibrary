@@ -6,7 +6,7 @@ $putctx("show_ol_shell", False)
 <div class="saved-image-container">
     <div class="imagePost">
         $if image:
-            <img src="$image.url(size='M')" class="cover" width="200" alt="New book cover"/>
+            <img src="$image.url(size='M')" class="cover" width="200" alt="$_('New book cover')"/>
     </div>
 
     <div class="imageSaved" data-image-id="$(image and image.id)">
