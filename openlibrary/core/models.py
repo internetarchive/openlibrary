@@ -759,10 +759,7 @@ class Author(Thing):
 
     def wikidata(self, use_cache: bool = True) -> WikidataEntity | None:
         if wd_id := self.remote_ids.get("wikidata"):
-            if use_cache:
-                return get_wikidata_entity(QID=wd_id)
-            else:
-                return get_wikidata_entity(QID=wd_id, use_cache=False)
+            return get_wikidata_entity(QID=wd_id, use_cache=use_cache)
         return None
 
     def __repr__(self):
