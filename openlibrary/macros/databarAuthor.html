@@ -6,7 +6,7 @@ $if ctx.user:
         <!-- IF ON LIST -->
         <div class="dropit">
             <div class="icon listed"></div>
-            <p class="listed">$page.get('name', 'name missing') is on your <a href="#">List Name Which Could Be Long</a> list. <span class="smaller"><a href="#" class="red">Remove</a>?</span></p>
+            <p class="listed">$page.get('name', 'name missing') $_('is on your')<a href="#">$_('List Name Which Could Be Long')</a> $_('list.') <span class="smaller"><a href="#" class="red">Remove</a>?</span></p>
         </div>
         <!-- IF NOT ON LIST -->
         <div class="dropit">
@@ -17,8 +17,8 @@ $if ctx.user:
                     <div class="arrow"></div>
                 </a>
                 <div class="dropdown">
-                    <p><span>Add to</span> <a href="javascript:;">This is a List Name</a></p>
-                    <p><span>Add to</span> <a href="javascript:;">This is Another List Name Which is Longer!</a></p>
+                    <p><span>Add to</span> <a href="javascript:;">$_('This is a List Name')</a></p>
+                    <p><span>Add to</span> <a href="javascript:;">$_('This is Another List Name Which is Longer!')</a></p>
                     <p><a aria-controls="addList"
                         class="listClick dialog--open">$_('Create a new list')</a></p>
                 </div>
@@ -33,7 +33,7 @@ $if ctx.user:
                 <form method="post" action="" class="floatform">
                 <div class="formElement">
                     <div class="label">
-                        <label for="list_label">List Label</label>
+                        <label for="list_label">$_('List Label')</label>
                     </div>
                     <div class="input">
                         <input type="text" name="list_label" id="list_label" class="text" value=""/>
@@ -41,7 +41,7 @@ $if ctx.user:
                 </div>
                 <div class="formElement">
                     <div class="label">
-                        <label for="list_desc">List Description</label>
+                        <label for="list_desc">$_('List Description')</label>
                     </div>
                     <div class="input">
                         <textarea name="list_desc" id="list_desc" rows="5" cols="30"></textarea>
@@ -78,7 +78,7 @@ $if ctx.user:
             <a href="$page.url"><img src="$cover" width="32" alt="$_('Cover of: %(title)s', title=f'{page.title}:{page.subtitle} if page.get('subtitle', None) else page.title)" title="$_('Cover of: %(title)s', title=f'{page.title}:{page.subtitle} if page.get('subtitle', None) else page.title)"/></a>
             </span>
             <span class="data">
-                <span class="label"><a href="LIST LINK">List Title</a></span>
+                <span class="label"><a href="LIST LINK">$_('List Title')</a></span>
                 <span class="owner">$_('from') <a href="PROFILE LINK">ownername</a></span>
             </span>
         </li>
