@@ -84,10 +84,6 @@ cd docker/
 docker compose exec web make test
 ```
 
-### 集成测试
-
-集成测试需要使用Splinter webdriver和谷歌浏览器。关于安装要求和运行集成测试的说明，请参阅[集成测试README](tests/integration/README.md)
-
 ## 许可证
 
 这里发布的所有源代码都是依据以下条款[GNU Affero General Public License, version 3](https://www.gnu.org/licenses/agpl-3.0.html)。
