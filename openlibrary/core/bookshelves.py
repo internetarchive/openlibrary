@@ -1,4 +1,5 @@
 import logging
+
 import web
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -7,7 +8,7 @@ from collections.abc import Iterable
 from openlibrary.plugins.worksearch.search import get_solr
 
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
-
+from infogami.infobase.utils import flatten
 from . import db
 
 logger = logging.getLogger(__name__)
@@ -494,15 +495,15 @@ class Bookshelves(db.CommonExtras):
 
             reading_log_keys = [
                 (
-                    ('/works/OL%sW' % i['work_id'], '/books/OL%sM' % i['edition_id'])
+                    ['/works/OL%sW' % i['work_id'], '/books/OL%sM' % i['edition_id']]
                     if show_editions and i['edition_id']
-                    else ('/works/OL%sW' % i['work_id'], None)
+                    else '/works/OL%sW' % i['work_id']
                 )
                 for i in reading_log_books
             ]
 
             solr_docs = get_solr().get_many(
-                [key for key_pair in reading_log_keys for key in key_pair if key],
+                flatten(reading_log_keys),
                 fields=WorkSearchScheme.default_fetched_fields
                 | {'subject', 'person', 'place', 'time', 'edition_key'},
             )
