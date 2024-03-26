@@ -4,11 +4,11 @@ connection_type: hybrid
 
 site: openlibrary.org
 
-from_address: "Open Library <noreply@openlibrary.org>"
-report_spam_address: "Open Library <info@openlibrary.org>"
+from_address: "Open Library <noreply@archive.org>"
+report_spam_address: "Open Library <info@archive.org>"
 
-support_case_notification_address: "Open Library <info@openlibrary.org>"
-support_case_control_address: "support@openlibrary.org"
+support_case_notification_address: "Open Library <info@archive.org>"
+support_case_control_address: "support@archive.org"
 
 smtp_server: localhost
 
