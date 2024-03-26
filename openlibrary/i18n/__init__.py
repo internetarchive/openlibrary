@@ -144,6 +144,15 @@ def extract_messages(dirs: list[str]):
     METHODS = [("**.py", "python"), ("**.html", "openlibrary.i18n:extract_templetor")]
     COMMENT_TAGS = ["NOTE:"]
 
+    pot_path = os.path.join(root, 'messages.pot')
+    template = read_po(open(pot_path, 'rb'))
+    catalog_msgs = template.__iter__()
+    msg_set = set()
+    for msg in catalog_msgs:
+        if msg.id != '':
+            msg_set.add(msg.id)
+    new_set = set()
+
     for d in dirs:
         extracted = extract_from_dir(
             d, METHODS, comment_tags=COMMENT_TAGS, strip_comment_tags=True
@@ -151,6 +160,7 @@ def extract_messages(dirs: list[str]):
 
         counts: dict[str, int] = {}
         for filename, lineno, message, comments, context in extracted:
+            new_set.add(message)
             counts[filename] = counts.get(filename, 0) + 1
             catalog.add(message, None, [(filename, lineno)], auto_comments=comments)
 
@@ -158,12 +168,14 @@ def extract_messages(dirs: list[str]):
             path = filename if d == filename else os.path.join(d, filename)
             print(f"{count}\t{path}", file=sys.stderr)
 
-    path = os.path.join(root, 'messages.pot')
-    f = open(path, 'wb')
-    write_po(f, catalog)
-    f.close()
+    diff = new_set.symmetric_difference(msg_set)
+    if len(diff) != 0:
+        path = os.path.join(root, 'messages.pot')
+        f = open(path, 'wb')
+        write_po(f, catalog)
+        f.close()
 
-    print('wrote template to', path)
+        print('wrote template to', path)
 
 
 def compile_translations(locales: list[str]):
