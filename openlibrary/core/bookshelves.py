@@ -515,9 +515,11 @@ class Bookshelves(db.CommonExtras):
             )
 
             reading_log_keys = [
-                ('/works/OL%sW' % i['work_id'], '/books/OL%sM' % i['edition_id'])
-                if show_editions and i['edition_id']
-                else ('/works/OL%sW' % i['work_id'], None)
+                (
+                    ('/works/OL%sW' % i['work_id'], '/books/OL%sM' % i['edition_id'])
+                    if show_editions and i['edition_id']
+                    else ('/works/OL%sW' % i['work_id'], None)
+                )
                 for i in reading_log_books
             ]
 
