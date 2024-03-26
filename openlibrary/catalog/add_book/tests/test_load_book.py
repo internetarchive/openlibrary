@@ -4,6 +4,7 @@ from openlibrary.catalog.add_book.load_book import (
     import_author,
     build_query,
     InvalidLanguage,
+    remove_author_honorifics,
 )
 
 
@@ -65,3 +66,26 @@ def test_build_query(add_languages):
     assert q['translated_from'] == [{'key': '/languages/yid'}]
 
     pytest.raises(InvalidLanguage, build_query, {'languages': ['wtf']})
+class TestImportAuthor:
+    @pytest.mark.parametrize(
+        ["name", "expected"],
+        [
+            ("Dr. Seuss", "Dr. Seuss"),
+            ("dr. Seuss", "dr. Seuss"),
+            ("Dr Seuss", "Dr Seuss"),
+            ("M. Anicet-Bourgeois", "Anicet-Bourgeois"),
+            ("Mr Blobby", "Blobby"),
+            ("Mr. Blobby", "Blobby"),
+            ("monsieur Anicet-Bourgeois", "Anicet-Bourgeois"),
+            (
+                "Anicet-Bourgeois M.",
+                "Anicet-Bourgeois M.",
+            ),  # Don't strip from last name.
+            ('Doctor Ivo "Eggman" Robotnik', 'Ivo "Eggman" Robotnik'),
+            ("John M. Keynes", "John M. Keynes"),
+        ],
+    )
+    def test_author_importer_drops_honorifics(self, name, expected):
+        author = {'name': name}
+        got = remove_author_honorifics(author=author)
+        assert got == {'name': expected}
