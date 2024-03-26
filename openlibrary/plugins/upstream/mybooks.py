@@ -19,6 +19,7 @@ from openlibrary.core.sponsorships import get_sponsored_editions
 from openlibrary.core.models import LoggedBooksData
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 
+
 RESULTS_PER_PAGE: Final = 25
 
 
@@ -253,6 +254,7 @@ class mybooks_readinglog(delegate.page):
         )
         docs = add_availability(logged_book_data.docs, mode="openlibrary_work")
         doc_count = logged_book_data.total_results
+
         # Add ratings to "already-read" items.
         if include_ratings := mb.key == "already-read" and mb.is_my_page:
             logged_book_data.load_ratings()
