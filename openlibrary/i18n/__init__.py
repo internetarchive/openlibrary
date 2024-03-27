@@ -147,11 +147,11 @@ def extract_messages(dirs: list[str]):
     pot_path = os.path.join(root, 'messages.pot')
     template = read_po(open(pot_path, 'rb'))
     catalog_msgs = template.__iter__()
-    msg_set = set()
+    msg_set: set[str | tuple[str]] = set()
     for msg in catalog_msgs:
         if msg.id != '':
             msg_set.add(msg.id)
-    new_set = set()
+    new_set: set[str | tuple[str]] = set()
 
     for d in dirs:
         extracted = extract_from_dir(
