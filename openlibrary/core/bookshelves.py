@@ -500,13 +500,13 @@ class Bookshelves(db.CommonExtras):
                 (
                     ['/works/OL%sW' % i['work_id'], '/books/OL%sM' % i['edition_id']]
                     if show_editions and i['edition_id']
-                    else '/works/OL%sW' % i['work_id']
+                    else ['/works/OL%sW' % i['work_id'], ""]
                 )
                 for i in reading_log_books
             ]
 
             solr_docs = get_solr().get_many(
-                flatten(reading_log_keys),
+                [key for key in flatten(reading_log_keys) if key],
                 fields=WorkSearchScheme.default_fetched_fields
                 | {'subject', 'person', 'place', 'time', 'edition_key'},
             )
