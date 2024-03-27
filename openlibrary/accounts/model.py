@@ -832,13 +832,17 @@ def audit_accounts(
             # the same email as this IA account.
             ol_account = OpenLibraryAccount.get(email=email, test=test)
 
+            # TODO: update comment:
+
             # If an Open Library account with a matching email account exists...
             # Check if it is linked already, i.e. has an itemname set. We already
             # determined that no OL account is linked to our IA account. Therefore this
             # Open Library account having the same email as our IA account must have
             # been linked to a different Internet Archive account.
             if ol_account and ol_account.itemname:
-                return {'error': 'wrong_ia_account'}
+                ol_account.unlink()
+                ol_account.link(ia_account.itemname)
+                # return {'error': 'wrong_ia_account'}
 
         # At this point, it must either be the case that
         # (a) `ol_account` already links to our IA account (in which case `link` has a
