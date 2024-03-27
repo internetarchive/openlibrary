@@ -1,5 +1,6 @@
 import logging
 from collections.abc import Callable
+import json
 
 import luqum.tree
 from luqum.exceptions import ParseError
@@ -31,7 +32,7 @@ class SearchScheme:
     def is_search_field(self, field: str):
         return field in self.all_fields or field in self.field_name_map
 
-    def process_user_sort(self, user_sort: str) -> str:
+    def process_user_sort(self, user_sort: str, param: dict | None) -> str:
         """
         Convert a user-provided sort to a solr sort
 
@@ -67,7 +68,11 @@ class SearchScheme:
                 return f'{solr_sort_field}_{random_seed} {sort_order}'
             else:
                 solr_sort = self.sorts[sort]
-                return solr_sort() if callable(solr_sort) else solr_sort
+                return (
+                    solr_sort(json.dumps(param, sort_keys=True))
+                    if callable(solr_sort)
+                    else solr_sort
+                )
 
         return ','.join(
             process_individual_sort(s.strip()) for s in user_sort.split(',')

@@ -147,11 +147,11 @@ class WorkSearchScheme(SearchScheme):
         'key asc': 'key asc',
         'key desc': 'key desc',
         # Random
-        'random': 'random_1 asc',
-        'random asc': 'random_1 asc',
-        'random desc': 'random_1 desc',
-        'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
-        'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
+        'random': lambda seed='': f'random_1_{seed} asc',
+        'random asc': lambda seed='': f'random_1_{seed} asc',
+        'random desc': lambda seed='': f'random_1_{seed} desc',
+        'random.hourly': lambda seed='': f'random_{datetime.now():%Y%m%dT%H}_{seed} asc',
+        'random.daily': lambda seed='': f'random_{datetime.now():%Y%m%d}_{seed} asc',
     }
     default_fetched_fields = {
         'key',
