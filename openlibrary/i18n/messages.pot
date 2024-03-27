@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-03-06 00:35+0000\n"
+"POT-Creation-Date: 2024-03-26 21:27-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -414,7 +414,7 @@ msgid_plural "%(count)d works"
 msgstr[0] ""
 msgstr[1] ""
 
-#: subjects.html:45
+#: subjects.html:45 subjects.html:49
 #, python-format
 msgid "Search for books with subject %(name)s."
 msgstr ""
@@ -423,16 +423,16 @@ msgstr ""
 #: publishers/notfound.html:19 publishers/view.html:115
 #: search/advancedsearch.html:48 search/authors.html:28 search/inside.html:17
 #: search/lists.html:17 search/publishers.html:19 search/subjects.html:28
-#: subjects.html:50 subjects/notfound.html:19 type/local_id/view.html:42
+#: subjects.html:51 subjects/notfound.html:19 type/local_id/view.html:42
 #: work_search.html:67
 msgid "Search"
 msgstr ""
 
-#: publishers/view.html:32 subjects.html:60
+#: publishers/view.html:32 subjects.html:61
 msgid "Publishing History"
 msgstr ""
 
-#: subjects.html:62
+#: subjects.html:63
 msgid ""
 "This is a chart to show the publishing history of editions of works about"
 " this subject. Along the X axis is time, and on the y axis is the count "
@@ -440,65 +440,65 @@ msgid ""
 " chart</a>."
 msgstr ""
 
-#: publishers/view.html:34 subjects.html:63
+#: publishers/view.html:34 subjects.html:64
 msgid "Reset chart"
 msgstr ""
 
-#: publishers/view.html:34 subjects.html:63
+#: publishers/view.html:34 subjects.html:64
 msgid "or continue zooming in."
 msgstr ""
 
-#: subjects.html:64
+#: subjects.html:65
 msgid "This graph charts editions published on this subject."
 msgstr ""
 
-#: publishers/view.html:42 subjects.html:70
+#: publishers/view.html:42 subjects.html:71
 msgid "Editions Published"
 msgstr ""
 
-#: admin/imports.html:25 publishers/view.html:44 subjects.html:72
+#: admin/imports.html:25 publishers/view.html:44 subjects.html:73
 msgid "You need to have JavaScript turned on to see the nifty chart!"
 msgstr ""
 
-#: publishers/view.html:46 subjects.html:74
+#: publishers/view.html:46 subjects.html:75
 msgid "Year of Publication"
 msgstr ""
 
-#: subjects.html:80
+#: subjects.html:81
 msgid "Related..."
 msgstr ""
 
-#: publishers/view.html:64 subjects.html:94
+#: publishers/view.html:64 subjects.html:95
 msgid "None found."
 msgstr ""
 
-#: publishers/view.html:81 subjects.html:109
+#: publishers/view.html:81 subjects.html:110
 msgid "See more books by, and learn about, this author"
 msgstr ""
 
 #: account/loans.html:147 authors/index.html:28 publishers/view.html:83
 #: search/authors.html:60 search/publishers.html:29 search/subjects.html:73
-#: subjects.html:111
+#: subjects.html:112
 #, python-format
 msgid "%(count)d book"
 msgid_plural "%(count)d books"
 msgstr[0] ""
 msgstr[1] ""
 
-#: subjects.html:115
+#: subjects.html:116
 msgid "Prolific Authors"
 msgstr ""
 
-#: subjects.html:116
+#: subjects.html:117
 msgid "who have written the most books on this subject"
 msgstr ""
 
-#: publishers/view.html:104 subjects.html:132
+#: publishers/view.html:104 subjects.html:133
 msgid "Get more information about this publisher"
 msgstr ""
 
 #: SearchResultsWork.html:95 books/check.html:36 merge/authors.html:95
-#: publishers/view.html:106 subjects.html:134
+#: publishers/view.html:106 subjects.html:135
 #, python-format
 msgid "%(count)s edition"
 msgid_plural "%(count)s editions"
@@ -541,61 +541,25 @@ msgid ""
 "preference and details to your question."
 msgstr ""
 
-#: support.html:33
-msgid "Topic"
-msgstr ""
-
-#: support.html:36
-msgid "Select..."
-msgstr ""
-
-#: support.html:37
-msgid "Borrowing Help"
-msgstr ""
-
-#: support.html:38
-msgid "Developer/Code Question"
-msgstr ""
-
-#: support.html:39
-msgid "Editing Issue"
+#: lib/nav_head.html:96 search/advancedsearch.html:32 support.html:33
+msgid "Subject"
 msgstr ""
 
 #: support.html:40
-msgid "Login Trouble"
-msgstr ""
-
-#: support.html:41
-msgid "Spam Report"
-msgstr ""
-
-#: support.html:42
-msgid "Waiting List"
-msgstr ""
-
-#: support.html:43
-msgid "Other Question"
-msgstr ""
-
-#: support.html:49
 msgid "Your Question"
 msgstr ""
 
-#: support.html:50
+#: support.html:41
 msgid "Note: our staff will likely only be able respond in English."
 msgstr ""
 
-#: support.html:54
+#: support.html:45
 msgid ""
 "If you encounter an error message, please include it. For questions about"
 " our books, please provide the title/author or Open Library ID."
 msgstr ""
 
-#: support.html:58
-msgid "Which page were you looking at?"
-msgstr ""
-
-#: support.html:67
+#: support.html:55
 msgid "Send"
 msgstr ""
 
@@ -604,7 +568,7 @@ msgstr ""
 #: account/password/reset.html:24 account/privacy.html:79
 #: admin/imports-add.html:28 books/add.html:107 covers/add.html:85
 #: covers/manage.html:52 databarAuthor.html:66 databarEdit.html:13
-#: merge/authors.html:118 my_books/dropdown_content.html:114 support.html:69
+#: merge/authors.html:118 my_books/dropdown_content.html:114 support.html:57
 #: tag/add.html:66
 msgid "Cancel"
 msgstr ""
@@ -631,7 +595,7 @@ msgstr ""
 msgid "This Year"
 msgstr ""
 
-#: account/view.html:38 books/year_breadcrumb_select.html:2
+#: account/view.html:37 books/year_breadcrumb_select.html:2
 #: books/year_breadcrumb_select.html:11 trending.html:10
 msgid "All Time"
 msgstr ""
@@ -1161,7 +1125,7 @@ msgstr ""
 msgid "My Reading Stats"
 msgstr ""
 
-#: account.py:1104 account/mybooks.html:184 account/sidebar.html:16
+#: account.py:1119 account/mybooks.html:184 account/sidebar.html:16
 #: books/mybooks_breadcrumb_select.html:20
 msgid "Loan History"
 msgstr ""
@@ -1525,18 +1489,23 @@ msgstr ""
 msgid "Verification email sent"
 msgstr ""
 
-#: account.py:437 account.py:491 account/password/reset_success.html:10
+#: account.py:452 account.py:506 account/password/reset_success.html:10
 #: account/verify.html:9 account/verify/activated.html:10
 #: account/verify/success.html:10
 #, python-format
 msgid "Hi, %(user)s"
 msgstr ""
 
-#: account/view.html:62
+#: account/view.html:49 type/edition/modal_links.html:34
+#: type/edition/title_and_author.html:58
+msgid "Share"
+msgstr ""
+
+#: account/view.html:65
 msgid "Your book notes are private and cannot be viewed by other patrons."
 msgstr ""
 
-#: account/view.html:64
+#: account/view.html:67
 msgid "Your book reviews will be shared anonymously with other patrons."
 msgstr ""
 
@@ -1726,7 +1695,7 @@ msgstr ""
 msgid "Sponsorship"
 msgstr ""
 
-#: account.py:1071 admin/menu.html:22 admin/people/view.html:233
+#: account.py:1086 admin/menu.html:22 admin/people/view.html:233
 #: books/mybooks_breadcrumb_select.html:19 type/user/view.html:29
 msgid "Loans"
 msgstr ""
@@ -2441,7 +2410,7 @@ msgstr ""
 msgid "Notes"
 msgstr ""
 
-#: account.py:827 books/mybooks_breadcrumb_select.html:23
+#: account.py:842 books/mybooks_breadcrumb_select.html:23
 msgid "Imports and Exports"
 msgstr ""
 
@@ -2928,15 +2897,15 @@ msgstr ""
 msgid "URL"
 msgstr ""
 
-#: books/edit/web.html:38
+#: books/edit/web.html:41
 msgid "Add Link"
 msgstr ""
 
-#: books/edit/web.html:50 books/edit/web.html:59
+#: books/edit/web.html:49 books/edit/web.html:58
 msgid "Remove this link"
 msgstr ""
 
-#: books/edit/web.html:71
+#: books/edit/web.html:70
 msgid ""
 "\"Good\" means no spammy links, please. Keep them relevant to the book. "
 "Irrelevant sites may be removed. Blatant spam will be deleted without "
@@ -3454,14 +3423,18 @@ msgid "Hindi"
 msgstr ""
 
 #: languages/language_list.html:17
-msgid "Telugu"
+msgid "Sardinian"
 msgstr ""
 
 #: languages/language_list.html:18
-msgid "Ukrainian"
+msgid "Telugu"
 msgstr ""
 
 #: languages/language_list.html:19
+msgid "Ukrainian"
+msgstr ""
+
+#: languages/language_list.html:20
 msgid "Chinese"
 msgstr ""
 
@@ -3481,6 +3454,11 @@ msgstr ""
 
 #: lib/edit_head.html:16 lib/view_head.html:16
 msgid "This doc was last edited anonymously"
+msgstr ""
+
+#: lib/header_dropdown.html:30 type/user/view.html:24
+#, python-format
+msgid "Joined %(date)s"
 msgstr ""
 
 #: lib/header_dropdown.html:38
@@ -3800,10 +3778,6 @@ msgstr ""
 
 #: lib/nav_head.html:95
 msgid "Text"
-msgstr ""
-
-#: lib/nav_head.html:96 search/advancedsearch.html:32
-msgid "Subject"
 msgstr ""
 
 #: lib/nav_head.html:110 lib/nav_head.html:111
@@ -4257,7 +4231,7 @@ msgid "Description:"
 msgstr ""
 
 #: CreateListModal.html:32 my_books/dropdown_content.html:112
-#: type/list/edit.html:145
+#: type/list/edit.html:146
 msgid "Create new list"
 msgstr ""
 
@@ -4910,10 +4884,6 @@ msgstr ""
 msgid "Edit this template"
 msgstr ""
 
-#: type/edition/modal_links.html:34 type/edition/title_and_author.html:58
-msgid "Share"
-msgstr ""
-
 #: type/edition/title_and_author.html:25
 msgid "An edition of"
 msgstr ""
@@ -5084,23 +5054,23 @@ msgid ""
 "development."
 msgstr ""
 
-#: type/list/edit.html:46
+#: type/list/edit.html:47
 msgid "Search for a book"
 msgstr ""
 
-#: type/list/edit.html:65
+#: type/list/edit.html:66
 msgid "Notes (optional)"
 msgstr ""
 
-#: type/list/edit.html:114
+#: type/list/edit.html:115
 msgid "List Name"
 msgstr ""
 
-#: type/list/edit.html:121
+#: type/list/edit.html:122
 msgid "Description (optional)"
 msgstr ""
 
-#: type/list/edit.html:138
+#: type/list/edit.html:139
 msgid "Add another book"
 msgstr ""
 
@@ -5301,11 +5271,6 @@ msgstr ""
 
 #: type/user/edit.html:25
 msgid "Display Name"
-msgstr ""
-
-#: type/user/view.html:24
-#, python-format
-msgid "Joined %(date)s"
 msgstr ""
 
 #: type/user/view.html:32
@@ -5612,23 +5577,23 @@ msgstr ""
 msgid "Work Title"
 msgstr ""
 
-#: ShareModal.html:48
+#: ShareModal.html:49
 msgid "Embed this book in your website"
 msgstr ""
 
-#: ShareModal.html:57
+#: ShareModal.html:58
 msgid "Embed"
 msgstr ""
 
-#: ShareModal.html:61
+#: ShareModal.html:62
 msgid "Copy url to clipboard"
 msgstr ""
 
-#: ShareModal.html:63
+#: ShareModal.html:64
 msgid "Copy URL icon"
 msgstr ""
 
-#: ShareModal.html:69
+#: ShareModal.html:70
 msgid "Copy URL"
 msgstr ""
 
@@ -5776,68 +5741,68 @@ msgstr ""
 msgid "Learn more about Book Sponsorship"
 msgstr ""
 
-#: account.py:438 account.py:492
+#: account.py:453 account.py:507
 #, python-format
 msgid ""
 "We've sent the verification email to %(email)s. You'll need to read that "
 "and click on the verification link to verify your email."
 msgstr ""
 
-#: account.py:520
+#: account.py:535
 msgid "Username must be between 3-20 characters"
 msgstr ""
 
-#: account.py:522
+#: account.py:537
 msgid "Username may only contain numbers and letters"
 msgstr ""
 
-#: account.py:525
+#: account.py:540
 msgid "Username unavailable"
 msgstr ""
 
-#: account.py:530 forms.py:60
+#: account.py:545 forms.py:60
 msgid "Must be a valid email address"
 msgstr ""
 
-#: account.py:534 forms.py:41
+#: account.py:549 forms.py:41
 msgid "Email already registered"
 msgstr ""
 
-#: account.py:560
+#: account.py:575
 msgid "Email address is already used."
 msgstr ""
 
-#: account.py:561
+#: account.py:576
 msgid ""
 "Your email address couldn't be updated. The specified email address is "
 "already used."
 msgstr ""
 
-#: account.py:567
+#: account.py:582
 msgid "Email verification successful."
 msgstr ""
 
-#: account.py:568
+#: account.py:583
 msgid ""
 "Your email address has been successfully verified and updated in your "
 "account."
 msgstr ""
 
-#: account.py:574
+#: account.py:589
 msgid "Email address couldn't be verified."
 msgstr ""
 
-#: account.py:575
+#: account.py:590
 msgid ""
 "Your email address couldn't be verified. The verification link seems "
 "invalid."
 msgstr ""
 
-#: account.py:678 account.py:688
+#: account.py:693 account.py:703
 msgid "Password reset failed."
 msgstr ""
 
-#: account.py:740 account.py:759
+#: account.py:755 account.py:774
 msgid "Notification preferences have been updated successfully."
 msgstr ""
 

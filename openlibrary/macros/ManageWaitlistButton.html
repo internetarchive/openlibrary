@@ -14,7 +14,7 @@ $if status == "waiting":
   $if pos == 1:
     You are the next person to receive this book.
   $else:
-    $ungettext("There is one person ahead of you in the waiting list.", "There are %(count)s people ahead of you in the waiting list.", pos-1, count=pos-1)
+    $ungettext("There is one person ahead of you in the waiting list.", "There are %(count)d people ahead of you in the waiting list.", pos-1, count=pos-1)
 </div>
 
 <div class="status">
