@@ -207,6 +207,9 @@ class Bookshelves(db.CommonExtras):
     # it will remove an item with the matching edition key from the list, and add it to
     # doc["editions"]["docs"]
     def link_editions_to_works(solr_docs):
+        """
+        :param solr_docs: Solr work/edition docs, augmented with reading log data
+        """
         linked_docs: list[web.storage] = []
         editions_to_work_doc = {}
         # adds works to linked_docs, recording their edition key and index in docs_dict if present.
