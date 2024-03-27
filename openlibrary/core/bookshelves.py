@@ -276,6 +276,7 @@ class Bookshelves(db.CommonExtras):
             solr_resp = run_solr_query(
                 scheme=WorkSearchScheme(),
                 param={'q': '*:*'},
+                rows=len(edition_keys_to_query),
                 fields=list(
                     WorkSearchScheme.default_fetched_fields
                     | {'subject', 'person', 'place', 'time', 'edition_key'}
