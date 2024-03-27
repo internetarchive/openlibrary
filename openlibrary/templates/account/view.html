@@ -1,5 +1,15 @@
 $def with (mb, template=None, header_title="", page=None)
-  
+
+$def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None):
+  $ href = 'javascript:;'
+  $if not ctx.user and login_redirect:
+    $# Change classname to avoid adding click listeners and redirect to login page:
+    $ href = '/account/login?redirect=%s' % ctx.path
+    $ link_class = '%s--redirect' % link_class
+
+  $ ga_attr = 'data-ol-link-track=%s' % ga_data if ga_data else ''
+  <a class="cta-btn cta-btn--unstyled $link_class icon-link" href="$href" $ga_attr><img class="icon-link__image" src="/static/images/icons/share.svg" width="20"> Share</a>
+
 $ mb.component_times['TotalTime'] = time()
 
 $ header_title = header_title or mb.key

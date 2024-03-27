@@ -33,7 +33,6 @@ $def embed_iframe(page_url):
                 </a>
                 <div class="share-source">$share_link['text']</div>
               </li>
-<<<<<<< HEAD
 
             <li>
               $# rm special characters from url such as single quote which break js prompt/iframe
@@ -50,25 +49,6 @@ $def embed_iframe(page_url):
               </a>
               <div class="share-source">$_('Embed')</div>
             </li>
-=======
-            
-            $if show_embed:
-              <li>
-                $# rm special characters from url such as single quote which break js prompt/iframe
-                $ clean_url = page_url.replace("'", "\\'")
-                $ iframe_html = str(embed_iframe(clean_url)).strip()
-                <a class="embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed"
-                  onclick="prompt('Copy embed code to clipboard:', '$iframe_html');">
-                  <img
-                    alt="Embed icon"
-                    class="share-link"
-                    src="$static_url('images/embed.png')"
-                    loading="lazy"
-                  >
-                </a>
-                <div class="share-source">$_('Embed')</div>
-              </li>
->>>>>>> 09cbe1597 (Fixed UI for share modal on My books page)
 
             <li>
               <a class="copy-url-btn" title="$_('Copy url to clipboard')" data-ol-link-track="Share|CopyURL">
