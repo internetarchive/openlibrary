@@ -224,10 +224,8 @@ class Bookshelves(db.CommonExtras):
                 if work_doc := editions_to_work_doc.get(edition["key"]):
                     work_doc.editions = [edition]
                 else:
-                    # raise error no matching work found? Or figure out if the solr queries are performedorderless.
-                    logger.warning(
-                        "Error: No work found for edition %s" % edition["key"]
-                    )
+                    # raise error no matching work found
+                    logger.error("Error: No work found for edition %s" % edition["key"])
         return linked_docs
 
     @classmethod
@@ -260,9 +258,7 @@ class Bookshelves(db.CommonExtras):
             work: edition for (work, edition) in reading_log_keys if edition
         }
         edition_to_work_keys = {
-            edition.split("/")[2]: work
-            for (work, edition) in reading_log_keys
-            if edition
+            edition: work for (work, edition) in reading_log_keys if edition
         }
 
         # Here, we add in dummied works for situations in which there is no edition key present, yet the work key accesses a redirect.
@@ -275,7 +271,8 @@ class Bookshelves(db.CommonExtras):
         keys_to_fetch = [
             work_to_edition_keys[key].split("/")[2] for key in missing_keys
         ]
-        if fq := f'edition_key:{" OR ".join(keys_to_fetch)}':
+        fq = f'edition_key:{" OR ".join(keys_to_fetch)}'
+        if keys_to_fetch:
             solr_resp = run_solr_query(
                 scheme=WorkSearchScheme(),
                 param={'q': '*:*'},
@@ -285,15 +282,17 @@ class Bookshelves(db.CommonExtras):
                 ),
                 facet=False,
                 extra_params=[("fq", fq)],
-            ).docs
+            )
 
         """
         Now, we add the correct 'logged_edition' information to each document retrieved by the query, and substitute the work_key in
         each doc for the original one.
         """
-        for doc in solr_resp:
+        for doc in solr_resp.docs:
             for edition_key in doc["edition_key"]:
-                if pre_redirect_key := edition_to_work_keys.get(edition_key):
+                if pre_redirect_key := edition_to_work_keys.get(
+                    '/books/%s' % edition_key
+                ):
                     doc["key"] = pre_redirect_key
                     doc["logged_edition"] = work_to_edition_keys.get(pre_redirect_key)
                     solr_docs.append(web.storage(doc))
@@ -431,7 +430,7 @@ class Bookshelves(db.CommonExtras):
 
             if show_editions:
                 edition_data = get_solr().get_many(
-                    [f'{key}' for key in work_to_edition_keys.values()],
+                    work_to_edition_keys.values(),
                     fields=WorkSearchScheme.default_fetched_fields
                     | {'subject', 'person', 'place', 'time', 'edition_key'},
                 )
