@@ -1021,10 +1021,8 @@ class Partials(delegate.page):
     encoding = 'json'
 
     def GET(self):
-        # `data` is meant to be a dict with two keys: `args` and `kwargs`.
-        # `data['args']` is meant to be a list of a template's positional arguments, in order.
-        # `data['kwargs']` is meant to be a dict containing a template's keyword arguments.
-        i = web.input(workid=None, _component=None, data=None)
+        # `data` is a string that can be deserialized by `json.loads`
+        i = web.input(workid=None, _component=None, data='{}')
         component = i.pop("_component")
         partial = {}
         if component == "RelatedWorkCarousel":
@@ -1037,6 +1035,20 @@ class Partials(delegate.page):
                 args[0], args[1]
             )
             partial = {"partials": str(macro)}
+        elif component == "EditionsTable":
+            data = json.loads(i.data)
+            work_key = data.get('work_key', None)
+            edition_key = data.get('edition_key', None)
+
+            work = web.ctx.site.get(work_key)
+            edition = web.ctx.site.get(edition_key)
+            ed_table = render_template(
+                'type/work/editions_datatable',
+                work,
+                editions=work.get_sorted_editions(keys=[edition_key], limit=10),
+                edition=edition,
+            )
+            partial = {"partials": str(ed_table)}
 
         return delegate.RawText(json.dumps(partial))
 

@@ -113,6 +113,13 @@ jQuery(function () {
     if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
         import(/* webpackChunkName: "editions-table" */ './editions-table')
             .then(module => module.initEditionsTable());
+    } else {
+        // Async editions table:
+        const editionsTableLoadingIndicator = document.querySelector('.editions-table-loading-indicator')
+        if (editionsTableLoadingIndicator) {
+            import(/*webpackChunkName: "editions-table" */ './editions-table')
+                .then((module) => module.fetchEditionsTable(editionsTableLoadingIndicator))
+        }
     }
 
     const edition = document.getElementById('tabsAddbook');
