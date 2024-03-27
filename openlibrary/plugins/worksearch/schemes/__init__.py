@@ -51,7 +51,7 @@ class SearchScheme:
         'random_1_custom_seed asc'
         """
 
-        def process_individual_sort(sort: str):
+        def process_individual_sort(sort: str) -> str:
             if sort.startswith(('random_', 'random.hourly_', 'random.daily_')):
                 # Allow custom randoms; so anything random_* is allowed
                 # Also Allow custom time randoms to allow carousels with overlapping
