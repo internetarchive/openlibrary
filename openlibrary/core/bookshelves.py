@@ -268,11 +268,11 @@ class Bookshelves(db.CommonExtras):
                 missing_keys.remove(key)
                 solr_docs.append(web.storage({"key": key}))
 
-        keys_to_fetch = [
+        edition_keys_to_query = [
             work_to_edition_keys[key].split("/")[2] for key in missing_keys
         ]
-        fq = f'edition_key:{" OR ".join(keys_to_fetch)}'
-        if keys_to_fetch:
+        fq = f'edition_key:{" OR ".join(edition_keys_to_query)}'
+        if edition_keys_to_query:
             solr_resp = run_solr_query(
                 scheme=WorkSearchScheme(),
                 param={'q': '*:*'},
