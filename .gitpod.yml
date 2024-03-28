@@ -34,11 +34,3 @@ tasks:
   # init runs once for each commit to the default branch
   init: ./scripts/setup_gitpod.sh
   openMode: split-right
-
-github:
-  prebuilds:
-    # Disable all prebuilds ; it's not faster and often errors
-    master: false
-    pullRequests: false
-    branches: false
-    pullRequestsFromForks: false
