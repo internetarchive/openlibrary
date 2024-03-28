@@ -151,6 +151,8 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             $:render_template("covers/change", page, ".bookCover img")
         </div>
 
+        $:render_template("wikidata_author", page.wikidata())
+
         $def render_subjects(label, subjects, prefix):
             $if subjects:
                 <div class="section">

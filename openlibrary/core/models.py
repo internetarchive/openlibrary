@@ -28,6 +28,7 @@ from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.utils import extract_numeric_id_from_olid, dateutil
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
+from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
 
 from . import cache, waitinglist
 
@@ -755,6 +756,11 @@ class Author(Thing):
 
     def get_url_suffix(self):
         return self.name or "unnamed"
+
+    def wikidata(self, use_cache: bool = True) -> WikidataEntity | None:
+        if wd_id := self.remote_ids.get("wikidata"):
+            return get_wikidata_entity(QID=wd_id, use_cache=use_cache)
+        return None
 
     def __repr__(self):
         return "<Author: %s>" % repr(self.key)
