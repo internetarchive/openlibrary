@@ -44,17 +44,27 @@ class SearchScheme:
         >>> scheme.process_user_sort('random')
         'random_1 asc'
         >>> scheme.process_user_sort('random_custom_seed')
-        'random_custom_seed asc'
+        'random_1_custom_seed asc'
         >>> scheme.process_user_sort('random_custom_seed desc')
-        'random_custom_seed desc'
+        'random_1_custom_seed desc'
         >>> scheme.process_user_sort('random_custom_seed asc')
-        'random_custom_seed asc'
+        'random_1_custom_seed asc'
         """
 
-        def process_individual_sort(sort: str):
-            if sort.startswith('random_'):
+        def process_individual_sort(sort: str) -> str:
+            if sort.startswith(('random_', 'random.hourly_', 'random.daily_')):
                 # Allow custom randoms; so anything random_* is allowed
-                return sort if ' ' in sort else f'{sort} asc'
+                # Also Allow custom time randoms to allow carousels with overlapping
+                # books to have a fresh ordering when on the same collection
+                sort_order: str | None = None
+                if ' ' in sort:
+                    sort, sort_order = sort.split(' ', 1)
+                random_type, random_seed = sort.split('_', 1)
+                solr_sort = self.sorts[random_type]
+                solr_sort_str = solr_sort() if callable(solr_sort) else solr_sort
+                solr_sort_field, solr_sort_order = solr_sort_str.split(' ', 1)
+                sort_order = sort_order or solr_sort_order
+                return f'{solr_sort_field}_{random_seed} {sort_order}'
             else:
                 solr_sort = self.sorts[sort]
                 return solr_sort() if callable(solr_sort) else solr_sort
