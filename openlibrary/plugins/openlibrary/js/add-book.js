@@ -7,6 +7,7 @@ import {
     isFormatValidIsbn13,
     isValidLccn
 } from './idValidation.js'
+import { debounce } from './nonjquery_utils.js';
 
 let invalidChecksum;
 let invalidIsbn10;
@@ -36,6 +37,9 @@ export function initAddBookImport () {
     $('#addbook').on('submit', parseAndValidateId);
     $('#id_value').on('input', clearErrors);
     $('#id_name').on('change', clearErrors);
+    $('#id_value').on('paste', debounce(() => {
+        checkIsbn();
+    }, 500, false));
 }
 
 // a flag to make raiseIsbnError perform differently upon subsequent calls
@@ -72,6 +76,8 @@ function clearErrors() {
     errorDiv.classList.add('hidden');
     const confirm = document.getElementById('confirm-add');
     confirm.classList.add('hidden');
+    const foundDiv = document.getElementById('id-found');
+    foundDiv.classList.add('hidden');
 }
 
 function parseAndValidateId(event) {
@@ -153,4 +159,20 @@ function autoCompleteIdName(){
     else {
         document.getElementById('id_name').value = '';
     }
+}
+
+function checkIsbn() {
+    const isbn = document.getElementById('id_value').value;
+    fetch(`/isbn/${isbn}.json?high_priority=false`)
+        .then((resp) => {
+            if (resp.status !== 200) {
+                throw new Error(`Failed to fetch ISBN. Status code: ${resp.status}`)
+            }
+            return resp.json()
+        })
+        .then((data) => {
+            const foundDiv = document.getElementById('id-found');
+            foundDiv.classList.remove('hidden');
+            foundDiv.innerHTML = `${data.title} - An existing book was found with ISBN ${isbn}: <a href="/isbn/${isbn}" style="color:red">openlibrary.org/isbn/${isbn}</a>`;
+        });
 }
