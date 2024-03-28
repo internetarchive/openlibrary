@@ -42,14 +42,18 @@ export class Carousel {
         this.$container = $container;
 
         //This loads in i18n strings from a hidden input element, generated in the books/custom_carousel.html template.
-        this.i18n = JSON.parse($('input[name="carousel-i18n-strings"]').attr('value'));
-        this.availabilityStatuses = {
-            open: {cls: 'cta-btn--available', cta: this.i18n['open']},
-            borrow_available: {cls: 'cta-btn--available', cta: this.i18n['borrow_available']},
-            borrow_unavailable: {cls: 'cta-btn--unavailable', cta: this.i18n['borrow_unavailable']},
-            error: {cls: 'cta-btn--missing', cta: this.i18n['error']},
-            // private: {cls: 'cta-btn--available', cta: 'Preview'}
-        };
+        const i18nInput = document.querySelector('input[name="carousel-i18n-strings"]')
+        if (i18nInput) {
+            this.i18n = JSON.parse(i18nInput.value);
+
+            this.availabilityStatuses = {
+                open: {cls: 'cta-btn--available', cta: this.i18n['open']},
+                borrow_available: {cls: 'cta-btn--available', cta: this.i18n['borrow_available']},
+                borrow_unavailable: {cls: 'cta-btn--unavailable', cta: this.i18n['borrow_unavailable']},
+                error: {cls: 'cta-btn--missing', cta: this.i18n['error']},
+                // private: {cls: 'cta-btn--available', cta: 'Preview'}
+            };
+        }
     }
 
     get slick() {
