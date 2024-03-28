@@ -799,7 +799,7 @@ msgstr "Visìbile petzi pro sos superbibliotecàrios."
 
 #: work_search.html:83
 msgid "Solr Editions"
-msgstr "Editziones Solr <i>Beta</i>"
+msgstr "Editziones Solr"
 
 #: work_search.html:100
 msgid "eBook"

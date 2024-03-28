@@ -797,7 +797,7 @@ msgstr "Bu sadece süper kütüphaneciler tarafından görülebilir."
 
 #: work_search.html:83
 msgid "Solr Editions"
-msgstr "<i>Beta</i> Solr basımı"
+msgstr "Solr basımı"
 
 #: work_search.html:100
 msgid "eBook"

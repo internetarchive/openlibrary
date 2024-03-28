@@ -803,7 +803,7 @@ msgstr "Das ist nur für Super-Bibliothekare sichtbar."
 
 #: work_search.html:107
 msgid "Solr Editions"
-msgstr "Solr-Editionen <i>Beta</i>"
+msgstr "Solr-Editionen"
 
 #: work_search.html:124
 msgid "eBook"

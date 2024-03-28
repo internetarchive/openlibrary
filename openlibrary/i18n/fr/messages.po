@@ -805,7 +805,7 @@ msgstr "Ceci est seulement visible pour les super libraires."
 
 #: work_search.html:107
 msgid "Solr Editions"
-msgstr "Édition <i>Beta</i> de Solr"
+msgstr "Édition de Solr"
 
 #: work_search.html:124
 msgid "eBook"

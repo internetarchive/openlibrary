@@ -799,7 +799,7 @@ msgstr "Це можуть бачити лише супербібліотекар
 
 #: work_search.html:107
 msgid "Solr Editions"
-msgstr "Solr видання <i>Бета</i>"
+msgstr "Solr видання"
 
 #: work_search.html:124
 msgid "eBook"
