@@ -50,14 +50,14 @@ $ rev = page.latest_revision or page.revision
                         <td class="history" style="vertical-align: top;">$v.ip</td>
                     <td class="comment">$:render_template("history/comment", v)</td>
                     <td class="compare" style="text-align:center;">
-                        <input type="radio" id="a$v.revision" name="a" title="Compare this version..." value="$v.revision"
+                        <input type="radio" id="a$v.revision" name="a" title="$_('Compare this version...')" value="$v.revision"
                         $if v.revision == rev - 1:
                             checked
                         $elif v.revision == rev:
                             checked
                         />
                         &nbsp;&nbsp;&nbsp;
-                        <input type="radio" id="b$v.revision" name="b" title="...to this version" value="$v.revision"
+                        <input type="radio" id="b$v.revision" name="b" title="$_('...to this version')" value="$v.revision"
                         $if v.revision == rev:
                             checked
                         />

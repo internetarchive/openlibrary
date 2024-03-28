@@ -100,17 +100,17 @@ $code:
                 <span class="preview-covers $blur_preview">
                   $for x, i in enumerate(doc.get('ia')[1:10]):
                     <a href="$(book_url)?edition=ia:$(urlquote(i))">
-                      <img width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="Cover of edition $i">
+                      <img width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="$_('Cover of edition %(id)s', id=i)">
                     </a>
                 </span>
         </span>
         $if show_librarian_extras:
           <div class="searchResultItem__librarian-extras" title="$_('This is only visible to librarians.')">
             $if doc_type == 'solr_edition' or (doc_type == 'infogami_edition' and edition_work):
-              <div>$_('Work Title'): <i>$full_work_title</i></div>
+              <div>$_("Work Title"): <i>$full_work_title</i></div>
             $ is_orphan = doc_type.startswith('solr_') and doc['key'].endswith('M') or doc_type == 'infogami_edition' and not edition_work
             $if is_orphan:
-              <div>$_('Orphaned Edition')</div>
+              <div>$_("Orphaned Edition")</div>
           </div>
         $if extra:
           $:extra
