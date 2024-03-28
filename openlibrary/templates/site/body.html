@@ -4,7 +4,7 @@ $ bodyclass = ctx.get('bodyclass', [])
 $ show_ol_shell = ctx.get('show_ol_shell', True)
 $ bodyattrs = ctx.get('bodyattrs', [])
 
-$if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ctx.path.startswith('/books/OL') or ctx.path.startswith('/search')):
+$if show_ol_shell and ctx.path and (ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ctx.path.startswith('/books/OL') or ctx.path.startswith('/search')):
   $if ctx.user and ((ctx.user.is_librarian() or ctx.user.is_admin())):
     $bodyclass.append('show-librarian-tools')
     $bodyattrs.append('data-username="%s"' % ctx.user.key.split('/')[-1])
