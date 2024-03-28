@@ -2,6 +2,8 @@ $def with (work, edition=None, recaptcha=None)
 
 $ this_title = work.title + ': ' + work.subtitle if work.get('subtitle', None) else work.title
 
+$ work_config = get_work_config()
+
 $var title: $this_title
 $putctx("robots", "noindex,nofollow")
 
@@ -102,6 +104,73 @@ $:macros.HiddenSaveButton("addWork")
                                 </div>
                             </div>
                             $:render_template("books/edit/about", work)
+                        </div>
+                    </div>
+                </fieldset>
+                $ config = ({
+                    $ 'Please select an identifier.': _('Please select an identifier.'),
+                    $ 'You need to give a value to ID.': _('You need to give a value to ID.'),
+                    $ 'ID ids cannot contain whitespace.': _('ID ids cannot contain whitespace.'),
+                    $ 'That ID already exists for this work.': _('That ID already exists for this work.'),
+                    $ 'Invalid ID format': _('Invalid ID format')
+                $ })
+                <fieldset class="major" id="workidentifiers" data-config="$dumps(config)">
+                    <legend>$_("ID Numbers")</legend>
+                    <div class="formBack">
+
+                        <div id="workid-errors" class="note" style="display: none"></div>
+                        <div class="formElement">
+                            <div class="label">
+                                <label for="workselect-id">$_("Do you know any identifiers for this work?")</label>
+                                <span class="tip">$_("Like, VIAF?")</span>
+                            </div>
+                            <div class="input">
+                                <table class="identifiers">
+                                    <tr id="workidentifiers-form">
+                                        <td align="right">
+                                            <select name="name" id="workselect-id">
+                                            $ id_labels = dict((d.name, d.label) for d in work_config.identifiers)
+                                            $ id_dict = dict((id.name, id) for id in work_config.identifiers)
+
+                                            <option value="">$_('Select one of many...')</option>
+                                            $for id in work_config.identifiers:
+                                                <option value="$id.name">$id.label</option>
+
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="value" id="workid-value"/>
+                                        </td>
+                                        <td>
+                                            <button type="button" name="add" class="repeat-add larger">$_("Add")</button>
+                                        </td>
+                                    </tr>
+                                    <tbody id="workidentifiers-display">
+                                        <tr id="workidentifiers-template" style="display: none;" class="repeat-item">
+                                            <td align="right"><strong>{{\$("#workselect-id").find("option[value='" + name + "']").html()}}</strong></td>
+                                            <td>{{value}}
+                                                <input type="hidden" name="{{prefix}}identifiers--{{index}}--name" value="{{name}}"/>
+                                                <input type="hidden" name="{{prefix}}identifiers--{{index}}--value" value="{{value}}" class="{{name}}"/>
+                                            </td>
+                                            <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
+                                        </tr>
+                                        <tr>
+                                            <td align="right">Open Library</td>
+                                            <td>$work.key.split("/")[-1]</td>
+                                            <td></td>
+                                        </tr>
+                                        $for i, id in enumerate(work.get_identifiers().values()):
+                                        <tr id="workidentifiers--$i" class="repeat-item">
+                                            <td align="right"><strong>$id_labels.get(id.name, id.name)</strong></td>
+                                            <td>$id.value
+                                                <input type="hidden" name="work--identifiers--${i}--name" value="$id.name"/>
+                                                <input type="hidden" name="work--identifiers--${i}--value" value="$id.value" class="$id.name"/>
+                                            </td>
+                                            <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </fieldset>
