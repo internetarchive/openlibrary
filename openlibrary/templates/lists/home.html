@@ -36,7 +36,7 @@ $var title: $_('Lists')
                         <div class="cover">
                             $ cover = list.get_cover() or list.get_default_cover()
                             $ cover_url = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
-                            <img src="$cover_url" alt="$cover_url"/>
+                            <img src="$cover_url" alt="$_('List cover')"/>
                         </div>
                         $list.name
                     </a>
