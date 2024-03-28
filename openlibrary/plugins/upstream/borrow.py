@@ -501,7 +501,7 @@ def get_loan_link(edition, type):
         return (resource_id, get_bookreader_stream_url(edition.ocaid))
 
     raise Exception(
-        'Unknown resource type %s for loan of edition %s', edition.key, type
+       _('Unknown resource type %(edition)s for loan of edition %(type)s') % {'edition': edition.key, 'type': type}
     )
 
 
@@ -517,7 +517,7 @@ def get_loan_key(resource_id):
     if len(loan_keys) > 1:
         # raise Exception('Found too many local loan records for resource %s' % resource_id)
         logger.error(
-            "Found too many loan records for resource %s: %s", resource_id, loan_keys
+            _('Found too many loan records for resource %(resource)s: %(loan_keys)s') % ('resource': resource_id, 'loan_key': loan_keys)
         )
 
     loan_key = loan_keys[0]['key']
@@ -541,7 +541,7 @@ def get_loan_status(resource_id):
     global loanstatus_url
 
     if not loanstatus_url:
-        raise Exception('No loanstatus_url -- cannot check loan status')
+        raise Exception(_('No loanstatus_url -- cannot check loan status'))
 
     url = f'{loanstatus_url}/is_loaned_out/{resource_id}'
     try:
@@ -562,7 +562,7 @@ def get_loan_status(resource_id):
         return None
 
     raise Exception(
-        'Error communicating with loan status server for resource %s' % resource_id
+        _('Error communicating with loan status server for resource %(resource_id)s') % {'resource_id': resource_id}
     )
 
 
@@ -571,13 +571,13 @@ def get_all_loaned_out():
     global loanstatus_url
 
     if not loanstatus_url:
-        raise Exception('No loanstatus_url -- cannot check loan status')
+        raise Exception(_('No loanstatus_url -- cannot check loan status'))
 
     url = '%s/is_loaned_out/' % loanstatus_url
     try:
         return requests.get(url).json()
     except OSError:
-        raise Exception('Loan status server not available')
+        raise Exception(_('Loan status server not available'))
 
 
 def is_loaned_out(resource_id):
@@ -640,8 +640,7 @@ def update_loan_from_bss_status(loan_key, loan, status):
 
     if not resource_uses_bss(loan['resource_id']):
         raise Exception(
-            'Tried to update loan %s with ACS4/BSS status when it should not use BSS'
-            % loan_key
+            _('Tried to update loan %(loan_key)s with ACS4/BSS status when it should not use BSS') % {'loan_key': loan_key}
         )
 
     if not is_loaned_out_from_status(status):
@@ -657,7 +656,7 @@ def update_loan_from_bss_status(loan_key, loan, status):
 
         # Was returned, expired, or timed out
         web.ctx.site.store.delete(loan_key)
-        logger.info("%s: loan returned or expired or timedout, deleting...", loan_key)
+        logger.info(_('%(loan_key)s: loan returned or expired or timedout, deleting...') % {'loan_key': loan_key})
         return
 
     # Book has non-returned status
@@ -750,7 +749,7 @@ def return_resource(resource_id):
     this is called.  Currently only possible for bookreader loans."""
     loan_key = get_loan_key(resource_id)
     if not loan_key:
-        raise Exception('Asked to return %s but no loan recorded' % resource_id)
+        raise Exception(_('Asked to return %(resource)s but no loan recorded') % {'resource'=resource_id})
 
     loan = web.ctx.site.store.get(loan_key)
 
@@ -761,7 +760,7 @@ def delete_loan(loan_key, loan=None):
     if not loan:
         loan = web.ctx.site.store.get(loan_key)
         if not loan:
-            raise Exception('Could not find store record for %s', loan_key)
+            raise Exception(_('Could not find store record for %(loan_key)s') % {'loan_key': loan_key})
 
     loan.delete()
 
@@ -782,8 +781,8 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
     if not ia_identifier_is_valid(item_id):
         return {
             'success': False,
-            'msg': 'Invalid item id',
-            'resolution': 'This book does not appear to have a valid item identifier.',
+            'msg': _('Invalid item id'),
+            'resolution': _('This book does not appear to have a valid item identifier.'),
         }
 
     # Lookup loan information
@@ -792,11 +791,11 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
 
     if loan_key is None:
         # Book is not checked out as a BookReader loan - may still be checked out in ACS4
-        error_message = 'Lending Library Book'
+        error_message = _('Lending Library Book')
         resolution_message = (
-            'This book is part of the <a href="%(base_url)s/subjects/Lending_library">'
+            :_('This book is part of the <a href="%(base_url)s/subjects/Lending_library">'
             'lending library</a>. Please <a href="%(base_url)s/ia/%(item_id)s/borrow">'
-            'visit this book\'s page on Open Library</a> to access the book.'
+            'visit this book\'s page on Open Library</a> to access the book.')
             % resolution_dict
         )
 
@@ -805,18 +804,18 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
         if user:
             if loan['user'] != user.key:
                 # Borrowed by someone else - OR possibly came in through ezproxy and there's a stale login in on openlibrary.org
-                error_message = 'This book is checked out'
+                error_message = _('This book is checked out')
                 resolution_message = (
-                    'This book is currently checked out.  You can '
+                    :_('This book is currently checked out.  You can '
                     '<a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on '
                     'Open Library</a> or '
                     '<a href="%(base_url)s/subjects/Lending_library">look at other '
-                    'books available to borrow</a>.' % resolution_dict
+                    'books available to borrow</a>.') % resolution_dict
                 )
 
             elif loan['expiry'] < datetime.utcnow().isoformat():
                 # User has the loan, but it's expired
-                error_message = 'Your loan has expired'
+                error_message = _('Your loan has expired')
                 resolution_message = (
                     'Your loan for this book has expired.  You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on Open Library</a>.'
                     % resolution_dict

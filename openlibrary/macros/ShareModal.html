@@ -25,8 +25,8 @@ $def embed_iframe(page_url):
                 <a href="$share_link['url']" class="sansserif large" target="_blank"
                   data-ol-link-track="Share|$track_tag">
                   <img
-                    title="$_('Share on %(share_link['text'])')"
-                    alt="$(share_link['text'])" class="share-link"
+                    title="$_('Share on %(share_link)s', share_link=share_link['text'])"
+                    alt="$_(Share link)" class="share-link"
                     src="$static_url('images/%s.svg' % share_link['text'].lower())"
                     loading="lazy"
                   >
@@ -48,7 +48,7 @@ $def embed_iframe(page_url):
                     loading="lazy"
                   >
                 </a>
-                <div class="share-source">$_('Embed')</div>
+                <div class="share-source">$_("Embed")</div>
               </li>
 
             <li>
@@ -60,7 +60,7 @@ $def embed_iframe(page_url):
                       loading="lazy"
                   >
               </a>
-              <div class="share-source">$_('Copy URL')</div>
+              <div class="share-source">$_("Copy URL")</div>
             </li>
 
           </ul>
