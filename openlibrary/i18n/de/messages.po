@@ -802,7 +802,7 @@ msgid "This is only visible to super librarians."
 msgstr "Das ist nur für Super-Bibliothekare sichtbar."
 
 #: work_search.html:107
-msgid "Solr Editions <i>Beta</i>"
+msgid "Solr Editions"
 msgstr "Solr-Editionen <i>Beta</i>"
 
 #: work_search.html:124

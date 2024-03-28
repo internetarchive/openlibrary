@@ -798,7 +798,7 @@ msgid "This is only visible to super librarians."
 msgstr "Це можуть бачити лише супербібліотекарі."
 
 #: work_search.html:107
-msgid "Solr Editions <i>Beta</i>"
+msgid "Solr Editions"
 msgstr "Solr видання <i>Бета</i>"
 
 #: work_search.html:124
