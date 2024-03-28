@@ -90,6 +90,7 @@ class WorkSearchScheme(SearchScheme):
         "ddc",
         "lcc_sort",
         "ddc_sort",
+        "osp_count",
     }
     facet_fields = {
         "has_fulltext",
@@ -142,6 +143,10 @@ class WorkSearchScheme(SearchScheme):
         'ebook_access': 'ebook_access desc',
         'ebook_access asc': 'ebook_access asc',
         'ebook_access desc': 'ebook_access desc',
+        # Open Syllabus Project
+        'osp_count': 'osp_count desc',
+        'osp_count asc': 'osp_count asc',
+        'osp_count desc': 'osp_count desc',
         # Key
         'key': 'key asc',
         'key asc': 'key asc',
