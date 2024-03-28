@@ -76,7 +76,7 @@ $ )
             onchange="document.cookie = `SOLR_EDITIONS=\${this.firstElementChild.checked ? 'true' : 'false'}`; location.reload()"
             >
                 <input type="checkbox" $:cond(has_solr_editions_enabled(), 'checked="checked"')/>
-                $:_('Solr Editions <i>Beta</i>')
+                $:_('Solr Editions')
             </label>
         </div>
       $ sticky = set(['sort', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b'])

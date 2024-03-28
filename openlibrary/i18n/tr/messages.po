@@ -796,8 +796,8 @@ msgid "This is only visible to super librarians."
 msgstr "Bu sadece süper kütüphaneciler tarafından görülebilir."
 
 #: work_search.html:83
-msgid "Solr Editions <i>Beta</i>"
-msgstr "<i>Beta</i> Solr basımı"
+msgid "Solr Editions"
+msgstr "Solr basımı"
 
 #: work_search.html:100
 msgid "eBook"

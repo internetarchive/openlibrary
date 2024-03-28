@@ -804,8 +804,8 @@ msgid "This is only visible to super librarians."
 msgstr "Ceci est seulement visible pour les super libraires."
 
 #: work_search.html:107
-msgid "Solr Editions <i>Beta</i>"
-msgstr "Édition <i>Beta</i> de Solr"
+msgid "Solr Editions"
+msgstr "Édition de Solr"
 
 #: work_search.html:124
 msgid "eBook"
