@@ -443,6 +443,16 @@ jQuery(function () {
         $('details[open]').not(this).removeAttr('open');
     });
 
+    $('.header-dropdown').on('keydown', function (event) {
+        if (event.key === 'Escape') {
+            $('details[open]').not(this).removeAttr('open');
+        }
+    });
+
+    $('.hamburger-dropdown-menu a').last().on('focusout', function () {
+        $('.hamburger-dropdown-menu a').first().trigger('focus');
+    });
+
     // Open one dropdown at a time.
     $(document).on('click', function (event) {
         const $openMenus = $('.header-dropdown details[open]').parents('.header-dropdown');
