@@ -18,16 +18,16 @@ DAY_SECS = HOUR_SECS * 24
 WEEK_SECS = DAY_SECS * 7
 
 
-def days_in_current_month():
+def days_in_current_month() -> int:
     now = datetime.datetime.now()
     return calendar.monthrange(now.year, now.month)[1]
 
 
-def todays_date_minus(**kwargs):
+def todays_date_minus(**kwargs) -> datetime.date:
     return datetime.date.today() - datetime.timedelta(**kwargs)
 
 
-def date_n_days_ago(n=None, start=None):
+def date_n_days_ago(n: int | None = None, start=None) -> datetime.date | None:
     """
     Args:
         n (int) - number of days since start
@@ -45,7 +45,7 @@ DATE_ONE_WEEK_AGO = date_n_days_ago(n=7)
 DATE_ONE_DAY_AGO = date_n_days_ago(n=1)
 
 
-def parse_date(datestr):
+def parse_date(datestr: str) -> datetime.date:
     """Parses date string.
 
     >>> parse_date("2010")
@@ -62,7 +62,7 @@ def parse_date(datestr):
     return datetime.date(int(yyyy), mm and int(mm) or 1, dd and int(dd) or 1)
 
 
-def parse_daterange(datestr):
+def parse_daterange(datestr: str) -> tuple[datetime.date, datetime.date]:
     """Parses date range.
 
     >>> parse_daterange("2010-02")
@@ -79,11 +79,11 @@ def parse_daterange(datestr):
         return date, nextday(date)
 
 
-def nextday(date):
+def nextday(date: datetime.date) -> datetime.date:
     return date + datetime.timedelta(1)
 
 
-def nextmonth(date):
+def nextmonth(date: datetime.date) -> datetime.date:
     """Returns a new date object with first day of the next month."""
     year, month = date.year, date.month
     month = month + 1
@@ -95,24 +95,24 @@ def nextmonth(date):
     return datetime.date(year, month, 1)
 
 
-def nextyear(date):
+def nextyear(date: datetime.date) -> datetime.date:
     """Returns a new date object with first day of the next year."""
     return datetime.date(date.year + 1, 1, 1)
 
 
-def _resize_list(x, size):
+def _resize_list(x, size: int) -> None:
     """Increase the size of the list x to the specified size it is smaller."""
     if len(x) < size:
         x += [None] * (size - len(x))
 
 
 @public
-def current_year():
+def current_year() -> int:
     return datetime.datetime.now().year
 
 
 @contextmanager
-def elapsed_time(name="elapsed_time"):
+def elapsed_time(name: str = "elapsed_time"):
     """
     Two ways to use elapsed_time():
     1. As a decorator to time the execution of an entire function:
