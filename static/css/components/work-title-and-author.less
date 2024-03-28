@@ -15,7 +15,7 @@
       font-family: @georgia_serif-1;
       margin: 10px 0 0;
       color: @dark-grey;
-      font-size: 2em;
+      font-size: @font-size-headline-large;
       overflow-wrap: break-word;
     }
   }
@@ -29,7 +29,7 @@
       font-style: italic;
     }
     &.edition-byline {
-      font-size: 1em;
+      font-size: @font-size-title-medium;
       font-weight: normal;
       color: @dark-grey;
       margin: 10px 0 20px;
@@ -46,7 +46,7 @@
 
   .first-published-date {
     color: @grey;
-    font-size: .8em;
+    font-size: @font-size-label-medium;
   }
 }
 
@@ -127,7 +127,6 @@
       li.avg-ratings,
       li.readers-stats__review-count {
         font-size: .85em;
-
       }
 
       // On mobile only, the rating count text has parentheses around it
