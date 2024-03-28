@@ -107,10 +107,10 @@ $code:
         $if show_librarian_extras:
           <div class="searchResultItem__librarian-extras" title="$_('This is only visible to librarians.')">
             $if doc_type == 'solr_edition' or (doc_type == 'infogami_edition' and edition_work):
-              <div>$_('Work Title'): <i>$full_work_title</i></div>
+              <div>$_("Work Title"): <i>$full_work_title</i></div>
             $ is_orphan = doc_type.startswith('solr_') and doc['key'].endswith('M') or doc_type == 'infogami_edition' and not edition_work
             $if is_orphan:
-              <div>$_('Orphaned Edition')</div>
+              <div>$_("Orphaned Edition")</div>
           </div>
         $if extra:
           $:extra
