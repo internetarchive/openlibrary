@@ -20,23 +20,23 @@ def log(*args) -> None:
 
 if __name__ == "__main__":
     from contextlib import redirect_stdout
-    from infogami import config
     from openlibrary.config import load_config
     from openlibrary.data import dump
-    from openlibrary.utils.sentry import Sentry
+    from openlibrary.utils.sentry import sentry_factory
 
     log("{} on Python {}.{}.{}".format(sys.argv, *sys.version_info))  # Python 3.12.2
 
-    ol_config = os.getenv("OL_CONFIG")
-    if ol_config:
-        logger.info(f"loading config from {ol_config}")
+    sentry_config = os.getenv('SENTRY_CONFIG')
+    if sentry_config:
+        logger.info(f"loading config from {sentry_config}")
         # Squelch output from infobase (needed for sentry setup)
         # So it doesn't end up in our data dumps body
         with open(os.devnull, 'w') as devnull, redirect_stdout(devnull):
-            load_config(ol_config)
-        sentry = Sentry(getattr(config, "sentry_cron_jobs", {}))
-        if sentry.enabled:
-            sentry.init()
-    log(f"sentry.enabled = {bool(ol_config and sentry.enabled)}")
+            # XXX : Does this script require us to load the `OL_CONFIG` for anything other than Sentry?
+            # XXX : If the sentry config is loaded in `sentry.py`, does it need to be loaded here?
+            load_config(sentry_config)
+        sentry = sentry_factory.get_instance('ol_cron_jobs')
+
+    log(f"sentry.enabled = {bool(sentry_config and sentry.enabled)}")
 
     dump.main(sys.argv[1], sys.argv[2:])
