@@ -11,13 +11,13 @@ $ limit = safeint(query_param('limit', '100'))
 
 <div id="contentHead">
     $:render_template("admin/menu")
-    <h1><a class="plain" href="/admin/people">people</a> / <a class="plain" href="/admin/people/$account.username">$account.username</a> / edits </h1>
+    <h1><a class="plain" href="/admin/people">$:_('people</a> / <a class="plain" href="/admin/people/$account.username">%(account.username)s</a> / edits ', account.username=account.username)</h1>
 </div>
 
 <div id="contentBody">
 
 <p>
-Please select the changesets to revert.
+$_("Please select the changesets to revert.")
 </p>
 
 $ changes = recentchanges(dict(author=account.get_user().key, limit=limit, offset=(page-1) * limit))
@@ -63,7 +63,7 @@ $def call_template(name, change):
             <td class="comment">
                 $:call_template("comment", c)
                 $if revert:
-                    <b>-- <a href="$revert.url()">Reverted</a> by $revert_author</b>
+                    <b>-- <a href="$revert.url()">$:_('Reverted</a> by %(revert_author)s', revert_author=revert_author)</b>
             </td>
         </tr>
     </tbody>
@@ -73,16 +73,16 @@ $def call_template(name, change):
 
 <div class="formElement">
     <div class="label">
-        <label for="comment">$_('Please, leave a short note about what you changed:') <span class="small gray">(Optional, but very useful!)</span></label>
+        <label for="comment">$:_('Please, leave a short note about what you changed: <span class="small gray">(Optional, but very useful!)')</span></label>
     </div>
     <div class="input">
-        <input type="text" name="comment" id="comment" value="Reverted spam" style="width:900px;"/>
+        <input type="text" name="comment" id="comment" value="$_('Reverted spam')" style="width:900px;"/>
     </div>
 </div>
 
 <div class="formElement collapse" style="position:relative;">
     <div class="input">
-        <button type="submit" class="larger" name="submit" title="$_('Submit')">$_('Submit')</button>
+        <button type="submit" class="larger" name="submit" title="$_('Submit')">$_("Submit")</button>
     </div>
 </div>
 
@@ -90,9 +90,9 @@ $def call_template(name, change):
 $if paginate:
     <div class="historyPager small sansserif gray">
         $if len(changes) == limit:
-            <a href="$changequery(page=page + 1)" rel="nofollow">&larr; $_('Older')</a>
+            <a href="$changequery(page=page + 1)" rel="nofollow">&larr; $_("Older")</a>
         $if page > 1:
              &nbsp;|&nbsp;
-            <a href="$changequery(page=page - 1)" rel="nofollow">$_('Newer') &rarr;</a>
+            <a href="$changequery(page=page - 1)" rel="nofollow">$_("Newer") &rarr;</a>
     </div>
 </div>
