@@ -1,0 +1,26 @@
+# Open Library's Sentry configurations
+
+# Dummy endpoints used for `dns` fields as placeholders.  These must be
+# changed to a real URL when and if `enabled: true`
+
+ol_covers:
+    enabled: false
+    dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
+    traces_sample_rate: 1.0
+    environment: 'local'
+
+ol_infobase:
+    enabled: false
+    dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
+    environment: 'local'
+
+ol_web:
+    enabled: false
+    dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
+    traces_sample_rate: 1.0
+    environment: 'local'
+
+ol_cron_jobs:
+    enabled: false
+    dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
+    environment: 'local'

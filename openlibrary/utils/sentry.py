@@ -6,9 +6,11 @@ import sentry_sdk
 import web
 from sentry_sdk.utils import capture_internal_exceptions
 from sentry_sdk.tracing import Transaction, TRANSACTION_SOURCE_ROUTE
+from infogami import config
 from infogami.utils.app import find_page, find_view, modes
 from infogami.utils.types import type_patterns
 
+from openlibrary.config import load_config
 from openlibrary.utils import get_software_version
 
 
@@ -82,6 +84,38 @@ class Sentry:
         with sentry_sdk.push_scope() as scope:
             scope.add_event_processor(add_web_ctx_to_event)
             sentry_sdk.capture_exception()
+
+
+class SentryFactory:
+    """
+    Keeps reference to each `Sentry` object in use by Open Library,
+    and provides an easy way to request a `Sentry` instance.
+    """
+    def __init__(self):
+        self._instances: dict[str, Sentry] = {}
+
+    def get_instance(self, key: str) -> Sentry:
+        """
+        Returns `Sentry` instance that is identified by the given `key`.
+
+        The `key` is expected to match a Sentry configuration entry in `conf/sentry.yml`.
+
+        If the requested `Sentry` instance does not exist, one is created and added to
+        the factory's `_instances` dict.  If a newly created `Sentry` instance is enabled,
+        the instance is initialized before being returned to the consumer. 
+        """
+        if key in self._instances:
+            return self._instances[key]
+
+        sentry = Sentry(getattr(config, key, {}))
+        self._instances[key] = sentry
+        if sentry.enabled:
+            sentry.init()
+        
+        return sentry
+        
+load_config('conf/sentry.yml')
+sentry_factory = SentryFactory()
 
 
 @dataclass
