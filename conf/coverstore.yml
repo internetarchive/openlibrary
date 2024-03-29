@@ -7,10 +7,3 @@ db_parameters:
 
 data_root: "/var/lib/coverstore"
 default_image: "static/images/empty.gif"
-
-sentry:
-    enabled: false
-    # Dummy endpoint; where sentry logs are sent to
-    dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
-    traces_sample_rate: 1.0
-    environment: 'local'

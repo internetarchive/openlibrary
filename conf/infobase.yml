@@ -22,11 +22,3 @@ cache:
 
 errorlog: /var/log/openlibrary/infobase/errorlog
 writelog: /var/lib/openlibrary/infobase/writelog
-
-sentry:
-    enabled: false
-    # Dummy endpoint; where sentry logs are sent
-    # `dns` field is placeholder & needs to be changed to a real url
-    # when/if `enabled: true`
-    dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
-    environment: 'local'
