@@ -825,14 +825,18 @@ def audit_accounts(
         ol_account = OpenLibraryAccount.get(link=ia_account.itemname, test=test)
         link = ol_account.itemname if ol_account else None
 
-        # The fact that there is no link implies no Open Library account exists
-        # containing a link to this Internet Archive account...
-        if not link:
-            # then check if there's an Open Library account which shares
-            # the same email as this IA account.
-            ol_account = OpenLibraryAccount.get(email=email, test=test)
+        # The fact that there is no link implies either:
+        # 1. There was no Open Library account ever linked this IA account
+        # 2. There is an OL account, and it was linked to this IA account at some point,
+        #    but the linkage was broken at some point.
 
-            # TODO: update comment:
+        # Today, it is possible for #2 to occur if a patron creates an IA account, deletes said
+        # account, then creates a new IA account using the same email that was used to create the
+        # original account.
+        if not link:
+            # If no account linkage is found, then check if there's an Open Library account
+            # which shares the same email as this IA account.
+            ol_account = OpenLibraryAccount.get(email=email, test=test)
 
             # If an Open Library account with a matching email account exists...
             # Check if it is linked already, i.e. has an itemname set. We already
