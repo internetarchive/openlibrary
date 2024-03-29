@@ -840,9 +840,9 @@ def audit_accounts(
             # Open Library account having the same email as our IA account must have
             # been linked to a different Internet Archive account.
             if ol_account and ol_account.itemname:
+                logger.error('IA <-> OL itemname mismatch', extra={'ol_itemname': ol_account.itemname, 'ia_itemname': ia_account.itemname})
                 ol_account.unlink()
                 ol_account.link(ia_account.itemname)
-                # return {'error': 'wrong_ia_account'}
 
         # At this point, it must either be the case that
         # (a) `ol_account` already links to our IA account (in which case `link` has a
