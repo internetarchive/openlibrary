@@ -2,8 +2,6 @@
  * Class for displaying a card for a book, and having it
  * update as it makes requests for information about the book.
  */
-import Promise from 'promise-polyfill'; // polyfill Promise support for IE11
-
 const OL_BASE = new URLSearchParams(window.location.search).get('ol_base') || '';
 
 export default class LazyBookCard {
