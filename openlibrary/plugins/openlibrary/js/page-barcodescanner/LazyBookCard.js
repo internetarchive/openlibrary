@@ -105,16 +105,14 @@ export default class LazyBookCard {
                     }
                 }
 
-                return fetch(`${OL_BASE}${editionRecord.works[0].key}.json`).then(r => r.json())
-            }).then(workRecord => {
-                return Promise.all(
-                    workRecord.authors
-                        .map(a => fetch(`${OL_BASE}${a.author.key}.json`).then(r => r.json()))
-                );
-            }).then(authorRecords => {
+                // Split up key, for example /book/00000 becomes 00000.
+                const edition_key = editionRecord.key.split('/').pop();
+
+                return fetch(`${OL_BASE}search.json?q=edition_key:${edition_key}&fields=key,author_name`).then(r => r.json())
+            }).then(searchRecords => {
                 cardEl.updateState({
                     loading: false,
-                    byline: authorRecords.map(a => a.name).join(', '),
+                    byline: searchRecords.docs[0].author_name.join(', '),
                 });
             })
             // eslint-disable-next-line no-unused-vars
