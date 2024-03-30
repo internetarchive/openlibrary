@@ -399,7 +399,23 @@ class people_view:
                 subitem for sublist in added_records for subitem in sublist
             ]
             keys_to_delete |= {r['key'] for r in flattened_records}
-            changeset_ids = [c.id for c in changes]
+
+            keys_to_revert = {
+                item.key: change.id for change in changes for item in change.changes
+            }
+
+            deleted_keys = web.ctx.site.things(
+                {'key': list(keys_to_revert), 'type': {'key': '/type/delete'}}
+            )
+
+            changesets_with_deleted_works = {
+                keys_to_revert[key] for key in deleted_keys
+            }
+
+            changeset_ids = [
+                c.id for c in changes if c.id not in changesets_with_deleted_works
+            ]
+
             _, len_docs = ipaddress_view().revert(changeset_ids, "Reverted Spam")
             edits += len_docs
             i += 1
