@@ -852,7 +852,7 @@ api and api.add_hook('new', new)
 @public
 def changequery(query=None, **kw):
     if query is None:
-        query = web.input(_method='get', _unicode=False)
+        query = parse_qs(web.ctx.env.get("QUERY_STRING", ""))
     for k, v in kw.items():
         if v is None:
             query.pop(k, None)
