@@ -772,7 +772,7 @@ msgid "This is only visible to super librarians."
 msgstr ""
 
 #: work_search.html:83
-msgid "Solr Editions <i>Beta</i>"
+msgid "Solr Editions"
 msgstr ""
 
 #: work_search.html:100
