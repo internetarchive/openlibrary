@@ -1569,7 +1569,7 @@ msgstr "Email di verifica inviata"
 #: account/verify/success.html:10
 #, python-format
 msgid "Hi, %(user)s"
-msgstr "Ciao, %(users)s"
+msgstr "Ciao, %(user)s"
 
 #: account/email/forgot-ia.html:10 account/email/forgot.html:10
 msgid "Forgot Your Internet Archive Email?"
