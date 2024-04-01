@@ -131,22 +131,31 @@ NameResolutionError("<urllib3.connection.HTTPConnection object at
 0x77a95c4e7f90>: Failed to resolve 'solr' ([Errno -2] Name or service
 not known)")) (falling back to default template)
 ```
-First, verify the `solr` container is running (e.g. `docker ps | grep solr`, and then look for something like `openlibrary-solr-1` that isn't `solr-updater`.) Verify too that you can also connect to solr at http://localhost:8983/solr/#/. If you can't, try `docker compose up -d solr`, and verify that it is running and you can connect to it.
+The following should get everything running again:
+```sh
+docker compose down
+docker container ls -a
+# If you see any openlibrary container here, remove them with `docker rm -f NAME`
+docker network ls
+# If you see any open library networks here, remove them with `docker network rm NAME
+docker compose up  # or docker compose up -d
+```
+If you're curious and want to understand what happened, and why the above likely fixes it, first, verify the `solr` container is running (e.g. `docker ps | grep solr`, and then look for something like `openlibrary-solr-1` that isn't `solr-updater`.) If the `solr` container isn't running, simply start it with `docker compose up solr` (or `docker compose up -d solr`) and that should fix it. If `solr` is running, verify too that you can also connect to solr at http://localhost:8983/solr/#/. If you can't, something else is likely wrong.
 
-If the `solr` container is running and the error persists, one cause seems to be that the containers become disconnected from `openlibrary_webnet` (though conceivably this could happen with `openlibrary_dbnet` too). `openlibrary-web-1`/`web` should be connected to both `openlibrary_webnet` and `openlibrary_dbnet`, but instead only one is connected. E.g.:
+If the `solr` container is running and the error persists, one cause seems to be that the containers sometimes become disconnected from `openlibrary_webnet` (though this could happen with `openlibrary_dbnet` too). `openlibrary-web-1`/`web` should be connected to both `openlibrary_webnet` and `openlibrary_dbnet`, but when this problem occurs, instead only one is connected. E.g.:
 ```sh
 docker container inspect --format '{{.NetworkSettings.Networks}}' openlibrary-web-1
 # output: map[openlibrary_dbnet:0xc00037c1c0]
 ```
-A fix seems to be:
+Because you've read this far, you can now directly fix the problem without removing the containers and networks. Simply reconnect the container to the network:
 ```
-docker network connect openlibrary_webnet openlibrary-web-1
+docker network connect openlibrary_webnet openlibrary-web-1  # or `openlibrary_dbnet` as the case may be.
 docker container inspect --format '{{.NetworkSettings.Networks}}' openlibrary-web-1
 # output: map[openlibrary_dbnet:0xc00016c460 openlibrary_webnet:0xc00016c540]
 ```
-No restart is required. If `webnet` no longer exists, recreating it _may_ fix things: `docker network create openlibrary_webnet`. This is, however, speculation.
+No restart is required. If `webnet` no longer exists, recreating it _should_ fix things: `docker network create openlibrary_webnet`.
 
-To understand a bit more about what's going on here, there's a docker network configured in `compose.yaml`. The containers should be able to resolve one another based on the container names (e.g. `web` and `solr`), assuming `compose.yaml` has them on the same netork. For more, see [Networking in Compose](https://docs.docker.com/compose/networking/).
+To understand a bit more about what's going on here, there are docker networks configured in `compose.yaml`. The containers should be able to resolve one another based on the container names (e.g. `web` and `solr`), assuming `compose.yaml` has them on the same netork. For more, see [Networking in Compose](https://docs.docker.com/compose/networking/).
 
 ## Teardown commands
 
