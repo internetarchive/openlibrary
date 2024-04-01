@@ -24,7 +24,7 @@ $ i18n_strings = {
     <form method="post" action="" id="addbook" class="olform addbook1 validate" name="edit">
         <div class="formElement">
             <div class="label">
-                <label for="title">$_("Title")</label> <span class="tip">$:_("Use <b><i>Title: Subtitle</i></b> to add a subtitle.")</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
+                <label for="title">$_("Title")</label> <span class="tip">$:_('Use <b><i>Title: Subtitle</i></b> to add a subtitle.')</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
             </div>
             <div class="input">
                 $if work:
@@ -35,7 +35,7 @@ $ i18n_strings = {
             </div>
         </div>
         <div class="formElement">
-            <div class="label"><label for="author">$_("Author")</label> <span class="smaller lighter">$_('Like, "Agatha Christie" or "Jean-Paul Sartre." We\'ll also do a live check to see if we already know the author.')</span></div>
+            <div class="label"><label for="author">$_("Author")</label> <span class="smaller lighter">$_("Like, "Agatha Christie" or "Jean-Paul Sartre." We\"ll also do a live check to see if we already know the author.')</span></div>
             $:render_template("books/author-autocomplete", authors, "author_names", "authors", readonly=work is not None)
         </div>
 
@@ -62,17 +62,17 @@ $ i18n_strings = {
             <div class="label"><label for="id_value">$:_("And optionally, an ID number &#151; like an ISBN &#151; would be helpful...")</label></div>
                 <label for="id_name" class="hidden">$_("ID Type")</label>
                 <div id="id-errors" class="note hidden" data-i18n="$json_encode(i18n_strings)"></div>
-                <div id="confirm-add" class="note hidden">$_('ISBN may be invalid. Click "Add" again to submit.')</div>
+                <div id="confirm-add" class="note hidden">$_("ISBN may be invalid. Click "Add" again to submit.")</div>
             <div class="input">
                 <select name="id_name" id="id_name">
                 <option value="">$_("Select")</option>
                 $if admin_user:
-                    <option value="ocaid">Internet Archive</option>
-                <option value="isbn_10">ISBN 10</option>
-                <option value="isbn_13">ISBN 13</option>
-                <option value="lccn">LCCN</option>
-                <option value="librivox">LibriVox</option>
-                <option value="project_gutenberg">Project Gutenberg</option>
+                    <option value="ocaid">$_("Internet Archive")</option>
+                <option value="isbn_10">$_("ISBN 10")</option>
+                <option value="isbn_13">$_("ISBN 13")</option>
+                <option value="lccn">$_("LCCN")</option>
+                <option value="librivox">$_("LibriVox")</option>
+                <option value="project_gutenberg">$_("Project Gutenberg")</option>
                 </select>
                 &nbsp;
                 <input type="text" name="id_value" id="id_value" size="20" style="width:200px;"/>
@@ -98,9 +98,9 @@ $ i18n_strings = {
                 $:_('By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" title="$_('This link to Creative Commons will open in a new window')">CC0</a>. Yippee!')
             </div>
             <div class="input">
-                <button type="submit" name="_save" title="$_('Add this book now')" class="larger">$_('Add')</button>
+                <button type="submit" name="_save" title="$_('Add this book now')" class="larger">$_("Add")</button>
                 &nbsp;
-                <a href="javascript:history.go(-1);" class="attn">$_('Cancel')</a>
+                <a href="javascript:history.go(-1);" class="attn">$_("Cancel")</a>
             </div>
         </div>
     </form>
