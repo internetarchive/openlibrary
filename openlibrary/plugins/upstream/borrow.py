@@ -500,7 +500,7 @@ def get_loan_link(edition, type):
         # link to bookreader
         return (resource_id, get_bookreader_stream_url(edition.ocaid))
 
-   raise Exception(
+    raise Exception(
         'Unknown resource type %s for loan of edition %s', edition.key, type
     )
 
