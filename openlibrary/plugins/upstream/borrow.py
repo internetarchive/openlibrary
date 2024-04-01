@@ -516,7 +516,7 @@ def get_loan_key(resource_id):
     # Only support single loan of resource at the moment
     if len(loan_keys) > 1:
         # raise Exception('Found too many local loan records for resource %s' % resource_id)
-           logger.error(
+        logger.error(
             "Found too many loan records for resource %s: %s", resource_id, loan_keys
         )
 
@@ -561,7 +561,7 @@ def get_loan_status(resource_id):
         # XXX-Anand: don't crash
         return None
 
-       raise Exception(
+    raise Exception(
         'Error communicating with loan status server for resource %s' % resource_id
     )
 
@@ -639,7 +639,7 @@ def update_loan_from_bss_status(loan_key, loan, status):
     global loan_fulfillment_timeout_seconds
 
     if not resource_uses_bss(loan['resource_id']):
-       raise Exception(
+        raise Exception(
             'Tried to update loan %s with ACS4/BSS status when it should not use BSS'
             % loan_key
         )
@@ -657,7 +657,7 @@ def update_loan_from_bss_status(loan_key, loan, status):
 
         # Was returned, expired, or timed out
         web.ctx.site.store.delete(loan_key)
-        logger.info(_('%(loan_key)s: loan returned or expired or timedout, deleting...') % {'loan_key': loan_key})
+        logger.info("%s: loan returned or expired or timedout, deleting...", loan_key)
         return
 
     # Book has non-returned status
@@ -782,8 +782,8 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
     if not ia_identifier_is_valid(item_id):
         return {
             'success': False,
-            'msg': _('Invalid item id'),
-            'resolution': _('This book does not appear to have a valid item identifier.'),
+            'msg': 'Invalid item id',
+            'resolution': 'This book does not appear to have a valid item identifier.',
         }
 
     # Lookup loan information
@@ -793,7 +793,7 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
     if loan_key is None:
         # Book is not checked out as a BookReader loan - may still be checked out in ACS4
         error_message = 'Lending Library Book'
-          resolution_message = (
+        resolution_message = (
             'This book is part of the <a href="%(base_url)s/subjects/Lending_library">'
             'lending library</a>. Please <a href="%(base_url)s/ia/%(item_id)s/borrow">'
             'visit this book\'s page on Open Library</a> to access the book.'
@@ -805,7 +805,7 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
         if user:
             if loan['user'] != user.key:
                 # Borrowed by someone else - OR possibly came in through ezproxy and there's a stale login in on openlibrary.org
-                     error_message = 'This book is checked out'
+                error_message = 'This book is checked out'
                 resolution_message = (
                     'This book is currently checked out.  You can '
                     '<a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on '
@@ -813,7 +813,6 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
                     '<a href="%(base_url)s/subjects/Lending_library">look at other '
                     'books available to borrow</a>.' % resolution_dict
                 )
-
 
             elif loan['expiry'] < datetime.utcnow().isoformat():
                 # User has the loan, but it's expired
@@ -845,7 +844,7 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
                     'This book is part of the <a href="%(base_url)s/subjects/Lending_'
                     'library" title="Open Library Lending Library">lending library</a>. '
                     'Please <a href="%(base_url)s/ia/%(item_id)s/borrow" title="Borrow '
-                    'book page on Open Library")>visit this book\'s page on Open Library'
+                    'book page on Open Library">visit this book\'s page on Open Library'
                     '</a> to access the book.  You must have cookies enabled for '
                     'archive.org and openlibrary.org to access borrowed books.'
                     % resolution_dict
