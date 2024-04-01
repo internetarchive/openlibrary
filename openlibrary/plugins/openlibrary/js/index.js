@@ -449,8 +449,10 @@ jQuery(function () {
         }
     });
 
-    $('.hamburger-dropdown-menu a').last().on('focusout', function () {
-        $('.hamburger-dropdown-menu a').first().trigger('focus');
+    $('.dropdown-menu').each(function() {
+        $(this).find('a').last().on('focusout', function() {
+            $('details[open]').not(this).removeAttr('open');
+        });
     });
 
     // Open one dropdown at a time.
