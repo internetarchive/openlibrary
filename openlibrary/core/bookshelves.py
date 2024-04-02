@@ -272,18 +272,19 @@ class Bookshelves(db.CommonExtras):
             work_to_edition_keys[key].split("/")[2] for key in missing_keys
         ]
         fq = f'edition_key:{" OR ".join(edition_keys_to_query)}'
-        if edition_keys_to_query:
-            solr_resp = run_solr_query(
-                scheme=WorkSearchScheme(),
-                param={'q': '*:*'},
-                rows=len(edition_keys_to_query),
-                fields=list(
-                    WorkSearchScheme.default_fetched_fields
-                    | {'subject', 'person', 'place', 'time', 'edition_key'}
-                ),
-                facet=False,
-                extra_params=[("fq", fq)],
-            )
+        if not edition_keys_to_query:
+            return solr_docs
+        solr_resp = run_solr_query(
+            scheme=WorkSearchScheme(),
+            param={'q': '*:*'},
+            rows=len(edition_keys_to_query),
+            fields=list(
+                WorkSearchScheme.default_fetched_fields
+                | {'subject', 'person', 'place', 'time', 'edition_key'}
+            ),
+            facet=False,
+            extra_params=[("fq", fq)],
+        )
 
         """
         Now, we add the correct 'logged_edition' information to each document retrieved by the query, and substitute the work_key in
