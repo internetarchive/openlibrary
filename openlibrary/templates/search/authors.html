@@ -60,7 +60,7 @@ $ sort = query_param('sort', None)
             $elif 'date' in doc:
                 $ date = doc['date']
             <li class="searchResultItem">
-	      <img src="$get_coverstore_public_url()/a/olid/$(doc['key'].split('/')[-1])-M.jpg" itemprop="image" class="cover author" alt="$_('Photo of %s', n)">
+	      <img src="$get_coverstore_public_url()/a/olid/$(doc['key'].split('/')[-1])-M.jpg" itemprop="image" class="cover author" alt="$_('Photo of %(cover)', cover=n)">
 	      <div>
 		<a href="$doc['key']" class="larger">$n</a>&nbsp;<span class="brown small">$date</span><br />
 		<span class="small grey"><b>$wc</b>
