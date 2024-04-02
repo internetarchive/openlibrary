@@ -192,7 +192,7 @@ $else:
                           $if status == "available":
                               <form action="$book.url('/borrow')" method="post">
                                   <input type="hidden" name="action" value="borrow" />
-                                  <input type="submit" value=$_("Borrow Now") />
+                                  <input type="submit" value="$_('Borrow Now')" />
                               </form>
                           <form action="$book.url('/borrow?redirect=/account/loans')"
                                 method="POST" class="wlform">
