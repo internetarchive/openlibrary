@@ -1,7 +1,7 @@
 $def with (page)
 
 $var title: $page.title
-$var is_daisy_encrypted =
+$ encrypted = '(like this one)' if page.is_daisy_encrypted() else ''
 
 $ _x = ctx.setdefault('cssfile', 'plain')
 
@@ -37,7 +37,7 @@ $ daisy = "//archive.org/download/XXX/XXX_daisy.zip"
     <p class="largest" style="margin-bottom: 0;"><strong>$_("Books for people who don\'t read print?")</strong></p>
     <p>$:_('The <a href="//archive.org">Internet Archive</a> is proud to be distributing over 1 million books free in a format called DAISY, designed for those of us who find it challenging to use regular printed media. ')</p>
     <p>$:_('There are two types of DAISYs on Open Library: <i>open</i> and <i>protected</i>. Open DAISYs can be read by anyone in the world on many different devices. Protected DAISYs
-    %(encrypted)s can only be opened using a key issued by the <a href="http://www.loc.gov/nls/">Library of Congress NLS program</a>.', { encrypted=page.is_daisy_encrypted() ? '(like this one) ' : ''})</p>
+    %(encrypted)s can only be opened using a key issued by the <a href="http://www.loc.gov/nls/">Library of Congress NLS program</a>.', encrypted=encrypted)</p>
     <p><b><i>$_("Enjoy!")</i></b></p>
 
     <h3 class="collapse">&nbsp;</h3>

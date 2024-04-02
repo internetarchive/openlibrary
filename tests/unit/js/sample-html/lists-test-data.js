@@ -60,8 +60,7 @@ function createShowcaseMarkup(isActiveShowcase, showcaseData) {
     for (const data of showcaseData) {
         showcaseMarkup += `<li class="actionable-item">
             <span class="image">
-              <a href="${data.listKey}"><img src="${DEFAULT_COVER_URL}" alt="$_('Cover of: %(listTitle)s', listTitle=${data.listTitle})" title="$_('Cover of: %(listTitle)s', listTitle=${data.listTitle})"></a>
-            </span>
+            <a href="${data.listKey}"><img src="${DEFAULT_COVER_URL}" alt="Cover of: ${data.listTitle}" title="Cover of: ${data.listTitle}"></a>
             <span class="data">
                 <span class="label">
                     <a href="${data.listKey}" data-list-title="${data.listTitle}" title="$_('See this list')">${data.listTitle}</a>
@@ -69,7 +68,7 @@ function createShowcaseMarkup(isActiveShowcase, showcaseData) {
                     <input type="hidden" name="seed-key" value="${data.seedKey}">
                     <input type="hidden" name="seed-type" value="${data.seedType}">
 
-                    <a href="${data.listKey}" class="remove-from-list red smaller arial plain" data-list-key="${data.listKey}" title="$_('Remove from your list?')">[X]</a>
+                    <a href="${data.listKey}" class="remove-from-list red smaller arial plain" data-list-key="${data.listKey}" title="Remove from your list?">[X]</a>
                 </span>
                 <span class="owner">from <a href="${data.listOwner}">You</a></span>
             </span>
