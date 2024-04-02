@@ -63,7 +63,7 @@ function createShowcaseMarkup(isActiveShowcase, showcaseData) {
             <a href="${data.listKey}"><img src="${DEFAULT_COVER_URL}" alt="Cover of: ${data.listTitle}" title="Cover of: ${data.listTitle}"></a>
             <span class="data">
                 <span class="label">
-                    <a href="${data.listKey}" data-list-title="${data.listTitle}" title="$_('See this list')">${data.listTitle}</a>
+                    <a href="${data.listKey}" data-list-title="${data.listTitle}" title="See this list">${data.listTitle}</a>
                     <input type="hidden" name="seed-title" value="${data.listTitle}">
                     <input type="hidden" name="seed-key" value="${data.seedKey}">
                     <input type="hidden" name="seed-type" value="${data.seedType}">
