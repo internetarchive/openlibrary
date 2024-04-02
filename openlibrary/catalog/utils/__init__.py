@@ -1,7 +1,11 @@
 import datetime
 import re
+from typing import TYPE_CHECKING
 import web
 from unicodedata import normalize
+
+if TYPE_CHECKING:
+    from openlibrary.plugins.upstream.models import Author
 
 
 EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS = 1400
@@ -38,7 +42,7 @@ def key_int(rec):
     return int(web.numify(rec['key']))
 
 
-def author_dates_match(a: dict, b: dict) -> bool:
+def author_dates_match(a: dict, b: "dict | Author") -> bool:
     """
     Checks if the years of two authors match. Only compares years,
     not names or keys. Works by returning False if any year specified in one record

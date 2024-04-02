@@ -4,6 +4,7 @@
 import datetime
 import glob
 import json
+import re
 import pytest
 import web
 
@@ -183,10 +184,16 @@ class MockSite:
         keys = sorted(keys)
         return keys[offset : offset + limit]
 
+    def regex_ilike(self, pattern: str, text: str) -> bool:
+        """Construct a regex pattern for ILIKE operation and match against the text."""
+        # Remove '_' to ignore single character matches, the same as Infobase.
+        regex_pattern = f"^{pattern.replace('*', '.*').replace('_', '')}$"
+        return bool(re.match(regex_pattern, text, re.IGNORECASE))
+
     def filter_index(self, index, name, value):
         operations = {
             "~": lambda i, value: isinstance(i.value, str)
-            and i.value.startswith(web.rstrips(value, "*")),
+            and self.regex_ilike(value, i.value),
             "<": lambda i, value: i.value < value,
             ">": lambda i, value: i.value > value,
             "!": lambda i, value: i.value != value,
