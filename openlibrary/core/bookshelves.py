@@ -432,7 +432,7 @@ class Bookshelves(db.CommonExtras):
 
             if show_editions:
                 edition_data = get_solr().get_many(
-                    work_to_edition_keys.values(),
+                    [work_to_edition_keys[work.key] for work in solr_resp.docs],
                     fields=WorkSearchScheme.default_fetched_fields
                     | {'subject', 'person', 'place', 'time', 'edition_key'},
                 )
