@@ -72,7 +72,7 @@ lint:
 	$(PYTHON) -m ruff --no-cache .
 
 test-py:
-	pytest . --ignore=tests/integration --ignore=infogami --ignore=vendor --ignore=node_modules
+	pytest . --ignore=infogami --ignore=vendor --ignore=node_modules
 
 test-i18n:
 	# Valid locale codes should be added as arguments to validate
