@@ -60,7 +60,7 @@ function createShowcaseMarkup(isActiveShowcase, showcaseData) {
     for (const data of showcaseData) {
         showcaseMarkup += `<li class="actionable-item">
             <span class="image">
-            <a href="${data.listKey}"><img src="${DEFAULT_COVER_URL}" alt="Cover of: ${data.listTitle}" title="Cover of: ${data.listTitle}"></a>
+              <a href="${data.listKey}"><img src="${DEFAULT_COVER_URL}" alt="Cover of: ${data.listTitle}" title="Cover of: ${data.listTitle}"></a>
             <span class="data">
                 <span class="label">
                     <a href="${data.listKey}" data-list-title="${data.listTitle}" title="See this list">${data.listTitle}</a>

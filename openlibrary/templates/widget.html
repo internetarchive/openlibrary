@@ -38,7 +38,7 @@ $ book_title = item.get('title', '')
         $ waitlist_url = canonical_url("/borrow/ia/" + item["availability"]["identifier"] + "?action=join-waitinglist")
         <form class="cta waitlist" method="POST" action="$waitlist_url" target="_blank">
           <input type="hidden" name="action" value="join-waitinglist">
-          <button data-ol-link-track="Embed|JoinWaitlist" type="submit" title="$_('Join waitlist for &quot;%(title)s&quot;',title=book_title)">$_("Join Waitlist")</button>
+          <button data-ol-link-track="Embed|JoinWaitlist" type="submit" title="$_('Join waitlist for &quot;%(title)s&quot;', title=book_title)">$_("Join Waitlist")</button>
         </form>
       $else:
         <div class="cta open">

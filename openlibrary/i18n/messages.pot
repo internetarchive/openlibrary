@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-04-03 18:41+0000\n"
+"POT-Creation-Date: 2024-04-03 19:43+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -217,7 +217,7 @@ msgstr ""
 msgid "...to this version"
 msgstr ""
 
-#: history.html:85
+#: books/daisy.html:17 history.html:85
 msgid "Back"
 msgstr ""
 
@@ -273,8 +273,8 @@ msgstr ""
 #: book_providers/standard_ebooks_read_button.html:24
 #: covers/author_photo.html:22 covers/book_cover.html:54
 #: covers/book_cover_single_edition.html:34 covers/book_cover_work.html:30
-#: covers/change.html:44 lib/history.html:60 lib/markdown.html:12
-#: lib/markdown.html:77 my_books/dropdown_content.html:91 native_dialog.html:15
+#: covers/change.html:44 lib/history.html:60 my_books/dropdown_content.html:91
+#: native_dialog.html:15
 msgid "Close"
 msgstr ""
 
@@ -533,12 +533,13 @@ msgstr ""
 msgid "Send"
 msgstr ""
 
-#: CreateListModal.html:34 EditButtonsMacros.html:26 account/create.html:91
-#: account/notifications.html:59 account/password/reset.html:24
-#: account/privacy.html:79 admin/imports-add.html:28 admin/permissions.html:51
-#: covers/add.html:85 covers/manage.html:52 databarAuthor.html:69
-#: databarEdit.html:13 merge/authors.html:118
-#: my_books/dropdown_content.html:114 support.html:57 tag/add.html:66
+#: CreateListModal.html:34 EditButtons.html:23 EditButtonsMacros.html:26
+#: account/create.html:91 account/notifications.html:59
+#: account/password/reset.html:24 account/privacy.html:79
+#: admin/imports-add.html:28 admin/permissions.html:51 covers/add.html:85
+#: covers/manage.html:52 databarAuthor.html:69 databarEdit.html:13
+#: merge/authors.html:118 my_books/dropdown_content.html:114 support.html:57
+#: tag/add.html:66
 msgid "Cancel"
 msgstr ""
 
@@ -1250,7 +1251,7 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: EditButtonsMacros.html:24 account/notifications.html:57
+#: EditButtons.html:21 EditButtonsMacros.html:24 account/notifications.html:57
 #: account/privacy.html:77 covers/manage.html:51
 msgid "Save"
 msgstr ""
@@ -1418,13 +1419,18 @@ msgstr ""
 
 #: account/readinglog_stats.html:35
 #, python-format
-msgid "%(length)s works excluded due to missing data"
+msgid "%(length)d works excluded due to missing data"
+msgstr ""
+
+#: account/readinglog_stats.html:104 lib/nav_head.html:13 lib/nav_head.html:25
+#: lib/nav_head.html:77
+msgid "My Books"
 msgstr ""
 
 #: account/readinglog_stats.html:111
 #, python-format
 msgid ""
-"Displaying stats about <strong>%(works_count)s</strong> books. Note all "
+"Displaying stats about <strong>%(works_count)d</strong> books. Note all "
 "charts show only the top 20 bars. Note reading log stats are private."
 msgstr ""
 
@@ -1538,9 +1544,11 @@ msgid "Hi, %(user)s"
 msgstr ""
 
 #: account/verify.html:14
+#, python-format
 msgid ""
-"We’ve sent an email to $(email) containing a link to verify your account."
-" Click/tap on the link to finish creating your Internet Archive account."
+"We’ve sent an email to %(email)s containing a link to verify your "
+"account. Click/tap on the link to finish creating your Internet Archive "
+"account."
 msgstr ""
 
 #: account/verify.html:18
@@ -2044,11 +2052,13 @@ msgstr ""
 msgid "Reverted</a> by %(revert_author)s"
 msgstr ""
 
-#: EditButtonsMacros.html:11 admin/ip/view.html:86 admin/people/edits.html:83
+#: EditButtons.html:9 EditButtonsMacros.html:11 admin/ip/view.html:86
+#: admin/people/edits.html:83
 msgid "Please, leave a short note about what you changed: "
 msgstr ""
 
-#: EditButtonsMacros.html:12 admin/ip/view.html:86 admin/people/edits.html:83
+#: EditButtons.html:9 EditButtonsMacros.html:12 admin/ip/view.html:86
+#: admin/people/edits.html:83
 msgid "(Optional, but very useful!)"
 msgstr ""
 
@@ -2180,7 +2190,7 @@ msgid "Download an HTML from Project Gutenberg"
 msgstr ""
 
 #: book_providers/gutenberg_download_options.html:15
-#: book_providers/standard_ebooks_download_options.html:14 lib/markdown.html:23
+#: book_providers/standard_ebooks_download_options.html:14
 msgid "HTML"
 msgstr ""
 
@@ -2440,6 +2450,116 @@ msgstr ""
 msgid " by %(name)s"
 msgstr ""
 
+#: books/daisy.html:19
+msgid "Open Library Home"
+msgstr ""
+
+#: books/daisy.html:24
+msgid "There isn't a DAISY file available for "
+msgstr ""
+
+#: books/daisy.html:28
+msgid "This DAISY file is protected."
+msgstr ""
+
+#: books/daisy.html:29
+msgid ""
+"It can only be opened on a specialized device with a key issued by the "
+"Library of Congress."
+msgstr ""
+
+#: books/daisy.html:32 books/daisy.html:36
+msgid "Download the DAISY.zip</strong></a> for "
+msgstr ""
+
+#: books/daisy.html:40
+msgid "Books for people who don't read print?"
+msgstr ""
+
+#: books/daisy.html:41
+msgid ""
+"The <a href=\"//archive.org\">Internet Archive</a> is proud to be "
+"distributing over 1 million books free in a format called DAISY, designed"
+" for those of us who find it challenging to use regular printed media. "
+msgstr ""
+
+#: books/daisy.html:42
+#, python-format
+msgid ""
+"There are two types of DAISYs on Open Library: <i>open</i> and "
+"<i>protected</i>. Open DAISYs can be read by anyone in the world on many "
+"different devices. Protected DAISYs %(encrypted)s can only be opened "
+"using a key issued by the <a href=\"http://www.loc.gov/nls/\">Library of "
+"Congress NLS program</a>."
+msgstr ""
+
+#: books/daisy.html:43 lists/home.html:18
+msgid "Enjoy!"
+msgstr ""
+
+#: books/daisy.html:48
+msgid "What is the DAISY format?"
+msgstr ""
+
+#: books/daisy.html:49
+msgid ""
+"The DAISY digital format helps people who have challenges using regular "
+"printed media. DAISY digital <span class=\"highlight\">talking "
+"books</span> offer the benefits of regular audiobooks, with navigation "
+"within the book, to chapters or specific pages."
+msgstr ""
+
+#: books/daisy.html:50
+msgid "More information at daisy.org"
+msgstr ""
+
+#: books/daisy.html:54
+msgid "What is the NLS?"
+msgstr ""
+
+#: books/daisy.html:55
+msgid ""
+"The Library of Congress <a href=\"http://www.loc.gov/nls/\">National "
+"Library Service for the Blind and Physically Handicapped (NLS)</a> "
+"administers a free library program of braille and audio materials "
+"circulated to eligible borrowers in the United States through a national "
+"network of cooperating libraries."
+msgstr ""
+
+#: books/daisy.html:56
+msgid "Are you eligible to register?"
+msgstr ""
+
+#: books/daisy.html:60
+msgid "How do I find DAISYs on Open Library?"
+msgstr ""
+
+#: books/daisy.html:62
+msgid ""
+"In addition to<a href=\"/subjects/accessible_book\" title=\"$_()\"> loads"
+" of open DAISYs</a>, the Open Library lists a smaller selection of<a "
+"href=\"/subjects/protected_DAISY\" title=\"$_()\"> protected DAISY "
+"titles</a> accessible to those with a Library of Congress NLS key. These "
+"titles are brought to you by the<a href=\"//archive.org/\"> Internet "
+"Archive</a>."
+msgstr ""
+
+#: books/daisy.html:63
+msgid ""
+"Looking for a specific title? The best way to find it is to<a "
+"href=\"/search\"> search for it</a>."
+msgstr ""
+
+#: books/daisy.html:69
+msgid "Need help?"
+msgstr ""
+
+#: books/daisy.html:69
+msgid ""
+" Please read our<a href=\"/help/faq\"> FAQ on accessing books through "
+"Open Library</a>."
+msgstr ""
+
 #: books/edit.html:30 books/edit.html:33 books/edit.html:36
 msgid "Add a little more?"
 msgstr ""
@@ -2486,9 +2606,9 @@ msgstr ""
 msgid "This Work"
 msgstr ""
 
-#: books/edit.html:90 books/edit/edition.html:75 lib/markdown.html:70
-#: lib/nav_head.html:93 search/advancedsearch.html:20 type/about/edit.html:19
-#: type/page/edit.html:20 type/rawtext/edit.html:18 type/template/edit.html:18
+#: books/edit.html:90 books/edit/edition.html:75 lib/nav_head.html:93
+#: search/advancedsearch.html:20 type/about/edit.html:19 type/page/edit.html:20
+#: type/rawtext/edit.html:18 type/template/edit.html:18
 msgid "Title"
 msgstr ""
 
@@ -2516,8 +2636,7 @@ msgstr ""
 msgid "Add Excerpts"
 msgstr ""
 
-#: books/edit.html:121 lib/markdown.html:64 type/about/edit.html:39
-#: type/author/edit.html:50
+#: books/edit.html:121 type/about/edit.html:39 type/author/edit.html:50
 msgid "Links"
 msgstr ""
 
@@ -3802,190 +3921,6 @@ msgstr ""
 msgid "Edited by %(user)s"
 msgstr ""
 
-#: lib/markdown.html:6
-msgid "Need "
-msgstr ""
-
-#: lib/markdown.html:7
-msgid "help with formatting"
-msgstr ""
-
-#: lib/markdown.html:7
-msgid "?"
-msgstr ""
-
-#: lib/markdown.html:11
-msgid "Formatting Help"
-msgstr ""
-
-#: lib/markdown.html:16
-msgid ""
-"We use a system called Markdown to format the text in your edits on Open "
-"Library. Some HTML formatting is also accepted. Paragraphs are "
-"automatically generated from any hard-break returns (blank lines) within "
-"your text. You can preview your work in real time below the editing "
-"field."
-msgstr ""
-
-#: lib/markdown.html:17
-msgid "Formatting marks should envelope the effected text, for example:"
-msgstr ""
-
-#: lib/markdown.html:18
-msgid "This text is bold"
-msgstr ""
-
-#: lib/markdown.html:18
-msgid "This text is also bold"
-msgstr ""
-
-#: lib/markdown.html:22
-msgid "The format"
-msgstr ""
-
-#: lib/markdown.html:24
-msgid "Markdown"
-msgstr ""
-
-#: lib/markdown.html:29
-msgid "Italic"
-msgstr ""
-
-#: lib/markdown.html:30
-msgid " (preferred) or"
-msgstr ""
-
-#: lib/markdown.html:31 lib/markdown.html:36
-msgid " or "
-msgstr ""
-
-#: lib/markdown.html:31
-msgid " (single underscores)"
-msgstr ""
-
-#: lib/markdown.html:34
-msgid "Bold"
-msgstr ""
-
-#: lib/markdown.html:35
-msgid " (preferred) or "
-msgstr ""
-
-#: lib/markdown.html:36
-msgid " (double underscores)"
-msgstr ""
-
-#: lib/markdown.html:39
-msgid "Line <br/> Break"
-msgstr ""
-
-#: lib/markdown.html:41
-msgid "Insert two spaces at the end of the line."
-msgstr ""
-
-#: lib/markdown.html:44
-msgid "Blockquote"
-msgstr ""
-
-#: lib/markdown.html:46
-msgid "Precede copy with "
-msgstr ""
-
-#: lib/markdown.html:49
-msgid "Headers"
-msgstr ""
-
-#: lib/markdown.html:50 lib/markdown.html:51
-msgid "Enormous Headline"
-msgstr ""
-
-#: lib/markdown.html:50
-msgid "Big Headline"
-msgstr ""
-
-#: lib/markdown.html:50
-msgid "Average Headline"
-msgstr ""
-
-#: lib/markdown.html:50
-msgid "Small Headline"
-msgstr ""
-
-#: lib/markdown.html:51
-msgid " Big Headline"
-msgstr ""
-
-#: lib/markdown.html:51
-msgid " Average Headline, etc. to"
-msgstr ""
-
-#: lib/markdown.html:51
-msgid " Small Headline"
-msgstr ""
-
-#: lib/markdown.html:54
-msgid "Ordered (Numbered) List"
-msgstr ""
-
-#: lib/markdown.html:55
-msgid "Item One"
-msgstr ""
-
-#: lib/markdown.html:55
-msgid "Item Two"
-msgstr ""
-
-#: lib/markdown.html:56
-msgid " Item One"
-msgstr ""
-
-#: lib/markdown.html:56
-msgid " Item Two"
-msgstr ""
-
-#: lib/markdown.html:59
-msgid "Unordered List"
-msgstr ""
-
-#: lib/markdown.html:60
-msgid "First bullet"
-msgstr ""
-
-#: lib/markdown.html:61
-msgid " First bullet"
-msgstr ""
-
-#: lib/markdown.html:61
-msgid " Second bullet"
-msgstr ""
-
-#: lib/markdown.html:65
-msgid ""
-"This is <span class=\"teal\">&lt;a href=\"http://example.com/\" "
-"title=\"$_()\"&gt;</span>an example<span class=\"teal\">&lt;/a&gt;</span>"
-" inline link."
-msgstr ""
-
-#: lib/markdown.html:66
-msgid ""
-"This is <span class=\"blue\">[an example](http://example.com/ "
-"\"Title\")</span> inline link."
-msgstr ""
-
-#: lib/markdown.html:69
-msgid "Images"
-msgstr ""
-
-#: lib/markdown.html:70
-msgid "Alternate label"
-msgstr ""
-
-#: lib/markdown.html:76
-msgid ""
-"To  any Markdown tags (i.e. use an asterisk as an asterisk rather than "
-"emphasizing text) place a backslash \\ prior to the character."
-msgstr ""
-
 #: lib/message_addbook.html:14
 msgid "Super!"
 msgstr ""
@@ -4010,19 +3945,19 @@ msgid "&nbsp;Snap a quick photo of the cover to share?"
 msgstr ""
 
 #: lib/message_addbook.html:17
-msgid "&nbsp;&nbsp;Add an ISBN"
+msgid "Add an ISBN"
 msgstr ""
 
 #: lib/message_addbook.html:17
-msgid "&nbsp;Help the library connect with other systems, like Amazon."
+msgid "Help the library connect with other systems, like Amazon."
 msgstr ""
 
 #: lib/message_addbook.html:18
-msgid "&nbsp;&nbsp;Add some subjects"
+msgid "Add some subjects"
 msgstr ""
 
 #: lib/message_addbook.html:18
-msgid "&nbsp; They&#8217;re just like tags."
+msgid "They&#8217;re just like tags."
 msgstr ""
 
 #: lib/message_addbook.html:19
@@ -4030,7 +3965,7 @@ msgid "Describe what the book&#8217;s about"
 msgstr ""
 
 #: lib/message_addbook.html:19
-msgid "&nbsp;Just a sentence or two is good."
+msgid "Just a sentence or two is good."
 msgstr ""
 
 #: lib/message_addbook.html:20
@@ -4229,10 +4164,6 @@ msgid ""
 "href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
 msgstr ""
 
-#: lib/nav_head.html:13 lib/nav_head.html:25 lib/nav_head.html:77
-msgid "My Books"
-msgstr ""
-
 #: lib/nav_head.html:13
 msgid "Loans, Reading Log, Lists, Stats"
 msgstr ""
@@ -4368,10 +4299,6 @@ msgid ""
 "<strong>export</strong> all the editions in a list as HTML, BibTeX or "
 "JSON. See all your lists and any activity using the \"Lists\" link on "
 "your Account page."
-msgstr ""
-
-#: lists/home.html:18
-msgid "Enjoy!"
 msgstr ""
 
 #: lists/home.html:20
@@ -4865,18 +4792,22 @@ msgid "By Bots"
 msgstr ""
 
 #: RecentChanges.html:42 RecentChangesUsers.html:43
-#: recentchanges/updated_records.html:54
+#: recentchanges/default/path.html:26 recentchanges/updated_records.html:54
 msgid "Review what's changed in from the previous revision"
 msgstr ""
 
 #: RecentChanges.html:42 RecentChangesAdmin.html:43 RecentChangesUsers.html:43
-#: recentchanges/updated_records.html:54
+#: recentchanges/default/path.html:26 recentchanges/updated_records.html:54
 msgid "diff"
 msgstr ""
 
 #: recentchanges/default/message.html:29
 #: recentchanges/edit-book/message.html:29 site/around_the_library.html:45
 msgid "opened a new Open Library account!"
+msgstr ""
+
+#: recentchanges/default/path.html:10 recentchanges/default/path.html:29
+msgid "expand"
 msgstr ""
 
 #: recentchanges/merge/comment.html:24
@@ -4960,7 +4891,8 @@ msgid "No hits"
 msgstr ""
 
 #: search/authors.html:67
-msgid "Photo of %(cover)"
+#, python-format
+msgid "Photo of %(doc)s"
 msgstr ""
 
 #: search/inside.html:7
@@ -5214,7 +5146,7 @@ msgstr ""
 msgid "Select"
 msgstr ""
 
-#: EditButtonsMacros.html:20 tag/add.html:61
+#: EditButtons.html:17 EditButtonsMacros.html:20 tag/add.html:61
 msgid ""
 "By saving a change to this wiki, you agree that your contribution is "
 "given freely to the world under <a "

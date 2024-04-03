@@ -24,7 +24,7 @@ $jsdef render_lazy_work_preview(work):
         $if work['edition_count'] == 1:
             <span class="edition_count">$_('%(count)d edition', count=$work['edition_count'])</span>
         $else:
-            <span class="edition_count">$_('%(count)d editions', count=$work['edition_count'])</span>
+            <span class="edition_count">$_('%(count)d editions', count=work['edition_count'])</span>
         <div class="clear"></div>
     </div>
 
