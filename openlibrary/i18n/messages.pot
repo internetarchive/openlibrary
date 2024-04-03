@@ -2788,26 +2788,44 @@ msgstr ""
 msgid "Please separate with commas."
 msgstr ""
 
-#: books/edit/about.html:38 books/edit/about.html:49 books/edit/about.html:60
-#: books/edit/about.html:71 books/edit/edition.html:93
-#: books/edit/edition.html:116 books/edit/edition.html:149
-#: books/edit/edition.html:159 books/edit/edition.html:252
-#: books/edit/edition.html:355 books/edit/edition.html:369
-#: books/edit/edition.html:577 books/edit/excerpts.html:24
-#: books/edit/web.html:29 type/author/edit.html:113
-msgid "For example:"
+#: books/edit/about.html:38
+msgid ""
+"For example: <i><a href=\"/subjects/cheese\">cheese</a>, <a "
+"href=\"/subjects/roman_empire\">Roman Empire</a>, <a "
+"href=\"/subjects/psychology\">psychology"
 msgstr ""
 
 #: books/edit/about.html:48
 msgid "A person? Or, people?"
 msgstr ""
 
+#: books/edit/about.html:49
+msgid ""
+"For example: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore "
+"Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of "
+"Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin"
+msgstr ""
+
 #: books/edit/about.html:59
 msgid "Note any places mentioned?"
 msgstr ""
 
+#: books/edit/about.html:60
+msgid ""
+"For example: <i><a href=\"/subjects/place:London\">London</a>, <a "
+"href=\"/subjects/place:Atlantis\">Atlantis</a>, <a "
+"href=\"/subjects/place:Omaha\">Omaha"
+msgstr ""
+
 #: books/edit/about.html:70
 msgid "When is it set or about?"
+msgstr ""
+
+#: books/edit/about.html:71
+msgid ""
+"For example: <i><a href=\"/subjects/time:1984\">1984</a>, <a "
+"href=\"/subjects/time:the_middle_ages\">The Middle Ages</a>, <a "
+"href=\"/subjects/time:1810-1890\">1810-1890"
 msgstr ""
 
 #: books/edit/edition.html:22
@@ -2840,6 +2858,14 @@ msgstr ""
 
 #: books/edit/edition.html:93
 msgid "Usually distinguished by different or smaller type."
+msgstr ""
+
+#: books/edit/edition.html:93 books/edit/edition.html:116
+#: books/edit/edition.html:149 books/edit/edition.html:159
+#: books/edit/edition.html:252 books/edit/edition.html:355
+#: books/edit/edition.html:369 books/edit/edition.html:577
+#: books/edit/excerpts.html:24 books/edit/web.html:29 type/author/edit.html:113
+msgid "For example:"
 msgstr ""
 
 #: books/edit/edition.html:100
@@ -4365,6 +4391,10 @@ msgstr ""
 msgid "Remove from your list?"
 msgstr ""
 
+#: lists/list_overview.html:30
+msgid "from "
+msgstr ""
+
 #: lists/list_overview.html:30 lists/widget.html:82
 #: my_books/dropdown_content.html:130
 msgid "You"
@@ -4433,6 +4463,10 @@ msgstr[1] ""
 
 #: lists/widget.html:81 my_books/dropdown_content.html:129
 msgid "from"
+msgstr ""
+
+#: lists/widget.html:96
+msgid "Loading<span class=\"loading-ellipsis\">..."
 msgstr ""
 
 #: merge/authors.html:7 merge/authors.html:11 merge/authors.html:111
@@ -5231,6 +5265,10 @@ msgstr ""
 
 #: type/author/edit.html:112
 msgid "Does this author go by any other names?"
+msgstr ""
+
+#: type/author/edit.html:119
+msgid "Identifiers "
 msgstr ""
 
 #: type/author/edit.html:119
