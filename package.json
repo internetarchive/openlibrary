@@ -119,6 +119,8 @@
     "collectCoverage": true
   },
   "dependencies": {
-    "postcss-less": "^6.0.0"
+    "npm": "^10.5.1",
+    "postcss-less": "^6.0.0",
+    "test": "^3.3.0"
   }
 }
