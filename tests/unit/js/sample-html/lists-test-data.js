@@ -61,6 +61,7 @@ function createShowcaseMarkup(isActiveShowcase, showcaseData) {
         showcaseMarkup += `<li class="actionable-item">
             <span class="image">
               <a href="${data.listKey}"><img src="${DEFAULT_COVER_URL}" alt="Cover of: ${data.listTitle}" title="Cover of: ${data.listTitle}"></a>
+            </span>
             <span class="data">
                 <span class="label">
                     <a href="${data.listKey}" data-list-title="${data.listTitle}" title="See this list">${data.listTitle}</a>
@@ -127,4 +128,5 @@ export const subjectShowcase = createShowcaseMarkup(false, [showcaseDetailsData[
 export const authorShowcase = createShowcaseMarkup(false, [showcaseDetailsData[3]])
 export const workShowcase = createShowcaseMarkup(false, [showcaseDetailsData[0]])
 export const editionShowcase = createShowcaseMarkup(false, [showcaseDetailsData[1]])
+
 
