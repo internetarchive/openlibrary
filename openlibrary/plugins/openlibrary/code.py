@@ -974,8 +974,7 @@ def internalerror():
 
     if sentry.enabled:
         sentry.capture_exception_webpy()
-
-    if i.debug.lower() == 'true':
+    if i.debug.lower() == 'true' or delegate.context.user.is_librarian():
         raise web.debugerror()
     else:
         msg = render.site(render.internalerror(name))
