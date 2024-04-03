@@ -429,10 +429,9 @@ class Bookshelves(db.CommonExtras):
             )
             total_results = solr_resp.num_found
             solr_docs = solr_resp.docs
-
             if show_editions:
                 edition_data = get_solr().get_many(
-                    [work_to_edition_keys[work.key] for work in solr_resp.docs],
+                    [work_to_edition_keys[work["key"]] for work in solr_resp.docs],
                     fields=WorkSearchScheme.default_fetched_fields
                     | {'subject', 'person', 'place', 'time', 'edition_key'},
                 )
