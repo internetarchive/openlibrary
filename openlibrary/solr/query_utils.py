@@ -283,12 +283,25 @@ def luqum_replace_field(query, replacer: Callable[[str], str]) -> str:
     return str(query)
 
 
-def luqum_make_fuzzy(tree: Item, search_fields: set[str] | None = None):
-    """:param query: Passed in the form of a luqum tree
-    :param search_fields: A list of search fields to be fuzzied out."""
+def luqum_make_fuzzy(tree: Item, fields: set[str] | None = None):
+    """
+    Make the provided fields in the solr_query fuzzy.
 
-    if not search_fields:
-        search_fields = set({})
+    :param query: Passed in the form of a luqum tree
+    :param search_fields: A list of search fields to be fuzzied out.
+
+    >>> str(luqum_make_fuzzy(luqum_parse('lord of the rings author:tolkien id:foobar'), {'author'}))
+    'lord~ of~ the~ rings~ author:tolkien~ id:foobar'
+
+    >>> str(luqum_make_fuzzy(luqum_parser('How to tame a fox (and build a dog) author:Lee Alan Dugatkin'), {'author'}))
+    'How~ to~ tame~ a~ fox~ (and~ build~ a~ dog~) id:foobar author:(Lee~ Alan~ Dugatkin~)'
+
+    >>> str(luqum_make_fuzzy(luqum_parser('"This is an unfuzziable query" but not this')))
+    '"This is an unfuzziable query" but~ not~ this~'
+    """
+
+    if not fields:
+        fields = set()
 
     def encase_fuzzy(word: Word):
         fuzzy = Fuzzy(word)
@@ -300,7 +313,7 @@ def luqum_make_fuzzy(tree: Item, search_fields: set[str] | None = None):
         return encase_fuzzy(tree)
 
     for sf, _ in luqum_traverse(tree, stop_at=SearchField):
-        if isinstance(sf, SearchField) and sf.name.lower() not in search_fields:
+        if isinstance(sf, SearchField) and sf.name.lower() not in fields:
             continue
         elif isinstance(sf, SearchField):
             for node, _ in luqum_traverse(sf):
