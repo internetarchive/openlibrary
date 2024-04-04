@@ -826,7 +826,7 @@ def audit_accounts(
         link = ol_account.itemname if ol_account else None
 
         # The fact that there is no link implies either:
-        # 1. There was no Open Library account ever linked this IA account
+        # 1. There was no Open Library account ever linked to this IA account
         # 2. There is an OL account, and it was linked to this IA account at some point,
         #    but the linkage was broken at some point.
 
