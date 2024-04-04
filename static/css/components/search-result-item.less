@@ -178,3 +178,26 @@
     }
   }
 }
+
+@media only screen and (max-width: @width-breakpoint-tablet) {
+  .searchResultItem, .sri__main {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .resultTitle {
+      text-align: left;
+      display: block;
+      width: 100%;
+    }
+
+    .details {
+      display: block;
+      width: 100%;
+    }
+
+    .bookcover img {
+      width: auto;
+      max-width: 100%;
+    }
+  }
+}
