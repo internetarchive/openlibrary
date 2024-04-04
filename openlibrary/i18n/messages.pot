@@ -2704,7 +2704,7 @@ msgstr ""
 #: IABook.html:13 IABook.html:14 SearchResultsWork.html:54
 #: SearchResultsWork.html:55 books/edition-sort.html:39
 #: books/edition-sort.html:40 jsdef/LazyWorkPreview.html:13
-#: lists/list_overview.html:13 lists/preview.html:9 lists/snippet.html:9
+#: lists/list_overview.html:15 lists/preview.html:9 lists/snippet.html:9
 #: lists/widget.html:78 my_books/dropdown_content.html:126
 #: type/work/editions.html:27
 #, python-format
@@ -4381,23 +4381,19 @@ msgstr ""
 msgid "See all"
 msgstr ""
 
-#: lists/list_overview.html:17 lists/widget.html:79
+#: lists/list_overview.html:19 lists/widget.html:79
 #: my_books/dropdown_content.html:127
 msgid "See this list"
 msgstr ""
 
-#: lists/list_overview.html:27 lists/widget.html:80
+#: lists/list_overview.html:29 lists/widget.html:80
 #: my_books/dropdown_content.html:128
 msgid "Remove from your list?"
 msgstr ""
 
-#: lists/list_overview.html:30
-msgid "from "
-msgstr ""
-
-#: lists/list_overview.html:30 lists/widget.html:82
-#: my_books/dropdown_content.html:130
-msgid "You"
+#: lists/list_overview.html:32
+#, python-format
+msgid "from <a href=\"$list.owner.key\">%(owner)s"
 msgstr ""
 
 #: lists/lists.html:12
@@ -4463,6 +4459,10 @@ msgstr[1] ""
 
 #: lists/widget.html:81 my_books/dropdown_content.html:129
 msgid "from"
+msgstr ""
+
+#: lists/widget.html:82 my_books/dropdown_content.html:130
+msgid "You"
 msgstr ""
 
 #: lists/widget.html:96
@@ -5268,7 +5268,7 @@ msgid "Does this author go by any other names?"
 msgstr ""
 
 #: type/author/edit.html:119
-msgid "Identifiers "
+msgid "Identifiers"
 msgstr ""
 
 #: type/author/edit.html:119
