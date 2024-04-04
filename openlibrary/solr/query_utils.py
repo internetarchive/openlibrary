@@ -47,10 +47,12 @@ def luqum_replace_child(parent: Item, old_child: Item, new_child: Item):
 
 
 def luqum_traverse(
-    item: Item, _parents: list[Item] | None = None, stop_at: type | None = None
+    item: Item, _parents: list[Item] | None = None, stop_at: set[type] | None = None
 ):
     """
-    Traverses every node in the parse tree in depth-first order. If the stop_at attribute is filled out, the
+    Traverses every node in the parse tree in depth-first order. If
+    the stop_at attribute is filled out, the traversal will not progress
+    further down from nodes of that type.
 
     Does not make any guarantees about what will happen if you
     modify the tree while traversing it 😅 But we do it anyways.
@@ -58,10 +60,13 @@ def luqum_traverse(
     :param item: Node to traverse
     :param _parents: Internal parameter for tracking parents
     """
+
+    if not stop_at:
+        stop_at = set()
     parents = _parents or []
     yield item, parents
     new_parents = [*parents, item]
-    if not stop_at or not isinstance(item, stop_at):
+    if type(item) not in stop_at:
         for child in item.children:
             yield from luqum_traverse(child, new_parents)
 
@@ -312,7 +317,7 @@ def luqum_make_fuzzy(tree: Item, fields: set[str] | None = None):
     if isinstance(tree, Word):
         return encase_fuzzy(tree)
 
-    for sf, _ in luqum_traverse(tree, stop_at=SearchField):
+    for sf, _ in luqum_traverse(tree, stop_at={SearchField}):
         if isinstance(sf, SearchField) and sf.name.lower() not in fields:
             continue
         elif isinstance(sf, SearchField):
