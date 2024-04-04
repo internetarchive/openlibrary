@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-04-03 19:43+0000\n"
+"POT-Creation-Date: 2024-04-04 22:42+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -467,11 +467,10 @@ msgstr ""
 msgid "Get more information about this publisher"
 msgstr ""
 
-#: SearchResultsWork.html:95 books/check.html:36 merge/authors.html:95
-#: publishers/view.html:106 subjects.html:135
+#: jsdef/LazyWorkPreview.html:29 publishers/view.html:106 subjects.html:135
 #, python-format
-msgid "%(count)s edition"
-msgid_plural "%(count)s editions"
+msgid "%(count)d edition"
+msgid_plural "%(count)d editions"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -536,8 +535,8 @@ msgstr ""
 #: CreateListModal.html:34 EditButtons.html:23 EditButtonsMacros.html:26
 #: account/create.html:91 account/notifications.html:59
 #: account/password/reset.html:24 account/privacy.html:79
-#: admin/imports-add.html:28 admin/permissions.html:51 covers/add.html:85
-#: covers/manage.html:52 databarAuthor.html:69 databarEdit.html:13
+#: admin/imports-add.html:28 admin/permissions.html:51 books/add.html:107
+#: covers/add.html:85 covers/manage.html:52 databarEdit.html:13
 #: merge/authors.html:118 my_books/dropdown_content.html:114 support.html:57
 #: tag/add.html:66
 msgid "Cancel"
@@ -596,7 +595,7 @@ msgstr ""
 #: book_providers/openstax_read_button.html:15
 #: book_providers/standard_ebooks_read_button.html:15
 #: books/custom_carousel.html:18 books/edit/edition.html:660 books/show.html:34
-#: trending.html:27 type/list/embed.html:70 widget.html:34
+#: trending.html:27 type/list/embed.html:70
 msgid "Read"
 msgstr ""
 
@@ -618,43 +617,6 @@ msgstr ""
 msgid "Revert to this revision"
 msgstr ""
 
-#: widget.html:34
-#, python-format
-msgid "Read &quot;%(title)s&quot;"
-msgstr ""
-
-#: widget.html:39
-#, python-format
-msgid "Borrow &quot;%(title)s&quot;"
-msgstr ""
-
-#: ReadButton.html:15 books/custom_carousel.html:19 books/edit/edition.html:663
-#: type/list/embed.html:81 widget.html:39
-msgid "Borrow"
-msgstr ""
-
-#: widget.html:45
-#, python-format
-msgid "Join waitlist for &quot;%(title)s&quot;"
-msgstr ""
-
-#: LoanStatus.html:97 books/custom_carousel.html:20 widget.html:45
-msgid "Join Waitlist"
-msgstr ""
-
-#: widget.html:49
-#, python-format
-msgid "Learn more about &quot;%(title)s&quot; at OpenLibrary"
-msgstr ""
-
-#: widget.html:49
-msgid "Learn More"
-msgstr ""
-
-#: widget.html:51
-msgid "on <a target=\"_blank\" href=\"$(canonical_url())\">openlibrary.org"
-msgstr ""
-
 #: work_search.html:44
 msgid "Search Books"
 msgstr ""
@@ -667,8 +629,9 @@ msgstr ""
 msgid "Language"
 msgstr ""
 
-#: books/edit.html:96 books/edit/edition.html:231 lib/nav_head.html:94
-#: search/advancedsearch.html:24 work_search.html:50 work_search.html:138
+#: books/add.html:42 books/edit.html:96 books/edit/edition.html:231
+#: lib/nav_head.html:94 search/advancedsearch.html:24 work_search.html:50
+#: work_search.html:138
 msgid "Author"
 msgstr ""
 
@@ -769,8 +732,7 @@ msgstr ""
 msgid "Add a new book to Open Library?"
 msgstr ""
 
-#: account/reading_log.html:50 search/authors.html:45 search/subjects.html:35
-#: work_search.html:167
+#: account/reading_log.html:50 search/subjects.html:35 work_search.html:167
 #, python-format
 msgid "%(count)s hit"
 msgid_plural "%(count)s hits"
@@ -1134,7 +1096,7 @@ msgstr ""
 msgid "My Reading Stats"
 msgstr ""
 
-#: account.py:1119 account/mybooks.html:184 account/sidebar.html:16
+#: account.py:1123 account/mybooks.html:184 account/sidebar.html:16
 #: books/mybooks_breadcrumb_select.html:20
 msgid "Loan History"
 msgstr ""
@@ -1419,7 +1381,7 @@ msgstr ""
 
 #: account/readinglog_stats.html:35
 #, python-format
-msgid "%(length)d works excluded due to missing data"
+msgid "%(count)d works excluded due to missing data"
 msgstr ""
 
 #: account/readinglog_stats.html:104 lib/nav_head.html:13 lib/nav_head.html:25
@@ -1536,7 +1498,7 @@ msgstr ""
 msgid "Verification email sent"
 msgstr ""
 
-#: account.py:452 account.py:506 account/password/reset_success.html:10
+#: account.py:456 account.py:510 account/password/reset_success.html:10
 #: account/verify.html:9 account/verify/activated.html:10
 #: account/verify/success.html:10
 #, python-format
@@ -1608,6 +1570,7 @@ msgid "Retrieve Archive.org Email"
 msgstr ""
 
 #: account/email/forgot-ia.html:43 account/password/forgot.html:10
+#: account/password/forgot.html:11
 msgid "Forgot your Archive.org Password?"
 msgstr ""
 
@@ -1624,9 +1587,7 @@ msgid "Username/Password Reminder"
 msgstr ""
 
 #: account/password/forgot.html:11
-msgid ""
-"Forgot your Archive.org Password? <a "
-"href=\"https://archive.org/account/login.forgotpw.php\">Click here."
+msgid "Click here."
 msgstr ""
 
 #: account/password/forgot.html:23
@@ -1874,14 +1835,11 @@ msgstr ""
 msgid "BookReader"
 msgstr ""
 
-#: admin/loans_table.html:18 book_providers/ia_download_options.html:12
-#: book_providers/openstax_download_options.html:13 books/edit/edition.html:672
+#: admin/loans_table.html:18 books/edit/edition.html:672
 msgid "PDF"
 msgstr ""
 
 #: admin/loans_table.html:19 book_providers/gutenberg_download_options.html:17
-#: book_providers/ia_download_options.html:16
-#: book_providers/standard_ebooks_download_options.html:15
 #: books/edit/edition.html:671
 msgid "ePub"
 msgstr ""
@@ -1907,7 +1865,7 @@ msgstr ""
 msgid "Sponsorship"
 msgstr ""
 
-#: account.py:1086 admin/menu.html:22 admin/people/view.html:233
+#: account.py:1090 admin/menu.html:22 admin/people/view.html:233
 #: books/mybooks_breadcrumb_select.html:19 type/user/view.html:29
 msgid "Loans"
 msgstr ""
@@ -2190,7 +2148,6 @@ msgid "Download an HTML from Project Gutenberg"
 msgstr ""
 
 #: book_providers/gutenberg_download_options.html:15
-#: book_providers/standard_ebooks_download_options.html:14
 msgid "HTML"
 msgstr ""
 
@@ -2256,16 +2213,8 @@ msgstr ""
 msgid "Download a MOBI file from Internet Archive"
 msgstr ""
 
-#: book_providers/ia_download_options.html:18
-msgid "MOBI"
-msgstr ""
-
 #: book_providers/ia_download_options.html:19
 msgid "Download open DAISY from Internet Archive (print-disabled format)"
-msgstr ""
-
-#: book_providers/ia_download_options.html:19 type/list/embed.html:86
-msgid "DAISY"
 msgstr ""
 
 #: book_providers/librivox_download_options.html:12
@@ -2337,16 +2286,8 @@ msgstr ""
 msgid "Download a Kindle file from Standard Ebooks"
 msgstr ""
 
-#: book_providers/standard_ebooks_download_options.html:16
-msgid "Kindle (azw3)"
-msgstr ""
-
 #: book_providers/standard_ebooks_download_options.html:17
 msgid "Download a Kobo file from Standard Ebooks"
-msgstr ""
-
-#: book_providers/standard_ebooks_download_options.html:17
-msgid "Kobo (kepub)"
 msgstr ""
 
 #: book_providers/standard_ebooks_download_options.html:18
@@ -2385,6 +2326,127 @@ msgid_plural "More by these authors"
 msgstr[0] ""
 msgstr[1] ""
 
+#: books/add.html:7 books/check.html:10
+msgid "Add a book"
+msgstr ""
+
+#: books/add.html:10
+msgid "Invalid ISBN checksum digit"
+msgstr ""
+
+#: books/add.html:11
+msgid ""
+"ID must be exactly 10 characters [0-9 or X]. For example 0-19-853453-1 or"
+" 0198534531"
+msgstr ""
+
+#: books/add.html:12
+msgid ""
+"ID must be exactly 13 characters [0-9]. For example 978-3-16-148410-0 or "
+"9783161484100"
+msgstr ""
+
+#: books/add.html:13
+msgid "Invalid LC Control Number format"
+msgstr ""
+
+#: books/add.html:14
+msgid "Please enter a value for the selected identifier"
+msgstr ""
+
+#: books/add.html:19
+msgid "Add a book to Open Library"
+msgstr ""
+
+#: books/add.html:21 tag/add.html:13
+msgid ""
+"We require a minimum set of fields to create a new record. These are "
+"those fields."
+msgstr ""
+
+#: books/add.html:31 books/edit.html:90 books/edit/edition.html:75
+#: lib/nav_head.html:93 search/advancedsearch.html:20 type/about/edit.html:19
+#: type/page/edit.html:20 type/rawtext/edit.html:18 type/template/edit.html:18
+msgid "Title"
+msgstr ""
+
+#: books/add.html:31 books/edit.html:90
+msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
+msgstr ""
+
+#: books/add.html:31 books/add.html:48 books/add.html:57 books/edit.html:90
+#: tag/add.html:24 type/author/edit.html:35 type/tag/edit.html:23
+msgid "Required field"
+msgstr ""
+
+#: books/add.html:42
+msgid ""
+"Like, \"Agatha Christie\" or \"Jean-Paul Sartre.\" We'll also do a live "
+"check to see if we already know the author."
+msgstr ""
+
+#: books/add.html:48 books/edit/edition.html:105
+msgid "Who is the publisher?"
+msgstr ""
+
+#: books/add.html:48 books/edit/edition.html:106
+msgid "For example"
+msgstr ""
+
+#: books/add.html:57 books/edit/edition.html:125
+msgid "When was it published?"
+msgstr ""
+
+#: books/add.html:57 books/edit/edition.html:126
+msgid "You should be able to find this in the first few pages of the book."
+msgstr ""
+
+#: books/add.html:66
+msgid ""
+"And optionally, an ID number &#151; like an ISBN &#151; would be "
+"helpful..."
+msgstr ""
+
+#: books/add.html:67
+msgid "ID Type"
+msgstr ""
+
+#: books/add.html:69
+msgid "ISBN may be invalid. Click \"Add\" again to submit."
+msgstr ""
+
+#: books/add.html:72 tag/add.html:47
+msgid "Select"
+msgstr ""
+
+#: books/add.html:89 books/edit/edition.html:647
+msgid "Book URL"
+msgstr ""
+
+#: books/add.html:89
+msgid "Only fill this out if this is a web book"
+msgstr ""
+
+#: EditButtons.html:17 EditButtonsMacros.html:20 books/add.html:102
+#: tag/add.html:61
+msgid ""
+"By saving a change to this wiki, you agree that your contribution is "
+"given freely to the world under <a "
+"href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
+"target=\"_blank\" title=\"This link to Creative Commons will open in a "
+"new window\">CC0</a>. Yippee!"
+msgstr ""
+
+#: books/add.html:105
+msgid "Add this book now"
+msgstr ""
+
+#: books/add.html:105 books/edit/edition.html:213 books/edit/edition.html:451
+#: books/edit/edition.html:516 books/edit/excerpts.html:55
+#: covers/change.html:49 tag/add.html:64
+msgid "Add"
+msgstr ""
+
 #: books/author-autocomplete.html:15
 msgid "Add a new author"
 msgstr ""
@@ -2399,10 +2461,6 @@ msgstr ""
 
 #: books/author-autocomplete.html:34
 msgid "Add another author?"
-msgstr ""
-
-#: books/check.html:10
-msgid "Add a book"
 msgstr ""
 
 #: books/check.html:13 lib/nav_foot.html:49 lib/nav_head.html:39
@@ -2426,15 +2484,33 @@ msgstr ""
 msgid "Select this book"
 msgstr ""
 
+#: SearchResultsWork.html:95 books/check.html:36 merge/authors.html:95
+#, python-format
+msgid "%(count)s edition"
+msgid_plural "%(count)s editions"
+msgstr[0] ""
+msgstr[1] ""
+
 #: books/check.html:38
 #, python-format
 msgid "First published in %(year)d"
 msgstr ""
 
 #: books/check.html:46
-msgid ""
-"None of these match the book I want to add. <a href=\"javascript:;\" "
-"id=\"bookAddCont\">Continue</a>."
+msgid "None of these match the book I want to add."
+msgstr ""
+
+#: books/check.html:46
+msgid "Continue</a>."
+msgstr ""
+
+#: ReadButton.html:15 books/custom_carousel.html:19 books/edit/edition.html:663
+#: type/list/embed.html:81
+msgid "Borrow"
+msgstr ""
+
+#: LoanStatus.html:97 books/custom_carousel.html:20
+msgid "Join Waitlist"
 msgstr ""
 
 #: NotInLibrary.html:13 NotInLibrary.html:17 books/custom_carousel.html:21
@@ -2606,21 +2682,6 @@ msgstr ""
 msgid "This Work"
 msgstr ""
 
-#: books/edit.html:90 books/edit/edition.html:75 lib/nav_head.html:93
-#: search/advancedsearch.html:20 type/about/edit.html:19 type/page/edit.html:20
-#: type/rawtext/edit.html:18 type/template/edit.html:18
-msgid "Title"
-msgstr ""
-
-#: books/edit.html:90
-msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
-msgstr ""
-
-#: books/edit.html:90 tag/add.html:24 type/author/edit.html:35
-#: type/tag/edit.html:23
-msgid "Required field"
-msgstr ""
-
 #: books/edit.html:97
 msgid ""
 "You can search by author name (like <em>j k rowling</em>) or by Open "
@@ -2642,10 +2703,10 @@ msgstr ""
 
 #: IABook.html:13 IABook.html:14 SearchResultsWork.html:54
 #: SearchResultsWork.html:55 books/edition-sort.html:39
-#: books/edition-sort.html:40 databarAuthor.html:84
-#: jsdef/LazyWorkPreview.html:13 lists/list_overview.html:13
-#: lists/preview.html:9 lists/snippet.html:9 lists/widget.html:78
-#: my_books/dropdown_content.html:126 type/work/editions.html:27
+#: books/edition-sort.html:40 jsdef/LazyWorkPreview.html:13
+#: lists/list_overview.html:13 lists/preview.html:9 lists/snippet.html:9
+#: lists/widget.html:78 my_books/dropdown_content.html:126
+#: type/work/editions.html:27
 #, python-format
 msgid "Cover of: %(title)s"
 msgstr ""
@@ -2678,17 +2739,17 @@ msgstr ""
 msgid "Books"
 msgstr ""
 
-#: books/mybooks_breadcrumb_select.html:12 mybooks.py:239
+#: books/mybooks_breadcrumb_select.html:12 mybooks.py:241
 #, python-format
 msgid "Want to Read (%(count)d)"
 msgstr ""
 
-#: books/mybooks_breadcrumb_select.html:13 mybooks.py:236
+#: books/mybooks_breadcrumb_select.html:13 mybooks.py:237
 #, python-format
 msgid "Currently Reading (%(count)d)"
 msgstr ""
 
-#: books/mybooks_breadcrumb_select.html:14 mybooks.py:242
+#: books/mybooks_breadcrumb_select.html:14 mybooks.py:244
 #, python-format
 msgid "Already Read (%(count)d)"
 msgstr ""
@@ -2703,7 +2764,7 @@ msgstr ""
 msgid "Notes"
 msgstr ""
 
-#: account.py:842 books/mybooks_breadcrumb_select.html:23
+#: account.py:846 books/mybooks_breadcrumb_select.html:23
 msgid "Imports and Exports"
 msgstr ""
 
@@ -2785,28 +2846,12 @@ msgstr ""
 msgid "Publishing Info"
 msgstr ""
 
-#: books/edit/edition.html:105
-msgid "Who is the publisher?"
-msgstr ""
-
-#: books/edit/edition.html:106
-msgid "For example"
-msgstr ""
-
 #: books/edit/edition.html:115
 msgid "Where was the book published?"
 msgstr ""
 
 #: books/edit/edition.html:116
 msgid "City, Country please."
-msgstr ""
-
-#: books/edit/edition.html:125
-msgid "When was it published?"
-msgstr ""
-
-#: books/edit/edition.html:126
-msgid "You should be able to find this in the first few pages of the book."
 msgstr ""
 
 #: books/edit/edition.html:138
@@ -2852,12 +2897,6 @@ msgstr ""
 
 #: books/edit/edition.html:206
 msgid "Add a new role"
-msgstr ""
-
-#: books/edit/edition.html:213 books/edit/edition.html:451
-#: books/edit/edition.html:516 books/edit/excerpts.html:55
-#: covers/change.html:49 tag/add.html:64
-msgid "Add"
 msgstr ""
 
 #: books/edit/edition.html:226 books/edit/edition.html:242
@@ -3090,10 +3129,6 @@ msgstr ""
 
 #: books/edit/edition.html:643
 msgid "Web Book Providers"
-msgstr ""
-
-#: books/edit/edition.html:647
-msgid "Book URL"
 msgstr ""
 
 #: books/edit/edition.html:648
@@ -3416,6 +3451,7 @@ msgid "Pull up a larger author photo"
 msgstr ""
 
 #: covers/author_photo.html:14 covers/author_photo.html:25
+#: search/authors.html:67
 #, python-format
 msgid "Photo of %(author)s"
 msgstr ""
@@ -3724,39 +3760,8 @@ msgstr ""
 msgid "Your feedback will help us improve these cards"
 msgstr ""
 
-#: jsdef/LazyAuthorPreview.html:9
-msgid "Select this author"
-msgstr ""
-
-#: jsdef/LazyAuthorPreview.html:17
-#, python-format
-msgid "No books associated with %(item)s"
-msgstr ""
-
-#: jsdef/LazyAuthorPreview.html:19
-msgid "1 book"
-msgstr ""
-
-#: jsdef/LazyAuthorPreview.html:20
-msgid "titled "
-msgstr ""
-
-#: jsdef/LazyAuthorPreview.html:23
-msgid "including "
-msgstr ""
-
-#: jsdef/LazyAuthorPreview.html:26
-#, python-format
-msgid "Subjects: %(subjects)s"
-msgstr ""
-
 #: jsdef/LazyWorkPreview.html:8
 msgid "Select this work"
-msgstr ""
-
-#: jsdef/LazyWorkPreview.html:29
-#, python-format
-msgid "%(count)d edition"
 msgstr ""
 
 #: jsdef/LazyWorkPreview.html:31
@@ -3931,9 +3936,9 @@ msgstr ""
 
 #: lib/message_addbook.html:15
 msgid ""
-"There are a few other simple things you can add while you&#8217;re here "
-"to improve your new record quickly, and make it much easier for other "
-"people to find later."
+"There are a few other simple things you can add while you're here to "
+"improve your new record quickly, and make it much easier for other people"
+" to find later."
 msgstr ""
 
 #: lib/message_addbook.html:16
@@ -3941,7 +3946,7 @@ msgid "Upload a cover image"
 msgstr ""
 
 #: lib/message_addbook.html:16
-msgid "&nbsp;Snap a quick photo of the cover to share?"
+msgid "Snap a quick photo of the cover to share?"
 msgstr ""
 
 #: lib/message_addbook.html:17
@@ -3957,11 +3962,11 @@ msgid "Add some subjects"
 msgstr ""
 
 #: lib/message_addbook.html:18
-msgid "They&#8217;re just like tags."
+msgid "They're just like tags."
 msgstr ""
 
 #: lib/message_addbook.html:19
-msgid "Describe what the book&#8217;s about"
+msgid "Describe what the book's about"
 msgstr ""
 
 #: lib/message_addbook.html:19
@@ -4342,7 +4347,7 @@ msgstr ""
 msgid "No description."
 msgstr ""
 
-#: lists/home.html:66 lists/lists.html:67 type/user/view.html:81
+#: lists/home.html:66 lists/lists.html:67 type/user/view.html:85
 msgid "Recent Activity"
 msgstr ""
 
@@ -4678,8 +4683,8 @@ msgstr ""
 msgid "Use this Work"
 msgstr ""
 
-#: CreateListModal.html:10 databarAuthor.html:30 databarAuthor.html:37
-#: my_books/dropdown_content.html:79 my_books/dropdown_content.html:90
+#: CreateListModal.html:10 my_books/dropdown_content.html:79
+#: my_books/dropdown_content.html:90
 msgid "Create a new list"
 msgstr ""
 
@@ -4728,8 +4733,8 @@ msgstr ""
 
 #: publishers/view.html:19
 #, python-format
-msgid "%(count)s ebook"
-msgid_plural "%(count)s ebooks"
+msgid "%(count)d ebook"
+msgid_plural "%(count)d ebooks"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -4878,6 +4883,13 @@ msgstr ""
 msgid "Search Authors"
 msgstr ""
 
+#: search/authors.html:45
+#, python-format
+msgid "%(count)d hit"
+msgid_plural "%(count)d hits"
+msgstr[0] ""
+msgstr[1] ""
+
 #: search/authors.html:51
 msgid "Is the same author listed twice?"
 msgstr ""
@@ -4888,11 +4900,6 @@ msgstr ""
 
 #: search/authors.html:54
 msgid "No hits"
-msgstr ""
-
-#: search/authors.html:67
-#, python-format
-msgid "Photo of %(doc)s"
 msgstr ""
 
 #: search/inside.html:7
@@ -5027,15 +5034,15 @@ msgstr ""
 msgid "It looks like you're offline."
 msgstr ""
 
-#: site/head.html:26 site/neck.html:17
-msgid "Open Library"
-msgstr ""
-
 #: site/neck.html:15
 msgid ""
 "Open Library is an open, editable library catalog, building towards a web"
 " page for every book ever published. Read, borrow, and discover more than"
 " 3M books for free."
+msgstr ""
+
+#: site/neck.html:17
+msgid "Open Library"
 msgstr ""
 
 #: stats/readinglog.html:8
@@ -5124,12 +5131,6 @@ msgstr ""
 msgid "Add a tag to Open Library"
 msgstr ""
 
-#: tag/add.html:13
-msgid ""
-"We require a minimum set of fields to create a new record. These are "
-"those fields."
-msgstr ""
-
 #: tag/add.html:24
 msgid "Name of Tag"
 msgstr ""
@@ -5140,18 +5141,6 @@ msgstr ""
 
 #: tag/add.html:44 type/tag/edit.html:40
 msgid "Tag type"
-msgstr ""
-
-#: tag/add.html:47
-msgid "Select"
-msgstr ""
-
-#: EditButtons.html:17 EditButtonsMacros.html:20 tag/add.html:61
-msgid ""
-"By saving a change to this wiki, you agree that your contribution is "
-"given freely to the world under <a "
-"href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
-"target=\"_blank\" title=\"$_()\">CC0</a>. Yippee!"
 msgstr ""
 
 #: tag/add.html:64
@@ -5598,6 +5587,10 @@ msgstr ""
 msgid "Protected DAISY"
 msgstr ""
 
+#: type/list/embed.html:86
+msgid "DAISY"
+msgstr ""
+
 #: BookByline.html:34 type/list/embed.html:101
 #, python-format
 msgid "by %(name)s"
@@ -5825,7 +5818,7 @@ msgstr ""
 msgid "My Lists"
 msgstr ""
 
-#: RecentChangesUsers.html:64 type/user/view.html:84
+#: RecentChangesUsers.html:64 type/user/view.html:88
 msgid "No edits. Yet."
 msgstr ""
 
@@ -6267,55 +6260,6 @@ msgstr ""
 msgid "Check WorldCat for an edition near you"
 msgstr ""
 
-#: databarAuthor.html:16
-#, python-format
-msgid ""
-"%(page)s is on your <a href=\"#\">List Name Which Could Be Long </a>list."
-" <span class=\"smaller\"><a href=\"#\" class=\"red\">Remove</a>?"
-msgstr ""
-
-#: databarAuthor.html:23
-msgid "Add to list"
-msgstr ""
-
-#: databarAuthor.html:27
-msgid "Add to </span> <a href=\"javascript:;\">This is a List Name"
-msgstr ""
-
-#: databarAuthor.html:28
-msgid ""
-"Add to </span> <a href=\"javascript:;\">This is Another List Name Which "
-"is Longer!"
-msgstr ""
-
-#: databarAuthor.html:38
-msgid "×"
-msgstr ""
-
-#: databarAuthor.html:43
-msgid "List Label"
-msgstr ""
-
-#: databarAuthor.html:51
-msgid "List Description"
-msgstr ""
-
-#: databarAuthor.html:59
-msgid "Tags"
-msgstr ""
-
-#: databarAuthor.html:67
-msgid "Add new list"
-msgstr ""
-
-#: databarAuthor.html:87
-msgid "List Title"
-msgstr ""
-
-#: databarAuthor.html:88
-msgid "from <a href=\"PROFILE LINK\">ownername"
-msgstr ""
-
 #: databarDiff.html:9 databarEdit.html:10
 msgid "View the editing history of this page"
 msgstr ""
@@ -6354,68 +6298,68 @@ msgstr ""
 msgid "Learn more about Book Sponsorship"
 msgstr ""
 
-#: account.py:453 account.py:507
+#: account.py:457 account.py:511
 #, python-format
 msgid ""
 "We've sent the verification email to %(email)s. You'll need to read that "
 "and click on the verification link to verify your email."
 msgstr ""
 
-#: account.py:535
+#: account.py:539
 msgid "Username must be between 3-20 characters"
 msgstr ""
 
-#: account.py:537
+#: account.py:541
 msgid "Username may only contain numbers and letters"
 msgstr ""
 
-#: account.py:540
+#: account.py:544
 msgid "Username unavailable"
 msgstr ""
 
-#: account.py:545 forms.py:60
+#: account.py:549 forms.py:60
 msgid "Must be a valid email address"
 msgstr ""
 
-#: account.py:549 forms.py:41
+#: account.py:553 forms.py:41
 msgid "Email already registered"
 msgstr ""
 
-#: account.py:575
+#: account.py:579
 msgid "Email address is already used."
 msgstr ""
 
-#: account.py:576
+#: account.py:580
 msgid ""
 "Your email address couldn't be updated. The specified email address is "
 "already used."
 msgstr ""
 
-#: account.py:582
+#: account.py:586
 msgid "Email verification successful."
 msgstr ""
 
-#: account.py:583
+#: account.py:587
 msgid ""
 "Your email address has been successfully verified and updated in your "
 "account."
 msgstr ""
 
-#: account.py:589
+#: account.py:593
 msgid "Email address couldn't be verified."
 msgstr ""
 
-#: account.py:590
+#: account.py:594
 msgid ""
 "Your email address couldn't be verified. The verification link seems "
 "invalid."
 msgstr ""
 
-#: account.py:693 account.py:703
+#: account.py:697 account.py:707
 msgid "Password reset failed."
 msgstr ""
 
-#: account.py:755 account.py:774
+#: account.py:759 account.py:778
 msgid "Notification preferences have been updated successfully."
 msgstr ""
 
