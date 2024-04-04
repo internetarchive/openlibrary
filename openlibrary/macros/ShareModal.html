@@ -52,7 +52,7 @@ $def embed_iframe(page_url):
               </li>
 
             <li>
-              $ full_url = 'https://' + ctx.site + changequery()
+              $ full_url = 'https://' + request.domain + changequery()
               <a class="copy-url-btn copy-to-clipboard" title="$_('Copy url to clipboard')" data-ol-link-track="Share|CopyURL"
                 data-string-to-copy="$full_url" data-i18n="$json_encode({'toast': _('URL copied to clipboard')})">
                   <img
