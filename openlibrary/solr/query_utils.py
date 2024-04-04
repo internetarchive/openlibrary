@@ -46,9 +46,11 @@ def luqum_replace_child(parent: Item, old_child: Item, new_child: Item):
         raise ValueError("Not supported for generic class Item")
 
 
-def luqum_traverse(item: Item, _parents: list[Item] | None = None):
+def luqum_traverse(
+    item: Item, _parents: list[Item] | None = None, exclusion: type | None = None
+):
     """
-    Traverses every node in the parse tree in depth-first order.
+    Traverses every node in the parse tree in depth-first order. If the exclusion attribute is filled out, the
 
     Does not make any guarantees about what will happen if you
     modify the tree while traversing it 😅 But we do it anyways.
@@ -59,8 +61,9 @@ def luqum_traverse(item: Item, _parents: list[Item] | None = None):
     parents = _parents or []
     yield item, parents
     new_parents = [*parents, item]
-    for child in item.children:
-        yield from luqum_traverse(child, new_parents)
+    if not exclusion or not isinstance(item, exclusion):
+        for child in item.children:
+            yield from luqum_traverse(child, new_parents)
 
 
 def escape_unknown_fields(
@@ -315,7 +318,7 @@ def luqum_make_fuzzy(tree: Item, search_fields: set[str] | None = None):
     if isinstance(tree, Word):
         return encase_fuzzy(tree)
 
-    for sf, _ in luqum_field_traverse(tree):
+    for sf, _ in luqum_traverse(tree, exclusion=SearchField):
         if isinstance(sf, SearchField) and sf.name.lower() not in search_fields:
             continue
         elif isinstance(sf, SearchField):
