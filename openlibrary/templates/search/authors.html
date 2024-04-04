@@ -38,7 +38,7 @@ $ sort = query_param('sort', None)
 
     $if q and not results.error:
         $if results.num_found:
-            <div class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', results.num_found, count=commify(results.num_found))
+            <div class="search-results-stats">$ungettext('%(count)d hit', '%(count)d hits', results.num_found, count=commify(results.num_found))
               $if results.num_found > 1:
                 $:render_template("search/sort_options.html", selected_sort=sort, search_scheme="authors")
               $ user_can_merge = ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin())
@@ -60,7 +60,7 @@ $ sort = query_param('sort', None)
             $elif 'date' in doc:
                 $ date = doc['date']
             <li class="searchResultItem">
-	      <img src="$get_coverstore_public_url()/a/olid/$(doc['key'].split('/')[-1])-M.jpg" itemprop="image" class="cover author" alt="$_('Photo of %(doc)s', doc=n)">
+	      <img src="$get_coverstore_public_url()/a/olid/$(doc['key'].split('/')[-1])-M.jpg" itemprop="image" class="cover author" alt="$_('Photo of %(author)s', author=n)">
 	      <div>
 		<a href="$doc['key']" class="larger">$n</a>&nbsp;<span class="brown small">$date</span><br />
 		<span class="small grey"><b>$wc</b>

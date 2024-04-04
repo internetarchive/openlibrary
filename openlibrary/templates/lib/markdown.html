@@ -22,7 +22,7 @@
             <tbody>
                 <tr>
                     <td><em>$_("Italic")</em></td>
-                    <td><span class="teal">&lt;em&gt; &lt;/em&gt;</span>$_(" (preferred) or")<span class="teal">&lt;i&gt; &lt;/i&gt;</span></td>
+                    <td><span class="teal">&lt;em&gt; &lt;/em&gt;</span>$_(" (preferred) or ")<span class="teal">&lt;i&gt; &lt;/i&gt;</span></td>
                     <td><span class="blue">* *</span>$_(" or ")<span class="blue">_ _</span>$_(" (single underscores)")</td>
                 </tr>
                 <tr>
@@ -31,7 +31,7 @@
                     <td><span class="blue">** **</span>$_(" or ")<span class="blue">__ __</span>$_(" (double underscores)")</td>
                 </tr>
                 <tr>
-                    <td>$_("Line <br/> Break")</td>
+                    <td>$:_('Line<br/>Break')</td>
                     <td><span class="teal">&lt;br/&gt;</span></td>
                     <td>$_("Insert two spaces at the end of the line.")</td>
                 </tr>
@@ -52,12 +52,12 @@
                 </tr>
                 <tr>
                     <td><ul><li>$_("Unordered List")</li></ul></td>
-                    <td><span class="teal">&lt;ul&gt;<br/>&lt;li&gt;</span>$_("First bullet")<span class="teal">&lt;/li&gt;<br/>&lt;li&gt;</span>Second bullet<span class="teal">&lt;/li&gt;<br/>&lt;/ul&gt;</span></td>
+                    <td><span class="teal">&lt;ul&gt;<br/>&lt;li&gt;</span>$_("First bullet")<span class="teal">&lt;/li&gt;<br/>&lt;li&gt;</span>$_("Second bullet")<span class="teal">&lt;/li&gt;<br/>&lt;/ul&gt;</span></td>
                     <td><span class="blue">*</span>$_(" First bullet")<br/><span class="blue">*</span>$_(" Second bullet")</td>
                 </tr>
                 <tr>
                     <td><a href="javascript:;">$_("Links")</a></td>
-                    <td>$:_('This is <span class="teal">&lt;a href="http://example.com/" title="$_('Title')"&gt;</span>an example<span class="teal">&lt;/a&gt;</span> inline link.')</td>
+                    <td>$:_('This is <span class="teal">&lt;a href="http://example.com/" title="Title"&gt;</span>an example<span class="teal">&lt;/a&gt;</span> inline link.')</td>
                     <td>$:_('This is <span class="blue">[an example](http://example.com/ "Title")</span> inline link.')</td>
                 </tr>
                 <tr>
@@ -68,7 +68,7 @@
             </tbody>
         </table>
 
-        <p>$_("To "escape" any Markdown tags (i.e. use an asterisk as an asterisk rather than emphasizing text) place a backslash \ prior to the character.")</p>
+        <p>$_('To "escape" any Markdown tags (i.e. use an asterisk as an asterisk rather than emphasizing text) place a backslash \ prior to the character.')</p>
         <div class="small"><a class="red dialog--close">$_("Close")</a></div>
 
         </div>

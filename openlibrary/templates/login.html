@@ -14,8 +14,8 @@ $var title: $("Log In")
       <p>$:_('Please enter your <a href="https://archive.org">Internet Archive</a> email and password to access your Open Library account.')</p>
 
   $if ctx.user:
-      <p>$:_('You are already logged into Open Library as %(user)s.', user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))</p>
-      <p>$:_('If you\'d like to create a new, different Open Library account, you\'ll need to <a href="javascript:;" onclick="document.forms[\'hamburger-logout\'].submit()">log out</a> and start the signup process afresh.')</p>
+      <p>$:_("You are already logged into Open Library as %(user)s.", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))</p>
+      <p>$:_("If you\'d like to create a new, different Open Library account, you\'ll need to <a href="javascript:;" onclick="document.forms[\'hamburger-logout\'].submit()">log out</a> and start the signup process afresh.")</p>
 
   $else:
       <form id="register" class="login olform" name="register" method="post">
@@ -23,9 +23,9 @@ $var title: $("Log In")
               <div class="flash-messages" id="autofill-dev-credentials">
                   <div class="info">
                       <span>
-                          $:_('This is a development instance, the default credentials are automatically filled.
+                          $_("This is a development instance, the default credentials are automatically filled.")
                           <br>
-                          email: openlibrary@example.com password: admin123')
+                          $_("email:") openlibrary@example.com $_("password:") admin123
                       </span>
                   </div>
               </div>
@@ -74,7 +74,7 @@ $var title: $("Log In")
             <div class="label"></div>
             <div class="input smaller"><a href="https://archive.org/account/login.forgotpw.php">$_("Forgot your Password?")</a>
             <br/><br/>
-            $:_('Not a member of Open Library? <a href="/account/create">Sign up now</a>.')</div>
+            $_("Not a member of Open Library?") <a href="/account/create">$_('Sign up now</a>.')</div>
         </div>
     </form>
 </div>

@@ -12,11 +12,11 @@ $jsdef render_lazy_author_preview(item):
             $if item['work_count'] == 0:
                 <span class="work">$_('No books associated with %(item)s', item=$item['name'])</span>
             $elif item['work_count'] == 1:
-                <span class="books">$_("1 book")</span>
-                <span class="work">$_("titled ") <i>$item['top_work']</i></span>
+                <span class="books">$:_('1 book </span>
+                <span class="work">titled <i>%(title)s', title=item['top_work'])</i></span>
             $else:
-                <span class="books">$item['work_count'] books</span>
-                <span class="work">$_("including ")<i>$item['top_work']</i></span>
+                <span class="books">$:_('%(count)d books</span>
+                <span class="work">including <i>%(title)s', count=item['work_count'], title=item['top_work'])</i></span>
 
             $if item['subjects']:
                 <span class="subject">$_('Subjects: %(subjects)s', subjects=(', '.join(item['subjects'])))</span>

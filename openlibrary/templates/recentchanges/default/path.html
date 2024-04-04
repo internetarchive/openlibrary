@@ -3,7 +3,7 @@ $def with (change)
 <div class="truncatepath">
     $if change.changes is None or len(change.changes) == 0:
         <span class="fixthis">???</span>
-        <span class="smallest sansserif"> - <a href="$change.url()" style="text-decoration: none;">$_('expand')</a></span>
+        <span class="smallest sansserif"> - <a href="$change.url()" style="text-decoration: none;">$_("expand")</a></span>
     $elif len(change.changes) == 1:
         $ doc = change.get_changes()[0]
         $# show book title/author name instead of key

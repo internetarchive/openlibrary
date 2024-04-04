@@ -28,7 +28,7 @@ $jsdef render_works_list(works):
 
 $jsdef render_excluded_works_list(works, total):
     <details>
-        <summary><meter value="$(total - len(works))" max="$total"></meter> $_('%(length)d works excluded due to missing data', length=len(works)) </summary>
+        <summary><meter value="$(total - len(works))" max="$total"></meter> $_('%(count)d works excluded due to missing data', count=len(works)) </summary>
         $:render_works_list(works)
     </details>
 
