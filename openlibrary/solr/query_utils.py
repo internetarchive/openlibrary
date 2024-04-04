@@ -47,10 +47,10 @@ def luqum_replace_child(parent: Item, old_child: Item, new_child: Item):
 
 
 def luqum_traverse(
-    item: Item, _parents: list[Item] | None = None, exclusion: type | None = None
+    item: Item, _parents: list[Item] | None = None, stop_at: type | None = None
 ):
     """
-    Traverses every node in the parse tree in depth-first order. If the exclusion attribute is filled out, the
+    Traverses every node in the parse tree in depth-first order. If the stop_at attribute is filled out, the
 
     Does not make any guarantees about what will happen if you
     modify the tree while traversing it 😅 But we do it anyways.
@@ -61,7 +61,7 @@ def luqum_traverse(
     parents = _parents or []
     yield item, parents
     new_parents = [*parents, item]
-    if not exclusion or not isinstance(item, exclusion):
+    if not stop_at or not isinstance(item, stop_at):
         for child in item.children:
             yield from luqum_traverse(child, new_parents)
 
@@ -283,25 +283,6 @@ def luqum_replace_field(query, replacer: Callable[[str], str]) -> str:
     return str(query)
 
 
-def luqum_field_traverse(item: Item, _parents: list[Item] | None = None):
-    """
-    Unlike the normal field traversal, this function will not go deeper once it hits a search field.
-    THis is necessary, in order to properly avoid fuzzying out undesired fields in luqum_make_fuzzy.
-
-    Nuch like its sister function, it does not make any guarantees about what will happen if you
-    modify the tree while traversing it 😅 But we do it anyways.
-
-    :param item: Node to traverse
-    :param _parents: Internal parameter for tracking parents
-    """
-    parents = _parents or []
-    yield item, parents
-    new_parents = [*parents, item]
-    if not isinstance(item, SearchField):
-        for child in item.children:
-            yield from luqum_field_traverse(child, new_parents)
-
-
 def luqum_make_fuzzy(tree: Item, search_fields: set[str] | None = None):
     """:param query: Passed in the form of a luqum tree
     :param search_fields: A list of search fields to be fuzzied out."""
@@ -318,7 +299,7 @@ def luqum_make_fuzzy(tree: Item, search_fields: set[str] | None = None):
     if isinstance(tree, Word):
         return encase_fuzzy(tree)
 
-    for sf, _ in luqum_traverse(tree, exclusion=SearchField):
+    for sf, _ in luqum_traverse(tree, stop_at=SearchField):
         if isinstance(sf, SearchField) and sf.name.lower() not in search_fields:
             continue
         elif isinstance(sf, SearchField):
