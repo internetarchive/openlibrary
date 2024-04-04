@@ -45,6 +45,7 @@ QUERY_PARSER_TESTS = {
         'flatland : a romance of many dimensions',
         'flatland\\:~ a~ romance~ of~ many~ dimensions~',
     ),
+    'Parentheticals': ('(This is a parenthetical)', '(This~ is~ a~ parenthetical~)'),
     'Colons in field': (
         'title:flatland:a romance of many dimensions',
         'alternative_title:(flatland\\:a~ romance~ of~ many~ dimensions~)',
