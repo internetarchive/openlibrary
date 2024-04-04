@@ -4,7 +4,7 @@ $ has_owner = list.owner
 $ is_owner = (has_owner and list.owner.key == user_key)
 $ actionable = 'class=actionable-item' if is_owner else ''
 $ data_list_key = 'data-list-key=%s' % list.key if is_owner else ''
-$ owner = 'You' if if is_owner else list.owner.displayname
+$ owner = 'You' if is_owner else list.owner.displayname
 
 <li $actionable $data_list_key>
     <span class="image">
