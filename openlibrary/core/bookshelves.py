@@ -271,7 +271,7 @@ class Bookshelves(db.CommonExtras):
         edition_keys_to_query = [
             work_to_edition_keys[key].split("/")[2] for key in missing_keys
         ]
-        fq = f'edition_key:{" OR ".join(edition_keys_to_query)}'
+        fq = f'edition_key:({" OR ".join(edition_keys_to_query)})'
         if not edition_keys_to_query:
             return solr_docs
         solr_resp = run_solr_query(
