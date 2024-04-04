@@ -295,7 +295,7 @@ def luqum_make_fuzzy(tree: Item, fields: set[str] | None = None):
     :param query: Passed in the form of a luqum tree
     :param search_fields: A list of search fields to be fuzzied out.
 
-    >>> str(luqum_make_fuzzy(luqum_parse('lord of the rings author:tolkien id:foobar'), {'author'}))
+    >>> str(luqum_make_fuzzy(luqum_parser('lord of the rings author:tolkien id:foobar'), {'author'}))
     'lord~ of~ the~ rings~ author:tolkien~ id:foobar'
 
     >>> str(luqum_make_fuzzy(luqum_parser('How to tame a fox (and build a dog) author:Lee Alan Dugatkin'), {'author'}))
