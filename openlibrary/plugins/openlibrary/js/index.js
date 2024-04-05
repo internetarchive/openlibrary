@@ -526,6 +526,12 @@ jQuery(function () {
             .then(module => module.initBreadcrumbSelect(crumbs));
     }
 
+    const waitlistLinks = document.querySelectorAll('a.leave');
+    if (waitlistLinks.length && document.getElementById('leave-waitinglist-dialog')) {
+        import(/* webpackChunkName: "waitlist" */ './waitlist')
+            .then(module => module.initLeaveWaitlist(waitlistLinks));
+    }
+
     const thirdPartyLoginsIframe = document.getElementById('ia-third-party-logins');
     if (thirdPartyLoginsIframe) {
         import(/* webpackChunkName: "ia_thirdparty_logins" */ './ia_thirdparty_logins')

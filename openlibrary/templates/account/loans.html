@@ -124,17 +124,6 @@ $else:
     $else:
         <div id="leave-waitinglist-dialog" class="hidden dialog"
              title="$_('Leave the Waiting List')">$:_('Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?')</div>
-        <script type="text/javascript">
-        window.q.push(function() {
-            \$("a.leave").on('click', function() {
-                var title = \$(this).parents("tr").find(".book").text();
-                \$("#leave-waitinglist-dialog strong").text(title);
-                \$("#leave-waitinglist-dialog")
-                    .data("origin", \$(this))
-                    .dialog("open");
-            });
-        });
-        </script>
         <div class="borrow borrow-table collapse waitinglist">
           <table>
               <thead>
