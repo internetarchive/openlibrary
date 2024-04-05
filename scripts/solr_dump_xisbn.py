@@ -7,6 +7,7 @@
     `tmux` (use tmux so if the ssh connection disconnects the process continues)
 
     ```sh
+    # Took ~10.5 hours 2024-04
     time docker run --rm \
         --name similarities-dump \
         --network host \
@@ -15,6 +16,7 @@
         python scripts/solr_dump_xisbn.py --solr-base http://localhost:8983/solr/openlibrary \
     > unwanted_isbns_$(date +"%Y-%m-%d").txt
 
+    # Took ~8.5 hours 2024-04
     time docker run --rm \
         --name similarities-dump \
         --network host \
