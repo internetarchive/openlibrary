@@ -429,22 +429,22 @@ class Bookshelves(db.CommonExtras):
             )
             total_results = solr_resp.num_found
             solr_docs = solr_resp.docs
-            """ if show_editions:
+            if show_editions:
                 edition_data = get_solr().get_many(
                     [work_to_edition_keys[work["key"]] for work in solr_resp.docs],
                     fields=WorkSearchScheme.default_fetched_fields
                     | {'subject', 'person', 'place', 'time', 'edition_key'},
                 )
 
-                solr_docs.extend(edition_data) """
+                solr_docs.extend(edition_data)
 
             # Downstream many things expect a list of web.storage docs.
             solr_docs = [web.storage(doc) for doc in solr_resp.docs]
             solr_docs = add_reading_log_data(reading_log_books, solr_docs)
 
             # This function is only necessary if edition data was fetched.
-            """ if show_editions:
-                solr_docs = cls.link_editions_to_works(solr_docs) """
+            if show_editions:
+                solr_docs = cls.link_editions_to_works(solr_docs)
 
             return LoggedBooksData(
                 username=username,
