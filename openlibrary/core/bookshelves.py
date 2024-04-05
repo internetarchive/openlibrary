@@ -414,7 +414,7 @@ class Bookshelves(db.CommonExtras):
 
             # Separating out the filter query from the call allows us to cleanly edit it, if editions are required.
             filter_query = 'key:(%s)' % " OR ".join(
-                '%s' % key for key in work_to_edition_keys
+                '"%s"' % key for key in work_to_edition_keys
             )
 
             solr_resp = run_solr_query(
