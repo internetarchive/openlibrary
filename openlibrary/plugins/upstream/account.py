@@ -1076,12 +1076,22 @@ class export_books(delegate.page):
         return "\n".join(lists_as_csv(lists))
 
     def generate_star_ratings(self, username: str) -> str:
+        from openlibrary.plugins.upstream.models import Work
+
+        def escape_csv_field(raw_string: str) -> str:
+            escaped_string = raw_string.replace('"', '""')
+            return f'"{escaped_string}"'
+
         def format_rating(rating: Mapping) -> dict:
+            work_id = f"OL{rating['work_id']}W"
+            work: Work = web.ctx.site.get(work_id)
             if edition_id := rating.get("edition_id") or "":
                 edition_id = f"OL{edition_id}M"
             return {
-                "Work ID": f"OL{rating['work_id']}W",
+                "Work ID": work_id,
                 "Edition ID": edition_id,
+                "Title": escape_csv_field(work.title),
+                "Author(s)": escape_csv_field(" | ".join(work.get_author_names())),
                 "Rating": f"{rating['rating']}",
                 "Created On": rating['created'].strftime(self.date_format),
             }
