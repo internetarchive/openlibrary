@@ -77,13 +77,10 @@ If you want to dive into the source code for Infogami, see the [Infogami repo](h
 
 ## Running tests
 
-Open Library tests can be run using pytest. Kindly look up on our [Testing Document](https://github.com/internetarchive/openlibrary/wiki/Testing) for more details.
-
-Run tests while the docker container is running.
+Open Library tests can be run using docker. Kindly look up on our [Testing Document](https://github.com/internetarchive/openlibrary/wiki/Testing) for more details.
 
 ```
-cd docker/
-docker compose exec web make test
+docker compose run --rm home make test
 ```
 
 ## License
