@@ -11,7 +11,7 @@ ci:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
       - id: check-toml
       - id: check-yaml
@@ -67,7 +67,7 @@ repos:
       - id: validate-pyproject
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.0.0-rc.0
+    rev: v9.0.0
     hooks:
       - id: eslint
         types: [file]
