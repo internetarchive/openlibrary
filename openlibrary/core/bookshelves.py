@@ -177,6 +177,24 @@ class Bookshelves(db.CommonExtras):
         )
 
     @classmethod
+    def count_user_books_on_shelf(
+        cls,
+        username: str,
+        bookshelf_id: int,
+    ) -> int:
+        result = db.get_db().query(
+            """
+            SELECT count(*) from bookshelves_books
+            WHERE bookshelf_id=$bookshelf_id AND username=$username
+            """,
+            vars={
+                'bookshelf_id': bookshelf_id,
+                'username': username,
+            },
+        )
+        return result[0].count if result else 0
+
+    @classmethod
     def count_total_books_logged_by_user_per_shelf(
         cls, username: str, bookshelf_ids: list[str] | None = None
     ) -> dict[int, int]:

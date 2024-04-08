@@ -1,7 +1,7 @@
 import json
 import web
 
-from typing import Final, Literal
+from typing import Final, Literal, cast
 
 from infogami import config
 from infogami.utils import delegate
@@ -297,11 +297,12 @@ class public_my_books_json(delegate.page):
     encoding = "json"
 
     def GET(self, username, key='want-to-read'):
-        i = web.input(page=1, limit=5000, q="")
+        i = web.input(page=1, limit=100, q="")
+        key = cast(ReadingLog.READING_LOG_KEYS, key.lower())
         if len(i.q) < 3:
             i.q = ""
         page = safeint(i.page, 1)
-        limit = safeint(i.limit, 5000)
+        limit = safeint(i.limit, 100)
         # check if user's reading log is public
         user = web.ctx.site.get('/people/%s' % username)
         if not user:
@@ -317,7 +318,7 @@ class public_my_books_json(delegate.page):
             and logged_in_user.key.split('/')[-1] == username
         ):
             readlog = ReadingLog(user=user)
-            books = readlog.get_works(key.lower(), page, limit, q=i.q).docs
+            books = readlog.get_works(key, page, limit, q=i.q).docs
             records_json = [
                 {
                     'work': {
@@ -342,8 +343,20 @@ class public_my_books_json(delegate.page):
                 }
                 for w in books
             ]
+
+            if len(records_json) < limit:
+                num_found = len(records_json)
+            else:
+                num_found = readlog.count_shelf(key)
+
             return delegate.RawText(
-                json.dumps({'page': page, 'reading_log_entries': records_json}),
+                json.dumps(
+                    {
+                        'page': page,
+                        'numFound': num_found,
+                        'reading_log_entries': records_json,
+                    }
+                ),
                 content_type="application/json",
             )
         else:
@@ -443,6 +456,11 @@ class ReadingLog:
     # Constants
     PRESET_SHELVES = Literal["Want to Read", "Already Read", "Currently Reading"]
     READING_LOG_KEYS = Literal["want-to-read", "already-read", "currently-reading"]
+    READING_LOG_KEY_TO_SHELF: dict[READING_LOG_KEYS, PRESET_SHELVES] = {
+        "want-to-read": "Want to Read",
+        "already-read": "Already Read",
+        "currently-reading": "Currently Reading",
+    }
 
     def __init__(self, user=None):
         self.user = user or accounts.get_current_user()
@@ -487,6 +505,12 @@ class ReadingLog:
             ),
         }
 
+    def count_shelf(self, key: READING_LOG_KEYS) -> int:
+        username = self.user.get_username()
+        assert username
+        shelf_id = Bookshelves.PRESET_BOOKSHELVES[self.READING_LOG_KEY_TO_SHELF[key]]
+        return Bookshelves.count_user_books_on_shelf(username, shelf_id)
+
     def get_works(
         self,
         key: READING_LOG_KEYS,
@@ -503,16 +527,8 @@ class ReadingLog:
 
         See LoggedBooksData for specifics on what's returned.
         """
-        if key == "want-to-read":
-            shelf = "Want to Read"
-        elif key == "already-read":
-            shelf = "Already Read"
-        elif key == "currently-reading":
-            shelf = "Currently Reading"
-        else:
-            raise ValueError(
-                "key must be want-to-read, already-read, or currently-reading"
-            )
+        shelf = self.READING_LOG_KEY_TO_SHELF[key]
+
         # Mypy is unhappy about the sort argument not being a literal string.
         # Although this doesn't satisfy Mypy, at least make sure sort is either
         # "created asc" or "created desc"
