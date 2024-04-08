@@ -856,9 +856,6 @@ class User(Thing):
     def is_beta_tester(self):
         return self.is_usergroup_member('/usergroup/beta-testers')
 
-    def has_librarian_tools(self):
-        return self.is_usergroup_member('/usergroup/librarian-tools')
-
     def is_read_only(self):
         return self.is_usergroup_member('/usergroup/read-only')
 
