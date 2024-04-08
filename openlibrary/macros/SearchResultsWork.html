@@ -76,7 +76,9 @@ $code:
               author_names_and_urls = [
                 (
                   a.get('name') or a.get('author', {}).get('name'),
-                  a.get('url') or a.get('key') or a.get('author', {}).get('url') or a.get('author', {}).get('key')
+                  a.get('url') or a.get('key') or a.get('author', {}).get('url') or a.get('author', {}).get('key'),
+                  a.get('birth_date'),
+                  a.get('death_date')
                 )
                 for a in authors
               ]
