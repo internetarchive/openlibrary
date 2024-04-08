@@ -86,10 +86,6 @@ cd docker/
 docker compose exec web make test
 ```
 
-### Integration Tests
-
-Integration tests use the Splinter webdriver with Google Chrome. For instructions on installation requirements and running integration tests, [see Integration Tests README](tests/integration/README.md).
-
 ## License
 
 All source code published here is available under the terms of the [GNU Affero General Public License, version 3](https://www.gnu.org/licenses/agpl-3.0.html).

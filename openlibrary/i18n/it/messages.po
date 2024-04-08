@@ -782,8 +782,8 @@ msgid "This is only visible to super librarians."
 msgstr "Qusto è visibile solo ai super bibliotecai."
 
 #: work_search.html:107
-msgid "Solr Editions <i>Beta</i>"
-msgstr "Edizioni Solr <i>Beta</i>"
+msgid "Solr Editions"
+msgstr "Edizioni Solr"
 
 #: work_search.html:124
 msgid "eBook"
@@ -1569,7 +1569,7 @@ msgstr "Email di verifica inviata"
 #: account/verify/success.html:10
 #, python-format
 msgid "Hi, %(user)s"
-msgstr "Ciao, %(users)s"
+msgstr "Ciao, %(user)s"
 
 #: account/email/forgot-ia.html:10 account/email/forgot.html:10
 msgid "Forgot Your Internet Archive Email?"

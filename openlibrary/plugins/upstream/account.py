@@ -341,7 +341,11 @@ class account_login_json(delegate.page):
             )
             error = audit.get('error')
             if error:
-                raise olib.code.BadRequest(error)
+                resp = {
+                    'error': error,
+                    'errorDisplayString': LOGIN_ERRORS[error],
+                }
+                raise olib.code.BadRequest(json.dumps(resp))
             expires = 3600 * 24 * 365 if remember.lower() == 'true' else ""
             web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
             if audit.get('ia_email'):

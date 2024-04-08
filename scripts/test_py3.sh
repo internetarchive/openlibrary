@@ -1,7 +1,6 @@
 #!/bin/sh
 
 pytest . \
-       --ignore=tests/integration \
        --ignore=scripts/2011 \
        --ignore=infogami \
        --ignore=vendor
