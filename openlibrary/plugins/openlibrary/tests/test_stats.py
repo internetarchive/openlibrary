@@ -1,6 +1,7 @@
 """
 Tests the stats gathering systems.
 """
+
 import calendar
 import datetime
 
@@ -21,26 +22,22 @@ class MockDoc(dict):
 
 def test_format_stats_entry():
     "Tests the stats performance entries"
-    stats.process_stats({"total": {"time": 0.1}}) == [("TT", 0, 0.1)]
-    stats.process_stats({"total": {"time": 0.1346}}) == [("TT", 0, 0.135)]
+    ps = stats.process_stats
+    assert ps({"total": {"time": 0.1}}) == [("TT", 0, 0.1)]
+    # assert ps({"total": {"time": 0.1346}}) == [("TT", 0, 0.135)]  # FIXME
 
-    stats.process_stats({"memcache": {"count": 2, "time": 0.1}}) == [("MC", 2, 0.100)]
-    stats.process_stats({"infobase": {"count": 2, "time": 0.1}}) == [("IB", 2, 0.100)]
-    stats.process_stats({"couchdb": {"count": 2, "time": 0.1}}) == [("CD", 2, 0.100)]
-    stats.process_stats({"solr": {"count": 2, "time": 0.1}}) == [("SR", 2, 0.100)]
-    stats.process_stats({"archive.org": {"count": 2, "time": 0.1}}) == [
-        ("IA", 2, 0.100)
-    ]
-    stats.process_stats({"something-else": {"count": 2, "time": 0.1}}) == [
-        ("OT", 2, 0.100)
-    ]
+    assert ps({"memcache": {"count": 2, "time": 0.1}}) == [("MC", 2, 0.100)]
+    assert ps({"infobase": {"count": 2, "time": 0.1}}) == [("IB", 2, 0.100)]
+    assert ps({"couchdb": {"count": 2, "time": 0.1}}) == [("CD", 2, 0.100)]
+    assert ps({"solr": {"count": 2, "time": 0.1}}) == [("SR", 2, 0.100)]
+    # assert ps({"archive.org": {"count": 2, "time": 0.1}}) == [("IA", 2, 0.100)]  # FIXME
+    assert ps({"something-else": {"count": 2, "time": 0.1}}) == [("OT", 2, 0.100)]
 
 
 def test_format_stats():
     "Tests whether the performance status are output properly in the the X-OL-Stats header"
-    stats.format_stats(
-        {"total": {"time": 0.2}, "infobase": {"count": 2, "time": 0.13}}
-    ) == '"IB 2 0.130 TT 0 0.200"'
+    performance_stats = {"total": {"time": 0.2}, "infobase": {"count": 2, "time": 0.13}}
+    assert stats.format_stats(performance_stats) == '"IB 2 0.130 TT 0 0.200"'
 
 
 def test_stats_container():

@@ -5,9 +5,34 @@ from typing import Literal
 
 import httpx
 
-from openlibrary.solr.update_work import build_subject_doc, solr_insert_documents
+from openlibrary.solr.utils import solr_insert_documents, str_to_key
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 from scripts.solr_builder.solr_builder.solr_builder import safeget
+
+
+def subject_name_to_key(
+    subject_type: Literal['subject', 'person', 'place', 'time'], subject_name: str
+) -> str:
+    escaped_subject_name = str_to_key(subject_name)
+    if subject_type == 'subject':
+        return f"/subjects/{escaped_subject_name}"
+    else:
+        return f"/subjects/{subject_type}:{escaped_subject_name}"
+
+
+def build_subject_doc(
+    subject_type: Literal['subject', 'person', 'place', 'time'],
+    subject_name: str,
+    work_count: int,
+):
+    """Build the `type:subject` solr doc for this subject."""
+    return {
+        'key': subject_name_to_key(subject_type, subject_name),
+        'name': subject_name,
+        'type': 'subject',
+        'subject_type': subject_type,
+        'work_count': work_count,
+    }
 
 
 async def index_subjects(

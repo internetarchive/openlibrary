@@ -119,7 +119,7 @@ bin_samples = [
     ('collingswood_bad_008.mrc', {'subject': {'War games': 1, 'Battles': 1}}),
     (
         'histoirereligieu05cr_meta.mrc',
-        {'org': {'Jesuits': 4}, 'subject': {'Influence': 1, 'History': 1}},
+        {'org': {'Jesuits': 2}, 'subject': {'Influence': 1, 'History': 1}},
     ),
     (
         'ithaca_college_75002321.mrc',
@@ -215,7 +215,6 @@ bin_samples = [
         'wrapped_lines.mrc',
         {
             'org': {
-                'United States': 1,
                 'United States. Congress. House. Committee on Foreign Affairs': 1,
             },
             'place': {'United States': 1},

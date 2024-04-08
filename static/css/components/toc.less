@@ -1,0 +1,48 @@
+@import (reference) "../less/breakpoints.less";
+@import (reference) "../less/colors.less";
+
+.toc__entry {
+  border-radius: 4px;
+  padding: 3px 8px;
+  @media only screen and (hover: none) {
+    padding: 6px 8px; /* Increase padding for touch-only devices */
+  }
+  display: flex;
+  gap: 4px;
+  line-height: 1.2em;
+  transition: background-color .2s;
+
+  em {
+    font-weight: bold;
+  }
+}
+
+a.toc__entry {
+  text-decoration: none;
+  .toc__name {
+    text-decoration: underline;
+  }
+  &:hover {
+    background: rgba(0, 124, 255, .2);
+  }
+}
+
+.toc__pagenum {
+  white-space: nowrap;
+}
+
+@media (max-width: @width-breakpoint-mobile) {
+  .toc__entry {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .toc__dots {
+    display: none;
+  }
+
+  .toc__pagenum {
+    font-size: .9em;
+    color: @accessible-grey;
+  }
+}

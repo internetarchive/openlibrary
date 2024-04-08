@@ -32,7 +32,7 @@ function post(data) {
  * @param {object} data Object containing the new list's name, description, and seeds.
  * @param {function} success Callback to be executed on successful POST.
  */
-export function createList(userKey, data, success) {
+export function createNewList(userKey, data, success) {
     post({
         url: `${userKey}/lists.json`,
         data: data,
@@ -40,6 +40,24 @@ export function createList(userKey, data, success) {
             success(resp.key, data.name)
         }
     });
+}
+
+/**
+ * Submits request to create new list.  Returns Promise.
+ *
+ * @param {string} userKey The patron's key, in the form "/people/{username}"
+ * @param {object} data Object containing the new list's name, description, and seeds.
+ * @returns {Promise<Response>} The results of the POST request
+ */
+export async function createList(userKey, data) {
+    return await fetch(`${userKey}/lists.json`, {
+        method: 'post',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
 }
 
 /**
@@ -59,6 +77,25 @@ export function addToList(listKey, seed, success) {
 }
 
 /**
+ * Adds an item to a list.  Promise-based.
+ *
+ * @param {string} listKey The patron's key, in the form "/people/{username}"
+ * @param {object} seed Object containing the new list's name, description, and seeds.
+ * @returns {Promise<Response>} The result of the POST request
+ */
+export async function addItem(listKey, seed) {
+    const body = { add: [seed] }
+    return await fetch(`${listKey}/seeds.json`, {
+        method: 'post',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+        },
+        body: JSON.stringify(body)
+    })
+}
+
+/**
  * Submits request to remove given seed from list.
  *
  * Executes given callback on success.
@@ -72,6 +109,25 @@ export function removeFromList(listKey, seed, success) {
         data: { remove: [seed] },
         success: success
     });
+}
+
+/**
+ * Submits request to remove given seed from list. Promise-based.
+ *
+ * @param {string} listKey The list's key.
+ * @param {string|{ key: string }} seed The item being removed from the list.
+ * @returns {Promise<Response>} The POST response
+ */
+export async function removeItem(listKey, seed) {
+    const body = { remove: [seed] }
+    return await fetch(`${listKey}/seeds.json`, {
+        method: 'post',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+        },
+        body: JSON.stringify(body)
+    })
 }
 
 /**
@@ -104,5 +160,16 @@ export function fetchPartials(key, success) {
         type: 'GET',
         url: `/lists/partials.json?key=${key}`,
         success: success
+    })
+}
+
+// XXX : jsdoc
+export async function getListPartials() {
+    return await fetch('/lists/partials.json', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+        }
     })
 }

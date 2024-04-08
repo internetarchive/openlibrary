@@ -51,15 +51,10 @@ class book_availability(delegate.page):
         return delegate.RawText(json.dumps(result), content_type="application/json")
 
     def get_book_availability(self, id_type, ids):
-        return (
-            lending.get_availability_of_works(ids)
-            if id_type == "openlibrary_work"
-            else lending.get_availability_of_editions(ids)
-            if id_type == "openlibrary_edition"
-            else lending.get_availability_of_ocaids(ids)
-            if id_type == "identifier"
-            else []
-        )
+        if id_type in ["openlibrary_work", "openlibrary_edition", "identifier"]:
+            return lending.get_availability(id_type, ids)
+        else:
+            return []
 
 
 class trending_books_api(delegate.page):
@@ -173,9 +168,7 @@ class ratings(delegate.page):
         key = (
             i.redir_url
             if i.redir_url
-            else i.edition_id
-            if i.edition_id
-            else ('/works/OL%sW' % work_id)
+            else i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
         )
         edition_id = (
             int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
@@ -465,9 +458,11 @@ class price_api(delegate.page):
 
         metadata = {
             'amazon': get_amazon_metadata(id_, id_type=id_type[:4]) or {},
-            'betterworldbooks': get_betterworldbooks_metadata(id_)
-            if id_type.startswith('isbn_')
-            else {},
+            'betterworldbooks': (
+                get_betterworldbooks_metadata(id_)
+                if id_type.startswith('isbn_')
+                else {}
+            ),
         }
         # if user supplied isbn_{n} fails for amazon, we may want to check the alternate isbn
 
@@ -591,21 +586,38 @@ class work_delete(delegate.page):
     path = r"/works/(OL\d+W)/[^/]+/delete"
 
     def get_editions_of_work(self, work: Work) -> list[dict]:
+        i = web.input(bulk=False)
         limit = 1_000  # This is the max limit of the things function
-        keys: list = web.ctx.site.things(
-            {"type": "/type/edition", "works": work.key, "limit": limit}
-        )
-        if len(keys) == limit:
-            raise web.HTTPError(
-                '400 Bad Request',
-                data=json.dumps(
-                    {
-                        'error': f'API can only delete {limit} editions per work',
-                    }
-                ),
-                headers={"Content-Type": "application/json"},
+        all_keys: list = []
+        offset = 0
+
+        while True:
+            keys: list = web.ctx.site.things(
+                {
+                    "type": "/type/edition",
+                    "works": work.key,
+                    "limit": limit,
+                    "offset": offset,
+                }
             )
-        return web.ctx.site.get_many(keys, raw=True)
+            all_keys.extend(keys)
+            if len(keys) == limit:
+                if not i.bulk:
+                    raise web.HTTPError(
+                        '400 Bad Request',
+                        data=json.dumps(
+                            {
+                                'error': f'API can only delete {limit} editions per work.',
+                            }
+                        ),
+                        headers={"Content-Type": "application/json"},
+                    )
+                else:
+                    offset += limit
+            else:
+                break
+
+        return web.ctx.site.get_many(all_keys, raw=True)
 
     def POST(self, work_id: str):
         if not can_write():
@@ -640,14 +652,20 @@ class hide_banner(delegate.page):
     path = '/hide_banner'
 
     def POST(self):
-        data = json.loads(web.data())
         user = accounts.get_current_user()
+        data = json.loads(web.data())
 
-        user.save_preferences({'hidden-banner': data['storage-key']})
+        # Set truthy cookie that expires in 30 days:
+        DAY_SECONDS = 60 * 60 * 24
+        cookie_duration_days = int(data.get('cookie-duration-days', 30))
 
-        def response(msg, status="success"):
-            return delegate.RawText(
-                json.dumps({status: msg}), content_type="application/json"
-            )
+        if user and data['cookie-name'].startswith('yrg'):
+            user.save_preferences({'yrg_banner_pref': data['cookie-name']})
 
-        return response('Preference saved')
+        web.setcookie(
+            data['cookie-name'], '1', expires=(cookie_duration_days * DAY_SECONDS)
+        )
+
+        return delegate.RawText(
+            json.dumps({'success': 'Preference saved'}), content_type="application/json"
+        )

@@ -1,5 +1,6 @@
 """Handling various events triggered by Open Library.
 """
+
 from infogami.infobase import client
 import logging
 import web

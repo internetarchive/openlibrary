@@ -1,5 +1,6 @@
 """Library to talk directly to OL database to avoid expensive API calls.
 """
+
 import json
 
 import web
@@ -53,11 +54,11 @@ def query(key, value):
     db = get_db()
     rows = db.query(
         "SELECT thing.key"
-        + " FROM thing, edition_str"
-        + " WHERE thing.id=edition_str.thing_id"
-        + " AND key_id=$key_id"
-        + " AND value=$value"
-        + " ORDER BY thing.last_modified LIMIT 10",
+        " FROM thing, edition_str"
+        " WHERE thing.id=edition_str.thing_id"
+        " AND key_id=$key_id"
+        " AND value=$value"
+        " ORDER BY thing.last_modified LIMIT 10",
         vars=locals(),
     )
     return [row.key for row in rows]

@@ -79,7 +79,7 @@ class Edition(models.Edition):
             return self.get_ia_cover(self.ocaid, size)
 
     def get_ia_cover(self, itemid, size):
-        image_sizes = dict(S=(116, 58), M=(180, 360), L=(500, 500))
+        image_sizes = {"S": (116, 58), "M": (180, 360), "L": (500, 500)}
         w, h = image_sizes[size.upper()]
         return f"https://archive.org/download/{itemid}/page/cover_w{w}_h{h}.jpg"
 
@@ -331,7 +331,9 @@ class Edition(models.Edition):
             name, value = id['name'], id['value']
             if name == 'lccn':
                 value = normalize_lccn(value)
-            d.setdefault(name, []).append(value)
+            # `None` in this field causes errors. See #7999.
+            if value is not None:
+                d.setdefault(name, []).append(value)
 
         # clear existing value first
         for name in names:
@@ -453,9 +455,9 @@ class Edition(models.Edition):
                 'date': self.get('publish_date'),
                 'orig-date': self.works[0].get('first_publish_date'),
                 'title': self.title.replace("[", "&#91").replace("]", "&#93"),
-                'url': f'https://archive.org/details/{self.ocaid}'
-                if self.ocaid
-                else None,
+                'url': (
+                    f'https://archive.org/details/{self.ocaid}' if self.ocaid else None
+                ),
                 'publication-place': self.get('publish_places', [None])[0],
                 'publisher': self.get('publishers', [None])[0],
                 'isbn': self.get_isbnmask(),
@@ -463,8 +465,8 @@ class Edition(models.Edition):
             }
         )
 
-        if self.lccn:
-            citation['lccn'] = normalize_lccn(self.lccn[0])
+        if self.lccn and (lccn := normalize_lccn(self.lccn[0])):
+            citation['lccn'] = lccn
         if self.get('oclc_numbers'):
             citation['oclc'] = self.oclc_numbers[0]
         citation['ol'] = str(self.get_olid())[2:]
@@ -509,7 +511,7 @@ class Author(models.Author):
     def get_books(self, q=''):
         i = web.input(sort='editions', page=1, rows=20, mode="")
         try:
-            # safegaurd from passing zero/negative offsets to solr
+            # safeguard from passing zero/negative offsets to solr
             page = max(1, int(i.page))
         except ValueError:
             page = 1
@@ -684,21 +686,6 @@ class Work(models.Work):
     def get_related_books_subjects(self, filter_unicode=True):
         return self.filter_problematic_subjects(self.get_subjects(), filter_unicode)
 
-    def get_representative_edition(self) -> str | None:
-        """When we have confidence we can direct patrons to the best edition
-        of a work (for them), return qualifying edition key. Attempts
-        to find best (most available) edition of work using
-        archive.org work availability API. May be extended to support language
-
-        :rtype str: infogami edition key or url which resolves to an edition or None
-        """
-        work_id = self.key.replace('/works/', '')
-        availability = lending.get_work_availability(work_id)
-        if ol_edition := availability.get(work_id, {}).get('openlibrary_edition'):
-            return f'/books/{ol_edition}'
-
-        return None
-
     def get_sorted_editions(
         self,
         ebooks_only: bool = False,
@@ -710,7 +697,7 @@ class Work(models.Work):
         :param list[str] keys: ensure keys included in fetched editions
         """
         db_query = {"type": "/type/edition", "works": self.key}
-        db_query['limit'] = limit or 10000
+        db_query['limit'] = limit or 10000  # type: ignore[assignment]
 
         edition_keys = []
         if ebooks_only:
@@ -798,6 +785,8 @@ class SubjectPerson(Subject):
 
 
 class User(models.User):
+    displayname: str | None
+
     def get_name(self):
         return self.displayname or self.key.split('/')[-1]
 
@@ -992,25 +981,10 @@ class AddBookChangeset(Changeset):
                 return doc
 
 
-class ListChangeset(Changeset):
-    def get_added_seed(self):
-        added = self.data.get("add")
-        if added and len(added) == 1:
-            return self.get_seed(added[0])
+class Tag(models.Tag):
+    """Class to represent /type/tag objects in Open Library."""
 
-    def get_removed_seed(self):
-        removed = self.data.get("remove")
-        if removed and len(removed) == 1:
-            return self.get_seed(removed[0])
-
-    def get_list(self):
-        return self.get_changes()[0]
-
-    def get_seed(self, seed):
-        """Returns the seed object."""
-        if isinstance(seed, dict):
-            seed = self._site.get(seed['key'])
-        return models.Seed(self.get_list(), seed)
+    pass
 
 
 def setup():
@@ -1024,6 +998,7 @@ def setup():
     client.register_thing_class('/type/place', SubjectPlace)
     client.register_thing_class('/type/person', SubjectPerson)
     client.register_thing_class('/type/user', User)
+    client.register_thing_class('/type/tag', Tag)
 
     client.register_changeset_class(None, Changeset)  # set the default class
     client.register_changeset_class('merge-authors', MergeAuthors)
@@ -1031,5 +1006,4 @@ def setup():
     client.register_changeset_class('undo', Undo)
 
     client.register_changeset_class('add-book', AddBookChangeset)
-    client.register_changeset_class('lists', ListChangeset)
     client.register_changeset_class('new-account', NewAccountChangeset)

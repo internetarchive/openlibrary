@@ -15,7 +15,7 @@
       "automerge": true
     },
     {
-      "matchPackageNames": ["jest", "bundlesize", "sinon", "stylelint", "stylelint-declaration-use-variable"],
+      "matchPackageNames": ["jest", "bundlesize", "sinon", "stylelint", "stylelint-declaration-strict-value"],
       "automerge": true
     },
     {

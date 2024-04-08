@@ -4,7 +4,7 @@ $ bodyclass = ctx.get('bodyclass', [])
 $ show_ol_shell = ctx.get('show_ol_shell', True)
 $ bodyattrs = ctx.get('bodyattrs', [])
 
-$if ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ctx.path.startswith('/books/OL') or ctx.path.startswith('/search'):
+$if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ctx.path.startswith('/books/OL') or ctx.path.startswith('/search')):
   $if ctx.user and ((ctx.user.is_librarian() or ctx.user.is_admin())):
     $bodyclass.append('show-librarian-tools')
     $bodyattrs.append('data-username="%s"' % ctx.user.key.split('/')[-1])
@@ -32,11 +32,9 @@ $if ctx.path.startswith('/works/OL') or ctx.path.startswith('/authors/OL') or ct
       $# Announcement banner will only be rendered if announcement and storage_key variables are set.
       $# Be sure to escape any single quotes inside of the announcement HTML string.
       $ announcement = ''
-      $# Using the current date in YYYY-MM-DD format for storage_key will prevent the use of duplicate keys.
-      $ storage_key = ''
-      $if announcement and storage_key:
-        $ hide_banner = ctx.user and ctx.user.preferences().get('hidden-banner') == storage_key
-        $if not hide_banner:
-          $:render_template('site/banner', announcement, storage_key)
+      $# Include date in cookie name to avoid name collisions (something like '{prefix}{YY}{MM}{DD}' would work well)
+      $ cookie_name = ''
+      $if announcement and cookie_name:
+        $:render_template('site/banner', announcement, cookie_name, cookie_duration_days=30)
     $:page
   </div>

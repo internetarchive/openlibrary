@@ -109,7 +109,7 @@ $:macros.HiddenSaveButton("addAuthor")
                                 <span class="tip">$_("For example:") Lev Nikolayevich Tolstoy; Yasnaya Polyana</span>
                             </div>
                             <div class="input">
-                                <textarea name="author--alternate_names" id="alternate_names" rows="6">$"; ".join(page.alternate_names)</textarea>
+                                <textarea name="author--alternate_names" id="alternate_names" rows="6">$"\n".join(page.alternate_names)</textarea>
                             </div>
                         </div>
                         <div class="label">Identifiers <a href="/help/faq/editing.en#author-identifiers-purpose"><img src="/images/icons/icon_help.png" alt="$_('Author Identifiers Purpose')"/></a> </div>
@@ -117,18 +117,6 @@ $:macros.HiddenSaveButton("addAuthor")
                         <div id="identifiers-display">
                             $:render_component('AuthorIdentifiers', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenIdentifierInputs',author_config_string=dict(get_author_config())))
                         </div>
-
-                        $if page.website:
-                            $if ctx.user and ctx.user.is_admin():
-                                <div class="formElement adminOnly">
-                                    <div class="label">
-                                        <label for="uris">$_("Websites")</label>
-                                        <span class="tip">$_("Deprecated")</span>
-                                    </div>
-                                    <div class="input">
-                                        <input type="text" name="author--website" id="website" value="$page.website"/>
-                                    </div>
-                                </div>
 
 
                 </div>

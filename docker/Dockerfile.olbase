@@ -1,4 +1,4 @@
-FROM python:3.11.1-slim
+FROM python:3.12.2-slim-bookworm
 
 ENV LANG en_US.UTF-8
 
@@ -35,22 +35,20 @@ RUN apt-get -qq update && apt-get install -y \
     lftp
 
 # Install LTS version of node.js
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - \
-    && apt-get install -y nodejs
+COPY scripts/install_nodejs.sh ./
+RUN ./install_nodejs.sh && rm ./install_nodejs.sh
 
 # Install Archive.org nginx w/ IP anonymization
 USER root
-RUN apt-get update && apt-get install -y --no-install-recommends nginx curl \
+RUN apt-get update && apt-get install -y --no-install-recommends nginx curl letsencrypt \
     # nginx-plus
     apt-transport-https lsb-release ca-certificates wget \
     # log rotation service for ol-nginx
     logrotate \
     # rsync service for pulling monthly sitemaps from ol-home0 to ol-www0
     rsync
-RUN wget -O - https://openresty.org/package/pubkey.gpg | apt-key add -
-RUN echo "deb http://openresty.org/package/debian $(lsb_release -sc) openresty" \
-    | tee /etc/apt/sources.list.d/openresty.list
-RUN apt-get update && apt-get -y install --no-install-recommends openresty
+COPY scripts/install_openresty.sh ./
+RUN ./install_openresty.sh && rm ./install_openresty.sh
 RUN rm /usr/sbin/nginx
 RUN curl -L https://archive.org/download/nginx/nginx -o /usr/sbin/nginx
 RUN chmod +x /usr/sbin/nginx
@@ -81,7 +79,6 @@ COPY --chown=openlibrary:openlibrary package*.json ./
 RUN npm ci --no-audit
 
 COPY --chown=openlibrary:openlibrary . /openlibrary
-
 # run make to initialize git submodules, build css and js files
 RUN ln -s vendor/infogami/infogami infogami \
  && make \

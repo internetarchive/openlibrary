@@ -1,5 +1,6 @@
 """Merge authors.
 """
+
 import re
 import json
 import web

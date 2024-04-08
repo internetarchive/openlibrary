@@ -99,12 +99,6 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             $:format(page.get('bio', ''))
         </div>
 
-        $if page.website:
-            <div class="section">
-                <h6 class="collapse black uppercase">$_("Website")</h6>
-                <a href="$page.website" class="datalink">$page.website</a>
-            </div>
-
         $if page.location:
             <div class="section hidden">
                 <h6 class="collapse black uppercase">$_("Location")</h6>
@@ -144,7 +138,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                     <ul class="list-books">
                       $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians'))
                       $for doc in books.docs:
-                         $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras)
+                         $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper=True)
                     </ul>
                 </div>
 
@@ -175,7 +169,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
         $if "lists" in ctx.features:
             <div class="section Tools">
-                $:render_template("lists/widget", page, include_rating=False, exclude_own_lists=True)
+                $:render_template("lists/widget", page, include_rating=False, exclude_own_lists=True, show_active_lists=True)
             </div>
 
         <div class="section">
@@ -188,6 +182,11 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                         $if id.name in page.remote_ids:
                             $ href = id.url.replace('@@@', page.remote_ids[id.name])
                             <li>$id.label: <a itemprop="sameAs" href="$href">$page.remote_ids[id.name]</a></li>
+                            $if id.name == 'wikidata' and 'inventaire' not in page.remote_ids:
+                              <li>Inventaire.io: <a
+                                  itemprop="sameAs"
+                                  href="https://inventaire.io/entity/wd:$page.remote_ids[id.name]"
+                              >wd:$page.remote_ids[id.name]</a></li>
             </ul>
         </div>
 

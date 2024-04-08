@@ -1,8 +1,9 @@
 """Generic helper functions to use in the templates and the webapp.
 """
+
 import json
 import re
-from datetime import datetime
+from datetime import datetime, date
 from urllib.parse import urlsplit
 
 import web
@@ -112,6 +113,8 @@ class NothingEncoder(json.JSONEncoder):
         """
         if isinstance(obj, Nothing):
             return None
+        if isinstance(obj, date):
+            return obj.isoformat()
         return super().default(obj)
 
 
@@ -216,7 +219,7 @@ def truncate(text, limit):
     return text[:limit] + "..."
 
 
-def urlsafe(path):
+def urlsafe(path: str) -> str:
     """Replaces the unsafe chars from path with underscores."""
     return _get_safepath_re().sub('_', path).strip('_')[:100]
 

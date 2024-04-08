@@ -37,12 +37,13 @@ $jsdef render_seed_count(seed_count):
 
 $if not is_owner:
     <div id="contentHead" style="margin-bottom:0;">
-        $:macros.databarView(list)
+        $ owner = list.get_owner()
+        $:macros.databarView(list, edit=not owner)
         <div class="superNav">
-            $ owner = list.get_owner()
-            <a href="$owner.key">$owner.displayname</a>
-            /
-            <a href="$owner.key/lists">$_('Lists')</a>
+            $if owner:
+                <a href="$owner.key">$owner.displayname</a>
+                /
+                <a href="$owner.key/lists">$_('Lists')</a>
         </div>
         <h1>$list.name</h1>
         <p class="collapse sansserif">
@@ -53,7 +54,8 @@ $if not is_owner:
     </div>
 
 $def remove_item_link():
-    $if ctx.user and ctx.user.key == list.get_owner().key:
+    $ owner = list.get_owner()
+    $if owner and ctx.user and ctx.user.key == owner.key:
         <span class="listDelete sansserif smaller">
             <a href="javascript:;" data-confirm-text="$:_('Yes, I\'m sure')" data-cancel-text="$_('No, cancel')"><span></span>$_('Remove this item?')</a>
         </span>
@@ -74,7 +76,6 @@ $def seed_attrs(seed):
     data-list-key="$list.key"
 
 <div id="contentBody">
-    $:render_template("search/sort_options.html", selected_sort=sort, default_sort='index', search_scheme="lists_seeds")
     <div id="remove-seed-dialog" class="hidden" title="$_('Remove seed')">$_('Are you sure you want to remove this item from the list?')</div>
     <div id="delete-list-dialog" class="hidden" title="$_('Remove Seed')">
         $_('You are about to remove the last item in the list. That will delete the whole list. Are you sure you want to continue?')
@@ -92,6 +93,7 @@ $def seed_attrs(seed):
         $if list.description:
             $:format(list.description)
 
+        $:render_template("search/sort_options.html", selected_sort=sort, default_sort='index', search_scheme="lists_seeds")
         $:macros.Pager(page+1, len(list.seeds), page_size)
         <div class="clearfix"></div>
 
@@ -99,6 +101,13 @@ $def seed_attrs(seed):
             $ component_times['get_seeds'] = time()
             $ seeds = list.get_seeds(sort=(sort == 'last_modified'), resolve_redirects=True)[page*page_size:page*page_size+page_size]
             $ component_times['get_seeds'] = time() - component_times['get_seeds']
+
+        $if not seeds:
+            <p>$_("There are no items on this list.")</p>
+            <p>
+                $:_('<a href="/search" target="_blank">Search for book, subjects, or authors</a> to add to your list.')
+                <a href="/help/faq/reading-log#lists" target="_blank">$_('Learn more.')</a>
+            </p>
 
         $ solr_works = get_solr_works(s.key for s in seeds if s.type == 'work')
         $ availabilities = get_availabilities([solr_works.get(seed.key) or seed.document for seed in seeds if seed.type in ['edition', 'work']])
@@ -112,25 +121,30 @@ $def seed_attrs(seed):
 
             $if seed.type in ['edition', 'work']:
                 $ doc = solr_works.get(seed.key) or seed.document
-                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed))
+                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed), include_dropper=True, footer=seed.notes and sanitize(format(seed.notes)))
             $else:
-                <li class="searchResultItem" $:seed_attrs(seed)>
-                    <span class="bookcover">
-                        <a href="$seed.url">
-                        <img src="$cover_url" alt="$seed.title"/>
-                        </a>
-                    </span>
-                    <div class="details">
-                        <div class="resultTitle">
-                            <h3 class="booktitle">
-                                <a href="$seed.url" class="results">$seed.title</a>
-                            </h3>
-                            $:seed_meta_line(seed)
+                <li class="searchResultItem sri--w-main" $:seed_attrs(seed)>
+                    <div class="sri__main">
+                        <span class="bookcover">
+                            <a href="$seed.url">
+                            <img src="$cover_url" alt="$seed.title"/>
+                            </a>
+                        </span>
+                        <div class="details">
+                            <div class="resultTitle">
+                                <h3 class="booktitle">
+                                    <a href="$seed.url" class="results">$seed.title</a>
+                                </h3>
+                                $:seed_meta_line(seed)
+                            </div>
                         </div>
+                        <span class="searchResultItemCTA">
+                            $:remove_item_link()
+                        </span>
                     </div>
-                    <span class="searchResultItemCTA">
-                        $:remove_item_link()
-                    </span>
+                    $if seed.notes:
+                        <hr>
+                        $:sanitize(format(seed.notes))
                 </li>
         </ul>
     </div>

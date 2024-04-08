@@ -70,7 +70,8 @@ class index_json(delegate.page):
 
     @jsonapi
     def GET(self):
-        return json.dumps(get_top_languages(15))
+        i = web.input(limit=15)
+        return json.dumps(get_top_languages(safeint(i.limit, 15)))
 
 
 class language_search(delegate.page):
@@ -119,12 +120,13 @@ class LanguageEngine(subjects.SubjectEngine):
 
 
 def setup():
-    d = web.storage(
-        name="language",
-        key="languages",
-        prefix="/languages/",
-        facet="language",
-        facet_key="language",
-        engine=LanguageEngine,
+    subjects.SUBJECTS.append(
+        subjects.SubjectMeta(
+            name="language",
+            key="languages",
+            prefix="/languages/",
+            facet="language",
+            facet_key="language",
+            Engine=LanguageEngine,
+        )
     )
-    subjects.SUBJECTS.append(d)

@@ -2,6 +2,7 @@
 
 This should go into infogami.
 """
+
 import web
 import json
 import yaml
@@ -193,5 +194,5 @@ class history(delegate.mode):
         i = web.input(page=0)
         offset = 20 * safeint(i.page)
         limit = 20
-        history = get_changes(dict(key=path, limit=limit, offset=offset))
+        history = get_changes({"key": path, "limit": limit, "offset": offset})
         return render.history(page, history)

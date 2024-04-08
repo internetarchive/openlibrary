@@ -2,6 +2,7 @@
 Bibliographic API, but also includes information about loans and other
 editions of the same work that might be available.
 """
+
 import sys
 import re
 import requests
@@ -244,7 +245,7 @@ class ReadProcessor:
 
         def sortfn(sortitem):
             iaid, status, date = sortitem
-            if iaid == orig_iaid and (status == 'full access' or status == 'lendable'):
+            if iaid == orig_iaid and status in {'full access', 'lendable'}:
                 isexact = '000'
             else:
                 isexact = '999'
@@ -253,7 +254,7 @@ class ReadProcessor:
                 date = 5000
             date = int(date)
             # reverse-sort modern works by date
-            if status == 'lendable' or status == 'checked out':
+            if status in {'lendable', 'checked out'}:
                 date = 10000 - date
             statusvals = {
                 'full access': 1,
@@ -281,7 +282,11 @@ class ReadProcessor:
         result = {
             'records': {
                 data['key']: {
-                    'isbns': sum((ids.get('isbn_10', []), ids.get('isbn_13', [])), []),
+                    'isbns': [
+                        subitem
+                        for sublist in (ids.get('isbn_10', []), ids.get('isbn_13', []))
+                        for subitem in sublist
+                    ],
                     'issns': [],
                     'lccns': ids.get('lccn', []),
                     'oclcs': ids.get('oclc', []),
@@ -301,7 +306,7 @@ class ReadProcessor:
 
     def process(self, req):
         requests = req.split('|')
-        bib_keys = sum((r.split(';') for r in requests), [])
+        bib_keys = [item for r in requests for item in r.split(';')]
 
         # filter out 'id:foo' before passing to dynlinks
         bib_keys = [k for k in bib_keys if k[:3].lower() != 'id:']
@@ -319,7 +324,7 @@ class ReadProcessor:
         # in no 'exact' item match, even if one exists
         # Note that it's available thru above works/docs
         self.wkey_to_iaids = get_solr_fields_for_works('ia', self.works, 500)
-        iaids = sum(self.wkey_to_iaids.values(), [])
+        iaids = [value for sublist in self.wkey_to_iaids.values() for value in sublist]
         self.iaid_to_meta = {iaid: ia.get_metadata(iaid) for iaid in iaids}
 
         def lookup_iaids(iaids):

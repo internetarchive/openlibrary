@@ -86,11 +86,11 @@ class MemcacheInvalidater:
         seed are invalidated.
         """
         docs = changeset['docs'] + changeset['old_docs']
-        rx = web.re_compile(r"(/people/[^/]*)/lists/OL\d+L")
+        rx = web.re_compile(r"(/people/[^/]*)?/lists/OL\d+L")
         for doc in docs:
-            match = doc and rx.match(doc['key'])
-            if match:
-                yield "d" + match.group(1)  # d/users/foo
+            if match := doc and rx.match(doc['key']):
+                if owner := match.group(1):
+                    yield "d" + owner  # d/people/foo
                 for seed in doc.get('seeds', []):
                     yield "d" + self.seed_to_key(seed)
 

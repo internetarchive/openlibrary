@@ -50,7 +50,7 @@ WorkflowScript: 3: Invalid agent type "dockerfile" specified. Must be one of [an
 ```
 Cause: Missing `Docker` and `Docker Pipeline` plugins.
 
-Solution: Dashboard > Manage Jenkins > Mange Plugins. In the left-hand menu, click on "Available plugins" and search for "docker". Then install:
+Solution: Dashboard > Manage Jenkins > Manage Plugins. In the left-hand menu, click on "Available plugins" and search for "docker". Then install:
 - Docker (possibly displaying as "Docker plugin")
 - Docker Pipeline
 
@@ -108,7 +108,7 @@ COMPOSE_FILE="compose.yaml:compose.production.yaml" HOSTNAME="$HOSTNAME"docker c
 
 ## Resetting
 
-In order to be able to re-run the job, you need to stop/remove any of the old containers you don't intend to re-use:
+In order to be able to re-run the job, you need to stop/remove any of the old containers you don't intend to reuse:
 
 ```sh
 # "new" solr containers/volumes

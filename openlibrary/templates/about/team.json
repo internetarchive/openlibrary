@@ -1,142 +1,303 @@
 [
-	{
-		"name": "Drini Cami",
-		"status": "Staff",
-		"role": "",
-		"bio": "",
-		"photo_path": "",
-		"ol_user_url": "https://openlibrary.org/people/ScarTissue",
-		"personal_url": "",
-		"favorite_book_url": ""
-	},
-	{
-		"name": "Jim Champ",
-		"status": "Staff",
-		"role": "Developer",
-		"bio": "",
-		"photo_path": "../../../static/images/team/Jim_Champ.png",
-		"ol_user_url": "https://openlibrary.org/people/jchamp_archive",
-		"personal_url": "",
-		"favorite_book_url": ""
-	},
-	{
-		"name": "Mek",
-		"status": "Staff",
-		"role": "Chief of Staff",
-		"bio": "Over 70% of the world lives on less than $10 a day. This means up to 2/3 of our neighbors can't afford all the resources they need to reach their full potential. Because of this, we're letting billions of...",
-		"photo_path": "../../../static/images/team/Mek.png",
-		"ol_user_url": "https://openlibrary.org/people/mekBot",
-		"personal_url": "https://mek.fyi/",
-		"favorite_book_url": ""
-	},
-	{
-		"name": "Scott Barnes",
-		"status": "Staff",
-		"role": "Developer",
-		"bio": "I like mountains. And computers.",
-		"photo_path": "../../../static/images/team/Scott_Barnes.jpg",
-		"ol_user_url": "https://openlibrary.org/people/srb36/",
-		"personal_url": "https://github.com/scottbarnes",
-		"favorite_book_url": "https://openlibrary.org/books/OL22552226M/The_High_Sierra"
-	},
-	{
-		"name": "Chris Clauss",
-		"status": "Staff",
-		"role": "Python Backend",
-		"bio": "",
-		"photo_path": "../../../static/images/team/Chris_Clauss.jpg",
-		"ol_user_url": "",
-		"personal_url": "",
-		"favorite_book_url": ""
-	},
-	{
-		"name": "Lisa",
-		"status": "Staff",
-		"role": "Patron Services",
-		"bio": "Lead Community Librarian. Editing questions? Slack me @Lisa (aka Sapphire). Or email me via https://openlibrary.org/contact. Favorite genres: good books",
-		"photo_path": "",
-		"ol_user_url": "https://openlibrary.org/people/agent-lisa",
-		"personal_url": "",
-		"favorite_book_url": ""
-	},
-	{
-		"name": "Dana",
-		"status": "Volunteer",
-		"role": "",
-		"bio": "",
-		"photo_path": "../../../static/images/team/Dana.jpg",
-		"ol_user_url": "https://openlibrary.org/people/danafs/books",
-		"personal_url": "https://www.danafeinschaffer.com",
-		"favorite_book_url": "https://openlibrary.org/works/OL17332479W/Six_of_Crows?edition=key%3A/books/OL37753024M"
-	},
-	{
-		"name": "Sam",
-		"status": "Volunteer",
-		"role": "Design Engineer",
-		"bio": "",
-		"photo_path": "../../../static/images/team/Sam.jpg",
-		"ol_user_url": "https://openlibrary.org/people/samstupendous",
-		"personal_url": "",
-		"favorite_book_url": ""
-	},
-	{
-		"name": "Debbie",
-		"status": "Volunteer",
-		"role": "",
-		"bio": "",
-		"photo_path": "",
-		"ol_user_url": "",
-		"personal_url": "",
-		"favorite_book_url": ""
-	},
-	{
-		"name": "Abbey Ripstra",
-		"status": "Volunteer",
-		"role": "Design Research",
-		"bio": "",
-		"photo_path": "../../../static/images/team/Abbey_Ripstra.jpg",
-		"ol_user_url": "",
-		"personal_url": "",
-		"favorite_book_url": ""
-	},
-	{
-		"name": "Jaye Rasmussen",
-		"status": "Volunteer",
-		"role": "Contributor",
-		"bio": "",
-		"photo_path": "../../../static/images/team/Jaye_Rasmussen.jpg",
-		"ol_user_url": "https://openlibrary.org/people/lasseignejk",
-		"personal_url": "https://github.com/Lasseignejk",
-		"favorite_book_url": "https://openlibrary.org/books/OL24383834M/The_Way_of_Kings"
-	},
-	{
-		"name": "Aaron Swartz",
-		"status": "Staff, Emeritus",
-		"role": "Co-Founder",
-		"bio": "",
-		"photo_path": "../../../static/images/team/Aaron_Swartz.png",
-		"ol_user_url": "",
-		"personal_url": "",
-		"favorite_book_url": ""
-	},
-	{
-		"name": "Keita Ohshiro",
-		"status": "Volunteer",
-		"role": "",
-		"bio": "",
-		"photo_path": "../../../static/images/team/Keita_Ohshiro.jpg",
-		"ol_user_url": "",
-		"personal_url": "https://bick-jp.github.io/",
-		"favorite_book_url": ""
-	},
-	{
-		"name": "Nick Norman",
-		"status": "Volunteer",
-		"role": "Lead Communications Fellow",
-		"bio": "Here at Open Library, I'm part of a high-impact fellowship to design and execute a strategic communications plan. This opportunity allows me to contribute to our mission of...",
-		"photo_path": "../../../static/images/team/Nick_Norman.jpg",
-		"ol_user_url": "",
-		"personal_url": "https://www.linkedin.com/in/imnick/",
-		"favorite_book_url": ""
-	}
+  {
+    "name": "Aaron Swartz",
+    "title": "Co-Founder",
+    "roles": ["staff-emeritus"],
+    "departments": ["engineering"],
+    "photo_path": "../../../static/images/team/Aaron_Swartz.png",
+    "personal_url": "",
+    "favorite_book_url": "",
+    "ol_key": "aaronsw"
+  },
+  {
+    "name": "Abbey Ripstra",
+    "title": "Design Fellow 2023",
+    "roles": ["fellow-2023"],
+    "projects": ["Persona Research"],
+    "departments": ["design"],
+    "photo_path": "../../../static/images/team/Abbey_Ripstra.jpg",
+    "personal_url": "https://www.wikidata.org/wiki/Q28051212",
+    "ol_key": "bodiceaa"
+  },
+  {
+    "name": "Chris Clauss",
+    "title": "Python Backend",
+    "roles": ["staff-emeritus"],
+    "projects": ["Python2->3"],
+    "departments": ["engineering"],
+    "photo_path": "../../../static/images/team/Chris_Clauss.jpg",
+    "ol_key": "cclauss"
+  },
+  {
+    "name": "Constantina Zouni",
+    "title": "Design & Engineering Fellow",
+    "roles": ["fellow-2022"],
+    "projects": ["Sharable List Previews"],
+    "departments": ["engineering", "design"],
+    "photo_path": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Dana Fein-Schaffer",
+    "title": "Design Fellow",
+    "roles": ["fellow-2022"],
+    "projects": ["My Books Page (Desktop)"],
+    "departments": ["design"],
+    "photo_path": "",
+    "personal_url": "https://www.danafeinschaffer.com",
+    "favorite_book_url": "https://openlibrary.org/works/OL17332479W/Six_of_Crows?edition=key%3A/books/OL37753024M",
+    "ol_key": "danafs/books"
+  },
+  {
+    "name": "Debbie",
+    "title": "Developer",
+    "roles": ["fellow-2023"],
+    "projects": ["My Book Dropper", "Team Page"],
+    "departments": ["engineering"],
+    "photo_path": "../../../static/images/team/Debbie.jpg",
+    "personal_url": "https://github.com/debbiesan/openlibrary",
+    "favorite_book_url": "https://openlibrary.org/works/OL15154986W/Two_solitudes.?edition=key%3A/books/OL24222633M",
+    "ol_key": ""
+  },
+  {
+    "name": "Drini Cami",
+    "title": "Core Developer",
+    "roles": ["staff-active"],
+    "departments": ["engineering"],
+    "projects": ["Library Explorer"],
+    "photo_path": "../../../static/images/team/Drini.jpg",
+    "personal_url": "",
+    "favorite_book_url": "",
+    "ol_key": "ScarTissue"
+  },
+  {
+    "name": "Edgar Leung",
+    "title": "Engineering Volunteer",
+    "roles": ["volunteer"],
+    "departments": ["engineering"],
+    "projects": ["Librarian Merge Queue"],
+    "photo_path": "https://lh3.googleusercontent.com/u/0/drive-viewer/AK7aPaCDKs7PIcfRPs-qDojkA9qpZAs53bEbUF3dOhCgIVFgPKgHw_I90u0uF2sxCkRJqJM1ZQ3D5hKQSjH7xiSreGRMKW07=w2652-h1228",
+    "personal_url": "",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Edward Betts",
+    "title": "Core Developer",
+    "roles": ["staff-emeritus"],
+    "departments": ["engineering"],
+    "projects": ["Librarian Merge Queue"],
+    "photo_path": "https://git.4angle.com/avatar/1e64ab07e0faced09520a5c589deb70b?size=512",
+    "personal_url": "https://edwardbetts.com/",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Giacomo Cignoni",
+    "title": "Fellow 2019 (GSoC) - Engineering",
+    "roles": ["fellow-2019-gsoc"],
+    "departments": ["engineering"],
+    "projects": ["<a href='https://blog.openlibrary.org/2020/08/29/giacomo-cignoni-my-internship-at-the-internet-archive/'>Bookreader Selection</a>"],
+    "photo_path": "https://media.licdn.com/dms/image/C4E03AQH9rdV9VCt0-w/profile-displayphoto-shrink_400_400/0/1657834448565?e=1703116800&v=beta&t=Wul7NBW-NlPqaVg8Mtry38Y8j2zfHomi6-tvDxgHQ3Y",
+    "personal_url": "",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "George Oates",
+    "title": "Program Lead",
+    "roles": ["staff-emeritus"],
+    "departments": ["design", "product"],
+    "projects": ["Subjects Page", "Logo"],
+    "photo_path": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTNXUQFbwaLB07_H8ZbzkR4EEZmhPUuoGyZZVXGuFD9raGW8uLD",
+    "personal_url": "http://abitofgeorge.com/",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Hayoon Choi",
+    "title": "Design Fellow",
+    "roles": ["fellow-2022-iasoc"],
+    "departments": ["design"],
+    "projects": ["Books Page Redesign"],
+    "photo_path": "https://freight.cargo.site/t/original/i/8037c4e0da7260c57d7d266d7102e1dccb1ffe96fdb842b345803b44dbcb025a/IMG_0220.JPG",
+    "personal_url": "https://hayoonch.cargo.site/",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Jayden Teoh",
+    "title": "Fellow 2023 - Engineering",
+    "roles": ["fellow-2023"],
+    "departments": ["engineering"],
+    "projects": [
+      "<a href='https://blog.openlibrary.org/2023/08/25/google-summer-of-code-2023-supercharging-subject-pages/'>Tag-powered Subjects</a>"
+    ],
+    "photo_path": "https://media.licdn.com/dms/image/D4E03AQGwfvWjoll47g/profile-displayphoto-shrink_400_400/0/1696947292009?e=1703116800&v=beta&t=wvrxAn6Om5w0lDxdN64ddrIKei_3XZPh6H7_AY9lNPQ",
+    "personal_url": "https://www.linkedin.com/in/jayden-teoh/",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Jaye Rasmussen",
+    "title": "Developer",
+    "roles": ["fellow-2023"],
+    "departments": ["engineering"],
+    "projects": ["Team Page"],
+    "photo_path": "../../../static/images/team/Jaye_Rasmussen.jpg",
+    "personal_url": "https://github.com/Lasseignejk",
+    "favorite_book_url": "https://openlibrary.org/books/OL24383834M/The_Way_of_Kings",
+    "ol_key": "lasseignejk"
+  },
+  {
+    "name": "Jim Champ",
+    "title": "Core Developer",
+    "roles": ["staff-active"],
+    "departments": ["engineering"],
+    "photo_path": "../../../static/images/team/Jim_Champ.png",
+    "personal_url": "",
+    "favorite_book_url": "",
+    "ol_key": "jchamp_archive"
+  },
+  {
+    "name": "Jon Robson",
+    "title": "Frontend Lead",
+    "roles": ["fellow-2017"],
+    "departments": ["engineering"],
+    "photo_path": "https://media.licdn.com/dms/image/C4E03AQHsUBUdt5_UAA/profile-displayphoto-shrink_400_400/0/1516543040876?e=1703116800&v=beta&t=9wHnzD5M1bXezjyZb7Jz-T_dfXgpG0Ea18GgtT73DMsz",
+    "personal_url": "",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Keita Ohshiro",
+    "title": "Design & Accessibility",
+    "roles": ["volunteer-active"],
+    "departments": ["engineering"],
+    "photo_path": "../../../static/images/team/Keita_Ohshiro.jpg",
+    "personal_url": "https://bick-jp.github.io/",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Lisa S.",
+    "title": "Patron Services & Lead Community Librarian",
+    "roles": ["staff-active", "fellow-2018"],
+    "departments": ["librarians"],
+    "photo_path": "../../../static/images/team/Lisa.jpg",
+    "personal_url": "",
+    "favorite_book_url": "",
+    "ol_key": "agent-lisa"
+  },
+  {
+    "name": "Mek",
+    "title": "Chief of Staff",
+    "roles": ["staff-active"],
+    "departments": ["engineering", "communications", "design", "librarians"],
+    "photo_path": "../../../static/images/team/Mek.png",
+    "personal_url": "https://mek.fyi/",
+    "favorite_book_url": "",
+    "ol_key": "mekBot"
+  },
+  {
+    "name": "Nick Norman",
+    "title": "Communications Lead",
+    "roles": ["fellow-2022", "fellow-2023"],
+    "departments": ["communications"],
+    "photo_path": "../../../static/images/team/Nick_Norman.jpg",
+    "personal_url": "https://www.linkedin.com/in/imnick/",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Nolan Windham",
+    "title": "Engineering Fellow",
+    "roles": ["fellow-2021-gsoc"],
+    "departments": ["engineering"],
+    "projects": ["Open Book Genome Project (OBGP)"],
+    "photo_path": "https://media.licdn.com/dms/image/D4E03AQGLGv88S5Ix6Q/profile-displayphoto-shrink_800_800/0/1693451292055?e=2147483647&v=beta&t=TmFFYiu5JJFXHIkyoL_xU23M8WALhX8biykVX0F5j0g",
+    "ol_key": ""
+  },
+  {
+    "name": "Roya E.",
+    "title": "Design Fellow",
+    "roles": ["fellow-2023"],
+    "departments": ["design"],
+    "projects": ["Design System", "Subjects Page"],
+    "photo_path": "https://www.scu.edu/media/college-of-arts-and-sciences/art-and-art-history/faculty-and-staff/RE-profile.jpg",
+    "personal_url": "https://royaebtehaj.com",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Ruijingya Tang",
+    "title": "Design Fellow",
+    "roles": ["fellow-2023"],
+    "departments": ["design"],
+    "projects": ["Account Registration", "Persona Research"],
+    "photo_path": "https://storage.googleapis.com/uxfolio/629144af56aeec0003c789b7/629144b056aeec0003c789b9/kMkCW291M7DpLafP.jpg",
+    "personal_url": "https://uxfol.io/d5b318c4",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Sabreen Praveen",
+    "title": "Design & Engineering Fellow",
+    "roles": ["fellow-2021"],
+    "departments": ["design", "engineering"],
+    "projects": ["Homepage Onboarding Cards"],
+    "photo_path": "https://pbs.twimg.com/profile_images/1344528993236647936/YktB5pg8_400x400.jpg",
+    "personal_url": "https://www.linkedin.com/in/sabreen-parveen-4a6641190",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Salman Bhai",
+    "title": "Engineering Fellow",
+    "roles": ["fellow-2018-gsoc"],
+    "departments": ["engineering"],
+    "projects": ["ONIX Imports"],
+    "photo_path": "",
+    "personal_url": "",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Samuel Grunebaum",
+    "title": "Design & Engineering Fellow",
+    "roles": ["fellow-2022"],
+    "departments": ["design", "engineering"],
+    "projects": ["My Book Page (Mobile)"],
+    "photo_path": "https://www.inspiricapros.com/wp-content/uploads/2021/11/Samuel-Grunebaum.jpg.webp",
+    "ol_key": "samstupendous"
+  },
+  {
+    "name": "Scott Barnes",
+    "title": "Developer",
+    "roles": ["fellow-2022", "staff-active"],
+    "departments": ["engineering"],
+    "photo_path": "../../../static/images/team/Scott_Barnes.jpg",
+    "personal_url": "https://github.com/scottbarnes",
+    "favorite_book_url": "https://openlibrary.org/books/OL22552226M/The_High_Sierra",
+    "ol_key": "srb36"
+  },
+  {
+    "name": "Tabish Shaikh",
+    "title": "Engineering Fellow",
+    "roles": ["fellow-2020-gsoc", "fellow-2019-iasoc", "staff-emeritus"],
+    "departments": ["engineering"],
+    "photo_path": "https://media.licdn.com/dms/image/D4D03AQFT2zb-MFX6ew/profile-displayphoto-shrink_800_800/0/1673440954545?e=2147483647&v=beta&t=cVjgjHfsFsRCPoR_siw7MPWtI4_MsTe7ztwlYfJuewI",
+    "ol_key": ""
+  },
+  {
+    "name": "Teo Cheng",
+    "title": "Engineering Fellow",
+    "roles": ["fellow-2022"],
+    "departments": ["engineering"],
+    "projects": ["Open Book Genome Project (OBGP)"],
+    "photo_path": "https://media.licdn.com/dms/image/D5603AQELxHjGPUmY7g/profile-displayphoto-shrink_400_400/0/1680211721055?e=1703116800&v=beta&t=ubJ8o5N9Oba2AD_5vE6pizFm0RLzyTjTNT734MEyDPI",
+    "personal_url": "https://www.linkedin.com/in/teo-cheng/",
+    "favorite_book_url": "",
+    "ol_key": ""
+  }
 ]

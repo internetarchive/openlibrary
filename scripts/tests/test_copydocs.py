@@ -61,7 +61,7 @@ class FakeServer:
             key = doc['key']
             revision = doc['revision']
             if key not in self.db:
-                self.db[key] = dict()
+                self.db[key] = {}
             self.db[doc['key']][revision] = doc
 
 

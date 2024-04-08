@@ -80,6 +80,12 @@ bin_samples = [
     'test-publish-sn-sl-nd.mrc',
 ]
 
+date_tests = [  # MARC, expected publish_date
+    ('9999_sd_dates.mrc', '[n.d.]'),
+    ('reprint_date_wrong_order.mrc', '2010'),
+    ('9999_with_correct_date_in_260.mrc', '2003'),
+]
+
 TEST_DATA = Path(__file__).with_name('test_data')
 
 
@@ -151,13 +157,20 @@ class TestParseMARCBinary:
         with pytest.raises(NoTitle):
             read_edition(rec)
 
+    @pytest.mark.parametrize('marcfile,expect', date_tests)
+    def test_dates(self, marcfile, expect):
+        filepath = TEST_DATA / 'bin_input' / marcfile
+        rec = MarcBinary(filepath.read_bytes())
+        edition = read_edition(rec)
+        assert edition['publish_date'] == expect
+
 
 class TestParse:
     def test_read_author_person(self):
         xml_author = """
         <datafield xmlns="http://www.loc.gov/MARC21/slim" tag="100" ind1="1" ind2="0">
           <subfield code="a">Rein, Wilhelm,</subfield>
-          <subfield code="d">1809-1865</subfield>
+          <subfield code="d">1809-1865.</subfield>
         </datafield>"""
         test_field = DataField(None, etree.fromstring(xml_author))
         result = read_author_person(test_field)

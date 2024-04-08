@@ -1,12 +1,12 @@
-import sys
-from collections.abc import Iterator
-
-import web
 import os
 import shutil
+import sys
+from collections.abc import Iterator
+from io import BytesIO
+
+import web
 
 import babel
-from babel._compat import BytesIO
 from babel.support import Translations
 from babel.messages import Catalog, Message
 from babel.messages.pofile import read_po, write_po
@@ -216,7 +216,9 @@ def check_status(locales: list[str]):
             with open(po_path, 'rb') as f:
                 catalog = read_po(f)
                 ids_with_translations = {
-                    message.id for message in catalog if ''.join(message.string).strip()
+                    message.id
+                    for message in catalog
+                    if ''.join(message.string or '').strip()
                 }
 
             ids_completed = message_ids.intersection(ids_with_translations)
@@ -239,9 +241,7 @@ def check_status(locales: list[str]):
             percent_color = (
                 success_color_fn
                 if percent_complete == 100
-                else warning_color_fn
-                if percent_complete > 25
-                else error_color_fn
+                else warning_color_fn if percent_complete > 25 else error_color_fn
             )
             print(
                 total_color(

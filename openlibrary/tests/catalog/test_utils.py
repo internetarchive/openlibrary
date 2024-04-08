@@ -1,14 +1,23 @@
 import pytest
+
+from datetime import datetime, timedelta
 from openlibrary.catalog.utils import (
     author_dates_match,
     flip_name,
-    pick_first_date,
-    pick_best_name,
-    pick_best_author,
+    get_missing_fields,
+    get_publication_year,
+    is_independently_published,
+    is_promise_item,
     match_with_bad_chars,
-    mk_norm,
-    strip_count,
+    needs_isbn_and_lacks_one,
+    pick_best_author,
+    pick_best_name,
+    pick_first_date,
+    publication_too_old_and_not_exempt,
+    published_in_future_year,
     remove_trailing_dot,
+    remove_trailing_number_dot,
+    strip_count,
 )
 
 
@@ -188,24 +197,183 @@ def test_remove_trailing_dot():
         assert output == expect
 
 
-mk_norm_conversions = [
-    ("Hello I'm a  title.", "helloi'matitle"),
-    ("Hello I'm a  title.", "helloi'matitle"),
-    ('Forgotten Titles: A Novel.', 'forgottentitlesanovel'),
-    ('Kitāb Yatīmat ud-Dahr', 'kitābyatīmatuddahr'),
-]
+@pytest.mark.parametrize(
+    'year, expected',
+    [
+        ('1999-01', 1999),
+        ('1999', 1999),
+        ('01-1999', 1999),
+        ('May 5, 1999', 1999),
+        ('May 5, 19999', None),
+        ('1999-01-01', 1999),
+        ('1999/1/1', 1999),
+        ('01-01-1999', 1999),
+        ('1/1/1999', 1999),
+        ('199', None),
+        ('19990101', None),
+        (None, None),
+        (1999, 1999),
+        (19999, None),
+    ],
+)
+def test_publication_year(year, expected) -> None:
+    assert get_publication_year(year) == expected
 
 
-@pytest.mark.parametrize('title,expected', mk_norm_conversions)
-def test_mk_norm(title, expected):
-    assert mk_norm(title) == expected
+@pytest.mark.parametrize(
+    'years_from_today, expected',
+    [
+        (1, True),
+        (0, False),
+        (-1, False),
+    ],
+)
+def test_published_in_future_year(years_from_today, expected) -> None:
+    """Test with last year, this year, and next year."""
+
+    def get_datetime_for_years_from_now(years: int) -> datetime:
+        """Get a datetime for now +/- x years."""
+        now = datetime.now()
+        return now + timedelta(days=365 * years)
+
+    year = get_datetime_for_years_from_now(years_from_today).year
+    assert published_in_future_year(year) == expected
 
 
-mk_norm_matches = [
-    ("Your Baby's First Word Will Be DADA", "Your baby's first word will be DADA"),
-]
+@pytest.mark.parametrize(
+    'name, rec, expected',
+    [
+        (
+            "1399 is too old for an Amazon source",
+            {'source_records': ['amazon:123'], 'publish_date': '1399'},
+            True,
+        ),
+        (
+            "1400 is acceptable for an Amazon source",
+            {'source_records': ['amazon:123'], 'publish_date': '1400'},
+            False,
+        ),
+        (
+            "1401 is acceptable for an Amazon source",
+            {'source_records': ['amazon:123'], 'publish_date': '1401'},
+            False,
+        ),
+        (
+            "1399 is acceptable for an IA source",
+            {'source_records': ['ia:123'], 'publish_date': '1399'},
+            False,
+        ),
+        (
+            "1400 is acceptable for an IA source",
+            {'source_records': ['ia:123'], 'publish_date': '1400'},
+            False,
+        ),
+        (
+            "1401 is acceptable for an IA source",
+            {'source_records': ['ia:123'], 'publish_date': '1401'},
+            False,
+        ),
+    ],
+)
+def test_publication_too_old_and_not_exempt(name, rec, expected) -> None:
+    """
+    See publication_too_old_and_not_exempt() for an explanation of which sources require
+    which publication years.
+    """
+    assert publication_too_old_and_not_exempt(rec) == expected, f"Test failed: {name}"
 
 
-@pytest.mark.parametrize('a,b', mk_norm_matches)
-def test_mk_norm_equality(a, b):
-    assert mk_norm(a) == mk_norm(b)
+@pytest.mark.parametrize(
+    'publishers, expected',
+    [
+        (['INDEPENDENTLY PUBLISHED'], True),
+        (['Another Publisher', 'independently published'], True),
+        (['Another Publisher'], False),
+    ],
+)
+def test_independently_published(publishers, expected) -> None:
+    assert is_independently_published(publishers) == expected
+
+
+@pytest.mark.parametrize(
+    'rec, expected',
+    [
+        ({'source_records': ['bwb:123'], 'isbn_10': ['1234567890']}, False),
+        ({'source_records': ['amazon:123'], 'isbn_13': ['1234567890123']}, False),
+        ({'source_records': ['bwb:123'], 'isbn_10': []}, True),
+        ({'source_records': ['bwb:123']}, True),
+        ({'source_records': ['ia:someocaid']}, False),
+        ({'source_records': ['amazon:123']}, True),
+    ],
+)
+def test_needs_isbn_and_lacks_one(rec, expected) -> None:
+    assert needs_isbn_and_lacks_one(rec) == expected
+
+
+@pytest.mark.parametrize(
+    'rec, expected',
+    [
+        ({'source_records': ['promise:123', 'ia:456']}, True),
+        ({'source_records': ['ia:456']}, False),
+        ({'source_records': []}, False),
+        ({}, False),
+    ],
+)
+def test_is_promise_item(rec, expected) -> None:
+    assert is_promise_item(rec) == expected
+
+
+@pytest.mark.parametrize(
+    'name, rec, expected',
+    [
+        (
+            "Returns an empty list if no fields are missing",
+            {'title': 'A Great Book', 'source_records': ['ia:123']},
+            [],
+        ),
+        (
+            "Catches a missing required field",
+            {'source_records': ['ia:123']},
+            ['title'],
+        ),
+        (
+            "Catches multiple missing required fields",
+            {'publish_date': '1999'},
+            ['source_records', 'title'],
+        ),
+    ],
+)
+def test_get_missing_field(name, rec, expected) -> None:
+    assert sorted(get_missing_fields(rec=rec)) == sorted(
+        expected
+    ), f"Test failed: {name}"
+
+
+@pytest.mark.parametrize(
+    ("date, expected"),
+    [
+        ("", ""),
+        ("1865.", "1865"),
+        ("1865", "1865"),  # No period to remove
+        ("1865.5", "1865.5"),  # Period not at the end
+        ("1865,", "1865,"),  # Comma instead of period
+        ("18.", "18"),  # Minimum digits
+        ("1.", "1."),  # Fewer than minimum digits with period
+        ("18651.", "18651"),  # More than minimum digits
+        ("123blap.", "123blap."),  # Non-digit before period
+        ("123...", "123"),  # Multiple periods at the end
+        ("123 -..", "123 -"),  # Spaces and hyphens before multiple periods
+        ("123-.", "123-"),  # Hyphen directly before single period
+        (" 123 .", " 123 "),  # Spaces around digits and single period
+        ("123 - .", "123 - "),  # Space between hyphen and single period
+        ("abc123...", "abc123"),  # Leading characters
+        ("123...xyz", "123...xyz"),  # Trailing characters after periods
+        ("12 34..", "12 34"),  # Spaces within digits before periods
+        ("123", "123"),  # Spaces between periods
+        ("12-34.", "12-34"),  # Hyphens within digits
+        ("100-200.", "100-200"),  # Hyphens within digits, ending with period
+    ],
+)
+def test_remove_trailing_number_dot(date: str, expected: str) -> None:
+    got = remove_trailing_number_dot(date)
+    assert got == expected

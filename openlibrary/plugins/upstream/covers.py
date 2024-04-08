@@ -1,5 +1,6 @@
 """Handle book cover/author photo upload.
 """
+
 from logging import getLogger
 
 import requests
@@ -60,8 +61,8 @@ class add_cover(delegate.page):
         """Uploads a cover to coverstore and returns the response."""
         olid = key.split("/")[-1]
 
-        if i.file is not None and hasattr(i.file, 'value'):
-            data = i.file.value
+        if i.file is not None and hasattr(i.file, 'file'):
+            data = i.file.file
         else:
             data = None
 
@@ -82,7 +83,7 @@ class add_cover(delegate.page):
             upload_url = "http:" + upload_url
 
         try:
-            files = {'data': BytesIO(data)}
+            files = {'data': data}
             response = requests.post(upload_url, data=params, files=files)
             return web.storage(response.json())
         except requests.HTTPError as e:

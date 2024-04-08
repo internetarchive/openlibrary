@@ -2,6 +2,7 @@
 
 This module is imported only if dev_instance is set to True in openlibrary config.
 """
+
 import web
 import infogami
 from infogami.utils import delegate
@@ -114,7 +115,7 @@ class process_ebooks(delegate.page):
 @oltask
 def update_solr(changeset):
     """Updates solr on edit."""
-    from openlibrary.solr import update_work
+    from openlibrary.solr import update
 
     keys = set()
     docs = changeset['docs'] + changeset['old_docs']
@@ -130,12 +131,12 @@ def update_solr(changeset):
         elif doc['type']['key'] == '/type/author':
             keys.add(doc['key'])
 
-    update_work.update_keys(list(keys))
+    update.update_keys(list(keys))
 
 
 @infogami.install_hook
 def add_ol_user():
-    """Creates openlibrary user with admin previleges."""
+    """Creates openlibrary user with admin privileges."""
     # Create openlibrary user
     if web.ctx.site.get("/people/openlibrary") is None:
         web.ctx.site.register(

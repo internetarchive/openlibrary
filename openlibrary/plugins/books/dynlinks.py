@@ -1,9 +1,10 @@
+from typing import Any
 import json
 import sys
-from typing import Optional
-from collections.abc import Hashable, Iterable, Mapping
+from collections.abc import Generator, Hashable, Iterable, Mapping
 
 import web
+from openlibrary.core.models import Edition
 
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.core import helpers as h
@@ -12,7 +13,7 @@ from openlibrary.core import ia
 from infogami.utils.delegate import register_exception
 
 
-def split_key(bib_key: str) -> tuple[Optional[str], Optional[str]]:
+def split_key(bib_key: str) -> tuple[str | None, str | None]:
     """
     >>> split_key('1234567890')
     ('isbn_', '1234567890')
@@ -247,7 +248,7 @@ class DataProcessor:
                     label = r.get('label', '')
                     title = r.get('title', '')
                     pagenum = r.get('pagenum', '')
-                r = dict(level=level, label=label, title=title, pagenum=pagenum)
+                r = {'level': level, 'label': label, 'title': title, 'pagenum': pagenum}
                 return r
 
             d = [row(r) for r in toc]
@@ -293,7 +294,7 @@ class DataProcessor:
                 doc.get("table_of_contents", [])
             ),
             "links": [
-                dict(title=link.get("title"), url=link['url'])
+                {'title': link.get("title"), 'url': link['url']}
                 for link in w.get('links', '')
                 if link.get('url')
             ],
@@ -351,7 +352,7 @@ class DataProcessor:
 
 
 def trim(d):
-    """Remote empty values from given dictionary.
+    """Remove empty values from given dictionary.
 
     >>> trim({"a": "x", "b": "", "c": [], "d": {}})
     {'a': 'x'}
@@ -427,7 +428,7 @@ def process_doc_for_viewapi(bib_key, page):
     return d
 
 
-def format_result(result, options):
+def format_result(result: dict, options: web.storage) -> str:
     """Format result as js or json.
 
     >>> format_result({'x': 1}, {})
@@ -448,20 +449,80 @@ def format_result(result, options):
             return "var _OLBookInfo = %s;" % json_data
 
 
-def dynlinks(bib_keys, options):
+def is_isbn(bib_key: str) -> bool:
+    """Return True if the bib_key is ostensibly an ISBN (i.e. 10 or 13 characters)."""
+    return len(bib_key) in {10, 13}
+
+
+def get_missed_isbn_bib_keys(
+    bib_keys: Iterable[str], found_records: dict
+) -> Generator[str, None, None]:
+    """
+    Return a Generator[str, None, None] with all ISBN bib_keys not in `found_records`.
+    """
+    return (
+        bib_key
+        for bib_key in bib_keys
+        if bib_key not in found_records and is_isbn(bib_key)
+    )
+
+
+def get_isbn_editiondict_map(
+    isbns: Iterable, high_priority: bool = False
+) -> dict[str, Any]:
+    """
+    Attempts to import items from their ISBN, returning a mapping of possibly
+    imported edition_dicts in the following form:
+        {isbn_string: edition_dict...}}
+    """
+    # Get a mapping of ISBNs to new Editions (or `None`)
+    isbn_edition_map = {
+        isbn: Edition.from_isbn(isbn=isbn, high_priority=high_priority)
+        for isbn in isbns
+    }
+
+    # Convert edictions to dicts, dropping ISBNs for which no edition was created.
+    return {
+        isbn: edition.dict() for isbn, edition in isbn_edition_map.items() if edition
+    }
+
+
+def dynlinks(bib_keys: Iterable[str], options: web.storage) -> str:
+    """
+    Return a JSONified dictionary of bib_keys (e.g. ISBN, LCCN) and select URLs
+    associated with the corresponding edition, if any.
+
+    If a bib key is an ISBN, options.high_priority=True, and no edition is found,
+    an import is attempted with high priority; otherwise missed bib_keys are queued
+    for lookup via the affiliate-server and responses are `staged` in `import_item`.
+
+    Example return value for a bib key of the ISBN "1452303886":
+        '{"1452303886": {"bib_key": "1452303886", "info_url": '
+        '"http://localhost:8080/books/OL24630277M/Fires_of_Prophecy_The_Morcyth_Saga_Book_Two", '
+        '"preview": "restricted", "preview_url": '
+        '"https://archive.org/details/978-1-4523-0388-8"}}'
+    """
     # for backward-compatibility
     if options.get("details", "").lower() == "true":
         options["jscmd"] = "details"
 
     try:
-        result = query_docs(bib_keys)
-        result = process_result(result, options.get('jscmd'))
+        edition_dicts = query_docs(bib_keys)
+        # For any ISBN bib_keys without hits, attempt to import+use immediately if
+        # `high_priority`. Otherwise, queue them for lookup via the AMZ Products
+        # API and process whatever editions were found in existing data.
+        if missed_isbns := get_missed_isbn_bib_keys(bib_keys, edition_dicts):
+            new_editions = get_isbn_editiondict_map(
+                isbns=missed_isbns, high_priority=options.get("high_priority")
+            )
+            edition_dicts.update(new_editions)
+        edition_dicts = process_result(edition_dicts, options.get('jscmd'))
     except:
         print("Error in processing Books API", file=sys.stderr)
         register_exception()
 
-        result = {}
-    return format_result(result, options)
+        edition_dicts = {}
+    return format_result(edition_dicts, options)
 
 
 if __name__ == "__main__":

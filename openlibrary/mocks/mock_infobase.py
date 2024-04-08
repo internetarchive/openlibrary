@@ -1,5 +1,6 @@
 """Simple implementation of mock infogami site to use in testing.
 """
+
 import datetime
 import glob
 import json
@@ -367,7 +368,7 @@ def mock_site(request):
     def read_types():
         for path in glob.glob("openlibrary/plugins/openlibrary/types/*.type"):
             text = open(path).read()
-            doc = eval(text, dict(true=True, false=False))
+            doc = eval(text, {'true': True, 'false': False})
             if isinstance(doc, list):
                 yield from doc
             else:

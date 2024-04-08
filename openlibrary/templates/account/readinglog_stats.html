@@ -1,12 +1,23 @@
 $def with (works_json, authors_json, works_count, owner_key, owner_name, shelf_path, shelf_key, lang='en')
 
+$ reading_log_stats_config = {
+$    'works': works_json,
+$    'authors': authors_json,
+$    'lang': lang,
+$    'charts_selector': '.readinglog-stats-chart'
+$ }
+
 $ shelf_name = unicode(render_template('account/readinglog_shelf_name', shelf_key)).strip();
 $var title: $_('My %(shelf_name)s Stats', shelf_name=shelf_name)
 
 $jsdef render_works_list(works):
     <ul class="works-list">
     $for work in works:
-        <li><a href="$work.key" style="font-style:oblique">$work.title</a>
+        $ full_title = work.title
+        $if work.subtitle:
+            $ full_title = work.title + ': ' + work.subtitle
+        <li>
+            <a href="$work.key" style="font-style: oblique">$full_title</a>
             $ first_publish_year = work.first_publish_year or '????'
             <span title="First published in $first_publish_year">($first_publish_year)</span>
             by
@@ -96,7 +107,7 @@ $jsdef render_excluded_works_list(works, total):
     <p>$:_('Displaying stats about <strong>%d</strong> books. Note all charts show only the top 20 bars. Note reading log stats are private.', works_count)</p>
 </div>
 
-<div class="readinglog-charts" style="padding: 12px;">
+<div class="readinglog-charts" data-config="$dumps(reading_log_stats_config)" style="padding: 12px;">
 
     <h2>$_('Author Stats')</h2>
 
@@ -147,12 +158,3 @@ $jsdef render_excluded_works_list(works, total):
         </div>
     </main>
 </details>
-
-<script>
-    window.READINGLOG_STATS_CONFIG = {
-        works: $:works_json,
-        authors: $:authors_json,
-        lang: $:dumps(lang),
-        charts_selector: '.readinglog-stats-chart',
-    };
-</script>

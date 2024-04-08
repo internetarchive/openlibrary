@@ -1,6 +1,5 @@
 import datetime
 import json
-from typing import Optional
 import web
 from sqlite3 import IntegrityError
 from psycopg2.errors import UniqueViolation
@@ -99,7 +98,9 @@ class CommunityEditsQueue:
     @classmethod
     def get_reviewers(cls):
         oldb = db.get_db()
-        query = f'SELECT DISTINCT reviewer FROM {cls.TABLENAME}'
+        query = (
+            f'SELECT DISTINCT reviewer FROM {cls.TABLENAME} WHERE reviewer IS NOT NULL'
+        )
         return list(oldb.query(query))
 
     @classmethod
@@ -120,6 +121,9 @@ class CommunityEditsQueue:
                 if kwargs.get("submitter") is None
                 else "submitter=$submitter"
             )
+        # If status not specified, don't include it
+        if 'status' in kwargs and kwargs.get('status'):
+            wheres.append('status=$status')
         if "url" in kwargs:
             wheres.append("url=$url")
         if "id" in kwargs:
@@ -201,9 +205,7 @@ class CommunityEditsQueue:
         )
 
     @classmethod
-    def assign_request(
-        cls, rid: int, reviewer: Optional[str]
-    ) -> dict[str, Optional[str]]:
+    def assign_request(cls, rid: int, reviewer: str | None) -> dict[str, str | None]:
         """Changes assignees to the request with the given ID.
 
         This method only modifies requests that are not closed.

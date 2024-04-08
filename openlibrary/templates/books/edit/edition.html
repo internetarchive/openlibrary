@@ -27,9 +27,10 @@ $jsdef render_language_field(i, language, i18n_name):
     </div>
 
 $# Render the ith translated_from language input field
-$jsdef render_translated_from_language_field(i, language):
+$jsdef render_translated_from_language_field(i, language, i18n_name):
+    $ lang_name = i18n_name or language.name
     <div class="input ac-input">
-      <input class="ac-input__visible" type="text" name="translated_from--$i" value="$language.name"/>
+      <input class="ac-input__visible" type="text" name="translated_from--$i" value="$lang_name"/>
       <input class="ac-input__value" type="hidden" name="edition--translated_from--$i--key" value="$language.key" />
     </div>
 
@@ -42,33 +43,16 @@ $jsdef render_work_field(i, work):
         <a class="mia__remove hidden" href="javascript:;" title="$_('Remove this work')">[x]</a>
     </div>
 
+$# Import the side-effect of the jsdef function
+$:render_template('jsdef/LazyWorkPreview', None)
+
 $jsdef render_work_autocomplete_item(item):
     $if item.key == "__new__":
         <div class="ac_work ac_addnew">
             <span class="action">$_('-- Move to a new work')</span>
         </div>
     $else:
-        <div class="ac_work" title="Select this work">
-            <div class="cover">
-                $if item.cover_i:
-                    <img src="https://covers.openlibrary.org/b/id/$(item.cover_i)-M.jpg" alt="$_('Cover of: %(title)s', title=item.title)">
-            </div>
-            <span class="olid">$item.key.split('/')[2]</span>
-            <span class="name">
-                <span class="title">$item.full_title</span>
-                $if item.first_publish_year:
-                <span class="first_publish_year">($item.first_publish_year)</span>
-            </span>
-            <span class="byline">
-                $if item.author_name:
-                    $_('by') <span class="authors">${', '.join(item.author_name)}</span>
-            </span>
-            &bull;
-            $if item.edition_count == 1:
-                <span class="edition_count">$item.edition_count edition</span>
-            $else:
-                <span class="edition_count">$item.edition_count editions</span>
-        </div>
+        $:render_lazy_work_preview(item)
 
 
 <fieldset class="major">
@@ -321,9 +305,9 @@ $jsdef render_work_autocomplete_item(item):
                     </div>
                     $if book.translated_from:
                         $for i, lang in enumerate(book.translated_from):
-                            $:render_translated_from_language_field(i, lang)
+                            $:render_translated_from_language_field(i, lang, get_language_name(lang))
                     $else:
-                        $:render_translated_from_language_field(0, storage(name="", key=""))
+                        $:render_translated_from_language_field(0, storage(name="", key=""), None)
                 </div>
 
             </div>
@@ -339,7 +323,7 @@ $jsdef render_work_autocomplete_item(item):
                 <span class="tip">$_("Only if it's different from the work's description")</span>
             </div>
             <div class="input">
-                <textarea name="edition--description" id="edition-description" rows="3" cols="50">$book.description</textarea>
+                <textarea name="edition--description" class="markdown" id="edition-description" rows="3" cols="50">$book.description</textarea>
             </div>
         </div>
 
@@ -407,7 +391,15 @@ $jsdef render_work_autocomplete_item(item):
     </div>
 
 </fieldset>
-$ config = ({'Please select an identifier.': _('Please select an identifier.'), 'You need to give a value to ID.': _('You need to give a value to ID.'), 'ID ids cannot contain whitespace.': _('ID ids cannot contain whitespace.'), 'ID must be exactly 10 characters [0-9] or X.': _('ID must be exactly 10 characters [0-9] or X.'), 'That ISBN already exists for this edition.': _('That ISBN already exists for this edition.'), 'ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4': _('ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4')})
+$ config = ({
+    $ 'Please select an identifier.': _('Please select an identifier.'),
+    $ 'You need to give a value to ID.': _('You need to give a value to ID.'),
+    $ 'ID ids cannot contain whitespace.': _('ID ids cannot contain whitespace.'),
+    $ 'ID must be exactly 10 characters [0-9] or X.': _('ID must be exactly 10 characters [0-9] or X.'),
+    $ 'That ID already exists for this edition.': _('That ID already exists for this edition.'),
+    $ 'ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4': _('ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4'),
+    $ 'Invalid ID format': _('Invalid ID format')
+$ })
 <fieldset class="major" id="identifiers" data-config="$dumps(config)">
     <legend>$_("ID Numbers")</legend>
     <div class="formBack">
@@ -425,7 +417,7 @@ $ config = ({'Please select an identifier.': _('Please select an identifier.'), 
                             <select name="name" id="select-id">
                             $ id_labels = dict((d.name, d.label) for d in edition_config.identifiers)
                             $ id_dict = dict((id.name, id) for id in edition_config.identifiers)
-                            $ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "oclc_numbers", "goodreads", "librarything"]
+                            $ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "librivox", "oclc_numbers", "project_gutenberg"]
                             $if is_privileged_user:
                                 $ exclude = []
                             $else:
@@ -441,8 +433,8 @@ $ config = ({'Please select an identifier.': _('Please select an identifier.'), 
                             $for id in set2:
                                 <option value="$id.name">$id.label</option>
 
-                                <!-- <option>---</option> -->
-                                <!-- <option value="__add__">Add a new ID type</option> -->
+                            <!-- <option>---</option> -->
+                            <!-- <option value="__add__">Add a new ID type</option> -->
                             </select>
                         </td>
                         <td>
@@ -597,7 +589,7 @@ $ config = ({'Please select an identifier.': _('Please select an identifier.'), 
 
             <fieldset class="minor formBackRight">
                 <legend>$_("Dimensions")</legend>
-                $ dimensions = book.get_physical_dimensions() or storage(height="", width="", depth="", units="inches")
+                $ dimensions = book.get_physical_dimensions() or storage(height="", width="", depth="", units="centimeters")
                   <span class="tip">
                     $:radiobuttons("edition--physical_dimensions--units", ["centimeters", "inches"], dimensions.units)
                   </span>
@@ -681,20 +673,6 @@ $if is_privileged_user:
         <a href="javascript:;" id="add-new-provider-row" data-index="$provider_index">$_("Add a provider")</a>
     </fieldset>
 
-$if ctx.user and ctx.user.is_admin():
-    <fieldset class="major adminOnly">
-        <legend>$_("Admin Only")</legend>
-        <div class="formElement">
-            <div class="label">
-                <label for="additional_metadata">$_("Additional Metadata")</label>
-                <span class="tip">$_('This field can accept arbitrary key:value pairs')</span>
-            </div>
-            <div class="input">
-                <textarea name="additional_metadata" id="additional_metadata" rows="15" cols="50">foo:bar</textarea>
-            </div>
-        </div>
-    </fieldset>
-
 $if ctx.user:
     <fieldset class="major">
         <div class="formElement">
@@ -704,6 +682,20 @@ $if ctx.user:
             </div>
             <div class="input">
                 <textarea name="edition--first_sentence" id="edition-first_sentence" rows="3" cols="50">$book.first_sentence</textarea>
+            </div>
+        </div>
+    </fieldset>
+
+$if ctx.user and ctx.user.is_admin():
+    <fieldset class="major adminOnly">
+        <legend>$_("Admin Only")</legend>
+        <div class="formElement">
+            <div class="label">
+                <label for="additional_metadata">$_("Additional Metadata")</label>
+                <span class="tip">$_('This field can accept arbitrary key:value pairs')</span>
+            </div>
+            <div class="input">
+                <textarea name="additional_metadata" id="additional_metadata" rows="4" placeholder="foo:bar"></textarea>
             </div>
         </div>
     </fieldset>

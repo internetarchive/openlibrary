@@ -289,9 +289,11 @@ class Bookshelves(db.CommonExtras):
             reading_log_store: dict[str, ReadingLogItem] = {
                 f"/works/OL{book.work_id}W": ReadingLogItem(
                     logged_date=book.created,
-                    edition_id=f"/books/OL{book.edition_id}M"
-                    if book.edition_id is not None
-                    else "",
+                    edition_id=(
+                        f"/books/OL{book.edition_id}M"
+                        if book.edition_id is not None
+                        else ""
+                    ),
                 )
                 for book in reading_log_books
             }
@@ -383,8 +385,7 @@ class Bookshelves(db.CommonExtras):
                 FROM bookshelves_books b
                 INNER JOIN bookshelves_events e
                 ON b.work_id = e.work_id AND b.username = e.username
-                WHERE b.bookshelf_id = $bookshelf_id
-                AND b.username = $username
+                WHERE b.username = $username
                 AND e.event_date LIKE $checkin_year || '%'
                 ORDER BY b.created DESC
                 """
@@ -416,9 +417,10 @@ class Bookshelves(db.CommonExtras):
             solr_docs = add_storage_items_for_redirects(
                 reading_log_work_keys, solr_docs
             )
-            assert len(solr_docs) == len(
-                reading_log_work_keys
-            ), "solr_docs is missing an item/items from reading_log_work_keys; see add_storage_items_for_redirects()"  # noqa E501
+            assert len(solr_docs) == len(reading_log_work_keys), (
+                "solr_docs is missing an item/items from reading_log_work_keys; "
+                "see add_storage_items_for_redirects()"
+            )
 
             total_results = shelf_totals.get(bookshelf_id, 0)
             solr_docs = add_reading_log_data(reading_log_books, solr_docs)

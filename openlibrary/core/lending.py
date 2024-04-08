@@ -1,6 +1,7 @@
 """Module for providing core functionality of lending on Open Library.
 """
-from typing import Literal
+
+from typing import TYPE_CHECKING, Literal, TypedDict, cast
 
 import web
 import datetime
@@ -20,6 +21,11 @@ from openlibrary.utils import dateutil, uniq
 
 from . import ia
 from . import helpers as h
+
+
+if TYPE_CHECKING:
+    from openlibrary.plugins.upstream.models import Edition
+
 
 logger = logging.getLogger(__name__)
 
@@ -42,9 +48,15 @@ DEFAULT_IA_RESULTS = 42
 MAX_IA_RESULTS = 1000
 
 
+class PatronAccessException(Exception):
+    def __init__(self, message="Access to this item is temporarily locked."):
+        self.message = message
+        super().__init__(self.message)
+
+
 config_ia_loan_api_url = None
 config_ia_xauth_api_url = None
-config_ia_availability_api_v2_url = None
+config_ia_availability_api_v2_url = cast(str, None)
 config_ia_access_secret = None
 config_ia_domain = None
 config_ia_ol_shared_key = None
@@ -74,7 +86,9 @@ def setup(config):
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
     config_ia_domain = config.get('ia_base_url', 'https://archive.org')
     config_ia_loan_api_url = config.get('ia_loan_api_url')
-    config_ia_availability_api_v2_url = config.get('ia_availability_api_v2_url')
+    config_ia_availability_api_v2_url = cast(
+        str, config.get('ia_availability_api_v2_url')
+    )
     config_ia_xauth_api_url = config.get('ia_xauth_api_url')
     config_ia_access_secret = config.get('ia_access_secret')
     config_ia_ol_shared_key = config.get('ia_ol_shared_key')
@@ -191,17 +205,27 @@ def get_groundtruth_availability(ocaid, s3_keys=None):
     return data
 
 
-def s3_loan_api(ocaid, s3_keys, action='browse'):
+def s3_loan_api(s3_keys, ocaid=None, action='browse', **kwargs):
     """Uses patrons s3 credentials to initiate or return a browse or
     borrow loan on Archive.org.
 
     :param dict s3_keys: {'access': 'xxx', 'secret': 'xxx'}
-    :param str action: 'browse_book' or 'borrow_book' or 'return_loan'
+    :param str  action : 'browse_book' or 'borrow_book' or 'return_loan'
+    :param dict kwargs   : Additional data to be sent in the POST request body (limit, offset)
 
     """
-    params = f'?action={action}&identifier={ocaid}'
+    fields = {'identifier': ocaid, 'action': action}
+    params = '?' + '&'.join([f"{k}={v}" for (k, v) in fields.items() if v])
     url = S3_LOAN_URL % config_bookreader_host
-    response = requests.post(url + params, data=s3_keys)
+
+    data = s3_keys | kwargs
+
+    response = requests.post(url + params, data=data)
+    # We want this to be just `409` but first
+    # `www/common/Lending.inc#L111-114` needs to
+    # be updated on petabox
+    if response.status_code in [400, 409]:
+        raise PatronAccessException()
     response.raise_for_status()
     return response
 
@@ -268,59 +292,148 @@ def get_available(
         return {'error': 'request_timeout'}
 
 
-def get_availability(key: str, ids: list[str]) -> dict:
+class AvailabilityStatus(TypedDict):
+    status: Literal["borrow_available", "borrow_unavailable", "open", "error"]
+    error_message: str | None
+    available_to_browse: bool | None
+    available_to_borrow: bool | None
+    available_to_waitlist: bool | None
+    is_printdisabled: bool | None
+    is_readable: bool | None
+    is_lendable: bool | None
+    is_previewable: bool
+
+    identifier: str | None
+    isbn: str | None
+    oclc: str | None
+    openlibrary_work: str | None
+    openlibrary_edition: str | None
+
+    last_loan_date: str | None
+    """e.g. 2020-07-31T19:07:55Z"""
+
+    num_waitlist: str | None
+    """A number represented inexplicably as a string"""
+
+    last_waitlist_date: str | None
+    """e.g. 2020-07-31T19:07:55Z"""
+
+
+class AvailabilityServiceResponse(TypedDict):
+    success: bool
+    responses: dict[str, AvailabilityStatus]
+
+
+class AvailabilityStatusV2(AvailabilityStatus):
+    is_restricted: bool
+    is_browseable: bool | None
+    __src__: str
+
+
+def update_availability_schema_to_v2(
+    v1_resp: AvailabilityStatus,
+    ocaid: str | None,
+) -> AvailabilityStatusV2:
     """
-    :param str key: the type of identifier
-    :param list of str ids:
+    This function attempts to take the output of e.g. Bulk Availability
+    API and add/infer attributes which are missing (but are present on
+    Ground Truth API)
     """
+    v2_resp = cast(AvailabilityStatusV2, v1_resp)
+    # TODO: Make less brittle; maybe add simplelists/copy counts to Bulk Availability
+    v2_resp['identifier'] = ocaid
+    v2_resp['is_restricted'] = v1_resp['status'] != 'open'
+    v2_resp['is_browseable'] = v1_resp.get('available_to_browse', False)
+    # For debugging
+    v2_resp['__src__'] = 'core.models.lending.get_availability'
+    return v2_resp
+
+
+def get_availability(
+    id_type: Literal['identifier', 'openlibrary_work', 'openlibrary_edition'],
+    ids: list[str],
+) -> dict[str, AvailabilityStatusV2]:
     ids = [id_ for id_ in ids if id_]  # remove infogami.infobase.client.Nothing
     if not ids:
         return {}
 
-    def update_availability_schema_to_v2(v1_resp, ocaid):
-        """This functionattempts to take the output of e.g. Bulk Availability
-        API and add/infer attributes which are missing (but are
-        present on Ground Truth API)
-        """
-        # TODO: Make less brittle; maybe add simplelists/copy counts to Bulk Availability
-        v1_resp['identifier'] = ocaid
-        v1_resp['is_restricted'] = v1_resp['status'] != 'open'
-        v1_resp['is_browseable'] = v1_resp.get('available_to_browse', False)
-        # For debugging
-        v1_resp['__src__'] = 'core.models.lending.get_availability'
-        return v1_resp
+    def key_func(_id: str) -> str:
+        return cache.build_memcache_key('lending.get_availability', id_type, _id)
 
-    url = '{}?{}={}'.format(config_ia_availability_api_v2_url, key, ','.join(ids))
+    mc = cache.get_memcache()
+
+    cached_values = cast(
+        dict[str, AvailabilityStatusV2], mc.get_multi([key_func(_id) for _id in ids])
+    )
+    availabilities = {
+        _id: cached_values[key]
+        for _id in ids
+        if (key := key_func(_id)) in cached_values
+    }
+    ids_to_fetch = set(ids) - set(availabilities)
+
+    if not ids_to_fetch:
+        return availabilities
+
     try:
-        response = requests.get(url, timeout=config_http_request_timeout)
-        items = response.json().get('responses', {})
-        for pkey in items:
-            ocaid = pkey if key == 'identifier' else items[pkey].get('identifier')
-            items[pkey] = update_availability_schema_to_v2(items[pkey], ocaid)
-        return items
+        headers = {
+            "x-preferred-client-id": web.ctx.env.get(
+                'HTTP_X_FORWARDED_FOR', 'ol-internal'
+            ),
+            "x-application-id": "openlibrary",
+        }
+        if config_ia_ol_metadata_write_s3:
+            headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(
+                **config_ia_ol_metadata_write_s3
+            )
+        response = cast(
+            AvailabilityServiceResponse,
+            requests.get(
+                config_ia_availability_api_v2_url,
+                params={
+                    id_type: ','.join(ids_to_fetch),
+                    "scope": "printdisabled",
+                },
+                headers=headers,
+                timeout=10,
+            ).json(),
+        )
+        uncached_values = {
+            _id: update_availability_schema_to_v2(
+                availability,
+                ocaid=(
+                    _id if id_type == 'identifier' else availability.get('identifier')
+                ),
+            )
+            for _id, availability in response['responses'].items()
+        }
+        availabilities |= uncached_values
+        mc.set_multi(
+            {
+                key_func(_id): availability
+                for _id, availability in uncached_values.items()
+            },
+            expires=5 * dateutil.MINUTE_SECS,
+        )
+        return availabilities
     except Exception as e:  # TODO: Narrow exception scope
-        logger.exception("get_availability(%s)" % url)
-        items = {'error': 'request_timeout', 'details': str(e)}
-
-        for pkey in ids:
-            # key could be isbn, ocaid, or openlibrary_[work|edition]
-            ocaid = pkey if key == 'identifier' else None
-            items[pkey] = update_availability_schema_to_v2({'status': 'error'}, ocaid)
-        return items
-
-
-def get_edition_availability(ol_edition_id):
-    return get_availability_of_editions([ol_edition_id])
-
-
-def get_availability_of_editions(ol_edition_ids):
-    """Given a list of Open Library edition IDs, returns a list of
-    Availability v2 results.
-    """
-    return get_availability('openlibrary_edition', ol_edition_ids)
+        logger.exception("lending.get_availability", extra={'ids': ids})
+        availabilities.update(
+            {
+                _id: update_availability_schema_to_v2(
+                    cast(AvailabilityStatus, {'status': 'error'}),
+                    ocaid=_id if id_type == 'identifier' else None,
+                )
+                for _id in ids_to_fetch
+            }
+        )
+        return availabilities | {
+            'error': 'request_timeout',
+            'details': str(e),
+        }  # type:ignore
 
 
-def get_ocaid(item):
+def get_ocaid(item: dict) -> str | None:
     # Circular import otherwise
     from ..book_providers import is_non_ia_ocaid
 
@@ -384,7 +497,7 @@ def add_availability(
                 item['availability'] = availabilities.get(ocaid)
     elif mode == "openlibrary_work":
         _ids = [item['key'].split('/')[-1] for item in items]
-        availabilities = get_availability_of_works(_ids)
+        availabilities = get_availability('openlibrary_work', _ids)
         for item in items:
             olid = item['key'].split('/')[-1]
             if olid:
@@ -392,26 +505,39 @@ def add_availability(
     return items
 
 
-@public
 def get_availability_of_ocaid(ocaid):
     """Retrieves availability based on ocaid/archive.org identifier"""
     return get_availability('identifier', [ocaid])
 
 
-def get_availability_of_ocaids(ocaids: list[str]) -> dict:
+def get_availability_of_ocaids(ocaids: list[str]) -> dict[str, AvailabilityStatusV2]:
     """
     Retrieves availability based on ocaids/archive.org identifiers
     """
     return get_availability('identifier', ocaids)
 
 
-@public
-def get_work_availability(ol_work_id):
-    return get_availability_of_works([ol_work_id])
+def get_items_and_add_availability(ocaids: list[str]) -> dict[str, "Edition"]:
+    """
+    Get Editions from OCAIDs and attach their availabiliity.
 
+    Returns a dict of the form: `{"ocaid1": edition1, "ocaid2": edition2, ...}`
+    """
+    ocaid_availability = get_availability_of_ocaids(ocaids=ocaids)
+    editions = web.ctx.site.get_many(
+        [
+            f"/books/{item.get('openlibrary_edition')}"
+            for item in ocaid_availability.values()
+            if item.get('openlibrary_edition')
+        ]
+    )
 
-def get_availability_of_works(ol_work_ids):
-    return get_availability('openlibrary_work', ol_work_ids)
+    # Attach availability
+    for edition in editions:
+        if edition.ocaid in ocaids:
+            edition.availability = ocaid_availability.get(edition.ocaid)
+
+    return {edition.ocaid: edition for edition in editions if edition.ocaid}
 
 
 def is_loaned_out(identifier):
@@ -495,11 +621,51 @@ def _get_ia_loan(identifier, userid):
 
 def get_loans_of_user(user_key):
     """TODO: Remove inclusion of local data; should only come from IA"""
+    if 'env' not in web.ctx:
+        """For the get_cached_user_loans to call the API if no cache is present,
+        we have to fakeload the web.ctx
+        """
+        delegate.fakeload()
+
     account = OpenLibraryAccount.get(username=user_key.split('/')[-1])
 
     loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
     loans = [Loan(d) for d in loandata] + (_get_ia_loans_of_user(account.itemname))
+    # Set patron's loans in cache w/ now timestamp
+    get_cached_loans_of_user.memcache_set(
+        [user_key], {}, loans or [], time.time()
+    )  # rehydrate cache
     return loans
+
+
+get_cached_loans_of_user = cache.memcache_memoize(
+    get_loans_of_user,
+    key_prefix='lending.cached_loans',
+    timeout=5 * dateutil.MINUTE_SECS,  # time to live for cached loans = 5 minutes
+)
+
+
+def get_user_waiting_loans(user_key):
+    """Gets the waitingloans of the patron.
+
+    Returns [] if user has no waitingloans.
+    """
+    from .waitinglist import WaitingLoan
+
+    account = OpenLibraryAccount.get(key=user_key)
+    itemname = account.itemname
+    result = WaitingLoan.query(userid=itemname)
+    get_cached_user_waiting_loans.memcache_set(
+        [user_key], {}, result or {}, time.time()
+    )  # rehydrate cache
+    return result or []
+
+
+get_cached_user_waiting_loans = cache.memcache_memoize(
+    get_user_waiting_loans,
+    key_prefix='waitinglist.user_waiting_loans',
+    timeout=10 * dateutil.MINUTE_SECS,
+)
 
 
 def _get_ia_loans_of_user(userid):
@@ -543,13 +709,13 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
         loan = get_loan(identifier)
 
     # The data of the loan without the user info.
-    loan_data = loan and dict(
-        uuid=loan['uuid'],
-        loaned_at=loan['loaned_at'],
-        resource_type=loan['resource_type'],
-        ocaid=loan['ocaid'],
-        book=loan['book'],
-    )
+    loan_data = loan and {
+        'uuid': loan['uuid'],
+        'loaned_at': loan['loaned_at'],
+        'resource_type': loan['resource_type'],
+        'ocaid': loan['ocaid'],
+        'book': loan['book'],
+    }
 
     responses = get_availability_of_ocaid(identifier)
     response = responses[identifier] if responses else {}
@@ -759,8 +925,7 @@ class Loan(dict):
 
 def resolve_identifier(identifier):
     """Returns the OL book key for given IA identifier."""
-    keys = web.ctx.site.things(dict(type='/type/edition', ocaid=identifier))
-    if keys:
+    if keys := web.ctx.site.things({'type': '/type/edition', 'ocaid': identifier}):
         return keys[0]
     else:
         return "/books/ia:" + identifier
@@ -838,7 +1003,7 @@ class ACS4Item:
         try:
             return requests.get(url).json()
         except OSError:
-            logger.exception("unable to conact BSS server")
+            logger.exception("unable to connect BSS server")
 
     def has_loan(self):
         return bool(self.get_loan())
@@ -864,7 +1029,7 @@ class IA_Lending_API:
     """Archive.org waiting list API."""
 
     def get_loan(self, identifier, userid=None):
-        params = dict(method="loan.query", identifier=identifier)
+        params = {'method': "loan.query", 'identifier': identifier}
         if userid:
             params['userid'] = userid
         if loans := self._post(**params).get('result', []):

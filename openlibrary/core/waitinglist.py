@@ -12,10 +12,12 @@ Each waiting instance is represented as a document in the store as follows:
         "last-update": "2013-10-01T06:09:16.577942"
     }
 """
+
 import datetime
 import logging
 import web
 from openlibrary.accounts.model import OpenLibraryAccount
+from openlibrary.core import cache
 from . import helpers as h
 from .sendmail import sendmail_with_template
 from . import db
@@ -28,8 +30,7 @@ _wl_api = lending.ia_lending_api
 
 
 def _get_book(identifier):
-    keys = web.ctx.site.things(dict(type='/type/edition', ocaid=identifier))
-    if keys:
+    if keys := web.ctx.site.things({"type": '/type/edition', "ocaid": identifier}):
         return web.ctx.site.get(keys[0])
     else:
         key = "/books/ia:" + identifier
@@ -158,11 +159,11 @@ class WaitingLoan(dict):
 class Stats:
     def get_popular_books(self, limit=10):
         rows = db.query(
-            "select book_key, count(*) as count"
-            + " from waitingloan"
-            + " group by 1"
-            + " order by 2 desc"
-            + " limit $limit",
+            "SELECT book_key, count(*) as count"
+            " FROM waitingloan"
+            " GROUP by 1"
+            " ORDER by 2 desc"
+            " LIMIT $limit",
             vars=locals(),
         ).list()
         docs = web.ctx.site.get_many([row.book_key for row in rows])
@@ -180,10 +181,10 @@ class Stats:
     def get_available_waiting_loans(self, offset=0, limit=10):
         rows = db.query(
             "SELECT * FROM waitingloan"
-            + " WHERE status='available'"
-            + " ORDER BY expiry desc "
-            + " OFFSET $offset"
-            + " LIMIT $limit",
+            " WHERE status='available'"
+            " ORDER BY expiry desc "
+            " OFFSET $offset"
+            " LIMIT $limit",
             vars=locals(),
         )
         return [WaitingLoan(row) for row in rows]

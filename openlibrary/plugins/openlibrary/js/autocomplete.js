@@ -2,6 +2,7 @@
 import 'jquery-ui/ui/widget';
 import 'jquery-ui/ui/widgets/mouse';
 import 'jquery-ui/ui/widgets/sortable';
+import 'jquery-ui-touch-punch'; // this makes drag-to-reorder work on touch devices
 
 /**
  * Port of code in vendor/js/jquery-autocomplete removed in e91119b
@@ -91,6 +92,10 @@ export default function($) {
                 var item = ui.item;
                 var $this = $(this);
                 $this.closest('.ac-input').find('.ac-input__value').val(item.key);
+                const $preview = $this.closest('.ac-input').find('.ac-input__preview');
+                if ($preview.length) {
+                    $preview.html(item.label);
+                }
                 setTimeout(function() {
                     $this.addClass('accept');
                 }, 0);
@@ -182,25 +187,31 @@ export default function($) {
             }
         }
 
+        function update_indices() {
+            container.find('.mia__input').each(function(index) {
+                $(this).find('.mia__index').each(function () {
+                    $(this).text($(this).text().replace(/\d+/, index + 1));
+                });
+                $(this).find('[name]').each(function() {
+                    // this won't behave nicely with nested numeric things, if that ever happens
+                    if ($(this).attr('name').match(/\d+/)?.length > 1) {
+                        throw new Error('nested numeric names not supported');
+                    }
+                    $(this).attr('name', $(this).attr('name').replace(/\d+/, index));
+                    if ($(this).attr('id')) {
+                        $(this).attr('id', $(this).attr('id').replace(/\d+/, index));
+                    }
+                });
+            });
+        }
+
         update_visible();
 
         if (ol_ac_opts.sortable) {
             container.sortable({
+                handle: '.mia__reorder',
                 items: '.mia__input',
-                update: function() {
-                    container.find('.mia__input').each(function(index) {
-                        $(this).find('[name]').each(function() {
-                            // this won't behave nicely with nested numeric things, if that ever happens
-                            if ($(this).attr('name').match(/\d+/)?.length > 1) {
-                                throw new Error('nested numeric names not supported');
-                            }
-                            $(this).attr('name', $(this).attr('name').replace(/\d+/, index));
-                            if ($(this).attr('id')) {
-                                $(this).attr('id', $(this).attr('id').replace(/\d+/, index));
-                            }
-                        });
-                    });
-                }
+                update: update_indices,
             });
         }
 
@@ -208,6 +219,7 @@ export default function($) {
             if (allow_empty || container.find('.mia__input').length > 1) {
                 $(this).closest('.mia__input').remove();
                 update_visible();
+                update_indices();
             }
         });
 

@@ -26,6 +26,16 @@
   overflow-x: scroll;
   padding: 10px 20px;
 
+  &.carousel--grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-gap: 30px 20px;
+    padding: 10px;
+
+    // Fallback for non-grid browsers
+    flex-wrap: wrap;
+  }
+
   a,
   a:link {
     text-decoration: none;
@@ -48,6 +58,10 @@
       border: 5px solid @orange;
       outline: 0;
     }
+  }
+
+  &.carousel--grid .carousel__item {
+    margin: 0;  // Handled by grid gap
   }
 
   // Modifiers
@@ -147,10 +161,12 @@
     display: block;
     position: absolute;
     border: 2px solid fade(@white, 50%);
+    // stylelint-disable declaration-block-no-redundant-longhand-properties
     left: 0;
     right: 0;
     top: 0;
     bottom: 0;
+    // stylelint-enable declaration-block-no-redundant-longhand-properties
     margin: 10px;
   }
 

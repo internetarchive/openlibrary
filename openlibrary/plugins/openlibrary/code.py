@@ -2,6 +2,7 @@
 Open Library Plugin.
 """
 
+from urllib.parse import parse_qs, urlparse, urlencode, urlunparse
 import requests
 import web
 import json
@@ -35,16 +36,17 @@ from infogami.core.db import ValidationException
 from openlibrary.core import cache
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
-from openlibrary.core.models import Edition  # noqa: E402
-from openlibrary.core.lending import get_work_availability, get_edition_availability
+from openlibrary.core.models import Edition
+from openlibrary.core.lending import get_availability
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
-from openlibrary.plugins.openlibrary.stats import increment_error_count  # noqa: E402
+from openlibrary.plugins.openlibrary.stats import increment_error_count
 from openlibrary.plugins.openlibrary import processors
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
 delegate.app.add_processor(processors.CORSProcessor(cors_prefixes={'/api/'}))
+delegate.app.add_processor(processors.PreferenceProcessor())
 
 try:
     from infogami.plugins.api import code as api
@@ -58,7 +60,7 @@ infogami.config.http_ext_header_uri = 'http://openlibrary.org/dev/docs/api'  # t
 from openlibrary.plugins.openlibrary import connection
 
 client._connection_types['ol'] = connection.OLConnection  # type: ignore[assignment]
-infogami.config.infobase_parameters = dict(type='ol')
+infogami.config.infobase_parameters = {'type': 'ol'}
 
 # set up infobase schema. required when running in standalone mode.
 from openlibrary.core import schema
@@ -70,14 +72,19 @@ from openlibrary.core import models
 models.register_models()
 models.register_types()
 
+import openlibrary.core.lists.model as list_models
+
+list_models.register_models()
+
 # Remove movefiles install hook. openlibrary manages its own files.
 infogami._install_hooks = [
     h for h in infogami._install_hooks if h.__name__ != 'movefiles'
 ]
 
-from openlibrary.plugins.openlibrary import lists
+from openlibrary.plugins.openlibrary import lists, bulk_tag
 
 lists.setup()
+bulk_tag.setup()
 
 logger = logging.getLogger('openlibrary')
 
@@ -221,13 +228,7 @@ class team(delegate.page):
     path = '/about/team'
 
     def GET(self):
-        with Path('/openlibrary/openlibrary/templates/about/team.json').open(
-            mode='r'
-        ) as f:
-            team_members: list[dict[str, str]] = sorted(
-                json.load(f), key=lambda member: member['name'].split()[-1]
-            )
-            return render_template("about/index.html", team_members=team_members)
+        return render_template("about/index.html")
 
 
 class addbook(delegate.page):
@@ -253,26 +254,24 @@ class addbook(delegate.page):
 
 
 class widget(delegate.page):
-    path = r'/(works|books)/(OL\d+[W|M])/widget'
+    path = r'(/works/OL\d+W|/books/OL\d+M)/widget'
 
-    def GET(self, _type, olid=None):
-        if olid:
-            getter = (
-                get_work_availability if _type == 'works' else get_edition_availability
-            )
-            item = web.ctx.site.get(f'/{_type}/{olid}') or {}
-            item['olid'] = olid
-            item['availability'] = getter(olid).get(item['olid'])
-            item['authors'] = [
-                web.storage(key=a.key, name=a.name or None) for a in item.get_authors()
-            ]
-            return delegate.RawText(
-                render_template(
-                    'widget', item if _type == 'books' else format_work_data(item)
-                ),
-                content_type='text/html',
-            )
-        raise web.seeother('/')
+    def GET(self, key: str):  # type: ignore[override]
+        olid = key.split('/')[-1]
+        item = web.ctx.site.get(key)
+        is_work = key.startswith('/works/')
+        item['olid'] = olid
+        item['availability'] = get_availability(
+            'openlibrary_work' if is_work else 'openlibrary_edition',
+            [olid],
+        ).get(olid)
+        item['authors'] = [
+            web.storage(key=a.key, name=a.name or None) for a in item.get_authors()
+        ]
+        return delegate.RawText(
+            render_template('widget', format_work_data(item) if is_work else item),
+            content_type='text/html',
+        )
 
 
 class addauthor(delegate.page):
@@ -285,7 +284,7 @@ class addauthor(delegate.page):
         key = web.ctx.site.new_key('/type/author')
         web.ctx.path = key
         web.ctx.site.save(
-            {'key': key, 'name': i.name, 'type': dict(key='/type/author')},
+            {'key': key, 'name': i.name, 'type': {'key': '/type/author'}},
             comment='New Author',
         )
         raise web.HTTPError('200 OK', {}, key)
@@ -321,24 +320,24 @@ class search(delegate.page):
             things = web.ctx.site.things(q)
             things = [web.ctx.site.get(key) for key in things]
             result = [
-                dict(
-                    type=[{'id': t.key, 'name': t.key}],
-                    name=web.safestr(t.name),
-                    guid=t.key,
-                    id=t.key,
-                    article=dict(id=t.key),
-                )
+                {
+                    'type': [{'id': t.key, 'name': t.key}],
+                    'name': web.safestr(t.name),
+                    'guid': t.key,
+                    'id': t.key,
+                    'article': {'id': t.key},
+                }
                 for t in things
             ]
         else:
             result = []
         callback = i.pop('callback', None)
-        d = dict(
-            status='200 OK',
-            query=dict(i, escape='html'),
-            code='/api/status/ok',
-            result=result,
-        )
+        d = {
+            'status': '200 OK',
+            'query': dict(i, escape='html'),
+            'code': '/api/status/ok',
+            'result': result,
+        }
 
         if callback:
             data = f'{callback}({json.dumps(d)})'
@@ -363,8 +362,8 @@ class blurb(delegate.page):
         if author.bio:
             body += web.safestr(author.bio)
 
-        result = dict(body=body, media_type='text/html', text_encoding='utf-8')
-        d = dict(status='200 OK', code='/api/status/ok', result=result)
+        result = {'body': body, 'media_type': 'text/html', 'text_encoding': 'utf-8'}
+        d = {'status': '200 OK', 'code': '/api/status/ok', 'result': result}
         if callback := i.pop('callback', None):
             data = f'{callback}({json.dumps(d)})'
         else:
@@ -404,7 +403,7 @@ def change_ext(filename, ext):
 
 
 def get_pages(type, processor):
-    pages = web.ctx.site.things(dict(type=type))
+    pages = web.ctx.site.things({'type': type})
     for p in pages:
         processor(web.ctx.site.get(p))
 
@@ -429,6 +428,7 @@ class ia_js_cdn(delegate.page):
 
     def GET(self, filename):
         web.header('Content-Type', 'text/javascript')
+        web.header("Cache-Control", "max-age=%d" % (24 * 3600))
         return web.ok(fetch_ia_js(filename))
 
 
@@ -464,10 +464,33 @@ class health(delegate.page):
         return web.ok('OK')
 
 
+def remove_high_priority(query: str) -> str:
+    """
+    Remove `high_priority=true` and `high_priority=false` from query parameters,
+    as the API expects to pass URL parameters through to another query, and
+    these may interfere with that query.
+
+    >>> remove_high_priority('high_priority=true&v=1')
+    'v=1'
+    """
+    query_params = parse_qs(query)
+    query_params.pop("high_priority", None)
+    new_query = urlencode(query_params, doseq=True)
+    return new_query
+
+
 class isbn_lookup(delegate.page):
     path = r'/(?:isbn|ISBN)/([0-9xX-]+)'
 
     def GET(self, isbn):
+        input = web.input(high_priority=False)
+
+        high_priority = input.get("high_priority") == "true"
+        if "high_priority" in web.ctx.env.get('QUERY_STRING'):
+            web.ctx.env['QUERY_STRING'] = remove_high_priority(
+                web.ctx.env.get('QUERY_STRING')
+            )
+
         # Preserve the url type (e.g. `.json`) and query params
         ext = ''
         if web.ctx.encoding and web.ctx.path.endswith('.' + web.ctx.encoding):
@@ -476,7 +499,7 @@ class isbn_lookup(delegate.page):
             ext += '?' + web.ctx.env['QUERY_STRING']
 
         try:
-            if ed := Edition.from_isbn(isbn, retry=True):
+            if ed := Edition.from_isbn(isbn=isbn, high_priority=high_priority):
                 return web.found(ed.key + ext)
         except Exception as e:
             logger.error(e)
@@ -639,7 +662,7 @@ class _yaml(delegate.mode):
     def get_data(self, key):
         i = web.input(v=None)
         v = safeint(i.v, None)
-        data = dict(key=key, revision=v)
+        data = {'key': key, 'revision': v}
         try:
             d = api.request('/get', data=data)
         except client.ClientException as e:
@@ -838,7 +861,7 @@ def changequery(query=None, **kw):
             query[k] = v
 
     query = {
-        k: (list(map(web.safestr, v)) if isinstance(v, list) else web.safestr(v))
+        k: [web.safestr(s) for s in v] if isinstance(v, list) else web.safestr(v)
         for k, v in query.items()
     }
     out = web.ctx.get('readable_path', web.ctx.path)
@@ -999,11 +1022,23 @@ class Partials(delegate.page):
     encoding = 'json'
 
     def GET(self):
-        i = web.input(workid=None, _component=None)
+        # `data` is meant to be a dict with two keys: `args` and `kwargs`.
+        # `data['args']` is meant to be a list of a template's positional arguments, in order.
+        # `data['kwargs']` is meant to be a dict containing a template's keyword arguments.
+        i = web.input(workid=None, _component=None, data=None)
         component = i.pop("_component")
         partial = {}
         if component == "RelatedWorkCarousel":
             partial = _get_relatedcarousels_component(i.workid)
+        elif component == "AffiliateLinks":
+            data = json.loads(i.data)
+            args = data.get('args', [])
+            # XXX : Throw error if args length is less than 2
+            macro = web.template.Template.globals['macros'].AffiliateLinks(
+                args[0], args[1]
+            )
+            partial = {"partials": str(macro)}
+
         return delegate.RawText(json.dumps(partial))
 
 

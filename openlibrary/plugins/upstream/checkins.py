@@ -1,11 +1,11 @@
 """Reading log check-ins handler and services.
 """
+
 import json
 import web
 
 from datetime import datetime
 from math import floor
-from typing import Optional
 
 from infogami.utils import delegate
 from infogami.utils.view import public
@@ -18,7 +18,7 @@ from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvent
 from openlibrary.utils.decorators import authorized_for
 
 
-def make_date_string(year: int, month: Optional[int], day: Optional[int]) -> str:
+def make_date_string(year: int, month: int | None, day: int | None) -> str:
     """Creates a date string in the expected format, given the year, month, and day.
 
     Event dates can take one of three forms:
@@ -34,7 +34,7 @@ def make_date_string(year: int, month: Optional[int], day: Optional[int]) -> str
     return result
 
 
-def is_valid_date(year: int, month: Optional[int], day: Optional[int]) -> bool:
+def is_valid_date(year: int, month: int | None, day: int | None) -> bool:
     """Validates dates.
 
     Dates are considered valid if there is:
@@ -268,13 +268,15 @@ class YearlyGoal:
 
 class ui_partials(delegate.page):
     path = '/reading-goal/partials'
+    encoding = 'json'
 
     def GET(self):
         i = web.input(year=None)
         year = i.year or datetime.now().year
         goal = get_reading_goals(year=year)
         component = render_template('check_ins/reading_goal_progress', [goal])
-        return delegate.RawText(component)
+        partials = {"partials": str(component)}
+        return delegate.RawText(json.dumps(partials))
 
 
 def setup():

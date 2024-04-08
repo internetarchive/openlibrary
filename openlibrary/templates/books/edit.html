@@ -7,7 +7,7 @@ $putctx("robots", "noindex,nofollow")
 
 $:macros.HiddenSaveButton("addWork")
 
-<div id="contentHead" class="editFormHead">
+<div id="contentHead">
     $code:
         def find_mode():
             mode = query_param("mode")
@@ -34,13 +34,15 @@ $:macros.HiddenSaveButton("addWork")
         else:
             title = _("Editing...")
             note = ""
-    <h2 class="editFormTitle">$:title</h2>
+    $:macros.databarEdit(edition if edition is not None else work)
     $if ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians')):
         <span class="adminOnly right">
             <form method="post" id="delete-record" name="delete">
                 <button type="submit" name="_delete" value="true" id="delete-btn">$_("Delete Record")</button>
             </form>
         </span>
+
+    <h2 class="editFormTitle">$:title</h2>
     $if not ctx.user:
         $:render_template("lib/not_logged")
     $:note
@@ -126,14 +128,9 @@ $:macros.HiddenSaveButton("addWork")
         </div>
 
         $if recaptcha:
-            <div class="formElement">
-                <div class="g-recaptcha" data-sitekey="$:recaptcha.public_key"></div>
-            </div>
+            $:render_template("recaptcha", recaptcha.public_key, error=None)
 
         $:macros.EditButtons(comment=work.comment_)
 
     </form>
-    $if edition:
-        $:render_template("books/edit/addfield", edition)
-
 </div>

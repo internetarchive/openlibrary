@@ -1,5 +1,6 @@
 """pytest configuration for openlibrary
 """
+
 import pytest
 import web
 
@@ -9,9 +10,9 @@ from infogami.utils.view import render_template as infobase_render_template
 from openlibrary.i18n import gettext
 from openlibrary.core import helpers
 
-from openlibrary.mocks.mock_infobase import mock_site  # noqa: F401
-from openlibrary.mocks.mock_ia import mock_ia  # noqa: F401
-from openlibrary.mocks.mock_memcache import mock_memcache  # noqa: F401
+from openlibrary.mocks.mock_infobase import mock_site
+from openlibrary.mocks.mock_ia import mock_ia
+from openlibrary.mocks.mock_memcache import mock_memcache
 
 
 @pytest.fixture(autouse=True)
@@ -91,7 +92,7 @@ def render_template(request):
 
     from openlibrary.plugins.openlibrary import code
 
-    web.config.db_parameters = dict()
+    web.config.db_parameters = {}
     code.setup_template_globals()
 
     def finalizer():

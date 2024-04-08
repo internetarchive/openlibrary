@@ -1,4 +1,4 @@
-$def with (input, q_param, do_search, get_doc, fulltext_search, facet_fields)
+$def with (q_param, search_response, get_doc, param, page, rows)
 
 $ fulltext_names = {'true': 'Ebooks', 'false': 'Exclude ebooks'}
 
@@ -31,30 +31,6 @@ $code:
             "language": "Language",
         }
         return "SearchFacet|" + facets[key]
-
-$ param = {}
-$for p in {'q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor', 'publish_place', 'lccn', 'ia', 'first_sentence', 'publisher', 'author_key', 'debug', 'subject', 'place', 'person', 'time'} | facet_fields:
-    $if p in input and input[p]:
-        $ param[p] = input[p]
-
-$if list(param) == ['has_fulltext']:
-    $ param = {}
-
-$ error = None
-$if param:
-    $ page = int(param.get('page', 1))
-    $ sort = param.get('sort', None)
-    $ rows = 20
-    $ search_start = time()
-    $ results = do_search(param, sort, page, rows=rows, spellcheck_count=3)
-    $ search_secs = time() - search_start
-    $ docs = results.docs
-    $ facet_counts = results.facet_counts
-    $ num_found = results.num_found
-    $ error = results.error
-$else:
-    $ num_found = 0
-
 
 $ start_facet_count = 5
 $ facet_inc = 10
@@ -100,7 +76,7 @@ $ )
             onchange="document.cookie = `SOLR_EDITIONS=\${this.firstElementChild.checked ? 'true' : 'false'}`; location.reload()"
             >
                 <input type="checkbox" $:cond(has_solr_editions_enabled(), 'checked="checked"')/>
-                $:_('Solr Editions <i>Beta</i>')
+                $:_('Solr Editions')
             </label>
         </div>
       $ sticky = set(['sort', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b'])
@@ -112,7 +88,7 @@ $ )
           <input type="hidden" name="$k" value="$v.replace('"', '&quot;')" />
     </form>
 
-        $if param and not error:
+        $if param and not search_response.error:
             $ title = []
             $if q_param:
                 $title.append(q_param)
@@ -123,11 +99,9 @@ $ )
                 $title.append(_('Classic eBook'))
 
             $if any(header in param for header, label in facet_map):
-                <!-- facet_map: $:facet_map -->
-                <!-- facet_counts: $:facet_counts -->
                 <p class="collapse darkgray"><span class="tools"><img src="/images/icons/icon_search-facet.png" alt="Search facets" width="11" height="10" style="margin-right:5px;"/><strong>
                 $for header, label in facet_map:
-                    $ counts = facet_counts[header]
+                    $ counts = search_response.facet_counts[header]
                     $for k, display, count in counts:
                         $if k not in param.get(header, []):
                             $continue
@@ -167,9 +141,8 @@ $ )
 
 <!-- results -->
 
-    $if param and not docs:
+    $if param and not search_response.docs:
         $ query = query_param('q')
-        $ page = int(query_param('page') or 1)
         $# Temporarily (2020-03-26) disable automatically showing full-text
         $# results because of performance issues due to increased load. See
         $# this commit to revert.
@@ -185,38 +158,39 @@ $ )
           </div>
         </center>
 
-    $elif param and not error and len(docs):
+    $elif param and not search_response.error and len(search_response.docs):
         <div class="search-results-stats">
-          $ungettext('%(count)s hit', '%(count)s hits', num_found, count=commify(num_found))
+          $ungettext('%(count)s hit', '%(count)s hits', search_response.num_found, count=commify(search_response.num_found))
 
-          $if num_found > 1:
-            $:render_template("search/sort_options.html", sort)
+          $if search_response.num_found > 1:
+            $:render_template("search/sort_options.html", search_response.sort)
         </div>
         <div class="resultsContainer search-results-container">
         <div id="searchResults">
           <ul class="list-books">
-            $ works = [get_doc(d) for d in docs]
+            $ works = [get_doc(d) for d in search_response.docs]
             $ add_availability([(w.get('editions') or [None])[0] or w for w in works])
             $ username = ctx.user and ctx.user.key.split('/')[-1]
             $if username:
                 $ works = add_read_statuses(username, works)
             $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians'))
 
-            $for work in works:
-                $ read_status = work.get('readinglog', None)
-                $ dropper = macros.ReadingLogDropper([], work=work, include_lists=False, page_url="/search", users_work_read_status=read_status)
-                $:macros.SearchResultsWork(work, reading_log=dropper, show_librarian_extras=show_librarian_extras)
+            $# Subject key list will only be included in each doc if the patron has a sfw cookie
+            $ subject_keys = [d.get('subject', []) for d in search_response.docs]
+            $for work, subjects in zip(works, subject_keys):
+                $ content_warning = len([s for s in subjects if s.startswith("content_warning:")]) != 0
+                $:macros.SearchResultsWork(work, show_librarian_extras=show_librarian_extras, include_dropper=True, blur=content_warning)
           </ul>
-          $:macros.Pager(page, num_found, rows)
+          $:macros.Pager(page, search_response.num_found, rows)
         </div>
 <!-- /results -->
 
 <!-- facets -->
 
-$if error:
+$if search_response.error:
     <h3>BARF! Search engine ERROR!</h3>
-    <pre>$error.decode('utf-8', 'ignore')</pre>
-$elif param and len(docs):
+    <pre>$search_response.error.decode('utf-8', 'ignore')</pre>
+$elif param and len(search_response.docs):
     <div id="searchFacets" data-config="$dumps({'start_facet_count': start_facet_count, 'facet_inc': facet_inc})">
         <h3 class="collapse">$_("Zoom In")</h3>
         <div class="smallest lightgreen sansserif" style="margin-bottom:20px;">$_("Focus your results using these") <a href="/search/howto">$_("filters")</a></div>
@@ -225,7 +199,7 @@ $elif param and len(docs):
                 $continue
             $if header=='public_scan_b':
                 $continue
-            $ counts = [i for i in facet_counts[header] if i[0] not in param.get(header, [])]
+            $ counts = [i for i in search_response.facet_counts[header] if i[0] not in param.get(header, [])]
             $if not counts:
                 $continue
             <div class="facet $header">
@@ -265,10 +239,10 @@ $elif param and len(docs):
 <!-- /facets -->
     </div>
 
-    $if param and not error and len(docs):
+    $if param and not search_response.error and len(search_response.docs):
         $if ctx.user and ctx.user.is_admin():
             <div id="adminTiming" class="small sansserif clearfix">
-                <br/><span class="adminOnly">Searching solr took $("%.2f" % search_secs) seconds</span>
+                <br/><span class="adminOnly">Searching solr took $("%.2f" % search_response.time) seconds</span>
             </div>
   </div>
 </div>

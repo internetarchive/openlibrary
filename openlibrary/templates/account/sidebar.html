@@ -1,21 +1,16 @@
-$def with (user, key=None, owners_page=False, public=False, counts=None, lists=None, component_times={})
-
-$ username = user.key.split('/')[-1]
-
-$if not (lists and counts):
-  $ pa = get_public_patron_account(username)
-$ lists = lists or pa.lists
-$ counts = counts or pa.get_sidebar_counts
+$def with (username, key=None, owners_page=False, public=False, counts=None, lists=None, component_times={})
 
   $ component_times['Sidebar'] = time()
   <div class="mybooks-menu">
-    <ul class="sidebar-section">
-      <li class="section-header">$username</li>
-      $if owners_page:
+    $if owners_page:
+      <ul class="sidebar-section">
+        <li class="section-header">$username</li>
         <li>
-          <a class="li-title-desktop" href="/account/loans" data-ol-link-track="MyBooksSidebar|Loans" $('class=selected' if key == 'loans' else '')>$_('Loans')</a>
+          <a class="li-title-desktop" href="/account/loans" data-ol-link-track="MyBooksSidebar|Loans" $('class=selected' if key == 'loans' else '')>$_('My Loans')</a>
         </li>
-        <li><a class="external-link" data-ol-link-track="MyBooksSidebar|LoanHistory" href="https://archive.org/account/?tab=loans#loans-history">$_('Loan History')</a></li>
+        <li>
+          <a class="li-title-desktop" data-ol-link-track="MyBooksSidebar|LoanHistory" href="/account/loan-history">$_('Loan History')</a>
+        </li>
     </ul>
     $if public or owners_page:
       <ul class="sidebar-section">
@@ -46,20 +41,25 @@ $ counts = counts or pa.get_sidebar_counts
         <li><a href="/people/$username/books/sponsorships" data-ol-link-track="MyBooksSidebar|Sponsorships" $('class=selected' if key == 'sponsorships' else '')><span class="li-count">$sponsorship_count</span>$_('Sponsoring')</a></li>
       </ul>
     <ul class="sidebar-section">
-      <li class="section-header section-header-split"><span>$_('Lists')</span> <a href="/people/$username/lists" data-ol-link-track="MyBooksSidebar|AllLists" class="li-count">$_('See All') ($len(lists))</a></li>
-        <div class="list-overflow">
-          $ placeholder_name = _('Untitled list')
-          $for lst in lists:
-          $# e.g. OL1L from /people/mekBot/lists/OL1L
-            $ list_id = lst.key.split('/')[-1]
-            $ class_list = ''
-            $if key == 'list':
-              $# e.g. /people/openlibrary/lists/OL1L/MyList
-              $ path_id = ctx.path.split('/')[4]
-              $if list_id == path_id:
-                $ class_list = class_list + 'selected'
-            <li><a class="$class_list" data-ol-link-track="MyBooksSidebar|PatronList" href="/people/$username/lists/$list_id"><span class="li-count">$(len(lst.seeds))</span>$(lst['name'] if lst['name'] else '[%s]' % placeholder_name)</a></li>
-        </div>
+      <li class="section-header section-header-split"><span>$(_('My lists') if owners_page else _('Lists'))</span> <a href="/people/$username/lists" data-ol-link-track="MyBooksSidebar|AllLists" class="li-count chevron">$(_('See All'))</a></li>
+      $if owners_page:
+        <li class="create-new-list">
+          <a href="/people/$username/lists/add">$_('Create a list')</a>
+        </li>
+
+      <div class="list-overflow">
+        $ placeholder_name = _('Untitled list')
+        $for lst in lists:
+        $# e.g. OL1L from /people/mekBot/lists/OL1L
+          $ list_id = lst.key.split('/')[-1]
+          $ class_list = ''
+          $if key == 'list':
+            $# e.g. /people/openlibrary/lists/OL1L/MyList
+            $ path_id = ctx.path.split('/')[4]
+            $if list_id == path_id:
+              $ class_list = class_list + 'selected'
+          <li><a class="$class_list" data-ol-link-track="MyBooksSidebar|PatronList" href="/people/$username/lists/$list_id"><span class="li-count">$(len(lst.seeds))</span>$(lst['name'] if lst['name'] else '[%s]' % placeholder_name)</a></li>
+      </div>
     </ul>
   </div>
   $ component_times['Sidebar'] = time() - component_times['Sidebar']

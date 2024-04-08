@@ -1,5 +1,6 @@
 """Plugin to provide admin interface.
 """
+
 import os
 import requests
 import sys
@@ -9,6 +10,8 @@ import datetime
 import traceback
 import logging
 import json
+
+from internetarchive.exceptions import ItemLocateError
 
 from infogami import config
 from infogami.utils import delegate
@@ -25,7 +28,8 @@ from openlibrary.catalog.add_book import (
 import openlibrary
 
 from openlibrary import accounts
-
+from openlibrary.accounts.model import clear_cookies
+from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import admin as admin_stats, helpers as h, imports, cache
 from openlibrary.core.waitinglist import Stats as WLStats
 from openlibrary.core.sponsorships import summary, sync_completed_sponsored_books
@@ -174,13 +178,16 @@ class any:
 
 class people:
     def GET(self):
-        i = web.input(email=None)
+        i = web.input(email=None, ia_id=None)
 
+        account = None
         if i.email:
             account = accounts.find(email=i.email)
-            if account:
-                raise web.seeother("/admin/people/" + account.username)
-        return render_template("admin/people/index", email=i.email)
+        if i.ia_id:
+            account = OpenLibraryAccount.get_by_link(i.ia_id)
+        if account:
+            raise web.seeother(f"/admin/people/{account.username}")
+        return render_template("admin/people/index", email=i.email, ia_id=i.ia_id)
 
 
 class add_work_to_staff_picks:
@@ -198,9 +205,14 @@ class add_work_to_staff_picks:
             ocaids = [edition.ocaid for edition in editions if edition.ocaid]
             results[work_id] = {}
             for ocaid in ocaids:
-                results[work_id][ocaid] = create_ol_subjects_for_ocaid(
-                    ocaid, subjects=subjects
-                )
+                try:
+                    results[work_id][ocaid] = create_ol_subjects_for_ocaid(
+                        ocaid, subjects=subjects
+                    )
+                except ItemLocateError as err:
+                    results[work_id][
+                        ocaid
+                    ] = f'Failed to add to staff picks. Error message: {err}'
 
         return delegate.RawText(json.dumps(results), content_type="application/json")
 
@@ -383,7 +395,9 @@ class people_view:
             added_records: list[list[dict]] = [
                 c.changes for c in changes if c.kind == 'add-book'
             ]
-            flattened_records: list[dict] = sum(added_records, [])
+            flattened_records: list[dict] = [
+                subitem for sublist in added_records for subitem in sublist
+            ]
             keys_to_delete |= {r['key'] for r in flattened_records}
             changeset_ids = [c.id for c in changes]
             _, len_docs = ipaddress_view().revert(changeset_ids, "Reverted Spam")
@@ -462,7 +476,10 @@ class people_view:
 
     def POST_su(self, account):
         code = account.generate_login_code()
+        # Clear all existing admin cookies before logging in as another user
+        clear_cookies()
         web.setcookie(config.login_cookie_name, code, expires="")
+
         return web.seeother("/")
 
     def POST_anonymize_account(self, account, test):
@@ -778,7 +795,7 @@ class inspect:
         i = web.input(action="read")
         i.setdefault("keys", "")
 
-        mc = cache.get_memcache()
+        mc = cache.get_memcache().memcache
 
         keys = [k.strip() for k in i["keys"].split() if k.strip()]
         if i.action == "delete":
@@ -861,14 +878,14 @@ class attach_debugger:
         return render_template("admin/attach_debugger", python_version)
 
     def POST(self):
-        import debugpy
+        import debugpy  # noqa: T100
 
         i = web.input()
         # Allow other computers to attach to ptvsd at this IP address and port.
         logger.info("Enabling debugger attachment")
-        debugpy.listen(address=('0.0.0.0', 3000))
+        debugpy.listen(address=('0.0.0.0', 3000))  # noqa: T100
         logger.info("Waiting for debugger to attach...")
-        debugpy.wait_for_client()
+        debugpy.wait_for_client()  # noqa: T100
         logger.info("Debugger attached to port 3000")
         add_flash_message("info", "Debugger attached!")
 
@@ -882,16 +899,25 @@ class solr:
     def POST(self):
         i = web.input(keys="")
         keys = i['keys'].strip().split()
-        web.ctx.site.store['solr-force-update'] = dict(
-            type="solr-force-update", keys=keys, _rev=None
-        )
+        web.ctx.site.store['solr-force-update'] = {
+            "type": "solr-force-update",
+            "keys": keys,
+            "_rev": None,
+        }
         add_flash_message("info", "Added the specified keys to solr update queue.!")
         return self.GET()
 
 
 class imports_home:
     def GET(self):
-        return render_template("admin/imports", imports.Stats())
+        return render_template("admin/imports", imports.Stats)
+
+
+class imports_public(delegate.page):
+    path = "/imports"
+
+    def GET(self):
+        return imports_home().GET()
 
 
 class imports_add:

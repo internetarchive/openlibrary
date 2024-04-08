@@ -1,0 +1,66 @@
+$def with (tag=None, name=None, recaptcha=None)
+
+$var title: $_("Add a tag")
+
+<div id="contentHead">
+    <div class="head">
+        <h1>$_("Add a tag to Open Library")</h1>
+    </div>
+        <p class="instruct">$_("We require a minimum set of fields to create a new record. These are those fields.")</p>
+    $if not ctx.user:
+        $:render_template("lib/not_logged")
+</div>
+
+<div id="contentBody">
+
+    <form method="post" action="" id="addtag" class="olform addtag1 validate">
+
+        <div class="formElement">
+            <div class="label">
+                <label for="tagname">$_("Name of Tag")</label>*<span class="tip">$_("Required field")</span>
+            </div>
+            <div class="input">
+                <input type="text" name="tag_name" id="tag_name"/>
+            </div>
+        </div>
+
+        <fieldset class="major">
+            <div class="formElement">
+                <div class="label">
+                    <label for="tag-description">$_("How would you describe this tag?")</label>
+                    <span class="tip">$_("There's no wrong answer here.")</span>
+                </div>
+                <div class="input">
+                    <textarea name="tag_description" id="tag_description" class="markdown" cols="55" rows="5" tabindex="0"></textarea>
+                </div>
+            </div>
+        </fieldset>
+
+        <div class="formElement">
+            <div class="label"><label for="id_value">$_("Tag type")</label></div>
+            <div class="input">
+                <select name="tag_type" id="tag_type">
+                    <option value="">$_("Select")</option>
+                    $ tag_types = get_tag_types()
+                    $for tag_type in tag_types:
+                        <option value="$tag_type">$tag_type</option>
+                </select>
+            </div>
+        </div>
+
+        $if recaptcha and not ctx.user:
+            $:render_template("recaptcha", recaptcha.public_key, error=None)
+
+        <div class="formElement bottom">
+            <br/>
+            <div class="cclicense">
+                $:_('By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" title="This link to Creative Commons will open in a new window">CC0</a>. Yippee!')
+            </div>
+            <div class="input">
+                <button type="submit" title="$_('Add this tag now')" id="create-tag-button" class="larger">$_('Add')</button>
+                &nbsp;
+                <a href="javascript:history.go(-1);" class="attn">$_('Cancel')</a>
+            </div>
+        </div>
+    </form>
+</div>

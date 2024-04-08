@@ -52,13 +52,18 @@ def test_works_autocomplete():
                     'type': 'work',
                     'title': 'Foo Baz',
                 },
+                {
+                    'key': '/works/OL789M',
+                    'type': 'work',
+                    'title': 'Foo Baz',
+                },
             ]
         }
         result = json.loads(ac.GET().rawtext)
         # assert solr_select called with correct params
         assert mock_solr_select.call_args[0][0] == 'title:"foo"^2 OR title:(foo*)'
         # check kwargs
-        assert mock_solr_select.call_args.kwargs['fq'] == ['type:work', 'key:*W']
+        assert mock_solr_select.call_args.kwargs['fq'] == ['type:work']
         # check result
         assert result == [
             {

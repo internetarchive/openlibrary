@@ -4,7 +4,6 @@ from collections import defaultdict, namedtuple
 
 from infogami import config
 from infogami.utils.view import public
-from openlibrary import accounts
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
@@ -578,11 +577,11 @@ def _get_deleted_types_and_values():
     results = {'types': [], 'values': defaultdict(list)}
 
     for o in OBSERVATIONS['observations']:
-        if 'deleted' in o and o['deleted']:
+        if o.get('deleted'):
             results['types'].append(o['id'])
         else:
             for v in o['values']:
-                if 'deleted' in v and v['deleted']:
+                if v.get('deleted'):
                     results['values'][o['id']].append(v['id'])
 
     return results
@@ -847,7 +846,7 @@ class Observations(db.CommonExtras):
                 deleted_value_ids = ', '.join(
                     str(i) for i in deleted_observations['values'][key]
                 )
-                query += f'AND NOT (observation_type = {str(key)} AND observation_value IN ({deleted_value_ids})) '
+                query += f'AND NOT (observation_type = {key} AND observation_value IN ({deleted_value_ids})) '
 
         query += 'GROUP BY type'
 
@@ -885,7 +884,7 @@ class Observations(db.CommonExtras):
                 deleted_value_ids = ', '.join(
                     str(i) for i in deleted_observations['values'][key]
                 )
-                query += f'AND NOT (observation_type = {str(key)} AND observation_value IN ({deleted_value_ids})) '
+                query += f'AND NOT (observation_type = {key} AND observation_value IN ({deleted_value_ids})) '
 
         query += """
             GROUP BY type_id, value_id
@@ -1022,7 +1021,7 @@ class Observations(db.CommonExtras):
 
             return: An ObservationsIds tuple
             """
-            key = list(observation)[0]
+            key = next(iter(observation))
             item = next(o for o in OBSERVATIONS['observations'] if o['label'] == key)
 
             return ObservationIds(
@@ -1048,7 +1047,7 @@ class Observations(db.CommonExtras):
             where_clause += 'AND observation_value=$observation_value'
 
             return oldb.delete('observations', vars=data, where=where_clause)
-        elif not cls.get_multi_choice(list(observation)[0]):
+        elif not cls.get_multi_choice(next(iter(observation))):
             # A radio button value has changed.  Delete old value, if one exists:
             oldb.delete('observations', vars=data, where=where_clause)
 
