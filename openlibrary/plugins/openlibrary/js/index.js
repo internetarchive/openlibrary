@@ -526,10 +526,10 @@ jQuery(function () {
             .then(module => module.initBreadcrumbSelect(crumbs));
     }
 
-    const waitlistLinks = document.querySelectorAll('a.leave');
-    if (waitlistLinks.length && document.getElementById('leave-waitinglist-dialog')) {
+    const leaveWaitlistLInks = document.querySelectorAll('a.leave');
+    if (leaveWaitlistLInks.length && document.getElementById('leave-waitinglist-dialog')) {
         import(/* webpackChunkName: "waitlist" */ './waitlist')
-            .then(module => module.initLeaveWaitlist(waitlistLinks));
+            .then(module => module.initLeaveWaitlist(leaveWaitlistLInks));
     }
 
     const thirdPartyLoginsIframe = document.getElementById('ia-third-party-logins');
