@@ -1,21 +1,13 @@
 $def with(author_data, limit=None, overflow_url=None, attrs='', show_years=False)
 
-$def render_author_link(name, url, birth_date, death_date):
-  $ name = author.get("name")
-  $ url = author.get("url")
+$def render_author_link(author):
+  $ name = author.get('name')
+  $ url = author.get('url')
   $ rendered_name = cond(name, truncate(name, 40), _("Unknown author"))
-  $if show_years and author.get("birth_date"):
-    $ result = re.search(r'\d{4}', author.get("birth_date"))
-    $if result:
-      $ birth_date_formatted = result.group(1)
-    $else:
-      $ birth_date_formatted = ''
-    $if author.get("death_date"):
-      $ result = re.search(r'\d{4}', author.get("death_date"))
-      $if result:
-        $ death_date_formatted = result.group(1)
-      $else:
-        $ death_date_formatted = ''
+  $if show_years and author.get('birth_date'):
+    $ birth_date_formatted = extract_year(author.get('birth_date'))
+    $if author.get('death_date'):
+      $ death_date_formatted = extract_year(author.get('death_date'))
     $else:
       $ death_date_formatted = ''
   $if url and author.get("birth_date"):
