@@ -10,9 +10,10 @@ $var title: Waiting Lists - Admin Center
     <h2>Recently available waiting loans</h2>
 
 $ page = safeint(query_param("page", 1), 1)
-$ offset = (page-1)*50
+$ limit = safeint(query_param("limit", 50), 50)
+$ offset = (page-1)*limit
 
-$ loans = wlstats.get_available_waiting_loans(limit=50, offset=offset)
+$ loans = wlstats.get_available_waiting_loans(limit=limit, offset=offset)
 $if not loans:
     <em>None found.</em>
 $else:
@@ -20,7 +21,7 @@ $else:
     <table>
         <thead>
             <tr>
-                <th class="titles" colspan="2">Showing ${offset+1}-${offset+min(50, len(loans))} of many</th>
+                <th class="titles" colspan="2">Showing ${offset+1}-${offset+min(limit, len(loans))} of many</th>
                 <th class="user">$_("Who")</th>
                 <th class="expires">$_("Expires")</th>
                 <th class="what">$_("Loan Status")</th>
@@ -88,9 +89,9 @@ $else:
     <div style="text-align: center; margin: 20px 0px;">
         $if page > 1:
             <a href="$changequery(page=page-1)">&larr; Newer</a>
-        $if page > 1 and len(loans) == 50:
+        $if page > 1 and len(loans) == limit:
             <span>|</span>
-        $if len(loans) == 50:
+        $if len(loans) == limit:
             <a href="$changequery(page=page+1)">Older &rarr;</a>
     </div>
 </div>
