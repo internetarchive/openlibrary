@@ -58,7 +58,7 @@ $:macros.HiddenSaveButton("addWork")
         <h1 class="editFormBookTitle">$this_title</h1>
         $if authors:
             <h3 class="editFormBookAuthors">
-                $:macros.BookByline([{"name": a.name, "url": a.url()} for author in authors])
+                $:macros.BookByline([{'name': a.name, 'url': a.url()} for author in authors])
             </h3>
         <div id="tabsAddbook">
             <ul>

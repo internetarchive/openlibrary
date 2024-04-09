@@ -75,8 +75,8 @@ $code:
             $code:
               author_data = [
                 {
-                  "name": a.get('name') or a.get('author', {}).get('name'),
-                  "url": a.get('url') or a.get('key') or a.get('author', {}).get('url') or a.get('author', {}).get('key')
+                  'name': a.get('name') or a.get('author', {}).get('name'),
+                  'url': (a.get('url') or a.get('key') or a.get('author', {}).get('url') or a.get('author', {}).get('key'))
                 }
                 for a in authors
               ]
