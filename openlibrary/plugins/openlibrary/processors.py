@@ -89,7 +89,7 @@ class CORSProcessor:
 
 
 class PreferenceProcessor:
-    """Processor to handle unauthorized patron preferece reads"""
+    """Processor to handle unauthorized patron preference reads"""
 
     def __init__(self):
         self.pref_pattern = re.compile(r'^\/people\/([^/]+)\/preferences(.json|.yml)?$')
