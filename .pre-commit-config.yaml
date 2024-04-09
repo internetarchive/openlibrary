@@ -101,6 +101,7 @@ repos:
       types_or: [python, html]
       language: python
       pass_filenames: false
+      # Dependencies must be manually updated to match versions in requirements.txt
       additional_dependencies:
         - Babel==2.12.1
         - multipart==0.2.4
