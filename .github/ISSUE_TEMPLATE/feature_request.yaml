@@ -1,5 +1,5 @@
 name: Feature Request
-description: Suggest a new idea for this project 
+description: Suggest a new idea for this project
 labels: ["Type: Feature Request", "Needs: Triage", "Needs: Lead"]
 body:
   - type: markdown
