@@ -3,6 +3,7 @@ import shutil
 import sys
 from collections.abc import Iterator
 from io import BytesIO
+from pathlib import Path
 
 import web
 
@@ -144,14 +145,9 @@ def extract_messages(dirs: list[str]):
     METHODS = [("**.py", "python"), ("**.html", "openlibrary.i18n:extract_templetor")]
     COMMENT_TAGS = ["NOTE:"]
 
-    pot_path = os.path.join(root, 'messages.pot')
-    template = read_po(open(pot_path, 'rb'))
-    catalog_msgs = template.__iter__()
-    msg_set: set[str | tuple[str]] = set()
-    for msg in catalog_msgs:
-        if msg.id != '':
-            msg_set.add(msg.id)
-    new_set: set[str | tuple[str]] = set()
+    template = read_po((Path(root) / 'messages.pot').open('rb'))
+    msg_set = {msg.id for msg in template if msg.id != ''}
+    new_set = set()
 
     for d in dirs:
         extracted = extract_from_dir(
@@ -168,14 +164,17 @@ def extract_messages(dirs: list[str]):
             path = filename if d == filename else os.path.join(d, filename)
             print(f"{count}\t{path}", file=sys.stderr)
 
-    diff = new_set.symmetric_difference(msg_set)
-    if len(diff) != 0:
+    if msg_set != new_set:
         path = os.path.join(root, 'messages.pot')
         f = open(path, 'wb')
-        write_po(f, catalog)
+        write_po(f, catalog, include_lineno=False)
         f.close()
 
-        print('wrote template to', path)
+        print('Updated strings written to', path)
+    else:
+        print(
+            'No modified strings discovered. To force a template update, re-run with --force-write.'
+        )
 
 
 def compile_translations(locales: list[str]):
