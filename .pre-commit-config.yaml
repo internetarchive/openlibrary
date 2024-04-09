@@ -98,6 +98,7 @@ repos:
       name: Generate POT
       description: This hook generates the .pot file for internationalization.
       entry: python ./scripts/i18n-messages extract
+      types_or: [python, html]
       language: python
       pass_filenames: false
       additional_dependencies:
