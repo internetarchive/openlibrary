@@ -1,4 +1,4 @@
-$def with(ocaid, borrow=False, listen=False, loan=None, label='', printdisabled=False, analytics_override=None)
+$def with(ocaid, analytics_attr, borrow=False, listen=False, loan=None, label='', printdisabled=False)
 
 $ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
 
@@ -17,12 +17,6 @@ $else:
   $ label = _("Read")
   $ title = _("Read ebook from Internet Archive")
   $ analytics_action = "Read"
-
-$def analytics_attr(action):
-  $if analytics_override:
-    data-ol-link-track="$analytics_override"
-  $else:
-    data-ol-link-track="CTAClick|$action"
 
 <div class="cta-button-group">
   <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action)"
