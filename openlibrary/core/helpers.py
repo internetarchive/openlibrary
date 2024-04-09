@@ -327,11 +327,11 @@ def private_collection_in(collections):
 
 def extract_year(input):
     """Extracts the year from an author's birth or death date."""
-    result = re.search(r'\d{4}', input)
-    if result:
-      return result.group()
+    if result := re.search(r'\d{4}', input):
+        return result.group()
     else:
-      return ''
+        return ''
+
 
 def _get_helpers():
     _globals = globals()
