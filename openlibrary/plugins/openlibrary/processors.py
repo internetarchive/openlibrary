@@ -5,7 +5,10 @@ import re
 import web
 
 from openlibrary.accounts import get_current_user
+from openlibrary.core import cache
 from openlibrary.core.processors import ReadableUrlProcessor
+from openlibrary.plugins.openlibrary.home import caching_prethread
+from openlibrary.utils import dateutil
 
 from openlibrary.core import helpers as h
 
@@ -107,6 +110,65 @@ class PreferenceProcessor:
                 raise web.Forbidden()
 
         return handler()
+
+
+class CacheablePathsProcessor:
+    """Processor for caching Infogami pages.
+
+    This processor determines if the current path matches any of the
+    patterns in the `paths_and_expiries` dictionary, and if so, it
+    attempts to return the page from cache.  If no cached page is found,
+    it will fetch the page using the usual handler.
+    """
+
+    # Maps paths of cacheable pages to the pages' expiry times
+    paths_and_expiries: dict[str, int] = {
+        '/collections': 10 * dateutil.MINUTE_SECS,
+        '/collections/([^/]+)': 5 * dateutil.MINUTE_SECS,
+    }
+
+    def __call__(self, handler):
+        # XXX : Caches `GET` calls to edit pages (and other modes)
+        # XXX : Page encoding not taken into account
+        # XXX : Page language not taken into account
+        def get_page() -> dict:
+            """Fetches the page using the usual handler.
+            In order to cache the page, it is returned as a dictionary.
+            """
+            _page = handler()
+            return dict(_page)
+
+        def get_cached_page(path: str) -> dict:
+            """Returns the page located at the given path.
+            Attempts to return a cached page, if one exists. The full
+            path is used as the cache key for the page.
+            """
+            mc = cache.memcache_memoize(get_page, path, self.paths_and_expiries[match], prethread=caching_prethread())
+            _page = mc()
+
+            if not _page:
+                mc(_cache='delete')
+
+            return _page
+
+        if web.ctx.method != 'GET':
+            # Don't cache non-GET requests
+            handler()
+
+        # Determine if current path matches a cacheable path pattern
+        match = None
+        for pattern in self.paths_and_expiries:
+            if re.match(pattern, web.ctx.path):
+                match = pattern
+                break
+
+        if not match:
+            # No match found, continue processing as per usual
+            return handler()
+
+        page = get_cached_page(web.ctx.fullpath)
+
+        return web.template.TemplateResult(page)
 
 
 if __name__ == "__main__":
