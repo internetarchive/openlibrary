@@ -298,7 +298,7 @@ def luqum_make_fuzzy(tree: Item, fields: set[str] | None = None):
     >>> str(luqum_make_fuzzy(luqum_parser('lord of the rings author:tolkien id:foobar'), {'author'}))
     'lord~ of~ the~ rings~ author:tolkien~ id:foobar'
 
-    >>> str(luqum_make_fuzzy(luqum_parser('How to tame a fox (and build a dog) author:Lee Alan Dugatkin'), {'author'}))
+    >>> str(luqum_make_fuzzy(luqum_parser('How to tame a fox (and build a dog) id:foobar author:Lee Alan Dugatkin'), {'author'}))
     'How~ to~ tame~ a~ fox~ (and~ build~ a~ dog~) id:foobar author:(Lee~ Alan~ Dugatkin~)'
 
     >>> str(luqum_make_fuzzy(luqum_parser('"This is an unfuzziable query" but not this')))
