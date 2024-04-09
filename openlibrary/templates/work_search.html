@@ -193,7 +193,7 @@ $if search_response.error:
 $elif param and len(search_response.docs):
     <div id="searchFacets" data-config="$dumps({'start_facet_count': start_facet_count, 'facet_inc': facet_inc})">
         <h3 class="collapse">$_("Zoom In")</h3>
-        <div class="smallest lightgreen sansserif" style="margin-bottom:20px;">$:_('Focus your results using these <a href="/search/howto">filters')</a></div>
+        <div class="smallest lightgreen sansserif" style="margin-bottom:20px;">$:_('Focus your results using these <a href="/search/howto">filters</a>')</div>
         $for header, label in facet_map:
             $if header=='has_fulltext' and 'has_fulltext' in param:
                 $continue
