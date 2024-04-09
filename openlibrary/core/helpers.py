@@ -53,6 +53,7 @@ __all__ = [
     # functions imported from elsewhere
     "parse_datetime",
     "safeint",
+    "extract_year",
 ]
 __docformat__ = "restructuredtext en"
 
