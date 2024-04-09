@@ -10,9 +10,9 @@ $def render_author_link(author):
       $ death_date_formatted = extract_year(author.get('death_date'))
     $else:
       $ death_date_formatted = ''
-  $if show_years and url and author.get("birth_date"):
+  $if show_years and url and author.get('birth_date'):
     <a href="$url" $:attrs>$rendered_name ($birth_date_formatted - $death_date_formatted)</a>
-  $elif show_years and author.get("birth_date"):
+  $elif show_years and author.get('birth_date'):
     <span $:attrs>$rendered_name ($birth_date_formatted - $death_date_formatted)</span>
   $elif url:
     <a href="$url" $:attrs>$rendered_name</a>
