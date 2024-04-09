@@ -1,5 +1,5 @@
 name: Feature Request
-description:  Create a feature request for new features
+description: Suggest a new idea for this project 
 labels: ["Type: Feature Request", "Needs: Triage", "Needs: Lead"]
 body:
   - type: markdown
@@ -7,7 +7,7 @@ body:
       value: |
         **IMPORTANT: Before posting, remove sensitive data, such as passwords, secret keys, session cookies, etc.**
 
-        Thanks for showing interest in adding new features to openlibrary! 👍
+        Thanks for showing interest in adding new features to Open Library! 👍
 
   - type: textarea
     attributes:
