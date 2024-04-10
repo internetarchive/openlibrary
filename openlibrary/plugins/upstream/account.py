@@ -69,10 +69,8 @@ LOGIN_ERRORS = {
     "missing_fields": "Please fill out all fields and try again",
     "email_registered": "This email is already registered",
     "username_registered": "This username is already registered",
-    "ia_login_only": "Sorry, you must use your Internet Archive email and password to log in",
     "max_retries_exceeded": "A problem occurred and we were unable to log you in.",
     "invalid_s3keys": "Login attempted with invalid Internet Archive s3 credentials.",
-    "wrong_ia_account": "An Open Library account with this email is already linked to a different Internet Archive account. Please contact info@openlibrary.org.",
 }
 
 
