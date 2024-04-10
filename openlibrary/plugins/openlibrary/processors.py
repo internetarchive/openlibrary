@@ -128,9 +128,6 @@ class CacheablePathsProcessor:
     }
 
     def __call__(self, handler):
-        # XXX : Caches `GET` calls to edit pages (and other modes)
-        # XXX : Page encoding not taken into account
-        # XXX : Page language not taken into account
         def get_page() -> dict:
             """Fetches the page using the usual handler.
             In order to cache the page, it is returned as a dictionary.
@@ -153,7 +150,11 @@ class CacheablePathsProcessor:
 
         if web.ctx.method != 'GET':
             # Don't cache non-GET requests
-            handler()
+            return handler()
+
+        if web.ctx.encoding:
+            # Don't cache `json`, `yml`, etc.
+            return handler()
 
         # Determine if current path matches a cacheable path pattern
         match = None
@@ -166,7 +167,27 @@ class CacheablePathsProcessor:
             # No match found, continue processing as per usual
             return handler()
 
-        page = get_cached_page(web.ctx.fullpath)
+        i = web.input()
+        if 'debug' in i:
+            # Avoid caching error pages
+            return handler()
+
+        if 'm' in i:
+            if i['m'] != 'view':
+                # Avoid caching non-view modes
+                return handler()
+            # Prevent redundant cache entries when `m=view` is passed
+            del i['m']
+
+        # Construct cache key:
+        cache_key = f'{web.ctx.path}.{web.ctx.lang}'
+        
+        if len(i):
+            # Construct query string in alphabetical order
+            query_str = '&'.join([f'{k}={v}' for k, v in sorted(i.items())])
+            cache_key += f'?{query_str}'
+
+        page = get_cached_page(cache_key)
 
         return web.template.TemplateResult(page)
 
