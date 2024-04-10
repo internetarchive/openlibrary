@@ -11,7 +11,7 @@ $ limit = safeint(query_param('limit', '100'))
 
 <div id="contentHead">
     $:render_template("admin/menu")
-    <h1><a class="plain" href="/admin/people">$:_('people </a> / <a class="plain" href="/admin/people/$account.username">%(account.username)s</a> / edits ', account.username=account.username)</h1>
+    <h1><a class="plain" href="/admin/people">$_("people")</a> / <a class="plain" href="/admin/people/$account.username">$account.username</a> / $_("edits") </h1>
 </div>
 
 <div id="contentBody">
@@ -73,7 +73,7 @@ $def call_template(name, change):
 
 <div class="formElement">
     <div class="label">
-        <label for="comment">$_("Please, leave a short note about what you changed: <span class="small gray">(Optional, but very useful!)</span>")</label>
+        <label for="comment">$:_("Please, leave a short note about what you changed:<span class="small gray">(Optional, but very useful!)</span>')</label>
     </div>
     <div class="input">
         <input type="text" name="comment" id="comment" value="$_('Reverted spam')" style="width:900px;"/>

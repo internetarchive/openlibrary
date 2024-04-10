@@ -25,11 +25,11 @@ $ daisy = "//archive.org/download/XXX/XXX_daisy.zip"
             <p>$_("It can only be opened on a specialized device with a key issued by the Library of Congress.")</p>
         </div>
         <ul class="link">
-            <li><a href="$daisy.replace('XXX', page.ocaid)"><strong>$:_('Download the DAISY.zip</strong></a> for ')<a href="$page.key">$page.title</a></li>
+            <li><a href="$daisy.replace('XXX', page.ocaid)">$:_('<strong>Download the DAISY.zip</strong></a> for <a href="%(url)s">%(title)s</a>', url=page.key, title=websafe(page.title))</li>
         </ul>
     $else:
         <ul class="link">
-            <li><a href="$daisy.replace('XXX', page.ocaid)"><strong>$:_('Download the DAISY.zip</strong></a> for ')<a href="$page.key">$page.title</a></li>
+            <li><a href="$daisy.replace('XXX', page.ocaid)">$:_('<strong>Download the DAISY.zip</strong></a> for <a href="%(url)s">%(title)s</a>', url=page.key, title=websafe(page.title))</li>
         </ul>
 
 
@@ -62,5 +62,5 @@ $ daisy = "//archive.org/download/XXX/XXX_daisy.zip"
 
     <div class="clearfix"></div>
 
-    <p class="help"><strong>$_("Need help?")</strong>$:_(' Please read our<a href="/help/faq"> FAQ on accessing books through Open Library</a>.')</p>
+    <p class="help">$:_('<strong>Need help?')</strong>$:_(' Please read our <a href="/help/faq">FAQ on accessing books through Open Library</a>.')</p>
 </div>

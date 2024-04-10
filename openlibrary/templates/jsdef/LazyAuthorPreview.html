@@ -2,7 +2,7 @@ $def with (author)
 
 $jsdef render_lazy_author_preview(item):
     $if item:
-        <div class="ac_author" title="$_('Select this author')">
+        <div class="ac_author" title="Select this author">
             <div class="olid">$item['key']</div>
             <span class="name">
                 $item['name']
@@ -10,16 +10,16 @@ $jsdef render_lazy_author_preview(item):
                     ($(item['birth_date'] or ' ')&ndash;$(item['death_date'] or ' '))
             </span>
             $if item['work_count'] == 0:
-                <span class="work">$_('No books associated with %(item)s', item=$item['name'])</span>
+                <span class="work">No books associated with $item['name']</span>
             $elif item['work_count'] == 1:
-                <span class="books">$:_('1 book </span>
-                <span class="work">titled <i>%(title)s', title=item['top_work'])</i></span>
+                <span class="books">1 book</span>
+                <span class="work">titled <i>$item['top_work']</i></span>
             $else:
-                <span class="books">$:_('%(count)d books</span>
-                <span class="work">including <i>%(title)s', count=item['work_count'], title=item['top_work'])</i></span>
+                <span class="books">$item['work_count'] books</span>
+                <span class="work">including <i>$item['top_work']</i></span>
 
             $if item['subjects']:
-                <span class="subject">$_('Subjects: %(subjects)s', subjects=(', '.join(item['subjects'])))</span>
+                <span class="subject">Subjects: $(', '.join(item['subjects']))</span>
         </div>
 
 $if author:

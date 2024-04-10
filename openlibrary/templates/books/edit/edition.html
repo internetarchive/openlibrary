@@ -451,7 +451,7 @@ $ })
                                 <input type="hidden" name="{{prefix}}identifiers--{{index}}--name" value="{{name}}"/>
                                 <input type="hidden" name="{{prefix}}identifiers--{{index}}--value" value="{{value}}" class="{{name}}"/>
                             </td>
-                            <td><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this identifier')">[x]</a></td>
+                            <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
                         </tr>
                         <tr>
                             <td align="right">Open Library</td>
@@ -469,7 +469,7 @@ $ })
                             $if id.name == "ocaid" and not is_privileged_user:
                                 <td></td>
                             $else:
-                                <td><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this identifier')">[x]</a></td>
+                                <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
                         </tr>
                     </tbody>
                 </table>
