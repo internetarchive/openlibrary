@@ -63,7 +63,7 @@ $def call_template(name, change):
             <td class="comment">
                 $:call_template("comment", c)
                 $if revert:
-                    <b>-- <a href="$revert.url()">$:_('Reverted</a> by %(revert_author)s', revert_author=revert_author)</b>
+                    <b>-- <a href="$revert.url()">$_('Reverted by %(revert_author)s', revert_author=revert_author)</a></b>
             </td>
         </tr>
     </tbody>

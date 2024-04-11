@@ -44,7 +44,7 @@ $ book_title = item.get('title', '')
         <div class="cta open">
           <a data-ol-link-track="Embed|Learn" target="_blank" href="$(canonical_url(item['key']))" title="$_('Learn more about "%(title)s" at OpenLibrary', title=book_title)">$_("Learn More")</a>
 	</div>
-      <p class="service">$:_('on <a target="_blank" href="$(canonical_url('/'))">openlibrary.org</a>')</p>
+      <p class="service">$:_('on <a target="_blank" href="%(link)s">openlibrary.org</a>', link=canonical_url('/'))</p>
     </div>
   </body>
 </html>
