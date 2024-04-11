@@ -4,13 +4,13 @@ $var title: [Admin Center] Site Permissions
 
 <div id="contentHead">
     $:render_template("admin/menu")
-    <h1>Site Permissions</h1>
+    <h1>$_("Site Permissions")</h1>
 </div>
 
 <div id="contentBody">
 
 <div>
-Change the policy of who can edit the site.
+$_("Change the policy of who can edit the site.")
 </div>
 
 $ options = []
@@ -21,8 +21,8 @@ $ options.append(("/permission/restricted", "Only admins can edit"))
 <form method="POST" class="olform">
     <div class="formElememnt">
         <div class="label">
-            <label for="id_root">Who can edit Open Library records?</label>
-            <span class="smaller lighter">This applies to /authors/*, /books/* and /works/* records.</span>
+            <label for="id_root">$_("Who can edit Open Library records?")</label>
+            <span class="smaller lighter">$_("This applies to /authors/*, /books/* and /works/* records.")</span>
         </div>
         <div class="input">
             $:Dropdown("perm_records", options, id="id_root", value=perm_records).render()
@@ -31,8 +31,8 @@ $ options.append(("/permission/restricted", "Only admins can edit"))
 
     <div class="formElememnt">
         <div class="label">
-            <label for="id_root">Who can edit Open Library pages?</label>
-            <span class="smaller lighter">This applies to /about/*, /help/*, /dev/*, /docs/* etc.</span>
+            <label for="id_root">$_("Who can edit Open Library pages?")</label>
+            <span class="smaller lighter">$_("This applies to /about/*, /help/*, /dev/*, /docs/* etc.")</span>
         </div>
         <div class="input">
             $:Dropdown("perm_pages", options, id="id_root", value=perm_pages).render()
@@ -42,15 +42,15 @@ $ options.append(("/permission/restricted", "Only admins can edit"))
     <div class="formElement bottom">
         <div class="input">
             <br>
-            <button type="submit" name="_submit" title="Update permissions" class="larger">Submit</button>
+            <button type="submit" name="_submit" title="$_('Update permissions')" class="larger">$_("Submit")</button>
             &nbsp;
-            <a href="javascript:history.go(-1);" class="attn">Cancel</a>
+            <a href="javascript:history.go(-1);" class="attn">$_("Cancel")</a>
         </div>
     </div>
 </form>
 
 <div class="smaller lighter">
-    This updates "permission" and "child_permission" fields of /, /works, /books and /authors records in the database.
+    $_("This updates "permission" and "child_permission" fields of /, /works, /books and /authors records in the database.")
 </div>
 
 </div>

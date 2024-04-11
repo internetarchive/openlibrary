@@ -2,7 +2,7 @@ $def with(isbn=None, oclc_numbers=None, referer="")
 
 $if oclc_numbers or isbn:
   <div class="cta-section">
-    <p class="cta-section-title world-cat-link">$_('Check nearby libraries')</p>
+    <p class="cta-section-title world-cat-link">$_("Check nearby libraries")</p>
     <ul class="book-locate-options">
       $if isbn:
         <li><a href="https://labs.library.link/services/borrow/?isbn=$isbn&embed=True&radius=500&refer=$(referer)">Library.link</a></li>

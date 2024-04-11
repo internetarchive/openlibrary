@@ -17,7 +17,7 @@ $if size == "M":
                 <img src="//covers.openlibrary.org/b/olid/$olid-M.jpg?default=false" class="cover" alt="$title"/>
             </a>
         </div>
-        <div class="SRPCoverBlank" onclick="document.location.href='$book.key';" title="Go to the page for $title">
+        <div class="SRPCoverBlank" onclick="document.location.href='$book.key';" title="$_('Go to the page for %(title)s', title=title)">
             <div class="innerBorder">
                 <div class="BookTitle">
                     $:macros.TruncateString(title, 70)

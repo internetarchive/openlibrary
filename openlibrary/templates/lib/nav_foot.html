@@ -6,52 +6,52 @@ $def with (page)
       <div>
         <h2>Open Library</h2>
         <ul>
-          <li><a href="/about/vision">$_('Vision')</a></li>
-          <li><a href="/volunteer">$_('Volunteer')</a></li>
-          <li><a href="/partner-with-us">$_('Partner With Us')</a></li>
-          <li><a href="https://archive.org/about/jobs.php" title="$_('Jobs')">$_('Careers')</a></li>
-          <li><a href="https://blog.openlibrary.org/">$_('Blog')</a></li>
-          <li><a href="https://archive.org/about/terms.php">$_('Terms of Service')</a></li>
-          <li><a href="https://archive.org/donate/?platform=ol&origin=olwww-TopNavDonateButton">$_('Donate')</a></li>
+          <li><a href="/about/vision">$_("Vision")</a></li>
+          <li><a href="/volunteer">$_("Volunteer")</a></li>
+          <li><a href="/partner-with-us">$_("Partner With Us")</a></li>
+          <li><a href="https://archive.org/about/jobs.php" title="$_('Jobs')">$_("Careers")</a></li>
+          <li><a href="https://blog.openlibrary.org/">$_("Blog")</a></li>
+          <li><a href="https://archive.org/about/terms.php">$_("Terms of Service")</a></li>
+          <li><a href="https://archive.org/donate/?platform=ol&origin=olwww-TopNavDonateButton">$_("Donate")</a></li>
         </ul>
       </div>
       <div>
         <h2>$:_('Discover')</h2>
         <ul>
-          <li><a href="/" title="$_('Go home')">$_('Home')</a></li>
-          <li><a href="/search" title="$_('Explore Books')">$_('Books')</a></li>
-          <li><a href="/search/authors" title="$_('Explore authors')">$_('Authors')</a></li>
-          <li><a href="/subjects" title="$_('Explore subjects')">$_('Subjects')</a></li>
-          <li><a href="/collections" title="$_('Explore collections')">$_('Collections')</a></li>
-          <li><a href="/advancedsearch">$_('Advanced Search')</a></li>
-          <li><a href="#top" title="$_('Navigate to top of this page')">$_('Return to Top')</a></li>
+          <li><a href="/" title="$_('Go home')">$_("Home")</a></li>
+          <li><a href="/search" title="$_('Explore Books')">$_("Books")</a></li>
+          <li><a href="/search/authors" title="$_('Explore authors')">$_("Authors")</a></li>
+          <li><a href="/subjects" title="$_('Explore subjects')">$_("Subjects")</a></li>
+          <li><a href="/collections" title="$_('Explore collections')">$_("Collections")</a></li>
+          <li><a href="/advancedsearch" title="$_('Advanced Search')">$_("Advanced Search")</a></li>
+          <li><a href="#top" title="$_('Navigate to top of this page')">$_("Return to Top")</a></li>
         </ul>
       </div>
       <div>
         <h2>$:_('Develop')</h2>
         <ul>
-          <li><a href="/developers" title="$_('Explore Open Library Developer Center')">$_('Developer Center')</a></li>
-          <li><a href="/developers/api" title="$_('Explore Open Library APIs')">$_('API Documentation')</a></li>
-          <li><a href="/developers/dumps" title="$_('Bulk Open Library data')">$_('Bulk Data Dumps')</a></li>
-          <li><a href="https://github.com/internetarchive/openlibrary/wiki/Writing-Bots" title="$_('Write a bot')">$_('Writing Bots')</a></li>
+          <li><a href="/developers" title="$_('Explore Open Library Developer Center')">$_("Developer Center")</a></li>
+          <li><a href="/developers/api" title="$_('Explore Open Library APIs')">$_("API Documentation")</a></li>
+          <li><a href="/developers/dumps" title="$_('Bulk Open Library data')">$_("Bulk Data Dumps")</a></li>
+          <li><a href="https://github.com/internetarchive/openlibrary/wiki/Writing-Bots" title="$_('Write a bot')">$_("Writing Bots")</a></li>
         </ul>
       </div>
       <div>
-        <h2>$:_('Help')</h2>
+        <h2>$_("Help")</h2>
         <ul>
-          <li><a href="/help">$_('Help Center')</a></li>
-          <li><a href="/contact?$urlencode(dict(path=request.fullpath))" title="$_('Problems')">$_('Report A Problem')</a></li>
-          <li><a href="/help/faq/editing" title="$_('Suggest Edits')">$_('Suggesting Edits')</a></li>
-          <li><a href="/books/add" title="$_('Add a new book to Open Library')">$_('Add a Book')</a></li>
-          <li><a href="https://github.com/internetarchive/openlibrary/releases" title="$_('Release Notes')">$_('Release Notes')</a></li>
+          <li><a href="/help">$_("Help Center")</a></li>
+          <li><a href="/contact?$urlencode(dict(path=request.fullpath))" title="$_('Problems')">$_("Report A Problem")</a></li>
+          <li><a href="/help/faq/editing" title="$_('Suggest Edits')">$_("Suggesting Edits")</a></li>
+          <li><a href="/books/add" title="$_('Add a new book to Open Library')">$_("Add a Book")</a></li>
+          <li><a href="https://github.com/internetarchive/openlibrary/releases" title="$_('Release Notes')">$_("Release Notes")</a></li>
         </ul>
         <aside>
-          <a class="footer-icon" title="Twitter" href="https://twitter.com/OpenLibrary"><img src="/static/images/tweet.svg" alt="" loading="lazy"></a>
-          <a class="footer-icon" title="GitHub" href="https://github.com/internetarchive/openlibrary"><img src="/static/images/github.svg" alt="" loading="lazy"></a>
+          <a class="footer-icon" title="$_('Twitter')" href="https://twitter.com/OpenLibrary"><img src="/static/images/tweet.svg" alt="" loading="lazy"></a>
+          <a class="footer-icon" title="$_('GitHub')" href="https://github.com/internetarchive/openlibrary"><img src="/static/images/github.svg" alt="" loading="lazy"></a>
         </aside>
       </div>
       <div>
-        <h2>$_('Change Website Language')</h2>
+        <h2>$_("Change Website Language")</h2>
         $:render_template('languages/language_list')
       </div>
     </div>

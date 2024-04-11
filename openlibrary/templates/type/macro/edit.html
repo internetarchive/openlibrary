@@ -25,7 +25,7 @@ $:render_template("lib/edit_head", page)
     <div class="clearfix"></div>
 
     <div class="formElement title">
-        <div class="label"><label for="plugin">Plugin</label></div>
+        <div class="label"><label for="plugin">$_("Plugin")</label></div>
         <div class="input">
             $ plugins = ["admin", "openlibrary", "search", "upstream", "worksearch"]
             $:Dropdown("plugin", args=plugins, value=page.get("plugin", "upstream")).render()
@@ -35,7 +35,7 @@ $:render_template("lib/edit_head", page)
     <div class="clearfix"></div>
 
     <div class="formElement">
-        <div class="label"><label for="macro">Macro</label></div>
+        <div class="label"><label for="macro">$_("Macro")</label></div>
         <div class="input">
             <textarea name="macro" id="macro" rows="40" cols="80">$page.macro</textarea>
         </div>
@@ -44,7 +44,7 @@ $:render_template("lib/edit_head", page)
     $:macros.EditButtonsMacros()
 
     $if ctx.user and ctx.user.is_admin():
-        <div class="adminOnly" style="position:absolute;top:230px;right:20px;"><button type="submit" value="Delete Record" name="_delete" title="Delete this macro?" id="deleteTop">Delete Record</button></div>
+        <div class="adminOnly" style="position:absolute;top:230px;right:20px;"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete this macro?')" id="deleteTop">$_("Delete Record")</button></div>
 
 </div>
 

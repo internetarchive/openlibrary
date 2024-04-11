@@ -8,8 +8,8 @@ $:render_template('jsdef/LazyAuthorPreview', None)
 
 $jsdef render_author_autocomplete_item(item):
     $if item.key == "__new__":
-        <div class="ac_author ac_addnew" title="Add a new author">
-            <span class="action">$_('Create a new record for') </span>
+        <div class="ac_author ac_addnew" title="$_('Add a new author')">
+            <span class="action">$_("Create a new record for") </span>
             <span class="name">$item.name</span>
         </div>
     $else:

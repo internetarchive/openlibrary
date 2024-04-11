@@ -129,3 +129,4 @@ export const authorShowcase = createShowcaseMarkup(false, [showcaseDetailsData[3
 export const workShowcase = createShowcaseMarkup(false, [showcaseDetailsData[0]])
 export const editionShowcase = createShowcaseMarkup(false, [showcaseDetailsData[1]])
 
+

@@ -104,7 +104,7 @@ $elif availability.get('is_lendable'):
     $# Checked out: Show checkout out + preview if secondary, else just preview
     <div class="cta-button-group">
       <a href="$work_key" class="cta-btn cta-btn--missing" title="$_('This book is currently checked out, please check back later.')"
-       data-ol-link-track="CTAClick|CheckedOut">$_('Checked Out')</a>
+       data-ol-link-track="CTAClick|CheckedOut">$_("Checked Out")</a>
     </div>
 
 $elif ocaid and availability.get('is_previewable') and book_provider.short_name == 'ia':

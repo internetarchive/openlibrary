@@ -74,7 +74,7 @@ $if can_merge:
                     <label for="$k">
                         <span class="name">$a.name</span>
                         $if a.birth_date or a.death_date:
-                            <span class="metaDate" title="birth/death date">$a.get('birth_date', '') - $a.get('death_date', '')</span>
+                            <span class="metaDate" title="$_('birth/death date')">$a.get('birth_date', '') - $a.get('death_date', '')</span>
                         $elif a.date:
                             <span class="metaDate">$a.date</span>
                         $if a.remote_ids:
