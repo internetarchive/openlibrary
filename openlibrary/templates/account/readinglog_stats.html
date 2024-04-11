@@ -19,7 +19,7 @@ $jsdef render_works_list(works):
         <li>
             <a href="$work.key" style="font-style: oblique">$full_title</a>
             $ first_publish_year = work.first_publish_year or '????'
-            <span title="$_('First published in %(year)s', year=str(first_publish_year))">($first_publish_year)</span>
+            <span title="First published in $first_publish_year">($first_publish_year)</span>
             by
             $for author in work.authors:
                 <a href="$author.key">$author.name</a>$cond(not loop.last, ', ', '')
@@ -28,7 +28,7 @@ $jsdef render_works_list(works):
 
 $jsdef render_excluded_works_list(works, total):
     <details>
-        <summary><meter value="$(total - len(works))" max="$total"></meter> $_('%(count)d works excluded due to missing data', count=len(works)) </summary>
+        <summary><meter value="$(total - len(works))" max="$total"></meter> $len(works) works excluded due to missing data</summary>
         $:render_works_list(works)
     </details>
 
