@@ -140,7 +140,7 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
     return extract_python(f, keywords, comment_tags, options)
 
 
-def extract_messages(dirs: list[str]):
+def extract_messages(dirs: list[str], verbose: bool, forced: bool):
     catalog = Catalog(project='Open Library', copyright_holder='Internet Archive')
     METHODS = [("**.py", "python"), ("**.html", "openlibrary.i18n:extract_templetor")]
     COMMENT_TAGS = ["NOTE:"]
@@ -160,11 +160,13 @@ def extract_messages(dirs: list[str]):
             counts[filename] = counts.get(filename, 0) + 1
             catalog.add(message, None, [(filename, lineno)], auto_comments=comments)
 
-        for filename, count in counts.items():
-            path = filename if d == filename else os.path.join(d, filename)
-            print(f"{count}\t{path}", file=sys.stderr)
+        if verbose:
+            for filename, count in counts.items():
+                path = filename if d == filename else os.path.join(d, filename)
+                print(f"{count}\t{path}", file=sys.stderr)
 
-    if msg_set != new_set:
+    has_changed = msg_set != new_set
+    if has_changed or forced:
         path = os.path.join(root, 'messages.pot')
         f = open(path, 'wb')
         write_po(f, catalog, include_lineno=False)
