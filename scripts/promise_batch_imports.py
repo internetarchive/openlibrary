@@ -16,6 +16,7 @@ The imports can be monitored for their statuses and rolled up / counted using th
 
 from __future__ import annotations
 import json
+from typing import Any
 import ijson
 from urllib.parse import urlencode
 import requests
@@ -25,6 +26,7 @@ import _init_path  # Imported for its side effect of setting PYTHONPATH
 from infogami import config
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch, ImportItem
+from openlibrary.core.vendors import get_amazon_metadata
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 
@@ -87,6 +89,17 @@ def is_isbn_13(isbn: str):
     return isbn and isbn[0].isdigit()
 
 
+def queue_asin_for_import(book: dict[str, Any]) -> None:
+    """
+    Queue a non-ISBN ASIN for staging in `import_item` via the affiliate server.
+    """
+    if (asin := book.get('ASIN')) and asin.upper().startswith("B"):
+        try:
+            get_amazon_metadata(id_=asin, id_type="asin")
+        except requests.exceptions.ConnectionError:
+            logger.exception("Affiliate Server unreachable")
+
+
 def batch_import(promise_id, batch_size=1000, dry_run=False):
     url = "https://archive.org/download/"
     date = promise_id.split("_")[-1]
@@ -101,6 +114,10 @@ def batch_import(promise_id, batch_size=1000, dry_run=False):
         return
 
     olbooks = list(olbooks_gen)
+    # Queue non-ISBN ASINs as `staged` so their metadata can supplement `load()`.
+    for book in ijson.items(resp.raw, 'item'):
+        queue_asin_for_import(book)
+
     batch = Batch.find(promise_id) or Batch.new(promise_id)
     # Find just-in-time import candidates:
     jit_candidates = [book['isbn_13'][0] for book in olbooks if book.get('isbn_13', [])]

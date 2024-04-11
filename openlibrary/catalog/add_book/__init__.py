@@ -24,6 +24,7 @@ A record is loaded by calling the load function.
 """
 
 import itertools
+import json
 import re
 from typing import TYPE_CHECKING, Any, Final
 
@@ -40,6 +41,7 @@ from infogami import config
 from openlibrary import accounts
 from openlibrary.catalog.utils import (
     EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS,
+    get_non_isbn_asin,
     get_publication_year,
     is_independently_published,
     is_promise_item,
@@ -974,7 +976,7 @@ def should_overwrite_promise_item(
     return bool(safeget(lambda: edition['source_records'][0], '').startswith("promise"))
 
 
-def load(rec, account_key=None, from_marc_record: bool = False):
+def load(rec: dict, account_key=None, from_marc_record: bool = False):
     """Given a record, tries to add/match that edition in the system.
 
     Record is a dictionary containing all the metadata of the edition.
@@ -992,6 +994,13 @@ def load(rec, account_key=None, from_marc_record: bool = False):
         validate_record(rec)
 
     normalize_import_record(rec)
+
+    # For recs with a non-ISBN ASIN, supplement the record with BookWorm data.
+    if non_isbn_asin := get_non_isbn_asin(rec):
+        from openlibrary.core.imports import ImportItem  # Evade circular import.
+
+        if item := ImportItem.find_staged_or_pending([non_isbn_asin]).first():
+            rec = json.loads(item.get("data", '{}')) | rec
 
     # Resolve an edition if possible, or create and return one if not.
 
