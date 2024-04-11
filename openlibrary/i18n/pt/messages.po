@@ -2955,7 +2955,7 @@ msgstr "Acompanhe seus livros favoritos"
 
 #: home/welcome.html:41
 msgid "Organize your Books using Lists & the Reading Log"
-msgstr "Organize seus livros utualizando listas e registros de leitura"
+msgstr "Organize seus livros utilizando listas e registros de leitura"
 
 #: home/welcome.html:54
 msgid "Try the virtual Library Explorer"
