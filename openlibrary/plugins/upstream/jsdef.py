@@ -53,6 +53,7 @@ __version__ = "0.3"
 0.3: Added support for elif.
 """
 
+import ast
 import json
 
 import web
@@ -65,6 +66,8 @@ from web.template import (
     PythonTokenizer,
     # INDENT,
 )
+
+from openlibrary.i18n import load_translations
 
 INDENT = "    "
 
@@ -101,11 +104,7 @@ class JSNode:
         self._count = 0
 
     def emit(self, indent, text_indent=""):
-        # Code generation logic is changed in version 0.34
-        if web.__version__ < "0.34":
-            return indent[4:] + 'yield "", %s\n' % repr(self.jsemit(self.node, ""))
-        else:
-            return indent[4:] + 'self.extend(%s)\n' % repr(self.jsemit(self.node, ""))
+        return indent[4:] + 'self.extend(%s)\n' % repr(self.jsemit(self.node, ""))
 
     def jsemit(self, node, indent):
         r"""Emit Javascript for given node.::
@@ -132,11 +131,80 @@ class JSNode:
     def jsemit_TextNode(self, node, indent):
         return json.dumps(node.value)
 
-    def jsemit_ExpressionNode(self, node, indent):
+    def jsemit_ExpressionNode(self, node: web.template.ExpressionNode, indent):
+        """
+        Emit javascript for expression node.
+
+        >>> jsemit = JSNode(None).jsemit
+        >>> jsemit(web.template.ExpressionNode("x"), "")
+        'websafe(x)'
+        >>> jsemit(web.template.ExpressionNode("x", escape=False), "")
+        'x'
+        >>> jsemit(web.template.ExpressionNode("_('Hello')"), "")
+        'websafe(_("Hello"))'
+        >>> jsemit(web.template.ExpressionNode("_('Hello %(name)s', name='World')"), "")
+        'websafe(_("Hello %(name)s", {name: "World"}))'
+        >>> jsemit(web.template.ExpressionNode("_('Hello %d', 42)"), "")
+        'websafe(_("Hello %d", 42))'
+        >>> jsemit(web.template.ExpressionNode("_('Hello %d %(name)s', 42, name='World')"), "")
+        'websafe(_("Hello %d %(name)s", 42, {name: "World"}))'
+        """
+        node_value = node.value
+        if node.value.startswith(('_(', 'ngettext(')):
+            # Babel! We don't have access to the translation function in JS,
+            # so we'll fetch the translated string here.
+            ast_module = ast.parse(node.value)
+            assert ast_module.body
+            assert isinstance(ast_module.body[0], ast.Expr)
+            call_node = ast_module.body[0].value
+            assert isinstance(call_node, ast.Call)
+            assert isinstance(call_node.func, ast.Name)
+            assert call_node.func.id in ('_', 'ngettext')
+
+            if call_node.func.id == '_':
+                assert len(call_node.args) >= 1
+                first_arg = call_node.args[0]
+                assert isinstance(first_arg, ast.Constant)
+                string = first_arg.value
+                # Replace with the translated string
+                translations = load_translations(web.ctx.lang)
+                first_arg.value = (
+                    translations and translations.ugettext(string)
+                ) or string
+            elif call_node.func.id == 'ngettext':
+                # ngettext requires at least 3 arguments: singular, plural, count
+                assert len(call_node.args) >= 3
+                first_arg = call_node.args[0]
+                assert isinstance(first_arg, ast.Constant)
+                singular = first_arg.value
+                second_arg = call_node.args[1]
+                assert isinstance(second_arg, ast.Constant)
+                plural = second_arg.value
+                # Replace with the translated string
+                translations = load_translations(web.ctx.lang)
+                first_arg.value = (
+                    translations and translations.ungettext(singular, plural, 1)
+                ) or singular
+                second_arg.value = (
+                    translations and translations.ungettext(singular, plural, 2)
+                ) or plural
+
+            if call_node.keywords:
+                # If there are keyword arguments, we need to convert them to
+                # a json object
+                kwargs_arg = ast.Dict(
+                    keys=[ast.Constant(value=k.arg) for k in call_node.keywords],
+                    values=[k.value for k in call_node.keywords],
+                )
+                call_node.args.append(kwargs_arg)
+                call_node.keywords = []
+
+            node_value = ast.unparse(ast_module)
+
         if node.escape:
-            return "websafe(%s)" % py2js(node.value)
+            return "websafe(%s)" % py2js(node_value)
         else:
-            return py2js(node.value)
+            return py2js(node_value)
 
     def jsemit_AssignmentNode(self, node, indent):
         return indent + "var " + py2js(node.code) + ";\n"
