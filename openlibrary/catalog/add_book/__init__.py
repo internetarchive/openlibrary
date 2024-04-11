@@ -489,13 +489,18 @@ def find_quick_match(rec):
         if ekeys:
             return ekeys[0]
 
-    # only searches for the first value from these lists
+    # Look for a matching non-ISBN ASIN identifier (e.g. from a BWB promise item).
+    if (non_isbn_asin := get_non_isbn_asin(rec)) and (
+        ekeys := editions_matched(rec, "identifiers.amazon", non_isbn_asin)
+    ):
+        return ekeys[0]
+
+    # Only searches for the first value from these lists
     for f in 'source_records', 'oclc_numbers', 'lccn':
         if rec.get(f):
             if f == 'source_records' and not rec[f][0].startswith('ia:'):
                 continue
-            ekeys = editions_matched(rec, f, rec[f][0])
-            if ekeys:
+            if ekeys := editions_matched(rec, f, rec[f][0]):
                 return ekeys[0]
     return False
 
@@ -537,6 +542,7 @@ def find_exact_match(rec, edition_pool):
                 continue
             seen.add(ekey)
             existing = web.ctx.site.get(ekey)
+
             match = True
             for k, v in rec.items():
                 if k == 'source_records':
