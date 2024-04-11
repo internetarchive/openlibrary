@@ -38,13 +38,13 @@ $ has_tag = 'tag' in page
       <h3 itemprop="description">
         $page.tag['description']
       </h3>
-    <a href="#search" class="shift">$_('Search for books with subject %(name)s.', name=page.name)</a>
+    <a href="#search" class="shift">$_("Search for books with subject %(name)s.", name=page.name)</a>
 
     <form action="/search" class="olform pagesearchbox">
       <input type="hidden" name="${page.subject_type}_facet" value="$page.name" />
-      <label for="searchSubjects" class="shift">$_('Search for books with subject %(name)s.', name=page.name)</label>
+      <label for="searchSubjects" class="shift">$_("Search for books with subject %(name)s.", name=page.name)</label>
       <input type="text" name="q" aria-label="Search" id="searchSubjects" size="100" class="larger" value="" />
-      <button type="submit" class="larger">$_('Search')</button>
+      <button type="submit" class="larger">$_("Search")</button>
     </form>
 </div>
 

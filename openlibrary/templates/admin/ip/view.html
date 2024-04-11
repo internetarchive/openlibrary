@@ -4,21 +4,21 @@ $var title: [Admin Center] $ip
 
 <div id="contentHead">
     $:render_template("admin/menu")
-    <h1><a class="plain" href="/admin/ip">IP</a> / $ip</h1>
+    <h1><a class="plain" href="/admin/ip">$_("IP")</a> / $ip</h1>
 </div>
 
 <div id="contentBody">
 
 $if ip in get_blocked_ips():
-    <div>IP $ip is <a href="/admin/block">blocked</a>.</div>
+    <div>$:_('IP %(ip)s is <a href="/admin/block">blocked</a>.', ip=ip)</div>
 $else:
     <form method="POST" id="block">
         <input type="hidden" name="action" value="block"/>
-        <button type="submit" class="larger" name="submit">$_("Block %s", ip)</button>
+        <button type="submit" class="larger" name="submit">$_('Block %(ip)s', ip=ip)</button>
     </form>
 
 <p>
-Please select the changesets to revert.
+$_("Please select the changesets to revert.")
 </p>
 
 $ limit = safeint(query_param('limit'), 100)
@@ -60,13 +60,13 @@ $def call_template(name, change):
                 <td class="displayname"><a rel="nofollow" href="$c.author.key">$c.author.displayname</a></td>
             $elif c.ip and c.ip != '127.0.0.1':
                 $ klass = cond(c.ip in get_blocked_ips(), 'red', "")
-                <td class="history"><a rel="nofollow" href="$changequery()" class="$klass" title="When you see numbers here, that's the IP address of the anonymous editor">$c.ip</a></td>
+                <td class="history"><a rel="nofollow" href="$changequery()" class="$klass" title="$_('When you see numbers here, that\'s the IP address of the anonymous editor')">$c.ip</a></td>
             $else:
                 <td class="history">$c.ip</td>
             <td class="comment">
                 $:call_template("comment", c)
                 $if revert:
-                    <b>-- <a href="$revert.url()">Reverted</a> by $revert_author</b>
+                    <b>-- <a href="$revert.url()">$_('Reverted by %(revert_author)s', revert_author=revert_author)</a></b>
             </td>
         </tr>
     </tbody>
@@ -76,10 +76,10 @@ $def call_template(name, change):
 
 <div class="formElement">
     <div class="label">
-        <label for="comment">$_("Please, leave a short note about what you changed:") <span class="small gray">(Optional, but very useful!)</span></label>
+        <label for="comment">$:_('Please, leave a short note about what you changed: <span class="small gray">(Optional, but very useful!)</span>')</label>
     </div>
     <div class="input">
-        <input type="text" name="comment" id="comment" value="Reverted spam" style="width:900px;"/>
+        <input type="text" name="comment" id="comment" value="$_('Reverted spam')" style="width:900px;"/>
     </div>
 </div>
 

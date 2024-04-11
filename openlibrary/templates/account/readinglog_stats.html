@@ -97,19 +97,19 @@ $jsdef render_excluded_works_list(works, total):
     <div class="small sansserif grey account-settings-menu" style="font-size: 16px!important">
         <a href="/account/books" style="text-decoration: none">
             ←
-           <span style="text-decoration: underline">My Books</span>
+           <span style="text-decoration: underline">$_("My Books")</span>
          </a>
         &raquo; <a href="$shelf_path">$shelf_name</a>
         &raquo;
     </div>
     <h1>$_('My %(shelf_name)s Stats', shelf_name=shelf_name)</h1>
 
-    <p>$:_('Displaying stats about <strong>%d</strong> books. Note all charts show only the top 20 bars. Note reading log stats are private.', works_count)</p>
+    <p>$:_('Displaying stats about <strong>%(works_count)d</strong> books. Note all charts show only the top 20 bars. Note reading log stats are private.', works_count=works_count)</p>
 </div>
 
 <div class="readinglog-charts" data-config="$dumps(reading_log_stats_config)" style="padding: 12px;">
 
-    <h2>$_('Author Stats')</h2>
+    <h2>$_("Author Stats")</h2>
 
     <section class="charts-flow">
         $code:
@@ -127,9 +127,9 @@ $jsdef render_excluded_works_list(works, total):
             </section>
     </section>
 
-    <small>$:_('Demographic statistics powered by <a href="https://www.wikidata.org/">Wikidata</a>. Here\'s a <a id="wd-query-sample" href="">sample</a> of the query used.') <br>Improve these stats by adding the Wikidata author identifier following <a href="https://openlibrary.org/help/faq/editing.en#author-identifiers-purpose"> these instructions</a>.</small>
+    <small>$:_('Demographic statistics powered by <a href="https://www.wikidata.org/">Wikidata</a>. Here\'s a <a id="wd-query-sample" href="">sample</a> of the query used. <br>Improve these stats by adding the Wikidata author identifier following <a href="https://openlibrary.org/help/faq/editing.en#author-identifiers-purpose"> these instructions</a>.')</small>
 
-    <h2>$_('Work Stats')</h2>
+    <h2>$_("Work Stats")</h2>
 
     <section class="charts-flow">
 
@@ -150,11 +150,11 @@ $jsdef render_excluded_works_list(works, total):
 </div>
 
 <details class="selected-works" open>
-    <summary>$_('Matching works')</summary>
+    <summary>$_("Matching works")</summary>
     <main>
         <div class="selected-works--list"></div>
         <div class="selected-works--empty">
-            $_('Click on a bar to see matching works')
+            $_("Click on a bar to see matching works")
         </div>
     </main>
 </details>

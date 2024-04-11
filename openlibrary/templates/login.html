@@ -23,9 +23,9 @@ $var title: $("Log In")
               <div class="flash-messages" id="autofill-dev-credentials">
                   <div class="info">
                       <span>
-                          This is a development instance, the default credentials are automatically filled.
+                          $_("This is a development instance, the default credentials are automatically filled.")
                           <br>
-                          email: openlibrary@example.com password: admin123
+                          $_("email:") openlibrary@example.com $_("password:") admin123
                       </span>
                   </div>
               </div>
@@ -37,7 +37,7 @@ $var title: $("Log In")
             <div class="label">
               <label for="username">$_("Email")</label>
               <span class="smaller lighter"></span>
-              &mdash; <a class="forgot-email" href="/account/email/forgot-ia">$_('Forgot your Internet Archive email?')</a>
+              &mdash; <a class="forgot-email" href="/account/email/forgot-ia">$_("Forgot your Internet Archive email?")</a>
             </div>
 
             <div class="input">
@@ -57,7 +57,7 @@ $var title: $("Log In")
         <div class="formElement">
             <div class="input">
                 <input name="remember" type="checkbox" id="remember" />
-                <label for="remember" class="small">$_('Remember me')</label>
+                <label for="remember" class="small">$_("Remember me")</label>
             </div>
         </div>
 
@@ -68,11 +68,11 @@ $var title: $("Log In")
 
         <div class="formElement bottom">
             <br/>
-            <button value="$_('Log In')" type="submit" class="login-submit larger" name="login" title="$_('Log In')">$_('Log In')</button>
+            <button value="$_('Log In')" type="submit" class="login-submit larger" name="login" title="$_('Log In')">$_("Log In")</button>
         </div>
         <div class="formElement">
             <div class="label"></div>
-            <div class="input smaller"><a href="https://archive.org/account/login.forgotpw.php">$_('Forgot your Password?')</a>
+            <div class="input smaller"><a href="https://archive.org/account/login.forgotpw.php">$_("Forgot your Password?")</a>
             <br/><br/>
             $:_('Not a member of Open Library? <a href="/account/create">Sign up now</a>.')</div>
         </div>

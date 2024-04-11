@@ -33,7 +33,7 @@ $else:
     <span class="listDelete sansserif smaller seedDelete--myLists hidden">
         <a href="javascript:;" data-confirm-text="$:_('Yes, I\'m sure')" data-cancel-text="$_('No, cancel')"><span></span>$_('Remove this seed?')</a>
     </span>
-    <div id="remove-seed-dialog" class="hidden" title="Remove">$:_('Are you sure you want to remove <strong>%(title)s</strong> from this list?', title=header.title)</div>
+    <div id="remove-seed-dialog" class="hidden" title="$_('Remove')">$:_('Are you sure you want to remove <strong>%(title)s</strong> from this list?', title=header.title)</div>
 
 $def seed_attrs(seed):
   data-list-key="$list.key"

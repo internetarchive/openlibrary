@@ -268,12 +268,12 @@ async def main(
     logger.info("BEGIN solr_updater")
 
     if debugger:
-        import debugpy
+        import debugpy  # noqa: T100
 
         logger.info("Enabling debugger attachment (attach if it hangs here)")
-        debugpy.listen(address=('0.0.0.0', 3000))
+        debugpy.listen(address=('0.0.0.0', 3000))  # noqa: T100
         logger.info("Waiting for debugger to attach...")
-        debugpy.wait_for_client()
+        debugpy.wait_for_client()  # noqa: T100
         logger.info("Debugger attached to port 3000")
 
     # Sometimes archive.org requests blocks forever.

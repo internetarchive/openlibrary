@@ -10,7 +10,7 @@ $def with(librivox_id)
    aria-controls="librivox-toast"
 >
   <span class="btn-icon read-aloud"></span>
-  <span class="btn-label">$_('Audiobook')</span>
+  <span class="btn-label">$_("Audiobook")</span>
 </a>
 </div>
 
@@ -18,7 +18,7 @@ $if render_once('librivox-toast'):
   <div class="toast toast--book-provider" data-toast-trigger=".cta-btn--librivox" id="librivox-toast" style="display:none">
     <div class="toast__body">
       $:_('This book is available from <a href="https://librivox.org/">LibriVox</a>. LibriVox is a trusted book provider of public domain audiobooks, narrated by volunteers, distributed for free on the internet.')
-      <a href="https://librivox.org/pages/about-librivox/">$_('Learn more')</a>
+      <a href="https://librivox.org/pages/about-librivox/">$_("Learn more")</a>
     </div>
     <a class="toast__close">&times;<span class="shift">$_("Close")</span></a>
   </div>

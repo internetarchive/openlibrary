@@ -6,17 +6,17 @@ $ title = book.title
   <div class="coverFloat" id=$id>
     <div class="coverFloatHead">
       <h2 class="donation__override">
-        Donate this book to the <a href="https://archive.org">Internet Archive</a> library.
+        $:_('Donate this book to the <a href="https://archive.org">Internet Archive</a> library.')
       </h2>
       <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
     </div>
     <hr>
     <div class="donate__modal">
-      <p class="cta">Hooray! You've discovered a title that's missing from our <a href="https://help.archive.org/hc/en-us/articles/360016554912-Borrowing-From-The-Lending-Library">library</a>. Can you help donate a copy?</p>
+      <p class="cta">$:_('Hooray! You've discovered a title that\'s missing from our <a href="https://help.archive.org/hc/en-us/articles/360016554912-Borrowing-From-The-Lending-Library">library</a>. Can you help donate a copy?')</p>
 
       <ol class="donation__instructions">
-        <li>If you own this book, you can <a href="https://store.usps.com/store/product/shipping-supplies/priority-mail-express-padded-flat-rate-envelope-P_EP13PE">mail</a> it to our address below.</li>
-        <li>You can also purchase this book from a vendor and ship it to our address:</li>
+        <li>$:_('If you own this book, you can<a href="https://store.usps.com/store/product/shipping-supplies/priority-mail-express-padded-flat-rate-envelope-P_EP13PE">mail</a> it to our address below.')</li>
+        <li>$_("You can also purchase this book from a vendor and ship it to our address:")</li>
       </ol>
       <br>
       <div class="donation__options">
@@ -29,20 +29,20 @@ San Francisco, CA 94118
       $:macros.AffiliateLinks(book.title, ids)
       </div>
 
-      <h2>Benefits of donating</h2>
-      <p>When you donate a physical book to the Internet Archive, your book will enjoy:</p>
+      <h2>$_("Benefits of donating")</h2>
+      <p>$_("When you donate a physical book to the Internet Archive, your book will enjoy:")</p>
       <div class="donation__info">
-        <img src="$book.get_cover_url('M')" alt="Donation info">
+        <img src="$book.get_cover_url('M')" alt="$_('Donation info')">
         <ul class="donation__benefits">
-          <li>Beautiful <a target="_blank" href="https://archive.org/scanning">high-fidelity digitization</a></li>
-          <li>Long-term <a href="https://blog.archive.org/2011/06/06/why-preserve-books-the-new-physical-archive-of-the-internet-archive/">archival preservation</a></li>
-          <li>Free <a href="https://controlleddigitallending.org/">controlled digital library access</a> by the <a href="https://en.wikipedia.org/wiki/Print_disability">print-disabled</a> and public<sup><a href="https://openlibrary.org/sponsorship#takedowns">†</a></sup></li>
+          <li>$:_('Beautiful <a target="_blank" href="https://archive.org/scanning">high-fidelity digitization')</a></li>
+          <li>$:_('Long-term <a href="https://blog.archive.org/2011/06/06/why-preserve-books-the-new-physical-archive-of-the-internet-archive/">archival preservation')</a></li>
+          <li>$:_('Free <a href="https://controlleddigitallending.org/">controlled digital library access</a> by the <a href="https://en.wikipedia.org/wiki/Print_disability">print-disabled</a> public')<sup><a href="https://openlibrary.org/sponsorship#takedowns">†</a></sup></li>
         </ul>
       </div>
     </div>
     <hr/>
     <p class="donation__note">
-      Open Library is a project of the <a href="https://archive.org/about">Internet Archive</a>, a 501(c)(3) non-profit
+      $:_('Open Library is a project of the <a href="https://archive.org/about">Internet Archive</a>, a 501(c)(3) non-profit')
     </p>
   </div>
 </div>

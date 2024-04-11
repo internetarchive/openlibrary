@@ -52,10 +52,10 @@ $ show_wikipedia_citation_link = page.wp_citation_fields
                 <div class="hidden">
                     <div class="coverFloat" id="wikicode">
                         <div class="coverFloatHead">
-                          <h2>Wikipedia citation</h2>
-                          <a class="dialog--close">&times;<span class="shift">Close</span></a>
+                          <h2>$_("Wikipedia citation")</h2>
+                          <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
                         </div>
-                        <p>$_('Copy and paste this code into your Wikipedia page.') <a href="https://en.wikipedia.org/wiki/Template:Cite_book" target="_blank" title="Get instructions at Wikipedia in a new window">Need help</a>?</p>
+                        <p>$_("Copy and paste this code into your Wikipedia page.") <a href="https://en.wikipedia.org/wiki/Template:Cite_book" target="_blank" title="$_('Get instructions at Wikipedia in a new window')">$_('Need help?')</a></p>
                         <form method="get">
                           $ cite = " |".join([k + '=' + v for k, v in page.wp_citation_fields.items() if v])
                           <textarea cols="70" rows="10" readonly="readonly" id="wikiselect">{{cite book|$cite}}</textarea>

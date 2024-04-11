@@ -8,7 +8,7 @@ $# title : str|None : Title of modal
   <div class="floaterHead">
     $if title:
       <h2>$title</h2>
-    <a class="native-dialog--close" href="javascript:;">×<span class="shift">Close</span></a>
+    <a class="native-dialog--close" href="javascript:;">×<span class="shift">$_("Close")</span></a>
   </div>
   $:content
 </dialog>
