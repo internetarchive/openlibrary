@@ -35,7 +35,7 @@ from infogami.core.db import ValidationException
 
 from openlibrary.core import cache
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
-from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
+from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13, canonical
 from openlibrary.core.models import Edition
 from openlibrary.core.lending import get_availability
 import openlibrary.core.stats
@@ -479,11 +479,11 @@ def remove_high_priority(query: str) -> str:
 
 
 class isbn_lookup(delegate.page):
-    path = r'/(?:isbn|ISBN)/([0-9xX-]+)'
+    path = r'/(?:isbn|ISBN)/(.{10,})'
 
     def GET(self, isbn):
         input = web.input(high_priority=False)
-
+        isbn = canonical(isbn)
         high_priority = input.get("high_priority") == "true"
         if "high_priority" in web.ctx.env.get('QUERY_STRING'):
             web.ctx.env['QUERY_STRING'] = remove_high_priority(
