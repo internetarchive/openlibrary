@@ -59,6 +59,7 @@ def get_trending_books(
     books_only=False,
     sort_by_count=True,
     minimum=None,
+    q: str = "",
     fields: list[str] | None = None,
 ):
     logged_books = (
@@ -71,6 +72,7 @@ def get_trending_books(
             fetch=True,
             sort_by_count=sort_by_count,
             minimum=minimum,
+            q=q,
             fields=fields,
         )
     )
