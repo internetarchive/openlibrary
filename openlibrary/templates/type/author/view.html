@@ -142,55 +142,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
         </div>
     </div>
     <div class="contentOnethird">
-        <style>
-            /* TODO: This should be moved to a .less file once we decide on a design. But for now it is easier editing here. */
-            .infobox {
-                line-height: 1.5em;
-                background-color: #f9f9f9;
-                border-radius: 5px;
-                padding: 10px;
-                margin-bottom: 3px;
-                border-bottom: 1px solid #f2f0e7;
-            }
-            .infobox tr {
-                /* This is only needed because without it page-user.css makes the background beige */
-                background-color: transparent;
-            }
-            .infobox table {
-                /* This is only needed because without it page-user.css makes the background beige */
-                border-collapse: unset;
-                border-spacing: 3px;
-            }
-            .infobox tr td:first-child {
-                padding-right: 5px;
-            }
-            .infobox_name {
-                text-align: center;
-                margin-bottom: 10px;
-            }
-        </style>
-
-        $def render_infobox_row(label, itemprop, value):
-            $if value:
-                <tr>
-                    <td><strong>$_(label)</strong></td>
-                    <td><span itemprop="$itemprop">$value</span></td>
-                </tr>
-
-        <div class="infobox">
-            <div class="infobox_name"><strong>$title</strong></div>
-            <div class="illustration">
-                $:render_template("covers/author_photo", page)
-                $:render_template("covers/change", page, ".bookCover img")
-            </div>
-            <table>
-                $if page.birth_date or page.death_date:
-                    $:render_infobox_row("Born", 'birthDate', page.birth_date)
-                    $:render_infobox_row("Died", 'deathDate', page.death_date)
-                $elif page.date:
-                        $:render_infobox_row("Date", '', page.date)
-            </table>
-        </div>
+        $:render_template("authors/infobox", page, title)
 
         $def render_subjects(label, subjects, prefix):
             $if subjects:
