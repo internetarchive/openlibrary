@@ -137,6 +137,7 @@ class WorkSearchScheme(SearchScheme):
         'rating': 'ratings_sortable desc',
         'rating asc': 'ratings_sortable asc',
         'rating desc': 'ratings_sortable desc',
+        'divisive': 'min(ratings_count_1,ratings_count_5) desc',
         'readinglog': 'readinglog_count desc',
         'want_to_read': 'want_to_read_count desc',
         'currently_reading': 'currently_reading_count desc',
