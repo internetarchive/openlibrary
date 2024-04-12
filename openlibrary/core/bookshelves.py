@@ -166,6 +166,15 @@ class Bookshelves(db.CommonExtras):
         from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
         from openlibrary.core.lending import get_availabilities
 
+        fetch_availability = not fields or 'availability' in fields
+
+        solr_fields = set(fields or [])
+        if 'availability' in solr_fields:
+            solr_fields.remove('availability')
+            solr_fields.add('ia')
+        if solr_fields and 'key' not in solr_fields:
+            solr_fields.add('key')
+
         if not q:
             solr_works = get_solr().get_many(
                 (f"/works/OL{i['work_id']}W" for i in readinglog_items),
@@ -191,10 +200,11 @@ class Bookshelves(db.CommonExtras):
             ).docs
 
         # Loop over each solr work inject its availability
-        availability_index = get_availabilities(solr_works)
-        for work in solr_works:
-            if availability := availability_index.get(work.key):
-                work['availability'] = availability
+        if fetch_availability:
+            availability_index = get_availabilities(solr_works)
+            for work in solr_works:
+                if availability := availability_index.get(work['key']):
+                    work['availability'] = availability
 
         work_index = {work['key']: work for work in solr_works}
 
