@@ -1,4 +1,4 @@
-$def with (work, edition, page_url)
+$def with (work, edition, page_url, show_share_links=True)
 
 $def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None):
   $ href = 'javascript:;'
@@ -23,7 +23,7 @@ $def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None
     $ notes_content = icon_link("notes-modal-link", "/static/images/icons/notes.svg", _("Notes"), ga_data="ModalLinkClick|NoteIcon")
     $:macros.NotesModal(work, edition, notes_content, 'sidebar-notes')
 
-  $if ctx.get('share_links'):
+  $if show_share_links and ctx.get('share_links'):
     $ share_content = icon_link("share-modal-link", "/static/images/icons/share.svg", _("Share"), login_redirect=False, ga_data="ModalLinkClick|ShareIcon")
     $ share_links = ctx.get('share_links')
     $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper")

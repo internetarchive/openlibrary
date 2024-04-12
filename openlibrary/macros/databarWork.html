@@ -52,7 +52,7 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
 
           <hr>
           $ render_times['databarWork: Modal Links - Mobile'] = time()
-          $:render_template("type/edition/modal_links", work, edition, share_url)
+          $:render_template("type/edition/modal_links", work, edition, share_url, show_share_links=False)
           $ render_times['databarWork: Modal Links - Mobile'] = time() - render_times['databarWork: Modal Links - Mobile']
         </div>
 
