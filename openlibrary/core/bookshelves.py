@@ -116,6 +116,7 @@ class Bookshelves(db.CommonExtras):
         fetch: bool = False,
         sort_by_count: bool = True,
         minimum: int = 0,
+        fields: list[str] | None = None,
     ) -> list:
         """Returns a ranked list of work OLIDs (in the form of an integer --
         i.e. OL123W would be 123) which have been most logged by
@@ -147,10 +148,10 @@ class Bookshelves(db.CommonExtras):
         }
 
         logged_books = list(oldb.query(query, vars=data))
-        return cls.fetch(logged_books) if fetch else logged_books
+        return cls.fetch(logged_books, fields) if fetch else logged_books
 
     @classmethod
-    def fetch(cls, readinglog_items):
+    def fetch(cls, readinglog_items: list, fields: list[str] | None = None) -> list:
         """Given a list of readinglog_items, such as those returned by
         Bookshelves.most_logged_books, fetch the corresponding Open Library
         book records from solr with availability
@@ -161,7 +162,8 @@ class Bookshelves(db.CommonExtras):
         # This gives us a dict of all the works representing
         # the logged_books, keyed by work_id
         work_index = get_solr_works(
-            f"/works/OL{i['work_id']}W" for i in readinglog_items
+            (f"/works/OL{i['work_id']}W" for i in readinglog_items),
+            fields=fields,
         )
 
         # Loop over each work in the index and inject its availability
