@@ -2,32 +2,6 @@ import { FadingToast } from '../Toast.js';
 import '../../../../../static/css/components/metadata-form.less';
 
 /**
- * Initializes share modal.
- */
-export function initShareModal($modalLinks) {
-    addClickListeners($modalLinks, '400px');
-    for (const link of $modalLinks) {
-        const modalContent = getModalContent($(link))
-
-        const shareLinks = modalContent.querySelectorAll('.share-link')
-        addShareLinkHandlers(shareLinks)
-    }
-}
-
-/**
- * Adds click listeners to each given link.
- *
- * On click, the share modal will close.
- *
- * @param {NodeList<HTMLElement>} links Collection of clickable links in the social share modal.
- */
-function addShareLinkHandlers(links) {
-    for (const link of links) {
-        link.addEventListener('click', () => $.colorbox.close())
-    }
-}
-
-/**
  * Initializes a collection of notes modals.
  *
  * @param {JQuery} $modalLinks  A collection of notes modal links.

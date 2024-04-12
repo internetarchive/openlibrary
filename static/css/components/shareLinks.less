@@ -11,6 +11,10 @@
 .shareLinks-list {
   .display-flex();
   word-break: keep-all;
+  // FIXME:
+  // Important can be removed when component/Tools has been removed
+  // The list styles clash with this component.
+  margin-left: 0 !important;
 
   ul {
     list-style-type: none;
@@ -43,19 +47,21 @@
   }
   img {
     display: block;
-    margin: 0 auto;
+    margin: 0;
     cursor: pointer;
-    height: 30px;
+    width: 60.5px;
+    height: 60.5px;
     aspect-ratio: 1;
   }
 }
 
 .shareLinks {
+  width: 400px;
   li:hover {
     cursor: pointer;
   }
   .share-source {
-    font-size: .8em;
+    font-size: 12.8px;
     text-align: center;
     color: @grey;
   }

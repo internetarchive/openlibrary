@@ -280,8 +280,7 @@ jQuery(function () {
     const $observationModalLinks = $('.observations-modal-link');
     const $notesModalLinks = $('.notes-modal-link');
     const $notesPageButtons = $('.note-page-buttons');
-    const $shareModalLinks = $('.share-modal-link');
-    if ($observationModalLinks.length || $notesModalLinks.length || $notesPageButtons.length || $shareModalLinks.length) {
+    if ($observationModalLinks.length || $notesModalLinks.length || $notesPageButtons.length) {
         import(/* webpackChunkName: "modal-links" */ './modals')
             .then(module => {
                 if ($observationModalLinks.length) {
@@ -292,9 +291,6 @@ jQuery(function () {
                 }
                 if ($notesPageButtons.length) {
                     module.addNotesPageButtonListeners();
-                }
-                if ($shareModalLinks.length) {
-                    module.initShareModal($shareModalLinks)
                 }
             });
     }
@@ -399,6 +395,13 @@ jQuery(function () {
         import(/* webpackChunkName: "dialog" */ './native-dialog')
             .then(module => module.initDialogs(nativeDialogs))
     }
+
+    const shareModalLinks = document.querySelectorAll('.share-modal-link')
+    if (shareModalLinks.length) {
+        import(/* webpackChunkName: "share-modals" */ './native-dialog/modals/ShareModal')
+            .then(module => module.initShareModals(shareModalLinks))
+    }
+
     const setGoalLinks = document.querySelectorAll('.set-reading-goal-link')
     const goalEditLinks = document.querySelectorAll('.edit-reading-goal-link')
     const goalSubmitButtons = document.querySelectorAll('.reading-goal-submit-button')

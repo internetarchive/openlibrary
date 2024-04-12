@@ -1,6 +1,6 @@
 $def with (work, edition, page_url, show_share_links=True)
 
-$def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None):
+$def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None, share_dialog_id=None):
   $ href = 'javascript:;'
   $if not ctx.user and login_redirect:
     $# Change classname to avoid adding click listeners and redirect to login page:
@@ -8,7 +8,8 @@ $def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None
     $ link_class = '%s--redirect' % link_class
 
   $ ga_attr = 'data-ol-link-track=%s' % ga_data if ga_data else ''
-  <a href="$href" class="$link_class icon-link" $ga_attr>
+  $ dialog_id = 'data-dialog-id=%s' % share_dialog_id if share_dialog_id else ''
+  <a href="$href" class="$link_class icon-link" $ga_attr $dialog_id>
     <img class="icon-link__image" src="$img_src">
     <div class="icon-link__text">$link_text</div>
   </a>
@@ -24,7 +25,8 @@ $def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None
     $:macros.NotesModal(work, edition, notes_content, 'sidebar-notes')
 
   $if show_share_links and ctx.get('share_links'):
-    $ share_content = icon_link("share-modal-link", "/static/images/icons/share.svg", _("Share"), login_redirect=False, ga_data="ModalLinkClick|ShareIcon")
+    $ share_dialog_id = 'modal-links-share-modal'
+    $ share_content = icon_link("share-modal-link", "/static/images/icons/share.svg", _("Share"), login_redirect=False, ga_data="ModalLinkClick|ShareIcon", share_dialog_id=share_dialog_id)
     $ share_links = ctx.get('share_links')
-    $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper")
+    $:macros.ShareModal(share_links, page_url, share_content, share_dialog_id, classes="share-modal-wrapper")
 </div>
