@@ -75,13 +75,10 @@
 
 ## 运行测试
 
-公共图书馆的测试可用pytest运行。 请参阅我们的[测试文档](https://github.com/internetarchive/openlibrary/wiki/Testing)以了解更多的信息
-
-请在docker运行时进行测试
+公共图书馆的测试可用docker运行。 请参阅我们的[测试文档](https://github.com/internetarchive/openlibrary/wiki/Testing)以了解更多的信息
 
 ```
-cd docker/
-docker compose exec web make test
+docker compose run --rm home make test
 ```
 
 ## 许可证
