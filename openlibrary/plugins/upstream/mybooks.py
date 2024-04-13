@@ -344,7 +344,7 @@ class public_my_books_json(delegate.page):
                 for w in books
             ]
 
-            if len(records_json) < limit:
+            if page == 1 and len(records_json) < limit:
                 num_found = len(records_json)
             else:
                 num_found = readlog.count_shelf(key)
