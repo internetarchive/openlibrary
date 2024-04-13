@@ -1,0 +1,14 @@
+$def with (link_class, img_src, link_text, login_redirect=True, ol_link_track=None, share_dialog_id=None)
+
+$ href = 'javascript:;'
+$if login_redirect and not ctx.user:
+  $# Change classname to avoid adding click listeners and redirect to login page:
+  $ href = '/account/login?redirect=%s' % ctx.path
+  $ link_class = '%s--redirect' % link_class
+
+$ ol_link_track_attr = 'data-ol-link-track=%s' % ol_link_track if ol_link_track else ''
+$ dialog_id = 'data-dialog-id=%s' % share_dialog_id if share_dialog_id else ''
+<a href="javascript:;" class="$link_class icon-link" $ol_link_track_attr $dialog_id>
+  <img class="icon-link__image" src="$img_src">
+  <div class="icon-link__text">$link_text</div>
+</a>
