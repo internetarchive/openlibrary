@@ -27,6 +27,7 @@ class SubjectSearchScheme(SearchScheme):
         'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
         'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
     }
+    aggregates: dict[str, str] = {}
     default_fetched_fields = {
         'key',
         'name',

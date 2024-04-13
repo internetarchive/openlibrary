@@ -170,6 +170,12 @@ class WorkSearchScheme(SearchScheme):
         'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
         'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
     }
+    aggregates = {
+        'readinglog_count': 'sum(readinglog_count)',
+        'want_to_read_count': 'sum(want_to_read_count)',
+        'currently_reading_count': 'sum(currently_reading_count)',
+        'already_read_count': 'sum(already_read_count)',
+    }
     default_fetched_fields = {
         'key',
         'author_name',
