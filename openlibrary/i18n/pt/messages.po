@@ -1410,7 +1410,7 @@ msgstr "Email da Open Library"
 
 #: account/email/forgot-ia.html:38
 msgid "Retrieve Archive.org Email"
-msgstr "Obtee o email de Archive.org"
+msgstr "Obter o email de Archive.org"
 
 #: account/email/forgot-ia.html:43 account/password/forgot.html:10
 #: account/password/forgot.html:11
@@ -1525,7 +1525,7 @@ msgstr ""
 
 #: admin/attach_debugger.html:22
 msgid "Waiting for debugger to attach..."
-msgstr "Esperando para que o debugger se junte..."
+msgstr "Aguardando o depurador se conectar..."
 
 #: admin/attach_debugger.html:22
 msgid "Start"
@@ -1585,7 +1585,7 @@ msgstr "Listas de espera"
 
 #: admin/menu.html:24
 msgid "Block IPs"
-msgstr "IP bloqueadas"
+msgstr "IPs bloqueados"
 
 #: admin/menu.html:25
 msgid "Spam Words"
@@ -1609,7 +1609,7 @@ msgstr "Inspecionar a loja"
 
 #: admin/menu.html:31
 msgid "Inspect memcache"
-msgstr "Inspecionar memória caché"
+msgstr "Inspecionar memcache"
 
 #: admin/people/view.html:172 admin/profile.html:7
 msgid "Admin"
@@ -1637,7 +1637,7 @@ msgstr "Estado do empréstimo"
 
 #: admin/ip/index.html:18
 msgid "List of Banned IPs"
-msgstr "Lista de IP banidas"
+msgstr "Lista de IPs banidos"
 
 #: admin/ip/index.html:22 admin/people/index.html:57
 msgid "Date/Time"
@@ -1795,7 +1795,7 @@ msgstr "Mais em Projeto Gutenberg"
 
 #: book_providers/gutenberg_read_button.html:10
 msgid "Read eBook from Project Gutenberg"
-msgstr "Ler livro electrônico no Projeto Gutenberg"
+msgstr "Ler eBook no Projeto Gutenberg"
 
 #: book_providers/gutenberg_read_button.html:21
 msgid ""
@@ -1866,11 +1866,11 @@ msgstr "Livro completo MP3"
 
 #: book_providers/librivox_download_options.html:13
 msgid "Get the RSS Feed from LibriVox"
-msgstr "Obter o canal RSS de LibriVox"
+msgstr "Obter o Feed RSS de LibriVox"
 
 #: book_providers/librivox_download_options.html:13
 msgid "RSS Feed"
-msgstr "Canal RSS"
+msgstr "Feed RSS"
 
 #: book_providers/librivox_download_options.html:14
 msgid "More at LibriVox"
@@ -1878,7 +1878,7 @@ msgstr "Mais em LibriVox"
 
 #: book_providers/librivox_read_button.html:9
 msgid "Listen to a reading from LibriVox"
-msgstr "Escutar uma lectura de LibriVox"
+msgstr "Escutar uma leitura de LibriVox"
 
 #: book_providers/librivox_read_button.html:17
 msgid "Audiobook"
@@ -1934,7 +1934,7 @@ msgstr "Mais em Standard Ebooks"
 
 #: book_providers/standard_ebooks_read_button.html:10
 msgid "Read eBook from Standard eBooks"
-msgstr "Ler livro electrônico do Standard eBooks"
+msgstr "Ler livro eletrônico do Standard eBooks"
 
 #: book_providers/standard_ebooks_read_button.html:21
 msgid ""
@@ -1946,8 +1946,8 @@ msgid ""
 msgstr ""
 "Este livro está disponível em <a href=\"https://standardebooks.org/"
 "\">Standard Ebooks</a>. Standard Ebooks é uma fonte de livros de "
-"confiança e um projeto impulsado por voluntários, que produzem novas "
-"edições de livros electrônicos de domínio público formatados com carinho, "
+"confiança e um projeto impulsionado por voluntários, que produzem novas "
+"edições de livros eletrônicos de domínio público formatados com carinho, "
 "de código aberto, livres de restrições de direitos de autor e gratuitos."
 
 #: books/add.html:7 books/check.html:10
@@ -2149,13 +2149,13 @@ msgid ""
 "ID (like <a href=\"/authors/OL23919A\" target=\"_blank\"><em>OL23919A</em></"
 "a>)."
 msgstr ""
-"Você pode buscar pelo nombe do autor (como <em>j k rowling</em>) ou pelo "
+"Você pode buscar pelo nome do autor (como <em>j k rowling</em>) ou pelo "
 "identificador da Open Library (como <a href=\"/authors/OL23919A\" "
 "target=\"_blank\"><em>OL23919A</em></a>)."
 
 #: books/edit.html:91
 msgid "Author editing requires javascript"
-msgstr "Editar o autor requer javascript"
+msgstr "A edição de autor requer javascript"
 
 #: books/edit.html:104
 msgid "Add Excerpts"
@@ -2204,7 +2204,7 @@ msgstr "Palavras chave sobre o tema?"
 
 #: books/edit/about.html:21
 msgid "Please separate with commas."
-msgstr "Por favor, as separe com vírgulas."
+msgstr "Por favor, separe com vírgulas."
 
 #: books/edit/about.html:21 books/edit/about.html:35 books/edit/about.html:49
 #: books/edit/about.html:63 books/edit/addfield.html:77
@@ -2228,7 +2228,7 @@ msgstr "Notou algum lugar mencionado?"
 
 #: books/edit/about.html:62
 msgid "When is it set or about?"
-msgstr "Quando acontece ou sobre o que se trata?"
+msgstr "Quando é definido ou sobre o que se trata?"
 
 #: books/edit/addfield.html:70
 msgid "Add a New Contributor Role"
@@ -2241,19 +2241,19 @@ msgstr "O que deveríamos mostrar no menu?"
 
 #: books/edit/addfield.html:96
 msgid "Add a New Type of Identifier"
-msgstr "Adicionar um novo tipo de identificador"
+msgstr "Adicionar um Novo Tipo de Identificador"
 
 #: books/edit/addfield.html:113
 msgid "If the system has a website, what's the homepage?"
-msgstr "Se o sistema tem um site, qual é a sua página principal?"
+msgstr "Se o sistema tem um website, qual é a sua página principal?"
 
 #: books/edit/addfield.html:122
 msgid "Please leave a note: Why is this ID useful?"
-msgstr "Por favor, deixe um comentário: Por que este identificador é útil?"
+msgstr "Por favor, deixe um comentário: Por que este ID é útil?"
 
 #: books/edit/addfield.html:141
 msgid "Add a New Classification System"
-msgstr "Adicionar um novo sistema de clasificação"
+msgstr "Adicionar um Novo Sistema de Clasificação"
 
 #: books/edit/addfield.html:158
 msgid "Please leave a note: Why is this classification useful?"
@@ -2264,7 +2264,7 @@ msgid ""
 "Can you direct us to more information about this classification system "
 "online?"
 msgstr ""
-"Você poderia nos direcionar a mais informações sobre esse sistema de classificação "
+"Você pode nos direcionar para mais informações sobre esse sistema de classificação "
 "online?"
 
 #: books/edit/edition.html:22
@@ -2289,7 +2289,7 @@ msgstr "-- Mover à uma nova obra"
 
 #: EditionNavBar.html:17 books/edit/edition.html:86
 msgid "This Edition"
-msgstr "Esta edição"
+msgstr "Esta Edição"
 
 #: books/edit/edition.html:96
 msgid "Enter the title of this specific edition."
@@ -2350,11 +2350,11 @@ msgstr "Contribuidores"
 
 #: books/edit/edition.html:202
 msgid "Please select a role."
-msgstr "Por favor, selecione um papel."
+msgstr "Por favor, selecione uma função."
 
 #: books/edit/edition.html:202
 msgid "You need to give this ROLE a name."
-msgstr "Você precisa dar um nome para esse PAPEL."
+msgstr "Você precisa dar um nome para essa FUNÇÃO."
 
 #: books/edit/edition.html:204
 msgid "List the people involved"
@@ -2362,11 +2362,11 @@ msgstr "Lista de pessoas involvidas"
 
 #: books/edit/edition.html:214
 msgid "Select role"
-msgstr "Selecionar papel"
+msgstr "Selecionar função"
 
 #: books/edit/edition.html:219
 msgid "Add a new role"
-msgstr "Adicionar um novo papel"
+msgstr "Adicionar uma nova função"
 
 #: books/edit/edition.html:239 books/edit/edition.html:255
 msgid "Remove this contributor"
@@ -2374,7 +2374,7 @@ msgstr "Eliminar este contribuidor"
 
 #: books/edit/edition.html:264
 msgid "By Statement:"
-msgstr "Por declaração:"
+msgstr "Por Declaração:"
 
 #: books/edit/edition.html:275
 msgid "Languages"
@@ -2398,7 +2398,7 @@ msgstr "Qual é o livro original?"
 
 #: books/edit/edition.html:323
 msgid "What language was the original written in?"
-msgstr "Em que idioma foi escrit o original?"
+msgstr "Em que idioma foi escrito o original?"
 
 #: books/edit/edition.html:341
 msgid "Description of this edition"
@@ -2417,7 +2417,7 @@ msgid ""
 "Use a \"*\" for an indent, a \"|\" to add a column, and line breaks for new "
 "lines. Like this:"
 msgstr ""
-"Use um \"*\" para um recúo, uma \"|\" para adicionar uma coluna e quebras de "
+"Use um \"*\" para indentar, uma \"|\" para adicionar uma coluna e quebras de "
 "linha para novas linhas. Assim:"
 
 #: books/edit/edition.html:366
@@ -2426,7 +2426,7 @@ msgstr "Algum comentário sobre essa edição específica?"
 
 #: books/edit/edition.html:367
 msgid "Anything about the book that may be of interest."
-msgstr "Alguma informação sobre esse livro que possa ser de interesse."
+msgstr "Qualquer coisa sobre o livro que possa ser de interesse."
 
 #: books/edit/edition.html:376
 msgid "Is it known by any other titles?"
@@ -2475,26 +2475,26 @@ msgstr "Por favor, selecione um identificador."
 
 #: books/edit/edition.html:414
 msgid "You need to give a value to ID."
-msgstr "Você precisa dar um valor ao identificador."
+msgstr "Você precisa dar um valor ao ID."
 
 #: books/edit/edition.html:414
 msgid "ID ids cannot contain whitespace."
-msgstr "Identificadores não podem conter espaços em branco."
+msgstr "Identificadores de ID não podem conter espaços em branco."
 
 #: books/edit/edition.html:414
 msgid "ID must be exactly 10 characters [0-9] or X."
-msgstr "O identificador deve ser exatamente de 10 caracteres [0-9] ou X."
+msgstr "O ID deve ser exatamente de 10 caracteres [0-9] ou X."
 
 #: books/edit/edition.html:414
 msgid "ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4"
 msgstr ""
-"O identificador deve ter exatamente 13 dígitos [0-9]. Por exemplo: "
+"O ID deve ter exatamente 13 dígitos [0-9]. Por exemplo: "
 "978-1-56619-909-4"
 
 #: books/edit/edition.html:416 type/author/view.html:173
 #: type/edition/view.html:462 type/work/view.html:462
 msgid "ID Numbers"
-msgstr "Números ID"
+msgstr "Números de ID"
 
 #: books/edit/edition.html:422
 msgid "Do you know any identifiers for this edition?"
@@ -2502,7 +2502,7 @@ msgstr "Você conhece algum identificador para esta edição?"
 
 #: books/edit/edition.html:423
 msgid "Like, ISBN?"
-msgstr "Como ISBN?"
+msgstr "Como, ISBN?"
 
 #: books/edit/edition.html:441 books/edit/edition.html:509
 msgid "Select one of many..."
@@ -2514,7 +2514,7 @@ msgstr "Por favor, selecione uma classificação."
 
 #: books/edit/edition.html:493
 msgid "You need to give a value to CLASS."
-msgstr "Você precisa dar um valor ao CLASS."
+msgstr "Você precisa dar um valor à CLASS."
 
 #: books/edit/edition.html:494 type/edition/view.html:334
 #: type/edition/view.html:416 type/work/view.html:334 type/work/view.html:416
@@ -2527,7 +2527,7 @@ msgstr "Você conhece alguma classificação para essa edição?"
 
 #: books/edit/edition.html:501
 msgid "Like, Dewey Decimal?"
-msgstr "Como Decimal Dewey?"
+msgstr "Tipo, Dewey Decimal?"
 
 #: books/edit/edition.html:514
 msgid "Add a new classification type"
@@ -2544,7 +2544,7 @@ msgstr "O objeto físico"
 
 #: books/edit/edition.html:558
 msgid "What sort of book is it?"
-msgstr "Que tipo de libro é esse?"
+msgstr "Que tipo de livro é esse?"
 
 #: books/edit/edition.html:559
 msgid "Paperback; Hardcover, etc."
@@ -2568,7 +2568,7 @@ msgstr "Ajuda"
 
 #: books/edit/edition.html:588
 msgid "How much does the book weigh?"
-msgstr "Quanto pesa este libro?"
+msgstr "Quanto pesa este livro?"
 
 #: books/edit/edition.html:603 type/edition/view.html:455
 #: type/work/view.html:455
@@ -2585,7 +2585,7 @@ msgstr "Largura:"
 
 #: books/edit/edition.html:625
 msgid "Depth:"
-msgstr "Grossura:"
+msgstr "Profundidade:"
 
 #: books/edit/edition.html:640
 msgid "Admin Only"
@@ -2621,15 +2621,15 @@ msgstr "Essa é a primera frase."
 
 #: books/edit/excerpts.html:30
 msgid "Transcribe the excerpt"
-msgstr "Transcreva o extrato"
+msgstr "Transcreva o trecho"
 
 #: books/edit/excerpts.html:31
 msgid "Maximum length is 2000 characters. No HTML allowed."
-msgstr "O tamanho máximo é de 2 000 caracteres. HTML não é permitido."
+msgstr "O comprimento máximo é de 2000 caracteres. HTML não permitido."
 
 #: books/edit/excerpts.html:41
 msgid "Why did you choose this excerpt?"
-msgstr "Por que você escolheu esse extrato?"
+msgstr "Por que você escolheu esse trecho?"
 
 #: books/edit/excerpts.html:42
 msgid "Add an optional note."
@@ -2637,7 +2637,7 @@ msgstr "Adiocione um comentário opcional."
 
 #: books/edit/excerpts.html:56
 msgid "Excerpts so far..."
-msgstr "Extratos até agora..."
+msgstr "Trechos até agora..."
 
 #: books/edit/excerpts.html:70 books/edit/excerpts.html:92
 msgid "noted:"
@@ -2656,8 +2656,8 @@ msgid ""
 "Please connect Open Library records to <u>good</u><span class=\"orange\">*</"
 "span> online resources."
 msgstr ""
-"Por favor, conecte registros da Open Library a <u>buenos</"
-"u><span class=\"orange\">*</span> recursos online."
+"Por favor, conecte registros da Open Library a <u>bons</u>"
+"<span class=\"orange\">*</span> recursos online."
 
 #: books/edit/web.html:19
 msgid "Give your link a label"
@@ -2682,7 +2682,7 @@ msgstr "Há duas formas de introduzir a imagem de um autor a Open Library"
 
 #: covers/add.html:13
 msgid "Image Guidelines"
-msgstr "Diretrizes de imagem"
+msgstr "Orientações para imagem"
 
 #: covers/add.html:15
 msgid "There are two ways to put a cover image on Open Library"
@@ -2690,15 +2690,15 @@ msgstr "Há duas formas de introduzir uma imagem de capa a Open Library"
 
 #: covers/add.html:17
 msgid "Cover Guidelines"
-msgstr "Diretrizes sobre capas"
+msgstr "Orientações sobre capas"
 
 #: covers/add.html:22 covers/add.html:26
 msgid "Please provide a valid image."
-msgstr "Por favor, insira uma imagem válida."
+msgstr "Por favor, forneça uma imagem válida."
 
 #: covers/add.html:24
 msgid "Please provide an image URL."
-msgstr "Por favor, insira uma URL da imagem."
+msgstr "Por favor, forneça uma URL da imagem."
 
 #: covers/add.html:39
 msgid "<strong>Pick one</strong> from the existing covers,"
@@ -2710,11 +2710,11 @@ msgstr "Escolha um JPG, GIF ou PNG do seu computador,"
 
 #: covers/add.html:69
 msgid "Or, paste in the image URL if it's on the web."
-msgstr "Ou cole o URL da imagen se está na web."
+msgstr "Ou cole o URL da imagem, se estiver na web."
 
 #: covers/book_cover.html:22
 msgid "Pull up a bigger book cover"
-msgstr "Introduza uma capa maior"
+msgstr "Amplie a capa do livro"
 
 #: covers/book_cover.html:22 covers/book_cover_single_edition.html:18
 #: covers/book_cover_small.html:18 covers/book_cover_work.html:18
@@ -2741,15 +2741,15 @@ msgstr "Ir para a página principal de %(title)s"
 
 #: covers/change.html:15
 msgid "Author Photos"
-msgstr "Fotos do autor"
+msgstr "Fotos do Autor"
 
 #: covers/change.html:17
 msgid "Manage Author Photos"
-msgstr "Manejar fotos do autor"
+msgstr "Manejar Fotos do Autor"
 
 #: covers/change.html:20
 msgid "Add Author Photo"
-msgstr "Adicionar foto do autor"
+msgstr "Adicionar Foto do Autor"
 
 #: covers/change.html:25
 msgid "Book Covers"
@@ -2757,7 +2757,7 @@ msgstr "Capas de livros"
 
 #: covers/change.html:28
 msgid "Manage Covers"
-msgstr "Manejar capas"
+msgstr "Gerenciar capas"
 
 #: covers/change.html:31
 msgid "Add Cover Image"
@@ -2765,15 +2765,15 @@ msgstr "Adicionar foto de capa"
 
 #: covers/change.html:50
 msgid "Manage"
-msgstr "Manejar"
+msgstr "Gerenciar"
 
 #: covers/manage.html:11
 msgid ""
 "You can drag and drop thumbnails to reorder, or into the trash to delete "
 "them."
 msgstr ""
-"Você pode agarrar e soltar miniaturas para reordenar, ou para dentro "
-"da lixeira para eliminá-las."
+"Você pode arrastar e soltar miniaturas para reordenar, ou para a lixeira "
+"para excluí-las."
 
 #: covers/saved.html:16
 msgid "Saved!"
@@ -2816,7 +2816,7 @@ msgid ""
 "page for every book ever published."
 msgstr ""
 "Open Library é um catálogo de biblioteca aberto e editável, "
-"orientado a ter uma página para todo livro já publicado."
+"orientado a ter uma página web para todo livro já publicado."
 
 #: AffiliateLinks.html:70 home/about.html:16 lib/nav_head.html:40
 #: lib/nav_head.html:65
@@ -2858,7 +2858,7 @@ msgstr[1] "%(count)s livros"
 
 #: home/index.html:8 home/welcome.html:9
 msgid "Welcome to Open Library"
-msgstr "Bem-vinde a Open Library"
+msgstr "Bem-vindo a Open Library"
 
 #: home/index.html:26
 msgid "Classic Books"
@@ -2890,7 +2890,7 @@ msgstr "Apostilas"
 
 #: home/stats.html:9 site/around_the_library.html:52
 msgid "Around the Library"
-msgstr "Sobre a Library"
+msgstr "Sobre a Biblioteca"
 
 #: home/stats.html:10
 msgid ""
@@ -2911,7 +2911,7 @@ msgstr "Visitantes únicos"
 #: home/stats.html:22 home/stats.html:24
 msgid "How many new Open Library members have we welcomed?"
 msgstr ""
-"Quantos novos usuários de Open Library foram bem-vindos?"
+"Quantos novos membros da Open Library nós recebemos?"
 
 #: home/stats.html:24
 msgid "New Members"
@@ -2943,7 +2943,7 @@ msgstr "eBooks emprestados"
 
 #: home/welcome.html:26
 msgid "Read Free Library Books Online"
-msgstr "Ler livros em uma biblioteca online de graça"
+msgstr "Leia Livros Gratuitos da Biblioteca Online"
 
 #: home/welcome.html:27
 msgid "Millions of books available through Controlled Digital Lending"
@@ -3003,7 +3003,7 @@ msgstr "Este documento foi editado pela última vez por"
 
 #: lib/edit_head.html:24 lib/view_head.html:16
 msgid "This doc was last edited anonymously"
-msgstr "Este documento foi editado pela última vez de forma anónima"
+msgstr "Este documento foi editado pela última vez de forma anônima"
 
 #: lib/header_dropdown.html:26
 msgid "Menu"
@@ -3068,10 +3068,10 @@ msgid ""
 "can preview your work in real time below the editing field."
 msgstr ""
 "Usamos um sistema chamado Markdown para formatar o texto de suas edições "
-"na Open Library. Alguns formatos de HTML também são aceitos. Os "
-"os paragráfos se generam automaticamente a partir de qualquer salto de linha dupla "
-"(linhas em branco) dentro do texto. Você pode previsualizar seu texto "
-"em tempo real abaixo do campo de edição."
+"na Open Library. Algumas formatações HTML também são aceitas. "
+"Parágrafos são automaticamente gerados a partir de quebras de linha em branco "
+"dentro do seu texto. Você pode visualizar seu trabalho em "
+"tempo real abaixo do campo de edição."
 
 #: lib/markdown.html:17
 msgid "Formatting marks should envelope the effected text, for example:"
@@ -3096,7 +3096,7 @@ msgstr "Voluntariado"
 
 #: lib/nav_foot.html:15
 msgid "Partner With Us"
-msgstr "Associe-se conosco"
+msgstr "Seja Nosso Parceiro"
 
 #: lib/nav_foot.html:16
 msgid "Jobs"
@@ -3124,7 +3124,7 @@ msgstr "Descobrir"
 
 #: lib/nav_foot.html:25
 msgid "Go home"
-msgstr "Ir ao início"
+msgstr "Ir para o início"
 
 #: lib/nav_foot.html:25
 msgid "Home"
@@ -3156,7 +3156,7 @@ msgstr "Coleções"
 
 #: lib/nav_foot.html:31
 msgid "Navigate to top of this page"
-msgstr "Navegar ao topo dessa página"
+msgstr "Navegar para o topo dessa página"
 
 #: lib/nav_foot.html:31
 msgid "Return to Top"
@@ -3184,7 +3184,7 @@ msgstr "Documentação da API"
 
 #: lib/nav_foot.html:39
 msgid "Bulk Open Library data"
-msgstr "Datos em massa da Open Library"
+msgstr "Dados em massa da Open Library"
 
 #: lib/nav_foot.html:39
 msgid "Bulk Data Dumps"
@@ -3326,7 +3326,7 @@ msgstr "Explorar"
 
 #: lib/nav_head.html:48
 msgid "The Internet Archive's Open Library: One page for every book"
-msgstr "The Internet Archive's Open Library: Uma página para cada livro"
+msgstr "A Open Library do Internet Archive: Uma página para cada livro"
 
 #: lib/nav_head.html:52 type/list/embed.html:22
 msgid "Open Library logo"
@@ -3363,11 +3363,11 @@ msgid ""
 "edits and additions."
 msgstr ""
 "<strong>Você não está <a href=\"/account/login\" title=\"Iniciar sessão agora"
-"\">logado</a></strong>. Open Library registrará seu endereço "
+"\">logado</a></strong>. A Open Library registrará seu endereço "
 "IP e o incluirá no histórico de edições dessa página de acesso "
-"público. Se <a href=\"/account/create\" title=\"Crie uma conta na "
-"Open Library\">crie uma conta</a>, seu endereço IP continuará oculto e "
-"você poderá seguir fácilmente todas suas edições e adições."
+"público. Se você <a href=\"/account/create\" title=\"Crie uma conta na "
+"Open Library\">criar uma conta</a>, seu endereço IP continuará oculto e "
+"você poderá seguir fácilmente todas as suas edições e adições."
 
 #: Pager.html:27 lib/pagination.html:22
 msgid "Previous"
@@ -3429,7 +3429,7 @@ msgstr "Seu perfil"
 
 #: lib/search_head.html:76
 msgid "Log in"
-msgstr "Log in"
+msgstr "Entrar"
 
 #: lists/header.html:11 lists/header.html:24 lists/header.html:38
 #: lists/header.html:47 lists/header.html:56
@@ -3474,7 +3474,7 @@ msgstr[1] "Este tema está em <strong>%(count)s listas</strong>."
 
 #: lists/header.html:88
 msgid "Hm. Can't find it."
-msgstr "Hm. Não foi possível encontrá-lo."
+msgstr "Hm. Não consigo encontrar."
 
 #: lists/home.html:16
 msgid "Create a list of any Subjects, Authors, Works or specific Editions."
@@ -3502,8 +3502,8 @@ msgid ""
 "For the top 2000+ most requested eBooks in California for the print disabled "
 "<a href=\"%(url)s\">click here</a>."
 msgstr ""
-"Para os mais de 2000 eBooks mais solicitados na California para "
-"problemas de leitura, <a href=\"%(url)s\">clique aqui</a>."
+"Para os mais de 2000 eBooks mais solicitados na Califórnia para impressão "
+"para deficientes visuais, <a href=\"%(url)s\">clique aqui</a>."
 
 #: lists/home.html:24
 msgid "Find a list by name"
@@ -3638,11 +3638,11 @@ msgstr[1] "%(count)d listas"
 
 #: lists/widget.html:298
 msgid "Update my book note"
-msgstr "Atualizar minha nota do libro"
+msgstr "Atualizar minha nota do livro"
 
 #: lists/widget.html:300
 msgid "Add a book note"
-msgstr "Adicionar uma nota do libro"
+msgstr "Adicionar uma nota do livro"
 
 #: ReadingLogButton.html:15 lists/widget.html:310
 msgid "Remove"
@@ -3695,7 +3695,7 @@ msgstr "Sem registro principal"
 
 #: merge/authors.html:39
 msgid "You must select a primary record to point the duplicates toward."
-msgstr "Você dele selecionar um registro para o qual dirigir os duplicados."
+msgstr "Você deve selecionar um registro para o qual dirigir os duplicados."
 
 #: merge/authors.html:42
 msgid "Please Be Careful..."
@@ -3723,19 +3723,19 @@ msgstr "Visitar a página do autor em uma nova janela"
 
 #: observations/review_component.html:16
 msgid "Community Reviews"
-msgstr "Resenhas comunitárias"
+msgstr "Análises comunitárias"
 
 #: observations/review_component.html:39
 msgid "No community reviews have been submitted for this work."
-msgstr "Não foi registrada nenhuma resenha comunitária para esta obra."
+msgstr "Não foi registrada nenhuma análise comunitária para esta obra."
 
 #: observations/review_component.html:42
 msgid "+ Add your community review"
-msgstr "+ Adicione sua resenha comunitária"
+msgstr "+ Adicione sua análise comunitária"
 
 #: observations/review_component.html:44
 msgid "+ Log in to add your community review"
-msgstr "+ Inicie uma sessão para adicionar sua resenha comunitária"
+msgstr "+ Inicie uma sessão para adicionar sua análise comunitária"
 
 #: publishers/notfound.html:10
 msgid "Publishers"
@@ -3764,7 +3764,7 @@ msgid ""
 "\"#subjectRelated\">Click here to skip the chart</a>."
 msgstr ""
 "Este é um gráfico para mostrar a data na qual essa editora publicou "
-"libvos. No eixo X está o tempo e no eixo Y, o número de edições "
+"livros. No eixo X está o tempo e no eixo Y, o número de edições "
 "publicadas. <a href=\"#subjectRelated\">Clique aqui para avançar no "
 "gráfico</a>."
 
@@ -3774,7 +3774,7 @@ msgid ""
 "single year, or drag across a range."
 msgstr ""
 "Este gráfico mostra as edições dessa editora ao longo do tempo. "
-"Clique para ver somente um ano, ou arraste ao longo de uma secção."
+"Clique para ver um único ano ou arraste através de um intervalo."
 
 #: publishers/view.html:52
 msgid "Common Subjects"
@@ -3869,7 +3869,7 @@ msgstr "ISBN"
 
 #: search/advancedsearch.html:46
 msgid "Full Text Search"
-msgstr "Busca de texto completo"
+msgstr "Busca de Texto Completo"
 
 #: search/authors.html:28
 msgid "Is the same author listed twice?"
@@ -3894,7 +3894,7 @@ msgstr "Buscar %s na Open Library"
 
 #: BookSearchInside.html:9 search/inside.html:10
 msgid "Search Inside"
-msgstr "Buscar dentro"
+msgstr "Buscar Dentro"
 
 #: search/inside.html:34
 #, python-format
@@ -3917,7 +3917,7 @@ msgstr[1] "em %(seconds)s"
 
 #: search/lists.html:7
 msgid "Search results for Lists"
-msgstr "Resultados da busca de listas"
+msgstr "Resultados da busca por Listas"
 
 #: search/publishers.html:9
 msgid "Publishers Search"
@@ -3929,15 +3929,15 @@ msgstr "Relevância"
 
 #: search/sort_options.html:11
 msgid "Most Editions"
-msgstr "Número de edições"
+msgstr "Número de Edições"
 
 #: search/sort_options.html:12
 msgid "First Published"
-msgstr "Data de publicações"
+msgstr "Data de Publicações"
 
 #: search/sort_options.html:13
 msgid "Most Recent"
-msgstr "Mais recente"
+msgstr "Mais Recente"
 
 #: search/sort_options.html:14
 msgid "Random"
@@ -3949,7 +3949,7 @@ msgstr "Misturar"
 
 #: search/subjects.html:19
 msgid "Subject Search"
-msgstr "Busca de temas"
+msgstr "Busca de Temas"
 
 #: search/subjects.html:74
 msgid "time"
@@ -3995,7 +3995,7 @@ msgid ""
 msgstr ""
 "Open Library é um catálogo bibliotecario aberto e editável, que cria "
 "uma página web para cada livro publicado. Leia, pegue emprestado e descubra mais "
-"de 3M livros de forma gratuita."
+"de 3M de livros de forma gratuita."
 
 #: site/neck.html:17
 msgid "Open Library"
@@ -5030,7 +5030,7 @@ msgstr "Licenciamento"
 
 #: Subnavigation.html:19
 msgid "Welcome"
-msgstr "Bem-vinde"
+msgstr "Bem-vindo"
 
 #: Subnavigation.html:20
 msgid "Searching Open Library"

@@ -2,16 +2,16 @@ $def with(formats, daisy)
 
 <hr>
 <div class="cta-section">
-  <p class="cta-section-title">$_('Download Options')</p>
+  <p class="cta-section-title">$_("Download Options")</p>
   <ul class="ebook-download-options">
     $if formats['pdf']:
-      <li><a href="$formats['pdf']" title="$_('Download a PDF from Internet Archive')">$_('PDF')</a></li>
+      <li><a href="$formats['pdf']" title="$_('Download a PDF from Internet Archive')">$_("PDF")</a></li>
     $if formats['txt']:
-      <li><a href="$formats['txt']" title="$_('Download a text version from Internet Archive')">$_('Plain text')</a></li>
+      <li><a href="$formats['txt']" title="$_('Download a text version from Internet Archive')">$_("Plain text")</a></li>
     $if formats['epub']:
-      <li><a href="$formats['epub']" title="$_('Download an ePub from Internet Archive')">$_('ePub')</a></li>
+      <li><a href="$formats['epub']" title="$_('Download an ePub from Internet Archive')">$_("ePub")</a></li>
     $if formats['mobi']:
-      <li><a href="$formats['mobi']" title="$_('Download a MOBI file from Internet Archive')">$_('MOBI')</a></li>
-    <li><a href="$daisy" title="$_('Download open DAISY from Internet Archive (print-disabled format)')">$_('DAISY')</a></li>
+      <li><a href="$formats['mobi']" title="$_('Download a MOBI file from Internet Archive')">$_("MOBI")</a></li>
+    <li><a href="$daisy" title="$_('Download open DAISY from Internet Archive (print-disabled format)')">$_("DAISY")</a></li>
   </ul>
 </div>

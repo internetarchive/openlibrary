@@ -80,7 +80,7 @@ services:
   haproxy:
     profiles:
       - production
-    image: haproxy:2.3.5
+    image: haproxy:2.9.7
     restart: unless-stopped
     volumes:
       - ../../conf/solr/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro

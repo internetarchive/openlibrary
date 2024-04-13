@@ -15,14 +15,14 @@ $:render_template("lib/edit_head", page)
     <div class="clearfix"></div>
 
     <div class="formElement">
-        <div class="label"><label for="description">Description:</label></div>
+        <div class="label"><label for="description">$_("Description:")</label></div>
         <div class="input">
             <textarea id="description" name="description" rows="5" cols="80" style="height: 200px;">$page.description</textarea>
         </div>
     </div>
 
     <div class="formElement">
-        <div class="label"><label for="members#0">Members:</label></div>
+        <div class="label"><label for="members#0">$_("Members:")</label></div>
         <div class="input">
             $for i, m in enumerate(page.members):
                 <input id="members#$i" type="text" name="members#$i" value="$page.members[i].key"/>

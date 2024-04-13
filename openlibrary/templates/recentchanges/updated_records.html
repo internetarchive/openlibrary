@@ -44,7 +44,7 @@ $ changes = all_changes[offset:offset+pagesize]
                 <div class="truncatepath">
                     <a href="$homepath()$thing.key" class="datalink" title="$thing.key">$name</a>
                     $if thing.revision != 1:
-                       <span class="smallest sansserif"> - <a style="text-decoration: none;" href="$homepath()$thing.key?m=diff&amp;b=$thing.revision" title="Review what's changed in from the previous revision">diff</a></span>
+                       <span class="smallest sansserif"> - <a style="text-decoration: none;" href="$homepath()$thing.key?m=diff&amp;b=$thing.revision" title="$_('Review what\'s changed in from the previous revision')">$_("diff")</a></span>
                 </div>
             </td>
             <td class="comment">$:call_template("comment", change, thing.key)</td>

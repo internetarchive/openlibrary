@@ -25,7 +25,7 @@ A record is loaded by calling the load function.
 
 import itertools
 import re
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 
 import web
 
@@ -67,6 +67,8 @@ if TYPE_CHECKING:
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
 re_lang = re.compile('^/languages/([a-z]{3})$')
 ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
+SUSPECT_PUBLICATION_DATES: Final = ["1900", "January 1, 1900"]
+SOURCE_RECORDS_REQUIRING_DATE_SCRUTINY: Final = ["amazon", "bwb", "promise"]
 
 
 type_map = {
@@ -747,6 +749,7 @@ def normalize_import_record(rec: dict) -> None:
         - Cleaning all ISBN and LCCN fields ('bibids');
         - Deduplicate authors; and
         - Remove throw-away data used for validation.
+        - Remove publication years of 1900 for AMZ/BWB/Promise.
 
         NOTE: This function modifies the passed-in rec in place.
     """
@@ -787,6 +790,14 @@ def normalize_import_record(rec: dict) -> None:
     if rec.get('authors') == [{"name": "????"}]:
         rec.pop('authors')
     if rec.get('publish_date') == "????":
+        rec.pop('publish_date')
+
+    # Remove suspect publication dates from certain sources (e.g. 1900 from Amazon).
+    if any(
+        source_record.split(":")[0] in SOURCE_RECORDS_REQUIRING_DATE_SCRUTINY
+        and rec.get('publish_date') in SUSPECT_PUBLICATION_DATES
+        for source_record in rec['source_records']
+    ):
         rec.pop('publish_date')
 
 

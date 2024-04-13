@@ -83,15 +83,15 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
       <div class="search-bar">
         <div class="search-facet">
           <label class="search-facet-selector">
-            <span aria-hidden="true" class="search-facet-value"></span>
+            <span aria-hidden="true" class="search-facet-value">$_("All")</span>
             <select aria-label="Search by">
-              <option value='all'>$_("All")</option>
-              <option value='title'>$_("Title")</option>
-              <option value='author'>$_("Author")</option>
-              <option value='text'>$_("Text")</option>
-              <option value='subject'>$_("Subject")</option>
-              <option value='lists'>$_("Lists")</option>
-              <option value='advanced'>$_("Advanced")</option>
+              <option value="all">$_("All")</option>
+              <option value="title">$_("Title")</option>
+              <option value="author">$_("Author")</option>
+              <option value="text">$_("Text")</option>
+              <option value="subject">$_("Subject")</option>
+              <option value="lists">$_("Lists")</option>
+              <option value="advanced">$_("Advanced")</option>
             </select>
           </label>
         </div>

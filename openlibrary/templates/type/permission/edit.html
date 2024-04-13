@@ -15,14 +15,14 @@ $:render_template("lib/edit_head", page)
     <div class="clearfix"></div>
 
     <div class="formElement">
-        <div class="label"><label for="description">Description:</label></div>
+        <div class="label"><label for="description">$_("Description:")</label></div>
         <div class="input">
             <textarea id="description" name="description" rows="3" cols="80" style="height: 100px;">$page.description</textarea>
         </div>
     </div>
 
     <div class="formElement">
-        <div class="label"><label for="readers#0">Readers:</label></div>
+        <div class="label"><label for="readers#0">$_("Readers:")</label></div>
         <div class="input">
             $for i, m in enumerate(page.readers):
                 <input id="readers#$i" type="text" name="readers#${i}.key" value="$page.readers[i].key"/>
@@ -33,7 +33,7 @@ $:render_template("lib/edit_head", page)
 
 
     <div class="formElement">
-        <div class="label"><label for="writers#0">Writers:</label></div>
+        <div class="label"><label for="writers#0">$_("Writers:")</label></div>
         <div class="input">
             $for i, m in enumerate(page.writers):
                 <input id="writers#$i" type="text" name="writers#${i}.key" value="$page.writes[i].key"/>

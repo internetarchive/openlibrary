@@ -192,7 +192,7 @@ $else:
                           $if status == "available":
                               <form action="$book.url('/borrow')" method="post">
                                   <input type="hidden" name="action" value="borrow" />
-                                  <input type="submit" value=$_("Borrow Now") />
+                                  <input type="submit" value="$_('Borrow Now')" />
                               </form>
                           <form action="$book.url('/borrow?redirect=/account/loans')"
                                 method="POST" class="wlform">
@@ -210,7 +210,7 @@ $else:
 <hr/>
 <br/>
 
-<div>Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:</div>
+<div>$_("Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:")</div>
      $:render_template("home/custom_ia_carousel", title=_('Books We Love'), key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["lending___last_browse desc"], limit=18, test=test, compact_mode=True)
     $:render_template("home/categories", test=test)
-    Or, check out our <a href="/collections">special collections</a>.
+    $:_('Or, check out our <a href="/collections">special collections</a>.')

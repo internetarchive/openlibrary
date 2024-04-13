@@ -3,13 +3,13 @@ $var title: Imports
 
 <div id="contentHead">
     $:render_template("admin/menu")
-    <h1><a href="/admin/imports">Imports</a> / Add</h1>
+    <h1><a href="/admin/imports">$_("Imports")</a> / $_("Add")</h1>
 </div>
 
 <div id="contentBody">
-    <h2>Add new books to import queue</h2>
+    <h2>$_("Add new books to import queue")</h2>
 
-    <p>Please add IA identifiers to be imported, one per line.</p>
+    <p>$_("Please add IA identifiers to be imported, one per line.")</p>
     <form method="POST">
         <div class="formElement">
             <div class="input">
@@ -19,9 +19,9 @@ $var title: Imports
         <div class="formElement bottom">
             <div class="input">
                 <br/>
-                <button type="submit" name="_save" title="$_('Submit')" class="larger">$_('Submit')</button>
+                <button type="submit" name="_save" title="$_('Submit')" class="larger">$_("Submit")</button>
                 &nbsp;
-                <a href="javascript:history.go(-1);" class="attn">$_('Cancel')</a>
+                <a href="javascript:history.go(-1);" class="attn">$_("Cancel")</a>
             </div>
         </div>
     </form>
