@@ -34,7 +34,7 @@ $:macros.HiddenSaveButton("addAuthor")
                 <input type="text" name="author--name" id="name" value="$page.name" class="required"/>
             </div>
         </div>
-        $:render_template("wikidata_author", page.wikidata(use_cache=False))
+        $:render_template("wikidata_author", page.wikidata(bust_cache=True))
     </div>
 
         <div>

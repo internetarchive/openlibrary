@@ -67,17 +67,22 @@ class WikidataEntity:
         return json.dumps(entity_dict)
 
 
-def get_wikidata_entity(QID: str, use_cache: bool = True) -> WikidataEntity | None:
+def _cache_expired(entity: WikidataEntity) -> bool:
+    return days_since(entity.updated) > WIKIDATA_CACHE_TTL_DAYS
+
+
+def get_wikidata_entity(QID: str, bust_cache: bool = False) -> WikidataEntity | None:
     """
     This only supports QIDs, if we want to support PIDs we need to use different endpoints
     """
+    if bust_cache:
+        _get_from_web(QID)
 
-    if use_cache:
-        entity = _get_from_cache(QID)
-        if entity and days_since(entity.updated) < WIKIDATA_CACHE_TTL_DAYS:
-            return entity
-
-    return _get_from_web(QID)
+    if entity := _get_from_cache(QID):
+        if _cache_expired(entity):
+            return _get_from_web(QID)
+        return entity
+    return None
 
 
 def _get_from_web(id: str) -> WikidataEntity | None:

@@ -757,9 +757,9 @@ class Author(Thing):
     def get_url_suffix(self):
         return self.name or "unnamed"
 
-    def wikidata(self, use_cache: bool = True) -> WikidataEntity | None:
+    def wikidata(self, bust_cache: bool = False) -> WikidataEntity | None:
         if wd_id := self.remote_ids.get("wikidata"):
-            return get_wikidata_entity(QID=wd_id, use_cache=use_cache)
+            return get_wikidata_entity(QID=wd_id, bust_cache=bust_cache)
         return None
 
     def __repr__(self):
