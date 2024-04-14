@@ -100,7 +100,9 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                 <h6 class="collapse black uppercase">$_("Location")</h6>
                 $page.location
             </div>
-
+        <span class="mobile-only">
+            $:render_template("authors/infobox", page, title)
+        </span>
         <div class="clearfix"></div>
         <div id="works" class="section">
                 <h2 class="collapse">
@@ -142,8 +144,9 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
         </div>
     </div>
     <div class="contentOnethird">
-        $:render_template("authors/infobox", page, title)
-
+        <span class="desktop-only">
+            $:render_template("authors/infobox", page, title)
+        </span>
         $def render_subjects(label, subjects, prefix):
             $if subjects:
                 <div class="section">
