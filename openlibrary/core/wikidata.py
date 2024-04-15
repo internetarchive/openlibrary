@@ -33,7 +33,7 @@ class WikidataEntity:
     sitelinks: dict[str, dict]
     _updated: datetime  # This is when we fetched the data, not when the entity was changed in Wikidata
 
-    def description(self, language: str = 'en') -> str | None:
+    def get_description(self, language: str = 'en') -> str | None:
         """If a description isn't available in the requested language default to English"""
         return self.descriptions.get(language) or self.descriptions.get('en')
 
