@@ -153,7 +153,9 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             $:render_template("covers/author_photo", page)
             $:render_template("covers/change", page, ".bookCover img")
         </div>
-        <p>$page.wikidata(fetch_missing=show_librarian_extras).description(i18n.get_locale())</p>
+        <p style="text-align: center;">
+            $page.wikidata(fetch_missing=show_librarian_extras).description(i18n.get_locale())
+        </p>
 
         $def render_subjects(label, subjects, prefix):
             $if subjects:

@@ -34,7 +34,9 @@ $:macros.HiddenSaveButton("addAuthor")
                 <input type="text" name="author--name" id="name" value="$page.name" class="required"/>
             </div>
         </div>
-        <p>$page.wikidata(bust_cache=True, fetch_missing=True).description(i18n.get_locale())</p>
+        <p style="text-align: center;">
+            $page.wikidata(bust_cache=True, fetch_missing=True).description(i18n.get_locale())
+        </p>
     </div>
 
         <div>
