@@ -26,11 +26,11 @@ class WikidataEntity:
 
     id: str
     type: str
-    labels: dict
-    descriptions: dict
-    aliases: dict
-    statements: dict
-    sitelinks: dict
+    labels: dict[str, str]
+    descriptions: dict[str, str]
+    aliases: dict[str, list[str]]
+    statements: dict[str, dict]
+    sitelinks: dict[str, dict]
     updated: datetime  # This is when we fetched the data, not when the entity was changed in Wikidata
 
     def description(self, language: str = 'en') -> str | None:
