@@ -74,6 +74,9 @@ def _cache_expired(entity: WikidataEntity) -> bool:
 def get_wikidata_entity(QID: str, bust_cache: bool = False) -> WikidataEntity | None:
     """
     This only supports QIDs, if we want to support PIDs we need to use different endpoints
+    By default this will only use the cache (unless it is expired).
+    This is to avoid overwhelming Wikidata servers with requests from every visit to an author page.
+    bust_cache must be set to True if you want to fetch new items from Wikidata.
     """
     if bust_cache:
         _get_from_web(QID)
