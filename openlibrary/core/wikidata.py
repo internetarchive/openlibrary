@@ -31,7 +31,7 @@ class WikidataEntity:
     aliases: dict[str, list[str]]
     statements: dict[str, dict]
     sitelinks: dict[str, dict]
-    updated: datetime  # This is when we fetched the data, not when the entity was changed in Wikidata
+    _updated: datetime  # This is when we fetched the data, not when the entity was changed in Wikidata
 
     def description(self, language: str = 'en') -> str | None:
         """If a description isn't available in the requested language default to English"""
@@ -47,7 +47,7 @@ class WikidataEntity:
             aliases=response['aliases'],
             statements=response['statements'],
             sitelinks=response['sitelinks'],
-            updated=updated,
+            _updated=updated,
         )
 
     def as_api_response_str(self) -> str:
@@ -68,7 +68,7 @@ class WikidataEntity:
 
 
 def _cache_expired(entity: WikidataEntity) -> bool:
-    return days_since(entity.updated) > WIKIDATA_CACHE_TTL_DAYS
+    return days_since(entity._updated) > WIKIDATA_CACHE_TTL_DAYS
 
 
 def get_wikidata_entity(
@@ -140,7 +140,7 @@ def _add_to_cache(entity: WikidataEntity) -> None:
             where="id=$id",
             vars={'id': entity.id},
             data=json_data,
-            updated=entity.updated,
+            updated=entity._updated,
         )
     else:
         # We don't provide the updated column on insert because postgres defaults to the current time
