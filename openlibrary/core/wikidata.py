@@ -72,7 +72,7 @@ def _cache_expired(entity: WikidataEntity) -> bool:
 
 
 def get_wikidata_entity(
-    QID: str, bust_cache: bool = False, fetch_missing: bool = False
+    qid: str, bust_cache: bool = False, fetch_missing: bool = False
 ) -> WikidataEntity | None:
     """
     This only supports QIDs, if we want to support PIDs we need to use different endpoints
@@ -81,15 +81,15 @@ def get_wikidata_entity(
     bust_cache must be set to True if you want to fetch new items from Wikidata.
     """
     if bust_cache:
-        _get_from_web(QID)
+        _get_from_web(qid)
 
-    if entity := _get_from_cache(QID):
+    if entity := _get_from_cache(qid):
         if _cache_expired(entity):
-            return _get_from_web(QID)
+            return _get_from_web(qid)
         return entity
 
     if fetch_missing and not entity:
-        return _get_from_web(QID)
+        return _get_from_web(qid)
 
     return None
 

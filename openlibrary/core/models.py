@@ -762,7 +762,7 @@ class Author(Thing):
     ) -> WikidataEntity | None:
         if wd_id := self.remote_ids.get("wikidata"):
             return get_wikidata_entity(
-                QID=wd_id, bust_cache=bust_cache, fetch_missing=fetch_missing
+                qid=wd_id, bust_cache=bust_cache, fetch_missing=fetch_missing
             )
         return None
 
