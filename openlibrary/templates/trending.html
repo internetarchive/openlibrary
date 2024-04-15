@@ -31,6 +31,6 @@ $ page = int(input(page=1).page)
   <div class="pager">
     $:macros.Pager(page, 200, results_per_page=20)
     $if mode == 'forever':
-      <p class="collection-date">Data Collection Started: October 2017</p>
+    <p class="collection-date">$_("Data Collection Started: October 2017")</p>
   </div>
 </div>
