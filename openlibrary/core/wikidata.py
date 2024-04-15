@@ -71,7 +71,9 @@ def _cache_expired(entity: WikidataEntity) -> bool:
     return days_since(entity.updated) > WIKIDATA_CACHE_TTL_DAYS
 
 
-def get_wikidata_entity(QID: str, bust_cache: bool = False) -> WikidataEntity | None:
+def get_wikidata_entity(
+    QID: str, bust_cache: bool = False, fetch_missing: bool = False
+) -> WikidataEntity | None:
     """
     This only supports QIDs, if we want to support PIDs we need to use different endpoints
     By default this will only use the cache (unless it is expired).
@@ -85,6 +87,10 @@ def get_wikidata_entity(QID: str, bust_cache: bool = False) -> WikidataEntity | 
         if _cache_expired(entity):
             return _get_from_web(QID)
         return entity
+
+    if fetch_missing and not entity:
+        return _get_from_web(QID)
+
     return None
 
 
