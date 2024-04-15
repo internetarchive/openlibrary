@@ -49,6 +49,7 @@ def start(config_file, *args):
     if sentry.enabled:
         sentry.init()
         sentry.bind_to_webpy_app(server.app)
+        sentry.bind_to_webpy_db()
 
     # remove config from command line args
     sys.argv = [sys.argv[0]] + list(args)

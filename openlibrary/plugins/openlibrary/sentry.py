@@ -11,5 +11,6 @@ def setup():
 
     if sentry.enabled:
         sentry.init()
+        sentry.bind_to_webpy_db()
         delegate.add_exception_hook(lambda: sentry.capture_exception_webpy())
         delegate.app.add_processor(InfogamiSentryProcessor(delegate.app))
