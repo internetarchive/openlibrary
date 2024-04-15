@@ -140,6 +140,7 @@ class ratings(delegate.page):
                         'average': stats['ratings_average'],
                         'count': stats['ratings_count'],
                         'sortable': stats['ratings_sortable'],
+                        'stddev': stats['ratings_stddev'],
                     },
                     'counts': {
                         '1': stats['ratings_count_1'],
