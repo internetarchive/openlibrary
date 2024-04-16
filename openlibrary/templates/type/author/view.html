@@ -153,11 +153,6 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             $:render_template("covers/author_photo", page)
             $:render_template("covers/change", page, ".bookCover img")
         </div>
-        <p style="text-align: center;">
-            $ wikidata = page.wikidata(fetch_missing=show_librarian_extras)
-            $if wikidata:
-                $wikidata.get_description(i18n.get_locale())
-        </p>
 
         $def render_subjects(label, subjects, prefix):
             $if subjects:
@@ -174,6 +169,16 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             $:render_subjects(_("People"), books.facet_counts.get('person_facet'), 'person:')
             $:render_subjects(_("Time"), books.facet_counts.get('time_facet'), 'time:')
         <!-- /SUBJECTS -->
+
+        <div class="section">
+            <h6 class="collapse black uppercase">TESTING ONLY WIKIDATA SECTION</h6>
+            <p style="text-align: center;">
+                <!-- This is only below subject temporarily to avoid merge conflicts on testing -->
+                $ wikidata = page.wikidata(fetch_missing=show_librarian_extras)
+                $if wikidata:
+                    $wikidata.get_description(i18n.get_locale())
+            </p>
+        </div>
 
         $if "lists" in ctx.features:
             <div class="section Tools">
