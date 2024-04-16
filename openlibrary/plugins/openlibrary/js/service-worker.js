@@ -87,7 +87,7 @@ registerRoute(
 
 
 registerRoute(
-    new RegExp('^/images/|^/static/images/'),
+    new RegExp('/images/|/static/images/'),
     new CacheFirst({
         cacheName: 'static-images-cache',
         plugins: [
@@ -100,7 +100,7 @@ registerRoute(
 );
 
 registerRoute(
-    /^\/static\/build\/.*(\.js|\.css).*/,
+    /\/static\/build\/.*(\.js|\.css).*/,
     // This has all the JS and CSS that changes on build
     // We use cache first because it rarely changes
     // But we only cache it for 5 minutes in case of deploy
