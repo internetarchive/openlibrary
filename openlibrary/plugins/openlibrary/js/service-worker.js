@@ -89,7 +89,7 @@ registerRoute(
 
 registerRoute(
     // S/M covers - cache 150 of them. They take up no more than 2.25mb of space.
-    /\d+-(S|M).jpg/,
+    /\d+-[SM].jpg/,
     new CacheFirst({
         cacheName: 'covers-small-medium-cache',
         plugins: [
