@@ -69,7 +69,7 @@ $ )
         <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">
         <label for="mode-search-printdisabled">$_('Print Disabled')</label>
       </span>
-      $if ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians') or ctx.user.is_usergroup_member('/usergroup/librarians')):
+      $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian() or ctx.user.is_librarian()):
         <div style="display: flex; justify-content: flex-end"  title="$_('This is only visible to super librarians.')">
             <label
             style="padding: 4px; display: inline-block;"
