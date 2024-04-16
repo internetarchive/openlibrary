@@ -1,7 +1,7 @@
 import { ExpirationPlugin } from 'workbox-expiration';
 import { offlineFallback } from 'workbox-recipes';
 import { setDefaultHandler, registerRoute } from 'workbox-routing';
-import { CacheFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
+import { CacheFirst, NetworkOnly, NetworkFirst } from 'workbox-strategies';
 import {CacheableResponsePlugin} from 'workbox-cacheable-response';
 import { clientsClaim } from 'workbox-core';
 
@@ -134,24 +134,11 @@ registerRoute(
     })
 );
 
-// Cache the search endpoint for faster autocomplete
-registerRoute(
-    /\/search.json/,
-    new CacheFirst({
-        cacheName: 'search-json-cache',
-        plugins: [
-            new ExpirationPlugin({
-                maxAgeSeconds: 60,
-            }),
-        ],
-    })
-);
-
 
 // cache all other requests on the same origin
 registerRoute(
     /.*/,
-    new StaleWhileRevalidate({
+    new NetworkFirst({
         cacheName: 'other-cache',
         plugins: [
             new ExpirationPlugin({
