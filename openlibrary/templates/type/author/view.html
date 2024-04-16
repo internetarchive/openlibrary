@@ -139,7 +139,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
                 <div id="searchResults">
                     <ul class="list-books">
-                      $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians'))
+                      $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
                       $for doc in books.docs:
                          $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper=True)
                     </ul>
