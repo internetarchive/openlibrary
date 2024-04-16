@@ -1,16 +1,15 @@
 from dataclasses import dataclass
 import logging
 import re
+import yaml
 
 import sentry_sdk
 import web
 from sentry_sdk.utils import capture_internal_exceptions
 from sentry_sdk.tracing import Transaction, TRANSACTION_SOURCE_ROUTE
-from infogami import config
 from infogami.utils.app import find_page, find_view, modes
 from infogami.utils.types import type_patterns
 
-from openlibrary.config import load_config
 from openlibrary.utils import get_software_version
 
 
@@ -94,29 +93,37 @@ class SentryFactory:
     def __init__(self):
         self._instances: dict[str, Sentry] = {}
 
-    def get_instance(self, key: str) -> Sentry:
+    def get_instance(self, key: str) -> Sentry | None:
         """
-        Returns `Sentry` instance that is identified by the given `key`.
+        Returns `Sentry` instance that is identified by the given `key`, or `None` if none exists.
 
         The `key` is expected to match a Sentry configuration entry in `conf/sentry.yml`.
-
-        If the requested `Sentry` instance does not exist, one is created and added to
-        the factory's `_instances` dict.  If a newly created `Sentry` instance is enabled,
-        the instance is initialized before being returned to the consumer. 
         """
         if key in self._instances:
             return self._instances[key]
 
-        sentry = Sentry(getattr(config, key, {}))
+        # XXX : What should happen here?  Exception?  Return `None`?  Return a dummy `Sentry` instance?
+        return None
+    
+    def create_instance(self, key: str, instance_config: dict[str, str]) -> None:
+        """
+        Creates and initializes a new `Sentry` instance, and adds instance to
+        the factory's `_instances` dictionary.
+        """
+        sentry = Sentry(instance_config)
         self._instances[key] = sentry
         if sentry.enabled:
             sentry.init()
-        
-        return sentry
-        
-load_config('conf/sentry.yml')
+
+
 sentry_factory = SentryFactory()
 
+# Create and initialize all Sentry instances:
+with open('conf/sentry.yml') as config_file:
+    sentry_config = yaml.safe_load(config_file)
+    for k in sentry_config:
+        sentry_factory.create_instance(k, sentry_config[k])
+    sentry_config = None
 
 @dataclass
 class InfogamiRoute:
