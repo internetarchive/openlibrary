@@ -90,10 +90,20 @@ class SentryFactory:
     Keeps reference to each `Sentry` object in use by Open Library,
     and provides an easy way to request a `Sentry` instance.
     """
-    def __init__(self):
+    def __init__(self, config_path):
+        """
+        Creates new `SentryFactory` object.
+
+        Creates a new `Sentry` instance for each entry in the given config file.
+        """
         self._instances: dict[str, Sentry] = {}
 
-    def get_instance(self, key: str) -> Sentry | None:
+        with open(config_path) as config_file:
+            sentry_config = yaml.safe_load(config_file)
+            for k in sentry_config:
+                self.create_instance(k, sentry_config[k])
+
+    def get_instance(self, key: str) -> Sentry:
         """
         Returns `Sentry` instance that is identified by the given `key`, or `None` if none exists.
 
@@ -102,9 +112,8 @@ class SentryFactory:
         if key in self._instances:
             return self._instances[key]
 
-        # XXX : What should happen here?  Exception?  Return `None`?  Return a dummy `Sentry` instance?
-        return None
-    
+        raise ValueError(f'No Sentry object identified by key "{key}" found')
+
     def create_instance(self, key: str, instance_config: dict[str, str]) -> None:
         """
         Creates and initializes a new `Sentry` instance, and adds instance to
@@ -116,14 +125,7 @@ class SentryFactory:
             sentry.init()
 
 
-sentry_factory = SentryFactory()
-
-# Create and initialize all Sentry instances:
-with open('conf/sentry.yml') as config_file:
-    sentry_config = yaml.safe_load(config_file)
-    for k in sentry_config:
-        sentry_factory.create_instance(k, sentry_config[k])
-    sentry_config = None
+sentry_factory = SentryFactory('conf/sentry.yml')
 
 @dataclass
 class InfogamiRoute:

@@ -26,17 +26,9 @@ if __name__ == "__main__":
 
     log("{} on Python {}.{}.{}".format(sys.argv, *sys.version_info))  # Python 3.12.2
 
-    sentry_config = os.getenv('SENTRY_CONFIG')
-    if sentry_config:
-        logger.info(f"loading config from {sentry_config}")
-        # Squelch output from infobase (needed for sentry setup)
-        # So it doesn't end up in our data dumps body
-        with open(os.devnull, 'w') as devnull, redirect_stdout(devnull):
-            # XXX : Does this script require us to load the `OL_CONFIG` for anything other than Sentry?
-            # XXX : If the sentry config is loaded in `sentry.py`, does it need to be loaded here?
-            load_config(sentry_config)
-        sentry = sentry_factory.get_instance('ol_cron_jobs')
+    logger.info("Getting Sentry instance")
+    sentry = sentry_factory.get_instance('ol_cron_jobs')
 
-    log(f"sentry.enabled = {bool(sentry_config and sentry.enabled)}")
+    log(f"sentry.enabled = {bool(sentry and sentry.enabled)}")
 
     dump.main(sys.argv[1], sys.argv[2:])

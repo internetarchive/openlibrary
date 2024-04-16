@@ -41,7 +41,6 @@ SCRIPTS=/openlibrary/scripts
 PSQL_PARAMS=${PSQL_PARAMS:-"-h db openlibrary"}
 TMPDIR=${TMPDIR:-/openlibrary}
 OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
-SENTRY_CONFIG=/openlibrary/conf/sentry.yml
 
 yyyymmdd=$1  # 2022-05-31
 yyyymm=${yyyymmdd:0:7}  # 2022-05-31 --> 2022-05
