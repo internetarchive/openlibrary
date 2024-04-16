@@ -32,15 +32,17 @@ Lets make a nice little list of things to cache.
 
 // These only change on deploy
 https://openlibrary.org/static/css/
-// includes https://testing.openlibrary.org/static/css/ajax-loader.gif
-https://openlibrary.org/static/build/*.js
-https://openlibrary.org/static/build/*.css
+// afaik it only contains https://testing.openlibrary.org/static/css/ajax-loader.gif
+// oh also fonts https://testing.openlibrary.org/static/css/fonts/slick.ttf
+// TODO we should move this to the static/images folder
 
 
 
 // These almost never change
 https://openlibrary.org/static/images/
-https://openlibrary.org/static/favicon.ico
+https://openlibrary.org/images/
+
+
 
 // covers
 https://covers.openlibrary.org/a/id/6257045-M.jpg // author covers
@@ -50,33 +52,60 @@ https://covers.openlibrary.org/w/id/14348537-M.jpg // redirects to IA with a 302
 
 // IA profile picture
 https://archive.org/services/img/@raybb
+https://archive.org/services/img/brand00ibse // these are covers
 
 
 
-*?
+// Done
+https://openlibrary.org/static/build/*.js
+https://openlibrary.org/static/build/*.css
 
-/*
-static/images, static/fonts, static/logos - should stay for a long time
-static/build/css(and js) - just for 5 minutes because I'm not sure about cache busting on deploy
+// Misc
+
+https://openlibrary.org/static/favicon.ico
+https://openlibrary.org/static/manifest.json
+https://testing.openlibrary.org/static/css/ajax-loader.gif
+
 */
 
+function matchMiscFiles({ url }) {
+    const miscFiles = ['/static/favicon.ico', '/static/manifest.json', '/static/css/ajax-loader.gif', '/cdn/archive.org/analytics.js', '/cdn/archive.org/donate.js']
+    return miscFiles.includes(url.pathname);
+}
 registerRoute(
-    /\/static\/(images|fonts|logos)/,
+    matchMiscFiles,
     new CacheFirst({
-        cacheName: 'static-cache-images-fonts-logos',
+        cacheName: 'misc-files-cache',
         plugins: [
             new ExpirationPlugin({
-                maxEntries: 150,
-                maxAgeSeconds: 7 * DAY_SECONDS,
-                purgeOnQuotaError: true,
+                maxAgeSeconds: DAY_SECONDS * 30
             }),
             cacheableResponses
         ],
     })
-)
+);
+
 
 registerRoute(
-    /\/static\/build/,
+    new RegExp('^/images/|^/static/images/'),
+    new CacheFirst({
+        cacheName: 'static-images-cache',
+        plugins: [
+            new ExpirationPlugin({
+                maxEntries: 1,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+            }),
+        ],
+    })
+);
+
+registerRoute(
+    /^\/static\/build\/.*(\.js|\.css).*/,
+    // This has all the JS and CSS that changes on build
+    // We use cache first because it rarely changes
+    // But we only cache it for 5 minutes in case of deploy
+    // TOOD: We should increase this a lot and make it change on deploy (clear it out when the deploy hash changes)
+    // it includes a .* at the end because some items have versions ?v=123 after
     new CacheFirst({
         cacheName: 'static-build-cache',
         plugins: [
@@ -104,7 +133,7 @@ const largeCovers = new RegExp('.+L?.jpg');
 registerRoute(
     smallMediumCovers,
     new CacheFirst({
-        cacheName: 'covers-cache-small-medium',
+        cacheName: 'covers-small-medium-cache',
         plugins: [
             new ExpirationPlugin({
                 maxEntries: 150,
@@ -118,7 +147,7 @@ registerRoute(
 registerRoute(
     largeCovers,
     new CacheFirst({
-        cacheName: 'covers-cache-large',
+        cacheName: 'covers-large-cache',
         plugins: [
             new ExpirationPlugin({
                 maxEntries: 5,
@@ -134,7 +163,7 @@ registerRoute(
 registerRoute(
     /.*/,
     new NetworkFirst({
-        cacheName: 'other-html-cache',
+        cacheName: 'other-cache',
         plugins: [
             new ExpirationPlugin({
                 maxEntries: 50,
