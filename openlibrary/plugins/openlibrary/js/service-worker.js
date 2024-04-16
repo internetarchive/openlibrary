@@ -161,7 +161,7 @@ registerRoute(
 );
 
 registerRoute(
-    ({ url })=> {return url.href.startsWith('https://archive.org/services/img/')},
+    ({ url })=> url.href.startsWith('https://archive.org/services/img/'),
     new CacheFirst({
         cacheName: 'archive-org-images-cache',
         plugins: [
