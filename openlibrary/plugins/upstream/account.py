@@ -32,6 +32,7 @@ from openlibrary.core.lending import (
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.recaptcha import recaptcha
+from openlibrary.plugins.upstream.models import Work
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
@@ -920,6 +921,34 @@ def csv_string(source: Iterable[Mapping], row_formatter: Callable | None = None)
     return '\n'.join(csv_body())
 
 
+def escape_csv_field(raw_string: str) -> str:
+    """
+    Formats given CSV field string such that it conforms to definition outlined
+    in RFC #4180.
+
+    Note: We should probably use
+    https://docs.python.org/3/library/csv.html
+    """
+    escaped_string = raw_string.replace('"', '""')
+    return f'"{escaped_string}"'
+
+
+def get_work_from_id(work_id: str) -> Work:
+    """
+    Gets work data for a given work ID (OLxxxxxW format), used to access work author, title, etc. for CSV generation.
+    """
+
+    work_key = f"/works/{work_id}"
+    work: Work = web.ctx.site.get(work_key)
+    if not work:
+        raise ValueError(f"No Work found for {work_key}.")
+    if work.type.key == '/type/redirect':
+        # Fetch actual work and resolve redirects before exporting:
+        work = web.ctx.site.get(work.location)
+        work.resolve_redirect_chain(work_key)
+    return work
+
+
 class export_books(delegate.page):
     path = "/account/export"
 
@@ -964,36 +993,19 @@ class export_books(delegate.page):
         def get_subjects(work: Work, subject_type: str) -> str:
             return " | ".join(s.title for s in work.get_subject_links(subject_type))
 
-        def escape_csv_field(raw_string: str) -> str:
-            """
-            Formats given CVS field string such that it conforms to definition outlined
-            in RFC #4180.
-
-            Note: We should probably use
-            https://docs.python.org/3/library/csv.html
-            """
-            escaped_string = raw_string.replace('"', '""')
-            return f'"{escaped_string}"'
-
         def format_reading_log(book: dict) -> dict:
             """
             Adding, deleting, renaming, or reordering the fields of the dict returned
             below will automatically be reflected in the CSV that is generated.
             """
-            work_key = f"/works/OL{book['work_id']}W"
-            work: Work = web.ctx.site.get(work_key)
-            if not work:
-                raise ValueError(f"No Work found for {work_key}.")
-            if work.type.key == '/type/redirect':
-                # Fetch actual work and resolve redirects before exporting:
-                work = web.ctx.site.get(work.location)
-                work.resolve_redirect_chain(work_key)
+            work_id = f"OL{book['work_id']}W"
             if edition_id := book.get("edition_id") or "":
                 edition_id = f"OL{edition_id}M"
+            work = get_work_from_id(work_id)
             ratings = work.get_rating_stats() or {"average": "", "count": ""}
             ratings_average, ratings_count = ratings.values()
             return {
-                "work_id": work_key.split("/")[-1],
+                "work_id": work_id,
                 "title": escape_csv_field(work.title),
                 "authors": escape_csv_field(" | ".join(work.get_author_names())),
                 "first_publish_year": work.first_publish_year,
@@ -1078,15 +1090,11 @@ class export_books(delegate.page):
     def generate_star_ratings(self, username: str) -> str:
         from openlibrary.plugins.upstream.models import Work
 
-        def escape_csv_field(raw_string: str) -> str:
-            escaped_string = raw_string.replace('"', '""')
-            return f'"{escaped_string}"'
-
         def format_rating(rating: Mapping) -> dict:
             work_id = f"OL{rating['work_id']}W"
-            work: Work = web.ctx.site.get(work_id)
             if edition_id := rating.get("edition_id") or "":
                 edition_id = f"OL{edition_id}M"
+            work = get_work_from_id(work_id)
             return {
                 "Work ID": work_id,
                 "Edition ID": edition_id,
