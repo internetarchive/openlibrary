@@ -90,6 +90,7 @@ class SentryFactory:
     Keeps reference to each `Sentry` object in use by Open Library,
     and provides an easy way to request a `Sentry` instance.
     """
+
     def __init__(self, config_path):
         """
         Creates new `SentryFactory` object.
@@ -126,6 +127,7 @@ class SentryFactory:
 
 
 sentry_factory = SentryFactory('conf/sentry.yml')
+
 
 @dataclass
 class InfogamiRoute:
