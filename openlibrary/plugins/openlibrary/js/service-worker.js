@@ -1,7 +1,7 @@
 import { ExpirationPlugin } from 'workbox-expiration';
 import { offlineFallback } from 'workbox-recipes';
 import { setDefaultHandler, registerRoute } from 'workbox-routing';
-import { CacheFirst, NetworkFirst, NetworkOnly } from 'workbox-strategies';
+import { CacheFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
 import {CacheableResponsePlugin} from 'workbox-cacheable-response';
 import { clientsClaim } from 'workbox-core';
 
@@ -179,7 +179,7 @@ registerRoute(
 // cache all other requests on the same origin
 registerRoute(
     /.*/,
-    new NetworkFirst({
+    new StaleWhileRevalidate({
         cacheName: 'other-cache',
         plugins: [
             new ExpirationPlugin({
