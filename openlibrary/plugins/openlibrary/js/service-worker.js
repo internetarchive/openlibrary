@@ -95,7 +95,7 @@ registerRoute(
         plugins: [
             new ExpirationPlugin({
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                maxAgeSeconds: DAY_SECONDS * 365,
             }),
         ],
     })
@@ -112,8 +112,7 @@ registerRoute(
         cacheName: 'static-build-cache',
         plugins: [
             new ExpirationPlugin({
-                maxAgeSeconds: 60 * 5,
-                purgeOnQuotaError: true,
+                maxAgeSeconds: 60 * 5, // Five minutes
             }),
             cacheableResponses
         ],
@@ -162,7 +161,7 @@ registerRoute(
 );
 
 registerRoute(
-    ({ url })=>url.pathname.includes('https://archive.org/services/img/'),
+    ({ url })=> {return url.href.startsWith('https://archive.org/services/img/')},
     new CacheFirst({
         cacheName: 'archive-org-images-cache',
         plugins: [
