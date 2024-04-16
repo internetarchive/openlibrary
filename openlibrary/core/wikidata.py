@@ -50,7 +50,7 @@ class WikidataEntity:
     def as_api_response_str(self) -> str:
         """
         Transforms the dataclass a JSON string like we get from the Wikidata API.
-        This is used for staring the json in the database.
+        This is used for storing the json in the database.
         """
         entity_dict = {
             'id': self.id,
