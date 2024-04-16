@@ -134,6 +134,7 @@ registerRoute(
     })
 );
 
+// Cache the search endpoint for faster autocomplete
 registerRoute(
     /\/search.json/,
     new CacheFirst({
