@@ -69,7 +69,9 @@ https://testing.openlibrary.org/static/css/ajax-loader.gif
 */
 
 function matchMiscFiles({ url }) {
-    const miscFiles = ['/static/favicon.ico', '/static/manifest.json', '/static/css/ajax-loader.gif', '/cdn/archive.org/analytics.js', '/cdn/archive.org/donate.js']
+    const miscFiles = ['/static/favicon.ico', '/static/manifest.json',
+        '/static/css/ajax-loader.gif', '/cdn/archive.org/analytics.js',
+        '/cdn/archive.org/donate.js', '/static/css/fonts/slick.woff']
     return miscFiles.includes(url.pathname);
 }
 registerRoute(
