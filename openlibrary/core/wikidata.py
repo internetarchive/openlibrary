@@ -47,7 +47,7 @@ class WikidataEntity:
             _updated=updated,
         )
 
-    def as_api_response_str(self) -> str:
+    def to_wikidata_api_json_format(self) -> str:
         """
         Transforms the dataclass a JSON string like we get from the Wikidata API.
         This is used for storing the json in the database.
@@ -76,6 +76,7 @@ def get_wikidata_entity(
     By default this will only use the cache (unless it is expired).
     This is to avoid overwhelming Wikidata servers with requests from every visit to an author page.
     bust_cache must be set to True if you want to fetch new items from Wikidata.
+    # TODO: After bulk data imports we should set fetch_missing to true (or remove it).
     """
     if bust_cache:
         _get_from_web(qid)
@@ -129,7 +130,7 @@ def _get_from_cache(id: str) -> WikidataEntity | None:
 def _add_to_cache(entity: WikidataEntity) -> None:
     # TODO: after we upgrade to postgres 9.5+ we should use upsert here
     oldb = db.get_db()
-    json_data = entity.as_api_response_str()
+    json_data = entity.to_wikidata_api_json_format()
 
     if _get_from_cache(entity.id):
         return oldb.update(
