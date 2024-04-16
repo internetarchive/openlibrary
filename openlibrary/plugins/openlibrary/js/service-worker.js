@@ -73,7 +73,7 @@ registerRoute(
 registerRoute(
     /\/static\/build/,
     new CacheFirst({
-        cacheName: 'static-cache-build',
+        cacheName: 'static-build-cache',
         plugins: [
             new ExpirationPlugin({
                 maxAgeSeconds: 60 * 5,
