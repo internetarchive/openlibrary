@@ -40,13 +40,7 @@ class WikidataEntity:
     @classmethod
     def from_dict(cls, response: dict, updated: datetime):
         return cls(
-            id=response['id'],
-            type=response['type'],
-            labels=response['labels'],
-            descriptions=response['descriptions'],
-            aliases=response['aliases'],
-            statements=response['statements'],
-            sitelinks=response['sitelinks'],
+            **response,
             _updated=updated,
         )
 
