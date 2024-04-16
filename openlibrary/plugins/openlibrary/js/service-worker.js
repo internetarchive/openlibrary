@@ -94,7 +94,7 @@ registerRoute(
         cacheName: 'static-images-cache',
         plugins: [
             new ExpirationPlugin({
-                maxEntries: 1,
+                maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
             }),
         ],
@@ -160,6 +160,22 @@ registerRoute(
         ],
     })
 );
+
+registerRoute(
+    ({ url })=>url.pathname.includes('https://archive.org/services/img/'),
+    new CacheFirst({
+        cacheName: 'archive-org-images-cache',
+        plugins: [
+            new ExpirationPlugin({
+                maxEntries: 50,
+                maxAgeSeconds: DAY_SECONDS * 1,
+                purgeOnQuotaError: true,
+            }),
+            cacheableResponses
+        ],
+    })
+);
+
 
 // cache all other requests on the same origin
 registerRoute(
