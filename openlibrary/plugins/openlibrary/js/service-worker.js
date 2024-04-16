@@ -19,7 +19,8 @@ offlineFallback({
 });
 
 
-const daySeconds = 24 * 60 * 60;
+const HOUR_SECONDS = 60 * 60;
+const DAY_SECONDS = 24 * HOUR_SECONDS;
 // only cache if it the request returns 0 or 200 status
 const cacheableResponses = new CacheableResponsePlugin({
     statuses: [0, 200],
@@ -61,7 +62,7 @@ registerRoute(
         plugins: [
             new ExpirationPlugin({
                 maxEntries: 150,
-                maxAgeSeconds: 7 * daySeconds,
+                maxAgeSeconds: 7 * DAY_SECONDS,
                 purgeOnQuotaError: true,
             }),
             cacheableResponses
@@ -116,7 +117,7 @@ registerRoute(
         plugins: [
             new ExpirationPlugin({
                 maxEntries: 5,
-                maxAgeSeconds: daySeconds / 24,
+                maxAgeSeconds: HOUR_SECONDS,
                 purgeOnQuotaError: true,
             }),
             cacheableResponses
@@ -133,7 +134,7 @@ registerRoute(
         plugins: [
             new ExpirationPlugin({
                 maxEntries: 50,
-                maxAgeSeconds: 7 * daySeconds,
+                maxAgeSeconds: 7 * DAY_SECONDS,
                 purgeOnQuotaError: true
             })
         ],
