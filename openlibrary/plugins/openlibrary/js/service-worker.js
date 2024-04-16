@@ -26,30 +26,6 @@ const cacheableResponses = new CacheableResponsePlugin({
     statuses: [0, 200],
 });
 
-
-// TODO: Talk with Drini about what makes sense here
-// Which of these do we actually want to load network first vs show a cached page
-function matchFunction({ url }) {
-    const pages = ['/', '/account/login', '/account', '/account/books', '/account/loans', '/account/books/already-read/stats'];
-    return pages.includes(url.pathname);
-}
-
-// runtime caching as the user visits the page
-registerRoute(
-    matchFunction,
-    new NetworkFirst({
-        cacheName: 'html-cache',
-        plugins: [
-            new ExpirationPlugin({
-                maxEntries: 50,
-                maxAgeSeconds: 30 * 24 * 60 * 60,
-                purgeOnQuotaError: true,
-            }),
-            cacheableResponses
-        ],
-    })
-);
-
 /*
 static/images, static/fonts, static/logos - should stay for a long time
 static/build/css(and js) - just for 5 minutes because I'm not sure about cache busting on deploy
@@ -121,22 +97,6 @@ registerRoute(
                 purgeOnQuotaError: true,
             }),
             cacheableResponses
-        ],
-    })
-);
-
-// cache all other images that happen to be on the page
-// This will only be same origin
-registerRoute(
-    /\.(?:png|jpg|jpeg|svg|gif)/,
-    new CacheFirst({
-        cacheName: 'image-cache',
-        plugins: [
-            new ExpirationPlugin({
-                maxEntries: 50,
-                maxAgeSeconds: 7 * DAY_SECONDS,
-                purgeOnQuotaError: true
-            })
         ],
     })
 );
