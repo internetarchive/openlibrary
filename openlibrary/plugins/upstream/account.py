@@ -2,7 +2,7 @@ from datetime import datetime
 import json
 import logging
 import re
-from typing import Any, Final
+from typing import Any, TYPE_CHECKING, Final
 from collections.abc import Callable
 from collections.abc import Iterable, Mapping
 
@@ -32,7 +32,6 @@ from openlibrary.core.lending import (
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.recaptcha import recaptcha
-from openlibrary.plugins.upstream.models import Work
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
@@ -46,6 +45,8 @@ from openlibrary.accounts import (
 from openlibrary.plugins.upstream import borrow, forms, utils
 from openlibrary.utils.dateutil import elapsed_time
 
+if TYPE_CHECKING:
+    from openlibrary.plugins.upstream.models import Work
 
 logger = logging.getLogger("openlibrary.account")
 
@@ -933,25 +934,8 @@ def escape_csv_field(raw_string: str) -> str:
     return f'"{escaped_string}"'
 
 
-def get_work_from_id(work_id: str) -> Work:
-    """
-    Gets work data for a given work ID (OLxxxxxW format), used to access work author, title, etc. for CSV generation.
-    """
-
-    work_key = f"/works/{work_id}"
-    work: Work = web.ctx.site.get(work_key)
-    if not work:
-        raise ValueError(f"No Work found for {work_key}.")
-    if work.type.key == '/type/redirect':
-        # Fetch actual work and resolve redirects before exporting:
-        work = web.ctx.site.get(work.location)
-        work.resolve_redirect_chain(work_key)
-    return work
-
-
 class export_books(delegate.page):
     path = "/account/export"
-
     date_format = '%Y-%m-%d %H:%M:%S'
 
     @require_login
@@ -985,9 +969,21 @@ class export_books(delegate.page):
         web.header('Content-disposition', f'attachment; filename={filename}')
         return delegate.RawText('' or data, content_type="text/csv")
 
-    def generate_reading_log(self, username: str) -> str:
-        from openlibrary.plugins.upstream.models import Work  # Avoid a circular import
+    def get_work_from_id(self, work_id: str) -> Work:
+        """
+        Gets work data for a given work ID (OLxxxxxW format), used to access work author, title, etc. for CSV generation.
+        """
+        work_key = f"/works/{work_id}"
+        work: Work = web.ctx.site.get(work_key)
+        if not work:
+            raise ValueError(f"No Work found for {work_key}.")
+        if work.type.key == '/type/redirect':
+            # Fetch actual work and resolve redirects before exporting:
+            work = web.ctx.site.get(work.location)
+            work.resolve_redirect_chain(work_key)
+        return work
 
+    def generate_reading_log(self, username: str) -> str:
         bookshelf_map = {1: 'Want to Read', 2: 'Currently Reading', 3: 'Already Read'}
 
         def get_subjects(work: Work, subject_type: str) -> str:
@@ -1001,7 +997,7 @@ class export_books(delegate.page):
             work_id = f"OL{book['work_id']}W"
             if edition_id := book.get("edition_id") or "":
                 edition_id = f"OL{edition_id}M"
-            work = get_work_from_id(work_id)
+            work = self.get_work_from_id(work_id)
             ratings = work.get_rating_stats() or {"average": "", "count": ""}
             ratings_average, ratings_count = ratings.values()
             return {
@@ -1088,13 +1084,12 @@ class export_books(delegate.page):
         return "\n".join(lists_as_csv(lists))
 
     def generate_star_ratings(self, username: str) -> str:
-        from openlibrary.plugins.upstream.models import Work
 
         def format_rating(rating: Mapping) -> dict:
             work_id = f"OL{rating['work_id']}W"
             if edition_id := rating.get("edition_id") or "":
                 edition_id = f"OL{edition_id}M"
-            work = get_work_from_id(work_id)
+            work = self.get_work_from_id(work_id)
             return {
                 "Work ID": work_id,
                 "Edition ID": edition_id,
