@@ -121,7 +121,7 @@ def _get_from_cache(id: str) -> WikidataEntity | None:
     """
     The cache is OpenLibrary's Postgres instead of calling the Wikidata API
     """
-    if len(result := _get_from_cache_by_ids([id])) > 0:
+    if result := _get_from_cache_by_ids([id]):
         return result[0]
     return None
 
