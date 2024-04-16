@@ -27,6 +27,35 @@ const cacheableResponses = new CacheableResponsePlugin({
 });
 
 /*
+
+Lets make a nice little list of things to cache.
+
+// These only change on deploy
+https://openlibrary.org/static/css/
+// includes https://testing.openlibrary.org/static/css/ajax-loader.gif
+https://openlibrary.org/static/build/*.js
+https://openlibrary.org/static/build/*.css
+
+
+
+// These almost never change
+https://openlibrary.org/static/images/
+https://openlibrary.org/static/favicon.ico
+
+// covers
+https://covers.openlibrary.org/a/id/6257045-M.jpg // author covers
+https://covers.openlibrary.org/a/olid/OL2838765A-M.jpg // random dot images
+https://covers.openlibrary.org/b/id/1852327-M.jpg // book covers
+https://covers.openlibrary.org/w/id/14348537-M.jpg // redirects to IA with a 302
+
+// IA profile picture
+https://archive.org/services/img/@raybb
+
+
+
+*?
+
+/*
 static/images, static/fonts, static/logos - should stay for a long time
 static/build/css(and js) - just for 5 minutes because I'm not sure about cache busting on deploy
 */
@@ -103,12 +132,12 @@ registerRoute(
 
 // cache all other requests on the same origin
 registerRoute(
-    /\/*/,
+    /.*/,
     new NetworkFirst({
         cacheName: 'other-html-cache',
         plugins: [
             new ExpirationPlugin({
-                maxEntries: 150,
+                maxEntries: 50,
                 purgeOnQuotaError: true,
             }),
             cacheableResponses
