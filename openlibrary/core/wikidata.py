@@ -6,12 +6,15 @@ The purpose of this file is to:
 """
 
 import requests
+import logging
 from dataclasses import dataclass
 from openlibrary.core.helpers import days_since
 
 from datetime import datetime
 import json
 from openlibrary.core import db
+
+logger = logging.getLogger("core.wikidata")
 
 WIKIDATA_API_URL = 'https://www.wikidata.org/w/rest.php/wikibase/v0/entities/items/'
 WIKIDATA_CACHE_TTL_DAYS = 30
@@ -97,9 +100,9 @@ def _get_from_web(id: str) -> WikidataEntity | None:
         _add_to_cache(entity)
         return entity
     else:
+        logger.error(f'Wikidata Response: {response.status_code}, id: {id}')
         return None
-    # TODO: What should we do in non-200 cases?
-    # They're documented here https://doc.wikimedia.org/Wikibase/master/js/rest-api/
+    # Responses documented here https://doc.wikimedia.org/Wikibase/master/js/rest-api/
 
 
 def _get_from_cache_by_ids(ids: list[str]) -> list[WikidataEntity]:
