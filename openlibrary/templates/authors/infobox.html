@@ -1,4 +1,4 @@
-$def with (page, title)
+$def with (page)
 
 $def render_infobox_row(label, itemprop, value):
     $if value:
@@ -12,7 +12,6 @@ $def render_infobox_row(label, itemprop, value):
         $:render_template("covers/author_photo", page)
         $:render_template("covers/change", page, ".bookCover img")
     </div>
-    <div class="infobox-name bold">$title</div>
     <table>
         $if page.birth_date or page.death_date:
             $:render_infobox_row("Born", 'birthDate', page.birth_date)

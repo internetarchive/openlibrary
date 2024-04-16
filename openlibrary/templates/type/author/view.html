@@ -40,11 +40,20 @@ $add_metatag(property="og:description", content=description)
 
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
+$ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians'))
 <div id="contentHead">
 
     $:macros.databarView(page)
 
     <h1 itemprop="name">$title</h1>
+    $if show_librarian_extras:
+        <h2 class="author collapse">
+            $if page.birth_date or page.death_date:
+                <span itemprop="birthDate">$page.birth_date</span> - <span itemprop="deathDate">$page.death_date</span>
+            $else:
+                $if page.date:
+                    $page.date
+        </h2>
 
 </div>
 
@@ -101,7 +110,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                 $page.location
             </div>
         <span class="mobile-only">
-            $:render_template("authors/infobox", page, title)
+            $:render_template("authors/infobox", page)
         </span>
         <div class="clearfix"></div>
         <div id="works" class="section">
@@ -134,7 +143,6 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
                 <div id="searchResults">
                     <ul class="list-books">
-                      $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians'))
                       $for doc in books.docs:
                          $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper=True)
                     </ul>
@@ -145,7 +153,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
     </div>
     <div class="contentOnethird">
         <span class="desktop-only">
-            $:render_template("authors/infobox", page, title)
+            $:render_template("authors/infobox", page)
         </span>
         $def render_subjects(label, subjects, prefix):
             $if subjects:
