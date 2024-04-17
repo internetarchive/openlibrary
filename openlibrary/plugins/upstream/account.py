@@ -969,12 +969,12 @@ class export_books(delegate.page):
         web.header('Content-disposition', f'attachment; filename={filename}')
         return delegate.RawText('' or data, content_type="text/csv")
 
-    def get_work_from_id(self, work_id: str) -> Work:
+    def get_work_from_id(self, work_id: str) -> "Work":
         """
         Gets work data for a given work ID (OLxxxxxW format), used to access work author, title, etc. for CSV generation.
         """
         work_key = f"/works/{work_id}"
-        work: Work = web.ctx.site.get(work_key)
+        work: "Work" = web.ctx.site.get(work_key)
         if not work:
             raise ValueError(f"No Work found for {work_key}.")
         if work.type.key == '/type/redirect':
@@ -986,7 +986,7 @@ class export_books(delegate.page):
     def generate_reading_log(self, username: str) -> str:
         bookshelf_map = {1: 'Want to Read', 2: 'Currently Reading', 3: 'Already Read'}
 
-        def get_subjects(work: Work, subject_type: str) -> str:
+        def get_subjects(work: "Work", subject_type: str) -> str:
             return " | ".join(s.title for s in work.get_subject_links(subject_type))
 
         def format_reading_log(book: dict) -> dict:
