@@ -3,7 +3,7 @@
 set -o xtrace
 
 # See https://github.com/internetarchive/openlibrary/wiki/Deployment-Scratchpad
-SERVERS="ol-home0 ol-covers0 ol-web1 ol-web2 ol-www0 ol-solr0"
+SERVERS="ol-home0 ol-covers0 ol-web0 ol-web1 ol-web2 ol-www0 ol-solr0"
 COMPOSE_FILE="compose.yaml:compose.production.yaml"
 
 # This script must be run on ol-home0 to start a new deployment.
