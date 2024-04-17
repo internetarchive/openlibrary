@@ -81,17 +81,11 @@ def get_login_error(error_key):
         "missing_fields": _('Please fill out all fields and try again'),
         "email_registered": _('This email is already registered'),
         "username_registered": _('This username is already registered'),
-        "ia_login_only": _(
-            'Sorry, you must use your Internet Archive email and password to log in'
-        ),
         "max_retries_exceeded": _(
             'A problem occurred and we were unable to log you in.'
         ),
         "invalid_s3keys": _(
             'Login attempted with invalid Internet Archive s3 credentials.'
-        ),
-        "wrong_ia_account": _(
-            'An Open Library account with this email is already linked to a different Internet Archive account. Please contact info@openlibrary.org.'
         ),
     }
     return LOGIN_ERRORS[error_key]
