@@ -59,6 +59,8 @@ sendmail = accounts.sendmail
 
 
 def get_login_error(error_key):
+    """Nesting the LOGIN_ERRORS dictionary inside a function prevents
+    an AttributeError with the web.ctx.lang library"""
     LOGIN_ERRORS = {
         "invalid_email": _('The email address you entered is invalid'),
         "account_blocked": _('This account has been blocked'),
