@@ -22,29 +22,29 @@ export function matchMiscFiles({ url }) {
  * @param {URL} params.url - The URL to check.
  * @returns {boolean} - Returns true if the URL indicates a small or medium cover size, otherwise false.
  */
-export function matchSmallMediumCovers({url}){
+export function matchSmallMediumCovers({ url }) {
     const regex = /-[SM].jpg$/;
     return regex.test(url.pathname);
 }
 
-export function matchLargeCovers({url}){
+export function matchLargeCovers({ url }) {
     const regex = /-L.jpg$/;
     return regex.test(url.pathname);
 }
 
-export function matchStaticImages({url}){
+export function matchStaticImages({ url }) {
     const regex = /^\/images\/|^\/static\/images\//;
     return regex.test(url.pathname);
 }
 
-export function matchStaticBuild({url}){
+export function matchStaticBuild({ url }) {
     const regex = /^\/static\/build\/.*(\.js|\.css)/;
     const localhost = url.origin.includes('localhost')
     const gitpod = url.origin.includes('gitpod')
     return !localhost && !gitpod && regex.test(url.pathname);
 }
 
-export function matchArchiveOrgImage({url}){
+export function matchArchiveOrgImage({ url }) {
     // most importantly, to cache your profile picture from loading every time
     // also caches some covers
     return url.href.startsWith('https://archive.org/services/img/');

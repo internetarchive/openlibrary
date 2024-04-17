@@ -1,9 +1,9 @@
-import {matchMiscFiles, matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild, matchArchiveOrgImage} from '../../../openlibrary/plugins/openlibrary/js/service-worker-matchers';
+import { matchMiscFiles, matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild, matchArchiveOrgImage } from '../../../openlibrary/plugins/openlibrary/js/service-worker-matchers';
 
 
 // Make the expected input for our tests
-function _u(url){
-    return {url: new URL(url)}
+function _u(url) {
+    return { url: new URL(url) }
 }
 
 test('matchMiscFiles', () => {

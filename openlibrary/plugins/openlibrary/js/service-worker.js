@@ -2,9 +2,9 @@ import { ExpirationPlugin } from 'workbox-expiration';
 import { offlineFallback } from 'workbox-recipes';
 import { setDefaultHandler, registerRoute } from 'workbox-routing';
 import { CacheFirst, NetworkOnly, NetworkFirst } from 'workbox-strategies';
-import {CacheableResponsePlugin} from 'workbox-cacheable-response';
+import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 import { clientsClaim } from 'workbox-core';
-import { matchMiscFiles, matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild, matchArchiveOrgImage} from './service-worker-matchers';
+import { matchMiscFiles, matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild, matchArchiveOrgImage } from './service-worker-matchers';
 
 self.skipWaiting();
 clientsClaim();
