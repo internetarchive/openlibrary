@@ -40,7 +40,6 @@ registerRoute(
     })
 );
 
-
 registerRoute(
     matchStaticImages,
     new CacheFirst({
@@ -117,7 +116,6 @@ registerRoute(
         ],
     })
 );
-
 
 // cache all other requests on the same origin
 registerRoute(
