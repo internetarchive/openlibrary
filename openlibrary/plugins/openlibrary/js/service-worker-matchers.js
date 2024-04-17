@@ -1,0 +1,24 @@
+/*
+This is a separate file to avoid this error with tests:
+
+    SyntaxError: Cannot use import statement outside a module
+
+    > 1 | import { ExpirationPlugin } from 'workbox-expiration';
+*/
+
+/**
+ * Checks if a given URL includes a small or medium cover.
+ *
+ * @param {Object} params - The parameters object.
+ * @param {URL} params.url - The URL to check.
+ * @returns {boolean} - Returns true if the URL indicates a small or medium cover size, otherwise false.
+ */
+export function matchSmallMediumCovers({url}){
+    const regex = /-[SM].jpg$/;
+    return regex.test(url.pathname);
+}
+
+export function matchLargeCovers({url}){
+    const regex = /-L.jpg$/;
+    return regex.test(url.pathname);
+}

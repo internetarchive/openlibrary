@@ -4,6 +4,7 @@ import { setDefaultHandler, registerRoute } from 'workbox-routing';
 import { CacheFirst, NetworkOnly, NetworkFirst } from 'workbox-strategies';
 import {CacheableResponsePlugin} from 'workbox-cacheable-response';
 import { clientsClaim } from 'workbox-core';
+import { matchSmallMediumCovers, matchLargeCovers } from './service-worker-matchers';
 
 self.skipWaiting();
 clientsClaim();
@@ -89,8 +90,7 @@ registerRoute(
 
 registerRoute(
     // S/M covers - cache 150 of them. They take up no more than 2.25mb of space.
-    // TODO: UGH IDK WHY THIS ISN"T WORKING...
-    /-[SM].jpg/,
+    matchSmallMediumCovers,
     new CacheFirst({
         cacheName: 'covers-small-medium-cache',
         plugins: [
@@ -106,7 +106,7 @@ registerRoute(
 registerRoute(
     // L/Original covers - cache 5 of them but with a very short timeout so if you go to a few pages they stay.
     // This includes "8775559-L.jpg" and "8775559.jpg" (original)
-    /\/id\/\d+(|-L)\\.jpg/,
+    matchLargeCovers,
     new CacheFirst({
         cacheName: 'covers-large-cache',
         plugins: [
@@ -121,7 +121,7 @@ registerRoute(
 );
 
 registerRoute(
-    ({ url })=> url.href.startsWith('https://archive.org/services/img/'),
+    ({ url }) => url.href.startsWith('https://archive.org/services/img/'),
     new CacheFirst({
         cacheName: 'archive-org-images-cache',
         plugins: [
