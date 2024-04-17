@@ -308,7 +308,7 @@ class GetText:
     def __call__(self, string, *args, **kwargs):
         """Translate a given string to the language of the current locale."""
         # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
-        translations = load_translations(getattr(web.ctx, 'lang', ''))
+        translations = load_translations(web.ctx.lang)
         value = (translations and translations.ugettext(string)) or string
 
         if args:

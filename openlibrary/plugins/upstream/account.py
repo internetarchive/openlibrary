@@ -57,35 +57,42 @@ send_verification_email = accounts.send_verification_email
 create_link_doc = accounts.create_link_doc
 sendmail = accounts.sendmail
 
-LOGIN_ERRORS = {
-    "invalid_email": _('The email address you entered is invalid'),
-    "account_blocked": _('This account has been blocked'),
-    "account_locked": _('This account has been blocked'),
-    "account_not_found": _('No account was found with this email. Please try again'),
-    "account_incorrect_password": _(
-        'The password you entered is incorrect. Please try again'
-    ),
-    "account_bad_password": _('Wrong password. Please try again'),
-    "account_not_verified": _(
-        'Please verify your Open Library account before logging in'
-    ),
-    "ia_account_not_verified": _(
-        'Please verify your Internet Archive account before logging in'
-    ),
-    "missing_fields": _('Please fill out all fields and try again'),
-    "email_registered": _('This email is already registered'),
-    "username_registered": _('This username is already registered'),
-    "ia_login_only": _(
-        'Sorry, you must use your Internet Archive email and password to log in'
-    ),
-    "max_retries_exceeded": _('A problem occurred and we were unable to log you in.'),
-    "invalid_s3keys": _(
-        'Login attempted with invalid Internet Archive s3 credentials.'
-    ),
-    "wrong_ia_account": _(
-        'An Open Library account with this email is already linked to a different Internet Archive account. Please contact info@openlibrary.org.'
-    ),
-}
+
+def get_login_error(error_key):
+    LOGIN_ERRORS = {
+        "invalid_email": _('The email address you entered is invalid'),
+        "account_blocked": _('This account has been blocked'),
+        "account_locked": _('This account has been locked'),
+        "account_not_found": _(
+            'No account was found with this email. Please try again'
+        ),
+        "account_incorrect_password": _(
+            'The password you entered is incorrect. Please try again'
+        ),
+        "account_bad_password": _('Wrong password. Please try again'),
+        "account_not_verified": _(
+            'Please verify your Open Library account before logging in'
+        ),
+        "ia_account_not_verified": _(
+            'Please verify your Internet Archive account before logging in'
+        ),
+        "missing_fields": _('Please fill out all fields and try again'),
+        "email_registered": _('This email is already registered'),
+        "username_registered": _('This username is already registered'),
+        "ia_login_only": _(
+            'Sorry, you must use your Internet Archive email and password to log in'
+        ),
+        "max_retries_exceeded": _(
+            'A problem occurred and we were unable to log you in.'
+        ),
+        "invalid_s3keys": _(
+            'Login attempted with invalid Internet Archive s3 credentials.'
+        ),
+        "wrong_ia_account": _(
+            'An Open Library account with this email is already linked to a different Internet Archive account. Please contact info@openlibrary.org.'
+        ),
+    }
+    return LOGIN_ERRORS[error_key]
 
 
 class availability(delegate.page):
@@ -314,7 +321,7 @@ class account_create(delegate.page):
                     username=f.username.value, email=f.email.value
                 )
             except ValueError:
-                f.note = LOGIN_ERRORS['max_retries_exceeded']
+                f.note = get_login_error('max_retries_exceeded')
 
         return render['account/create'](f)
 
@@ -355,7 +362,7 @@ class account_login_json(delegate.page):
             if error:
                 resp = {
                     'error': error,
-                    'errorDisplayString': LOGIN_ERRORS[error],
+                    'errorDisplayString': get_login_error(error),
                 }
                 raise olib.code.BadRequest(json.dumps(resp))
             expires = 3600 * 24 * 365 if remember.lower() == 'true' else ""
@@ -395,7 +402,7 @@ class account_login(delegate.page):
     def render_error(self, error_key, i):
         f = forms.Login()
         f.fill(i)
-        f.note = LOGIN_ERRORS[error_key]
+        f.note = get_login_error(error_key)
         return render.login(f)
 
     def GET(self):
