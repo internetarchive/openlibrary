@@ -1,4 +1,11 @@
-import {matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild} from '../../../openlibrary/plugins/openlibrary/js/service-worker-matchers';
+import {matchMiscFiles, matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild} from '../../../openlibrary/plugins/openlibrary/js/service-worker-matchers';
+
+
+test('matchMiscFiles', () => {
+    expect(matchMiscFiles({url: new URL('https://openlibrary.org/static/favicon.ico')})).toBe(true);
+    expect(matchMiscFiles({url: new URL('https://openlibrary.org/')})).toBe(false);
+})
+
 
 test('matchSmallMediumCovers', () => {
     // Test for author covers
@@ -84,4 +91,3 @@ test('matchStaticBuild', () => {
     expect(matchStaticBuild({url: new URL('https://8080-internetarc-openlibrary-feliyig0grl.ws-eu110.gitpod.io/static/build/4290.a0ae80aacde14696d322.js')})).toBe(false);
     expect(matchStaticBuild({url: new URL('https://openlibrary.org')})).toBe(false);
 });
-

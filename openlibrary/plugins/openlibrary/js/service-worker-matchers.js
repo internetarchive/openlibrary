@@ -6,6 +6,14 @@ This is a separate file to avoid this error with tests:
     > 1 | import { ExpirationPlugin } from 'workbox-expiration';
 */
 
+
+export function matchMiscFiles({ url }) {
+    const miscFiles = ['/static/favicon.ico', '/static/manifest.json',
+        '/static/css/ajax-loader.gif', '/cdn/archive.org/analytics.js',
+        '/cdn/archive.org/donate.js', '/static/css/fonts/slick.woff']
+    return miscFiles.includes(url.pathname);
+}
+
 /**
  * Checks if a given URL includes a small or medium cover.
  *

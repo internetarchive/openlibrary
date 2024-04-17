@@ -4,7 +4,7 @@ import { setDefaultHandler, registerRoute } from 'workbox-routing';
 import { CacheFirst, NetworkOnly, NetworkFirst } from 'workbox-strategies';
 import {CacheableResponsePlugin} from 'workbox-cacheable-response';
 import { clientsClaim } from 'workbox-core';
-import { matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild } from './service-worker-matchers';
+import { matchMiscFiles, matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild } from './service-worker-matchers';
 
 self.skipWaiting();
 clientsClaim();
@@ -37,19 +37,13 @@ https://openlibrary.org/static/css/
 
 */
 
-function matchMiscFiles({ url }) {
-    const miscFiles = ['/static/favicon.ico', '/static/manifest.json',
-        '/static/css/ajax-loader.gif', '/cdn/archive.org/analytics.js',
-        '/cdn/archive.org/donate.js', '/static/css/fonts/slick.woff']
-    return miscFiles.includes(url.pathname);
-}
 registerRoute(
     matchMiscFiles,
     new CacheFirst({
         cacheName: 'misc-files-cache',
         plugins: [
             new ExpirationPlugin({
-                maxAgeSeconds: DAY_SECONDS * 30
+                maxAgeSeconds: DAY_SECONDS
             }),
             cacheableResponses
         ],
@@ -104,8 +98,7 @@ registerRoute(
 );
 
 registerRoute(
-    // L/Original covers - cache 5 of them but with a very short timeout so if you go to a few pages they stay.
-    // This includes "8775559-L.jpg" and "8775559.jpg" (original)
+    // L covers - cache 5 of them but with a very short timeout so if you go to a few pages they stay.
     matchLargeCovers,
     new CacheFirst({
         cacheName: 'covers-large-cache',
