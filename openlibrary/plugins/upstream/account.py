@@ -58,19 +58,33 @@ create_link_doc = accounts.create_link_doc
 sendmail = accounts.sendmail
 
 LOGIN_ERRORS = {
-    "invalid_email": "The email address you entered is invalid",
-    "account_blocked": "This account has been blocked",
-    "account_locked": "This account has been blocked",
-    "account_not_found": "No account was found with this email. Please try again",
-    "account_incorrect_password": "The password you entered is incorrect. Please try again",
-    "account_bad_password": "Wrong password. Please try again",
-    "account_not_verified": "Please verify your Open Library account before logging in",
-    "ia_account_not_verified": "Please verify your Internet Archive account before logging in",
-    "missing_fields": "Please fill out all fields and try again",
-    "email_registered": "This email is already registered",
-    "username_registered": "This username is already registered",
-    "max_retries_exceeded": "A problem occurred and we were unable to log you in.",
-    "invalid_s3keys": "Login attempted with invalid Internet Archive s3 credentials.",
+    "invalid_email": _('The email address you entered is invalid'),
+    "account_blocked": _('This account has been blocked'),
+    "account_locked": _('This account has been blocked'),
+    "account_not_found": _('No account was found with this email. Please try again'),
+    "account_incorrect_password": _(
+        'The password you entered is incorrect. Please try again'
+    ),
+    "account_bad_password": _('Wrong password. Please try again'),
+    "account_not_verified": _(
+        'Please verify your Open Library account before logging in'
+    ),
+    "ia_account_not_verified": _(
+        'Please verify your Internet Archive account before logging in'
+    ),
+    "missing_fields": _('Please fill out all fields and try again'),
+    "email_registered": _('This email is already registered'),
+    "username_registered": _('This username is already registered'),
+    "ia_login_only": _(
+        'Sorry, you must use your Internet Archive email and password to log in'
+    ),
+    "max_retries_exceeded": _('A problem occurred and we were unable to log you in.'),
+    "invalid_s3keys": _(
+        'Login attempted with invalid Internet Archive s3 credentials.'
+    ),
+    "wrong_ia_account": _(
+        'An Open Library account with this email is already linked to a different Internet Archive account. Please contact info@openlibrary.org.'
+    ),
 }
 
 
