@@ -1,4 +1,4 @@
-import {matchSmallMediumCovers, matchLargeCovers} from '../../../openlibrary/plugins/openlibrary/js/service-worker-matchers';
+import {matchSmallMediumCovers, matchLargeCovers, matchStaticImages} from '../../../openlibrary/plugins/openlibrary/js/service-worker-matchers';
 
 test('matchSmallMediumCovers', () => {
     // Test for author covers
@@ -49,4 +49,21 @@ test('matchLargeCovers', () => {
     expect(matchLargeCovers({url: new URL('http://localhost:7075/a/id/1-S.jpg')})).toBe(false);
     expect(matchLargeCovers({url: new URL('http://localhost:7075/a/id/1-M.jpg')})).toBe(false);
     expect(matchLargeCovers({url: new URL('http://localhost:7075/a/id/1.jpg')})).toBe(false);
+});
+
+
+test('matchStaticImages', () => {
+    expect(matchStaticImages({url: new URL('https://openlibrary.org/static/images/down-arrow.png')})).toBe(true);
+    expect(matchStaticImages({url: new URL('https://testing.openlibrary.org/static/images/icons/barcode_scanner.svg')})).toBe(true);
+    expect(matchStaticImages({url: new URL('https://openlibrary.org/images/menu.png')})).toBe(true);
+    expect(matchStaticImages({url: new URL('http://localhost:8080/images/menu.png')})).toBe(true);
+
+
+
+    // Negative cases
+    expect(matchStaticImages({url: new URL('https://openlibrary.org')})).toBe(false);
+    expect(matchStaticImages({url: new URL('https://openlibrary.org/stsaatic/images/down-arrow.png')})).toBe(false);
+    expect(matchStaticImages({url: new URL('https://covers.openlibrary.org/w/id/14348537-L.jpg')})).toBe(false);
+    expect(matchStaticImages({url: new URL('http://localhost:7075/a/id/1-M.jpg')})).toBe(false);
+    expect(matchStaticImages({url: new URL('http://localhost:7075/a/id/1.jpg')})).toBe(false);
 });

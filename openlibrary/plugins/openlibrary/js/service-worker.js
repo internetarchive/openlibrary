@@ -4,7 +4,7 @@ import { setDefaultHandler, registerRoute } from 'workbox-routing';
 import { CacheFirst, NetworkOnly, NetworkFirst } from 'workbox-strategies';
 import {CacheableResponsePlugin} from 'workbox-cacheable-response';
 import { clientsClaim } from 'workbox-core';
-import { matchSmallMediumCovers, matchLargeCovers } from './service-worker-matchers';
+import { matchSmallMediumCovers, matchLargeCovers, matchStaticImages } from './service-worker-matchers';
 
 self.skipWaiting();
 clientsClaim();
@@ -58,7 +58,7 @@ registerRoute(
 
 
 registerRoute(
-    new RegExp('/images/|/static/images/'),
+    matchStaticImages,
     new CacheFirst({
         cacheName: 'static-images-cache',
         plugins: [

@@ -22,3 +22,8 @@ export function matchLargeCovers({url}){
     const regex = /-L.jpg$/;
     return regex.test(url.pathname);
 }
+
+export function matchStaticImages({url}){
+    const regex = /^\/images\/|^\/static\/images\//;
+    return regex.test(url.pathname);
+}
