@@ -1,4 +1,4 @@
-import {matchMiscFiles, matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild} from '../../../openlibrary/plugins/openlibrary/js/service-worker-matchers';
+import {matchMiscFiles, matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild, matchArchiveOrgImage} from '../../../openlibrary/plugins/openlibrary/js/service-worker-matchers';
 
 
 test('matchMiscFiles', () => {
@@ -82,7 +82,7 @@ test('matchStaticBuild', () => {
     expect(matchStaticBuild({url: new URL('https://openlibrary.org/static/build/4290.a0ae80aacde14696d322.js')})).toBe(true);
     // It should work on js with versions
     expect(matchStaticBuild({url: new URL('https://openlibrary.org/static/build/all.js?v=e2544bd4947a7f4e8f5c34684df62659')})).toBe(true);
-    // It should work on testing
+    // It should work on css (and testing)
     expect(matchStaticBuild({url: new URL('https://testing.openlibrary.org/static/build/page-book.css?v=097b69dc350c972d96da0c70cebe7b75')})).toBe(true);
 
     // Negative cases
@@ -91,3 +91,13 @@ test('matchStaticBuild', () => {
     expect(matchStaticBuild({url: new URL('https://8080-internetarc-openlibrary-feliyig0grl.ws-eu110.gitpod.io/static/build/4290.a0ae80aacde14696d322.js')})).toBe(false);
     expect(matchStaticBuild({url: new URL('https://openlibrary.org')})).toBe(false);
 });
+
+test('matchArchiveOrgImage', () => {
+    // test profile picture
+    expect(matchArchiveOrgImage({url: new URL('https://archive.org/services/img/@raybb')})).toBe(true);
+    // test cover
+    expect(matchArchiveOrgImage({url: new URL('https://archive.org/services/img/courtofmistfury0000maas')})).toBe(true);
+
+    // not anything else
+    expect(matchArchiveOrgImage({url: new URL('https://archive.org/services/')})).toBe(false);
+})

@@ -4,7 +4,7 @@ import { setDefaultHandler, registerRoute } from 'workbox-routing';
 import { CacheFirst, NetworkOnly, NetworkFirst } from 'workbox-strategies';
 import {CacheableResponsePlugin} from 'workbox-cacheable-response';
 import { clientsClaim } from 'workbox-core';
-import { matchMiscFiles, matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild } from './service-worker-matchers';
+import { matchMiscFiles, matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild, matchArchiveOrgImage} from './service-worker-matchers';
 
 self.skipWaiting();
 clientsClaim();
@@ -26,16 +26,6 @@ const DAY_SECONDS = 24 * HOUR_SECONDS;
 const cacheableResponses = new CacheableResponsePlugin({
     statuses: [0, 200],
 });
-
-/*
-
-// These only change on deploy
-https://openlibrary.org/static/css/
-// afaik it only contains https://testing.openlibrary.org/static/css/ajax-loader.gif
-// oh also fonts https://testing.openlibrary.org/static/css/fonts/slick.ttf
-// TODO we should move this to the static/images folder
-
-*/
 
 registerRoute(
     matchMiscFiles,
@@ -83,8 +73,8 @@ registerRoute(
 )
 
 registerRoute(
-    // S/M covers - cache 150 of them. They take up no more than 2.25mb of space.
     matchSmallMediumCovers,
+    // S/M covers - cache 150 of them. They take up no more than 2.25mb of space.
     new CacheFirst({
         cacheName: 'covers-small-medium-cache',
         plugins: [
@@ -98,8 +88,8 @@ registerRoute(
 );
 
 registerRoute(
-    // L covers - cache 5 of them but with a very short timeout so if you go to a few pages they stay.
     matchLargeCovers,
+    // L covers - cache 5 of them but with a very short timeout so if you go to a few pages they stay.
     new CacheFirst({
         cacheName: 'covers-large-cache',
         plugins: [
@@ -114,13 +104,13 @@ registerRoute(
 );
 
 registerRoute(
-    ({ url }) => url.href.startsWith('https://archive.org/services/img/'),
+    matchArchiveOrgImage,
     new CacheFirst({
         cacheName: 'archive-org-images-cache',
         plugins: [
             new ExpirationPlugin({
                 maxEntries: 50,
-                maxAgeSeconds: DAY_SECONDS * 1,
+                maxAgeSeconds: DAY_SECONDS,
                 purgeOnQuotaError: true,
             }),
             cacheableResponses
