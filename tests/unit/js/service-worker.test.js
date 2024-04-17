@@ -1,4 +1,4 @@
-import {matchSmallMediumCovers, matchLargeCovers, matchStaticImages} from '../../../openlibrary/plugins/openlibrary/js/service-worker-matchers';
+import {matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild} from '../../../openlibrary/plugins/openlibrary/js/service-worker-matchers';
 
 test('matchSmallMediumCovers', () => {
     // Test for author covers
@@ -59,7 +59,6 @@ test('matchStaticImages', () => {
     expect(matchStaticImages({url: new URL('http://localhost:8080/images/menu.png')})).toBe(true);
 
 
-
     // Negative cases
     expect(matchStaticImages({url: new URL('https://openlibrary.org')})).toBe(false);
     expect(matchStaticImages({url: new URL('https://openlibrary.org/stsaatic/images/down-arrow.png')})).toBe(false);
@@ -67,3 +66,22 @@ test('matchStaticImages', () => {
     expect(matchStaticImages({url: new URL('http://localhost:7075/a/id/1-M.jpg')})).toBe(false);
     expect(matchStaticImages({url: new URL('http://localhost:7075/a/id/1.jpg')})).toBe(false);
 });
+
+
+test('matchStaticBuild', () => {
+
+    // Positive cases
+    // It should work on js
+    expect(matchStaticBuild({url: new URL('https://openlibrary.org/static/build/4290.a0ae80aacde14696d322.js')})).toBe(true);
+    // It should work on js with versions
+    expect(matchStaticBuild({url: new URL('https://openlibrary.org/static/build/all.js?v=e2544bd4947a7f4e8f5c34684df62659')})).toBe(true);
+    // It should work on testing
+    expect(matchStaticBuild({url: new URL('https://testing.openlibrary.org/static/build/page-book.css?v=097b69dc350c972d96da0c70cebe7b75')})).toBe(true);
+
+    // Negative cases
+    // We don't want it caching localhost or gitpod
+    expect(matchStaticBuild({url: new URL('http://localhost:8080/static/build/4290.a0ae80aacde14696d322.js')})).toBe(false);
+    expect(matchStaticBuild({url: new URL('https://8080-internetarc-openlibrary-feliyig0grl.ws-eu110.gitpod.io/static/build/4290.a0ae80aacde14696d322.js')})).toBe(false);
+    expect(matchStaticBuild({url: new URL('https://openlibrary.org')})).toBe(false);
+});
+

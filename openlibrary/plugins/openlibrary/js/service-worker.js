@@ -4,7 +4,7 @@ import { setDefaultHandler, registerRoute } from 'workbox-routing';
 import { CacheFirst, NetworkOnly, NetworkFirst } from 'workbox-strategies';
 import {CacheableResponsePlugin} from 'workbox-cacheable-response';
 import { clientsClaim } from 'workbox-core';
-import { matchSmallMediumCovers, matchLargeCovers, matchStaticImages } from './service-worker-matchers';
+import { matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild } from './service-worker-matchers';
 
 self.skipWaiting();
 clientsClaim();
@@ -71,11 +71,11 @@ registerRoute(
 );
 
 registerRoute(
-    /\/static\/build\/.*(\.js|\.css).*/,
+    matchStaticBuild,
     // This has all the JS and CSS that changes on build
     // We use cache first because it rarely changes
     // But we only cache it for 5 minutes in case of deploy
-    // TOOD: We should increase this a lot and make it change on deploy (clear it out when the deploy hash changes)
+    // TODO: We should increase this a lot and make it change on deploy (clear it out when the deploy hash changes)
     // it includes a .* at the end because some items have versions ?v=123 after
     new CacheFirst({
         cacheName: 'static-build-cache',
