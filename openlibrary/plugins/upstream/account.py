@@ -922,18 +922,6 @@ def csv_string(source: Iterable[Mapping], row_formatter: Callable | None = None)
     return '\n'.join(csv_body())
 
 
-def escape_csv_field(raw_string: str) -> str:
-    """
-    Formats given CSV field string such that it conforms to definition outlined
-    in RFC #4180.
-
-    Note: We should probably use
-    https://docs.python.org/3/library/csv.html
-    """
-    escaped_string = raw_string.replace('"', '""')
-    return f'"{escaped_string}"'
-
-
 class export_books(delegate.page):
     path = "/account/export"
     date_format = '%Y-%m-%d %H:%M:%S'
@@ -969,6 +957,17 @@ class export_books(delegate.page):
         web.header('Content-disposition', f'attachment; filename={filename}')
         return delegate.RawText('' or data, content_type="text/csv")
 
+    def escape_csv_field(self, raw_string: str) -> str:
+        """
+        Formats given CSV field string such that it conforms to definition outlined
+        in RFC #4180.
+
+        Note: We should probably use
+        https://docs.python.org/3/library/csv.html
+        """
+        escaped_string = raw_string.replace('"', '""')
+        return f'"{escaped_string}"'
+
     def get_work_from_id(self, work_id: str) -> "Work":
         """
         Gets work data for a given work ID (OLxxxxxW format), used to access work author, title, etc. for CSV generation.
@@ -1002,8 +1001,8 @@ class export_books(delegate.page):
             ratings_average, ratings_count = ratings.values()
             return {
                 "work_id": work_id,
-                "title": escape_csv_field(work.title),
-                "authors": escape_csv_field(" | ".join(work.get_author_names())),
+                "title": self.escape_csv_field(work.title),
+                "authors": self.escape_csv_field(" | ".join(work.get_author_names())),
                 "first_publish_year": work.first_publish_year,
                 "edition_id": edition_id,
                 "edition_count": work.edition_count,
@@ -1012,16 +1011,16 @@ class export_books(delegate.page):
                 "ratings_average": ratings_average,
                 "ratings_count": ratings_count,
                 "has_ebook": work.has_ebook(),
-                "subjects": escape_csv_field(
+                "subjects": self.escape_csv_field(
                     get_subjects(work=work, subject_type="subject")
                 ),
-                "subject_people": escape_csv_field(
+                "subject_people": self.escape_csv_field(
                     get_subjects(work=work, subject_type="person")
                 ),
-                "subject_places": escape_csv_field(
+                "subject_places": self.escape_csv_field(
                     get_subjects(work=work, subject_type="place")
                 ),
-                "subject_times": escape_csv_field(
+                "subject_times": self.escape_csv_field(
                     get_subjects(work=work, subject_type="time")
                 ),
             }
@@ -1093,8 +1092,8 @@ class export_books(delegate.page):
             return {
                 "Work ID": work_id,
                 "Edition ID": edition_id,
-                "Title": escape_csv_field(work.title),
-                "Author(s)": escape_csv_field(" | ".join(work.get_author_names())),
+                "Title": self.escape_csv_field(work.title),
+                "Author(s)": self.escape_csv_field(" | ".join(work.get_author_names())),
                 "Rating": f"{rating['rating']}",
                 "Created On": rating['created'].strftime(self.date_format),
             }
