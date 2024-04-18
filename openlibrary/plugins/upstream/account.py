@@ -770,7 +770,7 @@ class account_privacy(delegate.page):
 
         user.save_preferences(i)
         username = user.key.split('/')[-1]
-        PubSub.toggle_privacy(username, private=i.public_readlog=='no')
+        PubSub.toggle_privacy(username, private=i.public_readlog == 'no')
         web.setcookie(
             'sfw', i.safe_mode, expires="" if i.safe_mode.lower() == 'yes' else -1
         )

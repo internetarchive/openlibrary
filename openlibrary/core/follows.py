@@ -41,7 +41,7 @@ class PubSub:
     def get_followers(cls, publisher):
         """Get publishers subscribers"""
         oldb = db.get_db()
-        where='publisher=$publisher'
+        where = 'publisher=$publisher'
         subscribers = oldb.select(
             cls.TABLENAME, where=where, vars={'publisher': publisher}
         )
@@ -50,7 +50,7 @@ class PubSub:
     @classmethod
     def get_following(cls, subscriber, exclude_disabled=False):
         """Get subscriber's subscriptions"""
-        oldb = db.get_db()        
+        oldb = db.get_db()
         where = 'subscriber=$subscriber'
         if exclude_disabled:
             where += " AND disabled=false"
@@ -80,7 +80,7 @@ class PubSub:
 
         # Extract usernames from subscriptions
         usernames = [sub['publisher'] for sub in subscriptions]
-        
+
         if not usernames:
             return []
 
@@ -93,11 +93,7 @@ class PubSub:
         recent_books = list(
             oldb.query(
                 query,
-                vars={
-                    'usernames': usernames,
-                    'limit': limit,
-                    'offset': offset
-                },
+                vars={'usernames': usernames, 'limit': limit, 'offset': offset},
             )
         )
 
@@ -107,10 +103,9 @@ class PubSub:
 
         return Bookshelves.fetch(recent_books)
 
-
     @classmethod
     def count_following(cls, subscriber):
-        oldb = db.get_db()        
+        oldb = db.get_db()
         count = oldb.select(
             cls.TABLENAME,
             what='count(*) as count',
@@ -121,7 +116,7 @@ class PubSub:
 
     @classmethod
     def count_followers(cls, publisher):
-        oldb = db.get_db()        
+        oldb = db.get_db()
         count = oldb.select(
             cls.TABLENAME,
             what='count(*) as count',
