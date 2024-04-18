@@ -245,6 +245,12 @@ def time_since(hours):
     return since, since.strftime('%Y-%m-%dT%H:%M:%S')
 
 
+def add_label_to_issues(issues):
+    for issue in issues:
+        issue_labels_url = f"https://api.github.com/repos/internetarchive/openlibrary/issues/{issue['number']}/labels"
+        response = requests.post(issue_labels_url, json={"labels": ["Needs: Response"]}, headers=github_headers)
+
+
 def start_job(args: argparse.Namespace):
     """
     Starts the new comment digest job.
@@ -253,6 +259,7 @@ def start_job(args: argparse.Namespace):
     issues = fetch_issues(date_string)
 
     filtered_issues = filter_issues(issues, since)
+    add_label_to_issues(filtered_issues)
     publish_digest(filtered_issues, args.channel, args.slack_token, args.hours)
     print('Digest posted to Slack.')
 
