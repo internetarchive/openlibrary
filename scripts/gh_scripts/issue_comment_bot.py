@@ -248,7 +248,11 @@ def time_since(hours):
 def add_label_to_issues(issues):
     for issue in issues:
         issue_labels_url = f"https://api.github.com/repos/internetarchive/openlibrary/issues/{issue['number']}/labels"
-        response = requests.post(issue_labels_url, json={"labels": ["Needs: Response"]}, headers=github_headers)
+        response = requests.post(
+            issue_labels_url,
+            json={"labels": ["Needs: Response"]},
+            headers=github_headers,
+        )
 
 
 def start_job(args: argparse.Namespace):
