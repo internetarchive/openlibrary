@@ -217,9 +217,11 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
         "/type/author",
         "/type/work",
         "/type/redirect",
-        "/type/list",
+        "/type/list"
     )
     files = {}
+    files['misc'] = xopen(format % 'misc', 'wt')
+
     for t in types:
         tname = t.split("/")[-1] + "s"
         files[t] = xopen(format % tname, "wt")
@@ -231,6 +233,8 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
         type, rest = line.split("\t", 1)
         if type in files:
             files[type].write(line)
+        else:
+            files['misc'].write(line)
 
     for f in files.values():
         f.close()
