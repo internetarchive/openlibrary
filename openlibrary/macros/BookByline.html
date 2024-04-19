@@ -1,8 +1,20 @@
-$def with(author_names_and_urls, limit=None, overflow_url=None, attrs='')
+$def with(author_data, limit=None, overflow_url=None, attrs='', show_years=False)
 
-$def render_author_link(name, url):
+$def render_author_link(author):
+  $ name = author.get('name')
+  $ url = author.get('url')
   $ rendered_name = cond(name, truncate(name, 40), _("Unknown author"))
-  $if url:
+  $if show_years and author.get('birth_date'):
+    $ birth_date_formatted = extract_year(author.get('birth_date'))
+    $if author.get('death_date'):
+      $ death_date_formatted = extract_year(author.get('death_date'))
+    $else:
+      $ death_date_formatted = ''
+  $if show_years and url and author.get('birth_date'):
+    <a href="$url" $:attrs>$rendered_name ($birth_date_formatted - $death_date_formatted)</a>
+  $elif show_years and author.get('birth_date'):
+    <span $:attrs>$rendered_name ($birth_date_formatted - $death_date_formatted)</span>
+  $elif url:
     <a href="$url" $:attrs>$rendered_name</a>
   $else:
     <span $:attrs>$rendered_name</span>
@@ -12,10 +24,10 @@ $def render_overflow_link(remaining_authors, overflow_url):
 
 $code:
   if limit is None:
-    limit = len(author_names_and_urls)
+    limit = len(author_data)
 
-  remaining_authors = max(0, len(author_names_and_urls) - limit)
-  render_items = [render_author_link(name, url) for name, url in author_names_and_urls][:limit]
+  remaining_authors = max(0, len(author_data) - limit)
+  render_items = [render_author_link(author) for author in author_data][:limit]
 
   if remaining_authors > 0:
     render_items.append(render_overflow_link(remaining_authors, overflow_url))

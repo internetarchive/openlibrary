@@ -73,14 +73,14 @@ $code:
             <em>$_('Unknown author')</em>
           $else:
             $code:
-              author_names_and_urls = [
-                (
-                  a.get('name') or a.get('author', {}).get('name'),
-                  a.get('url') or a.get('key') or a.get('author', {}).get('url') or a.get('author', {}).get('key')
-                )
+              author_data = [
+                {
+                  'name': a.get('name') or a.get('author', {}).get('name'),
+                  'url': (a.get('url') or a.get('key') or a.get('author', {}).get('url') or a.get('author', {}).get('key'))
+                }
                 for a in authors
               ]
-            $:macros.BookByline(author_names_and_urls, limit=max_rendered_authors, overflow_url=work_edition_url, attrs='class="results"')
+            $:macros.BookByline(author_data, limit=max_rendered_authors, overflow_url=work_edition_url, attrs='class="results"')
         </span>
         <span class="resultPublisher">
           $if doc.get('first_publish_year'):

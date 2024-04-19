@@ -47,6 +47,8 @@ def test_get_doc():
                         'key': 'OL218224A',
                         'name': 'Alan Freedman',
                         'url': '/authors/OL218224A/Alan_Freedman',
+                        'birth_date': None,
+                        'death_date': None,
                     }
                 )
             ],
