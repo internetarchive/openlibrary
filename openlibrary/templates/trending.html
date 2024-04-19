@@ -6,6 +6,8 @@ $ page = int(input(page=1).page)
   $ pages = {'now': _('Now'), 'daily': _('Today'), 'weekly': _('This Week'), 'monthly': _('This Month'), 'yearly': _('This Year'), 'forever': _('All Time')}
   <h1>$_('Trending Books'): $(pages[mode])</h1>
   <p>$_("See what readers from the community are adding to their bookshelves")</p>
+  $if mode == 'forever':
+    <p>$_("Earliest trending data is from October 2017")</p>
   <ul class="nav-bar">
     $for p in pages:
     <li class="$('selected' if p==mode else '')">
