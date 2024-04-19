@@ -50,10 +50,10 @@ __all__ = [
     "bookreader_host",
     "private_collections",
     "private_collection_in",
+    "extract_year",
     # functions imported from elsewhere
     "parse_datetime",
     "safeint",
-    "extract_year",
 ]
 __docformat__ = "restructuredtext en"
 
