@@ -1,7 +1,7 @@
 #!/bin/bash
 
-SERVERS="ol-home0 ol-covers0 ol-web1 ol-web2 ol-www0 ol-solr0"
-POLICY_SERVERS="ol-home0 ol-web1 ol-web2"
+SERVERS="ol-home0 ol-covers0 ol-web0 ol-web1 ol-web2 ol-www0 ol-solr0"
+POLICY_SERVERS="ol-home0 ol-web0 ol-web1 ol-web2"
 REPO_DIRS="/opt/olsystem /opt/openlibrary /opt/openlibrary/vendor/infogami"
 
 for REPO_DIR in $REPO_DIRS; do

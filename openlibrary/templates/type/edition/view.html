@@ -493,7 +493,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
                       $else:
                         $_("added anonymously.")
                       $if excerpt.comment:
-                        "<em>$excerpt.comment</em>"
+                        $:format(excerpt.comment)
                     </div>
                   </div>
               </div>

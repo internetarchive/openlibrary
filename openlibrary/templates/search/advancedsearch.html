@@ -4,7 +4,7 @@
 
 <div id="contentBody">
   $:macros.SearchNavigation()
-  <form method="get" action="/search" class="siteSearch">
+  <form method="get" action="/search" class="siteSearch olform">
     <fieldset class="home">
       <legend>$_('Advanced Search')</legend>
       <input type="hidden" name="q" id="qtop">
@@ -40,7 +40,7 @@
         <input type="text" name="publisher" id="qtop-publisher" placeholder="" size="35">
       </div>
     </fieldset>
-    <input type="submit" class="generic-button generic-button-primary" value="$_('Search')">
+    <button type="submit" class="larger">$_('Search')</button>
     <div class="searchPlus">
       <a href="https://openlibrary.org/search/howto">$_('How to search?')</a>
       <a href="/search/inside">$_('Full Text Search?')</a>

@@ -19,7 +19,7 @@ export class ReadMoreComponent {
     attach() {
         this.$readMoreButton.addEventListener('click', this.readMoreClick);
         this.$readLessButton.addEventListener('click', this.readLessClick);
-        window.addEventListener('resize', debounce(() => this.reset()), 50);
+        window.addEventListener('resize', debounce(() => this.reset(), 50));
 
         this.reset();
     }
