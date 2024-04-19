@@ -561,7 +561,7 @@ def is_loaned_out_on_acs4(identifier):
     return item.has_loan()
 
 
-def is_loaned_out_on_ia(identifier):
+def is_loaned_out_on_ia(identifier: str) -> bool | None:
     """Returns True if the item is checked out on Internet Archive."""
     url = "https://archive.org/services/borrow/%s?action=status" % identifier
     try:
@@ -614,7 +614,7 @@ def get_loan(identifier, user_key=None):
     return _loan
 
 
-def _get_ia_loan(identifier, userid):
+def _get_ia_loan(identifier: str, userid: str):
     ia_loan = ia_lending_api.get_loan(identifier, userid)
     return ia_loan and Loan.from_ia_loan(ia_loan)
 
@@ -1028,7 +1028,7 @@ class ACS4Item:
 class IA_Lending_API:
     """Archive.org waiting list API."""
 
-    def get_loan(self, identifier, userid=None):
+    def get_loan(self, identifier: str, userid: str | None = None):
         params = {'method': "loan.query", 'identifier': identifier}
         if userid:
             params['userid'] = userid

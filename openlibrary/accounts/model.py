@@ -385,7 +385,7 @@ class Account(web.storage):
         return results
 
     @property
-    def itemname(self):
+    def itemname(self) -> str | None:
         """Retrieves the Archive.org itemname which links Open Library and
         Internet Archive accounts
         """

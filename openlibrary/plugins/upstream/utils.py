@@ -264,7 +264,7 @@ def commify_list(items: Iterable[Any]) -> str:
 
 
 @public
-def json_encode(d):
+def json_encode(d) -> str:
     return json.dumps(d)
 
 
@@ -278,14 +278,14 @@ def unflatten(d: dict, separator: str = "--") -> dict:
 
     """
 
-    def isint(k):
+    def isint(k: Any) -> bool:
         try:
             int(k)
             return True
         except ValueError:
             return False
 
-    def setvalue(data, k, v):
+    def setvalue(data: dict, k, v) -> None:
         if '--' in k:
             k, k2 = k.split(separator, 1)
             setvalue(data.setdefault(k, {}), k2, v)
@@ -339,7 +339,7 @@ def fuzzy_find(value, options, stopwords=None):
 
 
 @public
-def radio_input(checked=False, **params):
+def radio_input(checked=False, **params) -> str:
     params['type'] = 'radio'
     if checked:
         params['checked'] = "checked"
@@ -536,7 +536,7 @@ def process_version(v: HasGetKeyRevision) -> HasGetKeyRevision:
 
 
 @public
-def is_thing(t):
+def is_thing(t) -> bool:
     return isinstance(t, Thing)
 
 
@@ -556,7 +556,7 @@ class Metatag:
         attrs = ' '.join(f'{k}="{websafe(v)}"' for k, v in self.attrs.items())
         return f'<{self.tag} {attrs} />'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'Metatag(%s)' % str(self)
 
 
@@ -625,7 +625,7 @@ def set_share_links(
         view_context.share_links = links
 
 
-def pad(seq, size, e=None):
+def pad(seq: list, size: int, e=None) -> list:
     """
     >>> pad([1, 2], 4, 0)
     [1, 2, 0, 0]
@@ -669,7 +669,7 @@ def parse_toc_row(line):
     )
 
 
-def parse_toc(text: None) -> list[Any]:
+def parse_toc(text: str | None) -> list[Any]:
     """Parses each line of toc"""
     if text is None:
         return []
@@ -1268,13 +1268,13 @@ class UpstreamMemcacheClient:
         compressor = OLCompressor()
         self.compress = compressor.compress
 
-        def decompress(*args, **kw):
+        def decompress(*args, **kw) -> str:
             d = json.loads(compressor.decompress(*args, **kw))
             return json.dumps(adapter.unconvert_dict(d))
 
         self.decompress = decompress
 
-    def get(self, key):
+    def get(self, key: str | None):
         key = adapter.convert_key(key)
         if key is None:
             return None
