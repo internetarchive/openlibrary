@@ -2,7 +2,7 @@ from datetime import datetime
 import json
 import logging
 import re
-from typing import Any, Final
+from typing import Any, TYPE_CHECKING, Final
 from collections.abc import Callable
 from collections.abc import Iterable, Mapping
 
@@ -45,6 +45,8 @@ from openlibrary.accounts import (
 from openlibrary.plugins.upstream import borrow, forms, utils
 from openlibrary.utils.dateutil import elapsed_time
 
+if TYPE_CHECKING:
+    from openlibrary.plugins.upstream.models import Work
 
 logger = logging.getLogger("openlibrary.account")
 
@@ -922,7 +924,6 @@ def csv_string(source: Iterable[Mapping], row_formatter: Callable | None = None)
 
 class export_books(delegate.page):
     path = "/account/export"
-
     date_format = '%Y-%m-%d %H:%M:%S'
 
     @require_login
@@ -956,46 +957,52 @@ class export_books(delegate.page):
         web.header('Content-disposition', f'attachment; filename={filename}')
         return delegate.RawText('' or data, content_type="text/csv")
 
-    def generate_reading_log(self, username: str) -> str:
-        from openlibrary.plugins.upstream.models import Work  # Avoid a circular import
+    def escape_csv_field(self, raw_string: str) -> str:
+        """
+        Formats given CSV field string such that it conforms to definition outlined
+        in RFC #4180.
 
+        Note: We should probably use
+        https://docs.python.org/3/library/csv.html
+        """
+        escaped_string = raw_string.replace('"', '""')
+        return f'"{escaped_string}"'
+
+    def get_work_from_id(self, work_id: str) -> "Work":
+        """
+        Gets work data for a given work ID (OLxxxxxW format), used to access work author, title, etc. for CSV generation.
+        """
+        work_key = f"/works/{work_id}"
+        work: "Work" = web.ctx.site.get(work_key)
+        if not work:
+            raise ValueError(f"No Work found for {work_key}.")
+        if work.type.key == '/type/redirect':
+            # Fetch actual work and resolve redirects before exporting:
+            work = web.ctx.site.get(work.location)
+            work.resolve_redirect_chain(work_key)
+        return work
+
+    def generate_reading_log(self, username: str) -> str:
         bookshelf_map = {1: 'Want to Read', 2: 'Currently Reading', 3: 'Already Read'}
 
-        def get_subjects(work: Work, subject_type: str) -> str:
+        def get_subjects(work: "Work", subject_type: str) -> str:
             return " | ".join(s.title for s in work.get_subject_links(subject_type))
-
-        def escape_csv_field(raw_string: str) -> str:
-            """
-            Formats given CVS field string such that it conforms to definition outlined
-            in RFC #4180.
-
-            Note: We should probably use
-            https://docs.python.org/3/library/csv.html
-            """
-            escaped_string = raw_string.replace('"', '""')
-            return f'"{escaped_string}"'
 
         def format_reading_log(book: dict) -> dict:
             """
             Adding, deleting, renaming, or reordering the fields of the dict returned
             below will automatically be reflected in the CSV that is generated.
             """
-            work_key = f"/works/OL{book['work_id']}W"
-            work: Work = web.ctx.site.get(work_key)
-            if not work:
-                raise ValueError(f"No Work found for {work_key}.")
-            if work.type.key == '/type/redirect':
-                # Fetch actual work and resolve redirects before exporting:
-                work = web.ctx.site.get(work.location)
-                work.resolve_redirect_chain(work_key)
+            work_id = f"OL{book['work_id']}W"
             if edition_id := book.get("edition_id") or "":
                 edition_id = f"OL{edition_id}M"
+            work = self.get_work_from_id(work_id)
             ratings = work.get_rating_stats() or {"average": "", "count": ""}
             ratings_average, ratings_count = ratings.values()
             return {
-                "work_id": work_key.split("/")[-1],
-                "title": escape_csv_field(work.title),
-                "authors": escape_csv_field(" | ".join(work.get_author_names())),
+                "work_id": work_id,
+                "title": self.escape_csv_field(work.title),
+                "authors": self.escape_csv_field(" | ".join(work.get_author_names())),
                 "first_publish_year": work.first_publish_year,
                 "edition_id": edition_id,
                 "edition_count": work.edition_count,
@@ -1004,16 +1011,16 @@ class export_books(delegate.page):
                 "ratings_average": ratings_average,
                 "ratings_count": ratings_count,
                 "has_ebook": work.has_ebook(),
-                "subjects": escape_csv_field(
+                "subjects": self.escape_csv_field(
                     get_subjects(work=work, subject_type="subject")
                 ),
-                "subject_people": escape_csv_field(
+                "subject_people": self.escape_csv_field(
                     get_subjects(work=work, subject_type="person")
                 ),
-                "subject_places": escape_csv_field(
+                "subject_places": self.escape_csv_field(
                     get_subjects(work=work, subject_type="place")
                 ),
-                "subject_times": escape_csv_field(
+                "subject_times": self.escape_csv_field(
                     get_subjects(work=work, subject_type="time")
                 ),
             }
@@ -1076,12 +1083,17 @@ class export_books(delegate.page):
         return "\n".join(lists_as_csv(lists))
 
     def generate_star_ratings(self, username: str) -> str:
+
         def format_rating(rating: Mapping) -> dict:
+            work_id = f"OL{rating['work_id']}W"
             if edition_id := rating.get("edition_id") or "":
                 edition_id = f"OL{edition_id}M"
+            work = self.get_work_from_id(work_id)
             return {
-                "Work ID": f"OL{rating['work_id']}W",
+                "Work ID": work_id,
                 "Edition ID": edition_id,
+                "Title": self.escape_csv_field(work.title),
+                "Author(s)": self.escape_csv_field(" | ".join(work.get_author_names())),
                 "Rating": f"{rating['rating']}",
                 "Created On": rating['created'].strftime(self.date_format),
             }
