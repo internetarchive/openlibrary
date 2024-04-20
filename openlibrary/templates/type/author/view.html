@@ -171,6 +171,16 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_userg
             $:render_subjects(_("Time"), books.facet_counts.get('time_facet'), 'time:')
         <!-- /SUBJECTS -->
 
+        <div class="section">
+            <h6 class="collapse black uppercase">TESTING ONLY WIKIDATA SECTION</h6>
+            <p style="text-align: center;">
+                <!-- This is only below subject temporarily to avoid merge conflicts on testing -->
+                $ wikidata = page.wikidata(fetch_missing=show_librarian_extras)
+                $if wikidata:
+                    $wikidata.get_description(i18n.get_locale())
+            </p>
+        </div>
+
         $if "lists" in ctx.features:
             <div class="section Tools">
                 $:render_template("lists/widget", page, include_rating=False, exclude_own_lists=True, show_active_lists=True)
