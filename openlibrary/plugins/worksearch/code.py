@@ -222,13 +222,13 @@ def run_solr_query(
             solr_fields.add('editions:[subquery]')
         if ed_sort := param.get('editions.sort'):
             params.append(
-                ('editions.sort', EditionSearchScheme().process_user_sort(ed_sort))
+                ('editions.sort', EditionSearchScheme().process_user_sort(ed_sort, param))
             )
         params.append(('fl', ','.join(solr_fields)))
         params += scheme.q_to_solr_params(q, solr_fields, params)
 
     if sort:
-        params.append(('sort', scheme.process_user_sort(sort)))
+        params.append(('sort', scheme.process_user_sort(sort, param)))
 
     url = f'{solr_select_url}?{urlencode(params)}'
     start_time = time.time()
