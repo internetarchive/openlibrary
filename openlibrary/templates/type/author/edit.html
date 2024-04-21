@@ -35,11 +35,6 @@ $:macros.HiddenSaveButton("addAuthor")
                 <input type="text" name="author--name" id="name" value="$page.name" class="required"/>
             </div>
         </div>
-        <p style="text-align: center;">
-            $ wikidata = page.wikidata(bust_cache=True, fetch_missing=True)
-            $if wikidata:
-                $wikidata.get_description(i18n.get_locale())
-        </p>
     </div>
 
         <div>
@@ -133,10 +128,8 @@ $:macros.HiddenSaveButton("addAuthor")
 
         </div>
 
-        <div class="illustration">
-            $:render_template("covers/author_photo", page)
-            $:render_template("covers/change", page)
-        </div>
+
+        $:render_template("authors/infobox", page, edit_view=True)
 
             <div class="clearfix"></div>
 
