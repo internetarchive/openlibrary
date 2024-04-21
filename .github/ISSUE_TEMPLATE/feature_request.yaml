@@ -39,8 +39,8 @@ body:
       value: |
         ### Other context or screenshots about the feature request
 
-        ### Related files 
-        <!-- Files related to the implementation of feature; this is super useful for new contributors who might want to contribute! If you're not sure, leave this blank; a maintainer will add them. --> 
+        ### Related files
+        <!-- Files related to the implementation of feature; this is super useful for new contributors who might want to contribute! If you're not sure, leave this blank; a maintainer will add them. -->
 
         ### Stakeholders 
         <!-- @ tag stakeholders of this feature if any --> 
