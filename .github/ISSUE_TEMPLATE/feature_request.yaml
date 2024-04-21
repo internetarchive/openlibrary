@@ -18,8 +18,7 @@ body:
 
         ### Expected behaviour / screenshots (ex: Figma design screenshots for UI feature)
 
-    validations:
-      required: true
+        ### Additional Context
 
   - type: textarea
     attributes:
@@ -34,19 +33,14 @@ body:
 
   - type: textarea
     attributes:
-      label: Additional Context
-      description: Additional information about the feature request.
+      label: Leads
+      description: | 
+        Please leave this section blank for maintainers if you are unsure what to enter
       value: |
         ### Other context or screenshots about the feature request
 
         ### Related files 
         <!-- Files related to the implementation of feature; this is super useful for new contributors who might want to contribute! If you're not sure, leave this blank; a maintainer will add them. --> 
 
-  - type: textarea
-    attributes:
-      label: Leads
-      description: | 
-        Please leave this section blank for maintainers if you are unsure what to enter
-      value: |
         ### Stakeholders 
         <!-- @ tag stakeholders of this feature if any --> 
