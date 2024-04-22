@@ -45,6 +45,9 @@ $code:
         elif item.startswith("idb:") or item.startswith("osp:"):
             source_name = "ISBNdb"
             source_url = "https://isbndb.com/"
+        elif item.startswith("openalex:"):
+            source_name = "OpenAlex"
+            source_url = "https://openalex.org/" + item[9:]
         else:
             source_name = names.get(item, item)
             source_url = "//archive.org/details/" + item
