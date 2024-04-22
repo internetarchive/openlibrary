@@ -1189,7 +1189,7 @@ class account_waitlist(delegate.page):
 #         return render.notfound(path, create=False)
 
 
-def send_forgot_password_email(username, email):
+def send_forgot_password_email(username: str, email: str) -> None:
     key = f"account/{username}/password"
 
     doc = create_link_doc(key, username, email)
