@@ -217,7 +217,7 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
         "/type/author",
         "/type/work",
         "/type/redirect",
-        "/type/list"
+        "/type/list",
     )
     files = {}
     files['misc'] = xopen(format % 'misc', 'wt')
