@@ -24,7 +24,7 @@ export function initMessageEventListener(element) {
             })
                 .then((resp) => {
                     if (resp.ok) {
-                        window.location = new URLSearchParams(window.location.search).get('redirect') || '/account/loans';
+                        window.location = new URLSearchParams(window.location.search).get('redirect') || '/account/books';
                     }
                     return resp.json()
                 })
