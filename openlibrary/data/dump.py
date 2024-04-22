@@ -209,7 +209,7 @@ def generate_idump(day, **db_parameters):
 
 
 def split_dump(dump_file=None, format="oldump_%s.txt"):
-    """Split dump into authors, editions and works."""
+    """Split dump into authors, editions, works and misc to account for outliers."""
     log(f"split_dump({dump_file}, format={format})")
     start_time = datetime.now()
     types = (
