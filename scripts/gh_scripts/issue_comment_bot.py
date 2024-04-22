@@ -127,6 +127,7 @@ def filter_issues(issues: list, since: datetime):
                 lead_label = find_lead_label(i.get('labels', []))
                 results.append(
                     {
+                        'number': i['number'],
                         'comment_url': last_comment['html_url'],
                         'commenter': last_commenter,
                         'issue_title': i['title'],
