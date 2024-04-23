@@ -67,7 +67,7 @@ if TYPE_CHECKING:
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
 re_lang = re.compile('^/languages/([a-z]{3})$')
 ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
-SUSPECT_PUBLICATION_DATES: Final = ["1900", "January 1, 1900"]
+SUSPECT_PUBLICATION_DATES: Final = ["1900", "January 1, 1900", "1900-01-01"]
 SOURCE_RECORDS_REQUIRING_DATE_SCRUTINY: Final = ["amazon", "bwb", "promise"]
 
 
