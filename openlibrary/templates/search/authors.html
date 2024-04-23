@@ -20,8 +20,12 @@ $ sort = query_param('sort', None)
   $:macros.SearchNavigation()
 
   <form class="siteSearch olform" action="">
-    <input type="text" class="larger" name="q" size="100" value="$q"/>
-    <input type="submit"  class="larger" value="$_('Search')"/>
+    <input type="text" class="larger" name="q" size="100" value="$q"
+    style="height:38px; display: inline-block; vertical-align: middle; border: 1px solid #ced4da; border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px; margin:0"/><!--
+    --><input type="submit" class="larger cta-btn cta-btn--small cta-btn--vanilla" value="$_('Search')"
+    style="width:auto; display: inline-block; margin:0; height:38px; border: 1px solid #ced4da; border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px; margin:0; vertical-align: middle; background-color: #f2f0e7;"/>
   </form>
 </div>
 
