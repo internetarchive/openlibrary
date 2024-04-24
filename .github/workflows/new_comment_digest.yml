@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  issues: write
 
 jobs:
   new_comment_digest:
