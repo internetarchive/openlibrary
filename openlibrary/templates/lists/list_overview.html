@@ -4,8 +4,6 @@ $ has_owner = list.owner
 $ is_owner = (has_owner and list.owner.key == user_key)
 $ actionable = 'class=actionable-item' if is_owner else ''
 $ data_list_key = 'data-list-key=%s' % list.key if is_owner else ''
-$ owner = 'You' if is_owner else list.owner.displayname
-
 <li $actionable $data_list_key>
     <span class="image">
       <a href="$list.key"><img src="$list.cover_url" alt="$_('Cover of: %(title)s', title=list.name)" title="$_('Cover of: %(title)s', title=list.name)" loading="lazy"/></a>
@@ -25,6 +23,6 @@ $ owner = 'You' if is_owner else list.owner.displayname
                 <a href="$list.key" class="remove-from-list red smaller arial plain" data-list-key="$list.key" title="$_('Remove from your list?')">[X]</a>
         </span>
         $if has_owner:
-            <span class="owner">$:_('from <a href="$list.owner.key">%(owner)s', owner=owner)</a></span>
+            <span class="owner">$:_('from <a href="%(link)s">You</a>', link=link)</span>
     </span>
 </li>
