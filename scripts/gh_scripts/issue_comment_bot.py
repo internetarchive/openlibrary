@@ -259,6 +259,18 @@ def add_label_to_issues(issues):
         )
 
 
+def verbose_output(issues):
+    """
+    Prints detailed information about the given issues.
+    """
+    for issue in issues:
+        print(f'Issue #{issue["number"]}:')
+        print(f'\tTitle: {issue["issue_title"]}')
+        print(f'\t{issue["lead_label"]}')
+        print(f'\tCommenter: {issue["commenter"]}')
+        print(f'\tComment URL: {issue["comment_url"]}')
+
+
 def start_job(args: argparse.Namespace):
     """
     Starts the new comment digest job.
@@ -273,6 +285,8 @@ def start_job(args: argparse.Namespace):
     if args.slack_token and args.channel:
         publish_digest(filtered_issues, args.channel, args.slack_token, args.hours)
         print('Digest posted to Slack')
+    if args.verbose:
+        verbose_output(filtered_issues)
 
 
 def _get_parser() -> argparse.ArgumentParser:
@@ -301,6 +315,12 @@ def _get_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         '--no-labels',
         help='Prevent the script from labeling the issues',
+        action='store_true',
+    )
+    parser.add_argument(
+        '-v',
+        '--verbose',
+        help='Print detailed information about the issues that were found',
         action='store_true',
     )
 
