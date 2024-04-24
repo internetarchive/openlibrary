@@ -3,9 +3,10 @@
 Fetches Open Library GitHub issues that have been commented on
 within some amount of time, in hours.
 
-Publishes a digest of the issues that were identified to the 
-given Slack channel, and adds the "Needs: Response" label to the
-issues in Github.
+If called with a Slack token and channel, publishes a digest of
+the issues that were identified to the given channel.
+
+Adds the "Needs: Response" label to the issues in Github.
 """
 import argparse
 import errno
@@ -269,8 +270,9 @@ def start_job(args: argparse.Namespace):
     if not args.no_labels:
         add_label_to_issues(filtered_issues)
         print('Issues labeled as "Needs: Response"')
-    publish_digest(filtered_issues, args.channel, args.slack_token, args.hours)
-    print('Digest posted to Slack.')
+    if args.slack_token and args.channel:
+        publish_digest(filtered_issues, args.channel, args.slack_token, args.hours)
+        print('Digest posted to Slack')
 
 
 def _get_parser() -> argparse.ArgumentParser:
@@ -285,13 +287,14 @@ def _get_parser() -> argparse.ArgumentParser:
         type=int,
     )
     parser.add_argument(
-        'channel',
+        '-c',
+        '--channel',
         help="Issues will be published to this Slack channel",
         type=str,
     )
     parser.add_argument(
-        'slack_token',
-        metavar='slack-token',
+        '-t',
+        '--slack-token',
         help='Slack auth token',
         type=str,
     )
