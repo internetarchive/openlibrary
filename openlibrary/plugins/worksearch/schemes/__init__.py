@@ -33,7 +33,22 @@ class SearchScheme:
     def is_search_field(self, field: str):
         return field in self.all_fields or field in self.field_name_map
 
-    def process_user_sort(self, user_sort: str, carousel_params: dict) -> str:
+    #FNV-1a hash function XORs each byte of the input string with the current hash value 
+    #and then multiplies by a prime number. It's simple and performs well for quick hashing needs.
+    def hash_function(string):
+        # FNV parameters
+        FNV_offset_basis = 0x811c9dc5
+        FNV_prime = 0x01000193
+        
+        # Hash calculation
+        hash_value = FNV_offset_basis
+        for char in string:
+            hash_value ^= ord(char)
+            hash_value *= FNV_prime
+        return hash_value
+    
+    
+    def process_user_sort(self, user_sort: str, carousel_params: dict = None) -> str:
         """
         Convert a user-provided sort to a solr sort
 
@@ -52,19 +67,8 @@ class SearchScheme:
         >>> scheme.process_user_sort('random_custom_seed asc')
         'random_1_custom_seed asc'
         """
-        #FNV-1a hash function XORs each byte of the input string with the current hash value 
-        #and then multiplies by a prime number. It's simple and performs well for quick hashing needs.
-        def fnv1a_hash(string):
-            # FNV parameters
-            FNV_offset_basis = 0x811c9dc5
-            FNV_prime = 0x01000193
-            
-            # Hash calculation
-            hash_value = FNV_offset_basis
-            for char in string:
-                hash_value ^= ord(char)
-                hash_value *= FNV_prime
-            return hash_value
+
+        hash_function = SearchScheme.hash_function
 
         def process_individual_sort(sort: str) -> str:
             if sort.startswith(('random_', 'random.hourly_', 'random.daily_')):
@@ -74,17 +78,17 @@ class SearchScheme:
                 sort_order: str | None = None
                 if ' ' in sort:
                     sort, sort_order = sort.split(' ', 1)
-                random_type, random_seed = sort.split('_', 1)
                 if not sort.contains('_'):
                     json_params_str = json.dumps(carousel_params, sort = True)
-                    md5_hash = fnv1a_hash(json_params_str)
+                    md5_hash = hash_function(json_params_str)
                     sort += f'_{md5_hash[:3]}' # Use only a few letters of the hash to prevent excessively large seed space
-                else:
-                    solr_sort = self.sorts[random_type]
-                    solr_sort_str = solr_sort() if callable(solr_sort) else solr_sort
-                    solr_sort_field, solr_sort_order = solr_sort_str.split(' ', 1)
-                    sort_order = sort_order or solr_sort_order
-                    return f'{solr_sort_field}_{random_seed} {sort_order}'
+                    #here sort is random_(random seed)
+                random_type, random_seed = sort.split('_', 1)
+                solr_sort = self.sorts[random_type]
+                solr_sort_str = solr_sort() if callable(solr_sort) else solr_sort
+                solr_sort_field, solr_sort_order = solr_sort_str.split(' ', 1)
+                sort_order = sort_order or solr_sort_order
+                return f'{solr_sort_field}_{random_seed} {sort_order}'
             else:
                 solr_sort = self.sorts[sort]
                 return solr_sort() if callable(solr_sort) else solr_sort
