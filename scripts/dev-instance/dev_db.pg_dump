@@ -11,14 +11,14 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 
 --
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner:
 --
 
 CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
 --
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner:
 --
 
 COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
@@ -53,7 +53,7 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: account; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: account; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.account (
@@ -69,7 +69,7 @@ CREATE TABLE public.account (
 ALTER TABLE public.account OWNER TO openlibrary;
 
 --
--- Name: author_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: author_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.author_boolean (
@@ -83,7 +83,7 @@ CREATE TABLE public.author_boolean (
 ALTER TABLE public.author_boolean OWNER TO openlibrary;
 
 --
--- Name: author_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: author_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.author_int (
@@ -97,7 +97,7 @@ CREATE TABLE public.author_int (
 ALTER TABLE public.author_int OWNER TO openlibrary;
 
 --
--- Name: author_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: author_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.author_ref (
@@ -111,7 +111,7 @@ CREATE TABLE public.author_ref (
 ALTER TABLE public.author_ref OWNER TO openlibrary;
 
 --
--- Name: author_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: author_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.author_str (
@@ -125,7 +125,7 @@ CREATE TABLE public.author_str (
 ALTER TABLE public.author_str OWNER TO openlibrary;
 
 --
--- Name: booknotes; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: booknotes; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
 
 CREATE TABLE public.booknotes (
@@ -141,7 +141,7 @@ CREATE TABLE public.booknotes (
 ALTER TABLE public.booknotes OWNER TO postgres;
 
 --
--- Name: bookshelves; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: bookshelves; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
 
 CREATE TABLE public.bookshelves (
@@ -157,7 +157,7 @@ CREATE TABLE public.bookshelves (
 ALTER TABLE public.bookshelves OWNER TO postgres;
 
 --
--- Name: bookshelves_books; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: bookshelves_books; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
 
 CREATE TABLE public.bookshelves_books (
@@ -174,7 +174,7 @@ CREATE TABLE public.bookshelves_books (
 ALTER TABLE public.bookshelves_books OWNER TO postgres;
 
 --
--- Name: bookshelves_events; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: bookshelves_events; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
 
 CREATE TABLE public.bookshelves_events (
@@ -235,7 +235,7 @@ ALTER SEQUENCE public.bookshelves_id_seq OWNED BY public.bookshelves.id;
 
 
 --
--- Name: community_edits_queue; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: community_edits_queue; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
 
 CREATE TABLE public.community_edits_queue (
@@ -276,7 +276,7 @@ ALTER SEQUENCE public.community_edits_queue_id_seq OWNED BY public.community_edi
 
 
 --
--- Name: data; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: data; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.data (
@@ -289,7 +289,7 @@ CREATE TABLE public.data (
 ALTER TABLE public.data OWNER TO openlibrary;
 
 --
--- Name: datum_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: datum_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.datum_int (
@@ -303,7 +303,7 @@ CREATE TABLE public.datum_int (
 ALTER TABLE public.datum_int OWNER TO openlibrary;
 
 --
--- Name: datum_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: datum_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.datum_ref (
@@ -317,7 +317,7 @@ CREATE TABLE public.datum_ref (
 ALTER TABLE public.datum_ref OWNER TO openlibrary;
 
 --
--- Name: datum_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: datum_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.datum_str (
@@ -331,7 +331,7 @@ CREATE TABLE public.datum_str (
 ALTER TABLE public.datum_str OWNER TO openlibrary;
 
 --
--- Name: edition_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: edition_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.edition_boolean (
@@ -345,7 +345,7 @@ CREATE TABLE public.edition_boolean (
 ALTER TABLE public.edition_boolean OWNER TO openlibrary;
 
 --
--- Name: edition_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: edition_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.edition_int (
@@ -359,7 +359,7 @@ CREATE TABLE public.edition_int (
 ALTER TABLE public.edition_int OWNER TO openlibrary;
 
 --
--- Name: edition_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: edition_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.edition_ref (
@@ -373,7 +373,7 @@ CREATE TABLE public.edition_ref (
 ALTER TABLE public.edition_ref OWNER TO openlibrary;
 
 --
--- Name: edition_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: edition_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.edition_str (
@@ -387,7 +387,7 @@ CREATE TABLE public.edition_str (
 ALTER TABLE public.edition_str OWNER TO openlibrary;
 
 --
--- Name: follows; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: follows; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.follows (
@@ -402,7 +402,7 @@ CREATE TABLE public.follows (
 ALTER TABLE public.follows OWNER TO openlibrary;
 
 --
--- Name: import_batch; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: import_batch; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.import_batch (
@@ -437,7 +437,7 @@ ALTER SEQUENCE public.import_batch_id_seq OWNED BY public.import_batch.id;
 
 
 --
--- Name: import_item; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: import_item; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.import_item (
@@ -478,7 +478,7 @@ ALTER SEQUENCE public.import_item_id_seq OWNED BY public.import_item.id;
 
 
 --
--- Name: meta; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: meta; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.meta (
@@ -489,7 +489,7 @@ CREATE TABLE public.meta (
 ALTER TABLE public.meta OWNER TO openlibrary;
 
 --
--- Name: observations; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: observations; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
 
 CREATE TABLE public.observations (
@@ -505,7 +505,7 @@ CREATE TABLE public.observations (
 ALTER TABLE public.observations OWNER TO postgres;
 
 --
--- Name: property; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: property; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.property (
@@ -539,7 +539,7 @@ ALTER SEQUENCE public.property_id_seq OWNED BY public.property.id;
 
 
 --
--- Name: publisher_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: publisher_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.publisher_boolean (
@@ -553,7 +553,7 @@ CREATE TABLE public.publisher_boolean (
 ALTER TABLE public.publisher_boolean OWNER TO openlibrary;
 
 --
--- Name: publisher_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: publisher_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.publisher_int (
@@ -567,7 +567,7 @@ CREATE TABLE public.publisher_int (
 ALTER TABLE public.publisher_int OWNER TO openlibrary;
 
 --
--- Name: publisher_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: publisher_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.publisher_ref (
@@ -581,7 +581,7 @@ CREATE TABLE public.publisher_ref (
 ALTER TABLE public.publisher_ref OWNER TO openlibrary;
 
 --
--- Name: publisher_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: publisher_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.publisher_str (
@@ -595,7 +595,7 @@ CREATE TABLE public.publisher_str (
 ALTER TABLE public.publisher_str OWNER TO openlibrary;
 
 --
--- Name: ratings; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: ratings; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
 
 CREATE TABLE public.ratings (
@@ -611,7 +611,7 @@ CREATE TABLE public.ratings (
 ALTER TABLE public.ratings OWNER TO postgres;
 
 --
--- Name: scan_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: scan_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.scan_boolean (
@@ -625,7 +625,7 @@ CREATE TABLE public.scan_boolean (
 ALTER TABLE public.scan_boolean OWNER TO openlibrary;
 
 --
--- Name: scan_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: scan_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.scan_int (
@@ -639,7 +639,7 @@ CREATE TABLE public.scan_int (
 ALTER TABLE public.scan_int OWNER TO openlibrary;
 
 --
--- Name: scan_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: scan_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.scan_ref (
@@ -653,7 +653,7 @@ CREATE TABLE public.scan_ref (
 ALTER TABLE public.scan_ref OWNER TO openlibrary;
 
 --
--- Name: scan_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: scan_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.scan_str (
@@ -667,7 +667,7 @@ CREATE TABLE public.scan_str (
 ALTER TABLE public.scan_str OWNER TO openlibrary;
 
 --
--- Name: seq; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: seq; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.seq (
@@ -701,7 +701,7 @@ ALTER SEQUENCE public.seq_id_seq OWNED BY public.seq.id;
 
 
 --
--- Name: store; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: store; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.store (
@@ -735,7 +735,7 @@ ALTER SEQUENCE public.store_id_seq OWNED BY public.store.id;
 
 
 --
--- Name: store_index; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: store_index; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.store_index (
@@ -771,7 +771,7 @@ ALTER SEQUENCE public.store_index_id_seq OWNED BY public.store_index.id;
 
 
 --
--- Name: subject_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: subject_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.subject_boolean (
@@ -785,7 +785,7 @@ CREATE TABLE public.subject_boolean (
 ALTER TABLE public.subject_boolean OWNER TO openlibrary;
 
 --
--- Name: subject_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: subject_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.subject_int (
@@ -799,7 +799,7 @@ CREATE TABLE public.subject_int (
 ALTER TABLE public.subject_int OWNER TO openlibrary;
 
 --
--- Name: subject_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: subject_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.subject_ref (
@@ -813,7 +813,7 @@ CREATE TABLE public.subject_ref (
 ALTER TABLE public.subject_ref OWNER TO openlibrary;
 
 --
--- Name: subject_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: subject_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.subject_str (
@@ -827,7 +827,7 @@ CREATE TABLE public.subject_str (
 ALTER TABLE public.subject_str OWNER TO openlibrary;
 
 --
--- Name: tag_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: tag_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.tag_boolean (
@@ -841,7 +841,7 @@ CREATE TABLE public.tag_boolean (
 ALTER TABLE public.tag_boolean OWNER TO openlibrary;
 
 --
--- Name: tag_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: tag_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.tag_int (
@@ -855,7 +855,7 @@ CREATE TABLE public.tag_int (
 ALTER TABLE public.tag_int OWNER TO openlibrary;
 
 --
--- Name: tag_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: tag_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.tag_ref (
@@ -869,7 +869,7 @@ CREATE TABLE public.tag_ref (
 ALTER TABLE public.tag_ref OWNER TO openlibrary;
 
 --
--- Name: tag_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: tag_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.tag_str (
@@ -883,7 +883,7 @@ CREATE TABLE public.tag_str (
 ALTER TABLE public.tag_str OWNER TO openlibrary;
 
 --
--- Name: thing; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: thing; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.thing (
@@ -920,7 +920,7 @@ ALTER SEQUENCE public.thing_id_seq OWNED BY public.thing.id;
 
 
 --
--- Name: transaction; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: transaction; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.transaction (
@@ -960,7 +960,7 @@ ALTER SEQUENCE public.transaction_id_seq OWNED BY public.transaction.id;
 
 
 --
--- Name: transaction_index; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: transaction_index; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.transaction_index (
@@ -1001,7 +1001,7 @@ CREATE SEQUENCE public.type_edition_seq
 ALTER TABLE public.type_edition_seq OWNER TO openlibrary;
 
 --
--- Name: type_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: type_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.type_int (
@@ -1029,7 +1029,7 @@ CREATE SEQUENCE public.type_publisher_seq
 ALTER TABLE public.type_publisher_seq OWNER TO openlibrary;
 
 --
--- Name: type_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: type_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.type_ref (
@@ -1043,7 +1043,7 @@ CREATE TABLE public.type_ref (
 ALTER TABLE public.type_ref OWNER TO openlibrary;
 
 --
--- Name: type_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: type_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.type_str (
@@ -1085,7 +1085,7 @@ CREATE SEQUENCE public.type_work_seq
 ALTER TABLE public.type_work_seq OWNER TO openlibrary;
 
 --
--- Name: user_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: user_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.user_int (
@@ -1099,7 +1099,7 @@ CREATE TABLE public.user_int (
 ALTER TABLE public.user_int OWNER TO openlibrary;
 
 --
--- Name: user_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: user_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.user_ref (
@@ -1113,7 +1113,7 @@ CREATE TABLE public.user_ref (
 ALTER TABLE public.user_ref OWNER TO openlibrary;
 
 --
--- Name: user_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: user_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.user_str (
@@ -1127,7 +1127,7 @@ CREATE TABLE public.user_str (
 ALTER TABLE public.user_str OWNER TO openlibrary;
 
 --
--- Name: version; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: version; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.version (
@@ -1162,7 +1162,7 @@ ALTER SEQUENCE public.version_id_seq OWNED BY public.version.id;
 
 
 --
--- Name: work_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: work_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.work_boolean (
@@ -1176,7 +1176,7 @@ CREATE TABLE public.work_boolean (
 ALTER TABLE public.work_boolean OWNER TO openlibrary;
 
 --
--- Name: work_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: work_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.work_int (
@@ -1190,7 +1190,7 @@ CREATE TABLE public.work_int (
 ALTER TABLE public.work_int OWNER TO openlibrary;
 
 --
--- Name: work_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: work_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.work_ref (
@@ -1204,7 +1204,7 @@ CREATE TABLE public.work_ref (
 ALTER TABLE public.work_ref OWNER TO openlibrary;
 
 --
--- Name: work_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: work_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE public.work_str (
@@ -1218,7 +1218,7 @@ CREATE TABLE public.work_str (
 ALTER TABLE public.work_str OWNER TO openlibrary;
 
 --
--- Name: yearly_reading_goals; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: yearly_reading_goals; Type: TABLE; Schema: public; Owner: postgres; Tablespace:
 --
 
 CREATE TABLE public.yearly_reading_goals (
@@ -8213,7 +8213,7 @@ COPY public.yearly_reading_goals (username, year, target, created, updated) FROM
 
 
 --
--- Name: account_email_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: account_email_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY public.account
@@ -8221,7 +8221,7 @@ ALTER TABLE ONLY public.account
 
 
 --
--- Name: booknotes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: booknotes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
 --
 
 ALTER TABLE ONLY public.booknotes
@@ -8229,7 +8229,7 @@ ALTER TABLE ONLY public.booknotes
 
 
 --
--- Name: bookshelves_books_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: bookshelves_books_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
 --
 
 ALTER TABLE ONLY public.bookshelves_books
@@ -8237,7 +8237,7 @@ ALTER TABLE ONLY public.bookshelves_books
 
 
 --
--- Name: bookshelves_events_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: bookshelves_events_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
 --
 
 ALTER TABLE ONLY public.bookshelves_events
@@ -8245,7 +8245,7 @@ ALTER TABLE ONLY public.bookshelves_events
 
 
 --
--- Name: bookshelves_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: bookshelves_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
 --
 
 ALTER TABLE ONLY public.bookshelves
@@ -8253,7 +8253,7 @@ ALTER TABLE ONLY public.bookshelves
 
 
 --
--- Name: community_edits_queue_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: community_edits_queue_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
 --
 
 ALTER TABLE ONLY public.community_edits_queue
@@ -8261,7 +8261,7 @@ ALTER TABLE ONLY public.community_edits_queue
 
 
 --
--- Name: follows_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: follows_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY public.follows
@@ -8269,7 +8269,7 @@ ALTER TABLE ONLY public.follows
 
 
 --
--- Name: import_batch_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: import_batch_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY public.import_batch
@@ -8277,7 +8277,7 @@ ALTER TABLE ONLY public.import_batch
 
 
 --
--- Name: import_item_batch_id_ia_id_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: import_item_batch_id_ia_id_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY public.import_item
@@ -8285,7 +8285,7 @@ ALTER TABLE ONLY public.import_item
 
 
 --
--- Name: import_item_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: import_item_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY public.import_item
@@ -8293,7 +8293,7 @@ ALTER TABLE ONLY public.import_item
 
 
 --
--- Name: observations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: observations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
 --
 
 ALTER TABLE ONLY public.observations
@@ -8301,7 +8301,7 @@ ALTER TABLE ONLY public.observations
 
 
 --
--- Name: property_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: property_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY public.property
@@ -8309,7 +8309,7 @@ ALTER TABLE ONLY public.property
 
 
 --
--- Name: property_type_name_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: property_type_name_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY public.property
@@ -8317,7 +8317,7 @@ ALTER TABLE ONLY public.property
 
 
 --
--- Name: ratings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: ratings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
 --
 
 ALTER TABLE ONLY public.ratings
@@ -8325,7 +8325,7 @@ ALTER TABLE ONLY public.ratings
 
 
 --
--- Name: seq_name_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: seq_name_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY public.seq
@@ -8333,7 +8333,7 @@ ALTER TABLE ONLY public.seq
 
 
 --
--- Name: seq_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: seq_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY public.seq
@@ -8341,7 +8341,7 @@ ALTER TABLE ONLY public.seq
 
 
 --
--- Name: store_index_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: store_index_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY public.store_index
@@ -8349,7 +8349,7 @@ ALTER TABLE ONLY public.store_index
 
 
 --
--- Name: store_key_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: store_key_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY public.store
@@ -8357,7 +8357,7 @@ ALTER TABLE ONLY public.store
 
 
 --
--- Name: store_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: store_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY public.store
@@ -8365,7 +8365,7 @@ ALTER TABLE ONLY public.store
 
 
 --
--- Name: thing_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: thing_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY public.thing
@@ -8373,7 +8373,7 @@ ALTER TABLE ONLY public.thing
 
 
 --
--- Name: transaction_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: transaction_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY public.transaction
@@ -8381,7 +8381,7 @@ ALTER TABLE ONLY public.transaction
 
 
 --
--- Name: version_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: version_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY public.version
@@ -8389,7 +8389,7 @@ ALTER TABLE ONLY public.version
 
 
 --
--- Name: version_thing_id_revision_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: version_thing_id_revision_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY public.version
@@ -8397,7 +8397,7 @@ ALTER TABLE ONLY public.version
 
 
 --
--- Name: yearly_reading_goals_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: yearly_reading_goals_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
 --
 
 ALTER TABLE ONLY public.yearly_reading_goals
@@ -8405,735 +8405,735 @@ ALTER TABLE ONLY public.yearly_reading_goals
 
 
 --
--- Name: account_thing_active_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: account_thing_active_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX account_thing_active_idx ON public.account USING btree (active);
 
 
 --
--- Name: account_thing_bot_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: account_thing_bot_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX account_thing_bot_idx ON public.account USING btree (bot);
 
 
 --
--- Name: account_thing_email_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: account_thing_email_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX account_thing_email_idx ON public.account USING btree (active);
 
 
 --
--- Name: account_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: account_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX account_thing_id_idx ON public.account USING btree (thing_id);
 
 
 --
--- Name: author_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: author_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX author_boolean_idx ON public.author_boolean USING btree (key_id, value);
 
 
 --
--- Name: author_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: author_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX author_boolean_thing_id_idx ON public.author_boolean USING btree (thing_id);
 
 
 --
--- Name: author_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: author_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX author_int_idx ON public.author_int USING btree (key_id, value);
 
 
 --
--- Name: author_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: author_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX author_int_thing_id_idx ON public.author_int USING btree (thing_id);
 
 
 --
--- Name: author_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: author_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX author_ref_idx ON public.author_ref USING btree (key_id, value);
 
 
 --
--- Name: author_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: author_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX author_ref_thing_id_idx ON public.author_ref USING btree (thing_id);
 
 
 --
--- Name: author_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: author_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX author_str_idx ON public.author_str USING btree (key_id, value);
 
 
 --
--- Name: author_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: author_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX author_str_thing_id_idx ON public.author_str USING btree (thing_id);
 
 
 --
--- Name: booknotes_work_id_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
+-- Name: booknotes_work_id_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace:
 --
 
 CREATE INDEX booknotes_work_id_idx ON public.booknotes USING btree (work_id);
 
 
 --
--- Name: bookshelves_books_work_id_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
+-- Name: bookshelves_books_work_id_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace:
 --
 
 CREATE INDEX bookshelves_books_work_id_idx ON public.bookshelves_books USING btree (work_id);
 
 
 --
--- Name: data_thing_id_revision_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: data_thing_id_revision_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE UNIQUE INDEX data_thing_id_revision_idx ON public.data USING btree (thing_id, revision);
 
 
 --
--- Name: datum_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: datum_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX datum_int_idx ON public.datum_int USING btree (key_id, value);
 
 
 --
--- Name: datum_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: datum_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX datum_int_thing_id_idx ON public.datum_int USING btree (thing_id);
 
 
 --
--- Name: datum_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: datum_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX datum_ref_idx ON public.datum_ref USING btree (key_id, value);
 
 
 --
--- Name: datum_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: datum_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX datum_ref_thing_id_idx ON public.datum_ref USING btree (thing_id);
 
 
 --
--- Name: datum_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: datum_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX datum_str_idx ON public.datum_str USING btree (key_id, value);
 
 
 --
--- Name: datum_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: datum_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX datum_str_thing_id_idx ON public.datum_str USING btree (thing_id);
 
 
 --
--- Name: edition_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: edition_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX edition_boolean_idx ON public.edition_boolean USING btree (key_id, value);
 
 
 --
--- Name: edition_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: edition_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX edition_boolean_thing_id_idx ON public.edition_boolean USING btree (thing_id);
 
 
 --
--- Name: edition_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: edition_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX edition_int_idx ON public.edition_int USING btree (key_id, value);
 
 
 --
--- Name: edition_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: edition_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX edition_int_thing_id_idx ON public.edition_int USING btree (thing_id);
 
 
 --
--- Name: edition_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: edition_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX edition_ref_idx ON public.edition_ref USING btree (key_id, value);
 
 
 --
--- Name: edition_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: edition_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX edition_ref_thing_id_idx ON public.edition_ref USING btree (thing_id);
 
 
 --
--- Name: edition_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: edition_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX edition_str_idx ON public.edition_str USING btree (key_id, value);
 
 
 --
--- Name: edition_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: edition_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX edition_str_thing_id_idx ON public.edition_str USING btree (thing_id);
 
 
 --
--- Name: import_batch_name; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: import_batch_name; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX import_batch_name ON public.import_batch USING btree (name);
 
 
 --
--- Name: import_batch_submit_time_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: import_batch_submit_time_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX import_batch_submit_time_idx ON public.import_batch USING btree (submit_time);
 
 
 --
--- Name: import_batch_submitter_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: import_batch_submitter_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX import_batch_submitter_idx ON public.import_batch USING btree (submitter);
 
 
 --
--- Name: import_item_batch_id; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: import_item_batch_id; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX import_item_batch_id ON public.import_item USING btree (batch_id);
 
 
 --
--- Name: import_item_ia_id; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: import_item_ia_id; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX import_item_ia_id ON public.import_item USING btree (ia_id);
 
 
 --
--- Name: import_item_import_time; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: import_item_import_time; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX import_item_import_time ON public.import_item USING btree (import_time);
 
 
 --
--- Name: import_item_status; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: import_item_status; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX import_item_status ON public.import_item USING btree (status);
 
 
 --
--- Name: observations_username_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
+-- Name: observations_username_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace:
 --
 
 CREATE INDEX observations_username_idx ON public.observations USING btree (username);
 
 
 --
--- Name: publisher_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: publisher_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX publisher_boolean_idx ON public.publisher_boolean USING btree (key_id, value);
 
 
 --
--- Name: publisher_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: publisher_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX publisher_boolean_thing_id_idx ON public.publisher_boolean USING btree (thing_id);
 
 
 --
--- Name: publisher_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: publisher_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX publisher_idx ON public.follows USING btree (publisher);
 
 
 --
--- Name: publisher_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: publisher_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX publisher_int_idx ON public.publisher_int USING btree (key_id, value);
 
 
 --
--- Name: publisher_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: publisher_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX publisher_int_thing_id_idx ON public.publisher_int USING btree (thing_id);
 
 
 --
--- Name: publisher_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: publisher_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX publisher_ref_idx ON public.publisher_ref USING btree (key_id, value);
 
 
 --
--- Name: publisher_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: publisher_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX publisher_ref_thing_id_idx ON public.publisher_ref USING btree (thing_id);
 
 
 --
--- Name: publisher_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: publisher_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX publisher_str_idx ON public.publisher_str USING btree (key_id, value);
 
 
 --
--- Name: publisher_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: publisher_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX publisher_str_thing_id_idx ON public.publisher_str USING btree (thing_id);
 
 
 --
--- Name: ratings_work_id_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace: 
+-- Name: ratings_work_id_idx; Type: INDEX; Schema: public; Owner: postgres; Tablespace:
 --
 
 CREATE INDEX ratings_work_id_idx ON public.ratings USING btree (work_id);
 
 
 --
--- Name: scan_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: scan_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX scan_boolean_idx ON public.scan_boolean USING btree (key_id, value);
 
 
 --
--- Name: scan_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: scan_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX scan_boolean_thing_id_idx ON public.scan_boolean USING btree (thing_id);
 
 
 --
--- Name: scan_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: scan_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX scan_int_idx ON public.scan_int USING btree (key_id, value);
 
 
 --
--- Name: scan_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: scan_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX scan_int_thing_id_idx ON public.scan_int USING btree (thing_id);
 
 
 --
--- Name: scan_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: scan_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX scan_ref_idx ON public.scan_ref USING btree (key_id, value);
 
 
 --
--- Name: scan_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: scan_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX scan_ref_thing_id_idx ON public.scan_ref USING btree (thing_id);
 
 
 --
--- Name: scan_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: scan_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX scan_str_idx ON public.scan_str USING btree (key_id, value);
 
 
 --
--- Name: scan_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: scan_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX scan_str_thing_id_idx ON public.scan_str USING btree (thing_id);
 
 
 --
--- Name: store_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: store_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX store_idx ON public.store_index USING btree (type, name, value);
 
 
 --
--- Name: store_index_store_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: store_index_store_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX store_index_store_id_idx ON public.store_index USING btree (store_id);
 
 
 --
--- Name: subject_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: subject_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX subject_boolean_idx ON public.subject_boolean USING btree (key_id, value);
 
 
 --
--- Name: subject_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: subject_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX subject_boolean_thing_id_idx ON public.subject_boolean USING btree (thing_id);
 
 
 --
--- Name: subject_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: subject_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX subject_int_idx ON public.subject_int USING btree (key_id, value);
 
 
 --
--- Name: subject_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: subject_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX subject_int_thing_id_idx ON public.subject_int USING btree (thing_id);
 
 
 --
--- Name: subject_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: subject_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX subject_ref_idx ON public.subject_ref USING btree (key_id, value);
 
 
 --
--- Name: subject_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: subject_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX subject_ref_thing_id_idx ON public.subject_ref USING btree (thing_id);
 
 
 --
--- Name: subject_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: subject_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX subject_str_idx ON public.subject_str USING btree (key_id, value);
 
 
 --
--- Name: subject_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: subject_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX subject_str_thing_id_idx ON public.subject_str USING btree (thing_id);
 
 
 --
--- Name: subscriber_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: subscriber_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX subscriber_idx ON public.follows USING btree (subscriber);
 
 
 --
--- Name: tag_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: tag_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX tag_boolean_idx ON public.tag_boolean USING btree (key_id, value);
 
 
 --
--- Name: tag_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: tag_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX tag_boolean_thing_id_idx ON public.tag_boolean USING btree (thing_id);
 
 
 --
--- Name: tag_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: tag_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX tag_int_idx ON public.tag_int USING btree (key_id, value);
 
 
 --
--- Name: tag_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: tag_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX tag_int_thing_id_idx ON public.tag_int USING btree (thing_id);
 
 
 --
--- Name: tag_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: tag_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX tag_ref_idx ON public.tag_ref USING btree (key_id, value);
 
 
 --
--- Name: tag_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: tag_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX tag_ref_thing_id_idx ON public.tag_ref USING btree (thing_id);
 
 
 --
--- Name: tag_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: tag_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX tag_str_idx ON public.tag_str USING btree (key_id, value);
 
 
 --
--- Name: tag_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: tag_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX tag_str_thing_id_idx ON public.tag_str USING btree (thing_id);
 
 
 --
--- Name: thing_created_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: thing_created_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX thing_created_idx ON public.thing USING btree (created);
 
 
 --
--- Name: thing_key_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: thing_key_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE UNIQUE INDEX thing_key_idx ON public.thing USING btree (key);
 
 
 --
--- Name: thing_last_modified_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: thing_last_modified_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX thing_last_modified_idx ON public.thing USING btree (last_modified);
 
 
 --
--- Name: thing_latest_revision_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: thing_latest_revision_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX thing_latest_revision_idx ON public.thing USING btree (latest_revision);
 
 
 --
--- Name: thing_olid_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: thing_olid_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX thing_olid_idx ON public.thing USING btree (public.get_olid(key));
 
 
 --
--- Name: thing_type_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: thing_type_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX thing_type_idx ON public.thing USING btree (type);
 
 
 --
--- Name: transaction_author_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: transaction_author_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX transaction_author_id_idx ON public.transaction USING btree (author_id);
 
 
 --
--- Name: transaction_created_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: transaction_created_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX transaction_created_idx ON public.transaction USING btree (created);
 
 
 --
--- Name: transaction_index_key_value_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: transaction_index_key_value_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX transaction_index_key_value_idx ON public.transaction_index USING btree (key, value);
 
 
 --
--- Name: transaction_index_tx_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: transaction_index_tx_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX transaction_index_tx_id_idx ON public.transaction_index USING btree (tx_id);
 
 
 --
--- Name: transaction_ip_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: transaction_ip_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX transaction_ip_idx ON public.transaction USING btree (ip);
 
 
 --
--- Name: type_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: type_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX type_int_idx ON public.type_int USING btree (key_id, value);
 
 
 --
--- Name: type_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: type_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX type_int_thing_id_idx ON public.type_int USING btree (thing_id);
 
 
 --
--- Name: type_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: type_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX type_ref_idx ON public.type_ref USING btree (key_id, value);
 
 
 --
--- Name: type_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: type_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX type_ref_thing_id_idx ON public.type_ref USING btree (thing_id);
 
 
 --
--- Name: type_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: type_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX type_str_idx ON public.type_str USING btree (key_id, value);
 
 
 --
--- Name: type_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: type_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX type_str_thing_id_idx ON public.type_str USING btree (thing_id);
 
 
 --
--- Name: user_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: user_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX user_int_idx ON public.user_int USING btree (key_id, value);
 
 
 --
--- Name: user_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: user_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX user_int_thing_id_idx ON public.user_int USING btree (thing_id);
 
 
 --
--- Name: user_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: user_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX user_ref_idx ON public.user_ref USING btree (key_id, value);
 
 
 --
--- Name: user_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: user_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX user_ref_thing_id_idx ON public.user_ref USING btree (thing_id);
 
 
 --
--- Name: user_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: user_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX user_str_idx ON public.user_str USING btree (key_id, value);
 
 
 --
--- Name: user_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: user_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX user_str_thing_id_idx ON public.user_str USING btree (thing_id);
 
 
 --
--- Name: work_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: work_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX work_boolean_idx ON public.work_boolean USING btree (key_id, value);
 
 
 --
--- Name: work_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: work_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX work_boolean_thing_id_idx ON public.work_boolean USING btree (thing_id);
 
 
 --
--- Name: work_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: work_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX work_int_idx ON public.work_int USING btree (key_id, value);
 
 
 --
--- Name: work_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: work_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX work_int_thing_id_idx ON public.work_int USING btree (thing_id);
 
 
 --
--- Name: work_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: work_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX work_ref_idx ON public.work_ref USING btree (key_id, value);
 
 
 --
--- Name: work_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: work_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX work_ref_thing_id_idx ON public.work_ref USING btree (thing_id);
 
 
 --
--- Name: work_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: work_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX work_str_idx ON public.work_str USING btree (key_id, value);
 
 
 --
--- Name: work_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace: 
+-- Name: work_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX work_str_thing_id_idx ON public.work_str USING btree (thing_id);
