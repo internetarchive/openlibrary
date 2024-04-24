@@ -9,12 +9,8 @@ $var title: $_('Search results for Lists')
 <div id="contentBody">
   $:macros.SearchNavigation()
   <form class="siteSearch olform" action="/search/lists">
-    <input type="text" class="larger" name="q" size="100" value="$q"
-    style="height:38px; display: inline-block; vertical-align: middle; border: 1px solid hsl(64, 9%, 71%); border-top-left-radius: 6px;
-    border-bottom-left-radius: 6px; margin:0"/><!--
-    --><input type="submit" class="larger cta-btn cta-btn--small cta-btn--vanilla" value="$_('Search')"
-    style="width:auto; display: inline-block; margin:0; height:38px; border: 1px solid hsl(64, 9%, 71%); border-top-left-radius: 0px;
-    border-bottom-left-radius: 0px; margin:0; vertical-align: middle; background-color: hsl(48, 29%, 93%);">
+    <input type="text" class="search-input" name="q" size="100" value="$q"/><!--
+    --><input type="submit" class="search-btn" value="$_('Search')">
   </form>
 
   $if lists:
