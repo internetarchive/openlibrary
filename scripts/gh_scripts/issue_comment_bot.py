@@ -3,7 +3,9 @@
 Fetches Open Library GitHub issues that have been commented on
 within some amount of time, in hours.
 
-Writes links to each issue to given Slack channel.
+Publishes a digest of the issues that were identified to the 
+given Slack channel, and adds the "Needs: Response" label to the
+issues in Github.
 """
 import argparse
 import errno
@@ -264,7 +266,9 @@ def start_job(args: argparse.Namespace):
     issues = fetch_issues(date_string)
 
     filtered_issues = filter_issues(issues, since)
-    add_label_to_issues(filtered_issues)
+    if not args.no_labels:
+        add_label_to_issues(filtered_issues)
+        print('Issues labeled as "Needs: Response"')
     publish_digest(filtered_issues, args.channel, args.slack_token, args.hours)
     print('Digest posted to Slack.')
 
@@ -290,6 +294,11 @@ def _get_parser() -> argparse.ArgumentParser:
         metavar='slack-token',
         help='Slack auth token',
         type=str,
+    )
+    parser.add_argument(
+        '--no-labels',
+        help='Prevent the script from labeling the issues',
+        action='store_true',
     )
 
     return parser
