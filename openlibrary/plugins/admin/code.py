@@ -401,15 +401,18 @@ class people_view:
             keys_to_delete |= {r['key'] for r in flattened_records}
 
             keys_to_revert = {
-                item.key: change.id for change in changes for item in change.changes
+                item.key: [] for change in changes for item in change.changes
             }
+            for change in changes:
+                for item in change.changes:
+                    keys_to_revert[item.key].append(change.id)
 
             deleted_keys = web.ctx.site.things(
                 {'key': list(keys_to_revert), 'type': {'key': '/type/delete'}}
             )
 
             changesets_with_deleted_works = {
-                keys_to_revert[key] for key in deleted_keys
+                change_id for key in deleted_keys for change_id in keys_to_revert[key]
             }
 
             changeset_ids = [
