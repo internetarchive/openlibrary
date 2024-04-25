@@ -227,13 +227,13 @@ class booknotes(delegate.page):
         :return: the note
         """
         user = accounts.get_current_user()
+        if not user:
+            raise web.seeother('/account/login?redirect=/works/%s' % work_id)
+
         i = web.input(notes=None, edition_id=None, redir=None)
         edition_id = (
             int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else -1
         )
-
-        if not user:
-            raise web.seeother('/account/login?redirect=/works/%s' % work_id)
 
         username = user.key.split('/')[2]
 
