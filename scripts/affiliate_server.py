@@ -94,6 +94,58 @@ web.amazon_queue = (
 web.amazon_lookup_thread = None
 
 
+class Priority(Enum):
+    """
+    Priority for the `PrioritizedISBN` class.
+
+    `queue.PriorityQueue` has a lowest-value-is-highest-priority system, but
+    setting `PrioritizedISBN.priority` to 0 can make it look as if priority is
+    disabled. Using an `Enum` can help with that.
+    """
+
+    HIGH = 0
+    LOW = 1
+
+    def __lt__(self, other):
+        if isinstance(other, Priority):
+            return self.value < other.value
+        return NotImplemented
+
+
+@dataclass(order=True, slots=True)
+class PrioritizedISBN:
+    """
+    Represent an ISBN's priority in the queue. Sorting is based on the `priority`
+    attribute, then the `timestamp` to solve tie breaks within a specific priority,
+    with priority going to whatever `min([items])` would return.
+    For more, see https://docs.python.org/3/library/queue.html#queue.PriorityQueue.
+
+    Therefore, priority 0, which is equivalent to `Priority.HIGH`, is the highest
+    priority.
+
+    This exists so certain ISBNs can go to the front of the queue for faster
+    processing as their look-ups are time sensitive and should return look up data
+    to the caller (e.g. interactive API usage through `/isbn`).
+
+    Note: also handles Amazon-specific ASINs.
+    """
+
+    isbn: str = field(compare=False)
+    priority: Priority = field(default=Priority.LOW)
+    timestamp: datetime = field(default_factory=datetime.now)
+
+    def to_dict(self):
+        """
+        Convert the PrioritizedISBN object to a dictionary representation suitable
+        for JSON serialization.
+        """
+        return {
+            "isbn": self.isbn,
+            "priority": self.priority.name,
+            "timestamp": self.timestamp.isoformat(),
+        }
+
+
 def get_current_amazon_batch() -> Batch:
     """
     At startup, get the Amazon openlibrary.core.imports.Batch() for global use.
@@ -312,58 +364,6 @@ class Clear:
             web.amazon_queue.qsize(),
         )
         return json.dumps({"Cleared": "True", "qsize": qsize})
-
-
-class Priority(Enum):
-    """
-    Priority for the `PrioritizedISBN` class.
-
-    `queue.PriorityQueue` has a lowest-value-is-highest-priority system, but
-    setting `PrioritizedISBN.priority` to 0 can make it look as if priority is
-    disabled. Using an `Enum` can help with that.
-    """
-
-    HIGH = 0
-    LOW = 1
-
-    def __lt__(self, other):
-        if isinstance(other, Priority):
-            return self.value < other.value
-        return NotImplemented
-
-
-@dataclass(order=True, slots=True)
-class PrioritizedISBN:
-    """
-    Represent an ISBN's priority in the queue. Sorting is based on the `priority`
-    attribute, then the `timestamp` to solve tie breaks within a specific priority,
-    with priority going to whatever `min([items])` would return.
-    For more, see https://docs.python.org/3/library/queue.html#queue.PriorityQueue.
-
-    Therefore, priority 0, which is equivalent to `Priority.HIGH`, is the highest
-    priority.
-
-    This exists so certain ISBNs can go to the front of the queue for faster
-    processing as their look-ups are time sensitive and should return look up data
-    to the caller (e.g. interactive API usage through `/isbn`).
-
-    Note: also handles Amazon-specific ASINs.
-    """
-
-    isbn: str = field(compare=False)
-    priority: Priority = field(default=Priority.LOW)
-    timestamp: datetime = field(default_factory=datetime.now)
-
-    def to_dict(self):
-        """
-        Convert the PrioritizedISBN object to a dictionary representation suitable
-        for JSON serialization.
-        """
-        return {
-            "isbn": self.isbn,
-            "priority": self.priority.name,
-            "timestamp": self.timestamp.isoformat(),
-        }
 
 
 class Submit:
