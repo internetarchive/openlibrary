@@ -257,6 +257,11 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
               <div class="edition-omniline-item">
                 <div>$_("Publish Date")</div>
                 <span itemprop="datePublished">$edition.publish_date</span>
+              </div>            
+            $if edition.original_publish_date:
+              <div class="edition-omniline-item">
+                <div>$_("Original Publish Date")</div>
+                <span itemprop="originalDatePublished">$edition.original_publish_date</span>
               </div>
             $if edition.publishers:
               <div class="edition-omniline-item">

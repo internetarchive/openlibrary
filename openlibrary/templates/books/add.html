@@ -57,6 +57,15 @@ $ i18n_strings = {
             </div>
         </div>
 
+        <div class="formElement">
+            <div class="label">
+                <label for="publish_date">$_("When was the original edition published?")</label>
+            </div>
+            <div class="input">
+                <input type="text" name="original_publish_date" class="original-publish-date" id="original_publish_date"/>
+            </div>
+        </div>
+
         $ admin_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
         <div class="formElement">
             <div class="label"><label for="id_value">$:_("And optionally, an ID number &#151; like an ISBN &#151; would be helpful...")</label></div>
