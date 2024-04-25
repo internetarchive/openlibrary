@@ -19,49 +19,53 @@ $def embed_iframe(page_url):
         </div>
         <div class="shareLinks cta-section">
           <ul class="shareLinks-list">
+
               $for share_link in share_links:
               $ track_tag = share_link['text'].replace(' ', '-')
-              <li>
-                <a href="$share_link['url']" class="sansserif large" target="_blank"
+
+                <li>
+                  <a href="$share_link['url']" class="sansserif large" target="_blank"
                   data-ol-link-track="Share|$track_tag">
                   <img
-                    title="$_('Share on %(share_link)s', share_link=share_link['text'])"
-                    alt="$(share_link['text'])" class="share-link"
-                    src="$static_url('images/%s.svg' % share_link['text'].lower())"
-                    loading="lazy"
+                  title="$_('Share on %(share_link)s', share_link=share_link['text'])"
+                  alt="$(share_link['text'])" class="share-link"
+                  src="$static_url('images/%s.svg' % share_link['text'].lower())"
+                  loading="lazy"
                   >
                 </a>
                 <div class="share-source">$share_link['text']</div>
               </li>
 
             $if show_embed:
+
               <li>
                 $# rm special characters from url such as single quote which break js prompt/iframe
                 $ clean_url = page_url.replace("'", "\\'")
                 $ iframe_html = str(embed_iframe(clean_url)).strip()
                 <a class="embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed"
-                  onclick="prompt('Copy embed code to clipboard:', '$iframe_html');">
-                  <img
-                    alt="$_('Embed icon')"
-                    class="share-link"
-                    src="$static_url('images/embed.png')"
-                    loading="lazy"
-                  >
-                </a>
-                <div class="share-source">$_("Embed")</div>
-              </li>
+                onclick="prompt('Copy embed code to clipboard:', '$iframe_html');">
+                <img
+                alt="$_('Embed icon')"
+                class="share-link"
+                src="$static_url('images/embed.png')"
+                loading="lazy"
+                >
+              </a>
+              <div class="share-source">$_("Embed")</div>
+            </li>
 
             <li>
               <a class="copy-url-btn" title="$_('Copy url to clipboard')" data-ol-link-track="Share|CopyURL">
-                  <img
-                      alt="$_('Copy URL icon')"
-                      class="share-link"
-                      src="$static_url('images/copy_url.png')"
-                      loading="lazy"
-                  >
+                <img
+                alt="$_('Copy URL icon')"
+                class="share-link"
+                src="$static_url('images/copy_url.png')"
+                loading="lazy"
+                >
               </a>
               <div class="share-source">$_("Copy URL")</div>
             </li>
+
 
           </ul>
         </div>
