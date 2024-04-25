@@ -40,12 +40,22 @@ class subjects(delegate.page):
             sort=web.input(sort='readinglog').sort,
         )
 
+        def filter(works, start_date, end_date):
+            filtered = []
+
+            for work in works:
+                if (start_date <= int(work.get('first_publish_year')) and 
+                    int(work.get('first_publish_year')) <= end_date):
+                    filtered.append(work)
+            
+            return filtered
+
         delegate.context.setdefault('cssfile', 'subject')
         if not subj or subj.work_count == 0:
             web.ctx.status = "404 Not Found"
             page = render_template('subjects/notfound.tmpl', key)
         else:
-            page = render_template("subjects", page=subj)
+            page = render_template("subjects", page=subj, filter=filter)
 
         return page
 
