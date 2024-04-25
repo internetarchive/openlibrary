@@ -140,7 +140,12 @@ class CacheablePathsProcessor:
             Attempts to return a cached page, if one exists. The full
             path is used as the cache key for the page.
             """
-            mc = cache.memcache_memoize(get_page, path, self.paths_and_expiries[match], prethread=caching_prethread())
+            mc = cache.memcache_memoize(
+                get_page,
+                path,
+                self.paths_and_expiries[match],
+                prethread=caching_prethread(),
+            )
             _page = mc()
 
             if not _page:
@@ -157,7 +162,7 @@ class CacheablePathsProcessor:
             /collections.es
 
             Any entries in the given _modes list will be prepended
-            to the key.  The entries will be pipe-delimited, and 
+            to the key.  The entries will be pipe-delimited, and
             inside of square brackets.  For example:
 
             [pd|sfw]/collections.es
