@@ -29,6 +29,16 @@ export default function initValidate() {
     'Are you sure that\'s the published date?'
     );
 
+    // validate title to make sure it contains at least one non-whitespace
+    // character (otherwise it will appear blank)
+    // used in templates/books/add.html
+    jQuery.validator.addMethod('title', function(value) {
+        var containsNonWhitespace = /.*\S+.*/.exec(value);
+        return containsNonWhitespace;
+    },
+    '',
+    );
+
     $.validator.messages.required = '';
     $.validator.messages.email = ugettext('Are you sure that\'s an email address?');
 
