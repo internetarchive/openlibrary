@@ -148,6 +148,30 @@ class CacheablePathsProcessor:
 
             return _page
 
+        def create_base_cache_key(_modes: list[str]) -> str:
+            """
+            Returns a cache key for a cacheable path.
+
+            Function constructs a key based on the path and langauge
+            code, like the following key for the Spanish collections page:
+            /collections.es
+
+            Any entries in the given _modes list will be prepended
+            to the key.  The entries will be pipe-delimited, and 
+            inside of square brackets.  For example:
+
+            [pd|sfw]/collections.es
+
+            ...is the key for the Spanish language, print-disabled, safe
+            for work `/collections` page.  If there are no entries in the
+            _modes list, no square brackets will be included in the key.
+            """
+            key = f'{web.ctx.path}.{web.ctx.lang}'
+            if _modes:
+                key = f'[{"|".join(_modes)}]{key}'
+
+            return key
+
         if web.ctx.method != 'GET':
             # Don't cache non-GET requests
             return handler()
@@ -179,9 +203,17 @@ class CacheablePathsProcessor:
             # Prevent redundant cache entries when `m=view` is passed
             del i['m']
 
-        # Construct cache key:
-        cache_key = f'{web.ctx.path}.{web.ctx.lang}'
-        
+        modes = []
+        cookies = web.cookies()
+        if cookies.get('pd', ''):
+            modes.append('pd')
+
+        # Uncomment the following to enable safe-for-work page caching:
+
+        # if cookies.get('sfw', ''):
+        #     modes.append('sfw')
+
+        cache_key = create_base_cache_key(modes)
         if len(i):
             # Construct query string in alphabetical order
             query_str = '&'.join([f'{k}={v}' for k, v in sorted(i.items())])
