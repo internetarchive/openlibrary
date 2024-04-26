@@ -29,18 +29,6 @@ export default function initValidate() {
     'Are you sure that\'s the published date?'
     );
 
-    // same as validate publish-date, but does not require an input
-    // used in templates/books/add.html
-    jQuery.validator.addMethod('original-publish-date', function(value) {
-        // if it doesn't have even three digits then it can't be a future date
-        var tokens = /(\d{3,})/.exec(value);
-
-        var year = new Date().getFullYear();
-        return tokens=== null || (tokens && tokens[1] && parseInt(tokens[1]) <= year + 1); // allow one year in future.
-    },
-    'Are you sure that\'s the published date?'
-    );
-
     $.validator.messages.required = '';
     $.validator.messages.email = ugettext('Are you sure that\'s an email address?');
 
