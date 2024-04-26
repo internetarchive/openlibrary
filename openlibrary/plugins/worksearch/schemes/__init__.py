@@ -46,7 +46,7 @@ class SearchScheme:
             hash_value ^= ord(char)
             hash_value *= FNV_prime
         return hash_value
-    
+
     def process_user_sort(self, user_sort: str, carousel_params: dict = None) -> str:
         """
         Convert a user-provided sort to a solr sort
@@ -78,10 +78,10 @@ class SearchScheme:
                 if ' ' in sort:
                     sort, sort_order = sort.split(' ', 1)
                 if '_' not in sort:
-                    json_params_str = json.dumps(carousel_params, sort = True)
+                    json_params_str = json.dumps(carousel_params, sort=True)
                     md5_hash = str(hash_function(json_params_str))
-                    sort += f'_{md5_hash[:3]}' # Use only a few letters of the hash to prevent excessively large seed space
-                    #sort is random_(random seed)
+                    sort += f'_{md5_hash[:3]}'  # Use only a few letters of the hash to prevent excessively large seed space
+                    # sort is random_(random seed)
                 random_type, random_seed = sort.split('_', 1)
                 solr_sort = self.sorts[random_type]
                 solr_sort_str = solr_sort() if callable(solr_sort) else solr_sort
