@@ -33,13 +33,13 @@ class SearchScheme:
     def is_search_field(self, field: str):
         return field in self.all_fields or field in self.field_name_map
 
-    #FNV-1a hash function XORs each byte of the input string with the current hash value 
-    #and then multiplies by a prime number. It's simple and performs well for quick hashing needs.
+    # FNV-1a hash function XORs each byte of the input string with the current hash value
+    # and then multiplies by a prime number. It's simple and performs well for quick hashing needs.
     def hash_function(string):
         # FNV parameters
-        FNV_offset_basis = 0x811c9dc5
+        FNV_offset_basis = 0x811C9DC5
         FNV_prime = 0x01000193
-        
+
         # Hash calculation
         hash_value = FNV_offset_basis
         for char in string:
