@@ -31,6 +31,7 @@ from openlibrary.core.lending import (
 )
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
+from openlibrary.plugins.openlibrary.sentry import sentry
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins import openlibrary as olib
@@ -320,6 +321,8 @@ class account_create(delegate.page):
                 )
             except OLAuthenticationError as e:
                 f.note = get_login_error(e.__str__())
+                if sentry.enabled:
+                    sentry.capture_exception(e)
 
         return render['account/create'](f)
 
