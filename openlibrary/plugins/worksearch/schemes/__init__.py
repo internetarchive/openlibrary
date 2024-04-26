@@ -76,7 +76,7 @@ class SearchScheme:
                 if ' ' in sort:
                     sort, sort_order = sort.split(' ', 1)
                 if '_' not in sort:
-                    json_params_str = json.dumps(carousel_params, sort = True)
+                    json_params_str = json.dumps(carousel_params, sort=True)
                     md5_hash = str(SearchScheme.hash_function(json_params_str))
                     sort += f'_{md5_hash[:3]}'  # Use only a few letters of the hash to prevent excessively large seed space
                     # sort is random_(random seed)
