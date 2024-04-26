@@ -48,7 +48,9 @@ class SearchScheme:
     def is_search_field(self, field: str):
         return field in self.all_fields or field in self.field_name_map
 
-    def process_user_sort(self, user_sort: str, carousel_params: dict = {}) -> str:
+    def process_user_sort(self, user_sort: str, carousel_params: dict = None) -> str:
+        if carousel_params is None: 
+            carousel_params = {} 
         """
         Convert a user-provided sort to a solr sort
 
