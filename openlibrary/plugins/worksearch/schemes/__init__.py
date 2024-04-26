@@ -10,6 +10,7 @@ from openlibrary.solr.query_utils import (
 )
 
 import json
+import typing
 
 logger = logging.getLogger("openlibrary.worksearch")
 
@@ -49,7 +50,7 @@ class SearchScheme:
         return field in self.all_fields or field in self.field_name_map
 
     def process_user_sort(
-        self, user_sort: str, carousel_params: dict[str, any] | None = None
+        self, user_sort: str, carousel_params: dict[str, typing.Any] | None = None
     ) -> str:
         if carousel_params is None:
             carousel_params = {}
