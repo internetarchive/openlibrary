@@ -41,6 +41,7 @@ from openlibrary.accounts import (
     InternetArchiveAccount,
     valid_email,
     clear_cookies,
+    OLAuthenticationError,
 )
 from openlibrary.plugins.upstream import borrow, forms, utils
 from openlibrary.utils.dateutil import elapsed_time
@@ -87,6 +88,7 @@ def get_login_error(error_key):
         "invalid_s3keys": _(
             'Login attempted with invalid Internet Archive s3 credentials.'
         ),
+        "undefined_error": _('A problem occurred and we were unable to log you in'),
     }
     return LOGIN_ERRORS[error_key]
 
@@ -316,8 +318,8 @@ class account_create(delegate.page):
                 return render['account/verify'](
                     username=f.username.value, email=f.email.value
                 )
-            except ValueError:
-                f.note = get_login_error('max_retries_exceeded')
+            except OLAuthenticationError as e:
+                f.note = get_login_error(e.__str__())
 
         return render['account/create'](f)
 
