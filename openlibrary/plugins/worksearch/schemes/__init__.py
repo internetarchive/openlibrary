@@ -13,7 +13,6 @@ import json
 
 logger = logging.getLogger("openlibrary.worksearch")
 
-
 class SearchScheme:
     # Set of queries that define the universe of this scheme
     universe: list[str]
@@ -32,20 +31,6 @@ class SearchScheme:
 
     def is_search_field(self, field: str):
         return field in self.all_fields or field in self.field_name_map
-
-    # FNV-1a hash function XORs each byte of the input string with the current hash value
-    # and then multiplies by a prime number. It's simple and performs well for quick hashing needs.
-    def hash_function(self, string: str):
-        # FNV parameters
-        FNV_offset_basis = 0x811C9DC5
-        FNV_prime = 0x01000193
-
-        # Hash calculation
-        hash_value = FNV_offset_basis
-        for char in string:
-            hash_value ^= ord(char)
-            hash_value *= FNV_prime
-        return hash_value
 
     def process_user_sort(self, user_sort: str, carousel_params: dict) -> str:
         """
@@ -76,9 +61,22 @@ class SearchScheme:
                 if ' ' in sort:
                     sort, sort_order = sort.split(' ', 1)
                 if '_' not in sort:
+                    # FNV-1a hash function XORs each byte of the input string with the current hash value
+                    # and then multiplies by a prime number. It's simple and performs well for quick hashing needs.
+                    def hash_function(string: str) -> str:
+                        # FNV parameters
+                        FNV_offset_basis = 0x811C9DC5
+                        FNV_prime = 0x01000193
+
+                        # Hash calculation
+                        hash_value = FNV_offset_basis
+                        for char in string:
+                            hash_value ^= ord(char)
+                            hash_value *= FNV_prime
+                        return hash_value
                     json_params_str = json.dumps(carousel_params, sort = True)
-                    md5_hash = str(SearchScheme.hash_function(json_params_str))
-                    sort += f'_{md5_hash[:3]}'  # Use only a few letters of the hash to prevent excessively large seed space
+                    md5_hash = str(hash_function(json_params_str))
+                    sort += f'_{md5_hash[:3]}' # Use only a few letters of the hash to prevent excessively large seed space
                     # sort is random_(random seed)
                 random_type, random_seed = sort.split('_', 1)
                 solr_sort = self.sorts[random_type]
