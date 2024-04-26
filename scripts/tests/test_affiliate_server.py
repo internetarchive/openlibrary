@@ -150,7 +150,9 @@ def test_prioritized_identifier_serialize_to_json() -> None:
     `PrioritizedIdentifier` needs to be be serializable to JSON because it is sometimes
     called in, e.g. `json.dumps()`.
     """
-    p_identifier = PrioritizedIdentifier(identifier="1111111111", priority=Priority.HIGH)
+    p_identifier = PrioritizedIdentifier(
+        identifier="1111111111", priority=Priority.HIGH
+    )
     dumped_identifier = json.dumps(p_identifier.to_dict())
     dict_identifier = json.loads(dumped_identifier)
 
@@ -177,18 +179,3 @@ def test_prioritized_identifier_serialize_to_json() -> None:
 def test_make_cache_key(isbn_or_asin: dict[str, Any], expected_key: str) -> None:
     got = make_cache_key(isbn_or_asin)
     assert got == expected_key
-
-
-@pytest.mark.parametrize(
-    ["isbn_or_asin", "expected"],
-    [
-        ("0123456789", ("0123456789", "9780123456786")),
-        ("0-.123456789", ("0123456789", "9780123456786")),
-        ("9780123456786", ("0123456789", "9780123456786")),
-        ("9-.780123456786", ("0123456789", "9780123456786")),
-        ("B012346789", ("B012346789", "")),
-    ],
-)
-def test_unpack_isbn(isbn_or_asin, expected) -> None:
-    got = Submit.unpack_isbn(isbn_or_asin)
-    assert got == expected

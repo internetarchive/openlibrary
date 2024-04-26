@@ -42,7 +42,7 @@ import sys
 import threading
 import time
 
-from collections.abc import Iterable
+from collections.abc import Collection
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -60,6 +60,7 @@ from openlibrary.core.imports import Batch, ImportItem
 from openlibrary.core.vendors import AmazonAPI, clean_amazon_metadata_for_load
 from openlibrary.utils.dateutil import WEEK_SECS
 from openlibrary.utils.isbn import (
+    normalize_identifier,
     normalize_isbn,
     isbn_13_to_isbn_10,
     isbn_10_to_isbn_13,
@@ -260,16 +261,15 @@ def make_cache_key(product: dict[str, Any]) -> str:
     return ""
 
 
-def process_amazon_batch(isbn_10s_or_asins: Iterable[PrioritizedIdentifier]) -> None:
+def process_amazon_batch(asins: Collection[PrioritizedIdentifier]) -> None:
     """
-    Call the Amazon API to get the products for a list of isbn_10s and store
-    each product in memcache using amazon_product_{isbn_13} as the cache key.
+    Call the Amazon API to get the products for a list of isbn_10s/ASINs and store
+    each product in memcache using amazon_product_{isbn_13 or b_asin} as the cache key.
     """
-    logger.info(f"process_amazon_batch(): {len(isbn_10s_or_asins)} items")
+    logger.info(f"process_amazon_batch(): {len(asins)} items")
     try:
         identifiers = [
-            prioritized_identifier.identifier
-            for prioritized_identifier in isbn_10s_or_asins
+            prioritized_identifier.identifier for prioritized_identifier in asins
         ]
         products = web.amazon_api.get_products(identifiers, serialize=True)
         # stats_ol_affiliate_amazon_imports - Open Library - Dashboards - Grafana
@@ -279,9 +279,7 @@ def process_amazon_batch(isbn_10s_or_asins: Iterable[PrioritizedIdentifier]) -> 
             n=len(products),
         )
     except Exception:
-        logger.exception(
-            f"amazon_api.get_products({isbn_10s_or_asins}, serialize=True)"
-        )
+        logger.exception(f"amazon_api.get_products({asins}, serialize=True)")
         return
 
     for product in products:
@@ -297,10 +295,9 @@ def process_amazon_batch(isbn_10s_or_asins: Iterable[PrioritizedIdentifier]) -> 
 
     # Skip staging no_import_identifiers for for import by checking AMZ source record.
     no_import_identifiers = {
-        identifier.identifier
-        for identifier in isbn_10s_or_asins
-        if not identifier.stage_import
+        identifier.identifier for identifier in asins if not identifier.stage_import
     }
+
     books = [
         clean_amazon_metadata_for_load(product)
         for product in products
@@ -335,24 +332,18 @@ def amazon_lookup(site, stats_client, logger) -> None:
 
     while True:
         start_time = time.time()
-        isbn_10s_or_asins: set[PrioritizedIdentifier] = (
-            set()
-        )  # no duplicates in the batch
-        while len(isbn_10s_or_asins) < API_MAX_ITEMS_PER_CALL and seconds_remaining(
-            start_time
-        ):
+        asins: set[PrioritizedIdentifier] = set()  # no duplicates in the batch
+        while len(asins) < API_MAX_ITEMS_PER_CALL and seconds_remaining(start_time):
             try:  # queue.get() will block (sleep) until successful or it times out
-                isbn_10s_or_asins.add(
-                    web.amazon_queue.get(timeout=seconds_remaining(start_time))
-                )
+                asins.add(web.amazon_queue.get(timeout=seconds_remaining(start_time)))
             except queue.Empty:
                 pass
-        logger.info(f"Before amazon_lookup(): {len(isbn_10s_or_asins)} items")
-        if isbn_10s_or_asins:
+        logger.info(f"Before amazon_lookup(): {len(asins)} items")
+        if asins:
             time.sleep(seconds_remaining(start_time))
             try:
-                process_amazon_batch(isbn_10s_or_asins)
-                logger.info(f"After amazon_lookup(): {len(isbn_10s_or_asins)} items")
+                process_amazon_batch(asins)
+                logger.info(f"After amazon_lookup(): {len(asins)} items")
             except Exception:
                 logger.exception("Amazon Lookup Thread died")
                 stats_client.incr("ol.affiliate.amazon.lookup_thread_died")
@@ -396,28 +387,7 @@ class Clear:
 
 
 class Submit:
-    @classmethod
-    def unpack_isbn(cls, isbn) -> tuple[str, str]:
-        """
-        Return an "ASIN" and an ISBN 13 if possible. Here, an "ASIN" is an
-        ISBN 10 if the input is an ISBN, and an Amazon-specific ASIN starting
-        with "B" if it's not an ISBN 10.
-        """
-        # If the "isbn" is an Amazon-specific ASIN, return it.
-        if len(isbn) == 10 and isbn.startswith("B"):
-            return (isbn, "")
-
-        # Get ISBN 10 and 13.
-        isbn = normalize_isbn(isbn.replace('-', ''))
-        isbn10 = (
-            isbn
-            if len(isbn) == 10
-            else isbn.startswith('978') and isbn_13_to_isbn_10(isbn)
-        )
-        isbn13 = isbn if len(isbn) == 13 else isbn_10_to_isbn_13(isbn)
-        return isbn10, isbn13
-
-    def GET(self, isbn_or_asin: str) -> str:
+    def GET(self, identifier: str) -> str:
         """
         GET endpoint looking up ISBNs and B* ASINs via the affiliate server.
 
@@ -429,13 +399,13 @@ class Submit:
               high_priority=true must also be 'true', or this returns nothing and
               stages nothing (unless the result is cached).
 
-        If `isbn_or_asin` is in memcache, then return the `hit` (which is marshalled
+        If `identifier` is in memcache, then return the `hit` (which is marshalled
         into a format appropriate for import on Open Library if `?high_priority=true`).
 
         By default `stage_import=true`, and results will be staged for import if they have
         requisite fields. Disable staging with `stage_import=false`.
 
-        If no hit, then queue the isbn_or_asin for look up and either attempt to return
+        If no hit, then queue the identifier for look up and either attempt to return
         a promise as `submitted`, or if `?high_priority=true`, return marshalled data
         from the cache.
 
@@ -450,21 +420,20 @@ class Submit:
         if not web.amazon_api:
             return json.dumps({"error": "not_configured"})
 
-        asin, isbn13 = self.unpack_isbn(isbn_or_asin)
-        if not asin:
-            return json.dumps(
-                {"error": "rejected_isbn", "asin": asin, "isbn13": isbn13}
-            )
+        b_asin, isbn_10, isbn_13 = normalize_identifier(identifier)
+        if not (key := isbn_10 or b_asin):
+            return json.dumps({"error": "rejected_isbn", "identifier": identifier})
 
+        # Handle URL query parameters.
         input = web.input(high_priority=False, stage_import=True)
         priority = (
             Priority.HIGH if input.get("high_priority") == "true" else Priority.LOW
         )
         stage_import = input.get("stage_import") != "false"
 
-        # Cache lookup by isbn13 or asin. If there's a hit return the product to
+        # Cache lookup by isbn_13 or b_asin. If there's a hit return the product to
         # the caller.
-        if product := cache.memcache_cache.get(f'amazon_product_{isbn13 or asin}'):
+        if product := cache.memcache_cache.get(f'amazon_product_{isbn_13 or b_asin}'):
             return json.dumps(
                 {
                     "status": "success",
@@ -474,11 +443,11 @@ class Submit:
 
         # Cache misses will be submitted to Amazon as ASINs (isbn10 if possible, or
         # a 'true' ASIN otherwise) and the response will be `staged` for import.
-        if asin not in web.amazon_queue.queue:
-            asin_queue_item = PrioritizedIdentifier(
-                identifier=asin, priority=priority, stage_import=stage_import
+        if key not in web.amazon_queue.queue:
+            key_queue_item = PrioritizedIdentifier(
+                identifier=key, priority=priority, stage_import=stage_import
             )
-            web.amazon_queue.put_nowait(asin_queue_item)
+            web.amazon_queue.put_nowait(key_queue_item)
 
         # Give us a snapshot over time of how many new isbns are currently queued
         stats.put(
@@ -493,7 +462,7 @@ class Submit:
             for _ in range(RETRIES):
                 time.sleep(1)
                 if product := cache.memcache_cache.get(
-                    f'amazon_product_{isbn13 or asin}'
+                    f'amazon_product_{isbn_13 or b_asin}'
                 ):
                     # If not importing, return whatever data AMZ returns, even if it's unimportable.
                     cleaned_metadata = clean_amazon_metadata_for_load(product)
