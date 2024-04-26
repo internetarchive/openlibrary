@@ -35,7 +35,7 @@ class SearchScheme:
 
     # FNV-1a hash function XORs each byte of the input string with the current hash value
     # and then multiplies by a prime number. It's simple and performs well for quick hashing needs.
-    def hash_function(string):
+    def hash_function(string: str):
         # FNV parameters
         FNV_offset_basis = 0x811C9DC5
         FNV_prime = 0x01000193
@@ -47,7 +47,7 @@ class SearchScheme:
             hash_value *= FNV_prime
         return hash_value
     
-    def process_user_sort(self, user_sort: str, carousel_params: dict = None) -> str:
+    def process_user_sort(self, user_sort: str, carousel_params: dict) -> str:
         """
         Convert a user-provided sort to a solr sort
 
@@ -67,8 +67,6 @@ class SearchScheme:
         'random_1_custom_seed asc'
         """
 
-        hash_function = SearchScheme.hash_function
-
         def process_individual_sort(sort: str) -> str:
             if sort.startswith(('random_', 'random.hourly_', 'random.daily_')):
                 # Allow custom randoms; so anything random_* is allowed
@@ -79,6 +77,7 @@ class SearchScheme:
                     sort, sort_order = sort.split(' ', 1)
                 if '_' not in sort:
                     json_params_str = json.dumps(carousel_params, sort = True)
+                    hash_function = SearchScheme.hash_function()
                     md5_hash = str(hash_function(json_params_str))
                     sort += f'_{md5_hash[:3]}' # Use only a few letters of the hash to prevent excessively large seed space
                     #sort is random_(random seed)
