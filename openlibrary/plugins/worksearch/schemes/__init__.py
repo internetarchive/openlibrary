@@ -73,9 +73,9 @@ class SearchScheme:
                         for char in string:
                             hash_value ^= ord(char)
                             hash_value *= FNV_prime
-                        return hash_value
+                        return str(hash_value)
                     json_params_str = json.dumps(carousel_params, sort = True)
-                    md5_hash = str(hash_function(json_params_str))
+                    md5_hash = hash_function(json_params_str)
                     sort += f'_{md5_hash[:3]}' # Use only a few letters of the hash to prevent excessively large seed space
                     # sort is random_(random seed)
                 random_type, random_seed = sort.split('_', 1)
