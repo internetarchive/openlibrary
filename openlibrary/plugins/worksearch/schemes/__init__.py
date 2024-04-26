@@ -79,8 +79,8 @@ class SearchScheme:
                     json_params_str = json.dumps(carousel_params, sort = True)
                     hash_function = SearchScheme.hash_function()
                     md5_hash = str(hash_function(json_params_str))
-                    sort += f'_{md5_hash[:3]}' # Use only a few letters of the hash to prevent excessively large seed space
-                    #sort is random_(random seed)
+                    sort += f'_{md5_hash[:3]}'  # Use only a few letters of the hash to prevent excessively large seed space
+                    # sort is random_(random seed)
                 random_type, random_seed = sort.split('_', 1)
                 solr_sort = self.sorts[random_type]
                 solr_sort_str = solr_sort() if callable(solr_sort) else solr_sort
