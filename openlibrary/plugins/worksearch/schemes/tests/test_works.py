@@ -115,14 +115,21 @@ def test_process_user_query(query, parsed_query):
     s = WorkSearchScheme()
     assert s.process_user_query(query) == parsed_query
 
+TEST_PARAM1 = "subject:('Reading Level-Grade 11' OR 'Reading Level-Grade 12') first_publish_year:[2000 TO *]"
+
 def test_hash_performance(): 
     start_time = time.time()
-    num_inputs = 10000
+    no_param_start = time.time()
+    num_inputs = 100000
     for i in range(num_inputs):
-        string = "subject:('Reading Level-Grade 11' OR 'Reading Level-Grade 12')" + str(i)
+        string = TEST_PARAM1 + str(i)
+        no_params = str(i)
         hash_value = SearchScheme.hash_function(string)
+        no_params_hash = SearchScheme.hash_function(no_params)
     end_time = time.time()
-    assert (end_time - start_time) < 2.0, "Performance test failed"
+    no_param_end = time.time()
+    assert (end_time - start_time) < 1.0, "Performance test failed"
+    assert (no_param_end - no_param_start) < 1.0, "Performance test failed"
 
 EDITION_KEY_TESTS = {
     'edition_key:OL123M': '+key:\\"/books/OL123M\\"',
