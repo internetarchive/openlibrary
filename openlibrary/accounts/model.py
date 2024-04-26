@@ -676,7 +676,6 @@ class InternetArchiveAccount(web.storage):
                 raise OLAuthenticationError('undefined_error')
 
             elif attempt >= retries:
-                # error_key: max_retries_exceeded (?)
                 e = OLAuthenticationError('username_registered')
                 e.value = _screenname
                 raise e
