@@ -131,7 +131,6 @@ def test_hash_performance():
     assert (end_time - start_time) < 1.0, "Performance test failed"
     assert (no_param_end - no_param_start) < 1.0, "Performance test failed"
 
-
 EDITION_KEY_TESTS = {
     'edition_key:OL123M': '+key:\\"/books/OL123M\\"',
     'edition_key:"OL123M"': '+key:\\"/books/OL123M\\"',
