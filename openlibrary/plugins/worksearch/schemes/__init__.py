@@ -13,6 +13,7 @@ import json
 
 logger = logging.getLogger("openlibrary.worksearch")
 
+
 class SearchScheme:
     # Set of queries that define the universe of this scheme
     universe: list[str]
