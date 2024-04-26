@@ -33,8 +33,7 @@ export default function initValidate() {
     // character (otherwise it will appear blank)
     // used in templates/books/add.html
     jQuery.validator.addMethod('title', function(value) {
-        var containsNonWhitespace = /.*\S+.*/.exec(value);
-        return containsNonWhitespace;
+        return /\S/.test(value);
     },
     '',
     );
