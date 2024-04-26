@@ -46,7 +46,7 @@ class SearchScheme:
             hash_value ^= ord(char)
             hash_value *= FNV_prime
         return hash_value
-    
+
     def process_user_sort(self, user_sort: str, carousel_params: dict) -> str:
         """
         Convert a user-provided sort to a solr sort
