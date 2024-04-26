@@ -2,7 +2,7 @@ from unittest.mock import patch
 import pytest
 import time
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
-from openlibrary.plugins.worksearch.schemes import SearchScheme
+from openlibrary.plugins.worksearch.schemes import hash_function
 
 # {'Test name': ('query', fields[])}
 QUERY_PARSER_TESTS = {
@@ -124,7 +124,7 @@ def test_hash_performance():
     num_inputs = 10000
     for i in range(num_inputs):
         string = TEST_PARAM1 + str(i)
-        hash_value = SearchScheme.hash_function(string)
+        hash_value = hash_function(string)
     end_time = time.time()
     assert (end_time - start_time) < 3.0, "Performance test failed"
 
