@@ -982,6 +982,32 @@ def should_overwrite_promise_item(
     return bool(safeget(lambda: edition['source_records'][0], '').startswith("promise"))
 
 
+def supplement_rec_with_import_item_metadata(
+    rec: dict[str, Any], identifier: str
+) -> None:
+    """
+    Queries for a staged/pending row in `import_item` by identifier, and if found, uses
+    select metadata to supplement empty fields/'????' fields in `rec`.
+
+    Changes `rec` in place.
+    """
+    from openlibrary.core.imports import ImportItem  # Evade circular import.
+
+    import_fields = [
+        'authors',
+        'publish_date',
+        'publishers',
+        'number_of_pages',
+        'physical_format',
+    ]
+
+    if import_item := ImportItem.find_staged_or_pending([identifier]).first():
+        import_item_metadata = json.loads(import_item.get("data", '{}'))
+        for field in import_fields:
+            if not rec.get(field) and (staged_field := import_item_metadata.get(field)):
+                rec[field] = staged_field
+
+
 def load(rec: dict, account_key=None, from_marc_record: bool = False):
     """Given a record, tries to add/match that edition in the system.
 
@@ -1001,15 +1027,11 @@ def load(rec: dict, account_key=None, from_marc_record: bool = False):
 
     normalize_import_record(rec)
 
-    # For recs with a non-ISBN ASIN, supplement the record with BookWorm data.
+    # For recs with a non-ISBN ASIN, supplement the record with BookWorm metadata.
     if non_isbn_asin := get_non_isbn_asin(rec):
-        from openlibrary.core.imports import ImportItem  # Evade circular import.
-
-        if item := ImportItem.find_staged_or_pending([non_isbn_asin]).first():
-            rec = json.loads(item.get("data", '{}')) | rec
+        supplement_rec_with_import_item_metadata(rec=rec, identifier=non_isbn_asin)
 
     # Resolve an edition if possible, or create and return one if not.
-
     edition_pool = build_pool(rec)
     if not edition_pool:
         # No match candidates found, add edition
