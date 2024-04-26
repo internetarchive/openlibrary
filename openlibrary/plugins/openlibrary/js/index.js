@@ -445,13 +445,13 @@ jQuery(function () {
 
     $('.header-dropdown').on('keydown', function (event) {
         if (event.key === 'Escape') {
-            $('.header-dropdown > details[open]').not(this).removeAttr('open');
+            $('.header-dropdown > details[open]').removeAttr('open');
         }
     });
 
     $('.dropdown-menu').each(function() {
         $(this).find('a').last().on('focusout', function() {
-            $('.header-dropdown > details[open]').not(this).removeAttr('open');
+            $('.header-dropdown > details[open]').removeAttr('open');
         });
     });
 
