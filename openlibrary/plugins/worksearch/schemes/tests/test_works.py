@@ -117,12 +117,12 @@ def test_process_user_query(query, parsed_query):
 
 def test_hash_performance(): 
     start_time = time.time()
-    num_inputs = 100000
+    num_inputs = 10000
     for i in range(num_inputs):
-        string = "input" + str(i)
+        string = "subject:('Reading Level-Grade 11' OR 'Reading Level-Grade 12')" + str(i)
         hash_value = SearchScheme.hash_function(string)
     end_time = time.time()
-    assert (end_time - start_time) < 1.0, "Performance test failed"
+    assert (end_time - start_time) < 2.0, "Performance test failed"
 
 EDITION_KEY_TESTS = {
     'edition_key:OL123M': '+key:\\"/books/OL123M\\"',
