@@ -13,6 +13,7 @@ import json
 
 logger = logging.getLogger("openlibrary.worksearch")
 
+
 # FNV-1a hash function XORs each byte of the input string with the current hash value
 # and then multiplies by a prime number. It's simple and performs well for quick hashing needs.
 def hash_function(string: str) -> str:
@@ -26,6 +27,7 @@ def hash_function(string: str) -> str:
         hash_value ^= ord(char)
         hash_value *= FNV_prime
     return str(hash_value)
+
 
 class SearchScheme:
     # Set of queries that define the universe of this scheme
@@ -75,7 +77,7 @@ class SearchScheme:
                 if ' ' in sort:
                     sort, sort_order = sort.split(' ', 1)
                 if '_' not in sort:
-                    json_params_str = json.dumps(carousel_params, sort = True)
+                    json_params_str = json.dumps(carousel_params, sort=True)
                     md5_hash = hash_function(json_params_str)
                     sort += f'_{md5_hash[:3]}'  # Use only a few letters of the hash to prevent excessively large seed space
                     # sort is random_(random seed)
