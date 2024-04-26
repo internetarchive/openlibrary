@@ -100,6 +100,60 @@ def queue_asin_for_import(book: dict[str, Any]) -> None:
             logger.exception("Affiliate Server unreachable")
 
 
+def supplement_asins_with_bookworm_metadata(olbooks: list[dict[str, Any]]) -> None:
+    """
+    Get metadata from BookWorm for B* ASINs and modify `olbooks` in place.
+    Does not stage any items for import.
+    """
+    for book in olbooks:
+        if not (amazon := book.get('identifiers', {}).get('amazon', [])):
+            continue
+
+        asin = amazon[0]
+        if asin.upper().startswith("B"):
+            try:
+                if not (
+                    bw_metadata := get_amazon_metadata(
+                        id_=asin,
+                        id_type="asin",
+                        high_priority=True,
+                        stage_import=False,
+                    )
+                ):
+                    continue
+
+            except requests.exceptions.ConnectionError:
+                logger.exception("Affiliate Server unreachable")
+                continue
+
+            # Update select fields if olbook has no data.
+            book['authors'] = (
+                bw_metadata.get('authors')
+                if book.get('authors') == [{"name": "????"}]
+                and bw_metadata.get('authors')
+                else book['authors']
+            )
+            book['publish_date'] = (
+                bw_metadata.get('publish_date')
+                if book.get('publish_date') == "????"
+                and bw_metadata.get('publish_date')
+                else book['publish_date']
+            )
+            book['publishers'] = (
+                bw_metadata.get('publishers')
+                if book.get('publishers') == ["????"] and bw_metadata.get('publishers')
+                else book['publishers']
+            )
+            if not book.get('number_of_pages') and (
+                number_of_pages := bw_metadata.get('number_of_pages')
+            ):
+                book['number_of_pages'] = number_of_pages
+            if not book.get('physical_format') and (
+                physical_format := bw_metadata.get('physical_format')
+            ):
+                book['physical_format'] = physical_format
+
+
 def batch_import(promise_id, batch_size=1000, dry_run=False):
     url = "https://archive.org/download/"
     date = promise_id.split("_")[-1]
@@ -108,20 +162,23 @@ def batch_import(promise_id, batch_size=1000, dry_run=False):
         map_book_to_olbook(book, promise_id) for book in ijson.items(resp.raw, 'item')
     )
 
+    # Note: dry_run won't include BookWorm data.
     if dry_run:
         for book in olbooks_gen:
             print(json.dumps(book), flush=True)
         return
 
     olbooks = list(olbooks_gen)
-    # Queue non-ISBN ASINs as `staged` so their metadata can supplement `load()`.
-    for book in ijson.items(resp.raw, 'item'):
-        queue_asin_for_import(book)
+
+    # Supplement B* ASINs with BookWorm metadata.
+    supplement_asins_with_bookworm_metadata(olbooks)
 
     batch = Batch.find(promise_id) or Batch.new(promise_id)
     # Find just-in-time import candidates:
-    jit_candidates = [book['isbn_13'][0] for book in olbooks if book.get('isbn_13', [])]
-    ImportItem.bulk_mark_pending(jit_candidates)
+    if jit_candidates := [
+        book['isbn_13'][0] for book in olbooks if book.get('isbn_13', [])
+    ]:
+        ImportItem.bulk_mark_pending(jit_candidates)
     batch_items = [{'ia_id': b['local_id'][0], 'data': b} for b in olbooks]
     for i in range(0, len(batch_items), batch_size):
         batch.add_items(batch_items[i : i + batch_size])
