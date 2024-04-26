@@ -75,9 +75,10 @@ class SearchScheme:
                             hash_value ^= ord(char)
                             hash_value *= FNV_prime
                         return str(hash_value)
-                    json_params_str = json.dumps(carousel_params, sort = True)
+
+                    json_params_str = json.dumps(carousel_params, sort=True)
                     md5_hash = hash_function(json_params_str)
-                    sort += f'_{md5_hash[:3]}' # Use only a few letters of the hash to prevent excessively large seed space
+                    sort += f'_{md5_hash[:3]}'  # Use only a few letters of the hash to prevent excessively large seed space
                     # sort is random_(random seed)
                 random_type, random_seed = sort.split('_', 1)
                 solr_sort = self.sorts[random_type]
