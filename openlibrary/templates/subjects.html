@@ -91,11 +91,9 @@ $ has_tag = 'tag' in page
             <span class="title"><em>$_("None found.")</em></span>
 
     $for category, label, limit in subject_list:
-        <div class="contentQuarter link-box">
+        <div class="contentQuarter link-box link-box--with-header">
           <h6 class="black collapse uppercase">$label</h6>
-          <div class="subjects" id="subjects-$category">
-            $:renderSubjects(page[category][:limit])
-          </div>
+          $:renderSubjects(page[category][:limit])
         </div>
 
     <div class="clearfix"></div>

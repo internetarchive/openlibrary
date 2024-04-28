@@ -156,7 +156,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
         $def render_subjects(label, subjects, prefix):
             $if subjects:
-                <div class="section">
+                <div class="section link-box link-box--with-header">
                     <h6 class="collapse black uppercase">$label</h6>
                     $for _, subject, count in subjects:
                         <a itemprop="knowsAbout" href="/subjects/$prefix$subject.lower().replace(' ', '_')">$subject</a>$cond(not loop.last, ",", "")
