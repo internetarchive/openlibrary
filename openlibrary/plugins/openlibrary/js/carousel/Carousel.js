@@ -181,16 +181,17 @@ export class Carousel {
         return $el;
     }
 
-    fetchMore(extraParams = {}) {
+    fetchMore() {
         const loadMore = this.loadMore;
         // update the current page or offset within the URL
         const url = loadMore.url.startsWith('/') ? new URL(location.origin + loadMore.url) : new URL(loadMore.url);
         url.searchParams.set('limit', loadMore.limit);
         url.searchParams.set(loadMore.pageMode, loadMore.page);
-
+        //set extraParams
         for (const key in loadMore.extraParams) {
-            url.searchParams.set(key, extraParams[key]);
+            url.searchParams.set(key, loadMore.extraParams[key]);
         }
+
 
         this.appendLoadingSlide();
         $.ajax({ url: url, type: 'GET' })
@@ -204,6 +205,7 @@ export class Carousel {
                 loadMore.locked = false;
             });
     }
+
 
     clearCarousel() {
         this.slick.removeSlide(this.slick.$slides.length, true, true);
