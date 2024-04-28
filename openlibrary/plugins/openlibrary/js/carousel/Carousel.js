@@ -191,7 +191,7 @@ export class Carousel {
         for (const key in loadMore.extraParams) {
             url.searchParams.set(key, loadMore.extraParams[key]);
         }
-        
+
 
         this.appendLoadingSlide();
         $.ajax({ url: url, type: 'GET' })
@@ -206,7 +206,7 @@ export class Carousel {
             });
     }
 
-    
+
     clearCarousel() {
         this.slick.removeSlide(this.slick.$slides.length, true, true);
     }
