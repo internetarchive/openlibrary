@@ -1,11 +1,10 @@
-$def with (page, filter)
+$def with (page)
 
 $var title: $page.name
 
 $ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), ('people', _('People'), 10), ('times', _('Times'), 10)]
 $ can_add_tag = ctx.user and (ctx.user.is_usergroup_member('/usergroup/super-librarians'))
 $ has_tag = 'tag' in page
-$ filtered_works = filter(page.works, 1900, 1905)
 
 
 <div id="scrollHere"></div>
@@ -51,7 +50,7 @@ $ filtered_works = filter(page.works, 1900, 1905)
 
 <div class="contentBody">
 
-  $:render_template("books/custom_carousel", books=filtered_works, key="subjects", load_more={"url": page.key + ".json", "limit": len(page.works)})
+  $:render_template("books/custom_carousel", books=page.works, key="subjects", load_more={"url": page.key + ".json", "limit": len(page.works)})
 
   <div class="head">
     <h2 class="inline">
