@@ -291,6 +291,7 @@ class addauthor(delegate.page):
 
 class clonebook(delegate.page):
     def GET(self):
+        from infogami.core.code import edit  # noqa: F401 not sure why, probably needed
 
         i = web.input('key')
         page = web.ctx.site.get(i.key)
@@ -1174,6 +1175,10 @@ def setup():
     status.setup()
     authors.setup()
     swagger.setup()
+
+    from openlibrary.plugins.openlibrary import (
+        api,  # noqa: F401 not sure why but could be needed
+    )
 
     delegate.app.add_processor(web.unloadhook(stats.stats_hook))
 

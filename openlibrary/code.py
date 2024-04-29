@@ -46,6 +46,7 @@ def setup():
     load_views()
 
     # load actions
+    from . import actions  # noqa: F401
 
     logger.info("loading complete.")
 
@@ -63,6 +64,7 @@ def setup_logging():
 
 def load_views():
     """Registers all views by loading all view modules."""
+    from .views import showmarc  # noqa: F401
 
 
 setup()
