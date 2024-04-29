@@ -160,6 +160,7 @@ class DocSaveHelper:
 def encode_url_path(url: str) -> str:
     """Encodes the path part of the url to avoid issues with non-latin characters as
     non-latin characters was breaking `web.seeother`.
+
     >>> encode_url_path('/books/OL10M/Вас_ил/edit?mode=add-work')
     '/books/OL10M/%D0%92%D0%B0%D1%81_%D0%B8%D0%BB/edit?mode=add-work'
     >>> encode_url_path('')
