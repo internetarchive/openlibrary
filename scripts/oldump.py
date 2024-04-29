@@ -5,6 +5,7 @@ import os
 import sys
 from datetime import datetime
 
+import _init_path  # noqa: F401 # Imported for its side effect of setting PYTHONPATH
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.DEBUG)
