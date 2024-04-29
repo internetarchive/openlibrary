@@ -22,6 +22,22 @@ function addShareModalButtonListeners (){
 }
 
 /**
+ * Adds click listeners to qr code.
+ */
+function openQRCode(){
+    $('#social-modal-content .qr-code-btn').on('click', function(event){
+        event.preventDefault();
+        const pageUrl = window.location.href;
+        const qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(pageUrl);
+        $.colorbox({
+            html: '<img src="' + qrCodeUrl + '" alt="QR Code" style="width: 150px; height: 150px;">',
+            maxWidth: '90%',
+            maxHeight: '90%'
+        });
+
+    })
+}
+/**
  * Initializes a collection of notes modals.
  *
  * @param {JQuery} $modalLinks  A collection of notes modal links.
