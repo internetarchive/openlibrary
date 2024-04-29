@@ -18,6 +18,7 @@ from infogami.utils.view import (
     add_flash_message,
 )
 from infogami.infobase.client import ClientException
+import infogami.core.code as core  # noqa: F401 definitely needed
 
 from openlibrary import accounts
 from openlibrary.i18n import gettext as _
