@@ -5,7 +5,6 @@ import os
 import sys
 from datetime import datetime
 
-import _init_path  # Imported for its side effect of setting PYTHONPATH
 
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.DEBUG)

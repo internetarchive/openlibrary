@@ -8,9 +8,7 @@ from typing import TypedDict, cast
 import web
 import logging
 
-from infogami import config
-from infogami.infobase import client, common
-from infogami.utils import stats
+from infogami.infobase import client
 
 from openlibrary.core import helpers as h
 from openlibrary.core import cache

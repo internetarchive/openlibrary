@@ -11,7 +11,6 @@ import feedparser
 from openlibrary.core.imports import Batch
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 from openlibrary.config import load_config
-from infogami import config
 
 FEED_URL = 'https://standardebooks.org/opds/all'
 LAST_UPDATED_TIME = './standard_ebooks_last_updated.txt'

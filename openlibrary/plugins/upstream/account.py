@@ -18,7 +18,6 @@ from infogami.utils.view import (
     add_flash_message,
 )
 from infogami.infobase.client import ClientException
-import infogami.core.code as core
 
 from openlibrary import accounts
 from openlibrary.i18n import gettext as _
@@ -39,7 +38,6 @@ from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
     audit_accounts,
-    Account,
     OpenLibraryAccount,
     InternetArchiveAccount,
     valid_email,
@@ -346,7 +344,6 @@ class account_login_json(delegate.page):
         payload is json. Instead, if login attempted w/ json
         credentials, requires Archive.org s3 keys.
         """
-        from openlibrary.plugins.openlibrary.code import BadRequest
 
         d = json.loads(web.data())
         email = d.get('email', "")

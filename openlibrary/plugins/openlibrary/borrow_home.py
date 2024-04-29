@@ -13,7 +13,6 @@ import json
 import eventer
 
 from infogami.utils import delegate
-from infogami.utils.view import render_template  # used for its side effects
 
 from openlibrary.core import statsdb
 
