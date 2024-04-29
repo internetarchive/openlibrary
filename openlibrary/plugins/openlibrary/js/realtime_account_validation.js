@@ -66,19 +66,25 @@ export function initRealTimeValidation() {
     }
 
     function validatePasswords() {
-        // NOTE: Outdated two-password implementation to be fixed by issue #9165
+        // NOTE: Outdated two-password implementation to be replaced and helper functions to be added in issue #9165
         var value = document.getElementById('password').value;
         var value2 = document.getElementById('password2').value;
         if (value && value2) {
-            if (value2 !== value) {
-                renderError('password', '#passwordMessage', 'Passwords didn\'t match');
+            if (value2 === value) {
+                $('#password2Message').removeClass().addClass('darkgreen').text('');
+                $('label[for="password2"]').removeClass();
+                $(document.getElementById('password2')).removeClass().addClass('required');
             }
             else {
-                clearError('password', '#passwordMessage')
+                $(document.getElementById('password2')).removeClass().addClass('required invalid');
+                $('label[for="password2"]').removeClass().addClass('invalid');
+                $('#password2Message').removeClass().addClass('invalid').text('Passwords didnt match');
             }
         }
         else {
-            clearError('password', '#passwordMessage')
+            $('label[for="password2"]').removeClass();
+            $(document.getElementById('password2')).removeClass().addClass('required');
+            $('#password2Message').removeClass().text('');
         }
     }
 
