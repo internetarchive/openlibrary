@@ -10,6 +10,16 @@ from infogami.utils.view import render_template as infobase_render_template
 from openlibrary.i18n import gettext
 from openlibrary.core import helpers
 
+from openlibrary.mocks.mock_infobase import (
+    mock_site,  # noqa: F401 not sure why but could be needed
+)
+from openlibrary.mocks.mock_ia import (
+    mock_ia,  # noqa: F401 not sure why but could be needed
+)
+from openlibrary.mocks.mock_memcache import (
+    mock_memcache,  # noqa: F401 not sure why but could be needed
+)
+
 
 @pytest.fixture(autouse=True)
 def no_requests(monkeypatch):
