@@ -26,10 +26,10 @@ export function initRealTimeValidation() {
     }
 
     function validateUsername() {
-        var value = $(this).val();
-        if (value !== '') {
+        var value_username = $(this).val();
+        if (value_username !== '') {
             $.ajax({
-                url: `/account/validate?username=${value}`,
+                url: `/account/validate?username=${value_username}`,
                 type: 'GET',
                 success: function(errors) {
                     if (errors.username) {
@@ -47,7 +47,7 @@ export function initRealTimeValidation() {
 
     function validateEmail() {
         var value_email = $(this).val();
-        if (!value_email === '') {
+        if (value_email !== '') {
             $.ajax({
                 url: `/account/validate?email=${encodeURIComponent(value_email)}`,
                 type: 'GET',
