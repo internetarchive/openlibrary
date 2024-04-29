@@ -22,6 +22,7 @@ from openlibrary.core import lending
 from openlibrary.catalog import add_book
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.follows import PubSub
 from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.imports import ImportItem
 from openlibrary.core.observations import Observations
@@ -504,6 +505,10 @@ class Work(Thing):
         rating = Ratings.get_users_rating_for_work(username, work_id)
         return rating
 
+    def get_patrons_who_also_read(self):
+        key = self.key.split('/')[-1][2:-1]
+        return Bookshelves.patrons_who_also_read(key)
+
     def get_users_read_status(self, username):
         if not username:
             return None
@@ -901,6 +906,15 @@ class User(Thing):
         if sort:
             lists = safesort(lists, reverse=True, key=lambda list: list.last_modified)
         return lists
+
+    @classmethod
+    # @cache.memoize(engine="memcache", key="user-avatar")
+    def get_avatar_url(cls, username):
+        username = username.split('/people/')[-1]
+        user = web.ctx.site.get('/people/%s' % username)
+        itemname = user.get_account().get('internetarchive_itemname')
+
+        return f'https://archive.org/services/img/{itemname}'
 
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
     def _get_lists_cached(self):

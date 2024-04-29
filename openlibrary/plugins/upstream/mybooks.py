@@ -22,10 +22,20 @@ from openlibrary.core.lending import (
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.core.sponsorships import get_sponsored_editions
 from openlibrary.core.models import LoggedBooksData
+from openlibrary.core.models import User
+from openlibrary.core.follows import PubSub
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 
 
 RESULTS_PER_PAGE: Final = 25
+
+
+class avatar(delegate.page):
+    path = "/people/([^/]+)/avatar"
+
+    def GET(self, username):
+        url = User.get_avatar_url(username)
+        raise web.seeother(url)
 
 
 class mybooks_home(delegate.page):
@@ -118,6 +128,27 @@ class mybooks_reviews(delegate.page):
                 docs, mb.user, mb.counts['observations'], page=int(i.page)
             )
             return mb.render(header_title=_("Reviews"), template=template)
+        raise web.seeother(mb.user.key)
+
+
+class mybooks_feed(delegate.page):
+    path = "/people/([^/]+)/books/feed"
+
+    def GET(self, username):
+        mb = MyBooksTemplate(username, key='feed')
+        if mb.is_my_page:
+            docs = PubSub.get_feed(username)
+            doc_count = len(docs)
+            template = render['account/reading_log'](
+                docs,
+                mb.key,
+                doc_count,
+                doc_count,
+                mb.is_my_page,
+                current_page=1,
+                user=mb.me,
+            )
+            return mb.render(header_title=_("My Feed"), template=template)
         raise web.seeother(mb.user.key)
 
 
@@ -387,6 +418,7 @@ class MyBooksTemplate:
     # unioned with the public keys
     ALL_KEYS = PUBLIC_KEYS | {
         "loans",
+        "feed",
         "waitlist",
         "sponsorships",
         "notes",
@@ -408,6 +440,11 @@ class MyBooksTemplate:
         self.me = accounts.get_current_user()
         self.my_username = self.me and self.me.key.split('/')[-1]
         self.is_my_page = self.me and self.me.key.split('/')[-1] == self.username
+        self.is_subscribed = (
+            PubSub.is_subscribed(self.my_username, self.username)
+            if not self.is_my_page and self.is_public
+            else -1
+        )
         self.key = key.lower()
         self.sponsorships = []
 
@@ -421,6 +458,10 @@ class MyBooksTemplate:
 
         self.reading_goals = []
         self.selected_year = None
+
+        if self.me and self.is_my_page or self.is_public:
+            self.counts['followers'] = PubSub.count_followers(self.username)
+            self.counts['following'] = PubSub.count_following(self.username)
 
         if self.me and self.is_my_page:
             self.counts.update(PatronBooknotes.get_counts(self.username))
