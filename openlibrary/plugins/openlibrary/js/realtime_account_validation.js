@@ -13,29 +13,35 @@ export function initRealTimeValidation() {
         $('#userUrl').addClass('darkgreen').text(value).css('font-weight','700');
     });
 
+    function renderError(inputId, errorDiv, errorMsg) {
+        $(`#${inputId}`).addClass('invalid');
+        $(`label[for=${inputId}]`).addClass('invalid');
+        $(errorDiv).addClass('invalid').text(errorMsg);
+    }
+
+    function clearError(inputId, errorDiv) {
+        $(`#${inputId}`).removeClass('invalid');
+        $(`label[for=${inputId}]`).removeClass('invalid');
+        $(errorDiv).removeClass('invalid').text('');
+    }
+
     function validateUsername() {
         var value = $(this).val();
-        if (!value === '') {
+        if (value !== '') {
             $.ajax({
                 url: `/account/validate?username=${value}`,
                 type: 'GET',
                 success: function(errors) {
                     if (errors.username) {
-                        $(document.getElementById('username')).removeClass().addClass('required invalid');
-                        $('label[for="username"]').removeClass().addClass('invalid');
-                        $('#usernameMessage').removeClass().addClass('invalid').html(`${errors.username}<br>`);
+                        renderError('username', '#usernameMessage', errors.username);
                     } else {
-                        $('#usernameMessage').removeClass().addClass('darkgreen').html('<br>');
-                        $('label[for="username"]').removeClass();
-                        $(document.getElementById('username')).removeClass().addClass('required');
+                        clearError('username', '#usernameMessage');
                     }
                 }
             });
         }
         else {
-            $('label[for="username"]').removeClass();
-            $(document.getElementById('username')).removeClass().addClass('required');
-            $('#usernameMessage').removeClass().html('<br>');
+            clearError('username', '#usernameMessage');
         }
     }
 
@@ -47,43 +53,32 @@ export function initRealTimeValidation() {
                 type: 'GET',
                 success: function(errors) {
                     if (errors.email) {
-                        $(document.getElementById('emailAddr')).removeClass().addClass('required invalid');
-                        $('label[for="emailAddr"]').removeClass().addClass('invalid');
-                        $('#emailAddrMessage').removeClass().addClass('invalid').text(errors.email);
+                        renderError('emailAddr', '#emailAddrMessage', errors.email);
                     } else {
-                        $('#emailAddrMessage').removeClass().addClass('darkgreen').html('');
-                        $('label[for="emailAddr"]').removeClass();
-                        $(document.getElementById('emailAddr')).removeClass().addClass('required');
+                        clearError('emailAddr', '#emailAddrMessage');
                     }
                 }
             });
         }
         else {
-            $('label[for="emailAddr"]').removeClass();
-            $(document.getElementById('emailAddr')).removeClass().addClass('required');
-            $('#emailAddrMessage').removeClass().text('');
+            clearError('emailAddr', '#emailAddrMessage');
         }
     }
 
     function validatePasswords() {
+        // NOTE: Outdated two-password implementation to be fixed by issue #9165
         var value = document.getElementById('password').value;
         var value2 = document.getElementById('password2').value;
         if (value && value2) {
-            if (value2 === value) {
-                $('#password2Message').removeClass().addClass('darkgreen').text('');
-                $('label[for="password2"]').removeClass();
-                $(document.getElementById('password2')).removeClass().addClass('required');
+            if (value2 !== value) {
+                renderError('password', '#passwordMessage', 'Passwords didn\'t match');
             }
             else {
-                $(document.getElementById('password2')).removeClass().addClass('required invalid');
-                $('label[for="password2"]').removeClass().addClass('invalid');
-                $('#password2Message').removeClass().addClass('invalid').text('Passwords didnt match');
+                clearError('password', '#passwordMessage')
             }
         }
         else {
-            $('label[for="password2"]').removeClass();
-            $(document.getElementById('password2')).removeClass().addClass('required');
-            $('#password2Message').removeClass().text('');
+            clearError('password', '#passwordMessage')
         }
     }
 
