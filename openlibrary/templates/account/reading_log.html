@@ -4,7 +4,6 @@ $ username = user.key.split('/')[-1]
 $ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
 $ userDisplayName = user.displayname or ctx.user.displayname
 $ readlog_keys = ['want-to-read', 'already-ready', 'current-reading']
-$ shelves = [_('want to read'), _('currently reading'), _('already read')]
 
 $if key == 'currently-reading':
   $ og_title = _("Books %(username)s is reading", username=userDisplayName)
@@ -68,6 +67,7 @@ $add_metatag(property="og:image", content=meta_photo_url)
       $if docs:
         $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3}.get(key, None)
         $ doc_number = 1
+        $ shelves = ['want to read', 'currently reading', 'already read']
         $# enumerate because using zip() will result in empty iterator when no ratings are passed, and ratings are only used on already-read.
         $for idx, doc in enumerate(docs):
           $if doc.get('work', {}):
