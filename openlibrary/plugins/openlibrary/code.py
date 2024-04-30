@@ -1090,6 +1090,16 @@ def is_bot():
         'bingbot',
         'mj12bot',
         'yoozbotadsbot',
+        'ahrefsbot',
+        'amazonbot',
+        'applebot',
+        'bingbot',
+        'brightbot',
+        'gptbot',
+        'petalbot',
+        'semanticscholarbot',
+        'yandex.com/bots',
+        'icc-crawler',
     ]
     if not web.ctx.env.get('HTTP_USER_AGENT'):
         return True
