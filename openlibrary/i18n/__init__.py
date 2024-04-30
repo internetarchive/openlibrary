@@ -35,8 +35,8 @@ def warning_color_fn(text: str) -> str:
     return '\033[93m' + text + '\033[0m'
 
 
-def get_untracked_files(dirs: list[str]) -> set:
-    """Gets untracked Python/HTML files to exclude from template."""
+def get_untracked_files(dirs: list[str], extensions: tuple[str, str] | str) -> set:
+    """Returns a set of all currently untracked files with specified extension(s)."""
     untracked_files = {
         Path(line)
         for dir in dirs
@@ -46,7 +46,7 @@ def get_untracked_files(dirs: list[str]) -> set:
             text=True,
             check=True,
         ).stdout.split('\n')
-        if line.endswith(('.py', '.html'))
+        if line.endswith(extensions)
     }
 
     return untracked_files
@@ -163,7 +163,7 @@ def extract_messages(dirs: list[str], verbose: bool, forced: bool):
     METHODS = [("**.py", "python"), ("**.html", "openlibrary.i18n:extract_templetor")]
     COMMENT_TAGS = ["NOTE:"]
 
-    untracked_files = get_untracked_files(dirs)
+    untracked_files = get_untracked_files(dirs, ('.py', '.html'))
     template = read_po((Path(root) / 'messages.pot').open('rb'))
     msg_set = {msg.id for msg in template if msg.id != ''}
     new_set = set()
