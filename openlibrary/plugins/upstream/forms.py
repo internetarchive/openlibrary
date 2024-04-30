@@ -6,6 +6,7 @@ from openlibrary.i18n import lgettext as _
 from openlibrary.utils.form import (
     Form,
     Textbox,
+    Email,
     Password,
     Checkbox,
     Hidden,
@@ -73,11 +74,12 @@ class EqualToValidator(Validator):
 
 class RegisterForm(Form):
     INPUTS = [
-        Textbox(
+        Email(
             'email',
             description=_('Your email address'),
             klass='required',
             id='emailAddr',
+            required="true",
             validators=[
                 vemail,
                 email_not_already_used,
@@ -95,12 +97,18 @@ class RegisterForm(Form):
             help=_("Letters and numbers only please, and at least 3 characters."),
             autocapitalize="off",
             validators=[vlogin, username_validator],
+            pattern="[a-zA-Z0-9]{3,20}",
+            title=_("Between 3 and 20 letters and numbers"),
+            required="true",
         ),
         Password(
             'password',
             description=_('Choose a password'),
             klass='required',
             validators=[vpass],
+            minlength="3",
+            maxlength="20",
+            required="true",
         ),
         Checkbox(
             'ia_newsletter',
