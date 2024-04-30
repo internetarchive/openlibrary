@@ -27,17 +27,17 @@ repos:
           - --markdown-linebreak-ext=md
 
   - repo: https://github.com/MarcoGorelli/auto-walrus
-    rev: 0.3.3
+    rev: 0.3.4
     hooks:
       - id: auto-walrus
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.1
+    rev: v0.4.2
     hooks:
       - id: ruff
 
   - repo: https://github.com/psf/black
-    rev: 24.4.0
+    rev: 24.4.2
     hooks:
       - id: black  # See pyproject.toml for args
 
@@ -55,7 +55,7 @@ repos:
     - id: cython-lint
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.9.0
+    rev: v1.10.0
     hooks:
       - id: mypy  # See pyproject.toml for args
         additional_dependencies:
@@ -67,7 +67,7 @@ repos:
       - id: validate-pyproject
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.1.0
+    rev: v9.1.1
     hooks:
       - id: eslint
         types: [file]
