@@ -13,16 +13,29 @@ export function initRealTimeValidation() {
         $('#userUrl').addClass('darkgreen').text(value).css('font-weight','700');
     });
 
+    /**
+     * Renders an error message for a given input in a given error div.
+     *
+     * @param {string} inputId The ID (no #) of the input the error relates to
+     * @param {string} errorDiv The ID (no #) of the div where the error msg will be rendered
+     * @param {string} errorMsg The error message text
+     */
     function renderError(inputId, errorDiv, errorMsg) {
         $(`#${inputId}`).addClass('invalid');
         $(`label[for=${inputId}]`).addClass('invalid');
-        $(errorDiv).addClass('invalid').text(errorMsg);
+        $(`#${errorDiv}`).addClass('invalid').text(errorMsg);
     }
 
+    /**
+     * Clears error styling and message for a given input and error div.
+     *
+     * @param {string} inputId The ID (no #) of the input the error relates to
+     * @param {string} errorDiv The ID (no #) of the div where the error msg is currently rendered
+     */
     function clearError(inputId, errorDiv) {
         $(`#${inputId}`).removeClass('invalid');
         $(`label[for=${inputId}]`).removeClass('invalid');
-        $(errorDiv).removeClass('invalid').text('');
+        $(`#${errorDiv}`).removeClass('invalid').text('');
     }
 
     function validateUsername() {
@@ -33,15 +46,15 @@ export function initRealTimeValidation() {
                 type: 'GET',
                 success: function(errors) {
                     if (errors.username) {
-                        renderError('username', '#usernameMessage', errors.username);
+                        renderError('username', 'usernameMessage', errors.username);
                     } else {
-                        clearError('username', '#usernameMessage');
+                        clearError('username', 'usernameMessage');
                     }
                 }
             });
         }
         else {
-            clearError('username', '#usernameMessage');
+            clearError('username', 'usernameMessage');
         }
     }
 
@@ -53,15 +66,15 @@ export function initRealTimeValidation() {
                 type: 'GET',
                 success: function(errors) {
                     if (errors.email) {
-                        renderError('emailAddr', '#emailAddrMessage', errors.email);
+                        renderError('emailAddr', 'emailAddrMessage', errors.email);
                     } else {
-                        clearError('emailAddr', '#emailAddrMessage');
+                        clearError('emailAddr', 'emailAddrMessage');
                     }
                 }
             });
         }
         else {
-            clearError('emailAddr', '#emailAddrMessage');
+            clearError('emailAddr', 'emailAddrMessage');
         }
     }
 
