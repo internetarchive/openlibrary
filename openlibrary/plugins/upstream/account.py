@@ -44,6 +44,7 @@ from openlibrary.accounts import (
 )
 from openlibrary.plugins.upstream import borrow, forms, utils
 from openlibrary.utils.dateutil import elapsed_time
+from . import spamcheck
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Work
@@ -568,6 +569,12 @@ class account_validation(delegate.page):
         ol_account = OpenLibraryAccount.get(email=email)
         if ol_account:
             return _('Email already registered')
+
+        if email.lower().endswith('dispostable.com'):
+            return _("Disposable email not permitted")
+
+        if spamcheck.is_spam_email(email):
+            return _("Your email provider is not recognized.")
 
     def GET(self):
         i = web.input()
