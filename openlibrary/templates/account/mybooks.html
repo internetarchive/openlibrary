@@ -22,7 +22,7 @@ $def year_span(year, use_local_year=False):
           <a class="set-reading-goal-link" data-ol-link-track="MyBooksLandingPage|SetReadingGoal"href="javascript:;">$:_('Set %(year_span)s reading goal', year_span=year_markup)</a>
         </span>
         $ reading_goal_form = render_template('check_ins/reading_goal_form', year=year)
-        $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title="Yearly Reading Goal")
+        $:render_template('native_dialog', 'yearly-goal-modal', reading_goal_form, title=_('Yearly Reading Goal'))
       </div>
       $if current_goal:
         <span id="reading-goal-container">
@@ -51,7 +51,7 @@ $def year_span(year, use_local_year=False):
     <div class="carousel-section-header">
       <h2 class="home-h2"><a name="$key" href="$url">$title</a></h2>
     </div>
-    <p>$_('No books are on this shelf')</p>
+    <p>$_("No books are on this shelf")</p>
 
   $# Data for carousels
   $ readlog_url = "/people/%s/books/" % username
@@ -68,7 +68,7 @@ $def year_span(year, use_local_year=False):
     $:(compact_carousel(want_to_read) or empty_carousel(want_to_read))
     $:(compact_carousel(already_read) or empty_carousel(already_read))
   $else:
-    <p>$_('This reader has chosen to make their Reading Log private.')</p>
+    <p>$_("This reader has chosen to make their Reading Log private.")</p>
 </div>
 
 $code:
@@ -154,13 +154,13 @@ $def empty_mobile_carousel(data):
 
     $if owners_page:
       <div>
-        <h1 class="details-title">My Stats</h1>
+        <h1 class="details-title">$_("My Stats")</h1>
       </div>
       <ul class="sidebar-section">
         <li>
           <div class="carousel-section-header">
             <a data-ol-link-track="MyBooksSidebar|ReadingStats" href="/account/books/already-read/stats">
-              $_('My Reading Stats')
+              $_("My Reading Stats")
               <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
             </a>
           </div>
@@ -168,7 +168,7 @@ $def empty_mobile_carousel(data):
         <li>
           <div class="carousel-section-header">
             <a data-ol-link-track="MyBooksSidebar|LoanHistory" href="/account/loan-history">
-              $_('Loan History')
+              $_("Loan History")
               <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
             </a>
           </div>
@@ -176,7 +176,7 @@ $def empty_mobile_carousel(data):
         <li>
           <div class="carousel-section-header">
             <a data-ol-link-track="MyBooksSidebar|MyNotes" $('class=selected' if key=='notes' else '') href="/people/$username/books/notes">
-              $_('My Notes')
+              $_("My Notes")
               ($counts['notes'])
               <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
             </a>
@@ -185,7 +185,7 @@ $def empty_mobile_carousel(data):
         <li>
           <div class="carousel-section-header">
             <a data-ol-link-track="MyBooksSidebar|MyReviews" $('class=selected' if key=='observations' else '') href="/people/$username/books/observations">
-              $_('My Reviews')
+              $_("My Reviews")
               ($counts['observations'])
               <img class="icon-link__image li-count" src="/static/images/icons/right-chevron.svg">
             </a>
@@ -203,7 +203,7 @@ $def empty_mobile_carousel(data):
           <li>
             <div class="carousel-section-header">
               <a href="/people/$username/books/sponsorships" data-ol-link-track="MyBooksSidebar|Sponsorships" $('class=selected' if key == 'sponsorships' else '')>
-                $_('Sponsorships')
+                $_("Sponsorships")
                 $ sponsorship_count = ''
                 $if counts.get('sponsorships', None):
                   $ sponsorship_count = "(%d)" % counts['sponsorships']

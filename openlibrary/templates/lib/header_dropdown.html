@@ -23,7 +23,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergrou
     <details>
       <summary $:cond(props['name'] == 'hamburger', 'data-ol-link-track="HeaderBar|Hamburger"')>
         $if props['name'] == 'hamburger' and ctx.user:
-            <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="$('My account')" title="$(ctx.user.key.split('/')[-1])&#10;$_('Joined %(date)s', date=datestr(ctx.user.created))">
+            <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="$_('My account')" title="$(ctx.user.key.split('/')[-1])&#10;$_('Joined %(date)s', date=datestr(ctx.user.created))">
             $if is_privileged_user and cached_get_counts_by_mode(mode='open') > 0:
               <span class="mr-notifications">$(cached_get_counts_by_mode(mode='open'))</span>
             <img class="$(props['image-class']) logged" src="$(props['image'])" alt="$(props['label'])"/>

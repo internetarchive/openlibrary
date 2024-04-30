@@ -20,9 +20,9 @@ $else:
         $else:
             <div class="brown smaller sansserif">$_("Last edited anonymously")</div>
         $if page.url:
-            <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) | <a href="$page.url(m='history')" rel="nofollow" title="View this template's edit history">$_('History')</a></div>
+            <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) | <a href="$page.url(m='history')" rel="nofollow" title="$_('View this template\'s edit history')">$_('History')</a></div>
         $else:
-            <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) | <a href="$changequery(m='history')" rel="nofollow" title="View this template's edit history">$_('History')</a></div>
+            <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) | <a href="$changequery(m='history')" rel="nofollow" title="$_('View this template\'s edit history')">$_('History')</a></div>
     </div>
     $if edit and not page.is_fake_record():
         <div class="editButton">
@@ -30,7 +30,7 @@ $else:
           <a
             class="cta-btn cta-btn--vanilla"
             href="$edit_url"
-            title="$_('Edit this template')"
+            title="$_('Edit this page')"
             data-ol-link-track="CTAClick|Edit"
             accesskey="e"
             rel="nofollow"

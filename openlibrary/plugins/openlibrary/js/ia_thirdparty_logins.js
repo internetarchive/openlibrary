@@ -21,9 +21,20 @@ export function initMessageEventListener(element) {
                 method: 'POST',
                 credentials: 'include',
                 body: JSON.stringify(e.data.s3)
-            }).then(function() {
-                window.location = new URLSearchParams(window.location.search).get('redirect') || '/account/loans';
-            });
+            })
+                .then((resp) => {
+                    if (resp.ok) {
+                        window.location = new URLSearchParams(window.location.search).get('redirect') || '/account/books';
+                    }
+                    return resp.json()
+                })
+                .then((error) => {
+                    const loginForm = document.querySelector('#register')
+                    const errorDiv = document.createElement('div')
+                    errorDiv.classList.add('note')
+                    errorDiv.textContent = error.errorDisplayString
+                    loginForm.insertAdjacentElement('afterbegin', errorDiv)
+                })
         }
     }
 

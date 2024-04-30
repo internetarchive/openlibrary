@@ -1,3 +1,3 @@
 # i18n Contributor's Guide
 
-This page has moved to: https://github.com/internetarchive/openlibrary/wiki/Internationalization-Contributor's-Guide-(i18n)
+This page has moved to the wiki: https://github.com/internetarchive/openlibrary/wiki#i18n-contributors-guide

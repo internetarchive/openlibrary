@@ -3,7 +3,10 @@
 Fetches Open Library GitHub issues that have been commented on
 within some amount of time, in hours.
 
-Writes links to each issue to given Slack channel.
+If called with a Slack token and channel, publishes a digest of
+the issues that were identified to the given channel.
+
+Adds the "Needs: Response" label to the issues in Github.
 """
 import argparse
 import errno
@@ -127,6 +130,7 @@ def filter_issues(issues: list, since: datetime):
                 lead_label = find_lead_label(i.get('labels', []))
                 results.append(
                     {
+                        'number': i['number'],
                         'comment_url': last_comment['html_url'],
                         'commenter': last_commenter,
                         'issue_title': i['title'],
@@ -245,6 +249,28 @@ def time_since(hours):
     return since, since.strftime('%Y-%m-%dT%H:%M:%S')
 
 
+def add_label_to_issues(issues):
+    for issue in issues:
+        issue_labels_url = f"https://api.github.com/repos/internetarchive/openlibrary/issues/{issue['number']}/labels"
+        response = requests.post(
+            issue_labels_url,
+            json={"labels": ["Needs: Response"]},
+            headers=github_headers,
+        )
+
+
+def verbose_output(issues):
+    """
+    Prints detailed information about the given issues.
+    """
+    for issue in issues:
+        print(f'Issue #{issue["number"]}:')
+        print(f'\tTitle: {issue["issue_title"]}')
+        print(f'\t{issue["lead_label"]}')
+        print(f'\tCommenter: {issue["commenter"]}')
+        print(f'\tComment URL: {issue["comment_url"]}')
+
+
 def start_job(args: argparse.Namespace):
     """
     Starts the new comment digest job.
@@ -253,8 +279,14 @@ def start_job(args: argparse.Namespace):
     issues = fetch_issues(date_string)
 
     filtered_issues = filter_issues(issues, since)
-    publish_digest(filtered_issues, args.channel, args.slack_token, args.hours)
-    print('Digest posted to Slack.')
+    if not args.no_labels:
+        add_label_to_issues(filtered_issues)
+        print('Issues labeled as "Needs: Response"')
+    if args.slack_token and args.channel:
+        publish_digest(filtered_issues, args.channel, args.slack_token, args.hours)
+        print('Digest posted to Slack')
+    if args.verbose:
+        verbose_output(filtered_issues)
 
 
 def _get_parser() -> argparse.ArgumentParser:
@@ -269,15 +301,27 @@ def _get_parser() -> argparse.ArgumentParser:
         type=int,
     )
     parser.add_argument(
-        'channel',
+        '-c',
+        '--channel',
         help="Issues will be published to this Slack channel",
         type=str,
     )
     parser.add_argument(
-        'slack_token',
-        metavar='slack-token',
+        '-t',
+        '--slack-token',
         help='Slack auth token',
         type=str,
+    )
+    parser.add_argument(
+        '--no-labels',
+        help='Prevent the script from labeling the issues',
+        action='store_true',
+    )
+    parser.add_argument(
+        '-v',
+        '--verbose',
+        help='Print detailed information about the issues that were found',
+        action='store_true',
     )
 
     return parser

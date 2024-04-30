@@ -443,6 +443,18 @@ jQuery(function () {
         $('details[open]').not(this).removeAttr('open');
     });
 
+    $('.header-dropdown').on('keydown', function (event) {
+        if (event.key === 'Escape') {
+            $('.header-dropdown > details[open]').removeAttr('open');
+        }
+    });
+
+    $('.dropdown-menu').each(function() {
+        $(this).find('a').last().on('focusout', function() {
+            $('.header-dropdown > details[open]').removeAttr('open');
+        });
+    });
+
     // Open one dropdown at a time.
     $(document).on('click', function (event) {
         const $openMenus = $('.header-dropdown details[open]').parents('.header-dropdown');
@@ -524,6 +536,12 @@ jQuery(function () {
     if (crumbs.length) {
         import(/* webpackChunkName: "breadcrumb-select" */ './breadcrumb_select')
             .then(module => module.initBreadcrumbSelect(crumbs));
+    }
+
+    const leaveWaitlistLinks = document.querySelectorAll('a.leave');
+    if (leaveWaitlistLinks.length && document.getElementById('leave-waitinglist-dialog')) {
+        import(/* webpackChunkName: "waitlist" */ './waitlist')
+            .then(module => module.initLeaveWaitlist(leaveWaitlistLinks));
     }
 
     const thirdPartyLoginsIframe = document.getElementById('ia-third-party-logins');

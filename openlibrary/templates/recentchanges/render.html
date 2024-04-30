@@ -41,7 +41,7 @@ $if "ip" in query and ctx.user and ctx.user.is_admin():
                 $else:
                     $ ip_url = changequery(ip=c.ip)
                     $ klass = ""
-                <td class="history"><a rel="nofollow" href="$ip_url" class="$klass" title="When you see numbers here, that's the IP address of the anonymous editor">$c.ip</a></td>
+                <td class="history"><a rel="nofollow" href="$ip_url" class="$klass" title="$_('When you see numbers here, that\'s the IP address of the anonymous editor')">$c.ip</a></td>
             $else:
                 <td class="history">$c.ip</td>
             <td class="comment">

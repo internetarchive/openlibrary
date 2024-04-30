@@ -1,10 +1,10 @@
 $def with (comment=None)
 
-<div id="dialog" class="hidden" title="Really delete this macro?"><p>Are you sure you want to delete this?</p></div>
+<div id="dialog" class="hidden" title="$_('Really delete this macro?')"><p>$_("Are you sure you want to delete this?")</p></div>
 
 <div class="formElement">
     <div class="label">
-        <label for="comment">$_("Please, leave a short note about what you changed:")</label>
+        <label for="comment">$_("Please, leave a short note about what you changed: ")</label>
         <span class="gray small">$_("(Optional, but very useful!)")</span>
     </div>
     <div class="input">
@@ -19,6 +19,6 @@ $def with (comment=None)
 <div class="formElement">
     <button type="submit" class="largest" name="_save" title="$_('Save')">$_("Save")</button>
     &nbsp;
-    <a href="javascript:history.go(-1);" class="small attn plain">$_('Cancel')</a>
+    <a href="javascript:history.go(-1);" class="small attn plain">$_("Cancel")</a>
     <span class="adminOnly right"><button type="submit" value="$_('Delete Record')" name="delete" title="$_('Delete this record')" id="delete">$_("Delete Record")</button></span>
 </div>

@@ -42,14 +42,18 @@ export class Carousel {
         this.$container = $container;
 
         //This loads in i18n strings from a hidden input element, generated in the books/custom_carousel.html template.
-        this.i18n = JSON.parse($('input[name="carousel-i18n-strings"]').attr('value'));
-        this.availabilityStatuses = {
-            open: {cls: 'cta-btn--available', cta: this.i18n['open']},
-            borrow_available: {cls: 'cta-btn--available', cta: this.i18n['borrow_available']},
-            borrow_unavailable: {cls: 'cta-btn--unavailable', cta: this.i18n['borrow_unavailable']},
-            error: {cls: 'cta-btn--missing', cta: this.i18n['error']},
-            // private: {cls: 'cta-btn--available', cta: 'Preview'}
-        };
+        const i18nInput = document.querySelector('input[name="carousel-i18n-strings"]')
+        if (i18nInput) {
+            this.i18n = JSON.parse(i18nInput.value);
+
+            this.availabilityStatuses = {
+                open: {cls: 'cta-btn--available', cta: this.i18n['open']},
+                borrow_available: {cls: 'cta-btn--available', cta: this.i18n['borrow_available']},
+                borrow_unavailable: {cls: 'cta-btn--unavailable', cta: this.i18n['borrow_unavailable']},
+                error: {cls: 'cta-btn--missing', cta: this.i18n['error']},
+                // private: {cls: 'cta-btn--available', cta: 'Preview'}
+            };
+        }
     }
 
     get slick() {
@@ -177,16 +181,17 @@ export class Carousel {
         return $el;
     }
 
-    fetchMore(extraParams = {}) {
+    fetchMore() {
         const loadMore = this.loadMore;
         // update the current page or offset within the URL
         const url = loadMore.url.startsWith('/') ? new URL(location.origin + loadMore.url) : new URL(loadMore.url);
         url.searchParams.set('limit', loadMore.limit);
         url.searchParams.set(loadMore.pageMode, loadMore.page);
-
+        //set extraParams
         for (const key in loadMore.extraParams) {
-            url.searchParams.set(key, extraParams[key]);
+            url.searchParams.set(key, loadMore.extraParams[key]);
         }
+
 
         this.appendLoadingSlide();
         $.ajax({ url: url, type: 'GET' })
@@ -200,6 +205,7 @@ export class Carousel {
                 loadMore.locked = false;
             });
     }
+
 
     clearCarousel() {
         this.slick.removeSlide(this.slick.$slides.length, true, true);

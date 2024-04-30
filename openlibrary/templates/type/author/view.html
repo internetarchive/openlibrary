@@ -25,6 +25,9 @@ $ book_list_excerpt = ''
 $if books and books.docs:
     $ book_titles_excerpt = [work.title for work in books.docs[:8]]
     $ book_list_excerpt = ', '.join(book_titles_excerpt)
+
+$ books_count = books.num_found or 0
+
 $ description = _("Author of %(book_titles)s", book_titles=book_list_excerpt)
 $putctx("description", description)
 
@@ -108,11 +111,11 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
         <div class="clearfix"></div>
         <div id="works" class="section">
                 <h2 class="collapse">
-                    $ungettext("%(count)d work", "%(count)d works", books.num_found, count=books.num_found)
+                    $ungettext("%(count)d work", "%(count)d works", books_count, count=books_count)
                     <span class="count smaller"><a href="/books/add?author=$page.key">$_('Add another?')</a></span>
                 </h2>
                 <p id="books">
-                $if books.num_found > 1:
+                $if books_count > 1:
                     $:render_template("search/sort_options.html", books.sort, exclude='relevance', default_sort='editions')
 
                 <p>
@@ -132,7 +135,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                   <input type="submit"/>
                 </form>
 
-                $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books.num_found)
+                $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books_count)
 
                 <div id="searchResults">
                     <ul class="list-books">
@@ -142,7 +145,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                     </ul>
                 </div>
 
-                $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books.num_found)
+                $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books_count)
         </div>
     </div>
     <div class="contentOnethird">
@@ -153,14 +156,14 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
         $def render_subjects(label, subjects, prefix):
             $if subjects:
-                <div class="section">
+                <div class="section link-box link-box--with-header">
                     <h6 class="collapse black uppercase">$label</h6>
                     $for _, subject, count in subjects:
                         <a itemprop="knowsAbout" href="/subjects/$prefix$subject.lower().replace(' ', '_')">$subject</a>$cond(not loop.last, ",", "")
                 </div>
 
         <!-- SUBJECTS DISPLAY -->
-        $if books.num_found > 0:
+        $if books_count > 0:
             $:render_subjects(_("Subjects"), books.facet_counts.get('subject_facet'), '')
             $:render_subjects(_("Places"), books.facet_counts.get('place_facet'), 'place:')
             $:render_subjects(_("People"), books.facet_counts.get('person_facet'), 'person:')

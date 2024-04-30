@@ -1617,3 +1617,131 @@ class TestNormalizeImportRecord:
     def test_dummy_data_to_satisfy_parse_data_is_removed(self, rec, expected):
         normalize_import_record(rec=rec)
         assert rec == expected
+
+    @pytest.mark.parametrize(
+        ["rec", "expected"],
+        [
+            (
+                # 1900 publication from non AMZ/BWB is okay.
+                {
+                    'title': 'a title',
+                    'source_records': ['ia:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                    'publish_date': '1900',
+                },
+                {
+                    'title': 'a title',
+                    'source_records': ['ia:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                    'publish_date': '1900',
+                },
+            ),
+            (
+                # 1900 publication from AMZ disappears.
+                {
+                    'title': 'a title',
+                    'source_records': ['amazon:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                    'publish_date': '1900',
+                },
+                {
+                    'title': 'a title',
+                    'source_records': ['amazon:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                },
+            ),
+            (
+                # 1900 publication from bwb item disappears.
+                {
+                    'title': 'a title',
+                    'source_records': ['bwb:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                    'publish_date': '1900',
+                },
+                {
+                    'title': 'a title',
+                    'source_records': ['bwb:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                },
+            ),
+            (
+                # 1900 publication from promise item disappears.
+                {
+                    'title': 'a title',
+                    'source_records': ['promise:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                    'publish_date': 'January 1, 1900',
+                },
+                {
+                    'title': 'a title',
+                    'source_records': ['promise:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                },
+            ),
+            (
+                # An otherwise valid date from AMZ is okay.
+                {
+                    'title': 'a title',
+                    'source_records': ['amazon:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                    'publish_date': 'January 2, 1900',
+                },
+                {
+                    'title': 'a title',
+                    'source_records': ['amazon:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                    'publish_date': 'January 2, 1900',
+                },
+            ),
+            (
+                # An otherwise valid date from promise is okay.
+                {
+                    'title': 'a title',
+                    'source_records': ['promise:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                    'publish_date': 'January 2, 1900',
+                },
+                {
+                    'title': 'a title',
+                    'source_records': ['promise:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                    'publish_date': 'January 2, 1900',
+                },
+            ),
+            (
+                # Handle records without publish_date.
+                {
+                    'title': 'a title',
+                    'source_records': ['promise:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                },
+                {
+                    'title': 'a title',
+                    'source_records': ['promise:someid'],
+                    'publishers': ['a publisher'],
+                    'authors': [{'name': 'an author'}],
+                },
+            ),
+        ],
+    )
+    def test_year_1900_removed_from_amz_and_bwb_promise_items(self, rec, expected):
+        """
+        A few import sources (e.g. promise items, BWB, and Amazon) have `publish_date`
+        values that are known to be inaccurate, so those `publish_date` values are
+        removed.
+        """
+        normalize_import_record(rec=rec)
+        assert rec == expected

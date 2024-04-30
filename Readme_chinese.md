@@ -75,18 +75,11 @@
 
 ## 运行测试
 
-公共图书馆的测试可用pytest运行。 请参阅我们的[测试文档](https://github.com/internetarchive/openlibrary/wiki/Testing)以了解更多的信息
-
-请在docker运行时进行测试
+公共图书馆的测试可用docker运行。 请参阅我们的[测试文档](https://github.com/internetarchive/openlibrary/wiki/Testing)以了解更多的信息
 
 ```
-cd docker/
-docker compose exec web make test
+docker compose run --rm home make test
 ```
-
-### 集成测试
-
-集成测试需要使用Splinter webdriver和谷歌浏览器。关于安装要求和运行集成测试的说明，请参阅[集成测试README](tests/integration/README.md)
 
 ## 许可证
 

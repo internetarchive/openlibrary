@@ -7,7 +7,7 @@ $putctx("robots", "noindex,nofollow")
 
 $:macros.HiddenSaveButton("addWork")
 
-<div id="contentHead" class="editFormHead">
+<div id="contentHead">
     $code:
         def find_mode():
             mode = query_param("mode")
@@ -34,13 +34,15 @@ $:macros.HiddenSaveButton("addWork")
         else:
             title = _("Editing...")
             note = ""
-    <h2 class="editFormTitle">$:title</h2>
+    $:macros.databarEdit(edition if edition is not None else work)
     $if ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians')):
         <span class="adminOnly right">
             <form method="post" id="delete-record" name="delete">
                 <button type="submit" name="_delete" value="true" id="delete-btn">$_("Delete Record")</button>
             </form>
         </span>
+
+    <h2 class="editFormTitle">$:title</h2>
     $if not ctx.user:
         $:render_template("lib/not_logged")
     $:note
@@ -56,7 +58,8 @@ $:macros.HiddenSaveButton("addWork")
         <h1 class="editFormBookTitle">$this_title</h1>
         $if authors:
             <h3 class="editFormBookAuthors">
-                $:macros.BookByline([(author.name, author.url()) for author in authors])
+                $ is_librarian = ctx.user and ctx.user.is_librarian()
+                $:macros.BookByline([{'name': a.name, 'url': a.url(), 'birth_date': a.birth_date, 'death_date': a.death_date} for a in authors], show_years=is_librarian)
             </h3>
         <div id="tabsAddbook">
             <ul>
@@ -87,7 +90,7 @@ $:macros.HiddenSaveButton("addWork")
                                         <input name="work--title" type="text" id="work-title" class="required" value="$this_title"/>
                                     </div>
                                     <div class="label">
-                                        <label for="author-$0">$_('Author')</label>
+                                        <label for="author-$0">$_("Author")</label>
                                         <span class="tip">$:_('You can search by author name (like <em>j k rowling</em>) or by Open Library ID (like <a href="/authors/OL23919A" target="_blank"><em>OL23919A</em></a>).')</span>
                                         <br/>
                                         <div class="flash-messages">

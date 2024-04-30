@@ -6,7 +6,6 @@ $ header_title = header_title or mb.key
 
 $var title: $header_title
 
-
 <div class="mybooks">
 
   $:mb.render_sidebar()
@@ -20,10 +19,10 @@ $var title: $header_title
     <header>
       <div class="breadcrumb-wrapper">
         $# Only show breadcrumbs when we're not on mybooks
-	<div class="account-breadcrumb">
-          <a href="$mb.user.key"><img src="https://archive.org/services/img/$mb.user_itemname" class="account-avatar"></a>
-	  <h2 class="account-username"><a href="$mb.user.key">$mb.username</a> &rsaquo;</h2>
-	</div>
+        <div class="account-breadcrumb">
+          <a href="$mb.user.key" class="username-avatar"><img src="$(mb.user.key)/avatar" class="account-avatar"></a>
+          <h2 class="account-username"><a href="$mb.user.key">$mb.username</a> &rsaquo;</h2>
+        </div>
         $if mb.key == 'list':
           <h1 class="details-title">$header_title</h1>
         $else:
@@ -37,13 +36,24 @@ $var title: $header_title
           </div>
       </div>
 
+      $if not mb.is_my_page and mb.is_subscribed != -1:
+        $:macros.Follow(mb.username, following=mb.is_subscribed)
+
+      $if 'followers' in mb.counts:
+        <div class="social-wrapper">
+          <a class="cta-btn cta-btn--unstyled" href="$(mb.user.key)/following"><strong>$mb.counts['following']</strong> $_("Following")</a>
+          <a class="cta-btn cta-btn--unstyled" href="$(mb.user.key)/followers"><strong>$mb.counts['followers']</strong> $_("Followers")</a>
+          $if mb.is_public and mb.key in mb.PUBLIC_KEYS:
+            $set_share_links(url=request.canonical_url, title=header_title, view_context=ctx)
+            $if ctx.get('share_links'):
+              $ share_str = _('Share')
+              $ share_content = '<a class="cta-btn cta-btn--unstyled share-modal-link icon-link" href="javascript:;" data-ol-link-track="MyBooksModalLinkClick|ShareIcon"><img class="icon-link__image" src="/static/images/icons/share.svg" width="20"> %s</a>' % share_str
+              $ page_url = request.home
+              $ share_links = ctx.get('share_links')
+              $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper", show_embed=False)
+        </div>
       $if page:
         $:macros.databarView(page)
-
-      $if mb.is_public and mb.key in mb.PUBLIC_KEYS:
-        <div>
-          <a class="cta-btn cta-btn--unstyled" onclick="prompt('Copy share link to clipboard:', window.location.protocol + '//' + window.location.hostname + '$(ctx.path)');"><img class="icon-link__image" src="/static/images/icons/share.svg" width="20"> Share</a>
-        </div>
     </header>
 
     $ mb.component_times['Details header'] = time() - mb.component_times['Details header']

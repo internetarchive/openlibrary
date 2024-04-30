@@ -5,10 +5,9 @@
 ## docker compose up -d
 ##
 
-version: "3.8"
 services:
   web:
-    profiles: ["ol-web1", "ol-web2"]
+    profiles: ["ol-web0", "ol-web1", "ol-web2"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: unless-stopped
     hostname: "$HOSTNAME"
@@ -30,7 +29,7 @@ services:
 
   solr_haproxy:
     profiles: ["ol-solr0"]
-    image: haproxy:2.3.5
+    image: haproxy:2.9.7
     restart: unless-stopped
     networks:
       - webnet
@@ -148,7 +147,7 @@ services:
       - /1/var/lib/openlibrary/infobase:/var/lib/openlibrary/infobase
   web_haproxy:
     profiles: ["ol-www0"]
-    image: haproxy:2.3.5
+    image: haproxy:2.9.7
     restart: unless-stopped
     hostname: "$HOSTNAME"
     networks:

@@ -237,7 +237,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
         $else:
           $ overview_desc = work.description
         <div class="book-description read-more">
-            <div class="read-more__content" style="max-height:58px">
+            <div class="read-more__content" style="max-height:81px">
                 $:sanitize(format(overview_desc))
             </div>
             $:macros.ReadMore()
@@ -464,7 +464,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
             $if work.description and work.description != overview_desc:
               <h4>$_("Work Description")</h4>
               <div class="work-description read-more">
-                <div class="read-more__content" style="max-height:58px">
+                <div class="read-more__content" style="max-height:81px">
                   $:sanitize(format(work.description))
                 </div>
                 $:macros.ReadMore()
@@ -493,7 +493,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
                       $else:
                         $_("added anonymously.")
                       $if excerpt.comment:
-                        "<em>$excerpt.comment</em>"
+                        $:format(excerpt.comment)
                     </div>
                   </div>
               </div>
@@ -529,7 +529,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
           </div>
           <div class="user-book-options">
             <div class="Tools tools-override">
-              $if work:
+              $if work and work.key:
                 $ component_times['lists widget: WorkListTime'] = time()
                 $:render_template("lists/widget", work, include_header=False, include_widget=False)
                 $ component_times['lists widget: WorkListTime'] = time() - component_times['lists widget: WorkListTime']

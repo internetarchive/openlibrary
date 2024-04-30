@@ -11,7 +11,7 @@ RUN python -m pip install -r requirements_test.txt \
 USER root
 RUN ln -s /home/openlibrary/.local/bin/pytest /usr/local/bin/pytest
 # For i18n scripts, which run as root (to modify the host filesystem) and need these packages.
-RUN pip install $(grep -E 'web\.py==|Babel==' requirements.txt)
+RUN pip install $(grep -E 'webpy\.git|web\.py==|multipart==|Babel==' requirements.txt)
 USER openlibrary
 
 COPY --chown=openlibrary:openlibrary package*.json ./

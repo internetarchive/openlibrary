@@ -1,0 +1,21 @@
+$def with (user, follows=None, manage=False)
+
+$if follows:
+  $ username = user.key.split('/')[-1]
+  $for follow in follows:
+    <ul>
+      <li class="follow-row">
+	<div class="follow-row--name">
+          $if follow['publisher'] == username:
+            <a href="/people/$follow['subscriber']/books" class="username-avatar"><img src="/people/$follow['subscriber']/avatar" class="account-avatar">$follow['subscriber']</a>
+          $else:
+            <a href="/people/$follow['publisher']/books" class="username-avatar"><img src="/people/$follow['publisher']/avatar" class="account-avatar">$follow['publisher']</a>
+	</div>
+	<div>
+          $if manage:
+            $:macros.Follow(follow['publisher'], following=1)
+	</div>
+      </li>
+    </ul>
+$else:
+  <p>$_("There is nothing to see here yet.")</p>
