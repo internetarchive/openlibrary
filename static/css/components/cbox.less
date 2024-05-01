@@ -15,6 +15,10 @@
 #colorbox {
   outline: none;
   box-sizing: content-box;
+  //MY CHANGE
+  // @media only screen and (max-width: 400px) {
+  //   width: 320px;
+  // }
   > * {
     box-sizing: content-box;
   }
@@ -27,6 +31,11 @@
   img,
   iframe {
     width: 100%;
+
+    //MY CHANGE
+    @media only screen and (max-width: 767px) {
+      width: 50%
+  }
   }
 
   img.cover {
@@ -80,8 +89,14 @@
     margin: 0;
     overflow: visible !important;
     iframe {
-      display: block;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
       border: 0;
+      //MY CHANGE
+      @media only screen and (max-width: 767px) {
+        grid-template-columns: repeat(3, 2fr);
+        grid-template-rows: repeat(2, 1fr) ;
+    }
     }
   }
   &LoadingOverlay {
