@@ -1,18 +1,13 @@
 import { ExpirationPlugin } from 'workbox-expiration';
 import { offlineFallback } from 'workbox-recipes';
-import { setDefaultHandler, registerRoute } from 'workbox-routing';
-import { CacheFirst, NetworkOnly, NetworkFirst } from 'workbox-strategies';
+import { registerRoute } from 'workbox-routing';
+import { CacheFirst } from 'workbox-strategies';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 import { clientsClaim } from 'workbox-core';
 import { matchMiscFiles, matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild, matchArchiveOrgImage } from './service-worker-matchers';
 
 self.skipWaiting();
 clientsClaim();
-
-// Offline Page
-setDefaultHandler(
-    new NetworkOnly()
-);
 
 offlineFallback({
     pageFallback: '/static/offline.html',
@@ -57,14 +52,14 @@ registerRoute(
     matchStaticBuild,
     // This has all the JS and CSS that changes on build
     // We use cache first because it rarely changes
-    // But we only cache it for 5 minutes in case of deploy
+    // But we only cache it for 10 minutes in case of deploy
     // TODO: We should increase this a lot and make it change on deploy (clear it out when the deploy hash changes)
     // it includes a .* at the end because some items have versions ?v=123 after
     new CacheFirst({
         cacheName: 'static-build-cache',
         plugins: [
             new ExpirationPlugin({
-                maxAgeSeconds: 60 * 5, // Five minutes
+                maxAgeSeconds: 60 * 10,
             }),
             cacheableResponses
         ],
@@ -110,21 +105,6 @@ registerRoute(
             new ExpirationPlugin({
                 maxEntries: 50,
                 maxAgeSeconds: DAY_SECONDS,
-                purgeOnQuotaError: true,
-            }),
-            cacheableResponses
-        ],
-    })
-);
-
-// cache all other requests on the same origin
-registerRoute(
-    /.*/,
-    new NetworkFirst({
-        cacheName: 'other-cache',
-        plugins: [
-            new ExpirationPlugin({
-                maxEntries: 50,
                 purgeOnQuotaError: true,
             }),
             cacheableResponses
