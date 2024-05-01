@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-04-30 10:08-0400\n"
+"POT-Creation-Date: 2024-05-01 18:58-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1350,18 +1350,6 @@ msgstr ""
 msgid ""
 "Safe Mode blurs book covers that have been flagged as having sensitive "
 "imagery."
-msgstr ""
-
-#: account/reading_log.html
-msgid "want to read"
-msgstr ""
-
-#: account/reading_log.html
-msgid "currently reading"
-msgstr ""
-
-#: account/reading_log.html
-msgid "already read"
 msgstr ""
 
 #: account/reading_log.html
@@ -4422,6 +4410,11 @@ msgstr ""
 #: lists/list_overview.html
 #, python-format
 msgid "from <a href=\"%(link)s\">You</a>"
+msgstr ""
+
+#: lists/list_overview.html
+#, python-format
+msgid "from <a href=\"%(link)s\">%(name)s</a>"
 msgstr ""
 
 #: lists/lists.html
