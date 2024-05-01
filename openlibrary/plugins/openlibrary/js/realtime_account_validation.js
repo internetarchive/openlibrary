@@ -16,65 +16,67 @@ export function initRealTimeValidation() {
     /**
      * Renders an error message for a given input in a given error div.
      *
-     * @param {string} inputId The ID (no #) of the input the error relates to
-     * @param {string} errorDiv The ID (no #) of the div where the error msg will be rendered
+     * @param {string} inputId The ID (incl #) of the input the error relates to
+     * @param {string} errorDiv The ID (incl #) of the div where the error msg will be rendered
      * @param {string} errorMsg The error message text
      */
     function renderError(inputId, errorDiv, errorMsg) {
-        $(`#${inputId}`).addClass('invalid');
-        $(`label[for=${inputId}]`).addClass('invalid');
-        $(`#${errorDiv}`).addClass('invalid').text(errorMsg);
+        $(inputId).addClass('invalid');
+        $(`label[for=${inputId.slice(1)}]`).addClass('invalid');
+        $(errorDiv).addClass('invalid').text(errorMsg);
     }
 
     /**
      * Clears error styling and message for a given input and error div.
      *
-     * @param {string} inputId The ID (no #) of the input the error relates to
-     * @param {string} errorDiv The ID (no #) of the div where the error msg is currently rendered
+     * @param {string} inputId The ID (incl #) of the input the error relates to
+     * @param {string} errorDiv The ID (incl #) of the div where the error msg is currently rendered
      */
     function clearError(inputId, errorDiv) {
-        $(`#${inputId}`).removeClass('invalid');
-        $(`label[for=${inputId}]`).removeClass('invalid');
-        $(`#${errorDiv}`).removeClass('invalid').text('');
+        $(inputId).removeClass('invalid');
+        $(`label[for=${inputId.slice(1)}]`).removeClass('invalid');
+        $(errorDiv).removeClass('invalid').text('');
     }
 
     function validateUsername() {
-        var value_username = $(this).val();
+        const value_username = $(this).val();
         if (value_username !== '') {
             $.ajax({
-                url: `/account/validate?username=${value_username}`,
+                url: '/account/validate',
+                data: { username: value_username },
                 type: 'GET',
                 success: function(errors) {
                     if (errors.username) {
-                        renderError('username', 'usernameMessage', errors.username);
+                        renderError('#username', '#usernameMessage', errors.username);
                     } else {
-                        clearError('username', 'usernameMessage');
+                        clearError('#username', '#usernameMessage');
                     }
                 }
             });
         }
         else {
-            clearError('username', 'usernameMessage');
+            clearError('#username', '#usernameMessage');
         }
     }
 
     function validateEmail() {
-        var value_email = $(this).val();
+        const value_email = $(this).val();
         if (value_email !== '') {
             $.ajax({
-                url: `/account/validate?email=${encodeURIComponent(value_email)}`,
+                url: '/account/validate',
+                data: { email: value_email },
                 type: 'GET',
                 success: function(errors) {
                     if (errors.email) {
-                        renderError('emailAddr', 'emailAddrMessage', errors.email);
+                        renderError('#emailAddr', '#emailAddrMessage', errors.email);
                     } else {
-                        clearError('emailAddr', 'emailAddrMessage');
+                        clearError('#emailAddr', '#emailAddrMessage');
                     }
                 }
             });
         }
         else {
-            clearError('emailAddr', 'emailAddrMessage');
+            clearError('#emailAddr', '#emailAddrMessage');
         }
     }
 
