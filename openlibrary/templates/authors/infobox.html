@@ -10,7 +10,7 @@ $else:
 $def render_infobox_row(label, itemprop, value):
     $if value:
         <tr>
-            <td><strong>$_(label)</strong></td>
+            <td><strong>$label</strong></td>
             <td><span itemprop="$itemprop">$value</span></td>
         </tr>
 
@@ -25,9 +25,9 @@ $def render_infobox_row(label, itemprop, value):
     </p>
     <table>
         $if page.birth_date or page.death_date:
-            $:render_infobox_row("Born", 'birthDate', page.birth_date)
-            $:render_infobox_row("Died", 'deathDate', page.death_date)
+            $:render_infobox_row(_("Born"), 'birthDate', page.birth_date)
+            $:render_infobox_row(_("Died"), 'deathDate', page.death_date)
         $elif page.date:
-                $:render_infobox_row("Date", '', page.date)
+                $:render_infobox_row(_("Date"), '', page.date)
     </table>
 </div>
