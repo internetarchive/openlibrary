@@ -46,8 +46,12 @@ VALID_CACHE = ""
     ],
 )
 def test_get_wikidata_entity(
-    bust_cache, fetch_missing, status, expected_web_call, expected_cache_call
-):
+    bust_cache: bool,
+    fetch_missing: bool,
+    status: str,
+    expected_web_call: bool,
+    expected_cache_call: bool,
+) -> None:
     with (
         patch.object(wikidata, "_get_from_cache") as mock_get_from_cache,
         patch.object(wikidata, "_get_from_web") as mock_get_from_web,
