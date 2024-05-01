@@ -20,7 +20,7 @@ Are you looking to get started? [This is the guide](https://github.com/interneta
      - [The Service Architecture](https://github.com/internetarchive/openlibrary/wiki/Production-Service-Architecture)
    - [Developer's Guide](#developers-guide)
    - [Running Tests](#running-tests)
-   - [Contributing](CONTRIBUTING.md)
+   - [Contributing](#contributing)
    - [Public APIs](https://openlibrary.org/developers/api)
    - [FAQs](https://openlibrary.org/help/faq)
 
@@ -83,6 +83,12 @@ Open Library tests can be run using docker. Kindly look up on our [Testing Docum
 ```
 docker compose run --rm home make test
 ```
+
+## Contributing
+
+We welcome contributions from anyone, even if you are new to open source. Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for more info. If you are a beginner, and you are looking for a good a place to start, check the issues tagged as [Good First Issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Good+First+Issue%22).
+
+Please note that all participants in Openlibrary project are expected to follow our Code of Conduct. By participating in the project you agree to abide by its terms. See [CODE\ OF\ CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## License
 
