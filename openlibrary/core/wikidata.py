@@ -79,14 +79,13 @@ def get_wikidata_entity(
     # TODO: After bulk data imports we should set fetch_missing to true (or remove it).
     """
     if bust_cache:
-        _get_from_web(qid)
+        return _get_from_web(qid)
 
     if entity := _get_from_cache(qid):
         if _cache_expired(entity):
             return _get_from_web(qid)
         return entity
-
-    if fetch_missing and not entity:
+    elif fetch_missing:
         return _get_from_web(qid)
 
     return None
