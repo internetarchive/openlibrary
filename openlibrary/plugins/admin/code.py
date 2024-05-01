@@ -71,7 +71,9 @@ def revert_all_user_edits(account: Account) -> tuple[int, int]:
         added_records: list[list[dict]] = [
             c.changes for c in changes if c.kind == 'add-book'
         ]
-        flattened_records: list[dict] = sum(added_records, [])
+        flattened_records: list[dict] = [
+            record for lst in added_records for record in lst
+        ]
         keys_to_delete |= {r['key'] for r in flattened_records}
 
         keys_to_revert: dict[str, list[int]] = {
