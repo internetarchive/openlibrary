@@ -1,0 +1,33 @@
+$def with (page, edit_view: bool = False)
+
+$ is_librarian = ctx.user and (ctx.user.is_librarian() or ctx.user.is_super_librarian() or ctx.user.is_admin())
+
+$if edit_view:
+    $ wikidata = page.wikidata(bust_cache=True, fetch_missing=True)
+$else:
+    $ wikidata = page.wikidata(fetch_missing=is_librarian)
+
+$def render_infobox_row(label, itemprop, value):
+    $if value:
+        <tr>
+            <td><strong>$label</strong></td>
+            <td><span itemprop="$itemprop">$value</span></td>
+        </tr>
+
+<div class="infobox">
+    <div class="illustration">
+        $:render_template("covers/author_photo", page)
+        $:render_template("covers/change", page, ".bookCover img")
+    </div>
+    <p class="short-description">
+        $if wikidata:
+            $wikidata.get_description(i18n.get_locale())
+    </p>
+    <table>
+        $if page.birth_date or page.death_date:
+            $:render_infobox_row(_("Born"), 'birthDate', page.birth_date)
+            $:render_infobox_row(_("Died"), 'deathDate', page.death_date)
+        $elif page.date:
+                $:render_infobox_row(_("Date"), '', page.date)
+    </table>
+</div>
