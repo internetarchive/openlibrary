@@ -1555,7 +1555,7 @@ msgid ""
 "Displaying stats about <strong>%(works_count)d</strong> books. Note all "
 "charts show only the top 20 bars. Note reading log stats are private."
 msgstr ""
-"Visualización de estadísticas sobre strong>%(works_count)d</strong> libros. "
+"Visualización de estadísticas sobre <strong>%(works_count)d</strong> libros. "
 "Ten en cuenta que todos los gráficos muestran solo las 20 barras superiores. "
 "Las estadísticas del registro de lectura son privadas."
 
