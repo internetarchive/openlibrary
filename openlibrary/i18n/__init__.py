@@ -5,6 +5,7 @@ import subprocess
 from collections.abc import Iterator
 from io import BytesIO
 from pathlib import Path
+from datetime import datetime
 
 import web
 
@@ -14,6 +15,7 @@ from babel.messages import Catalog, Message
 from babel.messages.pofile import read_po, write_po
 from babel.messages.mofile import write_mo
 from babel.messages.extract import extract_from_file, extract_from_dir, extract_python
+from babel.dates import get_timezone
 
 from .validators import validate
 
@@ -159,7 +161,16 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
 
 
 def extract_messages(dirs: list[str], verbose: bool, forced: bool):
-    catalog = Catalog(project='Open Library', copyright_holder='Internet Archive')
+    # The creation date is fixed to prevent merge conflicts on this line as a result of i18n auto-updates
+    # In the unlikely event we need to update the fixed creation date, you can change the hard-coded date below
+    fixed_creation_date = datetime(
+        2024, 5, 1, 18, 58, tzinfo=get_timezone('US/Eastern')
+    )
+    catalog = Catalog(
+        project='Open Library',
+        copyright_holder='Internet Archive',
+        creation_date=fixed_creation_date,
+    )
     METHODS = [("**.py", "python"), ("**.html", "openlibrary.i18n:extract_templetor")]
     COMMENT_TAGS = ["NOTE:"]
 
