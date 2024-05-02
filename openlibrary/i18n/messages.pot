@@ -2212,6 +2212,18 @@ msgstr ""
 msgid "including <i>%(topwork)s</i>"
 msgstr ""
 
+#: authors/infobox.html
+msgid "Born"
+msgstr ""
+
+#: authors/infobox.html
+msgid "Died"
+msgstr ""
+
+#: authors/infobox.html type/author/edit.html
+msgid "Date"
+msgstr ""
+
 #: book_providers/gutenberg_download_options.html
 #: book_providers/ia_download_options.html
 #: book_providers/librivox_download_options.html
@@ -5262,10 +5274,6 @@ msgstr ""
 msgid ""
 "We're not storing structured dates (yet) so a date like \"21 May 2000\" "
 "is recommended."
-msgstr ""
-
-#: type/author/edit.html
-msgid "Date"
 msgstr ""
 
 #: type/author/edit.html
