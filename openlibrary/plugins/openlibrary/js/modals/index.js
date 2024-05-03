@@ -5,7 +5,7 @@ import "../../../../../static/css/components/metadata-form.less";
  * Initializes share modal.
  */
 export function initShareModal($modalLinks) {
-  addClickListeners($modalLinks, "400px");
+  addShareModalClickListeners($modalLinks, "400px");
   addShareModalButtonListeners();
   addQRCodeListener();
 }
@@ -269,6 +269,16 @@ function addClickListeners($modalLinks, maxWidth) {
   });
 }
 
+function addShareModalClickListeners($modalLinks, maxWidth) {
+  $modalLinks.each(function (_i, modalLinkElement) {
+    $(modalLinkElement).on("click", function () {
+      // Get context, which is attached to the modal content
+      const content = getModalContent($(this));
+      displayDynamicModal(content, maxWidth);
+    });
+  });
+}
+
 /**
  * Gets reference to modal content that is associated with the
  * given modal link.
@@ -430,11 +440,44 @@ function displayModal(content, maxWidth) {
     href: modalId,
     width: "100%",
     maxWidth: maxWidth,
+    maxWidth: maxWidth,
     onClosed: function () {
       if (reloadId) {
         $(`#${reloadId}`).trigger("contentReload");
       }
     },
+  });
+}
+
+function displayDynamicModal(content, maxWidth) {
+  const maxWidthNum = parseInt(maxWidth.replace("px", ""));
+  const modalId = `#${content.id}`;
+  const context = content.dataset["context"]
+    ? JSON.parse(content.dataset["context"])
+    : null;
+  const reloadId = context ? context.reloadId : null;
+
+  function openModal() {
+    $.colorbox({
+      inline: true,
+      opacity: "0.5",
+      href: modalId,
+      width: "100%",
+      maxWidth: window.innerWidth > maxWidthNum ? maxWidth : "100%",
+      onClosed: function () {
+        if (reloadId) {
+          $(`#${reloadId}`).trigger("contentReload");
+        }
+      },
+    });
+  }
+
+  openModal();
+
+  // Listen for resize event to update modal width
+  $(window).on("resize", function () {
+    $.colorbox.remove(); // Remove the existing colorbox instance
+    openModal(); // Open the modal again with updated maxWidth
   });
 }
 
