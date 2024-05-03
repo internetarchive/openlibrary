@@ -94,7 +94,7 @@ async function main() {
 
 /**
  * Returns an object containing the parsed command-line arguments.
- * 
+ *
  * Any newline characters in the PR's body are replaced by space characters.
  *
  * @returns {Record<string, string>}
@@ -118,8 +118,8 @@ function parseArgs() {
  * returns the number of the linked issue or an empty string, if none exists.
  *
  * @param {string} body The body of a GitHub pull request
- * @returns {string} The number of the linked issue that will be closed 
- *                   by this pull request, or an empty string if no 
+ * @returns {string} The number of the linked issue that will be closed
+ *                   by this pull request, or an empty string if no
  *                   "Closes" statement is found.
  */
 function findLinkedIssue(body) {
