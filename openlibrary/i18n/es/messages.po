@@ -2728,8 +2728,8 @@ msgid "None of these match the book I want to add."
 msgstr "Ninguno de estos coincide con el libro que quiero añadir."
 
 #: books/check.html
-msgid "Continue</a>."
-msgstr "Continuar</a>."
+msgid "Continue"
+msgstr "Continuar"
 
 # Se traduce como «No en biblioteca» para evitar que el texto se corte en el botón donde se muestra.
 #: NotInLibrary.html books/custom_carousel.html
@@ -2768,10 +2768,10 @@ msgstr ""
 #: books/daisy.html
 #, python-format
 msgid ""
-"<strong>Download the DAISY.zip</strong></a> for <a "
-"href=\"%(url)s\">%(title)s</a>"
+"<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for"
+" <a href=\"%(url)s\">%(title)s</a>"
 msgstr ""
-"<strong>Decargar el DAISY.zip</strong></a>para <a "
+"<a href=\"%(daisy_url)s\"><strong>Decargar el DAISY.zip</strong></a>para <a "
 "href=\"%(url)s\">%(title)s</a>"
 
 #: books/daisy.html
@@ -3058,7 +3058,7 @@ msgid ""
 msgstr ""
 "Por ejemplo: <i><a href=\"/subjects/cheese\">queso</a>, <a href=\"/subjects/"
 "roman_empire\">Imperio Romano</a>, <a href=\"/subjects/"
-"psychology\">psicología</a>"
+"psychology\">psicología</a></i>"
 
 #: books/edit/about.html
 msgid "A person? Or, people?"
@@ -3072,7 +3072,7 @@ msgid ""
 msgstr ""
 "Por ejemplo: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore "
 "Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Juliana de "
-"Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintín</a>"
+"Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintín</a></i>"
 
 #: books/edit/about.html
 msgid "Note any places mentioned?"
@@ -3086,7 +3086,7 @@ msgid ""
 msgstr ""
 "Por ejemplo: <i><a href=\"/subjects/place:London\">Londres</a>, <a href=\"/"
 "subjects/place:Atlantis\">Atlántida</a>, <a href=\"/subjects/place:"
-"Omaha\">Omaha</a>"
+"Omaha\">Omaha</a></i>"
 
 #: books/edit/about.html
 msgid "When is it set or about?"
@@ -3100,7 +3100,7 @@ msgid ""
 msgstr ""
 "Por ejemplo: <i><a href=\"/subjects/time:1984\">1984</a>, <a href=\"/"
 "subjects/time:the_middle_ages\">Edad Media</a>, <a href=\"/subjects/"
-"time:1810-1890\">1810-1890</a>"
+"time:1810-1890\">1810-1890</a></i>"
 
 #: books/edit/edition.html
 msgid "Select this language"
