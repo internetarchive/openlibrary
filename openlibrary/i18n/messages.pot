@@ -884,6 +884,10 @@ msgid "The Open Library Team"
 msgstr ""
 
 #: account/create.html
+msgid "Password must be between 3 and 20 characters"
+msgstr ""
+
+#: account/create.html
 msgid "Sign Up to Open Library"
 msgstr ""
 
