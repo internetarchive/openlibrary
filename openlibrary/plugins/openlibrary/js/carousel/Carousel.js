@@ -220,4 +220,33 @@ export class Carousel {
     removeLoadingSlide() {
         this.slick.removeSlide(this.slick.$slides.length - 1);
     }
+
+    customaccessibilitySetup() {
+        // inital setup
+        this.ariasetup()
+        $(`${selector} [aria-live]`).removeAttr('aria-live');
+        $(`${selector} .slick-track`).attr('role','list').attr('aria-label',title);
+        setA11yAttributes();
+
+        // after prev or next button click it sets focus to other button didn't exist by default
+        $(`${selector} button.slick-prev`).on('click', function () {
+            $(`${selector} button.slick-next`).focus();
+        });
+        $(`${selector} button.slick-next`).on('click', function () {
+            $(`${selector} button.slick-prev`).focus();
+        });
+        
+        // changes aria properties after slide changes
+        $(selector).on('afterChange', setA11yAttributes);
+    }
+    ariasetup() {
+        // sets aria setup for accessibility
+        //Ensuring offscreen elements do not receive focus
+        $(`${selector} [aria-hidden="true"] a[href]`).attr('tabindex', -1);
+        $(`${selector} [aria-hidden="false"] a[href]`).removeAttr('tabindex');
+
+        //Ensuring any disabled button elements do not receive focus
+        $(`${selector} button[aria-disabled="true"]`).attr('tabindex', -1);
+        $(`${selector} button[aria-disabled="false"]`).removeAttr('tabindex');
+    }
 }
