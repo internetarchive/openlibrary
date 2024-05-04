@@ -62,6 +62,7 @@ export class Carousel {
 
     init() {
         this.$container.slick({
+            accessibility: false,
             infinite: false,
             speed: 300,
             slidesToShow: this.config.booksPerBreakpoint[0],
@@ -174,10 +175,11 @@ export class Carousel {
                 </div>
             </div>`);
         $el.find('.bookcover').attr('title', work.title);
+        // $el.find('.slick-prev slick-arrow').attr('aria-hidden', false)
         $el.find('.cta-btn')
             .attr('title', `${cta}: ${work.title}`)
             .attr('data-ocaid', ocaid)
-            .attr('href', url);
+            .attr('href', url)
         return $el;
     }
 
