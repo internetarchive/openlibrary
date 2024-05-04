@@ -230,12 +230,12 @@ export class Carousel {
 
         // after prev or next button click it sets focus to other button didn't exist by default
         $(`${selector} button.slick-prev`).on('click', function () {
-            $(`${selector} button.slick-next`).focus();
+            $(`${selector} button.slick-next`).trigger('focus');
         });
         $(`${selector} button.slick-next`).on('click', function () {
-            $(`${selector} button.slick-prev`).focus();
+            $(`${selector} button.slick-prev`).trigger('focus');
         });
-        
+
         // changes aria properties after slide changes
         $(selector).on('afterChange', setA11yAttributes);
     }
