@@ -62,7 +62,7 @@ export class Carousel {
 
     init() {
         this.$container.slick({
-            accessibility: true,
+            accessibility: false,
             infinite: false,
             speed: 300,
             slidesToShow: this.config.booksPerBreakpoint[0],
