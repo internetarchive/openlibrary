@@ -11,7 +11,7 @@
   },
   {
     "name": "Abbey Ripstra",
-    "title": "Design Fellow 2023",
+    "title": "Design Fellow",
     "roles": ["fellow-2023"],
     "projects": ["Persona Research"],
     "departments": ["design"],
@@ -94,7 +94,7 @@
   },
   {
     "name": "Giacomo Cignoni",
-    "title": "Fellow 2019 (GSoC) - Engineering",
+    "title": "Engineering Fellow, GSoC 2019",
     "roles": ["fellow-2019-gsoc"],
     "departments": ["engineering"],
     "projects": ["<a href='https://blog.openlibrary.org/2020/08/29/giacomo-cignoni-my-internship-at-the-internet-archive/'>Bookreader Selection</a>"],
@@ -105,7 +105,7 @@
   },
   {
     "name": "George Oates",
-    "title": "Program Lead",
+    "title": "Program Lead Emeritus",
     "roles": ["staff-emeritus"],
     "departments": ["design", "product"],
     "projects": ["Subjects Page", "Logo"],
@@ -127,7 +127,7 @@
   },
   {
     "name": "Jayden Teoh",
-    "title": "Fellow 2023 - Engineering",
+    "title": "Engineering Fellow",
     "roles": ["fellow-2023"],
     "departments": ["engineering"],
     "projects": [
@@ -140,7 +140,7 @@
   },
   {
     "name": "Jaye Rasmussen",
-    "title": "Developer",
+    "title": "Engineering Fellow",
     "roles": ["fellow-2023"],
     "departments": ["engineering"],
     "projects": ["Team Page"],
@@ -161,7 +161,7 @@
   },
   {
     "name": "Jon Robson",
-    "title": "Frontend Lead",
+    "title": "Frontend Lead Emeritus",
     "roles": ["fellow-2017"],
     "departments": ["engineering"],
     "photo_path": "https://media.licdn.com/dms/image/C4E03AQHsUBUdt5_UAA/profile-displayphoto-shrink_400_400/0/1516543040876?e=1703116800&v=beta&t=9wHnzD5M1bXezjyZb7Jz-T_dfXgpG0Ea18GgtT73DMsz",
@@ -172,7 +172,7 @@
   {
     "name": "Keita Ohshiro",
     "title": "Design & Accessibility",
-    "roles": ["volunteer-active"],
+    "roles": ["volunteer-emeritus"],
     "departments": ["engineering"],
     "photo_path": "../../../static/images/team/Keita_Ohshiro.jpg",
     "personal_url": "https://bick-jp.github.io/",
@@ -201,7 +201,7 @@
   },
   {
     "name": "Nick Norman",
-    "title": "Communications Lead",
+    "title": "Communications Fellow & Lead",
     "roles": ["fellow-2022", "fellow-2023"],
     "departments": ["communications"],
     "photo_path": "../../../static/images/team/Nick_Norman.jpg",
@@ -211,7 +211,7 @@
   },
   {
     "name": "Nolan Windham",
-    "title": "Engineering Fellow",
+    "title": "Engineering Fellow, GSoC 2021",
     "roles": ["fellow-2021-gsoc"],
     "departments": ["engineering"],
     "projects": ["Open Book Genome Project (OBGP)"],
@@ -273,7 +273,7 @@
   },
   {
     "name": "Scott Barnes",
-    "title": "Developer",
+    "title": "Core Developer",
     "roles": ["fellow-2022", "staff-active"],
     "departments": ["engineering"],
     "photo_path": "../../../static/images/team/Scott_Barnes.jpg",
@@ -297,6 +297,26 @@
     "projects": ["Open Book Genome Project (OBGP)"],
     "photo_path": "https://media.licdn.com/dms/image/D5603AQELxHjGPUmY7g/profile-displayphoto-shrink_400_400/0/1680211721055?e=1703116800&v=beta&t=ubJ8o5N9Oba2AD_5vE6pizFm0RLzyTjTNT734MEyDPI",
     "personal_url": "https://www.linkedin.com/in/teo-cheng/",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Rebecca Shoptaw",
+    "title": "Engineering Fellow, i18n Lead",
+    "roles": ["fellow-2024"],
+    "departments": ["engineering"],
+    "projects": ["Registration", "i18n"],
+    "photo_path": "",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Ben Deitch",
+    "title": "Engineering Fellow",
+    "roles": ["fellow-2024"],
+    "departments": ["engineering"],
+    "projects": ["Edition-based Reading Log"],
+    "photo_path": "",
     "favorite_book_url": "",
     "ol_key": ""
   }
