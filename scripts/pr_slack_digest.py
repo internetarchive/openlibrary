@@ -34,7 +34,7 @@ if __name__ == "__main__":
         'Priority: 1': '❗️ ',
     }
     # apparently `author` acts like an OR in this API and only this API -_-
-    query = "repo:internetarchive/openlibrary is:open is:pr author:cdrini author:jimchamp author:mekarpeles author:scottbarnes -is:draft"
+    query = 'repo:internetarchive/openlibrary is:open is:pr author:cdrini author:jimchamp author:mekarpeles author:scottbarnes -is:draft -label:"State: Blocked" -label:"Needs: Submitter Input"'
     prs = requests.get(
         "https://api.github.com/search/issues",
         params={
