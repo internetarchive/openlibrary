@@ -1,13 +1,18 @@
 import { ExpirationPlugin } from 'workbox-expiration';
 import { offlineFallback } from 'workbox-recipes';
-import { registerRoute } from 'workbox-routing';
-import { CacheFirst } from 'workbox-strategies';
+import { setDefaultHandler, registerRoute } from 'workbox-routing';
+import { NetworkOnly, CacheFirst } from 'workbox-strategies';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 import { clientsClaim } from 'workbox-core';
 import { matchMiscFiles, matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild, matchArchiveOrgImage } from './service-worker-matchers';
 
 self.skipWaiting();
 clientsClaim();
+
+// This is needed for the offline page to show
+setDefaultHandler(
+    new NetworkOnly()
+);
 
 offlineFallback({
     pageFallback: '/static/offline.html',
