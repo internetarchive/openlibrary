@@ -179,7 +179,7 @@ export class Carousel {
         $el.find('.cta-btn')
             .attr('title', `${cta}: ${work.title}`)
             .attr('data-ocaid', ocaid)
-            .attr('href', url)
+            .attr('href', url);
         return $el;
     }
 
