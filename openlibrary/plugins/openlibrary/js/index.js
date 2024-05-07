@@ -548,3 +548,16 @@ jQuery(function () {
             .then(module => module.initAffiliateLinks(affiliateLinksSection))
     }
 });
+
+    // Dark Mode toggle
+    const darkMode = document.getElementById('darkMode')
+    darkMode.addEventListener('click', function() {
+        if (darkMode) {
+            import('./darkMode')
+                .then(module => {
+                    if (darkMode) {
+                        module.initDarkMode();
+                }
+            })
+    }
+});

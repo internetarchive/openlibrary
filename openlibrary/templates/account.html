@@ -29,6 +29,19 @@ $ mb = MyBooksTemplate(username, 'Settings')
       <p class="sansserif larger"><a href="//openlibrary.org/help/faq/troubleshooting#deleteaccount">$_("Deactivate Account")</a></p>
       <br/>
       <p class="sansserif larger"><a href="/contact">$_("Please contact us if you need help with anything else.")</a></p>
+      <br/>
+    $if is_dark_mode_enabled():
+      <button id="darkMode">
+        <img id="darkModeIcon" 
+        src="./static/images/sunIcon.png" 
+        alt="sunIcon" width="30" height="30" />
+      </button>
+    $else:
+      <button id="darkMode">
+        <img id="darkModeIcon" 
+        src="./static/images/moonIcon.png"
+        alt="moonIcon" width="30" height="30">
+      </button>    
     </div>
   </div>
 </div>
