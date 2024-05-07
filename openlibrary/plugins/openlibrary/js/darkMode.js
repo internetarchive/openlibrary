@@ -8,10 +8,10 @@ export function initDarkMode() {
         const cookieStr = `${dm}=${encodeURIComponent(darkModeValue)}`;
         document.cookie = cookieStr;
         body.classList.add('dark-theme');
-        icon.src = "./static/images/sunIcon.png"
+        icon.src = './static/images/sunIcon.png'
     } else {
         document.cookie = 'dm=; path=/'
         body.classList.remove('dark-theme');
-        icon.src = "./static/images/moonIcon.png"
+        icon.src = './static/images/moonIcon.png'
     }
 }

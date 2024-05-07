@@ -565,14 +565,14 @@ jQuery(function () {
     }
 });
 
-    // Dark Mode toggle
-    const darkMode = document.getElementById('darkMode')
-    darkMode.addEventListener('click', function() {
-        if (darkMode) {
-            import('./darkMode')
-                .then(module => {
-                    if (darkMode) {
-                        module.initDarkMode();
+// Dark Mode toggle
+const darkMode = document.getElementById('darkMode')
+darkMode.addEventListener('click', function() {
+    if (darkMode) {
+        import('./darkMode')
+            .then(module => {
+                if (darkMode) {
+                    module.initDarkMode();
                 }
             })
     }

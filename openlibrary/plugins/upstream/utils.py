@@ -1710,6 +1710,7 @@ if __name__ == '__main__':
 
     doctest.testmod()
 
+
 @public
 def is_dark_mode_enabled():
     return web.cookies().get('dm', False)
