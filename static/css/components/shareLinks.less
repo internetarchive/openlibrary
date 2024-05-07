@@ -11,7 +11,6 @@
  .shareLinks-list {
     .display-flex();
     word-break: keep-all;
-    background-color: grey;
     list-style-type: none;
     margin: 0;
     padding: 0;
@@ -21,7 +20,6 @@
   li {
     list-style-type: none;
     line-height: 24px;
-    // display: inline-block;
     // FIXME:
     // Important can be removed when component/Tools has been removed
     // The list styles clash with this component.
@@ -29,8 +27,8 @@
     padding: 0;
     flex: 1;
     cursor: pointer;
-    @media only screen and (max-width: 767px) {
-        flex: 0 0 calc(33.33% - 20px)
+    @media only screen and (max-width: @width-breakpoint-tablet) {
+        flex: 0 0 calc(33.33%)
     }
   }
   p {
@@ -50,7 +48,6 @@
     cursor: pointer;
     height: 30px;
     aspect-ratio: 1;
-    width: 45%
   }
 }
 
