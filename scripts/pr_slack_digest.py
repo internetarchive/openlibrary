@@ -34,12 +34,7 @@ if __name__ == "__main__":
         'Priority: 1': '❗️ ',
     }
 
-    INCLUDE_AUTHORS = [
-        'mekarpeles',
-        'cdrini',
-        'scottbarnes',
-        'jimchamp'
-    ]
+    INCLUDE_AUTHORS = ['mekarpeles', 'cdrini', 'scottbarnes', 'jimchamp']
     EXCLUDE_LABELS = [
         'Needs: Submitter Input',
         'State: Blocked',
