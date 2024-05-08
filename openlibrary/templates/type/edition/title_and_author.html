@@ -37,11 +37,12 @@ $ view_type = 'desktop' if for_desktop else 'mobile'
     $ author_names = (work or edition).author_names
     $if authors:
       <h2 class="edition-byline">
-        $:macros.BookByline([(author.name, author.url()) for author in authors], attrs='itemprop="author"')
+        $ is_librarian = ctx.user and ctx.user.is_librarian()
+        $:macros.BookByline([{'name': author.name, 'url': author.url(), 'birth_date': author.birth_date, 'death_date': author.death_date} for author in authors], attrs='itemprop="author"', show_years=is_librarian)
       </h2>
     $elif author_names:
       <h2 class="edition-byline">
-        $:macros.BookByline([(name, None) for name in author_names], attrs='itemprop="author"')
+        $:macros.BookByline([{'name': name} for name in author_names], attrs='itemprop="author"')
       </h2>
     $:star_ratings_stats
   </span>

@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  issues: write
 
 jobs:
   new_comment_digest:
@@ -15,7 +16,7 @@ jobs:
         with:
           python-version: 3.x
       - run: pip install requests
-      - run: scripts/gh_scripts/issue_comment_bot.py 24 "$SLACK_CHANNEL" "$SLACK_TOKEN"
+      - run: scripts/gh_scripts/issue_comment_bot.py 24 -c "$SLACK_CHANNEL" -t "$SLACK_TOKEN"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}

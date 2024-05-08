@@ -32,7 +32,12 @@ def main(cmd, args):
             # TODO: We should check all python files somehow, but too slow
             'openlibrary/plugins/upstream',
         ]
-        i18n.extract_messages(message_sources)
+        i18n.extract_messages(
+            message_sources,
+            verbose='--verbose' in args,
+            forced='--force-write' in args,
+            skip_untracked='--skip-untracked' in args,
+        )
     elif cmd == 'compile':
         i18n.compile_translations(args)
     elif cmd == 'update':

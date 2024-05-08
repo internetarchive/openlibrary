@@ -124,8 +124,7 @@ export default function($) {
             const term = options.termPreprocessor(q.term);
             const params = {
                 q: term,
-                limit: options.max,
-                timestamp: new Date()
+                limit: options.max
             };
             if (location.search.indexOf('lang=') !== -1) {
                 params.lang = new URLSearchParams(location.search).get('lang');

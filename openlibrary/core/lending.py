@@ -540,7 +540,7 @@ def get_items_and_add_availability(ocaids: list[str]) -> dict[str, "Edition"]:
     return {edition.ocaid: edition for edition in editions if edition.ocaid}
 
 
-def is_loaned_out(identifier):
+def is_loaned_out(identifier: str) -> bool:
     """Returns True if the given identifier is loaned out.
 
     This doesn't worry about waiting lists.
@@ -555,13 +555,13 @@ def is_loaned_out(identifier):
     )
 
 
-def is_loaned_out_on_acs4(identifier):
+def is_loaned_out_on_acs4(identifier: str) -> bool:
     """Returns True if the item is checked out on acs4 server."""
     item = ACS4Item(identifier)
     return item.has_loan()
 
 
-def is_loaned_out_on_ia(identifier):
+def is_loaned_out_on_ia(identifier: str):
     """Returns True if the item is checked out on Internet Archive."""
     url = "https://archive.org/services/borrow/%s?action=status" % identifier
     try:
@@ -572,7 +572,7 @@ def is_loaned_out_on_ia(identifier):
         return None
 
 
-def is_loaned_out_on_ol(identifier):
+def is_loaned_out_on_ol(identifier: str) -> bool:
     """Returns True if the item is checked out on Open Library."""
     loan = get_loan(identifier)
     return bool(loan)
@@ -614,7 +614,7 @@ def get_loan(identifier, user_key=None):
     return _loan
 
 
-def _get_ia_loan(identifier, userid):
+def _get_ia_loan(identifier: str, userid: str):
     ia_loan = ia_lending_api.get_loan(identifier, userid)
     return ia_loan and Loan.from_ia_loan(ia_loan)
 
@@ -1028,7 +1028,7 @@ class ACS4Item:
 class IA_Lending_API:
     """Archive.org waiting list API."""
 
-    def get_loan(self, identifier, userid=None):
+    def get_loan(self, identifier: str, userid: str | None = None):
         params = {'method': "loan.query", 'identifier': identifier}
         if userid:
             params['userid'] = userid

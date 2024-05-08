@@ -63,7 +63,7 @@ $code:
         </select>
       $if not loop.last:
         |
-    $if selected_sort and selected_sort.startswith('random'):
+    $if selected_sort and selected_sort.startswith('random') and not is_bot():
       (<a href="$changequery(page=None, sort='random_%s' % today().timestamp())"
          data-ol-link-track="SearchSort|RandomShuffle"
          rel="nofollow"

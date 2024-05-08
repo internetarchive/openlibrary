@@ -5,10 +5,9 @@
 ## docker compose up -d
 ##
 
-version: "3.8"
 services:
   web:
-    profiles: ["ol-web1", "ol-web2"]
+    profiles: ["ol-web0", "ol-web1", "ol-web2"]
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     restart: unless-stopped
     hostname: "$HOSTNAME"

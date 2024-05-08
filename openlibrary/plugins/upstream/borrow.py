@@ -6,6 +6,7 @@ import hmac
 import json
 import logging
 import re
+from typing import Literal
 import requests
 import time
 from datetime import datetime
@@ -403,7 +404,7 @@ class ia_borrow_notify(delegate.page):
 
 
 @public
-def is_loan_available(edition, type):
+def is_loan_available(edition, type) -> bool:
     resource_id = edition.get_lending_resource_id(type)
 
     if not resource_id:
@@ -424,7 +425,7 @@ def datetime_from_utc_timestamp(seconds):
 
 
 @public
-def can_return_resource_type(resource_type):
+def can_return_resource_type(resource_type: str) -> bool:
     """Returns true if this resource can be returned from the OL site."""
     if resource_type.startswith('bookreader'):
         return True
@@ -432,7 +433,7 @@ def can_return_resource_type(resource_type):
 
 
 @public
-def ia_identifier_is_valid(item_id):
+def ia_identifier_is_valid(item_id: str) -> bool:
     """Returns false if the item id is obviously malformed. Not currently checking length."""
     if re.match(r'^[a-zA-Z0-9][a-zA-Z0-9\.\-_]*$', item_id):
         return True
@@ -440,19 +441,19 @@ def ia_identifier_is_valid(item_id):
 
 
 @public
-def get_bookreader_stream_url(itemid):
+def get_bookreader_stream_url(itemid: str) -> str:
     return bookreader_stream_base + '/' + itemid
 
 
 @public
-def get_bookreader_host():
+def get_bookreader_host() -> str:
     return bookreader_host
 
 
 # ######### Helper Functions
 
 
-def get_all_store_values(**query):
+def get_all_store_values(**query) -> list:
     """Get all values by paging through all results. Note: adds store_key with the row id."""
     query = copy.deepcopy(query)
     if 'limit' not in query:
@@ -475,7 +476,7 @@ def get_all_store_values(**query):
     return values
 
 
-def get_all_loans():
+def get_all_loans() -> list:
     # return web.ctx.site.store.values(type='/type/loan')
     return get_all_store_values(type='/type/loan')
 
@@ -505,7 +506,7 @@ def get_loan_link(edition, type):
     )
 
 
-def get_loan_key(resource_id):
+def get_loan_key(resource_id: str):
     """Get the key for the loan associated with the resource_id"""
     # Find loan in OL
     loan_keys = web.ctx.site.store.query('/type/loan', 'resource_id', resource_id)
@@ -524,7 +525,7 @@ def get_loan_key(resource_id):
     return loan_key
 
 
-def get_loan_status(resource_id):
+def get_loan_status(resource_id: str):
     """Should only be used for ACS4 loans.  Get the status of the loan from the ACS4 server,
        via the Book Status Server (BSS)
 
@@ -580,7 +581,7 @@ def get_all_loaned_out():
         raise Exception('Loan status server not available')
 
 
-def is_loaned_out(resource_id):
+def is_loaned_out(resource_id: str) -> bool | None:
     # bookreader loan status is stored in the private data store
 
     # Check our local status
@@ -595,7 +596,7 @@ def is_loaned_out(resource_id):
     return bool(loan and datetime_from_isoformat(loan['expiry']) < datetime.utcnow())
 
 
-def is_loaned_out_from_status(status):
+def is_loaned_out_from_status(status) -> bool:
     if not status or status['returned'] == 'T':
         # Current loan has been returned
         return False
@@ -604,7 +605,7 @@ def is_loaned_out_from_status(status):
     return True
 
 
-def update_loan_status(resource_id):
+def update_loan_status(resource_id: str) -> None:
     """Update the loan status in OL based off status in ACS4.  Used to check for early returns."""
 
     # Get local loan record
@@ -618,7 +619,7 @@ def update_loan_status(resource_id):
     _update_loan_status(loan_key, loan, None)
 
 
-def _update_loan_status(loan_key, loan, bss_status=None):
+def _update_loan_status(loan_key, loan, bss_status=None) -> None:
     # If this is a BookReader loan, local version of loan is authoritative
     if loan['resource_type'] == 'bookreader':
         # delete loan record if has expired
@@ -634,7 +635,7 @@ def _update_loan_status(loan_key, loan, bss_status=None):
     update_loan_from_bss_status(loan_key, loan, bss_status)
 
 
-def update_loan_from_bss_status(loan_key, loan, status):
+def update_loan_from_bss_status(loan_key, loan, status) -> None:
     """Update the loan status in the private data store from BSS status"""
     global loan_fulfillment_timeout_seconds
 
@@ -668,7 +669,7 @@ def update_loan_from_bss_status(loan_key, loan, status):
         logger.info("%s: updated expiry to %s", loan_key, loan['expiry'])
 
 
-def update_all_loan_status():
+def update_all_loan_status() -> None:
     """Update the status of all loans known to Open Library by cross-checking with the book status server.
     This is called once an hour from a cron job.
     """
@@ -689,7 +690,7 @@ def update_all_loan_status():
         _update_loan_status(loan['_key'], loan, bss_status)
 
 
-def resource_uses_bss(resource_id):
+def resource_uses_bss(resource_id: str) -> bool:
     """Returns true if the resource should use the BSS for status"""
     global acs_resource_id_prefixes
 
@@ -700,7 +701,7 @@ def resource_uses_bss(resource_id):
     return False
 
 
-def user_can_borrow_edition(user, edition):
+def user_can_borrow_edition(user, edition) -> Literal['borrow', 'browse', False]:
     """Returns the type of borrow for which patron is eligible, favoring
     "browse" over "borrow" where available, otherwise return False if
     patron is not eligible.
@@ -725,7 +726,7 @@ def user_can_borrow_edition(user, edition):
     return False
 
 
-def is_users_turn_to_borrow(user, edition):
+def is_users_turn_to_borrow(user, edition) -> bool:
     """If this user is waiting on this edition, it can only borrowed if
     user is the user is the first in the waiting list.
     """
@@ -737,7 +738,7 @@ def is_users_turn_to_borrow(user, edition):
     )
 
 
-def is_admin():
+def is_admin() -> bool:
     """Returns True if the current user is in admin usergroup."""
     user = accounts.get_current_user()
     return user and user.key in [
@@ -757,7 +758,7 @@ def return_resource(resource_id):
     delete_loan(loan_key, loan)
 
 
-def delete_loan(loan_key, loan=None):
+def delete_loan(loan_key, loan=None) -> None:
     if not loan:
         loan = web.ctx.site.store.get(loan_key)
         if not loan:
@@ -766,7 +767,7 @@ def delete_loan(loan_key, loan=None):
     loan.delete()
 
 
-def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
+def get_ia_auth_dict(user, item_id: str, user_specified_loan_key, access_token):
     """Returns response similar to one of these:
     {'success':true,'token':'1287185207-fa72103dd21073add8f87a5ad8bce845','borrowed':true}
     {'success':false,'msg':'Book is checked out','borrowed':false, 'resolution': 'You can visit <a href="http://openlibary.org/ia/someid">this book\'s page on Open Library</a>.'}
@@ -866,7 +867,7 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
     return {'success': True, 'token': make_ia_token(item_id, BOOKREADER_AUTH_SECONDS)}
 
 
-def ia_hash(token_data):
+def ia_hash(token_data: str) -> str:
     access_key = make_access_key()
     return hmac.new(access_key, token_data.encode('utf-8'), hashlib.md5).hexdigest()
 
@@ -880,7 +881,7 @@ def make_access_key():
         )
 
 
-def make_ia_token(item_id, expiry_seconds):
+def make_ia_token(item_id: str, expiry_seconds: int) -> str:
     """Make a key that allows a client to access the item on archive.org for the number of
     seconds from now.
     """
@@ -894,7 +895,7 @@ def make_ia_token(item_id, expiry_seconds):
     return token
 
 
-def ia_token_is_current(item_id, access_token):
+def ia_token_is_current(item_id: str, access_token: str) -> bool:
     # Check if token has expired
     try:
         token_timestamp = access_token.split('-')[0]
@@ -921,7 +922,9 @@ def ia_token_is_current(item_id, access_token):
     return False
 
 
-def make_bookreader_auth_link(loan_key, item_id, book_path, ol_host, ia_userid=None):
+def make_bookreader_auth_link(
+    loan_key, item_id, book_path, ol_host, ia_userid=None
+) -> str:
     """
     Generate a link to BookReaderAuth.php that starts the BookReader
     with the information to initiate reading a borrowed book
