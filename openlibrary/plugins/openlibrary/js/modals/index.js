@@ -2,11 +2,12 @@ import { FadingToast } from '../Toast.js';
 import '../../../../../static/css/components/metadata-form.less';
 
 
+
 /**
  * Initializes share modal.
  */
 export function initShareModal($modalLinks) {
-    addShareModalClickListeners($modalLinks, "400px");
+    addShareModalClickListeners($modalLinks, '400px');
     addShareModalButtonListeners();
     addQRCodeListener();
 }
@@ -23,24 +24,19 @@ function addShareModalButtonListeners (){
 }
 //Adds listener to send GET req to create_qrcode in ol/plugins/ol/api.py
 function addQRCodeListener() {
-    $("#social-modal-content .qr-code-btn").on("click", function (event) {
-      event.preventDefault();
-      var path = encodeURIComponent(window.location.pathname);
-      var url = "/qrcode?path=" + path;
-      fetch(url)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Network response not ok");
-          }
-          return response.blob();
-        })
-        .then((blob) => {
-          var url = URL.createObjectURL(blob);
-          window.open(url, "_blank");
-        })
-        .catch((error) =>
-          console.error("There was a problem with the fetch operation:", error)
-        );
+    $('#social-modal-content .qr-code-btn').on('click', function (event) {
+        event.preventDefault();
+        const path = `/qrcode?path=${encodeURIComponent(window.location.pathname)}`;
+        $.ajax({
+            url: path,
+            type: 'GET',
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                const url = URL.createObjectURL(response.blob)
+                window.open(url, '_blank')
+            }
+        });
     });
 }
 
@@ -252,10 +248,10 @@ function addClickListeners($modalLinks, maxWidth) {
 
 function addShareModalClickListeners($modalLinks, maxWidth) {
     $modalLinks.each(function (_i, modalLinkElement) {
-        $(modalLinkElement).on("click", function () {
-          // Get context, which is attached to the modal content
-          const content = getModalContent($(this));
-          displayDynamicModal(content, maxWidth);
+        $(modalLinkElement).on('click', function () {
+            // Get context, which is attached to the modal content
+            const content = getModalContent($(this));
+            displayDynamicModal(content, maxWidth);
         });
     });
 }
@@ -426,33 +422,31 @@ function displayModal(content, maxWidth) {
 }
 
 function displayDynamicModal(content, maxWidth) {
-    const maxWidthNum = parseInt(maxWidth.replace("px", ""));
+    const maxWidthNum = parseInt(maxWidth.replace('px', ''));
     const modalId = `#${content.id}`;
-    const context = content.dataset["context"]
-      ? JSON.parse(content.dataset["context"])
-      : null;
+    const context = content.dataset['context'] ? JSON.parse(content.dataset['context']) : null;
     const reloadId = context ? context.reloadId : null;
 
     function openModal() {
-      $.colorbox({
-        inline: true,
-        opacity: "0.5",
-        href: modalId,
-        width: "100%",
-        maxWidth: window.innerWidth > maxWidthNum ? maxWidth : "100%",
-        onClosed: function () {
-          if (reloadId) {
-            $(`#${reloadId}`).trigger("contentReload");
-          }
-        },
-      });
+        $.colorbox({
+            inline: true,
+            opacity: '0.5',
+            href: modalId,
+            width: '100%',
+            maxWidth: window.innerWidth > maxWidthNum ? maxWidth : '100%',
+            onClosed: function () {
+                if (reloadId) {
+                    $(`#${reloadId}`).trigger('contentReload');
+                }
+            },
+        });
     }
 
     openModal();
 
-    $(window).on("resize", function () {
-      $.colorbox.remove();
-      openModal();
+    $(window).on('resize', function () {
+        $.colorbox.remove();
+        openModal();
     });
 }
 
