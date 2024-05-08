@@ -33,8 +33,18 @@ if __name__ == "__main__":
         'Priority: 0': '🚨 ',
         'Priority: 1': '❗️ ',
     }
+
+    INCLUDE_AUTHORS = ['mekarpeles', 'cdrini', 'scottbarnes', 'jimchamp']
+    EXCLUDE_LABELS = [
+        'Needs: Submitter Input',
+        'State: Blocked',
+    ]
+    query = 'repo:internetarchive/openlibrary is:open is:pr -is:draft'
     # apparently `author` acts like an OR in this API and only this API -_-
-    query = "repo:internetarchive/openlibrary is:open is:pr author:cdrini author:jimchamp author:mekarpeles author:scottbarnes -is:draft"
+    included_authors = " ".join([f"author:{author}" for author in INCLUDE_AUTHORS])
+    excluded_labels = " ".join([f'-label:"{label}"' for label in EXCLUDE_LABELS])
+    query = f'{query} {included_authors} {excluded_labels}'
+
     prs = requests.get(
         "https://api.github.com/search/issues",
         params={
