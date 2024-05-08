@@ -19,8 +19,7 @@ $ sort = query_param('sort', None)
 <div id="contentBody">
   $:macros.SearchNavigation()
   <form class="siteSearch olform" action="">
-    <input type="text" class="search-input" name="q" size="100" value="$q"/><!--
-    --><input type="submit" class="search-btn" value="$_('Search')"/>
+    $:render_template("search/search_bar")
   </form>
 </div>
 

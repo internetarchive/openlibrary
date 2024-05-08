@@ -9,8 +9,7 @@ $var title: $_('Search Open Library for %s', q)
 <div id="contentBody">
   $:macros.SearchNavigation()
   <form class="siteSearch olform" action="/search/inside">
-    <input type="text" class="search-input" name="q" size="100" value="$q"/><!--
-    --><input type="submit" class="search-btn" value="$_('Search')">
+    $:render_template("search/search_bar")
   </form>
     $ num_found = 0
     $if q:
