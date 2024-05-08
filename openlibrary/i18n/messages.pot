@@ -6445,12 +6445,20 @@ msgstr ""
 msgid "Username unavailable"
 msgstr ""
 
+#: account.py
+msgid "An Internet Archive account already exists with this username"
+msgstr ""
+
 #: account.py forms.py
 msgid "Must be a valid email address"
 msgstr ""
 
 #: account.py forms.py
 msgid "Email already registered"
+msgstr ""
+
+#: account.py
+msgid "An Internet Archive account already exists with this email"
 msgstr ""
 
 #: account.py

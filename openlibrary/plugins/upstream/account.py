@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 import logging
 import re
+import requests
 from typing import Any, TYPE_CHECKING, Final
 from collections.abc import Callable
 from collections.abc import Iterable, Mapping
@@ -552,14 +553,27 @@ class account_validation(delegate.page):
     path = '/account/validate'
 
     @staticmethod
+    def ia_username_exists(username):
+        url = "https://archive.org/metadata/@%s" % username
+        try:
+            return bool(requests.get(url).json())
+        except (OSError, ValueError):
+            return
+
+    @staticmethod
     def validate_username(username):
         if not 3 <= len(username) <= 20:
             return _('Username must be between 3-20 characters')
         if not re.match('^[A-Za-z0-9-_]{3,20}$', username):
             return _('Username may only contain numbers and letters')
+
         ol_account = OpenLibraryAccount.get(username=username)
         if ol_account:
             return _("Username unavailable")
+
+        ia_account = account_validation.ia_username_exists(username)
+        if ia_account:
+            return _("An Internet Archive account already exists with this username")
 
     @staticmethod
     def validate_email(email):
@@ -569,6 +583,10 @@ class account_validation(delegate.page):
         ol_account = OpenLibraryAccount.get(email=email)
         if ol_account:
             return _('Email already registered')
+
+        ia_account = InternetArchiveAccount.get(email=email)
+        if ia_account:
+            return _('An Internet Archive account already exists with this email')
 
     def GET(self):
         i = web.input()
