@@ -883,8 +883,8 @@ msgstr ""
 msgid "The Open Library Team"
 msgstr ""
 
-#: account/create.html
-msgid "Password must be between 3 and 20 characters"
+#: account/create.html forms.py
+msgid "Must be between 3 and 20 characters"
 msgstr ""
 
 #: account/create.html
@@ -6523,10 +6523,6 @@ msgstr ""
 
 #: forms.py
 msgid "Must be between 3 and 20 letters and numbers"
-msgstr ""
-
-#: forms.py
-msgid "Must be between 3 and 20 characters"
 msgstr ""
 
 #: forms.py
