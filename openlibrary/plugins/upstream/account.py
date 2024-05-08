@@ -2,7 +2,7 @@ from datetime import datetime
 import json
 import logging
 import re
-from typing import Any, Final
+from typing import Any, TYPE_CHECKING, Final
 from collections.abc import Callable
 from collections.abc import Iterable, Mapping
 
@@ -32,6 +32,8 @@ from openlibrary.core.lending import (
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.plugins.openlibrary.sentry import sentry
+from openlibrary.core.follows import PubSub
+
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins import openlibrary as olib
@@ -47,6 +49,8 @@ from openlibrary.accounts import (
 from openlibrary.plugins.upstream import borrow, forms, utils
 from openlibrary.utils.dateutil import elapsed_time
 
+if TYPE_CHECKING:
+    from openlibrary.plugins.upstream.models import Work
 
 logger = logging.getLogger("openlibrary.account")
 
@@ -771,7 +775,10 @@ class account_privacy(delegate.page):
         user = accounts.get_current_user()
         if user.get_safe_mode() != 'yes' and i.safe_mode == 'yes':
             stats.increment('ol.account.safe_mode')
+
         user.save_preferences(i)
+        username = user.key.split('/')[-1]
+        PubSub.toggle_privacy(username, private=i.public_readlog == 'no')
         web.setcookie(
             'sfw', i.safe_mode, expires="" if i.safe_mode.lower() == 'yes' else -1
         )
@@ -927,7 +934,6 @@ def csv_string(source: Iterable[Mapping], row_formatter: Callable | None = None)
 
 class export_books(delegate.page):
     path = "/account/export"
-
     date_format = '%Y-%m-%d %H:%M:%S'
 
     @require_login
@@ -961,46 +967,52 @@ class export_books(delegate.page):
         web.header('Content-disposition', f'attachment; filename={filename}')
         return delegate.RawText('' or data, content_type="text/csv")
 
-    def generate_reading_log(self, username: str) -> str:
-        from openlibrary.plugins.upstream.models import Work  # Avoid a circular import
+    def escape_csv_field(self, raw_string: str) -> str:
+        """
+        Formats given CSV field string such that it conforms to definition outlined
+        in RFC #4180.
 
+        Note: We should probably use
+        https://docs.python.org/3/library/csv.html
+        """
+        escaped_string = raw_string.replace('"', '""')
+        return f'"{escaped_string}"'
+
+    def get_work_from_id(self, work_id: str) -> "Work":
+        """
+        Gets work data for a given work ID (OLxxxxxW format), used to access work author, title, etc. for CSV generation.
+        """
+        work_key = f"/works/{work_id}"
+        work: "Work" = web.ctx.site.get(work_key)
+        if not work:
+            raise ValueError(f"No Work found for {work_key}.")
+        if work.type.key == '/type/redirect':
+            # Fetch actual work and resolve redirects before exporting:
+            work = web.ctx.site.get(work.location)
+            work.resolve_redirect_chain(work_key)
+        return work
+
+    def generate_reading_log(self, username: str) -> str:
         bookshelf_map = {1: 'Want to Read', 2: 'Currently Reading', 3: 'Already Read'}
 
-        def get_subjects(work: Work, subject_type: str) -> str:
+        def get_subjects(work: "Work", subject_type: str) -> str:
             return " | ".join(s.title for s in work.get_subject_links(subject_type))
-
-        def escape_csv_field(raw_string: str) -> str:
-            """
-            Formats given CVS field string such that it conforms to definition outlined
-            in RFC #4180.
-
-            Note: We should probably use
-            https://docs.python.org/3/library/csv.html
-            """
-            escaped_string = raw_string.replace('"', '""')
-            return f'"{escaped_string}"'
 
         def format_reading_log(book: dict) -> dict:
             """
             Adding, deleting, renaming, or reordering the fields of the dict returned
             below will automatically be reflected in the CSV that is generated.
             """
-            work_key = f"/works/OL{book['work_id']}W"
-            work: Work = web.ctx.site.get(work_key)
-            if not work:
-                raise ValueError(f"No Work found for {work_key}.")
-            if work.type.key == '/type/redirect':
-                # Fetch actual work and resolve redirects before exporting:
-                work = web.ctx.site.get(work.location)
-                work.resolve_redirect_chain(work_key)
+            work_id = f"OL{book['work_id']}W"
             if edition_id := book.get("edition_id") or "":
                 edition_id = f"OL{edition_id}M"
+            work = self.get_work_from_id(work_id)
             ratings = work.get_rating_stats() or {"average": "", "count": ""}
             ratings_average, ratings_count = ratings.values()
             return {
-                "work_id": work_key.split("/")[-1],
-                "title": escape_csv_field(work.title),
-                "authors": escape_csv_field(" | ".join(work.get_author_names())),
+                "work_id": work_id,
+                "title": self.escape_csv_field(work.title),
+                "authors": self.escape_csv_field(" | ".join(work.get_author_names())),
                 "first_publish_year": work.first_publish_year,
                 "edition_id": edition_id,
                 "edition_count": work.edition_count,
@@ -1009,16 +1021,16 @@ class export_books(delegate.page):
                 "ratings_average": ratings_average,
                 "ratings_count": ratings_count,
                 "has_ebook": work.has_ebook(),
-                "subjects": escape_csv_field(
+                "subjects": self.escape_csv_field(
                     get_subjects(work=work, subject_type="subject")
                 ),
-                "subject_people": escape_csv_field(
+                "subject_people": self.escape_csv_field(
                     get_subjects(work=work, subject_type="person")
                 ),
-                "subject_places": escape_csv_field(
+                "subject_places": self.escape_csv_field(
                     get_subjects(work=work, subject_type="place")
                 ),
-                "subject_times": escape_csv_field(
+                "subject_times": self.escape_csv_field(
                     get_subjects(work=work, subject_type="time")
                 ),
             }
@@ -1081,17 +1093,37 @@ class export_books(delegate.page):
         return "\n".join(lists_as_csv(lists))
 
     def generate_star_ratings(self, username: str) -> str:
+
         def format_rating(rating: Mapping) -> dict:
+            work_id = f"OL{rating['work_id']}W"
             if edition_id := rating.get("edition_id") or "":
                 edition_id = f"OL{edition_id}M"
+            work = self.get_work_from_id(work_id)
             return {
-                "Work ID": f"OL{rating['work_id']}W",
+                "Work ID": work_id,
                 "Edition ID": edition_id,
+                "Title": self.escape_csv_field(work.title),
+                "Author(s)": self.escape_csv_field(" | ".join(work.get_author_names())),
                 "Rating": f"{rating['rating']}",
                 "Created On": rating['created'].strftime(self.date_format),
             }
 
         return csv_string(Ratings.select_all_by_username(username), format_rating)
+
+
+class my_follows(delegate.page):
+    path = r"/people/([^/]+)/(followers|following)"
+
+    def GET(self, username, key=""):
+        mb = MyBooksTemplate(username, 'following')
+        follows = (
+            PubSub.get_followers(username)
+            if key == 'followers'
+            else PubSub.get_following(username)
+        )
+        manage = key == 'following' and mb.is_my_page
+        template = render['account/follows'](mb.user, follows, manage=manage)
+        return mb.render(header_title=_(key.capitalize()), template=template)
 
 
 class account_loans(delegate.page):
@@ -1182,7 +1214,7 @@ class account_waitlist(delegate.page):
 #         return render.notfound(path, create=False)
 
 
-def send_forgot_password_email(username, email):
+def send_forgot_password_email(username: str, email: str) -> None:
     key = f"account/{username}/password"
 
     doc = create_link_doc(key, username, email)

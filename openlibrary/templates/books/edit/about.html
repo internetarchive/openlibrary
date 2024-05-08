@@ -31,7 +31,7 @@ $jsdef render_subject_autocomplete_item(item):
     <div class="formElement">
         <div class="label">
             <label for="about-subjects">$_("Subject keywords?")</label>
-            <span class="tip"><span class="highlight">$_("Please separate with commas.")</span> $_("For example:") <i><a href="/subjects/cheese">cheese</a>, <a href="/subjects/roman_empire">Roman Empire</a>, <a href="/subjects/psychology">psychology</a></i></span>
+            <span class="tip"><span class="highlight">$_("Please separate with commas.")</span> $:_('For example: <i><a href="/subjects/cheese">cheese</a>, <a href="/subjects/roman_empire">Roman Empire</a>, <a href="/subjects/psychology">psychology</a>')</i></span>
         </div>
         $ config = {'name': 'subjects', 'facet': 'subject', 'data': work.get_subjects() if len(work.get_subjects()) else []}
         <div class="csv-autocomplete--subjects" data-config="$dumps(config)">
@@ -42,7 +42,7 @@ $jsdef render_subject_autocomplete_item(item):
     <div class="formElement">
         <div class="label">
             <label for="about-subject_people">$_("A person? Or, people?")</label>
-            <span class="tip">$_("For example:") <i><a href="/subjects/person:Theodore_Roosevelt">Theodore Roosevelt</a>, <a href="/subjects/person:Julian_of_Norwich">Julian of Norwich</a>, <a href="/subjects/person:Tintin">Tintin</a></i></span>
+            <span class="tip">$:_('For example: <i><a href="/subjects/person:Theodore_Roosevelt">Theodore Roosevelt</a>, <a href="/subjects/person:Julian_of_Norwich">Julian of Norwich</a>, <a href="/subjects/person:Tintin">Tintin</a>')</i></span>
         </div>
         $ config = {'name': 'subject_people', 'facet': 'person', 'data': work.subject_people if len(work.subject_people) else []}
         <div class="csv-autocomplete--subjects" data-config="$dumps(config)">
@@ -53,7 +53,7 @@ $jsdef render_subject_autocomplete_item(item):
     <div class="formElement">
         <div class="label">
             <label for="about-subject_places">$_("Note any places mentioned?")</label>
-            <span class="tip">$_("For example:") <i><a href="/subjects/place:London">London</a>, <a href="/subjects/place:Atlantis">Atlantis</a>, <a href="/subjects/place:Omaha">Omaha</a></i></span>
+            <span class="tip">$:_('For example: <i><a href="/subjects/place:London">London</a>, <a href="/subjects/place:Atlantis">Atlantis</a>, <a href="/subjects/place:Omaha">Omaha</a>')</i></span>
         </div>
         $ config = {'name': 'subject_places', 'facet': 'place', 'data': work.subject_places if len(work.subject_places) else []}
         <div class="csv-autocomplete--subjects" data-config="$dumps(config)">
@@ -64,7 +64,7 @@ $jsdef render_subject_autocomplete_item(item):
     <div class="formElement bottom">
         <div class="label">
             <label for="about-subject_times">$_("When is it set or about?")</label>
-            <span class="tip">$_("For example:") <i><a href="/subjects/time:1984">1984</a>, <a href="/subjects/time:the_middle_ages">The Middle Ages</a>, <a href="/subjects/time:1810-1890">1810-1890</a></i></span>
+            <span class="tip">$:_('For example: <i><a href="/subjects/time:1984">1984</a>, <a href="/subjects/time:the_middle_ages">The Middle Ages</a>, <a href="/subjects/time:1810-1890">1810-1890</a>')</i></span>
         </div>
         $ config = {'name': 'subject_times', 'facet': 'time', 'data': work.subject_times if len(work.subject_times) else []}
         <div class="csv-autocomplete--subjects" data-config="$dumps(config)">

@@ -40,7 +40,7 @@ div.editionAbout {
 
   p {
     margin: 1em 0;
-    font-size: 13px;
+    font-size: @font-size-body-medium;
   }
   p.book-description {
     margin: 0;
@@ -91,7 +91,7 @@ textarea[name="edition--notes"] + h3 + .wmd-preview,
 .edition-notes,
 textarea[name="work--description"] + h3 + .wmd-preview,
 .book-description {
-  font-size: .8rem;
+  font-size: @font-size-label-medium;
   margin-top: 5px;
   margin-bottom: 20px;
 
@@ -130,12 +130,12 @@ textarea[name="work--description"] + h3 + .wmd-preview,
   content: attr(data-before);
 }
 
-.section, .section h6 {
-  font-size: .8em;
+.section h6 {
+  font-size: @font-size-label-medium;
 }
 
 h3.edition-header {
-  font-size: 14px;
+  font-size: @font-size-label-large;
   margin: 0;
 }
 
@@ -174,7 +174,7 @@ a.section-anchor {
 }
 
 .meta dt, .meta dd {
-  font-size: 12px;
+  font-size: @font-size-label-medium;
 }
 
 .book-subtitle{
@@ -255,14 +255,14 @@ div.editionTools {
     margin: 0 4px;
     border: 1px solid @lighter-grey;
     border-radius: 5px;
-    font-size: .8em;
+    font-size: @font-size-body-medium;
     word-break: break-word;
     text-align: center;
     min-width: 100px;
 
     div {
       margin-bottom: 4px;
-      font-size: .9em;
+      font-size: @font-size-label-medium;
       color: @grey;
       word-wrap: break-word;
     }

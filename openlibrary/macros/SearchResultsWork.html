@@ -41,6 +41,14 @@ $code:
 
 <li class="searchResultItem sri--w-main" itemscope itemtype="https://schema.org/Book" $:attrs>
   $ blur_cover = "bookcover--blur" if blur else ""
+  $if 'log' in doc:
+    <div class="feed-item">
+      <a class="feed-item--patron" href="/people/$(doc['log']['username'])">
+        <img src="/people/$(doc['log']['username'])/avatar" class="account-avatar account-avatar--sm account-avatar-fix">
+        $doc['log']['username']
+      </a> $_("added to")
+      <a href="/people/$(doc['log']['username'])/books/$(doc['log']['shelf'].replace(' ', '-'))" class="feed-item--shelf">$doc['log']['shelf']</a> $datestr(doc['log']['updated'])
+    </div>
   <div class="sri__main">
     <span class="bookcover $blur_cover">
       $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
@@ -57,7 +65,7 @@ $code:
           <h3 itemprop="name" class="booktitle">
             <a itemprop="url" href="$work_edition_url" class="results">$full_title</a>
           </h3>
-          </div>
+        </div>
         <span itemprop="author" itemscope itemtype="https://schema.org/Organization" class="bookauthor">
           $ authors = None
           $if doc_type == 'infogami_work':
@@ -73,14 +81,14 @@ $code:
             <em>$_('Unknown author')</em>
           $else:
             $code:
-              author_names_and_urls = [
-                (
-                  a.get('name') or a.get('author', {}).get('name'),
-                  a.get('url') or a.get('key') or a.get('author', {}).get('url') or a.get('author', {}).get('key')
-                )
+              author_data = [
+                {
+                  'name': a.get('name') or a.get('author', {}).get('name'),
+                  'url': (a.get('url') or a.get('key') or a.get('author', {}).get('url') or a.get('author', {}).get('key'))
+                }
                 for a in authors
               ]
-            $:macros.BookByline(author_names_and_urls, limit=max_rendered_authors, overflow_url=work_edition_url, attrs='class="results"')
+            $:macros.BookByline(author_data, limit=max_rendered_authors, overflow_url=work_edition_url, attrs='class="results"')
         </span>
         <span class="resultPublisher">
           $if doc.get('first_publish_year'):
@@ -114,7 +122,7 @@ $code:
           </div>
         $if extra:
           $:extra
-        </div>
+    </div>
 
     <div class="searchResultItemCTA">
         $if decorations:

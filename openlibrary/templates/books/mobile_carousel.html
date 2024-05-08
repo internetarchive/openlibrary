@@ -49,8 +49,8 @@ $def render_carousel_cover(book, lazy, index):
       <a class="mybooks mobile nopadding" href="$(url)">
         $if cover_url:
           <img class="bookcover mobile $(last_book)" loading="lazy"
-            title="$('%s%s'%(title,byline))"
-            alt="$('%s%s'%(title,byline))"
+            title="$title$byline"
+            alt="$title$byline"
           $if lazy:
             data-lazy="$(cover_url)"
             src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>

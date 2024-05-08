@@ -2,29 +2,21 @@
  * Link Box
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#linkbox
  */
-.contentQuarter div, .link-box div {
-  padding-right: 19px;
-}
-
 .link-box {
+  font-size: @font-size-body-medium;
+  white-space: normal;
+  word-wrap: break-word;
+
   h6 {
     color: @grey;
     margin: 0;
     padding: 0;
     text-transform: uppercase;
     display: inline;
+    font-size: @font-size-label-medium;
   }
-  > div {
-    font-size: .75em;
-  }
-}
 
-// div.subjects can be removed in future when legacy.css has been removed
-.link-box,
-div.subjects {
-  > div {
-    white-space: normal;
-    word-break: normal;
-    word-wrap: break-word;
+  &.link-box--with-header h6 {
+    display: block;
   }
 }

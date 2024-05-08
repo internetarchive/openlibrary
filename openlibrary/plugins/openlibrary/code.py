@@ -482,9 +482,9 @@ def remove_high_priority(query: str) -> str:
 class isbn_lookup(delegate.page):
     path = r'/(?:isbn|ISBN)/(.{10,})'
 
-    def GET(self, isbn):
+    def GET(self, isbn: str):
         input = web.input(high_priority=False)
-        isbn = canonical(isbn)
+        isbn = isbn if isbn.upper().startswith("B") else canonical(isbn)
         high_priority = input.get("high_priority") == "true"
         if "high_priority" in web.ctx.env.get('QUERY_STRING'):
             web.ctx.env['QUERY_STRING'] = remove_high_priority(
@@ -499,7 +499,7 @@ class isbn_lookup(delegate.page):
             ext += '?' + web.ctx.env['QUERY_STRING']
 
         try:
-            if ed := Edition.from_isbn(isbn=isbn, high_priority=high_priority):
+            if ed := Edition.from_isbn(isbn_or_asin=isbn, high_priority=high_priority):
                 return web.found(ed.key + ext)
         except Exception as e:
             logger.error(e)
@@ -1090,6 +1090,16 @@ def is_bot():
         'bingbot',
         'mj12bot',
         'yoozbotadsbot',
+        'ahrefsbot',
+        'amazonbot',
+        'applebot',
+        'bingbot',
+        'brightbot',
+        'gptbot',
+        'petalbot',
+        'semanticscholarbot',
+        'yandex.com/bots',
+        'icc-crawler',
     ]
     if not web.ctx.env.get('HTTP_USER_AGENT'):
         return True
