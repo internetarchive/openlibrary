@@ -8,7 +8,7 @@ It is in a is a separate file to avoid this error when writing tests:
 
 
 export function matchMiscFiles({ url }) {
-    const miscFiles = ['/static/favicon.ico', '/static/manifest.json', '/cdn/archive.org/analytics.js',
+    const miscFiles = ['/favicon.ico', '/static/manifest.json', '/cdn/archive.org/analytics.js',
         '/cdn/archive.org/donate.js', '/static/css/fonts/slick.woff']
     return miscFiles.includes(url.pathname);
 }

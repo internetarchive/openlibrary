@@ -9,7 +9,7 @@ function _u(url) {
 describe('URL Matchers', () => {
     describe('matchMiscFiles', () => {
         test('matches miscellaneous files', () => {
-            expect(matchMiscFiles(_u('https://openlibrary.org/static/favicon.ico'))).toBe(true);
+            expect(matchMiscFiles(_u('https://openlibrary.org/favicon.ico'))).toBe(true);
             expect(matchMiscFiles(_u('https://openlibrary.org/static/manifest.json'))).toBe(true);
         });
 
