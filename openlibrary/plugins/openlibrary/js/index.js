@@ -563,4 +563,11 @@ jQuery(function () {
         import(/* webpackChunkName: "affiliate-links" */ './affiliate-links')
             .then(module => module.initAffiliateLinks(affiliateLinksSection))
     }
+
+    // Prefetching edit pages
+    const editButton = document.querySelector('.editButton');
+    if (editButton) {
+        import(/* webpackChunkName: "user-website" */ './edit')
+            .then(module => module.initEditPrefetch(editButton))
+    }
 });

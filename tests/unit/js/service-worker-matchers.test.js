@@ -1,4 +1,7 @@
-import { matchMiscFiles, matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild, matchArchiveOrgImage } from '../../../openlibrary/plugins/openlibrary/js/service-worker-matchers';
+import {
+    matchMiscFiles, matchSmallMediumCovers, matchLargeCovers, matchStaticImages,
+    matchStaticBuild, matchArchiveOrgImage, matchAuthorEditPage, matchEditionEditPage
+} from '../../../openlibrary/plugins/openlibrary/js/service-worker-matchers';
 
 
 // Helper function to create a URL object
@@ -75,6 +78,28 @@ describe('URL Matchers', () => {
 
         test('does not match other URLs', () => {
             expect(matchArchiveOrgImage(_u('https://archive.org/services/'))).toBe(false);
+        });
+    });
+
+    describe('matchAuthorEditPage', () => {
+        test('matches author edit page', () => {
+            expect(matchAuthorEditPage(_u('https://openlibrary.org/authors/OL7115219A/Sarah_J._Maas/edit'))).toBe(true);
+            expect(matchAuthorEditPage(_u('http://localhost:8080/authors/OL20585A/Edwin_Abbott_Abbott/edit'))).toBe(true);
+        });
+
+        test('does not match other URLs', () => {
+            expect(matchAuthorEditPage(_u('https://archive.org/services/'))).toBe(false);
+        });
+    });
+
+
+    describe('matchEditionEditPage', () => {
+        test('matches edition edit page', () => {
+            expect(matchEditionEditPage(_u('https://openlibrary.org/books/OL30162974M/A_Court_of_Mist_and_Fury/edit?work_key=/works/OL17860744W'))).toBe(true);
+        });
+
+        test('does not match other URLs', () => {
+            expect(matchEditionEditPage(_u('https://archive.org/services/'))).toBe(false);
         });
     });
 });

@@ -505,3 +505,30 @@ function isValidURL(url) {
         return false;
     }
 }
+
+/**
+ * When visiting a page with an edit button, pre-fetch the page
+ * This works in conjunction with server-worker.js which keeps the page in cache
+ */
+export function initEditPrefetch(editButton) {
+    // Only works for librarians now, in the future I'd like it to work for anyone who visited any edit page today
+    if (!document.getElementsByClassName('show-librarian-tools').length) return;
+
+    const pagesToRunOn = ['/authors/', '/books/', '/works/'];
+    const url = editButton.querySelector('a').href;
+    // only run on authors, books, and works pages
+    if (!pagesToRunOn.some(word => url.includes(word))) return;
+
+    // Fetch on page load
+    fetch(url);
+    let lastExecutionTime = Date.now();
+
+    // Fetch on page focus if we have not fetched in the last 10 seconds
+    document.addEventListener('visibilitychange', () => {
+        const isTenSecondsOld = Date.now() - lastExecutionTime > 10000;
+        if (document.hasFocus() && isTenSecondsOld) {
+            fetch(url);
+            lastExecutionTime = Date.now();
+        }
+    });
+}

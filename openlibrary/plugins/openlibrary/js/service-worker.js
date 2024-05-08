@@ -1,10 +1,13 @@
 import { ExpirationPlugin } from 'workbox-expiration';
 import { offlineFallback } from 'workbox-recipes';
 import { setDefaultHandler, registerRoute } from 'workbox-routing';
-import { NetworkOnly, CacheFirst } from 'workbox-strategies';
+import { NetworkOnly, CacheFirst, StaleWhileRevalidate } from 'workbox-strategies';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 import { clientsClaim } from 'workbox-core';
-import { matchMiscFiles, matchSmallMediumCovers, matchLargeCovers, matchStaticImages, matchStaticBuild, matchArchiveOrgImage } from './service-worker-matchers';
+import {
+    matchMiscFiles, matchSmallMediumCovers, matchLargeCovers, matchStaticImages,
+    matchStaticBuild, matchArchiveOrgImage, matchAuthorEditPage, matchEditionEditPage
+} from './service-worker-matchers';
 
 self.skipWaiting();
 clientsClaim();
@@ -116,3 +119,19 @@ registerRoute(
         ],
     })
 );
+
+// Cache author/edition edit pages for pre-fetching when on view page
+// See initEditPrefetch in edit.js
+registerRoute(
+    (data) => { return matchAuthorEditPage(data) || matchEditionEditPage(data) },
+    new StaleWhileRevalidate({
+        cacheName: 'edit-pages',
+        plugins: [
+            new ExpirationPlugin({
+                maxAgeSeconds: HOUR_SECONDS / 6,
+                purgeOnQuotaError: true,
+            }),
+            cacheableResponses
+        ]
+    })
+)
