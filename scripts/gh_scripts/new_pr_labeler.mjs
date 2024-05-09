@@ -125,5 +125,5 @@ function parseArgs() {
 function findLinkedIssue(body) {
     let lowerBody = body.toLowerCase()
     const matches = lowerBody.match(/closes #(\d+)/)
-    return matches.length ? Number(matches[1]) : ''
+    return matches?.length ? Number(matches[1]) : ''
 }
