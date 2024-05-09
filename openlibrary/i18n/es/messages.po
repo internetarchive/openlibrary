@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-05-01 18:58-0400\n"
-"PO-Revision-Date: 2024-05-02 17:12+0200\n"
+"PO-Revision-Date: 2024-05-09 21:03+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es\n"
@@ -921,6 +921,10 @@ msgstr "menos"
 msgid "The Open Library Team"
 msgstr "El equipo de la Biblioteca Abierta"
 
+#: account/create.html forms.py
+msgid "Must be between 3 and 20 characters"
+msgstr "Debe tener entre 3 y 20 caracteres"
+
 #: account/create.html
 msgid "Sign Up to Open Library"
 msgstr "Registrarse en la Biblioteca Abierta"
@@ -1580,10 +1584,17 @@ msgid "Works by Author Country of Birth"
 msgstr "Obras por país de nacimiento del autor"
 
 #: account/readinglog_stats.html
+#, fuzzy
+#| msgid ""
+#| "Demographic statistics powered by <a href=\"https://www.wikidata.org/"
+#| "\">Wikidata</a>. Here's a <a id=\"wd-query-sample\" href=\"\">sample</a> "
+#| "of the query used. <br />Improve these stats by adding the Wikidata "
+#| "author identifier following <a href=\"https://openlibrary.org/help/faq/"
+#| "editing.en#author-identifiers-purpose\"> these instructions</a>."
 msgid ""
 "Demographic statistics powered by <a href=\"https://www.wikidata.org/"
 "\">Wikidata</a>. Here's a <a id=\"wd-query-sample\" href=\"\">sample</a> of "
-"the query used. <br />Improve these stats by adding the Wikidata author "
+"the query used. <br>Improve these stats by adding the Wikidata author "
 "identifier following <a href=\"https://openlibrary.org/help/faq/editing."
 "en#author-identifiers-purpose\"> these instructions</a>."
 msgstr ""
@@ -2326,6 +2337,18 @@ msgstr "sobre %(subjects)s"
 msgid "including <i>%(topwork)s</i>"
 msgstr "incluyendo <i>%(topwork)s</i>"
 
+#: authors/infobox.html
+msgid "Born"
+msgstr "Nacido"
+
+#: authors/infobox.html
+msgid "Died"
+msgstr "Fallecido"
+
+#: authors/infobox.html type/author/edit.html
+msgid "Date"
+msgstr "Fecha"
+
 #: book_providers/gutenberg_download_options.html
 #: book_providers/ia_download_options.html
 #: book_providers/librivox_download_options.html
@@ -2728,7 +2751,9 @@ msgid "None of these match the book I want to add."
 msgstr "Ninguno de estos coincide con el libro que quiero añadir."
 
 #: books/check.html
-msgid "Continue"
+#, fuzzy
+#| msgid "Continue"
+msgid "Continue</a>."
 msgstr "Continuar"
 
 # Se traduce como «No en biblioteca» para evitar que el texto se corte en el botón donde se muestra.
@@ -2766,10 +2791,13 @@ msgstr ""
 "por la Biblioteca del Congreso."
 
 #: books/daisy.html
-#, python-format
+#, fuzzy, python-format
+#| msgid ""
+#| "<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for "
+#| "<a href=\"%(url)s\">%(title)s</a>"
 msgid ""
-"<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for"
-" <a href=\"%(url)s\">%(title)s</a>"
+"<strong>Download the DAISY.zip</strong></a> for <a "
+"href=\"%(url)s\">%(title)s</a>"
 msgstr ""
 "<a href=\"%(daisy_url)s\"><strong>Decargar el DAISY.zip</strong></a>para <a "
 "href=\"%(url)s\">%(title)s</a>"
@@ -3051,10 +3079,15 @@ msgid "Please separate with commas."
 msgstr "Por favor, sepáralas con comas."
 
 #: books/edit/about.html
+#, fuzzy
+#| msgid ""
+#| "For example: <i><a href=\"/subjects/cheese\">cheese</a>, <a href=\"/"
+#| "subjects/roman_empire\">Roman Empire</a>, <a href=\"/subjects/"
+#| "psychology\">psychology</a></i>"
 msgid ""
 "For example: <i><a href=\"/subjects/cheese\">cheese</a>, <a href=\"/subjects/"
 "roman_empire\">Roman Empire</a>, <a href=\"/subjects/"
-"psychology\">psychology</a></i>"
+"psychology\">psychology</a>"
 msgstr ""
 "Por ejemplo: <i><a href=\"/subjects/cheese\">queso</a>, <a href=\"/subjects/"
 "roman_empire\">Imperio Romano</a>, <a href=\"/subjects/"
@@ -3065,10 +3098,15 @@ msgid "A person? Or, people?"
 msgstr "¿Una persona? ¿O personas?"
 
 #: books/edit/about.html
+#, fuzzy
+#| msgid ""
+#| "For example: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore "
+#| "Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of "
+#| "Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a></i>"
 msgid ""
 "For example: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore "
 "Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of "
-"Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a></i>"
+"Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a>"
 msgstr ""
 "Por ejemplo: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore "
 "Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Juliana de "
@@ -3079,10 +3117,15 @@ msgid "Note any places mentioned?"
 msgstr "Anota cualquier lugar mencionado"
 
 #: books/edit/about.html
+#, fuzzy
+#| msgid ""
+#| "For example: <i><a href=\"/subjects/place:London\">London</a>, <a href=\"/"
+#| "subjects/place:Atlantis\">Atlantis</a>, <a href=\"/subjects/place:"
+#| "Omaha\">Omaha</a></i>"
 msgid ""
 "For example: <i><a href=\"/subjects/place:London\">London</a>, <a href=\"/"
 "subjects/place:Atlantis\">Atlantis</a>, <a href=\"/subjects/place:"
-"Omaha\">Omaha</a></i>"
+"Omaha\">Omaha</a>"
 msgstr ""
 "Por ejemplo: <i><a href=\"/subjects/place:London\">Londres</a>, <a href=\"/"
 "subjects/place:Atlantis\">Atlántida</a>, <a href=\"/subjects/place:"
@@ -3093,10 +3136,15 @@ msgid "When is it set or about?"
 msgstr "¿Cuándo se desarrolla o de qué época se ocupa?"
 
 #: books/edit/about.html
+#, fuzzy
+#| msgid ""
+#| "For example: <i><a href=\"/subjects/time:1984\">1984</a>, <a href=\"/"
+#| "subjects/time:the_middle_ages\">The Middle Ages</a>, <a href=\"/subjects/"
+#| "time:1810-1890\">1810-1890</a></i>"
 msgid ""
 "For example: <i><a href=\"/subjects/time:1984\">1984</a>, <a href=\"/"
 "subjects/time:the_middle_ages\">The Middle Ages</a>, <a href=\"/subjects/"
-"time:1810-1890\">1810-1890</a></i>"
+"time:1810-1890\">1810-1890</a>"
 msgstr ""
 "Por ejemplo: <i><a href=\"/subjects/time:1984\">1984</a>, <a href=\"/"
 "subjects/time:the_middle_ages\">Edad Media</a>, <a href=\"/subjects/"
@@ -4476,7 +4524,7 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "Loans, Reading Log, Lists, Stats"
-msgstr "Préstamos, registro de lectura, listas, estadísticas"
+msgstr "Préstamos, registro, listas, estadísticas"
 
 #: lib/nav_head.html
 msgid "My Profile"
@@ -4997,7 +5045,7 @@ msgstr "comentarios"
 
 #: my_books/dropdown_content.html
 msgid "Remove From Shelf"
-msgstr "Retirar de la estante"
+msgstr "Retirar del estante"
 
 #: my_books/dropdown_content.html
 msgid "My Reading Lists:"
@@ -5554,10 +5602,6 @@ msgid ""
 msgstr ""
 "No estamos almacenando fechas estructuradas (todavía), por lo que se "
 "recomienda una fecha como «21 May 2000»."
-
-#: type/author/edit.html
-msgid "Date"
-msgstr "Fecha"
 
 #: type/author/edit.html
 msgid ""
@@ -6871,10 +6915,6 @@ msgstr "Nombre de usuario ya en uso"
 #: forms.py
 msgid "Must be between 3 and 20 letters and numbers"
 msgstr "Debe tener entre 3 y 20 letras y números"
-
-#: forms.py
-msgid "Must be between 3 and 20 characters"
-msgstr "Debe tener entre 3 y 20 caracteres"
 
 #: forms.py
 msgid "Your email address"
