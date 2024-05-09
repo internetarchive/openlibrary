@@ -3,6 +3,37 @@
  * [TODO: Link to documentation]
  */
 
+.search-div {
+  background-color: @grey-fafafa;
+  border: 1px solid @dark-beige;
+  border-radius: .3em;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: .2%;
+  padding-left: .5%;
+  width: 50%;
+}
+
+.search-btn-icon {
+  margin: 0;
+  cursor: pointer;
+  background: url(/static/images/search-icon.svg) center no-repeat;
+  width: 35px;
+  height: 45px;
+  border: 0;
+}
+
+.search-input {
+  margin: 0 !important;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: @grey !important;
+  flex-grow: 1;
+  font-size: 1em !important;
+}
+
 .search-btn {
   width: auto;
   display: inline-block;
@@ -10,20 +41,8 @@
   height: 38px;
   border: 1px solid @dark-beige;
   border-radius: 6px;
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
   vertical-align: middle;
   background-color: @light-beige;
   color: @grey;
   font-size: 18px !important;
-}
-
-.search-input {
-  margin: 0 !important;
-  height: 38px;
-  display: inline-block;
-  vertical-align: middle;
-  border: 1px solid @dark-beige;
-  border-top-left-radius: 6px;
-  border-bottom-left-radius: 6px;
 }
