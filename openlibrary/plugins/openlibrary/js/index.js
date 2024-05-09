@@ -547,4 +547,12 @@ jQuery(function () {
         import(/* webpackChunkName: "affiliate-links" */ './affiliate-links')
             .then(module => module.initAffiliateLinks(affiliateLinksSection))
     }
+
+    // Fulltext search box:
+    const  fulltextSearchBox = document.querySelector('#fulltext-search-box')
+    if (fulltextSearchBox) {
+        import(/* webpackChunkName: "fulltext-search-box" */ './fulltext-search-box')
+            .then(module => module.initFulltextSearchBox(fulltextSearchBox))
+    }
 });
+
