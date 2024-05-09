@@ -49,6 +49,7 @@ function showLoadingIndicators(linkSections) {
  */
 async function getPartials(data, affiliateLinksSections) {
     const dataString = JSON.stringify(data)
+    console.log('DATASTRING', dataString)
     const dataQueryParam = encodeURIComponent(dataString)
 
     return fetch(`/partials.json?_component=AffiliateLinks&data=${dataQueryParam}`)
