@@ -6431,6 +6431,10 @@ msgid "Login attempted with invalid Internet Archive s3 credentials."
 msgstr ""
 
 #: account.py
+msgid "A problem occurred and we were unable to log you in"
+msgstr ""
+
+#: account.py
 #, python-format
 msgid ""
 "We've sent the verification email to %(email)s. You'll need to read that "
