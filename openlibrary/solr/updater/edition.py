@@ -7,7 +7,7 @@ import requests
 import openlibrary.book_providers as bp
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
-from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url, get_solr_next
+from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url
 from openlibrary.utils import uniq
 from openlibrary.utils.isbn import opposite_isbn
 
@@ -312,11 +312,7 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 ),
                 # Misc useful data
                 'publisher': self.publisher,
-                **(
-                    {'format': [self.format] if self.format else None}
-                    if get_solr_next()
-                    else {}
-                ),
+                'format': [self.format] if self.format else None,
                 'publish_date': [self.publish_date] if self.publish_date else None,
                 'publish_year': [self.publish_year] if self.publish_year else None,
                 # Identifiers
