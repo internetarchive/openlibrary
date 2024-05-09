@@ -140,7 +140,7 @@ $ )
         </div>
         <div class="resultsContainer search-results-container">
         <div id="searchResults">
-          <div id="fulltext-search-box">TEST</div>
+          $:macros.FulltextSearchBox()
           <ul class="list-books">
             $ works = [get_doc(d) for d in search_response.docs]
             $ add_availability([(w.get('editions') or [None])[0] or w for w in works])
