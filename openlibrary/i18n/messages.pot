@@ -1511,7 +1511,7 @@ msgid ""
 "query-sample\" href=\"\">sample</a> of the query used. <br />Improve "
 "these stats by adding the Wikidata author identifier following <a "
 "href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-"
-"purpose\"> these instructions</a>."
+"purpose\">these instructions</a>."
 msgstr ""
 
 #: account/readinglog_stats.html
