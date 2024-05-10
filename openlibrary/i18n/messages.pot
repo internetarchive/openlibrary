@@ -1508,10 +1508,10 @@ msgstr ""
 msgid ""
 "Demographic statistics powered by <a "
 "href=\"https://www.wikidata.org/\">Wikidata</a>. Here's a <a id=\"wd-"
-"query-sample\" href=\"\">sample</a> of the query used. <br>Improve these "
-"stats by adding the Wikidata author identifier following <a "
+"query-sample\" href=\"\">sample</a> of the query used. <br />Improve "
+"these stats by adding the Wikidata author identifier following <a "
 "href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-"
-"purpose\"> these instructions</a>."
+"purpose\">these instructions</a>."
 msgstr ""
 
 #: account/readinglog_stats.html
@@ -2596,7 +2596,7 @@ msgid "None of these match the book I want to add."
 msgstr ""
 
 #: books/check.html
-msgid "Continue</a>."
+msgid "Continue"
 msgstr ""
 
 #: NotInLibrary.html books/custom_carousel.html
@@ -2633,8 +2633,8 @@ msgstr ""
 #: books/daisy.html
 #, python-format
 msgid ""
-"<strong>Download the DAISY.zip</strong></a> for <a "
-"href=\"%(url)s\">%(title)s</a>"
+"<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for"
+" <a href=\"%(url)s\">%(title)s</a>"
 msgstr ""
 
 #: books/daisy.html
@@ -2879,7 +2879,7 @@ msgstr ""
 msgid ""
 "For example: <i><a href=\"/subjects/cheese\">cheese</a>, <a "
 "href=\"/subjects/roman_empire\">Roman Empire</a>, <a "
-"href=\"/subjects/psychology\">psychology</a>"
+"href=\"/subjects/psychology\">psychology</a></i>"
 msgstr ""
 
 #: books/edit/about.html
@@ -2890,7 +2890,7 @@ msgstr ""
 msgid ""
 "For example: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore "
 "Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of "
-"Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a>"
+"Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a></i>"
 msgstr ""
 
 #: books/edit/about.html
@@ -2901,7 +2901,7 @@ msgstr ""
 msgid ""
 "For example: <i><a href=\"/subjects/place:London\">London</a>, <a "
 "href=\"/subjects/place:Atlantis\">Atlantis</a>, <a "
-"href=\"/subjects/place:Omaha\">Omaha</a>"
+"href=\"/subjects/place:Omaha\">Omaha</a></i>"
 msgstr ""
 
 #: books/edit/about.html
@@ -2912,7 +2912,7 @@ msgstr ""
 msgid ""
 "For example: <i><a href=\"/subjects/time:1984\">1984</a>, <a "
 "href=\"/subjects/time:the_middle_ages\">The Middle Ages</a>, <a "
-"href=\"/subjects/time:1810-1890\">1810-1890</a>"
+"href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
 msgstr ""
 
 #: books/edit/edition.html
