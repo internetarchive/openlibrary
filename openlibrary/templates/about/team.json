@@ -1,13 +1,29 @@
 [
   {
     "name": "Aaron Swartz",
-    "title": "Co-Founder",
+    "title": "Open Library Co-Founder",
     "roles": ["staff-emeritus"],
     "departments": ["engineering"],
     "photo_path": "../../../static/images/team/Aaron_Swartz.png",
     "personal_url": "",
     "favorite_book_url": "",
     "ol_key": "aaronsw"
+  },
+  {
+    "name": "Alexis Rossi",
+    "title": "Open Library Co-Founder, Present Director of Collections @ Internet Archive",
+    "roles": ["staff-emeritus"],
+    "departments": ["librarians", "product"],
+    "photo_path": "https://blog.archive.org/wp-content/uploads/2022/04/AlexisRossi-1-624x809.jpg",
+    "ol_key": "alexis"
+  },
+  {
+    "name": "Anand Chitipothu",
+    "title": "Lead Engineering",
+    "roles": ["staff-emeritus"],
+    "departments": ["engineering"],
+    "photo_path": "https://pbs.twimg.com/profile_images/2599066714/igu5hx4wlg3mxucodinl_400x400.jpeg",
+    "ol_key": "anand",
   },
   {
     "name": "Abbey Ripstra",
@@ -18,6 +34,15 @@
     "photo_path": "../../../static/images/team/Abbey_Ripstra.jpg",
     "personal_url": "https://www.wikidata.org/wiki/Q28051212",
     "ol_key": "bodiceaa"
+  },
+  {
+    "name": "Charles Horn",
+    "title": "Open Libraries Partnerships & Data Engineer",
+    "roles": ["staff"],
+    "projects": ["Imports"],
+    "departments": ["engineering"],
+    "photo_path": "http://blog.archive.org/wp-content/uploads/2023/04/NLW2023_Charles-1024x1024.png",
+    "ol_key": "hornc"
   },
   {
     "name": "Chris Clauss",
@@ -43,7 +68,7 @@
     "roles": ["fellow-2022"],
     "projects": ["My Books Page (Desktop)"],
     "departments": ["design"],
-    "photo_path": "",
+    "photo_path": "https://static.wixstatic.com/media/054c34_31992b9f1707499f82ec73467c505196~mv2.png/v1/crop/x_71,y_266,w_2882,h_2880/fill/w_650,h_650,al_c,q_90,usm_0.66_1.00_0.01,enc_auto/IMG_6197_heic.png",
     "personal_url": "https://www.danafeinschaffer.com",
     "favorite_book_url": "https://openlibrary.org/works/OL17332479W/Six_of_Crows?edition=key%3A/books/OL37753024M",
     "ol_key": "danafs/books"
@@ -90,7 +115,7 @@
     "photo_path": "https://git.4angle.com/avatar/1e64ab07e0faced09520a5c589deb70b?size=512",
     "personal_url": "https://edwardbetts.com/",
     "favorite_book_url": "",
-    "ol_key": ""
+    "ol_key": "edward"
   },
   {
     "name": "Giacomo Cignoni",
@@ -219,7 +244,25 @@
     "ol_key": ""
   },
   {
-    "name": "Roya E.",
+    "name": "Ray Berger",
+    "title": "Front-end Lead",
+    "roles": ["fellow-2021"],
+    "departments": ["engineering", "product"],
+    "photo_path": "https://media.licdn.com/dms/image/C5103AQFSlUvKIjvj7Q/profile-displayphoto-shrink_400_400/0/1517569982474?e=1703721600&v=beta&t=cggoP6TJKK1ZHSewVOsrBuUrFQX5-lCHZO0l4ql2dEU",
+    "projects": ["<a href='https://blog.rayberger.org/idea-to-merged-in-less-than-30-minutes'>APIs</a>"]
+    "ol_key": ""
+  },
+    {
+    "name": "Raj Kumar",
+    "title": "Core Developer",
+    "roles": ["staff-emeritus"],
+    "departments": ["engineering"],
+    "projects": ["bookreader"],
+    "photo_path": "https://media.licdn.com/dms/image/C4E03AQH6C946gyTtfg/profile-displayphoto-shrink_400_400/0/1516157638540?e=1703721600&v=beta&t=zope8IB5UVURTWFGFHIABjhfVDExaEoHiicIhrCiF5Y",
+    "ol_key": "rajbot"
+  },
+  {
+    "name": "Roya Ebtehaj",
     "title": "Design Fellow",
     "roles": ["fellow-2023"],
     "departments": ["design"],
@@ -273,7 +316,7 @@
   },
   {
     "name": "Scott Barnes",
-    "title": "Developer",
+    "title": "Core Developer",
     "roles": ["fellow-2022", "staff-active"],
     "departments": ["engineering"],
     "photo_path": "../../../static/images/team/Scott_Barnes.jpg",
