@@ -5472,15 +5472,15 @@ msgid "Book Details"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
-msgid "Published in"
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
 msgid "First Sentence"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "Edition Notes"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Published in"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -6443,10 +6443,6 @@ msgstr ""
 
 #: account.py
 msgid "Username unavailable"
-msgstr ""
-
-#: account.py
-msgid "An Internet Archive account already exists with this username"
 msgstr ""
 
 #: account.py forms.py
