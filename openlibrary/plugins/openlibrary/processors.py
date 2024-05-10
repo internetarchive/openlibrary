@@ -157,7 +157,7 @@ class CacheablePathsProcessor:
             """
             Returns a cache key for a cacheable path.
 
-            Function constructs a key based on the path and langauge
+            Function constructs a key based on the path and language
             code, like the following key for the Spanish collections page:
             /collections.es
 
