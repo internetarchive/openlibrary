@@ -1113,6 +1113,8 @@ class Partials(delegate.page):
                 args[0], args[1]
             )
             partial = {"partials": str(macro)}
+        elif component == "FulltextSearchBox":
+            partial ={"partials": "THIS IS MY TEST PARTIAL REPSONSE"}
 
         return delegate.RawText(json.dumps(partial))
 
