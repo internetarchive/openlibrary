@@ -573,7 +573,7 @@ class account_validation(delegate.page):
 
         ia_account = account_validation.ia_username_exists(username)
         if ia_account:
-            return _("An Internet Archive account already exists with this username")
+            return _("Username unavailable")
 
     @staticmethod
     def validate_email(email):
