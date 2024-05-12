@@ -5425,8 +5425,8 @@ msgstr ""
 msgid "Orphaned Edition"
 msgstr ""
 
-#: databarHistory.html databarView.html type/edition/compact_title.html
-msgid "Edit this page"
+#: type/edition/compact_title.html
+msgid "Edit this page don"
 msgstr ""
 
 #: type/edition/title_and_author.html
@@ -5472,15 +5472,15 @@ msgid "Book Details"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
-msgid "Published in"
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
 msgid "First Sentence"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "Edition Notes"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Published in"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -6355,6 +6355,10 @@ msgstr ""
 
 #: databarHistory.html databarView.html
 msgid "Last edited anonymously"
+msgstr ""
+
+#: databarHistory.html databarView.html
+msgid "Edit this page"
 msgstr ""
 
 #: databarTemplate.html databarView.html
