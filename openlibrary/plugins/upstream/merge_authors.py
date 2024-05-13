@@ -288,9 +288,7 @@ class merge_authors(delegate.page):
         can_merge = user and (
             user.is_admin() or user.is_usergroup_member('/usergroup/super-librarians')
         )
-        can_request_merge = not can_merge and (
-            user and user.is_usergroup_member('/usergroup/librarians')
-        )
+        can_request_merge = not can_merge and (user and user.is_librarian())
 
         # filter bad keys
         keys = self.filter_authors(keys)
