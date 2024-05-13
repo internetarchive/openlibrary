@@ -4046,14 +4046,6 @@ msgstr ""
 msgid "Just a sentence or two is good."
 msgstr ""
 
-#: lib/message_addbook.html
-msgid "cancel icon"
-msgstr ""
-
-#: lib/message_addbook.html
-msgid "Close this"
-msgstr ""
-
 #: lib/nav_foot.html
 msgid "Vision"
 msgstr ""
