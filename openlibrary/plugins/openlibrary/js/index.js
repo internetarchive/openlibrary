@@ -17,6 +17,7 @@ import init from './ol.js';
 import * as Browser from './Browser';
 import { commify, urlencode, slice } from './python';
 import Template from './template.js';
+import { truncate, cond } from './utils';
 import initValidate from './validate';
 import '../../../../static/css/js-all.less';
 // polyfill Promise support for IE11
@@ -26,6 +27,7 @@ import { confirmDialog, initDialogs } from './dialog';
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
 window.commify = commify;
+window.cond = cond;
 window.enumerate = enumerate;
 window.foreach = foreach;
 window.htmlquote = htmlquote;
@@ -34,6 +36,7 @@ window.len = len;
 window.range = range;
 window.slice = slice;
 window.sprintf = sprintf;
+window.truncate = truncate;
 window.urlencode = urlencode;
 window.websafe = websafe;
 window._ = ugettext;
