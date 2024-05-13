@@ -5,8 +5,8 @@ on:
       - opened
 jobs:
   label_pr:
-    # Continue only if the PR was opened in the same repository that is running this action:
-    if: ${{ github.repository == github.event.repository.full_name }}
+    # Continue only if the PR is not a draft, and was opened in the same repository that is running this action:
+    if: ${{ github.repository == github.event.repository.full_name && !github.event.pull_request.draft}}
     permissions:
       contents: read
       issues: read
