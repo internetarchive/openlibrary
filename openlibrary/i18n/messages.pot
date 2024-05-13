@@ -592,11 +592,11 @@ msgstr ""
 msgid "Send"
 msgstr ""
 
-#: CreateListModal.html EditButtons.html EditButtonsMacros.html
-#: account/create.html account/notifications.html account/password/reset.html
-#: account/privacy.html admin/imports-add.html admin/permissions.html
-#: books/add.html covers/add.html covers/manage.html databarEdit.html
-#: merge/authors.html my_books/dropdown_content.html support.html tag/add.html
+#: CreateListModal.html EditButtons.html account/create.html
+#: account/notifications.html account/password/reset.html account/privacy.html
+#: admin/imports-add.html admin/permissions.html books/add.html covers/add.html
+#: covers/manage.html databarEdit.html merge/authors.html
+#: my_books/dropdown_content.html support.html tag/add.html
 msgid "Cancel"
 msgstr ""
 
@@ -1296,8 +1296,8 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: EditButtons.html EditButtonsMacros.html account/notifications.html
-#: account/privacy.html covers/manage.html
+#: EditButtons.html account/notifications.html account/privacy.html
+#: covers/manage.html
 msgid "Save"
 msgstr ""
 
@@ -2025,14 +2025,6 @@ msgid ""
 "the database."
 msgstr ""
 
-#: admin/profile.html databarTemplate.html
-msgid "Edit this template"
-msgstr ""
-
-#: admin/people/view.html admin/profile.html
-msgid "Admin"
-msgstr ""
-
 #: admin/solr.html
 msgid "Enter the keys to reindex in Solr"
 msgstr ""
@@ -2163,6 +2155,10 @@ msgstr ""
 
 #: CreateListModal.html admin/people/view.html my_books/dropdown_content.html
 msgid "Name:"
+msgstr ""
+
+#: admin/people/view.html
+msgid "Admin"
 msgstr ""
 
 #: admin/people/view.html
@@ -2475,7 +2471,7 @@ msgstr ""
 
 #: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
 #: search/advancedsearch.html type/about/edit.html type/page/edit.html
-#: type/rawtext/edit.html type/template/edit.html
+#: type/template/edit.html
 msgid "Title"
 msgstr ""
 
@@ -2536,7 +2532,7 @@ msgstr ""
 msgid "Only fill this out if this is a web book"
 msgstr ""
 
-#: EditButtons.html EditButtonsMacros.html books/add.html tag/add.html
+#: EditButtons.html books/add.html tag/add.html
 msgid ""
 "By saving a change to this wiki, you agree that your contribution is "
 "given freely to the world under <a "
@@ -2754,8 +2750,7 @@ msgstr ""
 msgid "Editing..."
 msgstr ""
 
-#: EditButtonsMacros.html books/edit.html type/author/edit.html
-#: type/macro/edit.html type/template/edit.html
+#: books/edit.html type/author/edit.html type/template/edit.html
 msgid "Delete Record"
 msgstr ""
 
@@ -5211,7 +5206,7 @@ msgid "Add this tag now"
 msgstr ""
 
 #: type/about/edit.html type/page/edit.html type/permission/edit.html
-#: type/rawtext/edit.html type/template/edit.html type/usergroup/edit.html
+#: type/template/edit.html type/usergroup/edit.html
 #, python-format
 msgid "Edit %(title)s"
 msgstr ""
@@ -5767,18 +5762,6 @@ msgstr ""
 msgid "Example"
 msgstr ""
 
-#: type/macro/edit.html
-msgid "Plugin"
-msgstr ""
-
-#: type/macro/edit.html
-msgid "Macro"
-msgstr ""
-
-#: type/macro/edit.html
-msgid "Delete this macro?"
-msgstr ""
-
 #: type/page/edit.html
 msgid "Document Body:"
 msgstr ""
@@ -5799,10 +5782,6 @@ msgstr ""
 msgid "Writers"
 msgstr ""
 
-#: type/rawtext/edit.html type/template/edit.html
-msgid "Document Body"
-msgstr ""
-
 #: type/tag/edit.html
 msgid "Edit Tag"
 msgstr ""
@@ -5818,6 +5797,10 @@ msgstr ""
 #: type/tag/view.html
 #, python-format
 msgid "View subject page for %(name)s."
+msgstr ""
+
+#: type/template/edit.html
+msgid "Document Body"
 msgstr ""
 
 #: type/template/edit.html
@@ -5982,26 +5965,6 @@ msgstr ""
 msgid "Preview Book"
 msgstr ""
 
-#: EditButtonsMacros.html
-msgid "Really delete this macro?"
-msgstr ""
-
-#: EditButtonsMacros.html
-msgid "Are you sure you want to delete this?"
-msgstr ""
-
-#: EditButtonsMacros.html
-msgid "Please, leave a short note about what you changed: "
-msgstr ""
-
-#: EditButtonsMacros.html
-msgid "(Optional, but very useful!)"
-msgstr ""
-
-#: EditButtonsMacros.html
-msgid "Delete this record"
-msgstr ""
-
 #: EditionNavBar.html
 msgid "Overview"
 msgstr ""
@@ -6161,11 +6124,6 @@ msgstr ""
 
 #: ReturnForm.html
 msgid "Return book"
-msgstr ""
-
-#: SRPCoverImage.html
-#, python-format
-msgid "Go to the page for %(title)s"
 msgstr ""
 
 #: SearchResultsWork.html
@@ -6363,6 +6321,10 @@ msgstr ""
 
 #: databarTemplate.html databarView.html
 msgid "View this template's edit history"
+msgstr ""
+
+#: databarTemplate.html
+msgid "Edit this template"
 msgstr ""
 
 #: databarWork.html
