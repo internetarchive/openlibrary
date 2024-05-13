@@ -329,8 +329,9 @@ msgstr ""
 msgid "Thank you very much for improving that record!"
 msgstr ""
 
-#: BookPreview.html CreateListModal.html NotesModal.html ObservationsModal.html
-#: ShareModal.html book_providers/gutenberg_read_button.html
+#: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
+#: ObservationsModal.html ShareModal.html
+#: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
 #: book_providers/standard_ebooks_read_button.html covers/author_photo.html
@@ -4305,6 +4306,16 @@ msgstr ""
 msgid "Search by barcode"
 msgstr ""
 
+#: lib/not_logged.html
+msgid ""
+"<strong>You are not <a href=\"/account/login\" title=\"Log in "
+"now\">logged in</a>.</strong> Open Library will record your IP address "
+"and include it in this page's publicly accessible edit history. If you <a"
+" href=\"/account/create\" title=\"Create an Open Library account\">create"
+" an account</a>, your IP address is concealed and you can more easily "
+"keep track of all your edits and additions."
+msgstr ""
+
 #: Pager.html Pager_loanhistory.html lib/pagination.html
 msgid "Previous"
 msgstr ""
@@ -5963,6 +5974,73 @@ msgstr ""
 
 #: BookPreview.html
 msgid "Preview Book"
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"Donate this book to the <a href=\"https://archive.org\">Internet "
+"Archive</a> library."
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"Hooray! You've discovered a title that's missing from our <a "
+"href=\"https://help.archive.org/hc/en-us/articles/360016554912-Borrowing-"
+"From-The-Lending-Library\">library</a>. Can you help donate a copy?"
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"If you own this book, you can<a "
+"href=\"https://store.usps.com/store/product/shipping-supplies/priority-"
+"mail-express-padded-flat-rate-envelope-P_EP13PE\">mail</a> it to our "
+"address below."
+msgstr ""
+
+#: DonateModal.html
+msgid "You can also purchase this book from a vendor and ship it to our address:"
+msgstr ""
+
+#: DonateModal.html
+msgid "Benefits of donating"
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"When you donate a physical book to the Internet Archive, your book will "
+"enjoy:"
+msgstr ""
+
+#: DonateModal.html
+msgid "Donation info"
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"Beautiful <a target=\"_blank\" href=\"https://archive.org/scanning"
+"\">high-fidelity digitization"
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"Long-term <a href=\"https://blog.archive.org/2011/06/06/why-preserve-"
+"books-the-new-physical-archive-of-the-internet-archive/\">archival "
+"preservation"
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"Free <a href=\"https://controlleddigitallending.org/\">controlled digital"
+" library access</a> by the <a "
+"href=\"https://en.wikipedia.org/wiki/Print_disability\">print-"
+"disabled</a> public"
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"Open Library is a project of the <a "
+"href=\"https://archive.org/about\">Internet Archive</a>, a 501(c)(3) non-"
+"profit"
 msgstr ""
 
 #: EditionNavBar.html
