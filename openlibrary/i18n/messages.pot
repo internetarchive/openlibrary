@@ -329,14 +329,15 @@ msgstr ""
 msgid "Thank you very much for improving that record!"
 msgstr ""
 
-#: BookPreview.html CreateListModal.html NotesModal.html ObservationsModal.html
-#: ShareModal.html book_providers/gutenberg_read_button.html
+#: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
+#: ObservationsModal.html ShareModal.html
+#: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
 #: book_providers/standard_ebooks_read_button.html covers/author_photo.html
 #: covers/book_cover.html covers/book_cover_single_edition.html
 #: covers/book_cover_work.html covers/change.html lib/history.html
-#: my_books/dropdown_content.html native_dialog.html
+#: lib/markdown.html my_books/dropdown_content.html native_dialog.html
 msgid "Close"
 msgstr ""
 
@@ -595,7 +596,7 @@ msgstr ""
 #: CreateListModal.html EditButtons.html account/create.html
 #: account/notifications.html account/password/reset.html account/privacy.html
 #: admin/imports-add.html admin/permissions.html books/add.html covers/add.html
-#: covers/manage.html databarEdit.html merge/authors.html
+#: covers/manage.html databarAuthor.html databarEdit.html merge/authors.html
 #: my_books/dropdown_content.html support.html tag/add.html
 msgid "Cancel"
 msgstr ""
@@ -2469,9 +2470,9 @@ msgid ""
 "those fields."
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
-#: search/advancedsearch.html type/about/edit.html type/page/edit.html
-#: type/template/edit.html
+#: books/add.html books/edit.html books/edit/edition.html lib/markdown.html
+#: lib/nav_head.html search/advancedsearch.html type/about/edit.html
+#: type/page/edit.html type/template/edit.html
 msgid "Title"
 msgstr ""
 
@@ -2781,14 +2782,14 @@ msgstr ""
 msgid "Add Excerpts"
 msgstr ""
 
-#: books/edit.html type/about/edit.html type/author/edit.html
+#: books/edit.html lib/markdown.html type/about/edit.html type/author/edit.html
 msgid "Links"
 msgstr ""
 
 #: IABook.html SearchResultsWork.html books/edition-sort.html
-#: jsdef/LazyWorkPreview.html lists/list_overview.html lists/preview.html
-#: lists/snippet.html lists/widget.html my_books/dropdown_content.html
-#: type/work/editions.html
+#: databarAuthor.html jsdef/LazyWorkPreview.html lists/list_overview.html
+#: lists/preview.html lists/snippet.html lists/widget.html
+#: my_books/dropdown_content.html type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
 msgstr ""
@@ -3999,6 +4000,185 @@ msgstr ""
 msgid "Edited by %(user)s"
 msgstr ""
 
+#: lib/markdown.html
+msgid ""
+"Need <a href=\"javascript:;\" aria-controls=\"markdown\" class=\"dialog--"
+"open\" id=\"markdownPop\">help with formatting</a>?"
+msgstr ""
+
+#: lib/markdown.html
+msgid "Formatting Help"
+msgstr ""
+
+#: lib/markdown.html
+msgid ""
+"We use a system called Markdown to format the text in your edits on Open "
+"Library. Some HTML formatting is also accepted. Paragraphs are "
+"automatically generated from any hard-break returns (blank lines) within "
+"your text. You can preview your work in real time below the editing "
+"field."
+msgstr ""
+
+#: lib/markdown.html
+msgid "Formatting marks should envelope the effected text, for example:"
+msgstr ""
+
+#: lib/markdown.html
+msgid "This text is bold"
+msgstr ""
+
+#: lib/markdown.html
+msgid "This text is also bold"
+msgstr ""
+
+#: lib/markdown.html
+msgid "The format"
+msgstr ""
+
+#: lib/markdown.html
+msgid "Markdown"
+msgstr ""
+
+#: lib/markdown.html
+msgid "Italic"
+msgstr ""
+
+#: lib/markdown.html
+msgid " (preferred) or "
+msgstr ""
+
+#: lib/markdown.html
+msgid " or "
+msgstr ""
+
+#: lib/markdown.html
+msgid " (single underscores)"
+msgstr ""
+
+#: lib/markdown.html
+msgid "Bold"
+msgstr ""
+
+#: lib/markdown.html
+msgid " (double underscores)"
+msgstr ""
+
+#: lib/markdown.html
+msgid "Line<br/>Break"
+msgstr ""
+
+#: lib/markdown.html
+msgid "Insert two spaces at the end of the line."
+msgstr ""
+
+#: lib/markdown.html
+msgid "Blockquote"
+msgstr ""
+
+#: lib/markdown.html
+msgid "Precede copy with "
+msgstr ""
+
+#: lib/markdown.html
+msgid "Headers"
+msgstr ""
+
+#: lib/markdown.html
+msgid "Enormous Headline"
+msgstr ""
+
+#: lib/markdown.html
+msgid "Big Headline"
+msgstr ""
+
+#: lib/markdown.html
+msgid "Average Headline"
+msgstr ""
+
+#: lib/markdown.html
+msgid "Small Headline"
+msgstr ""
+
+#: lib/markdown.html
+msgid " Big Headline"
+msgstr ""
+
+#: lib/markdown.html
+msgid " Average Headline, etc. to"
+msgstr ""
+
+#: lib/markdown.html
+msgid " Small Headline"
+msgstr ""
+
+#: lib/markdown.html
+msgid "Ordered (Numbered) List"
+msgstr ""
+
+#: lib/markdown.html
+msgid "Item One"
+msgstr ""
+
+#: lib/markdown.html
+msgid "Item Two"
+msgstr ""
+
+#: lib/markdown.html
+msgid " Item One"
+msgstr ""
+
+#: lib/markdown.html
+msgid " Item Two"
+msgstr ""
+
+#: lib/markdown.html
+msgid "Unordered List"
+msgstr ""
+
+#: lib/markdown.html
+msgid "First bullet"
+msgstr ""
+
+#: lib/markdown.html
+msgid "Second bullet"
+msgstr ""
+
+#: lib/markdown.html
+msgid " First bullet"
+msgstr ""
+
+#: lib/markdown.html
+msgid " Second bullet"
+msgstr ""
+
+#: lib/markdown.html
+msgid ""
+"This is <span class=\"teal\">&lt;a href=\"http://example.com/\" "
+"title=\"Title\"&gt;</span>an example<span "
+"class=\"teal\">&lt;/a&gt;</span> inline link."
+msgstr ""
+
+#: lib/markdown.html
+msgid ""
+"This is <span class=\"blue\">[an example](http://example.com/ "
+"\"Title\")</span> inline link."
+msgstr ""
+
+#: lib/markdown.html
+msgid "Images"
+msgstr ""
+
+#: lib/markdown.html
+msgid "Alternate label"
+msgstr ""
+
+#: lib/markdown.html
+msgid ""
+"To \"escape\" any Markdown tags (i.e. use an asterisk as an asterisk "
+"rather than emphasizing text) place a backslash \\ prior to the "
+"character."
+msgstr ""
+
 #: lib/message_addbook.html
 msgid "Super!"
 msgstr ""
@@ -4303,6 +4483,16 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "Search by barcode"
+msgstr ""
+
+#: lib/not_logged.html
+msgid ""
+"<strong>You are not <a href=\"/account/login\" title=\"Log in "
+"now\">logged in</a>.</strong> Open Library will record your IP address "
+"and include it in this page's publicly accessible edit history. If you <a"
+" href=\"/account/create\" title=\"Create an Open Library account\">create"
+" an account</a>, your IP address is concealed and you can more easily "
+"keep track of all your edits and additions."
 msgstr ""
 
 #: Pager.html Pager_loanhistory.html lib/pagination.html
@@ -4749,7 +4939,7 @@ msgstr ""
 msgid "Use this Work"
 msgstr ""
 
-#: CreateListModal.html my_books/dropdown_content.html
+#: CreateListModal.html databarAuthor.html my_books/dropdown_content.html
 msgid "Create a new list"
 msgstr ""
 
@@ -5965,6 +6155,73 @@ msgstr ""
 msgid "Preview Book"
 msgstr ""
 
+#: DonateModal.html
+msgid ""
+"Donate this book to the <a href=\"https://archive.org\">Internet "
+"Archive</a> library."
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"Hooray! You've discovered a title that's missing from our <a "
+"href=\"https://help.archive.org/hc/en-us/articles/360016554912-Borrowing-"
+"From-The-Lending-Library\">library</a>. Can you help donate a copy?"
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"If you own this book, you can<a "
+"href=\"https://store.usps.com/store/product/shipping-supplies/priority-"
+"mail-express-padded-flat-rate-envelope-P_EP13PE\">mail</a> it to our "
+"address below."
+msgstr ""
+
+#: DonateModal.html
+msgid "You can also purchase this book from a vendor and ship it to our address:"
+msgstr ""
+
+#: DonateModal.html
+msgid "Benefits of donating"
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"When you donate a physical book to the Internet Archive, your book will "
+"enjoy:"
+msgstr ""
+
+#: DonateModal.html
+msgid "Donation info"
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"Beautiful <a target=\"_blank\" href=\"https://archive.org/scanning"
+"\">high-fidelity digitization"
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"Long-term <a href=\"https://blog.archive.org/2011/06/06/why-preserve-"
+"books-the-new-physical-archive-of-the-internet-archive/\">archival "
+"preservation"
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"Free <a href=\"https://controlleddigitallending.org/\">controlled digital"
+" library access</a> by the <a "
+"href=\"https://en.wikipedia.org/wiki/Print_disability\">print-"
+"disabled</a> public"
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"Open Library is a project of the <a "
+"href=\"https://archive.org/about\">Internet Archive</a>, a 501(c)(3) non-"
+"profit"
+msgstr ""
+
 #: EditionNavBar.html
 msgid "Overview"
 msgstr ""
@@ -6296,6 +6553,51 @@ msgstr ""
 
 #: WorldcatLink.html
 msgid "Check WorldCat for an edition near you"
+msgstr ""
+
+#: databarAuthor.html
+#, python-format
+msgid ""
+"%(page)s is on your <a href=\"#\">List Name Which Could Be Long</a> list."
+" <span class=\"smaller\"><a href=\"#\" class=\"red\">Remove</a>?"
+msgstr ""
+
+#: databarAuthor.html
+msgid "Add to list"
+msgstr ""
+
+#: databarAuthor.html
+msgid "Add to </span> <a href=\"javascript:;\">This is a List Name"
+msgstr ""
+
+#: databarAuthor.html
+msgid ""
+"Add to </span> <a href=\"javascript:;\">This is Another List Name Which "
+"is Longer!"
+msgstr ""
+
+#: databarAuthor.html
+msgid "×"
+msgstr ""
+
+#: databarAuthor.html
+msgid "List Label"
+msgstr ""
+
+#: databarAuthor.html
+msgid "List Description"
+msgstr ""
+
+#: databarAuthor.html
+msgid "Tags"
+msgstr ""
+
+#: databarAuthor.html
+msgid "Add new list"
+msgstr ""
+
+#: databarAuthor.html
+msgid "List Title"
 msgstr ""
 
 #: databarDiff.html databarEdit.html
