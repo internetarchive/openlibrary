@@ -1115,6 +1115,7 @@ class Partials(delegate.page):
             partial = {"partials": str(macro)}
         elif component == "FulltextSearchBox":
             partial ={"partials": "THIS IS MY TEST PARTIAL REPSONSE"}
+            #make call to endpoint here? /search/inside?$urlencode(dict(q=query))
 
         return delegate.RawText(json.dumps(partial))
 
