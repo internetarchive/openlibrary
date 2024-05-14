@@ -1,11 +1,13 @@
 export function initFulltextSearchBox(fulltextSearchBox) {
-  console.log('MACRO LOADED')
-  getPartials(fulltextSearchBox)
+  console.log('MACRO HATH LOADED')
+  const query = fulltextSearchBox.dataset.query
+  getPartials(fulltextSearchBox, query)
 }
 
-async function getPartials(fulltextSearchBox) {
-
-  return fetch('/partials.json?_component=FulltextSearchBox')
+async function getPartials(fulltextSearchBox, query) {
+  const queryParam = encodeURIComponent(query)
+  console.log('QUERY PARAM', queryParam)
+  return fetch(`/partials.json?_component=FulltextSearchBox&data=${queryParam}`)
       .then((resp) => {
           if (resp.status !== 200) {
               throw new Error(`Failed to fetch partials. Status code: ${resp.status}`)
@@ -14,7 +16,7 @@ async function getPartials(fulltextSearchBox) {
       })
       .then((data) => {
         console.log('DATA FROM PARTIAL CALL', data)
-        fulltextSearchBox.innerHTML = data['partials']
-        //populate macro with data from partials aka /search/inside call
+  //       fulltextSearchBox.innerHTML = data['partials']
+  //       //populate macro with data from partials aka /search/inside call
       })
 }
