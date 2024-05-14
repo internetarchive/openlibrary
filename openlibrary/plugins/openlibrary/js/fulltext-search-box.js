@@ -16,7 +16,10 @@ async function getPartials(fulltextSearchBox, query) {
       })
       .then((data) => {
         console.log('DATA FROM PARTIAL CALL', data)
-  //       fulltextSearchBox.innerHTML = data['partials']
+        // const span = document.createElement('span')
+        // span.innerHTML = data['partials']
+        fulltextSearchBox.outerHTML = data['partials'];
+  //    fulltextSearchBox.innerHTML = data['partials']
   //       //populate macro with data from partials aka /search/inside call
       })
 }
