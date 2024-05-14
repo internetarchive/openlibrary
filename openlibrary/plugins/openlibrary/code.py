@@ -41,6 +41,7 @@ from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13, canonical
 from openlibrary.core.models import Edition
 from openlibrary.core.lending import get_availability
+from openlibrary.core.fulltext import fulltext_search
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count
@@ -1114,7 +1115,10 @@ class Partials(delegate.page):
             )
             partial = {"partials": str(macro)}
         elif component == "FulltextSearchBox":
-            partial ={"partials": "THIS IS MY TEST PARTIAL REPSONSE"}
+            query = i.get('data', '')
+            print('QUERY', query)
+            data = fulltext_search(query)
+            partial ={"partials": data}
             #make call to endpoint here? /search/inside?$urlencode(dict(q=query))
 
         return delegate.RawText(json.dumps(partial))
