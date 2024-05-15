@@ -1,0 +1,27 @@
+name: weekly_status_report
+on:
+  schedule:
+    - cron: '30 8 * * *'  # XXX : set to appropriate time (before ABC)
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  NODE_VERSION: '20'
+jobs:
+  create_and_publish_report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/cache@v4
+        id: cache-octokit
+        with:
+          path: 'node_modules'
+          key: ${{ runner.os }}-node${{ env.NODE_VERSION}}-octokit-${{ hashFiles('**/package-lock.json') }}
+      - if: steps.cache-octokit.outputs.cache-hit != 'true'
+        run: npm install @octokit/action
+      - run: node scripts/gh_scripts/weekly_status_report.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
