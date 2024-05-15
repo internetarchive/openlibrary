@@ -1,6 +1,7 @@
-$def with (facet_map, param, facet_counts)
+$def with (facet_map, param, facet_counts=None)
 
 $code:
+    async_load = facet_counts == None
     start_facet_count = 5
     facet_inc = 10
 
@@ -27,6 +28,50 @@ $code:
         }
         return "SearchFacet|" + facets[key]
 
+$def facet(header, label, counts):
+    <div class="facet $header">
+        $ magic_wand_markup = ''
+        $if header == 'author_key' and len(counts) > 1 and ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()):
+            $ keys = '&'.join('key=%s' % k for k, display, count in counts)
+            $ magic_wand_markup = ' <span class="merge"><a href="/authors/merge?%s" title="%s">%s</a></span>' % (keys, _('Merge duplicate authors from this search'), _("Merge duplicates"))
+        <h4 class="facetHead">$(label)$:(magic_wand_markup)</h4>
+        $ num = 0
+        $for k, display, count in counts:
+            $ num = num + 1
+            $ hide_entry = num > start_facet_count
+            $ facet_url = None if async_load else add_facet_url(header, k)
+            $ num_found = 0 if async_load else commify(count)
+            $:facet_entry(display, num_found, facet_url, hide_entry=hide_entry)
+        $if len(counts) > start_facet_count:
+            <div class="facetMoreLess">
+                <span class="header_more small" data-header="$header">
+                    <a href="javascript:;" id="${header}_more" class="red">$_("more")</a>
+                </span>
+                <span id="${header}_bull" class="header_bull small gray">&bull;</span>
+                <span class="header_less small" data-header="$header">
+                    <a href="javascript:;" id="${header}_less" class="red ui-helper-hidden">$_("less")</a>
+                </span>
+            </div>
+    </div>
+
+$def facet_entry(display, count, facet_url, hide_entry=False):
+    $ facet_classes = 'facetEntry'
+    $if hide_entry:
+        $ facet_classes += ' ui-helper-hidden'
+    <div class="$facet_classes">
+        $if async_load:
+            <span class="small">$_('Loading...')</span>
+        $else:
+            $ link_title = _('Filter results for %(facet)s', facet=display)
+            $if header == 'has_fulltext':
+                $ link_title = _('Filter results for ebook availability')
+                $if display == 'yes':
+                    $ display = _('yes')
+                $else:
+                    $ display = _('no')
+            <span class="small"><a href="$facet_url" title="$link_title" data-ol-link-track="$add_track(header)">$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
+    </div>
+
 <div id="searchFacets" data-config="$dumps({'start_facet_count': start_facet_count, 'facet_inc': facet_inc})">
     <h3 class="collapse">$_("Zoom In")</h3>
     <div class="smallest lightgreen sansserif" style="margin-bottom:20px;">
@@ -37,40 +82,8 @@ $code:
             $continue
         $if header=='public_scan_b':
             $continue
-        $ counts = [i for i in facet_counts[header] if i[0] not in param.get(header, [])]
-        $if not counts:
+        $ counts = [i for i in facet_counts[header] if i[0] not in param.get(header, [])] if not async_load else [(None, None, None)]
+        $if not counts and not async_load:
             $continue
-        <div class="facet $header">
-            $ magic_wand_markup = ''
-            $if header == 'author_key' and len(counts) > 1 and ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()):
-                $ keys = '&'.join('key=%s' % k for k, display, count in counts)
-                $ magic_wand_markup = ' <span class="merge"><a href="/authors/merge?%s" title="%s">%s</a></span>' % (keys, _('Merge duplicate authors from this search'), _("Merge duplicates"))
-            <h4 class="facetHead">$(label)$:(magic_wand_markup)</h4>
-            $ num = 0
-            $for k, display, count in counts:
-                $ num = num + 1
-                $ facet_classes = 'facetEntry'
-                $if num > start_facet_count:
-                    $ facet_classes += ' ui-helper-hidden'
-                <div class="$facet_classes">
-                    $ link_title = _('Filter results for %(facet)s', facet=display)
-                    $if header == 'has_fulltext':
-                        $ link_title = _('Filter results for ebook availability')
-                        $if display == 'yes':
-                            $ display = _('yes')
-                        $else:
-                            $ display = _('no')
-                    <span class="small"><a href="$add_facet_url(header, k)" title="$link_title" data-ol-link-track="$add_track(header)">$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
-                </div>
-            $if len(counts) > start_facet_count:
-                <div class="facetMoreLess">
-                    <span class="header_more small" data-header="$header">
-                        <a href="javascript:;" id="${header}_more" class="red">$_("more")</a>
-                    </span>
-                    <span id="${header}_bull" class="header_bull small gray">&bull;</span>
-                    <span class="header_less small" data-header="$header">
-                        <a href="javascript:;" id="${header}_less" class="red ui-helper-hidden">$_("less")</a>
-                    </span>
-                </div>
-        </div>
+        $:facet(header, label, counts)
 </div>
