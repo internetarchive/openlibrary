@@ -25,10 +25,10 @@ export default {
     },
     methods: {
         selectAlgorithm(e){
-            if (e.target.value=='4'){
+            if (e.target.value==='4'){
                 this.bulkSearchState.extractionOptions.use_gpt = true
             }
-            else{
+            else {
                 this.bulkSearchState.extractionOptions.use_gpt = false
                 this.bulkSearchState.extractionOptions.regex= this.regexDict[e.target.value]
             }
@@ -37,51 +37,49 @@ export default {
             this.bulkSearchState.errorMessage = []
             if (this.bulkSearchState.extractionOptions.use_gpt){
                 const request = {
-                        
-                        "method": "POST",
-                        "headers": {
-                            "Content-Type": "application/json",
-                            "Authorization": `Bearer ${this.bulkSearchState.extractionOptions.api_key}`
-                        },
-                        "body": JSON.stringify({
-                            "model": "gpt-3.5-turbo",
-                            "response_format":{ "type": "json_object"},
-            "messages": [
-              {
-                "role": "system",
-                "content": "You are a book extraction system. You will be given a free form passage of text containing references to books, and you will need to extract the book titles, author, and optionally ISBN in a JSON array."
-              },
-              {
-                "role": "user",
-                "content": `Please extract the books from the following text:\n\n${this.bulkSearchState.inputText}`,
-              }
-            ],
-                        })
+
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${this.bulkSearchState.extractionOptions.api_key}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-3.5-turbo',
+                        response_format: { type: 'json_object'},
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'You are a book extraction system. You will be given a free form passage of text containing references to books, and you will need to extract the book titles, author, and optionally ISBN in a JSON array.'
+                            },
+                            {
+                                role: 'user',
+                                content: `Please extract the books from the following text:\n\n${this.bulkSearchState.inputText}`,
+                            }
+                        ],
+                    })
 
                 }
                 try {
-                const resp = await fetch('https://api.openai.com/v1/chat/completions', request)
-                console.log(request)
-                if (!resp.ok){
-                    let status = resp.status
-                    console.log(typeof status) 
-                    if (status == 401){
+                    const resp = await fetch('https://api.openai.com/v1/chat/completions', request)
 
-                        this.bulkSearchState.errorMessage.push("Error: Incorrect Authorization key.")
+                    if (!resp.ok){
+                        const status = resp.status
+                        if (status === 401){
+
+                            this.bulkSearchState.errorMessage.push('Error: Incorrect Authorization key.')
+                        }
+                        throw new Error('Network response was not okay.')
                     }
-                    throw new Error("Network response was not okay.")
+                    const data = await resp.json()
+                    this.bulkSearchState.extractedBooks =  JSON.parse(data.choices[0].message.content)['books'].map((entry) =>  new ExtractedBook(entry?.title, entry?.author))
+                    this.bulkSearchState.matchedBooks=  JSON.parse(data.choices[0].message.content)['books'].map((entry) =>  new BookMatch(new ExtractedBook(entry?.title, entry?.author), {}))
                 }
-                const data = await resp.json()
-                console.log(data)
-                this.bulkSearchState.extractedBooks =  JSON.parse(data.choices[0].message.content)["books"].map((entry) =>  new ExtractedBook(entry?.title, entry?.author))
-                this.bulkSearchState.matchedBooks=  JSON.parse(data.choices[0].message.content)["books"].map((entry) =>  new BookMatch(new ExtractedBook(entry?.title, entry?.author), {}))
-            }
                 catch (error){
 
                 }
-                
+
             }
-            else{
+            else {
                 const regex = this.bulkSearchState.extractionOptions.regex
                 if (regex && this.bulkSearchState.inputText){
                     const data = [...this.bulkSearchState.inputText.matchAll(regex)]
@@ -100,11 +98,11 @@ export default {
                     return await data.json()
                 }
                 catch (error) {
-                    
+
                 }
 
             }
-            
+
             for (const bookMatch of this.bulkSearchState.matchedBooks) {
                 bookMatch.solrDocs = await fetchSolrBook(bookMatch.extractedBook, this.bulkSearchState.matchOptions)
 
@@ -135,7 +133,7 @@ export default {
       <option value="4">GPT</option>
     </select></label>
     <label v-if="bulkSearchState.extractionOptions.use_gpt">API-Key:
-    <input type="text" v-model="bulkSearchState.extractionOptions.api_key" /> 
+    <input type="text" v-model="bulkSearchState.extractionOptions.api_key" />
     </label>
     <sampleBar @sample="(msg) => this.bulkSearchState.inputText = msg"/>
     <label>
@@ -146,7 +144,7 @@ export default {
     <button @click="matchBooks">Match Books</button>
   </div>
   <div class="ErrorBox" v-if="this.bulkSearchState.errorMessage">
-    <p v-for="error in this.bulkSearchState.errorMessage">
+    <p v-for="error in this.bulkSearchState.errorMessage" :key = "error">
     {{ error }}</p>
   </div>
 </details>
