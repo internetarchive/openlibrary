@@ -5,7 +5,7 @@
     "roles": ["staff-emeritus"],
     "departments": ["engineering"],
     "photo_path": "../../../static/images/team/Aaron_Swartz.png",
-    "personal_url": "",
+    "personal_url": "http://aaronsw.com/",
     "favorite_book_url": "",
     "ol_key": "aaronsw"
   },
@@ -34,7 +34,7 @@
     "roles": ["fellow-2022"],
     "projects": ["Sharable List Previews"],
     "departments": ["engineering", "design"],
-    "photo_path": "",
+    "photo_path": "https://avatars.githubusercontent.com/u/72806587?v=4",
     "ol_key": ""
   },
   {
@@ -43,7 +43,7 @@
     "roles": ["fellow-2022"],
     "projects": ["My Books Page (Desktop)"],
     "departments": ["design"],
-    "photo_path": "",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/07995922-eb41-4d93-83f0-48b3e22378ed",
     "personal_url": "https://www.danafeinschaffer.com",
     "favorite_book_url": "https://openlibrary.org/works/OL17332479W/Six_of_Crows?edition=key%3A/books/OL37753024M",
     "ol_key": "danafs/books"
@@ -83,7 +83,7 @@
   },
   {
     "name": "Edward Betts",
-    "title": "Core Developer",
+    "title": "Core Developer, Emeritus",
     "roles": ["staff-emeritus"],
     "departments": ["engineering"],
     "projects": ["Librarian Merge Queue"],
@@ -105,7 +105,7 @@
   },
   {
     "name": "George Oates",
-    "title": "Program Lead Emeritus",
+    "title": "Program Lead, Emeritus",
     "roles": ["staff-emeritus"],
     "departments": ["design", "product"],
     "projects": ["Subjects Page", "Logo"],
@@ -283,7 +283,7 @@
   },
   {
     "name": "Tabish Shaikh",
-    "title": "Engineering Fellow",
+    "title": "Engineering Fellow, Staff Emeritus",
     "roles": ["fellow-2020-gsoc", "fellow-2019-iasoc", "staff-emeritus"],
     "departments": ["engineering"],
     "photo_path": "https://media.licdn.com/dms/image/D4D03AQFT2zb-MFX6ew/profile-displayphoto-shrink_800_800/0/1673440954545?e=2147483647&v=beta&t=cVjgjHfsFsRCPoR_siw7MPWtI4_MsTe7ztwlYfJuewI",
@@ -306,7 +306,8 @@
     "roles": ["fellow-2024"],
     "departments": ["engineering"],
     "projects": ["Registration", "i18n"],
-    "photo_path": "",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/c6eae0c8-0896-4fe6-a4e7-2972d18b8b8d",
+    "personal_url": "https://www.rebeccashoptaw.com/",
     "favorite_book_url": "",
     "ol_key": ""
   },
@@ -316,7 +317,7 @@
     "roles": ["fellow-2024"],
     "departments": ["engineering"],
     "projects": ["Edition-based Reading Log"],
-    "photo_path": "",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/b41556b7-b8b8-4c2b-83ca-349a3ec60243",
     "favorite_book_url": "",
     "ol_key": ""
   }
