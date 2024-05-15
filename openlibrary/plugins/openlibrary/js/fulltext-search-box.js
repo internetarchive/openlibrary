@@ -15,11 +15,7 @@ async function getPartials(fulltextSearchBox, query) {
           return resp.json()
       })
       .then((data) => {
-        console.log('DATA FROM PARTIAL CALL', data)
-        // const span = document.createElement('span')
-        // span.innerHTML = data['partials']
-        fulltextSearchBox.append = data['partials'];
-  //    fulltextSearchBox.innerHTML = data['partials']
-  //       //populate macro with data from partials aka /search/inside call
+        console.log('DATA FROM PARTIAL CALL', data['partials'])
+        fulltextSearchBox.innerHTML += data['partials']
       })
 }
