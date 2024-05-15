@@ -8,13 +8,18 @@ $def render_snippet(query, doc):
 $if results and results.get('hits'):
   $ hits = results['hits'].get('hits', [])
   $ num_found = results['hits'].get('total', 0)
+
   <div id="searchResults">
     <ul class="list-books">
       $for doc in hits:
-        $if doc.get('edition'):
-          $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], extra=render_snippet(query, doc), include_dropper=True)
+      <li>
+        <div class="serp-extra">
+          $:macros.FulltextSnippet(query, doc=doc)
+        </div>
+      </li>
+
     </ul>
-    $:macros.Pager(page, num_found)
+    <!-- $:macros.Pager(page, num_found) -->
   </div>
 
 

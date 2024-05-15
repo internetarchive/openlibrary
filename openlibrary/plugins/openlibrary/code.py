@@ -1119,7 +1119,7 @@ class Partials(delegate.page):
             print('QUERY', query)
             data = fulltext_search(query)
             hits = data.get('hits', [])
-            print('HITS', hits)
+            # print('HITS', hits)
             macro = web.template.Template.globals['macros'].FulltextSearchBox(query, data)
             partial = {"partials": str(macro)}
             #make call to endpoint here? /search/inside?$urlencode(dict(q=query))
