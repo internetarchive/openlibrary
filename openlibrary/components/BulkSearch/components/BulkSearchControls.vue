@@ -144,7 +144,7 @@ export default {
     <button @click="matchBooks">Match Books</button>
   </div>
   <div class="ErrorBox" v-if="this.bulkSearchState.errorMessage">
-    <p v-for="error in this.bulkSearchState.errorMessage" :key = "error">
+    <p v-for="error in this.bulkSearchState.errorMessage" :key="error">
     {{ error }}</p>
   </div>
 </details>
