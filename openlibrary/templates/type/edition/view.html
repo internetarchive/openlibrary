@@ -1,6 +1,6 @@
 $def with (page, edition=None)
 
-$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
+$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian())
 $ is_librarian = ctx.user and ctx.user.is_librarian()
 
 $ component_times = {}

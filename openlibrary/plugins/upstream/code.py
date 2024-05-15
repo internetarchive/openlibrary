@@ -132,15 +132,13 @@ class merge_work(delegate.page):
         user = web.ctx.site.get_user()
         has_access = user and (
             (user.is_admin() or user.is_librarian())
-            or user.is_usergroup_member('/usergroup/super-librarians')
+            or user.is_super_librarian()
         )
         if not has_access:
             raise web.HTTPError('403 Forbidden')
 
         optional_kwargs = {}
-        if not (
-            user.is_usergroup_member('/usergroup/super-librarians') or user.is_admin()
-        ):
+        if not (user.is_admin() or user.is_super_librarian()):
             optional_kwargs['can_merge'] = 'false'
 
         return render_template(
@@ -279,9 +277,7 @@ def reload():
 
 def user_can_revert_records():
     user = web.ctx.site.get_user()
-    return user and (
-        user.is_admin() or user.is_usergroup_member('/usergroup/super-librarians')
-    )
+    return user and (user.is_admin() or user.is_super_librarian())
 
 
 @public
