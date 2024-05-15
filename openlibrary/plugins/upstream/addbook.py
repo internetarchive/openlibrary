@@ -558,10 +558,7 @@ class SaveBookHelper:
         user = accounts.get_current_user()
         delete = (
             user
-            and (
-                user.is_admin()
-                or user.is_super_librarian()
-            )
+            and (user.is_admin() or user.is_super_librarian())
             and formdata.pop('_delete', '')
         )
 

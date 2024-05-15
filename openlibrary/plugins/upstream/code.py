@@ -131,8 +131,7 @@ class merge_work(delegate.page):
         i = web.input(records='', mrid=None, primary=None)
         user = web.ctx.site.get_user()
         has_access = user and (
-            (user.is_admin() or user.is_librarian())
-            or user.is_super_librarian()
+            (user.is_admin() or user.is_librarian()) or user.is_super_librarian()
         )
         if not has_access:
             raise web.HTTPError('403 Forbidden')
