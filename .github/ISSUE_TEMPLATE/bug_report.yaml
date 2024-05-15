@@ -53,3 +53,28 @@ body:
 
         #### Stakeholders
         <!-- @ tag stakeholders of this bug -->
+
+  - type: textarea
+    attributes:
+      label: Working with Git
+      description: |
+        Please leave this section as is for maintainers
+      value: |
+        **Before making a new branch _or_ updating an existing one, please ensure your branch is up to date.**
+
+        To do so, you can run:
+        ```
+        git switch master
+        git pull --ff-only upstream master
+        git push origin master
+        ```
+        If making a new branch, you can then run:
+        ```
+        git switch -c new-branch-name
+        ```
+        Or if returning to an existing branch:
+        ```
+        git switch existing-branch-name
+        git rebase master
+        ```
+        For troubleshooting or to learn more, see the [Git Cheat Sheet](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet).
