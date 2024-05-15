@@ -187,7 +187,7 @@ class MockSite:
     def regex_ilike(self, pattern: str, text: str) -> bool:
         """Construct a regex pattern for ILIKE operation and match against the text."""
         # Remove '_' to ignore single character matches, the same as Infobase.
-        regex_pattern = f"^{pattern.replace('*', '.*').replace('_', '')}$"
+        regex_pattern = re.escape(pattern).replace(r"\*", ".*").replace("_", "")
         return bool(re.match(regex_pattern, text, re.IGNORECASE))
 
     def filter_index(self, index, name, value):
