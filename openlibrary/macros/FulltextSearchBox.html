@@ -1,26 +1,26 @@
 $def with(query, results, page=1)
 
-$def render_snippet(query, doc):
-  <div class="serp-extra">
-    $:macros.FulltextSnippet(query, doc=doc)
-  </div>
 
 $if results and results.get('hits'):
   $ hits = results['hits'].get('hits', [])
   $ num_found = results['hits'].get('total', 0)
-
   <div id="searchResults">
     <ul class="list-books">
       $for doc in hits:
-      <li>
-        <div class="serp-extra">
-          $:macros.FulltextSnippet(query, doc=doc)
-        </div>
-      </li>
+      $ ia = doc.get('fields', {}).get('identifier', [''])[0]
+      $ snippets = doc.get('highlight', {}).get('text', [''])
+      $ page_nums = doc.get('fields', {}).get('page_num', [])
+      $ page = ', '.join([str(num) for num in page_nums])
 
+      $if snippets:
+        <section class="fulltext-excerpts">
+          <ul>
+            $for snippet in snippets:
+              $if snippet:
+                <li class="fulltext-excerpt">
+                    &hellip;$:(snippet.replace("<", "&laquo;").replace(">", "&raquo;").replace("{{{", "<mark class='highlight'><strong>").replace("}}}", "</strong></mark>"))&hellip;
+                </li>
+          </ul>
+        </section>
     </ul>
-    <!-- $:macros.Pager(page, num_found) -->
   </div>
-
-
-
