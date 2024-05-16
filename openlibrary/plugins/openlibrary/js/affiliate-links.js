@@ -59,7 +59,6 @@ async function getPartials(data, affiliateLinksSections) {
             return resp.json()
         })
         .then((data) => {
-            console.log('DATA', data)
             const span = document.createElement('span')
             span.innerHTML = data['partials']
             const links = span.firstElementChild
