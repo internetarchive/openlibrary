@@ -326,6 +326,7 @@ class account_create(delegate.page):
             except OLAuthenticationError as e:
                 f.note = get_login_error(e.__str__())
                 from openlibrary.plugins.openlibrary.sentry import sentry
+
                 if sentry.enabled:
                     sentry.capture_exception(e)
 
