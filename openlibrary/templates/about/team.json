@@ -5,6 +5,7 @@
     "roles": ["staff-emeritus"],
     "departments": ["engineering"],
     "photo_path": "../../../static/images/team/Aaron_Swartz.png",
+    "github_id": "aaronsw",
     "personal_url": "http://aaronsw.com/",
     "favorite_book_url": "",
     "ol_key": "aaronsw"
@@ -20,11 +21,22 @@
     "ol_key": "bodiceaa"
   },
   {
+    "name": "Ben Deitch",
+    "title": "Engineering Fellow",
+    "roles": ["fellow-2024"],
+    "departments": ["engineering"],
+    "projects": ["Edition-based Reading Log"],
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/b41556b7-b8b8-4c2b-83ca-349a3ec60243",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
     "name": "Chris Clauss",
     "title": "Python Backend",
     "roles": ["staff-emeritus"],
     "projects": ["Python2->3"],
     "departments": ["engineering"],
+    "github_id": "cclauss",
     "photo_path": "../../../static/images/team/Chris_Clauss.jpg",
     "ol_key": "cclauss"
   },
@@ -66,6 +78,7 @@
     "departments": ["engineering"],
     "projects": ["Library Explorer"],
     "photo_path": "../../../static/images/team/Drini.jpg",
+    "github_id": "cdrini",
     "personal_url": "",
     "favorite_book_url": "",
     "ol_key": "ScarTissue"
@@ -77,6 +90,7 @@
     "departments": ["engineering"],
     "projects": ["Librarian Merge Queue"],
     "photo_path": "https://lh3.googleusercontent.com/u/0/drive-viewer/AK7aPaCDKs7PIcfRPs-qDojkA9qpZAs53bEbUF3dOhCgIVFgPKgHw_I90u0uF2sxCkRJqJM1ZQ3D5hKQSjH7xiSreGRMKW07=w2652-h1228",
+    "github_id": "",
     "personal_url": "",
     "favorite_book_url": "",
     "ol_key": ""
@@ -156,6 +170,7 @@
     "departments": ["engineering"],
     "photo_path": "../../../static/images/team/Jim_Champ.png",
     "personal_url": "",
+    "github_id": "jimchamp",
     "favorite_book_url": "",
     "ol_key": "jchamp_archive"
   },
@@ -197,6 +212,7 @@
     "photo_path": "../../../static/images/team/Mek.png",
     "personal_url": "https://mek.fyi/",
     "favorite_book_url": "",
+    "github_id": "mekarpeles",
     "ol_key": "mekBot"
   },
   {
@@ -216,6 +232,17 @@
     "departments": ["engineering"],
     "projects": ["Open Book Genome Project (OBGP)"],
     "photo_path": "https://media.licdn.com/dms/image/D4E03AQGLGv88S5Ix6Q/profile-displayphoto-shrink_800_800/0/1693451292055?e=2147483647&v=beta&t=TmFFYiu5JJFXHIkyoL_xU23M8WALhX8biykVX0F5j0g",
+    "ol_key": ""
+  },
+  {
+    "name": "Rebecca Shoptaw",
+    "title": "Engineering Fellow, i18n Lead",
+    "roles": ["fellow-2024"],
+    "departments": ["engineering"],
+    "projects": ["Registration", "i18n"],
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/c6eae0c8-0896-4fe6-a4e7-2972d18b8b8d",
+    "personal_url": "https://www.rebeccashoptaw.com/",
+    "favorite_book_url": "",
     "ol_key": ""
   },
   {
@@ -277,6 +304,7 @@
     "roles": ["fellow-2022", "staff-active"],
     "departments": ["engineering"],
     "photo_path": "../../../static/images/team/Scott_Barnes.jpg",
+    "github_id": "scottbarnes",
     "personal_url": "https://github.com/scottbarnes",
     "favorite_book_url": "https://openlibrary.org/books/OL22552226M/The_High_Sierra",
     "ol_key": "srb36"
@@ -301,23 +329,13 @@
     "ol_key": ""
   },
   {
-    "name": "Rebecca Shoptaw",
-    "title": "Engineering Fellow, i18n Lead",
-    "roles": ["fellow-2024"],
-    "departments": ["engineering"],
-    "projects": ["Registration", "i18n"],
-    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/c6eae0c8-0896-4fe6-a4e7-2972d18b8b8d",
-    "personal_url": "https://www.rebeccashoptaw.com/",
-    "favorite_book_url": "",
-    "ol_key": ""
-  },
-  {
-    "name": "Ben Deitch",
+    "name": "Vaibhav Patel",
     "title": "Engineering Fellow",
-    "roles": ["fellow-2024"],
+    "roles": ["fellow-2024-gsoc"],
     "departments": ["engineering"],
-    "projects": ["Edition-based Reading Log"],
-    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/b41556b7-b8b8-4c2b-83ca-349a3ec60243",
+    "projects": ["Book Battles"],
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/76c602d8-8fe8-4353-a8e0-b68f991bafc8",
+    "github_id": "noobCoderVP",
     "favorite_book_url": "",
     "ol_key": ""
   }
