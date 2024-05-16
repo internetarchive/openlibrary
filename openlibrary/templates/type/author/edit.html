@@ -37,15 +37,6 @@ $:macros.HiddenSaveButton("addAuthor")
         </div>
     </div>
 
-        <div>
-
-            <div id="tabsAddauthor">
-
-                <ul>
-                    <li><a href="#about">$_("About")</a></li>
-                    <li><a href="#web">$_("Links")</a></li>
-                </ul>
-
                 <div id="about">
 
                     <fieldset class="major collapse">
@@ -117,16 +108,14 @@ $:macros.HiddenSaveButton("addAuthor")
                         <div id="identifiers-display">
                             $:render_component('AuthorIdentifiers', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenIdentifierInputs',author_config_string=dict(get_author_config())))
                         </div>
+                        <hr>
+                        <div class="label">$_("Links")</div>
+                        <div>
+                            $:render_template("books/edit/web", page, prefix="author--")
+                        </div>
 
 
                 </div>
-<!-- /ABOUT -->
-                <div id="web">
-                    $:render_template("books/edit/web", page, prefix="author--")
-                </div>
-            </div>
-
-        </div>
 
 
         $:render_template("authors/infobox", page, edit_view=True)

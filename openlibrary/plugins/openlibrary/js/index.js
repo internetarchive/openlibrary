@@ -86,7 +86,7 @@ jQuery(function () {
     }
 
     const $markdownTextAreas = $('textarea.markdown');
-    const $tabs = $('#tabsAddbook,#tabsAddauthor,.tabs:not(.ui-tabs)');
+    const $tabs = $('#tabsAddbook,.tabs:not(.ui-tabs)');
 
     initDialogs();
     // expose ol_confirm_dialog method
