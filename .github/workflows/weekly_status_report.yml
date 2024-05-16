@@ -7,6 +7,8 @@ permissions:
   contents: read
 env:
   NODE_VERSION: '20'
+  TEAM_ABC_CONFIG: '.github/workflows/config/weekly_status_report_team_abc.json'
+  LEADS_G_CONFIG: '.github/workflows/config/weekly_status_report_openlibrary_leads_g.json'
 jobs:
   create_and_publish_report:
     runs-on: ubuntu-latest
@@ -22,6 +24,9 @@ jobs:
           key: ${{ runner.os }}-node${{ env.NODE_VERSION}}-octokit-${{ hashFiles('**/package-lock.json') }}
       - if: steps.cache-octokit.outputs.cache-hit != 'true'
         run: npm install @octokit/action
-      - run: node scripts/gh_scripts/weekly_status_report.mjs
+      - run: node scripts/gh_scripts/weekly_status_report.mjs ${{ env.TEAM_ABC_CONFIG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: node scripts/gh_scripts/weekly_status_report.mjs ${{ env.LEADS_G_CONFIG }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
