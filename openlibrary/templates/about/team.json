@@ -89,8 +89,8 @@
     "roles": ["volunteer"],
     "departments": ["engineering"],
     "projects": ["Librarian Merge Queue"],
-    "photo_path": "https://lh3.googleusercontent.com/u/0/drive-viewer/AK7aPaCDKs7PIcfRPs-qDojkA9qpZAs53bEbUF3dOhCgIVFgPKgHw_I90u0uF2sxCkRJqJM1ZQ3D5hKQSjH7xiSreGRMKW07=w2652-h1228",
-    "github_id": "",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/dcc4d33d-9f77-4220-8a32-29a3b7e9f6d9",
+    "github_id": "Eds-Dbug",
     "personal_url": "",
     "favorite_book_url": "",
     "ol_key": ""
@@ -112,7 +112,7 @@
     "roles": ["fellow-2019-gsoc"],
     "departments": ["engineering"],
     "projects": ["<a href='https://blog.openlibrary.org/2020/08/29/giacomo-cignoni-my-internship-at-the-internet-archive/'>Bookreader Selection</a>"],
-    "photo_path": "https://media.licdn.com/dms/image/C4E03AQH9rdV9VCt0-w/profile-displayphoto-shrink_400_400/0/1657834448565?e=1703116800&v=beta&t=Wul7NBW-NlPqaVg8Mtry38Y8j2zfHomi6-tvDxgHQ3Y",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/f53ec5b5-604a-4a53-beaa-cda30e39d5fb",
     "personal_url": "",
     "favorite_book_url": "",
     "ol_key": ""
@@ -147,7 +147,7 @@
     "projects": [
       "<a href='https://blog.openlibrary.org/2023/08/25/google-summer-of-code-2023-supercharging-subject-pages/'>Tag-powered Subjects</a>"
     ],
-    "photo_path": "https://media.licdn.com/dms/image/D4E03AQGwfvWjoll47g/profile-displayphoto-shrink_400_400/0/1696947292009?e=1703116800&v=beta&t=wvrxAn6Om5w0lDxdN64ddrIKei_3XZPh6H7_AY9lNPQ",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/258ecfb4-7a13-4340-8de6-6db79d5ae40a",
     "personal_url": "https://www.linkedin.com/in/jayden-teoh/",
     "favorite_book_url": "",
     "ol_key": ""
@@ -179,7 +179,7 @@
     "title": "Frontend Lead Emeritus",
     "roles": ["fellow-2017"],
     "departments": ["engineering"],
-    "photo_path": "https://media.licdn.com/dms/image/C4E03AQHsUBUdt5_UAA/profile-displayphoto-shrink_400_400/0/1516543040876?e=1703116800&v=beta&t=9wHnzD5M1bXezjyZb7Jz-T_dfXgpG0Ea18GgtT73DMsz",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/e5db2459-3f23-4d49-9ab4-952be2efb4bb",
     "personal_url": "",
     "favorite_book_url": "",
     "ol_key": ""
@@ -231,7 +231,7 @@
     "roles": ["fellow-2021-gsoc"],
     "departments": ["engineering"],
     "projects": ["Open Book Genome Project (OBGP)"],
-    "photo_path": "https://media.licdn.com/dms/image/D4E03AQGLGv88S5Ix6Q/profile-displayphoto-shrink_800_800/0/1693451292055?e=2147483647&v=beta&t=TmFFYiu5JJFXHIkyoL_xU23M8WALhX8biykVX0F5j0g",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/0785572e-54e4-4934-a7e9-34941b56895f",
     "ol_key": ""
   },
   {
@@ -273,7 +273,7 @@
     "roles": ["fellow-2021"],
     "departments": ["design", "engineering"],
     "projects": ["Homepage Onboarding Cards"],
-    "photo_path": "https://pbs.twimg.com/profile_images/1344528993236647936/YktB5pg8_400x400.jpg",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/275568d0-6fce-4142-b4bc-17850acf5754",
     "personal_url": "https://www.linkedin.com/in/sabreen-parveen-4a6641190",
     "favorite_book_url": "",
     "ol_key": ""
@@ -314,7 +314,7 @@
     "title": "Engineering Fellow, Staff Emeritus",
     "roles": ["fellow-2020-gsoc", "fellow-2019-iasoc", "staff-emeritus"],
     "departments": ["engineering"],
-    "photo_path": "https://media.licdn.com/dms/image/D4D03AQFT2zb-MFX6ew/profile-displayphoto-shrink_800_800/0/1673440954545?e=2147483647&v=beta&t=cVjgjHfsFsRCPoR_siw7MPWtI4_MsTe7ztwlYfJuewI",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/481099ea-0c24-4257-9b3c-0d803be6b98e",
     "ol_key": ""
   },
   {
@@ -323,7 +323,7 @@
     "roles": ["fellow-2022"],
     "departments": ["engineering"],
     "projects": ["Open Book Genome Project (OBGP)"],
-    "photo_path": "https://media.licdn.com/dms/image/D5603AQELxHjGPUmY7g/profile-displayphoto-shrink_400_400/0/1680211721055?e=1703116800&v=beta&t=ubJ8o5N9Oba2AD_5vE6pizFm0RLzyTjTNT734MEyDPI",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/071b7167-a7a9-4d7b-8118-d8cef4d1c528",
     "personal_url": "https://www.linkedin.com/in/teo-cheng/",
     "favorite_book_url": "",
     "ol_key": ""
