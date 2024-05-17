@@ -6010,14 +6010,14 @@ msgstr ""
 #: DonateModal.html
 msgid ""
 "Beautiful <a target=\"_blank\" href=\"https://archive.org/scanning"
-"\">high-fidelity digitization"
+"\">high-fidelity digitization</a>"
 msgstr ""
 
 #: DonateModal.html
 msgid ""
 "Long-term <a href=\"https://blog.archive.org/2011/06/06/why-preserve-"
 "books-the-new-physical-archive-of-the-internet-archive/\">archival "
-"preservation"
+"preservation</a>"
 msgstr ""
 
 #: DonateModal.html
