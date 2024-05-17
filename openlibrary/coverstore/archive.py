@@ -512,11 +512,13 @@ class ZipManager:
             if file_list:
                 return max(file_list)
 
+
 def main(openlibrary_yml: str, coverstore_yml: str, dry_run: bool = False):
     load_config(openlibrary_yml)
     load_config(coverstore_yml)
     archive.archive()
     archive.Batch.process_pending(upload=True, finalize=True, test=not dry_run)
+
 
 if __name__ == '__main__':
     FnToCLI(main).run()
