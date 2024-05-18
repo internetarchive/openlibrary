@@ -4,7 +4,8 @@
  */
 
 .search-div {
-  background-color: @grey-fafafa;
+  // @grey-fafafa;
+  background-color: @white;
   border: 1px solid @dark-beige;
   border-radius: .3em;
   position: relative;
@@ -16,12 +17,12 @@
 }
 
 .search-btn-icon {
-  margin: 0;
-  cursor: pointer;
   background: url(/static/images/search-icon.svg) center no-repeat;
   width: 35px;
   height: 45px;
+  cursor: pointer;
   border: 0;
+  flex: 0 0 auto;
 }
 
 .search-input {
@@ -32,6 +33,8 @@
   color: @grey !important;
   flex-grow: 1;
   font-size: 1em !important;
+  height: 45px;
+  max-width: 93% !important;
 }
 
 .search-btn {
