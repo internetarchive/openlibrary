@@ -2646,13 +2646,21 @@ msgid ""
 msgstr ""
 
 #: books/daisy.html
-#, python-format
 msgid ""
 "There are two types of DAISYs on Open Library: <i>open</i> and "
 "<i>protected</i>. Open DAISYs can be read by anyone in the world on many "
 "different devices. Protected DAISYs like this one can only be opened "
 "using a key issued by the <a href=\"http://www.loc.gov/nls/\">Library of "
 "Congress NLS program</a>."
+msgstr ""
+
+#: books/daisy.html
+msgid ""
+"There are two types of DAISYs on Open Library: <i>open</i> and "
+"<i>protected</i>. Open DAISYs can be read by anyone in the world on many "
+"different devices. Protected DAISYs can only be opened using a key issued"
+" by the <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS "
+"program</a>."
 msgstr ""
 
 #: books/daisy.html lists/home.html
