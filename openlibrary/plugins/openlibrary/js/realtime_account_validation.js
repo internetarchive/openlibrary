@@ -1,11 +1,14 @@
 export function initRealTimeValidation() {
-    const i18nStrings = JSON.parse(document.querySelector('form[name="signup"]').dataset.i18n);
+    const signupForm = document.querySelector('form[name=signup]');
+    const i18nStrings = JSON.parse(signupForm.dataset.i18n);
 
     if (window.grecaptcha) {
         // Callback that is called when grecaptcha.execute() is successful
+        // Checks whether reportValidity exists for cross-browser compatibility
         function submitCreateAccountForm() {
-            const signupForm = document.querySelector('form[name=signup]')
-            signupForm.submit()
+            if (!signupForm.reportValidity || signupForm.reportValidity()) {
+                signupForm.submit();
+            }
         }
         window.submitCreateAccountForm = submitCreateAccountForm
     }
