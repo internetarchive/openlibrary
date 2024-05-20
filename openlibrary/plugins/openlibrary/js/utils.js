@@ -1,14 +1,8 @@
-// http://jqueryminute.com/set-focus-to-the-next-input-field-with-jquery/
-$.fn.focusNextInputField = function() {
-    return this.each(function() {
-        var fields = $(this).parents('form').eq(0).add('body').find(':input:visible');
-        var index = fields.index(this);
-        if (index > -1 && (index + 1) < fields.length) {
-            fields.eq(index + 1).focus();
-        }
-        return false;
-    });
-};
+/*
+These functions are used by jsdef.py
+They must be available in the global JS namespace
+See: https://github.com/internetarchive/openlibrary/pull/9180#issuecomment-2107911798
+*/
 
 // closes active popup
 export function closePopup() {

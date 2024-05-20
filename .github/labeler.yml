@@ -1,0 +1,9 @@
+# Configurations for the `labeler` GitHub action.
+# More details can be found here: https://github.com/actions/labeler?tab=readme-ov-file#usage
+"Needs: Submitter Input":
+  - changed-files:
+    # When the labeler action's `sync-labels` input it true,
+    # the `Needs: Submitter Input` label will be removed
+    # unless the update includes a change to any `dev/null/*` file
+    # (which should never happen).
+    - any-glob-to-any-file: dev/null/*

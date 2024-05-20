@@ -173,7 +173,7 @@ $ )
             $ username = ctx.user and ctx.user.key.split('/')[-1]
             $if username:
                 $ works = add_read_statuses(username, works)
-            $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/librarians'))
+            $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
 
             $# Subject key list will only be included in each doc if the patron has a sfw cookie
             $ subject_keys = [d.get('subject', []) for d in search_response.docs]
