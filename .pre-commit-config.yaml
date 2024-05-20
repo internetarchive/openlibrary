@@ -62,12 +62,12 @@ repos:
           - types-all
 
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.17
+    rev: v0.18
     hooks:
       - id: validate-pyproject
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.2.0
+    rev: v9.3.0
     hooks:
       - id: eslint
         types: [file]
