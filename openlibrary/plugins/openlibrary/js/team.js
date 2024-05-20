@@ -68,6 +68,11 @@ export function initTeamFilter() {
     departmentFilter.addEventListener('change', (e) =>
         filterTeam(roleFilter.value, e.target.value)
     );
+    // Example usage: update multiple parameters
+    updateURLParameters({
+        role: '',
+        department: ''
+    });
     const cardsContainer = document.querySelector('.teamCards_container');
 
     // *************************************** Functions ***************************************
