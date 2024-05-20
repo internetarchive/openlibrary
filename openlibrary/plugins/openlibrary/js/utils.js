@@ -52,15 +52,15 @@ export function removeChildren(...elements) {
 // Function to add or update multiple query parameters
 export function updateURLParameters(params) {
     // Get the current URL
-    let url = new URL(window.location.href);
-    
+    const url = new URL(window.location.href);
+
     // Iterate over the params object and update/add each parameter
-    for (let key in params) {
+    for (const key in params) {
         if (params.hasOwnProperty(key)) {
             url.searchParams.set(key, params[key]);
         }
     }
-    
+
     // Use history.pushState to update the URL without reloading
     window.history.pushState({ path: url.href }, '', url.href);
 }
