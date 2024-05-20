@@ -1,4 +1,5 @@
 import team from '../../../templates/about/team.json';
+import { updateURLParameters } from './utils';
 export function initTeamFilter() {
     // Photos
     const default_profile_image =
@@ -70,8 +71,8 @@ export function initTeamFilter() {
     );
     // Example usage: update multiple parameters
     updateURLParameters({
-        role: '',
-        department: ''
+        role: 'fellows',
+        department: 'all'
     });
     const cardsContainer = document.querySelector('.teamCards_container');
 
