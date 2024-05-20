@@ -522,7 +522,10 @@ class TestYearlyReadingGoals:
     def test_total_yearly_reading_goals(self):
         assert BookshelvesEvents.total_yearly_reading_goals()['count(*)'] == 3
         # Combination of issues
-        assert BookshelvesEvents.total_yearly_reading_goals(since="2022-12-25")['count(*)'] == 1
+        assert (
+            BookshelvesEvents.total_yearly_reading_goals(since="2022-12-25")['count(*)']
+            == 1
+        )
 
     def test_create(self):
         assert len(list(self.db.select(self.TABLENAME))) == 3

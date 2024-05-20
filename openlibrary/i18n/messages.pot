@@ -1837,6 +1837,10 @@ msgid "Users Logging"
 msgstr ""
 
 #: admin/index.html
+msgid "Yearly Reading Goals"
+msgstr ""
+
+#: admin/index.html
 msgid "Books Review Tags"
 msgstr ""
 

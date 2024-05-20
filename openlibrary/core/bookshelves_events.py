@@ -24,8 +24,12 @@ class BookshelvesEvents(db.CommonExtras):
         return {
             'total_yearly_reading_goals': {
                 'total': BookshelvesEvents.total_yearly_reading_goals(),
-                'month': BookshelvesEvents.total_yearly_reading_goals(since=DATE_ONE_MONTH_AGO),
-                'week': BookshelvesEvents.total_yearly_reading_goals(since=DATE_ONE_WEEK_AGO),
+                'month': BookshelvesEvents.total_yearly_reading_goals(
+                    since=DATE_ONE_MONTH_AGO
+                ),
+                'week': BookshelvesEvents.total_yearly_reading_goals(
+                    since=DATE_ONE_WEEK_AGO
+                ),
             },
         }
 
@@ -138,7 +142,7 @@ class BookshelvesEvents(db.CommonExtras):
 
     @classmethod
     def total_yearly_reading_goals(cls, since: date | None = None) -> int:
-        """Returns a Storage object of <Storage {'count': int}> where 'count' specifies the 
+        """Returns a Storage object of <Storage {'count': int}> where 'count' specifies the
         number reading goals updated. `since` may be used
         to limit the result to those reading goals updated since a specific
         date. Any python datetime.date type should work.
