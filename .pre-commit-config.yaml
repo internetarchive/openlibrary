@@ -32,7 +32,7 @@ repos:
       - id: auto-walrus
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.2
+    rev: v0.4.4
     hooks:
       - id: ruff
 
@@ -62,12 +62,12 @@ repos:
           - types-all
 
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.16
+    rev: v0.17
     hooks:
       - id: validate-pyproject
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.1.1
+    rev: v9.2.0
     hooks:
       - id: eslint
         types: [file]
@@ -97,7 +97,7 @@ repos:
     - id: generate-pot
       name: Generate POT
       description: This hook generates the .pot file for internationalization.
-      entry: python ./scripts/i18n-messages extract
+      entry: python ./scripts/i18n-messages extract --skip-untracked
       types_or: [python, html]
       language: python
       pass_filenames: false

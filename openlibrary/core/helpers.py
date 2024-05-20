@@ -31,6 +31,8 @@ from infogami.infobase.client import Nothing
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
 
+# Helper functions that are added to `__all__` are exposed for use in templates
+# in /openlibrary/plugins/upstream/utils.py setup()
 __all__ = [
     "sanitize",
     "json_encode",

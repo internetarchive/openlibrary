@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 import logging
 import re
+import requests
 from typing import Any, TYPE_CHECKING, Final
 from collections.abc import Callable
 from collections.abc import Iterable, Mapping
@@ -32,6 +33,7 @@ from openlibrary.core.lending import (
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.core.follows import PubSub
+
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins import openlibrary as olib
@@ -42,6 +44,7 @@ from openlibrary.accounts import (
     InternetArchiveAccount,
     valid_email,
     clear_cookies,
+    OLAuthenticationError,
 )
 from openlibrary.plugins.upstream import borrow, forms, utils
 from openlibrary.utils.dateutil import elapsed_time
@@ -90,6 +93,7 @@ def get_login_error(error_key):
         "invalid_s3keys": _(
             'Login attempted with invalid Internet Archive s3 credentials.'
         ),
+        "undefined_error": _('A problem occurred and we were unable to log you in'),
     }
     return LOGIN_ERRORS[error_key]
 
@@ -319,8 +323,12 @@ class account_create(delegate.page):
                 return render['account/verify'](
                     username=f.username.value, email=f.email.value
                 )
-            except ValueError:
-                f.note = get_login_error('max_retries_exceeded')
+            except OLAuthenticationError as e:
+                f.note = get_login_error(e.__str__())
+                from openlibrary.plugins.openlibrary.sentry import sentry
+
+                if sentry.enabled:
+                    sentry.capture_exception(e)
 
         return render['account/create'](f)
 
@@ -552,13 +560,26 @@ class account_validation(delegate.page):
     path = '/account/validate'
 
     @staticmethod
+    def ia_username_exists(username):
+        url = "https://archive.org/metadata/@%s" % username
+        try:
+            return bool(requests.get(url).json())
+        except (OSError, ValueError):
+            return
+
+    @staticmethod
     def validate_username(username):
         if not 3 <= len(username) <= 20:
             return _('Username must be between 3-20 characters')
         if not re.match('^[A-Za-z0-9-_]{3,20}$', username):
             return _('Username may only contain numbers and letters')
+
         ol_account = OpenLibraryAccount.get(username=username)
         if ol_account:
+            return _("Username unavailable")
+
+        ia_account = account_validation.ia_username_exists(username)
+        if ia_account:
             return _("Username unavailable")
 
     @staticmethod
@@ -569,6 +590,10 @@ class account_validation(delegate.page):
         ol_account = OpenLibraryAccount.get(email=email)
         if ol_account:
             return _('Email already registered')
+
+        ia_account = InternetArchiveAccount.get(email=email)
+        if ia_account:
+            return _('An Internet Archive account already exists with this email')
 
     def GET(self):
         i = web.input()

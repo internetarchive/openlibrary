@@ -39,6 +39,10 @@ if TYPE_CHECKING:
 logger = logging.getLogger("openlibrary.account.model")
 
 
+class OLAuthenticationError(Exception):
+    pass
+
+
 def append_random_suffix(text, limit=9999):
     return f'{text}{random.randint(0, limit)}'
 
@@ -643,10 +647,10 @@ class InternetArchiveAccount(web.storage):
         notifications = notifications or []
 
         if cls.get(email=email):
-            raise ValueError('email_registered')
+            raise OLAuthenticationError('email_registered')
 
         if not screenname:
-            raise ValueError('screenname required')
+            raise OLAuthenticationError('missing_fields')
 
         _screenname = screenname
         attempt = 0
@@ -669,13 +673,12 @@ class InternetArchiveAccount(web.storage):
                 return ia_account
 
             elif 'screenname' not in response.get('values', {}):
-                errors = '_'.join(response.get('values', {}))
-                raise ValueError(errors)
+                raise OLAuthenticationError('undefined_error')
 
             elif attempt >= retries:
-                ve = ValueError('username_registered')
-                ve.value = _screenname
-                raise ve
+                e = OLAuthenticationError('username_registered')
+                e.value = _screenname
+                raise e
 
             _screenname = append_random_suffix(screenname)
             attempt += 1

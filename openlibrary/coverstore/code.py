@@ -543,32 +543,11 @@ def render_list_preview_image(lst_key):
             image.append(img)
     max_height = 0
     for img in image:
-        if img.size[1] > max_height:
-            max_height = img.size[1]
-    if len(image) == 5:
-        background.paste(image[0], (63, 174 + max_height - image[0].size[1]))
-        background.paste(image[1], (247, 174 + max_height - image[1].size[1]))
-        background.paste(image[2], (431, 174 + max_height - image[2].size[1]))
-        background.paste(image[3], (615, 174 + max_height - image[3].size[1]))
-        background.paste(image[4], (799, 174 + max_height - image[4].size[1]))
-
-    elif len(image) == 4:
-        background.paste(image[0], (155, 174 + max_height - image[0].size[1]))
-        background.paste(image[1], (339, 174 + max_height - image[1].size[1]))
-        background.paste(image[2], (523, 174 + max_height - image[2].size[1]))
-        background.paste(image[3], (707, 174 + max_height - image[3].size[1]))
-
-    elif len(image) == 3:
-        background.paste(image[0], (247, 174 + max_height - image[0].size[1]))
-        background.paste(image[1], (431, 174 + max_height - image[1].size[1]))
-        background.paste(image[2], (615, 174 + max_height - image[2].size[1]))
-
-    elif len(image) == 2:
-        background.paste(image[0], (339, 174 + max_height - image[0].size[1]))
-        background.paste(image[1], (523, 174 + max_height - image[1].size[1]))
-
-    else:
-        background.paste(image[0], (431, 174 + max_height - image[0].size[1]))
+        max_height = max(img.size[1], max_height)
+    start_width = 63 + 92 * (5 - len(image))
+    for img in image:
+        background.paste(img, (start_width, 174 + max_height - img.size[1]))
+        start_width += 184
 
     logo = logo.resize((120, 74), Image.LANCZOS)
     background.paste(logo, (880, 14), logo)

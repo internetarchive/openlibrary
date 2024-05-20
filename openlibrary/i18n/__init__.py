@@ -5,6 +5,7 @@ import subprocess
 from collections.abc import Iterator
 from io import BytesIO
 from pathlib import Path
+from datetime import datetime
 
 import web
 
@@ -158,15 +159,26 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
     return extract_python(f, keywords, comment_tags, options)
 
 
-def extract_messages(dirs: list[str], verbose: bool, forced: bool):
-    catalog = Catalog(project='Open Library', copyright_holder='Internet Archive')
+def extract_messages(
+    dirs: list[str], verbose: bool, forced: bool, skip_untracked: bool
+):
+    # The creation date is fixed to prevent merge conflicts on this line as a result of i18n auto-updates
+    # In the unlikely event we need to update the fixed creation date, you can change the hard-coded date below
+    fixed_creation_date = datetime.fromisoformat('2024-05-01 18:58-0400')
+    catalog = Catalog(
+        project='Open Library',
+        copyright_holder='Internet Archive',
+        creation_date=fixed_creation_date,
+    )
     METHODS = [("**.py", "python"), ("**.html", "openlibrary.i18n:extract_templetor")]
     COMMENT_TAGS = ["NOTE:"]
 
-    untracked_files = get_untracked_files(dirs, ('.py', '.html'))
     template = read_po((Path(root) / 'messages.pot').open('rb'))
     msg_set = {msg.id for msg in template if msg.id != ''}
     new_set = set()
+    skipped_files = set()
+    if skip_untracked:
+        skipped_files = get_untracked_files(dirs, ('.py', '.html'))
 
     for d in dirs:
         extracted = extract_from_dir(
@@ -176,7 +188,7 @@ def extract_messages(dirs: list[str], verbose: bool, forced: bool):
         counts: dict[str, int] = {}
         for filename, lineno, message, comments, context in extracted:
             file_path = Path(d) / filename
-            if file_path in untracked_files:
+            if file_path in skipped_files:
                 continue
             new_set.add(message)
             counts[filename] = counts.get(filename, 0) + 1

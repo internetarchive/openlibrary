@@ -1,4 +1,6 @@
 export function initRealTimeValidation() {
+    const i18nStrings = JSON.parse(document.querySelector('form[name="signup"]').dataset.i18n);
+
     if (window.grecaptcha) {
         // Callback that is called when grecaptcha.execute() is successful
         function submitCreateAccountForm() {
@@ -80,32 +82,17 @@ export function initRealTimeValidation() {
         }
     }
 
-    function validatePasswords() {
-        // NOTE: Outdated two-password implementation to be replaced and helper functions to be added in issue #9165
-        var value = document.getElementById('password').value;
-        var value2 = document.getElementById('password2').value;
-        if (value && value2) {
-            if (value2 === value) {
-                $('#password2Message').removeClass().addClass('darkgreen').text('');
-                $('label[for="password2"]').removeClass();
-                $(document.getElementById('password2')).removeClass().addClass('required');
-            }
-            else {
-                $(document.getElementById('password2')).removeClass().addClass('required invalid');
-                $('label[for="password2"]').removeClass().addClass('invalid');
-                $('#password2Message').removeClass().addClass('invalid').text('Passwords didnt match');
-            }
+    function validatePassword() {
+        const value_password = $(this).val();
+        if (value_password !== '' && (value_password.length < 3 || value_password.length > 20)) {
+            renderError('#password', '#passwordMessage', i18nStrings['password_length_err']);
         }
-        else {
-            $('label[for="password2"]').removeClass();
-            $(document.getElementById('password2')).removeClass().addClass('required');
-            $('#password2Message').removeClass().text('');
-        }
+        else clearError('#password', '#passwordMessage');
     }
 
     $('#username').on('blur', validateUsername);
     $('#emailAddr').on('blur', validateEmail);
-    $('#password, #password2').on('blur', validatePasswords);
+    $('#password').on('blur', validatePassword);
 
     $('#signup').on('click', function(e) {
         e.preventDefault();

@@ -83,6 +83,11 @@ class Sentry:
             scope.add_event_processor(add_web_ctx_to_event)
             sentry_sdk.capture_exception()
 
+    def capture_exception(self, ex):
+        with sentry_sdk.push_scope() as scope:
+            scope.add_event_processor(add_web_ctx_to_event)
+            sentry_sdk.capture_exception(ex)
+
 
 @dataclass
 class InfogamiRoute:

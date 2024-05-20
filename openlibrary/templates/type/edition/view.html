@@ -350,18 +350,10 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
         $if edition:
           <h2 class="details-title" itemprop="name">$_("Book Details")</h2>
           <hr>
-          $if edition.publish_places:
-            <div class="section">
-              <h3 class="edition-header">$_('Published in')</h3>
-              <p>
-              $for p in edition.publish_places:
-                $(p)$cond(loop.last, "", ", ")
-              </p>
-            </div>
           $if edition.first_sentence:
             <div>
-            <h3 class="edition-header">$_("First Sentence")</h3>
-            <p>"$(edition.first_sentence)"</p>
+              <h3>$_("First Sentence")</h3>
+              <p>"$(edition.first_sentence)"</p>
             </div>
 
           $ table_of_contents = edition.get_table_of_contents()
@@ -374,15 +366,15 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
               $:macros.ReadMore()
             </div>
 
-          $if edition.notes or edition.series or edition.volume or edition.genres or edition.other_titles or edition.copyright_date or edition.translation_of or edition.translated_from:
+          $if edition.notes or edition.publish_places or edition.series or edition.volume or edition.genres or edition.other_titles or edition.copyright_date or edition.translation_of or edition.translated_from:
             <div class="section">
-                <h3 class="edition-header">$_("Edition Notes")
-                </h3>
+                <h3>$_("Edition Notes")</h3>
                 $if edition.notes:
                     <div class="edition-notes">
                     $:format(edition.notes)
                     </div>
                 <dl class="meta">
+                    $:display_value(_("Published in"), edition.publish_places)
                     $:display_value(_("Series"), edition.series)
                     $:display_value(_("Volume"), edition.volume)
                     $:display_value(_("Genre"), edition.genres)
@@ -396,7 +388,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
           $ classifications = edition.get_classifications().multi_items()
           $if classifications:
             <div class="section">
-                <h3 class="list-header collapse">$_("Classifications")</h3>
+                <h3>$_("Classifications")</h3>
                 <dl class="meta">
                     $for name, values in classifications:
                         $:display_identifiers(values[0].label, values)
@@ -421,7 +413,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
           $ contributors = edition.get('contributors', [])
           $if contributors:
             <div class="section">
-              <h3 class="edition-header">$_("Contributors")</h3>
+              <h3>$_("Contributors")</h3>
               <dl class="meta">
               $for c in contributors:
                     $:display_value(c.role, c.name)
@@ -430,7 +422,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
           $if has_any("physical_format", "pagination", "physical_dimensions", "weight"):
             <div class="section">
-                <h3 class="list-header collapse">$_("The Physical Object")</h3>
+                <h3>$_("The Physical Object")</h3>
                 <dl class="meta">
                     $:display_value(_("Format"), edition.physical_format)
                     $:display_value(_("Pagination"), edition.pagination)
@@ -442,7 +434,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
 
           <div class="section">
-            <h3 class="list-header collapse">$_("ID Numbers")</h3>
+            <h3>$_("ID Numbers")</h3>
             <dl class="meta">
                 $:display_identifiers("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
                 $ no_index = edition.get_ia_meta_fields().get('noindex', False)
