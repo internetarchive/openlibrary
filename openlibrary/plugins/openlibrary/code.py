@@ -1123,7 +1123,7 @@ class Partials(delegate.page):
             macro = web.template.Template.globals['macros'].FulltextSearchBox(
                 query, data
             )
-            partial = {"partials": str(macro)}
+            partial = {"partials": str(macro), "data": hits}
 
         return delegate.RawText(json.dumps(partial))
 

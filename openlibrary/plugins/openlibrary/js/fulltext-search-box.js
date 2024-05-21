@@ -14,7 +14,7 @@ async function getPartials(fulltextSearchBox, query) {
             return resp.json()
         })
         .then((data) => {
-            console.log('DATA FROM PARTIAL CALL', data['partials'])
+            console.log('DATA FROM PARTIAL CALL', data['data'])
             fulltextSearchBox.innerHTML += data['partials']
         })
 }
