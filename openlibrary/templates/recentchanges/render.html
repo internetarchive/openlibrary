@@ -29,28 +29,29 @@ $if "ip" in query and ctx.user and ctx.user.is_admin():
     </thead>
     <tbody>
     $for c in changes:
-        <tr>
-            <td class="time">$datestr(c.timestamp)</td>
-            <td class="path">$:call_template("path", c)</td>
-            $if c.author:
-                <td class="displayname"><a rel="nofollow" href="$c.author.key">$c.author.displayname</a></td>
-            $elif c.ip and c.ip != '127.0.0.1':
-                $if ctx.user and ctx.user.is_admin():
-                    $ ip_url = "/admin/ip/%s" % c.ip
-                    $ klass = cond(c.ip in get_blocked_ips(), 'red', "")
+        $if c.comment != "updating user preferences":
+            <tr>
+                <td class="time">$datestr(c.timestamp)</td>
+                <td class="path">$:call_template("path", c)</td>
+                $if c.author:
+                    <td class="displayname"><a rel="nofollow" href="$c.author.key">$c.author.displayname</a></td>
+                $elif c.ip and c.ip != '127.0.0.1':
+                    $if ctx.user and ctx.user.is_admin():
+                        $ ip_url = "/admin/ip/%s" % c.ip
+                        $ klass = cond(c.ip in get_blocked_ips(), 'red', "")
+                    $else:
+                        $ ip_url = changequery(ip=c.ip)
+                        $ klass = ""
+                    <td class="history"><a rel="nofollow" href="$ip_url" class="$klass" title="$_('When you see numbers here, that\'s the IP address of the anonymous editor')">$c.ip</a></td>
                 $else:
-                    $ ip_url = changequery(ip=c.ip)
-                    $ klass = ""
-                <td class="history"><a rel="nofollow" href="$ip_url" class="$klass" title="$_('When you see numbers here, that\'s the IP address of the anonymous editor')">$c.ip</a></td>
-            $else:
-                <td class="history">$c.ip</td>
-            <td class="comment">
-                $if c.kind == 'add-cover':
-                    Added new cover <img class="comment__cover" src='$:call_template("comment", c)' alt=""/>
-                $else:
-                    $:call_template("comment", c)
-            </td>
-        </tr>
+                    <td class="history">$c.ip</td>
+                <td class="comment">
+                    $if c.kind == 'add-cover':
+                        Added new cover <img class="comment__cover" src='$:call_template("comment", c)' alt=""/>
+                    $else:
+                        $:call_template("comment", c)
+                </td>
+            </tr>
     </tbody>
 </table>
 
