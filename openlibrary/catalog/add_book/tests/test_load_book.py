@@ -83,6 +83,7 @@ class TestImportAuthor:
     @pytest.mark.parametrize(
         ["name", "expected"],
         [
+            ("Drini Cami", "Drini Cami"),
             ("Dr. Seuss", "Dr. Seuss"),
             ("dr. Seuss", "dr. Seuss"),
             ("Dr Seuss", "Dr Seuss"),
