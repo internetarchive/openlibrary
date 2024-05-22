@@ -95,7 +95,7 @@ A configuration file is required for this script to run properly.  The file shou
 
 `leads.leadLabel`: Text of the lead's `Lead: @` label.
 
-`leads.slackId`: The lead's Slack ID, which is used to trigger Slack notifications when the message is published.
+`leads.slackId`: The lead's Slack ID in their `mrkdwn` format, which is used to trigger Slack notifications when the message is published.
 
 ### Details
 
@@ -103,9 +103,9 @@ The script prepares a digest containing the following sections:
 
 *Recent comments* : A list of links to issues that need comments, broken down by lead.
 
-*Untriaged issues* : List of issues which have the https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Triage label.  Only present if `forStaff` is `true`.
+*Needs: Lead/Assignee* : Lists of pull requests that do not have an assignee, and issues that need a lead.  Only present if `staffOnly` is `true`.
 
-*Unassigned PRs* : List of pull requests that do not have an assignee.  Only present if `staffOnly` is `true`.
+*Untriaged issues* : List of issues which have the https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Triage label.  Only present if `forStaff` is `true`.
 
 *Assigned PRs* : List of pull requests that have been assigned, broken down by lead.  Links to higher priority PRs are also included here.
 

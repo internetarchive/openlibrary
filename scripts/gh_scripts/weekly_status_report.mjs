@@ -4,7 +4,7 @@ import { Octokit } from "@octokit/action";
 const octokit = new Octokit()
 
 console.log('Starting script...')
-main()
+await main()
 console.log('Finishing script...')
 
 /**
@@ -28,9 +28,10 @@ async function main() {
     const nonDraftPullRequests = openPullRequests.filter((pull) => !pull.draft)
 
     if (config.forStaff) {
-        await prepareUntriagedIssues()
+        await prepareUnassignedItems(nonDraftPullRequests)
             .then((results) => lines.push(...results))
-        lines.push(...prepareUnassignedPullRequests(nonDraftPullRequests))
+        await prepareUntriagedIssues(config.leads)
+            .then((results) => lines.push(...results))
     }
     lines.push(...prepareAssignedPullRequests(nonDraftPullRequests, config.leads))
     if (config.forStaff) {
@@ -48,7 +49,7 @@ async function main() {
  * @typedef {Object} Lead
  * @property {string} githubUsername The lead's GitHub username
  * @property {string} leadLabel      Label used to identify an issue's lead
- * @property {string} slackId        The lead's Slack identifier
+ * @property {string} slackId        The lead's Slack identifier, in Slack's `mrkdwn` format
  */
 
 /**
@@ -129,6 +130,8 @@ async function prepareRecentComments(leads) {
           'X-GitHub-Api-Version': '2022-11-28'
         }
       })
+    let isUpToDate = true
+
     for (const lead of leads) {
         const leadIssuesAwaitingComments = issuesAwaitingComments.filter((issue) => {
             for (const label of issue.labels) {
@@ -139,20 +142,62 @@ async function prepareRecentComments(leads) {
             return false
         })
         const searchResultsUrl = `https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Needs%3A+Response%22+label%3A${encodeURIComponent('"' + lead.leadLabel + '"')}`
-        output.push(`  • <${searchResultsUrl}|${leadIssuesAwaitingComments.length} issue(s)> need response from ${lead.slackId}`)
+        if (leadIssuesAwaitingComments.length > 0) {
+            output.push(`  • <${searchResultsUrl}|${leadIssuesAwaitingComments.length} issue(s)> need response from ${lead.slackId}`)
+            isUpToDate = false
+        }
+    }
+
+    if (isUpToDate) {
+        output.push('  _No issues awaiting comments from leads_')
     }
 
     return output
 }
 
+
 /**
- * Finds all issues with the "Needs: Triage" label, prepares a message containing a link
- * for each, and returns the prepared messages.
+ * Prepares a message containing links to unassigned issues and pull requests.
  *
+ * @param {Array<Record>} pullRequests Non-draft pull request records
+ * @returns {Promise<Array<string>>} Messages with links to our unassigned PRs
+ */
+ async function prepareUnassignedItems(pullRequests) {
+    const output = ['*Needs: Lead/Assignees*']
+
+    const issuesNeedingLeads = await octokit.paginate('GET /repos/{owner}/{repo}/issues', {
+        owner: 'internetarchive',
+        repo: 'openlibrary',
+        labels: `Needs: Lead`,
+        per_page: 100,
+        headers: {
+          'X-GitHub-Api-Version': '2022-11-28'
+        }
+      })
+    output.push(`  • <https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+label%3A%22Needs%3A+Lead%22|${issuesNeedingLeads.length} issue(s)> need leads assigned by team`)
+    
+    const unassignedPrs = pullRequests.filter((pull) => !pull.assignee)
+    const renovatebotPullCount = unassignedPrs.filter((pull) => pull.user.login === 'renovate[bot]').length
+    const unassignedCount = unassignedPrs.length - renovatebotPullCount
+    output.push(`  • <https://github.com/internetarchive/openlibrary/pulls?q=is%3Apr+is%3Aopen+no%3Aassignee+-is%3Adraft+-author:app/renovate|${unassignedCount} unassigned PRs> + <https://github.com/internetarchive/openlibrary/pulls/app%2Frenovate|${renovatebotPullCount} renovatebot>`)
+
+    return output
+}
+
+
+/**
+ * Finds all issues with the "Needs: Triage" label, prepares a message containing a
+ * summary for each given lead, and returns the prepared messages.
+ *
+ * If a lead has no issues that require triage, we do not publish their summary to
+ * Slack.
+ *
+ * @param {Array<Lead>}
  * @returns {Promise<Array<string>>} Messages about untriaged issues
  */
-async function prepareUntriagedIssues() {
-    const searchResultsUrl = 'https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+label%3A%22Needs%3A+Triage%22'
+async function prepareUntriagedIssues(leads) {
+    const output = ['*Untriaged Issues*']
+
     const untriagedIssues = await octokit.paginate('GET /repos/{owner}/{repo}/issues', {
         owner: 'internetarchive',
         repo: 'openlibrary',
@@ -163,34 +208,30 @@ async function prepareUntriagedIssues() {
         }
       })
 
-    const output = [
-        '*Untriaged Issues*', 
-        `  <${searchResultsUrl}|Issues> with the "Needs: Triage" label:`
-    ]
-    for (const issue of untriagedIssues) {
-        output.push(`  • <${issue.html_url}|${issue.title}>`)
+    let allIssuesTriaged = true
+    for (const lead of leads) {
+        const searchResultsUrl = `https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+label%3A%22Needs%3A+Triage%22${encodeURIComponent('"' + lead.leadLabel + '"')}`
+        let issueCount = 0
+
+        for (const issue of untriagedIssues) {
+            for (const label of issue.labels) {
+                if (label.name === lead.leadLabel) {
+                    allIssuesTriaged = false
+                    ++issueCount
+                }
+            }
+        }
+
+        if (issueCount > 0) {
+            output.push(`  • <${searchResultsUrl}|${issueCount} issue(s)> need triage by ${lead.slackId}`)
+        }
+    }
+
+    if (allIssuesTriaged) {
+        output.push('  _No untriaged issues found_')
     }
 
     return output
-}
-
-/**
- * Prepares a message containing links to unassigned pull requests.
- *
- * @param {Array<Record>} pullRequests Non-draft pull request records
- * @returns {Array<string>} Messages with links to our unassigned PRs
- */
-function prepareUnassignedPullRequests(pullRequests) {
-    const unassignedPrs = pullRequests.filter((pull) => !pull.assignee)
-    const renovatebotPullCount = unassignedPrs.filter((pull) => pull.user.login === 'renovate[bot]').length
-    const unassignedCount = unassignedPrs.length - renovatebotPullCount
-    if (unassignedCount === 0) {
-        return []
-    }
-    return [
-        '*Unassigned PRs*',
-        `  • <https://github.com/internetarchive/openlibrary/pulls?q=is%3Apr+is%3Aopen+no%3Aassignee+-is%3Adraft+-author:app/renovate|${unassignedCount} unassigned PRs> + <https://github.com/internetarchive/openlibrary/pulls/app%2Frenovate|${renovatebotPullCount} renovatebot>`
-    ]
 }
 
 /**
@@ -204,7 +245,7 @@ function prepareUnassignedPullRequests(pullRequests) {
 function prepareAssignedPullRequests(pullRequests, leads) {
     const output = ['*Assigned PRs*']
     for (const lead of leads) {
-        const searchResults = `https://github.com/internetarchive/openlibrary/pulls?q=is%3Aopen+is%3Apr+-is%3Adraft+assignee%3A${lead.githubUsername}`
+        const searchResultsUrl = `https://github.com/internetarchive/openlibrary/pulls?q=is%3Aopen+is%3Apr+-is%3Adraft+assignee%3A${lead.githubUsername}`
         const assignedPulls = pullRequests.filter((pull) => {
             for (const assignee of pull.assignees || []) {
                 if (assignee.login === lead.githubUsername) {
@@ -232,18 +273,18 @@ function prepareAssignedPullRequests(pullRequests, leads) {
                 }
             }
         })
-        let statusText = `  • ${lead.slackId} <${searchResults}|${assignedPulls.length} PR(s)>`
+        let statusText = `  • *${lead.githubUsername}* <${searchResultsUrl}|${assignedPulls.length} PR(s)>`
 
         if (p0Count || p1Count || p2Count) {
             statusText += ' ['
             if (p0Count) {
-                statusText += `<${searchResults + '+label%3A"Priority%3A+0"'}|P0:${p0Count}>, `
+                statusText += `<${searchResultsUrl + '+label%3A"Priority%3A+0"'}|P0:${p0Count}>, `
             }
             if (p1Count) {
-                statusText += `<${searchResults + '+label%3A"Priority%3A+1"'}|P1:${p1Count}>, `
+                statusText += `<${searchResultsUrl + '+label%3A"Priority%3A+1"'}|P1:${p1Count}>, `
             }
             if (p2Count) {
-                statusText += `<${searchResults + '+label%3A"Priority%3A+2"'}|P2:${p2Count}>`
+                statusText += `<${searchResultsUrl + '+label%3A"Priority%3A+2"'}|P2:${p2Count}>`
             } else {
                 // Remove the trailing `, ` characters:
                 statusText = statusText.substring(0, statusText.length - 3)
@@ -300,7 +341,7 @@ function prepareStaffPullRequests(pullRequests, leads) {
 
         const assigneeName = pull.assignee?.login
         // Issue title and link:
-        output.push(`  • <${pull.html_url}|*#${pull.number}* | ${pull.title}>`)
+        let summaryMessage = `  • <${pull.html_url}|*#${pull.number}* | ${pull.title}>`
         
         // Creator, assignee, and priority:
         const now = Date.now()
@@ -309,7 +350,8 @@ function prepareStaffPullRequests(pullRequests, leads) {
         const daysPassed = Math.floor(elapsedTime / (24 * 60 * 60 * 1000))
 
         const assigneeSlackId = assigneeName ? findSlackId(assigneeName, leads) : '⚠️ None'
-        output.push(`  by ${pull.user.login} ${daysPassed} days ago | Assigned: ${assigneeSlackId} ${highPriorityEmoji}`)
+        summaryMessage += ` by ${pull.user.login} ${daysPassed} days ago | Assigned: ${assigneeSlackId} ${highPriorityEmoji}`
+        output.push(summaryMessage)
     }
 
     return output
@@ -319,12 +361,17 @@ function prepareStaffPullRequests(pullRequests, leads) {
  * Prepares and returns messages about each given lead's pull requests that are labeled
  * `Needs: Submitter Input`.
  *
- * @param {Array<Record>} pullRequests 
+ * If a lead has no pull requests that need submitter input, no summary will be created for
+ * the lead.
+ *
+ * @param {Array<Record>} pullRequests Non-draft pull request records
  * @param {Array<Lead>} leads 
  * @returns {Array<string>} Messages about PRs that require submitter input before being reviewed
  */
 function prepareSubmitterInput(pullRequests, leads) {
     const output = ['*Submitter Input for our PRs*']
+
+    let noPullRequestsAwaitingInput = true
     for (const lead of leads) {
         const searchResultsUrl = `https://github.com/internetarchive/openlibrary/pulls?q=is%3Aopen+is%3Apr+-is%3Adraft+assignee%3A${lead.githubUsername}+label%3A"Needs%3A+Submitter+Input"`
         const assignedPulls = pullRequests.filter((pull) => pull.assignee?.login === lead.githubUsername)
@@ -338,9 +385,15 @@ function prepareSubmitterInput(pullRequests, leads) {
             }
         })
 
-        output.push(`  • ${lead.slackId} <${searchResultsUrl}|${awaitingResponseCount} PR(s)>`)
+        if (awaitingResponseCount > 0) {
+            output.push(`  • ${lead.slackId} <${searchResultsUrl}|${awaitingResponseCount} PR(s)>`)
+            noPullRequestsAwaitingInput = false
+        }
     }
 
+    if (noPullRequestsAwaitingInput) {
+        output.push('  _No leads are awaiting submitter input for their PRs_')
+    }
     return output
 }
 
