@@ -1,6 +1,6 @@
 <template>
   <div class="edition-snippet">
-    <img :src="cover_url" />
+    <img loading="lazy" :src="cover_url"/>
     <div class="links">
       <a :href="edition.key" target="_blank">OL</a>
       <a
