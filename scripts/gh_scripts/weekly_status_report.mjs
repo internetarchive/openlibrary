@@ -23,7 +23,7 @@ async function main() {
 
     await prepareRecentComments(config.leads)
         .then((results) => lines.push(...results))
-    
+
     const openPullRequests = await fetchOpenPullRequests()
     const nonDraftPullRequests = openPullRequests.filter((pull) => !pull.draft)
 
@@ -81,7 +81,7 @@ function getConfig() {
 /**
  * Returns the Slack ID of the lead having the given GitHub username.
  *
- * @param {string} githubUsername 
+ * @param {string} githubUsername
  * @param {Array<Lead>} leads
  * @returns {string} The lead's Slack ID, or "UNKNOWN"
  */
@@ -175,7 +175,7 @@ async function prepareRecentComments(leads) {
         }
       })
     output.push(`  • <https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+label%3A%22Needs%3A+Lead%22|${issuesNeedingLeads.length} issue(s)> need leads assigned by team`)
-    
+
     const unassignedPrs = pullRequests.filter((pull) => !pull.assignee)
     const renovatebotPullCount = unassignedPrs.filter((pull) => pull.user.login === 'renovate[bot]').length
     const unassignedCount = unassignedPrs.length - renovatebotPullCount
@@ -239,7 +239,7 @@ async function prepareUntriagedIssues(leads) {
  * their priorities.
  *
  * @param {Array<Record>} pullRequests Non-draft pull request records
- * @param {Array<Lead>} leads 
+ * @param {Array<Lead>} leads
  * @returns {Array<string>} Messages with links to each lead's PRs
  */
 function prepareAssignedPullRequests(pullRequests, leads) {
@@ -303,8 +303,8 @@ function prepareAssignedPullRequests(pullRequests, leads) {
  * PRs labeled with any of the `excludedLabels` will not be included in the
  * output of this function.
  *
- * @param {Array<Record>} pullRequests 
- * @param {Array<Lead>} leads 
+ * @param {Array<Record>} pullRequests
+ * @param {Array<Lead>} leads
  * @returns {Array<string>} Messages with the current status of each staff PR
  */
 function prepareStaffPullRequests(pullRequests, leads) {
@@ -342,7 +342,7 @@ function prepareStaffPullRequests(pullRequests, leads) {
         const assigneeName = pull.assignee?.login
         // Issue title and link:
         let summaryMessage = `  • <${pull.html_url}|*#${pull.number}* | ${pull.title}>`
-        
+
         // Creator, assignee, and priority:
         const now = Date.now()
         const openedAt = Date.parse(pull.created_at)
@@ -365,7 +365,7 @@ function prepareStaffPullRequests(pullRequests, leads) {
  * the lead.
  *
  * @param {Array<Record>} pullRequests Non-draft pull request records
- * @param {Array<Lead>} leads 
+ * @param {Array<Lead>} leads
  * @returns {Array<string>} Messages about PRs that require submitter input before being reviewed
  */
 function prepareSubmitterInput(pullRequests, leads) {
@@ -404,8 +404,8 @@ function prepareSubmitterInput(pullRequests, leads) {
  * Slack message is composed by joining each line of text in the `lines`
  * array with newline characters.
  *
- * @param {Array<string>} lines 
- * @param {string} slackChannel 
+ * @param {Array<string>} lines
+ * @param {string} slackChannel
  * @returns {Promise<Response>}
  */
 async function publishToSlack(lines, slackChannel) {
