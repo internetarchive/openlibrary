@@ -209,7 +209,7 @@ def generate_idump(day, **db_parameters):
 
 
 def split_dump(dump_file=None, format="oldump_%s.txt"):
-    """Split dump into authors, editions, works and misc to account for outliers."""
+    """Split dump into authors, editions, works, redirects, and other."""
     log(f"split_dump({dump_file}, format={format})")
     start_time = datetime.now()
     types = (
@@ -220,7 +220,7 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
         "/type/list",
     )
     files = {}
-    files['misc'] = xopen(format % 'misc', 'wt')
+    files['other'] = xopen(format % 'other', 'wt')
 
     for t in types:
         tname = t.split("/")[-1] + "s"
@@ -234,7 +234,7 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
         if type in files:
             files[type].write(line)
         else:
-            files['misc'].write(line)
+            files['other'].write(line)
 
     for f in files.values():
         f.close()
