@@ -1,5 +1,4 @@
 import 'jquery';
-import 'jquery-validation';
 import 'jquery-ui/ui/widgets/dialog';
 import 'jquery-ui/ui/widgets/autocomplete';
 // For dialog boxes (e.g. add to list)
@@ -18,7 +17,6 @@ import * as Browser from './Browser';
 import { commify, urlencode, slice } from './python';
 import Template from './template.js';
 import { truncate, cond } from './utils';
-import initValidate from './validate';
 import '../../../../static/css/js-all.less';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
@@ -97,7 +95,6 @@ jQuery(function () {
             .then((module) => module.initTabs($tabs));
     }
 
-    initValidate($);
     autocompleteInit($);
     automaticInit($);
     // wmd editor
@@ -541,6 +538,12 @@ jQuery(function () {
     if (leaveWaitlistLinks.length && document.getElementById('leave-waitinglist-dialog')) {
         import(/* webpackChunkName: "waitlist" */ './waitlist')
             .then(module => module.initLeaveWaitlist(leaveWaitlistLinks));
+    }
+
+    const formsToValidate = document.querySelectorAll('form.validate');
+    if (formsToValidate.length) {
+        import(/* webpackChunkName: "validate" */ './validate')
+            .then(module => module.initValidate(formsToValidate));
     }
 
     const thirdPartyLoginsIframe = document.getElementById('ia-third-party-logins');

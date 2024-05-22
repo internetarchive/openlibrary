@@ -1,4 +1,5 @@
 import { ungettext, ugettext } from './i18n';
+import 'jquery-validation';
 
 /**
  * jQuery plugin to add form validations.
@@ -14,7 +15,7 @@ import { ungettext, ugettext } from './i18n';
  *          <input type="submit" name="submit" value="Register"/>
  *      </form>
  */
-export default function initValidate() {
+export function initValidate(formsToValidate) {
 
 
     // validate publish-date to make sure the date is not in future
@@ -79,4 +80,8 @@ export default function initValidate() {
         $(this).validate($.extend(defaults, options));
     };
 
+    // validate forms
+    for (const form of formsToValidate) {
+        $(form).ol_validate();
+    }
 }
