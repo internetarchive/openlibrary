@@ -108,7 +108,7 @@ $:macros.HiddenSaveButton("addAuthor")
                         <div id="identifiers-display">
                             $:render_component('AuthorIdentifiers', attrs=dict(assigned_ids_string=dict(page.remote_ids),output_selector='#hiddenIdentifierInputs',author_config_string=dict(get_author_config())))
                         </div>
-
+                        <br>
                         <fieldset class="major">
                             <legend>$_("Links")</legend>
                             $:render_template("books/edit/web", page, prefix="author--")
