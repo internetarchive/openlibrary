@@ -1134,14 +1134,25 @@ class my_follows(delegate.page):
     path = r"/people/([^/]+)/(followers|following)"
 
     def GET(self, username, key=""):
-        mb = MyBooksTemplate(username, 'following')
+        i = web.input(page=1, limit=25)
+        page_size = max(1, i.limit)
+        offset = (max(0, i.page - 1)) * page_size
+
         follows = (
-            PubSub.get_followers(username)
+            PubSub.get_followers(username, page_size, offset)
             if key == 'followers'
-            else PubSub.get_following(username)
+            else PubSub.get_following(username, page_size, offset)
         )
+        follow_count = (
+            PubSub.count_followers(username)
+            if key == 'followers'
+            else PubSub.count_following(username)
+        )
+        page_count = max(follow_count / page_size)
+
+        mb = MyBooksTemplate(username, 'following')
         manage = key == 'following' and mb.is_my_page
-        template = render['account/follows'](mb.user, follows, manage=manage)
+        template = render['account/follows'](mb.user, page_count, page_size, follows, manage=manage)
         return mb.render(header_title=_(key.capitalize()), template=template)
 
 

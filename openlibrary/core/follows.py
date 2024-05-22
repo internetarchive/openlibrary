@@ -1,6 +1,5 @@
 import logging
-import web
-from typing import cast, Any
+from typing import cast
 from openlibrary.core.bookshelves import Bookshelves
 
 from . import db
@@ -38,17 +37,21 @@ class PubSub:
         return len(subscription)
 
     @classmethod
-    def get_followers(cls, publisher):
+    def get_followers(cls, publisher, limit=None, offset=0):
         """Get publishers subscribers"""
         oldb = db.get_db()
         where = 'publisher=$publisher'
         subscribers = oldb.select(
-            cls.TABLENAME, where=where, vars={'publisher': publisher}
+            cls.TABLENAME, 
+            where=where, 
+            vars={'publisher': publisher},
+            limit=limit,
+            offset=offset
         )
         return subscribers
 
     @classmethod
-    def get_following(cls, subscriber, exclude_disabled=False):
+    def get_following(cls, subscriber, limit=None, offset=0, exclude_disabled=False):
         """Get subscriber's subscriptions"""
         oldb = db.get_db()
         where = 'subscriber=$subscriber'
@@ -58,6 +61,8 @@ class PubSub:
             cls.TABLENAME,
             where=where,
             vars={'subscriber': subscriber},
+            limit=limit,
+            offset=offset
         )
         return [dict(s) for s in subscriptions]
 
