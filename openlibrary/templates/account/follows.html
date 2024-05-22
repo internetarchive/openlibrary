@@ -10,8 +10,8 @@ $if follows:
             <a href="/people/$follow['subscriber']/books" class="username-avatar"><img src="/people/$follow['subscriber']/avatar" class="account-avatar">$follow['subscriber']</a>
           $else:
             <a href="/people/$follow['publisher']/books" class="username-avatar"><img src="/people/$follow['publisher']/avatar" class="account-avatar">$follow['publisher']</a>
-	      </div>
-	      <div>
+        </div>
+        <div>
           $if manage:
             $:macros.Follow(follow['publisher'], following=1)
 	      </div>
