@@ -1152,7 +1152,9 @@ class my_follows(delegate.page):
 
         mb = MyBooksTemplate(username, 'following')
         manage = key == 'following' and mb.is_my_page
-        template = render['account/follows'](mb.user, page_count, page_size, follows, manage=manage)
+        template = render['account/follows'](
+            mb.user, page_count, page_size, follows, manage=manage
+        )
         return mb.render(header_title=_(key.capitalize()), template=template)
 
 

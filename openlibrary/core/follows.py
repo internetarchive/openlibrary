@@ -42,11 +42,11 @@ class PubSub:
         oldb = db.get_db()
         where = 'publisher=$publisher'
         subscribers = oldb.select(
-            cls.TABLENAME, 
-            where=where, 
+            cls.TABLENAME,
+            where=where,
             vars={'publisher': publisher},
             limit=limit,
-            offset=offset
+            offset=offset,
         )
         return subscribers
 
@@ -62,7 +62,7 @@ class PubSub:
             where=where,
             vars={'subscriber': subscriber},
             limit=limit,
-            offset=offset
+            offset=offset,
         )
         return [dict(s) for s in subscriptions]
 
