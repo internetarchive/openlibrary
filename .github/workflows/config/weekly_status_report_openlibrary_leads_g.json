@@ -1,6 +1,6 @@
 {
   "slackChannel": "#openlibrary-leads-g",
-  "forStaff": false,
+  "publishFullDigest": false,
   "leads": [
     {
       "githubUsername": "hornc",

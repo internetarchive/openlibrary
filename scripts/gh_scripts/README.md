@@ -87,7 +87,7 @@ A configuration file is required for this script to run properly.  The file shou
 
 `slackChannel` : The digest will be published here.
 
-`forStaff` : Boolean that flags whether this digest is for staff, or for other leads.  If `false`, the digest will be published without several sections.
+`publishFullDigest` : Boolean that flags whether to publish a full or partial digest.  If `false`, the digest will be published without several sections (see **Details**, below).
 
 `leads` : Array of configurations for each lead.
 
@@ -103,12 +103,12 @@ The script prepares a digest containing the following sections:
 
 *Recent comments* : A list of links to issues that need comments, broken down by lead.
 
-*Needs: Lead/Assignee* : Lists of pull requests that do not have an assignee, and issues that need a lead.  Only present if `staffOnly` is `true`.
+*Needs: Lead/Assignee* : Lists of pull requests that do not have an assignee, and issues that need a lead.  Only present if `publishFullDigest` is `true`.
 
-*Untriaged issues* : List of issues which have the https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Triage label.  Only present if `forStaff` is `true`.
+*Untriaged issues* : List of issues which have the https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Triage label.  Only present if `publishFullDigest` is `true`.
 
 *Assigned PRs* : List of pull requests that have been assigned, broken down by lead.  Links to higher priority PRs are also included here.
 
-*Staff PRs* : List of all open staff PRs.  Only present if `forStaff` is `true`.
+*Staff PRs* : List of all open staff PRs.  Only present if `publishFullDigest` is `true`.
 
 *Submitter Input for PRs* : List of PRs that are labeled https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Submitter%20Input, broken down by leads.

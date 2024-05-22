@@ -27,14 +27,14 @@ async function main() {
     const openPullRequests = await fetchOpenPullRequests()
     const nonDraftPullRequests = openPullRequests.filter((pull) => !pull.draft)
 
-    if (config.forStaff) {
+    if (config.publishFullDigest) {
         await prepareUnassignedItems(nonDraftPullRequests)
             .then((results) => lines.push(...results))
         await prepareUntriagedIssues(config.leads)
             .then((results) => lines.push(...results))
     }
     lines.push(...prepareAssignedPullRequests(nonDraftPullRequests, config.leads))
-    if (config.forStaff) {
+    if (config.publishFullDigest) {
         lines.push(...prepareStaffPullRequests(nonDraftPullRequests, config.leads))
     }
     lines.push(...prepareSubmitterInput(nonDraftPullRequests, config.leads))
@@ -56,9 +56,9 @@ async function main() {
  * Represents a configuration for this script.
  *
  * @typedef {Object} Config
- * @property {string} slackChannel The Slack channel where messages will be posted
- * @property {boolean} forStaff    `true` if this digest is for staff only
- * @property {Array<Lead>} leads   Project leads that will be included in this digest
+ * @property {string} slackChannel       The Slack channel where messages will be posted
+ * @property {boolean} publishFullDigest `true` if this digest is for staff only
+ * @property {Array<Lead>} leads         Project leads that will be included in this digest
  */
 
 /**

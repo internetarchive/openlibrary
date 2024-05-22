@@ -1,6 +1,6 @@
 {
   "slackChannel": "#team-abc-plus",
-  "forStaff": true,
+  "publishFullDigest": true,
   "leads": [
     {
       "githubUsername": "mekarpeles",
