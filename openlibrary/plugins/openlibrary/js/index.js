@@ -567,10 +567,4 @@ jQuery(function () {
         import(/* webpackChunkName: "affiliate-links" */ './affiliate-links')
             .then(module => module.initAffiliateLinks(affiliateLinksSection))
     }
-
-    // Setup analytics, depends on script loaded from CDN
-    if (typeof archive_analytics !== 'undefined') {
-        // eslint-disable-next-line no-undef
-        archive_analytics.set_up_event_tracking();
-    }
 });
