@@ -29,7 +29,7 @@ $if "ip" in query and ctx.user and ctx.user.is_admin():
     </thead>
     <tbody>
     $for c in changes:
-        $if c.comment != "updating user preferences":
+        $if not c.get_changes()[0].key.endswith("preferences"):
             <tr>
                 <td class="time">$datestr(c.timestamp)</td>
                 <td class="path">$:call_template("path", c)</td>
