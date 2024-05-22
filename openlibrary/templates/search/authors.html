@@ -19,9 +19,11 @@ $ sort = query_param('sort', None)
 <div id="contentBody">
   $:macros.SearchNavigation()
 
-  <form class="siteSearch olform" action="">
-    $:render_template("search/search_bar")
-  </form>
+  <div class="section">
+    <form class="siteSearch olform" action="">
+        $:render_template("search/search_bar")
+    </form>
+  </div>
 </div>
 
 <div id="contentMeta">

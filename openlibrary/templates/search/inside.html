@@ -8,9 +8,11 @@ $var title: $_('Search Open Library for %s', q)
 
 <div id="contentBody">
   $:macros.SearchNavigation()
-  <form class="siteSearch olform" action="/search/inside">
-    $:render_template("search/search_bar")
-  </form>
+  <div class="section">
+    <form class="siteSearch olform" action="/search/inside">
+      $:render_template("search/search_bar")
+    </form>
+  </div>
     $ num_found = 0
     $if q:
         $if results and 'error' not in results and results['hits']:

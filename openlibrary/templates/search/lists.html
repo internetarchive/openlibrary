@@ -8,9 +8,11 @@ $var title: $_('Search results for Lists')
 
 <div id="contentBody">
   $:macros.SearchNavigation()
-  <form class="siteSearch olform" action="/search/lists">
-    $:render_template("search/search_bar")
-  </form>
+  <div class="section">
+    <form class="siteSearch olform" action="/search/lists">
+      $:render_template("search/search_bar")
+    </form>
+  </div>
 
   $if lists:
     <div class="mybooks-list">
