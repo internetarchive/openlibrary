@@ -702,8 +702,9 @@ class hide_banner(delegate.page):
             json.dumps({'success': 'Preference saved'}), content_type="application/json"
         )
 
+
 class create_qrcode(delegate.page):
-    path='/qrcode'
+    path = '/qrcode'
 
     def GET(self):
         page_path = web.ctx.path

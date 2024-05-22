@@ -293,5 +293,3 @@ class Reference(str):
 
     def __repr__(self):
         return "<ref: %s>" % str.__repr__(self)
-
-
