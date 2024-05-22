@@ -53,3 +53,6 @@ body:
 
         #### Stakeholders
         <!-- @ tag stakeholders of this bug -->
+
+        <!-- Please leave the following reminder section as is to help new contributors -->
+        **Note:** Before [making a new branch](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#making-changes-and-creating-a-pull-request) _or_ updating an existing one, please [ensure your branch is up to date](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#working-on-your-branch).
