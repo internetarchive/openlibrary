@@ -21,7 +21,6 @@ from openlibrary import accounts
 from openlibrary.core import lending
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.core.follows import PubSub
 from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.imports import ImportItem
 from openlibrary.core.observations import Observations
