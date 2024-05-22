@@ -1134,8 +1134,8 @@ class my_follows(delegate.page):
     path = r"/people/([^/]+)/(followers|following)"
 
     def GET(self, username, key=""):
-        i = web.input(page=1, limit=25)
-        page_size = max(1, i.limit)
+        i = web.input(page=1)
+        page_size = 25
         offset = (max(0, i.page - 1)) * page_size
 
         follows = (
