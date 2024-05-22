@@ -14,7 +14,7 @@ from infogami.utils.app import find_page, find_view, find_mode
 from openlibrary.core import stats as graphite_stats
 import web
 from infogami import config
-from infogami.utils import delegate, stats
+from infogami.utils import stats
 
 import openlibrary.plugins.openlibrary.filters as stats_filters
 

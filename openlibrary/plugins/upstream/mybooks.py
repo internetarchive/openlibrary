@@ -3,14 +3,12 @@ import web
 
 from typing import Final, Literal, cast
 
-from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import public, safeint, render
 
 from openlibrary.i18n import gettext as _
 
 from openlibrary import accounts
-from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
 from openlibrary.core.booknotes import Booknotes

@@ -13,7 +13,6 @@ import internetarchive as ia
 from infogami.infobase import utils
 
 from openlibrary.coverstore import config, db
-from openlibrary.coverstore.coverlib import find_image_path
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 

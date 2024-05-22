@@ -4,7 +4,6 @@
 import web
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import public
 
 import requests
 

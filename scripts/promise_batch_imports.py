@@ -22,8 +22,7 @@ from urllib.parse import urlencode
 import requests
 import logging
 
-import _init_path  # Imported for its side effect of setting PYTHONPATH
-from infogami import config
+import _init_path  # noqa: F401 # Imported for its side effect of setting PYTHONPATH
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch, ImportItem
 from openlibrary.core.vendors import get_amazon_metadata

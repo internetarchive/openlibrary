@@ -2,13 +2,10 @@
 PYTHONPATH=. python ./scripts/update_stale_work_references.py /olsystem/etc/openlibrary.yml
 """
 
-import web
 import infogami
-from infogami import config
 from openlibrary.config import load_config
 from openlibrary.core.models import Work
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
-import datetime
 
 
 def main(ol_config: str, days=1, skip=7):
