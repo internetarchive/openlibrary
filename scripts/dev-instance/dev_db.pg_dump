@@ -387,6 +387,21 @@ CREATE TABLE public.edition_str (
 ALTER TABLE public.edition_str OWNER TO openlibrary;
 
 --
+-- Name: follows; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
+--
+
+CREATE TABLE public.follows (
+    subscriber text NOT NULL,
+    publisher text NOT NULL,
+    disabled boolean DEFAULT false,
+    updated timestamp without time zone DEFAULT timezone('utc'::text, now()),
+    created timestamp without time zone DEFAULT timezone('utc'::text, now())
+);
+
+
+ALTER TABLE public.follows OWNER TO openlibrary;
+
+--
 -- Name: import_batch; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
@@ -1593,9 +1608,9 @@ COPY public.booknotes (username, work_id, edition_id, notes, updated, created) F
 --
 
 COPY public.bookshelves (id, name, description, archived, updated, created) FROM stdin;
-1	Want to Read	A list of books I want to read	f	2023-12-12 18:51:29.303055	2023-12-12 18:51:29.303055
-2	Currently Reading	A list of books I am currently reading	f	2023-12-12 18:51:29.304327	2023-12-12 18:51:29.304327
-3	Already Read	A list of books I have finished reading	f	2023-12-12 18:51:29.305437	2023-12-12 18:51:29.305437
+1	Want to Read	A list of books I want to read	f	2024-04-24 21:59:55.594662	2024-04-24 21:59:55.594662
+2	Currently Reading	A list of books I am currently reading	f	2024-04-24 21:59:55.595989	2024-04-24 21:59:55.595989
+3	Already Read	A list of books I have finished reading	f	2024-04-24 21:59:55.597075	2024-04-24 21:59:55.597075
 \.
 
 
@@ -5094,6 +5109,14 @@ COPY public.edition_str (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
+-- Data for Name: follows; Type: TABLE DATA; Schema: public; Owner: openlibrary
+--
+
+COPY public.follows (subscriber, publisher, disabled, updated, created) FROM stdin;
+\.
+
+
+--
 -- Data for Name: import_batch; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
@@ -8238,6 +8261,14 @@ ALTER TABLE ONLY public.community_edits_queue
 
 
 --
+-- Name: follows_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
+--
+
+ALTER TABLE ONLY public.follows
+    ADD CONSTRAINT follows_pkey PRIMARY KEY (subscriber, publisher);
+
+
+--
 -- Name: import_batch_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
@@ -8647,6 +8678,13 @@ CREATE INDEX publisher_boolean_thing_id_idx ON public.publisher_boolean USING bt
 
 
 --
+-- Name: publisher_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+--
+
+CREATE INDEX publisher_idx ON public.follows USING btree (publisher);
+
+
+--
 -- Name: publisher_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
@@ -8819,6 +8857,13 @@ CREATE INDEX subject_str_idx ON public.subject_str USING btree (key_id, value);
 --
 
 CREATE INDEX subject_str_thing_id_idx ON public.subject_str USING btree (thing_id);
+
+
+--
+-- Name: subscriber_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
+--
+
+CREATE INDEX subscriber_idx ON public.follows USING btree (subscriber);
 
 
 --

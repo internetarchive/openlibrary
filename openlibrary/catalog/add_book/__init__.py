@@ -955,7 +955,7 @@ def update_work_with_rec_data(
     if not work.get('authors'):
         authors = [import_author(a) for a in rec.get('authors', [])]
         work['authors'] = [
-            {'type': {'key': '/type/author_role'}, 'author': a.key}
+            {'type': {'key': '/type/author_role'}, 'author': a.get('key')}
             for a in authors
             if a.get('key')
         ]

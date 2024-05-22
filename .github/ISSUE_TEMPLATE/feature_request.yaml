@@ -1,0 +1,44 @@
+name: Feature Request
+description: Suggest a new idea for this project
+labels: ["Type: Feature Request", "Needs: Triage", "Needs: Lead"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **IMPORTANT: Before posting, remove sensitive data, such as passwords, secret keys, session cookies, etc.**
+
+        Thanks for showing interest in adding new features to Open Library! 👍
+
+  - type: textarea
+    attributes:
+      label: Problem
+      description: Describe the problem that this feature will address.
+      value: |
+        ### A clear and concise description of what you want to happen
+
+        ### Expected behaviour / screenshots (ex: Figma design screenshots for UI feature)
+
+        ### Additional Context
+
+  - type: textarea
+    attributes:
+      label: Proposal & Constraints
+      description: Describe the proposed solution and possible constraints
+      value: |
+        ### What is the proposed solution / implementation?
+
+        ### Is there a precedent of this approach succeeding elsewhere?
+
+        ### Which suggestions or requirements should be considered for how feature needs to appear or be implemented?
+
+  - type: textarea
+    attributes:
+      label: Leads
+      description: |
+        Please leave this section blank for maintainers if you are unsure what to enter
+      value: |
+        ### Related files
+        <!-- Files related to the implementation of feature; this is super useful for new contributors who might want to contribute! If you're not sure, leave this blank; a maintainer will add them. -->
+
+        ### Stakeholders
+        <!-- @ tag stakeholders of this feature if any -->

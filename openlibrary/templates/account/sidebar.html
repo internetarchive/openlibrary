@@ -11,6 +11,8 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
         <li>
           <a class="li-title-desktop" data-ol-link-track="MyBooksSidebar|LoanHistory" href="/account/loan-history">$_('Loan History')</a>
         </li>
+	<li><a data-ol-link-track="MyBooksSidebar|MyFeed" $('class=selected' if key=='feed' else '') href="/people/$username/books/feed">$_('My Feed')</a></li>
+      </ul>
     </ul>
     $if public or owners_page:
       <ul class="sidebar-section">
@@ -26,7 +28,7 @@ $def with (username, key=None, owners_page=False, public=False, counts=None, lis
         </li>
       $if owners_page:
         <hr>
-        <li><a data-ol-link-track="MyBooksSidebar|MyNotes" $('class=selected' if key=='notes' else '') href="/people/$username/books/notes"><span class="li-count">$counts['notes']</span>$_('My Notes')</a></li>
+	<li><a data-ol-link-track="MyBooksSidebar|MyNotes" $('class=selected' if key=='notes' else '') href="/people/$username/books/notes"><span class="li-count">$counts['notes']</span>$_('My Notes')</a></li>
         <li><a data-ol-link-track="MyBooksSidebar|MyReviews" $('class=selected' if key=='observations' else '') href="/people/$username/books/observations"><span class="li-count">$counts['observations']</span>$_('My Reviews')</a></li>
         <hr>
         <li><a data-ol-link-track="MyBooksSidebar|ReadingStats" href="/account/books/already-read/stats">$_('My Reading Stats')</a></li>

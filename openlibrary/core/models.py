@@ -22,12 +22,14 @@ from openlibrary.core import lending
 from openlibrary.catalog import add_book
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.follows import PubSub
 from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.imports import ImportItem
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.utils import extract_numeric_id_from_olid, dateutil
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10, canonical
+from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
 
 from . import cache, waitinglist
 
@@ -504,6 +506,10 @@ class Work(Thing):
         rating = Ratings.get_users_rating_for_work(username, work_id)
         return rating
 
+    def get_patrons_who_also_read(self):
+        key = self.key.split('/')[-1][2:-1]
+        return Bookshelves.patrons_who_also_read(key)
+
     def get_users_read_status(self, username):
         if not username:
             return None
@@ -780,6 +786,15 @@ class Author(Thing):
     def get_url_suffix(self):
         return self.name or "unnamed"
 
+    def wikidata(
+        self, bust_cache: bool = False, fetch_missing: bool = False
+    ) -> WikidataEntity | None:
+        if wd_id := self.remote_ids.get("wikidata"):
+            return get_wikidata_entity(
+                qid=wd_id, bust_cache=bust_cache, fetch_missing=fetch_missing
+            )
+        return None
+
     def __repr__(self):
         return "<Author: %s>" % repr(self.key)
 
@@ -901,6 +916,15 @@ class User(Thing):
         if sort:
             lists = safesort(lists, reverse=True, key=lambda list: list.last_modified)
         return lists
+
+    @classmethod
+    # @cache.memoize(engine="memcache", key="user-avatar")
+    def get_avatar_url(cls, username):
+        username = username.split('/people/')[-1]
+        user = web.ctx.site.get('/people/%s' % username)
+        itemname = user.get_account().get('internetarchive_itemname')
+
+        return f'https://archive.org/services/img/{itemname}'
 
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
     def _get_lists_cached(self):

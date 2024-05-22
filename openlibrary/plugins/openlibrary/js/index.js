@@ -18,7 +18,6 @@ import initServiceWorker from './service-worker-init.js'
 import * as Browser from './Browser';
 import { commify, urlencode, slice } from './python';
 import Template from './template.js';
-// Add $.fn.focusNextInputField
 import { truncate, cond } from './utils';
 import initValidate from './validate';
 import '../../../../static/css/js-all.less';

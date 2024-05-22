@@ -1,5 +1,9 @@
 $def with (form)
 
+$ i18n_strings = {
+    $ "password_length_err": _("Must be between 3 and 20 characters")
+    $ }
+
 $# :param openlibrary.plugins.upstream.forms.RegisterForm form:
 
 $var title: $_("Sign Up to Open Library")
@@ -46,7 +50,7 @@ $if ctx.user:
     <p>$:_("You are already logged into Open Library as %(user)s.", user=str(user_link()))</p>
     <p>$:_('If you\'d like to create a new, different Open Library account, you\'ll need to <a href="javascript:;" onclick="document.forms[\'hamburger-logout\'].submit()">log out</a> and start the signup process afresh.')</p>
 $else:
-    <form class="olform create validate" name="signup" method="post" action="">
+    <form class="olform create validate" name="signup" method="post" data-i18n="$json_encode(i18n_strings)" action="">
         $if form.note:
             <div class="note">$form.note</div>
 

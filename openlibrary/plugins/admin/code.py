@@ -80,7 +80,7 @@ class admin(delegate.page):
         else:
             if (
                 context.user
-                and context.user.is_usergroup_member('/usergroup/librarians')
+                and context.user.is_librarian()
                 and web.ctx.path == '/admin/solr'
             ):
                 return m(*args)

@@ -10,6 +10,17 @@ CREATE TABLE ratings (
 );
 CREATE INDEX ratings_work_id_idx ON ratings (work_id);
 
+CREATE TABLE follows (
+    subscriber text NOT NULL,
+    publisher text NOT NULL,
+    disabled BOOLEAN DEFAULT FALSE,
+    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
+    created timestamp without time zone default (current_timestamp at time zone 'utc'),
+    primary key (subscriber, publisher)
+);
+CREATE INDEX subscriber_idx ON follows (subscriber);
+CREATE INDEX publisher_idx ON follows (publisher);
+
 CREATE TABLE booknotes (
     username text NOT NULL,
     work_id integer NOT NULL,
@@ -90,3 +101,9 @@ CREATE TABLE yearly_reading_goals (
     updated timestamp without time zone default (current_timestamp at time zone 'utc'),
     primary key (username, year)
 );
+
+CREATE TABLE wikidata (
+    id text not null primary key,
+    data json,
+    updated timestamp without time zone default (current_timestamp at time zone 'utc')
+)

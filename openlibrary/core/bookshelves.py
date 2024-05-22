@@ -93,6 +93,20 @@ class Bookshelves(db.CommonExtras):
         return results[0]
 
     @classmethod
+    def patrons_who_also_read(cls, work_id: str, limit: int = 15):
+        oldb = db.get_db()
+        query = "select DISTINCT username from bookshelves_books where work_id=$work_id AND bookshelf_id=3 limit $limit"
+        results = oldb.query(query, vars={'work_id': work_id, 'limit': limit})
+        # get all patrons with public reading logs
+        return [
+            p
+            for p in web.ctx.site.get_many(
+                [f'/people/{r.username}/preferences' for r in results]
+            )
+            if p.dict().get('notifications', {}).get('public_readlog') == 'yes'
+        ]
+
+    @classmethod
     def most_logged_books(
         cls,
         shelf_id: str = '',

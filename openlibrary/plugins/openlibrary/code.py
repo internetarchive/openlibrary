@@ -47,6 +47,7 @@ delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
 delegate.app.add_processor(processors.CORSProcessor(cors_prefixes={'/api/'}))
 delegate.app.add_processor(processors.PreferenceProcessor())
+delegate.app.add_processor(processors.CacheablePathsProcessor())
 
 try:
     from infogami.plugins.api import code as api
@@ -1090,6 +1091,16 @@ def is_bot():
         'bingbot',
         'mj12bot',
         'yoozbotadsbot',
+        'ahrefsbot',
+        'amazonbot',
+        'applebot',
+        'bingbot',
+        'brightbot',
+        'gptbot',
+        'petalbot',
+        'semanticscholarbot',
+        'yandex.com/bots',
+        'icc-crawler',
     ]
     if not web.ctx.env.get('HTTP_USER_AGENT'):
         return True
