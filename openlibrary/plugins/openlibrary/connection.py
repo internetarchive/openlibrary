@@ -2,7 +2,7 @@
 """
 
 from infogami import config
-from infogami.infobase import client, lru
+from infogami.infobase import client
 from infogami.utils import stats
 
 import web

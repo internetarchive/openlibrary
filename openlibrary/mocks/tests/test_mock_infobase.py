@@ -1,4 +1,5 @@
 import datetime
+import web
 
 
 class TestMockSite:
@@ -104,3 +105,15 @@ class TestMockSite:
         # and https://github.com/internetarchive/openlibrary/blob/dabd7b8c0c42e3ac2700779da9f303a6344073f6/openlibrary/plugins/openlibrary/api.py#L228
         author_works_q = {'type': '/type/work', 'authors': {'author': {'key': a.key}}}
         assert mock_site.things(author_works_q) == ['/works/OL1W']
+
+    def test_ilike_compatibility(self, mock_site) -> None:
+        name = "B. Baggins"
+        mock_site.quicksave("/authors/OL1A", "/type/author", name="B. R. Mc Baggins")
+        mock_site.quicksave("/authors/OL2A", "/type/author", name="B* Baggins")
+        mock_site.quicksave("/authors/OL3A", "/type/author", name=".B. Baggins")
+        mock_site.quicksave("/authors/OL4A", "/type/author", name="b_ BaGGinS")
+        mock_site.quicksave("/authors/OL5A", "/type/author", name="b. BaGGinS")
+        query = {"type": "/type/author", "name~": name}
+
+        reply = web.ctx.site.things(query)
+        assert reply == ["/authors/OL5A"]

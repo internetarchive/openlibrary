@@ -1,7 +1,6 @@
 """Handlers for adding and editing tags."""
 
 import web
-import json
 
 from typing import NoReturn
 
@@ -11,8 +10,6 @@ from infogami.utils.view import add_flash_message, public
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 
-from openlibrary.plugins.openlibrary.processors import urlsafe
-from openlibrary.i18n import gettext as _
 import logging
 
 from openlibrary.plugins.upstream import spamcheck, utils

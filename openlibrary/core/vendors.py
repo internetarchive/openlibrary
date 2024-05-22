@@ -3,7 +3,6 @@ import logging
 import re
 import time
 
-from datetime import date
 from typing import Any, Literal
 
 import requests
@@ -242,13 +241,16 @@ class AmazonAPI:
             logger.exception(f"serialize({product})")
             publish_date = None
 
+        asin_is_isbn10 = not product.asin.startswith("B")
+        isbn_13 = isbn_10_to_isbn_13(product.asin) if asin_is_isbn10 else None
+
         book = {
             'url': "https://www.amazon.com/dp/{}/?tag={}".format(
                 product.asin, h.affiliate_id('amazon')
             ),
             'source_records': ['amazon:%s' % product.asin],
-            'isbn_10': [product.asin],
-            'isbn_13': [isbn_10_to_isbn_13(product.asin)],
+            'isbn_10': [product.asin] if asin_is_isbn10 else [],
+            'isbn_13': [isbn_13] if isbn_13 else [],
             'price': price and price.display_amount,
             'price_amt': price and price.amount and int(100 * price.amount),
             'title': (
@@ -297,6 +299,7 @@ def get_amazon_metadata(
     id_type: Literal['asin', 'isbn'] = 'isbn',
     resources: Any = None,
     high_priority: bool = False,
+    stage_import: bool = True,
 ) -> dict | None:
     """Main interface to Amazon LookupItem API. Will cache results.
 
@@ -304,6 +307,7 @@ def get_amazon_metadata(
     :param str id_type: 'isbn' or 'asin'.
     :param bool high_priority: Priority in the import queue. High priority
            goes to the front of the queue.
+    param bool stage_import: stage the id_ for import if not in the cache.
     :return: A single book item's metadata, or None.
     """
     return cached_get_amazon_metadata(
@@ -311,6 +315,7 @@ def get_amazon_metadata(
         id_type=id_type,
         resources=resources,
         high_priority=high_priority,
+        stage_import=stage_import,
     )
 
 
@@ -329,6 +334,7 @@ def _get_amazon_metadata(
     id_type: Literal['asin', 'isbn'] = 'isbn',
     resources: Any = None,
     high_priority: bool = False,
+    stage_import: bool = True,
 ) -> dict | None:
     """Uses the Amazon Product Advertising API ItemLookup operation to locate a
     specific book by identifier; either 'isbn' or 'asin'.
@@ -340,6 +346,7 @@ def _get_amazon_metadata(
            See https://webservices.amazon.com/paapi5/documentation/get-items.html
     :param bool high_priority: Priority in the import queue. High priority
            goes to the front of the queue.
+    param bool stage_import: stage the id_ for import if not in the cache.
     :return: A single book item's metadata, or None.
     """
     if not affiliate_server_url:
@@ -358,8 +365,9 @@ def _get_amazon_metadata(
 
     try:
         priority = "true" if high_priority else "false"
+        stage = "true" if stage_import else "false"
         r = requests.get(
-            f'http://{affiliate_server_url}/isbn/{id_}?high_priority={priority}'
+            f'http://{affiliate_server_url}/isbn/{id_}?high_priority={priority}&stage_import={stage}'
         )
         r.raise_for_status()
         if data := r.json().get('hit'):

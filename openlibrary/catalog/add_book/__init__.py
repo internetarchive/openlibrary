@@ -24,6 +24,7 @@ A record is loaded by calling the load function.
 """
 
 import itertools
+import json
 import re
 from typing import TYPE_CHECKING, Any, Final
 
@@ -40,6 +41,7 @@ from infogami import config
 from openlibrary import accounts
 from openlibrary.catalog.utils import (
     EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS,
+    get_non_isbn_asin,
     get_publication_year,
     is_independently_published,
     is_promise_item,
@@ -67,7 +69,7 @@ if TYPE_CHECKING:
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
 re_lang = re.compile('^/languages/([a-z]{3})$')
 ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
-SUSPECT_PUBLICATION_DATES: Final = ["1900", "January 1, 1900"]
+SUSPECT_PUBLICATION_DATES: Final = ["1900", "January 1, 1900", "1900-01-01"]
 SOURCE_RECORDS_REQUIRING_DATE_SCRUTINY: Final = ["amazon", "bwb", "promise"]
 
 
@@ -487,13 +489,18 @@ def find_quick_match(rec):
         if ekeys:
             return ekeys[0]
 
-    # only searches for the first value from these lists
+    # Look for a matching non-ISBN ASIN identifier (e.g. from a BWB promise item).
+    if (non_isbn_asin := get_non_isbn_asin(rec)) and (
+        ekeys := editions_matched(rec, "identifiers.amazon", non_isbn_asin)
+    ):
+        return ekeys[0]
+
+    # Only searches for the first value from these lists
     for f in 'source_records', 'oclc_numbers', 'lccn':
         if rec.get(f):
             if f == 'source_records' and not rec[f][0].startswith('ia:'):
                 continue
-            ekeys = editions_matched(rec, f, rec[f][0])
-            if ekeys:
+            if ekeys := editions_matched(rec, f, rec[f][0]):
                 return ekeys[0]
     return False
 
@@ -535,6 +542,7 @@ def find_exact_match(rec, edition_pool):
                 continue
             seen.add(ekey)
             existing = web.ctx.site.get(ekey)
+
             match = True
             for k, v in rec.items():
                 if k == 'source_records':
@@ -947,7 +955,7 @@ def update_work_with_rec_data(
     if not work.get('authors'):
         authors = [import_author(a) for a in rec.get('authors', [])]
         work['authors'] = [
-            {'type': {'key': '/type/author_role'}, 'author': a.key}
+            {'type': {'key': '/type/author_role'}, 'author': a.get('key')}
             for a in authors
             if a.get('key')
         ]
@@ -974,7 +982,33 @@ def should_overwrite_promise_item(
     return bool(safeget(lambda: edition['source_records'][0], '').startswith("promise"))
 
 
-def load(rec, account_key=None, from_marc_record: bool = False):
+def supplement_rec_with_import_item_metadata(
+    rec: dict[str, Any], identifier: str
+) -> None:
+    """
+    Queries for a staged/pending row in `import_item` by identifier, and if found, uses
+    select metadata to supplement empty fields/'????' fields in `rec`.
+
+    Changes `rec` in place.
+    """
+    from openlibrary.core.imports import ImportItem  # Evade circular import.
+
+    import_fields = [
+        'authors',
+        'publish_date',
+        'publishers',
+        'number_of_pages',
+        'physical_format',
+    ]
+
+    if import_item := ImportItem.find_staged_or_pending([identifier]).first():
+        import_item_metadata = json.loads(import_item.get("data", '{}'))
+        for field in import_fields:
+            if not rec.get(field) and (staged_field := import_item_metadata.get(field)):
+                rec[field] = staged_field
+
+
+def load(rec: dict, account_key=None, from_marc_record: bool = False):
     """Given a record, tries to add/match that edition in the system.
 
     Record is a dictionary containing all the metadata of the edition.
@@ -993,8 +1027,11 @@ def load(rec, account_key=None, from_marc_record: bool = False):
 
     normalize_import_record(rec)
 
-    # Resolve an edition if possible, or create and return one if not.
+    # For recs with a non-ISBN ASIN, supplement the record with BookWorm metadata.
+    if non_isbn_asin := get_non_isbn_asin(rec):
+        supplement_rec_with_import_item_metadata(rec=rec, identifier=non_isbn_asin)
 
+    # Resolve an edition if possible, or create and return one if not.
     edition_pool = build_pool(rec)
     if not edition_pool:
         # No match candidates found, add edition

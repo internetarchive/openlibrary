@@ -1,5 +1,68 @@
+from typing import TYPE_CHECKING, Any, Final
 import web
 from openlibrary.catalog.utils import flip_name, author_dates_match, key_int
+from openlibrary.core.helpers import extract_year
+
+
+if TYPE_CHECKING:
+    from openlibrary.plugins.upstream.models import Author
+
+
+# Sort by descending length to remove the _longest_ match.
+# E.g. remove "señorita" and not "señor", when both match.
+HONORIFICS: Final = sorted(
+    [
+        'countess',
+        'doctor',
+        'doktor',
+        'dr',
+        'dr.',
+        'frau',
+        'fräulein',
+        'herr',
+        'lady',
+        'lord',
+        'm.',
+        'madame',
+        'mademoiselle',
+        'miss',
+        'mister',
+        'mistress',
+        'mixter',
+        'mlle',
+        'mlle.',
+        'mme',
+        'mme.',
+        'monsieur',
+        'mr',
+        'mr.',
+        'mrs',
+        'mrs.',
+        'ms',
+        'ms.',
+        'mx',
+        'mx.',
+        'professor',
+        'señor',
+        'señora',
+        'señorita',
+        'sir',
+        'sr.',
+        'sra.',
+        'srta.',
+    ],
+    key=lambda x: len(x),
+    reverse=True,
+)
+
+HONORIFC_NAME_EXECPTIONS = frozenset(
+    {
+        "dr. seuss",
+        "dr seuss",
+        "dr oetker",
+        "doctor oetker",
+    }
+)
 
 
 def east_in_by_statement(rec, author):
@@ -75,7 +138,7 @@ def pick_from_matches(author, match):
     return min(maybe, key=key_int)
 
 
-def find_author(name):
+def find_author(author: dict[str, Any]) -> list["Author"]:
     """
     Searches OL for an author by name.
 
@@ -92,26 +155,40 @@ def find_author(name):
             seen.add(obj['key'])
         return obj
 
-    q = {'type': '/type/author', 'name': name}  # FIXME should have no limit
-    reply = list(web.ctx.site.things(q))
+    # Try for an 'exact' (case-insensitive) name match, but fall back to alternate_names,
+    # then last name with identical birth and death dates (that are not themselves `None` or '').
+    name = author["name"].replace("*", r"\*")
+    queries = [
+        {"type": "/type/author", "name~": name},
+        {"type": "/type/author", "alternate_names~": name},
+        {
+            "type": "/type/author",
+            "name~": f"* {name.split()[-1]}",
+            "birth_date~": f"*{extract_year(author.get('birth_date', '')) or -1}*",
+            "death_date~": f"*{extract_year(author.get('death_date', '')) or -1}*",
+        },  # Use `-1` to ensure an empty string from extract_year doesn't match empty dates.
+    ]
+    for query in queries:
+        if reply := list(web.ctx.site.things(query)):
+            break
+
     authors = [web.ctx.site.get(k) for k in reply]
     if any(a.type.key != '/type/author' for a in authors):
-        seen = set()
+        seen: set[dict] = set()
         authors = [walk_redirects(a, seen) for a in authors if a['key'] not in seen]
     return authors
 
 
-def find_entity(author):
+def find_entity(author: dict[str, Any]) -> "Author | None":
     """
     Looks for an existing Author record in OL by name
     and returns it if found.
 
     :param dict author: Author import dict {"name": "Some One"}
-    :rtype: dict|None
-    :return: Existing Author record, if one is found
+    :return: Existing Author record if found, or None.
     """
     name = author['name']
-    things = find_author(name)
+    things = find_author(author)
     et = author.get('entity_type')
     if et and et != 'person':
         if not things:
@@ -120,7 +197,9 @@ def find_entity(author):
         assert db_entity['type']['key'] == '/type/author'
         return db_entity
     if ', ' in name:
-        things += find_author(flip_name(name))
+        flipped_name = flip_name(author["name"])
+        author_flipped_name = author.copy()
+        things += find_author(author_flipped_name)
     match = []
     seen = set()
     for a in things:
@@ -144,7 +223,29 @@ def find_entity(author):
     return pick_from_matches(author, match)
 
 
-def import_author(author, eastern=False):
+def remove_author_honorifics(name: str) -> str:
+    """
+    Remove honorifics from an author's name field.
+
+    If the author's name is only an honorific, it will return the original name.
+    """
+    if name.casefold() in HONORIFC_NAME_EXECPTIONS:
+        return name
+
+    if honorific := next(
+        (
+            honorific
+            for honorific in HONORIFICS
+            if name.casefold().startswith(honorific)
+        ),
+        None,
+    ):
+        return name[len(honorific) :].lstrip() or name
+
+    return name
+
+
+def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, Any]":
     """
     Converts an import style new-author dictionary into an
     Open Library existing author, or new author candidate, representation.
@@ -152,7 +253,6 @@ def import_author(author, eastern=False):
 
     :param dict author: Author import record {"name": "Some One"}
     :param bool eastern: Eastern name order
-    :rtype: dict
     :return: Open Library style Author representation, either existing with "key",
              or new candidate without "key".
     """
@@ -203,6 +303,7 @@ def build_query(rec):
             if v and v[0]:
                 book['authors'] = []
                 for author in v:
+                    author['name'] = remove_author_honorifics(author['name'])
                     east = east_in_by_statement(rec, author)
                     book['authors'].append(import_author(author, eastern=east))
             continue

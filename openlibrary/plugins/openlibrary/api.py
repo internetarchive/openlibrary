@@ -9,27 +9,25 @@ import re
 import json
 from collections import defaultdict
 from openlibrary.views.loanstats import get_trending_books
-from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render_template  # noqa: F401 used for its side effects
 from infogami.plugins.api.code import jsonapi
-from infogami.utils.view import add_flash_message
 from openlibrary import accounts
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
-from openlibrary.plugins.worksearch.subjects import get_subject
-from openlibrary.accounts.model import OpenLibraryAccount
-from openlibrary.core import ia, db, models, lending, helpers as h
+from openlibrary.core import models, lending, helpers as h
 from openlibrary.core.bookshelves_events import BookshelvesEvents
 from openlibrary.core.observations import Observations, get_observation_metrics
 from openlibrary.core.models import Booknotes, Work
 from openlibrary.core.sponsorships import qualifies_for_sponsorship
+from openlibrary.core.follows import PubSub
 from openlibrary.core.vendors import (
     create_edition_from_amazon_metadata,
     get_amazon_metadata,
     get_betterworldbooks_metadata,
 )
+from openlibrary.core.helpers import NothingEncoder
 
 
 class book_availability(delegate.page):
@@ -227,13 +225,13 @@ class booknotes(delegate.page):
         :return: the note
         """
         user = accounts.get_current_user()
+        if not user:
+            raise web.seeother('/account/login?redirect=/works/%s' % work_id)
+
         i = web.input(notes=None, edition_id=None, redir=None)
         edition_id = (
             int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else -1
         )
-
-        if not user:
-            raise web.seeother('/account/login?redirect=/works/%s' % work_id)
 
         username = user.key.split('/')[2]
 
@@ -497,6 +495,34 @@ class price_api(delegate.page):
                     metadata['ocaid'] = ed.ocaid
 
         return json.dumps(metadata)
+
+
+class patrons_follows_json(delegate.page):
+    path = r"(/people/[^/]+)/follows"
+    encoding = "json"
+
+    def GET(self, key):
+        i = web.input(publisher='', redir_url='', state='')
+        user = accounts.get_current_user()
+        if not user or user.key != key:
+            raise web.seeother(f'/account/login?redir_url={i.redir_url}')
+
+        username = user.key.split('/')[2]
+        return delegate.RawText(
+            json.dumps(PubSub.get_subscriptions(username), cls=NothingEncoder),
+            content_type="application/json",
+        )
+
+    def POST(self, key):
+        i = web.input(publisher='', redir_url='', state='')
+        user = accounts.get_current_user()
+        if not user or user.key != key:
+            raise web.seeother(f'/account/login?redir_url={i.redir_url}')
+
+        username = user.key.split('/')[2]
+        action = PubSub.subscribe if i.state == '0' else PubSub.unsubscribe
+        action(username, i.publisher)
+        raise web.seeother(i.redir_url)
 
 
 class patrons_observations(delegate.page):

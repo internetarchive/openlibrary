@@ -3,6 +3,7 @@ $def with (docs, key, shelf_count, doc_count, owners_page, current_page, sort_or
 $ username = user.key.split('/')[-1]
 $ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
 $ userDisplayName = user.displayname or ctx.user.displayname
+$ readlog_keys = ['want-to-read', 'already-ready', 'current-reading']
 
 $if key == 'currently-reading':
   $ og_title = _("Books %(username)s is reading", username=userDisplayName)
@@ -17,6 +18,9 @@ $elif key == 'already-read':
   $else:
     $ og_title = _("Books %(username)s has read", username=userDisplayName)
     $ og_description = _("%(username)s has read %(total)d books. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about.", username=userDisplayName, total=shelf_count)
+$elif key == 'feed':
+  $ og_title = _("Books in %(username)s feed", username=userDisplayName)
+  $ og_description = _("Books added by people %(username)s follows", username=userDisplayName)
 $elif key == 'sponsorships':
   $ og_title = _("Books %(userdisplayname)s is sponsoring", userdisplayname=userDisplayName)
   $ og_description = "{username} is sponsoring {total} books. Join {username} on OpenLibrary.org and share the books that you'll soon be reading!".format(username=userDisplayName, total=shelf_count)
@@ -30,18 +34,19 @@ $add_metatag(property="og:image", content=meta_photo_url)
 
 <div class="mybooks-list">
   $ yearly_goal = get_reading_goals(year=checkin_year)
-  $if yearly_goal and owners_page:
+  $if yearly_goal and owners_page and key in readlog_keys:
     <div class="yearly-goal-section">
       $:render_template('check_ins/reading_goal_progress', [yearly_goal])
     </div>
 
   $# The reading log search is only displayed on non-empty shelves because some patrons were confused and searching empty reading lists, perhaps thinking they could add books that way. See #7143.
-  $if q or len(docs) > 0:
-    <form method="GET" class="olform pagesearchbox">
-      <input type="text" minlength="3" placeholder="$_('Search your reading log')" name="q" value="$(query_param('q', ''))"/>
-      <input type="submit"/>
-    </form>
+
   $if len(docs) > 0:
+    $if key in readlog_keys:
+      <form method="GET" class="olform pagesearchbox">
+        <input type="text" minlength="3" placeholder="$_('Search your reading log')" name="q" value="$(query_param('q', ''))"/>
+        <input type="submit"/>
+      </form>
     $if q:
       <span class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', doc_count, count=commify(doc_count))</span>
     $else:
@@ -62,10 +67,17 @@ $add_metatag(property="og:image", content=meta_photo_url)
       $if docs:
         $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3}.get(key, None)
         $ doc_number = 1
+        $ shelves = ['want to read', 'currently reading', 'already read']
         $# enumerate because using zip() will result in empty iterator when no ratings are passed, and ratings are only used on already-read.
         $for idx, doc in enumerate(docs):
-          $ star_rating = macros.StarRatings(doc, redir_url='/account/books/already-read', id=doc_number, rating=ratings[idx]) if include_ratings else None
-          $:macros.SearchResultsWork(doc, availability=doc.get('availability'), rating=star_rating, include_dropper=(bookshelf_id and owners_page))
+          $if doc.get('work', {}):
+            $ work = doc.pop('work')
+            $ work['log'] = doc
+            $ work['log']['shelf'] = shelves[doc['bookshelf_id'] - 1]
+          $else:
+            $ work = doc
+          $ star_rating = macros.StarRatings(work, redir_url='/account/books/already-read', id=doc_number, rating=ratings[idx]) if include_ratings else None
+          $:macros.SearchResultsWork(work, availability=doc.get('availability'), rating=star_rating, include_dropper=(bookshelf_id and owners_page))
           $ doc_number = doc_number + 1
     </ul>
     $if not checkin_year:
@@ -84,8 +96,10 @@ $add_metatag(property="og:image", content=meta_photo_url)
         </div>
       $elif checkin_year:
         <p>$_("You haven't marked any books as read for this year.")</p>
-      $else:
+      $elif key in readlog_keys:
         <p>$_("You haven't added any books to this shelf yet.")</p>
         <p>$:_('<a href="/search">Search for a book</a> to add to your reading log. <a href="/help/faq/reading-log">Learn more</a> about the reading log.')</p>
+      $elif key == 'feed':
+	<p>$_("There are no recent books in your feed. When you follow public accounts, their book updates will appear here.")</p>
     </ul>
   </div>

@@ -2,7 +2,7 @@
 Open Library Plugin.
 """
 
-from urllib.parse import parse_qs, urlparse, urlencode, urlunparse
+from urllib.parse import parse_qs, urlencode
 import requests
 import web
 import json
@@ -13,7 +13,6 @@ import datetime
 import logging
 from time import time
 import math
-from pathlib import Path
 import infogami
 
 # make sure infogami.config.features is set
@@ -34,7 +33,6 @@ from infogami.infobase import client
 from infogami.core.db import ValidationException
 
 from openlibrary.core import cache
-from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13, canonical
 from openlibrary.core.models import Edition
 from openlibrary.core.lending import get_availability
@@ -47,6 +45,7 @@ delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
 delegate.app.add_processor(processors.CORSProcessor(cors_prefixes={'/api/'}))
 delegate.app.add_processor(processors.PreferenceProcessor())
+delegate.app.add_processor(processors.CacheablePathsProcessor())
 
 try:
     from infogami.plugins.api import code as api
@@ -292,7 +291,7 @@ class addauthor(delegate.page):
 
 class clonebook(delegate.page):
     def GET(self):
-        from infogami.core.code import edit
+        from infogami.core.code import edit  # noqa: F401 not sure why, probably needed
 
         i = web.input('key')
         page = web.ctx.site.get(i.key)
@@ -482,9 +481,9 @@ def remove_high_priority(query: str) -> str:
 class isbn_lookup(delegate.page):
     path = r'/(?:isbn|ISBN)/(.{10,})'
 
-    def GET(self, isbn):
+    def GET(self, isbn: str):
         input = web.input(high_priority=False)
-        isbn = canonical(isbn)
+        isbn = isbn if isbn.upper().startswith("B") else canonical(isbn)
         high_priority = input.get("high_priority") == "true"
         if "high_priority" in web.ctx.env.get('QUERY_STRING'):
             web.ctx.env['QUERY_STRING'] = remove_high_priority(
@@ -499,7 +498,7 @@ class isbn_lookup(delegate.page):
             ext += '?' + web.ctx.env['QUERY_STRING']
 
         try:
-            if ed := Edition.from_isbn(isbn=isbn, high_priority=high_priority):
+            if ed := Edition.from_isbn(isbn_or_asin=isbn, high_priority=high_priority):
                 return web.found(ed.key + ext)
         except Exception as e:
             logger.error(e)
@@ -1090,6 +1089,16 @@ def is_bot():
         'bingbot',
         'mj12bot',
         'yoozbotadsbot',
+        'ahrefsbot',
+        'amazonbot',
+        'applebot',
+        'bingbot',
+        'brightbot',
+        'gptbot',
+        'petalbot',
+        'semanticscholarbot',
+        'yandex.com/bots',
+        'icc-crawler',
     ]
     if not web.ctx.env.get('HTTP_USER_AGENT'):
         return True
@@ -1167,7 +1176,9 @@ def setup():
     authors.setup()
     swagger.setup()
 
-    from openlibrary.plugins.openlibrary import api
+    from openlibrary.plugins.openlibrary import (
+        api,  # noqa: F401 not sure why but could be needed
+    )
 
     delegate.app.add_processor(web.unloadhook(stats.stats_hook))
 

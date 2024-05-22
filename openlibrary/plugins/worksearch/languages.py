@@ -2,7 +2,7 @@
 """
 
 from infogami.plugins.api.code import jsonapi
-from infogami.utils import delegate, stats
+from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
 import web
 import json

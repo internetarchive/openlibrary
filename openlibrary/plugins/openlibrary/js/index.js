@@ -17,7 +17,6 @@ import init from './ol.js';
 import * as Browser from './Browser';
 import { commify, urlencode, slice } from './python';
 import Template from './template.js';
-// Add $.fn.focusNextInputField
 import { truncate, cond } from './utils';
 import initValidate from './validate';
 import '../../../../static/css/js-all.less';
@@ -441,6 +440,18 @@ jQuery(function () {
 
     $('.hamburger-component .mask-menu').on('click', function () {
         $('details[open]').not(this).removeAttr('open');
+    });
+
+    $('.header-dropdown').on('keydown', function (event) {
+        if (event.key === 'Escape') {
+            $('.header-dropdown > details[open]').removeAttr('open');
+        }
+    });
+
+    $('.dropdown-menu').each(function() {
+        $(this).find('a').last().on('focusout', function() {
+            $('.header-dropdown > details[open]').removeAttr('open');
+        });
     });
 
     // Open one dropdown at a time.

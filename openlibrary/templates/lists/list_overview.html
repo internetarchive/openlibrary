@@ -23,6 +23,11 @@ $ data_list_key = 'data-list-key=%s' % list.key if is_owner else ''
                 <a href="$list.key" class="remove-from-list red smaller arial plain" data-list-key="$list.key" title="$_('Remove from your list?')">[X]</a>
         </span>
         $if has_owner:
-            <span class="owner">from <a href="$list.owner.key">$(_('You') if is_owner else list.owner.displayname)</a></span>
+            <span class="owner">
+                $if is_owner:
+                    $:_('from <a href="%(link)s">You</a>', link=list.owner.key)
+                $else:
+                    $:_('from <a href="%(link)s">%(name)s</a>', link=list.owner.key, name=websafe(list.owner.displayname))
+            </span>
     </span>
 </li>

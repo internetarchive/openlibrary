@@ -16,15 +16,16 @@ The imports can be monitored for their statuses and rolled up / counted using th
 
 from __future__ import annotations
 import json
+from typing import Any
 import ijson
 from urllib.parse import urlencode
 import requests
 import logging
 
-import _init_path  # Imported for its side effect of setting PYTHONPATH
-from infogami import config
+import _init_path  # noqa: F401 # Imported for its side effect of setting PYTHONPATH
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch, ImportItem
+from openlibrary.core.vendors import get_amazon_metadata
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 
@@ -87,6 +88,31 @@ def is_isbn_13(isbn: str):
     return isbn and isbn[0].isdigit()
 
 
+def stage_b_asins_for_import(olbooks: list[dict[str, Any]]) -> None:
+    """
+    Stage B* ASINs for import via BookWorm.
+
+    This is so additional metadata may be used during import via load(), which
+    will look for `staged` rows in `import_item` and supplement `????` or otherwise
+    empty values.
+    """
+    for book in olbooks:
+        if not (amazon := book.get('identifiers', {}).get('amazon', [])):
+            continue
+
+        asin = amazon[0]
+        if asin.upper().startswith("B"):
+            try:
+                get_amazon_metadata(
+                    id_=asin,
+                    id_type="asin",
+                )
+
+            except requests.exceptions.ConnectionError:
+                logger.exception("Affiliate Server unreachable")
+                continue
+
+
 def batch_import(promise_id, batch_size=1000, dry_run=False):
     url = "https://archive.org/download/"
     date = promise_id.split("_")[-1]
@@ -95,16 +121,23 @@ def batch_import(promise_id, batch_size=1000, dry_run=False):
         map_book_to_olbook(book, promise_id) for book in ijson.items(resp.raw, 'item')
     )
 
+    # Note: dry_run won't include BookWorm data.
     if dry_run:
         for book in olbooks_gen:
             print(json.dumps(book), flush=True)
         return
 
     olbooks = list(olbooks_gen)
+
+    # Stage B* ASINs for import so as to supplement their metadata via `load()`.
+    stage_b_asins_for_import(olbooks)
+
     batch = Batch.find(promise_id) or Batch.new(promise_id)
     # Find just-in-time import candidates:
-    jit_candidates = [book['isbn_13'][0] for book in olbooks if book.get('isbn_13', [])]
-    ImportItem.bulk_mark_pending(jit_candidates)
+    if jit_candidates := [
+        book['isbn_13'][0] for book in olbooks if book.get('isbn_13', [])
+    ]:
+        ImportItem.bulk_mark_pending(jit_candidates)
     batch_items = [{'ia_id': b['local_id'][0], 'data': b} for b in olbooks]
     for i in range(0, len(batch_items), batch_size):
         batch.add_items(batch_items[i : i + batch_size])

@@ -1,5 +1,6 @@
 import team from '../../../templates/about/team.json';
 export function initTeamFilter() {
+    const currentYear = new Date().getFullYear().toString();
     // Photos
     const default_profile_image =
     '../../../static/images/openlibrary-180x180.png';
@@ -46,10 +47,10 @@ export function initTeamFilter() {
       !matchSubstring(person.roles, 'staff')
     );
     const currentFellows = fellows.filter((person) =>
-        matchSubstring(person.roles, '2023')
+        matchSubstring(person.roles, currentYear)
     );
     const pastFellows = fellows.filter(
-        (person) => !matchSubstring(person.roles, '2023')
+        (person) => !matchSubstring(person.roles, currentYear)
     );
 
     // ********** VOLUNTEERS **********
@@ -219,10 +220,10 @@ export function initTeamFilter() {
           !matchSubstring(person.roles, 'staff')
             );
             const currentFellows = fellows.filter((person) =>
-                matchSubstring(person.roles, '2023')
+                matchSubstring(person.roles, currentYear)
             );
             const pastFellows = fellows.filter(
-                (person) => !matchSubstring(person.roles, '2023')
+                (person) => !matchSubstring(person.roles, currentYear)
             );
 
             const volunteers = filteredTeam.filter(

@@ -1,16 +1,24 @@
 from typing import Any
+import importlib
 import json
 import sys
-from collections.abc import Generator, Hashable, Iterable, Mapping
+from collections.abc import Hashable, Iterable, Mapping
 
 import web
+
 from openlibrary.core.models import Edition
+from openlibrary.core.imports import ImportItem
 
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.core import helpers as h
 from openlibrary.core import ia
 
 from infogami.utils.delegate import register_exception
+
+
+# Import from manage-imports, but get around hyphen problem.
+imports_module = "scripts.manage-imports"
+manage_imports = importlib.import_module(imports_module)
 
 
 def split_key(bib_key: str) -> tuple[str | None, str | None]:
@@ -454,34 +462,42 @@ def is_isbn(bib_key: str) -> bool:
     return len(bib_key) in {10, 13}
 
 
-def get_missed_isbn_bib_keys(
-    bib_keys: Iterable[str], found_records: dict
-) -> Generator[str, None, None]:
+def get_missed_isbn_bib_keys(bib_keys: Iterable[str], found_records: dict) -> list[str]:
     """
     Return a Generator[str, None, None] with all ISBN bib_keys not in `found_records`.
     """
-    return (
+    return [
         bib_key
         for bib_key in bib_keys
         if bib_key not in found_records and is_isbn(bib_key)
-    )
+    ]
 
 
 def get_isbn_editiondict_map(
-    isbns: Iterable, high_priority: bool = False
+    isbns: Iterable[str], high_priority: bool = False
 ) -> dict[str, Any]:
     """
     Attempts to import items from their ISBN, returning a mapping of possibly
     imported edition_dicts in the following form:
         {isbn_string: edition_dict...}}
     """
+    # Supplement non-ISBN ASIN records with BookWorm metadata for that ASIN.
+    if high_priority:
+        for isbn in isbns:
+            if not isbn.upper().startswith("B"):
+                continue
+
+            if item_to_import := ImportItem.find_staged_or_pending([isbn]).first():
+                item_edition = ImportItem(item_to_import)
+                manage_imports.do_import(item_edition, require_marc=False)
+
     # Get a mapping of ISBNs to new Editions (or `None`)
     isbn_edition_map = {
-        isbn: Edition.from_isbn(isbn=isbn, high_priority=high_priority)
+        isbn: Edition.from_isbn(isbn_or_asin=isbn, high_priority=high_priority)
         for isbn in isbns
     }
 
-    # Convert edictions to dicts, dropping ISBNs for which no edition was created.
+    # Convert editions to dicts, dropping ISBNs for which no edition was created.
     return {
         isbn: edition.dict() for isbn, edition in isbn_edition_map.items() if edition
     }
@@ -505,15 +521,17 @@ def dynlinks(bib_keys: Iterable[str], options: web.storage) -> str:
     # for backward-compatibility
     if options.get("details", "").lower() == "true":
         options["jscmd"] = "details"
+    high_priority = options.get("high_priority", False)
 
     try:
         edition_dicts = query_docs(bib_keys)
+
         # For any ISBN bib_keys without hits, attempt to import+use immediately if
         # `high_priority`. Otherwise, queue them for lookup via the AMZ Products
         # API and process whatever editions were found in existing data.
         if missed_isbns := get_missed_isbn_bib_keys(bib_keys, edition_dicts):
             new_editions = get_isbn_editiondict_map(
-                isbns=missed_isbns, high_priority=options.get("high_priority")
+                isbns=missed_isbns, high_priority=high_priority
             )
             edition_dicts.update(new_editions)
         edition_dicts = process_result(edition_dicts, options.get('jscmd'))

@@ -16,7 +16,6 @@ from infogami.infobase.client import ClientException
 
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.core.helpers import uniq
-from openlibrary.i18n import gettext as _
 from openlibrary import accounts
 import logging
 
@@ -169,7 +168,7 @@ def encode_url_path(url: str) -> str:
     '/'
     >>> encode_url_path('/books/OL11M/进入该海域?mode=add-work')
     '/books/OL11M/%E8%BF%9B%E5%85%A5%E8%AF%A5%E6%B5%B7%E5%9F%9F?mode=add-work'
-    """
+    """  # noqa: RUF002
     result = urllib.parse.urlparse(url)
     correct_path = "/".join(urllib.parse.quote(part) for part in result.path.split("/"))
     result = result._replace(path=correct_path)

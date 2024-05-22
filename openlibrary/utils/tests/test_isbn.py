@@ -1,10 +1,12 @@
 import pytest
 from openlibrary.utils.isbn import (
+    get_isbn_10_and_13,
     isbn_10_to_isbn_13,
     isbn_13_to_isbn_10,
+    normalize_identifier,
     normalize_isbn,
     opposite_isbn,
-    get_isbn_10_and_13,
+    get_isbn_10s_and_13s,
 )
 
 
@@ -50,33 +52,62 @@ def test_normalize_isbn(isbnlike, expected):
     assert normalize_isbn(isbnlike) == expected
 
 
-def test_get_isbn_10_and_13() -> None:
+def test_get_isbn_10s_and_13s() -> None:
     # isbn 10 only
-    result = get_isbn_10_and_13(["1576079457"])
+    result = get_isbn_10s_and_13s(["1576079457"])
     assert result == (["1576079457"], [])
 
     # isbn 13 only
-    result = get_isbn_10_and_13(["9781576079454"])
+    result = get_isbn_10s_and_13s(["9781576079454"])
     assert result == ([], ["9781576079454"])
 
     # mixed isbn 10 and 13, with multiple elements in each, one which has an extra space.
-    result = get_isbn_10_and_13(
+    result = get_isbn_10s_and_13s(
         ["9781576079454", "1576079457", "1576079392 ", "9781280711190"]
     )
     assert result == (["1576079457", "1576079392"], ["9781576079454", "9781280711190"])
 
     # an empty list
-    result = get_isbn_10_and_13([])
+    result = get_isbn_10s_and_13s([])
     assert result == ([], [])
 
     # not an isbn
-    result = get_isbn_10_and_13(["flop"])
+    result = get_isbn_10s_and_13s(["flop"])
     assert result == ([], [])
 
     # isbn 10 string, with an extra space.
-    result = get_isbn_10_and_13(" 1576079457")
+    result = get_isbn_10s_and_13s(" 1576079457")
     assert result == (["1576079457"], [])
 
     # isbn 13 string
-    result = get_isbn_10_and_13("9781280711190")
+    result = get_isbn_10s_and_13s("9781280711190")
     assert result == ([], ["9781280711190"])
+
+
+@pytest.mark.parametrize(
+    ["isbn", "expected"],
+    [
+        ("1111111111", ("1111111111", "9781111111113")),
+        ("9781111111113", ("1111111111", "9781111111113")),
+        ("979-1-23456-789-6", (None, "9791234567896")),
+        ("", (None, None)),
+        (None, (None, None)),
+    ],
+)
+def test_get_isbn_10_and_13(isbn, expected) -> None:
+    got = get_isbn_10_and_13(isbn)
+    assert got == expected
+
+
+@pytest.mark.parametrize(
+    ["identifier", "expected"],
+    [
+        ("B01234678", ("B01234678", None, None)),
+        ("1111111111", (None, "1111111111", "9781111111113")),
+        ("9781111111113", (None, "1111111111", "9781111111113")),
+        ("", (None, None, None)),
+    ],
+)
+def test_normalize_identifier(identifier, expected) -> None:
+    got = normalize_identifier(identifier)
+    assert got == expected

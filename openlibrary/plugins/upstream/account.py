@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 import logging
 import re
+import requests
 from typing import Any, TYPE_CHECKING, Final
 from collections.abc import Callable
 from collections.abc import Iterable, Mapping
@@ -17,7 +18,7 @@ from infogami.utils.view import (
     add_flash_message,
 )
 from infogami.infobase.client import ClientException
-import infogami.core.code as core
+import infogami.core.code as core  # noqa: F401 definitely needed
 
 from openlibrary import accounts
 from openlibrary.i18n import gettext as _
@@ -31,16 +32,18 @@ from openlibrary.core.lending import (
 )
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
+from openlibrary.core.follows import PubSub
+
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
     audit_accounts,
-    Account,
     OpenLibraryAccount,
     InternetArchiveAccount,
     valid_email,
     clear_cookies,
+    OLAuthenticationError,
 )
 from openlibrary.plugins.upstream import borrow, forms, utils
 from openlibrary.utils.dateutil import elapsed_time
@@ -89,6 +92,7 @@ def get_login_error(error_key):
         "invalid_s3keys": _(
             'Login attempted with invalid Internet Archive s3 credentials.'
         ),
+        "undefined_error": _('A problem occurred and we were unable to log you in'),
     }
     return LOGIN_ERRORS[error_key]
 
@@ -318,8 +322,12 @@ class account_create(delegate.page):
                 return render['account/verify'](
                     username=f.username.value, email=f.email.value
                 )
-            except ValueError:
-                f.note = get_login_error('max_retries_exceeded')
+            except OLAuthenticationError as e:
+                f.note = get_login_error(e.__str__())
+                from openlibrary.plugins.openlibrary.sentry import sentry
+
+                if sentry.enabled:
+                    sentry.capture_exception(e)
 
         return render['account/create'](f)
 
@@ -337,7 +345,6 @@ class account_login_json(delegate.page):
         payload is json. Instead, if login attempted w/ json
         credentials, requires Archive.org s3 keys.
         """
-        from openlibrary.plugins.openlibrary.code import BadRequest
 
         d = json.loads(web.data())
         email = d.get('email', "")
@@ -551,13 +558,26 @@ class account_validation(delegate.page):
     path = '/account/validate'
 
     @staticmethod
+    def ia_username_exists(username):
+        url = "https://archive.org/metadata/@%s" % username
+        try:
+            return bool(requests.get(url).json())
+        except (OSError, ValueError):
+            return
+
+    @staticmethod
     def validate_username(username):
         if not 3 <= len(username) <= 20:
             return _('Username must be between 3-20 characters')
         if not re.match('^[A-Za-z0-9-_]{3,20}$', username):
             return _('Username may only contain numbers and letters')
+
         ol_account = OpenLibraryAccount.get(username=username)
         if ol_account:
+            return _("Username unavailable")
+
+        ia_account = account_validation.ia_username_exists(username)
+        if ia_account:
             return _("Username unavailable")
 
     @staticmethod
@@ -568,6 +588,10 @@ class account_validation(delegate.page):
         ol_account = OpenLibraryAccount.get(email=email)
         if ol_account:
             return _('Email already registered')
+
+        ia_account = InternetArchiveAccount.get(email=email)
+        if ia_account:
+            return _('An Internet Archive account already exists with this email')
 
     def GET(self):
         i = web.input()
@@ -768,7 +792,10 @@ class account_privacy(delegate.page):
         user = accounts.get_current_user()
         if user.get_safe_mode() != 'yes' and i.safe_mode == 'yes':
             stats.increment('ol.account.safe_mode')
+
         user.save_preferences(i)
+        username = user.key.split('/')[-1]
+        PubSub.toggle_privacy(username, private=i.public_readlog == 'no')
         web.setcookie(
             'sfw', i.safe_mode, expires="" if i.safe_mode.lower() == 'yes' else -1
         )
@@ -1099,6 +1126,21 @@ class export_books(delegate.page):
             }
 
         return csv_string(Ratings.select_all_by_username(username), format_rating)
+
+
+class my_follows(delegate.page):
+    path = r"/people/([^/]+)/(followers|following)"
+
+    def GET(self, username, key=""):
+        mb = MyBooksTemplate(username, 'following')
+        follows = (
+            PubSub.get_followers(username)
+            if key == 'followers'
+            else PubSub.get_following(username)
+        )
+        manage = key == 'following' and mb.is_my_page
+        template = render['account/follows'](mb.user, follows, manage=manage)
+        return mb.render(header_title=_(key.capitalize()), template=template)
 
 
 class account_loans(delegate.page):

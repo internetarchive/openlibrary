@@ -60,7 +60,7 @@ $ sort = query_param('sort', None)
                 $ date = doc['date']
             <li class="searchResultItem">
 	      <img src="$get_coverstore_public_url()/a/olid/$(doc['key'].split('/')[-1])-M.jpg" itemprop="image" class="cover author" alt="$_('Photo of %(author)s', author=n)">
-	      <div>
+	      <div class="details">
 		<a href="$doc['key']" class="larger">$n</a>&nbsp;<span class="brown small">$date</span><br />
 		<span class="small grey"><b>$wc</b>
                 $if 'top_subjects' in doc:

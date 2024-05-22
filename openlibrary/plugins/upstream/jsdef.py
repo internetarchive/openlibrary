@@ -57,10 +57,6 @@ import json
 
 import web
 from web.template import (
-    Template,
-    Parser,
-    LineNode,
-    SuiteNode,
     DefNode,
     PythonTokenizer,
     # INDENT,

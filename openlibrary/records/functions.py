@@ -7,9 +7,7 @@ import copy
 
 import web
 
-from openlibrary.catalog.add_book import normalize
 from openlibrary.core.models import Thing
-import openlibrary.core.helpers as h
 
 
 class NoQueryParam(KeyError):
