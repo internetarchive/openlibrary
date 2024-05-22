@@ -236,11 +236,11 @@ def remove_author_honorifics(name: str) -> str:
         (
             honorific
             for honorific in HONORIFICS
-            if name.casefold().startswith(honorific)
+            if name.casefold().startswith(f"{honorific} ")  # Note the trailing space.
         ),
         None,
     ):
-        return name[len(honorific) :].lstrip() or name
+        return name[len(f"{honorific} ") :].lstrip() or name
 
     return name
 
