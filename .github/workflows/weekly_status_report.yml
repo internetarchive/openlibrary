@@ -28,6 +28,7 @@ jobs:
       - run: node scripts/gh_scripts/weekly_status_report.mjs ${{ env.TEAM_ABC_CONFIG }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
       - run: node scripts/gh_scripts/weekly_status_report.mjs ${{ env.LEADS_G_CONFIG }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

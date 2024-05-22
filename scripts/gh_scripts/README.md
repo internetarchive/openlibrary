@@ -76,6 +76,7 @@ This script prepares a digest of information helpful to leads, and publishes the
 `config_filepath` the location of the script's configuration file
 
 A `SLACK_TOKEN` must be included as an environment variable in order to `POST` to Slack.
+
 Additionally, a `GITHUB_TOKEN` should also be added as an environment variable.  `@octokit/action` adds
 this to the `octokit` object during instantiation, allowing `octokit` to make authenticated requests
 to GitHub.
@@ -83,19 +84,31 @@ to GitHub.
 #### Configuration
 
 A configuration file is required for this script to run properly.  The file should contain a JSON string with the following fields:
+
 `slackChannel` : The digest will be published here.
+
 `forStaff` : Boolean that flags whether this digest is for staff, or for other leads.  If `false`, the digest will be published without several sections.
+
 `leads` : Array of configurations for each lead.
+
 `leads.githubUsername` : The lead's GitHub username.
+
 `leads.leadLabel`: Text of the lead's `Lead: @` label.
+
 `leads.slackId`: The lead's Slack ID, which is used to trigger Slack notifications when the message is published.
 
 ### Details
 
 The script prepares a digest containing the following sections:
+
 *Recent comments* : A list of links to issues that need comments, broken down by lead.
-*Untriaged issues* : List of issues which have the https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+label%3A%22Needs%3A+Triage%22 label.  Only present if `forStaff` is `true`.
+
+*Untriaged issues* : List of issues which have the https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Triage label.  Only present if `forStaff` is `true`.
+
 *Unassigned PRs* : List of pull requests that do not have an assignee.  Only present if `staffOnly` is `true`.
+
 *Assigned PRs* : List of pull requests that have been assigned, broken down by lead.  Links to higher priority PRs are also included here.
+
 *Staff PRs* : List of all open staff PRs.  Only present if `forStaff` is `true`.
+
 *Submitter Input for PRs* : List of PRs that are labeled https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Submitter%20Input, broken down by leads.
