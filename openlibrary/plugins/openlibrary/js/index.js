@@ -14,6 +14,7 @@ import jQueryRepeat from './jquery.repeat';
 import { enumerate, htmlquote, websafe, foreach, join, len, range, jsdef_get } from './jsdef';
 import initAnalytics from './ol.analytics';
 import init from './ol.js';
+import initServiceWorker from './service-worker-init.js'
 import * as Browser from './Browser';
 import { commify, urlencode, slice } from './python';
 import Template from './template.js';
@@ -53,6 +54,9 @@ window.jQuery = jQuery;
 window.$ = jQuery;
 
 window.Promise = Promise;
+
+// Init the service worker first since it does caching
+initServiceWorker();
 
 // This to the best of our knowledge needs to be run synchronously,
 // because it sends the initial pageview to analytics.
