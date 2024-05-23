@@ -1,1 +1,1 @@
-from openlibrary.core.processors.readableurls import ReadableUrlProcessor  # noqa: F401
+from openlibrary.core.processors.readableurls import ReadableUrlProcessor

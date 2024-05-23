@@ -23,6 +23,8 @@ import copy
 from collections import defaultdict
 import logging as Logging
 
+from infogami import config
+from openlibrary.utils.solr import Solr
 import web
 
 

@@ -61,6 +61,8 @@ from openlibrary.core.vendors import AmazonAPI, clean_amazon_metadata_for_load
 from openlibrary.utils.dateutil import WEEK_SECS
 from openlibrary.utils.isbn import (
     normalize_identifier,
+    normalize_isbn,
+    isbn_13_to_isbn_10,
     isbn_10_to_isbn_13,
 )
 

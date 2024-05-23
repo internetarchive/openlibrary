@@ -10,6 +10,7 @@ import requests
 import web
 from openlibrary.core import ia
 from openlibrary.core import helpers
+from openlibrary.api import OpenLibrary
 from openlibrary.plugins.books import dynlinks
 from infogami.utils.delegate import register_exception
 from infogami.utils import stats

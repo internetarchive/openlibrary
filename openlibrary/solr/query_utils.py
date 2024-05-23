@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Optional
 from collections.abc import Callable
 from luqum.parser import parser
 from luqum.tree import Item, SearchField, BaseOperation, Group, Word, Unary

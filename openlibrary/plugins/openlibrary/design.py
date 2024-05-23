@@ -1,7 +1,8 @@
+import web
 import logging
 
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from infogami.utils.view import render_template, public
 
 logger = logging.getLogger("openlibrary.design")
 

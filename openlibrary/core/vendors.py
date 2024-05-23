@@ -3,6 +3,7 @@ import logging
 import re
 import time
 
+from datetime import date
 from typing import Any, Literal
 
 import requests
