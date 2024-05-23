@@ -6,6 +6,7 @@ import requests
 from typing import Any, TYPE_CHECKING, Final
 from collections.abc import Callable
 from collections.abc import Iterable, Mapping
+from math import ceil
 
 import web
 
@@ -1148,7 +1149,7 @@ class my_follows(delegate.page):
             if key == 'followers'
             else PubSub.count_following(username)
         )
-        page_count = max(follow_count / page_size)
+        page_count = ceil(follow_count / page_size)
 
         mb = MyBooksTemplate(username, 'following')
         manage = key == 'following' and mb.is_my_page
