@@ -7,7 +7,7 @@ $ min_level = min(chapter.level for chapter in table_of_contents)
     $ tag = 'a' if is_link else 'div'
     <$tag
       class="toc__entry"
-      $:cond(is_link, 'href="//archive.org/stream/%s#page/%s"' % (ocaid, chapter.pagenum))
+      $:cond(is_link, 'href="//archive.org/details/%s/page/%s"' % (ocaid, chapter.pagenum))
       $:cond(is_link, 'data-ol-link-track="BookPage|TOCClick"')
       data-level="$chapter.level"
       style="margin-left:$((chapter.level - min_level) * 2)ch"

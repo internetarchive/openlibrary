@@ -14,10 +14,10 @@ import jQueryRepeat from './jquery.repeat';
 import { enumerate, htmlquote, websafe, foreach, join, len, range, jsdef_get } from './jsdef';
 import initAnalytics from './ol.analytics';
 import init from './ol.js';
+import initServiceWorker from './service-worker-init.js'
 import * as Browser from './Browser';
 import { commify, urlencode, slice } from './python';
 import Template from './template.js';
-// Add $.fn.focusNextInputField
 import { truncate, cond } from './utils';
 import initValidate from './validate';
 import '../../../../static/css/js-all.less';
@@ -54,6 +54,9 @@ window.jQuery = jQuery;
 window.$ = jQuery;
 
 window.Promise = Promise;
+
+// Init the service worker first since it does caching
+initServiceWorker();
 
 // This to the best of our knowledge needs to be run synchronously,
 // because it sends the initial pageview to analytics.
@@ -200,7 +203,7 @@ jQuery(function () {
     }
 
     // conditionally load real time signup functionality based on class in the page
-    if (document.getElementsByClassName('olform create validate').length) {
+    if (document.querySelector('form[name=signup]')) {
         import(/* webpackChunkName: "realtime-account-validation" */'./realtime_account_validation.js')
             .then(module => module.initRealTimeValidation());
     }

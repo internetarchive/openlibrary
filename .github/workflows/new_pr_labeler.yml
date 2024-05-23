@@ -1,0 +1,24 @@
+name: new_pr_labeler
+on:
+  pull_request_target:
+    types:
+      - opened
+jobs:
+  label_pr:
+    # Continue only if the PR is not a draft, and was opened in the same repository that is running this action:
+    if: ${{ github.repository == github.event.repository.full_name && !github.event.pull_request.draft}}
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install @octokit/action
+      - run: node scripts/gh_scripts/new_pr_labeler.mjs ${{ github.repository }} ${{ github.event.pull_request.user.login }} ${{ github.event.pull_request.number }} "$PR_BODY"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_BODY: ${{ github.event.pull_request.body }}

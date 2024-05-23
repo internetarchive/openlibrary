@@ -169,7 +169,7 @@ def encode_url_path(url: str) -> str:
     '/'
     >>> encode_url_path('/books/OL11M/进入该海域?mode=add-work')
     '/books/OL11M/%E8%BF%9B%E5%85%A5%E8%AF%A5%E6%B5%B7%E5%9F%9F?mode=add-work'
-    """
+    """  # noqa: RUF002
     result = urllib.parse.urlparse(url)
     correct_path = "/".join(urllib.parse.quote(part) for part in result.path.split("/"))
     result = result._replace(path=correct_path)
@@ -558,10 +558,7 @@ class SaveBookHelper:
         user = accounts.get_current_user()
         delete = (
             user
-            and (
-                user.is_admin()
-                or user.is_usergroup_member('/usergroup/super-librarians')
-            )
+            and (user.is_admin() or user.is_super_librarian())
             and formdata.pop('_delete', '')
         )
 
@@ -780,9 +777,7 @@ class SaveBookHelper:
     def _prevent_ocaid_deletion(self, edition) -> None:
         # Allow admins to modify ocaid
         user = accounts.get_current_user()
-        if user and (
-            user.is_admin() or user.is_usergroup_member('/usergroup/super-librarians')
-        ):
+        if user and (user.is_admin() or user.is_super_librarian()):
             return
 
         # read ocaid from form data

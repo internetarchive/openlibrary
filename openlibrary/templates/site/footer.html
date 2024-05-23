@@ -19,43 +19,9 @@ $if ("stats" in ctx.features) and query_param('debug'):
 $if show_ol_shell:
   $:render_template("lib/nav_foot", page)
 
-<!--Will be moved inside index.js-->
-<script type="text/javascript">
-  if ("serviceWorker" in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register("/sw.js").then(registration => {
-
-      }).catch(error => {
-        console.log("ServiceWorker registration failed");
-      });
-    });
-  }
-
-  window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevent the mini-infobar from appearing on mobile
-    e.preventDefault();
-  });
-</script>
-
-<!-- Must be loaded after jquery -->
 <script src="/cdn/archive.org/analytics.js" type="text/javascript"></script>
 <script src="$static_url('build/all.js')" type="text/javascript"></script>
 <!-- Passes total_time for analytics to ol.analytics.js -->
 <div class="analytics-stats-time-calculator" data-time="$total_time"></div>
-
-<!-- clear the window.q and setup the jQuery plugins -->
-<script>
-\$( function () {
-    var i;
-    for ( i = 0; i < window.q.length; i++ ) {
-        \$( window.q[i] );
-    }
-    window.q = [];
-} );
-
-if (typeof archive_analytics !== 'undefined') {
-  archive_analytics.set_up_event_tracking();
-}
-</script>
 </body>
 </html>

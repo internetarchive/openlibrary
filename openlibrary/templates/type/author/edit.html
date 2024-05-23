@@ -8,7 +8,7 @@ $:macros.HiddenSaveButton("addAuthor")
 
 <div id="contentHead">
     $:macros.databarEdit(page)
-    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians')):
+    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
         <span class="adminOnly right">
             <button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="delete" form="addAuthor">$_("Delete Record")</button>
         </span>
@@ -128,10 +128,8 @@ $:macros.HiddenSaveButton("addAuthor")
 
         </div>
 
-        <div class="illustration">
-            $:render_template("covers/author_photo", page)
-            $:render_template("covers/change", page)
-        </div>
+
+        $:render_template("authors/infobox", page, edit_view=True)
 
             <div class="clearfix"></div>
 

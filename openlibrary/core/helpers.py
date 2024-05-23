@@ -31,6 +31,8 @@ from infogami.infobase.client import Nothing
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
 
+# Helper functions that are added to `__all__` are exposed for use in templates
+# in /openlibrary/plugins/upstream/utils.py setup()
 __all__ = [
     "sanitize",
     "json_encode",
@@ -325,7 +327,7 @@ def private_collection_in(collections):
     return any(x in private_collections() for x in collections)
 
 
-def extract_year(input):
+def extract_year(input: str) -> str:
     """Extracts the year from an author's birth or death date."""
     if result := re.search(r'\d{4}', input):
         return result.group()
