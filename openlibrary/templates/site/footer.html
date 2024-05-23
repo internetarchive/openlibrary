@@ -19,7 +19,6 @@ $if ("stats" in ctx.features) and query_param('debug'):
 $if show_ol_shell:
   $:render_template("lib/nav_foot", page)
 
-<!-- Must be loaded after jquery -->
 <script src="/cdn/archive.org/analytics.js" type="text/javascript"></script>
 <script src="$static_url('build/all.js')" type="text/javascript"></script>
 <!-- Passes total_time for analytics to ol.analytics.js -->
