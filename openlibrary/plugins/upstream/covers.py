@@ -5,6 +5,7 @@ from logging import getLogger
 
 import requests
 import web
+from io import BytesIO
 
 from infogami.utils import delegate
 from infogami.utils.view import safeint

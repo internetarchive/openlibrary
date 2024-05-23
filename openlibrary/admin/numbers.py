@@ -22,6 +22,7 @@ main harness. They can be utility functions.
 import functools
 import logging
 
+import web
 
 logger = logging.getLogger(__name__)
 

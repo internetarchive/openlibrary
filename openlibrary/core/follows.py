@@ -1,5 +1,6 @@
 import logging
-from typing import cast
+import web
+from typing import cast, Any
 from openlibrary.core.bookshelves import Bookshelves
 
 from . import db

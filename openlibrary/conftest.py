@@ -10,15 +10,9 @@ from infogami.utils.view import render_template as infobase_render_template
 from openlibrary.i18n import gettext
 from openlibrary.core import helpers
 
-from openlibrary.mocks.mock_infobase import (
-    mock_site,  # noqa: F401 needed for tests
-)
-from openlibrary.mocks.mock_ia import (
-    mock_ia,  # noqa: F401 needed for tests
-)
-from openlibrary.mocks.mock_memcache import (
-    mock_memcache,  # noqa: F401 needed for tests
-)
+from openlibrary.mocks.mock_infobase import mock_site
+from openlibrary.mocks.mock_ia import mock_ia
+from openlibrary.mocks.mock_memcache import mock_memcache
 
 
 @pytest.fixture(autouse=True)

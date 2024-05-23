@@ -16,6 +16,7 @@ import xml.etree.ElementTree as etree
 import datetime
 import logging
 from html.parser import HTMLParser
+from pathlib import Path
 
 import requests
 
@@ -31,7 +32,7 @@ from urllib.parse import (
 
 from infogami import config
 from infogami.utils import view, delegate, stats
-from infogami.utils.view import render, get_template, public
+from infogami.utils.view import render, get_template, public, query_param
 from infogami.utils.macro import macro
 from infogami.utils.context import InfogamiContext, context
 from infogami.infobase.client import Changeset, Nothing, Thing, storify

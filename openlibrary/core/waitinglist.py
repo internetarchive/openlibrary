@@ -17,6 +17,7 @@ import datetime
 import logging
 import web
 from openlibrary.accounts.model import OpenLibraryAccount
+from openlibrary.core import cache
 from . import helpers as h
 from .sendmail import sendmail_with_template
 from . import db

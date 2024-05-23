@@ -10,7 +10,7 @@ from infogami.utils.view import public
 from openlibrary.core import lending
 from openlibrary.core.vendors import get_betterworldbooks_metadata, get_amazon_metadata
 from openlibrary import accounts
-from openlibrary.accounts.model import get_internet_archive_id
+from openlibrary.accounts.model import get_internet_archive_id, sendmail
 from openlibrary.core.civicrm import (
     get_contact_id_by_username,
     get_sponsorships_by_contact_id,

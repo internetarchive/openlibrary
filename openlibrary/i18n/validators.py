@@ -1,7 +1,8 @@
 from itertools import groupby
 import re
 
-from babel.messages.catalog import Message, Catalog
+from babel.messages.catalog import TranslationError, Message, Catalog
+from babel.messages.checkers import python_format
 
 
 def validate(message: Message, catalog: Catalog) -> list[str]:
