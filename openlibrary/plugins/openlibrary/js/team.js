@@ -7,6 +7,9 @@ export function initTeamFilter() {
     '../../../static/images/openlibrary-180x180.png';
     const bookUrlIcon = '../../../static/images/icons/icon_book-lg.png';
     const personalUrlIcon = '../../../static/images/globe-solid.svg';
+    const initialSearchParams = new URL(window.location.href).searchParams;
+    const initialRole = initialSearchParams.get('role') || 'All';
+    const initialDepartment = initialSearchParams.get('department') || 'All';
 
     // Team sorted by last name
     const sortByLastName = (array) => {
@@ -64,16 +67,21 @@ export function initTeamFilter() {
     // *************************************** Selectors and eventListeners ***************************************
     const roleFilter = document.getElementById('role');
     const departmentFilter = document.getElementById('department');
-    roleFilter.addEventListener('change', (e) =>
-        filterTeam(e.target.value, departmentFilter.value)
-    );
-    departmentFilter.addEventListener('change', (e) =>
-        filterTeam(roleFilter.value, e.target.value)
-    );
-    // Example usage: update multiple parameters
-    updateURLParameters({
-        role: 'fellows',
-        department: 'all'
+    roleFilter.value = initialRole;
+    roleFilter.addEventListener('change', (e) =>   {
+        filterTeam(e.target.value, departmentFilter.value);
+        updateURLParameters({
+            role: e.target.value,
+            department: departmentFilter.value
+        });
+    });
+    departmentFilter.value = initialDepartment;
+    departmentFilter.addEventListener('change', (e) => {
+        filterTeam(roleFilter.value, e.target.value);
+        updateURLParameters({
+            role: roleFilter.value,
+            department: departmentFilter.value
+        });
     });
     const cardsContainer = document.querySelector('.teamCards_container');
 
@@ -312,4 +320,5 @@ export function initTeamFilter() {
 
     createSectionHeading('Volunteers');
     createCards(volunteers);
+    filterTeam(initialRole, initialDepartment);
 }
