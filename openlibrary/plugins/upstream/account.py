@@ -582,7 +582,7 @@ class account_validation(delegate.page):
 
     @staticmethod
     def validate_email(email):
-        if not (email and re.match(r'.*@.*\..*', email)):
+        if not (email and re.match(r'[^+]+@.*\..*', email)):
             return _('Must be a valid email address')
 
         ol_account = OpenLibraryAccount.get(email=email)
