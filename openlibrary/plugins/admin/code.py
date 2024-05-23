@@ -85,9 +85,7 @@ class admin(delegate.page):
             ):
                 return m(*args)
             if self.is_admin() or (
-                librarians
-                and context.user
-                and context.user.is_usergroup_member('/usergroup/super-librarians')
+                librarians and context.user and context.user.is_super_librarian()
             ):
                 return m(*args)
             else:

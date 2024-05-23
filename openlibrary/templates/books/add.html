@@ -57,7 +57,7 @@ $ i18n_strings = {
             </div>
         </div>
 
-        $ admin_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
+        $ admin_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian())
         <div class="formElement">
             <div class="label"><label for="id_value">$:_("And optionally, an ID number &#151; like an ISBN &#151; would be helpful...")</label></div>
                 <label for="id_name" class="hidden">$_("ID Type")</label>
