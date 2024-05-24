@@ -549,7 +549,7 @@ jQuery(function () {
     }
 
     // Fulltext search box:
-    const  fullTextSearchSuggestion = document.querySelector('#fulltext-search-suggestion')
+    const  fulltextSearchSuggestion = document.querySelector('#fulltext-search-suggestion')
     if (fulltextSearchSuggestion) {
         import(/* webpackChunkName: "fulltext-search-suggestion" */ './fulltext-search-suggestion')
             .then(module => module.initFulltextSearchSuggestion(fulltextSearchSuggestion))
