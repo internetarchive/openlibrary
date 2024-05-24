@@ -1,6 +1,7 @@
 $def with (q, doc=None)
 
 $ ia = doc.get('fields', {}).get('identifier', [''])[0]
+$ ia_base_url = "https://archive.org"
 $ availability = doc.get('availability', {})
 $ snippet = doc.get('highlight', {}).get('text', [''])[0]
 $ page_nums = doc.get('fields', {}).get('page_num', [])
