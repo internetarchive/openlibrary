@@ -16,8 +16,8 @@
 </template>
 
 <script>
-import CardBody from './CardBody.ce'
-import CardHeader from './CardHeader.ce';
+import CardBody from './CardBody'
+import CardHeader from './CardHeader';
 
 export default {
     name: 'ValueCard',

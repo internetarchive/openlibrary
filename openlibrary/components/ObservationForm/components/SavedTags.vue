@@ -35,7 +35,7 @@
 </template>
 
 <script>
-import OLChip from './OLChip.ce'
+import OLChip from './OLChip'
 
 import { updateObservation } from '../ObservationService'
 

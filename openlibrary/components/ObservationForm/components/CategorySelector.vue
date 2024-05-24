@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import OLChip from './OLChip.ce'
+import OLChip from './OLChip'
 
 export default {
     name: 'CategorySelector',

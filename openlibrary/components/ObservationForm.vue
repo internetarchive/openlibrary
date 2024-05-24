@@ -27,9 +27,9 @@
 </template>
 
 <script>
-import CategorySelector from './ObservationForm/components/CategorySelector.ce'
-import SavedTags from './ObservationForm/components/SavedTags.ce'
-import ValueCard from './ObservationForm/components/ValueCard.ce'
+import CategorySelector from './ObservationForm/components/CategorySelector'
+import SavedTags from './ObservationForm/components/SavedTags'
+import ValueCard from './ObservationForm/components/ValueCard'
 
 import { decodeAndParseJSON, resizeColorbox } from './ObservationForm/Utils'
 
