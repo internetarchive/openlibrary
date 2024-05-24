@@ -1064,13 +1064,11 @@ class Partials(delegate.page):
                 args[0], args[1]
             )
             partial = {"partials": str(macro)}
-        elif component == "FulltextSearchBox":
+        elif component == "FulltextSearchSuggestion":
             query = i.get('data', '')
-            print('QUERY', query)
             data = fulltext_search(query)
             hits = data.get('hits', [])
-            # print('HITS', hits)
-            macro = web.template.Template.globals['macros'].FulltextSearchBox(
+            macro = web.template.Template.globals['macros'].FulltextSearchSuggestion(
                 query, data
             )
             partial = {"partials": str(macro), "data": hits}

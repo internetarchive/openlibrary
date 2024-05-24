@@ -1,0 +1,21 @@
+$def with(query, results, page=1)
+
+$def render_snippet(query, doc):
+  <div class="serp-extra">
+    $:macros.FulltextSuggestionSnippet(query, doc=doc)
+  </div>
+
+$if results and results.get('hits'):
+  $ hits = results['hits'].get('hits', [])
+  $ num_found = results['hits'].get('total', 0)
+  $ ia_base_url = "https://archive.org"
+  <div id="searchResults">
+    <div>Browse <a data-ol-link-track="SearchNav|SearchFulltext"
+      href="/search/inside?$urlencode(dict(q=query))">$num_found Search Inside Matches</a>
+    </div>
+    <ul class="list-books">
+      $for doc in hits:
+        $if doc.get('edition'):
+          $:macros.FulltextSearchSuggestionItem(doc['edition'], availability=doc['availability'], extra=render_snippet(query, doc))
+    </ul>
+  </div>
