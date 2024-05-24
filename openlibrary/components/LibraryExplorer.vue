@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div class="library-explorer__root">
     <BookRoom
       :classification="settingsState.selectedClassification"
       :filter="computedFilter"
@@ -184,11 +184,12 @@ export default {
 </script>
 
 <style lang="less">
-#app {
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
+.library-explorer__root {
+  font-family: "bahnschrift", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: rgba(0, 0, 0, .7);
 }
 
 details[open] summary ~ * {
@@ -315,12 +316,6 @@ hr {
   .books-carousel {
     perspective: 2000px;
   }
-}
-
-#app {
-  font-family: "bahnschrift", -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-    "Segoe UI Symbol";
 }
 
 .book-room.style--aesthetic--wip {

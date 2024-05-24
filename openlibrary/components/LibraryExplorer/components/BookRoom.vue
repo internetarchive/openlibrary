@@ -343,6 +343,7 @@ button {
 
     svg {
       padding: .5em .2em;
+      box-sizing: content-box;
     }
   }
 

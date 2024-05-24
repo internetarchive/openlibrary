@@ -55,7 +55,7 @@ export default {
   position: relative;
 }
 
-.book {
+a.book {
   margin-left: 5px;
   display: flex;
   flex-direction: column;

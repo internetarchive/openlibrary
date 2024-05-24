@@ -44,7 +44,7 @@
     "@storybook/addon-essentials": "^7.0.0",
     "@storybook/cli": "^7.0.0",
     "@storybook/html-webpack5": "^7.0.0",
-    "@vitejs/plugin-vue": "^1.6.1",
+    "@vitejs/plugin-vue": "^5.0.4",
     "@vue/cli": "^5.0.8",
     "@vue/cli-plugin-babel": "^5.0.8",
     "@vue/cli-plugin-eslint": "^5.0.8",
@@ -87,14 +87,13 @@
     "stylelint-declaration-strict-value": "1.9.2",
     "svgo": "2.3.1",
     "tesseract.js": "4.1.1",
-    "vite": "^2.5.4",
-    "vue": "3.2.47",
+    "vite": "^5.2.11",
+    "vue": "^3.4.27",
     "vue-async-computed": "4.0.1",
     "vue-loader": "^15.10.0",
     "vue-multiselect": "^3.0.0-beta.2",
     "webpack": "^5.88.2",
-    "webpack-cli": "^5.1.4",
-    "workbox-webpack-plugin": "6.1.5"
+    "webpack-cli": "^5.1.4"
   },
   "jest": {
     "roots": [

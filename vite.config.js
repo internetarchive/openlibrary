@@ -3,17 +3,16 @@ import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-    root: 'openlibrary',
+    plugins: [vue()],
     build: {
         lib: {
-            entry: 'components/index.js',
-            name: 'ol-library-explorer',
-            fileName: 'ol-library-explorer',
+            entry: './openlibrary/components/index.js',
+            name: 'LibraryExplorer',
+            fileName: () => 'index.js',
             formats: ['es'],
         },
-        outDir: '../static/build/components',
+        outDir: './static/build/components/ol-library-explorer/',
         emptyOutDir: true,
-        cssCodeSplit: true,
         minify: true,
     },
     resolve: {
@@ -31,9 +30,4 @@ export default defineConfig({
             }
         },
     },
-    plugins: [
-        vue({
-            customElement: true,
-        })
-    ]
 })

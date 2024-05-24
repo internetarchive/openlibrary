@@ -1,19 +1,13 @@
-import {defineCustomElement} from 'vue'
-import LibraryExplorer from './LibraryExplorer.vue'
+import { createApp } from 'vue';
+import LibraryExplorer from './LibraryExplorer.vue';
+// We don't actually use this for LibraryExplorer, but if we
+// remove it, it causes a runtime error in the browser. 🙃
+import AsyncComputed from 'vue-async-computed';
 
-main()
-
-async function main() {
-    LibraryExplorer.styles = LibraryExplorer.styles || [];
-    LibraryExplorer.styles.push(...(await get_styles()).flat());
-
-    customElements.define('ol-library-explorer', defineCustomElement(LibraryExplorer))
-}
-
-async function get_styles() {
-    const modules = import.meta.glob('./LibraryExplorer/**/*.vue');
-
-    return Promise.all(Object.values(modules).map(module_import => {
-        return module_import().then(mode => mode.default.styles)
-    }));
-}
+document.addEventListener('DOMContentLoaded', async () => {
+    document.querySelectorAll('ol-library-explorer').forEach((el) => {
+        const app = createApp(LibraryExplorer);
+        app.use(AsyncComputed);
+        app.mount(el);
+    });
+});
