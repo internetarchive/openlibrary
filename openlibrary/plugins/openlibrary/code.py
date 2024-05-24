@@ -1117,10 +1117,12 @@ class Partials(delegate.page):
         elif component == "FulltextSearchSuggestion":
             query = i.get('data', '')
             data = fulltext_search(query)
+            hits = data.get('hits', [])
+            print('HITS', hits)
             macro = web.template.Template.globals['macros'].FulltextSearchSuggestion(
                 query, data
             )
-            partial = {"partials": str(macro)}
+            partial = {"partials": str(macro), "data": hits}
 
         return delegate.RawText(json.dumps(partial))
 
