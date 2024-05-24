@@ -1,0 +1,19 @@
+$def with (q, doc=None)
+
+$ ia = doc.get('fields', {}).get('identifier', [''])[0]
+$ availability = doc.get('availability', {})
+$ snippet = doc.get('highlight', {}).get('text', [''])[0]
+$ page_nums = doc.get('fields', {}).get('page_num', [])
+$ page = ', '.join([str(num) for num in page_nums])
+
+$if snippet:
+<div class="serp-extra">
+  <ul>
+      $if snippet:
+        <li class="fulltext-excerpt">
+          <a href="$ia_base_url/details/$ia">
+            &hellip;$:(snippet.replace("<", "&laquo;").replace(">", "&raquo;").replace("{{{", "<mark class='highlight'><strong>").replace("}}}", "</strong></mark>"))&hellip;
+          </a>
+        </li>
+  </ul>
+</div>
