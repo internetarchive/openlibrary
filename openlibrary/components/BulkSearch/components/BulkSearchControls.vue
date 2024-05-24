@@ -3,7 +3,7 @@
 
 import sampleBar from './SampleBar.vue'
 import {BulkSearchState, ExtractedBook, BookMatch} from '../utils/classes.js';
-import {buildSearchUrl} from '../utils/searchUtils.js'
+import {buildSearchUrl, buildListUrl} from '../utils/searchUtils.js'
 export default {
 
     components: {
@@ -107,6 +107,7 @@ export default {
                 bookMatch.solrDocs = await fetchSolrBook(bookMatch.extractedBook, this.bulkSearchState.matchOptions)
 
             }
+            this.bulkSearchState.listUrl = buildListUrl(this.bulkSearchState.matchedBooks)
         },
 
     }

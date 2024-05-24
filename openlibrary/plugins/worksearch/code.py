@@ -847,8 +847,9 @@ def setup():
         subjects,
         languages,
         publishers,
+        bulk_search
     )
-
+    bulk_search.setup()
     autocomplete.setup()
     subjects.setup()
     publishers.setup()

@@ -21,4 +21,9 @@ export function buildSearchUrl(extractedBook, matchOptions, json = true) {
     return url;
 }
 
+export function buildListUrl(bookMatches){
+    let seeds = bookMatches.filter(bookMatch => bookMatch.solrDocs.length > 0).map((bookMatch) => bookMatch.solrDocs[0].key.split('/')[2])
+    let url = `https://openlibrary.org/lists/add?seeds=${seeds.join(",")}`
+    return url
+}
 
