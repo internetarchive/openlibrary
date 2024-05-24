@@ -1,0 +1,35 @@
+name: weekly_status_report
+on:
+  schedule:
+    - cron: '30 8 * * *'  # XXX : set to appropriate time (before ABC)
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: read
+env:
+  NODE_VERSION: '20'
+  TEAM_ABC_CONFIG: '.github/workflows/config/weekly_status_report_team_abc.json'
+  LEADS_G_CONFIG: '.github/workflows/config/weekly_status_report_openlibrary_leads_g.json'
+jobs:
+  create_and_publish_report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/cache@v4
+        id: cache-octokit
+        with:
+          path: 'node_modules'
+          key: ${{ runner.os }}-node${{ env.NODE_VERSION}}-octokit-${{ hashFiles('**/package-lock.json') }}
+      - if: steps.cache-octokit.outputs.cache-hit != 'true'
+        run: npm install @octokit/action
+      - run: node scripts/gh_scripts/weekly_status_report.mjs ${{ env.TEAM_ABC_CONFIG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+      - run: node scripts/gh_scripts/weekly_status_report.mjs ${{ env.LEADS_G_CONFIG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}

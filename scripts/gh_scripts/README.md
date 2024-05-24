@@ -65,3 +65,50 @@ docker compose exec -e PYTHONPATH=. web bash
 ```
 
 __Note:__ When adding arguments, be sure to place any hyphenated values within double quotes.
+
+## `weekly_status_report.mjs`
+
+This script prepares a digest of information helpful to leads, and publishes the digest to Slack.
+
+### Usage
+
+<pre><b>node weekly_status_report.mjs</b> config_filepath</pre>
+`config_filepath` the location of the script's configuration file
+
+A `SLACK_TOKEN` must be included as an environment variable in order to `POST` to Slack.
+
+Additionally, a `GITHUB_TOKEN` should also be added as an environment variable.  `@octokit/action` adds
+this to the `octokit` object during instantiation, allowing `octokit` to make authenticated requests
+to GitHub.
+
+#### Configuration
+
+A configuration file is required for this script to run properly.  The file should contain a JSON string with the following fields:
+
+`slackChannel` : The digest will be published here.
+
+`publishFullDigest` : Boolean that flags whether to publish a full or partial digest.  If `false`, the digest will be published without several sections (see **Details**, below).
+
+`leads` : Array of configurations for each lead.
+
+`leads.githubUsername` : The lead's GitHub username.
+
+`leads.leadLabel`: Text of the lead's `Lead: @` label.
+
+`leads.slackId`: The lead's Slack ID in their `mrkdwn` format, which is used to trigger Slack notifications when the message is published.
+
+### Details
+
+The script prepares a digest containing the following sections:
+
+*Recent comments* : A list of links to issues that need comments, broken down by lead.
+
+*Needs: Lead/Assignee* : Lists of pull requests that do not have an assignee, and issues that need a lead.  Only present if `publishFullDigest` is `true`.
+
+*Untriaged issues* : List of issues which have the https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Triage label.  Only present if `publishFullDigest` is `true`.
+
+*Assigned PRs* : List of pull requests that have been assigned, broken down by lead.  Links to higher priority PRs are also included here.
+
+*Staff PRs* : List of all open staff PRs.  Only present if `publishFullDigest` is `true`.
+
+*Submitter Input for PRs* : List of PRs that are labeled https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Submitter%20Input, broken down by leads.
