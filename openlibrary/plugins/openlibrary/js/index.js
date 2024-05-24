@@ -549,10 +549,10 @@ jQuery(function () {
     }
 
     // Fulltext search box:
-    const  fulltextSearchBox = document.querySelector('#fulltext-search-box')
-    if (fulltextSearchBox) {
-        import(/* webpackChunkName: "fulltext-search-box" */ './fulltext-search-box')
-            .then(module => module.initFulltextSearchBox(fulltextSearchBox))
+    const  fullTextSearchSuggestion = document.querySelector('#fulltext-search-suggestion')
+    if (fulltextSearchSuggestion) {
+        import(/* webpackChunkName: "fulltext-search-suggestion" */ './fulltext-search-suggestion')
+            .then(module => module.initFulltextSearchSuggestion(fulltextSearchSuggestion))
     }
 });
 
