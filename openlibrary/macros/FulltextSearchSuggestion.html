@@ -16,6 +16,6 @@ $if results and results.get('hits'):
     <ul class="list-books">
       $for doc in hits:
         $if doc.get('edition'):
-          $:macros.FulltextSearchSuggestionItem(doc['edition'], availability=doc['availability'], extra=render_snippet(query, doc))
+          $:macros.FulltextSearchSuggestionItem(doc['edition'], extra=render_snippet(query, doc))
     </ul>
   </div>
