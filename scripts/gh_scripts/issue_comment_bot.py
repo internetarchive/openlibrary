@@ -10,6 +10,7 @@ Adds the "Needs: Response" label to the issues in Github.
 """
 import argparse
 import errno
+import json
 import os
 import sys
 import time
@@ -18,25 +19,6 @@ from datetime import datetime, timedelta
 from typing import Any
 
 import requests
-
-# Maps lead label to GitHub username
-lead_label_to_username = {
-    'Lead: @mekarpeles': 'mekarpeles',
-    'Lead: @cdrini': 'cdrini',
-    'Lead: @scottbarnes': 'scottbarnes',
-    'Lead: @seabelis': 'seabelis',
-    'Lead: @jimchamp': 'jimchamp',
-}
-
-# Maps GitHub username to Slack ID
-username_to_slack_id = {
-    'mekarpeles': '<@mek>',
-    'cdrini': '<@cdrini>',
-    'scottbarnes': '<@U03MNR6T7FH>',
-    'seabelis': '<@UAHQ39ACT>',
-    'jimchamp': '<@U01ARTHG9EV>',
-    'hornc': '<@U0EUS8DV0>',
-}
 
 github_headers = {
     'X-GitHub-Api-Version': '2022-11-28',
@@ -91,9 +73,9 @@ def fetch_issues(updated_since: str):
     return results
 
 
-def filter_issues(issues: list, since: datetime):
+def filter_issues(issues: list, since: datetime, leads: list[str]):
     """
-    Returns list of issues that were not last responded to by staff.
+    Returns list of issues that were not last responded to by leads.
     Requires fetching the most recent comments for the given issues.
     """
     results = []
@@ -124,9 +106,9 @@ def filter_issues(issues: list, since: datetime):
         # comparing a timezone-aware datetime with a timezone-naive datetime
         created = created.replace(tzinfo=None)
         if created > since:
-            # Next step: Determine if the last commenter is a staff member
+            # Next step: Determine if the last commenter is a lead
             last_commenter = last_comment['user']['login']
-            if last_commenter not in username_to_slack_id:
+            if last_commenter not in [lead['githubUsername'] for lead in leads]:
                 lead_label = find_lead_label(i.get('labels', []))
                 results.append(
                     {
@@ -161,6 +143,7 @@ def publish_digest(
     slack_channel: str,
     slack_token: str,
     hours_passed: int,
+    leads: list[dict[str, str]],
 ):
     """
     Creates a threaded Slack messaged containing a digest of recently commented GitHub issues.
@@ -228,8 +211,8 @@ def publish_digest(
         commenter = i['commenter']
         message = f'<{comment_url}|Latest comment for: *{issue_title}*>\n'
 
-        username = lead_label_to_username.get(i['lead_label'], '')
-        slack_id = username_to_slack_id.get(username, '')
+        username = next(lead['githubUsername'] for lead in leads if lead['leadLabel'] == i['lead_label'])
+        slack_id = next(lead['slackId'] for lead in leads if lead['leadLabel'] == username)
         if slack_id:
             message += f'Lead: {slack_id}\n'
         elif i['lead_label']:
@@ -271,19 +254,27 @@ def verbose_output(issues):
         print(f'\tComment URL: {issue["comment_url"]}')
 
 
+def read_config(config_path):
+    with open(config_path, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
 def start_job(args: argparse.Namespace):
     """
     Starts the new comment digest job.
     """
+    config = read_config(args.config)
+    leads = config.get('leads', [])
+
     since, date_string = time_since(args.hours)
     issues = fetch_issues(date_string)
 
-    filtered_issues = filter_issues(issues, since)
+    filtered_issues = filter_issues(issues, since, leads)
     if not args.no_labels:
         add_label_to_issues(filtered_issues)
         print('Issues labeled as "Needs: Response"')
     if args.slack_token and args.channel:
-        publish_digest(filtered_issues, args.channel, args.slack_token, args.hours)
+        publish_digest(filtered_issues, args.channel, args.slack_token, args.hours, leads)
         print('Digest posted to Slack')
     if args.verbose:
         verbose_output(filtered_issues)
@@ -302,7 +293,13 @@ def _get_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         '-c',
-        '--channel',
+        '--config',
+        help="Path to configuration file",
+        type=str,
+    )
+    parser.add_argument(
+        '-s',
+        '--slack-channel',
         help="Issues will be published to this Slack channel",
         type=str,
     )
