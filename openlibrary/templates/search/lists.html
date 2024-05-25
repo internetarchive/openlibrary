@@ -10,7 +10,7 @@ $var title: $_('Search results for Lists')
   $:macros.SearchNavigation()
   <div class="section">
     <form class="siteSearch olform" action="/search/lists">
-      $:render_template("search/search_bar")
+      $:render_template("search/searchbox", q=q)
     </form>
   </div>
 

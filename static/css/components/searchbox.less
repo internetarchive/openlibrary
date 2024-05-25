@@ -3,8 +3,7 @@
  * [TODO: Link to documentation]
  */
 
-.search-div {
-  // @grey-fafafa;
+.searchbox {
   background-color: @white;
   border: 1px solid @dark-beige;
   border-radius: .3em;
@@ -14,38 +13,29 @@
   padding: .2%;
   padding-left: .5%;
   width: 50%;
+  height: 30px;
 }
 
-.search-btn-icon {
+.searchbox__btn-icon {
   background: url(/static/images/search-icon.svg) center no-repeat;
   width: 35px;
   height: 45px;
   cursor: pointer;
   border: 0;
-  flex: 0 0 auto;
 }
 
-.search-input {
+.searchbox__input {
   margin: 0 !important;
   border: 0;
-  outline: none;
   background: transparent;
   color: @grey !important;
   flex-grow: 1;
   font-size: 1em !important;
-  height: 45px;
-  max-width: 93% !important;
+  height: 30px;
+  max-width: 94% !important;
 }
-
-.search-btn {
-  width: auto;
-  display: inline-block;
-  margin: 0;
-  height: 38px;
-  border: 1px solid @dark-beige;
-  border-radius: 6px;
-  vertical-align: middle;
-  background-color: @light-beige;
-  color: @grey;
-  font-size: 18px !important;
+@media (max-width: 500px) {
+  .searchbox__input {
+    max-width: 85% !important;
+  }
 }

@@ -21,7 +21,7 @@ $ sort = query_param('sort', None)
 
   <div class="section">
     <form class="siteSearch olform" action="">
-        $:render_template("search/search_bar")
+        $:render_template("search/searchbox", q=q)
     </form>
   </div>
 </div>

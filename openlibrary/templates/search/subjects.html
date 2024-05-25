@@ -20,7 +20,7 @@ $ url_map = { 'person': 'person:', 'place': 'place:', 'time': 'time:' }
   $:macros.SearchNavigation()
     <div class="section">
         <form class="siteSearch olform" action="">
-            $:render_template("search/search_bar")
+            $:render_template("search/searchbox", q=q)
         </form>
     </div>
 
