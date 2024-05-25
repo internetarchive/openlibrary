@@ -1136,6 +1136,8 @@ class my_follows(delegate.page):
     def GET(self, username, key=""):
         i = web.input(page=1)
         page_size = 25
+
+        # Force invalid page query params to default to the first page
         page = 1 if not i.page.isdigit() else max(1, int(i.page))
         offset = (page - 1) * page_size
 
