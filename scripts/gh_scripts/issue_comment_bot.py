@@ -211,8 +211,14 @@ def publish_digest(
         commenter = i['commenter']
         message = f'<{comment_url}|Latest comment for: *{issue_title}*>\n'
 
-        username = next(lead['githubUsername'] for lead in leads if lead['leadLabel'] == i['lead_label'])
-        slack_id = next(lead['slackId'] for lead in leads if lead['leadLabel'] == username)
+        username = next(
+            lead['githubUsername']
+            for lead in leads
+            if lead['leadLabel'] == i['lead_label']
+        )
+        slack_id = next(
+            lead['slackId'] for lead in leads if lead['leadLabel'] == username
+        )
         if slack_id:
             message += f'Lead: {slack_id}\n'
         elif i['lead_label']:
@@ -274,7 +280,9 @@ def start_job(args: argparse.Namespace):
         add_label_to_issues(filtered_issues)
         print('Issues labeled as "Needs: Response"')
     if args.slack_token and args.channel:
-        publish_digest(filtered_issues, args.channel, args.slack_token, args.hours, leads)
+        publish_digest(
+            filtered_issues, args.channel, args.slack_token, args.hours, leads
+        )
         print('Digest posted to Slack')
     if args.verbose:
         verbose_output(filtered_issues)

@@ -72,7 +72,7 @@ A configuration file is required for this script to run properly.  The file shou
 
 `leads.leadLabel`: Text of the lead's `Lead: @` label.
 
-`leads.slackId`: The lead's Slack ID in their `mrkdwn` format, which is used to trigger Slack 
+`leads.slackId`: The lead's Slack ID in their `mrkdwn` format, which is used to trigger Slack
 
 
 __Running the script locally:__
