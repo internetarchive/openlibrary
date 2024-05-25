@@ -1,7 +1,7 @@
 name: weekly_status_report
 on:
   schedule:
-    - cron: '30 8 * * *'  # XXX : set to appropriate time (before ABC)
+    - cron: '30 8 * * 1,5'
   workflow_dispatch:
 permissions:
   contents: read
