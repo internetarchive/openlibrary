@@ -73,7 +73,7 @@ def fetch_issues(updated_since: str):
     return results
 
 
-def filter_issues(issues: list, since: datetime, leads: list[str]):
+def filter_issues(issues: list, since: datetime, leads: list[dict[str, str]]):
     """
     Returns list of issues that were not last responded to by leads.
     Requires fetching the most recent comments for the given issues.
@@ -255,7 +255,7 @@ def verbose_output(issues):
 
 
 def read_config(config_path):
-    with open(config_path, 'r', encoding='utf-8') as f:
+    with open(config_path, encoding='utf-8') as f:
         return json.load(f)
 
 
