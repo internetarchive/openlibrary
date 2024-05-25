@@ -1,9 +1,8 @@
-
 <script>
 
 import sampleBar from './SampleBar.vue'
-import {BulkSearchState, ExtractedBook, BookMatch} from '../utils/classes.js';
-import {buildSearchUrl, buildListUrl} from '../utils/searchUtils.js'
+import { BulkSearchState, ExtractedBook, BookMatch } from '../utils/classes.js';
+import { buildSearchUrl, buildListUrl } from '../utils/searchUtils.js'
 export default {
 
     components: {
@@ -24,18 +23,18 @@ export default {
         }
     },
     methods: {
-        selectAlgorithm(e){
-            if (e.target.value==='4'){
+        selectAlgorithm(e) {
+            if (e.target.value === '4') {
                 this.bulkSearchState.extractionOptions.use_gpt = true
             }
             else {
                 this.bulkSearchState.extractionOptions.use_gpt = false
-                this.bulkSearchState.extractionOptions.regex= this.regexDict[e.target.value]
+                this.bulkSearchState.extractionOptions.regex = this.regexDict[e.target.value]
             }
         },
         async extractBooks() {
             this.bulkSearchState.errorMessage = []
-            if (this.bulkSearchState.extractionOptions.use_gpt){
+            if (this.bulkSearchState.extractionOptions.use_gpt) {
                 const request = {
 
                     method: 'POST',
@@ -45,7 +44,7 @@ export default {
                     },
                     body: JSON.stringify({
                         model: 'gpt-3.5-turbo',
-                        response_format: { type: 'json_object'},
+                        response_format: { type: 'json_object' },
                         messages: [
                             {
                                 role: 'system',
@@ -62,35 +61,35 @@ export default {
                 try {
                     const resp = await fetch('https://api.openai.com/v1/chat/completions', request)
 
-                    if (!resp.ok){
+                    if (!resp.ok) {
                         const status = resp.status
-                        if (status === 401){
+                        if (status === 401) {
 
                             this.bulkSearchState.errorMessage.push('Error: Incorrect Authorization key.')
                         }
                         throw new Error('Network response was not okay.')
                     }
                     const data = await resp.json()
-                    this.bulkSearchState.extractedBooks =  JSON.parse(data.choices[0].message.content)['books'].map((entry) =>  new ExtractedBook(entry?.title, entry?.author))
-                    this.bulkSearchState.matchedBooks=  JSON.parse(data.choices[0].message.content)['books'].map((entry) =>  new BookMatch(new ExtractedBook(entry?.title, entry?.author), {}))
+                    this.bulkSearchState.extractedBooks = JSON.parse(data.choices[0].message.content)['books'].map((entry) => new ExtractedBook(entry?.title, entry?.author))
+                    this.bulkSearchState.matchedBooks = JSON.parse(data.choices[0].message.content)['books'].map((entry) => new BookMatch(new ExtractedBook(entry?.title, entry?.author), {}))
                 }
-                catch (error){
+                catch (error) {
 
                 }
 
             }
             else {
                 const regex = this.bulkSearchState.extractionOptions.regex
-                if (regex && this.bulkSearchState.inputText){
+                if (regex && this.bulkSearchState.inputText) {
                     const data = [...this.bulkSearchState.inputText.matchAll(regex)]
 
-                    this.bulkSearchState.extractedBooks = data.map((entry) =>  new ExtractedBook(entry.groups?.title, entry.groups?.author))
+                    this.bulkSearchState.extractedBooks = data.map((entry) => new ExtractedBook(entry.groups?.title, entry.groups?.author))
                     this.bulkSearchState.matchedBooks = this.bulkSearchState.extractedBooks.map((entry) => new BookMatch(entry, []))
                 }
             }
         },
-        async matchBooks(){
-            const fetchSolrBook= async function (book, matchOptions){
+        async matchBooks() {
+            const fetchSolrBook = async function (book, matchOptions) {
 
                 try {
 
@@ -123,42 +122,47 @@ export default {
     <details open>
 
         <summary>Input</summary>
-  <div>
-    <textarea  v-model="bulkSearchState.inputText"></textarea>
-    <br />
+        <div>
+            <textarea v-model="bulkSearchState.inputText"></textarea>
+            <br />
 
-    <label>Format: <select @change="selectAlgorithm">
-      <option value="1">e.g. "The Wizard of Oz by L. Frank Baum"</option>
-      <option value="2">e.g. "The Wizard of Oz (L. Frank Baum)"</option>
-      <option value="3">Wikipedia Citation (e.g. Baum, Frank L. (1994). The Wizard of Oz)</option>
-      <option value="4">GPT</option>
-    </select></label>
-    <label v-if="bulkSearchState.extractionOptions.use_gpt">API-Key:
-    <input type="text" v-model="bulkSearchState.extractionOptions.api_key" />
-    </label>
-    <sampleBar @sample="(msg) => this.bulkSearchState.inputText = msg"/>
-    <label>
-      <input checked v-model="bulkSearchState.matchOptions.includeAuthor" type="checkbox"  /> Use author in search query
-    </label>
-    <br>
-    <button @click="extractBooks">Extract Books</button>
-    <button @click="matchBooks">Match Books</button>
-  </div>
-  <div class="ErrorBox" v-if="this.bulkSearchState.errorMessage">
-    <p v-for="error in this.bulkSearchState.errorMessage" :key="error">
-    {{ error }}</p>
-  </div>
-</details>
+            <label>Format: <select @change="selectAlgorithm">
+                    <option value="1">e.g. "The Wizard of Oz by L. Frank Baum"</option>
+                    <option value="2">e.g. "The Wizard of Oz (L. Frank Baum)"</option>
+                    <option value="3">Wikipedia Citation (e.g. Baum, Frank L. (1994). The Wizard of Oz)</option>
+                    <option value="4">GPT</option>
+                </select></label>
+            <label v-if="bulkSearchState.extractionOptions.use_gpt">API-Key:
+                <input type="text" v-model="bulkSearchState.extractionOptions.api_key" />
+            </label>
+            <sampleBar @sample="(msg) => this.bulkSearchState.inputText = msg" />
+            <label>
+                <input checked v-model="bulkSearchState.matchOptions.includeAuthor" type="checkbox" /> Use author in
+                search query
+            </label>
+            <br>
+            <button @click="extractBooks">Extract Books</button>
+            <button @click="matchBooks">Match Books</button>
+        </div>
+        <div class="ErrorBox" v-if="this.bulkSearchState.errorMessage">
+            <p v-for="error in this.bulkSearchState.errorMessage" :key="error">
+                {{ error }}</p>
+        </div>
+    </details>
 </template>
 
 <style lang="less">
-body { padding :0;
+body {
+    padding: 0;
     font-family: Roboto, Helvetica, sans-serif;
 }
 
-label input { flex: 1; }
+label input {
+    flex: 1;
+}
+
 textarea {
-  width: 100%;
-  display: flex;
+    width: 100%;
+    display: flex;
 }
 </style>

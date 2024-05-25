@@ -1,17 +1,17 @@
 <template>
 
-<div class="book-card">
-          <div class="cover">
-            <img :src="coverImage">
-          </div>
-          <div class="info">
-            <a class="title" :href="workUrl" target="_blank">{{ doc.title }}</a>
-            <div class="byline">{{ doc.author_name[0] }}</div>
+  <div class="book-card">
+    <div class="cover">
+      <img :src="coverImage">
+    </div>
+    <div class="info">
+      <a class="title" :href="workUrl" target="_blank">{{ doc.title }}</a>
+      <div class="byline">{{ doc.author_name[0] }}</div>
 
-            <div class="identifier">{{doc.first_publish_year}} - {{doc.edition_count}} editions</div>
-            <a class="action actionName" target="_blank"></a>
-          </div>
-</div>
+      <div class="identifier">{{ doc.first_publish_year }} - {{ doc.edition_count }} editions</div>
+      <a class="action actionName" target="_blank"></a>
+    </div>
+  </div>
 
 
 </template>
@@ -21,39 +21,56 @@
 <script>
 
 export default {
-    props: {
-        doc: Object
+  props: {
+    doc: Object
+  },
+  computed: {
+    coverImage() {
+      if (!this.doc.cover_i) {
+        return ''
+      }
+      return `https://covers.openlibrary.org/b/id/${this.doc.cover_i}-M.jpg`
     },
-    computed: {
-        coverImage() {
-            if (!this.doc.cover_i){
-                return ''
-            }
-            return `https://covers.openlibrary.org/b/id/${this.doc.cover_i}-M.jpg`
-        },
-        workUrl() {
-            return `https://openlibrary.org/books/${this.doc.key.split('/')[2]}`
-        }
+    workUrl() {
+      return `https://openlibrary.org/books/${this.doc.key.split('/')[2]}`
     }
+  }
 }</script>
 
 
 <style>
-
 @keyframes pulse {
-    0% { opacity: 0; }
-    100% { opacity: 0.95; }
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0.95;
+  }
 }
 
 @keyframes slideUp {
-    0% { transform: translateY(50%); opacity: 0.5; }
-    100% { transform: translateY(0); opacity: 1; }
+  0% {
+    transform: translateY(50%);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 @keyframes shiftRight {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(0); }
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
 }
+
 .book-card {
   background: white;
   flex-shrink: 0;
@@ -80,8 +97,8 @@ export default {
   }
 
   &:hover {
-    background: rgba(0,0,255,0.05);
-    border-color: rgba(0,0,255,0.5);
+    background: rgba(0, 0, 255, 0.05);
+    border-color: rgba(0, 0, 255, 0.5);
   }
 
   &.loading::before {
@@ -100,14 +117,17 @@ export default {
 
   .action {
     padding: 4px;
-    background: rgba(0,0,255,0.6);
+    background: rgba(0, 0, 255, 0.6);
     border-radius: 4px;
     color: white;
     text-decoration: none;
     margin-top: 4px;
     display: inline-block;
   }
-  .action:empty { display: none; }
+
+  .action:empty {
+    display: none;
+  }
 
   .title {
     font-weight: bold;
@@ -119,10 +139,17 @@ export default {
     -webkit-line-clamp: 3;
     overflow: hidden;
   }
+
   .cover {
     width: 25%;
-    img { width: 100%; height: 100%; object-fit: cover; }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
   }
+
   .identifier {
     margin-top: 4px;
     padding-top: 4px;

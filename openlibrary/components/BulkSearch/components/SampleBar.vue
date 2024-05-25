@@ -1,36 +1,33 @@
-
-
-
 <script>
 export default {
-    emits: ['sample'],
+	emits: ['sample'],
 
-    data() {
-        return {
-            selectedValue: '',
-            sample1: '',
-            sample2: '',
-            sample3: '',
-            placeholder: ''
+	data() {
+		return {
+			selectedValue: '',
+			sample1: '',
+			sample2: '',
+			sample3: '',
+			placeholder: ''
 
-        }
-    },
-    mounted() {
-        this.sample1 = this.$refs.sample1Ref.textContent;
-        this.sample2 = this.$refs.sample2Ref.textContent;
-        this.sample3 = this.$refs.sample3Ref.textContent;
-    },
-    watch: {
-        usedSample(newValue){
-            this.$emit('sample', newValue)
-        }
-    },
-    computed: {
-        usedSample(){
-            const dict = {sample1: this.sample1, sample2: this.sample2, sample3: this.sample3}
-            return dict[this.selectedValue]
-        }
-    }
+		}
+	},
+	mounted() {
+		this.sample1 = this.$refs.sample1Ref.textContent;
+		this.sample2 = this.$refs.sample2Ref.textContent;
+		this.sample3 = this.$refs.sample3Ref.textContent;
+	},
+	watch: {
+		usedSample(newValue) {
+			this.$emit('sample', newValue)
+		}
+	},
+	computed: {
+		usedSample() {
+			const dict = { sample1: this.sample1, sample2: this.sample2, sample3: this.sample3 }
+			return dict[this.selectedValue]
+		}
+	}
 
 
 }
@@ -39,23 +36,23 @@ export default {
 
 
 <template>
-<div>
+	<div>
 
 
-    <label>Sample Data: <select v-model="selectedValue">
+		<label>Sample Data: <select v-model="selectedValue">
 
-      <option>Choose sample...</option>
-      <option value="sample1">TED’s 2018 winter reading list</option>
-      <option value="sample2">GoodRead's best books of 1995</option>
-      <option value="sample3">Holocaust Wikipedia citations</option>
-    </select></label>
-
-
-
+				<option>Choose sample...</option>
+				<option value="sample1">TED’s 2018 winter reading list</option>
+				<option value="sample2">GoodRead's best books of 1995</option>
+				<option value="sample3">Holocaust Wikipedia citations</option>
+			</select></label>
 
 
 
-<pre ref="sample1Ref" hidden>
+
+
+
+		<pre ref="sample1Ref" hidden>
 
 ideas.ted.com
 Explore ideas worth spreading
@@ -468,7 +465,7 @@ Restoring the world’s oldest library
 © TED Conferences, LLC Powered by WordPress.com VIP
 :)
 </pre>
-<pre ref ="sample2Ref" hidden>
+		<pre ref="sample2Ref" hidden>
 
 
     HomeMy Books
@@ -2922,7 +2919,7 @@ Connect
     Mobile version
 
 </pre>
-<pre ref = "sample3Ref" hidden>
+		<pre ref="sample3Ref" hidden>
 Bauer, Yehuda (1994). Jews for Sale? Nazi-Jewish Negotiations 1933-1945. Yale University Press. ISBN 0-300-06852-2.
 Berenbaum, Michael (1990). A Mosaic of Victims: Non-Jews Persecuted and Murdered by the Nazis.
 Bergen, Doris (2009). War and Genocide: Concise History of the Holocaust.
@@ -2960,14 +2957,13 @@ Leff, Laurel (2005). Buried By The Times: The Holocaust And America's Most Impor
 Mason, Timothy. "Intention and Explanation: A Current Controversy about the Interpretation of National Socialism". In Marrus, Michael R. (ed.). The Nazi Holocaust Part 3, The "Final Solution": The Implementation of Mass Murder. Vol. 1. Westpoint, CT: Mecler. pp. 3–20.
 Niewyk, Donald L. (1992). Holocaust: Problems & Perspective of Interpretation.
 </pre>
-</div>
+	</div>
 </template>
 
 
 <style lang="less">
-pre{
-    display:hidden;
-    font-family: inherits;
-}</style>
-
-
+pre {
+	display: hidden;
+	font-family: inherits;
+}
+</style>
