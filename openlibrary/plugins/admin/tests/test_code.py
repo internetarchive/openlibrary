@@ -144,13 +144,13 @@ class TestRevertAllUserEdits:
         web.ctx.site.save(
             author=spam_bob.get_user(),
             query=make_thing("/works/OL2W", "Bob is Awesome"),
-            action='edit-book',
+            action='add-book',
         )
 
         web.ctx.site.save(
             author=spam_alice.get_user(),
             query=make_thing("/works/OL2W", "Bob Sucks"),
-            action='add-book',
+            action='edit-book',
         )
         web.ctx.site.save(
             author=spam_bob.get_user(),
