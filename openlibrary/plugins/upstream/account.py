@@ -6,7 +6,6 @@ import requests
 from typing import Any, TYPE_CHECKING, Final
 from collections.abc import Callable
 from collections.abc import Iterable, Mapping
-from math import ceil
 
 import web
 
@@ -1137,7 +1136,7 @@ class my_follows(delegate.page):
     def GET(self, username, key=""):
         i = web.input(page=1)
         page_size = 25
-        offset = (max(0, i.page - 1)) * page_size
+        offset = (max(0, int(i.page) - 1)) * page_size
 
         follows = (
             PubSub.get_followers(username, page_size, offset)
@@ -1149,12 +1148,11 @@ class my_follows(delegate.page):
             if key == 'followers'
             else PubSub.count_following(username)
         )
-        page_count = ceil(follow_count / page_size)
 
         mb = MyBooksTemplate(username, 'following')
         manage = key == 'following' and mb.is_my_page
         template = render['account/follows'](
-            mb.user, page_count, page_size, follows, manage=manage
+            mb.user, follow_count, page_size, follows, manage=manage
         )
         return mb.render(header_title=_(key.capitalize()), template=template)
 

@@ -1,7 +1,8 @@
-$def with (user, page_count, results_per_page, follows=None, manage=False)
+$def with (user, num_found, results_per_page, follows=None, manage=False)
 
 $if follows:
   $ username = user.key.split('/')[-1]
+  $ page = int(input(page=1).page)
   $for follow in follows:
     <ul>
       <li class="follow-row">
@@ -17,9 +18,8 @@ $if follows:
         </div>
       </li>
     </ul>
-  $ page = int(input(page=1).page)
   <div class="pager">
-    $:macros.Pager(page, page_count, results_per_page)
+    $:macros.Pager(page, num_found, results_per_page)
   </div>
 $else:
   <p>$_("There is nothing to see here yet.")</p>
