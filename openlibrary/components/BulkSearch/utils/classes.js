@@ -46,8 +46,8 @@ export class BulkSearchState{
         /** @type {ExtractedOptions} */
         this.extractionOptions = new ExtractionOptions();
         this.errorMessage = []
-        this.listUrl = ""
-        
+        this.listUrl = ''
+
     }
 
 }
