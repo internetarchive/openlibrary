@@ -1,5 +1,4 @@
 <template>
-
   <div class="book-card">
     <div class="cover">
       <img :src="coverImage">
@@ -7,19 +6,13 @@
     <div class="info">
       <a class="title" :href="workUrl" target="_blank">{{ doc.title }}</a>
       <div class="byline">{{ doc.author_name[0] }}</div>
-
       <div class="identifier">{{ doc.first_publish_year }} - {{ doc.edition_count }} editions</div>
       <a class="action actionName" target="_blank"></a>
     </div>
   </div>
-
-
 </template>
 
-
-
 <script>
-
 export default {
   props: {
     doc: Object
@@ -32,7 +25,7 @@ export default {
       return `https://covers.openlibrary.org/b/id/${this.doc.cover_i}-M.jpg`
     },
     workUrl() {
-      return `https://openlibrary.org/books/${this.doc.key.split('/')[2]}`
+      return `https://openlibrary.org/${this.doc.key}`
     }
   }
 }</script>

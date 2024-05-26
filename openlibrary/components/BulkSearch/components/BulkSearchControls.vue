@@ -1,10 +1,42 @@
-<script>
 
-import sampleBar from './SampleBar.vue'
+
+
+<template>
+    <details open>
+        <summary>Input</summary>
+        <div>
+            <textarea v-model="bulkSearchState.inputText"></textarea>
+            <br />
+            <label>Format: <select @change="selectAlgorithm">
+                    <option value="1">e.g. "The Wizard of Oz by L. Frank Baum"</option>
+                    <option value="2">e.g. "The Wizard of Oz (L. Frank Baum)"</option>
+                    <option value="3">Wikipedia Citation (e.g. Baum, Frank L. (1994). The Wizard of Oz)</option>
+                    <option value="4">GPT</option>
+                </select></label>
+            <label v-if="bulkSearchState.extractionOptions.use_gpt">API-Key:
+                <input type="text" v-model="bulkSearchState.extractionOptions.api_key" />
+            </label>
+            <SampleBar @sample="(msg) => this.bulkSearchState.inputText = msg" />
+            <label>
+                <input checked v-model="bulkSearchState.matchOptions.includeAuthor" type="checkbox" /> Use author in
+                search query
+            </label>
+            <br>
+            <button @click="extractBooks">Extract Books</button>
+            <button @click="matchBooks">Match Books</button>
+        </div>
+        <div class="ErrorBox" v-if="this.bulkSearchState.errorMessage">
+            <p v-for="error in this.bulkSearchState.errorMessage" :key="error">
+                {{ error }}</p>
+        </div>
+    </details>
+</template>
+
+<script>
+import SampleBar from './SampleBar.vue'
 import { BulkSearchState, ExtractedBook, BookMatch } from '../utils/classes.js';
 import { buildSearchUrl, buildListUrl } from '../utils/searchUtils.js'
 export default {
-
     components: {
         sampleBar
     },
@@ -92,64 +124,20 @@ export default {
             const fetchSolrBook = async function (book, matchOptions) {
 
                 try {
-
                     const data = await fetch(buildSearchUrl(book, matchOptions, true))
                     return await data.json()
                 }
-                catch (error) {
-
-                }
-
+                catch (error) {}
             }
-
             for (const bookMatch of this.bulkSearchState.matchedBooks) {
                 bookMatch.solrDocs = await fetchSolrBook(bookMatch.extractedBook, this.bulkSearchState.matchOptions)
-
             }
             this.bulkSearchState.listUrl = buildListUrl(this.bulkSearchState.matchedBooks)
         },
 
     }
 }
-
-
 </script>
-
-
-
-
-<template>
-    <details open>
-
-        <summary>Input</summary>
-        <div>
-            <textarea v-model="bulkSearchState.inputText"></textarea>
-            <br />
-
-            <label>Format: <select @change="selectAlgorithm">
-                    <option value="1">e.g. "The Wizard of Oz by L. Frank Baum"</option>
-                    <option value="2">e.g. "The Wizard of Oz (L. Frank Baum)"</option>
-                    <option value="3">Wikipedia Citation (e.g. Baum, Frank L. (1994). The Wizard of Oz)</option>
-                    <option value="4">GPT</option>
-                </select></label>
-            <label v-if="bulkSearchState.extractionOptions.use_gpt">API-Key:
-                <input type="text" v-model="bulkSearchState.extractionOptions.api_key" />
-            </label>
-            <sampleBar @sample="(msg) => this.bulkSearchState.inputText = msg" />
-            <label>
-                <input checked v-model="bulkSearchState.matchOptions.includeAuthor" type="checkbox" /> Use author in
-                search query
-            </label>
-            <br>
-            <button @click="extractBooks">Extract Books</button>
-            <button @click="matchBooks">Match Books</button>
-        </div>
-        <div class="ErrorBox" v-if="this.bulkSearchState.errorMessage">
-            <p v-for="error in this.bulkSearchState.errorMessage" :key="error">
-                {{ error }}</p>
-        </div>
-    </details>
-</template>
 
 <style lang="less">
 body {

@@ -1,59 +1,14 @@
-<script>
-export default {
-	emits: ['sample'],
-
-	data() {
-		return {
-			selectedValue: '',
-			sample1: '',
-			sample2: '',
-			sample3: '',
-			placeholder: ''
-
-		}
-	},
-	mounted() {
-		this.sample1 = this.$refs.sample1Ref.textContent;
-		this.sample2 = this.$refs.sample2Ref.textContent;
-		this.sample3 = this.$refs.sample3Ref.textContent;
-	},
-	watch: {
-		usedSample(newValue) {
-			this.$emit('sample', newValue)
-		}
-	},
-	computed: {
-		usedSample() {
-			const dict = { sample1: this.sample1, sample2: this.sample2, sample3: this.sample3 }
-			return dict[this.selectedValue]
-		}
-	}
-
-
-}
-
-</script>
-
-
 <template>
 	<div>
-
-
-		<label>Sample Data: <select v-model="selectedValue">
-
+		<label>Sample Data: 
+			<select v-model="selectedValue">
 				<option>Choose sample...</option>
 				<option value="sample1">TED’s 2018 winter reading list</option>
 				<option value="sample2">GoodRead's best books of 1995</option>
 				<option value="sample3">Holocaust Wikipedia citations</option>
-			</select></label>
-
-
-
-
-
-
-		<pre ref="sample1Ref" hidden>
-
+			</select>
+		</label>
+<pre ref="sample1Ref" hidden>
 ideas.ted.com
 Explore ideas worth spreading
 TED Logo
@@ -2960,6 +2915,36 @@ Niewyk, Donald L. (1992). Holocaust: Problems & Perspective of Interpretation.
 	</div>
 </template>
 
+<script>
+export default {
+	emits: ['sample'],
+	data() {
+		return {
+			selectedValue: '',
+			sample1: '',
+			sample2: '',
+			sample3: '',
+			placeholder: ''
+		}
+	},
+	mounted() {
+		this.sample1 = this.$refs.sample1Ref.textContent;
+		this.sample2 = this.$refs.sample2Ref.textContent;
+		this.sample3 = this.$refs.sample3Ref.textContent;
+	},
+	watch: {
+		usedSample(newValue) {
+			this.$emit('sample', newValue)
+		}
+	},
+	computed: {
+		usedSample() {
+			const dict = { sample1: this.sample1, sample2: this.sample2, sample3: this.sample3 }
+			return dict[this.selectedValue]
+		}
+	}
+}
+</script>
 
 <style lang="less">
 pre {
