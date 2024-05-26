@@ -19,7 +19,6 @@
 .searchbox__btn-icon {
   background: url(/static/images/search-icon.svg) center no-repeat;
   width: 35px;
-  height: 45px;
   cursor: pointer;
   border: 0;
 }
@@ -31,11 +30,10 @@
   color: @grey !important;
   flex-grow: 1;
   font-size: 1em !important;
-  height: 30px;
-  max-width: 94% !important;
+  min-width: 0;
 }
-@media (max-width: 500px) {
-  .searchbox__input {
-    max-width: 85% !important;
+@media (max-width: @width-breakpoint-mobile) {
+  .searchbox {
+    width: 100%;
   }
 }
