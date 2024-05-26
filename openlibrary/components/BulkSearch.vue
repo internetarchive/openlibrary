@@ -19,6 +19,5 @@ export default {
             bulkSearchState: new BulkSearchState()
         }
     }
-
 }
 </script>
