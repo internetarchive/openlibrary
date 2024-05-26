@@ -6,6 +6,8 @@ $def with (test=False)
   </div>
 
   <div class="carousel-container">
+    <!-- preload the slick fonts to avoid page flash for carousel -->
+    <link rel="preload" href="static/css/fonts/slick.woff" as="font" crossorigin="anonymous">
     <div
       class="carousel carousel--progressively-enhanced"
       data-config="$json_encode({'booksPerBreakpoint': [3, 2, 2, 1, 1]})"
