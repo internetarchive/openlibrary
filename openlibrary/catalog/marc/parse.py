@@ -279,11 +279,8 @@ lang_map = {
     'end': 'eng',
     'enk': 'eng',
     'ent': 'eng',
-    'cro': 'chu',
     'jap': 'jpn',
     'fra': 'fre',
-    'gwr': 'ger',
-    'sze': 'slo',
     'fr ': 'fre',
     'fle': 'dut',  # Flemish -> Dutch
     'it ': 'ita',
