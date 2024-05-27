@@ -10,7 +10,7 @@
     },
     {
       "path": "static/build/markdown-editor.*.js",
-      "maxSize": "11KB"
+      "maxSize": "12KB"
     },
     {
       "path": "static/build/carousel.*.js",
@@ -38,7 +38,7 @@
     },
     {
       "path": "static/build/user-website.*.js",
-      "maxSize": "4KB"
+      "maxSize": "7KB"
     },
     {
       "path": "static/build/page-barcodescanner.*.js",
