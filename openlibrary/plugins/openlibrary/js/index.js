@@ -91,10 +91,16 @@ jQuery(function () {
     }
 
     init($);
+
     // conditionally load functionality based on what's in the page
     if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
         import(/* webpackChunkName: "editions-table" */ './editions-table')
             .then(module => module.initEditionsTable());
+    }
+
+    if (document.querySelector('.cta-btn--preview')) {
+        import(/* webpackChunkName: "cta-btn--preview" */ './cta-btn--preview')
+            .then(module => module.init());
     }
 
     const edition = document.getElementById('addWork');

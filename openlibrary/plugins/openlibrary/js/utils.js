@@ -3,10 +3,10 @@ These functions are used by jsdef.py
 They must be available in the global JS namespace
 See: https://github.com/internetarchive/openlibrary/pull/9180#issuecomment-2107911798
 */
-import 'jquery-colorbox';
 
 // closes active popup
 export function closePopup() {
+    // Note we don't import colorbox here, since it's on the parent
     parent.jQuery.fn.colorbox.close();
 }
 
