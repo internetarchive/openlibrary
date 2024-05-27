@@ -1,3 +1,5 @@
+import 'jquery-ui/ui/widgets/dialog';
+
 /**
  * Initialize the leave waitlist link
  *

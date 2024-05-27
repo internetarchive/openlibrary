@@ -2,7 +2,6 @@
 //
 // Inspired by http://ejohn.org/blog/javascript-micro-templating/
 
-// used in plugins/openlibrary/js/jquery.repeat.js
 export default function Template(tmpl_text) {
     var s = [];
     var js = ['var _p=[];', 'with(env) {'];

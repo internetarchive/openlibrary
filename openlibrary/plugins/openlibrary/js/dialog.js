@@ -1,30 +1,6 @@
-
-/**
- * a confirm dialog for confirming actions
- * @this jQuery.Object
- * @param {Function} callback
- * @param {Object} options
- * @return {jQuery.Object}
- */
-export function confirmDialog(callback, options) {
-    var _this = this;
-    var defaults = {
-        autoOpen: false,
-        width: 400,
-        modal: true,
-        resizable: false,
-        buttons: {
-            'Yes, I\'m sure': function() {
-                callback.apply(_this);
-            },
-            'No, cancel': function() {
-                $(_this).dialog('close');
-            }
-        }
-    };
-    options = $.extend(defaults, options);
-    return this.dialog(options);
-}
+import 'jquery-ui/ui/widgets/dialog';
+// For dialog boxes (e.g. add to list)
+import 'jquery-colorbox';
 
 /**
  * Wires up confirmation prompts.

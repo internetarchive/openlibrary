@@ -1,4 +1,5 @@
-import * as Browser from './Browser';
+import 'jquery-colorbox';
+import { getJsonFromUrl } from './Browser';
 import { SearchBar } from './SearchBar';
 import { SearchPage } from './SearchPage';
 import { SearchModeSelector, mode as searchMode } from './SearchUtils';
@@ -11,7 +12,7 @@ function setValueInCookie(key, value) {
 }
 
 export default function init() {
-    const urlParams = Browser.getJsonFromUrl(location.search);
+    const urlParams = getJsonFromUrl(location.search);
     if (urlParams.mode) {
         searchMode.write(urlParams.mode);
     }
