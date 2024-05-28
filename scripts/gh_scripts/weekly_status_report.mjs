@@ -24,6 +24,9 @@ async function main() {
     await prepareRecentComments(config.leads)
         .then((results) => lines.push(...results))
 
+    await prepareReviewAssigneeIssues(config.leads)
+        .then((results) => lines.push(...results))
+
     const openPullRequests = await fetchOpenPullRequests()
     const nonDraftPullRequests = openPullRequests.filter((pull) => !pull.draft)
 
@@ -231,6 +234,49 @@ async function prepareUntriagedIssues(leads) {
         output.push('  _No untriaged issues found_')
     }
 
+    return output
+}
+
+/**
+ * Finds all issues with the "Needs: Review Assignee" label, prepares a message containing a
+ * summary for each given lead, and returns the prepared messages
+ *
+ * @param {Array<Lead>} leads 
+ * @returns {Promise<Array<string>>}
+ */
+async function prepareReviewAssigneeIssues(leads) {
+    const output = ['*Issues needing attention (__Assignee may have abandoned or may need help__)*:']
+
+    const staleIssues = await octokit.paginate('GET /repos/{owner}/{repo}/issues', {
+        owner: 'internetarchive',
+        repo: 'openlibrary',
+        labels: 'Needs: Review Assignee',
+        per_page: 100,
+        headers: {
+          'X-GitHub-Api-Version': '2022-11-28'
+        }
+      })
+
+    let noStaleIssuesFound = true
+    for (const lead of leads) {
+        const issuesForLead = staleIssues.filter((issue) => {
+            for (const label of issue.labels) {
+                if (label.name === lead.leadLabel) {
+                    return true
+                }
+            }
+            return false
+        })
+        const searchResultsUrl = `https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Needs%3A+Review+Assignee%22+label%3A${encodeURIComponent('"' + lead.leadLabel + '"')}`
+        if (issuesForLead.length > 0) {
+            output.push(`  • <${searchResultsUrl}|${issuesForLead.length} issue(s)> need follow-up from ${lead.slackId}`)
+            noStaleIssuesFound = false
+        }
+    }
+
+    if (noStaleIssuesFound) {
+        output.push('  __No assigned issues found that need attention from leads__')
+    }
     return output
 }
 
