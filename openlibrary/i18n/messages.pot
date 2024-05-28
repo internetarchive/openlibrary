@@ -5259,10 +5259,6 @@ msgid ""
 msgstr ""
 
 #: type/author/edit.html
-msgid "About"
-msgstr ""
-
-#: type/author/edit.html
 msgid "A short bio?"
 msgstr ""
 
