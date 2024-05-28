@@ -1,7 +1,7 @@
 name: stale_assignee_digest
 on:
   schedule:
-    - cron: '0 16 * * 1'
+    - cron: '30 7 * * 1'
   workflow_dispatch:
 permissions:
   contents: read
