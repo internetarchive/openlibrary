@@ -7,17 +7,26 @@
  */
 import {Octokit} from "@octokit/action";
 
-console.log('Script starting...')
-
 /**
  * Default arguments that are used if no command-line options are passed.
  *
  * @type { Record }
  */
-const DEFAULT_OPTIONS = {
+ const DEFAULT_OPTIONS = {
     daysSince: 14,
     repoOwner: 'internetarchive'
 }
+
+/**
+ * Default headers that will be added to each GitHub API request.
+ *
+ * @type { Record<string, string>}
+ */
+const GITHUB_HEADERS = {
+    'X-GitHub-Api-Version': '2022-11-28'
+}
+
+console.log('Script starting...')
 
 const passedArguments = parseArgs()
 
@@ -146,9 +155,7 @@ async function fetchIssues() {
     return await octokit.paginate('GET /repos/{owner}/{repo}/issues', {
             owner: mainOptions.repoOwner,
             repo: 'openlibrary',
-            headers: {
-                'X-GitHub-Api-Version': '2022-11-28'
-            },
+            headers: GITHUB_HEADERS,
             assignee: '*',
             state: 'open',
             per_page: 100
@@ -181,9 +188,7 @@ async function getTimeline(issue) {
             repo: 'openlibrary',
             issue_number: issueNumber,
             per_page: 100,
-            headers: {
-                'X-GitHub-Api-Version': '2022-11-28'
-            }
+            headers: GITHUB_HEADERS
         })
 
     // Store timeline for future use:
