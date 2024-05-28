@@ -28,5 +28,3 @@ jobs:
       - run: node scripts/gh_scripts/stale_assignee_digest.mjs --repoOwner "internetarchive" --daysSince 14
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ABC_TEAM_PLUS}}

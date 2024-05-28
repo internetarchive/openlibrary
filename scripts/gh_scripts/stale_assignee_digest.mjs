@@ -121,13 +121,6 @@ async function main() {  // XXX : Inject octokit for easier testing
             console.log('All other issues were labeled successfully')
         }
     }
-
-    const digestPublished = await postSlackDigest(actionableIssues)
-
-    if (!digestPublished) {
-        console.log('Something went wrong while publishing the digest to Slack...')
-        process.exit(1)
-    }
 }
 
 /**
@@ -258,101 +251,6 @@ async function labelIssues(issues) {
         })
         return allIssuesLabeled
     })
-}
-
-/**
- * Publishes digest of stale issues to Slack.
- *
- * @param {Array<Record>} issues
- * @returns {Promise<boolean>}
- */
-async function postSlackDigest(issues) {
-    if (!(process.env.SLACK_TOKEN && process.env.SLACK_CHANNEL)) {
-        console.log('Digest could not be published to Slack due to missing environment variables.')
-        return false
-    }
-
-    const parentThreadMessage = `${issues.length} issue(s) have stale assignees.`
-    return fetch('https://slack.com/api/chat.postMessage', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json; charset=utf-8',
-            'Authorization': `Bearer ${process.env.SLACK_TOKEN}`
-        },
-        body: JSON.stringify({
-            text: parentThreadMessage,
-            channel: process.env.SLACK_CHANNEL
-        })
-    })
-        .then((resp) => {
-            console.log('initial response:')
-            console.log(resp)
-            if (!resp.ok) {
-                console.log('Failed to publish parent thread to Slack')
-                throw new Error()
-            }
-            return resp.json()
-        })
-        .then(async (data) => {
-            const ts = data['ts']
-
-            for (const issue of issues) {
-                const message = `<${issue.html_url}|${issue.title}>`
-
-                // Wait for one second...
-                await wait(1000)
-                // ...then POST again
-                await commentOnThread(message, ts)
-            }
-
-            return true
-        })
-        .catch((err) => {
-            return false
-        })
-
-    /**
-     * Publishes given `message` int the thread identified by the Slack channel
-     * (found in the environment) and the given timestamp ID `ts`.
-     *
-     * @param { string } message
-     * @param { string } ts
-     * @returns {Promise<void>}
-     */
-    async function commentOnThread(message, ts) {
-        const body = {
-            text: message,
-            thread_ts: ts,
-            channel: process.env.SLACK_CHANNEL
-
-        }
-        await fetch('https://slack.com/api/chat.postMessage', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json; charset=utf-8',
-                'Authorization': `Bearer ${process.env.SLACK_TOKEN}`
-            },
-            body: JSON.stringify(body)
-        })
-            .then((resp) => {
-                if (!resp.ok) {
-                    console.log('Comment on Slack post failed.')
-                    throw new Error()
-                }
-            })
-    }
-
-    /**
-     * Waits for the given number of milliseconds, then resolves.
-     *
-     * @param {number} ms
-     * @returns {Promise}
-     */
-    function wait(ms) {
-        return new Promise(resolve => {
-            setTimeout(resolve, ms)
-        })
-    }
 }
 // END: API Calls
 
