@@ -162,7 +162,7 @@ async function fetchIssues() {
  * timeline is found, calls GitHub's Timeline API and stores the result
  * before returning.
  *
- * @param issue {Record}
+ * @param {Record} issue
  * @returns {Promise<Array<Record>>}
  * @see {issueTimelines}
  */
@@ -195,7 +195,7 @@ async function getTimeline(issue) {
 /**
  * Publishes digest of stale issues to Slack.
  *
- * @param issues {Array<Record>}
+ * @param {Array<Record>} issues
  * @returns {Promise<boolean>}
  */
 async function postSlackDigest(issues) {
@@ -247,8 +247,8 @@ async function postSlackDigest(issues) {
      * Publishes given `message` int the thread identified by the Slack channel
      * (found in the environment) and the given timestamp ID `ts`.
      *
-     * @param message { string }
-     * @param ts { string }
+     * @param { string } message
+     * @param { string } ts
      * @returns {Promise<void>}
      */
     async function commentOnThread(message, ts) {
@@ -277,7 +277,7 @@ async function postSlackDigest(issues) {
     /**
      * Waits for the given number of milliseconds, then resolves.
      *
-     * @param ms {number}
+     * @param {number} ms
      * @returns {Promise}
      */
     function wait(ms) {
@@ -294,8 +294,8 @@ async function postSlackDigest(issues) {
  *
  * The given filters are functions that are meant to be
  * passed to Array.
- * @param issues {Array<Record>}
- * @param filters {Array<CallableFunction>}
+ * @param {Array<Record>} issues
+ * @param {Array<CallableFunction>} filters
  * @returns {Promise<Array<Record>>}
  */
 async function filterIssues(issues, filters) {
@@ -313,7 +313,7 @@ async function filterIssues(issues, filters) {
  *
  * Necessary because GitHub's REST API considers pull requests to be a
  * type of issue.
- * @param issues {Array<Record>}
+ * @param {Array<Record>} issues
  * @returns {Promise<Array<Record>>}
  */
 async function excludePullRequestsFilter(issues) {
@@ -330,7 +330,7 @@ async function excludePullRequestsFilter(issues) {
  * Checks each given issue and returns array of issues that do not have
  * an exclusion label.
  *
- * @param issues {Array<Record>}
+ * @param {Array<Record>} issues
  * @returns {Promise<Array<Record>>}
  * @see {excludeLabels}
  */
@@ -359,7 +359,7 @@ async function excludeLabelsFilter(issues) {
  * __Important__: This function also updates the given issue. A `ol_unassign_ignore`
  * flag is added to any `assignee` that appears on the exclude list.
  *
- * @param issues {Array<Record>}
+ * @param {Array<Record>} issues
  * @returns {Promise<Array<Record>>}
  * @see {excludeAssignees}
  */
@@ -394,7 +394,7 @@ async function excludeAssigneesFilter(issues) {
  *
  * __Important__: This function adds the `ol_unassign_ignore` flag to
  * assignees that haven't yet been assigned for too long.
- * @param issues {Array<Record>}
+ * @param {Array<Record>} issues
  * @returns {Promise<Array<Record>>}
  */
 async function recentAssigneeFilter(issues) {
@@ -433,8 +433,8 @@ async function recentAssigneeFilter(issues) {
 /**
  * Returns the date that the given assignee was assigned to an issue.
  *
- * @param assignee {Record}
- * @param issueTimeline {Record}
+ * @param {Record} assignee
+ * @param {Record} issueTimeline
  * @returns {Date}
  */
 function getAssignmentDate(assignee, issueTimeline) {
@@ -455,7 +455,7 @@ function getAssignmentDate(assignee, issueTimeline) {
  * Iterates over given issues, and returns array containing issues that
  * have no linked pull requests that are open.
  *
- * @param issues {Array<Record>}
+ * @param {Array<Record>} issues
  * @returns {Promise<*[]>}
  */
 async function linkedPullRequestFilter(issues) {
