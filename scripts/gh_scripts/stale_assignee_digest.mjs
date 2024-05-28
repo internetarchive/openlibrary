@@ -80,6 +80,14 @@ const filters = [
  */
 const issueTimelines = {}
 
+/**
+ * Any errors occurring when issues are labeled will be stored here.  Issue number is used
+ * as the key.
+ *
+ * @type {Record<Number, Record[]>}
+ */
+const labelErrors = {}
+
 await main()
 
 console.log('Script terminated...')
@@ -100,6 +108,19 @@ async function main() {  // XXX : Inject octokit for easier testing
 
     const actionableIssues = await filterIssues(issues, filters)
     console.log(`Issues remaining after filtering: ${actionableIssues.length}`)
+
+    console.log(`Adding labels to ${actionableIssues.length} issue(s)`)
+    const allLabeled = await labelIssues(actionableIssues)
+
+    if (allLabeled) {
+        console.log(`Labels added to all ${actionableIssues.length} issue(s)`)
+    } else {
+        const numFailed = Object.keys(labelErrors).length
+        console.log(`Failed to add labels to ${numFailed} of ${actionableIssues.length} issue(s)`)
+        if (numFailed !== actionableIssues.length) {
+            console.log('All other issues were labeled successfully')
+        }
+    }
 
     const digestPublished = await postSlackDigest(actionableIssues)
 
@@ -195,6 +216,48 @@ async function getTimeline(issue) {
     issueTimelines[issueNumber] = timeline
 
     return timeline
+}
+
+/**
+ * Makes API calls to GitHub that will add the `Needs: Review Assignee`
+ * label to each given issue.
+ *
+ * If any request to add a label to an issue fails, the issue number and request
+ * error code will be logged to stdout.
+ *
+ * @param {Array<Record>} issues Issues that will be labeled
+ * @returns {Promise<boolean>}  Resolves to `true` if all given issues were labeled successfully
+ * @see {labelErrors}
+ */
+async function labelIssues(issues) {
+    const requests = []
+
+    for (const issue of issues) {
+        const request = octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/labels', {
+            owner: mainOptions.repoOwner,
+            repo: 'openlibrary',
+            issue_number: issue.number,
+            labels: ['Needs: Review Assignee'],
+            headers: GITHUB_HEADERS
+        })
+            .catch((err) => {
+                labelErrors[issue.number] = err.status
+                throw new Error(`Failed to label issue #${issue.number} --- Status Code: ${err.status}`)
+            })
+        requests.push(request)
+    }
+
+    return Promise.allSettled(requests).then((results) => {
+        let allIssuesLabeled = true
+        results.forEach((result) => {
+            if (result.status === 'rejected') {
+                allIssuesLabeled = false
+                // Print error message to log:
+                console.log(result.reason)
+            }
+        })
+        return allIssuesLabeled
+    })
 }
 
 /**

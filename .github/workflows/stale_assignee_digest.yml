@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  issues: write
 env:
   NODE_VERSION: '20'
 jobs:
