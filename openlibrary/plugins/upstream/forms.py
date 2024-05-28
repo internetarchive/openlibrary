@@ -77,7 +77,7 @@ class RegisterForm(Form):
         Email(
             'email',
             description=_('Email'),
-            klass='required create-form__input',
+            klass='required',
             id='emailAddr',
             required="true",
             validators=[
@@ -89,7 +89,7 @@ class RegisterForm(Form):
         ),
         Textbox(
             'username',
-            description=_("Username"),
+            description=_("Screen Name"),
             klass='required',
             help=_("Public, and cannot be changed later."),
             autocapitalize="off",

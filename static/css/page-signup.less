@@ -1,0 +1,156 @@
+/**
+ * Stylesheet for signup and (soon) login forms
+
+ * Used in templates:
+ * - openlibrary/templates/account/create.html
+ *
+ * Used on pages:
+ * - /account/create
+ */
+
+@import (less) "less/index.less";
+
+// Import all base styles
+@import (less) "base/index.less";
+
+// Import colors
+@import (less) "less/colors.less";
+
+// layout rules
+@import (less) "layout/index.less";
+@import (less) "page-user.less";
+
+// Components (modules) in order of appearance on page
+@import (less) "components/header.less";
+@import (less) "components/form.olform.less";
+@import (less) "components/footer.less";
+@import (less) "components/language.less";
+
+.ol-page-signup {
+  display: flex;
+  flex-direction: row;
+
+  .ol-signup-hero > *, .ol-signup-form > * {
+    width: 70%;
+  }
+
+  .ol-signup-hero {
+    width: 55%;
+    background-color: @grey-fafafa;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border-radius: 5px 0 0 5px;
+
+    h1 {
+      color: @black;
+    }
+
+    .ol-signup-form__subtitle {
+      font-size: 18px;
+    }
+
+    li {
+      margin-bottom: 18px;
+    }
+
+    @media only screen and (max-width: @width-breakpoint-tablet) {
+      display: none;
+    }
+  }
+
+  .ol-signup-form__link {
+    color: @link-blue;
+    text-decoration: none;
+    border-bottom: 1px solid @link-blue;
+  }
+
+  .ol-signup-form__link--muted, .ol-signup-form__newsletter a {
+    color: inherit;
+  }
+
+  .ol-signup-form {
+    flex: 1 1 0;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Specificity added to override original padding*/
+  #contentBody.ol-signup-form {
+    padding: 30px 0;
+  }
+
+  .ol-signup-form__input {
+    padding-top: 6px;
+    input {
+      border: 1px solid @light-grey;
+      border-radius: 5px;
+      width: 100%;
+    }
+
+    input.invalid {
+      border: 1px solid @red;
+    }
+  }
+
+  .ol-signup-form__error {
+    color: @red;
+    background-color: @baby-pink;
+    border: .5px @red;
+    border-style: solid solid none;
+    border-radius: 5px 5px 0 0;
+    margin-bottom: -3px;
+    width: 100%;
+    padding: 10px 5px;
+  }
+
+  .ol-signup-form__note, .ol-signup-form__tos, .ol-signup-form__error, .ol-signup-form__newsletter {
+    font-size: 14px;
+  }
+
+  .ol-signup-form__newsletter {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    align-items: flex-start;
+    padding-top: 16px;
+    width: 100%;
+
+    > * {
+      display: block;
+    }
+
+    input {
+      margin-top: 2px;
+    }
+  }
+
+  .password-visibility-toggle {
+    float: right;
+  }
+
+  .bottom > *  {
+    text-align: center;
+  }
+
+  .ol-signup-form__input .label > * {
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .ol-signup-form__tos {
+    margin-top: 5px;
+    margin-bottom: 20px;
+  }
+
+  #ia-third-party-logins {
+    margin: 0 auto;
+    display: flex;
+  }
+
+}

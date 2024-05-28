@@ -1,5 +1,7 @@
 $def with (form)
 
+$putctx("cssfile", "signup")
+
 $ i18n_strings = {
     $ "password_length_err": _("Must be between 3 and 20 characters")
     $ }
@@ -11,11 +13,11 @@ $var title: $_("Sign Up to Open Library")
 <div class="ol-page-signup">
     <div id="contentHead" class="ol-signup-hero">
         <h1>$_("Sign Up")</h1>
-        <p>$_("Get your free Open Library card and borrow digital books from the nonprofit Internet Archive")</p>
-        <ul className="create-form__iconlist">
-            <li>📚 $:_('<a href="/help/faq/borrow" target="_blank">Borrow</a> up to 5 books at a time')</li>
-            <li>📋 $:_('<a href="/help/faq/reading-log" target="_blank">Keep track</a> of what you\'re reading')</li>
-            <li>🎓 $:_('<a href="/help" target="_blank">Learn More</a> about how it works')</li>
+        <p class="ol-signup-form__subtitle lighter">$_("Get your free Open Library card and borrow digital books from the nonprofit Internet Archive")</p>
+        <ul class="ol-signup-form__iconlist">
+            <li>📚 $:_('<a class="ol-signup-form__link" href="/help/faq/borrow" target="_blank">Borrow</a> up to 5 books at a time')</li>
+            <li>📋 $:_('<a class="ol-signup-form__link" href="/help/faq/reading-log" target="_blank">Keep track</a> of what you\'re reading')</li>
+            <li>🎓 $:_('<a class="ol-signup-form__link" href="/help" target="_blank">Learn More</a> about how it works')</li>
         </ul>
     </div>
 
@@ -23,18 +25,19 @@ $var title: $_("Sign Up to Open Library")
 
     $if not ctx.user:
         $:render_template("account/ia_thirdparty_logins")
-        <div class="login-big-or">$_('OR')</div>
+        <div class="login-big-or lighter">$_('OR')</div>
 
     $def field(input, suffix=''):
         $# :param openlibrary.utils.form.Input input:
         $# :param str suffix: HTML to put at bottom of input
 
-        <div class="formElement">
+        <div class="formElement ol-signup-form__input">
             <div class="label">
                 <label for="$input.id">$input.description</label>
                 $if input.help:
-                    <span class="smaller lighter">$input.help</span>
+                    <div class="ol-signup-form__note lighter">$input.help</div>
             </div>
+            <div class="ol-signup-form__error" id="$(input.id)Message" style="display:none">$input.note</div>
             <div class="input">
                 $:input.render()
                 $if input.name == 'password':
@@ -42,10 +45,9 @@ $var title: $_("Sign Up to Open Library")
                     $    "show_password": _('Show password'),
                     $    "hide_password": _('Hide password')
                     $  }
-                    <a href="javascript:;" class="password-visibility-toggle" data-i18n="$json_encode(i18n_strings)">$i18n_strings["show_password"]</a>
-                <span class="invalid clearfix create-form__error" id="$(input.id)Message">$input.note</span>
-                <span class="sansserif smaller lighter">$:suffix</span>
+                    <a href="javascript:;" class="password-visibility-toggle ol-signup-form__link--muted lighter" data-i18n="$json_encode(i18n_strings)">$i18n_strings["show_password"]</a>
             </div>
+            <div class="ol-signup-form__note sansserif lighter">$:suffix</div>
         </div>
 
 
@@ -64,11 +66,10 @@ $var title: $_("Sign Up to Open Library")
             $:field(form.username, suffix=str(screenname_url()))
             $:field(form.password)
 
-            <label>
-                $:form.ia_newsletter.render() $:form.ia_newsletter.description
-            </label>
+            <div class="ol-signup-form__newsletter">
+                $:form.ia_newsletter.render() <label for="ia_newsletter">$:form.ia_newsletter.description</label>
+            </div>
 
-            <hr/>
             <div class="formElement bottom">
                 <br/>
                 $ sitekey = classes = callback = ''
@@ -77,11 +78,11 @@ $var title: $_("Sign Up to Open Library")
                     $ classes = 'g-recaptcha'
                     $ sitekey = "data-sitekey=%s" % form['recaptcha'].public_key
                     $:render_template("recaptcha", form['recaptcha'].public_key, error=None, invisible=True)
-                <button type="submit" name="signup" id="signup" class="larger $classes cta-btn" $sitekey $callback>$_("Sign Up with Email")</button>
-                <small>$:_('By signing up, you agree to the Internet Archive\'s <a href="//archive.org/about/terms.php" target="_blank">Terms of Service</a>.')</small>
+                <button type="submit" name="signup" id="signup" class="larger $classes cta-btn cta-btn--primary" $sitekey $callback>$_("Sign Up with Email")</button>
+                <p class="ol-signup-form__tos sansserif lighter">$:_('By signing up, you agree to the Internet Archive\'s <a class="ol-signup-form__link--muted" href="//archive.org/about/terms.php" target="_blank">Terms of Service</a>.')</p>
+                <p class="ol-signup-form__login-hint">$:_('Already an Internet Archive user? <a class="ol-signup-form__link" href="/account/login">Log in</a>')</p>
             </div>
         </form>
-        <p>$:_('Already an Internet Archive user? <a href="/account/login">Log in</a>')</p>
     </div>
 </div>
 

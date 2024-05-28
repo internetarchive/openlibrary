@@ -864,18 +864,20 @@ msgstr ""
 
 #: account/create.html
 msgid ""
-"<a href=\"/help/faq/borrow\" target=\"_blank\">Borrow</a> up to 5 books "
-"at a time"
+"<a class=\"ol-signup-form__link\" href=\"/help/faq/borrow\" "
+"target=\"_blank\">Borrow</a> up to 5 books at a time"
 msgstr ""
 
 #: account/create.html
 msgid ""
-"<a href=\"/help/faq/reading-log\" target=\"_blank\">Keep track</a> of "
-"what you're reading"
+"<a class=\"ol-signup-form__link\" href=\"/help/faq/reading-log\" "
+"target=\"_blank\">Keep track</a> of what you're reading"
 msgstr ""
 
 #: account/create.html
-msgid "<a href=\"/help\" target=\"_blank\">Learn More</a> about how it works"
+msgid ""
+"<a class=\"ol-signup-form__link\" href=\"/help\" target=\"_blank\">Learn "
+"More</a> about how it works"
 msgstr ""
 
 #: account/create.html
@@ -900,13 +902,15 @@ msgstr ""
 
 #: account/create.html
 msgid ""
-"By signing up, you agree to the Internet Archive's <a "
-"href=\"//archive.org/about/terms.php\" target=\"_blank\">Terms of "
-"Service</a>."
+"By signing up, you agree to the Internet Archive's <a class=\"ol-signup-"
+"form__link--muted\" href=\"//archive.org/about/terms.php\" "
+"target=\"_blank\">Terms of Service</a>."
 msgstr ""
 
 #: account/create.html
-msgid "Already an Internet Archive user? <a href=\"/account/login\">Log in</a>"
+msgid ""
+"Already an Internet Archive user? <a class=\"ol-signup-form__link\" "
+"href=\"/account/login\">Log in</a>"
 msgstr ""
 
 #: account/delete.html
@@ -6630,6 +6634,10 @@ msgstr ""
 
 #: forms.py
 msgid "Must be between 3 and 20 letters and numbers"
+msgstr ""
+
+#: forms.py
+msgid "Screen Name"
 msgstr ""
 
 #: forms.py
