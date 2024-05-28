@@ -241,7 +241,7 @@ async function prepareUntriagedIssues(leads) {
  * Finds all issues with the "Needs: Review Assignee" label, prepares a message containing a
  * summary for each given lead, and returns the prepared messages
  *
- * @param {Array<Lead>} leads 
+ * @param {Array<Lead>} leads
  * @returns {Promise<Array<string>>}
  */
 async function prepareReviewAssigneeIssues(leads) {
