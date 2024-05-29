@@ -2,13 +2,11 @@
 @import (less) "components/read-panel.less";
 @import (less) "components/book.less";
 
-.carousel-section--my-lists {
-  overflow-x: auto;
-}
-
 @my-lists-item-border: black;
 .my-lists {
   display: flex;
+  overflow-x: clip;
+  mask-image: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) calc(100% - 100px), rgba(0, 0, 0, 0) 100%);
 
   &-item {
     background-color: @beige;
