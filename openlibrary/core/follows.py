@@ -2,11 +2,11 @@ import logging
 import web
 from typing import cast, Any
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import db
 
 logger = logging.getLogger(__name__)
-
 
 class PubSub:
     TABLENAME = "follows"
@@ -113,7 +113,7 @@ class PubSub:
             vars={'subscriber': subscriber},
         )
         return cast(tuple[int], count)[0].get('count', 0)
-
+        
     @classmethod
     def count_followers(cls, publisher):
         oldb = db.get_db()
@@ -124,6 +124,23 @@ class PubSub:
             vars={'publisher': publisher},
         )
         return cast(tuple[int], count)[0].get('count', 0)
+
+    @classmethod
+    def total_followers(cls, since=None) -> int:
+        oldb = db.get_db()
+        query = f"SELECT count(DISTINCT subscriber) from {cls.TABLENAME}"
+        if since:
+            query += " WHERE created >= $since"
+        results = oldb.query(query, vars={'since': since})
+        return results[0]['count'] if results else 0
+
+    @classmethod
+    def summary(cls):
+        return {"total_following_count": {
+            "total":cls.total_followers(),
+            "month":cls.total_followers(since=DATE_ONE_MONTH_AGO),
+            "week":cls.total_followers(since=DATE_ONE_WEEK_AGO)
+        }}
 
     @classmethod
     def count_total_subscribers(cls):
