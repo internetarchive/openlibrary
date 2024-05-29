@@ -9,7 +9,7 @@ $if results and results.get('hits'):
   $ hits = results['hits'].get('hits', [])
   $ num_found = results['hits'].get('total', 0)
   $ ia_base_url = "https://archive.org"
-  <div id="searchResults">
+  <div id="fulltextSuggestions">
     <div>Browse <a data-ol-link-track="SearchNav|SearchFulltext"
       href="/search/inside?$urlencode(dict(q=query))">$num_found Search Inside Matches</a>
     </div>
