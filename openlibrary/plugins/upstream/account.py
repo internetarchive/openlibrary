@@ -1002,7 +1002,7 @@ class export_books(delegate.page):
         Gets work data for a given work ID (OLxxxxxW format), used to access work author, title, etc. for CSV generation.
         """
         work_key = f"/works/{work_id}"
-        work: "Work" = web.ctx.site.get(work_key)
+        work: Work = web.ctx.site.get(work_key)
         if not work:
             raise ValueError(f"No Work found for {work_key}.")
         if work.type.key == '/type/redirect':

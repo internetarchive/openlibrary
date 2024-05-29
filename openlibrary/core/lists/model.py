@@ -321,7 +321,7 @@ class List(Thing):
         return d
 
     def get_seeds(self, sort=False, resolve_redirects=False) -> list['Seed']:
-        seeds: list['Seed'] = []
+        seeds: list[Seed] = []
         for s in self.seeds:
             seed = Seed.from_db(self, s)
             max_checks = 10
