@@ -6,6 +6,7 @@ import requests
 from typing import Any, TYPE_CHECKING, Final
 from collections.abc import Callable
 from collections.abc import Iterable, Mapping
+from math import ceil
 
 import web
 
@@ -1129,27 +1130,36 @@ class export_books(delegate.page):
 
         return csv_string(Ratings.select_all_by_username(username), format_rating)
 
+def _validate_follows_page(page):
+    if isinstance(page, int):
+        return max(1, page)
+    if isinstance(page, str) and page.isdigit():
+        return max(1, int(page))
+    return 1
 
 class my_follows(delegate.page):
     path = r"/people/([^/]+)/(followers|following)"
 
     def GET(self, username, key=""):
-        i = web.input(page=1)
         page_size = 25
+        i = web.input(page=1)
 
-        # Force invalid page query params to default to the first page
-        page = 1 if not i.page.isdigit() else max(1, int(i.page))
-        offset = (page - 1) * page_size
-
-        follows = (
-            PubSub.get_followers(username, page_size, offset)
-            if key == 'followers'
-            else PubSub.get_following(username, page_size, offset)
-        )
+        # Validate page ID, force between 1 and max allowed by size and total count
         follow_count = (
             PubSub.count_followers(username)
             if key == 'followers'
             else PubSub.count_following(username)
+        )
+        max_page = ceil(follow_count / page_size)
+        page = _validate_follows_page(i.page)
+        page = min(page, max_page)
+
+        # Get slice of follows belonging to this page
+        offset = (page - 1) * page_size
+        follows = (
+            PubSub.get_followers(username, page_size, offset)
+            if key == 'followers'
+            else PubSub.get_following(username, page_size, offset)
         )
 
         mb = MyBooksTemplate(username, 'following')
