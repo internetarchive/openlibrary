@@ -1130,12 +1130,14 @@ class export_books(delegate.page):
 
         return csv_string(Ratings.select_all_by_username(username), format_rating)
 
+
 def _validate_follows_page(page):
     if isinstance(page, int):
         return max(1, page)
     if isinstance(page, str) and page.isdigit():
         return max(1, int(page))
     return 1
+
 
 class my_follows(delegate.page):
     path = r"/people/([^/]+)/(followers|following)"
