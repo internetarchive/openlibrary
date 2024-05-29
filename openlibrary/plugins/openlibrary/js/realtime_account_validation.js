@@ -5,8 +5,12 @@ export function initRealTimeValidation() {
     if (window.grecaptcha) {
         // Callback that is called when grecaptcha.execute() is successful
         // Checks whether reportValidity exists for cross-browser compatibility
+        // Includes invalid input count to account for checks not covered by reportValidity
         function submitCreateAccountForm() {
-            if (!signupForm.reportValidity || signupForm.reportValidity()) {
+            const numInvalidInputs = signupForm.querySelectorAll('input.invalid').length;
+            const isFormattingValid = !signupForm.reportValidity || signupForm.reportValidity()
+
+            if (numInvalidInputs === 0 && isFormattingValid) {
                 signupForm.submit();
             }
         }
