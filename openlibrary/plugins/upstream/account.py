@@ -1131,12 +1131,14 @@ class export_books(delegate.page):
         return csv_string(Ratings.select_all_by_username(username), format_rating)
 
 
-def _validate_follows_page(page):
+def _validate_follows_page(page, per_page, hits):
+    min_page = 1
+    max_page = max(min_page, ceil(hits / per_page))
     if isinstance(page, int):
-        return max(1, page)
+        return min(max_page, max(min_page, page))
     if isinstance(page, str) and page.isdigit():
-        return max(1, int(page))
-    return 1
+        return min(max_page, max(min_page, int(page)))
+    return min_page
 
 
 class my_follows(delegate.page):
@@ -1152,12 +1154,10 @@ class my_follows(delegate.page):
             if key == 'followers'
             else PubSub.count_following(username)
         )
-        max_page = ceil(follow_count / page_size)
-        page = _validate_follows_page(i.page)
-        page = min(page, max_page)
+        page = _validate_follows_page(i.page, page_size, follow_count)
 
         # Get slice of follows belonging to this page
-        offset = (page - 1) * page_size
+        offset = max(0, (page - 1) * page_size)
         follows = (
             PubSub.get_followers(username, page_size, offset)
             if key == 'followers'
