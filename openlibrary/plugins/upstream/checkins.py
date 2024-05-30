@@ -223,6 +223,8 @@ class yearly_reading_goal_json(delegate.page):
             if goal == 0:
                 # Delete goal if "0" was submitted:
                 YearlyReadingGoals.delete_by_username_and_year(username, i.year)
+            elif goal > 2147483647:
+                raise web.badrequest(message="Reading goal cannot exceed 2147483647 books.")
             else:
                 # Update goal normally:
                 YearlyReadingGoals.update_target(username, i.year, goal)
