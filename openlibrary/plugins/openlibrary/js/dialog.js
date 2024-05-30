@@ -48,6 +48,33 @@ function initConfirmationDialogs() {
     );
 }
 
+
+export function initPreviewDialogs() {
+    // Colorbox modal + iframe for Book Preview Button
+    const $buttons = $('.cta-btn--preview');
+    $buttons.each((i, button) => {
+        const $button = $(button);
+        $button.colorbox({
+            width: '100%',
+            maxWidth: '640px',
+            inline: true,
+            opacity: '0.5',
+            href: '#bookPreview',
+            onOpen() {
+                const $iframe = $('#bookPreview iframe');
+                $iframe.prop('src', $button.data('iframe-src'));
+
+                const $link = $('#bookPreview .learn-more a');
+                $link[0].href = $button.data('iframe-link');
+            },
+            onCleanup() {
+                $('#bookPreview iframe').prop('src', '');
+            },
+        });
+    });
+}
+
+
 /**
  * Wires up dialog close buttons
  * If an element has the class dialog--open it will trigger the
@@ -62,7 +89,9 @@ export function initDialogs() {
         $link.colorbox({ inline: true, opacity: '0.5', href,
             maxWidth: '640px', width: '100%' });
     });
+
     initConfirmationDialogs();
+    initPreviewDialogs();
 
     // This will close the dialog in the current page.
     $('.dialog--close').attr('href', 'javascript:;').on('click', () => $.fn.colorbox.close());

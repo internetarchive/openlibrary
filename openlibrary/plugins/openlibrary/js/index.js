@@ -50,13 +50,6 @@ jQuery(function () {
         };
     }
 
-    // TODO: Make these selectors a consistent interface
-    const $dialogs = $('.dialog--open,#noMaster,#confirmMerge,#leave-waitinglist-dialog');
-    if ($dialogs.length) {
-        import(/* webpackChunkName: "dialog" */ './dialog')
-            .then((module) => module.initDialogs($));
-    }
-
     const $tabs = $('.ol-tabs');
     if ($tabs.length) {
         import(/* webpackChunkName: "tabs" */ './tabs')
@@ -96,11 +89,6 @@ jQuery(function () {
     if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
         import(/* webpackChunkName: "editions-table" */ './editions-table')
             .then(module => module.initEditionsTable());
-    }
-
-    if (document.querySelector('.cta-btn--preview')) {
-        import(/* webpackChunkName: "cta-btn--preview" */ './cta-btn--preview')
-            .then(module => module.init());
     }
 
     const edition = document.getElementById('addWork');
@@ -382,11 +370,19 @@ jQuery(function () {
             })
     }
 
-    const nativeDialogs = document.querySelectorAll('.native-dialog')
+    // TODO: Make these selectors a consistent interface
+    const $dialogs = $('.dialog--open,.dialog--close,#noMaster,#confirmMerge,#leave-waitinglist-dialog,.cta-btn--preview');
+    if ($dialogs.length) {
+        import(/* webpackChunkName: "dialog" */ './dialog')
+            .then(module => module.initDialogs())
+    }
+
+    const nativeDialogs = document.querySelectorAll('.native-dialog');
     if (nativeDialogs.length) {
-        import(/* webpackChunkName: "dialog" */ './native-dialog')
+        import(/* webpackChunkName: "native-dialog" */ './native-dialog')
             .then(module => module.initDialogs(nativeDialogs))
     }
+
     const setGoalLinks = document.querySelectorAll('.set-reading-goal-link')
     const goalEditLinks = document.querySelectorAll('.edit-reading-goal-link')
     const goalSubmitButtons = document.querySelectorAll('.reading-goal-submit-button')
