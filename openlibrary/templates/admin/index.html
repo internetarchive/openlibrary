@@ -191,7 +191,13 @@ $ stats = get_admin_stats()
       <td></td>
       <td class="amount">$commify(counts.reading_log['total_reviewers']['total'])</td>
     </tr>
-
+    <tr class="major even">
+      <td>$_("Patrons Following")</td>
+      <td class="amount">$commify(counts.reading_log['total_following_count']['week'])</td>
+      <td class="amount">$commify(counts.reading_log['total_following_count']['month'])</td>
+      <td></td>
+      <td class="amount">$commify(counts.reading_log['total_following_count']['total'])</td>
+    </tr>
     <tr class="major">
       <td>$_("Notes Created")</td>
       <td class="amount">$commify(counts.reading_log['total_notes_created']['week'])</td>

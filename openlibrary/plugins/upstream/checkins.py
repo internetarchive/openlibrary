@@ -200,6 +200,11 @@ class yearly_reading_goal_json(delegate.page):
 
         goal = int(i.goal)
 
+        if goal > 2147483647:
+            raise web.badrequest(
+                message='Reading goal cannot exceed 2147483647 books'
+            )
+
         if i.is_update:
             if goal < 0:
                 raise web.badrequest(
