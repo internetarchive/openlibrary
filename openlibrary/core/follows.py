@@ -8,6 +8,7 @@ from . import db
 
 logger = logging.getLogger(__name__)
 
+
 class PubSub:
     TABLENAME = "follows"
     PRIMARY_KEY = ["subscriber", "publisher"]
@@ -113,7 +114,7 @@ class PubSub:
             vars={'subscriber': subscriber},
         )
         return cast(tuple[int], count)[0].get('count', 0)
-        
+
     @classmethod
     def count_followers(cls, publisher):
         oldb = db.get_db()
@@ -136,11 +137,13 @@ class PubSub:
 
     @classmethod
     def summary(cls):
-        return {"total_following_count": {
-            "total":cls.total_followers(),
-            "month":cls.total_followers(since=DATE_ONE_MONTH_AGO),
-            "week":cls.total_followers(since=DATE_ONE_WEEK_AGO)
-        }}
+        return {
+            "total_following_count": {
+                "total": cls.total_followers(),
+                "month": cls.total_followers(since=DATE_ONE_MONTH_AGO),
+                "week": cls.total_followers(since=DATE_ONE_WEEK_AGO),
+            }
+        }
 
     @classmethod
     def count_total_subscribers(cls):

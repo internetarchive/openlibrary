@@ -839,47 +839,6 @@ msgstr[1] ""
 msgid "BARF! Search engine ERROR!"
 msgstr ""
 
-#: work_search.html
-msgid "Zoom In"
-msgstr ""
-
-#: work_search.html
-msgid "Focus your results using these <a href=\"/search/howto\">filters</a>"
-msgstr ""
-
-#: work_search.html
-msgid "Merge duplicate authors from this search"
-msgstr ""
-
-#: type/work/editions.html work_search.html
-msgid "Merge duplicates"
-msgstr ""
-
-#: work_search.html
-msgid "yes"
-msgstr ""
-
-#: work_search.html
-msgid "no"
-msgstr ""
-
-#: work_search.html
-msgid "Filter results for ebook availability"
-msgstr ""
-
-#: work_search.html
-#, python-format
-msgid "Filter results for %(facet)s"
-msgstr ""
-
-#: work_search.html
-msgid "more"
-msgstr ""
-
-#: work_search.html
-msgid "less"
-msgstr ""
-
 #: about/index.html
 msgid "The Open Library Team"
 msgstr ""
@@ -1888,6 +1847,10 @@ msgid "Users Reviewing"
 msgstr ""
 
 #: admin/index.html
+msgid "Patrons Following"
+msgstr ""
+
+#: admin/index.html
 msgid "Notes Created"
 msgstr ""
 
@@ -2600,7 +2563,7 @@ msgstr ""
 msgid "Not in Library"
 msgstr ""
 
-#: books/custom_carousel.html
+#: books/custom_carousel.html search/work_search_facets.html
 msgid "Loading..."
 msgstr ""
 
@@ -5094,6 +5057,47 @@ msgstr ""
 
 #: search/subjects.html
 msgid "work"
+msgstr ""
+
+#: search/work_search_facets.html
+msgid "Merge duplicate authors from this search"
+msgstr ""
+
+#: search/work_search_facets.html type/work/editions.html
+msgid "Merge duplicates"
+msgstr ""
+
+#: search/work_search_facets.html
+msgid "more"
+msgstr ""
+
+#: search/work_search_facets.html
+msgid "less"
+msgstr ""
+
+#: search/work_search_facets.html
+#, python-format
+msgid "Filter results for %(facet)s"
+msgstr ""
+
+#: search/work_search_facets.html
+msgid "Filter results for ebook availability"
+msgstr ""
+
+#: search/work_search_facets.html
+msgid "yes"
+msgstr ""
+
+#: search/work_search_facets.html
+msgid "no"
+msgstr ""
+
+#: search/work_search_facets.html
+msgid "Zoom In"
+msgstr ""
+
+#: search/work_search_facets.html
+msgid "Focus your results using these <a href=\"/search/howto\">filters</a>"
 msgstr ""
 
 #: site/around_the_library.html
