@@ -225,6 +225,12 @@
     "key": "/languages/aze"
   },
   {
+    "code": "bad",
+    "type": "/type/language",
+    "name": "Banda languages",
+    "key": "/languages/bad"
+  },
+  {
     "code": "bai",
     "type": "/type/language",
     "name": "Bamileke languages",
@@ -1447,6 +1453,12 @@
     "type": "/type/language",
     "name": "Kurdish",
     "key": "/languages/kur"
+  },
+  {
+    "code": "kut",
+    "type": "/type/language",
+    "name": "Kootenai",
+    "key": "/languages/kut"
   },
   {
     "code": "lad",
