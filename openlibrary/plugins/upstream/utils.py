@@ -730,8 +730,8 @@ def _matches_lang_name(
     for inner in lang_name.split(' '):
         if inner and _normalize(inner).startswith(word_prefix):
             return Storage(
-                key=language.key,
-                code=language.code,
+                key=language["key'],
+                code=language["code"],
                 name=lang_name,
             )
     return None
