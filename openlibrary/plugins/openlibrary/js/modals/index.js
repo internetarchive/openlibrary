@@ -223,20 +223,10 @@ function addClickListeners($modalLinks, maxWidth) {
         $(modalLinkElement).on('click', function() {
             // Get context, which is attached to the modal content
             const content = getModalContent($(this))
-            displayDynamicModal(content, maxWidth);
+            displayModal(content, maxWidth);
         })
     })
 }
-
-// function addShareModalClickListeners($modalLinks, maxWidth) {
-//     $modalLinks.each(function (_i, modalLinkElement) {
-//         $(modalLinkElement).on('click', function () {
-//             // Get context, which is attached to the modal content
-//             const content = getModalContent($(this));
-//             displayDynamicModal(content, maxWidth);
-//         });
-//     });
-// }
 
 /**
  * Gets reference to modal content that is associated with the
@@ -400,35 +390,6 @@ function displayModal(content, maxWidth) {
                 $(`#${reloadId}`).trigger('contentReload');
             }
         }
-    });
-}
-
-function displayDynamicModal(content, maxWidth) {
-    const maxWidthNum = parseInt(maxWidth.replace('px', ''));
-    const modalId = `#${content.id}`;
-    const context = content.dataset['context'] ? JSON.parse(content.dataset['context']) : null;
-    const reloadId = context ? context.reloadId : null;
-
-    function openModal() {
-        $.colorbox({
-            inline: true,
-            opacity: '0.5',
-            href: modalId,
-            width: '100%',
-            maxWidth: window.innerWidth > maxWidthNum ? maxWidth : '100%',
-            onClosed: function () {
-                if (reloadId) {
-                    $(`#${reloadId}`).trigger('contentReload');
-                }
-            },
-        });
-    }
-
-    openModal();
-
-    $(window).on('resize', function () {
-        $.colorbox.remove();
-        openModal();
     });
 }
 
