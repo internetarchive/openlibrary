@@ -1,33 +1,110 @@
 /**
- * FulltextSearchSuggestions
- * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#fulltextsearchsuggestions
- *
+ * Search Result Item
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#searchresultitem
  */
+ @import "buttonBtn.less";
+ @import "buttonCta.less";
 
-#fulltextSuggestions,
-#fulltextSuggestions ul {
-  min-width: 0;
-  flex: 1;
-  margin-left: 0;
-  margin-bottom: 0;
-  background-color: orange;
-}
-.suggestionResultItem {
-  background-color: green;
-  border: 3px solid blue;
-  display: flex;
-  flex-direction: rowç;
-}
-.suggestion-bookcover {
-  width: 100%;
-  margin: 10px 10px 0 5px;
-  text-align: center;
-  overflow: hidden;
-  img {
-    // border-radius: 4px;
-    // max-width: 100%;
-    // max-height: 150px;
-    // width: 175px;
-    height: 150px;
+ .bookauthor {
+   font-family: @lucida_sans_serif-6;
+ }
+
+ .fulltext-suggestions{
+   list-style-type: none;
+   line-height: 1.5em;
+   background-color: @grey-fafafa;
+   border-radius: 5px;
+   padding: 10px;
+   margin-bottom: 3px;
+   border-bottom: 1px solid @light-beige;
+   .display-flex();
+   flex-direction: column;
+
+   .fsi__container {
+    .display-flex();
+    flex-direction: column;
+   }
+    .fsi__main {
+    .display-flex();
+    flex-direction: row;
+    background-color: green;
+    }
+
+    a[href] {
+      text-decoration: none;
+    }
+    h3 {
+      display: block;
+      margin: 0;
+      padding: 0;
+      color: @dark-grey;
+      font-size: 1.0em;
+      font-weight: 700;
+      font-family: @lucida_sans_serif-6;
+    }
+    .details {
+      overflow: auto;
+      display: inline;
+      width: 100%;
+      padding: 5px;
+      margin: 0;
+    }
+    .resultTitle {
+      overflow: auto;
+      margin: 0 !important;
+      font-family: @lucida_sans_serif-1;
+      color: @grey;
+    }
+    .bookcover {
+    //  width: 100%;
+      margin: 0 0 0 5px;
+      text-align: start;
+      overflow: hidden;
+      height: 100px;
+      img {
+        border-radius: 4px;
+        max-width: 100%;
+      //  max-height: 300px;
+      //  width: 175px;
+        object-fit: cover;
+      }
+    }
+    .bookcover--blur {
+      img {
+        filter: blur(4px);
+      }
+    }
+    .imageLg {
+      text-align: center;
+      width: 100%;
+      margin: 10px 10px 0 5px;
+      img {
+        max-width: 100%;
+        max-height: 110px;
+      }
+    }
   }
-}
+
+
+ @media only screen and (min-width: @width-breakpoint-tablet) {
+   .list-books {
+     .searchResultItem {
+       .bookcover {
+         width: 175px;
+         text-align: right;
+       }
+       .imageLg {
+         width: 175px;
+         text-align: center;
+       }
+     }
+   }
+   .list-results {
+     .searchResultItem {
+       .imageLg {
+         width: 175px;
+         text-align: right;
+       }
+     }
+   }
+ }
