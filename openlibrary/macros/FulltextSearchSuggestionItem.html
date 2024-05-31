@@ -39,9 +39,9 @@ $code:
   else:
     full_work_title = doc.get('title', '') + (': ' + doc.subtitle if doc.get('subtitle') else '')
 
-<li class="searchResultItem sri--w-main" itemscope itemtype="https://schema.org/Book" $:attrs>
+<div class="fulltextSuggestionItem" itemscope itemtype="https://schema.org/Book" $:attrs>
   $ blur_cover = "bookcover--blur" if blur else ""
-  <div class="sri__main">
+  <div class="fsi__main">
     <span class="bookcover $blur_cover">
       $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
       <a href="$work_edition_url"><img class="suggestion-bookcover-img"
@@ -54,7 +54,7 @@ $code:
 
     <div class="details">
         <div class="resultTitle">
-          <h3 itemprop="name" class="booktitle">
+          <h3 itemprop="name" class="booktitle fulltext__suggestions">
             <a itemprop="url" href="$work_edition_url" class="results">$full_title</a>
           </h3>
         </div>
@@ -85,4 +85,4 @@ $code:
         $if extra:
           $:extra
     </div>
-</li>
+  </div>
