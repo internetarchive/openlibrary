@@ -113,6 +113,8 @@ export default {
     object-position: top center;
     float: left;
     margin-right: 7px;
+    // Min Height added for lazy loading so that the lazy loaded images are not 1 pixel and start having many books start loading
+    min-height: 80px;
     &:hover {
       object-fit: contain;
     }
