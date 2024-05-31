@@ -722,7 +722,7 @@ def _normalize(s: str) -> str:
 def _matches_lang_name(
     word_prefix: str, language: dict, prefix_language: str | None = None
 ) -> Storage | None:
-    lang_name = language["name"]
+    lang_name = language['name]
     if prefix_language is not None:
         lang_name = safeget(lambda: language['name_translated'][prefix_language][0])
     # Compare to each inner word of language name for more accurate matching
@@ -730,8 +730,8 @@ def _matches_lang_name(
     for inner in lang_name.split(' '):
         if inner and _normalize(inner).startswith(word_prefix):
             return Storage(
-                key=language["key'],
-                code=language["code"],
+                key=language['key'],
+                code=language['code'],
                 name=lang_name,
             )
     return None
