@@ -17,7 +17,6 @@ $def embed_iframe(page_url):
         <div class="floaterHead right-justify">
           <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
         </div>
-        </div>
         <div class="shareLinks cta-section">
           <ul class="shareLinks-list">
               $for share_link in share_links:
@@ -65,7 +64,7 @@ $def embed_iframe(page_url):
             </li>
 
             <li>
-              <a class="qr-code-btn" title="$_('Open QR code')" data-ol-link-track="Share|QRCode">
+              <a href="/qrcode?path=$(ctx.path)" target="_blank" class="qr-code-btn" title="$_('Open QR code')" data-ol-link-track="Share|QRCode">
                   <img
                       alt="$_('QR code icon')"
                       class="share-link"

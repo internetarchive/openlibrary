@@ -707,8 +707,9 @@ class create_qrcode(delegate.page):
     path = '/qrcode'
 
     def GET(self):
-        page_path = web.ctx.path
-        qr_url = f'http://localhost:8080{page_path}'
+        i = web.input(path='/')
+        page_path = i.path
+        qr_url = f'{web.ctx.home}{page_path}'
         img = qrcode.make(qr_url)
         with io.BytesIO() as buf:
             img.save(buf, format='PNG')

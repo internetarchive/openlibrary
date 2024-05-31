@@ -7,9 +7,8 @@ import '../../../../../static/css/components/metadata-form.less';
  * Initializes share modal.
  */
 export function initShareModal($modalLinks) {
-    addShareModalClickListeners($modalLinks, '400px');
+    addClickListeners($modalLinks, '400px');
     addShareModalButtonListeners();
-    addQRCodeListener();
 }
 /**
  * Adds click listeners to buttons in all notes modals on a page.
@@ -21,23 +20,6 @@ function addShareModalButtonListeners (){
         showToast('URL copied to clipboard')
         $.colorbox.close()
     })
-}
-//Adds listener to send GET req to create_qrcode in ol/plugins/ol/api.py
-function addQRCodeListener() {
-    $('#social-modal-content .qr-code-btn').on('click', function (event) {
-        event.preventDefault();
-        const path = `/qrcode?path=${encodeURIComponent(window.location.pathname)}`;
-        $.ajax({
-            url: path,
-            type: 'GET',
-            contentType: false,
-            processData: false,
-            success: function(response) {
-                const url = URL.createObjectURL(response.blob)
-                window.open(url, '_blank')
-            }
-        });
-    });
 }
 
 /**
@@ -241,20 +223,20 @@ function addClickListeners($modalLinks, maxWidth) {
         $(modalLinkElement).on('click', function() {
             // Get context, which is attached to the modal content
             const content = getModalContent($(this))
-            displayModal(content, maxWidth);
+            displayDynamicModal(content, maxWidth);
         })
     })
 }
 
-function addShareModalClickListeners($modalLinks, maxWidth) {
-    $modalLinks.each(function (_i, modalLinkElement) {
-        $(modalLinkElement).on('click', function () {
-            // Get context, which is attached to the modal content
-            const content = getModalContent($(this));
-            displayDynamicModal(content, maxWidth);
-        });
-    });
-}
+// function addShareModalClickListeners($modalLinks, maxWidth) {
+//     $modalLinks.each(function (_i, modalLinkElement) {
+//         $(modalLinkElement).on('click', function () {
+//             // Get context, which is attached to the modal content
+//             const content = getModalContent($(this));
+//             displayDynamicModal(content, maxWidth);
+//         });
+//     });
+// }
 
 /**
  * Gets reference to modal content that is associated with the
