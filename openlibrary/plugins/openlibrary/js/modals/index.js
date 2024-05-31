@@ -2,6 +2,7 @@ import { FadingToast } from '../Toast.js';
 import '../../../../../static/css/components/metadata-form.less';
 
 
+
 /**
  * Initializes share modal.
  */

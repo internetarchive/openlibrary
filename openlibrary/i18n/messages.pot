@@ -6258,6 +6258,18 @@ msgstr ""
 msgid "Copy URL"
 msgstr ""
 
+#: ShareModal.html
+msgid "Open QR code"
+msgstr ""
+
+#: ShareModal.html
+msgid "QR code icon"
+msgstr ""
+
+#: ShareModal.html
+msgid "QR Code"
+msgstr ""
+
 #: SponsorCarousel.html
 msgid "Books to Sponsor"
 msgstr ""
