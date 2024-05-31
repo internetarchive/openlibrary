@@ -9,13 +9,13 @@ $if results and results.get('hits'):
   $ hits = results['hits'].get('hits', [])
   $ num_found = results['hits'].get('total', 0)
   $ ia_base_url = "https://archive.org"
-  <div id="fulltextSuggestions">
+  <div id="fulltextSuggestions" class="fulltext-suggestions">
     <div>Browse <a data-ol-link-track="SearchNav|SearchFulltext"
       href="/search/inside?$urlencode(dict(q=query))">$num_found Search Inside Matches</a>
     </div>
-    <ul class="list-books">
+    <section className="fsi__container">
       $for doc in hits:
         $if doc.get('edition'):
           $:macros.FulltextSearchSuggestionItem(doc['edition'], extra=render_snippet(query, doc))
-    </ul>
+    </section>
   </div>
