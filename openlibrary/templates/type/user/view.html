@@ -30,7 +30,7 @@ $else:
     $if "lists" in ctx.features and lists:
         &bull;
         <a href="$homepath()$page.key/lists">$_("Lists")</a>
-    $if is_public and not is_subscribed and not owners_page:
+    $if is_public and not owners_page and not is_subscribed:
         $:macros.Follow(mb.username, following=mb.is_subscribed)
     </div>
 </div>
