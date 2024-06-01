@@ -879,7 +879,7 @@ class User(Thing):
         return (
             PubSub.is_subscribed(my_username, username)
             if my_username != username
-            else False
+            else -1
         )
 
     def has_cookie(self, name):
