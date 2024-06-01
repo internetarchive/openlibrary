@@ -874,6 +874,10 @@ class User(Thing):
             usergroup = '/usergroup/%s' % usergroup
         return usergroup in [g.key for g in self.usergroups]
 
+    def is_subscribed_user(self, username):
+        my_username = self.get_username()
+        return PubSub.is_subscribed(my_username, username) if not my_username == username else False
+
     def has_cookie(self, name):
         return web.cookies().get(name, False)
 

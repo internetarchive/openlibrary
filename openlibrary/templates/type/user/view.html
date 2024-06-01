@@ -4,6 +4,7 @@ $var title: $page.displayname
 $ settings = page.get_users_settings()
 $ owners_page = ctx.user and ctx.user.key == page.key
 $ is_public = settings and settings.get('public_readlog', 'no') == "yes"
+$ is_subscribed = ctx.user and ctx.user.is_subscribed_user(page.key)
 $if days_since(page.created) < 30:
   $ putctx('robots', 'noindex')
 
@@ -29,6 +30,8 @@ $else:
     $if "lists" in ctx.features and lists:
         &bull;
         <a href="$homepath()$page.key/lists">$_("Lists")</a>
+    $if is_public and not is_subscribed and not owners_page:
+        $:macros.Follow(mb.username, following=mb.is_subscribed)
     </div>
 </div>
 
