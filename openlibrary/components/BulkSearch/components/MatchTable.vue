@@ -1,6 +1,6 @@
 <template>
   <div class="tableWrapper">
-    <table :v-if="this.bulkSearchState.matchedBooks">
+    <table :v-if="bulkSearchState.matchedBooks">
       <thead>
         <tr>
           <th>i</th>
@@ -10,7 +10,7 @@
         </tr>
       </thead>
       <tbody>
-        <TableRow v-for="bookMatch, index  in this.bulkSearchState.matchedBooks" :bookMatch="bookMatch" :index="index"
+        <MatchRow v-for="bookMatch, index  in bulkSearchState.matchedBooks" :bookMatch="bookMatch" :index="index"
           :bulkSearchState="bulkSearchState" :key="index" />
       </tbody>
       <tfoot>
@@ -18,7 +18,7 @@
           <td></td>
           <td></td>
           <td></td>
-          <td><a :href="this.listUrl" target="_blank" id="listMakerLink">Create list of first matches</a></td>
+          <td><a :href="listUrl" target="_blank" id="listMakerLink">Create list of first matches</a></td>
         </tr>
       </tfoot>
     </table>
@@ -26,16 +26,16 @@
 </template>
 
 <script>
-import TableRow from './TableRow.vue'
+import MatchRow from './MatchRow.vue'
 import { BulkSearchState } from '../utils/classes.js'
 export default {
-  components: {
-    TableRow
-  },
-  props: {
-    bulkSearchState: BulkSearchState,
-    listUrl: String
-  },
+    components: {
+        MatchRow
+    },
+    props: {
+        bulkSearchState: BulkSearchState,
+        listUrl: String
+    },
 }</script>
 
 <style>

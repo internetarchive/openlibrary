@@ -16,7 +16,7 @@
             <label v-if="bulkSearchState.extractionOptions.use_gpt">API-Key:
                 <input type="text" v-model="bulkSearchState.extractionOptions.api_key" />
             </label>
-            <SampleBar @sample="(msg) => this.bulkSearchState.inputText = msg" />
+            <SampleBar @sample="(msg) => bulkSearchState.inputText = msg" />
             <label>
                 <input checked v-model="bulkSearchState.matchOptions.includeAuthor" type="checkbox" /> Use author in
                 search query
@@ -25,8 +25,8 @@
             <button @click="extractBooks">Extract Books</button>
             <button @click="matchBooks">Match Books</button>
         </div>
-        <div v-if="this.bulkSearchState.errorMessage">
-            <p v-for="error in this.bulkSearchState.errorMessage" :key="error">
+        <div v-if="bulkSearchState.errorMessage">
+            <p v-for="error in bulkSearchState.errorMessage" :key="error">
                 {{ error }}</p>
         </div>
     </details>
@@ -140,10 +140,6 @@ export default {
 </script>
 
 <style lang="less">
-body {
-    padding: 0;
-    font-family: Roboto, Helvetica, sans-serif;
-}
 
 label input {
     flex: 1;
