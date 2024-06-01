@@ -25,7 +25,7 @@
             <button @click="extractBooks">Extract Books</button>
             <button @click="matchBooks">Match Books</button>
         </div>
-        <div class="ErrorBox" v-if="this.bulkSearchState.errorMessage">
+        <div v-if="this.bulkSearchState.errorMessage">
             <p v-for="error in this.bulkSearchState.errorMessage" :key="error">
                 {{ error }}</p>
         </div>
@@ -38,7 +38,7 @@ import { BulkSearchState, ExtractedBook, BookMatch } from '../utils/classes.js';
 import { buildSearchUrl, buildListUrl } from '../utils/searchUtils.js'
 export default {
     components: {
-        sampleBar
+        SampleBar
     },
     props: {
         bulkSearchState: BulkSearchState
