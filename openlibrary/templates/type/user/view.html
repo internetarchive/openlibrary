@@ -14,6 +14,8 @@ $else:
     $ lists = []
 
 <div id="contentHead">
+    $if ctx.user and is_public and not owners_page and is_subscribed == False:
+        <div class="right">$:macros.Follow(ctx.user.get_username(), following=is_subscribed)</div>
     $:macros.databarView(page)
     <h1>$page.displayname</h1>
     <div class="small sansserif">
@@ -30,8 +32,6 @@ $else:
     $if "lists" in ctx.features and lists:
         &bull;
         <a href="$homepath()$page.key/lists">$_("Lists")</a>
-    $if ctx.user and is_public and not owners_page and is_subscribed == False:
-        $:macros.Follow(ctx.user.get_username(), following=is_subscribed)
     </div>
 </div>
 
