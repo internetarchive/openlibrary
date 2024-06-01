@@ -10,9 +10,9 @@ $if results and results.get('hits'):
   $ num_found = results['hits'].get('total', 0)
   $ ia_base_url = "https://archive.org"
   <div id="fulltextSuggestions" class="fulltext-suggestions">
-    <div>Browse <a data-ol-link-track="SearchNav|SearchFulltext"
+    <h3 class="fulltext-suggestions header">Browse <a data-ol-link-track="SearchNav|SearchFulltext"
       href="/search/inside?$urlencode(dict(q=query))">$num_found Search Inside Matches</a>
-    </div>
+    </h3>
     <section className="fsi__container">
       $for doc in hits:
         $if doc.get('edition'):
