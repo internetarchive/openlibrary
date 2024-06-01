@@ -1,10 +1,12 @@
 $def with (page)
 
 $var title: $page.displayname
+$ username = page.key.split('/')[-1]
 $ settings = page.get_users_settings()
 $ owners_page = ctx.user and ctx.user.key == page.key
 $ is_public = settings and settings.get('public_readlog', 'no') == "yes"
-$ is_subscribed = ctx.user and ctx.user.is_subscribed_user(page.key)
+
+$ is_subscribed = ctx.user and ctx.user.is_subscribed_user(username)
 $if days_since(page.created) < 30:
   $ putctx('robots', 'noindex')
 
@@ -14,6 +16,7 @@ $else:
     $ lists = []
 
 <div id="contentHead">
+    <h1>$settings.get('username')</h1>
     $if ctx.user and is_public and not owners_page and is_subscribed == False:
         <div class="right">$:macros.Follow(ctx.user.get_username(), following=is_subscribed)</div>
     $:macros.databarView(page)
