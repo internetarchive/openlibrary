@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-05-01 18:58-0400\n"
-"PO-Revision-Date: 2024-05-17 18:59+0200\n"
+"PO-Revision-Date: 2024-06-01 20:55+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es\n"
@@ -2803,20 +2803,31 @@ msgstr ""
 "impresos normales. "
 
 #: books/daisy.html
-#, python-format
 msgid ""
 "There are two types of DAISYs on Open Library: <i>open</i> and <i>protected</"
 "i>. Open DAISYs can be read by anyone in the world on many different "
-"devices. Protected DAISYs %(encrypted)s can only be opened using a key "
+"devices. Protected DAISYs like this one can only be opened using a key "
 "issued by the <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS "
 "program</a>."
 msgstr ""
 "Hay dos tipos de DAISY en la Biblioteca Abierta: <i>abierto</i> and "
 "<i>protegido</i>. Los DAISY abiertos pueden ser leídos por cualquier persona "
-"del mundo en muchos dispositivos diferentes. Los DAISY protegidos "
-"%(encrypted)s solo pueden abrirse usando una clave emitida por el <a "
-"href=\"http://www.loc.gov/nls/\">programa NLS de la Biblioteca del Congreso</"
-"a>."
+"del mundo en muchos dispositivos diferentes. Los DAISY protegidos como este "
+"solo pueden abrirse usando una clave emitida por el <a href=\"http://www.loc."
+"gov/nls/\">programa NLS de la Biblioteca del Congreso</a>."
+
+#: books/daisy.html
+msgid ""
+"There are two types of DAISYs on Open Library: <i>open</i> and <i>protected</"
+"i>. Open DAISYs can be read by anyone in the world on many different "
+"devices. Protected DAISYs can only be opened using a key issued by the <a "
+"href=\"http://www.loc.gov/nls/\">Library of Congress NLS program</a>."
+msgstr ""
+"Hay dos tipos de DAISY en la Biblioteca Abierta: <i>abierto</i> y "
+"<i>protegido</i>. Los DAISY abiertos pueden ser leídos por cualquier persona "
+"del mundo en muchos dispositivos diferentes. Los DAISY protegidos solo "
+"pueden abrirse usando una clave emitida por el <a href=\"http://www.loc.gov/"
+"nls/\">programa NLS de la Biblioteca del Congreso</a>."
 
 #: books/daisy.html lists/home.html
 msgid "Enjoy!"
@@ -5010,7 +5021,7 @@ msgstr "Haz clic para cerrar esta solicitud de fusión"
 
 #: merge_request_table/table_row.html type/edition/modal_links.html
 msgid "Review"
-msgstr "Reseñar"
+msgstr "Revisar"
 
 #: merge_request_table/table_row.html
 msgid "comments"
@@ -5543,10 +5554,6 @@ msgid ""
 msgstr ""
 "Por favor, usa el orden natural. Por ejemplo: <strong>Leo Tolstoy</strong>, "
 "no <strong>Tolstoy, Leo</strong>."
-
-#: type/author/edit.html
-msgid "About"
-msgstr "Acerca de"
 
 #: type/author/edit.html
 msgid "A short bio?"
@@ -6615,6 +6622,18 @@ msgstr "Copiar icono URL"
 msgid "Copy URL"
 msgstr "Copiar URL"
 
+#: ShareModal.html
+msgid "Open QR code"
+msgstr "Abrir código QR"
+
+#: ShareModal.html
+msgid "QR code icon"
+msgstr "Icono de código QR"
+
+#: ShareModal.html
+msgid "QR Code"
+msgstr "Código QR"
+
 #: SponsorCarousel.html
 msgid "Books to Sponsor"
 msgstr "Libros para patrocinar"
@@ -6982,13 +7001,13 @@ msgstr ""
 msgid "Invalid password"
 msgstr "Contraseña inválida"
 
+#~ msgid "About"
+#~ msgstr "Acerca de"
+
 #, fuzzy
 #~| msgid "Continue"
 #~ msgid "Continue</a>."
 #~ msgstr "Continuar"
-
-#~ msgid "cancel icon"
-#~ msgstr "icono de cancelación"
 
 #~ msgid "Close this"
 #~ msgstr "Cerrar esto"
