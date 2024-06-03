@@ -1,7 +1,7 @@
 import sinon from 'sinon';
 import * as testData from './html-test-data';
 import { htmlquote } from '../../../openlibrary/plugins/openlibrary/js/jsdef';
-import jQueryRepeat from '../../../openlibrary/plugins/openlibrary/js/jquery.repeat';
+import { init } from '../../../openlibrary/plugins/openlibrary/js/jquery.repeat';
 
 let sandbox;
 
@@ -14,7 +14,7 @@ beforeEach(() => {
 
 test('identifiers of repeated elements are never the same.', () => {
     // setup Query repeat
-    jQueryRepeat(global.$);
+    init();
     // setup the HTML
     $(document.body).html(testData.editionIdentifiersSample);
     // turn on jQuery repeat

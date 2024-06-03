@@ -9,6 +9,9 @@ import {
     isValidLccn,
     isIdDupe
 } from './idValidation';
+import { init as initAutocomplete } from './autocomplete';
+import { init as initJqueryRepeat } from './jquery.repeat';
+
 /* global render_seed_field, render_language_field, render_lazy_work_preview, render_language_autocomplete_item, render_work_field, render_work_autocomplete_item */
 /* Globals are provided by the edit edition template */
 
@@ -68,6 +71,7 @@ function getJqueryElements(selector){
 }
 
 export function initRoleValidation() {
+    initJqueryRepeat();
     const dataConfig = JSON.parse(document.querySelector('#roles').dataset.config);
     $('#roles').repeat({
         vars: {prefix: 'edition--'},
@@ -228,6 +232,7 @@ export function validateIdentifiers(data) {
 }
 
 export function initIdentifierValidation() {
+    initJqueryRepeat();
     $('#identifiers').repeat({
         vars: {prefix: 'edition--'},
         validate: function(data) {return validateIdentifiers(data)},
@@ -235,6 +240,7 @@ export function initIdentifierValidation() {
 }
 
 export function initClassificationValidation() {
+    initJqueryRepeat();
     const dataConfig = JSON.parse(document.querySelector('#classifications').dataset.config);
     $('#classifications').repeat({
         vars: {prefix: 'edition--'},
@@ -254,6 +260,7 @@ export function initClassificationValidation() {
 }
 
 export function initLanguageMultiInputAutocomplete() {
+    initAutocomplete();
     $(function() {
         getJqueryElements('.multi-input-autocomplete--language').forEach(jqueryElement => {
             jqueryElement.setup_multi_input_autocomplete(
@@ -272,6 +279,7 @@ export function initLanguageMultiInputAutocomplete() {
 }
 
 export function initWorksMultiInputAutocomplete() {
+    initAutocomplete();
     $(function() {
         getJqueryElements('.multi-input-autocomplete--works').forEach(jqueryElement => {
             /* Values in the html passed from Python code */
@@ -296,6 +304,7 @@ export function initWorksMultiInputAutocomplete() {
 }
 
 export function initSeedsMultiInputAutocomplete() {
+    initAutocomplete();
     $(function() {
         getJqueryElements('.multi-input-autocomplete--seeds').forEach(jqueryElement => {
             /* Values in the html passed from Python code */
@@ -319,6 +328,7 @@ export function initSeedsMultiInputAutocomplete() {
 }
 
 export function initAuthorMultiInputAutocomplete() {
+    initAutocomplete();
     getJqueryElements('.multi-input-autocomplete--author').forEach(jqueryElement => {
         /* Values in the html passed from Python code */
         const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
@@ -341,6 +351,7 @@ export function initAuthorMultiInputAutocomplete() {
 }
 
 export function initSubjectsAutocomplete() {
+    initAutocomplete();
     getJqueryElements('.csv-autocomplete--subjects').forEach(jqueryElement => {
         const dataConfig = JSON.parse(jqueryElement[0].dataset.config);
         jqueryElement.setup_csv_autocomplete(
@@ -387,6 +398,7 @@ function show_hide_title() {
 }
 
 export function initEditExcerpts() {
+    initJqueryRepeat();
     $('#excerpts').repeat({
         vars: {
             prefix: 'work--excerpts',
@@ -433,6 +445,7 @@ export function initEditExcerpts() {
  *    - '#link-errors'
  */
 export function initEditLinks() {
+    initJqueryRepeat();
     $('#links').repeat({
         vars: {
             prefix: $('#links').data('prefix')

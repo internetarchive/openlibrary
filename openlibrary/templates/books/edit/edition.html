@@ -254,7 +254,7 @@ $jsdef render_work_autocomplete_item(item):
 
             <legend>$_('Languages')</legend>
 
-            <div class="formElement multi-input-autocomplete--language">
+            <div class="formElement multi-input-autocomplete multi-input-autocomplete--language">
                 <div class="label">
                     <label for="edition-language">$_("What language is this edition written in?")</label>
                     <span class="tip"></span>
@@ -299,7 +299,7 @@ $jsdef render_work_autocomplete_item(item):
                     </div>
                 </div>
 
-                <div class="transYes multi-input-autocomplete--language" style="$style_hidden">
+                <div class="transYes multi-input-autocomplete multi-input-autocomplete--language" style="$style_hidden">
                     <div class="label">
                         <label for="edition-translated_from"><span class="tip">$_("What language was the original written in?")</span></label>
                     </div>
@@ -379,7 +379,7 @@ $jsdef render_work_autocomplete_item(item):
                 </span>
             </div>
             $ config = {'addnew': is_privileged_user, 'new_name': _('-- Move to a new work')}
-            <div class="multi-input-autocomplete--works" data-config="$dumps(config)">
+            <div class="multi-input-autocomplete multi-input-autocomplete--works" data-config="$dumps(config)">
                 $if book.works:
                     $for i, work in enumerate(book.works):
                         $:render_work_field(i, work)
