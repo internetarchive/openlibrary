@@ -20,16 +20,21 @@
    border-bottom: 1px solid @light-beige;
    .display-flex();
    flex-direction: column;
-
    .header {
-    display: block;
-    margin: 0;
-    padding: 5px;
-    color: @dark-grey;
-    font-size: larger;
-    font-weight: 700;
-    font-family: @lucida_sans_serif-6;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+     .title {
+      display: block;
+      margin: 0;
+      padding: 5px;
+      color: @dark-grey;
+      font-size: large;
+      font-weight: 700;
+      font-family: @lucida_sans_serif-6;
+     }
    }
+
 
    .fulltext-suggestions {
     padding: 5px;
