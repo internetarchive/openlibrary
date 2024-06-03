@@ -44,15 +44,6 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
 <div id="contentHead">
 
     $:macros.databarView(page)
-    <div class ="editShareButton">
-        $set_share_links(url=request.canonical_url, title='', view_context=ctx)
-            $if ctx.get('share_links'):
-            $ share_str = _('Share')
-            $ share_content = '<a class="cta-btn cta-btn--unstyled share-modal-link icon-link" href="javascript:;" data-ol-link-track="MyBooksModalLinkClick|ShareIcon"><img class="icon-link__image" src="/static/images/icons/share.svg" width="20"> %s</a>' % share_str
-            $ page_url = request.home
-            $ share_links = ctx.get('share_links')
-            $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper", show_embed=False)
-    </div>
 
     <h1 itemprop="name">$title</h1>
     $if show_librarian_extras:

@@ -7,11 +7,12 @@
 div#editTools,
 div#editHistory {
   width: auto;
+  align-items: center;
 }
 
-div.editButton {
-  width: auto;
-  display: inline-block;
+.editButton {
+  display: flex;
+  align-items: center;
 }
 
 div#editInfo {
@@ -34,11 +35,15 @@ div#editTools {
   padding: 0 0 1rem;
 }
 
-div.editShareButton {
+.editShareButton {
   display: flex;
-  justify-content: flex-end;
-  align-items: center;
+  align-items: center; 
+}
+
+.editShareButton .share-icon__image {
+  display: flex;
+  flex-direction: column;
+  align-items: center; 
 }
 
 @import "components/buttonLink.less";
-
