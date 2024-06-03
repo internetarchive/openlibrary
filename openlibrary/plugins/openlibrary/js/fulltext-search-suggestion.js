@@ -13,6 +13,7 @@ async function getPartials(fulltextSearchSuggestion, query) {
             return resp.json()
         })
         .then((data) => {
+            // console.log('DATA FROM PARTIAL', data['data'])
             fulltextSearchSuggestion.innerHTML += data['partials']
         })
 }
