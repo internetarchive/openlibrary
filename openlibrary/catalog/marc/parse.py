@@ -286,6 +286,8 @@ lang_map = {
     'fr ': 'fre',
     'it ': 'ita',
     # LOC MARC Deprecated code updates
+    # Only covers deprecated codes where there
+    # is a direct 1-to-1 mapping to a single new code.
     'cam': 'khm',  # Khmer
     'esp': 'epo',  # Esperanto
     'eth': 'gez',  # Ethiopic
@@ -308,7 +310,7 @@ lang_map = {
     'snh': 'sin',  # Sinhalese
     'sso': 'sot',  # Sotho
     'swz': 'ssw',  # Swazi
-    'tag': 'tgi',  # Tagalog
+    'tag': 'tgl',  # Tagalog
     'taj': 'tgk',  # Tajik
     'tar': 'tat',  # Tatar
     'tsw': 'tsn',  # Tswana
