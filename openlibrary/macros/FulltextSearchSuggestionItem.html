@@ -42,23 +42,23 @@ $code:
 <div class="fulltextSuggestionItem" itemscope itemtype="https://schema.org/Book" $:attrs>
   $ blur_cover = "bookcover--blur" if blur else ""
   <div class="fsi__main">
-    <span class="bookcover $blur_cover">
-      $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
-      <a href="$work_edition_url"><img class="suggestion-bookcover-img"
-              itemprop="image"
-              src="$cover"
-              alt="$_('Cover of: %(title)s', title=full_title)"
-              title="$_('Cover of: %(title)s', title=full_title)"
-      /></a>
-    </span>
-
-    <div class="details">
+    <div class="bookDetails">
+      <span class="bookcover $blur_cover">
+        $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
+        <a href="$work_edition_url"><img class="suggestion-bookcover-img"
+                itemprop="image"
+                src="$cover"
+                alt="$_('Cover of: %(title)s', title=full_title)"
+                title="$_('Cover of: %(title)s', title=full_title)"
+        /></a>
+      </span>
+      <div class="titleAndAuthor">
         <div class="resultTitle">
-          <h3 itemprop="name" class="booktitle fulltext__suggestions">
+          <h3 itemprop="name" class="booktitle">
             <a itemprop="url" href="$work_edition_url" class="results">$full_title</a>
           </h3>
         </div>
-        <span itemprop="author" itemscope itemtype="https://schema.org/Organization" class="bookauthor">
+        <p itemprop="author" itemscope itemtype="https://schema.org/Organization" class="bookauthor">
           $ authors = None
           $if doc_type == 'infogami_work':
             $ authors = doc.get_authors()
@@ -81,8 +81,11 @@ $code:
                 for a in authors
               ]
             $:macros.BookByline(author_data, limit=max_rendered_authors, overflow_url=work_edition_url, attrs='class="results"')
-        </span>
-        $if extra:
-          $:extra
+        </p>
+      </div>
     </div>
+    $if extra:
+      <div class="excerpts">
+          $:extra
+      </div>
   </div>
