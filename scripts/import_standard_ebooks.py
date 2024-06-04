@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import json
 import requests
+from requests.auth import AuthBase, HTTPBasicAuth
 import time
 from typing import Any
 
@@ -19,9 +20,9 @@ IMAGE_REL = 'http://opds-spec.org/image'
 BASE_SE_URL = 'https://standardebooks.org'
 
 
-def get_feed():
+def get_feed(auth: AuthBase):
     """Fetches and returns Standard Ebook's feed."""
-    r = requests.get(FEED_URL)
+    r = requests.get(FEED_URL, auth=auth)
     return feedparser.parse(r.text)
 
 
@@ -85,13 +86,13 @@ def get_last_updated_time() -> str | None:
     return None
 
 
-def find_last_updated() -> str | None:
+def find_last_updated(auth: AuthBase) -> str | None:
     """Fetches and returns Standard Ebooks most recent update date.
 
     Returns None if the last modified date is not included in the
     response headers.
     """
-    r = requests.head(FEED_URL)
+    r = requests.head(FEED_URL, auth=auth)
     return r.headers['last-modified'] if r.ok else None
 
 
@@ -139,8 +140,14 @@ def import_job(
     """
     load_config(ol_config)
 
+    if not config.get('standard_ebooks_key'):
+        print('Standard Ebooks key not found in config. Exiting.')
+        return
+
+    auth = HTTPBasicAuth(config.get('standard_ebooks_key'), '')
+
     # Make HEAD request to get last-modified time
-    last_modified = find_last_updated()
+    last_modified = find_last_updated(auth)
 
     if not last_modified:
         print(f'HEAD request to {FEED_URL} failed. Not attempting GET request.')
@@ -155,7 +162,7 @@ def import_job(
 
     print(f'Last import job: {updated_on or "No date found"}')
     # Get feed:
-    d = get_feed()
+    d = get_feed(auth)
 
     # Create datetime using updated_on:
     modified_since = convert_date_string(updated_on)
