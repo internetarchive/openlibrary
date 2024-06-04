@@ -5,8 +5,6 @@ from requests.auth import AuthBase, HTTPBasicAuth
 import time
 from typing import Any
 
-from os import path
-
 import feedparser
 
 from openlibrary.core.imports import Batch
@@ -15,7 +13,6 @@ from openlibrary.config import load_config
 from infogami import config
 
 FEED_URL = 'https://standardebooks.org/opds/all'
-LAST_UPDATED_TIME = './standard_ebooks_last_updated.txt'
 IMAGE_REL = 'http://opds-spec.org/image'
 
 
@@ -73,67 +70,6 @@ def create_batch(records: list[dict[str, str]]) -> None:
     batch.add_items([{'ia_id': r['source_records'][0], 'data': r} for r in records])
 
 
-def get_last_updated_time() -> str | None:
-    """Gets date of last import job.
-
-    Last updated dates are read from a local file.  If no
-    file exists, None is returned. Last updated date is
-    expected to be in HTTP-date format:
-    https://httpwg.org/specs/rfc7231.html#http.date
-
-    returns last updated date string or None
-    """
-    if path.exists(LAST_UPDATED_TIME):
-        with open(LAST_UPDATED_TIME) as f:
-            return f.readline()
-
-    return None
-
-
-def find_last_updated(auth: AuthBase) -> str | None:
-    """Fetches and returns Standard Ebooks most recent update date.
-
-    Returns None if the last modified date is not included in the
-    response headers.
-    """
-    r = requests.head(FEED_URL, auth=auth)
-    return r.headers['last-modified'] if r.ok else None
-
-
-def convert_date_string(date_string: str | None) -> time.struct_time:
-    """Converts HTTP-date format string into a struct_time object.
-
-    The date_string will be formatted similarly to this:
-    Fri, 05 Nov 2021 03:50:24 GMT
-
-    returns struct_time representation of the given time, or the
-    epoch if no time given.
-
-    >>> str(convert_date_string(None)) # doctest: +NORMALIZE_WHITESPACE
-    'time.struct_time(tm_year=1970, tm_mon=1, tm_mday=1, tm_hour=0,
-        tm_min=0, tm_sec=0, tm_wday=3, tm_yday=1, tm_isdst=0)'
-
-    >>> convert_date_string("") # doctest: +ELLIPSIS
-    time.struct_time(tm_year=1970, tm_mon=1, tm_mday=1, tm_hour=0, ...
-
-    >>> convert_date_string(0) # doctest: +ELLIPSIS
-    time.struct_time(tm_year=1970, tm_mon=1, tm_mday=1, tm_hour=0, ...
-
-    >>> convert_date_string("Fri, 05 Nov 2021 03:50:24 GMT") # doctest: +ELLIPSIS
-    time.struct_time(tm_year=2021, tm_mon=11, tm_mday=5, tm_hour=3, tm_min=50, ...
-    """
-    if not date_string:
-        return time.gmtime(0)
-    return time.strptime(date_string[5:-4], '%d %b %Y %H:%M:%S')
-
-
-def filter_modified_since(
-    entries, modified_since: time.struct_time
-) -> list[dict[str, str]]:
-    """Returns a list of import objects."""
-    return [map_data(e) for e in entries if e.updated_parsed > modified_since]
-
-
 def import_job(
     ol_config: str,
     dry_run: bool = False,
@@ -149,45 +85,14 @@ def import_job(
         return
 
     auth = HTTPBasicAuth(config.get('standard_ebooks_key'), '')
-
-    # Make HEAD request to get last-modified time
-    last_modified = find_last_updated(auth)
-
-    if not last_modified:
-        print(f'HEAD request to {FEED_URL} failed. Not attempting GET request.')
-        return
-
-    print(f'Last-Modified date: {last_modified}')
-
-    updated_on = get_last_updated_time()
-    if last_modified == updated_on:
-        print(f'No new updates since {updated_on}. Processing completed.')
-        return
-
-    print(f'Last import job: {updated_on or "No date found"}')
-    # Get feed:
-    d = get_feed(auth)
-
-    # Create datetime using updated_on:
-    modified_since = convert_date_string(updated_on)
-
-    # Map feed entries to list of import objects:
-    print(f'Importing all entries that have been updated since {modified_since}.')
-    modified_entries = filter_modified_since(d.entries, modified_since)
-    print(f'{len(modified_entries)} import objects created.')
+    feed = [map_data(entry) for entry in get_feed(auth).entries]
 
     if not dry_run:
-        create_batch(modified_entries)
-        print(f'{len(modified_entries)} entries added to the batch import job.')
+        create_batch(feed)
+        print(f'{len(feed)} entries added to the batch import job.')
     else:
-        for record in modified_entries:
+        for record in feed:
             print(json.dumps(record))
-
-    # Store timestamp for header
-    if not dry_run:
-        with open(LAST_UPDATED_TIME, 'w+') as f:
-            f.write(last_modified)
-            print(f'Last updated timestamp written to: {LAST_UPDATED_TIME}')
 
 
 if __name__ == '__main__':
