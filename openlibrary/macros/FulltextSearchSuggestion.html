@@ -8,14 +8,14 @@ $if results and results.get('hits'):
   $ num_found = commify(results['hits'].get('total', 0))
   $ ia_base_url = "https://archive.org"
   <div id="fulltextSuggestions" class="fulltext-suggestions">
-    <div class="fulltext-suggestions header">
-      <a href="/search/inside?$urlencode(dict(q=query))" title="$_('Search Inside con')">
+    <div class="header">
+      <a href="/search/inside?$urlencode(dict(q=query))" title="$_('Search Inside Icon')">
           <img src="/static/images/icons/icon_search-inside.svg"
             width="50" height="47"
             alt="$_('search inside icon')"/>
       </a>
       <h3 class="title"><a data-ol-link-track="SearchNav|SearchFulltext"
-        href="/search/inside?$urlencode(dict(q=query))">Browse $num_found Search Inside Matches</a>
+        href="/search/inside?$urlencode(dict(q=query))">$_('Browse %(results_count)s Search Inside Matches', results_count=num_found)</a>
       </h3>
     </div>
     <div className="fsi__container">
