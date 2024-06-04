@@ -18,8 +18,9 @@ IMAGE_REL = 'http://opds-spec.org/image'
 
 def get_feed(auth: AuthBase):
     """Fetches and returns Standard Ebook's feed."""
-    r = requests.get(FEED_URL, auth=auth)
-    return feedparser.parse(r.text)
+    with requests.get(FEED_URL, auth=auth, stream=True) as r:
+        r.raise_for_status()
+        return feedparser.parse(r.raw, response_headers=r.headers)
 
 
 def map_data(entry: dict) -> dict[str, Any]:
@@ -85,11 +86,12 @@ def import_job(
         return
 
     auth = HTTPBasicAuth(config.get('standard_ebooks_key'), '')
-    feed = [map_data(entry) for entry in get_feed(auth).entries]
+    feed = map(map_data, get_feed(auth).entries)
 
     if not dry_run:
-        create_batch(feed)
-        print(f'{len(feed)} entries added to the batch import job.')
+        list_feed = list(feed)
+        create_batch(list_feed)
+        print(f'{len(list_feed)} entries added to the batch import job.')
     else:
         for record in feed:
             print(json.dumps(record))
