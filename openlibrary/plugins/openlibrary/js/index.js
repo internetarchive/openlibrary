@@ -328,9 +328,10 @@ jQuery(function () {
             .then((module) => module.initOfflineBanner());
     }
 
-    if (document.getElementById('searchFacets')) {
+    const searchFacets = document.getElementById('searchFacets')
+    if (searchFacets) {
         import(/* webpackChunkName: "search" */ './search')
-            .then((module) => module.initSearchFacets());
+            .then((module) => module.initSearchFacets(searchFacets));
     }
 
     // Conditionally load Integrated Librarian Environment

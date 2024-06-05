@@ -44,6 +44,7 @@ import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count
 from openlibrary.plugins.openlibrary import processors
+from openlibrary.plugins.worksearch.code import do_search
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
@@ -1063,6 +1064,13 @@ class Partials(delegate.page):
                 args[0], args[1]
             )
             partial = {"partials": str(macro)}
+        elif component == 'SearchFacets':
+            data = json.loads(i.data)
+            p = data.get('p', {})
+            sort = None
+            search_response = do_search(p, sort, rows=0, spellcheck_count=3)
+            output = render_template('search/work_search_facets', p, facet_counts=search_response.facet_counts)
+            partial = {"partials": str(output)}
 
         return delegate.RawText(json.dumps(partial))
 

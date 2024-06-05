@@ -50,12 +50,40 @@ export function less(header, start_facet_count, facet_inc) {
 }
 
 /**
- * Initializes searchFacets element.
+ * Initializes the search page's facets sidebar.
  *
- * Hides '.header_bull' element and adds onclick events to '.header_(more|less)' elements.
- * Assumes presence of element with '#searchFacets' id and 'data-config' attribute.
+ * If the search facets sidebar is in `asyncLoad` mode, the sidebar will contain loading
+ * indicators instead of facet counts.  In this case, a request is made for sidebar markup
+ * containing the actual counts, and the existing sidebar is replaced with the new sidebar.
+ *
+ * In either case, the sidebar is hydrated.
+ *
+ * @param {HTMLElement} facetsElem Root element of the search facets sidebar component
  */
-export function initSearchFacets() {
+export function initSearchFacets(facetsElem) {
+    const asyncLoad = facetsElem.dataset.asyncLoad
+
+    if (asyncLoad) {
+        const param = JSON.parse(facetsElem.dataset.param)
+        fetchPartials(param)
+            .then((data) => {
+                const newFacetsElem = createElementFromMarkup(data.partials)
+                facetsElem.replaceWith(newFacetsElem)
+                hydrateFacets()
+            })
+            .catch(() => {
+                // XXX : Handle case where `/partials` response is not `2XX` here
+            })
+    } else {
+        hydrateFacets()
+    }
+}
+
+
+/**
+ * Adds click listeners to the "show more" and "show less" facet affordances.
+ */
+function hydrateFacets() {
     const data_config_json = $('#searchFacets').data('config');
     const start_facet_count = data_config_json['start_facet_count'];
     const facet_inc = data_config_json['facet_inc'];
@@ -67,4 +95,42 @@ export function initSearchFacets() {
     $('.header_less').on('click', function(){
         less($(this).data('header'), start_facet_count, facet_inc);
     });
+}
+
+/**
+ * Makes call for a partially rendered facet counts sidebar, using the given search
+ * parameters.
+ *
+ * @param {Object} param
+ * @returns {Promise<Response>}
+ *
+ * @throws Will throw error if `/partials` response is not in 200-299 range.
+ */
+function fetchPartials(param) {
+    const data = {p: param}
+    const dataString = JSON.stringify(data)
+    const dataQueryParam = encodeURIComponent(dataString)
+
+    return fetch(`/partials.json?_component=SearchFacets&data=${dataQueryParam}`)
+        .then((resp) => {
+            if (!resp.ok) {
+                throw new Error(`Failed to fetch partials. Status code: ${resp.status}`)
+            }
+            return resp.json()
+        })
+}
+
+/**
+ * Returns an `HTMLElement` that was created using the given `markup`.
+ *
+ * `markup` is expected to be well-formed, and only have a single root
+ * element.
+ *
+ * @param {string} markup HTML markup for a single element
+ * @returns {HTMLElement}
+ */
+function createElementFromMarkup(markup) {
+    const template = document.createElement('template')
+    template.innerHTML = markup
+    return template.content.children[0]
 }
