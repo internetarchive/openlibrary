@@ -153,7 +153,7 @@ $if search_response.error:
     <h3>$_("BARF! Search engine ERROR!")</h3>
     <pre>$search_response.error.decode('utf-8', 'ignore')</pre>
 $elif param and len(search_response.docs):
-    $:render_template('search/work_search_facets', param)
+    $:render_template('search/work_search_facets', param, facet_counts=search_response.facet_counts)
 <!-- /facets -->
     </div>
 
