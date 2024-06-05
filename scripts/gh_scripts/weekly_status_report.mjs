@@ -290,6 +290,8 @@ async function prepareReviewAssigneeIssues(leads) {
  */
 function prepareAssignedPullRequests(pullRequests, leads) {
     const output = ['*Assigned PRs*']
+
+    let noAssignedPullsFound = true
     for (const lead of leads) {
         const searchResultsUrl = `https://github.com/internetarchive/openlibrary/pulls?q=is%3Aopen+is%3Apr+-is%3Adraft+assignee%3A${lead.githubUsername}`
         const assignedPulls = pullRequests.filter((pull) => {
@@ -300,6 +302,10 @@ function prepareAssignedPullRequests(pullRequests, leads) {
             }
             return false
         })
+
+        if (assignedPulls.length) {
+            noAssignedPullsFound = false
+        }
 
         let p0Count = 0,
             p1Count = 0,
@@ -338,6 +344,10 @@ function prepareAssignedPullRequests(pullRequests, leads) {
             statusText += ']'
         }
         output.push(statusText)
+    }
+
+    if (noAssignedPullsFound) {
+        output.push('  _No assigned pull requests found._')
     }
 
     return output
