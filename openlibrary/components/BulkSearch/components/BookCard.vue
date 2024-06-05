@@ -14,15 +14,8 @@
 
 <script>
 export default {
-  props: {
-    doc: Object
-  },
-  computed: {
-    coverImage() {
-      if (!this.doc.cover_i) {
-        return ''
-      }
-      return `https://covers.openlibrary.org/b/id/${this.doc.cover_i}-M.jpg`
+    props: {
+        doc: Object
     },
     computed: {
         coverImage() {
@@ -35,7 +28,6 @@ export default {
             return `https://openlibrary.org/${this.doc.key}`
         }
     }
-  }
 }</script>
 
 
