@@ -1069,7 +1069,11 @@ class Partials(delegate.page):
             p = data.get('p', {})
             sort = None
             search_response = do_search(p, sort, rows=0, spellcheck_count=3)
-            output = render_template('search/work_search_facets', p, facet_counts=search_response.facet_counts)
+            output = render_template(
+                'search/work_search_facets',
+                p,
+                facet_counts=search_response.facet_counts,
+            )
             partial = {"partials": str(output)}
 
         return delegate.RawText(json.dumps(partial))
