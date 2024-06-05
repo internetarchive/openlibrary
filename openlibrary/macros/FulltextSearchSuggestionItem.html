@@ -45,12 +45,13 @@ $code:
     <div class="bookDetails">
       <span class="bookcover $blur_cover">
         $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
-        <a href="$work_edition_url"><img class="suggestion-bookcover-img"
+        <a href="$work_edition_url">
+          <img class="suggestion-bookcover-img"
                 itemprop="image"
                 src="$cover"
                 alt="$_('Cover of: %(title)s', title=full_title)"
-                title="$_('Cover of: %(title)s', title=full_title)"
-        /></a>
+                title="$_('Cover of: %(title)s', title=full_title)" />
+        </a>
       </span>
       <div class="titleAndAuthor">
         <div class="resultTitle">
@@ -85,7 +86,9 @@ $code:
       </div>
     </div>
     $if extra:
-      <div class="excerpts">
-          $:extra
-      </div>
+    <div class="excerpts">
+      $:extra
+    </div>
   </div>
+</div>
+
