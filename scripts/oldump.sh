@@ -118,7 +118,7 @@ then
   if [[ ! -f $(compgen -G "ol_dump_covers_metadata_$yyyymm*.txt.gz") ]]
   then
       log "generating coverstore dump: ol_dump_covers_metadata_$yyyymmdd.txt.gz"
-      # Note: this throws a psql warning since a db is already specified in PSQL_PARAMS, but the 
+      # Note: this throws a psql warning since a db is already specified in PSQL_PARAMS, but the
       # -d param takes precedence like we want it to!
       time psql $PSQL_PARAMS -d coverstore --set=upto="$yyyymmdd" -f $SCRIPTS/dump-covers-metadata.sql | gzip -c > ol_dump_covers_metadata$yyyymmdd.txt.gz
   else
