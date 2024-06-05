@@ -53,20 +53,26 @@
     .display-flex();
     flex-direction: column;
     background-color: white;
-    // height: 150px;
     padding: 3px;
     margin-bottom: 5px;
     border-bottom: 1px solid @light-beige;
     border-radius: 3px;
     overflow: hidden;
     @media (min-width: @width-breakpoint-tablet) {
-      flex-direction: row;
+      // flex-direction: row;
       height: 100px;
     }
     .bookDetails {
-      display: inline-flex;
+      display: flex;
+      flex-direction: row;
+      // display: inline-flex;
       gap: 10px;
       margin: 5px 10px 0 10px;
+      @media (min-width: @width-breakpoint-tablet) {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 20px;
+      }
     }
     .bookcover {
       overflow: hidden;
@@ -96,7 +102,13 @@
     a[href] {
       text-decoration: none;
     }
+    .itemText {
+      .display-flex();
+      flex-direction: column;
+    }
     .titleAndAuthor {
+      display: flex;
+      flex-direction: column;
       .resultTitle {
         overflow: auto;
         margin: 0 !important;
@@ -111,6 +123,9 @@
           font-weight: 700;
           font-family: @lucida_sans_serif-6;
           line-height: 1.2em;
+          @media(min-width: 425px) {
+            font-size: 1.0em;
+          }
           @media (min-width: @width-breakpoint-tablet) {
             font-size: 1.0em;
           }
@@ -119,6 +134,9 @@
       .bookauthor {
         font-size: small;
         line-height: 1.2em;
+        @media(min-width: 425px) {
+          font-size: 1.0em;
+        }
       }
     }
     .excerpts {
@@ -126,6 +144,10 @@
       width: 100%;
       padding: 5px;
       margin: 0;
+      @media (min-width: @width-breakpoint-tablet) {
+        width: auto;
+        margin-left: 120px;
+      }
       .fulltext-excerpt {
         padding: 5px;
         margin: 0 5px;
@@ -143,26 +165,3 @@
   }
 }
 
-
- @media only screen and (min-width: @width-breakpoint-tablet) {
-   .list-books {
-     .searchResultItem {
-       .bookcover {
-         width: 175px;
-         text-align: right;
-       }
-       .imageLg {
-         width: 175px;
-         text-align: center;
-       }
-     }
-   }
-   .list-results {
-     .searchResultItem {
-       .imageLg {
-         width: 175px;
-         text-align: right;
-       }
-     }
-   }
- }
