@@ -19,6 +19,7 @@ from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Edition
+from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import (
     get_language_name,
@@ -54,6 +55,22 @@ if hasattr(config, 'plugin_worksearch'):
     )
 
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
+
+
+@public
+def get_facet_map() -> tuple[tuple[str, str]]:
+    return (
+        ('has_fulltext', _('eBook?')),
+        ('language', _('Language')),
+        ('author_key', _('Author')),
+        ('subject_facet', _('Subjects')),
+        ('first_publish_year', _('First published')),
+        ('publisher_facet', _('Publisher')),
+        ('person_facet', _('People')),
+        ('place_facet', _('Places')),
+        ('time_facet', _('Times')),
+        ('public_scan_b', _('Classic eBooks')),
+    )
 
 
 @public

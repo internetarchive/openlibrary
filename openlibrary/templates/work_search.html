@@ -14,18 +14,7 @@ $code:
       <h1>$_("Search Books")</h1>
     </div>
 
-$ facet_map = (
-$    ('has_fulltext', _('eBook?')),
-$    ('language', _('Language')),
-$    ('author_key', _('Author')),
-$    ('subject_facet', _('Subjects')),
-$    ('first_publish_year', _('First published')),
-$    ('publisher_facet', _('Publisher')),
-$    ('person_facet', _('People')),
-$    ('place_facet', _('Places')),
-$    ('time_facet', _('Times')),
-$    ('public_scan_b', _('Classic eBooks')),
-$ )
+$ facet_map = get_facet_map()
 
 <div id="contentBody">
   $:macros.SearchNavigation()
@@ -164,7 +153,7 @@ $if search_response.error:
     <h3>$_("BARF! Search engine ERROR!")</h3>
     <pre>$search_response.error.decode('utf-8', 'ignore')</pre>
 $elif param and len(search_response.docs):
-    $:render_template('search/work_search_facets', facet_map, param, facet_counts=search_response.facet_counts)
+    $:render_template('search/work_search_facets', param, facet_counts=search_response.facet_counts)
 <!-- /facets -->
     </div>
 

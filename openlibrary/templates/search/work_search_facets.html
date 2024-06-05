@@ -1,4 +1,4 @@
-$def with (facet_map, param, facet_counts=None)
+$def with (param, facet_counts=None)
 
 $code:
     async_load = facet_counts == None
@@ -77,7 +77,7 @@ $def facet_entry(display, count, facet_url, hide_entry=False):
     <div class="smallest lightgreen sansserif" style="margin-bottom:20px;">
         $:_('Focus your results using these <a href="/search/howto">filters</a>')
     </div>
-    $for header, label in facet_map:
+    $for header, label in get_facet_map():
         $if header=='has_fulltext' and 'has_fulltext' in param:
             $continue
         $if header=='public_scan_b':
