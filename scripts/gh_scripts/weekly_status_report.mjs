@@ -245,7 +245,7 @@ async function prepareUntriagedIssues(leads) {
  * @returns {Promise<Array<string>>}
  */
 async function prepareReviewAssigneeIssues(leads) {
-    const output = ['*Issues needing attention (__Assignee may have abandoned or may need help__)*:']
+    const output = ['*Issues needing attention (_Assignee may have abandoned or may need help_)*:']
 
     const staleIssues = await octokit.paginate('GET /repos/{owner}/{repo}/issues', {
         owner: 'internetarchive',
@@ -275,7 +275,7 @@ async function prepareReviewAssigneeIssues(leads) {
     }
 
     if (noStaleIssuesFound) {
-        output.push('  __No assigned issues found that need attention from leads__')
+        output.push('  _No assigned issues found that need attention from leads_')
     }
     return output
 }
