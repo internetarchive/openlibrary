@@ -217,6 +217,14 @@ class OpenStaxProvider(AbstractBookProvider):
         return False
 
 
+class CitaPressProvider(AbstractBookProvider):
+    short_name = 'cita_press'
+    identifier_key = 'cita_press'
+
+    def is_own_ocaid(self, ocaid: str) -> bool:
+        return False
+
+
 PROVIDER_ORDER: list[AbstractBookProvider] = [
     # These providers act essentially as their own publishers, so link to the first when
     # we're on an edition page
@@ -224,6 +232,7 @@ PROVIDER_ORDER: list[AbstractBookProvider] = [
     ProjectGutenbergProvider(),
     StandardEbooksProvider(),
     OpenStaxProvider(),
+    CitaPressProvider(),
     # Then link to IA
     InternetArchiveProvider(),
 ]
