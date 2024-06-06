@@ -1,7 +1,6 @@
 from datetime import date, datetime
 from enum import IntEnum
 
-from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 from . import db
 
 
@@ -18,20 +17,6 @@ class BookshelfEvent(IntEnum):
 class BookshelvesEvents(db.CommonExtras):
     TABLENAME = 'bookshelves_events'
     NULL_EDITION_ID = -1
-
-    @classmethod
-    def summary(cls):
-        return {
-            'total_yearly_reading_goals': {
-                'total': BookshelvesEvents.total_yearly_reading_goals(),
-                'month': BookshelvesEvents.total_yearly_reading_goals(
-                    since=DATE_ONE_MONTH_AGO
-                ),
-                'week': BookshelvesEvents.total_yearly_reading_goals(
-                    since=DATE_ONE_WEEK_AGO
-                ),
-            },
-        }
 
     # Create methods:
     @classmethod
@@ -139,23 +124,6 @@ class BookshelvesEvents(db.CommonExtras):
         )
 
         return list(oldb.query(query, vars=data))
-
-    @classmethod
-    def total_yearly_reading_goals(cls, since: date | None = None) -> int:
-        """Returns a Storage object of <Storage {'count': int}> where 'count' specifies the
-        number reading goals updated. `since` may be used
-        to limit the result to those reading goals updated since a specific
-        date. Any python datetime.date type should work.
-        :param since: returns all reading goals after date
-        """
-        oldb = db.get_db()
-
-        query = "SELECT count(*) from yearly_reading_goals"
-        if since:
-            query += " WHERE updated >= $since"
-        results = tuple(oldb.query(query, vars={'since': since}))
-        print('total_yearly_reading_goals', results)
-        return results[0]
 
     # Update methods:
     @classmethod

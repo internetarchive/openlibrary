@@ -13,7 +13,7 @@ from ..core.observations import Observations
 from ..core.booknotes import Booknotes
 from ..core.follows import PubSub
 from ..core.bookshelves import Bookshelves
-from ..core.bookshelves_events import BookshelvesEvents
+from ..core.yearly_reading_goals import YearlyReadingGoals
 from ..core.ratings import Ratings
 from ..plugins.admin.code import get_counts
 from ..plugins.worksearch.code import get_solr_works
@@ -37,7 +37,7 @@ def reading_log_summary():
         delegate.fakeload()
 
     stats = Bookshelves.summary()
-    stats.update(BookshelvesEvents.summary())
+    stats.update(YearlyReadingGoals.summary())
     stats.update(Ratings.summary())
     stats.update(Observations.summary())
     stats.update(Booknotes.summary())

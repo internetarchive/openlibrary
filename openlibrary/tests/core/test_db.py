@@ -520,10 +520,12 @@ class TestYearlyReadingGoals:
         self.db.query('delete from yearly_reading_goals')
 
     def test_total_yearly_reading_goals(self):
-        assert BookshelvesEvents.total_yearly_reading_goals()['count(*)'] == 3
+        assert YearlyReadingGoals.total_yearly_reading_goals()['count(*)'] == 3
         # Combination of issues
         assert (
-            BookshelvesEvents.total_yearly_reading_goals(since="2022-12-25")['count(*)']
+            YearlyReadingGoals.total_yearly_reading_goals(since="2022-12-25")[
+                'count(*)'
+            ]
             == 1
         )
 
