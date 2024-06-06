@@ -381,7 +381,11 @@ class List(Thing):
             'title': title,
             'count': self.seed_count,
             'covers': n_covers,
-            'last_mod': last_modified.isoformat(sep=' ', timespec="minutes"),
+            'last_mod': (
+                last_modified.isoformat(sep=' ', timespec="minutes")
+                if self.seed_count != 0
+                else ""
+            ),
         }
 
 
