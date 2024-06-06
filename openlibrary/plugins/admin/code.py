@@ -32,7 +32,6 @@ from openlibrary import accounts
 from openlibrary.accounts.model import Account, clear_cookies
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import admin as admin_stats, helpers as h, imports, cache
-from openlibrary.core.waitinglist import Stats as WLStats
 from openlibrary.core.sponsorships import summary, sync_completed_sponsored_books
 from openlibrary.core.models import Work
 from openlibrary.plugins.upstream import forms, spamcheck
@@ -787,12 +786,6 @@ class loans_admin:
         raise web.seeother(web.ctx.path)  # Redirect to avoid form re-post on re-load
 
 
-class waitinglists_admin:
-    def GET(self):
-        stats = WLStats()
-        return render_template("admin/waitinglists", stats)
-
-
 class inspect:
     def GET(self, section):
         if section == "/store":
@@ -1008,7 +1001,6 @@ def setup():
         '/admin/attach_debugger', attach_debugger, label='Attach Debugger'
     )
     register_admin_page('/admin/loans', loans_admin, label='')
-    register_admin_page('/admin/waitinglists', waitinglists_admin, label='')
     register_admin_page('/admin/inspect(?:(/.+))?', inspect, label="")
     register_admin_page('/admin/graphs', _graphs, label="")
     register_admin_page('/admin/logs', show_log, label="")
