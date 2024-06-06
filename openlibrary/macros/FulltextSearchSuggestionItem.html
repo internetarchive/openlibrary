@@ -42,17 +42,16 @@ $code:
 <div class="fulltextSuggestionItem" itemscope itemtype="https://schema.org/Book" $:attrs>
   $ blur_cover = "bookcover--blur" if blur else ""
   <div class="fsi__main">
-    <div class="bookDetails">
-      <span class="bookcover $blur_cover">
-        $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
-        <a href="$work_edition_url">
-          <img class="suggestion-bookcover-img"
-                itemprop="image"
-                src="$cover"
-                alt="$_('Cover of: %(title)s', title=full_title)"
-                title="$_('Cover of: %(title)s', title=full_title)" />
-        </a>
-      </span>
+    <span class="bookcover $blur_cover">
+      $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
+      <a href="$work_edition_url">
+        <img class="suggestion-bookcover-img"
+              itemprop="image"
+              src="$cover"
+              alt="$_('Cover of: %(title)s', title=full_title)"
+              title="$_('Cover of: %(title)s', title=full_title)" />
+      </a>
+    </span>
       <div class="titleAndAuthor">
         <div class="resultTitle">
           <h3 itemprop="name" class="booktitle">
@@ -83,7 +82,6 @@ $code:
               ]
             $:macros.BookByline(author_data, limit=max_rendered_authors, overflow_url=work_edition_url, attrs='class="results"')
         </p>
-      </div>
     </div>
     $if extra:
     <div class="excerpts">
