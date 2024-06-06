@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime
 from enum import IntEnum
 
 from . import db
