@@ -2,8 +2,7 @@
 @import (less) "components/read-panel.less";
 @import (less) "components/book.less";
 
-@my-lists-item-border: black;
-.my-lists.showcase {
+.list-showcase {
   display: flex;
   overflow-x: clip;
   mask-image: linear-gradient(
@@ -14,7 +13,9 @@
   );
 }
 
-.my-lists-item {
+.list-card {
+  @name-tag-layer: 4;
+
   background-color: @beige;
   border: 1px solid @black;
   border-radius: 4px;
@@ -25,11 +26,8 @@
   padding-top: 20px;
   padding-bottom: 40px;
   margin: 20px 15px;
-}
 
-.my-list {
-  @name-tag-layer: 4;
-  &-name-tag {
+  &__name-tag {
     border: 1px solid @black;
     border-radius: 2px 2px 4px 4px;
     box-shadow: 2px 2px 5px @gray-a19b9e;
@@ -47,47 +45,44 @@
     }
   }
 
-  &-title {
+  &__title {
     margin: auto;
     color: @black;
     font-weight: bold;
   }
 
-  &-num-books {
+  &__num-books {
     margin: auto;
     padding: 0;
     color: @grey-555;
     font-size: .7em;
   }
 
-  &-cover {
+  &__cover {
     width: 33%;
     margin-left: -5px;
     box-shadow: 2.5px 2.5px 4px @gray-a19b9e;
   }
 
-  &-covers {
+  &__covers {
     display: flex;
     justify-content: center;
     width: 80%;
     margin: auto;
+
+    @top-cover: 3;
+    @mid-cover: 2;
+    @bottom-cover: 1;
+
+    img:nth-child(1) {
+      z-index: @top-cover;
+      margin-left: -5px;
+    }
+    img:nth-child(2) {
+      z-index: @mid-cover;
+    }
+    img:nth-child(3) {
+      z-index: @bottom-cover;
+    }
   }
-}
-
-@top-cover: 3;
-@mid-cover: 2;
-@bottom-cover: 1;
-.cover-0 {
-  z-index: @top-cover;
-  margin-left: -5px;
-}
-
-.cover-1 {
-  z-index: @mid-cover;
-
-}
-
-.cover-2 {
-  z-index: @bottom-cover;
-
 }
