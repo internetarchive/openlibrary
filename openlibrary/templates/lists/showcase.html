@@ -1,9 +1,8 @@
-$def with (lists = [], username = "")
+$def with (lists, username)
 
 
 $ default_image_url = "/images/icons/avatar_book-sm.png"
 $ total_lists = lists[0:min(len(lists), 5)]
-$ all_lists_url = "/people/%s/lists" % username
 
 $def list_card(list):
     $ cached_info = list.get_patron_showcase()
@@ -14,10 +13,9 @@ $def list_card(list):
     <a class="list-card" href="$list_url">
         <div class="list-card__name-tag">
             <p class="list-card__title">$title</p>
-            $if count == 1:
-                <p class="list-card__num-books"> $count book</p>
-            $else:
-                <p class="list-card__num-books"> $count books</p>
+            <p class="list-card__num-books">
+                $ungettext("%(count)d book", "%(count)d books", count, count=count)
+            </p>
         </div>
         <div class="list-card__covers">
             $for img_url in cover_urls:
@@ -29,7 +27,7 @@ $def list_card(list):
 <div class="carousel-section">
     <div class="carousel-section-header">
         <h2 class="home-h2">
-            <a href="$all_lists_url"> My Lists ($len(lists))</a>
+            <a href="/people/$username/lists">$_('My Lists (%(count)d)', count=len(lists))</a>
         </h2>
     </div>
     <div class="list-showcase">
@@ -37,6 +35,6 @@ $def list_card(list):
             $for list in total_lists:
                 $:list_card(list)
         $else:
-            <p>You have no lists.</p>
+            <p>$_('You have no lists.')</p>
     </div>
 </div>
