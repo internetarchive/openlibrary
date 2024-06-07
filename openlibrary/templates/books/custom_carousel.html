@@ -2,11 +2,10 @@ $def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=
 
 $if layout == 'carousel':
   $ ctx.setdefault("links", [])
-
-$# Apparently fonts always need crossorigin for some reason
-$ slick_font = '<link rel="preload" href="/static/css/fonts/slick.woff" as="font" type="font/woff" crossorigin>'
-$if slick_font not in ctx.links:
-  $ ctx.links.append(slick_font)
+  $# Apparently fonts always need crossorigin for some reason
+  $ slick_font = '<link rel="preload" href="/static/css/fonts/slick.woff" as="font" type="font/woff" crossorigin>'
+  $if slick_font not in ctx.links:
+    $ ctx.links.append(slick_font)
 
 $def carousel_i18n_input():
   $ show_carousel_i18n_strings=  {
@@ -61,10 +60,10 @@ $def render_carousel_cover(book, lazy, layout):
       <a href="$(url)">
         $if cover_url:
           <img class="bookcover"
-            $if lazy:
-              loading="lazy"
             title="$('%s%s'%(title,byline))"
             alt="$('%s%s'%(title,byline))"
+          $if lazy:
+            loading="lazy"
           $if lazy and layout == 'carousel':
             data-lazy="$(cover_url)"
             src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
@@ -84,7 +83,7 @@ $def render_carousel_cover(book, lazy, layout):
   </div>
 
 $if test or (books and len(books) >= min_books):
-    <div class="carousel-section">
+    <div class="carousel-section" style="content-visibility: auto;">
       $if title and url:
         <div class="carousel-section-header">
           <h2 class="home-h2"><a name="$key" href="$url">$title</a></h2>
