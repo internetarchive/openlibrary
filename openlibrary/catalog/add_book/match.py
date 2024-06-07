@@ -438,13 +438,15 @@ def compare_publisher(e1: dict, e2: dict):
                     return ('publisher', 'occur within the other', 100)
                 elif short_part_publisher_match(e1_norm, e2_norm):
                     return ('publisher', 'match', 100)
-        return ('publisher', 'mismatch', -25)
+        return ('publisher', 'mismatch', -51)
 
     if 'publishers' not in e1 or 'publishers' not in e2:
         return ('publisher', 'either missing', 0)
 
 
-def threshold_match(rec1: dict, rec2: dict, threshold: int, debug: bool = False):
+def threshold_match(
+    rec1: dict, rec2: dict, threshold: int, debug: bool = False
+) -> bool:
     """
     Determines (according to a threshold) whether two edition representations are
     sufficiently the same. Used when importing new books.
@@ -460,12 +462,12 @@ def threshold_match(rec1: dict, rec2: dict, threshold: int, debug: bool = False)
     level1 = level1_match(e1, e2)
     total = sum(i[2] for i in level1)
     if debug:
-        print(f"E1: {e1}\nE2: {e2}")
-        print(f"TOTAL 1 = {total} : {level1}")
+        print(f"E1: {e1}\nE2: {e2}", flush=True)
+        print(f"TOTAL 1 = {total} : {level1}", flush=True)
     if total >= threshold:
         return True
     level2 = level2_match(e1, e2)
     total = sum(i[2] for i in level2)
     if debug:
-        print(f"TOTAL 2 = {total} : {level2}")
+        print(f"TOTAL 2 = {total} : {level2}", flush=True)
     return total >= threshold
