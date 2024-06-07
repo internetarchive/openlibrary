@@ -6,16 +6,18 @@
 .list-showcase {
   display: flex;
   overflow-x: auto;
+  scrollbar-width: thin;
   padding: 8px 0;
-  mask-image: linear-gradient(
-    to right,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 1) calc(100% - 100px),
-    rgba(0, 0, 0, 0) 100%
-  );
 
   .list-card {
     margin-right: 24px;
+    flex-shrink: 0;
+  }
+
+  &__see-all {
+    margin-right: 24px;
+    align-self: center;
+    width: auto;
   }
 }
 

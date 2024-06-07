@@ -30,9 +30,15 @@ $def list_card(list):
     </div>
     <div class="list-showcase">
         $if lists:
-            $ displayed_lists = lists[0:min(len(lists), 5)]
-            $for list in displayed_lists:
+            $ displayed_lists = 5
+            $for list in lists[:displayed_lists]
                 $:list_card(list)
+
+            $if len(lists) > displayed_lists:
+                <a
+                    class="list-showcase__see-all cta-btn cta-btn--vanilla"
+                    href="/people/$username/lists"
+                >$_("See all")</a>
         $else:
             <p>$_('You have no lists.')</p>
     </div>
