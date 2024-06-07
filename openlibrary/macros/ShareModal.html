@@ -63,6 +63,18 @@ $def embed_iframe(page_url):
               <div class="share-source">$_("Copy URL")</div>
             </li>
 
+            <li>
+              <a href="/qrcode?path=$(ctx.path)" target="_blank" class="qr-code-btn" title="$_('Open QR code')" data-ol-link-track="Share|QRCode">
+                  <img
+                      alt="$_('QR code icon')"
+                      class="share-link"
+                      src="$static_url('images/qr_code.png')"
+                      loading="lazy"
+                  >
+              </a>
+              <div class="share-source">$_("QR Code")</div>
+            </li>
+
           </ul>
         </div>
       </div>

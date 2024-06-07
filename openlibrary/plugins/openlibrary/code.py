@@ -47,7 +47,6 @@ delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
 delegate.app.add_processor(processors.CORSProcessor(cors_prefixes={'/api/'}))
 delegate.app.add_processor(processors.PreferenceProcessor())
-delegate.app.add_processor(processors.CacheablePathsProcessor())
 
 try:
     from infogami.plugins.api import code as api

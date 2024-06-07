@@ -331,6 +331,7 @@ msgstr ""
 
 #: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
 #: ObservationsModal.html ShareModal.html
+#: book_providers/cita_press_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
@@ -650,7 +651,8 @@ msgstr ""
 msgid "Currently Reading"
 msgstr ""
 
-#: LoanReadForm.html ReadButton.html book_providers/gutenberg_read_button.html
+#: LoanReadForm.html ReadButton.html book_providers/cita_press_read_button.html
+#: book_providers/gutenberg_read_button.html
 #: book_providers/openstax_read_button.html
 #: book_providers/standard_ebooks_read_button.html books/custom_carousel.html
 #: books/edit/edition.html books/show.html trending.html type/list/embed.html
@@ -837,47 +839,6 @@ msgstr[1] ""
 
 #: work_search.html
 msgid "BARF! Search engine ERROR!"
-msgstr ""
-
-#: work_search.html
-msgid "Zoom In"
-msgstr ""
-
-#: work_search.html
-msgid "Focus your results using these <a href=\"/search/howto\">filters</a>"
-msgstr ""
-
-#: work_search.html
-msgid "Merge duplicate authors from this search"
-msgstr ""
-
-#: type/work/editions.html work_search.html
-msgid "Merge duplicates"
-msgstr ""
-
-#: work_search.html
-msgid "yes"
-msgstr ""
-
-#: work_search.html
-msgid "no"
-msgstr ""
-
-#: work_search.html
-msgid "Filter results for ebook availability"
-msgstr ""
-
-#: work_search.html
-#, python-format
-msgid "Filter results for %(facet)s"
-msgstr ""
-
-#: work_search.html
-msgid "more"
-msgstr ""
-
-#: work_search.html
-msgid "less"
 msgstr ""
 
 #: about/index.html
@@ -1888,6 +1849,10 @@ msgid "Users Reviewing"
 msgstr ""
 
 #: admin/index.html
+msgid "Patrons Following"
+msgstr ""
+
+#: admin/index.html
 msgid "Notes Created"
 msgstr ""
 
@@ -1927,7 +1892,8 @@ msgstr ""
 msgid "BookReader"
 msgstr ""
 
-#: admin/loans_table.html book_providers/ia_download_options.html
+#: admin/loans_table.html book_providers/cita_press_download_options.html
+#: book_providers/ia_download_options.html
 #: book_providers/openstax_download_options.html books/edit/edition.html
 msgid "PDF"
 msgstr ""
@@ -2225,12 +2191,42 @@ msgstr ""
 msgid "Date"
 msgstr ""
 
+#: book_providers/cita_press_download_options.html
 #: book_providers/gutenberg_download_options.html
 #: book_providers/ia_download_options.html
 #: book_providers/librivox_download_options.html
 #: book_providers/openstax_download_options.html
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download Options"
+msgstr ""
+
+#: book_providers/cita_press_download_options.html
+msgid "Download PDF from Cita Press"
+msgstr ""
+
+#: book_providers/cita_press_download_options.html
+msgid "More at Cita Press"
+msgstr ""
+
+#: book_providers/cita_press_read_button.html
+msgid "Read eBook from Cita Press"
+msgstr ""
+
+#: book_providers/cita_press_read_button.html
+msgid ""
+"This book is available from <a href=\"https://citapress.org/\">Cita "
+"Press</a>. Cita Press is a trusted book provider of works written by "
+"women, pairing contemporary authors and designers with open access texts "
+"to make carefully designed books available for free and open source."
+msgstr ""
+
+#: book_providers/cita_press_read_button.html
+#: book_providers/gutenberg_read_button.html
+#: book_providers/librivox_read_button.html
+#: book_providers/openstax_read_button.html
+#: book_providers/standard_ebooks_read_button.html
+#: check_ins/reading_goal_progress.html
+msgid "Learn more"
 msgstr ""
 
 #: book_providers/gutenberg_download_options.html
@@ -2278,14 +2274,6 @@ msgid ""
 "Gutenberg is a trusted book provider of classic ebooks, supporting "
 "thousands of volunteers in the creation and distribution of over 60,000 "
 "free eBooks."
-msgstr ""
-
-#: book_providers/gutenberg_read_button.html
-#: book_providers/librivox_read_button.html
-#: book_providers/openstax_read_button.html
-#: book_providers/standard_ebooks_read_button.html
-#: check_ins/reading_goal_progress.html
-msgid "Learn more"
 msgstr ""
 
 #: book_providers/ia_download_options.html
@@ -2600,7 +2588,7 @@ msgstr ""
 msgid "Not in Library"
 msgstr ""
 
-#: books/custom_carousel.html
+#: books/custom_carousel.html search/work_search_facets.html
 msgid "Loading..."
 msgstr ""
 
@@ -5096,6 +5084,47 @@ msgstr ""
 msgid "work"
 msgstr ""
 
+#: search/work_search_facets.html
+msgid "Merge duplicate authors from this search"
+msgstr ""
+
+#: search/work_search_facets.html type/work/editions.html
+msgid "Merge duplicates"
+msgstr ""
+
+#: search/work_search_facets.html
+msgid "more"
+msgstr ""
+
+#: search/work_search_facets.html
+msgid "less"
+msgstr ""
+
+#: search/work_search_facets.html
+#, python-format
+msgid "Filter results for %(facet)s"
+msgstr ""
+
+#: search/work_search_facets.html
+msgid "Filter results for ebook availability"
+msgstr ""
+
+#: search/work_search_facets.html
+msgid "yes"
+msgstr ""
+
+#: search/work_search_facets.html
+msgid "no"
+msgstr ""
+
+#: search/work_search_facets.html
+msgid "Zoom In"
+msgstr ""
+
+#: search/work_search_facets.html
+msgid "Focus your results using these <a href=\"/search/howto\">filters</a>"
+msgstr ""
+
 #: site/around_the_library.html
 msgid "View all recent changes"
 msgstr ""
@@ -5256,10 +5285,6 @@ msgstr ""
 msgid ""
 "Please use natural order. For example: <strong>Leo Tolstoy</strong> not "
 "<strong>Tolstoy, Leo</strong>."
-msgstr ""
-
-#: type/author/edit.html
-msgid "About"
 msgstr ""
 
 #: type/author/edit.html
@@ -6260,6 +6285,18 @@ msgstr ""
 
 #: ShareModal.html
 msgid "Copy URL"
+msgstr ""
+
+#: ShareModal.html
+msgid "Open QR code"
+msgstr ""
+
+#: ShareModal.html
+msgid "QR code icon"
+msgstr ""
+
+#: ShareModal.html
+msgid "QR Code"
 msgstr ""
 
 #: SponsorCarousel.html

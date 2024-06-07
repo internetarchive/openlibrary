@@ -279,14 +279,41 @@ lang_map = {
     'end': 'eng',
     'enk': 'eng',
     'ent': 'eng',
-    'cro': 'chu',
     'jap': 'jpn',
     'fra': 'fre',
-    'gwr': 'ger',
-    'sze': 'slo',
-    'fr ': 'fre',
     'fle': 'dut',  # Flemish -> Dutch
+    # 2 character to 3 character codes
+    'fr ': 'fre',
     'it ': 'ita',
+    # LOC MARC Deprecated code updates
+    # Only covers deprecated codes where there
+    # is a direct 1-to-1 mapping to a single new code.
+    'cam': 'khm',  # Khmer
+    'esp': 'epo',  # Esperanto
+    'eth': 'gez',  # Ethiopic
+    'far': 'fao',  # Faroese
+    'fri': 'fry',  # Frisian
+    'gae': 'gla',  # Scottish Gaelic
+    'gag': 'glg',  # Galician
+    'gal': 'orm',  # Oromo
+    'gua': 'grn',  # Guarani
+    'int': 'ina',  # Interlingua (International Auxiliary Language Association)
+    'iri': 'gle',  # Irish
+    'lan': 'oci',  # Occitan (post 1500)
+    'lap': 'smi',  # Sami
+    'mla': 'mlg',  # Malagasy
+    'mol': 'rum',  # Romanian
+    'sao': 'smo',  # Samoan
+    'scc': 'srp',  # Serbian
+    'scr': 'hrv',  # Croatian
+    'sho': 'sna',  # Shona
+    'snh': 'sin',  # Sinhalese
+    'sso': 'sot',  # Sotho
+    'swz': 'ssw',  # Swazi
+    'tag': 'tgl',  # Tagalog
+    'taj': 'tgk',  # Tajik
+    'tar': 'tat',  # Tatar
+    'tsw': 'tsn',  # Tswana
 }
 
 

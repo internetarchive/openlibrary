@@ -1,3 +1,4 @@
+import 'jquery-ui/ui/widgets/dialog';
 import { declineRequest } from './merge-request-table/MergeRequestService';
 
 export function initAuthorMergePage() {

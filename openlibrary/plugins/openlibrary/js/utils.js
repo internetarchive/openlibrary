@@ -6,6 +6,7 @@ See: https://github.com/internetarchive/openlibrary/pull/9180#issuecomment-21079
 
 // closes active popup
 export function closePopup() {
+    // Note we don't import colorbox here, since it's on the parent
     parent.jQuery.fn.colorbox.close();
 }
 

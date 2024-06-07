@@ -209,7 +209,7 @@ def generate_idump(day, **db_parameters):
 
 
 def split_dump(dump_file=None, format="oldump_%s.txt"):
-    """Split dump into authors, editions and works."""
+    """Split dump into authors, editions, works, redirects, and other."""
     log(f"split_dump({dump_file}, format={format})")
     start_time = datetime.now()
     types = (
@@ -217,9 +217,12 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
         "/type/author",
         "/type/work",
         "/type/redirect",
+        "/type/delete",
         "/type/list",
     )
     files = {}
+    files['other'] = xopen(format % 'other', 'wt')
+
     for t in types:
         tname = t.split("/")[-1] + "s"
         files[t] = xopen(format % tname, "wt")
@@ -231,6 +234,8 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
         type, rest = line.split("\t", 1)
         if type in files:
             files[type].write(line)
+        else:
+            files['other'].write(line)
 
     for f in files.values():
         f.close()
