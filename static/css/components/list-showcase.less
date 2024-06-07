@@ -98,4 +98,13 @@
       transform: translate(-2 * @overlap, @padding);
     }
   }
+
+  // stylelint-disable-next-line no-descending-specificity
+  img {
+    transition: scale .2s;
+  }
+
+  &:hover img {
+    scale: 1.05;
+  }
 }
