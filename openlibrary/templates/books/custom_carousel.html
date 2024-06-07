@@ -59,11 +59,9 @@ $def render_carousel_cover(book, lazy, layout):
     <div class="book-cover">
       <a href="$(url)">
         $if cover_url:
-          <img class="bookcover"
+          <img class="bookcover" loading="lazy"
             title="$('%s%s'%(title,byline))"
             alt="$('%s%s'%(title,byline))"
-          $if lazy:
-            loading="lazy"
           $if lazy and layout == 'carousel':
             data-lazy="$(cover_url)"
             src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="/>
@@ -83,7 +81,7 @@ $def render_carousel_cover(book, lazy, layout):
   </div>
 
 $if test or (books and len(books) >= min_books):
-    <div class="carousel-section" style="content-visibility: auto;">
+    <div class="carousel-section">
       $if title and url:
         <div class="carousel-section-header">
           <h2 class="home-h2"><a name="$key" href="$url">$title</a></h2>
