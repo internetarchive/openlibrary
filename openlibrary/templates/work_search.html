@@ -52,18 +52,13 @@ $def with (q_param, search_response, get_doc, param, page, rows)
         $# Temporarily (2020-03-26) disable automatically showing full-text
         $# results because of performance issues due to increased load. See
         $# this commit to revert.
-        <div id="fulltext-search-suggestion" data-query="$query"></div>
-        <!-- <center>
+        <center>
           <div class="red">$_("No results found.")</div>
           <hr>
-          <div>
-            <a href="/search/inside?$urlencode(dict(q=query))">$_('Search for books containing the phrase "%s"?' % query)</a>
-          </div>
-          <hr>
-          <div>
-                <a href="/books/add">$_("Add a new book to Open Library?")</a>
-          </div>
-        </center> -->
+        </center>
+        <div id="fulltext-search-suggestion" data-query="$query">
+            $:macros.LoadingIndicator(_("Loading Search Inside Suggestions"), "fulltext-loading")
+        </div>
 
     $elif param and not search_response.error and len(search_response.docs):
         <div class="search-results-stats">

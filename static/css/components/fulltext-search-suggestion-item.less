@@ -1,0 +1,108 @@
+.fsi {
+  &__main {
+    .display-flex();
+    flex-direction: row;
+    background-color: white;
+    padding: 5px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid @light-beige;
+    border-radius: 3px;
+    overflow: hidden;
+    @media (min-width: @width-breakpoint-tablet) {
+      flex-direction: row;
+    }
+  }
+
+  &__book-cover {
+    grid-area: bookcover;
+    overflow: hidden;
+    height: 100%;
+    width: auto;
+    min-width: 90px;
+    border-radius: 4px;
+    align-self: center;
+    justify-self: center;
+    margin-top: 5px;
+    @media (min-width: @width-breakpoint-tablet) {
+      height: 130px;
+      margin-bottom: 5px;
+    }
+  }
+
+  &__book-cover-img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  &__book-cover-img-blur {
+    filter: blur(4px);
+  }
+
+  &__book-details {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 5px 10px 0 10px;
+    @media (min-width: @width-breakpoint-tablet) {
+      align-items: flex-start;
+    }
+  }
+
+  &__title-author {
+    display: flex;
+    flex-direction: column;
+    padding: 5px 3px 0 10px;
+    width: 50%;
+    // color: #003266;
+    // text-decoration: underline;
+    @media (min-width: 375px) {
+      width: 70%
+    }
+    @media (min-width: 425px) {
+      width: 80%
+    }
+
+  }
+
+  &__book-title,
+  &__book-author {
+    font-size: large;
+    width: 80%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #003266;
+    color: @dark-grey;
+    font-family: @lucida_sans_serif-6;
+    @media (min-width: @width-breakpoint-desktop) {
+      text-decoration: none;
+      color: #000;
+    }
+
+  }
+  &__book-title {
+    margin: 0 !important;
+    display: block;
+    margin: 0;
+    padding: 0;
+    font-weight: 700;
+    line-height: 1.2em;
+  }
+
+  &__book-author {
+    line-height: 1.2em;
+    margin: 3px 0 0;
+  }
+
+  // &__excerpts {
+  //   grid-area: excerpts;
+  //   display: inline;
+  //   width: 100%;
+  //   padding: 5px;
+  //   margin: 0;
+  //   @media (min-width: @width-breakpoint-tablet) {
+  //     width: auto;
+  //   }
+  // }
+}
