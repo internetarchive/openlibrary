@@ -8,15 +8,15 @@ $ page_nums = doc.get('fields', {}).get('page_num', [])
 $ page = ', '.join([str(num) for num in page_nums])
 
 $if snippet:
-  <div class="serp-extra">
+  <div class="fsi-snippet">
       $if snippet:
-        <div class="fulltext-excerpt">
+        <div class="fulltext-snippet__main">
           <a href="$ia_base_url/details/$ia">
             &hellip;$:(snippet.replace("<", "&laquo;").replace(">", "&raquo;").replace("{{{", "<mark class='highlight'><strong>").replace("}}}", "</strong></mark>"))&hellip;
           </a>
           $if page:
           <a href="$ia_base_url/details/$ia">
-            <div class="page-nums">Page: $page</div>
+            <div class="fsi-snippet__page-num">Page: $page</div>
           </a>
         </div>
   </div>

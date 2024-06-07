@@ -8,19 +8,19 @@ $if results and results.get('hits'):
   $ num_found = commify(results['hits'].get('total', 0))
   $ ia_base_url = "https://archive.org"
   <div id="fulltextSuggestions" class="fulltext-suggestions">
-    <div class="header">
-      <a href="/search/inside?$urlencode(dict(q=query))" title="$_('Search Inside Icon')">
+    <div class="fulltext-suggestions__header header">
+      <a class="fulltext-suggestions__link" href="/search/inside?$urlencode(dict(q=query))" title="$_('Search Inside Icon')">
           <img src="/static/images/icons/icon_search-inside.svg"
-            width="50" height="47"
+            width="30" height="30"
             alt="$_('search inside icon')"/>
       </a>
-      <h3 class="title"><a data-ol-link-track="SearchNav|SearchFulltext"
-        href="/search/inside?$urlencode(dict(q=query))">$_('Browse %(results_count)s Search Inside Matches', results_count=num_found)</a>
+      <h3 class="fulltext-suggestions__title title"><a data-ol-link-track="SearchNav|SearchFulltext"
+        href="/search/inside?$urlencode(dict(q=query))">$_('%(results_count)s Search Inside Matches', results_count=num_found)</a>
       </h3>
     </div>
-    <div className="fsi__container">
+    <!-- <div className="fulltext-suggestions__fsi-container fsi__container"> -->
       $for doc in hits:
         $if doc.get('edition'):
-          $:macros.FulltextSearchSuggestionItem(doc['edition'], extra=render_snippet(query, doc))
-    </div>
+          $:macros.FulltextSearchSuggestionItem(doc['edition'], snippet=render_snippet(query, doc))
+    <!-- </div> -->
   </div>
