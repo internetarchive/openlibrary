@@ -65,9 +65,10 @@ export function initCoversAddManage() {
         const i18nStrings = JSON.parse(document.querySelector('#errors').dataset.i18n);
         var file = val('#coverFile');
         var url = val('#imageUrl');
+        var coverIA = val('#coverIA');
         var coverid = val('#coverid');
 
-        if (!file && !url && !coverid) {
+        if (!file && !url && !coverIA && !coverid) {
             return error(i18nStrings['empty_cover_inputs'], event);
         }
 

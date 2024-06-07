@@ -13,7 +13,7 @@ $if doc.type.key == "/type/author":
     $ action = doc.url('/add-photo')
     $ guideline = _("Image Guidelines")
 $else:
-    $ intro = _("There are two ways to put a cover image on Open Library")
+    $ intro = _("There are a few ways to put a cover image on Open Library")
     $ action = doc.url('/add-cover')
     $ guideline = _("Cover Guidelines")
 
@@ -55,7 +55,7 @@ $if status:
 
             <div class="formElement">
                 <div class="label">
-                    <label id="imageBrowse" for="coverFile">$_("Choose a JPG, GIF or PNG on your computer,")</label>
+                    <label id="imageBrowse" for="coverFile">$_("Choose a JPG, GIF or PNG on your computer")</label>
                 </div>
                 <div class="input">
                     <input type="file" name="file" id="coverFile" value="" accept=".jpg, .jpeg, .gif, .png"/>
@@ -64,12 +64,26 @@ $if status:
 
             <div class="formElement">
                 <div class="label">
-                    <label id="imageWeb" for="imageUrl">$_("Or, paste in the image URL if it's on the web.")</label>
+                    <label id="imageWeb" for="imageUrl">$_("Or, paste in the image URL if it's on the web")</label>
                 </div>
                 <div class="input">
                     <input type="url" name="url" id="imageUrl" value="$data.get('url', '')" placeholder="https://..." />
                 </div>
             </div>
+
+            $if doc.type.key == "/type/edition" and doc.ocaid:
+                $ img_url = "https://archive.org/services/img/%s/full/pct:600/0/default.jpg" % doc.ocaid
+                <div class="formElement" id="dc-ia-cover">
+                    <div class="label">
+                        <label>$_("Or, use the the cover from Internet Archive")</label>
+                    </div>
+                    <a href="$img_url">
+                        <img src="$img_url" style="height: 200px" />
+                    </a>
+                    <div class="input" style="padding-top: 0">
+                    <button type="submit" id="coverIA" name="url" value="$img_url">$_("Use this image")</button>
+                    </div>
+                </div>
 
             <div class="formElement" style="margin: $('15px 0px 0px 15px;' if doc.type.key == '/type/work' else '0px;')">
                 <button type="submit" name="upload" id="imageUpload" value="$_('Submit')" class="largest" data-loading-text='$_("Uploading...")'>

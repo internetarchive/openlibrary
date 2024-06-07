@@ -3500,7 +3500,7 @@ msgid "Image Guidelines"
 msgstr ""
 
 #: covers/add.html
-msgid "There are two ways to put a cover image on Open Library"
+msgid "There are a few ways to put a cover image on Open Library"
 msgstr ""
 
 #: covers/add.html
@@ -3520,11 +3520,19 @@ msgid "<strong>Pick one</strong> from the existing covers,"
 msgstr ""
 
 #: covers/add.html
-msgid "Choose a JPG, GIF or PNG on your computer,"
+msgid "Choose a JPG, GIF or PNG on your computer"
 msgstr ""
 
 #: covers/add.html
-msgid "Or, paste in the image URL if it's on the web."
+msgid "Or, paste in the image URL if it's on the web"
+msgstr ""
+
+#: covers/add.html
+msgid "Or, use the the cover from Internet Archive"
+msgstr ""
+
+#: covers/add.html
+msgid "Use this image"
 msgstr ""
 
 #: covers/add.html
