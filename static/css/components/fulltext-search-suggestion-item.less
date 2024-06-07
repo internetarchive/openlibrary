@@ -1,0 +1,112 @@
+.fsi {
+  .display-flex();
+  flex-direction: column;
+  padding: 5px;
+
+  &__main {
+    // .display-flex();
+    // flex-direction: column;
+    display: grid;
+    grid-template-areas:
+    "bookcover titleAndAuthor"
+    "excerpts excerpts";
+    grid-template-columns: 1fr 2fr;
+    grid-template-rows: auto 1fr;
+    background-color: white;
+    padding: 3px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid @light-beige;
+    border-radius: 3px;
+    overflow: hidden;
+    @media (min-width: @width-breakpoint-tablet) {
+      // flex-direction: row;
+      // height: 100px;
+      grid-template-areas:
+      "bookcover titleAndAuthor"
+      "bookcover excerpts";
+      grid-template-columns: 1fr 8fr;
+      grid-template-rows: auto 1fr;
+    }
+  }
+
+  &__bookcover {
+    grid-area: bookcover;
+    overflow: hidden;
+    height: 80px;
+    width: auto;
+    min-width: 90px;
+    border-radius: 4px;
+    align-self: center;
+    justify-self: center;
+    margin-top: 5px;
+    @media (min-width: @width-breakpoint-tablet) {
+      height: 100px;
+      margin-bottom: 5px;
+    }
+  }
+
+  &__bookcover-img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+  }
+
+  &__bookcover-img-blur {
+    filter: blur(4px);
+  }
+
+  &__title-author {
+    grid-area: titleAndAuthor;
+    display: flex;
+    flex-direction: column;
+    padding: 5px 3px 0 10px;
+  }
+
+  // &__booktitle-container {
+    // overflow: auto;
+    // margin: 0 !important;
+    // font-family: @lucida_sans_serif-1;
+    // color: @grey;
+  // }
+
+  &__booktitle {
+    overflow: auto;
+    margin: 0 !important;
+    font-family: @lucida_sans_serif-1;
+    color: @grey;
+    display: block;
+    margin: 0;
+    padding: 0;
+    color: @dark-grey;
+    // font-size: 1.0em;
+    font-weight: 700;
+    font-family: @lucida_sans_serif-6;
+    line-height: 1.2em;
+    @media(min-width: 425px) {
+      font-size: 1.0em;
+    }
+    @media (min-width: @width-breakpoint-tablet) {
+      font-size: 1.0em;
+    }
+  }
+
+  &__bookauthor {
+    font-size: small;
+    line-height: 1.2em;
+    margin: 10px 0;
+    @media(min-width: 425px) {
+      font-size: 1.0em;
+    }
+  }
+
+  // &__excerpts {
+  //   grid-area: excerpts;
+  //   display: inline;
+  //   width: 100%;
+  //   padding: 5px;
+  //   margin: 0;
+  //   @media (min-width: @width-breakpoint-tablet) {
+  //     width: auto;
+  //   }
+  // }
+}

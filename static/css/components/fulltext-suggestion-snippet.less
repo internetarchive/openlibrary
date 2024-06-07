@@ -1,0 +1,26 @@
+.fsi-snippet {
+  grid-area: excerpts;
+  display: inline;
+  width: 100%;
+  padding: 5px;
+  margin: 0;
+  @media (min-width: @width-breakpoint-tablet) {
+    width: auto;
+  }
+
+  &__main {
+    padding: 5px;
+    margin: 0 5px;
+    line-height: 1.6em;
+  }
+
+  &__page-num {
+    color: @dark-grey;
+    font-weight: 700;
+    display: block;
+    @media (min-width: @width-breakpoint-tablet) {
+      display: inline;
+    }
+  }
+}
+
