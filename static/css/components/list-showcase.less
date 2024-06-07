@@ -40,28 +40,21 @@
     padding-left: 4px;
     z-index: @name-tag-layer;
     overflow: hidden;
-    &>p{
-      text-wrap: nowrap;
-    }
   }
 
   &__title {
     margin: auto;
     color: @black;
     font-weight: bold;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   &__num-books {
-    margin: auto;
-    padding: 0;
     color: @grey-555;
     font-size: .7em;
-  }
-
-  &__cover {
-    width: 33%;
-    margin-left: -5px;
-    box-shadow: 2.5px 2.5px 4px @gray-a19b9e;
   }
 
   &__covers {

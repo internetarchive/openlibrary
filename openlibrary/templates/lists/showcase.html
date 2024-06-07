@@ -1,25 +1,19 @@
 $def with (lists, username)
 
 
-$ default_image_url = "/images/icons/avatar_book-sm.png"
-$ total_lists = lists[0:min(len(lists), 5)]
-
 $def list_card(list):
     $ cached_info = list.get_patron_showcase()
-    $ title = cached_info["title"] if len(cached_info["title"]) < 16 else cached_info["title"][0:16] + "..."
     $ count = cached_info["count"]
-    $ list_url = list.get_url()
-    $ cover_urls = [cover_url if cover_url else default_image_url for cover_url in cached_info["covers"]]
-    <a class="list-card" href="$list_url">
+    <a class="list-card" href="$list.get_url()">
         <div class="list-card__name-tag">
-            <p class="list-card__title">$title</p>
+            <p class="list-card__title">$cached_info["title"]</p>
             <p class="list-card__num-books">
                 $ungettext("%(count)d book", "%(count)d books", count, count=count)
             </p>
         </div>
         <div class="list-card__covers">
-            $for img_url in cover_urls:
-                <img src="$img_url" loading="lazy">
+            $for img_url in cached_info["covers"]:
+                <img src="$(img_url or '/images/icons/avatar_book-sm.png')" loading="lazy">
         </div>
     </a>
 
@@ -31,8 +25,9 @@ $def list_card(list):
         </h2>
     </div>
     <div class="list-showcase">
-        $if total_lists:
-            $for list in total_lists:
+        $if lists:
+            $ displayed_lists = lists[0:min(len(lists), 5)]
+            $for list in displayed_lists:
                 $:list_card(list)
         $else:
             <p>$_('You have no lists.')</p>
