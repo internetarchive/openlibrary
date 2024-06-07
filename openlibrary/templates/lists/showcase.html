@@ -5,15 +5,19 @@ $def list_card(list):
     $ cached_info = list.get_patron_showcase()
     $ count = cached_info["count"]
     <a class="list-card" href="$list.get_url()">
-        <div class="list-card__name-tag">
-            <p class="list-card__title">$cached_info["title"]</p>
-            <p class="list-card__num-books">
-                $ungettext("%(count)d book", "%(count)d books", count, count=count)
-            </p>
-        </div>
         <div class="list-card__covers">
             $for img_url in cached_info["covers"]:
-                <img src="$(img_url or '/images/icons/avatar_book-sm.png')" loading="lazy">
+                $if img_url:
+                    $ img_url = img_url.replace("-S.jpg", "-M.jpg")
+                $else:
+                    $ img_url = '/images/icons/avatar_book-sm.png'
+                <img src="$img_url" loading="lazy" width="80">
+        </div>
+        <div class="list-card__name-tag">
+            <div class="list-card__title">$cached_info["title"]</div>
+            <div class="list-card__num-books">
+                $ungettext("%(count)d book", "%(count)d books", count, count=count)
+            </div>
         </div>
     </a>
 
