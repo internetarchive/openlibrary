@@ -1,11 +1,16 @@
 .fsi-snippet {
   grid-area: excerpts;
   display: inline;
-  width: 100%;
+  width: 70%;
   padding: 5px;
   margin: 0;
+  font-size: small;
+  @media (min-width: 425px) {
+    width: 80%;
+  }
   @media (min-width: @width-breakpoint-tablet) {
     width: auto;
+    font-size: medium;
   }
 
   &__main {
@@ -18,9 +23,9 @@
     color: @dark-grey;
     font-weight: 700;
     display: block;
-    @media (min-width: @width-breakpoint-tablet) {
-      display: inline;
-    }
+    // @media (min-width: @width-breakpoint-tablet) {
+    //   display: inline;
+    // }
   }
 }
 
