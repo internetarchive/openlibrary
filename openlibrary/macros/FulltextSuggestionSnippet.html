@@ -10,10 +10,16 @@ $ page = ', '.join([str(num) for num in page_nums])
 $if snippet:
   <div class="fsi-snippet">
       $if snippet:
-        <div class="fulltext-snippet__main">
+        <div class="fsi-snippet__main">
+          <img src="/static/images/icons/icon_big-quote-opening.svg"
+            width="20" height="20"
+            alt="$_('search inside icon')"/>
           <a href="$ia_base_url/details/$ia">
             &hellip;$:(snippet.replace("<", "&laquo;").replace(">", "&raquo;").replace("{{{", "<mark class='highlight'><strong>").replace("}}}", "</strong></mark>"))&hellip;
           </a>
+          <img src="/static/images/icons/icon_big-quote-closing.svg"
+            width="20" height="20"
+            alt="$_('search inside icon')"/>
           $if page:
           <a href="$ia_base_url/details/$ia">
             <div class="fsi-snippet__page-num">Page: $page</div>

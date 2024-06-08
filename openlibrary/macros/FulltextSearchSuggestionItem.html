@@ -43,23 +43,22 @@ $ blur_cover = "fsi__bookcover-img-blur" if blur else ""
 
 <div class="fsi" itemscope itemtype="https://schema.org/Book" $:attrs>
   <div class="fsi__main">
-    <span class="fsi__bookcover">
+    <span class="fsi__book-cover">
       $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
       <a href="$work_edition_url">
-        <img class="fsi__bookcover-img $blur_cover"
+        <img class="fsi__book-cover-img $blur_cover"
               itemprop="image"
               src="$cover"
               alt="$_('Cover of: %(title)s', title=full_title)"
               title="$_('Cover of: %(title)s', title=full_title)" />
       </a>
     </span>
+    <div class="fsi__book-details">
       <div class="fsi__title-author">
-        <!-- <div class="fsi__booktitle-container"> -->
-          <h3 itemprop="name" class="fsi__booktitle">
-            <a itemprop="url" href="$work_edition_url" class="results">$full_title</a>
-          </h3>
-        <!-- </div> -->
-        <p class="fsi__bookauthor" itemprop="author" itemscope itemtype="https://schema.org/Organization">
+        <h3 itemprop="name" class="fsi__book-title">
+          <a itemprop="url" href="$work_edition_url" class="results">$full_title</a>
+        </h3>
+        <p class="fsi__book-author" itemprop="author" itemscope itemtype="https://schema.org/Organization">
           $ authors = None
           $if doc_type == 'infogami_work':
             $ authors = doc.get_authors()
@@ -85,9 +84,8 @@ $ blur_cover = "fsi__bookcover-img-blur" if blur else ""
         </p>
     </div>
     $if snippet:
-    <!-- <div class="fsi__excerpts"> -->
       $:snippet
-    <!-- </div> -->
+    </div>
   </div>
 </div>
 
