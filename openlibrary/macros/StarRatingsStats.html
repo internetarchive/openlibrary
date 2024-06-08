@@ -23,4 +23,10 @@ $ review_count_class = 'readers-stats__review-count--none' if ratings_count == 0
   <li class="reading-log-stat"><span class="readers-stats__stat">$stats_by_bookshelf.get('want-to-read', 0)</span> <span class="readers-stats__label">$_("Want to read")</span></li>
   <li class="reading-log-stat"><span class="readers-stats__stat">$stats_by_bookshelf.get('currently-reading', 0)</span> <span class="readers-stats__label">$_("Currently reading")</span></li>
   <li class="reading-log-stat"><span class="readers-stats__stat">$stats_by_bookshelf.get('already-read', 0)</span> <span class="readers-stats__label">$_("Have read")</span></li>
+
+  <li class="readers-avatars">
+    $for p in work.get_patrons_who_also_read(limit=3):
+      <a href="/people/$(p.key.split('/')[2])/books/already-read"><img src="/people/$(p.key.split('/')[2])/avatar" class="avatar"></a>
+  </li>
+
 </ul>
