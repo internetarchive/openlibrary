@@ -281,31 +281,37 @@ def get_candidates_url(
     marcs: bool = True,
 ) -> str:
     DAY = datetime.timedelta(days=1)
+    hard_requirements = [
+        "mediatype:texts",
+        f'indexdate:{day}*)',
+        '!collection:litigationworks',
+        '!is_dark:true',
+        # Fetch back to items added before the day of interest, since items
+        # sometimes take a few days to process into the collection.
+        f'addeddate:[{day - 60 * DAY} TO {day + 1 * DAY}]',
+    ]
+    repub_states = ' OR '.join(
+        f'repub_state:{state}' for state in VALID_READY_REPUB_STATES
+    )
+    soft_requirements = ' AND '.join(
+        [
+            repub_states,
+            'scanningcenter:*',
+            'scanner:*',
+            'scandate:*',
+            'format:pdf',
+            # TODO: format:marc seems to be getting more records than expected
+            *(['format:marc'] if marcs else []),
+            '!collection:opensource',
+            '!collection:additional_collections',
+            '!noindex:true',
+        ]
+    )
+    exempt_collections = ' OR '.join(
+        ["collection:thoth-archiving-network"]
+    )  # noqa: FLY002
     params = {
-        'q': ' AND '.join(
-            [
-                'mediatype:texts',
-                '(%s)'
-                % ' OR '.join(
-                    f'repub_state:{state}' for state in VALID_READY_REPUB_STATES
-                ),
-                'scanningcenter:*',
-                'scanner:*',
-                'scandate:*',
-                '!collection:opensource',
-                '!collection:additional_collections',
-                '!collection:litigationworks',
-                '!noindex:true',
-                '!is_dark:true',
-                'format:pdf',
-                f'indexdate:{day}*',
-                # Fetch back to items added before the day of interest, since items
-                # sometimes take a few days to process into the collection.
-                f'addeddate:[{day - 60 * DAY} TO {day + 1 * DAY}]',
-                # TODO: This seems to be getting more records than expected
-                *(['format:marc'] if marcs else []),
-            ]
-        ),
+        'q': f'({hard_requirements}) AND (({soft_requirements}) OR ({exempt_collections}))',
         'fl': 'identifier,format',
         'service': 'metadata__unlimited',
         'rows': '100000',  # This is the max, I believe
