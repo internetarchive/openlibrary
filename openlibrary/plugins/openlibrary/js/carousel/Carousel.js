@@ -61,6 +61,9 @@ export class Carousel {
     }
 
     init() {
+        // Need to call this before constructing the slick carousel
+        fixSlickActivateADA();
+
         this.$container.slick({
             infinite: false,
             speed: 300,
@@ -218,4 +221,31 @@ export class Carousel {
     removeLoadingSlide() {
         this.slick.removeSlide(this.slick.$slides.length - 1);
     }
+}
+
+let _slickFixed = false;
+/**
+ * Fix slick carousel bug. This was not correctly adding tabindex=0 when
+ * the slick-slides were themselves anchor elements.
+ */
+function fixSlickActivateADA() {
+    if (_slickFixed) return;
+
+    // Create a dummy slick instance to get to the prototype
+    const $dummy = $('<div>');
+    $dummy.slick();
+    const slick = $dummy.slick('getSlick');
+    slick.constructor.prototype.activateADA = _fixedActivateADA;
+    _slickFixed = true;
+}
+
+function _fixedActivateADA() {
+    const $slickActive = this.$slideTrack.find('.slick-active');
+    $slickActive.attr({'aria-hidden': 'false'});
+
+    const clickableSelector = 'a, input, button, select';
+    $slickActive.find(clickableSelector).add($slickActive.filter(clickableSelector))
+        .attr({
+            tabindex: '0'
+        });
 }
