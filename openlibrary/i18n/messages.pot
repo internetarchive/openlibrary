@@ -507,9 +507,9 @@ msgstr ""
 msgid "See more books by, and learn about, this author"
 msgstr ""
 
-#: account/loans.html authors/index.html publishers/view.html
-#: search/authors.html search/publishers.html search/subjects.html
-#: subjects.html
+#: account/loans.html authors/index.html lists/showcase.html
+#: publishers/view.html search/authors.html search/publishers.html
+#: search/subjects.html subjects.html
 #, python-format
 msgid "%(count)d book"
 msgid_plural "%(count)d books"
@@ -4479,6 +4479,15 @@ msgstr ""
 
 #: lists/preview.html
 msgid "by <a href=\"$owner.key\">You</a>"
+msgstr ""
+
+#: lists/showcase.html
+#, python-format
+msgid "My Lists (%(count)d)"
+msgstr ""
+
+#: lists/showcase.html
+msgid "You have no lists."
 msgstr ""
 
 #: lists/widget.html
