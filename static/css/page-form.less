@@ -112,6 +112,17 @@ div#revertLink,
   display: flex;
 }
 
+.carousel-container#covers .carousel__item {
+  // :focus state for when selected
+  // e.g. "pick one of existing covers" on change cover.
+  // Is .selected redundant?
+  &:focus,
+  &.selected {
+    border: 5px solid @orange;
+    outline: 0;
+  }
+}
+
 @media all and ( min-width: @width-breakpoint-desktop ) {
   body {
     width: 600px;
