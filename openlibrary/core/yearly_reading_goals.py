@@ -70,7 +70,7 @@ class YearlyReadingGoals:
 
     @classmethod
     def total_yearly_reading_goals(cls, since: date | None = None) -> int:
-        """Returns a Storage object of <Storage {'count': int}> where 'count' specifies the
+        """Returns the number reading goals that were set. `since` may be used
         number reading goals updated. `since` may be used
         to limit the result to those reading goals updated since a specific
         date. Any python datetime.date type should work.
@@ -81,8 +81,8 @@ class YearlyReadingGoals:
         query = f"SELECT count(*) from {cls.TABLENAME}"
         if since:
             query += " WHERE updated >= $since"
-        results = list(oldb.query(query, vars={'since': since}))
-        return results[0]
+        results = oldb.query(query, vars={'since': since})
+        return results[0]['count'] if results else 0
 
     # Update methods:
     @classmethod
