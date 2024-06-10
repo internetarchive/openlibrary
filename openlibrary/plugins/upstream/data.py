@@ -35,6 +35,7 @@ def download_url(item, filename):
 DUMP_PREFIXES = (
     '',
     '_authors',
+    '_covers_metadata',
     '_editions',
     '_works',
     '_redirects',
