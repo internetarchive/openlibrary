@@ -38,15 +38,6 @@ export function initCoversChange() {
         });
 }
 
-function val(selector) {
-    const val = $(selector).val();
-    if (val) {
-        return val.trim();
-    } else {
-        return val;
-    }
-}
-
 function error(message, event) {
     $('#errors').show().html(message);
     event.preventDefault();
@@ -62,18 +53,15 @@ function add_iframe(selector, src) {
 // covers/manage.html and covers/add.html
 export function initCoversAddManage() {
     $('#addcover-form').on('submit', function (event) {
-        const i18nStrings = JSON.parse(document.querySelector('#errors').dataset.i18n);
-        var file = val('#coverFile');
-        var url = val('#imageUrl');
-        var coverIA = val('#coverIA');
-        var coverid = val('#coverid');
+        const i18nStrings = JSON.parse((event.target).dataset.i18n);
+        const data = Object.fromEntries(new FormData(event.target).entries());
 
-        if (!file && !url && !coverIA && !coverid) {
-            return error(i18nStrings['empty_cover_inputs'], event);
+        if (!data.file && !data.url) {
+            return error(i18nStrings.empty_cover_inputs, event);
         }
 
-        const btn = $('#imageUpload');
-        btn.prop('disabled', true).html(btn.data('loading-text'));
+        $('#coverIA').addClass('loading');
+        $('#imageUpload').prop('disabled', true).html(i18nStrings.loading_text);
     });
 
     // Clicking a cover should set the form value to the data-id of that cover

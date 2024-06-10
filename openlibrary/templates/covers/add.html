@@ -1,7 +1,8 @@
 $def with (doc, data={}, status=None)
 
 $ i18n_strings = {
-    $ "empty_cover_inputs": _("Please choose an image or provide a URL.")
+    $ "empty_cover_inputs": _("Please choose an image or provide a URL."),
+    $ "loading_text": _("Uploading...")
     $ }
 
 $putctx('cssfile', 'form')
@@ -17,7 +18,7 @@ $else:
     $ action = doc.url('/add-cover')
     $ guideline = _("Cover Guidelines")
 
-<div class="popAlert" id="errors" style="display: $('block' if status else 'none')" data-i18n="$json_encode(i18n_strings)">
+<div class="popAlert" id="errors" style="display: $('block' if status else 'none')">
 $if status:
     $if status.code == 1: $_("Please provide a valid image.")
     $elif status.code == 2: $_("Please provide an image URL.")
@@ -26,7 +27,7 @@ $if status:
 
 <div class="imageIntro">$intro</div>
 
-<form class="floatform" id="addcover-form" name="bookcover" method="post" enctype="multipart/form-data" action="$action">
+<form class="floatform" id="addcover-form" name="bookcover" method="post" data-i18n="$json_encode(i18n_strings)" enctype="multipart/form-data" action="$action">
 
     <div class="floatform__body">
         <div>
@@ -73,7 +74,7 @@ $if status:
 
             $if doc.type.key == "/type/edition" and doc.ocaid:
                 $ img_url = "https://archive.org/services/img/%s/full/pct:600/0/default.jpg" % doc.ocaid
-                <div class="formElement" id="dc-ia-cover">
+                <div class="formElement">
                     <div class="label">
                         <label>$_("Or, use the the cover from Internet Archive")</label>
                     </div>
@@ -81,12 +82,12 @@ $if status:
                         <img src="$img_url" style="height: 200px" />
                     </a>
                     <div class="input" style="padding-top: 0">
-                    <button type="submit" id="coverIA" name="url" value="$img_url">$_("Use this image")</button>
+                        <button type="submit" id="coverIA" class="cta-btn" name="url" value="$img_url">$_("Use this image")</button>
                     </div>
                 </div>
 
             <div class="formElement" style="margin: $('15px 0px 0px 15px;' if doc.type.key == '/type/work' else '0px;')">
-                <button type="submit" name="upload" id="imageUpload" value="$_('Submit')" class="largest" data-loading-text='$_("Uploading...")'>
+                <button type="submit" name="upload" id="imageUpload" value="$_('Submit')" class="largest cta-btn cta-btn--primary" data-loading-text='$_("Uploading...")'>
                     $_("Submit")
                 </button>
                 <a class="dialog--close-parent red" href="javascript:;">$_("Cancel")</a>
