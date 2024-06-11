@@ -279,9 +279,9 @@ def start_job(args: argparse.Namespace):
     if not args.no_labels:
         add_label_to_issues(filtered_issues)
         print('Issues labeled as "Needs: Response"')
-    if args.slack_token and args.channel:
+    if args.slack_token and args.slack_channel:
         publish_digest(
-            filtered_issues, args.channel, args.slack_token, args.hours, leads
+            filtered_issues, args.slack_channel, args.slack_token, args.hours, leads
         )
         print('Digest posted to Slack')
     if args.verbose:
