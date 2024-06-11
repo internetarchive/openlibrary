@@ -181,8 +181,7 @@ msgid "When"
 msgstr ""
 
 #: RecentChanges.html admin/ip/view.html admin/loans_table.html
-#: admin/people/edits.html admin/waitinglists.html history.html
-#: recentchanges/render.html
+#: admin/people/edits.html history.html recentchanges/render.html
 msgid "Who"
 msgstr ""
 
@@ -1931,10 +1930,6 @@ msgid "Loans"
 msgstr ""
 
 #: admin/menu.html
-msgid "Waiting Lists"
-msgstr ""
-
-#: admin/menu.html
 msgid "Block IPs"
 msgstr ""
 
@@ -2002,14 +1997,6 @@ msgstr ""
 
 #: admin/solr.html
 msgid "Update"
-msgstr ""
-
-#: FormatExpiry.html admin/waitinglists.html
-msgid "Expires"
-msgstr ""
-
-#: admin/waitinglists.html
-msgid "Loan Status"
 msgstr ""
 
 #: admin/ip/index.html
@@ -6109,6 +6096,10 @@ msgstr ""
 
 #: Follow.html
 msgid "Follow"
+msgstr ""
+
+#: FormatExpiry.html
+msgid "Expires"
 msgstr ""
 
 #: IABook.html
