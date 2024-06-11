@@ -281,15 +281,17 @@ def get_candidates_url(
     marcs: bool = True,
 ) -> str:
     DAY = datetime.timedelta(days=1)
-    hard_requirements = ' AND '.join([
-        "mediatype:texts",
-        f'indexdate:{day}*',
-        '!collection:litigationworks',
-        '!is_dark:true',
-        # Fetch back to items added before the day of interest, since items
-        # sometimes take a few days to process into the collection.
-        f'addeddate:[{day - 60 * DAY} TO {day + 1 * DAY}]',
-    ])
+    hard_requirements = ' AND '.join(
+        [
+            "mediatype:texts",
+            f'indexdate:{day}*',
+            '!collection:litigationworks',
+            '!is_dark:true',
+            # Fetch back to items added before the day of interest, since items
+            # sometimes take a few days to process into the collection.
+            f'addeddate:[{day - 60 * DAY} TO {day + 1 * DAY}]',
+        ]
+    )
     repub_states = ' OR '.join(
         f'repub_state:{state}' for state in VALID_READY_REPUB_STATES
     )
@@ -307,9 +309,9 @@ def get_candidates_url(
             '!noindex:true',
         ]
     )
-    exempt_collections = ' OR '.join(
+    exempt_collections = ' OR '.join(  # noqa: FLY002
         ["collection:thoth-archiving-network"]
-    )  # noqa: FLY002
+    )
     params = {
         'q': f'({hard_requirements}) AND (({soft_requirements}) OR ({exempt_collections}))',
         'fl': 'identifier,format',
