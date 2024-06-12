@@ -36,6 +36,7 @@ $else:
             rel="nofollow"
         >$_("Edit")</a>
         </div>
+<<<<<<< Updated upstream
 
         $if page.type.key == "/type/author":
             <div class="editShareButton">
@@ -48,5 +49,18 @@ $else:
                     $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper", show_embed=False)
             </div>
 
+=======
+    
+    $if page.type.key == "/type/author":
+        <div class="editShareButton">
+            $set_share_links(url=request.canonical_url, title='', view_context=ctx)
+            $if ctx.get('share_links'):
+                $ share_str = _('')
+                $ share_content = '<a class="cta-btn cta-btn--unstyled share-modal-link icon-link" href="javascript:;" data-ol-link-track="MyBooksModalLinkClick|ShareIcon"><div class="share-icon__image"><img class="icon-link" src="/static/images/icons/share.svg" width="30"><div class="share-text">%s</div></div></a>' % share_str
+                $ page_url = request.home
+                $ share_links = ctx.get('share_links')
+                $:macros.ShareModal(share_links, page_url, share_content, "share-modal-wrapper", show_embed=False)
+        </div>
+>>>>>>> Stashed changes
 </div>
 
