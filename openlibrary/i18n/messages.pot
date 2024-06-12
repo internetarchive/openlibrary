@@ -272,7 +272,8 @@ msgstr ""
 msgid "YAML Representation:"
 msgstr ""
 
-#: BookPreview.html books/edit/edition.html editpage.html
+#: BookPreview.html book_providers/direct_read_button.html
+#: books/edit/edition.html editpage.html
 msgid "Preview"
 msgstr ""
 
@@ -836,6 +837,7 @@ msgid "Currently Reading"
 msgstr ""
 
 #: LoanReadForm.html ReadButton.html book_providers/cita_press_read_button.html
+#: book_providers/direct_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/openstax_read_button.html
 #: book_providers/standard_ebooks_read_button.html books/custom_carousel.html
@@ -2194,12 +2196,14 @@ msgid "BookReader"
 msgstr ""
 
 #: admin/loans_table.html book_providers/cita_press_download_options.html
+#: book_providers/direct_download_options.html
 #: book_providers/ia_download_options.html
 #: book_providers/openstax_download_options.html books/edit/edition.html
 msgid "PDF"
 msgstr ""
 
-#: admin/loans_table.html book_providers/gutenberg_download_options.html
+#: admin/loans_table.html book_providers/direct_download_options.html
+#: book_providers/gutenberg_download_options.html
 #: book_providers/ia_download_options.html
 #: book_providers/standard_ebooks_download_options.html books/edit/edition.html
 msgid "ePub"
@@ -2826,6 +2830,7 @@ msgid "Died"
 msgstr ""
 
 #: book_providers/cita_press_download_options.html
+#: book_providers/direct_download_options.html
 #: book_providers/gutenberg_download_options.html
 #: book_providers/ia_download_options.html
 #: book_providers/librivox_download_options.html
@@ -2861,6 +2866,31 @@ msgstr ""
 #: book_providers/standard_ebooks_read_button.html
 #: check_ins/reading_goal_progress.html
 msgid "Learn more"
+msgstr ""
+
+#: book_providers/direct_download_options.html
+msgid "Download as an ePub"
+msgstr ""
+
+#: book_providers/direct_download_options.html
+msgid "Download as a PDF"
+msgstr ""
+
+#: book_providers/direct_download_options.html
+msgid "Download as a Kindle MOBI"
+msgstr ""
+
+#: book_providers/direct_download_options.html
+#: book_providers/ia_download_options.html
+msgid "MOBI"
+msgstr ""
+
+#: book_providers/direct_download_options.html
+msgid "More options"
+msgstr ""
+
+#: book_providers/direct_read_button.html
+msgid "Read free online"
 msgstr ""
 
 #: book_providers/gutenberg_download_options.html
@@ -2924,10 +2954,6 @@ msgstr ""
 
 #: book_providers/ia_download_options.html
 msgid "Download a MOBI file from Internet Archive"
-msgstr ""
-
-#: book_providers/ia_download_options.html
-msgid "MOBI"
 msgstr ""
 
 #: book_providers/ia_download_options.html
