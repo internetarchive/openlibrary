@@ -863,24 +863,6 @@ msgid ""
 msgstr ""
 
 #: account/create.html
-msgid ""
-"<a class=\"ol-signup-form__link\" href=\"/help/faq/borrow\" "
-"target=\"_blank\">Borrow</a> up to 5 books at a time"
-msgstr ""
-
-#: account/create.html
-msgid ""
-"<a class=\"ol-signup-form__link\" href=\"/help/faq/reading-log\" "
-"target=\"_blank\">Keep track</a> of what you're reading"
-msgstr ""
-
-#: account/create.html
-msgid ""
-"<a class=\"ol-signup-form__link\" href=\"/help\" target=\"_blank\">Learn "
-"More</a> about how it works"
-msgstr ""
-
-#: account/create.html
 msgid "Show password"
 msgstr ""
 
@@ -903,14 +885,12 @@ msgstr ""
 #: account/create.html
 msgid ""
 "By signing up, you agree to the Internet Archive's <a class=\"ol-signup-"
-"form__link--muted\" href=\"//archive.org/about/terms.php\" "
+"form__link\" href=\"//archive.org/about/terms.php\" "
 "target=\"_blank\">Terms of Service</a>."
 msgstr ""
 
 #: account/create.html
-msgid ""
-"Already an Internet Archive user? <a class=\"ol-signup-form__link\" "
-"href=\"/account/login\">Log in</a>"
+msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
 msgstr ""
 
 #: account/delete.html

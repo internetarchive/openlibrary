@@ -12,20 +12,15 @@ $var title: $_("Sign Up to Open Library")
 
 <div class="ol-page-signup">
     <div id="contentHead" class="ol-signup-hero">
-        <h1>$_("Sign Up")</h1>
-        <p class="ol-signup-form__subtitle lighter">$_("Get your free Open Library card and borrow digital books from the nonprofit Internet Archive")</p>
-        <ul class="ol-signup-form__iconlist">
-            <li>📚 $:_('<a class="ol-signup-form__link" href="/help/faq/borrow" target="_blank">Borrow</a> up to 5 books at a time')</li>
-            <li>📋 $:_('<a class="ol-signup-form__link" href="/help/faq/reading-log" target="_blank">Keep track</a> of what you\'re reading')</li>
-            <li>🎓 $:_('<a class="ol-signup-form__link" href="/help" target="_blank">Learn More</a> about how it works')</li>
-        </ul>
+        <h1 class="ol-signup-hero__title">$_("Sign Up")</h1>
+        <p class="ol-signup-hero__subtitle">$_("Get your free Open Library card and borrow digital books from the nonprofit Internet Archive")</p>
     </div>
 
     <div id="contentBody" class="ol-signup-form">
 
     $if not ctx.user:
         $:render_template("account/ia_thirdparty_logins")
-        <div class="login-big-or lighter">$_('OR')</div>
+        <div class="ol-signup-form__big-or">$_('OR')</div>
 
     $def field(input, suffix=''):
         $# :param openlibrary.utils.form.Input input:
@@ -35,7 +30,7 @@ $var title: $_("Sign Up to Open Library")
             <div class="label">
                 <label for="$input.id">$input.description</label>
                 $if input.help:
-                    <div class="ol-signup-form__note lighter">$input.help</div>
+                    <div class="ol-signup-form__note">$input.help</div>
             </div>
             <div class="ol-signup-form__error" id="$(input.id)Message" style="display:none">$input.note</div>
             <div class="input">
@@ -45,9 +40,9 @@ $var title: $_("Sign Up to Open Library")
                     $    "show_password": _('Show password'),
                     $    "hide_password": _('Hide password')
                     $  }
-                    <a href="javascript:;" class="password-visibility-toggle ol-signup-form__link--muted lighter" data-i18n="$json_encode(i18n_strings)">$i18n_strings["show_password"]</a>
+                    <a href="javascript:;" class="password-visibility-toggle ol-signup-form__link" data-i18n="$json_encode(i18n_strings)">$i18n_strings["show_password"]</a>
             </div>
-            <div class="ol-signup-form__note sansserif lighter">$:suffix</div>
+            <div class="ol-signup-form__suffix">$:suffix</div>
         </div>
 
 
@@ -58,7 +53,7 @@ $var title: $_("Sign Up to Open Library")
     $else:
         <form class="olform create create-form" name="signup" method="post" data-i18n="$json_encode(i18n_strings)" action="">
             $if form.note:
-                <div class="note">$form.note</div>
+                <div class="ol-signup-form__note">$form.note</div>
 
             $def screenname_url(): $_('Your URL'): https://openlibrary.org/people/<span id="userUrl">$(form.username.value or _('screenname'))</span>
 
@@ -78,9 +73,9 @@ $var title: $_("Sign Up to Open Library")
                     $ classes = 'g-recaptcha'
                     $ sitekey = "data-sitekey=%s" % form['recaptcha'].public_key
                     $:render_template("recaptcha", form['recaptcha'].public_key, error=None, invisible=True)
-                <button type="submit" name="signup" id="signup" class="larger $classes cta-btn cta-btn--primary" $sitekey $callback>$_("Sign Up with Email")</button>
-                <p class="ol-signup-form__tos sansserif lighter">$:_('By signing up, you agree to the Internet Archive\'s <a class="ol-signup-form__link--muted" href="//archive.org/about/terms.php" target="_blank">Terms of Service</a>.')</p>
-                <p class="ol-signup-form__login-hint">$:_('Already an Internet Archive user? <a class="ol-signup-form__link" href="/account/login">Log in</a>')</p>
+                <button type="submit" name="signup" id="signup" class="$classes cta-btn cta-btn--primary" $sitekey $callback>$_("Sign Up with Email")</button>
+                <small class="ol-signup-form__tos">$:_('By signing up, you agree to the Internet Archive\'s <a class="ol-signup-form__link" href="//archive.org/about/terms.php" target="_blank">Terms of Service</a>.')</small>
+                <p class="ol-signup-form__login-hint">$:_('Already have an account? <a href="/account/login">Log in</a>')</p>
             </div>
         </form>
     </div>
