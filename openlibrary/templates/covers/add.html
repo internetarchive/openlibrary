@@ -74,23 +74,22 @@ $if status:
 
             $if doc.type.key == "/type/edition" and doc.ocaid:
                 $ img_url = "https://archive.org/services/img/%s/full/pct:600/0/default.jpg" % doc.ocaid
-                <div class="formElement">
+                <div class="formElement floatform__IA-cover">
                     <div class="label">
                         <label>$_("Or, use the the cover from Internet Archive")</label>
                     </div>
-                    <a href="$img_url">
+                    <a href="$img_url" target="_blank">
                         <img src="$img_url" style="height: 200px" />
                     </a>
-                    <div class="input" style="padding-top: 0">
-                        <button type="submit" id="coverIA" class="cta-btn" name="url" value="$img_url">$_("Use this image")</button>
+                    <div class="input">
+                        <button type="submit" id="coverIA" name="url" value="$img_url">$_("Use this image")</button>
                     </div>
                 </div>
 
             <div class="formElement" style="margin: $('15px 0px 0px 15px;' if doc.type.key == '/type/work' else '0px;')">
-                <button type="submit" name="upload" id="imageUpload" value="$_('Submit')" class="largest cta-btn cta-btn--primary" data-loading-text='$_("Uploading...")'>
+                <button type="submit" name="upload" id="imageUpload" value="$_('Submit')" class="largest cta-btn cta-btn--primary" style="width:auto">
                     $_("Submit")
                 </button>
-                <a class="dialog--close-parent red" href="javascript:;">$_("Cancel")</a>
             </div>
 
         </div>
