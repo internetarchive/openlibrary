@@ -130,7 +130,7 @@ def execute_solr_query(
 public(has_solr_editions_enabled)
 
 
-def run_solr_query(
+def run_solr_query(  # noqa: PLR0912
     scheme: SearchScheme,
     param: dict | None = None,
     rows=100,

@@ -78,9 +78,9 @@ class EbookProvider:
             return EbookProvider(
                 access=access,
                 format=json.get('format', 'web'),
-                price=json.get('price', None),
+                price=json.get('price'),
                 url=json['url'],
-                provider_name=json.get('provider_name', None),
+                provider_name=json.get('provider_name'),
             )
         else:
             raise ValueError(f'Unknown ebook provider format: {json}')
@@ -102,7 +102,7 @@ class EbookProvider:
         elif mimetype == 'text/html':
             fmt = 'web'
         else:
-            logger.warn(f'Unknown mimetype: {mimetype}')
+            logger.warning(f'Unknown mimetype: {mimetype}')
             fmt = 'web'
 
         if json.get('properties', {}).get('price', None):
@@ -135,7 +135,7 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
     The key in the identifiers field on editions;
     see https://openlibrary.org/config/edition
     """
-    identifier_key: Optional[str]
+    identifier_key: str | None
 
     def get_olids(self, identifier):
         return web.ctx.site.things(
@@ -429,7 +429,7 @@ class DirectProvider(AbstractBookProvider):
         # TODO: Not implemented yet
         return None
 
-    def get_identifiers(self, ed_or_solr: Union[Edition, dict]) -> list[str]:
+    def get_identifiers(self, ed_or_solr: Edition | dict) -> list[str]:
         # It's an edition
         if ed_or_solr.get('providers'):
             return [
@@ -441,7 +441,7 @@ class DirectProvider(AbstractBookProvider):
             # TODO: Not implemented for search/solr yet
             return []
 
-    def render_read_button(self, ed_or_solr: Union[Edition, dict]):
+    def render_read_button(self, ed_or_solr: Edition | dict):
         acq_sorted = sorted(
             (
                 p
