@@ -9,26 +9,27 @@
   padding-left: 5px;
   width: 50%;
   height: 30px;
-}
 
-.searchbox__btn-icon {
-  background: url(/static/images/search-icon.svg) center no-repeat;
-  width: 35px;
-  cursor: pointer;
-  border: 0;
-}
+  &__btn-icon {
+    background: url(/static/images/search-icon.svg) center no-repeat;
+    width: 35px;
+    cursor: pointer;
+    border: 0;
+  }
 
-.searchbox__input {
-  margin: 0 !important;
-  border: 0;
-  background: transparent;
-  color: @grey !important;
-  flex-grow: 1;
-  font-size: 1em !important;
-  min-width: 0;
-}
-@media (max-width: @width-breakpoint-mobile) {
-  .searchbox {
-    width: 100%;
+  &__input {
+    margin: 0 !important;
+    border: 0;
+    background: transparent;
+    color: @grey !important;
+    flex-grow: 1;
+    font-size: 1em !important;
+    min-width: 0;
+  }
+
+  @media (max-width: @width-breakpoint-mobile) {
+    .searchbox {
+      width: 100%;
+    }
   }
 }
