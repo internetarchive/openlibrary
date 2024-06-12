@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+"""Utility script to list html files which might be missing i18n strings."""
+
+from pathlib import Path
+from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
+
+def main(files: list[Path]):
+    """
+    :param files: The html files to check for missing i18n
+    """
+
+    print("this script ran")
+
+    exit(1)
+
+if __name__ == "__main__":
+    FnToCLI(main).run()
