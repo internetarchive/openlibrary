@@ -14,7 +14,7 @@ target-version = ["py311"]
 
 [tool.codespell]
 ignore-words-list = "beng,curren,datas,furst,nd,nin,ot,ser,spects,te,tha,ue,upto,thirdparty"
-skip = "./.*,*/ocm00400866,*/read_toc.py,*.it,*.js,*.json,*.mrc,*.page,*.pg_dump,*.po,*.txt,*.xml,*.yml, ./BulkSearch/*, *.vue"
+skip = "./.*,*/ocm00400866,*/read_toc.py,*.it,*.js,*.json,*.mrc,*.page,*.pg_dump,*.po,*.txt,*.xml,*.yml"
 
 [tool.mypy]
 ignore_missing_imports = true
