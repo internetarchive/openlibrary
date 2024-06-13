@@ -1,0 +1,37 @@
+$def with (cbi_result=None)
+$# type: (CbiResult)
+
+<div class="cbi">
+  <div id="contentBody">
+    <h1>$_('Community Batch Imports')</h1>
+    <p>$_('Attach a JSONL formatted document with import records.')</p>
+    <p>$:_('See the <a href=\"https://github.com/internetarchive/openlibrary-client/tree/master/olclient/schemata\">olclient import schemata</a> for more.')</p>
+    <form method="POST" enctype="multipart/form-data" action="">
+      <input type="file" name="cbi" />
+      <br/>
+      <input type="submit" value="Upload JSONL file"/>
+    </form>
+
+    $if cbi_result and cbi_result.errors:
+      <p>$_('Import failed.')</p>
+      <p>$_('No import will be queued until *every* record validates successfully.')</p>
+      <p>$_('Please update the JSONL file and reload this page (there should be no need to reattach the file).')</p>
+      <p>$_('Validation errors:')</p>
+      $for error in cbi_result.errors:
+        <li><strong>Line $error.line_number:</strong> $error.error_message</li>
+
+    $if cbi_result and cbi_result.batch:
+      <p>$_('Import results for batch:') $cbi_result.batch.name</p>
+      <p>$_('Total tried:') $cbi_result.batch.total_tried</p>
+      <p>$_('Total queued:') $cbi_result.batch.total_added</p>
+      <p>$_('Total not queued:') $cbi_result.batch.total_not_added</p>
+      $if cbi_result.batch.total_not_added > 0:
+        <details>
+          <summary>$_('Not queued because they are already present in the queue:')</summary>
+          <ol>
+            $for item in cbi_result.batch.items_not_added:
+              <li>$item</li>
+          </ol>
+        </details>
+  </div>
+</div>

@@ -14,7 +14,6 @@ import json
 from psycopg2.errors import UndefinedTable, UniqueViolation
 from pydantic import ValidationError
 from web.db import ResultSet
-from web.utils import Storage
 
 from . import db
 
@@ -31,6 +30,17 @@ if TYPE_CHECKING:
 
 
 class Batch(web.storage):
+
+    def __init__(self, mapping, *requireds, **defaults):
+        """
+        Initialize some statistics instance attributes yet retain web.storage's __init__ method.
+        """
+        super().__init__(mapping, *requireds, **defaults)
+        self.total_tried: int = 0
+        self.total_added: int = 0
+        self.total_not_added: int = 0
+        self.items_not_added: set = set()
+
     @staticmethod
     def find(name: str, create: bool = False) -> "Batch":  # type: ignore[return]
         result = db.query("SELECT * FROM import_batch where name=$name", vars=locals())
@@ -64,6 +74,13 @@ class Batch(web.storage):
             self.name,
             len(already_present),
         )
+
+        # Update batch counts
+        self.total_tried = len(ia_ids)
+        self.total_not_added = len(already_present)
+        self.total_added = self.total_tried - self.total_not_added
+        self.items_not_added = already_present
+
         # Those unique items whose ia_id's aren't already present
         return [item for item in items if item.get('ia_id') not in already_present]
 

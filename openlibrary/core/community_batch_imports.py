@@ -18,12 +18,6 @@ from openlibrary.catalog.add_book import (
 )
 
 
-# TODO:
-# - Can I return only lists of strings and something else makes the HTML?
-# - Inform patron that no import is queued until every part validates.
-# - Just return list of tuples[line_number, error]; the template can HTMLize it.
-
-
 def generate_hash(data: bytes, length: int = 20):
     """
     Generate a SHA256 hash of data and truncate it to length.
@@ -51,6 +45,16 @@ class CbiErrorItem:
     error_message: str
 
 
+@dataclass
+class CbiResult:
+    """
+    Represents the response item from community_batch_import().
+    """
+
+    batch: Batch | None = None
+    errors: list[CbiErrorItem] | None = None
+
+
 def format_pydantic_errors(
     errors: list[ErrorDetails], line_idx: int
 ) -> list[CbiErrorItem]:
@@ -65,25 +69,24 @@ def format_pydantic_errors(
             loc_str = ""
         msg = error["msg"]
         error_type = error["type"]
-        error_message = f"{loc_str} field: {msg} (Type: {error_type})</li>"
+        error_message = f"{loc_str} field: {msg}. (Type: {error_type})"
         formatted_errors.append(
             CbiErrorItem(line_number=line_idx, error_message=error_message)
         )
     return formatted_errors
 
 
-def community_batch_import(raw_data: bytes) -> dict[str, str | list[CbiErrorItem]]:
+def community_batch_import(raw_data: bytes) -> CbiResult:
     """
     This process raw byte data from a JSONL POST to the community batch import endpoint.
 
     Each line in the JSONL file (i.e. import item) must pass the same validation as
     required for a valid import going through load().
 
-    The return value is a status message, and an optional error, which is a list of
-    CbiErrorItem, so that the caller can process it at will (e.g. to display to the
-    uploader).
+    The return value has `batch` and `errors` attributes for the caller to use to
+    access the batch and any errors, respectively. See CbiResult for more.
 
-    The errors use 1-based counting because they are line numbers in a file.
+    The line numbers errors use 1-based counting because they are line numbers in a file.
     """
     user = accounts.get_current_user()
     username = user.get_username()
@@ -117,7 +120,7 @@ def community_batch_import(raw_data: bytes) -> dict[str, str | list[CbiErrorItem
             errors.extend(format_pydantic_errors(e.errors(), index + 1))
 
     if errors:
-        return {'status': 'failed', 'errors': errors}
+        return CbiResult(errors=errors)
 
     # Format data for queueing via batch import.
     batch_data = [
@@ -132,11 +135,6 @@ def community_batch_import(raw_data: bytes) -> dict[str, str | list[CbiErrorItem
     # Create the batch
     batch = Batch.find(batch_name) or Batch.new(name=batch_name, submitter=username)
     assert batch is not None
-    result = batch.add_items(batch_data)
+    batch.add_items(batch_data)
 
-    # A current limitation is that the caller does not distinguish between these two
-    # return values. It treats no validation error as a success.
-    if not result:
-        return {'status': 'no items to add'}
-
-    return {'status': result}
+    return CbiResult(batch=batch)

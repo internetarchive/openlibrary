@@ -106,6 +106,59 @@ msgstr ""
 msgid "Point your camera at a barcode! 📷"
 msgstr ""
 
+#: cbi.html
+msgid "Community Batch Imports"
+msgstr ""
+
+#: cbi.html
+msgid "Attach a JSONL formatted document with import records."
+msgstr ""
+
+#: cbi.html
+msgid ""
+"See the <a href=\"https://github.com/internetarchive/openlibrary-"
+"client/tree/master/olclient/schemata\">olclient import schemata</a> for "
+"more."
+msgstr ""
+
+#: cbi.html
+msgid "Import failed."
+msgstr ""
+
+#: cbi.html
+msgid "No import will be queued until *every* record validates successfully."
+msgstr ""
+
+#: cbi.html
+msgid ""
+"Please update the JSONL file and reload this page (there should be no "
+"need to reattach the file)."
+msgstr ""
+
+#: cbi.html
+msgid "Validation errors:"
+msgstr ""
+
+#: cbi.html
+msgid "Import results for batch:"
+msgstr ""
+
+#: cbi.html
+msgid "Total tried:"
+msgstr ""
+
+#: cbi.html
+msgid "Total queued:"
+msgstr ""
+
+#: cbi.html
+msgid "Total not queued:"
+msgstr ""
+
+#: cbi.html
+msgid "Not queued because they are already present in the queue:"
+msgstr ""
+
 #: diff.html
 #, python-format
 msgid "Diff on %s"
@@ -4392,7 +4445,7 @@ msgstr ""
 msgid "Recent Activity"
 msgstr ""
 
-#: lists/home.html
+#: lists/home.html lists/showcase.html
 msgid "See all"
 msgstr ""
 

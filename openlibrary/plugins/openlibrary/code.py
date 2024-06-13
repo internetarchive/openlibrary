@@ -491,47 +491,17 @@ class community_batch_imports(delegate.page):
     path = '/import/batch/new'
 
     def GET(self):
-        input = web.input(success=False)
-        success = input.get("success") == "true"
-        success_message = "Batch import successfully queued" if success else ""
-        intro_message = (
-            "Attach a JSONL formatted document with import records. "
-            'See the <a href="https://github.com/internetarchive/openlibrary-client/tree/master/olclient/schemata">olclient import schemata</a> for more. '
-        )
-
-        # return render_template("cbi.html")
-        return f"""<html><head></head><p>{success_message}</p><p>{intro_message}</p><body>
-<form method="POST" enctype="multipart/form-data" action="">
-<input type="file" name="cbi" />
-<br/>
-<input type="submit" />
-</form>
-</body></html>
-    """
+        return render_template("cbi.html", cbi_result=None)
 
     def POST(self):
         if not can_write():
             raise Forbidden('Permission Denied.')
 
-        # Get the upload from web.py. See the GET method for the <form> used.
+        # Get the upload from web.py. See the template for the <form> used.
         form_data = web.input(cbi={})
-        result = community_batch_import(form_data['cbi'].file.read())
+        cbi_result = community_batch_import(form_data['cbi'].file.read())
 
-        # Display errors as determined by community_batch_import().
-        if errors := result.get("errors"):
-            errors: list[CbiErrorItem]
-            intro_message = (
-                "No import will be queued until *every* record validates successfully. "
-                "Please update the JSONL file and reload this page (there should be no need to reattach the file)."
-            )
-            formatted_errors = [
-                f"<li><strong>Line {error.line_number}:</strong> {error.error_message}</li>"
-                for error in errors
-            ]
-
-            return f"""<html><head></head><body><p>{intro_message}</p><ul>{"".join(formatted_errors)}</ul></body></html>"""
-
-        raise web.seeother(f"{self.path}?success=true")
+        return render_template("cbi.html", cbi_result=cbi_result)
 
 
 class isbn_lookup(delegate.page):
