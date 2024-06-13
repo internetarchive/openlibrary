@@ -64,9 +64,7 @@ def main(files: list[Path]):
                         warnings += 1
                     else:
                         errcount += 1
-                    print(
-                        f"{errtype} {file}:{line_number}:{position}  {search_chunk}"
-                    )
+                    print(f"{errtype} {file}:{line_number}:{position}  {search_chunk}")
 
     print(
         f"{len(valid_files)} file{'s' if len(valid_files) != 1 else ''} scanned. {errcount} error{'s' if errcount != 1 else ''} found."
