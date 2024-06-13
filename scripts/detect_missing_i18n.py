@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Utility script to list html files which might be missing i18n strings."""
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
-import re
+import re, sys
 from pathlib import Path
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
@@ -29,7 +29,7 @@ def main(files: list[Path]):
         > 0
     ]
     if len(valid_files) == 0:
-        exit(0)
+        sys.exit(0)
 
     errcount: int = 0
     warnings: int = 0
@@ -74,8 +74,7 @@ def main(files: list[Path]):
             "Learn how to fix these errors by reading our i18n documentation: https://github.com/internetarchive/openlibrary/wiki/Internationalization#internationalization-i18n-developers-guide"
         )
     if errcount > 0:
-        exit(1)
-
+        sys.exit(1)     
 
 if __name__ == "__main__":
     FnToCLI(main).run()
