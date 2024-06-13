@@ -65,8 +65,5 @@ def main(files: list[Path]):
     if errcount > 0:
         exit(1)          
 
-    # TODO: remove this after testing
-    exit(1)
-
 if __name__ == "__main__":
     FnToCLI(main).run()
