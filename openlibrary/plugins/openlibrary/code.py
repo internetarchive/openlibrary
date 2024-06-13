@@ -13,11 +13,9 @@ import datetime
 import logging
 from time import time
 import math
-from pathlib import Path
 import infogami
-from openlibrary.core.community_batch_imports import (
-    CbiErrorItem,
-    community_batch_import,
+from openlibrary.core.batch_imports import (
+    batch_import,
 )
 
 # make sure infogami.config.features is set
@@ -483,7 +481,7 @@ def remove_high_priority(query: str) -> str:
     return new_query
 
 
-class community_batch_imports(delegate.page):
+class batch_imports(delegate.page):
     """
     The community batch import endpoint. Expects a JSONL file POSTed via multipart/form-data.
     """
@@ -491,17 +489,17 @@ class community_batch_imports(delegate.page):
     path = '/import/batch/new'
 
     def GET(self):
-        return render_template("cbi.html", cbi_result=None)
+        return render_template("batch_import.html", batch_result=None)
 
     def POST(self):
         if not can_write():
             raise Forbidden('Permission Denied.')
 
         # Get the upload from web.py. See the template for the <form> used.
-        form_data = web.input(cbi={})
-        cbi_result = community_batch_import(form_data['cbi'].file.read())
+        form_data = web.input(batchImport={})
+        batch_result = batch_import(form_data['batchImport'].file.read())
 
-        return render_template("cbi.html", cbi_result=cbi_result)
+        return render_template("batch_import.html", batch_result=batch_result)
 
 
 class isbn_lookup(delegate.page):

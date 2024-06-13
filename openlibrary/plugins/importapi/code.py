@@ -12,7 +12,6 @@ from openlibrary.catalog import add_book
 from openlibrary.catalog.get_ia import get_marc_record_from_ia, get_from_archive_bulk
 from openlibrary import accounts, records
 from openlibrary.core import ia
-from openlibrary.core.community_batch_imports import community_batch_import
 from openlibrary.plugins.upstream.utils import (
     LanguageNoMatchError,
     get_abbrev_from_full_lang_name,
@@ -131,10 +130,6 @@ class importapi:
             raise web.HTTPError('403 Forbidden')
 
         data = web.data()
-
-        i = web.input()
-        if i.batch:
-            return community_batch_import(data)
 
         try:
             edition, _ = parse_data(data)

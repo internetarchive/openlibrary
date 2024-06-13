@@ -106,56 +106,60 @@ msgstr ""
 msgid "Point your camera at a barcode! 📷"
 msgstr ""
 
-#: cbi.html
-msgid "Community Batch Imports"
+#: batch_import.html
+msgid "Batch Imports"
 msgstr ""
 
-#: cbi.html
+#: batch_import.html
 msgid "Attach a JSONL formatted document with import records."
 msgstr ""
 
-#: cbi.html
+#: batch_import.html
 msgid ""
 "See the <a href=\"https://github.com/internetarchive/openlibrary-"
 "client/tree/master/olclient/schemata\">olclient import schemata</a> for "
 "more."
 msgstr ""
 
-#: cbi.html
+#: batch_import.html
+msgid "Import"
+msgstr ""
+
+#: batch_import.html
 msgid "Import failed."
 msgstr ""
 
-#: cbi.html
+#: batch_import.html
 msgid "No import will be queued until *every* record validates successfully."
 msgstr ""
 
-#: cbi.html
+#: batch_import.html
 msgid ""
 "Please update the JSONL file and reload this page (there should be no "
 "need to reattach the file)."
 msgstr ""
 
-#: cbi.html
+#: batch_import.html
 msgid "Validation errors:"
 msgstr ""
 
-#: cbi.html
+#: batch_import.html
 msgid "Import results for batch:"
 msgstr ""
 
-#: cbi.html
+#: batch_import.html
 msgid "Total tried:"
 msgstr ""
 
-#: cbi.html
+#: batch_import.html
 msgid "Total queued:"
 msgstr ""
 
-#: cbi.html
+#: batch_import.html
 msgid "Total not queued:"
 msgstr ""
 
-#: cbi.html
+#: batch_import.html
 msgid "Not queued because they are already present in the queue:"
 msgstr ""
 

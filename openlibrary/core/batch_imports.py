@@ -22,7 +22,7 @@ def generate_hash(data: bytes, length: int = 20):
     """
     Generate a SHA256 hash of data and truncate it to length.
 
-    This is used to help uniquely identify a community_batch_import. Truncating
+    This is used to help uniquely identify a batch_import. Truncating
     to 20 characters gives about a 50% chance of collision after 1 billion
     community hash imports. According to ChatGPT, anyway. :)
     """
@@ -32,9 +32,9 @@ def generate_hash(data: bytes, length: int = 20):
 
 
 @dataclass
-class CbiErrorItem:
+class BatchImportError:
     """
-    Represents a Community Batch Import error item, containing a line number and error message.
+    Represents a Batch Import error item, containing a line number and error message.
 
     As the JSONL in a community batch import file is parsed, it's validated and errors are
     recorded by line number and the error thrown, and this item represents that information,
@@ -44,25 +44,11 @@ class CbiErrorItem:
     line_number: int
     error_message: str
 
-
-@dataclass
-class CbiResult:
-    """
-    Represents the response item from community_batch_import().
-    """
-
-    batch: Batch | None = None
-    errors: list[CbiErrorItem] | None = None
-
-
-def format_pydantic_errors(
-    errors: list[ErrorDetails], line_idx: int
-) -> list[CbiErrorItem]:
-    """
-    Format a list of Pydantic errors into list[CbiErrorItem] for easier eventual HTML representation.
-    """
-    formatted_errors = []
-    for error in errors:
+    @classmethod
+    def from_pydantic_error(
+        cls, line_number: int, error: ErrorDetails
+    ) -> "BatchImportError":
+        """Create a BatchImportError object from Pydantic's ErrorDetails."""
         if loc := error.get("loc"):
             loc_str = ", ".join(map(str, loc))
         else:
@@ -70,13 +56,21 @@ def format_pydantic_errors(
         msg = error["msg"]
         error_type = error["type"]
         error_message = f"{loc_str} field: {msg}. (Type: {error_type})"
-        formatted_errors.append(
-            CbiErrorItem(line_number=line_idx, error_message=error_message)
-        )
-    return formatted_errors
+
+        return BatchImportError(line_number=line_number, error_message=error_message)
 
 
-def community_batch_import(raw_data: bytes) -> CbiResult:
+@dataclass
+class BatchResult:
+    """
+    Represents the response item from batch_import().
+    """
+
+    batch: Batch | None = None
+    errors: list[BatchImportError] | None = None
+
+
+def batch_import(raw_data: bytes) -> BatchResult:
     """
     This process raw byte data from a JSONL POST to the community batch import endpoint.
 
@@ -84,15 +78,15 @@ def community_batch_import(raw_data: bytes) -> CbiResult:
     required for a valid import going through load().
 
     The return value has `batch` and `errors` attributes for the caller to use to
-    access the batch and any errors, respectively. See CbiResult for more.
+    access the batch and any errors, respectively. See BatchResult for more.
 
     The line numbers errors use 1-based counting because they are line numbers in a file.
     """
     user = accounts.get_current_user()
     username = user.get_username()
     batch_name = f"cb-{generate_hash(raw_data)}"
-    errors: list[CbiErrorItem] = []
-    dict_data = []
+    errors: list[BatchImportError] = []
+    import_records: list[dict] = []
 
     for index, line in enumerate(raw_data.decode("utf-8").splitlines()):
         # Allow comments with `#` in these import records, even though they're JSONL.
@@ -106,7 +100,7 @@ def community_batch_import(raw_data: bytes) -> CbiResult:
             validate_record(edition_builder.get_dict())
 
             # Add the raw_record for later processing; it still must go througd load() independently.
-            dict_data.append(raw_record)
+            import_records.append(raw_record)
         except (
             JSONDecodeError,
             PublicationYearTooOld,
@@ -114,13 +108,20 @@ def community_batch_import(raw_data: bytes) -> CbiResult:
             IndependentlyPublished,
             SourceNeedsISBN,
         ) as e:
-            errors.append(CbiErrorItem(line_number=index + 1, error_message=str(e)))
+            errors.append(BatchImportError(line_number=index + 1, error_message=str(e)))
 
         except ValidationError as e:
-            errors.extend(format_pydantic_errors(e.errors(), index + 1))
+            errors.extend(
+                [
+                    BatchImportError.from_pydantic_error(
+                        line_number=index + 1, error=error
+                    )
+                    for error in e.errors()
+                ]
+            )
 
     if errors:
-        return CbiResult(errors=errors)
+        return BatchResult(errors=errors)
 
     # Format data for queueing via batch import.
     batch_data = [
@@ -129,7 +130,7 @@ def community_batch_import(raw_data: bytes) -> CbiResult:
             'data': item,
             'submitter': username,
         }
-        for item in dict_data
+        for item in import_records
     ]
 
     # Create the batch
@@ -137,4 +138,4 @@ def community_batch_import(raw_data: bytes) -> CbiResult:
     assert batch is not None
     batch.add_items(batch_data)
 
-    return CbiResult(batch=batch)
+    return BatchResult(batch=batch)
