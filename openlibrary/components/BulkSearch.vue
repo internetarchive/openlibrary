@@ -1,6 +1,7 @@
 <template>
     <div>
         <BulkSearchControls :bulkSearchState="bulkSearchState" />
+        <hr />
         <MatchTable :bulkSearchState="bulkSearchState"  :listUrl = bulkSearchState.listUrl />
     </div>
 </template>

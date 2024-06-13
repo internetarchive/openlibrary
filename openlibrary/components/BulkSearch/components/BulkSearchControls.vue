@@ -2,7 +2,7 @@
 
 
 <template>
-    <details open>
+    <details open class="bulk-search-controls">
         <summary>Input</summary>
         <div>
             <textarea v-model="bulkSearchState.inputText"></textarea>
@@ -11,14 +11,16 @@
                     <option value="1">e.g. "The Wizard of Oz by L. Frank Baum"</option>
                     <option value="2">e.g. "The Wizard of Oz (L. Frank Baum)"</option>
                     <option value="3">Wikipedia Citation (e.g. Baum, Frank L. (1994). The Wizard of Oz)</option>
-                    <option value="4">GPT</option>
+                    <option value="4">✨ AI Extraction</option>
                 </select></label>
-            <label v-if="bulkSearchState.extractionOptions.use_gpt">API-Key:
-                <input type="text" v-model="bulkSearchState.extractionOptions.api_key" />
+            <label v-if="bulkSearchState.extractionOptions.use_gpt">OpenAI API Key:
+                <input v-if="showPassword" type="password" @click="togglePasswordVisibility()" v-model="bulkSearchState.extractionOptions.api_key" />
+
+                <input v-else type="text" @click="togglePasswordVisibility()" v-model="bulkSearchState.extractionOptions.api_key" />
             </label>
             <SampleBar @sample="(msg) => bulkSearchState.inputText = msg" />
             <label>
-                <input checked v-model="bulkSearchState.matchOptions.includeAuthor" type="checkbox" /> Use author in
+                <input v-model="bulkSearchState.matchOptions.includeAuthor" type="checkbox" /> Use author in
                 search query
             </label>
             <br>
@@ -45,16 +47,19 @@ export default {
     },
     data() {
         return {
-
+            showPassword: true,
             regexDict: {
                 '': '',
-                1: /(^|>)(?<title>[A-Za-z][A-Za-z0-9\- ,]{1,250})\s+(by|[-–—])\s+(?<author>[A-Za-z][A-Za-z.\- ]{3,70})( \(.*)?($|<\/)/gm,
-                2: /^(?<title>[A-Za-z].{1,250})\s\(?<author>(.{3,70})\)$$/gm,
-                3: /^(?<author>[^.()]+).*?\)\. (?<title>[^.]+)/gm
+                1: new RegExp('(^|>)(?<title>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+(by|[-\u2013\u2014\\t])\\s+(?<author>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)', 'gmu'),
+                2: new RegExp('^(?<title>[\\p{L}].{1,250})\\s\\(?<author>(.{3,70})\\)$$', 'gmu'),
+                3: new RegExp('^(?<author>[^.()]+).*?\\)\\. (?<title>[^.]+)', 'gmu')
             }
         }
     },
     methods: {
+        togglePasswordVisibility(){
+            this.showPassword= !this.showPassword
+        },
         selectAlgorithm(e) {
             if (e.target.value === '4') {
                 this.bulkSearchState.extractionOptions.use_gpt = true
@@ -141,6 +146,9 @@ export default {
 
 <style lang="less">
 
+.bulk-search-controls{
+    padding:20px;
+}
 label input {
     flex: 1;
 }
@@ -148,5 +156,7 @@ label input {
 textarea {
     width: 100%;
     display: flex;
+    resize: vertical;
+    box-sizing: border-box;
 }
 </style>

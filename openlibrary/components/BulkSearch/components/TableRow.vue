@@ -26,11 +26,6 @@ export default {
         bookMatch: BookMatch,
         index: Number
     },
-    data() {
-        return {
-            OL_SEARCH_BASE: 'openlibrary.org',
-        }
-    },
     computed: {
         searchUrl() {
             return buildSearchUrl(this.bookMatch.extractedBook, this.bulkSearchState.matchOptions, false)

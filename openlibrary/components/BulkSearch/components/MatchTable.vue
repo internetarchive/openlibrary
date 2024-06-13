@@ -1,6 +1,6 @@
 <template>
-  <div class="tableWrapper">
-    <table :v-if="bulkSearchState.matchedBooks">
+  <div v-if="bulkSearchState.matchedBooks.length" class="tableWrapper">
+    <table>
       <thead>
         <tr>
           <th>i</th>
@@ -35,7 +35,7 @@ export default {
     props: {
         bulkSearchState: BulkSearchState,
         listUrl: String
-    },
+    }
 }</script>
 
 <style>

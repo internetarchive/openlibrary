@@ -5,7 +5,7 @@
         <td>{{ bookMatch.extractedBook.author }}</td>
         <td>
             <div class="bookCards">
-                <a :href="searchUrl">L</a>
+                <a :href="searchUrl" title="View results in Open Library">🔎</a>
 
                 <BookCard v-for="(doc, index) in bookMatch.solrDocs.docs" :doc="doc" :key="index" />
             </div>
@@ -25,11 +25,6 @@ export default {
         bulkSearchState: BulkSearchState,
         bookMatch: BookMatch,
         index: Number
-    },
-    data() {
-        return {
-            OL_SEARCH_BASE: 'openlibrary.org',
-        }
     },
     computed: {
         searchUrl() {
