@@ -75,7 +75,8 @@ def main(files: list[Path]):
             "Learn how to fix these errors by reading our i18n documentation: https://github.com/internetarchive/openlibrary/wiki/Internationalization#internationalization-i18n-developers-guide"
         )
     if errcount > 0:
-        sys.exit(1)     
+        sys.exit(1)
+
 
 if __name__ == "__main__":
     FnToCLI(main).run()
