@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """Utility script to list html files which might be missing i18n strings."""
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
-import re, sys
+import re
+import sys
 from pathlib import Path
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
