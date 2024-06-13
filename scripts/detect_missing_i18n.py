@@ -50,7 +50,7 @@ def main(files: list[Path]):
             # Find the exact index within the line where the regex is matched.
             for char_index in range(len(line)):
                 position = char_index + 1
-                search_chunk = line[position:]
+                search_chunk = line[char_index:]
                 if re.match(i18n_attr_missing_regex, search_chunk) or re.match(
                     i18n_element_missing_regex, search_chunk
                 ):
