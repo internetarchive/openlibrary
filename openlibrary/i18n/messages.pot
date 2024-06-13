@@ -452,9 +452,8 @@ msgstr ""
 
 #: authors/index.html lib/nav_head.html lists/home.html
 #: publishers/notfound.html publishers/view.html search/advancedsearch.html
-#: search/authors.html search/inside.html search/lists.html
-#: search/publishers.html search/subjects.html subjects.html
-#: subjects/notfound.html type/local_id/view.html work_search.html
+#: search/publishers.html search/searchbox.html subjects.html
+#: subjects/notfound.html type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -4398,7 +4397,7 @@ msgstr ""
 msgid "Recent Activity"
 msgstr ""
 
-#: lists/home.html
+#: lists/home.html lists/showcase.html
 msgid "See all"
 msgstr ""
 
@@ -6621,7 +6620,7 @@ msgid "Screen Name"
 msgstr ""
 
 #: forms.py
-msgid "Public, and cannot be changed later."
+msgid "Public and cannot be changed later."
 msgstr ""
 
 #: forms.py

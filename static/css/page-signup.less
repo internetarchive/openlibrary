@@ -129,13 +129,17 @@
   .ol-signup-form__error {
     font-size: 14px;
     color: @red;
-    background-color: @baby-pink;
+    background-color: fade(@baby-pink, 50%);
     border: .5px fade(@red, 50%);
     border-style: solid solid none;
     border-radius: 5px 5px 0 0;
     margin-bottom: -3px;
     width: 100%;
     padding: 10px 5px;
+
+    &:empty {
+      display: none;
+    }
   }
 
   .ol-signup-form__suffix {

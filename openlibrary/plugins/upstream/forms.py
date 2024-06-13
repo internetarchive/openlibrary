@@ -91,7 +91,7 @@ class RegisterForm(Form):
             'username',
             description=_("Screen Name"),
             klass='required',
-            help=_("Public, and cannot be changed later."),
+            help=_("Public and cannot be changed later."),
             autocapitalize="off",
             validators=[vlogin, username_validator],
             pattern=vlogin.rexp.pattern,

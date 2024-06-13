@@ -32,7 +32,7 @@ export function initRealTimeValidation() {
     function renderError(inputId, errorDiv, errorMsg) {
         $(inputId).addClass('invalid');
         $(`label[for=${inputId.slice(1)}]`).addClass('invalid');
-        $(errorDiv).show().text(errorMsg);
+        $(errorDiv).text(errorMsg);
     }
 
     /**
@@ -44,7 +44,7 @@ export function initRealTimeValidation() {
     function clearError(inputId, errorDiv) {
         $(inputId).removeClass('invalid');
         $(`label[for=${inputId.slice(1)}]`).removeClass('invalid');
-        $(errorDiv).hide().text('');
+        $(errorDiv).text('');
     }
 
     function validateUsername() {

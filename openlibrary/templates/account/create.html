@@ -32,7 +32,7 @@ $var title: $_("Sign Up to Open Library")
                 $if input.help:
                     <div class="ol-signup-form__note">$input.help</div>
             </div>
-            <div class="ol-signup-form__error" id="$(input.id)Message" style="display:none">$input.note</div>
+            <div class="ol-signup-form__error" id="$(input.id)Message">$input.note</div>
             <div class="input">
                 $:input.render()
                 $if input.name == 'password':
