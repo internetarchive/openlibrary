@@ -36,8 +36,6 @@ def main(files: list[Path]):
     warnings: int = 0
 
     for file in valid_files:
-        if len([f for f in valid_directories if str(file).startswith(f)]) < 1:
-            continue
 
         contents = file.read_text()
         lines = contents.splitlines()
