@@ -11,7 +11,7 @@ valid_directories = ['openlibrary/templates/', 'openlibrary/macros/']
 # Assumptions:
 # - Not concerned about HTML elements whose untranslated contents follow a newline, i.e. <p>\nsome untranslated text\n<p>.
 # - Don't want to flag false positives where > characters are not part of tags, so this regex looks for a complete opening tag.
-i18n_element_missing_regex = r"<(?!code|[/\s])[^>]+?>(?!<|$|\$[^\(]|\\\$\$)"
+i18n_element_missing_regex = r"<(?!code|[/\s])[^>]+?>(?!<|$|\$[^\(]|\\\$\$|'\s?\+\s?_\(|%\()"
 i18n_element_warn_regex = r"^<(?!code|[/\s])[^>]+>\$\("
 i18n_attr_missing_regex = (
     r"<[^/\s][^>]*?(?<=)(title|placeholder|alt)=['\"](?![<]|$|\$[^\(])[^>]*?[^>]+>"
