@@ -179,6 +179,18 @@ div.floater {
 .floatform {
   font-family: @lucida_sans_serif-2;
 
+  button[type=submit] {
+    font-size: 1em;
+    width: auto;
+    cursor: pointer;
+    display: inline-block;
+
+    &.loading {
+      opacity: .5;
+      pointer-events: none;
+    }
+  }
+
   .label {
     padding-bottom: 5px;
 
@@ -192,6 +204,66 @@ div.floater {
     }
   }
 
+  input[type=text],
+  input[type=url],
+  input[type=file] {
+    font-size: 1.125em;
+    font-family: @lucida_sans_serif-1;
+    padding: 3px;
+  }
+
+  input::file-selector-button{
+    cursor: pointer;
+  }
+
+  a {
+    cursor: pointer;
+  }
+
+  &.ol-cover-form {
+    background-color: @lightest-grey;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+
+    .input {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .input > :first-child {
+      flex: 1;
+    }
+
+    button[type=submit] {
+      margin-top: 0;
+    }
+  }
+
+  &.ol-cover-form--ia {
+    a {
+      text-decoration: none;
+    }
+
+    .ol-cover-form--ia_image {
+      display: block;
+    }
+
+    .input {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    button[type=submit] {
+      width: 135px;
+    }
+  }
+
+  #coverFile {
+    min-width: 1px;
+  }
+
   .dialog--close-parent {
     cursor: pointer;
   }
@@ -201,40 +273,6 @@ div.floater {
     overflow: hidden;
     margin-left: -80px;
     text-align: center;
-  }
-
-  input[type=text],
-  input[type=url],
-  input[type=file] {
-    font-size: 1.125em;
-    font-family: @lucida_sans_serif-1;
-    padding: 3px;
-  }
-
-  .floatform__IA-cover .input {
-    margin-top: 5px;
-  }
-
-  .formElement {
-    padding-top: 5px;
-  }
-
-  input::file-selector-button{
-    cursor: pointer;
-  }
-  button[type=submit] {
-    font-size: 1.125em;
-    width: auto !important;
-    cursor: pointer;
-    display: inline-block;
-
-    &.loading {
-      opacity: .5;
-      pointer-events: none;
-    }
-  }
-  a {
-    cursor: pointer;
   }
 }
 

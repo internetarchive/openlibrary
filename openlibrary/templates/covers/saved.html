@@ -21,7 +21,7 @@ $putctx("show_ol_shell", False)
                     $else:
                         Uploaded anonymously on $datestr(d.created)<br/>
                     $if d.source_url:
-                        <a href="$d.source_url">$d.source_url</a><br/>
+                        <a href="$d.source_url" target="_blank">$d.source_url</a><br/>
                 <br/>
             <a href="$changequery()" class="imageSaved__button"><button class="cta-btn cta-btn--vanilla">$_("Add another image")</button></a>
             <button type="button" name="finished" id="popClose" value="Finished" class="largest cta-btn cta-btn--primary">$_("Finished")</button>

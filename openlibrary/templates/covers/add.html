@@ -1,7 +1,6 @@
 $def with (doc, data={}, status=None)
 
 $ i18n_strings = {
-    $ "empty_cover_inputs": _("Please choose an image or provide a URL."),
     $ "loading_text": _("Uploading...")
     $ }
 
@@ -10,11 +9,11 @@ $putctx("show_ol_shell", False)
 $putctx('robots', 'noindex,nofollow')
 
 $if doc.type.key == "/type/author":
-    $ intro = _("There are two ways to put an author's image on Open Library")
+    $ intro = _("There are two ways to put an author's image on Open Library.")
     $ action = doc.url('/add-photo')
     $ guideline = _("Image Guidelines")
 $else:
-    $ intro = _("There are a few ways to put a cover image on Open Library")
+    $ intro = _("There are a few ways to put a cover image on Open Library.")
     $ action = doc.url('/add-cover')
     $ guideline = _("Cover Guidelines")
 
@@ -25,74 +24,63 @@ $if status:
     $elif status.code == 3: $_("Please provide a valid image.")
 </div>
 
-<div class="imageIntro">$intro</div>
-
-<form class="floatform" id="addcover-form" name="bookcover" method="post" data-i18n="$json_encode(i18n_strings)" enctype="multipart/form-data" action="$action">
-
-    <div class="floatform__body">
-        <div>
-            $if doc.type.key == "/type/work":
-                $if doc.get_edition_covers():
-                    <div class="formElement">
-                        <div class="label">
-                            <label>$:_("<strong>Pick one</strong> from the existing covers,")</label>
-                        </div>
-                        <div class="carousel-section">
-                            <div id="covers" class="carousel-container carousel-container-decorated carousel--minimal">
-                                <div id="popcovers" class="carousel carousel--progressively-enhanced"
-                                    data-config="$json_encode({'booksPerBreakpoint': [3, 3, 3, 3, 2, 1]})">
+<div class="imageIntro" data-i18n="$json_encode(i18n_strings)">$intro  $:_('Learn more by reading our <a href="/help/faq/editing#picture" target="blank">%(guidelines)s</a>.', guidelines=guideline)</div>
+$if doc.type.key == "/type/work":
+    $if doc.get_edition_covers():
+        <form class="floatform ol-cover-form ol-cover-form--id" method="post" enctype="multipart/form-data" action="$action">
+            <div class="floatform__body">
+                <div class="formElement">
+                    <div class="label">
+                        <label>$:_("<strong>Pick one</strong> from the existing covers")</label>
+                    </div>
+                    <div class="carousel-section">
+                        <div id="covers" class="carousel-container carousel-container-decorated carousel--minimal">
+                            <div id="popcovers" class="carousel carousel--progressively-enhanced" data-config="$json_encode({'booksPerBreakpoint': [3, 3, 3, 3, 2, 1]})">
                                 $for cover in doc.get_edition_covers():
                                     <div class="book carousel__item" data-id="$cover.id">
                                         <div class="book-cover">
-                                            <img src="$cover.url(size='M')"
-                                                width="100" class="bookcover"/>
+                                            <img src="$cover.url(size='M')" width="100" class="bookcover"/>
                                         </div>
                                     </div>
-                                </div>
                             </div>
                         </div>
-                        <input type="hidden" id="coverid" name="coverid" value=""/>
-                    </div>
-
-            <div class="formElement">
-                <div class="label">
-                    <label id="imageBrowse" for="coverFile">$_("Choose a JPG, GIF or PNG on your computer")</label>
-                </div>
-                <div class="input">
-                    <input type="file" name="file" id="coverFile" value="" accept=".jpg, .jpeg, .gif, .png"/>
-                </div>
-            </div>
-
-            <div class="formElement">
-                <div class="label">
-                    <label id="imageWeb" for="imageUrl">$_("Or, paste in the image URL if it's on the web")</label>
-                </div>
-                <div class="input">
-                    <input type="url" name="url" id="imageUrl" value="$data.get('url', '')" placeholder="https://..." />
-                </div>
-            </div>
-
-            $if doc.type.key == "/type/edition" and doc.ocaid:
-                $ img_url = "https://archive.org/services/img/%s/full/pct:600/0/default.jpg" % doc.ocaid
-                <div class="formElement floatform__IA-cover">
-                    <div class="label">
-                        <label>$_("Or, use the the cover from Internet Archive")</label>
-                    </div>
-                    <a href="$img_url" target="_blank">
-                        <img src="$img_url" style="height: 200px" />
-                    </a>
-                    <div class="input">
-                        <button type="submit" id="coverIA" name="url" value="$img_url">$_("Use this image")</button>
                     </div>
                 </div>
-
-            <div class="formElement" style="margin: $('15px 0px 0px 15px;' if doc.type.key == '/type/work' else '0px;')">
-                <button type="submit" name="upload" id="imageUpload" value="$_('Submit')" class="largest cta-btn cta-btn--primary" style="width:auto">
-                    $_("Submit")
-                </button>
+                <input type="hidden" id="coverid" name="coverid" value=""/>
+                <button type="submit" class="cta-btn cta-btn--vanilla">$_("Submit")</button>
             </div>
+        </form>
 
-        </div>
+<form class="floatform ol-cover-form ol-cover-form--upload" method="post" enctype="multipart/form-data" action="$action">
+    <div class="label">
+        <label id="imageBrowse" for="coverFile">$_("Choose a JPG, GIF or PNG on your computer")</label>
+    </div>
+    <div class="input">
+        <input type="file" name="file" id="coverFile" value="" accept=".jpg, .jpeg, .gif, .png" required/>
+        <button type="submit" class="cta-btn cta-btn--vanilla">$_("Upload")</button>
     </div>
 </form>
-<div class="imageIntro smallest"><a href="/help/faq/editing#picture" target="blank">$guideline</a></div>
+
+<form class="floatform ol-cover-form ol-cover-form--url" method="post" enctype="multipart/form-data" action="$action">
+    <div class="label">
+        <label id="imageWeb" for="imageUrl">$_("Or, paste in the image URL if it's on the web")</label>
+    </div>
+    <div class="input">
+        <input type="url" name="url" id="imageUrl" value="$data.get('url', '')" placeholder="https://..." required />
+        <button type="submit" class="cta-btn cta-btn--vanilla">$_("Submit")</button>
+    </div>
+</form>
+
+$if doc.type.key == "/type/edition" and doc.ocaid:
+    $ img_url = "https://archive.org/services/img/%s/full/pct:600/0/default.jpg" % doc.ocaid
+    <form class="floatform ol-cover-form ol-cover-form--ia" method="post" enctype="multipart/form-data" action="$action">
+        <div class="label">
+            <label>$_("Or, use the the cover from Internet Archive")</label>
+        </div>
+        <div class="input">
+            <a href="$img_url" target="_blank">
+                <img class="ol-cover-form--ia_image" src="$img_url" style="height: 200px" />
+            </a>
+            <button type="submit" id="coverIA" class="cta-btn cta-btn--vanilla" name="url" value="$img_url">$_("Use this image")</button>
+        </div>
+    </form>

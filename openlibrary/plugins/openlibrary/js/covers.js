@@ -38,11 +38,6 @@ export function initCoversChange() {
         });
 }
 
-function error(message, event) {
-    $('#errors').show().html(message);
-    event.preventDefault();
-}
-
 function add_iframe(selector, src) {
     $(selector)
         .append('<iframe frameborder="0" height="580" width="580" marginheight="0" marginwidth="0" scrolling="auto"></iframe>')
@@ -52,18 +47,6 @@ function add_iframe(selector, src) {
 
 // covers/manage.html and covers/add.html
 export function initCoversAddManage() {
-    $('#addcover-form').on('submit', function (event) {
-        const i18nStrings = JSON.parse((event.target).dataset.i18n);
-        const data = Object.fromEntries(new FormData(event.target).entries());
-
-        if (!data.file && !data.url) {
-            return error(i18nStrings.empty_cover_inputs, event);
-        }
-
-        $('#coverIA').addClass('loading');
-        $('#imageUpload').prop('disabled', true).html(i18nStrings.loading_text);
-    });
-
     // Clicking a cover should set the form value to the data-id of that cover
     $('#popcovers .book').on('click', function () {
         var coverid;
