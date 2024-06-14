@@ -15,6 +15,7 @@ i18n_element_missing_regex = (
     r"<(?!code|[/\s])[^>]+?>(?!<|$|\$[^\(]|\\\$\$|'\s?\+\s?_\(|%)"
 )
 i18n_element_warn_regex = r"^<(?!code|[/\s])[^>]+>\$\("
+i18n_substring_regex = r"^<(?:a|b|abbr|bdi|bdo|br|cite|del|dfn|em|i|ins|kbd|mark|meter|q|rp|rt|s|samp|small|span|strong|sub|sup|time|u|var|wbr)\W"
 i18n_attr_missing_regex = (
     r"<[^/\s][^>]*?(title|placeholder|alt)=['\"](?![<]|$|\$[^\(])[^>]*?>"
 )
@@ -55,17 +56,32 @@ def main(files: list[Path]):
             for char_index in range(len(line)):
                 position = char_index + 1
                 search_chunk = line[char_index:]
-                if re.match(i18n_attr_missing_regex, search_chunk) or re.match(
-                    i18n_element_missing_regex, search_chunk
-                ):
-                    errtype = "ERRO"
-                    if re.match(i18n_attr_warn_regex, search_chunk) or re.match(
-                        i18n_element_warn_regex, search_chunk
+
+                untranslated = False
+                errtype = "ERRO"
+
+                if re.match(i18n_element_missing_regex, search_chunk):
+                    # Ignore if it's an element that can be part of a translated string
+                    if not (
+                        re.match(i18n_substring_regex, search_chunk)
+                        and "$:" in line[:char_index]
                     ):
+                        untranslated = True
+                        if re.match(i18n_element_warn_regex, search_chunk):
+                            errtype = "WARN"
+                            warnings += 1
+                        else:
+                            errcount += 1
+
+                elif re.match(i18n_attr_missing_regex, search_chunk):
+                    untranslated = True
+                    if re.match(i18n_attr_warn_regex, search_chunk):
                         errtype = "WARN"
                         warnings += 1
                     else:
                         errcount += 1
+
+                if untranslated:
                     print(f"{errtype} {file}:{line_number}:{position}  {search_chunk}")
 
     print(
