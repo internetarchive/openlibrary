@@ -29,11 +29,16 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
       $for flash in get_flash_messages():
         <div class="$flash.type"><span>$flash.message</span></div>
       </div>
-      $# Announcement banner will only be rendered if announcement and storage_key variables are set.
-      $# Be sure to escape any single quotes inside of the announcement HTML string.
-      $ announcement = ''
+      $ learn_more_copy = _('Learn More')
+      $ learn_more_link = '<a style="color: white;" href="https://blog.archive.org/2024/06/17/let-readers-read/">%s</a>' % learn_more_copy
+
+      $ sign_copy = _('Sign Letter')
+      $ sign_btn = '<a class="btn primary" style="display: inline-block;" href="https://change.org/LetReadersRead">%s</a>' % sign_copy
+
+      $ announcement = '&#9888; ' + _('Urge publishers to restore access to 500,000 removed library books: %(sign_btn)s - %(learn_more_link)s', sign_btn=sign_btn, learn_more_link=learn_more_link)
+
       $# Include date in cookie name to avoid name collisions (something like '{prefix}{YY}{MM}{DD}' would work well)
-      $ cookie_name = ''
+      $ cookie_name = 'j28'
       $if announcement and cookie_name:
         $:render_template('site/banner', announcement, cookie_name, cookie_duration_days=30)
     $:page
