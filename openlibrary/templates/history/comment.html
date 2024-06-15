@@ -9,7 +9,7 @@ $if record_id:
        $:_('Imported from')
        $:get_source_html(record_id)
     $else:
-       $:_('Found a matching record from')
+       $:_('Found a matching')
        $:get_source_html(record_id)
 $elif 'history_v2' in ctx.features:
     $ kind = "merge" if v.kind.startswith('merge-') else v.kind
