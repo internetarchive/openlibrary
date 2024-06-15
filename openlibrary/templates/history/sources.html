@@ -67,9 +67,9 @@ $code:
 	if record.source_name == 'Internet Archive':
 	    record_type = _('item record')
 	if record.source_name in ('Promise Item', 'ISBNdb', 'OpenAlex'):
-            return _('%(source)s', source=link(record.source_url, record.source_name))
+            return link(record.source_url, record.source_name)
 	else:
-            return _('%(source)s  <a href="%(url)s">%(type)s</a>', source=link(record.source_url, record.source_name), url=record.url, type=record_type)
+            return link(record.source_url, record.source_name) + ' ' + link(record.url, record_type)
 
 $var get_source_record = get_source_record
 $var get_source_html = get_source_html
