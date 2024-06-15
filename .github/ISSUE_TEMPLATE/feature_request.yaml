@@ -43,6 +43,6 @@ body:
         ### Stakeholders
         <!-- @ tag stakeholders of this feature if any -->
 
-        ### Instructions For Contributors
+        ### Instructions for Contributors
         <!-- Please leave the following reminder section as is to help new contributors and add instructions where necessary -->
         - Please [run these commands](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#working-on-your-branch) to ensure your repository is up to date **before** [creating a new branch](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#making-changes-and-creating-a-pull-request) to work on this issue and **each time after** pushing code to github, because pre-commit bot may add commits to your PRs upstream.
