@@ -12,10 +12,24 @@ valid_directories = ['openlibrary/templates/', 'openlibrary/macros/']
 # - Not concerned about HTML elements whose untranslated contents follow a newline, i.e. <p>\nsome untranslated text\n<p>.
 # - Don't want to flag false positives where > characters are not part of tags, so this regex looks for a complete opening tag.
 # TODO: replace the huge punctuation array with \p{L} - only supported in pip regex and not re
-i18n_element_missing_regex = r"<(?!code|link|[/\s])[^>]+?[^\/\-]>(?!<|$|\$[^\(]|\\\$\$|'\s?\+\s?_\(|%|\{\{|(?:[\(\)\{\}\[\]\/\\:;\-_\s+=*^%#\.•·\?♥|≡0-9,!x✓×]|&[a-z0-9]+;)+(?:[\r\n<]|$|\$:?_))"
+punct = r"\(\)\{\}\[\]\/\\:;\-_\s+=*^%#\.•·\?♥|≡0-9,!x✓×"
+allowed_after_opening_tag = (
+    r"(?!<|$|\$[^\(]|\\\$\$|'\s?\+\s?_\(|%|\{\{|(?:["
+    + punct
+    + r"]|&[a-z0-9]+;)+(?:[\r\n<]|$|\$:?_))"
+)
+i18n_element_missing_regex = (
+    r"<(?!code|link|[/\s])[^>]+?[^\/\-]>" + allowed_after_opening_tag
+)
 i18n_element_warn_regex = r"^<(?!code|link|[/\s])[^>]+>\$\("
 i18n_substring_regex = r"^<(?:a|b|abbr|bdi|bdo|br|cite|del|dfn|em|i|ins|kbd|mark|meter|q|rp|rt|s|samp|small|span|strong|sub|sup|time|u|var|wbr)\W"
-i18n_attr_missing_regex = r"<[^/\s][^>]*?(title|placeholder|alt)=(?:\"(?!\"|$|\$[^\(]|%|[\(\)\{\}\[\]\/\\:;\-_\s+=*^%#\.•·\?♥|≡0-9,!x✓×]+\")|'(?!'|$|\$[^\(]|%|[\(\)\{\}\[\]\/\\:;\-_\s+=*^%#\.•·\?♥|≡0-9,!x✓×]+'))[^>]*?>"
+i18n_attr_missing_regex = (
+    r"<[^/\s][^>]*?(title|placeholder|alt)=(?:\"(?!\"|$|\$[^\(]|%|["
+    + punct
+    + r"]+\")|'(?!'|$|\$[^\(]|%|["
+    + punct
+    + r"]+'))[^>]*?>"
+)
 i18n_attr_warn_regex = r"<[^/\s][^>]*?(title|placeholder|alt)=['\"]\$\([^>]*?>"
 
 
