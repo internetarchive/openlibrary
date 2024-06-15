@@ -1,10 +1,10 @@
-$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False, check_loan_status=False, user_lists=None, post='')
+$def with (doc, work_key=None, listen=True, allow_expensive_availability_check=False, secondary_action=False, check_sponsorship=False, sponsorship_help=False, check_loan_status=False, user_lists=None, post='', is_book_page=False)
 $# Takes following parameters:
 $# * doc - Can be a Work, Edition, or solr dict.
 $# * listen - whether to display listen button
 $# * allow_expensive_availability_check - whether to check the groundtruth availability
 $#     if can't get availability from specified fields
-$# * secondary_action - whether to display elements (e.g. preview, searhc inside)
+$# * secondary_action - whether to display elements (e.g. preview, search inside)
 $#     on just e.g. editions page or within search results, editions table, etc
 $# * check_sponsorship - whether to check if the book is eligible for sponsorship
 $# * sponsorship_help - whether to show the sponsorship help text
@@ -104,7 +104,7 @@ $elif availability.get('is_lendable'):
     $# Checked out: Show checkout out + preview if secondary, else just preview
     <div class="cta-button-group">
       <a href="$work_key" class="cta-btn cta-btn--missing" title="$_('This book is currently checked out, please check back later.')"
-       data-ol-link-track="CTAClick|CheckedOut">$_('Checked Out')</a>
+       data-ol-link-track="CTAClick|CheckedOut">$_("Checked Out")</a>
     </div>
 
 $elif ocaid and availability.get('is_previewable') and book_provider.short_name == 'ia':
@@ -113,7 +113,13 @@ $elif ocaid and availability.get('is_previewable') and book_provider.short_name 
       $:macros.BookSearchInside(ocaid)
 
 $else:
-  $:macros.NotInLibrary(work_key)
+  $# Only render clickable NotInLibrary when not on an edition's page, for that specific edition.
+  $# secondary_action means we're on a book page and it's the button under the cover image.
+  $ key = doc.key if is_edition else work_key
+  $if (is_edition and is_book_page) or secondary_action:
+      $:macros.NotInLibrary(link=None)
+  $else:
+      $:macros.NotInLibrary(link=key)
 
 $:post
 

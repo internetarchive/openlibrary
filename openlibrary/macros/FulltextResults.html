@@ -12,7 +12,7 @@ $if results and results.get('hits'):
     <ul class="list-books">
       $for doc in hits:
         $if doc.get('edition'):
-          $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], extra=render_snippet(query, doc))
+          $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], extra=render_snippet(query, doc), include_dropper=True)
     </ul>
     $:macros.Pager(page, num_found)
   </div>

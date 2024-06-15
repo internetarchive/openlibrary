@@ -1,0 +1,112 @@
+@import (less) "../less/colors.less";
+@import (less) "../less/font-families.less";
+@import (less) "components/read-panel.less";
+@import (less) "components/book.less";
+
+.list-showcase {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  padding: 8px 0;
+
+  .list-card {
+    margin-right: 24px;
+    flex-shrink: 0;
+  }
+
+  &__see-all {
+    margin-right: 24px;
+    align-self: center;
+    width: auto;
+  }
+}
+
+// stylelint-disable-next-line no-descending-specificity
+.list-card {
+  a& {
+    text-decoration: none;
+  }
+
+  display: flex;
+  flex-direction: column;
+
+  background-color: @beige;
+
+  @card-width: 215px;
+  width: @card-width;
+  height: 150px;
+
+  border: 1px solid fade(@black, 25%);
+  border-radius: 4px;
+  box-shadow: 2px 2px 4px fade(@black, 15%);
+
+  &__name-tag {
+    background: @grey-f4f4f4;
+    padding: 7px 10px;
+
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 0 4px fade(@black, 25%);
+  }
+
+  &__title {
+    font-weight: bold;
+    font-size: @font-size-label-large;
+    color: @black;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__num-books {
+    color: @grey-555;
+    font-size: @font-size-label-medium;
+  }
+
+  &__covers {
+    @cover-width: 64px;
+    @padding: 20px;
+
+    flex: 1;
+    min-height: 1px; // fallback
+    overflow: clip;
+
+    display: flex;
+    align-items: center;
+    padding: 0 @padding;
+
+    img {
+      width: @cover-width;
+      border-radius: 4px;
+      box-shadow: 4px 4px 0 fade(@black, 25%);
+    }
+
+    @top-cover: 3;
+    @mid-cover: 2;
+    @bottom-cover: 1;
+
+    @overlap: ((3 * @cover-width - (@card-width - 2 * @padding)) / 2);
+
+    img:nth-child(1) {
+      z-index: @top-cover;
+      transform: translate(0, @padding);
+    }
+    img:nth-child(2) {
+      z-index: @mid-cover;
+      transform: translate(-@overlap, @padding);
+    }
+    img:nth-child(3) {
+      z-index: @bottom-cover;
+      transform: translate(-2 * @overlap, @padding);
+    }
+  }
+
+  // stylelint-disable-next-line no-descending-specificity
+  img {
+    transition: scale .2s;
+  }
+
+  &:hover img {
+    scale: 1.05;
+  }
+}

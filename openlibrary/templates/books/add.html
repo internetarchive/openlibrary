@@ -6,7 +6,8 @@ $ i18n_strings = {
     $ "invalid_checksum": _("Invalid ISBN checksum digit"),
     $ "invalid_isbn10": _("ID must be exactly 10 characters [0-9 or X]. For example 0-19-853453-1 or 0198534531"),
     $ "invalid_isbn13": _("ID must be exactly 13 characters [0-9]. For example 978-3-16-148410-0 or 9783161484100"),
-    $ "invalid_lccn": _("Invalid LC Control Number format")
+    $ "invalid_lccn": _("Invalid LC Control Number format"),
+    $ "empty_id": _("Please enter a value for the selected identifier")
     $ }
 
 <div id="contentHead">
@@ -23,14 +24,14 @@ $ i18n_strings = {
     <form method="post" action="" id="addbook" class="olform addbook1 validate" name="edit">
         <div class="formElement">
             <div class="label">
-                <label for="title">$_("Title")</label> <span class="tip">$:_("Use <b><i>Title: Subtitle</i></b> to add a subtitle.")</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
+                <label for="title">$_("Title")</label> <span class="tip">$:_('Use <b><i>Title: Subtitle</i></b> to add a subtitle.')</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
             </div>
             <div class="input">
                 $if work:
                     <input type="text" id="title" disabled="disabled" value="$work.title"/>
-                    <input type="hidden" name="title" value="$work.title"/>
+                    <input type="hidden" name="book_title" value="$work.title"/>
                 $else:
-                    <input type="text" name="title" id="title" class="required title" style="width:630px;" value="$(work and work.title)" $cond(work, 'readonly="readonly"')/>
+                    <input type="text" name="book_title" id="title" class="required title" style="width:630px;" value="$(work and work.title)" $cond(work, 'readonly="readonly"')/>
             </div>
         </div>
         <div class="formElement">
@@ -56,7 +57,7 @@ $ i18n_strings = {
             </div>
         </div>
 
-        $ admin_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
+        $ admin_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian())
         <div class="formElement">
             <div class="label"><label for="id_value">$:_("And optionally, an ID number &#151; like an ISBN &#151; would be helpful...")</label></div>
                 <label for="id_name" class="hidden">$_("ID Type")</label>
@@ -70,6 +71,8 @@ $ i18n_strings = {
                 <option value="isbn_10">ISBN 10</option>
                 <option value="isbn_13">ISBN 13</option>
                 <option value="lccn">LCCN</option>
+                <option value="librivox">LibriVox</option>
+                <option value="project_gutenberg">Project Gutenberg</option>
                 </select>
                 &nbsp;
                 <input type="text" name="id_value" id="id_value" size="20" style="width:200px;"/>
@@ -95,9 +98,9 @@ $ i18n_strings = {
                 $:_('By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" title="This link to Creative Commons will open in a new window">CC0</a>. Yippee!')
             </div>
             <div class="input">
-                <button type="submit" name="_save" title="$_('Add this book now')" class="larger">$_('Add')</button>
+                <button type="submit" name="_save" title="$_('Add this book now')" class="larger">$_("Add")</button>
                 &nbsp;
-                <a href="javascript:history.go(-1);" class="attn">$_('Cancel')</a>
+                <a href="javascript:history.go(-1);" class="attn">$_("Cancel")</a>
             </div>
         </div>
     </form>

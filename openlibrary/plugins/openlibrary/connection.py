@@ -1,5 +1,6 @@
 """Open Library extension to provide a new kind of client connection with caching support.
 """
+
 from infogami import config
 from infogami.infobase import client, lru
 from infogami.utils import stats

@@ -1,0 +1,26 @@
+$def with (doc, ia_base_url="https://archive.org")
+  $ ocaid = doc.get('ocaid')
+  <li class="searchResultItem">
+    <span class="bookcover">
+      $ cover = "%s/services/img/%s" % (ia_base_url, ocaid)
+      <a href="$ia_base_url/details/$ocaid">
+        <img itemprop="image"
+          src="$cover"
+          alt="$_('Cover of: %(title)s', title=ocaid)"
+          title="$_('Cover of: %(title)s', title=ocaid)"
+        />
+      </a>
+   </span>
+
+    <div class="details">
+        <div class="resultTitle">
+           <h3 itemprop="name" class="booktitle">
+             <a itemprop="url" href="$ia_base_url/details/$ocaid" class="results">$_("Borrowed from Internet Archive: %(title)s", title=ocaid)</a>
+           </h3>
+        </div>
+    </div>
+    $# The following (empty) <div> is to aid in formatting the layout.
+    <div class="searchResultItemCTA">
+    </div>
+  </li>
+

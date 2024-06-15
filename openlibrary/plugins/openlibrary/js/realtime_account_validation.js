@@ -1,9 +1,18 @@
 export function initRealTimeValidation() {
+    const signupForm = document.querySelector('form[name=signup]');
+    const i18nStrings = JSON.parse(signupForm.dataset.i18n);
+
     if (window.grecaptcha) {
         // Callback that is called when grecaptcha.execute() is successful
+        // Checks whether reportValidity exists for cross-browser compatibility
+        // Includes invalid input count to account for checks not covered by reportValidity
         function submitCreateAccountForm() {
-            const signupForm = document.querySelector('form[name=signup]')
-            signupForm.submit()
+            const numInvalidInputs = signupForm.querySelectorAll('input.invalid').length;
+            const isFormattingValid = !signupForm.reportValidity || signupForm.reportValidity()
+
+            if (numInvalidInputs === 0 && isFormattingValid) {
+                signupForm.submit();
+            }
         }
         window.submitCreateAccountForm = submitCreateAccountForm
     }
@@ -13,83 +22,84 @@ export function initRealTimeValidation() {
         $('#userUrl').addClass('darkgreen').text(value).css('font-weight','700');
     });
 
+    /**
+     * Renders an error message for a given input in a given error div.
+     *
+     * @param {string} inputId The ID (incl #) of the input the error relates to
+     * @param {string} errorDiv The ID (incl #) of the div where the error msg will be rendered
+     * @param {string} errorMsg The error message text
+     */
+    function renderError(inputId, errorDiv, errorMsg) {
+        $(inputId).addClass('invalid');
+        $(`label[for=${inputId.slice(1)}]`).addClass('invalid');
+        $(errorDiv).addClass('invalid').text(errorMsg);
+    }
+
+    /**
+     * Clears error styling and message for a given input and error div.
+     *
+     * @param {string} inputId The ID (incl #) of the input the error relates to
+     * @param {string} errorDiv The ID (incl #) of the div where the error msg is currently rendered
+     */
+    function clearError(inputId, errorDiv) {
+        $(inputId).removeClass('invalid');
+        $(`label[for=${inputId.slice(1)}]`).removeClass('invalid');
+        $(errorDiv).removeClass('invalid').text('');
+    }
+
     function validateUsername() {
-        var value = $(this).val();
-        if (!value === '') {
+        const value_username = $(this).val();
+        if (value_username !== '') {
             $.ajax({
-                url: `/account/validate?username=${value}`,
+                url: '/account/validate',
+                data: { username: value_username },
                 type: 'GET',
                 success: function(errors) {
                     if (errors.username) {
-                        $(document.getElementById('username')).removeClass().addClass('required invalid');
-                        $('label[for="username"]').removeClass().addClass('invalid');
-                        $('#usernameMessage').removeClass().addClass('invalid').html(`${errors.username}<br>`);
+                        renderError('#username', '#usernameMessage', errors.username);
                     } else {
-                        $('#usernameMessage').removeClass().addClass('darkgreen').html('<br>');
-                        $('label[for="username"]').removeClass();
-                        $(document.getElementById('username')).removeClass().addClass('required');
+                        clearError('#username', '#usernameMessage');
                     }
                 }
             });
         }
         else {
-            $('label[for="username"]').removeClass();
-            $(document.getElementById('username')).removeClass().addClass('required');
-            $('#usernameMessage').removeClass().html('<br>');
+            clearError('#username', '#usernameMessage');
         }
     }
 
     function validateEmail() {
-        var value_email = $(this).val();
-        if (!value_email === '') {
+        const value_email = $(this).val();
+        if (value_email !== '') {
             $.ajax({
-                url: `/account/validate?email=${encodeURIComponent(value_email)}`,
+                url: '/account/validate',
+                data: { email: value_email },
                 type: 'GET',
                 success: function(errors) {
                     if (errors.email) {
-                        $(document.getElementById('emailAddr')).removeClass().addClass('required invalid');
-                        $('label[for="emailAddr"]').removeClass().addClass('invalid');
-                        $('#emailAddrMessage').removeClass().addClass('invalid').text(errors.email);
+                        renderError('#emailAddr', '#emailAddrMessage', errors.email);
                     } else {
-                        $('#emailAddrMessage').removeClass().addClass('darkgreen').html('');
-                        $('label[for="emailAddr"]').removeClass();
-                        $(document.getElementById('emailAddr')).removeClass().addClass('required');
+                        clearError('#emailAddr', '#emailAddrMessage');
                     }
                 }
             });
         }
         else {
-            $('label[for="emailAddr"]').removeClass();
-            $(document.getElementById('emailAddr')).removeClass().addClass('required');
-            $('#emailAddrMessage').removeClass().text('');
+            clearError('#emailAddr', '#emailAddrMessage');
         }
     }
 
-    function validatePasswords() {
-        var value = document.getElementById('password').value;
-        var value2 = document.getElementById('password2').value;
-        if (value && value2) {
-            if (value2 === value) {
-                $('#password2Message').removeClass().addClass('darkgreen').text('');
-                $('label[for="password2"]').removeClass();
-                $(document.getElementById('password2')).removeClass().addClass('required');
-            }
-            else {
-                $(document.getElementById('password2')).removeClass().addClass('required invalid');
-                $('label[for="password2"]').removeClass().addClass('invalid');
-                $('#password2Message').removeClass().addClass('invalid').text('Passwords didnt match');
-            }
+    function validatePassword() {
+        const value_password = $(this).val();
+        if (value_password !== '' && (value_password.length < 3 || value_password.length > 20)) {
+            renderError('#password', '#passwordMessage', i18nStrings['password_length_err']);
         }
-        else {
-            $('label[for="password2"]').removeClass();
-            $(document.getElementById('password2')).removeClass().addClass('required');
-            $('#password2Message').removeClass().text('');
-        }
+        else clearError('#password', '#passwordMessage');
     }
 
     $('#username').on('blur', validateUsername);
     $('#emailAddr').on('blur', validateEmail);
-    $('#password, #password2').on('blur', validatePasswords);
+    $('#password').on('blur', validatePassword);
 
     $('#signup').on('click', function(e) {
         e.preventDefault();

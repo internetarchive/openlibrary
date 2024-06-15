@@ -1,5 +1,6 @@
 """Utility for loading config file.
 """
+
 import os
 import sys
 import yaml

@@ -1,3 +1,4 @@
+import 'jquery-validation';
 import { ungettext, ugettext } from './i18n';
 
 /**
@@ -14,9 +15,7 @@ import { ungettext, ugettext } from './i18n';
  *          <input type="submit" name="submit" value="Register"/>
  *      </form>
  */
-export default function initValidate() {
-
-
+export function init() {
     // validate publish-date to make sure the date is not in future
     // used in templates/books/add.html
     jQuery.validator.addMethod('publish-date', function(value) {
@@ -27,6 +26,15 @@ export default function initValidate() {
         return tokens && tokens[1] && parseInt(tokens[1]) <= year + 1; // allow one year in future.
     },
     'Are you sure that\'s the published date?'
+    );
+
+    // validate title to make sure it contains at least one non-whitespace
+    // character (otherwise it will appear blank)
+    // used in templates/books/add.html
+    jQuery.validator.addMethod('title', function(value) {
+        return /\S/.test(value);
+    },
+    '',
     );
 
     $.validator.messages.required = '';
@@ -70,4 +78,6 @@ export default function initValidate() {
         $(this).validate($.extend(defaults, options));
     };
 
+    // validate forms
+    $('form.validate').ol_validate();
 }

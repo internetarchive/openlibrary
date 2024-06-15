@@ -1,7 +1,11 @@
 import datetime
 import re
+from typing import TYPE_CHECKING
 import web
 from unicodedata import normalize
+
+if TYPE_CHECKING:
+    from openlibrary.plugins.upstream.models import Author
 
 
 EARLIEST_PUBLISH_YEAR_FOR_BOOKSELLERS = 1400
@@ -38,7 +42,7 @@ def key_int(rec):
     return int(web.numify(rec['key']))
 
 
-def author_dates_match(a: dict, b: dict) -> bool:
+def author_dates_match(a: dict, b: "dict | Author") -> bool:
     """
     Checks if the years of two authors match. Only compares years,
     not names or keys. Works by returning False if any year specified in one record
@@ -340,6 +344,15 @@ def needs_isbn_and_lacks_one(rec: dict) -> bool:
     """
 
     def needs_isbn(rec: dict) -> bool:
+        # Exception for Amazon-specific ASINs, which often accompany ebooks
+        if any(
+            name == "amazon" and identifier.startswith("B")
+            for record in rec.get("source_records", [])
+            if record and ":" in record
+            for name, identifier in [record.split(":", 1)]
+        ):
+            return False
+
         return any(
             record.split(":")[0] in BOOKSELLERS_WITH_ADDITIONAL_VALIDATION
             for record in rec.get('source_records', [])
@@ -359,10 +372,56 @@ def is_promise_item(rec: dict) -> bool:
     )
 
 
+def get_non_isbn_asin(rec: dict) -> str | None:
+    """
+    Return a non-ISBN ASIN (e.g. B012345678) if one exists.
+
+    There is a tacit assumption that at most one will exist.
+    """
+    # Look first in identifiers.
+    amz_identifiers = rec.get("identifiers", {}).get("amazon", [])
+    if asin := next(
+        (identifier for identifier in amz_identifiers if identifier.startswith("B")),
+        None,
+    ):
+        return asin
+
+    # Finally, check source_records.
+    if asin := next(
+        (
+            record.split(":")[-1]
+            for record in rec.get("source_records", [])
+            if record.startswith("amazon:B")
+        ),
+        None,
+    ):
+        return asin
+
+    return None
+
+
+def is_asin_only(rec: dict) -> bool:
+    """Returns True if the rec has only an ASIN and no ISBN, and False otherwise."""
+    # Immediately return False if any ISBNs are present
+    if any(isbn_type in rec for isbn_type in ("isbn_10", "isbn_13")):
+        return False
+
+    # Check for Amazon source records starting with "B".
+    if any(record.startswith("amazon:B") for record in rec.get("source_records", [])):
+        return True
+
+    # Check for Amazon identifiers starting with "B".
+    amz_identifiers = rec.get("identifiers", {}).get("amazon", [])
+    if any(identifier.startswith("B") for identifier in amz_identifiers):
+        return True
+
+    return False
+
+
 def get_missing_fields(rec: dict) -> list[str]:
     """Return missing fields, if any."""
     required_fields = [
         'title',
         'source_records',
     ]
-    return [field for field in required_fields if rec.get(field, None) is None]
+    return [field for field in required_fields if rec.get(field) is None]

@@ -4,18 +4,26 @@ for access to the mocker fixture.
 
 # docker compose run --rm home pytest scripts/tests/test_affiliate_server.py
 """
+
+import json
 import sys
+from typing import Any
 from unittest.mock import MagicMock
+
+import pytest
 
 # TODO: Can we remove _init_path someday :(
 sys.modules['_init_path'] = MagicMock()
-
 from openlibrary.mocks.mock_infobase import mock_site  # noqa: F401
 from scripts.affiliate_server import (  # noqa: E402
+    PrioritizedIdentifier,
+    Priority,
+    Submit,
     get_isbns_from_book,
     get_isbns_from_books,
     get_editions_for_books,
     get_pending_books,
+    make_cache_key,
 )
 
 ol_editions = {
@@ -118,3 +126,56 @@ def test_get_isbns_from_books():
         '1234567890124',
         '1234567891',
     ]
+
+
+def test_prioritized_identifier_equality_set_uniqueness() -> None:
+    """
+    `PrioritizedIdentifier` is unique in a set when no other class instance
+    in the set has the same identifier.
+    """
+    identifier_1 = PrioritizedIdentifier(identifier="1111111111")
+    identifier_2 = PrioritizedIdentifier(identifier="2222222222")
+
+    set_one = set()
+    set_one.update([identifier_1, identifier_1])
+    assert len(set_one) == 1
+
+    set_two = set()
+    set_two.update([identifier_1, identifier_2])
+    assert len(set_two) == 2
+
+
+def test_prioritized_identifier_serialize_to_json() -> None:
+    """
+    `PrioritizedIdentifier` needs to be be serializable to JSON because it is sometimes
+    called in, e.g. `json.dumps()`.
+    """
+    p_identifier = PrioritizedIdentifier(
+        identifier="1111111111", priority=Priority.HIGH
+    )
+    dumped_identifier = json.dumps(p_identifier.to_dict())
+    dict_identifier = json.loads(dumped_identifier)
+
+    assert dict_identifier["priority"] == "HIGH"
+    assert isinstance(dict_identifier["timestamp"], str)
+
+
+@pytest.mark.parametrize(
+    ["isbn_or_asin", "expected_key"],
+    [
+        ({"isbn_10": [], "isbn_13": ["9780747532699"]}, "9780747532699"),  # Use 13.
+        (
+            {"isbn_10": ["0747532699"], "source_records": ["amazon:B06XYHVXVJ"]},
+            "9780747532699",
+        ),  # 10 -> 13.
+        (
+            {"isbn_10": [], "isbn_13": [], "source_records": ["amazon:B06XYHVXVJ"]},
+            "B06XYHVXVJ",
+        ),  # Get non-ISBN 10 ASIN from `source_records` if necessary.
+        ({"isbn_10": [], "isbn_13": [], "source_records": []}, ""),  # Nothing to use.
+        ({}, ""),  # Nothing to use.
+    ],
+)
+def test_make_cache_key(isbn_or_asin: dict[str, Any], expected_key: str) -> None:
+    got = make_cache_key(isbn_or_asin)
+    assert got == expected_key

@@ -3,7 +3,7 @@
   "info": {
     "title": "Open Library API",
     "version": "0.1.0",
-    "description": "- These are still in development and may not be perfect\n- Contribute by proposing edits to [openapi.json](https://github.com/internetarchive/openlibrary/blob/master/static/openapi.json)\n- Please do not use our APIs for bulk downloads, see [dev center](https://openlibrary.org/developers/api)"
+    "description": "- These are still in development and may not be perfect\n- Contribute by proposing edits to [openapi.json](https://github.com/internetarchive/openlibrary/blob/master/static/openapi.json)\n- Please do not use our APIs for bulk downloads, see [dev center](https://openlibrary.org/developers/api) \n- (Warning!) As Swagger only contains a subset of the API, please see the API pages in the developer's docs for the full set."
   },
   "tags": [
     {

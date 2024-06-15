@@ -30,7 +30,6 @@
 
 @import (less) "components/read-panel.less";
 @import (less) "components/diff.less";
-@import (less) "components/iconochive.less";
 @import (less) "components/carousel.less";
 @import (less) "components/editions.less";
 @import (less) "components/header.less";
@@ -134,7 +133,7 @@ table {
       margin-left: 10px;
     }
   }
-  // openlibrary/templates/lib/markdown.html
+  // https://openlibrary.org/help/markdown
   &.help {
     margin: 20px 0;
     border-top: 1px solid @grey-e7e7e7;
@@ -255,13 +254,6 @@ em {
     width: 958px !important;
     padding: 0 !important;
     position: relative;
-  }
-}
-
-#contentBody,
-#contentMeta {
-  .tabs ul {
-    margin-left: 0;
   }
 }
 
@@ -510,7 +502,7 @@ input {
     font-size: 1.125em;
   }
   &.invalid {
-    border: 1px solid @red;
+    border-color: @red;
     color: @dark-grey;
   }
   &.highlight {
@@ -819,7 +811,6 @@ input.query {
 /* DIALOGS */
 
 // openlibrary/macros/EditButtons.html
-// openlibrary/macros/EditButtonsMacros.html
 div.cclicense {
   font-family: @lucida_sans_serif-2;
   font-size: .75em;
@@ -1422,7 +1413,6 @@ ul {
 @import (less) "components/page-history.less";
 
 // openlibrary/macros/CoverImage.html
-// openlibrary/macros/SRPCoverImage.html
 // openlibrary/templates/covers/book_cover.html
 // openlibrary/templates/covers/book_cover_single_edition.html
 .BookTitle {
@@ -1439,7 +1429,6 @@ ul {
   line-height: normal;
 }
 
-// openlibrary/macros/SRPCoverImage.html
 // openlibrary/templates/covers/book_cover.html
 // openlibrary/templates/covers/book_cover_single_edition.html
 .Author {
@@ -1843,27 +1832,10 @@ div#subjectLists {
 // openlibrary/templates/account/privacy.html
 // openlibrary/templates/account.html
 .account-settings-menu {
-  margin-bottom: 15px;
   display: flex;
 }
 
 @import (less) "components/rating-form.less";
-
-// openlibrary/templates/lists/home.html
-// openlibrary/templates/search/lists.html
-// openlibrary/templates/search/inside.html
-.searchInsideForm {
-  input[type=text] {
-    margin: 0;
-    padding: 5px;
-    width: 100%;
-    max-width: 500px;
-    min-width: 100px;
-  }
-  input[type=submit] {
-    padding: 5px;
-  }
-}
 @import (less) "components/searchResultItemCta.less";
 
 @media only screen and (min-width: @width-breakpoint-tablet) {

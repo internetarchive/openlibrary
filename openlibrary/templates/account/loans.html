@@ -78,7 +78,7 @@ $else:
                     </a>
                     </span>
                     <span class="author">
-                    $:macros.BookByline([(a.name, a.url()) for a in book.get_authors()])
+                    $:macros.BookByline([{'name': a.name, 'url': a.url()} for a in book.get_authors()])
                     </span>
                     <div class="date">
                     Borrowed $datestr(datetime_from_utc_timestamp(loan['loaned_at']))
@@ -124,17 +124,6 @@ $else:
     $else:
         <div id="leave-waitinglist-dialog" class="hidden dialog"
              title="$_('Leave the Waiting List')">$:_('Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?')</div>
-        <script type="text/javascript">
-        window.q.push(function() {
-            \$("a.leave").on('click', function() {
-                var title = \$(this).parents("tr").find(".book").text();
-                \$("#leave-waitinglist-dialog strong").text(title);
-                \$("#leave-waitinglist-dialog")
-                    .data("origin", \$(this))
-                    .dialog("open");
-            });
-        });
-        </script>
         <div class="borrow borrow-table collapse waitinglist">
           <table>
               <thead>
@@ -161,7 +150,7 @@ $else:
                               <a href="$book.key" class="borrowResults"><strong>$book.title</strong></a>
                           </span>
                           <span class="author">
-                              $:macros.BookByline([(a.name, a.url()) for a in book.get_authors()])
+                              $:macros.BookByline([{'name': a.name, 'url': a.url()} for a in book.get_authors()])
                           </span>
                           <div class="date">
                               $ ndays = record.get_waiting_in_days()
@@ -192,7 +181,7 @@ $else:
                           $if status == "available":
                               <form action="$book.url('/borrow')" method="post">
                                   <input type="hidden" name="action" value="borrow" />
-                                  <input type="submit" value=$_("Borrow Now") />
+                                  <input type="submit" value="$_('Borrow Now')" />
                               </form>
                           <form action="$book.url('/borrow?redirect=/account/loans')"
                                 method="POST" class="wlform">
@@ -210,7 +199,7 @@ $else:
 <hr/>
 <br/>
 
-<div>Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:</div>
+<div>$_("Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:")</div>
      $:render_template("home/custom_ia_carousel", title=_('Books We Love'), key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["lending___last_browse desc"], limit=18, test=test, compact_mode=True)
     $:render_template("home/categories", test=test)
-    Or, check out our <a href="/collections">special collections</a>.
+    $:_('Or, check out our <a href="/collections">special collections</a>.')

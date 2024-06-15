@@ -35,7 +35,7 @@ logger = logging.getLogger("openlibrary.book")
 
 
 def get_recaptcha():
-    def recaptcha_exempt():
+    def recaptcha_exempt() -> bool:
         """Check to see if account is an admin, or more than two years old."""
         user = web.ctx.site.get_user()
         account = user and user.get_account()
@@ -51,7 +51,7 @@ def get_recaptcha():
         delta = now_dt - create_dt
         return delta.days > 30
 
-    def is_plugin_enabled(name):
+    def is_plugin_enabled(name) -> bool:
         plugin_names = delegate.get_plugins()
         return name in plugin_names or "openlibrary.plugins." + name in plugin_names
 
@@ -97,18 +97,15 @@ def make_work(doc: dict[str, str | list]) -> web.Storage:
 
 
 @overload
-def new_doc(type_: Literal["/type/author"], **data) -> Author:
-    ...
+def new_doc(type_: Literal["/type/author"], **data) -> Author: ...
 
 
 @overload
-def new_doc(type_: Literal["/type/edition"], **data) -> Edition:
-    ...
+def new_doc(type_: Literal["/type/edition"], **data) -> Edition: ...
 
 
 @overload
-def new_doc(type_: Literal["/type/work"], **data) -> Work:
-    ...
+def new_doc(type_: Literal["/type/work"], **data) -> Work: ...
 
 
 def new_doc(type_: str, **data) -> Author | Edition | Work:
@@ -129,13 +126,13 @@ class DocSaveHelper:
     def __init__(self):
         self.docs = []
 
-    def save(self, doc):
+    def save(self, doc) -> None:
         """Adds the doc to the list of docs to be saved."""
         if not isinstance(doc, dict):  # thing
             doc = doc.dict()
         self.docs.append(doc)
 
-    def commit(self, **kw):
+    def commit(self, **kw) -> None:
         """Saves all the collected docs."""
         if self.docs:
             web.ctx.site.save_many(self.docs, **kw)
@@ -172,7 +169,7 @@ def encode_url_path(url: str) -> str:
     '/'
     >>> encode_url_path('/books/OL11M/进入该海域?mode=add-work')
     '/books/OL11M/%E8%BF%9B%E5%85%A5%E8%AF%A5%E6%B5%B7%E5%9F%9F?mode=add-work'
-    """
+    """  # noqa: RUF002
     result = urllib.parse.urlparse(url)
     correct_path = "/".join(urllib.parse.quote(part) for part in result.path.split("/"))
     result = result._replace(path=correct_path)
@@ -219,6 +216,7 @@ class addbook(delegate.page):
     def POST(self):
         i = web.input(
             title="",
+            book_title="",
             publisher="",
             publish_date="",
             id_name="",
@@ -226,6 +224,7 @@ class addbook(delegate.page):
             web_book_url="",
             _test="false",
         )
+        i.title = i.book_title
 
         if spamcheck.is_spam(i, allow_privileged_edits=True):
             return render_template(
@@ -559,10 +558,7 @@ class SaveBookHelper:
         user = accounts.get_current_user()
         delete = (
             user
-            and (
-                user.is_admin()
-                or user.is_usergroup_member('/usergroup/super-librarians')
-            )
+            and (user.is_admin() or user.is_super_librarian())
             and formdata.pop('_delete', '')
         )
 
@@ -658,8 +654,8 @@ class SaveBookHelper:
         doc = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
         doc._save(comment=comment)
 
-    def process_new_fields(self, formdata):
-        def f(name):
+    def process_new_fields(self, formdata: dict):
+        def f(name: str):
             val = formdata.get(name)
             return val and json.loads(val)
 
@@ -753,9 +749,9 @@ class SaveBookHelper:
             f = io.StringIO(subjects.replace('\r\n', ''))
             dedup = set()
             for s in next(csv.reader(f, dialect='excel', skipinitialspace=True)):
-                if s.lower() not in dedup:
+                if s.casefold() not in dedup:
                     yield s
-                    dedup.add(s.lower())
+                    dedup.add(s.casefold())
 
         work.subjects = list(read_subject(work.get('subjects', '')))
         work.subject_places = list(read_subject(work.get('subject_places', '')))
@@ -778,12 +774,10 @@ class SaveBookHelper:
 
         return trim_doc(work)
 
-    def _prevent_ocaid_deletion(self, edition):
+    def _prevent_ocaid_deletion(self, edition) -> None:
         # Allow admins to modify ocaid
         user = accounts.get_current_user()
-        if user and (
-            user.is_admin() or user.is_usergroup_member('/usergroup/super-librarians')
-        ):
+        if user and (user.is_admin() or user.is_super_librarian()):
             return
 
         # read ocaid from form data

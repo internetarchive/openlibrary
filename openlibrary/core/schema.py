@@ -1,5 +1,6 @@
 """Infobase schema for Open Library
 """
+
 from infogami.infobase import dbstore
 import web
 

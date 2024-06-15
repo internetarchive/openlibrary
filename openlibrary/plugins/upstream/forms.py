@@ -6,6 +6,7 @@ from openlibrary.i18n import lgettext as _
 from openlibrary.utils.form import (
     Form,
     Textbox,
+    Email,
     Password,
     Checkbox,
     Hidden,
@@ -54,7 +55,7 @@ username_validator = Validator(
 )
 
 vlogin = RegexpValidator(
-    r"^[A-Za-z0-9-_]{3,20}$", _('Must be between 3 and 20 letters and numbers')
+    r"^[A-Za-z0-9\-_]{3,20}$", _('Must be between 3 and 20 letters and numbers')
 )
 vpass = RegexpValidator(r".{3,20}", _('Must be between 3 and 20 characters'))
 vemail = RegexpValidator(r".*@.*", _("Must be a valid email address"))
@@ -73,11 +74,12 @@ class EqualToValidator(Validator):
 
 class RegisterForm(Form):
     INPUTS = [
-        Textbox(
+        Email(
             'email',
             description=_('Your email address'),
             klass='required',
             id='emailAddr',
+            required="true",
             validators=[
                 vemail,
                 email_not_already_used,
@@ -95,21 +97,18 @@ class RegisterForm(Form):
             help=_("Letters and numbers only please, and at least 3 characters."),
             autocapitalize="off",
             validators=[vlogin, username_validator],
+            pattern=vlogin.rexp.pattern,
+            title=vlogin.msg,
+            required="true",
         ),
         Password(
             'password',
             description=_('Choose a password'),
             klass='required',
             validators=[vpass],
-        ),
-        Password(
-            'password2',
-            description=_('Confirm password'),
-            klass='required',
-            validators=[
-                vpass,
-                EqualToValidator('password', _("Passwords didn't match.")),
-            ],
+            minlength="3",
+            maxlength="20",
+            required="true",
         ),
         Checkbox(
             'ia_newsletter',

@@ -1,25 +1,41 @@
 import json
 import web
 
-from typing import Final, Literal
+from typing import Final, Literal, cast
 
+from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import public, safeint, render
 
 from openlibrary.i18n import gettext as _
 
 from openlibrary import accounts
+from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.core.lending import add_availability, get_loans_of_user
+from openlibrary.core.lending import (
+    add_availability,
+    get_loans_of_user,
+)
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.core.sponsorships import get_sponsored_editions
 from openlibrary.core.models import LoggedBooksData
+from openlibrary.core.models import User
+from openlibrary.core.follows import PubSub
+from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 
 
 RESULTS_PER_PAGE: Final = 25
+
+
+class avatar(delegate.page):
+    path = "/people/([^/]+)/avatar"
+
+    def GET(self, username):
+        url = User.get_avatar_url(username)
+        raise web.seeother(url)
 
 
 class mybooks_home(delegate.page):
@@ -51,7 +67,7 @@ class mybooks_home(delegate.page):
                 loans.docs.append(book)
 
         if mb.me or mb.is_public:
-            params = {'sort': 'created', 'limit': 6, 'sort_order': 'asc', 'page': 1}
+            params = {'sort': 'created', 'limit': 6, 'sort_order': 'desc', 'page': 1}
             want_to_read = mb.readlog.get_works(key='want-to-read', **params)
             currently_reading = mb.readlog.get_works(key='currently-reading', **params)
             already_read = mb.readlog.get_works(key='already-read', **params)
@@ -92,9 +108,9 @@ class mybooks_notes(delegate.page):
         i = web.input(page=1)
         mb = MyBooksTemplate(username, key='notes')
         if mb.is_my_page:
-            docs = PatronBooknotes(mb.user).get_notes(page=i.page)
+            docs = PatronBooknotes(mb.user).get_notes(page=int(i.page))
             template = render['account/notes'](
-                docs, mb.user, mb.counts['notes'], page=i.page
+                docs, mb.user, mb.counts['notes'], page=int(i.page)
             )
             return mb.render(header_title=_("Notes"), template=template)
         raise web.seeother(mb.user.key)
@@ -107,11 +123,32 @@ class mybooks_reviews(delegate.page):
         i = web.input(page=1)
         mb = MyBooksTemplate(username, key='observations')
         if mb.is_my_page:
-            docs = PatronBooknotes(mb.user).get_observations(page=i.page)
+            docs = PatronBooknotes(mb.user).get_observations(page=int(i.page))
             template = render['account/observations'](
-                docs, mb.user, mb.counts['observations'], page=i.page
+                docs, mb.user, mb.counts['observations'], page=int(i.page)
             )
             return mb.render(header_title=_("Reviews"), template=template)
+        raise web.seeother(mb.user.key)
+
+
+class mybooks_feed(delegate.page):
+    path = "/people/([^/]+)/books/feed"
+
+    def GET(self, username):
+        mb = MyBooksTemplate(username, key='feed')
+        if mb.is_my_page:
+            docs = PubSub.get_feed(username)
+            doc_count = len(docs)
+            template = render['account/reading_log'](
+                docs,
+                mb.key,
+                doc_count,
+                doc_count,
+                mb.is_my_page,
+                current_page=1,
+                user=mb.me,
+            )
+            return mb.render(header_title=_("My Feed"), template=template)
         raise web.seeother(mb.user.key)
 
 
@@ -174,6 +211,7 @@ class readinglog_stats(delegate.page):
             {
                 # Fallback to key if it is a redirect
                 'title': w.get('title') or w.key,
+                'subtitle': w.get('subtitle'),
                 'key': w.get('key'),
                 'author_keys': ['/authors/' + key for key in w.get('author_key', [])],
                 'first_publish_year': w.get('first_publish_year') or None,
@@ -215,6 +253,7 @@ class readinglog_yearly(delegate.page):
             # ensuring that the year is at least four digits long avoids incorrect results.
             raise web.badrequest(message="Year must be four digits")
         mb = MyBooksTemplate(username, 'already-read')
+        mb.selected_year = str(year)
         template = mybooks_readinglog().render_template(mb, year=year)
         return mb.render(template=template, header_title=_("Already Read"))
 
@@ -223,13 +262,20 @@ class mybooks_readinglog(delegate.page):
     path = r'/people/([^/]+)/books/(want-to-read|currently-reading|already-read)'
 
     def GET(self, username, key='want-to-read'):
-        KEYS_TITLES = {
-            'currently-reading': _("Currently Reading"),
-            'want-to-read': _("Want to Read"),
-            'already-read': _("Already Read"),
-        }
         mb = MyBooksTemplate(username, key)
         if mb.is_my_page or mb.is_public:
+            KEYS_TITLES = {
+                'currently-reading': _(
+                    "Currently Reading (%(count)d)",
+                    count=mb.counts['currently-reading'],
+                ),
+                'want-to-read': _(
+                    "Want to Read (%(count)d)", count=mb.counts['want-to-read']
+                ),
+                'already-read': _(
+                    "Already Read (%(count)d)", count=mb.counts['already-read']
+                ),
+            }
             template = self.render_template(mb)
             return mb.render(header_title=KEYS_TITLES[key], template=template)
         raise web.seeother(mb.user.key)
@@ -249,6 +295,15 @@ class mybooks_readinglog(delegate.page):
         # Add ratings to "already-read" items.
         if include_ratings := mb.key == "already-read" and mb.is_my_page:
             logged_book_data.load_ratings()
+
+        # Add yearly reading goals to the MyBooksTemplate
+        if mb.key == 'already-read' and mb.is_my_page:
+            mb.reading_goals = [
+                str(result.year)
+                for result in YearlyReadingGoals.select_by_username(
+                    mb.username, order='year DESC'
+                )
+            ]
 
         ratings = logged_book_data.ratings
         return render['account/reading_log'](
@@ -273,11 +328,12 @@ class public_my_books_json(delegate.page):
     encoding = "json"
 
     def GET(self, username, key='want-to-read'):
-        i = web.input(page=1, limit=5000, q="")
+        i = web.input(page=1, limit=100, q="")
+        key = cast(ReadingLog.READING_LOG_KEYS, key.lower())
         if len(i.q) < 3:
             i.q = ""
         page = safeint(i.page, 1)
-        limit = safeint(i.limit, 5000)
+        limit = safeint(i.limit, 100)
         # check if user's reading log is public
         user = web.ctx.site.get('/people/%s' % username)
         if not user:
@@ -293,7 +349,7 @@ class public_my_books_json(delegate.page):
             and logged_in_user.key.split('/')[-1] == username
         ):
             readlog = ReadingLog(user=user)
-            books = readlog.get_works(key.lower(), page, limit, q=i.q).docs
+            books = readlog.get_works(key, page, limit, q=i.q).docs
             records_json = [
                 {
                     'work': {
@@ -318,8 +374,20 @@ class public_my_books_json(delegate.page):
                 }
                 for w in books
             ]
+
+            if page == 1 and len(records_json) < limit:
+                num_found = len(records_json)
+            else:
+                num_found = readlog.count_shelf(key)
+
             return delegate.RawText(
-                json.dumps({'page': page, 'reading_log_entries': records_json}),
+                json.dumps(
+                    {
+                        'page': page,
+                        'numFound': num_found,
+                        'reading_log_entries': records_json,
+                    }
+                ),
                 content_type="application/json",
             )
         else:
@@ -350,6 +418,7 @@ class MyBooksTemplate:
     # unioned with the public keys
     ALL_KEYS = PUBLIC_KEYS | {
         "loans",
+        "feed",
         "waitlist",
         "sponsorships",
         "notes",
@@ -371,6 +440,11 @@ class MyBooksTemplate:
         self.me = accounts.get_current_user()
         self.my_username = self.me and self.me.key.split('/')[-1]
         self.is_my_page = self.me and self.me.key.split('/')[-1] == self.username
+        self.is_subscribed = (
+            PubSub.is_subscribed(self.my_username, self.username)
+            if not self.is_my_page and self.is_public
+            else -1
+        )
         self.key = key.lower()
         self.sponsorships = []
 
@@ -379,8 +453,15 @@ class MyBooksTemplate:
         self.counts = (
             self.readlog.reading_log_counts
             if (self.is_my_page or self.is_public)
-            else []
+            else {}
         )
+
+        self.reading_goals = []
+        self.selected_year = None
+
+        if self.me and self.is_my_page or self.is_public:
+            self.counts['followers'] = PubSub.count_followers(self.username)
+            self.counts['following'] = PubSub.count_following(self.username)
 
         if self.me and self.is_my_page:
             self.counts.update(PatronBooknotes.get_counts(self.username))
@@ -416,6 +497,11 @@ class ReadingLog:
     # Constants
     PRESET_SHELVES = Literal["Want to Read", "Already Read", "Currently Reading"]
     READING_LOG_KEYS = Literal["want-to-read", "already-read", "currently-reading"]
+    READING_LOG_KEY_TO_SHELF: dict[READING_LOG_KEYS, PRESET_SHELVES] = {
+        "want-to-read": "Want to Read",
+        "already-read": "Already Read",
+        "currently-reading": "Currently Reading",
+    }
 
     def __init__(self, user=None):
         self.user = user or accounts.get_current_user()
@@ -460,6 +546,12 @@ class ReadingLog:
             ),
         }
 
+    def count_shelf(self, key: READING_LOG_KEYS) -> int:
+        username = self.user.get_username()
+        assert username
+        shelf_id = Bookshelves.PRESET_BOOKSHELVES[self.READING_LOG_KEY_TO_SHELF[key]]
+        return Bookshelves.count_user_books_on_shelf(username, shelf_id)
+
     def get_works(
         self,
         key: READING_LOG_KEYS,
@@ -476,16 +568,8 @@ class ReadingLog:
 
         See LoggedBooksData for specifics on what's returned.
         """
-        if key == "want-to-read":
-            shelf = "Want to Read"
-        elif key == "already-read":
-            shelf = "Already Read"
-        elif key == "currently-reading":
-            shelf = "Currently Reading"
-        else:
-            raise ValueError(
-                "key must be want-to-read, already-read, or currently-reading"
-            )
+        shelf = self.READING_LOG_KEY_TO_SHELF[key]
+
         # Mypy is unhappy about the sort argument not being a literal string.
         # Although this doesn't satisfy Mypy, at least make sure sort is either
         # "created asc" or "created desc"
@@ -522,7 +606,7 @@ def add_read_statuses(username, works):
         results_map[f"OL{result['work_id']}W"] = result['bookshelf_id']
     for work in works:
         work_olid = work.key.split('/')[-1]
-        work['readinglog'] = results_map.get(work_olid, None)
+        work['readinglog'] = results_map.get(work_olid)
     return works
 
 

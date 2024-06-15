@@ -2,6 +2,7 @@
 Open Library Plugin.
 """
 
+from urllib.parse import parse_qs, urlparse, urlencode, urlunparse
 import requests
 import web
 import json
@@ -34,9 +35,9 @@ from infogami.core.db import ValidationException
 
 from openlibrary.core import cache
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
-from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
+from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13, canonical
 from openlibrary.core.models import Edition
-from openlibrary.core.lending import get_work_availability, get_edition_availability
+from openlibrary.core.lending import get_availability
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
 from openlibrary.plugins.openlibrary.stats import increment_error_count
@@ -45,6 +46,7 @@ from openlibrary.plugins.openlibrary import processors
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
 delegate.app.add_processor(processors.CORSProcessor(cors_prefixes={'/api/'}))
+delegate.app.add_processor(processors.PreferenceProcessor())
 
 try:
     from infogami.plugins.api import code as api
@@ -252,26 +254,24 @@ class addbook(delegate.page):
 
 
 class widget(delegate.page):
-    path = r'/(works|books)/(OL\d+[W|M])/widget'
+    path = r'(/works/OL\d+W|/books/OL\d+M)/widget'
 
-    def GET(self, _type, olid=None):
-        if olid:
-            getter = (
-                get_work_availability if _type == 'works' else get_edition_availability
-            )
-            item = web.ctx.site.get(f'/{_type}/{olid}') or {}
-            item['olid'] = olid
-            item['availability'] = getter(olid).get(item['olid'])
-            item['authors'] = [
-                web.storage(key=a.key, name=a.name or None) for a in item.get_authors()
-            ]
-            return delegate.RawText(
-                render_template(
-                    'widget', item if _type == 'books' else format_work_data(item)
-                ),
-                content_type='text/html',
-            )
-        raise web.seeother('/')
+    def GET(self, key: str):  # type: ignore[override]
+        olid = key.split('/')[-1]
+        item = web.ctx.site.get(key)
+        is_work = key.startswith('/works/')
+        item['olid'] = olid
+        item['availability'] = get_availability(
+            'openlibrary_work' if is_work else 'openlibrary_edition',
+            [olid],
+        ).get(olid)
+        item['authors'] = [
+            web.storage(key=a.key, name=a.name or None) for a in item.get_authors()
+        ]
+        return delegate.RawText(
+            render_template('widget', format_work_data(item) if is_work else item),
+            content_type='text/html',
+        )
 
 
 class addauthor(delegate.page):
@@ -428,6 +428,7 @@ class ia_js_cdn(delegate.page):
 
     def GET(self, filename):
         web.header('Content-Type', 'text/javascript')
+        web.header("Cache-Control", "max-age=%d" % (24 * 3600))
         return web.ok(fetch_ia_js(filename))
 
 
@@ -463,10 +464,33 @@ class health(delegate.page):
         return web.ok('OK')
 
 
-class isbn_lookup(delegate.page):
-    path = r'/(?:isbn|ISBN)/([0-9xX-]+)'
+def remove_high_priority(query: str) -> str:
+    """
+    Remove `high_priority=true` and `high_priority=false` from query parameters,
+    as the API expects to pass URL parameters through to another query, and
+    these may interfere with that query.
 
-    def GET(self, isbn):
+    >>> remove_high_priority('high_priority=true&v=1')
+    'v=1'
+    """
+    query_params = parse_qs(query)
+    query_params.pop("high_priority", None)
+    new_query = urlencode(query_params, doseq=True)
+    return new_query
+
+
+class isbn_lookup(delegate.page):
+    path = r'/(?:isbn|ISBN)/(.{10,})'
+
+    def GET(self, isbn: str):
+        input = web.input(high_priority=False)
+        isbn = isbn if isbn.upper().startswith("B") else canonical(isbn)
+        high_priority = input.get("high_priority") == "true"
+        if "high_priority" in web.ctx.env.get('QUERY_STRING'):
+            web.ctx.env['QUERY_STRING'] = remove_high_priority(
+                web.ctx.env.get('QUERY_STRING')
+            )
+
         # Preserve the url type (e.g. `.json`) and query params
         ext = ''
         if web.ctx.encoding and web.ctx.path.endswith('.' + web.ctx.encoding):
@@ -475,7 +499,7 @@ class isbn_lookup(delegate.page):
             ext += '?' + web.ctx.env['QUERY_STRING']
 
         try:
-            if ed := Edition.from_isbn(isbn):
+            if ed := Edition.from_isbn(isbn_or_asin=isbn, high_priority=high_priority):
                 return web.found(ed.key + ext)
         except Exception as e:
             logger.error(e)
@@ -998,11 +1022,23 @@ class Partials(delegate.page):
     encoding = 'json'
 
     def GET(self):
-        i = web.input(workid=None, _component=None)
+        # `data` is meant to be a dict with two keys: `args` and `kwargs`.
+        # `data['args']` is meant to be a list of a template's positional arguments, in order.
+        # `data['kwargs']` is meant to be a dict containing a template's keyword arguments.
+        i = web.input(workid=None, _component=None, data=None)
         component = i.pop("_component")
         partial = {}
         if component == "RelatedWorkCarousel":
             partial = _get_relatedcarousels_component(i.workid)
+        elif component == "AffiliateLinks":
+            data = json.loads(i.data)
+            args = data.get('args', [])
+            # XXX : Throw error if args length is less than 2
+            macro = web.template.Template.globals['macros'].AffiliateLinks(
+                args[0], args[1]
+            )
+            partial = {"partials": str(macro)}
+
         return delegate.RawText(json.dumps(partial))
 
 
@@ -1054,6 +1090,16 @@ def is_bot():
         'bingbot',
         'mj12bot',
         'yoozbotadsbot',
+        'ahrefsbot',
+        'amazonbot',
+        'applebot',
+        'bingbot',
+        'brightbot',
+        'gptbot',
+        'petalbot',
+        'semanticscholarbot',
+        'yandex.com/bots',
+        'icc-crawler',
     ]
     if not web.ctx.env.get('HTTP_USER_AGENT'):
         return True

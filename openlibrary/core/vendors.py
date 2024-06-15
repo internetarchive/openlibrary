@@ -2,6 +2,8 @@ from __future__ import annotations
 import logging
 import re
 import time
+
+from datetime import date
 from typing import Any, Literal
 
 import requests
@@ -42,6 +44,20 @@ ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
 def setup(config):
     global affiliate_server_url
     affiliate_server_url = config.get('affiliate_server')
+
+
+def get_lexile(isbn):
+    try:
+        url = 'https://atlas-fab.lexile.com/free/books/' + str(isbn)
+        headers = {'accept': 'application/json; version=1.0'}
+        lexile = requests.get(url, headers=headers)
+        lexile.raise_for_status()  # this will raise an error for us if the http status returned is not 200 OK
+        data = lexile.json()
+        return data, data.get("error_msg")
+    except Exception as e:  # noqa: BLE001
+        if e.response.status_code not in [200, 404]:
+            raise Exception(f"Got bad response back from server: {e}")
+        return {}, e
 
 
 class AmazonAPI:
@@ -226,13 +242,16 @@ class AmazonAPI:
             logger.exception(f"serialize({product})")
             publish_date = None
 
+        asin_is_isbn10 = not product.asin.startswith("B")
+        isbn_13 = isbn_10_to_isbn_13(product.asin) if asin_is_isbn10 else None
+
         book = {
             'url': "https://www.amazon.com/dp/{}/?tag={}".format(
                 product.asin, h.affiliate_id('amazon')
             ),
             'source_records': ['amazon:%s' % product.asin],
-            'isbn_10': [product.asin],
-            'isbn_13': [isbn_10_to_isbn_13(product.asin)],
+            'isbn_10': [product.asin] if asin_is_isbn10 else [],
+            'isbn_13': [isbn_13] if isbn_13 else [],
             'price': price and price.display_amount,
             'price_amt': price and price.amount and int(100 * price.amount),
             'title': (
@@ -280,16 +299,24 @@ def get_amazon_metadata(
     id_: str,
     id_type: Literal['asin', 'isbn'] = 'isbn',
     resources: Any = None,
-    retries: int = 0,
+    high_priority: bool = False,
+    stage_import: bool = True,
 ) -> dict | None:
     """Main interface to Amazon LookupItem API. Will cache results.
 
     :param str id_: The item id: isbn (10/13), or Amazon ASIN.
     :param str id_type: 'isbn' or 'asin'.
+    :param bool high_priority: Priority in the import queue. High priority
+           goes to the front of the queue.
+    param bool stage_import: stage the id_ for import if not in the cache.
     :return: A single book item's metadata, or None.
     """
     return cached_get_amazon_metadata(
-        id_, id_type=id_type, resources=resources, retries=retries
+        id_,
+        id_type=id_type,
+        resources=resources,
+        high_priority=high_priority,
+        stage_import=stage_import,
     )
 
 
@@ -307,8 +334,8 @@ def _get_amazon_metadata(
     id_: str,
     id_type: Literal['asin', 'isbn'] = 'isbn',
     resources: Any = None,
-    retries: int = 0,
-    sleep_sec: float = 1,
+    high_priority: bool = False,
+    stage_import: bool = True,
 ) -> dict | None:
     """Uses the Amazon Product Advertising API ItemLookup operation to locate a
     specific book by identifier; either 'isbn' or 'asin'.
@@ -318,12 +345,11 @@ def _get_amazon_metadata(
     :param str id_type: 'isbn' or 'asin'.
     :param Any resources: Used for AWSE Commerce Service lookup
            See https://webservices.amazon.com/paapi5/documentation/get-items.html
-    :param int retries: Number of times to query affiliate server before returning None
-    :param float sleep_sec: Delay time.sleep(sleep_sec) seconds before each retry
+    :param bool high_priority: Priority in the import queue. High priority
+           goes to the front of the queue.
+    param bool stage_import: stage the id_ for import if not in the cache.
     :return: A single book item's metadata, or None.
     """
-    # TMP: This is causing a bunch of duplicate imports
-    return None
     if not affiliate_server_url:
         return None
 
@@ -339,14 +365,16 @@ def _get_amazon_metadata(
             id_ = isbn
 
     try:
-        r = requests.get(f'http://{affiliate_server_url}/isbn/{id_}')
+        priority = "true" if high_priority else "false"
+        stage = "true" if stage_import else "false"
+        r = requests.get(
+            f'http://{affiliate_server_url}/isbn/{id_}?high_priority={priority}&stage_import={stage}'
+        )
         r.raise_for_status()
-        if hit := r.json().get('hit'):
-            return hit
-        if retries <= 1:
+        if data := r.json().get('hit'):
+            return data
+        else:
             return None
-        time.sleep(sleep_sec)  # sleep before recursive call
-        return _get_amazon_metadata(id_, id_type, resources, retries - 1, sleep_sec)
     except requests.exceptions.ConnectionError:
         logger.exception("Affiliate Server unreachable")
     except requests.exceptions.HTTPError:
@@ -415,7 +443,7 @@ def clean_amazon_metadata_for_load(metadata: dict) -> dict:
 
 
 def create_edition_from_amazon_metadata(
-    id_: str, id_type: Literal['asin', 'isbn'] = 'isbn', retries: int = 0
+    id_: str, id_type: Literal['asin', 'isbn'] = 'isbn'
 ) -> str | None:
     """Fetches Amazon metadata by id from Amazon Product Advertising API, attempts to
     create OL edition from metadata, and returns the resulting edition key `/key/OL..M`
@@ -426,7 +454,7 @@ def create_edition_from_amazon_metadata(
     :return: Edition key '/key/OL..M' or None
     """
 
-    md = get_amazon_metadata(id_, id_type=id_type, retries=retries)
+    md = get_amazon_metadata(id_, id_type=id_type)
 
     if md and md.get('product_group') == 'Book':
         with accounts.RunAs('ImportBot'):

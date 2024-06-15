@@ -1,5 +1,6 @@
 """Generic helper functions to use in the templates and the webapp.
 """
+
 import json
 import re
 from datetime import datetime, date
@@ -30,6 +31,8 @@ from infogami.infobase.client import Nothing
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
 
+# Helper functions that are added to `__all__` are exposed for use in templates
+# in /openlibrary/plugins/upstream/utils.py setup()
 __all__ = [
     "sanitize",
     "json_encode",
@@ -49,6 +52,7 @@ __all__ = [
     "bookreader_host",
     "private_collections",
     "private_collection_in",
+    "extract_year",
     # functions imported from elsewhere
     "parse_datetime",
     "safeint",
@@ -218,7 +222,7 @@ def truncate(text, limit):
     return text[:limit] + "..."
 
 
-def urlsafe(path):
+def urlsafe(path: str) -> str:
     """Replaces the unsafe chars from path with underscores."""
     return _get_safepath_re().sub('_', path).strip('_')[:100]
 
@@ -321,6 +325,14 @@ def private_collections():
 
 def private_collection_in(collections):
     return any(x in private_collections() for x in collections)
+
+
+def extract_year(input: str) -> str:
+    """Extracts the year from an author's birth or death date."""
+    if result := re.search(r'\d{4}', input):
+        return result.group()
+    else:
+        return ''
 
 
 def _get_helpers():

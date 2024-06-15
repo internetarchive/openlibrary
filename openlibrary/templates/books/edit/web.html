@@ -1,16 +1,22 @@
 $def with (work, prefix="")
 
-<div id="link-errors" class="note hidden">
+$ i18n_strings = {
+    $ "empty_label": _("Please provide a label."),
+    $ "empty_url": _("Please provide a URL."),
+    $ "invalid_url": _("Please enter a valid URL.")
+    $ }
+
+<div id="link-errors" class="note hidden" data-i18n="$json_encode(i18n_strings)">
 </div>
 
 <fieldset class="major" id="links" data-prefix="$prefix">
-    <div id="links-form">
+    <div id="links-form" class="links-form">
         <div class="formElement">
             $:_('Please connect Open Library records to <u>good</u><span class="orange">*</span> online resources.')
         </div>
 
-        <div class="formElement">
-            <div class="formElement contentHalf">
+        <div class="formElement links-form__inputs">
+            <div class="formElement links-form__label">
                 <div class="label">
                     <label for="link-label">$_("Give your link a label")</label><br/>
                 </div>
@@ -19,17 +25,16 @@ $def with (work, prefix="")
                     <span class="tip">$_("For example:") <em>New York Times review</em></span>
                 </div>
             </div>
-            <div class="formElement contentHalf">
+            <div class="formElement links-form__url">
                 <div class="label">
-                    <label for="link-url">URL</label>
+                    <label for="link-url">$_("URL")</label>
                 </div>
                 <div class="input">
-                    <input type="text" name="url" id="link-url" class="addweb" value="https://"/>
-                    <input type="button" id="repeat-add" class="repeat-add" value="Add Link"/>
+                    <input type="url" name="url" id="link-url" class="addweb" placeholder="https://..." />
                 </div>
             </div>
-            <div class="clearfix"></div>
         </div>
+        <input type="button" id="repeat-add" class="repeat-add" value="$_('Add Link')"/>
     </div>
 
     <div class="formElement">

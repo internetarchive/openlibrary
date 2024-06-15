@@ -5,6 +5,7 @@ data required for solr.
 
 Multiple data providers are supported, each is good for different use case.
 """
+
 import asyncio
 import itertools
 import logging
@@ -415,13 +416,7 @@ class BetterDataProvider(LegacyDataProvider):
         return self.cache.get(key) or {"key": key, "type": {"key": "/type/delete"}}
 
     async def preload_documents(self, keys: Iterable[str]):
-        identifiers = [
-            k.replace("/books/ia:", "") for k in keys if k.startswith("/books/ia:")
-        ]
-        # self.preload_ia_items(identifiers)
-        re_key = web.re_compile(r"/(books|works|authors)/OL\d+[MWA]")
-
-        keys2 = {k for k in keys if re_key.match(k)}
+        keys2 = set(keys)
         # keys2.update(k for k in self.ia_redirect_cache.values() if k is not None)
         self.preload_documents0(keys2)
         self._preload_works()

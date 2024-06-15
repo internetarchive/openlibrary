@@ -1,7 +1,7 @@
 $def with (work, book)
 
 $ edition_config = get_edition_config()
-$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
+$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian())
 
 $def radiobuttons(name, options, value):
     $for v in options:
@@ -27,9 +27,10 @@ $jsdef render_language_field(i, language, i18n_name):
     </div>
 
 $# Render the ith translated_from language input field
-$jsdef render_translated_from_language_field(i, language):
+$jsdef render_translated_from_language_field(i, language, i18n_name):
+    $ lang_name = i18n_name or language.name
     <div class="input ac-input">
-      <input class="ac-input__visible" type="text" name="translated_from--$i" value="$language.name"/>
+      <input class="ac-input__visible" type="text" name="translated_from--$i" value="$lang_name"/>
       <input class="ac-input__value" type="hidden" name="edition--translated_from--$i--key" value="$language.key" />
     </div>
 
@@ -253,7 +254,7 @@ $jsdef render_work_autocomplete_item(item):
 
             <legend>$_('Languages')</legend>
 
-            <div class="formElement multi-input-autocomplete--language">
+            <div class="formElement multi-input-autocomplete multi-input-autocomplete--language">
                 <div class="label">
                     <label for="edition-language">$_("What language is this edition written in?")</label>
                     <span class="tip"></span>
@@ -298,15 +299,15 @@ $jsdef render_work_autocomplete_item(item):
                     </div>
                 </div>
 
-                <div class="transYes multi-input-autocomplete--language" style="$style_hidden">
+                <div class="transYes multi-input-autocomplete multi-input-autocomplete--language" style="$style_hidden">
                     <div class="label">
                         <label for="edition-translated_from"><span class="tip">$_("What language was the original written in?")</span></label>
                     </div>
                     $if book.translated_from:
                         $for i, lang in enumerate(book.translated_from):
-                            $:render_translated_from_language_field(i, lang)
+                            $:render_translated_from_language_field(i, lang, get_language_name(lang))
                     $else:
-                        $:render_translated_from_language_field(0, storage(name="", key=""))
+                        $:render_translated_from_language_field(0, storage(name="", key=""), None)
                 </div>
 
             </div>
@@ -322,7 +323,7 @@ $jsdef render_work_autocomplete_item(item):
                 <span class="tip">$_("Only if it's different from the work's description")</span>
             </div>
             <div class="input">
-                <textarea name="edition--description" id="edition-description" rows="3" cols="50">$book.description</textarea>
+                <textarea name="edition--description" class="markdown" id="edition-description" rows="3" cols="50">$book.description</textarea>
             </div>
         </div>
 
@@ -378,7 +379,7 @@ $jsdef render_work_autocomplete_item(item):
                 </span>
             </div>
             $ config = {'addnew': is_privileged_user, 'new_name': _('-- Move to a new work')}
-            <div class="multi-input-autocomplete--works" data-config="$dumps(config)">
+            <div class="multi-input-autocomplete multi-input-autocomplete--works" data-config="$dumps(config)">
                 $if book.works:
                     $for i, work in enumerate(book.works):
                         $:render_work_field(i, work)
@@ -556,7 +557,7 @@ $ })
                 </div>
                 <div class="input">
                     <input name="edition--number_of_pages" type="number"
-                        step="1" id="edition--number_of_pages" value="$book.number_of_pages"/>
+                        step="1" min="1" id="edition--number_of_pages" value="$book.number_of_pages"/>
                 </div>
             </div>
             <div class="formElement">
@@ -588,7 +589,7 @@ $ })
 
             <fieldset class="minor formBackRight">
                 <legend>$_("Dimensions")</legend>
-                $ dimensions = book.get_physical_dimensions() or storage(height="", width="", depth="", units="inches")
+                $ dimensions = book.get_physical_dimensions() or storage(height="", width="", depth="", units="centimeters")
                   <span class="tip">
                     $:radiobuttons("edition--physical_dimensions--units", ["centimeters", "inches"], dimensions.units)
                   </span>
@@ -598,7 +599,7 @@ $ })
                         <table cellpadding="1">
                         <tbody>
                             <tr>
-                                <td rowspan="3"><img src="/images/dimensions.png" alt="dimensions" width="107" height="69" align="left"/></td>
+                                <td rowspan="3"><img src="/images/dimensions.png" alt="$_('dimensions')" width="107" height="69" align="left"/></td>
                                 <td><span class="tip"><label for="dimensions-height">$_("Height:")</label> </span></td>
                                 <td><input name="edition--physical_dimensions--height" type="number" step="any"
                                            id="dimensions-height" size="6" value="$dimensions.height"/></td>

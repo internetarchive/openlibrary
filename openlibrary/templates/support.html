@@ -22,38 +22,26 @@ $var title: $_('How can we help?')
  <div class="formElement">
  <div class="label"><label for="email">$_("Your Email Address")</label></div>
  <div class="input"><input type="email" class="email required" name="email" id="email" value="$email"/> ($_('We\'ll need this if you want a reply'))</div>
- <p>$_('If you wish to be contacted by other means, please add your contact preference and details to your question.')</p>
+ <p>$_("If you wish to be contacted by other means, please add your contact preference and details to your question.")</p>
  </div>
 
  <div class="formElement">
-   <div class="label"><label for="topic">$_("Topic")</label></div>
-   <div class="input">
-     <select class="required" name="topic" id="topic">
-       <option value="">$_('Select...')</option>
-       <option value="Borrowing Books">$_('Borrowing Help')</option>
-       <option value="Developer/Code">$_('Developer/Code Question')</option>
-       <option value="Editing Problem">$_('Editing Issue')</option>
-       <option value="Login Trouble">$_('Login Trouble')</option>
-       <option value="Spam Report">$_('Spam Report')</option>
-       <option value="Waiting List Issue">$_('Waiting List')</option>
-       <option value="Other">$_('Other Question')</option>
-     </select>
-   </div>
+  <div class="label"><label for="subject">$_("Subject")</label></div>
+  <div class="input">
+    <input type="text" name="subject">
+  </div>
  </div>
 
  <div class="formElement">
    <div class="label"><label for="question">$_("Your Question")</label></div>
-   <p><strong>$_('Note: our staff will likely only be able respond in English.')</strong></p>
+   <p><strong>$_("Note: our staff will likely only be able respond in English.")</strong></p>
    <div class="input">
      <textarea id="question" name="question" class="required" cols="40" rows="5"></textarea>
    </div>
-   <p>$_('If you encounter an error message, please include it. For questions about our books, please provide the title/author or Open Library ID.')</p>
+   <p>$_("If you encounter an error message, please include it. For questions about our books, please provide the title/author or Open Library ID.")</p>
  </div>
 
- <!-- <div class="formElement"> -->
- <!-- <div class="label"><label for="url">$_("Which page were you looking at?")</label></div> -->
  <div class="input"><input type="hidden" name="url" id="url" value="$url"/></div>
-<!-- </div> -->
 
  $if recaptcha:
     $:render_template("recaptcha", recaptcha.public_key, error=None)
@@ -62,7 +50,7 @@ $var title: $_('How can we help?')
  <div class="input">
  <input type="submit" class="largest" value="$_('Send')" name="send" title="$_('Send')"/>
  &nbsp; &nbsp;
- <a href="javascript:history.go(-1);" class="red">$_('Cancel')</a>
+ <a href="javascript:history.go(-1);" class="red">$_("Cancel")</a>
  </div>
  </div>
  </form>

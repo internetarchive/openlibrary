@@ -4,7 +4,6 @@ from collections import defaultdict, namedtuple
 
 from infogami import config
 from infogami.utils.view import public
-from openlibrary import accounts
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
@@ -578,7 +577,7 @@ def _get_deleted_types_and_values():
     results = {'types': [], 'values': defaultdict(list)}
 
     for o in OBSERVATIONS['observations']:
-        if 'deleted' in o and o['deleted']:
+        if o.get('deleted'):
             results['types'].append(o['id'])
         else:
             for v in o['values']:

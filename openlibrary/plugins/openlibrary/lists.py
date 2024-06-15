@@ -1,10 +1,11 @@
 """Lists implementation.
 """
+
 from dataclasses import dataclass, field
 import json
 from urllib.parse import parse_qs
 import random
-from typing import TypedDict
+from typing import Literal, cast
 import web
 
 from infogami.utils import delegate
@@ -13,7 +14,13 @@ from infogami.infobase import client, common
 
 from openlibrary.accounts import get_current_user
 from openlibrary.core import formats, cache
-from openlibrary.core.lists.model import List
+from openlibrary.core.models import ThingKey
+from openlibrary.core.lists.model import (
+    AnnotatedSeedDict,
+    List,
+    ThingReferenceDict,
+    SeedSubjectString,
+)
 import openlibrary.core.helpers as h
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.addbook import safe_seeother
@@ -24,8 +31,31 @@ from openlibrary.plugins.worksearch import subjects
 from openlibrary.coverstore.code import render_list_preview_image
 
 
-class SeedDict(TypedDict):
-    key: str
+def subject_key_to_seed(key: subjects.SubjectPseudoKey) -> SeedSubjectString:
+    name_part = key.split("/")[-1].replace(",", "_").replace("__", "_")
+    if name_part.split(":")[0] in ("place", "person", "time"):
+        return name_part
+    else:
+        return "subject:" + name_part
+
+
+def is_seed_subject_string(seed: str) -> bool:
+    subject_type = seed.split(":")[0]
+    return subject_type in ("subject", "place", "person", "time")
+
+
+def is_empty_annotated_seed(seed: AnnotatedSeedDict) -> bool:
+    """
+    An empty seed can be represented as a simple SeedDict
+    """
+    return not seed.get('notes')
+
+
+Seed = ThingReferenceDict | SeedSubjectString | AnnotatedSeedDict
+"""
+The JSON-friendly seed representation (as opposed to `openlibrary.core.lists.model.Seed`).
+Can either a thing reference, a subject key, or an annotated seed.
+"""
 
 
 @dataclass
@@ -33,18 +63,34 @@ class ListRecord:
     key: str | None = None
     name: str = ''
     description: str = ''
-    seeds: list[SeedDict | str] = field(default_factory=list)
+    seeds: list[Seed] = field(default_factory=list)
 
     @staticmethod
-    def normalize_input_seed(seed: SeedDict | str) -> SeedDict | str:
+    def normalize_input_seed(
+        seed: ThingReferenceDict | AnnotatedSeedDict | str,
+    ) -> Seed:
         if isinstance(seed, str):
             if seed.startswith('/subjects/'):
+                return subject_key_to_seed(seed)
+            elif seed.startswith('/'):
+                return {'key': seed}
+            elif is_seed_subject_string(seed):
                 return seed
             else:
-                return {'key': seed if seed.startswith('/') else olid_to_key(seed)}
+                return {'key': olid_to_key(seed)}
         else:
-            if seed['key'].startswith('/subjects/'):
-                return seed['key'].split('/', 2)[-1]
+            if 'thing' in seed:
+                annotated_seed = cast(AnnotatedSeedDict, seed)  # Appease mypy
+
+                if is_empty_annotated_seed(annotated_seed):
+                    return ListRecord.normalize_input_seed(annotated_seed['thing'])
+                elif annotated_seed['thing']['key'].startswith('/subjects/'):
+                    return subject_key_to_seed(annotated_seed['thing']['key'])
+                else:
+                    return annotated_seed
+            elif seed['key'].startswith('/subjects/'):
+                thing_ref = cast(ThingReferenceDict, seed)  # Appease mypy
+                return subject_key_to_seed(thing_ref['key'])
             else:
                 return seed
 
@@ -81,7 +127,7 @@ class ListRecord:
         normalized_seeds = [
             seed
             for seed in normalized_seeds
-            if seed and (isinstance(seed, str) or seed.get('key'))
+            if seed and (isinstance(seed, str) or seed.get('key') or seed.get('thing'))
         ]
         return ListRecord(
             key=i['key'],
@@ -108,27 +154,39 @@ class lists_home(delegate.page):
         return render_template("lists/home")
 
 
+SeedType = Literal['subject', 'author', 'work', 'edition']
+
+
+def seed_key_to_seed_type(key: str) -> SeedType:
+    match key.split('/')[1]:
+        case 'subjects':
+            return 'subject'
+        case 'authors':
+            return 'author'
+        case 'works':
+            return 'work'
+        case 'books':
+            return 'edition'
+        case _:
+            raise ValueError(f'Invalid seed key: {key}')
+
+
 @public
 def get_seed_info(doc):
     """Takes a thing, determines what type it is, and returns a seed summary"""
-    if doc.key.startswith("/subjects/"):
-        seed = doc.key.split("/")[-1]
-        if seed.split(":")[0] not in ("place", "person", "time"):
-            seed = f"subject:{seed}"
-        seed = seed.replace(",", "_").replace("__", "_")
-        seed_type = "subject"
-        title = doc.name
-    else:
-        seed = {"key": doc.key}
-        if doc.key.startswith("/authors/"):
-            seed_type = "author"
+    seed_type = seed_key_to_seed_type(doc.key)
+    match seed_type:
+        case 'subject':
+            seed = subject_key_to_seed(doc.key)
+            title = doc.name
+        case 'work' | 'edition':
+            seed = {"key": doc.key}
+            title = doc.get("title", "untitled")
+        case 'author':
+            seed = {"key": doc.key}
             title = doc.get('name', 'name missing')
-        elif doc.key.startswith("/works"):
-            seed_type = "work"
-            title = doc.get("title", "untitled")
-        else:
-            seed_type = "edition"
-            title = doc.get("title", "untitled")
+        case _:
+            raise ValueError(f'Invalid seed type: {seed_type}')
     return {
         "seed": seed,
         "type": seed_type,
@@ -181,8 +239,6 @@ class lists_partials(delegate.page):
     encoding = "json"
 
     def GET(self):
-        i = web.input(key=None)
-
         partials = self.get_partials()
         return delegate.RawText(json.dumps(partials))
 
@@ -224,7 +280,10 @@ class lists(delegate.page):
             template = render_template(
                 "lists/lists.html", mb.user, mb.user.get_lists(), show_header=False
             )
-            return mb.render(template=template, header_title=_("Lists"))
+            return mb.render(
+                template=template,
+                header_title=_("Lists (%(count)d)", count=len(mb.lists)),
+            )
         else:
             doc = self.get_doc(path)
             if not doc:
@@ -256,7 +315,7 @@ class lists_edit(delegate.page):
                 f"Permission denied to edit {key}.",
             )
 
-        lst = web.ctx.site.get(key)
+        lst = cast(List | None, web.ctx.site.get(key))
         if lst is None:
             raise web.notfound()
         return render_template("type/list/edit", lst, new=False)
@@ -323,6 +382,10 @@ class lists_delete(delegate.page):
         doc = web.ctx.site.get(key)
         if doc is None or doc.type.key != '/type/list':
             raise web.notfound()
+
+        # Deletes list preview from memcache, if it exists
+        cache_key = "core.patron_lists.%s" % web.safestr(doc.key)
+        cache.memcache_cache.delete(cache_key)
 
         doc = {"key": key, "type": {"key": "/type/delete"}}
         try:
@@ -430,20 +493,11 @@ class lists_json(delegate.page):
         web.header("Content-Type", self.get_content_type())
         return delegate.RawText(self.dumps(result))
 
-    def process_seeds(self, seeds):
-        def f(seed):
-            if isinstance(seed, dict):
-                return seed
-            elif seed.startswith("/subjects/"):
-                seed = seed.split("/")[-1]
-                if seed.split(":")[0] not in ["place", "person", "time"]:
-                    seed = "subject:" + seed
-                seed = seed.replace(",", "_").replace("__", "_")
-            elif seed.startswith("/"):
-                seed = {"key": seed}
-            return seed
-
-        return [f(seed) for seed in seeds]
+    @staticmethod
+    def process_seeds(
+        seeds: ThingReferenceDict | subjects.SubjectPseudoKey | ThingKey,
+    ) -> list[Seed]:
+        return [ListRecord.normalize_input_seed(seed) for seed in seeds]
 
     def get_content_type(self):
         return self.content_type
@@ -532,7 +586,7 @@ class list_seeds(delegate.page):
     def POST(self, key):
         site = web.ctx.site
 
-        lst = site.get(key)
+        lst = cast(List | None, site.get(key))
         if not lst:
             raise web.notfound()
 
@@ -545,12 +599,10 @@ class list_seeds(delegate.page):
         data.setdefault("remove", [])
 
         # support /subjects/foo and /books/OL1M along with subject:foo and {"key": "/books/OL1M"}.
-        process_seeds = lists_json().process_seeds
-
-        for seed in process_seeds(data["add"]):
+        for seed in lists_json.process_seeds(data["add"]):
             lst.add_seed(seed)
 
-        for seed in process_seeds(data["remove"]):
+        for seed in lists_json.process_seeds(data["remove"]):
             lst.remove_seed(seed)
 
         seeds = []
@@ -563,8 +615,8 @@ class list_seeds(delegate.page):
         changeset_data = {
             "list": {"key": key},
             "seeds": seeds,
-            "add": data.get("add", []),
-            "remove": data.get("remove", []),
+            "add": data["add"],
+            "remove": data["remove"],
         }
 
         d = lst._save(comment="Updated list.", action="lists", data=changeset_data)
@@ -577,17 +629,15 @@ class list_seed_yaml(list_seeds):
     content_type = 'text/yaml; charset="utf-8"'
 
 
-@public
 def get_list_editions(key, offset=0, limit=50, api=False):
-    if lst := web.ctx.site.get(key):
+    if lst := cast(List | None, web.ctx.site.get(key)):
         offset = offset or 0  # enforce sane int defaults
-        all_editions = lst.get_editions(limit=limit, offset=offset, _raw=True)
-        editions = all_editions['editions'][offset : offset + limit]
+        all_editions = list(lst.get_editions())
+        editions = all_editions[offset : offset + limit]
         if api:
-            entries = [e.dict() for e in editions if e.pop("seeds") or e]
             return make_collection(
-                size=all_editions['count'],
-                entries=entries,
+                size=len(all_editions),
+                entries=[e.dict() for e in editions],
                 limit=limit,
                 offset=offset,
                 key=key,
@@ -647,7 +697,7 @@ class list_subjects_json(delegate.page):
     content_type = "application/json"
 
     def GET(self, key):
-        lst = web.ctx.site.get(key)
+        lst = cast(List | None, web.ctx.site.get(key))
         if not lst:
             raise web.notfound()
 
@@ -694,7 +744,7 @@ class export(delegate.page):
     path = r"((?:/people/[^/]+)?/lists/OL\d+L)/export"
 
     def GET(self, key):
-        lst = web.ctx.site.get(key)
+        lst = cast(List | None, web.ctx.site.get(key))
         if not lst:
             raise web.notfound()
 
@@ -774,18 +824,6 @@ class export(delegate.page):
                 export_data["authors"] = []
         return export_data
 
-    def get_editions(self, lst, raw=False):
-        editions = sorted(
-            lst.get_all_editions(),
-            key=lambda doc: doc['last_modified']['value'],
-            reverse=True,
-        )
-
-        if not raw:
-            editions = [self.make_doc(e) for e in editions]
-            lst.preload_authors(editions)
-        return editions
-
     def make_doc(self, rawdata):
         data = web.ctx.site._process_dict(common.parse_query(rawdata))
         doc = client.create_thing(web.ctx.site, data['key'], data)
@@ -796,7 +834,7 @@ class feeds(delegate.page):
     path = r"((?:/people/[^/]+)?/lists/OL\d+L)/feeds/(updates).(atom)"
 
     def GET(self, key, name, fmt):
-        lst = web.ctx.site.get(key)
+        lst = cast(List | None, web.ctx.site.get(key))
         if lst is None:
             raise web.notfound()
         text = getattr(self, 'GET_' + name + '_' + fmt)(lst)
@@ -862,14 +900,6 @@ def _preload_lists(lists):
                 keys.add(seed['key'])
 
     web.ctx.site.get_many(list(keys))
-
-
-def get_randomized_list_seeds(lst_key):
-    """Fetches all the seeds of a list and shuffles them"""
-    lst = web.ctx.site.get(lst_key)
-    seeds = lst.seeds if lst else []
-    random.shuffle(seeds)
-    return seeds
 
 
 def _get_active_lists_in_random(limit=20, preload=True):

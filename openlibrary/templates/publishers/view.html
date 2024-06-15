@@ -60,11 +60,9 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
 	        <span class="title"><em>$_("None found.")</em></span>
 
     $for s, limit in subject_list:
-        <div class="contentQuarter link-box">
+        <div class="contentQuarter link-box link-box--with-header">
             <h6>$s</h6>
-			<div class="subjects" id="subjects-$s">
-				$:renderSubjects(page[s][:limit])
-			</div>
+            $:renderSubjects(page[s][:limit])
         </div>
         $if s != 'times':
             <div class="contentSpacer"></div>
@@ -105,10 +103,10 @@ $jsdef renderPublishers(publishers):
 <div class="section clearfix"></div>
 
 <form action="/search/publishers" class="olform">
-    <h2 class="collapse"><label for="searchSubjects">Publisher Search</label>  <span class="sansserif grey smaller">Try a keyword.</span></h2>
+    <h2 class="collapse"><label for="searchSubjects">$_("Publisher Search")</label>  <span class="sansserif grey smaller">$_("Try a keyword.")</span></h2>
     <p>
         <input type="text" name="q" id="searchSubjects" size="100" class="larger" value="" />
-        <button type="submit" class="larger">$_('Search')</button>
+        <button type="submit" class="larger">$_("Search")</button>
     </p>
 </form>
 

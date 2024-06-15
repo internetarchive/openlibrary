@@ -6,9 +6,7 @@ import { isbnOverride } from '../../openlibrary/js/isbnOverride'
  *
  * Used in addbook process.
  */
-export default function($){
-    // For v2 and v1 page support. Can be removed when no v1 support needed
-    var isOldJQuery = $('body').on === undefined;
+export function init() {
     // used in books/edit/exercpt, books/edit/web and books/edit/edition
     $.fn.repeat = function(options) {
         var addSelector, removeSelector, id, elems, t, code,
@@ -30,7 +28,6 @@ export default function($){
                 .replace(/%7D%7D/gi, '%>')
                 .replace(/{{/g, '<%=')
                 .replace(/}}/g, '%>');
-            // Template is defined in openlibrary\plugins\openlibrary\js\template.js
             return Template(code);
         }
 
@@ -39,25 +36,25 @@ export default function($){
         /**
          * Search elems.form for input fields and create an
          * object representing.
-         * This function has side effects and will reset any
-         * input[type=text] fields it has found in the process
          * @return {object} data mapping names to values
          */
         function formdata() {
             var data = {};
             $(':input', elems.form).each(function() {
                 var $e = $(this),
+                    name = $e.attr('name'),
                     type = $e.attr('type'),
-                    name = $e.attr('name');
+                    _id = $e.attr('id');
 
                 data[name] = $e.val().trim();
-                // reset the values we are copying across
-                if (type === 'text') {
+
+                if (type === 'text' && _id === 'id-value') {
                     $e.val('');
                 }
             });
             return data;
         }
+
         /**
          * triggered when "add link" button is clicked on author edit field.
          * Creates a removable `repeat-item`.
@@ -111,12 +108,7 @@ export default function($){
         addSelector = `${id} .repeat-add`;
         removeSelector = `${id} .repeat-remove`;
         // Click handlers should apply to newly created add/remove selectors
-        if (isOldJQuery) {
-            $(addSelector).on('click', addSelector, onAdd);
-            $(removeSelector).on('click', removeSelector, onRemove);
-        } else {
-            $(document).on('click', addSelector, onAdd);
-            $(document).on('click', removeSelector, onRemove);
-        }
+        $(document).on('click', addSelector, onAdd);
+        $(document).on('click', removeSelector, onRemove);
     }
 }

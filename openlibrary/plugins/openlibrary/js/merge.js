@@ -1,3 +1,4 @@
+import 'jquery-ui/ui/widgets/dialog';
 import { declineRequest } from './merge-request-table/MergeRequestService';
 
 export function initAuthorMergePage() {
@@ -91,7 +92,11 @@ export function initAuthorView() {
         url: '/authors/merge.json',
         type: 'POST',
         data: JSON.stringify(data),
-        complete: function() {
+        error: function() {
+            $('#preMerge').fadeOut();
+            $('#errorMerge').fadeIn();
+        },
+        success: function() {
             $('#preMerge').fadeOut();
             $('#postMerge').fadeIn();
         }

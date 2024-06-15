@@ -23,6 +23,18 @@
   white-space: nowrap;
 }
 
+.social-wrapper {
+  display: flex;
+}
+
+.follow-row {
+  display: flex;
+  align-items: center;
+  &--name {
+    flex: .5;
+  }
+}
+
 .breadcrumb-title {
   display: inline-block;
   margin: 0;
@@ -67,6 +79,15 @@
     }
   }
 
+  .navigation-breadcrumbs {
+    display: flex;
+    flex-direction: row;
+
+    .crumb {
+      margin-right: 10px;
+    }
+  }
+
   .details-content {
     padding: 8px;
     /* stylelint-disable selector-max-specificity */
@@ -93,6 +114,10 @@
 }
 
 @media only screen and (max-width: @width-breakpoint-tablet) {
+  .breadcrumb-wrapper {
+    align-items: self-end;
+  }
+
   .mybooks-details {
     padding: 10px;
     margin: 0;
@@ -150,5 +175,15 @@
   .book .book-cover.mobile {
     height: auto;
     width: calc(20vw - 15px);
+  }
+}
+
+@media only screen and (max-width: @width-breakpoint-mobile) {
+  .mybooks-details .navigation-breadcrumbs {
+    flex-direction: column;
+
+    .crumb {
+      margin-bottom: 10px;
+    }
   }
 }

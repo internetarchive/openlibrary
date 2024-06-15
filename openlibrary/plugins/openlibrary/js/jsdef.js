@@ -4,6 +4,10 @@
  * For more details, see:
  * http://github.com/anandology/notebook/tree/master/2010/03/jsdef/
  */
+import { ungettext, ugettext,  sprintf } from './i18n';
+// TODO: Can likely move some of these methods into this file
+import { commify, urlencode, slice } from './python';
+import { truncate, cond } from './utils';
 
 /**
  * Python range function.
@@ -144,4 +148,40 @@ export function htmlquote(text) {
 
 export function is_jsdef() {
     return true;
+}
+
+
+/**
+ * foo.get(KEY, default) isn't defined in js, so we can't use that construct
+ * in our jsdef methods. This helper function provides a workaround, and works
+ * in both environments.
+ *
+ * @param {object} obj - the object to get the key from
+ * @param {string} key - the key to get from the object
+ * @param {any} def - the default value to return if the key isn't found
+ */
+export function jsdef_get(obj, key, def=null) {
+    return (key in obj) ? obj[key] : def;
+}
+
+export function exposeGlobally() {
+    // Extend existing prototypes
+    String.prototype.join = join;
+
+    window.commify = commify;
+    window.cond = cond;
+    window.enumerate = enumerate;
+    window.foreach = foreach;
+    window.htmlquote = htmlquote;
+    window.jsdef_get = jsdef_get;
+    window.len = len;
+    window.range = range;
+    window.slice = slice;
+    window.sprintf = sprintf;
+    window.truncate = truncate;
+    window.urlencode = urlencode;
+    window.websafe = websafe;
+    window._ = ugettext;
+    window.ungettext = ungettext;
+    window.uggettext = ugettext;
 }

@@ -1,6 +1,6 @@
 $def with (get_results)
 
-$ q = query_param('q', '')
+$ q = query_param('q', '').strip()
 $ results_per_page = 100
 $ page = query_param('page')
 $if page:
@@ -19,10 +19,11 @@ $ sort = query_param('sort', None)
 <div id="contentBody">
   $:macros.SearchNavigation()
 
-  <form class="siteSearch olform" action="">
-    <input type="text" class="larger" name="q" size="100" value="$q"/>
-    <input type="submit"  class="larger" value="$_('Search')"/>
-  </form>
+  <div class="section">
+    <form class="siteSearch olform" action="">
+        $:render_template("search/searchbox", q=q)
+    </form>
+  </div>
 </div>
 
 <div id="contentMeta">
@@ -60,8 +61,8 @@ $ sort = query_param('sort', None)
             $elif 'date' in doc:
                 $ date = doc['date']
             <li class="searchResultItem">
-	      <img src="$get_coverstore_public_url()/a/olid/$(doc['key'].split('/')[-1])-M.jpg" itemprop="image" class="cover author" alt="Photo of $n">
-	      <div>
+	      <img src="$get_coverstore_public_url()/a/olid/$(doc['key'].split('/')[-1])-M.jpg" itemprop="image" class="cover author" alt="$_('Photo of %(author)s', author=n)">
+	      <div class="details">
 		<a href="$doc['key']" class="larger">$n</a>&nbsp;<span class="brown small">$date</span><br />
 		<span class="small grey"><b>$wc</b>
                 $if 'top_subjects' in doc:

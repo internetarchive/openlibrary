@@ -1,6 +1,6 @@
 $def with (page, edition=None)
 
-$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_usergroup_member('/usergroup/super-librarians'))
+$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian())
 $ is_librarian = ctx.user and ctx.user.is_librarian()
 
 $ component_times = {}
@@ -181,8 +181,8 @@ $ component_times['affiliate_links component'] = time()
 $ prices = edition.key.startswith('/books/')
 
 $ oclc_numbers = (edition.oclc_numbers and edition.oclc_numbers[0]) or ""
-$ isbn_13 = edition.get_isbn13()
-$ isbn_10 = edition.get_isbn10()
+$ isbn_13 = edition.get_isbn13() or None
+$ isbn_10 = edition.get_isbn10() or None
 
 $ asin = None
 $if edition.get('identifiers'):
@@ -192,7 +192,7 @@ $if edition.get('identifiers'):
 $if isbn_10 and not asin:
     $ asin = isbn_10
 
-$ affiliate_links = macros.AffiliateLinks(edition, {'isbn': isbn_13, 'asin': asin, 'prices': prices})
+$ affiliate_links = macros.AffiliateLinks(edition.title, {'isbn': isbn_13, 'asin': asin, 'prices': prices}, async_load=True)
 $ component_times['affiliate_links component'] = time() - component_times['affiliate_links component']
 
 $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
@@ -237,7 +237,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
         $else:
           $ overview_desc = work.description
         <div class="book-description read-more">
-            <div class="read-more__content" style="max-height:58px">
+            <div class="read-more__content" style="max-height:81px">
                 $:sanitize(format(overview_desc))
             </div>
             $:macros.ReadMore()
@@ -350,18 +350,10 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
         $if edition:
           <h2 class="details-title" itemprop="name">$_("Book Details")</h2>
           <hr>
-          $if edition.publish_places:
-            <div class="section">
-              <h3 class="edition-header">$_('Published in')</h3>
-              <p>
-              $for p in edition.publish_places:
-                $(p)$cond(loop.last, "", ", ")
-              </p>
-            </div>
           $if edition.first_sentence:
             <div>
-            <h3 class="edition-header">$_("First Sentence")</h3>
-            <p>"$(edition.first_sentence)"</p>
+              <h3>$_("First Sentence")</h3>
+              <p>"$(edition.first_sentence)"</p>
             </div>
 
           $ table_of_contents = edition.get_table_of_contents()
@@ -374,15 +366,15 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
               $:macros.ReadMore()
             </div>
 
-          $if edition.notes or edition.series or edition.volume or edition.genres or edition.other_titles or edition.copyright_date or edition.translation_of or edition.translated_from:
+          $if edition.notes or edition.publish_places or edition.series or edition.volume or edition.genres or edition.other_titles or edition.copyright_date or edition.translation_of or edition.translated_from:
             <div class="section">
-                <h3 class="edition-header">$_("Edition Notes")
-                </h3>
+                <h3>$_("Edition Notes")</h3>
                 $if edition.notes:
                     <div class="edition-notes">
                     $:format(edition.notes)
                     </div>
                 <dl class="meta">
+                    $:display_value(_("Published in"), edition.publish_places)
                     $:display_value(_("Series"), edition.series)
                     $:display_value(_("Volume"), edition.volume)
                     $:display_value(_("Genre"), edition.genres)
@@ -396,7 +388,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
           $ classifications = edition.get_classifications().multi_items()
           $if classifications:
             <div class="section">
-                <h3 class="list-header collapse">$_("Classifications")</h3>
+                <h3>$_("Classifications")</h3>
                 <dl class="meta">
                     $for name, values in classifications:
                         $:display_identifiers(values[0].label, values)
@@ -421,7 +413,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
           $ contributors = edition.get('contributors', [])
           $if contributors:
             <div class="section">
-              <h3 class="edition-header">$_("Contributors")</h3>
+              <h3>$_("Contributors")</h3>
               <dl class="meta">
               $for c in contributors:
                     $:display_value(c.role, c.name)
@@ -430,7 +422,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
           $if has_any("physical_format", "pagination", "physical_dimensions", "weight"):
             <div class="section">
-                <h3 class="list-header collapse">$_("The Physical Object")</h3>
+                <h3>$_("The Physical Object")</h3>
                 <dl class="meta">
                     $:display_value(_("Format"), edition.physical_format)
                     $:display_value(_("Pagination"), edition.pagination)
@@ -442,7 +434,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
 
           <div class="section">
-            <h3 class="list-header collapse">$_("ID Numbers")</h3>
+            <h3>$_("ID Numbers")</h3>
             <dl class="meta">
                 $:display_identifiers("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
                 $ no_index = edition.get_ia_meta_fields().get('noindex', False)
@@ -464,7 +456,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
             $if work.description and work.description != overview_desc:
               <h4>$_("Work Description")</h4>
               <div class="work-description read-more">
-                <div class="read-more__content" style="max-height:58px">
+                <div class="read-more__content" style="max-height:81px">
                   $:sanitize(format(work.description))
                 </div>
                 $:macros.ReadMore()
@@ -493,7 +485,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
                       $else:
                         $_("added anonymously.")
                       $if excerpt.comment:
-                        "<em>$excerpt.comment</em>"
+                        $:format(excerpt.comment)
                     </div>
                   </div>
               </div>
@@ -529,7 +521,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
           </div>
           <div class="user-book-options">
             <div class="Tools tools-override">
-              $if work:
+              $if work and work.key:
                 $ component_times['lists widget: WorkListTime'] = time()
                 $:render_template("lists/widget", work, include_header=False, include_widget=False)
                 $ component_times['lists widget: WorkListTime'] = time() - component_times['lists widget: WorkListTime']
@@ -548,15 +540,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
   $ component_times['RelatedWorksCarousel'] = time()
   <div class="RelatedWorksCarousel" data-workid="$work.key.split('/')[-1]">
-    <div class="hidden loadingIndicator">
-        <figure>
-        <img src="/images/ajax-loader-bar.gif" alt="Loading indicator" loading="lazy">
-        <figcaption style="
-            justify-content: center;
-            display: flex;
-        ">Loading Related Books</figcaption>
-        </figure>
-    </div>
+    $:macros.LoadingIndicator(_("Loading Related Books"), "carousel-loading")
   </div>
   $ component_times['RelatedWorksCarousel'] = time() -component_times['RelatedWorksCarousel']
 

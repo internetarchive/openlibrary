@@ -1,0 +1,12 @@
+$def with(cita_press_id)
+
+$ url = 'https://citapress.org/' + cita_press_id
+
+<hr>
+<div class="cta-section">
+  <p class="cta-section-title">$_('Download Options')</p>
+    <ul class="ebook-download-options">
+      <li><a href="$url" title="$_('Download PDF from Cita Press')">$_('PDF')</a></li>
+      <li><a href="$url">$_('More at Cita Press')</a></li>
+    </ul>
+</div>

@@ -1,5 +1,6 @@
 """Publisher pages
 """
+
 from infogami.utils import delegate, stats
 from infogami.utils.view import render_template, safeint
 import web
@@ -57,30 +58,28 @@ class publisher_search(delegate.page):
 
     def GET(self):
         i = web.input(q="")
-        solr = search.get_solr()
-        q = {"publisher": i.q}
-
-        result = solr.select(
-            q,
+        result = search.get_solr().select(
+            {"publisher": i.q, "type": "work"},
             facets=["publisher_facet"],
-            fields=["publisher", "publisher_facet"],
+            facet_mincount=1,
+            facet_limit=25,
+            facet_contains=i.q,
+            facet_contains_ignoreCase='true',
             rows=0,
         )
         result = self.process_result(result)
         return render_template('search/publishers', i.q, result)
 
     def process_result(self, result):
-        solr = search.get_solr()
-
-        def process(p):
-            return web.storage(
+        publisher_facets = result['facets']['publisher_facet']
+        return [
+            web.storage(
                 name=p.value,
                 key="/publishers/" + p.value.replace(" ", "_"),
-                count=solr.select({"publisher_facet": p.value}, rows=0)['num_found'],
+                count=p.count,
             )
-
-        publisher_facets = result['facets']['publisher_facet'][:25]
-        return [process(p) for p in publisher_facets]
+            for p in publisher_facets
+        ]
 
 
 class PublisherEngine(subjects.SubjectEngine):

@@ -18,35 +18,42 @@ fi
 
 # apt list --installed
 sudo apt-get update
+
 # Remove any old versions and install newer versions of Docker Engine and Docker Compose.
 # See https://docs.docker.com/engine/install/ubuntu/ for any possible changes.
-sudo apt-get remove docker docker-engine docker.io containerd runc
-DOCKER_VERSION=5:20.10.7~3-0~ubuntu-focal
+sudo apt-get remove docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc
+
 sudo apt-get install \
     ca-certificates \
     curl \
     gnupg \
     lsb-release
 
-sudo mkdir -m 0755 -p /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+# Add Docker's official GPG key:
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-    $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt-get update
 
+# apparmor is REQUIRED on Internet Archive servers
 sudo apt-get install -y \
-    # *REQUIRED* on Internet Archive servers
     apparmor \
     containerd.io \
-    docker-ce=$DOCKER_VERSION \
-    docker-ce-cli=$DOCKER_VERSION \
+    docker-ce \
+    docker-ce-cli \
     docker-buildx-plugin \
     docker-compose-plugin
 
-docker --version        # 20.10.7, build f0df350
-docker compose version  # v2.16.0
+docker --version        # 26.0.0, build 2ae903e
+docker compose version  # v2.25.0
 sudo systemctl start docker
 sudo systemctl enable docker
 
@@ -62,8 +69,8 @@ sudo useradd --no-log-init --system --gid openlibrary --create-home openlibrary
 cd /opt
 ls -Fla  # nothing
 
-sudo git clone https://${GITHUB_USERNAME:-$USER}:${GITHUB_TOKEN}@github.com/internetarchive/olsystem
-sudo git clone https://github.com/internetarchive/openlibrary
+sudo git clone git@github.com:internetarchive/olsystem.git
+sudo git clone git@github.com:internetarchive/openlibrary.git
 cd /opt/openlibrary
 sudo make git
 cd /opt/openlibrary/vendor/infogami

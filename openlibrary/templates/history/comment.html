@@ -12,9 +12,9 @@ $if record_id:
     $ record = get_source_record(record_id)
     $if v.revision == 1:
        $ record_type = ''
-       $if record.source_name not in ('amazon.com', 'Better World Books', 'Promise Item', 'ISBNdb'):
+       $if record.source_name not in ('amazon.com', 'Better World Books', 'Promise Item', 'ISBNdb', 'OpenAlex'):
             $ record_type = 'item' if record.source_name == 'Internet Archive' else 'MARC'
-       $if record.source_name in ('Promise Item', 'ISBNdb'):
+       $if record.source_name in ('Promise Item', 'ISBNdb', 'OpenAlex'):
             $:_('Imported from %(source)s', source=link(record.source_url, record.source_name))
        $else:
             $:_('Imported from %(source)s  <a href="%(url)s">%(type)s record</a>.', source=link(record.source_url, record.source_name), url=record.url, type=record_type)

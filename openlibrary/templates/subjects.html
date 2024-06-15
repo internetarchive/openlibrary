@@ -3,7 +3,7 @@ $def with (page)
 $var title: $page.name
 
 $ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), ('people', _('People'), 10), ('times', _('Times'), 10)]
-$ can_add_tag = ctx.user and (ctx.user.is_usergroup_member('/usergroup/super-librarians'))
+$ can_add_tag = ctx.user and (ctx.user.is_super_librarian())
 $ has_tag = 'tag' in page
 
 
@@ -17,8 +17,14 @@ $ has_tag = 'tag' in page
     $if can_add_tag:
       <div class="subjectTagEdit">
         $ edit_tag_url = page.tag.get('id') + '/edit' if 'tag' in page else '/tag/add'
-        <a class="editTagButton" href="$edit_tag_url" title="$_('Edit Subject Tag')"
-            data-ol-link-track="CTAClick|Edit" accesskey="e">$_("Edit")</a>
+        <a
+          class="editTagButton"
+          href="$edit_tag_url"
+          title="$_('Edit Subject Tag')"
+          data-ol-link-track="CTAClick|Edit"
+          accesskey="e"
+          rel="nofollow"
+        >$_("Edit")</a>
       </div>
     <h1 class="inline">
         $page.name
@@ -32,12 +38,13 @@ $ has_tag = 'tag' in page
       <h3 itemprop="description">
         $page.tag['description']
       </h3>
-    <a href="#search" class="shift">$_('Search for books with subject %(name)s.', name=page.name)</a>
+    <a href="#search" class="shift">$_("Search for books with subject %(name)s.", name=page.name)</a>
 
     <form action="/search" class="olform pagesearchbox">
       <input type="hidden" name="${page.subject_type}_facet" value="$page.name" />
-      <input type="text" name="q" id="searchSubjects" size="100" class="larger" value="" />
-      <button type="submit" class="larger">$_('Search')</button>
+      <label for="searchSubjects" class="shift">$_("Search for books with subject %(name)s.", name=page.name)</label>
+      <input type="text" name="q" aria-label="Search" id="searchSubjects" size="100" class="larger" value="" />
+      <button type="submit" class="larger">$_("Search")</button>
     </form>
 </div>
 
@@ -84,11 +91,9 @@ $ has_tag = 'tag' in page
             <span class="title"><em>$_("None found.")</em></span>
 
     $for category, label, limit in subject_list:
-        <div class="contentQuarter link-box">
+        <div class="contentQuarter link-box link-box--with-header">
           <h6 class="black collapse uppercase">$label</h6>
-          <div class="subjects" id="subjects-$category">
-            $:renderSubjects(page[category][:limit])
-          </div>
+          $:renderSubjects(page[category][:limit])
         </div>
 
     <div class="clearfix"></div>

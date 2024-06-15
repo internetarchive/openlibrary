@@ -96,6 +96,7 @@ class languages_autocomplete(delegate.page):
     def GET(self):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
+        web.header("Cache-Control", "max-age=%d" % (24 * 3600))
         return to_json(
             list(itertools.islice(utils.autocomplete_languages(i.q), i.limit))
         )

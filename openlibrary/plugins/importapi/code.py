@@ -1,5 +1,6 @@
 """Open Library Import API
 """
+
 from infogami.plugins.api.code import add_hook
 from infogami.infobase.client import ClientException
 
@@ -17,7 +18,7 @@ from openlibrary.plugins.upstream.utils import (
     LanguageMultipleMatchError,
     get_location_and_publisher,
 )
-from openlibrary.utils.isbn import get_isbn_10_and_13
+from openlibrary.utils.isbn import get_isbn_10s_and_13s
 
 import web
 
@@ -197,30 +198,17 @@ class ia_importapi(importapi):
         """
         from_marc_record = False
 
-        # Case 1 - Is this a valid Archive.org item?
+        # Check 1 - Is this a valid Archive.org item?
         metadata = ia.get_metadata(identifier)
         if not metadata:
-            raise BookImportError('invalid-ia-identifier', '%s not found' % identifier)
+            raise BookImportError('invalid-ia-identifier', f'{identifier} not found')
 
-        # Case 2 - Does the item have an openlibrary field specified?
-        # The scan operators search OL before loading the book and add the
-        # OL key if a match is found. We can trust them and attach the item
-        # to that edition.
-        edition_olid = metadata.get('openlibrary_edition') or metadata.get(
-            'openlibrary'
-        )
-        if metadata.get('mediatype') == 'texts' and edition_olid:
-            edition_data = cls.get_ia_record(metadata)
-            edition_data['openlibrary'] = edition_olid
-            edition_data = cls.populate_edition_data(edition_data, identifier)
-            return cls.load_book(edition_data)
-
-        # Case 3 - Can the item be loaded into Open Library?
+        # Check 2 - Can the item be loaded into Open Library?
         status = ia.get_item_status(identifier, metadata)
         if status != 'ok' and not force_import:
-            raise BookImportError(status, 'Prohibited Item %s' % identifier)
+            raise BookImportError(status, f'Prohibited Item {identifier}')
 
-        # Case 4 - Does this item have a marc record?
+        # Check 3 - Does this item have a MARC record?
         marc_record = get_marc_record_from_ia(
             identifier=identifier, ia_metadata=metadata
         )
@@ -234,9 +222,7 @@ class ia_importapi(importapi):
             try:
                 edition_data = read_edition(marc_record)
             except MarcException as e:
-                logger.error(
-                    'failed to read from MARC record %s: %s', identifier, str(e)
-                )
+                logger.error(f'failed to read from MARC record {identifier}: {e}')
                 raise BookImportError('invalid-marc-record')
         else:
             try:
@@ -280,8 +266,8 @@ class ia_importapi(importapi):
                 rec = MarcBinary(data)
                 edition = read_edition(rec)
             except MarcException as e:
-                details = f"{identifier}: {e}"
-                logger.error("failed to read from bulk MARC record %s", details)
+                details = f'{identifier}: {e}'
+                logger.error(f'failed to read from bulk MARC record {details}')
                 return self.error('invalid-marc-record', details, **next_data)
 
             actual_length = int(rec.leader()[:MARC_LENGTH_POS])
@@ -358,7 +344,7 @@ class ia_importapi(importapi):
         if description:
             d['description'] = description
         if unparsed_isbns:
-            isbn_10, isbn_13 = get_isbn_10_and_13(unparsed_isbns)
+            isbn_10, isbn_13 = get_isbn_10s_and_13s(unparsed_isbns)
             if isbn_10:
                 d['isbn_10'] = isbn_10
             if isbn_13:

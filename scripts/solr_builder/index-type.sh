@@ -7,7 +7,7 @@ source aliases.sh
 # Display each line before running it
 set -o xtrace
 
-# One of 'work' or 'author'
+# One of 'work' or 'author' or 'list'
 TYPE="$1"
 INSTANCES="$2"
 LOG_DIR="$3"
@@ -32,6 +32,7 @@ while [ $done != "true" ]; do
     (&>"logs/$LOG_DIR/$RUN_SIG.txt" python solr_builder/solr_builder.py index "${TYPE}s" \
       --start-at "/$next_start" \
       --limit $CHUNK_SIZE \
+      --osp-dump /storage/openlibrary/osp_totals.db \
       --progress "progress/$LOG_DIR/$RUN_SIG.txt" \
     &)
 

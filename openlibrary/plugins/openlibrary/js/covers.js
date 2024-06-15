@@ -1,6 +1,7 @@
 /**
  * Functionality for templates/covers
  */
+import 'jquery-ui/ui/disable-selection';
 import 'jquery-ui/ui/widgets/sortable';
 import 'jquery-ui-touch-punch'; // this makes drag-to-reorder work on touch devices
 
@@ -38,7 +39,12 @@ export function initCoversChange() {
 }
 
 function val(selector) {
-    return $(selector).val().trim();
+    const val = $(selector).val();
+    if (val) {
+        return val.trim();
+    } else {
+        return val;
+    }
 }
 
 function error(message, event) {
@@ -56,24 +62,17 @@ function add_iframe(selector, src) {
 // covers/manage.html and covers/add.html
 export function initCoversAddManage() {
     $('#addcover-form').on('submit', function (event) {
+        const i18nStrings = JSON.parse(document.querySelector('#errors').dataset.i18n);
         var file = val('#coverFile');
         var url = val('#imageUrl');
         var coverid = val('#coverid');
 
-        if (file === '' && (url === '' || url === 'http://') && coverid === '') {
-            return error('Please choose an image or provide a URL.', event);
+        if (!file && !url && !coverid) {
+            return error(i18nStrings['empty_cover_inputs'], event);
         }
 
-        function test_url(url) {
-            var obj = {
-                optional: function () { return false; }
-            }
-            return window.$.validator.url.apply(obj, [url, null]);
-        }
-
-        if (url !== '' && url !== 'http://' && !test_url(url)) {
-            return error('Please provide a valid URL.');
-        }
+        const btn = $('#imageUpload');
+        btn.prop('disabled', true).html(btn.data('loading-text'));
     });
 
     // Clicking a cover should set the form value to the data-id of that cover

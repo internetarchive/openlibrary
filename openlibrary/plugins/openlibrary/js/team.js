@@ -1,10 +1,15 @@
 import team from '../../../templates/about/team.json';
+import { updateURLParameters } from './utils';
 export function initTeamFilter() {
+    const currentYear = new Date().getFullYear().toString();
     // Photos
     const default_profile_image =
     '../../../static/images/openlibrary-180x180.png';
     const bookUrlIcon = '../../../static/images/icons/icon_book-lg.png';
     const personalUrlIcon = '../../../static/images/globe-solid.svg';
+    const initialSearchParams = new URL(window.location.href).searchParams;
+    const initialRole = initialSearchParams.get('role') || 'All';
+    const initialDepartment = initialSearchParams.get('department') || 'All';
 
     // Team sorted by last name
     const sortByLastName = (array) => {
@@ -46,10 +51,10 @@ export function initTeamFilter() {
       !matchSubstring(person.roles, 'staff')
     );
     const currentFellows = fellows.filter((person) =>
-        matchSubstring(person.roles, '2023')
+        matchSubstring(person.roles, currentYear)
     );
     const pastFellows = fellows.filter(
-        (person) => !matchSubstring(person.roles, '2023')
+        (person) => !matchSubstring(person.roles, currentYear)
     );
 
     // ********** VOLUNTEERS **********
@@ -62,12 +67,22 @@ export function initTeamFilter() {
     // *************************************** Selectors and eventListeners ***************************************
     const roleFilter = document.getElementById('role');
     const departmentFilter = document.getElementById('department');
-    roleFilter.addEventListener('change', (e) =>
-        filterTeam(e.target.value, departmentFilter.value)
-    );
-    departmentFilter.addEventListener('change', (e) =>
-        filterTeam(roleFilter.value, e.target.value)
-    );
+    roleFilter.value = initialRole;
+    roleFilter.addEventListener('change', (e) =>   {
+        filterTeam(e.target.value, departmentFilter.value);
+        updateURLParameters({
+            role: e.target.value,
+            department: departmentFilter.value
+        });
+    });
+    departmentFilter.value = initialDepartment;
+    departmentFilter.addEventListener('change', (e) => {
+        filterTeam(roleFilter.value, e.target.value);
+        updateURLParameters({
+            role: roleFilter.value,
+            department: departmentFilter.value
+        });
+    });
     const cardsContainer = document.querySelector('.teamCards_container');
 
     // *************************************** Functions ***************************************
@@ -219,10 +234,10 @@ export function initTeamFilter() {
           !matchSubstring(person.roles, 'staff')
             );
             const currentFellows = fellows.filter((person) =>
-                matchSubstring(person.roles, '2023')
+                matchSubstring(person.roles, currentYear)
             );
             const pastFellows = fellows.filter(
-                (person) => !matchSubstring(person.roles, '2023')
+                (person) => !matchSubstring(person.roles, currentYear)
             );
 
             const volunteers = filteredTeam.filter(
@@ -305,4 +320,5 @@ export function initTeamFilter() {
 
     createSectionHeading('Volunteers');
     createCards(volunteers);
+    filterTeam(initialRole, initialDepartment);
 }

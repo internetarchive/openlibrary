@@ -8,8 +8,7 @@ $def with (test=False)
   <div class="carousel-container">
     <div
       class="carousel carousel--progressively-enhanced"
-      id="welcome_carousel"
-      data-config="$json_encode(['#welcome_carousel', 3, 2, 2, 1, 1])"
+      data-config="$json_encode({'booksPerBreakpoint': [3, 2, 2, 1, 1]})"
     >
       $ read_online_card = {
       $    "card_title": _("Read Free Library Books Online"),
@@ -65,6 +64,16 @@ $def with (test=False)
       $    "ol_link_track": "OnboardingCarouselClick|Librarians"
       $ }
       $:render_template('home/onboarding_card', volunteer_card['card_title'], volunteer_card['card_body'], volunteer_card['img_src'], volunteer_card['href'], ol_link_track=volunteer_card['ol_link_track'])
+
+      $ volunteer_action_card = {
+      $    "card_title": _("Volunteer at Open Library"),
+      $    "card_body": _("Discover opportunities to improve the library"),
+      $    "img_src": "/static/images/onboarding/volunteer.png",
+      $    "href": "/volunteer",
+      $    "ol_link_track": "OnboardingCarouselClick|Volunteer",
+      $    "attribution": "Volunteer by Candy Design from the Noun Project"
+      $ }
+      $:render_template('home/onboarding_card', volunteer_action_card['card_title'], volunteer_action_card['card_body'], volunteer_action_card['img_src'], volunteer_action_card['href'], ol_link_track=volunteer_action_card['ol_link_track'], attribution=volunteer_action_card['attribution'])
 
       $ feedback_card = {
       $    "card_title": _("Send us feedback"),

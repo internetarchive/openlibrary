@@ -19,7 +19,12 @@
         target="_blank"
       >AZ<span v-if="asins.length > 1" title="This edition has multiple potential ASINs">*</span></a>
     </div>
-    <div class="info">{{publish_year}} {{publishers.join(', ')}} {{languages}}</div>
+    <div class="info">
+      <b>{{ number_of_pages }} p | {{languages}} | {{ publish_year }}</b>
+      {{ ' ' }}
+      <span class="publishers" :title="`${publishers.join(', ')}`">{{publishers.join(', ')}}</span>
+    </div>
+    <hr />
     <div class="title" :title="full_title">{{full_title}}</div>
   </div>
 </template>
@@ -43,6 +48,17 @@ export default {
             return this.edition.publishers || [];
         },
 
+        number_of_pages() {
+            if (this.edition.number_of_pages) {
+                return this.edition.number_of_pages;
+            } else if (this.edition.pagination) {
+                const m = this.edition.pagination.match(/\d+ ?p/);
+                if (m) return parseFloat(m[0]);
+            }
+
+            return '?';
+        },
+
         full_title() {
             let title = this.edition.title;
             if (this.edition.subtitle) title += `: ${this.edition.subtitle}`;
@@ -64,9 +80,9 @@ export default {
         },
 
         languages() {
-            if (!this.edition.languages) return '';
+            if (!this.edition.languages) return '???';
             const langs = this.edition.languages.map(lang => lang.key.split('/')[2]);
-            return `in ${langs.join(', ')}`;
+            return langs.join(', ');
         },
 
         asins() {
@@ -87,9 +103,10 @@ export default {
   overflow: hidden;
   background: #fff;
   margin-bottom: 4px;
+  font-size: 0.95em;
 
   img {
-    height: 60px;
+    height: 100%;
     width: 60px;
     background: #eee;
     object-fit: cover;
@@ -111,12 +128,19 @@ export default {
   }
 
   .info {
-    font-weight: bold;
     padding-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .title {
-    font-size: 0.95em;
+  .publishers {
+    opacity: 0.8;
+  }
+
+  hr {
+    margin: 4px 0;
+    color: white;
   }
 }
 </style>

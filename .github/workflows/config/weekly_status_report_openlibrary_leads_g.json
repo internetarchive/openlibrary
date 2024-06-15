@@ -1,0 +1,26 @@
+{
+  "slackChannel": "#openlibrary-leads-g",
+  "publishFullDigest": false,
+  "leads": [
+    {
+      "githubUsername": "hornc",
+      "leadLabel": "Lead: @hornc",
+      "slackId": "<@U0EUS8DV0>"
+    },
+    {
+      "githubUsername": "mheiman",
+      "leadLabel": "Lead: @mheiman",
+      "slackId": "<@U01MQBRDN5D>"
+    },
+    {
+      "githubUsername": "RayBB",
+      "leadLabel": "Lead: @RayBB",
+      "slackId": "<@U01TC3EG9LJ>"
+    },
+    {
+      "githubUsername": "rebecca-shoptaw",
+      "leadLabel": "Lead: @rebecca-shoptaw",
+      "slackId": "<@U06D09YC69L>"
+    }
+  ]
+}

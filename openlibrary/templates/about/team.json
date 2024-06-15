@@ -5,13 +5,14 @@
     "roles": ["staff-emeritus"],
     "departments": ["engineering"],
     "photo_path": "../../../static/images/team/Aaron_Swartz.png",
-    "personal_url": "",
+    "github_id": "aaronsw",
+    "personal_url": "http://aaronsw.com/",
     "favorite_book_url": "",
     "ol_key": "aaronsw"
   },
   {
     "name": "Abbey Ripstra",
-    "title": "Design Fellow 2023",
+    "title": "Design Fellow",
     "roles": ["fellow-2023"],
     "projects": ["Persona Research"],
     "departments": ["design"],
@@ -20,11 +21,22 @@
     "ol_key": "bodiceaa"
   },
   {
+    "name": "Ben Deitch",
+    "title": "Engineering Fellow",
+    "roles": ["fellow-2024"],
+    "departments": ["engineering"],
+    "projects": ["Edition-based Reading Log"],
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/b41556b7-b8b8-4c2b-83ca-349a3ec60243",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
     "name": "Chris Clauss",
     "title": "Python Backend",
     "roles": ["staff-emeritus"],
     "projects": ["Python2->3"],
     "departments": ["engineering"],
+    "github_id": "cclauss",
     "photo_path": "../../../static/images/team/Chris_Clauss.jpg",
     "ol_key": "cclauss"
   },
@@ -34,7 +46,7 @@
     "roles": ["fellow-2022"],
     "projects": ["Sharable List Previews"],
     "departments": ["engineering", "design"],
-    "photo_path": "",
+    "photo_path": "https://avatars.githubusercontent.com/u/72806587?v=4",
     "ol_key": ""
   },
   {
@@ -43,7 +55,7 @@
     "roles": ["fellow-2022"],
     "projects": ["My Books Page (Desktop)"],
     "departments": ["design"],
-    "photo_path": "",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/07995922-eb41-4d93-83f0-48b3e22378ed",
     "personal_url": "https://www.danafeinschaffer.com",
     "favorite_book_url": "https://openlibrary.org/works/OL17332479W/Six_of_Crows?edition=key%3A/books/OL37753024M",
     "ol_key": "danafs/books"
@@ -66,6 +78,7 @@
     "departments": ["engineering"],
     "projects": ["Library Explorer"],
     "photo_path": "../../../static/images/team/Drini.jpg",
+    "github_id": "cdrini",
     "personal_url": "",
     "favorite_book_url": "",
     "ol_key": "ScarTissue"
@@ -76,14 +89,15 @@
     "roles": ["volunteer"],
     "departments": ["engineering"],
     "projects": ["Librarian Merge Queue"],
-    "photo_path": "https://lh3.googleusercontent.com/u/0/drive-viewer/AK7aPaCDKs7PIcfRPs-qDojkA9qpZAs53bEbUF3dOhCgIVFgPKgHw_I90u0uF2sxCkRJqJM1ZQ3D5hKQSjH7xiSreGRMKW07=w2652-h1228",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/dcc4d33d-9f77-4220-8a32-29a3b7e9f6d9",
+    "github_id": "Eds-Dbug",
     "personal_url": "",
     "favorite_book_url": "",
     "ol_key": ""
   },
   {
     "name": "Edward Betts",
-    "title": "Core Developer",
+    "title": "Core Developer, Emeritus",
     "roles": ["staff-emeritus"],
     "departments": ["engineering"],
     "projects": ["Librarian Merge Queue"],
@@ -94,18 +108,18 @@
   },
   {
     "name": "Giacomo Cignoni",
-    "title": "Fellow 2019 (GSoC) - Engineering",
+    "title": "Engineering Fellow, GSoC 2019",
     "roles": ["fellow-2019-gsoc"],
     "departments": ["engineering"],
     "projects": ["<a href='https://blog.openlibrary.org/2020/08/29/giacomo-cignoni-my-internship-at-the-internet-archive/'>Bookreader Selection</a>"],
-    "photo_path": "https://media.licdn.com/dms/image/C4E03AQH9rdV9VCt0-w/profile-displayphoto-shrink_400_400/0/1657834448565?e=1703116800&v=beta&t=Wul7NBW-NlPqaVg8Mtry38Y8j2zfHomi6-tvDxgHQ3Y",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/f53ec5b5-604a-4a53-beaa-cda30e39d5fb",
     "personal_url": "",
     "favorite_book_url": "",
     "ol_key": ""
   },
   {
     "name": "George Oates",
-    "title": "Program Lead",
+    "title": "Program Lead, Emeritus",
     "roles": ["staff-emeritus"],
     "departments": ["design", "product"],
     "projects": ["Subjects Page", "Logo"],
@@ -127,20 +141,20 @@
   },
   {
     "name": "Jayden Teoh",
-    "title": "Fellow 2023 - Engineering",
+    "title": "Engineering Fellow",
     "roles": ["fellow-2023"],
     "departments": ["engineering"],
     "projects": [
       "<a href='https://blog.openlibrary.org/2023/08/25/google-summer-of-code-2023-supercharging-subject-pages/'>Tag-powered Subjects</a>"
     ],
-    "photo_path": "https://media.licdn.com/dms/image/D4E03AQGwfvWjoll47g/profile-displayphoto-shrink_400_400/0/1696947292009?e=1703116800&v=beta&t=wvrxAn6Om5w0lDxdN64ddrIKei_3XZPh6H7_AY9lNPQ",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/258ecfb4-7a13-4340-8de6-6db79d5ae40a",
     "personal_url": "https://www.linkedin.com/in/jayden-teoh/",
     "favorite_book_url": "",
     "ol_key": ""
   },
   {
     "name": "Jaye Rasmussen",
-    "title": "Developer",
+    "title": "Engineering Fellow",
     "roles": ["fellow-2023"],
     "departments": ["engineering"],
     "projects": ["Team Page"],
@@ -156,15 +170,16 @@
     "departments": ["engineering"],
     "photo_path": "../../../static/images/team/Jim_Champ.png",
     "personal_url": "",
+    "github_id": "jimchamp",
     "favorite_book_url": "",
     "ol_key": "jchamp_archive"
   },
   {
     "name": "Jon Robson",
-    "title": "Frontend Lead",
+    "title": "Frontend Lead Emeritus",
     "roles": ["fellow-2017"],
     "departments": ["engineering"],
-    "photo_path": "https://media.licdn.com/dms/image/C4E03AQHsUBUdt5_UAA/profile-displayphoto-shrink_400_400/0/1516543040876?e=1703116800&v=beta&t=9wHnzD5M1bXezjyZb7Jz-T_dfXgpG0Ea18GgtT73DMsz",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/e5db2459-3f23-4d49-9ab4-952be2efb4bb",
     "personal_url": "",
     "favorite_book_url": "",
     "ol_key": ""
@@ -172,7 +187,7 @@
   {
     "name": "Keita Ohshiro",
     "title": "Design & Accessibility",
-    "roles": ["volunteer-active"],
+    "roles": ["volunteer-emeritus"],
     "departments": ["engineering"],
     "photo_path": "../../../static/images/team/Keita_Ohshiro.jpg",
     "personal_url": "https://bick-jp.github.io/",
@@ -197,11 +212,12 @@
     "photo_path": "../../../static/images/team/Mek.png",
     "personal_url": "https://mek.fyi/",
     "favorite_book_url": "",
+    "github_id": "mekarpeles",
     "ol_key": "mekBot"
   },
   {
     "name": "Nick Norman",
-    "title": "Communications Lead",
+    "title": "Communications Fellow & Lead",
     "roles": ["fellow-2022", "fellow-2023"],
     "departments": ["communications"],
     "photo_path": "../../../static/images/team/Nick_Norman.jpg",
@@ -211,11 +227,22 @@
   },
   {
     "name": "Nolan Windham",
-    "title": "Engineering Fellow",
+    "title": "Engineering Fellow, GSoC 2021",
     "roles": ["fellow-2021-gsoc"],
     "departments": ["engineering"],
     "projects": ["Open Book Genome Project (OBGP)"],
-    "photo_path": "https://media.licdn.com/dms/image/D4E03AQGLGv88S5Ix6Q/profile-displayphoto-shrink_800_800/0/1693451292055?e=2147483647&v=beta&t=TmFFYiu5JJFXHIkyoL_xU23M8WALhX8biykVX0F5j0g",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/0785572e-54e4-4934-a7e9-34941b56895f",
+    "ol_key": ""
+  },
+  {
+    "name": "Rebecca Shoptaw",
+    "title": "Engineering Fellow, i18n Lead",
+    "roles": ["fellow-2024"],
+    "departments": ["engineering"],
+    "projects": ["Registration", "i18n"],
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/c6eae0c8-0896-4fe6-a4e7-2972d18b8b8d",
+    "personal_url": "https://www.rebeccashoptaw.dev/",
+    "favorite_book_url": "https://openlibrary.org/works/OL20867W/Middlemarch",
     "ol_key": ""
   },
   {
@@ -246,7 +273,7 @@
     "roles": ["fellow-2021"],
     "departments": ["design", "engineering"],
     "projects": ["Homepage Onboarding Cards"],
-    "photo_path": "https://pbs.twimg.com/profile_images/1344528993236647936/YktB5pg8_400x400.jpg",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/275568d0-6fce-4142-b4bc-17850acf5754",
     "personal_url": "https://www.linkedin.com/in/sabreen-parveen-4a6641190",
     "favorite_book_url": "",
     "ol_key": ""
@@ -273,20 +300,21 @@
   },
   {
     "name": "Scott Barnes",
-    "title": "Developer",
+    "title": "Core Developer",
     "roles": ["fellow-2022", "staff-active"],
     "departments": ["engineering"],
     "photo_path": "../../../static/images/team/Scott_Barnes.jpg",
+    "github_id": "scottbarnes",
     "personal_url": "https://github.com/scottbarnes",
     "favorite_book_url": "https://openlibrary.org/books/OL22552226M/The_High_Sierra",
     "ol_key": "srb36"
   },
   {
     "name": "Tabish Shaikh",
-    "title": "Engineering Fellow",
+    "title": "Engineering Fellow, Staff Emeritus",
     "roles": ["fellow-2020-gsoc", "fellow-2019-iasoc", "staff-emeritus"],
     "departments": ["engineering"],
-    "photo_path": "https://media.licdn.com/dms/image/D4D03AQFT2zb-MFX6ew/profile-displayphoto-shrink_800_800/0/1673440954545?e=2147483647&v=beta&t=cVjgjHfsFsRCPoR_siw7MPWtI4_MsTe7ztwlYfJuewI",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/481099ea-0c24-4257-9b3c-0d803be6b98e",
     "ol_key": ""
   },
   {
@@ -295,8 +323,19 @@
     "roles": ["fellow-2022"],
     "departments": ["engineering"],
     "projects": ["Open Book Genome Project (OBGP)"],
-    "photo_path": "https://media.licdn.com/dms/image/D5603AQELxHjGPUmY7g/profile-displayphoto-shrink_400_400/0/1680211721055?e=1703116800&v=beta&t=ubJ8o5N9Oba2AD_5vE6pizFm0RLzyTjTNT734MEyDPI",
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/071b7167-a7a9-4d7b-8118-d8cef4d1c528",
     "personal_url": "https://www.linkedin.com/in/teo-cheng/",
+    "favorite_book_url": "",
+    "ol_key": ""
+  },
+  {
+    "name": "Vaibhav Patel",
+    "title": "Engineering Fellow",
+    "roles": ["fellow-2024-gsoc"],
+    "departments": ["engineering"],
+    "projects": ["Book Battles"],
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/76c602d8-8fe8-4353-a8e0-b68f991bafc8",
+    "github_id": "noobCoderVP",
     "favorite_book_url": "",
     "ol_key": ""
   }

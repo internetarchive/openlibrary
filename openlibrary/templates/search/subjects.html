@@ -1,6 +1,6 @@
 $def with (get_results)
 
-$ q = query_param('q')
+$ q = query_param('q', '').strip()
 $ results_per_page = 100
 $ page = query_param('page')
 $if page:
@@ -20,8 +20,7 @@ $ url_map = { 'person': 'person:', 'place': 'place:', 'time': 'time:' }
   $:macros.SearchNavigation()
     <div class="section">
         <form class="siteSearch olform" action="">
-            <input type="text" class="larger" name="q" size="100" value="$q"/>
-            <input type="submit" class="larger" value="$_('Search')"/>
+            $:render_template("search/searchbox", q=q)
         </form>
     </div>
 

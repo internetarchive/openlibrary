@@ -8,6 +8,7 @@ Upstream requires:
 
 This adapter module is a filter that sits above an Infobase server and fakes the new URL structure.
 """
+
 import json
 import web
 
@@ -124,7 +125,7 @@ class proxy:
             self.output = json.dumps(d)
 
 
-def convert_key(key, mapping=None):
+def convert_key(key: str | None, mapping: dict[str, str] | None = None) -> str | None:
     """
     >>> convert_key("/authors/OL1A", {'/authors/': '/a/'})
     '/a/OL1A'
@@ -142,7 +143,7 @@ def convert_key(key, mapping=None):
     return key
 
 
-def convert_dict(d, mapping=None):
+def convert_dict(d, mapping: dict[str, str] | None = None):
     """
     >>> convert_dict({'author': {'key': '/authors/OL1A'}}, {'/authors/': '/a/'})
     {'author': {'key': '/a/OL1A'}}
@@ -160,7 +161,7 @@ def convert_dict(d, mapping=None):
         return d
 
 
-def unconvert_key(key):
+def unconvert_key(key: str | None) -> str | None:
     if key == '/upstream':
         return '/'
     return convert_key(key, iconversions)

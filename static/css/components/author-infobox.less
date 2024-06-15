@@ -1,0 +1,36 @@
+// used in infobox.html
+.infobox {
+  line-height: 1.5em;
+  background-color: @grey-fafafa;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 3px;
+  border-bottom: 1px solid @light-beige;
+
+  .illustration {
+    margin-bottom: unset;
+  }
+
+  .short-description{
+    text-align: center;
+  }
+
+  tr {
+    // Without this page-user.css makes the background beige
+    background-color: transparent;
+    td:first-child {
+      padding-right: 5px;
+    }
+  }
+
+  table {
+    // Without this page-user.css makes the table very compact
+    border-collapse: unset;
+    border-spacing: 3px;
+  }
+}
+
+.infobox-name {
+  text-align: center;
+  margin-bottom: 10px;
+}

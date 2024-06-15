@@ -5,7 +5,9 @@ from openlibrary.catalog.utils import (
     author_dates_match,
     flip_name,
     get_missing_fields,
+    get_non_isbn_asin,
     get_publication_year,
+    is_asin_only,
     is_independently_published,
     is_promise_item,
     match_with_bad_chars,
@@ -16,6 +18,7 @@ from openlibrary.catalog.utils import (
     publication_too_old_and_not_exempt,
     published_in_future_year,
     remove_trailing_dot,
+    remove_trailing_number_dot,
     strip_count,
 )
 
@@ -323,6 +326,44 @@ def test_is_promise_item(rec, expected) -> None:
 
 
 @pytest.mark.parametrize(
+    ["rec", "expected"],
+    [
+        ({"source_records": ["amazon:B01234568"]}, "B01234568"),
+        ({"source_records": ["amazon:123456890"]}, None),
+        ({"source_records": ["ia:BLOB"]}, None),
+        ({"source_records": []}, None),
+        ({"identifiers": {"ia": ["B01234568"]}}, None),
+        ({"identifiers": {"amazon": ["123456890"]}}, None),
+        ({"identifiers": {"amazon": ["B01234568"]}}, "B01234568"),
+        ({"identifiers": {"amazon": []}}, None),
+        ({"identifiers": {}}, None),
+        ({}, None),
+    ],
+)
+def test_get_non_isbn_asin(rec, expected) -> None:
+    got = get_non_isbn_asin(rec)
+    assert got == expected
+
+
+@pytest.mark.parametrize(
+    ["rec", "expected"],
+    [
+        ({"isbn_10": "123456890", "source_records": ["amazon:B01234568"]}, False),
+        ({"isbn_13": "1234567890123", "source_records": ["amazon:B01234568"]}, False),
+        ({"isbn_10": "1234567890", "identifiers": {"amazon": ["B01234568"]}}, False),
+        ({"source_records": ["amazon:1234567890"]}, False),
+        ({"identifiers": {"amazon": ["123456890"]}}, False),
+        ({}, False),
+        ({"identifiers": {"amazon": ["B01234568"]}}, True),
+        ({"source_records": ["amazon:B01234568"]}, True),
+    ],
+)
+def test_is_asin_only(rec, expected) -> None:
+    got = is_asin_only(rec)
+    assert got == expected
+
+
+@pytest.mark.parametrize(
     'name, rec, expected',
     [
         (
@@ -346,3 +387,33 @@ def test_get_missing_field(name, rec, expected) -> None:
     assert sorted(get_missing_fields(rec=rec)) == sorted(
         expected
     ), f"Test failed: {name}"
+
+
+@pytest.mark.parametrize(
+    ("date, expected"),
+    [
+        ("", ""),
+        ("1865.", "1865"),
+        ("1865", "1865"),  # No period to remove
+        ("1865.5", "1865.5"),  # Period not at the end
+        ("1865,", "1865,"),  # Comma instead of period
+        ("18.", "18"),  # Minimum digits
+        ("1.", "1."),  # Fewer than minimum digits with period
+        ("18651.", "18651"),  # More than minimum digits
+        ("123blap.", "123blap."),  # Non-digit before period
+        ("123...", "123"),  # Multiple periods at the end
+        ("123 -..", "123 -"),  # Spaces and hyphens before multiple periods
+        ("123-.", "123-"),  # Hyphen directly before single period
+        (" 123 .", " 123 "),  # Spaces around digits and single period
+        ("123 - .", "123 - "),  # Space between hyphen and single period
+        ("abc123...", "abc123"),  # Leading characters
+        ("123...xyz", "123...xyz"),  # Trailing characters after periods
+        ("12 34..", "12 34"),  # Spaces within digits before periods
+        ("123", "123"),  # Spaces between periods
+        ("12-34.", "12-34"),  # Hyphens within digits
+        ("100-200.", "100-200"),  # Hyphens within digits, ending with period
+    ],
+)
+def test_remove_trailing_number_dot(date: str, expected: str) -> None:
+    got = remove_trailing_number_dot(date)
+    assert got == expected

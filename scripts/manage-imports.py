@@ -7,7 +7,6 @@ import os
 import sys
 import time
 
-import _init_path  # Imported for its side effect of setting PYTHONPATH
 import web
 
 from openlibrary.api import OLError, OpenLibrary
@@ -122,7 +121,7 @@ def add_new_scans(args):
         # yesterday
         date = datetime.date.today() - datetime.timedelta(days=1)
 
-    items = get_candidate_ocaids(since_date=date)
+    items = list(get_candidate_ocaids(date))
     batch_name = f"new-scans-{date.year:04}{date.month:02}"
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch.add_items(items)
@@ -176,24 +175,6 @@ def import_all(args, **kwargs):
             logger.info("starmap END")
 
 
-def retroactive_import(start=None, stop=None, servername=None):
-    """Retroactively searches and imports all previously missed books
-    (through all time) in the Archive.org database which were
-    created after scribe3 was released (when we switched repub states
-    from 4 to [19, 20, 22]).
-    """
-    scribe3_repub_states = [19, 20, 22]
-    items = get_candidate_ocaids(
-        scanned_within_days=None, repub_states=scribe3_repub_states
-    )[start:stop]
-    date = datetime.date.today()
-    batch_name = f"new-scans-{date.year:04}{date.month:02}"
-    batch = Batch.find(batch_name) or Batch.new(batch_name)
-    batch.add_items(items)
-    for item in batch.get_items():
-        do_import(item, servername=servername)
-
-
 def main():
     if "--config" in sys.argv:
         index = sys.argv.index("--config")
@@ -227,13 +208,6 @@ def main():
         else:
             args.append(i)
 
-    if cmd == "import-retro":
-        start, stop = (
-            (int(a) for a in args) if (args and len(args) == 2) else (None, None)
-        )
-        return retroactive_import(
-            start=start, stop=stop, servername=flags['servername']
-        )
     if cmd == "import-ocaids":
         return import_ocaids(*args, **flags)
     if cmd == "add-items":
