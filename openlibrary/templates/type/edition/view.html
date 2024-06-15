@@ -448,6 +448,12 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
                 $:display_goodreads(values[0].label, values)
             </dl>
           </div>
+          <div class="section">
+            <h3>$_("Source records")</h3>
+            <dl class="meta">
+                $:display_value('', ' '.join(edition.get('source_records', '')))
+            </dl>
+          </div>
           $if work:
             $if not work.excerpts and work.first_sentence:
               <h4>$_("First Sentence")</h4>
