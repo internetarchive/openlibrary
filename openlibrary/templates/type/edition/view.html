@@ -450,8 +450,9 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
           </div>
           <div class="section">
             <h3>$_("Source records")</h3>
+	    $ get_source_html = render_template("history/sources").get_source_html
             <dl class="meta">
-                $:display_value('', ' '.join(edition.get('source_records', '')))
+		$:'<br/>'.join([get_source_html(s) for s in edition.get('source_records', [])])
             </dl>
           </div>
           $if work:
