@@ -112,6 +112,6 @@ repos:
     - id: detect-missing-i18n
       name: Detect missing i18n
       description: This hook checks .html files for i18n strings that might be missing.
-      entry: python ./scripts/detect_missing_i18n.py
+      entry: time python ./scripts/detect_missing_i18n.py
       types: [html]
       language: python
