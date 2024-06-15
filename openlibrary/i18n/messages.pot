@@ -452,9 +452,8 @@ msgstr ""
 
 #: authors/index.html lib/nav_head.html lists/home.html
 #: publishers/notfound.html publishers/view.html search/advancedsearch.html
-#: search/authors.html search/inside.html search/lists.html
-#: search/publishers.html search/subjects.html subjects.html
-#: subjects/notfound.html type/local_id/view.html work_search.html
+#: search/publishers.html search/searchbox.html subjects.html
+#: subjects/notfound.html type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -3624,22 +3623,19 @@ msgid "Finished"
 msgstr ""
 
 #: history/comment.html
-#, python-format
-msgid "Imported from %(source)s"
+msgid "Imported from"
 msgstr ""
 
 #: history/comment.html
-#, python-format
-msgid "Imported from %(source)s  <a href=\"%(url)s\">%(type)s record</a>."
-msgstr ""
-
-#: history/comment.html
-#, python-format
-msgid "Found a <a href=\"%(url)s\">matching record</a> from %(source)s."
+msgid "Found a matching"
 msgstr ""
 
 #: history/comment.html
 msgid "Edited without comment."
+msgstr ""
+
+#: history/sources.html
+msgid "record"
 msgstr ""
 
 #: home/about.html
@@ -4392,7 +4388,7 @@ msgstr ""
 msgid "Recent Activity"
 msgstr ""
 
-#: lists/home.html
+#: lists/home.html lists/showcase.html
 msgid "See all"
 msgstr ""
 
@@ -5560,6 +5556,10 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "Weight"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Source records"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
