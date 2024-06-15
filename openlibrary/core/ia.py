@@ -204,7 +204,6 @@ class ItemEdition(dict):
             metadata.get("noindex") == "true"
             and "printdisabled" not in collections
             and "inlibrary" not in collections
-            and "lendinglibrary" not in collections
         ):
             return "noindex-true"
         # Gio - April 2016

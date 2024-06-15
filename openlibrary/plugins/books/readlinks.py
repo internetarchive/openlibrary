@@ -106,9 +106,7 @@ class ReadProcessor:
         self.options = options
 
     def get_item_status(self, ekey, iaid, collections, subjects) -> str:
-        if 'lendinglibrary' in collections:
-            status = 'lendable' if 'Lending library' in subjects else 'restricted'
-        elif 'inlibrary' in collections:
+        if 'inlibrary' in collections:
             status = 'restricted'
             if 'In library' in subjects:  # self.get_inlibrary() is deprecated
                 if self.options.get('debug_items'):
@@ -347,18 +345,6 @@ class ReadProcessor:
         # If returned order were reliable, I could skip the below.
         eds = dynlinks.ol_get_many_as_dict(ekeys)
         self.iaid_to_ed = {ed['ocaid']: ed for ed in eds.values()}
-        # self.iaid_to_ekey = dict((iaid, ed['key'])
-        #                            for iaid, ed in self.iaid_to_ed.items())
-
-        # Work towards building a dict of iaid loanability,
-        # def has_lending_collection(meta):
-        #     collections = meta.get("collection", [])
-        #     return 'lendinglibrary' in collections or 'inlibrary' in collections
-        # in case site.store supports get_many (unclear)
-        # maybe_loanable_iaids = [iaid for iaid in iaids
-        #                         if has_lending_collection(self.iaid_to_meta.get(iaid, {}))]
-        # loanable_ekeys = [self.iaid_to_ekey.get(iaid) for iaid in maybe_loanable_iaids]
-        # loanstatus =  web.ctx.site.store.get('ebooks' + ekey, {'borrowed': 'false'})
 
         result = {}
         for r in requests:
