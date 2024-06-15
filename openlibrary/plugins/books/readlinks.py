@@ -105,7 +105,7 @@ class ReadProcessor:
     def __init__(self, options):
         self.options = options
 
-    def get_item_status(self, ekey, iaid, collections, subjects=[]) -> str:
+    def get_item_status(self, ekey, iaid, collections) -> str:
         if 'inlibrary' in collections:
             status = 'lendable'
         else:
@@ -192,10 +192,8 @@ class ReadProcessor:
         else:
             wkey = None
         work = None
-        subjects = []
         if wkey:
             work = self.works.get(wkey)
-            subjects = work.get('subjects', [])
             iaids = self.wkey_to_iaids[wkey]
             # rearrange so any scan for this edition is first
             if orig_iaid and orig_iaid in iaids:
@@ -222,7 +220,7 @@ class ReadProcessor:
                 status = 'missing'
             else:
                 ekey = edition.get('key', '')
-                status = self.get_item_status(ekey, iaid, collections, subjects)
+                status = self.get_item_status(ekey, iaid, collections)
             return status
 
         def getdate(self, iaid):
