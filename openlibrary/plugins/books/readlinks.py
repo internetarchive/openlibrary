@@ -105,14 +105,9 @@ class ReadProcessor:
     def __init__(self, options):
         self.options = options
 
-    def get_item_status(self, ekey, iaid, collections, subjects) -> str:
+    def get_item_status(self, ekey, iaid, collections, subjects=[]) -> str:
         if 'inlibrary' in collections:
-            status = 'restricted'
-            if 'In library' in subjects:  # self.get_inlibrary() is deprecated
-                if self.options.get('debug_items'):
-                    status = 'restricted - not inlib'
-                elif self.options.get('show_inlibrary'):
-                    status = 'lendable'
+            status = 'lendable'
         else:
             status = 'restricted' if 'printdisabled' in collections else 'full access'
 
@@ -259,7 +254,6 @@ class ReadProcessor:
                 'lendable': 2,
                 'checked out': 3,
                 'restricted': 4,
-                'restricted - not inlib': 4,
                 'missing': 5,
             }
             return (isexact, statusvals[status], date)
