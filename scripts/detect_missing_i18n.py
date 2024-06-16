@@ -31,7 +31,7 @@ ignore_after_opening_tag = (
     + variables
     + r"|"
     + urls_domains
-    + r")+)"
+    + r")+(?:[\r\n<]|$))"
 )
 
 substring_elements = [
