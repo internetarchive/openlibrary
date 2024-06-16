@@ -16,14 +16,14 @@ err_prefix = "\033[91mERRO\033[0m"
 # TODO: replace the huge punctuation array with \p{L} - only supported in pip regex and not re
 punctuation = r"[\(\)\{\}\[\]\/\\:;\-_\s+=*^%#\.•·\?♥|≡0-9,!xX✓×@\"'†★]"
 htmlents = r"&[a-z0-9]+;"
-variables = r"\$:?[^\s]+|\$[^\s\(]+[\(][^\)]+[\)]|\$[^\s\[]+[\[][^\]]+[\]]|%\(?[a-z_]+\)?|\{\{[^\}]+\}\}"
-urls_domains = r"https?:\/\/[^\s]+|[a-z\-]+\.[a-z]{2}[a-z]?"
+variables = r"\$:?[^\s]+|\$[^\s\(]+[\(][^\)]+[\)]|\$[^\s\[]+[\[][^\]]+[\]]|\$[\{][^\}]+[\}]|%\(?[a-z_]+\)?|\{\{[^\}]+\}\}"
+urls_domains = r"https?:\/\/[^\s]+|[a-z\-]+\.[A-Za-z]{2}[a-z]?"
 
 opening_tag_open = r"<(?!code|link|!--)[a-z][^>]*?"
-opening_tag_end = r"[^\/\-]>"
+opening_tag_end = r"[^\/\-\s]>"
 opening_tag_syntax = opening_tag_open + opening_tag_end
 ignore_after_opening_tag = (
-    r"(?![<\r\n]|$|\\\$\$|\$:?_?\(|(?:"
+    r"(?![<\r\n]|$|\\\$\$|\$:?_?\(|\$:?ungettext\(|(?:"
     + punctuation
     + r"|"
     + htmlents
@@ -65,14 +65,14 @@ substring_elements = [
     "var",
     "wbr",
 ]
-i18n_substring_regex = r"^<(?:" + re.escape("|".join(substring_elements)) + r")\W"
+i18n_substring_regex = r"<(?:" + r"|".join(substring_elements) + r")\W"
 
 i18n_element_missing_regex = opening_tag_syntax + ignore_after_opening_tag
 i18n_element_warn_regex = opening_tag_syntax + r"\$\("
 
 attr_syntax = r"(title|placeholder|alt)="
 ignore_double_quote = (
-    r"\"(?!\$:?_?\(|\\\$\$|(?:"
+    r"\"(?!\$:?_?\(|\$:?ungettext\(|\\\$\$|(?:"
     + punctuation
     + r"|"
     + variables
@@ -81,7 +81,7 @@ ignore_double_quote = (
     + r")*\")"
 )
 ignore_single_quote = (
-    r"\'(?!\$:?_?\(|\\\$\$|(?:"
+    r"\'(?!\$:?_?\(|\$:?ungettext\(|\\\$\$|(?:"
     + punctuation
     + r"|"
     + variables
@@ -214,6 +214,7 @@ def main(files: list[Path]):
         print(
             "Learn how to fix these errors by reading our i18n documentation: https://github.com/internetarchive/openlibrary/wiki/Internationalization#internationalization-i18n-developers-guide"
         )
+    print(i18n_element_missing_regex)
 
     if errcount > 0:
         sys.exit(1)
