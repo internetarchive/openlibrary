@@ -126,11 +126,11 @@ def main(files: list[Path]):
             longest_filename_length = len(str(f))
         contents = f.read_text()
         lines = contents.splitlines()
-        if len(lines)+1 > longest_line_count:
-            longest_line_count = len(lines)+1
+        if len(lines) + 1 > longest_line_count:
+            longest_line_count = len(lines) + 1
         for line in lines:
-            if len(line)+1 > longest_line:
-                longest_line = len(line)+1
+            if len(line) + 1 > longest_line:
+                longest_line = len(line) + 1
     spacing_base = longest_filename_length + len(
         f':{longest_line_count}:{longest_line}'
     )
