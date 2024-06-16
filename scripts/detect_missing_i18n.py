@@ -16,7 +16,7 @@ err_prefix = "\033[91mERRO\033[0m"
 # TODO: replace the huge punctuation array with \p{L} - only supported in pip regex and not re
 punctuation = r"[\(\)\{\}\[\]\/\\:;\-_\s+=*^%#\.•·\?♥|≡0-9,!xX✓×@\"'†★]"
 htmlents = r"&[a-z0-9]+;"
-variables = r"\$:?[^\s]+|%\(?[a-z_]+\)?|\{\{[^\}]+\}\}"
+variables = r"\$:?[^\s]+|\$[^\s\(]+[\(][^\)]+[\)]|\$[^\s\[]+[\[][^\]]+[\]]|%\(?[a-z_]+\)?|\{\{[^\}]+\}\}"
 urls_domains = r"https?:\/\/[^\s]+|[a-z\-]+\.[a-z]{2}[a-z]?"
 
 opening_tag_open = r"<(?!code|link|!--)[a-z][^>]*?"
