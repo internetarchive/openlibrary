@@ -9,9 +9,10 @@
             <br />
             <label>Format: <select @change="selectAlgorithm">
                     <option value="1">e.g. "The Wizard of Oz by L. Frank Baum"</option>
-                    <option value="2">e.g. "The Wizard of Oz (L. Frank Baum)"</option>
-                    <option value="3">Wikipedia Citation (e.g. Baum, Frank L. (1994). The Wizard of Oz)</option>
-                    <option value="4">✨ AI Extraction</option>
+                    <option value="2">e.g. "L. Frank Baum - The Wizard of Oz" </option>
+                    <option value="3">e.g. "The Wizard of Oz (L. Frank Baum)"</option>
+                    <option value="4">Wikipedia Citation (e.g. Baum, Frank L. (1994). The Wizard of Oz)</option>
+                    <option value="5">✨ AI Extraction</option>
                 </select></label>
             <label v-if="bulkSearchState.extractionOptions.use_gpt">OpenAI API Key:
                 <input v-if="showPassword" type="password" @click="togglePasswordVisibility()" v-model="bulkSearchState.extractionOptions.api_key" />
@@ -51,8 +52,9 @@ export default {
             regexDict: {
                 '': '',
                 1: new RegExp('(^|>)(?<title>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+(by|[-\u2013\u2014\\t])\\s+(?<author>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)', 'gmu'),
-                2: new RegExp('^(?<title>[\\p{L}].{1,250})\\s\\(?<author>(.{3,70})\\)$$', 'gmu'),
-                3: new RegExp('^(?<author>[^.()]+).*?\\)\\. (?<title>[^.]+)', 'gmu')
+                2: new RegExp('(^|>)(?<author>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+[,-\u2013\u2014\\t]\\s+(?<title>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)', 'gmu'),
+                3: new RegExp('^(?<title>[\\p{L}].{1,250})\\s\\(?<author>(.{3,70})\\)$$', 'gmu'),
+                4: new RegExp('^(?<author>[^.()]+).*?\\)\\. (?<title>[^.]+)', 'gmu')
             }
         }
     },
@@ -61,7 +63,7 @@ export default {
             this.showPassword= !this.showPassword
         },
         selectAlgorithm(e) {
-            if (e.target.value === '4') {
+            if (e.target.value === '5') {
                 this.bulkSearchState.extractionOptions.use_gpt = true
             }
             else {
