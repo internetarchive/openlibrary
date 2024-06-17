@@ -4,9 +4,11 @@ $def render_snippet(query, doc):
     $:macros.FulltextSuggestionSnippet(query, doc=doc)
 
 $if results and results.get('hits'):
-  $ hits = results['hits'].get('hits', [])[:2]
+  $ hits = results['hits'].get('hits', [])[:4]
   $ num_found = commify(results['hits'].get('total', 0))
   $ ia_base_url = "https://archive.org"
+
+  $:macros.LoadingIndicator('Fetching Search Inside Suggestions')
   <div id="fulltextSuggestions" class="fulltext-suggestions">
     <div class="fulltext-suggestions__header">
       <a class="fulltext-suggestions__icon" href="/search/inside?$urlencode(dict(q=query))" title="$_('Search Inside Icon')">
@@ -18,9 +20,7 @@ $if results and results.get('hits'):
         href="/search/inside?$urlencode(dict(q=query))">$_('%(results_count)s Search Inside Matches', results_count=num_found)</a>
       </h3>
     </div>
-    <!-- <div className="fulltext-suggestions__fsi-container fsi__container"> -->
-      $for doc in hits:
-        $if doc.get('edition'):
-          $:macros.FulltextSearchSuggestionItem(doc['edition'], snippet=render_snippet(query, doc))
-    <!-- </div> -->
+    $for doc in hits:
+      $if doc.get('edition'):
+        $:macros.FulltextSearchSuggestionItem(doc['edition'], snippet=render_snippet(query, doc))
   </div>
