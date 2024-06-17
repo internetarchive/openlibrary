@@ -280,7 +280,7 @@ msgstr ""
 msgid "password:"
 msgstr ""
 
-#: login.html
+#: forms.py login.html
 msgid "Email"
 msgstr ""
 
@@ -452,9 +452,8 @@ msgstr ""
 
 #: authors/index.html lib/nav_head.html lists/home.html
 #: publishers/notfound.html publishers/view.html search/advancedsearch.html
-#: search/authors.html search/inside.html search/lists.html
-#: search/publishers.html search/subjects.html subjects.html
-#: subjects/notfound.html type/local_id/view.html work_search.html
+#: search/publishers.html search/searchbox.html subjects.html
+#: subjects/notfound.html type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -593,11 +592,11 @@ msgstr ""
 msgid "Send"
 msgstr ""
 
-#: CreateListModal.html EditButtons.html account/create.html
-#: account/notifications.html account/password/reset.html account/privacy.html
-#: admin/imports-add.html admin/permissions.html books/add.html covers/add.html
-#: covers/manage.html databarEdit.html merge/authors.html
-#: my_books/dropdown_content.html support.html tag/add.html
+#: CreateListModal.html EditButtons.html account/notifications.html
+#: account/password/reset.html account/privacy.html admin/imports-add.html
+#: admin/permissions.html books/add.html covers/add.html covers/manage.html
+#: databarEdit.html merge/authors.html my_books/dropdown_content.html
+#: support.html tag/add.html
 msgid "Cancel"
 msgstr ""
 
@@ -857,11 +856,9 @@ msgid "Sign Up"
 msgstr ""
 
 #: account/create.html
-msgid "Complete the form below to create a new Internet Archive account."
-msgstr ""
-
-#: account/create.html
-msgid "Each field is required"
+msgid ""
+"Get your free Open Library card and borrow digital books from the "
+"nonprofit Internet Archive"
 msgstr ""
 
 #: account/create.html
@@ -881,10 +878,18 @@ msgid "screenname"
 msgstr ""
 
 #: account/create.html
+msgid "Sign Up with Email"
+msgstr ""
+
+#: account/create.html
 msgid ""
-"By signing up, you agree to the Internet Archive's <a "
-"href='//archive.org/about/terms.php' target='_blank'>Terms of "
-"Service</a>."
+"By signing up, you agree to the Internet Archive's <a class=\"ol-signup-"
+"form__link\" href=\"//archive.org/about/terms.php\" "
+"target=\"_blank\">Terms of Service</a>."
+msgstr ""
+
+#: account/create.html
+msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
 msgstr ""
 
 #: account/delete.html
@@ -4392,7 +4397,7 @@ msgstr ""
 msgid "Recent Activity"
 msgstr ""
 
-#: lists/home.html
+#: lists/home.html lists/showcase.html
 msgid "See all"
 msgstr ""
 
@@ -6523,7 +6528,7 @@ msgid "Username must be between 3-20 characters"
 msgstr ""
 
 #: account.py
-msgid "Username may only contain numbers and letters"
+msgid "Username may only contain numbers, letters, - or _"
 msgstr ""
 
 #: account.py
@@ -6611,19 +6616,11 @@ msgid "Must be between 3 and 20 letters and numbers"
 msgstr ""
 
 #: forms.py
-msgid "Your email address"
+msgid "Screen Name"
 msgstr ""
 
 #: forms.py
-msgid "Choose a screen name. Screen names are public and cannot be changed later."
-msgstr ""
-
-#: forms.py
-msgid "Letters and numbers only please, and at least 3 characters."
-msgstr ""
-
-#: forms.py
-msgid "Choose a password"
+msgid "Public and cannot be changed later."
 msgstr ""
 
 #: forms.py
@@ -6635,5 +6632,13 @@ msgstr ""
 
 #: forms.py
 msgid "Invalid password"
+msgstr ""
+
+#: forms.py
+msgid "Your email address"
+msgstr ""
+
+#: forms.py
+msgid "Choose a password"
 msgstr ""
 

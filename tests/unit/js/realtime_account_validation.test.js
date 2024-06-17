@@ -5,7 +5,7 @@ beforeEach(() => {
     <form id="signup" name="signup" data-i18n={}>
       <input type="text" id="username">
       <input type="text" id="emailAddr">
-      <div id="passwordMessage"></div>
+      <div id="passwordMessage" style="display:none"></div>
       <label for="password">Label for password</label>
       <input type="password" class="required" id="password">
     </form>
@@ -13,7 +13,7 @@ beforeEach(() => {
 });
 
 describe('Password tests', () => {
-    let label, passwordField, passwordMessage
+    let label, passwordField
 
     beforeEach(() => {
         // call the function
@@ -22,7 +22,6 @@ describe('Password tests', () => {
         //declare the elements
         label = document.querySelector('label[for="password"]');
         passwordField = document.getElementById('password');
-        passwordMessage = document.getElementById('passwordMessage');
     })
 
     test('validatePassword should update elements correctly on success', () => {
@@ -49,7 +48,6 @@ describe('Password tests', () => {
         expect(passwordField.classList.contains('required')).toBe(true);
         expect(passwordField.classList.contains('invalid')).toBe(false);
         expect(label.classList.contains('invalid')).toBe(false);
-        expect(passwordMessage.textContent).toBe('');
     });
 
     test('validatePassword should update elements correctly for passwords over 20 chars', () => {
@@ -63,7 +61,6 @@ describe('Password tests', () => {
         expect(passwordField.classList.contains('required')).toBe(true);
         expect(passwordField.classList.contains('invalid')).toBe(true);
         expect(label.classList.contains('invalid')).toBe(true);
-        expect(passwordMessage.classList.contains('invalid')).toBe(true);
     });
 
     test('validatePassword should update elements correctly for passwords under 3 chars', () => {
@@ -77,6 +74,5 @@ describe('Password tests', () => {
         expect(passwordField.classList.contains('required')).toBe(true);
         expect(passwordField.classList.contains('invalid')).toBe(true);
         expect(label.classList.contains('invalid')).toBe(true);
-        expect(passwordMessage.classList.contains('invalid')).toBe(true);
     });
 });
