@@ -123,7 +123,9 @@ $ )
           <div class="red">$_("No results found.")</div>
           <hr>
         </center>
-        <div id="fulltext-search-suggestion" data-query="$query"></div>
+        <div id="fulltext-search-suggestion" data-query="$query">
+            $:macros.LoadingIndicator(_("Loading Search Inside Suggestions"), "fulltext-loading")
+        </div>
 
     $elif param and not search_response.error and len(search_response.docs):
         <div class="search-results-stats">
