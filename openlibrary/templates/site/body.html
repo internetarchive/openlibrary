@@ -30,10 +30,10 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
         <div class="$flash.type"><span>$flash.message</span></div>
       </div>
       $ learn_more_copy = _('Learn More')
-      $ learn_more_link = '<a style="color: white;" href="https://blog.archive.org/2024/06/17/let-readers-read/">%s</a>' % learn_more_copy
+      $ learn_more_link = '<a style="color: white;" data-ol-link-track="BannerClick|LetReadersReadCTA" href="https://blog.archive.org/2024/06/17/let-readers-read/">%s</a>' % learn_more_copy
 
       $ sign_copy = _('Sign Letter')
-      $ sign_btn = '<a class="btn primary" style="display: inline-block;" href="https://change.org/LetReadersRead">%s</a>' % sign_copy
+      $ sign_btn = '<a class="btn primary" data-ol-link-track="BannerClick|LetReadersReadBlog" style="display: inline-block;" href="https://change.org/LetReadersRead">%s</a>' % sign_copy
 
       $ announcement = '&#9888; ' + _('Urge publishers to restore access to 500,000 removed library books: %(sign_btn)s - %(learn_more_link)s', sign_btn=sign_btn, learn_more_link=learn_more_link)
 
