@@ -1120,6 +1120,7 @@ def setup_template_globals():
 
     web.template.Template.globals.update(
         {
+            'cookies': web.cookies,
             'next': next,
             'sorted': sorted,
             'zip': zip,
