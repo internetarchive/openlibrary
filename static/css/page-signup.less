@@ -36,6 +36,12 @@
   .ol-signup-hero > *, .ol-signup-form > * {
     width: 70%;
   }
+
+  @media only screen and (max-width: @width-breakpoint-tablet) {
+    .ol-signup-form > * {
+      width: calc(100% - 60px);
+    }
+  }
 }
 
 .ol-signup-hero {
@@ -163,6 +169,7 @@
 
     input {
       margin-top: 2px;
+      flex-shrink: 0;
     }
 
     a {
