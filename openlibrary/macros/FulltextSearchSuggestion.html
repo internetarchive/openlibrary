@@ -16,11 +16,19 @@ $if results and results.get('hits'):
             width="30" height="30"
             alt="$_('search inside icon')"/>
       </a>
-      <h3 class="fulltext-suggestions__title"><a data-ol-link-track="SearchNav|SearchFulltext"
-        href="/search/inside?$urlencode(dict(q=query))">$_('%(results_count)s Search Inside Matches', results_count=num_found)</a>
+      <h3 class="fulltext-suggestions__title"><a class="fulltext-suggestions__title-link" data-ol-link-track="SearchNav|SearchFulltext"
+        href="/search/inside?$urlencode(dict(q=query))">$_("Search Inside")</a>
       </h3>
     </div>
     $for doc in hits:
       $if doc.get('edition'):
         $:macros.FulltextSearchSuggestionItem(doc['edition'], snippet=render_snippet(query, doc))
+    <h3 class="fulltext-suggestions__footer">
+      <a class="fulltext-suggestions__footer-link" data-ol-link-track="SearchNav|SearchFulltext"
+      href="/search/inside?$urlencode(dict(q=query))">$_('See all %(results_count)s Search Inside Matches', results_count=num_found)
+      <span class="fulltext-suggestions__right-chevron">
+        <img  src="/static/images/icons/right-chevron.svg" alt="$_('right chevron')"/>
+      </span>
+      </a>
+    </h3>
   </div>
