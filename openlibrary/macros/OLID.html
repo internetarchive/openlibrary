@@ -2,7 +2,7 @@ $def with (q="#")
 
 $ edition = query_param('edition', q)
 $ results = find_matches(olid, q)
-$ olid = edition.key. split("/")[-1])
+$ olid = edition.key.split("/")[-1]
 
 $if(olid == q):
     <a href="edition.key">edition.title</a>
