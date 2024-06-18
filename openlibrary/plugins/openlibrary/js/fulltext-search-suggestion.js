@@ -6,9 +6,9 @@ export function initFulltextSearchSuggestion(fulltextSearchSuggestion) {
     }
 }
 
-function showLoadingIndicators(searchSuggestion) {
+function showLoadingIndicators(fulltextSearchSuggestion) {
     let isLoading = false
-    const loadingIndicator = searchSuggestion.querySelector('.loadingIndicator')
+    const loadingIndicator = fulltextSearchSuggestion.querySelector('.loadingIndicator')
         if (loadingIndicator) {
             isLoading = true
             loadingIndicator.classList.remove('hidden')
@@ -26,12 +26,37 @@ async function getPartials(fulltextSearchSuggestion, query) {
             return resp.json()
         })
         .then((data) => {
-            // console.log('DATA FROM PARTIAL', data['data'])
             fulltextSearchSuggestion.innerHTML += data['partials']
             const loadingIndicator = fulltextSearchSuggestion.querySelector('.loadingIndicator');
             if (loadingIndicator) {
-                console.log('loadingindicator!')
                 loadingIndicator.classList.add('hidden')
             }
         })
+        .catch(() => {
+            const loadingIndicator = section.querySelector('.loadingIndicator')
+            if (loadingIndicator) {
+                loadingIndicator.classList.add('hidden')
+            }
+            const existingRetryAffordance = section.querySelector('.fulltext-search-suggestion__retry')
+            if (existingRetryAffordance) {
+                existingRetryAffordance.classList.remove('hidden')
+            } else {
+                section.insertAdjacentHTML('afterbegin', renderRetryLink())
+                const retryAffordance = section.querySelector('.affiliate-links-section__retry')
+                retryAffordance.addEventListener('click', () => {
+                    retryAffordance.classList.add('hidden')
+                    getPartials(fulltextSearchSuggestion, query)
+                })
+            }
+
+        })
+}
+
+/**
+ * Returns HTML string with error message and retry link.
+ *
+ * @returns {string} HTML for a retry link.
+ */
+function renderRetryLink() {
+    return '<span class="fulltext-search-suggestion__retry">Failed to fetch fulltext search suggestions. <a href="javascript:;">Retry?</a></span>'
 }
