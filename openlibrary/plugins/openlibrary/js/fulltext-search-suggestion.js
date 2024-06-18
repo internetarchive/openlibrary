@@ -13,7 +13,6 @@ function showLoadingIndicators(fulltextSearchSuggestion) {
             isLoading = true
             loadingIndicator.classList.remove('hidden')
         }
-
     return isLoading
 }
 async function getPartials(fulltextSearchSuggestion, query) {
@@ -33,16 +32,16 @@ async function getPartials(fulltextSearchSuggestion, query) {
             }
         })
         .catch(() => {
-            const loadingIndicator = section.querySelector('.loadingIndicator')
+            const loadingIndicator = fulltextSearchSuggestion.querySelector('.loadingIndicator')
             if (loadingIndicator) {
                 loadingIndicator.classList.add('hidden')
             }
-            const existingRetryAffordance = section.querySelector('.fulltext-search-suggestion__retry')
+            const existingRetryAffordance = fulltextSearchSuggestion.querySelector('.fulltext-search-suggestion__retry')
             if (existingRetryAffordance) {
                 existingRetryAffordance.classList.remove('hidden')
             } else {
-                section.insertAdjacentHTML('afterbegin', renderRetryLink())
-                const retryAffordance = section.querySelector('.affiliate-links-section__retry')
+                fulltextSearchSuggestion.insertAdjacentHTML('afterbegin', renderRetryLink())
+                const retryAffordance = fulltextSearchSuggestion.querySelector('.fulltext-search-suggestion__retry')
                 retryAffordance.addEventListener('click', () => {
                     retryAffordance.classList.add('hidden')
                     getPartials(fulltextSearchSuggestion, query)
