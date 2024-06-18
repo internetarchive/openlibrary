@@ -483,7 +483,7 @@ def remove_high_priority(query: str) -> str:
 
 class batch_imports(delegate.page):
     """
-    The community batch import endpoint. Expects a JSONL file POSTed via multipart/form-data.
+    The batch import endpoint. Expects a JSONL file POSTed with multipart/form-data.
     """
 
     path = '/import/batch/new'
@@ -492,7 +492,9 @@ class batch_imports(delegate.page):
         return render_template("batch_import.html", batch_result=None)
 
     def POST(self):
-        if not can_write():
+
+        user_key = delegate.context.user and delegate.context.user.key
+        if user_key not in _get_members_of_group("/usergroup/admin"):
             raise Forbidden('Permission Denied.')
 
         # Get the upload from web.py. See the template for the <form> used.

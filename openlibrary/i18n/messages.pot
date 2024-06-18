@@ -153,7 +153,7 @@ msgid "Import results for batch:"
 msgstr ""
 
 #: batch_import.html
-msgid "Records found:"
+msgid "Records submitted:"
 msgstr ""
 
 #: batch_import.html
@@ -161,7 +161,7 @@ msgid "Total queued:"
 msgstr ""
 
 #: batch_import.html
-msgid "Total not queued:"
+msgid "Total skipped:"
 msgstr ""
 
 #: batch_import.html

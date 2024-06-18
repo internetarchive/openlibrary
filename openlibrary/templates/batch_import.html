@@ -24,14 +24,14 @@ $var title: $_("Batch Imports")
 
     $if batch_result and batch_result.batch:
       <p>$_('Import results for batch:') Batch #$batch_result.batch.id ($batch_result.batch.name)</p>
-      <p>$_('Records found:') $batch_result.batch.total_tried</p>
-      <p>$_('Total queued:') $batch_result.batch.total_added</p>
-      <p>$_('Total not queued:') $batch_result.batch.total_not_added</p>
-      $if batch_result.batch.total_not_added > 0:
+      <p>$_('Records submitted:') $batch_result.batch.total_submitted</p>
+      <p>$_('Total queued:') $batch_result.batch.total_queued</p>
+      <p>$_('Total skipped:') $batch_result.batch.total_skipped</p>
+      $if batch_result.batch.total_skipped > 0:
         <details>
           <summary>$_('Not queued because they are already present in the queue:')</summary>
           <ol>
-            $for item in batch_result.batch.items_not_added:
+            $for item in batch_result.batch.items_skipped:
               <li>$item</li>
           </ol>
         </details>

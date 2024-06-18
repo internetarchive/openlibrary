@@ -24,7 +24,7 @@ def generate_hash(data: bytes, length: int = 20):
 
     This is used to help uniquely identify a batch_import. Truncating
     to 20 characters gives about a 50% chance of collision after 1 billion
-    community hash imports. According to ChatGPT, anyway. :)
+    hash imports. According to ChatGPT, anyway. :)
     """
     hash = hashlib.sha256()
     hash.update(data)
@@ -36,7 +36,7 @@ class BatchImportError:
     """
     Represents a Batch Import error item, containing a line number and error message.
 
-    As the JSONL in a community batch import file is parsed, it's validated and errors are
+    As the JSONL in a batch import file is parsed, it's validated and errors are
     recorded by line number and the error thrown, and this item represents that information,
     which is returned to the uploading patron.
     """
@@ -72,7 +72,7 @@ class BatchResult:
 
 def batch_import(raw_data: bytes) -> BatchResult:
     """
-    This process raw byte data from a JSONL POST to the community batch import endpoint.
+    This processes raw byte data from a JSONL POST to the batch import endpoint.
 
     Each line in the JSONL file (i.e. import item) must pass the same validation as
     required for a valid import going through load().
@@ -84,9 +84,9 @@ def batch_import(raw_data: bytes) -> BatchResult:
     """
     user = accounts.get_current_user()
     username = user.get_username()
-    batch_name = f"cb-{generate_hash(raw_data)}"
+    batch_name = f"batch-{generate_hash(raw_data)}"
     errors: list[BatchImportError] = []
-    import_records: list[dict] = []
+    raw_import_records: list[dict] = []
 
     for index, line in enumerate(raw_data.decode("utf-8").splitlines()):
         # Allow comments with `#` in these import records, even though they're JSONL.
@@ -100,7 +100,7 @@ def batch_import(raw_data: bytes) -> BatchResult:
             validate_record(edition_builder.get_dict())
 
             # Add the raw_record for later processing; it still must go througd load() independently.
-            import_records.append(raw_record)
+            raw_import_records.append(raw_record)
         except (
             JSONDecodeError,
             PublicationYearTooOld,
@@ -130,7 +130,7 @@ def batch_import(raw_data: bytes) -> BatchResult:
             'data': item,
             'submitter': username,
         }
-        for item in import_records
+        for item in raw_import_records
     ]
 
     # Create the batch

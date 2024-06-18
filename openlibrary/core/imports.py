@@ -36,10 +36,10 @@ class Batch(web.storage):
         Initialize some statistics instance attributes yet retain web.storage's __init__ method.
         """
         super().__init__(mapping, *requireds, **defaults)
-        self.total_tried: int = 0
-        self.total_added: int = 0
-        self.total_not_added: int = 0
-        self.items_not_added: set = set()
+        self.total_submitted: int = 0
+        self.total_queued: int = 0
+        self.total_skipped: int = 0
+        self.items_skipped: set = set()
 
     @staticmethod
     def find(name: str, create: bool = False) -> "Batch":  # type: ignore[return]
@@ -76,10 +76,10 @@ class Batch(web.storage):
         )
 
         # Update batch counts
-        self.total_tried = len(ia_ids)
-        self.total_not_added = len(already_present)
-        self.total_added = self.total_tried - self.total_not_added
-        self.items_not_added = already_present
+        self.total_submitted = len(ia_ids)
+        self.total_skipped = len(already_present)
+        self.total_queued = self.total_submitted - self.total_skipped
+        self.items_skipped = already_present
 
         # Those unique items whose ia_id's aren't already present
         return [item for item in items if item.get('ia_id') not in already_present]
