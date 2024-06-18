@@ -47,6 +47,16 @@ function add_iframe(selector, src) {
 
 // covers/manage.html and covers/add.html
 export function initCoversAddManage() {
+    $('.ol-cover-form').on('submit', function () {
+        const loadingIndicator = document.querySelector('.loadingIndicator');
+        const formDivs = document.querySelectorAll('.ol-cover-form, .imageIntro');
+
+        if (loadingIndicator) {
+            loadingIndicator.classList.remove('hidden');
+            formDivs.forEach(div => div.classList.add('hidden'));
+        }
+    })
+
     // Clicking a cover should set the form value to the data-id of that cover
     $('#popcovers .book').on('click', function () {
         var coverid;
