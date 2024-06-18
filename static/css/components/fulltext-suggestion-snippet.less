@@ -1,5 +1,4 @@
 .fsi-snippet {
-  grid-area: excerpts;
   display: inline;
   width: 70%;
   padding: 5px;
@@ -17,13 +16,26 @@
     padding: 5px;
     margin: 0 5px;
     line-height: 1.6em;
-    font-family: Georgia, 'Times New Roman', Times, serif
+  }
+
+  &__quotation-mark {
+    font-size: larger;
+    display: inline;
   }
 
   &__page-num {
-    color: @dark-grey;
-    font-weight: 700;
+    color: @dark-grey !important;
     display: block;
-  }
+    text-decoration: none !important;
+    }
 }
 
+//overrides
+  a:link {
+    text-decoration: none;
+    font-family: @georgia_serif-1;
+    color: @black;
+  }
+  a:hover {
+    color: @link-blue;
+  }

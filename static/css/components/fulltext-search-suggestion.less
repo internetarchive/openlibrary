@@ -2,34 +2,27 @@
  * Search Result Item
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#searchresultitem
  */
-//  @import "buttonBtn.less";
-//  @import "buttonCta.less";
 
- .bookauthor {
-   font-family: @lucida_sans_serif-6;
-   font-weight: 500;
- }
+.fulltext-suggestions{
+  list-style-type: none;
+  line-height: 1.5em;
+  background-color: @grey-fafafa;
+  border-radius: 5px;
+  padding: 5px;
+  margin-bottom: 3px;
+  border-bottom: 1px solid @light-beige;
+  .display-flex();
+  flex-direction: column;
 
- .fulltext-suggestions{
-   list-style-type: none;
-   line-height: 1.5em;
-   background-color: @grey-fafafa;
-   border-radius: 5px;
-   padding: 5px;
-   margin-bottom: 3px;
-   border-bottom: 1px solid @light-beige;
-   .display-flex();
-   flex-direction: column;
-
-   &__header {
+  &__header {
     display: flex;
     flex-direction: row;
     align-items: center;
     padding: 5px;
     margin-bottom: 3px;
-   }
+  }
 
-   &__title {
+  &__title {
     display: block;
     margin: 0;
     padding: 5px;
@@ -39,10 +32,40 @@
     @media (min-width: @width-breakpoint-tablet) {
       font-size: large;
     }
-   }
+  }
 
-   &__icon {
+  &__title-link {
+    color: @black !important;
+    text-decoration: none !important;
+  }
+
+  &__icon {
     margin-top: 5px;
-   }
-}
+  }
 
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    margin: 0;
+    padding: 5px;
+    font-size: medium;
+    font-weight: 700;
+    font-family: @lucida_sans_serif-6;
+    @media (min-width: @width-breakpoint-tablet) {
+      font-size: large;
+    }
+  }
+
+  &__footer-link {
+    display: flex;
+    align-items: center;
+  }
+
+  &__right-chevron {
+    height: 20px;
+  }
+
+  &__retry {
+    text-align: center;
+  }
+}
