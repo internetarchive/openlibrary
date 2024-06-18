@@ -9,7 +9,6 @@ class bulk_search(delegate.page):
     path = "/search/bulk"
 
     def GET(self):
-        i = web.input(q='')
         return render['bulk_search/bulk_search']()
 
 
