@@ -38,6 +38,7 @@ import logging
 
 import urllib
 
+
 MARC_LENGTH_POS = 5
 logger = logging.getLogger('openlibrary.importapi')
 

@@ -106,6 +106,68 @@ msgstr ""
 msgid "Point your camera at a barcode! 📷"
 msgstr ""
 
+#: batch_import.html
+msgid "Batch Imports"
+msgstr ""
+
+#: batch_import.html
+msgid "Attach a JSONL formatted document with import records."
+msgstr ""
+
+#: batch_import.html
+msgid ""
+"See the <a href=\"https://github.com/internetarchive/openlibrary-"
+"client/tree/master/olclient/schemata\">olclient import schemata</a> for "
+"more."
+msgstr ""
+
+#: batch_import.html
+msgid "Import"
+msgstr ""
+
+#: batch_import.html
+msgid "Import failed."
+msgstr ""
+
+#: batch_import.html
+msgid "No import will be queued until *every* record validates successfully."
+msgstr ""
+
+#: batch_import.html
+msgid ""
+"Please update the JSONL file and reload this page (there should be no "
+"need to reattach the file)."
+msgstr ""
+
+#: batch_import.html
+msgid "Validation errors:"
+msgstr ""
+
+#: batch_import.html
+#, python-format
+msgid "Line %d:"
+msgstr ""
+
+#: batch_import.html
+msgid "Import results for batch:"
+msgstr ""
+
+#: batch_import.html
+msgid "Records submitted:"
+msgstr ""
+
+#: batch_import.html
+msgid "Total queued:"
+msgstr ""
+
+#: batch_import.html
+msgid "Total skipped:"
+msgstr ""
+
+#: batch_import.html
+msgid "Not queued because they are already present in the queue:"
+msgstr ""
+
 #: diff.html
 #, python-format
 msgid "Diff on %s"

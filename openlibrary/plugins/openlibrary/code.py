@@ -13,8 +13,10 @@ import datetime
 import logging
 from time import time
 import math
-from pathlib import Path
 import infogami
+from openlibrary.core.batch_imports import (
+    batch_import,
+)
 
 # make sure infogami.config.features is set
 if not hasattr(infogami.config, 'features'):
@@ -477,6 +479,29 @@ def remove_high_priority(query: str) -> str:
     query_params.pop("high_priority", None)
     new_query = urlencode(query_params, doseq=True)
     return new_query
+
+
+class batch_imports(delegate.page):
+    """
+    The batch import endpoint. Expects a JSONL file POSTed with multipart/form-data.
+    """
+
+    path = '/import/batch/new'
+
+    def GET(self):
+        return render_template("batch_import.html", batch_result=None)
+
+    def POST(self):
+
+        user_key = delegate.context.user and delegate.context.user.key
+        if user_key not in _get_members_of_group("/usergroup/admin"):
+            raise Forbidden('Permission Denied.')
+
+        # Get the upload from web.py. See the template for the <form> used.
+        form_data = web.input(batchImport={})
+        batch_result = batch_import(form_data['batchImport'].file.read())
+
+        return render_template("batch_import.html", batch_result=batch_result)
 
 
 class isbn_lookup(delegate.page):
