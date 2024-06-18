@@ -144,11 +144,16 @@ msgid "Validation errors:"
 msgstr ""
 
 #: batch_import.html
+#, python-format
+msgid "Line %d:"
+msgstr ""
+
+#: batch_import.html
 msgid "Import results for batch:"
 msgstr ""
 
 #: batch_import.html
-msgid "Total tried:"
+msgid "Records found:"
 msgstr ""
 
 #: batch_import.html

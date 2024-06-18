@@ -135,7 +135,6 @@ def batch_import(raw_data: bytes) -> BatchResult:
 
     # Create the batch
     batch = Batch.find(batch_name) or Batch.new(name=batch_name, submitter=username)
-    assert batch is not None
     batch.add_items(batch_data)
 
     return BatchResult(batch=batch)

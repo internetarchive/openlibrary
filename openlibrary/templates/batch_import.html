@@ -1,15 +1,17 @@
 $def with (batch_result=None)
 $# type: (BatchResult)
+$var title: $_("Batch Imports")
 
-<div class="batchImport">
-  <div id="contentBody">
-    <h1>$_('Batch Imports')</h1>
+<div id="contentHead">
+ <h1>$_("Batch Imports")</h1>
+</div>
+<div id="contentBody" class="batchImport">
     <p>$_('Attach a JSONL formatted document with import records.')</p>
     <p>$:_('See the <a href=\"https://github.com/internetarchive/openlibrary-client/tree/master/olclient/schemata\">olclient import schemata</a> for more.')</p>
     <form method="POST" enctype="multipart/form-data" action="">
-      <input type="file" name="batchImport" />
-      <br/>
-      <input type="submit" value="$_('Import')"/>
+      <input type="file" name="batchImport" required>
+      <hr/>
+      <button type="submit">$_('Import')</button>
     </form>
 
     $if batch_result and batch_result.errors:
@@ -18,11 +20,11 @@ $# type: (BatchResult)
       <p>$_('Please update the JSONL file and reload this page (there should be no need to reattach the file).')</p>
       <p>$_('Validation errors:')</p>
       $for error in batch_result.errors:
-        <li><strong>Line $error.line_number:</strong> $error.error_message</li>
+        <li><strong>$_('Line %d:', error.line_number)</strong> $error.error_message</li>
 
     $if batch_result and batch_result.batch:
-      <p>$_('Import results for batch:') $batch_result.batch.name</p>
-      <p>$_('Total tried:') $batch_result.batch.total_tried</p>
+      <p>$_('Import results for batch:') Batch #$batch_result.batch.id ($batch_result.batch.name)</p>
+      <p>$_('Records found:') $batch_result.batch.total_tried</p>
       <p>$_('Total queued:') $batch_result.batch.total_added</p>
       <p>$_('Total not queued:') $batch_result.batch.total_not_added</p>
       $if batch_result.batch.total_not_added > 0:
