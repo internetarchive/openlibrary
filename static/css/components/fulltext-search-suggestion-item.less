@@ -54,8 +54,6 @@
     flex-direction: column;
     padding: 5px 3px 0 10px;
     width: 50%;
-    // color: #003266;
-    // text-decoration: underline;
     @media (min-width: 375px) {
       width: 70%
     }
@@ -76,7 +74,6 @@
     color: @dark-grey;
     font-family: @lucida_sans_serif-6;
     @media (min-width: @width-breakpoint-desktop) {
-      text-decoration: none;
       color: #000;
     }
 
@@ -90,19 +87,12 @@
     line-height: 1.2em;
   }
 
+  &__book-title-link {
+    text-decoration: none !important;
+  }
+
   &__book-author {
     line-height: 1.2em;
     margin: 3px 0 0;
   }
-
-  // &__excerpts {
-  //   grid-area: excerpts;
-  //   display: inline;
-  //   width: 100%;
-  //   padding: 5px;
-  //   margin: 0;
-  //   @media (min-width: @width-breakpoint-tablet) {
-  //     width: auto;
-  //   }
-  // }
 }

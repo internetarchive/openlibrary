@@ -2,8 +2,6 @@
  * Search Result Item
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#searchresultitem
  */
-//  @import "buttonBtn.less";
-//  @import "buttonCta.less";
 
  .bookauthor {
    font-family: @lucida_sans_serif-6;
@@ -36,13 +34,43 @@
     font-size: medium;
     font-weight: 700;
     font-family: @lucida_sans_serif-6;
+
     @media (min-width: @width-breakpoint-tablet) {
       font-size: large;
     }
    }
 
+   &__title-link {
+    color: black !important;
+    text-decoration: none !important;
+   }
+
    &__icon {
     margin-top: 5px;
    }
+
+   &__footer {
+    display: flex;
+    justify-content: flex-end;
+    margin: 0;
+    padding: 5px;
+    font-size: medium;
+    font-weight: 700;
+    font-family: @lucida_sans_serif-6;
+    @media (min-width: @width-breakpoint-tablet) {
+      font-size: large;
+    }
+   }
+   &__footer-link {
+    display: flex;
+    align-items: center;
+   }
+  &__right-chevron {
+    height: 20px;
+    color: #003266;
+    mask: url(/static/images/icons/right-chevron.svg) no-repeat center / contain;
+    -webkit-mask: url(/static/images/icons/right-chevron.svg) no-repeat center / contain;
+
+  }
 }
 
