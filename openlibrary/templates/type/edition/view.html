@@ -144,7 +144,7 @@ $def display_identifiers(label, ids, itemprop=None):
         $if (True in all_ids) and (1==len(all_ids)):
             $return
 
-        <!-- FIXME: Identifier names need to be translated (I18N) -->
+        $# FIXME: Identifier names need to be translated (I18N)
         <dt>$label</dt>
         <dd class="object" $:cond(itemprop, 'itemprop="%s"' % itemprop, '')>
             $for id in ids:
@@ -453,9 +453,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
               <div class="section">
               <h3>$_("Source records")</h3>
               $ get_source_html = render_template("history/sources").get_source_html
-              <dl class="meta">
-                  $:'<br/>'.join([get_source_html(s) for s in source_records])
-              </dl>
+              $:'<br/>'.join([get_source_html(s) for s in source_records])
               </div>
           $if work:
             $if not work.excerpts and work.first_sentence:
@@ -473,7 +471,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
             $if work.original_languages:
               <div class="sansserif smallest">$_("Original languages")</div>
-              <!-- TODO: Double check that these language names are localized -->
+              $# TODO: Double check that these language names are localized
               $', '.join(lang.name for lang in work.original_languages)<p>
 
             $if work.excerpts:
@@ -515,7 +513,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
         $ component_times['Review component'] = time()
         $:render_template("observations/review_component", work, reader_observations, page.key)
         $ component_times['Review component'] = time() - component_times['Review component']
-      <a id="lists-section" name="lists-section tab-section" class="section-anchor"></a>
+      <a id="lists-section" class="section-anchor"></a>
       <div class="workFooter tab-section">
         $# pages like /books/ia:foo00bar are fake records created from metadata API.
         $# Adding them to lists doesn't work. Disabling it to avoid any issues.
@@ -543,7 +541,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
             </div>
           </div>
       </div>
-      <a id="related-work-carousel" name="related-work-carousel tab-section" class="section-anchor"></a>
+      <a id="related-work-carousel" class="section-anchor"></a>
     </div>
   </div>
 
