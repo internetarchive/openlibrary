@@ -34,7 +34,6 @@
     font-size: medium;
     font-weight: 700;
     font-family: @lucida_sans_serif-6;
-
     @media (min-width: @width-breakpoint-tablet) {
       font-size: large;
     }
@@ -61,16 +60,17 @@
       font-size: large;
     }
    }
+
    &__footer-link {
     display: flex;
     align-items: center;
    }
+
   &__right-chevron {
     height: 20px;
-    color: #003266;
-    mask: url(/static/images/icons/right-chevron.svg) no-repeat center / contain;
-    -webkit-mask: url(/static/images/icons/right-chevron.svg) no-repeat center / contain;
-
+  }
+  &__retry {
+    text-align: center;
   }
 }
 
