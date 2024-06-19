@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import logging
-from typing import Optional, TypedDict, Union, Literal, cast, TypeVar, Generic
+from typing import TypedDict, Literal, cast, TypeVar, Generic
 from collections.abc import Callable, Iterator
 
 import web

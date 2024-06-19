@@ -130,6 +130,18 @@ class borrow(delegate.page):
         if not edition:
             raise web.notfound()
 
+        from openlibrary.book_providers import get_book_provider
+
+        # Direct to the first web book if at least one is available.
+        if (
+            action == "borrow"
+            and (provider := get_book_provider(edition))
+            and (providers := provider.get_ebook_providers(edition))
+            and providers[0].access == "open-access"
+        ):
+            stats.increment('ol.loans.webbook')
+            raise web.seeother(providers[0].url)
+
         archive_url = get_bookreader_stream_url(edition.ocaid) + '?ref=ol'
         if i._autoReadAloud is not None:
             archive_url += '&_autoReadAloud=show'

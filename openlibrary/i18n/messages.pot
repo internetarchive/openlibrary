@@ -3146,6 +3146,10 @@ msgstr ""
 msgid "Oxford University Press; Penguin; W.W. Norton"
 msgstr ""
 
+#: books/add.html
+msgid "For a web book, use the URL."
+msgstr ""
+
 #: books/add.html books/edit/edition.html
 msgid "When was it published?"
 msgstr ""
