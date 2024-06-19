@@ -36,12 +36,12 @@ async function getPartials(fulltextSearchSuggestion, query) {
             if (loadingIndicator) {
                 loadingIndicator.classList.add('hidden')
             }
-            const existingRetryAffordance = fulltextSearchSuggestion.querySelector('.fulltext-search-suggestion__retry')
+            const existingRetryAffordance = fulltextSearchSuggestion.querySelector('.fulltext-suggestions__retry')
             if (existingRetryAffordance) {
                 existingRetryAffordance.classList.remove('hidden')
             } else {
                 fulltextSearchSuggestion.insertAdjacentHTML('afterbegin', renderRetryLink())
-                const retryAffordance = fulltextSearchSuggestion.querySelector('.fulltext-search-suggestion__retry')
+                const retryAffordance = fulltextSearchSuggestion.querySelector('.fulltext-suggestions__retry')
                 retryAffordance.addEventListener('click', () => {
                     retryAffordance.classList.add('hidden')
                     getPartials(fulltextSearchSuggestion, query)
@@ -57,5 +57,5 @@ async function getPartials(fulltextSearchSuggestion, query) {
  * @returns {string} HTML for a retry link.
  */
 function renderRetryLink() {
-    return '<span class="fulltext-search-suggestion__retry">Failed to fetch fulltext search suggestions. <a href="javascript:;">Retry?</a></span>'
+    return '<span class="fulltext-suggestions__retry">Failed to fetch fulltext search suggestions. <a href="javascript:;">Retry?</a></span>'
 }

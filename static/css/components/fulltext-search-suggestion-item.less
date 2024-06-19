@@ -2,7 +2,7 @@
   &__main {
     .display-flex();
     flex-direction: row;
-    background-color: white;
+    background-color: @white;
     padding: 5px;
     margin-bottom: 5px;
     border-bottom: 1px solid @light-beige;
@@ -14,14 +14,12 @@
   }
 
   &__book-cover {
-    grid-area: bookcover;
     overflow: hidden;
     height: 100%;
     width: auto;
     min-width: 90px;
     border-radius: 4px;
     align-self: center;
-    justify-self: center;
     margin-top: 5px;
     @media (min-width: @width-breakpoint-tablet) {
       height: 130px;
@@ -60,7 +58,6 @@
     @media (min-width: 425px) {
       width: 80%
     }
-
   }
 
   &__book-title,
@@ -70,14 +67,9 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: #003266;
-    color: @dark-grey;
     font-family: @lucida_sans_serif-6;
-    @media (min-width: @width-breakpoint-desktop) {
-      color: #000;
-    }
-
   }
+
   &__book-title {
     margin: 0 !important;
     display: block;
