@@ -217,7 +217,9 @@ def publish_digest(
             if lead['leadLabel'] == i['lead_label']
         )
         slack_id = next(
-            lead['slackId'] for lead in leads if lead['leadLabel'] == f'Lead: @{username}'
+            lead['slackId']
+            for lead in leads
+            if lead['leadLabel'] == f'Lead: @{username}'
         )
         if slack_id:
             message += f'Lead: {slack_id}\n'
