@@ -5200,8 +5200,8 @@ msgstr ""
 #: site/body.html
 #, python-format
 msgid ""
-"Urge publishers to restore access to 500,000 removed library "
-"books: %(sign_btn)s - %(learn_more_link)s"
+"Urge publishers to restore access to 500,000 removed library books: "
+"%(sign_btn)s - %(learn_more_link)s"
 msgstr ""
 
 #: site/neck.html
