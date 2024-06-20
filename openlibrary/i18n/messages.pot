@@ -656,9 +656,8 @@ msgstr ""
 
 #: CreateListModal.html EditButtons.html account/notifications.html
 #: account/password/reset.html account/privacy.html admin/imports-add.html
-#: admin/permissions.html books/add.html covers/add.html covers/manage.html
-#: databarEdit.html merge/authors.html my_books/dropdown_content.html
-#: support.html tag/add.html
+#: admin/permissions.html books/add.html covers/manage.html databarEdit.html
+#: merge/authors.html my_books/dropdown_content.html support.html tag/add.html
 msgid "Cancel"
 msgstr ""
 
@@ -3550,11 +3549,7 @@ msgid "Edit %(year)d Reading Goal"
 msgstr ""
 
 #: covers/add.html
-msgid "Please choose an image or provide a URL."
-msgstr ""
-
-#: covers/add.html
-msgid "There are two ways to put an author's image on Open Library"
+msgid "There are two ways to put an author's image on Open Library."
 msgstr ""
 
 #: covers/add.html
@@ -3562,7 +3557,7 @@ msgid "Image Guidelines"
 msgstr ""
 
 #: covers/add.html
-msgid "There are two ways to put a cover image on Open Library"
+msgid "There are a few ways to put a cover image on Open Library."
 msgstr ""
 
 #: covers/add.html
@@ -3578,15 +3573,34 @@ msgid "Please provide an image URL."
 msgstr ""
 
 #: covers/add.html
-msgid "<strong>Pick one</strong> from the existing covers,"
+#, python-format
+msgid ""
+"Learn more by reading our <a href=\"/help/faq/editing#picture\" "
+"target=\"blank\">%(guidelines)s</a>."
 msgstr ""
 
 #: covers/add.html
-msgid "Choose a JPG, GIF or PNG on your computer,"
+msgid "<strong>Pick one</strong> from the existing covers"
 msgstr ""
 
 #: covers/add.html
-msgid "Or, paste in the image URL if it's on the web."
+msgid "Use this image"
+msgstr ""
+
+#: covers/add.html
+msgid "Choose a JPG, GIF or PNG on your computer"
+msgstr ""
+
+#: covers/add.html
+msgid "Upload"
+msgstr ""
+
+#: covers/add.html
+msgid "Or, paste in the image URL if it's on the web"
+msgstr ""
+
+#: covers/add.html
+msgid "Or, use the the cover from Internet Archive"
 msgstr ""
 
 #: covers/add.html
