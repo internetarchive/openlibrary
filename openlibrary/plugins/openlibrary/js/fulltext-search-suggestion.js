@@ -1,6 +1,6 @@
 export function initFulltextSearchSuggestion(fulltextSearchSuggestion) {
     const isLoading = showLoadingIndicators(fulltextSearchSuggestion)
-    if(isLoading) {
+    if (isLoading) {
         const query = fulltextSearchSuggestion.dataset.query
         getPartials(fulltextSearchSuggestion, query)
     }
@@ -9,10 +9,10 @@ export function initFulltextSearchSuggestion(fulltextSearchSuggestion) {
 function showLoadingIndicators(fulltextSearchSuggestion) {
     let isLoading = false
     const loadingIndicator = fulltextSearchSuggestion.querySelector('.loadingIndicator')
-        if (loadingIndicator) {
-            isLoading = true
-            loadingIndicator.classList.remove('hidden')
-        }
+    if (loadingIndicator) {
+        isLoading = true
+        loadingIndicator.classList.remove('hidden')
+    }
     return isLoading
 }
 async function getPartials(fulltextSearchSuggestion, query) {
