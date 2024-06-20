@@ -30,13 +30,13 @@ $if doc.type.key == "/type/work":
                 </div>
                 <div class="carousel-section">
                     <div id="covers" class="carousel-container carousel-container-decorated carousel--minimal">
-                        <div id="popcovers" class="carousel carousel--progressively-enhanced" data-config="$json_encode({'booksPerBreakpoint': [3, 3, 3, 3, 2, 1]})">
+                        <div class="carousel carousel--progressively-enhanced" data-config="$json_encode({'booksPerBreakpoint': [3, 3, 3, 3, 2, 1]})">
                             $for cover in doc.get_edition_covers():
                                 <div class="book carousel__item">
                                     <div class="book-cover">
                                         <img src="$cover.url(size='M')" width="100" class="bookcover"/>
+                                        <button type="submit" name="coverid" value="$cover.id" class="cta-btn cta-btn--vanilla">$_("Use this image")</button>
                                     </div>
-                                    <button type="submit" name="coverid" value="$cover.id" class="cta-btn cta-btn--vanilla">$_("Use this image")</button>
                                 </div>
                         </div>
                     </div>
@@ -46,7 +46,7 @@ $if doc.type.key == "/type/work":
 
 <form class="ol-cover-form ol-cover-form--upload" method="post" enctype="multipart/form-data" action="$action">
     <div class="label">
-        <label id="imageBrowse" for="coverFile">$_("Choose a JPG, GIF or PNG on your computer")</label>
+        <label for="coverFile">$_("Choose a JPG, GIF or PNG on your computer")</label>
     </div>
     <div class="input">
         <input type="file" name="file" id="coverFile" value="" accept=".jpg, .jpeg, .gif, .png" required/>
