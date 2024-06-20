@@ -176,7 +176,7 @@ div.floater {
   }
 }
 
-.floatform {
+.floatform, .ol-cover-form {
   font-family: @lucida_sans_serif-2;
 
   button[type=submit] {
@@ -214,61 +214,61 @@ div.floater {
   a {
     cursor: pointer;
   }
+}
 
-  &.ol-cover-form {
-    background-color: @lightest-grey;
-    border-radius: 10px;
-    padding: 10px;
-    margin-bottom: 10px;
+.ol-cover-form {
+  background-color: @lightest-grey;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
 
-    .input {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .input > :first-child {
-      flex: 1;
-    }
-
-    button[type=submit] {
-      margin-top: 0;
-    }
+  .input {
+    display: flex;
+    gap: 10px;
+    align-items: center;
   }
 
-  &.ol-cover-form--ia {
-    a {
-      text-decoration: none;
-    }
-
-    .ol-cover-form--ia_image {
-      display: block;
-    }
-
-    .input {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    button[type=submit] {
-      width: 135px;
-    }
+  .input > :first-child {
+    flex: 1;
   }
 
-  #coverFile {
-    min-width: 1px;
+  button[type=submit] {
+    margin-top: 0;
+  }
+}
+
+.ol-cover-form--ia {
+  a {
+    text-decoration: none;
   }
 
-  .dialog--close-parent {
-    cursor: pointer;
+  .ol-cover-form--ia_image {
+    display: block;
   }
 
-  div#covers.input {
-    max-height: 132px;
-    overflow: hidden;
-    margin-left: -80px;
-    text-align: center;
+  .input {
+    flex-direction: column;
+    align-items: flex-start;
   }
+
+  button[type=submit] {
+    width: 135px;
+  }
+}
+
+#coverFile {
+  min-width: 1px;
+}
+
+.dialog--close-parent {
+  cursor: pointer;
+}
+
+div#covers.input {
+  max-height: 132px;
+  overflow: hidden;
+  margin-left: -80px;
+  text-align: center;
 }
 
 .floatform__body {

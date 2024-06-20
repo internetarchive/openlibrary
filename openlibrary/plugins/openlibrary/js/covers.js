@@ -57,16 +57,6 @@ export function initCoversAddManage() {
         }
     })
 
-    // Clicking a cover should set the form value to the data-id of that cover
-    $('#popcovers .book').on('click', function () {
-        var coverid;
-        $(this).toggleClass('selected').siblings().removeClass('selected');
-        coverid = '';
-        if ($(this).hasClass('selected')) {
-            coverid = $(this).data('id');
-        }
-        $('#coverid').val(coverid);
-    });
 
     $('.column').sortable({
         connectWith: '.trash'
@@ -90,7 +80,7 @@ export function initCoversSaved() {
     const image = $('.imageSaved').data('imageId');
     var cover_url;
 
-    $('.formButtons button').on('click', closePopup);
+    $('.popClose').on('click', closePopup);
 
     // Update the image for the cover
     if (['/type/edition', '/type/work', '/edit'].includes(doc_type_key)) {

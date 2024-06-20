@@ -3487,10 +3487,6 @@ msgid "Edit %(year)d Reading Goal"
 msgstr ""
 
 #: covers/add.html
-msgid "Uploading..."
-msgstr ""
-
-#: covers/add.html
 msgid "There are two ways to put an author's image on Open Library."
 msgstr ""
 
@@ -3526,6 +3522,10 @@ msgid "<strong>Pick one</strong> from the existing covers"
 msgstr ""
 
 #: covers/add.html
+msgid "Use this image"
+msgstr ""
+
+#: covers/add.html
 msgid "Choose a JPG, GIF or PNG on your computer"
 msgstr ""
 
@@ -3542,7 +3542,7 @@ msgid "Or, use the the cover from Internet Archive"
 msgstr ""
 
 #: covers/add.html
-msgid "Use this image"
+msgid "Uploading..."
 msgstr ""
 
 #: covers/author_photo.html
