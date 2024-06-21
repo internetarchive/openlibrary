@@ -100,11 +100,4 @@ export function initRealTimeValidation() {
     $('#username').on('blur', validateUsername);
     $('#emailAddr').on('blur', validateEmail);
     $('#password').on('blur', validatePassword);
-
-    $('#signup').on('click', function(e) {
-        e.preventDefault();
-        if (window.grecaptcha) {
-            window.grecaptcha.execute()
-        }
-    });
 }
