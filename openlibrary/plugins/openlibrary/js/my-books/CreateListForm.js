@@ -3,6 +3,7 @@
  * creation form.
  * @module my-books/CreateListForm.js
  */
+import 'jquery-colorbox';
 import myBooksStore from './store'
 import { websafe } from '../jsdef'
 import { createList } from '../lists/ListService'

@@ -1,54 +1,15 @@
 import 'jquery';
-import 'jquery-validation';
-import 'jquery-ui/ui/widgets/dialog';
-import 'jquery-ui/ui/widgets/autocomplete';
-// For dialog boxes (e.g. add to list)
-import 'jquery-colorbox';
-// jquery.form#2.36 not on npm, no longer getting worked on
-import '../../../../vendor/js/jquery-form/jquery.form.js';
-import autocompleteInit from './autocomplete';
-import automaticInit from './automatic';
-import bookReaderInit from './bookreader_direct';
-import { ungettext, ugettext,  sprintf } from './i18n';
-import jQueryRepeat from './jquery.repeat';
-import { enumerate, htmlquote, websafe, foreach, join, len, range, jsdef_get } from './jsdef';
+import { exposeGlobally } from './jsdef';
 import initAnalytics from './ol.analytics';
 import init from './ol.js';
 import initServiceWorker from './service-worker-init.js'
-import * as Browser from './Browser';
-import { commify, urlencode, slice } from './python';
-import Template from './template.js';
-import { truncate, cond } from './utils';
-import initValidate from './validate';
 import '../../../../static/css/js-all.less';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
-import { confirmDialog, initDialogs } from './dialog';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
-window.commify = commify;
-window.cond = cond;
-window.enumerate = enumerate;
-window.foreach = foreach;
-window.htmlquote = htmlquote;
-window.jsdef_get = jsdef_get;
-window.len = len;
-window.range = range;
-window.slice = slice;
-window.sprintf = sprintf;
-window.truncate = truncate;
-window.urlencode = urlencode;
-window.websafe = websafe;
-window._ = ugettext;
-window.ungettext = ungettext;
-window.uggettext = ugettext;
-
-window.Browser = Browser;
-window.Template = Template;
-
-// Extend existing prototypes
-String.prototype.join = join;
+exposeGlobally();
 
 window.jQuery = jQuery;
 window.$ = jQuery;
@@ -89,36 +50,48 @@ jQuery(function () {
         };
     }
 
-    const $markdownTextAreas = $('textarea.markdown');
-    const $tabs = $('#tabsAddbook,.tabs:not(.ui-tabs)');
-
-    initDialogs();
-    // expose ol_confirm_dialog method
-    $.fn.ol_confirm_dialog = confirmDialog;
-
+    const $tabs = $('.ol-tabs');
     if ($tabs.length) {
         import(/* webpackChunkName: "tabs" */ './tabs')
             .then((module) => module.initTabs($tabs));
     }
 
-    initValidate($);
-    autocompleteInit($);
-    automaticInit($);
+    const $validates = $('form.validate');
+    if ($validates.length) {
+        import(/* webpackChunkName: "validate" */ './validate')
+            .then((module) => module.init($));
+    }
+
+    const $autocomplete = $('.multi-input-autocomplete');
+    if ($autocomplete.length) {
+        import(/* webpackChunkName: "autocomplete" */ './autocomplete')
+            .then((module) => module.init($));
+    }
+
+    // hide all images in .no-img
+    $('.no-img img').hide();
+
+    // disable save button after click
+    $('button[name=\'_save\']').on('submit', function() {
+        $(this).attr('disabled', true);
+    });
+
     // wmd editor
+    const $markdownTextAreas = $('textarea.markdown');
     if ($markdownTextAreas.length) {
         import(/* webpackChunkName: "markdown-editor" */ './markdown-editor')
             .then((module) => module.initMarkdownEditor($markdownTextAreas));
     }
-    bookReaderInit($);
-    jQueryRepeat($);
+
     init($);
+
     // conditionally load functionality based on what's in the page
     if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
         import(/* webpackChunkName: "editions-table" */ './editions-table')
             .then(module => module.initEditionsTable());
     }
 
-    const edition = document.getElementById('tabsAddbook');
+    const edition = document.getElementById('addWork');
     const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
     const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
     const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
@@ -397,11 +370,19 @@ jQuery(function () {
             })
     }
 
-    const nativeDialogs = document.querySelectorAll('.native-dialog')
+    // TODO: Make these selectors a consistent interface
+    const $dialogs = $('.dialog--open,.dialog--close,#noMaster,#confirmMerge,#leave-waitinglist-dialog,.cta-btn--preview');
+    if ($dialogs.length) {
+        import(/* webpackChunkName: "dialog" */ './dialog')
+            .then(module => module.initDialogs())
+    }
+
+    const nativeDialogs = document.querySelectorAll('.native-dialog');
     if (nativeDialogs.length) {
-        import(/* webpackChunkName: "dialog" */ './native-dialog')
+        import(/* webpackChunkName: "native-dialog" */ './native-dialog')
             .then(module => module.initDialogs(nativeDialogs))
     }
+
     const setGoalLinks = document.querySelectorAll('.set-reading-goal-link')
     const goalEditLinks = document.querySelectorAll('.edit-reading-goal-link')
     const goalSubmitButtons = document.querySelectorAll('.reading-goal-submit-button')

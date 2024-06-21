@@ -35,7 +35,6 @@ def main(cmd, args):
         i18n.extract_messages(
             message_sources,
             verbose='--verbose' in args,
-            forced='--force-write' in args,
             skip_untracked='--skip-untracked' in args,
         )
     elif cmd == 'compile':

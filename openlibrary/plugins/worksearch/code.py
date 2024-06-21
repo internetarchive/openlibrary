@@ -352,6 +352,7 @@ def get_doc(doc: SolrDocument):
         id_librivox=doc.get('id_librivox', []),
         id_standard_ebooks=doc.get('id_standard_ebooks', []),
         id_openstax=doc.get('id_openstax', []),
+        id_cita_press=doc.get('id_cita_press', []),
         editions=[
             web.storage(
                 {

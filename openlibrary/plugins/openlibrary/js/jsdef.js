@@ -4,6 +4,10 @@
  * For more details, see:
  * http://github.com/anandology/notebook/tree/master/2010/03/jsdef/
  */
+import { ungettext, ugettext,  sprintf } from './i18n';
+// TODO: Can likely move some of these methods into this file
+import { commify, urlencode, slice } from './python';
+import { truncate, cond } from './utils';
 
 /**
  * Python range function.
@@ -158,4 +162,26 @@ export function is_jsdef() {
  */
 export function jsdef_get(obj, key, def=null) {
     return (key in obj) ? obj[key] : def;
+}
+
+export function exposeGlobally() {
+    // Extend existing prototypes
+    String.prototype.join = join;
+
+    window.commify = commify;
+    window.cond = cond;
+    window.enumerate = enumerate;
+    window.foreach = foreach;
+    window.htmlquote = htmlquote;
+    window.jsdef_get = jsdef_get;
+    window.len = len;
+    window.range = range;
+    window.slice = slice;
+    window.sprintf = sprintf;
+    window.truncate = truncate;
+    window.urlencode = urlencode;
+    window.websafe = websafe;
+    window._ = ugettext;
+    window.ungettext = ungettext;
+    window.uggettext = ugettext;
 }

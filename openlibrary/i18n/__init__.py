@@ -159,9 +159,7 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
     return extract_python(f, keywords, comment_tags, options)
 
 
-def extract_messages(
-    dirs: list[str], verbose: bool, forced: bool, skip_untracked: bool
-):
+def extract_messages(dirs: list[str], verbose: bool, skip_untracked: bool):
     # The creation date is fixed to prevent merge conflicts on this line as a result of i18n auto-updates
     # In the unlikely event we need to update the fixed creation date, you can change the hard-coded date below
     fixed_creation_date = datetime.fromisoformat('2024-05-01 18:58-0400')
@@ -173,9 +171,6 @@ def extract_messages(
     METHODS = [("**.py", "python"), ("**.html", "openlibrary.i18n:extract_templetor")]
     COMMENT_TAGS = ["NOTE:"]
 
-    template = read_po((Path(root) / 'messages.pot').open('rb'))
-    msg_set = {msg.id for msg in template if msg.id != ''}
-    new_set = set()
     skipped_files = set()
     if skip_untracked:
         skipped_files = get_untracked_files(dirs, ('.py', '.html'))
@@ -190,7 +185,6 @@ def extract_messages(
             file_path = Path(d) / filename
             if file_path in skipped_files:
                 continue
-            new_set.add(message)
             counts[filename] = counts.get(filename, 0) + 1
             catalog.add(message, None, [(filename, lineno)], auto_comments=comments)
 
@@ -199,18 +193,12 @@ def extract_messages(
                 path = filename if d == filename else os.path.join(d, filename)
                 print(f"{count}\t{path}", file=sys.stderr)
 
-    has_changed = msg_set != new_set
-    if has_changed or forced:
-        path = os.path.join(root, 'messages.pot')
-        f = open(path, 'wb')
-        write_po(f, catalog, include_lineno=False)
-        f.close()
+    path = os.path.join(root, 'messages.pot')
+    f = open(path, 'wb')
+    write_po(f, catalog, include_lineno=False)
+    f.close()
 
-        print('Updated strings written to', path)
-    else:
-        print(
-            'No modified strings discovered. To force a template update, re-run with --force-write.'
-        )
+    print('Updated strings written to', path)
 
 
 def compile_translations(locales: list[str]):

@@ -7,17 +7,26 @@
  */
 import {Octokit} from "@octokit/action";
 
-console.log('Script starting...')
-
 /**
  * Default arguments that are used if no command-line options are passed.
  *
  * @type { Record }
  */
-const DEFAULT_OPTIONS = {
+ const DEFAULT_OPTIONS = {
     daysSince: 14,
     repoOwner: 'internetarchive'
 }
+
+/**
+ * Default headers that will be added to each GitHub API request.
+ *
+ * @type { Record<string, string>}
+ */
+const GITHUB_HEADERS = {
+    'X-GitHub-Api-Version': '2022-11-28'
+}
+
+console.log('Script starting...')
 
 const passedArguments = parseArgs()
 
@@ -71,6 +80,14 @@ const filters = [
  */
 const issueTimelines = {}
 
+/**
+ * Any errors occurring when issues are labeled will be stored here.  Issue number is used
+ * as the key.
+ *
+ * @type {Record<Number, Record[]>}
+ */
+const labelErrors = {}
+
 await main()
 
 console.log('Script terminated...')
@@ -92,11 +109,17 @@ async function main() {  // XXX : Inject octokit for easier testing
     const actionableIssues = await filterIssues(issues, filters)
     console.log(`Issues remaining after filtering: ${actionableIssues.length}`)
 
-    const digestPublished = await postSlackDigest(actionableIssues)
+    console.log(`Adding labels to ${actionableIssues.length} issue(s)`)
+    const allLabeled = await labelIssues(actionableIssues)
 
-    if (!digestPublished) {
-        console.log('Something went wrong while publishing the digest to Slack...')
-        process.exit(1)
+    if (allLabeled) {
+        console.log(`Labels added to all ${actionableIssues.length} issue(s)`)
+    } else {
+        const numFailed = Object.keys(labelErrors).length
+        console.log(`Failed to add labels to ${numFailed} of ${actionableIssues.length} issue(s)`)
+        if (numFailed !== actionableIssues.length) {
+            console.log('All other issues were labeled successfully')
+        }
     }
 }
 
@@ -146,9 +169,7 @@ async function fetchIssues() {
     return await octokit.paginate('GET /repos/{owner}/{repo}/issues', {
             owner: mainOptions.repoOwner,
             repo: 'openlibrary',
-            headers: {
-                'X-GitHub-Api-Version': '2022-11-28'
-            },
+            headers: GITHUB_HEADERS,
             assignee: '*',
             state: 'open',
             per_page: 100
@@ -162,7 +183,7 @@ async function fetchIssues() {
  * timeline is found, calls GitHub's Timeline API and stores the result
  * before returning.
  *
- * @param issue {Record}
+ * @param {Record} issue
  * @returns {Promise<Array<Record>>}
  * @see {issueTimelines}
  */
@@ -181,9 +202,7 @@ async function getTimeline(issue) {
             repo: 'openlibrary',
             issue_number: issueNumber,
             per_page: 100,
-            headers: {
-                'X-GitHub-Api-Version': '2022-11-28'
-            }
+            headers: GITHUB_HEADERS
         })
 
     // Store timeline for future use:
@@ -193,98 +212,45 @@ async function getTimeline(issue) {
 }
 
 /**
- * Publishes digest of stale issues to Slack.
+ * Makes API calls to GitHub that will add the `Needs: Review Assignee`
+ * label to each given issue.
  *
- * @param issues {Array<Record>}
- * @returns {Promise<boolean>}
+ * If any request to add a label to an issue fails, the issue number and request
+ * error code will be logged to stdout.
+ *
+ * @param {Array<Record>} issues Issues that will be labeled
+ * @returns {Promise<boolean>}  Resolves to `true` if all given issues were labeled successfully
+ * @see {labelErrors}
  */
-async function postSlackDigest(issues) {
-    if (!(process.env.SLACK_TOKEN && process.env.SLACK_CHANNEL)) {
-        console.log('Digest could not be published to Slack due to missing environment variables.')
-        return false
-    }
+async function labelIssues(issues) {
+    const requests = []
 
-    const parentThreadMessage = `${issues.length} issue(s) have stale assignees.`
-    return fetch('https://slack.com/api/chat.postMessage', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json; charset=utf-8',
-            'Authorization': `Bearer ${process.env.SLACK_TOKEN}`
-        },
-        body: JSON.stringify({
-            text: parentThreadMessage,
-            channel: process.env.SLACK_CHANNEL
+    for (const issue of issues) {
+        const request = octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/labels', {
+            owner: mainOptions.repoOwner,
+            repo: 'openlibrary',
+            issue_number: issue.number,
+            labels: ['Needs: Review Assignee'],
+            headers: GITHUB_HEADERS
         })
-    })
-        .then((resp) => {
-            console.log('initial response:')
-            console.log(resp)
-            if (!resp.ok) {
-                console.log('Failed to publish parent thread to Slack')
-                throw new Error()
-            }
-            return resp.json()
-        })
-        .then(async (data) => {
-            const ts = data['ts']
-
-            for (const issue of issues) {
-                const message = `<${issue.html_url}|${issue.title}>`
-
-                // Wait for one second...
-                await wait(1000)
-                // ...then POST again
-                await commentOnThread(message, ts)
-            }
-
-            return true
-        })
-        .catch((err) => {
-            return false
-        })
-
-    /**
-     * Publishes given `message` int the thread identified by the Slack channel
-     * (found in the environment) and the given timestamp ID `ts`.
-     *
-     * @param message { string }
-     * @param ts { string }
-     * @returns {Promise<void>}
-     */
-    async function commentOnThread(message, ts) {
-        const body = {
-            text: message,
-            thread_ts: ts,
-            channel: process.env.SLACK_CHANNEL
-
-        }
-        await fetch('https://slack.com/api/chat.postMessage', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json; charset=utf-8',
-                'Authorization': `Bearer ${process.env.SLACK_TOKEN}`
-            },
-            body: JSON.stringify(body)
-        })
-            .then((resp) => {
-                if (!resp.ok) {
-                    console.log('Comment on Slack post failed.')
-                    throw new Error()
-                }
+            .catch((err) => {
+                labelErrors[issue.number] = err.status
+                throw new Error(`Failed to label issue #${issue.number} --- Status Code: ${err.status}`)
             })
+        requests.push(request)
     }
 
-    /**
-     * Waits for the given number of milliseconds, then resolves.
-     *
-     * @param ms {number}
-     * @returns {Promise}
-     */
-    function wait(ms) {
-        return new Promise(resolve => {
-            setTimeout(resolve, ms)
+    return Promise.allSettled(requests).then((results) => {
+        let allIssuesLabeled = true
+        results.forEach((result) => {
+            if (result.status === 'rejected') {
+                allIssuesLabeled = false
+                // Print error message to log:
+                console.log(result.reason)
+            }
         })
-    }
+        return allIssuesLabeled
+    })
 }
 // END: API Calls
 
@@ -294,8 +260,8 @@ async function postSlackDigest(issues) {
  *
  * The given filters are functions that are meant to be
  * passed to Array.
- * @param issues {Array<Record>}
- * @param filters {Array<CallableFunction>}
+ * @param {Array<Record>} issues
+ * @param {Array<CallableFunction>} filters
  * @returns {Promise<Array<Record>>}
  */
 async function filterIssues(issues, filters) {
@@ -313,7 +279,7 @@ async function filterIssues(issues, filters) {
  *
  * Necessary because GitHub's REST API considers pull requests to be a
  * type of issue.
- * @param issues {Array<Record>}
+ * @param {Array<Record>} issues
  * @returns {Promise<Array<Record>>}
  */
 async function excludePullRequestsFilter(issues) {
@@ -330,7 +296,7 @@ async function excludePullRequestsFilter(issues) {
  * Checks each given issue and returns array of issues that do not have
  * an exclusion label.
  *
- * @param issues {Array<Record>}
+ * @param {Array<Record>} issues
  * @returns {Promise<Array<Record>>}
  * @see {excludeLabels}
  */
@@ -359,7 +325,7 @@ async function excludeLabelsFilter(issues) {
  * __Important__: This function also updates the given issue. A `ol_unassign_ignore`
  * flag is added to any `assignee` that appears on the exclude list.
  *
- * @param issues {Array<Record>}
+ * @param {Array<Record>} issues
  * @returns {Promise<Array<Record>>}
  * @see {excludeAssignees}
  */
@@ -394,7 +360,7 @@ async function excludeAssigneesFilter(issues) {
  *
  * __Important__: This function adds the `ol_unassign_ignore` flag to
  * assignees that haven't yet been assigned for too long.
- * @param issues {Array<Record>}
+ * @param {Array<Record>} issues
  * @returns {Promise<Array<Record>>}
  */
 async function recentAssigneeFilter(issues) {
@@ -433,8 +399,8 @@ async function recentAssigneeFilter(issues) {
 /**
  * Returns the date that the given assignee was assigned to an issue.
  *
- * @param assignee {Record}
- * @param issueTimeline {Record}
+ * @param {Record} assignee
+ * @param {Record} issueTimeline
  * @returns {Date}
  */
 function getAssignmentDate(assignee, issueTimeline) {
@@ -455,7 +421,7 @@ function getAssignmentDate(assignee, issueTimeline) {
  * Iterates over given issues, and returns array containing issues that
  * have no linked pull requests that are open.
  *
- * @param issues {Array<Record>}
+ * @param {Array<Record>} issues
  * @returns {Promise<*[]>}
  */
 async function linkedPullRequestFilter(issues) {

@@ -76,7 +76,7 @@ class RegisterForm(Form):
     INPUTS = [
         Email(
             'email',
-            description=_('Your email address'),
+            description=_('Email'),
             klass='required',
             id='emailAddr',
             required="true",
@@ -89,12 +89,9 @@ class RegisterForm(Form):
         ),
         Textbox(
             'username',
-            description=_(
-                "Choose a screen name. Screen names are public and cannot be changed "
-                "later."
-            ),
+            description=_("Screen Name"),
             klass='required',
-            help=_("Letters and numbers only please, and at least 3 characters."),
+            help=_("Public and cannot be changed later."),
             autocapitalize="off",
             validators=[vlogin, username_validator],
             pattern=vlogin.rexp.pattern,
@@ -103,7 +100,7 @@ class RegisterForm(Form):
         ),
         Password(
             'password',
-            description=_('Choose a password'),
+            description=_('Password'),
             klass='required',
             validators=[vpass],
             minlength="3",

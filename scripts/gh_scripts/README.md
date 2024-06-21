@@ -21,7 +21,7 @@ If a lead is assigned to the issue, and the lead is not also the PR's author, th
 
 ## `stale_assignee_digest.mjs`
 
-This script fetches all open issues that have assignees and publishes a Slack message listing all that have met the following criteria:
+This script fetches all open issues that have assignees and adds the https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Review%20Assignee label to all that have met the following criteria:
 - Assignee has been assigned for more than a given number of days and has not created and linked a pull request to the issue.
 - Assignee's GitHub username does not appear on the exclude list.
 
@@ -40,7 +40,8 @@ __Correct:__
 __Incorrect:__
 `node stale_assignee_digest.mjs --daysSince=21`
 
-The GitHub action that runs this script automatically sets `--repoOwner` to the owner of the repository that triggered the action.
+The GitHub action that runs this script automatically sets `--repoOwner` to the owner of the repository that triggered the action.  The action itself will
+only run if the repository owner is `internetarchive` (it will not run on forks).
 
 To quickly see a script's purpose and arguments, run the script with the `-h` or `--help` flag.
 

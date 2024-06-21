@@ -17,7 +17,6 @@ import datetime
 import logging
 import web
 from openlibrary.accounts.model import OpenLibraryAccount
-from openlibrary.core import cache
 from . import helpers as h
 from .sendmail import sendmail_with_template
 from . import db
@@ -154,40 +153,6 @@ class WaitingLoan(dict):
             identifier=self['identifier'], userid=self['userid'], **kw
         )
         dict.update(self, kw)
-
-
-class Stats:
-    def get_popular_books(self, limit=10):
-        rows = db.query(
-            "SELECT book_key, count(*) as count"
-            " FROM waitingloan"
-            " GROUP by 1"
-            " ORDER by 2 desc"
-            " LIMIT $limit",
-            vars=locals(),
-        ).list()
-        docs = web.ctx.site.get_many([row.book_key for row in rows])
-        docs_dict = {doc.key: doc for doc in docs}
-        for row in rows:
-            row.book = docs_dict.get(row.book_key)
-        return rows
-
-    def get_counts_by_status(self):
-        rows = db.query(
-            "SELECT status, count(*) as count FROM waitingloan group by 1 order by 2"
-        )
-        return rows.list()
-
-    def get_available_waiting_loans(self, offset=0, limit=10):
-        rows = db.query(
-            "SELECT * FROM waitingloan"
-            " WHERE status='available'"
-            " ORDER BY expiry desc "
-            " OFFSET $offset"
-            " LIMIT $limit",
-            vars=locals(),
-        )
-        return [WaitingLoan(row) for row in rows]
 
 
 def get_waitinglist_for_book(book_key):

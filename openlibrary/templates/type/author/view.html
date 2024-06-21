@@ -173,7 +173,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
 
         $if "lists" in ctx.features:
             <div class="section Tools">
-                $:render_template("lists/widget", page, include_rating=False, exclude_own_lists=True, show_active_lists=True)
+                $:render_template("lists/widget", page, include_rating=False, async_load=True, show_active_lists=True, include_showcase=False)
             </div>
 
         <div class="section">

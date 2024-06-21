@@ -106,6 +106,68 @@ msgstr ""
 msgid "Point your camera at a barcode! 📷"
 msgstr ""
 
+#: batch_import.html
+msgid "Batch Imports"
+msgstr ""
+
+#: batch_import.html
+msgid "Attach a JSONL formatted document with import records."
+msgstr ""
+
+#: batch_import.html
+msgid ""
+"See the <a href=\"https://github.com/internetarchive/openlibrary-"
+"client/tree/master/olclient/schemata\">olclient import schemata</a> for "
+"more."
+msgstr ""
+
+#: batch_import.html
+msgid "Import"
+msgstr ""
+
+#: batch_import.html
+msgid "Import failed."
+msgstr ""
+
+#: batch_import.html
+msgid "No import will be queued until *every* record validates successfully."
+msgstr ""
+
+#: batch_import.html
+msgid ""
+"Please update the JSONL file and reload this page (there should be no "
+"need to reattach the file)."
+msgstr ""
+
+#: batch_import.html
+msgid "Validation errors:"
+msgstr ""
+
+#: batch_import.html
+#, python-format
+msgid "Line %d:"
+msgstr ""
+
+#: batch_import.html
+msgid "Import results for batch:"
+msgstr ""
+
+#: batch_import.html
+msgid "Records submitted:"
+msgstr ""
+
+#: batch_import.html
+msgid "Total queued:"
+msgstr ""
+
+#: batch_import.html
+msgid "Total skipped:"
+msgstr ""
+
+#: batch_import.html
+msgid "Not queued because they are already present in the queue:"
+msgstr ""
+
 #: diff.html
 #, python-format
 msgid "Diff on %s"
@@ -181,8 +243,7 @@ msgid "When"
 msgstr ""
 
 #: RecentChanges.html admin/ip/view.html admin/loans_table.html
-#: admin/people/edits.html admin/waitinglists.html history.html
-#: recentchanges/render.html
+#: admin/people/edits.html history.html recentchanges/render.html
 msgid "Who"
 msgstr ""
 
@@ -281,7 +342,7 @@ msgstr ""
 msgid "password:"
 msgstr ""
 
-#: login.html
+#: forms.py login.html
 msgid "Email"
 msgstr ""
 
@@ -331,6 +392,7 @@ msgstr ""
 
 #: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
 #: ObservationsModal.html ShareModal.html
+#: book_providers/cita_press_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
@@ -452,9 +514,8 @@ msgstr ""
 
 #: authors/index.html lib/nav_head.html lists/home.html
 #: publishers/notfound.html publishers/view.html search/advancedsearch.html
-#: search/authors.html search/inside.html search/lists.html
-#: search/publishers.html search/subjects.html subjects.html
-#: subjects/notfound.html type/local_id/view.html work_search.html
+#: search/publishers.html search/searchbox.html subjects.html
+#: subjects/notfound.html type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -506,9 +567,9 @@ msgstr ""
 msgid "See more books by, and learn about, this author"
 msgstr ""
 
-#: account/loans.html authors/index.html publishers/view.html
-#: search/authors.html search/publishers.html search/subjects.html
-#: subjects.html
+#: account/loans.html authors/index.html lists/showcase.html
+#: publishers/view.html search/authors.html search/publishers.html
+#: search/subjects.html subjects.html
 #, python-format
 msgid "%(count)d book"
 msgid_plural "%(count)d books"
@@ -593,11 +654,10 @@ msgstr ""
 msgid "Send"
 msgstr ""
 
-#: CreateListModal.html EditButtons.html account/create.html
-#: account/notifications.html account/password/reset.html account/privacy.html
-#: admin/imports-add.html admin/permissions.html books/add.html covers/add.html
-#: covers/manage.html databarEdit.html merge/authors.html
-#: my_books/dropdown_content.html support.html tag/add.html
+#: CreateListModal.html EditButtons.html account/notifications.html
+#: account/password/reset.html account/privacy.html admin/imports-add.html
+#: admin/permissions.html books/add.html covers/manage.html databarEdit.html
+#: merge/authors.html my_books/dropdown_content.html support.html tag/add.html
 msgid "Cancel"
 msgstr ""
 
@@ -650,7 +710,8 @@ msgstr ""
 msgid "Currently Reading"
 msgstr ""
 
-#: LoanReadForm.html ReadButton.html book_providers/gutenberg_read_button.html
+#: LoanReadForm.html ReadButton.html book_providers/cita_press_read_button.html
+#: book_providers/gutenberg_read_button.html
 #: book_providers/openstax_read_button.html
 #: book_providers/standard_ebooks_read_button.html books/custom_carousel.html
 #: books/edit/edition.html books/show.html trending.html type/list/embed.html
@@ -856,11 +917,9 @@ msgid "Sign Up"
 msgstr ""
 
 #: account/create.html
-msgid "Complete the form below to create a new Internet Archive account."
-msgstr ""
-
-#: account/create.html
-msgid "Each field is required"
+msgid ""
+"Get your free Open Library card and borrow digital books from the "
+"nonprofit Internet Archive"
 msgstr ""
 
 #: account/create.html
@@ -880,10 +939,18 @@ msgid "screenname"
 msgstr ""
 
 #: account/create.html
+msgid "Sign Up with Email"
+msgstr ""
+
+#: account/create.html
 msgid ""
-"By signing up, you agree to the Internet Archive's <a "
-"href='//archive.org/about/terms.php' target='_blank'>Terms of "
-"Service</a>."
+"By signing up, you agree to the Internet Archive's <a class=\"ol-signup-"
+"form__link\" href=\"//archive.org/about/terms.php\" "
+"target=\"_blank\">Terms of Service</a>."
+msgstr ""
+
+#: account/create.html
+msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
 msgstr ""
 
 #: account/delete.html
@@ -1835,6 +1902,10 @@ msgid "Users Logging"
 msgstr ""
 
 #: admin/index.html
+msgid "Yearly Reading Goals"
+msgstr ""
+
+#: admin/index.html
 msgid "Books Review Tags"
 msgstr ""
 
@@ -1890,7 +1961,8 @@ msgstr ""
 msgid "BookReader"
 msgstr ""
 
-#: admin/loans_table.html book_providers/ia_download_options.html
+#: admin/loans_table.html book_providers/cita_press_download_options.html
+#: book_providers/ia_download_options.html
 #: book_providers/openstax_download_options.html books/edit/edition.html
 msgid "PDF"
 msgstr ""
@@ -1925,10 +1997,6 @@ msgstr ""
 #: account.py admin/menu.html admin/people/view.html
 #: books/mybooks_breadcrumb_select.html type/user/view.html
 msgid "Loans"
-msgstr ""
-
-#: admin/menu.html
-msgid "Waiting Lists"
 msgstr ""
 
 #: admin/menu.html
@@ -1999,14 +2067,6 @@ msgstr ""
 
 #: admin/solr.html
 msgid "Update"
-msgstr ""
-
-#: FormatExpiry.html admin/waitinglists.html
-msgid "Expires"
-msgstr ""
-
-#: admin/waitinglists.html
-msgid "Loan Status"
 msgstr ""
 
 #: admin/ip/index.html
@@ -2188,12 +2248,42 @@ msgstr ""
 msgid "Date"
 msgstr ""
 
+#: book_providers/cita_press_download_options.html
 #: book_providers/gutenberg_download_options.html
 #: book_providers/ia_download_options.html
 #: book_providers/librivox_download_options.html
 #: book_providers/openstax_download_options.html
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download Options"
+msgstr ""
+
+#: book_providers/cita_press_download_options.html
+msgid "Download PDF from Cita Press"
+msgstr ""
+
+#: book_providers/cita_press_download_options.html
+msgid "More at Cita Press"
+msgstr ""
+
+#: book_providers/cita_press_read_button.html
+msgid "Read eBook from Cita Press"
+msgstr ""
+
+#: book_providers/cita_press_read_button.html
+msgid ""
+"This book is available from <a href=\"https://citapress.org/\">Cita "
+"Press</a>. Cita Press is a trusted book provider of works written by "
+"women, pairing contemporary authors and designers with open access texts "
+"to make carefully designed books available for free and open source."
+msgstr ""
+
+#: book_providers/cita_press_read_button.html
+#: book_providers/gutenberg_read_button.html
+#: book_providers/librivox_read_button.html
+#: book_providers/openstax_read_button.html
+#: book_providers/standard_ebooks_read_button.html
+#: check_ins/reading_goal_progress.html
+msgid "Learn more"
 msgstr ""
 
 #: book_providers/gutenberg_download_options.html
@@ -2241,14 +2331,6 @@ msgid ""
 "Gutenberg is a trusted book provider of classic ebooks, supporting "
 "thousands of volunteers in the creation and distribution of over 60,000 "
 "free eBooks."
-msgstr ""
-
-#: book_providers/gutenberg_read_button.html
-#: book_providers/librivox_read_button.html
-#: book_providers/openstax_read_button.html
-#: book_providers/standard_ebooks_read_button.html
-#: check_ins/reading_goal_progress.html
-msgid "Learn more"
 msgstr ""
 
 #: book_providers/ia_download_options.html
@@ -3471,11 +3553,7 @@ msgid "Edit %(year)d Reading Goal"
 msgstr ""
 
 #: covers/add.html
-msgid "Please choose an image or provide a URL."
-msgstr ""
-
-#: covers/add.html
-msgid "There are two ways to put an author's image on Open Library"
+msgid "There are two ways to put an author's image on Open Library."
 msgstr ""
 
 #: covers/add.html
@@ -3483,7 +3561,7 @@ msgid "Image Guidelines"
 msgstr ""
 
 #: covers/add.html
-msgid "There are two ways to put a cover image on Open Library"
+msgid "There are a few ways to put a cover image on Open Library."
 msgstr ""
 
 #: covers/add.html
@@ -3499,15 +3577,34 @@ msgid "Please provide an image URL."
 msgstr ""
 
 #: covers/add.html
-msgid "<strong>Pick one</strong> from the existing covers,"
+#, python-format
+msgid ""
+"Learn more by reading our <a href=\"/help/faq/editing#picture\" "
+"target=\"blank\">%(guidelines)s</a>."
 msgstr ""
 
 #: covers/add.html
-msgid "Choose a JPG, GIF or PNG on your computer,"
+msgid "<strong>Pick one</strong> from the existing covers"
 msgstr ""
 
 #: covers/add.html
-msgid "Or, paste in the image URL if it's on the web."
+msgid "Use this image"
+msgstr ""
+
+#: covers/add.html
+msgid "Choose a JPG, GIF or PNG on your computer"
+msgstr ""
+
+#: covers/add.html
+msgid "Upload"
+msgstr ""
+
+#: covers/add.html
+msgid "Or, paste in the image URL if it's on the web"
+msgstr ""
+
+#: covers/add.html
+msgid "Or, use the the cover from Internet Archive"
 msgstr ""
 
 #: covers/add.html
@@ -3612,22 +3709,19 @@ msgid "Finished"
 msgstr ""
 
 #: history/comment.html
-#, python-format
-msgid "Imported from %(source)s"
+msgid "Imported from"
 msgstr ""
 
 #: history/comment.html
-#, python-format
-msgid "Imported from %(source)s  <a href=\"%(url)s\">%(type)s record</a>."
-msgstr ""
-
-#: history/comment.html
-#, python-format
-msgid "Found a <a href=\"%(url)s\">matching record</a> from %(source)s."
+msgid "Found a matching"
 msgstr ""
 
 #: history/comment.html
 msgid "Edited without comment."
+msgstr ""
+
+#: history/sources.html
+msgid "record"
 msgstr ""
 
 #: home/about.html
@@ -4380,7 +4474,7 @@ msgstr ""
 msgid "Recent Activity"
 msgstr ""
 
-#: lists/home.html
+#: lists/home.html lists/showcase.html
 msgid "See all"
 msgstr ""
 
@@ -4454,6 +4548,15 @@ msgstr ""
 
 #: lists/preview.html
 msgid "by <a href=\"$owner.key\">You</a>"
+msgstr ""
+
+#: lists/showcase.html
+#, python-format
+msgid "My Lists (%(count)d)"
+msgstr ""
+
+#: lists/showcase.html
+msgid "You have no lists."
 msgstr ""
 
 #: lists/widget.html
@@ -5542,6 +5645,10 @@ msgid "Weight"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
+msgid "Source records"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
 msgid "Work Description"
 msgstr ""
 
@@ -6077,6 +6184,10 @@ msgstr ""
 msgid "Follow"
 msgstr ""
 
+#: FormatExpiry.html
+msgid "Expires"
+msgstr ""
+
 #: IABook.html
 #, python-format
 msgid "Borrowed from Internet Archive: %(title)s"
@@ -6260,6 +6371,18 @@ msgstr ""
 
 #: ShareModal.html
 msgid "Copy URL"
+msgstr ""
+
+#: ShareModal.html
+msgid "Open QR code"
+msgstr ""
+
+#: ShareModal.html
+msgid "QR code icon"
+msgstr ""
+
+#: ShareModal.html
+msgid "QR Code"
 msgstr ""
 
 #: SponsorCarousel.html
@@ -6486,7 +6609,7 @@ msgid "Username must be between 3-20 characters"
 msgstr ""
 
 #: account.py
-msgid "Username may only contain numbers and letters"
+msgid "Username may only contain numbers, letters, - or _"
 msgstr ""
 
 #: account.py
@@ -6574,19 +6697,11 @@ msgid "Must be between 3 and 20 letters and numbers"
 msgstr ""
 
 #: forms.py
-msgid "Your email address"
+msgid "Screen Name"
 msgstr ""
 
 #: forms.py
-msgid "Choose a screen name. Screen names are public and cannot be changed later."
-msgstr ""
-
-#: forms.py
-msgid "Letters and numbers only please, and at least 3 characters."
-msgstr ""
-
-#: forms.py
-msgid "Choose a password"
+msgid "Public and cannot be changed later."
 msgstr ""
 
 #: forms.py
@@ -6598,5 +6713,13 @@ msgstr ""
 
 #: forms.py
 msgid "Invalid password"
+msgstr ""
+
+#: forms.py
+msgid "Your email address"
+msgstr ""
+
+#: forms.py
+msgid "Choose a password"
 msgstr ""
 

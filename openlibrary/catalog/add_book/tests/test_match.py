@@ -4,6 +4,7 @@ from copy import deepcopy
 
 from openlibrary.catalog.add_book import load
 from openlibrary.catalog.add_book.match import (
+    THRESHOLD,
     add_db_name,
     build_titles,
     compare_authors,
@@ -290,7 +291,7 @@ def test_compare_publisher():
     assert compare_publisher(foo, {}) == ('publisher', 'either missing', 0)
     assert compare_publisher({}, bar) == ('publisher', 'either missing', 0)
     assert compare_publisher(foo, foo2) == ('publisher', 'match', 100)
-    assert compare_publisher(foo, bar) == ('publisher', 'mismatch', -25)
+    assert compare_publisher(foo, bar) == ('publisher', 'mismatch', -51)
     assert compare_publisher(bar, both) == ('publisher', 'match', 100)
     assert compare_publisher(both, foo) == ('publisher', 'match', 100)
 
@@ -370,3 +371,36 @@ class TestRecordMatching:
         threshold = 515
         assert threshold_match(e1, e2, threshold) is True
         assert threshold_match(e1, e2, threshold + 1) is False
+
+    def test_matching_title_author_and_publish_year_but_not_publishers(self) -> None:
+        """
+        Matching only title, author, and publish_year should not be sufficient for
+        meeting the match threshold if the publisher is truthy and doesn't match,
+        as a book published in different publishers in the same year would easily meet
+        the criteria.
+        """
+        existing_edition = {
+            'authors': [{'name': 'Edgar Lee Masters'}],
+            'publish_date': '2022',
+            'publishers': ['Creative Media Partners, LLC'],
+            'title': 'Spoon River Anthology',
+        }
+
+        potential_match1 = {
+            'authors': [{'name': 'Edgar Lee Masters'}],
+            'publish_date': '2022',
+            'publishers': ['Standard Ebooks'],
+            'title': 'Spoon River Anthology',
+        }
+
+        assert threshold_match(existing_edition, potential_match1, THRESHOLD) is False
+
+        potential_match2 = {
+            'authors': [{'name': 'Edgar Lee Masters'}],
+            'publish_date': '2022',
+            'title': 'Spoon River Anthology',
+        }
+
+        # If there i s no publisher and nothing else to match, the editions should be
+        # indistinguishable, and therefore matches.
+        assert threshold_match(existing_edition, potential_match2, THRESHOLD) is True
