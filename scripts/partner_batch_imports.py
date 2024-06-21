@@ -129,7 +129,9 @@ class Biblio:
         self.lc_classifications = [data[147]] if data[147] else []
         if data[36] and data[36].isnumeric():
             self.number_of_pages = int(data[36])
+            self.pagination = None
         else:
+            self.number_of_pages = None
             self.pagination = data[36]
         self.languages = [data[37].lower()]
         self.source_records = [self.source_id]
@@ -182,7 +184,7 @@ class Biblio:
         return {
             field: getattr(self, field)
             for field in self.ACTIVE_FIELDS
-            if getattr(self, field, None)
+            if getattr(self, field)
         }
 
 
