@@ -115,3 +115,4 @@ repos:
       entry: python ./scripts/detect_missing_i18n.py
       types: [html]
       language: python
+      verbose: true

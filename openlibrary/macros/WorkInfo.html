@@ -13,7 +13,7 @@ $for name in s:
         <tbody>
             <tr><td class="descrip"><span class="title">$_t[name]</span></td>
             $if name == "other_titles":
-                <td><span class="object">$:'; '.join(thingrepr(i) for i in page[name])</span></td></tr>
+                <td><span class="object">$:'; '.join(thingrepr(i) for i in page[name])</span></td></tr> $# detect-missing-i18n-skip-line
             $elif name == "translated_titles":
                 $for t in page[name]: <td class="tag"><span class="object"><i>$t.language.name -</i> $t.text;</span></td></tr>
             $elif name == "subjects":
