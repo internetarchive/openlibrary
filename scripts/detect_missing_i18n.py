@@ -445,7 +445,12 @@ def print_analysis(
     line_number: int = 0,
     line_position: int = 0,
 ):
-    filestring = f'{filename}:{f"{line_number}:" if line_number > 0 else ""}{f"{line_position}:" if line_position > 0 else ""}'
+    linestr = (
+        f":{line_number}:{line_position}"
+        if line_number > 0 and line_position > 0
+        else ""
+    )
+    filestring = f'{filename}{linestr}'
     print(
         '\t'.join(
             [errtype, terminal_underline(filestring).ljust(spacing_base + 12), details]
