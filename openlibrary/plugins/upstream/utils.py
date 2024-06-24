@@ -17,6 +17,7 @@ import datetime
 import logging
 from html.parser import HTMLParser
 from pathlib import Path
+import yaml
 
 import requests
 
@@ -1209,12 +1210,14 @@ def _get_edition_config():
 
     The results are cached on the first invocation. Any changes to /config/edition page require restarting the app.
 
-    This is is cached because fetching and creating the Thing object was taking about 20ms of time for each book request.
+    This is cached because fetching and creating the Thing object was taking about 20ms of time for each book request.
     """
     thing = web.ctx.site.get('/config/edition')
     classifications = [Storage(t.dict()) for t in thing.classifications if 'name' in t]
-    identifiers = [Storage(t.dict()) for t in thing.identifiers if 'name' in t]
     roles = thing.roles
+    with open('openlibrary/plugins/openlibrary/config/edition/identifiers.yml') as in_file:
+        id_config = yaml.safe_load(in_file)
+        identifiers = [Storage(id) for id in id_config.get('identifiers', []) if 'name' in id]
     return Storage(
         classifications=classifications, identifiers=identifiers, roles=roles
     )
