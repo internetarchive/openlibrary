@@ -116,3 +116,4 @@ repos:
       types: [html]
       language: python
       verbose: true
+      require_serial: true
