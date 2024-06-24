@@ -1215,9 +1215,13 @@ def _get_edition_config():
     thing = web.ctx.site.get('/config/edition')
     classifications = [Storage(t.dict()) for t in thing.classifications if 'name' in t]
     roles = thing.roles
-    with open('openlibrary/plugins/openlibrary/config/edition/identifiers.yml') as in_file:
+    with open(
+        'openlibrary/plugins/openlibrary/config/edition/identifiers.yml'
+    ) as in_file:
         id_config = yaml.safe_load(in_file)
-        identifiers = [Storage(id) for id in id_config.get('identifiers', []) if 'name' in id]
+        identifiers = [
+            Storage(id) for id in id_config.get('identifiers', []) if 'name' in id
+        ]
     return Storage(
         classifications=classifications, identifiers=identifiers, roles=roles
     )
