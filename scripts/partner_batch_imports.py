@@ -92,6 +92,7 @@ class Biblio:
         'weight',
         'authors',
         'lc_classifications',
+        'number_of_pages',
         'pagination',
         'languages',
         'subjects',
@@ -126,7 +127,12 @@ class Biblio:
         self.weight = data[39]
         self.authors = self.contributors(data)
         self.lc_classifications = [data[147]] if data[147] else []
-        self.pagination = data[36]
+        if data[36] and data[36].isnumeric():
+            self.number_of_pages = int(data[36])
+            self.pagination = None
+        else:
+            self.number_of_pages = None
+            self.pagination = data[36]
         self.languages = [data[37].lower()]
         self.source_records = [self.source_id]
         self.subjects = [
