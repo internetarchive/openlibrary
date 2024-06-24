@@ -35,6 +35,10 @@ class TestBiblio:
             'languages': ['eng'],
             'subjects': ['Sutras', 'Buddhism, sacred books'],
             'source_records': ['bwb:9780962561856'],
+            'identifiers': {
+                'doi': ['10.1604/9780962561856'],
+            },
+            'lccn': ['91-060120'],
         }
         assert b.json() == data
 
@@ -52,6 +56,10 @@ class TestBiblio:
             'languages': ['eng'],
             'subjects': ['Sutras', 'Buddhism, sacred books'],
             'source_records': ['bwb:9780962561856'],
+            'identifiers': {
+                'doi': ['10.1604/9780962561856'],
+            },
+            'lccn': ['91-060120'],
         }
         assert b.json() == data
 
