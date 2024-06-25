@@ -438,11 +438,10 @@ class MyBooksTemplate:
         self.user_itemname = self.user.get_account().get('internetarchive_itemname')
 
         self.me = accounts.get_current_user()
-        self.my_username = self.me and self.me.key.split('/')[-1]
         self.is_my_page = self.me and self.me.key.split('/')[-1] == self.username
         self.is_subscribed = (
-            PubSub.is_subscribed(self.my_username, self.username)
-            if not self.is_my_page and self.is_public
+            self.me.is_subscribed_user(self.username)
+            if self.me and self.is_public
             else -1
         )
         self.key = key.lower()
