@@ -92,17 +92,17 @@ class Biblio:
         'weight',
         'authors',
         'lc_classifications',
+        'number_of_pages',
         'pagination',
         'languages',
         'subjects',
         'source_records',
+        'lccn',
+        'identifiers',
+        'dewey_decimal_class',
     ]
     INACTIVE_FIELDS = [
         "copyright",
-        "issn",
-        "doi",
-        "lccn",
-        "dewey",
         "length",
         "width",
         "height",
@@ -126,7 +126,12 @@ class Biblio:
         self.weight = data[39]
         self.authors = self.contributors(data)
         self.lc_classifications = [data[147]] if data[147] else []
-        self.pagination = data[36]
+        if data[36] and data[36].isnumeric():
+            self.number_of_pages = int(data[36])
+            self.pagination = None
+        else:
+            self.number_of_pages = None
+            self.pagination = data[36]
         self.languages = [data[37].lower()]
         self.source_records = [self.source_id]
         self.subjects = [
@@ -137,12 +142,16 @@ class Biblio:
             if s
         ]
 
+        self.identifiers = {
+            **({'issn': [data[54]]} if data[54] else {}),
+            **({'doi': [data[145]]} if data[145] else {}),
+        }
+
+        self.lccn = [data[146]] if data[146] else []
+        self.dewey_decimal_class = [data[49]] if data[49] else []
+
         # Inactive fields
         self.copyright = data[19]
-        self.issn = data[54]
-        self.doi = data[145]
-        self.lccn = data[146]
-        self.dewey = data[49]
         # physical_dimensions
         # e.g. "5.4 x 4.7 x 0.2 inches"
         self.length, self.width, self.height = data[40:43]

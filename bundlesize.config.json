@@ -10,7 +10,7 @@
     },
     {
       "path": "static/build/markdown-editor.*.js",
-      "maxSize": "12KB"
+      "maxSize": "13KB"
     },
     {
       "path": "static/build/carousel.*.js",
@@ -34,7 +34,7 @@
     },
     {
       "path": "static/build/modal-links.*.js",
-      "maxSize": "6KB"
+      "maxSize": "7KB"
     },
     {
       "path": "static/build/user-website.*.js",

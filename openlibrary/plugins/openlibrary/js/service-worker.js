@@ -49,6 +49,7 @@ registerRoute(
                 maxEntries: 100,
                 maxAgeSeconds: DAY_SECONDS * 365,
             }),
+            cacheableResponses
         ],
     })
 );
