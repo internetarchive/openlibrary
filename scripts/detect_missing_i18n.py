@@ -264,7 +264,7 @@ def main(files: list[Path], skip_excluded: bool = True):
                 warnings += 1
 
             # Don't proceed if the line doesn't match any of the four cases.
-            if char_index == -1:
+            else:
                 continue
 
             preceding_text = line[:char_index]
