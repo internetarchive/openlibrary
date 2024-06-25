@@ -8,6 +8,8 @@ from enum import Enum
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 import glob
 
+# This is a list of files that had pre-existing i18n errors/warnings at the time this script was created.
+# Chip away at these and remove them from the exclude list (except where otherwise noted).
 EXCLUDE_LIST = {
     "openlibrary/admin/templates/admin/index.html",
     "openlibrary/templates/design.html",
