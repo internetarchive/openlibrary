@@ -908,11 +908,11 @@ msgstr ""
 msgid "Must be between 3 and 20 characters"
 msgstr ""
 
-#: account.py account/create.html
+#: account/create.html
 msgid "Username may only contain numbers, letters, - or _"
 msgstr ""
 
-#: account.py account/create.html forms.py
+#: account/create.html forms.py
 msgid "Must be a valid email address"
 msgstr ""
 
@@ -6610,10 +6610,6 @@ msgstr ""
 msgid ""
 "We've sent the verification email to %(email)s. You'll need to read that "
 "and click on the verification link to verify your email."
-msgstr ""
-
-#: account.py
-msgid "Username must be between 3-20 characters"
 msgstr ""
 
 #: account.py
