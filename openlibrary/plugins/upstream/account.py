@@ -573,7 +573,7 @@ class account_validation(delegate.page):
         if not 3 <= len(username) <= 20:
             return _('Username must be between 3-20 characters')
         if not re.match('^[A-Za-z0-9-_]{3,20}$', username):
-            return _('Username may only contain numbers and letters')
+            return _('Username may only contain numbers, letters, - or _')
 
         ol_account = OpenLibraryAccount.get(username=username)
         if ol_account:

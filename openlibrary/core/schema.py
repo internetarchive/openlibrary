@@ -95,6 +95,7 @@ def get_schema():
         data text,
         ol_key text,
         comments text,
+        submitter text,
         UNIQUE (batch_id, ia_id)
     );
     CREATE INDEX import_item_batch_id ON import_item(batch_id);

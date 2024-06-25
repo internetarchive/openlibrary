@@ -213,7 +213,9 @@ async function prepareUntriagedIssues(leads) {
 
     let allIssuesTriaged = true
     for (const lead of leads) {
-        const searchResultsUrl = `https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+label%3A%22Needs%3A+Triage%22${encodeURIComponent('"' + lead.leadLabel + '"')}`
+        const searchResultsUrl = `https://github.com/internetarchive/openlibrary/issues?${new URLSearchParams({
+            q: `is:issue is:open label:"Needs: Triage" label:"${lead.leadLabel}"`
+        })}`
         let issueCount = 0
 
         for (const issue of untriagedIssues) {
