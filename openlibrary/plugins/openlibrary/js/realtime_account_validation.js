@@ -50,18 +50,24 @@ export function initRealTimeValidation() {
     function validateUsername() {
         const value_username = $(this).val();
         if (value_username !== '') {
-            $.ajax({
-                url: '/account/validate',
-                data: { username: value_username },
-                type: 'GET',
-                success: function(errors) {
-                    if (errors.username) {
-                        renderError('#username', '#usernameMessage', errors.username);
-                    } else {
-                        clearError('#username', '#usernameMessage');
+            if (value_username.length < 3 || value_username.length > 20) {
+                renderError('#username', '#usernameMessage', i18nStrings['input_length_err']);
+            } else if (!(/^[A-Za-z0-9-_]{3,20}$/.test(value_username))) {
+                renderError('#username', '#usernameMessage', i18nStrings['username_char_err']);
+            } else {
+                clearError('#username', '#usernameMessage');
+
+                $.ajax({
+                    url: '/account/validate',
+                    data: { username: value_username },
+                    type: 'GET',
+                    success: function(errors) {
+                        if (errors.username) {
+                            renderError('#username', '#usernameMessage', errors.username);
+                        }
                     }
-                }
-            });
+                });
+            }
         }
         else {
             clearError('#username', '#usernameMessage');
@@ -71,18 +77,22 @@ export function initRealTimeValidation() {
     function validateEmail() {
         const value_email = $(this).val();
         if (value_email !== '') {
-            $.ajax({
-                url: '/account/validate',
-                data: { email: value_email },
-                type: 'GET',
-                success: function(errors) {
-                    if (errors.email) {
-                        renderError('#emailAddr', '#emailAddrMessage', errors.email);
-                    } else {
-                        clearError('#emailAddr', '#emailAddrMessage');
+            if (!(/.*@.*\..*/.test(value_email))) {
+                renderError('#emailAddr', '#emailAddrMessage', i18nStrings['invalid_email_format']);
+            } else {
+                clearError('#emailAddr', '#emailAddrMessage');
+
+                $.ajax({
+                    url: '/account/validate',
+                    data: { email: value_email },
+                    type: 'GET',
+                    success: function(errors) {
+                        if (errors.email) {
+                            renderError('#emailAddr', '#emailAddrMessage', errors.email);
+                        }
                     }
-                }
-            });
+                });
+            }
         }
         else {
             clearError('#emailAddr', '#emailAddrMessage');
@@ -92,7 +102,7 @@ export function initRealTimeValidation() {
     function validatePassword() {
         const value_password = $(this).val();
         if (value_password !== '' && (value_password.length < 3 || value_password.length > 20)) {
-            renderError('#password', '#passwordMessage', i18nStrings['password_length_err']);
+            renderError('#password', '#passwordMessage', i18nStrings['input_length_err']);
         }
         else clearError('#password', '#passwordMessage');
     }
