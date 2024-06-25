@@ -104,9 +104,12 @@ EXCLUDE_LIST = {
     "openlibrary/macros/WorldcatLink.html",
     "openlibrary/macros/databarWork.html",
     "openlibrary/macros/WorkInfo.html",
+    # These can't be fixed since they're rendered as static html
+    "static/offline.html",
+    "static/status-500.html",
 }
 
-valid_directories = ['openlibrary/templates/', 'openlibrary/macros/']
+default_directories = ('openlibrary/templates/', 'openlibrary/macros/')
 
 
 class Errtype(str, Enum):
@@ -184,7 +187,7 @@ def terminal_underline(text: str) -> str:
 
 def print_analysis(
     errtype: str,
-    filename: str,
+    filename: Path,
     details: str,
     spacing_base: int,
     line_number: int = 0,
@@ -212,34 +215,23 @@ def main(files: list[Path], skip_excluded: bool = True):
     if not files:
         files = [
             Path(file_path)
-            for vdir in valid_directories
-            for file_path in glob.glob(f'{vdir}**/*.html', recursive=True)
+            for ddir in default_directories
+            for file_path in glob.glob(f'{ddir}**/*.html', recursive=True)
         ]
 
-    # Don't validate i18n unless the file is in one of the valid_directories.
-    valid_files = [
-        file
-        for file in files
-        if len([valid for valid in valid_directories if str(file).startswith(valid)])
-        > 0
-    ]
-    if len(valid_files) == 0:
-        sys.exit(0)
-
     # Figure out how much padding to put between the filename and the error output
-    longest_filename_length = max(len(str(f)) for f in valid_files)
+    longest_filename_length = max(len(str(f)) for f in files)
     spacing_base = longest_filename_length + len(':XXX:XXX')
 
     errcount: int = 0
     warnings: int = 0
 
-    for file in valid_files:
-
+    for file in files:
         contents = file.read_text()
         lines = contents.splitlines()
 
-        if str(file) in EXCLUDE_LIST and skip_excluded:
-            print_analysis(Errtype.SKIP, str(file), "", spacing_base)
+        if skip_excluded and str(file) in EXCLUDE_LIST:
+            print_analysis(Errtype.SKIP, file, "", spacing_base)
             continue
 
         for line_number, line in enumerate(lines, start=1):
@@ -293,7 +285,7 @@ def main(files: list[Path], skip_excluded: bool = True):
             print_position = char_index + 1
             print_analysis(
                 errtype,
-                str(file),
+                file,
                 regex_match,
                 spacing_base,
                 line_number,
@@ -301,7 +293,7 @@ def main(files: list[Path], skip_excluded: bool = True):
             )
 
     print(
-        f"{len(valid_files)} file{'s' if len(valid_files) != 1 else ''} scanned. {errcount} error{'s' if errcount != 1 else ''} found."
+        f"{len(files)} file{'s' if len(files) != 1 else ''} scanned. {errcount} error{'s' if errcount != 1 else ''} found."
     )
     if errcount > 0 or warnings > 0:
         print(
