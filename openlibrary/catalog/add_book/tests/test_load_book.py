@@ -53,7 +53,7 @@ def test_import_author_name_unchanged(author, new_import):
 def test_build_query(add_languages):
     rec = {
         'title': 'magic',
-        'languages': ['eng', 'fre'],
+        'languages': ['ENG', 'fre'],
         'translated_from': ['yid'],
         'authors': [{'name': 'Surname, Forename'}],
         'description': 'test',
