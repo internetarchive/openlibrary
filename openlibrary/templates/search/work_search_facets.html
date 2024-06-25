@@ -1,15 +1,14 @@
-$def with (param, facet_counts=None)
+$def with (param, facet_counts=None, async_load=True)
 
 $code:
-    async_load = facet_counts == None
     start_facet_count = 5
     facet_inc = 10
 
     def add_facet_url(k, v):
         if k != 'has_fulltext':
-            return changequery(page=None,**{k:param.get(k, []) + [v]})
+            return changequery(page=None, **{k:param.get(k, []) + [v]})
         else:
-            return changequery(page=None,**{k:v})
+            return changequery(page=None, **{k:v})
 
     def add_track(key: str) -> str:
         """
