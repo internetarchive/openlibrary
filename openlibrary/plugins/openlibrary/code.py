@@ -1073,6 +1073,7 @@ class Partials(delegate.page):
                 'search/work_search_facets',
                 p,
                 facet_counts=search_response.facet_counts,
+                async_load=False
             )
             partial = {"partials": str(output)}
 
