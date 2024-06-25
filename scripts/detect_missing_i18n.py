@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from enum import Enum
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
+import glob
 
 EXCLUDE_LIST = [
     "openlibrary/macros/AffiliateLinks.html",
@@ -460,9 +461,16 @@ def print_analysis(
 
 def main(files: list[Path], skip_excluded: bool = True):
     """
-    :param files: The html files to check for missing i18n
+    :param files: The html files to check for missing i18n. Leave empty to run over all html files.
     :param skip_excluded: If --no-skip-excluded is supplied as an arg, files in the EXCLUDE_LIST slice will be processed
     """
+
+    if not files:
+        files = [
+            Path(file_path)
+            for vdir in valid_directories
+            for file_path in glob.glob(f'{vdir}**/*.html', recursive=True)
+        ]
 
     # Don't validate i18n unless the file is in one of the valid_directories.
     valid_files = [
