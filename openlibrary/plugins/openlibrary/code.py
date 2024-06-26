@@ -877,7 +877,7 @@ api and api.add_hook('new', new)
 
 
 @public
-def changequery(query=None, **kw):
+def changequery(query=None, _path=None, **kw):
     if query is None:
         query = web.input(_method='get', _unicode=False)
     for k, v in kw.items():
@@ -890,7 +890,7 @@ def changequery(query=None, **kw):
         k: [web.safestr(s) for s in v] if isinstance(v, list) else web.safestr(v)
         for k, v in query.items()
     }
-    out = web.ctx.get('readable_path', web.ctx.path)
+    out = _path or web.ctx.get('readable_path', web.ctx.path)
     if query:
         out += '?' + urllib.parse.urlencode(query, doseq=True)
     return out
@@ -1066,14 +1066,21 @@ class Partials(delegate.page):
             partial = {"partials": str(macro)}
         elif component == 'SearchFacets':
             data = json.loads(i.data)
+            path = data.get('path')
+            query = data.get('query', '')
+            parsed_qs = parse_qs(query.replace('?', ''))
             p = data.get('p', {})
+
             sort = None
             search_response = do_search(p, sort, rows=0, spellcheck_count=3)
+
             output = render_template(
                 'search/work_search_facets',
                 p,
                 facet_counts=search_response.facet_counts,
-                async_load=False
+                async_load=False,
+                path=path,
+                query=parsed_qs,
             )
             partial = {"partials": str(output)}
 

@@ -107,7 +107,11 @@ function hydrateFacets() {
  * @throws Will throw error if `/partials` response is not in 200-299 range.
  */
 function fetchPartials(param) {
-    const data = {p: param}
+    const data = {
+            p: param,
+            path: location.pathname,
+            query: document.location.search
+        }
     const dataString = JSON.stringify(data)
     const dataQueryParam = encodeURIComponent(dataString)
 
