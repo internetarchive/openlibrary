@@ -74,6 +74,8 @@ export function initSearchFacets(facetsElem) {
                 const newFacetsElem = createElementFromMarkup(data.sidebar)
                 facetsElem.replaceWith(newFacetsElem)
                 hydrateFacets()
+
+                document.title = data.title
             })
             .catch(() => {
                 // XXX : Handle case where `/partials` response is not `2XX` here

@@ -1092,7 +1092,8 @@ class Partials(delegate.page):
 
             partial = {
                 "sidebar": str(sidebar),
-                "activeFacets": str(active_facets)
+                "activeFacets": str(active_facets),
+                "title": active_facets.title,
             }
 
         return delegate.RawText(json.dumps(partial))
