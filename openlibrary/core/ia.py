@@ -21,6 +21,7 @@ VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
 
 EXEMPT_COLLECTIONS = ["collection:thoth-archiving-network"]
 
+
 def get_api_response(url: str, params: dict | None = None) -> dict:
     """
     Makes an API GET request to archive.org, collects stats
