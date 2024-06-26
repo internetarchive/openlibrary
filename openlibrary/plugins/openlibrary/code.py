@@ -1050,7 +1050,7 @@ class Partials(delegate.page):
             sort = None
             search_response = do_search(p, sort, rows=0, spellcheck_count=3)
 
-            output = render_template(
+            sidebar = render_template(
                 'search/work_search_facets',
                 p,
                 facet_counts=search_response.facet_counts,
@@ -1058,7 +1058,18 @@ class Partials(delegate.page):
                 path=path,
                 query=parsed_qs,
             )
-            partial = {"partials": str(output)}
+
+            active_facets = render_template(
+                'search/work_search_selected_facets',
+                p,
+                search_response,
+                p.get('q', ''),
+            )
+
+            partial = {
+                "sidebar": str(sidebar),
+                "activeFacets": str(active_facets)
+            }
 
         return delegate.RawText(json.dumps(partial))
 
