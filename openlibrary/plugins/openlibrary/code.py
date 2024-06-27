@@ -1069,14 +1069,14 @@ class Partials(delegate.page):
             path = data.get('path')
             query = data.get('query', '')
             parsed_qs = parse_qs(query.replace('?', ''))
-            p = data.get('p', {})
+            param = data.get('param', {})
 
             sort = None
-            search_response = do_search(p, sort, rows=0, spellcheck_count=3)
+            search_response = do_search(param, sort, rows=0, spellcheck_count=3)
 
             sidebar = render_template(
                 'search/work_search_facets',
-                p,
+                param,
                 facet_counts=search_response.facet_counts,
                 async_load=False,
                 path=path,
@@ -1085,9 +1085,9 @@ class Partials(delegate.page):
 
             active_facets = render_template(
                 'search/work_search_selected_facets',
-                p,
+                param,
                 search_response,
-                p.get('q', ''),
+                param.get('q', ''),
                 path=path,
                 query=parsed_qs,
             )

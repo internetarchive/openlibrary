@@ -115,7 +115,7 @@ function hydrateFacets() {
  */
 function fetchPartials(param) {
     const data = {
-            p: param,
+            param: param,
             path: location.pathname,
             query: document.location.search
         }
