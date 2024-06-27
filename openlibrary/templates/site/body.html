@@ -29,16 +29,64 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
       $for flash in get_flash_messages():
         <div class="$flash.type"><span>$flash.message</span></div>
       </div>
-      $ learn_more_copy = _('Learn More')
-      $ learn_more_link = '<a style="color: white;" data-ol-link-track="BannerClick|LetReadersReadCTA" href="https://blog.archive.org/2024/06/17/let-readers-read/">%s</a>' % learn_more_copy
+      <script>
+        // Set the target date and time (10 AM EST on Friday, June 28, 2024)                                                                                                                                                                                                                                
+        let targetDate = new Date("2024-06-28T10:00:00-04:00");
+          
+        // Update the countdown every second                                                                                                                                                                                                                                                              
+        let countdownTimer = setInterval(function() {
+            // Get the current date and time                                                                                                                                                                                                                                                              
+            let now = new Date().getTime();
 
-      $ sign_copy = _('Sign Letter')
-      $ sign_btn = '<a class="btn primary" data-ol-link-track="BannerClick|LetReadersReadBlog" style="display: inline-block;" href="https://change.org/LetReadersRead">%s</a>' % sign_copy
+            // Find the distance between now and the target date                                                                                                                                                                                                                                          
+            let distance = targetDate - now;
 
-      $ announcement = '&#9888; ' + _('Urge publishers to restore access to 500,000 removed library books: %(sign_btn)s - %(learn_more_link)s', sign_btn=sign_btn, learn_more_link=learn_more_link)
+            // Calculate days, hours, minutes, and seconds                                                                                                                                                                                                                                                
+            let days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+
+            // Build the display string                                                                                                                                                                                                                                                                   
+            let display = '';
+            if (days > 0) {
+          		display += days + ' day';
+          		if (days > 1) {
+                              display += "s";
+          		}
+            }
+            if (hours > 0) {
+          		display += (display ? ', ' : '') + hours + ' hour';
+          		if (hours > 1) {
+                              display += "s";
+          		}
+            }
+            if (minutes > 0) {
+                display += (display ? ', ' : '') + minutes + ' minute';
+                if (minutes > 1) {
+                    display += "s";
+                }
+            }
+
+            // Display the result in the span with id="countdown"                                                                                                                                                                                                                                         
+            document.getElementById("countdown").innerHTML = display;
+
+            // If the countdown is finished, write some text                                                                                                                                                                                                                                              
+            if (distance < 0) {
+                clearInterval(countdownTimer);
+                document.getElementById("countdown").innerHTML = "EXPIRED";
+            }
+        }, 1000);
+        </script>
+
+      $ join_txt = _('Join us')
+      $ join_us = '<a class="btn primary" data-ol-link-track="BannerClick|June28Appeal" style="display: inline-block;" href="https://blog.archive.org/2024/06/26/were-fighting-for-library-rights-in-court-this-friday-join-us">%s</a>' % join_txt
+
+      $ countdown = '<span style="font-weight: bold;" id="countdown">in less than 1 day</span>'
+
+      $ announcement = _("In %(countdown)s, we fight in court to restore access to 500,000+ books: %(join_us)s", countdown=countdown, join_us=join_us)
 
       $# Include date in cookie name to avoid name collisions (something like '{prefix}{YY}{MM}{DD}' would work well)
-      $ cookie_name = 'j28'
+      $ cookie_name = 'j28c'
       $if announcement and cookie_name:
         $:render_template('site/banner', announcement, cookie_name, cookie_duration_days=30)
     $:page
