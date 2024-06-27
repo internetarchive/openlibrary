@@ -19,6 +19,7 @@ from openlibrary.utils.decorators import authorized_for
 
 MAX_READING_GOAL = 10_000
 
+
 def make_date_string(year: int, month: int | None, day: int | None) -> str:
     """Creates a date string in the expected format, given the year, month, and day.
 
