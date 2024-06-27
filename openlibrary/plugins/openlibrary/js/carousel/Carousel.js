@@ -66,7 +66,7 @@ export class Carousel {
             speed: 300,
             slidesToShow: this.config.booksPerBreakpoint[0],
             slidesToScroll: this.config.booksPerBreakpoint[0],
-            responsive: [1200, 1024, 600, 480, 360]
+            responsive: [1200, 1024, 740, 580, 360]
                 .map((breakpoint, i) => ({
                     breakpoint: breakpoint,
                     settings: {
