@@ -14,9 +14,10 @@ INTERFACE="eth0"
 MAX_RETRIES=60
 EXIT_FLAG=false
 TCPDUMP_PID=""
-MKTABLE_PATH="./obfi/mktable.py"
-REVEAL_PATH="./obfi/reveal.py"
-SHOWNAMES_PATH="./obfi/shownames.py"
+SCRIPT_DIR=$(dirname "$(realpath "$0")")
+MKTABLE_PATH="$SCRIPT_DIR/obfi/mktable.py"
+REVEAL_PATH="$SCRIPT_DIR/obfi/reveal.py"
+SHOWNAMES_PATH="$SCRIPT_DIR/obfi/shownames.py"
 
 # Function to print usage information
 usage() {
@@ -44,7 +45,6 @@ cleanup() {
   printf "\nCleaning up before exit\n"
   if [ -n "$TCPDUMP_PID" ]; then
     kill "$TCPDUMP_PID"
-    wait "$TCPDUMP_PID"
   fi
 
   find "$REAL_IP_MAP_DIR" -name "$MAP_PATTERN" -type f -mmin +60 -exec rm {} \;
@@ -62,13 +62,15 @@ trap handle_interrupt INT
 
 # Start tcpdump and send packets to mktable for processing
 start_tcpdump() {
-  tcpdump -i "$INTERFACE" -n dst port 80 | "$MKTABLE_PATH"
+  tcpdump -i "$INTERFACE" -n \(dst port 80 or dst port 443\) | "$MKTABLE_PATH"
 }
+
 
 # Start tcpdump in the background and send packets to mktable for processing
 start_tcpdump_background() {
-  nohup tcpdump -i "$INTERFACE" -n dst port 80 2>/dev/null | "$MKTABLE_PATH" > /dev/null 2>&1 &
+  nohup tcpdump -i "$INTERFACE" -n \(dst port 80 or dst port 443\) 2>/dev/null | "$MKTABLE_PATH" > /dev/null 2>&1 &
   TCPDUMP_PID=$!
+  sleep 1
 }
 
 # Search for an obfuscated IP in the mktable database.
