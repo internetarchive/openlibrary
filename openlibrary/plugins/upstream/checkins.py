@@ -17,6 +17,7 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.utils.decorators import authorized_for
 
+MAX_READING_GOAL = 10_000
 
 def make_date_string(year: int, month: int | None, day: int | None) -> str:
     """Creates a date string in the expected format, given the year, month, and day.
@@ -199,7 +200,7 @@ class yearly_reading_goal_json(delegate.page):
     def POST(self):
         i = web.input(goal=0, year=None, is_update=None)
 
-        goal = int(i.goal)
+        goal = min(int(i.goal), MAX_READING_GOAL)
 
         if i.is_update:
             if goal < 0:
@@ -208,8 +209,6 @@ class yearly_reading_goal_json(delegate.page):
                 )
         elif not goal or goal < 1:
             raise web.badrequest(message='Reading goal must be a positive integer')
-        elif goal > 2147483647:
-            raise web.badrequest(message='Reading goal cannot exceed 2147483647 books')
 
         if i.is_update and not i.year:
             raise web.badrequest(message='Year required to update reading goals')
