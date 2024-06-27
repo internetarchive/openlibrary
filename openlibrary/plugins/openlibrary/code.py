@@ -1072,7 +1072,7 @@ class Partials(delegate.page):
             param = data.get('param', {})
 
             sort = None
-            search_response = do_search(param, sort, rows=0, spellcheck_count=3)
+            search_response = do_search(param, sort, rows=0, spellcheck_count=3, facet=True)
 
             sidebar = render_template(
                 'search/work_search_facets',
