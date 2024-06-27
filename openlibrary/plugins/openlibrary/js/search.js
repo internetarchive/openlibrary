@@ -125,10 +125,10 @@ function hydrateFacets() {
  */
 function fetchPartials(param) {
     const data = {
-            param: param,
-            path: location.pathname,
-            query: document.location.search
-        }
+        param: param,
+        path: location.pathname,
+        query: document.location.search
+    }
     const dataString = JSON.stringify(data)
     const dataQueryParam = encodeURIComponent(dataString)
 
