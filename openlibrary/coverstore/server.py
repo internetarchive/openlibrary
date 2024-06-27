@@ -7,7 +7,7 @@ import yaml
 import web
 
 from openlibrary.coverstore import config, code, archive
-from openlibrary.utils.sentry import Sentry
+from openlibrary.utils.sentry import sentry_factory
 
 
 def runfcgi(func, addr=('localhost', 8000)):
@@ -39,9 +39,8 @@ def load_config(configfile):
 def setup(configfile: str) -> None:
     load_config(configfile)
 
-    sentry = Sentry(getattr(config, 'sentry', {}))
+    sentry = sentry_factory.get_instance('ol_covers')
     if sentry.enabled:
-        sentry.init()
         sentry.bind_to_webpy_app(code.app)
 
 
