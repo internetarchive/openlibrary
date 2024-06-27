@@ -1,5 +1,5 @@
 /**
- * Functionalities for templates/work_search.
+ * Functionalities for templates/work_search and related templates.
  */
 
 /**
@@ -50,13 +50,15 @@ export function less(header, start_facet_count, facet_inc) {
 }
 
 /**
- * Initializes the search page's facets sidebar.
+ * Initializes the search page's search facet affordances.
  *
- * If the search facets sidebar is in `asyncLoad` mode, the sidebar will contain loading
+ * If the search facets sidebar is in `asyncLoad` mode, the sidebar will initially contain loading
  * indicators instead of facet counts.  In this case, a request is made for sidebar markup
  * containing the actual counts, and the existing sidebar is replaced with the new sidebar.
  *
  * In either case, the sidebar is hydrated.
+ *
+ * In `asyncLoad` mode, the markup for selected facets is also loaded asynchronously.
  *
  * @param {HTMLElement} facetsElem Root element of the search facets sidebar component
  */
@@ -105,13 +107,21 @@ function hydrateFacets() {
 }
 
 /**
- * Makes call for a partially rendered facet counts sidebar, using the given search
- * parameters.
+ * A successful response from the partials request
+ *
+ * @typedef {Object} PartialsResponse
+ * @property {string} title - The new title for this page
+ * @property {string} sidebar - HTML string for the facets sidebar
+ * @property {string} [activeFacets] - HTML string for the selected facets
+ */
+/**
+ * Using the given search parameters, makes call for a partially rendered facet affordances
+ * and the new title for the page.
  *
  * @param {Object} param
- * @returns {Promise<Response>}
+ * @returns {Promise<PartialsResponse>}
  *
- * @throws Will throw error if `/partials` response is not in 200-299 range.
+ * @throws Error when `/partials` response is not in 200-299 range.
  */
 function fetchPartials(param) {
     const data = {
