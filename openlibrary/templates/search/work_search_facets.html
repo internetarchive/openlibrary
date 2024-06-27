@@ -16,15 +16,15 @@ $code:
         KeyError will be raised if key is not in the following dict.
         """
         facets = {
-            "has_fulltext": "Ebook",
-            "author_key": "Author",
-            "subject_facet": "Subjects",
-            "person_facet": "People",
-            "place_facet": "Places",
-            "time_facet": "Times",
-            "first_publish_year": "FirstPublished",
-            "publisher_facet": "Publisher",
-            "language": "Language",
+            "has_fulltext": _("Ebook"),
+            "author_key": _("Author"),
+            "subject_facet": _("Subjects"),
+            "person_facet": _("People"),
+            "place_facet": _("Places"),
+            "time_facet": _("Times"),
+            "first_publish_year": _("FirstPublished"),
+            "publisher_facet": _("Publisher"),
+            "language": _("Language"),
         }
         return "SearchFacet|" + facets[key]
 

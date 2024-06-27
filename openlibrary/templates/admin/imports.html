@@ -9,49 +9,49 @@ $ component_times['TotalTime'] = time()
 <div id="contentHead">
     $if ctx.user and ctx.user.is_admin():
       $:render_template("admin/menu")
-    <h1>Imports</h1>
+    <h1>$_("Imports")</h1>
     $if ctx.user and ctx.user.is_admin():
-      <div><a href="/admin/imports/add">Add new books to import queue</a></div>
+      <div><a href="/admin/imports/add">$_("Add new books to import queue")</a></div>
 </div>
 
 <div id="contentBody">
-    <h2>New Books Imported Per Day</h2>
+    <h2>$_("New Books Imported Per Day")</h2>
     <div class="chart">
         <div id="books-added-per-day" class="graph">
             <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
         </div>
     </div>
 
-    <h2>Summary</h2>
+    <h2>$_("Summary")</h2>
     <p>
         $ component_times['stats.get_count'] = time()
         $ pending_count = stats.get_count(status='pending', use_cache=not recache)
         $ component_times['stats.get_count'] = time() - component_times['stats.get_count']
-        <strong>Pending Items:</strong> $pending_count
+        <strong>$_("Pending Items:")</strong> $pending_count
     </p>
     <p>
         $ component_times['stats.get_imports_per_hour'] = time()
         $ rate = stats.get_imports_per_hour()
         $ component_times['stats.get_imports_per_hour'] = time() - component_times['stats.get_imports_per_hour']
-        <strong>Current Import Rate:</strong> $rate imports/hour.
+        $:_('<strong>Current Import Rate:</strong> %(num)d imports/hour.', num=rate)
     </p>
     <p>
-        <strong>ETA:</strong>
+        <strong>$_("ETA:")</strong>
         $if rate:
             $ eta = pending_count*1.0 / rate
             ${"%.2f" % eta} hours
         $else: -
     </p>
 
-    <h2>Summary By Date</h2>
+    <h2>$_("Summary By Date")</h2>
     <table class="changeHistory">
         <tr>
-            <th>Date</th>
-            <th>total</th>
-            <th>#books created</th>
-            <th>#books already found</th>
-            <th>#books failed to import</th>
-            <th>#books pending</th>
+            <th>$_("Date")</th>
+            <th>$_("total")</th>
+            <th>$_("#books created")</th>
+            <th>$_("#books already found")</th>
+            <th>$_("#books failed to import")</th>
+            <th>$_("#books pending")</th>
         </tr>
 	$ component_times['stats.get_count_by_date_status'] = time()
 	$ status_counts = stats.get_count_by_date_status(use_cache=not recache)
@@ -67,16 +67,16 @@ $ component_times['TotalTime'] = time()
             </tr>
     </table>
 
-    <h2>Recent Imports</h2>
+    <h2>$_("Recent Imports")</h2>
     <table class="changeHistory">
         <tr>
             <th>#</th>
-            <th>Identifier</th>
-            <th>OL Key</th>
-            <th>Status</th>
-            <th>Error</th>
-            <th>Added Time</th>
-            <th>Imported Time</th>
+            <th>$_("Identifier")</th>
+            <th>$_("OL Key")</th>
+            <th>$_("Status")</th>
+            <th>$_("Error")</th>
+            <th>$_("Added Time")</th>
+            <th>$_("Imported Time")</th>
         </tr>
         $ component_times['stats.get_items'] = time()
 	$ import_items = stats.get_items(order="import_time desc", limit=20)

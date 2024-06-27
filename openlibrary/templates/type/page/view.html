@@ -14,7 +14,7 @@ $if '<!--suppress-title-->' not in page.body:
         $:macros.databarView(page)
         $if page.key.startswith("/community/"):
             <div class="superNav">
-                <a href="/community">Community</a> /
+                <a href="/community">$_("Community")</a> /
             </div>
         <h1>$title</h1>
     </div>

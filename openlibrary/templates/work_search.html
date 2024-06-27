@@ -171,7 +171,7 @@ $elif param and len(search_response.docs):
     $if param and not search_response.error and len(search_response.docs):
         $if ctx.user and ctx.user.is_admin():
             <div id="adminTiming" class="small sansserif clearfix">
-                <br/><span class="adminOnly">Searching solr took $("%.2f" % search_response.time) seconds</span>
+                <br/><span class="adminOnly">$_('Searching solr took %(number)s seconds', number="%.2f" % search_response.time)</span>
             </div>
   </div>
 </div>

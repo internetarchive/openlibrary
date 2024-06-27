@@ -57,7 +57,7 @@ $def render_carousel_cover(book, lazy, index):
           $else:
             src="$(cover_url)"/>
         $else:
-          <div class="carousel__item__blankcover"  title="$(title)">
+          <div class="carousel__item__blankcover"  title="$title">
             <div class="carousel__item__blankcover--title">$:macros.TruncateString(title, 70)</div>
             $if author_names:
               <div class="carousel__item__blankcover--authors">$:macros.TruncateString(', '.join(author_names), 30)</div>

@@ -23,11 +23,11 @@ $if status == "waiting":
     $ delta_hours = book.waitinglist_record.get_expiry_in_hours()
     <div class="smaller" style="padding-top: 5px;">
       $if delta_hours == 0:
-        You have less than an hour to borrow it.
+        $_("You have less than an hour to borrow it.")
       $elif delta_hours == 1:
-        You have one more hour to borrow it.
+        $_("You have one more hour to borrow it.")
       $else:
-        You have $delta_hours more hours to borrow it.
+       $_('You have %(count)d more hours to borrow it.', count=delta_hours)
     </div>
 </div>
 
@@ -35,10 +35,10 @@ $if status == "waiting":
   $if status == "available":
     <form action="$book.url('/borrow')" method="post">
       <input type="hidden" name="action" value="borrow" />
-      <input type="submit" value="Borrow Now" />
+      <input type="submit" value="$_('Borrow Now')" />
     </form>
   <form action="$book.url('/borrow?redirect=/account/loans')" method="POST" class="wlform">
     <input type="hidden" name="action" value="leave-waitinglist"/>
-    <a href="javascript:;" class="leave">Leave the waiting list?</a>
+    <a href="javascript:;" class="leave">$_("Leave the waiting list?")</a>
   </form>
 </div>

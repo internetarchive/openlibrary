@@ -11,89 +11,11 @@ import glob
 # This is a list of files that had pre-existing i18n errors/warnings at the time this script was created.
 # Chip away at these and remove them from the exclude list (except where otherwise noted).
 EXCLUDE_LIST = {
-    "openlibrary/admin/templates/admin/index.html",
-    "openlibrary/templates/diff.html",
-    "openlibrary/templates/subjects.html",
-    "openlibrary/templates/account/create.html",
-    "openlibrary/templates/account/sidebar.html",
-    "openlibrary/templates/admin/index.html",
-    "openlibrary/templates/admin/people/index.html",
-    "openlibrary/templates/admin/people/view.html",
-    "openlibrary/templates/books/add.html",
-    "openlibrary/templates/books/custom_carousel.html",
+    # These are excluded because they require more info to fix
     "openlibrary/templates/books/edit.html",
-    "openlibrary/templates/books/mobile_carousel.html",
-    "openlibrary/templates/books/works-show.html",
-    "openlibrary/templates/books/edit/edition.html",
-    "openlibrary/templates/books/edit/web.html",
-    "openlibrary/templates/check_ins/check_in_form.html",
-    "openlibrary/templates/contact/spam/sent.html",
-    "openlibrary/templates/covers/add.html",
-    "openlibrary/templates/email/case_created.html",
     "openlibrary/templates/history/sources.html",
-    "openlibrary/templates/home/loans.html",
-    "openlibrary/templates/home/popular.html",
-    "openlibrary/templates/home/returncart.html",
-    "openlibrary/templates/jsdef/LazyAuthorPreview.html",
-    "openlibrary/templates/jsdef/LazyWorkPreview.html",
-    "openlibrary/templates/languages/index.html",
-    "openlibrary/templates/languages/language_list.html",
-    "openlibrary/templates/lib/history.html",
-    "openlibrary/templates/lib/header_dropdown.html",
-    "openlibrary/templates/lib/nav_foot.html",
-    "openlibrary/templates/lists/export_as_html.html",
-    "openlibrary/templates/lists/feed_updates.html",
-    "openlibrary/templates/lists/list_overview.html",
-    "openlibrary/templates/lists/widget.html",
-    "openlibrary/templates/my_books/dropdown_content.html",
-    "openlibrary/templates/my_books/primary_action.html",
-    "openlibrary/templates/observations/review_component.html",
-    "openlibrary/templates/publishers/index.html",
-    "openlibrary/templates/publishers/view.html",
-    "openlibrary/templates/recentchanges/header.html",
-    "openlibrary/templates/recentchanges/render.html",
-    "openlibrary/templates/recentchanges/add-book/path.html",
-    "openlibrary/templates/recentchanges/default/view.html",
-    "openlibrary/templates/recentchanges/edit-book/path.html",
-    "openlibrary/templates/recentchanges/merge/comment.html",
-    "openlibrary/templates/recentchanges/merge/path.html",
-    "openlibrary/templates/recentchanges/undo/view.html",
-    "openlibrary/templates/search/snippets.html",
-    "openlibrary/templates/search/work_search_facets.html",
-    "openlibrary/templates/site/alert.html",
-    "openlibrary/templates/site/stats.html",
-    "openlibrary/templates/type/about/view.html",
-    "openlibrary/templates/type/author/rdf.html",
-    "openlibrary/templates/type/author/view.html",
-    "openlibrary/templates/type/edition/view.html",
-    "openlibrary/templates/type/i18n_page/edit.html",
-    "openlibrary/templates/type/language/view.html",
-    "openlibrary/templates/type/list/edit.html",
-    "openlibrary/templates/type/list/exports.html",
-    "openlibrary/templates/type/local_id/view.html",
-    "openlibrary/templates/type/object/view.html",
-    "openlibrary/templates/type/page/view.html",
-    "openlibrary/templates/type/template/edit.html",
-    "openlibrary/templates/type/template/view.html",
-    "openlibrary/templates/type/type/view.html",
-    "openlibrary/templates/type/work/editions_datatable.html",
-    "openlibrary/templates/type/work/view.html",
-    "openlibrary/macros/databarView.html",
-    "openlibrary/macros/DisplayCode.html",
-    "openlibrary/macros/FulltextSnippet.html",
-    "openlibrary/macros/IABook.html",
-    "openlibrary/macros/ManageLoansButtons.html",
-    "openlibrary/macros/ManageWaitlistButton.html",
-    "openlibrary/macros/NotesModal.html",
-    "openlibrary/macros/Profile.html",
-    "openlibrary/macros/QueryCarousel.html",
-    "openlibrary/macros/RecentChangesAdmin.html",
-    "openlibrary/macros/RecentChangesUsers.html",
-    "openlibrary/macros/SearchResults.html",
-    "openlibrary/macros/TableOfContents.html",
-    "openlibrary/macros/WorldcatLink.html",
-    "openlibrary/macros/databarWork.html",
-    "openlibrary/macros/WorkInfo.html",
+    # This can't be fixed because it's not in the i18n directories
+    "openlibrary/admin/templates/admin/index.html",
     # These can't be fixed since they're rendered as static html
     "static/offline.html",
     "static/status-500.html",
@@ -137,7 +59,7 @@ ignore_after_opening_tag = (
 )
 
 i18n_element_missing_regex = opening_tag_syntax + ignore_after_opening_tag
-i18n_element_warn_regex = opening_tag_syntax + r"\$\((?!_\()"
+i18n_element_warn_regex = opening_tag_syntax + r"\$\(['\"]"
 
 attr_syntax = r"(title|placeholder|alt)="
 ignore_double_quote = (
@@ -168,7 +90,7 @@ i18n_attr_missing_regex = (
     + ignore_single_quote
     + r")[^>]*?>"
 )
-i18n_attr_warn_regex = opening_tag_open + attr_syntax + r"['\"]\$\((?!_\()"
+i18n_attr_warn_regex = opening_tag_open + attr_syntax + r"\"\$\(\'"
 
 
 def terminal_underline(text: str) -> str:

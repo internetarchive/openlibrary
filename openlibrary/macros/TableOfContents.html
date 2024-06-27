@@ -17,8 +17,7 @@ $ min_level = min(chapter.level for chapter in table_of_contents)
         $if label and not label.endswith('.'):
           $ label = label.strip() + '. '
         $if highlighting:
-          $# This isn't html injection, because solr returns everything
-          $# already html escaped except for the <em> of the highlight
+          <!-- This isn't html injection, because solr returns everything already html escaped except for the <em> of the highlight -->
           $:label
           $:chapter.title
         $else:

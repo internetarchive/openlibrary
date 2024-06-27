@@ -11,7 +11,7 @@ $def splitlines(text):
     <tr>
     <td>
     <pre>\
-    $for i in range(n): <span rel="#L$(i+1)">$("%4d" % (i+1))</span>
+    $for i in range(n): <span rel="#L$(i+1)">$(("%4d" % (i+1)))</span>
     </pre>
     </td>
     <td style="width:100%;"><pre>$text</pre></td>
@@ -20,7 +20,7 @@ $def splitlines(text):
     </table>
 
 <div class="contenttext">
-<div class="red" style="background-color: white; padding: 20px;">Templates in the website are disabled now. Editing them will not have any effect on the live website.</div>
+<div class="red" style="background-color: white; padding: 20px;">$_("Templates in the website are disabled now. Editing them will not have any effect on the live website.")</div>
 
 $:splitlines(code)
 </div>

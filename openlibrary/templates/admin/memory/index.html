@@ -4,7 +4,7 @@ $var title: Memory Status
 
 <div id="contentHead">
     <div class="head">
-        <h1>Memory Status</h1>
+        <h1>$_("Memory Status")</h1>
     </div>
 </div>
 
@@ -34,10 +34,10 @@ $def arrow(name):
     <table>
         <tbody>
             <tr>
-                <th>type</th>
-                <th class="count"><a href="$changequery(sort='count')">count</a>$:arrow("count")</th>
-                <th class="count"><a href="$changequery(sort='mark')">mark</a>$:arrow("mark")</th>
-                <th class="count"><a href="$changequery(sort='diff')">diff</a>$:arrow("diff")</th>
+                <th>$_("type")</th>
+                <th class="count"><a href="$changequery(sort='count')">$_("count")</a>$:arrow("count")</th>
+                <th class="count"><a href="$changequery(sort='mark')">$_("mark")</a>$:arrow("mark")</th>
+                <th class="count"><a href="$changequery(sort='diff')">$_("diff")</a>$:arrow("diff")</th>
             </tr>
             $for d in counts:
             <tr>
@@ -50,6 +50,6 @@ $def arrow(name):
     </table>
 
     <div>
-        <a href="$changequery(page=page-1)">Prev</a> | <a href="$changequery(page=page+1)">Next</a>
+        <a href="$changequery(page=page-1)">$_("Prev")</a> | <a href="$changequery(page=page+1)">$_("Next")</a>
     </div>
 </div>

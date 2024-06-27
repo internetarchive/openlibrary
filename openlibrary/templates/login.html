@@ -41,7 +41,7 @@ $var title: $("Log In")
             </div>
 
             <div class="input">
-              <input type="email" class="required" id="username" name="username" value="$(form.username.value or query_param('username'))" placeholder="Email" autocapitalize="off" autocorrect="off"/>
+              <input type="email" class="required" id="username" name="username" value="$(form.username.value or query_param('username'))" placeholder="$_('Email')" autocapitalize="off" autocorrect="off"/>
               <span class="invalid clearfix" htmlfor="username">$form.username.note</span>
             </div>
         </div>
@@ -49,7 +49,7 @@ $var title: $("Log In")
         <div class="formElement">
             <div class="label"><label for="password">$_("Password")</label> <span class="smaller lighter"></span></div>
             <div class="input">
-                <input type="password" class="required" placeholder="Password" id="password" name="password" value="$form.password.value" />
+                <input type="password" class="required" placeholder="$_('Password')" id="password" name="password" value="$form.password.value" />
                 <span class="invalid clearfix" htmlfor="password">$form.password.note</span>
             </div>
         </div>

@@ -57,8 +57,8 @@ $ stats = get_admin_stats()
           <td class="type">$_("Total")</td>
           <td class="amount">$commify(counts.bot_edits.latest + counts.human_edits.latest)</td>
           <td class="amount">$commify(counts.bot_edits.previous + counts.human_edits.previous)</td>
-          <td class="amount">$commify(counts.bot_edits.get_summary(7) + counts.human_edits.get_summary(7))</td>
-          <td class="amount">$commify(counts.bot_edits.get_summary(28) + counts.human_edits.get_summary(28))</td>
+          <td class="amount">$(commify(counts.bot_edits.get_summary(7) + counts.human_edits.get_summary(7)))</td>
+          <td class="amount">$(commify(counts.bot_edits.get_summary(28) + counts.human_edits.get_summary(28)))</td>
         </tr>
       </tbody>
     </table>
