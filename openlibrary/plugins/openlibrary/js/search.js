@@ -67,10 +67,11 @@ export function initSearchFacets(facetsElem) {
         const param = JSON.parse(facetsElem.dataset.param)
         fetchPartials(param)
             .then((data) => {
-                const activeFacetsElem = createElementFromMarkup(data.activeFacets)
-                const activeFacetsContainer = document.querySelector('.selected-search-facets-container')
-                activeFacetsContainer.replaceChildren(activeFacetsElem)
-
+                if (data.activeFacets) {
+                    const activeFacetsElem = createElementFromMarkup(data.activeFacets)
+                    const activeFacetsContainer = document.querySelector('.selected-search-facets-container')
+                    activeFacetsContainer.replaceChildren(activeFacetsElem)
+                }
                 const newFacetsElem = createElementFromMarkup(data.sidebar)
                 facetsElem.replaceWith(newFacetsElem)
                 hydrateFacets()
@@ -120,9 +121,6 @@ function fetchPartials(param) {
         }
     const dataString = JSON.stringify(data)
     const dataQueryParam = encodeURIComponent(dataString)
-
-    console.log('data:')
-    console.log(data)
 
     return fetch(`/partials.json?_component=SearchFacets&data=${dataQueryParam}`)
         .then((resp) => {

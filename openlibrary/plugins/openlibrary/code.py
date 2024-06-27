@@ -1068,9 +1068,11 @@ class Partials(delegate.page):
 
             partial = {
                 "sidebar": str(sidebar),
-                "activeFacets": str(active_facets),
                 "title": active_facets.title,
             }
+
+            if active_facets_markup := str(active_facets).strip():
+                partial["activeFacets"] = active_facets_markup
 
         return delegate.RawText(json.dumps(partial))
 
