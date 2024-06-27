@@ -1,5 +1,5 @@
 from typing import TypedDict, Literal, cast, TypeVar, Generic
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 
 import web
 from web import uniq
@@ -81,9 +81,13 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
     def get_template_path(self, typ: Literal['read_button', 'download_options']) -> str:
         return f"book_providers/{self.short_name}_{typ}.html"
 
-    def render_read_button(self, ed_or_solr: Edition | dict):
+    def render_read_button(
+        self, ed_or_solr: Edition | dict, analytics_attr: Callable[[str], str]
+    ):
         return render_template(
-            self.get_template_path('read_button'), self.get_best_identifier(ed_or_solr)
+            self.get_template_path('read_button'),
+            self.get_best_identifier(ed_or_solr),
+            analytics_attr,
         )
 
     def render_download_options(self, edition: Edition, extra_args: list | None = None):
