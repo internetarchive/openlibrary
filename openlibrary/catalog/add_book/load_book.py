@@ -309,9 +309,9 @@ def build_query(rec):
             continue
         if k in ('languages', 'translated_from'):
             for language in v:
-                if web.ctx.site.get('/languages/' + language) is None:
-                    raise InvalidLanguage(language)
-            book[k] = [{'key': '/languages/' + language} for language in v]
+                if web.ctx.site.get('/languages/' + language.lower()) is None:
+                    raise InvalidLanguage(language.lower())
+            book[k] = [{'key': '/languages/' + language.lower()} for language in v]
             continue
         if k in type_map:
             t = '/type/' + type_map[k]
