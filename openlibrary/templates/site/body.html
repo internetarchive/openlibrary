@@ -82,7 +82,7 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
       $ url = "https://blog.archive.org/2024/06/26/were-fighting-for-library-rights-in-court-this-friday-join-us"
       $ join_us = '<a class="btn primary" data-ol-link-track="BannerClick|June28Appeal" style="display: inline-block;" href="$url">%s</a>' % join_txt
 
-      $ default_txt = _$("in less than 1 day")
+      $ default_txt = _("in less than 1 day")
       $ countdown = '<span style="font-weight: bold;" id="countdown">%s</span>' % default_txt
 
       $ announcement = _("In %(countdown)s, we fight in court to restore access to 500,000+ books: %(join_us)s", countdown=countdown, join_us=join_us)
