@@ -1,13 +1,13 @@
-$def with (param, search_response, q_param)
+$def with (param, search_response, q_param, path=None, query={})
 
 $code:
     fulltext_names = {'true': 'Ebooks', 'false': 'Exclude ebooks'}
     facet_map = get_facet_map()
     def del_facet_url(k, v):
         if k != 'has_fulltext':
-            return changequery(page=None,**{k:[i for i in param.get(k, []) if i != v]})
+            return changequery(page=None, _path=path, query=dict(query), **{k:[i for i in param.get(k, []) if i != v]})
         else:
-            return changequery(page=None,**{k:None})
+            return changequery(page=None, _path=path, query=dict(query), **{k:None})
 
 $if param and not search_response.error:
     $ title = []

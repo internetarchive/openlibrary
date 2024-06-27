@@ -1064,6 +1064,8 @@ class Partials(delegate.page):
                 p,
                 search_response,
                 p.get('q', ''),
+                path=path,
+                query=parsed_qs,
             )
 
             partial = {
