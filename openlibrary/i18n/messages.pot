@@ -5198,6 +5198,10 @@ msgid "Join us"
 msgstr ""
 
 #: site/body.html
+msgid "less than 1 day"
+msgstr ""
+
+#: site/body.html
 #, python-format
 msgid ""
 "In %(countdown)s, we fight in court to restore access to 500,000+ books: "
