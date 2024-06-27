@@ -30,23 +30,23 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
         <div class="$flash.type"><span>$flash.message</span></div>
       </div>
       <script>
-        // Set the target date and time (10 AM EST on Friday, June 28, 2024)                                                                                                                                                                                                                                
+        // Set the target date and time (10 AM EST on Friday, June 28, 2024)
         let targetDate = new Date("2024-06-28T10:00:00-04:00");
-          
-        // Update the countdown every second                                                                                                                                                                                                                                                              
+
+        // Update the countdown every second
         let countdownTimer = setInterval(function() {
-            // Get the current date and time                                                                                                                                                                                                                                                              
+            // Get the current date and time
             let now = new Date().getTime();
 
-            // Find the distance between now and the target date                                                                                                                                                                                                                                          
+            // Find the distance between now and the target date
             let distance = targetDate - now;
 
-            // Calculate days, hours, minutes, and seconds                                                                                                                                                                                                                                                
+            // Calculate days, hours, minutes, and seconds
             let days = Math.floor(distance / (1000 * 60 * 60 * 24));
             let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
 
-            // Build the display string                                                                                                                                                                                                                                                                   
+            // Build the display string
             let display = '';
             if (days > 0) {
           		display += days + ' day';
@@ -67,10 +67,10 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
                 }
             }
 
-            // Display the result in the span with id="countdown"                                                                                                                                                                                                                                         
+            // Display the result in the span with id="countdown"
             document.getElementById("countdown").innerHTML = display;
 
-            // If the countdown is finished, write some text                                                                                                                                                                                                                                              
+            // If the countdown is finished, write some text
             if (distance < 0) {
                 clearInterval(countdownTimer);
                 document.getElementById("countdown").innerHTML = "EXPIRED";

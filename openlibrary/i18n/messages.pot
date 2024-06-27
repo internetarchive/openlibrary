@@ -767,7 +767,7 @@ msgstr ""
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
 msgstr ""
 
-#: site/body.html widget.html
+#: widget.html
 msgid "Learn More"
 msgstr ""
 
@@ -5194,14 +5194,14 @@ msgid "It looks like you're offline."
 msgstr ""
 
 #: site/body.html
-msgid "Sign Letter"
+msgid "Join us"
 msgstr ""
 
 #: site/body.html
 #, python-format
 msgid ""
-"Urge publishers to restore access to 500,000 removed library books: "
-"%(sign_btn)s - %(learn_more_link)s"
+"In %(countdown)s, we fight in court to restore access to 500,000+ books: "
+"%(join_us)s"
 msgstr ""
 
 #: site/neck.html
