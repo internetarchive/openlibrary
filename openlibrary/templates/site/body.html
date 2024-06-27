@@ -57,14 +57,14 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
             if (hours > 0) {
           		display += (display ? ', ' : '') + hours + ' hour';
           		if (hours > 1) {
-                              display += "s";
+                display += "s";
           		}
             }
             if (minutes > 0) {
-                display += (display ? ', ' : '') + minutes + ' minute';
-                if (minutes > 1) {
-                    display += "s";
-                }
+              display += (display ? ', ' : '') + minutes + ' minute';
+              if (minutes > 1) {
+              display += "s";
+              }
             }
 
             // Display the result in the span with id="countdown"
