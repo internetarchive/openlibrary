@@ -130,7 +130,7 @@ def execute_solr_query(
 public(has_solr_editions_enabled)
 
 
-def run_solr_query(
+def run_solr_query(  # noqa: PLR0912
     scheme: SearchScheme,
     param: dict | None = None,
     rows=100,
@@ -216,7 +216,9 @@ def run_solr_query(
         q = f'{q} {params_q}' if q else params_q
 
     if q:
-        solr_fields = set(fields or scheme.default_fetched_fields)
+        solr_fields = (
+            set(fields or scheme.default_fetched_fields) - scheme.non_solr_fields
+        )
         if 'editions' in solr_fields:
             solr_fields.remove('editions')
             solr_fields.add('editions:[subquery]')
@@ -236,6 +238,12 @@ def run_solr_query(
     solr_result = response.json() if response else None
     end_time = time.time()
     duration = end_time - start_time
+
+    if solr_result is not None:
+        non_solr_fields = set(fields) & scheme.non_solr_fields
+        if non_solr_fields:
+            scheme.add_non_solr_fields(non_solr_fields, solr_result)
+
     return SearchResponse.from_solr_result(solr_result, sort, url, time=duration)
 
 
@@ -301,14 +309,18 @@ def do_search(
     :param spellcheck_count: Not really used; should probably drop
     """
 
+    fields = WorkSearchScheme.default_fetched_fields | {'editions', 'providers'}
     if web.cookies(sfw="").sfw == 'yes':
-        fields = list(
-            WorkSearchScheme.default_fetched_fields | {'editions'} | {'subject'}
-        )
-    else:
-        fields = list(WorkSearchScheme.default_fetched_fields | {'editions'})
+        fields |= {'subject'}
+
     return run_solr_query(
-        WorkSearchScheme(), param, rows, page, sort, spellcheck_count, fields=fields
+        WorkSearchScheme(),
+        param,
+        rows,
+        page,
+        sort,
+        spellcheck_count,
+        fields=list(fields),
     )
 
 
