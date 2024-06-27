@@ -5,7 +5,7 @@ import copy
 import json
 import logging
 import re
-from typing import Any, cast
+from typing import Any, TypedDict, cast
 from collections.abc import Iterable
 from unicodedata import normalize
 import requests
@@ -57,13 +57,16 @@ if hasattr(config, 'plugin_worksearch'):
 
 
 @public
-def get_solr_works(work_key: Iterable[str]) -> dict[str, dict]:
+def get_solr_works(
+    work_key: Iterable[str],
+    fields: list[str] | None = None,
+) -> dict[str, dict]:
     from openlibrary.plugins.worksearch.search import get_solr
 
     return {
         doc['key']: doc
         for doc in get_solr().get_many(
-            set(work_key), fields=WorkSearchScheme.default_fetched_fields
+            set(work_key), fields=fields or WorkSearchScheme.default_fetched_fields
         )
     }
 
@@ -130,6 +133,12 @@ def execute_solr_query(
 public(has_solr_editions_enabled)
 
 
+class FacetDict(TypedDict):
+    name: str
+    sort: str | None
+    limit: int | None
+
+
 def run_solr_query(
     scheme: SearchScheme,
     param: dict | None = None,
@@ -139,7 +148,8 @@ def run_solr_query(
     spellcheck_count=None,
     offset=None,
     fields: str | list[str] | None = None,
-    facet: bool | Iterable[str] = True,
+    facet: bool | Iterable[str | FacetDict] = True,
+    aggregate: list[str] | None = None,
     allowed_filter_params: set[str] | None = None,
     extra_params: list[tuple[str, Any]] | None = None,
 ):
@@ -147,10 +157,10 @@ def run_solr_query(
     :param param: dict of query parameters
     """
     param = param or {}
+    fields = fields or []
+    aggregate = aggregate or []
 
-    if not fields:
-        fields = []
-    elif isinstance(fields, str):
+    if isinstance(fields, str):
         fields = fields.split(',')
 
     # use page when offset is not specified
@@ -200,6 +210,14 @@ def run_solr_query(
         values = param[field]
         params += [('fq', f'{field}:"{val}"') for val in values if val]
 
+    json_facet = {
+        field: scheme.aggregates[field]
+        for field in aggregate
+        if field in scheme.aggregates
+    }
+    if json_facet:
+        params.append(('json.facet', json.dumps(json_facet)))
+
     # Many fields in solr use the convention of `*_facet` both
     # as a facet key and as the explicit search query key.
     # Examples being publisher_facet, subject_facet?
@@ -246,6 +264,9 @@ class SearchResponse:
     docs: list
     num_found: int
     solr_select: str
+    facets: dict[str, int | str] = None
+    """Use for stats/aggregates"""
+
     raw_resp: dict = None
     error: str = None
     time: float = None
@@ -279,6 +300,7 @@ class SearchResponse:
                     if 'facet_counts' in solr_result
                     else None
                 ),
+                facets=solr_result.get('facets'),
                 sort=sort,
                 raw_resp=solr_result,
                 docs=solr_result['response']['docs'],
@@ -749,6 +771,7 @@ def work_search(
     limit: int = 100,
     fields: str = '*',
     facet: bool = True,
+    aggregate: list[str] | None = None,
     spellcheck_count: int | None = None,
 ) -> dict:
     """
@@ -762,6 +785,7 @@ def work_search(
     query['q'], page, offset, limit = rewrite_list_query(
         query['q'], page, offset, limit
     )
+
     resp = run_solr_query(
         WorkSearchScheme(),
         query,
@@ -771,9 +795,12 @@ def work_search(
         offset=offset,
         fields=fields,
         facet=facet,
+        aggregate=aggregate,
         spellcheck_count=spellcheck_count,
     )
     response = resp.raw_resp['response']
+    if resp.raw_resp.get('facets'):
+        response['aggregate'] = resp.raw_resp['facets']
 
     # backward compatibility
     response['num_found'] = response['numFound']
@@ -797,6 +824,7 @@ class search_json(delegate.page):
             publisher_facet=[],
             language=[],
             public_scan_b=[],
+            aggregate=[],
         )
         if 'query' in i:
             query = json.loads(i.query)
@@ -832,11 +860,12 @@ class search_json(delegate.page):
             # We do not support returning facets from /search.json,
             # so disable it. This makes it much faster.
             facet=False,
+            aggregate=query.get('aggregate', []),
             spellcheck_count=spellcheck_count,
         )
         response['q'] = q
         response['offset'] = offset
-        response['docs'] = response['docs']
+
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response, indent=4))
 
