@@ -51,14 +51,14 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
             if (days > 0) {
           		display += days + ' day';
           		if (days > 1) {
-                              display += "s";
-          		}
+                display += "s";
+          	  }
             }
             if (hours > 0) {
-          		display += (display ? ', ' : '') + hours + ' hour';
+              display += (display ? ', ' : '') + hours + ' hour';
           		if (hours > 1) {
                 display += "s";
-          		}
+              }
             }
             if (minutes > 0) {
               display += (display ? ', ' : '') + minutes + ' minute';
