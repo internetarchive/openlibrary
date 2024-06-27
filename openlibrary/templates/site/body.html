@@ -49,10 +49,10 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
             // Build the display string
             let display = '';
             if (days > 0) {
-          		display += days + ' day';
-          		if (days > 1) {
+              display += days + ' day';
+              if (days > 1) {
                 display += "s";
-          	  }
+              }
             }
             if (hours > 0) {
               display += (display ? ', ' : '') + hours + ' hour';
@@ -79,9 +79,11 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
         </script>
 
       $ join_txt = _('Join us')
-      $ join_us = '<a class="btn primary" data-ol-link-track="BannerClick|June28Appeal" style="display: inline-block;" href="https://blog.archive.org/2024/06/26/were-fighting-for-library-rights-in-court-this-friday-join-us">%s</a>' % join_txt
+      $ url = "https://blog.archive.org/2024/06/26/were-fighting-for-library-rights-in-court-this-friday-join-us"
+      $ join_us = '<a class="btn primary" data-ol-link-track="BannerClick|June28Appeal" style="display: inline-block;" href="$url">%s</a>' % join_txt
 
-      $ countdown = '<span style="font-weight: bold;" id="countdown">in less than 1 day</span>'
+      $ default_txt = _$("in less than 1 day")
+      $ countdown = '<span style="font-weight: bold;" id="countdown">%s</span>' % default_txt
 
       $ announcement = _("In %(countdown)s, we fight in court to restore access to 500,000+ books: %(join_us)s", countdown=countdown, join_us=join_us)
 
