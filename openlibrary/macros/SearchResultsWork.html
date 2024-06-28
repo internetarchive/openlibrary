@@ -101,15 +101,14 @@ $code:
                      <img class="preview-covers-img-$x" width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="$_('Cover of edition %(id)s', id=i)">
                     </a>
                 </span>
-            <span class="publushing-information">
-            $if doc.get('first_publish_year'):
-                <span class="publishedYear">
-                  $_('First published in %(year)s', year=doc.first_publish_year)<br>
+                <span class="publishingInformation">
+                  $if doc.get('first_publish_year'):
+                    $_('First published in %(year)s', year=doc.first_publish_year)<br>
                   <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count),</a>
+                  <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s ebook', '%(count)s ebooks', len(doc.get('ia')), count=len(doc.get('ia'))),</a>
                   $if doc.get('languages'):
                     in <a href="$work_edition_all_url#editions-list">$:ungettext('%(count)d language', '%(count)d languages', len(doc.languages), count=len(doc.languages))</a>
                 </span>
-            </span>
         </span>
         $if show_librarian_extras:
           <div class="searchResultItem__librarian-extras" title="$_('This is only visible to librarians.')">
