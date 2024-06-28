@@ -69,7 +69,7 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
 
             // Display the result in the span with id="countdown"
             if (distance > 0 && display) {
-              display document.getElementById("countdown").innerHTML = "In " + display;
+              document.getElementById("countdown").innerHTML = "In " + display;
             }
 
             // If the countdown is finished, write some text
