@@ -5474,7 +5474,7 @@ msgid ""
 "href=\"%(url)s\">everything</a> by this author?"
 msgstr ""
 
-#: type/author/view.html
+#: Profile.html type/author/view.html
 msgid "Time"
 msgstr ""
 
@@ -6083,6 +6083,12 @@ msgstr ""
 msgid "Preview Book"
 msgstr ""
 
+#: DisplayCode.html
+msgid ""
+"Templates in the website are disabled now. Editing them will not have any"
+" effect on the live website."
+msgstr ""
+
 #: DonateModal.html
 msgid ""
 "Donate this book to the <a href=\"https://archive.org\">Internet "
@@ -6255,6 +6261,10 @@ msgstr ""
 
 #: Pager.html Pager_loanhistory.html
 msgid "First"
+msgstr ""
+
+#: Profile.html
+msgid "Component"
 msgstr ""
 
 #: ReadButton.html
