@@ -20,7 +20,6 @@ class search_inside(delegate.page):
         query = i.q
         page = int(i.page)
         results = fulltext_search(query, page=page, limit=RESULTS_PER_PAGE)
-        print('*************RESULTS FROM FULLTEXT****************', results)
         search_time = time() - search_start
 
         return render_template(
