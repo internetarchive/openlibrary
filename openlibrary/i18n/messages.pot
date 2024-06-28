@@ -6333,11 +6333,6 @@ msgstr ""
 
 #: SearchResultsWork.html
 #, python-format
-msgid "preview-covers-img-%(count)s"
-msgstr ""
-
-#: SearchResultsWork.html
-#, python-format
 msgid "Cover of edition %(id)s"
 msgstr ""
 
