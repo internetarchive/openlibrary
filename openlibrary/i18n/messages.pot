@@ -4872,7 +4872,7 @@ msgstr ""
 msgid "Try something else?"
 msgstr ""
 
-#: publishers/view.html
+#: SearchResultsWork.html publishers/view.html
 #, python-format
 msgid "%(count)s ebook"
 msgid_plural "%(count)s ebooks"
