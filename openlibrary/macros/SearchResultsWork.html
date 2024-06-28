@@ -108,7 +108,7 @@ $code:
                 <span class="preview-covers $blur_preview">
                   $for x, i in enumerate(doc.get('ia')[1:5]):
                     <a href="$(book_url)?edition=ia:$(urlquote(i))">
-                      <img class="$_('preview-covers-img-%(count)s', count=x)" width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="$_('Cover of edition %(id)s', id=i)">
+                     <img class="preview-covers-img-$x" width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="$_('Cover of edition %(id)s', id=i)">
                     </a>
                 </span>
         </span>
