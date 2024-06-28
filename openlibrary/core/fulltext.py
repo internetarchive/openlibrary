@@ -38,7 +38,6 @@ def fulltext_search(q, page=1, limit=100, js=False, facets=False):
         'olonly': 'true',
     }
     ia_results = fulltext_search_api(params)
-
     if 'error' not in ia_results and ia_results['hits']:
         hits = ia_results['hits'].get('hits', [])
         ocaids = [hit['fields'].get('identifier', [''])[0] for hit in hits]

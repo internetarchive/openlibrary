@@ -1,0 +1,37 @@
+.fsi-snippet {
+  grid-area: excerpts;
+  display: inline;
+  width: 70%;
+  padding: 5px;
+  margin: 0;
+  font-size: small;
+  @media (min-width: 425px) {
+    width: 80%;
+  }
+  @media (min-width: @width-breakpoint-tablet) {
+    width: auto;
+    font-size: medium;
+  }
+
+  &__main {
+    padding: 5px;
+    margin: 0 5px;
+    line-height: 1.6em;
+  }
+
+  &__quotation-mark {
+    font-size: larger;
+    display: inline;
+  }
+
+  &__link {
+    text-decoration: none !important;
+    font-family: @georgia_serif-1;
+  }
+
+  &__page-num {
+    color: @dark-grey !important;
+    display: block;
+    text-decoration: none !important;
+  }
+}
