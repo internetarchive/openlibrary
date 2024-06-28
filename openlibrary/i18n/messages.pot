@@ -879,13 +879,8 @@ msgstr ""
 msgid "No results found."
 msgstr ""
 
-#: search/lists.html work_search.html
-#, python-format
-msgid "Search for books containing the phrase \"%s\"?"
-msgstr ""
-
 #: work_search.html
-msgid "Add a new book to Open Library?"
+msgid "Loading Search Inside Suggestions"
 msgstr ""
 
 #: account/reading_log.html search/authors.html search/subjects.html
@@ -1257,8 +1252,8 @@ msgstr ""
 msgid "Thanks!"
 msgstr ""
 
-#: BookByline.html SearchResultsWork.html account/notes.html
-#: account/observations.html
+#: BookByline.html FulltextSearchSuggestionItem.html SearchResultsWork.html
+#: account/notes.html account/observations.html
 msgid "Unknown author"
 msgstr ""
 
@@ -2839,10 +2834,10 @@ msgstr ""
 msgid "Links"
 msgstr ""
 
-#: IABook.html SearchResultsWork.html books/edition-sort.html
-#: jsdef/LazyWorkPreview.html lists/list_overview.html lists/preview.html
-#: lists/snippet.html lists/widget.html my_books/dropdown_content.html
-#: type/work/editions.html
+#: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html
+#: books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html
+#: lists/preview.html lists/snippet.html lists/widget.html
+#: my_books/dropdown_content.html type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
 msgstr ""
@@ -5043,7 +5038,8 @@ msgstr ""
 msgid "Search Open Library for %s"
 msgstr ""
 
-#: BookSearchInside.html SearchNavigation.html search/inside.html
+#: BookSearchInside.html FulltextSearchSuggestion.html SearchNavigation.html
+#: search/inside.html
 msgid "Search Inside"
 msgstr ""
 
@@ -5072,6 +5068,11 @@ msgstr ""
 
 #: search/lists.html
 msgid "Search Lists"
+msgstr ""
+
+#: search/lists.html
+#, python-format
+msgid "Search for books containing the phrase \"%s\"?"
 msgstr ""
 
 #: search/publishers.html
@@ -6186,6 +6187,40 @@ msgstr ""
 
 #: FormatExpiry.html
 msgid "Expires"
+msgstr ""
+
+#: FulltextSearchSuggestion.html
+msgid "Fetching Search Inside Suggestions"
+msgstr ""
+
+#: FulltextSearchSuggestion.html
+msgid "Search Inside Icon"
+msgstr ""
+
+#: FulltextSearchSuggestion.html
+msgid "search inside icon"
+msgstr ""
+
+#: FulltextSearchSuggestion.html
+#, python-format
+msgid "See all %(results_count)s Search Inside Matches"
+msgstr ""
+
+#: FulltextSearchSuggestion.html
+msgid "right chevron"
+msgstr ""
+
+#: FulltextSuggestionSnippet.html
+msgid "❝"
+msgstr ""
+
+#: FulltextSuggestionSnippet.html
+msgid "❞"
+msgstr ""
+
+#: FulltextSuggestionSnippet.html
+#, python-format
+msgid "Page: %(page)s"
 msgstr ""
 
 #: IABook.html
