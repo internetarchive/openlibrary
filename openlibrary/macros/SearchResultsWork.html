@@ -105,7 +105,7 @@ $code:
             $if doc.get('first_publish_year'):
                 <span class="publishedYear">
                   $_('First published in %(year)s', year=doc.first_publish_year)<br>
-                  <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count),</a>    
+                  <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count),</a>
                   $if doc.get('languages'):
                     in <a href="$work_edition_all_url#editions-list">$:ungettext('%(count)d language', '%(count)d languages', len(doc.languages), count=len(doc.languages))</a>
                 </span>

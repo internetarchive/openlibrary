@@ -6321,20 +6321,15 @@ msgstr ""
 
 #: SearchResultsWork.html
 #, python-format
-msgid "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d language</a>"
-msgid_plural "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages</a>"
-msgstr[0] ""
-msgstr[1] ""
-
-#: SearchResultsWork.html
-#, python-format
-msgid "%s previewable"
-msgstr ""
-
-#: SearchResultsWork.html
-#, python-format
 msgid "Cover of edition %(id)s"
 msgstr ""
+
+#: SearchResultsWork.html
+#, python-format
+msgid "%(count)d language"
+msgid_plural "%(count)d languages"
+msgstr[0] ""
+msgstr[1] ""
 
 #: SearchResultsWork.html
 msgid "This is only visible to librarians."
