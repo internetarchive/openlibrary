@@ -68,12 +68,14 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
             }
 
             // Display the result in the span with id="countdown"
-            document.getElementById("countdown").innerHTML = display;
+            if (distance > 0 && display) {
+              display document.getElementById("countdown").innerHTML = "In " + display;
+            }
 
             // If the countdown is finished, write some text
             if (distance < 0) {
                 clearInterval(countdownTimer);
-                document.getElementById("countdown").innerHTML = "EXPIRED";
+                document.getElementById("countdown").innerHTML = "Right now";
             }
         }, 1000);
         </script>
@@ -82,10 +84,10 @@ $if show_ol_shell and (ctx.path.startswith('/works/OL') or ctx.path.startswith('
       $ url = "https://blog.archive.org/2024/06/26/were-fighting-for-library-rights-in-court-this-friday-join-us"
       $ join_us = '<a class="btn primary" data-ol-link-track="BannerClick|June28Appeal" style="display: inline-block;" href="%s">%s</a>' % (url, join_txt)
 
-      $ default_txt = _("less than 1 day")
+      $ default_txt = _("In a few hours")
       $ countdown = '<span style="font-weight: bold;" id="countdown">%s</span>' % default_txt
 
-      $ announcement = _("In %(countdown)s, we fight in court to restore access to 500,000+ books: %(join_us)s", countdown=countdown, join_us=join_us)
+      $ announcement = _("%(countdown)s, we're fighting in court to restore access to 500,000+ books: %(join_us)s", countdown=countdown, join_us=join_us)
 
       $# Include date in cookie name to avoid name collisions (something like '{prefix}{YY}{MM}{DD}' would work well)
       $ cookie_name = 'j28c'
