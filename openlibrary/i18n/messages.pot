@@ -5211,6 +5211,21 @@ msgstr ""
 msgid "It looks like you're offline."
 msgstr ""
 
+#: site/body.html
+msgid "Join us"
+msgstr ""
+
+#: site/body.html
+msgid "In a few hours"
+msgstr ""
+
+#: site/body.html
+#, python-format
+msgid ""
+"%(countdown)s, we're fighting in court to restore access to 500,000+ "
+"books: %(join_us)s"
+msgstr ""
+
 #: site/neck.html
 msgid ""
 "Open Library is an open, editable library catalog, building towards a web"
