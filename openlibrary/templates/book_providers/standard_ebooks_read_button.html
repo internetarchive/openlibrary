@@ -1,4 +1,4 @@
-$def with(standard_ebooks_id)
+$def with(standard_ebooks_id, analytics_attr)
 
 <div class="cta-button-group">
   <a
@@ -6,6 +6,7 @@ $def with(standard_ebooks_id)
       title="$_('Read eBook from Standard eBooks')"
       class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--standard-ebooks"
       target="_blank"
+      $:analytics_attr('Read')
       aria-haspopup="true"
       aria-controls="standard-ebooks-toast"
   >$_('Read')</a>

@@ -1,9 +1,9 @@
-$def with(librivox_id)
+$def with(librivox_id, analytics_attr)
 
 <div class="cta-button-group">
 <a href="https://librivox.org/$librivox_id"
    title="$_('Listen to a reading from LibriVox')"
-   data-ol-link-track="CTAClick|Listen"
+   $:analytics_attr('Listen')
    class="cta-btn cta-btn--available cta-btn--w-icon cta-btn--external cta-btn--librivox"
    target="_blank"
    aria-haspopup="true"
