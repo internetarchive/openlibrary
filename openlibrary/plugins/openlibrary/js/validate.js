@@ -1,3 +1,4 @@
+import 'jquery-validation';
 import { ungettext, ugettext } from './i18n';
 
 /**
@@ -14,9 +15,7 @@ import { ungettext, ugettext } from './i18n';
  *          <input type="submit" name="submit" value="Register"/>
  *      </form>
  */
-export default function initValidate() {
-
-
+export function init() {
     // validate publish-date to make sure the date is not in future
     // used in templates/books/add.html
     jQuery.validator.addMethod('publish-date', function(value) {
@@ -79,4 +78,6 @@ export default function initValidate() {
         $(this).validate($.extend(defaults, options));
     };
 
+    // validate forms
+    $('form.validate').ol_validate();
 }

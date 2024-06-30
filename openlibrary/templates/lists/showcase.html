@@ -1,0 +1,45 @@
+$def with (lists, username)
+
+
+$def list_card(list):
+    $ cached_info = list.get_patron_showcase()
+    $ count = cached_info["count"]
+    <a class="list-card" href="$list.get_url()">
+        <div class="list-card__covers">
+            $for img_url in cached_info["covers"]:
+                $if img_url:
+                    $ img_url = img_url.replace("-S.jpg", "-M.jpg")
+                $else:
+                    $ img_url = '/images/icons/avatar_book-sm.png'
+                <img src="$img_url" loading="lazy" width="80">
+        </div>
+        <div class="list-card__name-tag">
+            <div class="list-card__title">$cached_info["title"]</div>
+            <div class="list-card__num-books">
+                $ungettext("%(count)d book", "%(count)d books", count, count=count)
+            </div>
+        </div>
+    </a>
+
+
+<div class="carousel-section">
+    <div class="carousel-section-header">
+        <h2 class="home-h2">
+            <a href="/people/$username/lists">$_('My Lists (%(count)d)', count=len(lists))</a>
+        </h2>
+    </div>
+    <div class="list-showcase">
+        $if lists:
+            $ displayed_lists = 5
+            $for list in lists[:displayed_lists]
+                $:list_card(list)
+
+            $if len(lists) > displayed_lists:
+                <a
+                    class="list-showcase__see-all cta-btn cta-btn--vanilla"
+                    href="/people/$username/lists"
+                >$_("See all")</a>
+        $else:
+            <p>$_('You have no lists.')</p>
+    </div>
+</div>

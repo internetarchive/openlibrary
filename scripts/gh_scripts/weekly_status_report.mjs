@@ -24,6 +24,9 @@ async function main() {
     await prepareRecentComments(config.leads)
         .then((results) => lines.push(...results))
 
+    await prepareReviewAssigneeIssues(config.leads)
+        .then((results) => lines.push(...results))
+
     const openPullRequests = await fetchOpenPullRequests()
     const nonDraftPullRequests = openPullRequests.filter((pull) => !pull.draft)
 
@@ -210,7 +213,9 @@ async function prepareUntriagedIssues(leads) {
 
     let allIssuesTriaged = true
     for (const lead of leads) {
-        const searchResultsUrl = `https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+label%3A%22Needs%3A+Triage%22${encodeURIComponent('"' + lead.leadLabel + '"')}`
+        const searchResultsUrl = `https://github.com/internetarchive/openlibrary/issues?${new URLSearchParams({
+            q: `is:issue is:open label:"Needs: Triage" label:"${lead.leadLabel}"`
+        })}`
         let issueCount = 0
 
         for (const issue of untriagedIssues) {
@@ -235,6 +240,49 @@ async function prepareUntriagedIssues(leads) {
 }
 
 /**
+ * Finds all issues with the "Needs: Review Assignee" label, prepares a message containing a
+ * summary for each given lead, and returns the prepared messages
+ *
+ * @param {Array<Lead>} leads
+ * @returns {Promise<Array<string>>}
+ */
+async function prepareReviewAssigneeIssues(leads) {
+    const output = ['*Issues needing attention (_Assignee may have abandoned or may need help_)*:']
+
+    const staleIssues = await octokit.paginate('GET /repos/{owner}/{repo}/issues', {
+        owner: 'internetarchive',
+        repo: 'openlibrary',
+        labels: 'Needs: Review Assignee',
+        per_page: 100,
+        headers: {
+          'X-GitHub-Api-Version': '2022-11-28'
+        }
+      })
+
+    let noStaleIssuesFound = true
+    for (const lead of leads) {
+        const issuesForLead = staleIssues.filter((issue) => {
+            for (const label of issue.labels) {
+                if (label.name === lead.leadLabel) {
+                    return true
+                }
+            }
+            return false
+        })
+        const searchResultsUrl = `https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Needs%3A+Review+Assignee%22+label%3A${encodeURIComponent('"' + lead.leadLabel + '"')}`
+        if (issuesForLead.length > 0) {
+            output.push(`  • <${searchResultsUrl}|${issuesForLead.length} issue(s)> need follow-up from ${lead.slackId}`)
+            noStaleIssuesFound = false
+        }
+    }
+
+    if (noStaleIssuesFound) {
+        output.push('  _No assigned issues found that need attention from leads_')
+    }
+    return output
+}
+
+/**
  * Prepares and returns messages about each given lead's assigned PRs, including
  * their priorities.
  *
@@ -244,6 +292,8 @@ async function prepareUntriagedIssues(leads) {
  */
 function prepareAssignedPullRequests(pullRequests, leads) {
     const output = ['*Assigned PRs*']
+
+    let noAssignedPullsFound = true
     for (const lead of leads) {
         const searchResultsUrl = `https://github.com/internetarchive/openlibrary/pulls?q=is%3Aopen+is%3Apr+-is%3Adraft+assignee%3A${lead.githubUsername}`
         const assignedPulls = pullRequests.filter((pull) => {
@@ -254,6 +304,10 @@ function prepareAssignedPullRequests(pullRequests, leads) {
             }
             return false
         })
+
+        if (assignedPulls.length) {
+            noAssignedPullsFound = false
+        }
 
         let p0Count = 0,
             p1Count = 0,
@@ -292,6 +346,10 @@ function prepareAssignedPullRequests(pullRequests, leads) {
             statusText += ']'
         }
         output.push(statusText)
+    }
+
+    if (noAssignedPullsFound) {
+        output.push('  _No assigned pull requests found._')
     }
 
     return output

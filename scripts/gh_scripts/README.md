@@ -21,7 +21,7 @@ If a lead is assigned to the issue, and the lead is not also the PR's author, th
 
 ## `stale_assignee_digest.mjs`
 
-This script fetches all open issues that have assignees and publishes a Slack message listing all that have met the following criteria:
+This script fetches all open issues that have assignees and adds the https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Review%20Assignee label to all that have met the following criteria:
 - Assignee has been assigned for more than a given number of days and has not created and linked a pull request to the issue.
 - Assignee's GitHub username does not appear on the exclude list.
 
@@ -40,7 +40,8 @@ __Correct:__
 __Incorrect:__
 `node stale_assignee_digest.mjs --daysSince=21`
 
-The GitHub action that runs this script automatically sets `--repoOwner` to the owner of the repository that triggered the action.
+The GitHub action that runs this script automatically sets `--repoOwner` to the owner of the repository that triggered the action.  The action itself will
+only run if the repository owner is `internetarchive` (it will not run on forks).
 
 To quickly see a script's purpose and arguments, run the script with the `-h` or `--help` flag.
 
@@ -49,19 +50,38 @@ To quickly see a script's purpose and arguments, run the script with the `-h` or
 This script fetches issues that have new comments from contributors within the past number of hours, then posts a message to the team in our Slack channel.
 
 ### Usage:
-This script has three positional arguments:
 ```
-  hours        Fetch issues that have been updated since this many hours ago
-  channel      Issues will be published to this Slack channel
-  slack-token  Slack authentication token
+positional arguments:
+  hours                 Fetch issues that have been updated since this many hours ago
+
+options:
+  -h, --help                                       show this help message and exit
+  -c CONFIG, --config CONFIG                       Path to configuration file
+  -s SLACK_CHANNEL, --slack-channel SLACK_CHANNEL  Issues will be published to this Slack channel
+  -t SLACK_TOKEN, --slack-token SLACK_TOKEN        Slack auth token
+  --no-labels                                      Prevent the script from labeling the issues
+  -v, --verbose                                    Print detailed information about the issues that were found
 ```
+
+#### Configuration
+
+A configuration file is required for this script to run properly.  The file should contain a JSON string with the following fields:
+
+`leads` : Array of configurations for each lead.
+
+`leads.githubUsername` : The lead's GitHub username.
+
+`leads.leadLabel`: Text of the lead's `Lead: @` label.
+
+`leads.slackId`: The lead's Slack ID in their `mrkdwn` format, which is used to trigger Slack
+
 
 __Running the script locally:__
 ```
 docker compose exec -e PYTHONPATH=. web bash
 
 # Publish digest of new comments from the past day to #openlibrary-g:
-./scripts/gh_scripts/issue_comment_bot.py 24 "#openlibrary-g" "replace-with-slack-token"
+./scripts/gh_scripts/issue_comment_bot.py 24 -s "#openlibrary-g" -t "replace-with-slack-token" -c "path/to/config/file"
 ```
 
 __Note:__ When adding arguments, be sure to place any hyphenated values within double quotes.

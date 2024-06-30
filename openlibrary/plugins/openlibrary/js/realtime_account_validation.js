@@ -5,8 +5,12 @@ export function initRealTimeValidation() {
     if (window.grecaptcha) {
         // Callback that is called when grecaptcha.execute() is successful
         // Checks whether reportValidity exists for cross-browser compatibility
+        // Includes invalid input count to account for checks not covered by reportValidity
         function submitCreateAccountForm() {
-            if (!signupForm.reportValidity || signupForm.reportValidity()) {
+            const numInvalidInputs = signupForm.querySelectorAll('input.invalid').length;
+            const isFormattingValid = !signupForm.reportValidity || signupForm.reportValidity()
+
+            if (numInvalidInputs === 0 && isFormattingValid) {
                 signupForm.submit();
             }
         }
@@ -28,7 +32,7 @@ export function initRealTimeValidation() {
     function renderError(inputId, errorDiv, errorMsg) {
         $(inputId).addClass('invalid');
         $(`label[for=${inputId.slice(1)}]`).addClass('invalid');
-        $(errorDiv).addClass('invalid').text(errorMsg);
+        $(errorDiv).text(errorMsg);
     }
 
     /**
@@ -40,7 +44,7 @@ export function initRealTimeValidation() {
     function clearError(inputId, errorDiv) {
         $(inputId).removeClass('invalid');
         $(`label[for=${inputId.slice(1)}]`).removeClass('invalid');
-        $(errorDiv).removeClass('invalid').text('');
+        $(errorDiv).text('');
     }
 
     function validateUsername() {
@@ -96,11 +100,4 @@ export function initRealTimeValidation() {
     $('#username').on('blur', validateUsername);
     $('#emailAddr').on('blur', validateEmail);
     $('#password').on('blur', validatePassword);
-
-    $('#signup').on('click', function(e) {
-        e.preventDefault();
-        if (window.grecaptcha) {
-            window.grecaptcha.execute()
-        }
-    });
 }

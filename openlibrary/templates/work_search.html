@@ -33,8 +33,7 @@ $ )
 
     <form method="get" action="/search" class="siteSearch olform">
       <label for="q" class="hidden">$_('Keywords')</label>
-      <input type="text" name="q" id="q" value="$q_param" size="100"/>
-      <button type="submit" class="larger" id="searchsubmit">$_("Search")</button>
+      $:render_template("search/searchbox", q=q_param)
       <span class="mode-options">
         <input type="radio" name="mode" value="everything" id="mode-search-everything" class="search-mode">
         <label for="mode-search-everything">$_('Everything')</label>

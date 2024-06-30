@@ -2,6 +2,7 @@
 """
 
 import os
+from collections.abc import Iterable
 import requests
 import sys
 import web
@@ -28,10 +29,9 @@ from openlibrary.catalog.add_book import (
 import openlibrary
 
 from openlibrary import accounts
-from openlibrary.accounts.model import clear_cookies
+from openlibrary.accounts.model import Account, clear_cookies
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import admin as admin_stats, helpers as h, imports, cache
-from openlibrary.core.waitinglist import Stats as WLStats
 from openlibrary.core.sponsorships import summary, sync_completed_sponsored_books
 from openlibrary.core.models import Work
 from openlibrary.plugins.upstream import forms, spamcheck
@@ -55,6 +55,82 @@ def register_admin_page(path, cls, label=None, visible=True, librarians=False):
         path=path, cls=cls, label=label, visible=visible, librarians=librarians
     )
     admin_tasks.append(t)
+
+
+def revert_all_user_edits(account: Account) -> tuple[int, int]:
+    """
+    :return: tuple of (number of edits reverted, number of documents deleted)
+    """
+    i = 0
+    edit_count = 0
+    stop = False
+    keys_to_delete = set()
+    while not stop:
+        changes = account.get_recentchanges(limit=100, offset=100 * i)
+        added_records: list[list[dict]] = [
+            c.changes for c in changes if c.kind == 'add-book'
+        ]
+        flattened_records: list[dict] = [
+            record for lst in added_records for record in lst
+        ]
+        keys_to_delete |= {r['key'] for r in flattened_records}
+
+        keys_to_revert: dict[str, list[int]] = {
+            item.key: [] for change in changes for item in change.changes
+        }
+        for change in changes:
+            for item in change.changes:
+                keys_to_revert[item.key].append(change.id)
+
+        deleted_keys = web.ctx.site.things(
+            {'key': list(keys_to_revert), 'type': {'key': '/type/delete'}}
+        )
+
+        changesets_with_deleted_works = {
+            change_id for key in deleted_keys for change_id in keys_to_revert[key]
+        }
+
+        changeset_ids = [
+            c.id for c in changes if c.id not in changesets_with_deleted_works
+        ]
+
+        _, len_docs = revert_changesets(changeset_ids, "Reverted Spam")
+        edit_count += len_docs
+        i += 1
+        if len(changes) < 100:
+            stop = True
+
+    delete_payload = [
+        {'key': key, 'type': {'key': '/type/delete'}} for key in keys_to_delete
+    ]
+    web.ctx.site.save_many(delete_payload, 'Delete spam')
+    return edit_count, len(delete_payload)
+
+
+def revert_changesets(changeset_ids: Iterable[int], comment: str):
+    """
+    An aggressive revert function ; it rolls back all the documents to
+    the revision that existed before the changeset was applied.
+    Note this means that any edits made _after_ the given changeset will
+    also be lost.
+    """
+
+    def get_doc(key: str, revision: int) -> dict:
+        if revision == 0:
+            return {"key": key, "type": {"key": "/type/delete"}}
+        else:
+            return web.ctx.site.get(key, revision).dict()
+
+    site = web.ctx.site
+    docs = [
+        get_doc(c['key'], c['revision'] - 1)
+        for cid in changeset_ids
+        for c in site.get_change(cid).changes
+    ]
+    docs = [doc for doc in docs if doc.get('type', {}).get('key') != '/type/delete']
+    data = {"reverted_changesets": [str(cid) for cid in changeset_ids]}
+    manifest = web.ctx.site.save_many(docs, action="revert", data=data, comment=comment)
+    return manifest, len(docs)
 
 
 class admin(delegate.page):
@@ -382,35 +458,12 @@ class people_view:
         account.block()
         raise web.seeother(web.ctx.path)
 
-    def POST_block_account_and_revert(self, account):
+    def POST_block_account_and_revert(self, account: Account):
         account.block()
-        i = 0
-        edits = 0
-        stop = False
-        keys_to_delete = set()
-        while not stop:
-            changes = account.get_recentchanges(limit=100, offset=100 * i)
-            added_records: list[list[dict]] = [
-                c.changes for c in changes if c.kind == 'add-book'
-            ]
-            flattened_records: list[dict] = [
-                subitem for sublist in added_records for subitem in sublist
-            ]
-            keys_to_delete |= {r['key'] for r in flattened_records}
-            changeset_ids = [c.id for c in changes]
-            _, len_docs = ipaddress_view().revert(changeset_ids, "Reverted Spam")
-            edits += len_docs
-            i += 1
-            if len(changes) < 100:
-                stop = True
-
-        delete_payload = [
-            {'key': key, 'type': {'key': '/type/delete'}} for key in keys_to_delete
-        ]
-        web.ctx.site.save_many(delete_payload, 'Delete spam')
+        edit_count, deleted_count = revert_all_user_edits(account)
         add_flash_message(
             "info",
-            f"Blocked the account and reverted all {edits} edits. {len(delete_payload)} records deleted.",
+            f"Blocked the account and reverted all {edit_count} edits. {deleted_count} records deleted.",
         )
         raise web.seeother(web.ctx.path)
 
@@ -505,7 +558,7 @@ class people_edits:
     def POST(self, username):
         i = web.input(changesets=[], comment="Revert", action="revert")
         if i.action == "revert" and i.changesets:
-            ipaddress_view().revert(i.changesets, i.comment)
+            revert_changesets(i.changesets, i.comment)
         raise web.redirect(web.ctx.path)
 
 
@@ -523,7 +576,7 @@ class ipaddress_view:
         if i.action == "block":
             self.block(ip)
         else:
-            self.revert(i.changesets, i.comment)
+            revert_changesets(i.changesets, i.comment)
         raise web.redirect(web.ctx.path)
 
     def block(self, ip):
@@ -531,28 +584,6 @@ class ipaddress_view:
         if ip not in ips:
             ips.append(ip)
         block().block_ips(ips)
-
-    def get_doc(self, key, revision):
-        if revision == 0:
-            return {"key": key, "type": {"key": "/type/delete"}}
-        else:
-            return web.ctx.site.get(key, revision).dict()
-
-    def revert(self, changeset_ids, comment):
-        logger.debug("Reverting changesets %s", changeset_ids)
-        site = web.ctx.site
-        docs = [
-            self.get_doc(c['key'], c['revision'] - 1)
-            for cid in changeset_ids
-            for c in site.get_change(cid).changes
-        ]
-        docs = [doc for doc in docs if doc.get('type', {}).get('key') != '/type/delete']
-        logger.debug("Reverting %d docs", len(docs))
-        data = {"reverted_changesets": [str(cid) for cid in changeset_ids]}
-        manifest = web.ctx.site.save_many(
-            docs, action="revert", data=data, comment=comment
-        )
-        return manifest, len(docs)
 
 
 class stats:
@@ -753,12 +784,6 @@ class loans_admin:
         if action == 'updateall':
             borrow.update_all_loan_status()
         raise web.seeother(web.ctx.path)  # Redirect to avoid form re-post on re-load
-
-
-class waitinglists_admin:
-    def GET(self):
-        stats = WLStats()
-        return render_template("admin/waitinglists", stats)
 
 
 class inspect:
@@ -976,7 +1001,6 @@ def setup():
         '/admin/attach_debugger', attach_debugger, label='Attach Debugger'
     )
     register_admin_page('/admin/loans', loans_admin, label='')
-    register_admin_page('/admin/waitinglists', waitinglists_admin, label='')
     register_admin_page('/admin/inspect(?:(/.+))?', inspect, label="")
     register_admin_page('/admin/graphs', _graphs, label="")
     register_admin_page('/admin/logs', show_log, label="")

@@ -1,3 +1,4 @@
+import 'jquery-ui/ui/widgets/dialog';
 /**
  * Defines functions used in the 'lists' and 'view_body' templates for Lists.
  * @module lists/ListViewBody

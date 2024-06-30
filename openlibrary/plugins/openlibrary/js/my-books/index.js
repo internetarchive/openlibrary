@@ -29,11 +29,11 @@ export function initMyBooksAffordances(dropperElements, showcaseElements) {
         myBooksDropper.initialize()
 
         droppers.push(myBooksDropper)
-        seedKeys.push(myBooksDropper.getSeedKeys())
+        seedKeys.push(...myBooksDropper.getSeedKeys())
     }
 
     // Remove duplicate keys:
-    const seedKeySet = new Set(...seedKeys)
+    const seedKeySet = new Set(seedKeys)
 
     // Get user key from first Dropper and add to store:
     const userKey = droppers[0].readingLists.userKey

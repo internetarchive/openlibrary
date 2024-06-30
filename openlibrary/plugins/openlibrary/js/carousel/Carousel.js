@@ -6,6 +6,8 @@ import '../../../../../static/css/components/carousel--js.less';
  * @typedef {Object} CarouselConfig
  * @property {[number, number, number, number, number, number]} booksPerBreakpoint
  *      number of books to show at: [default, >1200px, >1024px, >600px, >480px, >360px]
+ * @property {String} analyticsCategory
+ * @property {String} carouselKey
  * @property {Object} [loadMore] configuration for loading more items
  * @property {String} loadMore.url to use to load more items
  * @property {Number} loadMore.limit of new items to receive
@@ -24,7 +26,14 @@ export class Carousel {
      */
     constructor($container) {
         /** @type {CarouselConfig} */
-        this.config = JSON.parse($container.attr('data-config'));
+        this.config = Object.assign(
+            {
+                booksPerBreakpoint: [6, 5, 4, 3, 2, 1],
+                analyticsCategory: 'Carousel',
+                carouselKey: '',
+            },
+            JSON.parse($container.attr('data-config'))
+        );
 
         /** @type {CarouselConfig['loadMore']} */
         this.loadMore = Object.assign(
@@ -75,6 +84,29 @@ export class Carousel {
                         infinite: false,
                     }
                 }))
+        });
+
+        // Slick internally changes the click handlers on the next/prev buttons,
+        // so we listen via the container instead
+        this.$container.on('click', '.slick-next', (ev) => {
+            // Note: This will actually fail on the last 'next', but that's okay
+            if ($(ev.target).hasClass('slick-disabled')) return;
+
+            window.archive_analytics.ol_send_event_ping({
+                category: this.config.analyticsCategory,
+                action: 'Next',
+                label: this.config.carouselKey,
+            });
+        });
+
+        this.$container.on('swipe', (ev, _slick, direction) => {
+            if (direction === 'left') {
+                window.archive_analytics.ol_send_event_ping({
+                    category: this.config.analyticsCategory,
+                    action: 'Next',
+                    label: this.config.carouselKey,
+                });
+            }
         });
 
         // if a loadMore config is provided and it has a (required) url
@@ -167,10 +199,7 @@ export class Carousel {
                     </a>
                 </div>
                 <div class="book-cta">
-                    <a class="btn cta-btn ${cls}"
-                       data-ol-link-track="subjects"
-                       data-key="subjects"
-                   >${cta}</a>
+                    <a class="btn cta-btn ${cls}">${cta}</a>
                 </div>
             </div>`);
         $el.find('.bookcover').attr('title', work.title);
@@ -178,6 +207,11 @@ export class Carousel {
             .attr('title', `${cta}: ${work.title}`)
             .attr('data-ocaid', ocaid)
             .attr('href', url);
+
+        $el.find('.book-cover a')
+            .attr('data-ol-link-track', `${this.config.analyticsCategory}|CoverClick|${this.config.carouselKey}`);
+        $el.find('.cta-btn')
+            .attr('data-ol-link-track', `${this.config.analyticsCategory}|CTAClick|${this.config.carouselKey}`);
         return $el;
     }
 
