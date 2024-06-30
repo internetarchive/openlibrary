@@ -498,6 +498,7 @@ class Edition(models.Edition):
 
         return edition_key
 
+
 class Author(models.Author):
     def get_photos(self):
         return [Image(self._site, "a", id) for id in self.photos if id > 0]
