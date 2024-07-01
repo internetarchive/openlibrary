@@ -28,13 +28,13 @@ $def display(x):
         <td><pre>$x.repr()</pre></td>
     </tr>
 
-<h2>Referents</h2>
+<h2>$_("Referents")</h2>
 <table>
 $for r in object.get_referents()[:50]:
     $:display(r)
 </table>
 
-<h2>Referrers</h2>
+<h2>$_("Referrers")</h2>
 <table>
 $for r in object.get_referrers()[:50]:
     $:display(r)
