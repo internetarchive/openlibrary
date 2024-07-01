@@ -1,3 +1,5 @@
+import { debounce } from './nonjquery_utils.js';
+
 export function initRealTimeValidation() {
     const signupForm = document.querySelector('form[name=signup]');
     const i18nStrings = JSON.parse(signupForm.dataset.i18n);
@@ -14,6 +16,9 @@ export function initRealTimeValidation() {
         // Checks whether reportValidity exists for cross-browser compatibility
         // Includes invalid input count to account for checks not covered by reportValidity
         function submitCreateAccountForm() {
+            const submitBtn = $('button[name=signup]');
+            submitBtn.prop('disabled', true).text(i18nStrings['loading_text']);
+
             const numInvalidInputs = signupForm.querySelectorAll('input.invalid').length;
             const isFormattingValid = !signupForm.reportValidity || signupForm.reportValidity()
 
@@ -129,7 +134,11 @@ export function initRealTimeValidation() {
         clearError('#password', '#passwordMessage');
     }
 
-    $('#username').on('blur', validateUsername);
-    $('#emailAddr').on('blur', validateEmail);
-    $('#password').on('blur', validatePassword);
+    $('#username').not('.invalid').on('blur', validateUsername);
+    $('#emailAddr').not('.invalid').on('blur', validateEmail);
+    $('#password').not('.invalid').on('blur', validatePassword);
+
+    $('#username.invalid').on('keyup', debounce(validateUsername, 50));
+    $('#emailAddr.invalid').on('keyup', debounce(validateEmail, 50));
+    $('#password.invalid').on('keyup', debounce(validatePassword, 50));
 }
