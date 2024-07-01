@@ -141,11 +141,7 @@ class Edition(models.Edition):
         if not meta_fields:
             return
         v = meta_fields['collection']
-        return 'printdisabled' in v or 'lendinglibrary' in v
-
-    #      def is_lending_library(self):
-    #         collections = self.get_ia_collections()
-    #         return 'lendinglibrary' in collections
+        return 'printdisabled' in v
 
     def get_lending_resources(self):
         """Returns the loan resource identifiers (in meta.xml format for ACS4 resources) for books hosted on archive.org

@@ -297,7 +297,6 @@ class Edition(Thing):
         collections = self.get_ia_collections()
         return bool(collections) and (
             'printdisabled' in collections
-            or 'lendinglibrary' in collections
             or self.get_ia_meta_fields().get("access-restricted") is True
         )
 
@@ -309,9 +308,7 @@ class Edition(Thing):
 
     def in_borrowable_collection(self):
         collections = self.get_ia_collections()
-        return (
-            'lendinglibrary' in collections or 'inlibrary' in collections
-        ) and not self.is_in_private_collection()
+        return ('inlibrary' in collections) and not self.is_in_private_collection()
 
     def get_waitinglist(self):
         """Returns list of records for all users currently waiting for this book."""
