@@ -10,9 +10,9 @@ $ bookreader_percent = "%d" % percentage(bookreader_count, total)
 
 <div id="contentHead">
     $:render_template("admin/menu")
-    <h1>Outstanding eBook Loans</h1>
+    <h1>$_("Outstanding eBook Loans")</h1>
     <p id="note">
-        <em class="red">Note:</em> ACS4 loan status for ePub and PDF is updated hourly and also on demand (when a user looks at a borrow page or their own loans).  You can refresh the status of a loan (synchronize with ACS4 server) by clicking on "refresh". BookReader loan status is always current.
+        $:_('<em class="red">Note:</em> ACS4 loan status for ePub and PDF is updated hourly and also on demand (when a user looks at a borrow page or their own loans).  You can refresh the status of a loan (synchronize with ACS4 server) by clicking on "refresh". BookReader loan status is always current.')
     </p>
     <p>
         $# could do user checking here

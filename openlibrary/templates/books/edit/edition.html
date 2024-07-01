@@ -98,7 +98,7 @@ $jsdef render_work_autocomplete_item(item):
                 <div class="formElement">
                     <div class="label">
                         <label for="edition-publishers">$_("Who is the publisher?")</label>
-                        <span class="tip">$_("For example"): <em>Oxford University Press; Penguin; W.W. Norton</em></span>
+                        <span class="tip">$:_('For example <em>Oxford University Press; Penguin; W.W. Norton</em>')</span>
                     </div>
                     <div class="input">
                         <input type="text" name="edition--publishers" id="edition-publishers" value="$'; '.join(book.publishers)"/>
@@ -244,7 +244,7 @@ $jsdef render_work_autocomplete_item(item):
             <div class="formElement">
                 <div class="label">
                     <label for="edition-by_statement">$_("By Statement:")</label>
-                    <span class="tip">$_("For example:") <em>edited by David Anderson</em></span>
+                    <span class="tip">$:_('For example: <em>edited by David Anderson</em>')</span>
                 </div>
                 <div class="input">
                     <input name="edition--by_statement" type="text" id="edition-by_statement" value="$book.by_statement" />
@@ -333,6 +333,7 @@ $jsdef render_work_autocomplete_item(item):
             <div class="label">
                 <label for="edition-toc">$_('Table of Contents')</label>
                 <span class="tip">$:_('Use a "*" for an indent, a "|" to add a column, and line breaks for new lines. Like this:')</span><br/><br/>
+        $# detect-missing-i18n-skip-line
         <pre class="smaller gray"> * Part 1 | THIS WORLD | 1
         ** Chapter 1 | Of the Nature of Flatland | 3
         ** Chapter 2 | Of the Climate and Houses in Flatland | 5
@@ -361,7 +362,7 @@ $jsdef render_work_autocomplete_item(item):
             </div>
             <div class="input">
                 <input type="text" name="edition--other_titles--0" id="edition-title_other" value="$(book.other_titles and book.other_titles[0])"/>
-                <div class="tip">$_("For example:") <i>Eaters of the Dead</i> $_("is an alternate title for") <i><a href="/books/OL24923038M">The 13th Warrior</a></i>.</div>
+                <div class="tip">$:_('For example: <i>Eaters of the Dead</i> is an alternate title for <i><a href="/books/OL24923038M">The 13th Warrior</a></i>.')</div>
             </div>
             $if book.other_titles and len(book.other_titles) > 1:
                 $for i, t in enumerate(book.other_titles):
@@ -374,8 +375,7 @@ $jsdef render_work_autocomplete_item(item):
                 <label for="edition--works--$0">$_("What work is this an edition of?")</label>
                 <span class="tip">
                     $_("Sometimes editions can be associated with the wrong work. You can correct that here.")
-                    $_("You can search by title or by Open Library ID (like")
-                    <a href="/works/OL262757W" target="_blank"><em>OL262757W</em></a>).
+                    $:_('You can search by title or by Open Library ID (like <a href="/works/OL262757W" target="_blank"><em>OL262757W</em></a>).')
                     <br/>
                     $_("WARNING: Any edits made to the work from this page will be ignored.")
                 </span>
@@ -453,10 +453,10 @@ $ })
                                 <input type="hidden" name="{{prefix}}identifiers--{{index}}--name" value="{{name}}"/>
                                 <input type="hidden" name="{{prefix}}identifiers--{{index}}--value" value="{{value}}" class="{{name}}"/>
                             </td>
-                            <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
+                            <td><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this identifier')">[x]</a></td>
                         </tr>
                         <tr>
-                            <td align="right">Open Library</td>
+                            <td align="right">$_("Open Library")</td>
                             <td>$book.key.split("/")[-1]</td>
                             <td></td>
                         </tr>
@@ -471,7 +471,7 @@ $ })
                             $if id.name == "ocaid" and not is_privileged_user:
                                 <td></td>
                             $else:
-                                <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
+                                <td><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this identifier')">[x]</a></td>
                         </tr>
                     </tbody>
                 </table>
@@ -569,7 +569,7 @@ $ })
                 </div>
                 <div class="input">
                     <input name="edition--pagination" type="text" id="edition--pagination" value="$book.pagination"/>
-                    <div class="tip">$_("For example:") <em>xii, 346p.</em></div>
+                    <div class="tip">$:_('For example: <em>xii, 346p.</em>')</div>
                 </div>
             </div>
 
@@ -696,7 +696,7 @@ $if is_admin:
                 <span class="tip">$_('This field can accept arbitrary key:value pairs')</span>
             </div>
             <div class="input">
-                <textarea name="additional_metadata" id="additional_metadata" rows="4" placeholder="foo:bar"></textarea>
+                <textarea name="additional_metadata" id="additional_metadata" rows="4" placeholder="$('foo:bar')"></textarea>
             </div>
         </div>
     </fieldset>
