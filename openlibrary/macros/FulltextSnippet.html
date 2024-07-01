@@ -18,7 +18,7 @@ $if snippets:
   </section>
 
 $if availability.get('status') == 'open':
-  <p class="center"><a href="https://archive.org/stream/$(ia)?ref=ol&access=1#search/$(q)">See All Results</a></p>
+  <p class="center"><a href="https://archive.org/stream/$(ia)?ref=ol&access=1#search/$(q)">$_("See All Results")</a></p>
 
 $if availability.get('status') == 'borrow_available':
-  <p class="center">Borrow &amp; <a href="https://archive.org/stream/$(ia)?ref=ol&access=1#search/$(q)">See All Results</a></p>
+  <p class="center">$_("Borrow") &amp; <a href="https://archive.org/stream/$(ia)?ref=ol&access=1#search/$(q)">$_("See All Results")</a></p>
