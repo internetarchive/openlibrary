@@ -202,7 +202,7 @@
     "roles": ["fellow-2023"],
     "photo_path": "https://avatars.githubusercontent.com/u/13765801",
     "departments": ["engineering"],
-    "projects": ["<a href='https://blog.openlibrary.org/2023/06/04/update-open-library-book-page-redesign'>Book Page Redesign</a>"],
+    "projects": ["<a href=\"https://blog.openlibrary.org/2023/06/04/update-open-library-book-page-redesign\">Book Page Redesign</a>"],
     "ol_key": ""
   },
   {
