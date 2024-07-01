@@ -4,19 +4,19 @@ $var title: $("Forgot Your Email?")
 
 <div id="contentHead">
     <h2>$_('Forgot Your Internet Archive Email?')</h2>
-    <p class="instruct">To lookup your Archive.org email, <a href="/account/email/forgot-ia">click here</a>.</p>
+    <p class="instruct">$:_('To look up your Archive.org email, <a href="/account/email/forgot-ia">click here</a>.')</p>
 
     <hr class="forgot-padding"/>
 
     <h2>$_('Forgot Your Open Library Email?')</h2>
     $if not email:
-        <p class="instruct">Please enter your Open Library username and password, and we’ll retrieve your email.</p>
+        <p class="instruct">$_("Please enter your Open Library username and password, and we’ll retrieve your email.")</p>
 </div>
 
 <div id="contentBody" class="defaultstyling">
   $if email:
-    <p>Your email is: <strong>$email</strong></p>
-    <p><a href="/account/login">&larr; Return to Log In?</a></p>
+    <p>$_("Your email is:") <strong>$email</strong></p>
+    <p><a href="/account/login">&larr; $_("Return to Log In?")</a></p>
 
   $else:
     $if err:
@@ -25,13 +25,13 @@ $var title: $("Forgot Your Email?")
     <form class="forgot-email-form"  action="/account/email/forgot" method="POST">
       <div class="form-row">
 	<div>
-	  <label>Open Library Username</label>
+	  <label>$_("Open Library Username")</label>
 	</div>
 	<input type="text" name="username"/>
       </div>
       <div class="form-row">
 	<div>
-	  <label>Password</label>
+	  <label>$_("Password")</label>
 	</div>
 	<input type="password" name="password"/>
       </div>
@@ -45,7 +45,7 @@ $var title: $("Forgot Your Email?")
 	</div>
       </div>
       <hr/>
-      <h3>Need help updating your account email address?</h3>
-      <p>First login with your current email address and then follow <a href="https://openlibrary.org/help/faq/my_account#update-email">these instructions</a> to change it to something new.</p>
+      <h3>$_("Need help updating your account email address?")</h3>
+      <p>$:_('First login with your current email address and then follow <a href="https://openlibrary.org/help/faq/my_account#update-email">these instructions</a> to change it to something new.')</p>
     </form>
 </div>
