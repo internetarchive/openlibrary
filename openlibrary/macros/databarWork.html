@@ -7,12 +7,12 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
     $if page.volumes:
       <h3 class="header">
         <span class="icon read"></span>
-        <span class="head">Browse</span>
+        <span class="head">$_("Browse")</span>
       </h3>
       $for v in page.volumes:
         $if v.ia_id != "-":
           <div class="panel">
-            <p><a href="$viewbook.replace('XXX', v.ia_id)">View Volume $v.volume_number</a></p>
+            <p><a href="$viewbook.replace('XXX', v.ia_id)">$_('View Volume %(num)d', num=v.volume_number)</a></p>
           </div>
 
     <div class="panel">

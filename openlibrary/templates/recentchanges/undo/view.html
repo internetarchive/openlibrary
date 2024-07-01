@@ -7,11 +7,11 @@ $def with (change)
 <div id="contentBody">
     <div id="mergeHead" class="sansserif">
         $ parent = change.get_parent_changeset()
-        Undo of <a href="$parent.url()">$parent.kind</a>.
+        $:_('Undo of <a href="$parent.url()">%(kind)s</a>.', kind=parent.kind)
 
-        <p class="smallest gray sansserif">$len(change.changes) records modified.</p>
+        <p class="smallest gray sansserif">$_('%(count)d records modified.', count=len(change.changes))</p>
     </div>
 
-    <h3>Updated Records</h3>
+    <h3>$_("Updated Records")</h3>
     $:render_template("recentchanges/updated_records", change)
 </div>

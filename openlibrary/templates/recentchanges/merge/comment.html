@@ -3,7 +3,7 @@ $def with (change, page=None)
 $ type = change.kind.replace("merge-","")[:-1]
 
 $if page is None:
-    Merged duplicate $type records.
+    $_('Merged duplicate %(record_type)s records.', record_type=type)
 $else:
     $ primary = change.data.get("master")
     $ duplicates = change.data.get("duplicates", [])
@@ -13,7 +13,7 @@ $else:
         $ details = ''
     $else:
         $ context = page.key
-        $ details = 'See <a href="' + change.url() + '">details</a>.'
+        $ details = $:_('See <a href="' + change.url() + '">details</a>.')
 
     $if context == primary:
         $# comment in the primary record
@@ -21,7 +21,7 @@ $else:
         $:details
     $elif context in duplicates:
         $# comment in the duplicate record
-        Marked as duplicate. $:details
+        $_("Marked as duplicate.") $:details
     $else:
         $# comment in the affected records
-        Merged $pagetype into primary $type record. $:details
+        $_('Merged %(page_type)s into primary %(record_type) record.', page_type=pagetype, record_type=type) $:details
