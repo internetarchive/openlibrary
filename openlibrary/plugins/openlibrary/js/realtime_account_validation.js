@@ -1,12 +1,22 @@
+import { debounce } from './nonjquery_utils.js';
+
 export function initRealTimeValidation() {
     const signupForm = document.querySelector('form[name=signup]');
     const i18nStrings = JSON.parse(signupForm.dataset.i18n);
+    const validationFns = {
+        emailAddr: validateEmail,
+        username: validateUsername,
+        password: validatePassword
+    }
 
     if (window.grecaptcha) {
         // Callback that is called when grecaptcha.execute() is successful
         // Checks whether reportValidity exists for cross-browser compatibility
         // Includes invalid input count to account for checks not covered by reportValidity
         function submitCreateAccountForm() {
+            const submitBtn = $('button[name=signup]');
+            submitBtn.prop('disabled', true).text(i18nStrings['loading_text']);
+
             const numInvalidInputs = signupForm.querySelectorAll('input.invalid').length;
             const isFormattingValid = !signupForm.reportValidity || signupForm.reportValidity()
 
@@ -18,7 +28,7 @@ export function initRealTimeValidation() {
     }
 
     $('#username').on('keyup', function(){
-        var value = $(this).val();
+        const value = $(this).val();
         $('#userUrl').addClass('darkgreen').text(value).css('font-weight','700');
     });
 
@@ -48,7 +58,7 @@ export function initRealTimeValidation() {
     }
 
     function validateUsername() {
-        const value_username = $(this).val();
+        const value_username = $('#username').val();
         if (value_username !== '') {
             $.ajax({
                 url: '/account/validate',
@@ -69,7 +79,7 @@ export function initRealTimeValidation() {
     }
 
     function validateEmail() {
-        const value_email = $(this).val();
+        const value_email = $('#emailAddr').val();
         if (value_email !== '') {
             $.ajax({
                 url: '/account/validate',
@@ -90,14 +100,30 @@ export function initRealTimeValidation() {
     }
 
     function validatePassword() {
-        const value_password = $(this).val();
+        const value_password = $('#password').val();
         if (value_password !== '' && (value_password.length < 3 || value_password.length > 20)) {
             renderError('#password', '#passwordMessage', i18nStrings['password_length_err']);
         }
         else clearError('#password', '#passwordMessage');
     }
 
-    $('#username').on('blur', validateUsername);
-    $('#emailAddr').on('blur', validateEmail);
-    $('#password').on('blur', validatePassword);
+    function validateInput(input) {
+        const id = $(input).attr('id');
+        const validate = validationFns[id];
+        validate();
+    }
+
+    // Validates previously empty or valid inputs on blur
+    $('input').on('blur', function() {
+        if (!$(this).hasClass('invalid')) {
+            validateInput(this);
+        }
+    });
+
+    // Validates previously invalid inputs on keyup
+    $('input').on('keyup', debounce(function(){
+        if ($(this).hasClass('invalid')) {
+            validateInput(this);
+        }
+    }, 50));
 }

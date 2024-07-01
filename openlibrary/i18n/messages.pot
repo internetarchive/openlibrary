@@ -908,6 +908,11 @@ msgstr ""
 msgid "Must be between 3 and 20 characters"
 msgstr ""
 
+#: account/create.html books/custom_carousel.html
+#: search/work_search_facets.html
+msgid "Loading..."
+msgstr ""
+
 #: account/create.html
 msgid "Sign Up to Open Library"
 msgstr ""
@@ -2643,10 +2648,6 @@ msgstr ""
 
 #: NotInLibrary.html books/custom_carousel.html
 msgid "Not in Library"
-msgstr ""
-
-#: books/custom_carousel.html search/work_search_facets.html
-msgid "Loading..."
 msgstr ""
 
 #: books/custom_carousel.html books/mobile_carousel.html
