@@ -1036,13 +1036,13 @@ msgstr ""
 msgid "Must be between 3 and 20 characters"
 msgstr ""
 
+#: account/create.html
+msgid "Username may only contain numbers, letters, - or _"
+msgstr ""
+
 #: account/create.html books/custom_carousel.html
 #: search/work_search_facets.html
 msgid "Loading..."
-msgstr ""
-
-#: account/create.html
-msgid "Username may only contain numbers, letters, - or _"
 msgstr ""
 
 #: account/create.html
