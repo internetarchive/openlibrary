@@ -44,8 +44,7 @@ $def render_head(page_lists, page_url):
       <h3 class="header">
         <span class="icon list heart-adjust"></span>
         $if len(page_lists) > 0:
-            $ msg = ungettext("%(count)d List", "%(count)d Lists", len(page_lists), count=len(page_lists))
-            <span class="head"><a href="$page_url/lists">$(msg)</a></span>
+            <span class="head"><a href="$page_url/lists">$ungettext("%(count)d List", "%(count)d Lists", len(page_lists), count=len(page_lists))</a></span>
         $else:
             <span class="head">$_("Lists")</span>
       </h3>

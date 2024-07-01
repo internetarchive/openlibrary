@@ -4,12 +4,12 @@ $var title: $_("Attach Debugger")
 
 <div id="contentHead">
     $:render_template("admin/menu")
-    <h1>Attach Debugger on Python $python_version</h1>
+    <h1>$_('Attach Debugger on Python %(version_number)d', version_number=python_version)</h1>
 </div>
 
 <div id="contentBody">
     <div>
-        Start a debugger on port 3000.<br/>
+        $_("Start a debugger on port 3000.")<br/>
     </div>
 
     <form method="POST" class="olform">
