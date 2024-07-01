@@ -570,11 +570,6 @@ class account_validation(delegate.page):
 
     @staticmethod
     def validate_username(username):
-        if not 3 <= len(username) <= 20:
-            return _('Username must be between 3-20 characters')
-        if not re.match('^[A-Za-z0-9-_]{3,20}$', username):
-            return _('Username may only contain numbers, letters, - or _')
-
         ol_account = OpenLibraryAccount.get(username=username)
         if ol_account:
             return _("Username unavailable")
@@ -585,9 +580,6 @@ class account_validation(delegate.page):
 
     @staticmethod
     def validate_email(email):
-        if not (email and re.match(r'.*@.*\..*', email)):
-            return _('Must be a valid email address')
-
         ol_account = OpenLibraryAccount.get(email=email)
         if ol_account:
             return _('Email already registered')
