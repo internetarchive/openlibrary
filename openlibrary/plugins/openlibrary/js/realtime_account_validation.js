@@ -1,6 +1,12 @@
 export function initRealTimeValidation() {
     const signupForm = document.querySelector('form[name=signup]');
     const i18nStrings = JSON.parse(signupForm.dataset.i18n);
+    const VALID_EMAIL_RE = /.*@.*\..*/;
+    const VALID_USERNAME_RE = /^[a-z0-9-_]{3,20}$/i;
+    const PASSWORD_MINLENGTH = 3;
+    const PASSWORD_MAXLENGTH = 20;
+    const USERNAME_MINLENGTH = 3;
+    const USERNAME_MAXLENGTH = 20;
 
     if (window.grecaptcha) {
         // Callback that is called when grecaptcha.execute() is successful
@@ -49,62 +55,77 @@ export function initRealTimeValidation() {
 
     function validateUsername() {
         const value_username = $(this).val();
-        if (value_username !== '') {
-            if (value_username.length < 3 || value_username.length > 20) {
-                renderError('#username', '#usernameMessage', i18nStrings['input_length_err']);
-            } else if (!(/^[A-Za-z0-9-_]{3,20}$/.test(value_username))) {
-                renderError('#username', '#usernameMessage', i18nStrings['username_char_err']);
-            } else {
-                clearError('#username', '#usernameMessage');
 
-                $.ajax({
-                    url: '/account/validate',
-                    data: { username: value_username },
-                    type: 'GET',
-                    success: function(errors) {
-                        if (errors.username) {
-                            renderError('#username', '#usernameMessage', errors.username);
-                        }
-                    }
-                });
-            }
-        }
-        else {
+        if (value_username === '') {
             clearError('#username', '#usernameMessage');
+            return;
         }
+
+        if (value_username.length < USERNAME_MINLENGTH || value_username.length > USERNAME_MAXLENGTH) {
+            renderError('#username', '#usernameMessage', i18nStrings['username_length_err']);
+            return;
+        }
+
+        if (!(VALID_USERNAME_RE.test(value_username))) {
+            renderError('#username', '#usernameMessage', i18nStrings['username_char_err']);
+            return;
+        }
+
+        clearError('#username', '#usernameMessage');
+
+        $.ajax({
+            url: '/account/validate',
+            data: { username: value_username },
+            type: 'GET',
+            success: function(errors) {
+                if (errors.username) {
+                    renderError('#username', '#usernameMessage', errors.username);
+                }
+            }
+        });
     }
 
     function validateEmail() {
         const value_email = $(this).val();
-        if (value_email !== '') {
-            if (!(/.*@.*\..*/.test(value_email))) {
-                renderError('#emailAddr', '#emailAddrMessage', i18nStrings['invalid_email_format']);
-            } else {
-                clearError('#emailAddr', '#emailAddrMessage');
 
-                $.ajax({
-                    url: '/account/validate',
-                    data: { email: value_email },
-                    type: 'GET',
-                    success: function(errors) {
-                        if (errors.email) {
-                            renderError('#emailAddr', '#emailAddrMessage', errors.email);
-                        }
-                    }
-                });
-            }
-        }
-        else {
+        if (value_email === '') {
             clearError('#emailAddr', '#emailAddrMessage');
+            return;
         }
+
+        if (!VALID_EMAIL_RE.test(value_email)) {
+            renderError('#emailAddr', '#emailAddrMessage', i18nStrings['invalid_email_format']);
+            return;
+        }
+
+        clearError('#emailAddr', '#emailAddrMessage');
+
+        $.ajax({
+            url: '/account/validate',
+            data: { email: value_email },
+            type: 'GET',
+            success: function(errors) {
+                if (errors.email) {
+                    renderError('#emailAddr', '#emailAddrMessage', errors.email);
+                }
+            }
+        });
     }
 
     function validatePassword() {
         const value_password = $(this).val();
-        if (value_password !== '' && (value_password.length < 3 || value_password.length > 20)) {
-            renderError('#password', '#passwordMessage', i18nStrings['input_length_err']);
+
+        if (value_password === '') {
+            clearError('#password', '#passwordMessage');
+            return;
         }
-        else clearError('#password', '#passwordMessage');
+
+        if (value_password.length < PASSWORD_MINLENGTH || value_password.length > PASSWORD_MAXLENGTH) {
+            renderError('#password', '#passwordMessage', i18nStrings['password_length_err']);
+            return;
+        }
+
+        clearError('#password', '#passwordMessage');
     }
 
     $('#username').on('blur', validateUsername);

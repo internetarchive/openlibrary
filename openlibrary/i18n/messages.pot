@@ -905,15 +905,15 @@ msgid "The Open Library Team"
 msgstr ""
 
 #: account/create.html forms.py
+msgid "Must be a valid email address"
+msgstr ""
+
+#: account/create.html forms.py
 msgid "Must be between 3 and 20 characters"
 msgstr ""
 
 #: account/create.html
 msgid "Username may only contain numbers, letters, - or _"
-msgstr ""
-
-#: account/create.html forms.py
-msgid "Must be a valid email address"
 msgstr ""
 
 #: account/create.html
