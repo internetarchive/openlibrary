@@ -6506,7 +6506,15 @@ msgid "Check nearby libraries"
 msgstr ""
 
 #: WorldcatLink.html
+msgid "Library.link"
+msgstr ""
+
+#: WorldcatLink.html
 msgid "Check WorldCat for an edition near you"
+msgstr ""
+
+#: WorldcatLink.html
+msgid "WorldCat"
 msgstr ""
 
 #: databarDiff.html databarEdit.html

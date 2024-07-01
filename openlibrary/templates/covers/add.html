@@ -20,7 +20,7 @@ $if status:
     $elif status.code == 3: $_("Please provide a valid image.")
 </div>
 
-<div class="imageIntro">$intro  $:_('Learn more by reading our <a href="/help/faq/editing#picture" target="blank">%(guidelines)s</a>.', guidelines=guideline)</div>
+<div class="imageIntro">$intro  <span>$:_('Learn more by reading our <a href="/help/faq/editing#picture" target="blank">%(guidelines)s</a>.', guidelines=guideline)</span></div>
 $if doc.type.key == "/type/work":
     $if doc.get_edition_covers():
         <form class="ol-cover-form ol-cover-form--id" method="post" enctype="multipart/form-data" action="$action">
