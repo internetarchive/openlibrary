@@ -25,14 +25,14 @@ $if key == '/':
 <div id="contentBody">
     $:macros.TypeChanger(page.type)
     <div class="formElement">
-        <div class="label"><label for="_lang">Available Translations:</label></div>
+        <div class="label"><label for="_lang">$_("Available Translations:")</label></div>
         <div class="input">
             <select name="_lang" onchange="window.location = (window.location.protocol + '//' + window.location.host + this.options[this.selectedIndex].value + window.location.search + '&redirect=$page.key')" id="lang_dropdown">
-            <option value="">Please select one ...</option>
-            <option value="${key}.en">English (en)</option>
-            <option value="${key}.it">Italian (it)</option>
-            <option value="${key}.es">Spanish (es)</option>
-            <option value="${key}.te">Telugu (te)</option>
+            <option value="">$_("Please select one ...")</option>
+            <option value="${key}.en">$('English (en)')</option>
+            <option value="${key}.it">$('Italian (it)')</option>
+            <option value="${key}.es">$('Spanish (es)')</option>
+            <option value="${key}.te">$('Telugu (te)')</option>
             </select>
         </div>
     </div>

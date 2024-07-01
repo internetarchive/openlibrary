@@ -46,4 +46,5 @@ $ edition_list_secs = time() - edition_list_start
 <!-- Admin only text doesn't need to be translated -->
 $if ctx.user and ctx.user.is_admin() and query_param('debug'):
     <div class="clearfix"></div>
+    $# detect-missing-i18n-skip-line
     <div class="small sansserif"><span class="adminOnly">Getting list of editions took $("%.2f" % edition_list_secs) seconds</span></div>
