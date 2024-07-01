@@ -473,22 +473,24 @@ msgid "Server status"
 msgstr ""
 
 #: SearchNavigation.html SubjectTags.html lib/nav_foot.html lib/nav_head.html
-#: subjects.html subjects/notfound.html type/author/view.html
-#: type/list/view_body.html work_search.html
+#: search/work_search_facets.html subjects.html subjects/notfound.html
+#: type/author/view.html type/list/view_body.html work_search.html
 msgid "Subjects"
 msgstr ""
 
-#: SubjectTags.html subjects.html type/author/view.html
-#: type/list/view_body.html work_search.html
+#: SubjectTags.html search/work_search_facets.html subjects.html
+#: type/author/view.html type/list/view_body.html work_search.html
 msgid "Places"
 msgstr ""
 
-#: SubjectTags.html admin/menu.html subjects.html type/author/view.html
-#: type/list/view_body.html work_search.html
+#: SubjectTags.html admin/menu.html search/work_search_facets.html
+#: subjects.html type/author/view.html type/list/view_body.html
+#: work_search.html
 msgid "People"
 msgstr ""
 
-#: SubjectTags.html subjects.html type/list/view_body.html work_search.html
+#: SubjectTags.html search/work_search_facets.html subjects.html
+#: type/list/view_body.html work_search.html
 msgid "Times"
 msgstr ""
 
@@ -783,12 +785,13 @@ msgstr ""
 msgid "eBook?"
 msgstr ""
 
-#: type/edition/view.html type/work/view.html work_search.html
+#: search/work_search_facets.html type/edition/view.html type/work/view.html
+#: work_search.html
 msgid "Language"
 msgstr ""
 
 #: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
-#: search/advancedsearch.html work_search.html
+#: search/advancedsearch.html search/work_search_facets.html work_search.html
 msgid "Author"
 msgstr ""
 
@@ -796,8 +799,8 @@ msgstr ""
 msgid "First published"
 msgstr ""
 
-#: search/advancedsearch.html type/edition/view.html type/work/view.html
-#: work_search.html
+#: search/advancedsearch.html search/work_search_facets.html
+#: type/edition/view.html type/work/view.html work_search.html
 msgid "Publisher"
 msgstr ""
 
@@ -5163,6 +5166,14 @@ msgid "work"
 msgstr ""
 
 #: search/work_search_facets.html
+msgid "Ebook"
+msgstr ""
+
+#: search/work_search_facets.html
+msgid "FirstPublished"
+msgstr ""
+
+#: search/work_search_facets.html
 msgid "Merge duplicate authors from this search"
 msgstr ""
 
@@ -5688,6 +5699,14 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "Loading Related Books"
+msgstr ""
+
+#: type/i18n_page/edit.html
+msgid "Available Translations:"
+msgstr ""
+
+#: type/i18n_page/edit.html
+msgid "Please select one ..."
 msgstr ""
 
 #: type/language/view.html
@@ -6497,6 +6516,10 @@ msgstr ""
 
 #: WorldcatLink.html
 msgid "Check WorldCat for an edition near you"
+msgstr ""
+
+#: WorldcatLink.html
+msgid "WorldCat"
 msgstr ""
 
 #: databarDiff.html databarEdit.html
