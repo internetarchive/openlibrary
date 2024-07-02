@@ -130,9 +130,11 @@ function fetchPartials(param) {
             query: document.location.search
         }
     const dataString = JSON.stringify(data)
-    const dataQueryParam = encodeURIComponent(dataString)
 
-    return fetch(`/partials.json?_component=SearchFacets&data=${dataQueryParam}`)
+    return fetch(`/partials.json?${new URLSearchParams({
+            _component: 'SearchFacets',
+            data: dataString
+        })}`)
         .then((resp) => {
             if (!resp.ok) {
                 throw new Error(`Failed to fetch partials. Status code: ${resp.status}`)
