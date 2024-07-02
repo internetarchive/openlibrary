@@ -18,18 +18,35 @@ $else:
   $ title = _("Read ebook from Internet Archive")
   $ analytics_action = "Read"
 
-<div class="cta-button-group">
-  <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action)"
-      $:analytics_attr(analytics_action)
-      $if loan:
-        data-userid="$(loan['userid'])"
-      >$label</a>
-  $if listen:
-    <a href="$(stream_url)&_autoReadAloud=show"
-       title="$title using Read Aloud"
-       $:analytics_attr(action.capitalize() + 'Listen')
-       class="cta-btn cta-btn--available cta-btn--w-icon">
-      <span class="btn-icon read-aloud"></span>
-      <span class="btn-label">$_("Listen")</span>
-    </a>
+<div class="dropdown-button-group">
+  <span class="cta-dropper">
+    <details class="cta-dropper__details">
+      <summary class="cta-dropper__summary">
+        <div class="cta-button-groupp">
+          <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action)"
+              $:analytics_attr(analytics_action)
+              $if loan:
+                data-userid="$(loan['userid'])"
+              >$label</a>
+          $if False:
+            <a href="$(stream_url)&_autoReadAloud=show"
+               title="$title using Read Aloud"
+               $:analytics_attr(action.capitalize() + 'Listen')
+               class="cta-btn cta-btn--available cta-btn--w-icon">
+              <span class="btn-icon read-aloud"></span>
+              <span class="btn-label">$_("Listen")</span>
+            </a>
+        </div>
+      </summary>
+      <div class="cta-dropper__content">
+        <span class="cta-dropper__content-inner">
+          <ul class="cta-dropper__content-list">
+            <li>Listen</li>
+            <li>Search Inside</li>
+            <li>Check Nearby Libraries</li>
+          </ul>
+        </span>
+      </div>
+    </details>
+  </span>
 </div>
