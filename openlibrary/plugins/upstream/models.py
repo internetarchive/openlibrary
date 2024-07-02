@@ -493,9 +493,8 @@ class Edition(models.Edition):
         self.providers = providers
 
     def olid_link(olid):
-        db_query = {"type": "/type/edition", "key": f"/books/{olid}"}
-        edition_key = web.ctx.site.things(db_query)
-
+        key = f"/books/{olid}"
+        edition_key = web.ctx.site.get(key)
         return edition_key
 
 

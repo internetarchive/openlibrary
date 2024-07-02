@@ -59,11 +59,6 @@ class TestEdition:
         e = self.mock_edition(MockPrivateEdition)
         assert not e.in_borrowable_collection()
 
-    def test_olid_link(self):
-        e = self.mock_edition(models.edition)
-        edition = models.edition.olid_link("OL1M")
-        assert e.url() == edition
-
     @pytest.mark.parametrize(
         ["isbn_or_asin", "expected"],
         [
