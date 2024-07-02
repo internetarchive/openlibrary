@@ -43,11 +43,16 @@ def fetch_issues(updated_since: str):
         'q': query,
         'per_page': 100,
     }
+    print(github_headers.get('Authorization'], '')[:8])
     response = requests.get(
         'https://api.github.com/search/issues', params=p, headers=github_headers
     )
     d = response.json()
-    results = d['items']
+    if response.status_code != 200:
+        print(f"Failed with {response.status_code}")
+        results = []
+    else:
+        results = d['items']
 
     # Fetch additional updated issues, if any exist
     def get_next_page(url: str):
@@ -346,4 +351,5 @@ if __name__ == '__main__':
     github_token = os.environ.get('GITHUB_TOKEN', '')
     if github_token:
         github_headers['Authorization'] = f'Bearer {github_token}'
+    print(github_headers['Authorization'])[:8]
     start_job(args)
