@@ -43,7 +43,7 @@ def fetch_issues(updated_since: str):
         'q': query,
         'per_page': 100,
     }
-    print(github_headers.get('Authorization'], '')[:8])
+    print(github_headers.get('Authorization', '')[:8])
     response = requests.get(
         'https://api.github.com/search/issues', params=p, headers=github_headers
     )
