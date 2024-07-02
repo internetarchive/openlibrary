@@ -18,18 +18,48 @@ $else:
   $ title = _("Read ebook from Internet Archive")
   $ analytics_action = "Read"
 
-<div class="cta-button-group">
-  <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action)"
-      $:analytics_attr(analytics_action)
-      $if loan:
-        data-userid="$(loan['userid'])"
-      >$label</a>
-  $if listen:
-    <a href="$(stream_url)&_autoReadAloud=show"
-       title="$title using Read Aloud"
-       $:analytics_attr(action.capitalize() + 'Listen')
-       class="cta-btn cta-btn--available cta-btn--w-icon">
-      <span class="btn-icon read-aloud"></span>
-      <span class="btn-label">$_("Listen")</span>
-    </a>
+<div class="dropdown-button-group cta-dropper">
+  <div class="cta-button-group cta-dropper__button">
+    <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action)"
+        $:analytics_attr(analytics_action)
+        $if loan:
+          data-userid="$(loan['userid'])"
+        >$label</a>
+  </div>
+  <details class="cta-dropper__details">
+    <summary class="cta-dropper__summary">
+    </summary>
+    <div class="cta-dropper__content">
+      <ul class="cta-dropper__content-list">
+        $if listen:
+          <li>
+            <a href="$(stream_url)&_autoReadAloud=show"
+               title="$title using Read Aloud"
+               $:analytics_attr(action.capitalize() + 'Listen')
+               class="cta-btn cta-btn--available cta-btn--w-icon">
+              <span class="btn-icon listen"></span>
+              <span class="btn-label">$_("Listen")</span>
+            </a>
+          </li>
+        <li>
+          <a class="cta-btn cta-btn--available cta-btn--w-icon">
+            <span class="btn-icon search"></span>
+            <span class="btn-label">Search Inside</span>
+          </a>
+        </li>
+        <li>
+          <a class="cta-btn cta-btn--available cta-btn--w-icon">
+            <span class="btn-icon download"></span>
+            <span class="btn-label">Download</span>
+          </a>
+        </li>
+        <li>
+          <a class="cta-btn cta-btn--available cta-btn--w-icon">
+            <span class="btn-icon map"></span>
+            <span class="btn-label">Check Nearby Libraries</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </details>
 </div>
