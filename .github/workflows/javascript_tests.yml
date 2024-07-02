@@ -44,6 +44,6 @@ jobs:
       - run: npx concurrently --group 'make js' 'make css' 'make components'
       - run: npm run test
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
