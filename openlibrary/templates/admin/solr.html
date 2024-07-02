@@ -4,13 +4,13 @@ $var title: Solr Admin
 
 <div id="contentHead">
     $:render_template("admin/menu")
-    <h1>Solr Admin</h1>
+    <h1>$_("Solr Admin")</h1>
 </div>
 
 <div id="contentBody">
-	<div>Enter the keys of pages to be updated in OL search engine.<br/>
+	<div>$_("Enter the keys of pages to be updated in OL search engine.")<br/>
 
-	Example:
+	$_("Example:")
 	<pre>
 /books/OL1M
 /books/ia:foo00bar
@@ -18,7 +18,7 @@ $var title: Solr Admin
 /authors/OL3456A
 	</pre>
 
-	On update, these keys will be added to solr update queue and it'll take about 15 minutes for them to get reindexed in Solr.
+	$_("On update, these keys will be added to solr update queue and it'll take about 15 minutes for them to get reindexed in Solr.")
 	</div>
 
     <form method="POST" class="olform">

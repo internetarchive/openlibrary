@@ -41,7 +41,7 @@ $ i18n_strings = {
 
         <div class="formElement">
             <div class="label">
-                <label for="publisher">$_("Who is the publisher?")</label> <span class="tip">$_("For example"): <em>Oxford University Press; Penguin; W.W. Norton</em></span><span class="red">*<span class="tip">$_("Required field")</span></span>
+                <label for="publisher">$_("Who is the publisher?")</label> <span class="tip">$_("For example:") <em>$_("Oxford University Press; Penguin; W.W. Norton")</em></span><span class="red">*<span class="tip">$_("Required field")</span></span>
             </div>
             <div class="input">
                 <input type="text" name="publisher" class="required" id="publisher"/>
@@ -67,12 +67,12 @@ $ i18n_strings = {
                 <select name="id_name" id="id_name">
                 <option value="">$_("Select")</option>
                 $if admin_user:
-                    <option value="ocaid">Internet Archive</option>
-                <option value="isbn_10">ISBN 10</option>
-                <option value="isbn_13">ISBN 13</option>
-                <option value="lccn">LCCN</option>
-                <option value="librivox">LibriVox</option>
-                <option value="project_gutenberg">Project Gutenberg</option>
+                    <option value="ocaid">$_("Internet Archive")</option>
+                <option value="isbn_10">$_("ISBN 10")</option>
+                <option value="isbn_13">$_("ISBN 13")</option>
+                <option value="lccn">$_("LCCN")</option>
+                <option value="librivox">$_("LibriVox")</option>
+                <option value="project_gutenberg">$_("Project Gutenberg")</option>
                 </select>
                 &nbsp;
                 <input type="text" name="id_value" id="id_value" size="20" style="width:200px;"/>

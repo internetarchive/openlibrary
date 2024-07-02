@@ -7,7 +7,7 @@ $ label = primary.name if type == "author" else primary.title
 $if primary:
     <div class="truncatepath">
         <a class="datalink" href="$primary.url()">$label</a>
-        <span class="smallest sansserif"> - <a href="$change.url()" style="text-decoration: none;">expand</a></span>
+        <span class="smallest sansserif"> - <a href="$change.url()" style="text-decoration: none;">$_("expand")</a></span>
     </div>
 $else:
     <div class="truncatepath">--</div>
