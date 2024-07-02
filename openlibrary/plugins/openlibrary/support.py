@@ -24,7 +24,14 @@ class contact(delegate.page):
 
         hashed_ip = hashlib.md5(web.ctx.ip.encode('utf-8')).hexdigest()
         has_emailed_recently = get_memcache().get('contact-POST-%s' % hashed_ip)
-        recaptcha = has_emailed_recently and get_recaptcha()
+        # recaptcha = has_emailed_recently and get_recaptcha()
+
+        # # Always show recaptcha for unauthenticated users
+        if has_emailed_recently:
+            recaptcha = get_recaptcha()
+        else:
+            recaptcha = has_emailed_recently and get_recaptcha()
+
         return render_template("support", email=email, url=i.path, recaptcha=recaptcha)
 
     def POST(self):
@@ -42,7 +49,10 @@ class contact(delegate.page):
 
         hashed_ip = hashlib.md5(web.ctx.ip.encode('utf-8')).hexdigest()
         has_emailed_recently = get_memcache().get('contact-POST-%s' % hashed_ip)
-        if has_emailed_recently:
+
+        ## Always validate recaptcha for unauthenticated users
+        # if has_emailed_recently:
+        if not user:
             recap = get_recaptcha()
             if recap and not recap.validate():
                 return render_template(
