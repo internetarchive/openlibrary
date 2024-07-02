@@ -346,9 +346,11 @@ if __name__ == '__main__':
     # Process command-line arguments and starts the notification job
     parser = _get_parser()
     args = parser.parse_args()
-
+    global github_headers
+    
     # If found, add token to GitHub request headers:
     github_token = os.environ.get('GITHUB_TOKEN', '')
+    print(os.environ.get('GITHUB_TOKEN', '')[:2])
     if github_token:
         github_headers['Authorization'] = f'Bearer {github_token}'
     print(github_headers['Authorization'])[:8]
