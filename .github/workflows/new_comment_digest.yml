@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       slack_channel:
-        description: 'Digest is published to this channel'
+        description: 'Digest is published to this channel. Entering an empty string will prevent publishing.'
         type: string
         default: '#team-abc'
       hours:
@@ -27,7 +27,7 @@ jobs:
         with:
           python-version: 3.x
       - run: pip install requests
-      - run: scripts/gh_scripts/issue_comment_bot.py ${{ inputs.hours }} -c .github/workflows/config/new_comment_digest.json -s "${{ inputs.slack_channel }}" -t "$SLACK_TOKEN"
+      - run: scripts/gh_scripts/issue_comment_bot.py ${{ inputs.hours }} -c .github/workflows/config/new_comment_digest.json -s "${{ inputs.slack_channel }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}

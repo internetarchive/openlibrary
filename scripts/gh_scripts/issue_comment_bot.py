@@ -152,7 +152,6 @@ def find_lead_label(labels: list[dict[str, Any]]) -> str:
 def publish_digest(
     issues: list[dict[str, str]],
     slack_channel: str,
-    slack_token: str,
     hours_passed: int,
     leads: list[dict[str, str]],
     all_issues_labeled: bool,
@@ -168,7 +167,7 @@ def publish_digest(
         return requests.post(
             'https://slack.com/api/chat.postMessage',
             headers={
-                'Authorization': f"Bearer {slack_token}",
+                'Authorization': f"Bearer {os.environ.get('SLACK_TOKEN', '')}",
                 'Content-Type': 'application/json;  charset=utf-8',
             },
             json=payload,
@@ -307,10 +306,10 @@ def start_job(args: argparse.Namespace):
         all_issues_labeled = add_label_to_issues(filtered_issues)
         if not all_issues_labeled:
             print('Failed to label some issues')
-    if args.slack_token and args.slack_channel:
+    if args.slack_channel:
         print('Publishing digest to Slack')
         publish_digest(
-            filtered_issues, args.slack_channel, args.slack_token, args.hours, leads, all_issues_labeled
+            filtered_issues, args.slack_channel, args.hours, leads, all_issues_labeled
         )
         print('Digest posted to Slack')
     if args.verbose:
@@ -337,13 +336,7 @@ def _get_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         '-s',
         '--slack-channel',
-        help="Issues will be published to this Slack channel",
-        type=str,
-    )
-    parser.add_argument(
-        '-t',
-        '--slack-token',
-        help='Slack auth token',
+        help="Issues will be published to this Slack channel. Publishing to Slack will be skipped if this argument is missing, or is an empty string",
         type=str,
     )
     parser.add_argument(
@@ -369,6 +362,12 @@ if __name__ == '__main__':
     # If no GitHub token is found, fail fast:
     if not (github_token := os.environ.get('GITHUB_TOKEN', '')):
         print('Script requires a GitHub token.')
+        sys.exit(1)
+
+    # If no Slack token is found, fail fast.
+    # Note: Digest will not be published to Slack if the channel isn't passed to the script.
+    if args.slack_channel and not os.environ.get('SLACK_TOKEN', ''):
+        print('Script requires a Slack token.')
         sys.exit(1)
 
     github_headers['Authorization'] = f'Bearer {github_token}'
