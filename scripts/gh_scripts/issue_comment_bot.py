@@ -46,16 +46,27 @@ def fetch_issues(updated_since: str):
     response = requests.get(
         'https://api.github.com/search/issues', params=p, headers=github_headers
     )
+    if response.status_code != 200:
+        print('Initial request for issues has failed.')
+        response.raise_for_status()
+
     d = response.json()
     results = d['items']
 
     # Fetch additional updated issues, if any exist
     def get_next_page(url: str):
         """Returns list of issues and optional url for next page"""
-        resp = requests.get(url, headers=github_headers)
         # Get issues
+        resp = requests.get(url, headers=github_headers)
+
+        if resp.status_code != 200:
+            print('Request for next page of issues has failed.')
+            response.raise_for_status()
+
         d = resp.json()
+
         issues = d['items']
+
         # Prepare url for next page
         next = resp.links.get('next', {})
         next_url = next.get('url', '')
@@ -342,8 +353,15 @@ if __name__ == '__main__':
     parser = _get_parser()
     args = parser.parse_args()
 
-    # If found, add token to GitHub request headers:
-    github_token = os.environ.get('GITHUB_TOKEN', '')
-    if github_token:
-        github_headers['Authorization'] = f'Bearer {github_token}'
-    start_job(args)
+    # If no GitHub token is found, fail fast:
+    if not (github_token := os.environ.get('GITHUB_TOKEN', '')):
+        print('Script requires a GitHub token.')
+        sys.exit(1)
+
+    github_headers['Authorization'] = f'Bearer {github_token}'
+
+    try:
+        start_job(args)
+    except requests.exceptions.HTTPError as e:
+        print(e)
+        sys.exit(1)
