@@ -5,9 +5,8 @@ on:
   workflow_dispatch:
     inputs:
       slack_channel:
-        description: 'Digest is published to this channel. Entering an empty string will prevent publishing.'
+        description: 'Digest is published to this channel. Include leading `#` symbol in channel name.  Entering an empty string will skip publishing to Slack.'
         type: string
-        default: '#team-abc-plus'
       hours:
         description: 'Search for issues that have new comments within this number of hours.'
         type: number
@@ -25,6 +24,11 @@ permissions:
   contents: read
   issues: write
 
+env:
+  HOURS: 24
+  CHANNEL_ARG: '-s #team-abc-plus'
+  VERBOSE_FLAG: ''
+
 jobs:
   new_comment_digest:
     runs-on: ubuntu-latest
@@ -34,16 +38,28 @@ jobs:
         with:
           python-version: 3.x
       - run: pip install requests
-      - name: Set environment variable for verbose flag
+      - name: Override environment variables with inputs when workflow is manually triggered
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         env:
+          HOURS: ${{ inputs.hours }}
+          CHANNEL: ${{ inputs.slack_channel }}
           VERBOSE: ${{ inputs.verbose_mode }}
         run: |
+          # Set hours:
+          echo "HOURS=$HOURS" >> $GITHUB_ENV
+          # Set Slack channel:
+          CHANNEL_ARG=""
+          if [[ -n $CHANNEL ]]; then
+            CHANNEL_ARG="-s \"$CHANNEL\""
+          fi
+          echo "CHANNEL_ARG=$CHANNEL_ARG" >> $GITHUB_ENV
+          # Set verbose flag:
           VERBOSE_FLAG=''
-          if [[ $VERBOSE == 'Yes' ]]; then
-            VERBOSE_FLAG='-v'
+          if [[ $VERBOSE == "Yes" ]]; then
+            VERBOSE_FLAG="-v"
           fi
           echo "VERBOSE_FLAG=$VERBOSE_FLAG" >> $GITHUB_ENV
-      - run: scripts/gh_scripts/issue_comment_bot.py ${{ inputs.hours }} -c .github/workflows/config/new_comment_digest.json -s "${{ inputs.slack_channel }}" ${{ env.VERBOSE_FLAG }}
+      - run: scripts/gh_scripts/issue_comment_bot.py ${{ env.HOURS }} -c .github/workflows/config/new_comment_digest.json ${{ env.CHANNEL_ARG }} ${{ env.VERBOSE_FLAG }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
