@@ -7,11 +7,11 @@ on:
       slack_channel:
         description: 'Digest is published to this channel. Entering an empty string will prevent publishing.'
         type: string
-        default: '#team-abc'
+        default: '#team-abc-plus'
       hours:
-        description: 'Search for issues that have new comments within this number of hours'
-        required: true
+        description: 'Search for issues that have new comments within this number of hours.'
         type: number
+        required: true
         default: 24
 
 permissions:
