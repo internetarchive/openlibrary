@@ -254,14 +254,25 @@ def time_since(hours):
     return since, since.strftime('%Y-%m-%dT%H:%M:%S')
 
 
-def add_label_to_issues(issues):
+def add_label_to_issues(issues) -> bool:
+    all_issues_labeled = True
     for issue in issues:
+        # GitHub recommends waiting at least one second between mutative requests
+        time.sleep(1)
+
         issue_labels_url = f"https://api.github.com/repos/internetarchive/openlibrary/issues/{issue['number']}/labels"
         response = requests.post(
             issue_labels_url,
             json={"labels": ["Needs: Response"]},
             headers=github_headers,
         )
+
+        if response.status_code != 200:
+            all_issues_labeled = False
+            print(f'Failed to label issue #{issue["number"]} --- status code: {response.status_code}')
+            print(issue_labels_url)
+
+    return all_issues_labeled
 
 
 def verbose_output(issues):
@@ -292,9 +303,12 @@ def start_job(args: argparse.Namespace):
     issues = fetch_issues(date_string)
 
     filtered_issues = filter_issues(issues, since, leads)
+    all_issues_labeled = True
     if not args.no_labels:
-        add_label_to_issues(filtered_issues)
         print('Issues labeled as "Needs: Response"')
+        all_issues_labeled = add_label_to_issues(filtered_issues)
+        if not all_issues_labeled:
+            print('Failed to label some issues')
     if args.slack_token and args.slack_channel:
         publish_digest(
             filtered_issues, args.slack_channel, args.slack_token, args.hours, leads
