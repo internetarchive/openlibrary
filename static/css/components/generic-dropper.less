@@ -103,6 +103,10 @@
     content: '▸';
   }
 
+  .cta-button-group {
+    flex-grow: 1;
+  }
+
   &__details[open] summary::after {
     content: '▾'
   }
@@ -123,9 +127,14 @@
     border-top: 1px solid;
     border-color: @lighter-grey;
   }
-  &__content-list > li {
-    list-style: none;
-  }
+}
+
+.read-options .cta-dropper__summary, .Tools .btn-notice .cta-dropper__summary {
+  margin: 5px 0px 0;
+}
+
+.read-options .cta-dropper__content-list li, .Tools .btn-notice .cta-dropper__content-list li {
+  list-style: none;
 }
 
 .cta-dropper__summary .cta-btn {
