@@ -155,6 +155,7 @@ def publish_digest(
     slack_token: str,
     hours_passed: int,
     leads: list[dict[str, str]],
+    all_issues_labeled: bool,
 ):
     """
     Creates a threaded Slack messaged containing a digest of recently commented GitHub issues.
@@ -162,56 +163,37 @@ def publish_digest(
     Parent Slack message will say how many comments were left, and the timeframe. Each reply
     will include a link to the comment, as well as additional information.
     """
-    # Create the parent message
-    parent_thread_msg = (
-        f'{len(issues)} new GitHub comment(s) since {hours_passed} hour(s) ago'
-    )
 
-    response = requests.post(
-        'https://slack.com/api/chat.postMessage',
-        headers={
-            'Authorization': f"Bearer {slack_token}",
-            'Content-Type': 'application/json;  charset=utf-8',
-        },
-        json={
-            'channel': slack_channel,
-            'text': parent_thread_msg,
-        },
-    )
-
-    if response.status_code != 200:
-        # XXX : Log this
-        print(f'Failed to send message to Slack.  Status code: {response.status_code}')
-        # XXX : Add retry logic?
-        sys.exit(errno.ECOMM)
-
-    d = response.json()
-    # Store timestamp, which, along with the channel, uniquely identifies the parent thread
-    ts = d.get('ts')
-
-    def comment_on_thread(message: str):
-        """
-        Posts the given message as a reply to the parent message.
-        """
-        response = requests.post(
+    def post_message(payload: dict[str, str]):
+        return requests.post(
             'https://slack.com/api/chat.postMessage',
             headers={
                 'Authorization': f"Bearer {slack_token}",
                 'Content-Type': 'application/json;  charset=utf-8',
             },
-            json={
-                'channel': slack_channel,
-                'text': message,
-                'thread_ts': ts,
-            },
+            json=payload,
         )
-        if response.status_code != 200:
-            # XXX : Check "ok" field for errors
-            # XXX : Log this
-            print(
-                f'Failed to POST slack message\n  Status code: {response.status_code}\n  Message: {message}'
-            )
-            # XXX : Retry logic?
+
+    # Create the parent message
+    parent_thread_msg = (
+        f'{len(issues)} new GitHub comment(s) since {hours_passed} hour(s) ago'
+    )
+
+    response = post_message({
+            'channel': slack_channel,
+            'text': parent_thread_msg,
+        })
+
+    if response.status_code != 200:
+        print(f'Failed to send message to Slack.  Status code: {response.status_code}')
+        sys.exit(errno.ECOMM)
+
+    d = response.json()
+    if not d.get('ok', True):
+        print(f'Slack request not ok.  Error message: {d.get("error", '')}')
+
+    # Store timestamp, which, along with the channel, uniquely identifies the parent thread
+    ts = d.get('ts')
 
     for i in issues:
         # Slack rate limit is roughly 1 request per second
@@ -243,7 +225,23 @@ def publish_digest(
             message += 'Lead: N/A\n'
 
         message += f'Commenter: *{commenter}*'
-        comment_on_thread(message)
+        r = post_message({
+                'channel': slack_channel,
+                'text': message,
+                'thread_ts': ts,
+            })
+        if r.status_code != 200:
+            print(f'Failed to send message to Slack.  Status code: {r.status_code}')
+        else:
+            d = r.json()
+            if not d.get('ok', True):
+                print(f'Slack request not ok.  Error message: {d.get("error", '')}')
+
+    if not all_issues_labeled:
+        r = post_message({
+            'channel': slack_channel,
+            'text': 'Warning: some issues were not labeled "Needs: Response"  See the <https://github.com/internetarchive/openlibrary/actions/workflows/new_comment_digest.yml|log files> for more information'
+        })
 
 
 def time_since(hours):
@@ -310,8 +308,9 @@ def start_job(args: argparse.Namespace):
         if not all_issues_labeled:
             print('Failed to label some issues')
     if args.slack_token and args.slack_channel:
+        print('Publishing digest to Slack')
         publish_digest(
-            filtered_issues, args.slack_channel, args.slack_token, args.hours, leads
+            filtered_issues, args.slack_channel, args.slack_token, args.hours, leads, all_issues_labeled
         )
         print('Digest posted to Slack')
     if args.verbose:
