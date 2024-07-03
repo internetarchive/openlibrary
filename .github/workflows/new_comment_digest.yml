@@ -13,6 +13,13 @@ on:
         type: number
         required: true
         default: 24
+      verbose_mode:
+        description: 'Display detailed information about the issues that need responses? (Verbose mode)'
+        type: choice
+        default: 'No'
+        options:
+        - 'Yes'
+        - 'No'
 
 permissions:
   contents: read
@@ -27,7 +34,16 @@ jobs:
         with:
           python-version: 3.x
       - run: pip install requests
-      - run: scripts/gh_scripts/issue_comment_bot.py ${{ inputs.hours }} -c .github/workflows/config/new_comment_digest.json -s "${{ inputs.slack_channel }}"
+      - name: Set environment variable for verbose flag
+        env:
+          VERBOSE: ${{ inputs.verbose_mode }}
+        run: |
+          VERBOSE_FLAG=''
+          if [[ $VERBOSE == 'Yes' ]]; then
+            VERBOSE_FLAG='-v'
+          fi
+          echo "VERBOSE_FLAG=$VERBOSE_FLAG" >> $GITHUB_ENV
+      - run: scripts/gh_scripts/issue_comment_bot.py ${{ inputs.hours }} -c .github/workflows/config/new_comment_digest.json -s "${{ inputs.slack_channel }}" ${{ env.VERBOSE_FLAG }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
