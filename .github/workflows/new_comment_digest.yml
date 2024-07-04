@@ -19,6 +19,10 @@ on:
         options:
         - 'Yes'
         - 'No'
+      label_issues:
+        description: 'Add `Needs: Response` labels to issues?'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -28,6 +32,7 @@ env:
   HOURS: 24
   CHANNEL_ARG: '-s #team-abc-plus'
   VERBOSE_FLAG: ''
+  NO_LABELS_FLAG: ''
 
 jobs:
   new_comment_digest:
@@ -46,6 +51,7 @@ jobs:
           HOURS: ${{ inputs.hours }}
           CHANNEL: ${{ inputs.slack_channel }}
           VERBOSE: ${{ inputs.verbose_mode }}
+          USE_LABELS: ${{ inputs.label_issues }}
         run: |
           # Set hours:
           echo "HOURS=$HOURS" >> $GITHUB_ENV
@@ -61,7 +67,13 @@ jobs:
             VERBOSE_FLAG="-v"
           fi
           echo "VERBOSE_FLAG=$VERBOSE_FLAG" >> $GITHUB_ENV
-      - run: scripts/gh_scripts/issue_comment_bot.py ${{ env.HOURS }} -c .github/workflows/config/new_comment_digest.json ${{ env.CHANNEL_ARG }} ${{ env.VERBOSE_FLAG }}
+          # Set no_labels flag:
+          NO_LABELS_FLAG=""
+          if [[ $USE_LABELS == false ]]; then
+            NO_LABELS_FLAG="--no-labels"
+          fi
+          echo "NO_LABELS_FLAG=$NO_LABELS_FLAG" >> $GITHUB_ENV
+      - run: scripts/gh_scripts/issue_comment_bot.py ${{ env.HOURS }} -c .github/workflows/config/new_comment_digest.json ${{ env.CHANNEL_ARG }} ${{ env.VERBOSE_FLAG }} ${{ env.NO_LABELS_FLAG }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
