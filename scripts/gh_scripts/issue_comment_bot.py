@@ -204,11 +204,14 @@ def publish_digest(
         message = f'<{comment_url}|Latest comment for: *{issue_title}*>\n'
 
         username = next(
-            lead['githubUsername']
-            for lead in leads
-            if lead['leadLabel'] == i['lead_label']
+            (
+                lead['githubUsername']
+                for lead in leads
+                if lead['leadLabel'] == i['lead_label']
+            ),
+            ''
         )
-        slack_id = next(
+        slack_id = username and next(
             (
                 lead['slackId']  # type: ignore[syntax]
                 for lead in leads
@@ -221,7 +224,7 @@ def publish_digest(
         elif i['lead_label']:
             message += f'{i["lead_label"]}\n'
         else:
-            message += 'Lead: N/A\n'
+            message += 'Unknown lead\n'
 
         message += f'Commenter: *{commenter}*'
         r = post_message({
