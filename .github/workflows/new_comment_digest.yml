@@ -31,6 +31,8 @@ env:
 
 jobs:
   new_comment_digest:
+    # Continue only if this executed on the main repo
+    if: ${{ github.repository == 'internetarchive/openlibrary' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
