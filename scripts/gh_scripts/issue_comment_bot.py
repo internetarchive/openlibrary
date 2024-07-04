@@ -89,14 +89,29 @@ def filter_issues(issues: list, since: datetime, leads: list[dict[str, str]]):
     Returns list of issues that were not last responded to by leads.
     Requires fetching the most recent comments for the given issues.
     """
+
+    def log_api_failure(_resp):
+        print(f'Failed to fetch comments for issue #{i["number"]}')
+        print(f'URL: {i["html_url"]}')
+        _d = _resp.json()
+        print(f'Message: {_d.get("message", "")}')
+        print(f'Documentation URL: {_d.get("documentation_url", "")}')
+
     results = []
 
     for i in issues:
+        time.sleep(1)
         # Fetch comments using URL from previous GitHub search results
         comments_url = i.get('comments_url')
+
         resp = requests.get(
             comments_url, params={'per_page': 100}, headers=github_headers
         )
+
+        if resp.status_code != 200:
+            log_api_failure(resp)
+            # XXX : Somehow, notify Slack of error
+            continue
 
         # Ensure that we have the last page of comments
         links = resp.links
@@ -105,6 +120,10 @@ def filter_issues(issues: list, since: datetime, leads: list[dict[str, str]]):
 
         if last_url:
             resp = requests.get(last_url, headers=github_headers)
+            if resp.status_code != 200:
+                log_api_failure(resp)
+                # XXX : Somehow, notify Slack of error
+                continue
 
         # Get last comment
         comments = resp.json()
