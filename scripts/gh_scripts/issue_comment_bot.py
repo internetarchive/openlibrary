@@ -26,46 +26,44 @@ github_headers = {
 }
 
 
-def fetch_issues(updated_since: str):
+def fetch_issues():
     """
-    Fetches all GitHub issues that have been updated since the given date string and have at least one comment.
+    Fetches and returns all open issues and pull requests from the `internetarchive/openlibrary` repository.
 
-    GitHub results are paginated.  This functions appends each result to a list, and does so for all pages.
+    GitHub API results are paginated.  This functions appends each result to a list, and does so for all pages.
     To keep API calls to a minimum, we request the maximum number of results per request (100 per page, as of writing).
-
-    Important: Updated issues need not have a recent comment. Update events include many other things, such as adding a
-    label to an issue, or moving an issue to a milestone.  Issues returned by this function will require additional
-    processing in order to determine if they have recent comments.
     """
-    # Make initial query for updated issues:
-    query = f'repo:internetarchive/openlibrary is:open is:issue comments:>0 updated:>{updated_since}'
-    p: dict[str, str | int] = {
-        'q': query,
-        'per_page': 100,
+    # Make initial query for open issues:
+    p = {
+        'state': 'open',
+        'per_page': 100
     }
     response = requests.get(
-        'https://api.github.com/search/issues', params=p, headers=github_headers
+        'https://api.github.com/repos/internetarchive/openlibrary/issues', params=p, headers=github_headers
     )
+    d = response.json()
     if response.status_code != 200:
         print('Initial request for issues has failed.')
+        print(f'Message: {d.get("message", "")}')
+        print(f'Documentation URL: {d.get("documentation_url", "")}')
         response.raise_for_status()
 
-    d = response.json()
-    results = d['items']
+    results = d
 
     # Fetch additional updated issues, if any exist
     def get_next_page(url: str):
         """Returns list of issues and optional url for next page"""
         # Get issues
         resp = requests.get(url, headers=github_headers)
+        d = resp.json()
 
         if resp.status_code != 200:
             print('Request for next page of issues has failed.')
+            print(f'Message: {d.get("message", "")}')
+            print(f'Documentation URL: {d.get("documentation_url", "")}')
             response.raise_for_status()
 
-        d = resp.json()
-
-        issues = d['items']
+        issues = d
 
         # Prepare url for next page
         next = resp.links.get('next', {})
@@ -77,17 +75,25 @@ def fetch_issues(updated_since: str):
     next = links.get('next', {})
     next_url = next.get('url', '')
     while next_url:
-        # Make call with next link
+        # Wait one second...
+        time.sleep(1)
+        # ...then, make call for more issues with next link
         issues, next_url = get_next_page(next_url)
         results = results + issues
 
     return results
 
 
-def filter_issues(issues: list, since: datetime, leads: list[dict[str, str]]):
+def filter_issues(issues: list, hours: int, leads: list[dict[str, str]]):
     """
-    Returns list of issues that were not last responded to by leads.
-    Requires fetching the most recent comments for the given issues.
+    Returns list of issues that have the following criteria:
+    - Are issues, not pull requests
+    - Issues have at least one comment
+    - Issues have been last updated since the given number of hours
+    - Latest comment is not from an issue lead
+
+    Checking who left the last comment requires making up to two calls to
+    GitHub's REST API.
     """
 
     def log_api_failure(_resp):
@@ -99,14 +105,37 @@ def filter_issues(issues: list, since: datetime, leads: list[dict[str, str]]):
 
     results = []
 
+    since, date_string = time_since(hours)
+
+    # Filter out as many issues as possible before making API calls for comments:
+    prefiltered_issues = []
     for i in issues:
+        updated = datetime.fromisoformat(i['updated_at'])
+        updated = updated.replace(tzinfo=None)
+        if updated < since:
+            # Issues is stale
+            continue
+
+        if i.get('pull_request', {}):
+            # Issue is actually a pull request
+            continue
+
+        if i['comments'] == 0:
+            # Issue has no comments
+            continue
+
+        prefiltered_issues.append(i)
+
+    for i in prefiltered_issues:
+        # Wait one second
         time.sleep(1)
         # Fetch comments using URL from previous GitHub search results
         comments_url = i.get('comments_url')
 
         resp = requests.get(
-            comments_url, params={'per_page': 100}, headers=github_headers
+            comments_url, params={'per_page': 100, 'since': date_string}, headers=github_headers
         )
+        resp = requests.get(comments_url, headers=github_headers)
 
         if resp.status_code != 200:
             log_api_failure(resp)
@@ -318,10 +347,9 @@ def start_job(args: argparse.Namespace):
     config = read_config(args.config)
     leads = config.get('leads', [])
 
-    since, date_string = time_since(args.hours)
-    issues = fetch_issues(date_string)
+    issues = fetch_issues()
+    filtered_issues = filter_issues(issues, args.hours, leads)
 
-    filtered_issues = filter_issues(issues, since, leads)
     all_issues_labeled = True
     if not args.no_labels:
         print('Issues labeled as "Needs: Response"')
