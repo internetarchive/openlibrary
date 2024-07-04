@@ -126,15 +126,14 @@ def filter_issues(issues: list, hours: int, leads: list[dict[str, str]]):
 
         prefiltered_issues.append(i)
 
+    print(f'{len(prefiltered_issues)} issues remain after initial filtering.')
+    print('Filtering out issues with stale comments...')
     for i in prefiltered_issues:
         # Wait one second
         time.sleep(1)
         # Fetch comments using URL from previous GitHub search results
         comments_url = i.get('comments_url')
 
-        resp = requests.get(
-            comments_url, params={'per_page': 100, 'since': date_string}, headers=github_headers
-        )
         resp = requests.get(comments_url, headers=github_headers)
 
         if resp.status_code != 200:
@@ -347,21 +346,25 @@ def start_job(args: argparse.Namespace):
     config = read_config(args.config)
     leads = config.get('leads', [])
 
+    print('Fetching issues from GitHub...')
     issues = fetch_issues()
+    print(f'{len(issues)} found')
+
+    print('Filtering issues...')
     filtered_issues = filter_issues(issues, args.hours, leads)
+    print(f'{len(filtered_issues)} remain after filtering.')
 
     all_issues_labeled = True
     if not args.no_labels:
-        print('Issues labeled as "Needs: Response"')
+        print('Labeling issues as "Needs: Response"...')
         all_issues_labeled = add_label_to_issues(filtered_issues)
         if not all_issues_labeled:
             print('Failed to label some issues')
     if args.slack_channel:
-        print('Publishing digest to Slack')
+        print('Publishing digest to Slack...')
         publish_digest(
             filtered_issues, args.slack_channel, args.hours, leads, all_issues_labeled
         )
-        print('Digest posted to Slack')
     if args.verbose:
         verbose_output(filtered_issues)
 
@@ -423,7 +426,9 @@ if __name__ == '__main__':
     github_headers['Authorization'] = f'Bearer {github_token}'
 
     try:
+        print('Starting job...')
         start_job(args)
+        print('Job completed successfully.')
     except requests.exceptions.HTTPError as e:
         print(e)
         sys.exit(1)
