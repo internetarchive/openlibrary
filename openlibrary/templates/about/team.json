@@ -28,6 +28,7 @@
     "projects": ["Edition-based Reading Log"],
     "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/b41556b7-b8b8-4c2b-83ca-349a3ec60243",
     "favorite_book_url": "",
+    "github_id": "benbdeitch",
     "ol_key": ""
   },
   {
@@ -47,6 +48,7 @@
     "projects": ["Sharable List Previews"],
     "departments": ["engineering", "design"],
     "photo_path": "https://avatars.githubusercontent.com/u/72806587?v=4",
+    "github_id": "constantinazouni",
     "ol_key": ""
   },
   {
@@ -58,6 +60,7 @@
     "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/07995922-eb41-4d93-83f0-48b3e22378ed",
     "personal_url": "https://www.danafeinschaffer.com",
     "favorite_book_url": "https://openlibrary.org/works/OL17332479W/Six_of_Crows?edition=key%3A/books/OL37753024M",
+    "github_id": "danafein",
     "ol_key": "danafs/books"
   },
   {
@@ -69,6 +72,7 @@
     "photo_path": "../../../static/images/team/Debbie.jpg",
     "personal_url": "https://github.com/debbiesan/openlibrary",
     "favorite_book_url": "https://openlibrary.org/works/OL15154986W/Two_solitudes.?edition=key%3A/books/OL24222633M",
+    "github_id": "",
     "ol_key": ""
   },
   {
@@ -104,6 +108,7 @@
     "photo_path": "https://git.4angle.com/avatar/1e64ab07e0faced09520a5c589deb70b?size=512",
     "personal_url": "https://edwardbetts.com/",
     "favorite_book_url": "",
+    "github_id": "EdwardBetts",
     "ol_key": ""
   },
   {
@@ -115,6 +120,7 @@
     "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/f53ec5b5-604a-4a53-beaa-cda30e39d5fb",
     "personal_url": "",
     "favorite_book_url": "",
+    "github_id": "giacomo-cgn",
     "ol_key": ""
   },
   {
@@ -126,6 +132,7 @@
     "photo_path": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTNXUQFbwaLB07_H8ZbzkR4EEZmhPUuoGyZZVXGuFD9raGW8uLD",
     "personal_url": "http://abitofgeorge.com/",
     "favorite_book_url": "",
+    "github_id": "george08",
     "ol_key": ""
   },
   {
@@ -137,6 +144,7 @@
     "photo_path": "https://freight.cargo.site/t/original/i/8037c4e0da7260c57d7d266d7102e1dccb1ffe96fdb842b345803b44dbcb025a/IMG_0220.JPG",
     "personal_url": "https://hayoonch.cargo.site/",
     "favorite_book_url": "",
+    "github_id": "hayoonc",
     "ol_key": ""
   },
   {
@@ -150,6 +158,7 @@
     "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/258ecfb4-7a13-4340-8de6-6db79d5ae40a",
     "personal_url": "https://www.linkedin.com/in/jayden-teoh/",
     "favorite_book_url": "",
+    "github_id": "JaydenTeoh",
     "ol_key": ""
   },
   {
@@ -161,6 +170,7 @@
     "photo_path": "../../../static/images/team/Jaye_Rasmussen.jpg",
     "personal_url": "https://github.com/Lasseignejk",
     "favorite_book_url": "https://openlibrary.org/books/OL24383834M/The_Way_of_Kings",
+    "github_id": "Lasseignejk",
     "ol_key": "lasseignejk"
   },
   {
@@ -182,6 +192,17 @@
     "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/e5db2459-3f23-4d49-9ab4-952be2efb4bb",
     "personal_url": "",
     "favorite_book_url": "",
+    "github_id": "jdlrobson",
+    "ol_key": ""
+  },
+  {
+    "name": "Katherine Mcgonigle",
+    "github_id": "kmcgonigle",
+    "title": "Engineering Fellow",
+    "roles": ["fellow-2023"],
+    "photo_path": "https://avatars.githubusercontent.com/u/13765801",
+    "departments": ["engineering"],
+    "projects": ["<a href=\"https://blog.openlibrary.org/2023/06/04/update-open-library-book-page-redesign\">Book Page Redesign</a>"],
     "ol_key": ""
   },
   {
@@ -202,6 +223,7 @@
     "photo_path": "../../../static/images/team/Lisa.jpg",
     "personal_url": "",
     "favorite_book_url": "",
+    "github_id": "seabelis",
     "ol_key": "agent-lisa"
   },
   {
@@ -214,6 +236,14 @@
     "favorite_book_url": "",
     "github_id": "mekarpeles",
     "ol_key": "mekBot"
+  },
+  {
+    "name": "Meredith W.",
+    "github_id": "merwhite11",
+    "title": "Engineering Fellow",
+    "departments": ["engineering", "design"],
+    "roles": ["fellow-2024"],
+    "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/e36587db-1a0e-4557-9fe6-40e5b5b05f55"
   },
   {
     "name": "Nick Norman",
@@ -232,6 +262,7 @@
     "departments": ["engineering"],
     "projects": ["Open Book Genome Project (OBGP)"],
     "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/0785572e-54e4-4934-a7e9-34941b56895f",
+    "github_id": "finnless",
     "ol_key": ""
   },
   {
@@ -243,6 +274,7 @@
     "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/c6eae0c8-0896-4fe6-a4e7-2972d18b8b8d",
     "personal_url": "https://www.rebeccashoptaw.dev/",
     "favorite_book_url": "https://openlibrary.org/works/OL20867W/Middlemarch",
+    "github_id": "rebecca-shoptaw",
     "ol_key": ""
   },
   {
@@ -265,6 +297,7 @@
     "photo_path": "https://storage.googleapis.com/uxfolio/629144af56aeec0003c789b7/629144b056aeec0003c789b9/kMkCW291M7DpLafP.jpg",
     "personal_url": "https://uxfol.io/d5b318c4",
     "favorite_book_url": "",
+    "github_id": "",
     "ol_key": ""
   },
   {
@@ -276,6 +309,7 @@
     "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/275568d0-6fce-4142-b4bc-17850acf5754",
     "personal_url": "https://www.linkedin.com/in/sabreen-parveen-4a6641190",
     "favorite_book_url": "",
+    "github_id": "",
     "ol_key": ""
   },
   {
@@ -287,6 +321,7 @@
     "photo_path": "",
     "personal_url": "",
     "favorite_book_url": "",
+    "github_id": "",
     "ol_key": ""
   },
   {
@@ -296,6 +331,7 @@
     "departments": ["design", "engineering"],
     "projects": ["My Book Page (Mobile)"],
     "photo_path": "https://www.inspiricapros.com/wp-content/uploads/2021/11/Samuel-Grunebaum.jpg.webp",
+    "github_id": "szgrune",
     "ol_key": "samstupendous"
   },
   {
@@ -315,6 +351,7 @@
     "roles": ["fellow-2020-gsoc", "fellow-2019-iasoc", "staff-emeritus"],
     "departments": ["engineering"],
     "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/481099ea-0c24-4257-9b3c-0d803be6b98e",
+    "github_id": "tabshaikh",
     "ol_key": ""
   },
   {
@@ -326,6 +363,7 @@
     "photo_path": "https://github.com/internetarchive/openlibrary/assets/978325/071b7167-a7a9-4d7b-8118-d8cef4d1c528",
     "personal_url": "https://www.linkedin.com/in/teo-cheng/",
     "favorite_book_url": "",
+    "github_id": "",
     "ol_key": ""
   },
   {
