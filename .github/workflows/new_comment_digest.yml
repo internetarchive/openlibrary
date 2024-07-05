@@ -39,6 +39,8 @@ jobs:
     # Continue only if this executed on the main repo
     if: ${{ github.repository == 'internetarchive/openlibrary' }}
     runs-on: ubuntu-latest
+    outputs:
+      exit_code: ${{ steps.run_bot.outputs.exit_code }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -73,7 +75,35 @@ jobs:
             NO_LABELS_FLAG="--no-labels"
           fi
           echo "NO_LABELS_FLAG=$NO_LABELS_FLAG" >> $GITHUB_ENV
-      - run: scripts/gh_scripts/issue_comment_bot.py ${{ env.HOURS }} -c .github/workflows/config/new_comment_digest.json ${{ env.CHANNEL_ARG }} ${{ env.VERBOSE_FLAG }} ${{ env.NO_LABELS_FLAG }}
+      - id: run_bot
+        run: |
+          trap 'echo "exit_code=$?" >> "$GITHUB_OUTPUT"' EXIT
+          scripts/gh_scripts/issue_comment_bot.py ${{ env.HOURS }} -c .github/workflows/config/new_comment_digest.json ${{ env.CHANNEL_ARG }} ${{ env.VERBOSE_FLAG }} ${{ env.NO_LABELS_FLAG }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+        continue-on-error: true
+  publish_error_to_slack:
+    needs: new_comment_digest
+    if: ${{ needs.new_comment_digest.outputs.exit_code == 20 }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - run: pip install slack-sdk
+      - name: Publish message to Slack after failing to fetch GitHub issues
+        shell: python
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_CHANNEL_ABC_TEAM_PLUS: ${{ secrets.SLACK_CHANNEL_ABC_TEAM_PLUS }}
+        run: |
+          import datetime, os, sys, slack_sdk
+          if os.getenv("SLACK_TOKEN") and os.getenv("SLACK_CHANNEL_ABC_TEAM_PLUS"):
+            now = datetime.datetime.now()
+            since = now - datetime.timedelta(hours=${{ env.HOURS }})
+            time_str = since.strftime('%Y-%m-%dT%H:%M:%S')
+            slack_sdk.WebClient(token=os.getenv("SLACK_TOKEN")).chat_postMessage(channel=os.getenv("SLACK_CHANNEL_ABC_TEAM_PLUS"),
+              text=f"Failed to fetch issues for Slack digest. <https://github.com/internetarchive/openlibrary/issues?q=is:issue+is:open+comments:%3E0+updated:%3E{time_str}|These issues> should be manually checked and labeled"
+            )
+          sys.exit(1)
