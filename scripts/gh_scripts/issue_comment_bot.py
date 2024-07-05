@@ -32,12 +32,20 @@ class AuthenticationError(Exception):
     pass
 
 
+class ConfigurationError(Exception):
+    # Raised when reading the configuration goes wrong in some way.
+    pass
+
+
 def fetch_issues():
     """
     Fetches and returns all open issues and pull requests from the `internetarchive/openlibrary` repository.
 
     GitHub API results are paginated.  This functions appends each result to a list, and does so for all pages.
     To keep API calls to a minimum, we request the maximum number of results per request (100 per page, as of writing).
+
+    Calls to fetch issues from Github are considered critical, and a failure of any such call will cause the script to
+    fail fast.
     """
     # Make initial query for open issues:
     p = {
@@ -373,8 +381,12 @@ def start_job():
 
     github_headers['Authorization'] = f"Bearer {os.environ.get('GITHUB_TOKEN', '')}"
 
-    config = read_config(args.config)
-    leads = config.get('leads', [])
+    try:
+        print('Reading configuration file...')
+        config = read_config(args.config)
+        leads = config.get('leads', [])
+    except (OSError, json.JSONDecodeError):
+        raise ConfigurationError('An error occurred while parsing the configuration file.')
 
     print('Fetching issues from GitHub...')
     issues = fetch_issues()
@@ -445,7 +457,12 @@ if __name__ == '__main__':
     except AuthenticationError as e:
         # If a required token is missing from the environment, fail fast
         print(e)
-        sys.exit(1)
-    except requests.exceptions.HTTPError as e:
+        sys.exit(10)
+    except ConfigurationError as e:
+        # If the configuration file cannot be read or unmarshalled, fail fast
         print(e)
-        sys.exit(1)
+        sys.exit(20)
+    except requests.exceptions.HTTPError as e:
+        # Fail fast if we fail to fetch issues from GitHub
+        print(e)
+        sys.exit(30)
