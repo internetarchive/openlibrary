@@ -26,6 +26,12 @@ github_headers = {
 }
 
 
+# Custom Exceptions:
+class AuthenticationError(Exception):
+    # Raised when a required authentication token is missing from the environment.
+    pass
+
+
 def fetch_issues():
     """
     Fetches and returns all open issues and pull requests from the `internetarchive/openlibrary` repository.
@@ -339,10 +345,34 @@ def read_config(config_path):
         return json.load(f)
 
 
-def start_job(args: argparse.Namespace):
+def token_verification(slack_channel: str = ''):
+    """
+    Checks that the tokens required for this job to run are available in the environment.
+
+    A GitHub token is always required.  A Slack token is required only if a `slack_channel` is specified.
+
+    :param slack_channel: Channel to publish the digest. Publish step is skipped if this is an empty string.
+    :raises AuthenticationError: When required token is missing from the environment.
+    """
+    if not os.environ.get('GITHUB_TOKEN', ''):
+        raise AuthenticationError('Required GitHub token not found in environment.')
+    if slack_channel and not os.environ.get('SLACK_TOKEN', ''):
+        raise AuthenticationError('Slack token must be included in environment if Slack channel is provided.')
+
+
+def start_job():
     """
     Starts the new comment digest job.
     """
+    # Process command-line arguments and starts the notification job
+    parser = _get_parser()
+    args = parser.parse_args()
+
+    print('Checking for required tokens...')
+    token_verification(args.slack_channel)
+
+    github_headers['Authorization'] = f"Bearer {os.environ.get('GITHUB_TOKEN', '')}"
+
     config = read_config(args.config)
     leads = config.get('leads', [])
 
@@ -408,27 +438,14 @@ def _get_parser() -> argparse.ArgumentParser:
 
 
 if __name__ == '__main__':
-    # Process command-line arguments and starts the notification job
-    parser = _get_parser()
-    args = parser.parse_args()
-
-    # If no GitHub token is found, fail fast:
-    if not (github_token := os.environ.get('GITHUB_TOKEN', '')):
-        print('Script requires a GitHub token.')
-        sys.exit(1)
-
-    # If no Slack token is found, fail fast.
-    # Note: Digest will not be published to Slack if the channel isn't passed to the script.
-    if args.slack_channel and not os.environ.get('SLACK_TOKEN', ''):
-        print('Script requires a Slack token.')
-        sys.exit(1)
-
-    github_headers['Authorization'] = f'Bearer {github_token}'
-
     try:
         print('Starting job...')
-        start_job(args)
+        start_job()
         print('Job completed successfully.')
+    except AuthenticationError as e:
+        # If a required token is missing from the environment, fail fast
+        print(e)
+        sys.exit(1)
     except requests.exceptions.HTTPError as e:
         print(e)
         sys.exit(1)
