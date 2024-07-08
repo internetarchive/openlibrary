@@ -36,11 +36,9 @@ $var title: $_("Sign Up to Open Library")
             <div class="input">
                 $:input.render()
                 $if input.name == 'password':
-                    $ i18n_strings = {
-                    $    "show_password": _('Show password'),
-                    $    "hide_password": _('Hide password')
-                    $  }
-                    <a href="javascript:;" class="password-visibility-toggle ol-signup-form__link" data-i18n="$json_encode(i18n_strings)">$i18n_strings["show_password"]</a>
+                    <a href="javascript:;" class="ol-signup-form__password-visibility-toggle">
+                        <img class="password-visibility-toggle" src="/static/images/icons/icon_eye-closed.svg" title="$_('Toggle Password Visibility')" alt="$_('Toggle Password Visibility')"/>
+                    </a>
             </div>
             <div class="ol-signup-form__suffix">$:suffix</div>
         </div>
