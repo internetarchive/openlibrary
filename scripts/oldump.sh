@@ -123,6 +123,7 @@ then
       time psql $PSQL_PARAMS -d coverstore --set=upto="$yyyymmdd" -f $SCRIPTS/dump-covers-metadata.sql | gzip -c > ol_dump_covers_metadata$yyyymmdd.txt.gz
   else
       log "Skipping: $(compgen -G "ol_dump_reading-log_$yyyymm*.txt.gz")"
+  fi
 
   log "=== Step 3 ==="
   if [[ ! -f $(compgen -G "ol_dump_ratings_$yyyymm*.txt.gz") ]]
