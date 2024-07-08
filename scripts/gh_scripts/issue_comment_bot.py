@@ -251,7 +251,7 @@ def publish_digest(
 
     d = response.json()
     if not d.get('ok', True):
-        print(f'Slack request not ok.  Error message: {d.get("error", '')}')
+        print(f'Slack request not ok.  Error message: {d.get("error", "")}')
 
     # Store timestamp, which, along with the channel, uniquely identifies the parent thread
     ts = d.get('ts')
@@ -301,7 +301,7 @@ def publish_digest(
         else:
             d = r.json()
             if not d.get('ok', True):
-                print(f'Slack request not ok.  Error message: {d.get("error", '')}')
+                print(f'Slack request not ok.  Error message: {d.get("error", "")}')
 
     if not all_issues_labeled:
         r = post_message(
