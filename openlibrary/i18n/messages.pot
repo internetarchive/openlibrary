@@ -5079,10 +5079,6 @@ msgid "Publishers Search"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Sorted by"
-msgstr ""
-
-#: search/sort_options.html
 msgid "Relevance"
 msgstr ""
 

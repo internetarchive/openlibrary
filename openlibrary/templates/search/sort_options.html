@@ -37,7 +37,7 @@ $code:
        ]
        if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
          sort_options.append({ 'sort': 'title', 'name': _("Work Title (beta: Librarian only)"), 'ga_key': 'Title' })
-    <details> 
+    <details>
       <summary>Sort Options</summary>
       <ul>
         $for sort_option in sort_options:
