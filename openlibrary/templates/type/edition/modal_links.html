@@ -15,7 +15,7 @@ $def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None
 
 <div class="modal-links">
   $if work and work.get('key', ''):
-    $ review_content = icon_link("observations-modal-link", "/static/images/icons/reviews.svg", _("Review"), ga_data="ModalLinkClick|ReviewIcon")
+    $ review_content = icon_link("observations-modal-link", "/static/images/bestbook/trophy.svg", _("Review"), ga_data="ModalLinkClick|ReviewIcon")
     $:macros.ObservationsModal(work, review_content, 'sidebar-review')
 
     $:macros.StarRatings(work, edition)

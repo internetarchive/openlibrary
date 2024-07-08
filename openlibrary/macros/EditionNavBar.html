@@ -21,7 +21,7 @@ $ display_for = 'desktop-only' if desktop_only else 'mobile-only'
         $if total_reviews > 0:
           $ungettext('%(reviews)s Review', '%(reviews)s Reviews', total_reviews, reviews=total_reviews)
         $else:
-          $_('Reviews')
+          $_('Community Reviews')
       </a>
     </li>
     <li>

@@ -1,0 +1,45 @@
+$def with (work, link_markup, id, classes='', reload_id=None)
+$# :param Work work: The work that is being reviewed
+$# :param str link_markup: arkup for element that triggers observations modal
+$# :param str id: Unique identifier for this modal
+$# :param str classes: HTML classes for this component
+$# :param str reload_id: Reference to UI component that will update when observations are added or removed
+
+$ username = ctx.user and ctx.user.key.split('/')[-1]
+
+$# The following data is accessed via JS:
+$ context = {
+  $ "username": username,
+  $ "work": work.key,
+  $ "id": id
+  $ }
+
+$if reload_id:
+  $ context['reloadId'] = reload_id
+
+<div class="$classes">
+  $:link_markup
+
+  $if ctx.user:
+    <div class="hidden">
+      <div id="$id-metadata-form" class="floaterAdd metadata-form" data-context="$json_encode(context)">
+        <div class="floaterHead">
+          <h2>$_("Best Book Award")</h2>
+          <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+        </div>
+        <form class="bestbook" action="#" method="POST">
+            <label for="comment">Comment</label>
+            <input type="text" style="width: 200px;">
+
+            <label for="genre">Choose a topic</label>
+            <select id="genre" name="genre">
+                <option value="romance">Romance</option>
+                <option value="mathematics">Mathematics</option>
+                <option value="humour">Humour</option>
+            </select>
+
+            <button class="bestbook__submit" type="">Submit</button>
+        </form>
+      </div>
+    </div>
+</div>
