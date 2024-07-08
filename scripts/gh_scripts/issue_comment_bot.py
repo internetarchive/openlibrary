@@ -48,12 +48,11 @@ def fetch_issues():
     fail fast.
     """
     # Make initial query for open issues:
-    p = {
-        'state': 'open',
-        'per_page': 100
-    }
+    p = {'state': 'open', 'per_page': 100}
     response = requests.get(
-        'https://api.github.com/repos/internetarchive/openlibrary/issues', params=p, headers=github_headers
+        'https://api.github.com/repos/internetarchive/openlibrary/issues',
+        params=p,
+        headers=github_headers,
     )
     d = response.json()
     if response.status_code != 200:
@@ -239,10 +238,12 @@ def publish_digest(
         f'{len(issues)} new GitHub comment(s) since {hours_passed} hour(s) ago'
     )
 
-    response = post_message({
+    response = post_message(
+        {
             'channel': slack_channel,
             'text': parent_thread_msg,
-        })
+        }
+    )
 
     if response.status_code != 200:
         print(f'Failed to send message to Slack.  Status code: {response.status_code}')
@@ -270,7 +271,7 @@ def publish_digest(
                 for lead in leads
                 if lead['leadLabel'] == i['lead_label']
             ),
-            ''
+            '',
         )
         slack_id = username and next(
             (
@@ -288,11 +289,13 @@ def publish_digest(
             message += 'Unknown lead\n'
 
         message += f'Commenter: *{commenter}*'
-        r = post_message({
+        r = post_message(
+            {
                 'channel': slack_channel,
                 'text': message,
                 'thread_ts': ts,
-            })
+            }
+        )
         if r.status_code != 200:
             print(f'Failed to send message to Slack.  Status code: {r.status_code}')
         else:
@@ -301,10 +304,12 @@ def publish_digest(
                 print(f'Slack request not ok.  Error message: {d.get("error", '')}')
 
     if not all_issues_labeled:
-        r = post_message({
-            'channel': slack_channel,
-            'text': 'Warning: some issues were not labeled "Needs: Response"  See the <https://github.com/internetarchive/openlibrary/actions/workflows/new_comment_digest.yml|log files> for more information'
-        })
+        r = post_message(
+            {
+                'channel': slack_channel,
+                'text': 'Warning: some issues were not labeled "Needs: Response"  See the <https://github.com/internetarchive/openlibrary/actions/workflows/new_comment_digest.yml|log files> for more information',
+            }
+        )
 
 
 def time_since(hours):
@@ -330,7 +335,9 @@ def add_label_to_issues(issues) -> bool:
 
         if response.status_code != 200:
             all_issues_labeled = False
-            print(f'Failed to label issue #{issue["number"]} --- status code: {response.status_code}')
+            print(
+                f'Failed to label issue #{issue["number"]} --- status code: {response.status_code}'
+            )
             print(issue_labels_url)
 
     return all_issues_labeled
@@ -365,7 +372,9 @@ def token_verification(slack_channel: str = ''):
     if not os.environ.get('GITHUB_TOKEN', ''):
         raise AuthenticationError('Required GitHub token not found in environment.')
     if slack_channel and not os.environ.get('SLACK_TOKEN', ''):
-        raise AuthenticationError('Slack token must be included in environment if Slack channel is provided.')
+        raise AuthenticationError(
+            'Slack token must be included in environment if Slack channel is provided.'
+        )
 
 
 def start_job():
@@ -386,7 +395,9 @@ def start_job():
         config = read_config(args.config)
         leads = config.get('leads', [])
     except (OSError, json.JSONDecodeError):
-        raise ConfigurationError('An error occurred while parsing the configuration file.')
+        raise ConfigurationError(
+            'An error occurred while parsing the configuration file.'
+        )
 
     print('Fetching issues from GitHub...')
     issues = fetch_issues()
