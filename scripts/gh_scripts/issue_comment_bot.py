@@ -307,7 +307,8 @@ def publish_digest(
         r = post_message(
             {
                 'channel': slack_channel,
-                'text': 'Warning: some issues were not labeled "Needs: Response"  See the <https://github.com/internetarchive/openlibrary/actions/workflows/new_comment_digest.yml|log files> for more information',
+                'text': 'Warning: some issues were not labeled "Needs: Response". ' \
+                'See the <https://github.com/internetarchive/openlibrary/actions/workflows/new_comment_digest.yml|log files> for more information.',
             }
         )
 
