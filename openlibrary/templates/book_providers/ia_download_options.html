@@ -4,7 +4,7 @@ $def with(formats, daisy)
 <div class="cta-section">
   <p class="cta-section-title">$_("Download Options")</p>
   <ul class="ebook-download-options">
-    $if formats['pdf']:
+    $if formats.get('pdf'):
       <li><a href="$formats['pdf']" title="$_('Download a PDF from Internet Archive')">$_("PDF")</a></li>
     $if formats['txt']:
       <li><a href="$formats['txt']" title="$_('Download a text version from Internet Archive')">$_("Plain text")</a></li>
