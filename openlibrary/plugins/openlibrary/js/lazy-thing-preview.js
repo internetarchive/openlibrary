@@ -61,21 +61,20 @@ export class LazyThingPreview {
 
     /**
      * @param {string[]} keys
-     * @returns {Promise<object[]>}
+     * @returns {AsyncGenerator<object[]>}
      */
-    async getThings(keys) {
+    async* getThings(keys) {
         const workKeys = keys.filter(key => key.startsWith('/works/'));
         const editionKeys = keys.filter(key => key.startsWith('/books/'));
         const authorKeys = keys.filter(key => key.startsWith('/authors/'));
         const fields = 'key,type,cover_i,first_publish_year,author_name,title,subtitle,edition_count,editions';
-        let docs = [];
         for (const keys of chunk(workKeys, 100)) {
             const resp = await fetch(`/search.json?${new URLSearchParams({
                 q: `key:(${keys.join(' OR ')})`,
                 fields,
                 limit: '100',
             })}`).then(r => r.json());
-            docs = docs.concat(resp.docs);
+            yield resp.docs;
         }
         for (const keys of chunk(editionKeys, 100)) {
             const resp = await fetch(`/search.json?${new URLSearchParams({
@@ -85,7 +84,7 @@ export class LazyThingPreview {
                 fields,
                 limit: '100',
             })}`).then(r => r.json());
-            docs = docs.concat(resp.docs);
+            yield resp.docs;
         }
         for (const keys of chunk(authorKeys, 100)) {
             const resp = await fetch(`/search/authors.json?${new URLSearchParams({
@@ -97,26 +96,36 @@ export class LazyThingPreview {
                 // This API returns keys without the /authors/ prefix 😭
                 doc.key = `/authors/${doc.key}`;
             }
-            docs = docs.concat(resp.docs);
+            yield resp.docs;
         }
-
-        return docs;
     }
 
     async render() {
         const keys = this.queue.map(({key}) => key);
-        const things = await this.getThings(keys);
-        for (const thing of things) {
-            this.cache[thing.key] = thing;
-            if (thing.type === 'work') {
-                const book = thing;
-                book.full_title = book.subtitle ? `${book.title}: ${book.subtitle}` : book.title;
-                if (book.editions.docs.length) {
-                    const ed = book.editions.docs[0];
-                    ed.full_title = ed.subtitle ? `${ed.title}: ${ed.subtitle}` : ed.title;
-                    ed.author_name = book.author_name;
-                    ed.edition_count = book.edition_count;
-                    this.cache[ed.key] = ed;
+        const render_fn_map = Object.fromEntries(
+            this.queue.map(({key, render_fn}) => [key, render_fn])
+        );
+        for await (const thingBatch of this.getThings(keys)) {
+            for (const thing of thingBatch) {
+                this.cache[thing.key] = thing;
+                if (thing.type === 'work') {
+                    const book = thing;
+                    book.full_title = book.subtitle ? `${book.title}: ${book.subtitle}` : book.title;
+                    if (book.editions.docs.length) {
+                        const ed = book.editions.docs[0];
+                        ed.full_title = ed.subtitle ? `${ed.title}: ${ed.subtitle}` : ed.title;
+                        ed.author_name = book.author_name;
+                        ed.edition_count = book.edition_count;
+                        this.cache[ed.key] = ed;
+
+                        if (ed.key in render_fn_map) {
+                            this.renderKey(ed.key, render_fn_map[ed.key], ed);
+                        }
+                    }
+                }
+
+                if (thing.key in render_fn_map) {
+                    this.renderKey(thing.key, render_fn_map[thing.key], thing);
                 }
             }
         }
@@ -124,12 +133,6 @@ export class LazyThingPreview {
         const missingKeys = keys.filter(key => !this.cache[key]);
         // eslint-disable-next-line no-console
         console.warn('Books missing from cache', missingKeys);
-
-        for (const {key, render_fn} of this.queue) {
-            if (this.cache[key]) {
-                this.renderKey(key, render_fn, this.cache[key]);
-            }
-        }
         this.queue = [];
     }
 }
