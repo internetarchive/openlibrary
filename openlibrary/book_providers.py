@@ -14,7 +14,9 @@ from openlibrary.utils import OrderedEnum, multisort_best
 
 logger = logging.getLogger("openlibrary.book_providers")
 
-ProviderAccessLiteral = Literal['sample', 'buy', 'open-access', 'borrow', 'subscribe']
+AcquisitionAccessLiteral = Literal[
+    'sample', 'buy', 'open-access', 'borrow', 'subscribe'
+]
 
 
 class EbookAccess(OrderedEnum):
@@ -29,7 +31,7 @@ class EbookAccess(OrderedEnum):
         return self.name.lower()
 
     @staticmethod
-    def from_provider_literal(literal: ProviderAccessLiteral) -> 'EbookAccess':
+    def from_acquisition_literal(literal: AcquisitionAccessLiteral) -> 'EbookAccess':
         if literal == 'sample':
             # We need to update solr to handle these! Requires full reindex
             return EbookAccess.PRINTDISABLED
@@ -46,25 +48,25 @@ class EbookAccess(OrderedEnum):
 
 
 @dataclass
-class EbookProvider:
-    access: ProviderAccessLiteral
+class Acquisition:
+    access: AcquisitionAccessLiteral
     format: Literal['web', 'pdf', 'epub', 'audio']
     price: str | None
     url: str
-    provider_name: str | None = None
+    acquisition_name: str | None = None
 
     @property
     def ebook_access(self) -> EbookAccess:
-        return EbookAccess.from_provider_literal(self.access)
+        return EbookAccess.from_acquisition_literal(self.access)
 
     @staticmethod
-    def from_json(json: dict) -> 'EbookProvider':
+    def from_json(json: dict) -> 'Acquisition':
         if 'href' in json:
             # OPDS-style provider
-            return EbookProvider.from_opds_json(json)
+            return Acquisition.from_opds_json(json)
         elif 'url' in json:
             # We have an inconsistency in our API
-            html_access: dict[str, ProviderAccessLiteral] = {
+            html_access: dict[str, AcquisitionAccessLiteral] = {
                 'read': 'open-access',
                 'listen': 'open-access',
                 'buy': 'buy',
@@ -75,18 +77,18 @@ class EbookProvider:
             if access in html_access:
                 access = html_access[access]
             # Pressbooks/OL-style
-            return EbookProvider(
+            return Acquisition(
                 access=access,
                 format=json.get('format', 'web'),
                 price=json.get('price'),
                 url=json['url'],
-                provider_name=json.get('provider_name'),
+                acquisition_name=json.get('acquisition_name'),
             )
         else:
-            raise ValueError(f'Unknown ebook provider format: {json}')
+            raise ValueError(f'Unknown ebook acquisition format: {json}')
 
     @staticmethod
-    def from_opds_json(json: dict) -> 'EbookProvider':
+    def from_opds_json(json: dict) -> 'Acquisition':
         if json.get('properties', {}).get('indirectAcquisition', None):
             mimetype = json['properties']['indirectAcquisition'][0]['type']
         else:
@@ -110,12 +112,12 @@ class EbookProvider:
         else:
             price = None
 
-        return EbookProvider(
+        return Acquisition(
             access=json['rel'].split('/')[-1],
             format=fmt,
             price=price,
             url=json['href'],
-            provider_name=json.get('name'),
+            acquisition_name=json.get('name'),
         )
 
 
@@ -209,15 +211,15 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
         # Most providers are for public-only ebooks right now
         return EbookAccess.PUBLIC
 
-    def get_ebook_providers(
+    def get_ebook_acquisitions(
         self,
         edition: Edition,
-    ) -> list[EbookProvider]:
+    ) -> list[Acquisition]:
         """
         Return a list of EbookProvider objects for the edition.
         """
         if edition.providers:
-            return [EbookProvider.from_json(dict(p)) for p in edition.providers]
+            return [Acquisition.from_json(dict(p)) for p in edition.providers]
         else:
             return []
 
@@ -304,20 +306,20 @@ class LibriVoxProvider(AbstractBookProvider):
     def is_own_ocaid(self, ocaid: str) -> bool:
         return 'librivox' in ocaid
 
-    def get_ebook_providers(
+    def get_ebook_acquisitions(
         self,
         edition: Edition,
-    ) -> list[EbookProvider]:
+    ) -> list[Acquisition]:
         """
         Return a list of EbookProvider objects for the edition.
         """
         return [
-            EbookProvider(
+            Acquisition(
                 access='open-access',
                 format='audio',
                 price=None,
                 url=f'https://librivox.org/{self.get_best_identifier(edition)}',
-                provider_name=self.short_name,
+                acquisition_name=self.short_name,
             )
         ]
 
@@ -329,20 +331,20 @@ class ProjectGutenbergProvider(AbstractBookProvider):
     def is_own_ocaid(self, ocaid: str) -> bool:
         return ocaid.endswith('gut')
 
-    def get_ebook_providers(
+    def get_ebook_acquisitions(
         self,
         edition: Edition,
-    ) -> list[EbookProvider]:
+    ) -> list[Acquisition]:
         """
         Return a list of EbookProvider objects for the edition.
         """
         return [
-            EbookProvider(
+            Acquisition(
                 access='open-access',
                 format='web',
                 price=None,
                 url=f'https://www.gutenberg.org/ebooks/{self.get_best_identifier(edition)}',
-                provider_name=self.short_name,
+                acquisition_name=self.short_name,
             )
         ]
 
@@ -355,10 +357,10 @@ class StandardEbooksProvider(AbstractBookProvider):
         # Standard ebooks isn't archived on IA
         return False
 
-    def get_ebook_providers(
+    def get_ebook_acquisitions(
         self,
         edition: Edition,
-    ) -> list[EbookProvider]:
+    ) -> list[Acquisition]:
         """
         Return a list of EbookProvider objects for the edition.
         """
@@ -366,19 +368,19 @@ class StandardEbooksProvider(AbstractBookProvider):
         base_url = 'https://standardebooks.org/ebooks/' + standard_ebooks_id
         flat_id = standard_ebooks_id.replace('/', '_')
         return [
-            EbookProvider(
+            Acquisition(
                 access='open-access',
                 format='web',
                 price=None,
                 url=f'{base_url}/text/single-page',
-                provider_name=self.short_name,
+                acquisition_name=self.short_name,
             ),
-            EbookProvider(
+            Acquisition(
                 access='open-access',
                 format='epub',
                 price=None,
                 url=f'{base_url}/downloads/{flat_id}.epub',
-                provider_name=self.short_name,
+                acquisition_name=self.short_name,
             ),
         ]
 
@@ -390,20 +392,20 @@ class OpenStaxProvider(AbstractBookProvider):
     def is_own_ocaid(self, ocaid: str) -> bool:
         return False
 
-    def get_ebook_providers(
+    def get_ebook_acquisitions(
         self,
         edition: Edition,
-    ) -> list[EbookProvider]:
+    ) -> list[Acquisition]:
         """
         Return a list of EbookProvider objects for the edition.
         """
         return [
-            EbookProvider(
+            Acquisition(
                 access='open-access',
                 format='web',
                 price=None,
                 url=f'https://openstax.org/details/books/{self.get_best_identifier(edition)}',
-                provider_name=self.short_name,
+                acquisition_name=self.short_name,
             )
         ]
 
@@ -434,7 +436,7 @@ class DirectProvider(AbstractBookProvider):
         if ed_or_solr.get('providers'):
             return [
                 provider.url
-                for provider in map(EbookProvider.from_json, ed_or_solr['providers'])
+                for provider in map(Acquisition.from_json, ed_or_solr['providers'])
                 if provider.ebook_access >= EbookAccess.PRINTDISABLED
             ]
         else:
@@ -447,7 +449,7 @@ class DirectProvider(AbstractBookProvider):
         acq_sorted = sorted(
             (
                 p
-                for p in map(EbookProvider.from_json, ed_or_solr.get('providers', []))
+                for p in map(Acquisition.from_json, ed_or_solr.get('providers', []))
                 if p.ebook_access >= EbookAccess.PRINTDISABLED
             ),
             key=lambda p: p.ebook_access,
@@ -466,8 +468,8 @@ class DirectProvider(AbstractBookProvider):
         Return the access level of the edition.
         """
         # For now assume 0 is best
-        return EbookAccess.from_provider_literal(
-            EbookProvider.from_json(edition['providers'][0]).access
+        return EbookAccess.from_acquisition_literal(
+            Acquisition.from_json(edition['providers'][0]).access
         )
 
 

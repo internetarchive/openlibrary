@@ -538,7 +538,7 @@ class WorkSearchScheme(SearchScheme):
                             if not provider:
                                 continue
                             ed_doc[field] = [
-                                p.__dict__ for p in provider.get_ebook_providers(ed)
+                                p.__dict__ for p in provider.get_ebook_acquisitions(ed)
                             ]
                         elif isinstance(val, infogami.infobase.client.Nothing):
                             continue
