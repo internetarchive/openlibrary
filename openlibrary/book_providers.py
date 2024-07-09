@@ -441,7 +441,9 @@ class DirectProvider(AbstractBookProvider):
             # TODO: Not implemented for search/solr yet
             return []
 
-    def render_read_button(self, ed_or_solr: Edition | dict):
+    def render_read_button(
+        self, ed_or_solr: Edition | dict, analytics_attr: Callable[[str], str]
+    ):
         acq_sorted = sorted(
             (
                 p

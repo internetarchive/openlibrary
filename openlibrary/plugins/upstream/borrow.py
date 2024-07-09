@@ -112,7 +112,7 @@ class borrow(delegate.page):
     def GET(self, key):
         return self.POST(key)
 
-    def POST(self, key):
+    def POST(self, key):  # noqa: PLR0915
         """Called when the user wants to borrow the edition"""
 
         i = web.input(
