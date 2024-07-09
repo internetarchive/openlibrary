@@ -134,7 +134,7 @@ class borrow(delegate.page):
 
         # Direct to the first web book if at least one is available.
         if (
-            action == "borrow"
+            action in ["borrow", "read"]
             and (provider := get_book_provider(edition))
             and (providers := provider.get_ebook_providers(edition))
             and providers[0].access == "open-access"
