@@ -85,7 +85,7 @@ jobs:
         continue-on-error: true
   publish_error_to_slack:
     needs: new_comment_digest
-    if: ${{ needs.new_comment_digest.outputs.exit_code == 20 }}
+    if: ${{ needs.new_comment_digest.outputs.exit_code == 30 }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-python@v5
