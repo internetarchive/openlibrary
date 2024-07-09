@@ -13,8 +13,10 @@ export function initMessageEventListener(element) {
         if (!/[./]archive\.org$$/.test(e.origin)) return;
 
         if (e.data.type === 'resize') {
+            const formDivs = document.querySelectorAll('form[name=signup], .ol-signup-form__big-or');
             element.setAttribute('scrolling', 'no');
             if (e.data.height) element.style.height = `${e.data.height}px`;
+            formDivs.forEach(div => div.style.display = 'none');
         }
         else if (e.data.type === 's3-keys') {
             fetch('/account/login.json', {
