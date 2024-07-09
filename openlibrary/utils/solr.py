@@ -47,7 +47,14 @@ class Solr:
         logger.info(f"solr /get: {key}, {fields}")
         resp = self.session.get(
             f"{self.base_url}/get",
-            params={'id': key, **({'fl': ','.join(fields)} if fields else {})},
+            params={
+                'id': key,
+                **(
+                    {'fl': ','.join([field for field in fields if field])}
+                    if fields
+                    else {}
+                ),
+            },
         ).json()
 
         # Solr returns {doc: null} if the record isn't there
