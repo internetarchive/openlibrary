@@ -1,5 +1,6 @@
 // @ts-check
 import debounce from 'lodash/debounce';
+import chunk from 'lodash/chunk';
 
 /**
  * Responds to HTML like:
@@ -68,17 +69,17 @@ export class LazyThingPreview {
         const authorKeys = keys.filter(key => key.startsWith('/authors/'));
         const fields = 'key,type,cover_i,first_publish_year,author_name,title,subtitle,edition_count,editions';
         let docs = [];
-        if (workKeys.length) {
+        for (const keys of chunk(workKeys, 100)) {
             const resp = await fetch(`/search.json?${new URLSearchParams({
-                q: `key:(${workKeys.join(' OR ')})`,
+                q: `key:(${keys.join(' OR ')})`,
                 fields,
                 limit: '100',
             })}`).then(r => r.json());
             docs = docs.concat(resp.docs);
         }
-        if (editionKeys.length) {
+        for (const keys of chunk(editionKeys, 100)) {
             const resp = await fetch(`/search.json?${new URLSearchParams({
-                q: `edition_key:(${editionKeys
+                q: `edition_key:(${keys
                     .map(key => key.split('/').pop())
                     .join(' OR ')})`,
                 fields,
@@ -86,9 +87,9 @@ export class LazyThingPreview {
             })}`).then(r => r.json());
             docs = docs.concat(resp.docs);
         }
-        if (authorKeys.length) {
+        for (const keys of chunk(authorKeys, 100)) {
             const resp = await fetch(`/search/authors.json?${new URLSearchParams({
-                q: `key:(${authorKeys.join(' OR ')})`,
+                q: `key:(${keys.join(' OR ')})`,
                 fields: 'key,type,name,top_work,top_subjects,birth_date,death_date',
                 limit: '100',
             })}`).then(r => r.json());
