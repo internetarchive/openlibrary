@@ -1450,7 +1450,7 @@ msgstr ""
 msgid "Search your reading log"
 msgstr ""
 
-#: account/reading_log.html search/sort_options.html
+#: account/reading_log.html
 msgid "Sorting by"
 msgstr ""
 
