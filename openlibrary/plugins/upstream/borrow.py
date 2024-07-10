@@ -136,11 +136,12 @@ class borrow(delegate.page):
         if (
             action in ["borrow", "read"]
             and (provider := get_book_provider(edition))
-            and (providers := provider.get_ebook_providers(edition))
-            and providers[0].access == "open-access"
+            and provider.short_name != "ia"
+            and (acquisitions := provider.get_acquisitions(edition))
+            and acquisitions[0].access == "open-access"
         ):
             stats.increment('ol.loans.webbook')
-            raise web.seeother(providers[0].url)
+            raise web.seeother(acquisitions[0].url)
 
         archive_url = get_bookreader_stream_url(edition.ocaid) + '?ref=ol'
         if i._autoReadAloud is not None:

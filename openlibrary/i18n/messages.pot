@@ -2861,6 +2861,7 @@ msgid ""
 msgstr ""
 
 #: book_providers/cita_press_read_button.html
+#: book_providers/direct_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
@@ -2897,10 +2898,8 @@ msgstr ""
 #: book_providers/direct_read_button.html
 #, python-format
 msgid ""
-"This book is available from <a href=\"%s\">%s</a>, a site external to "
-"Open Library. By visiting this external site, you will be subject to that"
-" site's privacy policy and terms of use. Open Library cannot make any "
-"guarantees about this external site's content."
+"This book is freely available from <a href=\"%s\">%s</a>, an external "
+"third-party book provider."
 msgstr ""
 
 #: book_providers/gutenberg_download_options.html
@@ -3154,10 +3153,6 @@ msgstr ""
 
 #: books/add.html
 msgid "Oxford University Press; Penguin; W.W. Norton"
-msgstr ""
-
-#: books/add.html
-msgid "For a web book, use the URL."
 msgstr ""
 
 #: books/add.html books/edit/edition.html

@@ -97,12 +97,6 @@ $ _x = ctx.setdefault('cssfile', 'book')
 
 $var title: $title
 
-<style>
-ul:has([href^="/request"]) {
-  display: none !important;
-}
-</style>
-
 $code:
     def has_any(*keys):
         return any(edition[k] for k in keys)

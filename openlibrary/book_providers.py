@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 import logging
-from typing import TypedDict, Literal, cast, TypeVar, Generic
 from collections.abc import Callable, Iterator
+from typing import TypedDict, Literal, cast, TypeVar, Generic
+from urllib import parse
 
 import web
 from web import uniq
@@ -31,7 +32,7 @@ class EbookAccess(OrderedEnum):
         return self.name.lower()
 
     @staticmethod
-    def from_acquisition_literal(literal: AcquisitionAccessLiteral) -> 'EbookAccess':
+    def from_acquisition_access(literal: AcquisitionAccessLiteral) -> 'EbookAccess':
         if literal == 'sample':
             # We need to update solr to handle these! Requires full reindex
             return EbookAccess.PRINTDISABLED
@@ -49,6 +50,11 @@ class EbookAccess(OrderedEnum):
 
 @dataclass
 class Acquisition:
+    """
+    Acquisition represents a book resource found on another website, such as
+    Standard Ebooks.
+    """
+
     access: AcquisitionAccessLiteral
     format: Literal['web', 'pdf', 'epub', 'audio']
     price: str | None
@@ -57,7 +63,7 @@ class Acquisition:
 
     @property
     def ebook_access(self) -> EbookAccess:
-        return EbookAccess.from_acquisition_literal(self.access)
+        return EbookAccess.from_acquisition_access(self.access)
 
     @staticmethod
     def from_json(json: dict) -> 'Acquisition':
@@ -211,12 +217,12 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
         # Most providers are for public-only ebooks right now
         return EbookAccess.PUBLIC
 
-    def get_ebook_acquisitions(
+    def get_acquisitions(
         self,
         edition: Edition,
     ) -> list[Acquisition]:
         """
-        Return a list of EbookProvider objects for the edition.
+        Return a list of Acquisition objects for the edition.
         """
         if edition.providers:
             return [Acquisition.from_json(dict(p)) for p in edition.providers]
@@ -306,7 +312,7 @@ class LibriVoxProvider(AbstractBookProvider):
     def is_own_ocaid(self, ocaid: str) -> bool:
         return 'librivox' in ocaid
 
-    def get_ebook_acquisitions(
+    def get_acquisitions(
         self,
         edition: Edition,
     ) -> list[Acquisition]:
@@ -331,7 +337,7 @@ class ProjectGutenbergProvider(AbstractBookProvider):
     def is_own_ocaid(self, ocaid: str) -> bool:
         return ocaid.endswith('gut')
 
-    def get_ebook_acquisitions(
+    def get_acquisitions(
         self,
         edition: Edition,
     ) -> list[Acquisition]:
@@ -357,7 +363,7 @@ class StandardEbooksProvider(AbstractBookProvider):
         # Standard ebooks isn't archived on IA
         return False
 
-    def get_ebook_acquisitions(
+    def get_acquisitions(
         self,
         edition: Edition,
     ) -> list[Acquisition]:
@@ -392,7 +398,7 @@ class OpenStaxProvider(AbstractBookProvider):
     def is_own_ocaid(self, ocaid: str) -> bool:
         return False
 
-    def get_ebook_acquisitions(
+    def get_acquisitions(
         self,
         edition: Edition,
     ) -> list[Acquisition]:
@@ -457,7 +463,19 @@ class DirectProvider(AbstractBookProvider):
         )
         if not acq_sorted:
             return ''
-        return render_template(self.get_template_path('read_button'), acq_sorted[0])
+
+        acquisition = acq_sorted[0]
+        # pre-process acquisition.url so ParseResult.netloc is always the domain. Only netloc is used.
+        url = (
+            "https://" + acquisition.url
+            if not acquisition.url.startswith("http")
+            else acquisition.url
+        )
+        parsed_url = parse.urlparse(url)
+        domain = parsed_url.netloc
+        return render_template(
+            self.get_template_path('read_button'), acquisition, domain
+        )
 
     def get_access(
         self,
@@ -468,7 +486,7 @@ class DirectProvider(AbstractBookProvider):
         Return the access level of the edition.
         """
         # For now assume 0 is best
-        return EbookAccess.from_acquisition_literal(
+        return EbookAccess.from_acquisition_access(
             Acquisition.from_json(edition['providers'][0]).access
         )
 

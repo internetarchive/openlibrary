@@ -530,20 +530,23 @@ class WorkSearchScheme(SearchScheme):
 
         for doc in solr_result['response']['docs']:
             for ed_doc in doc.get('editions', {}).get('docs', []):
-                if ed := ed_key_to_record.get(ed_doc['key']):
-                    for field in non_solr_fields:
-                        val = getattr(ed, field)
-                        if field == 'providers':
-                            provider = get_book_provider(ed)
-                            if not provider:
-                                continue
-                            ed_doc[field] = [
-                                p.__dict__ for p in provider.get_ebook_acquisitions(ed)
-                            ]
-                        elif isinstance(val, infogami.infobase.client.Nothing):
+                # `ed` could be `None` if the record has been deleted and Solr not yet updated.
+                if not (ed := ed_key_to_record.get(ed_doc['key'])):
+                    continue
+
+                for field in non_solr_fields:
+                    val = getattr(ed, field)
+                    if field == 'providers':
+                        provider = get_book_provider(ed)
+                        if not provider:
                             continue
-                        elif field == 'description':
-                            ed_doc[field] = val if isinstance(val, str) else val.value
+                        ed_doc[field] = [
+                            p.__dict__ for p in provider.get_acquisitions(ed)
+                        ]
+                    elif isinstance(val, infogami.infobase.client.Nothing):
+                        continue
+                    elif field == 'description':
+                        ed_doc[field] = val if isinstance(val, str) else val.value
 
 
 def lcc_transform(sf: luqum.tree.SearchField):
