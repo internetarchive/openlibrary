@@ -71,6 +71,13 @@ export class MyBooksDropper extends Dropper {
          * @member {ReadingLogForms}
          */
         this.readingLogForms = new ReadingLogForms(dropper, this.readDateComponents, dropperActionCallbacks)
+
+        /**
+         * The work key associated with this dropper, if any.
+         *
+         * @member {string|undefined}
+         */
+        this.workKey = this.dropper.dataset.workKey
     }
 
     /**

@@ -1,4 +1,5 @@
 import { FadingToast } from '../Toast.js';
+import { findDropperForWork } from "../my-books";
 
 export function initRatingHandlers(ratingForms) {
     for (const form of ratingForms) {
@@ -55,6 +56,9 @@ function handleRatingSubmission(event, form) {
                             elem.setAttribute('property', 'ratingValue')
                         }
                     })
+
+                    // Find dropper that is associated with this star rating affordance:
+                    const dropper = findDropperForWork(form.dataset.workKey)
                 } else {
                     clearButton.classList.add('hidden');
                 }
