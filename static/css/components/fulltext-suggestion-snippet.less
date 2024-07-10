@@ -1,5 +1,4 @@
 .fsi-snippet {
-  grid-area: excerpts;
   display: inline;
   width: 70%;
   padding: 5px;
@@ -24,14 +23,19 @@
     display: inline;
   }
 
-  &__link {
-    text-decoration: none !important;
-    font-family: @georgia_serif-1;
-  }
-
   &__page-num {
     color: @dark-grey !important;
     display: block;
     text-decoration: none !important;
-  }
+    }
 }
+
+//overrides
+  a:link {
+    text-decoration: none;
+    font-family: @georgia_serif-1;
+    color: @black;
+  }
+  a:hover {
+    color: @link-blue;
+  }
