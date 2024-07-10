@@ -1,5 +1,6 @@
 import { FadingToast } from '../Toast.js';
 import { findDropperForWork } from "../my-books";
+import { ReadingLogShelves } from "../my-books/MyBooksDropper/ReadingLogForms";
 
 export function initRatingHandlers(ratingForms) {
     for (const form of ratingForms) {
@@ -39,7 +40,7 @@ function handleRatingSubmission(event, form) {
                 if (!response.ok) {
                     throw new Error('Ratings update failed')
                 }
-                // Repaint stars
+                // Update view to deselect all stars
                 form.querySelectorAll('.star-selected').forEach((elem) => {
                     elem.classList.remove('star-selected');
                     if (elem.hasAttribute('property')) {
@@ -48,7 +49,8 @@ function handleRatingSubmission(event, form) {
                 })
 
                 const clearButton = form.querySelector('.star-messaging');
-                if (rating) {
+                if (rating) {  // A rating was added or updated
+                    // Update view to show patron's new star rating:
                     clearButton.classList.remove('hidden');
                     form.querySelectorAll(`.star-${rating}`).forEach((elem) => {
                         elem.classList.add('star-selected');
@@ -59,7 +61,10 @@ function handleRatingSubmission(event, form) {
 
                     // Find dropper that is associated with this star rating affordance:
                     const dropper = findDropperForWork(form.dataset.workKey)
-                } else {
+                    if (dropper) {
+                        dropper.updateShelfDisplay(ReadingLogShelves.ALREADY_READ)
+                    }
+                } else {  // A rating was deleted
                     clearButton.classList.add('hidden');
                 }
             })
