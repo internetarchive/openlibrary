@@ -451,6 +451,7 @@ msgstr ""
 #: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
 #: ObservationsModal.html ShareModal.html
 #: book_providers/cita_press_read_button.html
+#: book_providers/direct_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
@@ -2891,6 +2892,15 @@ msgstr ""
 
 #: book_providers/direct_read_button.html
 msgid "Read free online"
+msgstr ""
+
+#: book_providers/direct_read_button.html
+#, python-format
+msgid ""
+"This book is available from <a href=\"%s\">%s</a>, a site external to "
+"Open Library. By visiting this external site, you will be subject to that"
+" site's privacy policy and terms of use. Open Library cannot make any "
+"guarantees about this external site's content."
 msgstr ""
 
 #: book_providers/gutenberg_download_options.html

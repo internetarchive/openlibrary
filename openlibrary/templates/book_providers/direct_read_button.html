@@ -7,6 +7,8 @@ $if provider.access == 'open-access':
         title="$_('Read free online')"
         class="cta-btn cta-btn--available cta-btn--read cta-btn--external cta-btn--direct"
         target="_blank"
+        aria-haspopup="true"
+        aria-controls="direct-provider-toast"
     >$_('Read')</a>
   </div>
 
@@ -17,4 +19,12 @@ $elif provider.access == 'sample':
       target="_blank"
       href="$(provider.url)"
     >$_('Preview')</a>
+  </div>
+
+$if render_once('direct-provider-toast'):
+  <div class="toast toast--book-provider" data-toast-trigger=".cta-btn--direct" id="direct-provider-toast" style="display:none">
+    <div class="toast__body">
+      $:_('This book is available from <a href="%s">%s</a>, a site external to Open Library. By visiting this external site, you will be subject to that site\'s privacy policy and terms of use. Open Library cannot make any guarantees about this external site\'s content.', provider.url, provider.url)
+    </div>
+    <a class="toast__close">&times;<span class="shift">$_("Close")</span></a>
   </div>
