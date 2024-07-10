@@ -1,7 +1,6 @@
 $def with (selected_sort, exclude=None, default_sort='relevance', search_scheme='works')
 
-<span class="tools">
-    <img src="/images/icons/icon_sort.png" class="" alt="$_('Sorting by')" width="9" height="11" class="sorter"/>
+<span class="sort">
 $code:
      if search_scheme == 'authors':
        sort_options = [
@@ -37,31 +36,37 @@ $code:
        ]
        if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
          sort_options.append({ 'sort': 'title', 'name': _("Work Title (beta: Librarian only)"), 'ga_key': 'Title' })
-    <details>
-      <summary>Sort Options</summary>
-      <ul>
-        $for sort_option in sort_options:
-          $if exclude and sort_option['sort'] in exclude:
-            $continue
-          $ is_selected = sort_option.get('selected') or sort_option['sort'] == selected_sort or (selected_sort is None and sort_option['sort'] == default_sort)
-          <li>
-            <a href="$changequery(page=None, sort=cond(sort_option['sort'] == default_sort, None, sort_option['sort']))" $cond(is_selected, 'class="selected"')>
-              $sort_option['name']
-            </a>
-          </li>
-          $if sort_option.get('sub_sorts'):
-            $for sub_sort in sort_option['sub_sorts']:
-              $ is_selected = sub_sort['sort'] == selected_sort
-              <li style="padding-left: 20px;">
-                <a href="$changequery(page=None, sort=cond(sub_sort['sort'] == default_sort, None, sub_sort['sort']))" $cond(is_selected, 'class="selected"')>
-                  $sub_sort['name']
+    <span class="sort-dropper">
+      <details>
+        <summary>
+          <button class="sort-btn">Sort Options</button>
+        </summary>
+        <span class="sort-content">
+          <span class="sort-content-inner">
+            $for sort_option in sort_options:
+              $if exclude and sort_option['sort'] in exclude:
+                $continue
+              $ is_selected = sort_option.get('selected') or sort_option['sort'] == selected_sort or (selected_sort is None and sort_option['sort'] == default_sort)
+              $if is_selected:
+                <a>$sort_option['name']</a>
+              $else:
+                <a href="$changequery(page=None, sort=cond(sort_option['sort'] == default_sort, None, sort_option['sort']))">
+                  $sort_option['name']
                 </a>
-              </li>
-      </ul>
-    </details>
+              $if sort_option.get('sub_sorts') and is_selected:
+                $for sub_sort in sort_option['sub_sorts']:
+                  $ is_selected = sub_sort['sort'] == selected_sort
+                    <a class="sort-subsort"
+                       href="$changequery(page=None, sort=cond(sub_sort['sort'] == default_sort, None, sub_sort['sort']))"
+                    >
+                      $sub_sort['name']
+                    </a>  
+          </span>
+        </span>
+      </details>
+    </span>
     $if selected_sort and selected_sort.startswith('random') and not is_bot():
-      (<a href="$changequery(page=None, sort='random_%s' % today().timestamp())"
-         data-ol-link-track="SearchSort|RandomShuffle"
-         rel="nofollow"
-      >$_('Shuffle')</a>)
+          <a href="$changequery(page=None, sort='random_%s' % today().timestamp())">
+            $_('Shuffle')
+          </a>
 </span>
