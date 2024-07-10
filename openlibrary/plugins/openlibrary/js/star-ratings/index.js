@@ -1,6 +1,6 @@
 import { FadingToast } from '../Toast.js';
-import { findDropperForWork } from "../my-books";
-import { ReadingLogShelves } from "../my-books/MyBooksDropper/ReadingLogForms";
+import { findDropperForWork } from '../my-books';
+import { ReadingLogShelves } from '../my-books/MyBooksDropper/ReadingLogForms';
 
 export function initRatingHandlers(ratingForms) {
     for (const form of ratingForms) {
