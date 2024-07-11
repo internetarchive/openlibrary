@@ -9,10 +9,10 @@ export function initPasswordToggling(elem) {
     elem.addEventListener('click', () => {
         if (passwordInput.type === 'password') {
             passwordInput.type = 'text'
-            elem.src = '/static/images/icons/icon_eye-open.svg'
+            elem.querySelector('img').src = '/static/images/icons/icon_eye-open.svg'
         } else {
             passwordInput.type = 'password'
-            elem.src = '/static/images/icons/icon_eye-closed.svg'
+            elem.querySelector('img').src = '/static/images/icons/icon_eye-closed.svg'
         }
     })
 }
