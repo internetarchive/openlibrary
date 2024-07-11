@@ -1,7 +1,8 @@
 export function initRealTimeValidation() {
     const signupForm = document.querySelector('form[name=signup]');
     const i18nStrings = JSON.parse(signupForm.dataset.i18n);
-    const VALID_EMAIL_RE = /.*@.*\..*/;
+    // Keep the same with openlibrary/plugins/upstream/forms.py
+    const VALID_EMAIL_RE = /^.*@.*\..*$/;
     const VALID_USERNAME_RE = /^[a-z0-9-_]{3,20}$/i;
     const PASSWORD_MINLENGTH = 3;
     const PASSWORD_MAXLENGTH = 20;
