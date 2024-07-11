@@ -39,7 +39,7 @@ $code:
     <span class="sort-dropper">
       <details>
         <summary>
-          <button class="sort-btn">Sort Options</button>
+          <p>Sorting By</p>
         </summary>
         <span class="sort-content">
           <span class="sort-content-inner">
@@ -56,6 +56,9 @@ $code:
               $if sort_option.get('sub_sorts') and is_selected:
                 $for sub_sort in sort_option['sub_sorts']:
                   $ is_selected = sub_sort['sort'] == selected_sort
+                  $if is_selected:
+                    <a class="sort-subsort">$sub_sort['name']</a>
+                  $else:
                     <a class="sort-subsort"
                        href="$changequery(page=None, sort=cond(sub_sort['sort'] == default_sort, None, sub_sort['sort']))"
                     >

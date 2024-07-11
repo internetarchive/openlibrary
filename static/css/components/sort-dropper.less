@@ -3,14 +3,9 @@
     display: flex;
   }
 
-  &.btn {
-    font-size: 16px;
-    padding: 10px 50px;
-  }
-
   &-content {
     display: flex;
-    background: #fff;
+    background: @white;
   }
 
   &-content-inner {
@@ -19,41 +14,74 @@
     position: absolute;
     margin-top: 10px;
     padding: 5px 10px;
+    background-color: @lightest-grey;
     border: 1px solid;
     border-radius: 5px;
-    border-color: #ddd;
+    border-color: @light-grey;
+    z-index: 100;
   }
-
-  &-content-inner a {
-    text-decoration: none !important;
-    text-decoration-color: black !important;
-  }
-
-  &-content-inner a:hover{
-    background: #ddd;
+  
+  &-content-inner a:hover {
     text-decoration: none;
+    color: @grey
+  }
+
+  &-content-inner a:link {
+    text-decoration: none;
+    color: @black;
+  }
+
+  &-content-inner a:link:hover {
+    text-decoration: none;
+    color: @grey;
+  }
+
+  &-content-inner a:visited {
+    text-decoration: none;
+    color: @black;
+  }
+  
+  &-content-inner a:visited:hover {
+    text-decoration: none;
+    color: @grey
   }
 
   details {
     border-radius: 5px;
-    background: #ddd;
+    background: @lighter-grey;
+    border: 1px solid;
+    border-color: @dark-grey;
   }
 
   details summary {
     font-size: 16px;
+    color: @black;
     display: inline-flex;
     list-style-type: none;
     cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 5px 10px;
+  }
+
+  details summary p {
+    padding: 5px 20px 5px 10px;
+    margin: 0px 0px 0px 0px;
+    border-right: 1px solid;
+    border-color: @dark-grey;
   }
 
   details > summary::after {
-    content: "▴";
-    color: #333;
-    padding: 5px 15px;
+    content: "▲";
+    color: @dark-grey;
+    padding: 5px 10px;
+    padding: 5px 10px 5px 20px;
+
   }
 
   details[open] > summary::after {
-    content: "▾";
+    content: "▼";
   }
 
   &-subsort {
