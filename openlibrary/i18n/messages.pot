@@ -931,11 +931,7 @@ msgid ""
 msgstr ""
 
 #: account/create.html
-msgid "Show password"
-msgstr ""
-
-#: account/create.html
-msgid "Hide password"
+msgid "Toggle Password Visibility"
 msgstr ""
 
 #: account/create.html
