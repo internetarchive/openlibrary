@@ -58,7 +58,10 @@ vlogin = RegexpValidator(
     r"^[A-Za-z0-9\-_]{3,20}$", _('Must be between 3 and 20 letters and numbers')
 )
 vpass = RegexpValidator(r".{3,20}", _('Must be between 3 and 20 characters'))
-vemail = RegexpValidator(r".*@.*", _("Must be a valid email address"))
+vemail = RegexpValidator(
+    r".*@.*\..*",
+    _("Must be a valid email address"),
+)
 
 
 class EqualToValidator(Validator):
