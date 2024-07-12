@@ -3,7 +3,7 @@ $def with (person, input={}, errors={})
 $ _x = ctx.setdefault('cssfile', 'admin')
 $ _x = ctx.setdefault('usergroup', 'admin')
 
-$var title: [Admin Center] $person.displayname
+$var title: $_("[Admin Center]") $person.displayname
 
 <style type="text/css">
 

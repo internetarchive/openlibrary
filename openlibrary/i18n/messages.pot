@@ -337,6 +337,10 @@ msgid "Next"
 msgstr ""
 
 #: internalerror.html
+msgid "Internal Error"
+msgstr ""
+
+#: internalerror.html
 msgid "Hmm..."
 msgstr ""
 
@@ -479,6 +483,11 @@ msgid "Looking for a template/macro?"
 msgstr ""
 
 #: permission.html
+#, python-format
+msgid "Permission of %(key)s"
+msgstr ""
+
+#: permission.html
 msgid "Permission of"
 msgstr ""
 
@@ -488,6 +497,10 @@ msgstr ""
 
 #: permission.html
 msgid "Child Permission"
+msgstr ""
+
+#: permission_denied.html
+msgid "Permission Denied"
 msgstr ""
 
 #: permission_denied.html
@@ -547,6 +560,10 @@ msgstr ""
 
 #: showmarc.html
 msgid "Download Link"
+msgstr ""
+
+#: status.html
+msgid "Open Library server status"
 msgstr ""
 
 #: status.html
@@ -1894,6 +1911,10 @@ msgid ""
 msgstr ""
 
 #: admin/attach_debugger.html
+msgid "Attach Debugger"
+msgstr ""
+
+#: admin/attach_debugger.html
 msgid "Waiting for debugger to attach..."
 msgstr ""
 
@@ -1929,7 +1950,8 @@ msgstr ""
 msgid "Page"
 msgstr ""
 
-#: admin/imports-add.html admin/imports_by_date.html admin/menu.html
+#: admin/imports-add.html admin/imports.html admin/imports_by_date.html
+#: admin/menu.html
 msgid "Imports"
 msgstr ""
 
@@ -2203,6 +2225,10 @@ msgid "Inspect memcache"
 msgstr ""
 
 #: admin/permissions.html
+msgid "[Admin Center] Site Permissions"
+msgstr ""
+
+#: admin/permissions.html
 msgid "Site Permissions"
 msgstr ""
 
@@ -2266,6 +2292,18 @@ msgstr ""
 msgid "Update"
 msgstr ""
 
+#: admin/spamwords.html
+msgid "[Admin Center] Spam Words"
+msgstr ""
+
+#: admin/inspect/memcache.html
+msgid "[Admin Center] Inspect Memcache"
+msgstr ""
+
+#: admin/inspect/store.html
+msgid "Admin Center / Inspect"
+msgstr ""
+
 #: admin/inspect/store.html
 msgid "Inspect Store"
 msgstr ""
@@ -2296,6 +2334,10 @@ msgstr ""
 
 #: admin/inspect/store.html
 msgid "Json"
+msgstr ""
+
+#: admin/ip/index.html
+msgid "[Admin Center] IP Addresses"
 msgstr ""
 
 #: admin/ip/index.html
@@ -2332,6 +2374,10 @@ msgstr ""
 
 #: admin/ip/index.html
 msgid "comment"
+msgstr ""
+
+#: admin/ip/view.html admin/people/view.html
+msgid "[Admin Center]"
 msgstr ""
 
 #: admin/ip/view.html
@@ -2403,6 +2449,11 @@ msgid "Referrers"
 msgstr ""
 
 #: admin/people/edits.html
+#, python-format
+msgid "[Admin Center] Edits of %(user)s"
+msgstr ""
+
+#: admin/people/edits.html
 msgid "people"
 msgstr ""
 
@@ -2418,6 +2469,10 @@ msgstr ""
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
 #: admin/people/edits.html recentchanges/render.html
 msgid "Newer"
+msgstr ""
+
+#: admin/people/index.html
+msgid "[Admin Center] People"
 msgstr ""
 
 #: admin/people/index.html
@@ -5244,6 +5299,11 @@ msgstr ""
 
 #: publishers/view.html
 #, python-format
+msgid "Publisher: %(name)s"
+msgstr ""
+
+#: publishers/view.html
+#, python-format
 msgid "%(count)s ebook"
 msgid_plural "%(count)s ebooks"
 msgstr[0] ""
@@ -5390,6 +5450,11 @@ msgstr ""
 
 #: search/advancedsearch.html
 msgid "Full Text Search?"
+msgstr ""
+
+#: search/authors.html
+#, python-format
+msgid "Search Open Library for \"%(query)s\""
 msgstr ""
 
 #: search/authors.html
@@ -6357,6 +6422,11 @@ msgstr ""
 
 #: type/type/view.html
 msgid "Backreferences"
+msgstr ""
+
+#: type/user/edit.html
+#, python-format
+msgid "Editing %(name)s"
 msgstr ""
 
 #: type/user/edit.html

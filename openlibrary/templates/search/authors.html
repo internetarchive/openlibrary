@@ -9,7 +9,7 @@ $else:
     $ page = 1
 $ offset = (page - 1) * results_per_page
 
-$var title: Search Open Library for "$q"
+$var title: $_('Search Open Library for "%(query)s"', query=q)
 $ sort = query_param('sort', None)
 
 <div id="contentHead">
