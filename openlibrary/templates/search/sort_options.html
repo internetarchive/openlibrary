@@ -39,7 +39,7 @@ $code:
     <span class="sort-dropper">
       <details>
         <summary>
-          <p>Sorting By</p>
+          <p>$_("Sorting By")</p>
         </summary>
         <span class="sort-content">
           <span class="sort-content-inner">
@@ -50,7 +50,10 @@ $code:
               $if is_selected:
                 <a>$sort_option['name']</a>
               $else:
-                <a href="$changequery(page=None, sort=cond(sort_option['sort'] == default_sort, None, sort_option['sort']))">
+                <a href="$changequery(page=None, sort=cond(sort_option['sort'] == default_sort, None, sort_option['sort']))"
+                   data-ol-link-track="SearchSort|$sort_option['ga_key']"
+                   rel="nofollow"
+                >
                   $sort_option['name']
                 </a>
               $if sort_option.get('sub_sorts') and is_selected:
@@ -61,6 +64,7 @@ $code:
                   $else:
                     <a class="sort-subsort"
                        href="$changequery(page=None, sort=cond(sub_sort['sort'] == default_sort, None, sub_sort['sort']))"
+                       data-ol-link-track="SearchSort|$sort_option['ga_key']SubSort"
                     >
                       $sub_sort['name']
                     </a>
@@ -69,7 +73,10 @@ $code:
       </details>
     </span>
     $if selected_sort and selected_sort.startswith('random') and not is_bot():
-          <a href="$changequery(page=None, sort='random_%s' % today().timestamp())">
+          <a href="$changequery(page=None, sort='random_%s' % today().timestamp())"
+             data-ol-link-track="SearchSort|RandomShuffle"
+             rel="nofollow"
+          >
             $_('Shuffle')
           </a>
 </span>

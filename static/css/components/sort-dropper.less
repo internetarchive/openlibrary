@@ -1,60 +1,50 @@
-.sort {
-  &-dropper {
-    display: flex;
-  }
+.sort-dropper {
+  display: flex;
+}
 
-  &-content {
-    display: flex;
-    background: @white;
-  }
+.sort-content {
+  display: flex;
+  background: @white;
+}
 
-  &-content-inner {
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    margin-top: 10px;
-    padding: 5px 10px;
-    background-color: @lightest-grey;
-    border: 1px solid;
-    border-radius: 5px;
-    border-color: @light-grey;
-    z-index: 100;
-  }
-  
-  &-content-inner a:hover {
-    text-decoration: none;
-    color: @grey
-  }
+.sort-content-inner {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  margin-top: 10px;
+  padding: 5px 10px;
+  background-color: @lightest-grey;
+  border: 1px solid;
+  border-radius: 5px;
+  border-color: @light-grey;
+  z-index: @z-index-level-1;
 
-  &-content-inner a:link {
-    text-decoration: none;
-    color: @black;
-  }
-
-  &-content-inner a:link:hover {
+  a {
     text-decoration: none;
     color: @grey;
-  }
 
-  &-content-inner a:visited {
-    text-decoration: none;
-    color: @black;
-  }
-  
-  &-content-inner a:visited:hover {
-    text-decoration: none;
-    color: @grey
-  }
+    &:link {
+      color: @black;
+    }
 
-  details {
-    border-radius: 5px;
-    background: @lighter-grey;
-    border: 1px solid;
-    border-color: @dark-grey;
-  }
+    &:visited {
+      color: @black;
+    }
 
-  details summary {
-    font-size: 16px;
+    &:hover {
+      color: @grey;
+    }
+  }
+}
+
+.sort details {
+  border-radius: 5px;
+  background: @lightest-grey;
+  border: 1px solid;
+  border-color: @mid-grey;
+
+  summary {
+    font-size: 1rem;
     color: @black;
     display: inline-flex;
     list-style-type: none;
@@ -62,29 +52,26 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 5px 10px;
   }
 
-  details summary p {
-    padding: 5px 20px 5px 10px;
-    margin: 0px 0px 0px 0px;
+  summary  p {
+    padding: 5px 10px;
+    margin: 0;
     border-right: 1px solid;
-    border-color: @dark-grey;
+    border-color: @gray-d1cfd0;
   }
+}
 
-  details > summary::after {
-    content: "▲";
-    color: @dark-grey;
-    padding: 5px 10px;
-    padding: 5px 10px 5px 20px;
+.sort details summary::after {
+  content: "▲";
+  color: @dark-grey;
+  padding: 5px 10px;
+}
 
-  }
+.sort details[open] summary::after {
+  content: "▼";
+}
 
-  details[open] > summary::after {
-    content: "▼";
-  }
-
-  &-subsort {
-    padding-left: 20px;
-  }
+.sort-subsort {
+  padding-left: 20px;
 }
