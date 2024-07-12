@@ -32,11 +32,14 @@
     @media (min-width: @width-breakpoint-tablet) {
       font-size: large;
     }
-  }
-
-  &__title-link {
-    color: @black !important;
-    text-decoration: none !important;
+    a:link,
+    a:visited {
+      color: @black;
+      text-decoration: none;
+    }
+    a:hover {
+      color: @link-blue;
+    }
   }
 
   &__icon {
