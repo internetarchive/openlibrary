@@ -16,6 +16,19 @@
     padding: 5px;
     margin: 0 5px;
     line-height: 1.6em;
+    a:link,
+    a:hover,
+    a:visited {
+      text-decoration: none;
+    }
+    a:link {
+      font-family: @georgia_serif-1;
+      color: @black;
+    }
+    a:hover {
+      text-decoration: none;
+      color: @link-blue;
+    }
   }
 
   &__quotation-mark {
@@ -30,12 +43,3 @@
     }
 }
 
-//overrides
-  a:link {
-    text-decoration: none;
-    font-family: @georgia_serif-1;
-    color: @black;
-  }
-  a:hover {
-    color: @link-blue;
-  }
