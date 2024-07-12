@@ -17,9 +17,16 @@
   &__header {
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: start;
     padding: 5px;
     margin-bottom: 3px;
+    img {
+      min-height: 30px;
+      min-width: 30px;
+      @media (min-width: @width-breakpoint-tablet) {
+        align-items: center;
+      }
+    }
   }
 
   &__title {
@@ -32,11 +39,14 @@
     @media (min-width: @width-breakpoint-tablet) {
       font-size: large;
     }
-  }
-
-  &__title-link {
-    color: @black !important;
-    text-decoration: none !important;
+    a:link,
+    a:visited {
+      color: @black;
+      text-decoration: none;
+    }
+    a:hover {
+      color: @link-blue;
+    }
   }
 
   &__icon {
