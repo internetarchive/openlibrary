@@ -31,7 +31,7 @@ $def with (lst)
                     <name>$c.author.displayname</name>
                     <uri>$request.home$c.author.key</uri>
                 $else:
-                    <name>$_("Anonymous")</name>
+                    <name>Anonymous</name> $# detect-missing-i18n-skip-line
             </author>
         </entry>
 </feed>

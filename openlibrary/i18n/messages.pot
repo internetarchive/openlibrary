@@ -181,22 +181,6 @@ msgid "Font-size"
 msgstr ""
 
 #: design.html
-msgid "h1."
-msgstr ""
-
-#: design.html
-msgid "h2."
-msgstr ""
-
-#: design.html
-msgid "h3."
-msgstr ""
-
-#: design.html
-msgid "h4"
-msgstr ""
-
-#: design.html
 msgid "Font-family"
 msgstr ""
 
@@ -833,8 +817,7 @@ msgstr ""
 msgid "Currently Reading"
 msgstr ""
 
-#: LoanReadForm.html ReadButton.html SearchResults.html
-#: book_providers/cita_press_read_button.html
+#: LoanReadForm.html ReadButton.html book_providers/cita_press_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/openstax_read_button.html
 #: book_providers/standard_ebooks_read_button.html books/custom_carousel.html
@@ -1969,7 +1952,7 @@ msgstr ""
 msgid "Submit"
 msgstr ""
 
-#: admin/imports_by_date.html
+#: admin/imports_by_date.html site/stats.html
 msgid "Summary"
 msgstr ""
 
@@ -2281,52 +2264,6 @@ msgstr ""
 
 #: admin/solr.html
 msgid "Update"
-msgstr ""
-
-#: admin/sync.html
-msgid "Sync"
-msgstr ""
-
-#: admin/sync.html
-msgid ""
-"Sync the metadata of various types of Open Library items (e.g. lists, "
-"subjects, works) with Archive.org."
-msgstr ""
-
-#: admin/sync.html
-msgid "Add Works to Staff Picks"
-msgstr ""
-
-#: admin/sync.html
-msgid ""
-"This utility will add your work to an Open Library list called `Staff "
-"Picks` under the `openlibrary` user. It will then take the added work and"
-" explode it into a list of all its readable editions. For each Open "
-"Library edition, a metadata field called `openlibrary_subject` will be "
-"injected into the archive.org metadata of the edition's corresponding "
-"archive.org item."
-msgstr ""
-
-#: admin/sync.html
-msgid "add"
-msgstr ""
-
-#: admin/sync.html
-msgid "remove"
-msgstr ""
-
-#: admin/sync.html
-msgid "Update edition"
-msgstr ""
-
-#: admin/sync.html
-msgid ""
-"Updates an edition on archive.org by writing in its latest  "
-"openlibrary_edition and openlibrary_work identifier values"
-msgstr ""
-
-#: admin/sync.html
-msgid "TODO"
 msgstr ""
 
 #: admin/inspect/store.html
@@ -3938,20 +3875,6 @@ msgstr ""
 msgid "Edit %(year)d Reading Goal"
 msgstr ""
 
-#: contact/spam/sent.html email/case_created.html
-msgid "Sent!"
-msgstr ""
-
-#: contact/spam/sent.html
-msgid "Thank you for your note."
-msgstr ""
-
-#: contact/spam/sent.html
-msgid ""
-"It might take us a little while to read it because we receive lots of "
-"messages, but rest assured, we will."
-msgstr ""
-
 #: covers/add.html
 msgid "There are two ways to put an author's image on Open Library."
 msgstr ""
@@ -4109,6 +4032,10 @@ msgid "Finished"
 msgstr ""
 
 #: email/case_created.html
+msgid "Sent!"
+msgstr ""
+
+#: email/case_created.html
 msgid "Thank you for your note. We'll get back to you as soon as possible."
 msgstr ""
 
@@ -4185,7 +4112,7 @@ msgstr ""
 msgid "Classic Books"
 msgstr ""
 
-#: home/index.html home/returncart.html
+#: home/index.html
 msgid "Recently Returned"
 msgstr ""
 
@@ -4203,10 +4130,6 @@ msgstr ""
 
 #: home/index.html
 msgid "Textbooks"
-msgstr ""
-
-#: home/popular.html
-msgid "Staff Picks"
 msgstr ""
 
 #: home/stats.html site/around_the_library.html
@@ -4806,10 +4729,6 @@ msgstr ""
 
 #: Pager.html Pager_loanhistory.html lib/pagination.html
 msgid "Previous"
-msgstr ""
-
-#: lists/feed_updates.html
-msgid "Anonymous"
 msgstr ""
 
 #: lists/header.html
@@ -5677,10 +5596,6 @@ msgstr ""
 msgid "Debug Stats"
 msgstr ""
 
-#: site/stats.html
-msgid "SUMMARY"
-msgstr ""
-
 #: EditionNavBar.html site/stats.html
 msgid "Details"
 msgstr ""
@@ -5873,10 +5788,6 @@ msgstr ""
 
 #: type/author/edit.html
 msgid "Author Identifiers Purpose"
-msgstr ""
-
-#: type/author/rdf.html type/edition/view.html type/work/view.html
-msgid "Wikipedia"
 msgstr ""
 
 #: type/author/view.html
@@ -6151,6 +6062,10 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Wikipedia"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -6838,14 +6753,6 @@ msgstr ""
 
 #: ReturnForm.html
 msgid "Return book"
-msgstr ""
-
-#: SearchResults.html
-msgid "Pages:"
-msgstr ""
-
-#: SearchResults.html
-msgid "Unknown"
 msgstr ""
 
 #: SearchResultsWork.html
