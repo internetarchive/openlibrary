@@ -1,5 +1,6 @@
 from typing import TypedDict, Literal, cast, TypeVar, Generic
 from collections.abc import Callable, Iterator
+import urllib.parse
 
 import web
 from web import uniq
@@ -142,16 +143,43 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
     def is_own_ocaid(self, ocaid: str) -> bool:
         return True
 
+    @staticmethod
+    def _has_file_suffix(edition_ia_metadata: dict, suffix: str) -> bool:
+        return any(
+            name
+            for name in edition_ia_metadata.get('_filenames', [])
+            if name.endswith(suffix)
+        )
+
+    @staticmethod
+    def _make_lcp_url(format: Literal['.lcpdf', 'lcp_epub'], ocaid: str) -> str:
+        endpoint = 'https://books-yaz.archive.org/services/loans/loan/'
+        params = {
+            'action': 'borrow_book',
+            'opds': '1',
+            'redirect': '1',
+            'identifier': ocaid,
+            'format': 'lcp_pdf' if format == '.lcpdf' else format,
+        }
+        return f'{endpoint}?{urllib.parse.urlencode(params)}'
+
     def render_download_options(self, edition: Edition, extra_args: list | None = None):
-        if edition.is_access_restricted():
+        if not edition.ia_metadata:
             return ''
 
-        formats = {
-            'pdf': edition.get_ia_download_link('.pdf'),
-            'epub': edition.get_ia_download_link('.epub'),
-            'mobi': edition.get_ia_download_link('.mobi'),
-            'txt': edition.get_ia_download_link('_djvu.txt'),
-        }
+        formats = {}
+        if edition.is_access_restricted():
+            if self._has_file_suffix(edition.ia_metadata, '.lcpdf'):
+                formats['lcp_pdf'] = self._make_lcp_url('.lcpdf', edition.ocaid)
+            if self._has_file_suffix(edition.ia_metadata, '_lcp.epub'):
+                formats['lcp_epub'] = self._make_lcp_url('lcp_epub', edition.ocaid)
+        else:
+            formats |= {
+                'pdf': edition.get_ia_download_link('.pdf'),
+                'epub': edition.get_ia_download_link('.epub'),
+                'mobi': edition.get_ia_download_link('.mobi'),
+                'txt': edition.get_ia_download_link('_djvu.txt'),
+            }
 
         if any(formats.values()):
             return render_template(

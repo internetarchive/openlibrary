@@ -2338,6 +2338,22 @@ msgid ""
 msgstr ""
 
 #: book_providers/ia_download_options.html
+msgid "Download an LCP encrypted PDF from Internet Archive"
+msgstr ""
+
+#: book_providers/ia_download_options.html
+msgid "Encrypted PDF"
+msgstr ""
+
+#: book_providers/ia_download_options.html
+msgid "Download an LCP encrypted ePub from Internet Archive"
+msgstr ""
+
+#: book_providers/ia_download_options.html
+msgid "Encrypted ePub"
+msgstr ""
+
+#: book_providers/ia_download_options.html
 msgid "Download a PDF from Internet Archive"
 msgstr ""
 
