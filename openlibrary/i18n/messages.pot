@@ -905,7 +905,15 @@ msgid "The Open Library Team"
 msgstr ""
 
 #: account/create.html forms.py
+msgid "Must be a valid email address"
+msgstr ""
+
+#: account/create.html forms.py
 msgid "Must be between 3 and 20 characters"
+msgstr ""
+
+#: account/create.html
+msgid "Username may only contain numbers, letters, - or _"
 msgstr ""
 
 #: account/create.html
@@ -923,11 +931,7 @@ msgid ""
 msgstr ""
 
 #: account/create.html
-msgid "Show password"
-msgstr ""
-
-#: account/create.html
-msgid "Hide password"
+msgid "Toggle Password Visibility"
 msgstr ""
 
 #: account/create.html
@@ -2331,6 +2335,22 @@ msgid ""
 "Gutenberg is a trusted book provider of classic ebooks, supporting "
 "thousands of volunteers in the creation and distribution of over 60,000 "
 "free eBooks."
+msgstr ""
+
+#: book_providers/ia_download_options.html
+msgid "Download an LCP encrypted PDF from Internet Archive"
+msgstr ""
+
+#: book_providers/ia_download_options.html
+msgid "Encrypted PDF"
+msgstr ""
+
+#: book_providers/ia_download_options.html
+msgid "Download an LCP encrypted ePub from Internet Archive"
+msgstr ""
+
+#: book_providers/ia_download_options.html
+msgid "Encrypted ePub"
 msgstr ""
 
 #: book_providers/ia_download_options.html
@@ -6502,7 +6522,15 @@ msgid "Check nearby libraries"
 msgstr ""
 
 #: WorldcatLink.html
+msgid "Library.link"
+msgstr ""
+
+#: WorldcatLink.html
 msgid "Check WorldCat for an edition near you"
+msgstr ""
+
+#: WorldcatLink.html
+msgid "WorldCat"
 msgstr ""
 
 #: databarDiff.html databarEdit.html
@@ -6611,19 +6639,7 @@ msgid ""
 msgstr ""
 
 #: account.py
-msgid "Username must be between 3-20 characters"
-msgstr ""
-
-#: account.py
-msgid "Username may only contain numbers, letters, - or _"
-msgstr ""
-
-#: account.py
 msgid "Username unavailable"
-msgstr ""
-
-#: account.py forms.py
-msgid "Must be a valid email address"
 msgstr ""
 
 #: account.py forms.py

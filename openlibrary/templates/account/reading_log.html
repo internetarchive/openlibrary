@@ -3,7 +3,7 @@ $def with (docs, key, shelf_count, doc_count, owners_page, current_page, sort_or
 $ username = user.key.split('/')[-1]
 $ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
 $ userDisplayName = user.displayname or ctx.user.displayname
-$ readlog_keys = ['want-to-read', 'already-ready', 'current-reading']
+$ readlog_keys = ['want-to-read', 'already-read', 'currently-reading']
 
 $if key == 'currently-reading':
   $ og_title = _("Books %(username)s is reading", username=userDisplayName)

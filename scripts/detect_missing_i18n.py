@@ -19,7 +19,6 @@ EXCLUDE_LIST = {
     "openlibrary/templates/status.html",
     "openlibrary/templates/work_search.html",
     "openlibrary/templates/showia.html",
-    "openlibrary/templates/subjects.html",
     "openlibrary/templates/about/index.html",
     "openlibrary/templates/account/import.html",
     "openlibrary/templates/account/readinglog_stats.html",
@@ -50,7 +49,6 @@ EXCLUDE_LIST = {
     "openlibrary/templates/books/edit/edition.html",
     "openlibrary/templates/books/edit/web.html",
     "openlibrary/templates/contact/spam/sent.html",
-    "openlibrary/templates/covers/add.html",
     "openlibrary/templates/email/case_created.html",
     "openlibrary/templates/home/loans.html",
     "openlibrary/templates/home/popular.html",
@@ -58,7 +56,6 @@ EXCLUDE_LIST = {
     "openlibrary/templates/jsdef/LazyAuthorPreview.html",
     "openlibrary/templates/jsdef/LazyWorkPreview.html",
     "openlibrary/templates/languages/index.html",
-    "openlibrary/templates/languages/language_list.html",
     "openlibrary/templates/lib/history.html",
     "openlibrary/templates/lib/nav_foot.html",
     "openlibrary/templates/lists/export_as_html.html",
@@ -84,7 +81,6 @@ EXCLUDE_LIST = {
     "openlibrary/templates/type/author/rdf.html",
     "openlibrary/templates/type/author/view.html",
     "openlibrary/templates/type/edition/view.html",
-    "openlibrary/templates/type/i18n_page/edit.html",
     "openlibrary/templates/type/language/view.html",
     "openlibrary/templates/type/list/edit.html",
     "openlibrary/templates/type/list/exports.html",
@@ -93,18 +89,14 @@ EXCLUDE_LIST = {
     "openlibrary/templates/type/template/edit.html",
     "openlibrary/templates/type/template/view.html",
     "openlibrary/templates/type/type/view.html",
-    "openlibrary/templates/type/work/editions_datatable.html",
     "openlibrary/templates/type/work/view.html",
     "openlibrary/macros/FulltextSnippet.html",
-    "openlibrary/macros/IABook.html",
     "openlibrary/macros/ManageLoansButtons.html",
     "openlibrary/macros/ManageWaitlistButton.html",
     "openlibrary/macros/QueryCarousel.html",
     "openlibrary/macros/RecentChangesAdmin.html",
     "openlibrary/macros/RecentChangesUsers.html",
     "openlibrary/macros/SearchResults.html",
-    "openlibrary/macros/TableOfContents.html",
-    "openlibrary/macros/WorldcatLink.html",
     "openlibrary/macros/databarWork.html",
     "openlibrary/macros/WorkInfo.html",
     # These are excluded because they require more info to fix
@@ -153,9 +145,10 @@ ignore_after_opening_tag = (
     + urls_domains
     + r")+(?:[\r\n<]|$))"
 )
+warn_after_opening_tag = r"\$\(['\"]"
 
 i18n_element_missing_regex = opening_tag_syntax + ignore_after_opening_tag
-i18n_element_warn_regex = opening_tag_syntax + r"\$\(['\"]"
+i18n_element_warn_regex = opening_tag_syntax + warn_after_opening_tag
 
 attr_syntax = r"(title|placeholder|alt)="
 ignore_double_quote = (
@@ -186,7 +179,7 @@ i18n_attr_missing_regex = (
     + ignore_single_quote
     + r")[^>]*?>"
 )
-i18n_attr_warn_regex = opening_tag_open + attr_syntax + r"\"\$\(\'"
+i18n_attr_warn_regex = opening_tag_open + attr_syntax + warn_after_opening_tag
 
 
 def terminal_underline(text: str) -> str:

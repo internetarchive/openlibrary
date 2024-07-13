@@ -27,7 +27,7 @@ export class Dropper {
      * Sets the initial state of the dropper, and sets references to key
      * dropper elements.
      *
-     * @param {HTMLElemnt} dropper Reference to the dropper's root element
+     * @param {HTMLElement} dropper Reference to the dropper's root element
      */
     constructor(dropper) {
         /**

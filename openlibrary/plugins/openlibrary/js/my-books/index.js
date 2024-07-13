@@ -84,3 +84,15 @@ export function initMyBooksAffordances(dropperElements, showcaseElements) {
             }
         })
 }
+
+/**
+ * Finds and returns the `MyBooksDropper` that is associated with the given work key,
+ * or `undefined` if none were found.
+ * @param workKey {string}
+ * @returns {MyBooksDropper|undefined}
+ */
+export function findDropperForWork(workKey) {
+    return myBooksStore.getDroppers().find(dropper => {
+        return workKey === dropper.workKey
+    })
+}
