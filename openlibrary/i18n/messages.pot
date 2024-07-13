@@ -1450,7 +1450,7 @@ msgstr ""
 msgid "Search your reading log"
 msgstr ""
 
-#: account/reading_log.html
+#: account/reading_log.html search/sort_options.html
 msgid "Sorting by"
 msgstr ""
 
@@ -5115,15 +5115,11 @@ msgid "Top Rated"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Any"
-msgstr ""
-
-#: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Sorting By"
+msgid "Any"
 msgstr ""
 
 #: search/sort_options.html
