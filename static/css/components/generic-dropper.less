@@ -90,23 +90,26 @@
 }
 
 .cta-dropper {
+  display: flex;
+  margin-bottom: 10px;
+  &__button {
+    border-right: 1px solid rgba(0,0,0,0);
+    border-radius: 5px 2px 2px 5px;
+  }
   &__details {
-    border-radius: 5px;
     background-color: @primary-blue;
-    margin-bottom: 10px;
+    border-radius: 2px 5px 5px 2px;
   }
   &__summary {
-    display: flex;
     cursor: pointer;
     list-style-type: none;
   }
   &__summary::after {
+    display: block;
     content: '';
-    border-top-right-radius: 5px;
-    border-bottom-right-radius: 5px;
     margin: 8px;
-    width: 23px;
-    height: 23px;
+    width: 24px;
+    height: 24px;
     background: url(/images/icons/icon_dropit.png) no-repeat center;
     background-position: 0 50%;
     background-size: 45px;
@@ -161,8 +164,9 @@
   }
 }
 
-.read-options .cta-button-group a, .Tools .btn-notice .cta-button-group a {
+.read-options .cta-dropper__button .cta-btn, .Tools .btn-notice .cta-dropper__button .cta-btn {
   margin-bottom: 0;
+  border-radius: 5px 2px 2px 5px;
 }
 .read-options .cta-dropper__content-list .cta-btn--w-icon, .Tools .btn-notice .cta-dropper__content-list .cta-btn--w-icon {
   margin: 0;
@@ -177,8 +181,3 @@
   margin: 0;
 }
 
-.cta-dropper__summary .cta-btn {
-  border-right: 2px solid;
-  border-top-right-radius: 2px;
-  border-bottom-right-radius: 2px;
-}
