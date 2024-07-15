@@ -258,6 +258,13 @@ class cover:
         if not value or (value and safeint(value) in config.blocked_covers):
             return notfound()
 
+        if 9_000_000 > int(value) >= 8_000_000 and size == "L":
+            # This item is currently offline due to heavy traffic;
+            # Fix incoming in the next ~week; See:
+            # - https://webarchive.jira.com/browse/PBOX-3879
+            # - https://github.com/internetarchive/openlibrary/issues/9560
+            size = "M"
+
         # redirect to archive.org cluster for large size and original images whenever possible
         if size in ("L", "") and self.is_cover_in_cluster(value):
             url = zipview_url_from_id(int(value), size)
