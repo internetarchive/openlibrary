@@ -48,7 +48,6 @@ EXCLUDE_LIST = {
     "openlibrary/templates/books/works-show.html",
     "openlibrary/templates/books/edit/edition.html",
     "openlibrary/templates/books/edit/web.html",
-    "openlibrary/templates/contact/spam/sent.html",
     "openlibrary/templates/email/case_created.html",
     "openlibrary/templates/home/loans.html",
     "openlibrary/templates/home/popular.html",
