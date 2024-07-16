@@ -255,10 +255,11 @@ class cover:
         elif key != 'id':
             value = self.query(category, key, value)
 
-        if not value or (value and safeint(value) in config.blocked_covers):
+        value = safeint(value)
+        if value is None or value in config.blocked_covers:
             return notfound()
 
-        if 9_000_000 > int(value) >= 8_000_000 and size == "L":
+        if 9_000_000 > value >= 8_000_000 and size == "L":
             # This item is currently offline due to heavy traffic;
             # Fix incoming in the next ~week; See:
             # - https://webarchive.jira.com/browse/PBOX-3879
@@ -267,20 +268,19 @@ class cover:
 
         # redirect to archive.org cluster for large size and original images whenever possible
         if size in ("L", "") and self.is_cover_in_cluster(value):
-            url = zipview_url_from_id(int(value), size)
+            url = zipview_url_from_id(value, size)
             return web.found(url)
 
         # covers_0008 batches [_00, _82] are tar'd / zip'd in archive.org items
-        if isinstance(value, int) or value.isnumeric():  # noqa: SIM102
-            if 8_820_000 > int(value) >= 8_000_000:
-                prefix = f"{size.lower()}_" if size else ""
-                pid = "%010d" % int(value)
-                item_id = f"{prefix}covers_{pid[:4]}"
-                item_tar = f"{prefix}covers_{pid[:4]}_{pid[4:6]}.tar"
-                item_file = f"{pid}{'-' + size.upper() if size else ''}"
-                path = f"{item_id}/{item_tar}/{item_file}.jpg"
-                protocol = web.ctx.protocol
-                return web.found(f"{protocol}://archive.org/download/{path}")
+        if 8_820_000 > value >= 8_000_000:
+            prefix = f"{size.lower()}_" if size else ""
+            pid = "%010d" % value
+            item_id = f"{prefix}covers_{pid[:4]}"
+            item_tar = f"{prefix}covers_{pid[:4]}_{pid[4:6]}.tar"
+            item_file = f"{pid}{'-' + size.upper() if size else ''}"
+            path = f"{item_id}/{item_tar}/{item_file}.jpg"
+            protocol = web.ctx.protocol
+            return web.found(f"{protocol}://archive.org/download/{path}")
 
         d = self.get_details(value, size.lower())
         if not d:
@@ -336,14 +336,9 @@ class cover:
             h,
         )
 
-    def get_details(self, coverid, size=""):
-        try:
-            coverid = int(coverid)
-        except ValueError:
-            return None
-
+    def get_details(self, coverid: int, size=""):
         # Use tar index if available to avoid db query. We have 0-6M images in tar balls.
-        if isinstance(coverid, int) and coverid < 6000000 and size in "sml":
+        if coverid < 6000000 and size in "sml":
             path = self.get_tar_filename(coverid, size)
 
             if path:
@@ -357,12 +352,12 @@ class cover:
 
         return db.details(coverid)
 
-    def is_cover_in_cluster(self, coverid):
+    def is_cover_in_cluster(self, coverid: int):
         """Returns True if the cover is moved to archive.org cluster.
         It is found by looking at the config variable max_coveritem_index.
         """
         try:
-            return int(coverid) < IMAGES_PER_ITEM * config.get("max_coveritem_index", 0)
+            return coverid < IMAGES_PER_ITEM * config.get("max_coveritem_index", 0)
         except (TypeError, ValueError):
             return False
 
