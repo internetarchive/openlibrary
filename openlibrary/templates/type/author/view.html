@@ -135,8 +135,15 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                     <input type="hidden" name="sort" value="$query_param('sort')"/>
                   $if (query_param('mode')):
                     <input type="hidden" name="mode" value="$query_param('mode')"/>
-                  <input type="text" placeholder="Search $title Books" name="q" value="$(query_param('q', ''))"/>
-                  <input type="submit"/>
+                  $:render_template("search/searchbox", q=query_param('q'))
+                  <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                      var searchInput = document.querySelector('.pagesearchbox input[type="text"]');
+                      if (searchInput) {
+                        searchInput.placeholder = "Search $title Books";
+                      }
+                    });
+                  </script>
                 </form>
 
                 $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books_count)
