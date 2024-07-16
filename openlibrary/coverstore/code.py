@@ -259,7 +259,7 @@ class cover:
         if value is None or value in config.blocked_covers:
             return notfound()
 
-        if 9_000_000 > value >= 8_000_000 and size == "L":
+        if 8_820_000 > value >= 8_000_000 and size == "L":
             # This item is currently offline due to heavy traffic;
             # Fix incoming in the next ~week; See:
             # - https://webarchive.jira.com/browse/PBOX-3879
