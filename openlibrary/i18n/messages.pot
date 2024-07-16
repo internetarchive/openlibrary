@@ -1437,16 +1437,17 @@ msgstr ""
 
 #: account/reading_log.html
 #, python-format
+msgid "Books in %(username)s feed"
+msgstr ""
+
+#: account/reading_log.html
+#, python-format
 msgid "Books added by people %(username)s follows"
 msgstr ""
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(userdisplayname)s is sponsoring"
-msgstr ""
-
-#: account/reading_log.html
-msgid "Search your reading log"
 msgstr ""
 
 #: account/reading_log.html search/sort_options.html
