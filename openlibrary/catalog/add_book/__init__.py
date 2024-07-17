@@ -794,15 +794,11 @@ def normalize_import_record(rec: dict) -> None:
     rec['authors'] = uniq(rec.get('authors', []), dicthash)
 
     # Validation by parse_data(), prior to calling load(), requires facially
-    # valid publishers, authors, and publish_date. If data are unavailable, we
-    # provide throw-away data which validates. We use ["????"] as an override,
-    # but this must be removed prior to import.
+    # valid publishers. If data are unavailable, we provide throw-away data
+    # which validates. We use ["????"] as an override, but this must be
+    # removed prior to import.
     if rec.get('publishers') == ["????"]:
         rec.pop('publishers')
-    if rec.get('authors') == [{"name": "????"}]:
-        rec.pop('authors')
-    if rec.get('publish_date') == "????":
-        rec.pop('publish_date')
 
     # Remove suspect publication dates from certain sources (e.g. 1900 from Amazon).
     if any(
