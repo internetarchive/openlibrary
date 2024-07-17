@@ -1,9 +1,11 @@
 """Open Library Import API
 """
 
+from typing import Any
 from infogami.plugins.api.code import add_hook
 from infogami.infobase.client import ClientException
 
+from openlibrary.catalog.utils import get_non_isbn_asin
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.catalog.marc.marc_binary import MarcBinary, MarcException
 from openlibrary.catalog.marc.marc_xml import MarcXml
@@ -97,6 +99,23 @@ def parse_data(data: bytes) -> tuple[dict | None, str | None]:
             raise DataError('unrecognized-XML-format')
     elif data.startswith(b'{') and data.endswith(b'}'):
         obj = json.loads(data)
+
+        # Only look to the import_item table if a record is incomplete.
+        # This is the minimum to achieve a complete record. See:
+        # https://github.com/internetarchive/openlibrary/issues/9440
+        # import_validator().validate() requires more fields.
+        required_fields = ["title", "authors", "publish_date"]
+        has_all_required_fields = all(obj.get(field) for field in required_fields)
+        if not has_all_required_fields:
+            isbn_10 = obj.get("isbn_10")
+            asin = isbn_10[0] if isbn_10 else None
+
+            if not asin:
+                asin = get_non_isbn_asin(rec=obj)
+
+            if asin:
+                supplement_rec_with_import_item_metadata(rec=obj, identifier=asin)
+
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
         format = 'json'
     elif data[:MARC_LENGTH_POS].isdigit():
@@ -114,6 +133,35 @@ def parse_data(data: bytes) -> tuple[dict | None, str | None]:
 
     parse_meta_headers(edition_builder)
     return edition_builder.get_dict(), format
+
+
+def supplement_rec_with_import_item_metadata(
+    rec: dict[str, Any], identifier: str
+) -> None:
+    """
+    Queries for a staged/pending row in `import_item` by identifier, and if found,
+    uses select metadata to supplement empty fields in `rec`.
+
+    Changes `rec` in place.
+    """
+    from openlibrary.core.imports import ImportItem  # Evade circular import.
+
+    import_fields = [
+        'authors',
+        'isbn_10',
+        'isbn_13',
+        'number_of_pages',
+        'physical_format',
+        'publish_date',
+        'publishers',
+        'title',
+    ]
+
+    if import_item := ImportItem.find_staged_or_pending([identifier]).first():
+        import_item_metadata = json.loads(import_item.get("data", '{}'))
+        for field in import_fields:
+            if not rec.get(field) and (staged_field := import_item_metadata.get(field)):
+                rec[field] = staged_field
 
 
 class importapi:
