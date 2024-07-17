@@ -1,10 +1,10 @@
 $def with (email=None, ia_id=None)
 
-$var title: [Admin Center] People
+$var title: $_("[Admin Center] People")
 
 <div id="contentHead">
     $:render_template("admin/menu")
-    <h1>People</h1>
+    <h1>$_("People")</h1>
 </div>
 
 <div id="contentBody">
@@ -30,10 +30,10 @@ input#ia-id {
         <td>
             <form method="GET" name="form-email" id="form-email" class="validate">
                 <input type="text" name="email" id="email" class="email" value="$email"/>
-                <button type="submit" name="" value="find">Find</button>
+                <button type="submit" name="" value="find">$_("Find")</button>
                 <span class="invalid" htmlfor="email" generated="true">
                     $if email:
-                        No account found with this email.
+                        $_("No account found with this email.")
                 </span>
             </form>
         </td>
@@ -42,7 +42,7 @@ input#ia-id {
         <td>$_("IA ID:")</td>
         <td>
             <form method="GET" name="form-ia-id">
-                <input type="text" name="ia_id" id="ia-id" pattern="^@.*$" placeholder="e.g. @foobar">
+                <input type="text" name="ia_id" id="ia-id" pattern="^@.*$" placeholder="$_('e.g. @foobar')">
                 <button type="submit">$_("Find")</button>
                 <span class="invalid">
                     $if ia_id:
@@ -74,7 +74,7 @@ input#ia-id {
     $for user in get_recent_accounts(limit=50):
         <tr>
             <td class="time">$datestr(user.created)</td>
-            <td class="displayname"><a href="/admin$user.key">$user.displayname</a> <a href="$user.key" style="color: #900; text-decoration: none;">profile</a></td>
+            <td class="displayname"><a href="/admin$user.key">$user.displayname</a> <a href="$user.key" style="color: #900; text-decoration: none;">$_("profile")</a></td>
             <td class="displayname">$user.get_email()</td>
             <td class="comment">$user.get_edit_count()</td>
         </tr>

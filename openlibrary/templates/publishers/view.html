@@ -1,6 +1,6 @@
 $def with (page)
 
-$var title: Publisher: $page.name
+$var title: $_('Publisher: %(name)s', name=page.name)
 
 $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10)]
 
