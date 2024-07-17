@@ -1,6 +1,6 @@
 import { debounce } from './nonjquery_utils.js';
 
-export function initRealTimeValidation() {
+export function initSignupForm() {
     const signupForm = document.querySelector('form[name=signup]');
     const i18nStrings = JSON.parse(signupForm.dataset.i18n);
 
@@ -159,4 +159,13 @@ export function initRealTimeValidation() {
             validateInput(this);
         }
     });
+}
+
+export function initLoginForm() {
+    const loginForm = $('form[name=login]');
+    const loadingText = loginForm.data('i18n')['loading_text'];
+
+    loginForm.on('submit', () => {
+        $('button[type=submit]').prop('disabled', true).text(loadingText);
+    })
 }

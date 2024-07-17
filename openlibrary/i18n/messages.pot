@@ -435,6 +435,10 @@ msgstr ""
 msgid "Library Explorer"
 msgstr ""
 
+#: books/custom_carousel.html login.html search/work_search_facets.html
+msgid "Loading..."
+msgstr ""
+
 #: lib/header_dropdown.html lib/nav_head.html login.html
 msgid "Log In"
 msgstr ""
@@ -3586,10 +3590,6 @@ msgstr ""
 
 #: NotInLibrary.html books/custom_carousel.html
 msgid "Not in Library"
-msgstr ""
-
-#: books/custom_carousel.html search/work_search_facets.html
-msgid "Loading..."
 msgstr ""
 
 #: books/custom_carousel.html type/author/view.html
