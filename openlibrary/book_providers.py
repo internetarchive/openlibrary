@@ -53,13 +53,15 @@ class Acquisition:
     """
     Acquisition represents a book resource found on another website, such as
     Standard Ebooks.
+
+    Wording inspired by OPDS; see https://specs.opds.io/opds-1.2#23-acquisition-feeds
     """
 
     access: AcquisitionAccessLiteral
     format: Literal['web', 'pdf', 'epub', 'audio']
     price: str | None
     url: str
-    acquisition_name: str | None = None
+    provider_name: str | None = None
 
     @property
     def ebook_access(self) -> EbookAccess:
@@ -88,7 +90,7 @@ class Acquisition:
                 format=json.get('format', 'web'),
                 price=json.get('price'),
                 url=json['url'],
-                acquisition_name=json.get('acquisition_name'),
+                provider_name=json.get('provider_name'),
             )
         else:
             raise ValueError(f'Unknown ebook acquisition format: {json}')
@@ -123,7 +125,7 @@ class Acquisition:
             format=fmt,
             price=price,
             url=json['href'],
-            acquisition_name=json.get('name'),
+            provider_name=json.get('name'),
         )
 
 
@@ -221,9 +223,6 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
         self,
         edition: Edition,
     ) -> list[Acquisition]:
-        """
-        Return a list of Acquisition objects for the edition.
-        """
         if edition.providers:
             return [Acquisition.from_json(dict(p)) for p in edition.providers]
         else:
@@ -316,16 +315,13 @@ class LibriVoxProvider(AbstractBookProvider):
         self,
         edition: Edition,
     ) -> list[Acquisition]:
-        """
-        Return a list of EbookProvider objects for the edition.
-        """
         return [
             Acquisition(
                 access='open-access',
                 format='audio',
                 price=None,
                 url=f'https://librivox.org/{self.get_best_identifier(edition)}',
-                acquisition_name=self.short_name,
+                provider_name=self.short_name,
             )
         ]
 
@@ -341,16 +337,13 @@ class ProjectGutenbergProvider(AbstractBookProvider):
         self,
         edition: Edition,
     ) -> list[Acquisition]:
-        """
-        Return a list of EbookProvider objects for the edition.
-        """
         return [
             Acquisition(
                 access='open-access',
                 format='web',
                 price=None,
                 url=f'https://www.gutenberg.org/ebooks/{self.get_best_identifier(edition)}',
-                acquisition_name=self.short_name,
+                provider_name=self.short_name,
             )
         ]
 
@@ -367,9 +360,6 @@ class StandardEbooksProvider(AbstractBookProvider):
         self,
         edition: Edition,
     ) -> list[Acquisition]:
-        """
-        Return a list of EbookProvider objects for the edition.
-        """
         standard_ebooks_id = self.get_best_identifier(edition)
         base_url = 'https://standardebooks.org/ebooks/' + standard_ebooks_id
         flat_id = standard_ebooks_id.replace('/', '_')
@@ -379,14 +369,14 @@ class StandardEbooksProvider(AbstractBookProvider):
                 format='web',
                 price=None,
                 url=f'{base_url}/text/single-page',
-                acquisition_name=self.short_name,
+                provider_name=self.short_name,
             ),
             Acquisition(
                 access='open-access',
                 format='epub',
                 price=None,
                 url=f'{base_url}/downloads/{flat_id}.epub',
-                acquisition_name=self.short_name,
+                provider_name=self.short_name,
             ),
         ]
 
@@ -402,16 +392,13 @@ class OpenStaxProvider(AbstractBookProvider):
         self,
         edition: Edition,
     ) -> list[Acquisition]:
-        """
-        Return a list of EbookProvider objects for the edition.
-        """
         return [
             Acquisition(
                 access='open-access',
                 format='web',
                 price=None,
                 url=f'https://openstax.org/details/books/{self.get_best_identifier(edition)}',
-                acquisition_name=self.short_name,
+                provider_name=self.short_name,
             )
         ]
 
@@ -476,6 +463,10 @@ class DirectProvider(AbstractBookProvider):
         return render_template(
             self.get_template_path('read_button'), acquisition, domain
         )
+
+    def render_download_options(self, edition: Edition, extra_args: list | None = None):
+        # Return an empty string until #9581 is addressed.
+        return ""
 
     def get_access(
         self,
@@ -652,7 +643,7 @@ def get_best_edition(
 
 
 def get_solr_keys():
-    return [p.solr_key for p in PROVIDER_ORDER if p]
+    return [p.solr_key for p in PROVIDER_ORDER if p.solr_key]
 
 
 setattr(get_book_provider, 'ia', get_book_provider_by_name('ia'))  # noqa: B010

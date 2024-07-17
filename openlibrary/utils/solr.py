@@ -47,6 +47,7 @@ class Solr:
         logger.info(f"solr /get: {key}, {fields}")
         resp = self.session.get(
             f"{self.base_url}/get",
+            # It's unclear how field=None is getting in here; a better fix would be at the source.
             params={
                 'id': key,
                 **(

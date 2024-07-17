@@ -1,8 +1,9 @@
 $def with (work, book)
 
 $ edition_config = get_edition_config()
-$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian())
-$ is_librarian = is_privileged_user or (ctx.user and ctx.user.is_librarian())
+$ is_librarian = ctx.user and ctx.user.is_librarian()
+$ is_admin = ctx.user and ctx.user.is_admin()
+$ is_privileged_user = is_librarian or is_admin
 
 $def radiobuttons(name, options, value):
     $for v in options:
@@ -630,7 +631,7 @@ $code:
             return True
         return False
 
-$if is_privileged_user:
+$if is_admin:
     $ extra_class = ' hidden' if len(book.providers) == 0 else ''
     $ provider_index = 0
     <fieldset class="major">
@@ -652,7 +653,6 @@ $if is_privileged_user:
                             <select name="edition--providers--${i}--access" id="edition--providers--${i}--access" autocomplete="off">
                                 <option value=""></option>
                                 <option value="read" $cond(is_selected(d.access, 'read'), 'selected')>$_("Read")</option>
-                                <option value="listen" $cond(is_selected(d.access, 'listen'), 'selected')>$_("Listen")</option>
                                 <option value="buy" $cond(is_selected(d.access, 'buy'), 'selected')>$_("Buy")</option>
                                 <option value="borrow" $cond(is_selected(d.access, 'borrow'), 'selected')>$_("Borrow")</option>
                                 <option value="preview" $cond(is_selected(d.access, 'preview'), 'selected')>$_("Preview")</option>
@@ -687,7 +687,7 @@ $if ctx.user:
         </div>
     </fieldset>
 
-$if ctx.user and ctx.user.is_admin():
+$if is_admin:
     <fieldset class="major adminOnly">
         <legend>$_("Admin Only")</legend>
         <div class="formElement">
