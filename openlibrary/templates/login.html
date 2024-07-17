@@ -1,5 +1,9 @@
 $def with (form)
 
+$ i18n_strings = {
+    $ "loading_text": _("Loading...")
+    $ }
+
 $putctx("cssfile", "signup")
 
 $var title: $_("Log In")
@@ -32,7 +36,7 @@ $if "dev" in ctx.features:
         <p>$:_('If you\'d like to create a new, different Open Library account, you\'ll need to <a href="javascript:;" onclick="document.forms[\'hamburger-logout\'].submit()">log out</a> and start the signup process afresh.')</p>
 
     $else:
-        <form id="register" class="login olform" name="register" method="post">
+        <form id="register" class="login olform" name="login" method="post" data-i18n="$json_encode(i18n_strings)">
             $if form.note:
                 <div class="note">$form.note</div>
 
@@ -53,7 +57,7 @@ $if "dev" in ctx.features:
                     <a class="ol-signup-form__note" href="https://archive.org/account/login.forgotpw.php">$_("Forgot your Password?")</a>
                 </div>
                 <div class="input">
-                    <input type="password" placehold="$_('Password')" id="password" name="password" value="$form.password.value" required />
+                    <input type="password" placeholder="$_('Password')" id="password" name="password" value="$form.password.value" required />
                     <a href="javascript:;" class="password-visibility-toggle">
                         <img src="/static/images/icons/icon_eye-closed.svg" title="$_('Toggle Password Visibility')" alt="$_('Toggle Password Visibility')"/>
                     </a>
