@@ -16,11 +16,11 @@ $if snippet:
           <div class="fsi-snippet__quotation-mark">$_('❝')</div>
           <a class="fsi-snippet__link" href="$ia_base_url/details/$ia">
             &hellip;$:(snippet.replace("<", "&laquo;").replace(">", "&raquo;").replace("{{{", "<mark class='highlight'><strong>").replace("}}}", "</strong></mark>"))&hellip;
-          </a>
+          </a>&nbsp;
           <div class="fsi-snippet__quotation-mark">$_('❞')</div>
           $if page:
-          <a class="fsi-snippet__page-num" href="$ia_base_url/details/$ia">
-            <div>$_('Page: %(page)s', page=page)</div>
-          </a>
+          <div class="fsi-snippet__page-num" href="$ia_base_url/details/$ia">
+            <a>$_('Page: %(page)s', page=page)</a>
+          </div>
         </div>
   </div>

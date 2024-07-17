@@ -74,6 +74,7 @@ $ )
             $if any(header in param for header, label in facet_map):
                 <p class="collapse darkgray"><span class="tools"><img src="/images/icons/icon_search-facet.png" alt="$_('Search facets')" width="11" height="10" style="margin-right:5px;"/><strong>
                 $for header, label in facet_map:
+                    print('header', header)
                     $ counts = search_response.facet_counts[header]
                     $for k, display, count in counts:
                         $if k not in param.get(header, []):
@@ -115,16 +116,20 @@ $ )
 <!-- results -->
 
     $if param and not search_response.docs:
+        $if ctx.path == '/search':
+            $ path_id = 'books'
+        $else:
+            $ path_id = ctx.path.split('/')
         $ query = query_param('q')
         $# Temporarily (2020-03-26) disable automatically showing full-text
         $# results because of performance issues due to increased load. See
         $# this commit to revert.
         <center>
-          <div class="red">$_("No results found.")</div>
+          <div class="red">$:_('No <strong>%(path_id)s</strong> directly matched your search', path_id=path_id)</div>
           <hr>
         </center>
         <div id="fulltext-search-suggestion" data-query="$query">
-            $:macros.LoadingIndicator(_("Loading Search Inside Suggestions"), "fulltext-loading")
+            $:macros.LoadingIndicator(_("Checking Search Inside matches"))
         </div>
 
     $elif param and not search_response.error and len(search_response.docs):

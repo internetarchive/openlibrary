@@ -1,11 +1,11 @@
 .fsi-snippet {
   display: inline;
-  width: 70%;
+  width: 60%;
   padding: 5px;
   margin: 0;
   font-size: small;
-  @media (min-width: 425px) {
-    width: 80%;
+  @media (min-width: @width-breakpoint-mobile-m) {
+    width: 90%;
   }
   @media (min-width: @width-breakpoint-tablet) {
     width: auto;
@@ -25,8 +25,10 @@
       font-family: @georgia_serif-1;
       color: @black;
     }
+    a:visited {
+      color: @black;
+    }
     a:hover {
-      text-decoration: none;
       color: @link-blue;
     }
   }
@@ -38,8 +40,9 @@
 
   &__page-num {
     color: @dark-grey !important;
-    display: block;
+    display: inline;
     text-decoration: none !important;
-    }
+    font-family: @lucida_sans_serif-1 !important;
+  }
 }
 
