@@ -62,7 +62,7 @@ $var title: $_("Sign Up to Open Library")
             $:field(form.username, suffix=str(screenname_url()))
             $:field(form.password)
 
-            <div class="ol-signup-form__newsletter">
+            <div class="ol-signup-form__checkbox">
                 $:form.ia_newsletter.render() <label for="ia_newsletter">$:form.ia_newsletter.description</label>
             </div>
 

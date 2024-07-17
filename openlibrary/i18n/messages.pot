@@ -439,6 +439,26 @@ msgstr ""
 msgid "Log In"
 msgstr ""
 
+#: login.html
+msgid ""
+"This is a development instance, the default credentials are automatically"
+" filled."
+msgstr ""
+
+#: login.html
+msgid "email:"
+msgstr ""
+
+#: login.html
+msgid "password:"
+msgstr ""
+
+#: login.html
+msgid ""
+"Log in to use your free Open Library card to borrow digital books from "
+"the nonprofit Internet Archive"
+msgstr ""
+
 #: account/create.html login.html
 msgid "OR"
 msgstr ""
@@ -461,20 +481,6 @@ msgid ""
 "logout'].submit()\">log out</a> and start the signup process afresh."
 msgstr ""
 
-#: login.html
-msgid ""
-"This is a development instance, the default credentials are automatically"
-" filled."
-msgstr ""
-
-#: login.html
-msgid "email:"
-msgstr ""
-
-#: login.html
-msgid "password:"
-msgstr ""
-
 #: forms.py login.html
 msgid "Email"
 msgstr ""
@@ -487,16 +493,20 @@ msgstr ""
 msgid "Password"
 msgstr ""
 
-#: login.html
-msgid "Remember me"
-msgstr ""
-
 #: account/email/forgot.html login.html
 msgid "Forgot your Password?"
 msgstr ""
 
+#: account/create.html login.html
+msgid "Toggle Password Visibility"
+msgstr ""
+
 #: login.html
-msgid "Not a member of Open Library? <a href=\"/account/create\">Sign up now</a>."
+msgid "Remember me"
+msgstr ""
+
+#: login.html
+msgid "Don't have an account? <a href=\"/account/create\">Sign up now</a>."
 msgstr ""
 
 #: messages.html
@@ -1204,10 +1214,6 @@ msgstr ""
 msgid ""
 "Get your free Open Library card and borrow digital books from the "
 "nonprofit Internet Archive"
-msgstr ""
-
-#: account/create.html
-msgid "Toggle Password Visibility"
 msgstr ""
 
 #: account/create.html
