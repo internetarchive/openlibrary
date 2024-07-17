@@ -45,7 +45,7 @@
       "maxSize": "30KB"
     },
     {
-      "path": "static/build/realtime-account-validation.*.js",
+      "path": "static/build/signup.*.js",
       "maxSize": "2KB"
     },
     {

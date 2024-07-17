@@ -1,4 +1,4 @@
-import { initRealTimeValidation } from '../../../openlibrary/plugins/openlibrary/js/realtime_account_validation';
+import { initSignupForm } from '../../../openlibrary/plugins/openlibrary/js/signup';
 
 beforeEach(() => {
     document.body.innerHTML = `
@@ -21,7 +21,7 @@ describe('Email tests', () => {
 
     beforeEach(() => {
         // call the function
-        initRealTimeValidation();
+        initSignupForm();
 
         //declare the elements
         emailLabel = document.querySelector('label[for="emailAddr"]');
@@ -94,7 +94,7 @@ describe('Username tests', () => {
 
     beforeEach(() => {
         // call the function
-        initRealTimeValidation();
+        initSignupForm();
 
         //declare the elements
         usernameLabel = document.querySelector('label[for="username"]');
@@ -156,7 +156,7 @@ describe('Password tests', () => {
 
     beforeEach(() => {
         // call the function
-        initRealTimeValidation();
+        initSignupForm();
 
         //declare the elements
         passwordLabel = document.querySelector('label[for="password"]');
