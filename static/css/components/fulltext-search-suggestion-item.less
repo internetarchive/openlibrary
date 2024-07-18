@@ -52,10 +52,10 @@
     flex-direction: column;
     padding: 5px 3px 0 10px;
     width: 50%;
-    @media (min-width: 375px) {
+    @media (min-width: @width-breakpoint-mobile-s) {
       width: 70%
     }
-    @media (min-width: 425px) {
+    @media (min-width: @width-breakpoint-mobile-m) {
       width: 80%
     }
   }
@@ -67,19 +67,25 @@
     overflow: hidden;
     text-overflow: ellipsis;
     font-family: @lucida_sans_serif-6;
-    }
+  }
 
-    &__book-title {
+  &__book-title {
     font-size: large;
-    margin: 0 !important;
+    margin: 0;
     display: block;
     padding: 0;
     font-weight: 700;
     line-height: 1.2em;
   }
 
-  &__book-title-link {
-    text-decoration: none !important;
+  &__book-title a:link,
+  &__book-title a:visited {
+    text-decoration: none;
+    color: @black;
+  }
+
+  &__book-title a:hover {
+    color: @header-nav-hover-color;
   }
 
   &__book-author {
