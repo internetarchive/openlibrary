@@ -27,7 +27,16 @@ $ url_map = { 'person': 'person:', 'place': 'place:', 'time': 'time:' }
 $if q:
     $ response = get_results(q, offset=offset, limit=results_per_page)
     $if not response.error:
-        <p class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', response.num_found, count=commify(response.num_found))</p>
+        $if response.num_found:
+            <p class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', response.num_found, count=commify(response.num_found))</p>
+        $else:
+            <center>
+                <div class="red">$:_('No <strong>subjects</strong> directly matched your search')</div>
+                <hr>
+            </center>
+            <div id="fulltext-search-suggestion" data-query="$q">
+                $:macros.LoadingIndicator(_("Checking Search Inside matches"))
+            </div>
 
 $if q and response.error:
     <strong>
