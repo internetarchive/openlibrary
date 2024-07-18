@@ -2,8 +2,6 @@ import { debounce } from './nonjquery_utils.js';
 
 export function initRealTimeValidation() {
     const signupForm = document.querySelector('form[name=signup]');
-    const submitBtn = $('button[name=signup]');
-    const submitBtnText = submitBtn.text();
     const i18nStrings = JSON.parse(signupForm.dataset.i18n);
 
     // Keep the same with openlibrary/plugins/upstream/forms.py
@@ -24,8 +22,6 @@ export function initRealTimeValidation() {
 
             if (numInvalidInputs === 0 && isFormattingValid) {
                 signupForm.submit();
-            } else {
-                submitBtn.prop('disabled', false).text(submitBtnText);
             }
         }
         window.submitCreateAccountForm = submitCreateAccountForm
@@ -163,6 +159,4 @@ export function initRealTimeValidation() {
             validateInput(this);
         }
     });
-
-    $(submitBtn).on('click', () => submitBtn.prop('disabled', true).text(i18nStrings['loading_text']));
 }
