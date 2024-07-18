@@ -15,20 +15,22 @@ The imports can be monitored for their statuses and rolled up / counted using th
 """
 
 from __future__ import annotations
+import datetime
 import json
-from typing import Any
 import ijson
-from urllib.parse import urlencode
 import requests
 import logging
+
+from typing import Any
+from urllib.parse import urlencode
 
 import _init_path  # Imported for its side effect of setting PYTHONPATH
 from infogami import config
 from openlibrary.config import load_config
+from openlibrary.core import stats
 from openlibrary.core.imports import Batch, ImportItem
 from openlibrary.core.vendors import get_amazon_metadata
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
-
 
 logger = logging.getLogger("openlibrary.importer.promises")
 
@@ -100,11 +102,17 @@ def stage_incomplete_records_for_import(olbooks: list[dict[str, Any]]) -> None:
     An incomplete record lacks one or more of: title, authors, or publish_date.
     See https://github.com/internetarchive/openlibrary/issues/9440.
     """
+    total_records = len(olbooks)
+    incomplete_records = 0
+    timestamp = datetime.datetime.now(datetime.UTC)
+
     required_fields = ["title", "authors", "publish_date"]
     for book in olbooks:
         # Only stage records missing a required field.
         if all(book.get(field) for field in required_fields):
             continue
+
+        incomplete_records += 1
 
         # Skip if the record can't be looked up in Amazon.
         isbn_10 = book.get("isbn_10")
@@ -124,6 +132,10 @@ def stage_incomplete_records_for_import(olbooks: list[dict[str, Any]]) -> None:
         except requests.exceptions.ConnectionError:
             logger.exception("Affiliate Server unreachable")
             continue
+
+    # Record promise item completeness rate over time.
+    stats.gauge(f"ol.imports.bwb.{timestamp}.total_records", total_records)
+    stats.gauge(f"ol.imports.bwb.{timestamp}.incomplete_records", incomplete_records)
 
 
 def batch_import(promise_id, batch_size=1000, dry_run=False):

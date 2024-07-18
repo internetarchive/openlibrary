@@ -56,4 +56,16 @@ def increment(key, n=1, rate=1.0):
                 client.incr(key, rate=rate)
 
 
+def gauge(key: str, value: int, rate: float = 1.0) -> None:
+    """
+    Gauges are a constant data type. Ordinarily the rate should be 1.0.
+
+    See https://statsd.readthedocs.io/en/v3.3/types.html#gauges
+    """
+    global client
+    if client:
+        pystats_logger.debug(f"Updating gauge {key} to {value}")
+        client.gauge(key, value, rate=rate)
+
+
 client = create_stats_client()
