@@ -164,5 +164,5 @@ export function initRealTimeValidation() {
         }
     });
 
-    $(signupForm).on('submit', () => submitBtn.prop('disabled', true).text(i18nStrings['loading_text']));
+    $(submitBtn).on('click', () => submitBtn.prop('disabled', true).text(i18nStrings['loading_text']));
 }
