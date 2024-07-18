@@ -2,7 +2,10 @@ import { debounce } from './nonjquery_utils.js';
 
 export function initRealTimeValidation() {
     const signupForm = document.querySelector('form[name=signup]');
+    const submitBtn = $('button[name=signup]');
+    const submitBtnText = submitBtn.text();
     const i18nStrings = JSON.parse(signupForm.dataset.i18n);
+
     // Keep the same with openlibrary/plugins/upstream/forms.py
     const VALID_EMAIL_RE = /^.*@.*\..*$/;
     const VALID_USERNAME_RE = /^[a-z0-9-_]{3,20}$/i;
@@ -16,14 +19,13 @@ export function initRealTimeValidation() {
         // Checks whether reportValidity exists for cross-browser compatibility
         // Includes invalid input count to account for checks not covered by reportValidity
         function submitCreateAccountForm() {
-            const submitBtn = $('button[name=signup]');
-            submitBtn.prop('disabled', true).text(i18nStrings['loading_text']);
-
             const numInvalidInputs = signupForm.querySelectorAll('input.invalid').length;
             const isFormattingValid = !signupForm.reportValidity || signupForm.reportValidity()
 
             if (numInvalidInputs === 0 && isFormattingValid) {
                 signupForm.submit();
+            } else {
+                submitBtn.prop('disabled', false).text(submitBtnText);
             }
         }
         window.submitCreateAccountForm = submitCreateAccountForm
@@ -161,4 +163,6 @@ export function initRealTimeValidation() {
             validateInput(this);
         }
     });
+
+    $(signupForm).on('submit', () => submitBtn.prop('disabled', true).text(i18nStrings['loading_text']));
 }
