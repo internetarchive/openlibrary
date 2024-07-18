@@ -22,9 +22,11 @@ $var title: $_('Search results for Lists')
       </ul>
     </div>
   $elif q:
-    <div>
-      <span class="red">$_("No results found.")</span>
-      <a href="/search/inside?$urlencode(dict(q=q))">$_('Search for books containing the phrase "%s"?', q)</a>
+    <center>
+      <div class="red">$:_('No <strong>lists</strong> directly matched your search')</div>
+      <hr>
+    </center>
+    <div id="fulltext-search-suggestion" data-query="$q">
+        $:macros.LoadingIndicator(_("Checking Search Inside matches"))
     </div>
-
 </div>
