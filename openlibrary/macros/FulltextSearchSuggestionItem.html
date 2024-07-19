@@ -45,7 +45,7 @@ $ blur_cover = "fsi__bookcover-img-blur" if blur else ""
   <div class="fsi__main">
     <span class="fsi__book-cover">
       $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
-      <a href="$work_edition_url">
+      <a data-ol-link-track="SearchInsideCard|BookClick" href="$work_edition_url">
         <img class="fsi__book-cover-img $blur_cover"
               itemprop="image"
               src="$cover"
@@ -56,7 +56,7 @@ $ blur_cover = "fsi__bookcover-img-blur" if blur else ""
     <div class="fsi__book-details">
       <div class="fsi__title-author">
         <h3 class="fsi__book-title" itemprop="name">
-          <a  class="fsi__book-title-link" itemprop="url"  href="$work_edition_url">$full_title</a>
+          <a class="fsi__book-title-link" itemprop="url" data-ol-link-track="SearchInsideCard|BookClick" href="$work_edition_url">$full_title</a>
         </h3>
         <p class="fsi__book-author" itemprop="author" itemscope itemtype="https://schema.org/Organization">
           $ authors = None
