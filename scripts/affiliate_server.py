@@ -42,12 +42,13 @@ import sys
 import threading
 import time
 
-from collections.abc import Collection
+from collections.abc import Callable, Collection
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any, Final
 
+import requests
 import web
 
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
@@ -61,8 +62,6 @@ from openlibrary.core.vendors import AmazonAPI, clean_amazon_metadata_for_load
 from openlibrary.utils.dateutil import WEEK_SECS
 from openlibrary.utils.isbn import (
     normalize_identifier,
-    normalize_isbn,
-    isbn_13_to_isbn_10,
     isbn_10_to_isbn_13,
 )
 
@@ -78,6 +77,7 @@ urls = (
 
 API_MAX_ITEMS_PER_CALL = 10
 API_MAX_WAIT_SECONDS = 0.9
+# TODO: make a map for Google Books.
 AZ_OL_MAP = {
     'cover': 'covers',
     'title': 'title',
@@ -158,6 +158,182 @@ class PrioritizedIdentifier:
             "stage_import": self.stage_import,
             "timestamp": self.timestamp.isoformat(),
         }
+
+
+class BaseLookupWorker(threading.Thread):
+    """
+    A base class for creating API look up workers on their own threads.
+    """
+
+    def __init__(
+        self,
+        queue: queue.PriorityQueue,
+        process_item: Callable,
+        stats_client: stats.StatsClient,
+        logger: logging.Logger,
+        name: str,
+    ) -> None:
+        self.queue = queue
+        self.process_item = process_item
+        self.stats_client = stats_client
+        self.logger = logger
+        self.name = name
+
+    def run(self):
+        while True:
+            try:
+                item = self.queue.get(timeout=API_MAX_WAIT_SECONDS)
+                self.logger.info(f"{self.name} lookup: processing item {item}")
+                self.process_item(item)
+            except queue.Empty:
+                continue
+            except Exception as e:
+                self.logger.exception(f"{self.name} Lookup Thread died: {e}")
+                self.stats_client.incr(f"ol.affiliate.{self.name}.lookup_thread_died")
+
+
+class AmazonLookupWorker(BaseLookupWorker):
+    """
+    A look up worker for the Amazon Products API.
+
+    A separate thread of execution that uses the time up to API_MAX_WAIT_SECONDS to
+    create a list of isbn_10s that is not larger than API_MAX_ITEMS_PER_CALL and then
+    passes them to process_amazon_batch()
+    """
+
+    def run(self):
+        while True:
+            start_time = time.time()
+            asins: set[PrioritizedIdentifier] = set()  # no duplicates in the batch
+            while len(asins) < API_MAX_ITEMS_PER_CALL and self._seconds_remaining(
+                start_time
+            ):
+                try:  # queue.get() will block (sleep) until successful or it times out
+                    asins.add(
+                        self.queue.get(timeout=self._seconds_remaining(start_time))
+                    )
+                except queue.Empty:
+                    pass
+
+            self.logger.info(f"Before amazon_lookup(): {len(asins)} items")
+            if asins:
+                time.sleep(seconds_remaining(start_time))
+                try:
+                    process_amazon_batch(asins)
+                    self.logger.info(f"After amazon_lookup(): {len(asins)} items")
+                except Exception:
+                    self.logger.exception("Amazon Lookup Thread died")
+                    self.stats_client.incr("ol.affiliate.amazon.lookup_thread_died")
+
+    def _seconds_remaining(self, start_time: float) -> float:
+        return max(API_MAX_WAIT_SECONDS - (time.time() - start_time), 0)
+
+
+def fetch_google_book(isbn: str) -> dict | None:
+    """
+    Get Google Books metadata, if it exists.
+    """
+    url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
+    headers = {"User-Agent": "Open Library BookWorm/1.0"}
+    try:
+        r = requests.get(url, headers=headers)
+        if r.status_code == 200:
+            return r.json()
+
+    except Exception as e:
+        logger.exception(f"Error processing ISBN {isbn} on Google Books: {e!s}")
+        return None
+
+    return None
+
+
+# TODO: See clean_amazon_metadata_for_load(). This function needs modification.
+# See AZ_OL_MAP and do something similar here.
+def process_google_book(google_book_data: dict[str, Any]) -> dict[str, Any] | None:
+    """
+    Returns a dict-edition record suitable for import via /api/import
+
+    Processing https://www.googleapis.com/books/v1/volumes?q=isbn:9785699350131:
+    {'isbn_10': ['5699350136'],
+     'isbn_13': ['9785699350131'],
+     'title': 'Бал моей мечты',
+     'subtitle': '[для сред. шк. возраста]',
+     'authors': [{'name': 'Светлана Лубенец'}],
+     'source_records': ['google_books:YJ1uQwAACAAJ'],
+     'publishers': [],
+     'publish_date': '2009',
+     'number_of_pages': 153}
+    """
+    result = {}
+    isbn_10 = []
+    isbn_13 = []
+
+    if not (data := google_book_data.get("items", [])):
+        return None
+
+    if len(data) != 1:
+        logger.warning("Google Books had more than one result for an ISBN.")
+        return None
+
+    # Permanent URL: https://www.googleapis.com/books/v1/volumes/{id}
+    google_books_identifier = data[0].get("id")
+    if not (book := data[0].get("volumeInfo", {})):
+        return None
+
+    # Extract ISBNs, if any.
+    for identifier in book.get("industryIdentifiers", []):
+        if identifier.get("type") == "ISBN_10":
+            isbn_10.append(identifier.get("identifier"))
+        elif identifier.get("type") == "ISBN_13":
+            isbn_13.append(identifier.get("identifier"))
+
+    result["isbn_10"] = isbn_10 if isbn_10 else []
+    result["isbn_13"] = isbn_13 if isbn_13 else []
+
+    result["title"] = book.get("title", "")
+    result["subtitle"] = book.get("subtitle")
+    result["authors"] = (
+        [{"name": author} for author in book.get("authors", [])]
+        if book.get("authors")
+        else []
+    )
+    # TODO: Needs promise time source record also, when applicable?
+    result["source_records"] = [f"google_books:{google_books_identifier}"]
+    # has publisher: https://www.googleapis.com/books/v1/volumes/YJ1uQwAACAAJ
+    # does not have publisher: https://www.googleapis.com/books/v1/volumes?q=isbn:9785699350131
+    result["publishers"] = [book.get("publisher")] if book.get("publisher") else []
+    result["publish_date"] = book.get("publishedDate", "")
+    # Language needs converting. 2 character code -> 3 character.
+    # result["languages"] = [book.get("language")] if book.get("language") else []
+    result["number_of_pages"] = book.get("pageCount", None)
+    result["description"] = book.get("description", None)
+
+    return result
+
+
+def process_isbn(isbn: str) -> None:
+    """
+    Process ISBNs.
+    TODO: explain/process overview.
+    """
+    if google_book_data := fetch_google_book(isbn):
+        if google_book := process_google_book(google_book_data=google_book_data):
+            # TODO: this needs to be a different batch because it's Google.
+            # Also should it go into the cache first and the thing that reads from
+            # the cache handles everything that might be in there, regardless of
+            # source?
+            get_current_amazon_batch().add_items(
+                [
+                    {
+                        'ia_id': google_book['source_records'][0],
+                        'status': 'staged',
+                        'data': google_book,
+                    }
+                ]
+            )
+    else:
+        # TODO: Try AMZ if nothing from Google Books? Or make async requests 'everywhere'?
+        pass
 
 
 def get_current_amazon_batch() -> Batch:
@@ -251,6 +427,9 @@ def make_cache_key(product: dict[str, Any]) -> str:
     ):
         return cache_key
 
+    # TODO: throw Google Books responses in here too and have everything read
+    # from this cache? (e.g. do an `or` with the record.startswith("google_books:"))
+    # and update the split.
     if (source_records := product.get("source_records")) and (
         amazon_record := next(
             (record for record in source_records if record.startswith("amazon:")), ""
@@ -304,6 +483,7 @@ def process_amazon_batch(asins: Collection[PrioritizedIdentifier]) -> None:
         if product.get("source_records")[0].split(":")[1] not in no_import_identifiers
     ]
 
+    print(f"these would be queued for import: {books}", flush=True)
     if books:
         stats.increment(
             "ol.affiliate.amazon.total_items_batched_for_import",
@@ -338,6 +518,7 @@ def amazon_lookup(site, stats_client, logger) -> None:
                 asins.add(web.amazon_queue.get(timeout=seconds_remaining(start_time)))
             except queue.Empty:
                 pass
+
         logger.info(f"Before amazon_lookup(): {len(asins)} items")
         if asins:
             time.sleep(seconds_remaining(start_time))
@@ -420,6 +601,8 @@ class Submit:
         if not web.amazon_api:
             return json.dumps({"error": "not_configured"})
 
+        # TODO: Google Books can take ISBN 10 or ISBN 13.
+
         b_asin, isbn_10, isbn_13 = normalize_identifier(identifier)
         if not (key := isbn_10 or b_asin):
             return json.dumps({"error": "rejected_isbn", "identifier": identifier})
@@ -461,6 +644,9 @@ class Submit:
         if priority == Priority.HIGH:
             for _ in range(RETRIES):
                 time.sleep(1)
+                # TODO: We'd possibly want to look for Google Books here too.
+                # So maybe the logic here should go in a separate function that's
+                # called here so the logic is more contained.
                 if product := cache.memcache_cache.get(
                     f'amazon_product_{isbn_13 or b_asin}'
                 ):
