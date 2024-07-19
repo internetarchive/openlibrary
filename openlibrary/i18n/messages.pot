@@ -1034,6 +1034,27 @@ msgid ""
 msgstr ""
 
 #: account/create.html
+msgid "Toggle Password Visibility"
+msgstr ""
+
+#: account/create.html books/custom_carousel.html
+#: search/work_search_facets.html
+msgid "Loading..."
+msgstr ""
+
+#: account/create.html
+msgid "Loading spinner"
+msgstr ""
+
+#: account/create.html type/author/view.html
+msgid "Success!"
+msgstr ""
+
+#: account/create.html
+msgid "Checkmark"
+msgstr ""
+
+#: account/create.html
 msgid "Your URL"
 msgstr ""
 
@@ -6477,10 +6498,6 @@ msgstr ""
 
 #: type/author/view.html
 msgid "Refresh the page?"
-msgstr ""
-
-#: type/author/view.html
-msgid "Success!"
 msgstr ""
 
 #: type/author/view.html
