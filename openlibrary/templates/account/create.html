@@ -29,7 +29,7 @@ $var title: $_("Sign Up to Open Library")
         $# :param openlibrary.utils.form.Input input:
         $# :param str suffix: HTML to put at bottom of input
 
-        <div class="formElement ol-signup-form__input">
+        <div class="formElement ol-signup-form__input ol-signup-form__input--$(input.id)">
             <div class="label">
                 <label for="$input.id">$input.description</label>
                 $if input.help:
@@ -39,8 +39,13 @@ $var title: $_("Sign Up to Open Library")
             <div class="input">
                 $:input.render()
                 $if input.name == 'password':
-                    <a href="javascript:;" class="password-visibility-toggle">
+                    <a href="javascript:;" class="password-visibility-toggle ol-signup-form__icon-wrap">
                         <img src="/static/images/icons/icon_eye-closed.svg" title="$_('Toggle Password Visibility')" alt="$_('Toggle Password Visibility')"/>
+                    </a>
+                $else:
+                    <a href="javascript:;" class="ol-signup-form__icon-wrap">
+                        <img src="/static/images/ajax-loader.gif" class="ol-signup-form__icon ol-signup-form__icon--loading" title="$_('Loading...')" alt="$_('Loading spinner')" style="display:none"/>
+                        <img src="/static/images/icons/icon_check.png" class="ol-signup-form__icon ol-signup-form__icon--success" title="$_('Success!')" alt="$_('Checkmark')" style="display:none" />
                     </a>
             </div>
             <div class="ol-signup-form__suffix">$:suffix</div>
