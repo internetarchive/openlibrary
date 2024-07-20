@@ -20,12 +20,12 @@
 
                 <input v-else type="text" @click="togglePasswordVisibility()" v-model="bulkSearchState.extractionOptions.api_key" />
             </label>
-                <label>Sample Data:
-                    <select v-model="selectedValue">
-                        <option>Choose sample...</option>
-                        <option v-for="sample in sampleData" :value = "sample.text"> {{sample.name}} </option>
-                    </select>
-                </label>
+            <label>Sample Data:
+                <select v-model="selectedValue">
+                    <option>Choose sample...</option>
+                    <option v-for="sample in sampleData" :value = "sample.text" :key = "sample.source"> {{sample.name}} </option>
+                </select>
+            </label>
             <label>
                 <input v-model="bulkSearchState.matchOptions.includeAuthor" type="checkbox" /> Use author in
                 search query
@@ -67,7 +67,9 @@ export default {
     },
     watch: {
         selectedValue(newValue) {
-            this.bulkSearchState.inputText = newValue;
+            if (newValue!==''){
+                this.bulkSearchState.inputText = newValue;
+            }
         }
     },
     methods: {
