@@ -20,7 +20,12 @@
 
                 <input v-else type="text" @click="togglePasswordVisibility()" v-model="bulkSearchState.extractionOptions.api_key" />
             </label>
-            <SampleBar @sample="(msg) => bulkSearchState.inputText = msg" />
+                <label>Sample Data:
+                    <select v-model="selectedValue">
+                        <option>Choose sample...</option>
+                        <option v-for="sample in sampleData" :value = "sample.text"> {{sample.name}} </option>
+                    </select>
+                </label>
             <label>
                 <input v-model="bulkSearchState.matchOptions.includeAuthor" type="checkbox" /> Use author in
                 search query
@@ -37,19 +42,19 @@
 </template>
 
 <script>
-import SampleBar from './SampleBar.vue'
+import {sampleData} from '../utils/samples.js';
 import { BulkSearchState, ExtractedBook, BookMatch } from '../utils/classes.js';
 import { buildSearchUrl, buildListUrl } from '../utils/searchUtils.js'
 export default {
-    components: {
-        SampleBar
-    },
+
     props: {
         bulkSearchState: BulkSearchState
     },
     data() {
         return {
+            selectedValue: '',
             showPassword: true,
+            sampleData: sampleData,
             regexDict: {
                 '': '',
                 1: new RegExp('(^|>)(?<title>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+(by|[-\u2013\u2014\\t])\\s+(?<author>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)', 'gmu'),
@@ -58,6 +63,11 @@ export default {
                 4: new RegExp('^(?<title>[\\p{L}].{1,250})\\s\\(?<author>(.{3,70})\\)$$', 'gmu'),
                 5: new RegExp('^(?<author>[^.()]+).*?\\)\\. (?<title>[^.]+)', 'gmu')
             }
+        }
+    },
+    watch: {
+        selectedValue(newValue) {
+            this.bulkSearchState.inputText = newValue;
         }
     },
     methods: {
