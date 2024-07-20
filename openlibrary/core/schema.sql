@@ -108,7 +108,7 @@ CREATE TABLE wikidata (
     updated timestamp without time zone default (current_timestamp at time zone 'utc')
 )
 
-CREATE TABLE bestbooks {
+CREATE TABLE bestbooks (
     nomination_id serial not null primary key,
     submitter text not null,
     book_id text not null,
@@ -116,4 +116,4 @@ CREATE TABLE bestbooks {
     comment text not null,
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
     updated timestamp without time zone default (current_timestamp at time zone 'utc')
-}
+)
