@@ -1,5 +1,5 @@
 <template>
-  <div v-if="bulkSearchState.matchedBooks.length" class="tableWrapper">
+  <div class="tableWrapper">
     <table>
       <thead>
         <tr>

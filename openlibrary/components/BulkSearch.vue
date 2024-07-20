@@ -2,7 +2,7 @@
     <div>
         <BulkSearchControls :bulkSearchState="bulkSearchState" />
         <hr />
-        <MatchTable :bulkSearchState="bulkSearchState"  :listUrl = bulkSearchState.listUrl />
+        <MatchTable v-if="bulkSearchState.matchedBooks.length" :bulkSearchState="bulkSearchState"  :listUrl = bulkSearchState.listUrl />
     </div>
 </template>
 
