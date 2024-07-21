@@ -22,7 +22,6 @@
             </label>
             <label>Sample Data:
                 <select v-model="selectedValue">
-                    <option>Choose sample...</option>
                     <option v-for="sample in sampleData" :value = "sample.text" :key = "sample.source"> {{sample.name}} </option>
                 </select>
             </label>
