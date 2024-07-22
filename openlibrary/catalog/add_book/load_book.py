@@ -3,7 +3,6 @@ import web
 from openlibrary.catalog.utils import flip_name, author_dates_match, key_int
 from openlibrary.core.helpers import extract_year
 
-
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Author
 
@@ -65,17 +64,12 @@ HONORIFC_NAME_EXECPTIONS = frozenset(
 )
 
 
-def east_in_by_statement(rec, author):
+def east_in_by_statement(rec: dict[str, Any], author: dict[str, Any]) -> bool:
     """
     Returns False if there is no by_statement in rec.
     Otherwise returns whether author name uses eastern name order.
     TODO: elaborate on what this actually means, and how it is used.
-
-    :param dict rec: import source edition record
-    :param dict author: import source author dict: {"name": "Some One"}
-    :rtype: bool
     """
-
     if 'by_statement' not in rec:
         return False
     if 'authors' not in rec:
@@ -90,13 +84,10 @@ def east_in_by_statement(rec, author):
     return rec['by_statement'].find(name) != -1
 
 
-def do_flip(author):
+def do_flip(author: dict[str, Any]) -> None:
     """
     Given an author import dict, flip its name in place
     i.e. Smith, John => John Smith
-
-    :param dict author:
-    :rtype: None
     """
     if 'personal_name' in author and author['personal_name'] != author['name']:
         # Don't flip names if name is more complex than personal_name (legacy behaviour)
@@ -117,7 +108,7 @@ def do_flip(author):
         author['personal_name'] = name
 
 
-def pick_from_matches(author, match):
+def pick_from_matches(author: dict[str, Any], match: list["Author"]) -> "Author":
     """
     Finds the best match for author from a list of OL authors records, match.
 
@@ -140,11 +131,7 @@ def pick_from_matches(author, match):
 
 def find_author(author: dict[str, Any]) -> list["Author"]:
     """
-    Searches OL for an author by name.
-
-    :param str name: Author's name
-    :rtype: list
-    :return: A list of OL author representations than match name
+    Searches OL for an author by a range of queries.
     """
 
     def walk_redirects(obj, seen):
@@ -181,12 +168,13 @@ def find_author(author: dict[str, Any]) -> list["Author"]:
 
 def find_entity(author: dict[str, Any]) -> "Author | None":
     """
-    Looks for an existing Author record in OL by name
+    Looks for an existing Author record in OL
     and returns it if found.
 
     :param dict author: Author import dict {"name": "Some One"}
     :return: Existing Author record if found, or None.
     """
+    assert isinstance(author, dict)
     name = author['name']
     things = find_author(author)
     et = author.get('entity_type')
@@ -194,11 +182,11 @@ def find_entity(author: dict[str, Any]) -> "Author | None":
         if not things:
             return None
         db_entity = things[0]
-        assert db_entity['type']['key'] == '/type/author'
+        assert db_entity.type.key == '/type/author'
         return db_entity
     if ', ' in name:
-        flipped_name = flip_name(author["name"])
         author_flipped_name = author.copy()
+        author_flipped_name['name'] = flip_name(name)
         things += find_author(author_flipped_name)
     match = []
     seen = set()
@@ -241,7 +229,6 @@ def remove_author_honorifics(name: str) -> str:
         None,
     ):
         return name[len(f"{honorific} ") :].lstrip() or name
-
     return name
 
 
@@ -253,9 +240,10 @@ def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, 
 
     :param dict author: Author import record {"name": "Some One"}
     :param bool eastern: Eastern name order
-    :return: Open Library style Author representation, either existing with "key",
-             or new candidate without "key".
+    :return: Open Library style Author representation, either existing Author with "key",
+             or new candidate dict without "key".
     """
+    assert isinstance(author, dict)
     if existing := find_entity(author):
         assert existing.type.key == '/type/author'
         for k in 'last_modified', 'id', 'revision', 'created':
@@ -285,19 +273,15 @@ class InvalidLanguage(Exception):
 type_map = {'description': 'text', 'notes': 'text', 'number_of_pages': 'int'}
 
 
-def build_query(rec):
+def build_query(rec: dict[str, Any]) -> dict[str, Any]:
     """
     Takes an edition record dict, rec, and returns an Open Library edition
     suitable for saving.
-
-    :param dict rec: Edition record to add to Open Library
-    :rtype: dict
-    :return: Open Library style edition representation
+    :return: Open Library style edition dict representation
     """
     book = {
         'type': {'key': '/type/edition'},
     }
-
     for k, v in rec.items():
         if k == 'authors':
             if v and v[0]:

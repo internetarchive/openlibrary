@@ -679,9 +679,10 @@ def load_data(
 
     edits: list[dict] = []  # Things (Edition, Work, Authors) to be saved
     reply = {}
-    # TOFIX: edition.authors has already been processed by import_authors() in build_query(), following line is a NOP?
+    # edition.authors may have already been processed by import_authors() in build_query(), but not
+    # neccesarily
     author_in = [
-        import_author(a, eastern=east_in_by_statement(rec, a))
+        import_author(a, eastern=east_in_by_statement(rec, a)) if isinstance(a, dict) else a
         for a in edition.get('authors', [])
     ]
     # build_author_reply() adds authors to edits
