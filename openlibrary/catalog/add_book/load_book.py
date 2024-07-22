@@ -175,15 +175,9 @@ def find_entity(author: dict[str, Any]) -> "Author | None":
     :return: Existing Author record if found, or None.
     """
     assert isinstance(author, dict)
-    name = author['name']
     things = find_author(author)
-    et = author.get('entity_type')
-    if et and et != 'person':
-        if not things:
-            return None
-        db_entity = things[0]
-        assert db_entity.type.key == '/type/author'
-        return db_entity
+    if author.get('entity_type', 'person') != 'person':
+        return things[0] if things else None
     match = []
     seen = set()
     for a in things:
