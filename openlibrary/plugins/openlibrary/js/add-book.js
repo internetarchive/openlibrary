@@ -14,6 +14,8 @@ let invalidIsbn13;
 let invalidLccn;
 let emptyId;
 
+const i18nStrings = JSON.parse(document.querySelector('form[name=edit]').dataset.i18n);
+
 export function initAddBookImport () {
     $('.list-books a').on('click', function() {
         var li = $(this).parents('li').first();
@@ -25,7 +27,6 @@ export function initAddBookImport () {
         $('form#addbook').trigger('submit');
     });
 
-    const i18nStrings = JSON.parse(document.querySelector('#id-errors').dataset.i18n)
     invalidChecksum = i18nStrings.invalid_checksum;
     invalidIsbn10 = i18nStrings.invalid_isbn10;
     invalidIsbn13 = i18nStrings.invalid_isbn13;
@@ -36,6 +37,8 @@ export function initAddBookImport () {
     $('#addbook').on('submit', parseAndValidateId);
     $('#id_value').on('input', clearErrors);
     $('#id_name').on('change', clearErrors);
+
+    $('#publish_date').on('blur', validatePublishDate);
 }
 
 // a flag to make raiseIsbnError perform differently upon subsequent calls
@@ -152,5 +155,24 @@ function autoCompleteIdName(){
 
     else {
         document.getElementById('id_name').value = '';
+    }
+}
+
+function validatePublishDate() {
+    // validate publish-date to make sure the date is not in future
+    // used in templates/books/add.html
+    const publish_date = this.value;
+    // if it doesn't have even three digits then it can't be a future date
+    const tokens = /(\d{3,})/.exec(publish_date);
+    const year = new Date().getFullYear();
+    const isValidDate = tokens && tokens[1] && parseInt(tokens[1]) <= year + 1; // allow one year in future.
+
+    const errorDiv = document.getElementById('publish-date-errors');
+
+    if (!isValidDate) {
+        errorDiv.classList.remove('hidden');
+        errorDiv.textContent = i18nStrings['invalid_publish_date'];
+    } else {
+        errorDiv.classList.add('hidden');
     }
 }
