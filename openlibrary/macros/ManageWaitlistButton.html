@@ -24,10 +24,8 @@ $if status == "waiting":
     <div class="smaller" style="padding-top: 5px;">
       $if delta_hours == 0:
         $_("You have less than an hour to borrow it.")
-      $elif delta_hours == 1:
-        $_("You have one more hour to borrow it.")
       $else:
-       $_('You have %(count)d more hours to borrow it.', count=delta_hours)
+        $ungettext('You have %(count)d more hour to borrow it.', 'You have %(count)d more hours to borrow it.', delta_hours, count=delta_hours)
     </div>
 </div>
 

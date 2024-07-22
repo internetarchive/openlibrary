@@ -1265,7 +1265,7 @@ msgstr[1] ""
 msgid "You have less than an hour to borrow it."
 msgstr ""
 
-#: ManageWaitlistButton.html account/loans.html
+#: account/loans.html
 #, python-format
 msgid "You have one more hour to borrow it."
 msgid_plural "You have %(hours)d more hours to borrow it."
@@ -1927,7 +1927,7 @@ msgstr ""
 
 #: admin/attach_debugger.html
 #, python-format
-msgid "Attach Debugger on Python %(version_number)d"
+msgid "Attach Debugger on Python %(version_number)s"
 msgstr ""
 
 #: admin/attach_debugger.html
@@ -2689,7 +2689,7 @@ msgstr ""
 #, python-format
 msgid ""
 "Activated on <span class=\"time\">%(date)s</span> from <a "
-"href=\"/admin/ip/$v.ip\">%(ip)s</a>."
+"href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
 msgstr ""
 
 #: admin/people/view.html
@@ -4580,7 +4580,7 @@ msgstr ""
 
 #: jsdef/LazyWorkPreview.html
 #, python-format
-msgid "One edition"
+msgid "%(count)d edition"
 msgid_plural "%(count)d editions"
 msgstr[0] ""
 msgstr[1] ""
@@ -7078,8 +7078,10 @@ msgstr[1] ""
 
 #: ManageWaitlistButton.html
 #, python-format
-msgid "You have %(count)d more hours to borrow it."
-msgstr ""
+msgid "You have %(count)d more hour to borrow it."
+msgid_plural "You have %(count)d more hours to borrow it."
+msgstr[0] ""
+msgstr[1] ""
 
 #: NotesModal.html
 msgid "My Book Notes"
