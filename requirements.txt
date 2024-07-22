@@ -1,7 +1,7 @@
 aiofiles==23.1.0
 amightygirl.paapi5-python-sdk==1.0.0
 Babel==2.12.1
-beautifulsoup4==4.12.2
+beautifulsoup4==4.12.3
 DBUtils==1.4
 Deprecated==1.2.14
 eventer==0.1.1
