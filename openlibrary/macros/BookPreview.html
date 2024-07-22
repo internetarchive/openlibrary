@@ -1,11 +1,11 @@
-$def with (ocaid, analytics_attr)
+$def with (ocaid, analytics_attr, show_only=False)
 $# :param str ocaid:
 
   <div class="cta-button-group">
     <a class="cta-btn cta-btn--preview"
       data-iframe-src="https://archive.org/details/$ocaid?view=theater&wrapper=false"
       data-iframe-link="https://archive.org/details/$ocaid"
-      $:analytics_attr('Preview') href="#bookPreview">$:_('Preview <span>Only</span>')</a>
+      $:analytics_attr('Preview') href="#bookPreview">$(_('Preview Only') if show_only else _('Preview'))</a>
   </div>
 
 $if render_once('book-preview-floater'):

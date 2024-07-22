@@ -272,7 +272,7 @@ msgstr ""
 msgid "YAML Representation:"
 msgstr ""
 
-#: books/edit/edition.html editpage.html
+#: BookPreview.html books/edit/edition.html editpage.html
 msgid "Preview"
 msgstr ""
 
@@ -6556,7 +6556,7 @@ msgid "by an <em>unknown author</em>"
 msgstr ""
 
 #: BookPreview.html
-msgid "Preview <span>Only</span>"
+msgid "Preview Only"
 msgstr ""
 
 #: BookPreview.html
