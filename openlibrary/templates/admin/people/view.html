@@ -146,8 +146,8 @@ $ has_profile = person.get_user() is not None
     <tr>
         <td>$_("Email Address:")</td>
         <td>
-            <form method="POST" name="form-email" id="form-email" class="validate">
-                <input type="text" name="email" id="email" class="email big" value="$input.get('email', person['email'])"/>
+            <form method="POST" name="form-email" id="form-email">
+                <input type="email" name="email" id="email" class="big" value="$input.get('email', person['email'])"/>
                 <button type="submit" name="action" value="update_email">Change</button>
                 <span class="invalid" htmlfor="email" generated="true">$errors.get("email")</span>
             </form>

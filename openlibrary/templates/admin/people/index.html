@@ -28,8 +28,8 @@ input#ia-id {
     <tr>
         <td>$_("Email Address:")</td>
         <td>
-            <form method="GET" name="form-email" id="form-email" class="validate">
-                <input type="text" name="email" id="email" class="email" value="$email"/>
+            <form method="GET" name="form-email" id="form-email">
+                <input type="email" name="email" id="email" value="$email"/>
                 <button type="submit" name="" value="find">$_("Find")</button>
                 <span class="invalid" htmlfor="email" generated="true">
                     $if email:
