@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 import asyncio
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
+import itertools
 import math
 import pickle
 import re
 import socket
 import struct
+from typing import Literal
 import requests
 import csv
 import time
@@ -77,18 +80,48 @@ async def main(
     dry_run=True,
     fetch_freq=10,
     commit_freq=30,
+    agg: Literal['max', 'min', 'sum', None] = None,
 ):
     graphite_address = tuple(graphite_address.split(':', 1))
     graphite_address = (graphite_address[0], int(graphite_address[1]))
 
+    agg_options: dict[str, Callable[[Iterable[float]], float]] = {
+        'max': max,
+        'min': min,
+        'sum': sum,
+    }
+
+    if agg:
+        if agg not in agg_options:
+            raise ValueError(f'Invalid aggregation function: {agg}')
+        agg_fn = agg_options[agg]
+    else:
+        agg_fn = None
+
     events_buffer: list[GraphiteEvent] = []
-    last_commit_ts: float = 0
+    last_commit_ts = time.time()
 
     while True:
         ts = time.time()
         events_buffer += fetch_events(haproxy_url, prefix, ts)
 
         if ts - last_commit_ts > commit_freq:
+            if agg_fn:
+                events_grouped = itertools.groupby(
+                    sorted(events_buffer, key=lambda e: (e.path, e.timestamp)),
+                    key=lambda e: e.path,
+                )
+                # Store the events as lists so we can iterate multiple times
+                events_groups = {path: list(events) for path, events in events_grouped}
+                events_buffer = [
+                    GraphiteEvent(
+                        path=path,
+                        value=agg_fn(e.value for e in events),
+                        timestamp=min(e.timestamp for e in events),
+                    )
+                    for path, events in events_groups.items()
+                ]
+
             for e in events_buffer:
                 print(e.serialize())
 
