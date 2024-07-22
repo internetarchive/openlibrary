@@ -263,7 +263,7 @@ class InvalidLanguage(Exception):
         self.code = code
 
     def __str__(self):
-        return "invalid language code: '%s'" % self.code
+        return f"invalid language code: '{self.code}'"
 
 
 type_map = {'description': 'text', 'notes': 'text', 'number_of_pages': 'int'}
@@ -275,7 +275,7 @@ def build_query(rec: dict[str, Any]) -> dict[str, Any]:
     suitable for saving.
     :return: Open Library style edition dict representation
     """
-    book = {
+    book: dict[str, Any] = {
         'type': {'key': '/type/edition'},
     }
     for k, v in rec.items():
