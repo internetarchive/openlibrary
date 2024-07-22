@@ -679,8 +679,8 @@ def load_data(
 
     edits: list[dict] = []  # Things (Edition, Work, Authors) to be saved
     reply = {}
-    # edition.authors may have already been processed by import_authors() in build_query(), but not
-    # neccesarily
+    # edition.authors may have already been processed by import_authors() in build_query(),
+    # but not necessarily
     author_in = [
         import_author(a, eastern=east_in_by_statement(rec, a)) if isinstance(a, dict) else a
         for a in edition.get('authors', [])
