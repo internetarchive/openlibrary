@@ -1,4 +1,4 @@
-$def with (doc, cover_selector=".bookCover img")
+$def with (doc, cover_selector=".bookCover img", imagesId=0)
 
 $# If user is not logged-in don't show add/manage link.
 $if not ctx.user:
@@ -28,13 +28,13 @@ $else:
         $ size = "smallest"
 
 <div class="$size sansserif manageCoversContainer hidden--nojs">
-  <a aria-controls="addImage" class="coverPop dialog--open">
+  <a aria-controls="addImage-$imagesId" class="coverPop dialog--open">
     <div class="manageCovers" data-config="$dumps({'key': doc.type.key, 'url': get_coverstore_public_url(), 'selector': cover_selector, 'add_url': add_url, 'manage_url': manage_url})">$change</div>
   </a>
 </div>
 
 <div class="hidden">
-    <div class="floater" id="addImage">
+    <div class="floater" id="addImage-$imagesId">
         <div class="floaterHead">
             <h2>$title</h2>
             <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
@@ -42,15 +42,15 @@ $else:
 
         <div id="tabsImages" class="ol-tabs tabsPop">
             <ul>
-                <li><a href="#imagesAdd">$_('Add')</a></li>
-                <li><a href="#imagesManage">$_('Manage')</a></li>
+                <li><a href="#imagesAdd-$imagesId">$_('Add')</a></li>
+                <li><a href="#imagesManage-$imagesId">$_('Manage')</a></li>
             </ul>
 
-            <div id="imagesAdd">
+            <div class="imagesAdd" id="imagesAdd-$imagesId">
                 $# add image iframe is added here when the popup is loaded
             </div>
 
-            <div id="imagesManage">
+            <div class="imagesManage" id="imagesManage-$imagesId">
                 $# manage images iframe is added here when the popup is loaded
             </div>
         </div>

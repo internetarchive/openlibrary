@@ -110,7 +110,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                 $page.location
             </div>
         <span class="mobile-only">
-            $:render_template("authors/infobox", page)
+            $:render_template("authors/infobox", page, imagesId="mobile")
         </span>
         <div class="clearfix"></div>
         <div id="works" class="section">
@@ -153,7 +153,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
     </div>
     <div class="contentOnethird">
         <span class="desktop-only">
-            $:render_template("authors/infobox", page)
+            $:render_template("authors/infobox", page, imagesId="desktop")
         </span>
         $def render_subjects(label, subjects, prefix):
             $if subjects:
