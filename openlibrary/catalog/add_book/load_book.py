@@ -184,10 +184,6 @@ def find_entity(author: dict[str, Any]) -> "Author | None":
         db_entity = things[0]
         assert db_entity.type.key == '/type/author'
         return db_entity
-    if ', ' in name:
-        author_flipped_name = author.copy()
-        author_flipped_name['name'] = flip_name(name)
-        things += find_author(author_flipped_name)
     match = []
     seen = set()
     for a in things:
@@ -244,6 +240,8 @@ def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, 
              or new candidate dict without "key".
     """
     assert isinstance(author, dict)
+    if author.get('entity_type') != 'org' and not eastern:
+        do_flip(author)
     if existing := find_entity(author):
         assert existing.type.key == '/type/author'
         for k in 'last_modified', 'id', 'revision', 'created':
@@ -253,8 +251,6 @@ def import_author(author: dict[str, Any], eastern=False) -> "Author | dict[str, 
         if 'death_date' in author and 'death_date' not in existing:
             new['death_date'] = author['death_date']
         return new
-    if author.get('entity_type') != 'org' and not eastern:
-        do_flip(author)
     a = {'type': {'key': '/type/author'}}
     for f in 'name', 'title', 'personal_name', 'birth_date', 'death_date', 'date':
         if f in author:
