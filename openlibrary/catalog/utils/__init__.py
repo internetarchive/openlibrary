@@ -412,10 +412,7 @@ def is_asin_only(rec: dict) -> bool:
 
     # Check for Amazon identifiers starting with "B".
     amz_identifiers = rec.get("identifiers", {}).get("amazon", [])
-    if any(identifier.startswith("B") for identifier in amz_identifiers):
-        return True
-
-    return False
+    return any(identifier.startswith("B") for identifier in amz_identifiers)
 
 
 def get_missing_fields(rec: dict) -> list[str]:

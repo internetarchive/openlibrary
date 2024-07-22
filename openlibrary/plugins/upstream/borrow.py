@@ -427,17 +427,13 @@ def datetime_from_utc_timestamp(seconds):
 @public
 def can_return_resource_type(resource_type: str) -> bool:
     """Returns true if this resource can be returned from the OL site."""
-    if resource_type.startswith('bookreader'):
-        return True
-    return False
+    return resource_type.startswith('bookreader')
 
 
 @public
 def ia_identifier_is_valid(item_id: str) -> bool:
     """Returns false if the item id is obviously malformed. Not currently checking length."""
-    if re.match(r'^[a-zA-Z0-9][a-zA-Z0-9\.\-_]*$', item_id):
-        return True
-    return False
+    return bool(re.match(r'^[a-zA-Z0-9][a-zA-Z0-9\.\-_]*$', item_id))
 
 
 @public
@@ -597,12 +593,7 @@ def is_loaned_out(resource_id: str) -> bool | None:
 
 
 def is_loaned_out_from_status(status) -> bool:
-    if not status or status['returned'] == 'T':
-        # Current loan has been returned
-        return False
-
-    # Has status and not returned
-    return True
+    return status and status['returned'] != 'T'
 
 
 def update_loan_status(resource_id: str) -> None:
@@ -916,10 +907,7 @@ def ia_token_is_current(item_id: str, access_token: str) -> bool:
     expected_data = f'{item_id}-{token_timestamp}'
     expected_hmac = ia_hash(expected_data)
 
-    if token_hmac == expected_hmac:
-        return True
-
-    return False
+    return token_hmac == expected_hmac
 
 
 def make_bookreader_auth_link(
