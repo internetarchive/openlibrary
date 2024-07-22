@@ -682,7 +682,11 @@ def load_data(
     # edition.authors may have already been processed by import_authors() in build_query(),
     # but not necessarily
     author_in = [
-        import_author(a, eastern=east_in_by_statement(rec, a)) if isinstance(a, dict) else a
+        (
+            import_author(a, eastern=east_in_by_statement(rec, a))
+            if isinstance(a, dict)
+            else a
+        )
         for a in edition.get('authors', [])
     ]
     # build_author_reply() adds authors to edits
