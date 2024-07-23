@@ -6905,7 +6905,7 @@ msgid "by an <em>unknown author</em>"
 msgstr ""
 
 #: BookPreview.html
-msgid "Only"
+msgid "Preview Only"
 msgstr ""
 
 #: BookPreview.html
