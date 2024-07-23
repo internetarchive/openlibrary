@@ -4019,6 +4019,10 @@ msgid ""
 "remorse."
 msgstr ""
 
+#: bulk_search/bulk_search.html
+msgid "Bulk Search (beta)"
+msgstr ""
+
 #: check_ins/check_in_form.html
 msgid "January"
 msgstr ""
