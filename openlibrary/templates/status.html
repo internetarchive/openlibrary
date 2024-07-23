@@ -1,6 +1,6 @@
 $def with (status = {}, flags = {}, dev_merged_status=None)
 $# Template entry point for /status page
-$var title: Open Library server status
+$var title: $_("Open Library server status")
 
 <style type="text/css">
   table th {
@@ -27,7 +27,7 @@ $var title: Open Library server status
 </div>
 
 <div id="contentBody">
-  <h2> System information </h2>
+  <h2> $_("System information") </h2>
   <table>
     $for i in status:
        <tr>
@@ -36,7 +36,7 @@ $var title: Open Library server status
        </tr>
   </table>
 
-  <h2> Features enabled </h2>
+  <h2> $_("Features enabled") </h2>
   <table>
     $for i in flags:
        <tr>
@@ -53,16 +53,16 @@ $var title: Open Library server status
        </tr>
   </table>
   $if dev_merged_status:
-      <h2> Staged </h2>
+      <h2> $_("Staged") </h2>
       <pre>$dev_merged_status.git_status</pre>
 
 
-      <input type="checkbox" id="show_changed"> <label for="show_changed">Show changed files</label>
+      <input type="checkbox" id="show_changed"> <label for="show_changed">$_("Show changed files")</label>
       <table>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Status</th>
+            <th>$_("Name")</th>
+            <th>$_("Status")</th>
           </tr>
         </thead>
         <tbody>

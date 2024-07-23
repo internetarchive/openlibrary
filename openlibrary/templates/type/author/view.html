@@ -110,7 +110,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                 $page.location
             </div>
         <span class="mobile-only">
-            $:render_template("authors/infobox", page)
+            $:render_template("authors/infobox", page, imagesId="mobile")
         </span>
         <div class="clearfix"></div>
         <div id="works" class="section">
@@ -135,7 +135,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                     <input type="hidden" name="sort" value="$query_param('sort')"/>
                   $if (query_param('mode')):
                     <input type="hidden" name="mode" value="$query_param('mode')"/>
-                  <input type="text" placeholder="Search $title Books" name="q" value="$(query_param('q', ''))"/>
+                  <input type="text" placeholder="$_('Search %(author)s Books', author=title)" name="q" value="$(query_param('q', ''))"/>
                   <input type="submit"/>
                 </form>
 
@@ -153,7 +153,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
     </div>
     <div class="contentOnethird">
         <span class="desktop-only">
-            $:render_template("authors/infobox", page)
+            $:render_template("authors/infobox", page, imagesId="desktop")
         </span>
         $def render_subjects(label, subjects, prefix):
             $if subjects:
@@ -187,7 +187,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                             $ href = id.url.replace('@@@', page.remote_ids[id.name])
                             <li>$id.label: <a itemprop="sameAs" href="$href">$page.remote_ids[id.name]</a></li>
                             $if id.name == 'wikidata' and 'inventaire' not in page.remote_ids:
-                              <li>Inventaire.io: <a
+                              <li>$('Inventaire.io:') <a
                                   itemprop="sameAs"
                                   href="https://inventaire.io/entity/wd:$page.remote_ids[id.name]"
                               >wd:$page.remote_ids[id.name]</a></li>
@@ -200,7 +200,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
             $if page.links or (page.wikipedia and page.wikipedia.startswith("http")):
                 <ul class="booklinks sansserif">
                 $if page.wikipedia and page.wikipedia.startswith("http"):
-                    <li><a itemprop="sameAs" href="$page.wikipedia">Wikipedia</a></li>
+                    <li><a itemprop="sameAs" href="$page.wikipedia">$_("Wikipedia")</a></li>
                 $for link in page.links:
                     <li><a href="$link.url">$link.title</a></li>
                 </ul>
