@@ -371,10 +371,7 @@ class sync_ia_ol(delegate.page):
         acct = accounts.OpenLibraryAccount.get(email=auth.get('username'))
         user = acct.get_user() if acct else None
 
-        if not user or (user and not user.is_usergroup_member('/usergroup/ia')):
-            return False
-
-        return True
+        return user and user.is_usergroup_member('/usergroup/ia')
 
     def validate_input(self, i):
         """Returns True if the request is valid.

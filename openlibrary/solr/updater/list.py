@@ -37,13 +37,13 @@ async def fetch_seeds_facets(seeds: list[str]):
         seeds_by_type[seed_key_to_seed_type(seed)].append(seed)
 
     query: list[str] = []
-    for seed_type, seeds in seeds_by_type.items():
+    for seed_type, seed_values in seeds_by_type.items():
         match seed_type:
             case 'edition' | 'author':
-                edition_olids = " OR ".join(key.split('/')[-1] for key in seeds)
+                edition_olids = " OR ".join(key.split('/')[-1] for key in seed_values)
                 query.append(f'edition_key:( {edition_olids} )')
             case 'work':
-                seed_keys = " OR ".join(f'"{key}"' for key in seeds)
+                seed_keys = " OR ".join(f'"{key}"' for key in seed_values)
                 query.append(f'key:( {seed_keys} )')
             case 'subject':
                 pass

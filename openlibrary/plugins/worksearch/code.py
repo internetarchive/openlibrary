@@ -174,7 +174,7 @@ def run_solr_query(
     facet_fields = scheme.facet_fields if isinstance(facet, bool) else facet
     if facet and facet_fields:
         params.append(('facet', 'true'))
-        for facet in facet_fields:
+        for facet in facet_fields:  # noqa: PLR1704
             if isinstance(facet, str):
                 params.append(('facet.field', facet))
             elif isinstance(facet, dict):

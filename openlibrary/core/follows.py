@@ -105,7 +105,7 @@ class PubSub:
 
         # Add keys
         for i, rb in enumerate(recent_books):
-            recent_books[i].key = f'/works/OL{recent_books[i].work_id}W'
+            recent_books[i].key = f'/works/OL{rb.work_id}W'
 
         return Bookshelves.fetch(recent_books)
 
