@@ -24,7 +24,7 @@ export function buildSearchUrl(extractedBook, matchOptions, json = true) {
     const url = `${path}?${new URLSearchParams({
         q: query,
         mode: 'everything',
-        fields: 'key,title,author_name,cover_i,first_publish_year,edition_count,ebook_access,lending_identifier_s,public_scan_b,public_scan_a',
+        fields: 'key,title,author_name,cover_i,first_publish_year,edition_count,ebook_access',
     })}`;
     return url;
 }
