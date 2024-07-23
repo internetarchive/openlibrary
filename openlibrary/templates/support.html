@@ -11,7 +11,7 @@ $var title: $_('How can we help?')
  $if done:
    <em>$:_('Your question has been sent to our support team. We\'ll get back to you shortly. You can also <a href="https://twitter.com/openlibrary">contact us on Twitter</a>.')</em>
 
- <form action="" method="post" name="spamForm" class="olform">
+ <form action="" method="post" name="spamForm" class="olform ol-contact-form">
 <p>$:_('Please check our <a href="/help/">Help Pages</a> and <a href="/help/faq">Frequently Asked Questions</a> (FAQ) to see if your question is answered there. Thank you.')</p>
 
  <div class="formElement">
@@ -47,11 +47,18 @@ $var title: $_('How can we help?')
  $if recaptcha:
     $ classes = 'g-recaptcha'
     $ sitekey = "data-sitekey=%s" % recaptcha.public_key
+    $ callback = "data-callback=submitContactForm"
     $:render_template("recaptcha", recaptcha.public_key, error=None, invisible=True)
+    $# Temporary while testing
+    <script>
+      window.submitContactForm = function() {
+        document.getElementsByClassName('ol-contact-form')[0].submit();
+      }
+    </script>
 
  <div class="formElement bottom">
  <div class="input">
- <button type="submit" name="send" class="$classes largest" $sitekey>$_("Send")</button>
+ <button type="submit" name="send" class="$classes largest" $sitekey $callback>$_("Send")</button>
  &nbsp; &nbsp;
  <a href="javascript:history.go(-1);" class="red">$_("Cancel")</a>
  </div>
