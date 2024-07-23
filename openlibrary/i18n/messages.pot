@@ -6260,7 +6260,7 @@ msgstr ""
 
 #: type/author/view.html
 #, python-format
-msgid "Search %(author)s Books"
+msgid "Search %(author)s books"
 msgstr ""
 
 #: Profile.html type/author/view.html
