@@ -118,7 +118,7 @@ $ has_profile = person.get_user() is not None
             <div class="small">$:_('Registered on <span class="time">%(date)s</span>.', date=datestr(person.registered_on, relative=False))</div>
             $ v = person.get_creation_info()
             <button type="submit" name="action" value="su" style="float: right; background: #ffbbbb;">$_("login as this user")</button>
-            <div class="small">$:_('Activated on <span class="time">%(date)s</span> from <a href="/admin/ip/%(ip)s">%(ip)s</a>.', date=$datestr(person.activated_on, relative=False), ip=v.ip)</div>
+            <div class="small">$:_('Activated on <span class="time">%(date)s</span> from <a href="/admin/ip/%(ip)s">%(ip)s</a>.', date=datestr(person.activated_on, relative=False), ip=v.ip)</div>
         $if person.status == "blocked":
             <button type="submit" name="action" value="unblock_account">$_("unblock this account")</button>
         $elif person.status == "pending":
