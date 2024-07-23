@@ -44,7 +44,7 @@ $add_metatag(property="og:image", content=meta_photo_url)
   $if len(docs) > 0:
     $if key in readlog_keys:
       <form method="GET" class="olform pagesearchbox">
-        $:render_template("search/searchbox", q=query_param('q'), placeholder='Search your reading log')
+        $:render_template("search/searchbox", q=query_param('q'), placeholder=_('Search your reading log'))
       </form>
     $if q:
       <span class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', doc_count, count=commify(doc_count))</span>
