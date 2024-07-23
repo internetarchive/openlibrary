@@ -15,16 +15,17 @@ let invalidLccn;
 let emptyId;
 
 const i18nStrings = JSON.parse(document.querySelector('form[name=edit]').dataset.i18n);
+const addBookForm = $('form#addbook');
 
 export function initAddBookImport () {
     $('.list-books a').on('click', function() {
         var li = $(this).parents('li').first();
         $('input#work').val(`/works/${li.attr('id')}`);
-        $('form#addbook').trigger('submit');
+        addBookForm.trigger('submit');
     });
     $('#bookAddCont').on('click', function() {
         $('input#work').val('none-of-these');
-        $('form#addbook').trigger('submit');
+        addBookForm.trigger('submit');
     });
 
     invalidChecksum = i18nStrings.invalid_checksum;
@@ -39,6 +40,13 @@ export function initAddBookImport () {
     $('#id_name').on('change', clearErrors);
 
     $('#publish_date').on('blur', validatePublishDate);
+
+    // Prevents submission if the publish date is > 1 year in the future
+    addBookForm.on('submit', function() {
+        if ($('#publish-date-errors').hasClass('hidden')) {
+            return true;
+        } else return false;
+    })
 }
 
 // a flag to make raiseIsbnError perform differently upon subsequent calls
