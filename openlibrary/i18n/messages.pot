@@ -605,8 +605,9 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#: account/loans.html admin/imports_by_date.html admin/loans_table.html
-#: admin/menu.html admin/sponsorship.html status.html
+#: account/import.html account/loans.html admin/imports.html
+#: admin/imports_by_date.html admin/loans_table.html admin/menu.html
+#: admin/sponsorship.html status.html
 msgid "Status"
 msgstr ""
 
@@ -1108,6 +1109,10 @@ msgid ""
 msgstr ""
 
 #: account/create.html forms.py
+msgid "Must be a valid email address"
+msgstr ""
+
+#: account/create.html forms.py
 msgid "Must be between 3 and 20 characters"
 msgstr ""
 
@@ -1255,16 +1260,11 @@ msgstr ""
 msgid "Importing..."
 msgstr ""
 
-#: account/import.html account/loans.html admin/imports.html
-#: admin/loans_table.html admin/menu.html
-msgid "Status"
-msgstr ""
-
 #: account/import.html
 msgid "Reason"
 msgstr ""
 
-#: account/import.html admin/imports.html
+#: account/import.html admin/imports.html admin/imports_by_date.html
 msgid "Error"
 msgstr ""
 
@@ -1551,7 +1551,7 @@ msgid "Yes! Please!"
 msgstr ""
 
 #: EditButtons.html account/notifications.html account/privacy.html
-#: admin/spamwords.html covers/manage.html
+#: admin/block.html admin/spamwords.html covers/manage.html
 msgid "Save"
 msgstr ""
 
@@ -2066,7 +2066,48 @@ msgstr ""
 msgid "Start"
 msgstr ""
 
-#: admin/imports-add.html admin/imports.html admin/menu.html
+#: admin/block.html
+msgid "Block IP address"
+msgstr ""
+
+#: admin/block.html
+#, python-format
+msgid ""
+"IP address %(address)s has been added to the textarea. Please click Save "
+"to block that IP."
+msgstr ""
+
+#: admin/graphs.html
+msgid "Performance Graphs"
+msgstr ""
+
+#: admin/graphs.html
+msgid "Number of Hits"
+msgstr ""
+
+#: admin/graphs.html
+msgid "Page Load Times"
+msgstr ""
+
+#: admin/graphs.html
+msgid "Page Load Times Split"
+msgstr ""
+
+#: admin/graphs.html
+msgid "Infobase Mean"
+msgstr ""
+
+#: admin/history.html admin/imports.html authors/infobox.html
+#: type/author/edit.html
+msgid "Date"
+msgstr ""
+
+#: admin/history.html
+msgid "Page"
+msgstr ""
+
+#: admin/imports-add.html admin/imports.html admin/imports_by_date.html
+#: admin/menu.html
 msgid "Imports"
 msgstr ""
 
@@ -2093,7 +2134,7 @@ msgstr ""
 msgid "New Books Imported Per Day"
 msgstr ""
 
-#: admin/imports.html
+#: admin/imports.html admin/imports_by_date.html site/stats.html
 msgid "Summary"
 msgstr ""
 
@@ -2112,10 +2153,6 @@ msgstr ""
 
 #: admin/imports.html
 msgid "Summary By Date"
-msgstr ""
-
-#: admin/imports.html authors/infobox.html type/author/edit.html
-msgid "Date"
 msgstr ""
 
 #: admin/imports.html
@@ -2142,20 +2179,44 @@ msgstr ""
 msgid "Recent Imports"
 msgstr ""
 
-#: admin/imports.html
+#: admin/imports.html admin/imports_by_date.html
 msgid "Identifier"
 msgstr ""
 
-#: admin/imports.html
+#: admin/imports.html admin/imports_by_date.html
 msgid "OL Key"
 msgstr ""
 
-#: admin/imports.html
+#: admin/imports.html admin/imports_by_date.html
 msgid "Added Time"
 msgstr ""
 
-#: admin/imports.html
+#: admin/imports.html admin/imports_by_date.html
 msgid "Imported Time"
+msgstr ""
+
+#: admin/imports_by_date.html admin/index.html
+msgid "Total"
+msgstr ""
+
+#: admin/imports_by_date.html
+msgid "Created"
+msgstr ""
+
+#: admin/imports_by_date.html
+msgid "Found"
+msgstr ""
+
+#: admin/imports_by_date.html
+msgid "Failed"
+msgstr ""
+
+#: admin/imports_by_date.html
+msgid "Pending"
+msgstr ""
+
+#: admin/imports_by_date.html
+msgid "Items"
 msgstr ""
 
 #: admin/index.html
@@ -2461,6 +2522,10 @@ msgid "Update"
 msgstr ""
 
 #: admin/spamwords.html
+msgid "[Admin Center] Spam Words"
+msgstr ""
+
+#: admin/spamwords.html
 msgid ""
 "Please enter the SPAM regular expressions in the textarea below, one per "
 "line."
@@ -2489,6 +2554,105 @@ msgstr ""
 
 #: admin/spamwords.html
 msgid "Please enter domains to blacklist in the textarea below, one per line."
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "Book Sponsorship"
+msgstr ""
+
+#: admin/sponsorship.html
+#, python-format
+msgid "We've sponsored <strong>%(num)d</strong> books"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "Internet Archive Revenue"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "Better World Books Revenue"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "Book Costs"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "Est. Book Costs"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "Δ Book Costs"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "Scanning Costs"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "Est. Scanning Costs"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "Δ Scanning Costs"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "Profit/Los"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "Total Unscanned Books"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "Print Slips"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "Average Scan Cost"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "Est. Remaining Scanning Liability"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "Projected Profit/Loss"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "Cover"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "Sponsor Date"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "IDs"
+msgstr ""
+
+#: admin/sponsorship.html books/add.html books/edit.html
+#: books/edit/edition.html lib/nav_head.html search/advancedsearch.html
+#: type/about/edit.html type/page/edit.html type/template/edit.html
+msgid "Title"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "Donor"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "Edit XML"
+msgstr ""
+
+#: admin/sponsorship.html
+msgid "BWB Link"
+msgstr ""
+
+#: admin/inspect/memcache.html
+msgid "[Admin Center] Inspect Memcache"
 msgstr ""
 
 #: admin/inspect/memcache.html
@@ -2521,6 +2685,50 @@ msgstr ""
 
 #: admin/inspect/memcache.html
 msgid "Not found."
+msgstr ""
+
+#: admin/inspect/store.html
+msgid "Admin Center / Inspect"
+msgstr ""
+
+#: admin/inspect/store.html
+msgid "Inspect Store"
+msgstr ""
+
+#: admin/inspect/store.html
+msgid "Get"
+msgstr ""
+
+#: admin/inspect/store.html
+msgid "Key"
+msgstr ""
+
+#: admin/inspect/store.html
+msgid "Query"
+msgstr ""
+
+#: admin/inspect/store.html
+msgid "Type"
+msgstr ""
+
+#: admin/inspect/store.html
+msgid "Value"
+msgstr ""
+
+#: admin/inspect/store.html
+msgid "Documents"
+msgstr ""
+
+#: admin/inspect/store.html
+msgid "Json"
+msgstr ""
+
+#: admin/ip/index.html
+msgid "[Admin Center] IP Addresses"
+msgstr ""
+
+#: admin/ip/index.html
+msgid "IP Addresses"
 msgstr ""
 
 #: admin/ip/index.html
@@ -3157,8 +3365,13 @@ msgstr ""
 msgid "Who is the publisher?"
 msgstr ""
 
+#: books/add.html books/edit/edition.html books/edit/excerpts.html
+#: type/author/edit.html
+msgid "For example:"
+msgstr ""
+
 #: books/add.html
-msgid "For example"
+msgid "Oxford University Press; Penguin; W.W. Norton"
 msgstr ""
 
 #: books/add.html books/edit/edition.html
@@ -3637,10 +3850,6 @@ msgstr ""
 msgid "Usually distinguished by different or smaller type."
 msgstr ""
 
-#: books/edit/edition.html books/edit/excerpts.html type/author/edit.html
-msgid "For example:"
-msgstr ""
-
 #: books/edit/edition.html
 msgid "Publishing Info"
 msgstr ""
@@ -3713,7 +3922,7 @@ msgstr ""
 msgid "For example: <em>edited by David Anderson</em>"
 msgstr ""
 
-#: books/edit/edition.html
+#: books/edit/edition.html languages/index.html
 msgid "Languages"
 msgstr ""
 
@@ -3853,7 +4062,7 @@ msgstr ""
 msgid "Remove this identifier"
 msgstr ""
 
-#: books/edit/edition.html site/neck.html
+#: books/edit/edition.html lib/nav_foot.html site/neck.html
 msgid "Open Library"
 msgstr ""
 
@@ -4862,10 +5071,6 @@ msgstr ""
 msgid "Just a sentence or two is good."
 msgstr ""
 
-#: lib/nav_foot.html site/neck.html
-msgid "Open Library"
-msgstr ""
-
 #: lib/nav_foot.html
 msgid "Vision"
 msgstr ""
@@ -5770,7 +5975,8 @@ msgid "Merged duplicate %(record_type)s records."
 msgstr ""
 
 #: recentchanges/merge/comment.html
-msgid "See <a href=\"\">details</a>."
+#, python-format
+msgid "See <a href=\"%s\">details</a>."
 msgstr ""
 
 #: recentchanges/merge/comment.html
@@ -6063,6 +6269,14 @@ msgid ""
 " 3M books for free."
 msgstr ""
 
+#: site/stats.html
+msgid "Debug Stats"
+msgstr ""
+
+#: EditionNavBar.html site/stats.html
+msgid "Details"
+msgstr ""
+
 #: stats/readinglog.html
 msgid "Reading Log Stats"
 msgstr ""
@@ -6326,6 +6540,10 @@ msgstr ""
 
 #: type/author/view.html
 msgid "OLID"
+msgstr ""
+
+#: type/author/view.html
+msgid "Inventaire.io:"
 msgstr ""
 
 #: type/author/view.html

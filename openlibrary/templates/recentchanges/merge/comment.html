@@ -13,7 +13,7 @@ $else:
         $ details = ''
     $else:
         $ context = page.key
-        $ details = $:_('See <a href="' + change.url() + '">details</a>.')
+        $ details = _('See <a href="%s">details</a>.', change.url())
 
     $if context == primary:
         $# comment in the primary record
