@@ -34,7 +34,7 @@ from web.webapi import SeeOther
 logger = logging.getLogger("openlibrary.book")
 
 
-def get_recaptcha():
+def get_recaptcha(invisible=False):
     def recaptcha_exempt() -> bool:
         """Check to see if account is an admin, or more than two years old."""
         user = web.ctx.site.get_user()
@@ -56,8 +56,12 @@ def get_recaptcha():
         return name in plugin_names or "openlibrary.plugins." + name in plugin_names
 
     if is_plugin_enabled('recaptcha') and not recaptcha_exempt():
-        public_key = config.plugin_recaptcha.public_key
-        private_key = config.plugin_recaptcha.private_key
+        if invisible:
+            public_key = config.plugin_invisible_recaptcha.public_key
+            private_key = config.plugin_invisible_recaptcha.private_key
+        else:
+            public_key = config.plugin_recaptcha.public_key
+            private_key = config.plugin_recaptcha.private_key
         return recaptcha.Recaptcha(public_key, private_key)
     else:
         return None

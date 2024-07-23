@@ -43,12 +43,15 @@ $var title: $_('How can we help?')
 
  <div class="input"><input type="hidden" name="url" id="url" value="$url"/></div>
 
+ $ sitekey = classes = ''
  $if recaptcha:
-    $:render_template("recaptcha", recaptcha.public_key, error=None)
+    $ classes = 'g-recaptcha'
+    $ sitekey = "data-sitekey=%s" % recaptcha.public_key
+    $:render_template("recaptcha", recaptcha.public_key, error=None, invisible=True)
 
  <div class="formElement bottom">
  <div class="input">
- <input type="submit" class="largest" value="$_('Send')" name="send" title="$_('Send')"/>
+ <button type="submit" name="send" class="$classes largest" $sitekey>$_("Send")</button>
  &nbsp; &nbsp;
  <a href="javascript:history.go(-1);" class="red">$_("Cancel")</a>
  </div>
