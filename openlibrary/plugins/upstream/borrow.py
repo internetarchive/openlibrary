@@ -31,6 +31,7 @@ from openlibrary.utils import dateutil
 from lxml import etree
 
 import urllib
+import lxml.etree
 
 
 logger = logging.getLogger("openlibrary.borrow")
@@ -373,7 +374,7 @@ class borrow_receive_notification(delegate.page):
     def POST(self):
         data = web.data()
         try:
-            etree.fromstring(data)
+            etree.fromstring(data, parser=lxml.etree.XMLParser(resolve_entities=False))
             output = json.dumps({'success': True})
         except Exception as e:
             output = json.dumps({'success': False, 'error': str(e)})
