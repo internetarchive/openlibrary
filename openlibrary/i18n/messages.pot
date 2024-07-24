@@ -3245,6 +3245,10 @@ msgstr ""
 msgid "Loading..."
 msgstr ""
 
+#: books/custom_carousel.html type/author/view.html
+msgid "name missing"
+msgstr ""
+
 #: books/custom_carousel.html books/mobile_carousel.html
 #, python-format
 msgid " by %(name)s"
@@ -6190,10 +6194,6 @@ msgstr ""
 
 #: type/author/edit.html
 msgid "Author Identifiers Purpose"
-msgstr ""
-
-#: type/author/view.html
-msgid "name missing"
 msgstr ""
 
 #: type/author/view.html type/edition/view.html type/work/view.html
