@@ -37,6 +37,7 @@ from lxml import etree
 import logging
 
 import urllib
+import lxml.etree
 
 
 MARC_LENGTH_POS = 5
@@ -77,7 +78,9 @@ def parse_data(data: bytes) -> tuple[dict | None, str | None]:
     """
     data = data.strip()
     if b'<?xml' in data[:10]:
-        root = etree.fromstring(data)
+        root = etree.fromstring(
+            data, parser=lxml.etree.XMLParser(resolve_entities=False)
+        )
         if root.tag == '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF':
             edition_builder = import_rdf.parse(root)
             format = 'rdf'
