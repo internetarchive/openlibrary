@@ -8,6 +8,7 @@ from collections.abc import Callable
 
 import luqum.tree
 import web
+import infogami
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.solr.query_utils import (
@@ -91,6 +92,10 @@ class WorkSearchScheme(SearchScheme):
         "lcc_sort",
         "ddc_sort",
         "osp_count",
+    }
+    non_solr_fields = {
+        'description',
+        'providers',
     }
     facet_fields = {
         "has_fulltext",
@@ -508,6 +513,40 @@ class WorkSearchScheme(SearchScheme):
             new_params.append(('editions.rows', '1'))
             new_params.append(('editions.fl', ','.join(edition_fields)))
         return new_params
+
+    def add_non_solr_fields(self, non_solr_fields: set[str], solr_result: dict) -> None:
+        from openlibrary.plugins.upstream.models import Edition
+
+        # Augment with data from db
+        edition_keys = [
+            ed_doc['key']
+            for doc in solr_result['response']['docs']
+            for ed_doc in doc.get('editions', {}).get('docs', [])
+        ]
+        editions = cast(list[Edition], web.ctx.site.get_many(edition_keys))
+        ed_key_to_record = {ed.key: ed for ed in editions if ed.key in edition_keys}
+
+        from openlibrary.book_providers import get_book_provider
+
+        for doc in solr_result['response']['docs']:
+            for ed_doc in doc.get('editions', {}).get('docs', []):
+                # `ed` could be `None` if the record has been deleted and Solr not yet updated.
+                if not (ed := ed_key_to_record.get(ed_doc['key'])):
+                    continue
+
+                for field in non_solr_fields:
+                    val = getattr(ed, field)
+                    if field == 'providers':
+                        provider = get_book_provider(ed)
+                        if not provider:
+                            continue
+                        ed_doc[field] = [
+                            p.__dict__ for p in provider.get_acquisitions(ed)
+                        ]
+                    elif isinstance(val, infogami.infobase.client.Nothing):
+                        continue
+                    elif field == 'description':
+                        ed_doc[field] = val if isinstance(val, str) else val.value
 
 
 def lcc_transform(sf: luqum.tree.SearchField):

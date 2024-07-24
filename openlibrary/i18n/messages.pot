@@ -272,7 +272,8 @@ msgstr ""
 msgid "YAML Representation:"
 msgstr ""
 
-#: BookPreview.html books/edit/edition.html editpage.html
+#: BookPreview.html book_providers/direct_read_button.html
+#: books/edit/edition.html editpage.html
 msgid "Preview"
 msgstr ""
 
@@ -450,6 +451,7 @@ msgstr ""
 #: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
 #: ObservationsModal.html ShareModal.html
 #: book_providers/cita_press_read_button.html
+#: book_providers/direct_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
@@ -836,6 +838,7 @@ msgid "Currently Reading"
 msgstr ""
 
 #: LoanReadForm.html ReadButton.html book_providers/cita_press_read_button.html
+#: book_providers/direct_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/openstax_read_button.html
 #: book_providers/standard_ebooks_read_button.html books/custom_carousel.html
@@ -2855,12 +2858,24 @@ msgid ""
 msgstr ""
 
 #: book_providers/cita_press_read_button.html
+#: book_providers/direct_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/librivox_read_button.html
 #: book_providers/openstax_read_button.html
 #: book_providers/standard_ebooks_read_button.html
 #: check_ins/reading_goal_progress.html
 msgid "Learn more"
+msgstr ""
+
+#: book_providers/direct_read_button.html
+msgid "Read free online"
+msgstr ""
+
+#: book_providers/direct_read_button.html
+#, python-format
+msgid ""
+"This book is freely available from <a href=\"%s\">%s</a>, an external "
+"third-party book provider."
 msgstr ""
 
 #: book_providers/gutenberg_download_options.html
@@ -3890,10 +3905,6 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "Provider Name"
-msgstr ""
-
-#: ReadButton.html books/edit/edition.html
-msgid "Listen"
 msgstr ""
 
 #: books/edit/edition.html
@@ -7127,6 +7138,10 @@ msgstr ""
 
 #: ReadButton.html
 msgid "Read ebook from Internet Archive"
+msgstr ""
+
+#: ReadButton.html
+msgid "Listen"
 msgstr ""
 
 #: ReadMore.html

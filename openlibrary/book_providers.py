@@ -1,5 +1,8 @@
-from typing import TypedDict, Literal, cast, TypeVar, Generic
+from dataclasses import dataclass
+import logging
 from collections.abc import Callable, Iterator
+from typing import TypedDict, Literal, cast, TypeVar, Generic
+from urllib import parse
 
 import web
 from web import uniq
@@ -8,6 +11,13 @@ from openlibrary.app import render_template
 from openlibrary.plugins.upstream.models import Edition
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 from openlibrary.utils import OrderedEnum, multisort_best
+
+
+logger = logging.getLogger("openlibrary.book_providers")
+
+AcquisitionAccessLiteral = Literal[
+    'sample', 'buy', 'open-access', 'borrow', 'subscribe'
+]
 
 
 class EbookAccess(OrderedEnum):
@@ -20,6 +30,103 @@ class EbookAccess(OrderedEnum):
 
     def to_solr_str(self):
         return self.name.lower()
+
+    @staticmethod
+    def from_acquisition_access(literal: AcquisitionAccessLiteral) -> 'EbookAccess':
+        if literal == 'sample':
+            # We need to update solr to handle these! Requires full reindex
+            return EbookAccess.PRINTDISABLED
+        elif literal == 'buy':
+            return EbookAccess.NO_EBOOK
+        elif literal == 'open-access':
+            return EbookAccess.PUBLIC
+        elif literal == 'borrow':
+            return EbookAccess.BORROWABLE
+        elif literal == 'subscribe':
+            return EbookAccess.NO_EBOOK
+        else:
+            raise ValueError(f'Unknown access literal: {literal}')
+
+
+@dataclass
+class Acquisition:
+    """
+    Acquisition represents a book resource found on another website, such as
+    Standard Ebooks.
+
+    Wording inspired by OPDS; see https://specs.opds.io/opds-1.2#23-acquisition-feeds
+    """
+
+    access: AcquisitionAccessLiteral
+    format: Literal['web', 'pdf', 'epub', 'audio']
+    price: str | None
+    url: str
+    provider_name: str | None = None
+
+    @property
+    def ebook_access(self) -> EbookAccess:
+        return EbookAccess.from_acquisition_access(self.access)
+
+    @staticmethod
+    def from_json(json: dict) -> 'Acquisition':
+        if 'href' in json:
+            # OPDS-style provider
+            return Acquisition.from_opds_json(json)
+        elif 'url' in json:
+            # We have an inconsistency in our API
+            html_access: dict[str, AcquisitionAccessLiteral] = {
+                'read': 'open-access',
+                'listen': 'open-access',
+                'buy': 'buy',
+                'borrow': 'borrow',
+                'preview': 'sample',
+            }
+            access = json.get('access', 'open-access')
+            if access in html_access:
+                access = html_access[access]
+            # Pressbooks/OL-style
+            return Acquisition(
+                access=access,
+                format=json.get('format', 'web'),
+                price=json.get('price'),
+                url=json['url'],
+                provider_name=json.get('provider_name'),
+            )
+        else:
+            raise ValueError(f'Unknown ebook acquisition format: {json}')
+
+    @staticmethod
+    def from_opds_json(json: dict) -> 'Acquisition':
+        if json.get('properties', {}).get('indirectAcquisition', None):
+            mimetype = json['properties']['indirectAcquisition'][0]['type']
+        else:
+            mimetype = json['type']
+
+        fmt: Literal['web', 'pdf', 'epub', 'audio'] = 'web'
+        if mimetype.startswith('audio/'):
+            fmt = 'audio'
+        elif mimetype == 'application/pdf':
+            fmt = 'pdf'
+        elif mimetype == 'application/epub+zip':
+            fmt = 'epub'
+        elif mimetype == 'text/html':
+            fmt = 'web'
+        else:
+            logger.warning(f'Unknown mimetype: {mimetype}')
+            fmt = 'web'
+
+        if json.get('properties', {}).get('price', None):
+            price = f"{json['properties']['price']['value']} {json['properties']['price']['currency']}"
+        else:
+            price = None
+
+        return Acquisition(
+            access=json['rel'].split('/')[-1],
+            format=fmt,
+            price=price,
+            url=json['href'],
+            provider_name=json.get('name'),
+        )
 
 
 class IALiteMetadata(TypedDict):
@@ -38,7 +145,7 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
     The key in the identifiers field on editions;
     see https://openlibrary.org/config/edition
     """
-    identifier_key: str
+    identifier_key: str | None
 
     def get_olids(self, identifier):
         return web.ctx.site.things(
@@ -111,6 +218,15 @@ class AbstractBookProvider(Generic[TProviderMetadata]):
         """
         # Most providers are for public-only ebooks right now
         return EbookAccess.PUBLIC
+
+    def get_acquisitions(
+        self,
+        edition: Edition,
+    ) -> list[Acquisition]:
+        if edition.providers:
+            return [Acquisition.from_json(dict(p)) for p in edition.providers]
+        else:
+            return []
 
 
 class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
@@ -195,6 +311,20 @@ class LibriVoxProvider(AbstractBookProvider):
     def is_own_ocaid(self, ocaid: str) -> bool:
         return 'librivox' in ocaid
 
+    def get_acquisitions(
+        self,
+        edition: Edition,
+    ) -> list[Acquisition]:
+        return [
+            Acquisition(
+                access='open-access',
+                format='audio',
+                price=None,
+                url=f'https://librivox.org/{self.get_best_identifier(edition)}',
+                provider_name=self.short_name,
+            )
+        ]
+
 
 class ProjectGutenbergProvider(AbstractBookProvider):
     short_name = 'gutenberg'
@@ -202,6 +332,20 @@ class ProjectGutenbergProvider(AbstractBookProvider):
 
     def is_own_ocaid(self, ocaid: str) -> bool:
         return ocaid.endswith('gut')
+
+    def get_acquisitions(
+        self,
+        edition: Edition,
+    ) -> list[Acquisition]:
+        return [
+            Acquisition(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'https://www.gutenberg.org/ebooks/{self.get_best_identifier(edition)}',
+                provider_name=self.short_name,
+            )
+        ]
 
 
 class StandardEbooksProvider(AbstractBookProvider):
@@ -212,6 +356,30 @@ class StandardEbooksProvider(AbstractBookProvider):
         # Standard ebooks isn't archived on IA
         return False
 
+    def get_acquisitions(
+        self,
+        edition: Edition,
+    ) -> list[Acquisition]:
+        standard_ebooks_id = self.get_best_identifier(edition)
+        base_url = 'https://standardebooks.org/ebooks/' + standard_ebooks_id
+        flat_id = standard_ebooks_id.replace('/', '_')
+        return [
+            Acquisition(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'{base_url}/text/single-page',
+                provider_name=self.short_name,
+            ),
+            Acquisition(
+                access='open-access',
+                format='epub',
+                price=None,
+                url=f'{base_url}/downloads/{flat_id}.epub',
+                provider_name=self.short_name,
+            ),
+        ]
+
 
 class OpenStaxProvider(AbstractBookProvider):
     short_name = 'openstax'
@@ -219,6 +387,20 @@ class OpenStaxProvider(AbstractBookProvider):
 
     def is_own_ocaid(self, ocaid: str) -> bool:
         return False
+
+    def get_acquisitions(
+        self,
+        edition: Edition,
+    ) -> list[Acquisition]:
+        return [
+            Acquisition(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'https://openstax.org/details/books/{self.get_best_identifier(edition)}',
+                provider_name=self.short_name,
+            )
+        ]
 
 
 class CitaPressProvider(AbstractBookProvider):
@@ -229,9 +411,81 @@ class CitaPressProvider(AbstractBookProvider):
         return False
 
 
+class DirectProvider(AbstractBookProvider):
+    short_name = 'direct'
+    identifier_key = None
+
+    @property
+    def db_selector(self):
+        return "providers.url"
+
+    @property
+    def solr_key(self):
+        # TODO: Not implemented yet
+        return None
+
+    def get_identifiers(self, ed_or_solr: Edition | dict) -> list[str]:
+        # It's an edition
+        if ed_or_solr.get('providers'):
+            return [
+                provider.url
+                for provider in map(Acquisition.from_json, ed_or_solr['providers'])
+                if provider.ebook_access >= EbookAccess.PRINTDISABLED
+            ]
+        else:
+            # TODO: Not implemented for search/solr yet
+            return []
+
+    def render_read_button(
+        self, ed_or_solr: Edition | dict, analytics_attr: Callable[[str], str]
+    ):
+        acq_sorted = sorted(
+            (
+                p
+                for p in map(Acquisition.from_json, ed_or_solr.get('providers', []))
+                if p.ebook_access >= EbookAccess.PRINTDISABLED
+            ),
+            key=lambda p: p.ebook_access,
+            reverse=True,
+        )
+        if not acq_sorted:
+            return ''
+
+        acquisition = acq_sorted[0]
+        # pre-process acquisition.url so ParseResult.netloc is always the domain. Only netloc is used.
+        url = (
+            "https://" + acquisition.url
+            if not acquisition.url.startswith("http")
+            else acquisition.url
+        )
+        parsed_url = parse.urlparse(url)
+        domain = parsed_url.netloc
+        return render_template(
+            self.get_template_path('read_button'), acquisition, domain
+        )
+
+    def render_download_options(self, edition: Edition, extra_args: list | None = None):
+        # Return an empty string until #9581 is addressed.
+        return ""
+
+    def get_access(
+        self,
+        edition: dict,
+        metadata: TProviderMetadata | None = None,
+    ) -> EbookAccess:
+        """
+        Return the access level of the edition.
+        """
+        # For now assume 0 is best
+        return EbookAccess.from_acquisition_access(
+            Acquisition.from_json(edition['providers'][0]).access
+        )
+
+
 PROVIDER_ORDER: list[AbstractBookProvider] = [
     # These providers act essentially as their own publishers, so link to the first when
     # we're on an edition page
+    DirectProvider(),
     LibriVoxProvider(),
     ProjectGutenbergProvider(),
     StandardEbooksProvider(),
@@ -389,7 +643,7 @@ def get_best_edition(
 
 
 def get_solr_keys():
-    return [p.solr_key for p in PROVIDER_ORDER]
+    return [p.solr_key for p in PROVIDER_ORDER if p.solr_key]
 
 
 setattr(get_book_provider, 'ia', get_book_provider_by_name('ia'))  # noqa: B010

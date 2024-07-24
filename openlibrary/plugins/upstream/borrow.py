@@ -112,7 +112,7 @@ class borrow(delegate.page):
     def GET(self, key):
         return self.POST(key)
 
-    def POST(self, key):
+    def POST(self, key):  # noqa: PLR0915
         """Called when the user wants to borrow the edition"""
 
         i = web.input(
@@ -129,6 +129,19 @@ class borrow(delegate.page):
         edition = web.ctx.site.get(key)
         if not edition:
             raise web.notfound()
+
+        from openlibrary.book_providers import get_book_provider
+
+        # Direct to the first web book if at least one is available.
+        if (
+            action in ["borrow", "read"]
+            and (provider := get_book_provider(edition))
+            and provider.short_name != "ia"
+            and (acquisitions := provider.get_acquisitions(edition))
+            and acquisitions[0].access == "open-access"
+        ):
+            stats.increment('ol.loans.webbook')
+            raise web.seeother(acquisitions[0].url)
 
         archive_url = get_bookreader_stream_url(edition.ocaid) + '?ref=ol'
         if i._autoReadAloud is not None:

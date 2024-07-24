@@ -57,7 +57,7 @@ $ i18n_strings = {
             </div>
         </div>
 
-        $ admin_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian())
+        $ is_privileged = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian())
         <div class="formElement">
             <div class="label"><label for="id_value">$:_("And optionally, an ID number &#151; like an ISBN &#151; would be helpful...")</label></div>
                 <label for="id_name" class="hidden">$_("ID Type")</label>
@@ -66,7 +66,7 @@ $ i18n_strings = {
             <div class="input">
                 <select name="id_name" id="id_name">
                 <option value="">$_("Select")</option>
-                $if admin_user:
+                $if is_privileged:
                     <option value="ocaid">$_("Internet Archive")</option>
                 <option value="isbn_10">$_("ISBN 10")</option>
                 <option value="isbn_13">$_("ISBN 13")</option>
@@ -79,7 +79,8 @@ $ i18n_strings = {
             </div>
         </div>
 
-        $if admin_user:
+        $ is_admin = ctx.user and ctx.user.is_admin()
+        $if is_admin:
             <div class="formElement">
                 <div class="label">
                     <label for="web_book_url">$_("Book URL")</label> <span class="tip">$_("Only fill this out if this is a web book")</span></span>
