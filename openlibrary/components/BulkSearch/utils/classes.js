@@ -8,13 +8,82 @@ export class ExtractedBook {
     }
 }
 
+class AbstractExtractor {
+    constructor(name = '') {
+        this.name = name
+    }
+    async run() {
+    }
+}
 
+export class RegexExtractor extends AbstractExtractor {
+    constructor(name = '', pattern = ''){
+        super(name)
+        this.pattern = new RegExp(pattern, 'gmu');
+    }
+    async run(_extractOptions, text = '') {
+        const data = [...text.matchAll(this.pattern)]
+        const extractedBooks = data.map((entry) => new ExtractedBook(entry.groups?.title, entry.groups?.author))
+        const matchedBooks = extractedBooks.map((entry) => new BookMatch(entry, []))
+        return matchedBooks
+    }
+}
+
+export class AIExtractor extends AbstractExtractor{
+
+    constructor(name = '', model = '') {
+        super(name)
+        this.model = model
+    }
+    async run(extractOptions, text= '') {
+        const request = {
+
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${extractOptions.api_key}`
+            },
+            body: JSON.stringify({
+                model: this.model,
+                response_format: { type: 'json_object' },
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are a book extraction system. You will be given a free form passage of text containing references to books, and you will need to extract the book titles, author, and optionally ISBN in a JSON array.'
+                    },
+                    {
+                        role: 'user',
+                        content: `Please extract the books from the following text:\n\n${text}`,
+                    }
+                ],
+            })
+
+        }
+        try {
+            const resp = await fetch('https://api.openai.com/v1/chat/completions', request)
+
+            if (!resp.ok) {
+                const status = resp.status
+                if (status === 401) {
+
+                    this.bulkSearchState.errorMessage.push('Error: Incorrect Authorization key.')
+                }
+                throw new Error('Network response was not okay.')
+            }
+            const data = await resp.json()
+            return (JSON.parse(data.choices[0].message.content)['books'].map((entry) => new ExtractedBook(entry?.title, entry?.author)), JSON.parse(data.choices[0].message.content)['books'].map((entry) => new BookMatch(new ExtractedBook(entry?.title, entry?.author), {})))
+        }
+        catch (error) {
+
+        }
+
+
+    }
+}
 
 class ExtractionOptions {
     constructor() {
-        this.use_gpt = false
         this.api_key = ''
-        this.regex = ''
     }
 }
 class MatchOptions  {
@@ -37,15 +106,14 @@ export class BulkSearchState{
     constructor(){
         /** @type {string} */
         this.inputText= '';
-        /** @type {ExtractedBook[]} */
-        this.extractedBooks = [];
         /** @type {BookMatch[]} */
         this.matchedBooks = [];
         /** @type {MatchOptions} */
         this.matchOptions =  new MatchOptions()
-        /** @type {ExtractedOptions} */
+        /** @type {ExtractionOptions} */
         this.extractionOptions = new ExtractionOptions();
         this.errorMessage = []
+        this.extractionMethod = new AbstractExtractor()
         this.listUrl = ''
 
     }
