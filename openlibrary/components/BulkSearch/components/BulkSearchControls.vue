@@ -8,12 +8,9 @@
             <textarea v-model="bulkSearchState.inputText"></textarea>
             <br />
             <label>Format: <select @change="selectAlgorithm">
-                    <option value="0">e.g. "The Wizard of Oz by L. Frank Baum"</option>
-                    <option value="1">e.g. "L. Frank Baum - The Wizard of Oz" </option>
-                    <option value="2">e.g. "The Wizard of Oz - L. Frank Baum" </option>
-                    <option value="3">e.g. "The Wizard of Oz (L. Frank Baum)"</option>
-                    <option value="4">Wikipedia Citation (e.g. Baum, Frank L. (1994). The Wizard of Oz)</option>
-                    <option value="5">✨ AI Extraction</option>
+                    <option v-for="extractor, index in extractors" :value = "index" :key="index">
+                        {{ extractor["name"] }}
+                    </option>
                 </select></label>
             <label v-if="this.showApiKey">OpenAI API Key:
                 <input v-if="showPassword" type="password" v-on:click="togglePasswordVisibility()" v-model="bulkSearchState.extractionOptions.api_key" />
