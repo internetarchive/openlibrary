@@ -12,6 +12,9 @@ export class ReadMoreComponent {
         this.$readMoreButton = container.querySelector('.read-more__toggle--more');
         this.$readLessButton = container.querySelector('.read-more__toggle--less');
 
+        if (!this.$content || !this.$readMoreButton || !this.$readLessButton) {
+            return;
+        }
         this.collapsedHeight = parseFloat(this.$content.style.maxHeight);
         this.fullHeight = this.$content.scrollHeight;
 
@@ -54,6 +57,8 @@ export class ReadMoreComponent {
     }
 
     reset() {
+        if (!this.$content || !this.$readMoreButton) return;
+        this.fullHeight = this.$content.scrollHeight || 0;
         this.fullHeight = this.$content.scrollHeight;
         // Fudge factor to account for non-significant read/more
         // (e.g missing a bit of padding)
