@@ -103,21 +103,24 @@
   &__summary {
     cursor: pointer;
     list-style-type: none;
+    &:hover { background-color: darken(@primary-blue, 20%); }
+    border-radius: 2px 5px 5px 2px;
   }
   &__summary::after {
     display: block;
     content: "";
-    margin: 8px;
+    margin: 0 8px;
+    padding-top: 16px;
     width: 24px;
     height: 24px;
     background: url(/images/icons/icon_dropit.png) no-repeat center;
-    background-position: 0 50%;
+    background-position: 0;
     background-size: 45px;
     filter: brightness(0) invert(1);
   }
   &__details[open] summary::after {
     content: "";
-    background-position: -23px 50%;
+    background-position: -22px 50%;
   }
 
   .cta-button-group {
@@ -125,7 +128,7 @@
   }
 
   &__content {
-    background: @white;
+    background-color: @white;
     position: absolute;
     left: 35px;
     z-index: @z-index-level-14;
@@ -136,9 +139,6 @@
   }
   &__content ul {
     margin-right: 8px;
-  }
-  &__content li:hover {
-    background-color: @lighter-grey;
   }
   &__content li+li {
     border-top: 1px solid;
@@ -172,11 +172,9 @@
 .read-options .cta-dropper__content-list .cta-btn--w-icon, .Tools .btn-notice .cta-dropper__content-list .cta-btn--w-icon {
   margin: 0;
 }
-
 .read-options .cta-dropper__summary, .Tools .btn-notice .cta-dropper__summary {
-  margin: 5px 0 0;
+  margin: 0;
 }
-
 .read-options .cta-dropper__content-list li, .Tools .btn-notice .cta-dropper__content-list li {
   list-style: none;
   margin: 0;
