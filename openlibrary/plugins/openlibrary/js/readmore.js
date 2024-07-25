@@ -58,13 +58,13 @@ export class ReadMoreComponent {
 
     reset() {
         if (!this.$content || !this.$readMoreButton) return;
-        this.fullHeight = this.$content.scrollHeight || 0;
         this.fullHeight = this.$content.scrollHeight;
         // Fudge factor to account for non-significant read/more
         // (e.g missing a bit of padding)
         if (this.$content.scrollHeight <= (this.collapsedHeight + this.readMoreButtonHeight + 1)) {
             this.expand();
             this.$container.classList.add('read-more--unnecessary');
+            this.$container.classList.add('read-more--expanded');
         } else {
             // Don't collapse if the user has manually expanded. Fixes
             // issue where user e.g. presses ctrl-f, triggering a resize
