@@ -3098,6 +3098,10 @@ msgid "Please enter a value for the selected identifier"
 msgstr ""
 
 #: books/add.html
+msgid "Are you sure that's the published date?"
+msgstr ""
+
+#: books/add.html
 msgid "Add a book to Open Library"
 msgstr ""
 
