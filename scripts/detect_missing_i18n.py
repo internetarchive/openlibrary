@@ -181,7 +181,11 @@ def main(files: list[Path], skip_excluded: bool = True):
             regex_match = line[char_index:]
 
             # Don't proceed if the line is likely commented out or part of a $: function.
-            if "<!--" in preceding_text or "$:" in preceding_text:
+            if (
+                "<!--" in preceding_text
+                or "$:" in preceding_text
+                or "$ " in preceding_text
+            ):
                 continue
 
             # Don't proceed if skip directive is included inline.
