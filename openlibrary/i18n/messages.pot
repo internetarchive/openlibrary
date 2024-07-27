@@ -850,7 +850,8 @@ msgstr ""
 msgid "Currently Reading"
 msgstr ""
 
-#: LoanReadForm.html ReadButton.html book_providers/cita_press_read_button.html
+#: LoanReadForm.html ReadButton.html admin/inspect/memcache.html
+#: book_providers/cita_press_read_button.html
 #: book_providers/direct_read_button.html
 #: book_providers/gutenberg_read_button.html
 #: book_providers/openstax_read_button.html
@@ -2355,19 +2356,6 @@ msgstr ""
 msgid "Borrows, last 2 years graph"
 msgstr ""
 
-#: admin/loans.html
-msgid "Outstanding eBook Loans"
-msgstr ""
-
-#: admin/loans.html
-msgid ""
-"<em class=\"red\">Note:</em> ACS4 loan status for ePub and PDF is updated"
-" hourly and also on demand (when a user looks at a borrow page or their "
-"own loans).  You can refresh the status of a loan (synchronize with ACS4 "
-"server) by clicking on \"refresh\". BookReader loan status is always "
-"current."
-msgstr ""
-
 #: admin/loans_table.html
 msgid "BookReader"
 msgstr ""
@@ -2422,11 +2410,6 @@ msgstr ""
 
 #: admin/menu.html
 msgid "Sponsorship"
-msgstr ""
-
-#: account.py admin/menu.html admin/people/view.html
-#: books/mybooks_breadcrumb_select.html type/user/view.html
-msgid "Loans"
 msgstr ""
 
 #: admin/menu.html
@@ -3009,6 +2992,11 @@ msgstr ""
 
 #: admin/people/view.html
 msgid "Anonymize Account"
+msgstr ""
+
+#: account.py admin/people/view.html books/mybooks_breadcrumb_select.html
+#: type/user/view.html
+msgid "Loans"
 msgstr ""
 
 #: admin/people/view.html
