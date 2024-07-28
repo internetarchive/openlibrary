@@ -33,6 +33,8 @@ $ display_for = 'desktop-only' if desktop_only else 'mobile-only'
   </ul>
   $if not desktop_only:
     <span class="nav-arrow">
-      <img src="/static/images/nav-arrow.svg" role="img">
+      <button title="$_('Go to next section')">
+        <img src="/static/images/nav-arrow.svg" alt="">
+      </button>
     </span>
 </span>
