@@ -17,6 +17,16 @@ module.exports = {
         errors: true,
         warnings: true
     },
+    
+    module: {
+        rules: [
+          {
+            test: /\.css$/,
+            use: ['style-loader', 'css-loader', 'postcss-loader']
+          }
+        ]
+      },
+
 
     // Fail on the first build error instead of tolerating it for prod builds. This seems to
     // correspond to optimization.noEmitOnErrors.
