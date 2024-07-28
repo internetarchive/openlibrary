@@ -76,7 +76,7 @@
     "promise-polyfill": "8.3.0",
     "regenerator-runtime": "^0.14.1",
     "sinon": "14.0.0",
-    "slick-carousel": "1.6.0",
+    "slick-carousel": "1.8.1",
     "storybook": "^7.0.0",
     "style-loader": "^4.0.0",
     "stylelint": "15.10.1",
