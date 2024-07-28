@@ -1,4 +1,19 @@
 {
+  
+    "env": {
+      "browser": true,
+      "node": true,
+      "es6": true
+    },
+    "extends": ["eslint:recommended"],
+    "parserOptions": {
+      "ecmaVersion": 2020,
+      "sourceType": "module"
+    },
+    "rules": {
+      "no-undef": "error"
+    },
+  
   "root": true,
   "plugins": [
     "eslint-plugin-no-jquery"
@@ -28,7 +43,6 @@
     "no-mixed-spaces-and-tabs": "error",
     "no-redeclare": "error",
     "no-trailing-spaces": "error",
-    "no-undef": "error",
     "no-unused-vars": "error",
     "no-useless-escape": "error",
     "space-in-parens": "error",
