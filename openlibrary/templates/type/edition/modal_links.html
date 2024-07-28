@@ -20,7 +20,7 @@ $def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None
 
     $:macros.StarRatings(work, edition)
 
-    $ notes_content = icon_link("notes-modal-link", "/static/images/icons/notes.svg", _("Notes"), ga_data="ModalLinkClick|NoteIcon", , alt="")
+    $ notes_content = icon_link("notes-modal-link", "/static/images/icons/notes.svg", _("Notes"), ga_data="ModalLinkClick|NoteIcon", alt="")
     $:macros.NotesModal(work, edition, notes_content, 'sidebar-notes')
 
   $if ctx.get('share_links'):
