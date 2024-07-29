@@ -8,31 +8,13 @@ from enum import Enum
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 import glob
 
-# This is a list of files that had pre-existing i18n errors/warnings at the time this script was created.
-# Chip away at these and remove them from the exclude list (except where otherwise noted).
+# This is a list of files that are intentionally excluded from the i18n process
 EXCLUDE_LIST = {
-    "openlibrary/templates/permission_denied.html",
-    "openlibrary/templates/about/index.html",
-    "openlibrary/templates/account/import.html",
-    "openlibrary/templates/account/email/forgot.html",
-    "openlibrary/templates/admin/imports.html",
-    "openlibrary/templates/admin/loans.html",
-    "openlibrary/templates/admin/spamwords.html",
-    "openlibrary/templates/admin/inspect/memcache.html",
-    "openlibrary/templates/books/custom_carousel.html",
-    "openlibrary/templates/books/mobile_carousel.html",
-    "openlibrary/templates/books/edit/edition.html",
-    "openlibrary/templates/books/edit/web.html",
-    "openlibrary/templates/my_books/primary_action.html",
-    "openlibrary/templates/recentchanges/header.html",
-    "openlibrary/templates/recentchanges/merge/path.html",
-    "openlibrary/templates/type/edition/view.html",
-    "openlibrary/templates/type/work/view.html",
+    # This is being left untranslated because it is rarely used
+    "openlibrary/templates/admin/sync.html",
     # These are excluded because they require more info to fix
     "openlibrary/templates/books/edit.html",
     "openlibrary/templates/history/sources.html",
-    # This is being left untranslated because it is rarely used
-    "openlibrary/templates/admin/sync.html",
     # This can't be fixed because it's not in the i18n directories
     "openlibrary/admin/templates/admin/index.html",
     # These can't be fixed since they're rendered as static html
@@ -80,7 +62,6 @@ warn_after_opening_tag = r"\$\(['\"]"
 
 i18n_element_missing_regex = opening_tag_syntax + ignore_after_opening_tag
 i18n_element_warn_regex = opening_tag_syntax + r"\$\(['\"]"
-i18n_element_warn_regex = opening_tag_syntax + r"\$\(['\"]"
 
 attr_syntax = r"(title|placeholder|alt)="
 ignore_double_quote = (
@@ -111,7 +92,6 @@ i18n_attr_missing_regex = (
     + ignore_single_quote
     + r")[^>]*?>"
 )
-i18n_attr_warn_regex = opening_tag_open + attr_syntax + r"\"\$\(\'"
 i18n_attr_warn_regex = opening_tag_open + attr_syntax + r"\"\$\(\'"
 
 
@@ -201,7 +181,11 @@ def main(files: list[Path], skip_excluded: bool = True):
             regex_match = line[char_index:]
 
             # Don't proceed if the line is likely commented out or part of a $: function.
-            if "<!--" in preceding_text or "$:" in preceding_text:
+            if (
+                "<!--" in preceding_text
+                or "$:" in preceding_text
+                or "$ " in preceding_text
+            ):
                 continue
 
             # Don't proceed if skip directive is included inline.

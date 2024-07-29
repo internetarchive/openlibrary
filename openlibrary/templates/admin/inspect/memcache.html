@@ -4,7 +4,7 @@ $var title: $_("[Admin Center] Inspect Memcache")
 
 <div id="contentHead">
     $:render_template("admin/menu")
-    <h1>Inspect Memcache</h1>
+    <h1>$_("Inspect Memcache")</h1>
 </div>
 
 <div id="contentBody">
@@ -12,21 +12,21 @@ $var title: $_("[Admin Center] Inspect Memcache")
     <div>
         <form name="by_key" class="olform">
             <p>
-                Add one memcache key per line in the text area. Each key must include a '-' as the last character.
+                $_("Add one memcache key per line in the text area. Each key must include a '-' as the last character.")
             </p>
             <p>
-                For example, <code>observations-</code> should be entered in the text area if the key is <code>observations</code>.
+                $:_('For example, <code>observations-</code> should be entered in the text area if the key is <code>observations</code>.')
             </p>
-            Keys:<br/>
+            $_("Keys:")<br/>
             <textarea name="keys" rows="5">$"\n".join(keys)</textarea>
             <br/>
-            <button type="submit" name="action" value="read">Read</button>
-            <button type="submit" name="action" value="delete">Delete</button>
+            <button type="submit" name="action" value="read">$_("Read")</button>
+            <button type="submit" name="action" value="delete">$_("Delete")</button>
         </form>
 
-        <h3>Result</h3>
+        <h3>$_("Result")</h3>
             $if not keys:
-                <em>No keys selected.</em>
+                <em>$_("No keys selected.")</em>
             $else:
                 <div style="padding: 0px 10px;">
                 $for key in keys:
@@ -35,7 +35,7 @@ $var title: $_("[Admin Center] Inspect Memcache")
                         $if key in mapping:
                             <pre>$:mapping[key]</pre>
                         $else:
-                            <em>Not found.</em>
+                            <em>$_("Not found.")</em>
                     </div>
                 </div>
     </div>
