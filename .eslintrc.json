@@ -30,7 +30,6 @@
     "/code/scripts/gh_scripts/stale_assignee_digest.mjs",
     "/code/scripts/solr_restarter/index.js"
   ],
-  
   "globals": {},
   "rules": {
     "prefer-template": "error",
