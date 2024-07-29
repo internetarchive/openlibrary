@@ -262,6 +262,7 @@ class InvalidLanguage(Exception):
 
 type_map = {'description': 'text', 'notes': 'text', 'number_of_pages': 'int'}
 
+
 def build_query(rec: dict[str, Any]) -> dict[str, Any]:
     """
 
@@ -278,7 +279,9 @@ def build_query(rec: dict[str, Any]) -> dict[str, Any]:
             if v and v[0]:
                 book['authors'] = []
                 for author in v:
-                    author['name'] = remove_author_honorifics(author['name'])  # Change made here
+                    author['name'] = remove_author_honorifics(
+                        author['name']
+                    )  # Change made here
                     east = east_in_by_statement(rec, author)
                     book['authors'].append(import_author(author, eastern=east))
             continue
@@ -299,4 +302,3 @@ def build_query(rec: dict[str, Any]) -> dict[str, Any]:
         else:
             book[k] = v
     return book
-

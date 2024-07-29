@@ -195,7 +195,9 @@ class TestImportAuthor:
         }
         found = import_author(searched_and_not_found_author)
         assert isinstance(found, dict)
-        assert found["death_date"] == searched_and_not_found_author["death_date"]  # Change made here
+        assert (
+            found["death_date"] == searched_and_not_found_author["death_date"]
+        )  # Change made here
 
     def test_second_match_priority_alternate_names_and_dates(self, mock_site):
         """
@@ -238,7 +240,6 @@ class TestImportAuthor:
             "death_date": "1881",
         }
         found = import_author(searched_author)
-
 
         assert isinstance(found, Author)
         assert found.key == author_alternate_name_with_dates["key"]  # Change made here
@@ -323,4 +324,3 @@ class TestImportAuthor:
         }
         found = import_author(searched_author)
         assert found.key == author["key"]  # Change made here
-
