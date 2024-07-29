@@ -44,7 +44,7 @@
 		"no-empty-source": true,
 		"font-family-no-duplicate-names": true,
 		
-		"no-descending-specificity": true,
+		"no-descending-specificity": true
 		
   }
 }
