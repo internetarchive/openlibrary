@@ -73,7 +73,7 @@ export default {
 }
 
 .shelf-label--classes > summary::marker { display: none; }
-.shelf-label--classes > summary::-webkit-details-marker { display: none; }
+
 
 .shelf-label--classes .shelf-label--right-arrow {
   transition: transform .2s;

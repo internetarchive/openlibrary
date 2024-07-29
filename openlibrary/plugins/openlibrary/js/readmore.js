@@ -93,8 +93,7 @@ export function initClampers(clampers) {
                 }
 
                 if (up.hasClass('clamp')) {
-                    clamper.style.display = clamper.style.display === '-webkit-box' || clamper.style.display === '' ? 'unset' : '-webkit-box'
-
+                  
                     if (up.attr('data-before') === '\u25BE ') {
                         up.attr('data-before', '\u25B8 ')
                     } else {

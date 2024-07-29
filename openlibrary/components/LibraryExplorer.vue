@@ -186,7 +186,7 @@ export default {
 <style lang="less">
 #app {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
+ 
   -moz-osx-font-smoothing: grayscale;
   color: rgba(0, 0, 0, .7);
 }
@@ -466,14 +466,11 @@ hr {
   .books-carousel { scrollbar-width: thin; }
 
   // Chrome-specific scroll fixes
-  .books-carousel::-webkit-scrollbar { height: 6px; }
-  .books-carousel::-webkit-scrollbar-thumb { background: rgba(255,255,255, 0.35); }
-  .books-carousel::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255, 0.25); }
-  .books-carousel::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+ 
 }
 
 .book-room.style--scrollbar--hidden {
   .books-carousel { scrollbar-width: none; }
-  .books-carousel::-webkit-scrollbar { height: 0; }
+ 
 }
 </style>

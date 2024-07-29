@@ -351,7 +351,7 @@ export default {
 
 
 .floating-controls-wrapper {
-  position: -webkit-sticky;
+ 
   position: sticky;
   bottom: 0;
   left: 0;

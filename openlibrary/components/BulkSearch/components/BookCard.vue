@@ -127,9 +127,6 @@ export default {
     font-size: 1.1em;
     line-height: 1;
 
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
     overflow: hidden;
   }
 

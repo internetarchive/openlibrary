@@ -429,7 +429,7 @@ button {
 .book-room-shelves {
   display: flex;
   overflow-x: auto;
-  -webkit-scroll-snap-type: x mandatory;
+ 
   scroll-snap-type: x mandatory;
 }
 
@@ -437,7 +437,7 @@ button {
   width: 900px;
   max-width: 100%;
   margin: 0 30px;
-  -webkit-scroll-snap-align: center;
+ 
   scroll-snap-align: center;
   position: relative;
   flex-shrink: 0;
