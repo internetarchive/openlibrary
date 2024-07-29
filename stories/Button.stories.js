@@ -2,7 +2,7 @@ import '../static/css/components/buttonCta.less';
 import '../static/css/components/buttonCta--js.less';
 
 export default {
-    title: 'Legacy/Button'
+  title: 'Legacy/Button'
 };
 
 const ButtonTemplate = (buttonType, text, badgeCount=null) => `<div class="cta-btn${ButtonTypes[buttonType]}">${text}${badgeCount ? BadgeTemplate(badgeCount) : ''}</div>`;
@@ -10,56 +10,56 @@ const ButtonTemplate = (buttonType, text, badgeCount=null) => `<div class="cta-b
 const BadgeTemplate = (badgeCount) => ` <span class="cta-btn__badge">${badgeCount}</span>`
 
 const ButtonTypes = {
-    default: '',
-    unavailable: ' cta-btn--unavailable',
-    available: ' cta-btn--available',
-    preview: ' cta-btn--shell cta-btn--preview'
+  default: '',
+  unavailable: ' cta-btn--unavailable',
+  available: ' cta-btn--available',
+  preview: ' cta-btn--shell cta-btn--preview'
 }
 
 export const CtaBtn = () => ButtonTemplate('default','Leave waitlist');
 CtaBtn.parameters = {
-    docs: {
-        source: {
-            code: ButtonTemplate('default', 'Leave waitlist')
-        }
+  docs: {
+    source: {
+      code: ButtonTemplate('default', 'Leave waitlist')
     }
+  }
 }
 
 export const CtaBtnUnavailable = () => ButtonTemplate('unavailable','Join waitlist');
 CtaBtnUnavailable.parameters = {
-    docs: {
-        source: {
-            code: ButtonTemplate('unavailable', 'Join waitlist')
-        }
+  docs: {
+    source: {
+      code: ButtonTemplate('unavailable', 'Join waitlist')
     }
+  }
 }
 
 export const CtaBtnAvailable = () => ButtonTemplate('available','Borrow');
 CtaBtnAvailable.parameters = {
-    docs: {
-        source: {
-            code: ButtonTemplate('available', 'Borrow')
-        }
+  docs: {
+    source: {
+      code: ButtonTemplate('available', 'Borrow')
     }
+  }
 }
 
 export const CtaBtnPreview = () => ButtonTemplate('preview','Preview');
 CtaBtnPreview.parameters = {
-    docs: {
-        source: {
-            code: ButtonTemplate('preview', 'Preview')
-        }
+  docs: {
+    source: {
+      code: ButtonTemplate('preview', 'Preview')
     }
+  }
 }
 
 export const CtaBtnWithBadge = () =>
-    ButtonTemplate('unavailable','Join waiting list',4);
+  ButtonTemplate('unavailable','Join waiting list',4);
 CtaBtnWithBadge.parameters = {
-    docs: {
-        source: {
-            code: ButtonTemplate('unavailable', 'Join waiting list', 4)
-        }
+  docs: {
+    source: {
+      code: ButtonTemplate('unavailable', 'Join waiting list', 4)
     }
+  }
 }
 
 export const CtaBtnGroup = () => `<div class="cta-button-group">

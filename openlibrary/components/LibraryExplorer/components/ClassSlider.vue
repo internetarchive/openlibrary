@@ -31,58 +31,58 @@
 import RightArrowIcon from './icons/RightArrowIcon';
 import ShelfProgressBar from './ShelfProgressBar';
 export default {
-    components: { RightArrowIcon, ShelfProgressBar },
-    props: {
-        node: Object
-    },
-    data() {
-        return {
-            direction: null,
-        };
-    },
+  components: { RightArrowIcon, ShelfProgressBar },
+  props: {
+    node: Object
+  },
+  data() {
+    return {
+      direction: null,
+    };
+  },
 
-    watch: {
-        async index(newVal, oldVal) {
-            if (typeof oldVal !== 'number') return;
-            this.direction = newVal > oldVal ? 'slide-right' : 'slide-left';
-            await new Promise(res => setTimeout(res, 200));
-            this.direction = null;
-        }
-    },
-
-    computed: {
-        index: {
-            get() {
-                return this.node.position === 'root' ? 0 : this.node.position + 1;
-            },
-            set(newVal) {
-                this.node.position = newVal === 0 ? 'root' : newVal - 1;
-            }
-        },
-        sections() {
-            return [this.node, ...(this.node.children || [])];
-        },
-
-        progressBarSections() {
-            return this.node.children || [this.node];
-        },
-
-        progressBarIndex() {
-            return this.sections.length > 1 ? this.index - 1 : this.index;
-        },
-
-        activeSection() {
-            return this.sections[this.index];
-        },
-
-        prevSection() {
-            return this.sections[this.index - 1];
-        },
-
-        nextSection() {
-            return this.sections[this.index + 1];
-        }
+  watch: {
+    async index(newVal, oldVal) {
+      if (typeof oldVal !== 'number') return;
+      this.direction = newVal > oldVal ? 'slide-right' : 'slide-left';
+      await new Promise(res => setTimeout(res, 200));
+      this.direction = null;
     }
+  },
+
+  computed: {
+    index: {
+      get() {
+        return this.node.position === 'root' ? 0 : this.node.position + 1;
+      },
+      set(newVal) {
+        this.node.position = newVal === 0 ? 'root' : newVal - 1;
+      }
+    },
+    sections() {
+      return [this.node, ...(this.node.children || [])];
+    },
+
+    progressBarSections() {
+      return this.node.children || [this.node];
+    },
+
+    progressBarIndex() {
+      return this.sections.length > 1 ? this.index - 1 : this.index;
+    },
+
+    activeSection() {
+      return this.sections[this.index];
+    },
+
+    prevSection() {
+      return this.sections[this.index - 1];
+    },
+
+    nextSection() {
+      return this.sections[this.index + 1];
+    }
+  }
 };
 </script>
 

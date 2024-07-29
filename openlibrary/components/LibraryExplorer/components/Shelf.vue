@@ -99,100 +99,100 @@ import IndexIcon from './icons/IndexIcon.vue';
 import maxBy from 'lodash/maxBy';
 
 class FetchCoordinator {
-    constructor() {
-        this.requestedFetches = [];
-        /** @type { 'idle' | 'active' } */
-        this.state = 'idle';
+  constructor() {
+    this.requestedFetches = [];
+    /** @type { 'idle' | 'active' } */
+    this.state = 'idle';
 
-        this.runningRequests = 0;
+    this.runningRequests = 0;
 
-        this.timeout = null;
-        this.maxConcurrent = 6;
-        this.groupingTime = 250;
+    this.timeout = null;
+    this.maxConcurrent = 6;
+    this.groupingTime = 250;
+  }
+
+  async fetch({ priority, name }, ...args) {
+    return new Promise((resolve, reject) => {
+      this.enqueue({
+        priority,
+        name,
+        args,
+        resolve,
+        reject,
+      });
+    });
+  }
+
+  enqueue(fetchRequest) {
+    // console.log(`Enqueuing request #${this.requestedFetches.length + 1}: ${fetchRequest.name}`);
+    this.requestedFetches.push(fetchRequest);
+    this.activate();
+  }
+
+  activate() {
+    if (this.requestedFetches.length && !this.timeout) {
+      this.state = 'active'
+      this.timeout = setTimeout(() => this.consume(), this.groupingTime);
+    } else {
+      this.state = 'idle';
     }
+  }
 
-    async fetch({ priority, name }, ...args) {
-        return new Promise((resolve, reject) => {
-            this.enqueue({
-                priority,
-                name,
-                args,
-                resolve,
-                reject,
-            });
+  consume() {
+    this.timeout = null;
+    while ((this.maxConcurrent - this.runningRequests > 0) && this.requestedFetches.length) {
+      const topRequest = maxBy(this.requestedFetches, f => f.priority());
+      // console.log(`Completing request w p=${topRequest.priority()}: ${topRequest.name}`)
+      this.runningRequests++;
+      fetch(...topRequest.args)
+        .then(r => {
+          this.runningRequests--;
+          topRequest.resolve(r);
+        })
+        .catch(e => {
+          this.runningRequests--;
+          topRequest.reject(e);
         });
+      const indexToRemove = this.requestedFetches.indexOf(topRequest);
+      this.requestedFetches.splice(indexToRemove, 1);
     }
-
-    enqueue(fetchRequest) {
-        // console.log(`Enqueuing request #${this.requestedFetches.length + 1}: ${fetchRequest.name}`);
-        this.requestedFetches.push(fetchRequest);
-        this.activate();
-    }
-
-    activate() {
-        if (this.requestedFetches.length && !this.timeout) {
-            this.state = 'active'
-            this.timeout = setTimeout(() => this.consume(), this.groupingTime);
-        } else {
-            this.state = 'idle';
-        }
-    }
-
-    consume() {
-        this.timeout = null;
-        while ((this.maxConcurrent - this.runningRequests > 0) && this.requestedFetches.length) {
-            const topRequest = maxBy(this.requestedFetches, f => f.priority());
-            // console.log(`Completing request w p=${topRequest.priority()}: ${topRequest.name}`)
-            this.runningRequests++;
-            fetch(...topRequest.args)
-                .then(r => {
-                    this.runningRequests--;
-                    topRequest.resolve(r);
-                })
-                .catch(e => {
-                    this.runningRequests--;
-                    topRequest.reject(e);
-                });
-            const indexToRemove = this.requestedFetches.indexOf(topRequest);
-            this.requestedFetches.splice(indexToRemove, 1);
-        }
-        this.activate();
-    }
+    this.activate();
+  }
 }
 
 const fetchCoordinator = new FetchCoordinator();
 
 export default {
-    components: {
-        OLCarousel,
-        ClassSlider,
-        BookCover3D,
-        FlatBookCover,
-        ShelfIndex,
-        ShelfLabel,
-        ExpandIcon,
-        IndexIcon,
-    },
-    props: {
-        /** @type {import('../utils').ClassificationNode} */
-        node: Object,
-        parent: Object,
+  components: {
+    OLCarousel,
+    ClassSlider,
+    BookCover3D,
+    FlatBookCover,
+    ShelfIndex,
+    ShelfLabel,
+    ExpandIcon,
+    IndexIcon,
+  },
+  props: {
+    /** @type {import('../utils').ClassificationNode} */
+    node: Object,
+    parent: Object,
 
-        labels: Array,
-        /** @type {import('../utils').ClassificationTree} */
-        classification: Object,
-        expandBookshelf: Function,
-        features: Object,
-        filter: String,
-        sort: String,
-    },
+    labels: Array,
+    /** @type {import('../utils').ClassificationTree} */
+    classification: Object,
+    expandBookshelf: Function,
+    features: Object,
+    filter: String,
+    sort: String,
+  },
 
-    data() {
-        return {
-            showShelfIndex: false,
-            fetchCoordinator: fetchCoordinator,
-        };
-    }
+  data() {
+    return {
+      showShelfIndex: false,
+      fetchCoordinator: fetchCoordinator,
+    };
+  }
 };
 </script>
 

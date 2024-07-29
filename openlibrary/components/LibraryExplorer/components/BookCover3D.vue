@@ -27,54 +27,54 @@ import FlatBookCover from './FlatBookCover';
 import { hashCode } from '../utils.js';
 
 export default {
-    components: { CSSBox, FlatBookCover },
-    props: {
-        width: {
-            type: Number,
-            default: 300
-        },
-        height: {
-            type: Number,
-            default: 200
-        },
-        thickness: {
-            type: Number,
-            default: 50
-        },
-        book: Object,
-        /** @type {'image' | 'text'} */
-        cover: String,
+  components: { CSSBox, FlatBookCover },
+  props: {
+    width: {
+      type: Number,
+      default: 300
+    },
+    height: {
+      type: Number,
+      default: 200
+    },
+    thickness: {
+      type: Number,
+      default: 50
+    },
+    book: Object,
+    /** @type {'image' | 'text'} */
+    cover: String,
+  },
+
+  data() {
+    return {
+      finalWidth: this.width,
+      finalHeight: this.height,
+      finalThickness: this.book.number_of_pages_median ? Math.min(50, this.book.number_of_pages_median / 10) : this.thickness,
+    };
+  },
+  methods: {
+    updateWithImageMetadata(e) {
+      this.finalHeight = e.target.height;
+    },
+  },
+
+  computed: {
+    byline() {
+      return this.book.author_name
+        ? this.book.author_name
+          .map(a => {
+            const parts = a.split(/\s+/g);
+            return parts[parts.length - 1];
+          })
+          .join(' ')
+        : '';
     },
 
-    data() {
-        return {
-            finalWidth: this.width,
-            finalHeight: this.height,
-            finalThickness: this.book.number_of_pages_median ? Math.min(50, this.book.number_of_pages_median / 10) : this.thickness,
-        };
+    hashHue() {
+      return hashCode(this.book.key) % 360;
     },
-    methods: {
-        updateWithImageMetadata(e) {
-            this.finalHeight = e.target.height;
-        },
-    },
-
-    computed: {
-        byline() {
-            return this.book.author_name
-                ? this.book.author_name
-                    .map(a => {
-                        const parts = a.split(/\s+/g);
-                        return parts[parts.length - 1];
-                    })
-                    .join(' ')
-                : '';
-        },
-
-        hashHue() {
-            return hashCode(this.book.key) % 360;
-        },
-    }
+  }
 };
 </script>
 

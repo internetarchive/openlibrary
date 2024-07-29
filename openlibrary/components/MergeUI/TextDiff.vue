@@ -11,24 +11,24 @@
 import {diffChars, diffWordsWithSpace} from 'diff';
 
 export default {
-    props: {
-        left: String,
-        right: String,
-        show_diffs: Boolean,
-        resolution: {
-            default: 'char',
-            validator: val => ['char', 'word'].includes(val),
-        }
-    },
-    computed: {
-        diff() {
-            const fn = {
-                char: diffChars,
-                word: diffWordsWithSpace,
-            };
-            return fn[this.resolution](this.left, this.right);
-        }
+  props: {
+    left: String,
+    right: String,
+    show_diffs: Boolean,
+    resolution: {
+      default: 'char',
+      validator: val => ['char', 'word'].includes(val),
     }
+  },
+  computed: {
+    diff() {
+      const fn = {
+        char: diffChars,
+        word: diffWordsWithSpace,
+      };
+      return fn[this.resolution](this.left, this.right);
+    }
+  }
 }
 </script>
 

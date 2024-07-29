@@ -18,10 +18,10 @@
 
 <script>
 export default {
-    props: {
-        sections: Array,
-        index: Number,
-    },
+  props: {
+    sections: Array,
+    index: Number,
+  },
 }
 </script>
 

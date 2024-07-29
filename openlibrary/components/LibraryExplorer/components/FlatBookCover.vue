@@ -21,51 +21,51 @@ import CONFIGS from '../configs';
 import { hashCode } from '../utils.js';
 
 export default {
-    props: {
-        book: Object,
-        /** @type {'image' | 'text'} */
-        cover: {
-            default: 'image'
-        }
+  props: {
+    book: Object,
+    /** @type {'image' | 'text'} */
+    cover: {
+      default: 'image'
+    }
+  },
+
+  computed: {
+    byline() {
+      return this.book.author_name ? this.book.author_name.join(' ') : '';
     },
 
-    computed: {
-        byline() {
-            return this.book.author_name ? this.book.author_name.join(' ') : '';
-        },
+    coverMultiresUrl() {
+      const { cover_i, lending_edition_s } = this.book;
+      const fullUrl = lending_edition_s ? this.olCoverUrl(lending_edition_s, 'olid') :
+        cover_i && cover_i !== -1 ? this.olCoverUrl(cover_i) :
+          null;
 
-        coverMultiresUrl() {
-            const { cover_i, lending_edition_s } = this.book;
-            const fullUrl = lending_edition_s ? this.olCoverUrl(lending_edition_s, 'olid') :
-                cover_i && cover_i !== -1 ? this.olCoverUrl(cover_i) :
-                    null;
-
-            if (fullUrl) {
-                return {
-                    small: fullUrl.replace('.jpg', '-S.jpg'),
-                    medium: fullUrl.replace('.jpg', '-M.jpg'),
-                    large: fullUrl.replace('.jpg', '-L.jpg'),
-                    full: fullUrl,
-                };
-            } else {
-                return undefined;
-            }
-        },
-
-        hashHue() {
-            return hashCode(this.book.key) % 360;
-        },
+      if (fullUrl) {
+        return {
+          small: fullUrl.replace('.jpg', '-S.jpg'),
+          medium: fullUrl.replace('.jpg', '-M.jpg'),
+          large: fullUrl.replace('.jpg', '-L.jpg'),
+          full: fullUrl,
+        };
+      } else {
+        return undefined;
+      }
     },
 
-    methods: {
-        /**
+    hashHue() {
+      return hashCode(this.book.key) % 360;
+    },
+  },
+
+  methods: {
+    /**
          * @param {String} id
          * @param {'id' | 'olid'} idType
          */
-        olCoverUrl(id, idType='id') {
-            return `${CONFIGS.OL_BASE_COVERS}/b/${idType}/${id}.jpg`;
-        }
+    olCoverUrl(id, idType='id') {
+      return `${CONFIGS.OL_BASE_COVERS}/b/${idType}/${id}.jpg`;
     }
+  }
 };
 </script>
 

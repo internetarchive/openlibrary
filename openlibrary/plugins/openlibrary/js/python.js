@@ -8,31 +8,31 @@
  * @return {string}
  */
 export function commify(n) {
-    var text = n.toString();
-    var re = /(\d+)(\d{3})/;
+  var text = n.toString();
+  var re = /(\d+)(\d{3})/;
 
-    while (re.test(text)) {
-        text = text.replace(re, '$1,$2');
-    }
+  while (re.test(text)) {
+    text = text.replace(re, '$1,$2');
+  }
 
-    return text;
+  return text;
 }
 
 // Implementation of Python urllib.urlencode in Javascript.
 export function urlencode(query) {
-    var parts = [];
-    var k;
-    for (k in query) {
-        parts.push(`${k}=${query[k]}`);
-    }
-    return parts.join('&');
+  var parts = [];
+  var k;
+  for (k in query) {
+    parts.push(`${k}=${query[k]}`);
+  }
+  return parts.join('&');
 }
 
 export function slice(array, begin, end) {
-    var a = [];
-    var i;
-    for (i=begin; i < Math.min(array.length, end); i++) {
-        a.push(array[i]);
-    }
-    return a;
+  var a = [];
+  var i;
+  for (i=begin; i < Math.min(array.length, end); i++) {
+    a.push(array[i]);
+  }
+  return a;
 }

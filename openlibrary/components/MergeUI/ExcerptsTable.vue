@@ -23,13 +23,13 @@
 import _ from 'lodash';
 
 export default {
-    props: {
-        excerpts: Array
-    },
-    computed: {
-        fields() {
-            return _.uniq(_.flatMap(this.excerpts, Object.keys));
-        }
+  props: {
+    excerpts: Array
+  },
+  computed: {
+    fields() {
+      return _.uniq(_.flatMap(this.excerpts, Object.keys));
     }
+  }
 }
 </script>

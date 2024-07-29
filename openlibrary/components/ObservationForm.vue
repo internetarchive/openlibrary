@@ -34,23 +34,23 @@ import ValueCard from './ObservationForm/components/ValueCard'
 import { decodeAndParseJSON, resizeColorbox } from './ObservationForm/Utils'
 
 export default {
-    name: 'ObservationForm',
-    components: {
-        CategorySelector,
-        SavedTags,
-        ValueCard
-    },
-    props: {
-        /**
+  name: 'ObservationForm',
+  components: {
+    CategorySelector,
+    SavedTags,
+    ValueCard
+  },
+  props: {
+    /**
          * URI encoded JSON string representation of the book tags schema.
          *
          * @see /openlibrary/core/observations.py
          */
-        schema: {
-            type: String,
-            required: true
-        },
-        /**
+    schema: {
+      type: String,
+      required: true
+    },
+    /**
          * URI encoded JSON string representation of all of a patron's selected book tags.
          *
          * @example
@@ -59,31 +59,31 @@ export default {
          *   "genres": ["sci-fi", "anthology"]
          * }
          */
-        observations: {
-            type: String,
-            required: true
-        },
-        /**
+    observations: {
+      type: String,
+      required: true
+    },
+    /**
          * The work key.
          *
          * @example
          * /works/OL123W
          */
-        work_key: {
-            type: String,
-            required: true
-        },
-        /**
+    work_key: {
+      type: String,
+      required: true
+    },
+    /**
          * The patron's username.
          */
-        username: {
-            type: String,
-            required: true
-        }
-    },
-    data: function() {
-        return {
-            /**
+    username: {
+      type: String,
+      required: true
+    }
+  },
+  data: function() {
+    return {
+      /**
              * An object representing the currently selected tag type.
              *
              * @example
@@ -95,8 +95,8 @@ export default {
              *   'values': ['technical', 'jargony', 'neologisms', 'slang', 'olde']
              * }
              */
-            selectedObservation: null,
-            /**
+      selectedObservation: null,
+      /**
              * An object containing all of the patron's currently selected book tags.
              *
              * @example
@@ -105,60 +105,60 @@ export default {
              *   "genres": ["sci-fi", "anthology"]
              * }
              */
-            allSelectedValues: {},
-            /**
+      allSelectedValues: {},
+      /**
              * An array containing all book tag types and values.
              */
-            observationsArray: null,
-        }
-    },
-    methods: {
-        /**
+      observationsArray: null,
+    }
+  },
+  methods: {
+    /**
          * Sets the currently selected book tag type to a new value.
          *
          * @param {Object | null} observation The new selected observation, or `null` if no type is selected.
          */
-        updateSelected: function(observation) {
-            this.selectedObservation = observation
-        },
-        /**
+    updateSelected: function(observation) {
+      this.selectedObservation = observation
+    },
+    /**
          * Randomly sets a selected observation.
          */
-        selectRandomObservation: function() {
-            const randomNumber = Math.floor(Math.random() * 100000);
-            this.selectedObservation = this.observationsArray[randomNumber % this.observationsArray.length];
-        }
-    },
-    computed: {
-        /**
+    selectRandomObservation: function() {
+      const randomNumber = Math.floor(Math.random() * 100000);
+      this.selectedObservation = this.observationsArray[randomNumber % this.observationsArray.length];
+    }
+  },
+  computed: {
+    /**
          * Return the selected observation's ID, or null if no observation is selected.
          *
          * @returns {Number|null} The ID of the selected observation, if one exists.
          */
-        getSelectedId: function() {
-            if (this.selectedObservation) {
-                return this.selectedObservation.id;
-            }
-            return null
-        }
-    },
-    created: function() {
-        this.observationsArray = decodeAndParseJSON(this.schema)['observations'];
-        this.allSelectedValues = decodeAndParseJSON(this.observations);
-        this.selectRandomObservation();
-    },
-    mounted: function() {
-        this.observer = new ResizeObserver(() => {
-            resizeColorbox();
-        });
-
-        this.observer.observe(this.$refs.form)
-    },
-    beforeDestroy: function() {
-        if (this.observer) {
-            this.observer.disconnect()
-        }
+    getSelectedId: function() {
+      if (this.selectedObservation) {
+        return this.selectedObservation.id;
+      }
+      return null
     }
+  },
+  created: function() {
+    this.observationsArray = decodeAndParseJSON(this.schema)['observations'];
+    this.allSelectedValues = decodeAndParseJSON(this.observations);
+    this.selectRandomObservation();
+  },
+  mounted: function() {
+    this.observer = new ResizeObserver(() => {
+      resizeColorbox();
+    });
+
+    this.observer.observe(this.$refs.form)
+  },
+  beforeDestroy: function() {
+    if (this.observer) {
+      this.observer.disconnect()
+    }
+  }
 }
 </script>
 

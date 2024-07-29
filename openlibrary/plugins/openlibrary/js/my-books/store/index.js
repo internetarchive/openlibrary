@@ -8,73 +8,73 @@
  * @class
  */
 class MyBooksStore {
-    /**
+  /**
      * Initializes the store.
      */
-    constructor() {
-        this._store = {
-            droppers: [],
-            showcases: [],
-            userkey: '',
-            openDropper: null
-        }
+  constructor() {
+    this._store = {
+      droppers: [],
+      showcases: [],
+      userkey: '',
+      openDropper: null
     }
+  }
 
-    /**
+  /**
      * @returns {Array<MyBooksDropper>}
      */
-    getDroppers() {
-        return this._store.droppers
-    }
+  getDroppers() {
+    return this._store.droppers
+  }
 
-    /**
+  /**
      * @param {Array<MyBooksDropper>} droppers
      */
-    setDroppers(droppers) {
-        this._store.droppers = droppers
-    }
+  setDroppers(droppers) {
+    this._store.droppers = droppers
+  }
 
-    /**
+  /**
      * @returns {Array<ShowcaseItem>}
      */
-    getShowcases() {
-        return this._store.showcases
-    }
+  getShowcases() {
+    return this._store.showcases
+  }
 
-    /**
+  /**
      * @param {Array<ShowcaseItem>} showcases
      */
-    setShowcases(showcases) {
-        this._store.showcases = showcases
-    }
+  setShowcases(showcases) {
+    this._store.showcases = showcases
+  }
 
-    /**
+  /**
      * @returns {string}
      */
-    getUserKey() {
-        return this._store.userKey
-    }
+  getUserKey() {
+    return this._store.userKey
+  }
 
-    /**
+  /**
      * @param {string} userKey
      */
-    setUserKey(userKey) {
-        this._store.userKey = userKey
-    }
+  setUserKey(userKey) {
+    this._store.userKey = userKey
+  }
 
-    /**
+  /**
      * @returns {MyBooksDropper}
      */
-    getOpenDropper() {
-        return this._store.openDropper
-    }
+  getOpenDropper() {
+    return this._store.openDropper
+  }
 
-    /**
+  /**
      * @param {MyBooksDropper} dropper
      */
-    setOpenDropper(dropper) {
-        this._store.openDropper = dropper
-    }
+  setOpenDropper(dropper) {
+    this._store.openDropper = dropper
+  }
 }
 
 const myBooksStore = new MyBooksStore()

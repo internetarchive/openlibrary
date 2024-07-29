@@ -1,7 +1,7 @@
 import { initRealTimeValidation } from '../../../openlibrary/plugins/openlibrary/js/realtime_account_validation';
 
 beforeEach(() => {
-    document.body.innerHTML = `
+  document.body.innerHTML = `
     <form id="signup" name="signup" data-i18n={}>
       <input type="text" id="username">
       <input type="text" id="emailAddr">
@@ -13,66 +13,66 @@ beforeEach(() => {
 });
 
 describe('Password tests', () => {
-    let label, passwordField
+  let label, passwordField
 
-    beforeEach(() => {
-        // call the function
-        initRealTimeValidation();
+  beforeEach(() => {
+    // call the function
+    initRealTimeValidation();
 
-        //declare the elements
-        label = document.querySelector('label[for="password"]');
-        passwordField = document.getElementById('password');
-    })
+    //declare the elements
+    label = document.querySelector('label[for="password"]');
+    passwordField = document.getElementById('password');
+  })
 
-    test('validatePassword should update elements correctly on success', () => {
-        // set the password value
-        passwordField.value = 'password123';
+  test('validatePassword should update elements correctly on success', () => {
+    // set the password value
+    passwordField.value = 'password123';
 
-        // Trigger the blur event on the password field
-        passwordField.dispatchEvent(new Event('blur'));
+    // Trigger the blur event on the password field
+    passwordField.dispatchEvent(new Event('blur'));
 
-        // Assert that the elements have the expected classes
-        expect(passwordField.classList.contains('required')).toBe(true);
-        expect(passwordField.classList.contains('invalid')).toBe(false);
-        expect(label.classList.length).toBe(0);
-    });
+    // Assert that the elements have the expected classes
+    expect(passwordField.classList.contains('required')).toBe(true);
+    expect(passwordField.classList.contains('invalid')).toBe(false);
+    expect(label.classList.length).toBe(0);
+  });
 
-    test('validatePassword should update elements correctly for empty fields', () => {
-        // set the password value
-        passwordField.value = '';
+  test('validatePassword should update elements correctly for empty fields', () => {
+    // set the password value
+    passwordField.value = '';
 
-        // Trigger the blur event on the password field
-        passwordField.dispatchEvent(new Event('blur'));
+    // Trigger the blur event on the password field
+    passwordField.dispatchEvent(new Event('blur'));
 
-        // Assert that the elements have the expected classes
-        expect(passwordField.classList.contains('required')).toBe(true);
-        expect(passwordField.classList.contains('invalid')).toBe(false);
-        expect(label.classList.contains('invalid')).toBe(false);
-    });
+    // Assert that the elements have the expected classes
+    expect(passwordField.classList.contains('required')).toBe(true);
+    expect(passwordField.classList.contains('invalid')).toBe(false);
+    expect(label.classList.contains('invalid')).toBe(false);
+  });
 
-    test('validatePassword should update elements correctly for passwords over 20 chars', () => {
-        // set the password values
-        passwordField.value = 'password1234567891011';
+  test('validatePassword should update elements correctly for passwords over 20 chars', () => {
+    // set the password values
+    passwordField.value = 'password1234567891011';
 
-        // Trigger the blur event on the password fields
-        passwordField.dispatchEvent(new Event('blur'));
+    // Trigger the blur event on the password fields
+    passwordField.dispatchEvent(new Event('blur'));
 
-        // Assert that the elements have the expected classes
-        expect(passwordField.classList.contains('required')).toBe(true);
-        expect(passwordField.classList.contains('invalid')).toBe(true);
-        expect(label.classList.contains('invalid')).toBe(true);
-    });
+    // Assert that the elements have the expected classes
+    expect(passwordField.classList.contains('required')).toBe(true);
+    expect(passwordField.classList.contains('invalid')).toBe(true);
+    expect(label.classList.contains('invalid')).toBe(true);
+  });
 
-    test('validatePassword should update elements correctly for passwords under 3 chars', () => {
-        // set the password values
-        passwordField.value = 'pa';
+  test('validatePassword should update elements correctly for passwords under 3 chars', () => {
+    // set the password values
+    passwordField.value = 'pa';
 
-        // Trigger the blur event on the password fields
-        passwordField.dispatchEvent(new Event('blur'));
+    // Trigger the blur event on the password fields
+    passwordField.dispatchEvent(new Event('blur'));
 
-        // Assert that the elements have the expected classes
-        expect(passwordField.classList.contains('required')).toBe(true);
-        expect(passwordField.classList.contains('invalid')).toBe(true);
-        expect(label.classList.contains('invalid')).toBe(true);
-    });
+    // Assert that the elements have the expected classes
+    expect(passwordField.classList.contains('required')).toBe(true);
+    expect(passwordField.classList.contains('invalid')).toBe(true);
+    expect(label.classList.contains('invalid')).toBe(true);
+  });
 });

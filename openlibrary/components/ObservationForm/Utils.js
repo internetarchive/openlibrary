@@ -5,9 +5,9 @@
  * @returns A JavaScript object
  */
 export function decodeAndParseJSON(str) {
-    return JSON.parse(decodeURIComponent(str));
+  return JSON.parse(decodeURIComponent(str));
 }
 
 export function resizeColorbox() {
-    window.$.colorbox.resize();
+  window.$.colorbox.resize();
 }

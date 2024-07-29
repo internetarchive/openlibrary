@@ -17,37 +17,37 @@ import OLCarousel from './OLCarousel';
 import ClassSlider from './ClassSlider';
 
 export default {
-    components: {
-        OLCarousel,
-        ClassSlider
+  components: {
+    OLCarousel,
+    ClassSlider
+  },
+  props: {
+    filter: {
+      default: '',
+      type: String
     },
-    props: {
-        filter: {
-            default: '',
-            type: String
-        },
-        classification: Object
-    },
-    methods: {
-    },
-    data() {
-        return {};
+    classification: Object
+  },
+  methods: {
+  },
+  data() {
+    return {};
+  },
+
+  computed: {
+    activeSection() {
+      return this.levels[0].children[this.levels[0].position];
     },
 
-    computed: {
-        activeSection() {
-            return this.levels[0].children[this.levels[0].position];
-        },
-
-        levels() {
-            const result = [];
-            let cur = this.classification.root;
-            while (cur.children) {
-                result.push(cur);
-                cur = cur.children[cur.position];
-            }
-            return result.reverse();
-        }
+    levels() {
+      const result = [];
+      let cur = this.classification.root;
+      while (cur.children) {
+        result.push(cur);
+        cur = cur.children[cur.position];
+      }
+      return result.reverse();
     }
+  }
 };
 </script>

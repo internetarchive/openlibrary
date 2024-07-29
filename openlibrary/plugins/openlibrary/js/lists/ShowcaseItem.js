@@ -25,131 +25,131 @@ import myBooksStore from '../my-books/store'
  * @class
  */
 export class ShowcaseItem {
-    /**
+  /**
      * Creates a new `ShowcaseItem` obect.
      *
      * Sets references needed for this ShowcaseItem's functionality.
      *
      * @param {HTMLElement} showcaseElem
      */
-    constructor(showcaseElem) {
-        /**
+  constructor(showcaseElem) {
+    /**
          * Reference to the root element of this component.
          * @member {HTMLElement}
          */
-        this.showcaseElem = showcaseElem
+    this.showcaseElem = showcaseElem
 
-        /**
+    /**
          * `true` if this object represents the active lists showcase.
          * @member {boolean}
          */
-        this.isActiveShowcase = showcaseElem.parentElement.classList.contains('already-lists')
+    this.isActiveShowcase = showcaseElem.parentElement.classList.contains('already-lists')
 
-        /**
+    /**
          * Reference to the affordance which removes an item from this list.
          * @member {HTMLElement}
          */
-        this.removeFromListAffordance = showcaseElem.querySelector('.remove-from-list')
+    this.removeFromListAffordance = showcaseElem.querySelector('.remove-from-list')
 
-        /**
+    /**
          * Unique identifier for the showcased list.
          * @member {string}
          */
-        this.listKey = this.removeFromListAffordance.dataset.listKey
+    this.listKey = this.removeFromListAffordance.dataset.listKey
 
-        /**
+    /**
          * Unique identifier for the showcased list member.
          * @member {string}
          */
-        this.seedKey = showcaseElem.querySelector('input[name=seed-key]').value
+    this.seedKey = showcaseElem.querySelector('input[name=seed-key]').value
 
-        /**
+    /**
          * The list item's type.
          * @member {'subject'|'edition'|'work'|'author'}
          */
-        this.type = showcaseElem.querySelector('input[name=seed-type]').value
+    this.type = showcaseElem.querySelector('input[name=seed-type]').value
 
-        /**
+    /**
          * `true` if this list item is a subject.
          * @member {boolean}
          */
-        this.isSubject = this.type === 'subject'
+    this.isSubject = this.type === 'subject'
 
-        /**
+    /**
          * `true` if this list item is a work
          * @member {boolean}
          */
-        this.isWork = !this.isSubject && this.seedKey.slice(-1) === 'W'
+    this.isWork = !this.isSubject && this.seedKey.slice(-1) === 'W'
 
-        /**
+    /**
          * `POST` request-ready representation of the list's seed key.
          * @member {string|object}
          */
-        this.seed
-        if (this.isSubject) {
-            this.seed = this.seedKey
-        } else {
-            this.seed = { key: this.seedKey }
-        }
+    this.seed
+    if (this.isSubject) {
+      this.seed = this.seedKey
+    } else {
+      this.seed = { key: this.seedKey }
     }
+  }
 
-    /**
+  /**
      * Attaches click listeners to the showcase item's "Remove from list"
      * affordance.
      */
-    initialize() {
-        this.removeFromListAffordance.addEventListener('click', (event) => {
-            event.preventDefault()
-            this.removeShowcaseItem()
-        })
-    }
+  initialize() {
+    this.removeFromListAffordance.addEventListener('click', (event) => {
+      event.preventDefault()
+      this.removeShowcaseItem()
+    })
+  }
 
-    /**
+  /**
      * Sends request to remove an item from a list, then updates the view.
      *
      * Removes any affiliated showcase items from the DOM, and updates all
      * dropper list affordances.
      */
-    async removeShowcaseItem() {
-        await removeItem(this.listKey, this.seed)
-            .then(response => response.json())
-            .then(() => {
-                const showcases = myBooksStore.getShowcases()
+  async removeShowcaseItem() {
+    await removeItem(this.listKey, this.seed)
+      .then(response => response.json())
+      .then(() => {
+        const showcases = myBooksStore.getShowcases()
 
-                // Remove self:
-                this.removeSelf()
+        // Remove self:
+        this.removeSelf()
 
-                // Remove other showcase items that are associated with the list and seed key:
-                for (const showcase of showcases) {
-                    if (showcase.isShowcaseForListAndSeed(this.listKey, this.seedKey)) {
-                        showcase.removeSelf()
-                    }
-                }
+        // Remove other showcase items that are associated with the list and seed key:
+        for (const showcase of showcases) {
+          if (showcase.isShowcaseForListAndSeed(this.listKey, this.seedKey)) {
+            showcase.removeSelf()
+          }
+        }
 
-                // Update droppers:
-                const droppers = myBooksStore.getDroppers()
-                for (const dropper of droppers) {
-                    dropper.readingLists.updateViewAfterModifyingList(this.listKey, this.isWork, false)
-                }
-            })
-    }
+        // Update droppers:
+        const droppers = myBooksStore.getDroppers()
+        for (const dropper of droppers) {
+          dropper.readingLists.updateViewAfterModifyingList(this.listKey, this.isWork, false)
+        }
+      })
+  }
 
-    /**
+  /**
      * Removes associated showcase item from the DOM.
      *
      * Removes self from the myBooksStore's showcase array
      * upon success.
      */
-    removeSelf() {
-        const showcases = myBooksStore.getShowcases()
-        const thisIndex = showcases.indexOf(this)
-        if (thisIndex >= 0) {
-            this.showcaseElem.remove()
-            showcases.splice(thisIndex, 1)
-        }
+  removeSelf() {
+    const showcases = myBooksStore.getShowcases()
+    const thisIndex = showcases.indexOf(this)
+    if (thisIndex >= 0) {
+      this.showcaseElem.remove()
+      showcases.splice(thisIndex, 1)
     }
+  }
 
-    /**
+  /**
      * Toggles the visiblity of active showcase items depending on their seed type.
      *
      * If `showWorks` is `true`, the only active showcase items that will be visible will
@@ -160,34 +160,34 @@ export class ShowcaseItem {
      *
      * @param {boolean} showWorks `true` if only active showcase items related to works should be displayed
      */
-    toggleVisibility(showWorks) {
-        if (this.isActiveShowcase) {
-            if (showWorks) {
-                if (this.isWork) {
-                    this.showcaseElem.classList.remove('hidden')
-                } else {
-                    this.showcaseElem.classList.add('hidden')
-                }
-            } else {
-                if (this.isWork) {
-                    this.showcaseElem.classList.add('hidden')
-                } else {
-                    this.showcaseElem.classList.remove('hidden')
-                }
-            }
+  toggleVisibility(showWorks) {
+    if (this.isActiveShowcase) {
+      if (showWorks) {
+        if (this.isWork) {
+          this.showcaseElem.classList.remove('hidden')
+        } else {
+          this.showcaseElem.classList.add('hidden')
         }
+      } else {
+        if (this.isWork) {
+          this.showcaseElem.classList.add('hidden')
+        } else {
+          this.showcaseElem.classList.remove('hidden')
+        }
+      }
     }
+  }
 
-    /**
+  /**
      * Determines if this showcase item is linked to the given keys.
      *
      * @param {string} listKey
      * @param {string} seedKey
      * @return {boolean} `true` if the given keys match this item's keys
      */
-    isShowcaseForListAndSeed(listKey, seedKey) {
-        return (this.listKey === listKey) && (this.seedKey === seedKey)
-    }
+  isShowcaseForListAndSeed(listKey, seedKey) {
+    return (this.listKey === listKey) && (this.seedKey === seedKey)
+  }
 }
 
 /**
@@ -206,19 +206,19 @@ const DEFAULT_COVER_URL = '/images/icons/avatar_book-sm.png'
  * @returns {string} Type of the given seed key.
  */
 function getSeedType(seed) {
-    // XXX : validate input?
-    if (seed[0] !== '/') {
-        return 'subject'
-    }
-    if (seed.endsWith('M')) {
-        return 'edition'
-    }
-    if (seed.endsWith('W')) {
-        return 'work'
-    }
-    if (seed.endsWith('A')) {
-        return 'author'
-    }
+  // XXX : validate input?
+  if (seed[0] !== '/') {
+    return 'subject'
+  }
+  if (seed.endsWith('M')) {
+    return 'edition'
+  }
+  if (seed.endsWith('W')) {
+    return 'work'
+  }
+  if (seed.endsWith('A')) {
+    return 'author'
+  }
 }
 
 // XXX : remove this?
@@ -234,16 +234,16 @@ function getSeedType(seed) {
  * @returns {HTMLLIElement}
  */
 export function createActiveShowcaseItem(listKey, seedKey, listTitle, coverUrl = DEFAULT_COVER_URL) {
-    if (!i18nStrings) {
-        const i18nInput = document.querySelector('input[name=list-i18n-strings]')
-        i18nStrings = JSON.parse(i18nInput.value)
-    }
+  if (!i18nStrings) {
+    const i18nInput = document.querySelector('input[name=list-i18n-strings]')
+    i18nStrings = JSON.parse(i18nInput.value)
+  }
 
-    const splitKey = listKey.split('/')
-    const userKey = `/${splitKey[1]}/${splitKey[2]}`
-    const seedType = getSeedType(seedKey)
+  const splitKey = listKey.split('/')
+  const userKey = `/${splitKey[1]}/${splitKey[2]}`
+  const seedType = getSeedType(seedKey)
 
-    const itemMarkUp = `<span class="image">
+  const itemMarkUp = `<span class="image">
                 <a href="${listKey}"><img src="${coverUrl}" alt="${i18nStrings['cover_of']}${listTitle}" title="${i18nStrings['cover_of']}${listTitle}"/></a>
             </span>
             <span class="data">
@@ -257,12 +257,12 @@ export function createActiveShowcaseItem(listKey, seedKey, listTitle, coverUrl =
                 <span class="owner">${i18nStrings['from']} <a href="${userKey}">${i18nStrings['you']}</a></span>
             </span>`
 
-    const li = document.createElement('li')
-    li.classList.add('actionable-item')
-    li.dataset.listKey = listKey
-    li.innerHTML = itemMarkUp
+  const li = document.createElement('li')
+  li.classList.add('actionable-item')
+  li.dataset.listKey = listKey
+  li.innerHTML = itemMarkUp
 
-    return li
+  return li
 }
 
 /**
@@ -276,9 +276,9 @@ export function createActiveShowcaseItem(listKey, seedKey, listTitle, coverUrl =
  * @param {boolean} showWorksOnly
  */
 export function toggleActiveShowcaseItems(showWorksOnly) {
-    for (const item of myBooksStore.getShowcases()) {
-        item.toggleVisibility(showWorksOnly)
-    }
+  for (const item of myBooksStore.getShowcases()) {
+    item.toggleVisibility(showWorksOnly)
+  }
 }
 
 /**
@@ -297,15 +297,15 @@ export function toggleActiveShowcaseItems(showWorksOnly) {
  * @param {string} [coverUrl]
  */
 export function attachNewActiveShowcaseItem(listKey, seedKey, listTitle, coverUrl = DEFAULT_COVER_URL) {
-    const activeListsShowcase = document.querySelector('.already-lists')
+  const activeListsShowcase = document.querySelector('.already-lists')
 
-    if (activeListsShowcase) {
-        const li = createActiveShowcaseItem(listKey, seedKey, listTitle, coverUrl)
-        activeListsShowcase.appendChild(li)
+  if (activeListsShowcase) {
+    const li = createActiveShowcaseItem(listKey, seedKey, listTitle, coverUrl)
+    activeListsShowcase.appendChild(li)
 
-        const showcase = new ShowcaseItem(li)
-        showcase.initialize()
+    const showcase = new ShowcaseItem(li)
+    showcase.initialize()
 
-        myBooksStore.getShowcases().push(showcase)
-    }
+    myBooksStore.getShowcases().push(showcase)
+  }
 }

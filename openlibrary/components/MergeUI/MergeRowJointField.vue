@@ -16,33 +16,33 @@
 import MergeRowField from './MergeRowField.vue';
 
 export default {
-    components: {
-        MergeRowField
+  components: {
+    MergeRowField
+  },
+  props: {
+    record: {
+      type: Object,
+      required: true
     },
-    props: {
-        record: {
-            type: Object,
-            required: true
-        },
-        fields: {
-            type: Array,
-            required: true
-        },
-        cellSelected: {
-            type: Function
-        },
-        merged: {
-            type: Object,
-            required: false
-        },
-        show_diffs: {
-            type: Boolean
-        }
+    fields: {
+      type: Array,
+      required: true
     },
-    computed: {
-        presentFields() {
-            return this.fields.filter(f => f in this.record);
-        }
+    cellSelected: {
+      type: Function
+    },
+    merged: {
+      type: Object,
+      required: false
+    },
+    show_diffs: {
+      type: Boolean
     }
+  },
+  computed: {
+    presentFields() {
+      return this.fields.filter(f => f in this.record);
+    }
+  }
 };
 </script>

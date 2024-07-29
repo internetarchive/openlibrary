@@ -24,24 +24,24 @@
 <script>
 
 export default {
-    props: {
-        record: {
-            type: Object,
-            required: true
-        },
-        lists: {
-            type: Object,
-        },
-        bookshelves: {
-            type: Object,
-        },
-        ratings: {
-            type: Object,
-        },
-        merged: {
-            type: Object,
-            required: false
-        }
+  props: {
+    record: {
+      type: Object,
+      required: true
     },
+    lists: {
+      type: Object,
+    },
+    bookshelves: {
+      type: Object,
+    },
+    ratings: {
+      type: Object,
+    },
+    merged: {
+      type: Object,
+      required: false
+    }
+  },
 };
 </script>

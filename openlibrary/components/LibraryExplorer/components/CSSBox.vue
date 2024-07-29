@@ -23,60 +23,60 @@
 
 <script>
 export default {
-    props: {
-        width: Number,
-        height: Number,
-        thickness: Number
+  props: {
+    width: Number,
+    height: Number,
+    thickness: Number
+  },
+  computed: {
+    cubeStyle() {
+      return {
+        width: `${this.width}px`,
+        height: `${this.height}px`
+      };
     },
-    computed: {
-        cubeStyle() {
-            return {
-                width: `${this.width}px`,
-                height: `${this.height}px`
-            };
-        },
-        frontFaceStyle() {
-            return {
-                width: `${this.width}px`,
-                height: `${this.height}px`
-            };
-        },
-        backFaceStyle() {
-            return {
-                width: `${this.width}px`,
-                height: `${this.height}px`,
-                transform: `translate3d(100%, 0, -${this.thickness}px) rotateY(-180deg)`
-            };
-        },
-        topFaceStyle() {
-            return {
-                width: `${this.width}px`,
-                height: `${this.thickness}px`,
-                transform: 'rotateX(90deg) translateY(-100%)'
-            };
-        },
-        bottomFaceStyle() {
-            return {
-                width: `${this.width}px`,
-                height: `${this.thickness}px`,
-                transform: `translateY(${this.height}px) rotateX(-90deg)`
-            };
-        },
-        leftFaceStyle() {
-            return {
-                width: `${this.thickness}px`,
-                height: `${this.height}px`,
-                transform: 'rotateY(-90deg) translateX(-100%)'
-            };
-        },
-        rightFaceStyle() {
-            return {
-                width: `${this.thickness}px`,
-                height: `${this.height}px`,
-                transform: `translateX(${this.width}px) rotateY(90deg)`
-            };
-        }
+    frontFaceStyle() {
+      return {
+        width: `${this.width}px`,
+        height: `${this.height}px`
+      };
+    },
+    backFaceStyle() {
+      return {
+        width: `${this.width}px`,
+        height: `${this.height}px`,
+        transform: `translate3d(100%, 0, -${this.thickness}px) rotateY(-180deg)`
+      };
+    },
+    topFaceStyle() {
+      return {
+        width: `${this.width}px`,
+        height: `${this.thickness}px`,
+        transform: 'rotateX(90deg) translateY(-100%)'
+      };
+    },
+    bottomFaceStyle() {
+      return {
+        width: `${this.width}px`,
+        height: `${this.thickness}px`,
+        transform: `translateY(${this.height}px) rotateX(-90deg)`
+      };
+    },
+    leftFaceStyle() {
+      return {
+        width: `${this.thickness}px`,
+        height: `${this.height}px`,
+        transform: 'rotateY(-90deg) translateX(-100%)'
+      };
+    },
+    rightFaceStyle() {
+      return {
+        width: `${this.thickness}px`,
+        height: `${this.height}px`,
+        transform: `translateX(${this.width}px) rotateY(90deg)`
+      };
     }
+  }
 };
 </script>
 

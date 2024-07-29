@@ -1,8 +1,8 @@
 function createListFormMarkup(isFilled) {
-    const listName = isFilled ? 'My New List' : ''
-    const listDescription = isFilled ? 'A list for all of my books' : ''
+  const listName = isFilled ? 'My New List' : ''
+  const listDescription = isFilled ? 'A list for all of my books' : ''
 
-    return `
+  return `
       <form method="post" class="floatform" name="new-list" id="new-list">
       <div class="formElement">
           <div class="label">
@@ -52,13 +52,13 @@ const DEFAULT_COVER_URL = '/images/icons/avatar_book-sm.png'
  * @param {Array<ShowcaseDetails>} showcaseData
  */
 function createShowcaseMarkup(isActiveShowcase, showcaseData) {
-    const listId = isActiveShowcase ? 'already-lists' : 'list-lists'
-    const listClasses = 'listLists'.concat(isActiveShowcase ? ' already-lists' : '')
+  const listId = isActiveShowcase ? 'already-lists' : 'list-lists'
+  const listClasses = 'listLists'.concat(isActiveShowcase ? ' already-lists' : '')
 
-    let showcaseMarkup = ''
+  let showcaseMarkup = ''
 
-    for (const data of showcaseData) {
-        showcaseMarkup += `<li class="actionable-item">
+  for (const data of showcaseData) {
+    showcaseMarkup += `<li class="actionable-item">
             <span class="image">
               <a href="${data.listKey}"><img src="${DEFAULT_COVER_URL}" alt="Cover of: ${data.listTitle}" title="Cover of: ${data.listTitle}"></a>
             </span>
@@ -75,50 +75,50 @@ function createShowcaseMarkup(isActiveShowcase, showcaseData) {
             </span>
         </li>
         `
-    }
+  }
 
-    return `<ul id="${listId}" class="${listClasses}">
+  return `<ul id="${listId}" class="${listClasses}">
             ${showcaseMarkup}
         </ul>
         `
 }
 
 export const showcaseDetailsData = [
-    {
-        listKey: '/people/openlibrary/lists/OL1L',
-        seedKey: '/works/OL54120W',
-        listTitle: 'My First List',
-        listOwner: '/people/openlibrary',
-        seedType: 'work'
-    },
-    {
-        listKey: '/people/openlibrary/lists/OL1L',
-        seedKey: '/books/OL3421846M',
-        listTitle: 'My First List',
-        listOwner: '/people/openlibrary',
-        seedType: 'edition'
-    },
-    {
-        listKey: '/people/openlibrary/lists/OL2L',
-        seedKey: '/works/OL54120W',
-        listTitle: 'Another List',
-        listOwner: '/people/openlibrary',
-        seedType: 'work'
-    },
-    {
-        listKey: '/people/openlibrary/lists/OL1L',
-        seedKey: '/authors/OL18319A',
-        listTitle: 'My First List',
-        listOwner: '/people/openlibrary',
-        seedType: 'author'
-    },
-    {
-        listKey: '/people/openlibrary/lists/OL1L',
-        seedKey: 'quotations',
-        listTitle: 'My First List',
-        listOwner: '/people/openlibrary',
-        seedType: 'subject'
-    },
+  {
+    listKey: '/people/openlibrary/lists/OL1L',
+    seedKey: '/works/OL54120W',
+    listTitle: 'My First List',
+    listOwner: '/people/openlibrary',
+    seedType: 'work'
+  },
+  {
+    listKey: '/people/openlibrary/lists/OL1L',
+    seedKey: '/books/OL3421846M',
+    listTitle: 'My First List',
+    listOwner: '/people/openlibrary',
+    seedType: 'edition'
+  },
+  {
+    listKey: '/people/openlibrary/lists/OL2L',
+    seedKey: '/works/OL54120W',
+    listTitle: 'Another List',
+    listOwner: '/people/openlibrary',
+    seedType: 'work'
+  },
+  {
+    listKey: '/people/openlibrary/lists/OL1L',
+    seedKey: '/authors/OL18319A',
+    listTitle: 'My First List',
+    listOwner: '/people/openlibrary',
+    seedType: 'author'
+  },
+  {
+    listKey: '/people/openlibrary/lists/OL1L',
+    seedKey: 'quotations',
+    listTitle: 'My First List',
+    listOwner: '/people/openlibrary',
+    seedType: 'subject'
+  },
 ]
 
 export const multipleShowcasesOnPage = createShowcaseMarkup(true, [showcaseDetailsData[0], showcaseDetailsData[2]]) + createShowcaseMarkup(false, [showcaseDetailsData[0], showcaseDetailsData[1]])

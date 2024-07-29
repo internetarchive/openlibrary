@@ -32,13 +32,13 @@ let mainTitleElem;
  * @param {HTMLElement} title The compact title component
  */
 export function initCompactTitle(navbar, title) {
-    mainTitleElem = document.querySelector('.work-title-and-author.desktop .work-title')
-    // Show compact title on page reload:
-    onScroll(navbar, title);
-    // And update on scroll
-    window.addEventListener('scroll', function() {
-        onScroll(navbar, title)
-    });
+  mainTitleElem = document.querySelector('.work-title-and-author.desktop .work-title')
+  // Show compact title on page reload:
+  onScroll(navbar, title);
+  // And update on scroll
+  window.addEventListener('scroll', function() {
+    onScroll(navbar, title)
+  });
 }
 
 /**
@@ -51,39 +51,39 @@ export function initCompactTitle(navbar, title) {
  * @param {HTMLElement} title The compact title component
  */
 function onScroll(navbar, title) {
-    const compactTitleBounds = title.getBoundingClientRect()
-    const navbarBounds = navbar.getBoundingClientRect()
-    const mainTitleBounds = mainTitleElem.getBoundingClientRect()
+  const compactTitleBounds = title.getBoundingClientRect()
+  const navbarBounds = navbar.getBoundingClientRect()
+  const mainTitleBounds = mainTitleElem.getBoundingClientRect()
 
-    if (mainTitleBounds.bottom < navbarBounds.bottom) {  // The main title is off-screen
-        if (!isTitleVisible && !navbar.classList.contains('sticky--lowest')) {  // Compact title not displayed
-            // Display compact title
-            title.classList.remove('hidden')
-            // Animate navbar
-            $(navbar).addClass('nav-bar-wrapper--slidedown')
-                .one('animationend', () => {
-                    $(navbar).addClass('sticky--lowest')
-                    $(navbar).removeClass('nav-bar-wrapper--slidedown')
-                    isTitleVisible = true
-                    // Ensure correct nav item is selected after compact title slides in:
-                    updateSelectedNavItem()
-                })
-        } else {
-            if (navbarBounds.top < compactTitleBounds.bottom) {  // We've scrolled to the bottom of the container, and the navbar is unstuck
-                title.classList.add('hidden')
-            } else {
-                title.classList.remove('hidden')
-            }
-        }
-    } else {  // At least some of the main title is below the navbar
-        if (isTitleVisible) {
-            title.classList.add('hidden')
-            isTitleVisible = false
-            $(navbar).addClass('nav-bar-wrapper--slideup')
-                .one('animationend', () => {
-                    $(navbar).removeClass('sticky--lowest')
-                    $(navbar).removeClass('nav-bar-wrapper--slideup')
-                })
-        }
+  if (mainTitleBounds.bottom < navbarBounds.bottom) {  // The main title is off-screen
+    if (!isTitleVisible && !navbar.classList.contains('sticky--lowest')) {  // Compact title not displayed
+      // Display compact title
+      title.classList.remove('hidden')
+      // Animate navbar
+      $(navbar).addClass('nav-bar-wrapper--slidedown')
+        .one('animationend', () => {
+          $(navbar).addClass('sticky--lowest')
+          $(navbar).removeClass('nav-bar-wrapper--slidedown')
+          isTitleVisible = true
+          // Ensure correct nav item is selected after compact title slides in:
+          updateSelectedNavItem()
+        })
+    } else {
+      if (navbarBounds.top < compactTitleBounds.bottom) {  // We've scrolled to the bottom of the container, and the navbar is unstuck
+        title.classList.add('hidden')
+      } else {
+        title.classList.remove('hidden')
+      }
     }
+  } else {  // At least some of the main title is below the navbar
+    if (isTitleVisible) {
+      title.classList.add('hidden')
+      isTitleVisible = false
+      $(navbar).addClass('nav-bar-wrapper--slideup')
+        .one('animationend', () => {
+          $(navbar).removeClass('sticky--lowest')
+          $(navbar).removeClass('nav-bar-wrapper--slideup')
+        })
+    }
+  }
 }

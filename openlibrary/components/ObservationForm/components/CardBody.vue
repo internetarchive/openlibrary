@@ -21,34 +21,34 @@ import OLChip from './OLChip'
 import { updateObservation } from '../ObservationService'
 
 export default {
-    name: 'CardBody',
-    components: {
-        OLChip
-    },
-    props: {
-        /**
+  name: 'CardBody',
+  components: {
+    OLChip
+  },
+  props: {
+    /**
          * @type {string[]} All possible values for the current book tag type.
          */
-        values: {
-            type: Array,
-            required: true
-        },
-        /**
+    values: {
+      type: Array,
+      required: true
+    },
+    /**
          * Whether or not multiple values can be selected for the current book tag type.
          */
-        multiSelect: {
-            type: Boolean,
-            required: false,
-            default: false,
-        },
-        /**
+    multiSelect: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    /**
          * The currently selected book tag type.
          */
-        type: {
-            type: String,
-            required: true
-        },
-        /**
+    type: {
+      type: String,
+      required: true
+    },
+    /**
          * An object containing all of the patron's currently selected book tags.
          *
          * @example
@@ -57,30 +57,30 @@ export default {
          *   "genres": ["sci-fi", "anthology"]
          * }
          */
-        allSelectedValues: {
-            type: Object,
-            required: true
-        },
-        /**
+    allSelectedValues: {
+      type: Object,
+      required: true
+    },
+    /**
          * The work key.
          *
          * @example
          * /works/OL123W
          */
-        workKey: {
-            type: String,
-            required: true
-        },
-        /**
+    workKey: {
+      type: String,
+      required: true
+    },
+    /**
          * The patron's username.
          */
-        username: {
-            type: String,
-            required: true
-        }
-    },
-    methods: {
-        /**
+    username: {
+      type: String,
+      required: true
+    }
+  },
+  methods: {
+    /**
          * Updates the currently selected book tags when a value chip is clicked.
          *
          * POSTs message to the server, adding or deleting a book tag.
@@ -88,57 +88,57 @@ export default {
          * @param {boolean} isSelected `true` if a chip is selected, `false` otherwise.
          * @param {String} text The text that the updated chip is displaying.
          */
-        updateSelected: function(isSelected, text) {
-            let updatedValues = this.allSelectedValues[this.type] ? this.allSelectedValues[this.type] : []
+    updateSelected: function(isSelected, text) {
+      let updatedValues = this.allSelectedValues[this.type] ? this.allSelectedValues[this.type] : []
 
-            if (isSelected) {
-                if (this.multiSelect) {
-                    updatedValues.push(text)
-                    updateObservation('add', this.type, text, this.workKey, this.username)
-                        .catch(() => {
-                            updatedValues.pop();
-                        })
-                        .finally(() => {
-                            Vue.set(this.allSelectedValues, this.type, updatedValues);
-                        })
-                } else {
-                    if (updatedValues.length) {
-                        let deleteSuccessful = false;
-                        updateObservation('delete', this.type, updatedValues[0], this.workKey, this.username)
-                            .then(() => {
-                                deleteSuccessful = true;
-                            })
-                            .finally(() => {
-                                if (deleteSuccessful) {
-                                    updateObservation('add', this.type, text, this.workKey, this.username)
-                                        .then(() => {
-                                            updatedValues = [text]
-                                        })
-                                        .finally(() => {
-                                            Vue.set(this.allSelectedValues, this.type, updatedValues)
-                                        })
-                                }
-                            })
-                    }
-                }
-            } else {
-                const index = updatedValues.indexOf(text);
-                updatedValues.splice(index, 1);
-                updateObservation('delete', this.type, text, this.workKey, this.username)
-                    .catch(() => {
-                        updatedValues.push(text);
+      if (isSelected) {
+        if (this.multiSelect) {
+          updatedValues.push(text)
+          updateObservation('add', this.type, text, this.workKey, this.username)
+            .catch(() => {
+              updatedValues.pop();
+            })
+            .finally(() => {
+              Vue.set(this.allSelectedValues, this.type, updatedValues);
+            })
+        } else {
+          if (updatedValues.length) {
+            let deleteSuccessful = false;
+            updateObservation('delete', this.type, updatedValues[0], this.workKey, this.username)
+              .then(() => {
+                deleteSuccessful = true;
+              })
+              .finally(() => {
+                if (deleteSuccessful) {
+                  updateObservation('add', this.type, text, this.workKey, this.username)
+                    .then(() => {
+                      updatedValues = [text]
                     })
-            }
+                    .finally(() => {
+                      Vue.set(this.allSelectedValues, this.type, updatedValues)
+                    })
+                }
+              })
+          }
         }
-    },
-    computed: {
-        /**
+      } else {
+        const index = updatedValues.indexOf(text);
+        updatedValues.splice(index, 1);
+        updateObservation('delete', this.type, text, this.workKey, this.username)
+          .catch(() => {
+            updatedValues.push(text);
+          })
+      }
+    }
+  },
+  computed: {
+    /**
          * Returns an array of all of this book tag type's currently selected values.
          */
-        selectedValues: function() {
-            return this.allSelectedValues[this.type]?.length ? this.allSelectedValues[this.type] : []
-        }
+    selectedValues: function() {
+      return this.allSelectedValues[this.type]?.length ? this.allSelectedValues[this.type] : []
     }
+  }
 }
 </script>
 

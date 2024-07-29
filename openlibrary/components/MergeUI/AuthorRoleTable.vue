@@ -31,13 +31,13 @@
 import _ from 'lodash';
 
 export default {
-    props: {
-        roles: Array
-    },
-    computed: {
-        fields() {
-            return _.uniq(_.flatMap(this.roles, Object.keys)).sort();
-        }
+  props: {
+    roles: Array
+  },
+  computed: {
+    fields() {
+      return _.uniq(_.flatMap(this.roles, Object.keys)).sort();
     }
+  }
 }
 </script>

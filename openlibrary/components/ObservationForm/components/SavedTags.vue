@@ -43,12 +43,12 @@ import { updateObservation } from '../ObservationService'
 
 
 export default {
-    name: 'SavedTags',
-    components: {
-        OLChip
-    },
-    props: {
-        /**
+  name: 'SavedTags',
+  components: {
+    OLChip
+  },
+  props: {
+    /**
          * An object containing all of the patron's currently selected book tags.
          *
          * @example
@@ -57,31 +57,31 @@ export default {
          *   "genres": ["sci-fi", "anthology"]
          * }
          */
-        allSelectedValues: {
-            type: Object,
-            required: true
-        },
-        /**
+    allSelectedValues: {
+      type: Object,
+      required: true
+    },
+    /**
          * The work key.
          *
          * @example
          * /works/OL123W
          */
-        workKey: {
-            type: String,
-            required: true
-        },
-        /**
+    workKey: {
+      type: String,
+      required: true
+    },
+    /**
          * The patron's username.
          */
-        username: {
-            type: String,
-            required: true
-        }
-    },
-    data: function() {
-        return {
-            /**
+    username: {
+      type: String,
+      required: true
+    }
+  },
+  data: function() {
+    return {
+      /**
              * Contains class strings for each selected book tag
              *
              * @example
@@ -92,78 +92,78 @@ export default {
              *
              * @type {Object}
              */
-            classLists: {}
-        }
-    },
-    methods: {
-        /**
+      classLists: {}
+    }
+  },
+  methods: {
+    /**
          * Removes a book tag from a patron's selections.
          *
          * @param {String} chipText The text of the selected tag chip, in the form "<type>: <value>"
          */
-        removeItem: function(chipText) {
-            const [type, value] = chipText.split(': ')
+    removeItem: function(chipText) {
+      const [type, value] = chipText.split(': ')
 
-            const valueIndex = this.allSelectedValues[type].indexOf(value);
-            const valueArr = this.allSelectedValues[type];
-            valueArr.splice(valueIndex, 1);
+      const valueIndex = this.allSelectedValues[type].indexOf(value);
+      const valueArr = this.allSelectedValues[type];
+      valueArr.splice(valueIndex, 1);
 
-            updateObservation('delete', type, value, this.workKey, this.username)
-                .catch(() => {
-                    valueArr.push(value);
-                })
-                .finally(() => {
-                    if (valueArr.length === 0) {
-                        delete this.allSelectedValues[type]
-                        Vue.delete(this.allSelectedValues, type)
-                    }
-                })
+      updateObservation('delete', type, value, this.workKey, this.username)
+        .catch(() => {
+          valueArr.push(value);
+        })
+        .finally(() => {
+          if (valueArr.length === 0) {
+            delete this.allSelectedValues[type]
+            Vue.delete(this.allSelectedValues, type)
+          }
+        })
 
-            // Remove hover class:
-            this.removeHoverClass(chipText);
-        },
-        /**
+      // Remove hover class:
+      this.removeHoverClass(chipText);
+    },
+    /**
          * Adds `hover` class to a chip.
          *
          * @param {String} value The chip's key.
          */
-        addHoverClass: function(value) {
-            Vue.set(this.classLists, value, 'hover')
-        },
-        /**
+    addHoverClass: function(value) {
+      Vue.set(this.classLists, value, 'hover')
+    },
+    /**
          * Sets a chip's class list to an empty string.
          *
          * @param {String} value The chip's key.
          */
-        removeHoverClass: function(value) {
-            Vue.set(this.classLists, value, '')
-        },
-        /**
+    removeHoverClass: function(value) {
+      Vue.set(this.classLists, value, '')
+    },
+    /**
          * Returns the class list string for the chip with the given key.
          *
          * @param {String} value The chip's key
          * @returns The chip's class list string.
          */
-        getClassList: function(value) {
-            return this.classLists[value] ? this.classLists[value] : ''
-        }
-    },
-    computed: {
-        /**
+    getClassList: function(value) {
+      return this.classLists[value] ? this.classLists[value] : ''
+    }
+  },
+  computed: {
+    /**
          * An array of a patron's book tags.
          */
-        selectedValues: function() {
-            const results = [];
+    selectedValues: function() {
+      const results = [];
 
-            for (const type in this.allSelectedValues) {
-                for (const value of this.allSelectedValues[type]) {
-                    results.push(`${type}: ${value}`)
-                }
-            }
-
-            return results;
+      for (const type in this.allSelectedValues) {
+        for (const value of this.allSelectedValues[type]) {
+          results.push(`${type}: ${value}`)
         }
+      }
+
+      return results;
     }
+  }
 }
 </script>
 

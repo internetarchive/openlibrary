@@ -14,20 +14,20 @@
 
 <script>
 export default {
-    props: {
-        doc: Object
+  props: {
+    doc: Object
+  },
+  computed: {
+    coverImage() {
+      if (!this.doc.cover_i) {
+        return ''
+      }
+      return `https://covers.openlibrary.org/b/id/${this.doc.cover_i}-M.jpg`
     },
-    computed: {
-        coverImage() {
-            if (!this.doc.cover_i) {
-                return ''
-            }
-            return `https://covers.openlibrary.org/b/id/${this.doc.cover_i}-M.jpg`
-        },
-        workUrl() {
-            return `https://openlibrary.org/${this.doc.key}`
-        }
+    workUrl() {
+      return `https://openlibrary.org/${this.doc.key}`
     }
+  }
 }</script>
 
 
@@ -127,9 +127,6 @@ export default {
     font-size: 1.1em;
     line-height: 1;
 
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
     overflow: hidden;
   }
 

@@ -18,19 +18,19 @@ import { BulkSearchState, BookMatch } from '../utils/classes.js'
 import { buildSearchUrl } from '../utils/searchUtils.js'
 import BookCard from './BookCard.vue'
 export default {
-    components: {
-        BookCard
-    },
-    props: {
-        bulkSearchState: BulkSearchState,
-        bookMatch: BookMatch,
-        index: Number
-    },
-    computed: {
-        searchUrl() {
-            return buildSearchUrl(this.bookMatch.extractedBook, this.bulkSearchState.matchOptions, false)
-        }
+  components: {
+    BookCard
+  },
+  props: {
+    bulkSearchState: BulkSearchState,
+    bookMatch: BookMatch,
+    index: Number
+  },
+  computed: {
+    searchUrl() {
+      return buildSearchUrl(this.bookMatch.extractedBook, this.bulkSearchState.matchOptions, false)
     }
+  }
 }
 </script>
 
