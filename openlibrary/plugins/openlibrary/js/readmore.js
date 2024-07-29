@@ -93,7 +93,7 @@ export function initClampers(clampers) {
                 }
 
                 if (up.hasClass('clamp')) {
-                  
+
                     if (up.attr('data-before') === '\u25BE ') {
                         up.attr('data-before', '\u25B8 ')
                     } else {

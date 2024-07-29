@@ -215,7 +215,7 @@ export function plot_tooltip_graph(node, data, tooltip_message, color='#748d36')
             backgroundColor: '#efefef',
             color: '#454545',
             fontSize: '11px',
-        
+
             mozBoxShadow: '1px 1px 1px #000',
             boxShadow: '1px 1px 1px #000'
         }).appendTo('body').fadeIn(200);

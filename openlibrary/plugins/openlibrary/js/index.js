@@ -35,7 +35,7 @@ jQuery(function () {
     if (!Element.prototype.matches) {
         Element.prototype.matches =
           Element.prototype.msMatchesSelector ||
-       
+
     }
 
     // Polyfill for .closest()
