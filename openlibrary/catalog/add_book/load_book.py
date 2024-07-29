@@ -262,9 +262,10 @@ class InvalidLanguage(Exception):
 
 type_map = {'description': 'text', 'notes': 'text', 'number_of_pages': 'int'}
 
-
 def build_query(rec: dict[str, Any]) -> dict[str, Any]:
     """
+
+
     Takes an edition record dict, rec, and returns an Open Library edition
     suitable for saving.
     :return: Open Library style edition dict representation
@@ -277,15 +278,17 @@ def build_query(rec: dict[str, Any]) -> dict[str, Any]:
             if v and v[0]:
                 book['authors'] = []
                 for author in v:
-                    author['name'] = remove_author_honorifics(author['name'])
+                    author['name'] = remove_author_honorifics(author['name'])  # Change made here
                     east = east_in_by_statement(rec, author)
                     book['authors'].append(import_author(author, eastern=east))
             continue
         if k in ('languages', 'translated_from'):
             for language in v:
-                if web.ctx.site.get('/languages/' + language.lower()) is None:
-                    raise InvalidLanguage(language.lower())
-            book[k] = [{'key': '/languages/' + language.lower()} for language in v]
+                language_code = language.lower()
+                language_obj = web.ctx.site.get('/languages/' + language_code)
+                if language_obj is None or language_obj.get('deprecated'):
+                    raise InvalidLanguage(language_code)
+                book[k] = [{'key': '/languages/' + language_code} for language in v]
             continue
         if k in type_map:
             t = '/type/' + type_map[k]
@@ -296,3 +299,4 @@ def build_query(rec: dict[str, Any]) -> dict[str, Any]:
         else:
             book[k] = v
     return book
+
