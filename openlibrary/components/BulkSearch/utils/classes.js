@@ -9,7 +9,8 @@ export class ExtractedBook {
 }
 
 class AbstractExtractor {
-    constructor(name = '') {
+    constructor(name) {
+        /** @type {string} */
         this.name = name
     }
     async run() {
@@ -17,10 +18,17 @@ class AbstractExtractor {
 }
 
 export class RegexExtractor extends AbstractExtractor {
-    constructor(name = '', pattern = ''){
+    constructor(name, pattern){
         super(name)
+        /** @type {string} */
         this.pattern = new RegExp(pattern, 'gmu');
     }
+
+    /**
+     * @param {ExtractionOptions} _extractOptions
+     * @param {string} text
+     * @returns
+     */
     async run(_extractOptions, text = '') {
         const data = [...text.matchAll(this.pattern)]
         const extractedBooks = data.map((entry) => new ExtractedBook(entry.groups?.title, entry.groups?.author))
@@ -31,17 +39,29 @@ export class RegexExtractor extends AbstractExtractor {
 
 export class AIExtractor extends AbstractExtractor{
 
-    constructor(name = '', model = '') {
+    /**
+     * @param {string} name
+     * @param {string} model
+     */
+    constructor(name, model) {
         super(name)
+        /** @type {string} */
         this.model = model
     }
+
+    /**
+     *
+     * @param {ExtractionOptions} extractOptions
+     * @param {string} text
+     * @returns
+     */
     async run(extractOptions, text= '') {
         const request = {
 
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${extractOptions.api_key}`
+                Authorization: `Bearer ${extractOptions.openaiApiKey}`
             },
             body: JSON.stringify({
                 model: this.model,
@@ -64,14 +84,18 @@ export class AIExtractor extends AbstractExtractor{
 
             if (!resp.ok) {
                 const status = resp.status
+                let errorMessage = 'Network response was not okay.'
                 if (status === 401) {
 
-                    this.bulkSearchState.errorMessage.push('Error: Incorrect Authorization key.')
+                    errorMessage = `${errorMessage} Error: Incorrect Authorization key.`
                 }
-                throw new Error('Network response was not okay.')
+                throw new Error(errorMessage)
             }
             const data = await resp.json()
-            return (JSON.parse(data.choices[0].message.content)['books'].map((entry) => new ExtractedBook(entry?.title, entry?.author)), JSON.parse(data.choices[0].message.content)['books'].map((entry) => new BookMatch(new ExtractedBook(entry?.title, entry?.author), {})))
+            return (JSON.parse(data.choices[0].message.content)['books'].map((entry) =>
+                new ExtractedBook(entry?.title, entry?.author)),
+            JSON.parse(data.choices[0].message.content)['books'].map((entry) =>
+                new BookMatch(new ExtractedBook(entry?.title, entry?.author), {})))
         }
         catch (error) {
 
@@ -83,11 +107,13 @@ export class AIExtractor extends AbstractExtractor{
 
 class ExtractionOptions {
     constructor() {
-        this.api_key = ''
+        /** @type {string} */
+        this.openaiApiKey = ''
     }
 }
 class MatchOptions  {
     constructor (){
+        /** @type {boolean} */
         this.includeAuthor = true;
     }
 }
@@ -112,12 +138,25 @@ export class BulkSearchState{
         this.matchOptions =  new MatchOptions()
         /** @type {ExtractionOptions} */
         this.extractionOptions = new ExtractionOptions();
-        this.errorMessage = []
-        this.extractionMethod = new AbstractExtractor()
+        /** @type {string} */
         this.listUrl = ''
-
+        /** @type {AbstractExtractor[]} */
+        this.extractors =  [
+            new RegexExtractor('e.g. "The Wizard of Oz by L. Frank Baum"', '(^|>)(?<title>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+(by|[-\u2013\u2014\\t])\\s+(?<author>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)'),
+            new RegexExtractor('e.g. "L. Frank Baum - The Wizard of Oz"', '(^|>)(?<author>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+[,-\u2013\u2014\\t]\\s+(?<title>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)'),
+            new RegexExtractor('e.g. "The Wizard of Oz - L. Frank Baum"', '(^|>)(?<title>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+[,-\u2013\u2014\\t]\\s+(?<author>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)'),
+            new RegexExtractor('e.g. "The Wizard of Oz (L. Frank Baum)"', '^(?<title>[\\p{L}].{1,250})\\s\\(?<author>(.{3,70})\\)$$'),
+            new RegexExtractor('Wikipedia Citation (e.g. Baum, Frank L. (1994). The Wizard of Oz)', '^(?<author>[^.()]+).*?\\)\\. (?<title>[^.]+)'),
+            new AIExtractor('✨ AI Extraction', 'gpt-4o-mini')
+        ]
+        /** @type {Number} */
+        this._activeExtractorIndex = 0
     }
 
+    /**@type {AbstractExtractor} */
+    get activeExtractor() {
+        return this.extractors[this._activeExtractorIndex]
+    }
 }
 
 

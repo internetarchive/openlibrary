@@ -7,15 +7,15 @@
         <div>
             <textarea v-model="bulkSearchState.inputText"></textarea>
             <br />
-            <label>Format: <select @change="selectAlgorithm">
-                    <option v-for="extractor, index in extractors" :value = "index" :key="index">
+            <label>Format: <select v-model="bulkSearchState._activeExtractorIndex">
+                    <option v-for="extractor, index in bulkSearchState.extractors" :value = "index" :key="index">
                         {{ extractor["name"] }}
                     </option>
                 </select></label>
             <label v-if="this.showApiKey">OpenAI API Key:
-                <input v-if="showPassword" type="password" v-on:click="togglePasswordVisibility()" v-model="bulkSearchState.extractionOptions.api_key" />
+                <input v-if="showPassword" type="password" @click="togglePasswordVisibility()" v-model="bulkSearchState.extractionOptions.openaiApiKey" />
 
-                <input v-else type="text" v-on:click="togglePasswordVisibility" v-model="bulkSearchState.extractionOptions.api_key" />
+                <input v-else type="text" @click="togglePasswordVisibility" v-model="bulkSearchState.extractionOptions.openaiApiKey" />
             </label>
             <label>Sample Data:
                 <select v-model="selectedValue">
@@ -27,8 +27,8 @@
                 search query
             </label>
             <br>
-            <button v-on:click="extractBooks">Extract Books</button>
-            <button v-on:click="matchBooks">Match Books</button>
+            <button @click="extractBooks">Extract Books</button>
+            <button @click="matchBooks">Match Books</button>
         </div>
         <div v-if="bulkSearchState.errorMessage">
             <p v-for="error in bulkSearchState.errorMessage" :key="error">
@@ -39,7 +39,7 @@
 
 <script>
 import {sampleData} from '../utils/samples.js';
-import { BulkSearchState, RegexExtractor, AIExtractor} from '../utils/classes.js';
+import { BulkSearchState} from '../utils/classes.js';
 import { buildSearchUrl, buildListUrl } from '../utils/searchUtils.js'
 export default {
 
@@ -49,18 +49,8 @@ export default {
     data() {
         return {
             selectedValue: '',
-
             showPassword: true,
             sampleData: sampleData,
-            extractors: [
-                new RegexExtractor('e.g. "The Wizard of Oz by L. Frank Baum"', '(^|>)(?<title>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+(by|[-\u2013\u2014\\t])\\s+(?<author>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)'),
-                new RegexExtractor('e.g. "L. Frank Baum - The Wizard of Oz"', '(^|>)(?<author>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+[,-\u2013\u2014\\t]\\s+(?<title>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)'),
-                new RegexExtractor('e.g. "The Wizard of Oz - L. Frank Baum"', '(^|>)(?<title>[A-Za-z][\\p{L}0-9\\- ,]{1,250})\\s+[,-\u2013\u2014\\t]\\s+(?<author>[\\p{L}][\\p{L}\\.\\- ]{3,70})( \\(.*)?($|<\\/)'),
-                new RegexExtractor('e.g. "The Wizard of Oz (L. Frank Baum)"', '^(?<title>[\\p{L}].{1,250})\\s\\(?<author>(.{3,70})\\)$$'),
-                new RegexExtractor('Wikipedia Citation (e.g. Baum, Frank L. (1994). The Wizard of Oz)', '^(?<author>[^.()]+).*?\\)\\. (?<title>[^.]+)'),
-                new AIExtractor('✨ AI Extraction', 'gpt-4o-mini')
-            ]
-
         }
     },
     watch: {
@@ -72,7 +62,7 @@ export default {
     },
     computed: {
         showApiKey(){
-            if (this.bulkSearchState.extractionMethod) return 'model' in this.bulkSearchState.extractionMethod
+            if (this.bulkSearchState.activeExtractor) return 'model' in this.bulkSearchState.activeExtractor
             return false
         }
     },
@@ -80,11 +70,8 @@ export default {
         togglePasswordVisibility(){
             this.showPassword= !this.showPassword
         },
-        selectAlgorithm(e) {
-            this.bulkSearchState.extractionMethod = this.extractors[e.target.value]
-        },
         async extractBooks() {
-            const extractedData = await this.bulkSearchState.extractionMethod.run(this.bulkSearchState.extractOptions, this.bulkSearchState.inputText)
+            const extractedData = await this.bulkSearchState.activeExtractor.run(this.bulkSearchState.extractionOptions, this.bulkSearchState.inputText)
             this.bulkSearchState.matchedBooks = extractedData
         },
         async matchBooks() {
