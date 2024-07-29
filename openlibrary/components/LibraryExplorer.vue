@@ -186,7 +186,7 @@ export default {
 <style lang="less">
 #app {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
- 
+
   -moz-osx-font-smoothing: grayscale;
   color: rgba(0, 0, 0, .7);
 }
@@ -466,11 +466,11 @@ hr {
   .books-carousel { scrollbar-width: thin; }
 
   // Chrome-specific scroll fixes
- 
+
 }
 
 .book-room.style--scrollbar--hidden {
   .books-carousel { scrollbar-width: none; }
- 
+
 }
 </style>
