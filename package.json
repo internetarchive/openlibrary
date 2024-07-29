@@ -55,7 +55,7 @@
     "datatables.net-dt": "1.10.25",
     "details-polyfill": "1.2.0",
     "diff": "4.0.2",
-    "eslint": "^8.49.0",
+    "eslint": "^8.57.0",
     "eslint-plugin-no-jquery": "2.6.0",
     "eslint-plugin-vue": "^9.17.0",
     "flot": "0.8.3",

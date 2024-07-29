@@ -39,7 +39,7 @@ export class IntegratedLibrarianEnvironment {
         $(document.body).append(this.$toolbar.hide());
 
         // Ready bulk tagger:
-        this.createBulkTagger()
+        this.createBulkTagger();
 
         this.selectionManager.init();
     }

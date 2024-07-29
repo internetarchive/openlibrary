@@ -24,14 +24,10 @@
 		"declaration-block-no-redundant-longhand-properties": true,
 		"no-duplicate-selectors": true,
 		"block-no-empty": true,
-		"indentation": 2,
 		"function-url-quotes": "never",
 		"length-zero-no-unit": true,
-		"max-empty-lines": 1,
-		"no-eol-whitespace": true,
-		"number-leading-zero": "never",
-		"no-missing-end-of-source-newline": true,
-		"max-line-length": 100,
+	
+		
 		"shorthand-property-no-redundant-values":true,
 		"selector-max-specificity": "1,4,0",
 		"unit-no-unknown": true,
@@ -44,13 +40,11 @@
 		"at-rule-no-unknown": true,
 		"comment-no-empty": true,
 		"no-duplicate-at-import-rules": true,
-		"no-extra-semicolons": true,
+		
 		"no-empty-source": true,
 		"font-family-no-duplicate-names": true,
-		"font-family-no-missing-generic-family-keyword": [true, {"ignoreFontFamilies": ["!important"]}],
+		
 		"no-descending-specificity": true,
-		"string-quotes": ["double", {"avoidEscape":false}],
-		"declaration-bang-space-before": "always",
-		"declaration-colon-space-after": "always"
+		
   }
 }

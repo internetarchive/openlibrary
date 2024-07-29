@@ -9,20 +9,34 @@
   ],
   "env": {
     "browser": true,
-    "jquery": true
+    "jquery": true,
+    "es2021": true
   },
   "parserOptions": {
     "parser": "@babel/eslint-parser",
     "sourceType": "module",
-    "ecmaVersion": 6
+    "ecmaVersion": 2021,
+    "requireConfigFile": false
   },
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    "build/",
+    "/code/.storybook/preview.js",
+    "/code/conf/svgo.config.js",
+    "/code/scripts/gh_scripts/weekly_status_report.mjs",
+    "/code/.storybook/main.js",
+    "/code/scripts/gh_scripts/new_pr_labeler.mjs",
+    "/code/scripts/gh_scripts/stale_assignee_digest.mjs",
+    "/code/scripts/solr_restarter/index.js"
+  ],
   "globals": {},
   "rules": {
     "prefer-template": "error",
     "eqeqeq": ["error", "always"],
     "quotes": ["error", "single"],
     "eol-last": ["error", "always"],
-    "indent": 2,
+    "indent": ["error", 2],
     "no-console": "error",
     "no-extra-semi": "error",
     "no-mixed-spaces-and-tabs": "error",
@@ -36,7 +50,7 @@
     "prefer-const": "error",
     "template-curly-spacing": "error",
     "quote-props": ["error", "as-needed"],
-    "keyword-spacing": ["error", { "before": true, "after": true } ],
+    "keyword-spacing": ["error", { "before": true, "after": true }],
     "key-spacing": ["error", { "mode": "strict" }],
     "vue/no-mutating-props": "off",
     "vue/multi-word-component-names": ["error", {

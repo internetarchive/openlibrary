@@ -15,13 +15,8 @@
   min-width: 300px;
   margin: 0 auto;
   .display-flex();
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -ms-flex-flow: row wrap;
-  flex-flow: row wrap;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
+ flex-flow: row wrap;
+ align-items: center;
   z-index: @z-index-level-2;
   position: relative;
 
@@ -29,16 +24,12 @@
     display: none;
     padding: 5px;
     padding-right: 0;
-    -webkit-box-ordinal-group: 4;
-    -ms-flex-order: 3;
     order: 3;
 
     li {
       text-align: left;
       // stylelint-disable declaration-block-no-duplicate-properties
-      display: -webkit-inline-box;
-      display: -ms-inline-flexbox;
-      display: inline-flex;
+     display: inline-flex;
       // stylelint-enable declaration-block-no-duplicate-properties
 
       // stylelint-disable-next-line max-nesting-depth
@@ -190,8 +181,6 @@
   }
 
   .hamburger-component {
-    -webkit-box-ordinal-group: 5;
-    -ms-flex-order: 4;
     order: 4;
     margin-right: 5px;
 
@@ -232,9 +221,7 @@
       content: "";
     }
 
-    summary::-webkit-details-marker {
-      display: none;
-    }
+
 
     label {
       background: transparent;
@@ -310,12 +297,8 @@
   }
 
   .logo-component {
-    -webkit-box-flex: 1;
-    -ms-flex: 1;
-    flex: 1;
-    -webkit-box-ordinal-group: 2;
-    -ms-flex-order: 1;
-    order: 1;
+   flex: 1;
+   order: 1;
     z-index: @z-index-level-negative;
 
     .logo-icon {
@@ -324,7 +307,6 @@
       height: 32px;
       width: auto;
       margin-left: 5px;
-      -ms-flex-item-align: center;
       align-self: center;
     }
   }
@@ -335,17 +317,13 @@
 
   .navigation-component {
     display: none;
-    -ms-flex-preferred-size: 100%;
     flex-basis: 100%;
-    -webkit-box-ordinal-group: 6;
-    -ms-flex-order: 5;
-    order: 5;
+     order: 5;
     // Despite occurring later in the DOM, this header should be overlaid underneath the items
     // above. E.g. search and account dropdowns.
     z-index: @z-index-level-1;
 
     li {
-      -ms-flex-preferred-size: 100%;
       flex-basis: 100%;
       padding: 5px 0;
       font-size: 1em;
@@ -383,23 +361,16 @@
 
   .search-component {
     width: 45px;
-    -webkit-box-ordinal-group: 3;
-    -ms-flex-order: 2;
     order: 2;
     height: 47px;
     margin-right: -5px;
     text-align: right;
-    -webkit-box-flex: 1;
-    -ms-flex: 1;
     flex: 1;
     // stylelint-disable selector-max-specificity
     // stylelint-disable max-nesting-depth
     &.expanded {
-      -webkit-box-flex: 1;
-      -ms-flex: 1;
       flex: 1;
       margin-left: 5px;
-      -ms-flex-item-align: center;
       align-self: center;
 
       .search-bar-component {
@@ -564,7 +535,7 @@
         max-width: 100%;
         -moz-appearance: none;
         appearance: none;
-        -webkit-appearance: none;
+       
       }
     }
 
@@ -596,8 +567,8 @@ div.search-facet:focus-within {
 .hamburger-component {
   summary {
     .display-flex();
-    -webkit-box-align: center;
-    -ms-flex-align: center;
+  
+   
     align-items: center;
     cursor: pointer;
     .header-dropdown__icon {
@@ -617,10 +588,7 @@ div.search-facet:focus-within {
     content: "";
   }
 
-  summary::-webkit-details-marker {
-    display: none;
-  }
-
+ 
   summary {
     cursor: pointer;
   }
@@ -661,12 +629,10 @@ div.search-facet:focus-within {
   .search-bar {
     max-width: none;
     min-width: none;
-    -webkit-transition: all .2s;
     -o-transition: all .2s;
     transition: all .2s;
     border-radius: .3em;
-    -webkit-box-flex: 1;
-    -ms-flex: 1 0 0%;
+   
     flex: 1;
     .display-flex();
   }
@@ -679,8 +645,7 @@ div.search-facet:focus-within {
     input[type=text] {
       min-width: 0;
       margin: 3px;
-      -webkit-box-flex: 1;
-      -ms-flex: 1;
+    
       flex: 1;
       padding: 5px 0 2px 3px;
       font-size: 1em;
@@ -689,7 +654,6 @@ div.search-facet:focus-within {
       outline: none;
       background: @grey-fafafa;
       color: @grey;
-      -webkit-transition: all .5s;
       -o-transition: all .5s;
       transition: all .5s;
       display: none;
@@ -697,7 +661,7 @@ div.search-facet:focus-within {
     input[type=submit] {
       border: none;
       cursor: pointer;
-      -webkit-appearance: none;
+     
       -moz-appearance: none;
       appearance: none;
     }
@@ -745,8 +709,7 @@ div.search-facet:focus-within {
     }
 
     .logo-component {
-      -webkit-box-flex: 1;
-      -ms-flex: 1;
+    
       flex: 1;
       border-right: none;
       padding: 0 5px;
@@ -787,14 +750,12 @@ div.search-facet:focus-within {
 @media only screen and (min-width: 35.5em) {
   .header-bar {
     .logo-component {
-      -webkit-box-flex: 0;
-      -ms-flex: none;
+     
       flex: none;
     }
 
     .navigation-component {
-      -webkit-box-ordinal-group: 7;
-      -ms-flex-order: 6;
+   
       order: 6;
 
       .dropdown-menu {
