@@ -44,7 +44,21 @@ class AuthorSolrUpdater(AbstractSolrUpdater):
                 "field": field,
             }
         async with httpx.AsyncClient() as client:
-            response = await client.post(base_url, json=json)
+            response = await client.get(
+                base_url,
+                params=[  # type: ignore[arg-type]
+                    ('wt', 'json'),
+                    ('json.nl', 'arrarr'),
+                    ('q', 'author_key:%s' % author_id),
+                    ('fq', 'type:work'),
+                    ('sort', 'edition_count desc'),
+                    ('rows', 1),
+                    ('fl', 'title,subtitle'),
+                    ('facet', 'true'),
+                    ('facet.mincount', 1),
+                ]
+                + [('facet.field', '%s_facet' % field) for field in facet_fields],
+            )
             reply = response.json()
 
         doc = AuthorSolrBuilder(author, reply).build()
