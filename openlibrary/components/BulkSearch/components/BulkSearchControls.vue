@@ -27,8 +27,8 @@
                 search query
             </label>
             <br>
-            <button v-on:click="extractBooks">Extract Books</button>
-            <button v-on:click="matchBooks">Match Books</button>
+            <button @click="extractBooks">Extract Books</button>
+            <button @click="matchBooks">Match Books</button>
         </div>
         <div v-if="bulkSearchState.errorMessage">
             <p v-for="error in bulkSearchState.errorMessage" :key="error">
@@ -49,7 +49,6 @@ export default {
     data() {
         return {
             selectedValue: '',
-
             showPassword: true,
             sampleData: sampleData,
         }
