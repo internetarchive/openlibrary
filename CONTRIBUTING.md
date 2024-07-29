@@ -90,7 +90,7 @@ Our login process on Open Library's dev instance is a bit funky. You need to cor
 
 ## Picking Good First Issues
 
-[Here's a list of good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) to help you get started. If you have questions, please ask the [Lead](https://github.com/internetarchive/openlibrary/wiki/Using-Managed-Labels-to-Track-Issues#triage) designated by the `Lead: @person` label on the issue.
+[Here's a list of good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) to help you get started. Please only pick issues that are not assigned to anyone. Do not comment on or request to be assigned to issues that already have an assignee. If you have questions, please ask the [Lead](https://github.com/internetarchive/openlibrary/wiki/Using-Managed-Labels-to-Track-Issues#triage) designated by the `Lead: @person` label on the issue.
 
 ### Our Roadmap(s)
 You can see this year (and previous year's) roadmap(s) [here](https://docs.google.com/document/d/1KJr3A81Gew7nfuyo9PnCLCjNBDs5c7iR4loOGm1Pafs/edit).
