@@ -18,6 +18,7 @@
     "ecmaVersion": 2021,
     "requireConfigFile": false
   },
+  
   "ignorePatterns": [
     "node_modules/",
     "dist/",
